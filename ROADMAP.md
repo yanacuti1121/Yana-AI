@@ -8,6 +8,10 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
+### v1.3.4 — 2026-05-17
+
+- [x] **L2 Session Memory** — see Planned section
+
 ### v1.3.3 — 2026-05-17
 
 - [x] **Tags on all 4 seed facts** — fact-confidence-rule, fact-hook-exit-codes, fact-scope-boundary, fact-truth-gate; `/memory --tag` now returns real results
@@ -68,8 +72,12 @@ This is a personal agent operating system. Features are added when a real proble
   - `action_gate.md` updated with full coverage table (L0–L5)
   - `HOOK_WIRING.md` updated: v1.3.1, both hooks wired in all presets
 
-- [ ] **L2 memory tier** — session-scoped facts that don't persist across sessions
-  - Only if L1 proves insufficient alone
+- [x] **L2 memory tier** — shipped in v1.3.4
+  - `memory/L2_session/` — gitignored, cleared each session
+  - `add-session-fact.sh` — non-interactive, fast agent writes
+  - `search-session-facts.sh` — keyword + tag filter
+  - `clear-session.sh` — wipe with `--force` or confirmation
+  - `/session` command — add/search/clear/promote to L1
 
 ---
 

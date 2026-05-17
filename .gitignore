@@ -11,9 +11,12 @@ Thumbs.db
 # Node
 node_modules/
 
-# Memory pipeline (if added later)
+# Memory pipeline
 memory/L0_raw/
 memory/L1_atomic/private/
+# L2 session facts are provisional — not persisted across sessions
+memory/L2_session/*.md
+!memory/L2_session/SCHEMA.md
 
 # Build
 dist/
