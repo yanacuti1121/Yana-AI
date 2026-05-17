@@ -15,9 +15,25 @@
 
 set -uo pipefail
 
-emit() {
-  local decision="$1" reason="$2"
-  jq -cn --arg decision "$decision" --arg reason "$reason" '{decision:$decision,reason:$reason}'
+block() {
+  jq -n --arg reason "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: $reason
+    }
+  }'
+  exit 2
+}
+
+warn() {
+  jq -n --arg ctx "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      additionalContext: $ctx
+    }
+  }'
+  exit 0
 }
 
 command -v jq >/dev/null 2>&1 || exit 0
@@ -62,33 +78,29 @@ if [[ "$is_playwright" == true && "$IN_CODESPACES" == true && "${YAMTAM_ALLOW_FU
   fi
   # Block broad directories or no target.
   if [[ "$allowed_targeted" == false ]] || printf '%s' "$CMD" | grep -Eq 'playwright[[:space:]]+test([[:space:]]+tests/e2e/?([[:space:]]|$)|[[:space:]]*$)|npm[[:space:]]+run[[:space:]]+test:e2e([[:space:]]|$)|pnpm[[:space:]]+(run[[:space:]]+)?test:e2e([[:space:]]|$)'; then
-    emit block "Cost Guard: full E2E is blocked in Codespaces. Use GitHub Actions, --grep, --project=smoke, --list, or a single spec file. Set YAMTAM_ALLOW_FULL_E2E=1 only when intentional."
-    exit 0
+    block "Cost Guard: full E2E is blocked in Codespaces. Use GitHub Actions, --grep, --project=smoke, --list, or a single spec file. Set YAMTAM_ALLOW_FULL_E2E=1 only when intentional."
   fi
 fi
 
 # ── Rule 2: Block unscoped repo scan ────────────────────────────────────────
 # Blocks find/grep/rg over repo root without a scope or depth/include limit.
-if printf '%s' "$CMD" | grep -Eq 'grep[[:space:]].*(-r|-R|-rn|-nR)[[:space:]]+\.([[:space:]]|$)|grep[[:space:]].*(-r|-R|-rn|-nR)[[:space:]]+/workspaces|rg[[:space:]]+(--files[[:space:]]*)?$|rg[[:space:]]+\.([[:space:]]|$)|find[[:space:]]+\.([[:space:]]|$)|find[[:space:]]+/workspaces'; then
+if printf '%s' "$CMD" | grep -Eq 'grep[[:space:]].*(-r|-R|-rn|-nR).*[[:space:]]\.([[:space:]]|$)|grep[[:space:]].*(-r|-R|-rn|-nR).*[[:space:]]/workspaces|rg[[:space:]]+(--files[[:space:]]*)?$|rg[[:space:]]+\.([[:space:]]|$)|find[[:space:]]+\.([[:space:]]|$)|find[[:space:]]+/workspaces'; then
   if ! printf '%s' "$CMD" | grep -Eq -- '--include|--glob|-g[[:space:]]|--maxdepth|-maxdepth|app/|lib/|components/|tests/|docs/|\.claude/|--files-with-matches|--type'; then
-    emit block "Cost Guard: unscoped full-repo scan detected. Add a path scope like app/ or lib/, use --include/--glob, or set -maxdepth."
-    exit 0
+    block "Cost Guard: unscoped full-repo scan detected. Add a path scope like app/ or lib/, use --include/--glob, or set -maxdepth."
   fi
 fi
 
 # ── Rule 3: Warn on long-running commands without timeout ───────────────────
 if printf '%s' "$CMD" | grep -Eq '(^|[;&|[:space:]])(npm[[:space:]]+run[[:space:]]+build|pnpm[[:space:]]+(run[[:space:]]+)?build|yarn[[:space:]]+build|next[[:space:]]+build|docker[[:space:]]+build|docker compose[[:space:]].*up|prisma[[:space:]]+migrate|tsc[[:space:]]+--build)'; then
   if ! printf '%s' "$CMD" | grep -Eq 'timeout[[:space:]]+[0-9]+|--timeout'; then
-    emit warn "Cost Guard: long-running command detected. Prefer wrapping with timeout 300 <command>. This hook warns only; it does not rewrite commands."
-    exit 0
+    warn "Cost Guard: long-running command detected. Prefer wrapping with timeout 300 <command>. This hook warns only; it does not rewrite commands."
   fi
 fi
 
 # ── Rule 4: Budget Mode stricter shell protections ──────────────────────────
 if [[ "$BUDGET_MODE" == "on" ]]; then
   if printf '%s' "$CMD" | grep -Eq '(^|[;&|[:space:]])(npm[[:space:]]+install|pnpm[[:space:]]+install|yarn[[:space:]]+install|docker|gh[[:space:]]+workflow[[:space:]]+run|git[[:space:]]+push)'; then
-    emit warn "Budget Mode is ON: command may be costly or state-changing. Confirm scope before proceeding."
-    exit 0
+    warn "Budget Mode is ON: command may be costly or state-changing. Confirm scope before proceeding."
   fi
 fi
 

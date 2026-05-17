@@ -190,6 +190,25 @@ test_truth_gate "Bypass env var suppresses warn" \
   "allow" \
   "bypass"
 
+# 6. cost-guard.sh
+echo ""
+echo "--- cost-guard.sh ---"
+test_hook "cost-guard.sh" "Block unscoped grep -r ." \
+  '{"tool_name":"Bash","tool_input":{"command":"grep -r password ."}}' \
+  "deny"
+test_hook "cost-guard.sh" "Allow scoped grep" \
+  '{"tool_name":"Bash","tool_input":{"command":"grep -r password . --include=\"*.ts\""}}' \
+  "allow"
+test_hook "cost-guard.sh" "Allow non-Bash tool" \
+  '{"tool_name":"Read","tool_input":{"file_path":"README.md"}}' \
+  "allow"
+test_hook "cost-guard.sh" "Allow safe Bash" \
+  '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
+  "allow"
+test_hook "cost-guard.sh" "Bypass suppresses block" \
+  '{"tool_name":"Bash","tool_input":{"command":"grep -r password ."}}' \
+  "allow" "YAMTAM_COST_GUARD_BYPASS" "1"
+
 echo ""
 echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"

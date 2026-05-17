@@ -122,6 +122,7 @@ L1_DIR="$PROJECT_ROOT/memory/L1_atomic"
 if [[ -d "$L1_DIR" ]]; then
   while IFS= read -r -d '' fact_file; do
     [[ "$(basename "$fact_file")" == "INDEX.md" ]] && continue
+    [[ "$(basename "$fact_file")" == "SCHEMA.md" ]] && continue
 
     expires_at=$(grep -oE 'expires_at:\s*[0-9]{4}-[0-9]{2}-[0-9]{2}' "$fact_file" 2>/dev/null \
       | head -1 \

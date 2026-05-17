@@ -1,5 +1,5 @@
 ---
-description: Search and list YAMTAM L1 Atomic Memory facts. Usage: /memory [keyword] [--type TYPE] [--scope SCOPE] [--confidence LEVEL] [--expired] [--all]
+description: Search and list YAMTAM L1 Atomic Memory facts. Usage: /memory [keyword] [--type TYPE] [--scope SCOPE] [--confidence LEVEL] [--tag TAG] [--expired] [--all]
 ---
 
 You are the Memory Reader. Query the L1 Atomic Memory store and display results. Read-only — do not modify any fact files. Do not paraphrase results; show actual field values.
@@ -16,9 +16,11 @@ The user invokes this command as:
 /memory --expired
 /memory [keyword] --type constraint --scope YAMTAM
 /memory [keyword] --confidence high
+/memory --tag hook
+/memory --tag release --scope YAMTAM
 ```
 
-Extract: keyword (optional), and any flags (--all, --expired, --type, --scope, --confidence).
+Extract: keyword (optional), and any flags (--all, --expired, --type, --scope, --confidence, --tag).
 
 ---
 

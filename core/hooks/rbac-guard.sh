@@ -34,12 +34,14 @@ for role in "${ROLES[@]}"; do
 done
 
 if [[ "$permission_granted" != true ]]; then
-  reason=$(python3 - <<PY
-import json
-print(json.dumps(f"RBAC Guard: agent {json.dumps('$AGENT_NAME')[1:-1]} is not allowed to use tool {json.dumps('$TOOL_NAME')[1:-1]}"))
-PY
-)
-  printf '{"decision":"block","reason":%s}\n' "$reason"
+  jq -n --arg agent "$AGENT_NAME" --arg tool "$TOOL_NAME" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: ("RBAC Guard: agent \($agent) is not allowed to use tool \($tool). Check .claude/rbac.json to grant the required permission.")
+    }
+  }'
+  exit 2
 fi
 
 exit 0
