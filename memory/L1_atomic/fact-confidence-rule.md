@@ -5,6 +5,7 @@ statement: L1 fact confidence must be promoted manually only — never auto-prom
 source: file:memory/L1_atomic/SCHEMA.md
 confidence: high
 scope: YAMTAM
+tags: [memory, confidence, schema]
 forbidden_assumptions:
   - Do not infer confidence from the number of times a fact appears
   - Do not promote confidence because a related fact is high-confidence

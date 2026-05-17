@@ -5,6 +5,7 @@ statement: YAMTAM hooks use exit 0 to allow, exit 0 + stdout to warn, and JSON +
 source: file:core/hooks/guard-destructive.sh
 confidence: high
 scope: YAMTAM
+tags: [hook, exit-code, format]
 forbidden_assumptions:
   - Do not assume non-zero exit always blocks — only exit 2 with JSON blocks
   - Do not assume plain stdout output on exit 0 is ignored — Claude Code shows it as context

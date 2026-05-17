@@ -5,6 +5,7 @@ statement: Truth Gate (L3) is enforced by both AI prompt template and runtime St
 source: file:core/hooks/truth-gate-guard.sh
 confidence: high
 scope: YAMTAM
+tags: [hook, truth-gate, claim-verb]
 forbidden_assumptions:
   - Do not assume the hook blocks responses — it warns only (exit 0)
   - Do not assume evidence in a previous turn satisfies the current turn

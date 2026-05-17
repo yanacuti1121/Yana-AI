@@ -5,6 +5,7 @@ statement: YAMTAM-scoped tasks must not edit app/ components/ lib/ db/ migration
 source: file:gates/action_gate.md
 confidence: high
 scope: both
+tags: [scope, gate, cross-scope]
 forbidden_assumptions:
   - Do not assume approval from a previous session carries over
   - Do not assume YAMTAM scope equals product scope
