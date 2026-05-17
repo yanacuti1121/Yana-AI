@@ -8,9 +8,13 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
+### v1.3.5 — 2026-05-17
+
+- [x] **`/memory` L2 integration** — `--l2` (both layers), `--l2-only` (session only); bare `/memory` shows L1 + L2 automatically
+
 ### v1.3.4 — 2026-05-17
 
-- [x] **L2 Session Memory** — see Planned section
+- [x] **L2 Session Memory** — `memory/L2_session/`, `add-session-fact.sh`, `search-session-facts.sh`, `clear-session.sh`, `/session` command; session facts gitignored
 
 ### v1.3.3 — 2026-05-17
 
