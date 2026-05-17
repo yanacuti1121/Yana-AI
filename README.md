@@ -2,7 +2,7 @@
 
 **Personal agent operating system.**
 Hook layer, safety guards, and workflow rules for AI assistants
-(Claude Code, Manus) operating on arbitrary codebases.
+(Claude Code or other AI coding assistants) operating on arbitrary codebases.
 
 **Version:** 1.3.11
 **Status:** Runtime active. 42 tests passing. Release pack live.

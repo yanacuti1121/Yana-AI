@@ -70,7 +70,7 @@ git commit -m "chore: remove YAMTAM ENGINE hooks"
 
 ## Add Truth Gate to AI Prompt
 
-After applying, add this to your Claude/Manus prompt template:
+After applying, add this to your Claude Code or AI assistant prompt template:
 
 ```
 YAMTAM ENGINE vX.Y.Z-fixed is active.

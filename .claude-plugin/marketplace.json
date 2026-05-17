@@ -7,8 +7,9 @@
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
     "hooks": 24,
-    "commands": 24,
+    "commands": 26,
     "agents": 19,
+    "scripts": 18,
     "tests": 42,
     "memory_tiers": 2
   },
@@ -21,6 +22,6 @@
     "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
   ],
   "incident_defense": ["Replit (July 2025)", "PocketOS (April 2026)"],
-  "latest_release": "v1.3.5",
+  "latest_release": "v1.3.11",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine"
 }
