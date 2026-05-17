@@ -8,7 +8,15 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
-### v1.3.0 — 2026-05-17 (this session)
+### v1.3.1 — 2026-05-17
+
+- [x] **Tag support for L1 memory** — `tags` field in SCHEMA.md, `--tag TAG` filter in `search-facts.sh`, tag prompt in `add-fact.sh`, `/memory --tag` documented
+- [x] **Hook output format fix** — `cost-guard.sh` and `rbac-guard.sh` were using wrong output format (`{decision,reason}+exit 0`), now use `hookSpecificOutput+exit 2` — blocking rules were silently doing nothing before this fix
+- [x] **cost-guard.sh regex fix** — unscoped scan pattern now matches `grep -r <pattern> .` correctly (was only matching `grep -r .`)
+- [x] **drift-check.sh fix** — now skips `SCHEMA.md` in stale-facts loop (was only skipping `INDEX.md`)
+- [x] **5 new test cases** — cost-guard.sh block/allow/bypass: 26 total tests (was 21)
+
+### v1.3.0 — 2026-05-17
 
 - [x] **Truth Gate runtime hook** — `truth-gate-guard.sh` (Stop hook, non-blocking)
   Scans claim verbs, checks evidence patterns + fallback qualifiers. 7 test cases.
@@ -40,8 +48,8 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Planned 📋
 
-- [ ] **L1 memory search improvements** — tag-based indexing, fuzzy match
-  - Currently grep-only; workable but not powerful for large fact stores
+- [x] **L1 memory search improvements** — tag support shipped in v1.3.1; fuzzy match not yet needed
+  - Tags: `--tag TAG` filter, `add-fact.sh` prompts for tags, displayed in search output
 
 - [ ] **L4 Action Gate formalization** — current hooks cover ~70%, formalize the rest
   - Missing: commit-level L2 gate, deploy-level L4 gate beyond db-protect
