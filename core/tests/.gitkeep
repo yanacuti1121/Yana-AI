@@ -1,0 +1,3 @@
+# Placeholder.
+# Hook test runner lives in: core/tests/hooks/run-hook-tests.sh
+# Applied path in target project: .claude/tests/hooks/run-hook-tests.sh

@@ -1,0 +1,4 @@
+# Placeholder — canonical location for hook test runner.
+# Drop here when importing from YAMTAM_ENGINE_v1.2.9-fixed pack:
+#   run-hook-tests.sh
+# Applied path in target project: .claude/tests/hooks/run-hook-tests.sh

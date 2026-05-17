@@ -1,0 +1,63 @@
+{
+  "name": "yamtam-engine",
+  "version": "1.2.9-fixed",
+  "scaffold_version": "1.0",
+  "release_date": null,
+  "manifest_updated": "2026-05-08",
+  "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants. Documentation-first scaffold.",
+  "status": "scaffold",
+  "scaffold_notes": [
+    "This is a documentation-first scaffold.",
+    "Hook source files (core/hooks, core/scripts, core/tests) are placeholders.",
+    "Import hooks from YAMTAM_ENGINE_v1.2.9-fixed pack before cutting a real release.",
+    "Truth Gate (L3) is currently enforced via AI prompt only, not via runtime hook."
+  ],
+  "components": {
+    "docs": [
+      "README.md",
+      "CHANGELOG.md",
+      "ROADMAP.md",
+      "MANIFEST.json",
+      "gates/truth_gate.md",
+      "docs/SEPARATION.md",
+      "docs/RUNBOOK.md"
+    ],
+    "hooks": {
+      "status": "placeholder",
+      "expected_files": [
+        "core/hooks/api-destruct-guard.sh",
+        "core/hooks/token-scope-guard.sh",
+        "core/hooks/guard-destructive.sh",
+        "core/hooks/db-protect.sh"
+      ],
+      "actual_present": []
+    },
+    "scripts": {
+      "status": "placeholder",
+      "expected_files": [
+        "core/scripts/verify-claude-pack.js"
+      ],
+      "actual_present": []
+    },
+    "tests": {
+      "status": "placeholder",
+      "expected_files": [
+        "core/tests/hooks/run-hook-tests.sh"
+      ],
+      "actual_present": []
+    },
+    "releases": {
+      "status": "empty",
+      "expected_pattern": "releases/yamtam-engine-vX.Y.Z-fixed.zip"
+    }
+  },
+  "boundary": {
+    "this_repo_contains": "YAMTAM operating core only",
+    "this_repo_does_not_contain": [
+      "any product application code",
+      "any product database schema or migrations",
+      "any product UI components",
+      "any environment files or secrets"
+    ]
+  }
+}
