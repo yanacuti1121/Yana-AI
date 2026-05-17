@@ -209,7 +209,77 @@ test_hook "cost-guard.sh" "Bypass suppresses block" \
   '{"tool_name":"Bash","tool_input":{"command":"grep -r password ."}}' \
   "allow" "YAMTAM_COST_GUARD_BYPASS" "1"
 
-# 7. deploy-gate.sh
+# 7. commit-gate.sh
+# Uses COMMIT_GATE_TEST_STAGED env var to inject staged file list (pipe-separated).
+echo ""
+echo "--- commit-gate.sh ---"
+
+test_commit_gate() {
+    local test_name=$1
+    local staged_files=$2   # pipe-separated list, empty = no staged files
+    local expect=$3         # "warn" or "allow"
+    local bypass=${4:-"no"}
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+
+    if [[ ! -f "$HOOKS_DIR/commit-gate.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/commit-gate.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    echo -n "Testing commit-gate.sh [$test_name]... "
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: update\""}}'
+    local output
+    if [[ "$bypass" == "bypass" ]]; then
+        output=$(echo "$input" | COMMIT_GATE_TEST_STAGED="$staged_files" YAMTAM_SCOPE_OK=1 \
+            bash "$HOOKS_DIR/commit-gate.sh" 2>/dev/null || true)
+    else
+        output=$(echo "$input" | COMMIT_GATE_TEST_STAGED="$staged_files" \
+            bash "$HOOKS_DIR/commit-gate.sh" 2>/dev/null || true)
+    fi
+
+    if [[ "$expect" == "warn" ]]; then
+        if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+            echo "PASS"
+        else
+            echo "FAIL (Expected additionalContext warn, got: ${output:0:120})"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    else
+        if [[ -z "$output" ]]; then
+            echo "PASS"
+        else
+            echo "FAIL (Expected no output, got: ${output:0:120})"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    fi
+}
+
+test_commit_gate "Warn on app/ staged file" \
+    "app/components/Button.tsx" "warn"
+test_commit_gate "Warn on db/ staged file" \
+    "db/schema.prisma" "warn"
+test_commit_gate "Warn on .env staged" \
+    ".env.production" "warn"
+test_commit_gate "Warn on multiple product files" \
+    "app/page.tsx|lib/auth.ts|README.md" "warn"
+test_commit_gate "Allow YAMTAM-only staged files" \
+    "core/hooks/guard-destructive.sh|ROADMAP.md" "allow"
+test_commit_gate "Allow empty staged list" \
+    "" "allow"
+test_commit_gate "Bypass suppresses warn" \
+    "app/components/Button.tsx" "allow" "bypass"
+
+# Override CMD to test non-commit command
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing commit-gate.sh [Allow non-commit command]... "
+_out=$(echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' \
+    | COMMIT_GATE_TEST_STAGED="app/page.tsx" bash "$HOOKS_DIR/commit-gate.sh" 2>/dev/null || true)
+if [[ -z "$_out" ]]; then echo "PASS"; else echo "FAIL (got: ${_out:0:80})"; FAIL_COUNT=$((FAIL_COUNT + 1)); fi
+
+# 8. deploy-gate.sh
 echo ""
 echo "--- deploy-gate.sh ---"
 test_hook "deploy-gate.sh" "Block gh workflow run" \

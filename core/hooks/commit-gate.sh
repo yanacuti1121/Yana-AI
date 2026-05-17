@@ -36,8 +36,12 @@ fi
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 
-# Get staged files
-STAGED=$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null || true)
+# Test seam: COMMIT_GATE_TEST_STAGED="file1\nfile2" — injects staged list without real git
+if [[ -n "${COMMIT_GATE_TEST_STAGED:-}" ]]; then
+  STAGED=$(printf '%s' "$COMMIT_GATE_TEST_STAGED" | tr '|' '\n')
+else
+  STAGED=$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null || true)
+fi
 [[ -z "$STAGED" ]] && exit 0
 
 # Product path patterns (mirrors scope-guard.sh)
