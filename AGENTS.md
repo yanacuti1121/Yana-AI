@@ -11,10 +11,11 @@ operating constraints below.
 ## What to read, in order
 
 1. `AGENTS.md` ← you are here
-2. `gates/truth_gate.md`   — evidence rules before claims (L3)
-3. `gates/action_gate.md`  — rules before write/commit/push (L4)
-4. `docs/SEPARATION.md`    — boundary between YAMTAM and target product
+2. `gates/truth_gate.md`    — evidence rules before claims (L3)
+3. `gates/action_gate.md`   — rules before write/commit/push (L4)
+4. `docs/SEPARATION.md`     — boundary between YAMTAM and target product
 5. `docs/AGENT_BEHAVIOR.md` — concrete examples of good vs bad behavior
+6. `memory/L1_atomic/INDEX.md` — known facts and constraints (read before acting)
 
 If you only have time for one file, read `gates/truth_gate.md`.
 
@@ -27,11 +28,13 @@ If you only have time for one file, read `gates/truth_gate.md`.
    show concrete output (git status, test runner output, file contents) in the
    same response. If you cannot show evidence, soften the language:
    "claimed / reportedly / expected / unverified".
+   Enforced at runtime by `core/hooks/truth-gate-guard.sh` (Stop hook).
 
 2. **No cross-scope edits without approval.**
    If your task is YAMTAM-scoped, never edit target product code
    (`app/`, `components/`, `lib/`, `db/`, `migrations/`, `public/`).
    If your task is product-scoped, never edit YAMTAM operating files.
+   Enforced at runtime by `core/hooks/scope-guard.sh` (PreToolUse hook).
 
 3. **No silent destructive actions.**
    Before any `rm -rf`, `git push --force`, `DROP TABLE`, deploy command,
@@ -70,6 +73,44 @@ In all cases above, the **rules in this file apply** regardless of runtime state
 
 ---
 
+## L1 Atomic Memory
+
+Before acting on any assumption about YAMTAM behavior, check:
+
+```bash
+bash core/scripts/search-facts.sh --all
+bash core/scripts/search-facts.sh "KEYWORD"
+```
+
+Current seed facts (see `memory/L1_atomic/INDEX.md`):
+
+| ID | What it tells you |
+|---|---|
+| `fact-scope-boundary` | Which product paths are off-limits without approval |
+| `fact-truth-gate` | How the Truth Gate hook works and its bypass |
+| `fact-hook-exit-codes` | exit 0 = allow, exit 0 + stdout = warn, JSON + exit 2 = block |
+| `fact-confidence-rule` | Confidence must be promoted manually only |
+
+Do not treat `unverified` facts as reliable for product decisions.
+Add new facts with `bash core/scripts/add-fact.sh`.
+
+---
+
+## Available slash commands
+
+| Command | Purpose |
+|---|---|
+| `/verify` | Full health check: git + hook syntax + tests + drift |
+| `/memory [keyword]` | Search and list L1 Atomic Memory facts |
+| `/status` | Project status card from TODO.md, git, PRD |
+| `/audit` | Lightweight quality audit via 5 agents |
+| `/debug` | Debug a failing feature or test |
+| `/review` | Code review before merge |
+
+Full list: `core/commands/`
+
+---
+
 ## When stuck
 
 1. State exactly what you are stuck on.
@@ -80,15 +121,16 @@ In all cases above, the **rules in this file apply** regardless of runtime state
 
 ---
 
-## Enforcement status
+## Enforcement status (v1.3.0)
 
 | Layer | Enforcement |
 |---|---|
-| L3 Truth Gate (claims) | Prompt only in this scaffold; runtime requires pack import |
-| L4 Action Gate (writes) | Prompt only in this scaffold; runtime requires pack import |
-| Hard blocks (rm -rf, etc.) | Runtime via `core/hooks/*` once pack imported |
-| Audit log | Runtime via pack once imported |
-
-This scaffold alone does NOT enforce anything at runtime. Constraints take
-effect when you (a) follow them in your prompts, or (b) import the YAMTAM
-release pack into the target project's `.claude/` directory.
+| L3 Truth Gate (claims) | ✅ Prompt + runtime hook (`truth-gate-guard.sh`, Stop) |
+| L4 Scope Guard (cross-scope writes) | ✅ Runtime hook (`scope-guard.sh`, PreToolUse) |
+| Hard blocks (rm -rf, force-push, DROP TABLE…) | ✅ Runtime (`guard-destructive.sh`, `db-protect.sh`) |
+| API destruction guard | ✅ Runtime (`api-destruct-guard.sh`) |
+| Token/secret reads | ✅ Runtime (`token-scope-guard.sh`, warns) |
+| Audit log | ✅ Runtime (`audit-log.sh`) |
+| L1 Memory retrieval | ✅ `search-facts.sh` + `/memory` command |
+| Drift detection | ✅ `drift-check.sh` + `/verify` step 4 |
+| Release pack | 🟡 Not yet cut — `releases/` folder empty |
