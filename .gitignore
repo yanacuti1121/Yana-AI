@@ -18,3 +18,4 @@ memory/L1_atomic/private/
 # Build
 dist/
 .next/
+.claude/state/

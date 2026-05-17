@@ -62,7 +62,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 22,
+      "count": 23,
       "actual_present": [
         "core/commands/audit.md",
         "core/commands/budget-mode.md",
@@ -84,13 +84,14 @@
         "core/commands/sync-template.md",
         "core/commands/v10-audit.md",
         "core/commands/v10-fix.md",
+        "core/commands/memory.md",
         "core/commands/verify-pack.md",
         "core/commands/verify.md"
       ]
     },
     "hooks": {
       "status": "imported",
-      "count": 21,
+      "count": 22,
       "actual_present": [
         "core/hooks/api-destruct-guard.sh",
         "core/hooks/audit-log.sh",
@@ -111,18 +112,20 @@
         "core/hooks/telemetry-sender.sh",
         "core/hooks/token-scope-guard.sh",
         "core/hooks/tool-attention.js",
+        "core/hooks/scope-guard.sh",
         "core/hooks/truth-gate-guard.sh",
         "core/hooks/validate-completion.sh"
       ]
     },
     "scripts": {
       "status": "imported",
-      "count": 12,
+      "count": 13,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/budget-mode.sh",
         "core/scripts/code-freeze.sh",
         "core/scripts/drift-check.sh",
+        "core/scripts/search-facts.sh",
         "core/scripts/generate-coverage-report.sh",
         "core/scripts/hook-health.js",
         "core/scripts/run-e2e-tests.sh",
