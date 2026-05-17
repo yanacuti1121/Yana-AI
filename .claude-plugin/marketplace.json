@@ -1,0 +1,26 @@
+{
+  "name": "yamtam-engine",
+  "display_name": "YAMTAM ENGINE",
+  "tagline": "Personal agent operating system — safety hooks, memory, agents for Claude Code",
+  "category": "safety",
+  "tags": ["hooks", "safety", "memory", "agents", "guards", "gates", "L1", "L2"],
+  "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
+  "stats": {
+    "hooks": 24,
+    "commands": 24,
+    "agents": 19,
+    "tests": 42,
+    "memory_tiers": 2
+  },
+  "highlights": [
+    "24 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops",
+    "L1 Atomic Memory — persistent facts with confidence levels and tag search",
+    "L2 Session Memory — provisional session-scoped facts, gitignored",
+    "42 tests across 7 hook families — all pass before each release",
+    "Truth Gate (L3) — warns on claim verbs without evidence",
+    "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
+  ],
+  "incident_defense": ["Replit (July 2025)", "PocketOS (April 2026)"],
+  "latest_release": "v1.3.5",
+  "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine"
+}
