@@ -4,9 +4,8 @@
 Hook layer, safety guards, and workflow rules for AI assistants
 (Claude Code, Manus) operating on arbitrary codebases.
 
-**Scaffold version:** 1.0
-**Targets pack:** YAMTAM ENGINE v1.2.9-fixed
-**Status:** Phase 1 runtime import complete. Core assets present. Release pack not yet cut.
+**Version:** 1.3.0
+**Status:** Runtime active. Truth Gate hook live. L1 memory schema in place. Release pack not yet cut.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -18,8 +17,10 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 `.claude/` directory to constrain what an AI agent can do:
 
 - Block destructive shell, DB, and API commands.
-- Warn when agent reads secrets/tokens.
-- Enforce evidence before agent claims `done` / `passed` / `clean`.
+- Warn when agent reads secrets/tokens or writes to product directories.
+- Enforce evidence before agent claims `done` / `passed` / `clean` (Truth Gate).
+- Detect documentation drift and stale claims automatically.
+- Store verified facts in L1 Atomic Memory (file-based, no network).
 - Log all hook decisions locally for audit.
 
 ## What YAMTAM is not
@@ -43,21 +44,24 @@ yamtam-engine/
 ├── LICENSE
 ├── .gitignore
 │
-├── core/                  ← runtime assets (Phase 1 import complete)
+├── core/                  ← runtime assets
 │   ├── agents/            ← 19 agent definitions
-│   ├── commands/          ← 21 slash commands
-│   ├── hooks/             ← 20 hooks (.sh + .js)
-│   ├── scripts/           ← 10 utility scripts
+│   ├── commands/          ← 23 slash commands (incl. /verify, /memory)
+│   ├── hooks/             ← 22 hooks (.sh + .js)
+│   ├── scripts/           ← 13 utility scripts (incl. drift-check, search-facts, add-fact)
 │   ├── rules/             ← 3 coding rules
 │   ├── templates/         ← 11 project templates
 │   ├── skills/            ← 8 skill definitions (gitnexus + karpathy)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
-│       └── hooks/         ← run-hook-tests.sh
+│       └── hooks/         ← run-hook-tests.sh (20 test cases)
+│
+├── memory/
+│   └── L1_atomic/         ← file-based fact store (schema + index)
 │
 ├── gates/
-│   ├── truth_gate.md      ← L3 spec, prompt-enforced
-│   └── action_gate.md     ← L4 spec, prompt-enforced
+│   ├── truth_gate.md      ← L3 spec + runtime hook (truth-gate-guard.sh)
+│   └── action_gate.md     ← L4 spec + runtime hook (scope-guard.sh)
 │
 ├── prompts/
 │   └── system_prompt.md   ← copy-paste prompt block for AI operators
@@ -80,21 +84,21 @@ Phase 1 runtime import complete. Core assets are present in `core/`.
 
 | Path | Status |
 |---|---|
-| `core/agents/` | 19 agents imported |
-| `core/commands/` | 21 commands imported |
-| `core/hooks/` | 20 hooks imported |
-| `core/scripts/` | 10 scripts imported |
-| `core/rules/` | 3 rules imported |
-| `core/templates/` | 11 templates imported |
-| `core/skills/` | 8 skills imported |
-| `core/config/` | 6 config files imported |
-| `core/tests/hooks/` | run-hook-tests.sh imported |
+| `core/agents/` | ✅ 19 agents |
+| `core/commands/` | ✅ 23 commands |
+| `core/hooks/` | ✅ 22 hooks |
+| `core/scripts/` | ✅ 13 scripts |
+| `core/rules/` | ✅ 3 rules |
+| `core/templates/` | ✅ 11 templates |
+| `core/skills/` | ✅ 8 skills |
+| `core/config/` | ✅ 6 config files |
+| `core/tests/hooks/` | ✅ 20 test cases |
+| `memory/L1_atomic/` | 🟡 schema + index (no facts yet) |
 | `releases/` | empty — release pack not yet cut |
 
 **Pending review before import:** `react-native-developer.md`, `copywriter-seo.md`, `settings.json`.
 
-Runtime enforcement depends on applying the pack to a target project.
-Truth Gate (gates/truth_gate.md) is currently enforced via AI prompt only.
+Truth Gate enforced via prompt **and** runtime hook (`truth-gate-guard.sh`).
 
 ---
 
