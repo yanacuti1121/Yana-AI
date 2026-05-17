@@ -4,8 +4,8 @@
 Hook layer, safety guards, and workflow rules for AI assistants
 (Claude Code, Manus) operating on arbitrary codebases.
 
-**Version:** 1.3.0
-**Status:** Runtime active. Truth Gate hook live. L1 memory schema in place. Release pack not yet cut.
+**Version:** 1.3.11
+**Status:** Runtime active. 42 tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -16,11 +16,12 @@ Hook layer, safety guards, and workflow rules for AI assistants
 A pack of bash hooks, scripts, and tests that you drop into a project's
 `.claude/` directory to constrain what an AI agent can do:
 
-- Block destructive shell, DB, and API commands.
+- Block destructive shell, DB, API, and deploy commands.
 - Warn when agent reads secrets/tokens or writes to product directories.
 - Enforce evidence before agent claims `done` / `passed` / `clean` (Truth Gate).
+- Gate commits touching cross-scope paths; block unauthorized deploys.
+- Store verified facts in L1 Atomic Memory; session facts in L2 (gitignored).
 - Detect documentation drift and stale claims automatically.
-- Store verified facts in L1 Atomic Memory (file-based, no network).
 - Log all hook decisions locally for audit.
 
 ## What YAMTAM is not
@@ -29,6 +30,7 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 - Not a replacement for production safety (IAM, backups, RBAC).
 - Not a full protection layer — see `docs/LIMITATIONS.md` (when imported).
 - Not coupled to any single project. Apply to any repo via release pack.
+- See `.out-of-scope/` for features deliberately not built.
 
 ---
 
@@ -46,75 +48,113 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 19 agent definitions
-│   ├── commands/          ← 23 slash commands (incl. /verify, /memory)
-│   ├── hooks/             ← 22 hooks (.sh + .js)
-│   ├── scripts/           ← 13 utility scripts (incl. drift-check, search-facts, add-fact)
+│   ├── commands/          ← 26 slash commands (incl. /verify, /memory, /session, /wiki)
+│   ├── hooks/             ← 24 hooks (.sh + .js)
+│   ├── scripts/           ← 18 utility scripts
 │   ├── rules/             ← 3 coding rules
 │   ├── templates/         ← 11 project templates
-│   ├── skills/            ← 8 skill definitions (gitnexus + karpathy)
+│   ├── skills/            ← 9 skill definitions (gitnexus + karpathy + git-lessons)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
-│       └── hooks/         ← run-hook-tests.sh (20 test cases)
+│       └── hooks/         ← run-hook-tests.sh (42 test cases)
 │
 ├── memory/
-│   └── L1_atomic/         ← file-based fact store (schema + index)
+│   ├── L1_atomic/         ← persistent fact store (tagged, confidence-gated)
+│   └── L2_session/        ← session-scoped facts (gitignored, cleared each session)
 │
 ├── gates/
 │   ├── truth_gate.md      ← L3 spec + runtime hook (truth-gate-guard.sh)
-│   └── action_gate.md     ← L4 spec + runtime hook (scope-guard.sh)
+│   └── action_gate.md     ← L4 spec (L0–L5 coverage table)
 │
 ├── prompts/
 │   └── system_prompt.md   ← copy-paste prompt block for AI operators
 │
 ├── docs/
+│   ├── HOOK_WIRING.md     ← settings.json presets for all 24 hooks
 │   ├── SEPARATION.md      ← YAMTAM vs target product boundary
 │   ├── RUNBOOK.md         ← apply YAMTAM to any project
 │   ├── AGENT_BEHAVIOR.md  ← good vs bad behavior examples
-│   ├── AGENT_INCIDENT_DEFENSE.md  ← incident defense patterns
-│   └── YAMTAM_ENGINE_v1.2.9_Known_Limitations.md
+│   └── AGENT_INCIDENT_DEFENSE.md
 │
-└── releases/              ← versioned packs (empty until first release)
+├── .out-of-scope/         ← features deliberately not built (5 boundary docs)
+├── .claude-plugin/        ← plugin manifest for /plugin install
+│   ├── plugin.json
+│   └── marketplace.json
+├── .github/
+│   ├── workflows/release.yml      ← auto-release on semver tag push
+│   └── security-advisories/       ← GHSA template + filed advisories
+│
+└── releases/              ← versioned packs
+    ├── yamtam-engine-v1.3.11-fixed.zip  ← latest (142 files, 220K)
+    └── yamtam-engine-latest.zip         ← symlink → latest
 ```
 
 ---
 
-## Import status
+## Asset counts
 
-Phase 1 runtime import complete. Core assets are present in `core/`.
-
-| Path | Status |
+| Path | Count |
 |---|---|
-| `core/agents/` | ✅ 19 agents |
-| `core/commands/` | ✅ 23 commands |
-| `core/hooks/` | ✅ 22 hooks |
-| `core/scripts/` | ✅ 13 scripts |
-| `core/rules/` | ✅ 3 rules |
-| `core/templates/` | ✅ 11 templates |
-| `core/skills/` | ✅ 8 skills |
-| `core/config/` | ✅ 6 config files |
-| `core/tests/hooks/` | ✅ 20 test cases |
-| `memory/L1_atomic/` | ✅ 4 seed facts (scope, truth-gate, hooks, confidence) |
-| `releases/` | empty — release pack not yet cut |
-
-**Pending review before import:** `react-native-developer.md`, `copywriter-seo.md`, `settings.json`.
-
-Truth Gate enforced via prompt **and** runtime hook (`truth-gate-guard.sh`).
+| `core/agents/` | 19 agents |
+| `core/commands/` | 26 commands |
+| `core/hooks/` | 24 hooks |
+| `core/scripts/` | 18 scripts |
+| `core/rules/` | 3 rules |
+| `core/templates/` | 11 templates |
+| `core/skills/` | 9 skills |
+| `core/config/` | 6 config files |
+| `core/tests/hooks/` | 42 test cases |
+| `memory/L1_atomic/` | 4 seed facts (tagged) |
+| `memory/L2_session/` | ephemeral — gitignored |
 
 ---
 
-## How to use
+## Action Gate coverage (L0–L5)
 
-See `docs/RUNBOOK.md` for full apply guide.
+| Level | Hook | Behavior |
+|---|---|---|
+| L0 | `audit-log.sh`, `telemetry-sender.sh` | Log every tool call |
+| L1 | `token-scope-guard.sh`, `scope-guard.sh` | Warn on secret/scope access |
+| L2 | `commit-gate.sh` | Advisory warn on cross-scope commits |
+| L3 | `truth-gate-guard.sh` | Warn on unsupported claims |
+| L4 | `deploy-gate.sh` | Block gh/kubectl/docker/gcloud/fly/heroku deploys |
+| L5 | `db-protect.sh`, `api-destruct-guard.sh`, `guard-destructive.sh` | Block destructive ops |
 
-> Once a release pack has been cut (see RUNBOOK §"Cut a New YAMTAM Release"),
-> the `releases/` folder will contain the pack zip. At scaffold stage, this
-> folder is empty.
+Bypass: `YAMTAM_DEPLOY_APPROVED=1`, `YAMTAM_SCOPE_OK=1`, `YAMTAM_TRUTH_GATE_BYPASS=1`.
 
-Quick version (after a release pack exists):
+---
+
+## How to apply to a project
+
+See `docs/HOOK_WIRING.md` for full wiring guide and `settings.json` presets.
+
 ```bash
-unzip releases/yamtam-engine-vX.Y.Z-fixed.zip -d /path/to/target-project/.claude/
-cd /path/to/target-project
-.claude/tests/hooks/run-hook-tests.sh
+# Apply latest release pack
+unzip releases/yamtam-engine-latest.zip -d /path/to/project/.claude/
+
+# Verify
+cd /path/to/project
+bash .claude/tests/hooks/run-hook-tests.sh
+```
+
+Or install via Claude Code plugin system:
+```
+/plugin install phamlongh230-lgtm/yamtam-engine
+```
+
+---
+
+## How to cut a new release
+
+```bash
+# In this repo — after making changes:
+bash core/scripts/build-release.sh
+# Runs: syntax check → 42 tests → drift check → zip → symlink latest
+```
+
+GitHub Actions auto-releases on semver tag push:
+```bash
+git tag v1.3.11 && git push origin v1.3.11
 ```
 
 ---
