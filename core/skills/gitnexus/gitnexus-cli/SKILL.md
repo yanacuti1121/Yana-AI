@@ -6,6 +6,7 @@ description: "Use when the user needs to run GitNexus CLI commands like analyze/
 # GitNexus CLI Commands
 
 All commands work via `npx` — no global install required.
+**Current version:** 1.6.5
 
 ## Commands
 
@@ -17,10 +18,13 @@ npx gitnexus analyze
 
 Run from the project root. This parses all source files, builds the knowledge graph, writes it to `.gitnexus/`, and generates CLAUDE.md / AGENTS.md context files.
 
-| Flag           | Effect                                                           |
-| -------------- | ---------------------------------------------------------------- |
-| `--force`      | Force full re-index even if up to date                           |
-| `--embeddings` | Enable embedding generation for semantic search (off by default) |
+**v1.6.5:** Incremental indexing by default — only re-processes changed files. Use `--force` to bypass.
+
+| Flag                    | Effect                                                           |
+| ----------------------- | ---------------------------------------------------------------- |
+| `--force`               | Force full re-index even if up to date                           |
+| `--embeddings`          | Enable embedding generation for semantic search (off by default) |
+| `--embeddings-url <url>`| HTTP backend for self-hosted/remote embedding endpoint (v1.6.x)  |
 
 **When to run:** First time in a project, after major code changes, or when `gitnexus://repo/{name}/context` reports the index is stale. In Claude Code, a PostToolUse hook runs `analyze` automatically after `git commit` and `git merge`, preserving embeddings if previously generated.
 
@@ -80,3 +84,4 @@ Lists all repositories registered in `~/.gitnexus/registry.json`. The MCP `list_
 - **"Not inside a git repository"**: Run from a directory inside a git repo
 - **Index is stale after re-analyzing**: Restart Claude Code to reload the MCP server
 - **Embeddings slow**: Omit `--embeddings` (it's off by default) or set `OPENAI_API_KEY` for faster API-based embedding
+- **v1.6.0 install failure**: Early v1.6.0 had `gitnexus-shared` dependency issues — use v1.6.1+ (`npx gitnexus@latest`)

@@ -8,6 +8,12 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
+### v1.3.11 — 2026-05-17
+
+- [x] **gitnexus v1.6.5 upstream refresh** — `gitnexus-cli` skill updated: incremental indexing note, `--embeddings-url` flag, v1.6.0 install bug warning
+- [x] **`/wiki` command + `generate-wiki.sh`** — runs `npx gitnexus wiki`, copies output to `docs/wiki/` (git-tracked), `--commit` flag for auto-commit; agents read `docs/wiki/` instead of scanning code
+- [x] **`git-lessons` skill** — extract lessons from `fix:` commits via `git log --grep`; pattern recognition across area/type/recurrence; promote critical lessons to L1
+
 ### v1.3.10 — 2026-05-17
 
 - [x] **`.out-of-scope/` folder** — 5 boundary documents explaining what YAMTAM does NOT build and why (real-time cost dashboard, multi-agent coordination, enterprise RBAC, L3/L4 memory tiers, cloud console protection)

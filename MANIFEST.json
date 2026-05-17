@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.10",
+  "version": "1.3.11",
   "scaffold_version": "1.0",
   "release_date": "2026-05-17",
   "manifest_updated": "2026-05-17",
@@ -62,7 +62,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 25,
+      "count": 26,
       "actual_present": [
         "core/commands/audit.md",
         "core/commands/budget-mode.md",
@@ -88,7 +88,8 @@
         "core/commands/v10-audit.md",
         "core/commands/v10-fix.md",
         "core/commands/verify.md",
-        "core/commands/verify-pack.md"
+        "core/commands/verify-pack.md",
+        "core/commands/wiki.md"
       ]
     },
     "hooks": {
@@ -123,7 +124,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 17,
+      "count": 18,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -141,6 +142,7 @@
         "core/scripts/verify-claude-pack.js",
         "core/scripts/verify-claude-pack.sh",
         "core/scripts/verify-skills-lock.sh",
+        "core/scripts/generate-wiki.sh",
         "core/scripts/view-audit.sh"
       ]
     },
@@ -179,8 +181,9 @@
     },
     "skills": {
       "status": "imported",
-      "count": 8,
+      "count": 9,
       "actual_present": [
+        "core/skills/git-lessons/SKILL.md",
         "core/skills/gitnexus/gitnexus-cli/SKILL.md",
         "core/skills/gitnexus/gitnexus-debugging/SKILL.md",
         "core/skills/gitnexus/gitnexus-exploring/SKILL.md",
