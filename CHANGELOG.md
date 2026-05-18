@@ -8,6 +8,40 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.11-fire — FIRE List 1–5: Audit Hardening, Fact-Check, Session Trust, Tool Router, Skill Loop
+*2026-05-18*
+
+### New Scripts
+- `core/scripts/verify-audit-chain.sh` — verifies SHA-256 hash chain in audit log; exit 0 = intact, exit 1 = first broken entry printed
+- `core/scripts/session-trust.sh` — tracks session trust score (0–100); `get/show/decrement N/reset`; state in `.claude/state/session-trust.json`
+
+### New Commands
+- `/fact-check [claim]` — proactive claim verification; agent must show evidence inline and rate confidence: `verified / likely / unverified`
+- `/improve-skill [path/to/SKILL.md]` — human-gated skill improvement loop; Executor → Analyst → Mutator → Human; Mutator never edits without approval
+
+### Updated Hooks
+- `audit-log.sh` — upgraded from plain text to SHA-256 hash-chained JSONL (`audit-chain.log`); each entry hashes content + previous hash; tamper-evident
+- `truth-gate-guard.sh` — now calls `session-trust.sh decrement 10` on each unverified claim warning; score < 50 shows `🔴 LOW TRUST SESSION` banner
+
+### Updated Agents
+- `tool-router.md` — added Specialist Routing Table (5 query types → specialist + tool allowlist); Confidence Threshold rule: < 70% → ask user, do not guess; least-privilege enforced
+
+### New Tests
+- `core/tests/hooks/test-audit-chain.sh` — 12 test cases: entry format, genesis hash, chain integrity, secret masking, tampering detection
+- `core/tests/hooks/run-hook-tests.sh` — added 5 session-trust cases; total now 47 tests
+
+### New Docs
+- `docs/ARCHITECTURE.md` — full architecture reference: layer model, hook execution model, memory architecture, agent routing, release process
+- `docs/AUDIT_HARDENING.md` — hash-chain audit log design: format, masking rules, verification, limitations
+
+### Bug Fixes
+- SC2295: fixed unquoted `$PROJECT_ROOT` inside `${..#..}` in `scope-guard.sh`, `context-gate.sh`, `drift-check.sh`, `search-facts.sh`, `search-session-facts.sh`
+- Removed unused `CUTOFF` variable from `drift-check.sh`
+- Fixed execute bit on 6 scripts missing `+x`
+- Version headers bumped from v1.2.x → v1.3.11 in 5 files
+
+---
+
 ## v1.3.11 — gitnexus Upstream Refresh, Wiki Automation, Git Lessons Skill
 *2026-05-17*
 

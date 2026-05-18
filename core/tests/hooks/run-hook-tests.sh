@@ -307,6 +307,51 @@ test_hook "deploy-gate.sh" "Bypass suppresses block" \
   '{"tool_name":"Bash","tool_input":{"command":"kubectl apply -f k8s/deployment.yaml"}}' \
   "allow" "YAMTAM_DEPLOY_APPROVED" "1"
 
+# 9. session-trust.sh
+echo ""
+echo "--- session-trust.sh ---"
+
+test_session_trust() {
+    local test_name=$1
+    local cmd=$2
+    local arg=${3:-""}
+    local expect=$4
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    local script="$HOOKS_DIR/../scripts/session-trust.sh"
+
+    if [[ ! -f "$script" ]]; then
+        echo "FAIL: session-trust.sh not found"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    echo -n "Testing session-trust.sh [$test_name]... "
+
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    local result
+    if [[ -n "$arg" ]]; then
+        result=$(CLAUDE_PROJECT_DIR="$tmpdir" bash "$script" "$cmd" "$arg" 2>/dev/null || true)
+    else
+        result=$(CLAUDE_PROJECT_DIR="$tmpdir" bash "$script" "$cmd" 2>/dev/null || true)
+    fi
+    rm -rf "$tmpdir"
+
+    if [[ "$result" == "$expect" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected '$expect', got '$result')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_session_trust "default score is 100"  "get"        ""   "100"
+test_session_trust "decrement 10 → 90"     "decrement"  "10" "90"
+test_session_trust "reset → 100"           "reset"      ""   "100"
+test_session_trust "floor at 0"            "decrement"  "999" "0"
+test_session_trust "show alias"            "show"       ""   "100"
+
 echo ""
 echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"
