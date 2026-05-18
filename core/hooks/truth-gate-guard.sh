@@ -78,8 +78,20 @@ if printf '%s' "$LAST_TEXT" | grep -qiE "$QUALIFIER_PATTERN"; then
   exit 0
 fi
 
+# ── Session Trust Decrement ───────────────────────────────────────────────────
+# Script path is always relative to this hook's location, not CLAUDE_PROJECT_DIR.
+# CLAUDE_PROJECT_DIR is only used by session-trust.sh itself for the state file.
+_TRUST_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../scripts/session-trust.sh"
+TRUST_SCORE=100
+if [[ -x "$_TRUST_SCRIPT" ]]; then
+  TRUST_SCORE=$(bash "$_TRUST_SCRIPT" decrement 10 2>/dev/null || echo 100)
+fi
+
 # ── Warn ─────────────────────────────────────────────────────────────────────
 echo ""
+if (( TRUST_SCORE < 50 )); then
+  echo "🔴 LOW TRUST SESSION (score: ${TRUST_SCORE}/100) — double evidence required for all claims."
+fi
 echo "⚠️  TRUTH GATE (L3): Claim verb(s) detected without evidence."
 echo "   Found: $FOUND"
 echo "   Required in same response: git output, test runner counts,"
