@@ -4,8 +4,8 @@
 Hook layer, safety guards, and workflow rules for AI assistants
 (Claude Code or other AI coding assistants) operating on arbitrary codebases.
 
-**Version:** 1.3.11
-**Status:** Runtime active. 59 tests passing. Release pack live.
+**Version:** 1.3.14
+**Status:** Runtime active. 47 hook tests + 14 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -50,15 +50,16 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 19 agent definitions
-│   ├── commands/          ← 29 slash commands (incl. /verify, /memory, /fact-check, /agent-map)
+│   ├── commands/          ← 32 slash commands (incl. /verify, /memory, /fact-check, /diff-review, /checkpoint, /handoff)
 │   ├── hooks/             ← 24 hooks (.sh + .js)
 │   ├── scripts/           ← 20 utility scripts
 │   ├── rules/             ← 3 coding rules
 │   ├── templates/         ← 11 project templates
-│   ├── skills/            ← 9 skill definitions (gitnexus + karpathy + git-lessons)
+│   ├── skills/            ← 15 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
-│       └── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (54 test cases)
+│       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (47 test cases)
+│       └── skills/        ← test-skill-triggering.sh (14 skill trigger tests)
 │
 ├── memory/
 │   ├── L1_atomic/         ← persistent fact store (tagged, confidence-gated)
@@ -88,7 +89,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.11-fixed.zip  ← latest (142 files, 220K)
+    ├── yamtam-engine-v1.3.14-fixed.zip  ← latest (165 files, 252K)
     └── yamtam-engine-latest.zip         ← symlink → latest
 ```
 
@@ -99,14 +100,15 @@ yamtam-engine/
 | Path | Count |
 |---|---|
 | `core/agents/` | 19 agents |
-| `core/commands/` | 29 commands |
+| `core/commands/` | 32 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 20 scripts |
 | `core/rules/` | 3 rules |
 | `core/templates/` | 11 templates |
-| `core/skills/` | 9 skills |
+| `core/skills/` | 15 skills |
 | `core/config/` | 6 config files |
-| `core/tests/hooks/` | 59 test cases |
+| `core/tests/hooks/` | 47 test cases |
+| `core/tests/skills/` | 14 skill trigger tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |
 
@@ -152,12 +154,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 42 tests → drift check → zip → symlink latest
+# Runs: syntax check → 47 hook tests → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.11 && git push origin v1.3.11
+git tag v1.3.14 && git push origin v1.3.14
 ```
 
 ---
