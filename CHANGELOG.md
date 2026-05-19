@@ -8,6 +8,31 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.20 — YAMTAM-Native Governance Skills
+*2026-05-19*
+
+### New Skills (+2, total 36 → 38)
+
+**`telemetry-analysis`**
+Phân tích dữ liệu telemetry local của YAMTAM: hook activity, token usage pattern,
+trust score health, bypass usage. Đọc từ `.claude/state/telemetry.jsonl`,
+`audit-chain.log`, `session-trust.json`. Không cần network.
+Triggers: "xem log", "hook nào fire", "audit trail", "token usage", "session summary".
+
+**`subagent-dependency`**
+Orchestrate multi-agent workflow theo DAG (Directed Acyclic Graph): phân loại
+dependency (none/data/exclusive/soft), xác định wave parallel vs sequential,
+dispatch template, merge results. Sizing guide theo codebase size.
+Triggers: "orchestrate agents", "chạy song song", "parallel agents", "agent pipeline".
+
+### New Tests
+- `test-skill-triggering.sh` — +6 trigger cases (2 skills × 3 phrases). Total: 25 → 31.
+
+### MANIFEST
+- Version 1.3.19 → 1.3.20; skills 36 → 38.
+
+---
+
 ## v1.3.19 — wshobson/commands Import
 *2026-05-19*
 

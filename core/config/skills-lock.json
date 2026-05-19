@@ -141,6 +141,20 @@
       "sourcePath": ".claude/skills/lsp-navigation",
       "localPath": ".claude/skills/lsp-navigation",
       "computedHash": ""
+    },
+    "telemetry-analysis": {
+      "source": "local-template",
+      "sourceType": "local",
+      "sourcePath": ".claude/skills/telemetry-analysis",
+      "localPath": ".claude/skills/telemetry-analysis",
+      "computedHash": ""
+    },
+    "subagent-dependency": {
+      "source": "local-template",
+      "sourceType": "local",
+      "sourcePath": ".claude/skills/subagent-dependency",
+      "localPath": ".claude/skills/subagent-dependency",
+      "computedHash": ""
     }
   }
 }

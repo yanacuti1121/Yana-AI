@@ -70,6 +70,16 @@ check_skill "lsp-navigation"     "defined"
 check_skill "lsp-navigation"     "references"
 check_skill "lsp-navigation"     "grep"
 
+# Telemetry analysis skill (v1.3.20)
+check_skill "telemetry-analysis" "hook"
+check_skill "telemetry-analysis" "audit"
+check_skill "telemetry-analysis" "telemetry"
+
+# Subagent dependency skill (v1.3.20)
+check_skill "subagent-dependency" "parallel"
+check_skill "subagent-dependency" "orchestrate"
+check_skill "subagent-dependency" "dependency"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

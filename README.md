@@ -6,7 +6,7 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
-**Version:** 1.3.19
+**Version:** 1.3.20
 **Status:** Runtime active. 47 hook tests + 25 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
@@ -110,10 +110,10 @@ yamtam-engine/
 | `core/scripts/` | 20 scripts |
 | `core/rules/` | 4 rules |
 | `core/templates/` | 11 templates |
-| `core/skills/` | 36 skills |
+| `core/skills/` | 38 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 47 test cases |
-| `core/tests/skills/` | 25 skill trigger tests |
+| `core/tests/skills/` | 31 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |
