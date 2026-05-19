@@ -1,6 +1,6 @@
 # YAMTAM ENGINE — Architecture
 
-**Version:** 1.3.23-clean
+**Version:** 1.3.25-clean
 **Type:** Hook layer — not a service, not a framework.
 
 ---

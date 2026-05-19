@@ -8,6 +8,25 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.25-clean — Metadata Sync
+*2026-05-19*
+
+### Sync only — no new features
+
+| File | Trước | Sau |
+|---|---|---|
+| `.claude-plugin/plugin.json` | version 1.3.23, 141 cmds, 83 agents, 49 skills, 108 checks | version 1.3.25, 152/87/64/123 |
+| `.claude-plugin/marketplace.json` | stats cũ, latest_release v1.3.23-clean | stats mới, latest v1.3.25-clean |
+| `MANIFEST.json` releases | latest → v1.3.23, files có v1.3.22 (đã xóa) | latest → v1.3.24, files [v1.3.23, v1.3.24] |
+| `docs/ARCHITECTURE.md` | 1.3.23-clean | **1.3.25-clean** |
+| `docs/HOOK_WIRING.md` | 1.3.23-clean | **1.3.25-clean** |
+| `docs/MAINTENANCE_POLICY.md` | 1.3.23-clean | **1.3.25-clean** |
+| `docs/CLAUDE_MD_GUIDE.md` | 1.3.23-clean | **1.3.25-clean** |
+| `run-hook-tests.sh` banner | v1.3.15 | **v1.3.25** |
+| `test-skill-triggering.sh` banner | v1.3.15 | **v1.3.25** |
+
+---
+
 ## v1.3.24 — Phase 9 Import: claude-forge + karanb192 patterns
 *2026-05-19*
 

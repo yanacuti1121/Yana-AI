@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.24",
+  "version": "1.3.25",
   "scaffold_version": "1.0",
   "release_date": "2026-05-19",
   "manifest_updated": "2026-05-19",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.25-clean — metadata sync: plugin.json + marketplace.json counts (87 agents/152 commands/64 skills/123 checks/58 skill triggers), MANIFEST releases index corrected (latest → v1.3.24, files list fixed), docs version bump (all → 1.3.25-clean), run-hook-tests.sh banner v1.3.15 → v1.3.25.",
     "v1.3.24 — Phase 9 import from sangrokjung/claude-forge (MIT): 4 agents (build-error-resolver, verify-agent, planner, database-reviewer), 11 commands (handoff-verify, commit-push-pr, refactor-clean, sync-docs, quick-commit, worktree-start, worktree-cleanup, eval, suggest-automation, learn, next-task), 13 skills (team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation), 6 rules (golden-principles, verification, security, git-workflow-v2, testing, agents-v2). Phase 9 also: 2 karanb192-inspired skills (hook-block-commands, hook-protect-secrets).",
     "v1.3.23-clean — metadata/docs sync: plugin.json + marketplace.json counts (83 agents/141 commands/49 skills/108 checks), docs version bump (ARCHITECTURE/HOOK_WIRING/MAINTENANCE_POLICY/CLAUDE_MD_GUIDE → 1.3.23-clean), README fix (42→83 agents), verify-skills-lock.sh + update-skills-lock.sh path fallback (scaffold vs installed), release zip policy added to MAINTENANCE_POLICY.",
     "v1.3.22 — Phase 8 import: 9 skills from alirezarezvani/claude-skills (agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research) + 2 YAMTAM-native skills (session-context, pre-compact-backup from disler patterns). hook-review.md false-positive fix (exclude core/commands/ from bypass scan).",
@@ -472,10 +473,11 @@
       "status": "active",
       "policy": "Keep latest + 1 previous in repo. Older versions archived to GitHub Releases. See docs/MAINTENANCE_POLICY.md.",
       "files": [
-        "releases/yamtam-engine-v1.3.22-fixed.zip",
-        "releases/yamtam-engine-v1.3.23-fixed.zip"
+        "releases/yamtam-engine-v1.3.24-fixed.zip",
+        "releases/yamtam-engine-v1.3.25-fixed.zip"
       ],
-      "latest": "releases/yamtam-engine-v1.3.23-fixed.zip"
+      "symlink": "releases/yamtam-engine-latest.zip → yamtam-engine-v1.3.25-fixed.zip",
+      "latest": "releases/yamtam-engine-v1.3.25-fixed.zip"
     },
     "import_notes": [
       "v1.3.16 — Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",

@@ -7,25 +7,25 @@
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
     "hooks": 24,
-    "commands": 141,
-    "agents": 83,
+    "commands": 152,
+    "agents": 87,
     "scripts": 20,
-    "skills": 49,
-    "checks": 108,
+    "skills": 64,
+    "checks": 123,
     "memory_tiers": 2
   },
   "highlights": [
     "24 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops",
-    "83 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration)",
-    "141 slash commands (security-audit, performance-audit, write-tests, ultra-think, tdd-cycle, smart-fix)",
-    "49 skills (gitnexus x7, agenthub, write-a-skill, pulse, research, caveman, and more)",
+    "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
+    "152 slash commands (security-audit, performance-audit, write-tests, ultra-think, tdd-cycle, smart-fix, handoff-verify, commit-push-pr)",
+    "64 skills (gitnexus x7, agenthub, write-a-skill, pulse, research, team-orchestrator, strategic-compact, security-compliance, and more)",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search",
     "L2 Session Memory — provisional session-scoped facts, gitignored",
-    "108 checks: 47 hook + 12 audit-chain + 43 skill trigger + 6 command smoke — all pass before each release",
+    "123 checks: 47 hook + 12 audit-chain + 58 skill trigger + 6 command smoke — all pass before each release",
     "Truth Gate (L3) — warns on claim verbs without evidence",
     "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
   ],
   "incident_defense": ["Replit (July 2025)", "PocketOS (April 2026)"],
-  "latest_release": "v1.3.23-clean",
+  "latest_release": "v1.3.25-clean",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine"
 }

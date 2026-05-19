@@ -6,7 +6,7 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
-**Version:** 1.3.24
+**Version:** 1.3.25-clean
 **Status:** Runtime active. 123 checks passing (47 hook + 12 audit + 58 skill + 6 smoke). Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
@@ -94,7 +94,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.24-fixed.zip  ← latest
+    ├── yamtam-engine-v1.3.25-fixed.zip  ← latest
     └── yamtam-engine-latest.zip         ← symlink → latest
 ```
 
@@ -165,7 +165,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.24 && git push origin v1.3.24
+git tag v1.3.25-clean && git push origin v1.3.25-clean
 ```
 
 ---
