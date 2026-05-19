@@ -4,6 +4,8 @@
 Hook layer, safety guards, and workflow rules for AI assistants
 (Claude Code or other AI coding assistants) operating on arbitrary codebases.
 
+![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
+
 **Version:** 1.3.16
 **Status:** Runtime active. 47 hook tests + 25 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
