@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# YAMTAM ENGINE v1.3.16 — Smoke test for /hook-review command file
+# YAMTAM ENGINE v1.3.25 — Smoke test for /hook-review command file
 # Không chạy command thật — chỉ verify file tồn tại và đúng format.
 
 set -uo pipefail
