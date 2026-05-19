@@ -140,6 +140,23 @@ I am stopping here. Please confirm:
 
 ---
 
+## Output Budget Policy (companion layer)
+
+The Action Gate focuses on **write safety**. The Output Budget Layer focuses on
+**output volume** — preventing context bloat from bash tool output.
+
+Key rules (full spec in `docs/OUTPUT_BUDGET_POLICY.md`):
+
+- Agents MUST filter bash output: keep exit code, last 1–3 lines, signal lines (ERROR/WARN/FAIL).
+- Commands with large output (npm install, docker build, git log) MUST be flagged before running.
+- In Budget Mode, curl/wget without a pipe filter are additionally blocked.
+- Raw output can be recovered on demand via `/output-raw last`.
+
+This is **convention-enforced** at the agent prompt level. No new hook required.
+Token Guard (`core/agents/token-guard.md`) audits compliance.
+
+---
+
 ## Currently Enforced Via
 
 Runtime hooks in `core/hooks/` (active — not placeholders):

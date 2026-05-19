@@ -327,6 +327,76 @@ Run before committing: nothing required (docs-only changes).
 
 ---
 
+## Section 7 — Output Budget (Terminal Output Filter)
+
+### Running a command with large output
+
+❌ Bad
+```
+[agent runs `npm install` and dumps 200 lines of download logs into context]
+```
+
+✅ Good
+```
+Running npm install. Applying output filter (OUTPUT_BUDGET_POLICY.md):
+keeping exit code + final summary lines only.
+
+npm install output (filtered):
+  added 142 packages in 8s
+  Exit code: 0
+```
+
+### Running git log without limit
+
+❌ Bad
+```
+[agent runs `git log` with no flags, dumps full history into context]
+```
+
+✅ Good
+```
+Running git log --oneline -10 to stay within output budget.
+If you need full history, I'll run without the limit on request.
+```
+
+### User needs the full output back
+
+❌ Bad
+```
+[agent says "I already showed you the output" when it actually filtered it]
+```
+
+✅ Good
+```
+I filtered the previous output per OUTPUT_BUDGET_POLICY.md.
+Full output is available — run /output-raw last or ask me to re-run without filter.
+```
+
+### Reporting session output volume
+
+❌ Bad
+```
+"This session used approximately 40% fewer tokens thanks to output filtering."
+[no benchmark, no data]
+```
+
+✅ Good
+```
+/output-budget report
+
+Output Budget Report — YAMTAM ENGINE
+─────────────────────────────────────
+Bash tool calls:       7
+Read tool calls:       4   (~18 KB)
+Write/Edit calls:      2
+Agent invocations:     0
+─────────────────────────────────────
+Budget Mode:           OFF
+Note: proxy metrics only — not API token counts.
+```
+
+---
+
 ## Reference
 
 Rules summarized in: `AGENTS.md`
