@@ -8,7 +8,7 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
-## v1.3.25-clean — Metadata Sync
+## v1.3.25-clean — Metadata Sync + Stale Ref Fixes
 *2026-05-19*
 
 ### Sync only — no new features
@@ -17,13 +17,17 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 |---|---|---|
 | `.claude-plugin/plugin.json` | version 1.3.23, 141 cmds, 83 agents, 49 skills, 108 checks | version 1.3.25, 152/87/64/123 |
 | `.claude-plugin/marketplace.json` | stats cũ, latest_release v1.3.23-clean | stats mới, latest v1.3.25-clean |
-| `MANIFEST.json` releases | latest → v1.3.23, files có v1.3.22 (đã xóa) | latest → v1.3.24, files [v1.3.23, v1.3.24] |
+| `MANIFEST.json` releases | latest → v1.3.23, files có v1.3.22 (đã xóa) | latest → v1.3.25, files [v1.3.24, v1.3.25] |
+| `MANIFEST.json` tests | count 3, thiếu smoke test | count 4, có `test-hook-review-smoke.sh` |
 | `docs/ARCHITECTURE.md` | 1.3.23-clean | **1.3.25-clean** |
 | `docs/HOOK_WIRING.md` | 1.3.23-clean | **1.3.25-clean** |
-| `docs/MAINTENANCE_POLICY.md` | 1.3.23-clean | **1.3.25-clean** |
+| `docs/MAINTENANCE_POLICY.md` | 1.3.23-clean, hiện trạng v1.3.22+v1.3.21 | **1.3.25-clean**, hiện trạng v1.3.25+v1.3.24 |
 | `docs/CLAUDE_MD_GUIDE.md` | 1.3.23-clean | **1.3.25-clean** |
 | `run-hook-tests.sh` banner | v1.3.15 | **v1.3.25** |
 | `test-skill-triggering.sh` banner | v1.3.15 | **v1.3.25** |
+| `README.md` tree commands | 141 | **152** |
+| `core/rules/subagent-policy.md` | Version 1.3.16 | **Version 1.3.25** |
+| `core/rules/conflict-resolution.md` | Version 1.3.21 | **Version 1.3.25** |
 
 ---
 

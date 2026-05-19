@@ -346,11 +346,12 @@
     },
     "tests": {
       "status": "imported",
-      "count": 3,
+      "count": 4,
       "actual_present": [
         "core/tests/hooks/run-hook-tests.sh",
         "core/tests/hooks/test-audit-chain.sh",
-        "core/tests/skills/test-skill-triggering.sh"
+        "core/tests/skills/test-skill-triggering.sh",
+        "core/tests/commands/test-hook-review-smoke.sh"
       ]
     },
     "rules": {

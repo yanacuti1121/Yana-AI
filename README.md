@@ -52,7 +52,7 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
-│   ├── commands/          ← 141 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
+│   ├── commands/          ← 152 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 24 hooks (.sh + .js)
 │   ├── scripts/           ← 20 utility scripts
 │   ├── rules/             ← 5 coding rules (incl. subagent-policy, conflict-resolution)
