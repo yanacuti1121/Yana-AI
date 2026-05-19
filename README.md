@@ -6,7 +6,7 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
-**Version:** 1.3.20
+**Version:** 1.3.21
 **Status:** Runtime active. 47 hook tests + 25 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
@@ -55,7 +55,7 @@ yamtam-engine/
 │   ├── commands/          ← 141 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 24 hooks (.sh + .js)
 │   ├── scripts/           ← 20 utility scripts
-│   ├── rules/             ← 4 coding rules (incl. subagent-policy)
+│   ├── rules/             ← 5 coding rules (incl. subagent-policy, conflict-resolution)
 │   ├── templates/         ← 11 project templates
 │   ├── skills/            ← 24 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail)
 │   ├── config/            ← 6 config JSON files
@@ -108,7 +108,7 @@ yamtam-engine/
 | `core/commands/` | 141 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 20 scripts |
-| `core/rules/` | 4 rules |
+| `core/rules/` | 5 rules |
 | `core/templates/` | 11 templates |
 | `core/skills/` | 38 skills |
 | `core/config/` | 6 config files |

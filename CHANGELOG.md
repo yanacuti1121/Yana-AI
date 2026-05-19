@@ -8,6 +8,25 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.21 — Conflict Resolution Policy
+*2026-05-19*
+
+### New Rules
+**`core/rules/conflict-resolution.md`** — Multi-agent edit conflict resolution policy:
+
+- **Phát hiện:** Main agent scan overlap line range sau khi nhận toàn bộ subagent reports
+- **Phân loại:** 3 loại conflict — `direct` (xung đột), `overlap` (chồng vùng), `dependency` (vô hiệu hóa nhau)
+- **Ưu tiên:** Safety > Correctness > Performance > Style
+- **Strategies:** Sequential (không mâu thuẫn) → Merge (bổ sung nhau) → Human escalation (thực sự conflict)
+- **Conflict log:** Format chuẩn để audit trail mọi quyết định resolve
+- **Red flags:** Bắt buộc escalate với schema migration, public API, xóa file, thiếu evidence
+- **Phòng ngừa:** Scope subagent không overlap từ đầu — tốt hơn giải quyết sau
+
+### MANIFEST
+- Version 1.3.20 → 1.3.21; rules 4 → 5.
+
+---
+
 ## v1.3.20 — YAMTAM-Native Governance Skills
 *2026-05-19*
 
