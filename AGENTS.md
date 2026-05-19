@@ -117,14 +117,25 @@ Promote important session facts to L1 with `/session promote <id>`.
 
 ## Available slash commands
 
+152 commands in `core/commands/`. Key ones:
+
 | Command | Purpose |
 |---|---|
 | `/verify` | Full health check: git + hook syntax + tests + drift |
-| `/memory [keyword]` | Search L1 + L2 facts; `--l2-only` for session only |
+| `/fact-check` | Proactively verify claims before stating them |
+| `/hook-review` | Review all hooks for staleness and coverage |
+| `/improve-skill` | Propose improvements to a skill (human-gated) |
+| `/memory [keyword]` | Search L1 + L2 facts |
 | `/session` | Add, search, clear, or promote L2 session facts |
-| `/wiki` | Generate static docs from gitnexus graph → `docs/wiki/` |
-| `/code-simplify [path]` | Identify dead code, over-abstraction, redundant logic |
-| `/status` | Project status card from TODO.md, git, PRD |
+| `/handoff` | Generate session handoff document |
+| `/checkpoint` | Save current session state |
+| `/security-audit` | Security review via dedicated agents |
+| `/performance-audit` | Performance review |
+| `/tdd-cycle` | Red → Green → Refactor TDD loop |
+| `/smart-fix` | Diagnose + fix with evidence before claiming done |
+| `/ultra-think` | Deep multi-angle reasoning before acting |
+| `/write-tests` | Generate tests for existing code |
+| `/status` | Project status card |
 | `/audit` | Lightweight quality audit via 5 agents |
 | `/debug` | Debug a failing feature or test |
 | `/review` | Code review before merge |
@@ -135,15 +146,29 @@ Full list: `core/commands/`
 
 ## Available skills
 
+64 skills in `core/skills/`. Key triggers:
+
 | Skill | Trigger |
 |---|---|
 | `git-lessons` | Past bugs, recurring mistakes, "have we hit this before?" |
-| `gitnexus-exploring` | Architecture understanding, "how does X work?" |
-| `gitnexus-debugging` | Trace bugs, "why is X failing?" |
-| `gitnexus-impact-analysis` | Blast radius, "what breaks if I change X?" |
-| `gitnexus-refactoring` | Rename, extract, split, move |
-| `gitnexus-cli` | Index/re-index, status, wiki, clean |
+| `gitnexus-*` (x7) | Architecture, debugging, impact analysis, refactoring, PR review |
 | `karpathy-guidelines` | Code quality principles |
+| `plan-first` | Multi-step tasks, "implement X" |
+| `verify-before-done` | Before claiming done / fixed / passed |
+| `debug-protocol` | Bug, error, "why is X failing?" |
+| `tdd` | Red-green-refactor, test-driven development |
+| `lsp-navigation` | "Where is X defined?", grep, references |
+| `telemetry-analysis` | Hook activity, audit log analysis |
+| `subagent-dependency` | Parallel agents, orchestration, DAG dependencies |
+| `agenthub` | Multi-agent worktree parallelism |
+| `handoff` | Session handoff, context transfer |
+| `team-orchestrator` | Agent team composition and task distribution |
+| `verification-engine` | QA pipeline: typecheck → lint → build → test |
+| `security-compliance` | SOC 2 / OWASP / STRIDE compliance |
+| `hook-block-commands` | Pattern guide for blocking dangerous shell commands |
+| `hook-protect-secrets` | Pattern guide for protecting secrets |
+
+Full list: `core/skills/`
 
 ---
 
@@ -157,7 +182,7 @@ Full list: `core/commands/`
 
 ---
 
-## Enforcement status (v1.3.11)
+## Enforcement status (v1.3.25)
 
 | Layer | Hook | Behavior |
 |---|---|---|
@@ -170,4 +195,4 @@ Full list: `core/commands/`
 | L5 Block: destructive | `guard-destructive.sh`, `db-protect.sh`, `api-destruct-guard.sh` | Block rm -rf, DROP TABLE, DELETE without WHERE |
 | Memory | `search-facts.sh`, `search-session-facts.sh` | L1 + L2 retrieval |
 | Drift detection | `drift-check.sh` | Stale facts, README overclaims, task drift |
-| Release integrity | `build-release.sh` | Syntax + 42 tests + drift before pack |
+| Release integrity | `build-release.sh` | Syntax + 123 checks (47+12+58+6) + drift before pack |
