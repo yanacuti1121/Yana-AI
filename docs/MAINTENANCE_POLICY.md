@@ -1,6 +1,6 @@
 # YAMTAM ENGINE — Maintenance Policy
 
-> Version: 1.3.25-clean | Updated: 2026-05-19
+> Version: 1.3.26 | Updated: 2026-05-19
 
 ## Chu kỳ review định kỳ
 

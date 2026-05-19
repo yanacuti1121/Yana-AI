@@ -117,7 +117,7 @@ Promote important session facts to L1 with `/session promote <id>`.
 
 ## Available slash commands
 
-152 commands in `core/commands/`. Key ones:
+155 commands in `core/commands/`. Key ones:
 
 | Command | Purpose |
 |---|---|
@@ -182,7 +182,7 @@ Full list: `core/skills/`
 
 ---
 
-## Enforcement status (v1.3.25)
+## Enforcement status (v1.3.26)
 
 | Layer | Hook | Behavior |
 |---|---|---|

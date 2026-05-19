@@ -9,15 +9,15 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Asset | Count |
 |---|---|
 | Agents | 87 |
-| Commands | 152 |
+| Commands | 155 |
 | Hooks | 24 |
-| Scripts | 20 |
+| Scripts | 21 |
 | Skills | 64 |
 | Rules | 11 |
-| Templates | 11 |
+| Templates | 10 |
 | Tests | 123 checks (47 hook + 12 audit + 58 skill + 6 smoke) |
 
-**Version:** 1.3.25-clean
+**Version:** 1.3.26
 **Status:** Runtime active. 123 checks passing (47 hook + 12 audit + 58 skill + 6 smoke). Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
@@ -63,11 +63,11 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
-│   ├── commands/          ← 152 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
+│   ├── commands/          ← 155 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 24 hooks (.sh + .js)
-│   ├── scripts/           ← 20 utility scripts
-│   ├── rules/             ← 5 coding rules (incl. subagent-policy, conflict-resolution)
-│   ├── templates/         ← 11 project templates
+│   ├── scripts/           ← 21 utility scripts
+│   ├── rules/             ← 11 coding rules (incl. subagent-policy, conflict-resolution)
+│   ├── templates/         ← 10 project templates
 │   ├── skills/            ← 64 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
@@ -105,7 +105,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.25-fixed.zip  ← latest
+    ├── yamtam-engine-v1.3.26.zip        ← latest
     └── yamtam-engine-latest.zip         ← symlink → latest
 ```
 
@@ -116,11 +116,11 @@ yamtam-engine/
 | Path | Count |
 |---|---|
 | `core/agents/` | 87 agents |
-| `core/commands/` | 152 commands |
+| `core/commands/` | 155 commands |
 | `core/hooks/` | 24 hooks |
-| `core/scripts/` | 20 scripts |
+| `core/scripts/` | 21 scripts |
 | `core/rules/` | 11 rules |
-| `core/templates/` | 11 templates |
+| `core/templates/` | 10 templates |
 | `core/skills/` | 64 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 47 test cases |
@@ -176,7 +176,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.25-clean && git push origin v1.3.25-clean
+git tag v1.3.26 && git push origin v1.3.26
 ```
 
 ---

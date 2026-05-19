@@ -145,6 +145,13 @@ if [[ -d "$L1_DIR" ]]; then
   done < <(find "$L1_DIR" -maxdepth 1 -name "*.md" -print0 2>/dev/null)
 fi
 
+# ── TODO: Count cross-check ───────────────────────────────────────────────────
+# Future improvement: compare actual file counts on disk vs MANIFEST.json counts
+# for each component (commands, scripts, hooks, templates, rules, agents, skills).
+# Flag as DRIFT if counts diverge. Currently this check is manual (run count audit
+# by hand or via /session-cost report). Adding this would require jq or python3.
+# Complexity: medium — add when count drift has caused a real release incident.
+
 # ── Report ────────────────────────────────────────────────────────────────────
 
 if [[ $ISSUE_COUNT -eq 0 ]]; then

@@ -8,6 +8,52 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.26 — Count Sync + Output Budget Layer
+*2026-05-19*
+
+### New commands
+| Command | Mô tả |
+|---|---|
+| `/output-budget` | Proxy report: tool calls, reads, writes trong session |
+| `/output-raw` | Lấy lại full output bị filter — không cần re-run nếu còn trong context |
+| `/session-cost` | Token thật + ước tính USD từ JSONL local — offline, no API |
+
+### New script
+| Script | Mô tả |
+|---|---|
+| `core/scripts/session-cost.sh` | Đọc `~/.claude/projects/*.jsonl`, aggregate input/output/cache tokens, cache hit rate, est. cost |
+
+### New docs
+| File | Mô tả |
+|---|---|
+| `docs/OUTPUT_BUDGET_POLICY.md` | Terminal output filter rules, ALLOW/WARN/BLOCK table, L0/L1/L2 tiered read policy |
+| `docs/OUTPUT_BUDGET_INTEGRATION.md` | Guide tích hợp cho Claude Code, Cursor, Gemini |
+
+### Count sync (metadata only)
+
+| File | Trước | Sau |
+|---|---|---|
+| `MANIFEST.json` commands | count 152, list 141 | count 155, list 155 (đủ 155 file thật) |
+| `MANIFEST.json` scripts | count 20, list 20 | count 21, list 21 (+ session-cost.sh) |
+| `MANIFEST.json` templates | count 11, list 11 | count 10, list 10 (- TASK_TEMPLATE.md) |
+| `MANIFEST.json` rules | list 5 | list 11 (đủ 11 file thật) |
+| `MANIFEST.json` version | 1.3.25 | **1.3.26** |
+| `.claude-plugin/plugin.json` | version 1.3.25, 152 cmds, 20 scripts | version 1.3.26, 155/21 |
+| `.claude-plugin/marketplace.json` | 152 cmds, 20 scripts | 155/21 |
+| `README.md` | 152 cmds, 20 scripts, 11 templates | **155/21/10** |
+| `AGENTS.md` | 152 commands, v1.3.25 | **155, v1.3.26** |
+| `drift-check.sh` | không có count check | TODO comment thêm vào |
+
+### Tests (all pass)
+- hook tests: 47/47 PASS
+- audit chain: 12/12 PASS
+- skill trigger: 58/58 PASS
+- command smoke: 6/6 PASS
+- drift-check: CLEAN
+- skills-lock: PASS
+
+---
+
 ## v1.3.25-clean — Metadata Sync + Stale Ref Fixes
 *2026-05-19*
 
