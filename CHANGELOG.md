@@ -8,6 +8,35 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.19 — wshobson/commands Import
+*2026-05-19*
+
+### New Commands (+45, total 96 → 141)
+
+**Tools (×34):**
+`accessibility-audit`, `ai-assistant`, `ai-review`, `api-mock`, `api-scaffold`,
+`code-migrate`, `compliance-check`, `config-validate`, `context-restore`, `context-save`,
+`cost-optimize`, `data-pipeline`, `data-validation`, `db-migrate`, `debug-trace`,
+`deploy-checklist`, `deps-upgrade`, `docker-optimize`, `error-analysis`, `error-trace`,
+`issue`, `langchain-agent`, `monitor-setup`, `multi-agent-optimize`, `multi-agent-review`,
+`pr-enhance`, `prompt-optimize`, `slo-implement`, `smart-debug`, `tdd-green`, `tdd-red`,
+`tdd-refactor`, `tech-debt`, `test-harness`
+
+**Workflows (×11):**
+`data-driven-feature`, `full-review`, `full-stack-feature`, `improve-agent`,
+`incident-response`, `legacy-modernize`, `ml-pipeline`, `multi-platform`,
+`smart-fix`, `tdd-cycle`, `workflow-automate`
+
+Source: wshobson/commands (MIT License)
+
+### MANIFEST
+- Version 1.3.18 → 1.3.19; commands 96 → 141.
+
+### Release
+- `releases/yamtam-engine-v1.3.19-fixed.zip` — 847K.
+
+---
+
 ## v1.3.18 — rohitg00/awesome-claude-code-toolkit + affaan-m/everything-claude-code Import
 *2026-05-19*
 

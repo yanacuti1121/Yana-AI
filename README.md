@@ -6,7 +6,7 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
-**Version:** 1.3.18
+**Version:** 1.3.19
 **Status:** Runtime active. 47 hook tests + 25 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
@@ -52,7 +52,7 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 42 agent definitions (incl. quality-testing x5, infrastructure x4, security-team)
-│   ├── commands/          ← 74 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /sprint-planning)
+│   ├── commands/          ← 141 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 24 hooks (.sh + .js)
 │   ├── scripts/           ← 20 utility scripts
 │   ├── rules/             ← 4 coding rules (incl. subagent-policy)
@@ -105,7 +105,7 @@ yamtam-engine/
 | Path | Count |
 |---|---|
 | `core/agents/` | 83 agents |
-| `core/commands/` | 96 commands |
+| `core/commands/` | 141 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 20 scripts |
 | `core/rules/` | 4 rules |
@@ -165,7 +165,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.17 && git push origin v1.3.17
+git tag v1.3.19 && git push origin v1.3.19
 ```
 
 ---
