@@ -96,6 +96,25 @@ check_skill "research"           "research"
 check_skill "session-context"    "git"
 check_skill "pre-compact-backup" "compact"
 
+# sangrokjung/claude-forge skills (v1.3.24)
+check_skill "team-orchestrator"      "orchestrat"
+check_skill "strategic-compact"      "compact"
+check_skill "session-wrap"           "session"
+check_skill "verification-engine"    "verification"
+check_skill "skill-factory"          "skill"
+check_skill "security-compliance"    "compliance"
+check_skill "security-pipeline"      "security"
+check_skill "stride-analysis-patterns" "threat"
+check_skill "debugging-strategies"   "debug"
+check_skill "extract-errors"         "error"
+check_skill "build-system"           "build"
+check_skill "cache-components"       "cache"
+check_skill "verify-implementation"  "verify"
+
+# karanb192-inspired skills (v1.3.24)
+check_skill "hook-block-commands"    "block"
+check_skill "hook-protect-secrets"   "secret"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

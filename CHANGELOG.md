@@ -8,6 +8,55 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.24 — Phase 9 Import: claude-forge + karanb192 patterns
+*2026-05-19*
+
+### New Agents (from sangrokjung/claude-forge, MIT)
+| Agent | Mô tả |
+|---|---|
+| `build-error-resolver` | Chẩn đoán + fix build failure (TS/Go/Rust/Python/JS) — fastest path to green |
+| `verify-agent` | Fresh-context verification sub-agent — typecheck → lint → build → test |
+| `planner` | Tạo implementation plan 3–6 bước trước khi code, read-only |
+| `database-reviewer` | PostgreSQL specialist — query optimization, RLS, schema validation |
+
+### New Commands (from sangrokjung/claude-forge, MIT)
+`handoff-verify`, `commit-push-pr`, `refactor-clean`, `sync-docs`, `quick-commit`, `worktree-start`, `worktree-cleanup`, `eval`, `suggest-automation`, `learn`, `next-task`
+
+### New Skills (from sangrokjung/claude-forge, MIT)
+| Skill | Mô tả |
+|---|---|
+| `team-orchestrator` | Agent Teams orchestration — team composition, task distribution, dependency management |
+| `strategic-compact` | Context optimization — khi nào compact, cách preserve critical context |
+| `session-wrap` | Session summarization — wrap up + extract learnings + suggest follow-ups |
+| `verification-engine` | QA verification pipeline — typecheck → lint → build → test |
+| `skill-factory` | Skill lifecycle management — create, validate, deduplicate skills |
+| `security-compliance` | SOC 2 / OWASP / STRIDE compliance framework |
+| `security-pipeline` | Security automation — pre-commit checks, vulnerability scanning |
+| `stride-analysis-patterns` | Threat modeling với STRIDE framework |
+| `debugging-strategies` | Systematic debug patterns — hypothesis, bisect, reproduce |
+| `extract-errors` | Error extraction + classification from logs/output |
+| `build-system` | Build tool integration — webpack, vite, turbo, nx |
+| `cache-components` | Prompt caching patterns — TTL, invalidation, cost optimization |
+| `verify-implementation` | Verify that implementation matches spec |
+
+### New Skills (from karanb192/claude-code-hooks patterns, MIT)
+| Skill | Mô tả |
+|---|---|
+| `hook-block-commands` | Pattern guide: 58+ regex để block dangerous shell commands (3 safety levels) |
+| `hook-protect-secrets` | Pattern guide: 33 file + 24 bash + 15 exfiltration patterns để protect secrets |
+
+### New Rules (from sangrokjung/claude-forge, MIT)
+`golden-principles`, `verification`, `security`, `git-workflow-v2`, `testing`, `agents-v2`
+
+### Stats
+- Agents: 83 → **87** (+4)
+- Commands: 141 → **152** (+11)
+- Skills: 49 → **64** (+15)
+- Rules: 5 → **11** (+6)
+- Skill trigger tests: 43 → **58** (+15, all passing)
+
+---
+
 ## v1.3.23-clean — Metadata Sync + Docs Version + Path Fix
 *2026-05-19*
 
