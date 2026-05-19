@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Validate completion claims have evidence before Stop
+# Last Reviewed: 2026-05-19
 # Stop hook — checks completion quality before Claude finishes a turn.
 # Warns (non-blocking) when implementation files were modified but docs
 # were not updated, so the model can add a follow-up or the human knows

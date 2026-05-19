@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Block destructive database operations
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — Database Protection Layer
 # YAMTAM ENGINE v1.3.15 — Replit-Incident Defense
 #

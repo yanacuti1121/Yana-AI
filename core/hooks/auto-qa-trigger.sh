@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Trigger QA pipeline automatically on code changes
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — signals Auto-QA loop after backend implementation commits.
 #
 # When a backend-developer commits code touching API routes or business logic,

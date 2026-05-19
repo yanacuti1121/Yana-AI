@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Block destructive API calls (DELETE/DROP/TRUNCATE patterns)
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — API Destruction Guard
 # YAMTAM ENGINE v1.3.15 — API Destructive Action Guard
 #

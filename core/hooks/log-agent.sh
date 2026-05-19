@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Log agent actions and decisions
+# Last Reviewed: 2026-05-19
 # SubagentStart hook — appends a timestamped entry to .claude/agent-log.txt
 # every time a subagent is spawned. Provides an audit trail of which
 # specialist agents ran during a session, useful for debugging orchestration

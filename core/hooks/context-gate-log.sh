@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Log context gate decisions for audit
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — logs Read tool calls to the session read-log.
 #
 # Every time Claude reads a file, this hook appends the resolved path

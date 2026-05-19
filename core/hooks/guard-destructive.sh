@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Block destructive shell commands (rm -rf, kill, etc.)
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — blocks destructive shell commands before they execute.
 # Reads the tool input JSON from stdin, inspects the command, and denies
 # patterns that are irreversible or dangerous in a shared codebase.

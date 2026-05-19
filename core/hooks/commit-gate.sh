@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Advisory warn on cross-scope commits
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — YAMTAM ENGINE L2 Commit Gate
 #
 # Fires before git commit. Warns (non-blocking) when the staged changes

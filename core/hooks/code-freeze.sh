@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Block commits when code freeze flag is active
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — Code Freeze enforcement
 # YAMTAM ENGINE v1.3.15 — Code Freeze Guard
 #

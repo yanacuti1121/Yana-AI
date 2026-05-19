@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Block unauthorized deploys (gh/kubectl/docker/gcloud/fly/heroku)
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — YAMTAM ENGINE L4 Deploy Gate
 #
 # Blocks deploy commands that are NOT already caught by db-protect.sh.

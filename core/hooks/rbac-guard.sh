@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Enforce RBAC — block actions outside agent role
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — YAMTAM ENGINE v1.2 RBAC Guard
 #
 # Lightweight policy guard. Fails open for manual/user calls and unknown agents.

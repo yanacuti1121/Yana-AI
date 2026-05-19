@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Reset QA state after test run
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — resets the Auto-QA iteration counter when tests pass.
 #
 # When a Bash command that looks like a test runner exits with code 0,

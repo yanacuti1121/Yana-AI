@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Warn when agent reads secrets or writes to product directories
+# Last Reviewed: 2026-05-19
 # PreToolUse hook — YAMTAM ENGINE Scope Guard
 #
 # Warns when Write/Edit/MultiEdit targets product directories that

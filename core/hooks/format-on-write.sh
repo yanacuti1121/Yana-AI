@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Auto-format files on Write/Edit tool use
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — runs the project formatter/linter on the file that was
 # just written or edited. Gracefully no-ops when tooling is not yet installed.
 #

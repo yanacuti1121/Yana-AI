@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Hash-chain audit log — tamper-evident JSONL of every tool call
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — YAMTAM ENGINE Hash-Chain Audit Log
 # Each JSONL entry includes a SHA-256 hash of its content + previous entry hash.
 # If any entry is tampered, all subsequent hashes break — independently verifiable

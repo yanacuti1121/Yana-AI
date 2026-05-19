@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
+# Version: 1.3.22
+# Status: active
+# Description: Kill tasks stuck > timeout threshold
+# Last Reviewed: 2026-05-19
 # PostToolUse hook — YAMTAM ENGINE v1.2 Stuck Task Monitor
 #
 # Safe by default: warns about likely-stuck test/browser processes. It only kills
