@@ -1,6 +1,6 @@
 # Subagent Policy
 
-> Version: 1.3.16
+> Version: 1.3.25
 > Scope: áp dụng cho mọi agent được dispatch từ YAMTAM main agent.
 
 ## Phân quyền

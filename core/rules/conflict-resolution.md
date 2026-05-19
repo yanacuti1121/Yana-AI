@@ -1,6 +1,6 @@
 # Conflict Resolution Policy
 
-> Version: 1.3.21
+> Version: 1.3.25
 > Scope: áp dụng khi 2+ subagent đưa ra đề xuất sửa đổi chồng chéo trên cùng file.
 
 ## Khi nào xảy ra conflict?
