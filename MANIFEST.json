@@ -469,22 +469,8 @@
     },
     "releases": {
       "status": "active",
+      "policy": "Keep latest + 1 previous in repo. Older versions archived to GitHub Releases. See docs/MAINTENANCE_POLICY.md.",
       "files": [
-        "releases/yamtam-engine-v1.3.0-fixed.zip",
-        "releases/yamtam-engine-v1.3.2-fixed.zip",
-        "releases/yamtam-engine-v1.3.3-fixed.zip",
-        "releases/yamtam-engine-v1.3.4-fixed.zip",
-        "releases/yamtam-engine-v1.3.5-fixed.zip",
-        "releases/yamtam-engine-v1.3.10-fixed.zip",
-        "releases/yamtam-engine-v1.3.11-fixed.zip",
-        "releases/yamtam-engine-v1.3.12-fixed.zip",
-        "releases/yamtam-engine-v1.3.13-fixed.zip",
-        "releases/yamtam-engine-v1.3.14-fixed.zip",
-        "releases/yamtam-engine-v1.3.15-fixed.zip",
-        "releases/yamtam-engine-v1.3.17-fixed.zip",
-        "releases/yamtam-engine-v1.3.18-fixed.zip",
-        "releases/yamtam-engine-v1.3.19-fixed.zip",
-        "releases/yamtam-engine-v1.3.20-fixed.zip",
         "releases/yamtam-engine-v1.3.21-fixed.zip",
         "releases/yamtam-engine-v1.3.22-fixed.zip"
       ],
