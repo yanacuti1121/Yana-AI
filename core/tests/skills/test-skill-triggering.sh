@@ -80,6 +80,22 @@ check_skill "subagent-dependency" "parallel"
 check_skill "subagent-dependency" "orchestrate"
 check_skill "subagent-dependency" "dependency"
 
+# alirezarezvani/claude-skills imports (v1.3.22)
+check_skill "agenthub"           "parallel"
+check_skill "agenthub"           "worktree"
+check_skill "write-a-skill"      "skill"
+check_skill "handoff"            "handoff"
+check_skill "caveman"            "caveman"
+check_skill "code-tour"          "tour"
+check_skill "chaos-engineering"  "chaos"
+check_skill "llm-cost-optimizer" "cost"
+check_skill "pulse"              "reddit"
+check_skill "research"           "research"
+
+# disler-inspired skills (v1.3.22)
+check_skill "session-context"    "git"
+check_skill "pre-compact-backup" "compact"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

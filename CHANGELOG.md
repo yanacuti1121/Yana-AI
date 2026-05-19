@@ -8,6 +8,41 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.22 — Phase 8 Skill Import + hook-review Fix
+*2026-05-19*
+
+### New Skills — alirezarezvani/claude-skills (Phase 8 import)
+9 skills imported from engineering + research categories:
+
+| Skill | Mô tả |
+|---|---|
+| `agenthub` | Parallel subagents competing on same task via git worktree isolation |
+| `write-a-skill` | Structured 3-phase framework for creating new SKILL.md files |
+| `handoff` | Project handoff — summarize state for the next session/engineer |
+| `caveman` | Ultra-compressed mode — giảm ~75% token, giữ technical terms |
+| `code-tour` | Guided walkthrough of codebase for new contributors |
+| `chaos-engineering` | Inject failures and validate system resilience |
+| `llm-cost-optimizer` | Audit + reduce LLM API costs (batching, caching, model selection) |
+| `pulse` | Multi-source recency research (Reddit, HN, open web) — 7–90 day window |
+| `research` | Intelligent research router — dispatches to pulse/litreview/dossier/patent |
+
+### New Skills — YAMTAM-native (from disler patterns)
+2 skills created from `disler/claude-code-hooks-mastery` patterns:
+
+| Skill | Mô tả |
+|---|---|
+| `session-context` | Load git state + context files at session start (graceful degradation) |
+| `pre-compact-backup` | Timestamped transcript backup before compaction |
+
+### Fixed
+**`core/commands/hook-review.md`** — Step 3 bypass scan: loại bỏ `core/commands/` khỏi grep để tránh hook-review tự tìm thấy chính nó trong kết quả. Sửa lỗi syntax pipe duplicate.
+
+### Stats
+- Skills: 38 → **49** (+11)
+- Skill trigger tests: 31 → **43** (+12, all passing)
+
+---
+
 ## v1.3.21 — Conflict Resolution Policy + Governance Hardening
 *2026-05-19*
 

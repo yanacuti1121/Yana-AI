@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.21",
+  "version": "1.3.22",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-18",
-  "manifest_updated": "2026-05-18",
+  "release_date": "2026-05-19",
+  "manifest_updated": "2026-05-19",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.22 — Phase 8 import: 9 skills from alirezarezvani/claude-skills (agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research) + 2 YAMTAM-native skills (session-context, pre-compact-backup from disler patterns). hook-review.md false-positive fix (exclude core/commands/ from bypass scan).",
     "v1.3.21 — Conflict Resolution Policy: multi-agent edit conflict detection, priority rules (safety > correctness > performance > style), resolution strategies (sequential/merge/human escalation), conflict log format.",
     "v1.3.20 — YAMTAM-native skills: telemetry-analysis (audit log + hook activity analysis) + subagent-dependency (DAG-based multi-agent orchestration). Governance layer expansion.",
     "Phase 7 import completed 2026-05-19 from wshobson/commands. Added: 45 commands (tools x34, workflows x11). Generic workflow tools, no product dependencies.",
@@ -379,7 +380,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 38,
+      "count": 49,
       "actual_present": [
         "core/skills/git-lessons/SKILL.md",
         "core/skills/gitnexus/gitnexus-cli/SKILL.md",
@@ -418,7 +419,18 @@
         "core/skills/tdd-workflow/SKILL.md",
         "core/skills/verification-loop/SKILL.md",
         "core/skills/telemetry-analysis/SKILL.md",
-        "core/skills/subagent-dependency/SKILL.md"
+        "core/skills/subagent-dependency/SKILL.md",
+        "core/skills/agenthub/SKILL.md",
+        "core/skills/write-a-skill/SKILL.md",
+        "core/skills/handoff/SKILL.md",
+        "core/skills/caveman/SKILL.md",
+        "core/skills/code-tour/SKILL.md",
+        "core/skills/chaos-engineering/SKILL.md",
+        "core/skills/llm-cost-optimizer/SKILL.md",
+        "core/skills/pulse/SKILL.md",
+        "core/skills/research/SKILL.md",
+        "core/skills/session-context/SKILL.md",
+        "core/skills/pre-compact-backup/SKILL.md"
       ]
     },
     "config": {
@@ -472,9 +484,10 @@
         "releases/yamtam-engine-v1.3.18-fixed.zip",
         "releases/yamtam-engine-v1.3.19-fixed.zip",
         "releases/yamtam-engine-v1.3.20-fixed.zip",
-        "releases/yamtam-engine-v1.3.21-fixed.zip"
+        "releases/yamtam-engine-v1.3.21-fixed.zip",
+        "releases/yamtam-engine-v1.3.22-fixed.zip"
       ],
-      "latest": "releases/yamtam-engine-v1.3.21-fixed.zip"
+      "latest": "releases/yamtam-engine-v1.3.22-fixed.zip"
     },
     "import_notes": [
       "v1.3.16 — Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",

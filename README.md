@@ -6,8 +6,8 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
-**Version:** 1.3.21
-**Status:** Runtime active. 47 hook tests + 25 skill tests passing. Release pack live.
+**Version:** 1.3.22
+**Status:** Runtime active. 47 hook tests + 43 skill tests passing. Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -57,11 +57,11 @@ yamtam-engine/
 │   ├── scripts/           ← 20 utility scripts
 │   ├── rules/             ← 5 coding rules (incl. subagent-policy, conflict-resolution)
 │   ├── templates/         ← 11 project templates
-│   ├── skills/            ← 24 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail)
+│   ├── skills/            ← 49 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (47 test cases)
-│       ├── skills/        ← test-skill-triggering.sh (25 skill trigger tests)
+│       ├── skills/        ← test-skill-triggering.sh (43 skill trigger tests)
 │       └── commands/      ← test-hook-review-smoke.sh (6 smoke tests)
 │
 ├── memory/
@@ -94,7 +94,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.17-fixed.zip  ← latest
+    ├── yamtam-engine-v1.3.22-fixed.zip  ← latest
     └── yamtam-engine-latest.zip         ← symlink → latest
 ```
 
@@ -110,10 +110,10 @@ yamtam-engine/
 | `core/scripts/` | 20 scripts |
 | `core/rules/` | 5 rules |
 | `core/templates/` | 11 templates |
-| `core/skills/` | 38 skills |
+| `core/skills/` | 49 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 47 test cases |
-| `core/tests/skills/` | 31 skill trigger tests |
+| `core/tests/skills/` | 43 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |

@@ -155,6 +155,83 @@
       "sourcePath": ".claude/skills/subagent-dependency",
       "localPath": ".claude/skills/subagent-dependency",
       "computedHash": ""
+    },
+    "agenthub": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/agenthub/skills/agenthub",
+      "localPath": ".claude/skills/agenthub",
+      "computedHash": ""
+    },
+    "write-a-skill": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/write-a-skill/skills/write-a-skill",
+      "localPath": ".claude/skills/write-a-skill",
+      "computedHash": ""
+    },
+    "handoff": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/handoff/skills/handoff",
+      "localPath": ".claude/skills/handoff",
+      "computedHash": ""
+    },
+    "caveman": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/caveman/skills/caveman",
+      "localPath": ".claude/skills/caveman",
+      "computedHash": ""
+    },
+    "code-tour": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/code-tour/skills/code-tour",
+      "localPath": ".claude/skills/code-tour",
+      "computedHash": ""
+    },
+    "chaos-engineering": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/chaos-engineering/skills/chaos-engineering",
+      "localPath": ".claude/skills/chaos-engineering",
+      "computedHash": ""
+    },
+    "llm-cost-optimizer": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "engineering/llm-cost-optimizer/skills/llm-cost-optimizer",
+      "localPath": ".claude/skills/llm-cost-optimizer",
+      "computedHash": ""
+    },
+    "pulse": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "research/pulse/skills/pulse",
+      "localPath": ".claude/skills/pulse",
+      "computedHash": ""
+    },
+    "research": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "research/research/skills/research",
+      "localPath": ".claude/skills/research",
+      "computedHash": ""
+    },
+    "session-context": {
+      "source": "local-template",
+      "sourceType": "local",
+      "sourcePath": ".claude/skills/session-context",
+      "localPath": ".claude/skills/session-context",
+      "computedHash": ""
+    },
+    "pre-compact-backup": {
+      "source": "local-template",
+      "sourceType": "local",
+      "sourcePath": ".claude/skills/pre-compact-backup",
+      "localPath": ".claude/skills/pre-compact-backup",
+      "computedHash": ""
     }
   }
 }

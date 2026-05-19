@@ -56,7 +56,7 @@ Flag nếu không có commit nào trong 6 tháng qua (stale candidate).
 # Có hook nào được bypass nhiều không?
 grep -r "YAMTAM_BYPASS\|SKIP_HOOK\|--no-verify" . \
   --include="*.sh" --include="*.md" --include="*.json" \
-  | grep -v "releases/" | grep -v "docs/archive/"
+  | grep -v "releases/" | grep -v "docs/archive/" | grep -v "core/commands/"
 ```
 
 Liệt kê mỗi bypass: file, dòng, lý do (nếu có comment).
