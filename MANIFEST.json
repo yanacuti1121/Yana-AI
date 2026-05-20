@@ -518,11 +518,11 @@
       "status": "active",
       "policy": "Keep latest + 1 previous in repo. Older versions archived to GitHub Releases. See docs/MAINTENANCE_POLICY.md.",
       "files": [
-        "releases/yamtam-engine-v1.3.24-fixed.zip",
-        "releases/yamtam-engine-v1.3.25-fixed.zip"
+        "releases/yamtam-engine-v1.3.25-fixed.zip",
+        "releases/yamtam-engine-v1.3.26-fixed.zip"
       ],
-      "symlink": "releases/yamtam-engine-latest.zip \u2192 yamtam-engine-v1.3.25-fixed.zip",
-      "latest": "releases/yamtam-engine-v1.3.25-fixed.zip"
+      "symlink": "releases/yamtam-engine-latest.zip \u2192 yamtam-engine-v1.3.26-fixed.zip",
+      "latest": "releases/yamtam-engine-v1.3.26-fixed.zip"
     },
     "import_notes": [
       "v1.3.16 \u2014 Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",

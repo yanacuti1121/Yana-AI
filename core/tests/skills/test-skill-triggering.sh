@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# YAMTAM ENGINE v1.3.25 — Skill Trigger Phrase Test
+# YAMTAM ENGINE v1.3.26 — Skill Trigger Phrase Test
 #
 # Verifies that skill SKILL.md description fields contain the right trigger phrases.
 # This does NOT test AI routing — it tests that the descriptions are correctly written

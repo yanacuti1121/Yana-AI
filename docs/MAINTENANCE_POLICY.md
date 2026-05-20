@@ -109,8 +109,8 @@ Repo scaffold chỉ cần latest để test offline install. Lịch sử đầy 
 
 | Bản | Kích thước | Giữ? |
 |---|---|---|
-| v1.3.25-fixed.zip (latest) | ~280K | ✅ Giữ |
-| v1.3.24-fixed.zip | ~280K | ✅ Giữ (previous) |
+| v1.3.26-fixed.zip (latest) | ~280K | ✅ Giữ |
+| v1.3.25-fixed.zip | ~280K | ✅ Giữ (previous) |
 | v1.3.0 → v1.3.23 (các bản cũ) | đã xóa | ✅ Đã cleanup |
 
 Zips cũ đã dọn sạch trong v1.3.23. Chỉ giữ 2 bản mới nhất trong repo theo Release Zip Policy.
