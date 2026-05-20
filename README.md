@@ -10,15 +10,15 @@ Hook layer, safety guards, and workflow rules for AI assistants
 |---|---|
 | Agents | 87 |
 | Commands | 155 |
-| Hooks | 24 |
+| Hooks | 26 |
 | Scripts | 21 |
-| Skills | 64 |
+| Skills | 65 |
 | Rules | 11 |
-| Templates | 10 |
-| Tests | 123 checks (47 hook + 12 audit + 58 skill + 6 smoke) |
+| Templates | 11 |
+| Tests | 131 checks (55 hook + 12 audit + 58 skill + 6 smoke) |
 
 **Version:** 1.3.26
-**Status:** Runtime active. 123 checks passing (47 hook + 12 audit + 58 skill + 6 smoke). Release pack live.
+**Status:** Runtime active. 131 checks passing (55 hook + 12 audit + 58 skill + 6 smoke). Release pack live.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -64,14 +64,14 @@ yamtam-engine/
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
 │   ├── commands/          ← 155 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
-│   ├── hooks/             ← 24 hooks (.sh + .js)
+│   ├── hooks/             ← 26 hooks (.sh + .js)
 │   ├── scripts/           ← 21 utility scripts
 │   ├── rules/             ← 11 coding rules (incl. subagent-policy, conflict-resolution)
-│   ├── templates/         ← 10 project templates
-│   ├── skills/            ← 64 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets)
+│   ├── templates/         ← 11 project templates
+│   ├── skills/            ← 65 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
-│       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (47 test cases)
+│       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
 │       ├── skills/        ← test-skill-triggering.sh (58 skill trigger tests)
 │       └── commands/      ← test-hook-review-smoke.sh (6 smoke tests)
 │
@@ -87,7 +87,7 @@ yamtam-engine/
 │   └── system_prompt.md   ← copy-paste prompt block for AI operators
 │
 ├── docs/
-│   ├── HOOK_WIRING.md        ← settings.json presets for all 24 hooks + /hook-review entry
+│   ├── HOOK_WIRING.md        ← settings.json presets for all 26 hooks + /hook-review entry
 │   ├── MAINTENANCE_POLICY.md ← hook lifecycle: active/review/deprecated/removed
 │   ├── CLAUDE_MD_GUIDE.md    ← CLAUDE.md architecture guide (4-tier layering)
 │   ├── SEPARATION.md         ← YAMTAM vs target product boundary
@@ -117,13 +117,13 @@ yamtam-engine/
 |---|---|
 | `core/agents/` | 87 agents |
 | `core/commands/` | 155 commands |
-| `core/hooks/` | 24 hooks |
+| `core/hooks/` | 26 hooks |
 | `core/scripts/` | 21 scripts |
 | `core/rules/` | 11 rules |
-| `core/templates/` | 10 templates |
-| `core/skills/` | 64 skills |
+| `core/templates/` | 11 templates |
+| `core/skills/` | 65 skills |
 | `core/config/` | 6 config files |
-| `core/tests/hooks/` | 47 test cases |
+| `core/tests/hooks/` | 55 test cases |
 | `core/tests/skills/` | 58 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
@@ -171,7 +171,7 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 123 checks → drift check → zip → symlink latest
+# Runs: syntax check → 131 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:

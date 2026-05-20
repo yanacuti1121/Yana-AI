@@ -15,14 +15,14 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 24,
+    "hooks": 26,
     "commands": 155,
     "agents": 87,
     "scripts": 21,
-    "skills": 64,
-    "checks": 123,
+    "skills": 65,
+    "checks": 131,
     "checks_breakdown": {
-      "hook_tests": 47,
+      "hook_tests": 55,
       "audit_chain_tests": 12,
       "skill_trigger_checks": 58,
       "command_smoke_checks": 6

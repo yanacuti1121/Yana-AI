@@ -195,9 +195,100 @@ else:
   cross_check "hooks"     "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
   cross_check "scripts"   "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
   cross_check "skills"    "find '$PROJECT_ROOT/core/skills' -name 'SKILL.md' | wc -l"
-  cross_check "templates" "find '$PROJECT_ROOT/core/templates' -type f -name '*.md' ! -name 'TASK_TEMPLATE.md' | wc -l"
+  cross_check "templates" "find '$PROJECT_ROOT/core/templates' -type f -name '*.md' | wc -l"
   cross_check "tests"     "find '$PROJECT_ROOT/core/tests' -name '*.sh' | wc -l"
   cross_check "rules"     "find '$PROJECT_ROOT/core/rules' -type f -name '*.md' | wc -l"
+
+  # ── MANIFEST actual_present integrity ─────────────────────────────────────
+  # Check 1: every path in actual_present must exist on disk
+  # Check 2: disk file count must match len(actual_present) for key categories
+  python3 - << PYEOF 2>/dev/null
+import json, os, sys
+root = '$PROJECT_ROOT'
+with open('$MANIFEST_FILE') as f:
+    m = json.load(f)
+comp = m.get('components', {})
+issues = []
+
+for cat, cfg in comp.items():
+    if not isinstance(cfg, dict): continue
+    lst = cfg.get('actual_present', [])
+    for path in lst:
+        full = os.path.join(root, path)
+        if not os.path.exists(full):
+            issues.append(f'MANIFEST GHOST: {path} listed in actual_present but not on disk')
+
+for issue in issues:
+    print(issue)
+PYEOF
+  while IFS= read -r ghost_issue; do
+    [[ -n "$ghost_issue" ]] && emit_issue "$ghost_issue"
+  done < <(python3 - << PYEOF 2>/dev/null
+import json, os
+root = '$PROJECT_ROOT'
+with open('$MANIFEST_FILE') as f:
+    m = json.load(f)
+comp = m.get('components', {})
+for cat, cfg in comp.items():
+    if not isinstance(cfg, dict): continue
+    for path in cfg.get('actual_present', []):
+        full = os.path.join(root, path)
+        if not os.path.exists(full):
+            print(f'MANIFEST GHOST: {path} listed in actual_present but not on disk')
+PYEOF
+)
+
+  # ── plugin.json / marketplace.json vs disk counts ─────────────────────────
+  PLUGIN_FILE="$PROJECT_ROOT/.claude-plugin/plugin.json"
+  MARKET_FILE="$PROJECT_ROOT/.claude-plugin/marketplace.json"
+
+  meta_check() {
+    local label="$1" file="$2" field="$3" disk_cmd="$4"
+    local meta_n disk_n
+    meta_n=$(python3 -c "
+import json, sys
+with open('$file') as f: d=json.load(f)
+key='$field'
+# Support nested: contents.hooks or stats.hooks
+parts=key.split('.')
+val=d
+for p in parts:
+    val=val.get(p,-1) if isinstance(val,dict) else -1
+print(val)
+" 2>/dev/null || echo -1)
+    disk_n=$(eval "$disk_cmd" 2>/dev/null | tr -d '[:space:]')
+    [[ "$meta_n" == "-1" ]] && return
+    if [[ "$meta_n" != "$disk_n" ]]; then
+      emit_issue "META DRIFT [$label]: $file says $meta_n, disk has $disk_n"
+    fi
+  }
+
+  if [[ -f "$PLUGIN_FILE" ]]; then
+    meta_check "plugin hooks"     "$PLUGIN_FILE" "contents.hooks"    "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
+    meta_check "plugin skills"    "$PLUGIN_FILE" "contents.skills"   "find '$PROJECT_ROOT/core/skills' -name 'SKILL.md' | wc -l"
+    meta_check "plugin commands"  "$PLUGIN_FILE" "contents.commands" "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
+    meta_check "plugin agents"    "$PLUGIN_FILE" "contents.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' | wc -l"
+    meta_check "plugin scripts"   "$PLUGIN_FILE" "contents.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
+    # checks total must equal sum of breakdown
+    python3 - << PYEOF 2>/dev/null | while IFS= read -r issue; do emit_issue "$issue"; done
+import json
+with open('$PLUGIN_FILE') as f: d=json.load(f)
+c=d.get('contents',{})
+total=c.get('checks',-1)
+b=c.get('checks_breakdown',{})
+s=sum(b.values()) if b else -1
+if total!=-1 and s!=-1 and total!=s:
+    print(f'CHECKS SUM DRIFT: plugin.json checks={total} but breakdown sums to {s}')
+PYEOF
+  fi
+
+  if [[ -f "$MARKET_FILE" ]]; then
+    meta_check "market hooks"    "$MARKET_FILE" "stats.hooks"    "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
+    meta_check "market skills"   "$MARKET_FILE" "stats.skills"   "find '$PROJECT_ROOT/core/skills' -name 'SKILL.md' | wc -l"
+    meta_check "market commands" "$MARKET_FILE" "stats.commands" "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
+    meta_check "market agents"   "$MARKET_FILE" "stats.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' | wc -l"
+    meta_check "market scripts"  "$MARKET_FILE" "stats.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
+  fi
 fi
 
 # ── Report ────────────────────────────────────────────────────────────────────
