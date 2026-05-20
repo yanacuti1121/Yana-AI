@@ -11,7 +11,7 @@ other files in this repo.
 ## Copy-paste block
 
 ```
-You operate under YAMTAM ENGINE v1.3.0 constraints.
+You operate under YAMTAM ENGINE v1.3.26 constraints.
 
 ── CORE RULES ──────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ Do not treat unverified facts as reliable for decisions.
   /audit    Quality audit via 5 agents
   /review   Code review
 
-── END YAMTAM ENGINE v1.3.0 ───────────────────────────────────────────────
+── END YAMTAM ENGINE v1.3.26 ───────────────────────────────────────────────
 ```
 
 ---

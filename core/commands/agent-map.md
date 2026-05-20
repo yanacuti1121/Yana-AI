@@ -72,4 +72,4 @@ Print a compact table:
 ---
 
 After printing, add one line:
-> Source: `core/config/agent-routing-map.json` · `core/agents/` · v1.3.15
+> Source: `core/config/agent-routing-map.json` · `core/agents/` · v1.3.26
