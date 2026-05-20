@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # YAMTAM ENGINE Hook
-# Version: 1.3.22
+# Version: 1.3.26
 # Status: active
 # Description: Validate completion claims have evidence before Stop
 # Last Reviewed: 2026-05-19

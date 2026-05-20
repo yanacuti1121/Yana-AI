@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # YAMTAM ENGINE Hook
-# Version: 1.3.22
+# Version: 1.3.26
 # Status: active
 # Description: Hash-chain audit log — tamper-evident JSONL of every tool call
 # Last Reviewed: 2026-05-19
