@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.27",
+  "version": "1.3.28",
   "scaffold_version": "1.0",
   "release_date": "2026-05-21",
   "manifest_updated": "2026-05-21",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.28 \u2014 Phase 4 UI skills expansion: aesthetic-anchor (8 visual styles: Swiss/Industrial/Brutalist/Aurora/Chaotic/Retro-Futuristic/Organic/Lo-Fi), accessibility-audit (WCAG 2.1 AA, 5 categories), design-system-gen (5-layer token system per product type), ux-heuristics (Nielsen 10 heuristics + severity scoring). Also: run-security-tools.sh (gitleaks/semgrep/trivy/npm audit/bandit/pip-audit/govulncheck/cargo audit). skills 73\u219277, scripts 21\u219222.",
     "v1.3.27 \u2014 Phase 10 level-up: security skill pack (red-team-check, blue-team-fix, purple-team-report, security-scope-gate, anti-fake-pass-gate, /security-scan), skill standard infrastructure (skill-spec, skill-writing-guide, skill-evaluation-rules, SKILL_TEMPLATE), design/UX skill pack (design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, ui-quality-gate), model-routing-strategy. Sources: ECC MIT, Strix Apache 2.0, Taste-skill MIT, Free-claude-code MIT, AgentSkills Apache 2.0. commands 155\u2192156, skills 65\u219273, templates 11\u219212.",
     "v1.3.26 \u2014 count sync + new hooks + new skill: commands 152\u2192155 (output-budget, output-raw, session-cost + 11 unlisted v1.3.24 commands), scripts 20\u219221 (session-cost.sh), hooks 24\u219226 (session-bootstrap.sh UserPromptSubmit, permission-auto-approve.sh PermissionRequest), skills 64\u219265 (l1-promote), templates 11\u219210, rules actual_present completed to all 11 files. Output Budget Layer: docs/OUTPUT_BUDGET_POLICY.md, docs/OUTPUT_BUDGET_INTEGRATION.md, session-bootstrap injects L1 facts into every prompt.",
     "v1.3.25-clean \u2014 metadata sync: plugin.json + marketplace.json counts (87 agents/152 commands/64 skills/123 checks/58 skill triggers), MANIFEST releases index corrected (latest \u2192 v1.3.24, files list fixed), docs version bump (all \u2192 1.3.25-clean), run-hook-tests.sh banner v1.3.15 \u2192 v1.3.25.",
