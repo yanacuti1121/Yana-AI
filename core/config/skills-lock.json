@@ -404,6 +404,48 @@
       "license": "MIT",
       "phase": "phase-6-performance",
       "computedHash": "84d464e80e4fd7b785074182ecf58609eb2efe49772130695e13af00a8805201"
+    },
+    "rag-architect": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/rag-architect",
+      "localPath": "core/skills/rag-architect",
+      "computedHash": "f75964513adc66c15c470e30a74d40a28c684b4bb0b120227c468717ebdff717"
+    },
+    "prompt-engineering": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/prompt-engineering",
+      "localPath": "core/skills/prompt-engineering",
+      "computedHash": "39c30bed0aa3dfa5bd5707ea3bf13c22538259c75889bc45113e12eb2b76ebae"
+    },
+    "llm-ui-patterns": {
+      "source": "phazurlabs/ux-ui-mastery",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/llm-ui-patterns",
+      "localPath": "core/skills/llm-ui-patterns",
+      "computedHash": "a3b704dba10012450a6d9562085a8750d0bd1a96ea08cae3aabc636624f56543"
+    },
+    "slo-design": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/slo-design",
+      "localPath": "core/skills/slo-design",
+      "computedHash": "e05b577d3b6015f4ba03d76c4f82417af3a1d7590b9a8cbe64a9b019c2532227"
+    },
+    "incident-response-runbook": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/incident-response-runbook",
+      "localPath": "core/skills/incident-response-runbook",
+      "computedHash": "72af96eb8309e76b83045448cf520ef2a36433376f38e5e8ae6b17738e113422"
+    },
+    "i18n-patterns": {
+      "source": "phazurlabs/ux-ui-mastery",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/i18n-patterns",
+      "localPath": "core/skills/i18n-patterns",
+      "computedHash": "cec48989a1cd1689c10019f9cd853152a8f211b8d13e7ec00ae9539792aaefd4"
     }
   }
 }
