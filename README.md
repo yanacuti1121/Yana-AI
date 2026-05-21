@@ -9,12 +9,12 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Asset | Count |
 |---|---|
 | Agents | 87 |
-| Commands | 155 |
+| Commands | 156 |
 | Hooks | 26 |
 | Scripts | 21 |
-| Skills | 65 |
+| Skills | 73 |
 | Rules | 11 |
-| Templates | 11 |
+| Templates | 12 |
 | Tests | 131 checks (55 hook + 12 audit + 58 skill + 6 smoke) |
 
 **Version:** 1.3.26
@@ -63,12 +63,12 @@ yamtam-engine/
 │
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
-│   ├── commands/          ← 155 slash commands (incl. /security-audit, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
+│   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 26 hooks (.sh + .js)
 │   ├── scripts/           ← 21 utility scripts
 │   ├── rules/             ← 11 coding rules (incl. subagent-policy, conflict-resolution)
-│   ├── templates/         ← 11 project templates
-│   ├── skills/            ← 65 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote)
+│   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
+│   ├── skills/            ← 73 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote, red-team-check, blue-team-fix, purple-team-report, design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
@@ -80,8 +80,11 @@ yamtam-engine/
 │   └── L2_session/        ← session-scoped facts (gitignored, cleared each session)
 │
 ├── gates/
-│   ├── truth_gate.md      ← L3 spec + runtime hook (truth-gate-guard.sh)
-│   └── action_gate.md     ← L4 spec (L0–L5 coverage table)
+│   ├── truth_gate.md           ← L3 spec + runtime hook (truth-gate-guard.sh)
+│   ├── action_gate.md          ← L4 spec (L0–L5 coverage table)
+│   ├── anti-fake-pass-gate.md  ← L4 process gate — evidence hierarchy (PASS/REVIEWED/UNKNOWN)
+│   ├── security-scope-gate.md  ← ownership confirmation before any security scan
+│   └── ui-quality-gate.md      ← L1–L4 UI delivery gate (baseline → accessible → ship-ready)
 │
 ├── prompts/
 │   └── system_prompt.md   ← copy-paste prompt block for AI operators
@@ -96,7 +99,13 @@ yamtam-engine/
 │   ├── AGENT_INCIDENT_DEFENSE.md
 │   ├── AUDIT_HARDENING.md    ← hash-chain audit log design
 │   ├── OUTPUT_BUDGET_POLICY.md   ← token output budget rules
-│   └── OUTPUT_BUDGET_INTEGRATION.md ← wiring output budget layer
+│   ├── OUTPUT_BUDGET_INTEGRATION.md ← wiring output budget layer
+│   ├── third-party-inspiration.md   ← attribution log for all external sources
+│   ├── skill-spec.md                ← YAMTAM Skill Specification v1.0
+│   ├── skill-writing-guide.md       ← 8-section guide: descriptions, anti-patterns, attribution
+│   ├── skill-evaluation-rules.md    ← pre-add quality checklist + trigger test
+│   ├── security-scan-modes.md       ← quick / targeted / deep scan specs
+│   └── model-routing-strategy.md    ← Power/Balanced/Fast tier taxonomy + agent routing map
 │
 ├── .out-of-scope/         ← features deliberately not built (5 boundary docs)
 ├── .claude-plugin/        ← plugin manifest for /plugin install
@@ -118,12 +127,12 @@ yamtam-engine/
 | Path | Count |
 |---|---|
 | `core/agents/` | 87 agents |
-| `core/commands/` | 155 commands |
+| `core/commands/` | 156 commands |
 | `core/hooks/` | 26 hooks |
 | `core/scripts/` | 21 scripts |
 | `core/rules/` | 11 rules |
-| `core/templates/` | 11 templates |
-| `core/skills/` | 65 skills |
+| `core/templates/` | 12 templates |
+| `core/skills/` | 73 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 55 test cases |
 | `core/tests/skills/` | 58 skill trigger tests |
