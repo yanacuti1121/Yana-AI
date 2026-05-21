@@ -312,6 +312,46 @@
       "license": "adapted:MIT © 2026 Leonxlnx",
       "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
+    },
+    "aesthetic-anchor": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/aesthetic-anchor",
+      "localPath": "core/skills/aesthetic-anchor",
+      "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
+      "license": "adapted:MIT © 2026 Ilm-Alan",
+      "inspiration": "Ilm-Alan/frontend-design (MIT) — 8 aesthetic anchors concept",
+      "addedInPhase": "phase-4"
+    },
+    "accessibility-audit": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/accessibility-audit",
+      "localPath": "core/skills/accessibility-audit",
+      "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a",
+      "license": "adapted:MIT © Vercel Labs",
+      "inspiration": "vercel-labs/agent-skills (MIT) — accessibility audit concept; WCAG 2.1 rules from W3C public spec",
+      "addedInPhase": "phase-4"
+    },
+    "design-system-gen": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-system-gen",
+      "localPath": "core/skills/design-system-gen",
+      "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a",
+      "license": "adapted:MIT © 2026 nextlevelbuilder",
+      "inspiration": "nextlevelbuilder/ui-ux-pro-max-skill (MIT) — product-type taxonomy concept",
+      "addedInPhase": "phase-4"
+    },
+    "ux-heuristics": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ux-heuristics",
+      "localPath": "core/skills/ux-heuristics",
+      "computedHash": "bf278760ce0476e60eda130c376374f1541db06042b8b3027892cadb98c95b2a",
+      "license": "yamtam-original",
+      "inspiration": "Nielsen 10 Usability Heuristics (public domain academic, 1994/2020)",
+      "addedInPhase": "phase-4"
     }
   }
 }

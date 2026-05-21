@@ -26,7 +26,7 @@
     "commands": 156,
     "agents": 87,
     "scripts": 22,
-    "skills": 73,
+    "skills": 77,
     "checks": 131,
     "checks_breakdown": {
       "hook_tests": 55,

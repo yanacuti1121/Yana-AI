@@ -413,8 +413,10 @@
     },
     "skills": {
       "status": "imported",
-      "count": 73,
+      "count": 77,
       "actual_present": [
+        "core/skills/accessibility-audit/SKILL.md",
+        "core/skills/aesthetic-anchor/SKILL.md",
         "core/skills/agent-introspection-debugging/SKILL.md",
         "core/skills/agenthub/SKILL.md",
         "core/skills/api-design/SKILL.md",
@@ -431,6 +433,7 @@
         "core/skills/debug-protocol/SKILL.md",
         "core/skills/debugging-strategies/SKILL.md",
         "core/skills/deep-research/SKILL.md",
+        "core/skills/design-system-gen/SKILL.md",
         "core/skills/design-taste-frontend/SKILL.md",
         "core/skills/documentation-lookup/SKILL.md",
         "core/skills/e2e-testing/SKILL.md",
@@ -481,6 +484,7 @@
         "core/skills/team-orchestrator/SKILL.md",
         "core/skills/telemetry-analysis/SKILL.md",
         "core/skills/ui-redesign/SKILL.md",
+        "core/skills/ux-heuristics/SKILL.md",
         "core/skills/verification-engine/SKILL.md",
         "core/skills/verification-loop/SKILL.md",
         "core/skills/verify-before-done/SKILL.md",
