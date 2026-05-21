@@ -7,7 +7,14 @@
   "author": "phamlongh230-lgtm",
   "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "MIT",
-  "keywords": ["hooks", "safety", "memory", "agents", "gates", "guards"],
+  "keywords": [
+    "hooks",
+    "safety",
+    "memory",
+    "agents",
+    "gates",
+    "guards"
+  ],
   "install": {
     "type": "zip",
     "source": "https://github.com/phamlongh230-lgtm/yamtam-engine/releases/latest/download/yamtam-engine-latest.zip",
@@ -16,10 +23,10 @@
   },
   "contents": {
     "hooks": 26,
-    "commands": 155,
+    "commands": 156,
     "agents": 87,
     "scripts": 21,
-    "skills": 65,
+    "skills": 73,
     "checks": 131,
     "checks_breakdown": {
       "hook_tests": 55,
@@ -27,11 +34,16 @@
       "skill_trigger_checks": 58,
       "command_smoke_checks": 6
     },
-    "memory_tiers": ["L1_atomic", "L2_session"]
+    "memory_tiers": [
+      "L1_atomic",
+      "L2_session"
+    ]
   },
   "requires": {
     "claude_code": ">=1.0.0",
     "shell": "bash",
-    "tools": ["jq"]
+    "tools": [
+      "jq"
+    ]
   }
 }
