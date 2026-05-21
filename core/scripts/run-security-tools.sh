@@ -42,15 +42,14 @@ if [[ "${YAMTAM_SCOPE_CONFIRMED:-}" != "1" ]]; then
 fi
 
 # ── Args ─────────────────────────────────────────────────────────────────────
-MODE="${1:-deep}"
-TARGET="${2:-.}"
+MODE="deep"
+TARGET="."
 
-# Parse --mode / --target flags
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --mode) MODE="$2"; shift 2 ;;
+    --mode)   MODE="$2";   shift 2 ;;
     --target) TARGET="$2"; shift 2 ;;
-    *) shift ;;
+    *)        shift ;;
   esac
 done
 

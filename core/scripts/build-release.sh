@@ -13,7 +13,8 @@
 # drops all assets directly into the target project's .claude/ directory.
 #
 # Includes: hooks/ scripts/ commands/ agents/ rules/ config/ tests/ skills/ templates/
-# Excludes: .gitkeep files, *.js.map, node_modules/, .git/
+#           gates/ docs/ prompts/  (project-root assets referenced by skills at runtime)
+# Excludes: .gitkeep files, *.js.map, node_modules/, .git/, binary images in docs/
 
 set -euo pipefail
 
@@ -89,7 +90,18 @@ zip -r "$OUTPUT" \
   --exclude "node_modules/*" \
   2>/dev/null
 
+# Add project-root assets that skills and commands reference at runtime
 cd "$PROJECT_ROOT"
+
+zip -r "$OUTPUT" \
+  gates/ \
+  docs/ \
+  prompts/ \
+  --exclude "*.gitkeep" \
+  --exclude "docs/*.png" \
+  --exclude "docs/*.jpg" \
+  --exclude "docs/*.gif" \
+  2>/dev/null
 
 # ── Verify zip ────────────────────────────────────────────────────────────────
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')

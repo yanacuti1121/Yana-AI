@@ -96,26 +96,25 @@ if [[ -f "$README" ]]; then
         the|and|for|with|that|this|from|your|when|into|each|over|more|less|using|based|built|also|only|both) continue ;;
       esac
 
-      hits=$(grep -rlF --binary-files=without-match \
-        --exclude-dir=releases \
-        --exclude="*.zip" \
-        "$search_term" \
-        "$PROJECT_ROOT/core" \
-        "$PROJECT_ROOT/gates" \
-        "$PROJECT_ROOT/docs" \
-        "$PROJECT_ROOT/.out-of-scope" \
-        "$PROJECT_ROOT/.claude-plugin" \
-        "$PROJECT_ROOT/.github" \
-        2>/dev/null | wc -l || true)
-
-      # Also check for matching directory/file names at project root
-      if [[ "${hits:-0}" -eq 0 ]]; then
-        root_hits=$(find "$PROJECT_ROOT" -maxdepth 2 -name "*${search_term}*" 2>/dev/null | wc -l || true)
-        hits="${root_hits:-0}"
+      # Use -q + early exit via head -1 to avoid scanning whole tree per term.
+      # timeout 5 prevents any single grep from hanging on large repos.
+      if timeout 5 grep -rlqF --binary-files=without-match \
+          --exclude-dir=releases \
+          --exclude="*.zip" \
+          "$search_term" \
+          "$PROJECT_ROOT/core" \
+          "$PROJECT_ROOT/gates" \
+          "$PROJECT_ROOT/docs" \
+          2>/dev/null; then
+        hits=1
+      elif find "$PROJECT_ROOT" -maxdepth 2 -name "*${search_term}*" 2>/dev/null | grep -q .; then
+        hits=1
+      else
+        hits=0
       fi
 
       if [[ "${hits:-0}" -eq 0 ]]; then
-        emit_issue "OVERCLAIM: README.md mentions '$search_term' but grep finds no evidence in core/ gates/ docs/ .out-of-scope/ .claude-plugin/ .github/"
+        emit_issue "OVERCLAIM: README.md mentions '$search_term' but grep finds no evidence in core/ gates/ docs/"
       fi
     fi
   done < "$README"
