@@ -417,7 +417,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 79,
+      "count": 82,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -463,6 +463,8 @@
         "core/skills/lsp-navigation/SKILL.md",
         "core/skills/mcp-server-patterns/SKILL.md",
         "core/skills/minimalist-ui/SKILL.md",
+        "core/skills/mobile-ux/SKILL.md",
+        "core/skills/motion-design/SKILL.md",
         "core/skills/multi-agent-handoff/SKILL.md",
         "core/skills/output-enforcement/SKILL.md",
         "core/skills/plan-first/SKILL.md",
@@ -490,6 +492,7 @@
         "core/skills/telemetry-analysis/SKILL.md",
         "core/skills/typography-system/SKILL.md",
         "core/skills/ui-redesign/SKILL.md",
+        "core/skills/ui-states/SKILL.md",
         "core/skills/ux-heuristics/SKILL.md",
         "core/skills/verification-engine/SKILL.md",
         "core/skills/verification-loop/SKILL.md",
