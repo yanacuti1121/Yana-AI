@@ -11,14 +11,14 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Agents | 87 |
 | Commands | 156 |
 | Hooks | 26 |
-| Scripts | 21 |
-| Skills | 77 |
+| Scripts | 22 |
+| Skills | 83 |
 | Rules | 11 |
 | Templates | 12 |
 | Tests | 131 checks (55 hook + 12 audit + 58 skill + 6 smoke) |
 
-\*\*Version:\*\* 1.3.28
-**Status:** Runtime active. 131 checks passing (55 hook + 12 audit + 58 skill + 6 smoke). Release pack live.
+\*\*Version:\*\* 1.3.29
+**Status:** Runtime active. 131 checks passing (55 hook + 12 audit + 58 skill + 6 smoke). Release pack live. v1.3.29.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -68,7 +68,7 @@ yamtam-engine/
 │   ├── scripts/           ← 21 utility scripts
 │   ├── rules/             ← 11 coding rules (incl. subagent-policy, conflict-resolution)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 77 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote, red-team-check, blue-team-fix, purple-team-report, design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, aesthetic-anchor, accessibility-audit, design-system-gen, ux-heuristics)
+│   ├── skills/            ← 83 skill definitions (gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote, red-team-check, blue-team-fix, purple-team-report, design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, aesthetic-anchor, accessibility-audit, design-system-gen, ux-heuristics, typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance)
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
@@ -116,7 +116,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.28-fixed.zip  ← current
+    ├── yamtam-engine-v1.3.29-fixed.zip  ← current
     └── yamtam-engine-latest.zip         ← symlink → current
 ```
 
@@ -132,7 +132,7 @@ yamtam-engine/
 | `core/scripts/` | 21 scripts |
 | `core/rules/` | 11 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 77 skills |
+| `core/skills/` | 83 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 55 test cases |
 | `core/tests/skills/` | 58 skill trigger tests |
@@ -187,7 +187,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.28 && git push origin v1.3.28
+git tag v1.3.29 && git push origin v1.3.29
 ```
 
 ---
