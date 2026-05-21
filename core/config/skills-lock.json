@@ -395,6 +395,15 @@
       "license": "MIT",
       "phase": "phase-5-design-expanded",
       "computedHash": "4483f56c95239e370e649a16376c7cb753b4d650b68eadb2d3bc7b965a8c6b44"
+    },
+    "web-performance": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "sourcePath": "plugins/web-performance-optimization",
+      "localPath": ".claude/skills/web-performance",
+      "license": "MIT",
+      "phase": "phase-6-performance",
+      "computedHash": "84d464e80e4fd7b785074182ecf58609eb2efe49772130695e13af00a8805201"
     }
   }
 }

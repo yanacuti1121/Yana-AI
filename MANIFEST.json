@@ -417,7 +417,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 82,
+      "count": 83,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -498,6 +498,7 @@
         "core/skills/verification-loop/SKILL.md",
         "core/skills/verify-before-done/SKILL.md",
         "core/skills/verify-implementation/SKILL.md",
+        "core/skills/web-performance/SKILL.md",
         "core/skills/worktree-safety/SKILL.md",
         "core/skills/write-a-skill/SKILL.md",
         "core/skills/writing-skills/SKILL.md"
