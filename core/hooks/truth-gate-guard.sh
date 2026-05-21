@@ -103,7 +103,7 @@ echo "   Required in same response: git output, test runner counts,"
 echo "   file content shown, CI log, or deploy stdout."
 echo "   If evidence is unavailable, use instead:"
 echo "     claimed / reportedly / expected / unverified"
-echo "   Reference: gates/truth_gate.md"
+echo "   Reference: gates/truth_gate.md (L3 language) | gates/anti-fake-pass-gate.md (L4 process)"
 echo ""
 
 exit 0

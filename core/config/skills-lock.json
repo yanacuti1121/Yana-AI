@@ -232,6 +232,86 @@
       "sourcePath": ".claude/skills/pre-compact-backup",
       "localPath": ".claude/skills/pre-compact-backup",
       "computedHash": "c83e03942e493e9b1d5df1f14c4ff9b72a1191af9b75ea32a366b16946af3dba"
+    },
+    "red-team-check": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/red-team-check",
+      "localPath": "core/skills/red-team-check",
+      "computedHash": "cb54941ef9fccd3d80f18434a8f58dafe6bc26cc4921e3db775c9366ff930a1a",
+      "license": "yamtam-original",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "addedInPhase": "phase-1"
+    },
+    "blue-team-fix": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/blue-team-fix",
+      "localPath": "core/skills/blue-team-fix",
+      "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d",
+      "license": "yamtam-original",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "addedInPhase": "phase-1"
+    },
+    "purple-team-report": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/purple-team-report",
+      "localPath": "core/skills/purple-team-report",
+      "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
+      "license": "yamtam-original",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "addedInPhase": "phase-1"
+    },
+    "design-taste-frontend": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-taste-frontend",
+      "localPath": "core/skills/design-taste-frontend",
+      "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "addedInPhase": "phase-3"
+    },
+    "image-to-code": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/image-to-code",
+      "localPath": "core/skills/image-to-code",
+      "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "addedInPhase": "phase-3"
+    },
+    "ui-redesign": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ui-redesign",
+      "localPath": "core/skills/ui-redesign",
+      "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "addedInPhase": "phase-3"
+    },
+    "output-enforcement": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/output-enforcement",
+      "localPath": "core/skills/output-enforcement",
+      "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "addedInPhase": "phase-3"
+    },
+    "minimalist-ui": {
+      "source": "yamtam-engine",
+      "sourceType": "local",
+      "sourcePath": "core/skills/minimalist-ui",
+      "localPath": "core/skills/minimalist-ui",
+      "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "addedInPhase": "phase-3"
     }
   }
 }
