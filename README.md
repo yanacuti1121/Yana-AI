@@ -17,8 +17,8 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Templates | 12 |
 | Tests | 131 checks (55 hook + 12 audit + 58 skill + 6 smoke) |
 
-\*\*Version:\*\* 1.3.29
-**Status:** Runtime active. 131 checks passing (55 hook + 12 audit + 58 skill + 6 smoke). Release pack live. v1.3.29.
+\*\*Version:\*\* 1.3.30
+**Status:** Runtime active. 131 checks passing (55 hook + 12 audit + 58 skill + 6 smoke). Release pack live. v1.3.30.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -116,7 +116,7 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.29-fixed.zip  ← current
+    ├── yamtam-engine-v1.3.30-fixed.zip  ← current
     └── yamtam-engine-latest.zip         ← symlink → current
 ```
 
@@ -187,7 +187,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.29 && git push origin v1.3.29
+git tag v1.3.30 && git push origin v1.3.30
 ```
 
 ---
