@@ -116,8 +116,8 @@ yamtam-engine/
 │   └── security-advisories/       ← GHSA template + filed advisories
 │
 └── releases/              ← versioned packs
-    ├── yamtam-engine-v1.3.26-fixed.zip  ← latest
-    └── yamtam-engine-latest.zip         ← symlink → latest
+    ├── yamtam-engine-v1.3.26-fixed.zip  ← current
+    └── yamtam-engine-latest.zip         ← symlink → current
 ```
 
 ---
