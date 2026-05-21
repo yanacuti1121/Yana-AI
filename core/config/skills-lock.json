@@ -360,6 +360,14 @@
       "localPath": ".claude/skills/multi-agent-handoff",
       "phase": "phase-5-multiagent",
       "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573"
+    },
+    "typography-system": {
+      "source": "yamtam",
+      "sourceType": "original",
+      "sourcePath": "core/skills/typography-system",
+      "localPath": ".claude/skills/typography-system",
+      "phase": "phase-5-multiagent",
+      "computedHash": "07fc13087ef8cc2ae3fe10dfab4a749d812ac1d948047d8aeb87c0f76e18ada7"
     }
   }
 }
