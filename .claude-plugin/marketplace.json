@@ -39,5 +39,6 @@
     "PocketOS (April 2026)"
   ],
   "latest_release": "v1.3.26",
-  "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine"
+  "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
+  "version": "1.3.27"
 }
