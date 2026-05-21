@@ -352,6 +352,14 @@
       "license": "yamtam-original",
       "inspiration": "Nielsen 10 Usability Heuristics (public domain academic, 1994/2020)",
       "addedInPhase": "phase-4"
+    },
+    "multi-agent-handoff": {
+      "source": "yamtam",
+      "sourceType": "original",
+      "sourcePath": "core/skills/multi-agent-handoff",
+      "localPath": ".claude/skills/multi-agent-handoff",
+      "phase": "phase-5-multiagent",
+      "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573"
     }
   }
 }
