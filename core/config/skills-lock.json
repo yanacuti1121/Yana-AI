@@ -238,7 +238,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/red-team-check",
       "localPath": "core/skills/red-team-check",
-      "computedHash": "cb54941ef9fccd3d80f18434a8f58dafe6bc26cc4921e3db775c9366ff930a1a",
+      "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f",
       "license": "yamtam-original",
       "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
       "addedInPhase": "phase-1"

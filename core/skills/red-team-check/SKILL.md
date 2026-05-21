@@ -53,6 +53,20 @@ See `docs/security-scan-modes.md` for full taxonomy.
 
 ## How It Works
 
+### Step 0 — Run Automated Tools (if available)
+
+Before manual review, run the security tools script to get machine-detected findings:
+
+```bash
+YAMTAM_SCOPE_CONFIRMED=1 bash core/scripts/run-security-tools.sh --mode <quick|targeted|deep>
+```
+
+- If tools are installed: their output becomes **Hard Evidence** in the finding list
+- If no tools installed: skip and proceed to Step 1 (manual only)
+- Do NOT run this step if the user has said to skip tool execution
+- Tool findings should be merged into the Step 3 finding list, not listed separately
+- Reference: `docs/security-tools-setup.md` for installation guide
+
 ### Step 1 — Reconnaissance
 
 Map the attack surface before scanning:
@@ -160,5 +174,6 @@ Before claiming the scan is complete, you MUST show:
 - [ ] Finding list (can be empty, but must be shown explicitly)
 - [ ] Severity counts: X CRITICAL, Y HIGH, Z MEDIUM, W LOW
 - [ ] Confirmation log entry (or bypass note)
+- [ ] Tool run summary: which tools ran, which were skipped (or note "tools not run")
 
 MUST NOT say "scan passed" or "no issues found" without showing the category table.
