@@ -20,7 +20,7 @@
     "agents": 87,
     "scripts": 22,
     "skills": 104,
-    "checks": 131,
+    "checks": 252,
     "memory_tiers": 2
   },
   "highlights": [
@@ -30,7 +30,7 @@
     "65 skills (gitnexus x7, agenthub, write-a-skill, pulse, research, team-orchestrator, strategic-compact, security-compliance, and more)",
     "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search",
     "L2 Session Memory \u2014 provisional session-scoped facts, gitignored",
-    "131 checks: 55 hook + 12 audit-chain + 58 skill trigger + 6 command smoke \u2014 all pass before each release",
+    "252 checks: 55 hook + 12 audit-chain + 179 skill trigger + 6 command smoke \u2014 all pass before each release",
     "Truth Gate (L3) \u2014 warns on claim verbs without evidence",
     "Action Gate (L4) \u2014 commit-gate + deploy-gate + scope-guard"
   ],
