@@ -13,12 +13,12 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Hooks | 24 |
 | Scripts | 31 |
 | Skills | 166 |
-| Rules | 35 |
+| Rules | 36 |
 | Templates | 12 |
 | Tests | 383 checks (55 hook + 12 audit + 310 skill + 6 smoke) |
 
-**Version:** 1.3.40
-**Status:** Runtime active. 383 checks passing. Release pack live. v1.3.40.
+**Version:** 1.3.41
+**Status:** Runtime active. 383 checks passing. Release pack live. v1.3.41.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -71,7 +71,7 @@ yamtam-engine/
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
 │   ├── hooks/             ← 24 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
 │   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
-│   ├── rules/             ← 35 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
+│   ├── rules/             ← 36 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
 │   ├── skills/            ← 166 skill definitions
 │   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
@@ -130,7 +130,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.40.zip
+    ├── yamtam-engine-v1.3.41.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -144,7 +144,7 @@ yamtam-engine/
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 31 scripts |
-| `core/rules/` | 35 rules |
+| `core/rules/` | 36 rules |
 | `core/templates/` | 12 templates |
 | `core/skills/` | 166 skills |
 | `core/config/` | 6 config files |
@@ -157,7 +157,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.40)
+## Skill categories (v1.3.41)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -246,7 +246,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.40 && git push origin v1.3.40
+git tag v1.3.41 && git push origin v1.3.41
 ```
 
 ---

@@ -91,6 +91,7 @@ core/rules/
   agent-excessive-agency-law.md ← OWASP LLM08: min-permission + irreversible gate + depth cap (Gate L1)
   agent-tool-poisoning-guard.md ← OWASP LLM07: tool schema validation + result sanitize (Gate L3)
   slsa-artifact-law.md        ← SLSA provenance + cosign verify + in-toto chain (Gate L4)
+  network-egress-law.md      ← SSRF/DNS-rebinding/redirect block + allowlist (Gate L3, exit 3)
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
   golden-principles.md        ← overarching agent behavior principles
