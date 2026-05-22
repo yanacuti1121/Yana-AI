@@ -26,7 +26,7 @@
   "highlights": [
     "26 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops; auto-approves safe read-only ops",
     "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "145 skills covering frontend, backend, IaC, AI/LLM, security, and multi-agent orchestration",
+    "146 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, cross-engine",
     "129 skills (kubernetes-patterns, terraform-patterns, docker-patterns, typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations, and more)",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search",
     "322 checks: 55 hook + 12 audit-chain + 249 skill trigger + 6 command smoke — all pass before each release",
@@ -40,7 +40,7 @@
   ],
   "latest_release": "v1.3.31",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "version": "1.3.32",
-  "skills": 145,
-  "checks": 340
+  "version": "1.3.33",
+  "skills": 146,
+  "checks": 343
 }

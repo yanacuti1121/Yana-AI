@@ -360,6 +360,11 @@ check_skill "tree-of-thoughts"          "tree of thoughts"
 check_skill "tree-of-thoughts"          "plan 3 approaches"
 check_skill "tree-of-thoughts"          "self-critique"
 
+# v1.3.33 — Cross-engine + Token ROI
+check_skill "token-roi"                 "token usage"
+check_skill "token-roi"                 "cost per fix"
+check_skill "token-roi"                 "am I wasting tokens"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

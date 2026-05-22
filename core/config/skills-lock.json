@@ -887,6 +887,15 @@
       "computedHash": "8b0cf1a7de8a307ee63d85083ce625ab56a2921d7095493f967835b759b6a481",
       "license": "MIT",
       "inspiration": "kyegomez/TreeofThoughts — 3-branch generation, self-scoring, DFS/BFS backtrack protocol"
+    },
+    "token-roi": {
+      "source": "yamtam-original",
+      "sourceType": "local",
+      "sourcePath": "core/skills/token-roi",
+      "localPath": "core/skills/token-roi",
+      "computedHash": "fab16f30e0fd9325cc3dee479c09c0418332aa8469d01db75d95b70b8c15b0bb",
+      "license": "MIT",
+      "inspiration": "yamtam-original — token budget guard, loop detection, fast-tier routing, ROI scoring"
     }
   }
 }

@@ -11,14 +11,14 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Agents | 87 |
 | Commands | 156 |
 | Hooks | 26 |
-| Scripts | 27 |
-| Skills | 145 |
+| Scripts | 28 |
+| Skills | 146 |
 | Rules | 21 |
 | Templates | 12 |
-| Tests | 340 checks (55 hook + 12 audit + 267 skill + 6 smoke) |
+| Tests | 343 checks (55 hook + 12 audit + 270 skill + 6 smoke) |
 
-**Version:** 1.3.32
-**Status:** Runtime active. 340 checks passing. Release pack live. v1.3.32.
+**Version:** 1.3.33
+**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.33.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -65,10 +65,11 @@ yamtam-engine/
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 26 hooks (.sh + .js)
-│   ├── scripts/           ← 27 utility scripts (incl. safe-run.sh, secure-logger.sh, verify-rules.sh, feedback-loop.sh, build-skills-snapshot.sh)
+│   ├── scripts/           ← 28 utility scripts (incl. safe-run.sh, secure-logger.sh, verify-rules.sh, switch-engine.sh, feedback-loop.sh)
+│   ├── hooks/             ← 26 hooks + token-budget-guard.sh (loop detection + fast-tier routing)
 │   ├── rules/             ← 21 coding rules (incl. 00-meta-rule-enforcer, 02-terminal-validator, execution-environment, human-gate-policy, agent-code-constraints, color-rules, typography-rules, rule-consistency-policy, memory-persistence-law, git-push-enforcement)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 145 skill definitions
+│   ├── skills/            ← 146 skill definitions
 │   │   │   Core workflow: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, lsp-navigation
 │   │   │   Security: red-team-check, blue-team-fix, purple-team-report, security-compliance, security-pipeline, stride-analysis-patterns, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
 │   │   │   AI/Agent: rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
@@ -141,6 +142,30 @@ yamtam-engine/
 | Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
 | Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns |
 | Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact |
+| Token / Cost | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
+
+---
+
+## Cross-Engine Support
+
+YAMTAM natively targets Claude Code. Adapters make governance available on other engines:
+
+| Engine | File | Enforcement |
+|---|---|---|
+| Claude Code | `.claude/settings.json` (hooks) | **Runtime blocking** (L0–L5 hooks) |
+| Cursor | `.cursorrules` + `.cursor/rules/*.mdc` | Advisory (prompt layer) |
+| GitHub Copilot | `.github/copilot-instructions.md` | Advisory (prompt layer) |
+| Aider | `adapters/aider.md` via `--system-prompt` | Advisory (prompt layer) |
+
+```bash
+# Check adapter status
+bash core/scripts/switch-engine.sh status
+
+# Switch active engine
+bash core/scripts/switch-engine.sh cursor|copilot|aider|claude
+```
+
+> Advisory-mode engines receive rule injection via prompt. For hard runtime blocking, route commands through `core/scripts/safe-run.sh`.
 ```
 
 ---
@@ -152,13 +177,14 @@ yamtam-engine/
 | `core/agents/` | 87 agents |
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 26 hooks |
-| `core/scripts/` | 27 scripts |
+| `core/scripts/` | 28 scripts |
+| `adapters/` | .cursorrules, .cursor/rules/, copilot-instructions.md, aider.md |
 | `core/rules/` | 21 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 145 skills |
+| `core/skills/` | 146 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 55 test cases |
-| `core/tests/skills/` | 267 skill trigger tests |
+| `core/tests/skills/` | 270 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |

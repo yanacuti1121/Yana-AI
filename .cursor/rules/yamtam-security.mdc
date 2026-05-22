@@ -1,0 +1,28 @@
+---
+description: YAMTAM security guardrails — applies to all files in the project
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Security Guardrails (Tier 1 — highest priority)
+
+## Blocked Commands (never suggest or execute)
+- `rm -rf`, `rm -r`, `rm -fr` — file destruction
+- `git push --force`, `git push -f` — history rewriting
+- `git reset --hard` — uncommitted work destruction
+- `curl * | bash`, `wget * | bash` — remote code execution
+- `DROP TABLE`, `DROP DATABASE`, `TRUNCATE TABLE` — database destruction
+- `chmod 777`, `chmod -R 777` — permission escalation
+
+## Required Before git push
+```bash
+bash core/tests/skills/test-skill-triggering.sh  # must show Result: PASS
+bash core/scripts/verify-skills-lock.sh          # must show no drift
+```
+
+## Secret Detection
+Run before push: `bash core/skills/leak-check/` pattern or gitleaks.
+Never commit .env files with real values.
+
+## Command Wrapper
+Route risky commands through: `bash core/scripts/safe-run.sh "<command>"`

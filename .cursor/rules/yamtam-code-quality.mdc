@@ -1,0 +1,46 @@
+---
+description: YAMTAM code quality constraints — applies to all source files
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.py", "**/*.go"]
+alwaysApply: true
+---
+
+# Code Quality Rules (agent-code-constraints.md)
+
+## Hard Limits
+| Metric | Hard limit | Preferred |
+|--------|-----------|-----------|
+| Function length | 50 lines | ≤ 30 |
+| Parameters | 5 | ≤ 3 |
+| Nesting depth | 3 | ≤ 2 |
+| File length | 300 lines | ≤ 200 |
+| Cyclomatic complexity | 10 | ≤ 5 |
+
+## Patterns
+
+### Early return (flatten nesting)
+```ts
+// ❌ deep nesting
+if (order) {
+  if (order.items.length > 0) {
+    order.items.forEach(item => {
+      if (item.inStock) { fulfillItem(item); }
+    });
+  }
+}
+
+// ✅ early return
+if (!order || order.items.length === 0) return;
+order.items.filter(i => i.inStock).forEach(fulfillItem);
+```
+
+### Options object (> 3 params)
+```ts
+// ❌ too many params
+function createUser(name, email, role, orgId, sendWelcome) {}
+
+// ✅ options object
+function createUser(options: { name: string; email: string; role: Role; orgId: string; sendWelcome?: boolean }) {}
+```
+
+## Comments
+Only when WHY is non-obvious. Never explain WHAT the code does.
