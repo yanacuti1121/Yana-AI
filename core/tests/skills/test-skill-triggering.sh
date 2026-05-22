@@ -417,6 +417,14 @@ check_skill "agent-attack-surface"      "MITRE ATLAS"
 check_skill "agent-memory-security"     "poisoning"
 check_skill "agent-memory-security"     "L1"
 
+# v1.3.43 — state machines, resilience, telemetry
+check_skill "state-machine-workflows"   "XState"
+check_skill "state-machine-workflows"   "FSM"
+check_skill "resilience-circuit-breakers" "circuit breaker"
+check_skill "resilience-circuit-breakers" "exponential backoff"
+check_skill "agent-telemetry"           "OpenTelemetry"
+check_skill "agent-telemetry"           "p95"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

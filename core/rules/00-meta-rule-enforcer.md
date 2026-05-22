@@ -92,6 +92,7 @@ core/rules/
   agent-tool-poisoning-guard.md ← OWASP LLM07: tool schema validation + result sanitize (Gate L3)
   slsa-artifact-law.md        ← SLSA provenance + cosign verify + in-toto chain (Gate L4)
   network-egress-law.md      ← SSRF/DNS-rebinding/redirect block + allowlist (Gate L3, exit 3)
+  agent-middleware-law.md    ← middleware pipeline between agent + tools (Gate L2, 9-step compose)
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
   golden-principles.md        ← overarching agent behavior principles
