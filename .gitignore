@@ -22,3 +22,4 @@ memory/L2_session/*.md
 dist/
 .next/
 .claude/state/
+releases/logs/
