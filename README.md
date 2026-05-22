@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 31 |
-| Skills | 163 |
-| Rules | 31 |
+| Skills | 166 |
+| Rules | 35 |
 | Templates | 12 |
-| Tests | 377 checks (55 hook + 12 audit + 304 skill + 6 smoke) |
+| Tests | 383 checks (55 hook + 12 audit + 310 skill + 6 smoke) |
 
-**Version:** 1.3.39
-**Status:** Runtime active. 377 checks passing. Release pack live. v1.3.39.
+**Version:** 1.3.40
+**Status:** Runtime active. 383 checks passing. Release pack live. v1.3.40.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -71,9 +71,9 @@ yamtam-engine/
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
 │   ├── hooks/             ← 24 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
 │   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
-│   ├── rules/             ← 31 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
+│   ├── rules/             ← 35 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 163 skill definitions
+│   ├── skills/            ← 166 skill definitions
 │   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop, llm-output-validation
@@ -87,7 +87,7 @@ yamtam-engine/
 │   ├── config/            ← 6 config JSON files (skills-lock.json, …)
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
-│       ├── skills/        ← test-skill-triggering.sh (304 skill trigger checks)
+│       ├── skills/        ← test-skill-triggering.sh (310 skill trigger checks)
 │       └── commands/      ← test-hook-review-smoke.sh (6 smoke tests)
 │
 ├── adapters/              ← cross-engine governance adapters
@@ -130,7 +130,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.39.zip
+    ├── yamtam-engine-v1.3.40.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -144,24 +144,24 @@ yamtam-engine/
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 31 scripts |
-| `core/rules/` | 31 rules |
+| `core/rules/` | 35 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 163 skills |
+| `core/skills/` | 166 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
-| `core/tests/skills/` | 304 skill trigger tests |
+| `core/tests/skills/` | 310 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |
 
 ---
 
-## Skill categories (v1.3.39)
+## Skill categories (v1.3.40)
 
 | Category | Count | Skills |
 |---|---|---|
-| Security & guardrails | 8 | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check |
+| Security & guardrails | 11 | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check, owasp-llm-top10, agent-attack-surface, agent-memory-security |
 | AI / Agent orchestration | 12 | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
 | LLM output quality | 2 | llm-output-validation, llm-cost-optimizer |
 | Frontend / UI — Core | 11 | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns |
@@ -241,12 +241,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 377 checks → drift check → zip → symlink latest
+# Runs: syntax check → 383 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.39 && git push origin v1.3.39
+git tag v1.3.40 && git push origin v1.3.40
 ```
 
 ---
