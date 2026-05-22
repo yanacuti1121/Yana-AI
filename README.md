@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 31 |
-| Skills | 152 |
+| Skills | 157 |
 | Rules | 31 |
 | Templates | 12 |
 | Tests | 343 checks (55 hook + 12 audit + 270 skill + 6 smoke) |
 
-**Version:** 1.3.36
-**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.36.
+**Version:** 1.3.37
+**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.37.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -73,7 +73,7 @@ yamtam-engine/
 │   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
 │   ├── rules/             ← 31 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 152 skill definitions
+│   ├── skills/            ← 157 skill definitions
 │   │     Core workflow    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
@@ -128,7 +128,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.36.zip
+    ├── yamtam-engine-v1.3.37.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -144,7 +144,7 @@ yamtam-engine/
 | `core/scripts/` | 31 scripts |
 | `core/rules/` | 31 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 152 skills |
+| `core/skills/` | 157 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
@@ -155,13 +155,13 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.36)
+## Skill categories (v1.3.37)
 
 | Category | Skills |
 |---|---|
 | Security & guardrails | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check |
 | AI / Agent orchestration | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
-| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns |
+| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns, enterprise-design-systems, advanced-color-math, advanced-typography, advanced-motion-easing, smart-layout-aesthetics |
 | IaC / DevOps | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
 | Stack depth | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
 | Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
