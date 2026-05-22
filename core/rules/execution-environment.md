@@ -102,6 +102,70 @@ Since GitHub Codespaces is already an isolated container:
 
 ---
 
+## Banned Runtime Functions (Seccomp-inspired)
+
+> Source: moby/moby pkg/seccomp — agents that bypass safe-run.sh via language-level shell exec
+> are the primary threat model. These function calls MUST route through a wrapper.
+
+### Node.js / TypeScript — BANNED without wrapper
+
+```
+❌ child_process.exec(cmd)       — arbitrary shell, no sanitization
+❌ child_process.execSync(cmd)   — same, synchronous
+❌ child_process.spawn(cmd, {shell: true})  — shell interpolation
+❌ eval(code)                    — arbitrary code execution
+❌ new Function(code)            — same as eval
+❌ vm.runInNewContext(code)       — sandbox escape risk
+❌ require('child_process').exec  — even via dynamic require
+```
+
+**Allowed wrapper (safe):**
+```typescript
+import { execFile } from 'child_process'
+// execFile does NOT invoke a shell — no interpolation
+execFile('/usr/bin/git', ['status', '--short'], callback)
+```
+
+### Python — BANNED without wrapper
+
+```
+❌ os.system(cmd)                — arbitrary shell
+❌ os.popen(cmd)                 — same
+❌ subprocess.call(cmd, shell=True)   — shell=True enables injection
+❌ subprocess.run(cmd, shell=True)    — same
+❌ exec(code)                    — arbitrary code
+❌ eval(expression)              — arbitrary expression
+❌ __import__(user_controlled)   — dynamic import from user input
+```
+
+**Allowed wrapper (safe):**
+```python
+import subprocess
+# shell=False (default) + list args = no injection risk
+subprocess.run(['/usr/bin/git', 'status', '--short'], check=True, shell=False)
+```
+
+### Bash / Shell — BANNED patterns
+
+```
+❌ eval "$user_input"            — shell injection
+❌ source <(curl ...)            — remote code execution
+❌ bash -c "$variable"           — variable interpolation in shell
+❌ $()  with user-controlled content inside
+```
+
+### Violation Response
+
+```
+[yamtam/execution-environment] BLOCKED — banned runtime function detected
+  Function : <function name>
+  File     : <path>:<line>
+  Rule     : execution-environment.md § Banned Runtime Functions
+  Fix      : Replace with the listed safe wrapper
+```
+
+---
+
 ## Cleanup Policy
 
 Sandboxes are ephemeral:

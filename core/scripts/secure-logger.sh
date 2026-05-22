@@ -83,8 +83,22 @@ fi
 # ── Remove read-only lock temporarily to append ───────────────────────────────
 chmod 644 "$LOG_FILE" 2>/dev/null || true
 
+# ── Hash-chain computation (audit-hardening-policy.md / Trillian model) ───────
+PREV_HASH="GENESIS"
+if [[ -f "$LOG_FILE" ]]; then
+  LAST_LINE=$(tail -1 "$LOG_FILE" 2>/dev/null || true)
+  if [[ -n "$LAST_LINE" ]] && echo "$LAST_LINE" | grep -q "hash="; then
+    PREV_HASH=$(echo "$LAST_LINE" | grep -oE 'hash=[A-Fa-f0-9]+' | cut -d= -f2 || echo "LEGACY")
+  elif [[ -n "$LAST_LINE" ]]; then
+    PREV_HASH="LEGACY"
+  fi
+fi
+
+RAW_ENTRY="$TIMESTAMP|$SESSION|$GIT_COMMIT|$EVENT_TYPE|$MESSAGE|$PREV_HASH"
+THIS_HASH=$(echo -n "$RAW_ENTRY" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "PENDING")
+
 # ── Write log entry ───────────────────────────────────────────────────────────
-echo "$TIMESTAMP | session=$SESSION | commit=$GIT_COMMIT | $EVENT_TYPE | $MESSAGE" >> "$LOG_FILE"
+echo "$TIMESTAMP | session=$SESSION | commit=$GIT_COMMIT | $EVENT_TYPE | $MESSAGE | prev=$PREV_HASH | hash=$THIS_HASH" >> "$LOG_FILE"
 
 # ── Re-lock as append-only (read + write by owner, no execute, no delete) ─────
 # chattr +a works on Linux ext4 (makes file append-only at kernel level)

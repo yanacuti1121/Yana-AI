@@ -75,10 +75,14 @@ core/rules/
   03-privilege-isolation.md   ← env/secret file write gate (YAMTAM_SCOPE_OK=1)
   agent-code-constraints.md   ← hard metric limits (lines, params, nesting)
   agents-v2.md                ← multi-agent orchestration policy
+  api-security-gate.md        ← OWASP API Top 10 enforcement (Gate L3)
+  audit-hardening-policy.md   ← Trillian hash-chain log integrity (Gate L0)
   color-rules.md              ← Radix 12-scale + Tailwind color enforcement
   conflict-resolution.md      ← multi-agent edit conflict resolution
+  container-hardening-law.md  ← hadolint + trivy Dockerfile/K8s rules (Gate L3)
   dependency-vetting-law.md   ← supply chain gate (ossf/scorecard L4)
-  execution-environment.md    ← sandbox / isolation requirements
+  execution-environment.md    ← sandbox / isolation + banned runtime functions (seccomp)
+  fuzz-testing-constraints.md ← oss-fuzz boundary test coverage (Tier A: 3 edge cases min)
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
   golden-principles.md        ← overarching agent behavior principles
