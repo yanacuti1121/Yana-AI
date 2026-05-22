@@ -433,6 +433,10 @@ check_skill "type-safe-api-contracts"    "OpenAPI"
 check_skill "durable-task-queues"        "BullMQ"
 check_skill "durable-task-queues"        "dead-letter"
 
+# v1.3.45 — intercept layer
+check_skill "agent-middleware-gate"     "intercept"
+check_skill "agent-middleware-gate"     "sanitize"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

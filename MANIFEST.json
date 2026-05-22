@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.44",
+  "version": "1.3.45",
   "scaffold_version": "1.0",
   "release_date": "2026-05-22",
   "manifest_updated": "2026-05-22",
@@ -350,7 +350,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 31,
+      "count": 32,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -423,7 +423,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 172,
+      "count": 173,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -631,5 +631,5 @@
       "any environment files or secrets"
     ]
   },
-  "_import_note": "v1.3.44 \u2014 vector stores + type-safe RPC + durable task queues"
+  "_import_note": "v1.3.45 \u2014 intercept-layer: tool-proxy.sh + agent-middleware-gate skill"
 }
