@@ -87,6 +87,10 @@ core/rules/
   fuzz-testing-constraints.md ← oss-fuzz boundary test coverage (Tier A: 3 edge cases min)
   prompt-jailbreak-guard.md   ← garak prompt injection filter for external content
   shell-sanitize-law.md       ← shellcheck quoting + sanitize_arg() + eval ban (Gate L2)
+  owasp-llm-output-law.md     ← OWASP LLM02: output sanitize + agent-to-agent wrap (Gate L2)
+  agent-excessive-agency-law.md ← OWASP LLM08: min-permission + irreversible gate + depth cap (Gate L1)
+  agent-tool-poisoning-guard.md ← OWASP LLM07: tool schema validation + result sanitize (Gate L3)
+  slsa-artifact-law.md        ← SLSA provenance + cosign verify + in-toto chain (Gate L4)
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
   golden-principles.md        ← overarching agent behavior principles

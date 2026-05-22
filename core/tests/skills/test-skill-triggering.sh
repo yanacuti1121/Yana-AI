@@ -409,6 +409,14 @@ check_skill "monorepo-governance"       "Turborepo"
 check_skill "llm-output-validation"     "hallucination"
 check_skill "llm-output-validation"     "structured output"
 
+# v1.3.40 — OWASP LLM + agent attack surface + memory security
+check_skill "owasp-llm-top10"           "Prompt Injection"
+check_skill "owasp-llm-top10"           "Excessive Agency"
+check_skill "agent-attack-surface"      "blast radius"
+check_skill "agent-attack-surface"      "MITRE ATLAS"
+check_skill "agent-memory-security"     "poisoning"
+check_skill "agent-memory-security"     "L1"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"
