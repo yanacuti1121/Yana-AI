@@ -247,7 +247,7 @@ git tag v1.3.33 && git push origin v1.3.33
 
 ## License / credits
 
-Licensed under MIT. See `LICENSE`.
+Licensed under Apache 2.0. See `LICENSE`.
 Initial author: Vũ Văn Tâm.
 Not affiliated with any specific product repo this pack may be applied to.
 See `CONTRIBUTING.md` to add skills, rules, or adapters.
