@@ -10,15 +10,15 @@ Hook layer, safety guards, and workflow rules for AI assistants
 |---|---|
 | Agents | 87 |
 | Commands | 156 |
-| Hooks | 27 |
-| Scripts | 28 |
-| Skills | 146 |
-| Rules | 21 |
+| Hooks | 24 |
+| Scripts | 31 |
+| Skills | 152 |
+| Rules | 31 |
 | Templates | 12 |
 | Tests | 343 checks (55 hook + 12 audit + 270 skill + 6 smoke) |
 
-**Version:** 1.3.33
-**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.33.
+**Version:** 1.3.36
+**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.36.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -69,19 +69,19 @@ yamtam-engine/
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions (quality-testing, infrastructure, security-team, core-development, forge, etc.)
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
-│   ├── hooks/             ← 27 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
-│   ├── scripts/           ← 28 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, switch-engine.sh, feedback-loop.sh, build-skills-snapshot.sh, …)
-│   ├── rules/             ← 21 rules (00-meta-rule-enforcer, 02-terminal-validator, execution-environment, human-gate-policy, agent-code-constraints, color-rules, typography-rules, git-push-enforcement, memory-persistence-law, …)
+│   ├── hooks/             ← 24 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
+│   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
+│   ├── rules/             ← 31 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 146 skill definitions
-│   │     Core workflow    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd
+│   ├── skills/            ← 152 skill definitions
+│   │     Core workflow    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
-│   │     Frontend/UI      : baseline-ui, fixing-accessibility, shadcn-patterns, react-doctor, animation-principles, apply-premium-background, generative-ui-patterns
+│   │     Frontend/UI      : baseline-ui, fixing-accessibility, shadcn-patterns, react-doctor, apply-premium-background, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns
 │   │     IaC/DevOps       : kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns
 │   │     Stack depth      : typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns
 │   │     Token/Cost       : token-roi (loop detection, fast-tier routing, ROI scoring)
-│   │     + 80 more        : caching-patterns, api-rate-limiting, auth-patterns, i18n-patterns, graphql-patterns, adr-writing, …
+│   │     + 86 more        : caching-patterns, api-rate-limiting, auth-patterns, i18n-patterns, graphql-patterns, adr-writing, …
 │   ├── config/            ← 6 config JSON files (skills-lock.json, …)
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
@@ -128,7 +128,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.33.zip
+    ├── yamtam-engine-v1.3.36.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -140,11 +140,11 @@ yamtam-engine/
 |---|---|
 | `core/agents/` | 87 agents |
 | `core/commands/` | 156 commands |
-| `core/hooks/` | 27 hooks |
-| `core/scripts/` | 28 scripts |
-| `core/rules/` | 21 rules |
+| `core/hooks/` | 24 hooks |
+| `core/scripts/` | 31 scripts |
+| `core/rules/` | 31 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 146 skills |
+| `core/skills/` | 152 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
@@ -155,18 +155,18 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.33)
+## Skill categories (v1.3.36)
 
 | Category | Skills |
 |---|---|
 | Security & guardrails | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check |
 | AI / Agent orchestration | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
-| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns |
+| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns |
 | IaC / DevOps | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
 | Stack depth | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
 | Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
 | Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns |
-| Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact |
+| Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
 | Token / Cost | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
 
 ---
