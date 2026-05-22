@@ -806,6 +806,33 @@
       "computedHash": "7b950742ea986561a6aa7e875431fa2b710606c6461d944407310dde51bf6dd1",
       "license": "adapted:MIT © Hivemoot",
       "inspiration": "Hivemoot — propose/vote/implement/review/ship cycle for AI agent teams"
+    },
+    "auto-feedback-loop": {
+      "source": "adapted:MIT © Microsoft/AutoGen",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/auto-feedback-loop",
+      "localPath": "core/skills/auto-feedback-loop",
+      "computedHash": "ea894d27546082f89d92043d4583031c65ae3bf9deb5f31f22019ca510479316",
+      "license": "adapted:MIT © Microsoft AutoGen",
+      "inspiration": "AutoGen multi-agent reflection — writer + critic loop, error feedback, self-correction"
+    },
+    "prompt-caching-strategy": {
+      "source": "adapted:MIT © Anthropic/anthropic-cookbook",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/prompt-caching-strategy",
+      "localPath": "core/skills/prompt-caching-strategy",
+      "computedHash": "4fd7cc3dbfd4ffa20d899bab5173d6a6996060e9b7623653fbf22062c1b7f5b7",
+      "license": "adapted:MIT © Anthropic",
+      "inspiration": "anthropic-cookbook — cache_control breakpoints, static/dynamic block separation, 90% cost reduction"
+    },
+    "generative-ui-patterns": {
+      "source": "adapted:MIT © Vercel/ai",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/generative-ui-patterns",
+      "localPath": "core/skills/generative-ui-patterns",
+      "computedHash": "ed563b8dc6d566dbdf15c1a4df050f9b57b47c0e1b1a2ce4598dc74614d59a53",
+      "license": "adapted:MIT © Vercel",
+      "inspiration": "Vercel AI SDK — useChat, streamText, tool call UI, generative UI patterns"
     }
   }
 }

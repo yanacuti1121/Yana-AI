@@ -25,13 +25,13 @@
     "hooks": 26,
     "commands": 156,
     "agents": 87,
-    "scripts": 22,
-    "skills": 136,
-    "checks": 316,
+    "scripts": 24,
+    "skills": 139,
+    "checks": 322,
     "checks_breakdown": {
       "hook_tests": 55,
       "audit_chain_tests": 12,
-      "skill_trigger_checks": 243,
+      "skill_trigger_checks": 249,
       "command_smoke_checks": 6
     },
     "memory_tiers": [

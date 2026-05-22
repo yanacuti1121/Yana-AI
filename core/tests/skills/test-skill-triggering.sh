@@ -330,6 +330,14 @@ check_skill "agent-safety-patterns"      "sandbox"
 check_skill "ai-team-workflow"           "propose"
 check_skill "ai-team-workflow"           "vote"
 
+# v1.3.32 — AutoGen + Anthropic caching + Vercel AI SDK
+check_skill "auto-feedback-loop"         "self-correcting"
+check_skill "auto-feedback-loop"         "AutoGen"
+check_skill "prompt-caching-strategy"   "cache_control"
+check_skill "prompt-caching-strategy"   "cache breakpoint"
+check_skill "generative-ui-patterns"    "useChat"
+check_skill "generative-ui-patterns"    "streamText"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

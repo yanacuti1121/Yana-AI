@@ -19,17 +19,17 @@
     "commands": 156,
     "agents": 87,
     "scripts": 22,
-    "skills": 136,
-    "checks": 316,
+    "skills": 139,
+    "checks": 322,
     "memory_tiers": 2
   },
   "highlights": [
     "26 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops; auto-approves safe read-only ops",
     "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "136 skills (git-native-agent-protocol, agent-messaging-patterns, ai-team-workflow, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, and more)",
+    "139 skills (auto-feedback-loop, prompt-caching-strategy, generative-ui-patterns, ai-team-workflow, adversarial-prompt-testing, and more)",
     "129 skills (kubernetes-patterns, terraform-patterns, docker-patterns, typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations, and more)",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search",
-    "316 checks: 55 hook + 12 audit-chain + 243 skill trigger + 6 command smoke — all pass before each release",
+    "322 checks: 55 hook + 12 audit-chain + 249 skill trigger + 6 command smoke — all pass before each release",
     "302 checks: 55 hook + 12 audit-chain + 229 skill trigger + 6 command smoke — all pass before each release",
     "Truth Gate (L3) — warns on claim verbs without evidence",
     "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"

@@ -419,7 +419,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 136,
+      "count": 139,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -556,7 +556,10 @@
         "core/skills/supply-chain-security/SKILL.md",
         "core/skills/zero-trust-patterns/SKILL.md",
         "core/skills/agent-safety-patterns/SKILL.md",
-        "core/skills/ai-team-workflow/SKILL.md"
+        "core/skills/ai-team-workflow/SKILL.md",
+        "core/skills/auto-feedback-loop/SKILL.md",
+        "core/skills/prompt-caching-strategy/SKILL.md",
+        "core/skills/generative-ui-patterns/SKILL.md"
       ]
     },
     "config": {

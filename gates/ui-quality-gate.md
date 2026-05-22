@@ -87,6 +87,54 @@ Run the anti-slop checklist from `core/skills/design-taste-frontend`:
 
 ---
 
+## L5 — Tailwind Hard Rules (Vercel/baseline-ui standard)
+
+Hard blocks — any violation is a REJECT, not a flag:
+
+```
+❌ REJECT if: utility class count per element > 8 (extract to component or @apply)
+❌ REJECT if: hardcoded hex/rgb colors used instead of CSS variables or Tailwind tokens
+❌ REJECT if: outline: none or :focus { outline: none } exists — kills keyboard nav
+❌ REJECT if: img elements are inline (display not set) — causes 4px phantom gap
+❌ REJECT if: no prefers-reduced-motion override for any CSS animation/transition
+❌ REJECT if: line-height not set on body (browser default ~1.2 is too tight)
+
+□ box-sizing: border-box applied globally
+□ font-smoothing: antialiased set
+□ All touch targets ≥ 44×44px
+```
+
+---
+
+## L6 — Performance Budget (Vercel web-performance standard)
+
+```
+□ LCP < 2.5s (Largest Contentful Paint)
+□ FID / INP < 200ms (interaction responsiveness)
+□ CLS < 0.1 (no layout shift from images/fonts loading)
+□ No render-blocking scripts in <head> (use defer/async)
+□ Images have explicit width + height (prevent CLS)
+□ Fonts loaded with font-display: swap (no invisible text flash)
+□ AI streaming UI: first token visible < 500ms, stop button shown during stream
+```
+
+---
+
+## L7 — Generative UI Checks (Vercel AI SDK)
+
+Required if component uses `useChat`, `streamText`, or AI-generated content:
+
+```
+□ isLoading disables input — no double-submit possible
+□ stop() button visible during streaming
+□ Error state surfaces in UI (not just console.error)
+□ Tool call progress shown (call → result transition)
+□ maxDuration set on route handler
+□ Token usage logged server-side
+```
+
+---
+
 ## Evidence Required per Level
 
 | Level | Evidence to show |
@@ -95,6 +143,9 @@ Run the anti-slop checklist from `core/skills/design-taste-frontend`:
 | L2 | Visual audit findings (5-axis from `ui-redesign` or `design-taste-frontend`) |
 | L3 | Contrast ratio values or ESTIMATED note with color sources |
 | L4 | Anti-slop pattern checklist with PASS/FAIL per item |
+| L5 | Tailwind grep output: no inline colors, no `outline: none`, utility count checked |
+| L6 | Lighthouse score or manual checklist with LCP/CLS values noted |
+| L7 | Streaming UI checklist signed off (only if AI SDK used) |
 
 ---
 
@@ -106,17 +157,22 @@ Run the anti-slop checklist from `core/skills/design-taste-frontend`:
 | L2 failure | Flag to user before claiming "looks good" — user may waive |
 | L3 failure | Flag with severity — color contrast failure is high, missing label is medium |
 | L4 failure | List as known issues — user decides whether to address before shipping |
+| L5 failure | **HARD REJECT** — Tailwind hard rules are non-negotiable |
+| L6 failure | Flag with metric values — user decides threshold for their product |
+| L7 failure | **HARD REJECT** if AI SDK used — streaming UX bugs break trust |
 
 ---
 
 ## Anti-Fake-Pass for This Gate
 
 Before recording that the UI Quality Gate passed:
-- [ ] Gate level reached (L1/L2/L3/L4) explicitly stated
+- [ ] Gate level reached (L1–L7) explicitly stated
 - [ ] All checks at that level documented as PASS / FAIL / SKIP
 - [ ] Any SKIP has a written justification
 - [ ] FAIL items are either fixed or explicitly waived by the user in this session
+- [ ] L5 Tailwind hard rules: zero violations (no waiver allowed)
 
 MUST NOT say "UI looks good" without L2 evidence.
 MUST NOT say "accessible" without L3 evidence.
-MUST NOT say "ship-ready" without L4 evidence.
+MUST NOT say "ship-ready" without L4+L5 evidence.
+MUST NOT say "AI streaming UI is done" without L7 evidence.
