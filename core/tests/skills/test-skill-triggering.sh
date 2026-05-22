@@ -349,6 +349,17 @@ check_skill "autonomous-patching-loop"   "self-heal"
 check_skill "autonomous-patching-loop"   "scan and fix"
 check_skill "autonomous-patching-loop"   "auto-fix"
 
+# v1.3.32 — Codebase ingestion + research team + tree-of-thoughts
+check_skill "ingest-repo"               "ingest this repo"
+check_skill "ingest-repo"               "map the codebase"
+check_skill "ingest-repo"               "dependency graph"
+check_skill "research-team"             "autonomous research"
+check_skill "research-team"             "research team"
+check_skill "research-team"             "investigate"
+check_skill "tree-of-thoughts"          "tree of thoughts"
+check_skill "tree-of-thoughts"          "plan 3 approaches"
+check_skill "tree-of-thoughts"          "self-critique"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

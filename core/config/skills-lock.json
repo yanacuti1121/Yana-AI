@@ -860,6 +860,33 @@
       "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36",
       "license": "MIT",
       "inspiration": "darrenburns/cliche error capture + closed-loop scan/isolate/repair/verify architecture"
+    },
+    "ingest-repo": {
+      "source": "adapted:Apache-2.0 © BloopAI/bloop",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/ingest-repo",
+      "localPath": "core/skills/ingest-repo",
+      "computedHash": "a3cd0cbd07795d796d3bbab808126e5ebae5921e186161c9e8b2e9c33551e441",
+      "license": "MIT",
+      "inspiration": "BloopAI/bloop — semantic code search, dependency graph, repo ingestion pattern"
+    },
+    "research-team": {
+      "source": "adapted:Apache-2.0 © assafelovic/gpt-researcher",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/research-team",
+      "localPath": "core/skills/research-team",
+      "computedHash": "e7db731bc304ffc396a6b75810d07bea613c8f3aa54c2b95390f9ee1dd341110",
+      "license": "MIT",
+      "inspiration": "assafelovic/gpt-researcher — multi-source parallel research loop, synthesis, L1 promotion"
+    },
+    "tree-of-thoughts": {
+      "source": "adapted:Apache-2.0 © kyegomez/TreeofThoughts",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/tree-of-thoughts",
+      "localPath": "core/skills/tree-of-thoughts",
+      "computedHash": "8b0cf1a7de8a307ee63d85083ce625ab56a2921d7095493f967835b759b6a481",
+      "license": "MIT",
+      "inspiration": "kyegomez/TreeofThoughts — 3-branch generation, self-scoring, DFS/BFS backtrack protocol"
     }
   }
 }

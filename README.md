@@ -11,14 +11,14 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Agents | 87 |
 | Commands | 156 |
 | Hooks | 26 |
-| Scripts | 22 |
-| Skills | 106 |
-| Rules | 11 |
+| Scripts | 27 |
+| Skills | 145 |
+| Rules | 21 |
 | Templates | 12 |
-| Tests | 256 checks (55 hook + 12 audit + 183 skill + 6 smoke) |
+| Tests | 340 checks (55 hook + 12 audit + 267 skill + 6 smoke) |
 
-\*\*Version:\*\* 1.3.31
-**Status:** Runtime active. 256 checks passing (55 hook + 12 audit + 183 skill + 6 smoke). Release pack live. v1.3.31.
+**Version:** 1.3.32
+**Status:** Runtime active. 340 checks passing. Release pack live. v1.3.32.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -65,10 +65,18 @@ yamtam-engine/
 │   ├── agents/            ← 87 agent definitions across root and domain subfolders (quality-testing x5, infrastructure x12, security-team, core-development x8, quality-assurance x6, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2, forge x4)
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /performance-audit, /write-tests, /ultra-think, /tdd-cycle, /smart-fix)
 │   ├── hooks/             ← 26 hooks (.sh + .js)
-│   ├── scripts/           ← 21 utility scripts
-│   ├── rules/             ← 11 coding rules (incl. subagent-policy, conflict-resolution)
+│   ├── scripts/           ← 27 utility scripts (incl. safe-run.sh, secure-logger.sh, verify-rules.sh, feedback-loop.sh, build-skills-snapshot.sh)
+│   ├── rules/             ← 21 coding rules (incl. 00-meta-rule-enforcer, 02-terminal-validator, execution-environment, human-gate-policy, agent-code-constraints, color-rules, typography-rules, rule-consistency-policy, memory-persistence-law, git-push-enforcement)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 106 skill definitions (load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization, caching-patterns, api-rate-limiting, gitnexus x7, karpathy, git-lessons, plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, requesting-code-review, receiving-code-review, writing-skills, lsp-navigation, audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail, telemetry-analysis, subagent-dependency, agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research, session-context, pre-compact-backup, team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation, hook-block-commands, hook-protect-secrets, l1-promote, red-team-check, blue-team-fix, purple-team-report, design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, aesthetic-anchor, accessibility-audit, design-system-gen, ux-heuristics, typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance, rag-architect, prompt-engineering, llm-ui-patterns, slo-design, incident-response-runbook, i18n-patterns, database-patterns, auth-patterns, resilience-patterns, event-driven-architecture, observability-instrumentation, cicd-patterns, refactor-patterns, data-privacy, graphql-patterns, adr-writing)
+│   ├── skills/            ← 145 skill definitions
+│   │   │   Core workflow: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, executing-plans, lsp-navigation
+│   │   │   Security: red-team-check, blue-team-fix, purple-team-report, security-compliance, security-pipeline, stride-analysis-patterns, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
+│   │   │   AI/Agent: rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
+│   │   │   Frontend/UI: baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns
+│   │   │   IaC/DevOps: kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns
+│   │   │   Stack depth: typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations
+│   │   │   Observability: slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis
+│   │   │   + 80 more: caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, graphql-patterns, i18n-patterns, adr-writing, and others
 │   ├── config/            ← 6 config JSON files
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
@@ -118,6 +126,21 @@ yamtam-engine/
 └── releases/              ← versioned packs
     ├── yamtam-engine-v1.3.31-fixed.zip  ← current
     └── yamtam-engine-latest.zip         ← symlink → current
+
+---
+
+## Skill categories (v1.3.32)
+
+| Category | Skills |
+|---|---|
+| Security & guardrails | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check, safe-run (script) |
+| AI / Agent orchestration | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
+| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns |
+| IaC / DevOps | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
+| Stack depth | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
+| Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
+| Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns |
+| Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact |
 ```
 
 ---
@@ -129,13 +152,13 @@ yamtam-engine/
 | `core/agents/` | 87 agents |
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 26 hooks |
-| `core/scripts/` | 21 scripts |
-| `core/rules/` | 11 rules |
+| `core/scripts/` | 27 scripts |
+| `core/rules/` | 21 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 106 skills |
+| `core/skills/` | 145 skills |
 | `core/config/` | 6 config files |
 | `core/tests/hooks/` | 55 test cases |
-| `core/tests/skills/` | 179 skill trigger tests |
+| `core/tests/skills/` | 267 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |
@@ -182,12 +205,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 256 checks → drift check → zip → symlink latest
+# Runs: syntax check → 340 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.31 && git push origin v1.3.31
+git tag v1.3.32 && git push origin v1.3.32
 ```
 
 ---
