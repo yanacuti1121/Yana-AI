@@ -8,6 +8,28 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.31 — Caching + Rate Limiting Skills + Full Test Coverage
+*2026-05-22*
+
+### New skills (104→106)
+| Skill | Mô tả |
+|---|---|
+| `caching-patterns` | Cache-aside/read-through/write-through strategy, TTL tuning, Redis stampede prevention, invalidation patterns |
+| `api-rate-limiting` | Sliding window counter + token bucket (Redis Lua), per-user/IP/endpoint tiers, `X-RateLimit-*` headers |
+
+### Test coverage expansion
+- Skill trigger tests: 58 → **183** checks — all 106 skills now covered
+- Total checks: 131 → **256** (55 hook + 12 audit + 183 skill trigger + 6 smoke)
+
+### Count sync
+| Metric | Trước | Sau |
+|---|---|---|
+| Skills | 99 | **106** |
+| Skill trigger tests | 58 | **183** |
+| Total checks | 131 | **256** |
+
+---
+
 ## v1.3.30 — 16 New Skills (AI/LLM, Backend, Infra Branches)
 *2026-05-21*
 

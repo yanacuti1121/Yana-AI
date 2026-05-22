@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# YAMTAM ENGINE v1.3.26 — Skill Trigger Phrase Test
+# YAMTAM ENGINE v1.3.31 — Skill Trigger Phrase Test
 #
 # Verifies that skill SKILL.md description fields contain the right trigger phrases.
 # This does NOT test AI routing — it tests that the descriptions are correctly written
@@ -241,6 +241,12 @@ check_skill "graphql-patterns"       "GraphQL"
 check_skill "graphql-patterns"       "N+1"
 check_skill "adr-writing"            "ADR"
 check_skill "adr-writing"            "decision"
+
+# v1.3.31 — caching-patterns, api-rate-limiting
+check_skill "caching-patterns"       "cache"
+check_skill "caching-patterns"       "invalidat"
+check_skill "api-rate-limiting"      "rate limit"
+check_skill "api-rate-limiting"      "429"
 
 # v1.3.31 session — load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization
 check_skill "load-testing"           "k6"

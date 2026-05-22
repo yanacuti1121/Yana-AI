@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.30",
+  "version": "1.3.31",
   "scaffold_version": "1.0",
   "release_date": "2026-05-21",
   "manifest_updated": "2026-05-21",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.31 \u2014 caching-patterns (cache-aside/read-through/write-through, Redis stampede prevention, TTL tuning) + api-rate-limiting (sliding window counter + token bucket Lua, per-user/IP/endpoint tiers, X-RateLimit headers). Full skill trigger test coverage: 58\u2192183 checks. skills 99\u2192106, checks 131\u2192256.",
     "v1.3.30 \u2014 database-patterns, auth-patterns, resilience-patterns, event-driven-architecture, observability-instrumentation, cicd-patterns, refactor-patterns, data-privacy, graphql-patterns, adr-writing (skills 89\u219299). AI/LLM branch (rag-architect, prompt-engineering, llm-ui-patterns), observability branch (slo-design, incident-response-runbook), i18n branch (i18n-patterns) \u2014 skills 83\u219289. design/performance branch: typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance (skills 78\u219283). Release zip fix: gates/ docs/ prompts/ now included. 5 script fixes (build-release, run-security-tools, drift-check, verify-claude-pack, MANIFEST gaps). docs/multi-agent-failure-modes.md.",
     "v1.3.28 \u2014 Phase 4 UI skills expansion: aesthetic-anchor (8 visual styles: Swiss/Industrial/Brutalist/Aurora/Chaotic/Retro-Futuristic/Organic/Lo-Fi), accessibility-audit (WCAG 2.1 AA, 5 categories), design-system-gen (5-layer token system per product type), ux-heuristics (Nielsen 10 heuristics + severity scoring). Also: run-security-tools.sh (gitleaks/semgrep/trivy/npm audit/bandit/pip-audit/govulncheck/cargo audit). skills 73\u219277, scripts 21\u219222.",
     "v1.3.27 \u2014 Phase 10 level-up: security skill pack (red-team-check, blue-team-fix, purple-team-report, security-scope-gate, anti-fake-pass-gate, /security-scan), skill standard infrastructure (skill-spec, skill-writing-guide, skill-evaluation-rules, SKILL_TEMPLATE), design/UX skill pack (design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, ui-quality-gate), model-routing-strategy. Sources: ECC MIT, Strix Apache 2.0, Taste-skill MIT, Free-claude-code MIT, AgentSkills Apache 2.0. commands 155\u2192156, skills 65\u219273, templates 11\u219212.",
@@ -418,7 +419,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 104,
+      "count": 106,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -523,7 +524,9 @@
         "core/skills/feature-flags/SKILL.md",
         "core/skills/websocket-patterns/SKILL.md",
         "core/skills/mlops/SKILL.md",
-        "core/skills/cloud-cost-optimization/SKILL.md"
+        "core/skills/cloud-cost-optimization/SKILL.md",
+        "core/skills/caching-patterns/SKILL.md",
+        "core/skills/api-rate-limiting/SKILL.md"
       ]
     },
     "config": {

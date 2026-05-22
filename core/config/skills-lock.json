@@ -551,6 +551,20 @@
       "sourcePath": "core/skills/cloud-cost-optimization",
       "localPath": "core/skills/cloud-cost-optimization",
       "computedHash": "2a64e37b594c55547ad6d2295f3373f18e8eaf643350b6a49f6329c9950a1a83"
+    },
+    "caching-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/caching-patterns",
+      "localPath": "core/skills/caching-patterns",
+      "computedHash": "329b29518cb2ec14009fcac826025b7dd6484020633cef04deadcb9130f2561d"
+    },
+    "api-rate-limiting": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/api-rate-limiting",
+      "localPath": "core/skills/api-rate-limiting",
+      "computedHash": "584fab73146c83ba18d7c22d1c14281b16cfe2c9b4d36765d5978bed9e241e96"
     }
   }
 }

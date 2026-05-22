@@ -19,18 +19,18 @@
     "commands": 156,
     "agents": 87,
     "scripts": 22,
-    "skills": 104,
-    "checks": 252,
+    "skills": 106,
+    "checks": 256,
     "memory_tiers": 2
   },
   "highlights": [
     "26 safety hooks \u2014 blocks rm -rf, force push, prod deploys, unscoped DB ops; auto-approves safe read-only ops",
     "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "155 slash commands (security-audit, performance-audit, write-tests, ultra-think, tdd-cycle, smart-fix, handoff-verify, commit-push-pr)",
-    "65 skills (gitnexus x7, agenthub, write-a-skill, pulse, research, team-orchestrator, strategic-compact, security-compliance, and more)",
+    "156 slash commands (security-audit, performance-audit, write-tests, ultra-think, tdd-cycle, smart-fix, handoff-verify, commit-push-pr)",
+    "106 skills (load-testing, feature-flags, websocket-patterns, mlops, cloud-cost, caching-patterns, api-rate-limiting, gitnexus x7, and more)",
     "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search",
     "L2 Session Memory \u2014 provisional session-scoped facts, gitignored",
-    "252 checks: 55 hook + 12 audit-chain + 179 skill trigger + 6 command smoke \u2014 all pass before each release",
+    "256 checks: 55 hook + 12 audit-chain + 183 skill trigger + 6 command smoke \u2014 all pass before each release",
     "Truth Gate (L3) \u2014 warns on claim verbs without evidence",
     "Action Gate (L4) \u2014 commit-gate + deploy-gate + scope-guard"
   ],
@@ -38,7 +38,7 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v1.3.30",
+  "latest_release": "v1.3.31",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "version": "1.3.30"
+  "version": "1.3.31"
 }
