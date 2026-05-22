@@ -19,7 +19,7 @@
     "commands": 156,
     "agents": 87,
     "scripts": 22,
-    "skills": 99,
+    "skills": 100,
     "checks": 131,
     "memory_tiers": 2
   },
@@ -38,7 +38,7 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v1.3.26",
+  "latest_release": "v1.3.30",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "version": "1.3.30"
 }

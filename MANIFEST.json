@@ -418,7 +418,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 99,
+      "count": 100,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -518,7 +518,8 @@
         "core/skills/refactor-patterns/SKILL.md",
         "core/skills/data-privacy/SKILL.md",
         "core/skills/graphql-patterns/SKILL.md",
-        "core/skills/adr-writing/SKILL.md"
+        "core/skills/adr-writing/SKILL.md",
+        "core/skills/load-testing/SKILL.md"
       ]
     },
     "config": {

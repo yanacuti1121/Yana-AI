@@ -240,7 +240,7 @@
       "localPath": "core/skills/red-team-check",
       "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "blue-team-fix": {
@@ -250,7 +250,7 @@
       "localPath": "core/skills/blue-team-fix",
       "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "purple-team-report": {
@@ -260,7 +260,7 @@
       "localPath": "core/skills/purple-team-report",
       "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "design-taste-frontend": {
@@ -269,8 +269,8 @@
       "sourcePath": "core/skills/design-taste-frontend",
       "localPath": "core/skills/design-taste-frontend",
       "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
-      "license": "adapted:MIT © 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "image-to-code": {
@@ -279,8 +279,8 @@
       "sourcePath": "core/skills/image-to-code",
       "localPath": "core/skills/image-to-code",
       "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
-      "license": "adapted:MIT © 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "ui-redesign": {
@@ -289,8 +289,8 @@
       "sourcePath": "core/skills/ui-redesign",
       "localPath": "core/skills/ui-redesign",
       "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020",
-      "license": "adapted:MIT © 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "output-enforcement": {
@@ -299,8 +299,8 @@
       "sourcePath": "core/skills/output-enforcement",
       "localPath": "core/skills/output-enforcement",
       "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f",
-      "license": "adapted:MIT © 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "minimalist-ui": {
@@ -309,8 +309,8 @@
       "sourcePath": "core/skills/minimalist-ui",
       "localPath": "core/skills/minimalist-ui",
       "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
-      "license": "adapted:MIT © 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "aesthetic-anchor": {
@@ -319,8 +319,8 @@
       "sourcePath": "core/skills/aesthetic-anchor",
       "localPath": "core/skills/aesthetic-anchor",
       "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
-      "license": "adapted:MIT © 2026 Ilm-Alan",
-      "inspiration": "Ilm-Alan/frontend-design (MIT) — 8 aesthetic anchors concept",
+      "license": "adapted:MIT \u00a9 2026 Ilm-Alan",
+      "inspiration": "Ilm-Alan/frontend-design (MIT) \u2014 8 aesthetic anchors concept",
       "addedInPhase": "phase-4"
     },
     "accessibility-audit": {
@@ -329,8 +329,8 @@
       "sourcePath": "core/skills/accessibility-audit",
       "localPath": "core/skills/accessibility-audit",
       "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a",
-      "license": "adapted:MIT © Vercel Labs",
-      "inspiration": "vercel-labs/agent-skills (MIT) — accessibility audit concept; WCAG 2.1 rules from W3C public spec",
+      "license": "adapted:MIT \u00a9 Vercel Labs",
+      "inspiration": "vercel-labs/agent-skills (MIT) \u2014 accessibility audit concept; WCAG 2.1 rules from W3C public spec",
       "addedInPhase": "phase-4"
     },
     "design-system-gen": {
@@ -339,8 +339,8 @@
       "sourcePath": "core/skills/design-system-gen",
       "localPath": "core/skills/design-system-gen",
       "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a",
-      "license": "adapted:MIT © 2026 nextlevelbuilder",
-      "inspiration": "nextlevelbuilder/ui-ux-pro-max-skill (MIT) — product-type taxonomy concept",
+      "license": "adapted:MIT \u00a9 2026 nextlevelbuilder",
+      "inspiration": "nextlevelbuilder/ui-ux-pro-max-skill (MIT) \u2014 product-type taxonomy concept",
       "addedInPhase": "phase-4"
     },
     "ux-heuristics": {
@@ -516,6 +516,13 @@
       "sourcePath": "core/skills/adr-writing",
       "localPath": "core/skills/adr-writing",
       "computedHash": "34fbd1d3f9105e3839ce7a851d0a19474dd8b08cbde9e3678ed8c5872e630162"
+    },
+    "load-testing": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/load-testing",
+      "localPath": "core/skills/load-testing",
+      "computedHash": "73873bcd24a54f920e00ef388de859e48d7675a94c4fc14cf966af98c115b7e4"
     }
   }
 }

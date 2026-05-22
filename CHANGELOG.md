@@ -8,6 +8,144 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.3.30 — 16 New Skills (AI/LLM, Backend, Infra Branches)
+*2026-05-21*
+
+### New skills — AI/LLM + Observability + i18n branch (83→89)
+| Skill | Mô tả |
+|---|---|
+| `llm-ui-patterns` | Streaming, skeleton loaders, error states cho AI output |
+| `prompt-engineering` | Chain-of-thought, few-shot, structured output patterns |
+| `rag-architect` | Chunking strategy, retrieval scoring, hallucination guards |
+| `slo-design` | SLI/SLO/SLA definitions, error budget, alerting thresholds |
+| `incident-response-runbook` | Runbook template, severity levels, escalation paths |
+| `i18n-patterns` | ICU message format, locale fallback, pluralization rules |
+
+### New skills — Backend/Infra/Quality branch (89→99)
+| Skill | Mô tả |
+|---|---|
+| `database-patterns` | Index strategy, N+1 detection, migration safety |
+| `auth-patterns` | JWT, OAuth2 PKCE, session management, RBAC |
+| `resilience-patterns` | Circuit breaker, retry with backoff, bulkhead, timeout |
+| `event-driven-architecture` | Event schema, at-least-once delivery, idempotency |
+| `observability-instrumentation` | Structured logs, trace propagation, metric naming |
+| `cicd-patterns` | Pipeline stages, deploy strategies, rollback triggers |
+| `refactor-patterns` | Strangler fig, branch by abstraction, seam identification |
+| `data-privacy` | PII classification, data minimization, retention policy |
+| `graphql-patterns` | Schema design, N+1 via DataLoader, pagination |
+| `adr-writing` | ADR template, context/decision/consequences format |
+
+### Count sync
+| Metric | Trước | Sau |
+|---|---|---|
+| Skills | 83 | **99** |
+
+---
+
+## v1.3.29 — Design + Performance Branch
+*2026-05-21*
+
+### New skills (77→83)
+| Skill | Mô tả |
+|---|---|
+| `multi-agent-handoff` | Context package, trust boundary, handoff protocol |
+| `typography-system` | Type scale, font pairing, readability constraints |
+| `motion-design` | Easing curves, duration budget, reduced-motion support |
+| `ui-states` | Loading/empty/error/success state design patterns |
+| `mobile-ux` | Touch targets, thumb zones, native gestures |
+| `web-performance` | Core Web Vitals, LCP/CLS/INP targets, ramp-up strategy |
+
+### Fixes
+- Release zip: `gates/`, `docs/`, `prompts/` directories now included
+- 5 script fixes: `build-release.sh`, `run-security-tools.sh`, `drift-check.sh`, `verify-claude-pack.sh`, MANIFEST `actual_present` gaps
+
+### New docs
+| File | Mô tả |
+|---|---|
+| `docs/multi-agent-failure-modes.md` | Taxonomy of multi-agent failure patterns |
+
+### Count sync
+| Metric | Trước | Sau |
+|---|---|---|
+| Skills | 77 | **83** |
+
+---
+
+## v1.3.28 — UI Expansion + Security Tools Runner
+*2026-05-21*
+
+### New skills (73→77)
+| Skill | Mô tả |
+|---|---|
+| `aesthetic-anchor` | 8 visual styles: Swiss, Industrial, Brutalist, Aurora, Chaotic, Retro-Futuristic, Organic, Lo-Fi |
+| `accessibility-audit` | WCAG 2.1 AA — 5 categories, severity scoring |
+| `design-system-gen` | 5-layer token system per product type |
+| `ux-heuristics` | Nielsen 10 heuristics + severity scoring |
+
+### New script
+| Script | Mô tả |
+|---|---|
+| `core/scripts/run-security-tools.sh` | Automated runner: gitleaks, semgrep, trivy, npm audit, bandit, pip-audit, govulncheck, cargo audit |
+
+### Count sync
+| Metric | Trước | Sau |
+|---|---|---|
+| Skills | 73 | **77** |
+| Scripts | 21 | **22** |
+
+---
+
+## v1.3.27 — Security Skill Pack + Design/UX Branch + Skill Standard
+*2026-05-21*
+
+### New skills (65→73)
+| Skill | Mô tả |
+|---|---|
+| `red-team-check` | Adversarial review — attack surfaces, bypass vectors |
+| `blue-team-fix` | Evidence-based remediation checklist |
+| `purple-team-report` | Combined red+blue summary format |
+| `design-taste-frontend` | Aesthetic evaluation rubric for frontend output |
+| `image-to-code` | Faithful UI reproduction from screenshots |
+| `ui-redesign` | Visual upgrade without breaking functionality |
+| `output-enforcement` | Structural constraints on agent output format |
+| `minimalist-ui` | Reduction heuristics — remove before adding |
+
+### New command
+| Command | Mô tả |
+|---|---|
+| `/security-scan` | Run red/blue/purple team skill sequence |
+
+### New hook
+| Hook | Mô tả |
+|---|---|
+| `truth-gate-guard.sh` | Stop hook — blocks unverified claim verbs in security context |
+
+### New gates + docs
+| File | Mô tả |
+|---|---|
+| `gates/anti-fake-pass-gate.md` | Blocks PASS claims without evidence |
+| `gates/security-scope-gate.md` | Enforces "own repo/app only" scope rule |
+| `gates/ui-quality-gate.md` | Visual quality checklist before UI output |
+| `docs/model-routing-strategy.md` | When to use Opus vs Sonnet vs Haiku |
+| `docs/third-party-inspiration.md` | Attribution guide for adapted skills |
+
+### Skill standard infrastructure
+| File | Mô tả |
+|---|---|
+| `core/templates/SKILL_TEMPLATE.md` | Canonical skill format |
+| `docs/skill-spec.md` | Skill schema specification |
+| `docs/skill-writing-guide.md` | Authoring guide |
+| `docs/skill-evaluation-rules.md` | Pass/fail evaluation criteria |
+
+### Count sync
+| Metric | Trước | Sau |
+|---|---|---|
+| Commands | 155 | **156** |
+| Skills | 65 | **73** |
+| Templates | 11 | **12** |
+
+---
+
 ## v1.3.26 — Count Sync + Output Budget Layer
 *2026-05-19*
 
