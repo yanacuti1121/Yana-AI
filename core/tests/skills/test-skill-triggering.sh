@@ -445,6 +445,12 @@ check_skill "ast-code-manipulation"       "magic-string"
 check_skill "grammar-lexer-dsl"           "Chevrotain"
 check_skill "grammar-lexer-dsl"           "Handlebars"
 
+# v1.3.47 — sandbox isolation + swarm consensus
+check_skill "container-interactivity"    "Docker"
+check_skill "container-interactivity"    "nsjail"
+check_skill "swarm-consensus"            "veto"
+check_skill "swarm-consensus"            "quorum"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

@@ -1,0 +1,61 @@
+{
+  "_comment": "YAMTAM Engine — Firecracker micro-VM sandbox config",
+  "_gate": "L3 — hardware-level isolation for high-risk tool calls",
+  "_source": "firecracker-microvm/firecracker config reference",
+
+  "boot-source": {
+    "kernel_image_path": "/var/lib/yamtam/sandbox/vmlinux",
+    "boot_args": "console=ttyS0 reboot=k panic=1 pci=off nomodule ro quiet"
+  },
+
+  "drives": [
+    {
+      "drive_id": "rootfs",
+      "path_on_host": "/var/lib/yamtam/sandbox/rootfs.ext4",
+      "is_root_device": true,
+      "is_read_only": true
+    },
+    {
+      "drive_id": "workspace",
+      "path_on_host": "/tmp/yamtam-sandbox-workspace",
+      "is_root_device": false,
+      "is_read_only": false,
+      "cache_type": "Unsafe",
+      "_comment": "tmpfs — wiped after VM exits"
+    }
+  ],
+
+  "machine-config": {
+    "vcpu_count": 1,
+    "mem_size_mib": 128,
+    "smt": false,
+    "_comment": "128MB max — keeps blast radius minimal"
+  },
+
+  "network-interfaces": [],
+  "_network_note": "Empty array = no NIC = completely network-isolated",
+
+  "vsock": null,
+
+  "logger": {
+    "log_path": "/tmp/yamtam-firecracker.log",
+    "level": "Warning",
+    "show_level": true,
+    "show_log_origin": false
+  },
+
+  "metrics": {
+    "metrics_path": "/tmp/yamtam-firecracker-metrics.fifo"
+  },
+
+  "mmds-config": {
+    "network_interfaces": [],
+    "_comment": "MMDS disabled — no metadata service (blocks SSRF via VM)"
+  },
+
+  "_resource_limits": {
+    "max_cpu_seconds": 30,
+    "max_output_bytes": 16384,
+    "destroy_on_exit": true
+  }
+}

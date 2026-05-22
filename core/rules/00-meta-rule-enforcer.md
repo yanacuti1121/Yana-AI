@@ -93,6 +93,10 @@ core/rules/
   slsa-artifact-law.md        ← SLSA provenance + cosign verify + in-toto chain (Gate L4)
   network-egress-law.md      ← SSRF/DNS-rebinding/redirect block + allowlist (Gate L3, exit 3)
   agent-middleware-law.md    ← middleware pipeline between agent + tools (Gate L2, 9-step compose)
+  04-sandbox-isolation-law.md ← runtime isolation gate (Gate L3, Docker/nsjail/Firecracker)
+  resource-quota-law.md      ← cgroups CPU/RAM/PID hard limits per agent tier (Gate L1)
+  agent-hierarchy-law.md     ← security-team veto + tier authority model (Gate L1)
+  agent-communication-policy.md ← inter-agent message format + replay prevention (Gate L0)
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
   golden-principles.md        ← overarching agent behavior principles

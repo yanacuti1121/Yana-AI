@@ -1,0 +1,41 @@
+# YAMTAM Engine — Minimal Ephemeral Sandbox
+# Purpose: run untrusted agent tool commands in complete isolation
+# Base:    Alpine 3.20 (< 8MB) — no package manager bloat
+# Network: disabled at runtime (--network=none)
+# User:    nobody (uid=65534) — never root
+# FS:      read-only root, /tmp tmpfs only
+
+FROM alpine:3.20
+
+# Only packages needed to execute shell commands safely
+RUN apk add --no-cache \
+      bash \
+      coreutils \
+      findutils \
+      git \
+    && rm -rf /var/cache/apk/*
+
+# Drop world-writeable bits on sensitive paths
+RUN chmod 700 /root && chmod 750 /tmp
+
+# Create unprivileged user for command execution
+RUN adduser -D -u 65534 -g nobody nobody 2>/dev/null || true
+
+# Scratch workspace — tmpfs mounted at runtime (--tmpfs /workspace:rw,size=64m)
+RUN mkdir /workspace && chown nobody:nobody /workspace
+
+# Read-only shell wrapper — prints exit code to stdout so host can capture it
+COPY --chown=nobody:nobody sandbox-entrypoint.sh /usr/local/bin/sandbox-entrypoint.sh
+RUN chmod 550 /usr/local/bin/sandbox-entrypoint.sh
+
+USER nobody
+WORKDIR /workspace
+
+# Default: execute the command passed as CMD args
+ENTRYPOINT ["/usr/local/bin/sandbox-entrypoint.sh"]
+CMD ["echo", "[sandbox] no command provided"]
+
+# Labels for audit trail
+LABEL org.yamtam.component="sandbox"
+LABEL org.yamtam.gate="L3"
+LABEL org.yamtam.isolation="process+filesystem+network"

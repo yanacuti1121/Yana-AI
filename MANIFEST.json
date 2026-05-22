@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.46",
+  "version": "1.3.47",
   "scaffold_version": "1.0",
   "release_date": "2026-05-22",
   "manifest_updated": "2026-05-22",
@@ -350,7 +350,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 32,
+      "count": 34,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -388,7 +388,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 37,
+      "count": 41,
       "actual_present": [
         "core/rules/agents-v2.md",
         "core/rules/conflict-resolution.md",
@@ -423,7 +423,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 176,
+      "count": 178,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -631,5 +631,5 @@
       "any environment files or secrets"
     ]
   },
-  "_import_note": "v1.3.46 \u2014 graph algorithms + AST manipulation + grammar DSL"
+  "_import_note": "v1.3.47 \u2014 sandbox layer + swarm bus + agent hierarchy"
 }
