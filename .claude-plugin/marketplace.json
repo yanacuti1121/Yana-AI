@@ -19,18 +19,18 @@
     "commands": 156,
     "agents": 87,
     "scripts": 22,
-    "skills": 119,
-    "checks": 256,
+    "skills": 129,
+    "checks": 302,
     "memory_tiers": 2
   },
   "highlights": [
     "26 safety hooks \u2014 blocks rm -rf, force push, prod deploys, unscoped DB ops; auto-approves safe read-only ops",
     "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
     "156 slash commands (security-audit, performance-audit, write-tests, ultra-think, tdd-cycle, smart-fix, handoff-verify, commit-push-pr)",
-    "119 skills (design-engineering, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, baseline-ui, fixing-accessibility, fixing-motion-performance, and more)",
+    "129 skills (kubernetes-patterns, terraform-patterns, docker-patterns, typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations, and more)",
     "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search",
     "L2 Session Memory \u2014 provisional session-scoped facts, gitignored",
-    "282 checks: 55 hook + 12 audit-chain + 209 skill trigger + 6 command smoke \u2014 all pass before each release",
+    "302 checks: 55 hook + 12 audit-chain + 229 skill trigger + 6 command smoke \u2014 all pass before each release",
     "Truth Gate (L3) \u2014 warns on claim verbs without evidence",
     "Action Gate (L4) \u2014 commit-gate + deploy-gate + scope-guard"
   ],

@@ -674,6 +674,76 @@
       "computedHash": "3a7e25792773997379d253248f2bd479a734fe8d6b178ff0d1d2d268e05f422d",
       "license": "adapted:MIT © emilkowalski",
       "inspiration": "emilkowalski/emil-design-eng — design-engineering discipline, Storybook workflow, handoff precision"
+    },
+    "kubernetes-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/kubernetes-patterns",
+      "localPath": "core/skills/kubernetes-patterns",
+      "computedHash": "9053d930e535dc47e7b5f8614e170a4a17fd857d15dd366c33d365b415ac2736"
+    },
+    "terraform-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/terraform-patterns",
+      "localPath": "core/skills/terraform-patterns",
+      "computedHash": "fdb241998efc1d41cacafe41b95bba89a223c262221d713b3abaeaf5e6ed10ab"
+    },
+    "docker-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/docker-patterns",
+      "localPath": "core/skills/docker-patterns",
+      "computedHash": "8ab9bd39d17cddc2679ba231e9ab18a4363055bc0b4a5cc83f97f0c4a33b3c17"
+    },
+    "serverless-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/serverless-patterns",
+      "localPath": "core/skills/serverless-patterns",
+      "computedHash": "086c74a7cbe96226edeb25587be4b5e7f916e08224d8a993790debcda724fdf2"
+    },
+    "typescript-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/typescript-patterns",
+      "localPath": "core/skills/typescript-patterns",
+      "computedHash": "09f8176ed6700d1b3d0002139ff33184048b3b06187a5b191b827c8e94e0efaa"
+    },
+    "nextjs-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/nextjs-patterns",
+      "localPath": "core/skills/nextjs-patterns",
+      "computedHash": "27a0023c863ab00a9f4e779d088062285177a788b404ed6c18275ea7f5660a21"
+    },
+    "state-management-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/state-management-patterns",
+      "localPath": "core/skills/state-management-patterns",
+      "computedHash": "1acaba096175c8ba3065bce7cf003edc4c728455eb9cee6d5ea672744e6c449e"
+    },
+    "unit-testing-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/unit-testing-patterns",
+      "localPath": "core/skills/unit-testing-patterns",
+      "computedHash": "eb746405a66149eab1cb8f9dff313f1569268ab9305ab2747d8917931115fdd4"
+    },
+    "monorepo-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/monorepo-patterns",
+      "localPath": "core/skills/monorepo-patterns",
+      "computedHash": "93036002ebbcf74843f2367054b0f024ce7befe34c5c2b693a0d60e75b8ccb5c"
+    },
+    "database-migrations": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/database-migrations",
+      "localPath": "core/skills/database-migrations",
+      "computedHash": "67a2c05e1b948e4e3c42b2f59e1a8835b1778fffad07f454486f06504465d917"
     }
   }
 }
