@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 31 |
-| Skills | 160 |
+| Skills | 163 |
 | Rules | 31 |
 | Templates | 12 |
-| Tests | 343 checks (55 hook + 12 audit + 270 skill + 6 smoke) |
+| Tests | 379 checks (55 hook + 12 audit + 304 skill + 6 smoke + 2 perf) |
 
-**Version:** 1.3.38
-**Status:** Runtime active. 343 checks passing. Release pack live. v1.3.38.
+**Version:** 1.3.39
+**Status:** Runtime active. 379 checks passing. Release pack live. v1.3.39.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -73,7 +73,7 @@ yamtam-engine/
 │   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
 │   ├── rules/             ← 31 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 160 skill definitions
+│   ├── skills/            ← 163 skill definitions
 │   │     Core workflow    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
@@ -85,7 +85,7 @@ yamtam-engine/
 │   ├── config/            ← 6 config JSON files (skills-lock.json, …)
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
-│       ├── skills/        ← test-skill-triggering.sh (270 skill trigger checks)
+│       ├── skills/        ← test-skill-triggering.sh (304 skill trigger checks)
 │       └── commands/      ← test-hook-review-smoke.sh (6 smoke tests)
 │
 ├── adapters/              ← cross-engine governance adapters
@@ -128,7 +128,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.38.zip
+    ├── yamtam-engine-v1.3.39.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -144,18 +144,18 @@ yamtam-engine/
 | `core/scripts/` | 31 scripts |
 | `core/rules/` | 31 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 160 skills |
+| `core/skills/` | 163 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
-| `core/tests/skills/` | 270 skill trigger tests |
+| `core/tests/skills/` | 304 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
 | `memory/L2_session/` | ephemeral — gitignored |
 
 ---
 
-## Skill categories (v1.3.38)
+## Skill categories (v1.3.39)
 
 | Category | Skills |
 |---|---|
@@ -165,7 +165,9 @@ yamtam-engine/
 | IaC / DevOps | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
 | Stack depth | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
 | Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
-| Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking |
+| Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, database-query-safety |
+| Monorepo / Build | monorepo-patterns, monorepo-governance, build-system |
+| AI / LLM Quality | llm-output-validation, prompt-engineering, prompt-caching-strategy, rag-architect, llm-cost-optimizer |
 | Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
 | Token / Cost | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
 
@@ -235,7 +237,7 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 343 checks → drift check → zip → symlink latest
+# Runs: syntax check → 379 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:

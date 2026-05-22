@@ -365,6 +365,50 @@ check_skill "token-roi"                 "token usage"
 check_skill "token-roi"                 "cost per fix"
 check_skill "token-roi"                 "am I wasting tokens"
 
+# v1.3.35 — memory-gc
+check_skill "memory-gc"                 "L2"
+check_skill "memory-gc"                 "promote"
+
+# v1.3.36 — UI skills (design-tokens, color, typography, motion, layouts)
+check_skill "design-tokens-system"      "design token"
+check_skill "design-tokens-system"      "style-dictionary"
+check_skill "color-math-system"         "OKLAB"
+check_skill "color-math-system"         "palette"
+check_skill "typography-scale"          "golden ratio"
+check_skill "typography-scale"          "CJK"
+check_skill "motion-physics"            "spring"
+check_skill "motion-physics"            "easing"
+check_skill "component-layout-patterns" "dashboard"
+check_skill "component-layout-patterns" "masonry"
+
+# v1.3.37 — 100-repo UI skill batch
+check_skill "enterprise-design-systems" "B2B"
+check_skill "enterprise-design-systems" "design system"
+check_skill "advanced-color-math"       "dark.mode"
+check_skill "advanced-color-math"       "contrast"
+check_skill "advanced-typography"       "fluid type"
+check_skill "advanced-typography"       "variable font"
+check_skill "advanced-motion-easing"    "spring"
+check_skill "advanced-motion-easing"    "GPU"
+check_skill "smart-layout-aesthetics"   "virtual"
+check_skill "smart-layout-aesthetics"   "floating"
+
+# v1.3.38 — perf & data skills
+check_skill "caching-memory-efficiency" "LRU"
+check_skill "caching-memory-efficiency" "TTL"
+check_skill "high-perf-data-algorithms" "lazy"
+check_skill "high-perf-data-algorithms" "stream"
+check_skill "profiling-benchmarking"    "benchmark"
+check_skill "profiling-benchmarking"    "ops/sec"
+
+# v1.3.39 — db safety, monorepo, LLM validation
+check_skill "database-query-safety"     "N+1"
+check_skill "database-query-safety"     "SQL injection"
+check_skill "monorepo-governance"       "affected"
+check_skill "monorepo-governance"       "Turborepo"
+check_skill "llm-output-validation"     "hallucination"
+check_skill "llm-output-validation"     "structured output"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"
