@@ -115,6 +115,21 @@ else
   done <<< "$STAGED_RULES"
 fi
 
+# ── Gate 4: manifest drift check ────────────────────────────────────────────
+echo ""
+echo "Gate 4: Manifest drift (validate-manifest.sh)"
+
+MANIFEST_SCRIPT="$(dirname "$0")/validate-manifest.sh"
+if [[ ! -f "$MANIFEST_SCRIPT" ]]; then
+  log_warn "validate-manifest.sh not found — skipping drift check"
+else
+  if bash "$MANIFEST_SCRIPT" 2>&1 | grep -q "DRIFT DETECTED"; then
+    log_fail "MANIFEST.json is out of sync — run: bash core/scripts/validate-manifest.sh --fix"
+  else
+    log_pass "MANIFEST.json counts match actual file counts"
+  fi
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "================================================"

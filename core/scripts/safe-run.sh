@@ -35,6 +35,32 @@ BLOCKED_PATTERNS=(
   "curl.*| bash"
   "wget.*| bash"
   "eval.*curl"
+  # ── Anti-evasion patterns (anti-evasion-law.md) ───────────────────────────
+  "\| bash"
+  "\| sh "
+  "\| sh$"
+  "\| python"
+  "\| python3"
+  "\| node "
+  "\| node$"
+  "\| perl"
+  "base64 -d.*\|"
+  "base64 --decode.*\|"
+  "openssl.*enc.*-d.*\|"
+  "openssl.*base64.*-d"
+  "source <("
+  "bash <("
+  "\. <("
+  # ── chmod on protected dirs (execution-environment.md) ────────────────────
+  "chmod.*777.*core/"
+  "chmod.*-x.*safe-run"
+  "chown.*root.*core/"
+  "chmod.*-R.*memory/L1"
+  # ── LD_PRELOAD / PATH hijack (env-integrity-policy.md) ────────────────────
+  "LD_PRELOAD="
+  "LD_LIBRARY_PATH="
+  "DYLD_INSERT_LIBRARIES="
+  "NODE_OPTIONS=.*--require"
 )
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
