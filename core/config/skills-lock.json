@@ -744,6 +744,68 @@
       "sourcePath": "core/skills/database-migrations",
       "localPath": "core/skills/database-migrations",
       "computedHash": "67a2c05e1b948e4e3c42b2f59e1a8835b1778fffad07f454486f06504465d917"
+    },
+    "git-native-agent-protocol": {
+      "source": "adapted:MIT © andyrewlee/awesome-agent-orchestrators (GNAP)",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/git-native-agent-protocol",
+      "localPath": "core/skills/git-native-agent-protocol",
+      "computedHash": "7695d0f42557a752ce2b8b5e1440fbd74a89804d817ef23f1b946e6a9f1c4c72",
+      "license": "adapted:MIT © andyrewlee/gnap",
+      "inspiration": "GNAP — Git-Native Agent Protocol: git repo as coordination bus, issues as task queue"
+    },
+    "agent-messaging-patterns": {
+      "source": "adapted:MIT © andyrewlee/awesome-agent-orchestrators (hcom)",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/agent-messaging-patterns",
+      "localPath": "core/skills/agent-messaging-patterns",
+      "computedHash": "a4bd864d327b7c31a98cb0260e722da337b087fccea34b73a4ff09c1e1b4063f",
+      "license": "adapted:MIT © andyrewlee/hcom",
+      "inspiration": "hcom — signal files, approval queues, budget delegation, pipeline coordination"
+    },
+    "adversarial-prompt-testing": {
+      "source": "adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits)",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/adversarial-prompt-testing",
+      "localPath": "core/skills/adversarial-prompt-testing",
+      "computedHash": "50a69d566498d1443675ddf55b4d43a1e3613b41990d7fb492213d1fa0a0a20c",
+      "license": "adapted:MIT © Trail of Bits",
+      "inspiration": "VoltAgent/awesome-agent-skills — OWASP LLM Top 10, prompt injection, RAG indirect injection"
+    },
+    "supply-chain-security": {
+      "source": "adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits)",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/supply-chain-security",
+      "localPath": "core/skills/supply-chain-security",
+      "computedHash": "c73728b37fe60a206009bd5bd6b7e0d6352bcf9d014e801b04bc774966a3d09a",
+      "license": "adapted:MIT © Trail of Bits",
+      "inspiration": "Trail of Bits supply chain module — SBOM, provenance, Sigstore, dependency confusion"
+    },
+    "zero-trust-patterns": {
+      "source": "adapted:MIT © VoltAgent/awesome-agent-skills",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/zero-trust-patterns",
+      "localPath": "core/skills/zero-trust-patterns",
+      "computedHash": "45d2502e4e55807081fd8731fc3a73aeebebafcdada83ba35375b31626ad1616",
+      "license": "adapted:MIT © VoltAgent",
+      "inspiration": "Zero-trust architecture — SPIFFE/SPIRE, mTLS, network policy, short-lived creds"
+    },
+    "agent-safety-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/agent-safety-patterns",
+      "localPath": "core/skills/agent-safety-patterns",
+      "computedHash": "2605da863e29ea76d4c801a2d6797b4c6d53fd5f4401c3e1cded1911a90fdc94",
+      "inspiration": "VoltAgent + yamtam — capability restriction, sandbox, HITL gates, anomaly detection"
+    },
+    "ai-team-workflow": {
+      "source": "adapted:MIT © Hivemoot",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/ai-team-workflow",
+      "localPath": "core/skills/ai-team-workflow",
+      "computedHash": "7b950742ea986561a6aa7e875431fa2b710606c6461d944407310dde51bf6dd1",
+      "license": "adapted:MIT © Hivemoot",
+      "inspiration": "Hivemoot — propose/vote/implement/review/ship cycle for AI agent teams"
     }
   }
 }

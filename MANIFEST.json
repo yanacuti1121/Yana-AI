@@ -419,7 +419,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 129,
+      "count": 136,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -549,7 +549,14 @@
         "core/skills/state-management-patterns/SKILL.md",
         "core/skills/unit-testing-patterns/SKILL.md",
         "core/skills/monorepo-patterns/SKILL.md",
-        "core/skills/database-migrations/SKILL.md"
+        "core/skills/database-migrations/SKILL.md",
+        "core/skills/git-native-agent-protocol/SKILL.md",
+        "core/skills/agent-messaging-patterns/SKILL.md",
+        "core/skills/adversarial-prompt-testing/SKILL.md",
+        "core/skills/supply-chain-security/SKILL.md",
+        "core/skills/zero-trust-patterns/SKILL.md",
+        "core/skills/agent-safety-patterns/SKILL.md",
+        "core/skills/ai-team-workflow/SKILL.md"
       ]
     },
     "config": {
