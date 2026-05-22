@@ -15,10 +15,10 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Skills | 166 |
 | Rules | 36 |
 | Templates | 12 |
-| Tests | 383 checks (55 hook + 12 audit + 310 skill + 6 smoke) |
+| Tests | 389 checks (55 hook + 12 audit + 310 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.41
-**Status:** Runtime active. 383 checks passing. Release pack live. v1.3.41.
+**Version:** 1.3.42
+**Status:** Runtime active. 389 checks passing. Release pack live. v1.3.42.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -130,7 +130,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.41.zip
+    ├── yamtam-engine-v1.3.42.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -157,7 +157,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.41)
+## Skill categories (v1.3.42)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -241,12 +241,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 383 checks → drift check → zip → symlink latest
+# Runs: syntax check → 389 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.41 && git push origin v1.3.41
+git tag v1.3.42 && git push origin v1.3.42
 ```
 
 ---
