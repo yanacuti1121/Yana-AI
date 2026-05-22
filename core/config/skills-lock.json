@@ -523,6 +523,13 @@
       "sourcePath": "core/skills/load-testing",
       "localPath": "core/skills/load-testing",
       "computedHash": "73873bcd24a54f920e00ef388de859e48d7675a94c4fc14cf966af98c115b7e4"
+    },
+    "feature-flags": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/feature-flags",
+      "localPath": "core/skills/feature-flags",
+      "computedHash": "43fbaf1c454d2a396b4d5bb184aa284a161fbe830d926375b330f6d67386e740"
     }
   }
 }
