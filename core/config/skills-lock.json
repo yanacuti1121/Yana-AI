@@ -240,7 +240,7 @@
       "localPath": "core/skills/red-team-check",
       "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "blue-team-fix": {
@@ -250,7 +250,7 @@
       "localPath": "core/skills/blue-team-fix",
       "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "purple-team-report": {
@@ -260,7 +260,7 @@
       "localPath": "core/skills/purple-team-report",
       "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
       "license": "yamtam-original",
-      "inspiration": "Strix (Apache 2.0) \u2014 concept only, no code ported",
+      "inspiration": "Strix (Apache 2.0) — concept only, no code ported",
       "addedInPhase": "phase-1"
     },
     "design-taste-frontend": {
@@ -269,8 +269,8 @@
       "sourcePath": "core/skills/design-taste-frontend",
       "localPath": "core/skills/design-taste-frontend",
       "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
-      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "image-to-code": {
@@ -279,8 +279,8 @@
       "sourcePath": "core/skills/image-to-code",
       "localPath": "core/skills/image-to-code",
       "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
-      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "ui-redesign": {
@@ -289,8 +289,8 @@
       "sourcePath": "core/skills/ui-redesign",
       "localPath": "core/skills/ui-redesign",
       "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020",
-      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "output-enforcement": {
@@ -299,8 +299,8 @@
       "sourcePath": "core/skills/output-enforcement",
       "localPath": "core/skills/output-enforcement",
       "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f",
-      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "minimalist-ui": {
@@ -309,8 +309,8 @@
       "sourcePath": "core/skills/minimalist-ui",
       "localPath": "core/skills/minimalist-ui",
       "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
-      "license": "adapted:MIT \u00a9 2026 Leonxlnx",
-      "inspiration": "taste-skill (MIT) \u2014 adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
+      "license": "adapted:MIT © 2026 Leonxlnx",
+      "inspiration": "taste-skill (MIT) — adapted SKILL.md structure, added Anti-Fake-Pass, removed GPT-specific behavior",
       "addedInPhase": "phase-3"
     },
     "aesthetic-anchor": {
@@ -319,8 +319,8 @@
       "sourcePath": "core/skills/aesthetic-anchor",
       "localPath": "core/skills/aesthetic-anchor",
       "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
-      "license": "adapted:MIT \u00a9 2026 Ilm-Alan",
-      "inspiration": "Ilm-Alan/frontend-design (MIT) \u2014 8 aesthetic anchors concept",
+      "license": "adapted:MIT © 2026 Ilm-Alan",
+      "inspiration": "Ilm-Alan/frontend-design (MIT) — 8 aesthetic anchors concept",
       "addedInPhase": "phase-4"
     },
     "accessibility-audit": {
@@ -329,8 +329,8 @@
       "sourcePath": "core/skills/accessibility-audit",
       "localPath": "core/skills/accessibility-audit",
       "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a",
-      "license": "adapted:MIT \u00a9 Vercel Labs",
-      "inspiration": "vercel-labs/agent-skills (MIT) \u2014 accessibility audit concept; WCAG 2.1 rules from W3C public spec",
+      "license": "adapted:MIT © Vercel Labs",
+      "inspiration": "vercel-labs/agent-skills (MIT) — accessibility audit concept; WCAG 2.1 rules from W3C public spec",
       "addedInPhase": "phase-4"
     },
     "design-system-gen": {
@@ -339,8 +339,8 @@
       "sourcePath": "core/skills/design-system-gen",
       "localPath": "core/skills/design-system-gen",
       "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a",
-      "license": "adapted:MIT \u00a9 2026 nextlevelbuilder",
-      "inspiration": "nextlevelbuilder/ui-ux-pro-max-skill (MIT) \u2014 product-type taxonomy concept",
+      "license": "adapted:MIT © 2026 nextlevelbuilder",
+      "inspiration": "nextlevelbuilder/ui-ux-pro-max-skill (MIT) — product-type taxonomy concept",
       "addedInPhase": "phase-4"
     },
     "ux-heuristics": {
@@ -522,84 +522,84 @@
       "sourceType": "original",
       "sourcePath": "core/skills/load-testing",
       "localPath": "core/skills/load-testing",
-      "computedHash": "73873bcd24a54f920e00ef388de859e48d7675a94c4fc14cf966af98c115b7e4"
+      "computedHash": "116fbb25e506dc9ac70b7f038932b9e560e44718768bb1ede99de70c8680ae00"
     },
     "feature-flags": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/feature-flags",
       "localPath": "core/skills/feature-flags",
-      "computedHash": "43fbaf1c454d2a396b4d5bb184aa284a161fbe830d926375b330f6d67386e740"
+      "computedHash": "bc1482e6d9109565722540fc231e3b07cb4b5f1be05ab4ca64e690b9c90bceaa"
     },
     "websocket-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/websocket-patterns",
       "localPath": "core/skills/websocket-patterns",
-      "computedHash": "3a78dd18cfb12006546b3bc20d5b577f61f313f3516702867e60b184135c29d7"
+      "computedHash": "c029a553a9202f09bfd1a1f558dd2e6b9781603ac6703477b5fc2b2ac93f0b1d"
     },
     "mlops": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/mlops",
       "localPath": "core/skills/mlops",
-      "computedHash": "22859fac2cbc9125f5044e4af559d8073732878cf86013f768b53cdd81737f87"
+      "computedHash": "660d76059de06fc5530a14e6c44b0cbac1bd8b81876a4fcdff1141b99900d707"
     },
     "cloud-cost-optimization": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/cloud-cost-optimization",
       "localPath": "core/skills/cloud-cost-optimization",
-      "computedHash": "2a64e37b594c55547ad6d2295f3373f18e8eaf643350b6a49f6329c9950a1a83"
+      "computedHash": "6d11ae01350ee2119461d06ac2ac406dbc0d1292f924ff65e37562d7bcccdbcb"
     },
     "caching-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/caching-patterns",
       "localPath": "core/skills/caching-patterns",
-      "computedHash": "329b29518cb2ec14009fcac826025b7dd6484020633cef04deadcb9130f2561d"
+      "computedHash": "7cde7cc5047731b8d3565a3b0cd77fb5f476828856e419bf7698ad6ce29d7fa1"
     },
     "api-rate-limiting": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/api-rate-limiting",
       "localPath": "core/skills/api-rate-limiting",
-      "computedHash": "584fab73146c83ba18d7c22d1c14281b16cfe2c9b4d36765d5978bed9e241e96"
+      "computedHash": "06162ae9b47b1a47b25bf7daed2262dddd1b744b89f0a4eb18a7fc65abfcff25"
     },
     "error-handling": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/error-handling",
       "localPath": "core/skills/error-handling",
-      "computedHash": "5147242e9250cc7c61559188db4cb5de2587f4efe80b5a71214eba84f9a69cef"
+      "computedHash": "927bf08eadc003b84b9a88c2732f1ab2c8069937162a6c4ae75511f5dbee896c"
     },
     "secret-management": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/secret-management",
       "localPath": "core/skills/secret-management",
-      "computedHash": "a26f93a8f114581d55e8e66f2f94b0c326142639ff9d44cbea0d83d1cf628d82"
+      "computedHash": "fd2e898f8c3efbe8d56d9110186ca89ee43a583181829d94393262060f24452c"
     },
     "distributed-tracing": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/distributed-tracing",
       "localPath": "core/skills/distributed-tracing",
-      "computedHash": "fe3711d375c38ccac4628cc14322fff5dcda0af8426bce1c0ba05d1f99f59170"
+      "computedHash": "705c692a1a0b07a995f3fa41dbee358ca17868ed5c5992eb07a141ca2b9d903e"
     },
     "contract-testing": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/contract-testing",
       "localPath": "core/skills/contract-testing",
-      "computedHash": "1afcee20b6d7adcdf81010adbc7c399ef62d344c4cf6484b10f5568ad5c68058"
+      "computedHash": "ab6d2eca602da12626a16b9ec347af87722989c0a29220bbc12878032689d33d"
     },
     "baseline-ui": {
       "source": "adapted:MIT © Ibelick",
       "sourceType": "adapted",
       "sourcePath": "core/skills/baseline-ui",
       "localPath": "core/skills/baseline-ui",
-      "computedHash": "367f74a47de98d5be220c030803daa1104c9a9616e5473877b95ff2bf08048b3",
+      "computedHash": "0c52c65dbf5c0835b95556b6baa7f73f104ecf12506fe21421fd992008ee3886",
       "license": "adapted:MIT © Ibelick",
       "inspiration": "Ibelick/baseline-ui — CSS baseline patterns, Tailwind anti-patterns, typography scale"
     },
@@ -608,7 +608,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/fixing-accessibility",
       "localPath": "core/skills/fixing-accessibility",
-      "computedHash": "b05b354f357a8cac2d43b38585cfba49505ec24213a0ff33543ff493a883f071",
+      "computedHash": "4c3348146e175710f4e18930d074b0a8d21d62b39c9ec9e6f868cd882f863b21",
       "license": "adapted:MIT © Ibelick",
       "inspiration": "Ibelick/fixing-accessibility — focus management, ARIA, keyboard nav, skip links"
     },
@@ -617,7 +617,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/fixing-motion-performance",
       "localPath": "core/skills/fixing-motion-performance",
-      "computedHash": "7e329131eb0003230f2c58f701c6354c242d65e538468e10759043552ed25466",
+      "computedHash": "cf0b55a888e02e0595279939057c635dd205baa689bd6508331af3977d67c8c4",
       "license": "adapted:MIT © Ibelick",
       "inspiration": "Ibelick/fixing-motion-performance — compositor properties, will-change, layout thrashing"
     },
@@ -626,7 +626,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/shadcn-patterns",
       "localPath": "core/skills/shadcn-patterns",
-      "computedHash": "9caf2d34f93aa02c7d6b7d64104b62e6004acf2311736cd5c707dfd88dbfef39",
+      "computedHash": "98e6f6082857426b99773a4cc3598ad443d1d95c8dfc40c56d1a520212c2beaa",
       "license": "adapted:MIT © shadcn-ui",
       "inspiration": "shadcn/ui — component workflow, CSS variables theming, cva() variants, Radix composition"
     },
@@ -635,7 +635,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/react-doctor",
       "localPath": "core/skills/react-doctor",
-      "computedHash": "3467b4162c908424e346864d9d2750ef77e0225853396a9ad9024da0a1ab2e04",
+      "computedHash": "a08e5332ea3db3bfc9b199eb6e558c63ca02a721b95aba60c7f966cb9ca0e900",
       "license": "adapted:MIT © millionco",
       "inspiration": "millionco/react-doctor — re-render audit, useEffect safety, XSS, bundle size"
     },
@@ -644,7 +644,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/animation-principles",
       "localPath": "core/skills/animation-principles",
-      "computedHash": "3e74a5abba11781f65dbd933531bd7096f44e34f701ffe5a7f634a6ea4f82d53",
+      "computedHash": "50b9032def53e6e6b3736db1c0d413e6db74bac214b03b0f83193239bb77cb39",
       "license": "adapted:MIT © raphaelsalaja",
       "inspiration": "raphaelsalaja/12-principles-of-animation — Disney's 12 principles applied to web UI"
     },
@@ -653,7 +653,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/impeccable",
       "localPath": "core/skills/impeccable",
-      "computedHash": "4ce8152ac52a1502e2791a5547a8f27d705669c6ed0217a70459cb2eed0bb30c",
+      "computedHash": "a1ebe012536ce4528f0788126d93a165f37382a0c3fe0d2bca5cf4364be3bf54",
       "license": "adapted:MIT © pbakaus",
       "inspiration": "pbakaus/impeccable — anti-generic UI, custom hover states, surface depth, typography precision"
     },
@@ -662,7 +662,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/interface-feel",
       "localPath": "core/skills/interface-feel",
-      "computedHash": "fd7d735d9a74f78612f08137c459c9c1c95444a60aac7bf1485b4104e70a9c03",
+      "computedHash": "8a023749774b27c849af588d66d5e2e75abbae17221ff100361ff7ef267a5565",
       "license": "adapted:MIT © jakubkrehel",
       "inspiration": "jakubkrehel/make-interfaces-feel-better — micro-interactions, spring physics, optimistic UI, skeletons"
     },
@@ -671,7 +671,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/design-engineering",
       "localPath": "core/skills/design-engineering",
-      "computedHash": "3a7e25792773997379d253248f2bd479a734fe8d6b178ff0d1d2d268e05f422d",
+      "computedHash": "cd81cc6c334a774e2a14e4ea7ebaaa503801625fda279ac047ca3b5902c9452e",
       "license": "adapted:MIT © emilkowalski",
       "inspiration": "emilkowalski/emil-design-eng — design-engineering discipline, Storybook workflow, handoff precision"
     },
@@ -680,77 +680,77 @@
       "sourceType": "original",
       "sourcePath": "core/skills/kubernetes-patterns",
       "localPath": "core/skills/kubernetes-patterns",
-      "computedHash": "9053d930e535dc47e7b5f8614e170a4a17fd857d15dd366c33d365b415ac2736"
+      "computedHash": "102643a4a495e6c35c547d5da7c13d4095689d612b6771c1572283bcab62995d"
     },
     "terraform-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/terraform-patterns",
       "localPath": "core/skills/terraform-patterns",
-      "computedHash": "fdb241998efc1d41cacafe41b95bba89a223c262221d713b3abaeaf5e6ed10ab"
+      "computedHash": "d4dc375d0117833516e15b706dcba0a19f0ca11142ab3509c9356692e7efd8d2"
     },
     "docker-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/docker-patterns",
       "localPath": "core/skills/docker-patterns",
-      "computedHash": "8ab9bd39d17cddc2679ba231e9ab18a4363055bc0b4a5cc83f97f0c4a33b3c17"
+      "computedHash": "c0c48ab57dc866a3b118c9ae0d864fd5562c7c266e4d1a588bc372382461a942"
     },
     "serverless-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/serverless-patterns",
       "localPath": "core/skills/serverless-patterns",
-      "computedHash": "086c74a7cbe96226edeb25587be4b5e7f916e08224d8a993790debcda724fdf2"
+      "computedHash": "99e01740c128ae7d65689e3906dfd720398fb9e6407eec5c3640473c7788474e"
     },
     "typescript-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/typescript-patterns",
       "localPath": "core/skills/typescript-patterns",
-      "computedHash": "09f8176ed6700d1b3d0002139ff33184048b3b06187a5b191b827c8e94e0efaa"
+      "computedHash": "c19fd19231bcced2a35d13719625766f981fb3bb50e8316dc5a21782f9e1de05"
     },
     "nextjs-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/nextjs-patterns",
       "localPath": "core/skills/nextjs-patterns",
-      "computedHash": "27a0023c863ab00a9f4e779d088062285177a788b404ed6c18275ea7f5660a21"
+      "computedHash": "d4efc351384b3623ca4e8372c91f02c5be91b15073bc9a96c58208420940c2f9"
     },
     "state-management-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/state-management-patterns",
       "localPath": "core/skills/state-management-patterns",
-      "computedHash": "1acaba096175c8ba3065bce7cf003edc4c728455eb9cee6d5ea672744e6c449e"
+      "computedHash": "4e0e746c972579f24b8f600b7dfbfa5c756f64ab5399acf1db978bdc49959a9b"
     },
     "unit-testing-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/unit-testing-patterns",
       "localPath": "core/skills/unit-testing-patterns",
-      "computedHash": "eb746405a66149eab1cb8f9dff313f1569268ab9305ab2747d8917931115fdd4"
+      "computedHash": "168f05a1addb007dfc46b28c749e612f50a6427ba184b2dcbe0bcb7debc7a097"
     },
     "monorepo-patterns": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/monorepo-patterns",
       "localPath": "core/skills/monorepo-patterns",
-      "computedHash": "93036002ebbcf74843f2367054b0f024ce7befe34c5c2b693a0d60e75b8ccb5c"
+      "computedHash": "7f31956f21250e24507b2462681b37a48164b53feae2fffb6610d0d8eabfdb23"
     },
     "database-migrations": {
       "source": "yamtam-original",
       "sourceType": "original",
       "sourcePath": "core/skills/database-migrations",
       "localPath": "core/skills/database-migrations",
-      "computedHash": "67a2c05e1b948e4e3c42b2f59e1a8835b1778fffad07f454486f06504465d917"
+      "computedHash": "2c4611fb9defbe20ec903dafa145afc1655086d8f51372550a7b61c51f94b85e"
     },
     "git-native-agent-protocol": {
       "source": "adapted:MIT © andyrewlee/awesome-agent-orchestrators (GNAP)",
       "sourceType": "adapted",
       "sourcePath": "core/skills/git-native-agent-protocol",
       "localPath": "core/skills/git-native-agent-protocol",
-      "computedHash": "7695d0f42557a752ce2b8b5e1440fbd74a89804d817ef23f1b946e6a9f1c4c72",
+      "computedHash": "b963fd96250b9d07c3259b018d2d5cbbe35205ec617040172ea9a63e9fe8025c",
       "license": "adapted:MIT © andyrewlee/gnap",
       "inspiration": "GNAP — Git-Native Agent Protocol: git repo as coordination bus, issues as task queue"
     },
@@ -759,7 +759,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/agent-messaging-patterns",
       "localPath": "core/skills/agent-messaging-patterns",
-      "computedHash": "a4bd864d327b7c31a98cb0260e722da337b087fccea34b73a4ff09c1e1b4063f",
+      "computedHash": "ea7903e082ddd6a917d38f7de092e24df6e3fa66962b1cd5692a39c5e54039e0",
       "license": "adapted:MIT © andyrewlee/hcom",
       "inspiration": "hcom — signal files, approval queues, budget delegation, pipeline coordination"
     },
@@ -768,7 +768,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/adversarial-prompt-testing",
       "localPath": "core/skills/adversarial-prompt-testing",
-      "computedHash": "50a69d566498d1443675ddf55b4d43a1e3613b41990d7fb492213d1fa0a0a20c",
+      "computedHash": "2539885271644d370d0688b28d76d8b083bb566a1f5c5b63265c1b8893ad1d75",
       "license": "adapted:MIT © Trail of Bits",
       "inspiration": "VoltAgent/awesome-agent-skills — OWASP LLM Top 10, prompt injection, RAG indirect injection"
     },
@@ -777,7 +777,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/supply-chain-security",
       "localPath": "core/skills/supply-chain-security",
-      "computedHash": "c73728b37fe60a206009bd5bd6b7e0d6352bcf9d014e801b04bc774966a3d09a",
+      "computedHash": "52ce62a2ef70afb96661271034ed8d6e5873897ced594cee3241d002516feaf3",
       "license": "adapted:MIT © Trail of Bits",
       "inspiration": "Trail of Bits supply chain module — SBOM, provenance, Sigstore, dependency confusion"
     },
@@ -786,7 +786,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/zero-trust-patterns",
       "localPath": "core/skills/zero-trust-patterns",
-      "computedHash": "45d2502e4e55807081fd8731fc3a73aeebebafcdada83ba35375b31626ad1616",
+      "computedHash": "8c5415c3a97d1ba6e317695f0676d8e345565ffa05b5c88c32bab9e3c7d245ec",
       "license": "adapted:MIT © VoltAgent",
       "inspiration": "Zero-trust architecture — SPIFFE/SPIRE, mTLS, network policy, short-lived creds"
     },
@@ -795,7 +795,7 @@
       "sourceType": "original",
       "sourcePath": "core/skills/agent-safety-patterns",
       "localPath": "core/skills/agent-safety-patterns",
-      "computedHash": "2605da863e29ea76d4c801a2d6797b4c6d53fd5f4401c3e1cded1911a90fdc94",
+      "computedHash": "a2e252b7fd5526e28549fd9dc14960d7fad4451e4cfc82465fe28d9c35283249",
       "inspiration": "VoltAgent + yamtam — capability restriction, sandbox, HITL gates, anomaly detection"
     },
     "ai-team-workflow": {
@@ -803,7 +803,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/ai-team-workflow",
       "localPath": "core/skills/ai-team-workflow",
-      "computedHash": "7b950742ea986561a6aa7e875431fa2b710606c6461d944407310dde51bf6dd1",
+      "computedHash": "1cd4d5afb4f88a9fc99f586cfe97da7c20603a8eb4174b317ac71fb26a0f669a",
       "license": "adapted:MIT © Hivemoot",
       "inspiration": "Hivemoot — propose/vote/implement/review/ship cycle for AI agent teams"
     },
@@ -812,7 +812,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/auto-feedback-loop",
       "localPath": "core/skills/auto-feedback-loop",
-      "computedHash": "ea894d27546082f89d92043d4583031c65ae3bf9deb5f31f22019ca510479316",
+      "computedHash": "cd6c2260a9ff6f253cccbf1c5e157dd497017b9a9d502df8979546d07b4945c4",
       "license": "adapted:MIT © Microsoft AutoGen",
       "inspiration": "AutoGen multi-agent reflection — writer + critic loop, error feedback, self-correction"
     },
@@ -821,7 +821,7 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/prompt-caching-strategy",
       "localPath": "core/skills/prompt-caching-strategy",
-      "computedHash": "4fd7cc3dbfd4ffa20d899bab5173d6a6996060e9b7623653fbf22062c1b7f5b7",
+      "computedHash": "43a38a2ece7dab6c24840f44068ff7767c474a98e2aaf633c23782e1f9f28600",
       "license": "adapted:MIT © Anthropic",
       "inspiration": "anthropic-cookbook — cache_control breakpoints, static/dynamic block separation, 90% cost reduction"
     },
@@ -830,9 +830,36 @@
       "sourceType": "adapted",
       "sourcePath": "core/skills/generative-ui-patterns",
       "localPath": "core/skills/generative-ui-patterns",
-      "computedHash": "ed563b8dc6d566dbdf15c1a4df050f9b57b47c0e1b1a2ce4598dc74614d59a53",
+      "computedHash": "bc43e3ed1779f2af5c46cfc03d3122b516645b14e13fb6b89921890a5fbf403c",
       "license": "adapted:MIT © Vercel",
       "inspiration": "Vercel AI SDK — useChat, streamText, tool call UI, generative UI patterns"
+    },
+    "apply-premium-background": {
+      "source": "adapted:MIT © ibelick/background-snippets",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/apply-premium-background",
+      "localPath": "core/skills/apply-premium-background",
+      "computedHash": "60fe727cca9751aa1009e23a65c3410b8c8f597ee8814ca5415ce1df2204da48",
+      "license": "MIT",
+      "inspiration": "ibelick/background-snippets — dot grid, aurora, mesh gradient, noise texture, spotlight CSS backgrounds"
+    },
+    "leak-check": {
+      "source": "adapted:MIT © Skyscanner/whispers + gitleaks/gitleaks",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/leak-check",
+      "localPath": "core/skills/leak-check",
+      "computedHash": "cccc575d19fe2f08fbed384d38015762ad55460e74e239e5f4a36241cdde922a",
+      "license": "MIT",
+      "inspiration": "Skyscanner/whispers secret regex patterns + gitleaks SARIF report + marionevra/awesome-ai-agents-security playbooks"
+    },
+    "autonomous-patching-loop": {
+      "source": "adapted:MIT © darrenburns/cliche + marionevra/awesome-ai-agents-security",
+      "sourceType": "adapted",
+      "sourcePath": "core/skills/autonomous-patching-loop",
+      "localPath": "core/skills/autonomous-patching-loop",
+      "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36",
+      "license": "MIT",
+      "inspiration": "darrenburns/cliche error capture + closed-loop scan/isolate/repair/verify architecture"
     }
   }
 }

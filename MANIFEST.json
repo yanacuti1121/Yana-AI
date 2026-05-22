@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.31",
+  "version": "1.3.32",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-21",
-  "manifest_updated": "2026-05-21",
+  "release_date": "2026-05-22",
+  "manifest_updated": "2026-05-22",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.32 \u2014 Security guardrails layer: safe-run.sh (command blacklist wrapper), secure-logger.sh (append-only audit log), verify-rules.sh (pre-commit gate). Rules: 00-meta-rule-enforcer (priority tiers 0\u20135), 02-terminal-validator, execution-environment, human-gate-policy. Skills: apply-premium-background (ibelick dot-grid/aurora/noise/spotlight), leak-check (whispers+gitleaks secret scan + pre-push hook), autonomous-patching-loop (scan\u2192isolate\u2192repair\u2192verify closed-loop). skills 139\u2192142, checks 250\u2192258, scripts 24\u219227.",
     "v1.3.31 \u2014 caching-patterns (cache-aside/read-through/write-through, Redis stampede prevention, TTL tuning) + api-rate-limiting (sliding window counter + token bucket Lua, per-user/IP/endpoint tiers, X-RateLimit headers). Full skill trigger test coverage: 58\u2192183 checks. skills 99\u2192106, checks 131\u2192256.",
     "v1.3.30 \u2014 database-patterns, auth-patterns, resilience-patterns, event-driven-architecture, observability-instrumentation, cicd-patterns, refactor-patterns, data-privacy, graphql-patterns, adr-writing (skills 89\u219299). AI/LLM branch (rag-architect, prompt-engineering, llm-ui-patterns), observability branch (slo-design, incident-response-runbook), i18n branch (i18n-patterns) \u2014 skills 83\u219289. design/performance branch: typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance (skills 78\u219283). Release zip fix: gates/ docs/ prompts/ now included. 5 script fixes (build-release, run-security-tools, drift-check, verify-claude-pack, MANIFEST gaps). docs/multi-agent-failure-modes.md.",
     "v1.3.28 \u2014 Phase 4 UI skills expansion: aesthetic-anchor (8 visual styles: Swiss/Industrial/Brutalist/Aurora/Chaotic/Retro-Futuristic/Organic/Lo-Fi), accessibility-audit (WCAG 2.1 AA, 5 categories), design-system-gen (5-layer token system per product type), ux-heuristics (Nielsen 10 heuristics + severity scoring). Also: run-security-tools.sh (gitleaks/semgrep/trivy/npm audit/bandit/pip-audit/govulncheck/cargo audit). skills 73\u219277, scripts 21\u219222.",

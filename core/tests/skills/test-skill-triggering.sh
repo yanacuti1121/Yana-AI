@@ -338,6 +338,17 @@ check_skill "prompt-caching-strategy"   "cache breakpoint"
 check_skill "generative-ui-patterns"    "useChat"
 check_skill "generative-ui-patterns"    "streamText"
 
+# v1.3.32 — Security guardrails + premium backgrounds + patching loop
+check_skill "apply-premium-background"   "dot grid"
+check_skill "apply-premium-background"   "aurora"
+check_skill "apply-premium-background"   "mesh gradient"
+check_skill "leak-check"                 "leaked secrets"
+check_skill "leak-check"                 "API keys"
+check_skill "leak-check"                 "scan for"
+check_skill "autonomous-patching-loop"   "self-heal"
+check_skill "autonomous-patching-loop"   "scan and fix"
+check_skill "autonomous-patching-loop"   "auto-fix"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"
