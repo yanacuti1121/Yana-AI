@@ -437,6 +437,14 @@ check_skill "durable-task-queues"        "dead-letter"
 check_skill "agent-middleware-gate"     "intercept"
 check_skill "agent-middleware-gate"     "sanitize"
 
+# v1.3.46 — graph algorithms, AST manipulation, grammar DSL
+check_skill "graph-dependency-resolution" "topological"
+check_skill "graph-dependency-resolution" "semver"
+check_skill "ast-code-manipulation"       "AST"
+check_skill "ast-code-manipulation"       "magic-string"
+check_skill "grammar-lexer-dsl"           "Chevrotain"
+check_skill "grammar-lexer-dsl"           "Handlebars"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"

@@ -12,14 +12,14 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 31 |
-| Skills | 173 |
+| Skills | 176 |
 | Rules | 37 |
 | Scripts | 32 |
 | Templates | 12 |
-| Tests | 403 checks (55 hook + 12 audit + 324 skill + 6 smoke + 65 red-team) |
+| Tests | 409 checks (55 hook + 12 audit + 330 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.45
-**Status:** Runtime active. 403 checks passing. Release pack live. v1.3.45.
+**Version:** 1.3.46
+**Status:** Runtime active. 409 checks passing. Release pack live. v1.3.46.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -74,7 +74,7 @@ yamtam-engine/
 │   ├── scripts/           ← 31 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
 │   ├── rules/             ← 37 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, agent-middleware-law, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 173 skill definitions
+│   ├── skills/            ← 176 skill definitions
 │   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop, llm-output-validation
@@ -131,7 +131,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.45.zip
+    ├── yamtam-engine-v1.3.46.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -147,7 +147,7 @@ yamtam-engine/
 | `core/scripts/` | 31 scripts |
 | `core/rules/` | 37 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 173 skills |
+| `core/skills/` | 176 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
@@ -158,7 +158,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.45)
+## Skill categories (v1.3.46)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -172,6 +172,7 @@ yamtam-engine/
 | Monorepo / Build | 2 | monorepo-governance, build-system |
 | Observability | 4 | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
 | Data / Backend | 11 | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, database-query-safety |
+| Compilers / Parsing | 3 | graph-dependency-resolution, ast-code-manipulation, grammar-lexer-dsl |
 | Workflow / Core | 10 | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
 | Token / Cost | 1 | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
 | Other (i18n, perf, patterns, …) | 81 | error-handling, secret-management, distributed-tracing, contract-testing, load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization, i18n-patterns, data-privacy, adr-writing, refactor-patterns, caching-patterns (redis), api-design, backend-patterns, coding-standards, deep-research, documentation-lookup, e2e-testing, security-review, tdd-workflow, verification-loop, agent-introspection-debugging, frontend-patterns, mcp-server-patterns, + 56 more |
@@ -242,12 +243,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 403 checks → drift check → zip → symlink latest
+# Runs: syntax check → 409 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.45 && git push origin v1.3.45
+git tag v1.3.46 && git push origin v1.3.46
 ```
 
 ---
