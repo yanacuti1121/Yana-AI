@@ -537,6 +537,13 @@
       "sourcePath": "core/skills/websocket-patterns",
       "localPath": "core/skills/websocket-patterns",
       "computedHash": "3a78dd18cfb12006546b3bc20d5b577f61f313f3516702867e60b184135c29d7"
+    },
+    "mlops": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/mlops",
+      "localPath": "core/skills/mlops",
+      "computedHash": "22859fac2cbc9125f5044e4af559d8073732878cf86013f768b53cdd81737f87"
     }
   }
 }
