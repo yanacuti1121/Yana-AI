@@ -255,6 +255,8 @@ check_skill "secret-management"      "secret"
 check_skill "secret-management"      "rotation"
 check_skill "distributed-tracing"    "trace"
 check_skill "distributed-tracing"    "OpenTelemetry"
+check_skill "contract-testing"       "contract"
+check_skill "contract-testing"       "Pact"
 
 # v1.3.31 session — load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization
 check_skill "load-testing"           "k6"

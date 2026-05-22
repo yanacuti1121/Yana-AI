@@ -586,6 +586,13 @@
       "sourcePath": "core/skills/distributed-tracing",
       "localPath": "core/skills/distributed-tracing",
       "computedHash": "fe3711d375c38ccac4628cc14322fff5dcda0af8426bce1c0ba05d1f99f59170"
+    },
+    "contract-testing": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/contract-testing",
+      "localPath": "core/skills/contract-testing",
+      "computedHash": "1afcee20b6d7adcdf81010adbc7c399ef62d344c4cf6484b10f5568ad5c68058"
     }
   }
 }

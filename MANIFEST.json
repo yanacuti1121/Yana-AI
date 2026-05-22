@@ -419,7 +419,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 109,
+      "count": 110,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -529,7 +529,8 @@
         "core/skills/api-rate-limiting/SKILL.md",
         "core/skills/error-handling/SKILL.md",
         "core/skills/secret-management/SKILL.md",
-        "core/skills/distributed-tracing/SKILL.md"
+        "core/skills/distributed-tracing/SKILL.md",
+        "core/skills/contract-testing/SKILL.md"
       ]
     },
     "config": {
