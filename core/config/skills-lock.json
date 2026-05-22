@@ -530,6 +530,13 @@
       "sourcePath": "core/skills/feature-flags",
       "localPath": "core/skills/feature-flags",
       "computedHash": "43fbaf1c454d2a396b4d5bb184aa284a161fbe830d926375b330f6d67386e740"
+    },
+    "websocket-patterns": {
+      "source": "yamtam-original",
+      "sourceType": "original",
+      "sourcePath": "core/skills/websocket-patterns",
+      "localPath": "core/skills/websocket-patterns",
+      "computedHash": "3a78dd18cfb12006546b3bc20d5b577f61f313f3516702867e60b184135c29d7"
     }
   }
 }
