@@ -15,10 +15,10 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Skills | 163 |
 | Rules | 31 |
 | Templates | 12 |
-| Tests | 379 checks (55 hook + 12 audit + 304 skill + 6 smoke + 2 perf) |
+| Tests | 377 checks (55 hook + 12 audit + 304 skill + 6 smoke) |
 
 **Version:** 1.3.39
-**Status:** Runtime active. 379 checks passing. Release pack live. v1.3.39.
+**Status:** Runtime active. 377 checks passing. Release pack live. v1.3.39.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -74,14 +74,16 @@ yamtam-engine/
 │   ├── rules/             ← 31 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
 │   ├── skills/            ← 163 skill definitions
-│   │     Core workflow    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
-│   │     Security         : red-team-check, blue-team-fix, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, leak-check
-│   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop
-│   │     Frontend/UI      : baseline-ui, fixing-accessibility, shadcn-patterns, react-doctor, apply-premium-background, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns
-│   │     IaC/DevOps       : kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns
-│   │     Stack depth      : typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns
+│   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
+│   │     Security         : red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
+│   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop, llm-output-validation
+│   │     Frontend/UI      : baseline-ui, shadcn-patterns, react-doctor, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns, enterprise-design-systems, advanced-color-math, advanced-typography, advanced-motion-easing, smart-layout-aesthetics + 8 more
+│   │     IaC/DevOps       : kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns
+│   │     Data/Backend     : database-patterns, database-query-safety, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, graphql-patterns, resilience-patterns + 4 more
+│   │     Monorepo/Build   : monorepo-governance, monorepo-patterns, build-system
+│   │     Stack depth      : typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, database-migrations
 │   │     Token/Cost       : token-roi (loop detection, fast-tier routing, ROI scoring)
-│   │     + 86 more        : caching-patterns, api-rate-limiting, auth-patterns, i18n-patterns, graphql-patterns, adr-writing, …
+│   │     + 62 more        : error-handling, secret-management, load-testing, feature-flags, mlops, websocket-patterns, i18n-patterns, …
 │   ├── config/            ← 6 config JSON files (skills-lock.json, …)
 │   └── tests/
 │       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
@@ -157,19 +159,21 @@ yamtam-engine/
 
 ## Skill categories (v1.3.39)
 
-| Category | Skills |
-|---|---|
-| Security & guardrails | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check |
-| AI / Agent orchestration | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
-| Frontend / UI | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns, design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns, enterprise-design-systems, advanced-color-math, advanced-typography, advanced-motion-easing, smart-layout-aesthetics |
-| IaC / DevOps | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
-| Stack depth | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
-| Observability | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
-| Data / Backend | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, database-query-safety |
-| Monorepo / Build | monorepo-patterns, monorepo-governance, build-system |
-| AI / LLM Quality | llm-output-validation, prompt-engineering, prompt-caching-strategy, rag-architect, llm-cost-optimizer |
-| Workflow / Core | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
-| Token / Cost | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
+| Category | Count | Skills |
+|---|---|---|
+| Security & guardrails | 8 | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check |
+| AI / Agent orchestration | 12 | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop |
+| LLM output quality | 2 | llm-output-validation, llm-cost-optimizer |
+| Frontend / UI — Core | 11 | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns |
+| Frontend / UI — Design systems | 10 | design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns, enterprise-design-systems, advanced-color-math, advanced-typography, advanced-motion-easing, smart-layout-aesthetics |
+| IaC / DevOps | 5 | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
+| Stack depth | 6 | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
+| Monorepo / Build | 2 | monorepo-governance, build-system |
+| Observability | 4 | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
+| Data / Backend | 11 | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, database-query-safety |
+| Workflow / Core | 10 | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
+| Token / Cost | 1 | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
+| Other (i18n, perf, patterns, …) | 81 | error-handling, secret-management, distributed-tracing, contract-testing, load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization, i18n-patterns, data-privacy, adr-writing, refactor-patterns, caching-patterns (redis), api-design, backend-patterns, coding-standards, deep-research, documentation-lookup, e2e-testing, security-review, tdd-workflow, verification-loop, agent-introspection-debugging, frontend-patterns, mcp-server-patterns, + 56 more |
 
 ---
 
@@ -237,12 +241,12 @@ Or install via Claude Code plugin system:
 ```bash
 # In this repo — after making changes:
 bash core/scripts/build-release.sh
-# Runs: syntax check → 379 checks → drift check → zip → symlink latest
+# Runs: syntax check → 377 checks → drift check → zip → symlink latest
 ```
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.33 && git push origin v1.3.33
+git tag v1.3.39 && git push origin v1.3.39
 ```
 
 ---
