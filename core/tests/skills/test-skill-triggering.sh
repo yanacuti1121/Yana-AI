@@ -425,6 +425,14 @@ check_skill "resilience-circuit-breakers" "exponential backoff"
 check_skill "agent-telemetry"           "OpenTelemetry"
 check_skill "agent-telemetry"           "p95"
 
+# v1.3.44 — vector stores, type-safe RPC, durable queues
+check_skill "vector-store-patterns"      "pgvector"
+check_skill "vector-store-patterns"      "cosine"
+check_skill "type-safe-api-contracts"    "tRPC"
+check_skill "type-safe-api-contracts"    "OpenAPI"
+check_skill "durable-task-queues"        "BullMQ"
+check_skill "durable-task-queues"        "dead-letter"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"
