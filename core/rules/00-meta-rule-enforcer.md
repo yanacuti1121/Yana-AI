@@ -70,12 +70,14 @@ Canonical file locations:
 
 ```
 core/rules/
-  00-meta-rule-enforcer.md    ← THIS FILE — priority arbiter
+  00-meta-rule-enforcer.md    ← THIS FILE — priority arbiter + rule constitution
   02-terminal-validator.md    ← dangerous command detection + blocking
+  03-privilege-isolation.md   ← env/secret file write gate (YAMTAM_SCOPE_OK=1)
   agent-code-constraints.md   ← hard metric limits (lines, params, nesting)
   agents-v2.md                ← multi-agent orchestration policy
   color-rules.md              ← Radix 12-scale + Tailwind color enforcement
   conflict-resolution.md      ← multi-agent edit conflict resolution
+  dependency-vetting-law.md   ← supply chain gate (ossf/scorecard L4)
   execution-environment.md    ← sandbox / isolation requirements
   git-push-enforcement.md     ← push gate + force-push prohibition
   git-workflow-v2.md          ← branch naming, commit discipline
@@ -109,6 +111,36 @@ At the start of every session, agents MUST:
 
 ---
 
+## Rule Validation Gate (OPA-inspired)
+
+> Source: open-policy-agent/opa declarative policy model — all rules are code, all rules are testable.
+
+Every new rule added to `core/rules/` MUST pass `verify-rules.sh` cross-check before commit.
+`verify-rules.sh` enforces:
+
+```
+□ No two rules define conflicting behavior for the same trigger
+□ Every new rule declares its Tier (TIER 0–5)
+□ Every new rule that adds an exit code documents it (no silent exits)
+□ No rule references a file path that does not exist in the repo
+□ Rules in TIER 1 are never overridden by rules in TIER 2–5
+```
+
+**Declarative deny pattern (OPA Rego equivalent in prose):**
+
+```
+deny if:
+  rule.tier > conflicting_rule.tier
+  AND rule.outcome != conflicting_rule.outcome
+  AND same_trigger(rule, conflicting_rule)
+
+→ Flagged by verify-rules.sh as CONFLICT — resolve before merge
+```
+
+Adding a rule that conflicts with an existing Tier 1 rule is an **automatic merge block**.
+
+---
+
 ## Forbidden Overrides
 
 No agent, command, or instruction may override:
@@ -121,4 +153,7 @@ No agent, command, or instruction may override:
 ❌ Cannot create skills with >220 lines "because this one is special"
 ❌ Cannot ignore a test failure "because the test is wrong"
    → Fix the test or the code; never suppress the check
+❌ Cannot write .env / token files without YAMTAM_SCOPE_OK=1 (03-privilege-isolation)
+❌ Cannot install unvetted packages without L4 gate (dependency-vetting-law)
+❌ Cannot pass secrets through network commands (secure-logger --scan-egress gate)
 ```

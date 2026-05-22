@@ -1,0 +1,34 @@
+{
+  "_comment": "Vetted packages — ossf/scorecard score >= 6.0 required to add",
+  "_schema": "{ name, ecosystem, version_min, scorecard_score, added_by, reason }",
+  "npm": [
+    { "name": "typescript", "version_min": "5.0.0", "scorecard_score": 8.2, "reason": "Microsoft-maintained, 50M+/week" },
+    { "name": "eslint", "version_min": "8.0.0", "scorecard_score": 7.9, "reason": "OpenJS Foundation, 35M+/week" },
+    { "name": "prettier", "version_min": "3.0.0", "scorecard_score": 7.4, "reason": "Active, 35M+/week, signed releases" },
+    { "name": "zod", "version_min": "3.0.0", "scorecard_score": 7.1, "reason": "Active, 10M+/week, no CVEs" },
+    { "name": "axios", "version_min": "1.6.0", "scorecard_score": 6.8, "reason": "Active, 50M+/week" },
+    { "name": "react", "version_min": "18.0.0", "scorecard_score": 8.5, "reason": "Meta-maintained, 25M+/week" },
+    { "name": "next", "version_min": "14.0.0", "scorecard_score": 8.1, "reason": "Vercel-maintained, 6M+/week" },
+    { "name": "vite", "version_min": "5.0.0", "scorecard_score": 7.8, "reason": "Active, signed releases, 10M+/week" },
+    { "name": "vitest", "version_min": "1.0.0", "scorecard_score": 7.3, "reason": "Active Vite ecosystem, 5M+/week" },
+    { "name": "dotenv", "version_min": "16.0.0", "scorecard_score": 6.5, "reason": "Active, 40M+/week" },
+    { "name": "anthropic", "version_min": "0.20.0", "scorecard_score": 7.6, "reason": "Anthropic-official SDK" },
+    { "name": "@anthropic-ai/sdk", "version_min": "0.20.0", "scorecard_score": 7.6, "reason": "Anthropic-official SDK" }
+  ],
+  "pypi": [
+    { "name": "requests", "version_min": "2.31.0", "scorecard_score": 7.2, "reason": "PSF-affiliated, 300M+/month" },
+    { "name": "pydantic", "version_min": "2.0.0", "scorecard_score": 7.5, "reason": "Active, signed releases, 100M+/month" },
+    { "name": "fastapi", "version_min": "0.100.0", "scorecard_score": 7.0, "reason": "Active, 30M+/month" },
+    { "name": "anthropic", "version_min": "0.20.0", "scorecard_score": 7.6, "reason": "Anthropic-official SDK" },
+    { "name": "pytest", "version_min": "7.0.0", "scorecard_score": 7.8, "reason": "Active, 100M+/month" },
+    { "name": "httpx", "version_min": "0.25.0", "scorecard_score": 7.1, "reason": "Active, 50M+/month" },
+    { "name": "rich", "version_min": "13.0.0", "scorecard_score": 6.9, "reason": "Active, 60M+/month" }
+  ],
+  "cargo": [
+    { "name": "serde", "version_min": "1.0.0", "scorecard_score": 8.0, "reason": "Core ecosystem, 200M+/month" },
+    { "name": "tokio", "version_min": "1.0.0", "scorecard_score": 7.9, "reason": "Active, signed releases, async runtime" },
+    { "name": "reqwest", "version_min": "0.11.0", "scorecard_score": 7.2, "reason": "Active, 20M+/month" },
+    { "name": "anyhow", "version_min": "1.0.0", "scorecard_score": 7.0, "reason": "Active, dtolnay-maintained" },
+    { "name": "clap", "version_min": "4.0.0", "scorecard_score": 7.3, "reason": "Active, 30M+/month" }
+  ]
+}
