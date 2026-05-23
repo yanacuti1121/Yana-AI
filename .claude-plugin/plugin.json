@@ -2,7 +2,7 @@
   "schema_version": "1",
   "name": "yamtam-engine",
   "display_name": "YAMTAM ENGINE",
-  "version": "1.4.20",
+  "version": "1.6.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": "phamlongh230-lgtm",
   "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
@@ -24,10 +24,10 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 29,
-    "commands": 157,
+    "hooks": 34,
+    "commands": 161,
     "agents": 87,
-    "scripts": 41,
+    "scripts": 46,
     "skills": 350,
     "rules": 58,
     "checks": 826,
@@ -54,7 +54,8 @@
   },
   "skills": 350,
   "checks": 826,
-  "scripts": 41,
-  "hooks": 29,
+  "scripts": 46,
+  "hooks": 34,
+  "commands": 161,
   "rules": 58
 }
