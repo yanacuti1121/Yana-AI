@@ -18,6 +18,21 @@ This is a personal agent operating system. Features are added when a real proble
 - [x] **Identity Gate** — auto-auth from env var, case-insensitive sovereign check
 - [x] **Metadata PASS** — skills-lock 350/350, validate-manifest 7/7 CLEAN, plugin/marketplace synced, release artifact v1.4.20
 
+### v1.4.20 — 2026-05-23
+
+- [x] **Cross-engine hard enforcement** — `safe-run.sh --engine` flag, Cursor/Aider hard-blocked (no TTY confirm)
+- [x] **`switch-engine.sh cursor/aider`** — auto-generate `.cursor/rules/yamtam-hard-enforcement.mdc` + `.aider.conf.yml`
+- [x] **Circuit Breaker** — `token-budget-guard.sh` HARD BLOCK at 5 calls, escalating cooldown, fast-tier Haiku
+- [x] **Rule 43** — advanced jailbreak: memory exfiltration, psychological manipulation, identity spoofing, multi-turn chains
+- [x] **Rule 44** — supply chain vetting: typosquatting, lock file integrity, OSV gate, pipe-to-shell block
+- [x] **Identity Gate** — auto-auth from env var, case-insensitive sovereign check
+- [x] **extract-errors generalize** — cross-language error registry pattern (JS/TS/Python/Go/Rust)
+- [x] **Hook unit tests** — identity-gate ×3, circuit-breaker ×3, token-budget-guard meta ×1 (55→65 tests)
+- [x] **System architecture diagram** — ASCII L0–L5 gate stack diagram in README
+- [x] **Red-team validated** — 60 attack scenarios across 10 categories, all blocked
+- [x] **GitHub Release** — `yamtam-engine-v1.4.20-fixed.zip` (2MB), 477 checks, tag pushed
+- [x] **Metadata PASS** — skills-lock 350/350, validate-manifest 7/7 CLEAN, plugin/marketplace synced, drift CLEAN
+
 ### v1.4.00 — 2026-05-23
 
 - [x] **100-Layer Sovereign Anti-Tamper Architecture** — 5 Military Blocks, 10 Fortresses, 56+ rules
@@ -132,10 +147,8 @@ This is a personal agent operating system. Features are added when a real proble
 
 ### v1.4.21 — Next
 
-- [ ] **Hook unit tests for new hooks** — add test cases to `run-hook-tests.sh` for `identity-gate.sh`, `token-budget-guard.sh` Circuit Breaker, `anti-graffiti-guard.js`, `sovereign-interceptor.js` (target: 55→63 tests)
 - [ ] **ARCHITECTURE.md rewrite** — document v1.4.20 layers: safe-run.sh L0.5, Circuit Breaker, Sovereign Anti-Tamper, 100+ security features
 - [ ] **CONTRIBUTING.md skill format** — full frontmatter spec with origin/license/compatibility fields + deprecation policy for 350+ skill set
-- [ ] **extract-errors generalize** — DONE (v1.4.20), cross-language error registry pattern
 - [ ] **`verify-skills-lock.sh` auto-add** — update script to auto-add new skills (not just update existing), remove manual step
 
 ### v1.5.0 — Stability milestone
