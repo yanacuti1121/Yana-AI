@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
-# tool-proxy.sh — Intercept / Sanitize / Mutate / Execute pipeline
+# tool-proxy.sh — Intercept / Sanitize / Mutate / RateLimit / Execute pipeline
 # Every agent tool call passes through this proxy before execution.
 #
 # Usage:  bash core/scripts/tool-proxy.sh <command> [args...]
-# Env:    YAMTAM_TOOL_TIMEOUT   — max exec seconds  (default: 30)
-#         YAMTAM_TOOL_MAX_MEM   — ulimit -v KB       (default: 524288 = 512MB)
-#         YAMTAM_PROXY_LOG      — audit log path     (default: releases/logs/tool-proxy.log)
-#         YAMTAM_PROXY_DRY_RUN  — 1 = log+sanitize only, no exec
+# Env:    YAMTAM_TOOL_TIMEOUT      — max exec seconds  (default: 30)
+#         YAMTAM_TOOL_MAX_MEM      — ulimit -v KB       (default: 524288 = 512MB)
+#         YAMTAM_PROXY_LOG         — audit log path     (default: releases/logs/tool-proxy.log)
+#         YAMTAM_PROXY_DRY_RUN     — 1 = log+sanitize only, no exec
+#         YAMTAM_RETRY_MAX         — max retries on 429/503 (default: 4)
+#         YAMTAM_RETRY_BASE_MS     — base backoff milliseconds (default: 1000)
+#         YAMTAM_RETRY_MAX_JITTER  — max jitter milliseconds  (default: 500)
 #
 # Exit codes:
 #   0  — executed successfully
 #   1  — mutate-layer block (resource / env violation)
 #   3  — sanitize-layer block (injection / subshell detected)
 #   4  — intercept-layer block (empty command)
+#   5  — rate-limit-layer block (max retries exceeded on 429/503)
 #
-# Gate: L2 (sanitize) + L1 (mutate)
+# Gate: L2 (sanitize) + L1 (mutate) + rate-limit retry layer
 # Source: koajs/koa (onion compose), axios/axios (interceptors),
 #         expressjs/express (scope), caddyserver/caddy (handler chain),
-#         nwtgck/piping-server (pipe-through)
+#         nwtgck/piping-server (pipe-through),
+#         vercel/async-retry (exponential backoff), sindresorhus/delay (jitter)
 set -uo pipefail
 
 # ─── Config ──────────────────────────────────────────────────────────────────
@@ -26,6 +31,9 @@ MAX_MEM_KB="${YAMTAM_TOOL_MAX_MEM:-524288}"
 LOG_FILE="${YAMTAM_PROXY_LOG:-releases/logs/tool-proxy.log}"
 DRY_RUN="${YAMTAM_PROXY_DRY_RUN:-0}"
 SESSION_ID="${YAMTAM_SESSION_ID:-unknown}"
+RETRY_MAX="${YAMTAM_RETRY_MAX:-4}"
+RETRY_BASE_MS="${YAMTAM_RETRY_BASE_MS:-1000}"
+RETRY_MAX_JITTER="${YAMTAM_RETRY_MAX_JITTER:-500}"
 PHASE=""
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -145,10 +153,72 @@ if [[ "$DRY_RUN" == "1" ]]; then
   exit 0
 fi
 
-# ─── PHASE 4 — EXECUTE ───────────────────────────────────────────────────────
+# ─── PHASE 4 — RATE-LIMIT + EXECUTE ─────────────────────────────────────────
+PHASE="rate-limit"
+
+# Detect HTTP commands eligible for 429/503 retry
+is_http_cmd() {
+  case "$1" in curl|wget|http|xh|httpie) return 0 ;; esac
+  return 1
+}
+
+# Exponential backoff with full jitter: sleep = rand(0, min(cap, base * 2^attempt))
+# Cap = base * 2^4 = 16× base to prevent runaway sleep
+backoff_sleep() {
+  local attempt="$1"
+  local cap_ms=$(( RETRY_BASE_MS * (1 << attempt) ))
+  [[ "$cap_ms" -gt 30000 ]] && cap_ms=30000   # hard cap 30s
+  local jitter=$(( RANDOM % RETRY_MAX_JITTER ))
+  local sleep_ms=$(( (RANDOM % cap_ms) + jitter ))
+  local sleep_s
+  sleep_s=$(python3 -c "print(${sleep_ms}/1000)" 2>/dev/null || echo "1")
+  log_proxy "INFO" "rate-limit backoff" "\"attempt\":${attempt},\"sleep_ms\":${sleep_ms}"
+  echo "[tool-proxy] RATE-LIMIT: backoff ${sleep_ms}ms (attempt ${attempt}/${RETRY_MAX})" >&2
+  sleep "$sleep_s"
+}
+
+# Extract HTTP status from curl/wget output (check tmp response file)
+# curl -w "%{http_code}" writes status to stdout when -o /dev/null
+extract_http_status() {
+  local tmp_status_file="$1"
+  [[ -f "$tmp_status_file" ]] && cat "$tmp_status_file" | tr -d '[:space:]' || echo "0"
+}
+
 PHASE="execute"
 log_proxy "INFO" "executing"
-
-# Apply memory cap and exec
 ulimit -v "$MAX_MEM_KB" 2>/dev/null || true
-exec "$FINAL_CMD" "${FINAL_ARGS[@]}"
+
+# For HTTP commands: wrap with retry loop for 429/503
+if is_http_cmd "$RAW_CMD"; then
+  STATUS_FILE="$(mktemp /tmp/proxy-status-XXXXXX)"
+  trap 'rm -f "$STATUS_FILE"' EXIT
+
+  # Inject -w "%{http_code}" -o /dev/null for status capture (curl only)
+  RETRY_ATTEMPT=0
+  while [[ "$RETRY_ATTEMPT" -le "$RETRY_MAX" ]]; do
+    if [[ "$RAW_CMD" == "curl" ]]; then
+      # Run curl, capture HTTP status code in STATUS_FILE
+      "$FINAL_CMD" "${FINAL_ARGS[@]}" -w "%{http_code}" --silent --output /dev/stderr \
+        2>/dev/null > "$STATUS_FILE" || true
+      HTTP_STATUS="$(extract_http_status "$STATUS_FILE")"
+    else
+      # Non-curl HTTP: run normally, cannot inspect status code
+      "$FINAL_CMD" "${FINAL_ARGS[@]}"
+      exit $?
+    fi
+
+    if [[ "$HTTP_STATUS" == "429" || "$HTTP_STATUS" == "503" ]]; then
+      if [[ "$RETRY_ATTEMPT" -ge "$RETRY_MAX" ]]; then
+        proxy_block "max retries (${RETRY_MAX}) exceeded on HTTP ${HTTP_STATUS}" 5
+      fi
+      backoff_sleep "$RETRY_ATTEMPT"
+      RETRY_ATTEMPT=$(( RETRY_ATTEMPT + 1 ))
+    else
+      log_proxy "INFO" "http-complete" "\"status\":${HTTP_STATUS},\"retries\":${RETRY_ATTEMPT}"
+      exit 0
+    fi
+  done
+else
+  # Non-HTTP command: exec directly (replaces shell, no retry)
+  exec "$FINAL_CMD" "${FINAL_ARGS[@]}"
+fi

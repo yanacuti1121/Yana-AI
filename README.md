@@ -11,14 +11,14 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Agents | 87 |
 | Commands | 156 |
 | Hooks | 24 |
-| Scripts | 34 |
-| Skills | 178 |
-| Rules | 41 |
+| Scripts | 35 |
+| Skills | 231 |
+| Rules | 42 |
 | Templates | 12 |
 | Tests | 415 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.47
-**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.47.
+**Version:** 1.3.48
+**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.48.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -130,7 +130,7 @@ yamtam-engine/
 │   └── security-advisories/
 │
 └── releases/
-    ├── yamtam-engine-v1.3.47.zip
+    ├── yamtam-engine-v1.3.48.zip
     └── yamtam-engine-latest.zip
 ```
 
@@ -143,10 +143,10 @@ yamtam-engine/
 | `core/agents/` | 87 agents |
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 24 hooks |
-| `core/scripts/` | 34 scripts |
-| `core/rules/` | 41 rules |
+| `core/scripts/` | 35 scripts |
+| `core/rules/` | 42 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 178 skills |
+| `core/skills/` | 231 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
@@ -157,7 +157,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.47)
+## Skill categories (v1.3.48)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -247,7 +247,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.47 && git push origin v1.3.46
+git tag v1.3.48 && git push origin v1.3.46
 ```
 
 ---

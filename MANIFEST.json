@@ -1,34 +1,35 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.47",
+  "version": "1.3.48",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-22",
-  "manifest_updated": "2026-05-22",
+  "release_date": "2026-05-23",
+  "manifest_updated": "2026-05-23",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
-    "v1.3.36 \u2014 fortress security layer + UI skills: shell-sanitize-law (shellcheck), prompt-jailbreak-guard (garak), anti-evasion-law (lynis), env-integrity-policy (defsec), path-traversal Gate L5 + falco chmod monitoring. UI skills: design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns (50 sources). rules 11\u219231, skills 139\u2192152, scripts 22\u219231.",
-    "v1.3.33 \u2014 Cross-engine adapters (.cursorrules + .cursor/rules/*.mdc + .github/copilot-instructions.md + adapters/aider.md + switch-engine.sh), Token ROI layer (token-budget-guard.sh hook + token-roi skill: loop detection, fast-tier auto-routing, cost-per-fix scoring), Open-source layer (CONTRIBUTING.md, SECURITY.md). skills 145\u2192146, checks 267\u2192270, scripts 27\u219228.",
-    "v1.3.32 \u2014 Security guardrails layer + AGI research triad: ingest-repo (BloopAI semantic codebase ingestion + dependency graph), research-team (GPT-Researcher parallel multi-source research \u2192 L1 promotion), tree-of-thoughts (ToT 3-branch self-scoring + backtrack protocol). Safe-run.sh (command blacklist), secure-logger.sh (append-only audit), verify-rules.sh (pre-commit gate). Rules: 00-meta-rule-enforcer, 02-terminal-validator, execution-environment, human-gate-policy + 6 earlier rule files. Skills 139\u2192145, checks 250\u2192267, scripts 24\u219227. README fully synced.",
-    "v1.3.32 \u2014 Security guardrails layer: safe-run.sh (command blacklist wrapper), secure-logger.sh (append-only audit log), verify-rules.sh (pre-commit gate). Rules: 00-meta-rule-enforcer (priority tiers 0\u20135), 02-terminal-validator, execution-environment, human-gate-policy. Skills: apply-premium-background (ibelick dot-grid/aurora/noise/spotlight), leak-check (whispers+gitleaks secret scan + pre-push hook), autonomous-patching-loop (scan\u2192isolate\u2192repair\u2192verify closed-loop). skills 139\u2192142, checks 250\u2192258, scripts 24\u219227.",
-    "v1.3.31 \u2014 caching-patterns (cache-aside/read-through/write-through, Redis stampede prevention, TTL tuning) + api-rate-limiting (sliding window counter + token bucket Lua, per-user/IP/endpoint tiers, X-RateLimit headers). Full skill trigger test coverage: 58\u2192183 checks. skills 99\u2192106, checks 131\u2192256.",
-    "v1.3.30 \u2014 database-patterns, auth-patterns, resilience-patterns, event-driven-architecture, observability-instrumentation, cicd-patterns, refactor-patterns, data-privacy, graphql-patterns, adr-writing (skills 89\u219299). AI/LLM branch (rag-architect, prompt-engineering, llm-ui-patterns), observability branch (slo-design, incident-response-runbook), i18n branch (i18n-patterns) \u2014 skills 83\u219289. design/performance branch: typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance (skills 78\u219283). Release zip fix: gates/ docs/ prompts/ now included. 5 script fixes (build-release, run-security-tools, drift-check, verify-claude-pack, MANIFEST gaps). docs/multi-agent-failure-modes.md.",
-    "v1.3.28 \u2014 Phase 4 UI skills expansion: aesthetic-anchor (8 visual styles: Swiss/Industrial/Brutalist/Aurora/Chaotic/Retro-Futuristic/Organic/Lo-Fi), accessibility-audit (WCAG 2.1 AA, 5 categories), design-system-gen (5-layer token system per product type), ux-heuristics (Nielsen 10 heuristics + severity scoring). Also: run-security-tools.sh (gitleaks/semgrep/trivy/npm audit/bandit/pip-audit/govulncheck/cargo audit). skills 73\u219277, scripts 21\u219222.",
-    "v1.3.27 \u2014 Phase 10 level-up: security skill pack (red-team-check, blue-team-fix, purple-team-report, security-scope-gate, anti-fake-pass-gate, /security-scan), skill standard infrastructure (skill-spec, skill-writing-guide, skill-evaluation-rules, SKILL_TEMPLATE), design/UX skill pack (design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, ui-quality-gate), model-routing-strategy. Sources: ECC MIT, Strix Apache 2.0, Taste-skill MIT, Free-claude-code MIT, AgentSkills Apache 2.0. commands 155\u2192156, skills 65\u219273, templates 11\u219212.",
-    "v1.3.26 \u2014 count sync + new hooks + new skill: commands 152\u2192155 (output-budget, output-raw, session-cost + 11 unlisted v1.3.24 commands), scripts 20\u219221 (session-cost.sh), hooks 24\u219226 (session-bootstrap.sh UserPromptSubmit, permission-auto-approve.sh PermissionRequest), skills 64\u219265 (l1-promote), templates 11\u219210, rules actual_present completed to all 11 files. Output Budget Layer: docs/OUTPUT_BUDGET_POLICY.md, docs/OUTPUT_BUDGET_INTEGRATION.md, session-bootstrap injects L1 facts into every prompt.",
-    "v1.3.25-clean \u2014 metadata sync: plugin.json + marketplace.json counts (87 agents/152 commands/64 skills/123 checks/58 skill triggers), MANIFEST releases index corrected (latest \u2192 v1.3.24, files list fixed), docs version bump (all \u2192 1.3.25-clean), run-hook-tests.sh banner v1.3.15 \u2192 v1.3.25.",
-    "v1.3.24 \u2014 Phase 9 import from sangrokjung/claude-forge (MIT): 4 agents (build-error-resolver, verify-agent, planner, database-reviewer), 11 commands (handoff-verify, commit-push-pr, refactor-clean, sync-docs, quick-commit, worktree-start, worktree-cleanup, eval, suggest-automation, learn, next-task), 13 skills (team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation), 6 rules (golden-principles, verification, security, git-workflow-v2, testing, agents-v2). Phase 9 also: 2 karanb192-inspired skills (hook-block-commands, hook-protect-secrets).",
-    "v1.3.23-clean \u2014 metadata/docs sync: plugin.json + marketplace.json counts (83 agents/141 commands/49 skills/108 checks), docs version bump (ARCHITECTURE/HOOK_WIRING/MAINTENANCE_POLICY/CLAUDE_MD_GUIDE \u2192 1.3.23-clean), README fix (42\u219283 agents), verify-skills-lock.sh + update-skills-lock.sh path fallback (scaffold vs installed), release zip policy added to MAINTENANCE_POLICY.",
-    "v1.3.22 \u2014 Phase 8 import: 9 skills from alirezarezvani/claude-skills (agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research) + 2 YAMTAM-native skills (session-context, pre-compact-backup from disler patterns). hook-review.md false-positive fix (exclude core/commands/ from bypass scan).",
-    "v1.3.21 \u2014 Conflict Resolution Policy: multi-agent edit conflict detection, priority rules (safety > correctness > performance > style), resolution strategies (sequential/merge/human escalation), conflict log format.",
-    "v1.3.20 \u2014 YAMTAM-native skills: telemetry-analysis (audit log + hook activity analysis) + subagent-dependency (DAG-based multi-agent orchestration). Governance layer expansion.",
+    "v1.3.48 — 58 new skills across 9 engineering domains: Linux sandbox (runc/seccomp/bubblewrap/bwrap/eBPF), process/network internals, vector math (ndarray/distance/PCA), config parsers (YAML/TOML/INI/glob/gitignore), graph viz (mermaid/dagre), XSS guards (DOMPurify/validator/sanitize-html), state persistence (localForage/PouchDB/conf), observability (StatsD/systeminformation/memwatch), streaming (archiver/zlib/pump/get-stream). model-router.sh (prompt→tier routing). token-budget-policy.md (L1 circuit breaker). tool-proxy.sh: 429/503 exponential backoff+jitter (PHASE 3.5 rate-limit). skills 173→231, rules 41→42, scripts 34→35.",
+    "v1.3.36 — fortress security layer + UI skills: shell-sanitize-law (shellcheck), prompt-jailbreak-guard (garak), anti-evasion-law (lynis), env-integrity-policy (defsec), path-traversal Gate L5 + falco chmod monitoring. UI skills: design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns (50 sources). rules 11→31, skills 139→152, scripts 22→31.",
+    "v1.3.33 — Cross-engine adapters (.cursorrules + .cursor/rules/*.mdc + .github/copilot-instructions.md + adapters/aider.md + switch-engine.sh), Token ROI layer (token-budget-guard.sh hook + token-roi skill: loop detection, fast-tier auto-routing, cost-per-fix scoring), Open-source layer (CONTRIBUTING.md, SECURITY.md). skills 145→146, checks 267→270, scripts 27→28.",
+    "v1.3.32 — Security guardrails layer + AGI research triad: ingest-repo (BloopAI semantic codebase ingestion + dependency graph), research-team (GPT-Researcher parallel multi-source research → L1 promotion), tree-of-thoughts (ToT 3-branch self-scoring + backtrack protocol). Safe-run.sh (command blacklist), secure-logger.sh (append-only audit), verify-rules.sh (pre-commit gate). Rules: 00-meta-rule-enforcer, 02-terminal-validator, execution-environment, human-gate-policy + 6 earlier rule files. Skills 139→145, checks 250→267, scripts 24→27. README fully synced.",
+    "v1.3.32 — Security guardrails layer: safe-run.sh (command blacklist wrapper), secure-logger.sh (append-only audit log), verify-rules.sh (pre-commit gate). Rules: 00-meta-rule-enforcer (priority tiers 0–5), 02-terminal-validator, execution-environment, human-gate-policy. Skills: apply-premium-background (ibelick dot-grid/aurora/noise/spotlight), leak-check (whispers+gitleaks secret scan + pre-push hook), autonomous-patching-loop (scan→isolate→repair→verify closed-loop). skills 139→142, checks 250→258, scripts 24→27.",
+    "v1.3.31 — caching-patterns (cache-aside/read-through/write-through, Redis stampede prevention, TTL tuning) + api-rate-limiting (sliding window counter + token bucket Lua, per-user/IP/endpoint tiers, X-RateLimit headers). Full skill trigger test coverage: 58→183 checks. skills 99→106, checks 131→256.",
+    "v1.3.30 — database-patterns, auth-patterns, resilience-patterns, event-driven-architecture, observability-instrumentation, cicd-patterns, refactor-patterns, data-privacy, graphql-patterns, adr-writing (skills 89→99). AI/LLM branch (rag-architect, prompt-engineering, llm-ui-patterns), observability branch (slo-design, incident-response-runbook), i18n branch (i18n-patterns) — skills 83→89. design/performance branch: typography-system, multi-agent-handoff, motion-design, ui-states, mobile-ux, web-performance (skills 78→83). Release zip fix: gates/ docs/ prompts/ now included. 5 script fixes (build-release, run-security-tools, drift-check, verify-claude-pack, MANIFEST gaps). docs/multi-agent-failure-modes.md.",
+    "v1.3.28 — Phase 4 UI skills expansion: aesthetic-anchor (8 visual styles: Swiss/Industrial/Brutalist/Aurora/Chaotic/Retro-Futuristic/Organic/Lo-Fi), accessibility-audit (WCAG 2.1 AA, 5 categories), design-system-gen (5-layer token system per product type), ux-heuristics (Nielsen 10 heuristics + severity scoring). Also: run-security-tools.sh (gitleaks/semgrep/trivy/npm audit/bandit/pip-audit/govulncheck/cargo audit). skills 73→77, scripts 21→22.",
+    "v1.3.27 — Phase 10 level-up: security skill pack (red-team-check, blue-team-fix, purple-team-report, security-scope-gate, anti-fake-pass-gate, /security-scan), skill standard infrastructure (skill-spec, skill-writing-guide, skill-evaluation-rules, SKILL_TEMPLATE), design/UX skill pack (design-taste-frontend, image-to-code, ui-redesign, output-enforcement, minimalist-ui, ui-quality-gate), model-routing-strategy. Sources: ECC MIT, Strix Apache 2.0, Taste-skill MIT, Free-claude-code MIT, AgentSkills Apache 2.0. commands 155→156, skills 65→73, templates 11→12.",
+    "v1.3.26 — count sync + new hooks + new skill: commands 152→155 (output-budget, output-raw, session-cost + 11 unlisted v1.3.24 commands), scripts 20→21 (session-cost.sh), hooks 24→26 (session-bootstrap.sh UserPromptSubmit, permission-auto-approve.sh PermissionRequest), skills 64→65 (l1-promote), templates 11→10, rules actual_present completed to all 11 files. Output Budget Layer: docs/OUTPUT_BUDGET_POLICY.md, docs/OUTPUT_BUDGET_INTEGRATION.md, session-bootstrap injects L1 facts into every prompt.",
+    "v1.3.25-clean — metadata sync: plugin.json + marketplace.json counts (87 agents/152 commands/64 skills/123 checks/58 skill triggers), MANIFEST releases index corrected (latest → v1.3.24, files list fixed), docs version bump (all → 1.3.25-clean), run-hook-tests.sh banner v1.3.15 → v1.3.25.",
+    "v1.3.24 — Phase 9 import from sangrokjung/claude-forge (MIT): 4 agents (build-error-resolver, verify-agent, planner, database-reviewer), 11 commands (handoff-verify, commit-push-pr, refactor-clean, sync-docs, quick-commit, worktree-start, worktree-cleanup, eval, suggest-automation, learn, next-task), 13 skills (team-orchestrator, strategic-compact, session-wrap, verification-engine, skill-factory, security-compliance, security-pipeline, stride-analysis-patterns, debugging-strategies, extract-errors, build-system, cache-components, verify-implementation), 6 rules (golden-principles, verification, security, git-workflow-v2, testing, agents-v2). Phase 9 also: 2 karanb192-inspired skills (hook-block-commands, hook-protect-secrets).",
+    "v1.3.23-clean — metadata/docs sync: plugin.json + marketplace.json counts (83 agents/141 commands/49 skills/108 checks), docs version bump (ARCHITECTURE/HOOK_WIRING/MAINTENANCE_POLICY/CLAUDE_MD_GUIDE → 1.3.23-clean), README fix (42→83 agents), verify-skills-lock.sh + update-skills-lock.sh path fallback (scaffold vs installed), release zip policy added to MAINTENANCE_POLICY.",
+    "v1.3.22 — Phase 8 import: 9 skills from alirezarezvani/claude-skills (agenthub, write-a-skill, handoff, caveman, code-tour, chaos-engineering, llm-cost-optimizer, pulse, research) + 2 YAMTAM-native skills (session-context, pre-compact-backup from disler patterns). hook-review.md false-positive fix (exclude core/commands/ from bypass scan).",
+    "v1.3.21 — Conflict Resolution Policy: multi-agent edit conflict detection, priority rules (safety > correctness > performance > style), resolution strategies (sequential/merge/human escalation), conflict log format.",
+    "v1.3.20 — YAMTAM-native skills: telemetry-analysis (audit log + hook activity analysis) + subagent-dependency (DAG-based multi-agent orchestration). Governance layer expansion.",
     "Phase 7 import completed 2026-05-19 from wshobson/commands. Added: 45 commands (tools x34, workflows x11). Generic workflow tools, no product dependencies.",
     "Phase 6 import completed 2026-05-19 from rohitg00/awesome-claude-code-toolkit + affaan-m/everything-claude-code. Added: 41 agents (core-development x8, quality-assurance x6, infrastructure x8, business x4, data-ai x6, orchestration x3, dev-experience x4, research x2). Added: 22 commands (git x5, devops x3, architecture x4, refactoring x4, security x2, testing x3, workflow x1). Added: 12 skills (api-design, backend-patterns, coding-standards, deep-research, documentation-lookup, e2e-testing, security-review, tdd-workflow, verification-loop, agent-introspection-debugging, frontend-patterns, mcp-server-patterns).",
     "Phase 5 import completed 2026-05-19 from qdhenry/Claude-Command-Suite. Added: 23 agents (architecture-auditor, code-auditor, dependency-analyzer, performance-auditor, infrastructure x4, quality-testing x5, security-auditor, task-orchestration x3, strategic/release/project management x6, agent-organizer). Added: 41 commands (security x4, dev x11, test x4, performance x4, docs x5, team x6, project x3, deploy x3, context x1). Added: 4 skills (audit-env-variables, remove-dead-code, file-watcher, setup-agent-tail). Generic workflow tools, no product dependencies.",
-    "v1.3.16 \u2014 Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",
+    "v1.3.16 — Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",
     "Phase 4 import completed 2026-05-18 from jnmt-claude-code-agenl-21 (internal). Added: checkpoint and handoff commands. Generic workflow tools, no product dependencies.",
-    "Phase 3 import completed 2026-05-18 from glebis/claude-skills (MIT License). Adapted: tdd skill (RED\u2192GREEN\u2192REFACTOR, multi-agent context isolation). External scripts removed, integrated with verify-before-done and debug-protocol skills.",
-    "Phase 2 import completed 2026-05-18 from superpowers v5.1.0 (MIT License, obra/superpowers). Adapted: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety skills + diff-review command. Content rewritten in YAMTAM style \u2014 not copied verbatim.",
+    "Phase 3 import completed 2026-05-18 from glebis/claude-skills (MIT License). Adapted: tdd skill (RED→GREEN→REFACTOR, multi-agent context isolation). External scripts removed, integrated with verify-before-done and debug-protocol skills.",
+    "Phase 2 import completed 2026-05-18 from superpowers v5.1.0 (MIT License, obra/superpowers). Adapted: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety skills + diff-review command. Content rewritten in YAMTAM style — not copied verbatim.",
     "Phase 1 safe import completed 2026-05-17 from jnmt-claude-code-agenl-21 workshop repo.",
     "Excluded: react-native-developer.md, copywriter-seo.md, settings.json (pending content review).",
     "Excluded: memory/checkpoint/brain-dump/handoff commands, hooks, and scripts.",
@@ -350,7 +351,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 34,
+      "count": 35,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -388,7 +389,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 41,
+      "count": 42,
       "actual_present": [
         "core/rules/agents-v2.md",
         "core/rules/conflict-resolution.md",
@@ -423,7 +424,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 178,
+      "count": 231,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
@@ -593,9 +594,9 @@
       "notes": [
         "L1 Atomic: persistent, confidence-gated, gittracked.",
         "L2 Session: ephemeral, gitignored, cleared each session.",
-        "L3/L4 not implemented \u2014 see .out-of-scope/ for rationale.",
+        "L3/L4 not implemented — see .out-of-scope/ for rationale.",
         "File-based, no network, no server.",
-        "confidence defaults to unverified \u2014 promote manually only.",
+        "confidence defaults to unverified — promote manually only.",
         "scope field mandatory on every L1 fact."
       ]
     },
@@ -606,14 +607,14 @@
         "releases/yamtam-engine-v1.3.25-fixed.zip",
         "releases/yamtam-engine-v1.3.26-fixed.zip"
       ],
-      "symlink": "releases/yamtam-engine-latest.zip \u2192 yamtam-engine-v1.3.26-fixed.zip",
+      "symlink": "releases/yamtam-engine-latest.zip → yamtam-engine-v1.3.26-fixed.zip",
       "latest": "releases/yamtam-engine-v1.3.26-fixed.zip"
     },
     "import_notes": [
-      "v1.3.16 \u2014 Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",
+      "v1.3.16 — Claude Code Harness integration: maintenance policy, CLAUDE.md architecture guide, subagent read-only policy, LSP navigation skill, hook-review command.",
       "Phase 4 import completed 2026-05-18 from jnmt-claude-code-agenl-21 (internal). Added: checkpoint and handoff commands. Generic workflow tools, no product dependencies.",
-      "Phase 3 import completed 2026-05-18 from glebis/claude-skills (MIT License). Adapted: tdd skill (RED\u2192GREEN\u2192REFACTOR, multi-agent context isolation). External scripts removed, integrated with verify-before-done and debug-protocol skills.",
-      "Phase 2 import completed 2026-05-18 from superpowers v5.1.0 (MIT License, obra/superpowers). Adapted: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety skills + diff-review command. Content rewritten in YAMTAM style \u2014 not copied verbatim.",
+      "Phase 3 import completed 2026-05-18 from glebis/claude-skills (MIT License). Adapted: tdd skill (RED→GREEN→REFACTOR, multi-agent context isolation). External scripts removed, integrated with verify-before-done and debug-protocol skills.",
+      "Phase 2 import completed 2026-05-18 from superpowers v5.1.0 (MIT License, obra/superpowers). Adapted: plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety skills + diff-review command. Content rewritten in YAMTAM style — not copied verbatim.",
       "Phase 1 safe import completed 2026-05-17 from jnmt-claude-code-agenl-21 workshop repo.",
       "Excluded: react-native-developer.md, copywriter-seo.md, settings.json (pending content review).",
       "Excluded: memory/checkpoint/brain-dump/handoff commands, hooks, and scripts.",
@@ -631,5 +632,5 @@
       "any environment files or secrets"
     ]
   },
-  "_import_note": "v1.3.47 \u2014 sandbox layer + swarm bus + agent hierarchy"
+  "_import_note": "v1.3.48 — 58 new skills (9 groups: sandbox/kernel/network/vector/config/graph/xss/persistence/telemetry/compression) + model-router.sh + token-budget-policy + tool-proxy 429 backoff (173→231 skills, 41→42 rules, 34→35 scripts)"
 }
