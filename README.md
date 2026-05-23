@@ -23,6 +23,29 @@ YAMTAM ENGINE là hệ điều hành điều phối AI agent, cung cấp framewo
 agents, commands, hooks, skills, rules, gates, scripts và công cụ vận hành để kiểm soát
 workflow AI một cách có bằng chứng.
 
+<p align="center">
+  <img
+    src="./docs/yamtam-agents-workshop.png"
+    alt="YAMTAM ENGINE Agents Workshop"
+    width="100%"
+  />
+</p>
+
+<h1 align="center">YAMTAM ENGINE</h1>
+
+<p align="center">
+  <strong>Personal Agent Operating System</strong><br/>
+  Multi-Agent Workflow · Secure Runtime Gates · Evidence-Based Verification
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v1.6.1-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/status-private%20candidate-111827?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/license-proprietary-red?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/agents-90-ff8c00?style=for-the-badge" alt="Agents" />
+  <img src="https://img.shields.io/badge/skills-350-22c55e?style=for-the-badge" alt="Skills" />
+</p>
+
 ## Tính năng chính
 
 - **90+ Agents**: điều phối và thực thi theo vai trò.
