@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # YAMTAM ENGINE Hook
-# Version: 1.3.26
+# Version: 1.7.0
 # Status: active
-# Description: Validate completion claims have evidence before Stop
-# Last Reviewed: 2026-05-19
+# Description: Validate completion claims have evidence before Stop + PII detection
+# Last Reviewed: 2026-05-23
 # Stop hook — checks completion quality before Claude finishes a turn.
 # Warns (non-blocking) when implementation files were modified but docs
 # were not updated, so the model can add a follow-up or the human knows
 # to ask for a docs pass.
+#
+# NEW in 1.7.0: PII detection in agent output (email, SSN, credit card, passport)
 #
 # Non-blocking: always exits 0. Output on stdout is shown to Claude as
 # a message after its turn, giving it a chance to self-correct.
@@ -15,6 +17,55 @@
 set -uo pipefail
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+AUDIT_LOG="${CLAUDE_STATE_DIR:-.claude/state}/audit.log"
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+
+# PII Detection Patterns
+declare -A PII_PATTERNS=(
+  ["email"]='\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+  ["ssn"]='\b\d{3}-\d{2}-\d{4}\b'
+  ["credit_card"]='\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b'
+  ["passport"]='\b[A-Z]{2}\d{6,8}\b'
+  ["phone"]='\b\+?1?\d{10,11}\b|\b\(\d{3}\)\s?\d{3}-\d{4}\b'
+)
+
+# Detect PII in text
+detect_pii() {
+  local text="$1"
+  local detected=()
+
+  for pii_type in "${!PII_PATTERNS[@]}"; do
+    if echo "$text" | grep -qE "${PII_PATTERNS[$pii_type]}"; then
+      detected+=("$pii_type")
+    fi
+  done
+
+  if [[ ${#detected[@]} -gt 0 ]]; then
+    return 0  # PII detected
+  fi
+  return 1  # No PII
+}
+
+# Log PII incident
+log_pii_incident() {
+  local pii_types="$1"
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  echo "${timestamp}|${SESSION_ID}|validate-completion|WARNING|PII detected in output: ${pii_types}" >> "$AUDIT_LOG"
+}
+
+# Get last agent message from transcript
+get_last_message() {
+  local transcript_path="${TRANSCRIPT_PATH:-}"
+
+  if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
+    # Extract last assistant message
+    grep -A 50 '"role": "assistant"' "$transcript_path" | tail -50 || echo ""
+  else
+    echo ""
+  fi
+}
 
 # ── Gather files modified in the working tree since the last commit ───────────
 # This catches both staged and unstaged changes made during the session.
@@ -46,6 +97,24 @@ fi
 if [[ -n "$IMPL_FILES" && -z "$TEST_FILES" ]]; then
   if [[ -d "$PROJECT_ROOT/tests" || -d "$PROJECT_ROOT/src" ]]; then
     WARNINGS+=("- No test files were modified alongside implementation changes. Verify that existing tests still pass, or add tests for new behaviour.")
+  fi
+fi
+
+# ── PII Detection ────────────────────────────────────────────────────────────
+LAST_MESSAGE=$(get_last_message)
+if [[ -n "$LAST_MESSAGE" ]]; then
+  if detect_pii "$LAST_MESSAGE"; then
+    detected_types=()
+    for pii_type in "${!PII_PATTERNS[@]}"; do
+      if echo "$LAST_MESSAGE" | grep -qE "${PII_PATTERNS[$pii_type]}"; then
+        detected_types+=("$pii_type")
+      fi
+    done
+
+    pii_list=$(IFS=', '; echo "${detected_types[*]}")
+    log_pii_incident "$pii_list"
+
+    WARNINGS+=("- ⚠️  PII DETECTED in output: ${pii_list}. Review and redact sensitive information before sharing.")
   fi
 fi
 
