@@ -108,7 +108,25 @@ check_component "agents"   "core/agents"   "*.md"      "$(read_count agents)"
 check_component "commands" "core/commands" "*.md"      "$(read_count commands)"
 check_component "rules"    "core/rules"    "*.md"      "$(read_count rules)"
 check_component "templates" "core/templates" "*.md"    "$(read_count templates)"
-check_component "hooks"    "core/hooks"    "*.sh"      "$(read_count hooks)"
+# Hooks: count *.sh + *.js (exclude CLAUDE.md)
+hooks_actual=$(find "$PROJECT_ROOT/core/hooks" \( -name "*.sh" -o -name "*.js" \) 2>/dev/null | wc -l | tr -d ' ')
+hooks_declared=$(read_count hooks)
+CHECKED_COUNT=$((CHECKED_COUNT + 1))
+if [[ "$hooks_actual" -eq "$hooks_declared" ]]; then
+  echo -e "${GREEN}[validate-manifest] OK${NC}    hooks: declared=$hooks_declared actual=$hooks_actual"
+else
+  echo -e "${RED}[validate-manifest] DRIFT${NC} hooks: declared=$hooks_declared actual=$hooks_actual (delta=$(( hooks_actual - hooks_declared )))"
+  DRIFT_COUNT=$((DRIFT_COUNT + 1))
+  if [[ "$FIX_MODE" == true ]]; then
+    python3 -c "
+import json, pathlib
+m = json.loads(pathlib.Path('$MANIFEST').read_text())
+m['components']['hooks']['count'] = $hooks_actual
+pathlib.Path('$MANIFEST').write_text(json.dumps(m, indent=2, ensure_ascii=False) + '\n')
+print('[validate-manifest] Fixed hooks count → $hooks_actual')
+"
+  fi
+fi
 
 # Skills: count SKILL.md files (each skill dir has one)
 skills_actual=$(find "$PROJECT_ROOT/core/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')

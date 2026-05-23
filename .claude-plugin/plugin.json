@@ -2,8 +2,8 @@
   "schema_version": "1",
   "name": "yamtam-engine",
   "display_name": "YAMTAM ENGINE",
-  "version": "1.3.47",
-  "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, and commands.",
+  "version": "1.4.20",
+  "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": "phamlongh230-lgtm",
   "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "MIT",
@@ -13,7 +13,9 @@
     "memory",
     "agents",
     "gates",
-    "guards"
+    "guards",
+    "circuit-breaker",
+    "sovereign"
   ],
   "install": {
     "type": "zip",
@@ -22,17 +24,19 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 26,
+    "hooks": 27,
     "commands": 156,
     "agents": 87,
-    "scripts": 24,
-    "skills": 139,
-    "checks": 322,
+    "scripts": 35,
+    "skills": 350,
+    "rules": 58,
+    "checks": 472,
     "checks_breakdown": {
       "hook_tests": 55,
       "audit_chain_tests": 12,
-      "skill_trigger_checks": 249,
-      "command_smoke_checks": 6
+      "skill_trigger_checks": 334,
+      "command_smoke_checks": 6,
+      "red_team_scenarios": 65
     },
     "memory_tiers": [
       "L1_atomic",
@@ -43,10 +47,14 @@
     "claude_code": ">=1.0.0",
     "shell": "bash",
     "tools": [
-      "jq"
+      "jq",
+      "openssl",
+      "python3"
     ]
   },
-  "skills": 146,
-  "checks": 343,
-  "scripts": 28
+  "skills": 350,
+  "checks": 472,
+  "scripts": 35,
+  "hooks": 27,
+  "rules": 58
 }

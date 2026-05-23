@@ -15,10 +15,10 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Skills | 350 |
 | Rules | 58 |
 | Templates | 12 |
-| Tests | 415 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
+| Tests | 472 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
 
 **Version:** 1.4.20
-**Status:** Runtime active. 415 checks passing. Release pack live. v1.4.20.
+**Status:** Runtime active. 472 checks passing. Release pack live. v1.4.20.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -38,7 +38,7 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 - Log all hook decisions locally with SHA-256 hash-chain audit trail (tamper-evident).
 - Track session trust score — Truth Gate violations decrement score; score < 50 requires double evidence.
 - Proactively verify claims with `/fact-check`; self-improve skills with `/improve-skill` (human-gated).
-- **Multi-engine governance** — adapters for Cursor, GitHub Copilot, and Aider.
+- **Cross-engine governance** — adapters + hard enforcement (safe-run.sh proxy) for Cursor, GitHub Copilot, and Aider.
 - **Token ROI** — loop detection, fast-tier auto-routing, per-session cost reporting.
 
 ## What YAMTAM is not
