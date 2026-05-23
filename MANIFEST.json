@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.50",
+  "version": "1.3.51",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.3.51 — 15 distributed-systems skills: Protobuf binary serialization (schema/encode/decode/field evolution), gRPC bidirectional streaming (HTTP/2 unary+server-stream+bidi, mTLS), Twirp lightweight RPC (HTTP/1.1 Protobuf/JSON, error codes, middleware), MessagePack binary encoding (custom ext types, streaming decode), protobuf.js dynamic schema (runtime .proto loading, reflection, static codegen), Raft consensus patterns (leader election, log replication, snapshot), in-process Node.js Raft (skiff embedded consensus, TCP transport), etcd distributed config (Watch API, lease TTL, distributed mutex), P2P chronicle log (hypercore-based, causal ordering, Autobase multi-writer), Snowflake ID generation (64-bit time-ordered, clock skew guard), Yjs CRDT sync (Y.Map/Array/Text, WebSocket provider, awareness), Automerge CRDT (Git-like fork/merge, history, incremental sync), XState actor model (agent lifecycle FSM, guards, spawned actors), Jepsen fault testing (partition injection, linearizability checker), Hyperdrive P2P filesystem (content-addressed, sparse sync, versioned). skills 261→276.",
     "v1.3.50 — 15 compiler/static-analysis/meta-programming skills: Babel plugin visitor API (codemod pipelines), ESTree AST spec (custom walkers/type-guards), Node.js vm REPL (sandboxed incremental eval), SWC Rust compiler (TS→JS batch transform/minify), esotope code generation (AST→source round-trip), ESLint rule engine (custom rules + auto-fix + RuleTester), Pyre static type analysis (Python taint tracking/pysa), ktlint zero-config Kotlin formatter (custom rule sets), cyclomatic complexity scorer (refactor gate), lint-staged Git hook (staged-only linting), WebSocket binary protocol codegen (frame design + keepalive), magic-string source maps (in-place patch + sourcemap), ts-morph TypeScript refactor (structural rename/codegen), reflect-metadata DI injection (decorator + container), Jest test generation (AST-driven stubs + property-based + Bazel). skills 246→261.",
     "v1.3.49 — 15 cryptography/DID/blockchain skills: ECC key management (secp256k1/p256 ECDSA/ECDH), PKI patterns (forge X.509/RSA/AES-GCM), symmetric encryption (crypto-js AES/HMAC/PBKDF2), JWT/JWE lifecycle (jose ES256/rotation), Stanford crypto (sjcl AES-CCM/timing-safe), DID resolver (W3C DID registry), JWT verification (jsonwebtoken RS256/privilege-decay), immutable identity (ethr-did DID from pubkey), auth strategy (passport.js bearer/API-key), DID credential lifecycle (issue/verify/revoke/rotate), Merkle audit tree (merkletreejs SHA256), keccak256 hash chain (ethers.js ABI encode), append-only hypercore log (replication over TCP), WAMP Pub/Sub (autobahn-js authenticated topics), ZK-SNARK proofs (snarkjs Groth16/circom). skills 231→246.",
     "v1.3.48 — 58 new skills across 9 engineering domains: Linux sandbox (runc/seccomp/bubblewrap/bwrap/eBPF), process/network internals, vector math (ndarray/distance/PCA), config parsers (YAML/TOML/INI/glob/gitignore), graph viz (mermaid/dagre), XSS guards (DOMPurify/validator/sanitize-html), state persistence (localForage/PouchDB/conf), observability (StatsD/systeminformation/memwatch), streaming (archiver/zlib/pump/get-stream). model-router.sh (prompt→tier routing). token-budget-policy.md (L1 circuit breaker). tool-proxy.sh: 429/503 exponential backoff+jitter (PHASE 3.5 rate-limit). skills 173→231, rules 41→42, scripts 34→35.",
@@ -426,7 +427,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 261,
+      "count": 276,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",

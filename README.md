@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 35 |
-| Skills | 261 |
+| Skills | 276 |
 | Rules | 42 |
 | Templates | 12 |
 | Tests | 415 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.50
-**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.50.
+**Version:** 1.3.51
+**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.51.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
