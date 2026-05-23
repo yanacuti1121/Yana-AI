@@ -1,7 +1,7 @@
 <p align="center">
   <img
-    src="./docs/yamtam-agents-workshop.png"
-    alt="YAMTAM ENGINE Agents Workshop"
+    src="./docs/yamtam-engine-overview.png"
+    alt="YAMTAM ENGINE Overview"
     width="100%"
   />
 </p>
