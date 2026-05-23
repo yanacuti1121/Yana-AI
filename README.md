@@ -9,6 +9,14 @@
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">
+  <img
+    src="./docs/ChatGPT Image 23_20_50 23 thg 5, 2026.png"
+    alt="YAMTAM ENGINE Architecture"
+    width="100%"
+  />
+</p>
+
+<p align="center">
   <strong>Personal Agent Operating System</strong><br/>
   Multi-Agent Workflow · Secure Runtime Gates · Evidence-Based Verification
 </p>
