@@ -71,84 +71,179 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 
 
 ## System Architecture
+<p align="center">
+  <img src="./docs/yamtam-engine-overview.png" alt="YAMTAM ENGINE" width="100%" />
+</p>
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       YAMTAM ENGINE  v1.6.1                             │
-│                  Personal Agent Operating System                        │
-└─────────────────────────────────────────────────────────────────────────┘
+<h1 align="center">YAMTAM ENGINE</h1>
 
- 👤  VŨ VĂN TÂM  ──  SOVEREIGN (Tier 2)
-      │  Identity Gate: SHA-256 auto-auth · case-insensitive · env-var bypass
+<p align="center">
+  <strong>Personal Agent Operating System</strong><br/>
+  Secure · Autonomous · Auditable · Sovereign-Controlled AI Workflow
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v1.6.1-blue?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/status-private%20candidate-orange?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/license-proprietary-red?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple?style=for-the-badge" alt="Owner" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Agents-90-00C2FF?style=flat-square" alt="Agents" />
+  <img src="https://img.shields.io/badge/Commands-164-7C3AED?style=flat-square" alt="Commands" />
+  <img src="https://img.shields.io/badge/Hooks-34-F97316?style=flat-square" alt="Hooks" />
+  <img src="https://img.shields.io/badge/Scripts-46-22C55E?style=flat-square" alt="Scripts" />
+  <img src="https://img.shields.io/badge/Skills-350-06B6D4?style=flat-square" alt="Skills" />
+  <img src="https://img.shields.io/badge/Checks-826-EF4444?style=flat-square" alt="Checks" />
+</p>
+
+---
+
+## 🧠 System Architecture
+
+```text
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         ⚡ YAMTAM ENGINE v1.6.1                            ║
+║                    Personal Agent Operating System                         ║
+║                                                                              ║
+║        Secure · Autonomous · Auditable · Sovereign-Controlled Workflow       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+ 👤 VŨ VĂN TÂM ── SOVEREIGN OWNER (Tier 2)
+      │
+      │  🟢 Identity Gate
+      │  ├─ SHA-256 auto-auth
+      │  ├─ Case-insensitive identity validation
+      │  └─ Env-var bypass reserved for sovereign control
       │
       ▼
- ┌─────────────────────────────────────────────────────────────────────┐
- │                    AI ENGINE LAYER                                  │
- │                                                                     │
- │  ┌──────────────┐  ┌────────────────┐  ┌──────────────────────┐   │
- │  │ Claude Code  │  │    Cursor      │  │    Aider / Copilot   │   │
- │  │ (native hooks│  │ (.mdc rules +  │  │ (.aider.conf.yml +   │   │
- │  │  settings.   │  │  safe-run.sh   │  │  safe-run.sh proxy + │   │
- │  │  json wired) │  │  HARD MODE)    │  │  advisory prompt)    │   │
- │  └──────┬───────┘  └───────┬────────┘  └──────────┬───────────┘   │
- └─────────┼──────────────────┼───────────────────────┼───────────────┘
-           │                  │                       │
-           └──────────────────┴───────────────────────┘
-                              │
-                              ▼
- ┌─────────────────────────────────────────────────────────────────────┐
- │  L0.5 — COMMAND FIREWALL                safe-run.sh                 │
- │                                                                     │
- │   BLOCKED_PATTERNS: rm -rf · git push --force · curl | bash         │
- │   WARN_PATTERNS:    eval · xargs rm · sudo · pip install --user     │
- │   HARD MODE (Cursor/Aider): warn → instant block, no TTY prompt     │
- │   BYPASS: YAMTAM_SAFE_RUN_BYPASS=1 (sovereign only)                 │
- └─────────────────────────────────────┬───────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              🤖 AI ENGINE LAYER                            ║
+║                                                                              ║
+║   ┌────────────────────┐   ┌────────────────────┐   ┌────────────────────┐  ║
+║   │   🟦 Claude Code   │   │    🟪 Cursor       │   │  🟩 Aider/Copilot  │  ║
+║   │                    │   │                    │   │                    │  ║
+║   │  Native hooks      │   │  .mdc rules        │   │  .aider.conf.yml   │  ║
+║   │  settings.json     │   │  safe-run.sh       │   │  safe-run proxy    │  ║
+║   │  full hook wiring  │   │  HARD MODE         │   │  advisory prompt   │  ║
+║   └─────────┬──────────┘   └─────────┬──────────┘   └─────────┬──────────┘  ║
+║             │                        │                        │             ║
+╚═════════════╪════════════════════════╪════════════════════════╪═════════════╝
+              │                        │                        │
+              └────────────────────────┴────────────────────────┘
                                        │
                                        ▼
- ┌─────────────────────────────────────────────────────────────────────┐
- │  HOOK GATE STACK  (PreToolUse / PostToolUse / Stop)                 │
- │                                                                     │
- │  L0 ─ audit-log.sh + telemetry-sender.sh                           │
- │        Every tool call logged · SHA-256 hash-chain (tamper-evident) │
- │                                                                     │
- │  L1 ─ token-scope-guard.sh + scope-guard.sh                        │
- │        Warn on secret/env access · writes to product dirs           │
- │                                                                     │
- │  L2 ─ commit-gate.sh                                               │
- │        Advisory warn on commits touching cross-scope paths          │
- │                                                                     │
- │  L3 ─ truth-gate-guard.sh  (Stop hook)                             │
- │        Blocks unsupported "done / passed / clean" claims            │
- │        Trust score tracks violations · score < 50 → double evidence │
- │                                                                     │
- │  L4 ─ deploy-gate.sh                                               │
- │        DENY: kubectl · docker push · gh workflow run · gcloud · fly │
- │        BYPASS: YAMTAM_DEPLOY_APPROVED=1                             │
- │                                                                     │
- │  L5 ─ guard-destructive.sh + db-protect.sh + api-destruct-guard.sh │
- │        DENY: rm -rf · DROP TABLE · DELETE /prod · prisma migrate    │
- │                                                                     │
- │  ⚡ ─ token-budget-guard.sh  (Circuit Breaker)                      │
- │        CLOSED → OPEN after 5 consecutive calls without success      │
- │        HARD BLOCK · escalating cooldown 60s → 300s → 1800s          │
- │        Fast-tier: auto-route to claude-haiku-4-5 on loop            │
- └─────────────────────────────────────┬───────────────────────────────┘
-                                       │  ✅ ALLOW
-                                       ▼
- ┌──────────────────────────┐  ┌────────────────────────────────────────┐
- │     MEMORY STACK         │  │         KNOWLEDGE LAYER                │
- │                          │  │                                        │
- │  L1 Atomic               │  │  350 Skills  — on-demand workflow      │
- │   · Persistent facts     │  │  156 Commands — slash commands         │
- │   · Tagged · confidence  │  │   87 Agents  — specialized sub-agents  │
- │   · Git-tracked          │  │   58 Rules   — always-on constraints   │
- │                          │  │                                        │
- │  L2 Session              │  │  Security rules: prompt-jailbreak-     │
- │   · Ephemeral facts       │  │  advanced, supply-chain-vetting,       │
- │   · Gitignored           │  │  anti-evasion-law, shell-sanitize-law  │
- │   · Cleared each session │  │  sovereign-overlord-gate-law + 53 more │
- └──────────────────────────┘  └────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         🧱 L0.5 COMMAND FIREWALL                           ║
+║                              safe-run.sh                                    ║
+║                                                                              ║
+║   🔴 BLOCKED PATTERNS                                                       ║
+║   ├─ rm -rf                                                                  ║
+║   ├─ git push --force                                                        ║
+║   └─ curl | bash                                                             ║
+║                                                                              ║
+║   🟡 WARN PATTERNS                                                          ║
+║   ├─ eval                                                                    ║
+║   ├─ xargs rm                                                                ║
+║   ├─ sudo                                                                    ║
+║   └─ pip install --user                                                      ║
+║                                                                              ║
+║   ⚡ HARD MODE                                                              ║
+║   └─ Cursor / Aider: warning becomes instant block, no TTY prompt            ║
+║                                                                              ║
+║   🗝️ SOVEREIGN BYPASS                                                       ║
+║   └─ YAMTAM_SAFE_RUN_BYPASS=1                                                ║
+╚═══════════════════════════════════════╦══════════════════════════════════════╝
+                                        │
+                                        ▼
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            🛡️ HOOK GATE STACK                              ║
+║                       PreToolUse · PostToolUse · Stop                       ║
+║                                                                              ║
+║   🟣 L0  AUDIT LAYER                                                        ║
+║   ├─ audit-log.sh                                                           ║
+║   └─ telemetry-sender.sh                                                    ║
+║      Every tool call logged with SHA-256 hash-chain                         ║
+║                                                                              ║
+║   🔵 L1  SCOPE LAYER                                                        ║
+║   ├─ token-scope-guard.sh                                                   ║
+║   └─ scope-guard.sh                                                         ║
+║      Warns on secret/env access and writes to product directories            ║
+║                                                                              ║
+║   🟠 L2  COMMIT LAYER                                                       ║
+║   └─ commit-gate.sh                                                         ║
+║      Advisory warning on commits touching cross-scope paths                  ║
+║                                                                              ║
+║   🟡 L3  TRUTH LAYER                                                        ║
+║   └─ truth-gate-guard.sh                                                    ║
+║      Blocks unsupported "done / passed / clean" claims                      ║
+║      Trust score tracks violations                                          ║
+║      score < 50 requires double evidence                                    ║
+║                                                                              ║
+║   🔴 L4  DEPLOY LAYER                                                       ║
+║   └─ deploy-gate.sh                                                         ║
+║      DENY: kubectl · docker push · gh workflow run · gcloud · fly            ║
+║      BYPASS: YAMTAM_DEPLOY_APPROVED=1                                       ║
+║                                                                              ║
+║   🧨 L5  DESTRUCTIVE ACTION LAYER                                           ║
+║   ├─ guard-destructive.sh                                                   ║
+║   ├─ db-protect.sh                                                          ║
+║   └─ api-destruct-guard.sh                                                  ║
+║      DENY: rm -rf · DROP TABLE · DELETE /prod · prisma migrate              ║
+║                                                                              ║
+║   ⚡ CIRCUIT BREAKER                                                        ║
+║   └─ token-budget-guard.sh                                                  ║
+║      CLOSED → OPEN after 5 consecutive calls without success                ║
+║      HARD BLOCK with escalating cooldown: 60s → 300s → 1800s                ║
+║      Fast-tier route: claude-haiku-4-5 on loop                              ║
+╚═══════════════════════════════════════╦══════════════════════════════════════╝
+                                        │
+                                        │  ✅ ALLOW
+                                        ▼
+
+╔═══════════════════════════════════════╦══════════════════════════════════════╗
+║            🧬 MEMORY STACK            ║             📚 KNOWLEDGE LAYER       ║
+║                                       ║                                      ║
+║   🟦 L1 ATOMIC MEMORY                 ║   🧩 350 Skills                      ║
+║   ├─ Persistent facts                 ║   └─ On-demand workflow library      ║
+║   ├─ Tagged records                   ║                                      ║
+║   ├─ Confidence scoring               ║   ⚙️ 156 Commands                    ║
+║   └─ Git-tracked memory               ║   └─ Slash command interface         ║
+║                                       ║                                      ║
+║   🟪 L2 SESSION MEMORY                ║   🤖 87 Agents                       ║
+║   ├─ Ephemeral session facts          ║   └─ Specialized sub-agents          ║
+║   ├─ Gitignored runtime memory        ║                                      ║
+║   └─ Cleared each session             ║   📜 58 Rules                        ║
+║                                       ║   └─ Always-on operating constraints ║
+║                                       ║                                      ║
+║                                       ║   🔐 Security Rule Families          ║
+║                                       ║   ├─ prompt-jailbreak-advanced       ║
+║                                       ║   ├─ supply-chain-vetting            ║
+║                                       ║   ├─ anti-evasion-law                ║
+║                                       ║   ├─ shell-sanitize-law              ║
+║                                       ║   └─ sovereign-overlord-gate-law     ║
+╚═══════════════════════════════════════╩══════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            🔐 SECURITY PERIMETER                           ║
+║                                                                              ║
+║      ✅  65 Hook Tests                                                       ║
+║   +  ✅  12 Audit Tests                                                      ║
+║   +  ✅ 334 Skill Checks                                                     ║
+║   +  ✅  65 Red-Team Scenarios                                               ║
+║   +  ✅   6 Smoke Tests                                                      ║
+║   ─────────────────────────                                                  ║
+║      🧪 826 Total Verification Checks                                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Execution Flow:
+Owner → Identity Gate → AI Engine Layer → Command Firewall → Hook Gates
+      → Memory + Knowledge Layer → Verification → Evidence Report
+```
 
  SECURITY PERIMETER: 65 hook tests · 12 audit tests · 334 skill checks
                      65 red-team scenarios · 6 smoke tests = 826 checks
