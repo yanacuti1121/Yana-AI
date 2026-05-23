@@ -1,9 +1,55 @@
-# YAMTAM ENGINE
+.<p align="center">
+  <img
+    src="./docs/yamtam-engine-overview.png"
+    alt="YAMTAM ENGINE Overview"
+    width="100%"
+  />
+</p>
 
-**Personal agent operating system.**
-Hook layer, safety guards, and workflow rules for AI assistants
-(Claude Code or other AI coding assistants) operating on arbitrary codebases.
+<h1 align="center">YAMTAM ENGINE</h1>
 
+<p align="center">
+  <strong>AI Agent Operating System</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v1.6.1-blue" alt="Version" />
+  <img src="https://img.shields.io/badge/status-private%20candidate-orange" alt="Status" />
+  <img src="https://img.shields.io/badge/license-proprietary-red" alt="License" />
+  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple" alt="Owner" />
+</p>
+
+YAMTAM ENGINE là hệ điều hành điều phối AI agent, cung cấp framework hoàn chỉnh gồm
+agents, commands, hooks, skills, rules, gates, scripts và công cụ vận hành để kiểm soát
+workflow AI một cách có bằng chứng.
+
+## Tính năng chính
+
+- **90+ Agents**: điều phối và thực thi theo vai trò.
+- **160+ Commands**: giao diện slash command mạnh mẽ.
+- **34+ Hooks**: bảo vệ, giám sát và can thiệp runtime.
+- **350+ Skills**: thư viện kỹ năng toàn diện.
+- **60+ Rules**: quy tắc vận hành và chất lượng.
+- **46+ Scripts**: công cụ bảo trì, checkpoint, rollback và release.
+- **Verification System**: chống fake-pass, yêu cầu evidence rõ ràng.
+- **Multi-Engine Support**: hỗ trợ vận hành với Claude, Cursor, Gemini, ChatGPT và các AI workflow khác.
+
+## Cấu trúc tổng quan
+
+```text
+yamtam-engine/
+├── agents/          # AI agent roles
+├── commands/        # Slash commands
+├── hooks/           # Runtime guards and lifecycle hooks
+├── scripts/         # Maintenance and verification tools
+├── rules/           # Operating rules
+├── skills/          # Skill library
+├── gates/           # Safety and quality gates
+├── memory/          # Persistent project memory
+├── templates/       # Reusable templates
+├── config/          # Engine configuration
+├── docs/            # Documentation
+└── releases/        # Release packages
 ![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
 
 | Asset | Count |
