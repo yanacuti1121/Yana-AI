@@ -341,7 +341,13 @@ git tag v1.6.1 && git push origin v1.6.1
 
 ## License / credits
 
-Licensed under Apache 2.0. See `LICENSE`.
-Initial author: Vũ Văn Tâm.
-Not affiliated with any specific product repo this pack may be applied to.
-See `CONTRIBUTING.md` to add skills, rules, or adapters.
+## License
+
+YAMTAM ENGINE is proprietary software.
+
+Copyright (c) 2026 Vũ Văn Tâm. All rights reserved.
+
+No one is allowed to copy, modify, redistribute, publish, host, sell, or create
+derivative works from this project without prior written permission.
+
+See `LICENSE` for details.
