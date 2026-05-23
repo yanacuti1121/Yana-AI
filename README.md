@@ -1,28 +1,3 @@
-.<p align="center">
-  <img
-    src="./docs/yamtam-engine-overview.png"
-    alt="YAMTAM ENGINE Overview"
-    width="100%"
-  />
-</p>
-
-<h1 align="center">YAMTAM ENGINE</h1>
-
-<p align="center">
-  <strong>AI Agent Operating System</strong>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/version-v1.6.1-blue" alt="Version" />
-  <img src="https://img.shields.io/badge/status-private%20candidate-orange" alt="Status" />
-  <img src="https://img.shields.io/badge/license-proprietary-red" alt="License" />
-  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple" alt="Owner" />
-</p>
-
-YAMTAM ENGINE là hệ điều hành điều phối AI agent, cung cấp framework hoàn chỉnh gồm
-agents, commands, hooks, skills, rules, gates, scripts và công cụ vận hành để kiểm soát
-workflow AI một cách có bằng chứng.
-
 <p align="center">
   <img
     src="./docs/yamtam-agents-workshop.png"
@@ -42,75 +17,50 @@ workflow AI một cách có bằng chứng.
   <img src="https://img.shields.io/badge/version-v1.6.1-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-private%20candidate-111827?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-proprietary-red?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/badge/agents-90-ff8c00?style=for-the-badge" alt="Agents" />
-  <img src="https://img.shields.io/badge/skills-350-22c55e?style=for-the-badge" alt="Skills" />
+  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple?style=for-the-badge" alt="Owner" />
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/agents-90-ff8c00?style=flat-square" alt="Agents" />
+  <img src="https://img.shields.io/badge/commands-164-7c3aed?style=flat-square" alt="Commands" />
+  <img src="https://img.shields.io/badge/hooks-34-f97316?style=flat-square" alt="Hooks" />
+  <img src="https://img.shields.io/badge/scripts-46-22c55e?style=flat-square" alt="Scripts" />
+  <img src="https://img.shields.io/badge/skills-350-06b6d4?style=flat-square" alt="Skills" />
+  <img src="https://img.shields.io/badge/checks-826-ef4444?style=flat-square" alt="Checks" />
+</p>
+
+YAMTAM ENGINE là **Personal Agent Operating System** dùng để điều phối nhiều AI agents,
+kiểm soát workflow bằng hooks, gates, rules, skills và hệ thống verification có evidence.
+
+---
 
 ## Tính năng chính
 
 - **90+ Agents**: điều phối và thực thi theo vai trò.
-- **160+ Commands**: giao diện slash command mạnh mẽ.
-- **34+ Hooks**: bảo vệ, giám sát và can thiệp runtime.
-- **350+ Skills**: thư viện kỹ năng toàn diện.
-- **60+ Rules**: quy tắc vận hành và chất lượng.
-- **46+ Scripts**: công cụ bảo trì, checkpoint, rollback và release.
-- **Verification System**: chống fake-pass, yêu cầu evidence rõ ràng.
-- **Multi-Engine Support**: hỗ trợ vận hành với Claude, Cursor, Gemini, ChatGPT và các AI workflow khác.
-**Version:** 1.6.1
-**Status:** Runtime active. 826 checks passing. Release pack live. v1.6.1.
-**Maintainer:** Vũ Văn Tâm
-**Maintainer:** Vũ Văn Tâm
-**Repo type:** Standalone — NOT part of any product repo.
+- **164 Commands**: giao diện slash command cho workflow AI.
+- **34 Hooks**: bảo vệ, giám sát và can thiệp runtime.
+- **350 Skills**: thư viện kỹ năng cho nhiều loại tác vụ.
+- **60 Rules**: quy tắc vận hành và kiểm soát chất lượng.
+- **46 Scripts**: công cụ checkpoint, rollback, sweep, release và verify.
+- **826 Checks**: hook tests, audit tests, skill checks, red-team scenarios và smoke tests.
+- **Evidence-Based Verification**: không tự nhận `done`, `passed`, `clean` nếu thiếu bằng chứng.
 
 ---
 
 ## What YAMTAM is
 
-A pack of bash hooks, scripts, and tests that you drop into a project's
-`.claude/` directory to constrain what an AI agent can do:
+YAMTAM is a standalone AI agent operating system.
 
-- Block destructive shell, DB, API, and deploy commands.
-- Warn when agent reads secrets/tokens or writes to product directories.
-- Enforce evidence before agent claims `done` / `passed` / `clean` (Truth Gate).
-- Gate commits touching cross-scope paths; block unauthorized deploys.
-- Store verified facts in L1 Atomic Memory; session facts in L2 (gitignored).
-- Detect documentation drift and stale claims automatically.
-- Log all hook decisions locally with SHA-256 hash-chain audit trail (tamper-evident).
-- Track session trust score — Truth Gate violations decrement score; score < 50 requires double evidence.
-- Proactively verify claims with `/fact-check`; self-improve skills with `/improve-skill` (human-gated).
-- **Cross-engine governance** — adapters + hard enforcement (safe-run.sh proxy) for Cursor, GitHub Copilot, and Aider.
-- **Token ROI** — loop detection, fast-tier auto-routing, per-session cost reporting.
+It is designed to sit **outside** product repositories and control AI-assisted workflows
+through agents, commands, hooks, rules, gates, skills, memory, and verification tools.
 
 ## What YAMTAM is not
 
-- Not a product. Not user-facing.
-- Not a replacement for production safety (IAM, backups, RBAC).
-- Not a full protection layer — see `docs/LIMITATIONS.md` (when imported).
-- Not coupled to any single project. Apply to any repo via release pack.
-- See `.out-of-scope/` for features deliberately not built.
-
----
-
-
-
-## System Architecture
-<p align="center">
-  <img src="./docs/yamtam-engine-overview.png" alt="YAMTAM ENGINE" width="100%" />
-</p>
-
-<h1 align="center">YAMTAM ENGINE</h1>
-
-<p align="center">
-  <strong>Personal Agent Operating System</strong><br/>
-  Secure · Autonomous · Auditable · Sovereign-Controlled AI Workflow
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/version-v1.6.1-blue?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/badge/status-private%20candidate-orange?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/license-proprietary-red?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple?style=for-the-badge" alt="Owner" />
-</p>
+- Not a product app.
+- Not user-facing software.
+- Not part of JNMT or any single repo.
+- Not a replacement for real production safety such as IAM, backups, RBAC, or monitoring.
+- Not allowed to claim success without evidence.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Agents-90-00C2FF?style=flat-square" alt="Agents" />
