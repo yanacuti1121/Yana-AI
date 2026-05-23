@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.55",
+  "version": "1.3.56",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
@@ -430,7 +430,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 330,
+      "count": 335,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
