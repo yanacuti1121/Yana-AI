@@ -33,36 +33,6 @@ workflow AI một cách có bằng chứng.
 - **46+ Scripts**: công cụ bảo trì, checkpoint, rollback và release.
 - **Verification System**: chống fake-pass, yêu cầu evidence rõ ràng.
 - **Multi-Engine Support**: hỗ trợ vận hành với Claude, Cursor, Gemini, ChatGPT và các AI workflow khác.
-
-## Cấu trúc tổng quan
-
-```text
-yamtam-engine/
-├── agents/          # AI agent roles
-├── commands/        # Slash commands
-├── hooks/           # Runtime guards and lifecycle hooks
-├── scripts/         # Maintenance and verification tools
-├── rules/           # Operating rules
-├── skills/          # Skill library
-├── gates/           # Safety and quality gates
-├── memory/          # Persistent project memory
-├── templates/       # Reusable templates
-├── config/          # Engine configuration
-├── docs/            # Documentation
-└── releases/        # Release packages
-![YAMTAM ENGINE Overview](docs/yamtam-engine-overview.png)
-
-| Asset | Count |
-|---|---|
-| Agents | 90 |
-| Commands | 164 |
-| Hooks | 34 |
-| Scripts | 46 |
-| Skills | 350 |
-| Rules | 60 |
-| Templates | 12 |
-| Tests | 826 checks (65 hook + 24 v1.6-safety + 12 audit + 678 skill + 6 smoke + 65 red-team) |
-
 **Version:** 1.6.1
 **Status:** Runtime active. 826 checks passing. Release pack live. v1.6.1.
 **Maintainer:** Vũ Văn Tâm
@@ -97,6 +67,8 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 - See `.out-of-scope/` for features deliberately not built.
 
 ---
+
+
 
 ## System Architecture
 
