@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "YAMTAM: Copilot Safe-Run Gate",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/core/scripts/safe-run.sh", "--engine", "copilot", "${input:command}"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "YAMTAM: Verify Skills Lock",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/core/scripts/verify-skills-lock.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "YAMTAM: Run Hook Tests",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/core/tests/hooks/run-hook-tests.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "YAMTAM: Run Skill Trigger Tests",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/core/tests/skills/test-skill-triggering.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "YAMTAM: Drift Check",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/core/scripts/drift-check.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "YAMTAM: Full Verify",
+      "dependsOn": [
+        "YAMTAM: Run Hook Tests",
+        "YAMTAM: Run Skill Trigger Tests",
+        "YAMTAM: Verify Skills Lock",
+        "YAMTAM: Drift Check"
+      ],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "command",
+      "type": "promptString",
+      "description": "Command to validate through safe-run gate"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.4.20",
+  "version": "1.5.0",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
@@ -165,7 +165,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 156,
+      "count": 157,
       "actual_present": [
         "core/commands/accessibility-audit.md",
         "core/commands/add-authentication-system.md",
@@ -360,7 +360,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 35,
+      "count": 36,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",

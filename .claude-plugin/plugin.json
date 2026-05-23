@@ -25,16 +25,16 @@
   },
   "contents": {
     "hooks": 27,
-    "commands": 156,
+    "commands": 157,
     "agents": 87,
-    "scripts": 35,
+    "scripts": 36,
     "skills": 350,
     "rules": 58,
-    "checks": 472,
+    "checks": 826,
     "checks_breakdown": {
-      "hook_tests": 55,
+      "hook_tests": 65,
       "audit_chain_tests": 12,
-      "skill_trigger_checks": 334,
+      "skill_trigger_checks": 678,
       "command_smoke_checks": 6,
       "red_team_scenarios": 65
     },
@@ -53,8 +53,8 @@
     ]
   },
   "skills": 350,
-  "checks": 472,
-  "scripts": 35,
+  "checks": 826,
+  "scripts": 36,
   "hooks": 27,
   "rules": 58
 }
