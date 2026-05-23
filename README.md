@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 35 |
-| Skills | 306 |
+| Skills | 321 |
 | Rules | 42 |
 | Templates | 12 |
 | Tests | 415 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.53
-**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.53.
+**Version:** 1.3.54
+**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.54.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -146,7 +146,7 @@ yamtam-engine/
 | `core/scripts/` | 35 scripts |
 | `core/rules/` | 42 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 231 skills |
+| `core/skills/` | 321 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
