@@ -782,7 +782,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/extract-errors",
       "localPath": ".claude/skills/extract-errors",
-      "computedHash": "34fc901c65d63757e53d068b9c7bfe4e0e31840675bbdd7c639d6c57d4664beb"
+      "computedHash": "68cc6f6f432f4e93fbbaec50596663d220f2c12d6b8cdf75da369cb4655a7e43"
     },
     "feature-flags": {
       "source": "yamtam-engine/core/skills",

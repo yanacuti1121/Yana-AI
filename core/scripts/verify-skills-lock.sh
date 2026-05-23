@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
 # Verify that the skills on disk match the hashes recorded in skills-lock.json.
+# Also auto-adds skills found on disk that are NOT yet in the lockfile.
+#
 # Exit codes:
-#   0 — all skills match the lockfile
+#   0 — all skills verified (and any new skills auto-added to lockfile)
 #   1 — drift detected (skill content differs from lock) or missing files
 #   2 — cannot read lockfile or missing dependency (jq)
 #
+# Flags:
+#   --no-auto-add   Skip auto-add of new skills (verify only)
+#
 # Intended usage:
 #   - Run manually before trusting a shipped template.
+#   - Run after adding a new skill to auto-register it in the lockfile.
 #   - Wire into CI to detect accidental skill edits that should have bumped the lock.
 
 set -uo pipefail
+
+AUTO_ADD=true
+for arg in "$@"; do
+  [[ "$arg" == "--no-auto-add" ]] && AUTO_ADD=false
+done
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
@@ -35,6 +46,15 @@ if [[ -z "$LOCKFILE" ]]; then
   exit 2
 fi
 
+# Detect the skills root directory (repo scaffold vs installed layout)
+SKILLS_ROOT=""
+for candidate in \
+  "$PROJECT_ROOT/core/skills" \
+  "$PROJECT_ROOT/skills" \
+  "$PROJECT_ROOT/.claude/skills"; do
+  [[ -d "$candidate" ]] && SKILLS_ROOT="$candidate" && break
+done
+
 # Resolve a skill localPath to an actual directory on disk.
 # Tries 3 fallback locations to support repo scaffold + installed pack layouts.
 resolve_skill_path() {
@@ -59,11 +79,21 @@ resolve_skill_path() {
   return 1
 }
 
+# Compute the canonical hash for a skill directory.
+compute_hash() {
+  local dir="$1"
+  cd "$dir" && \
+    find . -type f -not -name "mcp.json" -exec sha256sum {} \; \
+      | sort \
+      | sha256sum \
+      | cut -d' ' -f1
+}
+
+# ── Phase 1: Verify skills already in the lockfile ───────────────────────────
 drift=0
 missing=0
 ok=0
 
-# Iterate over every skill recorded in the lockfile.
 while IFS=$'\t' read -r name local_path expected_hash; do
   full_path=$(resolve_skill_path "$local_path")
 
@@ -73,17 +103,7 @@ while IFS=$'\t' read -r name local_path expected_hash; do
     continue
   fi
 
-  # Match the hashing strategy used when the lockfile was generated:
-  # hash every file under the skill dir (excluding mcp.json), sorted, sha256sum'd.
-  # Use relative paths (cd + find .) so the hash is stable across environments —
-  # absolute paths would leak the install location into the digest.
-  actual_hash=$(
-    cd "$full_path" && \
-    find . -type f -not -name "mcp.json" -exec sha256sum {} \; \
-      | sort \
-      | sha256sum \
-      | cut -d' ' -f1
-  )
+  actual_hash=$(compute_hash "$full_path")
 
   if [[ -z "$expected_hash" || "$expected_hash" == "null" ]]; then
     echo "~ SKIPPED  $name  (no hash in lockfile — run update-skills-lock.sh to populate)"
@@ -99,12 +119,65 @@ while IFS=$'\t' read -r name local_path expected_hash; do
   fi
 done < <(jq -r '.skills | to_entries[] | [.key, .value.localPath, .value.computedHash] | @tsv' "$LOCKFILE")
 
+# ── Phase 2: Auto-add skills on disk not yet in the lockfile ─────────────────
+added=0
+
+if [[ "$AUTO_ADD" == "true" && -n "$SKILLS_ROOT" ]]; then
+  # Build a set of skill names AND localPaths already in the lockfile
+  existing_names=$(jq -r '.skills | keys[]' "$LOCKFILE" 2>/dev/null || echo "")
+  existing_paths=$(jq -r '.skills[].localPath' "$LOCKFILE" 2>/dev/null || echo "")
+
+  # Walk disk: every directory that contains a SKILL.md is a skill
+  while IFS= read -r skill_md; do
+    skill_dir=$(dirname "$skill_md")
+    skill_name=$(basename "$skill_dir")
+
+    # Skip if name already in lockfile
+    if echo "$existing_names" | grep -qx "$skill_name"; then
+      continue
+    fi
+
+    # Skip if the directory path is already registered under a different key
+    rel_path="${skill_dir#$PROJECT_ROOT/}"
+    if [[ "$rel_path" == core/skills/* ]]; then
+      canonical_lp=".claude/skills/${rel_path#core/skills/}"
+    else
+      canonical_lp=".claude/skills/${rel_path#skills/}"
+    fi
+    if echo "$existing_paths" | grep -qF "$canonical_lp"; then
+      continue
+    fi
+
+    local_path="$canonical_lp"
+
+    hash=$(compute_hash "$skill_dir")
+
+    # Inject new entry into lockfile via jq
+    tmp=$(mktemp)
+    jq --arg name "$skill_name" \
+       --arg lp "$local_path" \
+       --arg h "$hash" \
+       '.skills[$name] = {"computedHash": $h, "localPath": $lp, "addedAt": (now | todate)}' \
+       "$LOCKFILE" > "$tmp" && mv "$tmp" "$LOCKFILE"
+
+    echo "+ ADDED    $skill_name  ($local_path)"
+    added=$((added + 1))
+  done < <(find "$SKILLS_ROOT" -name "SKILL.md" | sort)
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
-echo "Summary: $ok ok · $drift drift · $missing missing"
+echo "Summary: $ok ok · $drift drift · $missing missing · $added auto-added"
+
+if [[ $added -gt 0 ]]; then
+  echo ""
+  echo "$added new skill(s) added to $(basename "$LOCKFILE")."
+  echo "Run update-skills-lock.sh to refresh all hashes if needed."
+fi
 
 if [[ $drift -gt 0 || $missing -gt 0 ]]; then
   echo ""
-  echo "If the drift is intentional, regenerate with:"
+  echo "If drift is intentional, regenerate with:"
   echo "  bash core/scripts/update-skills-lock.sh"
   exit 1
 fi
