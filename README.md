@@ -10,15 +10,15 @@ Hook layer, safety guards, and workflow rules for AI assistants
 |---|---|
 | Agents | 87 |
 | Commands | 156 |
-| Hooks | 24 |
+| Hooks | 27 |
 | Scripts | 35 |
 | Skills | 350 |
 | Rules | 58 |
 | Templates | 12 |
-| Tests | 472 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
+| Tests | 477 checks (65 hook + 12 audit + 334 skill + 6 smoke + 60 red-team) |
 
 **Version:** 1.4.20
-**Status:** Runtime active. 472 checks passing. Release pack live. v1.4.20.
+**Status:** Runtime active. 477 checks passing. Release pack live. v1.4.20.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -51,6 +51,92 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 
 ---
 
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       YAMTAM ENGINE  v1.4.20                            │
+│                  Personal Agent Operating System                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+ 👤  VŨ VĂN TÂM  ──  SOVEREIGN (Tier 2)
+      │  Identity Gate: SHA-256 auto-auth · case-insensitive · env-var bypass
+      │
+      ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │                    AI ENGINE LAYER                                  │
+ │                                                                     │
+ │  ┌──────────────┐  ┌────────────────┐  ┌──────────────────────┐   │
+ │  │ Claude Code  │  │    Cursor      │  │    Aider / Copilot   │   │
+ │  │ (native hooks│  │ (.mdc rules +  │  │ (.aider.conf.yml +   │   │
+ │  │  settings.   │  │  safe-run.sh   │  │  safe-run.sh proxy + │   │
+ │  │  json wired) │  │  HARD MODE)    │  │  advisory prompt)    │   │
+ │  └──────┬───────┘  └───────┬────────┘  └──────────┬───────────┘   │
+ └─────────┼──────────────────┼───────────────────────┼───────────────┘
+           │                  │                       │
+           └──────────────────┴───────────────────────┘
+                              │
+                              ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │  L0.5 — COMMAND FIREWALL                safe-run.sh                 │
+ │                                                                     │
+ │   BLOCKED_PATTERNS: rm -rf · git push --force · curl | bash         │
+ │   WARN_PATTERNS:    eval · xargs rm · sudo · pip install --user     │
+ │   HARD MODE (Cursor/Aider): warn → instant block, no TTY prompt     │
+ │   BYPASS: YAMTAM_SAFE_RUN_BYPASS=1 (sovereign only)                 │
+ └─────────────────────────────────────┬───────────────────────────────┘
+                                       │
+                                       ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │  HOOK GATE STACK  (PreToolUse / PostToolUse / Stop)                 │
+ │                                                                     │
+ │  L0 ─ audit-log.sh + telemetry-sender.sh                           │
+ │        Every tool call logged · SHA-256 hash-chain (tamper-evident) │
+ │                                                                     │
+ │  L1 ─ token-scope-guard.sh + scope-guard.sh                        │
+ │        Warn on secret/env access · writes to product dirs           │
+ │                                                                     │
+ │  L2 ─ commit-gate.sh                                               │
+ │        Advisory warn on commits touching cross-scope paths          │
+ │                                                                     │
+ │  L3 ─ truth-gate-guard.sh  (Stop hook)                             │
+ │        Blocks unsupported "done / passed / clean" claims            │
+ │        Trust score tracks violations · score < 50 → double evidence │
+ │                                                                     │
+ │  L4 ─ deploy-gate.sh                                               │
+ │        DENY: kubectl · docker push · gh workflow run · gcloud · fly │
+ │        BYPASS: YAMTAM_DEPLOY_APPROVED=1                             │
+ │                                                                     │
+ │  L5 ─ guard-destructive.sh + db-protect.sh + api-destruct-guard.sh │
+ │        DENY: rm -rf · DROP TABLE · DELETE /prod · prisma migrate    │
+ │                                                                     │
+ │  ⚡ ─ token-budget-guard.sh  (Circuit Breaker)                      │
+ │        CLOSED → OPEN after 5 consecutive calls without success      │
+ │        HARD BLOCK · escalating cooldown 60s → 300s → 1800s          │
+ │        Fast-tier: auto-route to claude-haiku-4-5 on loop            │
+ └─────────────────────────────────────┬───────────────────────────────┘
+                                       │  ✅ ALLOW
+                                       ▼
+ ┌──────────────────────────┐  ┌────────────────────────────────────────┐
+ │     MEMORY STACK         │  │         KNOWLEDGE LAYER                │
+ │                          │  │                                        │
+ │  L1 Atomic               │  │  350 Skills  — on-demand workflow      │
+ │   · Persistent facts     │  │  156 Commands — slash commands         │
+ │   · Tagged · confidence  │  │   87 Agents  — specialized sub-agents  │
+ │   · Git-tracked          │  │   58 Rules   — always-on constraints   │
+ │                          │  │                                        │
+ │  L2 Session              │  │  Security rules: prompt-jailbreak-     │
+ │   · Ephemeral facts       │  │  advanced, supply-chain-vetting,       │
+ │   · Gitignored           │  │  anti-evasion-law, shell-sanitize-law  │
+ │   · Cleared each session │  │  sovereign-overlord-gate-law + 53 more │
+ └──────────────────────────┘  └────────────────────────────────────────┘
+
+ SECURITY PERIMETER: 65 hook tests · 12 audit tests · 334 skill checks
+                     60 red-team scenarios · 6 smoke tests = 477 checks
+```
+
+---
+
 ## Repo structure
 
 ```txt
@@ -69,7 +155,7 @@ yamtam-engine/
 ├── core/                  ← runtime assets
 │   ├── agents/            ← 87 agent definitions (quality-testing, infrastructure, security-team, core-development, forge, etc.)
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
-│   ├── hooks/             ← 24 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
+│   ├── hooks/             ← 27 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
 │   ├── scripts/           ← 35 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, switch-engine.sh, …)
 │   ├── rules/             ← 58 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, 43-prompt-jailbreak-advanced, 44-supply-chain-vetting, env-integrity-policy, circuit-breaker-law, sovereign-overlord-gate-law, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
@@ -86,7 +172,7 @@ yamtam-engine/
 │   │     + 62 more        : error-handling, secret-management, load-testing, feature-flags, mlops, websocket-patterns, i18n-patterns, …
 │   ├── config/            ← 6 config JSON files (skills-lock.json, …)
 │   └── tests/
-│       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (55+12 test cases)
+│       ├── hooks/         ← run-hook-tests.sh + test-audit-chain.sh (65+12 test cases)
 │       ├── skills/        ← test-skill-triggering.sh (310 skill trigger checks)
 │       └── commands/      ← test-hook-review-smoke.sh (6 smoke tests)
 │
@@ -142,14 +228,14 @@ yamtam-engine/
 |---|---|
 | `core/agents/` | 87 agents |
 | `core/commands/` | 156 commands |
-| `core/hooks/` | 24 hooks |
+| `core/hooks/` | 27 hooks |
 | `core/scripts/` | 35 scripts |
 | `core/rules/` | 58 rules |
 | `core/templates/` | 12 templates |
 | `core/skills/` | 350 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
-| `core/tests/hooks/` | 55 test cases |
+| `core/tests/hooks/` | 65 test cases |
 | `core/tests/skills/` | 310 skill trigger tests |
 | `core/tests/commands/` | 6 smoke tests |
 | `memory/L1_atomic/` | 4 seed facts (tagged) |
@@ -247,7 +333,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.3.48 && git push origin v1.3.46
+git tag v1.4.20 && git push origin v1.4.20
 ```
 
 ---
