@@ -24,10 +24,10 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 27,
+    "hooks": 29,
     "commands": 157,
     "agents": 87,
-    "scripts": 36,
+    "scripts": 41,
     "skills": 350,
     "rules": 58,
     "checks": 826,
@@ -54,7 +54,7 @@
   },
   "skills": 350,
   "checks": 826,
-  "scripts": 36,
-  "hooks": 27,
+  "scripts": 41,
+  "hooks": 29,
   "rules": 58
 }
