@@ -8,17 +8,18 @@ Hook layer, safety guards, and workflow rules for AI assistants
 
 | Asset | Count |
 |---|---|
-| Agents | 87 |
-| Commands | 156 |
-| Hooks | 27 |
-| Scripts | 35 |
+| Agents | 90 |
+| Commands | 164 |
+| Hooks | 34 |
+| Scripts | 46 |
 | Skills | 350 |
-| Rules | 58 |
+| Rules | 60 |
 | Templates | 12 |
-| Tests | 477 checks (65 hook + 12 audit + 334 skill + 6 smoke + 60 red-team) |
+| Tests | 826 checks (65 hook + 24 v1.6-safety + 12 audit + 678 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.4.20
-**Status:** Runtime active. 477 checks passing. Release pack live. v1.4.20.
+**Version:** 1.6.1
+**Status:** Runtime active. 826 checks passing. Release pack live. v1.6.1.
+**Maintainer:** Vũ Văn Tâm
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -55,7 +56,7 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                       YAMTAM ENGINE  v1.4.20                            │
+│                       YAMTAM ENGINE  v1.6.1                             │
 │                  Personal Agent Operating System                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
@@ -132,7 +133,7 @@ A pack of bash hooks, scripts, and tests that you drop into a project's
  └──────────────────────────┘  └────────────────────────────────────────┘
 
  SECURITY PERIMETER: 65 hook tests · 12 audit tests · 334 skill checks
-                     60 red-team scenarios · 6 smoke tests = 477 checks
+                     65 red-team scenarios · 6 smoke tests = 826 checks
 ```
 
 ---
@@ -153,11 +154,11 @@ yamtam-engine/
 ├── .gitignore
 │
 ├── core/                  ← runtime assets
-│   ├── agents/            ← 87 agent definitions (quality-testing, infrastructure, security-team, core-development, forge, etc.)
-│   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
-│   ├── hooks/             ← 27 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
-│   ├── scripts/           ← 35 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, switch-engine.sh, …)
-│   ├── rules/             ← 58 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, 43-prompt-jailbreak-advanced, 44-supply-chain-vetting, env-integrity-policy, circuit-breaker-law, sovereign-overlord-gate-law, …)
+│   ├── agents/            ← 90 agent definitions (quality-testing, infrastructure, security-team, core-development, forge, risk-analyst, scope-enforcer, session-historian, etc.)
+│   ├── commands/          ← 164 slash commands (incl. /rollback, /risk-scan, /scope-declare, /session-stats, /env-check, /tech-debt, /cost-forecast, /session-trace, /cost-report, …)
+│   ├── hooks/             ← 34 hooks (.sh + .js) — L0 audit → L5 destructive guard, confidence-scorer, intent-inference, self-healing, hook-timeout-guard
+│   ├── scripts/           ← 46 utility scripts (safe-run.sh, session-checkpoint.sh, session-rollback.sh, rotate-audit-log.sh, memory-provenance.sh, resolve-memory-conflict.sh, …)
+│   ├── rules/             ← 60 rules (00-meta-rule-enforcer, 03-privilege-isolation, 43-prompt-jailbreak-advanced, 44-supply-chain-vetting, 63-autonomous-session-law, 64-scope-drift-law, circuit-breaker-law, sovereign-overlord-gate-law, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
 │   ├── skills/            ← 350 skill definitions
 │   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
@@ -226,11 +227,11 @@ yamtam-engine/
 
 | Path | Count |
 |---|---|
-| `core/agents/` | 87 agents |
-| `core/commands/` | 156 commands |
-| `core/hooks/` | 27 hooks |
-| `core/scripts/` | 35 scripts |
-| `core/rules/` | 58 rules |
+| `core/agents/` | 90 agents |
+| `core/commands/` | 164 commands |
+| `core/hooks/` | 34 hooks |
+| `core/scripts/` | 46 scripts |
+| `core/rules/` | 60 rules |
 | `core/templates/` | 12 templates |
 | `core/skills/` | 350 skills |
 | `core/config/` | 6 config files |
@@ -243,7 +244,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.4.20)
+## Skill categories (v1.6.1)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -283,7 +284,7 @@ bash core/scripts/switch-engine.sh status
 bash core/scripts/switch-engine.sh cursor|copilot|aider|claude
 ```
 
-> Cursor và Aider có **Hard Enforcement** từ v1.4.20 — mọi bash command tự động route qua `safe-run.sh --engine <cursor|aider>`. Chạy `bash core/scripts/switch-engine.sh cursor` để kích hoạt.
+> Cursor và Aider có **Hard Enforcement** từ v1.6.1 — mọi bash command tự động route qua `safe-run.sh --engine <cursor|aider>`. Chạy `bash core/scripts/switch-engine.sh cursor` để kích hoạt.
 
 ---
 
@@ -333,7 +334,7 @@ bash core/scripts/build-release.sh
 
 GitHub Actions auto-releases on semver tag push:
 ```bash
-git tag v1.4.20 && git push origin v1.4.20
+git tag v1.6.1 && git push origin v1.6.1
 ```
 
 ---

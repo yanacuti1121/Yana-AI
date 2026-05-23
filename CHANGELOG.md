@@ -8,6 +8,101 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.6.1 — Anh's Asset Pack Integration
+*2026-05-23*
+
+### Status: RELEASED ✅
+
+### New assets (from uploaded zip)
+| Type | File | Description |
+|---|---|---|
+| Command | `/rollback` | List checkpoints, preview diff, apply rollback |
+| Command | `/risk-scan` | Pre-execution risk scan for planned actions |
+| Command | `/scope-declare` | Declare file scope before 3+ file edits |
+| Agent | `risk-analyst` | Pre-execution risk specialist |
+| Agent | `session-historian` | Session wrap-up and audit summarizer |
+| Agent | `scope-enforcer` | Scope boundary enforcement specialist |
+| Rule | `63-autonomous-session-law` | P1 rule: checkpoint/rollback requirements |
+| Rule | `64-scope-drift-law` | P1 rule: scope declaration enforcement |
+| Doc | `session-safety-gate.md` | L2.5 Autonomous Session Guard spec |
+| Doc | `vscode-adapter.md` | VS Code / Copilot adapter guide |
+
+### Count sync
+| Metric | v1.6.0 | v1.6.1 |
+|---|---|---|
+| Agents | 87 | **90** |
+| Commands | 161 | **164** |
+| Rules | 58 | **60** |
+
+---
+
+## v1.6.0 — Autonomous Session Safety Layer
+*2026-05-23*
+
+### Status: RELEASED ✅
+
+### New commands (5)
+| Command | Description |
+|---|---|
+| `/session-stats` | Hook fires, blocks, trust score for this session |
+| `/env-check` | Compare `.env` vs `.env.example`, find missing/empty keys |
+| `/tech-debt` | Scan TODO/FIXME/HACK/XXX across codebase |
+| `/cost-forecast` | Estimate token cost before starting a task |
+| `/session-trace` | ASCII timeline of hook fires, checkpoints, risk events |
+
+### New hooks (5)
+| Hook | Type | Description |
+|---|---|---|
+| `session-checkpoint-hook.sh` | PostToolUse | Auto-trigger checkpoint every N tool calls |
+| `confidence-scorer.sh` | PreToolUse | Per-action confidence score 0–100 |
+| `intent-inference.sh` | PreToolUse | Detect scope creep, escalation, exfil patterns |
+| `self-healing-hooks.sh` | PostToolUse | Bypass audit + hook executable integrity |
+| `hook-timeout-guard.sh` | PreToolUse | Kill hooks exceeding 30s, deny with JSON |
+
+### New scripts (8)
+| Script | Description |
+|---|---|
+| `session-checkpoint.sh` | Snapshot git diff + L2 facts + token budget state |
+| `session-rollback.sh` | Restore working tree to a checkpoint (sovereign-gated) |
+| `rotate-audit-log.sh` | Rotate `audit-chain.log` at 10MB, keep 5 rotations |
+| `memory-provenance.sh` | Show source, age, confidence, expiry per L1 fact |
+| `resolve-memory-conflict.sh` | Detect contradicting L1 facts, resolve by confidence |
+| `deprecate-fact.sh` | Archive L1 fact with deprecation metadata + audit |
+| `promote-session-patterns.sh` | Auto-promote repeated error patterns (≥3x) to L1 |
+| `sweep-expired-facts.sh` | Archive L1 facts past `expires_at` date |
+
+### Count sync
+| Metric | v1.5.0 | v1.6.0 |
+|---|---|---|
+| Hooks | 29 | **34** |
+| Scripts | 41 | **46** |
+| Commands | 157 | **161** |
+| Tests | 5 | **6** (24/24 v1.6.0 safety + 65/65 hook) |
+
+---
+
+## v1.5.0 — 100% Skill Coverage + Copilot Hard Enforcement
+*2026-05-23*
+
+### Status: RELEASED ✅
+
+### New features
+- **100% skill trigger coverage** — 350/350 skills covered by `test-skill-triggering.sh`, 678 checks, 0 failures
+- **Copilot hard enforcement** — `.github/copilot-instructions.md` Hard Enforcement section; `.vscode/tasks.json` with 6 YAMTAM gate tasks
+- **L1 memory expiry sweep** — `sweep-expired-facts.sh`: scan all L1 facts for expired `expires_at`, archive to `memory/L1_atomic/archived/`, `--dry-run` + `--force` flags
+- **Cost-report dashboard** — `/cost-report` command: per-tool call counts, circuit state, estimated USD (Sonnet $3/$15 per MTok)
+
+### Count sync
+| Metric | v1.4.20 | v1.5.0 |
+|---|---|---|
+| Commands | 156 | **157** |
+| Scripts | 35 | **36** |
+| Checks | 472 | **826** (678 skill trigger + 65 hook + 12 audit + 6 smoke + 65 red-team) |
+| Skills coverage | 334/350 | **350/350** |
+
+
+---
+
 ## v1.4.20 — Metadata Sync PASS + Cross-Engine Hard Enforcement
 *2026-05-23*
 
