@@ -403,6 +403,93 @@ check_hook_meta() {
 
 check_hook_meta "permission-auto-approve.sh"
 check_hook_meta "session-bootstrap.sh"
+check_hook_meta "token-budget-guard.sh"
+
+# ── identity-gate.sh tests ────────────────────────────────────────────────────
+echo ""
+echo "=== identity-gate.sh ==="
+
+IDENTITY_GATE="$CLAUDE_DIR/gates/identity-gate.sh"
+
+echo -n "identity-gate [sovereign auto-auth from env]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_ig_out=$(YAMTAM_SOVEREIGN_NAME="Vũ Văn Tâm" bash "$IDENTITY_GATE" 2>&1)
+if echo "$_ig_out" | grep -q "SOVEREIGN"; then
+    echo "PASS"
+else
+    echo "FAIL (expected SOVEREIGN tier)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "identity-gate [case-insensitive: lowercase name]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_ig_out=$(YAMTAM_SOVEREIGN_NAME="vũ văn tâm" bash "$IDENTITY_GATE" 2>&1)
+if echo "$_ig_out" | grep -q "SOVEREIGN"; then
+    echo "PASS"
+else
+    echo "FAIL (expected SOVEREIGN with lowercase)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "identity-gate [guest fallback when no env var]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_ig_out=$(env -i PATH="$PATH" bash "$IDENTITY_GATE" 2>&1 </dev/null || true)
+if echo "$_ig_out" | grep -qE "GUEST|Nhập"; then
+    echo "PASS"
+else
+    echo "FAIL (expected GUEST tier)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# ── token-budget-guard.sh circuit breaker tests ───────────────────────────────
+echo ""
+echo "=== token-budget-guard.sh circuit breaker ==="
+
+BUDGET_TMP=$(mktemp -d)
+CIRCUIT_TMP="$BUDGET_TMP/circuit-state.json"
+BUDGET_FILE="$BUDGET_TMP/token-budget.json"
+
+echo -n "circuit-breaker [allows first call]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_cb_out=$(YAMTAM_TOKEN_BUDGET="$BUDGET_FILE" YAMTAM_CIRCUIT_STATE="$CIRCUIT_TMP" \
+   CLAUDE_TOOL_NAME="test-tool" YAMTAM_MAX_FIX_ATTEMPTS=5 \
+   bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1 || true)
+if echo "$_cb_out" | grep -q "OK"; then
+    echo "PASS"
+else
+    echo "FAIL (expected OK on first call)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+echo -n "circuit-breaker [hard blocks at attempt 5]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+# Pre-seed budget with 4 prior attempts so next call triggers breaker
+python3 -c "
+import json, pathlib
+d = {'session_start':'2026-01-01T00:00:00Z','total_tokens_used':0,'actions':[],
+     'loop_attempts':{'circuit-test-tool':5},'fast_tier_triggered':False}
+pathlib.Path('$BUDGET_FILE').write_text(json.dumps(d))
+"
+_cb_out=$(YAMTAM_TOKEN_BUDGET="$BUDGET_FILE" YAMTAM_CIRCUIT_STATE="$CIRCUIT_TMP" \
+   CLAUDE_TOOL_NAME="circuit-test-tool" YAMTAM_MAX_FIX_ATTEMPTS=5 \
+   bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1 || true)
+if echo "$_cb_out" | grep -qE "CIRCUIT BREAKER|HARD BLOCK"; then
+    echo "PASS"
+else
+    echo "FAIL (expected circuit breaker trigger)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+echo -n "circuit-breaker [bypass flag skips all checks]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_cb_out=$(YAMTAM_BUDGET_BYPASS=1 YAMTAM_TOKEN_BUDGET="$BUDGET_FILE" \
+   YAMTAM_CIRCUIT_STATE="$CIRCUIT_TMP" CLAUDE_TOOL_NAME="any" \
+   bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1 || true)
+if echo "$_cb_out" | grep -q "BYPASS"; then
+    echo "PASS"
+else
+    echo "FAIL (expected BYPASS active)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -rf "$BUDGET_TMP"
 
 echo ""
 echo "=== Summary ==="

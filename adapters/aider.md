@@ -50,4 +50,4 @@ Max 220 lines. Register in skills-lock.json + add trigger tests.
 # system_prompt: adapters/aider.md
 # auto_commits: false
 # dirty_commits: false
-# model: claude-3-5-sonnet
+# model: claude-sonnet-4-6
