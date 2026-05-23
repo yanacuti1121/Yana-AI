@@ -28,8 +28,8 @@ set -uo pipefail
 #   export YAMTAM_SOVEREIGN_NAME="yana"
 #   export YAMTAM_OPERATOR_PASS="<passphrase riêng>"
 #
-# SHA-256("yana") — sovereign identity fingerprint
-SOVEREIGN_HASH="a7a9e3e88b1c572f8f935963c4a8cbc0b8f44e73b05bb8674dab10333c89957f"
+# SHA-256(lowercase("vũ văn tâm")) — so sánh sau khi normalize về thường
+SOVEREIGN_HASH="1835d61de8ab496236617fd2a76317e5c818177477ff8fb2312b3520e2990937"
 # SHA-256 của operator pass lưu tương tự — set YAMTAM_OPERATOR_PASS_HASH trong ~/.bashrc
 # hoặc để script tự tính từ YAMTAM_OPERATOR_PASS nếu có
 
@@ -37,11 +37,15 @@ hash_input() {
   echo -n "$1" | openssl dgst -sha256 2>/dev/null | awk '{print $2}'
 }
 
+normalize() {
+  echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
 # Pre-compute hashes từ env vars (nếu có) — plaintext không đi vào so sánh
 SOVEREIGN_INPUT_HASH=""
 OPERATOR_INPUT_HASH=""
 if [[ -n "${YAMTAM_SOVEREIGN_NAME:-}" ]]; then
-  SOVEREIGN_INPUT_HASH="$(hash_input "$YAMTAM_SOVEREIGN_NAME")"
+  SOVEREIGN_INPUT_HASH="$(hash_input "$(normalize "$YAMTAM_SOVEREIGN_NAME")")"
 fi
 if [[ -n "${YAMTAM_OPERATOR_PASS:-}" ]]; then
   OPERATOR_INPUT_HASH="$(hash_input "$YAMTAM_OPERATOR_PASS")"
@@ -117,6 +121,18 @@ set_tier() {
 # ─── Main auth flow ──────────────────────────────────────────────────────────
 print_banner
 
+# Auto-auth từ env var — không cần nhập tay
+if [[ -n "$SOVEREIGN_INPUT_HASH" && "$SOVEREIGN_INPUT_HASH" == "$SOVEREIGN_HASH" ]]; then
+  echo "  Auto-auth từ YAMTAM_SOVEREIGN_NAME..." >&2
+  set_tier "sovereign" 2
+  exit 0
+fi
+if [[ -n "$OPERATOR_INPUT_HASH" && "$OPERATOR_INPUT_HASH" == "$(hash_input "$(normalize "${YAMTAM_OPERATOR_PASS:-}")")" ]]; then
+  echo "  Auto-auth từ YAMTAM_OPERATOR_PASS..." >&2
+  set_tier "operator" 1
+  exit 0
+fi
+
 echo "  Nhập tên đầy đủ hoặc passphrase để xác thực." >&2
 echo "  (Nhấn Enter để tiếp tục với quyền GUEST)     " >&2
 echo "" >&2
@@ -142,8 +158,8 @@ while [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]]; do
     break
   fi
 
-  # Sovereign check — hash input, compare against stored hash fingerprint
-  INPUT_HASH="$(hash_input "$TRIMMED")"
+  # Sovereign check — normalize về thường trước khi hash (case-insensitive)
+  INPUT_HASH="$(hash_input "$(normalize "$TRIMMED")")"
   if [[ -n "$SOVEREIGN_INPUT_HASH" && "$INPUT_HASH" == "$SOVEREIGN_HASH" ]]; then
     set_tier "sovereign" 2
     exit 0
