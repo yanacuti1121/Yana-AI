@@ -8,6 +8,28 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
+### v1.6.0 — 2026-05-23
+
+- [x] **Autonomous Session Safety** — `session-checkpoint.sh` (manifest+index+L2 snapshot), `session-rollback.sh` (sovereign check, dry-run, restore-L2, audit trail), `session-checkpoint-hook.sh` (PostToolUse auto-trigger)
+- [x] **Risk Scorer v2** — `risk-scorer.sh` tmpfile stdin fix, CRITICAL→exit2 JSON deny, BYPASS message, `.claude/state/risk-scores.jsonl` log
+- [x] **Cross-session learning** — `promote-session-patterns.sh` auto-promotes repeated error patterns (≥3x) to L1 atomic facts
+- [x] **Fact lifecycle** — `deprecate-fact.sh` (archive + frontmatter + audit trail), `memory-provenance.sh` (source/age/confidence/expiry per fact), `resolve-memory-conflict.sh` (confidence-ranked dedup)
+- [x] **New commands** — `/session-stats` (hook fires + trust score), `/env-check` (.env vs .env.example diff), `/tech-debt` (TODO/FIXME/HACK scanner), `/cost-forecast` (pre-task token estimate), `/session-trace` (real-time ASCII timeline)
+- [x] **New hooks** — `confidence-scorer.sh` (per-action 0–100 score), `intent-inference.sh` (scope creep + exfil pattern detection), `self-healing-hooks.sh` (bypass audit + executable integrity), `hook-timeout-guard.sh` (30s kill + deny)
+- [x] **Audit log rotation** — `rotate-audit-log.sh` (10MB threshold, keep 5, prune old)
+- [x] **Agent arbitration** — `agent-arbitration.sh` (scope conflict detection, hard conflict exit 2), `agent-claim.sh` (file ownership registry)
+- [x] **MCP server skeleton** — `yamtam-mcp-server.js` (5 tools: facts_search, facts_add, gate_check, session_status, checkpoint)
+- [x] **Semantic search** — `search-facts-semantic.sh` (TF-IDF cosine, stdlib-only, top-N with threshold)
+- [x] **Skill tiering** — `skill-tiers.json` (350 skills: DEFAULT_SAFE/MANUAL_ONLY/GATED/DEPRECATED), `skill-tier-check.sh`
+- [x] **Test suite** — `test-v1.6.0-safety.sh` (24/24 PASS), 65/65 hook tests PASS, 350/350 skill triggers PASS
+
+### v1.5.0 — 2026-05-23
+
+- [x] **100% skill trigger coverage** — 350/350 skills covered, 678 checks, 0 failures
+- [x] **Copilot hard enforcement** — `.github/copilot-instructions.md` Hard Enforcement section + VS Code tasks
+- [x] **L1 memory expiry sweep** — `sweep-expired-facts.sh` (scan + archive expired facts, `--dry-run`, `--force`)
+- [x] **Cost-report dashboard** — `/cost-report` command (per-tool call counts, circuit state, est. USD)
+
 ### v1.4.20 — 2026-05-23
 
 - [x] **Cross-engine hard enforcement** — `safe-run.sh --engine` flag, Cursor/Aider hard-blocked (no TTY confirm)

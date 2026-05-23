@@ -17,10 +17,10 @@
   ],
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
-    "hooks": 29,
-    "commands": 157,
+    "hooks": 34,
+    "commands": 161,
     "agents": 87,
-    "scripts": 41,
+    "scripts": 46,
     "skills": 350,
     "rules": 58,
     "checks": 826,
@@ -42,12 +42,12 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v1.5.0",
+  "latest_release": "v1.6.0",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "skills": 350,
   "checks": 826,
-  "hooks": 29,
+  "hooks": 34,
   "rules": 58,
-  "scripts": 41
+  "scripts": 46
 }

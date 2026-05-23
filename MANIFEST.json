@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
@@ -165,7 +165,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 157,
+      "count": 161,
       "actual_present": [
         "core/commands/accessibility-audit.md",
         "core/commands/add-authentication-system.md",
@@ -327,7 +327,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 29,
+      "count": 34,
       "actual_present": [
         "core/hooks/api-destruct-guard.sh",
         "core/hooks/audit-log.sh",
@@ -360,7 +360,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 41,
+      "count": 46,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -400,7 +400,7 @@
       ]
     },
     "tests": {
-      "count": 5,
+      "count": 6,
       "actual_present": [
         "core/tests/commands",
         "core/tests/hooks",
