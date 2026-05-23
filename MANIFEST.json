@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.4.00",
+  "version": "1.4.20",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.4.20 — Cross-engine hard enforcement + Circuit Breaker + advanced defense rules. safe-run.sh: --engine flag, HARD mode blocks elevated-risk commands for Cursor/Aider without TTY confirm, BYPASS sovereign override. switch-engine.sh cursor: generates .cursor/rules/yamtam-hard-enforcement.mdc routing all bash through safe-run.sh --engine cursor. switch-engine.sh aider: generates .aider.conf.yml with shell proxy + read-only gates on core/. token-budget-guard.sh: Circuit Breaker (CLOSED→OPEN→HALF-OPEN), HARD BLOCK at 5 consecutive calls, circuit-state.json, escalating cooldown (60s→300s→1800s), fast-tier model recommendation (claude-haiku-4-5). Rules: 43-prompt-jailbreak-advanced (memory exfiltration, psychological manipulation Phase 1/2, identity spoofing, multi-turn chain detection), 44-supply-chain-vetting (typosquatting, lock file integrity, script injection gate, OSV scan gate, prohibited pipe-to-shell). 2026-05-23.",
     "v1.4.00 — 100-Layer Sovereign Anti-Tamper Architecture: 5 Military Blocks, 10 Fortresses, 56 rules, 344 skills. Added: anti-graffiti-guard.js, sovereign-interceptor.js, swarm-router.js, secure-logger.js, tool-proxy.sh Phase 3.5 OverlayFS sandbox. 2026-05-23.",
     "v1.3.54 — 15 agentic AI patterns skills from rohitg00/ai-engineering-from-scratch: ReAct agent loop (Observe/Think/Act, tool registry, stop conditions, trust boundaries), ReWOO decoupled planning (Planner/Worker/Solver DAG, 5x token savings, planner distillation), Reflexion verbal RL (Actor/Evaluator/Self-Reflector, episodic memory, no gradient), Self-Refine + CRITIC (3-role iterative loop, external verifiers, evaluator-optimizer), MemGPT virtual context (two-tier OS analogy, page-in/out tools, memory poisoning defense), Skill library Voyager (executable code skills, semantic retrieval, failure-driven refinement), Agent verification gate (deterministic close-out gate, scope artifacts, block-severity verdicts), Agentic failure modes (MASFT 14 modes, cascading errors, hallucinated actions, success hallucination), Multi-agent debate (Du et al. N×R rounds, sycophancy prevention, heterogeneous models), HTN + AlphaEvolve planning (symbolic decomposition + ChatHTN LLM fallback + evolutionary code search), A2A protocol (Agent Cards, task lifecycle, artifacts, MCP vs A2A split), sGLang RadixAttention (prefix caching tree, cache-aware scheduling, 6.4x RAG speedup, ordering invariant), Disaggregated prefill/decode (NVIDIA Dynamo + llm-d, NIXL, 6x DeepSeek-R1 on GB200), AI gateway patterns (LiteLLM/Portkey/Kong/Bifrost routing, fallback, guardrails, observability), Eval-driven agent dev (3-layer eval, trajectory-based, LLM-as-judge, CI gate). skills 306→321.",
     "v1.3.53 — 15 cloud-native/K8s/observability skills: K8s CRD + controller reconciliation loop (desired-state, YamtamAgent CR, Node.js watch API), K8s JS client (Pod CRUD, Deployment scale, log stream, wait-for-ready), Helm chart packaging (values override, named templates, hooks, subchart deps), Argo CD GitOps (drift detection, App-of-Apps, self-heal, rollback), Crossplane control plane (XR/Composition, AWS provider, declarative cloud resources), Istio traffic management (canary, circuit breaker, mTLS PeerAuthentication, fault injection), Envoy proxy patterns (filter chains, rate limiting, traffic mirror, Lua filter), Traefik ingress routing (Let's Encrypt auto-TLS, middleware chains, weighted canary), CNI network policies (deny-all default, namespace isolation, egress sandbox, DNS allow), Linkerd service mesh (auto mTLS, ServiceProfile retries/timeouts, traffic split, route metrics), Prometheus scraping rules (K8s pod discovery, recording rules, alerting rules, Alertmanager), OpenTelemetry distributed tracing (SDK, manual spans, W3C context propagation, baggage), Loki log aggregation (LogQL, Promtail pipeline, log-to-metric, label strategy), Jaeger trace visualization (OTLP ingest, adaptive sampling, bottleneck detection, API queries), cAdvisor container metrics (CPU throttling, OOM kill, working set right-sizing, alert rules). skills 291→306.",
@@ -396,7 +397,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 56,
+      "count": 58,
       "actual_present": [
         "core/rules/agents-v2.md",
         "core/rules/conflict-resolution.md",
@@ -431,7 +432,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 344,
+      "count": 350,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",

@@ -1,11 +1,36 @@
 #!/usr/bin/env bash
 # Command safety wrapper — blocks destructive patterns before execution
-# Usage: safe-run.sh <command and args>
+# Usage: safe-run.sh [--engine <cursor|aider|copilot|claude>] <command and args>
 # All agents should route terminal commands through this wrapper.
+#
+# Enforcement modes:
+#   ADVISORY (Claude, default) — WARN_PATTERNS prompt for confirmation
+#   HARD     (Cursor, Aider)   — WARN_PATTERNS are blocked without prompting
+#
+# Bypass: YAMTAM_SAFE_RUN_BYPASS=1 skips all checks (sovereign use only)
 set -euo pipefail
+
+ENGINE="claude"
+if [[ "${1:-}" == "--engine" ]]; then
+  ENGINE="${2:-claude}"
+  shift 2
+fi
 
 COMMAND="$*"
 LOG_FILE="${YAMTAM_LOG:-/tmp/yamtam-audit.log}"
+
+# Hard enforcement for non-Claude engines (no interactive prompt available)
+HARD_MODE=false
+case "$ENGINE" in
+  cursor|aider|copilot) HARD_MODE=true ;;
+esac
+
+# Bypass — sovereign override only
+if [[ "${YAMTAM_SAFE_RUN_BYPASS:-0}" == "1" ]]; then
+  echo "[yamtam/safe-run] BYPASS active (engine=$ENGINE)" >> "$LOG_FILE" 2>/dev/null || true
+  eval "$COMMAND"
+  exit $?
+fi
 
 # ── Destructive pattern blacklist ─────────────────────────────────────────────
 BLOCKED_PATTERNS=(
@@ -63,20 +88,23 @@ BLOCKED_PATTERNS=(
   "NODE_OPTIONS=.*--require"
 )
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
   if echo "$COMMAND" | grep -qiE "$pattern"; then
     echo -e "${RED}[yamtam/safe-run] BLOCKED: dangerous pattern detected${NC}"
+    echo -e "  Engine  : $ENGINE"
     echo -e "  Command : $COMMAND"
     echo -e "  Pattern : $pattern"
     echo -e "  Action  : Command was NOT executed."
-    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] BLOCKED pattern='$pattern' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] BLOCKED engine='$ENGINE' pattern='$pattern' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
     exit 1
   fi
 done
 
-# ── Warn-and-confirm for elevated-risk commands ───────────────────────────────
+# ── Elevated-risk commands ────────────────────────────────────────────────────
+# ADVISORY mode (Claude): prompt for confirmation
+# HARD mode    (Cursor/Aider/Copilot): block immediately — no interactive TTY
 WARN_PATTERNS=(
   "git push"
   "npm install"
@@ -90,21 +118,31 @@ WARN_PATTERNS=(
 
 for pattern in "${WARN_PATTERNS[@]}"; do
   if echo "$COMMAND" | grep -qiE "$pattern"; then
-    echo -e "${YELLOW}[yamtam/safe-run] WARNING: elevated-risk command${NC}"
-    echo -e "  Command : $COMMAND"
-    echo -e "  Pattern : $pattern"
-    echo -e "  Proceed? (y/N): " >&2
-    read -r answer < /dev/tty 2>/dev/null || answer="N"
-    if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-      echo -e "${RED}Aborted by user.${NC}"
+    if [[ "$HARD_MODE" == "true" ]]; then
+      echo -e "${RED}[yamtam/safe-run] HARD BLOCK: elevated-risk command from $ENGINE${NC}"
+      echo -e "  Engine  : $ENGINE (non-interactive — no TTY confirm available)"
+      echo -e "  Command : $COMMAND"
+      echo -e "  Pattern : $pattern"
+      echo -e "  Action  : BLOCKED. Run via Claude Code with explicit authorization."
+      echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] HARD-BLOCKED engine='$ENGINE' pattern='$pattern' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
       exit 1
+    else
+      echo -e "${YELLOW}[yamtam/safe-run] WARNING: elevated-risk command${NC}"
+      echo -e "  Command : $COMMAND"
+      echo -e "  Pattern : $pattern"
+      printf "  Proceed? (y/N): " >&2
+      read -r answer < /dev/tty 2>/dev/null || answer="N"
+      if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+        echo -e "${RED}Aborted by user.${NC}"
+        exit 1
+      fi
+      break
     fi
-    break
   fi
 done
 
 # ── Audit log all commands ─────────────────────────────────────────────────────
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] EXEC cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] EXEC engine='$ENGINE' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
 
 # ── Execute ───────────────────────────────────────────────────────────────────
 eval "$COMMAND"
