@@ -131,10 +131,10 @@ if [[ $LOOP_COUNT -ge $MAX_ATTEMPTS ]]; then
   echo ""
 
   # Open the circuit
-  python3 - "$CIRCUIT_FILE" "$TOOL_NAME" "$NOW_EPOCH" "$TIMESTAMP" <<'PYEOF'
+  python3 - "$CIRCUIT_FILE" "$TOOL_NAME" "$NOW_EPOCH" "$TIMESTAMP" "$MAX_ATTEMPTS" <<'PYEOF'
 import json, sys
 
-path, tool, now_epoch, ts = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+path, tool, now_epoch, ts, max_attempts = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
 with open(path) as f:
     d = json.load(f)
 
@@ -150,7 +150,7 @@ circuits[tool] = {
     'opened_at_epoch': now_epoch,
     'open_count': open_count,
     'cooldown_seconds': cooldown,
-    'reason': f'Loop: {tool} called ≥{sys.argv[4]} times without success'
+    'reason': f'Loop: {tool} called ≥{max_attempts} times without success'
 }
 d['circuits'] = circuits
 with open(path, 'w') as f:
