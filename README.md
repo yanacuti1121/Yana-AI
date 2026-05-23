@@ -1,74 +1,104 @@
-# YAMTAM ENGINE
+<p align="center">
+  <img
+    src="./docs/yamtam-agents-workshop.png"
+    alt="YAMTAM ENGINE Agents Workshop"
+    width="100%"
+  />
+</p>
 
-**Personal Agent Operating System**
+<h1 align="center">YAMTAM ENGINE</h1>
 
-Multi-agent workflow orchestration with runtime security gates and evidence-based verification.
+<p align="center">
+  <strong>Personal Agent Operating System</strong><br/>
+  Multi-Agent Workflow · Secure Runtime Gates · Evidence-Based Verification
+</p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v1.6.1-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/status-private-111827?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/license-proprietary-red?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/owner-Vũ%20Văn%20Tâm-purple?style=for-the-badge" alt="Owner" />
+</p>
 
-## What is YAMTAM?
+<p align="center">
+  <img src="https://img.shields.io/badge/agents-90-ff8c00?style=flat-square" alt="Agents" />
+  <img src="https://img.shields.io/badge/commands-164-7c3aed?style=flat-square" alt="Commands" />
+  <img src="https://img.shields.io/badge/hooks-35-f97316?style=flat-square" alt="Hooks" />
+  <img src="https://img.shields.io/badge/scripts-46-22c55e?style=flat-square" alt="Scripts" />
+  <img src="https://img.shields.io/badge/skills-351-06b6d4?style=flat-square" alt="Skills" />
+  <img src="https://img.shields.io/badge/checks-826-ef4444?style=flat-square" alt="Checks" />
+</p>
 
-YAMTAM ENGINE is a standalone operating system for AI agents. It provides:
-
-- **Security gates** — 6-layer enforcement (L0-L5) blocking unsafe operations
-- **Multi-agent orchestration** — 90 specialized agents for different roles
-- **Evidence-based verification** — no claims without proof
-- **Cross-engine support** — works with Claude Code, Cursor, Aider, Copilot
-
-This is **not a product**. It's an operating system that applies to any codebase via release packs.
-
----
-
-## Stats
-
-| Component | Count |
-|---|---|
-| Agents | 90 |
-| Commands | 164 |
-| Hooks | 35 |
-| Skills | 351 |
-| Scripts | 46 |
-| Rules | 60 |
-| Checks | 826 |
-
-**Version:** 1.6.1  
-**Status:** Private  
-**Owner:** Vũ Văn Tâm  
-**License:** Proprietary
+YAMTAM ENGINE là **Personal Agent Operating System** - hệ điều hành cho AI agents với khả năng điều phối đa tác nhân, kiểm soát workflow qua hooks/gates/rules, và verification dựa trên bằng chứng.
 
 ---
 
-## Architecture
+## Tính năng chính
 
-### 6-Layer Gate System
+- **90 Agents** — điều phối và thực thi theo vai trò chuyên môn
+- **164 Commands** — giao diện slash command cho workflow AI
+- **35 Hooks** — bảo vệ, giám sát và can thiệp runtime
+- **351 Skills** — thư viện kỹ năng cho nhiều loại tác vụ
+- **60 Rules** — quy tắc vận hành và kiểm soát chất lượng
+- **46 Scripts** — công cụ checkpoint, rollback, sweep, release và verify
+- **826 Checks** — hook tests, audit tests, skill checks, red-team scenarios và smoke tests
+- **Evidence-Based Verification** — không tự nhận `done`, `passed`, `clean` nếu thiếu bằng chứng
+
+---
+
+## What YAMTAM is
+
+YAMTAM is a standalone AI agent operating system designed to sit **outside** product repositories and control AI-assisted workflows through agents, commands, hooks, rules, gates, skills, memory, and verification tools.
+
+## What YAMTAM is not
+
+- Not a product app
+- Not user-facing software
+- Not part of any single product repo
+- Not a replacement for real production safety (IAM, backups, RBAC, monitoring)
+- Not allowed to claim success without evidence
+
+---
+
+## System Architecture
+
+### 6-Layer Gate System (L0-L5)
 
 ```
 L0 — Audit       audit-log.sh, telemetry-sender.sh
+                 Log every tool call with hash-chain
+
 L1 — Scope       token-scope-guard.sh, scope-guard.sh
+                 Warn on secret/env access and cross-scope writes
+
 L2 — Commit      commit-gate.sh
+                 Advisory warning on cross-scope commits
+
 L3 — Truth       truth-gate-guard.sh
+                 Block unsupported claims without evidence
+
 L4 — Deploy      deploy-gate.sh
+                 Block gh/kubectl/docker/gcloud/fly/heroku
+
 L5 — Destructive guard-destructive.sh, db-protect.sh, api-destruct-guard.sh
+                 Block rm -rf, DROP TABLE, DELETE without WHERE
 ```
 
-Each layer enforces progressively stricter controls:
-- **L0-L1**: Log and warn
-- **L2-L3**: Advisory blocks
-- **L4-L5**: Hard blocks (require bypass env vars)
+**Bypass:** `YAMTAM_DEPLOY_APPROVED=1`, `YAMTAM_SCOPE_OK=1`, `YAMTAM_TRUTH_GATE_BYPASS=1`
 
 ### Memory System
 
-- **L1 Atomic Memory** — persistent facts, git-tracked
-- **L2 Session Memory** — ephemeral facts, cleared each session
+- **L1 Atomic Memory** — persistent facts, git-tracked, tagged, confidence-scored
+- **L2 Session Memory** — ephemeral facts, gitignored, cleared each session
 
 ### Cross-Engine Support
 
-| Engine | Enforcement |
-|---|---|
-| Claude Code | Runtime hooks (native) |
-| Cursor | Hard enforcement via safe-run.sh |
-| Aider | Hard enforcement via shell proxy |
-| GitHub Copilot | Advisory (prompt layer) |
+| Engine | File | Enforcement |
+|---|---|---|
+| Claude Code | `.claude/settings.json` (hooks) | **Runtime blocking** (L0–L5 hooks) |
+| Cursor | `.cursorrules` + `.cursor/rules/*.mdc` | **Hard enforcement** (safe-run.sh proxy) |
+| Aider | `adapters/aider.md` + `.aider.conf.yml` | **Hard enforcement** (safe-run.sh shell proxy) |
+| GitHub Copilot | `.github/copilot-instructions.md` | Advisory (prompt layer) |
 
 ---
 
@@ -92,6 +122,47 @@ yamtam-engine/
 ├── releases/            Release packs
 └── adapters/            Cross-engine adapters
 ```
+
+---
+
+## Asset Counts
+
+| Path | Count |
+|---|---|
+| `core/agents/` | 90 agents |
+| `core/commands/` | 164 commands |
+| `core/hooks/` | 35 hooks |
+| `core/scripts/` | 46 scripts |
+| `core/rules/` | 60 rules |
+| `core/templates/` | 12 templates |
+| `core/skills/` | 351 skills |
+| `core/config/` | 6 config files |
+| `core/tests/hooks/` | 65 test cases |
+| `core/tests/skills/` | 334 skill trigger tests |
+| `core/tests/commands/` | 6 smoke tests |
+| `memory/L1_atomic/` | 4 seed facts (tagged) |
+| `memory/L2_session/` | ephemeral — gitignored |
+
+---
+
+## Skill Categories (v1.6.1)
+
+| Category | Count | Key Skills |
+|---|---|---|
+| **Security & Guardrails** | 11 | red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check, owasp-llm-top10, agent-attack-surface, agent-memory-security |
+| **AI / Agent Orchestration** | 19 | rag-architect, prompt-engineering, llm-ui-patterns, auto-feedback-loop, prompt-caching-strategy, ai-team-workflow, agent-messaging-patterns, git-native-agent-protocol, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop, state-machine-workflows, resilience-circuit-breakers, agent-telemetry, vector-store-patterns, type-safe-api-contracts, durable-task-queues, agent-middleware-gate |
+| **LLM Output Quality** | 2 | llm-output-validation, llm-cost-optimizer |
+| **Frontend / UI — Core** | 11 | baseline-ui, fixing-accessibility, fixing-motion-performance, shadcn-patterns, react-doctor, animation-principles, impeccable, interface-feel, design-engineering, apply-premium-background, generative-ui-patterns |
+| **Frontend / UI — Design Systems** | 10 | design-tokens-system, color-math-system, typography-scale, motion-physics, component-layout-patterns, enterprise-design-systems, advanced-color-math, advanced-typography, advanced-motion-easing, smart-layout-aesthetics |
+| **IaC / DevOps** | 5 | kubernetes-patterns, terraform-patterns, docker-patterns, serverless-patterns, cicd-patterns |
+| **Stack Depth** | 6 | typescript-patterns, nextjs-patterns, state-management-patterns, unit-testing-patterns, monorepo-patterns, database-migrations |
+| **Monorepo / Build** | 2 | monorepo-governance, build-system |
+| **Observability** | 4 | slo-design, incident-response-runbook, observability-instrumentation, telemetry-analysis |
+| **Data / Backend** | 11 | caching-patterns, api-rate-limiting, auth-patterns, resilience-patterns, event-driven-architecture, database-patterns, graphql-patterns, caching-memory-efficiency, high-perf-data-algorithms, profiling-benchmarking, database-query-safety |
+| **Compilers / Parsing** | 3 | graph-dependency-resolution, ast-code-manipulation, grammar-lexer-dsl |
+| **Workflow / Core** | 10 | plan-first, verify-before-done, tdd, debug-protocol, branch-finish, worktree-safety, session-context, pre-compact-backup, strategic-compact, memory-gc |
+| **Token / Cost** | 1 | token-roi (loop detection, fast-tier auto-routing, ROI scoring) |
+| **Other** | 256+ | error-handling, secret-management, distributed-tracing, contract-testing, load-testing, feature-flags, websocket-patterns, mlops, cloud-cost-optimization, i18n-patterns, data-privacy, adr-writing, refactor-patterns, + 240 more |
 
 ---
 
@@ -161,21 +232,6 @@ Key slash commands:
 | `/status` | Project status card |
 
 Full list: `core/commands/` (164 commands)
-
----
-
-## Skills
-
-Organized by category:
-
-- **Security** (11): red-team-check, blue-team-fix, supply-chain-security, zero-trust-patterns
-- **AI/Agent** (19): rag-architect, prompt-engineering, research-team, tree-of-thoughts
-- **Frontend/UI** (21): baseline-ui, shadcn-patterns, design-tokens-system, generative-ui-patterns
-- **IaC/DevOps** (5): kubernetes-patterns, terraform-patterns, docker-patterns, cicd-patterns
-- **Data/Backend** (11): database-patterns, graphql-patterns, caching-patterns, resilience-patterns
-- **Workflow** (10): plan-first, verify-before-done, tdd, debug-protocol, worktree-safety
-
-Full list: `core/skills/` (351 skills)
 
 ---
 
