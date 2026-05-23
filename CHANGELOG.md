@@ -8,6 +8,84 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.4.20 — Metadata Sync PASS + Cross-Engine Hard Enforcement
+*2026-05-23*
+
+### Status: REVIEWED / PASS
+Independent review passed after resolving 5 metadata blockers.
+
+### Fixes (metadata sync)
+| Item | Trước | Sau |
+|---|---|---|
+| plugin.json version | 1.3.47 | 1.4.20 |
+| plugin.json skills | 139 | 350 |
+| plugin.json hooks | 26 | 27 |
+| plugin.json scripts | 24 | 35 |
+| plugin.json checks | 322 | 472 |
+| skills-lock.json coverage | 114/350 | **350/350** |
+| validate-manifest | DRIFT | **7/7 CLEAN** |
+| Release artifact | v1.3.31 | **v1.4.20-fixed.zip (2MB)** |
+| MANIFEST actual_present | partial | **fully synced** |
+
+### New features (v1.4.20)
+- **Cross-engine hard enforcement** — `safe-run.sh --engine cursor|aider` blocks elevated-risk commands without TTY
+- **switch-engine.sh cursor** → generates `.cursor/rules/yamtam-hard-enforcement.mdc`
+- **switch-engine.sh aider** → generates `.aider.conf.yml` with shell proxy
+- **Circuit Breaker** in `token-budget-guard.sh` — HARD BLOCK at 5 consecutive tool calls, escalating cooldown (60s → 300s → 1800s), fast-tier Haiku recommendation
+- **Rule 43** — `43-prompt-jailbreak-advanced`: memory exfiltration, psychological manipulation, identity spoofing, multi-turn chain detection
+- **Rule 44** — `44-supply-chain-vetting`: typosquatting, lock file integrity, OSV scan gate, pipe-to-shell block
+- **Identity Gate** — auto-auth from `YAMTAM_SOVEREIGN_NAME` env var, case-insensitive sovereign check
+
+### Count sync
+| Metric | v1.4.00 | v1.4.20 |
+|---|---|---|
+| Skills | 344 | **350** |
+| Rules | 56 | **58** |
+| Hooks | 24 | **27** |
+| Scripts | 35 | 35 |
+| Checks | 415 | **472** |
+
+---
+
+## v1.4.00 — 100-Layer Sovereign Anti-Tamper Architecture
+*2026-05-23*
+
+### New architecture
+- 5 Military Blocks, 10 Fortresses, 56 rules
+- Added: `anti-graffiti-guard.js`, `sovereign-interceptor.js`, `swarm-router.js`, `secure-logger.js`, `tool-proxy.sh` Phase 3.5 OverlayFS sandbox
+- Skills 335→344, Rules 48→62
+
+---
+
+## v1.3.56 — Chrome DevTools MCP Full Coverage
+*2026-05-23*
+
+Skills 330→335 — full Chrome DevTools MCP skill pack.
+
+---
+
+## v1.3.55 — WebAssembly Runtime + Chrome DevTools MCP Skills
+*2026-05-23*
+
+Skills 321→330.
+
+---
+
+## v1.3.54 — Agentic AI Patterns
+*2026-05-23*
+
+Skills 306→321 — 15 agentic AI patterns from ai-engineering-from-scratch:
+ReAct, ReWOO, Reflexion, Self-Refine, MemGPT, Voyager, A2A, sGLang, eval-driven dev.
+
+---
+
+## v1.3.53 — Cloud-Native K8s + Service Mesh + Observability
+*2026-05-23*
+
+Skills 291→306 — K8s CRD, Helm, Argo CD, Istio, Envoy, Linkerd, Prometheus, OpenTelemetry, Loki, Jaeger.
+
+---
+
 ## v1.3.31 — Caching + Rate Limiting Skills + Full Test Coverage
 *2026-05-22*
 

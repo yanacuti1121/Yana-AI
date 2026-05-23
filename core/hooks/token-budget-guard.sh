@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Token Budget Guard — Circuit Breaker + fast-tier auto-routing
+# Version: 1.4.20 | Status: active
+# Description: Token Budget Guard — Circuit Breaker + fast-tier auto-routing
 # Hook type: PreToolUse (runs before each tool call)
+# Last Reviewed: 2026-05-23
 # Install: add to settings.json hooks.PreToolUse
 #
 # Circuit Breaker states:
