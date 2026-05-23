@@ -1,102 +1,102 @@
 ---
-name: cost-forecast
-description: Estimate token cost before starting a task based on scope, file count, and complexity
-version: 1.6.0
+description: Estimate token cost before starting a large task — analyze scope, estimate tool calls, project token usage and USD cost. Usage: /cost-forecast [task description]
+argument-hint: [description of the task you're about to do]
 ---
 
-# /cost-forecast [task description]
+You are the Cost Forecaster. Your job is to estimate token usage and USD cost before a task begins — so the sovereign can make an informed decision about scope and model tier.
 
-Estimates token cost and USD before executing a task.
+---
 
-```python
-#!/usr/bin/env python3
-import os, sys, json, re
-from pathlib import Path
+## Step 1 — Understand the task
 
-project = os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd())
-root    = Path(project)
-state   = root / '.claude' / 'state'
+If `$ARGUMENTS` provided: use it as the task description.
+Otherwise ask: "What task are you planning? Describe the scope briefly."
 
-# Read task description from args or prompt
-task_desc = ' '.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
+---
 
-# Sonnet 4.5/4.6 pricing (per 1M tokens)
-INPUT_COST_PER_MTK  = 3.00
-OUTPUT_COST_PER_MTK = 15.00
+## Step 2 — Analyze current session cost
 
-# Heuristic multipliers
-COMPLEXITY = {
-    'refactor':    {'in': 40000, 'out': 8000,  'label': 'Refactor'},
-    'new feature': {'in': 20000, 'out': 5000,  'label': 'New Feature'},
-    'bug fix':     {'in': 15000, 'out': 3000,  'label': 'Bug Fix'},
-    'test':        {'in': 10000, 'out': 4000,  'label': 'Add Tests'},
-    'docs':        {'in': 5000,  'out': 2000,  'label': 'Docs/Comments'},
-    'migrate':     {'in': 50000, 'out': 10000, 'label': 'Migration'},
-    'review':      {'in': 30000, 'out': 6000,  'label': 'Code Review'},
-    'debug':       {'in': 12000, 'out': 3000,  'label': 'Debug'},
-}
-DEFAULT = {'in': 15000, 'out': 4000, 'label': 'General Task'}
-
-# Match task type
-task_l = task_desc.lower()
-matched = DEFAULT
-for key, vals in COMPLEXITY.items():
-    if key in task_l:
-        matched = vals
-        break
-
-# Count files mentioned or in scope
-file_matches = re.findall(r'\b\S+\.(py|ts|tsx|js|sh|md|json|yaml|yml)\b', task_desc)
-file_bonus   = len(set(file_matches)) * 2000
-
-# Current budget state
-budget_file  = state / 'token-budget.json'
-tokens_used  = 0
-budget_limit = 200000
-if budget_file.exists():
-    try:
-        b = json.loads(budget_file.read_text())
-        tokens_used  = b.get('total_tokens_used', 0)
-        budget_limit = b.get('budget_tokens', 200000)
-    except Exception:
-        pass
-
-est_in  = matched['in'] + file_bonus
-est_out = matched['out']
-est_total = est_in + est_out
-est_cost  = (est_in / 1_000_000 * INPUT_COST_PER_MTK) + (est_out / 1_000_000 * OUTPUT_COST_PER_MTK)
-
-remaining_budget = budget_limit - tokens_used
-pct_of_remaining = (est_total / remaining_budget * 100) if remaining_budget > 0 else 999
-
-print()
-print('  ╔══════════════════════════════════════════════╗')
-print('  ║          YAMTAM COST FORECAST                ║')
-print('  ╚══════════════════════════════════════════════╝')
-print()
-print(f'  Task type      : {matched["label"]}')
-if task_desc:
-    short = task_desc[:60] + ('...' if len(task_desc) > 60 else '')
-    print(f'  Task           : {short}')
-if file_matches:
-    print(f'  Files detected : {len(set(file_matches))} (+{file_bonus:,} tokens)')
-print()
-print(f'  Est. input     : {est_in:>10,} tokens  (${est_in/1e6*INPUT_COST_PER_MTK:.4f})')
-print(f'  Est. output    : {est_out:>10,} tokens  (${est_out/1e6*OUTPUT_COST_PER_MTK:.4f})')
-print(f'  Est. total     : {est_total:>10,} tokens  (${est_cost:.4f} USD)')
-print()
-print(f'  Budget used    : {tokens_used:>10,} / {budget_limit:,}')
-print(f'  Remaining      : {remaining_budget:>10,} tokens')
-print(f'  Task % of rem  : {pct_of_remaining:.1f}%')
-print()
-
-if pct_of_remaining > 80:
-    print('  ⚠️  WARNING: Task may exhaust remaining budget')
-elif pct_of_remaining > 50:
-    print('  🟡 CAUTION: Large portion of remaining budget')
-else:
-    print('  ✅ Budget looks sufficient for this task')
-print()
-print('  Note: Estimates are heuristic-based. Actual cost varies.')
-print()
+```bash
+cat ".claude/state/token-budget.json" 2>/dev/null | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+used = d.get('total_tokens_used', 0)
+print(f'Tokens used so far: {used:,}')
+print(f'Session start: {d.get(\"session_start\",\"unknown\")}')
+" 2>/dev/null || echo "No budget file yet"
 ```
+
+---
+
+## Step 3 — Estimate task complexity
+
+Score the task on these dimensions:
+
+| Dimension | Low (1pt) | Medium (3pt) | High (5pt) |
+|-----------|-----------|--------------|------------|
+| Files to read | 1–5 | 6–20 | 20+ |
+| Files to write/edit | 0–2 | 3–10 | 10+ |
+| Test suite to run | none | unit only | E2E + unit |
+| External tools | none | 1–2 MCP calls | 3+ services |
+| Reasoning depth | simple fix | feature build | architecture |
+
+**Total score → tier:**
+- 5–9 pts → **Light** (~5K–20K tokens, ~$0.01–0.05)
+- 10–14 pts → **Medium** (~20K–80K tokens, ~$0.05–0.20)
+- 15–19 pts → **Heavy** (~80K–200K tokens, ~$0.20–0.60)
+- 20–25 pts → **Very Heavy** (~200K+ tokens, ~$0.60+)
+
+---
+
+## Step 4 — Tool call breakdown estimate
+
+Estimate how many of each tool call type will occur:
+
+| Tool | Estimated calls | Tokens each | Subtotal |
+|------|----------------|-------------|---------|
+| Read file | N | ~500 | N×500 |
+| Write file | N | ~1000 | N×1000 |
+| Bash command | N | ~300 | N×300 |
+| Reasoning turn | N | ~2000 | N×2000 |
+| **Total** | | | **~XX,XXX** |
+
+---
+
+## Step 5 — Model recommendation
+
+Based on task complexity:
+
+- **Light / Medium** → `claude-haiku-4-5` — fast, cheap, sufficient for routine tasks
+- **Heavy** → `claude-sonnet-4-6` — default, good balance
+- **Very Heavy + architecture** → `claude-opus-4-6` — use sparingly, costs 5x
+
+Current model active: check `ANTHROPIC_MODEL` env or assume Sonnet.
+
+---
+
+## Step 6 — Report and recommend
+
+```
+=== /cost-forecast ===
+Task         : [description]
+Complexity   : [Light | Medium | Heavy | Very Heavy] ([score]/25)
+
+Estimated usage:
+  Tool calls  : ~N
+  Tokens      : ~XX,XXX
+  USD cost    : ~$X.XX (at Sonnet rate)
+
+Session so far: XX,XXX tokens (~$X.XX)
+Projected total: ~XX,XXX tokens (~$X.XX)
+
+Recommendation:
+  Model    : [model]
+  Split?   : [Yes — split into N sub-tasks | No — fits in one session]
+  Checkpoint: [Before starting / After each major step / At the end]
+
+To reduce cost:
+  - [specific suggestion based on task]
+  - Use /budget-mode on to restrict heavy operations
+```
+
+If projected total > 150K tokens: add warning and suggest splitting the task.

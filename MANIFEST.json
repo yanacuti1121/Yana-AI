@@ -68,7 +68,7 @@
     ],
     "agents": {
       "status": "imported",
-      "count": 87,
+      "count": 90,
       "actual_present": [
         "core/agents/agent-gardener.md",
         "core/agents/agent-organizer.md",
@@ -165,7 +165,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 161,
+      "count": 164,
       "actual_present": [
         "core/commands/accessibility-audit.md",
         "core/commands/add-authentication-system.md",
@@ -410,7 +410,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 58,
+      "count": 60,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
