@@ -145,18 +145,18 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Planned 📋
 
-### v1.4.21 — Next
+### v1.4.21 — 2026-05-23
 
-- [ ] **ARCHITECTURE.md rewrite** — document v1.4.20 layers: safe-run.sh L0.5, Circuit Breaker, Sovereign Anti-Tamper, 100+ security features
-- [ ] **CONTRIBUTING.md skill format** — full frontmatter spec with origin/license/compatibility fields + deprecation policy for 350+ skill set
-- [ ] **`verify-skills-lock.sh` auto-add** — update script to auto-add new skills (not just update existing), remove manual step
+- [x] **ARCHITECTURE.md rewrite** — document v1.4.20 layers: safe-run.sh L0.5, Circuit Breaker, Sovereign Anti-Tamper, cross-engine adapters, 27 hooks, 58 rules
+- [x] **CONTRIBUTING.md skill format** — full frontmatter spec with origin/license/compatibility/deprecated fields + deprecation policy (2-minor-version grace period) for 350+ skill set
+- [x] **`verify-skills-lock.sh` auto-add** — Phase 2 auto-adds skills on disk not yet in lockfile; `--no-auto-add` flag; duplicate detection via localPath check
 
-### v1.5.0 — Stability milestone
+### v1.5.0 — 2026-05-23
 
-- [ ] **100% skill trigger test coverage** — 334/350 → 350/350
-- [ ] **Governance Copilot hard enforcement** — Copilot currently advisory; add hard enforcement via VS Code task runner
-- [ ] **L1 memory expiry sweep** — auto-archive facts past `expires_at` date
-- [ ] **cost-report dashboard** — session token cost summary command using `token-budget.json`
+- [x] **100% skill trigger test coverage** — 334/350 → 350/350 (678 total checks, 0 failures)
+- [x] **Governance Copilot hard enforcement** — `safe-run.sh --engine copilot` HARD_MODE; VS Code tasks.json with 6 YAMTAM gates; copilot-instructions.md updated
+- [x] **L1 memory expiry sweep** — `core/scripts/sweep-expired-facts.sh` — auto-archives facts past `expires_at`; `--dry-run` and `--force` flags
+- [x] **cost-report dashboard** — `/cost-report` command: per-tool call counts, circuit breaker state, loop attempts, fast-tier status, est. USD cost
 
 ---
 

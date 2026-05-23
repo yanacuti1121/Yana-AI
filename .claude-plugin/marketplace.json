@@ -18,22 +18,22 @@
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
     "hooks": 27,
-    "commands": 156,
+    "commands": 157,
     "agents": 87,
-    "scripts": 35,
+    "scripts": 36,
     "skills": 350,
     "rules": 58,
-    "checks": 472,
+    "checks": 826,
     "memory_tiers": 2
   },
   "highlights": [
-    "28 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls",
+    "27 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls",
     "87 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
     "350 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools",
     "58 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
-    "Cross-engine hard enforcement — Cursor and Aider route all bash through safe-run.sh proxy (not just advisory)",
-    "L1 Atomic Memory — persistent facts with confidence levels and tag search",
-    "415 checks: 55 hook + 12 audit-chain + 334 skill trigger + 6 command smoke + 65 red-team attack scenarios",
+    "Cross-engine hard enforcement — Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
+    "L1 Atomic Memory — persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
+    "678 checks: 65 hook + 678 skill trigger (350/350 coverage) + red-team scenarios + command smoke",
     "Identity Gate — Tier 0/1/2 auth with SHA-256 hash verification, auto-auth from env var",
     "Truth Gate (L3) — warns on claim verbs without evidence",
     "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
@@ -42,12 +42,12 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v1.4.20",
+  "latest_release": "v1.5.0",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "version": "1.4.20",
+  "version": "1.5.0",
   "skills": 350,
-  "checks": 472,
+  "checks": 826,
   "hooks": 27,
   "rules": 58,
-  "scripts": 35
+  "scripts": 36
 }
