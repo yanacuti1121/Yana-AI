@@ -1,126 +1,175 @@
 #!/usr/bin/env bash
+# YAMTAM ENGINE Hook
 # Version: 1.6.0 | Status: active
-# Description: Risk Scorer — PreToolUse hook that assigns a 0-100 risk score to
-#   each AI action. Low risk (0-39): auto-allow. Medium (40-69): advisory warn.
-#   High (70-100): inject into human-gate flow.
-#
-# Hook type: PreToolUse (advisory, never hard-blocks alone)
-# Bypass:    YAMTAM_RISK_BYPASS=1
-# State:     core/memory/L2_session/risk-log.jsonl (gitignored)
+# Description: Risk Scorer — score every AI action 0–100 before execution
+# Hook type: PreToolUse
+# Last Reviewed: 2026-05-23
+# Bypass: YAMTAM_RISK_BYPASS=1 (logged)
+# Requires: python3
 
 set -uo pipefail
 
-[[ "${YAMTAM_RISK_BYPASS:-0}" == "1" ]] && exit 0
+if [[ "${YAMTAM_RISK_BYPASS:-0}" == "1" ]]; then
+  echo "[risk-scorer] BYPASS active — sovereign override"
+  exit 0
+fi
+
 command -v python3 >/dev/null 2>&1 || exit 0
 
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-RISK_LOG="${YAMTAM_RISK_LOG:-$PROJECT_ROOT/core/memory/L2_session/risk-log.jsonl}"
-RISK_THRESHOLD_WARN="${YAMTAM_RISK_WARN:-40}"
-RISK_THRESHOLD_GATE="${YAMTAM_RISK_GATE:-70}"
-LOG_FILE="${YAMTAM_LOG:-/tmp/yamtam-audit.log}"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+STATE_DIR="$PROJECT_DIR/.claude/state"
+RISK_LOG="$STATE_DIR/risk-scores.jsonl"
+BUDGET_FILE="${YAMTAM_TOKEN_BUDGET:-$STATE_DIR/token-budget.json}"
 
-TOOL_NAME="${CLAUDE_TOOL_NAME:-unknown}"
-NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+mkdir -p "$STATE_DIR"
 
-INPUT=$(cat)
+# Save stdin to tmpfile (heredoc consumes stdin otherwise)
+TMP_INPUT=$(mktemp)
+cat > "$TMP_INPUT"
+trap 'rm -f "$TMP_INPUT"' EXIT
 
-mkdir -p "$(dirname "$RISK_LOG")"
+# Parse + score via python3 (reads from file, not stdin)
+RESULT=$(python3 - "$TMP_INPUT" << 'PYEOF'
+import json, sys, re
 
-RESULT=$(python3 - "$TOOL_NAME" "$NOW" "$RISK_THRESHOLD_WARN" "$RISK_THRESHOLD_GATE" <<'PYEOF'
-import json, sys, re, os
-
-tool = sys.argv[1]
-now = sys.argv[2]
-warn_thresh = int(sys.argv[3])
-gate_thresh = int(sys.argv[4])
-
+input_file = sys.argv[1] if len(sys.argv) > 1 else None
 try:
-    data = json.loads(sys.stdin.read())
+    with open(input_file) as f:
+        data = json.load(f)
+    ti      = data.get('tool_input', {})
+    tool    = data.get('tool_name', '')
+    cmd     = str(ti.get('command', ''))
+    path    = str(ti.get('file_path', ti.get('path', '')))
+    url     = str(ti.get('url', ''))
+    content = str(ti.get('content', ''))[:300]
 except Exception:
-    print("SCORE:0:ok")
+    print("unknown||none|0|LOW")
     sys.exit(0)
 
-inp = data.get('tool_input', data)
-score = 0
-reasons = []
+all_text = (tool + ' ' + cmd + ' ' + path + ' ' + content + ' ' + url).lower()
+cmd_l    = cmd.lower()
+path_l   = path.lower()
 
-# ── Tool-level base risk ───────────────────────────────────────────────────────
-tool_risk = {
-    'Bash': 30, 'Write': 20, 'Edit': 15, 'MultiEdit': 20,
-    'Read': 0, 'Glob': 0, 'Grep': 0, 'WebFetch': 10,
-    'Task': 25, 'Agent': 35,
-}
-base = tool_risk.get(tool, 10)
-score += base
-if base > 0:
-    reasons.append(f"tool={tool}(+{base})")
+score = 0; reasons = []
 
-# ── Command content analysis (Bash tool) ──────────────────────────────────────
-if tool == 'Bash':
-    cmd = inp.get('command', '')
+# +40 destructive verbs
+if re.search(r'\b(rm|remove|delete|drop|truncate|destroy|purge|wipe|nuke)\b', cmd_l) or \
+   re.search(r'(--force|-f\b|force-delete|force-push)', cmd_l):
+    score += 40; reasons.append("destructive_verb:+40")
 
-    patterns = [
-        (50, r'rm\s+-rf?',          'destructive-rm'),
-        (60, r'git\s+push\s+--force','force-push'),
-        (55, r'drop\s+table',        'sql-drop'),
-        (45, r'>\s*/dev/null.*&&',   'silent-fail'),
-        (40, r'curl.*\|\s*(ba)?sh',  'pipe-to-shell'),
-        (35, r'sudo\b',              'sudo'),
-        (30, r'chmod\s+777',         'chmod-777'),
-        (25, r'git\s+reset\s+--hard','git-reset-hard'),
-        (40, r'kubectl\s+delete',    'k8s-delete'),
-        (35, r'docker\s+rm',         'docker-rm'),
-        (30, r'npm\s+publish',       'npm-publish'),
-        (20, r'git\s+push\b',        'git-push'),
-        (15, r'pip\s+install',       'pip-install'),
-    ]
-    for pts, pattern, label in patterns:
-        if re.search(pattern, cmd, re.IGNORECASE):
-            score += pts
-            reasons.append(f"{label}(+{pts})")
-            break  # one dominant pattern
+# +30 production target
+if re.search(r'\b(prod|production|main|master|release|live)\b', all_text) or \
+   re.search(r'(node_env=production|env=prod)', all_text):
+    score += 30; reasons.append("production_target:+30")
 
-# ── File path risk (Write/Edit) ────────────────────────────────────────────────
-if tool in ('Write', 'Edit', 'MultiEdit'):
-    path = str(inp.get('file_path', inp.get('path', '')))
-    sensitive_patterns = [
-        (40, r'\.(env|secret|key|pem|p12|pfx)($|\.)', 'sensitive-file'),
-        (30, r'/(core/hooks|core/rules|core/gates)/',   'core-yamtam'),
-        (25, r'settings\.json',                         'settings'),
-        (20, r'package\.json',                          'package-json'),
-        (15, r'\.(sh|bash)$',                           'shell-script'),
-    ]
-    for pts, pattern, label in sensitive_patterns:
-        if re.search(pattern, path, re.IGNORECASE):
-            score += pts
-            reasons.append(f"{label}(+{pts})")
-            break
+# +20 database operations
+if re.search(r'\b(alter|migrate|migration|schema|drop\s+table|create\s+table|truncate)\b', cmd_l) or \
+   re.search(r'(migration|migrate|schema\.)', path_l):
+    score += 20; reasons.append("database_operation:+20")
 
-# ── Cap at 100 ────────────────────────────────────────────────────────────────
-score = min(score, 100)
+# +20 secret/credential
+if re.search(r'(\.env|\.pem|\.key|secret|password|api[_.]key|private[_.]key|bearer|credential|token)', all_text):
+    score += 20; reasons.append("secret_access:+20")
 
-level = 'low' if score < warn_thresh else ('medium' if score < gate_thresh else 'high')
-reason_str = ', '.join(reasons) if reasons else 'baseline'
-print(f"SCORE:{score}:{level}:{reason_str}")
+# +15 deploy operations
+if re.search(r'\b(deploy|kubectl|helm|fly|heroku|gcloud|terraform\s+apply|ansible)\b', cmd_l) or \
+   re.search(r'git\s+push.*--force', cmd_l):
+    score += 15; reasons.append("deploy_operation:+15")
+
+# +15 bulk/wildcard with destructive
+if re.search(r'(\*\.\*|\*\*/\*|--all\b|--recursive\b|-r\s)', all_text) and \
+   re.search(r'\b(rm|delete|drop|update|chmod)\b', cmd_l):
+    score += 15; reasons.append("bulk_wildcard:+15")
+
+# +10 external network
+if url and not re.search(r'(localhost|127\.0\.0\.1|::1|\.local)', url):
+    score += 10; reasons.append("external_network:+10")
+elif re.search(r'\b(curl|wget|fetch)\b', cmd_l) and \
+     not re.search(r'(localhost|127\.0\.0\.1)', cmd_l):
+    score += 10; reasons.append("external_network:+10")
+
+# -10 read-only commands
+if re.match(r'^\s*(cat|ls|find|grep|head|tail|wc|echo|printf|diff|git\s+(log|status|diff))\b', cmd_l):
+    score -= 10; reasons.append("read_only:-10")
+
+# -10 dry-run flag
+if re.search(r'(--dry-run|--no-op|--check|--what-if|dryrun)', cmd_l):
+    score -= 10; reasons.append("dry_run_flag:-10")
+
+# -5 test scope
+if re.search(r'(test/|spec/|__tests__|\.test\.|\.spec\.|tests/)', path_l + ' ' + cmd_l):
+    score -= 5; reasons.append("test_scope:-5")
+
+score = max(0, min(100, score))
+
+if   score < 30: band = "LOW"
+elif score < 60: band = "MEDIUM"
+elif score < 85: band = "HIGH"
+else:            band = "CRITICAL"
+
+reasons_str = ','.join(reasons) if reasons else 'none'
+# Escape pipes in fields
+tool_safe = tool.replace('|','_')
+cmd_safe  = cmd[:80].replace('|','_')
+path_safe = path[:100].replace('|','_')
+print(f"{tool_safe}|{cmd_safe}|{path_safe}|{score}|{band}|{reasons_str}")
 PYEOF
 )
 
-SCORE=$(echo "$RESULT" | cut -d: -f2)
-LEVEL=$(echo "$RESULT" | cut -d: -f3)
-REASONS=$(echo "$RESULT" | cut -d: -f4-)
+TOOL_NAME=$(echo "$RESULT" | cut -d'|' -f1)
+CMD=$(echo "$RESULT"       | cut -d'|' -f2)
+FILE_PATH=$(echo "$RESULT" | cut -d'|' -f3)
+SCORE=$(echo "$RESULT"     | cut -d'|' -f4)
+BAND=$(echo "$RESULT"      | cut -d'|' -f5)
+REASONS=$(echo "$RESULT"   | cut -d'|' -f6)
 
-# Log to JSONL
-echo "{\"ts\":\"$NOW\",\"tool\":\"$TOOL_NAME\",\"score\":$SCORE,\"level\":\"$LEVEL\",\"reasons\":\"$REASONS\"}" >> "$RISK_LOG" 2>/dev/null || true
+# -- Log to JSONL
+python3 -c "
+import json
+entry = {
+  'ts':'$TIMESTAMP','tool':'$TOOL_NAME','score':$SCORE,
+  'band':'$BAND','reasons':'$REASONS',
+  'cmd':'${CMD:0:80}','file':'${FILE_PATH:0:100}'
+}
+open('$RISK_LOG','a').write(json.dumps(entry)+'\n')
+" 2>/dev/null || true
 
-# Output advisory for medium/high
-if [[ "$SCORE" -ge "$RISK_THRESHOLD_WARN" ]]; then
-  if [[ "$SCORE" -ge "$RISK_THRESHOLD_GATE" ]]; then
-    echo "[YAMTAM/risk] ⚠ HIGH RISK score=${SCORE}/100 — ${REASONS}"
-    echo "[YAMTAM/risk] Consider: checkpoint first (bash core/scripts/session-checkpoint.sh)"
-    echo "[${NOW}] RISK-HIGH tool='$TOOL_NAME' score=$SCORE reasons='$REASONS'" >> "$LOG_FILE" 2>/dev/null || true
-  else
-    echo "[YAMTAM/risk] MEDIUM risk score=${SCORE}/100 — ${REASONS}"
-  fi
+# -- Inject into token-budget file
+if [[ -f "$BUDGET_FILE" ]]; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('$BUDGET_FILE'))
+    d['last_risk_score']=$SCORE; d['last_risk_band']='$BAND'
+    json.dump(d,open('$BUDGET_FILE','w'),indent=2)
+except: pass
+" 2>/dev/null || true
 fi
 
-exit 0
+# -- Respond by band
+case "$BAND" in
+  LOW) exit 0 ;;
+  MEDIUM)
+    echo "[risk-scorer] MEDIUM risk (score=${SCORE}/100) — ${TOOL_NAME}"
+    echo "  Factors: ${REASONS}"
+    echo "  Proceed carefully. Verify scope before continuing."
+    exit 0 ;;
+  HIGH)
+    echo "[risk-scorer] HIGH risk (score=${SCORE}/100) — ${TOOL_NAME}"
+    echo "  Factors: ${REASONS}"
+    echo "  State which files will change and why. Consider --dry-run first."
+    exit 0 ;;
+  CRITICAL)
+    python3 -c "
+import json,sys
+d={
+  'decision':'block',
+  'reason':'[risk-scorer] CRITICAL risk: ${SCORE}/100 for tool: $TOOL_NAME',
+  'score':$SCORE,'band':'CRITICAL','factors':'$REASONS',
+  'required_action':'State (1) what you will do (2) files affected (3) rollback plan. Sovereign sets YAMTAM_RISK_BYPASS=1 to override.'
+}
+print(json.dumps(d))
+sys.exit(2)
+" ;;
+esac
