@@ -12,13 +12,13 @@ Hook layer, safety guards, and workflow rules for AI assistants
 | Commands | 156 |
 | Hooks | 24 |
 | Scripts | 35 |
-| Skills | 321 |
-| Rules | 42 |
+| Skills | 350 |
+| Rules | 58 |
 | Templates | 12 |
 | Tests | 415 checks (55 hook + 12 audit + 334 skill + 6 smoke + 65 red-team) |
 
-**Version:** 1.3.54
-**Status:** Runtime active. 415 checks passing. Release pack live. v1.3.54.
+**Version:** 1.4.20
+**Status:** Runtime active. 415 checks passing. Release pack live. v1.4.20.
 **Maintainer:** Vũ Văn Tâm
 **Repo type:** Standalone — NOT part of any product repo.
 
@@ -70,10 +70,10 @@ yamtam-engine/
 │   ├── agents/            ← 87 agent definitions (quality-testing, infrastructure, security-team, core-development, forge, etc.)
 │   ├── commands/          ← 156 slash commands (incl. /security-audit, /security-scan, /write-tests, /tdd-cycle, /smart-fix, /cost-report)
 │   ├── hooks/             ← 24 hooks (.sh + .js) — L0 audit → L5 destructive guard + token-budget-guard.sh
-│   ├── scripts/           ← 34 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, …)
-│   ├── rules/             ← 41 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, env-integrity-policy, fuzz-testing-constraints, agent-middleware-law, …)
+│   ├── scripts/           ← 35 utility scripts (safe-run.sh, secure-logger.sh, verify-rules.sh, memory-gc.sh, log-rotate.sh, validate-manifest.sh, switch-engine.sh, …)
+│   ├── rules/             ← 58 rules (00-meta-rule-enforcer, 03-privilege-isolation, api-security-gate, audit-hardening-policy, container-hardening-law, dependency-vetting-law, shell-sanitize-law, anti-evasion-law, prompt-jailbreak-guard, 43-prompt-jailbreak-advanced, 44-supply-chain-vetting, env-integrity-policy, circuit-breaker-law, sovereign-overlord-gate-law, …)
 │   ├── templates/         ← 12 project templates (incl. SKILL_TEMPLATE.md)
-│   ├── skills/            ← 178 skill definitions
+│   ├── skills/            ← 350 skill definitions
 │   │     Workflow/Core    : plan-first, verify-before-done, debug-protocol, branch-finish, worktree-safety, tdd, memory-gc
 │   │     Security         : red-team-check, blue-team-fix, purple-team-report, adversarial-prompt-testing, supply-chain-security, zero-trust-patterns, agent-safety-patterns, leak-check
 │   │     AI/Agent         : rag-architect, prompt-engineering, auto-feedback-loop, prompt-caching-strategy, research-team, tree-of-thoughts, ingest-repo, autonomous-patching-loop, llm-output-validation
@@ -144,9 +144,9 @@ yamtam-engine/
 | `core/commands/` | 156 commands |
 | `core/hooks/` | 24 hooks |
 | `core/scripts/` | 35 scripts |
-| `core/rules/` | 42 rules |
+| `core/rules/` | 58 rules |
 | `core/templates/` | 12 templates |
-| `core/skills/` | 321 skills |
+| `core/skills/` | 350 skills |
 | `core/config/` | 6 config files |
 | `adapters/` | aider.md + .cursorrules + .cursor/rules/ + copilot-instructions.md |
 | `core/tests/hooks/` | 55 test cases |
@@ -157,7 +157,7 @@ yamtam-engine/
 
 ---
 
-## Skill categories (v1.3.48)
+## Skill categories (v1.4.20)
 
 | Category | Count | Skills |
 |---|---|---|
@@ -185,9 +185,9 @@ YAMTAM natively targets Claude Code. Adapters make governance available on other
 | Engine | File | Enforcement |
 |---|---|---|
 | Claude Code | `.claude/settings.json` (hooks) | **Runtime blocking** (L0–L5 hooks) |
-| Cursor | `.cursorrules` + `.cursor/rules/*.mdc` | Advisory (prompt layer) |
+| Cursor | `.cursorrules` + `.cursor/rules/*.mdc` | **Hard enforcement** (safe-run.sh proxy via yamtam-hard-enforcement.mdc) |
 | GitHub Copilot | `.github/copilot-instructions.md` | Advisory (prompt layer) |
-| Aider | `adapters/aider.md` via `--system-prompt` | Advisory (prompt layer) |
+| Aider | `adapters/aider.md` + `.aider.conf.yml` | **Hard enforcement** (safe-run.sh shell proxy) |
 
 ```bash
 # Check adapter status
@@ -197,7 +197,7 @@ bash core/scripts/switch-engine.sh status
 bash core/scripts/switch-engine.sh cursor|copilot|aider|claude
 ```
 
-> Advisory-mode engines receive rule injection via prompt. For hard runtime blocking on any engine, route commands through `core/scripts/safe-run.sh`.
+> Cursor và Aider có **Hard Enforcement** từ v1.4.20 — mọi bash command tự động route qua `safe-run.sh --engine <cursor|aider>`. Chạy `bash core/scripts/switch-engine.sh cursor` để kích hoạt.
 
 ---
 
