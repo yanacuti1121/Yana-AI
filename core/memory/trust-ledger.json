@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "created": "2026-05-23T00:00:00Z",
+    "description": "Persistent reputation ledger for all swarm agents. Auto-managed by trust-ledger.js.",
+    "policy": {
+      "default_score": 100,
+      "quarantine_threshold": 60,
+      "max_score": 100,
+      "min_score": 0,
+      "events": {
+        "SMOKE_TEST_PASS":      5,
+        "AST_WARN":           -10,
+        "PATH_TRAVERSAL":     -15,
+        "CALL_DEPTH_EXCEEDED":-20,
+        "HONEY_VAULT_TRIP":   -40,
+        "CANARY_PROBE_ACCEPT":-40,
+        "POLICY_VIOLATION":   -25,
+        "QUARANTINE_RELEASE":   0,
+        "MANUAL_RESTORE":      50
+      }
+    }
+  },
+  "agents": {}
+}

@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.3.56",
+  "version": "1.4.00",
   "scaffold_version": "1.0",
   "release_date": "2026-05-23",
   "manifest_updated": "2026-05-23",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.4.00 — 100-Layer Sovereign Anti-Tamper Architecture: 5 Military Blocks, 10 Fortresses, 56 rules, 344 skills. Added: anti-graffiti-guard.js, sovereign-interceptor.js, swarm-router.js, secure-logger.js, tool-proxy.sh Phase 3.5 OverlayFS sandbox. 2026-05-23.",
     "v1.3.54 — 15 agentic AI patterns skills from rohitg00/ai-engineering-from-scratch: ReAct agent loop (Observe/Think/Act, tool registry, stop conditions, trust boundaries), ReWOO decoupled planning (Planner/Worker/Solver DAG, 5x token savings, planner distillation), Reflexion verbal RL (Actor/Evaluator/Self-Reflector, episodic memory, no gradient), Self-Refine + CRITIC (3-role iterative loop, external verifiers, evaluator-optimizer), MemGPT virtual context (two-tier OS analogy, page-in/out tools, memory poisoning defense), Skill library Voyager (executable code skills, semantic retrieval, failure-driven refinement), Agent verification gate (deterministic close-out gate, scope artifacts, block-severity verdicts), Agentic failure modes (MASFT 14 modes, cascading errors, hallucinated actions, success hallucination), Multi-agent debate (Du et al. N×R rounds, sycophancy prevention, heterogeneous models), HTN + AlphaEvolve planning (symbolic decomposition + ChatHTN LLM fallback + evolutionary code search), A2A protocol (Agent Cards, task lifecycle, artifacts, MCP vs A2A split), sGLang RadixAttention (prefix caching tree, cache-aware scheduling, 6.4x RAG speedup, ordering invariant), Disaggregated prefill/decode (NVIDIA Dynamo + llm-d, NIXL, 6x DeepSeek-R1 on GB200), AI gateway patterns (LiteLLM/Portkey/Kong/Bifrost routing, fallback, guardrails, observability), Eval-driven agent dev (3-layer eval, trajectory-based, LLM-as-judge, CI gate). skills 306→321.",
     "v1.3.53 — 15 cloud-native/K8s/observability skills: K8s CRD + controller reconciliation loop (desired-state, YamtamAgent CR, Node.js watch API), K8s JS client (Pod CRUD, Deployment scale, log stream, wait-for-ready), Helm chart packaging (values override, named templates, hooks, subchart deps), Argo CD GitOps (drift detection, App-of-Apps, self-heal, rollback), Crossplane control plane (XR/Composition, AWS provider, declarative cloud resources), Istio traffic management (canary, circuit breaker, mTLS PeerAuthentication, fault injection), Envoy proxy patterns (filter chains, rate limiting, traffic mirror, Lua filter), Traefik ingress routing (Let's Encrypt auto-TLS, middleware chains, weighted canary), CNI network policies (deny-all default, namespace isolation, egress sandbox, DNS allow), Linkerd service mesh (auto mTLS, ServiceProfile retries/timeouts, traffic split, route metrics), Prometheus scraping rules (K8s pod discovery, recording rules, alerting rules, Alertmanager), OpenTelemetry distributed tracing (SDK, manual spans, W3C context propagation, baggage), Loki log aggregation (LogQL, Promtail pipeline, log-to-metric, label strategy), Jaeger trace visualization (OTLP ingest, adaptive sampling, bottleneck detection, API queries), cAdvisor container metrics (CPU throttling, OOM kill, working set right-sizing, alert rules). skills 291→306.",
     "v1.3.52 — 15 ML/AI infrastructure skills: llama.cpp GGUF quantization (Q4_K_M/Q8_0 guide, local OpenAI API), vLLM PagedAttention (continuous batching, multi-LoRA, throughput metrics), ONNX Runtime (PyTorch→ONNX export, graph optimization, Node.js inference), Triton Inference Server (dynamic batching, ensemble pipeline, model repo), TGI streaming inference (SSE token stream, speculative decoding, GPTQ/AWQ quant), Needle-in-Haystack context placement (lost-in-middle effect, prompt ordering rules), LLM.int8 / NF4 quantization (bitsandbytes, QLoRA fine-tuning), KV-cache optimization (DynamicCache, StaticCache, SlidingWindow), StreamingLLM attention sinks (infinite context, rolling window, O(N) memory), DeepSpeed ZeRO-3 (memory partitioning, CPU offload, ZeRO-Inference), LLM eval framework (MMLU/HumanEval, LLM-as-judge, regression suite), MLPerf inference benchmarks (Loadgen scenarios, p99 SLA, QSL/SUT), Prometheus AI telemetry (tokens/s metrics, TTFT histogram, cache hit alerts), LLM load testing (concurrent sweep, latency-throughput curve, breaking point), FlashAttention-2/3 (IO-aware tiling, O(N) memory, HuggingFace integration). skills 276→291.",
@@ -395,7 +396,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 42,
+      "count": 56,
       "actual_present": [
         "core/rules/agents-v2.md",
         "core/rules/conflict-resolution.md",
@@ -430,7 +431,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 335,
+      "count": 344,
       "actual_present": [
         "core/skills/accessibility-audit/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",

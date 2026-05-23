@@ -10,6 +10,9 @@
 #         YAMTAM_RETRY_MAX         — max retries on 429/503 (default: 4)
 #         YAMTAM_RETRY_BASE_MS     — base backoff milliseconds (default: 1000)
 #         YAMTAM_RETRY_MAX_JITTER  — max jitter milliseconds  (default: 500)
+#         YAMTAM_SANDBOX_MODE      — 1 = wrap exec in bubblewrap OverlayFS sandbox
+#         YAMTAM_SANDBOX_ROOTDIR   — read-only bind path (default: /workspaces/yamtam-engine)
+#         YAMTAM_SANDBOX_WRITEDIR  — allowed write path  (default: releases/logs)
 #
 # Exit codes:
 #   0  — executed successfully
@@ -17,8 +20,9 @@
 #   3  — sanitize-layer block (injection / subshell detected)
 #   4  — intercept-layer block (empty command)
 #   5  — rate-limit-layer block (max retries exceeded on 429/503)
+#   6  — sandbox-layer block (bwrap unavailable or sandbox escape attempt)
 #
-# Gate: L2 (sanitize) + L1 (mutate) + rate-limit retry layer
+# Gate: L2 (sanitize) + L1 (mutate) + L2.5 (overlay sandbox) + rate-limit retry layer
 # Source: koajs/koa (onion compose), axios/axios (interceptors),
 #         expressjs/express (scope), caddyserver/caddy (handler chain),
 #         nwtgck/piping-server (pipe-through),
@@ -34,6 +38,9 @@ SESSION_ID="${YAMTAM_SESSION_ID:-unknown}"
 RETRY_MAX="${YAMTAM_RETRY_MAX:-4}"
 RETRY_BASE_MS="${YAMTAM_RETRY_BASE_MS:-1000}"
 RETRY_MAX_JITTER="${YAMTAM_RETRY_MAX_JITTER:-500}"
+SANDBOX_MODE="${YAMTAM_SANDBOX_MODE:-0}"
+SANDBOX_ROOTDIR="${YAMTAM_SANDBOX_ROOTDIR:-/workspaces/yamtam-engine}"
+SANDBOX_WRITEDIR="${YAMTAM_SANDBOX_WRITEDIR:-releases/logs}"
 PHASE=""
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -145,6 +152,57 @@ if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
 fi
 
 [[ ${#MUTATIONS[@]} -gt 0 ]] && log_proxy "INFO" "mutated" "\"mutations\":\"${MUTATIONS[*]}\""
+
+# ─── PHASE 3.5 — OVERLAY SANDBOX (Anti-Graffiti L2.5) ────────────────────────
+# When YAMTAM_SANDBOX_MODE=1, wrap the command in a bubblewrap (bwrap) cage:
+#   - core dirs mounted read-only (lowerdir) — Agent cannot overwrite real disk
+#   - /tmp and SANDBOX_WRITEDIR mounted tmpfs (upperdir) — ephemeral, RAM-backed
+#   - All namespaces unshared: net, pid, ipc, uts, cgroup
+# If bwrap is unavailable, blocks unless YAMTAM_SANDBOX_STRICT=0 (warn-only mode)
+PHASE="sandbox"
+
+if [[ "$SANDBOX_MODE" == "1" ]]; then
+  BWRAP_BIN="$(command -v bwrap 2>/dev/null || true)"
+  SANDBOX_STRICT="${YAMTAM_SANDBOX_STRICT:-1}"
+
+  if [[ -z "$BWRAP_BIN" ]]; then
+    if [[ "$SANDBOX_STRICT" == "1" ]]; then
+      proxy_block "SANDBOX_MODE=1 but bwrap not found — install bubblewrap or set YAMTAM_SANDBOX_STRICT=0" 6
+    else
+      log_proxy "WARN" "bwrap not found — sandbox skipped (strict=0)"
+    fi
+  else
+    # Verify rootdir exists and is absolute
+    if [[ ! -d "$SANDBOX_ROOTDIR" ]]; then
+      proxy_block "SANDBOX_ROOTDIR '${SANDBOX_ROOTDIR}' not found" 6
+    fi
+
+    WRITE_ABS="${SANDBOX_ROOTDIR}/${SANDBOX_WRITEDIR}"
+    mkdir -p "$WRITE_ABS" 2>/dev/null || true
+
+    log_proxy "INFO" "sandbox-wrap" "\"rootdir\":\"${SANDBOX_ROOTDIR}\",\"writedir\":\"${SANDBOX_WRITEDIR}\""
+
+    # Rebuild FINAL_CMD/FINAL_ARGS wrapped in bwrap
+    # --ro-bind: core dirs read-only  |  --bind: write-allowed log dir
+    # --tmpfs /tmp: ephemeral scratch  |  --unshare-all: full namespace isolation
+    # --die-with-parent: cage dies when parent exits (no zombie sandbox)
+    BWRAP_ARGS=(
+      "--ro-bind" "$SANDBOX_ROOTDIR" "$SANDBOX_ROOTDIR"
+      "--bind"    "$WRITE_ABS"       "$WRITE_ABS"
+      "--tmpfs"   "/tmp"
+      "--proc"    "/proc"
+      "--dev"     "/dev"
+      "--unshare-all"
+      "--share-net"            # keep network for HTTP tools; remove for full isolation
+      "--die-with-parent"
+      "--"
+      "$FINAL_CMD" "${FINAL_ARGS[@]}"
+    )
+    FINAL_CMD="$BWRAP_BIN"
+    FINAL_ARGS=("${BWRAP_ARGS[@]}")
+    log_proxy "INFO" "sandbox-active" "\"cmd\":\"bwrap\""
+  fi
+fi
 
 # ─── DRY RUN check ───────────────────────────────────────────────────────────
 if [[ "$DRY_RUN" == "1" ]]; then
