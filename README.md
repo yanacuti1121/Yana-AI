@@ -271,7 +271,7 @@ YAMTAM improves through real-world use. If a hook fires when it shouldn't, or mi
 
 Open an issue or PR. See `CONTRIBUTING.md` for how to add hooks, skills, or rules.
 
-**Direct contact:** phamlongh230@gmail.com · +84 106 315 8995
+**Direct contact:** phamlongh230@gmail.com · +82 037 495 5390
 
 ---
 
