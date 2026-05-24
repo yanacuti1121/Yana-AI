@@ -24,12 +24,12 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 40,
+    "hooks": 41,
     "commands": 164,
     "agents": 90,
     "scripts": 46,
-    "skills": 369,
-    "rules": 60,
+    "skills": 370,
+    "rules": 61,
     "checks": 826,
     "checks_breakdown": {
       "hook_tests": 65,
@@ -52,10 +52,10 @@
       "python3"
     ]
   },
-  "skills": 369,
+  "skills": 370,
   "checks": 826,
   "scripts": 46,
-  "hooks": 40,
+  "hooks": 41,
   "commands": 164,
-  "rules": 60
+  "rules": 61
 }

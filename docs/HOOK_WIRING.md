@@ -41,7 +41,8 @@ create or merge this into your target project's `.claude/settings.json`:
         "hooks": [
           { "type": "command", "command": "bash .claude/hooks/context-gate.sh" },
           { "type": "command", "command": "bash .claude/hooks/scope-guard.sh" },
-          { "type": "command", "command": "bash .claude/hooks/format-on-write.sh" }
+          { "type": "command", "command": "bash .claude/hooks/format-on-write.sh" },
+          { "type": "command", "command": "bash .claude/hooks/code-quality-gate.sh" }
         ]
       },
       {

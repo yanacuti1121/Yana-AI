@@ -18,7 +18,7 @@
   --bg:       #0d1117;
   --bg2:      #161b22;
   --bg3:      #21262d;
-  --border:   #30369d;
+  --border:   #30370d;
   --text:     #e6edf3;
   --muted:    #8b949e;
   --orange:   #f97316;
@@ -476,7 +476,7 @@ footer a:hover { text-decoration: underline; }
       <div class="stat-label">Safety Hooks</div>
     </div>
     <div class="reveal">
-      <div class="stat-num" style="color:var(--cyan)">369</div>
+      <div class="stat-num" style="color:var(--cyan)">370</div>
       <div class="stat-label">Workflow Skills</div>
     </div>
     <div class="reveal">
@@ -678,7 +678,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // Animate stat numbers
 const statNums = document.querySelectorAll('.stat-num');
-const targets = [90, 164, 39, 369, 826, 7];
+const targets = [90, 164, 39, 370, 826, 7];
 const statObserver = new IntersectionObserver((entries) => {
   entries.forEach((e, i) => {
     if (!e.isIntersecting) return;

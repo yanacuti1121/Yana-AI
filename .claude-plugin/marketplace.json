@@ -17,12 +17,12 @@
   ],
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
-    "hooks": 40,
+    "hooks": 41,
     "commands": 164,
     "agents": 90,
     "scripts": 46,
-    "skills": 369,
-    "rules": 60,
+    "skills": 370,
+    "rules": 61,
     "checks": 826,
     "memory_tiers": 2
   },
@@ -46,9 +46,9 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "version": "1.7.2",
-  "skills": 369,
+  "skills": 370,
   "checks": 826,
-  "hooks": 40,
-  "rules": 60,
+  "hooks": 41,
+  "rules": 61,
   "scripts": 46
 }

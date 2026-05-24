@@ -327,7 +327,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 40,
+      "count": 41,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/api-destruct-guard.sh",
@@ -337,6 +337,7 @@
         "core/hooks/auto-qa-trigger.sh",
         "core/hooks/canary-token-guard.sh",
         "core/hooks/code-freeze.sh",
+        "core/hooks/code-quality-gate.sh",
         "core/hooks/commit-gate.sh",
         "core/hooks/confidence-scorer.sh",
         "core/hooks/context-gate-log.sh",
@@ -435,7 +436,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 60,
+      "count": 61,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
@@ -467,6 +468,7 @@
         "core/rules/anti-evasion-law.md",
         "core/rules/api-security-gate.md",
         "core/rules/audit-hardening-policy.md",
+        "core/rules/code-quality-gate-law.md",
         "core/rules/color-rules.md",
         "core/rules/conflict-resolution.md",
         "core/rules/container-hardening-law.md",
@@ -517,7 +519,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 369,
+      "count": 370,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -527,6 +529,7 @@
         "core/skills/advanced-typography/SKILL.md",
         "core/skills/adversarial-prompt-testing/SKILL.md",
         "core/skills/agno/SKILL.md",
+        "core/skills/ai-code-maintainability/SKILL.md",
         "core/skills/aesthetic-anchor/SKILL.md",
         "core/skills/agent-attack-surface/SKILL.md",
         "core/skills/agent-introspection-debugging/SKILL.md",
