@@ -119,5 +119,5 @@ echo "  bash /path/to/project/.claude/tests/hooks/run-hook-tests.sh"
 
 # ── Update latest symlink (for plugin install URL) ────────────────────────────
 LATEST="$RELEASES_DIR/yamtam-engine-latest.zip"
-ln -sf "$PACK_NAME" "$LATEST"
-echo "Latest: $LATEST -> $PACK_NAME"
+cp "$OUTPUT" "$LATEST"
+echo "Latest: $LATEST (copy of $PACK_NAME)"

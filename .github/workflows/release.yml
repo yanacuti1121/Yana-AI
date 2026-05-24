@@ -69,6 +69,6 @@ jobs:
 
             See [ROADMAP.md](https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/ROADMAP.md) for changelog.
           files: |
-            releases/yamtam-engine-${{ env.VERSION }}-fixed.zip
+            releases/yamtam-engine-v${{ env.VERSION }}-fixed.zip
             releases/yamtam-engine-latest.zip
           fail_on_unmatched_files: true
