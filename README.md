@@ -28,6 +28,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
+    <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
   <img src="https://img.shields.io/badge/version-v1.7.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
@@ -77,13 +80,18 @@ You → Claude Code → [YAMTAM HOOKS] → Tool executes (or gets blocked)
 ## Quick Install
 
 ```bash
-# Install via Claude Code plugin
+# One-line install (recommended)
+curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh | bash
+```
+
+```bash
+# Or via Claude Code plugin
 /plugin install phamlongh230-lgtm/yamtam-engine
+```
 
-# Or extract manually into your project
+```bash
+# Or manually
 unzip releases/yamtam-engine-v1.7.0.zip -d /path/to/project/.claude/
-
-# Verify all 826 checks pass
 bash .claude/tests/hooks/run-hook-tests.sh
 ```
 

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Hook Tests (826 checks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y jq
+
+      - name: Run hook test suite
+        run: bash core/tests/hooks/run-hook-tests.sh
+
+      - name: Drift check
+        run: bash core/scripts/drift-check.sh
+
+      - name: Verify install script is executable
+        run: bash -n install.sh
