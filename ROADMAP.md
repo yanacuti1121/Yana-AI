@@ -184,15 +184,40 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Upcoming 🔜
 
-### v1.8.0 — Gemini Code Adapter
+### v1.8.0 — Multi-Engine Adapter Expansion
 
-- [ ] **`adapters/gemini-code.md`** — enforcement rules for Gemini Code CLI (Google)
-- [ ] **`switch-engine.sh gemini`** — auto-generate Gemini Code config with YAMTAM gate rules
-- [ ] **Hook proxy for Gemini Code** — route Gemini bash calls through `safe-run.sh` (same pattern as Cursor/Aider)
-- [ ] **Cross-engine parity** — Gemini Code joins Claude Code / Cursor / Aider at Hard Enforcement tier
-- [ ] Covers all Gemini versions: Flash, Pro, Ultra (2.0 / 2.5 / future)
+Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh` proxy — same gate stack (L0–L5), same bypass vars, regardless of which model is under the hood.
 
-> **Why:** Gemini Code is growing fast. YAMTAM should enforce safety regardless of which AI engine the team uses.
+**Gemini Code (Google)**
+- [ ] `adapters/gemini-code.md` — enforcement rules for Gemini Code CLI
+- [ ] `switch-engine.sh gemini` — auto-generate Gemini Code config
+- [ ] Covers Gemini 2.0 Flash / 2.5 Pro / Ultra and future versions
+
+**Qwen3 (Alibaba) via Aider/OpenRouter**
+- [ ] `adapters/qwen.md` — adapter doc for Qwen3 routed through Aider or OpenRouter
+- [ ] Safe-run proxy wiring for Qwen3-based sessions
+
+**DeepSeek V3/R1 (DeepSeek) via Aider/OpenRouter**
+- [ ] `adapters/deepseek.md` — adapter doc for DeepSeek V3, R1 routed through Aider or OpenRouter
+- [ ] Safe-run proxy wiring for DeepSeek-based sessions
+
+**OpenRouter (universal gateway)**
+- [ ] `adapters/openrouter.md` — single adapter covering any model routed via OpenRouter
+- [ ] One config to rule all: Llama 3, Mistral, Command R+, Grok, etc.
+
+**Continue.dev**
+- [ ] `adapters/continue.md` — VS Code/JetBrains AI assistant with multi-model support
+
+| Engine | Via | Target tier |
+|---|---|---|
+| Gemini Code CLI | Native | Hard enforcement |
+| Qwen3 | Aider / OpenRouter | Hard enforcement |
+| DeepSeek V3/R1 | Aider / OpenRouter | Hard enforcement |
+| OpenRouter (any model) | Aider / OpenRouter | Hard enforcement |
+| Continue.dev | VS Code extension | Hard enforcement |
+| GitHub Copilot | Already shipped | Advisory |
+
+> **Why:** YAMTAM safety should be model-agnostic. If a team switches from Claude to DeepSeek or Gemini, the gate stack must follow.
 
 ---
 
