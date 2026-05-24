@@ -41,7 +41,7 @@
   <img src="https://img.shields.io/badge/agents-90-ff8c00?style=flat-square" alt="Agents" />
   <img src="https://img.shields.io/badge/commands-164-7c3aed?style=flat-square" alt="Commands" />
   <img src="https://img.shields.io/badge/hooks-39-f97316?style=flat-square" alt="Hooks" />
-  <img src="https://img.shields.io/badge/skills-350-06b6d4?style=flat-square" alt="Skills" />
+  <img src="https://img.shields.io/badge/skills-351-06b6d4?style=flat-square" alt="Skills" />
   <img src="https://img.shields.io/badge/checks-826-ef4444?style=flat-square" alt="Checks" />
   <img src="https://img.shields.io/badge/rules-60-10b981?style=flat-square" alt="Rules" />
 </p>
@@ -190,7 +190,7 @@ Prevents drift between YAMTAM tasks and product code:
 | Agents | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 39 |
-| Workflow skills | 350 |
+| Workflow skills | 351 |
 | Operating rules | 60 |
 | Utility scripts | 46 |
 | Verification checks | 826 |
@@ -206,7 +206,7 @@ Specialized agents across domains:
 - **Data / AI** (6): data-engineer, ml-engineer, llm-architect
 - **Business** (4): business-analyst, technical-writer, ux-researcher
 
-### Skills (350)
+### Skills (351)
 
 | Category | Count |
 |---|---|
@@ -244,7 +244,7 @@ yamtam-engine/
 │   ├── agents/          90 agent definitions
 │   ├── commands/        164 slash commands
 │   ├── hooks/           39 runtime hooks
-│   ├── skills/          350 workflow skills
+│   ├── skills/          351 workflow skills
 │   ├── scripts/         46 utility scripts
 │   ├── rules/           60 operating rules
 │   └── tests/           826 verification checks
@@ -462,7 +462,7 @@ AI bắt buộc phải đưa ra bằng chứng trước khi khai báo hoàn thà
 | Agents chuyên biệt | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 39 |
-| Workflow skills | 350 |
+| Workflow skills | 351 |
 | Operating rules | 60 |
 | Utility scripts | 46 |
 | Verification checks | 826 |
