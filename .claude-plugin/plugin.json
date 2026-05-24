@@ -6,7 +6,7 @@
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": "phamlongh230-lgtm",
   "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "hooks",
     "safety",

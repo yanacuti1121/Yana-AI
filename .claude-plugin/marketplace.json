@@ -44,7 +44,7 @@
   ],
   "latest_release": "v1.7.0",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "version": "1.7.0",
   "skills": 350,
   "checks": 826,

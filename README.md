@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/version-v1.7.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
 </p>
 
@@ -292,12 +292,12 @@ Open an issue or PR. See `CONTRIBUTING.md` for how to add hooks, skills, or rule
 
 ## License
 
-MIT License — Copyright © 2026 Vũ Văn Tâm.
+Apache 2.0 License — Copyright © 2026 Vũ Văn Tâm.
 
 Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 
 ---
 
 <p align="center">
-  <sub>v1.7.0 · Built for Claude Code · MIT License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v1.7.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
