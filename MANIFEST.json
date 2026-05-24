@@ -517,7 +517,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 350,
+      "count": 351,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -739,6 +739,7 @@
         "core/skills/overlayfs-runtime-isolation/SKILL.md",
         "core/skills/owasp-llm-top10/SKILL.md",
         "core/skills/p2p-chronicle-log/SKILL.md",
+        "core/skills/pixelle-video/SKILL.md",
         "core/skills/plan-first/SKILL.md",
         "core/skills/pouchdb-sync-patterns/SKILL.md",
         "core/skills/pre-compact-backup/SKILL.md",
