@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YAMTAM ENGINE — Personal Agent OS for Claude Code</title>
+<meta name="description" content="Safety hooks that block before damage happens. 90 agents, 39 hooks, 826 checks. Built for Claude Code.">
+<meta property="og:title" content="YAMTAM ENGINE — Personal Agent OS for Claude Code">
+<meta property="og:description" content="Safety hooks that block rm -rf, prompt injection, pipe-to-shell before damage happens.">
+<meta property="og:image" content="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-engine-overview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #21262d;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --muted:    #8b949e;
+  --orange:   #f97316;
+  --orange2:  #fb923c;
+  --green:    #3fb950;
+  --red:      #f85149;
+  --blue:     #58a6ff;
+  --purple:   #a5b4fc;
+  --cyan:     #22d3ee;
+  --yellow:   #fbbf24;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,17,23,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-weight: 800; font-size: 1rem;
+  letter-spacing: 0.05em;
+  color: var(--orange);
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a {
+  color: var(--muted); font-size: 0.875rem;
+  text-decoration: none;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.btn-github {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-size: 0.82rem; font-weight: 500;
+  padding: 0.35rem 0.85rem; border-radius: 6px;
+  text-decoration: none; transition: border-color .2s, background .2s;
+}
+.btn-github:hover { border-color: var(--orange); background: var(--bg2); }
+.btn-github svg { width: 16px; height: 16px; fill: var(--text); }
+
+/* ── HERO ── */
+.hero {
+  padding: 6rem 2rem 4rem;
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4rem; align-items: center;
+}
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; gap: 2.5rem; padding: 3.5rem 1.25rem 2.5rem; }
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: rgba(249,115,22,0.12);
+  border: 1px solid rgba(249,115,22,0.3);
+  color: var(--orange2); font-size: 0.78rem; font-weight: 500;
+  padding: 0.3rem 0.75rem; border-radius: 20px;
+  margin-bottom: 1.25rem; letter-spacing: 0.03em;
+}
+.hero-tag .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--orange); animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 800; line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+h1 span { color: var(--orange); }
+
+.hero-sub {
+  font-size: 1.05rem; color: var(--muted);
+  margin-bottom: 2rem; max-width: 480px;
+}
+
+.hero-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--orange); color: #0d1117;
+  font-weight: 700; font-size: 0.9rem;
+  padding: 0.65rem 1.4rem; border-radius: 8px;
+  text-decoration: none; transition: background .2s, transform .15s;
+}
+.btn-primary:hover { background: var(--orange2); transform: translateY(-1px); }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border); color: var(--text);
+  font-size: 0.9rem; padding: 0.65rem 1.2rem; border-radius: 8px;
+  text-decoration: none; transition: border-color .2s;
+}
+.btn-outline:hover { border-color: var(--orange); }
+
+.hero-note {
+  margin-top: 1rem; font-size: 0.8rem; color: var(--muted);
+}
+.hero-note code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg3); padding: 0.15rem 0.4rem;
+  border-radius: 4px; font-size: 0.78rem; color: var(--cyan);
+}
+
+/* ── TERMINAL ── */
+.terminal {
+  background: #010409;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.term-bar {
+  background: var(--bg3);
+  padding: 0.6rem 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.term-dot { width: 12px; height: 12px; border-radius: 50%; }
+.d-red   { background: #ff5f57; }
+.d-yel   { background: #febc2e; }
+.d-grn   { background: #28c840; }
+.term-title {
+  flex: 1; text-align: center;
+  font-size: 0.75rem; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.term-body {
+  padding: 1.25rem 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem; line-height: 1.8;
+  min-height: 280px;
+}
+.t-prompt { color: var(--green); }
+.t-cmd    { color: var(--text); }
+.t-muted  { color: var(--muted); }
+.t-red    { color: var(--red); }
+.t-green  { color: var(--green); }
+.t-orange { color: var(--orange); }
+.t-cyan   { color: var(--cyan); }
+.t-yellow { color: var(--yellow); }
+.t-bold   { font-weight: 700; }
+
+.term-line { opacity: 0; animation: fadein .25s forwards; }
+.l1  { animation-delay: .4s }
+.l2  { animation-delay: .9s }
+.l3  { animation-delay: 1.3s }
+.l4  { animation-delay: 1.6s }
+.l5  { animation-delay: 2.0s }
+.l6  { animation-delay: 2.4s }
+.l7  { animation-delay: 2.8s }
+.l8  { animation-delay: 3.3s }
+.l9  { animation-delay: 3.7s }
+.l10 { animation-delay: 4.2s }
+.l11 { animation-delay: 4.6s }
+.l12 { animation-delay: 5.0s }
+.l13 { animation-delay: 5.6s }
+.l14 { animation-delay: 6.0s }
+@keyframes fadein { to { opacity: 1; } }
+
+/* ── STATS ── */
+.stats {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.stats-inner {
+  max-width: 1100px; margin: 0 auto;
+  padding: 2.5rem 2rem;
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 1rem; text-align: center;
+}
+@media (max-width: 900px) { .stats-inner { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 500px) { .stats-inner { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-num {
+  font-size: 2rem; font-weight: 800;
+  letter-spacing: -0.03em;
+  counter-reset: none;
+}
+.stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+/* ── SECTION BASE ── */
+.section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+.section-tag {
+  font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--orange); margin-bottom: 0.75rem;
+}
+.section-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800; letter-spacing: -0.025em;
+  margin-bottom: 1rem;
+}
+.section-sub { font-size: 1rem; color: var(--muted); max-width: 560px; }
+
+/* ── WHY ── */
+.why-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; margin-top: 3rem;
+}
+@media (max-width: 640px) { .why-grid { grid-template-columns: 1fr; } }
+
+.why-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.5rem;
+}
+.why-card.danger { border-color: rgba(248,81,73,0.3); }
+.why-card.safe   { border-color: rgba(63,185,80,0.3); }
+.why-header {
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+.why-header.red { color: var(--red); }
+.why-header.grn { color: var(--green); }
+.why-row {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  font-size: 0.85rem; margin-bottom: 0.6rem;
+}
+.why-row .ico { flex-shrink: 0; font-size: 0.9rem; margin-top: 1px; }
+.why-row code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; color: var(--red);
+  background: rgba(248,81,73,0.1);
+  padding: 0.1rem 0.35rem; border-radius: 3px;
+}
+.why-row.ok code { color: var(--green); background: rgba(63,185,80,0.1); }
+
+/* ── LAYERS ── */
+.layers { margin-top: 3rem; }
+.layer-row {
+  display: flex; align-items: stretch;
+  gap: 0; margin-bottom: 0;
+  border-left: 2px solid var(--border);
+  padding-left: 1.5rem;
+  position: relative;
+  padding-bottom: 1.25rem;
+}
+.layer-row:last-child { border-left: 2px solid transparent; }
+.layer-row::before {
+  content: '';
+  position: absolute; left: -7px; top: 5px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--orange); border: 2px solid var(--bg);
+  flex-shrink: 0;
+}
+.layer-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  background: rgba(249,115,22,.15);
+  color: var(--orange); border: 1px solid rgba(249,115,22,.3);
+  padding: 0.2rem 0.55rem; border-radius: 4px;
+  white-space: nowrap; align-self: flex-start; margin-right: 1rem;
+  margin-top: 2px; flex-shrink: 0;
+}
+.layer-info { flex: 1; }
+.layer-name { font-weight: 700; font-size: 0.92rem; }
+.layer-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+.layer-hook {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem; color: var(--cyan);
+  margin-top: 0.3rem;
+}
+.badge-new {
+  font-size: 0.62rem; font-weight: 700;
+  background: rgba(34,211,238,0.15);
+  color: var(--cyan); border: 1px solid rgba(34,211,238,0.3);
+  padding: 0.1rem 0.4rem; border-radius: 3px;
+  margin-left: 0.4rem; vertical-align: middle;
+}
+
+/* ── ENGINES ── */
+.engines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem; margin-top: 2.5rem;
+}
+.engine-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1rem;
+  text-align: center; font-size: 0.85rem;
+  font-weight: 500; transition: border-color .2s;
+}
+.engine-card:hover { border-color: var(--orange); }
+.engine-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+
+/* ── INSTALL ── */
+.install-section {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 5rem 2rem;
+  text-align: center;
+}
+.install-inner { max-width: 680px; margin: 0 auto; }
+.install-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800; letter-spacing: -0.025em;
+  margin-bottom: 1rem;
+}
+.install-sub { color: var(--muted); margin-bottom: 2rem; font-size: 1rem; }
+.code-block {
+  background: #010409; border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem; text-align: left;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: 0.75rem;
+}
+.code-block code { color: var(--cyan); flex: 1; word-break: break-all; }
+.copy-btn {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); font-size: 0.72rem; font-weight: 500;
+  padding: 0.25rem 0.65rem; border-radius: 4px;
+  cursor: pointer; white-space: nowrap;
+  transition: color .2s, border-color .2s; font-family: inherit;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--orange); }
+.install-alts {
+  display: flex; gap: 1rem; justify-content: center;
+  flex-wrap: wrap; margin-top: 1.5rem;
+}
+.alt-link {
+  font-size: 0.82rem; color: var(--muted);
+  text-decoration: none; border-bottom: 1px solid var(--border);
+  transition: color .2s;
+}
+.alt-link:hover { color: var(--orange); }
+
+/* ── INCIDENTS ── */
+.incidents { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 640px) { .incidents { grid-template-columns: 1fr; } }
+.incident-card {
+  background: rgba(248,81,73,0.06);
+  border: 1px solid rgba(248,81,73,0.2);
+  border-radius: 10px; padding: 1.25rem;
+}
+.incident-when { font-size: 0.75rem; color: var(--red); font-weight: 600; margin-bottom: 0.4rem; }
+.incident-what { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
+.incident-desc { font-size: 0.82rem; color: var(--muted); }
+.incident-blocked {
+  margin-top: 0.75rem; font-size: 0.78rem;
+  color: var(--green); font-weight: 600;
+}
+
+/* ── FOOTER ── */
+footer {
+  padding: 3rem 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  color: var(--muted); font-size: 0.85rem;
+}
+footer a { color: var(--orange); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+.footer-built { margin-top: 0.5rem; font-size: 0.78rem; }
+
+/* ── FADE IN ON SCROLL ── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">⚡ YAMTAM ENGINE</a>
+  <div class="nav-links">
+    <a href="#why">Why</a>
+    <a href="#layers">How it works</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="btn-github" target="_blank">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-tag"><span class="dot"></span> v1.7.0 — Now public</div>
+      <h1>Stop your AI from <span>breaking production</span></h1>
+      <p class="hero-sub">
+        YAMTAM ENGINE wraps Claude Code with 39 safety hooks that block
+        <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:#f85149;background:rgba(248,81,73,.1);padding:.1rem .3rem;border-radius:3px">rm -rf</code>,
+        prompt injection, and pipe-to-shell attacks — before damage happens.
+      </p>
+      <div class="hero-ctas">
+        <a href="#install" class="btn-primary">⚡ Install in 10 seconds</a>
+        <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="btn-outline" target="_blank">View on GitHub →</a>
+      </div>
+      <p class="hero-note">
+        One-line: <code>curl -sSL …/install.sh | bash</code>
+      </p>
+    </div>
+
+    <!-- ANIMATED TERMINAL -->
+    <div class="terminal">
+      <div class="term-bar">
+        <span class="term-dot d-red"></span>
+        <span class="term-dot d-yel"></span>
+        <span class="term-dot d-grn"></span>
+        <span class="term-title">claude-code — yamtam hooks active</span>
+      </div>
+      <div class="term-body">
+        <div class="term-line l1"><span class="t-prompt">❯</span> <span class="t-cmd">claude "delete old logs to free disk space"</span></div>
+        <div class="term-line l2"><span class="t-muted">  Thinking… planning tool calls</span></div>
+        <div class="term-line l3"><span class="t-muted">  Tool: Bash → <code style="color:#e6edf3">rm -rf /var/log/app/ /tmp/cache/*</code></span></div>
+        <div class="term-line l4">&nbsp;</div>
+        <div class="term-line l5"><span class="t-red t-bold">╔══ YAMTAM L5 — BLOCKED ══════════════════╗</span></div>
+        <div class="term-line l6"><span class="t-red">║</span>  <span class="t-yellow">DESTRUCTIVE</span>: <code style="color:#f85149">rm -rf</code> on non-temp path   <span class="t-red">║</span></div>
+        <div class="term-line l7"><span class="t-red">║</span>  Risk   : <span class="t-red">CRITICAL — irreversible</span>        <span class="t-red">║</span></div>
+        <div class="term-line l8"><span class="t-red">║</span>  Action : <span class="t-red">BLOCKED</span> (no bypass possible)    <span class="t-red">║</span></div>
+        <div class="term-line l9"><span class="t-red">╚══════════════════════════════════════════╝</span></div>
+        <div class="term-line l10">&nbsp;</div>
+        <div class="term-line l11"><span class="t-green">✓</span> <span class="t-muted">Audit log written → .claude/state/audit.log</span></div>
+        <div class="term-line l12"><span class="t-green">✓</span> <span class="t-muted">Telemetry recorded → hook=L5, action=BLOCK</span></div>
+        <div class="term-line l13">&nbsp;</div>
+        <div class="term-line l14"><span class="t-cyan">→ Safe alternative: rm -rf /tmp/cache/* only</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--orange)">90</div>
+      <div class="stat-label">Specialist Agents</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--purple)">164</div>
+      <div class="stat-label">Slash Commands</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--orange2)">39</div>
+      <div class="stat-label">Safety Hooks</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--cyan)">350</div>
+      <div class="stat-label">Workflow Skills</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--red)">826</div>
+      <div class="stat-label">Test Checks</div>
+    </div>
+    <div class="reveal">
+      <div class="stat-num" style="color:var(--green)">7</div>
+      <div class="stat-label">AI Engines</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section id="why">
+  <div class="section reveal">
+    <div class="section-tag">Why YAMTAM</div>
+    <h2 class="section-title">AI agents cause real damage. <br/>YAMTAM stops it before it happens.</h2>
+    <p class="section-sub">Every claim that "AI is safe by default" ignores what happens when your LLM misreads context and decides <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:#f85149">DROP TABLE users</code> is the right move.</p>
+
+    <div class="incidents">
+      <div class="incident-card reveal">
+        <div class="incident-when">Replit — July 2025</div>
+        <div class="incident-what">AI deleted production data</div>
+        <div class="incident-desc">An unguarded agent ran <code style="font-family:'JetBrains Mono',monospace;font-size:.82em">rm -rf</code> on a production directory, wiping user data permanently.</div>
+        <div class="incident-blocked">⚡ YAMTAM L5 would have blocked this</div>
+      </div>
+      <div class="incident-card reveal">
+        <div class="incident-when">PocketOS — April 2026</div>
+        <div class="incident-what">Prompt injection → file exfiltration</div>
+        <div class="incident-desc">Injected instructions in a README caused the agent to exfiltrate private keys via outbound request.</div>
+        <div class="incident-blocked">⚡ YAMTAM L3.5 would have blocked this</div>
+      </div>
+    </div>
+
+    <div class="why-grid" style="margin-top:2rem">
+      <div class="why-card danger reveal">
+        <div class="why-header red">✗ Without YAMTAM</div>
+        <div class="why-row"><span class="ico">💀</span><span><code>rm -rf /</code> silently executes</span></div>
+        <div class="why-row"><span class="ico">🔓</span><span><code>curl | bash</code> runs untrusted code</span></div>
+        <div class="why-row"><span class="ico">🎭</span><span>AI claims "tests passed" with no proof</span></div>
+        <div class="why-row"><span class="ico">💉</span><span>Prompt injection overrides your instructions</span></div>
+        <div class="why-row"><span class="ico">🗑</span><span><code>DROP TABLE users</code> runs in production</span></div>
+        <div class="why-row"><span class="ico">🚀</span><span>AI deploys to prod without your approval</span></div>
+      </div>
+      <div class="why-card safe reveal">
+        <div class="why-header grn">✓ With YAMTAM</div>
+        <div class="why-row ok"><span class="ico">🛡</span><span>Hard blocked at L5 — no bypass</span></div>
+        <div class="why-row ok"><span class="ico">🔐</span><span>Supply chain guard rejects pipe-to-shell</span></div>
+        <div class="why-row ok"><span class="ico">📊</span><span>Truth Gate demands "47 passed, 0 failed"</span></div>
+        <div class="why-row ok"><span class="ico">🚫</span><span>L3.5 intercepts identity override attempts</span></div>
+        <div class="why-row ok"><span class="ico">🗄</span><span>DB protect hook blocks all destructive queries</span></div>
+        <div class="why-row ok"><span class="ico">🔒</span><span>Deploy gate requires explicit approval</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LAYERS -->
+<section id="layers" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section reveal">
+    <div class="section-tag">Architecture</div>
+    <h2 class="section-title">6-Layer Gate System</h2>
+    <p class="section-sub">Every AI tool call passes through a pipeline of guards before executing. Each layer is independently bypassable with explicit env vars — no silent overrides.</p>
+
+    <div class="layers" style="margin-top:2.5rem">
+      <div class="layer-row reveal">
+        <span class="layer-badge">L0</span>
+        <div class="layer-info">
+          <div class="layer-name">Audit</div>
+          <div class="layer-desc">Every tool call logged with tamper-evident hash-chain. Zero blind spots.</div>
+          <div class="layer-hook">audit-log.sh · telemetry-sender.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L1</span>
+        <div class="layer-info">
+          <div class="layer-name">Scope Guard</div>
+          <div class="layer-desc">Warns on secret/env access and cross-boundary writes.</div>
+          <div class="layer-hook">token-scope-guard.sh · scope-guard.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L1.5</span>
+        <div class="layer-info">
+          <div class="layer-name">Validate <span class="badge-new">NEW v1.7</span></div>
+          <div class="layer-desc">Blocks SSRF, path traversal, and sensitive file reads.</div>
+          <div class="layer-hook">tool-validator.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L3</span>
+        <div class="layer-info">
+          <div class="layer-name">Truth Gate</div>
+          <div class="layer-desc">AI must show evidence before claiming success. No more "tests passed" without proof.</div>
+          <div class="layer-hook">truth-gate-guard.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L3.5</span>
+        <div class="layer-info">
+          <div class="layer-name">Prompt Injection Guard <span class="badge-new">NEW v1.7</span></div>
+          <div class="layer-desc">Blocks identity override, system prompt extraction, and jailbreak attempts.</div>
+          <div class="layer-hook">prompt-injection-guard.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L4.5</span>
+        <div class="layer-info">
+          <div class="layer-name">Supply Chain Guard <span class="badge-new">NEW v1.7</span></div>
+          <div class="layer-desc">Blocks pipe-to-shell, typosquatting, and URL-sourced package installs.</div>
+          <div class="layer-hook">supply-chain-guard.sh</div>
+        </div>
+      </div>
+      <div class="layer-row reveal">
+        <span class="layer-badge">L5</span>
+        <div class="layer-info">
+          <div class="layer-name">Destructive Guard</div>
+          <div class="layer-desc">Hard blocks <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">rm -rf</code>, <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">DROP TABLE</code>, and <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">DELETE</code> without WHERE.</div>
+          <div class="layer-hook">guard-destructive.sh · db-protect.sh · api-destruct-guard.sh</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENGINES -->
+<section>
+  <div class="section reveal">
+    <div class="section-tag">Cross-Engine</div>
+    <h2 class="section-title">Works with every major AI coding tool</h2>
+    <p class="section-sub">YAMTAM sits outside your editor — it doesn't care which AI you use.</p>
+    <div class="engines-grid">
+      <div class="engine-card reveal"><div class="engine-icon">🤖</div>Claude Code</div>
+      <div class="engine-card reveal"><div class="engine-icon">🖱</div>Cursor</div>
+      <div class="engine-card reveal"><div class="engine-icon">🔧</div>Aider</div>
+      <div class="engine-card reveal"><div class="engine-icon">🐙</div>GitHub Copilot</div>
+      <div class="engine-card reveal"><div class="engine-icon">♊</div>Gemini Code</div>
+      <div class="engine-card reveal"><div class="engine-icon">🐋</div>DeepSeek</div>
+      <div class="engine-card reveal"><div class="engine-icon">🦙</div>Qwen</div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<div id="install" class="install-section">
+  <div class="install-inner reveal">
+    <div class="section-tag" style="text-align:center">Quick Install</div>
+    <h2 class="install-title">Up and running in <span style="color:var(--orange)">10 seconds</span></h2>
+    <p class="install-sub">One command. Checks dependencies, downloads the latest release, verifies all 826 checks pass.</p>
+
+    <div class="code-block">
+      <code id="install-cmd">curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh | bash</code>
+      <button class="copy-btn" onclick="copyInstall()">Copy</button>
+    </div>
+
+    <div class="install-alts">
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="alt-link">View on GitHub</a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/releases/latest" class="alt-link">Download release zip</a>
+      <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-system-map.html" class="alt-link">Interactive system map</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a>
+    — Apache 2.0 — v1.7.0
+  </p>
+  <p class="footer-built">
+    Built by <strong>Vũ Văn Tâm</strong>, age 17 · Vietnam 🇻🇳
+  </p>
+</footer>
+
+<script>
+// Copy install command
+function copyInstall() {
+  const cmd = document.getElementById('install-cmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+  });
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Animate stat numbers
+const statNums = document.querySelectorAll('.stat-num');
+const targets = [90, 164, 39, 350, 826, 7];
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    const target = parseInt(el.textContent);
+    let start = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = start;
+      if (start >= target) clearInterval(timer);
+    }, 28);
+    statObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+statNums.forEach(el => statObserver.observe(el));
+</script>
+</body>
+</html>
