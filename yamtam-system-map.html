@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YAMTAM ENGINE — System Map v1.4.20</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0f1e;
+  --paper:#f0f4ff;
+  --grid:rgba(60,100,200,.07);
+  --c1:#2563eb;--c1l:#dbeafe;
+  --c2:#7c3aed;--c2l:#ede9fe;
+  --c3:#0891b2;--c3l:#cffafe;
+  --c4:#059669;--c4l:#d1fae5;
+  --c5:#dc2626;--c5l:#fee2e2;
+  --c6:#d97706;--c6l:#fef3c7;
+  --c7:#db2777;--c7l:#fce7f3;
+  --dim:.55;
+}
+body{
+  background:var(--ink);
+  font-family:'IBM Plex Mono',monospace;
+  color:#e8eeff;
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* blueprint grid */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(60,120,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(60,120,255,.05) 1px,transparent 1px),
+    linear-gradient(rgba(60,120,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(60,120,255,.025) 1px,transparent 1px);
+  background-size:80px 80px,80px 80px,16px 16px,16px 16px;
+  pointer-events:none;z-index:0;
+}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:40px 24px 60px}
+
+/* ── TOP HEADER ── */
+.top-bar{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:1px solid rgba(100,140,255,.2);
+  padding-bottom:24px;margin-bottom:32px;flex-wrap:wrap;gap:16px;
+}
+.logo-block{}
+.logo-tag{
+  font-size:10px;letter-spacing:.3em;color:rgba(100,160,255,.6);
+  text-transform:uppercase;margin-bottom:6px;
+}
+.logo-name{
+  font-size:52px;font-weight:700;letter-spacing:-.02em;line-height:1;
+  background:linear-gradient(135deg,#60a5fa,#a78bfa 50%,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.logo-sub{font-size:11px;color:rgba(100,160,255,.5);letter-spacing:.15em;margin-top:4px}
+
+.meta-block{text-align:right}
+.meta-version{font-size:11px;color:rgba(100,160,255,.4);margin-bottom:8px}
+.meta-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:flex-end}
+.ms{display:flex;flex-direction:column;align-items:center}
+.ms-n{font-size:28px;font-weight:700;line-height:1}
+.ms-n.n1{color:#60a5fa}.ms-n.n2{color:#a78bfa}.ms-n.n3{color:#34d399}
+.ms-n.n4{color:#fbbf24}.ms-n.n5{color:#f472b6}.ms-n.n6{color:#2dd4bf}
+.ms-l{font-size:9px;letter-spacing:.12em;color:rgba(100,160,255,.4);margin-top:2px;text-transform:uppercase}
+
+/* ── SECTION LABEL ── */
+.sec{
+  font-size:9px;letter-spacing:.25em;text-transform:uppercase;
+  color:rgba(100,160,255,.35);margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec::before{content:'//';color:rgba(100,160,255,.2)}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(100,160,255,.15),transparent)}
+
+/* ── HOOK FLOW ── */
+.flow-wrap{
+  display:flex;align-items:stretch;gap:0;
+  margin-bottom:32px;overflow-x:auto;padding-bottom:4px;
+}
+.flow-stage{
+  display:flex;flex-direction:column;gap:6px;
+  flex-shrink:0;
+}
+.fs-label{
+  font-size:8px;letter-spacing:.2em;text-transform:uppercase;
+  text-align:center;padding:4px 8px;margin-bottom:2px;
+  border-radius:3px;
+}
+.fsl-pre {background:rgba(96,165,250,.1);color:#60a5fa}
+.fsl-exec{background:rgba(167,139,250,.12);color:#a78bfa}
+.fsl-post{background:rgba(52,211,153,.1);color:#34d399}
+.fsl-stop{background:rgba(248,113,113,.1);color:#f87171}
+.fsl-user{background:rgba(251,191,36,.08);color:#fbbf24}
+
+.hook-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:5px;
+  border:1px solid rgba(100,160,255,.1);
+  background:rgba(10,15,40,.6);
+  font-size:10px;color:#94a3b8;
+  white-space:nowrap;transition:border-color .15s,color .15s;
+  cursor:default;
+}
+.hook-pill:hover{border-color:rgba(100,160,255,.4);color:#e2e8f0}
+.hook-pill .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dp-pre {background:#60a5fa}
+.dp-exec{background:#a78bfa}
+.dp-post{background:#34d399}
+.dp-stop{background:#f87171}
+.dp-user{background:#fbbf24}
+
+.flow-arrow-col{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 4px;color:rgba(100,160,255,.2);font-size:16px;
+  flex-shrink:0;align-self:center;margin-top:28px;
+}
+
+/* ── AGENT GRID ── */
+.agent-section{margin-bottom:32px}
+.agent-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:10px;
+}
+.ag{
+  border:1px solid rgba(100,160,255,.1);border-radius:8px;
+  padding:14px;background:rgba(10,15,40,.5);
+  transition:border-color .2s,transform .15s;
+  cursor:default;position:relative;overflow:hidden;
+}
+.ag::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:8px 8px 0 0;
+  opacity:.7;
+}
+.ag:hover{transform:translateY(-2px);border-color:rgba(100,160,255,.3)}
+.ag-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ag-icon{font-size:14px;opacity:.7}
+.ag-name{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.ag-list{list-style:none;display:flex;flex-direction:column;gap:3px}
+.ag-list li{font-size:10px;color:rgba(148,163,184,.7);padding-left:10px;position:relative}
+.ag-list li::before{content:'─';position:absolute;left:0;color:rgba(100,160,255,.2)}
+.ag-more{font-size:9px;color:rgba(100,160,255,.3);margin-top:6px;text-align:right;letter-spacing:.05em}
+
+/* category colors */
+.ag.t1::before{background:#60a5fa}
+.ag.t1 .ag-name{color:#60a5fa}
+.ag.t2::before{background:#a78bfa}
+.ag.t2 .ag-name{color:#a78bfa}
+.ag.t3::before{background:#34d399}
+.ag.t3 .ag-name{color:#34d399}
+.ag.t4::before{background:#fbbf24}
+.ag.t4 .ag-name{color:#fbbf24}
+.ag.t5::before{background:#f472b6}
+.ag.t5 .ag-name{color:#f472b6}
+.ag.t6::before{background:#2dd4bf}
+.ag.t6 .ag-name{color:#2dd4bf}
+.ag.t7::before{background:#fb923c}
+.ag.t7 .ag-name{color:#fb923c}
+.ag.t8::before{background:#f87171}
+.ag.t8 .ag-name{color:#f87171}
+
+/* ── RULE CLOUD ── */
+.rules-grid{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-bottom:32px;
+}
+.rule-tag{
+  font-size:9px;padding:4px 10px;border-radius:20px;
+  border:1px solid;letter-spacing:.04em;
+  transition:opacity .15s;cursor:default;
+}
+.rule-tag:hover{opacity:1!important}
+.rt-law{border-color:rgba(248,113,113,.3);color:#f87171;background:rgba(248,113,113,.06)}
+.rt-guard{border-color:rgba(251,191,36,.3);color:#fbbf24;background:rgba(251,191,36,.06)}
+.rt-policy{border-color:rgba(167,139,250,.3);color:#a78bfa;background:rgba(167,139,250,.06)}
+.rt-gate{border-color:rgba(52,211,153,.3);color:#34d399;background:rgba(52,211,153,.06)}
+.rt-core{border-color:rgba(96,165,250,.3);color:#60a5fa;background:rgba(96,165,250,.06)}
+
+/* ── SKILL DOMAINS ── */
+.skill-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:10px;margin-bottom:32px;
+}
+.skill-domain{
+  background:rgba(10,15,40,.5);
+  border:1px solid rgba(100,160,255,.08);
+  border-radius:8px;padding:12px 14px;
+}
+.sd-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sd-name{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.sd-count{font-size:16px;font-weight:700}
+.sd-bar{height:3px;border-radius:2px;margin-bottom:8px;background:rgba(100,160,255,.08);overflow:hidden}
+.sd-fill{height:100%;border-radius:2px}
+.sd-tags{display:flex;flex-wrap:wrap;gap:4px}
+.sd-tag{font-size:9px;color:rgba(100,160,255,.35);background:rgba(100,160,255,.05);padding:2px 6px;border-radius:3px}
+
+/* ── MEMORY & GATES ── */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+@media(max-width:600px){.bottom-row{grid-template-columns:1fr}}
+
+.panel{
+  background:rgba(10,15,40,.5);
+  border:1px solid rgba(100,160,255,.1);
+  border-radius:8px;padding:16px;
+}
+.panel-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(100,160,255,.3);margin-bottom:12px}
+
+.mem-tier{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(100,160,255,.07);
+}
+.mem-tier:last-child{border-bottom:none}
+.mem-badge{
+  font-size:11px;font-weight:700;min-width:24px;
+  padding:3px 7px;border-radius:4px;text-align:center;
+}
+.mb-l1{background:rgba(52,211,153,.12);color:#34d399}
+.mb-l2{background:rgba(96,165,250,.12);color:#60a5fa}
+.mem-text{}
+.mem-name{font-size:11px;font-weight:600;color:#cbd5e1;margin-bottom:2px}
+.mem-desc{font-size:9px;color:rgba(100,160,255,.35);line-height:1.6}
+
+.gate-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid rgba(100,160,255,.07);
+}
+.gate-item:last-child{border-bottom:none}
+.gate-level{
+  font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;
+  white-space:nowrap;margin-top:1px;
+}
+.gl-l3{background:rgba(248,113,113,.1);color:#f87171}
+.gl-l2{background:rgba(251,191,36,.1);color:#fbbf24}
+.gl-l1{background:rgba(52,211,153,.1);color:#34d399}
+.gl-l0{background:rgba(96,165,250,.1);color:#60a5fa}
+.gate-text{}
+.gate-name{font-size:11px;font-weight:600;color:#cbd5e1;margin-bottom:1px}
+.gate-desc{font-size:9px;color:rgba(100,160,255,.35);line-height:1.5}
+
+/* ── FOOTER ── */
+.footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:20px;border-top:1px solid rgba(100,160,255,.12);
+  flex-wrap:wrap;gap:12px;
+}
+.f-left{font-size:10px;color:rgba(100,160,255,.25);letter-spacing:.05em}
+.f-left span{color:rgba(100,160,255,.5)}
+.f-tags{display:flex;gap:8px;flex-wrap:wrap}
+.f-tag{font-size:9px;padding:3px 8px;border:1px solid rgba(100,160,255,.1);border-radius:3px;color:rgba(100,160,255,.3);letter-spacing:.04em}
+
+/* fade in */
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.wrap>*{animation:up .4s ease both}
+.wrap>*:nth-child(1){animation-delay:.02s}
+.wrap>*:nth-child(2){animation-delay:.06s}
+.wrap>*:nth-child(3){animation-delay:.1s}
+.wrap>*:nth-child(4){animation-delay:.14s}
+.wrap>*:nth-child(5){animation-delay:.18s}
+.wrap>*:nth-child(6){animation-delay:.22s}
+.wrap>*:nth-child(7){animation-delay:.26s}
+.wrap>*:nth-child(8){animation-delay:.3s}
+.wrap>*:nth-child(9){animation-delay:.34s}
+.wrap>*:nth-child(10){animation-delay:.38s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- TOP HEADER -->
+<div class="top-bar">
+  <div class="logo-block">
+    <div class="logo-tag">Agent Governance Middleware</div>
+    <div class="logo-name">YAMTAM</div>
+    <div class="logo-sub">Yet Another Multi-Tier Agent Middleware · ENGINE</div>
+  </div>
+  <div class="meta-block">
+    <div class="meta-version">v1.4.20 · release 2026-05-23 · 477 checks · PASS</div>
+    <div class="meta-stats">
+      <div class="ms"><span class="ms-n n1">87</span><span class="ms-l">Agents</span></div>
+      <div class="ms"><span class="ms-n n2">156</span><span class="ms-l">Commands</span></div>
+      <div class="ms"><span class="ms-n n3">27</span><span class="ms-l">Hooks</span></div>
+      <div class="ms"><span class="ms-n n4">350</span><span class="ms-l">Skills</span></div>
+      <div class="ms"><span class="ms-n n5">58</span><span class="ms-l">Rules</span></div>
+      <div class="ms"><span class="ms-n n6">35</span><span class="ms-l">Scripts</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOOK EXECUTION PIPELINE -->
+<div class="sec">Hook Execution Pipeline — 27 hooks · mỗi tool call đi qua các lớp này theo thứ tự</div>
+<div class="flow-wrap">
+
+  <!-- UserPromptSubmit -->
+  <div class="flow-stage">
+    <div class="fs-label fsl-user">UserPrompt</div>
+    <div class="hook-pill"><span class="dot dp-user"></span>session-bootstrap</div>
+  </div>
+  <div class="flow-arrow-col">→</div>
+
+  <!-- PreToolUse -->
+  <div class="flow-stage">
+    <div class="fs-label fsl-pre">PreToolUse · blocks here</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>token-budget-guard</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>guard-destructive</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>scope-guard</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>api-destruct-guard</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>db-protect</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>deploy-gate</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>commit-gate</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>code-freeze</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>cost-guard</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>context-gate</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>rbac-guard</div>
+    <div class="hook-pill"><span class="dot dp-pre"></span>token-scope-guard</div>
+  </div>
+  <div class="flow-arrow-col">→</div>
+
+  <!-- EXECUTE -->
+  <div class="flow-stage">
+    <div class="fs-label fsl-exec">AI Executes</div>
+    <div class="hook-pill" style="border-color:rgba(167,139,250,.3);color:#a78bfa;padding:20px 16px">
+      <span class="dot dp-exec"></span><strong>TOOL CALL</strong>
+    </div>
+    <div class="hook-pill"><span class="dot dp-exec"></span>permission-auto-approve</div>
+    <div class="hook-pill"><span class="dot dp-exec"></span>tool-attention.js</div>
+    <div class="hook-pill"><span class="dot dp-exec"></span>context-monitor.js</div>
+    <div class="hook-pill"><span class="dot dp-exec"></span>gitnexus-hook.js</div>
+  </div>
+  <div class="flow-arrow-col">→</div>
+
+  <!-- PostToolUse -->
+  <div class="flow-stage">
+    <div class="fs-label fsl-post">PostToolUse · logs here</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>audit-log</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>context-gate-log</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>format-on-write</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>telemetry-sender</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>log-agent</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>auto-qa-trigger</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>auto-qa-reset</div>
+    <div class="hook-pill"><span class="dot dp-post"></span>auto-kill-stuck-tasks</div>
+  </div>
+  <div class="flow-arrow-col">→</div>
+
+  <!-- Stop -->
+  <div class="flow-stage">
+    <div class="fs-label fsl-stop">Stop · after turn</div>
+    <div class="hook-pill"><span class="dot dp-stop"></span>truth-gate-guard</div>
+    <div class="hook-pill"><span class="dot dp-stop"></span>validate-completion</div>
+  </div>
+
+</div>
+
+<!-- AGENT REGISTRY -->
+<div class="agent-section">
+  <div class="sec">Agent Registry — 87 agents · 11 chuyên môn · gọi bằng @agent-name</div>
+  <div class="agent-grid">
+
+    <div class="ag t1">
+      <div class="ag-hd"><span class="ag-icon">⚙</span><span class="ag-name">Core Dev</span></div>
+      <ul class="ag-list">
+        <li>fullstack-engineer</li>
+        <li>api-designer</li>
+        <li>api-gateway-engineer</li>
+        <li>event-driven-architect</li>
+        <li>graphql-architect</li>
+        <li>microservices-architect</li>
+        <li>monorepo-architect</li>
+        <li>websocket-engineer</li>
+      </ul>
+      <div class="ag-more">8 agents</div>
+    </div>
+
+    <div class="ag t2">
+      <div class="ag-hd"><span class="ag-icon">🏗</span><span class="ag-name">Infrastructure</span></div>
+      <ul class="ag-list">
+        <li>devops-engineer</li>
+        <li>kubernetes-specialist</li>
+        <li>terraform-engineer</li>
+        <li>cloud-architect</li>
+        <li>sre-engineer</li>
+        <li>platform-engineer</li>
+        <li>deployment-engineer</li>
+        <li>incident-responder</li>
+        <li>security-engineer</li>
+        <li>network-engineer</li>
+        <li>performance-engineer</li>
+        <li>database-admin</li>
+      </ul>
+      <div class="ag-more">12 agents</div>
+    </div>
+
+    <div class="ag t3">
+      <div class="ag-hd"><span class="ag-icon">🧪</span><span class="ag-name">Quality & Test</span></div>
+      <ul class="ag-list">
+        <li>qa-engineer</li>
+        <li>test-architect</li>
+        <li>qa-automation</li>
+        <li>chaos-engineer</li>
+        <li>compliance-auditor</li>
+        <li>accessibility-specialist</li>
+        <li>penetration-tester</li>
+        <li>code-reviewer</li>
+        <li>debugger · qa-expert</li>
+        <li>test-automator</li>
+        <li>architect-review</li>
+      </ul>
+      <div class="ag-more">11 agents</div>
+    </div>
+
+    <div class="ag t4">
+      <div class="ag-hd"><span class="ag-icon">🧠</span><span class="ag-name">Data & AI</span></div>
+      <ul class="ag-list">
+        <li>llm-architect</li>
+        <li>ai-engineer</li>
+        <li>ml-engineer</li>
+        <li>data-engineer</li>
+        <li>data-scientist</li>
+        <li>nlp-engineer</li>
+      </ul>
+      <div class="ag-more">6 agents</div>
+    </div>
+
+    <div class="ag t5">
+      <div class="ag-hd"><span class="ag-icon">📊</span><span class="ag-name">Business</span></div>
+      <ul class="ag-list">
+        <li>business-analyst</li>
+        <li>scrum-master</li>
+        <li>technical-writer</li>
+        <li>ux-researcher</li>
+        <li>project-manager</li>
+        <li>strategic-analyst</li>
+        <li>release-manager</li>
+      </ul>
+      <div class="ag-more">7 agents</div>
+    </div>
+
+    <div class="ag t6">
+      <div class="ag-hd"><span class="ag-icon">🎼</span><span class="ag-name">Orchestration</span></div>
+      <ul class="ag-list">
+        <li>task-orchestrator</li>
+        <li>multi-agent-coordinator</li>
+        <li>workflow-director</li>
+        <li>knowledge-synthesizer</li>
+        <li>task-decomposer</li>
+        <li>planner · spec-planner</li>
+        <li>spec-executor</li>
+        <li>spec-verifier</li>
+      </ul>
+      <div class="ag-more">9 agents</div>
+    </div>
+
+    <div class="ag t7">
+      <div class="ag-hd"><span class="ag-icon">🛠</span><span class="ag-name">Dev Experience</span></div>
+      <ul class="ag-list">
+        <li>build-engineer</li>
+        <li>git-workflow-manager</li>
+        <li>mcp-developer</li>
+        <li>refactoring-specialist</li>
+      </ul>
+      <div class="ag-more">4 agents</div>
+    </div>
+
+    <div class="ag t8">
+      <div class="ag-hd"><span class="ag-icon">🛡</span><span class="ag-name">Security</span></div>
+      <ul class="ag-list">
+        <li>security-auditor</li>
+        <li>prompt-firewall</li>
+        <li>code-auditor</li>
+        <li>architecture-auditor</li>
+        <li>performance-auditor</li>
+        <li>dependency-analyzer</li>
+      </ul>
+      <div class="ag-more">6 agents</div>
+    </div>
+
+    <div class="ag t1" style="border-color:rgba(96,165,250,.2)">
+      <div class="ag-hd"><span class="ag-icon">⚡</span><span class="ag-name">Standalone</span></div>
+      <ul class="ag-list">
+        <li>frontend-developer</li>
+        <li>backend-developer</li>
+        <li>database-expert</li>
+        <li>docker-expert</li>
+        <li>cicd-engineer</li>
+        <li>systems-architect</li>
+        <li>project-architect</li>
+        <li>ui-ux-designer</li>
+        <li>documentation-writer</li>
+        <li>token-guard · tool-router</li>
+      </ul>
+      <div class="ag-more">32 agents</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RULE CLOUD -->
+<div class="sec">Rule Registry — 58 rules · Laws + Guards + Policies</div>
+<div class="rules-grid">
+  <!-- Laws (numbered 49–62) -->
+  <span class="rule-tag rt-law">immutable-infrastructure-law</span>
+  <span class="rule-tag rt-law">financial-deadman-switch-law</span>
+  <span class="rule-tag rt-law">sovereign-runtime-law</span>
+  <span class="rule-tag rt-law">secrets-vault-law</span>
+  <span class="rule-tag rt-law">network-egress-whitelist-law</span>
+  <span class="rule-tag rt-law">bft-consensus-law</span>
+  <span class="rule-tag rt-law">circuit-breaker-law</span>
+  <span class="rule-tag rt-law">canary-deployment-law</span>
+  <span class="rule-tag rt-law">dependency-sandbox-law</span>
+  <span class="rule-tag rt-law">token-budget-velocity-law</span>
+  <span class="rule-tag rt-law">code-signing-law</span>
+  <span class="rule-tag rt-law">sovereign-overlord-gate-law</span>
+  <span class="rule-tag rt-law">agent-excessive-agency-law</span>
+  <span class="rule-tag rt-law">agent-hierarchy-law</span>
+  <span class="rule-tag rt-law">agent-middleware-law</span>
+  <span class="rule-tag rt-law">anti-evasion-law</span>
+  <span class="rule-tag rt-law">memory-persistence-law</span>
+  <span class="rule-tag rt-law">network-egress-law</span>
+  <span class="rule-tag rt-law">resource-quota-law</span>
+  <span class="rule-tag rt-law">shell-sanitize-law</span>
+  <span class="rule-tag rt-law">slsa-artifact-law</span>
+  <span class="rule-tag rt-law">observability-telemetry-law</span>
+  <!-- Guards -->
+  <span class="rule-tag rt-guard">prompt-jailbreak-advanced</span>
+  <span class="rule-tag rt-guard">supply-chain-vetting</span>
+  <span class="rule-tag rt-guard">honeypot-trap-law</span>
+  <span class="rule-tag rt-guard">agent-tool-poisoning-guard</span>
+  <span class="rule-tag rt-guard">prompt-jailbreak-guard</span>
+  <span class="rule-tag rt-guard">fuzz-testing-constraints</span>
+  <span class="rule-tag rt-guard">privilege-isolation</span>
+  <span class="rule-tag rt-guard">sandbox-isolation-law</span>
+  <span class="rule-tag rt-guard">container-hardening-law</span>
+  <!-- Policies -->
+  <span class="rule-tag rt-policy">human-gate-policy</span>
+  <span class="rule-tag rt-policy">token-budget-policy</span>
+  <span class="rule-tag rt-policy">audit-hardening-policy</span>
+  <span class="rule-tag rt-policy">agent-communication-policy</span>
+  <span class="rule-tag rt-policy">env-integrity-policy</span>
+  <span class="rule-tag rt-policy">rule-consistency-policy</span>
+  <span class="rule-tag rt-policy">subagent-policy</span>
+  <span class="rule-tag rt-policy">conflict-resolution</span>
+  <span class="rule-tag rt-policy">git-push-enforcement</span>
+  <span class="rule-tag rt-policy">git-workflow-v2</span>
+  <span class="rule-tag rt-policy">owasp-llm-output-law</span>
+  <span class="rule-tag rt-policy">dependency-vetting-law</span>
+  <!-- Gates / Core -->
+  <span class="rule-tag rt-gate">api-security-gate</span>
+  <span class="rule-tag rt-gate">meta-rule-enforcer</span>
+  <span class="rule-tag rt-gate">terminal-validator</span>
+  <span class="rule-tag rt-gate">agent-code-constraints</span>
+  <span class="rule-tag rt-gate">execution-environment</span>
+  <span class="rule-tag rt-gate">verification</span>
+  <span class="rule-tag rt-gate">testing · tests</span>
+  <!-- Core -->
+  <span class="rule-tag rt-core">golden-principles</span>
+  <span class="rule-tag rt-core">security</span>
+  <span class="rule-tag rt-core">typescript</span>
+  <span class="rule-tag rt-core">migrations</span>
+  <span class="rule-tag rt-core">agents-v2</span>
+  <span class="rule-tag rt-core">color-rules</span>
+  <span class="rule-tag rt-core">typography-rules</span>
+</div>
+
+<!-- SKILL DOMAINS -->
+<div class="sec">Skill Domains — 350 skills · knowledge chunks Claude dùng khi cần</div>
+<div class="skill-grid">
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">AI / LLM / Agents</span>
+      <span class="sd-count" style="color:#a78bfa">68</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:68%;background:#a78bfa"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">react-agent-loop</span>
+      <span class="sd-tag">rewoo-plan-execute</span>
+      <span class="sd-tag">reflexion-verbal-rl</span>
+      <span class="sd-tag">memgpt-virtual-context</span>
+      <span class="sd-tag">tree-of-thoughts</span>
+      <span class="sd-tag">multi-agent-debate</span>
+      <span class="sd-tag">eval-driven-agent-dev</span>
+      <span class="sd-tag">agentic-failure-modes</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">Security / Crypto</span>
+      <span class="sd-count" style="color:#f87171">45</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:45%;background:#f87171"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">ecc-key-management</span>
+      <span class="sd-tag">jwt-jws-jwe</span>
+      <span class="sd-tag">owasp-llm-top10</span>
+      <span class="sd-tag">zero-trust-patterns</span>
+      <span class="sd-tag">red-team-check</span>
+      <span class="sd-tag">supply-chain-security</span>
+      <span class="sd-tag">honeypot-deception</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">ML Infra / Inference</span>
+      <span class="sd-count" style="color:#34d399">32</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:32%;background:#34d399"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">vllm-paged-attention</span>
+      <span class="sd-tag">flash-attention</span>
+      <span class="sd-tag">llama-cpp-quantization</span>
+      <span class="sd-tag">triton-inference</span>
+      <span class="sd-tag">deepspeed-zero</span>
+      <span class="sd-tag">kv-cache-optimization</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">K8s / Cloud Native</span>
+      <span class="sd-count" style="color:#60a5fa">28</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:28%;background:#60a5fa"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">k8s-crd-controller</span>
+      <span class="sd-tag">argocd-gitops</span>
+      <span class="sd-tag">istio-traffic</span>
+      <span class="sd-tag">crossplane</span>
+      <span class="sd-tag">helm-chart</span>
+      <span class="sd-tag">linkerd-mesh</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">Distributed Systems</span>
+      <span class="sd-count" style="color:#fbbf24">28</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:28%;background:#fbbf24"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">raft-consensus</span>
+      <span class="sd-tag">etcd-config</span>
+      <span class="sd-tag">crdt-sync</span>
+      <span class="sd-tag">grpc-streaming</span>
+      <span class="sd-tag">protobuf</span>
+      <span class="sd-tag">snowflake-id</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">UI / Design / Frontend</span>
+      <span class="sd-count" style="color:#f472b6">42</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:42%;background:#f472b6"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">design-tokens-system</span>
+      <span class="sd-tag">aesthetic-anchor</span>
+      <span class="sd-tag">motion-physics</span>
+      <span class="sd-tag">typography-scale</span>
+      <span class="sd-tag">accessibility-audit</span>
+      <span class="sd-tag">shadcn-patterns</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">Observability / Ops</span>
+      <span class="sd-count" style="color:#2dd4bf">25</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:25%;background:#2dd4bf"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">opentelemetry</span>
+      <span class="sd-tag">prometheus</span>
+      <span class="sd-tag">jaeger-tracing</span>
+      <span class="sd-tag">loki-log</span>
+      <span class="sd-tag">slo-design</span>
+      <span class="sd-tag">incident-runbook</span>
+    </div>
+  </div>
+
+  <div class="skill-domain">
+    <div class="sd-hd">
+      <span class="sd-name">Linux / Sandbox / Kernel</span>
+      <span class="sd-count" style="color:#fb923c">22</span>
+    </div>
+    <div class="sd-bar"><div class="sd-fill" style="width:22%;background:#fb923c"></div></div>
+    <div class="sd-tags">
+      <span class="sd-tag">ebpf-syscall-monitoring</span>
+      <span class="sd-tag">runtime-sandbox-runc</span>
+      <span class="sd-tag">overlayfs-isolation</span>
+      <span class="sd-tag">seccomp-filtering</span>
+      <span class="sd-tag">bubblewrap</span>
+      <span class="sd-tag">capability-dropping</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- MEMORY + GATES -->
+<div class="bottom-row">
+  <div class="panel">
+    <div class="panel-title">// Memory Architecture</div>
+    <div class="mem-tier">
+      <div class="mem-badge mb-l1">L1</div>
+      <div class="mem-text">
+        <div class="mem-name">Atomic Facts — Persistent</div>
+        <div class="mem-desc">Project truths · Sovereign identity · Skills lock (350) · Known constraints · Git-tracked · Confidence-gated</div>
+      </div>
+    </div>
+    <div class="mem-tier">
+      <div class="mem-badge mb-l2">L2</div>
+      <div class="mem-text">
+        <div class="mem-name">Session Facts — Ephemeral</div>
+        <div class="mem-desc">Token budget · Circuit state · Scope declaration · Trust score · Checkpoint index · Git-ignored</div>
+      </div>
+    </div>
+    <div class="mem-tier" style="border:none;padding-top:8px;opacity:.4">
+      <div class="mem-badge" style="background:rgba(100,160,255,.06);color:rgba(100,160,255,.3)">L3</div>
+      <div class="mem-text">
+        <div class="mem-name" style="color:rgba(100,160,255,.4)">Vector Search — Out of scope</div>
+        <div class="mem-desc">Semantic retrieval · Not implemented · See .out-of-scope/</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">// Safety Gate Stack</div>
+    <div class="gate-item">
+      <div class="gate-level gl-l3">L3 STOP</div>
+      <div class="gate-text">
+        <div class="gate-name">truth-gate-guard.sh</div>
+        <div class="gate-desc">Scan final turn for claim verbs without evidence. Non-blocking warn → self-correct.</div>
+      </div>
+    </div>
+    <div class="gate-item">
+      <div class="gate-level gl-l2">L2 PRE</div>
+      <div class="gate-text">
+        <div class="gate-name">token-budget-guard.sh</div>
+        <div class="gate-desc">Circuit Breaker CLOSED→OPEN→HALF-OPEN. HARD BLOCK at 5 consecutive calls.</div>
+      </div>
+    </div>
+    <div class="gate-item">
+      <div class="gate-level gl-l2">L2 PRE</div>
+      <div class="gate-text">
+        <div class="gate-name">guard-destructive.sh</div>
+        <div class="gate-desc">Intercept rm/drop/delete/truncate. Require explicit confirmation for destructive ops.</div>
+      </div>
+    </div>
+    <div class="gate-item">
+      <div class="gate-level gl-l1">L1 POST</div>
+      <div class="gate-text">
+        <div class="gate-name">audit-log.sh</div>
+        <div class="gate-desc">Hash-chain JSONL of every tool call. SHA-256 prev→current. Tamper-evident.</div>
+      </div>
+    </div>
+    <div class="gate-item">
+      <div class="gate-level gl-l0">L0 USER</div>
+      <div class="gate-text">
+        <div class="gate-name">session-bootstrap.sh</div>
+        <div class="gate-desc">Inject matching L1 facts + trust score + budget mode into every prompt context.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-left">
+    YAMTAM ENGINE <span>v1.4.20</span> ·
+    release <span>2026-05-23</span> ·
+    <span>477</span> checks · <span>24/24 PASS</span> ·
+    stateless · no daemon · no network required
+  </div>
+  <div class="f-tags">
+    <span class="f-tag">Claude Code</span>
+    <span class="f-tag">Cursor</span>
+    <span class="f-tag">Aider</span>
+    <span class="f-tag">VS Code</span>
+    <span class="f-tag">MIT License</span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
