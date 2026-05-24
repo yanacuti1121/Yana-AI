@@ -17,20 +17,20 @@
   ],
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
-    "hooks": 41,
+    "hooks": 45,
     "commands": 164,
     "agents": 90,
     "scripts": 46,
-    "skills": 370,
+    "skills": 383,
     "rules": 61,
     "checks": 826,
     "memory_tiers": 2
   },
   "highlights": [
-    "40 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls",
+    "45 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls + static analysis, test runner, dependency safety, coverage gates",
     "90 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "369 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools",
-    "60 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
+    "383 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools, LangFuse, Qdrant, Portkey, Outlines, DeepEval, Ollama, code quality",
+    "61 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
     "Cross-engine hard enforcement — Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
     "826 checks: 65 hook + 678 skill trigger (369/369 coverage) + red-team scenarios + command smoke",
@@ -46,9 +46,9 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "version": "1.7.2",
-  "skills": 370,
+  "skills": 383,
   "checks": 826,
-  "hooks": 41,
+  "hooks": 45,
   "rules": 61,
   "scripts": 46
 }
