@@ -23,3 +23,5 @@ dist/
 .next/
 .claude/state/
 releases/logs/
+.mcp.json
+.codegraph/
