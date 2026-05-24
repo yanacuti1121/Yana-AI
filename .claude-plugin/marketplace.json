@@ -17,7 +17,7 @@
   ],
   "install_command": "/plugin install phamlongh230-lgtm/yamtam-engine",
   "stats": {
-    "hooks": 39,
+    "hooks": 40,
     "commands": 164,
     "agents": 90,
     "scripts": 46,

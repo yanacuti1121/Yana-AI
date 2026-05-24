@@ -24,7 +24,7 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 39,
+    "hooks": 40,
     "commands": 164,
     "agents": 90,
     "scripts": 46,

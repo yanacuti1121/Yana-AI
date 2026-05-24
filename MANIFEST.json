@@ -327,7 +327,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 39,
+      "count": 40,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/api-destruct-guard.sh",
@@ -367,7 +367,8 @@
         "core/hooks/tool-attention.js",
         "core/hooks/tool-validator.sh",
         "core/hooks/truth-gate-guard.sh",
-        "core/hooks/validate-completion.sh"
+        "core/hooks/validate-completion.sh",
+        "core/hooks/per-tool-circuit-breaker.sh"
       ]
     },
     "scripts": {
@@ -423,7 +424,7 @@
       ]
     },
     "tests": {
-      "count": 7,
+      "count": 8,
       "actual_present": [
         "core/tests/adversarial",
         "core/tests/commands",
