@@ -189,8 +189,8 @@ This is a personal agent operating system. Features are added when a real proble
 Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh` proxy — same gate stack (L0–L5), same bypass vars, regardless of which model is under the hood.
 
 **Gemini Code (Google)**
-- [ ] `adapters/gemini-code.md` — enforcement rules for Gemini Code CLI
-- [ ] `switch-engine.sh gemini` — auto-generate Gemini Code config
+- [x] `adapters/gemini-code.md` — enforcement rules for Gemini Code CLI ✅ shipped v1.7.0
+- [ ] `switch-engine.sh gemini` — auto-generate Gemini Code config (copy adapter to GEMINI.md)
 - [ ] Covers Gemini 2.0 Flash / 2.5 Pro / Ultra and future versions
 
 **Qwen3 (Alibaba) via Aider/OpenRouter**
