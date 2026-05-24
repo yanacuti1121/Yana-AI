@@ -194,12 +194,12 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [ ] Covers Gemini 2.0 Flash / 2.5 Pro / Ultra and future versions
 
 **Qwen3 (Alibaba) via Aider/OpenRouter**
-- [ ] `adapters/qwen.md` — adapter doc for Qwen3 routed through Aider or OpenRouter
-- [ ] Safe-run proxy wiring for Qwen3-based sessions
+- [x] `adapters/qwen.md` — adapter for Qwen3 / Qwen2.5-Coder via Aider or OpenRouter ✅ shipped v1.7.0
+- [x] Safe-run proxy wiring for Qwen-based sessions ✅
 
 **DeepSeek V3/R1 (DeepSeek) via Aider/OpenRouter**
-- [ ] `adapters/deepseek.md` — adapter doc for DeepSeek V3, R1 routed through Aider or OpenRouter
-- [ ] Safe-run proxy wiring for DeepSeek-based sessions
+- [x] `adapters/deepseek.md` — adapter for DeepSeek V3, R1 via Aider or OpenRouter ✅ shipped v1.7.0
+- [x] Safe-run proxy wiring for DeepSeek-based sessions ✅
 
 **OpenRouter (universal gateway)**
 - [ ] `adapters/openrouter.md` — single adapter covering any model routed via OpenRouter

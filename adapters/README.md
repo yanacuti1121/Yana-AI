@@ -9,6 +9,8 @@ YAMTAM runs on Claude Code natively. These adapters let you apply YAMTAM governa
 | **GitHub Copilot** | `.github/copilot-instructions.md` | Copilot reads this file automatically in VS Code |
 | **Aider** | `adapters/aider.md` | `aider --system-prompt adapters/aider.md` |
 | **Gemini Code** | `adapters/gemini-code.md` | Copy to `GEMINI.md` at project root |
+| **DeepSeek V3/R1** | `adapters/deepseek.md` | `aider --model deepseek/deepseek-chat --system-prompt adapters/deepseek.md` |
+| **Qwen3 / Qwen2.5-Coder** | `adapters/qwen.md` | `aider --model openrouter/qwen/qwen3-235b-a22b --system-prompt adapters/qwen.md` |
 | **Windsurf** | `adapters/aider.md` (compatible format) | Add to Windsurf system prompt settings |
 
 ---
