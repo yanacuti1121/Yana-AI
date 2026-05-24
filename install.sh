@@ -9,7 +9,6 @@
 set -euo pipefail
 
 REPO="phamlongh230-lgtm/yamtam-engine"
-RELEASE_URL="https://github.com/$REPO/releases/latest/download/yamtam-engine-latest.zip"
 INSTALL_DIR="${YAMTAM_DIR:-.claude}"
 SKIP_TEST="${YAMTAM_SKIP_TEST:-0}"
 TMP_ZIP="$(mktemp /tmp/yamtam-XXXXXX.zip)"
@@ -43,7 +42,20 @@ check_deps() {
 }
 
 download() {
-  info "Downloading latest release..."
+  info "Fetching latest release info..."
+  local api_url="https://api.github.com/repos/$REPO/releases/latest"
+  local RELEASE_URL
+  RELEASE_URL=$(curl -fsSL "$api_url" 2>/dev/null \
+    | grep '"browser_download_url"' \
+    | grep '\.zip' \
+    | head -1 \
+    | grep -o 'https://[^"]*')
+
+  if [[ -z "$RELEASE_URL" ]]; then
+    fail "Could not find release zip. Check your internet connection or https://github.com/$REPO/releases"
+  fi
+
+  info "Downloading $(basename "$RELEASE_URL")..."
   if ! curl -fsSL "$RELEASE_URL" -o "$TMP_ZIP" 2>/dev/null; then
     fail "Download failed. Check your internet connection."
   fi
