@@ -21,7 +21,7 @@
     "commands": 164,
     "agents": 90,
     "scripts": 46,
-    "skills": 357,
+    "skills": 363,
     "rules": 60,
     "checks": 826,
     "memory_tiers": 2
@@ -29,11 +29,11 @@
   "highlights": [
     "40 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls",
     "90 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "357 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools",
+    "363 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools",
     "60 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
     "Cross-engine hard enforcement — Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
-    "826 checks: 65 hook + 678 skill trigger (357/357 coverage) + red-team scenarios + command smoke",
+    "826 checks: 65 hook + 678 skill trigger (363/363 coverage) + red-team scenarios + command smoke",
     "Identity Gate — Tier 0/1/2 auth with SHA-256 hash verification, auto-auth from env var",
     "Truth Gate (L3) — warns on claim verbs without evidence",
     "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
@@ -46,7 +46,7 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "version": "1.7.1",
-  "skills": 357,
+  "skills": 363,
   "checks": 826,
   "hooks": 40,
   "rules": 60,
