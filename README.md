@@ -18,6 +18,12 @@
 </p>
 
 <p align="center">
+  <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-system-map.html">
+    <img src="https://img.shields.io/badge/View-Interactive%20System%20Map-2563eb?style=for-the-badge" alt="Interactive System Map" />
+  </a>
+</p>
+
+<p align="center">
   <img src="./docs/demo.svg" alt="YAMTAM ENGINE Demo — hooks blocking rm -rf, prompt injection, pipe-to-shell" width="100%" />
 </p>
 
