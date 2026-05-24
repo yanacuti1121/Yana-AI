@@ -303,6 +303,7 @@ Open an issue or PR. See `CONTRIBUTING.md` for how to add hooks, skills, or rule
 | `docs/HOOK_WIRING.md` | Hook configuration guide |
 | `ROADMAP.md` | Feature roadmap |
 | `CHANGELOG.md` | Release history |
+| `docs/yamtam-system-map.html` | Interactive system map (open in browser) |
 
 ---
 
