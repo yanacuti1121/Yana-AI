@@ -6,6 +6,14 @@
   />
 </p>
 
+<p align="center">
+  <img
+    src="./docs/ChatGPT Image 16_08_00 24 thg 5, 2026.png"
+    alt="YAMTAM ENGINE"
+    width="100%"
+  />
+</p>
+
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">
