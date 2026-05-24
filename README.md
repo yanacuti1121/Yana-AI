@@ -18,6 +18,10 @@
 </p>
 
 <p align="center">
+  <img src="./docs/demo.svg" alt="YAMTAM ENGINE Demo — hooks blocking rm -rf, prompt injection, pipe-to-shell" width="100%" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/version-v1.7.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
@@ -313,6 +317,10 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ## YAMTAM ENGINE là gì?
 
 > Dự án được tạo ra bởi **học sinh 17 tuổi** — Vũ Văn Tâm.
+
+<p align="center">
+  <img src="./docs/demo.svg" alt="YAMTAM ENGINE Demo" width="100%" />
+</p>
 
 YAMTAM ENGINE là **hệ điều hành cho AI agents** — chạy song song với Claude Code để kiểm soát, bảo vệ và điều phối các tác vụ AI trước khi chúng gây ra hậu quả thực tế.
 
