@@ -14,6 +14,10 @@
 </p>
 
 <p align="center">
+  <em>Built by a 17-year-old student — Vũ Văn Tâm</em>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/version-v1.7.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
@@ -307,6 +311,8 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 <h2 align="center">🇻🇳 Giới thiệu tiếng Việt</h2>
 
 ## YAMTAM ENGINE là gì?
+
+> Dự án được tạo ra bởi **học sinh 17 tuổi** — Vũ Văn Tâm.
 
 YAMTAM ENGINE là **hệ điều hành cho AI agents** — chạy song song với Claude Code để kiểm soát, bảo vệ và điều phối các tác vụ AI trước khi chúng gây ra hậu quả thực tế.
 
