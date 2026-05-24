@@ -3,7 +3,7 @@
 # Usage: curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh | bash
 #
 # Options (env vars):
-#   YAMTAM_DIR   — install target (default: .claude in current dir)
+#   YAMTAM_DIR       — install target (default: .claude in current dir)
 #   YAMTAM_SKIP_TEST — set to 1 to skip post-install verification
 
 set -euo pipefail
@@ -75,6 +75,31 @@ install_files() {
   success "Files installed → $INSTALL_DIR/"
 }
 
+apply_claude_md() {
+  local src="$INSTALL_DIR/CLAUDE.md"
+  local dst="$(pwd)/CLAUDE.md"
+
+  if [[ ! -f "$src" ]]; then
+    warn "CLAUDE.md not found in install dir — skipping"
+    return
+  fi
+
+  # Skip if YAMTAM block already present
+  if [[ -f "$dst" ]] && grep -q "YAMTAM ENGINE" "$dst" 2>/dev/null; then
+    success "CLAUDE.md already contains YAMTAM block — skipped"
+    return
+  fi
+
+  info "Applying YAMTAM config to CLAUDE.md..."
+  if [[ -f "$dst" ]]; then
+    # Append with a blank separator
+    { echo ""; cat "$src"; } >> "$dst"
+  else
+    cp "$src" "$dst"
+  fi
+  success "CLAUDE.md updated → $(pwd)/CLAUDE.md"
+}
+
 verify() {
   if [[ "$SKIP_TEST" == "1" ]]; then
     warn "Skipping verification (YAMTAM_SKIP_TEST=1)"
@@ -95,20 +120,12 @@ verify() {
   fi
 }
 
-print_next_steps() {
-  echo ""
-  echo -e "${BOLD}  Next steps:${NC}"
-  echo ""
-  echo "  1. Add YAMTAM hooks to your Claude settings:"
-  echo "     ${CYAN}cat $INSTALL_DIR/CLAUDE.md >> \$(pwd)/CLAUDE.md${NC}"
-  echo ""
-  echo "  2. Verify all checks pass:"
-  echo "     ${CYAN}bash $INSTALL_DIR/tests/hooks/run-hook-tests.sh${NC}"
-  echo ""
-  echo "  3. Read the docs:"
-  echo "     ${CYAN}https://github.com/$REPO${NC}"
+print_done() {
   echo ""
   echo -e "  ${GREEN}${BOLD}YAMTAM ENGINE installed successfully!${NC}"
+  echo ""
+  echo -e "  ${CYAN}→${NC} Open Claude Code in this directory — hooks are active."
+  echo -e "  ${CYAN}→${NC} Docs: https://github.com/$REPO"
   echo ""
 }
 
@@ -117,8 +134,9 @@ main() {
   check_deps
   download
   install_files
+  apply_claude_md
   verify
-  print_next_steps
+  print_done
 }
 
 main "$@"
