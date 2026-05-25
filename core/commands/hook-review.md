@@ -13,9 +13,9 @@ Human duyệt report → thực hiện thay đổi riêng.
 ## Step 1 — Liệt kê tất cả hook
 
 ```bash
-ls -la core/hooks/*.sh | awk '{print $NF}'
+find core/hooks -name "*.sh"
 echo "---"
-echo "Total: $(ls core/hooks/*.sh | wc -l) hooks"
+echo "Total: $(find core/hooks -name "*.sh" | wc -l) hooks"
 ```
 
 ---
