@@ -281,6 +281,14 @@ Breakdown: 65 hook tests · 12 audit tests · 678 skill trigger tests · 65 red-
 
 ---
 
+## YAMTAM Blackbox OS
+
+YAMTAM is not an IDE, not a terminal, and not just an agent pack. It is a blackbox and constitution runtime for AI coding agents: recording what agents do, verifying what agents claim, blocking unsafe actions, and turning past failures into future protection.
+
+Read the full direction: [docs/yamtam-blackbox-os.md](docs/yamtam-blackbox-os.md)
+
+---
+
 ## 🌱 Origin Story
 
 Before YAMTAM ENGINE became a full Personal Agent Operating System, it started from early personal experiments in web design, interface building, and AI-assisted development.
