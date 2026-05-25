@@ -91,7 +91,7 @@ curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main
 
 ```bash
 # Or manually
-unzip releases/yamtam-engine-v1.8.0.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.8.0-fixed.zip -d /path/to/project/.claude/
 bash .claude/tests/hooks/run-hook-tests.sh
 ```
 
@@ -416,7 +416,7 @@ Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị ch�
 /plugin install phamlongh230-lgtm/yamtam-engine
 
 # Hoặc giải nén vào project
-unzip releases/yamtam-engine-v1.8.0.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.8.0-fixed.zip -d /path/to/project/.claude/
 
 # Kiểm tra 826 checks
 bash .claude/tests/hooks/run-hook-tests.sh
