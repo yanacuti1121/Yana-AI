@@ -16,8 +16,9 @@ usage() {
   echo "  aider    — prints aider CLI command with system prompt"
   echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
   echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
-  echo "  deepseek  — prints Aider/DeepSeek command template (advisory mode)"
-  echo "  status    — show which adapters are currently active"
+  echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
+  echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
+  echo "  status     — show which adapters are currently active"
   exit 1
 }
 
@@ -279,6 +280,57 @@ AIDEREOF
     echo "Set DEEPSEEK_API_KEY or OPENROUTER_API_KEY in your shell — never hardcode it."
     ;;
 
+  openrouter)
+    ADAPTER="adapters/openrouter.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ OpenRouter adapter ready${NC}: $ADAPTER"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "openrouter adapter activated — advisory mode" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  OpenRouter has no native YAMTAM hook layer."
+    echo "  Tool calls in this session are NOT recorded in the YAMTAM Merkle audit chain."
+    echo "  The engine_switch event above is the only audit entry for this session."
+    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
+    echo "  For shell-level blocking, manually prefix commands:"
+    echo "    bash core/scripts/safe-run.sh --engine openrouter -- <command>"
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
+    echo "  L0  Audit    — engine_switch logged; individual tool calls NOT in Merkle chain"
+    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
+    echo "  L2  Commit   — prompt-instructed"
+    echo "  L3  Truth    — prompt-instructed"
+    echo "  L4  Deploy   — prompt-instructed (YAMTAM_DEPLOY_APPROVED=1 in prompt)"
+    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
+    echo ""
+    echo -e "${CYAN}Run any OpenRouter model via Aider (use placeholders — do not paste real keys here):${NC}"
+    echo ""
+    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
+    echo "    --model openrouter/<provider>/<model-slug> \\"
+    echo "    --openai-api-base https://openrouter.ai/api/v1 \\"
+    echo "    --openai-api-key <your-key> \\"
+    echo "    --no-auto-commits \\"
+    echo "    --system-prompt adapters/openrouter.md"
+    echo ""
+    echo -e "${CYAN}Example model slugs:${NC}"
+    echo "  openrouter/qwen/qwen3-235b-a22b"
+    echo "  openrouter/deepseek/deepseek-chat"
+    echo "  openrouter/mistralai/mistral-large"
+    echo "  openrouter/meta-llama/llama-3.1-405b-instruct"
+    echo "  openrouter/<provider>/<model-slug>   ← any OpenRouter-listed model"
+    echo ""
+    echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -301,8 +353,11 @@ AIDEREOF
       && echo -e "  ${GREEN}✓${NC} Qwen      adapters/qwen.md (advisory — no native hook)" \
       || echo -e "  ${YELLOW}✗${NC} Qwen      adapters/qwen.md missing"
     [[ -f "adapters/deepseek.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} DeepSeek  adapters/deepseek.md (advisory — no native hook)" \
-      || echo -e "  ${YELLOW}✗${NC} DeepSeek  adapters/deepseek.md missing"
+      && echo -e "  ${GREEN}✓${NC} DeepSeek   adapters/deepseek.md (advisory — no native hook)" \
+      || echo -e "  ${YELLOW}✗${NC} DeepSeek   adapters/deepseek.md missing"
+    [[ -f "adapters/openrouter.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} OpenRouter adapters/openrouter.md (advisory — Merkle gap)" \
+      || echo -e "  ${YELLOW}✗${NC} OpenRouter adapters/openrouter.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;
