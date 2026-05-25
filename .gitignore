@@ -25,3 +25,7 @@ dist/
 releases/logs/
 .mcp.json
 .codegraph/
+
+# Local runtime audit logs
+core/memory/audit/*
+!core/memory/audit/.gitkeep
