@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YAMTAM ENGINE — Personal Agent OS for Claude Code</title>
-<meta name="description" content="Safety hooks that block before damage happens. 90 agents, 39 hooks, 826 checks. Built for Claude Code.">
+<meta name="description" content="Safety hooks that block before damage happens. 90 agents, 45 hooks, 826 checks. Built for Claude Code.">
 <meta property="og:title" content="YAMTAM ENGINE — Personal Agent OS for Claude Code">
 <meta property="og:description" content="Safety hooks that block rm -rf, prompt injection, pipe-to-shell before damage happens.">
 <meta property="og:image" content="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-engine-overview.png">
@@ -416,10 +416,10 @@ footer a:hover { text-decoration: underline; }
 <section>
   <div class="hero">
     <div class="hero-left">
-      <div class="hero-tag"><span class="dot"></span> v1.7.0 — Now public</div>
+      <div class="hero-tag"><span class="dot"></span> v1.7.2 — Now public</div>
       <h1>Stop your AI from <span>breaking production</span></h1>
       <p class="hero-sub">
-        YAMTAM ENGINE wraps Claude Code with 39 safety hooks that block
+        YAMTAM ENGINE wraps Claude Code with 45 safety hooks that block
         <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:#f85149;background:rgba(248,81,73,.1);padding:.1rem .3rem;border-radius:3px">rm -rf</code>,
         prompt injection, and pipe-to-shell attacks — before damage happens.
       </p>
@@ -428,7 +428,7 @@ footer a:hover { text-decoration: underline; }
         <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="btn-outline" target="_blank">View on GitHub →</a>
       </div>
       <p class="hero-note">
-        One-line: <code>curl -sSL …/install.sh | bash</code>
+        One-line: <code>curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash</code>
       </p>
     </div>
 
@@ -472,11 +472,11 @@ footer a:hover { text-decoration: underline; }
       <div class="stat-label">Slash Commands</div>
     </div>
     <div class="reveal">
-      <div class="stat-num" style="color:var(--orange2)">39</div>
+      <div class="stat-num" style="color:var(--orange2)">45</div>
       <div class="stat-label">Safety Hooks</div>
     </div>
     <div class="reveal">
-      <div class="stat-num" style="color:var(--cyan)">370</div>
+      <div class="stat-num" style="color:var(--cyan)">383</div>
       <div class="stat-label">Workflow Skills</div>
     </div>
     <div class="reveal">
@@ -629,7 +629,7 @@ footer a:hover { text-decoration: underline; }
     <p class="install-sub">One command. Checks dependencies, downloads the latest release, verifies all 826 checks pass.</p>
 
     <div class="code-block">
-      <code id="install-cmd">curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh | bash</code>
+      <code id="install-cmd">curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash</code>
       <button class="copy-btn" onclick="copyInstall()">Copy</button>
     </div>
 
@@ -645,7 +645,7 @@ footer a:hover { text-decoration: underline; }
 <footer>
   <p>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a>
-    — Apache 2.0 — v1.7.0
+    — Apache 2.0 — v1.7.2
   </p>
   <p class="footer-built">
     Built by <strong>Vũ Văn Tâm</strong>, age 17 · Vietnam 🇻🇳
@@ -678,7 +678,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // Animate stat numbers
 const statNums = document.querySelectorAll('.stat-num');
-const targets = [90, 164, 39, 370, 826, 7];
+const targets = [90, 164, 45, 383, 826, 7];
 const statObserver = new IntersectionObserver((entries) => {
   entries.forEach((e, i) => {
     if (!e.isIntersecting) return;
