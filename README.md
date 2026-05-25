@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.7.3-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v1.8.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -91,7 +91,7 @@ curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main
 
 ```bash
 # Or manually
-unzip releases/yamtam-engine-v1.7.3.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.8.0.zip -d /path/to/project/.claude/
 bash .claude/tests/hooks/run-hook-tests.sh
 ```
 
@@ -367,7 +367,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v1.7.3 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v1.8.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
@@ -416,7 +416,7 @@ Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị ch�
 /plugin install phamlongh230-lgtm/yamtam-engine
 
 # Hoặc giải nén vào project
-unzip releases/yamtam-engine-v1.7.3.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.8.0.zip -d /path/to/project/.claude/
 
 # Kiểm tra 826 checks
 bash .claude/tests/hooks/run-hook-tests.sh
