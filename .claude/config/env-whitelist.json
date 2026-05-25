@@ -1,0 +1,30 @@
+{
+  "_comment": "Approved environment variable modifications — env-integrity-policy.md",
+  "_schema": "{ PATH_prepend_allowed[], PYTHONPATH_allowed[], NODE_PATH_allowed[], notes }",
+
+  "PATH_prepend_allowed": [
+    "/usr/local/bin",
+    "/usr/bin",
+    "/home/codespace/.local/bin",
+    "/home/codespace/.nvm/versions/node/current/bin",
+    "/workspaces/yamtam-engine/core/scripts"
+  ],
+
+  "PYTHONPATH_allowed": [
+    "./src",
+    "./lib",
+    "./app"
+  ],
+
+  "NODE_PATH_allowed": [
+    "./node_modules"
+  ],
+
+  "JAVA_TOOL_OPTIONS_allowed": [],
+
+  "notes": [
+    "Tier A vars (LD_PRELOAD, LD_LIBRARY_PATH, DYLD_INSERT_LIBRARIES, NODE_OPTIONS) are NEVER whitelistable.",
+    "To add a path: open a PR with justification. No self-approval.",
+    "All modifications outside this list → Gate L2 block (env-integrity-policy.md)."
+  ]
+}

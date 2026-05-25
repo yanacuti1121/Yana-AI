@@ -1,0 +1,36 @@
+{
+  "roles": {
+    "developer": {
+      "permissions": [
+        "tool:Bash:exec",
+        "tool:File:read",
+        "tool:File:write",
+        "tool:File:append",
+        "tool:File:edit",
+        "tool:Grep:exec",
+        "tool:Glob:exec"
+      ]
+    },
+    "qa-engineer": {
+      "permissions": [
+        "tool:Bash:exec:test",
+        "tool:File:read",
+        "tool:Grep:exec",
+        "tool:Glob:exec"
+      ]
+    },
+    "project-manager": {
+      "permissions": [
+        "tool:File:read",
+        "tool:Grep:exec",
+        "tool:Glob:exec"
+      ]
+    }
+  },
+  "agent_roles": {
+    "backend-developer": ["developer"],
+    "frontend-developer": ["developer"],
+    "qa-engineer": ["qa-engineer"],
+    "project-manager": ["project-manager"]
+  }
+}

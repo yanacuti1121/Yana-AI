@@ -1,0 +1,22 @@
+{
+  "version": "1.2",
+  "name": "YAMTAM ENGINE Cost Guard Budget Policy",
+  "budget_mode_file": ".claude/state/BUDGET_MODE",
+  "codespaces": {
+    "block_full_e2e": true,
+    "allow_single_spec": true,
+    "allow_grep": true,
+    "allow_smoke_project": true,
+    "allow_list": true
+  },
+  "long_running_command_timeout_hint_seconds": 300,
+  "stuck_task_monitor": {
+    "warn_after_seconds": 3600,
+    "kill_only_when_env_enabled": "YAMTAM_AUTO_KILL=1",
+    "allowlist_patterns": ["playwright", "chrome-headless", "chromium", "npm run test:e2e", "pnpm test:e2e"]
+  },
+  "notes": [
+    "Token budget is policy-level only. This pack does not claim real token metering.",
+    "Cost Guard warns or blocks risky commands; it does not rewrite Bash commands."
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "version": "10.0",
+  "purpose": "Deterministic routing hints to reduce 21-agent confusion.",
+  "rules": [
+    {
+      "match": [
+        "api",
+        "endpoint",
+        "server",
+        "auth",
+        "webhook",
+        "business logic"
+      ],
+      "primary": "backend-developer",
+      "verify_with": "qa-engineer"
+    },
+    {
+      "match": [
+        "react",
+        "component",
+        "page",
+        "css",
+        "layout",
+        "state",
+        "frontend"
+      ],
+      "primary": "frontend-developer",
+      "verify_with": "qa-engineer"
+    },
+    {
+      "match": [
+        "mobile",
+        "react native",
+        "ios",
+        "android"
+      ],
+      "primary": "react-native-developer",
+      "verify_with": "qa-engineer"
+    },
+    {
+      "match": [
+        "database",
+        "migration",
+        "schema",
+        "query",
+        "index",
+        "postgres"
+      ],
+      "primary": "database-expert",
+      "verify_with": "qa-engineer"
+    },
+    {
+      "match": [
+        "docker",
+        "container",
+        "compose",
+        "image"
+      ],
+      "primary": "docker-expert",
+      "verify_with": "cicd-engineer"
+    },
+    {
+      "match": [
+        "github action",
+        "ci",
+        "cd",
+        "deploy",
+        "release",
+        "pipeline"
+      ],
+      "primary": "cicd-engineer",
+      "verify_with": "release"
+    },
+    {
+      "match": [
+        "spec",
+        "requirements",
+        "prd",
+        "plan feature"
+      ],
+      "primary": "spec-planner",
+      "verify_with": "spec-verifier"
+    },
+    {
+      "match": [
+        "architecture",
+        "system design",
+        "cross cutting",
+        "major refactor"
+      ],
+      "primary": "systems-architect",
+      "verify_with": "prompt-firewall"
+    },
+    {
+      "match": [
+        "copy",
+        "seo",
+        "landing",
+        "marketing",
+        "cta"
+      ],
+      "primary": "copywriter-seo",
+      "verify_with": "documentation-writer"
+    },
+    {
+      "match": [
+        "docs",
+        "readme",
+        "guide",
+        "documentation"
+      ],
+      "primary": "documentation-writer",
+      "verify_with": "prompt-firewall"
+    },
+    {
+      "match": [
+        "agent",
+        "routing",
+        "too many agents",
+        "duplicate agent"
+      ],
+      "primary": "agent-gardener",
+      "verify_with": "config-doctor"
+    },
+    {
+      "match": [
+        "memory",
+        "recall",
+        "context lost",
+        "resume"
+      ],
+      "primary": "context-synthesizer",
+      "verify_with": "token-guard"
+    },
+    {
+      "match": [
+        "claim",
+        "done",
+        "fake",
+        "stub",
+        "placeholder",
+        "verify"
+      ],
+      "primary": "prompt-firewall",
+      "verify_with": "qa-engineer"
+    },
+    {
+      "match": [
+        "token",
+        "context",
+        "compression",
+        "large diff"
+      ],
+      "primary": "token-guard",
+      "verify_with": "context-synthesizer"
+    },
+    {
+      "match": [
+        "config",
+        "settings",
+        "hook",
+        "command",
+        "claude"
+      ],
+      "primary": "config-doctor",
+      "verify_with": "prompt-firewall"
+    }
+  ],
+  "fallback": {
+    "primary": "project-manager",
+    "verify_with": "prompt-firewall"
+  },
+  "anti_rules": [
+    "Do not invoke implementation agents before reading the relevant files.",
+    "Do not claim completion without a concrete verification artifact: command output, diff, file path, or test result.",
+    "Do not add new agents until agent-gardener confirms no existing role covers the task."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "version": "10.0",
+  "purpose": "Performance budget for hooks.",
+  "budgets_ms": {
+    "api-destruct-guard.sh": 500,
+    "audit-log.sh": 300,
+    "auto-kill-stuck-tasks.sh": 1000,
+    "code-freeze.sh": 300,
+    "cost-guard.sh": 500,
+    "db-protect.sh": 500,
+    "guard-destructive.sh": 300,
+    "rbac-guard.sh": 500,
+    "telemetry-sender.sh": 300,
+    "token-scope-guard.sh": 500,
+    "context-gate.sh": 1200,
+    "context-gate-log.sh": 300,
+    "format-on-write.sh": 3000,
+    "memory-index-update.sh": 1500,
+    "gitnexus-hook.js": 10000,
+    "brain-dump-trigger.sh": 800,
+    "auto-qa-trigger.sh": 2000,
+    "auto-qa-reset.sh": 500,
+    "context-monitor.js": 5000,
+    "tool-attention.js": 800,
+    "validate-completion.sh": 2000,
+    "log-agent.sh": 500
+  },
+  "policy": {
+    "safe_mode": "Only destructive guard, context gate, and validate-completion are mandatory.",
+    "strict_mode": "All hooks enabled, but any hook exceeding budget should log a warning, not silently hang.",
+    "failure_rule": "Safety hooks may block. Telemetry and formatting hooks should degrade gracefully."
+  }
+}

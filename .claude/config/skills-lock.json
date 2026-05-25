@@ -1,0 +1,2454 @@
+{
+  "skills": {
+    "a2a-protocol-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/a2a-protocol-patterns",
+      "localPath": ".claude/skills/a2a-protocol-patterns",
+      "computedHash": "75a850cc3c15e088a47d504f1357f030c0bbacda14d60346f8a799753a0da44e"
+    },
+    "accessibility-audit": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/accessibility-audit",
+      "localPath": ".claude/skills/accessibility-audit",
+      "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a"
+    },
+    "adr-writing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/adr-writing",
+      "localPath": ".claude/skills/adr-writing",
+      "computedHash": "34fbd1d3f9105e3839ce7a851d0a19474dd8b08cbde9e3678ed8c5872e630162"
+    },
+    "advanced-color-math": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/advanced-color-math",
+      "localPath": ".claude/skills/advanced-color-math",
+      "computedHash": "53f1d423ac9f62add3dbbb7e63472ad08d3723a4bf99aa0756496dff88373b40"
+    },
+    "advanced-motion-easing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/advanced-motion-easing",
+      "localPath": ".claude/skills/advanced-motion-easing",
+      "computedHash": "92fe805ea1f4b053d5f4a71adfc4aaf252b548baaf2f39345948aeb943e5c23b"
+    },
+    "advanced-typography": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/advanced-typography",
+      "localPath": ".claude/skills/advanced-typography",
+      "computedHash": "0f9e4842179f19edae51de14b3293311e9573407d0929295ab6a72bb3d09e35a"
+    },
+    "adversarial-prompt-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/adversarial-prompt-testing",
+      "localPath": ".claude/skills/adversarial-prompt-testing",
+      "computedHash": "2539885271644d370d0688b28d76d8b083bb566a1f5c5b63265c1b8893ad1d75"
+    },
+    "aesthetic-anchor": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/aesthetic-anchor",
+      "localPath": ".claude/skills/aesthetic-anchor",
+      "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241"
+    },
+    "agent-attack-surface": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-attack-surface",
+      "localPath": ".claude/skills/agent-attack-surface",
+      "computedHash": "f3f82f2be9f842d0e618130148c13629660e9817d75988f3098595eeeb245fd8"
+    },
+    "agent-introspection-debugging": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-introspection-debugging",
+      "localPath": ".claude/skills/agent-introspection-debugging",
+      "computedHash": "4d16db5ab651883fc8ebccfca8967da917744e319c18007f73bb5783789104be"
+    },
+    "agent-memory-security": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-memory-security",
+      "localPath": ".claude/skills/agent-memory-security",
+      "computedHash": "0b4b7e65a68c48f3cc2c62bae616f6221e3e1f3e64932dca01e096f52a12d4f7"
+    },
+    "agent-messaging-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-messaging-patterns",
+      "localPath": ".claude/skills/agent-messaging-patterns",
+      "computedHash": "ea7903e082ddd6a917d38f7de092e24df6e3fa66962b1cd5692a39c5e54039e0"
+    },
+    "agent-middleware-gate": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-middleware-gate",
+      "localPath": ".claude/skills/agent-middleware-gate",
+      "computedHash": "86b683db65d2fa28f3284c56b5da755e5d4f5dbbff0322fd5a3f789c48efec44"
+    },
+    "agent-safety-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-safety-patterns",
+      "localPath": ".claude/skills/agent-safety-patterns",
+      "computedHash": "a2e252b7fd5526e28549fd9dc14960d7fad4451e4cfc82465fe28d9c35283249"
+    },
+    "agent-telemetry": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-telemetry",
+      "localPath": ".claude/skills/agent-telemetry",
+      "computedHash": "1c4781cb920deeeb694051cecf273282240b8c82143f3747aa5a5e631a692544"
+    },
+    "agent-verification-gate": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agent-verification-gate",
+      "localPath": ".claude/skills/agent-verification-gate",
+      "computedHash": "408e252b84d1fb5bf260b5fa42398b4735ac247360ce95b7f996a85a7e3fa78b"
+    },
+    "agenthub": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agenthub",
+      "localPath": ".claude/skills/agenthub",
+      "computedHash": "de459ca54e361100827d262e74293937d82d29641ae70457a13fdc3be73c6200"
+    },
+    "agentic-failure-modes": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/agentic-failure-modes",
+      "localPath": ".claude/skills/agentic-failure-modes",
+      "computedHash": "7ac5e8da478be7fd281dffd54921d0094366794944d925ddc0dab0e1c127879d"
+    },
+    "ai-gateway-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ai-gateway-patterns",
+      "localPath": ".claude/skills/ai-gateway-patterns",
+      "computedHash": "fc4ef85481063ce8c73890bdea42f416c4e59526340bfc6e0ed192224157b452"
+    },
+    "ai-team-workflow": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ai-team-workflow",
+      "localPath": ".claude/skills/ai-team-workflow",
+      "computedHash": "1cd4d5afb4f88a9fc99f586cfe97da7c20603a8eb4174b317ac71fb26a0f669a"
+    },
+    "animation-principles": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/animation-principles",
+      "localPath": ".claude/skills/animation-principles",
+      "computedHash": "50b9032def53e6e6b3736db1c0d413e6db74bac214b03b0f83193239bb77cb39"
+    },
+    "api-design": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/api-design",
+      "localPath": ".claude/skills/api-design",
+      "computedHash": "61829716721f233529894ccf76a5e5f8a31c0528ce69d3abdf1194329564f6d7"
+    },
+    "api-rate-limiting": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/api-rate-limiting",
+      "localPath": ".claude/skills/api-rate-limiting",
+      "computedHash": "06162ae9b47b1a47b25bf7daed2262dddd1b744b89f0a4eb18a7fc65abfcff25"
+    },
+    "append-only-hypercore": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/append-only-hypercore",
+      "localPath": ".claude/skills/append-only-hypercore",
+      "computedHash": "e83e8d82742824d825296dcd963b81ae6115fffba40031a60d99b81780dbe4d6"
+    },
+    "apply-premium-background": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/apply-premium-background",
+      "localPath": ".claude/skills/apply-premium-background",
+      "computedHash": "60fe727cca9751aa1009e23a65c3410b8c8f597ee8814ca5415ce1df2204da48"
+    },
+    "archive-stream-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/archive-stream-patterns",
+      "localPath": ".claude/skills/archive-stream-patterns",
+      "computedHash": "66e6094f130e784571a6d8a6411508c1427ff736a3a5029e109039df0ab8abad"
+    },
+    "argocd-gitops": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/argocd-gitops",
+      "localPath": ".claude/skills/argocd-gitops",
+      "computedHash": "0502fbe9653b1de649fcfc9e8f021f8e23240a0985169c30a3b413479887c3c4"
+    },
+    "assemblyscript-to-wasm": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/assemblyscript-to-wasm",
+      "localPath": ".claude/skills/assemblyscript-to-wasm",
+      "computedHash": "cea06c64bb595556534db088b949194c28c0473bc3a35ed025592777f1ded488"
+    },
+    "ast-code-manipulation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ast-code-manipulation",
+      "localPath": ".claude/skills/ast-code-manipulation",
+      "computedHash": "cddfad4d6a5d2994a4bf3f2159101fb0eba2995c9cc3942505d42b3b7c668d7e"
+    },
+    "ast-codegen-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ast-codegen-patterns",
+      "localPath": ".claude/skills/ast-codegen-patterns",
+      "computedHash": "fe5735796e73531033a14f0a472c1e64c7e51b951327652b576f8593c51dd7d0"
+    },
+    "ast-injection-scanner": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ast-injection-scanner",
+      "localPath": ".claude/skills/ast-injection-scanner",
+      "computedHash": "e9d253edf30badb68c1bac0357d6842884217ff979bfae29bb45c0cf75a55078"
+    },
+    "async-storage-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/async-storage-patterns",
+      "localPath": ".claude/skills/async-storage-patterns",
+      "computedHash": "b20c8d76018d5031ec35492f559aad5c2d3602f1225803a88efc04aa37252af0"
+    },
+    "audit-env-variables": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/audit-env-variables",
+      "localPath": ".claude/skills/audit-env-variables",
+      "computedHash": "ae24ca67683ab20fcf225f8e59e8364af1358680039ba666f6c79db56af7be54"
+    },
+    "auth-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/auth-patterns",
+      "localPath": ".claude/skills/auth-patterns",
+      "computedHash": "58f0d72ab6858651d2cdb53839abc208434b786008c1505ea22dbb3994fe4b4a"
+    },
+    "auth-strategy-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/auth-strategy-patterns",
+      "localPath": ".claude/skills/auth-strategy-patterns",
+      "computedHash": "0566ca45362d9cd6a1b5043d5b8f0bf81d8d2cb4da661b1388ca70810a093204"
+    },
+    "auto-feedback-loop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/auto-feedback-loop",
+      "localPath": ".claude/skills/auto-feedback-loop",
+      "computedHash": "cd6c2260a9ff6f253cccbf1c5e157dd497017b9a9d502df8979546d07b4945c4"
+    },
+    "automerge-crdt": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/automerge-crdt",
+      "localPath": ".claude/skills/automerge-crdt",
+      "computedHash": "451fbc0d4e824356492c07c24a8d051cd55aed6186ab906bb70fea5f990c6eee"
+    },
+    "autonomous-patching-loop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/autonomous-patching-loop",
+      "localPath": ".claude/skills/autonomous-patching-loop",
+      "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36"
+    },
+    "babel-ast-transform": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/babel-ast-transform",
+      "localPath": ".claude/skills/babel-ast-transform",
+      "computedHash": "59e9fe3f593923425ef43764fdd575c395394d34dffe5a0f0503f4c81d8def1c"
+    },
+    "backend-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/backend-patterns",
+      "localPath": ".claude/skills/backend-patterns",
+      "computedHash": "825c65c89198f8c06a2d6b923e625914fd4671d50f057fa5706a8f05b69a33fe"
+    },
+    "baseline-ui": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/baseline-ui",
+      "localPath": ".claude/skills/baseline-ui",
+      "computedHash": "0c52c65dbf5c0835b95556b6baa7f73f104ecf12506fe21421fd992008ee3886"
+    },
+    "bft-consensus-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/bft-consensus-patterns",
+      "localPath": ".claude/skills/bft-consensus-patterns",
+      "computedHash": "0f4cdbbabb17ae24d3d1c2b51282c8b677f5a72c852489a244b75d34be9cb23c"
+    },
+    "blue-team-fix": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/blue-team-fix",
+      "localPath": ".claude/skills/blue-team-fix",
+      "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d"
+    },
+    "branch-finish": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/branch-finish",
+      "localPath": ".claude/skills/branch-finish",
+      "computedHash": "293aa2c09490b923bdc7b2915b96dd4c7fcb7a97c666830fca3f1f49b121ac1f"
+    },
+    "build-system": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/build-system",
+      "localPath": ".claude/skills/build-system",
+      "computedHash": "a2c90d77c6cbb40c08b25d7c0cddec1f151ddd68d7a2d0026cb1a198552f6928"
+    },
+    "bunyan-syslog-bridge": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/bunyan-syslog-bridge",
+      "localPath": ".claude/skills/bunyan-syslog-bridge",
+      "computedHash": "fdd1e66ec5e36c9aab06c9ccfe190b8c466ccd014d9edb26e2ec20a052af324d"
+    },
+    "cache-components": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cache-components",
+      "localPath": ".claude/skills/cache-components",
+      "computedHash": "655d2262a60ed6709b18240bd79417299620ca598af5ca246c8e769d619cac19"
+    },
+    "caching-memory-efficiency": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/caching-memory-efficiency",
+      "localPath": ".claude/skills/caching-memory-efficiency",
+      "computedHash": "70d7d4ed71139b3a483792ab30dec87eb28e193bb7d2148d255c38943391c131"
+    },
+    "caching-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/caching-patterns",
+      "localPath": ".claude/skills/caching-patterns",
+      "computedHash": "7cde7cc5047731b8d3565a3b0cd77fb5f476828856e419bf7698ad6ce29d7fa1"
+    },
+    "cadvisor-container-metrics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cadvisor-container-metrics",
+      "localPath": ".claude/skills/cadvisor-container-metrics",
+      "computedHash": "999cb0e60f17cbe199c13396d75653fc01c90cde6abcdfefae86eed2f824ada0"
+    },
+    "capability-dropping-linux": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/capability-dropping-linux",
+      "localPath": ".claude/skills/capability-dropping-linux",
+      "computedHash": "b1c7d420399a6b3702a83321d74a3a04d7cc52ba91ded67f606fd4f1aa1af231"
+    },
+    "caveman": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/caveman",
+      "localPath": ".claude/skills/caveman",
+      "computedHash": "77566286fc1f8f357a6dbbe6fad0ec2c8e557eb94a57e775f583e38dd00c775d"
+    },
+    "chaos-engineering": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chaos-engineering",
+      "localPath": ".claude/skills/chaos-engineering",
+      "computedHash": "5378e0094c1a3561f9332670272e742e7c7647c4ff14fe5c17405161e26cdaf7"
+    },
+    "chrome-devtools-a11y-audit": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-a11y-audit",
+      "localPath": ".claude/skills/chrome-devtools-a11y-audit",
+      "computedHash": "c9bee5969b02529cf6046f886aafd1a1f6c712f827cdac61e6fa815a07c36241"
+    },
+    "chrome-devtools-browser-automation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-browser-automation",
+      "localPath": ".claude/skills/chrome-devtools-browser-automation",
+      "computedHash": "90b41c3567720de7f22a0f1305f8da1909af1c7504b99f7c0bcd8e0d3f51d9cf"
+    },
+    "chrome-devtools-extensions": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-extensions",
+      "localPath": ".claude/skills/chrome-devtools-extensions",
+      "computedHash": "f48e3294798ff8ce5c7cc9c2cf09b58bdb6d5ec381ff86f5248ba744d713f09f"
+    },
+    "chrome-devtools-lcp-debug": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-lcp-debug",
+      "localPath": ".claude/skills/chrome-devtools-lcp-debug",
+      "computedHash": "b2fd3bebbff129f4a7b7b37df76e7764415a0b3041fe3044f35e970b1b7dba44"
+    },
+    "chrome-devtools-mcp": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-mcp",
+      "localPath": ".claude/skills/chrome-devtools-mcp",
+      "computedHash": "ca801426744f726215cbd53fbdb8e6c1ba2f0eddae5ee563f5c60600f6c17386"
+    },
+    "chrome-devtools-memory-leak": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-memory-leak",
+      "localPath": ".claude/skills/chrome-devtools-memory-leak",
+      "computedHash": "e650c89e828ee31508e0a8b22932ececa7bc8127d77056c03a235778879ebaaa"
+    },
+    "chrome-devtools-network-inspector": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-network-inspector",
+      "localPath": ".claude/skills/chrome-devtools-network-inspector",
+      "computedHash": "918f096e618568677e42929358f017abb5e4308d256281a5375387be9e66c860"
+    },
+    "chrome-devtools-performance-trace": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-performance-trace",
+      "localPath": ".claude/skills/chrome-devtools-performance-trace",
+      "computedHash": "c901670bc2cd734417b669508ef3ba6573adee9529f6bd40a56fd78911f71bee"
+    },
+    "chrome-devtools-screencast": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/chrome-devtools-screencast",
+      "localPath": ".claude/skills/chrome-devtools-screencast",
+      "computedHash": "83ffddd3e4e0c82fa8212e97a1356245dbad94c98ef7d5ad4a7d1b7ae4afe6b4"
+    },
+    "cicd-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cicd-patterns",
+      "localPath": ".claude/skills/cicd-patterns",
+      "computedHash": "c0f0767b5f329bd67daa352e279221d1dd7a275061d058281a4519def3aaced2"
+    },
+    "circuit-breaker-rollback": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/circuit-breaker-rollback",
+      "localPath": ".claude/skills/circuit-breaker-rollback",
+      "computedHash": "0c77ed45ae093593f630739324f427d034283ddf709f59a1c5f3e3e11de0f610"
+    },
+    "cli-config-persistence": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cli-config-persistence",
+      "localPath": ".claude/skills/cli-config-persistence",
+      "computedHash": "7c1b7145a43ae2d0f5de81ce2b0dd73ba4ed272461386a111ece62f8cd9f0a65"
+    },
+    "cloud-cost-optimization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cloud-cost-optimization",
+      "localPath": ".claude/skills/cloud-cost-optimization",
+      "computedHash": "6d11ae01350ee2119461d06ac2ac406dbc0d1292f924ff65e37562d7bcccdbcb"
+    },
+    "cni-network-policies": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cni-network-policies",
+      "localPath": ".claude/skills/cni-network-policies",
+      "computedHash": "148775902401ab8b51b9af5ab63b3bb63caf4872657c64eec8794458283726bf"
+    },
+    "code-tour": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/code-tour",
+      "localPath": ".claude/skills/code-tour",
+      "computedHash": "dcfb4c0afbdcedd5eb6cc9bccf789209911de82d449c21c68b7ad2466e2898f4"
+    },
+    "coding-standards": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/coding-standards",
+      "localPath": ".claude/skills/coding-standards",
+      "computedHash": "39474bd44e97be0272c90e6b039a4a3a97c56a2c8be4df76882f5b0116f4da94"
+    },
+    "color-math-system": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/color-math-system",
+      "localPath": ".claude/skills/color-math-system",
+      "computedHash": "7132a2f3791b5aaf1f570e0a0884d06bb9a0a2cf83d5a4e3195004dd6ecb2ee4"
+    },
+    "component-layout-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/component-layout-patterns",
+      "localPath": ".claude/skills/component-layout-patterns",
+      "computedHash": "04667650343d4c53ba7cb8fb96fcb4e012714c0b7aeff36a38d358e8b13a8ce1"
+    },
+    "container-interactivity": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/container-interactivity",
+      "localPath": ".claude/skills/container-interactivity",
+      "computedHash": "791955907c2a4b8300d9945922040e3f86c3f0d0ffa439e001dd57b7909859af"
+    },
+    "contract-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/contract-testing",
+      "localPath": ".claude/skills/contract-testing",
+      "computedHash": "ab6d2eca602da12626a16b9ec347af87722989c0a29220bbc12878032689d33d"
+    },
+    "crossplane-control-plane": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/crossplane-control-plane",
+      "localPath": ".claude/skills/crossplane-control-plane",
+      "computedHash": "53a0b774bfe1e352a981e9275060ba349b9674e76cedf560f8efa04baa15bf6a"
+    },
+    "crypto-pki-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/crypto-pki-patterns",
+      "localPath": ".claude/skills/crypto-pki-patterns",
+      "computedHash": "f9a29b2012a8a670696c49c89529489a21fcf7c1a3d4b177bfe14758a4e34cd8"
+    },
+    "cyclomatic-complexity": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/cyclomatic-complexity",
+      "localPath": ".claude/skills/cyclomatic-complexity",
+      "computedHash": "1464cfe8fba9b67a5276c0cddf6038e3a442c19addbd5798c968d263a99d3b93"
+    },
+    "dagre-layout-engine": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/dagre-layout-engine",
+      "localPath": ".claude/skills/dagre-layout-engine",
+      "computedHash": "0eac49314ed11be5f44097fd45f29914a97b615c593bdf3a4b9e75000e48b31b"
+    },
+    "data-privacy": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/data-privacy",
+      "localPath": ".claude/skills/data-privacy",
+      "computedHash": "949675c07c1838753ea2958be2c1d66f124085ee194264b276236052db484d13"
+    },
+    "database-migrations": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/database-migrations",
+      "localPath": ".claude/skills/database-migrations",
+      "computedHash": "2c4611fb9defbe20ec903dafa145afc1655086d8f51372550a7b61c51f94b85e"
+    },
+    "database-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/database-patterns",
+      "localPath": ".claude/skills/database-patterns",
+      "computedHash": "785baab0b44d7c2b0e8556c5363b9d7b95fca84198b039beabcfeeb771014ddf"
+    },
+    "database-query-safety": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/database-query-safety",
+      "localPath": ".claude/skills/database-query-safety",
+      "computedHash": "c48df727a141dd9ca91451b101ae656d5742ef99cb3d0f7fc41b617846b2369e"
+    },
+    "debug-protocol": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/debug-protocol",
+      "localPath": ".claude/skills/debug-protocol",
+      "computedHash": "0c3dd6c76bcde6a28bf04478859f0e9cbe5f263df33237034c6ae4e471434a6d"
+    },
+    "debugging-strategies": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/debugging-strategies",
+      "localPath": ".claude/skills/debugging-strategies",
+      "computedHash": "c95dffd9ae46cd97700d9de9b1658bce6ea3891d9da1d152edae19ff9bcc0e91"
+    },
+    "deep-research": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/deep-research",
+      "localPath": ".claude/skills/deep-research",
+      "computedHash": "d0fe9caff3cdf45ff5ce200ec76ca2034c40b12b6e068de47e1da8ff947c2a74"
+    },
+    "deepspeed-zero-memory": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/deepspeed-zero-memory",
+      "localPath": ".claude/skills/deepspeed-zero-memory",
+      "computedHash": "5dbb48b1bf1da00a690a824e328aed68f3738f1c73680d0f9742189417b62ae8"
+    },
+    "design-engineering": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-engineering",
+      "localPath": ".claude/skills/design-engineering",
+      "computedHash": "cd81cc6c334a774e2a14e4ea7ebaaa503801625fda279ac047ca3b5902c9452e"
+    },
+    "design-system-gen": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-system-gen",
+      "localPath": ".claude/skills/design-system-gen",
+      "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a"
+    },
+    "design-taste-frontend": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-taste-frontend",
+      "localPath": ".claude/skills/design-taste-frontend",
+      "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482"
+    },
+    "design-tokens-system": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/design-tokens-system",
+      "localPath": ".claude/skills/design-tokens-system",
+      "computedHash": "a24f422f77eaaf8dd7e8e3fbe87ba24c78e39a2ba9979dad17b236b7881e58d4"
+    },
+    "did-credential-lifecycle": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/did-credential-lifecycle",
+      "localPath": ".claude/skills/did-credential-lifecycle",
+      "computedHash": "cf7b59cf271b752ce3278486227c791d7a7b67473bea8ab2c9f59eeae96e349a"
+    },
+    "did-resolver-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/did-resolver-patterns",
+      "localPath": ".claude/skills/did-resolver-patterns",
+      "computedHash": "ba50e4d8efb025d0c6ba08c710db5ff1ac238e3ac072218fee8be589acaba887"
+    },
+    "disaggregated-prefill-decode": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/disaggregated-prefill-decode",
+      "localPath": ".claude/skills/disaggregated-prefill-decode",
+      "computedHash": "e60a034adcb4bf2481849ba6cae05147e97bf32e7d003908108699c501e1b606"
+    },
+    "distributed-tracing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/distributed-tracing",
+      "localPath": ".claude/skills/distributed-tracing",
+      "computedHash": "705c692a1a0b07a995f3fa41dbee358ca17868ed5c5992eb07a141ca2b9d903e"
+    },
+    "docker-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/docker-patterns",
+      "localPath": ".claude/skills/docker-patterns",
+      "computedHash": "c0c48ab57dc866a3b118c9ae0d864fd5562c7c266e4d1a588bc372382461a942"
+    },
+    "documentation-lookup": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/documentation-lookup",
+      "localPath": ".claude/skills/documentation-lookup",
+      "computedHash": "2a74fdc8e6e62832feea09287cac2ea5ce90bfb262258f2151d187c0287cfdc7"
+    },
+    "dompurify-xss-prevention": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/dompurify-xss-prevention",
+      "localPath": ".claude/skills/dompurify-xss-prevention",
+      "computedHash": "d52995679b7aabe6f7ec5aa322838c7341447b0c9d6f01cc38b48644189a00ac"
+    },
+    "durable-task-queues": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/durable-task-queues",
+      "localPath": ".claude/skills/durable-task-queues",
+      "computedHash": "6db3e0f2e2870f3edb748aebee0a19a7d8bc0b4b6596c4dc6f8a3888173c7e01"
+    },
+    "e2e-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/e2e-testing",
+      "localPath": ".claude/skills/e2e-testing",
+      "computedHash": "741f626767c86f2a58f62537eec14973c41578fa1c83a32ed0eea925109b55b5"
+    },
+    "ebpf-runtime-tracing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ebpf-runtime-tracing",
+      "localPath": ".claude/skills/ebpf-runtime-tracing",
+      "computedHash": "a2b759468453ed88393304639b1cc6b5a7411fbc98823b154c84b606671f9d50"
+    },
+    "ebpf-syscall-monitoring": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ebpf-syscall-monitoring",
+      "localPath": ".claude/skills/ebpf-syscall-monitoring",
+      "computedHash": "816fc7c5ba54addbb61c42b2ddcf8a4805290918086ac560fc72b4ee5ffb6684"
+    },
+    "ecc-key-management": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ecc-key-management",
+      "localPath": ".claude/skills/ecc-key-management",
+      "computedHash": "a879fa2f50a356e1f02e3ba019ce460284e130f367f6c6a719650a7056402364"
+    },
+    "enterprise-design-systems": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/enterprise-design-systems",
+      "localPath": ".claude/skills/enterprise-design-systems",
+      "computedHash": "564580ef03c9e84986aa9a170473902fccd10d292865e71c26192e91874273e5"
+    },
+    "envoy-proxy-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/envoy-proxy-patterns",
+      "localPath": ".claude/skills/envoy-proxy-patterns",
+      "computedHash": "0d1a1a92c47a088b2bcc81b18fd297b519bc2674035da696ba5359d9baeec212"
+    },
+    "error-handling": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/error-handling",
+      "localPath": ".claude/skills/error-handling",
+      "computedHash": "927bf08eadc003b84b9a88c2732f1ab2c8069937162a6c4ae75511f5dbee896c"
+    },
+    "eslint-rule-engine": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/eslint-rule-engine",
+      "localPath": ".claude/skills/eslint-rule-engine",
+      "computedHash": "11faf1e2b5c2b4a807d78085a992ccd8a9c74d8858434911b47fe0be89245308"
+    },
+    "estree-ast-spec": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/estree-ast-spec",
+      "localPath": ".claude/skills/estree-ast-spec",
+      "computedHash": "008de142cf38585fb09834d4116a7dcb9d8286d60da0a654f880a53b13a008df"
+    },
+    "etcd-distributed-config": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/etcd-distributed-config",
+      "localPath": ".claude/skills/etcd-distributed-config",
+      "computedHash": "c4b152e09cac3e9f159903ee155f0dd4ccf803ef88c95d4dcdcf64139dc154d6"
+    },
+    "eval-driven-agent-dev": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/eval-driven-agent-dev",
+      "localPath": ".claude/skills/eval-driven-agent-dev",
+      "computedHash": "48dafd605334f251cd0b137c6752a6a8faa23bc723303af9e2057a4ced717a7a"
+    },
+    "event-driven-architecture": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/event-driven-architecture",
+      "localPath": ".claude/skills/event-driven-architecture",
+      "computedHash": "cc7b8c491ac97c7a4348c2e083152ba0a23a9ee0d7a1df467ca7d3ab1b7ea62a"
+    },
+    "executing-plans": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/executing-plans",
+      "localPath": ".claude/skills/executing-plans",
+      "computedHash": "fa99e1f1f6cda17de52e3865b3c0812e303b8f4a968e8eccd548592dfa338292"
+    },
+    "extism-wasm-plugins": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/extism-wasm-plugins",
+      "localPath": ".claude/skills/extism-wasm-plugins",
+      "computedHash": "5452c8ddab5c86e429d8f66c70f64e7782f581042b2fee03025771fd5721d304"
+    },
+    "extract-errors": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/extract-errors",
+      "localPath": ".claude/skills/extract-errors",
+      "computedHash": "68cc6f6f432f4e93fbbaec50596663d220f2c12d6b8cdf75da369cb4655a7e43"
+    },
+    "feature-flags": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/feature-flags",
+      "localPath": ".claude/skills/feature-flags",
+      "computedHash": "bc1482e6d9109565722540fc231e3b07cb4b5f1be05ab4ca64e690b9c90bceaa"
+    },
+    "fetch-redirect-ssrf-guard": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/fetch-redirect-ssrf-guard",
+      "localPath": ".claude/skills/fetch-redirect-ssrf-guard",
+      "computedHash": "585b7b9fe09ec0ee2da9415b82c970eaab543e67bdd76fa632c46136f9853c5b"
+    },
+    "file-watcher": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/file-watcher",
+      "localPath": ".claude/skills/file-watcher",
+      "computedHash": "cafb0348099494c09e21620265ea207e5336706ce1498d83b6a11aff961b7a70"
+    },
+    "filesystem-isolation-chroot": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/filesystem-isolation-chroot",
+      "localPath": ".claude/skills/filesystem-isolation-chroot",
+      "computedHash": "6df0956555077ce279aeba7b39fee71c1a7f19ace2e365da98d14c409aaa8bdb"
+    },
+    "financial-velocity-budgeting": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/financial-velocity-budgeting",
+      "localPath": ".claude/skills/financial-velocity-budgeting",
+      "computedHash": "b92226ed93ff75d480ebd0a2ffa98be78b233f949ca496c737e0d902452cf496"
+    },
+    "fixing-accessibility": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/fixing-accessibility",
+      "localPath": ".claude/skills/fixing-accessibility",
+      "computedHash": "4c3348146e175710f4e18930d074b0a8d21d62b39c9ec9e6f868cd882f863b21"
+    },
+    "fixing-motion-performance": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/fixing-motion-performance",
+      "localPath": ".claude/skills/fixing-motion-performance",
+      "computedHash": "cf0b55a888e02e0595279939057c635dd205baa689bd6508331af3977d67c8c4"
+    },
+    "flash-attention-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/flash-attention-patterns",
+      "localPath": ".claude/skills/flash-attention-patterns",
+      "computedHash": "a7092a3b04c59297f2d5239fb5f60b3c4ca68a1d830ae388e6accab81e0a8405"
+    },
+    "flow-anchor-connection": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/flow-anchor-connection",
+      "localPath": ".claude/skills/flow-anchor-connection",
+      "computedHash": "51f1e071e9ace048660eeb8b5ae0b5e6cf559e3d1b98d90b8ebb1b0537dff51d"
+    },
+    "frontend-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/frontend-patterns",
+      "localPath": ".claude/skills/frontend-patterns",
+      "computedHash": "e2ecd75dbe5e50fb29cb53f0b8fbbb56fd4e7758d94ad1f4983d161a9c2f4d3b"
+    },
+    "generative-ui-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/generative-ui-patterns",
+      "localPath": ".claude/skills/generative-ui-patterns",
+      "computedHash": "bc43e3ed1779f2af5c46cfc03d3122b516645b14e13fb6b89921890a5fbf403c"
+    },
+    "git-lessons": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/git-lessons",
+      "localPath": ".claude/skills/git-lessons",
+      "computedHash": "307a9abb3cc92cf46a12b4357d5d0ab1ed3e44805c3b8ea9a599efd81408b6c7"
+    },
+    "git-native-agent-protocol": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/git-native-agent-protocol",
+      "localPath": ".claude/skills/git-native-agent-protocol",
+      "computedHash": "b963fd96250b9d07c3259b018d2d5cbbe35205ec617040172ea9a63e9fe8025c"
+    },
+    "gitignore-pattern-matching": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitignore-pattern-matching",
+      "localPath": ".claude/skills/gitignore-pattern-matching",
+      "computedHash": "5800cc37aa3ef2aef309df94e769cb1a1f2304c046ce960042253c7a510072d0"
+    },
+    "gitnexus-gitnexus-cli": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-cli",
+      "localPath": ".claude/skills/gitnexus/gitnexus-cli",
+      "computedHash": "2b4f1a7832226ef3c2622dbf6d627feb990f29a5f1e4ae51621323deb96cbe98"
+    },
+    "gitnexus-gitnexus-debugging": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-debugging",
+      "localPath": ".claude/skills/gitnexus/gitnexus-debugging",
+      "computedHash": "d89516cacc0e840779248079a7d90a6c2e6f41e7329b21ba0375b4b5ed2ab4ab"
+    },
+    "gitnexus-gitnexus-exploring": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-exploring",
+      "localPath": ".claude/skills/gitnexus/gitnexus-exploring",
+      "computedHash": "3d2302f47fab391148d9367416fae40edf45f2e64826473b291d8130f5495976"
+    },
+    "gitnexus-gitnexus-guide": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-guide",
+      "localPath": ".claude/skills/gitnexus/gitnexus-guide",
+      "computedHash": "c3108339f625e4234ec189e43c0c46323e6cc0b1b392b311020a5b3a5cfaf186"
+    },
+    "gitnexus-gitnexus-impact-analysis": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-impact-analysis",
+      "localPath": ".claude/skills/gitnexus/gitnexus-impact-analysis",
+      "computedHash": "a3547ae44eac70f37a2ef99aaa6cb4e9ee5c981a29aff09019418cd1d6ca08ed"
+    },
+    "gitnexus-gitnexus-pr-review": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-pr-review",
+      "localPath": ".claude/skills/gitnexus/gitnexus-pr-review",
+      "computedHash": "883cc857f266d065f9553a06d6e40548dc81f43793b50e312abd9663eb930030"
+    },
+    "gitnexus-gitnexus-refactoring": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/gitnexus/gitnexus-refactoring",
+      "localPath": ".claude/skills/gitnexus/gitnexus-refactoring",
+      "computedHash": "7bca02970355f8176e157ddd6cca11d111949886407cf1382ccaaf1ca309694a"
+    },
+    "glob-minimatch-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/glob-minimatch-patterns",
+      "localPath": ".claude/skills/glob-minimatch-patterns",
+      "computedHash": "0a79c75648ed5813af530f44e06c34845e31d14efb1443a9abe2202926f86871"
+    },
+    "grammar-lexer-dsl": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/grammar-lexer-dsl",
+      "localPath": ".claude/skills/grammar-lexer-dsl",
+      "computedHash": "34782b5e796812023fd51d7262ec595a38e6bfd67979c97ef60ceed16d257dd5"
+    },
+    "graph-data-structure-ops": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/graph-data-structure-ops",
+      "localPath": ".claude/skills/graph-data-structure-ops",
+      "computedHash": "72a0c96f3fd7e6dea39c4714a8b2a35328a3604361e4f2420d8a384ef2d51a8a"
+    },
+    "graph-dependency-resolution": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/graph-dependency-resolution",
+      "localPath": ".claude/skills/graph-dependency-resolution",
+      "computedHash": "814defcef912db04d9be2c958e3cffd40630abf2b736e43c08ab64f688994ae7"
+    },
+    "graphql-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/graphql-patterns",
+      "localPath": ".claude/skills/graphql-patterns",
+      "computedHash": "5b4d4ebf1fd2d1bab893583c8a527192edeaf8086335a5764c8624121405509b"
+    },
+    "grpc-streaming-rpc": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/grpc-streaming-rpc",
+      "localPath": ".claude/skills/grpc-streaming-rpc",
+      "computedHash": "c5523ac94c5c50a7018d6e357d5e2d4c8420ea15709235bd4ed94e0c06bcc5a9"
+    },
+    "handoff": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/handoff",
+      "localPath": ".claude/skills/handoff",
+      "computedHash": "1341d0faf1137a8ef3ae53c157c2d0a837c645f4301fa59eb06df811e36031fe"
+    },
+    "helm-chart-packaging": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/helm-chart-packaging",
+      "localPath": ".claude/skills/helm-chart-packaging",
+      "computedHash": "8c2ace2e042b1d41abfdb27b943a6afeed86f48e65047492ea855282d9b95e4f"
+    },
+    "high-perf-data-algorithms": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/high-perf-data-algorithms",
+      "localPath": ".claude/skills/high-perf-data-algorithms",
+      "computedHash": "8d40ebdb1d2167f2820d26553c6d9ca3fd63631d2ff0cbd9cf47e07ce54ddbf6"
+    },
+    "honeypot-deception-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/honeypot-deception-patterns",
+      "localPath": ".claude/skills/honeypot-deception-patterns",
+      "computedHash": "d44ca776e15a5fdb21c7f1204905a1d0fbdc4b5471a623960f6d6042b89fdf2f"
+    },
+    "hook-block-commands": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/hook-block-commands",
+      "localPath": ".claude/skills/hook-block-commands",
+      "computedHash": "6f972932642e465835cbb1944c54567bc258b89b87036e7d118e8df8181d0d72"
+    },
+    "hook-protect-secrets": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/hook-protect-secrets",
+      "localPath": ".claude/skills/hook-protect-secrets",
+      "computedHash": "d0bf6a046a72c4c318d3c8e17e5abdcaec86a61fae3051e06da90cfab11a64b1"
+    },
+    "html-xss-filtering": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/html-xss-filtering",
+      "localPath": ".claude/skills/html-xss-filtering",
+      "computedHash": "ae5727de23369015b35a1b72fbf768edc09b35f52ebba08e1d91e0846e00fcfa"
+    },
+    "htn-evolutionary-planning": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/htn-evolutionary-planning",
+      "localPath": ".claude/skills/htn-evolutionary-planning",
+      "computedHash": "f5d98f5949c1a2bf2ce7df2d58edb750d1fabc2708081db8533ccbe60fe74920"
+    },
+    "http-client-auth-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/http-client-auth-patterns",
+      "localPath": ".claude/skills/http-client-auth-patterns",
+      "computedHash": "8c0c74d71c843c61b12c19240deb613dcab109c0d67967cd334c7f10271a139c"
+    },
+    "http-proxy-intercept": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/http-proxy-intercept",
+      "localPath": ".claude/skills/http-proxy-intercept",
+      "computedHash": "5f10654aaa8a451d5ed911400b0ee6f7908cc5d398db43f876bb51bf78369f4e"
+    },
+    "http-tunnel-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/http-tunnel-patterns",
+      "localPath": ".claude/skills/http-tunnel-patterns",
+      "computedHash": "ba03c9e0264a8dccdb8156ca023a2450aa2f5586b460e5ce6efaed2f5dca15ea"
+    },
+    "hyperdrive-distributed-fs": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/hyperdrive-distributed-fs",
+      "localPath": ".claude/skills/hyperdrive-distributed-fs",
+      "computedHash": "3ccab0fd5a3b058d2495dc90c33775c235bf481b2519b27d294c5d36e1d847b7"
+    },
+    "i18n-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/i18n-patterns",
+      "localPath": ".claude/skills/i18n-patterns",
+      "computedHash": "cec48989a1cd1689c10019f9cd853152a8f211b8d13e7ec00ae9539792aaefd4"
+    },
+    "image-to-code": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/image-to-code",
+      "localPath": ".claude/skills/image-to-code",
+      "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9"
+    },
+    "immutable-identity-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/immutable-identity-patterns",
+      "localPath": ".claude/skills/immutable-identity-patterns",
+      "computedHash": "2a3d89587c771097b732a237f86c25802e273ef88e241d430863f656c99c82a7"
+    },
+    "impeccable": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/impeccable",
+      "localPath": ".claude/skills/impeccable",
+      "computedHash": "a1ebe012536ce4528f0788126d93a165f37382a0c3fe0d2bca5cf4364be3bf54"
+    },
+    "in-memory-vector-storage": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/in-memory-vector-storage",
+      "localPath": ".claude/skills/in-memory-vector-storage",
+      "computedHash": "656bb338c25a81f6fda95f0ccc5ebed1decfb63db5b4d518409d78f53c4159fb"
+    },
+    "incident-response-runbook": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/incident-response-runbook",
+      "localPath": ".claude/skills/incident-response-runbook",
+      "computedHash": "72af96eb8309e76b83045448cf520ef2a36433376f38e5e8ae6b17738e113422"
+    },
+    "ingest-repo": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ingest-repo",
+      "localPath": ".claude/skills/ingest-repo",
+      "computedHash": "a3cd0cbd07795d796d3bbab808126e5ebae5921e186161c9e8b2e9c33551e441"
+    },
+    "ini-config-parsing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ini-config-parsing",
+      "localPath": ".claude/skills/ini-config-parsing",
+      "computedHash": "7c27eba4c5c37ebcb9199ef72ff71172542960fab2330d5446e0f593fd5c93d1"
+    },
+    "interface-feel": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/interface-feel",
+      "localPath": ".claude/skills/interface-feel",
+      "computedHash": "8a023749774b27c849af588d66d5e2e75abbae17221ff100361ff7ef267a5565"
+    },
+    "istio-traffic-management": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/istio-traffic-management",
+      "localPath": ".claude/skills/istio-traffic-management",
+      "computedHash": "d9a8b9c9b70db9190a4ef4447a36de9957e77eb22928f55d085e60b7e527f293"
+    },
+    "jaeger-tracing-visualization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/jaeger-tracing-visualization",
+      "localPath": ".claude/skills/jaeger-tracing-visualization",
+      "computedHash": "36eeb5161815dd769db28a859d05fd955e6ec2382572e4c9d2146d3b967812da"
+    },
+    "jepsen-fault-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/jepsen-fault-testing",
+      "localPath": ".claude/skills/jepsen-fault-testing",
+      "computedHash": "169348f5ea49b6943360dfa79c0b631e618f6060c6691d0c55bf146b8106b89c"
+    },
+    "jest-test-generation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/jest-test-generation",
+      "localPath": ".claude/skills/jest-test-generation",
+      "computedHash": "a17a60b57703e234b724c2cc10fef6b6d4c69550701754aa3c9f5da832b154ac"
+    },
+    "jwt-jws-jwe-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/jwt-jws-jwe-patterns",
+      "localPath": ".claude/skills/jwt-jws-jwe-patterns",
+      "computedHash": "3fb0c96e445267ef5f34b5146c5105f1abdba5588190324a9bc262ac51dc841c"
+    },
+    "jwt-verification-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/jwt-verification-patterns",
+      "localPath": ".claude/skills/jwt-verification-patterns",
+      "computedHash": "293e43c52afec4a05d859206a4680046b08f732fb8925cf36b614d6e5e9d6d2f"
+    },
+    "k8s-client-js": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/k8s-client-js",
+      "localPath": ".claude/skills/k8s-client-js",
+      "computedHash": "23f7ed75768eade579aaf048d32f515592849b7178e9d017b8540d0731f5c6fe"
+    },
+    "k8s-crd-controller": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/k8s-crd-controller",
+      "localPath": ".claude/skills/k8s-crd-controller",
+      "computedHash": "945d1b97979aa285dbc2c57f3baf5845425dc1faf23b7c3ea0d4e0586ee2c2d3"
+    },
+    "karpathy-guidelines": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/karpathy-guidelines",
+      "localPath": ".claude/skills/karpathy-guidelines",
+      "computedHash": "2d9f49c15b435f7eddf55b5f0503cdb0e2f9b97b369d595b2a80c08baac05567"
+    },
+    "keccak256-hash-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/keccak256-hash-patterns",
+      "localPath": ".claude/skills/keccak256-hash-patterns",
+      "computedHash": "8c77767acadb3330d313fdb555900401e9076560bb35bea9dd966c922a0cf647"
+    },
+    "ktlint-auto-format": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ktlint-auto-format",
+      "localPath": ".claude/skills/ktlint-auto-format",
+      "computedHash": "669f136cd6f49ce3caff6559fc54da4086e0a456afe6840a44f82e9591c0ff1b"
+    },
+    "kubernetes-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/kubernetes-patterns",
+      "localPath": ".claude/skills/kubernetes-patterns",
+      "computedHash": "102643a4a495e6c35c547d5da7c13d4095689d612b6771c1572283bcab62995d"
+    },
+    "kv-cache-optimization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/kv-cache-optimization",
+      "localPath": ".claude/skills/kv-cache-optimization",
+      "computedHash": "1fde99f85ddcbeb9f1cdffc4aeee2a0fa559be0b9dab223983af6b86dc7f702c"
+    },
+    "l1-promote": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/l1-promote",
+      "localPath": ".claude/skills/l1-promote",
+      "computedHash": "1206e00910ce64c64057dc4fa6d76804be7959ca5e27501fe5b152306a470105"
+    },
+    "leak-check": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/leak-check",
+      "localPath": ".claude/skills/leak-check",
+      "computedHash": "cccc575d19fe2f08fbed384d38015762ad55460e74e239e5f4a36241cdde922a"
+    },
+    "linkerd-service-mesh": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/linkerd-service-mesh",
+      "localPath": ".claude/skills/linkerd-service-mesh",
+      "computedHash": "7ee8a88b8ae97062d626389e1a093bee7c68ed8080bf40cb9eddcbe2d5a11a3b"
+    },
+    "lint-staged-git-hook": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/lint-staged-git-hook",
+      "localPath": ".claude/skills/lint-staged-git-hook",
+      "computedHash": "b363da5aef448aa51e10eed6676f8d27fb8df7310dfea960bf8e6f1d987a12c1"
+    },
+    "llama-cpp-quantization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llama-cpp-quantization",
+      "localPath": ".claude/skills/llama-cpp-quantization",
+      "computedHash": "da93ee2f539ce283ccd3067330175b40455e87e12acd187412a815d5148ea11d"
+    },
+    "llm-cost-optimizer": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-cost-optimizer",
+      "localPath": ".claude/skills/llm-cost-optimizer",
+      "computedHash": "1850e4461ee3c0437d92dd0f9a5c2d8372d62d5fef31573de7055fb63a8b3e33"
+    },
+    "llm-eval-framework": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-eval-framework",
+      "localPath": ".claude/skills/llm-eval-framework",
+      "computedHash": "2b04840f4527ee1c575b1251ac0aa572619409948e5781604f23588c998c6ac5"
+    },
+    "llm-int8-quantization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-int8-quantization",
+      "localPath": ".claude/skills/llm-int8-quantization",
+      "computedHash": "18cb8b1c9d1396cd256c1d64663304d12ce5b3cedb1bfaed16f671b65a131cdd"
+    },
+    "llm-load-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-load-testing",
+      "localPath": ".claude/skills/llm-load-testing",
+      "computedHash": "5ac37048d1879be8a8b1dcb42daa11bb2a451d7b1d591d3ecbe52361bdd74c3b"
+    },
+    "llm-output-validation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-output-validation",
+      "localPath": ".claude/skills/llm-output-validation",
+      "computedHash": "5ab4b99d456039869ac5dfca9a54e56c3537efda2d11e8a6e3a4d2148ac29e47"
+    },
+    "llm-ui-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/llm-ui-patterns",
+      "localPath": ".claude/skills/llm-ui-patterns",
+      "computedHash": "a3b704dba10012450a6d9562085a8750d0bd1a96ea08cae3aabc636624f56543"
+    },
+    "load-testing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/load-testing",
+      "localPath": ".claude/skills/load-testing",
+      "computedHash": "116fbb25e506dc9ac70b7f038932b9e560e44718768bb1ede99de70c8680ae00"
+    },
+    "loki-log-aggregation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/loki-log-aggregation",
+      "localPath": ".claude/skills/loki-log-aggregation",
+      "computedHash": "f2a01848c00626c3cd72d8f82443bdb762ee2f1e799135f7b5e1d9496216067c"
+    },
+    "lsp-navigation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/lsp-navigation",
+      "localPath": ".claude/skills/lsp-navigation",
+      "computedHash": "8029caf0191274ae9a8c0552810a7c8dd79e2f32ec8349aada07caef9a13b050"
+    },
+    "magic-string-sourcemap": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/magic-string-sourcemap",
+      "localPath": ".claude/skills/magic-string-sourcemap",
+      "computedHash": "fdcf97fbff79155881713aa320fd8613cbc005003f887f6cdbce6ee1459606ab"
+    },
+    "matrix-dimensionality-reduction": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/matrix-dimensionality-reduction",
+      "localPath": ".claude/skills/matrix-dimensionality-reduction",
+      "computedHash": "e9bc8e6cff15b4972f2f9748a085e5c90f66ed6345784e6682ce1248f9e941fc"
+    },
+    "mcp-server-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/mcp-server-patterns",
+      "localPath": ".claude/skills/mcp-server-patterns",
+      "computedHash": "24aeeadb7c144ba61be0c4b99fc4e29229fc36d302b822034e4908203aabdbb2"
+    },
+    "memgpt-virtual-context": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/memgpt-virtual-context",
+      "localPath": ".claude/skills/memgpt-virtual-context",
+      "computedHash": "583ebcbaa5fa34fc156d0254516b930e4cc13aabe046d2bef91b5d97209d1ee0"
+    },
+    "memory-gc": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/memory-gc",
+      "localPath": ".claude/skills/memory-gc",
+      "computedHash": "4ea32e7669a44f96dbd8ba2cedc314dfdca38800f1bb80b713aaf9870e8ee62b"
+    },
+    "memory-leak-detection": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/memory-leak-detection",
+      "localPath": ".claude/skills/memory-leak-detection",
+      "computedHash": "fb61ae650f29159efce6c8676a3ee4e2b5a34985e8bad5e606f71f8ad43d4b48"
+    },
+    "merkle-mountain-ranges": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/merkle-mountain-ranges",
+      "localPath": ".claude/skills/merkle-mountain-ranges",
+      "computedHash": "da50cf1f4f257780737be0d7525f4d56c1581cbfbfda48cb7bb2392b824a129c"
+    },
+    "merkle-tree-audit": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/merkle-tree-audit",
+      "localPath": ".claude/skills/merkle-tree-audit",
+      "computedHash": "cedfc6c8e552be614187805acfbb9050d8168adbd2688d1530f2fd91a414f8e6"
+    },
+    "mermaid-diagram-generation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/mermaid-diagram-generation",
+      "localPath": ".claude/skills/mermaid-diagram-generation",
+      "computedHash": "5ad318cb57cadb93d2d9b35a81f1ed493bd479647a3a90714eb31c87db7626d2"
+    },
+    "minimal-base-image-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/minimal-base-image-patterns",
+      "localPath": ".claude/skills/minimal-base-image-patterns",
+      "computedHash": "63c676180875c67b1ce398df7e68a7cdd2a391d4ba7bf5b326b3e2fd1b84b794"
+    },
+    "minimalist-ui": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/minimalist-ui",
+      "localPath": ".claude/skills/minimalist-ui",
+      "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9"
+    },
+    "mlops": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/mlops",
+      "localPath": ".claude/skills/mlops",
+      "computedHash": "660d76059de06fc5530a14e6c44b0cbac1bd8b81876a4fcdff1141b99900d707"
+    },
+    "mlperf-inference-benchmarks": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/mlperf-inference-benchmarks",
+      "localPath": ".claude/skills/mlperf-inference-benchmarks",
+      "computedHash": "0733bfac791ad9c4cf64699c9df2610545a6706d456845778109b8b0960b5dba"
+    },
+    "mobile-ux": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/mobile-ux",
+      "localPath": ".claude/skills/mobile-ux",
+      "computedHash": "4483f56c95239e370e649a16376c7cb753b4d650b68eadb2d3bc7b965a8c6b44"
+    },
+    "monorepo-governance": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/monorepo-governance",
+      "localPath": ".claude/skills/monorepo-governance",
+      "computedHash": "8fecc30f016edf014769ace7aeb2845815fec744a2ca2ed51710c66cc6eeac72"
+    },
+    "monorepo-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/monorepo-patterns",
+      "localPath": ".claude/skills/monorepo-patterns",
+      "computedHash": "7f31956f21250e24507b2462681b37a48164b53feae2fffb6610d0d8eabfdb23"
+    },
+    "motion-design": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/motion-design",
+      "localPath": ".claude/skills/motion-design",
+      "computedHash": "516659be3fded4ad9afc3d345ced0adc827bb1d02c957c4ce559e4317ce53649"
+    },
+    "motion-physics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/motion-physics",
+      "localPath": ".claude/skills/motion-physics",
+      "computedHash": "0f18cc4acb039673703199989dba65608e6f4acf3d16c3021a070f6b78b525e0"
+    },
+    "msgpack-binary-encoding": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/msgpack-binary-encoding",
+      "localPath": ".claude/skills/msgpack-binary-encoding",
+      "computedHash": "c4825c8db8725924cf14100e3e5088327eccda311dbca1dca06417603d93030a"
+    },
+    "multi-agent-debate": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/multi-agent-debate",
+      "localPath": ".claude/skills/multi-agent-debate",
+      "computedHash": "c98b4583357f9a71963d406df5c74a8382ecae7c0009eb3a70880856e67a5cce"
+    },
+    "multi-agent-handoff": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/multi-agent-handoff",
+      "localPath": ".claude/skills/multi-agent-handoff",
+      "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573"
+    },
+    "ndarray-vector-math": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ndarray-vector-math",
+      "localPath": ".claude/skills/ndarray-vector-math",
+      "computedHash": "74e4e4efa7ea5e5595f65f7c567c0a865dca38b096e810b600da0af11de17d02"
+    },
+    "needle-haystack-context": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/needle-haystack-context",
+      "localPath": ".claude/skills/needle-haystack-context",
+      "computedHash": "a8ea1d43560e4ab64304d1c0c9cf877322596c7f9f0d68af191fe6d1774b4497"
+    },
+    "nextjs-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/nextjs-patterns",
+      "localPath": ".claude/skills/nextjs-patterns",
+      "computedHash": "d4efc351384b3623ca4e8372c91f02c5be91b15073bc9a96c58208420940c2f9"
+    },
+    "nlp-normalization-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/nlp-normalization-patterns",
+      "localPath": ".claude/skills/nlp-normalization-patterns",
+      "computedHash": "830748aa32f7b3db249a22683eaf74d3ee1f7cf4f6923d6f082b262ee76a516f"
+    },
+    "observability-instrumentation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/observability-instrumentation",
+      "localPath": ".claude/skills/observability-instrumentation",
+      "computedHash": "a5f50f302b0cf47b48b1f8a841ce8b2fce28138652cf4035e730e7142ff0ec61"
+    },
+    "onnxruntime-inference": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/onnxruntime-inference",
+      "localPath": ".claude/skills/onnxruntime-inference",
+      "computedHash": "64aeba21508ec4e3dbc2857404425e1d4da0aafabffbfd067fb59b02e74cc0d3"
+    },
+    "opentelemetry-distributed-tracing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/opentelemetry-distributed-tracing",
+      "localPath": ".claude/skills/opentelemetry-distributed-tracing",
+      "computedHash": "ea531ff6e65fdefac52f687402b524bf16cb5a9d673e94227bd16ae9e8fbd99b"
+    },
+    "opentelemetry-semantic-telemetry": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/opentelemetry-semantic-telemetry",
+      "localPath": ".claude/skills/opentelemetry-semantic-telemetry",
+      "computedHash": "b3cc12f629a3c2db8ae4250f349f1b0cb48ec269a052c5bb65cbf9259313ca2d"
+    },
+    "output-enforcement": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/output-enforcement",
+      "localPath": ".claude/skills/output-enforcement",
+      "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f"
+    },
+    "overlayfs-runtime-isolation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/overlayfs-runtime-isolation",
+      "localPath": ".claude/skills/overlayfs-runtime-isolation",
+      "computedHash": "9faf39527ffa33137a143fc79328fc2d1aeb81ded25e0b238993b1ffe4f4697e"
+    },
+    "owasp-llm-top10": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/owasp-llm-top10",
+      "localPath": ".claude/skills/owasp-llm-top10",
+      "computedHash": "f76989da08b75ad71552dbc6668dc8b4d4c94064c769223248515701cc85a4ec"
+    },
+    "p2p-chronicle-log": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/p2p-chronicle-log",
+      "localPath": ".claude/skills/p2p-chronicle-log",
+      "computedHash": "9d7512da56d89bdbd9d7acac3fa8a6cea18a6a01f347d1addc8432ac9ac645bf"
+    },
+    "plan-first": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/plan-first",
+      "localPath": ".claude/skills/plan-first",
+      "computedHash": "80bbbbc580987603ce0e9955208d729463a78eb51187385b87aac73315477aea"
+    },
+    "pouchdb-sync-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/pouchdb-sync-patterns",
+      "localPath": ".claude/skills/pouchdb-sync-patterns",
+      "computedHash": "c6fdcd5caeaf5f5f5719491b2f9331451554f7466a252f5e81808a56617e49f1"
+    },
+    "pre-compact-backup": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/pre-compact-backup",
+      "localPath": ".claude/skills/pre-compact-backup",
+      "computedHash": "c83e03942e493e9b1d5df1f14c4ff9b72a1191af9b75ea32a366b16946af3dba"
+    },
+    "process-existence-check": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/process-existence-check",
+      "localPath": ".claude/skills/process-existence-check",
+      "computedHash": "822e7e69ff6a211b5dfb1205ea55774b91a5c0deb5f7ca0c7afeaf7a61b15a09"
+    },
+    "process-list-monitoring": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/process-list-monitoring",
+      "localPath": ".claude/skills/process-list-monitoring",
+      "computedHash": "73ad8b19a00a91a376c4873aed1f21924d6eee160414ae0836f6f04fbf6c0ffe"
+    },
+    "profiling-benchmarking": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/profiling-benchmarking",
+      "localPath": ".claude/skills/profiling-benchmarking",
+      "computedHash": "333628ead878070377435e0124f18b20daeea6602505add8be6188952ab5b585"
+    },
+    "prometheus-ai-telemetry": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/prometheus-ai-telemetry",
+      "localPath": ".claude/skills/prometheus-ai-telemetry",
+      "computedHash": "fcc316fca5ae7972703b526de9ee565a35fd71dfc50627d6d720797e785b4d1e"
+    },
+    "prometheus-scraping-rules": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/prometheus-scraping-rules",
+      "localPath": ".claude/skills/prometheus-scraping-rules",
+      "computedHash": "b1d3a366d2a6a773f39e5aa9f5b12e6ed87cbd39f0adaf429491b18b919427ad"
+    },
+    "prompt-caching-strategy": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/prompt-caching-strategy",
+      "localPath": ".claude/skills/prompt-caching-strategy",
+      "computedHash": "43a38a2ece7dab6c24840f44068ff7767c474a98e2aaf633c23782e1f9f28600"
+    },
+    "prompt-engineering": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/prompt-engineering",
+      "localPath": ".claude/skills/prompt-engineering",
+      "computedHash": "39c30bed0aa3dfa5bd5707ea3bf13c22538259c75889bc45113e12eb2b76ebae"
+    },
+    "prompt-firewall-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/prompt-firewall-patterns",
+      "localPath": ".claude/skills/prompt-firewall-patterns",
+      "computedHash": "d7a7f0615b9455c93f5cc2c14f882787d67e2c1779739114643e2b8d64ba59b2"
+    },
+    "protobuf-serialization": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/protobuf-serialization",
+      "localPath": ".claude/skills/protobuf-serialization",
+      "computedHash": "1a08c2d15ea116cfe86162d1b08451f5cac4bd26ccbe8c408bd8dbf7aa3f1fd8"
+    },
+    "protobufjs-dynamic-schema": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/protobufjs-dynamic-schema",
+      "localPath": ".claude/skills/protobufjs-dynamic-schema",
+      "computedHash": "c17ee4bb7d324d5f82f7a6b5f6b2717ff954e07fce2e76b6ac9f37e509c0a51e"
+    },
+    "pulse": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/pulse",
+      "localPath": ".claude/skills/pulse",
+      "computedHash": "54f0d335ba0fd03aa984df083e4936191383d3081eff3b2b9afc3bd6162b0790"
+    },
+    "purple-team-report": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/purple-team-report",
+      "localPath": ".claude/skills/purple-team-report",
+      "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4"
+    },
+    "pyre-type-analysis": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/pyre-type-analysis",
+      "localPath": ".claude/skills/pyre-type-analysis",
+      "computedHash": "fe849bc80fd8214fd19d0fa39b677cf2deaa2b653151a8c9addae3f693c893c5"
+    },
+    "raft-consensus-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/raft-consensus-patterns",
+      "localPath": ".claude/skills/raft-consensus-patterns",
+      "computedHash": "afcbdc4eca98ffdcaf5ffb59f72025bfe23b80b24b6e88d7c4dc2c2f8a7b3fc1"
+    },
+    "raft-node-js-impl": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/raft-node-js-impl",
+      "localPath": ".claude/skills/raft-node-js-impl",
+      "computedHash": "3b93f4cdce4c06d38bd992361a94351d542b5eaba5ba883934873fc70b0b7920"
+    },
+    "rag-architect": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/rag-architect",
+      "localPath": ".claude/skills/rag-architect",
+      "computedHash": "f75964513adc66c15c470e30a74d40a28c684b4bb0b120227c468717ebdff717"
+    },
+    "ramdisk-tmpfs-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ramdisk-tmpfs-patterns",
+      "localPath": ".claude/skills/ramdisk-tmpfs-patterns",
+      "computedHash": "944e150105f70ea77ca508b396d3e7e06e67b3813b4044bc67ca900fdf47a035"
+    },
+    "raw-socket-diagnostics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/raw-socket-diagnostics",
+      "localPath": ".claude/skills/raw-socket-diagnostics",
+      "computedHash": "fd31d2c5d200912c3cb76774d511adf50c5efb287f33ba38fc6412795bea0645"
+    },
+    "react-agent-loop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/react-agent-loop",
+      "localPath": ".claude/skills/react-agent-loop",
+      "computedHash": "71dba23840221e50d5b7a2ff9412b41ab281cf41bc49ff7ea4ad38d607927d98"
+    },
+    "react-doctor": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/react-doctor",
+      "localPath": ".claude/skills/react-doctor",
+      "computedHash": "a08e5332ea3db3bfc9b199eb6e558c63ca02a721b95aba60c7f966cb9ca0e900"
+    },
+    "readonly-bind-mount-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/readonly-bind-mount-patterns",
+      "localPath": ".claude/skills/readonly-bind-mount-patterns",
+      "computedHash": "4b7b8ea75ea3bb949633ae9e1f52455c10b4c373c733624e8dab485b1cee277a"
+    },
+    "receiving-code-review": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/receiving-code-review",
+      "localPath": ".claude/skills/receiving-code-review",
+      "computedHash": "99eccdb10937404d36d3150904277811aa40b9984a32749dfaf6302fd5855f35"
+    },
+    "red-team-check": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/red-team-check",
+      "localPath": ".claude/skills/red-team-check",
+      "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f"
+    },
+    "refactor-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/refactor-patterns",
+      "localPath": ".claude/skills/refactor-patterns",
+      "computedHash": "67667eb5e03e76e4c1ee3ef2605315dae7c25b19fcba32a0db26302f27e5e287"
+    },
+    "reflect-metadata-injection": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/reflect-metadata-injection",
+      "localPath": ".claude/skills/reflect-metadata-injection",
+      "computedHash": "f2a4fb2dcce7ac5ad42896283a98cc5bbeb81afdaee28841fcdb9cb11ee27465"
+    },
+    "reflexion-verbal-rl": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/reflexion-verbal-rl",
+      "localPath": ".claude/skills/reflexion-verbal-rl",
+      "computedHash": "b750968d960093b9dd234bd52fcac6ee1eee55d719e793f8fb8140ffe2adbd4d"
+    },
+    "regex-escape-redos-guard": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/regex-escape-redos-guard",
+      "localPath": ".claude/skills/regex-escape-redos-guard",
+      "computedHash": "f88913ddc43a650d00f09dd23b4349b876674eb38dcfdfdbb890ddce9e518c49"
+    },
+    "remove-dead-code": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/remove-dead-code",
+      "localPath": ".claude/skills/remove-dead-code",
+      "computedHash": "05709d87581ab9373a38c28c0b4a5a7c235e91df4fea17a126b1293511e4a84f"
+    },
+    "repl-code-execution": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/repl-code-execution",
+      "localPath": ".claude/skills/repl-code-execution",
+      "computedHash": "974ffe729ec81156bb252ae63fd3ad9245d9840897cf716c7673e310c1b6f2c5"
+    },
+    "requesting-code-review": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/requesting-code-review",
+      "localPath": ".claude/skills/requesting-code-review",
+      "computedHash": "6eae2debac8d86d5768b7036c5489e2c841d30c9efabacc5353bea612b942306"
+    },
+    "research": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/research",
+      "localPath": ".claude/skills/research",
+      "computedHash": "f2f1faa546723d52ae9edb0210848274082fb17e760a552b03ed176124ea13e1"
+    },
+    "research-team": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/research-team",
+      "localPath": ".claude/skills/research-team",
+      "computedHash": "e7db731bc304ffc396a6b75810d07bea613c8f3aa54c2b95390f9ee1dd341110"
+    },
+    "resilience-circuit-breakers": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/resilience-circuit-breakers",
+      "localPath": ".claude/skills/resilience-circuit-breakers",
+      "computedHash": "5dfbd33bf79e18fea5d9ecc03eaeabc78fd369119b7da73c5640c40e07bdcafb"
+    },
+    "resilience-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/resilience-patterns",
+      "localPath": ".claude/skills/resilience-patterns",
+      "computedHash": "80de4d392b8521797e0cf0f48c9f159dbafbc07a7186419101e545bd11e64866"
+    },
+    "rewoo-plan-execute": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/rewoo-plan-execute",
+      "localPath": ".claude/skills/rewoo-plan-execute",
+      "computedHash": "fc783521ee5c7bfe1531f7ba3f969e817e38504af72a3c0da4f12da0aceebcf0"
+    },
+    "runtime-metrics-meters": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/runtime-metrics-meters",
+      "localPath": ".claude/skills/runtime-metrics-meters",
+      "computedHash": "24851f9e82db27b12d49d8052e6cdb62aa5feafbb7ec23de75f09eec45819981"
+    },
+    "runtime-sandbox-runc": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/runtime-sandbox-runc",
+      "localPath": ".claude/skills/runtime-sandbox-runc",
+      "computedHash": "85481bb6a380e8029941dd8f03be572d58c430f33057e93c57b26b1ee367f033"
+    },
+    "sanitize-html-cleanup": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/sanitize-html-cleanup",
+      "localPath": ".claude/skills/sanitize-html-cleanup",
+      "computedHash": "f0d34b365a9c9353a570ab7d8d4d942319c70318563bc53baa159c134f280db2"
+    },
+    "secret-management": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/secret-management",
+      "localPath": ".claude/skills/secret-management",
+      "computedHash": "fd2e898f8c3efbe8d56d9110186ca89ee43a583181829d94393262060f24452c"
+    },
+    "secrets-vault-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/secrets-vault-patterns",
+      "localPath": ".claude/skills/secrets-vault-patterns",
+      "computedHash": "0f4229cd0873a8827ae3b61042169287bcce44eff070a4d9995a9e784602d318"
+    },
+    "security-compliance": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/security-compliance",
+      "localPath": ".claude/skills/security-compliance",
+      "computedHash": "fb4ffd42c5d2aabf050effaba8fc5061458a4e321632e6140876e9772b446ffa"
+    },
+    "security-pipeline": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/security-pipeline",
+      "localPath": ".claude/skills/security-pipeline",
+      "computedHash": "ccf0bf5a3eea2b48ac53c4231ba8687e0e6134d53fea6008ec26696b25283a69"
+    },
+    "security-review": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/security-review",
+      "localPath": ".claude/skills/security-review",
+      "computedHash": "f7f8d4210a61aa60e5ac3254e39d47ff35c18104ad74375ec6c98edf5bb38ab1"
+    },
+    "self-refine-critic": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/self-refine-critic",
+      "localPath": ".claude/skills/self-refine-critic",
+      "computedHash": "7eb2ac22c8a79012c91e3a48ae4252d105d74c8433b12de1ece9905014d954f3"
+    },
+    "serverless-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/serverless-patterns",
+      "localPath": ".claude/skills/serverless-patterns",
+      "computedHash": "99e01740c128ae7d65689e3906dfd720398fb9e6407eec5c3640473c7788474e"
+    },
+    "session-context": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/session-context",
+      "localPath": ".claude/skills/session-context",
+      "computedHash": "be14878fc6091e48637b591e62c159b694799afd720f0f57da70355ba8c634fe"
+    },
+    "session-wrap": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/session-wrap",
+      "localPath": ".claude/skills/session-wrap",
+      "computedHash": "7822a34385a5eb6a75b2f4491a020b33e1b567ad74c29ea23a273c7743cf2b23"
+    },
+    "setup-agent-tail": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/setup-agent-tail",
+      "localPath": ".claude/skills/setup-agent-tail",
+      "computedHash": "5ecefabe540a5c9ce780637137880b9deafc8e0adad27a4c11d0943c362fa5ee"
+    },
+    "sglang-radix-attention": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/sglang-radix-attention",
+      "localPath": ".claude/skills/sglang-radix-attention",
+      "computedHash": "c7241350134890d2441bf64907e2bcce8b659f7c3ca4708418948ca2ac67a18c"
+    },
+    "shadcn-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/shadcn-patterns",
+      "localPath": ".claude/skills/shadcn-patterns",
+      "computedHash": "98e6f6082857426b99773a4cc3598ad443d1d95c8dfc40c56d1a520212c2beaa"
+    },
+    "skill-factory": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/skill-factory",
+      "localPath": ".claude/skills/skill-factory",
+      "computedHash": "e724d893678143fafd030b80165cf2722e29817ec16555656900b40bbe8614fd"
+    },
+    "skill-library-voyager": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/skill-library-voyager",
+      "localPath": ".claude/skills/skill-library-voyager",
+      "computedHash": "60183934f4ea2d92c46d4b8b2f6f3371cb40d4e64789200aea2156135792514f"
+    },
+    "slo-design": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/slo-design",
+      "localPath": ".claude/skills/slo-design",
+      "computedHash": "e05b577d3b6015f4ba03d76c4f82417af3a1d7590b9a8cbe64a9b019c2532227"
+    },
+    "smart-layout-aesthetics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/smart-layout-aesthetics",
+      "localPath": ".claude/skills/smart-layout-aesthetics",
+      "computedHash": "3e24fd8feac64d2bac7f7c49263ff791436aebdd232a2c185c20b592d2e05040"
+    },
+    "snowflake-id-generation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/snowflake-id-generation",
+      "localPath": ".claude/skills/snowflake-id-generation",
+      "computedHash": "48d366753f96eb493bd88ef3afcf94fbc9519d3d2881b0f8ede06a28b53a493f"
+    },
+    "sovereign-interceptor-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/sovereign-interceptor-patterns",
+      "localPath": ".claude/skills/sovereign-interceptor-patterns",
+      "computedHash": "62c7f7208ba89399231e09b4f7c3932c539c6bd2df19bdded42bf8a7165a2a31"
+    },
+    "sovereign-overlord-gate": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/sovereign-overlord-gate",
+      "localPath": ".claude/skills/sovereign-overlord-gate",
+      "computedHash": "44f7635a84427fb516a7059a9c559780f86dd653ee1388081c63da77f1a7e0b2"
+    },
+    "stanford-crypto-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/stanford-crypto-patterns",
+      "localPath": ".claude/skills/stanford-crypto-patterns",
+      "computedHash": "62b71dc8161306e9b642f5dccc7e496305edc9217df323de4c3b09d133602506"
+    },
+    "state-machine-workflows": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/state-machine-workflows",
+      "localPath": ".claude/skills/state-machine-workflows",
+      "computedHash": "c8aacd6a0e5dab8c67b676449e4ea2d00b9ea02f67113d3dc3529f9a5d025e4d"
+    },
+    "state-management-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/state-management-patterns",
+      "localPath": ".claude/skills/state-management-patterns",
+      "computedHash": "4e0e746c972579f24b8f600b7dfbfa5c756f64ab5399acf1db978bdc49959a9b"
+    },
+    "state-persistence-gateway": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/state-persistence-gateway",
+      "localPath": ".claude/skills/state-persistence-gateway",
+      "computedHash": "031a98d17560b0713399caf59e9be5327097e5e68557b3eef3f4b19e1dde31e2"
+    },
+    "statsd-metrics-streaming": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/statsd-metrics-streaming",
+      "localPath": ".claude/skills/statsd-metrics-streaming",
+      "computedHash": "670c0181d4d1e4706d8779f7e4f36118e7ff069b85769a5ff55d1494058c95b9"
+    },
+    "storage-fallback-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/storage-fallback-patterns",
+      "localPath": ".claude/skills/storage-fallback-patterns",
+      "computedHash": "9532a5598f1b8edbceebd0fcdfce7873ad16abda83efc8da669ea751560c2d65"
+    },
+    "strategic-compact": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/strategic-compact",
+      "localPath": ".claude/skills/strategic-compact",
+      "computedHash": "73cebca017dcbd71b2e2622e591b1819d1f66042a1eee62c5fafae5c1e5f9970"
+    },
+    "stream-pipeline-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/stream-pipeline-patterns",
+      "localPath": ".claude/skills/stream-pipeline-patterns",
+      "computedHash": "4a8e8c95f513ca33a51b022e103ad4235cf185c458a4f29f2ac14c4c2967990c"
+    },
+    "stream-to-buffer-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/stream-to-buffer-patterns",
+      "localPath": ".claude/skills/stream-to-buffer-patterns",
+      "computedHash": "a8a8200f803c3a9996a9780bb93526a0e27015cbfd530627d562694ab1be7cbd"
+    },
+    "streaming-llm-infinite-context": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/streaming-llm-infinite-context",
+      "localPath": ".claude/skills/streaming-llm-infinite-context",
+      "computedHash": "b9ed057cf20824ad72526f7ede56407c9ad69c6bf2e39aeec99ee29105d86f6a"
+    },
+    "stride-analysis-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/stride-analysis-patterns",
+      "localPath": ".claude/skills/stride-analysis-patterns",
+      "computedHash": "6418a5b0de25e8b62353e204c22163c274357efe1f0a75c47accbf0d01bffa2b"
+    },
+    "string-validation-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/string-validation-patterns",
+      "localPath": ".claude/skills/string-validation-patterns",
+      "computedHash": "47eaed5611c60dae912c40a29fc163d03d43a821ac4d8bd5d289217363383cbf"
+    },
+    "subagent-dependency": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/subagent-dependency",
+      "localPath": ".claude/skills/subagent-dependency",
+      "computedHash": "089b6c5c848727d0686ef8c7655b29580317a486b9c67ff1152a451940aab726"
+    },
+    "supply-chain-security": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/supply-chain-security",
+      "localPath": ".claude/skills/supply-chain-security",
+      "computedHash": "52ce62a2ef70afb96661271034ed8d6e5873897ced594cee3241d002516feaf3"
+    },
+    "swarm-consensus": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/swarm-consensus",
+      "localPath": ".claude/skills/swarm-consensus",
+      "computedHash": "a6046c80ea2c328e79f60737929815b7c363652d9cfa917c4e341c7e92964182"
+    },
+    "swarm-honeynets": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/swarm-honeynets",
+      "localPath": ".claude/skills/swarm-honeynets",
+      "computedHash": "ef59a926eb2509417bd21cdd7af81a4c72b1281a0f513122fb626bff431bce45"
+    },
+    "swc-compiler-transform": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/swc-compiler-transform",
+      "localPath": ".claude/skills/swc-compiler-transform",
+      "computedHash": "18a102e21814e346b7bf692c239fcb751b152c096c8190101ca610ef0812cbc6"
+    },
+    "symmetric-encryption-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/symmetric-encryption-patterns",
+      "localPath": ".claude/skills/symmetric-encryption-patterns",
+      "computedHash": "05c828313fd160b1bae9f5c12ee2860fde50ae2eebe75bf308b1a5d1b4140282"
+    },
+    "syscall-filtering-seccomp": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/syscall-filtering-seccomp",
+      "localPath": ".claude/skills/syscall-filtering-seccomp",
+      "computedHash": "05ded360dff8cf59a31e1306be58e9f855113ad2cdbe948a7eade4635a450dee"
+    },
+    "syslog-integration": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/syslog-integration",
+      "localPath": ".claude/skills/syslog-integration",
+      "computedHash": "96e2c9b9f44226442068f041956d4968e4ecc4e0105f965127b2dff4a6f91226"
+    },
+    "system-info-telemetry": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/system-info-telemetry",
+      "localPath": ".claude/skills/system-info-telemetry",
+      "computedHash": "da1179d68004affccb65d41c1418e3a53da4b2664629f8adc1817450108bb1db"
+    },
+    "tdd": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/tdd",
+      "localPath": ".claude/skills/tdd",
+      "computedHash": "ecd4b3ab484f7ac571b5c230863a15be1419226b5a1448711fc5028d4a564d1d"
+    },
+    "tdd-workflow": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/tdd-workflow",
+      "localPath": ".claude/skills/tdd-workflow",
+      "computedHash": "f7b43ce5f3661c8e5dfae0a8b95c87fa53d625574d88142e41e65ce82a81bee2"
+    },
+    "team-orchestrator": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/team-orchestrator",
+      "localPath": ".claude/skills/team-orchestrator",
+      "computedHash": "1ef0cde6029721e0c18479ffe2a3cd9c5c5c6e2fa8861ed9e78c73580bf54340"
+    },
+    "telemetry-analysis": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/telemetry-analysis",
+      "localPath": ".claude/skills/telemetry-analysis",
+      "computedHash": "e7e8b3240bdcb40b95bd73eeec300f54d2970de7872807e94194fd7a514f578f"
+    },
+    "terraform-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/terraform-patterns",
+      "localPath": ".claude/skills/terraform-patterns",
+      "computedHash": "d4dc375d0117833516e15b706dcba0a19f0ca11142ab3509c9356692e7efd8d2"
+    },
+    "tgi-streaming-inference": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/tgi-streaming-inference",
+      "localPath": ".claude/skills/tgi-streaming-inference",
+      "computedHash": "48dfb95e3d4da341abc628429083491d599c17f4c1829c7b25d8421bf0ed4d4a"
+    },
+    "token-roi": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/token-roi",
+      "localPath": ".claude/skills/token-roi",
+      "computedHash": "fab16f30e0fd9325cc3dee479c09c0418332aa8469d01db75d95b70b8c15b0bb"
+    },
+    "toml-config-parsing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/toml-config-parsing",
+      "localPath": ".claude/skills/toml-config-parsing",
+      "computedHash": "98bbc01a9a40d84c6674656b4db32879f505dd05064b2a105a8828593fad76a4"
+    },
+    "traefik-ingress-routing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/traefik-ingress-routing",
+      "localPath": ".claude/skills/traefik-ingress-routing",
+      "computedHash": "aafde3d1afeff639ee2a6d39eb3c86400eee192a9a7017d86608eb60e9363601"
+    },
+    "tree-of-thoughts": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/tree-of-thoughts",
+      "localPath": ".claude/skills/tree-of-thoughts",
+      "computedHash": "8b0cf1a7de8a307ee63d85083ce625ab56a2921d7095493f967835b759b6a481"
+    },
+    "triton-inference-server": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/triton-inference-server",
+      "localPath": ".claude/skills/triton-inference-server",
+      "computedHash": "240bde8f476248de3490356c0fb687b198054ae86491e068e803f48d7f50d8d1"
+    },
+    "ts-morph-refactor": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ts-morph-refactor",
+      "localPath": ".claude/skills/ts-morph-refactor",
+      "computedHash": "6856570efec0e9797d1860e87d2ed76b72a538845e9e563e5a174600e265e546"
+    },
+    "twirp-rpc-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/twirp-rpc-patterns",
+      "localPath": ".claude/skills/twirp-rpc-patterns",
+      "computedHash": "441fb542b3a92977731b8a379019f77da015d486da72b66587a32f54873ddfd1"
+    },
+    "type-safe-api-contracts": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/type-safe-api-contracts",
+      "localPath": ".claude/skills/type-safe-api-contracts",
+      "computedHash": "aebf52010d2cc98c7176beb6f62b423ff2c163a566074ef50d58dc4a2df28722"
+    },
+    "typescript-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/typescript-patterns",
+      "localPath": ".claude/skills/typescript-patterns",
+      "computedHash": "c19fd19231bcced2a35d13719625766f981fb3bb50e8316dc5a21782f9e1de05"
+    },
+    "typography-scale": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/typography-scale",
+      "localPath": ".claude/skills/typography-scale",
+      "computedHash": "0943c6b35a5754cf1cbecc261dc1e4ae7fe0e223a541583d44514ad98f44636a"
+    },
+    "typography-system": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/typography-system",
+      "localPath": ".claude/skills/typography-system",
+      "computedHash": "07fc13087ef8cc2ae3fe10dfab4a749d812ac1d948047d8aeb87c0f76e18ada7"
+    },
+    "ui-redesign": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ui-redesign",
+      "localPath": ".claude/skills/ui-redesign",
+      "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020"
+    },
+    "ui-states": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ui-states",
+      "localPath": ".claude/skills/ui-states",
+      "computedHash": "92ccc04da27a25a636c9c7522e0e773b10ef7109ea70eefae5224294f26410df"
+    },
+    "uid-gid-privilege-drop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/uid-gid-privilege-drop",
+      "localPath": ".claude/skills/uid-gid-privilege-drop",
+      "computedHash": "1326fc7652e5e261e90181dd33d526413cda4b8f5726ffab84538621366869d8"
+    },
+    "unit-testing-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/unit-testing-patterns",
+      "localPath": ".claude/skills/unit-testing-patterns",
+      "computedHash": "168f05a1addb007dfc46b28c749e612f50a6427ba184b2dcbe0bcb7debc7a097"
+    },
+    "unprivileged-sandbox-bubblewrap": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/unprivileged-sandbox-bubblewrap",
+      "localPath": ".claude/skills/unprivileged-sandbox-bubblewrap",
+      "computedHash": "341c08e26ae66596a5cd5dfc52f17130dced40b1d650cbb3ff9085a90d73cc09"
+    },
+    "ux-heuristics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ux-heuristics",
+      "localPath": ".claude/skills/ux-heuristics",
+      "computedHash": "bf278760ce0476e60eda130c376374f1541db06042b8b3027892cadb98c95b2a"
+    },
+    "vector-distance-metrics": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/vector-distance-metrics",
+      "localPath": ".claude/skills/vector-distance-metrics",
+      "computedHash": "f1c2a7902c9abdc21be4caed5639ade7651a15a17022f3b820f3301b734a729c"
+    },
+    "vector-store-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/vector-store-patterns",
+      "localPath": ".claude/skills/vector-store-patterns",
+      "computedHash": "3a7be24b9f9718b12ded122d4c5ba8441881b2f818265ea1edd8bc68cc39071b"
+    },
+    "verification-engine": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/verification-engine",
+      "localPath": ".claude/skills/verification-engine",
+      "computedHash": "9e7dae234a12634a356a8725cc4ffaa910e996d757db24ffb58e8222cc85ab6d"
+    },
+    "verification-loop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/verification-loop",
+      "localPath": ".claude/skills/verification-loop",
+      "computedHash": "2c579131e40b8d8e8f1fba298581c84ed990a1279726a67bca2b35e5f35de766"
+    },
+    "verify-before-done": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/verify-before-done",
+      "localPath": ".claude/skills/verify-before-done",
+      "computedHash": "44666f29197cbc979d7686cc127cf92633aa10534a807b66a601beac3830a1ca"
+    },
+    "verify-implementation": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/verify-implementation",
+      "localPath": ".claude/skills/verify-implementation",
+      "computedHash": "2d56516ccf91f460d76d99097edbc1a81ba244e664916130acc10d09e35588f2"
+    },
+    "vllm-paged-attention": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/vllm-paged-attention",
+      "localPath": ".claude/skills/vllm-paged-attention",
+      "computedHash": "0affd9b0d9963b854e8f85802ef985819a27d57e32867fa25b5133357970be75"
+    },
+    "wamp-pubsub-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/wamp-pubsub-patterns",
+      "localPath": ".claude/skills/wamp-pubsub-patterns",
+      "computedHash": "16c7eeba24b56f040c8ba37fc9a3dc1b0963dfab8704b5b9e629b8af703fe240"
+    },
+    "wasm-bindgen-js-interop": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/wasm-bindgen-js-interop",
+      "localPath": ".claude/skills/wasm-bindgen-js-interop",
+      "computedHash": "287ef477a5261d1fdab8ebf762e2e893a4e4ffaa3aea4ad61d61c5077203252e"
+    },
+    "wasmer-wasm-runtime": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/wasmer-wasm-runtime",
+      "localPath": ".claude/skills/wasmer-wasm-runtime",
+      "computedHash": "de01b23a9798b26f9dfe7d14dc4d51a3c5e4a63d855840cf7ec45cf74af54e27"
+    },
+    "wasmtime-wasi-sandbox": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/wasmtime-wasi-sandbox",
+      "localPath": ".claude/skills/wasmtime-wasi-sandbox",
+      "computedHash": "622bc86a69cfe7b98b4536698d7c5f637864962120c1dd257df973fb8b5f96ed"
+    },
+    "web-performance": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/web-performance",
+      "localPath": ".claude/skills/web-performance",
+      "computedHash": "84d464e80e4fd7b785074182ecf58609eb2efe49772130695e13af00a8805201"
+    },
+    "websocket-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/websocket-patterns",
+      "localPath": ".claude/skills/websocket-patterns",
+      "computedHash": "c029a553a9202f09bfd1a1f558dd2e6b9781603ac6703477b5fc2b2ac93f0b1d"
+    },
+    "websocket-protocol-codegen": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/websocket-protocol-codegen",
+      "localPath": ".claude/skills/websocket-protocol-codegen",
+      "computedHash": "5da467323cc2a9eca4b2e6b8377614853b62eed180fefc4d5ac5b23648331501"
+    },
+    "worktree-safety": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/worktree-safety",
+      "localPath": ".claude/skills/worktree-safety",
+      "computedHash": "eb50a01af6d2a2b37691f07d8e12d3aafbd67042e41150692e5e0c67f9fedb42"
+    },
+    "write-a-skill": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/write-a-skill",
+      "localPath": ".claude/skills/write-a-skill",
+      "computedHash": "deabc266574f0b634344bc04e536558b95f8eb26e4f18caff9a028dd66be6a2e"
+    },
+    "writing-skills": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/writing-skills",
+      "localPath": ".claude/skills/writing-skills",
+      "computedHash": "90a9950358ddb03c108b35b7c5dfffd624dcbc9da3ada889ab9c3cd4412636d4"
+    },
+    "xstate-actor-model": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/xstate-actor-model",
+      "localPath": ".claude/skills/xstate-actor-model",
+      "computedHash": "d2b724f909150f089bf659e6ead41eacf62998629a2a00d4e66c381eb24f4167"
+    },
+    "yaml-safe-parsing": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/yaml-safe-parsing",
+      "localPath": ".claude/skills/yaml-safe-parsing",
+      "computedHash": "a0b5a7d6b4412c2a04550e4bc0fa4765edb1d62de20c95dd3aac27507dd94136"
+    },
+    "yjs-crdt-sync": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/yjs-crdt-sync",
+      "localPath": ".claude/skills/yjs-crdt-sync",
+      "computedHash": "490d0088a9efd69e9839658adef4877dad4266626b0deac8568303601bac7a8d"
+    },
+    "zero-trust-network-mesh": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zero-trust-network-mesh",
+      "localPath": ".claude/skills/zero-trust-network-mesh",
+      "computedHash": "db8b895d65b54bcc0e5074bad83713859417c8898715af34961bfb6dbd925705"
+    },
+    "zero-trust-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zero-trust-patterns",
+      "localPath": ".claude/skills/zero-trust-patterns",
+      "computedHash": "8c5415c3a97d1ba6e317695f0676d8e345565ffa05b5c88c32bab9e3c7d245ec"
+    },
+    "zip-memory-operations": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zip-memory-operations",
+      "localPath": ".claude/skills/zip-memory-operations",
+      "computedHash": "f4028f651111304b9ecf857e58e4f4649d0b8827cf002f2827777f53142cfd91"
+    },
+    "zk-proof-patterns": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zk-proof-patterns",
+      "localPath": ".claude/skills/zk-proof-patterns",
+      "computedHash": "e3a4fca642876c787082faa06e6b675adfbf59a13e0bec2503bdcaeda9f4991d"
+    },
+    "zlib-stream-compression": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zlib-stream-compression",
+      "localPath": ".claude/skills/zlib-stream-compression",
+      "computedHash": "04d7b6b03a230e33ab81aac39f94e4c4d8011463e33a52c1a65c8926cfb83085"
+    },
+    "zombie-process-cleanup": {
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/zombie-process-cleanup",
+      "localPath": ".claude/skills/zombie-process-cleanup",
+      "computedHash": "3b667e96d6310a7d74ce251f6cffc1c58423a347b23340e91a9e0f3ab22eea54"
+    }
+  }
+}

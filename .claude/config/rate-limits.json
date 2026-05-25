@@ -1,0 +1,83 @@
+{
+  "version": "1.0",
+  "description": "Rate limiting configuration for YAMTAM ENGINE tools and operations",
+  "updated": "2026-05-23",
+  "global": {
+    "bash_calls_per_minute": 30,
+    "write_operations_per_minute": 10,
+    "api_calls_per_minute": 20,
+    "read_operations_per_minute": 100
+  },
+  "per_tool": {
+    "Bash": {
+      "max_per_session": 200,
+      "max_per_minute": 30,
+      "cooldown_ms": 100,
+      "description": "Shell command execution"
+    },
+    "Write": {
+      "max_per_session": 50,
+      "max_per_minute": 10,
+      "cooldown_ms": 500,
+      "description": "File write operations"
+    },
+    "Edit": {
+      "max_per_session": 100,
+      "max_per_minute": 20,
+      "cooldown_ms": 200,
+      "description": "File edit operations"
+    },
+    "Read": {
+      "max_per_session": 500,
+      "max_per_minute": 100,
+      "cooldown_ms": 50,
+      "description": "File read operations"
+    },
+    "WebFetch": {
+      "max_per_session": 50,
+      "max_per_minute": 10,
+      "cooldown_ms": 1000,
+      "description": "Web content fetching"
+    },
+    "WebSearch": {
+      "max_per_session": 30,
+      "max_per_minute": 5,
+      "cooldown_ms": 2000,
+      "description": "Web search queries"
+    },
+    "Agent": {
+      "max_per_session": 20,
+      "max_per_minute": 5,
+      "cooldown_ms": 1000,
+      "description": "Sub-agent spawning"
+    }
+  },
+  "per_operation": {
+    "git_push": {
+      "max_per_session": 10,
+      "cooldown_ms": 5000,
+      "description": "Git push operations"
+    },
+    "npm_install": {
+      "max_per_session": 5,
+      "cooldown_ms": 10000,
+      "description": "Package installations"
+    },
+    "database_migration": {
+      "max_per_session": 3,
+      "cooldown_ms": 30000,
+      "description": "Database schema changes"
+    }
+  },
+  "circuit_breaker": {
+    "enabled": true,
+    "failure_threshold": 5,
+    "timeout_seconds": 60,
+    "half_open_requests": 3,
+    "description": "Circuit breaker for repeated failures"
+  },
+  "bypass": {
+    "env_var": "YAMTAM_RATE_LIMIT_BYPASS",
+    "description": "Set to '1' to bypass rate limiting (sovereign only)"
+  }
+}

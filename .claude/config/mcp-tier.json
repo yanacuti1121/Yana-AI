@@ -1,0 +1,19 @@
+{
+  "_doc": "MCP server tiering to reduce MCP Tax (per arXiv 2604.21816). Core servers load schemas every turn. On-demand servers load only when invoked. This file is advisory — actual tier enforcement requires either (a) manually moving servers between .mcp.json and .mcp.on-demand.json, or (b) running /mcp-audit to apply.",
+
+  "core": {
+    "_description": "Always loaded. Use for tools called every session — typically 1–2 servers max.",
+    "servers": []
+  },
+
+  "on-demand": {
+    "_description": "Loaded only when explicitly invoked. Best for tools used <30% of sessions.",
+    "servers": ["gitnexus", "context7", "sequential-thinking"]
+  },
+
+  "_thresholds": {
+    "core_min_usage_per_50_calls": 5,
+    "on_demand_max_usage_per_50_calls": 5,
+    "comment": "Servers averaging fewer than 5 calls per 50 tool invocations should sit in on-demand tier."
+  }
+}
