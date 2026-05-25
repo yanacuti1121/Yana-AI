@@ -1,12 +1,13 @@
 {
   "name": "yamtam-engine",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-24",
-  "manifest_updated": "2026-05-24",
+  "release_date": "2026-05-25",
+  "manifest_updated": "2026-05-25",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
+    "v1.7.3-synthesis — 3 skills from 5-repo synthesis (NousResearch/hermes-agent + CloakHQ/CloakBrowser): (1) arxiv-research skill — arXiv API (zero-auth, 1req/3s, XML parse, BibTeX output); (2) semantic-scholar skill — citation lookup + author h-index (1req/s, JSON API); (3) stealth-browser-automation skill — CloakBrowser Playwright drop-in pattern (58 C++ patches, humanized mouse/keyboard, fingerprint evasion). Skipped: CodeGraph (already MCP server), Superpowers (imported Phase 2), OpenHuman (GPL-3.0 code). skills 384→387. 2026-05-25.",
     "v1.7.2-synthesis — 2 implementations from 3-repo synthesis (Lum1104/Understand-Anything + rohitg00/agentmemory): (1) codebase-onboard skill — 4-step sequential pipeline (project-scanner→architecture-analyzer→dependency-mapper→tour-builder) adapted from Understand-Anything 6-agent pattern, fixed output format with architecture diagram + reading-order table + 3 workflows + gotchas; (2) decay-memory.sh script — Ebbinghaus forgetting curve R=e^(-t/S) for L1 atomic facts, stability by confidence (high=90d/medium=30d/low=14d/unverified=7d), FRESH/FADING/STALE/DECAYED labels, --auto-flag writes decay_score to frontmatter. Skipped: triple-stream hybrid search (external vector deps violate dependency-sandbox-law). skills 383→384, scripts +1. 2026-05-25.",
     "v1.4.20 — Cross-engine hard enforcement + Circuit Breaker + advanced defense rules. safe-run.sh: --engine flag, HARD mode blocks elevated-risk commands for Cursor/Aider without TTY confirm, BYPASS sovereign override. switch-engine.sh cursor: generates .cursor/rules/yamtam-hard-enforcement.mdc routing all bash through safe-run.sh --engine cursor. switch-engine.sh aider: generates .aider.conf.yml with shell proxy + read-only gates on core/. token-budget-guard.sh: Circuit Breaker (CLOSED→OPEN→HALF-OPEN), HARD BLOCK at 5 consecutive calls, circuit-state.json, escalating cooldown (60s→300s→1800s), fast-tier model recommendation (claude-haiku-4-5). Rules: 43-prompt-jailbreak-advanced (memory exfiltration, psychological manipulation Phase 1/2, identity spoofing, multi-turn chain detection), 44-supply-chain-vetting (typosquatting, lock file integrity, script injection gate, OSV scan gate, prohibited pipe-to-shell). 2026-05-23.",
     "v1.4.00 — 100-Layer Sovereign Anti-Tamper Architecture: 5 Military Blocks, 10 Fortresses, 56 rules, 344 skills. Added: anti-graffiti-guard.js, sovereign-interceptor.js, swarm-router.js, secure-logger.js, tool-proxy.sh Phase 3.5 OverlayFS sandbox. 2026-05-23.",
@@ -520,7 +521,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 370,
+      "count": 387,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
