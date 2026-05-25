@@ -43,8 +43,17 @@ case "$ENGINE" in
     fi
 
     # ── Hard enforcement: inject safe-run proxy rule into Cursor ──────────────
+    MDC=".cursor/rules/yamtam-hard-enforcement.mdc"
     mkdir -p ".cursor/rules"
-    cat > ".cursor/rules/yamtam-hard-enforcement.mdc" << 'CURSOREOF'
+
+    # Backup before overwrite
+    if [[ -f "$MDC" ]]; then
+      BACKUP="${MDC}.bak.$(date +%Y%m%d_%H%M%S)"
+      cp "$MDC" "$BACKUP"
+      echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+    fi
+
+    cat > "$MDC" << 'CURSOREOF'
 ---
 description: YAMTAM Hard Enforcement — all bash commands must route through safe-run.sh
 alwaysApply: true
@@ -83,7 +92,14 @@ Cursor does not have a native hook layer — safe-run.sh is the enforcement prox
 Any command executed without the safe-run proxy is a TIER-2 security violation.
 Log: /tmp/yamtam-audit.log
 CURSOREOF
-    echo -e "${GREEN}✓ Hard enforcement rule written${NC}: .cursor/rules/yamtam-hard-enforcement.mdc"
+    echo -e "${GREEN}✓ Hard enforcement rule written${NC}: $MDC"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "cursor adapter activated — hard enforcement via safe-run.sh" 2>/dev/null || true
+    fi
+
     echo ""
     echo -e "${CYAN}Cursor picks up these files automatically.${NC}"
     echo "Hard enforcement active — all bash calls must route through safe-run.sh --engine cursor"
