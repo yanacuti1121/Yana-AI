@@ -15,8 +15,9 @@ usage() {
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
   echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
-  echo "  qwen     — prints Aider/OpenRouter command template (advisory mode)"
-  echo "  status   — show which adapters are currently active"
+  echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
+  echo "  deepseek  — prints Aider/DeepSeek command template (advisory mode)"
+  echo "  status    — show which adapters are currently active"
   exit 1
 }
 
@@ -228,6 +229,56 @@ AIDEREOF
     echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
     ;;
 
+  deepseek)
+    ADAPTER="adapters/deepseek.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ DeepSeek adapter ready${NC}: $ADAPTER"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "deepseek adapter activated — advisory mode" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  DeepSeek runs via Aider (direct API or OpenRouter) — no native hook layer."
+    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
+    echo "  For shell-level blocking, manually prefix commands:"
+    echo "    bash core/scripts/safe-run.sh --engine deepseek -- <command>"
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
+    echo "  L0  Audit    — advisory only (no native hook; log manually)"
+    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
+    echo "  L2  Commit   — prompt-instructed"
+    echo "  L3  Truth    — prompt-instructed"
+    echo "  L4  Deploy   — prompt-instructed (YAMTAM_DEPLOY_APPROVED=1 in prompt)"
+    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
+    echo ""
+    echo -e "${CYAN}Run DeepSeek via Aider (use placeholders — do not paste real keys here):${NC}"
+    echo ""
+    echo "  # DeepSeek V3 (direct API):"
+    echo "  DEEPSEEK_API_KEY=<your-key> aider \\"
+    echo "    --model deepseek/deepseek-chat \\"
+    echo "    --system-prompt adapters/deepseek.md"
+    echo ""
+    echo "  # DeepSeek R1 — reasoning model (direct API):"
+    echo "  DEEPSEEK_API_KEY=<your-key> aider \\"
+    echo "    --model deepseek/deepseek-reasoner \\"
+    echo "    --system-prompt adapters/deepseek.md"
+    echo ""
+    echo "  # DeepSeek V3 via OpenRouter:"
+    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
+    echo "    --model openrouter/deepseek/deepseek-chat \\"
+    echo "    --system-prompt adapters/deepseek.md"
+    echo ""
+    echo "Set DEEPSEEK_API_KEY or OPENROUTER_API_KEY in your shell — never hardcode it."
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -249,6 +300,9 @@ AIDEREOF
     [[ -f "adapters/qwen.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Qwen      adapters/qwen.md (advisory — no native hook)" \
       || echo -e "  ${YELLOW}✗${NC} Qwen      adapters/qwen.md missing"
+    [[ -f "adapters/deepseek.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} DeepSeek  adapters/deepseek.md (advisory — no native hook)" \
+      || echo -e "  ${YELLOW}✗${NC} DeepSeek  adapters/deepseek.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;
