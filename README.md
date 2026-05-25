@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="./docs/ChatGPT Image 16_08_00 24 thg 5, 2026.png."
+    src="./docs/yamtam-engine-hero.png"
     alt="YAMTAM ENGINE"
     width="100%"
   />
@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.7.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v1.7.3-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -40,8 +40,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/agents-90-ff8c00?style=flat-square" alt="Agents" />
   <img src="https://img.shields.io/badge/commands-164-7c3aed?style=flat-square" alt="Commands" />
-  <img src="https://img.shields.io/badge/hooks-41-f97316?style=flat-square" alt="Hooks" />
-  <img src="https://img.shields.io/badge/skills-370-06b6d4?style=flat-square" alt="Skills" />
+  <img src="https://img.shields.io/badge/hooks-45-f97316?style=flat-square" alt="Hooks" />
+  <img src="https://img.shields.io/badge/skills-387-06b6d4?style=flat-square" alt="Skills" />
   <img src="https://img.shields.io/badge/checks-826-ef4444?style=flat-square" alt="Checks" />
   <img src="https://img.shields.io/badge/rules-61-10b981?style=flat-square" alt="Rules" />
 </p>
@@ -91,7 +91,7 @@ curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main
 
 ```bash
 # Or manually
-unzip releases/yamtam-engine-v1.7.0.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.7.3.zip -d /path/to/project/.claude/
 bash .claude/tests/hooks/run-hook-tests.sh
 ```
 
@@ -189,10 +189,10 @@ Prevents drift between YAMTAM tasks and product code:
 |---|---|
 | Agents | 90 |
 | Slash commands | 164 |
-| Runtime hooks | 39 |
-| Workflow skills | 370 |
-| Operating rules | 60 |
-| Utility scripts | 46 |
+| Runtime hooks | 45 |
+| Workflow skills | 387 |
+| Operating rules | 61 |
+| Utility scripts | 47 |
 | Verification checks | 826 |
 
 ### Agents (90)
@@ -206,7 +206,7 @@ Specialized agents across domains:
 - **Data / AI** (6): data-engineer, ml-engineer, llm-architect
 - **Business** (4): business-analyst, technical-writer, ux-researcher
 
-### Skills (370)
+### Skills (387)
 
 | Category | Count |
 |---|---|
@@ -244,7 +244,7 @@ yamtam-engine/
 │   ├── agents/          90 agent definitions
 │   ├── commands/        164 slash commands
 │   ├── hooks/           39 runtime hooks
-│   ├── skills/          370 workflow skills
+│   ├── skills/          387 workflow skills
 │   ├── scripts/         46 utility scripts
 │   ├── rules/           60 operating rules
 │   └── tests/           826 verification checks
@@ -265,10 +265,10 @@ yamtam-engine/
 
 ```bash
 bash core/tests/hooks/run-hook-tests.sh        # 88 hook tests
-bash core/tests/skills/test-skill-triggering.sh  # 334 skill trigger tests
+bash core/tests/skills/test-skill-triggering.sh  # 678 skill trigger tests
 ```
 
-Breakdown: 65 hook tests · 12 audit tests · 334 skill trigger tests · 65 red-team scenarios · 6 smoke tests
+Breakdown: 65 hook tests · 12 audit tests · 678 skill trigger tests · 65 red-team scenarios · 6 smoke tests
 
 ---
 
@@ -359,7 +359,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v1.7.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v1.7.3 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
@@ -408,7 +408,7 @@ Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị ch�
 /plugin install phamlongh230-lgtm/yamtam-engine
 
 # Hoặc giải nén vào project
-unzip releases/yamtam-engine-v1.7.0.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v1.7.3.zip -d /path/to/project/.claude/
 
 # Kiểm tra 826 checks
 bash .claude/tests/hooks/run-hook-tests.sh
@@ -461,10 +461,10 @@ AI bắt buộc phải đưa ra bằng chứng trước khi khai báo hoàn thà
 |---|---|
 | Agents chuyên biệt | 90 |
 | Slash commands | 164 |
-| Runtime hooks | 39 |
-| Workflow skills | 370 |
-| Operating rules | 60 |
-| Utility scripts | 46 |
+| Runtime hooks | 45 |
+| Workflow skills | 387 |
+| Operating rules | 61 |
+| Utility scripts | 47 |
 | Verification checks | 826 |
 
 ---
@@ -530,5 +530,5 @@ Tự do sử dụng, fork, chỉnh sửa và phân phối. Xem `LICENSE` để b
 ---
 
 <p align="center">
-  <sub>v1.7.0 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
+  <sub>v1.7.3 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
 </p>
