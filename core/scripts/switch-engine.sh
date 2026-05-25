@@ -15,6 +15,7 @@ usage() {
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
   echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
+  echo "  qwen     — prints Aider/OpenRouter command template (advisory mode)"
   echo "  status   — show which adapters are currently active"
   exit 1
 }
@@ -177,6 +178,56 @@ AIDEREOF
     echo "  bash core/scripts/safe-run.sh --engine gemini -- <command>"
     ;;
 
+  qwen)
+    ADAPTER="adapters/qwen.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ Qwen adapter ready${NC}: $ADAPTER"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "qwen adapter activated — advisory mode" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  Qwen runs via OpenRouter — no native hook layer is available."
+    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
+    echo "  For shell-level blocking, manually prefix commands:"
+    echo "    bash core/scripts/safe-run.sh --engine qwen -- <command>"
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
+    echo "  L0  Audit    — advisory only (no native hook; log manually)"
+    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
+    echo "  L2  Commit   — prompt-instructed"
+    echo "  L3  Truth    — prompt-instructed"
+    echo "  L4  Deploy   — prompt-instructed (YAMTAM_DEPLOY_APPROVED=1 in prompt)"
+    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
+    echo ""
+    echo -e "${CYAN}Run Qwen via Aider + OpenRouter (use placeholders — do not paste real keys here):${NC}"
+    echo ""
+    echo "  # Qwen3 235B (flagship):"
+    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
+    echo "    --model openrouter/qwen/qwen3-235b-a22b \\"
+    echo "    --system-prompt adapters/qwen.md"
+    echo ""
+    echo "  # Qwen3 30B (fast):"
+    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
+    echo "    --model openrouter/qwen/qwen3-30b-a3b \\"
+    echo "    --system-prompt adapters/qwen.md"
+    echo ""
+    echo "  # Qwen2.5-Coder 32B:"
+    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
+    echo "    --model openrouter/qwen/qwen2.5-coder-32b-instruct \\"
+    echo "    --system-prompt adapters/qwen.md"
+    echo ""
+    echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -195,6 +246,9 @@ AIDEREOF
     [[ -f "GEMINI.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Gemini    GEMINI.md ($(wc -l < GEMINI.md) lines)" \
       || echo -e "  ${YELLOW}✗${NC} Gemini    GEMINI.md missing"
+    [[ -f "adapters/qwen.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Qwen      adapters/qwen.md (advisory — no native hook)" \
+      || echo -e "  ${YELLOW}✗${NC} Qwen      adapters/qwen.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;
