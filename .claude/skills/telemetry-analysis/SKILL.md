@@ -75,8 +75,7 @@ jq -r 'select(.duration_ms != null) | [.duration_ms, .hook] | @tsv' \
 
 ```bash
 # Có env var bypass nào được dùng không
-grep -h "BYPASS\|APPROVED\|SCOPE_OK" .claude/state/audit-chain.log 2>/dev/null \
-  | jq -r '.input // ""' 2>/dev/null | grep -E "YAMTAM_" | sort | uniq -c
+jq -r 'select(.input | strings | contains("YAMTAM_BYPASS") or contains("APPROVED")) | .input' .claude/state/audit-chain.log 2>/dev/null | sort | uniq -c
 ```
 
 ## Report format
