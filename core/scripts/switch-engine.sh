@@ -14,6 +14,7 @@ usage() {
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
+  echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
   echo "  status   — show which adapters are currently active"
   exit 1
 }
@@ -137,6 +138,45 @@ AIDEREOF
     echo "All bash commands routed through safe-run.sh --engine aider (Hard mode)"
     ;;
 
+  gemini)
+    ADAPTER="adapters/gemini-code.md"
+    DEST="GEMINI.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+
+    # Backup existing GEMINI.md before overwrite
+    if [[ -f "$DEST" ]]; then
+      BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+      cp "$DEST" "$BACKUP"
+      echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+    fi
+
+    # Generate GEMINI.md from adapter source (strip comment-only header lines)
+    cp "$ADAPTER" "$DEST"
+    echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "gemini adapter activated — GEMINI.md written" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary:${NC}"
+    echo "  L0  Audit    — every tool call logged (do not skip)"
+    echo "  L1  Scope    — no secret/env access without declaration"
+    echo "  L2  Commit   — warn on cross-scope commits"
+    echo "  L3  Truth    — no unsupported completion claims"
+    echo "  L4  Deploy   — requires YAMTAM_DEPLOY_APPROVED=1"
+    echo "  L5  Destruct — hard block rm -rf / DROP TABLE / DELETE without WHERE"
+    echo ""
+    echo "GEMINI.md is read automatically by Gemini Code CLI on startup."
+    echo "For shell-level blocking, additionally run:"
+    echo "  bash core/scripts/safe-run.sh --engine gemini -- <command>"
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -152,6 +192,9 @@ AIDEREOF
     [[ -f "adapters/aider.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Aider     adapters/aider.md" \
       || echo -e "  ${YELLOW}✗${NC} Aider     adapters/aider.md missing"
+    [[ -f "GEMINI.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Gemini    GEMINI.md ($(wc -l < GEMINI.md) lines)" \
+      || echo -e "  ${YELLOW}✗${NC} Gemini    GEMINI.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;
