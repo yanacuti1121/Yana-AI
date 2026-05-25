@@ -126,6 +126,12 @@ CURSOREOF
     fi
     echo -e "${GREEN}✓ Aider adapter ready${NC}"
 
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "aider adapter activated — .aider.conf.yml written" 2>/dev/null || true
+    fi
+
     # ── Hard enforcement: write .aider.conf.yml with safe-run proxy ───────────
     cat > ".aider.conf.yml" << 'AIDEREOF'
 # YAMTAM Hard Enforcement — Aider configuration
@@ -149,6 +155,13 @@ read_only:
   - core/memory/L1/
 AIDEREOF
     echo -e "${GREEN}✓ Hard enforcement config written${NC}: .aider.conf.yml"
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  Aider enforces safe-run.sh via the shell: config directive — stronger than prompt-only."
+    echo "  However, Aider has no native YAMTAM hook layer (OS-level intercept is Claude Code only)."
+    echo "  Individual Aider tool calls are NOT recorded in the YAMTAM Merkle audit chain."
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
     echo ""
     echo -e "${CYAN}Run aider with YAMTAM governance:${NC}"
     echo ""
