@@ -35,6 +35,21 @@ usage() {
 
 [[ -z "$ENGINE" ]] && usage
 
+# ── Structured audit metadata ─────────────────────────────────────────────────
+# Derive operator and previous engine for structured engine_switch log entries.
+# _FROM_ENGINE reads the last engine_switch entry from the audit log; falls back
+# to "unknown" when the log is absent or uses the old free-form format.
+_OPERATOR=$(git config user.name 2>/dev/null | tr ' ' '_' | tr -d '|"' || echo "unknown")
+_AUDIT_LOG="${YAMTAM_LOG_DIR:-core/memory/audit}/agent-actions.log"
+_FROM_ENGINE="unknown"
+if [[ -f "$_AUDIT_LOG" ]]; then
+  _LAST_SWITCH=$(grep "| engine_switch |" "$_AUDIT_LOG" 2>/dev/null | tail -1 || true)
+  if [[ -n "$_LAST_SWITCH" ]]; then
+    _PARSED=$(printf '%s' "$_LAST_SWITCH" | grep -oE 'to_engine=[A-Za-z0-9_-]+' | cut -d= -f2 || true)
+    [[ -n "$_PARSED" ]] && _FROM_ENGINE="$_PARSED"
+  fi
+fi
+
 case "$ENGINE" in
   claude)
     echo -e "${GREEN}Claude Code (native) — no adapter needed.${NC}"
@@ -42,7 +57,8 @@ case "$ENGINE" in
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "claude native activated — returning to hard-runtime enforcement" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=claude from_engine=$_FROM_ENGINE mode=hard-runtime operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_end "engine=claude from_engine=$_FROM_ENGINE" 2>/dev/null || true
     fi
 
     echo -e "${GREEN}✓ ADVISORY_GAP_END${NC}"
@@ -124,7 +140,7 @@ CURSOREOF
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "cursor adapter activated — hard enforcement via safe-run.sh" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=cursor from_engine=$_FROM_ENGINE mode=hard-runtime generated_file=.cursor/rules/yamtam-hard-enforcement.mdc operator=$_OPERATOR" 2>/dev/null || true
     fi
     fi  # end dry-run guard
 
@@ -160,7 +176,8 @@ CURSOREOF
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "aider adapter activated — .aider.conf.yml written" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=aider from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/aider.md generated_file=.aider.conf.yml operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=aider from_engine=$_FROM_ENGINE" 2>/dev/null || true
     fi
 
     # ── Hard enforcement: write .aider.conf.yml with safe-run proxy ───────────
@@ -228,7 +245,8 @@ AIDEREOF
       # Log via secure-logger.sh if available
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "gemini adapter activated — GEMINI.md written" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=gemini from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/gemini-code.md generated_file=GEMINI.md operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_start "engine=gemini from_engine=$_FROM_ENGINE" 2>/dev/null || true
       fi
     fi
 
@@ -257,7 +275,8 @@ AIDEREOF
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "qwen adapter activated — advisory mode" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=qwen from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/qwen.md operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=qwen from_engine=$_FROM_ENGINE" 2>/dev/null || true
     fi
 
     echo ""
@@ -307,7 +326,8 @@ AIDEREOF
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "deepseek adapter activated — advisory mode" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=deepseek from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/deepseek.md operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=deepseek from_engine=$_FROM_ENGINE" 2>/dev/null || true
     fi
 
     echo ""
@@ -357,7 +377,8 @@ AIDEREOF
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "openrouter adapter activated — advisory mode" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=openrouter from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/openrouter.md operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=openrouter from_engine=$_FROM_ENGINE" 2>/dev/null || true
     fi
 
     echo ""
