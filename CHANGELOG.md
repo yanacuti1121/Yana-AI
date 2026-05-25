@@ -8,6 +8,95 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v1.7.3 — Full Consistency Sync
+*2026-05-25*
+
+### Status: RELEASED ✅
+
+### Skills-lock rebuild
+- Rebuilt `core/config/skills-lock.json` from scratch: **387 entries, 0 drift, 0 missing**
+- Removed 7 stale `gitnexus-gitnexus-*` keys (nested-path bug)
+- Added 44 missing skill entries from recent synthesis imports
+
+### `.claude/` runtime mirror sync
+- Added 44 new SKILL.md mirrors to `.claude/skills/`
+- Added 6 new hook mirrors to `.claude/hooks/`: `code-quality-gate.sh`, `coverage-gate.sh`, `dependency-safety-gate.sh`, `per-tool-circuit-breaker.sh`, `static-analysis-gate.sh`, `test-runner-gate.sh`
+
+### Count sync
+| Metric | v1.7.2 | v1.7.3 |
+|---|---|---|
+| Skills | 384 | **387** |
+| Hooks | 41 | **45** |
+| Scripts | 46 | **47** |
+
+### Verification gates
+- `verify-skills-lock.sh` → **387 ok / 0 drift / 0 missing** ✅
+- `validate-manifest.sh` → **7/7 clean** ✅
+
+---
+
+## v1.7.2 — AI Skill Expansion + Code Quality Gate
+*2026-05-25*
+
+### Status: RELEASED ✅
+
+### New skills (32)
+| Tier | Count | Skills |
+|---|---|---|
+| Tier 1 (Core AI) | 6 | agno, autogen, browser-use, crewai, dspy, langgraph |
+| Tier 2 (AI Agent) | 6 | crawl4ai, deepeval, instructor-structured-output, langfuse, litellm, ragas |
+| Tier 3 (Productivity) | 6 | firecrawl, llamafactory, mem0, modal-serverless, ollama-patterns, qdrant |
+| Tier 4 (Emerging) | 6 | n8n-automation, outlines, pixelle-video, portkey, pydantic-ai, vercel-ai-sdk |
+| Various | 8 | arxiv-research, codebase-onboard, semantic-scholar, smolagents, stealth-browser-automation, and others |
+
+### New hooks (6, Code Quality Gate)
+| Hook | Trigger | Description |
+|---|---|---|
+| `code-quality-gate.sh` | PostToolUse | Multi-gate quality enforcement |
+| `coverage-gate.sh` | PostToolUse | Test coverage threshold guard |
+| `dependency-safety-gate.sh` | PostToolUse | Supply chain safety check |
+| `per-tool-circuit-breaker.sh` | PostToolUse | Per-tool failure circuit breaker |
+| `static-analysis-gate.sh` | PostToolUse | Static analysis integration |
+| `test-runner-gate.sh` | PostToolUse | Test runner gate |
+
+### New script
+- `decay-memory.sh` — Ebbinghaus forgetting curve for L1 atomic facts (FRESH/FADING/STALE/DECAYED labels)
+
+### Count sync
+| Metric | v1.7.1 | v1.7.2 |
+|---|---|---|
+| Skills | 351 | **384** |
+| Hooks | 40 | **41** |
+| Scripts | 46 | **46** |
+
+---
+
+## v1.7.1 — Installer + pixelle-video + Hook Fixes
+*2026-05-24*
+
+### Status: RELEASED ✅
+
+### New features
+- Zero-touch one-line installer: auto-applies `CLAUDE.md` on install
+- GitHub API-based release zip detection (no hardcoded filename)
+- `docs/index.html` landing page with animated stats
+- `docs/install` short URL redirect for GitHub Pages
+
+### New skill
+- `pixelle-video` — Topic → AI video via REST API
+
+### Fixes
+- Hook count corrected: 36 → 40 (4 hooks were present but undercounted)
+- Improved hook listing and telemetry bypass detection commands
+
+### Count sync
+| Metric | v1.7.0 | v1.7.1 |
+|---|---|---|
+| Skills | 350 | **351** |
+| Hooks | 36 | **40** |
+
+---
+
 ## v1.7.0 — High Priority Safety Hooks (L3.5 / L4.5 / L1.5)
 *2026-05-24*
 
