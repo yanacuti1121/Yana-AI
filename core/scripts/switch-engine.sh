@@ -27,6 +27,17 @@ usage() {
 case "$ENGINE" in
   claude)
     echo -e "${GREEN}Claude Code (native) — no adapter needed.${NC}"
+
+    # Log via secure-logger.sh if available
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "claude native activated — returning to hard-runtime enforcement" 2>/dev/null || true
+    fi
+
+    echo -e "${GREEN}✓ ADVISORY_GAP_END${NC}"
+    echo "  Returning to Claude Code native — OS-level hooks active via .claude/settings.json."
+    echo "  All tool calls are recorded in the YAMTAM Merkle audit chain."
+    echo ""
     echo "Hooks in core/hooks/ are enforced at runtime via .claude/settings.json"
     echo "Run: bash core/tests/hooks/run-hook-tests.sh to verify"
     ;;
