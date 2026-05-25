@@ -1,7 +1,7 @@
 # YAMTAM ENGINE — Adapter Implementation Checklist
 
 **Version:** v1.8.0  
-**Status:** PARTIAL REVIEWED — core adapters verified 2026-05-25; Phase 8 and final PROMOTE pending  
+**Status:** PROMOTE_CANDIDATE — all phases REVIEWED 2026-05-25; not production-released  
 **Companion doc:** [`docs/technical/ADAPTER_ARCHITECTURE.md`](ADAPTER_ARCHITECTURE.md)  
 **Maintainer:** Vũ Văn Tâm  
 **Created:** 2026-05-25
@@ -444,8 +444,8 @@ Each phase has one of three statuses. Update the table below as work progresses.
 | Phase 5 — Aider/OpenRouter adapter | REVIEWED | deepseek + openrouter PASS; ADVISORY_GAP emitted; secret scan clean; `--dry-run` behaviour noted as advisory-only |
 | Phase 6 — Claude Code / Cursor compat | REVIEWED | `--dry-run cursor` PASS, no file writes; `cursor` case backup logic confirmed in source; 3 items open (see §6.1–6.4) |
 | Phase 7 — Safety gates | REVIEWED | Secret scan clean; `.bak` added to `.gitignore` (commit `0079ad9`); 2 backup paths untested |
-| Phase 8 — Blackbox OS logging | HOLD | `ADVISORY_GAP` emitted to stdout; structured audit event schema not verified; `session-checkpoint.sh` not implemented |
-| Phase 9 — Verification commands | HOLD | Manual test checklist partially run; `verify-audit-chain.sh` not run in this pass |
+| Phase 8 — Blackbox OS logging | REVIEWED | Structured `engine_switch` schema implemented in commit `6adfe29`: `to_engine`, `from_engine`, `mode`, `source_adapter`, `generated_file`, `operator`; `advisory_gap_start` / `advisory_gap_end` events emitted and Merkle-chained; `session-checkpoint.sh` remains unimplemented (carry-forward) |
+| Phase 9 — Verification commands | REVIEWED | Real gemini run: `GEMINI.md` written (118 lines); second run: `GEMINI.md.bak.20260525_123407` created; audit log entries confirmed; `from_engine` tracking verified across sequential switches; git ignore confirmed; working tree clean after cleanup 2026-05-25 |
 
 **Status definitions:**
 
