@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---|---|
-| 1.3.x (current) | ✅ Active |
-| 1.2.x | ❌ End of life |
-| < 1.2 | ❌ End of life |
+| Version | Supported | Notes |
+|---|---:|---|
+| 1.8.x | ✅ Active | Current stable release line |
+| 1.7.x | ⚠️ Security fixes only | Upgrade recommended |
+| 1.6.x and below | ❌ End of life | No security support |
 
 ---
 
@@ -15,49 +15,81 @@
 **Do not open a public GitHub Issue for security vulnerabilities.**
 
 Report privately via:
-- GitHub Security Advisories: go to the repo → Security tab → "Report a vulnerability"
-- Email: include "YAMTAM SECURITY" in subject line
 
-We will acknowledge within 48 hours and aim to patch within 7 days for critical issues.
+- GitHub Security Advisories: repo → Security tab → Report a vulnerability
+- Email: include `YAMTAM SECURITY` in the subject line
+
+We will acknowledge reports within 48 hours and aim to patch critical issues within 7 days.
 
 ---
 
 ## Scope
 
-YAMTAM ENGINE is a governance framework — not a production authentication or authorization system. Vulnerabilities we treat as critical:
+YAMTAM ENGINE is a governance and safety framework for AI-assisted development. It is **not** a production authentication, authorization, or secrets-management system.
+
+We treat the following as security-critical:
 
 | Type | Example |
 |---|---|
-| Hook bypass | A pattern that lets an agent skip the push gate |
-| Secret leakage | A path where API keys could be logged or exposed |
-| Command injection | A hook that can be tricked into running arbitrary code |
-| Audit log tampering | A way to delete or modify `agent-actions.log` |
+| Hook bypass | A pattern that lets an agent skip the push, deploy, or destructive-operation gate |
+| Secret leakage | A path where API keys, tokens, or credentials could be logged or exposed |
+| Command injection | A hook or script that can be tricked into running unintended shell commands |
+| Audit log tampering | A way to delete, rewrite, or forge audit logs without detection |
+| Unsafe release packaging | A release pack that includes secrets, local state, or unintended project files |
 
-Out of scope (YAMTAM is advisory for non-Claude engines):
-- Vulnerabilities in Cursor, Aider, or GitHub Copilot themselves
-- Issues in third-party tools invoked by agents (gitleaks, semgrep, etc.)
+Out of scope:
+
+- Vulnerabilities in Cursor, Aider, GitHub Copilot, Gemini, OpenRouter, or other third-party AI tools themselves
+- Issues in third-party tools invoked by agents, such as `gitleaks`, `semgrep`, `gh`, `git`, Docker, or cloud CLIs
+- Misconfiguration in downstream projects after YAMTAM is installed
+- Advisory-only behavior for non-Claude engines where runtime hooks are not wired
 
 ---
 
 ## Security Architecture
 
-```
-L0 — Audit log (tamper-evident hash chain)
-L1 — Token scope guard (warns on secret file access)
-L2 — Commit gate (advisory warn on cross-scope commits)
-L3 — Truth gate (blocks unsupported PASS claims)
-L4 — Deploy gate (blocks gh/kubectl/docker without approval)
-L5 — Destructive ops guard (blocks rm -rf, DROP TABLE, force push)
-```
-
-Runtime enforcement is only active when hooks are wired in `.claude/settings.json`.
-For other engines (Cursor, Aider, Copilot) — rules are advisory-only via prompt injection.
+```text
+L0 — Audit log, tamper-evident hash chain
+L1 — Token scope guard, warns on secret file access
+L2 — Commit gate, warns or blocks unsafe cross-scope commits
+L3 — Truth gate, blocks unsupported PASS claims
+L4 — Deploy gate, blocks gh/kubectl/docker deploy actions without approval
+L5 — Destructive ops guard, blocks rm -rf, DROP TABLE, force push, and similar high-risk actions
 
 ---
 
-## Responsible Disclosure
+Runtime enforcement is active only when hooks are wired in .claude/settings.json.
 
-We follow coordinated disclosure. We will:
-- Credit reporters in CHANGELOG.md (unless anonymity is requested)
-- Not take legal action against good-faith security researchers
-- Provide a CVE reference for critical vulnerabilities affecting the hook layer
+For other engines such as Cursor, Aider, Copilot, Gemini, Qwen, DeepSeek, or OpenRouter-routed models, YAMTAM rules may be advisory unless the engine supports equivalent runtime hooks.
+
+Responsible Disclosure
+
+We follow coordinated disclosure.
+
+We will:
+
+Credit reporters in CHANGELOG.md, unless anonymity is requested
+Avoid public disclosure until a fix or mitigation is available
+Not take legal action against good-faith security research that follows this policy
+Prioritize fixes based on severity, exploitability, and impact on release-pack safety
+Release Integrity
+
+Official release artifacts are published through GitHub Releases.
+
+For v1.8.0 and later, users should prefer:
+
+yamtam-engine-latest.zip
+
+or the versioned release asset:
+
+yamtam-engine-v1.8.0-fixed.zip
+
+Do not install YAMTAM from random copied folders, unknown archives, or modified release packs without checking the source.
+
+
+Sau khi commit xong, trong Cloud Shell chỉ cần chạy:
+
+```bash
+cd ~/yamtam-engine
+git pull
+git status --short
