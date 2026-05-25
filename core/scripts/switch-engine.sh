@@ -3,11 +3,19 @@
 # Usage: bash core/scripts/switch-engine.sh <claude|cursor|copilot|aider>
 set -euo pipefail
 
-ENGINE="${1:-}"
+# Parse arguments: ENGINE is the first non-flag arg; --dry-run sets DRY_RUN=1
+DRY_RUN=0
+ENGINE=""
+for _arg in "$@"; do
+  case "$_arg" in
+    --dry-run) DRY_RUN=1 ;;
+    *)         [[ -z "$ENGINE" ]] && ENGINE="$_arg" ;;
+  esac
+done
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
 usage() {
-  echo "Usage: $0 <engine>"
+  echo "Usage: $0 [--dry-run] <engine>"
   echo ""
   echo "Engines:"
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
@@ -19,6 +27,9 @@ usage() {
   echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
   echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
   echo "  status     — show which adapters are currently active"
+  echo ""
+  echo "Options:"
+  echo "  --dry-run  — preview what would change without writing files"
   exit 1
 }
 
@@ -55,6 +66,11 @@ case "$ENGINE" in
 
     # ── Hard enforcement: inject safe-run proxy rule into Cursor ──────────────
     MDC=".cursor/rules/yamtam-hard-enforcement.mdc"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      [[ -d ".cursor/rules" ]] || echo -e "${CYAN}[dry-run] Would create .cursor/rules/${NC}"
+      [[ -f "$MDC" ]] && echo -e "${CYAN}[dry-run] Would backup $MDC before overwrite${NC}"
+      echo -e "${CYAN}[dry-run] Would write $MDC (YAMTAM hard enforcement rule)${NC}"
+    else
     mkdir -p ".cursor/rules"
 
     # Backup before overwrite
@@ -110,6 +126,7 @@ CURSOREOF
     if [[ -x "$LOGGER" ]]; then
       bash "$LOGGER" engine_switch "cursor adapter activated — hard enforcement via safe-run.sh" 2>/dev/null || true
     fi
+    fi  # end dry-run guard
 
     echo ""
     echo -e "${CYAN}Cursor picks up these files automatically.${NC}"
@@ -137,6 +154,9 @@ CURSOREOF
     fi
     echo -e "${GREEN}✓ Aider adapter ready${NC}"
 
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would write .aider.conf.yml (YAMTAM Aider configuration)${NC}"
+    else
     # Log via secure-logger.sh if available
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
@@ -166,6 +186,7 @@ read_only:
   - core/memory/L1/
 AIDEREOF
     echo -e "${GREEN}✓ Hard enforcement config written${NC}: .aider.conf.yml"
+    fi  # end dry-run guard
 
     echo ""
     echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
@@ -189,21 +210,26 @@ AIDEREOF
       exit 1
     fi
 
-    # Backup existing GEMINI.md before overwrite
-    if [[ -f "$DEST" ]]; then
-      BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
-      cp "$DEST" "$BACKUP"
-      echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-    fi
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      [[ -f "$DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $DEST before overwrite${NC}"
+      echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
+    else
+      # Backup existing GEMINI.md before overwrite
+      if [[ -f "$DEST" ]]; then
+        BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$DEST" "$BACKUP"
+        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+      fi
 
-    # Generate GEMINI.md from adapter source (strip comment-only header lines)
-    cp "$ADAPTER" "$DEST"
-    echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+      # Generate GEMINI.md from adapter source
+      cp "$ADAPTER" "$DEST"
+      echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
 
-    # Log via secure-logger.sh if available
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "gemini adapter activated — GEMINI.md written" 2>/dev/null || true
+      # Log via secure-logger.sh if available
+      LOGGER="core/scripts/secure-logger.sh"
+      if [[ -x "$LOGGER" ]]; then
+        bash "$LOGGER" engine_switch "gemini adapter activated — GEMINI.md written" 2>/dev/null || true
+      fi
     fi
 
     echo ""
