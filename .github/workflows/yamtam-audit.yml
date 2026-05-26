@@ -1,0 +1,52 @@
+name: YAMTAM Audit
+
+# Example workflow — copy this into YOUR repo (not the yamtam-engine repo itself)
+# to run yamtam audit in CI and fail on high-risk findings.
+#
+# Usage:
+#   1. Copy this file to .github/workflows/yamtam-audit.yml in your project
+#   2. Adjust FAIL_ON_LEVEL to your preferred threshold (low/medium/high/critical)
+#   3. Adjust YAMTAM_REF to pin a specific release tag (recommended for reproducibility)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  yamtam-audit:
+    name: YAMTAM Agent Setup Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install YAMTAM
+        run: |
+          YAMTAM_REF="main"   # pin to a release tag in production, e.g. "v1.8.0"
+          git clone --depth 1 --branch "$YAMTAM_REF" \
+            https://github.com/phamlongh230-lgtm/yamtam-engine.git /tmp/yamtam-engine
+          chmod +x /tmp/yamtam-engine/bin/yamtam
+
+      - name: Run YAMTAM audit
+        env:
+          FAIL_ON_LEVEL: high   # fail CI on HIGH or CRITICAL findings (adjust as needed)
+        run: |
+          /tmp/yamtam-engine/bin/yamtam audit . \
+            --fail-on "$FAIL_ON_LEVEL" \
+            --markdown yamtam-audit-report.md
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yamtam-audit-report
+          path: yamtam-audit-report.md
+          retention-days: 30

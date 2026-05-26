@@ -103,13 +103,13 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 
 ## Roadmap chiến lược
 
-| Version | Nội dung |
-|---------|----------|
-| v0.1 | Auditor — scan, report, no auto-fix |
-| v0.2 | CI Gate — `--fail-on`, GitHub Action example |
-| v0.3 | Policy Kit — recommended configs, templates |
-| v0.4 | Control Layer — scope guard, truth gate, token guard |
-| v0.5 | Runtime — task lifecycle, evals, evidence schema |
+| Version | Nội dung | Status |
+|---------|----------|--------|
+| v0.1 | Auditor — scan, report, no auto-fix | ✅ done |
+| v0.2 | CI Gate — `--fail-on`, GitHub Action example | ✅ done |
+| v0.3 | Policy Kit — recommended configs, templates | next |
+| v0.4 | Control Layer — scope guard, truth gate, token guard | |
+| v0.5 | Runtime — task lifecycle, evals, evidence schema | |
 
 ---
 

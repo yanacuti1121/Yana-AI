@@ -26,6 +26,7 @@ usage() {
   echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
   echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
   echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
+  echo "  continue   — generates .continue/config.json fragment (advisory mode)"
   echo "  status     — show which adapters are currently active"
   echo ""
   echo "Options:"
@@ -418,6 +419,67 @@ AIDEREOF
     echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
     ;;
 
+  continue)
+    ADAPTER="adapters/continue.md"
+    DEST=".continue/config.json"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would create .continue/ directory${NC}"
+      echo -e "${CYAN}[dry-run] Would generate $DEST with systemMessage from $ADAPTER${NC}"
+    else
+      mkdir -p .continue
+
+      # Extract system prompt body (lines after the last header comment block)
+      SYSTEM_MSG=$(awk '/^You are an AI coding assistant/,0' "$ADAPTER" | \
+        grep -v '^#' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | head -c 8000)
+
+      # Write config.json fragment if not already present
+      if [[ -f "$DEST" ]]; then
+        echo -e "${YELLOW}↩ $DEST already exists — not overwriting${NC}"
+        echo "  Manually add the systemMessage from $ADAPTER"
+      else
+        cat > "$DEST" <<CONTINUEEOF
+{
+  "models": [],
+  "systemMessage": "${SYSTEM_MSG}"
+}
+CONTINUEEOF
+        echo -e "${GREEN}✓ Generated:${NC} $DEST"
+        echo "  Add your model entries to the models array."
+      fi
+
+      # Log via secure-logger.sh if available
+      LOGGER="core/scripts/secure-logger.sh"
+      if [[ -x "$LOGGER" ]]; then
+        bash "$LOGGER" engine_switch "to_engine=continue from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/continue.md generated_file=$DEST operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_start "engine=continue from_engine=$_FROM_ENGINE" 2>/dev/null || true
+      fi
+    fi
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  Continue.dev has no native YAMTAM hook layer."
+    echo "  Tool calls in this session are NOT recorded in the YAMTAM Merkle audit chain."
+    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
+    echo "  For shell-level blocking, manually prefix commands:"
+    echo "    bash core/scripts/safe-run.sh --engine continue -- <command>"
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
+    echo "  L0  Audit    — engine_switch logged; individual tool calls NOT in Merkle chain"
+    echo "  L1–L5        — prompt-instructed (no runtime intercept)"
+    echo ""
+    echo -e "${CYAN}Config location:${NC}"
+    echo "  Project scope : .continue/config.json       ← generated above"
+    echo "  Global scope  : ~/.continue/config.json     ← edit manually for cross-project use"
+    echo ""
+    echo "See adapters/continue.md for the full system prompt content."
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -445,6 +507,9 @@ AIDEREOF
     [[ -f "adapters/openrouter.md" ]] \
       && echo -e "  ${GREEN}✓${NC} OpenRouter adapters/openrouter.md (advisory — Merkle gap)" \
       || echo -e "  ${YELLOW}✗${NC} OpenRouter adapters/openrouter.md missing"
+    [[ -f "adapters/continue.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Continue  adapters/continue.md (advisory — Merkle gap)" \
+      || echo -e "  ${YELLOW}✗${NC} Continue  adapters/continue.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;

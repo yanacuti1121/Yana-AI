@@ -190,8 +190,8 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 
 **Gemini Code (Google)**
 - [x] `adapters/gemini-code.md` — enforcement rules for Gemini Code CLI ✅ shipped v1.7.0
-- [ ] `switch-engine.sh gemini` — auto-generate Gemini Code config (copy adapter to GEMINI.md)
-- [ ] Covers Gemini 2.0 Flash / 2.5 Pro / Ultra and future versions
+- [x] `switch-engine.sh gemini` — auto-generate Gemini Code config (copy adapter to GEMINI.md) ✅ shipped v1.8.0
+- [x] Covers Gemini 2.0 Flash / 2.5 Pro / Ultra and future versions ✅
 
 **Qwen3 (Alibaba) via Aider/OpenRouter**
 - [x] `adapters/qwen.md` — adapter for Qwen3 / Qwen2.5-Coder via Aider or OpenRouter ✅ shipped v1.7.0
@@ -202,11 +202,12 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] Safe-run proxy wiring for DeepSeek-based sessions ✅
 
 **OpenRouter (universal gateway)**
-- [ ] `adapters/openrouter.md` — single adapter covering any model routed via OpenRouter
-- [ ] One config to rule all: Llama 3, Mistral, Command R+, Grok, etc.
+- [x] `adapters/openrouter.md` — single adapter covering any model routed via OpenRouter ✅ shipped v1.8.0
+- [x] One config to rule all: Llama 3, Mistral, Command R+, Grok, etc. ✅
 
 **Continue.dev**
-- [ ] `adapters/continue.md` — VS Code/JetBrains AI assistant with multi-model support
+- [x] `adapters/continue.md` — VS Code/JetBrains AI assistant with multi-model support ✅ shipped v1.8.0
+- [x] `switch-engine.sh continue` — generates `.continue/config.json` fragment ✅ shipped v1.8.0
 
 | Engine | Via | Target tier |
 |---|---|---|
