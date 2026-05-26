@@ -1,0 +1,153 @@
+# router/model-routing-policy.yml
+# YAMTAM Model Routing Policy
+#
+# Declares which model tier to use for each task type.
+# Inspired by freellmapi's priority-based fallback chain with penalty decay:
+#   - route intelligence, not chase free tokens
+#   - cheap model for deterministic/scan work
+#   - strong model for judgment/security/release decisions
+#
+# Usage: yamtam router suggest --task <task_type>
+# (future: yamtam will read this before spawning any LLM-assisted check)
+
+version: "1.0"
+
+# ── Model tiers ───────────────────────────────────────────────────────────────
+
+tiers:
+  fast:
+    model: "claude-haiku-4-5"
+    max_input_tokens: 10000
+    max_output_tokens: 2000
+    cost_per_1k_input: 0.00025
+    cost_per_1k_output: 0.00125
+    use_for: "quick lookups, formatting, counting, simple transforms"
+
+  standard:
+    model: "claude-sonnet-4-6"
+    max_input_tokens: 50000
+    max_output_tokens: 8000
+    cost_per_1k_input: 0.003
+    cost_per_1k_output: 0.015
+    use_for: "code review, PR analysis, bug triage, audit summaries"
+
+  strong:
+    model: "claude-opus-4-7"
+    max_input_tokens: 200000
+    max_output_tokens: 16000
+    cost_per_1k_input: 0.015
+    cost_per_1k_output: 0.075
+    use_for: "architecture review, security decisions, release risk, deep analysis"
+
+  offline:
+    model: null
+    use_for: "rule-based scanners, regex checks, static analysis — NO LLM needed"
+
+# ── Task routing table ────────────────────────────────────────────────────────
+
+tasks:
+
+  # ── Audit / scan tasks (deterministic — no LLM) ──────────────────────────
+
+  - task: "audit_scan"
+    tier: offline
+    reason: "yamtam audit is fully rule-based. Never spend tokens on what grep can do."
+
+  - task: "doctor_check"
+    tier: offline
+    reason: "Runtime health checks are deterministic. git status, file existence, JSON parse."
+
+  - task: "secret_detection"
+    tier: offline
+    reason: "Regex patterns catch secrets. LLM hallucination on secret patterns is a liability."
+
+  # ── Summary / report tasks (fast model fine) ─────────────────────────────
+
+  - task: "findings_summary"
+    tier: fast
+    reason: "Summarizing a list of findings is low-complexity. Haiku is accurate enough."
+
+  - task: "fix_suggestion"
+    tier: fast
+    reason: "One-line fix suggestions for known rule violations. Pattern matching, not reasoning."
+
+  - task: "changelog_draft"
+    tier: fast
+    reason: "Structured changelog from git log. Template-filling work."
+
+  # ── Review / analysis tasks (standard model) ─────────────────────────────
+
+  - task: "pr_review"
+    tier: standard
+    reason: "PR review needs code understanding but not deep architectural judgment."
+
+  - task: "bug_triage"
+    tier: standard
+    reason: "Reproducing and classifying bugs. Standard reasoning required."
+
+  - task: "audit_report_narrative"
+    tier: standard
+    reason: "Turning structured audit findings into a readable report narrative."
+
+  - task: "dependency_analysis"
+    tier: standard
+    reason: "Analyzing package.json / requirements.txt for risk. Moderate complexity."
+
+  - task: "ci_workflow_review"
+    tier: standard
+    reason: "Reviewing CI YAML for logic errors. Standard code comprehension."
+
+  # ── High-stakes tasks (strong model required) ─────────────────────────────
+
+  - task: "security_audit"
+    tier: strong
+    reason: "Security decisions require high confidence. False negatives are costly."
+    require_human_gate: true
+
+  - task: "architecture_review"
+    tier: strong
+    reason: "Architectural impact analysis needs full context and deep reasoning."
+    require_human_gate: true
+
+  - task: "release_risk_assessment"
+    tier: strong
+    reason: "Release decisions are irreversible. Use the strongest available model."
+    require_human_gate: true
+
+  - task: "incident_response"
+    tier: strong
+    reason: "Production incidents require maximum reasoning speed and accuracy."
+    require_human_gate: true
+
+# ── Fallback chain ────────────────────────────────────────────────────────────
+# When a model tier is unavailable or errors (inspired by freellmapi penalty decay):
+# Each failure increments penalty; after 3 consecutive failures, drop to lower tier.
+
+fallback:
+  strong:
+    on_error: standard
+    on_budget_exceeded: standard
+    max_retries: 1
+
+  standard:
+    on_error: fast
+    on_budget_exceeded: fast
+    max_retries: 2
+
+  fast:
+    on_error: offline
+    on_budget_exceeded: offline
+    max_retries: 2
+
+  offline:
+    on_error: null   # no fallback — surface the error
+    note: "Offline/rule-based failures are logic errors, not rate limits. Do not retry blindly."
+
+# ── Hard rules ────────────────────────────────────────────────────────────────
+
+rules:
+  - "NEVER use strong model for tasks that tier: offline can handle"
+  - "NEVER skip human_gate for tasks with require_human_gate: true"
+  - "NEVER claim task complete if model fell back to offline unexpectedly"
+  - "ALWAYS log which tier was used and why (for cost ledger)"
+  - "If unsure which tier: use standard, not strong — strong is for irreversible decisions"

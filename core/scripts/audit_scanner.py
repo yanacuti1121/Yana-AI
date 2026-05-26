@@ -324,6 +324,36 @@ def run_audit(target: str, scanner_dir: str) -> dict:
     order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
     all_findings.sort(key=lambda x: order.get(x["severity"], 5))
 
+    # Analytics block (inspired by freellmapi requests table analytics)
+    # by_category: findings count per scanner scope
+    by_category: dict[str, int] = {}
+    for f in all_findings:
+        cat = f.get("category", "unknown")
+        by_category[cat] = by_category.get(cat, 0) + 1
+
+    # top_rules: rule IDs ranked by instance count (signal vs noise indicator)
+    rule_counts: dict[str, dict] = {}
+    for f in all_findings:
+        rid = f["id"]
+        if rid not in rule_counts:
+            rule_counts[rid] = {"id": rid, "severity": f["severity"], "count": 0,
+                                "category": f.get("category", "unknown")}
+        rule_counts[rid]["count"] += 1
+    top_rules = sorted(rule_counts.values(), key=lambda x: (order.get(x["severity"], 5), -x["count"]))[:10]
+
+    # files with findings vs clean
+    files_with_findings = len({f["file"] for f in all_findings if f["severity"] != "INFO"})
+    files_clean = len(files_scanned) - files_with_findings
+    hit_rate = round(files_with_findings / len(files_scanned) * 100, 1) if files_scanned else 0.0
+
+    analytics = {
+        "by_category": by_category,
+        "top_rules": top_rules,
+        "files_with_findings": files_with_findings,
+        "files_clean": files_clean,
+        "hit_rate_pct": hit_rate,
+    }
+
     return {
         "schema_version": "0.1.0",
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -339,6 +369,7 @@ def run_audit(target: str, scanner_dir: str) -> dict:
             "checks_applied": checks_applied,
             "duration_ms": 0,
         },
+        "analytics": analytics,
         "findings": all_findings,
     }
 
