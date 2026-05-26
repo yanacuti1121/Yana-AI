@@ -1,0 +1,3 @@
+# Override root gitignore — these files are intentional demo content (fake credentials only)
+!.env
+!.mcp.json

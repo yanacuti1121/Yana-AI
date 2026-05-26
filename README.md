@@ -78,24 +78,55 @@ yamtam doctor . --quiet  # single summary line (CI use)
 ```
 YAMTAM Agent Audit Report
 
-  Score:    41 / 100
-  Risk:     HIGH
+  Score:    0 / 100
+  Risk:     CRITICAL
 
-  [CRITICAL] AC002  .claude/settings.json    allowedTools contains Bash(*) (wildcard shell)
-  [HIGH]     CI001  .github/workflows/ai-pr.yml  auto-merge has no approval gate
-  [HIGH]     MCP001 .mcp.json                filesystem server has root-level access
-  [MEDIUM]   SE012  package.json             postinstall runs remote shell script
-  [LOW]      SH008  scripts/deploy.sh        set -e missing
+  [CRITICAL] AC002  .claude/settings.json    allowedTools contains Bash(*) — wildcard shell
+  [CRITICAL] SE001  .env:5                   Anthropic API key exposed
+  [CRITICAL] MCP001 .mcp.json                filesystem MCP server has full-root access
+  [CRITICAL] SH002  scripts/deploy.sh:12     curl | bash install step
+  [HIGH    ] CI004  .github/workflows/...    secrets echoed in workflow step
+  [HIGH    ] SH005  scripts/deploy.sh:19     eval with variable content
 
-  Summary:  1 critical · 2 high · 1 medium · 1 low
+  Summary:  14 critical · 9 high · 6 medium · 4 low
 ```
 
 ```bash
-yamtam audit .                    # scan current repo
-yamtam audit . --fix              # show fixes inline
-yamtam audit . --markdown out.md  # export Markdown report
-yamtam audit . --fail-on high     # CI gate: exit 1 on HIGH+
-yamtam audit . --json             # machine-readable output
+yamtam audit .                          # scan current repo
+yamtam audit . --markdown report.md     # export full Markdown report
+yamtam audit . --sarif audit.sarif      # GitHub Code Scanning format
+yamtam audit . --diff origin/main       # PR mode — scan only changed files
+yamtam audit . --fail-on high           # CI gate: exit 1 on HIGH+
+yamtam audit . --json                   # machine-readable output
+```
+
+**.yamtamignore** — suppress known-safe findings per file:
+
+```
+# .yamtamignore
+SH008:scripts/legacy.sh              # known false positive — no set -e intentional
+CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### Try it on the demo repo
+
+`examples/unsafe-agent-repo/` is an intentionally misconfigured AI agent repo — 5 files, 34 findings, score 0/100. Run it to see what bad agent config looks like:
+
+```bash
+yamtam audit examples/unsafe-agent-repo
+```
+
+### CI Integration (GitHub Actions)
+
+Copy `.github/workflows/yamtam-audit.yml` into your repo. It auto-detects PR vs push and runs diff-mode or full scan accordingly, uploading SARIF results to GitHub's Security tab:
+
+```yaml
+- name: Run yamtam audit
+  run: |
+    python3 core/scripts/audit_scanner.py . \
+      --diff origin/${{ github.base_ref }} \
+      --sarif yamtam-audit.sarif \
+      --fail-on high
 ```
 
 ---
@@ -158,7 +189,7 @@ L0 — Audit       audit-log.sh, telemetry-sender.sh
 L1 — Scope       token-scope-guard.sh, scope-guard.sh
                  Warn on secret/env access, cross-scope writes
 
-L1.5 — Validate  tool-validator.sh                          ← NEW v1.7.0
+L1.5 — Validate  tool-validator.sh
                  Block SSRF, path traversal, sensitive file reads
 
 L2 — Commit      commit-gate.sh
@@ -167,13 +198,13 @@ L2 — Commit      commit-gate.sh
 L3 — Truth       truth-gate-guard.sh
                  Block unsupported claims without evidence
 
-L3.5 — Inject    prompt-injection-guard.sh                  ← NEW v1.7.0
+L3.5 — Inject    prompt-injection-guard.sh
                  Block identity override, system prompt extraction, jailbreaks
 
 L4 — Deploy      deploy-gate.sh
                  Block gh/kubectl/docker/gcloud/fly/heroku
 
-L4.5 — Supply    supply-chain-guard.sh                      ← NEW v1.7.0
+L4.5 — Supply    supply-chain-guard.sh
                  Block pipe-to-shell, typosquatting, URL package installs
 
 L5 — Destructive guard-destructive.sh, db-protect.sh, api-destruct-guard.sh
@@ -225,6 +256,11 @@ Prevents drift between YAMTAM tasks and product code:
 | **Cursor** | Hard enforcement via safe-run.sh proxy |
 | **Aider** | Hard enforcement via shell proxy |
 | **GitHub Copilot** | Advisory via prompt layer |
+| **Continue.dev** | Advisory via system prompt (`adapters/continue.md`) |
+| **Gemini Code Assist** | Advisory via system prompt (`adapters/gemini-code.md`) |
+| **OpenRouter** | Advisory via system prompt (`adapters/openrouter.md`) |
+
+Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 
 ---
 
@@ -305,6 +341,8 @@ yamtam-engine/
 │   ├── commands/        → mirrors core/commands/
 │   └── skills/          → mirrors core/skills/
 ├── scanner/             Rule YAML files for yamtam audit
+├── adapters/            System prompt adapters per engine (continue, gemini, openrouter, …)
+├── examples/            Demo repos — unsafe-agent-repo (0/100 score demo)
 ├── router/              Model routing policy
 ├── ledger/              Token/cost ledger schema
 ├── gates/               Gate specifications
@@ -413,6 +451,9 @@ Open an issue or PR. See `CONTRIBUTING.md` for how to add hooks, skills, or rule
 | `docs/SEPARATION.md` | Boundary between YAMTAM and product repos |
 | `docs/AGENT_BEHAVIOR.md` | Good vs bad agent behavior examples |
 | `docs/HOOK_WIRING.md` | Hook configuration guide |
+| `examples/unsafe-agent-repo/` | Demo: intentionally misconfigured repo (score 0/100) |
+| `.yamtamignore.example` | Template for suppressing known-safe findings |
+| `.github/workflows/yamtam-audit.yml` | Copy-paste CI integration example |
 | `ROADMAP.md` | Feature roadmap |
 | `CHANGELOG.md` | Release history |
 | `docs/yamtam-system-map.html` | Interactive system map (open in browser) |
@@ -485,6 +526,27 @@ bash .claude/tests/hooks/run-hook-tests.sh
 
 ---
 
+## Audit — quét rủi ro
+
+```bash
+yamtam audit .                          # quét toàn bộ repo
+yamtam audit . --sarif audit.sarif      # GitHub Code Scanning format
+yamtam audit . --diff origin/main       # chỉ quét file thay đổi trong PR
+yamtam audit . --fail-on high           # CI gate: exit 1 nếu có HIGH+
+yamtam audit . --markdown report.md     # xuất báo cáo Markdown
+```
+
+**.yamtamignore** — bỏ qua finding đã biết và chấp nhận:
+
+```
+SH008:scripts/legacy.sh              # false positive đã xác nhận
+CI003:.github/workflows/deploy.yml   # rủi ro được chấp nhận
+```
+
+**Demo thực tế:** `examples/unsafe-agent-repo/` — 5 file, 34 finding, điểm 0/100 CRITICAL.
+
+---
+
 ## Hệ thống 6 lớp bảo vệ (L0–L5)
 
 | Lớp | Tên | Chức năng |
@@ -510,17 +572,22 @@ AI bắt buộc phải đưa ra bằng chứng trước khi khai báo hoàn thà
 ✅  "Tests passed — 47 passed, 0 failed"   ← được phép, có bằng chứng
 ```
 
-### Bộ nhớ 2 tầng
-- **L1 Atomic Memory** — facts bền vững, git-tracked, có confidence score
-- **L2 Session Memory** — facts tạm thời, gitignored, xóa sau mỗi session
-
 ### Hỗ trợ đa engine
+
 | Engine | Mức độ bảo vệ |
 |---|---|
 | Claude Code | Runtime blocking qua hooks (L0–L5) |
 | Cursor | Hard enforcement qua safe-run.sh proxy |
 | Aider | Hard enforcement qua shell proxy |
 | GitHub Copilot | Advisory qua prompt layer |
+| Continue.dev | Advisory qua system prompt adapter |
+| Gemini Code Assist | Advisory qua system prompt adapter |
+
+Chuyển engine: `bash core/scripts/switch-engine.sh <engine>`
+
+### Bộ nhớ 2 tầng
+- **L1 Atomic Memory** — facts bền vững, git-tracked, có confidence score
+- **L2 Session Memory** — facts tạm thời, gitignored, xóa sau mỗi session
 
 ---
 

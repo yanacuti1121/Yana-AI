@@ -170,7 +170,7 @@ Kết luận: YAMTAM không cần to hơn. Cần ít phần hơn nhưng mỗi ph
 | 3 | **SARIF output** (`--sarif`) | GitHub Code Scanning đọc được, finding hiện trong Security tab | ✅ done |
 | 4 | **`--diff` mode** (`--diff origin/main`) | Chỉ scan file thay đổi trong PR — giảm noise, nhanh hơn, hợp CI hơn | ✅ done |
 | 5 | **`.yamtamignore` + baseline** | Repo cũ có 50 findings không nản, chỉ fail trên risk mới | ✅ done |
-| 6 | **`examples/unsafe-agent-repo`** | Demo chạy được ngay — không cần tin lời | next |
+| 6 | **`examples/unsafe-agent-repo`** | Demo chạy được ngay — không cần tin lời | ✅ done |
 | 7 | **GitHub Action official** | `uses: phamlongh230-lgtm/yamtam-engine/actions/audit@v1` — adopt cực thấp | |
 | 8 | **`yamtam explain <rule>`** | Mỗi finding thành giáo trình bảo mật, không phải cảnh báo khô | |
 | 9 | **Agent Blast Radius Map** (`yamtam map .`) | Trả lời "agent của tôi chạm được tới đâu?" | |

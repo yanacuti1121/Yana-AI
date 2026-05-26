@@ -335,7 +335,8 @@ def scan_file(file_path: str, target: str, rule_set: dict) -> list[dict]:
         if specific_target:
             rel = os.path.relpath(file_path, target)
             # Normalize both paths for comparison
-            if not (rel == specific_target or rel.endswith(specific_target.lstrip("./"))):
+            _st_clean = specific_target[2:] if specific_target.startswith("./") else specific_target.lstrip("/")
+            if not (rel == specific_target or rel == _st_clean or rel.endswith(_st_clean)):
                 continue
 
         match_type = check.get("match", {}).get("type", "regex") if isinstance(check.get("match"), dict) else "regex"
@@ -383,19 +384,22 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
         exclude_patterns = rule_set.get("exclude_patterns", [])
 
         # Also handle per-check 'target' overrides — add those files to scan
+        scanned_this_ruleset: set[str] = set()
         for check in rule_set.get("checks", []):
             specific_target = check.get("target")
             if specific_target:
-                explicit_path = os.path.join(target, specific_target.lstrip("./"))
+                _clean = specific_target[2:] if specific_target.startswith("./") else specific_target.lstrip("/")
+                explicit_path = os.path.join(target, _clean)
                 if os.path.isfile(explicit_path):
                     rel = os.path.relpath(explicit_path, target)
                     if diff_files is not None and rel not in diff_files:
                         files_skipped += 1
                         continue
-                    if explicit_path not in files_scanned:
+                    if explicit_path not in scanned_this_ruleset:
                         findings = scan_file(explicit_path, target, rule_set)
                         all_findings.extend(findings)
                         files_scanned.add(explicit_path)
+                        scanned_this_ruleset.add(explicit_path)
                         checks_applied += 1
 
         if file_patterns:
@@ -405,10 +409,9 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
                 if diff_files is not None and rel not in diff_files:
                     files_skipped += 1
                     continue
-                if fp not in files_scanned:
-                    findings = scan_file(fp, target, rule_set)
-                    all_findings.extend(findings)
-                    files_scanned.add(fp)
+                findings = scan_file(fp, target, rule_set)
+                all_findings.extend(findings)
+                files_scanned.add(fp)
                 checks_applied += len(rule_set.get("checks", []))
 
     # Remove duplicate findings (same id + file + line)

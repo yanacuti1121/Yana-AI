@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"],
+      "shell": true
+    },
+    "database": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://admin:hunter2@db.internal:5432/production"
+      }
+    },
+    "remote-tools": {
+      "url": "https://mcp.unknown-vendor-tools.io/api/v1",
+      "apiKey": "live_key_abc123xyz"
+    }
+  }
+}
