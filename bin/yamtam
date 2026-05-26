@@ -7,6 +7,7 @@ YAMTAM_VERSION="0.1.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
+DOCTOR_PY="$REPO_ROOT/core/scripts/doctor.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,9 +22,16 @@ usage() {
 Usage: yamtam <command> [target] [flags]
 
 Commands:
-  audit [target]    Scan AI agent setup for risk patterns (default target: .)
+  doctor [target]   Check environment health before starting an agent session
+  audit  [target]   Scan AI agent setup for risk patterns (default target: .)
   version           Print version
   help              Show this help
+
+Doctor flags:
+  --fix                    Show fix suggestions for WARN and FAIL items
+  --json                   Output as JSON
+  --no-color               Disable ANSI color output
+  --quiet                  Only print health summary
 
 Audit flags:
   --json                   Output as JSON
@@ -35,11 +43,11 @@ Audit flags:
   --quiet                  Only print score + risk level
 
 Examples:
+  yamtam doctor .
+  yamtam doctor . --fix
   yamtam audit .
-  yamtam audit . --json
   yamtam audit . --markdown report.md
   yamtam audit . --fail-on high
-  yamtam audit /path/to/repo --quiet
 
 EOF
 }
@@ -48,6 +56,22 @@ EOF
 
 cmd_version() {
   echo "yamtam $YAMTAM_VERSION"
+}
+
+# ── doctor ────────────────────────────────────────────────────────────────────
+
+cmd_doctor() {
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yamtam doctor."
+    exit 3
+  fi
+
+  if [[ ! -f "$DOCTOR_PY" ]]; then
+    err "Doctor not found at $DOCTOR_PY"
+    exit 3
+  fi
+
+  python3 "$DOCTOR_PY" "$@"
 }
 
 # ── audit ─────────────────────────────────────────────────────────────────────
@@ -74,6 +98,9 @@ COMMAND="${1:-help}"
 shift 2>/dev/null || true
 
 case "$COMMAND" in
+  doctor)
+    cmd_doctor "$@"
+    ;;
   audit)
     cmd_audit "$@"
     ;;
