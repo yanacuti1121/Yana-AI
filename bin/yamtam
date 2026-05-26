@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
 DOCTOR_PY="$REPO_ROOT/core/scripts/doctor.py"
+ROUTER_PY="$REPO_ROOT/core/scripts/router_suggest.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -22,10 +23,11 @@ usage() {
 Usage: yamtam <command> [target] [flags]
 
 Commands:
-  doctor [target]   Check environment health before starting an agent session
-  audit  [target]   Scan AI agent setup for risk patterns (default target: .)
-  version           Print version
-  help              Show this help
+  doctor [target]         Check environment health before starting an agent session
+  audit  [target]         Scan AI agent setup for risk patterns (default target: .)
+  router suggest          Look up recommended model tier for a task type
+  version                 Print version
+  help                    Show this help
 
 Doctor flags:
   --fix                    Show fix suggestions for WARN and FAIL items
@@ -42,12 +44,20 @@ Audit flags:
   --no-color               Disable ANSI color output
   --quiet                  Only print score + risk level
 
+Router flags:
+  --task <task>            Task type to look up (e.g. pr_review, security_audit)
+  --list                   List all tasks and their assigned tiers
+  --json                   Output as JSON
+  --no-color               Disable ANSI color output
+
 Examples:
   yamtam doctor .
   yamtam doctor . --fix
   yamtam audit .
   yamtam audit . --markdown report.md
   yamtam audit . --fail-on high
+  yamtam router suggest --task pr_review
+  yamtam router suggest --list
 
 EOF
 }
@@ -72,6 +82,30 @@ cmd_doctor() {
   fi
 
   python3 "$DOCTOR_PY" "$@"
+}
+
+# ── router ────────────────────────────────────────────────────────────────────
+
+cmd_router() {
+  local subcmd="${1:-}"
+  shift 2>/dev/null || true
+
+  if [[ "$subcmd" != "suggest" ]]; then
+    err "Usage: yamtam router suggest --task <task> | --list"
+    exit 1
+  fi
+
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yamtam router."
+    exit 3
+  fi
+
+  if [[ ! -f "$ROUTER_PY" ]]; then
+    err "Router not found at $ROUTER_PY"
+    exit 3
+  fi
+
+  python3 "$ROUTER_PY" "$@"
 }
 
 # ── audit ─────────────────────────────────────────────────────────────────────
@@ -103,6 +137,9 @@ case "$COMMAND" in
     ;;
   audit)
     cmd_audit "$@"
+    ;;
+  router)
+    cmd_router "$@"
     ;;
   version|--version|-v)
     cmd_version

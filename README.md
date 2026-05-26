@@ -48,33 +48,63 @@
 
 ---
 
-## Quick Audit
+## Quick Start
 
 ```bash
-# Scan your current repo — no setup required
+# 1. Check your environment before starting an agent session
+yamtam doctor .
+
+# 2. Scan your repo for AI agent risk patterns
 yamtam audit .
 ```
 
+### Doctor — pre-session health check
+
 ```
-YAMTAM Agent Audit Report
-─────────────────────────
-Target:  .
-Score:   41/100  |  Risk: HIGH
+YAMTAM Doctor — Runtime Health Check
 
-[CRITICAL] .claude/settings.json — allowedTools contains Bash(*) (wildcard shell)
-[HIGH]     .github/workflows/ai-pr.yml — auto-merge has no approval gate
-[HIGH]     .mcp.json — filesystem server has root-level access
-[MED]      package.json — postinstall runs remote shell script
-[LOW]      scripts/deploy.sh — set -e missing
+  [OK  ] python3                  Python 3.12.3, PyYAML available
+  [OK  ] git                      available
+  [OK  ] working tree             clean — no uncommitted changes
+  [WARN] git branch               on 'main' — agent changes will land on default branch
+  [WARN] .gitignore               missing entries: *.pem, credentials.json
+  [OK  ] claude settings          found, 8 allowed tools
+  [WARN] MCP config               db-server has no read_only: true
 
-Run: yamtam audit . --markdown report.md
-Run: yamtam audit . --fail-on high   ← use in CI
+  Health:  4 ok  ·  3 warn  ·  2 info
+
+  !  Review WARN items. Run with --fix for suggestions.
 ```
 
 ```bash
-yamtam audit . --json            # machine-readable output
-yamtam audit . --markdown out.md # export report
-yamtam audit . --fail-on high    # CI gate: exit 1 on HIGH+
+yamtam doctor .          # health check
+yamtam doctor . --fix    # show fix for every WARN/FAIL
+yamtam doctor . --quiet  # single summary line (CI use)
+```
+
+### Audit — risk scan
+
+```
+YAMTAM Agent Audit Report
+
+  Score:    41 / 100
+  Risk:     HIGH
+
+  [CRITICAL] AC002  .claude/settings.json    allowedTools contains Bash(*) (wildcard shell)
+  [HIGH]     CI001  .github/workflows/ai-pr.yml  auto-merge has no approval gate
+  [HIGH]     MCP001 .mcp.json                filesystem server has root-level access
+  [MEDIUM]   SE012  package.json             postinstall runs remote shell script
+  [LOW]      SH008  scripts/deploy.sh        set -e missing
+
+  Summary:  1 critical · 2 high · 1 medium · 1 low
+```
+
+```bash
+yamtam audit .                    # scan current repo
+yamtam audit . --fix              # show fixes inline
+yamtam audit . --markdown out.md  # export Markdown report
+yamtam audit . --fail-on high     # CI gate: exit 1 on HIGH+
+yamtam audit . --json             # machine-readable output
 ```
 
 ---

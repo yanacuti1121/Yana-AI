@@ -462,6 +462,14 @@ def render_console(report: dict, no_color: bool = False, quiet: bool = False) ->
         lines.append("")
         lines.append(c(DIM, "  Run with --markdown report.md to export."))
         lines.append(c(DIM, "  Run with --fail-on high for CI use."))
+        lines.append(c(DIM, "  Run with --json to get analytics (top_rules, by_category, hit_rate)."))
+
+    # Analytics hint: show top repeating rule if > 1 instance
+    analytics = report.get("analytics", {})
+    top = analytics.get("top_rules", [])
+    if top and top[0].get("count", 0) > 1:
+        t = top[0]
+        lines.append(c(DIM, f"  Top finding: {t['id']} × {t['count']} ({t['severity']}) — run --json for full breakdown."))
 
     lines.append("")
     return "\n".join(lines)

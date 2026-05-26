@@ -265,6 +265,20 @@ def check_node() -> Check:
     return Check("OK", "node.js", result.stdout.strip())
 
 
+def check_yamtam_scanners() -> Check:
+    script_dir = Path(__file__).resolve().parent
+    # scanners live two levels up from core/scripts/
+    scanner_dir = script_dir.parent.parent / "scanner"
+    if not scanner_dir.exists():
+        return Check("WARN", "yamtam scanners", "scanner/ directory not found — audit will use built-in rules only",
+                     "Run: git clone or restore the scanner/ directory alongside core/")
+    ymls = list(scanner_dir.glob("*.yml"))
+    if not ymls:
+        return Check("WARN", "yamtam scanners", "scanner/ found but contains no .yml rule files",
+                     "Restore rule files or run: yamtam audit . to see which rules are missing")
+    return Check("OK", "yamtam scanners", f"{len(ymls)} rule file{'s' if len(ymls) != 1 else ''} in scanner/")
+
+
 # ── Runner ────────────────────────────────────────────────────────────────────
 
 def run_doctor(target: str, no_color: bool = False, quiet: bool = False) -> dict:
@@ -283,6 +297,7 @@ def run_doctor(target: str, no_color: bool = False, quiet: bool = False) -> dict
     checks.append(check_anthropic_key())
     checks.append(check_node())
     checks.append(check_ci_env())
+    checks.append(check_yamtam_scanners())
 
     counts = {"OK": 0, "WARN": 0, "FAIL": 0, "INFO": 0}
     for ck in checks:

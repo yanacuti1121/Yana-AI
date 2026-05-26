@@ -60,6 +60,33 @@
         "duration_ms":     { "type": "integer" }
       }
     },
+    "analytics": {
+      "type": "object",
+      "description": "Aggregated analytics over findings — useful for dashboards and trend tracking",
+      "properties": {
+        "by_category": {
+          "type": "object",
+          "description": "Finding count per scanner scope (e.g. ci-workflows: 5)",
+          "additionalProperties": { "type": "integer" }
+        },
+        "top_rules": {
+          "type": "array",
+          "description": "Rules ranked by severity then instance count — high count = systemic issue",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id":       { "type": "string" },
+              "severity": { "type": "string", "enum": ["CRITICAL","HIGH","MEDIUM","LOW","INFO"] },
+              "count":    { "type": "integer", "minimum": 1 },
+              "category": { "type": "string" }
+            }
+          }
+        },
+        "files_with_findings": { "type": "integer", "minimum": 0 },
+        "files_clean":         { "type": "integer", "minimum": 0 },
+        "hit_rate_pct":        { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
     "findings": {
       "type": "array",
       "items": {
