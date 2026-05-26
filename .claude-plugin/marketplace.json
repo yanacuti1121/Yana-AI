@@ -42,10 +42,10 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v1.7.3",
+  "latest_release": "v1.8.0",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "skills": 387,
   "checks": 826,
   "hooks": 45,
