@@ -100,3 +100,39 @@ checks:
       pattern: "@latest"
     reason: "Unpinned versions mean a package update can silently change server behavior."
     fix: "Pin to a specific version: @1.2.3 instead of @latest."
+
+  - id: MCP009
+    severity: CRITICAL
+    description: "MCP database server has no read-only enforcement"
+    match:
+      type: json
+      path: "$.mcpServers.*"
+      pattern: "(postgres|mysql|sqlite|bigquery|spanner|alloydb|cloudsql|firestore|db|database|sql)"
+      condition: missing_key
+      key: "read_only"
+    reason: >
+      A database MCP server without read_only: true means the AI agent can
+      execute INSERT, UPDATE, DELETE, or DROP on your production data.
+      Google MCP Toolbox explicitly requires declaring tool intent (read vs write)
+      before exposing any database server to an agent.
+    fix: >
+      Add read_only: true to the MCP server config for all read-only workloads.
+      For write operations, create a separate, explicitly scoped MCP server
+      with a named tool list — never expose a generic write handle.
+
+  - id: MCP010
+    severity: HIGH
+    description: "MCP config has 4+ servers — no domain isolation between them"
+    match:
+      type: json
+      path: "$.mcpServers"
+      condition: array_length_gt_3
+    reason: >
+      4 or more MCP servers in a single config means one agent session has
+      access to filesystem, database, GitHub, external APIs, and more simultaneously.
+      The blast radius of a prompt injection or misbehaving agent is the union
+      of all server capabilities.
+    fix: >
+      Split configs by task context. A PR review session does not need database
+      or filesystem write access. A data analysis session does not need GitHub push.
+      Use the minimum set of servers for each defined task type.

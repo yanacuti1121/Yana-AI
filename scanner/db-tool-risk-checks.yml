@@ -1,0 +1,142 @@
+# scanner/db-tool-risk-checks.yml
+# Checks for dangerous database tool configurations in MCP server setups.
+# Inspired by Google MCP Toolbox patterns — agents connecting to enterprise DBs
+# need strict read-only enforcement, schema scoping, and no raw SQL exposure.
+
+version: "1.0"
+scope: db-tool-risk
+
+file_patterns:
+  - ".mcp.json"
+  - ".cursor/mcp.json"
+  - "mcp.json"
+  - ".config/mcp*.json"
+  - "mcp-config*.json"
+  - "toolbox*.yaml"
+  - "toolbox*.yml"
+  - "tools.yaml"
+  - "tools.yml"
+
+checks:
+
+  - id: DB001
+    severity: CRITICAL
+    description: "MCP database tool exposes raw SQL execution without read-only policy"
+    match:
+      type: json
+      path: "$.mcpServers.*.env.*"
+      pattern: "(query|execute|sql|statement)"
+    reason: >
+      A raw SQL tool in MCP config means the AI agent can run any query —
+      SELECT, UPDATE, DROP TABLE — on your production database.
+      Google MCP Toolbox enforces read-only mode and tool-level SQL templates
+      to prevent this exact pattern.
+    fix: >
+      Replace raw SQL tools with named, parameterized tool templates.
+      If raw SQL is required, enforce read_only: true and restrict to
+      specific schemas/tables. Never expose DROP, TRUNCATE, or DELETE
+      without explicit, scoped authorization.
+
+  - id: DB002
+    severity: CRITICAL
+    description: "MCP server name or command suggests database write/delete/admin access"
+    match:
+      type: json
+      path: "$.mcpServers.*"
+      pattern: "(write|delete|drop|admin|migrate|truncate|alter|insert|update)"
+    reason: >
+      MCP server name implies write or destructive database operations.
+      An AI agent with this tool can permanently delete or corrupt production data.
+    fix: >
+      Audit what the MCP server actually exposes. Split into read-only
+      and write servers. Gate write-access servers behind explicit human approval.
+
+  - id: DB003
+    severity: HIGH
+    description: "Database MCP server has no allowed schemas or tables list"
+    match:
+      type: json
+      path: "$.mcpServers.*"
+      pattern: "(postgres|mysql|sqlite|bigquery|spanner|firestore|alloydb|cloudsql|db|database|sql)"
+    reason: >
+      Without an explicit allowed-schemas or allowed-tables list, the agent
+      can access every table in the database — including audit logs, user PII,
+      payment records, and internal configuration tables.
+    fix: >
+      Add an allowed_schemas or allowed_tables field to the MCP server config.
+      Example: { "allowed_schemas": ["public"], "allowed_tables": ["products", "orders"] }.
+
+  - id: DB004
+    severity: HIGH
+    description: "Database connection string embedded directly in MCP server args"
+    match:
+      type: json
+      path: "$.mcpServers.*.args[*]"
+      pattern: "(postgres|mysql|mongodb|sqlite):\\/\\/[^$\\{]"
+    reason: >
+      Hardcoded database connection strings in MCP args expose credentials
+      to every reader of the config file and persist in git history.
+    fix: >
+      Replace with environment variable reference:
+      { "args": ["--connection-string", "${DATABASE_URL}"] }
+      Never hardcode connection strings with passwords.
+
+  - id: DB005
+    severity: HIGH
+    description: "MCP server env block contains direct database password"
+    match:
+      type: json
+      path: "$.mcpServers.*.env.*"
+      pattern: "(?i)^(?!\\$\\{|your_|example_|replace_)[a-zA-Z0-9+/!@#%^&*]{8,}$"
+    reason: >
+      A raw password value in the MCP server env block is committed to the repo
+      and readable by anyone with access — including AI agents running in CI.
+    fix: >
+      Use secret manager references or environment variable passthrough:
+      { "DB_PASS": "${DB_PASS}" } — never inline the raw value.
+
+  - id: DB006
+    severity: MEDIUM
+    description: "Database MCP server has no query timeout configured"
+    match:
+      type: json
+      path: "$.mcpServers.*"
+      pattern: "(postgres|mysql|sqlite|bigquery|cloudsql|database)"
+      condition: missing_key
+      key: "timeout"
+    reason: >
+      Without a query timeout, an AI agent running a slow or runaway query
+      can lock tables and stall your database indefinitely.
+    fix: >
+      Add a query_timeout_ms or timeout field to the MCP server config.
+      Recommended: 5000ms for standard queries, 30000ms for analytics.
+
+  - id: DB007
+    severity: MEDIUM
+    description: "MCP toolbox config exposes multiple databases to a single agent"
+    match:
+      type: json
+      path: "$.sources"
+      condition: array_length_gt_2
+    reason: >
+      A single MCP toolbox config listing 3+ database sources means one
+      compromised or misbehaving agent session can touch all of them simultaneously.
+    fix: >
+      Split into per-domain toolbox configs. An agent working on product data
+      should not have access to the auth database or billing database in the same session.
+
+  - id: DB008
+    severity: LOW
+    description: "Database MCP server has no audit logging configured"
+    match:
+      type: json
+      path: "$.mcpServers.*"
+      pattern: "(postgres|mysql|sqlite|bigquery|cloudsql|database)"
+      condition: missing_key
+      key: "log_queries"
+    reason: >
+      Without query logging, there is no audit trail of what the AI agent
+      queried or modified — making incident response impossible.
+    fix: >
+      Enable log_queries: true in the MCP server config.
+      Route query logs to your existing audit log pipeline.
