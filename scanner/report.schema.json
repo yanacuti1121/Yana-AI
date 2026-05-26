@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "YAMTAM Audit Report",
+  "version": "0.1.0",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "target", "score", "risk_level", "findings"],
+  "properties": {
+    "schema_version": { "type": "string", "example": "0.1.0" },
+    "generated_at":   { "type": "string", "format": "date-time" },
+    "target":         { "type": "string", "description": "Path scanned, e.g. '.' or './myrepo'" },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Start 100. CRITICAL -30 / HIGH -20 / MED -10 / LOW -3"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "90-100=LOW | 70-89=MEDIUM | 40-69=HIGH | 0-39=CRITICAL"
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total":    { "type": "integer" },
+        "critical": { "type": "integer" },
+        "high":     { "type": "integer" },
+        "medium":   { "type": "integer" },
+        "low":      { "type": "integer" }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "file", "rule", "reason", "fix"],
+        "properties": {
+          "id":       { "type": "string", "description": "e.g. AC001, SH002, MCP003" },
+          "severity": { "type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"] },
+          "category": {
+            "type": "string",
+            "enum": ["agent-config", "shell-risk", "mcp-permission", "ci-workflow", "secret-exposure"]
+          },
+          "file":     { "type": "string", "description": "Relative path to file" },
+          "line":     { "type": "integer", "description": "Line number if applicable" },
+          "rule":     { "type": "string", "description": "Rule ID that triggered, e.g. 'shell-risk/dangerous-pipe'" },
+          "reason":   { "type": "string", "description": "Human-readable explanation" },
+          "fix":      { "type": "string", "description": "Concrete suggested fix" },
+          "confidence": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LOW"],
+            "description": "Certainty of finding — LOW = may be false positive"
+          }
+        }
+      }
+    }
+  }
+}
