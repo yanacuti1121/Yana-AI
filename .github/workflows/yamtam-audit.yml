@@ -39,14 +39,31 @@ jobs:
         env:
           FAIL_ON_LEVEL: high   # fail CI on HIGH or CRITICAL findings (adjust as needed)
         run: |
+          # On PRs: scan only changed files. On push to main: scan everything.
+          DIFF_FLAG=""
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            DIFF_FLAG="--diff origin/${{ github.base_ref }}"
+          fi
+
           /tmp/yamtam-engine/bin/yamtam audit . \
+            $DIFF_FLAG \
             --fail-on "$FAIL_ON_LEVEL" \
+            --sarif yamtam-audit.sarif \
             --markdown yamtam-audit-report.md
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: yamtam-audit.sarif
+          category: yamtam-agent-audit
 
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: yamtam-audit-report
-          path: yamtam-audit-report.md
+          path: |
+            yamtam-audit-report.md
+            yamtam-audit.sarif
           retention-days: 30

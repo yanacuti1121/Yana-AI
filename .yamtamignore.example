@@ -1,0 +1,20 @@
+# .yamtamignore — suppress known/accepted YAMTAM audit findings
+#
+# Format:
+#   RULE_ID                         suppress this rule everywhere
+#   RULE_ID:path/to/file.yml        suppress only for this specific file
+#
+# Copy this file to .yamtamignore in your project root.
+# Lines starting with # are comments.
+#
+# Rule IDs are shown in audit output, e.g. [HIGH] AC001 ...
+#
+# Example entries (uncomment and adjust to your project):
+
+# CI003:.github/workflows/deploy.yml   # auto-deploy accepted — gated by branch protection
+# SH008:scripts/legacy.sh              # false positive — rm -rf is on test fixtures dir only
+# ENV001                               # suppress across all files — no .env files in this repo
+# MCP001:.mcp.json                     # full filesystem access is intentional for this tool
+
+# Tip: keep suppressions minimal. If a finding is a real risk, fix it.
+# Document the reason — the comment is your audit trail.

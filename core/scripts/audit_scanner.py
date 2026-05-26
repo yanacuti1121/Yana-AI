@@ -367,7 +367,7 @@ def scan_file(file_path: str, target: str, rule_set: dict) -> list[dict]:
 
 # ── Main audit runner ─────────────────────────────────────────────────────────
 
-def run_audit(target: str, scanner_dir: str) -> dict:
+def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None) -> dict:
     rule_sets = load_scanner_rules(scanner_dir)
     if not rule_sets:
         print(f"[error] No scanner rules found in {scanner_dir}", file=sys.stderr)
@@ -388,6 +388,10 @@ def run_audit(target: str, scanner_dir: str) -> dict:
             if specific_target:
                 explicit_path = os.path.join(target, specific_target.lstrip("./"))
                 if os.path.isfile(explicit_path):
+                    rel = os.path.relpath(explicit_path, target)
+                    if diff_files is not None and rel not in diff_files:
+                        files_skipped += 1
+                        continue
                     if explicit_path not in files_scanned:
                         findings = scan_file(explicit_path, target, rule_set)
                         all_findings.extend(findings)
@@ -397,6 +401,10 @@ def run_audit(target: str, scanner_dir: str) -> dict:
         if file_patterns:
             target_files = resolve_files(target, file_patterns, exclude_patterns)
             for fp in target_files:
+                rel = os.path.relpath(fp, target)
+                if diff_files is not None and rel not in diff_files:
+                    files_skipped += 1
+                    continue
                 if fp not in files_scanned:
                     findings = scan_file(fp, target, rule_set)
                     all_findings.extend(findings)
@@ -542,6 +550,181 @@ def recompute_report_stats(report: dict) -> dict:
     }
 
     return report
+
+
+# ── .yamtamignore loader ──────────────────────────────────────────────────────
+
+def load_yamtamignore(target: str) -> list[tuple[str, str | None]]:
+    """Parse .yamtamignore → list of (rule_id, filepath_or_None).
+
+    Format (per line):
+      RULE_ID                           suppress everywhere
+      RULE_ID:path/to/file.yml          suppress for one file
+      # comment line                    ignored
+    """
+    ignore_path = os.path.join(target, ".yamtamignore")
+    if not os.path.isfile(ignore_path):
+        return []
+    entries: list[tuple[str, str | None]] = []
+    try:
+        with open(ignore_path, encoding="utf-8") as f:
+            for raw in f:
+                line = raw.split("#")[0].strip()
+                if not line:
+                    continue
+                if ":" in line:
+                    rule_id, filepath = line.split(":", 1)
+                    entries.append((rule_id.strip().upper(), filepath.strip()))
+                else:
+                    entries.append((line.strip().upper(), None))
+    except OSError:
+        pass
+    return entries
+
+
+def apply_yamtamignore(
+    findings: list[dict], ignore_entries: list[tuple[str, str | None]]
+) -> tuple[list[dict], int]:
+    """Filter out findings that match .yamtamignore entries.
+
+    Returns (kept_findings, suppressed_count).
+    """
+    if not ignore_entries:
+        return findings, 0
+
+    kept: list[dict] = []
+    suppressed = 0
+    for f in findings:
+        matched = False
+        for rule_id, filepath in ignore_entries:
+            if f["id"].upper() == rule_id:
+                if filepath is None or os.path.normpath(f["file"]) == os.path.normpath(filepath):
+                    matched = True
+                    break
+        if matched:
+            suppressed += 1
+        else:
+            kept.append(f)
+    return kept, suppressed
+
+
+# ── --diff helper ─────────────────────────────────────────────────────────────
+
+def get_diff_files(base: str, target: str) -> set[str]:
+    """Return set of relative file paths changed between HEAD and base ref.
+
+    Uses `git diff --name-only <base>` from the target directory.
+    Falls back to scanning all files on any error.
+    """
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", base],
+            cwd=target,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.returncode != 0:
+            print(
+                f"[warn] git diff failed: {result.stderr.strip()} — scanning all files",
+                file=sys.stderr,
+            )
+            return set()
+        files = {line.strip() for line in result.stdout.splitlines() if line.strip()}
+        # Also include staged (index vs HEAD) changes
+        staged = subprocess.run(
+            ["git", "diff", "--name-only", "--cached"],
+            cwd=target,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if staged.returncode == 0:
+            files |= {line.strip() for line in staged.stdout.splitlines() if line.strip()}
+        return files
+    except (OSError, subprocess.TimeoutExpired) as e:
+        print(f"[warn] diff mode unavailable ({e}) — scanning all files", file=sys.stderr)
+        return set()
+
+
+# ── SARIF renderer ────────────────────────────────────────────────────────────
+
+_SARIF_LEVEL = {
+    "CRITICAL": "error",
+    "HIGH": "error",
+    "MEDIUM": "warning",
+    "LOW": "note",
+    "INFO": "none",
+}
+
+
+def render_sarif(report: dict) -> str:
+    """Render report as SARIF 2.1.0 JSON string (GitHub Code Scanning compatible)."""
+
+    # Build rules index from findings
+    rules_seen: dict[str, dict] = {}
+    for f in report["findings"]:
+        rid = f["id"]
+        if rid not in rules_seen:
+            rules_seen[rid] = {
+                "id": rid,
+                "name": rid,
+                "shortDescription": {"text": f.get("_description") or f.get("reason", rid)},
+                "fullDescription": {"text": f.get("reason", "")},
+                "help": {"text": f.get("fix", ""), "markdown": f.get("fix", "")},
+                "properties": {
+                    "tags": [f.get("category", "unknown")],
+                    "severity": f["severity"].lower(),
+                },
+            }
+
+    rules_list = list(rules_seen.values())
+    rule_index = {r["id"]: i for i, r in enumerate(rules_list)}
+
+    results = []
+    for f in report["findings"]:
+        loc: dict = {
+            "physicalLocation": {
+                "artifactLocation": {
+                    "uri": f["file"].replace("\\", "/"),
+                    "uriBaseId": "%SRCROOT%",
+                },
+            }
+        }
+        if f.get("line"):
+            loc["physicalLocation"]["region"] = {"startLine": int(f["line"])}
+
+        results.append({
+            "ruleId": f["id"],
+            "ruleIndex": rule_index.get(f["id"], 0),
+            "level": _SARIF_LEVEL.get(f["severity"], "warning"),
+            "message": {"text": f.get("reason", f["id"])},
+            "locations": [loc],
+        })
+
+    sarif = {
+        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "yamtam",
+                        "version": report.get("yamtam_version", "0.1.0"),
+                        "informationUri": "https://github.com/phamlongh230-lgtm/yamtam-engine",
+                        "rules": rules_list,
+                    }
+                },
+                "results": results,
+                "properties": {
+                    "score": report.get("score"),
+                    "riskLevel": report.get("risk_level"),
+                },
+            }
+        ],
+    }
+    return json.dumps(sarif, indent=2)
 
 
 # ── Output renderers ──────────────────────────────────────────────────────────
@@ -762,6 +945,10 @@ def main() -> None:
                         help="Run only one scanner category")
     parser.add_argument("--ignore", metavar="ID", action="append", default=[],
                         help="Suppress a finding ID (can repeat)")
+    parser.add_argument("--diff", metavar="BASE",
+                        help="Only scan files changed since BASE (e.g. origin/main)")
+    parser.add_argument("--sarif", metavar="FILE",
+                        help="Write SARIF 2.1.0 report to FILE (GitHub Code Scanning)")
     parser.add_argument("--no-color", action="store_true", help="Disable ANSI color")
     parser.add_argument("--quiet", action="store_true", help="Only print score + risk level")
     args = parser.parse_args()
@@ -776,25 +963,48 @@ def main() -> None:
     repo_root = os.path.dirname(os.path.dirname(script_dir))
     scanner_dir = os.path.join(repo_root, "scanner")
     if not os.path.isdir(scanner_dir):
-        # Fallback: look for scanner/ relative to target
         scanner_dir = os.path.join(target, ".claude", "scanner")
     if not os.path.isdir(scanner_dir):
         print(f"Error: scanner rules not found. Expected: {scanner_dir}", file=sys.stderr)
         sys.exit(3)
 
+    # --diff: resolve changed files before scanning
+    diff_files: set[str] | None = None
+    if args.diff:
+        diff_files = get_diff_files(args.diff, target)
+        if not diff_files:
+            if not args.quiet:
+                print(f"  No changed files vs {args.diff} — nothing to scan.\n")
+            sys.exit(0)
+        if not args.quiet:
+            print(f"  Diff mode: scanning {len(diff_files)} changed file(s) vs {args.diff}\n")
+
     t0 = time.monotonic()
-    report = run_audit(target, scanner_dir)
+    report = run_audit(target, scanner_dir, diff_files=diff_files)
     report["scan_stats"]["duration_ms"] = int((time.monotonic() - t0) * 1000)
 
-    # Apply --ignore and --only filters, then recompute all stats consistently
+    # Apply --ignore (CLI) filters
+    needs_recompute = False
     if args.ignore:
         report["findings"] = [f for f in report["findings"] if f["id"] not in args.ignore]
+        needs_recompute = True
 
     if args.only:
         report["findings"] = [f for f in report["findings"] if f.get("category") == args.only]
+        needs_recompute = True
 
-    if args.ignore or args.only:
+    # Apply .yamtamignore suppression
+    ignore_entries = load_yamtamignore(target)
+    suppressed_count = 0
+    if ignore_entries:
+        report["findings"], suppressed_count = apply_yamtamignore(report["findings"], ignore_entries)
+        needs_recompute = True
+
+    if needs_recompute:
         recompute_report_stats(report)
+
+    if suppressed_count and not args.quiet:
+        print(f"  {suppressed_count} finding(s) suppressed by .yamtamignore\n")
 
     # Output
     if args.json:
@@ -808,6 +1018,13 @@ def main() -> None:
             f.write(md)
         if not args.quiet:
             print(f"  Report written to: {args.markdown}\n")
+
+    if args.sarif:
+        sarif_content = render_sarif(report)
+        with open(args.sarif, "w") as f:
+            f.write(sarif_content)
+        if not args.quiet:
+            print(f"  SARIF report written to: {args.sarif}\n")
 
     # Exit codes
     fail_level = args.fail_on

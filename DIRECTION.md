@@ -163,18 +163,18 @@ Kết luận: YAMTAM không cần to hơn. Cần ít phần hơn nhưng mỗi ph
 
 ### Ưu tiên thực tế (theo thứ tự)
 
-| # | Feature | Lý do |
-|---|---------|-------|
-| 1 | Rule condition engine v2 | ✅ DONE — `accompanied_by`, `not_followed_by`, `not_preceded_by`, `missing_key` |
-| 2 | Rule test fixtures | ✅ DONE — `tests/fixtures/` + `test_scanner_conditions.py` |
-| 3 | **SARIF output** (`--sarif`) | GitHub Code Scanning đọc được, finding hiện trong Security tab |
-| 4 | **`--diff` mode** (`--diff origin/main`) | Chỉ scan file thay đổi trong PR — giảm noise, nhanh hơn, hợp CI hơn |
-| 5 | **`.yamtamignore` + baseline** | Repo cũ có 50 findings không nản, chỉ fail trên risk mới |
-| 6 | **`examples/unsafe-agent-repo`** | Demo chạy được ngay — không cần tin lời |
-| 7 | **GitHub Action official** | `uses: phamlongh230-lgtm/yamtam-engine/actions/audit@v1` — adopt cực thấp |
-| 8 | **`yamtam explain <rule>`** | Mỗi finding thành giáo trình bảo mật, không phải cảnh báo khô |
-| 9 | **Agent Blast Radius Map** (`yamtam map .`) | Trả lời "agent của tôi chạm được tới đâu?" |
-| 10 | **`yamtam init-policy <tool>`** | Generate safe config template, không auto-fix |
+| # | Feature | Lý do | Status |
+|---|---------|-------|--------|
+| 1 | Rule condition engine v2 | `accompanied_by`, `not_followed_by`, `not_preceded_by`, `missing_key` | ✅ done |
+| 2 | Rule test fixtures | `tests/fixtures/` + `test_scanner_conditions.py` | ✅ done |
+| 3 | **SARIF output** (`--sarif`) | GitHub Code Scanning đọc được, finding hiện trong Security tab | ✅ done |
+| 4 | **`--diff` mode** (`--diff origin/main`) | Chỉ scan file thay đổi trong PR — giảm noise, nhanh hơn, hợp CI hơn | ✅ done |
+| 5 | **`.yamtamignore` + baseline** | Repo cũ có 50 findings không nản, chỉ fail trên risk mới | ✅ done |
+| 6 | **`examples/unsafe-agent-repo`** | Demo chạy được ngay — không cần tin lời | next |
+| 7 | **GitHub Action official** | `uses: phamlongh230-lgtm/yamtam-engine/actions/audit@v1` — adopt cực thấp | |
+| 8 | **`yamtam explain <rule>`** | Mỗi finding thành giáo trình bảo mật, không phải cảnh báo khô | |
+| 9 | **Agent Blast Radius Map** (`yamtam map .`) | Trả lời "agent của tôi chạm được tới đâu?" | |
+| 10 | **`yamtam init-policy <tool>`** | Generate safe config template, không auto-fix | |
 
 ### Chi tiết từng feature
 

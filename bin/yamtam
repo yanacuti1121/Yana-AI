@@ -38,11 +38,14 @@ Doctor flags:
 Audit flags:
   --json                   Output as JSON
   --markdown <file>        Write Markdown report to file
+  --sarif <file>           Write SARIF 2.1.0 report to file (GitHub Code Scanning)
+  --diff <base>            Only scan files changed since base (e.g. origin/main)
   --fail-on <level>        Exit non-zero on findings at level+ (low/medium/high/critical)
   --only <category>        Run one scanner only
   --ignore <id>            Suppress a finding ID (repeatable)
   --no-color               Disable ANSI color output
   --quiet                  Only print score + risk level
+  (reads .yamtamignore if present — suppress known/accepted findings)
 
 Router flags:
   --task <task>            Task type to look up (e.g. pr_review, security_audit)
@@ -55,6 +58,8 @@ Examples:
   yamtam doctor . --fix
   yamtam audit .
   yamtam audit . --markdown report.md
+  yamtam audit . --sarif yamtam.sarif
+  yamtam audit . --diff origin/main --fail-on high
   yamtam audit . --fail-on high
   yamtam router suggest --task pr_review
   yamtam router suggest --list
