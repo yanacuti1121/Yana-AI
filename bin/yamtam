@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.3.0"
+YAMTAM_VERSION="0.4.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -12,6 +12,7 @@ ROUTER_PY="$REPO_ROOT/core/scripts/router_suggest.py"
 VALIDATE_SPEC_PY="$REPO_ROOT/core/scripts/validate_spec.py"
 CHECK_CONTEXT_PY="$REPO_ROOT/core/scripts/check_context_pack.py"
 POLICY_PY="$REPO_ROOT/core/scripts/policy_manager.py"
+GUARD_PY="$REPO_ROOT/core/scripts/guard_installer.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ Commands:
   doctor [target]         Check environment health before starting an agent session
   audit  [target]         Scan AI agent setup for risk patterns (default target: .)
   policy <subcommand>     Policy Kit — safe config templates for audit findings
+  guard  <subcommand>     Control Layer — install runtime enforcement hooks
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -71,6 +73,9 @@ Examples:
   yamtam policy show claude-settings
   yamtam policy apply claude-settings
   yamtam policy fixes AC001
+  yamtam guard list
+  yamtam guard install all
+  yamtam guard status
   yamtam router suggest --task pr_review
   yamtam router suggest --list
 
@@ -158,6 +163,22 @@ cmd_policy() {
   python3 "$POLICY_PY" "$@"
 }
 
+# ── guard ─────────────────────────────────────────────────────────────────────
+
+cmd_guard() {
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yamtam guard."
+    exit 3
+  fi
+
+  if [[ ! -f "$GUARD_PY" ]]; then
+    err "Guard installer not found at $GUARD_PY"
+    exit 3
+  fi
+
+  python3 "$GUARD_PY" "$@"
+}
+
 # ── validate-spec ─────────────────────────────────────────────────────────────
 
 cmd_validate_spec() {
@@ -205,6 +226,9 @@ case "$COMMAND" in
     ;;
   policy)
     cmd_policy "$@"
+    ;;
+  guard)
+    cmd_guard "$@"
     ;;
   router)
     cmd_router "$@"

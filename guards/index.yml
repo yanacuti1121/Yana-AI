@@ -1,0 +1,36 @@
+guards:
+
+  guard-destructive:
+    description: Block rm -rf, DROP TABLE, force push before they execute
+    hook_type: PreToolUse
+    matcher: "Bash"
+    file: guard-destructive.sh
+    risk_level: critical
+
+  scope-guard:
+    description: Warn when writing files outside declared task scope
+    hook_type: PreToolUse
+    matcher: "Write|Edit|MultiEdit"
+    file: scope-guard.sh
+    risk_level: high
+
+  token-budget:
+    description: Circuit breaker — hard block after 5 consecutive tool calls
+    hook_type: PreToolUse
+    matcher: ".*"
+    file: token-budget-guard.sh
+    risk_level: high
+
+  truth-gate:
+    description: Require evidence before Claude claims a task is complete
+    hook_type: Stop
+    matcher: ""
+    file: truth-gate-guard.sh
+    risk_level: medium
+
+  audit-log:
+    description: Hash-chain tamper-evident JSONL log of every tool call
+    hook_type: PostToolUse
+    matcher: ".*"
+    file: audit-log.sh
+    risk_level: medium
