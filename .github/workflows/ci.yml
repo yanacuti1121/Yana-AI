@@ -16,7 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt-get install -y jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq python3-pip
+          python3 -m pip install -r requirements-dev.txt
 
       - name: Run hook test suite
         run: bash core/tests/hooks/run-hook-tests.sh
@@ -26,3 +29,24 @@ jobs:
 
       - name: Verify install script is executable
         run: bash -n install.sh
+
+      - name: Check compiled scanner rule drift
+        run: python3 core/scripts/compile_scanner_rules.py --check
+
+      - name: Validate Harness Scaling schema examples
+        run: python3 tests/test_harness_schema_examples.py
+
+      - name: Validate .yamtamignore regression behavior
+        run: python3 tests/test_yamtamignore.py
+
+      - name: Validate spec command regression behavior
+        run: python3 tests/test_validate_spec.py
+
+      - name: Validate context-pack checker regression behavior
+        run: python3 tests/test_context_pack_check.py
+
+      - name: Validate validator JSON schema contract
+        run: python3 tests/test_validator_json_schema.py
+
+      - name: Validate audit JSON MVP regression behavior
+        run: python3 -m pytest tests/test_audit_json_mvp.py -q

@@ -1,0 +1,98 @@
+{
+  "version": "1.0",
+  "scope": "agent-config",
+  "checks": [
+    {
+      "id": "AC001",
+      "severity": "HIGH",
+      "target": ".claude/settings.json",
+      "description": "allowedTools contains Bash with no command restrictions",
+      "match": {
+        "type": "json",
+        "path": "$.permissions.allow[*]",
+        "pattern": "^Bash$"
+      },
+      "reason": "Unrestricted Bash access lets the agent run any shell command.",
+      "fix": "Replace 'Bash' with scoped entries like 'Bash(git status)' or use an allowlist."
+    },
+    {
+      "id": "AC002",
+      "severity": "CRITICAL",
+      "target": ".claude/settings.json",
+      "description": "allowedTools contains 'Bash(*)'  — wildcard shell",
+      "match": {
+        "type": "json",
+        "path": "$.permissions.allow[*]",
+        "pattern": "^Bash\\(\\*\\)$"
+      },
+      "reason": "Wildcard Bash is equivalent to giving the agent unrestricted root shell access.",
+      "fix": "Remove Bash(*). Specify exact commands the agent is allowed to run."
+    },
+    {
+      "id": "AC003",
+      "severity": "HIGH",
+      "target": ".claude/settings.json",
+      "description": "dangerouslyAllowAll is true",
+      "match": {
+        "type": "json",
+        "path": "$.permissions.dangerouslyAllowAll",
+        "value": true
+      },
+      "reason": "Disables all permission checks — any tool call is permitted.",
+      "fix": "Set dangerouslyAllowAll to false and enumerate only needed tools."
+    },
+    {
+      "id": "AC004",
+      "severity": "MEDIUM",
+      "target": ".claude/settings.json",
+      "description": "No autoApprove restrictions — all tool calls auto-approved",
+      "match": {
+        "type": "json",
+        "path": "$.autoApprove",
+        "pattern": ".*",
+        "condition": "array_length_gt_10"
+      },
+      "reason": "Large autoApprove lists skip human review for sensitive operations.",
+      "fix": "Reduce autoApprove to read-only tools. Gate write/execute tools manually."
+    },
+    {
+      "id": "AC005",
+      "severity": "LOW",
+      "target": ".claude/settings.json",
+      "description": "model not pinned — uses default (may change without notice)",
+      "match": {
+        "type": "json",
+        "path": "$.model",
+        "condition": "missing"
+      },
+      "reason": "Unpinned model means behavior can change when provider updates default.",
+      "fix": "Pin to a specific model ID, e.g. 'claude-sonnet-4-6'."
+    },
+    {
+      "id": "AC006",
+      "severity": "MEDIUM",
+      "target": ".cursorrules",
+      "description": ".cursorrules grants terminal/shell execution without scope",
+      "match": {
+        "type": "regex",
+        "pattern": "(run|execute|terminal|shell|bash|cmd)\\s+(any|all|unrestricted)",
+        "flags": "i"
+      },
+      "reason": "Cursor rules instructing the agent to run arbitrary terminal commands are high risk.",
+      "fix": "Scope terminal instructions to specific, named commands only."
+    },
+    {
+      "id": "AC007",
+      "severity": "HIGH",
+      "target": ".github/copilot-instructions.md",
+      "description": "Copilot instructions include shell execution directives",
+      "match": {
+        "type": "regex",
+        "pattern": "(run|execute|eval)\\s+.{0,60}(shell|bash|script|command)",
+        "flags": "i"
+      },
+      "reason": "Copilot instructions that direct shell execution bypass normal approval flow.",
+      "fix": "Remove shell execution directives from copilot-instructions.md."
+    }
+  ]
+}

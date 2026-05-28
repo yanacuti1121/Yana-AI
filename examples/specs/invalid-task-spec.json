@@ -1,0 +1,14 @@
+{
+  "schema_version": "v1.0",
+  "title": "Invalid missing fields",
+  "goal": "This intentionally misses required fields.",
+  "scope": {},
+  "acceptance_criteria": [],
+  "verification_plan": [
+    {
+      "type": "command",
+      "expected_evidence": "none",
+      "required": "yes"
+    }
+  ]
+}
