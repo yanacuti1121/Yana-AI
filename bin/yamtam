@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.9.0"
+YAMTAM_VERSION="0.10.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -23,6 +23,10 @@ REPORT_HTML_PY="$REPO_ROOT/core/scripts/report_html.py"
 SCAN_URL_PY="$REPO_ROOT/core/scripts/scan_url.py"
 RULE_IMPORT_PY="$REPO_ROOT/core/scripts/rule_import.py"
 UPGRADE_PY="$REPO_ROOT/core/scripts/upgrade.py"
+INIT_WIZ_PY="$REPO_ROOT/core/scripts/init_wizard.py"
+VERIFY_PY="$REPO_ROOT/core/scripts/verify_hooks.py"
+MONITOR_PY="$REPO_ROOT/core/scripts/monitor.py"
+STATS_PY="$REPO_ROOT/core/scripts/stats.py"
 RULE_PY="$REPO_ROOT/core/scripts/rule_add.py"
 CI_CHECK_PY="$REPO_ROOT/core/scripts/ci_check.py"
 INSTALL_PY="$REPO_ROOT/core/scripts/install_project.py"
@@ -64,6 +68,10 @@ Commands:
   scan    <url>          Scan a GitHub repo URL (no permanent clone)
   rule import <src>      Import rule pack from URL or file
   upgrade                Self-update yamtam to latest release
+  init   [target]        Interactive setup wizard (engine, profile, guards)
+  verify [target]        Verify all safety hooks are wired and active
+  monitor [target]       Real-time audit log tail with color output
+  stats  [target]        Audit score trend over time (--record to add scan)
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -343,6 +351,18 @@ case "$COMMAND" in
     ;;
   upgrade)
     python3 "$UPGRADE_PY" "$@"
+    ;;
+  init)
+    python3 "$INIT_WIZ_PY" "$@"
+    ;;
+  verify)
+    python3 "$VERIFY_PY" "$@"
+    ;;
+  monitor)
+    python3 "$MONITOR_PY" "$@"
+    ;;
+  stats)
+    python3 "$STATS_PY" "$@"
     ;;
   router)
     cmd_router "$@"
