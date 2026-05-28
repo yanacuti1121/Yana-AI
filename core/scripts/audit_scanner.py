@@ -382,6 +382,7 @@ def scan_file(file_path: str, target: str, rule_set: dict) -> list[dict]:
                 "line": hit.get("line"),
                 "rule": f"{rule_set.get('scope', 'unknown')}/{check['id'].lower()}",
                 "reason": check.get("reason", ""),
+                "message": (check.get("message") or check.get("reason") or check.get("description") or check["id"]),
                 "fix": check.get("fix", ""),
                 "confidence": "HIGH",
                 "matched_value": hit.get("matched_value", ""),
@@ -516,6 +517,7 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
         "yamtam_version": "0.1.0",
         "score": score,
         "risk_level": compute_risk_level(score),
+        "status": "findings" if any(f["severity"] != "INFO" for f in all_findings) else "clean",
         "summary": summary,
         "scan_stats": {
             "files_scanned": len(files_scanned),
@@ -546,6 +548,7 @@ def recompute_report_stats(report: dict) -> dict:
             scored_rules.add(f["id"])
     report["score"] = max(0, score)
     report["risk_level"] = compute_risk_level(report["score"])
+    report["status"] = "findings" if any(f["severity"] != "INFO" for f in findings) else "clean"
 
     # Summary counts
     summary = {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}

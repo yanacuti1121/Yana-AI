@@ -139,6 +139,29 @@ class TestRecomputeStats(unittest.TestCase):
         self.assertEqual(report["summary"]["high"], 1)
         self.assertEqual(report["summary"]["medium"], 1)
 
+    def test_recompute_sets_status_findings_when_has_findings(self):
+        findings = [
+            {"id": "SH001", "severity": "HIGH", "file": "a.sh", "category": "shell-risk",
+             "rule": "x", "reason": "r", "fix": "f", "confidence": "HIGH"},
+        ]
+        report = self._make_report(findings)
+        scanner.recompute_report_stats(report)
+        self.assertEqual(report["status"], "findings")
+
+    def test_recompute_sets_status_clean_when_no_findings(self):
+        report = self._make_report([])
+        scanner.recompute_report_stats(report)
+        self.assertEqual(report["status"], "clean")
+
+    def test_recompute_sets_status_clean_when_only_info(self):
+        findings = [
+            {"id": "INFO001", "severity": "INFO", "file": "a.sh", "category": "shell-risk",
+             "rule": "x", "reason": "r", "fix": "f", "confidence": "HIGH"},
+        ]
+        report = self._make_report(findings)
+        scanner.recompute_report_stats(report)
+        self.assertEqual(report["status"], "clean")
+
     def test_recompute_analytics_by_category(self):
         findings = [
             {"id": "SH001", "severity": "HIGH", "file": "a.sh", "category": "shell-risk",
@@ -150,6 +173,28 @@ class TestRecomputeStats(unittest.TestCase):
         scanner.recompute_report_stats(report)
         self.assertEqual(report["analytics"]["by_category"]["shell-risk"], 1)
         self.assertEqual(report["analytics"]["by_category"]["ci-workflow"], 1)
+
+
+class TestMessageField(unittest.TestCase):
+
+    def test_finding_has_message_field(self):
+        """Every finding from scan_file must have a non-empty message field."""
+        f = str(FIXTURES / "shell" / "bad_no_set_e.sh")
+        findings = scan_file_with_scope(f, "shell-scripts")
+        self.assertTrue(findings, "Expected at least one finding from bad_no_set_e.sh")
+        for finding in findings:
+            self.assertIn("message", finding,
+                          f"Finding {finding['id']} missing 'message' field")
+            self.assertTrue(finding["message"],
+                            f"Finding {finding['id']} has empty 'message'")
+
+    def test_message_falls_back_to_id_when_no_reason(self):
+        """message fallback chain: reason → description → id."""
+        check = {"id": "TEST001", "severity": "HIGH"}
+        # Simulate what scan_file does for the message field
+        message = (check.get("message") or check.get("reason") or
+                   check.get("description") or check["id"])
+        self.assertEqual(message, "TEST001")
 
 
 if __name__ == "__main__":
