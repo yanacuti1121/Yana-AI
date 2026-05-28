@@ -1,5 +1,5 @@
 ---
-name: "hook-block-commands"
+name: hook-block-commands
 description: "Pattern guide for writing PreToolUse hooks that block dangerous shell commands. Use when: building or auditing a guard-destructive hook, adding new blocked patterns, reviewing what the current hook covers. Covers 3 safety levels (critical/high/strict) and 58+ regex patterns. Inspired by: karanb192/claude-code-hooks block-dangerous-commands pattern (MIT)."
 ---
 

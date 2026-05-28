@@ -1,5 +1,5 @@
 ---
-name: "session-context"
+name: session-context
 description: "Load development context at session start: git branch, uncommitted changes, CONTEXT.md / TODO.md / open issues. Use when: starting a new coding session, resuming interrupted work, or when the agent needs to orient itself quickly before acting. Inspired by: disler/claude-code-hooks-mastery session_start pattern."
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: "pre-compact-backup"
+name: pre-compact-backup
 description: "Back up conversation transcript before context compaction. Use when: PreCompact hook fires, user asks to save session state, or before long tasks where context loss would be costly. Creates timestamped backup in logs/transcript_backups/. Inspired by: disler/claude-code-hooks-mastery pre_compact pattern."
 ---
 

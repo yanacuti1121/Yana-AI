@@ -1,5 +1,5 @@
 ---
-name: "hook-protect-secrets"
+name: hook-protect-secrets
 description: "Pattern guide for writing PreToolUse hooks that block secret file access, credential exfiltration, and environment variable dumps. Use when: auditing token-scope-guard.sh, adding new sensitive file patterns, reviewing what secret paths are protected. Covers 33 file patterns + 24 bash patterns + 15 exfiltration patterns. Inspired by: karanb192/claude-code-hooks protect-secrets pattern (MIT)."
 ---
 

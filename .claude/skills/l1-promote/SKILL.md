@@ -1,5 +1,5 @@
 ---
-name: "l1-promote"
+name: l1-promote
 description: "Review L2 session facts and promote valuable ones to L1 Atomic Memory. Use at end of session or when L2 accumulates facts worth keeping permanently. Runs add-fact.sh for each promoted fact."
 ---
 
