@@ -109,7 +109,7 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.2 | CI Gate — `--fail-on`, GitHub Action example | ✅ done |
 | v0.3 | Policy Kit — recommended configs, templates | ✅ done |
 | v0.4 | Control Layer — scope guard, truth gate, token guard | ✅ done |
-| v0.5 | Runtime — task lifecycle, evals, evidence schema | |
+| v0.5 | Runtime — task lifecycle, evals, evidence schema | ✅ done |
 
 ---
 
