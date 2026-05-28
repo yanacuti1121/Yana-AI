@@ -8,6 +8,44 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.5.0 — Runtime: Task Lifecycle & Evals (Rust)
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam task` — task lifecycle management
+- `yamtam task create "description" [--scope "src/"]` — tạo task, sinh UUID
+- `yamtam task list` — list tasks với status icon (○ open / ✓ done)
+- `yamtam task done <id> --evidence "..."` — mark done + attach evidence
+- `yamtam task status <id>` — xem chi tiết task
+- `yamtam task drop <id>` — xoá task
+
+### New: `yamtam eval` — evidence validation
+- `yamtam eval run <id>` — validate evidence → PASS/FAIL + confidence level
+- `yamtam eval schema` — hiển thị Evidence Schema v1 (JSON)
+
+### Evidence parsing (deterministic, no AI)
+- Tự động detect: `tests_passed`, `tests_failed`, `build_ok`, `coverage_pct`, `manual_note`
+- Confidence: **HIGH** (tests + build) / **MEDIUM** (một trong hai) / **LOW** (manual note)
+- Hard fail nếu `tests_failed > 0`
+- Warn nếu `coverage_pct < 80%`
+
+### Implementation
+- Rust binary `yamtam-rt v0.5.0` — clap 4, serde, uuid, chrono
+- State lưu tại `.yamtam/tasks.json` trong project
+- `bin/yamtam` delegate `task` + `eval` subcommands sang Rust binary
+
+### Roadmap
+| Version | Status |
+|---------|--------|
+| v0.1 Auditor | ✅ |
+| v0.2 CI Gate | ✅ |
+| v0.3 Policy Kit | ✅ |
+| v0.4 Control Layer | ✅ |
+| v0.5 Runtime Evals | ✅ |
+
+---
+
 ## v1.7.3 — Full Consistency Sync
 *2026-05-25*
 
