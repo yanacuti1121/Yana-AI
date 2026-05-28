@@ -116,6 +116,7 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.9  | HTML report, Scan URL, Rule import, Upgrade | ✅ done |
 | v0.10 | Init wizard, Verify, Monitor, Stats | ✅ done |
 | v0.11 | Lint, Snapshot, Policy check, Export | ✅ done |
+| v0.12 | Check file, Template list, Audit --since, Doctor+ | ✅ done |
 
 ---
 

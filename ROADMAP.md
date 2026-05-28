@@ -289,12 +289,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **`yamtam policy check`** — verify claude/mcp/CI configs match templates
 - [x] **`yamtam export --format csv/markdown/junit/json`** — multi-format findings export
 
-### v0.12 — Candidates (chưa commit)
+### v0.12.0 — 2026-05-28
 
-- [ ] **`yamtam check <file>`** — scan a single file against all rules
-- [ ] **`yamtam template list`** — list all available policy templates
-- [ ] **`yamtam audit --since <date>`** — only report findings newer than date
-- [ ] **`yamtam doctor`** — enhanced environment health (Python, git, hooks, yamtam version)
+- [x] **`yamtam check <file>`** — scan single file, 69 rules, line-level findings
+- [x] **`yamtam template list/show`** — browse 5 policy templates with fix IDs
+- [x] **`yamtam audit --since <date>`** — date-filtered scan via git log
+- [x] **`yamtam doctor`** — +2 checks: yamtam CLI version + hooks wired count
+
+### v0.13 — Candidates (chưa commit)
+
+- [ ] **`yamtam audit --watch`** — combine audit + watch in one command
+- [ ] **`yamtam report pdf`** — PDF export via HTML+print
+- [ ] **`yamtam rule test`** — test a rule against a sample file
+- [ ] **`yamtam config`** — manage .yamtam/ project config file
 
 ---
 

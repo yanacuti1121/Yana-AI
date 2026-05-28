@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.11.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.12.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,18 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### Check File, Template, Audit --since (v0.12)
+
+```bash
+yamtam check .claude/settings.json    # scan single file against all rules
+yamtam check package.json --severity high
+yamtam template list                  # browse 5 policy templates
+yamtam template show claude-settings  # preview template content
+yamtam audit . --since "7 days ago"   # scan only recently changed files
+yamtam audit . --since 2026-05-01
+yamtam doctor . --fix                 # now includes yamtam CLI + hooks checks
 ```
 
 ### Lint, Snapshot, Policy Check, Export (v0.11)
@@ -559,7 +571,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.11.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.12.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---

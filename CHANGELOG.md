@@ -8,6 +8,39 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.12.0 — Check File, Template List, Audit --since, Doctor Enhanced
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam check <file>` — single file scanner
+- Scan any file against all matching rules (regex, json, exists)
+- Shows severity, rule ID, line number, description, fix suggestion
+- `--severity` filter threshold, `--json` machine-readable
+- 69 rules checked per file
+
+### New: `yamtam template list/show` — policy template browser
+- Lists all 5 policy templates with names, fix IDs, output paths
+- `yamtam template show claude-settings` — preview template content
+- `--json` output for scripting
+
+### New: `yamtam audit . --since <date>` — date-filtered scan
+- Only scan files modified since a given date via `git log`
+- Accepts: `2026-05-01`, `yesterday`, `7 days ago`, `1 week ago`
+- Exit 0 if no files modified since date
+
+### Enhanced: `yamtam doctor` — +2 new checks
+- `yamtam CLI` — verifies `bin/yamtam` accessible and reports version
+- `yamtam hooks` — checks if hooks are wired in `.claude/settings.json`
+- Total: 15 checks (was 13)
+
+### CLI version bump
+- `bin/yamtam` → v0.12.0
+- New commands: `check`, `template`
+- scripts: 78 → 80
+
+---
+
 ## v0.11.0 — Lint, Snapshot, Policy Check, Export
 *2026-05-28*
 
@@ -40,7 +73,7 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 - `--out <file>` custom path, `--stdout` pipe to another tool
 
 ### CLI version bump
-- `bin/yamtam` → v0.11.0
+- `bin/yamtam` → v0.12.0
 - New commands: `lint`, `snapshot`, `policy check`, `export`
 - scripts: 74 → 78
 
