@@ -1,5 +1,5 @@
 # YAMTAM ENGINE — DeepSeek Adapter
-# Version: 1.7.0
+# Version: 1.8.0
 # Covers: DeepSeek V3, DeepSeek R1, and future DeepSeek versions
 #
 # How to apply:

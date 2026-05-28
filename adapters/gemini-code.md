@@ -1,5 +1,5 @@
 # YAMTAM ENGINE — Gemini Code Adapter
-# Version: 1.7.0
+# Version: 1.8.0
 # Covers: Gemini Code CLI (Google) — all versions (Flash, Pro, Ultra, 2.0, 2.5+)
 #
 # How to apply:

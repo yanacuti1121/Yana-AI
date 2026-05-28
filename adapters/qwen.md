@@ -1,5 +1,5 @@
 # YAMTAM ENGINE — Qwen Adapter
-# Version: 1.7.0
+# Version: 1.8.0
 # Covers: Qwen3 (all sizes), Qwen2.5-Coder, and future Qwen versions (Alibaba)
 #
 # How to apply:
