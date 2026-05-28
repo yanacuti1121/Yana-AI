@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.6.0"
+YAMTAM_VERSION="0.7.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -17,6 +17,10 @@ RT_BIN="$REPO_ROOT/target/release/yamtam-rt"
 INIT_POLICY_PY="$REPO_ROOT/core/scripts/init_policy.py"
 EXPLAIN_PY="$REPO_ROOT/core/scripts/explain_rule.py"
 MAP_PY="$REPO_ROOT/core/scripts/blast_radius.py"
+SCORE_PY="$REPO_ROOT/core/scripts/score_explain.py"
+BADGE_PY="$REPO_ROOT/core/scripts/badge_gen.py"
+WATCH_PY="$REPO_ROOT/core/scripts/watch.py"
+FIX_PY="$REPO_ROOT/core/scripts/auto_fix.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +44,10 @@ Commands:
   explain <rule-id>       Explain a finding — what it means, why it's risky, how to fix
   map    [target]         Agent Blast Radius Map — what your agent can reach
   init-policy <tool>      Generate safe config template (claude/mcp/github-actions/gitignore/env)
+  score  [target]         Show score and optional deduction breakdown (--explain)
+  badge  [target]         Generate shields.io badge URL for README
+  watch  [target]         Watch config files and re-audit on change
+  fix    <rule-id>        Auto-apply safe fix for a finding (opt-in, --dry-run)
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -97,6 +105,13 @@ Examples:
   yamtam init-policy claude
   yamtam init-policy mcp --dry-run
   yamtam init-policy list
+  yamtam score .
+  yamtam score . --explain
+  yamtam badge .
+  yamtam badge . --url-only
+  yamtam watch .
+  yamtam fix AC002 --dry-run
+  yamtam fix CI007
   yamtam router suggest --task pr_review
   yamtam router suggest --list
 
@@ -266,6 +281,18 @@ case "$COMMAND" in
     ;;
   init-policy)
     python3 "$INIT_POLICY_PY" "$@"
+    ;;
+  score)
+    python3 "$SCORE_PY" "$@"
+    ;;
+  badge)
+    python3 "$BADGE_PY" "$@"
+    ;;
+  watch)
+    python3 "$WATCH_PY" "$@"
+    ;;
+  fix)
+    python3 "$FIX_PY" "$@"
     ;;
   router)
     cmd_router "$@"
