@@ -111,6 +111,7 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.4 | Control Layer — scope guard, truth gate, token guard | ✅ done |
 | v0.5 | Runtime — task lifecycle, evals, evidence schema | ✅ done |
 | v0.6 | Explain, Map, Init-Policy, GitHub Action | ✅ done |
+| v0.7 | Score breakdown, Badge, Watch, Auto-Fix | ✅ done |
 
 ---
 

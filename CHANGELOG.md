@@ -8,6 +8,45 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.7.0 — Score Breakdown, Badge, Watch, Auto-Fix
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam score [target] --explain` — deduction trail
+- Shows every score deduction step: Start 100 → -10 CI007 → -10 CI006 → … → Final
+- `yamtam score .` — compact view: score + risk + finding counts
+- `yamtam score . --explain` — full breakdown with severity, rule ID, description
+- `yamtam score . --json` — machine-readable breakdown array
+- `--ignore` and `--diff` flags passthrough to scanner
+
+### New: `yamtam badge .` — shields.io badge generator
+- Generates badge URL + Markdown snippet for README
+- Color-coded by risk: green (LOW) / amber (MEDIUM) / red (HIGH) / dark-red (CRITICAL)
+- `yamtam badge . --url-only` — just the URL (CI/script use)
+- `yamtam badge . --json` — JSON with score, risk, badge_url, markdown
+- `--style` flag: for-the-badge / flat / flat-square / plastic
+
+### New: `yamtam watch .` — live re-audit on file change
+- Polls `.claude/settings.json`, `.mcp.json`, `.github/workflows/`, `scripts/`, `.env*`
+- Shows score diff on every change: `64/100 HIGH → 74/100 MEDIUM (+10)`
+- Lists new/gone findings with `+/-` diff view
+- `--interval` flag (default 2s), `--ignore`, `--fail-on` passthrough
+- No external dependencies — pure Python polling
+
+### New: `yamtam fix <rule-id>` — opt-in auto-fix
+- Automated fixes: AC002 (remove Bash\*), AC003 (dangerouslyAllowAll→false), CI007 (add permissions block), MCP001 (scope filesystem path)
+- Template-based fixes: AC001/AC004 → claude-settings, MCP002/MCP003 → mcp-minimal
+- Manual-only block for secrets rules (SE*, AU*, CI004) — never auto-fixed
+- `--dry-run` shows changes without writing
+- `--yes` skips confirmation prompt
+
+### CLI version bump
+- `bin/yamtam` → v0.7.0
+- New commands: `score`, `badge`, `watch`, `fix`
+
+---
+
 ## v0.6.0 — Explain, Map, Init-Policy, GitHub Action
 *2026-05-28*
 

@@ -252,12 +252,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **GitHub Action** — `.github/actions/audit/action.yml` (inputs: fail-on, sarif, diff)
 - [x] **`yamtam init-policy <tool>`** — safe config generator (5 tools, `--dry-run`)
 
-### v0.7 — Candidates (chưa commit)
+### v0.7.0 — 2026-05-28
 
-- [ ] **`yamtam score --explain`** — breakdown: Start 100 → -30 CRITICAL AC002 → Final 50/100
-- [ ] **`yamtam fix <rule-id>`** — auto-apply safe fix (opt-in, v0.3 policy + v0.6 explain merged)
-- [ ] **`yamtam watch .`** — file watcher: re-run audit on save, show diff of score
-- [ ] **Badge generator** — `yamtam badge .` → shields.io badge URL for README
+- [x] **`yamtam score . --explain`** — deduction trail (Start 100 → -10 CI007 → Final 64/100)
+- [x] **`yamtam badge .`** — shields.io badge + Markdown snippet, color by risk
+- [x] **`yamtam watch .`** — polling watcher, score diff on change, no external deps
+- [x] **`yamtam fix <rule-id>`** — opt-in auto-fix (AC002/AC003/CI007/MCP001 + templates, `--dry-run`)
+
+### v0.8 — Candidates (chưa commit)
+
+- [ ] **`yamtam ci-check`** — CI/CD pipeline health check (missing gates, weak permissions)
+- [ ] **`yamtam diff-report`** — compare two audit runs, show what got worse/better
+- [ ] **`yamtam rule add`** — add custom rule to local scanner from CLI
+- [ ] **`yamtam install`** — one-command install to any project (`curl` alternative)
 
 ---
 
