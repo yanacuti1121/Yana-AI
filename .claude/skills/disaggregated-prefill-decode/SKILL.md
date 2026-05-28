@@ -1,10 +1,11 @@
 ---
 name: disaggregated-prefill-decode
 description: Disaggregated prefill/decode — separate GPU pools for compute-bound prefill and memory-bound decode. KV cache transfer via NIXL (RDMA/TCP). NVIDIA Dynamo (stack-above) vs llm-d (K8s-native). 6x DeepSeek-R1 on GB200+Dynamo. 30–40% cost savings on $2M+ inference budgets. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /disaggregated-prefill-decode

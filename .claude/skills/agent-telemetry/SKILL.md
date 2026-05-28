@@ -1,10 +1,11 @@
 ---
 name: agent-telemetry
 description: Telemetry and observability patterns for AI agent systems. Structured multi-transport logging, OpenTelemetry traces/spans through action gates, crash diagnostics, ultra-low-overhead logging, and percentile latency metrics. Sources: winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/metrics.
-origin: yamtam-engine — synthesized from winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/scalameter (metrics/percentile patterns)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.43
+metadata:
+  origin: yamtam-engine — synthesized from winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/scalameter (metrics/percentile patterns)
+  version: 1.0.0
 ---
 
 # /agent-telemetry

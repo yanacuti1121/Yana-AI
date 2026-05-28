@@ -1,10 +1,11 @@
 ---
 name: leak-check
 description: Scan codebase and git history for leaked secrets — API keys, tokens, passwords, private keys. Uses whispers-style regex patterns + gitleaks. Run as /leak-check before any git push. Alerts on Claude API keys, GitHub tokens, AWS credentials, and generic high-entropy strings.
-origin: Skyscanner/whispers + gitleaks/gitleaks (MIT) + marionevra/awesome-ai-agents-security patterns
 license: MIT
-version: 1.0.0
 compatibility: bash, git, any project type
+metadata:
+  origin: Skyscanner/whispers + gitleaks/gitleaks (MIT) + marionevra/awesome-ai-agents-security patterns
+  version: 1.0.0
 ---
 
 # leak-check

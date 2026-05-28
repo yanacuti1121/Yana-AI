@@ -9,10 +9,11 @@ description: >
   Covers AWS primarily; GCP/Azure patterns noted where they differ.
   Do NOT use for: application-level performance optimization — see
   web-performance or load-testing skills.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "AWS (primary), GCP, Azure. Tools: AWS Cost Explorer, infracost, OpenCost."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

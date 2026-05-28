@@ -10,10 +10,11 @@ description: >
   consumers". Do NOT use for: full E2E testing of a user journey — use
   e2e-testing skill. Do NOT use for: API schema validation alone —
   contracts go further by verifying consumer-specific interactions.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Pact JS ≥ 12.x (@pact-foundation/pact), Pact Python ≥ 2.x. PactFlow or self-hosted Pact Broker."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

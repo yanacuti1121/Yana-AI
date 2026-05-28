@@ -11,10 +11,11 @@ description: >
   "why is my transition slow". Do NOT use for: accessibility of motion —
   see fixing-accessibility. Do NOT use for: designing animation curves
   and timing — see motion-design.
-origin: adapted:MIT © Ibelick
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "All browsers. Framer Motion v11, GSAP v3 specific sections noted."
+metadata:
+  origin: adapted:MIT © Ibelick
+  version: 1.0.0
 ---
 
 ## When to Use

@@ -1,10 +1,11 @@
 ---
 name: grpc-streaming-rpc
 description: gRPC bidirectional streaming RPC over HTTP/2 for real-time agent clusters. Service definition, unary/server-stream/bidi-stream patterns, deadline propagation, and TLS mutual auth. Sources: grpc/grpc-node (Apache-2.0).
-origin: yamtam-engine — synthesized from grpc/grpc-node (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from grpc/grpc-node (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /grpc-streaming-rpc

@@ -11,10 +11,11 @@ description: >
   in production". Do NOT use for: general auth token lifecycle —
   see auth-patterns. Do NOT use for: environment variable naming
   conventions alone — this covers secret storage architecture.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "AWS Secrets Manager, HashiCorp Vault ≥ 1.14, GitHub Actions. Patterns are provider-agnostic."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

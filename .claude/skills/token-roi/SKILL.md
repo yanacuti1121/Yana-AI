@@ -1,10 +1,11 @@
 ---
 name: token-roi
 description: Token budget analytics and ROI scoring for AI agent actions. Track token cost per fix, detect wasteful loops, auto-route to fast tier when burn rate is too high. Integrates with token-budget-guard.sh hook. Triggered by /cost-report, "how much did that cost", "token usage", "am I wasting tokens".
-origin: yamtam-original — Financial Guardrails layer
 license: MIT
-version: 1.0.0
 compatibility: Claude Code, Anthropic API
+metadata:
+  origin: yamtam-original — Financial Guardrails layer
+  version: 1.0.0
 ---
 
 # token-roi

@@ -1,10 +1,11 @@
 ---
 name: zero-trust-network-mesh
 description: Implement Zero Trust networking for multi-agent swarms. mTLS mutual authentication, egress proxy whitelisting, DNS-over-HTTPS pinning, Ed25519 message signing, and network segmentation for agent clusters.
-origin: NIST Zero Trust Architecture (SP 800-207), Cilium (Apache-2.0), WireGuard (GPLv2)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: NIST Zero Trust Architecture (SP 800-207), Cilium (Apache-2.0), WireGuard (GPLv2)
+  version: 1.0.0
 ---
 
 # Zero Trust Network Mesh

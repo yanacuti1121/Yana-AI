@@ -1,10 +1,11 @@
 ---
 name: prompt-firewall-patterns
 description: Build cognitive security firewalls against prompt injection, jailbreak attacks, and Unicode homoglyph smuggling. Instruction-data segregation, jailbreak token filtering, LLM-as-a-Judge semantic guard, and system prompt reinforcement.
-origin: OWASP LLM Top 10, Lakera AI research, Simon Willison prompt injection taxonomy
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: OWASP LLM Top 10, Lakera AI research, Simon Willison prompt injection taxonomy
+  version: 1.0.0
 ---
 
 # Prompt Firewall Patterns

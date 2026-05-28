@@ -1,10 +1,11 @@
 ---
 name: tgi-streaming-inference
 description: HuggingFace Text Generation Inference (TGI) for production LLM streaming. Continuous batching, SSE token streaming, speculative decoding, quantization (GPTQ/AWQ), and multi-node tensor parallelism. Sources: huggingface/text-generation-inference (Apache-2.0).
-origin: yamtam-engine — synthesized from huggingface/text-generation-inference (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.51
+metadata:
+  origin: yamtam-engine — synthesized from huggingface/text-generation-inference (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /tgi-streaming-inference

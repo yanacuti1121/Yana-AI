@@ -1,10 +1,11 @@
 ---
 name: agent-verification-gate
 description: Deterministic verification gate for agent task close-out. Reads scope contract, rule report, feedback log, and diff — emits a single verification_report.json verdict. Block-severity failures cannot be overridden by the agent. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /agent-verification-gate

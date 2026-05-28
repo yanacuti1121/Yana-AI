@@ -1,10 +1,11 @@
 ---
 name: sglang-radix-attention
 description: sGLang RadixAttention — KV cache stored in a radix tree, reused across requests sharing common prefixes. Cache-aware scheduling (depth-first, LRU at branch level). 29% throughput edge vs vLLM on ShareGPT, 6.4x on RAG workloads, 86% hit rate on voice. Deployed 400k+ GPUs 2026. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /sglang-radix-attention

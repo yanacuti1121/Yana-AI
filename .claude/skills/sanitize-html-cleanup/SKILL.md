@@ -1,10 +1,11 @@
 ---
 name: sanitize-html-cleanup
 description: Strict HTML cleanup with self-closing tag repair, attribute allowlists, URL protocol validation, and CSS sanitization. apostrophecms/sanitize-html patterns for cleaning LLM-generated and web-scraped HTML. Sources: apostrophecms/sanitize-html.
-origin: yamtam-engine — synthesized from apostrophecms/sanitize-html (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from apostrophecms/sanitize-html (MIT)
+  version: 1.0.0
 ---
 
 # /sanitize-html-cleanup

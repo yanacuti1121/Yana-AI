@@ -1,8 +1,9 @@
 ---
 name: extract-errors
 description: Use when extracting, auditing, or standardizing error codes and messages across a codebase. Triggers on "error codes", "error messages", "unknown error", "extract errors", "error registry".
-version: 1.4.20
 compatibility: "Claude 4.5+, Sonnet 4.6, Haiku 4.5"
+metadata:
+  version: 1.4.20
 ---
 
 # Extract & Audit Error Codes

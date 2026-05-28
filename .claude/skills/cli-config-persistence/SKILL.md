@@ -1,10 +1,11 @@
 ---
 name: cli-config-persistence
 description: Hierarchical JSON config persistence for CLI agent tools. sindresorhus/conf patterns, schema validation, encryption for secrets, config migration, and XDG-compliant storage paths. Sources: sindresorhus/conf.
-origin: yamtam-engine — synthesized from sindresorhus/conf (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from sindresorhus/conf (MIT)
+  version: 1.0.0
 ---
 
 # /cli-config-persistence

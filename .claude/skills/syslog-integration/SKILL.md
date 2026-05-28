@@ -1,10 +1,11 @@
 ---
 name: syslog-integration
 description: Linux syslog integration for agent audit logging. Write structured events to /dev/log via UDP syslog, severity levels (EMERG→DEBUG), facility codes, RFC5424 format, and forwarding to centralized log aggregators. Sources: bnoordhuis/node-syslog.
-origin: yamtam-engine — synthesized from bnoordhuis/node-syslog (MIT), RFC 3164/5424
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from bnoordhuis/node-syslog (MIT), RFC 3164/5424
+  version: 1.0.0
 ---
 
 # /syslog-integration

@@ -10,10 +10,11 @@ description: >
   or "make this accessible". Do NOT use for: full WCAG audit from scratch —
   see accessibility-audit. Do NOT use for: motion/animation
   accessibility — see fixing-motion-performance.
-origin: adapted:MIT © Ibelick
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "React ≥ 18, HTML5. Patterns apply to any framework."
+metadata:
+  origin: adapted:MIT © Ibelick
+  version: 1.0.0
 ---
 
 ## When to Use

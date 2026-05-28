@@ -10,10 +10,11 @@ description: >
   "NOT NULL column", "dropping a column safely", or "migration testing".
   Do NOT use for: query optimization — see database-patterns.
   Do NOT use for: seed data for dev — separate from migration concern.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Prisma ≥ 5.x, Flyway ≥ 10. PostgreSQL focus, MySQL patterns noted."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

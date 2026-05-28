@@ -1,10 +1,11 @@
 ---
 name: chrome-devtools-extensions
 description: Install, manage, reload, and trigger Chrome extensions via Chrome DevTools MCP. Enables agent-driven extension testing, side-loading unpacked extensions, and extension action automation.
-origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+  version: 1.0.0
 ---
 
 # Chrome DevTools Extensions

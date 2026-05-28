@@ -8,10 +8,11 @@ description: >
   to "set up design tokens", "create a design system", or "what colors/fonts
   should I use for a [product type]".
   Do NOT use when the project already has tokens — use ui-redesign instead.
-origin: adapted:ui-ux-pro-max
 license: MIT © 2026 nextlevelbuilder
-version: 1.0.0
 compatibility: "Outputs CSS custom properties. Adaptable to Tailwind config, Figma tokens, or JS theme objects."
+metadata:
+  origin: adapted:ui-ux-pro-max
+  version: 1.0.0
 ---
 
 <!-- Adapted from nextlevelbuilder/ui-ux-pro-max-skill (MIT) — product-type taxonomy and

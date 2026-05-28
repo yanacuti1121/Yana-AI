@@ -7,9 +7,10 @@ description: >
   or "why is this UI confusing to users".
   Do NOT use for code quality or accessibility — use output-enforcement or
   accessibility-audit for those.
-origin: yamtam
-version: 1.0.0
 compatibility: "Any UI — web, mobile, desktop. Works from code, screenshot, or description."
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Heuristics based on Nielsen's 10 Usability Heuristics (public domain, Jakob Nielsen 1994/2020).

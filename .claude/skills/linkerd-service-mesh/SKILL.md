@@ -1,10 +1,11 @@
 ---
 name: linkerd-service-mesh
 description: Linkerd2 lightweight service mesh for automatic mTLS, traffic metrics, and certificate rotation. Zero-config mTLS, per-route metrics, traffic splits, retries, and timeouts for inter-agent communication. Sources: linkerd/linkerd2 (Apache-2.0).
-origin: yamtam-engine — synthesized from linkerd/linkerd2 (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from linkerd/linkerd2 (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /linkerd-service-mesh

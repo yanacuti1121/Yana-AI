@@ -1,10 +1,11 @@
 ---
 name: babel-ast-transform
 description: Babel plugin architecture for AST-based code transformations. Visitor pattern traversal, path/scope API, custom transform rules, and automated codemod pipelines. Sources: babel/babel (MIT).
-origin: yamtam-engine — synthesized from babel/babel (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from babel/babel (MIT)
+  version: 1.0.0
 ---
 
 # /babel-ast-transform

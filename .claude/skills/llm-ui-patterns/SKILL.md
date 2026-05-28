@@ -7,10 +7,11 @@ description: >
   "handle AI errors", "show confidence", "build a chatbot UI", or "design for
   generative AI". Do NOT use for: backend LLM API integration or RAG pipeline
   design — those are separate concerns.
-origin: adapted:ux-ui-mastery
 license: MIT © phazurlabs
-version: 1.0.0
 compatibility: "Any frontend framework. Patterns apply to chat, copilot, and embedded AI UIs."
+metadata:
+  origin: adapted:ux-ui-mastery
+  version: 1.0.0
 ---
 
 <!-- Adapted from phazurlabs/ux-ui-mastery (MIT) — LLM UI Patterns skill #17.

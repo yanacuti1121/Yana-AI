@@ -1,10 +1,11 @@
 ---
 name: archive-stream-patterns
 description: Streaming ZIP and TAR archive creation for agent release packaging. node-archiver streaming API, append files/directories, compression levels, progress events, and integrity verification. Sources: archiverjs/node-archiver.
-origin: yamtam-engine — synthesized from archiverjs/node-archiver (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from archiverjs/node-archiver (MIT)
+  version: 1.0.0
 ---
 
 # /archive-stream-patterns

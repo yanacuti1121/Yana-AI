@@ -10,10 +10,11 @@ description: >
   "system prompt leak", "prompt leaking", or "AI safety testing".
   Do NOT use for: traditional app security — see red-team-check or
   security-review. Do NOT use for: model alignment — focus is on app layer.
-origin: adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits security module)
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "LLM apps using any model. Patterns language-agnostic."
+metadata:
+  origin: adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits security module)
+  version: 1.0.0
 ---
 
 ## When to Use

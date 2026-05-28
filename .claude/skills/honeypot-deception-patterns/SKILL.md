@@ -1,10 +1,11 @@
 ---
 name: honeypot-deception-patterns
 description: Build active deception infrastructure for agent swarms. Honey-vault canary tokens, ghost file-system with inotify monitoring, decoy agent prompts on the Swarm Bus, and dynamic quarantine on trip detection.
-origin: YAMTAM Engine rule 59, canarytoken.org concept, Linux inotifywait
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: YAMTAM Engine rule 59, canarytoken.org concept, Linux inotifywait
+  version: 1.0.0
 ---
 
 # Honeypot Deception Patterns

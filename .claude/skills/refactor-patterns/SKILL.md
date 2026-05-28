@@ -8,10 +8,11 @@ description: >
   many if statements", "extract this logic", or "how do I migrate without
   breaking everything". Do NOT use for: full rewrites — that is an architecture
   decision, not a refactoring task.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Language-agnostic patterns. Examples in Python/TypeScript."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

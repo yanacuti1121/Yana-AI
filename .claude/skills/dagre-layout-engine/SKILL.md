@@ -1,10 +1,11 @@
 ---
 name: dagre-layout-engine
 description: Directed acyclic graph layout computation for auto-positioning nodes. dagre coordinate assignment, edge routing, rank assignment, and integration with rendering libraries for skill/rule dependency graphs. Sources: dagrejs/dagre.
-origin: yamtam-engine — synthesized from dagrejs/dagre (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from dagrejs/dagre (MIT)
+  version: 1.0.0
 ---
 
 # /dagre-layout-engine

@@ -1,10 +1,11 @@
 ---
 name: minimal-base-image-patterns
 description: Building sub-10MB base images for agent sandboxes. BusyBox-based rootfs, static binary containers, distroless patterns, multi-stage builds, and attack-surface minimization. Sources: progrium/busybox, GoogleContainerTools/distroless.
-origin: yamtam-engine — synthesized from progrium/busybox (MIT), GoogleContainerTools/distroless (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from progrium/busybox (MIT), GoogleContainerTools/distroless (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /minimal-base-image-patterns

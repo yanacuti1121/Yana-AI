@@ -10,10 +10,11 @@ description: >
   prevention", "east-west traffic", or "microservice auth". Do NOT use for:
   user-facing authentication — see auth-patterns. Do NOT use for:
   secret storage — see secret-management.
-origin: adapted:MIT © VoltAgent/awesome-agent-skills
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Kubernetes + Istio/Cilium, SPIRE v1.x, AWS IAM, general microservices."
+metadata:
+  origin: adapted:MIT © VoltAgent/awesome-agent-skills
+  version: 1.0.0
 ---
 
 ## When to Use

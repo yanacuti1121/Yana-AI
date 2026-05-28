@@ -1,10 +1,11 @@
 ---
 name: argocd-gitops
 description: Argo CD GitOps reconciliation loop for agent infrastructure. App-of-Apps pattern, sync policies, drift detection, progressive rollouts, and automated self-healing from Git as single source of truth. Sources: argoproj/argo-cd (Apache-2.0).
-origin: yamtam-engine — synthesized from argoproj/argo-cd (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from argoproj/argo-cd (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /argocd-gitops

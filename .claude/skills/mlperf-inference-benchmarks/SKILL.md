@@ -1,10 +1,11 @@
 ---
 name: mlperf-inference-benchmarks
 description: MLPerf inference benchmarking patterns. Loadgen scenarios (SingleStream/MultiStream/Server/Offline), SUT/QSL interfaces, latency p99 targets, and performance metric interpretation. Sources: mlcommons/inference (Apache-2.0).
-origin: yamtam-engine — synthesized from mlcommons/inference (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.51
+metadata:
+  origin: yamtam-engine — synthesized from mlcommons/inference (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /mlperf-inference-benchmarks

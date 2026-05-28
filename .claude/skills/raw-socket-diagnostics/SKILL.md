@@ -1,10 +1,11 @@
 ---
 name: raw-socket-diagnostics
 description: Raw IP packet analysis for agent network diagnostics. ICMP ping, TCP port probing, packet crafting, and network path tracing using raw sockets — for Sandbox network isolation validation. Sources: indutny/raw-socket.
-origin: yamtam-engine — synthesized from indutny/raw-socket (MIT), RFC 792 ICMP
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from indutny/raw-socket (MIT), RFC 792 ICMP
+  version: 1.0.0
 ---
 
 # /raw-socket-diagnostics

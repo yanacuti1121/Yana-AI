@@ -1,10 +1,11 @@
 ---
 name: loki-log-aggregation
 description: Grafana Loki label-based log aggregation. LogQL queries, Promtail scraping, structured log indexing, stream selectors, and log-to-metric extraction for agent audit trail analysis. Sources: grafana/loki (AGPL-3.0).
-origin: yamtam-engine — synthesized from grafana/loki (AGPL-3.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from grafana/loki (AGPL-3.0)
+  version: 1.0.0
 ---
 
 # /loki-log-aggregation

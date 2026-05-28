@@ -10,10 +10,11 @@ description: >
   "yarn workspaces", or "how to share code between apps". Do NOT use for:
   CI/CD pipeline wiring — see cicd-patterns. Do NOT use for: npm package
   publishing — see api-design for versioning principles.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Turborepo v2, Nx v18, pnpm v9. Node.js monorepo. framework-agnostic."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

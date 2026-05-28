@@ -10,10 +10,11 @@ description: >
   "SLSA", "slsa framework", "lockfile security", or "third-party package risk".
   Do NOT use for: secret scanning in code — see secret-management.
   Do NOT use for: runtime vulnerability scanning — see security-pipeline.
-origin: adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits supply chain module)
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "npm/pnpm/yarn, Python pip. GitHub Actions. Syft for SBOM."
+metadata:
+  origin: adapted:MIT © VoltAgent/awesome-agent-skills (Trail of Bits supply chain module)
+  version: 1.0.0
 ---
 
 ## When to Use

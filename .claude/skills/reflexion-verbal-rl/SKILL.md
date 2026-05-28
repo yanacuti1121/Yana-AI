@@ -1,10 +1,11 @@
 ---
 name: reflexion-verbal-rl
 description: Reflexion verbal reinforcement learning — Actor/Evaluator/Self-Reflector loop with episodic memory. No gradient updates. ALFWorld +X% over ReAct, HumanEval SOTA at publish time. Foundation for CLAUDE.md learnings, Letta sleep-time compute, learn-rule. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /reflexion-verbal-rl

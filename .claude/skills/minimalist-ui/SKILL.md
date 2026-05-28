@@ -6,10 +6,11 @@ description: >
   Use when the user says "too busy", "simplify this", "less is more",
   "cleaner look", "feels overwhelming", or "too many things on screen".
   Do NOT use when the user wants to add features or content — this skill removes and simplifies only.
-origin: adapted:taste-skill
 license: MIT © 2026 Leonxlnx
-version: 1.0.0
 compatibility: "Any frontend stack. CSS-level changes primarily."
+metadata:
+  origin: adapted:taste-skill
+  version: 1.0.0
 ---
 
 <!-- Adapted from taste-skill (MIT © 2026 Leonxlnx). Changes: added YAMTAM origin/Anti-Fake-Pass/compatibility fields, structured around removal discipline, removed GPT-specific behavior. -->

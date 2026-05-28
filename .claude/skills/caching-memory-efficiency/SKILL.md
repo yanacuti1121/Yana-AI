@@ -1,10 +1,11 @@
 ---
 name: caching-memory-efficiency
 description: Production caching patterns and memory efficiency laws from 5 repos. In-memory TTL caches, unified KV interfaces, LRU eviction math, consistent hashing for distributed load, and GC thrash prevention via object pooling. Sources: node-cache/node-cache, jaredwray/keyv, isaacs/node-lru-cache, memcached/memcached, tweenjs/tween.js.
-origin: yamtam-engine — synthesized from node-cache/node-cache, jaredwray/keyv, isaacs/node-lru-cache, memcached/memcached, tweenjs/tween.js
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.38
+metadata:
+  origin: yamtam-engine — synthesized from node-cache/node-cache, jaredwray/keyv, isaacs/node-lru-cache, memcached/memcached, tweenjs/tween.js
+  version: 1.0.0
 ---
 
 # /caching-memory-efficiency

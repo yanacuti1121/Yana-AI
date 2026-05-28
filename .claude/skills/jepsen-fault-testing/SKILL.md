@@ -1,10 +1,11 @@
 ---
 name: jepsen-fault-testing
 description: Jepsen-style distributed system fault injection patterns. Network partition simulation, clock skew injection, process kill scenarios, linearizability checkers, and fault-tolerance test design. Sources: jepsen-io/jepsen (EPL-1.0).
-origin: yamtam-engine — synthesized from jepsen-io/jepsen (EPL-1.0), Jepsen analysis methodology
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from jepsen-io/jepsen (EPL-1.0), Jepsen analysis methodology
+  version: 1.0.0
 ---
 
 # /jepsen-fault-testing

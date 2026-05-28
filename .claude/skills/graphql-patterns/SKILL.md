@@ -8,10 +8,11 @@ description: >
   "GraphQL authorization", or "how to structure a GraphQL API".
   Do NOT use for: REST API design — use `api-design`. General query optimization
   on the database layer — use `database-patterns`.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any GraphQL server. Examples in GraphQL SDL + JavaScript."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

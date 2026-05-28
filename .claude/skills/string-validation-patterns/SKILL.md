@@ -1,10 +1,11 @@
 ---
 name: string-validation-patterns
 description: Comprehensive string validation for agent inputs and API boundaries. Email, URL, UUID, IP, credit card, hex, base64, JSON, and custom regex validation patterns. Sources: validatorjs/validator.js.
-origin: yamtam-engine — synthesized from validatorjs/validator.js (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from validatorjs/validator.js (MIT)
+  version: 1.0.0
 ---
 
 # /string-validation-patterns

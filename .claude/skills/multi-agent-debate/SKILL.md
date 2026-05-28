@@ -1,10 +1,11 @@
 ---
 name: multi-agent-debate
 description: Multi-agent debate / Society of Mind — N agents × R rounds converge on consensus. Du et al. 2023 beats zero-shot CoT on MMLU/GSM8K/MATH. Independent contributions from agent count AND round count. Sycophancy cascade prevention, heterogeneous models, compute budget. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /multi-agent-debate

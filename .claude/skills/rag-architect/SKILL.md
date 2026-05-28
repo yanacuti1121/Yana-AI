@@ -7,10 +7,11 @@ description: >
   "improve RAG accuracy", "chunk documents", "add semantic search", or when
   an LLM keeps hallucinating despite having access to docs.
   Do NOT use for: fine-tuning decisions — that is a separate trade-off.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any LLM stack. Patterns apply to LangChain, LlamaIndex, custom pipelines."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 <!-- Original skill — content derived from public RAG research (Gao et al. 2023,

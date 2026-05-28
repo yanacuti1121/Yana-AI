@@ -1,10 +1,11 @@
 ---
 name: helm-chart-packaging
 description: Helm chart creation, templating, and lifecycle management. Chart structure, values.yaml overrides, named templates, hooks, dependency management, and programmatic chart operations via Helm SDK. Sources: helm/helm (Apache-2.0).
-origin: yamtam-engine — synthesized from helm/helm (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from helm/helm (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /helm-chart-packaging

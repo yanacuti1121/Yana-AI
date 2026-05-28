@@ -1,10 +1,11 @@
 ---
 name: repl-code-execution
 description: REPL-driven dynamic code execution patterns for compiled languages. Incremental eval, state persistence between evaluations, error recovery, and sandboxed expression execution. Sources: evcxr/evcxr (Apache-2.0).
-origin: yamtam-engine — synthesized from evcxr/evcxr (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from evcxr/evcxr (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /repl-code-execution

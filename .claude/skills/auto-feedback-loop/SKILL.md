@@ -10,10 +10,11 @@ description: >
   tests pass", "feedback-loop script", "run-until-green", or "agent
   self-correction". Do NOT use for: one-shot test runs — see tdd-workflow.
   Do NOT use for: multi-agent task assignment — see ai-team-workflow.
-origin: adapted:MIT © Microsoft/AutoGen
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "bash ≥ 5, Claude Code agent. Any test runner."
+metadata:
+  origin: adapted:MIT © Microsoft/AutoGen
+  version: 1.0.0
 ---
 
 ## When to Use

@@ -1,10 +1,11 @@
 ---
 name: swarm-honeynets
 description: Deploy full honeynet infrastructure within a multi-agent swarm. Decoy agent prompts, honey-vault canary tokens, ghost file-system monitoring, runtime mutation of compromised agents, and immune system rule generation from blocked attacks.
-origin: YAMTAM Engine rule 59, Active Defense framework, canarytoken.org
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: YAMTAM Engine rule 59, Active Defense framework, canarytoken.org
+  version: 1.0.0
 ---
 
 # Swarm Honeynets

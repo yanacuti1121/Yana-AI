@@ -7,10 +7,11 @@ description: >
   phone/tablet, asked about "touch targets", "thumb zone", "iOS conventions",
   "Android Material", "mobile form", or "responsive design".
   Do NOT use for desktop-only UIs — use `ux-heuristics` for general usability.
-origin: adapted:ux-ui-mastery
 license: MIT © phazurlabs
-version: 1.0.0
 compatibility: "Any mobile web, React Native, or responsive frontend."
+metadata:
+  origin: adapted:ux-ui-mastery
+  version: 1.0.0
 ---
 
 <!-- Adapted from phazurlabs/ux-ui-mastery (MIT) — Mobile UX Design skill.

@@ -1,7 +1,8 @@
 ---
 name: security-pipeline
 description: 보안 파이프라인 - CWE Top 25 + STRIDE 자동 검증
-version: 2.0.0
+metadata:
+  version: 2.0.0
 ---
 
 ## Overview

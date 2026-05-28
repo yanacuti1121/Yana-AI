@@ -1,10 +1,11 @@
 ---
 name: chrome-devtools-browser-automation
 description: Automate browser input, navigation, and interaction via Chrome DevTools MCP (Puppeteer-backed). Click, type, fill forms, drag, upload, navigate pages, wait for conditions, emulate devices.
-origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+  version: 1.0.0
 ---
 
 # Chrome DevTools Browser Automation

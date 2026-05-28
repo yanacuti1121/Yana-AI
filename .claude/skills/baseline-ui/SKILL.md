@@ -10,10 +10,11 @@ description: >
   base styles for correctness. Do NOT use for: full design system token
   architecture — see design-system-gen. Do NOT use for: component-level
   animation — see motion-design.
-origin: adapted:MIT © Ibelick
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Tailwind CSS v3/v4, vanilla CSS. Framework-agnostic."
+metadata:
+  origin: adapted:MIT © Ibelick
+  version: 1.0.0
 ---
 
 ## When to Use

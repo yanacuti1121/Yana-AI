@@ -1,10 +1,11 @@
 ---
 name: syscall-filtering-seccomp
 description: Linux seccomp BPF syscall filtering. Default-deny profiles, allow-listing safe syscalls, SCMP_ACT_ERRNO vs SCMP_ACT_KILL, Docker/OCI seccomp JSON format, blocking reboot/mount/ptrace for agent subprocesses. Sources: seccomp/libseccomp, opencontainers/runc.
-origin: yamtam-engine — synthesized from seccomp/libseccomp (Linux Foundation), opencontainers/runc seccomp spec
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from seccomp/libseccomp (Linux Foundation), opencontainers/runc seccomp spec
+  version: 1.0.0
 ---
 
 # /syscall-filtering-seccomp

@@ -7,10 +7,11 @@ description: >
   "WCAG audit", "a11y review", or before marking any public-facing UI as done.
   Do NOT use for quick pre-delivery checks — use output-enforcement for that.
   This skill goes deeper: it covers ARIA semantics, focus order, and live regions.
-origin: adapted:vercel-agent-skills
 license: MIT © Vercel Labs
-version: 1.0.0
 compatibility: "Any HTML/JSX/TSX output. Framework-agnostic checks."
+metadata:
+  origin: adapted:vercel-agent-skills
+  version: 1.0.0
 ---
 
 <!-- Adapted from vercel-labs/agent-skills (MIT) — accessibility audit concept and WCAG rule coverage.

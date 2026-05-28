@@ -1,10 +1,11 @@
 ---
 name: k8s-crd-controller
 description: Kubernetes Custom Resource Definitions and controller reconciliation loop patterns. CRD schema design, controller-runtime reconciler, desired-state diffing, and agent lifecycle as a K8s-native resource. Sources: kubernetes/kubernetes (Apache-2.0).
-origin: yamtam-engine — synthesized from kubernetes/kubernetes (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from kubernetes/kubernetes (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /k8s-crd-controller

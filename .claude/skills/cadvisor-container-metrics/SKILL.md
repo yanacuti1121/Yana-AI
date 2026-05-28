@@ -1,10 +1,11 @@
 ---
 name: cadvisor-container-metrics
 description: cAdvisor container resource metrics from Linux cgroups. CPU throttling detection, OOM kill monitoring, memory working set vs cache, network I/O per container, and integration with Prometheus scraping. Sources: google/cadvisor (Apache-2.0).
-origin: yamtam-engine — synthesized from google/cadvisor (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from google/cadvisor (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /cadvisor-container-metrics

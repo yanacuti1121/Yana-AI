@@ -9,10 +9,11 @@ description: >
   "serving infrastructure", or "ML pipeline". Do NOT use for: prompt
   engineering or RAG pipelines — see prompt-engineering and rag-architect
   skills. Do NOT use for: general API deployment without an ML component.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "MLflow ≥ 2.x, BentoML ≥ 1.x, Ray Serve ≥ 2.x. Patterns are framework-agnostic."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

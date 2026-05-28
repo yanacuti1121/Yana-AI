@@ -1,10 +1,11 @@
 ---
 name: process-list-monitoring
 description: System process list monitoring and PID management for agent sandboxes. Cross-platform process enumeration, CPU/memory per-process metrics, filtering by name/PID, and detecting unexpected child spawns. Sources: sindresorhus/ps-list.
-origin: yamtam-engine — synthesized from sindresorhus/ps-list (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from sindresorhus/ps-list (MIT)
+  version: 1.0.0
 ---
 
 # /process-list-monitoring

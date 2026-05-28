@@ -10,10 +10,11 @@ description: >
   customize shadcn components". Do NOT use for: full design system token
   architecture — see design-system-gen. Do NOT use for: animation patterns
   — see motion-design.
-origin: adapted:MIT © shadcn-ui
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "shadcn/ui (any version), Radix UI, Next.js / Vite / Remix. Requires Tailwind CSS."
+metadata:
+  origin: adapted:MIT © shadcn-ui
+  version: 1.0.0
 ---
 
 ## When to Use

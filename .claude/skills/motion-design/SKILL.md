@@ -6,10 +6,11 @@ description: >
   accessibility. Use when asked to "add animation", "make it feel alive",
   "micro-interactions", "transition", or "something feels janky/mechanical".
   Do NOT use for 3D or canvas animation — this covers UI-layer motion only.
-origin: adapted:ux-ui-mastery
 license: MIT © phazurlabs
-version: 1.0.0
 compatibility: "Any CSS/JS frontend. Outputs CSS variables + cubic-bezier values."
+metadata:
+  origin: adapted:ux-ui-mastery
+  version: 1.0.0
 ---
 
 <!-- Adapted from phazurlabs/ux-ui-mastery (MIT) — Interaction & Motion Design skill.

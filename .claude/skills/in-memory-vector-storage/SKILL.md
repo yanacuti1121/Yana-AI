@@ -1,10 +1,11 @@
 ---
 name: in-memory-vector-storage
 description: In-memory vector index with JSON persistence for small-scale agent RAG. Upsert/query/delete embeddings, cosine similarity search, JSON snapshot save/load, and memory-budget enforcement. Sources: wseagar/vector-storage.
-origin: yamtam-engine — synthesized from wseagar/vector-storage (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from wseagar/vector-storage (MIT)
+  version: 1.0.0
 ---
 
 # /in-memory-vector-storage

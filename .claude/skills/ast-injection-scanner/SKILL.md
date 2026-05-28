@@ -1,10 +1,11 @@
 ---
 name: ast-injection-scanner
 description: Statically scan agent-generated JavaScript and shell scripts for dangerous patterns using AST analysis (acorn/swc). Detect eval(), process.env access, dynamic require(), child_process usage, and path traversal before code execution.
-origin: acorn (MIT), swc (Apache-2.0), ESTree spec, OWASP Code Injection Cheat Sheet
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: acorn (MIT), swc (Apache-2.0), ESTree spec, OWASP Code Injection Cheat Sheet
+  version: 1.0.0
 ---
 
 # AST Injection Scanner

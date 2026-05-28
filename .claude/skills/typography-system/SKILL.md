@@ -9,9 +9,10 @@ description: >
   or "web font loading". Do NOT use when a design token system already
   exists — extend it instead. Works standalone or as a layer on top of
   design-system-gen output.
-origin: yamtam
-version: 1.0.0
 compatibility: "Any frontend stack. Outputs CSS custom properties + @font-face / Google Fonts import."
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Original YAMTAM skill. Typography rules derived from public typographic

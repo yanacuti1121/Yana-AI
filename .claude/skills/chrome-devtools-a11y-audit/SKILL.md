@@ -1,10 +1,11 @@
 ---
 name: chrome-devtools-a11y-audit
 description: Accessibility debugging via Chrome DevTools MCP. Lighthouse a11y audit, accessibility tree (take_snapshot), heading hierarchy, ARIA labels, focus/keyboard nav, color contrast, tap targets. WCAG 2.1 AA. Sources: ChromeDevTools/chrome-devtools-mcp (Apache-2.0).
-origin: yamtam-engine — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.55
+metadata:
+  origin: yamtam-engine — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /chrome-devtools-a11y-audit

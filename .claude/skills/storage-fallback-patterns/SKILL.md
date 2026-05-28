@@ -1,10 +1,11 @@
 ---
 name: storage-fallback-patterns
 description: Cross-environment storage with automatic driver fallback. store.js patterns for browser/Node/Electron environments, storage backend selection, JSON serialization, namespace isolation, and graceful degradation. Sources: marcuswestin/store.js.
-origin: yamtam-engine — synthesized from marcuswestin/store.js (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from marcuswestin/store.js (MIT)
+  version: 1.0.0
 ---
 
 # /storage-fallback-patterns

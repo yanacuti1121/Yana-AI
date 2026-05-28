@@ -1,10 +1,11 @@
 ---
 name: ebpf-runtime-tracing
 description: eBPF-based runtime behavioral monitoring for detecting sandbox escapes and privilege escalation. Tracee event signatures, file access monitoring, network connection alerts, and process execution tracing. Sources: aquasecurity/tracee.
-origin: yamtam-engine — synthesized from aquasecurity/tracee (Aqua Security, Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from aquasecurity/tracee (Aqua Security, Apache-2.0)
+  version: 1.0.0
 ---
 
 # /ebpf-runtime-tracing

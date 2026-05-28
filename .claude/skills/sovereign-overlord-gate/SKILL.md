@@ -1,10 +1,11 @@
 ---
 name: sovereign-overlord-gate
 description: Implement the Sovereign Overlord Gate (Layer 100) — absolute human authority over the entire agent swarm. ECDSA-P384 signed commands, dead-man switch, emergency shutdown, and swarm freeze with one-time nonce authentication.
-origin: YAMTAM Engine rule 62, HSM design patterns, NIST SP 800-57
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: YAMTAM Engine rule 62, HSM design patterns, NIST SP 800-57
+  version: 1.0.0
 ---
 
 # Sovereign Overlord Gate (Layer 100)

@@ -1,10 +1,11 @@
 ---
 name: merkle-mountain-ranges
 description: Implement append-only cryptographic audit logs using Merkle Mountain Ranges (MMR). Any tampering with historical entries causes immediate root hash drift. Integrates with YAMTAM secure-logger.js for agent action immutability.
-origin: MMR spec (Peter Todd), merkletreejs (MIT), YAMTAM Engine secure-logger design
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: MMR spec (Peter Todd), merkletreejs (MIT), YAMTAM Engine secure-logger design
+  version: 1.0.0
 ---
 
 # Merkle Mountain Ranges (Append-Only Audit Log)

@@ -1,10 +1,11 @@
 ---
 name: bft-consensus-patterns
 description: Implement Byzantine Fault Tolerant voting for critical agent decisions. 3-of-N quorum for infrastructure writes, reputation-weighted voting, dual-verification pipelines, and automatic privilege demotion.
-origin: PBFT (Castro & Liskov 1999), Raft (Ongaro & Ousterhout 2014), YAMTAM rule 54
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: PBFT (Castro & Liskov 1999), Raft (Ongaro & Ousterhout 2014), YAMTAM rule 54
+  version: 1.0.0
 ---
 
 # Byzantine Fault Tolerant Consensus

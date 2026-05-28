@@ -1,10 +1,11 @@
 ---
 name: onnxruntime-inference
 description: ONNX Runtime cross-platform model inference. Export PyTorch/HuggingFace models to ONNX, execution provider selection (CUDA/TensorRT/CPU), graph optimization, and Node.js inference pipeline. Sources: microsoft/onnxruntime (MIT).
-origin: yamtam-engine — synthesized from microsoft/onnxruntime (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.51
+metadata:
+  origin: yamtam-engine — synthesized from microsoft/onnxruntime (MIT)
+  version: 1.0.0
 ---
 
 # /onnxruntime-inference

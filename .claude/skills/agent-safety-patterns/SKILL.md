@@ -11,10 +11,11 @@ description: >
   agent safe to run autonomously". Do NOT use for: prompt injection defense
   — see adversarial-prompt-testing. Do NOT use for: hook-based blocking
   — see hook-block-commands.
-origin: adapted:MIT © VoltAgent/awesome-agent-skills + yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Claude Code agent system, multi-agent architectures. Principles language-agnostic."
+metadata:
+  origin: adapted:MIT © VoltAgent/awesome-agent-skills + yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

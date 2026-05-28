@@ -1,10 +1,11 @@
 ---
 name: raft-node-js-impl
 description: Node.js-native Raft consensus implementation for embedding distributed consensus directly into agent processes. In-process leader election, log replication via TCP, and state machine callbacks without external services. Sources: skiff-project/skiff (MIT).
-origin: yamtam-engine — synthesized from skiff-project/skiff (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from skiff-project/skiff (MIT)
+  version: 1.0.0
 ---
 
 # /raft-node-js-impl

@@ -8,10 +8,11 @@ description: >
   outputs from the model".
   Do NOT use for: RAG retrieval design — use `rag-architect`. UI for streaming
   responses — use `llm-ui-patterns`.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any LLM API. Patterns apply to Claude, GPT-4, Gemini, Mistral."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 <!-- Original skill — synthesized from public prompt engineering literature

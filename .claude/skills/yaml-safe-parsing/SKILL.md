@@ -1,10 +1,11 @@
 ---
 name: yaml-safe-parsing
 description: Safe YAML parsing resistant to YAML bombs and prototype pollution. eemeli/yaml safe schema, document size limits, no-execute mode, type-safe output, and config file validation patterns. Sources: eemeli/yaml.
-origin: yamtam-engine — synthesized from eemeli/yaml (ISC License)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from eemeli/yaml (ISC License)
+  version: 1.0.0
 ---
 
 # /yaml-safe-parsing

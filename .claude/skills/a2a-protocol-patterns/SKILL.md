@@ -1,10 +1,11 @@
 ---
 name: a2a-protocol-patterns
 description: Agent-to-Agent (A2A) protocol — Google 2025, 150+ org backing. Agent Cards discovery, task lifecycle (submitted→working→completed), artifacts (text/structured/video), opaque task model. MCP vs A2A split. Auth: bearer/mTLS/signed. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /a2a-protocol-patterns

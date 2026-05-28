@@ -1,10 +1,11 @@
 ---
 name: tree-of-thoughts
 description: Multi-path reasoning before acting. Agent generates 3 candidate solutions, self-scores each on correctness/token-cost/safety, selects the best branch, and backtracks if it hits a dead end. Use before /deep-heal or any complex fix. Inspired by kyegomez/TreeofThoughts (ToT) — DFS/BFS over solution space.
-origin: kyegomez/TreeofThoughts (Apache 2.0) — Tree of Thoughts reasoning algorithm
 license: MIT
-version: 1.0.0
 compatibility: Claude Code, any reasoning-heavy task
+metadata:
+  origin: kyegomez/TreeofThoughts (Apache 2.0) — Tree of Thoughts reasoning algorithm
+  version: 1.0.0
 ---
 
 # tree-of-thoughts

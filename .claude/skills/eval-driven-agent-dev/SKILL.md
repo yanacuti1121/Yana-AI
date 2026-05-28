@@ -1,10 +1,11 @@
 ---
 name: eval-driven-agent-dev
 description: Eval-driven agent development — 3-layer evaluation (static benchmarks, custom offline, online production). Evaluator-optimizer tight loop. Evals in CI, score-gated PRs. SWE-bench/GAIA/BFCL V4 for cross-model comparison. Trajectory-based and LLM-as-judge evals. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
+metadata:
+  origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /eval-driven-agent-dev

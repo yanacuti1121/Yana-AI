@@ -8,10 +8,11 @@ description: >
   "translate the app", "text expansion", "Arabic/Hebrew layout", or "support
   multiple languages". Do NOT use for: translation content itself — that is a
   human/MT workflow. Do NOT use for: font loading — use `typography-system`.
-origin: adapted:ux-ui-mastery
 license: MIT © phazurlabs
-version: 1.0.0
 compatibility: "Any web frontend. CSS logical properties + Intl API. React/Vue/Svelte examples included."
+metadata:
+  origin: adapted:ux-ui-mastery
+  version: 1.0.0
 ---
 
 <!-- Adapted from phazurlabs/ux-ui-mastery (MIT) — i18n Patterns skill #11.

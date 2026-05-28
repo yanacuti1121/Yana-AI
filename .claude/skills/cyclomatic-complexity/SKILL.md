@@ -1,10 +1,11 @@
 ---
 name: cyclomatic-complexity
 description: Cyclomatic complexity measurement for JavaScript/TypeScript. Function complexity scoring, threshold enforcement, refactor detection, and per-file complexity reports. Sources: marcondescruza/node-complexity (MIT).
-origin: yamtam-engine — synthesized from marcondescruza/node-complexity (MIT), McCabe complexity literature
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from marcondescruza/node-complexity (MIT), McCabe complexity literature
+  version: 1.0.0
 ---
 
 # /cyclomatic-complexity

@@ -1,10 +1,11 @@
 ---
 name: assemblyscript-to-wasm
 description: AssemblyScript TypeScript→WebAssembly compilation. Typed arrays, memory management (heap/Arena), loader for JS host, --optimize flags. Bridge TypeScript codebases to WASM performance without learning Rust. Sources: AssemblyScript/assemblyscript (Apache-2.0).
-origin: yamtam-engine — synthesized from AssemblyScript/assemblyscript (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.55
+metadata:
+  origin: yamtam-engine — synthesized from AssemblyScript/assemblyscript (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /assemblyscript-to-wasm

@@ -9,10 +9,11 @@ description: >
   quota", "API abuse", "burst traffic", or "rate limit this endpoint".
   Do NOT use for: load shedding at the infrastructure layer — that belongs
   in a load balancer or API gateway config, not application code.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Redis ≥ 7.x, ioredis ≥ 5.x. Express/Fastify/Hono middleware patterns."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

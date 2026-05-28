@@ -6,11 +6,12 @@ description: >
   has a security finding list (from red-team-check or a manual audit) and wants
   to fix the vulnerabilities. Produces: root cause analysis, code fix, and test.
   Does not auto-apply fixes — proposes and waits for user approval per fix.
-origin: yamtam
-version: 1.0.0
 compatibility: >
   Expects input in red-team-check finding format. Works on local codebase.
   Does not auto-commit. Does not auto-apply — proposes per fix.
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Concept inspired by Strix (Apache 2.0) — defensive security framing.

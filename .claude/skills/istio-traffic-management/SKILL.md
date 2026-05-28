@@ -1,10 +1,11 @@
 ---
 name: istio-traffic-management
 description: Istio service mesh traffic management for agent clusters. VirtualService routing, DestinationRule load balancing, circuit breaking, canary deployments, mTLS policies, and fault injection. Sources: istio/istio (Apache-2.0).
-origin: yamtam-engine — synthesized from istio/istio (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from istio/istio (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /istio-traffic-management

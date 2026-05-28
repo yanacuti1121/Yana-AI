@@ -7,10 +7,11 @@ description: >
   Use when the user provides an image/screenshot and asks to "code this",
   "build this UI", "implement this design", or "turn this into a component".
   Do NOT use for generating new designs — only for converting existing visuals to code.
-origin: adapted:taste-skill
 license: MIT © 2026 Leonxlnx
-version: 1.0.0
 compatibility: "React/JSX output by default. Mention stack preference to get Vue, HTML, or other output."
+metadata:
+  origin: adapted:taste-skill
+  version: 1.0.0
 ---
 
 <!-- Adapted from taste-skill (MIT © 2026 Leonxlnx). Changes: added YAMTAM origin/Anti-Fake-Pass/compatibility fields, removed GPT-specific behavior, generalized to any frontend stack. -->

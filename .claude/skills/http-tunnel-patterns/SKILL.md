@@ -1,10 +1,11 @@
 ---
 name: http-tunnel-patterns
 description: HTTP/HTTPS tunneling and SOCKS5 proxy for agent network routing. CONNECT tunnel setup, TLS over HTTP proxy, agent-specific proxy routing, and secure tunnel authentication. Sources: request/request (tunneling patterns), node-tunnel.
-origin: yamtam-engine — synthesized from request/request tunneling internals (Apache-2.0), CONNECT RFC 7231
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from request/request tunneling internals (Apache-2.0), CONNECT RFC 7231
+  version: 1.0.0
 ---
 
 # /http-tunnel-patterns

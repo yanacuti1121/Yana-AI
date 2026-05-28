@@ -1,10 +1,11 @@
 ---
 name: graph-data-structure-ops
 description: Pure graph data structure operations: adjacency list, BFS/DFS traversal, cycle detection, topological sort, and shortest path. For dependency resolution in skill/rule graphs without external DB. Sources: bpesquet/graph-data-structure.
-origin: yamtam-engine — synthesized from bpesquet/graph-data-structure (MIT), CLRS graph algorithms
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from bpesquet/graph-data-structure (MIT), CLRS graph algorithms
+  version: 1.0.0
 ---
 
 # /graph-data-structure-ops

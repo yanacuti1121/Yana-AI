@@ -7,10 +7,11 @@ description: >
   budget", "reliability targets", "burn rate", "uptime SLA", or when designing
   alerting for a production service. Do NOT use for: application-level
   performance optimization — use `web-performance` for frontend.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any backend service. Examples use Prometheus/Grafana notation."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 <!-- Original skill — synthesized from Google SRE Book (CC BY 4.0), SLOconf 2024

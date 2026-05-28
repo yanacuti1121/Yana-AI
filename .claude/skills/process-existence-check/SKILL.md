@@ -1,10 +1,11 @@
 ---
 name: process-existence-check
 description: Nanosecond-speed process existence check by PID. sindresorhus/process-exists patterns, cross-platform PID validation, zombie detection, and watchdog loop for monitoring long-running agent sandboxes. Sources: sindresorhus/process-exists.
-origin: yamtam-engine — synthesized from sindresorhus/process-exists (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from sindresorhus/process-exists (MIT)
+  version: 1.0.0
 ---
 
 # /process-existence-check

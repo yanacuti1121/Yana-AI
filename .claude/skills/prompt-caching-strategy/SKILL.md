@@ -11,10 +11,11 @@ description: >
   Claude", or "cached prompt tokens". Do NOT use for: general output budget
   — see the OUTPUT_BUDGET_POLICY.md. Do NOT use for: session memory
   compaction — see pre-compact-backup.
-origin: adapted:MIT © Anthropic/anthropic-cookbook
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Claude 3.5+ / Claude 4 via API. claude-haiku-4-5, claude-sonnet-4-6, claude-opus-4-7."
+metadata:
+  origin: adapted:MIT © Anthropic/anthropic-cookbook
+  version: 1.0.0
 ---
 
 ## When to Use

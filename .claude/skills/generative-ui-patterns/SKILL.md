@@ -10,10 +10,11 @@ description: >
   skeleton for AI", "partial response rendering", or "AI message streaming".
   Do NOT use for: LLM backend prompt engineering — see prompt-engineering.
   Do NOT use for: React Server Components — see nextjs-patterns.
-origin: adapted:MIT © Vercel/ai (AI SDK)
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Vercel AI SDK v4 (@ai-sdk/react, ai). Next.js 14+ App Router. React ≥ 18."
+metadata:
+  origin: adapted:MIT © Vercel/ai (AI SDK)
+  version: 1.0.0
 ---
 
 ## When to Use

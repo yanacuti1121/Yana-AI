@@ -1,10 +1,11 @@
 ---
 name: state-persistence-gateway
 description: Selective state persistence with transform filters. redux-persist patterns, blacklist/whitelist keys, migration versioning, custom serialize/deserialize, and ephemeral-vs-durable state separation. Sources: rt2zz/redux-persist.
-origin: yamtam-engine — synthesized from rt2zz/redux-persist (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from rt2zz/redux-persist (MIT)
+  version: 1.0.0
 ---
 
 # /state-persistence-gateway

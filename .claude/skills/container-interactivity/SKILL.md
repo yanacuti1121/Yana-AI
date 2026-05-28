@@ -1,10 +1,11 @@
 ---
 name: container-interactivity
 description: Real-time data streaming to/from isolated containers for AI agent sandboxing. Docker ephemeral exec patterns, stdin/stdout pipe attachment, nsjail namespace jail setup, streaming output with live tail, container health monitoring, and clean teardown. Sources: moby/moby, google/nsjail, containers/podman, kata-containers/kata-containers, firecracker-microvm/firecracker.
-origin: yamtam-engine — synthesized from moby/moby, google/nsjail, containers/podman, kata-containers/kata-containers, firecracker-microvm/firecracker
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.47
+metadata:
+  origin: yamtam-engine — synthesized from moby/moby, google/nsjail, containers/podman, kata-containers/kata-containers, firecracker-microvm/firecracker
+  version: 1.0.0
 ---
 
 # /container-interactivity

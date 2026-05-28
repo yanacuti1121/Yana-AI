@@ -1,10 +1,11 @@
 ---
 name: opentelemetry-distributed-tracing
 description: OpenTelemetry JS SDK for distributed tracing across agent chains. Span creation, context propagation (W3C Trace Context), OTLP export, baggage passing, and auto-instrumentation for Node.js. Sources: open-telemetry/opentelemetry-js (Apache-2.0).
-origin: yamtam-engine — synthesized from open-telemetry/opentelemetry-js (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from open-telemetry/opentelemetry-js (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /opentelemetry-distributed-tracing

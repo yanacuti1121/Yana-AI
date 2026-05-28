@@ -1,10 +1,11 @@
 ---
 name: monorepo-governance
 description: Monorepo governance patterns from Nx, Turborepo, and Changesets. Task graph execution, affected-only CI, remote caching, module boundary enforcement, shared config packages, and coordinated versioning. Sources: nrwl/nx, vercel/turborepo, changesets/changesets, nicowillis/pkg-size, nicowillis/size-limit, nicowillis/wireit.
-origin: yamtam-engine — synthesized from nrwl/nx, vercel/turborepo, changesets/changesets, nicowillis/pkg-size, nicowillis/size-limit, nicowillis/wireit
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.39
+metadata:
+  origin: yamtam-engine — synthesized from nrwl/nx, vercel/turborepo, changesets/changesets, nicowillis/pkg-size, nicowillis/size-limit, nicowillis/wireit
+  version: 1.0.0
 ---
 
 # /monorepo-governance

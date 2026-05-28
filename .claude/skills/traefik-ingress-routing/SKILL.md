@@ -1,10 +1,11 @@
 ---
 name: traefik-ingress-routing
 description: Traefik cloud-native ingress router with automatic TLS, dynamic configuration, middleware chains, and Kubernetes IngressRoute CRDs. Sources: traefik/traefik (MIT).
-origin: yamtam-engine — synthesized from traefik/traefik (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.52
+metadata:
+  origin: yamtam-engine — synthesized from traefik/traefik (MIT)
+  version: 1.0.0
 ---
 
 # /traefik-ingress-routing

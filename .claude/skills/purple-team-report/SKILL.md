@@ -5,11 +5,12 @@ description: >
   Use when the user wants a consolidated security report after red-team-check and
   blue-team-fix have been run, or when presenting security findings to stakeholders.
   Produces: executive summary, finding table with evidence, fix status, and open items.
-origin: yamtam
-version: 1.0.0
 compatibility: >
   Expects red-team-check output and blue-team-fix output as input.
   Report is text-based (Markdown). Does not write to external systems.
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Concept inspired by Strix (Apache 2.0) — security report synthesis pattern.

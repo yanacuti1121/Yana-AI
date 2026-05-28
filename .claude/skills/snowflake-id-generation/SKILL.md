@@ -1,10 +1,11 @@
 ---
 name: snowflake-id-generation
 description: Twitter Snowflake-style distributed unique ID generation. Time-ordered 64-bit IDs, worker/datacenter bits, clock skew handling, and monotonic guarantees for distributed event sequencing. Sources: bwmarrin/snowflake (BSD-2-Clause).
-origin: yamtam-engine — synthesized from bwmarrin/snowflake (BSD-2-Clause), Twitter Snowflake design
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from bwmarrin/snowflake (BSD-2-Clause), Twitter Snowflake design
+  version: 1.0.0
 ---
 
 # /snowflake-id-generation

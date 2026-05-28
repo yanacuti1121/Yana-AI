@@ -1,10 +1,11 @@
 ---
 name: toml-config-parsing
 description: TOML configuration file parsing for Rust/Cargo-style configs. Type-preserving parse, nested table access, array of tables, inline tables, and validation patterns. Sources: iarna/iarna-toml (toml@latest).
-origin: yamtam-engine — synthesized from iarna/iarna-toml (ISC License), TOML v1.0 spec
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from iarna/iarna-toml (ISC License), TOML v1.0 spec
+  version: 1.0.0
 ---
 
 # /toml-config-parsing

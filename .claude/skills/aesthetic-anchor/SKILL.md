@@ -9,10 +9,11 @@ description: >
   specific aesthetic mood, or asks to avoid generic AI output.
   Do NOT use when the project already has an established design system — apply
   that system instead.
-origin: adapted:frontend-design
 license: MIT © 2026 Ilm-Alan
-version: 1.0.0
 compatibility: "Any frontend stack. CSS custom properties output by default."
+metadata:
+  origin: adapted:frontend-design
+  version: 1.0.0
 ---
 
 <!-- Adapted from Ilm-Alan/frontend-design (MIT). Changes: added YAMTAM origin/Anti-Fake-Pass/

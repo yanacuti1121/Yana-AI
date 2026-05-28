@@ -1,10 +1,11 @@
 ---
 name: hyperdrive-distributed-fs
 description: Hyperdrive P2P distributed filesystem for sharing agent sandboxes and source code. Content-addressed files, sparse sync, versioned snapshots, and P2P replication via Hyperswarm. Sources: holepunchto/hyperdrive (MIT).
-origin: yamtam-engine — synthesized from holepunchto/hyperdrive (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from holepunchto/hyperdrive (MIT)
+  version: 1.0.0
 ---
 
 # /hyperdrive-distributed-fs

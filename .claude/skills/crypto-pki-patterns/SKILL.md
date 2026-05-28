@@ -1,10 +1,11 @@
 ---
 name: crypto-pki-patterns
 description: PKI, RSA, AES, and X.509 certificate patterns using node-forge. RSA key generation, AES-256-GCM encryption/decryption, self-signed certificate creation, PEM/DER encoding, and local config file encryption. Sources: digitalbazaar/forge.
-origin: yamtam-engine — synthesized from digitalbazaar/forge (BSD-3-Clause)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from digitalbazaar/forge (BSD-3-Clause)
+  version: 1.0.0
 ---
 
 # /crypto-pki-patterns

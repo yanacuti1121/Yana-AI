@@ -1,10 +1,11 @@
 ---
 name: pyre-type-analysis
 description: Facebook Pyre static type analysis patterns for Python. Incremental type checking, taint tracking for data-flow security analysis, pysa rules, and integrating Pyre into CI pipelines. Sources: facebook/pyre-check (MIT).
-origin: yamtam-engine — synthesized from facebook/pyre-check (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from facebook/pyre-check (MIT)
+  version: 1.0.0
 ---
 
 # /pyre-type-analysis

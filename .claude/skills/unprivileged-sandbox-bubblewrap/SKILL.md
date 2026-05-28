@@ -1,10 +1,11 @@
 ---
 name: unprivileged-sandbox-bubblewrap
 description: Rootless sandbox via bubblewrap (bwrap). No-root container isolation using user namespaces, read-only bind mounts, tmpfs overlays, seccomp profiles, and capability dropping. Ideal for GitHub Codespaces. Sources: containers/bubblewrap.
-origin: yamtam-engine — synthesized from containers/bubblewrap (Flatpak project, LGPL-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from containers/bubblewrap (Flatpak project, LGPL-2.0)
+  version: 1.0.0
 ---
 
 # /unprivileged-sandbox-bubblewrap

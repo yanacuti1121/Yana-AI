@@ -1,10 +1,11 @@
 ---
 name: http-client-auth-patterns
 description: HTTP client with authentication, retry, progress, and request pipeline patterns. superagent bearer token injection, multipart uploads, response validation, and timeout enforcement for agent API calls. Sources: ladjs/superagent.
-origin: yamtam-engine — synthesized from ladjs/superagent (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from ladjs/superagent (MIT)
+  version: 1.0.0
 ---
 
 # /http-client-auth-patterns

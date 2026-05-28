@@ -1,10 +1,11 @@
 ---
 name: msgpack-binary-encoding
 description: MessagePack binary encoding for compact inter-agent payloads. Pack/unpack, typed arrays, extension types, streaming decoder, and performance comparison with JSON. Sources: msgpack/msgpack-javascript (ISC).
-origin: yamtam-engine — synthesized from msgpack/msgpack-javascript (ISC)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from msgpack/msgpack-javascript (ISC)
+  version: 1.0.0
 ---
 
 # /msgpack-binary-encoding

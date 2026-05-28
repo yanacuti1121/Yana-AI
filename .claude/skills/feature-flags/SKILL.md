@@ -8,10 +8,11 @@ description: >
   "percentage rollout", or "canary release via flags". Do NOT use for: deployment
   canaries managed at infra level (Kubernetes, load balancer weights). Do NOT use for:
   A/B test statistical analysis — flags gate traffic, stats belong in analytics.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "LaunchDarkly SDK ≥ 6.x, Unleash ≥ 5.x, GrowthBook ≥ 1.x. Patterns are provider-agnostic."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

@@ -10,10 +10,11 @@ description: >
   or "autonomous team of agents". Do NOT use for: git-based task coordination
   — see git-native-agent-protocol. Do NOT use for: safety gates — see
   agent-safety-patterns.
-origin: adapted:MIT © Hivemoot project
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Claude Code multi-agent, any orchestration framework. Patterns are tool-agnostic."
+metadata:
+  origin: adapted:MIT © Hivemoot project
+  version: 1.0.0
 ---
 
 ## When to Use

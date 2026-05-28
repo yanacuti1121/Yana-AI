@@ -10,10 +10,11 @@ description: >
   SaaS app", "remove default styles", or "design lacks personality".
   Do NOT use for: design system token architecture — see design-system-gen.
   Do NOT use for: animation timing specifics — see motion-design.
-origin: adapted:MIT © pbakaus
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Tailwind CSS, CSS Modules, vanilla CSS. Framework-agnostic."
+metadata:
+  origin: adapted:MIT © pbakaus
+  version: 1.0.0
 ---
 
 ## When to Use

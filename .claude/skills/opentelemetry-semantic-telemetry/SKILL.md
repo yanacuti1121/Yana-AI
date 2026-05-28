@@ -1,10 +1,11 @@
 ---
 name: opentelemetry-semantic-telemetry
 description: Instrument multi-agent swarms with OpenTelemetry spans, semantic drift monitoring, anomaly detection, distributed trace propagation across 87 agents, and SIEM bridge export for security events.
-origin: OpenTelemetry spec (Apache-2.0), Grafana Loki, YAMTAM rule 55
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: OpenTelemetry spec (Apache-2.0), Grafana Loki, YAMTAM rule 55
+  version: 1.0.0
 ---
 
 # OpenTelemetry Semantic Telemetry

@@ -9,10 +9,11 @@ description: >
   "React XSS", "fix useEffect", "component re-renders too often",
   "React bundle bloat", or "React anti-patterns". Do NOT use for: full
   E2E testing — see e2e-testing. Do NOT use for: API design — see api-design.
-origin: adapted:MIT © millionco
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "React ≥ 18. react-scan, why-did-you-render for diagnosis."
+metadata:
+  origin: adapted:MIT © millionco
+  version: 1.0.0
 ---
 
 ## When to Use

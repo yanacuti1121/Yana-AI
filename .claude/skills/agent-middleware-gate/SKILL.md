@@ -1,10 +1,11 @@
 ---
 name: agent-middleware-gate
 description: Intercept-layer skill for wrapping all agent tool calls through a sanitize-mutate-execute proxy pipeline. Onion middleware composition (koa), request/response interceptors (axios), scope-aware handler chains (express), near-zero-latency proxy routing (caddy), and in-memory pipe streams (piping-server). Implements core/scripts/tool-proxy.sh. Sources: koajs/koa, axios/axios, expressjs/express, caddyserver/caddy, nwtgck/piping-server.
-origin: yamtam-engine — synthesized from koajs/koa, axios/axios, expressjs/express, caddyserver/caddy, nwtgck/piping-server
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.45
+metadata:
+  origin: yamtam-engine — synthesized from koajs/koa, axios/axios, expressjs/express, caddyserver/caddy, nwtgck/piping-server
+  version: 1.0.0
 ---
 
 # /intercept-layer

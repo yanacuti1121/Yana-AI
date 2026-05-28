@@ -10,10 +10,11 @@ description: >
   "how to test this function", or "unit testing best practices". Do NOT use
   for: E2E browser testing — see e2e-testing. Do NOT use for: contract
   testing — see contract-testing. Do NOT use for: load testing — see load-testing.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Vitest v2 (preferred), Jest v29. Patterns apply to both."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

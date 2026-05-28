@@ -1,10 +1,11 @@
 ---
 name: chrome-devtools-screencast
 description: Capture screenshots and record live screencasts from Chrome via DevTools MCP. Use for visual regression, agent state verification, bug reproduction capture, and frame-by-frame UI analysis.
-origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+  version: 1.0.0
 ---
 
 # Chrome DevTools Screencast

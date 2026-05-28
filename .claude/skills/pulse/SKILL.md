@@ -3,10 +3,10 @@ name: pulse
 description: "Multi-source recency research skill that takes the pulse of any topic across Reddit, Hacker News, the open web, and optionally X/Twitter within a configurable recent window (default 30 days). Forcing intake clarifies topic specificity, angle (trend/sentiment/problems/opportunities/comparison), time window, and platform scope before searching. Returns a synthesized briefing with citations, engagement metrics, and cross-platform pattern analysis. Triggers: 'pulse on [topic]', 'what's happening with [topic]', 'what are people saying about [topic]', 'current conversation about [topic]', 'take the pulse of [topic]', 'trending: [topic]', 'find me info on [topic]', or any variation requesting multi-source recency intelligence on a topic. Also use for competitor research, trend discovery, tool comparisons, and audience sentiment analysis."
 license: MIT
 metadata:
+  version: 1.0.0
   source_spec: "megaprompts/01-pulse-megaprompt.md"
   build_pattern: "Path B (direct conversion)"
   research_pack_convention: "Agent Integrity Rules block preserved verbatim per PR #657 audit"
-  version: 1.0.0
 ---
 
 # Pulse — Multi-Source Recency Research

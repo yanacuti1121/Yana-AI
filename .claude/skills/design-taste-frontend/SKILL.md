@@ -7,10 +7,11 @@ description: >
   "make it more professional", "it feels off", or when delivering any
   frontend work that involves visual appearance.
   Do NOT use for pure logic/backend work with no visual output.
-origin: adapted:taste-skill
 license: MIT © 2026 Leonxlnx
-version: 1.0.0
 compatibility: "Any frontend stack. Framework-agnostic principles. CSS/Tailwind examples shown."
+metadata:
+  origin: adapted:taste-skill
+  version: 1.0.0
 ---
 
 <!-- Adapted from taste-skill (MIT © 2026 Leonxlnx). Changes: added YAMTAM origin/Anti-Fake-Pass/compatibility fields, removed GPT-specific behavior, font stack changed to suggestions not mandates. -->

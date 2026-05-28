@@ -1,10 +1,11 @@
 ---
 name: circuit-breaker-rollback
 description: Implement circuit breaker patterns, canary deployment gates, hallucination telemetry checkers, and automated rollback for agent skill deployments. Stop cascading failures before they propagate across the swarm.
-origin: Netflix Hystrix concept, Martin Fowler Circuit Breaker pattern, YAMTAM rules 56–57
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: Netflix Hystrix concept, Martin Fowler Circuit Breaker pattern, YAMTAM rules 56–57
+  version: 1.0.0
 ---
 
 # Circuit Breaker & Automated Rollback

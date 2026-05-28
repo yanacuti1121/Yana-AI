@@ -1,7 +1,8 @@
 ---
 name: verification-engine
 description: 통합 검증 엔진 - 서브에이전트 기반 fresh-context 검증 루프 (v6)
-version: 2.0.0
+metadata:
+  version: 2.0.0
 ---
 
 ## 검증 원칙

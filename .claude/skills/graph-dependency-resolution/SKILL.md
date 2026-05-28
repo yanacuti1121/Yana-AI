@@ -1,10 +1,11 @@
 ---
 name: graph-dependency-resolution
 description: Graph algorithms and dependency resolution for AI agent systems. DAG construction for action gate ordering, cycle detection in skill/rule graphs, BFS/DFS traversal, semver range resolution for version conflicts, topological sort for execution ordering, and PageRank-based rule importance scoring. Sources: dagrejs/graphlib, trekhleb/javascript-algorithms, npm/node-semver, sindresorhus/toposort, asv/pagerank.
-origin: yamtam-engine — synthesized from dagrejs/graphlib, trekhleb/javascript-algorithms, npm/node-semver, sindresorhus/toposort, asv/pagerank
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.46
+metadata:
+  origin: yamtam-engine — synthesized from dagrejs/graphlib, trekhleb/javascript-algorithms, npm/node-semver, sindresorhus/toposort, asv/pagerank
+  version: 1.0.0
 ---
 
 # /graph-dependency-resolution

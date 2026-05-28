@@ -1,10 +1,11 @@
 ---
 name: system-info-telemetry
 description: Hardware and OS telemetry collection for agent resource monitoring. CPU temperature, memory usage, disk I/O, network interfaces, battery, and process-level resource extraction. Sources: sebhildebrandt/systeminformation.
-origin: yamtam-engine — synthesized from sebhildebrandt/systeminformation (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from sebhildebrandt/systeminformation (MIT)
+  version: 1.0.0
 ---
 
 # /system-info-telemetry

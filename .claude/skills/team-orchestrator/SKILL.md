@@ -1,7 +1,8 @@
 ---
 name: team-orchestrator
 description: Agent Teams 오케스트레이션 엔진 - 팀 구성, 작업 분배, 의존성 관리, 결과 집계
-version: 1.1.0
+metadata:
+  version: 1.1.0
 ---
 
 ## Overview

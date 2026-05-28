@@ -11,10 +11,11 @@ description: >
   "when to use design tools vs code". Do NOT use for: building an actual
   design system token spec — see design-system-gen. Do NOT use for:
   specific animation implementation — see motion-design.
-origin: adapted:MIT © emilkowalski
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "React, Storybook v8, Radix UI. Principles are framework-agnostic."
+metadata:
+  origin: adapted:MIT © emilkowalski
+  version: 1.0.0
 ---
 
 ## When to Use

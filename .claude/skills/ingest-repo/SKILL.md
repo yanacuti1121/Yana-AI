@@ -1,10 +1,11 @@
 ---
 name: ingest-repo
 description: Semantic codebase ingestion — given a topic or repo URL, agent maps the dependency graph, identifies key entry points, filters noise files, and synthesizes a structured spec. BloopAI-inspired semantic search over code at macro scale. Triggered by /ingest-repo.
-origin: BloopAI/bloop (Apache 2.0) — semantic search + dependency graph concepts
 license: MIT
-version: 1.0.0
 compatibility: bash, git, any language codebase
+metadata:
+  origin: BloopAI/bloop (Apache 2.0) — semantic search + dependency graph concepts
+  version: 1.0.0
 ---
 
 # ingest-repo

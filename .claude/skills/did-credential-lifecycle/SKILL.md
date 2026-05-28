@@ -1,10 +1,11 @@
 ---
 name: did-credential-lifecycle
 description: Verifiable credential lifecycle management for agent identity. Issue, verify, revoke credentials, DID document key rotation, credential schema validation, and W3C VC data model compliance. Sources: microsoft/did-sdk-js, W3C VC spec.
-origin: yamtam-engine — synthesized from microsoft/did-sdk-js (MIT), W3C Verifiable Credentials Data Model 1.1
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from microsoft/did-sdk-js (MIT), W3C Verifiable Credentials Data Model 1.1
+  version: 1.0.0
 ---
 
 # /did-credential-lifecycle

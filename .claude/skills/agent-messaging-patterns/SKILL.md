@@ -10,10 +10,11 @@ description: >
   "inter-agent protocol", "agent pipeline", or "agent tool approval chain".
   Do NOT use for: git-based agent coordination — see git-native-agent-protocol.
   Do NOT use for: subagent spawning API — see subagent-dependency.
-origin: adapted:MIT © andyrewlee/awesome-agent-orchestrators (hcom)
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Claude Code multi-agent, bash signal files, Node.js IPC. Shell-agnostic patterns."
+metadata:
+  origin: adapted:MIT © andyrewlee/awesome-agent-orchestrators (hcom)
+  version: 1.0.0
 ---
 
 ## When to Use

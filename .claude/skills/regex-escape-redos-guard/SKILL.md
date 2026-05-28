@@ -1,10 +1,11 @@
 ---
 name: regex-escape-redos-guard
 description: Prevent ReDoS (Regex Denial of Service) by escaping user-supplied regex special characters. escape-string-regexp patterns, catastrophic backtracking detection, safe dynamic regex construction, and timeout guards. Sources: sindresorhus/escape-string-regexp.
-origin: yamtam-engine — synthesized from sindresorhus/escape-string-regexp (MIT), OWASP ReDoS guidance
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from sindresorhus/escape-string-regexp (MIT), OWASP ReDoS guidance
+  version: 1.0.0
 ---
 
 # /regex-escape-redos-guard

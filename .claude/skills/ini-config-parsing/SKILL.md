@@ -1,10 +1,11 @@
 ---
 name: ini-config-parsing
 description: INI configuration file parsing for legacy and system configs. Flat and sectioned INI, special character handling, environment variable substitution, and safe stringify. Sources: isaacs/ini.
-origin: yamtam-engine — synthesized from isaacs/ini (ISC License)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from isaacs/ini (ISC License)
+  version: 1.0.0
 ---
 
 # /ini-config-parsing

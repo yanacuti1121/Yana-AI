@@ -1,10 +1,11 @@
 ---
 name: ast-code-manipulation
 description: AST-based code reading, analysis, and mutation for AI agents. JavaScript AST parsing with espree/acorn, AST-to-code generation with escodegen, large-source string editing with magic-string and source maps, CSS AST walking with PostCSS. Never use regex for structural code transforms — use AST. Sources: eslint/espree, acornjs/acorn, estools/escodegen, rich-harris/magic-string, postcss/postcss.
-origin: yamtam-engine — synthesized from eslint/espree, acornjs/acorn, estools/escodegen, rich-harris/magic-string, postcss/postcss
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.46
+metadata:
+  origin: yamtam-engine — synthesized from eslint/espree, acornjs/acorn, estools/escodegen, rich-harris/magic-string, postcss/postcss
+  version: 1.0.0
 ---
 
 # /ast-code-manipulation

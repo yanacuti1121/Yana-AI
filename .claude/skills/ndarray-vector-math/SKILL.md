@@ -1,10 +1,11 @@
 ---
 name: ndarray-vector-math
 description: High-performance N-dimensional array operations for vector math in agent memory systems. Cosine similarity, dot product, Euclidean distance, batch matrix ops, and typed array backends. Sources: hughsk/ndarray, scijs ecosystem.
-origin: yamtam-engine — synthesized from hughsk/ndarray (MIT), scijs/ndarray-ops
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from hughsk/ndarray (MIT), scijs/ndarray-ops
+  version: 1.0.0
 ---
 
 # /ndarray-vector-math

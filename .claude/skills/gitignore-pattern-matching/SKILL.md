@@ -1,10 +1,11 @@
 ---
 name: gitignore-pattern-matching
 description: .gitignore-compatible pattern matching for agent file access control. Ignore rule parsing, negative patterns, per-directory scope, and building file access gates from gitignore-style rules. Sources: kaelzhang/node-ignore.
-origin: yamtam-engine — synthesized from kaelzhang/node-ignore (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from kaelzhang/node-ignore (MIT)
+  version: 1.0.0
 ---
 
 # /gitignore-pattern-matching

@@ -1,10 +1,11 @@
 ---
 name: ecc-key-management
 description: Elliptic curve cryptography for agent key pairs and command signing. EC key generation (secp256k1/p256), ECDSA sign/verify, ECDH shared secret, DER/PEM encoding, and hardware-safe key storage patterns. Sources: indutny/elliptic.
-origin: yamtam-engine — synthesized from indutny/elliptic (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from indutny/elliptic (MIT)
+  version: 1.0.0
 ---
 
 # /ecc-key-management

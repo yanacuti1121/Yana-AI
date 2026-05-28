@@ -6,11 +6,12 @@ description: >
   Use when the user asks to find security issues, audit the codebase for vulnerabilities,
   run a red team check, or scan for security bugs. Requires ownership confirmation via
   security-scope-gate before starting. Only runs against repos the user owns.
-origin: yamtam
-version: 1.0.0
 compatibility: >
   Local codebase only. Requires security-scope-gate.md confirmation before starting.
   Does not make external HTTP requests. Does not exploit live systems.
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Concept inspired by Strix (Apache 2.0) — scan mode taxonomy and OWASP framing.

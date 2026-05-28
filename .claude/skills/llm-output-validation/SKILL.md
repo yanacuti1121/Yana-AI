@@ -1,10 +1,11 @@
 ---
 name: llm-output-validation
 description: LLM output validation patterns — structured output schemas, hallucination detection, retry-with-backoff, streaming output safety, tool-call validation, and confidence scoring. Sources: instructor-ai/instructor, colinhacks/zod, vercel/ai, anthropics/anthropic-sdk-python, outlines-dev/outlines, guardrails-ai/guardrails.
-origin: yamtam-engine — synthesized from instructor-ai/instructor, colinhacks/zod, vercel/ai, anthropics/anthropic-sdk-python, outlines-dev/outlines, guardrails-ai/guardrails
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.39
+metadata:
+  origin: yamtam-engine — synthesized from instructor-ai/instructor, colinhacks/zod, vercel/ai, anthropics/anthropic-sdk-python, outlines-dev/outlines, guardrails-ai/guardrails
+  version: 1.0.0
 ---
 
 # /llm-output-validation

@@ -8,10 +8,11 @@ description: >
   "set SLO thresholds", or "load test this API". Do NOT use for: frontend
   Core Web Vitals (see web-performance skill). Do NOT use for: unit/integration
   test suites. Do NOT use for: security fuzzing.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "k6 ≥ 0.46, Locust ≥ 2.x. Cloud: k6 Cloud, Grafana Cloud k6."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

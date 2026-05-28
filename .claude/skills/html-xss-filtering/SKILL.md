@@ -1,10 +1,11 @@
 ---
 name: html-xss-filtering
 description: Custom-allowlist XSS filtering with fine-grained tag and attribute control. leizongmin/js-xss whitelist configuration, attribute value sanitization, CSS sanitization, and protocol filtering. Sources: leizongmin/js-xss.
-origin: yamtam-engine — synthesized from leizongmin/js-xss (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from leizongmin/js-xss (MIT)
+  version: 1.0.0
 ---
 
 # /html-xss-filtering

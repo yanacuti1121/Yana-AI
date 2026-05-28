@@ -7,10 +7,11 @@ description: >
   about "GDPR", "CCPA", "data privacy", "right to be forgotten", "PII",
   "personal data", "consent", "data retention", or "we need to be compliant".
   Do NOT use for: security penetration testing — use `red-team-check`.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any backend system handling personal data. GDPR + CCPA focused."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

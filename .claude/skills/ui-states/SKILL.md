@@ -6,10 +6,11 @@ description: >
   "skeleton screen", "error message", "empty state", "optimistic UI", "what
   happens while data loads", or before marking any data-dependent view as done.
   Every view that fetches data must pass all 7 states before ship.
-origin: adapted:ux-ui-mastery
 license: MIT © phazurlabs
-version: 1.0.0
 compatibility: "Any frontend stack. Framework-agnostic patterns."
+metadata:
+  origin: adapted:ux-ui-mastery
+  version: 1.0.0
 ---
 
 <!-- Adapted from phazurlabs/ux-ui-mastery (MIT) — Performance States Patterns skill.

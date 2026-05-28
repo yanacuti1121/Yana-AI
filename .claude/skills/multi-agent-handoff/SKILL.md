@@ -8,9 +8,10 @@ description: >
   a sub-agent, or when a multi-agent flow starts showing loop or drift symptoms.
   Do NOT use for session-level human handoffs — use the `handoff` skill for that.
   Do NOT use for dispatch planning — use `subagent-dependency` for DAG orchestration.
-origin: yamtam
-version: 1.0.0
 compatibility: "Any multi-agent Claude Code flow using Agent tool, subagents, or parallel dispatch."
+metadata:
+  origin: yamtam
+  version: 1.0.0
 ---
 
 <!-- Original YAMTAM skill. Vocabulary synthesized from:

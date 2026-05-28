@@ -1,10 +1,11 @@
 ---
 name: vector-store-patterns
 description: Vector database and embedding patterns for AI agent retrieval systems. pgvector similarity search, Chroma collections, Pinecone upsert/query, cosine vs dot-product vs Euclidean distance selection, chunking strategies, metadata filtering, and hybrid search. Sources: pgvector/pgvector, chroma-core/chroma, pinecone-io/pinecone-ts-client, tantaraio/voy, weaviate/weaviate-javascript-client.
-origin: yamtam-engine — synthesized from pgvector/pgvector, chroma-core/chroma, pinecone-io/pinecone-ts-client, tantaraio/voy, weaviate/weaviate-javascript-client
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.44
+metadata:
+  origin: yamtam-engine — synthesized from pgvector/pgvector, chroma-core/chroma, pinecone-io/pinecone-ts-client, tantaraio/voy, weaviate/weaviate-javascript-client
+  version: 1.0.0
 ---
 
 # /vector-store-patterns

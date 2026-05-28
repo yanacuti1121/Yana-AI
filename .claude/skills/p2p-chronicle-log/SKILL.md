@@ -1,10 +1,11 @@
 ---
 name: p2p-chronicle-log
 description: P2P append-only action log for distributed agent audit trails. Peer-to-peer replication, content-addressed entries, causal ordering, and tamper-evident chain without central coordinator. Sources: mafintosh/chronicle (MIT).
-origin: yamtam-engine — synthesized from mafintosh/chronicle (MIT), hypercore (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from mafintosh/chronicle (MIT), hypercore (MIT)
+  version: 1.0.0
 ---
 
 # /p2p-chronicle-log

@@ -1,10 +1,11 @@
 ---
 name: research-team
 description: Autonomous multi-source research agent group. Given an unknown bug or technology topic, research-team spawns parallel sub-agents to search StackOverflow, GitHub Issues, official docs, and changelogs. Synthesizes findings into a ranked solution report. Inspired by assafelovic/gpt-researcher closed-loop research architecture.
-origin: assafelovic/gpt-researcher (Apache 2.0) — multi-source parallel research loop
 license: MIT
-version: 1.0.0
 compatibility: Claude Code, any project
+metadata:
+  origin: assafelovic/gpt-researcher (Apache 2.0) — multi-source parallel research loop
+  version: 1.0.0
 ---
 
 # research-team

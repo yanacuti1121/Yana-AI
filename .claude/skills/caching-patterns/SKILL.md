@@ -9,10 +9,11 @@ description: >
   "cache warming", or "response is too slow and hits the DB every time".
   Do NOT use for: HTTP browser caching headers alone — use web-performance.
   Do NOT use for: feature flag caching — use feature-flags skill.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Redis ≥ 7.x, ioredis ≥ 5.x. Patterns apply to Memcached and in-process caches."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

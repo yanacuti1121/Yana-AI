@@ -1,10 +1,11 @@
 ---
 name: ebpf-syscall-monitoring
 description: Monitor and intercept Linux kernel syscalls from agent processes using eBPF (Extended Berkeley Packet Filter). Real-time syscall filtering, PID-based policy enforcement, cgroups v2 throttling, and seccomp profile generation.
-origin: Linux kernel eBPF docs, Cilium (Apache-2.0), Falco (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: Linux kernel eBPF docs, Cilium (Apache-2.0), Falco (Apache-2.0)
+  version: 1.0.0
 ---
 
 # eBPF Syscall Monitoring

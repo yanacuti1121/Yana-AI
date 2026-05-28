@@ -9,10 +9,11 @@ description: >
   "optimistic update", "cache invalidation", or "when to use Redux".
   Do NOT use for: React Server Components state — see nextjs-patterns.
   Do NOT use for: WebSocket state — see websocket-patterns.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "React ≥ 18. Zustand v5, Redux Toolkit v2, TanStack Query v5, Jotai v2."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

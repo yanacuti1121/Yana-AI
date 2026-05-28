@@ -4,11 +4,11 @@ description: Compact the current conversation into a handoff document for anothe
 argument-hint: "What will the next session be used for?"
 license: MIT
 metadata:
+  version: 1.0.0
   derived_from: "https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff"
   original_author: "Matt Pocock (@mattpocock)"
   original_license: MIT
   voice: "Matt Pocock — no-duplication, reference-existing-artifacts, tailored to next-session focus"
-  version: 1.0.0
 ---
 
 # Handoff

@@ -1,10 +1,11 @@
 ---
 name: overlayfs-runtime-isolation
 description: Isolate agent file-system writes using OverlayFS and bubblewrap (bwrap). Core directories mounted read-only; all agent writes go to RAM-backed tmpfs. Zero persistence on session end. Anti-graffiti immutable surface pattern.
-origin: Linux OverlayFS docs, containers/bubblewrap (LGPL-2.0), YAMTAM Engine sandbox design
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: Linux OverlayFS docs, containers/bubblewrap (LGPL-2.0), YAMTAM Engine sandbox design
+  version: 1.0.0
 ---
 
 # OverlayFS Runtime Isolation

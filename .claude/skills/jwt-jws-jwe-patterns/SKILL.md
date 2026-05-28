@@ -1,10 +1,11 @@
 ---
 name: jwt-jws-jwe-patterns
 description: JWT/JWS/JWE token patterns for Swarm Bus agent identity. Sign JWTs with ES256/RS256, verify claims, encrypt payloads with JWE (A256GCM), short-lived token rotation, and agent-to-agent bearer auth. Sources: panva/jose.
-origin: yamtam-engine — synthesized from panva/jose (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from panva/jose (MIT)
+  version: 1.0.0
 ---
 
 # /jwt-jws-jwe-patterns

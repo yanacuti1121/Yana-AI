@@ -10,10 +10,11 @@ description: >
   "TypeScript strict mode", "keyof typeof", or "TypeScript advanced patterns".
   Do NOT use for: React-specific TypeScript — see frontend-patterns.
   Do NOT use for: API type generation — see api-design.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "TypeScript ≥ 5.0. strict: true required for all patterns."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

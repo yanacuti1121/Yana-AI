@@ -1,10 +1,11 @@
 ---
 name: apply-premium-background
 description: CSS and Tailwind background effects — animated dots, grids, radial gradients, aurora blurs, mesh gradients, noise textures. Ibelick-style premium backgrounds for hero sections, cards, and full-page layouts.
-origin: ibelick/background-snippets (MIT)
 license: MIT
-version: 1.0.0
 compatibility: CSS3, Tailwind v3+, React, Next.js
+metadata:
+  origin: ibelick/background-snippets (MIT)
+  version: 1.0.0
 ---
 
 # apply-premium-background

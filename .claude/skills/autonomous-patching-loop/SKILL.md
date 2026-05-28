@@ -1,10 +1,11 @@
 ---
 name: autonomous-patching-loop
 description: Closed-loop scan → isolate → repair → verify cycle. Agent detects code vulnerabilities or test failures, creates an isolated fix branch, applies auto-remediation, runs the full test gate, and merges only on pass. Inspired by darrenburns/cliche error capture + marionevra/awesome-ai-agents-security playbooks.
-origin: darrenburns/cliche (MIT) + marionevra/awesome-ai-agents-security + yamtam feedback-loop.sh
 license: MIT
-version: 1.0.0
 compatibility: bash, git, any project with test suite
+metadata:
+  origin: darrenburns/cliche (MIT) + marionevra/awesome-ai-agents-security + yamtam feedback-loop.sh
+  version: 1.0.0
 ---
 
 # autonomous-patching-loop

@@ -1,10 +1,11 @@
 ---
 name: mermaid-diagram-generation
 description: Generating system diagrams as Mermaid text from agent state. Flowcharts, sequence diagrams, state machines, Gantt charts, and ER diagrams — all rendered from plain text without a browser. Sources: mermaid-js/mermaid, mermaid-js/mermaid-cli.
-origin: yamtam-engine — synthesized from mermaid-js/mermaid (MIT), mermaid-js/mermaid-cli
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from mermaid-js/mermaid (MIT), mermaid-js/mermaid-cli
+  version: 1.0.0
 ---
 
 # /mermaid-diagram-generation

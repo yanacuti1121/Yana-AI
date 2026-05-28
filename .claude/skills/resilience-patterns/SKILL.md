@@ -6,10 +6,11 @@ description: >
   asked about "circuit breaker", "retry logic", "timeouts", "cascading failures",
   "service keeps going down", "bulkhead", "rate limit", or "what happens when
   a dependency is slow/down". Do NOT use for: SLO target design — use `slo-design`.
-origin: yamtam-original
 license: MIT © 2025 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Any backend service. Language-agnostic patterns — pseudocode examples."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

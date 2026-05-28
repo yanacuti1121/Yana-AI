@@ -1,10 +1,11 @@
 ---
 name: ts-morph-refactor
 description: TypeScript Compiler API via ts-morph for structural code manipulation. Navigate class/interface/function AST nodes, add/remove/rename declarations, batch refactor across a project, and type-safe code generation. Sources: dsherret/ts-morph (MIT).
-origin: yamtam-engine — synthesized from dsherret/ts-morph (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from dsherret/ts-morph (MIT)
+  version: 1.0.0
 ---
 
 # /ts-morph-refactor

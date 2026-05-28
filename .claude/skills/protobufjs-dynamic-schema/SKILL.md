@@ -1,10 +1,11 @@
 ---
 name: protobufjs-dynamic-schema
 description: protobuf.js dynamic .proto parsing and code generation for Node.js. Runtime schema loading, static code generation, reflection API, and JSON interop for agent message contracts. Sources: protobufjs/protobuf.js (BSD-3-Clause).
-origin: yamtam-engine — synthesized from protobufjs/protobuf.js (BSD-3-Clause)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.50
+metadata:
+  origin: yamtam-engine — synthesized from protobufjs/protobuf.js (BSD-3-Clause)
+  version: 1.0.0
 ---
 
 # /protobufjs-dynamic-schema

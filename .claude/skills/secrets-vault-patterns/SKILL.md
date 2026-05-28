@@ -1,10 +1,11 @@
 ---
 name: secrets-vault-patterns
 description: Secure secrets management for agent runtimes. One-time-token gateway, AES-256-GCM at-rest encryption, Shamir's Secret Sharing for API keys, memory zeroization after use, and PBKDF2 key derivation.
-origin: Google Tink (Apache-2.0), Shamir's Secret Sharing (public domain), OWASP Key Management Cheat Sheet
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: Google Tink (Apache-2.0), Shamir's Secret Sharing (public domain), OWASP Key Management Cheat Sheet
+  version: 1.0.0
 ---
 
 # Secrets Vault Patterns

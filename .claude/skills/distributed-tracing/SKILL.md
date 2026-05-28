@@ -10,10 +10,11 @@ description: >
   "why is this request slow across services", or "trace ID in logs".
   Do NOT use for: metrics collection alone — see observability-instrumentation.
   Do NOT use for: single-service profiling — tracing spans cross-service boundaries.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "OpenTelemetry JS SDK ≥ 1.x, Python SDK ≥ 1.x. Vendor-agnostic via OTLP."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

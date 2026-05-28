@@ -6,10 +6,11 @@ description: >
   Use when the user asks to "redesign this page", "this UI looks bad",
   "make it modern", "clean this up", or "the layout is confusing".
   Do NOT use for net-new UI with no existing code to improve.
-origin: adapted:taste-skill
 license: MIT © 2026 Leonxlnx
-version: 1.0.0
 compatibility: "Any frontend stack. Reads existing code; outputs diff or replacement component."
+metadata:
+  origin: adapted:taste-skill
+  version: 1.0.0
 ---
 
 <!-- Adapted from taste-skill (MIT © 2026 Leonxlnx). Changes: added YAMTAM origin/Anti-Fake-Pass/compatibility fields, structured critique format, removed GPT-specific behavior. -->

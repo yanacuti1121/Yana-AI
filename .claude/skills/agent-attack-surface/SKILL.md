@@ -1,10 +1,11 @@
 ---
 name: agent-attack-surface
 description: Attack surface mapping for LLM agent systems. Threat model, blast radius calculation, entry points, trust boundaries, lateral movement paths, and MITRE ATLAS techniques for AI agents. Sources: MITRE/ATLAS, OWASP LLM Top 10, microsoft/promptbench, greshake/indirect-prompt-injection, google/sec-gemini-research, anthropic/model-spec.
-origin: yamtam-engine — synthesized from MITRE/ATLAS (AML.T0051-T0057), OWASP/www-project-top-10-for-large-language-model-applications, microsoft/promptbench, greshake/not-what-you-signed-up-for (indirect injection), google/deepmind-gemini-security, anthropic/model-spec (minimal footprint), openai/evals (adversarial)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.40
+metadata:
+  origin: yamtam-engine — synthesized from MITRE/ATLAS (AML.T0051-T0057), OWASP/www-project-top-10-for-large-language-model-applications, microsoft/promptbench, greshake/not-what-you-signed-up-for (indirect injection), google/deepmind-gemini-security, anthropic/model-spec (minimal footprint), openai/evals (adversarial)
+  version: 1.0.0
 ---
 
 # /agent-attack-surface

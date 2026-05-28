@@ -1,10 +1,11 @@
 ---
 name: type-safe-api-contracts
 description: Type-safe API contract patterns. tRPC end-to-end typed procedures, ts-rest shared contract definitions, zod-to-openapi spec generation, Zodios Axios client, and contract-first development workflow. Sources: trpc/trpc, ts-rest/ts-rest, asteasolutions/zod-to-openapi, zodios/zodios, ecyrbe/zodios.
-origin: yamtam-engine — synthesized from trpc/trpc, ts-rest/ts-rest, asteasolutions/zod-to-openapi, zodios/zodios, ecyrbe/zodios
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.44
+metadata:
+  origin: yamtam-engine — synthesized from trpc/trpc, ts-rest/ts-rest, asteasolutions/zod-to-openapi, zodios/zodios, ecyrbe/zodios
+  version: 1.0.0
 ---
 
 # /type-safe-api-contracts

@@ -1,10 +1,11 @@
 ---
 name: prometheus-ai-telemetry
 description: Prometheus metrics for LLM/AI inference telemetry. Token throughput counters, KV-cache hit/miss rates, latency histograms, model queue depth gauges, and Grafana dashboard patterns. Sources: prometheus/client_golang (Apache-2.0).
-origin: yamtam-engine — synthesized from prometheus/client_golang (Apache-2.0), prom-client (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.51
+metadata:
+  origin: yamtam-engine — synthesized from prometheus/client_golang (Apache-2.0), prom-client (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /prometheus-ai-telemetry

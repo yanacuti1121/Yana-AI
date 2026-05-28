@@ -10,10 +10,11 @@ description: >
   hand off work without a message bus". Do NOT use for: real-time inter-agent
   messaging — see agent-messaging-patterns. Do NOT use for: single-agent
   worktree isolation — see worktree-safety.
-origin: adapted:MIT © andyrewlee/awesome-agent-orchestrators (GNAP)
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Git ≥ 2.40, GitHub CLI (gh). Works in Codespaces, devcontainers, any git-backed env."
+metadata:
+  origin: adapted:MIT © andyrewlee/awesome-agent-orchestrators (GNAP)
+  version: 1.0.0
 ---
 
 ## When to Use

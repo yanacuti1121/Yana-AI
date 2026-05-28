@@ -7,11 +7,11 @@ description: >
   "less tokens", "be brief", or invokes /caveman.
 license: MIT
 metadata:
+  version: 1.0.0
   derived_from: "https://github.com/mattpocock/skills/tree/main/skills/productivity/caveman"
   original_author: "Matt Pocock (@mattpocock)"
   original_license: MIT
   voice: "Matt Pocock — terse, fragment-OK, no filler"
-  version: 1.0.0
 ---
 
 # Caveman Mode

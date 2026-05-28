@@ -1,10 +1,11 @@
 ---
 name: financial-velocity-budgeting
 description: Implement token cost estimation, sliding-window velocity caps, and hierarchical credit allocation for multi-agent LLM systems. Prevent runaway API spend with pre-request budget gates and dead-man switches.
-origin: YAMTAM Engine rule 60, Anthropic usage API, tiktoken (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: YAMTAM Engine rule 60, Anthropic usage API, tiktoken (MIT)
+  version: 1.0.0
 ---
 
 # Financial Velocity Budgeting

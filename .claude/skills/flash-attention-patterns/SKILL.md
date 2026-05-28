@@ -1,10 +1,11 @@
 ---
 name: flash-attention-patterns
 description: FlashAttention IO-aware attention algorithm for memory-efficient transformer training and inference. Tiling, recomputation strategy, hardware memory hierarchy, FlashAttention-2/3 improvements, and integration with HuggingFace. Sources: Dao-AILab/flash-attention (BSD-3-Clause).
-origin: yamtam-engine — synthesized from Dao-AILab/flash-attention (BSD-3-Clause)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.51
+metadata:
+  origin: yamtam-engine — synthesized from Dao-AILab/flash-attention (BSD-3-Clause)
+  version: 1.0.0
 ---
 
 # /flash-attention-patterns

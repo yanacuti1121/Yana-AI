@@ -1,10 +1,11 @@
 ---
 name: readonly-bind-mount-patterns
 description: Read-only bind mount patterns for safe source code analysis. Mount workspace as ro inside containers, overlayfs for copy-on-write analysis, Docker ro bind mounts, detecting unauthorized writes before they reach source. Sources: docker/cli, OCI spec, overlayfs docs.
-origin: yamtam-engine — synthesized from docker/cli (Apache-2.0), Linux overlayfs documentation
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.48
+metadata:
+  origin: yamtam-engine — synthesized from docker/cli (Apache-2.0), Linux overlayfs documentation
+  version: 1.0.0
 ---
 
 # /readonly-bind-mount-patterns

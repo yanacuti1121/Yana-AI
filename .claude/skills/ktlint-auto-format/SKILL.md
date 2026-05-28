@@ -1,10 +1,11 @@
 ---
 name: ktlint-auto-format
 description: ktlint anti-bikeshedding Kotlin linter. Zero-config formatting, custom rule sets, auto-fix, Git pre-commit integration, and Gradle plugin setup. Sources: pinterest/ktlint (MIT).
-origin: yamtam-engine — synthesized from pinterest/ktlint (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from pinterest/ktlint (MIT)
+  version: 1.0.0
 ---
 
 # /ktlint-auto-format

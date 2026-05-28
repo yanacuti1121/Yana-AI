@@ -10,10 +10,11 @@ description: >
   "destroy protection", "variable validation", or "Terraform best practices".
   Do NOT use for: Kubernetes resource manifests — see kubernetes-patterns.
   Do NOT use for: Pulumi or CDK — patterns differ significantly.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "Terraform ≥ 1.6, OpenTofu ≥ 1.6. AWS/GCP/Azure provider examples."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

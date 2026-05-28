@@ -1,10 +1,11 @@
 ---
 name: chrome-devtools-performance-trace
 description: Record and analyze Chrome performance traces via DevTools MCP. Capture CPU flame graphs, long tasks, layout thrash, and JS execution timelines. Extract actionable insights from trace data.
-origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+  version: 1.0.0
 ---
 
 # Chrome DevTools Performance Trace

@@ -1,10 +1,11 @@
 ---
 name: zk-proof-patterns
 description: Zero-Knowledge Proof patterns for privacy-preserving agent attestation. snarkjs circuit compilation, proof generation, verification, and agent compliance attestation without revealing sensitive source code. Sources: iden3/snarkjs.
-origin: yamtam-engine — synthesized from iden3/snarkjs (GPL-3.0), Groth16/PLONK ZK-SNARK literature
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from iden3/snarkjs (GPL-3.0), Groth16/PLONK ZK-SNARK literature
+  version: 1.0.0
 ---
 
 # /zk-proof-patterns

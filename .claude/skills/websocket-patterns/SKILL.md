@@ -8,10 +8,11 @@ description: >
   "backpressure", "scale WebSocket", or "pub/sub over WebSocket". Do NOT use
   for: one-way server push with no client messages — use SSE instead. Do NOT
   use for: request/response APIs where HTTP polling is acceptable.
-origin: yamtam-original
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "ws ≥ 8.x, Socket.IO ≥ 4.x, Node.js ≥ 18. Patterns apply to any WS server."
+metadata:
+  origin: yamtam-original
+  version: 1.0.0
 ---
 
 ## When to Use

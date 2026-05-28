@@ -1,10 +1,11 @@
 ---
 name: sovereign-interceptor-patterns
 description: Build L3 sovereign security interceptors for agent runtimes. AST scanning of agent-generated code, command allow-lists, honey-vault canary token detection, and SHA256 payload fingerprinting.
-origin: YAMTAM Engine v1.4.00 — internal design (Anti-Graffiti sovereign gate)
 license: Apache-2.0
-version: 1.0.0
 compatibility: claude-sonnet-4-6, claude-opus-4-7
+metadata:
+  origin: YAMTAM Engine v1.4.00 — internal design (Anti-Graffiti sovereign gate)
+  version: 1.0.0
 ---
 
 # Sovereign Interceptor Patterns

@@ -8,10 +8,11 @@ description: >
   or before marking any public-facing page as production-ready.
   Do NOT use for server-side database performance — this covers frontend and
   network-layer only.
-origin: adapted:secondsky/claude-skills
 license: MIT © 2025 Claude Skills Maintainers
-version: 1.0.0
 compatibility: "Any web frontend. Framework-agnostic patterns + Webpack/Vite/Rollup examples."
+metadata:
+  origin: adapted:secondsky/claude-skills
+  version: 1.0.0
 ---
 
 <!-- Adapted from secondsky/claude-skills (MIT) — web-performance-optimization and

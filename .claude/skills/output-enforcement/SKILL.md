@@ -7,10 +7,11 @@ description: >
   Use when about to deliver any frontend implementation — before saying
   "done", "here is the component", or marking a UI task complete.
   Do NOT use as a standalone task — this is a pre-delivery gate, not a redesign skill.
-origin: adapted:taste-skill
 license: MIT © 2026 Leonxlnx
-version: 1.0.0
 compatibility: "Any frontend stack. Language-agnostic checks with stack-specific notes."
+metadata:
+  origin: adapted:taste-skill
+  version: 1.0.0
 ---
 
 <!-- Adapted from taste-skill (MIT © 2026 Leonxlnx). Changes: added YAMTAM origin/Anti-Fake-Pass/compatibility fields, converted to gate-style checklist format, removed GPT-specific behavior. -->

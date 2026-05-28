@@ -1,10 +1,11 @@
 ---
 name: did-resolver-patterns
 description: W3C Decentralized Identifier (DID) resolution and cross-agent identity verification. DID document resolution, method routing, key extraction from DID documents, and mutual authentication between Swarm Bus agents. Sources: decentralized-identity/did-resolver.
-origin: yamtam-engine — synthesized from decentralized-identity/did-resolver (Apache-2.0)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from decentralized-identity/did-resolver (Apache-2.0)
+  version: 1.0.0
 ---
 
 # /did-resolver-patterns

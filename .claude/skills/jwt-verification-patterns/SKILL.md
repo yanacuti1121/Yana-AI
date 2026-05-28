@@ -1,10 +1,11 @@
 ---
 name: jwt-verification-patterns
 description: JWT sign/verify with claim validation and privilege-decay enforcement. auth0/node-jsonwebtoken patterns, algorithm lockdown, expiry enforcement, scope-based authorization, and token blacklisting. Sources: auth0/node-jsonwebtoken.
-origin: yamtam-engine — synthesized from auth0/node-jsonwebtoken (MIT)
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from auth0/node-jsonwebtoken (MIT)
+  version: 1.0.0
 ---
 
 # /jwt-verification-patterns

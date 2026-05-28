@@ -11,10 +11,11 @@ description: >
   my animation feel robotic". Do NOT use for: animation performance fixes
   — see fixing-motion-performance. Do NOT use for: easing curves and
   duration — see motion-design.
-origin: adapted:MIT © raphaelsalaja
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "CSS animations, Framer Motion v11, GSAP v3. Principles are tool-agnostic."
+metadata:
+  origin: adapted:MIT © raphaelsalaja
+  version: 1.0.0
 ---
 
 ## When to Use

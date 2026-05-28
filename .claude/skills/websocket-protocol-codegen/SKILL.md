@@ -1,10 +1,11 @@
 ---
 name: websocket-protocol-codegen
 description: Low-level WebSocket protocol implementation patterns and code generation for network data structures. Frame parsing, ping/pong keepalive, binary protocol codegen from schema, and bandwidth-optimized message design. Sources: warmcat/libwebsockets (MIT).
-origin: yamtam-engine — synthesized from warmcat/libwebsockets (MIT), RFC 6455 WebSocket spec
 license: Apache-2.0
-version: 1.0.0
 compatibility: yamtam-engine >= 1.3.49
+metadata:
+  origin: yamtam-engine — synthesized from warmcat/libwebsockets (MIT), RFC 6455 WebSocket spec
+  version: 1.0.0
 ---
 
 # /websocket-protocol-codegen

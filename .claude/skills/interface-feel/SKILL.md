@@ -10,10 +10,11 @@ description: >
   "haptic feedback patterns", or "interface lacks personality". Do NOT use
   for: animation performance — see fixing-motion-performance. Do NOT use
   for: full animation system design — see motion-design.
-origin: adapted:MIT © jakubkrehel
 license: MIT © 2026 Vũ Văn Tâm
-version: 1.0.0
 compatibility: "React ≥ 18, Framer Motion v11. Patterns apply to any interactive UI."
+metadata:
+  origin: adapted:MIT © jakubkrehel
+  version: 1.0.0
 ---
 
 ## When to Use
