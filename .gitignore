@@ -38,3 +38,13 @@ core/memory/audit/*
 __pycache__/
 *.pyc
 reports/audit-local.*
+
+
+# Added by cargo
+
+/target
+
+# YAMTAM
+.yamtam/
+yamtam-*.html
+yamtam-*.sarif
