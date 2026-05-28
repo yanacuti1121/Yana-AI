@@ -1,0 +1,28 @@
+{
+  "description": "YAMTAM ENGINE — background audit hook. Runs yamtam audit after git push and git commit, rewakes Claude with findings if any risks are detected.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/yamtam-audit-rewake.sh\"",
+            "if": "Bash(git commit:*)",
+            "asyncRewake": true,
+            "rewakeMessage": "Background YAMTAM audit of committed changes — review findings below and address or acknowledge before continuing:",
+            "rewakeSummary": "YAMTAM audit found security/risk issues in committed files"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/yamtam-audit-rewake.sh\"",
+            "if": "Bash(git push:*)",
+            "asyncRewake": true,
+            "rewakeMessage": "Background YAMTAM audit of pushed commits — review findings below and address or acknowledge before continuing:",
+            "rewakeSummary": "YAMTAM audit found security/risk issues in pushed commits"
+          }
+        ]
+      }
+    ]
+  }
+}
