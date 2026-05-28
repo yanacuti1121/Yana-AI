@@ -1,0 +1,76 @@
+name: YAMTAM Audit
+description: Scan AI agent setup for risk patterns — yamtam audit .
+
+inputs:
+  target:
+    description: Directory to scan
+    default: '.'
+  fail-on:
+    description: Fail on findings at level+ (low/medium/high/critical)
+    default: 'high'
+  sarif:
+    description: Path to write SARIF output (optional)
+    default: ''
+  diff:
+    description: Base ref for diff mode — only scan changed files (e.g. origin/main)
+    default: ''
+  markdown:
+    description: Path to write Markdown report (optional)
+    default: ''
+
+outputs:
+  score:
+    description: Audit score (0–100)
+    value: ${{ steps.audit.outputs.score }}
+  risk:
+    description: Risk level (LOW/MEDIUM/HIGH/CRITICAL)
+    value: ${{ steps.audit.outputs.risk }}
+  findings:
+    description: Total finding count
+    value: ${{ steps.audit.outputs.findings }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install PyYAML
+      shell: bash
+      run: pip install pyyaml --quiet
+
+    - name: Run yamtam audit
+      id: audit
+      shell: bash
+      env:
+        YAMTAM_NO_COLOR: '1'
+      run: |
+        SCRIPT="${{ github.action_path }}/../../../core/scripts/audit_scanner.py"
+        ARGS="${{ inputs.target }}"
+
+        [[ -n "${{ inputs.fail-on }}" ]]  && ARGS="$ARGS --fail-on ${{ inputs.fail-on }}"
+        [[ -n "${{ inputs.diff }}" ]]     && ARGS="$ARGS --diff ${{ inputs.diff }}"
+        [[ -n "${{ inputs.sarif }}" ]]    && ARGS="$ARGS --sarif ${{ inputs.sarif }}"
+        [[ -n "${{ inputs.markdown }}" ]] && ARGS="$ARGS --markdown ${{ inputs.markdown }}"
+
+        OUTPUT=$(python3 "$SCRIPT" $ARGS 2>&1) || EXIT=$?
+        echo "$OUTPUT"
+
+        SCORE=$(echo "$OUTPUT" | grep -oP 'Score:\s*\K[0-9]+' | head -1 || echo "0")
+        RISK=$(echo "$OUTPUT"  | grep -oP 'Risk:\s*\K\w+'    | head -1 || echo "UNKNOWN")
+        FINDINGS=$(echo "$OUTPUT" | grep -cE '^\s*\[(CRITICAL|HIGH|MED|LOW)' || echo "0")
+
+        echo "score=$SCORE"    >> "$GITHUB_OUTPUT"
+        echo "risk=$RISK"      >> "$GITHUB_OUTPUT"
+        echo "findings=$FINDINGS" >> "$GITHUB_OUTPUT"
+
+        exit ${EXIT:-0}
+
+    - name: Upload SARIF to GitHub Security
+      if: inputs.sarif != '' && always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif }}
+      continue-on-error: true
