@@ -1,9 +1,9 @@
 {
   "name": "yamtam-engine",
-  "version": "1.8.0",
+  "version": "0.5.0",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-26",
-  "manifest_updated": "2026-05-26",
+  "release_date": "2026-05-28",
+  "manifest_updated": "2026-05-28",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
