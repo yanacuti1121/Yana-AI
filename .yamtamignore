@@ -3,3 +3,5 @@ tests/fixtures/**
 reports/**
 releases/**
 *.zip
+.github/copilot-instructions.md
+adapters/**
