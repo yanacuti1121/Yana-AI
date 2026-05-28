@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.7.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.8.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,17 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### CI Check, Diff, Custom Rules, Install (v0.8)
+
+```bash
+yamtam ci-check .                        # CI health: permissions, gates, pinned SHAs
+yamtam diff-report before.json after.json # score delta + new/resolved findings
+yamtam rule add --id CUSTOM001 --severity HIGH --target ".env" --pattern "MY_SECRET"
+yamtam rule list                         # show custom rules
+yamtam install /path/to/project          # one-command setup (--dry-run first)
+yamtam install . --guards                # also install runtime hooks
 ```
 
 ### Score, Badge, Watch, Fix (v0.7)
@@ -508,7 +519,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.7.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.8.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---

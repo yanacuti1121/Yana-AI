@@ -8,6 +8,50 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.8.0 — CI Check, Diff Report, Custom Rules, Install
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam ci-check [target]` — CI/CD pipeline health
+- Checks `.github/workflows/` for: missing permissions, unpinned action SHAs, no timeout, auto-merge, pull_request_target risks, missing yamtam audit step
+- Levels: FAIL / WARN / INFO / PASS
+- `--json` output, `--fail-on` threshold
+- Score impact: each WARN/FAIL explains fix inline
+
+### New: `yamtam diff-report <before.json> <after.json>` — audit run comparison
+- Compare two `yamtam audit . --json` snapshots
+- Shows score delta (▲ +10 / ▼ -20), new findings (+), resolved findings (-)
+- Exit 1 if score regressed
+- `--json` output for CI integration
+
+### New: `yamtam rule add/list/remove` — custom rule management
+- Add project-specific rules to `scanner/custom-checks.yml`
+- `yamtam rule add --id CUSTOM001 --severity HIGH --target ".env" --pattern "..."``
+- `yamtam rule list` — show all custom rules
+- `yamtam rule remove CUSTOM001`
+- `--dry-run` preview, supports all match types (regex/json/exists)
+
+### New: `yamtam install [target]` — one-command project setup
+- Creates `.yamtamignore`, `.gitignore` additions, `.claude/settings.recommended.json`, `.mcp.recommended.json`, `.github/workflows/yamtam-audit.yml`
+- `--dry-run` shows what would be written
+- `--guards` also runs `yamtam guard install all`
+- `--no-audit` skips initial scan
+- Runs initial audit and shows top findings after setup
+
+### Fix: CI drift + score improvement
+- `MANIFEST.json` scripts: 47 → 66 (all scripts listed)
+- `plugin.json` + `marketplace.json` synced to 66
+- `release.yml`: workflow-level permissions + pinned SHA + timeout
+- `yamtam-audit.yml`: workflow-level permissions block
+- Score: 64/100 HIGH → **77/100 MEDIUM**
+
+### CLI version bump
+- `bin/yamtam` → v0.8.0
+- New commands: `ci-check`, `diff-report`, `rule`, `install`
+
+---
+
 ## v0.7.0 — Score Breakdown, Badge, Watch, Auto-Fix
 *2026-05-28*
 
