@@ -1,0 +1,5 @@
+examples/unsafe-agent-repo/**
+tests/fixtures/**
+reports/**
+releases/**
+*.zip

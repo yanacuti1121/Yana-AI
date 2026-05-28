@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yamtam.local/schemas/validator-output.schema.json",
+  "title": "YAMTAM Validator JSON Output",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "command",
+    "status",
+    "exit_code",
+    "mode",
+    "target",
+    "findings",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "tool": { "type": "string", "minLength": 1 },
+    "command": { "type": "string", "enum": ["validate-spec", "check-context"] },
+    "status": { "type": "string", "enum": ["valid", "invalid", "error"] },
+    "exit_code": { "type": "integer", "enum": [0, 1, 2] },
+    "mode": { "type": "string", "minLength": 1 },
+    "target": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "message"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "minLength": 1 },
+          "message": { "type": "string", "minLength": 1 },
+          "file": { "type": "string" },
+          "rule": { "type": "string" },
+          "evidence": { "type": "string" },
+          "recommendation": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["finding_count"],
+      "properties": {
+        "finding_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "context_pack": {
+      "type": "object",
+      "required": ["target", "status", "mode", "finding_count"],
+      "properties": {
+        "target": { "type": "string" },
+        "status": { "type": "string", "enum": ["valid", "invalid", "error", "not_provided"] },
+        "mode": { "type": "string", "minLength": 1 },
+        "finding_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

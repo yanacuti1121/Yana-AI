@@ -9,6 +9,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
 DOCTOR_PY="$REPO_ROOT/core/scripts/doctor.py"
 ROUTER_PY="$REPO_ROOT/core/scripts/router_suggest.py"
+VALIDATE_SPEC_PY="$REPO_ROOT/core/scripts/validate_spec.py"
+CHECK_CONTEXT_PY="$REPO_ROOT/core/scripts/check_context_pack.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,8 @@ Commands:
   doctor [target]         Check environment health before starting an agent session
   audit  [target]         Scan AI agent setup for risk patterns (default target: .)
   router suggest          Look up recommended model tier for a task type
+  validate-spec <file>    Validate task spec file against spec schema
+  check-context <dir>     Validate context-pack directory structure
   version                 Print version
   help                    Show this help
 
@@ -131,6 +135,40 @@ cmd_audit() {
   # Exit code propagated from python script
 }
 
+
+# ── validate-spec ─────────────────────────────────────────────────────────────
+
+cmd_validate_spec() {
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yamtam validate-spec."
+    exit 3
+  fi
+
+  if [[ ! -f "$VALIDATE_SPEC_PY" ]]; then
+    err "validate-spec script not found at $VALIDATE_SPEC_PY"
+    exit 3
+  fi
+
+  python3 "$VALIDATE_SPEC_PY" "$@"
+}
+
+
+# ── check-context ─────────────────────────────────────────────────────────────
+
+cmd_check_context() {
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yamtam check-context."
+    exit 3
+  fi
+
+  if [[ ! -f "$CHECK_CONTEXT_PY" ]]; then
+    err "check-context script not found at $CHECK_CONTEXT_PY"
+    exit 3
+  fi
+
+  python3 "$CHECK_CONTEXT_PY" "$@"
+}
+
 # ── dispatch ──────────────────────────────────────────────────────────────────
 
 COMMAND="${1:-help}"
@@ -145,6 +183,12 @@ case "$COMMAND" in
     ;;
   router)
     cmd_router "$@"
+    ;;
+  validate-spec)
+    cmd_validate_spec "$@"
+    ;;
+  check-context)
+    cmd_check_context "$@"
     ;;
   version|--version|-v)
     cmd_version

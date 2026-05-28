@@ -1,0 +1,50 @@
+{
+  "schema_version": "v1.0",
+  "id": "task.docs.harness-scaling.schemas-harden",
+  "title": "Harden Harness Scaling schemas",
+  "goal": "Adjust schema contracts for extensibility and stronger evidence structure.",
+  "scope": {
+    "in_scope": [
+      ".yamtam/schemas/spec.schema.json",
+      ".yamtam/schemas/run-log.schema.json"
+    ],
+    "out_of_scope": [
+      "core/scripts/**",
+      "core/hooks/**"
+    ],
+    "notes": "Docs/schema-only update"
+  },
+  "acceptance_criteria": [
+    "Schema includes schema_version and extension strategy.",
+    "Run-log supports in-progress state without ended_at."
+  ],
+  "verification_plan": [
+    {
+      "type": "command",
+      "description": "Validate JSON syntax for updated schemas.",
+      "command": "python3 -m json.tool .yamtam/schemas/spec.schema.json >/dev/null",
+      "expected_evidence": "Exit code 0",
+      "required": true
+    },
+    {
+      "type": "command",
+      "description": "Validate JSON syntax for run-log schema.",
+      "command": "python3 -m json.tool .yamtam/schemas/run-log.schema.json >/dev/null",
+      "expected_evidence": "Exit code 0",
+      "required": true
+    }
+  ],
+  "rollback_plan": "Revert schema files to previous commit if downstream compatibility issues appear.",
+  "risk_level": "L1",
+  "owner": "maintainer",
+  "metadata": {
+    "phase": "pre-integration",
+    "internal_only": true
+  },
+  "created_at": "2026-05-27T12:10:00Z",
+  "updated_at": "2026-05-27T12:20:00Z",
+  "notes": [
+    "No runtime or scanner changes."
+  ],
+  "x-ticket": "DOCS-42"
+}

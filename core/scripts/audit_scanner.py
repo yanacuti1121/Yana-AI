@@ -16,8 +16,7 @@ from typing import Any
 try:
     import yaml
 except ImportError:
-    print("Error: PyYAML is required. Run: pip install pyyaml", file=sys.stderr)
-    sys.exit(3)
+    yaml = None
 
 
 # ── Score model ───────────────────────────────────────────────────────────────
@@ -296,18 +295,44 @@ def run_json_match(content: str, check: dict) -> list[dict]:
 # ── Scanner loader ────────────────────────────────────────────────────────────
 
 def load_scanner_rules(scanner_dir: str) -> list[dict]:
-    """Load all *.yml files from scanner_dir, return list of rule sets."""
-    rule_files = sorted(glob.glob(os.path.join(scanner_dir, "*.yml")))
-    rule_sets = []
-    for rf in rule_files:
+    """Load scanner rules from YAML when available, else JSON compiled fallback."""
+    rule_sets: list[dict] = []
+
+    if yaml is not None:
+        rule_files = sorted(glob.glob(os.path.join(scanner_dir, "*.yml")))
+        for rf in rule_files:
+            try:
+                with open(rf, encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                if data and "checks" in data:
+                    data["_source_file"] = rf
+                    rule_sets.append(data)
+            except Exception as e:
+                print(f"[warn] Could not parse {rf}: {e}", file=sys.stderr)
+        if rule_sets:
+            return rule_sets
+
+    compiled_dir = os.path.join(scanner_dir, "compiled")
+    compiled_files = sorted(glob.glob(os.path.join(compiled_dir, "*.json")))
+    if compiled_files:
+        print("[info] PyYAML unavailable or YAML load failed; using scanner/compiled JSON fallback.", file=sys.stderr)
+    for cf in compiled_files:
         try:
-            with open(rf) as f:
-                data = yaml.safe_load(f)
+            with open(cf, encoding="utf-8") as f:
+                data = json.load(f)
             if data and "checks" in data:
-                data["_source_file"] = rf
+                data["_source_file"] = cf
                 rule_sets.append(data)
         except Exception as e:
-            print(f"[warn] Could not parse {rf}: {e}", file=sys.stderr)
+            print(f"[warn] Could not parse {cf}: {e}", file=sys.stderr)
+
+    if not rule_sets and yaml is None:
+        print(
+            "[error] PyYAML not installed and no compiled scanner JSON found. "
+            "Install dependencies (pip install -r requirements-dev.txt) or add scanner/compiled/*.json.",
+            file=sys.stderr,
+        )
+
     return rule_sets
 
 
@@ -370,6 +395,7 @@ def scan_file(file_path: str, target: str, rule_set: dict) -> list[dict]:
 
 def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None) -> dict:
     rule_sets = load_scanner_rules(scanner_dir)
+    ignore_patterns = load_yamtamignore_patterns(target)
     if not rule_sets:
         print(f"[error] No scanner rules found in {scanner_dir}", file=sys.stderr)
         sys.exit(3)
@@ -377,6 +403,7 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
     all_findings: list[dict] = []
     files_scanned: set[str] = set()
     files_skipped = 0
+    files_ignored = 0
     checks_applied = 0
 
     for rule_set in rule_sets:
@@ -395,6 +422,9 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
                     if diff_files is not None and rel not in diff_files:
                         files_skipped += 1
                         continue
+                    if is_ignored(rel, ignore_patterns):
+                        files_ignored += 1
+                        continue
                     if explicit_path not in scanned_this_ruleset:
                         findings = scan_file(explicit_path, target, rule_set)
                         all_findings.extend(findings)
@@ -408,6 +438,9 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
                 rel = os.path.relpath(fp, target)
                 if diff_files is not None and rel not in diff_files:
                     files_skipped += 1
+                    continue
+                if is_ignored(rel, ignore_patterns):
+                    files_ignored += 1
                     continue
                 findings = scan_file(fp, target, rule_set)
                 all_findings.extend(findings)
@@ -487,6 +520,7 @@ def run_audit(target: str, scanner_dir: str, diff_files: set[str] | None = None)
         "scan_stats": {
             "files_scanned": len(files_scanned),
             "files_skipped": files_skipped,
+            "files_ignored": files_ignored,
             "scanners_run": len(rule_sets),
             "checks_applied": checks_applied,
             "duration_ms": 0,
@@ -557,58 +591,49 @@ def recompute_report_stats(report: dict) -> dict:
 
 # ── .yamtamignore loader ──────────────────────────────────────────────────────
 
-def load_yamtamignore(target: str) -> list[tuple[str, str | None]]:
-    """Parse .yamtamignore → list of (rule_id, filepath_or_None).
+def load_yamtamignore_patterns(target: str) -> list[str]:
+    """Load .yamtamignore glob patterns from audit target root.
 
-    Format (per line):
-      RULE_ID                           suppress everywhere
-      RULE_ID:path/to/file.yml          suppress for one file
-      # comment line                    ignored
+    Supports simple gitignore-style glob lines (comments with # are ignored), e.g.:
+      examples/unsafe-agent-repo/**
+      tests/fixtures/**
+      reports/**
+      releases/**
+      *.zip
     """
     ignore_path = os.path.join(target, ".yamtamignore")
     if not os.path.isfile(ignore_path):
         return []
-    entries: list[tuple[str, str | None]] = []
+    patterns: list[str] = []
     try:
         with open(ignore_path, encoding="utf-8") as f:
             for raw in f:
-                line = raw.split("#")[0].strip()
+                line = raw.split("#", 1)[0].strip()
                 if not line:
                     continue
-                if ":" in line:
-                    rule_id, filepath = line.split(":", 1)
-                    entries.append((rule_id.strip().upper(), filepath.strip()))
-                else:
-                    entries.append((line.strip().upper(), None))
+                patterns.append(line)
     except OSError:
         pass
-    return entries
+    return patterns
 
 
-def apply_yamtamignore(
-    findings: list[dict], ignore_entries: list[tuple[str, str | None]]
-) -> tuple[list[dict], int]:
-    """Filter out findings that match .yamtamignore entries.
+def is_ignored(rel_path: str, patterns: list[str]) -> bool:
+    """Return True if relative path matches any .yamtamignore pattern."""
+    if not patterns:
+        return False
 
-    Returns (kept_findings, suppressed_count).
-    """
-    if not ignore_entries:
-        return findings, 0
+    from fnmatch import fnmatch
 
-    kept: list[dict] = []
-    suppressed = 0
-    for f in findings:
-        matched = False
-        for rule_id, filepath in ignore_entries:
-            if f["id"].upper() == rule_id:
-                if filepath is None or os.path.normpath(f["file"]) == os.path.normpath(filepath):
-                    matched = True
-                    break
-        if matched:
-            suppressed += 1
-        else:
-            kept.append(f)
-    return kept, suppressed
+    rp = rel_path.replace("\\", "/")
+    base = os.path.basename(rp)
+    for pat in patterns:
+        p = pat.replace("\\", "/")
+        if fnmatch(rp, p) or fnmatch(base, p):
+            return True
+        # convenience for directory patterns without wildcard suffix
+        if p.endswith("/") and rp.startswith(p):
+            return True
+    return False
 
 
 # ── --diff helper ─────────────────────────────────────────────────────────────
@@ -929,6 +954,46 @@ def render_markdown(report: dict) -> str:
     return "\n".join(lines)
 
 
+def build_audit_json_output(report: dict, *, target: str, exit_code: int, status: str) -> dict:
+    findings = []
+    for f in report.get("findings", []):
+        item = {
+            "id": f.get("id", ""),
+            "severity": str(f.get("severity", "")).lower(),
+            "message": f.get("message", ""),
+        }
+        if f.get("file"):
+            item["file"] = f.get("file")
+        if isinstance(f.get("line"), int):
+            item["line"] = f.get("line")
+        if f.get("category"):
+            item["rule"] = f.get("category")
+        if f.get("fix"):
+            item["fix"] = f.get("fix")
+        findings.append(item)
+
+    return {
+        "schema_version": "1.0",
+        "tool": "yamtam",
+        "command": "audit",
+        "status": status,
+        "exit_code": exit_code,
+        "target": target,
+        "score": report.get("score"),
+        "risk_level": report.get("risk_level"),
+        "summary": {
+            "total_findings": len(findings),
+            "by_severity": {
+                "critical": report.get("summary", {}).get("critical", 0),
+                "high": report.get("summary", {}).get("high", 0),
+                "medium": report.get("summary", {}).get("medium", 0),
+                "low": report.get("summary", {}).get("low", 0),
+            },
+        },
+        "findings": findings,
+    }
+
+
 # ── CLI entrypoint ────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -976,10 +1041,27 @@ def main() -> None:
     if args.diff:
         diff_files = get_diff_files(args.diff, target)
         if not diff_files:
-            if not args.quiet:
+            if not args.quiet and not args.json:
                 print(f"  No changed files vs {args.diff} — nothing to scan.\n")
+            if args.json:
+                payload = {
+                    "schema_version": "1.0",
+                    "tool": "yamtam",
+                    "command": "audit",
+                    "status": "ok",
+                    "exit_code": 0,
+                    "target": target,
+                    "score": 100,
+                    "risk_level": "LOW",
+                    "summary": {
+                        "total_findings": 0,
+                        "by_severity": {"critical": 0, "high": 0, "medium": 0, "low": 0},
+                    },
+                    "findings": [],
+                }
+                print(json.dumps(payload, indent=2, default=str))
             sys.exit(0)
-        if not args.quiet:
+        if not args.quiet and not args.json:
             print(f"  Diff mode: scanning {len(diff_files)} changed file(s) vs {args.diff}\n")
 
     t0 = time.monotonic()
@@ -996,22 +1078,27 @@ def main() -> None:
         report["findings"] = [f for f in report["findings"] if f.get("category") == args.only]
         needs_recompute = True
 
-    # Apply .yamtamignore suppression
-    ignore_entries = load_yamtamignore(target)
-    suppressed_count = 0
-    if ignore_entries:
-        report["findings"], suppressed_count = apply_yamtamignore(report["findings"], ignore_entries)
-        needs_recompute = True
-
     if needs_recompute:
         recompute_report_stats(report)
 
-    if suppressed_count and not args.quiet:
-        print(f"  {suppressed_count} finding(s) suppressed by .yamtamignore\n")
+    # Compute exit code first to keep JSON output aligned with process status
+    exit_code = 0
+    if args.fail_on:
+        order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+        threshold = order.get(args.fail_on, 99)
+        for f in report["findings"]:
+            if order.get(f["severity"].lower(), 99) >= threshold:
+                exit_code = 2 if f["severity"] == "CRITICAL" else 1
+                break
+    elif report["summary"]["critical"] > 0:
+        exit_code = 2
+    elif report["summary"]["high"] > 0 or report["summary"]["medium"] > 0:
+        exit_code = 1
 
     # Output
     if args.json:
-        print(json.dumps(report, indent=2, default=str))
+        status = "error" if exit_code == 2 else ("findings" if report.get("findings") else "ok")
+        print(json.dumps(build_audit_json_output(report, target=target, exit_code=exit_code, status=status), indent=2, default=str))
     else:
         print(render_console(report, no_color=args.no_color, quiet=args.quiet))
 
@@ -1030,17 +1117,8 @@ def main() -> None:
             print(f"  SARIF report written to: {args.sarif}\n")
 
     # Exit codes
-    fail_level = args.fail_on
-    if fail_level:
-        order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
-        threshold = order.get(fail_level, 99)
-        for f in report["findings"]:
-            if order.get(f["severity"].lower(), 99) >= threshold:
-                sys.exit(2 if f["severity"] == "CRITICAL" else 1)
-    elif report["summary"]["critical"] > 0:
-        sys.exit(2)
-    elif report["summary"]["high"] > 0 or report["summary"]["medium"] > 0:
-        sys.exit(1)
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

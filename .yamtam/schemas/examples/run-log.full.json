@@ -1,0 +1,52 @@
+{
+  "schema_version": "v1.0",
+  "run_id": "run.docs.schemas-harden.0002",
+  "task_id": "task.docs.harness-scaling.schemas-harden",
+  "status": "completed",
+  "started_at": "2026-05-27T12:30:00Z",
+  "ended_at": "2026-05-27T12:43:00Z",
+  "actor": "codex-agent",
+  "model": "gpt-5.3-codex",
+  "environment": "cloud-shell",
+  "repo_ref": "work",
+  "commit_sha": "fda8876",
+  "budget": {
+    "token_limit": 12000,
+    "runtime_seconds_limit": 1800,
+    "max_changed_files": 8,
+    "max_diff_lines": 500
+  },
+  "usage": {
+    "tokens_used": 4200,
+    "runtime_seconds": 780
+  },
+  "changes": {
+    "changed_files": 6,
+    "diff_lines": 240
+  },
+  "verification": {
+    "evidence_present": true,
+    "evidence": [
+      {
+        "kind": "command-output",
+        "ref": "python3 -m json.tool .yamtam/schemas/spec.schema.json",
+        "timestamp": "2026-05-27T12:41:00Z"
+      },
+      {
+        "kind": "file",
+        "ref": ".yamtam/schemas/run-log.schema.json"
+      }
+    ],
+    "verification_commands": [
+      "python3 -m json.tool .yamtam/schemas/spec.schema.json >/dev/null",
+      "python3 -m json.tool .yamtam/schemas/run-log.schema.json >/dev/null"
+    ]
+  },
+  "notes": [
+    "Docs/schema-only follow-up"
+  ],
+  "metadata": {
+    "internal_only": true
+  },
+  "x-session-id": "sess-2026-05-27-01"
+}
