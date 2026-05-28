@@ -20,7 +20,7 @@
     "hooks": 45,
     "commands": 164,
     "agents": 90,
-    "scripts": 74,
+    "scripts": 78,
     "skills": 387,
     "rules": 61,
     "checks": 826,
@@ -50,5 +50,5 @@
   "checks": 826,
   "hooks": 45,
   "rules": 61,
-  "scripts": 74
+  "scripts": 78
 }

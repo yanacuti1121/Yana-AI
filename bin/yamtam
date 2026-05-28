@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.10.0"
+YAMTAM_VERSION="0.11.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -27,6 +27,10 @@ INIT_WIZ_PY="$REPO_ROOT/core/scripts/init_wizard.py"
 VERIFY_PY="$REPO_ROOT/core/scripts/verify_hooks.py"
 MONITOR_PY="$REPO_ROOT/core/scripts/monitor.py"
 STATS_PY="$REPO_ROOT/core/scripts/stats.py"
+LINT_PY="$REPO_ROOT/core/scripts/lint_rules.py"
+SNAPSHOT_PY="$REPO_ROOT/core/scripts/snapshot.py"
+POLICY_CHECK_PY="$REPO_ROOT/core/scripts/policy_check.py"
+EXPORT_PY="$REPO_ROOT/core/scripts/export_findings.py"
 RULE_PY="$REPO_ROOT/core/scripts/rule_add.py"
 CI_CHECK_PY="$REPO_ROOT/core/scripts/ci_check.py"
 INSTALL_PY="$REPO_ROOT/core/scripts/install_project.py"
@@ -72,6 +76,10 @@ Commands:
   verify [target]        Verify all safety hooks are wired and active
   monitor [target]       Real-time audit log tail with color output
   stats  [target]        Audit score trend over time (--record to add scan)
+  lint   [path]          Lint rule YAML files for schema correctness
+  snapshot <sub>         Save/list/diff/delete audit snapshots
+  export [target]        Export findings to CSV/Markdown/JUnit/JSON
+  policy check [target]  Verify applied configs match policy templates
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -285,7 +293,11 @@ case "$COMMAND" in
     cmd_audit "$@"
     ;;
   policy)
-    cmd_policy "$@"
+    SUBCMD="${1:-}"; shift 2>/dev/null || true
+    case "$SUBCMD" in
+      check) python3 "$POLICY_CHECK_PY" "$@" ;;
+      *)     cmd_policy "$SUBCMD" "$@" ;;
+    esac
     ;;
   guard)
     cmd_guard "$@"
@@ -363,6 +375,15 @@ case "$COMMAND" in
     ;;
   stats)
     python3 "$STATS_PY" "$@"
+    ;;
+  lint)
+    python3 "$LINT_PY" "$@"
+    ;;
+  snapshot)
+    python3 "$SNAPSHOT_PY" "$@"
+    ;;
+  export)
+    python3 "$EXPORT_PY" "$@"
     ;;
   router)
     cmd_router "$@"
