@@ -1,0 +1,145 @@
+{
+  "version": "1.0",
+  "scope": "ci-workflows",
+  "file_patterns": [
+    ".github/workflows/*.yml",
+    ".github/workflows/*.yaml",
+    ".gitlab-ci.yml",
+    ".circleci/config.yml",
+    "bitbucket-pipelines.yml"
+  ],
+  "checks": [
+    {
+      "id": "CI001",
+      "severity": "CRITICAL",
+      "description": "Auto-merge enabled with no approval gate",
+      "match": {
+        "type": "regex",
+        "pattern": "auto.?merge",
+        "flags": "i",
+        "condition": "not_accompanied_by",
+        "not_accompanied_by_pattern": "(required.reviews|review.required|approved|min.approvals)",
+        "lines": 20
+      },
+      "reason": "Auto-merge without required reviews allows agent-authored PRs to merge without human inspection.",
+      "fix": "Add required-reviewers: 1 (minimum) or a status check gate before auto-merge triggers."
+    },
+    {
+      "id": "CI002",
+      "severity": "CRITICAL",
+      "description": "Workflow triggers on pull_request_target with checkout of PR head",
+      "match": {
+        "type": "regex",
+        "pattern": "pull_request_target",
+        "condition": "accompanied_by",
+        "accompanied_by_pattern": "ref:\\s*\\$\\{\\{\\s*github\\.event\\.pull_request\\.head",
+        "lines": 30
+      },
+      "reason": "pull_request_target + PR head checkout gives untrusted code access to repo secrets.",
+      "fix": "Use pull_request (not target) for untrusted contributor workflows, or add explicit trust checks."
+    },
+    {
+      "id": "CI003",
+      "severity": "HIGH",
+      "description": "workflow_dispatch or push to main triggers immediate deploy with no approval",
+      "match": {
+        "type": "regex",
+        "pattern": "(workflow_dispatch|push).*branches.*main",
+        "condition": "accompanied_by",
+        "accompanied_by_pattern": "(deploy|kubectl apply|helm upgrade|terraform apply|gcloud deploy)",
+        "lines": 50,
+        "flags": "i"
+      },
+      "reason": "Auto-deploy on push to main bypasses manual verification of what is being deployed.",
+      "fix": "Add an environment protection rule in GitHub Settings requiring manual approval before deploy."
+    },
+    {
+      "id": "CI004",
+      "severity": "HIGH",
+      "description": "secrets printed or echoed in workflow step",
+      "match": {
+        "type": "regex",
+        "pattern": "echo\\s+.*\\$\\{\\{\\s*secrets\\."
+      },
+      "reason": "Echoing secrets writes them to the workflow log where they can be extracted.",
+      "fix": "Never echo secret values. Use them only as direct environment variable references."
+    },
+    {
+      "id": "CI005",
+      "severity": "HIGH",
+      "description": "Workflow uses curl|bash or wget|sh for install step",
+      "match": {
+        "type": "regex",
+        "pattern": "(curl|wget)\\s+.{0,200}\\|\\s*(ba)?sh",
+        "flags": "i"
+      },
+      "reason": "Pipe-to-shell installs in CI can be poisoned by CDN compromise or URL hijacking.",
+      "fix": "Download, verify SHA256 hash, then execute. Use official actions (actions/setup-*) where possible."
+    },
+    {
+      "id": "CI006",
+      "severity": "MEDIUM",
+      "description": "Third-party action used without pinned SHA — uses tag or branch",
+      "match": {
+        "type": "regex",
+        "pattern": "uses:\\s+[^\\s]+@(main|master|latest|v[0-9]+\\s*$)"
+      },
+      "reason": "Tag-pinned actions can be silently changed by the action author (tag mutable).",
+      "fix": "Pin actions to a full commit SHA: uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29"
+    },
+    {
+      "id": "CI007",
+      "severity": "MEDIUM",
+      "description": "permissions block missing — workflow inherits maximum token permissions",
+      "match": {
+        "type": "regex",
+        "pattern": "^(on:|jobs:)",
+        "condition": "not_preceded_by",
+        "not_preceded_by_pattern": "permissions:",
+        "lines": 10
+      },
+      "reason": "Workflows without explicit permissions inherit write access to contents, PRs, and packages.",
+      "fix": "Add 'permissions: read-all' at the top level and grant specific write permissions only where needed."
+    },
+    {
+      "id": "CI008",
+      "severity": "HIGH",
+      "description": "npm publish or pip publish triggered automatically without manual gate",
+      "match": {
+        "type": "regex",
+        "pattern": "(npm publish|twine upload|cargo publish|gem push)",
+        "condition": "not_accompanied_by",
+        "not_accompanied_by_pattern": "(environment:|required.reviewers|manual)",
+        "lines": 20,
+        "flags": "i"
+      },
+      "reason": "Automatic package publishing on CI trigger means a compromised commit can publish to registries.",
+      "fix": "Gate publish steps behind a GitHub environment with required reviewers."
+    },
+    {
+      "id": "CI009",
+      "severity": "MEDIUM",
+      "description": "Self-hosted runner used — runner environment is not isolated by GitHub",
+      "match": {
+        "type": "regex",
+        "pattern": "runs-on:\\s+self-hosted"
+      },
+      "reason": "Self-hosted runners persist state between runs. A compromised job can poison subsequent jobs.",
+      "fix": "Ensure self-hosted runners are ephemeral (fresh VM per job). Document runner hardening."
+    },
+    {
+      "id": "CI010",
+      "severity": "LOW",
+      "description": "No timeout-minutes set on jobs — runaway jobs waste credits indefinitely",
+      "match": {
+        "type": "regex",
+        "pattern": "^\\s+runs-on:",
+        "condition": "not_accompanied_by",
+        "not_accompanied_by_pattern": "timeout-minutes:",
+        "lines": 5
+      },
+      "reason": "Jobs without a timeout can run for 6 hours (GitHub default), burning minutes on hung processes.",
+      "fix": "Add timeout-minutes: 30 (or an appropriate value) to each job definition."
+    }
+  ]
+}

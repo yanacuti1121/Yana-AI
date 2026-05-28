@@ -1,0 +1,31 @@
+{
+  "schema_version": "v1.0",
+  "id": "task.docs.spec-validator.phase1a",
+  "title": "Validate spec command skeleton",
+  "goal": "Provide minimal validate-spec command behavior and tests.",
+  "scope": {
+    "in_scope": [
+      "core/scripts/validate_spec.py",
+      "tests/test_validate_spec.py"
+    ],
+    "out_of_scope": [
+      "core/scripts/audit_scanner.py",
+      "scanner/**"
+    ]
+  },
+  "acceptance_criteria": [
+    "Valid spec returns exit code 0.",
+    "Invalid spec returns exit code 1 with clear messages."
+  ],
+  "verification_plan": [
+    {
+      "type": "command",
+      "description": "Run validate-spec against valid input.",
+      "command": "bash bin/yamtam validate-spec examples/specs/valid-task-spec.json",
+      "expected_evidence": "Result: VALID",
+      "required": true
+    }
+  ],
+  "owner": "maintainer",
+  "created_at": "2026-05-27T00:00:00Z"
+}
