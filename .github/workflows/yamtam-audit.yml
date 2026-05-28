@@ -14,6 +14,10 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   yamtam-audit:
     name: YAMTAM Agent Setup Audit
