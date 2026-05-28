@@ -376,7 +376,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 70,
+      "count": 74,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -442,6 +442,10 @@
         "core/scripts/watch.py",
         "core/scripts/diff_report.py",
         "core/scripts/rule_add.py",
+        "core/scripts/init_wizard.py",
+        "core/scripts/monitor.py",
+        "core/scripts/stats.py",
+        "core/scripts/verify_hooks.py",
         "core/scripts/report_html.py",
         "core/scripts/rule_import.py",
         "core/scripts/scan_url.py",
