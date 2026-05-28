@@ -113,6 +113,7 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.6 | Explain, Map, Init-Policy, GitHub Action | ✅ done |
 | v0.7 | Score breakdown, Badge, Watch, Auto-Fix | ✅ done |
 | v0.8 | CI check, Diff report, Custom rules, Install | ✅ done |
+| v0.9 | HTML report, Scan URL, Rule import, Upgrade | ✅ done |
 
 ---
 

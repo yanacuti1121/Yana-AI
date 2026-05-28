@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.8.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.9.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,19 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### HTML Report, Scan URL, Rule Import, Upgrade (v0.9)
+
+```bash
+yamtam report html .                          # standalone HTML report
+yamtam report html . --out report.html --open # write + open in browser
+yamtam scan https://github.com/owner/repo     # scan repo by URL (no clone left)
+yamtam scan https://github.com/x/y --html r.html
+yamtam rule import ./my-rules.yml             # import rule pack from file
+yamtam rule import https://example.com/r.yml  # import from URL
+yamtam upgrade --check                        # check if update available
+yamtam upgrade                                # self-update to latest
 ```
 
 ### CI Check, Diff, Custom Rules, Install (v0.8)
@@ -519,7 +532,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.8.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.9.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---

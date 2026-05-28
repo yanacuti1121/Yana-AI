@@ -8,6 +8,47 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.9.0 — HTML Report, Scan URL, Rule Import, Upgrade
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam report html [target]` — standalone HTML report
+- Generates self-contained HTML with score bar, risk badge, color-coded findings
+- `--out <file>` custom output path (default: `yamtam-report.html`)
+- `--open` opens in browser immediately after generation
+- `--fail-on`, `--ignore`, `--diff` passthrough to scanner
+- No external dependencies — pure inline CSS/HTML
+
+### New: `yamtam scan <url>` — scan GitHub repo by URL
+- Clones to temp dir, audits, cleans up — no permanent files left
+- Supports any `https://github.com/owner/repo` URL
+- `--html <file>` generate HTML report, `--markdown <file>` generate Markdown
+- `--branch <name>` scan a specific branch
+- `--json` machine-readable output, `--fail-on` CI gate
+
+### New: `yamtam rule import <source>` — import rule pack
+- Import from local file or remote URL
+- Validates schema before writing (checks/severity/id required)
+- Conflict detection: skips existing IDs unless `--force`
+- `--name` custom output filename in `scanner/`
+- `--dry-run` validate and preview without writing
+
+### New: `yamtam upgrade` — self-update
+- Fetches latest release info from GitHub API
+- `--check` — show if update available without installing
+- `--yes` — skip confirmation prompt
+- Syncs `core/`, `bin/`, `scanner/`, `policy/`, `guards/` from latest tag
+
+### Fix
+- scripts count: 66 → 70
+
+### CLI version bump
+- `bin/yamtam` → v0.9.0
+- New commands: `report html`, `scan`, `rule import`, `upgrade`
+
+---
+
 ## v0.8.0 — CI Check, Diff Report, Custom Rules, Install
 *2026-05-28*
 

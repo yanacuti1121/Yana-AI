@@ -268,12 +268,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **Fix: MANIFEST/plugin/marketplace scripts count** 47 → 66 (drift resolved)
 - [x] **Fix: CI score** 64/100 HIGH → 77/100 MEDIUM
 
-### v0.9 — Candidates (chưa commit)
+### v0.9.0 — 2026-05-28
 
-- [ ] **`yamtam report html`** — export audit report as standalone HTML
-- [ ] **`yamtam scan <url>`** — scan a GitHub repo URL without cloning
-- [ ] **`yamtam rule import <url>`** — import rule pack from URL/file
-- [ ] **`yamtam upgrade`** — self-update yamtam to latest version
+- [x] **`yamtam report html`** — standalone HTML report (score bar, color-coded findings)
+- [x] **`yamtam scan <url>`** — scan GitHub repo URL, temp clone, auto-cleanup
+- [x] **`yamtam rule import <src>`** — import rule YAML from URL/file, conflict detection
+- [x] **`yamtam upgrade [--check]`** — self-update from GitHub latest release
+
+### v1.0 — Candidates (chưa commit)
+
+- [ ] **`yamtam init`** — interactive setup wizard (replaces install)
+- [ ] **`yamtam verify`** — verify all hooks are wired and active
+- [ ] **`yamtam monitor`** — real-time audit log tail with color output
+- [ ] **Stable API** — finalize CLI contract, write spec, tag v1.0
 
 ---
 
