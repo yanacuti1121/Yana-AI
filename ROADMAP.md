@@ -259,12 +259,21 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **`yamtam watch .`** — polling watcher, score diff on change, no external deps
 - [x] **`yamtam fix <rule-id>`** — opt-in auto-fix (AC002/AC003/CI007/MCP001 + templates, `--dry-run`)
 
-### v0.8 — Candidates (chưa commit)
+### v0.8.0 — 2026-05-28
 
-- [ ] **`yamtam ci-check`** — CI/CD pipeline health check (missing gates, weak permissions)
-- [ ] **`yamtam diff-report`** — compare two audit runs, show what got worse/better
-- [ ] **`yamtam rule add`** — add custom rule to local scanner from CLI
-- [ ] **`yamtam install`** — one-command install to any project (`curl` alternative)
+- [x] **`yamtam ci-check .`** — CI/CD health (permissions, pinned SHAs, gates, timeouts)
+- [x] **`yamtam diff-report b.json a.json`** — compare two audit runs, score delta + finding diff
+- [x] **`yamtam rule add/list/remove`** — custom rules → `scanner/custom-checks.yml`
+- [x] **`yamtam install [target]`** — one-command project setup (--dry-run, --guards)
+- [x] **Fix: MANIFEST/plugin/marketplace scripts count** 47 → 66 (drift resolved)
+- [x] **Fix: CI score** 64/100 HIGH → 77/100 MEDIUM
+
+### v0.9 — Candidates (chưa commit)
+
+- [ ] **`yamtam report html`** — export audit report as standalone HTML
+- [ ] **`yamtam scan <url>`** — scan a GitHub repo URL without cloning
+- [ ] **`yamtam rule import <url>`** — import rule pack from URL/file
+- [ ] **`yamtam upgrade`** — self-update yamtam to latest version
 
 ---
 
