@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.4.0"
+YAMTAM_VERSION="0.5.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -13,6 +13,7 @@ VALIDATE_SPEC_PY="$REPO_ROOT/core/scripts/validate_spec.py"
 CHECK_CONTEXT_PY="$REPO_ROOT/core/scripts/check_context_pack.py"
 POLICY_PY="$REPO_ROOT/core/scripts/policy_manager.py"
 GUARD_PY="$REPO_ROOT/core/scripts/guard_installer.py"
+RT_BIN="$REPO_ROOT/target/release/yamtam-rt"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,8 @@ Commands:
   audit  [target]         Scan AI agent setup for risk patterns (default target: .)
   policy <subcommand>     Policy Kit — safe config templates for audit findings
   guard  <subcommand>     Control Layer — install runtime enforcement hooks
+  task   <subcommand>     Runtime — task lifecycle (create/list/done/status/drop)
+  eval   <subcommand>     Runtime — evaluate task evidence (run/schema)
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -76,6 +79,11 @@ Examples:
   yamtam guard list
   yamtam guard install all
   yamtam guard status
+  yamtam task create "Fix auth bug" --scope "src/auth/"
+  yamtam task list
+  yamtam task done <id> --evidence "12 tests passed, build ok"
+  yamtam eval run <id>
+  yamtam eval schema
   yamtam router suggest --task pr_review
   yamtam router suggest --list
 
@@ -229,6 +237,13 @@ case "$COMMAND" in
     ;;
   guard)
     cmd_guard "$@"
+    ;;
+  task|eval)
+    if [[ ! -x "$RT_BIN" ]]; then
+      err "yamtam-rt not built. Run: cargo build --release"
+      exit 3
+    fi
+    exec "$RT_BIN" "$COMMAND" "$@"
     ;;
   router)
     cmd_router "$@"
