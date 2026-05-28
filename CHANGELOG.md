@@ -8,6 +8,44 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.11.0 — Lint, Snapshot, Policy Check, Export
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam lint [path]` — rule YAML linter
+- Validates rule files against schema: required fields (id/severity/target/description), valid severity, valid match types
+- Detects duplicate IDs, unknown fields, missing `fix` field
+- `--errors-only` show only ERRORs, `--json` machine-readable
+- Default: lints all files in `scanner/`
+
+### New: `yamtam snapshot save/list/diff/delete` — audit snapshots
+- `yamtam snapshot save <name>` — save current audit state to `.yamtam/snapshots/`
+- `yamtam snapshot list` — show all snapshots with score + risk
+- `yamtam snapshot diff <a> <b>` — compare two snapshots (delegates to diff-report)
+- `yamtam snapshot show <name>` — print audit JSON
+- `yamtam snapshot delete <name>` — remove snapshot
+- `--note` add a label, auto-generates timestamp name if omitted
+
+### New: `yamtam policy check [target]` — policy compliance
+- Verifies `.claude/settings.json`, `.mcp.json`, `.github/workflows/` match policy templates
+- Checks: `dangerouslyAllowAll=false`, deny list present, no bare `Bash(*)`, no root filesystem MCP, permissions block in workflows
+- `--policy <name>` check single policy, `--json` output
+
+### New: `yamtam export [target] --format <fmt>` — multi-format export
+- `csv` — for Excel, Jira, spreadsheets
+- `markdown` — readable report with finding tables by severity
+- `junit` — XML for Jenkins / GitHub Actions test reporter
+- `json` — raw audit JSON (same as `yamtam audit . --json`)
+- `--out <file>` custom path, `--stdout` pipe to another tool
+
+### CLI version bump
+- `bin/yamtam` → v0.11.0
+- New commands: `lint`, `snapshot`, `policy check`, `export`
+- scripts: 74 → 78
+
+---
+
 ## v0.10.0 — Init Wizard, Verify, Monitor, Stats
 *2026-05-28*
 

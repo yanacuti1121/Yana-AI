@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.10.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.11.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,20 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### Lint, Snapshot, Policy Check, Export (v0.11)
+
+```bash
+yamtam lint                           # lint all scanner/ rule YAML files
+yamtam lint scanner/custom-checks.yml # lint single file
+yamtam snapshot save "before-deploy"  # save audit state
+yamtam snapshot list                  # list all snapshots
+yamtam snapshot diff snap1 snap2      # compare two snapshots
+yamtam export . --format csv          # CSV for Excel/Jira
+yamtam export . --format markdown     # Markdown report
+yamtam export . --format junit        # JUnit XML for CI
+yamtam policy check .                 # verify configs match templates
 ```
 
 ### Init, Verify, Monitor, Stats (v0.10)
@@ -545,7 +559,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.10.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.11.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---

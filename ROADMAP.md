@@ -282,12 +282,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **`yamtam monitor`** — realtime log tail, color by event type, `--filter`
 - [x] **`yamtam stats --record`** — score trend, bar chart, best/worst, history JSON
 
-### v0.11 — Candidates (chưa commit)
+### v0.11.0 — 2026-05-28
 
-- [ ] **`yamtam lint`** — lint rule YAML files for correctness
-- [ ] **`yamtam snapshot`** — save full audit state for later comparison
-- [ ] **`yamtam policy check`** — verify applied policies match templates
-- [ ] **`yamtam export`** — export all findings to CSV/JSON for external tools
+- [x] **`yamtam lint`** — rule YAML linter (schema, duplicates, missing fields)
+- [x] **`yamtam snapshot save/list/diff/delete`** — audit snapshots in `.yamtam/snapshots/`
+- [x] **`yamtam policy check`** — verify claude/mcp/CI configs match templates
+- [x] **`yamtam export --format csv/markdown/junit/json`** — multi-format findings export
+
+### v0.12 — Candidates (chưa commit)
+
+- [ ] **`yamtam check <file>`** — scan a single file against all rules
+- [ ] **`yamtam template list`** — list all available policy templates
+- [ ] **`yamtam audit --since <date>`** — only report findings newer than date
+- [ ] **`yamtam doctor`** — enhanced environment health (Python, git, hooks, yamtam version)
 
 ---
 
