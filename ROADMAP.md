@@ -8,6 +8,29 @@ This is a personal agent operating system. Features are added when a real proble
 
 ## Completed ✅
 
+### v0.5.0 — 2026-05-28 (Auditor CLI series)
+
+- [x] **Runtime v0.5 — Task Lifecycle & Evals (Rust)** — `yamtam-rt` binary (clap 4, serde, uuid, chrono)
+  - `yamtam task create/list/done/status/drop` — task lifecycle với UUID, timestamps, scope
+  - `yamtam eval run <id>` — validate evidence → PASS/FAIL + confidence HIGH/MEDIUM/LOW
+  - `yamtam eval schema` — Evidence Schema v1 (JSON)
+  - Evidence parsing: `tests_passed`, `tests_failed`, `build_ok`, `coverage_pct`, `manual_note`
+  - State: `.yamtam/tasks.json` per project
+  - `bin/yamtam` delegate `task` + `eval` subcommands sang Rust binary
+
+- [x] **Guard Installer v0.4 — Control Layer** — `yamtam guard` command
+  - `yamtam guard list/install/status/remove`
+  - 5 guards: guard-destructive, token-budget-guard, truth-gate, scope-guard, prompt-injection-guard
+  - `--target <path>` install vào project khác
+
+- [x] **Policy Kit v0.3** — `yamtam policy` command
+  - `yamtam policy list/show/apply/fixes`
+  - 5 templates: claude-settings, mcp-minimal, ci-safe, env-example, gitignore-ai
+
+- [x] **CI Gate v0.2** — `--fail-on`, `--sarif`, `--diff`, `.yamtamignore`, baseline suppression
+
+- [x] **Auditor v0.1** — `yamtam audit .` — scan, score, report, no auto-fix
+
 ### v1.6.0 — 2026-05-23
 
 - [x] **Autonomous Session Safety** — `session-checkpoint.sh` (manifest+index+L2 snapshot), `session-rollback.sh` (sovereign check, dry-run, restore-L2, audit trail), `session-checkpoint-hook.sh` (PostToolUse auto-trigger)
@@ -219,6 +242,15 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 | GitHub Copilot | Already shipped | Advisory |
 
 > **Why:** YAMTAM safety should be model-agnostic. If a team switches from Claude to DeepSeek or Gemini, the gate stack must follow.
+
+---
+
+### v0.6 — Candidates (chưa commit)
+
+- [ ] **`yamtam explain <rule-id>`** — mỗi finding thành giáo trình bảo mật (CI001.md, MCP003.md…)
+- [ ] **`yamtam map .`** — Agent Blast Radius Map: "agent của tôi chạm được tới đâu?"
+- [ ] **GitHub Action official** — `uses: phamlongh230-lgtm/yamtam-engine/actions/audit@v1`
+- [ ] **`yamtam init-policy <tool>`** — generate safe config template cho claude/github-actions/cursor
 
 ---
 
