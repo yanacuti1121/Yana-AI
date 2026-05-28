@@ -8,6 +8,46 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.10.0 — Init Wizard, Verify, Monitor, Stats
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam init [target]` — interactive setup wizard
+- Guided setup: select AI engine (claude/cursor/aider/copilot/other), risk profile, guards, CI
+- Risk profiles: `strict` (minimal tools), `balanced` (default), `minimal` (audit only)
+- Generates `.claude/settings.recommended.json`, `.yamtamignore`, `.gitignore` additions
+- Optionally installs runtime guards and CI workflow
+- Runs initial audit after setup
+- `--yes` for non-interactive / CI use
+
+### New: `yamtam verify [target]` — hook wiring check
+- Checks 8 core safety hooks: exists on disk + wired in `.claude/settings.json`
+- L0 audit, L1 scope, L1.5 validate, L3 truth gate, L3.5 inject, L4 deploy, L4.5 supply chain, L5 destructive
+- `--fix` auto-runs `yamtam guard install all`
+- `--json` machine-readable output
+
+### New: `yamtam monitor [target]` — real-time log tail
+- Tails `.claude/state/audit.log` with color-coded output
+- BLOCK (red), WARN (yellow), PASS (green), BUDGET (cyan), SECURITY (red)
+- `--filter <pattern>` show only matching lines
+- `--lines` initial backlog, `--interval` poll frequency
+- Auto-detects log file location across project structures
+
+### New: `yamtam stats [target]` — score trend
+- Records audit scores to `.yamtam/history.json` (keeps last 100)
+- `--record` run new scan and save to history
+- Shows score bar chart, risk level, trend arrow per scan
+- Displays best/worst scores with dates
+- `--limit` number of entries, `--clear` reset history, `--json` output
+
+### CLI version bump
+- `bin/yamtam` → v0.10.0
+- New commands: `init`, `verify`, `monitor`, `stats`
+- scripts: 70 → 74
+
+---
+
 ## v0.9.0 — HTML Report, Scan URL, Rule Import, Upgrade
 *2026-05-28*
 

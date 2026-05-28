@@ -275,12 +275,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 - [x] **`yamtam rule import <src>`** — import rule YAML from URL/file, conflict detection
 - [x] **`yamtam upgrade [--check]`** — self-update from GitHub latest release
 
-### v0.10 — Candidates (chưa commit)
+### v0.10.0 — 2026-05-28
 
-- [ ] **`yamtam init`** — interactive setup wizard (replaces install)
-- [ ] **`yamtam verify`** — verify all hooks are wired and active
-- [ ] **`yamtam monitor`** — real-time audit log tail with color output
-- [ ] **`yamtam stats`** — project audit stats over time (trend)
+- [x] **`yamtam init`** — interactive wizard (engine/profile/guards/CI, `--yes` for CI)
+- [x] **`yamtam verify`** — 8-hook wiring check, `--fix` auto-installs missing
+- [x] **`yamtam monitor`** — realtime log tail, color by event type, `--filter`
+- [x] **`yamtam stats --record`** — score trend, bar chart, best/worst, history JSON
+
+### v0.11 — Candidates (chưa commit)
+
+- [ ] **`yamtam lint`** — lint rule YAML files for correctness
+- [ ] **`yamtam snapshot`** — save full audit state for later comparison
+- [ ] **`yamtam policy check`** — verify applied policies match templates
+- [ ] **`yamtam export`** — export all findings to CSV/JSON for external tools
 
 ---
 

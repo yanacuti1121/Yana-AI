@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.9.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.10.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,19 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### Init, Verify, Monitor, Stats (v0.10)
+
+```bash
+yamtam init .                # interactive wizard: engine, profile, guards, CI
+yamtam init . --yes          # non-interactive (CI use)
+yamtam verify .              # check 8 safety hooks: exists + wired
+yamtam verify . --fix        # auto-install missing hooks
+yamtam monitor .             # real-time audit log tail with color
+yamtam monitor . --filter BLOCK  # show only BLOCK events
+yamtam stats . --record      # run scan + save to .yamtam/history.json
+yamtam stats .               # show score trend + bar chart
 ```
 
 ### HTML Report, Scan URL, Rule Import, Upgrade (v0.9)
@@ -532,7 +545,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.9.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.10.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
