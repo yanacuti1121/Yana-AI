@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.7.0"
+YAMTAM_VERSION="0.8.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -18,6 +18,10 @@ INIT_POLICY_PY="$REPO_ROOT/core/scripts/init_policy.py"
 EXPLAIN_PY="$REPO_ROOT/core/scripts/explain_rule.py"
 MAP_PY="$REPO_ROOT/core/scripts/blast_radius.py"
 SCORE_PY="$REPO_ROOT/core/scripts/score_explain.py"
+DIFF_REPORT_PY="$REPO_ROOT/core/scripts/diff_report.py"
+RULE_PY="$REPO_ROOT/core/scripts/rule_add.py"
+CI_CHECK_PY="$REPO_ROOT/core/scripts/ci_check.py"
+INSTALL_PY="$REPO_ROOT/core/scripts/install_project.py"
 BADGE_PY="$REPO_ROOT/core/scripts/badge_gen.py"
 WATCH_PY="$REPO_ROOT/core/scripts/watch.py"
 FIX_PY="$REPO_ROOT/core/scripts/auto_fix.py"
@@ -48,6 +52,10 @@ Commands:
   badge  [target]         Generate shields.io badge URL for README
   watch  [target]         Watch config files and re-audit on change
   fix    <rule-id>        Auto-apply safe fix for a finding (opt-in, --dry-run)
+  ci-check [target]      CI/CD pipeline health check (missing gates, weak perms)
+  diff-report <b> <a>   Compare two audit JSON runs — show what changed
+  rule   <subcommand>    Custom rule management (add/list/remove)
+  install [target]       One-command yamtam setup for a project
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -293,6 +301,18 @@ case "$COMMAND" in
     ;;
   fix)
     python3 "$FIX_PY" "$@"
+    ;;
+  ci-check)
+    python3 "$CI_CHECK_PY" "$@"
+    ;;
+  diff-report)
+    python3 "$DIFF_REPORT_PY" "$@"
+    ;;
+  rule)
+    python3 "$RULE_PY" "$@"
+    ;;
+  install)
+    python3 "$INSTALL_PY" "$@"
     ;;
   router)
     cmd_router "$@"
