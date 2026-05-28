@@ -37,6 +37,11 @@
       "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
       "description": "Derived from score: 90-100=LOW | 70-89=MEDIUM | 40-69=HIGH | 0-39=CRITICAL"
     },
+    "status": {
+      "type": "string",
+      "enum": ["clean", "findings", "error"],
+      "description": "'findings' = scan completed and found issues. 'clean' = scan completed, no significant findings. 'error' = runtime/internal failure, scan could not complete."
+    },
     "summary": {
       "type": "object",
       "required": ["total", "critical", "high", "medium", "low"],
@@ -134,6 +139,10 @@
             "enum": ["HIGH", "MEDIUM", "LOW"],
             "description": "HIGH = deterministic match. MEDIUM = likely match. LOW = may be false positive.",
             "default": "HIGH"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable finding message. Fallback chain: message → reason → description → id. Always non-empty."
           },
           "matched_value": {
             "type": "string",
