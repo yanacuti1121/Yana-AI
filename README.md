@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.5.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.6.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -106,6 +106,18 @@ yamtam audit . --json                   # machine-readable output
 # .yamtamignore
 SH008:scripts/legacy.sh              # known false positive — no set -e intentional
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+```
+
+### Explain, Map, Init-Policy (v0.6)
+
+```bash
+yamtam explain CI001                  # why it's risky + how to fix
+yamtam explain --list                 # all 70 rules by category
+yamtam map .                          # agent blast radius: shell/read/write/git/mcp/CI
+yamtam map . --json                   # machine-readable
+yamtam init-policy claude             # write .claude/settings.recommended.json
+yamtam init-policy mcp --dry-run      # preview without writing
+yamtam init-policy list               # 5 available templates
 ```
 
 ### Runtime — task lifecycle & evals (v0.5, Rust)
@@ -484,7 +496,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.5.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.6.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---

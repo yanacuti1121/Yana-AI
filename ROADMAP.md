@@ -245,12 +245,19 @@ Extend YAMTAM hard enforcement to every major AI coding engine via `safe-run.sh`
 
 ---
 
-### v0.6 — Candidates (chưa commit)
+### v0.6.0 — 2026-05-28
 
-- [ ] **`yamtam explain <rule-id>`** — mỗi finding thành giáo trình bảo mật (CI001.md, MCP003.md…)
-- [ ] **`yamtam map .`** — Agent Blast Radius Map: "agent của tôi chạm được tới đâu?"
-- [ ] **GitHub Action official** — `uses: phamlongh230-lgtm/yamtam-engine/actions/audit@v1`
-- [ ] **`yamtam init-policy <tool>`** — generate safe config template cho claude/github-actions/cursor
+- [x] **`yamtam explain <rule-id>`** — plain-language rule explanation (70 rules, 7 categories)
+- [x] **`yamtam map .`** — Agent Blast Radius Map (claude/mcp/workflows, `--json`)
+- [x] **GitHub Action** — `.github/actions/audit/action.yml` (inputs: fail-on, sarif, diff)
+- [x] **`yamtam init-policy <tool>`** — safe config generator (5 tools, `--dry-run`)
+
+### v0.7 — Candidates (chưa commit)
+
+- [ ] **`yamtam score --explain`** — breakdown: Start 100 → -30 CRITICAL AC002 → Final 50/100
+- [ ] **`yamtam fix <rule-id>`** — auto-apply safe fix (opt-in, v0.3 policy + v0.6 explain merged)
+- [ ] **`yamtam watch .`** — file watcher: re-run audit on save, show diff of score
+- [ ] **Badge generator** — `yamtam badge .` → shields.io badge URL for README
 
 ---
 

@@ -8,6 +8,49 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.6.0 — Explain, Map, Init-Policy, GitHub Action
+*2026-05-28*
+
+### Status: RELEASED ✅
+
+### New: `yamtam explain <rule-id>` — rule curriculum
+- Plain-language explanation for every finding: what it means, why it's risky, how to fix
+- Covers all 70 rules across 7 categories (AC, AU, CI, DB, MCP, SE, SH)
+- `yamtam explain CI001` → target, risk reason, fix, detection pattern
+- `yamtam explain --list` → full rule catalog by category
+- Extended docs from `rules/docs/<ID>.md` if present
+
+### New: `yamtam map .` — Agent Blast Radius Map
+- Answers: "What can my AI agent actually reach?"
+- Scans `.claude/settings.json` → shell, file read/write, git, network access levels
+- Scans `.mcp.json` → MCP servers with risk level (filesystem root = CRITICAL)
+- Scans `.github/workflows/` → auto-merge, secrets exposure, pull_request_target risks
+- Overall risk rating: CRITICAL / HIGH / MEDIUM / LOW
+- `yamtam map . --json` for machine-readable output
+
+### New: `yamtam init-policy <tool>` — safe config generator
+- Generates safe config templates without auto-fixing existing files
+- `yamtam init-policy claude` → `.claude/settings.recommended.json`
+- `yamtam init-policy mcp` → `.mcp.recommended.json`
+- `yamtam init-policy github-actions` → `.github/workflows/ai-pr-safe.yml`
+- `yamtam init-policy gitignore` → `.gitignore.yamtam`
+- `yamtam init-policy env` → `.env.example.yamtam`
+- `--dry-run` flag to preview without writing
+- `yamtam init-policy list` → list all 5 tools
+
+### New: GitHub Action — `uses: .../actions/audit@v1`
+- `.github/actions/audit/action.yml` — composite action
+- Inputs: `target`, `fail-on`, `sarif`, `diff`, `markdown`
+- Outputs: `score`, `risk`, `findings`
+- Auto-uploads SARIF to GitHub Security tab if `sarif` input set
+- Zero external dependencies beyond Python + PyYAML
+
+### CLI version bump
+- `bin/yamtam` → v0.6.0
+- New commands: `explain`, `map`, `init-policy`
+
+---
+
 ## v0.5.0 — Runtime: Task Lifecycle & Evals (Rust)
 *2026-05-28*
 
