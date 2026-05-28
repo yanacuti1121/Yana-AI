@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.8.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.5.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -108,6 +108,21 @@ SH008:scripts/legacy.sh              # known false positive — no set -e intent
 CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
 ```
 
+### Runtime — task lifecycle & evals (v0.5, Rust)
+
+Track tasks with evidence-verified completion:
+
+```bash
+yamtam task create "Fix auth bug" --scope "src/auth/"   # create task
+yamtam task list                                         # list all tasks
+yamtam task done <id> --evidence "12 tests passed, build ok"
+yamtam eval run <id>     # → ✓ PASS · confidence: HIGH
+yamtam eval schema       # show evidence schema
+```
+
+Evidence signals parsed automatically: `tests_passed`, `build_ok`, `coverage_pct`, `manual_note`.
+Confidence: **HIGH** (tests + build) · **MEDIUM** (one signal) · **LOW** (manual note only).
+
 ### Try it on the demo repo
 
 `examples/unsafe-agent-repo/` is an intentionally misconfigured AI agent repo — 5 files, 34 findings, score 0/100. Run it to see what bad agent config looks like:
@@ -171,7 +186,7 @@ bash install.sh
 
 ```bash
 # Or manually (unzip release)
-unzip releases/yamtam-engine-v1.8.0-fixed.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v0.5.0.zip -d /path/to/project/.claude/
 bash .claude/tests/hooks/run-hook-tests.sh
 ```
 
@@ -469,7 +484,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v1.8.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.5.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
@@ -518,7 +533,7 @@ Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị ch�
 /plugin install phamlongh230-lgtm/yamtam-engine
 
 # Hoặc giải nén vào project
-unzip releases/yamtam-engine-v1.8.0-fixed.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v0.5.0.zip -d /path/to/project/.claude/
 
 # Kiểm tra 826 checks
 bash .claude/tests/hooks/run-hook-tests.sh
