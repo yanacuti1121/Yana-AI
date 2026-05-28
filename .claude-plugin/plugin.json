@@ -4,7 +4,10 @@
   "display_name": "YAMTAM ENGINE",
   "version": "1.8.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
-  "author": "phamlongh230-lgtm",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
   "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "keywords": [
@@ -51,11 +54,5 @@
       "openssl",
       "python3"
     ]
-  },
-  "skills": 387,
-  "checks": 826,
-  "scripts": 47,
-  "hooks": 45,
-  "commands": 164,
-  "rules": 61
+  }
 }
