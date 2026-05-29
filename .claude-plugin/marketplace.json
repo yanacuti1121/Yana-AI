@@ -21,7 +21,7 @@
     "commands": 164,
     "agents": 90,
     "scripts": 81,
-    "skills": 803,
+    "skills": 1851,
     "rules": 61,
     "checks": 826,
     "memory_tiers": 2
@@ -46,7 +46,7 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "version": "1.8.0",
-  "skills": 803,
+  "skills": 1851,
   "checks": 826,
   "hooks": 45,
   "rules": 61,
