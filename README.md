@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.15.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.16.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -201,20 +201,51 @@ yamtam init-policy mcp --dry-run      # preview without writing
 yamtam init-policy list               # 5 available templates
 ```
 
-### Runtime — task lifecycle & evals (v0.5, Rust)
+### Runtime — task lifecycle & evals (v0.16, Rust)
 
 Track tasks with evidence-verified completion:
 
 ```bash
-yamtam task create "Fix auth bug" --scope "src/auth/"   # create task
-yamtam task list                                         # list all tasks
-yamtam task done <id> --evidence "12 tests passed, build ok"
-yamtam eval run <id>     # → ✓ PASS · confidence: HIGH
-yamtam eval schema       # show evidence schema
+yamtam-rt task create "Fix auth bug" --scope "src/auth/"
+yamtam-rt task done <id> --evidence "12 tests passed, build ok"
+yamtam-rt eval run <id>     # → ✓ PASS · confidence: HIGH
 ```
 
-Evidence signals parsed automatically: `tests_passed`, `build_ok`, `coverage_pct`, `manual_note`.
-Confidence: **HIGH** (tests + build) · **MEDIUM** (one signal) · **LOW** (manual note only).
+#### Agent Message Bus
+
+Agents pass output to each other via `.yamtam/bus.jsonl` — no shared context window needed:
+
+```bash
+yamtam-rt bus emit planner executor task.assign '{"task":"review PR"}'
+yamtam-rt bus inbox executor          # messages addressed to executor
+yamtam-rt bus reply <id> executor '{"status":"done"}'
+yamtam-rt bus read --agent planner --last 20
+```
+
+#### L3 Shared Memory
+
+Workspace-level facts survive across sessions and agents. Promotion pipeline: L2 (session) → L3 (workspace) → L1 (permanent, git-tracked):
+
+```bash
+yamtam-rt memory store "arch.decision" "Use JSONL for bus" --tag arch --confidence high
+yamtam-rt memory list --tag arch
+yamtam-rt memory promote "arch.decision"   # writes to memory/L1_atomic/*.md
+yamtam-rt memory import                    # bulk import L2 session facts → L3
+```
+
+#### Config, Plugin, Cost
+
+```bash
+yamtam-rt config init              # generate .yamtam/settings.json for any repo
+yamtam-rt config set cost_tracking true
+
+yamtam-rt plugin add secret-scan "./scripts/scan.sh" --description "Scan for secrets"
+yamtam-rt plugin run secret-scan
+
+yamtam-rt cost log pr_review fast claude-haiku-4-5 1200 400
+yamtam-rt cost show                # summary by tier
+yamtam-rt cost breakdown model     # breakdown by model or task
+```
 
 ### Try it on the demo repo
 

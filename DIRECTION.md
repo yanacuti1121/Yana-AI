@@ -120,6 +120,7 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.13 | Audit --watch, Report PDF, Rule test, Config manager | ✅ done |
 | v0.14 | yamtam graph, +1,471 skills (openai/plugins + open-source repos) | ✅ done |
 | v0.15 | yamtam hunt, yamtam design, design/book skills (1,967 total) | ✅ done |
+| v0.16 | yamtam-rt runtime: Agent Bus + L3 Memory + Config/Plugin/Cost (Phase 1–3) | ✅ done |
 
 ---
 
