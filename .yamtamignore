@@ -5,3 +5,7 @@ releases/**
 *.zip
 .github/copilot-instructions.md
 adapters/**
+# Imported third-party skills — false positives from external code
+core/skills/openai--**
+core/skills/terminal--**
+core/skills/book--**
