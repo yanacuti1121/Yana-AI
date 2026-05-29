@@ -1,0 +1,29 @@
+# Exclude large skill library — install from repo directly if needed
+core/skills/
+core/memory/
+core/tests/
+core/templates/
+core/config/
+core/mcp/
+
+# Docs and assets
+docs/
+releases/
+homepage/
+*.png
+*.jpg
+*.svg
+demo.sh
+
+# Dev files
+.github/
+.git/
+target/
+src/
+*.toml
+requirements*.txt
+*.py[cod]
+__pycache__/
+.yamtam/
+.claude/state/
+.claude/settings*.json

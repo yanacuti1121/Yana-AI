@@ -1,0 +1,42 @@
+{
+  "name": "yamtam-engine",
+  "version": "0.15.0",
+  "description": "Audits your AI coding agent setup before it can damage your repo. 45 hooks · 1,967 skills · Claude Code + Codex compatible.",
+  "keywords": [
+    "ai-agent", "claude-code", "codex", "cursor", "security",
+    "hooks", "skills", "audit", "safety", "agent-os"
+  ],
+  "author": "Vũ Văn Tâm <phamlongh230@gmail.com>",
+  "license": "Apache-2.0",
+  "homepage": "https://phamlongh230-lgtm.github.io/yamtam-engine/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phamlongh230-lgtm/yamtam-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/phamlongh230-lgtm/yamtam-engine/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "yamtam-install": "./scripts/npm-install.js"
+  },
+  "files": [
+    "scripts/npm-install.js",
+    "core/hooks/",
+    "core/commands/",
+    "core/agents/",
+    "core/rules/",
+    "core/scripts/",
+    "scanner/",
+    "gates/",
+    ".claude-plugin/",
+    "bin/yamtam",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/npm-install.js --auto"
+  }
+}
