@@ -963,7 +963,7 @@ def build_audit_json_output(report: dict, *, target: str, exit_code: int, status
         item = {
             "id": f.get("id", ""),
             "severity": str(f.get("severity", "")).lower(),
-            "message": f.get("message", ""),
+            "message": f.get("message") or f.get("reason") or f.get("_description") or f.get("id", ""),
         }
         if f.get("file"):
             item["file"] = f.get("file")
@@ -1122,7 +1122,7 @@ def main() -> None:
 
     # Output
     if args.json:
-        status = "error" if exit_code == 2 else ("findings" if report.get("findings") else "ok")
+        status = "findings" if report.get("findings") else "ok"
         print(json.dumps(build_audit_json_output(report, target=target, exit_code=exit_code, status=status), indent=2, default=str))
     else:
         print(render_console(report, no_color=args.no_color, quiet=args.quiet))
@@ -1192,9 +1192,7 @@ def main() -> None:
                         1 if (new_report["summary"]["high"] > 0 or
                               new_report["summary"]["medium"] > 0) else 0
                     )
-                    status = "error" if new_exit == 2 else (
-                        "findings" if new_report.get("findings") else "ok"
-                    )
+                    status = "findings" if new_report.get("findings") else "ok"
                     print(json.dumps(
                         build_audit_json_output(new_report, target=target,
                                                 exit_code=new_exit, status=status),
