@@ -48,3 +48,8 @@ reports/audit-local.*
 .yamtam/
 yamtam-*.html
 yamtam-*.sarif
+releases/*.zip
+releases/*.bundle
+releases/*.bundle.sha256
+yamtam-transfer*.zip
+yamtam-patch-files*.zip
