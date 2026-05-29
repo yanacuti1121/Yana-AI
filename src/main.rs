@@ -661,6 +661,20 @@ fn cmd_bus_emit(from: String, to: String, event_type: String, payload: String) {
         reply_to: None,
     };
     bus_append(&event);
+    // Auto-log to L3 for persistent cross-session audit
+    let fact = L3Fact {
+        id: Uuid::new_v4().to_string(),
+        key: format!("bus:{}", &event.id[..8]),
+        value: serde_json::to_string(&event).unwrap_or_default(),
+        tags: vec!["bus".into(), event_type.clone()],
+        agent: Some(from.clone()),
+        confidence: "high".into(),
+        scope: "both".into(),
+        created_at: event.ts.clone(),
+        updated_at: event.ts.clone(),
+        promoted: false,
+    };
+    l3_append(&fact);
     println!("✓ emitted  {}", &event.id[..8]);
     println!("  from: {from}  →  to: {to}  type: {event_type}");
 }

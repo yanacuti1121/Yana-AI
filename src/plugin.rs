@@ -4,6 +4,7 @@ use std::process::Command;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use chrono::Utc;
+use shell_words;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Plugin {
@@ -90,13 +91,13 @@ pub fn cmd_plugin_run(name: String, input: Option<String>) {
     };
     if !plugin.enabled { eprintln!("error: plugin '{name}' is disabled"); std::process::exit(1); }
     println!("→ running '{name}': {}", plugin.script);
-    let parts: Vec<&str> = plugin.script.split_whitespace().collect();
-    let (cmd, args) = match parts.split_first() {
-        Some(x) => x,
-        None    => { eprintln!("error: empty script"); std::process::exit(1); }
+    let parts = match shell_words::split(&plugin.script) {
+        Ok(p) if !p.is_empty() => p,
+        Ok(_) => { eprintln!("error: empty script"); std::process::exit(1); }
+        Err(e) => { eprintln!("error: invalid script: {e}"); std::process::exit(1); }
     };
-    let mut proc = Command::new(cmd);
-    proc.args(args);
+    let mut proc = Command::new(&parts[0]);
+    proc.args(&parts[1..]);
     if let Some(ref inp) = input { proc.env("YAMTAM_PLUGIN_INPUT", inp); }
     let status = proc.status().expect("failed to spawn plugin");
     if !status.success() {
