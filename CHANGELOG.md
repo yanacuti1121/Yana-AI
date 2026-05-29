@@ -8,6 +8,37 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.16.0 — yamtam-rt runtime: Agent Bus + L3 Memory + Config/Plugin/Cost
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### New: `yamtam-rt bus` — Agent Message Bus (Phase 1)
+JSONL event bus at `.yamtam/bus.jsonl`. Agents pass output to each other via file, not context window.
+- `bus emit <from> <to> <type> <payload>` — broadcast supported via `to="*"`
+- `bus read [--agent] [--since] [--reply-to] [--last]` — filtered event stream
+- `bus reply <id> <from> <payload>` — linked reply with `reply_to` field
+- `bus inbox <agent>` — all messages addressed to an agent
+
+### New: `yamtam-rt memory` — L3 Shared Memory (Phase 2)
+Workspace-level fact store at `.yamtam/l3.jsonl`. Survives across sessions, shared between agents.
+- `memory store <key> <value> [--tag] [--agent] [--confidence]` — upsert
+- `memory get <key>` — prefix-match lookup
+- `memory list [--tag] [--agent] [--last]` — promoted flag shown
+- `memory promote <key>` — L3 → L1 atomic `.md` file + `INDEX.md`
+- `memory import [--l2-dir]` — bulk L2 session facts → L3
+- Promotion pipeline: L2 (session) → L3 (workspace) → L1 (permanent, git-tracked)
+
+### New: `yamtam-rt config / plugin / cost` — Cross-repo Pack (Phase 3)
+- `config init/show/set` — reads `.yamtam/settings.json` from any target repo
+- `plugin add/remove/enable/disable/run` — inject custom guards without forking
+- `cost log/show/breakdown` — token usage ledger with tier/model/task breakdown (rates from `model-routing-policy.yml`)
+
+### Architecture: module split
+`src/` split into `main.rs` + `config.rs` + `plugin.rs` + `cost.rs`
+
+---
+
 ## v0.15.0 — yamtam hunt, yamtam design, design/book skills (Total: 1,967)
 *2026-05-29*
 
