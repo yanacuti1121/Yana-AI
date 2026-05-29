@@ -1,14 +1,122 @@
 {
-  "version": "1.0",
-  "scope": "shell-scripts",
-  "file_patterns": [
-    "**/*.sh",
-    "**/*.bash",
-    "**/Makefile",
-    "**/makefile",
-    "**/*.mk",
-    "**/scripts/**",
-    "**/.claude/hooks/**"
+  "checks": [
+    {
+      "description": "rm -rf on non-temp path",
+      "fix": "Scope rm -rf to explicit temp dirs. Never run on . or $PROJECT_ROOT.",
+      "id": "SH001",
+      "match": {
+        "pattern": "rm\\s+-[rf]*r[rf]*\\s+(?!/tmp|/var/tmp|\\$\\{?TMPDIR)",
+        "skip_comment_lines": true,
+        "type": "regex"
+      },
+      "reason": "Recursive force-delete on project or system paths is irreversible.",
+      "severity": "CRITICAL"
+    },
+    {
+      "description": "Pipe to shell interpreter (curl|bash, wget|sh, etc.)",
+      "fix": "Download first, inspect hash, then execute. Never pipe remote content to a shell.",
+      "id": "SH002",
+      "match": {
+        "flags": "i",
+        "pattern": "(curl|wget|fetch)\\s+.{0,200}\\|\\s*(ba)?sh",
+        "skip_comment_lines": true,
+        "type": "regex"
+      },
+      "reason": "Fetching and executing remote code is the most common supply chain attack vector.",
+      "severity": "CRITICAL"
+    },
+    {
+      "description": "chmod 777 \u2014 world-writable permissions",
+      "fix": "Use least-privilege permissions: 755 for executables, 644 for files.",
+      "id": "SH003",
+      "match": {
+        "pattern": "chmod\\s+(777|-R\\s+777|a\\+rwx)",
+        "type": "regex"
+      },
+      "reason": "World-writable files/directories allow any user or process to overwrite them.",
+      "severity": "HIGH"
+    },
+    {
+      "description": "sudo without explicit command scope",
+      "fix": "Use sudo only with specific, named commands. Never sudo into an interactive shell.",
+      "id": "SH004",
+      "match": {
+        "pattern": "sudo\\s+(bash|sh|zsh|fish|su\\s)",
+        "type": "regex"
+      },
+      "reason": "sudo bash/sh opens a full root shell \u2014 all subsequent commands run as root.",
+      "severity": "HIGH"
+    },
+    {
+      "description": "eval with variable or subshell content",
+      "fix": "Replace eval with direct function calls or array-based command construction.",
+      "id": "SH005",
+      "match": {
+        "pattern": "eval\\s+(\"?\\$|`|\\$\\()",
+        "type": "regex"
+      },
+      "reason": "eval of dynamic content enables shell injection if any input is user-controlled.",
+      "severity": "HIGH"
+    },
+    {
+      "description": "SQL DROP TABLE / DROP DATABASE in script",
+      "fix": "Move destructive SQL to a manually-triggered migration with backup gate.",
+      "id": "SH006",
+      "match": {
+        "flags": "i",
+        "pattern": "DROP\\s+(TABLE|DATABASE|SCHEMA)\\s",
+        "type": "regex"
+      },
+      "reason": "Irreversible database destruction. Should never be in an auto-run script.",
+      "severity": "CRITICAL"
+    },
+    {
+      "description": "Unquoted variable used in command (shellcheck SC2086)",
+      "fix": "Always double-quote variables: rm \"$FILE\" not rm $FILE.",
+      "id": "SH007",
+      "match": {
+        "pattern": "(rm|cp|mv|cat|chmod)\\s+[^\"']*\\$[A-Za-z_][A-Za-z0-9_]*[^\"']",
+        "type": "regex"
+      },
+      "reason": "Unquoted variables cause word splitting \u2014 $DIR could expand to multiple paths.",
+      "severity": "HIGH"
+    },
+    {
+      "description": "set -e missing in script \u2014 errors may be silently ignored",
+      "fix": "Add 'set -euo pipefail' after the shebang line.",
+      "id": "SH008",
+      "match": {
+        "condition": "not_followed_by",
+        "lines": 5,
+        "not_followed_by_pattern": "set\\s+-[eEuo]*e",
+        "pattern": "^#!/(usr/)?bin/(ba)?sh",
+        "type": "regex"
+      },
+      "reason": "Without set -e, a failed command does not stop the script.",
+      "severity": "MEDIUM"
+    },
+    {
+      "description": "curl with -k / --insecure flag",
+      "fix": "Remove -k. Fix the actual certificate issue instead.",
+      "id": "SH009",
+      "match": {
+        "pattern": "curl\\s+.*(-k|--insecure)",
+        "type": "regex"
+      },
+      "reason": "Skipping TLS certificate verification enables MITM attacks.",
+      "severity": "MEDIUM"
+    },
+    {
+      "description": "git push --force or git push -f",
+      "fix": "Use --force-with-lease if you must, and only after human review.",
+      "id": "SH010",
+      "match": {
+        "pattern": "git\\s+push\\s+.*(-f\\b|--force\\b)",
+        "type": "regex"
+      },
+      "reason": "Force-push overwrites remote history and can destroy shared work permanently.",
+      "severity": "HIGH"
+    }
   ],
   "exclude_patterns": [
     "node_modules/**",
@@ -23,123 +131,15 @@
     "reports/**",
     "docs/**"
   ],
-  "checks": [
-    {
-      "id": "SH001",
-      "severity": "CRITICAL",
-      "description": "rm -rf on non-temp path",
-      "match": {
-        "type": "regex",
-        "pattern": "rm\\s+-[rf]*r[rf]*\\s+(?!/tmp|/var/tmp|\\$\\{?TMPDIR)",
-        "skip_comment_lines": true
-      },
-      "reason": "Recursive force-delete on project or system paths is irreversible.",
-      "fix": "Scope rm -rf to explicit temp dirs. Never run on . or $PROJECT_ROOT."
-    },
-    {
-      "id": "SH002",
-      "severity": "CRITICAL",
-      "description": "Pipe to shell interpreter (curl|bash, wget|sh, etc.)",
-      "match": {
-        "type": "regex",
-        "pattern": "(curl|wget|fetch)\\s+.{0,200}\\|\\s*(ba)?sh",
-        "flags": "i",
-        "skip_comment_lines": true
-      },
-      "reason": "Fetching and executing remote code is the most common supply chain attack vector.",
-      "fix": "Download first, inspect hash, then execute. Never pipe remote content to a shell."
-    },
-    {
-      "id": "SH003",
-      "severity": "HIGH",
-      "description": "chmod 777 — world-writable permissions",
-      "match": {
-        "type": "regex",
-        "pattern": "chmod\\s+(777|-R\\s+777|a\\+rwx)"
-      },
-      "reason": "World-writable files/directories allow any user or process to overwrite them.",
-      "fix": "Use least-privilege permissions: 755 for executables, 644 for files."
-    },
-    {
-      "id": "SH004",
-      "severity": "HIGH",
-      "description": "sudo without explicit command scope",
-      "match": {
-        "type": "regex",
-        "pattern": "sudo\\s+(bash|sh|zsh|fish|su\\s)"
-      },
-      "reason": "sudo bash/sh opens a full root shell — all subsequent commands run as root.",
-      "fix": "Use sudo only with specific, named commands. Never sudo into an interactive shell."
-    },
-    {
-      "id": "SH005",
-      "severity": "HIGH",
-      "description": "eval with variable or subshell content",
-      "match": {
-        "type": "regex",
-        "pattern": "eval\\s+(\"?\\$|`|\\$\\()"
-      },
-      "reason": "eval of dynamic content enables shell injection if any input is user-controlled.",
-      "fix": "Replace eval with direct function calls or array-based command construction."
-    },
-    {
-      "id": "SH006",
-      "severity": "CRITICAL",
-      "description": "SQL DROP TABLE / DROP DATABASE in script",
-      "match": {
-        "type": "regex",
-        "pattern": "DROP\\s+(TABLE|DATABASE|SCHEMA)\\s",
-        "flags": "i"
-      },
-      "reason": "Irreversible database destruction. Should never be in an auto-run script.",
-      "fix": "Move destructive SQL to a manually-triggered migration with backup gate."
-    },
-    {
-      "id": "SH007",
-      "severity": "HIGH",
-      "description": "Unquoted variable used in command (shellcheck SC2086)",
-      "match": {
-        "type": "regex",
-        "pattern": "(rm|cp|mv|cat|chmod)\\s+[^\"']*\\$[A-Za-z_][A-Za-z0-9_]*[^\"']"
-      },
-      "reason": "Unquoted variables cause word splitting — $DIR could expand to multiple paths.",
-      "fix": "Always double-quote variables: rm \"$FILE\" not rm $FILE."
-    },
-    {
-      "id": "SH008",
-      "severity": "MEDIUM",
-      "description": "set -e missing in script — errors may be silently ignored",
-      "match": {
-        "type": "regex",
-        "pattern": "^#!/(usr/)?bin/(ba)?sh",
-        "condition": "not_followed_by",
-        "not_followed_by_pattern": "set\\s+-[eEuo]*e",
-        "lines": 5
-      },
-      "reason": "Without set -e, a failed command does not stop the script.",
-      "fix": "Add 'set -euo pipefail' after the shebang line."
-    },
-    {
-      "id": "SH009",
-      "severity": "MEDIUM",
-      "description": "curl with -k / --insecure flag",
-      "match": {
-        "type": "regex",
-        "pattern": "curl\\s+.*(-k|--insecure)"
-      },
-      "reason": "Skipping TLS certificate verification enables MITM attacks.",
-      "fix": "Remove -k. Fix the actual certificate issue instead."
-    },
-    {
-      "id": "SH010",
-      "severity": "HIGH",
-      "description": "git push --force or git push -f",
-      "match": {
-        "type": "regex",
-        "pattern": "git\\s+push\\s+.*(-f\\b|--force\\b)"
-      },
-      "reason": "Force-push overwrites remote history and can destroy shared work permanently.",
-      "fix": "Use --force-with-lease if you must, and only after human review."
-    }
-  ]
+  "file_patterns": [
+    "**/*.sh",
+    "**/*.bash",
+    "**/Makefile",
+    "**/makefile",
+    "**/*.mk",
+    "**/scripts/**",
+    "**/.claude/hooks/**"
+  ],
+  "scope": "shell-scripts",
+  "version": "1.0"
 }

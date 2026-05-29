@@ -1,46 +1,34 @@
 {
-  "version": "1.0",
-  "scope": "mcp-config",
-  "file_patterns": [
-    ".mcp.json",
-    ".cursor/mcp.json",
-    "mcp.json",
-    ".config/mcp*.json"
-  ],
   "checks": [
     {
-      "id": "MCP001",
-      "severity": "CRITICAL",
       "description": "filesystem MCP server has full-root or home-directory access",
+      "fix": "Scope filesystem MCP to the project directory only: /workspace or ./.",
+      "id": "MCP001",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.args[*]",
-        "pattern": "^(/$|/home$|/Users$|~$|/root$)"
+        "pattern": "^(/$|/home$|/Users$|~$|/root$)",
+        "type": "json"
       },
       "reason": "Granting the agent access to / or ~ lets it read credentials, SSH keys, and all private files.",
-      "fix": "Scope filesystem MCP to the project directory only: /workspace or ./."
+      "severity": "CRITICAL"
     },
     {
-      "id": "MCP002",
-      "severity": "HIGH",
       "description": "filesystem MCP server has write access to system directories",
+      "fix": "Restrict filesystem MCP to project-scoped paths only.",
+      "id": "MCP002",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.args[*]",
-        "pattern": "^(/etc|/usr|/bin|/sbin|/lib|/boot|/sys|/proc)"
+        "pattern": "^(/etc|/usr|/bin|/sbin|/lib|/boot|/sys|/proc)",
+        "type": "json"
       },
       "reason": "Write access to system directories enables privilege escalation and persistence.",
-      "fix": "Restrict filesystem MCP to project-scoped paths only."
+      "severity": "HIGH"
     },
     {
-      "id": "MCP003",
-      "severity": "HIGH",
       "description": "Unknown or unrecognized remote MCP server URL",
+      "fix": "Audit all remote MCP endpoints. Only use vendors you trust with repo access.",
+      "id": "MCP003",
       "match": {
-        "type": "json",
-        "path": "$.mcpServers.*.url",
-        "pattern": "https?://",
-        "condition": "not_in_allowlist",
         "allowlist": [
           "api.anthropic.com",
           "api.openai.com",
@@ -48,97 +36,109 @@
           "api.github.com",
           "localhost",
           "127.0.0.1"
-        ]
+        ],
+        "condition": "not_in_allowlist",
+        "path": "$.mcpServers.*.url",
+        "pattern": "https?://",
+        "type": "json"
       },
       "reason": "Remote MCP servers can receive tool call payloads including file contents and env vars.",
-      "fix": "Audit all remote MCP endpoints. Only use vendors you trust with repo access."
+      "severity": "HIGH"
     },
     {
-      "id": "MCP004",
-      "severity": "CRITICAL",
       "description": "MCP server command runs with shell: true",
+      "fix": "Use direct binary invocation: [\"node\", \"server.js\"] not [\"bash\", \"-c\", \"node server.js\"].",
+      "id": "MCP004",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.command",
-        "pattern": "(bash|sh|zsh)\\s+-c"
+        "pattern": "(bash|sh|zsh)\\s+-c",
+        "type": "json"
       },
       "reason": "Shell-launched MCP servers inherit full shell capabilities including variable expansion.",
-      "fix": "Use direct binary invocation: [\"node\", \"server.js\"] not [\"bash\", \"-c\", \"node server.js\"]."
+      "severity": "CRITICAL"
     },
     {
-      "id": "MCP005",
-      "severity": "HIGH",
       "description": "MCP server env block contains raw secret values",
+      "fix": "Use environment variable references: {\"API_KEY\": \"${MY_API_KEY}\"} instead of raw values.",
+      "id": "MCP005",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.env.*",
-        "pattern": "(sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|xox[bpoa]-[0-9]|AIza[0-9A-Za-z-_]{35})"
+        "pattern": "(sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|xox[bpoa]-[0-9]|AIza[0-9A-Za-z-_]{35})",
+        "type": "json"
       },
       "reason": "Hardcoded secrets in mcp.json are committed to the repo and exposed to all readers.",
-      "fix": "Use environment variable references: {\"API_KEY\": \"${MY_API_KEY}\"} instead of raw values."
+      "severity": "HIGH"
     },
     {
+      "description": "MCP server has no defined tool scope \u2014 all tools enabled",
+      "fix": "Add a 'tools' allowlist to each MCP server config to restrict available operations.",
       "id": "MCP006",
-      "severity": "MEDIUM",
-      "description": "MCP server has no defined tool scope — all tools enabled",
       "match": {
-        "type": "json",
-        "path": "$.mcpServers.*",
         "condition": "missing_key",
-        "key": "tools"
+        "key": "tools",
+        "path": "$.mcpServers.*",
+        "type": "json"
       },
       "reason": "Without tool scoping, the agent can use every capability the server exposes.",
-      "fix": "Add a 'tools' allowlist to each MCP server config to restrict available operations."
+      "severity": "MEDIUM"
     },
     {
-      "id": "MCP007",
-      "severity": "MEDIUM",
       "description": "filesystem MCP server uses path traversal patterns in allowed dirs",
+      "fix": "Use absolute, canonical paths. Never use .. in MCP server directory arguments.",
+      "id": "MCP007",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.args[*]",
-        "pattern": "\\.\\."
+        "pattern": "\\.\\.",
+        "type": "json"
       },
       "reason": "Path traversal in MCP config can expose directories outside the intended scope.",
-      "fix": "Use absolute, canonical paths. Never use .. in MCP server directory arguments."
+      "severity": "MEDIUM"
     },
     {
-      "id": "MCP008",
-      "severity": "LOW",
       "description": "MCP server version not pinned",
+      "fix": "Pin to a specific version: @1.2.3 instead of @latest.",
+      "id": "MCP008",
       "match": {
-        "type": "json",
         "path": "$.mcpServers.*.args[*]",
-        "pattern": "@latest"
+        "pattern": "@latest",
+        "type": "json"
       },
       "reason": "Unpinned versions mean a package update can silently change server behavior.",
-      "fix": "Pin to a specific version: @1.2.3 instead of @latest."
+      "severity": "LOW"
     },
     {
-      "id": "MCP009",
-      "severity": "CRITICAL",
       "description": "MCP database server has no read-only enforcement",
+      "fix": "Add read_only: true to the MCP server config for all read-only workloads. For write operations, create a separate, explicitly scoped MCP server with a named tool list \u2014 never expose a generic write handle.\n",
+      "id": "MCP009",
       "match": {
-        "type": "json",
+        "condition": "missing_key",
+        "key": "read_only",
         "path": "$.mcpServers.*",
         "pattern": "(postgres|mysql|sqlite|bigquery|spanner|alloydb|cloudsql|firestore|db|database|sql)",
-        "condition": "missing_key",
-        "key": "read_only"
+        "type": "json"
       },
       "reason": "A database MCP server without read_only: true means the AI agent can execute INSERT, UPDATE, DELETE, or DROP on your production data. Google MCP Toolbox explicitly requires declaring tool intent (read vs write) before exposing any database server to an agent.\n",
-      "fix": "Add read_only: true to the MCP server config for all read-only workloads. For write operations, create a separate, explicitly scoped MCP server with a named tool list — never expose a generic write handle.\n"
+      "severity": "CRITICAL"
     },
     {
+      "description": "MCP config has 4+ servers \u2014 no domain isolation between them",
+      "fix": "Split configs by task context. A PR review session does not need database or filesystem write access. A data analysis session does not need GitHub push. Use the minimum set of servers for each defined task type.\n",
       "id": "MCP010",
-      "severity": "HIGH",
-      "description": "MCP config has 4+ servers — no domain isolation between them",
       "match": {
-        "type": "json",
+        "condition": "array_length_gt_3",
         "path": "$.mcpServers",
-        "condition": "array_length_gt_3"
+        "type": "json"
       },
       "reason": "4 or more MCP servers in a single config means one agent session has access to filesystem, database, GitHub, external APIs, and more simultaneously. The blast radius of a prompt injection or misbehaving agent is the union of all server capabilities.\n",
-      "fix": "Split configs by task context. A PR review session does not need database or filesystem write access. A data analysis session does not need GitHub push. Use the minimum set of servers for each defined task type.\n"
+      "severity": "HIGH"
     }
-  ]
+  ],
+  "file_patterns": [
+    ".mcp.json",
+    ".cursor/mcp.json",
+    "mcp.json",
+    ".config/mcp*.json"
+  ],
+  "scope": "mcp-config",
+  "version": "1.0"
 }
