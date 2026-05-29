@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
 use uuid::Uuid;
 
@@ -26,6 +27,11 @@ enum Commands {
     Eval {
         #[command(subcommand)]
         action: EvalAction,
+    },
+    /// Agent message bus — emit, read, reply, inbox
+    Bus {
+        #[command(subcommand)]
+        action: BusAction,
     },
 }
 
@@ -57,6 +63,37 @@ enum EvalAction {
     Run { id: String },
     /// Show the evidence schema
     Schema,
+}
+
+#[derive(Subcommand)]
+enum BusAction {
+    /// Emit an event onto the bus
+    Emit {
+        from: String,
+        to: String,
+        #[arg(name = "type")]
+        event_type: String,
+        payload: String,
+    },
+    /// Read events from the bus
+    Read {
+        #[arg(long)]
+        agent: Option<String>,
+        #[arg(long)]
+        since: Option<String>,
+        #[arg(long)]
+        reply_to: Option<String>,
+        #[arg(long, default_value_t = 20)]
+        last: usize,
+    },
+    /// Reply to an existing event
+    Reply {
+        original_id: String,
+        from: String,
+        payload: String,
+    },
+    /// Show inbox for an agent (messages addressed to it)
+    Inbox { agent: String },
 }
 
 // ── Data model ───────────────────────────────────────────────────────────────
@@ -112,7 +149,51 @@ struct TaskStore {
     tasks: HashMap<String, Task>,
 }
 
+// ── Bus data model ────────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct BusEvent {
+    id: String,
+    ts: String,
+    from: String,
+    to: String,
+    #[serde(rename = "type")]
+    event_type: String,
+    payload: serde_json::Value,
+    reply_to: Option<String>,
+}
+
 // ── Storage ───────────────────────────────────────────────────────────────────
+
+fn bus_path() -> PathBuf {
+    let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    base.join(".yamtam").join("bus.jsonl")
+}
+
+fn bus_append(event: &BusEvent) {
+    let path = bus_path();
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).ok();
+    }
+    let line = serde_json::to_string(event).expect("serialize failed");
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .expect("open bus.jsonl failed");
+    writeln!(file, "{line}").expect("write failed");
+}
+
+fn bus_read_all() -> Vec<BusEvent> {
+    let path = bus_path();
+    if !path.exists() { return vec![]; }
+    fs::read_to_string(&path)
+        .unwrap_or_default()
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .filter_map(|l| serde_json::from_str(l).ok())
+        .collect()
+}
 
 fn store_path() -> PathBuf {
     let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
@@ -386,6 +467,108 @@ fn cmd_eval_schema() {
     println!("{}", serde_json::to_string_pretty(&evidence_schema()).unwrap());
 }
 
+// ── Bus handlers ──────────────────────────────────────────────────────────────
+
+fn cmd_bus_emit(from: String, to: String, event_type: String, payload: String) {
+    let value: serde_json::Value = serde_json::from_str(&payload)
+        .unwrap_or(serde_json::Value::String(payload));
+    let event = BusEvent {
+        id: Uuid::new_v4().to_string(),
+        ts: now(),
+        from: from.clone(),
+        to: to.clone(),
+        event_type: event_type.clone(),
+        payload: value,
+        reply_to: None,
+    };
+    bus_append(&event);
+    println!("✓ emitted  {}", &event.id[..8]);
+    println!("  from: {from}  →  to: {to}  type: {event_type}");
+}
+
+fn cmd_bus_read(agent: Option<String>, since: Option<String>, reply_to: Option<String>, last: usize) {
+    let events = bus_read_all();
+    let filtered: Vec<&BusEvent> = events.iter()
+        .filter(|e| {
+            if let Some(ref a) = agent {
+                e.from == *a || e.to == *a || e.to == "*"
+            } else { true }
+        })
+        .filter(|e| {
+            if let Some(ref s) = since { e.ts.as_str() >= s.as_str() } else { true }
+        })
+        .filter(|e| {
+            if let Some(ref r) = reply_to {
+                e.reply_to.as_deref().map(|rt| rt.starts_with(r.as_str())).unwrap_or(false)
+            } else { true }
+        })
+        .collect();
+
+    let start = filtered.len().saturating_sub(last);
+    let shown = &filtered[start..];
+
+    if shown.is_empty() {
+        println!("No events.");
+        return;
+    }
+    println!("{:<10} {:<8} {:<16} {:<16} {}", "ID", "TIME", "FROM", "TO", "TYPE");
+    println!("{}", "─".repeat(70));
+    for e in shown {
+        let t = &e.ts[11..16]; // HH:MM
+        println!("{:<10} {:<8} {:<16} {:<16} {}", &e.id[..8], t, e.from, e.to, e.event_type);
+        if e.payload != serde_json::Value::Null {
+            println!("           payload: {}", serde_json::to_string(&e.payload).unwrap_or_default());
+        }
+        if let Some(ref r) = e.reply_to {
+            println!("           reply_to: {}", &r[..8.min(r.len())]);
+        }
+    }
+}
+
+fn cmd_bus_reply(original_id: String, from: String, payload: String) {
+    let events = bus_read_all();
+    let original = events.iter().find(|e| e.id.starts_with(&original_id));
+    let (to, orig_full_id) = match original {
+        Some(e) => (e.from.clone(), e.id.clone()),
+        None => {
+            eprintln!("error: no event matches '{original_id}'");
+            std::process::exit(1);
+        }
+    };
+    let value: serde_json::Value = serde_json::from_str(&payload)
+        .unwrap_or(serde_json::Value::String(payload));
+    let event = BusEvent {
+        id: Uuid::new_v4().to_string(),
+        ts: now(),
+        from: from.clone(),
+        to: to.clone(),
+        event_type: "reply".into(),
+        payload: value,
+        reply_to: Some(orig_full_id),
+    };
+    bus_append(&event);
+    println!("✓ replied  {}", &event.id[..8]);
+    println!("  from: {from}  →  to: {to}  (reply_to: {})", &original_id);
+}
+
+fn cmd_bus_inbox(agent: String) {
+    let events = bus_read_all();
+    let inbox: Vec<&BusEvent> = events.iter()
+        .filter(|e| e.to == agent || e.to == "*")
+        .collect();
+    if inbox.is_empty() {
+        println!("Inbox empty for '{agent}'.");
+        return;
+    }
+    println!("Inbox: {agent}  ({} messages)", inbox.len());
+    println!("{}", "─".repeat(60));
+    for e in inbox {
+        let t = &e.ts[11..16];
+        println!("[{}] {} from {}  type: {}", &e.id[..8], t, e.from, e.event_type);
+        println!("  {}", serde_json::to_string(&e.payload).unwrap_or_default());
+    }
+}
+
 // ── main ─────────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -401,6 +584,16 @@ fn main() {
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => cmd_eval_run(id),
             EvalAction::Schema     => cmd_eval_schema(),
+        },
+        Commands::Bus { action } => match action {
+            BusAction::Emit { from, to, event_type, payload } =>
+                cmd_bus_emit(from, to, event_type, payload),
+            BusAction::Read { agent, since, reply_to, last } =>
+                cmd_bus_read(agent, since, reply_to, last),
+            BusAction::Reply { original_id, from, payload } =>
+                cmd_bus_reply(original_id, from, payload),
+            BusAction::Inbox { agent } =>
+                cmd_bus_inbox(agent),
         },
     }
 }
