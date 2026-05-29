@@ -376,7 +376,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 80,
+      "count": 81,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -455,7 +455,8 @@
         "core/scripts/scan_url.py",
         "core/scripts/upgrade.py",
         "core/scripts/hook-health.js",
-        "core/scripts/verify-claude-pack.js"
+        "core/scripts/verify-claude-pack.js",
+        "core/scripts/strix-scan.sh"
       ]
     },
     "tests": {
