@@ -1,3 +1,7 @@
+mod config;
+mod cost;
+mod plugin;
+
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -37,6 +41,81 @@ enum Commands {
     Memory {
         #[command(subcommand)]
         action: MemoryAction,
+    },
+    /// Configuration — load/init yamtam settings for any repo
+    Config {
+        #[command(subcommand)]
+        action: ConfigAction,
+    },
+    /// Plugin hooks — register custom guards without forking
+    Plugin {
+        #[command(subcommand)]
+        action: PluginAction,
+    },
+    /// Cost dashboard — token usage and spend tracking
+    Cost {
+        #[command(subcommand)]
+        action: CostAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum ConfigAction {
+    /// Show effective config for a repo
+    Show {
+        #[arg(long, default_value = ".")] dir: String,
+    },
+    /// Generate default .yamtam/settings.json
+    Init {
+        #[arg(long, default_value = ".")] dir: String,
+    },
+    /// Set a config key
+    Set {
+        key: String,
+        value: String,
+        #[arg(long, default_value = ".")] dir: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum PluginAction {
+    /// List registered plugins
+    List,
+    /// Register a custom guard script
+    Add {
+        name: String,
+        script: String,
+        #[arg(long, default_value = "")] description: String,
+    },
+    /// Remove a plugin
+    Remove { name: String },
+    /// Enable a plugin
+    Enable { name: String },
+    /// Disable a plugin
+    Disable { name: String },
+    /// Run a plugin
+    Run {
+        name: String,
+        #[arg(long)] input: Option<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum CostAction {
+    /// Show cost summary
+    Show,
+    /// Log a token usage entry
+    Log {
+        task: String,
+        tier: String,
+        model: String,
+        input_tokens: u64,
+        output_tokens: u64,
+        #[arg(long)] duration_ms: Option<u64>,
+    },
+    /// Breakdown by tier, model, or task
+    Breakdown {
+        #[arg(default_value = "tier")] by: String,
     },
 }
 
@@ -805,6 +884,26 @@ fn main() {
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => cmd_eval_run(id),
             EvalAction::Schema     => cmd_eval_schema(),
+        },
+        Commands::Config { action } => match action {
+            ConfigAction::Show { dir }           => config::cmd_config_show(dir),
+            ConfigAction::Init { dir }           => config::cmd_config_init(dir),
+            ConfigAction::Set { key, value, dir } => config::cmd_config_set(dir, key, value),
+        },
+        Commands::Plugin { action } => match action {
+            PluginAction::List                   => plugin::cmd_plugin_list(),
+            PluginAction::Add { name, script, description } =>
+                plugin::cmd_plugin_add(name, script, description),
+            PluginAction::Remove { name }        => plugin::cmd_plugin_remove(name),
+            PluginAction::Enable  { name }       => plugin::cmd_plugin_toggle(name, true),
+            PluginAction::Disable { name }       => plugin::cmd_plugin_toggle(name, false),
+            PluginAction::Run { name, input }    => plugin::cmd_plugin_run(name, input),
+        },
+        Commands::Cost { action } => match action {
+            CostAction::Show                     => cost::cmd_cost_show(),
+            CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
+                cost::cmd_cost_log(task, tier, model, input_tokens, output_tokens, duration_ms),
+            CostAction::Breakdown { by }         => cost::cmd_cost_breakdown(by),
         },
         Commands::Memory { action } => match action {
             MemoryAction::Store { key, value, tag, agent, confidence, scope } =>
