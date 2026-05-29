@@ -27,3 +27,4 @@ __pycache__/
 .yamtam/
 .claude/state/
 .claude/settings*.json
+core/scripts/__pycache__/

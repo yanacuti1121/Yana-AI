@@ -3,8 +3,16 @@
   "version": "0.15.0",
   "description": "Audits your AI coding agent setup before it can damage your repo. 45 hooks · 1,967 skills · Claude Code + Codex compatible.",
   "keywords": [
-    "ai-agent", "claude-code", "codex", "cursor", "security",
-    "hooks", "skills", "audit", "safety", "agent-os"
+    "ai-agent",
+    "claude-code",
+    "codex",
+    "cursor",
+    "security",
+    "hooks",
+    "skills",
+    "audit",
+    "safety",
+    "agent-os"
   ],
   "author": "Vũ Văn Tâm <phamlongh230@gmail.com>",
   "license": "Apache-2.0",
