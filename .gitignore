@@ -17,6 +17,10 @@ memory/L1_atomic/private/
 # L2 session facts are provisional — not persisted across sessions
 memory/L2_session/*.md
 !memory/L2_session/SCHEMA.md
+# L2 runtime state files (circuit breaker, token budget)
+core/memory/L2_session/*.json
+# Claude Code runtime lock file
+.claude/scheduled_tasks.lock
 
 # Build
 dist/
