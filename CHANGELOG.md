@@ -8,6 +8,97 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.14.2 — 1,048 Skills from Open-Source Repos (Total: 1,851)
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### Skill imports
+- **TerminalSkills/skills** (Apache-2.0): 1,009 skills — AWS full stack, Azure, GCP, Ansible, ArgoCD, Blender (8 skills), AI pentesting, Aircrack-ng, Burp Suite, Anthropic SDK, Venice AI, Braintrust, actix-web, axum, Bun, AdonisJS, FastAPI, and more
+- **veniceai/skills** (MIT): 19 skills — full Venice.ai API surface (chat, image, audio, video, embeddings, crypto-rpc, E2EE, characters)
+- **machina-sports/sports-skills** (MIT): 20 skills — NFL, NBA, MLB, NHL, F1 (FastF1), prediction markets (Kalshi, Polymarket), college sports
+- Total skills: 810 → **1,851**
+
+### New importer
+- `core/scripts/import_skills_flat.py` — handles flat `skills/<name>/SKILL.md` structure
+
+---
+
+## v0.14.1 — 423 Skills from openai/plugins (MIT)
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### Skills imported from openai/plugins (MIT, 1.2k stars)
+- 49 plugin namespaces: GitHub (4), Slack (6), Linear (1), Stripe (2), Vercel (47), Zoom (27), Netlify (12), Twilio (55), Cloudflare (9), Figma (8), Hugging Face (11), Expo (13), Codex Security (8), Game Studio (9), Sentry (1), Supabase (2), and more
+- 73 skills include Python helper scripts (inspect_pr_checks.py, etc.)
+- Naming convention: `openai--<plugin>--<skill-name>`
+- Total skills: 387 → **810**
+
+### New importer
+- `core/scripts/import_openai_plugins.py` — handles `plugins/<name>/skills/<skill>/SKILL.md` structure
+
+---
+
+## v0.14.0 — yamtam graph (Understand-Anything knowledge graph pipeline)
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### New: `yamtam graph` — knowledge graph pipeline
+Adapted from Lum1104/Understand-Anything (MIT, 43k stars). Pure Python, no tree-sitter, no automatic LLM calls.
+
+**Pipeline (graph_builder.py):**
+- Stage 1 — project_scan: file walk, language/framework detection, regex import map (12 languages)
+- Stage 2 — file_analyze: batched (20 files), ast for Python, regex for TS/JS; 1,427 nodes from YAMTAM itself
+- Stage 3 — arch_analyze: heuristic layer assignment (api/service/data/ui/config/test/docs/util)
+- Stage 4 — tour_build: topological sort (Kahn's) → dependency-ordered tour
+- Stage 5 — assemble → `.yamtam/graph/knowledge-graph.json`
+
+**Commands:**
+- `yamtam graph build [target]` — build knowledge graph
+- `yamtam graph show [target]` — summary (nodes/edges/layers/tour)
+- `yamtam graph search <query>` — keyword search with `--expand` for 1-hop neighbours
+- `yamtam graph onboard [target]` — Markdown onboarding guide (`--out <file>`)
+- `yamtam graph diff [base]` — diff impact analysis (risk level, blast radius, affected layers)
+
+### CLI version bump
+- `bin/yamtam` → v0.14.0
+- New command: `graph`
+- scripts: 81 → 83
+
+---
+
+## v0.13.0 — audit --watch, report pdf, rule test, config manager
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### New: `yamtam audit --watch`
+- Re-audits whenever files in target directory change (polls every 2s, sha256 fingerprint)
+- Ctrl-C to stop; supports all audit flags (--json, --quiet, --ignore, --only)
+
+### New: `yamtam report pdf`
+- Generates HTML first, converts to PDF via: weasyprint → wkhtmltopdf → fallback HTML
+- `--out`, `--fail-on`, `--ignore`, `--open` flags
+
+### New: `yamtam rule test`
+- `yamtam rule test --all` — validates all 69 scanner YAML files (structure + regex compile); 0 failures
+- `yamtam rule test <id>` — show rule metadata (severity, description, match pattern)
+- `yamtam rule test <id> --file <path>` — test rule against a specific file
+
+### New: `yamtam config`
+- Manages `.yamtam/config.yml`: `list`, `get`, `set`, `reset`, `show`
+- Persists: `fail_on`, `ignore`, `no_color`, `quiet`, `scanner_dir`, `since`, `open_report`
+- Coerces types; saves only keys that differ from defaults
+
+### CLI version bump
+- `bin/yamtam` → v0.13.0
+- New commands: `config`, `rule test`, `report pdf`, `audit --watch`
+- scripts: 78 → 81
+
+---
+
 ## v0.12.0 — Check File, Template List, Audit --since, Doctor Enhanced
 *2026-05-28*
 

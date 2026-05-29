@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.12.0-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.14.2-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -377,15 +377,15 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 
 | Asset | Count |
 |---|---|
-| Agents | 87 |
-| Slash commands | 156 |
-| Runtime hooks | 27 |
-| Workflow skills | 350 |
-| Operating rules | 58 |
-| Utility scripts | 35 |
+| Agents | 90 |
+| Slash commands | 164 |
+| Runtime hooks | 45 |
+| Workflow skills | 1,851 |
+| Operating rules | 61 |
+| Utility scripts | 81 |
 | Verification checks | 826 |
 
-### Agents (87)
+### Agents (90)
 
 Specialized agents across domains:
 
@@ -396,18 +396,15 @@ Specialized agents across domains:
 - **Data / AI** (6): data-engineer, ml-engineer, llm-architect
 - **Business** (4): business-analyst, technical-writer, ux-researcher
 
-### Skills (387)
+### Skills (1,851)
 
 | Category | Count |
 |---|---|
-| Security & Guardrails | 11 |
-| AI / Agent Orchestration | 19 |
-| Frontend / UI | 21 |
-| IaC / DevOps | 5 |
-| Data / Backend | 11 |
-| Observability | 4 |
-| Workflow / Core | 10 |
-| + more | 269 |
+| YAMTAM core (v0.1–v0.14) | 387 |
+| openai/plugins (MIT) | 423 |
+| TerminalSkills/skills (Apache-2.0) | 1,009 |
+| Venice AI API (MIT) | 19 |
+| Sports data / prediction markets (MIT) | 20 |
 
 ### Key Commands
 
@@ -571,7 +568,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.12.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.14.2 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
@@ -700,9 +697,9 @@ Chuyển engine: `bash core/scripts/switch-engine.sh <engine>`
 | Agents chuyên biệt | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 387 |
+| Workflow skills | 1,851 |
 | Operating rules | 61 |
-| Utility scripts | 47 |
+| Utility scripts | 81 |
 | Verification checks | 826 |
 
 ---
@@ -768,5 +765,5 @@ Tự do sử dụng, fork, chỉnh sửa và phân phối. Xem `LICENSE` để b
 ---
 
 <p align="center">
-  <sub>v1.8.0 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
+  <sub>v0.14.2 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
 </p>
