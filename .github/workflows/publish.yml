@@ -32,6 +32,9 @@ jobs:
   publish-npm:
     name: npm — yamtam-engine
     runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/yamtam-engine
     steps:
       - uses: actions/checkout@v4
 
