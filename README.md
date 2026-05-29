@@ -35,6 +35,12 @@
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
+  <a href="https://www.npmjs.com/package/yamtam-engine">
+    <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" alt="npm" />
+  </a>
+  <a href="https://pypi.org/project/yamtam-engine/">
+    <img src="https://img.shields.io/pypi/v/yamtam-engine?style=for-the-badge&logo=pypi&color=3775a9" alt="PyPI" />
+  </a>
 </p>
 
 ---
@@ -265,17 +271,28 @@ You → Claude Code → [YAMTAM HOOKS] → Tool executes (or gets blocked)
 ## Quick Install
 
 ```bash
-# Recommended: download and verify before running
-curl -L -o install.sh https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh
-sha256sum install.sh   # verify checksum in releases/checksums.txt
-bash install.sh
+# pip — Python CLI (yamtam audit, hunt, design, graph...)
+pip install yamtam-engine
+yamtam doctor .
 ```
 
 ```bash
-# Or manually (unzip release)
-unzip releases/yamtam-engine-v0.5.0.zip -d /path/to/project/.claude/
-bash .claude/tests/hooks/run-hook-tests.sh
+# npm — Claude Code plugin (hooks, commands, agents → .claude/)
+npm install yamtam-engine
+npx yamtam-install
 ```
+
+```bash
+# Shell installer — full engine including all files
+curl -L -o install.sh https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh
+bash install.sh
+```
+
+| Registry | Package | Install |
+|----------|---------|---------|
+| **PyPI** | [`yamtam-engine`](https://pypi.org/project/yamtam-engine/) | `pip install yamtam-engine` |
+| **npm** | [`yamtam-engine`](https://www.npmjs.com/package/yamtam-engine) | `npm install yamtam-engine` |
+| **GitHub** | [`yamtam-engine`](https://github.com/phamlongh230-lgtm/yamtam-engine) | `git clone ...` |
 
 > **Note:** `curl | bash` is intentionally not the primary install method.  
 > YAMTAM flags `curl | bash` as a risk pattern — we practice what we scan for.
