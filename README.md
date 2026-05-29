@@ -727,7 +727,7 @@ Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị ch�
 /plugin install phamlongh230-lgtm/yamtam-engine
 
 # Hoặc giải nén vào project
-unzip releases/yamtam-engine-v0.5.0.zip -d /path/to/project/.claude/
+unzip releases/yamtam-engine-v0.15.0.zip -d /path/to/project/.claude/
 
 # Kiểm tra 826 checks
 bash .claude/tests/hooks/run-hook-tests.sh
