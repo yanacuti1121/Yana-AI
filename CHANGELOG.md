@@ -8,6 +8,38 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.15.0 — yamtam hunt, yamtam design, design/book skills (Total: 1,967)
+*2026-05-29*
+
+### Status: RELEASED ✅
+
+### New: `yamtam hunt [target]` — active security scanner
+Turns YAMTAM from passive auditor → active hunter. Inspired by gadievron/raptor.
+
+- **secrets**: 13 patterns (AWS keys, GitHub tokens, OpenAI/Anthropic keys, Stripe, private keys, DB connection strings, JWT secrets...)
+- **code**: SQL injection, command injection, path traversal, debug flags, security TODOs
+- **supply-chain**: pipe-to-shell, npm postinstall scripts, floating versions, git URL deps
+- **deps**: npm audit + pip-audit integration
+- `--json` machine-readable output, `--fail-on` CI gate
+
+### New: `yamtam design <subcommand>` — design context extraction
+Inspired by bergside/design-md-chrome. Extract design tokens from any URL → DESIGN.md for AI agent context.
+
+- `yamtam design extract <url>` — fetch page, extract CSS variables, colors, fonts, spacing, shadows, border-radius
+- `yamtam design show` — display extracted token summary
+- `yamtam design init` — generate DESIGN.md from tokens (ready for AI agent context)
+
+### Skill imports (+116)
+- **bergside/awesome-design-skills** (MIT): 67 design skills — glassmorphism, neumorphism, neobrutalism, brutalism, claymorphism, retro, vintage, luxury, editorial, matrix, tetris, sega, shadcn...
+- **ciembor/agent-rules-books** (MIT): 42 skills (14 books × 3 variants: full/mini/nano) — Clean Code, Clean Architecture, DDIA, DDD, Pragmatic Programmer, Refactoring, Release It!, PoEAA, Philosophy of Software Design, Code Complete, Working with Legacy Code
+
+### CLI version bump
+- `bin/yamtam` → v0.15.0
+- New commands: `hunt`, `design`
+- Total skills: 1,851 → **1,967**
+
+---
+
 ## v0.14.2 — 1,048 Skills from Open-Source Repos (Total: 1,851)
 *2026-05-29*
 

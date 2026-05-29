@@ -2,7 +2,7 @@
   "schema_version": "1",
   "name": "yamtam-engine",
   "display_name": "YAMTAM ENGINE",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
     "name": "Vũ Văn Tâm",
@@ -31,7 +31,7 @@
     "commands": 164,
     "agents": 90,
     "scripts": 81,
-    "skills": 1851,
+    "skills": 1967,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {

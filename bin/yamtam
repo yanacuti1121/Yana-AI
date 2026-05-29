@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.14.0"
+YAMTAM_VERSION="0.15.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -43,6 +43,8 @@ REPORT_PDF_PY="$REPO_ROOT/core/scripts/report_pdf.py"
 CONFIG_PY="$REPO_ROOT/core/scripts/config_manager.py"
 RULE_TEST_PY="$REPO_ROOT/core/scripts/rule_test.py"
 GRAPH_PY="$REPO_ROOT/core/scripts/graph_query.py"
+HUNT_PY="$REPO_ROOT/core/scripts/hunt.py"
+DESIGN_PY="$REPO_ROOT/core/scripts/design_context.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -90,6 +92,8 @@ Commands:
   check  <file>          Scan a single file against all matching rules
   template list/show     List and preview policy templates
   graph  <subcommand>     Knowledge graph (build/show/search/onboard/diff)
+  hunt   [target]         Active security scanner (secrets/code/deps/supply-chain)
+  design <subcommand>     Design context (extract/show/init)
   config <subcommand>     Manage .yamtam/config.yml (list/get/set/reset/show)
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
@@ -410,9 +414,13 @@ case "$COMMAND" in
     cmd_check_context "$@"
     ;;
   graph)
-    # yamtam graph build|show|search|onboard|diff
-    # Adapted from Lum1104/Understand-Anything (MIT)
     PYTHONPATH="$REPO_ROOT/core/scripts" python3 "$GRAPH_PY" "$@"
+    ;;
+  hunt)
+    python3 "$HUNT_PY" "$@"
+    ;;
+  design)
+    python3 "$DESIGN_PY" "$@"
     ;;
   config)
     python3 "$CONFIG_PY" "$@"

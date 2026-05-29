@@ -21,7 +21,7 @@
     "commands": 164,
     "agents": 90,
     "scripts": 81,
-    "skills": 1851,
+    "skills": 1967,
     "rules": 61,
     "checks": 826,
     "memory_tiers": 2
@@ -29,7 +29,7 @@
   "highlights": [
     "45 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls + static analysis, test runner, dependency safety, coverage gates",
     "90 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "1,851 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools, LangFuse, Qdrant, Portkey, Outlines, DeepEval, Ollama, code quality",
+    "1967 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools, LangFuse, Qdrant, Portkey, Outlines, DeepEval, Ollama, code quality",
     "61 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
     "Cross-engine hard enforcement — Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
     "L1 Atomic Memory — persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
@@ -42,11 +42,11 @@
     "Replit (July 2025)",
     "PocketOS (April 2026)"
   ],
-  "latest_release": "v0.14.2",
+  "latest_release": "v0.15.0",
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
-  "version": "1.9.0",
-  "skills": 1851,
+  "version": "2.0.0",
+  "skills": 1967,
   "checks": 826,
   "hooks": 45,
   "rules": 61,

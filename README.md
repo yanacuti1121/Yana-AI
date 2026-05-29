@@ -31,7 +31,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.14.2-orange?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v0.15.0-orange?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
@@ -380,7 +380,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 | Agents | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 1,851 |
+| Workflow skills | 1,967 |
 | Operating rules | 61 |
 | Utility scripts | 81 |
 | Verification checks | 826 |
@@ -568,7 +568,7 @@ Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
 ---
 
 <p align="center">
-  <sub>v0.14.2 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
+  <sub>v0.15.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
 </p>
 
 ---
@@ -697,7 +697,7 @@ Chuyển engine: `bash core/scripts/switch-engine.sh <engine>`
 | Agents chuyên biệt | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 1,851 |
+| Workflow skills | 1,967 |
 | Operating rules | 61 |
 | Utility scripts | 81 |
 | Verification checks | 826 |
@@ -765,5 +765,5 @@ Tự do sử dụng, fork, chỉnh sửa và phân phối. Xem `LICENSE` để b
 ---
 
 <p align="center">
-  <sub>v0.14.2 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
+  <sub>v0.15.0 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
 </p>
