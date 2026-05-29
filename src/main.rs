@@ -3,6 +3,7 @@ mod config;
 mod cost;
 mod memory;
 mod plugin;
+pub mod scanner;
 mod task;
 
 use clap::{Parser, Subcommand};
@@ -32,6 +33,42 @@ enum Commands {
     Plugin { #[command(subcommand)] action: PluginAction },
     /// Cost dashboard — token usage and spend tracking
     Cost   { #[command(subcommand)] action: CostAction },
+    /// Audit AI agent setup for security risks (replaces audit_scanner.py)
+    Scan {
+        /// Directory to scan (default: .)
+        #[arg(default_value = ".")]
+        target: String,
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+        /// Write Markdown report to file
+        #[arg(long, value_name = "FILE")]
+        markdown: Option<String>,
+        /// Write SARIF 2.1.0 report to file
+        #[arg(long, value_name = "FILE")]
+        sarif: Option<String>,
+        /// Exit non-zero if findings at this severity or above
+        #[arg(long, value_name = "LEVEL")]
+        fail_on: Option<String>,
+        /// Run only one scanner category
+        #[arg(long, value_name = "CATEGORY")]
+        only: Option<String>,
+        /// Suppress a finding ID (repeatable)
+        #[arg(long = "ignore", value_name = "ID", action = clap::ArgAction::Append)]
+        ignore_ids: Vec<String>,
+        /// Only scan files changed since BASE (e.g. origin/main)
+        #[arg(long, value_name = "BASE")]
+        diff: Option<String>,
+        /// Disable ANSI color
+        #[arg(long)]
+        no_color: bool,
+        /// Only print score + risk level
+        #[arg(long)]
+        quiet: bool,
+        /// Scanner rules directory
+        #[arg(long, default_value = "scanner")]
+        scanner_dir: String,
+    },
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
@@ -174,6 +211,43 @@ fn main() {
             PluginAction::Disable { name }              => plugin::cmd_plugin_toggle(name, false),
             PluginAction::Run { name, input }           => plugin::cmd_plugin_run(name, input),
         },
+        Commands::Scan { target, json, markdown, sarif, fail_on, only, ignore_ids, diff, no_color, quiet, scanner_dir } => {
+            use std::collections::HashSet;
+            let diff_files: Option<HashSet<String>> = diff.as_deref()
+                .map(|base| scanner::files::get_diff_files(base, &target));
+            let report = scanner::run_audit(
+                &target, &scanner_dir,
+                diff_files.as_ref(), &ignore_ids, only.as_deref(),
+            );
+            // SARIF output
+            if let Some(ref sarif_path) = sarif {
+                let sarif_str = scanner::render::render_sarif(&report);
+                std::fs::write(sarif_path, &sarif_str).expect("write SARIF failed");
+                eprintln!("[yamtam] SARIF written to {sarif_path}");
+            }
+            // Markdown output
+            if let Some(ref md_path) = markdown {
+                let md = scanner::render::render_markdown(&report);
+                std::fs::write(md_path, &md).expect("write markdown failed");
+                eprintln!("[yamtam] Markdown written to {md_path}");
+            }
+            // Primary output
+            if json {
+                let exit_code: i32 = if report.summary.critical > 0 { 2 } else if report.summary.high > 0 || report.summary.medium > 0 { 1 } else { 0 };
+                let status = if report.findings.iter().any(|f| f.severity != "INFO") { "findings" } else { "ok" };
+                println!("{}", serde_json::to_string_pretty(&scanner::render::build_json_output(&report, &target, exit_code, status)).unwrap());
+            } else {
+                println!("{}", scanner::render::render_console(&report, no_color, quiet));
+            }
+            // Exit code
+            let exit_code = if let Some(ref level) = fail_on {
+                let order = |s: &str| match s { "low" => 3, "medium" => 2, "high" => 1, _ => 0 };
+                let threshold = order(level);
+                let has_fail = report.findings.iter().any(|f| order(&f.severity.to_lowercase()) <= threshold && f.severity != "INFO");
+                if has_fail { if report.summary.critical > 0 { 2 } else { 1 } } else { 0 }
+            } else if report.summary.critical > 0 { 0 } else { 0 };
+            std::process::exit(exit_code);
+        }
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
