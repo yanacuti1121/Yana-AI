@@ -19,7 +19,7 @@ cat .claude/assistant/context.md
 tail -40 .claude/assistant/memory.md
 ```
 
-**Bước 2: Đọc trạng thái thực tế**
+**Bước 2: Đọc trạng thái thực tế + trending**
 
 ```bash
 date '+%H:%M — %A, %d/%m/%Y'
@@ -29,6 +29,18 @@ gh pr list --limit 3 --json number,title,state 2>/dev/null
 gh issue list --assignee @me --limit 3 --json number,title 2>/dev/null
 gh run list --limit 2 --json status,name,conclusion 2>/dev/null
 cat MANIFEST.json | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('version','?'))" 2>/dev/null
+
+# GitHub Trending — cache 22h, chỉ fetch mới 1 lần/ngày
+python3 .claude/assistant/scripts/fetch-trending.py 2>/dev/null | python3 -c "
+import sys, json
+repos = json.load(sys.stdin)
+relevant = [r for r in repos if r['relevant']][:4]
+if relevant:
+    print('TRENDING_RELEVANT:')
+    for r in relevant:
+        print(f\"  🔥 {r['name']} [{r['language']}] +{r['stars_today']}⭐\")
+        print(f\"     {r['description'][:70]}\")
+"
 ```
 
 **Bước 3: Tổng hợp và ra briefing**
