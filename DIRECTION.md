@@ -117,6 +117,9 @@ Exit codes: `0` clean | `1` medium/high | `2` critical | `3` scanner error
 | v0.10 | Init wizard, Verify, Monitor, Stats | ✅ done |
 | v0.11 | Lint, Snapshot, Policy check, Export | ✅ done |
 | v0.12 | Check file, Template list, Audit --since, Doctor+ | ✅ done |
+| v0.13 | Audit --watch, Report PDF, Rule test, Config manager | ✅ done |
+| v0.14 | yamtam graph, +1,471 skills (openai/plugins + open-source repos) | ✅ done |
+| v0.15 | yamtam hunt, yamtam design, design/book skills (1,967 total) | ✅ done |
 
 ---
 
