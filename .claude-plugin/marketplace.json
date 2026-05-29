@@ -1,7 +1,7 @@
 {
   "name": "yamtam-engine",
   "display_name": "YAMTAM ENGINE",
-  "tagline": "Personal agent operating system \u2014 safety hooks, memory, agents, cross-engine hard enforcement for Claude Code",
+  "tagline": "Personal agent operating system — safety hooks, memory, agents, cross-engine hard enforcement for Claude Code",
   "category": "safety",
   "tags": [
     "hooks",
@@ -21,22 +21,22 @@
     "commands": 164,
     "agents": 90,
     "scripts": 81,
-    "skills": 387,
+    "skills": 803,
     "rules": 61,
     "checks": 826,
     "memory_tiers": 2
   },
   "highlights": [
-    "45 safety hooks \u2014 blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls + static analysis, test runner, dependency safety, coverage gates",
+    "45 safety hooks — blocks rm -rf, force push, prod deploys, unscoped DB ops, pipe-to-shell; circuit breaker at 5 stuck calls + static analysis, test runner, dependency safety, coverage gates",
     "90 agents across root and domain subfolders (quality, security, infra, data-ai, orchestration, forge)",
-    "387 skills \u2014 frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools, LangFuse, Qdrant, Portkey, Outlines, DeepEval, Ollama, code quality",
-    "61 rules \u2014 sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
-    "Cross-engine hard enforcement \u2014 Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
-    "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
+    "387 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, distributed systems, ML infra, K8s, WebAssembly, Chrome DevTools, LangFuse, Qdrant, Portkey, Outlines, DeepEval, Ollama, code quality",
+    "61 rules — sovereignty tiers (GUEST/OPERATOR/SOVEREIGN), advanced jailbreak defense, supply chain vetting, circuit breaker law",
+    "Cross-engine hard enforcement — Cursor, Aider, and Copilot route all bash through safe-run.sh proxy",
+    "L1 Atomic Memory — persistent facts with confidence levels and tag search; expiry sweep via sweep-expired-facts.sh",
     "826 checks: 65 hook + 678 skill trigger (369/369 coverage) + red-team scenarios + command smoke",
-    "Identity Gate \u2014 Tier 0/1/2 auth with SHA-256 hash verification, auto-auth from env var",
-    "Truth Gate (L3) \u2014 warns on claim verbs without evidence",
-    "Action Gate (L4) \u2014 commit-gate + deploy-gate + scope-guard"
+    "Identity Gate — Tier 0/1/2 auth with SHA-256 hash verification, auto-auth from env var",
+    "Truth Gate (L3) — warns on claim verbs without evidence",
+    "Action Gate (L4) — commit-gate + deploy-gate + scope-guard"
   ],
   "incident_defense": [
     "Replit (July 2025)",
@@ -46,7 +46,7 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "version": "1.8.0",
-  "skills": 387,
+  "skills": 803,
   "checks": 826,
   "hooks": 45,
   "rules": 61,
