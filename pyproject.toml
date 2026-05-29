@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yamtam-engine"
+version = "0.15.0"
+description = "Audits your AI coding agent setup before it can damage your repo. Scan first. Guard later."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Vũ Văn Tâm", email = "phamlongh230@gmail.com" }]
+keywords = [
+  "ai-agent", "claude-code", "security", "audit", "codex",
+  "hooks", "safety", "skills", "knowledge-graph"
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+  "PyYAML>=6.0",
+  "jsonschema>=4.0",
+]
+
+[project.optional-dependencies]
+pdf = ["weasyprint>=60.0"]
+audit = ["pip-audit>=2.0"]
+
+[project.urls]
+Homepage    = "https://phamlongh230-lgtm.github.io/yamtam-engine/"
+Repository  = "https://github.com/phamlongh230-lgtm/yamtam-engine"
+Changelog   = "https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/phamlongh230-lgtm/yamtam-engine/issues"
+
+[project.scripts]
+yamtam = "yamtam_engine.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yamtam_engine"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/",
+  "scanner/",
+  "README.md",
+  "CHANGELOG.md",
+  "LICENSE",
+  "pyproject.toml",
+]

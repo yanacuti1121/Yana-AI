@@ -1,0 +1,4 @@
+"""yamtam-engine — Audits your AI coding agent setup before it can damage your repo."""
+
+__version__ = "0.15.0"
+__author__  = "Vũ Văn Tâm"
