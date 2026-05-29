@@ -440,37 +440,130 @@ Full list: `core/commands/` (164 commands)
 
 ---
 
+## System Architecture
+
+YAMTAM is organized in three concentric layers: **Scanner** (static analysis), **Runtime Gate** (live enforcement), and **Agent OS** (orchestration + memory).
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        YAMTAM ENGINE                            │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  LAYER 3 — AGENT OS                                      │   │
+│  │  90 agents · 1,967 skills · 164 commands · 46 hooks      │   │
+│  │  core/agents/  core/skills/  core/commands/  core/hooks/ │   │
+│  │                                                          │   │
+│  │   ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │   │
+│  │   │  Swarm Bus  │  │  Memory L1   │  │  Memory L2    │  │   │
+│  │   │  core/bus/  │  │  (permanent) │  │  (session)    │  │   │
+│  │   └─────────────┘  └──────────────┘  └───────────────┘  │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                              ▲  ▼                               │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  LAYER 2 — RUNTIME GATE  (6-layer L0–L5)                 │   │
+│  │                                                          │   │
+│  │  L0  audit-hardening   Merkle hash-chain log             │   │
+│  │  L1  anti-evasion      base64/pipe-to-shell block        │   │
+│  │  L2  tool-proxy        sanitize + mutate + sign          │   │
+│  │  L3  sandbox-exec      Docker/nsjail isolation           │   │
+│  │  L4  supply-chain      SLSA + dep vetting                │   │
+│  │  L5  ui-quality        color/type/contrast gate          │   │
+│  │                                                          │   │
+│  │  core/gates/   core/rules/ (61 rules)                    │   │
+│  │  core/scripts/safe-run.sh   core/scripts/tool-proxy.sh   │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                              ▲  ▼                               │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  LAYER 1 — SCANNER  (static analysis, zero dependencies) │   │
+│  │                                                          │   │
+│  │  scanner/*.yml  →  audit_scanner.py  →  report           │   │
+│  │                                                          │   │
+│  │  agent-config   shell-risk    mcp-permission             │   │
+│  │  ci-workflow    env-secret    auth-credential            │   │
+│  │  db-tool-risk                                            │   │
+│  │                                                          │   │
+│  │  Output: score/100 · SARIF · Markdown · JSON · HTML      │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+```
+User runs: yamtam audit .
+           │
+           ▼
+    audit_scanner.py          reads scanner/*.yml rules
+           │                  scans .claude/, .mcp.json, workflows, scripts
+           ▼
+    report (score/100)        SARIF → GitHub Code Scanning
+                              JSON  → CI gate (--fail-on high)
+                              HTML  → human review
+                              MD    → PR comment
+
+User runs Claude Code:
+    SessionStart hook
+           │
+           ▼
+    tool-proxy.sh (L2)        every tool call passes through
+           │
+    safe-run.sh               pattern match against 61 rules
+           │
+    sandbox-exec.sh (L3)      Docker/nsjail/ulimit isolation
+           │
+    audit-log.sh              Merkle hash-chain append
+           │
+           ▼
+    Tool executes
+```
+
+### Key Components
+
+| Component | Path | Purpose |
+|-----------|------|---------|
+| Scanner rules | `scanner/*.yml` | 7 YAML rule sets, 61 checks |
+| Audit scanner | `core/scripts/audit_scanner.py` | Core analysis engine |
+| Tool proxy | `core/scripts/tool-proxy.sh` | L1/L2 sanitize gate |
+| Safe run | `core/scripts/safe-run.sh` | Command allow/block |
+| Sandbox exec | `core/scripts/sandbox-exec.sh` | Runtime isolation |
+| Secure logger | `core/scripts/secure-logger.sh` | Merkle audit log |
+| Gates | `core/gates/` | sovereign-interceptor, anti-graffiti, identity |
+| Rules | `core/rules/` | 61 operating rules (TIER 0–5) |
+| Agents | `core/agents/` | 90 specialized agents |
+| Skills | `core/skills/` | 1,967 workflow skills |
+| Hooks | `core/hooks/` | 46 runtime hooks |
+| Adapters | `adapters/` | Claude, Gemini, Continue, OpenRouter |
+
 ## Repository Structure
 
 ```
 yamtam-engine/
 ├── core/                ← SOURCE OF TRUTH — all canonical definitions live here
-│   ├── agents/          agent definitions
-│   ├── commands/        slash commands
-│   ├── hooks/           runtime hooks
-│   ├── skills/          workflow skills
-│   ├── scripts/         utility scripts (audit_scanner.py, doctor.py, …)
-│   ├── rules/           operating rules
-│   └── tests/           verification checks
-├── .claude/             ← APPLIED PACK — symlinked/copied from core/ for Claude Code
+│   ├── agents/          90 agent definitions
+│   ├── commands/        164 slash commands
+│   ├── hooks/           46 runtime hooks
+│   ├── skills/          1,967 workflow skills
+│   ├── scripts/         93 utility scripts (audit_scanner.py, doctor.py, …)
+│   ├── rules/           61 operating rules (TIER 0–5)
+│   ├── gates/           sovereign-interceptor, anti-graffiti, identity gate
+│   ├── bus/             swarm message bus
+│   ├── memory/          L1 persistent · L2 session
+│   └── tests/           826 verification checks
+├── .claude/             ← APPLIED PACK — loaded by Claude Code at runtime
 │   ├── agents/          → mirrors core/agents/
 │   ├── commands/        → mirrors core/commands/
 │   └── skills/          → mirrors core/skills/
-├── scanner/             Rule YAML files for yamtam audit
-├── adapters/            System prompt adapters per engine (continue, gemini, openrouter, …)
+├── scanner/             Rule YAML files for yamtam audit (7 rule sets)
+├── adapters/            System prompt adapters per engine
 ├── examples/            Demo repos — unsafe-agent-repo (0/100 score demo)
-├── router/              Model routing policy
-├── ledger/              Token/cost ledger schema
 ├── gates/               Gate specifications
-├── memory/              L1 persistent · L2 session
-├── releases/            Release packs
-└── docs/                Documentation
+└── docs/                Documentation + interactive system map
 ```
 
 > **`core/` is the source of truth. `.claude/` is the applied pack** — it mirrors `core/`
 > so Claude Code can load agents/skills/commands without needing to know the full repo layout.
 > If content diverges, `core/scripts/drift-check.sh` detects it.
-> Never edit `.claude/` directly — edit `core/` and let the sync propagate.
 
 ---
 
