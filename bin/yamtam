@@ -3,7 +3,7 @@
 # Usage: yamtam audit [target] [flags]
 set -euo pipefail
 
-YAMTAM_VERSION="0.12.0"
+YAMTAM_VERSION="0.13.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
@@ -39,6 +39,9 @@ INSTALL_PY="$REPO_ROOT/core/scripts/install_project.py"
 BADGE_PY="$REPO_ROOT/core/scripts/badge_gen.py"
 WATCH_PY="$REPO_ROOT/core/scripts/watch.py"
 FIX_PY="$REPO_ROOT/core/scripts/auto_fix.py"
+REPORT_PDF_PY="$REPO_ROOT/core/scripts/report_pdf.py"
+CONFIG_PY="$REPO_ROOT/core/scripts/config_manager.py"
+RULE_TEST_PY="$REPO_ROOT/core/scripts/rule_test.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -71,6 +74,7 @@ Commands:
   rule   <subcommand>    Custom rule management (add/list/remove)
   install [target]       One-command yamtam setup for a project
   report html [target]   Export audit report as standalone HTML
+  report pdf  [target]   Export audit report as PDF
   scan    <url>          Scan a GitHub repo URL (no permanent clone)
   rule import <src>      Import rule pack from URL or file
   upgrade                Self-update yamtam to latest release
@@ -84,6 +88,7 @@ Commands:
   policy check [target]  Verify applied configs match policy templates
   check  <file>          Scan a single file against all matching rules
   template list/show     List and preview policy templates
+  config <subcommand>     Manage .yamtam/config.yml (list/get/set/reset/show)
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
@@ -106,6 +111,7 @@ Audit flags:
   --ignore <id>            Suppress a finding ID (repeatable)
   --no-color               Disable ANSI color output
   --quiet                  Only print score + risk level
+  --watch                  Re-audit on file change (Ctrl-C to stop)
   (reads .yamtamignore if present — suppress known/accepted findings)
 
 Router flags:
@@ -341,29 +347,26 @@ case "$COMMAND" in
     python3 "$DIFF_REPORT_PY" "$@"
     ;;
   rule)
-    python3 "$RULE_PY" "$@"
+    SUBCMD="${1:-}"; shift 2>/dev/null || true
+    case "$SUBCMD" in
+      import) python3 "$RULE_IMPORT_PY" "$@" ;;
+      test)   python3 "$RULE_TEST_PY"   "$@" ;;
+      *)      python3 "$RULE_PY" "$SUBCMD" "$@" ;;
+    esac
     ;;
   install)
     python3 "$INSTALL_PY" "$@"
     ;;
   report)
-    # yamtam report html [target] ...
     SUBCMD="${1:-}"; shift 2>/dev/null || true
     case "$SUBCMD" in
       html) python3 "$REPORT_HTML_PY" "$@" ;;
-      *)    err "Unknown report subcommand: $SUBCMD (available: html)"; exit 1 ;;
+      pdf)  python3 "$REPORT_PDF_PY"  "$@" ;;
+      *)    err "Unknown report subcommand: $SUBCMD (available: html, pdf)"; exit 1 ;;
     esac
     ;;
   scan)
     python3 "$SCAN_URL_PY" "$@"
-    ;;
-  rule)
-    # route: yamtam rule import → rule_import.py, rest → rule_add.py
-    SUBCMD="${1:-}"; shift 2>/dev/null || true
-    case "$SUBCMD" in
-      import) python3 "$RULE_IMPORT_PY" "$@" ;;
-      *)      python3 "$RULE_PY" "$SUBCMD" "$@" ;;
-    esac
     ;;
   upgrade)
     python3 "$UPGRADE_PY" "$@"
@@ -403,6 +406,9 @@ case "$COMMAND" in
     ;;
   check-context)
     cmd_check_context "$@"
+    ;;
+  config)
+    python3 "$CONFIG_PY" "$@"
     ;;
   version|--version|-v)
     cmd_version

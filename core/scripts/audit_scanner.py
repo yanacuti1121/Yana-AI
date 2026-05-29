@@ -1024,6 +1024,8 @@ def main() -> None:
     parser.add_argument("--quiet", action="store_true", help="Only print score + risk level")
     parser.add_argument("--since", metavar="DATE",
                         help="Only scan files modified since DATE (e.g. 2026-05-01, yesterday, '7 days ago')")
+    parser.add_argument("--watch", action="store_true",
+                        help="Re-audit whenever files in target change (Ctrl-C to stop)")
     args = parser.parse_args()
 
     target = os.path.abspath(args.target)
@@ -1140,8 +1142,69 @@ def main() -> None:
             print(f"  SARIF report written to: {args.sarif}\n")
 
     # Exit codes
-    if exit_code != 0:
+    if not args.watch and exit_code != 0:
         sys.exit(exit_code)
+
+    # ── Watch mode ────────────────────────────────────────────────────────────
+    if args.watch:
+        import hashlib
+
+        def _fingerprint(directory: str) -> str:
+            h = hashlib.sha256()
+            for root, dirs, files in os.walk(directory):
+                dirs[:] = sorted(d for d in dirs
+                                 if d not in ("node_modules", ".git", "dist",
+                                              "build", "__pycache__", ".yamtam"))
+                for fname in sorted(files):
+                    path = os.path.join(root, fname)
+                    try:
+                        stat = os.stat(path)
+                        h.update(f"{path}:{stat.st_mtime}:{stat.st_size}".encode())
+                    except OSError:
+                        pass
+            return h.hexdigest()
+
+        print(f"\n  Watching {target}  (Ctrl-C to stop)\n")
+        last_fp = _fingerprint(target)
+
+        try:
+            while True:
+                time.sleep(2)
+                fp = _fingerprint(target)
+                if fp == last_fp:
+                    continue
+                last_fp = fp
+                print(f"\n  {time.strftime('%H:%M:%S')} — change detected, re-auditing…\n")
+                t1 = time.monotonic()
+                new_report = run_audit(target, scanner_dir)
+                new_report["scan_stats"]["duration_ms"] = int((time.monotonic() - t1) * 1000)
+                if args.ignore:
+                    new_report["findings"] = [
+                        f for f in new_report["findings"] if f["id"] not in args.ignore
+                    ]
+                if args.only:
+                    new_report["findings"] = [
+                        f for f in new_report["findings"] if f.get("category") == args.only
+                    ]
+                recompute_report_stats(new_report)
+                if args.json:
+                    new_exit = 2 if new_report["summary"]["critical"] > 0 else (
+                        1 if (new_report["summary"]["high"] > 0 or
+                              new_report["summary"]["medium"] > 0) else 0
+                    )
+                    status = "error" if new_exit == 2 else (
+                        "findings" if new_report.get("findings") else "ok"
+                    )
+                    print(json.dumps(
+                        build_audit_json_output(new_report, target=target,
+                                                exit_code=new_exit, status=status),
+                        indent=2, default=str
+                    ))
+                else:
+                    print(render_console(new_report, no_color=args.no_color,
+                                         quiet=args.quiet))
+        except KeyboardInterrupt:
+            print("\n  Watch stopped.")
 
 
 if __name__ == "__main__":
