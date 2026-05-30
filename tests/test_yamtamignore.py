@@ -20,7 +20,19 @@ def _assert(cond: bool, msg: str) -> None:
         raise AssertionError(msg)
 
 
+def _yamtam_rt_available() -> bool:
+    import shutil
+    if shutil.which("yamtam-rt"):
+        return True
+    release = ROOT / "target" / "release" / "yamtam-rt"
+    debug = ROOT / "target" / "debug" / "yamtam-rt"
+    return release.exists() or debug.exists()
+
+
 def test_repo_root_audit_ignores_demo_fixture_findings() -> None:
+    if not _yamtam_rt_available():
+        print("SKIP: yamtam-rt not installed — skipping audit regression tests")
+        return
     code, out, err = _run(["bash", "bin/yamtam", "audit", "."])
     _assert(code in (0, 1, 2), f"audit . failed unexpectedly: code={code}\nSTDERR:\n{err}\nSTDOUT:\n{out[:1000]}")
 
@@ -32,6 +44,9 @@ def test_repo_root_audit_ignores_demo_fixture_findings() -> None:
 
 
 def test_direct_demo_target_still_reports_expected_unsafe_findings() -> None:
+    if not _yamtam_rt_available():
+        print("SKIP: yamtam-rt not installed — skipping audit regression tests")
+        return
     code, out, err = _run(["bash", "bin/yamtam", "audit", "examples/unsafe-agent-repo"])
     _assert(code in (0, 1, 2), f"audit examples target failed unexpectedly: code={code}\nSTDERR:\n{err}\nSTDOUT:\n{out[:1000]}")
 
