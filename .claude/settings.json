@@ -5,8 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IDEA LOOP AUTO-START: Ngay khi nhận tin nhắn đầu tiên từ người dùng, hãy chạy /idea-loop để kiểm tra trạng thái repo và gợi ý việc làm. Chạy trước khi xử lý yêu cầu của người dùng.\"}}'",
-            "statusMessage": "Khởi động Idea Loop..."
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IDEA LOOP AUTO-START: Ngay khi nh\u1eadn tin nh\u1eafn \u0111\u1ea7u ti\u00ean t\u1eeb ng\u01b0\u1eddi d\u00f9ng, h\u00e3y ch\u1ea1y /idea-loop \u0111\u1ec3 ki\u1ec3m tra tr\u1ea1ng th\u00e1i repo v\u00e0 g\u1ee3i \u00fd vi\u1ec7c l\u00e0m. Ch\u1ea1y tr\u01b0\u1edbc khi x\u1eed l\u00fd y\u00eau c\u1ea7u c\u1ee7a ng\u01b0\u1eddi d\u00f9ng.\"}}'",
+            "statusMessage": "Kh\u1edfi \u0111\u1ed9ng Idea Loop..."
           }
         ]
       }
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/truth-gate-guard.sh"
+            "command": "bash /home/phamlongh230/yamtam-engine/.claude/hooks/truth-gate-guard.sh"
           }
         ]
       }
