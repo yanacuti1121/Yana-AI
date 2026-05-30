@@ -48,8 +48,14 @@ reports/audit-local.*
 
 /target
 
-# YAMTAM
-.yamtam/
+# YAMTAM — only ignore runtime/generated dirs, NOT source dirs
+# .yamtam/schemas, context-packs, policies, templates are source — do not ignore
+.yamtam/graph/
+.yamtam/cache/
+.yamtam/tmp/
+.yamtam/snapshots/
+.yamtam/history.json
+.yamtam/tasks.json
 yamtam-*.html
 yamtam-*.sarif
 releases/*.zip
@@ -57,5 +63,4 @@ releases/*.bundle
 releases/*.bundle.sha256
 yamtam-transfer*.zip
 yamtam-patch-files*.zip
-.yamtam/graph/
 .claude/assistant/memory.md
