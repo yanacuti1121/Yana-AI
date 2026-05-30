@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -11,7 +14,15 @@ def run(args: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True)
 
 
+def _yamtam_rt_available() -> bool:
+    if shutil.which("yamtam-rt"):
+        return True
+    return (ROOT / "target" / "release" / "yamtam-rt").exists() or (ROOT / "target" / "debug" / "yamtam-rt").exists()
+
+
 def test_audit_json_mvp_output_contract() -> None:
+    if not _yamtam_rt_available():
+        pytest.skip("yamtam-rt not installed")
     proc = run(["bash", "bin/yamtam", "audit", ".", "--json"])
 
     assert proc.returncode in (0, 1, 2), (

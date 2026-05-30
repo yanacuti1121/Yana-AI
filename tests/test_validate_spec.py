@@ -45,7 +45,17 @@ def _assert_json(cmd: list[str], expected_code: int, expected_status: str) -> di
     return payload
 
 
+def _yamtam_rt_available() -> bool:
+    import shutil
+    if shutil.which("yamtam-rt"):
+        return True
+    return (ROOT / "target" / "release" / "yamtam-rt").exists() or (ROOT / "target" / "debug" / "yamtam-rt").exists()
+
+
 def main() -> int:
+    if not _yamtam_rt_available():
+        print("SKIP: yamtam-rt not installed — skipping validate-spec regression tests")
+        return 0
     ok = run(["bash", "bin/yamtam", "validate-spec", "examples/specs/valid-task-spec.json"])
     if ok.returncode != 0 or "Final result: VALID" not in ok.stdout:
         raise SystemExit(

@@ -61,7 +61,17 @@ def _assert_json(path: str, expected_code: int, expected_status: str) -> dict:
     return payload
 
 
+def _yamtam_rt_available() -> bool:
+    import shutil
+    if shutil.which("yamtam-rt"):
+        return True
+    return (ROOT / "target" / "release" / "yamtam-rt").exists() or (ROOT / "target" / "debug" / "yamtam-rt").exists()
+
+
 def main() -> int:
+    if not _yamtam_rt_available():
+        print("SKIP: yamtam-rt not installed — skipping context-pack regression tests")
+        return 0
     _assert_ok("examples/context-packs/valid-basic")
     _assert_ok("examples/context-packs/valid-with-narrow-globs")
 

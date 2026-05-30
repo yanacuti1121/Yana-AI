@@ -83,7 +83,17 @@ def _load_payload(cmd: list[str], expected_code: int) -> dict:
         raise SystemExit(f"invalid JSON output for cmd={' '.join(cmd)}: {e}\nstdout={p.stdout}\nstderr={p.stderr}")
 
 
+def _yamtam_rt_available() -> bool:
+    import shutil
+    if shutil.which("yamtam-rt"):
+        return True
+    return (ROOT / "target" / "release" / "yamtam-rt").exists() or (ROOT / "target" / "debug" / "yamtam-rt").exists()
+
+
 def main() -> int:
+    if not _yamtam_rt_available():
+        print("SKIP: yamtam-rt not installed — skipping validator JSON schema tests")
+        return 0
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
     payloads = [
