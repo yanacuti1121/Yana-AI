@@ -36,6 +36,18 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@6849a6489940f00c2f30cb5e8589858ca8b6b37a # actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: cargo-yamtam-rt-${{ runner.os }}
+
+      - name: Install yamtam-rt
+        run: cargo install yamtam-rt
+
       - name: Install YAMTAM
         run: |
           YAMTAM_REF="main"   # pin to a release tag in production, e.g. "v1.8.0"
