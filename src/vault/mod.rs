@@ -45,6 +45,13 @@ pub enum VaultAction {
     Stats {
         #[arg(long, default_value = ".")] vault: String,
     },
+    /// Import a file (md/txt/pdf/docx) as a vault note
+    Import {
+        file: String,
+        #[arg(long, default_value = "vi")] lang: String,
+        #[arg(long, value_delimiter = ',')] tags: Vec<String>,
+        #[arg(long, default_value = ".")] vault: String,
+    },
     /// Link two notes as parallel translations (WMT23-inspired)
     Link {
         id: String,
@@ -62,6 +69,7 @@ pub fn dispatch(action: VaultAction) {
         VaultAction::Search { query, lang, no_accent, vault }   => cmd_search(&vault, &query, lang.as_deref(), no_accent),
         VaultAction::Show { id, vault }                         => cmd_show(&vault, &id),
         VaultAction::Stats { vault }                            => cmd_stats(&vault),
+        VaultAction::Import { file, lang, tags, vault }        => cmd_import(&vault, &file, &lang, tags),
         VaultAction::Link { id, translation_id, lang, vault }  => cmd_link(&vault, &id, &translation_id, &lang),
     };
     if let Err(e) = result {
@@ -174,6 +182,53 @@ fn cmd_stats(vault: &str) -> Result<()> {
     for (lang, count) in langs {
         println!("  {:<6} {:>4}  {}", lang, count, "█".repeat(*count));
     }
+    Ok(())
+}
+
+fn cmd_import(vault: &str, file: &str, lang: &str, tags: Vec<String>) -> Result<()> {
+    use std::path::Path;
+    let config = VaultConfig::load(vault)?;
+    let path = Path::new(file);
+    anyhow::ensure!(path.exists(), "File not found: {}", file);
+
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let body = match ext.as_str() {
+        "md" | "txt" => std::fs::read_to_string(path)?,
+        "pdf" | "docx" | "pptx" | "xlsx" => {
+            // Delegate to markitdown CLI if available
+            let out = std::process::Command::new("markitdown").arg(file).output();
+            match out {
+                Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).into_owned(),
+                Ok(o) => anyhow::bail!("markitdown error: {}", String::from_utf8_lossy(&o.stderr)),
+                Err(_) => anyhow::bail!(
+                    "Cannot parse .{ext} — install markitdown: pip install markitdown[all]"
+                ),
+            }
+        }
+        other => anyhow::bail!("Unsupported file type: .{other}"),
+    };
+
+    // Derive title from first heading or filename
+    let title = body.lines()
+        .find(|l| l.starts_with("# "))
+        .map(|l| l.trim_start_matches("# ").to_string())
+        .unwrap_or_else(|| path.file_stem()
+            .and_then(|s| s.to_str()).unwrap_or("imported").to_string());
+
+    let slug = slugify(&title);
+    let dest = note_path(vault, &config, &slug);
+    if dest.exists() {
+        anyhow::bail!("Note '{}' already exists", slug);
+    }
+    let now = chrono::Utc::now();
+    let meta = note::NoteMeta {
+        title: title.clone(), tags, lang: lang.to_string(),
+        created: Some(now), updated: Some(now),
+        translations: Default::default(),
+    };
+    let note = Note { id: slug.clone(), meta, body, path: dest.clone() };
+    std::fs::write(&dest, note.to_file_content()?)?;
+    println!("[vault] imported: {} → {}", file, dest.display());
     Ok(())
 }
 

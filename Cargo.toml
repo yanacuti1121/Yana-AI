@@ -21,6 +21,7 @@ walkdir    = "2"
 serde_yaml = "0.9"
 anyhow     = "1"
 unicode-normalization = "0.1"
+liteparse = { version = "2", default-features = false }
 
 [dev-dependencies]
 tempfile = "3"
