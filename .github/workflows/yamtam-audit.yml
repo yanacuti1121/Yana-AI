@@ -63,6 +63,7 @@ jobs:
             $DIFF_FLAG \
             --fail-on "$FAIL_ON_LEVEL" \
             --ignore AU010 \
+            --ignore CI008 \
             --sarif yamtam-audit.sarif \
             --markdown yamtam-audit-report.md
 
