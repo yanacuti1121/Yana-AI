@@ -38,6 +38,9 @@
   <a href="https://www.npmjs.com/package/yamtam-engine">
     <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" alt="npm" />
   </a>
+  <a href="https://crates.io/crates/yamtam-rt">
+    <img src="https://img.shields.io/crates/v/yamtam-rt?style=for-the-badge&logo=rust&color=ce422b" alt="crates.io" />
+  </a>
   <a href="https://pypi.org/project/yamtam-engine/">
     <img src="https://img.shields.io/pypi/v/yamtam-engine?style=for-the-badge&logo=pypi&color=3775a9" alt="PyPI" />
   </a>
