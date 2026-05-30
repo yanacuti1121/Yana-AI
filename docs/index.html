@@ -4,698 +4,537 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YAMTAM ENGINE — Personal Agent OS for Claude Code</title>
-<meta name="description" content="Safety hooks that block before damage happens. 90 agents, 45 hooks, 1,967 skills, 826 checks. Built for Claude Code.">
-<meta property="og:title" content="YAMTAM ENGINE — Personal Agent OS for Claude Code">
-<meta property="og:description" content="Safety hooks that block rm -rf, prompt injection, pipe-to-shell before damage happens.">
+<meta name="description" content="Safety hooks, 2197 skills, and a Rust runtime that block AI agents from breaking production. For Claude Code, Cursor, Codex.">
+<meta property="og:title" content="YAMTAM ENGINE">
+<meta property="og:description" content="The hook layer that stops AI agents before they cause real damage.">
 <meta property="og:image" content="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-engine-overview.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:       #0d1117;
-  --bg2:      #161b22;
-  --bg3:      #21262d;
-  --border:   #30370d;
-  --text:     #e6edf3;
-  --muted:    #8b949e;
-  --orange:   #f97316;
-  --orange2:  #fb923c;
-  --green:    #3fb950;
-  --red:      #f85149;
-  --blue:     #58a6ff;
-  --purple:   #a5b4fc;
-  --cyan:     #22d3ee;
-  --yellow:   #fbbf24;
+  --bg:            hsl(222 84% 5%);
+  --bg-subtle:     hsl(222 47% 9%);
+  --bg-card:       hsl(220 40% 11%);
+  --border:        hsl(217 33% 17%);
+  --border-strong: hsl(217 33% 24%);
+  --fg:            hsl(210 40% 98%);
+  --fg-muted:      hsl(215 20% 65%);
+  --accent:        hsl(221 83% 53%);
+  --accent-hover:  hsl(221 83% 63%);
+  --green:         hsl(142 71% 45%);
+  --orange:        hsl(38 92% 50%);
+  --red:           hsl(0 84% 60%);
+  --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
+  --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 
 html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-
-/* ── NAV ── */
+/* Nav */
 nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(13,17,23,0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  height: 60px;
   display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 56px;
+  background: hsla(222,84%,5%,.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
 }
-.nav-logo {
-  font-weight: 800; font-size: 1rem;
-  letter-spacing: 0.05em;
-  color: var(--orange);
-  text-decoration: none;
-}
+.nav-logo { font-family: var(--mono); font-size: .875rem; font-weight: 600; color: var(--fg); text-decoration: none; letter-spacing: .04em; }
+.nav-logo span { color: var(--accent); }
 .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-.nav-links a {
-  color: var(--muted); font-size: 0.875rem;
-  text-decoration: none;
-  transition: color .2s;
-}
-.nav-links a:hover { color: var(--text); }
-.btn-github {
-  display: flex; align-items: center; gap: 0.4rem;
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text); font-size: 0.82rem; font-weight: 500;
-  padding: 0.35rem 0.85rem; border-radius: 6px;
-  text-decoration: none; transition: border-color .2s, background .2s;
-}
-.btn-github:hover { border-color: var(--orange); background: var(--bg2); }
-.btn-github svg { width: 16px; height: 16px; fill: var(--text); }
+.nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .875rem; transition: color .15s; }
+.nav-links a:hover { color: var(--fg); }
+.nav-cta { background: var(--accent) !important; color: #fff !important; padding: .375rem .875rem; border-radius: 6px; font-size: .8125rem !important; font-weight: 600; transition: background .15s !important; }
+.nav-cta:hover { background: var(--accent-hover) !important; }
 
-/* ── HERO ── */
+/* Hero */
 .hero {
-  padding: 6rem 2rem 4rem;
   max-width: 1100px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 4rem; align-items: center;
+  padding: 7rem 2rem 5rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
 }
-@media (max-width: 768px) {
-  .hero { grid-template-columns: 1fr; gap: 2.5rem; padding: 3.5rem 1.25rem 2.5rem; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .75rem; color: var(--fg-muted);
+  border: 1px solid var(--border); border-radius: 100px;
+  padding: .25rem .75rem; margin-bottom: 1.5rem;
 }
-
-.hero-tag {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  background: rgba(249,115,22,0.12);
-  border: 1px solid rgba(249,115,22,0.3);
-  color: var(--orange2); font-size: 0.78rem; font-weight: 500;
-  padding: 0.3rem 0.75rem; border-radius: 20px;
-  margin-bottom: 1.25rem; letter-spacing: 0.03em;
-}
-.hero-tag .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--orange); animation: blink 1.4s ease-in-out infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-h1 {
-  font-size: clamp(2.2rem, 5vw, 3.4rem);
-  font-weight: 800; line-height: 1.15;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.25rem;
-}
-h1 span { color: var(--orange); }
-
-.hero-sub {
-  font-size: 1.05rem; color: var(--muted);
-  margin-bottom: 2rem; max-width: 480px;
-}
-
-.hero-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
+h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; line-height: 1.15; letter-spacing: -.03em; margin-bottom: 1.25rem; }
+h1 em { font-style: normal; color: var(--accent); }
+.hero-sub { color: var(--fg-muted); font-size: 1.125rem; line-height: 1.65; max-width: 44ch; margin-bottom: 2rem; }
+.hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; }
 .btn-primary {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  background: var(--orange); color: #0d1117;
-  font-weight: 700; font-size: 0.9rem;
-  padding: 0.65rem 1.4rem; border-radius: 8px;
-  text-decoration: none; transition: background .2s, transform .15s;
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: .9375rem;
+  padding: .625rem 1.25rem; border-radius: 8px; text-decoration: none;
+  transition: background .15s, box-shadow .15s;
 }
-.btn-primary:hover { background: var(--orange2); transform: translateY(-1px); }
-.btn-outline {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  border: 1px solid var(--border); color: var(--text);
-  font-size: 0.9rem; padding: 0.65rem 1.2rem; border-radius: 8px;
-  text-decoration: none; transition: border-color .2s;
+.btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 0 3px hsla(221,83%,53%,.25); }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: transparent; color: var(--fg); font-weight: 500; font-size: .9375rem;
+  padding: .625rem 1.25rem; border-radius: 8px; text-decoration: none;
+  border: 1px solid var(--border); transition: border-color .15s, background .15s;
 }
-.btn-outline:hover { border-color: var(--orange); }
+.btn-ghost:hover { border-color: var(--border-strong); background: var(--bg-card); }
+.hero-note { margin-top: 1rem; font-size: .8125rem; color: var(--fg-muted); }
 
-.hero-note {
-  margin-top: 1rem; font-size: 0.8rem; color: var(--muted);
+/* Terminal */
+.hero-terminal {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; box-shadow: 0 24px 48px hsla(221,83%,10%,.5);
 }
-.hero-note code {
-  font-family: 'JetBrains Mono', monospace;
-  background: var(--bg3); padding: 0.15rem 0.4rem;
-  border-radius: 4px; font-size: 0.78rem; color: var(--cyan);
+.terminal-bar {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .75rem 1rem; border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
 }
+.dot-r{width:10px;height:10px;border-radius:50%;background:var(--red);}
+.dot-y{width:10px;height:10px;border-radius:50%;background:var(--orange);}
+.dot-g{width:10px;height:10px;border-radius:50%;background:var(--green);}
+.terminal-title { font-family: var(--mono); font-size: .75rem; color: var(--fg-muted); margin: 0 auto; }
+.terminal-body { padding: 1.25rem 1.5rem; font-family: var(--mono); font-size: .8125rem; line-height: 1.8; }
+.t-dim  { color: var(--fg-muted); }
+.t-grn  { color: var(--green); }
+.t-org  { color: var(--orange); }
+.t-prompt::before { content: "$ "; color: var(--fg-muted); }
 
-/* ── TERMINAL ── */
-.terminal {
-  background: #010409;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
-}
-.term-bar {
-  background: var(--bg3);
-  padding: 0.6rem 1rem;
-  display: flex; align-items: center; gap: 0.5rem;
-  border-bottom: 1px solid var(--border);
-}
-.term-dot { width: 12px; height: 12px; border-radius: 50%; }
-.d-red   { background: #ff5f57; }
-.d-yel   { background: #febc2e; }
-.d-grn   { background: #28c840; }
-.term-title {
-  flex: 1; text-align: center;
-  font-size: 0.75rem; color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-}
-.term-body {
-  padding: 1.25rem 1.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem; line-height: 1.8;
-  min-height: 280px;
-}
-.t-prompt { color: var(--green); }
-.t-cmd    { color: var(--text); }
-.t-muted  { color: var(--muted); }
-.t-red    { color: var(--red); }
-.t-green  { color: var(--green); }
-.t-orange { color: var(--orange); }
-.t-cyan   { color: var(--cyan); }
-.t-yellow { color: var(--yellow); }
-.t-bold   { font-weight: 700; }
-
-.term-line { opacity: 0; animation: fadein .25s forwards; }
-.l1  { animation-delay: .4s }
-.l2  { animation-delay: .9s }
-.l3  { animation-delay: 1.3s }
-.l4  { animation-delay: 1.6s }
-.l5  { animation-delay: 2.0s }
-.l6  { animation-delay: 2.4s }
-.l7  { animation-delay: 2.8s }
-.l8  { animation-delay: 3.3s }
-.l9  { animation-delay: 3.7s }
-.l10 { animation-delay: 4.2s }
-.l11 { animation-delay: 4.6s }
-.l12 { animation-delay: 5.0s }
-.l13 { animation-delay: 5.6s }
-.l14 { animation-delay: 6.0s }
-@keyframes fadein { to { opacity: 1; } }
-
-/* ── STATS ── */
-.stats {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
+/* Stats bar */
+.stats-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
 .stats-inner {
-  max-width: 1100px; margin: 0 auto;
-  padding: 2.5rem 2rem;
-  display: grid; grid-template-columns: repeat(6, 1fr);
-  gap: 1rem; text-align: center;
+  max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; text-align: center;
 }
-@media (max-width: 900px) { .stats-inner { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 500px) { .stats-inner { grid-template-columns: repeat(2, 1fr); } }
+.stat-num { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: .25rem; }
+.stat-label { font-size: .8125rem; color: var(--fg-muted); }
 
-.stat-num {
-  font-size: 2rem; font-weight: 800;
-  letter-spacing: -0.03em;
-  counter-reset: none;
-}
-.stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+/* Sections */
+section { padding: 5rem 2rem; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+.section-label { font-family: var(--mono); font-size: .75rem; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .75rem; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.2; margin-bottom: 1rem; }
+.section-sub { color: var(--fg-muted); font-size: 1.0625rem; max-width: 52ch; line-height: 1.65; margin-bottom: 3rem; }
 
-/* ── SECTION BASE ── */
-.section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
-.section-tag {
-  font-size: 0.78rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--orange); margin-bottom: 0.75rem;
+/* Feature grid */
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.feat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1.5rem; transition: border-color .2s;
 }
-.section-title {
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-  font-weight: 800; letter-spacing: -0.025em;
-  margin-bottom: 1rem;
-}
-.section-sub { font-size: 1rem; color: var(--muted); max-width: 560px; }
+.feat-card:hover { border-color: var(--border-strong); }
+.feat-icon { font-size: 1.375rem; margin-bottom: .875rem; }
+.feat-title { font-weight: 600; font-size: 1rem; margin-bottom: .5rem; }
+.feat-desc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; }
+.feat-code { font-family: var(--mono); font-size: .8125rem; }
 
-/* ── WHY ── */
-.why-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 1.5rem; margin-top: 3rem;
+/* Gates */
+.gates { display: flex; flex-direction: column; gap: .75rem; }
+.gate-row {
+  display: grid; grid-template-columns: 48px 1fr auto;
+  align-items: center; gap: 1rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: .875rem 1.25rem;
 }
-@media (max-width: 640px) { .why-grid { grid-template-columns: 1fr; } }
+.gate-num { font-family: var(--mono); font-size: .75rem; color: var(--fg-muted); text-align: center; }
+.gate-name { font-size: .9375rem; font-weight: 500; }
+.gate-desc { font-size: .8125rem; color: var(--fg-muted); margin-top: .125rem; }
+.gate-badge { font-family: var(--mono); font-size: .6875rem; font-weight: 600; padding: .2rem .6rem; border-radius: 4px; white-space: nowrap; }
+.badge-block { background: hsla(0,84%,60%,.12);   color: hsl(0,84%,65%); }
+.badge-warn  { background: hsla(38,92%,50%,.12);  color: hsl(38,92%,55%); }
+.badge-audit { background: hsla(221,83%,53%,.12); color: hsl(221,83%,70%); }
 
-.why-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 1.5rem;
+/* Runtime */
+.rt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.cmd-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.cmd-chip {
+  font-family: var(--mono); font-size: .75rem;
+  background: var(--bg-subtle); border: 1px solid var(--border);
+  border-radius: 6px; padding: .25rem .625rem; color: var(--fg-muted);
 }
-.why-card.danger { border-color: rgba(248,81,73,0.3); }
-.why-card.safe   { border-color: rgba(63,185,80,0.3); }
-.why-header {
-  font-size: 0.72rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-}
-.why-header.red { color: var(--red); }
-.why-header.grn { color: var(--green); }
-.why-row {
-  display: flex; align-items: flex-start; gap: 0.6rem;
-  font-size: 0.85rem; margin-bottom: 0.6rem;
-}
-.why-row .ico { flex-shrink: 0; font-size: 0.9rem; margin-top: 1px; }
-.why-row code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.78rem; color: var(--red);
-  background: rgba(248,81,73,0.1);
-  padding: 0.1rem 0.35rem; border-radius: 3px;
-}
-.why-row.ok code { color: var(--green); background: rgba(63,185,80,0.1); }
-
-/* ── LAYERS ── */
-.layers { margin-top: 3rem; }
-.layer-row {
-  display: flex; align-items: stretch;
-  gap: 0; margin-bottom: 0;
-  border-left: 2px solid var(--border);
-  padding-left: 1.5rem;
-  position: relative;
-  padding-bottom: 1.25rem;
-}
-.layer-row:last-child { border-left: 2px solid transparent; }
-.layer-row::before {
-  content: '';
-  position: absolute; left: -7px; top: 5px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--orange); border: 2px solid var(--bg);
-  flex-shrink: 0;
-}
-.layer-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; font-weight: 700;
-  background: rgba(249,115,22,.15);
-  color: var(--orange); border: 1px solid rgba(249,115,22,.3);
-  padding: 0.2rem 0.55rem; border-radius: 4px;
-  white-space: nowrap; align-self: flex-start; margin-right: 1rem;
-  margin-top: 2px; flex-shrink: 0;
-}
-.layer-info { flex: 1; }
-.layer-name { font-weight: 700; font-size: 0.92rem; }
-.layer-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
-.layer-hook {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; color: var(--cyan);
-  margin-top: 0.3rem;
-}
-.badge-new {
-  font-size: 0.62rem; font-weight: 700;
-  background: rgba(34,211,238,0.15);
-  color: var(--cyan); border: 1px solid rgba(34,211,238,0.3);
-  padding: 0.1rem 0.4rem; border-radius: 3px;
-  margin-left: 0.4rem; vertical-align: middle;
-}
-
-/* ── ENGINES ── */
-.engines-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem; margin-top: 2.5rem;
-}
-.engine-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 1rem;
-  text-align: center; font-size: 0.85rem;
-  font-weight: 500; transition: border-color .2s;
-}
-.engine-card:hover { border-color: var(--orange); }
-.engine-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
-
-/* ── INSTALL ── */
-.install-section {
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 5rem 2rem;
-  text-align: center;
-}
-.install-inner { max-width: 680px; margin: 0 auto; }
-.install-title {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-weight: 800; letter-spacing: -0.025em;
-  margin-bottom: 1rem;
-}
-.install-sub { color: var(--muted); margin-bottom: 2rem; font-size: 1rem; }
+.cmd-chip.new { border-color: hsla(221,83%,53%,.4); color: hsl(221,83%,70%); }
+.rt-stats { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2rem; }
+.rt-stat { display: flex; align-items: baseline; gap: .75rem; }
+.rt-stat-num { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+.rt-stat-label { color: var(--fg-muted); font-size: .875rem; }
 .code-block {
-  background: #010409; border: 1px solid var(--border);
-  border-radius: 10px; padding: 1.25rem 1.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.88rem; text-align: left;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem; font-family: var(--mono); font-size: .8125rem; line-height: 1.8;
+  margin-top: 2rem;
+}
+
+/* Compat */
+.compat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.compat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; text-align: center; transition: border-color .15s;
+}
+.compat-card:hover { border-color: var(--border-strong); }
+.compat-name { font-weight: 600; font-size: .9375rem; margin-bottom: .25rem; }
+.compat-note { font-size: .8125rem; color: var(--fg-muted); }
+
+/* Install */
+.install-section { background: var(--bg-subtle); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.install-inner { max-width: 680px; margin: 0 auto; text-align: center; padding: 5rem 2rem; }
+.install-inner h2 { margin-bottom: .75rem; }
+.install-sub { color: var(--fg-muted); margin-bottom: 2.5rem; }
+.install-tabs { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1rem; }
+.tab {
+  font-family: var(--mono); font-size: .75rem; padding: .375rem .875rem;
+  border-radius: 6px; border: 1px solid var(--border); background: transparent;
+  color: var(--fg-muted); cursor: pointer; transition: all .15s;
+}
+.tab.active { background: var(--bg-card); border-color: var(--border-strong); color: var(--fg); }
+.cmd-box {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem; margin-bottom: 0.75rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.25rem; margin-bottom: .75rem; gap: 1rem;
 }
-.code-block code { color: var(--cyan); flex: 1; word-break: break-all; }
+.cmd-box code { font-family: var(--mono); font-size: .9rem; color: var(--fg); text-align: left; word-break: break-all; }
 .copy-btn {
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--muted); font-size: 0.72rem; font-weight: 500;
-  padding: 0.25rem 0.65rem; border-radius: 4px;
-  cursor: pointer; white-space: nowrap;
-  transition: color .2s, border-color .2s; font-family: inherit;
+  font-family: var(--mono); font-size: .75rem; color: var(--fg-muted);
+  background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 5px;
+  padding: .25rem .625rem; cursor: pointer; transition: all .15s; white-space: nowrap; flex-shrink: 0;
 }
-.copy-btn:hover { color: var(--text); border-color: var(--orange); }
-.install-alts {
-  display: flex; gap: 1rem; justify-content: center;
-  flex-wrap: wrap; margin-top: 1.5rem;
-}
-.alt-link {
-  font-size: 0.82rem; color: var(--muted);
-  text-decoration: none; border-bottom: 1px solid var(--border);
-  transition: color .2s;
-}
-.alt-link:hover { color: var(--orange); }
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.install-alts { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+.install-alts a { font-family: var(--mono); font-size: .8125rem; color: var(--fg-muted); text-decoration: none; }
+.install-alts a:hover { color: var(--fg); }
 
-/* ── INCIDENTS ── */
-.incidents { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-@media (max-width: 640px) { .incidents { grid-template-columns: 1fr; } }
-.incident-card {
-  background: rgba(248,81,73,0.06);
-  border: 1px solid rgba(248,81,73,0.2);
-  border-radius: 10px; padding: 1.25rem;
-}
-.incident-when { font-size: 0.75rem; color: var(--red); font-weight: 600; margin-bottom: 0.4rem; }
-.incident-what { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
-.incident-desc { font-size: 0.82rem; color: var(--muted); }
-.incident-blocked {
-  margin-top: 0.75rem; font-size: 0.78rem;
-  color: var(--green); font-weight: 600;
-}
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.footer-left { font-size: .875rem; color: var(--fg-muted); }
+.footer-left strong { color: var(--fg); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: .875rem; color: var(--fg-muted); text-decoration: none; }
+.footer-links a:hover { color: var(--fg); }
 
-/* ── FOOTER ── */
-footer {
-  padding: 3rem 2rem;
-  text-align: center;
-  border-top: 1px solid var(--border);
-  color: var(--muted); font-size: 0.85rem;
+/* Responsive */
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; gap: 2.5rem; padding: 4rem 1.25rem 3rem; }
+  .hero-terminal { display: none; }
+  .stats-inner { grid-template-columns: repeat(3, 1fr); }
+  .feat-grid { grid-template-columns: 1fr; }
+  .rt-grid { grid-template-columns: 1fr; }
+  .compat-grid { grid-template-columns: repeat(2, 1fr); }
+  nav { padding: 0 1.25rem; }
+  .nav-links a:not(.nav-cta) { display: none; }
+  .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; }
 }
-footer a { color: var(--orange); text-decoration: none; }
-footer a:hover { text-decoration: underline; }
-.footer-built { margin-top: 0.5rem; font-size: 0.78rem; }
-
-/* ── FADE IN ON SCROLL ── */
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
-.reveal.visible { opacity: 1; transform: none; }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- Nav -->
 <nav>
-  <a class="nav-logo" href="#">⚡ YAMTAM ENGINE</a>
+  <a class="nav-logo" href="#"><span>⚡</span> YAMTAM ENGINE</a>
   <div class="nav-links">
-    <a href="#why">Why</a>
-    <a href="#layers">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#runtime">Runtime</a>
     <a href="#install">Install</a>
-    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="btn-github" target="_blank">
-      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      GitHub
-    </a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+    <a href="#install" class="nav-cta">Get started</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<section>
-  <div class="hero">
-    <div class="hero-left">
-      <div class="hero-tag"><span class="dot"></span> v0.15.0 — Now public</div>
-      <h1>Stop your AI from <span>breaking production</span></h1>
-      <p class="hero-sub">
-        YAMTAM ENGINE wraps Claude Code with 45 safety hooks that block
-        <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:#f85149;background:rgba(248,81,73,.1);padding:.1rem .3rem;border-radius:3px">rm -rf</code>,
-        prompt injection, and pipe-to-shell attacks — before damage happens.
-      </p>
-      <div class="hero-ctas">
-        <a href="#install" class="btn-primary">⚡ Install in 10 seconds</a>
-        <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="btn-outline" target="_blank">View on GitHub →</a>
-      </div>
-      <p class="hero-note">
-        One-line: <code>curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash</code>
-      </p>
+<!-- Hero -->
+<div class="hero">
+  <div>
+    <div class="hero-badge"><span class="dot"></span> v0.17.0 &nbsp;·&nbsp; yamtam-rt 1.0.0</div>
+    <h1>Your AI agent's<br><em>safety layer</em></h1>
+    <p class="hero-sub">Safety hooks that fire before damage happens. 2197 skills, a full Rust runtime, and a 6-layer gate system for Claude Code, Cursor, and Codex.</p>
+    <div class="hero-ctas">
+      <a href="#install" class="btn-primary">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
+        Install free
+      </a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
     </div>
+    <p class="hero-note" style="margin-top:1rem;font-size:.8125rem;color:var(--fg-muted)">Apache 2.0 · Built by <strong style="color:var(--fg)">Vũ Văn Tâm</strong> · Vietnam</p>
+  </div>
 
-    <!-- ANIMATED TERMINAL -->
-    <div class="terminal">
-      <div class="term-bar">
-        <span class="term-dot d-red"></span>
-        <span class="term-dot d-yel"></span>
-        <span class="term-dot d-grn"></span>
-        <span class="term-title">claude-code — yamtam hooks active</span>
+  <!-- Terminal mockup -->
+  <div class="hero-terminal">
+    <div class="terminal-bar">
+      <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+      <span class="terminal-title">yamtam-rt</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-prompt">yamtam-rt doctor run .</div>
+      <div style="margin-top:.5rem">
+        <div><span class="t-grn">✓</span>  git repository</div>
+        <div><span class="t-grn">✓</span>  .claude/settings.json</div>
+        <div><span class="t-grn">✓</span>  env secrets &nbsp;<span class="t-dim">clean</span></div>
+        <div><span class="t-org">⚠</span>  ANTHROPIC_API_KEY &nbsp;<span class="t-dim">not set</span></div>
+        <div><span class="t-grn">✓</span>  python 3.12.3</div>
       </div>
-      <div class="term-body">
-        <div class="term-line l1"><span class="t-prompt">❯</span> <span class="t-cmd">claude "delete old logs to free disk space"</span></div>
-        <div class="term-line l2"><span class="t-muted">  Thinking… planning tool calls</span></div>
-        <div class="term-line l3"><span class="t-muted">  Tool: Bash → <code style="color:#e6edf3">rm -rf /var/log/app/ /tmp/cache/*</code></span></div>
-        <div class="term-line l4">&nbsp;</div>
-        <div class="term-line l5"><span class="t-red t-bold">╔══ YAMTAM L5 — BLOCKED ══════════════════╗</span></div>
-        <div class="term-line l6"><span class="t-red">║</span>  <span class="t-yellow">DESTRUCTIVE</span>: <code style="color:#f85149">rm -rf</code> on non-temp path   <span class="t-red">║</span></div>
-        <div class="term-line l7"><span class="t-red">║</span>  Risk   : <span class="t-red">CRITICAL — irreversible</span>        <span class="t-red">║</span></div>
-        <div class="term-line l8"><span class="t-red">║</span>  Action : <span class="t-red">BLOCKED</span> (no bypass possible)    <span class="t-red">║</span></div>
-        <div class="term-line l9"><span class="t-red">╚══════════════════════════════════════════╝</span></div>
-        <div class="term-line l10">&nbsp;</div>
-        <div class="term-line l11"><span class="t-green">✓</span> <span class="t-muted">Audit log written → .claude/state/audit.log</span></div>
-        <div class="term-line l12"><span class="t-green">✓</span> <span class="t-muted">Telemetry recorded → hook=L5, action=BLOCK</span></div>
-        <div class="term-line l13">&nbsp;</div>
-        <div class="term-line l14"><span class="t-cyan">→ Safe alternative: rm -rf /tmp/cache/* only</span></div>
+      <div style="margin-top:1rem;color:var(--fg-muted)">──────────────────────</div>
+      <div class="t-prompt" style="margin-top:.75rem">yamtam-rt scan .</div>
+      <div style="margin-top:.5rem">
+        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">45 active</span></div>
+        <div><span class="t-grn">✓</span>  rules &nbsp;<span class="t-dim">826 checks pass</span></div>
+        <div><span class="t-grn">✓</span>  permissions &nbsp;<span class="t-dim">scoped</span></div>
+      </div>
+      <div style="margin-top:.75rem">
+        <span style="color:var(--green);font-weight:600">Score: 94/100</span>
+        <span class="t-dim"> — LOW risk</span>
       </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- STATS -->
-<div class="stats">
+<!-- Stats -->
+<div class="stats-bar">
   <div class="stats-inner">
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--orange)">90</div>
-      <div class="stat-label">Specialist Agents</div>
-    </div>
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--purple)">164</div>
-      <div class="stat-label">Slash Commands</div>
-    </div>
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--orange2)">45</div>
-      <div class="stat-label">Safety Hooks</div>
-    </div>
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--cyan)">1967</div>
+    <div>
+      <div class="stat-num" style="color:var(--green)">2197</div>
       <div class="stat-label">Workflow Skills</div>
     </div>
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--red)">826</div>
-      <div class="stat-label">Test Checks</div>
+    <div>
+      <div class="stat-num" style="color:hsl(221 83% 63%)">17</div>
+      <div class="stat-label">Rust Subcommands</div>
     </div>
-    <div class="reveal">
-      <div class="stat-num" style="color:var(--green)">7</div>
-      <div class="stat-label">AI Engines</div>
+    <div>
+      <div class="stat-num" style="color:var(--orange)">45</div>
+      <div class="stat-label">Safety Hooks</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:hsl(280 70% 65%)">826</div>
+      <div class="stat-label">Rule Checks</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:var(--red)">90</div>
+      <div class="stat-label">Specialist Agents</div>
     </div>
   </div>
 </div>
 
-<!-- WHY -->
-<section id="why">
-  <div class="section reveal">
-    <div class="section-tag">Why YAMTAM</div>
-    <h2 class="section-title">AI agents cause real damage. <br/>YAMTAM stops it before it happens.</h2>
-    <p class="section-sub">Every claim that "AI is safe by default" ignores what happens when your LLM misreads context and decides <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:#f85149">DROP TABLE users</code> is the right move.</p>
-
-    <div class="incidents">
-      <div class="incident-card reveal">
-        <div class="incident-when">Replit — July 2025</div>
-        <div class="incident-what">AI deleted production data</div>
-        <div class="incident-desc">An unguarded agent ran <code style="font-family:'JetBrains Mono',monospace;font-size:.82em">rm -rf</code> on a production directory, wiping user data permanently.</div>
-        <div class="incident-blocked">⚡ YAMTAM L5 would have blocked this</div>
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Why YAMTAM</div>
+    <h2>AI agents cause real damage.<br>YAMTAM stops it before it happens.</h2>
+    <p class="section-sub">Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.</p>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🛡️</div>
+        <div class="feat-title">Pre-execution hooks</div>
+        <div class="feat-desc">45 hooks fire before any tool call. Block <code class="feat-code">rm -rf</code>, prompt injection, pipe-to-shell, and force-push — before damage happens.</div>
       </div>
-      <div class="incident-card reveal">
-        <div class="incident-when">PocketOS — April 2026</div>
-        <div class="incident-what">Prompt injection → file exfiltration</div>
-        <div class="incident-desc">Injected instructions in a README caused the agent to exfiltrate private keys via outbound request.</div>
-        <div class="incident-blocked">⚡ YAMTAM L3.5 would have blocked this</div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Rust runtime</div>
+        <div class="feat-desc">yamtam-rt — 17 Rust subcommands replacing the Python CLI. scan, graph, vault, hunt, ci, map, fix, doctor, design. Zero Python dependency.</div>
       </div>
-    </div>
-
-    <div class="why-grid" style="margin-top:2rem">
-      <div class="why-card danger reveal">
-        <div class="why-header red">✗ Without YAMTAM</div>
-        <div class="why-row"><span class="ico">💀</span><span><code>rm -rf /</code> silently executes</span></div>
-        <div class="why-row"><span class="ico">🔓</span><span><code>curl | bash</code> runs untrusted code</span></div>
-        <div class="why-row"><span class="ico">🎭</span><span>AI claims "tests passed" with no proof</span></div>
-        <div class="why-row"><span class="ico">💉</span><span>Prompt injection overrides your instructions</span></div>
-        <div class="why-row"><span class="ico">🗑</span><span><code>DROP TABLE users</code> runs in production</span></div>
-        <div class="why-row"><span class="ico">🚀</span><span>AI deploys to prod without your approval</span></div>
+      <div class="feat-card">
+        <div class="feat-icon">📚</div>
+        <div class="feat-title">2197 skills</div>
+        <div class="feat-desc">The largest open-source skill library for Claude Code. Imported from ECC, taste-skill, stop-slop, and more — all MIT-licensed and anti-fake-pass verified.</div>
       </div>
-      <div class="why-card safe reveal">
-        <div class="why-header grn">✓ With YAMTAM</div>
-        <div class="why-row ok"><span class="ico">🛡</span><span>Hard blocked at L5 — no bypass</span></div>
-        <div class="why-row ok"><span class="ico">🔐</span><span>Supply chain guard rejects pipe-to-shell</span></div>
-        <div class="why-row ok"><span class="ico">📊</span><span>Truth Gate demands "47 passed, 0 failed"</span></div>
-        <div class="why-row ok"><span class="ico">🚫</span><span>L3.5 intercepts identity override attempts</span></div>
-        <div class="why-row ok"><span class="ico">🗄</span><span>DB protect hook blocks all destructive queries</span></div>
-        <div class="why-row ok"><span class="ico">🔒</span><span>Deploy gate requires explicit approval</span></div>
+      <div class="feat-card">
+        <div class="feat-icon">🔍</div>
+        <div class="feat-title">Knowledge graph</div>
+        <div class="feat-desc"><code class="feat-code">yamtam-rt graph build</code> traverses any codebase, extracts imports, detects architecture layers, and generates an onboarding guide.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🗄️</div>
+        <div class="feat-title">Vietnamese vault</div>
+        <div class="feat-desc">Markdown knowledge vault with Unicode-aware Vietnamese search, accent-insensitive mode, multilingual translation links, and PDF/DOCX import.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-title">Design token extractor</div>
+        <div class="feat-desc"><code class="feat-code">yamtam-rt design extract &lt;url&gt;</code> pulls colors, fonts, spacing, and CSS variables from any site and writes DESIGN.md.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- LAYERS -->
-<section id="layers" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-  <div class="section reveal">
-    <div class="section-tag">Architecture</div>
-    <h2 class="section-title">6-Layer Gate System</h2>
-    <p class="section-sub">Every AI tool call passes through a pipeline of guards before executing. Each layer is independently bypassable with explicit env vars — no silent overrides.</p>
+<!-- Gates -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Architecture</div>
+    <h2>6-layer gate system</h2>
+    <p class="section-sub">Each layer is independent. A bypassed outer layer doesn't break the inner ones.</p>
+    <div class="gates">
+      <div class="gate-row">
+        <div class="gate-num">L0</div>
+        <div><div class="gate-name">Audit chain</div><div class="gate-desc">Append-only Merkle log — every action is tamper-evident</div></div>
+        <div class="gate-badge badge-audit">AUDIT</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L1</div>
+        <div><div class="gate-name">Anti-evasion</div><div class="gate-desc">Blocks base64 decode pipes, curl|bash, eval with subshell</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L2</div>
+        <div><div class="gate-name">Shell sanitize + env integrity</div><div class="gate-desc">Quoting enforcement, LD_PRELOAD guard, privilege isolation</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L3</div>
+        <div><div class="gate-name">Sandbox isolation</div><div class="gate-desc">Every tool call runs in a resource-capped sandbox</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L4</div>
+        <div><div class="gate-name">Supply chain vetting</div><div class="gate-desc">Package installs blocked without passing 4/8 ossf/scorecard criteria</div></div>
+        <div class="gate-badge badge-warn">GATE</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L5</div>
+        <div><div class="gate-name">UI quality + scope drift</div><div class="gate-desc">Color rules, typography, WCAG AA, scope boundary enforcement</div></div>
+        <div class="gate-badge badge-warn">GATE</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <div class="layers" style="margin-top:2.5rem">
-      <div class="layer-row reveal">
-        <span class="layer-badge">L0</span>
-        <div class="layer-info">
-          <div class="layer-name">Audit</div>
-          <div class="layer-desc">Every tool call logged with tamper-evident hash-chain. Zero blind spots.</div>
-          <div class="layer-hook">audit-log.sh · telemetry-sender.sh</div>
+<!-- Runtime -->
+<section id="runtime">
+  <div class="section-inner">
+    <div class="section-label">Rust Runtime</div>
+    <h2>yamtam-rt v1.0.0</h2>
+    <p class="section-sub">Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.</p>
+    <div class="rt-grid">
+      <div>
+        <p style="font-size:.875rem;color:var(--fg-muted);margin-bottom:1rem">All 17 subcommands:</p>
+        <div class="cmd-list">
+          <span class="cmd-chip">task</span>
+          <span class="cmd-chip">eval</span>
+          <span class="cmd-chip">bus</span>
+          <span class="cmd-chip">memory</span>
+          <span class="cmd-chip">config</span>
+          <span class="cmd-chip">plugin</span>
+          <span class="cmd-chip">cost</span>
+          <span class="cmd-chip">scan</span>
+          <span class="cmd-chip new">hunt</span>
+          <span class="cmd-chip new">ci</span>
+          <span class="cmd-chip new">map</span>
+          <span class="cmd-chip new">fix</span>
+          <span class="cmd-chip new">doctor</span>
+          <span class="cmd-chip new">spec</span>
+          <span class="cmd-chip new">graph</span>
+          <span class="cmd-chip new">vault</span>
+          <span class="cmd-chip new">design</span>
         </div>
+        <p style="font-size:.75rem;color:var(--fg-muted);margin-top:.75rem"><span style="color:hsl(221 83% 70%)">■</span> new in v0.17.0</p>
       </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L1</span>
-        <div class="layer-info">
-          <div class="layer-name">Scope Guard</div>
-          <div class="layer-desc">Warns on secret/env access and cross-boundary writes.</div>
-          <div class="layer-hook">token-scope-guard.sh · scope-guard.sh</div>
+      <div>
+        <div class="rt-stats">
+          <div class="rt-stat"><span class="rt-stat-num">9</span><span class="rt-stat-label">Python scripts replaced</span></div>
+          <div class="rt-stat"><span class="rt-stat-num">~4.5k</span><span class="rt-stat-label">lines Python → Rust</span></div>
+          <div class="rt-stat"><span class="rt-stat-num">0</span><span class="rt-stat-label">Python deps for core CLI</span></div>
         </div>
-      </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L1.5</span>
-        <div class="layer-info">
-          <div class="layer-name">Validate <span class="badge-new">v0.12.0</span></div>
-          <div class="layer-desc">Blocks SSRF, path traversal, and sensitive file reads.</div>
-          <div class="layer-hook">tool-validator.sh</div>
-        </div>
-      </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L3</span>
-        <div class="layer-info">
-          <div class="layer-name">Truth Gate</div>
-          <div class="layer-desc">AI must show evidence before claiming success. No more "tests passed" without proof.</div>
-          <div class="layer-hook">truth-gate-guard.sh</div>
-        </div>
-      </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L3.5</span>
-        <div class="layer-info">
-          <div class="layer-name">Prompt Injection Guard <span class="badge-new">v0.12.0</span></div>
-          <div class="layer-desc">Blocks identity override, system prompt extraction, and jailbreak attempts.</div>
-          <div class="layer-hook">prompt-injection-guard.sh</div>
-        </div>
-      </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L4.5</span>
-        <div class="layer-info">
-          <div class="layer-name">Supply Chain Guard <span class="badge-new">v0.12.0</span></div>
-          <div class="layer-desc">Blocks pipe-to-shell, typosquatting, and URL-sourced package installs.</div>
-          <div class="layer-hook">supply-chain-guard.sh</div>
-        </div>
-      </div>
-      <div class="layer-row reveal">
-        <span class="layer-badge">L5</span>
-        <div class="layer-info">
-          <div class="layer-name">Destructive Guard</div>
-          <div class="layer-desc">Hard blocks <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">rm -rf</code>, <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">DROP TABLE</code>, and <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#f85149">DELETE</code> without WHERE.</div>
-          <div class="layer-hook">guard-destructive.sh · db-protect.sh · api-destruct-guard.sh</div>
+        <div class="code-block">
+          <div class="t-dim"># install the binary</div>
+          <div><span style="color:var(--green)">cargo</span> install yamtam-rt</div>
+          <div style="margin-top:.5rem" class="t-dim"># or via npm</div>
+          <div><span style="color:var(--green)">npm</span> install -g yamtam-engine</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ENGINES -->
-<section>
-  <div class="section reveal">
-    <div class="section-tag">Cross-Engine</div>
-    <h2 class="section-title">Works with every major AI coding tool</h2>
+<!-- Compat -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Compatibility</div>
+    <h2>Works with every major AI coding tool</h2>
     <p class="section-sub">YAMTAM sits outside your editor — it doesn't care which AI you use.</p>
-    <div class="engines-grid">
-      <div class="engine-card reveal"><div class="engine-icon">🤖</div>Claude Code</div>
-      <div class="engine-card reveal"><div class="engine-icon">🖱</div>Cursor</div>
-      <div class="engine-card reveal"><div class="engine-icon">🔧</div>Aider</div>
-      <div class="engine-card reveal"><div class="engine-icon">🐙</div>GitHub Copilot</div>
-      <div class="engine-card reveal"><div class="engine-icon">♊</div>Gemini Code</div>
-      <div class="engine-card reveal"><div class="engine-icon">🐋</div>DeepSeek</div>
-      <div class="engine-card reveal"><div class="engine-icon">🦙</div>Qwen</div>
+    <div class="compat-grid">
+      <div class="compat-card">
+        <div class="compat-name">Claude Code</div>
+        <div class="compat-note">Full support · Primary target</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-name">Cursor</div>
+        <div class="compat-note">Via .cursorrules + hooks</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-name">GitHub Copilot</div>
+        <div class="compat-note">CLI hooks + workflow gates</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-name">Codex CLI</div>
+        <div class="compat-note">Via AGENTS.md pattern</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- INSTALL -->
-<div id="install" class="install-section">
-  <div class="install-inner reveal">
-    <div class="section-tag" style="text-align:center">Quick Install</div>
-    <h2 class="install-title">Up and running in <span style="color:var(--orange)">10 seconds</span></h2>
-    <p class="install-sub">One command. Checks dependencies, downloads the latest release, verifies all 826 checks pass.</p>
-
-    <div class="code-block">
-      <code id="install-cmd">curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash</code>
-      <button class="copy-btn" onclick="copyInstall()">Copy</button>
+<!-- Install -->
+<div class="install-section" id="install">
+  <div class="install-inner">
+    <h2>Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
+    <p class="install-sub">One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.</p>
+    <div class="install-tabs">
+      <button class="tab active" onclick="setTab(this,'curl')">curl</button>
+      <button class="tab" onclick="setTab(this,'npm')">npm</button>
+      <button class="tab" onclick="setTab(this,'cargo')">cargo</button>
     </div>
-
+    <div class="cmd-box">
+      <code id="install-cmd">curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash</code>
+      <button class="copy-btn" onclick="copyCmd()">copy</button>
+    </div>
     <div class="install-alts">
-      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" class="alt-link">View on GitHub</a>
-      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/releases/latest" class="alt-link">Download release zip</a>
-      <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-system-map.html" class="alt-link">Interactive system map</a>
-      <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/skills.html" class="alt-link">Browse 1,851 skills →</a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">★ Star on GitHub</a>
+      <a href="https://www.npmjs.com/package/yamtam-engine" target="_blank">npm page</a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
     </div>
   </div>
 </div>
 
-<!-- FOOTER -->
+<!-- Footer -->
 <footer>
-  <p>
-    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a>
-    — Apache 2.0 — v0.15.0
-  </p>
-  <p class="footer-built">
-    Built by <strong>Vũ Văn Tâm</strong>, age 17 · Vietnam 🇻🇳
-  </p>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <strong>YAMTAM ENGINE</strong> — Apache 2.0 · v0.17.0<br>
+      Built by Vũ Văn Tâm · Vietnam
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+      <a href="https://www.npmjs.com/package/yamtam-engine" target="_blank">npm</a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/issues" target="_blank">Issues</a>
+    </div>
+  </div>
 </footer>
 
 <script>
-// Copy install command
-function copyInstall() {
-  const cmd = document.getElementById('install-cmd').textContent;
-  navigator.clipboard.writeText(cmd).then(() => {
+const cmds = {
+  curl:  'curl -sSL https://phamlongh230-lgtm.github.io/yamtam-engine/install | bash',
+  npm:   'npm install -g yamtam-engine',
+  cargo: 'cargo install yamtam-rt',
+};
+function setTab(btn, key) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('install-cmd').textContent = cmds[key];
+}
+function copyCmd() {
+  navigator.clipboard.writeText(document.getElementById('install-cmd').textContent).then(() => {
     const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    btn.style.color = 'var(--green)';
-    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
-
-// Scroll reveal
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// Animate stat numbers
-const statNums = document.querySelectorAll('.stat-num');
-const targets = [90, 164, 45, 1851, 826, 7];
-const statObserver = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
-    if (!e.isIntersecting) return;
-    const el = e.target;
-    const target = parseInt(el.textContent);
-    let start = 0;
-    const step = Math.ceil(target / 40);
-    const timer = setInterval(() => {
-      start = Math.min(start + step, target);
-      el.textContent = start;
-      if (start >= target) clearInterval(timer);
-    }, 28);
-    statObserver.unobserve(el);
-  });
-}, { threshold: 0.5 });
-statNums.forEach(el => statObserver.observe(el));
+// Fade in on scroll
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.feat-card,.gate-row,.compat-card').forEach(el => {
+  el.style.cssText += 'opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease';
+  io.observe(el);
+});
 </script>
 </body>
 </html>
