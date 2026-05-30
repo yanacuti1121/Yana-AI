@@ -444,6 +444,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 | [`moss-tts-nano`](tools/moss-tts-nano) | MOSS-TTS-Nano — 0.1B multilingual TTS, CPU-friendly, realtime streaming (Apache 2.0) |
 | [`finetune-vi`](tools/finetune-vi) | Vietnamese finetuning recipe — VIVOS dataset (15h, CC BY-SA), one-click `bash run.sh` |
 | [`codexmate`](tools/codexmate) | Codexmate — unified dashboard for Codex, Claude Code & OpenClaw; skills marketplace, OpenAI bridge, MCP (Apache 2.0) |
+| [`codexmate-vi-patch`](tools/codexmate-vi-patch) | Vietnamese UI patch for Codexmate — 992 translated strings, adds VI language button (`python3 patch.py`) |
 
 ```bash
 # First-time setup — download ONNX weights (~400MB)
