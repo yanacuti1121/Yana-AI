@@ -442,6 +442,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 | Tool | Description |
 |---|---|
 | [`moss-tts-nano`](tools/moss-tts-nano) | MOSS-TTS-Nano — 0.1B multilingual TTS, CPU-friendly, realtime streaming (Apache 2.0) |
+| [`finetune-vi`](tools/finetune-vi) | Vietnamese finetuning recipe — VIVOS dataset (15h, CC BY-SA), one-click `bash run.sh` |
 
 ```bash
 # First-time setup — download ONNX weights (~400MB)
