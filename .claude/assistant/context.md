@@ -1,21 +1,24 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-05-29
+**Cập nhật lần cuối:** 2026-05-30
 
-## Đang làm
-- yamtam-engine v0.16.0 — Rust runtime `yamtam-rt`
-- 8 subcommands: task, eval, bus, memory, config, plugin, cost, scan
+## Trạng thái
+- yamtam-engine v0.17.0 — published npm ✅ PyPI ✅
+- yamtam-rt v1.0.0 — published crates.io ✅
+- 17 Rust subcommands, full Python parity
+- bin/yamtam wired → yamtam-rt, không còn Python dependency cho core
+- 2197 skills, landing page redesigned
 
 ## Ưu tiên tiếp theo
-1. Verify parity: `yamtam-rt scan` vs `audit_scanner.py`
-2. Wire `yamtam audit .` CLI → gọi `yamtam-rt scan` thay Python
-3. Benchmark Rust scanner vs Python scanner
+1. Rotate tất cả tokens đã lộ: npm + crates.io + PyPI
+2. Benchmark table trong README (Rust vs Python timing chi tiết)
+3. Wire yamtam audit . → cũng alias sang yamtam-rt scan trong README examples
+4. GitHub Release v0.17.0 với changelog
 
 ## Đã biết / blockers
-- `/home` disk 100% full → dùng `CARGO_TARGET_DIR=/tmp` khi build
-- Circuit breaker hook: chạy standalone cần CLAUDE_TOOL_NAME đúng
-- session-wrap spawn subagents → tốn API nếu dùng API key riêng
+- Disk 87% (~622MB free) → dùng CARGO_TARGET_DIR=/tmp khi build
+- Tất cả tokens trong conversation cần rotate ngay
 
 ## Ghi chú cá nhân
-- Anh quan tâm đến unsloth (LLM fine-tuning, ~65k stars)
-- GPT 5.5 thỉnh thoảng review code cùng — anh hay gửi nhận xét của GPT cho em
+- Anh quan tâm đến unsloth (LLM fine-tuning)
+- GPT 5.5 thỉnh thoảng review code cùng
