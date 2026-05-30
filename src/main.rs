@@ -5,13 +5,14 @@ mod memory;
 mod plugin;
 pub mod scanner;
 mod task;
+mod vault;
 
 use clap::{Parser, Subcommand};
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yamtam-rt", version = "0.6.0", about = "YAMTAM Runtime — task · bus · memory · config · plugin · cost")]
+#[command(name = "yamtam-rt", version = "0.7.0", about = "YAMTAM Runtime — task · bus · memory · config · plugin · cost · vault")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -33,6 +34,8 @@ enum Commands {
     Plugin { #[command(subcommand)] action: PluginAction },
     /// Cost dashboard — token usage and spend tracking
     Cost   { #[command(subcommand)] action: CostAction },
+    /// Vietnamese-first knowledge vault with multilingual translation links
+    Vault  { #[command(subcommand)] action: vault::VaultAction },
     /// Audit AI agent setup for security risks (replaces audit_scanner.py)
     Scan {
         /// Directory to scan (default: .)
@@ -248,6 +251,7 @@ fn main() {
             } else if report.summary.critical > 0 { 0 } else { 0 };
             std::process::exit(exit_code);
         }
+        Commands::Vault { action } => vault::dispatch(action),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
