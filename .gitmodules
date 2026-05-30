@@ -1,3 +1,6 @@
 [submodule "tools/moss-tts-nano"]
 	path = tools/moss-tts-nano
 	url = https://github.com/OpenMOSS/MOSS-TTS-Nano.git
+[submodule "tools/codexmate"]
+	path = tools/codexmate
+	url = https://github.com/SakuraByteCore/codexmate.git

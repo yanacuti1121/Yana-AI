@@ -431,7 +431,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 | Agents | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 2,203 |
+| Workflow skills | 2,204 |
 | Operating rules | 61 |
 | Utility scripts | 81 |
 | Verification checks | 826 |
@@ -443,6 +443,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 |---|---|
 | [`moss-tts-nano`](tools/moss-tts-nano) | MOSS-TTS-Nano — 0.1B multilingual TTS, CPU-friendly, realtime streaming (Apache 2.0) |
 | [`finetune-vi`](tools/finetune-vi) | Vietnamese finetuning recipe — VIVOS dataset (15h, CC BY-SA), one-click `bash run.sh` |
+| [`codexmate`](tools/codexmate) | Codexmate — unified dashboard for Codex, Claude Code & OpenClaw; skills marketplace, OpenAI bridge, MCP (Apache 2.0) |
 
 ```bash
 # First-time setup — download ONNX weights (~400MB)
