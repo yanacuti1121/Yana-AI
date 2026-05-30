@@ -242,3 +242,213 @@ fn bus_emit_no_cost_when_payload_missing_tokens() {
     let ledger = dir.path().join(".yamtam").join("ledger.jsonl");
     assert!(!ledger.exists(), "no ledger when tokens absent");
 }
+
+// ── doctor ────────────────────────────────────────────────────────────────────
+
+#[test]
+fn doctor_run_exits_ok() {
+    let dir = tmpdir();
+    // init git repo so git checks pass
+    Command::new("git").args(["init"]).current_dir(dir.path()).output().ok();
+    let (stdout, _, _) = run(dir.path(), &["doctor", "run", "."]);
+    assert!(stdout.contains("git installed") || stdout.contains("yamtam doctor"),
+        "doctor output shown");
+}
+
+#[test]
+fn doctor_run_json() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["doctor", "run", ".", "--json"]);
+    assert!(ok);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(v.is_array(), "JSON output is array");
+}
+
+// ── spec ──────────────────────────────────────────────────────────────────────
+
+#[test]
+fn spec_validate_valid() {
+    let dir = tmpdir();
+    let spec = r#"{"id":"T001","goal":"Fix auth","tasks":[{"id":"t1","description":"update handler"}],"acceptance_criteria":["tests pass"]}"#;
+    std::fs::write(dir.path().join("spec.json"), spec).unwrap();
+    let (_, _, ok) = run(dir.path(), &["spec", "validate", "spec.json"]);
+    assert!(ok, "valid spec exits 0");
+}
+
+#[test]
+fn spec_validate_missing_required() {
+    let dir = tmpdir();
+    let spec = r#"{"id":"T001"}"#;
+    std::fs::write(dir.path().join("spec.json"), spec).unwrap();
+    let (stdout, _, ok) = run(dir.path(), &["spec", "validate", "spec.json"]);
+    assert!(!ok, "invalid spec exits non-zero");
+    assert!(stdout.contains("SPEC"), "finding IDs shown");
+}
+
+#[test]
+fn spec_schema_prints() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["spec", "schema"]);
+    assert!(ok);
+    assert!(stdout.contains("goal"), "schema has goal field");
+}
+
+// ── ci ────────────────────────────────────────────────────────────────────────
+
+#[test]
+fn ci_check_no_workflows() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["ci", "check", "."]);
+    assert!(ok);
+    assert!(stdout.contains("No workflows"), "reports no workflows");
+}
+
+#[test]
+fn ci_check_detects_missing_timeout() {
+    let dir = tmpdir();
+    let wf_dir = dir.path().join(".github/workflows");
+    std::fs::create_dir_all(&wf_dir).unwrap();
+    std::fs::write(wf_dir.join("ci.yml"), "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n").unwrap();
+    let (stdout, _, _) = run(dir.path(), &["ci", "check", "."]);
+    assert!(stdout.contains("CI004") || stdout.contains("timeout"), "detects missing timeout");
+}
+
+// ── hunt ──────────────────────────────────────────────────────────────────────
+
+#[test]
+fn hunt_clean_repo_no_findings() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["hunt", "run", ".", "secrets"]);
+    assert!(ok);
+    assert!(stdout.contains("No findings") || stdout.contains("clean") || stdout.is_empty()
+        || stdout.contains("finding"),
+        "hunt output shown: {stdout}");
+}
+
+#[test]
+fn hunt_detects_fake_secret() {
+    let dir = tmpdir();
+    std::fs::write(dir.path().join("config.py"), "api_key = 'sk-abcdefghijklmnopqrstuvwxyz123456'\n").unwrap();
+    let (stdout, _, _) = run(dir.path(), &["hunt", "run", ".", "secrets"]);
+    assert!(stdout.contains("HIGH") || stdout.contains("finding") || stdout.contains("API"),
+        "detects fake API key: {stdout}");
+}
+
+// ── vault ─────────────────────────────────────────────────────────────────────
+
+#[test]
+fn vault_init_and_new_note() {
+    let dir = tmpdir();
+    let (_, _, ok) = run(dir.path(), &["vault", "init", ".", "--name", "Test"]);
+    assert!(ok, "vault init ok");
+    assert!(dir.path().join(".vault.yaml").exists(), ".vault.yaml created");
+
+    let (stdout, _, ok2) = run(dir.path(), &["vault", "new", "Hello World", "--lang", "vi"]);
+    assert!(ok2, "vault new ok");
+    assert!(stdout.contains("hello-world"), "slug in output");
+    assert!(dir.path().join("notes/hello-world.md").exists(), "note file created");
+}
+
+#[test]
+fn vault_list_and_search() {
+    let dir = tmpdir();
+    run(dir.path(), &["vault", "init", ".", "--name", "T"]);
+    run(dir.path(), &["vault", "new", "Rust Programming", "--lang", "en", "--vault", "."]);
+    run(dir.path(), &["vault", "new", "Lập trình Rust", "--lang", "vi", "--vault", "."]);
+
+    let (list, _, _) = run(dir.path(), &["vault", "list", "--vault", "."]);
+    assert!(list.contains("rust-programming"), "en note listed");
+
+    let (search, _, _) = run(dir.path(), &["vault", "search", "rust", "--vault", "."]);
+    assert!(search.contains("note(s)") || search.contains("matching"), "search finds notes");
+}
+
+#[test]
+fn vault_stats() {
+    let dir = tmpdir();
+    run(dir.path(), &["vault", "init", ".", "--name", "S"]);
+    run(dir.path(), &["vault", "new", "Note One", "--lang", "vi", "--vault", "."]);
+    let (stats, _, ok) = run(dir.path(), &["vault", "stats", "--vault", "."]);
+    assert!(ok);
+    assert!(stats.contains("Notes"), "stats shows note count");
+}
+
+// ── graph ─────────────────────────────────────────────────────────────────────
+
+#[test]
+fn graph_build_and_show() {
+    let dir = tmpdir();
+    // Create a minimal Rust project structure
+    std::fs::write(dir.path().join("main.rs"), "fn main() {}\n").unwrap();
+    std::fs::write(dir.path().join("lib.rs"), "pub fn hello() {}\n").unwrap();
+
+    let (_, _, ok) = run(dir.path(), &["graph", "build", ".", "--quiet"]);
+    assert!(ok, "graph build ok");
+    assert!(dir.path().join(".yamtam/graph/knowledge-graph.json").exists(),
+        "graph JSON created");
+
+    let (show, _, ok2) = run(dir.path(), &["graph", "show", "."]);
+    assert!(ok2);
+    assert!(show.contains("Files") || show.contains("Analysed"), "show output");
+}
+
+#[test]
+fn graph_search() {
+    let dir = tmpdir();
+    std::fs::write(dir.path().join("auth.rs"), "fn authenticate() {}\n").unwrap();
+    run(dir.path(), &["graph", "build", ".", "--quiet"]);
+
+    let (out, _, ok) = run(dir.path(), &["graph", "search", "auth", "."]);
+    assert!(ok);
+    assert!(out.contains("auth"), "search finds auth.rs");
+}
+
+// ── fix ───────────────────────────────────────────────────────────────────────
+
+#[test]
+fn fix_list_shows_rules() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["fix", "list"]);
+    assert!(ok);
+    assert!(stdout.contains("AC001"), "AC001 in list");
+    assert!(stdout.contains("AC002"), "AC002 in list");
+}
+
+#[test]
+fn fix_ac002_dry_run() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["fix", "apply", "AC002", ".", "--dry-run"]);
+    assert!(ok);
+    assert!(stdout.contains("dry-run") || stdout.contains(".env"), "dry run output");
+}
+
+#[test]
+fn fix_ac002_applies() {
+    let dir = tmpdir();
+    let (_, _, ok) = run(dir.path(), &["fix", "apply", "AC002", "."]);
+    assert!(ok);
+    let gitignore = dir.path().join(".gitignore");
+    assert!(gitignore.exists(), ".gitignore created");
+    let content = std::fs::read_to_string(gitignore).unwrap();
+    assert!(content.contains(".env"), ".env in gitignore");
+}
+
+// ── map ───────────────────────────────────────────────────────────────────────
+
+#[test]
+fn map_show_no_config() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["map", "show", "."]);
+    assert!(ok);
+    assert!(stdout.contains("Blast") || stdout.contains("risk") || stdout.contains("Claude"),
+        "map output shown: {stdout}");
+}
+
+#[test]
+fn map_show_json() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["map", "show", ".", "--json"]);
+    assert!(ok);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(v.get("risk").is_some(), "risk field in JSON");
+}

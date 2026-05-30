@@ -306,7 +306,7 @@ case "$COMMAND" in
     python3 "$INIT_POLICY_PY" "$@"
     ;;
   score)
-    python3 "$SCORE_PY" "$@"
+    rt score show "$@"
     ;;
   badge)
     python3 "$BADGE_PY" "$@"
