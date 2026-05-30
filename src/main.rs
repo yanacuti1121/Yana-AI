@@ -7,6 +7,7 @@ pub mod scanner;
 mod task;
 mod ci;
 mod design;
+mod score;
 mod doctor;
 mod fix;
 mod graph;
@@ -20,7 +21,7 @@ use clap::{Parser, Subcommand};
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yamtam-rt", version = "1.0.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
+#[command(name = "yamtam-rt", version = "1.1.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -50,6 +51,8 @@ enum Commands {
     Map    { #[command(subcommand)] action: map::MapAction },
     /// Auto-apply safe fixes for known finding IDs
     Fix    { #[command(subcommand)] action: fix::FixAction },
+    /// Audit score with optional deduction breakdown
+    Score  { #[command(subcommand)] action: score::ScoreAction },
     /// Environment and dependency health checks
     Doctor { #[command(subcommand)] action: doctor::DoctorAction },
     /// Validate task spec files against the yamtam schema
@@ -279,6 +282,7 @@ fn main() {
         Commands::Ci     { action } => ci::dispatch(action),
         Commands::Map    { action } => map::dispatch(action),
         Commands::Fix    { action } => fix::dispatch(action),
+        Commands::Score  { action } => score::dispatch(action),
         Commands::Doctor { action } => doctor::dispatch(action),
         Commands::Spec   { action } => spec::dispatch(action),
         Commands::Design { action } => design::dispatch(action),

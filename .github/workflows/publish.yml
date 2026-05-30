@@ -1,4 +1,4 @@
-name: Publish to npm + PyPI
+name: Publish to npm + PyPI + crates.io
 
 on:
   release:
@@ -14,11 +14,18 @@ jobs:
     permissions:
       id-token: write   # OIDC trusted publishing (no token needed)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
+
+      - name: Set version from tag
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" src/yamtam_engine/__init__.py
 
       - name: Install build tools
         run: pip install hatchling build
@@ -27,7 +34,7 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI (trusted publishing)
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@76f52bc23e2c4e5bc591e56f4bc6e964e8f5c30b # release/v1
 
   publish-npm:
     name: npm — yamtam-engine
@@ -36,20 +43,48 @@ jobs:
       name: npm
       url: https://www.npmjs.com/package/yamtam-engine
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
       - name: Set version from tag
         run: |
-          TAG="${{ github.ref_name }}"       # e.g. v0.15.0
-          VERSION="${TAG#v}"                  # strip leading v
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
           npm version "$VERSION" --no-git-tag-version
 
       - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-crates:
+    name: crates.io — yamtam-rt
+    runs-on: ubuntu-latest
+    environment:
+      name: crates-io
+      url: https://crates.io/crates/yamtam-rt
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Set version from tag
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          sed -i "s/^version = .*/version = \"$VERSION\"/" Cargo.toml
+
+      - name: Cache cargo registry
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.cargo/registry
+          key: cargo-publish-${{ hashFiles('Cargo.lock') }}
+
+      - name: Publish to crates.io
+        run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
