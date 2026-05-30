@@ -9,3 +9,6 @@ adapters/**
 core/skills/openai--**
 core/skills/terminal--**
 core/skills/book--**
+# Internal tooling dirs — scanner infrastructure, not user code
+.claude/**
+.yamtam/**

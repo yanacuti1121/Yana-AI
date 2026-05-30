@@ -68,6 +68,11 @@ pub fn run_audit(
         std::process::exit(3);
     }
 
+    // Canonicalize target so strip_prefix works correctly against absolute paths
+    // returned by resolve_files() (which calls canonicalize internally).
+    let canon_target = std::fs::canonicalize(target)
+        .unwrap_or_else(|_| Path::new(target).to_path_buf());
+
     let mut all_findings: Vec<Finding> = Vec::new();
     let mut files_scanned: HashSet<String> = HashSet::new();
     let mut files_skipped = 0usize;
@@ -84,9 +89,9 @@ pub fn run_audit(
             let specific_target = check.get("target").and_then(|v| v.as_str()).unwrap_or("");
             if specific_target.is_empty() { continue; }
             let clean = specific_target.trim_start_matches("./").trim_start_matches('/');
-            let explicit_path = Path::new(target).join(clean);
+            let explicit_path = canon_target.join(clean);
             if !explicit_path.is_file() { continue; }
-            let rel = explicit_path.strip_prefix(target).unwrap_or(&explicit_path)
+            let rel = explicit_path.strip_prefix(&canon_target).unwrap_or(&explicit_path)
                 .to_string_lossy().to_string();
             if let Some(df) = diff_files { if !df.contains(&rel) { files_skipped += 1; continue; } }
             if files::is_ignored(&rel, &ignore_patterns) { files_ignored += 1; continue; }
@@ -100,11 +105,16 @@ pub fn run_audit(
         }
 
         if !rule_set.file_patterns.is_empty() {
-            let target_files = files::resolve_files(target, &rule_set.file_patterns, &rule_set.exclude_patterns);
+            // resolve_files uses Rust's glob crate for exclusion, but that crate's `**` requires
+            // at least one path component — it won't exclude files directly under a dir.
+            // Re-apply the rule's exclude_patterns via is_ignored() which uses regex-based
+            // glob_match where `**` → `.*`, correctly matching direct children too.
+            let target_files = files::resolve_files(target, &rule_set.file_patterns, &[]);
             for fp in target_files {
-                let rel = fp.strip_prefix(target).unwrap_or(&fp).to_string_lossy().to_string();
+                let rel = fp.strip_prefix(&canon_target).unwrap_or(&fp).to_string_lossy().to_string();
                 if let Some(df) = diff_files { if !df.contains(&rel) { files_skipped += 1; continue; } }
                 if files::is_ignored(&rel, &ignore_patterns) { files_ignored += 1; continue; }
+                if files::is_ignored(&rel, &rule_set.exclude_patterns) { files_ignored += 1; continue; }
                 let content = match files::read_file_safe(&fp) {
                     Some(c) => c,
                     None => {

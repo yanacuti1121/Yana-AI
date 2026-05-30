@@ -1,7 +1,7 @@
 {
   "skills": {
     "a2a-protocol-patterns": {
-      "computedHash": "75a850cc3c15e088a47d504f1357f030c0bbacda14d60346f8a799753a0da44e",
+      "computedHash": "5dab406974a550902f3a760d8e11d67e379041b496151cac0335933c765e1860",
       "localPath": ".claude/skills/a2a-protocol-patterns",
       "addedAt": "2026-05-29T14:13:24Z"
     },
@@ -10,40 +10,40 @@
       "sourceType": "local",
       "sourcePath": "core/skills/accessibility-audit",
       "localPath": ".claude/skills/accessibility-audit",
-      "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a"
+      "computedHash": "e6318dafa9dfed9a863b2a1bb66d7d95fd9bb16b6fdf9f6c3e2199edc38d4aff"
     },
     "adr-writing": {
-      "computedHash": "34fbd1d3f9105e3839ce7a851d0a19474dd8b08cbde9e3678ed8c5872e630162",
+      "computedHash": "c0a9e0c453f8a6a4e89e5c76af4740029981216e4ca68c2b242f241aaf27c003",
       "localPath": ".claude/skills/adr-writing",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "advanced-color-math": {
-      "computedHash": "53f1d423ac9f62add3dbbb7e63472ad08d3723a4bf99aa0756496dff88373b40",
+      "computedHash": "209bfa9ecc17a153b44b59e5bfea6fc010df9819dbf7fe384c0d48eb7ba3c5ac",
       "localPath": ".claude/skills/advanced-color-math",
       "addedAt": "2026-05-29T14:13:25Z"
     },
     "advanced-motion-easing": {
-      "computedHash": "92fe805ea1f4b053d5f4a71adfc4aaf252b548baaf2f39345948aeb943e5c23b",
+      "computedHash": "79e4ae986cec8dc4dc7d2176c0e580cd1b721052ea6093c19a9e7d530c9ef778",
       "localPath": ".claude/skills/advanced-motion-easing",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "advanced-typography": {
-      "computedHash": "0f9e4842179f19edae51de14b3293311e9573407d0929295ab6a72bb3d09e35a",
+      "computedHash": "e502d4acb91c3a49fea5e0198e01bcff54979b16cc35a167f9d2862ec6bd887f",
       "localPath": ".claude/skills/advanced-typography",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "adversarial-prompt-testing": {
-      "computedHash": "2539885271644d370d0688b28d76d8b083bb566a1f5c5b63265c1b8893ad1d75",
+      "computedHash": "a72afb030cd7faad0329e08b88b41f340380d228af1d8a0469cde02115d83c27",
       "localPath": ".claude/skills/adversarial-prompt-testing",
       "addedAt": "2026-05-29T14:13:25Z"
     },
     "aesthetic-anchor": {
-      "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
+      "computedHash": "65107b1462baaa25d8521cc854fd0da8a103ffad0b96ca6809a170b78929261a",
       "localPath": ".claude/skills/aesthetic-anchor",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "agent-attack-surface": {
-      "computedHash": "f3f82f2be9f842d0e618130148c13629660e9817d75988f3098595eeeb245fd8",
+      "computedHash": "6977920537d4b028c0869a681a05b1ab29a687a18a5687a8d08d1772a3e6beec",
       "localPath": ".claude/skills/agent-attack-surface",
       "addedAt": "2026-05-29T14:15:31Z"
     },
@@ -57,15 +57,15 @@
       "sourceType": "local",
       "sourcePath": "core/skills/agent-memory-security",
       "localPath": ".claude/skills/agent-memory-security",
-      "computedHash": "0b4b7e65a68c48f3cc2c62bae616f6221e3e1f3e64932dca01e096f52a12d4f7"
+      "computedHash": "5cf5c1940ef14ba661ec1f49ab2a9a3b89ef008ec4e759c699ba67ad7909875c"
     },
     "agent-messaging-patterns": {
-      "computedHash": "ea7903e082ddd6a917d38f7de092e24df6e3fa66962b1cd5692a39c5e54039e0",
+      "computedHash": "b58145e56cc8e60d0e7f4dbbf4760a1ff5fd6cb844bb331268537ef88dee2e46",
       "localPath": ".claude/skills/agent-messaging-patterns",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "agent-middleware-gate": {
-      "computedHash": "86b683db65d2fa28f3284c56b5da755e5d4f5dbbff0322fd5a3f789c48efec44",
+      "computedHash": "b38d2fec88400b12e49ef4ffcbce01de0321f4df936d0cc88b112e710b2f7556",
       "localPath": ".claude/skills/agent-middleware-gate",
       "addedAt": "2026-05-29T14:15:31Z"
     },
@@ -74,10 +74,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/agent-safety-patterns",
       "localPath": ".claude/skills/agent-safety-patterns",
-      "computedHash": "a2e252b7fd5526e28549fd9dc14960d7fad4451e4cfc82465fe28d9c35283249"
+      "computedHash": "2fe0c1e0e49920ff2672c38802292a33bfa0d4ab3cc723c749c83f1bfcd83cf1"
     },
     "agent-telemetry": {
-      "computedHash": "1c4781cb920deeeb694051cecf273282240b8c82143f3747aa5a5e631a692544",
+      "computedHash": "a550ccb3996349f0ea2e328cecaa82d812bef5d09bd3c6edd2c78c94fa898979",
       "localPath": ".claude/skills/agent-telemetry",
       "addedAt": "2026-05-29T14:15:32Z"
     },
@@ -86,15 +86,15 @@
       "sourceType": "local",
       "sourcePath": "core/skills/agent-verification-gate",
       "localPath": ".claude/skills/agent-verification-gate",
-      "computedHash": "408e252b84d1fb5bf260b5fa42398b4735ac247360ce95b7f996a85a7e3fa78b"
+      "computedHash": "4f03f9c3e581aeaae7429ebb72541e2ff32837ac53a87aff3a8f759124c94c45"
     },
     "agenthub": {
-      "computedHash": "de459ca54e361100827d262e74293937d82d29641ae70457a13fdc3be73c6200",
+      "computedHash": "867ddefa74dc2c5c46e7401bd99acad802c38a5c06b3663d20fedbb354eac48f",
       "localPath": ".claude/skills/agenthub",
       "addedAt": "2026-05-29T14:15:31Z"
     },
     "agentic-failure-modes": {
-      "computedHash": "7ac5e8da478be7fd281dffd54921d0094366794944d925ddc0dab0e1c127879d",
+      "computedHash": "8764d9c0633296fad88bffbbbfde4de630ba7a65702efa39e7c18a211872da03",
       "localPath": ".claude/skills/agentic-failure-modes",
       "addedAt": "2026-05-29T14:15:31Z"
     },
@@ -109,17 +109,17 @@
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "ai-gateway-patterns": {
-      "computedHash": "fc4ef85481063ce8c73890bdea42f416c4e59526340bfc6e0ed192224157b452",
+      "computedHash": "f6941b3b768866153bc416f606aea732f2787c1d4f73e117ba4ae5d4d6af2142",
       "localPath": ".claude/skills/ai-gateway-patterns",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "ai-team-workflow": {
-      "computedHash": "1cd4d5afb4f88a9fc99f586cfe97da7c20603a8eb4174b317ac71fb26a0f669a",
+      "computedHash": "694a0ba8a4d6bf4e3c50cabe9ac7896604cb6f45ecafa4fbcc05dc522d9e9191",
       "localPath": ".claude/skills/ai-team-workflow",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "animation-principles": {
-      "computedHash": "50b9032def53e6e6b3736db1c0d413e6db74bac214b03b0f83193239bb77cb39",
+      "computedHash": "b1dcb1c861d0646c08e6d1f5c3d99a095ce2923d735ceff0bd73e4f7cd03b237",
       "localPath": ".claude/skills/animation-principles",
       "addedAt": "2026-05-29T14:15:32Z"
     },
@@ -138,25 +138,25 @@
       "sourceType": "local",
       "sourcePath": "core/skills/api-rate-limiting",
       "localPath": ".claude/skills/api-rate-limiting",
-      "computedHash": "06162ae9b47b1a47b25bf7daed2262dddd1b744b89f0a4eb18a7fc65abfcff25"
+      "computedHash": "0788c83edbaf20538dee01b9fe0cabb425a45f1552e2ba5113be7b8999f4ae01"
     },
     "append-only-hypercore": {
-      "computedHash": "e83e8d82742824d825296dcd963b81ae6115fffba40031a60d99b81780dbe4d6",
+      "computedHash": "9c4cbbe205651b4a83e1225137bdd96c117968d72e950ff1d17653de0c0e282f",
       "localPath": ".claude/skills/append-only-hypercore",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "apply-premium-background": {
-      "computedHash": "60fe727cca9751aa1009e23a65c3410b8c8f597ee8814ca5415ce1df2204da48",
+      "computedHash": "97fe850f44b9ce5a3ac9dfe30c87de9b870192e3ceec68cc357efa02079a7744",
       "localPath": ".claude/skills/apply-premium-background",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "archive-stream-patterns": {
-      "computedHash": "66e6094f130e784571a6d8a6411508c1427ff736a3a5029e109039df0ab8abad",
+      "computedHash": "2ae6604d48569da4de88f90e245d80ce35a62da0106642aed310ac3d323ff90f",
       "localPath": ".claude/skills/archive-stream-patterns",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "argocd-gitops": {
-      "computedHash": "0502fbe9653b1de649fcfc9e8f021f8e23240a0985169c30a3b413479887c3c4",
+      "computedHash": "2061649b2671c870eab2e458eed0ee1b29a317848f2a7263bdf70482b98ea95b",
       "localPath": ".claude/skills/argocd-gitops",
       "addedAt": "2026-05-29T14:15:32Z"
     },
@@ -170,25 +170,25 @@
       "sourceType": "local",
       "sourcePath": "core/skills/assemblyscript-to-wasm",
       "localPath": ".claude/skills/assemblyscript-to-wasm",
-      "computedHash": "cea06c64bb595556534db088b949194c28c0473bc3a35ed025592777f1ded488"
+      "computedHash": "cb8a361aa13681cc9af77ea9f7f8aaf4fd938d25715223424dd8cdd1a97534b8"
     },
     "ast-code-manipulation": {
-      "computedHash": "cddfad4d6a5d2994a4bf3f2159101fb0eba2995c9cc3942505d42b3b7c668d7e",
+      "computedHash": "36e2d605ae776a38227f7f1db5cf9b4e5c25da52d429e7a10e1f5b589929e677",
       "localPath": ".claude/skills/ast-code-manipulation",
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "ast-codegen-patterns": {
-      "computedHash": "fe5735796e73531033a14f0a472c1e64c7e51b951327652b576f8593c51dd7d0",
+      "computedHash": "4d306a28196fea031f6d297c19bcff0cdfb5f0d8851b71097199a1242c911784",
       "localPath": ".claude/skills/ast-codegen-patterns",
       "addedAt": "2026-05-29T14:15:32Z"
     },
     "ast-injection-scanner": {
-      "computedHash": "e9d253edf30badb68c1bac0357d6842884217ff979bfae29bb45c0cf75a55078",
+      "computedHash": "04f0c2660ca910207a5f81c2e6760f4822d0a217202ac1da875fcc5dbaa1e43b",
       "localPath": ".claude/skills/ast-injection-scanner",
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "async-storage-patterns": {
-      "computedHash": "b20c8d76018d5031ec35492f559aad5c2d3602f1225803a88efc04aa37252af0",
+      "computedHash": "cc028235f13f7ec5872a6811484f8a352b206115317e5ae904d3f0eaf43d68a5",
       "localPath": ".claude/skills/async-storage-patterns",
       "addedAt": "2026-05-29T14:15:33Z"
     },
@@ -198,12 +198,12 @@
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "auth-patterns": {
-      "computedHash": "58f0d72ab6858651d2cdb53839abc208434b786008c1505ea22dbb3994fe4b4a",
+      "computedHash": "c0f1378f4211c8159b261a486803aabeb7d5fddbd37c4043b35b27c34b451f6c",
       "localPath": ".claude/skills/auth-patterns",
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "auth-strategy-patterns": {
-      "computedHash": "0566ca45362d9cd6a1b5043d5b8f0bf81d8d2cb4da661b1388ca70810a093204",
+      "computedHash": "da78830da59651728984a17941b5bb8a9692e71bd7e66d629b2cacf3f5f9afdc",
       "localPath": ".claude/skills/auth-strategy-patterns",
       "addedAt": "2026-05-29T14:15:33Z"
     },
@@ -212,7 +212,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/auto-feedback-loop",
       "localPath": ".claude/skills/auto-feedback-loop",
-      "computedHash": "cd6c2260a9ff6f253cccbf1c5e157dd497017b9a9d502df8979546d07b4945c4"
+      "computedHash": "4337a70afe0c196a92652aedf518e736f7f826abed8504675a2a24a03c64112a"
     },
     "autogen": {
       "computedHash": "33455fcbc3c5f9e3ef7ebba27a9b2f98f5d5438196a02f1ef41559b38f6f9986",
@@ -220,7 +220,7 @@
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "automerge-crdt": {
-      "computedHash": "451fbc0d4e824356492c07c24a8d051cd55aed6186ab906bb70fea5f990c6eee",
+      "computedHash": "46d41fa5a1326bd2175001d7f92274c9141ac2e7e2d17cf30884a25a9cda9eec",
       "localPath": ".claude/skills/automerge-crdt",
       "addedAt": "2026-05-29T14:15:33Z"
     },
@@ -229,10 +229,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/autonomous-patching-loop",
       "localPath": ".claude/skills/autonomous-patching-loop",
-      "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36"
+      "computedHash": "6cdf4952216d6a11133dba396b732fe0084bdd9ef0ad7bb0194ec8fa5c71ddab"
     },
     "babel-ast-transform": {
-      "computedHash": "59e9fe3f593923425ef43764fdd575c395394d34dffe5a0f0503f4c81d8def1c",
+      "computedHash": "781de09b49b6294308a21bb6ed520ca45e90fc31dc9f00ad75cdf110c38e8df7",
       "localPath": ".claude/skills/babel-ast-transform",
       "addedAt": "2026-05-29T14:15:33Z"
     },
@@ -242,12 +242,12 @@
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "baseline-ui": {
-      "computedHash": "0c52c65dbf5c0835b95556b6baa7f73f104ecf12506fe21421fd992008ee3886",
+      "computedHash": "72a86ae195042e01b78ec08f70c0833e232af7b1bd2f7261e7ce12b342bb013c",
       "localPath": ".claude/skills/baseline-ui",
       "addedAt": "2026-05-29T14:15:33Z"
     },
     "bft-consensus-patterns": {
-      "computedHash": "0f4cdbbabb17ae24d3d1c2b51282c8b677f5a72c852489a244b75d34be9cb23c",
+      "computedHash": "9155e5a0f13d10bfa0c68a9cc3b20d883da4a61347621c663063f59522b2fe18",
       "localPath": ".claude/skills/bft-consensus-patterns",
       "addedAt": "2026-05-29T14:15:33Z"
     },
@@ -256,7 +256,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/blue-team-fix",
       "localPath": ".claude/skills/blue-team-fix",
-      "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d"
+      "computedHash": "bbf8c3018dcfaa870538871234afb85e3e31669d95d741f6de33fe681b003e03"
     },
     "branch-finish": {
       "computedHash": "293aa2c09490b923bdc7b2915b96dd4c7fcb7a97c666830fca3f1f49b121ac1f",
@@ -271,12 +271,12 @@
       "computedHash": "4e287e358c9a2773a5fc3a823da64166e3b5f181b0fc3ab7e210fde92986deb9"
     },
     "build-system": {
-      "computedHash": "a2c90d77c6cbb40c08b25d7c0cddec1f151ddd68d7a2d0026cb1a198552f6928",
+      "computedHash": "c8a5a111676b31c1325fb9edebe1d24cb1841c64db98288afe0b64f54d7570d0",
       "localPath": ".claude/skills/build-system",
       "addedAt": "2026-05-29T14:15:35Z"
     },
     "bunyan-syslog-bridge": {
-      "computedHash": "fdd1e66ec5e36c9aab06c9ccfe190b8c466ccd014d9edb26e2ec20a052af324d",
+      "computedHash": "af586e72e775556832bce927551776df9db24e28b3aef023694087f4ce394633",
       "localPath": ".claude/skills/bunyan-syslog-bridge",
       "addedAt": "2026-05-29T14:15:35Z"
     },
@@ -286,22 +286,22 @@
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "caching-memory-efficiency": {
-      "computedHash": "70d7d4ed71139b3a483792ab30dec87eb28e193bb7d2148d255c38943391c131",
+      "computedHash": "85708a7bc35a3ea0ba76b5e7953b7edea666570d9935031929be2ebfb4d51d2b",
       "localPath": ".claude/skills/caching-memory-efficiency",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "caching-patterns": {
-      "computedHash": "7cde7cc5047731b8d3565a3b0cd77fb5f476828856e419bf7698ad6ce29d7fa1",
+      "computedHash": "61b6fd11ab15281753e6d6fa1c360cab4811196a6e544d26dd4e9329a3377b12",
       "localPath": ".claude/skills/caching-patterns",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "cadvisor-container-metrics": {
-      "computedHash": "999cb0e60f17cbe199c13396d75653fc01c90cde6abcdfefae86eed2f824ada0",
+      "computedHash": "5412341f3e1748db2f0398215926c17b7ba9823dddcec50a0646419aaa27f466",
       "localPath": ".claude/skills/cadvisor-container-metrics",
       "addedAt": "2026-05-29T14:13:31Z"
     },
     "capability-dropping-linux": {
-      "computedHash": "b1c7d420399a6b3702a83321d74a3a04d7cc52ba91ded67f606fd4f1aa1af231",
+      "computedHash": "b74ba970ce7f0e2b82cbdc9345615815c721ea4728b8f71c1c13f77a76165c48",
       "localPath": ".claude/skills/capability-dropping-linux",
       "addedAt": "2026-05-29T14:15:36Z"
     },
@@ -310,20 +310,20 @@
       "sourceType": "local",
       "sourcePath": "core/skills/caveman",
       "localPath": ".claude/skills/caveman",
-      "computedHash": "77566286fc1f8f357a6dbbe6fad0ec2c8e557eb94a57e775f583e38dd00c775d"
+      "computedHash": "9ecdd5a76946f0666bbd004635c6f13236c5f3e7efa53b2adb0d84799214b773"
     },
     "chaos-engineering": {
-      "computedHash": "5378e0094c1a3561f9332670272e742e7c7647c4ff14fe5c17405161e26cdaf7",
+      "computedHash": "63421f17236efef3e468b8bd6a0ff60632a25640bc961d6e3bf28cdf389052b5",
       "localPath": ".claude/skills/chaos-engineering",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "chrome-devtools-a11y-audit": {
-      "computedHash": "c9bee5969b02529cf6046f886aafd1a1f6c712f827cdac61e6fa815a07c36241",
+      "computedHash": "b864a273d325b35e5d53cb60c2c18a2e682e92c2019c7a5aea656aaf2385e602",
       "localPath": ".claude/skills/chrome-devtools-a11y-audit",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "chrome-devtools-browser-automation": {
-      "computedHash": "90b41c3567720de7f22a0f1305f8da1909af1c7504b99f7c0bcd8e0d3f51d9cf",
+      "computedHash": "cbe271c252813070cfecbab70d9d7bd1ccee2f93d766efa00c8cb994b74062f0",
       "localPath": ".claude/skills/chrome-devtools-browser-automation",
       "addedAt": "2026-05-29T14:13:31Z"
     },
@@ -332,45 +332,45 @@
       "sourceType": "local",
       "sourcePath": "core/skills/chrome-devtools-extensions",
       "localPath": ".claude/skills/chrome-devtools-extensions",
-      "computedHash": "f48e3294798ff8ce5c7cc9c2cf09b58bdb6d5ec381ff86f5248ba744d713f09f"
+      "computedHash": "0e45b6ddcbffb8d7d2e4955f98d651378acc179cbf769dbf78cf1aa358497265"
     },
     "chrome-devtools-lcp-debug": {
-      "computedHash": "b2fd3bebbff129f4a7b7b37df76e7764415a0b3041fe3044f35e970b1b7dba44",
+      "computedHash": "a1b8d7dfbb5168da84501d7d45f840ffa47bdfda95aa8c715f3d0e44a89bf133",
       "localPath": ".claude/skills/chrome-devtools-lcp-debug",
       "addedAt": "2026-05-29T14:13:31Z"
     },
     "chrome-devtools-mcp": {
-      "computedHash": "ca801426744f726215cbd53fbdb8e6c1ba2f0eddae5ee563f5c60600f6c17386",
+      "computedHash": "0a8bfa8768d13f23b882fbb447eac88514eb5eebdca86efbc7802600ddacad44",
       "localPath": ".claude/skills/chrome-devtools-mcp",
       "addedAt": "2026-05-29T14:13:31Z"
     },
     "chrome-devtools-memory-leak": {
-      "computedHash": "e650c89e828ee31508e0a8b22932ececa7bc8127d77056c03a235778879ebaaa",
+      "computedHash": "40dccaa27ac808d74a9a709350ca03230f3da04a44ee70b999d0114d73f2f8b0",
       "localPath": ".claude/skills/chrome-devtools-memory-leak",
       "addedAt": "2026-05-29T14:13:32Z"
     },
     "chrome-devtools-network-inspector": {
-      "computedHash": "918f096e618568677e42929358f017abb5e4308d256281a5375387be9e66c860",
+      "computedHash": "2811e639c957e86f47477baac91c37ed9c6481d48ebdcb3a91681d77e6636043",
       "localPath": ".claude/skills/chrome-devtools-network-inspector",
       "addedAt": "2026-05-29T14:13:32Z"
     },
     "chrome-devtools-performance-trace": {
-      "computedHash": "c901670bc2cd734417b669508ef3ba6573adee9529f6bd40a56fd78911f71bee",
+      "computedHash": "c2307d731435d6744a89949389a446574d0366edbec4b02e9dda35879495f624",
       "localPath": ".claude/skills/chrome-devtools-performance-trace",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "chrome-devtools-screencast": {
-      "computedHash": "83ffddd3e4e0c82fa8212e97a1356245dbad94c98ef7d5ad4a7d1b7ae4afe6b4",
+      "computedHash": "963f4156e91e337041d8fc00922a873e2597b87d29924cafbe8fa0a3378eff3e",
       "localPath": ".claude/skills/chrome-devtools-screencast",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "cicd-patterns": {
-      "computedHash": "c0f0767b5f329bd67daa352e279221d1dd7a275061d058281a4519def3aaced2",
+      "computedHash": "3f7f6df8b4397a5a2278d6b8fe0e77dae4747daa0495c326297af5c8a6a53b4e",
       "localPath": ".claude/skills/cicd-patterns",
       "addedAt": "2026-05-29T14:15:36Z"
     },
     "circuit-breaker-rollback": {
-      "computedHash": "0c77ed45ae093593f630739324f427d034283ddf709f59a1c5f3e3e11de0f610",
+      "computedHash": "1f83585f983d6b0f189e7f73f3fd9782be875fee74fbc51a89c0827b413636a4",
       "localPath": ".claude/skills/circuit-breaker-rollback",
       "addedAt": "2026-05-29T14:13:32Z"
     },
@@ -379,15 +379,15 @@
       "sourceType": "local",
       "sourcePath": "core/skills/cli-config-persistence",
       "localPath": ".claude/skills/cli-config-persistence",
-      "computedHash": "7c1b7145a43ae2d0f5de81ce2b0dd73ba4ed272461386a111ece62f8cd9f0a65"
+      "computedHash": "70b3244bf1f77e21d18c82fb596b68e405ea87f00253ba520f15eab958e1f8c2"
     },
     "cloud-cost-optimization": {
-      "computedHash": "6d11ae01350ee2119461d06ac2ac406dbc0d1292f924ff65e37562d7bcccdbcb",
+      "computedHash": "18839115c0c1e5abb94db5b3af26bf97faa4e8aa6dbb7cb36b1e0579978e6797",
       "localPath": ".claude/skills/cloud-cost-optimization",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "cni-network-policies": {
-      "computedHash": "148775902401ab8b51b9af5ab63b3bb63caf4872657c64eec8794458283726bf",
+      "computedHash": "99ff419ed593f66ed2cd3f013a521299c6f03ede0ec4b30527f91ce71550e63b",
       "localPath": ".claude/skills/cni-network-policies",
       "addedAt": "2026-05-29T14:15:37Z"
     },
@@ -397,7 +397,7 @@
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "code-tour": {
-      "computedHash": "dcfb4c0afbdcedd5eb6cc9bccf789209911de82d449c21c68b7ad2466e2898f4",
+      "computedHash": "6d3b734f324bdc213f0ff03f36e2ce5d2926cad8015fdb8ca5803afeb9e878c0",
       "localPath": ".claude/skills/code-tour",
       "addedAt": "2026-05-29T14:15:37Z"
     },
@@ -412,22 +412,22 @@
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "color-math-system": {
-      "computedHash": "7132a2f3791b5aaf1f570e0a0884d06bb9a0a2cf83d5a4e3195004dd6ecb2ee4",
+      "computedHash": "4dd8f682f92e0229cd076006a6445ae66a6b09b195d758d3abb8ce69410d4d0b",
       "localPath": ".claude/skills/color-math-system",
       "addedAt": "2026-05-29T14:13:33Z"
     },
     "component-layout-patterns": {
-      "computedHash": "04667650343d4c53ba7cb8fb96fcb4e012714c0b7aeff36a38d358e8b13a8ce1",
+      "computedHash": "8f10f0ee1809e7906e6066f71054057d84e3c4bbe0bdece9c6577f7006012b25",
       "localPath": ".claude/skills/component-layout-patterns",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "container-interactivity": {
-      "computedHash": "791955907c2a4b8300d9945922040e3f86c3f0d0ffa439e001dd57b7909859af",
+      "computedHash": "c5ffde49d334f76275161711b322cb73893ad8d9b89b5c92a9d98ad8a26d135a",
       "localPath": ".claude/skills/container-interactivity",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "contract-testing": {
-      "computedHash": "ab6d2eca602da12626a16b9ec347af87722989c0a29220bbc12878032689d33d",
+      "computedHash": "aedf4cd613a6f05ba3fc36c502d149d1a2a5e930e4223c92e32ec76bca65eca0",
       "localPath": ".claude/skills/contract-testing",
       "addedAt": "2026-05-29T14:13:33Z"
     },
@@ -442,42 +442,42 @@
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "crossplane-control-plane": {
-      "computedHash": "53a0b774bfe1e352a981e9275060ba349b9674e76cedf560f8efa04baa15bf6a",
+      "computedHash": "072064e4c9762b73efe10966e090d072fb5cdef961e15229c099e5eba7d119e5",
       "localPath": ".claude/skills/crossplane-control-plane",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "crypto-pki-patterns": {
-      "computedHash": "f9a29b2012a8a670696c49c89529489a21fcf7c1a3d4b177bfe14758a4e34cd8",
+      "computedHash": "8051c95c0438d90f1b2934aef6bc0fec1a1341a70a0861d3409d0e03098742a1",
       "localPath": ".claude/skills/crypto-pki-patterns",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "cyclomatic-complexity": {
-      "computedHash": "1464cfe8fba9b67a5276c0cddf6038e3a442c19addbd5798c968d263a99d3b93",
+      "computedHash": "bf0a880ebee5dddb84c6fdca90f256b37f000a9c497f65f6473582ac8155cb2b",
       "localPath": ".claude/skills/cyclomatic-complexity",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "dagre-layout-engine": {
-      "computedHash": "0eac49314ed11be5f44097fd45f29914a97b615c593bdf3a4b9e75000e48b31b",
+      "computedHash": "b7c6af87ce6e6f96a9406c5ef567ac740bb12a209f7878e7e0b43ab32fc806f2",
       "localPath": ".claude/skills/dagre-layout-engine",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "data-privacy": {
-      "computedHash": "949675c07c1838753ea2958be2c1d66f124085ee194264b276236052db484d13",
+      "computedHash": "7a8fd29f40af364aba909bc143fc76a2aa7f2e73e8c16a8cf396c451b484bca1",
       "localPath": ".claude/skills/data-privacy",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "database-migrations": {
-      "computedHash": "2c4611fb9defbe20ec903dafa145afc1655086d8f51372550a7b61c51f94b85e",
+      "computedHash": "c0fa3a119caa10b65e4ebe8224d28c5302bebceebedfee870fa383ca43677056",
       "localPath": ".claude/skills/database-migrations",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "database-patterns": {
-      "computedHash": "785baab0b44d7c2b0e8556c5363b9d7b95fca84198b039beabcfeeb771014ddf",
+      "computedHash": "b64d4d210a23550184403e66e48e65c0aba5c0cc9b4a332e7eeb89b31365711b",
       "localPath": ".claude/skills/database-patterns",
       "addedAt": "2026-05-29T14:15:37Z"
     },
     "database-query-safety": {
-      "computedHash": "c48df727a141dd9ca91451b101ae656d5742ef99cb3d0f7fc41b617846b2369e",
+      "computedHash": "a20b21596642e4cfe42d427edf173ec30de019b7b8bc5da7068d8b747aa27dc3",
       "localPath": ".claude/skills/database-query-safety",
       "addedAt": "2026-05-29T14:15:37Z"
     },
@@ -502,12 +502,12 @@
       "addedAt": "2026-05-29T14:15:38Z"
     },
     "deepspeed-zero-memory": {
-      "computedHash": "5dbb48b1bf1da00a690a824e328aed68f3738f1c73680d0f9742189417b62ae8",
+      "computedHash": "0d0db5252b8ad4267ce9969c32e5afcb46572ee7778b9f4ccf0f9ca6c256c030",
       "localPath": ".claude/skills/deepspeed-zero-memory",
       "addedAt": "2026-05-29T14:15:38Z"
     },
     "design-engineering": {
-      "computedHash": "cd81cc6c334a774e2a14e4ea7ebaaa503801625fda279ac047ca3b5902c9452e",
+      "computedHash": "e21975267e1594e2bc8aa8a13d566e6aacf82d088832148cd5647654fdd5a049",
       "localPath": ".claude/skills/design-engineering",
       "addedAt": "2026-05-29T14:15:39Z"
     },
@@ -516,40 +516,40 @@
       "sourceType": "local",
       "sourcePath": "core/skills/design-system-gen",
       "localPath": ".claude/skills/design-system-gen",
-      "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a"
+      "computedHash": "e7a61e2ef10ef669204f6d9de9a9ed934907406d50f72c6e8ab8d953806ae12b"
     },
     "design-taste-frontend": {
-      "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
+      "computedHash": "78514526f9ff2977ec5af8c26822904a76b6a16a4b4162d114584ae4f1855f7b",
       "localPath": ".claude/skills/design-taste-frontend",
       "addedAt": "2026-05-29T14:15:41Z"
     },
     "design-tokens-system": {
-      "computedHash": "a24f422f77eaaf8dd7e8e3fbe87ba24c78e39a2ba9979dad17b236b7881e58d4",
+      "computedHash": "a2754bd3899beab5f99eee5a6677232614b1ddb1c4f859db904cf9c14005f653",
       "localPath": ".claude/skills/design-tokens-system",
       "addedAt": "2026-05-29T14:15:41Z"
     },
     "did-credential-lifecycle": {
-      "computedHash": "cf7b59cf271b752ce3278486227c791d7a7b67473bea8ab2c9f59eeae96e349a",
+      "computedHash": "d41c63ff7c61d4636f54f6086d264d9bdbe9eb1554bca1c1177b6c20c20fe02d",
       "localPath": ".claude/skills/did-credential-lifecycle",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "did-resolver-patterns": {
-      "computedHash": "ba50e4d8efb025d0c6ba08c710db5ff1ac238e3ac072218fee8be589acaba887",
+      "computedHash": "59d771ee82fd7385eab0a4d64ecc0722c129884ca8c98c4a7fa63d39857d2e82",
       "localPath": ".claude/skills/did-resolver-patterns",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "disaggregated-prefill-decode": {
-      "computedHash": "e60a034adcb4bf2481849ba6cae05147e97bf32e7d003908108699c501e1b606",
+      "computedHash": "27e69a6238cd731238c3ec70ba45455e99d422fe80f8efb4c16167edba416fb3",
       "localPath": ".claude/skills/disaggregated-prefill-decode",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "distributed-tracing": {
-      "computedHash": "705c692a1a0b07a995f3fa41dbee358ca17868ed5c5992eb07a141ca2b9d903e",
+      "computedHash": "8d7d9d4106d2d4b4c97ca556a4a6425caa0bf150a6d296858e2477b18cfb5342",
       "localPath": ".claude/skills/distributed-tracing",
       "addedAt": "2026-05-29T14:13:40Z"
     },
     "docker-patterns": {
-      "computedHash": "c0c48ab57dc866a3b118c9ae0d864fd5562c7c266e4d1a588bc372382461a942",
+      "computedHash": "251e083c50ebf4cb5580083169e62aa694ac22e882f8bb8fa52f01780f2077b3",
       "localPath": ".claude/skills/docker-patterns",
       "addedAt": "2026-05-29T14:13:40Z"
     },
@@ -559,7 +559,7 @@
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "dompurify-xss-prevention": {
-      "computedHash": "d52995679b7aabe6f7ec5aa322838c7341447b0c9d6f01cc38b48644189a00ac",
+      "computedHash": "c3780f053960dea6f1780048cb9e6754cbf292770bd2face8083cee2cd8fd54a",
       "localPath": ".claude/skills/dompurify-xss-prevention",
       "addedAt": "2026-05-29T14:15:42Z"
     },
@@ -569,7 +569,7 @@
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "durable-task-queues": {
-      "computedHash": "6db3e0f2e2870f3edb748aebee0a19a7d8bc0b4b6596c4dc6f8a3888173c7e01",
+      "computedHash": "e355c19dabd6f8fe3c9402ac24cb3bb476491bfbf0c2cfdc431601e5e6ee0d9e",
       "localPath": ".claude/skills/durable-task-queues",
       "addedAt": "2026-05-29T14:15:42Z"
     },
@@ -581,22 +581,22 @@
       "computedHash": "741f626767c86f2a58f62537eec14973c41578fa1c83a32ed0eea925109b55b5"
     },
     "ebpf-runtime-tracing": {
-      "computedHash": "a2b759468453ed88393304639b1cc6b5a7411fbc98823b154c84b606671f9d50",
+      "computedHash": "1151a9c67677efd661ca3915c73d103d306b2af7bc7865d67a3d19f457dc4461",
       "localPath": ".claude/skills/ebpf-runtime-tracing",
       "addedAt": "2026-05-29T14:13:40Z"
     },
     "ebpf-syscall-monitoring": {
-      "computedHash": "816fc7c5ba54addbb61c42b2ddcf8a4805290918086ac560fc72b4ee5ffb6684",
+      "computedHash": "346cc1ca4cf3c7f8b5ce2902cbc8e31aa1b273fb6530efaeeda5e78ae7b1fdcc",
       "localPath": ".claude/skills/ebpf-syscall-monitoring",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "ecc-key-management": {
-      "computedHash": "a879fa2f50a356e1f02e3ba019ce460284e130f367f6c6a719650a7056402364",
+      "computedHash": "6794363214f641be1055ab79262d52a20633cf14fd340f517b2b940b905838b6",
       "localPath": ".claude/skills/ecc-key-management",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "enterprise-design-systems": {
-      "computedHash": "564580ef03c9e84986aa9a170473902fccd10d292865e71c26192e91874273e5",
+      "computedHash": "a929bd52797af341c13380b68fd18e82602095d22492a3c9680b55d9f5d42dbb",
       "localPath": ".claude/skills/enterprise-design-systems",
       "addedAt": "2026-05-29T14:15:42Z"
     },
@@ -605,10 +605,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/envoy-proxy-patterns",
       "localPath": ".claude/skills/envoy-proxy-patterns",
-      "computedHash": "0d1a1a92c47a088b2bcc81b18fd297b519bc2674035da696ba5359d9baeec212"
+      "computedHash": "7835294dffaf2b9de309e2e412939b69ba9a259f607ff930521d98bb8ac69964"
     },
     "error-handling": {
-      "computedHash": "927bf08eadc003b84b9a88c2732f1ab2c8069937162a6c4ae75511f5dbee896c",
+      "computedHash": "5f2d9c9d70adec1dc3845bab2cb8bfb9f9e3a1d4cb4bdefa118349f01f6fcbf4",
       "localPath": ".claude/skills/error-handling",
       "addedAt": "2026-05-29T14:15:42Z"
     },
@@ -618,27 +618,27 @@
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "eslint-rule-engine": {
-      "computedHash": "11faf1e2b5c2b4a807d78085a992ccd8a9c74d8858434911b47fe0be89245308",
+      "computedHash": "92a59fb477a43e604ffeddc88514cebed83ac6d2ef8d2594e2ae5e3f36560ff6",
       "localPath": ".claude/skills/eslint-rule-engine",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "estree-ast-spec": {
-      "computedHash": "008de142cf38585fb09834d4116a7dcb9d8286d60da0a654f880a53b13a008df",
+      "computedHash": "e327bb3d6abf7d573d54ecae6ecb193af83b671747343becaab0a7134ded02f4",
       "localPath": ".claude/skills/estree-ast-spec",
       "addedAt": "2026-05-29T14:13:41Z"
     },
     "etcd-distributed-config": {
-      "computedHash": "c4b152e09cac3e9f159903ee155f0dd4ccf803ef88c95d4dcdcf64139dc154d6",
+      "computedHash": "897b0aca3b8b5a9970271537d53064610f2635199fdbe319de7b29b6c87aece9",
       "localPath": ".claude/skills/etcd-distributed-config",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "eval-driven-agent-dev": {
-      "computedHash": "48dafd605334f251cd0b137c6752a6a8faa23bc723303af9e2057a4ced717a7a",
+      "computedHash": "8bd12d6b2e0797ea8a7ca70232ad179e78db84b46fa6dd6a66c552e0197664c9",
       "localPath": ".claude/skills/eval-driven-agent-dev",
       "addedAt": "2026-05-29T14:15:42Z"
     },
     "event-driven-architecture": {
-      "computedHash": "cc7b8c491ac97c7a4348c2e083152ba0a23a9ee0d7a1df467ca7d3ab1b7ea62a",
+      "computedHash": "4e9d82e4902c50f23a4f670185348d69ca341b1e23e644e27fcf6814866c154c",
       "localPath": ".claude/skills/event-driven-architecture",
       "addedAt": "2026-05-29T14:15:42Z"
     },
@@ -648,22 +648,22 @@
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "extism-wasm-plugins": {
-      "computedHash": "5452c8ddab5c86e429d8f66c70f64e7782f581042b2fee03025771fd5721d304",
+      "computedHash": "7d5a3a60f4573b92f75a167e926a766822185ebb0dbbc2d0532f05610d3d3a5f",
       "localPath": ".claude/skills/extism-wasm-plugins",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "extract-errors": {
-      "computedHash": "68cc6f6f432f4e93fbbaec50596663d220f2c12d6b8cdf75da369cb4655a7e43",
+      "computedHash": "44c88a8d6a8aaf52794aff34221fddd635ea41e638736d8bd435e8c24d044306",
       "localPath": ".claude/skills/extract-errors",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "feature-flags": {
-      "computedHash": "bc1482e6d9109565722540fc231e3b07cb4b5f1be05ab4ca64e690b9c90bceaa",
+      "computedHash": "dd0763c6d299dececa25c031bb0cde0fcf52c67fd5831c44fc288c77e0a7b49b",
       "localPath": ".claude/skills/feature-flags",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "fetch-redirect-ssrf-guard": {
-      "computedHash": "585b7b9fe09ec0ee2da9415b82c970eaab543e67bdd76fa632c46136f9853c5b",
+      "computedHash": "9dc22d89b966da42b9bb5e301518d784ff8d10f18440d15536c3fa467e696cb1",
       "localPath": ".claude/skills/fetch-redirect-ssrf-guard",
       "addedAt": "2026-05-29T14:15:43Z"
     },
@@ -673,12 +673,12 @@
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "filesystem-isolation-chroot": {
-      "computedHash": "6df0956555077ce279aeba7b39fee71c1a7f19ace2e365da98d14c409aaa8bdb",
+      "computedHash": "f0cbec807c302dda790bdf5320e5e16e3f869f80b67eb07a42e0542654649e18",
       "localPath": ".claude/skills/filesystem-isolation-chroot",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "financial-velocity-budgeting": {
-      "computedHash": "b92226ed93ff75d480ebd0a2ffa98be78b233f949ca496c737e0d902452cf496",
+      "computedHash": "014cbc340ff51e7b07f6df9eb5accf7d012acdd2c8a804c44261435b6fc2bad4",
       "localPath": ".claude/skills/financial-velocity-budgeting",
       "addedAt": "2026-05-29T14:15:43Z"
     },
@@ -688,22 +688,22 @@
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "fixing-accessibility": {
-      "computedHash": "4c3348146e175710f4e18930d074b0a8d21d62b39c9ec9e6f868cd882f863b21",
+      "computedHash": "544e87a992b2f724687ae7df9d7b268cabffc5b3e67e5cd7422a8767c8cec17d",
       "localPath": ".claude/skills/fixing-accessibility",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "fixing-motion-performance": {
-      "computedHash": "cf0b55a888e02e0595279939057c635dd205baa689bd6508331af3977d67c8c4",
+      "computedHash": "89f4e1fceff252baa6d4d3e2187bdc71a8d2361b693ac37dea28f6cd9283d20d",
       "localPath": ".claude/skills/fixing-motion-performance",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "flash-attention-patterns": {
-      "computedHash": "a7092a3b04c59297f2d5239fb5f60b3c4ca68a1d830ae388e6accab81e0a8405",
+      "computedHash": "080d21b567c26f8e26420e9c52eeb50387e1f4840e07226cbd183b22aadcfad4",
       "localPath": ".claude/skills/flash-attention-patterns",
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "flow-anchor-connection": {
-      "computedHash": "51f1e071e9ace048660eeb8b5ae0b5e6cf559e3d1b98d90b8ebb1b0537dff51d",
+      "computedHash": "44f058146ecf40f3370df1876f30ffb3bbd8fb3254dfa500aadc087f88c67552",
       "localPath": ".claude/skills/flow-anchor-connection",
       "addedAt": "2026-05-29T14:15:43Z"
     },
@@ -713,7 +713,7 @@
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "generative-ui-patterns": {
-      "computedHash": "bc43e3ed1779f2af5c46cfc03d3122b516645b14e13fb6b89921890a5fbf403c",
+      "computedHash": "6df4b2a3aad530826f48e3540ac823263ed04e78868f0678c8491e38f20ae80b",
       "localPath": ".claude/skills/generative-ui-patterns",
       "addedAt": "2026-05-29T14:15:43Z"
     },
@@ -723,12 +723,12 @@
       "addedAt": "2026-05-29T14:15:43Z"
     },
     "git-native-agent-protocol": {
-      "computedHash": "b963fd96250b9d07c3259b018d2d5cbbe35205ec617040172ea9a63e9fe8025c",
+      "computedHash": "eaee902d2c7eaf6210cf086726dd9d5d854cf3681539ef8a6c888c52f80b712e",
       "localPath": ".claude/skills/git-native-agent-protocol",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "gitignore-pattern-matching": {
-      "computedHash": "5800cc37aa3ef2aef309df94e769cb1a1f2304c046ce960042253c7a510072d0",
+      "computedHash": "e70c872d1a7a62ab264072421a9e2ad41414c99eec0449ed0a4cad13d2256a65",
       "localPath": ".claude/skills/gitignore-pattern-matching",
       "addedAt": "2026-05-29T14:15:43Z"
     },
@@ -782,72 +782,72 @@
       "computedHash": "7bca02970355f8176e157ddd6cca11d111949886407cf1382ccaaf1ca309694a"
     },
     "glob-minimatch-patterns": {
-      "computedHash": "0a79c75648ed5813af530f44e06c34845e31d14efb1443a9abe2202926f86871",
+      "computedHash": "bce02dcf85df9730225777210a5775a765883c08a040ccf897a77ebe0f40bb9a",
       "localPath": ".claude/skills/glob-minimatch-patterns",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "grammar-lexer-dsl": {
-      "computedHash": "34782b5e796812023fd51d7262ec595a38e6bfd67979c97ef60ceed16d257dd5",
+      "computedHash": "4ceda3edba8bb67a9e34c75a375d150798ba5f22a567b0f0dc299b3dd9f91942",
       "localPath": ".claude/skills/grammar-lexer-dsl",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "graph-data-structure-ops": {
-      "computedHash": "72a0c96f3fd7e6dea39c4714a8b2a35328a3604361e4f2420d8a384ef2d51a8a",
+      "computedHash": "7d733be0273eaa4e32d7e792110bbcb70d2065f9b5f79288c1c9f4ca7f4576bf",
       "localPath": ".claude/skills/graph-data-structure-ops",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "graph-dependency-resolution": {
-      "computedHash": "814defcef912db04d9be2c958e3cffd40630abf2b736e43c08ab64f688994ae7",
+      "computedHash": "6f009112e5d83f6f7e79d0d5b3a9b2408f7da9dbd542dd5f78dd219df310bd3d",
       "localPath": ".claude/skills/graph-dependency-resolution",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "graphql-patterns": {
-      "computedHash": "5b4d4ebf1fd2d1bab893583c8a527192edeaf8086335a5764c8624121405509b",
+      "computedHash": "75610b0bf26ffe0bb520b96f93622b1cd7c2deec91131d141fed18ff22d7be59",
       "localPath": ".claude/skills/graphql-patterns",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "grpc-streaming-rpc": {
-      "computedHash": "c5523ac94c5c50a7018d6e357d5e2d4c8420ea15709235bd4ed94e0c06bcc5a9",
+      "computedHash": "4f8a6a361c0ac11f8f6d54af16c571a9031ee8a5e1b1f7c766c4890544135c78",
       "localPath": ".claude/skills/grpc-streaming-rpc",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "handoff": {
-      "computedHash": "1341d0faf1137a8ef3ae53c157c2d0a837c645f4301fa59eb06df811e36031fe",
+      "computedHash": "3c36014ee5d34018455d95944177f434084445db5fffed16e49ae35041170f4c",
       "localPath": ".claude/skills/handoff",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "helm-chart-packaging": {
-      "computedHash": "8c2ace2e042b1d41abfdb27b943a6afeed86f48e65047492ea855282d9b95e4f",
+      "computedHash": "ee7283cac7c5a75623649fe1356f46fe5d3706d1f125819ef2e9e17af5aa30ce",
       "localPath": ".claude/skills/helm-chart-packaging",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "high-perf-data-algorithms": {
-      "computedHash": "8d40ebdb1d2167f2820d26553c6d9ca3fd63631d2ff0cbd9cf47e07ce54ddbf6",
+      "computedHash": "bc5859d2f323b14e5e78b30056086ba6cbf1545aae0bc1390dc97843c4e6de3a",
       "localPath": ".claude/skills/high-perf-data-algorithms",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "honeypot-deception-patterns": {
-      "computedHash": "d44ca776e15a5fdb21c7f1204905a1d0fbdc4b5471a623960f6d6042b89fdf2f",
+      "computedHash": "97587fe93e189e7f82f99157c17935290921430923098f146e6534f4020ced73",
       "localPath": ".claude/skills/honeypot-deception-patterns",
       "addedAt": "2026-05-29T14:15:44Z"
     },
     "hook-block-commands": {
-      "computedHash": "6f972932642e465835cbb1944c54567bc258b89b87036e7d118e8df8181d0d72",
+      "computedHash": "2149ab0d8bd681d1a6bfdabe9912bd989ddc726270efecc53d4c2e619ccaa181",
       "localPath": ".claude/skills/hook-block-commands",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "hook-protect-secrets": {
-      "computedHash": "d0bf6a046a72c4c318d3c8e17e5abdcaec86a61fae3051e06da90cfab11a64b1",
+      "computedHash": "59a1a4272896c3d603e5af360d0693e22efc2db29f2174dd22ff42fe20aeeaa4",
       "localPath": ".claude/skills/hook-protect-secrets",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "html-xss-filtering": {
-      "computedHash": "ae5727de23369015b35a1b72fbf768edc09b35f52ebba08e1d91e0846e00fcfa",
+      "computedHash": "d424772225387d1ffdd8c2558527339e41b67a96902930f2d5d08b3697d86c7d",
       "localPath": ".claude/skills/html-xss-filtering",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "htn-evolutionary-planning": {
-      "computedHash": "f5d98f5949c1a2bf2ce7df2d58edb750d1fabc2708081db8533ccbe60fe74920",
+      "computedHash": "f078199d6734b57f80a637260297ed3d3c49c00ad047ac9773b3019821e26248",
       "localPath": ".claude/skills/htn-evolutionary-planning",
       "addedAt": "2026-05-29T14:15:45Z"
     },
@@ -856,15 +856,15 @@
       "sourceType": "local",
       "sourcePath": "core/skills/http-client-auth-patterns",
       "localPath": ".claude/skills/http-client-auth-patterns",
-      "computedHash": "8c0c74d71c843c61b12c19240deb613dcab109c0d67967cd334c7f10271a139c"
+      "computedHash": "18d705707f1a0e3be114575f6623ddc53cf0d7bae5ba5e91364a3e2c81f50c60"
     },
     "http-proxy-intercept": {
-      "computedHash": "5f10654aaa8a451d5ed911400b0ee6f7908cc5d398db43f876bb51bf78369f4e",
+      "computedHash": "000c55cf828b59d9c47a550aa2362504e01b109854b15ff8cd937d7fd5197dcc",
       "localPath": ".claude/skills/http-proxy-intercept",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "http-tunnel-patterns": {
-      "computedHash": "ba03c9e0264a8dccdb8156ca023a2450aa2f5586b460e5ce6efaed2f5dca15ea",
+      "computedHash": "814837069e79f535fda9f0f07987f7721fc8be7a6f25b99cfbf74d91ddd931fc",
       "localPath": ".claude/skills/http-tunnel-patterns",
       "addedAt": "2026-05-29T14:15:45Z"
     },
@@ -873,20 +873,20 @@
       "sourceType": "local",
       "sourcePath": "core/skills/hyperdrive-distributed-fs",
       "localPath": ".claude/skills/hyperdrive-distributed-fs",
-      "computedHash": "3ccab0fd5a3b058d2495dc90c33775c235bf481b2519b27d294c5d36e1d847b7"
+      "computedHash": "815b68804886220f37bdee2163a5aeedc6a5457a587ce88f8fd3b373e895c8aa"
     },
     "i18n-patterns": {
-      "computedHash": "cec48989a1cd1689c10019f9cd853152a8f211b8d13e7ec00ae9539792aaefd4",
+      "computedHash": "d3b4ad9d508aebc2c7635af146af7a9f9fb5ac5d17995e1418b0dd6f210eede5",
       "localPath": ".claude/skills/i18n-patterns",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "image-to-code": {
-      "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
+      "computedHash": "7d3fa943564fd93fb4b4d4c26a06a2bc96d90ca2ccefe3494d0dbeb747f13f36",
       "localPath": ".claude/skills/image-to-code",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "immutable-identity-patterns": {
-      "computedHash": "2a3d89587c771097b732a237f86c25802e273ef88e241d430863f656c99c82a7",
+      "computedHash": "f67826431b57fac3ad78e628de3a6416667e414f83b003b54b9d2bd2ebdb2dda",
       "localPath": ".claude/skills/immutable-identity-patterns",
       "addedAt": "2026-05-29T14:13:44Z"
     },
@@ -895,25 +895,25 @@
       "sourceType": "local",
       "sourcePath": "core/skills/impeccable",
       "localPath": ".claude/skills/impeccable",
-      "computedHash": "a1ebe012536ce4528f0788126d93a165f37382a0c3fe0d2bca5cf4364be3bf54"
+      "computedHash": "ddaaaeb064ee31d71b389fa0274a832b3de22f8534ed7803af5a4c77169e7920"
     },
     "in-memory-vector-storage": {
-      "computedHash": "656bb338c25a81f6fda95f0ccc5ebed1decfb63db5b4d518409d78f53c4159fb",
+      "computedHash": "b0e54439e579ec69cf974db8df92bd3b635dddfe74d32fdaa9f177000c956656",
       "localPath": ".claude/skills/in-memory-vector-storage",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "incident-response-runbook": {
-      "computedHash": "72af96eb8309e76b83045448cf520ef2a36433376f38e5e8ae6b17738e113422",
+      "computedHash": "f257a78a035bce3877dc050f6351c67d5bad523447f9169831f034162ee2b6d1",
       "localPath": ".claude/skills/incident-response-runbook",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "ingest-repo": {
-      "computedHash": "a3cd0cbd07795d796d3bbab808126e5ebae5921e186161c9e8b2e9c33551e441",
+      "computedHash": "fad64521c10ea027475f849cbba67fd96db4261741e4b4a78f32786aa305cf1d",
       "localPath": ".claude/skills/ingest-repo",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "ini-config-parsing": {
-      "computedHash": "7c27eba4c5c37ebcb9199ef72ff71172542960fab2330d5446e0f593fd5c93d1",
+      "computedHash": "987a845ab7da469ec5d1303a08bb4ca8e81afd5fd3d18a4c5e8215c5a8ebdccc",
       "localPath": ".claude/skills/ini-config-parsing",
       "addedAt": "2026-05-29T14:15:45Z"
     },
@@ -923,47 +923,47 @@
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "interface-feel": {
-      "computedHash": "8a023749774b27c849af588d66d5e2e75abbae17221ff100361ff7ef267a5565",
+      "computedHash": "4d802107c16041507b13e2ff6cfdcd1dd7054c64cd61cc073cb49697e9ac436c",
       "localPath": ".claude/skills/interface-feel",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "istio-traffic-management": {
-      "computedHash": "d9a8b9c9b70db9190a4ef4447a36de9957e77eb22928f55d085e60b7e527f293",
+      "computedHash": "5c9f211e1a662cc25c5ca800d1226978ef8d3b022db75ef7d95eb7ff5e22692d",
       "localPath": ".claude/skills/istio-traffic-management",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "jaeger-tracing-visualization": {
-      "computedHash": "36eeb5161815dd769db28a859d05fd955e6ec2382572e4c9d2146d3b967812da",
+      "computedHash": "9830347fc497d123b81098eb7288fc3b4e0c95bc721e734e3ee6fcb5cb48e18a",
       "localPath": ".claude/skills/jaeger-tracing-visualization",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "jepsen-fault-testing": {
-      "computedHash": "169348f5ea49b6943360dfa79c0b631e618f6060c6691d0c55bf146b8106b89c",
+      "computedHash": "fb6d62d829020fe6732fb9382d460f1dc0969ef474c2c0a590ab6a264f616f11",
       "localPath": ".claude/skills/jepsen-fault-testing",
       "addedAt": "2026-05-29T14:15:45Z"
     },
     "jest-test-generation": {
-      "computedHash": "a17a60b57703e234b724c2cc10fef6b6d4c69550701754aa3c9f5da832b154ac",
+      "computedHash": "77e4a88dd272ad72a7c93cc8eae03d9009c3ec0de5605a58a146643556e1fcd9",
       "localPath": ".claude/skills/jest-test-generation",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "jwt-jws-jwe-patterns": {
-      "computedHash": "3fb0c96e445267ef5f34b5146c5105f1abdba5588190324a9bc262ac51dc841c",
+      "computedHash": "ac132fd4e8dd2cff6a38c561e25b616b4762e99174a1c61e27ac3aa33f4d4d25",
       "localPath": ".claude/skills/jwt-jws-jwe-patterns",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "jwt-verification-patterns": {
-      "computedHash": "293e43c52afec4a05d859206a4680046b08f732fb8925cf36b614d6e5e9d6d2f",
+      "computedHash": "58b81b48379bfa2ee262bbeac3dbac57d09deab2add1e7ee60cd508f00075ac7",
       "localPath": ".claude/skills/jwt-verification-patterns",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "k8s-client-js": {
-      "computedHash": "23f7ed75768eade579aaf048d32f515592849b7178e9d017b8540d0731f5c6fe",
+      "computedHash": "4741c37a992deaebe49518acccdc3ba2e61d6b225ca0f7d63876e6ada175a439",
       "localPath": ".claude/skills/k8s-client-js",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "k8s-crd-controller": {
-      "computedHash": "945d1b97979aa285dbc2c57f3baf5845425dc1faf23b7c3ea0d4e0586ee2c2d3",
+      "computedHash": "636c304416b5ff3721d0bffb6c660dd0e3a4ee4d56091b2446085a0665c64217",
       "localPath": ".claude/skills/k8s-crd-controller",
       "addedAt": "2026-05-29T14:15:46Z"
     },
@@ -973,27 +973,27 @@
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "keccak256-hash-patterns": {
-      "computedHash": "8c77767acadb3330d313fdb555900401e9076560bb35bea9dd966c922a0cf647",
+      "computedHash": "353cd8ef474c7ad9a625a91e2ea9046b2f3bbd0d34ef939e79bc606d00fd434d",
       "localPath": ".claude/skills/keccak256-hash-patterns",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "ktlint-auto-format": {
-      "computedHash": "669f136cd6f49ce3caff6559fc54da4086e0a456afe6840a44f82e9591c0ff1b",
+      "computedHash": "ed44ba90aeb34846ef8ce87ce3a132bf9820dee39a5de9ac2180f2a77f90ed87",
       "localPath": ".claude/skills/ktlint-auto-format",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "kubernetes-patterns": {
-      "computedHash": "102643a4a495e6c35c547d5da7c13d4095689d612b6771c1572283bcab62995d",
+      "computedHash": "f9b6d3c7f1d96d21eae36db98f99b4520e34029775fdaaf7beb7a3582225b202",
       "localPath": ".claude/skills/kubernetes-patterns",
       "addedAt": "2026-05-29T14:13:45Z"
     },
     "kv-cache-optimization": {
-      "computedHash": "1fde99f85ddcbeb9f1cdffc4aeee2a0fa559be0b9dab223983af6b86dc7f702c",
+      "computedHash": "0f29db3664fc6f8f5f924a5ac357491e7d265ad07626483bfa5d6a9f9cdb5dbb",
       "localPath": ".claude/skills/kv-cache-optimization",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "l1-promote": {
-      "computedHash": "1206e00910ce64c64057dc4fa6d76804be7959ca5e27501fe5b152306a470105",
+      "computedHash": "9b0e0955b2e8573665d06d3c656fa4d47a7a69a116988795c7de24aadced6e85",
       "localPath": ".claude/skills/l1-promote",
       "addedAt": "2026-05-29T14:13:45Z"
     },
@@ -1008,17 +1008,17 @@
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "leak-check": {
-      "computedHash": "cccc575d19fe2f08fbed384d38015762ad55460e74e239e5f4a36241cdde922a",
+      "computedHash": "fc85af99c9e6058ebb5c28a64679fba4758a8905eb9ce884b69fff41209677d2",
       "localPath": ".claude/skills/leak-check",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "linkerd-service-mesh": {
-      "computedHash": "7ee8a88b8ae97062d626389e1a093bee7c68ed8080bf40cb9eddcbe2d5a11a3b",
+      "computedHash": "f96d57aa1bd09c0686aff1eeb89b8ef95ca6bdee4237abad5e4f507a4269d9f4",
       "localPath": ".claude/skills/linkerd-service-mesh",
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "lint-staged-git-hook": {
-      "computedHash": "b363da5aef448aa51e10eed6676f8d27fb8df7310dfea960bf8e6f1d987a12c1",
+      "computedHash": "b3d9dfc896d74283de8ffbc642900d703a473f94d0e7155659cd8976c381c7f5",
       "localPath": ".claude/skills/lint-staged-git-hook",
       "addedAt": "2026-05-29T14:15:46Z"
     },
@@ -1028,7 +1028,7 @@
       "addedAt": "2026-05-29T14:15:46Z"
     },
     "llama-cpp-quantization": {
-      "computedHash": "da93ee2f539ce283ccd3067330175b40455e87e12acd187412a815d5148ea11d",
+      "computedHash": "59af1cb93bd80503041be63ba1853304b7437cd675c6c87e33c647f6b9d4ee63",
       "localPath": ".claude/skills/llama-cpp-quantization",
       "addedAt": "2026-05-29T14:15:46Z"
     },
@@ -1045,32 +1045,32 @@
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "llm-eval-framework": {
-      "computedHash": "2b04840f4527ee1c575b1251ac0aa572619409948e5781604f23588c998c6ac5",
+      "computedHash": "f75e2b60cda9ac0316e6c440bcda8665a1e8fb9f4c906a4c06dfa5b5d1283074",
       "localPath": ".claude/skills/llm-eval-framework",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "llm-int8-quantization": {
-      "computedHash": "18cb8b1c9d1396cd256c1d64663304d12ce5b3cedb1bfaed16f671b65a131cdd",
+      "computedHash": "2122688f33ec232c19975a2153a35f7c5a9664a3f9c494c42efb5d3ef1494eab",
       "localPath": ".claude/skills/llm-int8-quantization",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "llm-load-testing": {
-      "computedHash": "5ac37048d1879be8a8b1dcb42daa11bb2a451d7b1d591d3ecbe52361bdd74c3b",
+      "computedHash": "13d68c65477df5a16597a3fbe98c57d8ab1d1e665e83292d39120150fbf56062",
       "localPath": ".claude/skills/llm-load-testing",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "llm-output-validation": {
-      "computedHash": "5ab4b99d456039869ac5dfca9a54e56c3537efda2d11e8a6e3a4d2148ac29e47",
+      "computedHash": "71fdb3658e2bc7430596bf4b39cd5652320e25b7ba0db8c2d3c820d08bba58c6",
       "localPath": ".claude/skills/llm-output-validation",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "llm-ui-patterns": {
-      "computedHash": "a3b704dba10012450a6d9562085a8750d0bd1a96ea08cae3aabc636624f56543",
+      "computedHash": "fe1e224391b2a769e7bab255bc1664c5017b44f5bd9b7be31fd6a3afc9292864",
       "localPath": ".claude/skills/llm-ui-patterns",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "load-testing": {
-      "computedHash": "116fbb25e506dc9ac70b7f038932b9e560e44718768bb1ede99de70c8680ae00",
+      "computedHash": "ebc6e44c81ab2b6daff2e918b8d3330ac9b0e27d67fd46b269824c92a4b18d75",
       "localPath": ".claude/skills/load-testing",
       "addedAt": "2026-05-29T14:15:47Z"
     },
@@ -1086,7 +1086,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/loki-log-aggregation",
       "localPath": ".claude/skills/loki-log-aggregation",
-      "computedHash": "f2a01848c00626c3cd72d8f82443bdb762ee2f1e799135f7b5e1d9496216067c"
+      "computedHash": "0786c5591b41ad655ce4bc84736733ce05af5dbf3b2b647256522259444e5839"
     },
     "lsp-navigation": {
       "computedHash": "8029caf0191274ae9a8c0552810a7c8dd79e2f32ec8349aada07caef9a13b050",
@@ -1094,12 +1094,12 @@
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "magic-string-sourcemap": {
-      "computedHash": "fdcf97fbff79155881713aa320fd8613cbc005003f887f6cdbce6ee1459606ab",
+      "computedHash": "3a8ad7b65369d69297c6565addac8dacc078224f4b1da7228153dc652afc87d7",
       "localPath": ".claude/skills/magic-string-sourcemap",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "matrix-dimensionality-reduction": {
-      "computedHash": "e9bc8e6cff15b4972f2f9748a085e5c90f66ed6345784e6682ce1248f9e941fc",
+      "computedHash": "b7098d462874db477190961a6e1a00165146a95a49036fb9a824c68795806a55",
       "localPath": ".claude/skills/matrix-dimensionality-reduction",
       "addedAt": "2026-05-29T14:15:47Z"
     },
@@ -1114,57 +1114,57 @@
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "memgpt-virtual-context": {
-      "computedHash": "583ebcbaa5fa34fc156d0254516b930e4cc13aabe046d2bef91b5d97209d1ee0",
+      "computedHash": "a08dfae29d6bf604f50ac02eb0aa2ab1a53f391b5e7a0f18e0dfdd5ace339737",
       "localPath": ".claude/skills/memgpt-virtual-context",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "memory-gc": {
-      "computedHash": "4ea32e7669a44f96dbd8ba2cedc314dfdca38800f1bb80b713aaf9870e8ee62b",
+      "computedHash": "1e170055d6e871acffd37a168d1e161c9f7fdbe3b6299e6d95e4ab2c3a22ba00",
       "localPath": ".claude/skills/memory-gc",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "memory-leak-detection": {
-      "computedHash": "fb61ae650f29159efce6c8676a3ee4e2b5a34985e8bad5e606f71f8ad43d4b48",
+      "computedHash": "0cadd678d816366c7ed0f70eb055a485293f0385e62861097c2420d44eb52445",
       "localPath": ".claude/skills/memory-leak-detection",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "merkle-mountain-ranges": {
-      "computedHash": "da50cf1f4f257780737be0d7525f4d56c1581cbfbfda48cb7bb2392b824a129c",
+      "computedHash": "762209551a83b05f80dc23d8cbf22825cd2ec9155dd440ffebf2f566ae5f69a3",
       "localPath": ".claude/skills/merkle-mountain-ranges",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "merkle-tree-audit": {
-      "computedHash": "cedfc6c8e552be614187805acfbb9050d8168adbd2688d1530f2fd91a414f8e6",
+      "computedHash": "c97b424e1c71107545ccb9cbde02b84e5ef8613f27991f166b36884087b3b6d1",
       "localPath": ".claude/skills/merkle-tree-audit",
       "addedAt": "2026-05-29T14:15:47Z"
     },
     "mermaid-diagram-generation": {
-      "computedHash": "5ad318cb57cadb93d2d9b35a81f1ed493bd479647a3a90714eb31c87db7626d2",
+      "computedHash": "b9b177fe169111f6748defd789864636971ddb600be616281ca9cd7cebec1e48",
       "localPath": ".claude/skills/mermaid-diagram-generation",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "minimal-base-image-patterns": {
-      "computedHash": "63c676180875c67b1ce398df7e68a7cdd2a391d4ba7bf5b326b3e2fd1b84b794",
+      "computedHash": "651e21c87e759adc63a2ee610466256e0bc9535886ff946b846315c8c0827d07",
       "localPath": ".claude/skills/minimal-base-image-patterns",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "minimalist-ui": {
-      "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
+      "computedHash": "774a77cfdcdbbb98c8a546b52e68a48da0e767d7ae77d5a5a135920c526122c2",
       "localPath": ".claude/skills/minimalist-ui",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "mlops": {
-      "computedHash": "660d76059de06fc5530a14e6c44b0cbac1bd8b81876a4fcdff1141b99900d707",
+      "computedHash": "3dff4ff999c9a0ff5e8aaf475cddf91321636a6419d217213c544f9c261f2d5f",
       "localPath": ".claude/skills/mlops",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "mlperf-inference-benchmarks": {
-      "computedHash": "0733bfac791ad9c4cf64699c9df2610545a6706d456845778109b8b0960b5dba",
+      "computedHash": "8cad6b449a137e727b471a8529835b2ae370cb71e621bb20aa3de9300593b466",
       "localPath": ".claude/skills/mlperf-inference-benchmarks",
       "addedAt": "2026-05-29T14:13:48Z"
     },
     "mobile-ux": {
-      "computedHash": "4483f56c95239e370e649a16376c7cb753b4d650b68eadb2d3bc7b965a8c6b44",
+      "computedHash": "530ecd6f3318bd1bd1ff2790538e37827e909f810c9215105d6c5a8334481f38",
       "localPath": ".claude/skills/mobile-ux",
       "addedAt": "2026-05-29T14:15:48Z"
     },
@@ -1174,17 +1174,17 @@
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "monorepo-governance": {
-      "computedHash": "8fecc30f016edf014769ace7aeb2845815fec744a2ca2ed51710c66cc6eeac72",
+      "computedHash": "63288a2440ee293e80c723b247acf80c3229c8ec6ea4107a2f6c660c6c51f2ef",
       "localPath": ".claude/skills/monorepo-governance",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "monorepo-patterns": {
-      "computedHash": "7f31956f21250e24507b2462681b37a48164b53feae2fffb6610d0d8eabfdb23",
+      "computedHash": "18493e91a4b87e0eb9c97005d0d598a203a170645434c0fded2a45d830f655c5",
       "localPath": ".claude/skills/monorepo-patterns",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "motion-design": {
-      "computedHash": "516659be3fded4ad9afc3d345ced0adc827bb1d02c957c4ce559e4317ce53649",
+      "computedHash": "b10d0fa7ab0840bec59897484eff8d4b1017cd267b3e73a4014501755fa8a09c",
       "localPath": ".claude/skills/motion-design",
       "addedAt": "2026-05-29T14:15:48Z"
     },
@@ -1193,20 +1193,20 @@
       "sourceType": "local",
       "sourcePath": "core/skills/motion-physics",
       "localPath": ".claude/skills/motion-physics",
-      "computedHash": "0f18cc4acb039673703199989dba65608e6f4acf3d16c3021a070f6b78b525e0"
+      "computedHash": "18772c68967941bc6f4d25dc3ef6aa5e62f688e9f68b3405bbca2f6451873a44"
     },
     "msgpack-binary-encoding": {
-      "computedHash": "c4825c8db8725924cf14100e3e5088327eccda311dbca1dca06417603d93030a",
+      "computedHash": "7c1029ab7050bb32205e623cf478699d9c70660c53123386b77be84ad8bc3460",
       "localPath": ".claude/skills/msgpack-binary-encoding",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "multi-agent-debate": {
-      "computedHash": "c98b4583357f9a71963d406df5c74a8382ecae7c0009eb3a70880856e67a5cce",
+      "computedHash": "336e0f63edf5d4ed0bc2471551cc932ce4de3f0f408d9df9ca710b4791e3796e",
       "localPath": ".claude/skills/multi-agent-debate",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "multi-agent-handoff": {
-      "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573",
+      "computedHash": "560bae950da59adb8005a3ac8b2473917798ddeb39f3e90afe548d9c00c30407",
       "localPath": ".claude/skills/multi-agent-handoff",
       "addedAt": "2026-05-29T14:15:48Z"
     },
@@ -1216,17 +1216,17 @@
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "ndarray-vector-math": {
-      "computedHash": "74e4e4efa7ea5e5595f65f7c567c0a865dca38b096e810b600da0af11de17d02",
+      "computedHash": "284937cb0e882718f8c0d67bd587906c626718664817ecb97a88cb4a5f4fbe45",
       "localPath": ".claude/skills/ndarray-vector-math",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "needle-haystack-context": {
-      "computedHash": "a8ea1d43560e4ab64304d1c0c9cf877322596c7f9f0d68af191fe6d1774b4497",
+      "computedHash": "b44cc944e6724407b3fd4e7c3f49d1cac539b4c8b3cba165c10c17543ecf39dc",
       "localPath": ".claude/skills/needle-haystack-context",
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "nextjs-patterns": {
-      "computedHash": "d4efc351384b3623ca4e8372c91f02c5be91b15073bc9a96c58208420940c2f9",
+      "computedHash": "1b3d6e02af49664b0a663f2a5842a34fbe80c95c4e89fbff5baffccd96c8ac2a",
       "localPath": ".claude/skills/nextjs-patterns",
       "addedAt": "2026-05-29T14:15:48Z"
     },
@@ -1235,10 +1235,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/nlp-normalization-patterns",
       "localPath": ".claude/skills/nlp-normalization-patterns",
-      "computedHash": "830748aa32f7b3db249a22683eaf74d3ee1f7cf4f6923d6f082b262ee76a516f"
+      "computedHash": "6322b26b6c7dba8a4206d1670850b03db1648ad6f7d48d3cf13e9233878cd473"
     },
     "observability-instrumentation": {
-      "computedHash": "a5f50f302b0cf47b48b1f8a841ce8b2fce28138652cf4035e730e7142ff0ec61",
+      "computedHash": "12beb9f9bc27cbd51a27d80dad3321b50fc88277e09fccb771c653d28b5962b0",
       "localPath": ".claude/skills/observability-instrumentation",
       "addedAt": "2026-05-29T14:15:48Z"
     },
@@ -1248,12 +1248,12 @@
       "addedAt": "2026-05-29T14:15:48Z"
     },
     "onnxruntime-inference": {
-      "computedHash": "64aeba21508ec4e3dbc2857404425e1d4da0aafabffbfd067fb59b02e74cc0d3",
+      "computedHash": "15856fb138e1149a2bba94bd897c7fa19ffcbb26d80aa8f9647a75d26d09fd3c",
       "localPath": ".claude/skills/onnxruntime-inference",
       "addedAt": "2026-05-29T14:15:49Z"
     },
     "opentelemetry-distributed-tracing": {
-      "computedHash": "ea531ff6e65fdefac52f687402b524bf16cb5a9d673e94227bd16ae9e8fbd99b",
+      "computedHash": "25cb3dd6cb5ac060b174dd152a68a69a5d10722dd6cbe9cac437f7032813fe29",
       "localPath": ".claude/skills/opentelemetry-distributed-tracing",
       "addedAt": "2026-05-29T14:16:24Z"
     },
@@ -1262,7 +1262,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/opentelemetry-semantic-telemetry",
       "localPath": ".claude/skills/opentelemetry-semantic-telemetry",
-      "computedHash": "b3cc12f629a3c2db8ae4250f349f1b0cb48ec269a052c5bb65cbf9259313ca2d"
+      "computedHash": "8e3415eed6afe69c1941b347e11358894cd6f9b758306a90f6fe5896b93fad92"
     },
     "outlines": {
       "source": "yamtam-engine/core/skills",
@@ -1276,28 +1276,28 @@
       "sourceType": "local",
       "sourcePath": "core/skills/output-enforcement",
       "localPath": ".claude/skills/output-enforcement",
-      "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f"
+      "computedHash": "7f2619ddf72847b5c884c7f672e5b41c4515f4ab98cd718e572fab25212f3474"
     },
     "overlayfs-runtime-isolation": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/overlayfs-runtime-isolation",
       "localPath": ".claude/skills/overlayfs-runtime-isolation",
-      "computedHash": "9faf39527ffa33137a143fc79328fc2d1aeb81ded25e0b238993b1ffe4f4697e"
+      "computedHash": "baf59d014ece9330dcba1a1b5579d0dcc192edb982429f2587390cdf215dafcc"
     },
     "owasp-llm-top10": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/owasp-llm-top10",
       "localPath": ".claude/skills/owasp-llm-top10",
-      "computedHash": "f76989da08b75ad71552dbc6668dc8b4d4c94064c769223248515701cc85a4ec"
+      "computedHash": "9968907acb3e18721ddb019b0b8cc2d37898f44e3ed54a3735b01044ac7d9ae4"
     },
     "p2p-chronicle-log": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/p2p-chronicle-log",
       "localPath": ".claude/skills/p2p-chronicle-log",
-      "computedHash": "9d7512da56d89bdbd9d7acac3fa8a6cea18a6a01f347d1addc8432ac9ac645bf"
+      "computedHash": "cf2c1534d9a283813410b1807d9960d94329d9fc25fdb69937aa3d0b129b14cf"
     },
     "performance-profiling": {
       "computedHash": "d47e121fbb0307f717a44a06081aa0e626f0447cc4f5c8390692787a97832aad",
@@ -1324,12 +1324,12 @@
       "computedHash": "4cd1ca4de7a6834c441efd349ab717164063981a23fd95bb16db82be97587913"
     },
     "pouchdb-sync-patterns": {
-      "computedHash": "c6fdcd5caeaf5f5f5719491b2f9331451554f7466a252f5e81808a56617e49f1",
+      "computedHash": "aecf479b7642bd6778279a4f3f9d13993d1a39a7aa4410653408dec61cff535b",
       "localPath": ".claude/skills/pouchdb-sync-patterns",
       "addedAt": "2026-05-29T14:16:24Z"
     },
     "pre-compact-backup": {
-      "computedHash": "c83e03942e493e9b1d5df1f14c4ff9b72a1191af9b75ea32a366b16946af3dba",
+      "computedHash": "9a3f687bfd59022f0943d0f321438836cf71083c635af7042ca0e660435a2ec0",
       "localPath": ".claude/skills/pre-compact-backup",
       "addedAt": "2026-05-29T14:14:12Z"
     },
@@ -1338,41 +1338,41 @@
       "sourceType": "local",
       "sourcePath": "core/skills/process-existence-check",
       "localPath": ".claude/skills/process-existence-check",
-      "computedHash": "822e7e69ff6a211b5dfb1205ea55774b91a5c0deb5f7ca0c7afeaf7a61b15a09"
+      "computedHash": "cd408f2d8efb5d59252306fe7b4d7cdc5719ddea4e6f76ce73aed0cdf5306591"
     },
     "process-list-monitoring": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/process-list-monitoring",
       "localPath": ".claude/skills/process-list-monitoring",
-      "computedHash": "73ad8b19a00a91a376c4873aed1f21924d6eee160414ae0836f6f04fbf6c0ffe"
+      "computedHash": "e19a3eb692b25ccacdb8d6b018cd27d0f116168a516042de72916d3bc4999c2d"
     },
     "profiling-benchmarking": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/profiling-benchmarking",
       "localPath": ".claude/skills/profiling-benchmarking",
-      "computedHash": "333628ead878070377435e0124f18b20daeea6602505add8be6188952ab5b585"
+      "computedHash": "1b1c8ae19c14dd187325cc7e3d8836f266c8c85de32569664f0f327ebbd9135c"
     },
     "prometheus-ai-telemetry": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/prometheus-ai-telemetry",
       "localPath": ".claude/skills/prometheus-ai-telemetry",
-      "computedHash": "fcc316fca5ae7972703b526de9ee565a35fd71dfc50627d6d720797e785b4d1e"
+      "computedHash": "f47fb9f52db6c483730647bfcab2d87321f454dd73868426fe296abb1ac87182"
     },
     "prometheus-scraping-rules": {
-      "computedHash": "b1d3a366d2a6a773f39e5aa9f5b12e6ed87cbd39f0adaf429491b18b919427ad",
+      "computedHash": "58167b55bc7c259c3dd34dc8694f6e2805e7b9cbd0d46297fdba1593adac40cd",
       "localPath": ".claude/skills/prometheus-scraping-rules",
       "addedAt": "2026-05-29T14:16:24Z"
     },
     "prompt-caching-strategy": {
-      "computedHash": "43a38a2ece7dab6c24840f44068ff7767c474a98e2aaf633c23782e1f9f28600",
+      "computedHash": "3b49ff262f4a465b34aee35c8ea595de2bcd51df7b6aaafa8a1863262939bb2c",
       "localPath": ".claude/skills/prompt-caching-strategy",
       "addedAt": "2026-05-29T14:16:24Z"
     },
     "prompt-engineering": {
-      "computedHash": "39c30bed0aa3dfa5bd5707ea3bf13c22538259c75889bc45113e12eb2b76ebae",
+      "computedHash": "fa28c3e52bc7d2403f997d886380453f554427a2e2fa2f4cb19a877021bfa363",
       "localPath": ".claude/skills/prompt-engineering",
       "addedAt": "2026-05-29T14:14:12Z"
     },
@@ -1381,27 +1381,27 @@
       "sourceType": "local",
       "sourcePath": "core/skills/prompt-firewall-patterns",
       "localPath": ".claude/skills/prompt-firewall-patterns",
-      "computedHash": "d7a7f0615b9455c93f5cc2c14f882787d67e2c1779739114643e2b8d64ba59b2"
+      "computedHash": "816ce25708b2af2a45b777b4524efeb4368d547be4c78c240b1032ce9a120d88"
     },
     "protobuf-serialization": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/protobuf-serialization",
       "localPath": ".claude/skills/protobuf-serialization",
-      "computedHash": "1a08c2d15ea116cfe86162d1b08451f5cac4bd26ccbe8c408bd8dbf7aa3f1fd8"
+      "computedHash": "8bcb6f98e8b53c03fd17a709b179bdb5c7519d81c590dde73073ece726b3018f"
     },
     "protobufjs-dynamic-schema": {
-      "computedHash": "c17ee4bb7d324d5f82f7a6b5f6b2717ff954e07fce2e76b6ac9f37e509c0a51e",
+      "computedHash": "f180804b1c9202d090a465ed3f0210471a1b40487d7ee13b1c270022039285a7",
       "localPath": ".claude/skills/protobufjs-dynamic-schema",
       "addedAt": "2026-05-29T14:16:25Z"
     },
     "pulse": {
-      "computedHash": "54f0d335ba0fd03aa984df083e4936191383d3081eff3b2b9afc3bd6162b0790",
+      "computedHash": "599923ea71daee205f50189972c6049585e75c77154da51aea41add8f85e3ec2",
       "localPath": ".claude/skills/pulse",
       "addedAt": "2026-05-29T14:16:25Z"
     },
     "purple-team-report": {
-      "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
+      "computedHash": "e89dfeb709a7f3fdee5a3aa22e19a97463aa2030f73c651ba21710f98fd68b93",
       "localPath": ".claude/skills/purple-team-report",
       "addedAt": "2026-05-29T14:16:25Z"
     },
@@ -1411,7 +1411,7 @@
       "addedAt": "2026-05-29T14:14:13Z"
     },
     "pyre-type-analysis": {
-      "computedHash": "fe849bc80fd8214fd19d0fa39b677cf2deaa2b653151a8c9addae3f693c893c5",
+      "computedHash": "165968fdaff626a40a346235e8e1b42c49aec433ab770a00766f2ce7ae717d42",
       "localPath": ".claude/skills/pyre-type-analysis",
       "addedAt": "2026-05-29T14:16:25Z"
     },
@@ -1421,17 +1421,17 @@
       "addedAt": "2026-05-29T14:16:26Z"
     },
     "raft-consensus-patterns": {
-      "computedHash": "afcbdc4eca98ffdcaf5ffb59f72025bfe23b80b24b6e88d7c4dc2c2f8a7b3fc1",
+      "computedHash": "f38ce7d0ec35786eef4fdd5bc09182071bfadd2e1a0bd4dbd2e11449e13f05fd",
       "localPath": ".claude/skills/raft-consensus-patterns",
       "addedAt": "2026-05-29T14:16:26Z"
     },
     "raft-node-js-impl": {
-      "computedHash": "3b93f4cdce4c06d38bd992361a94351d542b5eaba5ba883934873fc70b0b7920",
+      "computedHash": "d7e69f8a04ca0a039dc194cb773c8c6e5113fe9ccd67faeef771ff7b5ba2d156",
       "localPath": ".claude/skills/raft-node-js-impl",
       "addedAt": "2026-05-29T14:16:26Z"
     },
     "rag-architect": {
-      "computedHash": "f75964513adc66c15c470e30a74d40a28c684b4bb0b120227c468717ebdff717",
+      "computedHash": "d0ed38fbbc87e76ded4cb4fc6c39e7116ed6834698b9c7904a1a25b288eeebeb",
       "localPath": ".claude/skills/rag-architect",
       "addedAt": "2026-05-29T14:16:26Z"
     },
@@ -1441,12 +1441,12 @@
       "addedAt": "2026-05-29T14:16:27Z"
     },
     "ramdisk-tmpfs-patterns": {
-      "computedHash": "944e150105f70ea77ca508b396d3e7e06e67b3813b4044bc67ca900fdf47a035",
+      "computedHash": "ae9859a72afc2a6c68d47b21b1b3a6f9ad3ed7b54c00d808a6ea1201a4904b1f",
       "localPath": ".claude/skills/ramdisk-tmpfs-patterns",
       "addedAt": "2026-05-29T14:16:27Z"
     },
     "raw-socket-diagnostics": {
-      "computedHash": "fd31d2c5d200912c3cb76774d511adf50c5efb287f33ba38fc6412795bea0645",
+      "computedHash": "f6c87f4d7f327efdb143d5ab1cb15bd4dd99e08d5fd6652a6f1d246066daac68",
       "localPath": ".claude/skills/raw-socket-diagnostics",
       "addedAt": "2026-05-29T14:16:27Z"
     },
@@ -1455,21 +1455,21 @@
       "sourceType": "local",
       "sourcePath": "core/skills/react-agent-loop",
       "localPath": ".claude/skills/react-agent-loop",
-      "computedHash": "71dba23840221e50d5b7a2ff9412b41ab281cf41bc49ff7ea4ad38d607927d98"
+      "computedHash": "f884e7e306de9f04950fb356b879d12d9637e6cd83bacf08e80ad5f6f0a43c26"
     },
     "react-doctor": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/react-doctor",
       "localPath": ".claude/skills/react-doctor",
-      "computedHash": "a08e5332ea3db3bfc9b199eb6e558c63ca02a721b95aba60c7f966cb9ca0e900"
+      "computedHash": "3370c42c1576712c0ea69fc2f4e2446dfb4f2cc34dcef0ed1251bd5a620437c8"
     },
     "readonly-bind-mount-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/readonly-bind-mount-patterns",
       "localPath": ".claude/skills/readonly-bind-mount-patterns",
-      "computedHash": "4b7b8ea75ea3bb949633ae9e1f52455c10b4c373c733624e8dab485b1cee277a"
+      "computedHash": "3e7f1c17dfac7c787ebfca22dbac8c88be4948c26cd64dbdb9e2f1761363cf2f"
     },
     "receiving-code-review": {
       "source": "yamtam-engine/core/skills",
@@ -1483,17 +1483,17 @@
       "sourceType": "local",
       "sourcePath": "core/skills/red-team-check",
       "localPath": ".claude/skills/red-team-check",
-      "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f"
+      "computedHash": "b744a9376743709269c4652df3e945d29deef1b515a7c215a0ded0427fddaa4d"
     },
     "refactor-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/refactor-patterns",
       "localPath": ".claude/skills/refactor-patterns",
-      "computedHash": "67667eb5e03e76e4c1ee3ef2605315dae7c25b19fcba32a0db26302f27e5e287"
+      "computedHash": "9852a6f539e2526c41b7b83a5d5a0515be47a76332d6e2beb97e4d1d4d363196"
     },
     "reflect-metadata-injection": {
-      "computedHash": "f2a4fb2dcce7ac5ad42896283a98cc5bbeb81afdaee28841fcdb9cb11ee27465",
+      "computedHash": "d15c3b69b3fb1534ac78d7252c268b680da2f6ec6e4d947077121d1b2b760047",
       "localPath": ".claude/skills/reflect-metadata-injection",
       "addedAt": "2026-05-29T14:14:13Z"
     },
@@ -1502,10 +1502,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/reflexion-verbal-rl",
       "localPath": ".claude/skills/reflexion-verbal-rl",
-      "computedHash": "b750968d960093b9dd234bd52fcac6ee1eee55d719e793f8fb8140ffe2adbd4d"
+      "computedHash": "a69ba54c835959478c189091e011adb845a3cbb37c7530b393668abc78e0262e"
     },
     "regex-escape-redos-guard": {
-      "computedHash": "f88913ddc43a650d00f09dd23b4349b876674eb38dcfdfdbb890ddce9e518c49",
+      "computedHash": "61e8a0b15401323098f7dcede74bb63d6f87eb3bb9db337eb3d1dfa045bc585c",
       "localPath": ".claude/skills/regex-escape-redos-guard",
       "addedAt": "2026-05-29T14:16:27Z"
     },
@@ -1515,7 +1515,7 @@
       "addedAt": "2026-05-29T14:14:13Z"
     },
     "repl-code-execution": {
-      "computedHash": "974ffe729ec81156bb252ae63fd3ad9245d9840897cf716c7673e310c1b6f2c5",
+      "computedHash": "47c8731a953011ca489e25bdb8b26c732b9e42a0dd56321780f66271cfae3648",
       "localPath": ".claude/skills/repl-code-execution",
       "addedAt": "2026-05-29T14:14:14Z"
     },
@@ -1532,7 +1532,7 @@
       "computedHash": "f2f1faa546723d52ae9edb0210848274082fb17e760a552b03ed176124ea13e1"
     },
     "research-team": {
-      "computedHash": "e7db731bc304ffc396a6b75810d07bea613c8f3aa54c2b95390f9ee1dd341110",
+      "computedHash": "b539361a682ed8bd0da6aaa2493c0abe3d058dba5f2451f9f5025573e0391267",
       "localPath": ".claude/skills/research-team",
       "addedAt": "2026-05-29T14:16:28Z"
     },
@@ -1541,17 +1541,17 @@
       "sourceType": "local",
       "sourcePath": "core/skills/resilience-circuit-breakers",
       "localPath": ".claude/skills/resilience-circuit-breakers",
-      "computedHash": "5dfbd33bf79e18fea5d9ecc03eaeabc78fd369119b7da73c5640c40e07bdcafb"
+      "computedHash": "8ae5c6d61182c53bd80f826031ba65c19cb46244d5a12823476c127b3a779916"
     },
     "resilience-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/resilience-patterns",
       "localPath": ".claude/skills/resilience-patterns",
-      "computedHash": "80de4d392b8521797e0cf0f48c9f159dbafbc07a7186419101e545bd11e64866"
+      "computedHash": "663719d748c499d8a47873d0317e4a3a80caf1d1197677fb174656dcc926ba2a"
     },
     "rewoo-plan-execute": {
-      "computedHash": "fc783521ee5c7bfe1531f7ba3f969e817e38504af72a3c0da4f12da0aceebcf0",
+      "computedHash": "cdf8c1653d71ce9632c5fb897a1d51062dd906f027df4910e934590fc5a8483f",
       "localPath": ".claude/skills/rewoo-plan-execute",
       "addedAt": "2026-05-29T14:14:14Z"
     },
@@ -1560,27 +1560,27 @@
       "sourceType": "local",
       "sourcePath": "core/skills/runtime-metrics-meters",
       "localPath": ".claude/skills/runtime-metrics-meters",
-      "computedHash": "24851f9e82db27b12d49d8052e6cdb62aa5feafbb7ec23de75f09eec45819981"
+      "computedHash": "75241c3617c7bf73d5971e8ffdea7032f092bc15cbc225ed255daf976cdac638"
     },
     "runtime-sandbox-runc": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/runtime-sandbox-runc",
       "localPath": ".claude/skills/runtime-sandbox-runc",
-      "computedHash": "85481bb6a380e8029941dd8f03be572d58c430f33057e93c57b26b1ee367f033"
+      "computedHash": "a359973e7609af54a083a85448910e023ff55c613995bf7a81a36d6fa8e88a73"
     },
     "sanitize-html-cleanup": {
-      "computedHash": "f0d34b365a9c9353a570ab7d8d4d942319c70318563bc53baa159c134f280db2",
+      "computedHash": "130167f591ffc96a37db7151fe57e5d47d6b9dee372d6d2ad81c106e36bfb7d4",
       "localPath": ".claude/skills/sanitize-html-cleanup",
       "addedAt": "2026-05-29T14:14:14Z"
     },
     "secret-management": {
-      "computedHash": "fd2e898f8c3efbe8d56d9110186ca89ee43a583181829d94393262060f24452c",
+      "computedHash": "dddbec3c7f0c40ba52f085a4203f9cb6b1c92c6ff5decfcf3cf0d96d40c07d6f",
       "localPath": ".claude/skills/secret-management",
       "addedAt": "2026-05-29T14:14:14Z"
     },
     "secrets-vault-patterns": {
-      "computedHash": "0f4229cd0873a8827ae3b61042169287bcce44eff070a4d9995a9e784602d318",
+      "computedHash": "76f546b9ae221c4be5f8a30539cf3b06ef553709a297f59f796b197c122c5cb4",
       "localPath": ".claude/skills/secrets-vault-patterns",
       "addedAt": "2026-05-29T14:14:14Z"
     },
@@ -1590,7 +1590,7 @@
       "addedAt": "2026-05-29T14:14:15Z"
     },
     "security-pipeline": {
-      "computedHash": "ccf0bf5a3eea2b48ac53c4231ba8687e0e6134d53fea6008ec26696b25283a69",
+      "computedHash": "a32b9507be3dd36b4e2c50703d951b6c866c71ca0512a505df11c1cde76b2477",
       "localPath": ".claude/skills/security-pipeline",
       "addedAt": "2026-05-29T14:16:28Z"
     },
@@ -1606,7 +1606,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/self-refine-critic",
       "localPath": ".claude/skills/self-refine-critic",
-      "computedHash": "7eb2ac22c8a79012c91e3a48ae4252d105d74c8433b12de1ece9905014d954f3"
+      "computedHash": "77d5b5e49773bc9d497890de2df4a363d377d049a55a8de6a6c055f92c6151f3"
     },
     "semantic-scholar": {
       "computedHash": "fa930d189f2c6f927a114c5d76f3c87cdd4236db9eddb20f3cd2256ed38157ae",
@@ -1618,14 +1618,14 @@
       "sourceType": "local",
       "sourcePath": "core/skills/serverless-patterns",
       "localPath": ".claude/skills/serverless-patterns",
-      "computedHash": "99e01740c128ae7d65689e3906dfd720398fb9e6407eec5c3640473c7788474e"
+      "computedHash": "e686d3af041f9afe4f7778e3fd7662e37beeca5c6c1993a12e1fbba7dda0c514"
     },
     "session-context": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/session-context",
       "localPath": ".claude/skills/session-context",
-      "computedHash": "be14878fc6091e48637b591e62c159b694799afd720f0f57da70355ba8c634fe"
+      "computedHash": "9cf8135da51a254d5e6d05cc1ebc971c0537424fa44878dcc2655e875ba1f013"
     },
     "session-wrap": {
       "computedHash": "7822a34385a5eb6a75b2f4491a020b33e1b567ad74c29ea23a273c7743cf2b23",
@@ -1638,12 +1638,12 @@
       "addedAt": "2026-05-29T14:16:29Z"
     },
     "sglang-radix-attention": {
-      "computedHash": "c7241350134890d2441bf64907e2bcce8b659f7c3ca4708418948ca2ac67a18c",
+      "computedHash": "50bc805aee29f41cbf5e3f2bfaf071269130a49da9cfeb071d9b83d1da4ef7d6",
       "localPath": ".claude/skills/sglang-radix-attention",
       "addedAt": "2026-05-29T14:16:29Z"
     },
     "shadcn-patterns": {
-      "computedHash": "98e6f6082857426b99773a4cc3598ad443d1d95c8dfc40c56d1a520212c2beaa",
+      "computedHash": "33a952be394ef9ad75cabf23c751439753f2c50326e3bae8715779987795da6d",
       "localPath": ".claude/skills/shadcn-patterns",
       "addedAt": "2026-05-29T14:16:29Z"
     },
@@ -1653,7 +1653,7 @@
       "addedAt": "2026-05-29T14:16:29Z"
     },
     "skill-library-voyager": {
-      "computedHash": "60183934f4ea2d92c46d4b8b2f6f3371cb40d4e64789200aea2156135792514f",
+      "computedHash": "6749eb8da82f81dd3bca8bfec34232a8fe749310602fae51745673069b2099a7",
       "localPath": ".claude/skills/skill-library-voyager",
       "addedAt": "2026-05-29T14:16:30Z"
     },
@@ -1662,10 +1662,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/slo-design",
       "localPath": ".claude/skills/slo-design",
-      "computedHash": "e05b577d3b6015f4ba03d76c4f82417af3a1d7590b9a8cbe64a9b019c2532227"
+      "computedHash": "d5540434242c892b3bde5fcc254d2a8b9657ab2df106e56a2682d708516f2930"
     },
     "smart-layout-aesthetics": {
-      "computedHash": "3e24fd8feac64d2bac7f7c49263ff791436aebdd232a2c185c20b592d2e05040",
+      "computedHash": "a7d73566bf8aa1f3aae6318f0bd63739ea129a6d00dfdfb253aa0d8828d2d151",
       "localPath": ".claude/skills/smart-layout-aesthetics",
       "addedAt": "2026-05-29T14:14:15Z"
     },
@@ -1679,17 +1679,17 @@
       "sourceType": "local",
       "sourcePath": "core/skills/snowflake-id-generation",
       "localPath": ".claude/skills/snowflake-id-generation",
-      "computedHash": "48d366753f96eb493bd88ef3afcf94fbc9519d3d2881b0f8ede06a28b53a493f"
+      "computedHash": "67830110758f0db9f4ad25e7a14607538477334de366e7a4ef77d1757f22165e"
     },
     "sovereign-interceptor-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/sovereign-interceptor-patterns",
       "localPath": ".claude/skills/sovereign-interceptor-patterns",
-      "computedHash": "62c7f7208ba89399231e09b4f7c3932c539c6bd2df19bdded42bf8a7165a2a31"
+      "computedHash": "9e8b06d2b84fe2d849dbe52f33b784a04ad0fdacc00ede6207563cb14328d463"
     },
     "sovereign-overlord-gate": {
-      "computedHash": "44f7635a84427fb516a7059a9c559780f86dd653ee1388081c63da77f1a7e0b2",
+      "computedHash": "f4a9342b7356435ee04e817e53ace6e94da110601b1119ac87fd2e76868a076c",
       "localPath": ".claude/skills/sovereign-overlord-gate",
       "addedAt": "2026-05-29T14:16:30Z"
     },
@@ -1698,20 +1698,20 @@
       "sourceType": "local",
       "sourcePath": "core/skills/stanford-crypto-patterns",
       "localPath": ".claude/skills/stanford-crypto-patterns",
-      "computedHash": "62b71dc8161306e9b642f5dccc7e496305edc9217df323de4c3b09d133602506"
+      "computedHash": "b02f4a6ab3e4b6e7345f951cd0e8ae5bc8c85bab919132fa6ba2d821bf6d56f4"
     },
     "state-machine-workflows": {
-      "computedHash": "c8aacd6a0e5dab8c67b676449e4ea2d00b9ea02f67113d3dc3529f9a5d025e4d",
+      "computedHash": "b74c0b5ed98dc40705bced3f6d814ec15d588db46a25a02ca02140bc8def93ba",
       "localPath": ".claude/skills/state-machine-workflows",
       "addedAt": "2026-05-29T14:16:32Z"
     },
     "state-management-patterns": {
-      "computedHash": "4e0e746c972579f24b8f600b7dfbfa5c756f64ab5399acf1db978bdc49959a9b",
+      "computedHash": "c8ffb1464d956fee8df7dc39d836585eb9c4074406f79d6280b9c2f4ce017335",
       "localPath": ".claude/skills/state-management-patterns",
       "addedAt": "2026-05-29T14:16:32Z"
     },
     "state-persistence-gateway": {
-      "computedHash": "031a98d17560b0713399caf59e9be5327097e5e68557b3eef3f4b19e1dde31e2",
+      "computedHash": "42a4aa460f0a896595375c59722c2264e6e79dd79fd37b1a5f89661c7d6c7e02",
       "localPath": ".claude/skills/state-persistence-gateway",
       "addedAt": "2026-05-29T14:16:32Z"
     },
@@ -1720,7 +1720,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/statsd-metrics-streaming",
       "localPath": ".claude/skills/statsd-metrics-streaming",
-      "computedHash": "670c0181d4d1e4706d8779f7e4f36118e7ff069b85769a5ff55d1494058c95b9"
+      "computedHash": "0c44156b279e0f260a7daca49c619d9c6349cc87b969f56b4bb31ab1781d6ab9"
     },
     "stealth-browser-automation": {
       "source": "yamtam-engine/core/skills",
@@ -1734,7 +1734,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/storage-fallback-patterns",
       "localPath": ".claude/skills/storage-fallback-patterns",
-      "computedHash": "9532a5598f1b8edbceebd0fcdfce7873ad16abda83efc8da669ea751560c2d65"
+      "computedHash": "2db0cb2c6d009199ef61a0bce1dd4536abd1f5b070e2f501353a9388f8ee58d1"
     },
     "strategic-compact": {
       "computedHash": "73cebca017dcbd71b2e2622e591b1819d1f66042a1eee62c5fafae5c1e5f9970",
@@ -1742,7 +1742,7 @@
       "addedAt": "2026-05-29T14:16:32Z"
     },
     "stream-pipeline-patterns": {
-      "computedHash": "4a8e8c95f513ca33a51b022e103ad4235cf185c458a4f29f2ac14c4c2967990c",
+      "computedHash": "d9ddbd8df90654466cff98af9b667993f3d04163a5a5a3d89d977f75b54de7ac",
       "localPath": ".claude/skills/stream-pipeline-patterns",
       "addedAt": "2026-05-29T14:16:33Z"
     },
@@ -1751,14 +1751,14 @@
       "sourceType": "local",
       "sourcePath": "core/skills/stream-to-buffer-patterns",
       "localPath": ".claude/skills/stream-to-buffer-patterns",
-      "computedHash": "a8a8200f803c3a9996a9780bb93526a0e27015cbfd530627d562694ab1be7cbd"
+      "computedHash": "3967cd50907b985d035d67338da12d1eb43bf3c9206e5ce87c586825d9e8a02f"
     },
     "streaming-llm-infinite-context": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/streaming-llm-infinite-context",
       "localPath": ".claude/skills/streaming-llm-infinite-context",
-      "computedHash": "b9ed057cf20824ad72526f7ede56407c9ad69c6bf2e39aeec99ee29105d86f6a"
+      "computedHash": "ca4c4bcf028e629bc605e533626812095d0365551fd21ceba03c0f3f3afe21a2"
     },
     "stride-analysis-patterns": {
       "source": "yamtam-engine/core/skills",
@@ -1768,7 +1768,7 @@
       "computedHash": "6418a5b0de25e8b62353e204c22163c274357efe1f0a75c47accbf0d01bffa2b"
     },
     "string-validation-patterns": {
-      "computedHash": "47eaed5611c60dae912c40a29fc163d03d43a821ac4d8bd5d289217363383cbf",
+      "computedHash": "1f89d7be7ca4218e5c761c2ef5a84d29ffd073760250877a1e7796a9294828b7",
       "localPath": ".claude/skills/string-validation-patterns",
       "addedAt": "2026-05-29T14:14:17Z"
     },
@@ -1778,7 +1778,7 @@
       "addedAt": "2026-05-29T14:14:17Z"
     },
     "supply-chain-security": {
-      "computedHash": "52ce62a2ef70afb96661271034ed8d6e5873897ced594cee3241d002516feaf3",
+      "computedHash": "8c9ea844528ddbf187d56c706ac48419bc4e258f0accfd25a0798cf17f646a1c",
       "localPath": ".claude/skills/supply-chain-security",
       "addedAt": "2026-05-29T14:16:33Z"
     },
@@ -1787,10 +1787,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/swarm-consensus",
       "localPath": ".claude/skills/swarm-consensus",
-      "computedHash": "a6046c80ea2c328e79f60737929815b7c363652d9cfa917c4e341c7e92964182"
+      "computedHash": "57c6e23dc9e4e93a4d3e3373280b28de18929110d68be58712e3ab22f56790b7"
     },
     "swarm-honeynets": {
-      "computedHash": "ef59a926eb2509417bd21cdd7af81a4c72b1281a0f513122fb626bff431bce45",
+      "computedHash": "f2d548759ace5483df6af6686f8eb6fe67bea320231f3f288e3c538e0f3f27c8",
       "localPath": ".claude/skills/swarm-honeynets",
       "addedAt": "2026-05-29T14:14:17Z"
     },
@@ -1799,15 +1799,15 @@
       "sourceType": "local",
       "sourcePath": "core/skills/swc-compiler-transform",
       "localPath": ".claude/skills/swc-compiler-transform",
-      "computedHash": "18a102e21814e346b7bf692c239fcb751b152c096c8190101ca610ef0812cbc6"
+      "computedHash": "1cf8fe94547a410b6601505ab183c2b3276be941a434e7b193c656d4dbe33625"
     },
     "symmetric-encryption-patterns": {
-      "computedHash": "05c828313fd160b1bae9f5c12ee2860fde50ae2eebe75bf308b1a5d1b4140282",
+      "computedHash": "77811094d15f17377302d4dc156cf12038849bab5a8fd8b39898d5258b54409d",
       "localPath": ".claude/skills/symmetric-encryption-patterns",
       "addedAt": "2026-05-29T14:16:33Z"
     },
     "syscall-filtering-seccomp": {
-      "computedHash": "05ded360dff8cf59a31e1306be58e9f855113ad2cdbe948a7eade4635a450dee",
+      "computedHash": "33cf36aa2fcb801622e41a2786117f330a08edf8a60e62db185eb2736130b843",
       "localPath": ".claude/skills/syscall-filtering-seccomp",
       "addedAt": "2026-05-29T14:16:33Z"
     },
@@ -1816,10 +1816,10 @@
       "sourceType": "local",
       "sourcePath": "core/skills/syslog-integration",
       "localPath": ".claude/skills/syslog-integration",
-      "computedHash": "96e2c9b9f44226442068f041956d4968e4ecc4e0105f965127b2dff4a6f91226"
+      "computedHash": "065245bae3f7ff16e02b50ce0a7d0fc5280c1d145ef1df17f5ae2ee55bbdba2d"
     },
     "system-info-telemetry": {
-      "computedHash": "da1179d68004affccb65d41c1418e3a53da4b2664629f8adc1817450108bb1db",
+      "computedHash": "cc922614dc6d261b6f508658bf703ca76caab397eccd4e55b90508c90bb0f48a",
       "localPath": ".claude/skills/system-info-telemetry",
       "addedAt": "2026-05-29T14:16:34Z"
     },
@@ -1840,7 +1840,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/team-orchestrator",
       "localPath": ".claude/skills/team-orchestrator",
-      "computedHash": "1ef0cde6029721e0c18479ffe2a3cd9c5c5c6e2fa8861ed9e78c73580bf54340"
+      "computedHash": "44210e0a7d4a22790e1cde394f033d17cd6ea5f377e8737fdf59dcdaa2812be9"
     },
     "telemetry-analysis": {
       "source": "yamtam-engine/core/skills",
@@ -1850,9 +1850,11 @@
       "computedHash": "a55dd7776adf001014f6e57a18b60b290030bbcf1b727ade71a6a1dcd5808b84"
     },
     "terraform-patterns": {
-      "computedHash": "d4dc375d0117833516e15b706dcba0a19f0ca11142ab3509c9356692e7efd8d2",
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/terraform-patterns",
       "localPath": ".claude/skills/terraform-patterns",
-      "addedAt": "2026-05-29T14:17:28Z"
+      "computedHash": "82ee43e0268e4e2e488802f6c03dc53606e086ee0d8778114d9d2f0837dcbf32"
     },
     "testing-strategy": {
       "source": "yamtam-engine/core/skills",
@@ -1866,24 +1868,24 @@
       "sourceType": "local",
       "sourcePath": "core/skills/tgi-streaming-inference",
       "localPath": ".claude/skills/tgi-streaming-inference",
-      "computedHash": "48dfb95e3d4da341abc628429083491d599c17f4c1829c7b25d8421bf0ed4d4a"
+      "computedHash": "d12cad32e34317e8626c0a829f4df2e74a30d358cf5b909831f4d0d184a72b70"
     },
     "token-roi": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/token-roi",
       "localPath": ".claude/skills/token-roi",
-      "computedHash": "fab16f30e0fd9325cc3dee479c09c0418332aa8469d01db75d95b70b8c15b0bb"
+      "computedHash": "8658666a6f898b144a059383f7894ee5e45aa397d3f1b5eae2665efddabff02f"
     },
     "toml-config-parsing": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/toml-config-parsing",
       "localPath": ".claude/skills/toml-config-parsing",
-      "computedHash": "98bbc01a9a40d84c6674656b4db32879f505dd05064b2a105a8828593fad76a4"
+      "computedHash": "b131a72fe53f9d14ca6d4edeab0bae691f03ae3a02b190aa71639e2d873a1da1"
     },
     "traefik-ingress-routing": {
-      "computedHash": "aafde3d1afeff639ee2a6d39eb3c86400eee192a9a7017d86608eb60e9363601",
+      "computedHash": "aad092d8703600d701317cd5836f591fa48f0d944b40687523a904e66684ac1e",
       "localPath": ".claude/skills/traefik-ingress-routing",
       "addedAt": "2026-05-29T14:14:53Z"
     },
@@ -1892,15 +1894,17 @@
       "sourceType": "local",
       "sourcePath": "core/skills/tree-of-thoughts",
       "localPath": ".claude/skills/tree-of-thoughts",
-      "computedHash": "8b0cf1a7de8a307ee63d85083ce625ab56a2921d7095493f967835b759b6a481"
+      "computedHash": "0f193c48f89216335e1731bff34a238c70e4e7b6d55c79e79f831a3a5131604b"
     },
     "triton-inference-server": {
-      "computedHash": "240bde8f476248de3490356c0fb687b198054ae86491e068e803f48d7f50d8d1",
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/triton-inference-server",
       "localPath": ".claude/skills/triton-inference-server",
-      "addedAt": "2026-05-29T14:17:28Z"
+      "computedHash": "7785667a7943b80227dfe9dead2635271346c871d85ff78dcde9dcb159a6cfe6"
     },
     "ts-morph-refactor": {
-      "computedHash": "6856570efec0e9797d1860e87d2ed76b72a538845e9e563e5a174600e265e546",
+      "computedHash": "283017b173d44f905b9a5ec10d209bdaf4e9fffe51c6629d98a6e4e939c6444c",
       "localPath": ".claude/skills/ts-morph-refactor",
       "addedAt": "2026-05-29T14:14:53Z"
     },
@@ -1909,14 +1913,14 @@
       "sourceType": "local",
       "sourcePath": "core/skills/twirp-rpc-patterns",
       "localPath": ".claude/skills/twirp-rpc-patterns",
-      "computedHash": "441fb542b3a92977731b8a379019f77da015d486da72b66587a32f54873ddfd1"
+      "computedHash": "2abd6b31950f60d78327ab57d9d2b027d55ecb31315eba25ba65084c308878ba"
     },
     "type-safe-api-contracts": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/type-safe-api-contracts",
       "localPath": ".claude/skills/type-safe-api-contracts",
-      "computedHash": "aebf52010d2cc98c7176beb6f62b423ff2c163a566074ef50d58dc4a2df28722"
+      "computedHash": "0a2aac8f9389ce74a31a7f82b48cde0eed315c955d46feee3bd388ad40d28141"
     },
     "type-safety-patterns": {
       "source": "yamtam-engine/core/skills",
@@ -1930,41 +1934,45 @@
       "sourceType": "local",
       "sourcePath": "core/skills/typescript-patterns",
       "localPath": ".claude/skills/typescript-patterns",
-      "computedHash": "c19fd19231bcced2a35d13719625766f981fb3bb50e8316dc5a21782f9e1de05"
+      "computedHash": "857e58b7a35d7e4ab606a3911a8b060d60f43a37f03cbd93aaf209e85baaeddc"
     },
     "typography-scale": {
-      "computedHash": "0943c6b35a5754cf1cbecc261dc1e4ae7fe0e223a541583d44514ad98f44636a",
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/typography-scale",
       "localPath": ".claude/skills/typography-scale",
-      "addedAt": "2026-05-29T14:17:29Z"
+      "computedHash": "988858a984396658055bb6e7aaa8b692a9cef652604bcfafe6d9f0617379f3c6"
     },
     "typography-system": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/typography-system",
       "localPath": ".claude/skills/typography-system",
-      "computedHash": "07fc13087ef8cc2ae3fe10dfab4a749d812ac1d948047d8aeb87c0f76e18ada7"
+      "computedHash": "040ebd566ca3b377e94f41a839e61e0fe5868e2d7b915492f99e337585d6d7f2"
     },
     "ui-redesign": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/ui-redesign",
       "localPath": ".claude/skills/ui-redesign",
-      "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020"
+      "computedHash": "387cee181607ddeb0d9629ae9e5cceb8bf3ab63e4d2952e906bf5d4f34b44390"
     },
     "ui-states": {
-      "computedHash": "92ccc04da27a25a636c9c7522e0e773b10ef7109ea70eefae5224294f26410df",
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/ui-states",
       "localPath": ".claude/skills/ui-states",
-      "addedAt": "2026-05-29T14:17:29Z"
+      "computedHash": "b235a6f3c9224f6d5f822e88d644e834d1bc7b4ec382390200f0cda4da3b71e5"
     },
     "uid-gid-privilege-drop": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/uid-gid-privilege-drop",
       "localPath": ".claude/skills/uid-gid-privilege-drop",
-      "computedHash": "1326fc7652e5e261e90181dd33d526413cda4b8f5726ffab84538621366869d8"
+      "computedHash": "1d43c0acd88c6ee8c967fb76470cee7d8354820874603cc8eb794f987168fe8c"
     },
     "unit-testing-patterns": {
-      "computedHash": "168f05a1addb007dfc46b28c749e612f50a6427ba184b2dcbe0bcb7debc7a097",
+      "computedHash": "6524cf3a69b71cbdc036e0a9a4865699c0f8eb2aa7b981caf8f20cf1fa22f314",
       "localPath": ".claude/skills/unit-testing-patterns",
       "addedAt": "2026-05-29T14:14:54Z"
     },
@@ -1973,26 +1981,28 @@
       "sourceType": "local",
       "sourcePath": "core/skills/unprivileged-sandbox-bubblewrap",
       "localPath": ".claude/skills/unprivileged-sandbox-bubblewrap",
-      "computedHash": "341c08e26ae66596a5cd5dfc52f17130dced40b1d650cbb3ff9085a90d73cc09"
+      "computedHash": "d4a024d93447ad2bfb23dbd3fb3572c3a4691745a4c2eada3a02116998099571"
     },
     "ux-heuristics": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/ux-heuristics",
       "localPath": ".claude/skills/ux-heuristics",
-      "computedHash": "bf278760ce0476e60eda130c376374f1541db06042b8b3027892cadb98c95b2a"
+      "computedHash": "734ae4d1ed5f98249a9b8032a9d6a3cbc0e930e1393f351060bdda50ee706ba3"
     },
     "vector-distance-metrics": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/vector-distance-metrics",
       "localPath": ".claude/skills/vector-distance-metrics",
-      "computedHash": "f1c2a7902c9abdc21be4caed5639ade7651a15a17022f3b820f3301b734a729c"
+      "computedHash": "440630ac68f77d84a37024ae17560e8020f78c81a794aa56149c4cd00981b430"
     },
     "vector-store-patterns": {
-      "computedHash": "3a7be24b9f9718b12ded122d4c5ba8441881b2f818265ea1edd8bc68cc39071b",
+      "source": "yamtam-engine/core/skills",
+      "sourceType": "local",
+      "sourcePath": "core/skills/vector-store-patterns",
       "localPath": ".claude/skills/vector-store-patterns",
-      "addedAt": "2026-05-29T14:17:29Z"
+      "computedHash": "42ad140b30229b3bacdc771ab3154a2878be2efac4b1afbdc4fdc804e8b29731"
     },
     "vercel-ai-sdk": {
       "source": "yamtam-engine/core/skills",
@@ -2006,7 +2016,7 @@
       "sourceType": "local",
       "sourcePath": "core/skills/verification-engine",
       "localPath": ".claude/skills/verification-engine",
-      "computedHash": "9e7dae234a12634a356a8725cc4ffaa910e996d757db24ffb58e8222cc85ab6d"
+      "computedHash": "a121cffd6dbce7c5ba2e000a1ad3958080cad2cf17482f9afa47728078c3a5fc"
     },
     "verification-loop": {
       "source": "yamtam-engine/core/skills",
@@ -2034,56 +2044,56 @@
       "sourceType": "local",
       "sourcePath": "core/skills/vllm-paged-attention",
       "localPath": ".claude/skills/vllm-paged-attention",
-      "computedHash": "0affd9b0d9963b854e8f85802ef985819a27d57e32867fa25b5133357970be75"
+      "computedHash": "97efa15d12d3d2ed9ba2a5558023b07409878aa71ef096c30948cebe536341db"
     },
     "wamp-pubsub-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/wamp-pubsub-patterns",
       "localPath": ".claude/skills/wamp-pubsub-patterns",
-      "computedHash": "16c7eeba24b56f040c8ba37fc9a3dc1b0963dfab8704b5b9e629b8af703fe240"
+      "computedHash": "34ad9ecfb200df2b6bfa817e8415b9ed669cc3055daede48d62d705afd8913e3"
     },
     "wasm-bindgen-js-interop": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/wasm-bindgen-js-interop",
       "localPath": ".claude/skills/wasm-bindgen-js-interop",
-      "computedHash": "287ef477a5261d1fdab8ebf762e2e893a4e4ffaa3aea4ad61d61c5077203252e"
+      "computedHash": "6ff07f511cbad5541fff9c1516e6d32a02c79ed57ce8476fe2b07e2410c5faba"
     },
     "wasmer-wasm-runtime": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/wasmer-wasm-runtime",
       "localPath": ".claude/skills/wasmer-wasm-runtime",
-      "computedHash": "de01b23a9798b26f9dfe7d14dc4d51a3c5e4a63d855840cf7ec45cf74af54e27"
+      "computedHash": "e4d0109f93e9e4f7913fd4ab10906145d7600e66d8c14743bcb40b8741ed5d33"
     },
     "wasmtime-wasi-sandbox": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/wasmtime-wasi-sandbox",
       "localPath": ".claude/skills/wasmtime-wasi-sandbox",
-      "computedHash": "622bc86a69cfe7b98b4536698d7c5f637864962120c1dd257df973fb8b5f96ed"
+      "computedHash": "239b978e9d4d8bce174fa523cd295642c629e8aff3ce6135f32217a7da556779"
     },
     "web-performance": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/web-performance",
       "localPath": ".claude/skills/web-performance",
-      "computedHash": "84d464e80e4fd7b785074182ecf58609eb2efe49772130695e13af00a8805201"
+      "computedHash": "a832f46709aa1985cd6ca426d4a6aa8b0359d5a4d7efed26c43e6e26b455be2e"
     },
     "websocket-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/websocket-patterns",
       "localPath": ".claude/skills/websocket-patterns",
-      "computedHash": "c029a553a9202f09bfd1a1f558dd2e6b9781603ac6703477b5fc2b2ac93f0b1d"
+      "computedHash": "ff5b5763b022f07fc640cc5f533189e2829bb6a285ad007f5780b5d388c49049"
     },
     "websocket-protocol-codegen": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/websocket-protocol-codegen",
       "localPath": ".claude/skills/websocket-protocol-codegen",
-      "computedHash": "5da467323cc2a9eca4b2e6b8377614853b62eed180fefc4d5ac5b23648331501"
+      "computedHash": "2fa1d83c9587916a29901b22be1dc9e4946fa09ad154e63fa26e6e98fe5b8601"
     },
     "worktree-safety": {
       "source": "yamtam-engine/core/skills",
@@ -2093,7 +2103,7 @@
       "computedHash": "eb50a01af6d2a2b37691f07d8e12d3aafbd67042e41150692e5e0c67f9fedb42"
     },
     "write-a-skill": {
-      "computedHash": "deabc266574f0b634344bc04e536558b95f8eb26e4f18caff9a028dd66be6a2e",
+      "computedHash": "7ad440d885214bf1ff100ebf16ee6527ff4590691c2869bdc3a4221e41058ba7",
       "localPath": ".claude/skills/write-a-skill",
       "addedAt": "2026-05-29T14:14:55Z"
     },
@@ -2109,63 +2119,63 @@
       "sourceType": "local",
       "sourcePath": "core/skills/xstate-actor-model",
       "localPath": ".claude/skills/xstate-actor-model",
-      "computedHash": "d2b724f909150f089bf659e6ead41eacf62998629a2a00d4e66c381eb24f4167"
+      "computedHash": "e7c49eed94736d1421302b2e908b4d3e3e64103e87abe888296d379c319ed472"
     },
     "yaml-safe-parsing": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/yaml-safe-parsing",
       "localPath": ".claude/skills/yaml-safe-parsing",
-      "computedHash": "a0b5a7d6b4412c2a04550e4bc0fa4765edb1d62de20c95dd3aac27507dd94136"
+      "computedHash": "3455e1d21cbde8eb7b34cc6309f267c3ae68d8619c3aff760ed06f652f2dada1"
     },
     "yjs-crdt-sync": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/yjs-crdt-sync",
       "localPath": ".claude/skills/yjs-crdt-sync",
-      "computedHash": "490d0088a9efd69e9839658adef4877dad4266626b0deac8568303601bac7a8d"
+      "computedHash": "c27061384043f179f147f595c9e0d952df3939f4a2287ac03f8decb4a2de6b21"
     },
     "zero-trust-network-mesh": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zero-trust-network-mesh",
       "localPath": ".claude/skills/zero-trust-network-mesh",
-      "computedHash": "db8b895d65b54bcc0e5074bad83713859417c8898715af34961bfb6dbd925705"
+      "computedHash": "ef5b0697576226cec36fad5b2353867ec59f99839c662a109ae44396ef305ec7"
     },
     "zero-trust-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zero-trust-patterns",
       "localPath": ".claude/skills/zero-trust-patterns",
-      "computedHash": "8c5415c3a97d1ba6e317695f0676d8e345565ffa05b5c88c32bab9e3c7d245ec"
+      "computedHash": "68da51d92ea2f9a1b3f5169c30d75e198139b8557cc048d0d08ae63f68c6b7bc"
     },
     "zip-memory-operations": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zip-memory-operations",
       "localPath": ".claude/skills/zip-memory-operations",
-      "computedHash": "f4028f651111304b9ecf857e58e4f4649d0b8827cf002f2827777f53142cfd91"
+      "computedHash": "ed077146b0e6f62492fb42094b5496eedc108ba64ff379023d6b43b1eb1c263e"
     },
     "zk-proof-patterns": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zk-proof-patterns",
       "localPath": ".claude/skills/zk-proof-patterns",
-      "computedHash": "e3a4fca642876c787082faa06e6b675adfbf59a13e0bec2503bdcaeda9f4991d"
+      "computedHash": "1f988e93824af94613108447174082a53a23fbe5d69b01c63bfa76432bfee63f"
     },
     "zlib-stream-compression": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zlib-stream-compression",
       "localPath": ".claude/skills/zlib-stream-compression",
-      "computedHash": "04d7b6b03a230e33ab81aac39f94e4c4d8011463e33a52c1a65c8926cfb83085"
+      "computedHash": "d390d1c90d7bafa937d237f67c39f1dcba26a6b322c6c2be8d5eb64101d07d65"
     },
     "zombie-process-cleanup": {
       "source": "yamtam-engine/core/skills",
       "sourceType": "local",
       "sourcePath": "core/skills/zombie-process-cleanup",
       "localPath": ".claude/skills/zombie-process-cleanup",
-      "computedHash": "3b667e96d6310a7d74ce251f6cffc1c58423a347b23340e91a9e0f3ab22eea54"
+      "computedHash": "70f4a287c96639628ccd4e3e4f3c7dcb3e4e95649ba2c76c8893d0f6b632b1e8"
     },
     "book--a-philosophy-of-software-design--full": {
       "computedHash": "9bf3090186be45ee7ef0b091be0d9633506d6d896b902d9903595aa170b12d0c",
@@ -7245,12 +7255,12 @@
     "terminal--langchain": {
       "computedHash": "ed9fc6895ac25315c77251490e9452fb630f4aa7a0f16b84f0573055ed429e08",
       "localPath": ".claude/skills/terminal--langchain",
-      "addedAt": "2026-05-29T14:17:02Z"
+      "addedAt": "2026-05-29T14:12:00Z"
     },
     "terminal--langfuse": {
       "computedHash": "61a4ba210ba9569cafe63a7a06bf4795e67eaa54950e62530e1c7d5317cd3832",
       "localPath": ".claude/skills/terminal--langfuse",
-      "addedAt": "2026-05-29T14:17:02Z"
+      "addedAt": "2026-05-29T14:12:00Z"
     },
     "terminal--langgraph": {
       "computedHash": "654b4ef2f8f0dbd3212c92263156c77033115d4c1380a65a55a0beac3827287f",
@@ -7265,7 +7275,7 @@
     "terminal--langtrace": {
       "computedHash": "938073ec3457402c63bbe1560e450ec6a3f505b628890d7bb9a23e62e5177e70",
       "localPath": ".claude/skills/terminal--langtrace",
-      "addedAt": "2026-05-29T14:17:03Z"
+      "addedAt": "2026-05-29T14:12:00Z"
     },
     "terminal--laravel": {
       "computedHash": "858c64007d7a5b0077a868e64b3355be70f92a3b7a00fe8461abee26391d5259",
@@ -7285,7 +7295,7 @@
     "terminal--launch-strategy": {
       "computedHash": "156f81fc1866e07e335438da23711f72de6c88e5b407aa2be919f3614abbc32c",
       "localPath": ".claude/skills/terminal--launch-strategy",
-      "addedAt": "2026-05-29T14:17:03Z"
+      "addedAt": "2026-05-29T14:12:01Z"
     },
     "terminal--lead-qualification": {
       "computedHash": "b4d4729a1f3228ad17442e31d867e9f04fde558d6987dd86fc30e7e5ae811d81",
@@ -7315,7 +7325,7 @@
     "terminal--leptos": {
       "computedHash": "65551f1ef05d0ad1f412466ce6772851ffc95c6e36b853d1406ca00f82346dd1",
       "localPath": ".claude/skills/terminal--leptos",
-      "addedAt": "2026-05-29T14:17:03Z"
+      "addedAt": "2026-05-29T14:12:02Z"
     },
     "terminal--letsencrypt": {
       "computedHash": "c97c66edaab4b45db40fe28b6d8e268f1873fa61e37ab872a53e59212d22bb40",
@@ -7340,7 +7350,7 @@
     "terminal--lightpanda-browser": {
       "computedHash": "bcdbc34e820466a3cc7ca230fdb07df433b3f4526fd3e27207e32e4cc3a409dc",
       "localPath": ".claude/skills/terminal--lightpanda-browser",
-      "addedAt": "2026-05-29T14:17:04Z"
+      "addedAt": "2026-05-29T14:12:02Z"
     },
     "terminal--linear": {
       "computedHash": "8bdb812e15d2f34bc99da030367353c6225b8ef41ebaf1dc4851a9ab044f18ea",
@@ -7510,7 +7520,7 @@
     "terminal--market-evaluation": {
       "computedHash": "5d267be0c58d323d49304e920859a294e7f9bca95418dd9808f4bce6ce168e50",
       "localPath": ".claude/skills/terminal--market-evaluation",
-      "addedAt": "2026-05-29T14:17:05Z"
+      "addedAt": "2026-05-29T14:12:04Z"
     },
     "terminal--marketing-ideas": {
       "computedHash": "ba57a805e8f0b9862076a92ead1cbb70b1c181f379f143f65d906077f9a0eb90",
@@ -7555,7 +7565,7 @@
     "terminal--medusa": {
       "computedHash": "cb2aa1e10fd1f887bbb647598013c7658a9cbe6d619b7ea32484f64339f67837",
       "localPath": ".claude/skills/terminal--medusa",
-      "addedAt": "2026-05-29T14:17:06Z"
+      "addedAt": "2026-05-29T14:12:04Z"
     },
     "terminal--meeting-notes": {
       "computedHash": "4e34b595f9d66dd16548e16a2c7362e8611f74d107956ba073dad25d31844a61",
@@ -7615,7 +7625,7 @@
     "terminal--minimind": {
       "computedHash": "633b4a8368f960bf559ec88f7e1bc929a8c5167b3c8b5f1848b5ffde1bb3f482",
       "localPath": ".claude/skills/terminal--minimind",
-      "addedAt": "2026-05-29T14:17:07Z"
+      "addedAt": "2026-05-29T14:12:05Z"
     },
     "terminal--minio": {
       "computedHash": "4a6e7b522c34eee52cfd17ca773095d9d55c88243621bc1a5ff1f70c890b1ad2",
@@ -7625,7 +7635,7 @@
     "terminal--mintlify": {
       "computedHash": "7735b199e74fd1c251636d26ad800c9a9af176e74ec7a3ffaae4b09d1230894a",
       "localPath": ".claude/skills/terminal--mintlify",
-      "addedAt": "2026-05-29T14:17:07Z"
+      "addedAt": "2026-05-29T14:14:39Z"
     },
     "terminal--mise": {
       "computedHash": "ae625517fd589a41a799dd92098d0dbce5770455f6a4be6cce88a17507d3f7aa",
@@ -7635,7 +7645,7 @@
     "terminal--mistral-api": {
       "computedHash": "4eb3f7fbc3b73351d08c790e4f9a2116ffdfcfe42cb0e5f78d80e2792b0ab53e",
       "localPath": ".claude/skills/terminal--mistral-api",
-      "addedAt": "2026-05-29T14:17:07Z"
+      "addedAt": "2026-05-29T14:12:05Z"
     },
     "terminal--mixpanel": {
       "computedHash": "1a3a307f006735149296df55815d534e996f1a1e00f4f2dc5036173636cc5614",
@@ -7710,12 +7720,12 @@
     "terminal--moviepy": {
       "computedHash": "6ac567812c1110a4c09f613440a50c0222f305dc4f1fcb1b566b5052a699b0ed",
       "localPath": ".claude/skills/terminal--moviepy",
-      "addedAt": "2026-05-29T14:17:08Z"
+      "addedAt": "2026-05-29T14:12:06Z"
     },
     "terminal--ms-access": {
       "computedHash": "514c901267e94166893363996c455a68039e4277ec2c1b144d7e584461eb2630",
       "localPath": ".claude/skills/terminal--ms-access",
-      "addedAt": "2026-05-29T14:17:09Z"
+      "addedAt": "2026-05-29T14:12:06Z"
     },
     "terminal--msgpack": {
       "computedHash": "63f2091261e8cbe7bf0ed9da038af42b3dfca006fba96877630ad5df345158dd",
@@ -7830,7 +7840,7 @@
     "terminal--ngrok": {
       "computedHash": "bd024db087a48d9cb13ecf6ab2a851d37883985825f4424f934d403e5ca69d80",
       "localPath": ".claude/skills/terminal--ngrok",
-      "addedAt": "2026-05-29T14:17:10Z"
+      "addedAt": "2026-05-29T14:12:08Z"
     },
     "terminal--nhost": {
       "computedHash": "0153a1636edbcd37505fd1d3de31f1a3678db8bbe57d4f10605575e3ae030d3d",
@@ -7845,7 +7855,7 @@
     "terminal--nitropack": {
       "computedHash": "32480d42c0420adf6fd5b553d9d9bd3a84e53c0ad45edf9693d845fb526dcca2",
       "localPath": ".claude/skills/terminal--nitropack",
-      "addedAt": "2026-05-29T14:17:10Z"
+      "addedAt": "2026-05-29T14:12:08Z"
     },
     "terminal--nitro": {
       "computedHash": "f3eadca9a923091c25e2c943e71d824f06f4314a5fe0ecaad39195bab873359b",
@@ -7915,7 +7925,7 @@
     "terminal--observability-setup": {
       "computedHash": "efd32bd800a587a6218f7e0343f33c7b6944b52c18de2e1ad40190e77e0dd483",
       "localPath": ".claude/skills/terminal--observability-setup",
-      "addedAt": "2026-05-29T14:17:11Z"
+      "addedAt": "2026-05-29T14:12:09Z"
     },
     "terminal--obsidian": {
       "computedHash": "6dcb4c3618bd863762905a49a2c2a35c77ce79247c97f412b9a04f5065b3682e",
@@ -7955,7 +7965,7 @@
     "terminal--onedrive": {
       "computedHash": "b78e0281418f5de8673ff67e9f2ec1f30b2f805d6d7627f34caca23adce51c98",
       "localPath": ".claude/skills/terminal--onedrive",
-      "addedAt": "2026-05-29T14:17:11Z"
+      "addedAt": "2026-05-29T14:14:41Z"
     },
     "terminal--onenote": {
       "computedHash": "ec7104e47a4aaf8c423437cf1c2b9941d23c3ce6c415db0ab13d2819ea658dce",
@@ -8010,12 +8020,12 @@
     "terminal--openclaw": {
       "computedHash": "e579370a486b64d970f06ed7263e905146c896236afe57c253b904864e7608ec",
       "localPath": ".claude/skills/terminal--openclaw",
-      "addedAt": "2026-05-29T14:17:12Z"
+      "addedAt": "2026-05-29T14:12:10Z"
     },
     "terminal--opencv": {
       "computedHash": "efc35fb010a6e576e8aff4085cb3c8309550b2ba35152ba61e931abfdafecfb4",
       "localPath": ".claude/skills/terminal--opencv",
-      "addedAt": "2026-05-29T14:17:12Z"
+      "addedAt": "2026-05-29T14:12:10Z"
     },
     "terminal--opendataloader-pdf": {
       "computedHash": "b8408e1f9651b5d206621662733254c32000ca5f420afd27bf656011faf764d7",
@@ -8215,7 +8225,7 @@
     "terminal--pentagi": {
       "computedHash": "2c14b5fcc92404eaf07751f6818ad3e3fecb0b3de2713673eb7bb3f7e62c0985",
       "localPath": ".claude/skills/terminal--pentagi",
-      "addedAt": "2026-05-29T14:17:13Z"
+      "addedAt": "2026-05-29T14:12:12Z"
     },
     "terminal--percy": {
       "computedHash": "11092e5438c17d01d0e5b293efb7beab5f1c09d355fa6ef716dc6053cf94a137",
@@ -8625,7 +8635,7 @@
     "terminal--recoil": {
       "computedHash": "79a22a5e5fa8530e06734ea347473c75a8e7b29a68a8e5bb89fb4f05d475cde1",
       "localPath": ".claude/skills/terminal--recoil",
-      "addedAt": "2026-05-29T14:17:16Z"
+      "addedAt": "2026-05-29T14:12:17Z"
     },
     "terminal--reddit-insights": {
       "computedHash": "b03d2de4a101ef82585066b7eedfecef528337fdb3cda1ea10bcaf2eb19d45eb",
@@ -8970,7 +8980,7 @@
     "terminal--soda": {
       "computedHash": "0d8b5f0ab0bb3914ed0380678f1e509239a600ba5edf8c58c72744f17a880019",
       "localPath": ".claude/skills/terminal--soda",
-      "addedAt": "2026-05-29T14:17:19Z"
+      "addedAt": "2026-05-29T14:12:21Z"
     },
     "terminal--solana": {
       "computedHash": "885cb49e67a5e6df037aa82c81ae0e2b89184d241731ef9faca23f7b3d178923",
@@ -9050,7 +9060,7 @@
     "terminal--ssh": {
       "computedHash": "f2c0ebef87fda621d644b5b991019b93e4536b4cf3c5052e4b131017af15e46d",
       "localPath": ".claude/skills/terminal--ssh",
-      "addedAt": "2026-05-29T14:17:20Z"
+      "addedAt": "2026-05-29T14:12:22Z"
     },
     "terminal--ssrf-detection": {
       "computedHash": "a7d3fa058e443e13b671448ea3152c8ec8524214da0c12a4de228bbaa1fb24c8",
@@ -9060,7 +9070,7 @@
     "terminal--ssr-migration": {
       "computedHash": "21e1aec0fcd2c39cb01a671d2a52e8a165a11c2a381df999e6ea1fea3e6211f4",
       "localPath": ".claude/skills/terminal--ssr-migration",
-      "addedAt": "2026-05-29T14:17:20Z"
+      "addedAt": "2026-05-29T14:12:22Z"
     },
     "terminal--sst": {
       "computedHash": "d1931666d305338eada30af0f050ca63d7f884eef9b161e24c0e4c4d373c85c4",
@@ -9310,7 +9320,7 @@
     "terminal--template-engine": {
       "computedHash": "9a21b79e638ece2ff6dedd0703d454592a1d19725c2209fa0f52a6a0355fb419",
       "localPath": ".claude/skills/terminal--template-engine",
-      "addedAt": "2026-05-29T14:17:22Z"
+      "addedAt": "2026-05-29T14:12:25Z"
     },
     "terminal--temporal": {
       "computedHash": "86cbfe0cd0abf72de226c829d2b756e8125bd20f28d1dedb0cccf8064f9e5efb",
@@ -9530,7 +9540,7 @@
     "terminal--ubiquitous-language": {
       "computedHash": "0cbd97f668399733d132ef4d790cde9dd7084f8ea6cb79f0adc95716ab634932",
       "localPath": ".claude/skills/terminal--ubiquitous-language",
-      "addedAt": "2026-05-29T14:17:24Z"
+      "addedAt": "2026-05-29T14:12:28Z"
     },
     "terminal--ui-ux-pro-max": {
       "computedHash": "14a12b9983dc2f491cce8602c113135cea110a3acdb3fbef0d08529733afdc1d",
@@ -9675,7 +9685,7 @@
     "terminal--vibe-coding": {
       "computedHash": "d7a502253ef1f0eb1bf998b9e62644968d07c179e35bbec37a79cf5d61dcf680",
       "localPath": ".claude/skills/terminal--vibe-coding",
-      "addedAt": "2026-05-29T14:17:25Z"
+      "addedAt": "2026-05-29T14:12:30Z"
     },
     "terminal--vibe-voice": {
       "computedHash": "ce9b8add3011dd18a98d27698da8d55caabd5ee4c76eb38a54cb65e93d73b62b",
