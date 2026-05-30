@@ -505,7 +505,7 @@ YAMTAM is organized in three concentric layers: **Scanner** (static analysis), *
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  LAYER 3 — AGENT OS                                      │   │
-│  │  90 agents · 2,197 skills · 164 commands · 46 hooks      │   │
+│  │  90 agents · 2,204 skills · 164 commands · 46 hooks      │   │
 │  │  core/agents/  core/skills/  core/commands/  core/hooks/ │   │
 │  │                                                          │   │
 │  │   ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │   │
