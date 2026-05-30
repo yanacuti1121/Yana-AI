@@ -5,9 +5,14 @@ mod memory;
 mod plugin;
 pub mod scanner;
 mod task;
+mod ci;
 mod design;
+mod doctor;
+mod fix;
 mod graph;
 mod hunt;
+mod map;
+mod spec;
 mod vault;
 
 use clap::{Parser, Subcommand};
@@ -15,7 +20,7 @@ use clap::{Parser, Subcommand};
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yamtam-rt", version = "0.9.0", about = "YAMTAM Runtime — task · bus · memory · config · plugin · cost · vault · graph · hunt · design")]
+#[command(name = "yamtam-rt", version = "1.0.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -39,6 +44,16 @@ enum Commands {
     Cost   { #[command(subcommand)] action: CostAction },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt   { #[command(subcommand)] action: hunt::HuntAction },
+    /// CI/CD workflow health check — secrets, unpinned actions, permissions
+    Ci     { #[command(subcommand)] action: ci::CiAction },
+    /// Agent blast radius map — what the AI can reach (settings, MCP, workflows)
+    Map    { #[command(subcommand)] action: map::MapAction },
+    /// Auto-apply safe fixes for known finding IDs
+    Fix    { #[command(subcommand)] action: fix::FixAction },
+    /// Environment and dependency health checks
+    Doctor { #[command(subcommand)] action: doctor::DoctorAction },
+    /// Validate task spec files against the yamtam schema
+    Spec   { #[command(subcommand)] action: spec::SpecAction },
     /// Design token extractor — URL/file → colors, fonts, spacing, CSS vars
     Design { #[command(subcommand)] action: design::DesignAction },
     /// Knowledge graph — build/show/search/onboard/diff (Rust port of graph_builder.py)
@@ -261,6 +276,11 @@ fn main() {
             std::process::exit(exit_code);
         }
         Commands::Hunt   { action } => hunt::dispatch(action),
+        Commands::Ci     { action } => ci::dispatch(action),
+        Commands::Map    { action } => map::dispatch(action),
+        Commands::Fix    { action } => fix::dispatch(action),
+        Commands::Doctor { action } => doctor::dispatch(action),
+        Commands::Spec   { action } => spec::dispatch(action),
         Commands::Design { action } => design::dispatch(action),
         Commands::Graph  { action } => graph::dispatch(action),
         Commands::Vault { action } => vault::dispatch(action),
