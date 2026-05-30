@@ -2,7 +2,15 @@
 name = "yamtam-rt"
 version = "1.0.0"
 edition = "2024"
-description = "YAMTAM Runtime — task lifecycle, evals, evidence schema"
+description = "YAMTAM Runtime — safety CLI for AI agents: scan, graph, vault, hunt, ci, map, fix, doctor"
+license = "Apache-2.0"
+repository = "https://github.com/phamlongh230-lgtm/yamtam-engine"
+homepage = "https://phamlongh230-lgtm.github.io/yamtam-engine"
+documentation = "https://github.com/phamlongh230-lgtm/yamtam-engine#readme"
+keywords = ["ai-safety", "claude-code", "security", "agent", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
+exclude = ["core/skills/*", "docs/*", ".claude/*", "target/*"]
 
 [[bin]]
 name = "yamtam-rt"
