@@ -3,24 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YAMTAM Skill Library — 1960 skills</title>
-<meta name="description" content="Browse 1960 AI agent skills for Claude Code, Codex, Cursor and more.">
+<title>YAMTAM Skill Library — 2,211 skills</title>
+<meta name="description" content="Browse 2,211 AI agent skills for Claude Code, Codex, Cursor and more.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
-  --border:#30363d;--text:#e6edf3;--muted:#8b949e;
-  --blue:#58a6ff;--green:#3fb950;--orange:#d29922;--purple:#bc8cff;
-  --radius:8px;--transition:.15s ease;
+  --bg:hsl(38,30%,97%);--bg2:hsl(38,20%,93%);--bg3:hsl(0,0%,100%);
+  --border:hsl(38,15%,84%);--text:hsl(24,25%,12%);--muted:hsl(24,10%,45%);
+  --blue:hsl(221,75%,48%);--green:hsl(142,55%,36%);--orange:hsl(28,85%,50%);--purple:hsl(250,65%,55%);
+  --radius:10px;--transition:.15s ease;
+  --hand:"Caveat","Dancing Script",cursive;
+  --script:"Dancing Script","Caveat",cursive;
 }
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 
 /* NAV */
-.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
 .nav-logo{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{color:var(--orange)}
 .nav-links{display:flex;gap:1.5rem;font-size:.9rem;color:var(--muted)}
@@ -38,14 +40,14 @@ a:hover{text-decoration:underline}
 
 /* SEARCH */
 .search-wrap{max-width:600px;margin:0 auto 1.5rem;position:relative}
-.search-input{width:100%;padding:.75rem 1rem .75rem 2.75rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:1rem;font-family:inherit;outline:none;transition:var(--transition)}
+.search-input{width:100%;padding:.75rem 1rem .75rem 2.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:1rem;font-family:inherit;outline:none;transition:var(--transition)}
 .search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.15)}
 .search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .search-count{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
 
 /* TABS */
 .tabs{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;padding:0 2rem 1.5rem;max-width:1200px;margin:0 auto}
-.tab{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:.4rem .9rem;font-size:.85rem;font-weight:500;cursor:pointer;color:var(--muted);transition:var(--transition);font-family:inherit}
+.tab{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.4rem .9rem;font-size:.85rem;font-weight:500;cursor:pointer;color:var(--muted);transition:var(--transition);font-family:inherit}
 .tab:hover{color:var(--text);border-color:var(--muted)}
 .tab.active{color:var(--text);background:var(--bg3);border-color:var(--ns-color,var(--orange));color:var(--ns-color,var(--orange))}
 .tab-count{opacity:.6;margin-left:.3rem}
@@ -55,8 +57,8 @@ a:hover{text-decoration:underline}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
 
 /* CARD */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;cursor:default;transition:var(--transition);border-left:3px solid transparent}
-.card:hover{border-color:var(--border);background:var(--bg3);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;cursor:default;transition:var(--transition);border-left:3px solid transparent;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card:hover{border-color:var(--border);background:var(--bg3);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1)}
 [data-ns="openai"] { border-color: #10a37f; }
 [data-ns="terminal"] { border-color: #6366f1; }
 [data-ns="venice"] { border-color: #f59e0b; }
@@ -84,20 +86,20 @@ footer a:hover{color:var(--text)}
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-logo">🛡️ YAMTAM <span>Skill Library</span></div>
+<nav class="nav" style="background:hsla(38,30%,97%,.92);backdrop-filter:blur(12px)">
+  <a class="nav-logo" href="./" style="text-decoration:none;font-family:var(--script);font-size:1.15rem;font-weight:700;background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite">YAMTAM ENGINE</a>
+  <style>@keyframes rainbow{0%{background-position:0%}100%{background-position:200%}}</style>
   <div class="nav-links">
-    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">GitHub</a>
-    <a href="./">Home</a>
-    <a href="yamtam-system-map.html">System Map</a>
+    <a href="./" style="color:var(--muted)">← Home</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a>
   </div>
 </nav>
 
 <div class="hero">
-  <h1>Browse <span id="total-count">1960</span> Agent Skills</h1>
+  <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:.01em">Browse <span id="total-count" style="color:var(--blue)">2,211</span> Agent Skills</h1>
   <p>Compatible with Claude Code, Codex, Cursor, Gemini CLI and more.</p>
   <div class="stat-chips">
-    <div class="chip"><span>🛡️</span>489 YAMTAM Core</div>
+    <div class="chip"><span>🛡️</span>740 YAMTAM Core</div>
     <div class="chip"><span>🔌</span>423 OpenAI Plugins</div>
     <div class="chip"><span>⚡</span>1009 TerminalSkills</div>
     <div class="chip"><span>🎨</span>19 Venice AI</div>
@@ -114,7 +116,7 @@ footer a:hover{color:var(--text)}
 </div>
 
 <div class="tabs" id="tabs">
-  <button class="tab active" data-ns="all">All <span class="tab-count">1960</span></button><button class="tab" data-ns="openai" style="--ns-color:#10a37f">🔌 OpenAI Plugins <span class="tab-count">423</span></button><button class="tab" data-ns="terminal" style="--ns-color:#6366f1">⚡ TerminalSkills <span class="tab-count">1009</span></button><button class="tab" data-ns="venice" style="--ns-color:#f59e0b">🎨 Venice AI <span class="tab-count">19</span></button><button class="tab" data-ns="sports" style="--ns-color:#22c55e">🏆 Sports / Markets <span class="tab-count">20</span></button><button class="tab" data-ns="yamtam" style="--ns-color:#3b82f6">🛡️ YAMTAM Core <span class="tab-count">489</span></button>
+  <button class="tab active" data-ns="all">All <span class="tab-count">2211</span></button><button class="tab" data-ns="openai" style="--ns-color:#10a37f">🔌 OpenAI Plugins <span class="tab-count">423</span></button><button class="tab" data-ns="terminal" style="--ns-color:#6366f1">⚡ TerminalSkills <span class="tab-count">1009</span></button><button class="tab" data-ns="venice" style="--ns-color:#f59e0b">🎨 Venice AI <span class="tab-count">19</span></button><button class="tab" data-ns="sports" style="--ns-color:#22c55e">🏆 Sports / Markets <span class="tab-count">20</span></button><button class="tab" data-ns="yamtam" style="--ns-color:#3b82f6">🛡️ YAMTAM Core <span class="tab-count">740</span></button>
 </div>
 
 <div class="grid-wrap">
@@ -128,7 +130,7 @@ footer a:hover{color:var(--text)}
 <footer>
   <p>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a>
-    · v0.14.2 · Apache 2.0 · 1960 skills from 5 open-source collections
+    · v0.17.0 · Apache 2.0 · 2,211 skills from 5 open-source collections
   </p>
 </footer>
 
