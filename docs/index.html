@@ -16,18 +16,18 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:            hsl(222 84% 5%);
-  --bg-subtle:     hsl(222 47% 9%);
-  --bg-card:       hsl(220 40% 11%);
-  --border:        hsl(217 33% 17%);
-  --border-strong: hsl(217 33% 24%);
-  --fg:            hsl(210 40% 98%);
-  --fg-muted:      hsl(215 20% 65%);
-  --accent:        hsl(221 83% 53%);
-  --accent-hover:  hsl(221 83% 63%);
-  --green:         hsl(142 71% 45%);
-  --orange:        hsl(38 92% 50%);
-  --red:           hsl(0 84% 60%);
+  --bg:            hsl(24 18% 7%);
+  --bg-subtle:     hsl(24 14% 11%);
+  --bg-card:       hsl(24 12% 13%);
+  --border:        hsl(24 12% 20%);
+  --border-strong: hsl(24 12% 28%);
+  --fg:            hsl(38 40% 95%);
+  --fg-muted:      hsl(30 15% 58%);
+  --accent:        hsl(38 90% 52%);
+  --accent-hover:  hsl(38 90% 62%);
+  --green:         hsl(142 60% 42%);
+  --orange:        hsl(22 90% 55%);
+  --red:           hsl(0 75% 58%);
   --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --hand: "Caveat","Dancing Script",cursive;
@@ -42,7 +42,7 @@ nav {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 2rem; height: 56px;
-  background: hsla(222,84%,5%,.88); backdrop-filter: blur(12px);
+  background: hsla(24,18%,7%,.92); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
 .nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; }
@@ -506,7 +506,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 </div>
 
 <!-- Lab -->
-<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(222,60%,7%) 100%)">
+<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(24,14%,9%) 100%)">
   <div class="section-inner">
     <div class="section-label">Lab</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Side projects</h2>
@@ -514,7 +514,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
 
       <!-- Come My Way card -->
-      <div style="background:linear-gradient(160deg,hsl(222,40%,10%),hsl(240,30%,8%));border:1px solid hsl(217,33%,20%);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+      <div style="background:linear-gradient(160deg,hsl(24,12%,13%),hsl(24,10%,10%));border:1px solid hsl(24,12%,22%);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 8px 32px rgba(0,0,0,.4)">
 
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,83%,53%,.1);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.2);letter-spacing:.05em">C++17</span>
@@ -536,8 +536,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </div>
 
         <!-- Terminal window -->
-        <div style="background:hsl(222,30%,5%);border:1px solid hsl(217,33%,15%);border-radius:10px;overflow:hidden">
-          <div style="background:hsl(222,30%,8%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(217,33%,13%)">
+        <div style="background:hsl(24,10%,6%);border:1px solid hsl(24,10%,16%);border-radius:10px;overflow:hidden">
+          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
             <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block;box-shadow:0 0 4px #ff5f5766"></span>
             <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block;box-shadow:0 0 4px #febc2e66"></span>
             <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block;box-shadow:0 0 4px #28c84066"></span>
