@@ -275,6 +275,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <a href="#features" data-i18n="nav.features">Features</a>
     <a href="#runtime" data-i18n="nav.runtime">Runtime</a>
     <a href="#docs" data-i18n="nav.docs">Docs</a>
+    <a href="skills.html" data-i18n="nav.skills">Skills</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
@@ -337,10 +338,10 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Stats -->
 <div class="stats-bar">
   <div class="stats-inner">
-    <div>
-      <div class="stat-num" style="color:var(--green)">2197</div>
-      <div class="stat-label">Workflow Skills</div>
-    </div>
+    <a href="skills.html" style="text-decoration:none;color:inherit;display:block;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+      <div class="stat-num" style="color:var(--green)">2,211</div>
+      <div class="stat-label" data-i18n="stat.skills">Workflow Skills ↗</div>
+    </a>
     <div>
       <div class="stat-num" style="color:hsl(221 83% 63%)">17</div>
       <div class="stat-label">Rust Subcommands</div>
@@ -837,7 +838,7 @@ function runDemo() {
 // i18n
 const T = {
   en: {
-    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.cta':'Get started',
+    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗',
     'hero.title':'Your AI agent\'s<br><em>safety layer</em>',
     'hero.sub':'Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
     'hero.cta1':'Install free',
@@ -871,7 +872,7 @@ const T = {
     'gate.l5.n':'UI quality + scope drift',
   },
   vi: {
-    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.cta':'Bắt đầu',
+    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗',
     'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
     'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2.211 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
     'hero.cta1':'Cài đặt miễn phí',
@@ -905,7 +906,7 @@ const T = {
     'gate.l5.n':'Chất lượng UI + scope drift',
   },
   ko: {
-    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.cta':'시작하기',
+    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗',
     'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
     'hero.sub':'손상 전에 실행되는 안전 훅. 2,211개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
     'hero.cta1':'무료 설치',
