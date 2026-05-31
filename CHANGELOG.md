@@ -8,6 +8,18 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.18.0 — yamtam-rt v1.1.0: CI publish + score command
+*TBD*
+
+### Status: UNRELEASED 🔲
+
+### Highlights
+- **yamtam-rt v1.1.0** — CI publish pipeline to crates.io + 35 integration tests + `score` subcommand
+- CI workflow publishes binary artifacts on release tag push
+- `score` subcommand for rule scoring and analysis
+
+---
+
 ## v0.17.0 — yamtam-rt v1.0.0: Full Python CLI parity in Rust
 *2026-05-30*
 

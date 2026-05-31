@@ -1,24 +1,27 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-05-30
+**Cập nhật lần cuối:** 2026-05-30 (wrap-up)
 
 ## Trạng thái
-- yamtam-engine v0.17.0 — published npm ✅ PyPI ✅
-- yamtam-rt v1.0.0 — published crates.io ✅
-- 17 Rust subcommands, full Python parity
-- bin/yamtam wired → yamtam-rt, không còn Python dependency cho core
-- 2197 skills, landing page redesigned
+- yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io ✅
+- CI ✅ YAMTAM Audit ✅ tất cả xanh
+- 2,204 skills — số liệu đã sync đồng nhất
+- Disk: 92% (389MB trống)
+
+## Phase hiện tại: STABILIZE
+Không thêm feature mới. Chỉ fix và ổn định.
 
 ## Ưu tiên tiếp theo
-1. Rotate tất cả tokens đã lộ: npm + crates.io + PyPI
-2. Benchmark table trong README (Rust vs Python timing chi tiết)
-3. Wire yamtam audit . → cũng alias sang yamtam-rt scan trong README examples
-4. GitHub Release v0.17.0 với changelog
+1. **Rotate tokens** (npm + crates.io + PyPI) → update GitHub Secrets
+2. Codexmate VI patch — debug trên Cloud Shell (patch.py chưa ăn ở đó)
+3. DIRECTION.md — anh muốn update nhưng chưa nói rõ phần nào
+4. Benchmark table Rust vs Python trong README
 
 ## Đã biết / blockers
-- Disk 87% (~622MB free) → dùng CARGO_TARGET_DIR=/tmp khi build
-- Tất cả tokens trong conversation cần rotate ngay
+- Token rotation: anh cần tự làm trên web rồi update GitHub Secrets
+- Codexmate chạy bằng `CODEXMATE_PORT=8080 codexmate run` + Web Preview 8080
+- Disk vẫn chật — tránh cargo build, npm install nặng
 
-## Ghi chú cá nhân
-- Anh quan tâm đến unsloth (LLM fine-tuning)
-- GPT 5.5 thỉnh thoảng review code cùng
+## Ghi chú
+- Anh dùng Google Cloud Shell
+- jnmt.vn + jnmt-vn-work đã xóa khỏi Cloud Shell (vẫn có trên GitHub)

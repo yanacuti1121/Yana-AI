@@ -2,8 +2,8 @@
   "name": "yamtam-engine",
   "version": "0.17.0",
   "scaffold_version": "1.0",
-  "release_date": "2026-05-29",
-  "manifest_updated": "2026-05-29",
+  "release_date": "2026-05-30",
+  "manifest_updated": "2026-05-31",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "import_notes": [
@@ -158,7 +158,10 @@
         "core/agents/token-guard.md",
         "core/agents/tool-router.md",
         "core/agents/ui-ux-designer.md",
-        "core/agents/verify-agent.md"
+        "core/agents/verify-agent.md",
+        "core/agents/risk-analyst.md",
+        "core/agents/scope-enforcer.md",
+        "core/agents/session-historian.md"
       ],
       "review_later": [
         "react-native-developer.md",
@@ -371,7 +374,11 @@
         "core/hooks/tool-validator.sh",
         "core/hooks/truth-gate-guard.sh",
         "core/hooks/validate-completion.sh",
-        "core/hooks/per-tool-circuit-breaker.sh"
+        "core/hooks/per-tool-circuit-breaker.sh",
+        "core/hooks/coverage-gate.sh",
+        "core/hooks/dependency-safety-gate.sh",
+        "core/hooks/static-analysis-gate.sh",
+        "core/hooks/test-runner-gate.sh"
       ]
     },
     "scripts": {
