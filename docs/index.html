@@ -54,6 +54,35 @@ nav {
 .nav-cta { background: var(--accent) !important; color: #fff !important; padding: .375rem .875rem; border-radius: 6px; font-size: .8125rem !important; font-weight: 600; transition: background .15s !important; }
 .nav-cta:hover { background: var(--accent-hover) !important; }
 
+/* Language switcher */
+.lang-switcher { display:flex; gap:.25rem; align-items:center; background:var(--bg-subtle); border:1px solid var(--border); border-radius:20px; padding:.15rem .3rem; }
+.lang-btn { border:none; background:transparent; cursor:pointer; font-size:.72rem; font-weight:600; padding:.2rem .5rem; border-radius:14px; color:var(--fg-muted); transition:all .15s; letter-spacing:.02em; }
+.lang-btn.active { background:var(--bg-card); color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+.lang-btn:hover:not(.active) { color:var(--fg); }
+
+/* Hero decorative */
+.hero { position:relative; overflow:hidden; }
+.hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 40%, hsla(221,75%,65%,.08), transparent),
+    radial-gradient(ellipse 40% 60% at 20% 70%, hsla(38,90%,65%,.07), transparent);
+}
+
+/* Section h2 accent underline */
+.section-inner h2::after {
+  content:''; display:block; width:2.5rem; height:3px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+  border-radius:2px; margin-top:.5rem;
+}
+
+/* Card hover lift */
+.feat-card, .gate-row, .compat-card {
+  transition: transform .2s ease, box-shadow .2s ease !important;
+}
+.feat-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.1) !important; }
+.compat-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.08) !important; }
+
 /* Hero */
 .hero {
   max-width: 1100px; margin: 0 auto;
@@ -243,11 +272,16 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <nav>
   <a class="nav-logo" href="#"><span>⚡</span> YAMTAM ENGINE</a>
   <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#runtime">Runtime</a>
-    <a href="#install">Install</a>
+    <a href="#features" data-i18n="nav.features">Features</a>
+    <a href="#runtime" data-i18n="nav.runtime">Runtime</a>
+    <a href="#docs" data-i18n="nav.docs">Docs</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
-    <a href="#install" class="nav-cta">Get started</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VI</button>
+      <button class="lang-btn" onclick="setLang('ko')">KO</button>
+    </div>
+    <a href="#install" class="nav-cta" data-i18n="nav.cta">Get started</a>
   </div>
 </nav>
 
@@ -255,12 +289,12 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <div class="hero">
   <div>
     <div class="hero-badge"><span class="dot"></span> v0.17.0 &nbsp;·&nbsp; yamtam-rt 1.0.0</div>
-    <h1>Your AI agent's<br><em>safety layer</em></h1>
-    <p class="hero-sub">Safety hooks that fire before damage happens. 2197 skills, a full Rust runtime, and a 6-layer gate system for Claude Code, Cursor, and Codex.</p>
+    <h1 data-i18n="hero.title">Your AI agent's<br><em>safety layer</em></h1>
+    <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.</p>
     <div class="hero-ctas">
       <a href="#install" class="btn-primary">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
-        Install free
+        <span data-i18n="hero.cta1">Install free</span>
       </a>
       <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank" class="btn-ghost">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -329,7 +363,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Features -->
 <section id="features">
   <div class="section-inner">
-    <div class="section-label">Why YAMTAM</div>
+    <div class="section-label" data-i18n="section.why">Why YAMTAM</div>
     <h2>AI agents cause real damage.<br>YAMTAM stops it before it happens.</h2>
     <p class="section-sub">Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.</p>
     <div class="feat-grid">
@@ -370,7 +404,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Gates -->
 <section style="background:var(--bg-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
   <div class="section-inner">
-    <div class="section-label">Architecture</div>
+    <div class="section-label" data-i18n="section.arch">Architecture</div>
     <h2>6-layer gate system</h2>
     <p class="section-sub">Each layer is independent. A bypassed outer layer doesn't break the inner ones.</p>
     <div class="gates">
@@ -411,7 +445,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Runtime -->
 <section id="runtime">
   <div class="section-inner">
-    <div class="section-label">Rust Runtime</div>
+    <div class="section-label" data-i18n="section.runtime">Rust Runtime</div>
     <h2>yamtam-rt v1.0.0</h2>
     <p class="section-sub">Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.</p>
     <div class="rt-grid">
@@ -458,7 +492,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Compat -->
 <section style="background:var(--bg-subtle);border-top:1px solid var(--border)">
   <div class="section-inner">
-    <div class="section-label">Compatibility</div>
+    <div class="section-label" data-i18n="section.compat">Compatibility</div>
     <h2>Works with every major AI coding tool</h2>
     <p class="section-sub">YAMTAM sits outside your editor — it doesn't care which AI you use.</p>
     <div class="compat-grid">
@@ -508,7 +542,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Full Docs -->
 <section id="docs" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
-    <div class="section-label">Tài liệu</div>
+    <div class="section-label" data-i18n="section.docs">Tài liệu</div>
     <h2 style="margin-bottom:.5rem">Giới thiệu đầy đủ</h2>
     <p class="section-sub">Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.</p>
 
@@ -595,7 +629,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Lab -->
 <section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(38,18%,92%) 100%)">
   <div class="section-inner">
-    <div class="section-label">Lab</div>
+    <div class="section-label" data-i18n="section.lab">Lab</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Side projects</h2>
     <p class="section-sub" style="margin-bottom:2rem">Những thứ xây ngoài giờ.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
@@ -649,7 +683,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Contact -->
 <section style="border-top:1px solid var(--border);padding:3.5rem 2rem">
   <div class="section-inner" style="max-width:1100px;margin:0 auto">
-    <div class="section-label">Liên hệ</div>
+    <div class="section-label" data-i18n="section.contact">Liên hệ</div>
     <h2 style="margin-bottom:1.75rem">Get in touch</h2>
     <div style="display:flex;flex-wrap:wrap;gap:1rem">
       <a href="mailto:phamlongh230@gmail.com" target="_blank"
@@ -799,6 +833,81 @@ function runDemo() {
     demoRunning = false;
   }, last + 600);
 }
+
+// i18n
+const T = {
+  en: {
+    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.cta':'Get started',
+    'hero.title':'Your AI agent\'s<br><em>safety layer</em>',
+    'hero.sub':'Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
+    'hero.cta1':'Install free',
+    'section.why':'Why YAMTAM','section.arch':'Architecture','section.runtime':'Rust Runtime',
+    'section.compat':'Compatibility','section.docs':'Documentation','section.lab':'Lab','section.contact':'Contact',
+    'h2.why':'The safety layer your AI needs',
+    'h2.arch':'How it works',
+    'h2.runtime':'Rust Runtime — 29× faster',
+    'h2.compat':'Works with every AI tool',
+    'h2.docs':'Full documentation',
+    'h2.lab':'Side projects',
+    'h2.contact':'Get in touch',
+    'sub.why':'Every tool call passes through a pipeline of guards before executing.',
+    'sub.docs':'Everything you need to run and use YAMTAM ENGINE.',
+    'sub.lab':'Things built outside work hours.',
+    'install.title':'Quick Install',
+  },
+  vi: {
+    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.cta':'Bắt đầu',
+    'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
+    'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2.211 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
+    'hero.cta1':'Cài đặt miễn phí',
+    'section.why':'Tại sao YAMTAM','section.arch':'Kiến trúc','section.runtime':'Rust Runtime',
+    'section.compat':'Tương thích','section.docs':'Tài liệu','section.lab':'Lab','section.contact':'Liên hệ',
+    'h2.why':'Lớp bảo vệ AI agent cần có',
+    'h2.arch':'Hoạt động như thế nào',
+    'h2.runtime':'Rust Runtime — nhanh hơn 29×',
+    'h2.compat':'Hoạt động với mọi AI tool',
+    'h2.docs':'Giới thiệu đầy đủ',
+    'h2.lab':'Dự án phụ',
+    'h2.contact':'Liên hệ',
+    'sub.why':'Mọi tool call đều qua pipeline kiểm tra trước khi thực thi.',
+    'sub.docs':'Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.',
+    'sub.lab':'Những thứ xây ngoài giờ.',
+    'install.title':'Cài đặt nhanh',
+  },
+  ko: {
+    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.cta':'시작하기',
+    'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
+    'hero.sub':'손상 전에 실행되는 안전 훅. 2,211개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
+    'hero.cta1':'무료 설치',
+    'section.why':'YAMTAM 소개','section.arch':'아키텍처','section.runtime':'Rust 런타임',
+    'section.compat':'호환성','section.docs':'문서','section.lab':'실험실','section.contact':'연락처',
+    'h2.why':'AI 에이전트에 필요한 안전 레이어',
+    'h2.arch':'작동 원리',
+    'h2.runtime':'Rust 런타임 — 29배 빠름',
+    'h2.compat':'모든 AI 도구와 호환',
+    'h2.docs':'전체 문서',
+    'h2.lab':'사이드 프로젝트',
+    'h2.contact':'연락하기',
+    'sub.why':'모든 도구 호출은 실행 전 가드 파이프라인을 통과합니다.',
+    'sub.docs':'YAMTAM ENGINE 실행에 필요한 모든 정보.',
+    'sub.lab':'업무 외 시간에 만든 것들.',
+    'install.title':'빠른 설치',
+  }
+};
+let currentLang = localStorage.getItem('yamtam-lang') || 'en';
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('yamtam-lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = T[lang]?.[key];
+    if (!val) return;
+    if (val.includes('<')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+}
+setLang(currentLang);
 
 // Fade in on scroll
 const io = new IntersectionObserver(entries => {
