@@ -63,8 +63,12 @@ import json, sys
 
 path, tool, now_epoch, cooldown = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
 
-with open(path) as f:
-    d = json.load(f)
+try:
+    with open(path) as f:
+        content = f.read().strip()
+    d = json.loads(content) if content else {}
+except Exception:
+    d = {}
 
 circuits = d.get('circuits', {})
 info = circuits.get(tool, {'state': 'closed'})
@@ -100,12 +104,17 @@ if [[ "$CIRCUIT_STATUS" == open:* ]]; then
 fi
 
 # ── Read budget state ─────────────────────────────────────────────────────────
-BUDGET_STATE=$(cat "$BUDGET_FILE")
-TOTAL_TOKENS=$(echo "$BUDGET_STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('total_tokens_used', 0))")
+BUDGET_STATE=$(cat "$BUDGET_FILE" 2>/dev/null || echo '{}')
+TOTAL_TOKENS=$(echo "$BUDGET_STATE" | python3 -c "
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: d={}
+print(d.get('total_tokens_used', 0))")
 
 LOOP_COUNT=$(echo "$BUDGET_STATE" | python3 -c "
 import json, sys
-d = json.load(sys.stdin)
+try: d=json.load(sys.stdin)
+except Exception: d={}
 print(d.get('loop_attempts', {}).get('$TOOL_NAME', 0))
 ")
 
@@ -134,8 +143,12 @@ if [[ $LOOP_COUNT -ge $MAX_ATTEMPTS ]]; then
 import json, sys
 
 path, tool, now_epoch, ts, max_attempts = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
-with open(path) as f:
-    d = json.load(f)
+try:
+    with open(path) as f:
+        c = f.read().strip()
+    d = json.loads(c) if c else {}
+except Exception:
+    d = {}
 
 circuits = d.setdefault('circuits', {})
 prev = circuits.get(tool, {})
@@ -161,8 +174,12 @@ PYEOF
 import json, sys
 
 path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
+try:
+    with open(path) as f:
+        c = f.read().strip()
+    d = json.loads(c) if c else {}
+except Exception:
+    d = {}
 d['fast_tier_triggered'] = True
 d['fast_tier_tool'] = tool
 with open(path, 'w') as f:
@@ -184,8 +201,12 @@ if [[ "$CIRCUIT_STATUS" == "half-open" ]]; then
   python3 - "$CIRCUIT_FILE" "$TOOL_NAME" <<'PYEOF'
 import json, sys
 path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
+try:
+    with open(path) as f:
+        c = f.read().strip()
+    d = json.loads(c) if c else {}
+except Exception:
+    d = {}
 circuits = d.get('circuits', {})
 if tool in circuits:
     circuits[tool]['state'] = 'closed'
@@ -202,8 +223,12 @@ python3 - "$BUDGET_FILE" "$TOOL_NAME" <<'PYEOF'
 import json, sys
 
 path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
+try:
+    with open(path) as f:
+        c = f.read().strip()
+    d = json.loads(c) if c else {}
+except Exception:
+    d = {}
 
 loops = d.setdefault('loop_attempts', {})
 loops[tool] = loops.get(tool, 0) + 1
