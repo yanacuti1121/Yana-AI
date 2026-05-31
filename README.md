@@ -204,7 +204,17 @@ yamtam init-policy mcp --dry-run      # preview without writing
 yamtam init-policy list               # 5 available templates
 ```
 
-### Runtime — yamtam-rt v1.0.0 (17 Rust subcommands, 1256x faster than Python)
+### Runtime — yamtam-rt v1.1.0 (17 Rust subcommands)
+
+**Benchmark** — measured on this repo, best of 3 runs, Cloud Shell (x86\_64):
+
+| Command | Python | Rust (yamtam-rt) | Speedup |
+|---------|--------|-----------------|---------|
+| `scan .` | 117ms | 4ms | **~29×** |
+| `doctor .` | 228ms | 4ms | **~57×** |
+| `ci .` | 62ms | 4ms | **~15×** |
+
+*Rust binary starts in ~4ms regardless of subcommand — Python startup alone costs 60–230ms.*
 
 Track tasks with evidence-verified completion:
 
