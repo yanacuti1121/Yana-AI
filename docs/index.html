@@ -651,7 +651,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Codexmate -->
 <section style="border-top:1px solid var(--border)">
   <div class="section-inner">
-    <div class="section-label">Bundled Tool</div>
+    <div class="section-label" data-i18n="section.codexmate">Bundled Tool</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
 
       <div>
@@ -660,21 +660,21 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <h2 style="margin-bottom:0">Codexmate</h2>
         </div>
         <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.25rem">
-          Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho <strong style="color:var(--fg)">Codex, Claude Code, OpenClaw</strong>. Local-first, không cloud.
+          <span data-i18n="codexmate.desc">Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho</span> <strong style="color:var(--fg)">Codex, Claude Code, OpenClaw</strong>. <span data-i18n="codexmate.desc2">Local-first, không cloud.</span>
         </p>
 
         <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem">
           <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
-            <span style="color:var(--green)">✓</span> Marketplace skills + MCP bridge
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f1">Marketplace skills + MCP bridge</span>
           </div>
           <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
-            <span style="color:var(--green)">✓</span> Vietnamese UI (992 strings đã patch)
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f2">Vietnamese UI (992 strings đã patch)</span>
           </div>
           <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
-            <span style="color:var(--green)">✓</span> Zero telemetry — config lưu local
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f3">Zero telemetry — config lưu local</span>
           </div>
           <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
-            <span style="color:var(--green)">✓</span> Bảo vệ bởi YAMTAM safety layer
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f4">Bảo vệ bởi YAMTAM safety layer</span>
           </div>
         </div>
 
@@ -682,13 +682,13 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
            target="_blank"
            style="display:inline-flex;align-items:center;gap:.45rem;background:var(--bg-subtle);border:1px solid var(--border);color:var(--fg);padding:.5rem 1rem;border-radius:8px;font-size:.875rem;font-weight:500;text-decoration:none;transition:all .15s"
            onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          Xem source ↗
+          <span data-i18n="codexmate.src">Xem source</span> ↗
         </a>
       </div>
 
       <!-- How to run -->
       <div>
-        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;margin-bottom:.65rem;font-family:var(--mono)">Cách bật</div>
+        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;margin-bottom:.65rem;font-family:var(--mono)" data-i18n="codexmate.how">Cách bật</div>
         <div style="background:hsl(24,10%,10%);border-radius:12px;overflow:hidden;font-family:var(--mono);font-size:.8rem">
           <div style="background:hsl(24,10%,13%);padding:.5rem 1rem;border-bottom:1px solid hsl(24,10%,18%);display:flex;gap:.4rem">
             <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
@@ -707,7 +707,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </div>
 
         <div style="margin-top:.85rem;background:hsla(221,75%,48%,.06);border:1px solid hsla(221,75%,48%,.15);border-radius:8px;padding:.7rem 1rem;font-size:.8rem;color:var(--fg-muted);line-height:1.55">
-          💡 Nếu port bận: <code style="font-family:var(--mono);color:var(--accent)">fuser -k 8080/tcp</code> rồi chạy lại
+          💡 <span data-i18n="codexmate.tip">Nếu port bận:</span> <code style="font-family:var(--mono);color:var(--accent)">fuser -k 8080/tcp</code> <span data-i18n="codexmate.tip2">rồi chạy lại</span>
         </div>
       </div>
 
@@ -720,7 +720,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="section-inner">
     <div class="section-label" data-i18n="section.lab">Lab</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem"><span data-i18n="h2.lab">Side projects</span></h2>
-    <p class="section-sub" style="margin-bottom:2rem">Những thứ xây ngoài giờ.</p>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.lab">Những thứ xây ngoài giờ.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
 
       <!-- Come My Way card -->
@@ -772,13 +772,13 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Yana -->
 <section id="yana" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
-    <div class="section-label" style="font-family:var(--script)">Trợ lý AI cá nhân</div>
+    <div class="section-label" style="font-family:var(--script)" data-i18n="section.yana">Trợ lý AI cá nhân</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
       <div>
         <h2 style="font-family:var(--hand);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;margin-bottom:1rem;letter-spacing:.01em">
           Xin chào, tôi là <em style="font-style:italic;color:var(--accent)">Yana</em>
         </h2>
-        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem">
+        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem" data-i18n="yana.desc">
           Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.
         </p>
         <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem">
@@ -988,106 +988,127 @@ function runDemo() {
 // i18n
 const T = {
   en: {
-    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗','skills.label':'Skills Library','skills.title':'2,211 workflow skills —<br>explore them all','skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — all searchable and filterable by category.','skills.btn':'Browse all Skills',
-    'hero.title':'Your AI agent\'s<br><em>safety layer</em>',
-    'hero.sub':'Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
-    'hero.cta1':'Install free',
+    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs',
+    'nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗',
+    'skills.label':'Skills Library',
+    'skills.title':'2,211 workflow skills —<br>explore them all',
+    'skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — all searchable and filterable.',
+    'skills.btn':'Browse all Skills',
     'section.why':'Why YAMTAM','section.arch':'Architecture','section.runtime':'Rust Runtime',
-    'section.compat':'Compatibility','section.docs':'Documentation','section.lab':'Lab','section.contact':'Contact',
+    'section.compat':'Compatibility','section.docs':'Documentation',
+    'section.codexmate':'Bundled Tool','section.lab':'Lab','section.contact':'Contact',
+    'section.yana':'Personal AI Assistant',
     'h2.why':'AI agents cause real damage.<br>YAMTAM stops it before it happens.',
-    'h2.arch':'6-layer gate system',
-    'h2.runtime':'yamtam-rt v1.0.0',
+    'h2.arch':'6-layer gate system','h2.runtime':'yamtam-rt v1.0.0',
     'h2.compat':'Works with every major AI coding tool',
-    'h2.docs':'Full documentation',
-    'h2.lab':'Side projects',
-    'h2.contact':'Get in touch',
-    'h2.install':'Install in seconds',
+    'h2.docs':'Full documentation','h2.lab':'Side projects',
+    'h2.contact':'Get in touch','h2.install':'Install in seconds',
     'sub.why':'Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.',
-    'sub.arch':'Each layer is independent. A bypassed outer layer doesn\'t break the inner ones.',
+    'sub.arch':"Each layer is independent. A bypassed outer layer doesn't break the inner ones.",
     'sub.runtime':'Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.',
-    'sub.compat':'YAMTAM sits outside your editor — it doesn\'t care which AI you use.',
+    'sub.compat':"YAMTAM sits outside your editor — it doesn't care which AI you use.",
     'sub.docs':'Everything you need to run and use YAMTAM ENGINE.',
     'sub.lab':'Things built outside work hours.',
-    'feat.hook.t':'Pre-execution hooks',
-    'feat.rust.t':'Rust runtime',
-    'feat.skills.t':'2,211 skills',
-    'feat.graph.t':'Knowledge graph',
-    'feat.vault.t':'Vietnamese vault',
-    'feat.design.t':'Design token extractor',
-    'gate.l0.n':'Audit chain',
-    'gate.l1.n':'Anti-evasion',
-    'gate.l2.n':'Shell sanitize + env integrity',
-    'gate.l3.n':'Sandbox isolation',
-    'gate.l4.n':'Supply chain vetting',
-    'gate.l5.n':'UI quality + scope drift',
+    'feat.hook.t':'Pre-execution hooks','feat.rust.t':'Rust runtime',
+    'feat.skills.t':'2,211 skills','feat.graph.t':'Knowledge graph',
+    'feat.vault.t':'Vietnamese vault','feat.design.t':'Design token extractor',
+    'gate.l0.n':'Audit chain','gate.l1.n':'Anti-evasion',
+    'gate.l2.n':'Shell sanitize + env integrity','gate.l3.n':'Sandbox isolation',
+    'gate.l4.n':'Supply chain vetting','gate.l5.n':'UI quality + scope drift',
+    'hero.title':"Your AI agent's<br><em>safety layer</em>",
+    'hero.sub':'Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
+    'hero.cta1':'Install free',
+    'codexmate.desc':'AI coding agents control panel — switch provider, manage sessions, orchestrate tasks for',
+    'codexmate.desc2':'Local-first, no cloud.',
+    'codexmate.f1':'Marketplace skills + MCP bridge',
+    'codexmate.f2':'Vietnamese UI (992 strings patched)',
+    'codexmate.f3':'Zero telemetry — config stored locally',
+    'codexmate.f4':'Protected by YAMTAM safety layer',
+    'codexmate.src':'View source','codexmate.how':'How to run',
+    'codexmate.tip':'If port is busy:','codexmate.tip2':'then run again',
+    'yana.desc':'Personal executive assistant for <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — manages repo, monitors CI, suggests tasks, and coordinates agents in YAMTAM ENGINE daily.',
   },
   vi: {
-    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗','skills.label':'Thư viện Skills','skills.title':'2.211 workflow skills —<br>mở và khám phá','skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.','skills.btn':'Xem tất cả Skills',
-    'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
-    'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2.211 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
-    'hero.cta1':'Cài đặt miễn phí',
+    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu',
+    'nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗',
+    'skills.label':'Thư viện Skills',
+    'skills.title':'2.211 workflow skills —<br>mở và khám phá',
+    'skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.',
+    'skills.btn':'Xem tất cả Skills',
     'section.why':'Tại sao YAMTAM','section.arch':'Kiến trúc','section.runtime':'Rust Runtime',
-    'section.compat':'Tương thích','section.docs':'Tài liệu','section.lab':'Lab','section.contact':'Liên hệ',
+    'section.compat':'Tương thích','section.docs':'Tài liệu',
+    'section.codexmate':'Công cụ đi kèm','section.lab':'Lab','section.contact':'Liên hệ',
+    'section.yana':'Trợ lý AI cá nhân',
     'h2.why':'AI agent gây thiệt hại thật.<br>YAMTAM ngăn chặn trước khi xảy ra.',
-    'h2.arch':'Hệ thống 6 lớp bảo vệ',
-    'h2.runtime':'yamtam-rt v1.0.0',
+    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yamtam-rt v1.0.0',
     'h2.compat':'Hoạt động với mọi AI coding tool',
-    'h2.docs':'Giới thiệu đầy đủ',
-    'h2.lab':'Dự án phụ',
-    'h2.contact':'Liên hệ',
-    'h2.install':'Cài đặt trong vài giây',
+    'h2.docs':'Giới thiệu đầy đủ','h2.lab':'Dự án phụ',
+    'h2.contact':'Liên hệ','h2.install':'Cài đặt trong vài giây',
     'sub.why':'Mọi tool call đều qua pipeline kiểm tra trước khi thực thi. Không cần cấu hình — cài một lần, bảo vệ tất cả.',
     'sub.arch':'Mỗi lớp độc lập. Bỏ qua lớp ngoài không ảnh hưởng lớp trong.',
     'sub.runtime':'Parity đầy đủ với Python CLI trong một binary Rust duy nhất. Thay thế ~4500 dòng Python.',
     'sub.compat':'YAMTAM chạy bên ngoài editor — không quan tâm bạn dùng AI nào.',
     'sub.docs':'Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.',
     'sub.lab':'Những thứ xây ngoài giờ.',
-    'feat.hook.t':'Hook trước khi thực thi',
-    'feat.rust.t':'Rust runtime',
-    'feat.skills.t':'2.211 skills',
-    'feat.graph.t':'Knowledge graph',
-    'feat.vault.t':'Kho tri thức tiếng Việt',
-    'feat.design.t':'Trích xuất design token',
-    'gate.l0.n':'Audit chain',
-    'gate.l1.n':'Chống evasion',
-    'gate.l2.n':'Shell sanitize + bảo vệ env',
-    'gate.l3.n':'Sandbox isolation',
-    'gate.l4.n':'Kiểm duyệt supply chain',
-    'gate.l5.n':'Chất lượng UI + scope drift',
+    'feat.hook.t':'Hook trước khi thực thi','feat.rust.t':'Rust runtime',
+    'feat.skills.t':'2.211 skills','feat.graph.t':'Knowledge graph',
+    'feat.vault.t':'Kho tri thức tiếng Việt','feat.design.t':'Trích xuất design token',
+    'gate.l0.n':'Audit chain','gate.l1.n':'Chống evasion',
+    'gate.l2.n':'Shell sanitize + bảo vệ env','gate.l3.n':'Sandbox isolation',
+    'gate.l4.n':'Kiểm duyệt supply chain','gate.l5.n':'Chất lượng UI + scope drift',
+    'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
+    'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2.211 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
+    'hero.cta1':'Cài đặt miễn phí',
+    'codexmate.desc':'Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho',
+    'codexmate.desc2':'Local-first, không cloud.',
+    'codexmate.f1':'Marketplace skills + MCP bridge',
+    'codexmate.f2':'Vietnamese UI (992 strings đã patch)',
+    'codexmate.f3':'Zero telemetry — config lưu local',
+    'codexmate.f4':'Bảo vệ bởi YAMTAM safety layer',
+    'codexmate.src':'Xem source','codexmate.how':'Cách bật',
+    'codexmate.tip':'Nếu port bận:','codexmate.tip2':'rồi chạy lại',
+    'yana.desc':'Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.',
   },
   ko: {
-    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗','skills.label':'스킬 라이브러리','skills.title':'2,211개 워크플로우 스킬 —<br>모두 탐색하기','skills.sub':'Frontend, Backend, AI/LLM, 보안, K8s, WebAssembly, DevOps — 카테고리별 검색 및 필터 가능.','skills.btn':'모든 스킬 보기',
-    'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
-    'hero.sub':'손상 전에 실행되는 안전 훅. 2,211개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
-    'hero.cta1':'무료 설치',
+    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서',
+    'nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗',
+    'skills.label':'스킬 라이브러리',
+    'skills.title':'2,211개 워크플로우 스킬 —<br>모두 탐색하기',
+    'skills.sub':'Frontend, Backend, AI/LLM, 보안, K8s, WebAssembly, DevOps — 카테고리별 검색 및 필터 가능.',
+    'skills.btn':'모든 스킬 보기',
     'section.why':'YAMTAM 소개','section.arch':'아키텍처','section.runtime':'Rust 런타임',
-    'section.compat':'호환성','section.docs':'문서','section.lab':'실험실','section.contact':'연락처',
+    'section.compat':'호환성','section.docs':'문서',
+    'section.codexmate':'번들 도구','section.lab':'실험실','section.contact':'연락처',
+    'section.yana':'개인 AI 어시스턴트',
     'h2.why':'AI 에이전트는 실제 피해를 줍니다.<br>YAMTAM이 사전에 막습니다.',
-    'h2.arch':'6단계 게이트 시스템',
-    'h2.runtime':'yamtam-rt v1.0.0',
+    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yamtam-rt v1.0.0',
     'h2.compat':'모든 주요 AI 코딩 도구와 호환',
-    'h2.docs':'전체 문서',
-    'h2.lab':'사이드 프로젝트',
-    'h2.contact':'연락하기',
-    'h2.install':'몇 초 만에 설치',
+    'h2.docs':'전체 문서','h2.lab':'사이드 프로젝트',
+    'h2.contact':'연락하기','h2.install':'몇 초 만에 설치',
     'sub.why':'모든 도구 호출은 실행 전 가드 파이프라인을 통과합니다. 설정 불필요 — 한 번 설치로 전체 보호.',
     'sub.arch':'각 레이어는 독립적입니다. 외부 레이어가 우회되어도 내부 레이어는 유지됩니다.',
     'sub.runtime':'단일 Rust 바이너리로 Python CLI 완전 대체. Python 코드 ~4500줄 교체.',
     'sub.compat':'YAMTAM은 에디터 외부에서 실행 — 어떤 AI를 사용하든 상관없습니다.',
     'sub.docs':'YAMTAM ENGINE 실행에 필요한 모든 정보.',
     'sub.lab':'업무 외 시간에 만든 것들.',
-    'feat.hook.t':'사전 실행 훅',
-    'feat.rust.t':'Rust 런타임',
-    'feat.skills.t':'2,211개 스킬',
-    'feat.graph.t':'지식 그래프',
-    'feat.vault.t':'베트남어 지식 저장소',
-    'feat.design.t':'디자인 토큰 추출기',
-    'gate.l0.n':'감사 체인',
-    'gate.l1.n':'회피 방지',
-    'gate.l2.n':'셸 정제 + 환경 무결성',
-    'gate.l3.n':'샌드박스 격리',
-    'gate.l4.n':'공급망 검증',
-    'gate.l5.n':'UI 품질 + 범위 이탈',
+    'feat.hook.t':'사전 실행 훅','feat.rust.t':'Rust 런타임',
+    'feat.skills.t':'2,211개 스킬','feat.graph.t':'지식 그래프',
+    'feat.vault.t':'베트남어 지식 저장소','feat.design.t':'디자인 토큰 추출기',
+    'gate.l0.n':'감사 체인','gate.l1.n':'회피 방지',
+    'gate.l2.n':'셸 정제 + 환경 무결성','gate.l3.n':'샌드박스 격리',
+    'gate.l4.n':'공급망 검증','gate.l5.n':'UI 품질 + 범위 이탈',
+    'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
+    'hero.sub':'손상 전에 실행되는 안전 훅. 2,211개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
+    'hero.cta1':'무료 설치',
+    'codexmate.desc':'AI 코딩 에이전트 대시보드 — 프로바이더 전환, 세션 관리, 작업 조율',
+    'codexmate.desc2':'로컬 퍼스트, 클라우드 없음.',
+    'codexmate.f1':'마켓플레이스 스킬 + MCP 브리지',
+    'codexmate.f2':'베트남어 UI (992개 문자열 패치)',
+    'codexmate.f3':'제로 텔레메트리 — 설정 로컬 저장',
+    'codexmate.f4':'YAMTAM 안전 레이어로 보호',
+    'codexmate.src':'소스 보기','codexmate.how':'실행 방법',
+    'codexmate.tip':'포트가 사용 중인 경우:','codexmate.tip2':'후 다시 실행',
+    'yana.desc':'<strong style="color:var(--fg)">Vũ Văn Tâm</strong>의 개인 AI 어시스턴트 — 저장소 관리, CI 모니터링, 작업 제안, YAMTAM ENGINE 에이전트 조율.',
   }
 };
 let currentLang = localStorage.getItem('yamtam-lang') || 'en';
