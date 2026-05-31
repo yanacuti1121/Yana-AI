@@ -1,0 +1,16 @@
+{
+  "source": "",
+  "colors": [
+    "#3B82F6",
+    "hsl(0 0% 100%)",
+    "rgba(0,0,0,0.1)"
+  ],
+  "fonts": [
+    "Inter"
+  ],
+  "font_sizes": [],
+  "spacing": [],
+  "border_radius": [],
+  "shadows": [],
+  "css_vars": {}
+}
