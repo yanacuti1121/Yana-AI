@@ -1,11 +1,11 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-05-31 (wrap-up #2)
+**Cập nhật lần cuối:** 2026-05-31 (wrap-up #3)
 
 ## Trạng thái
 - yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io ✅
 - CI ✅ YAMTAM Audit ✅ tất cả xanh
-- 2,207 skills, 93 agents
+- 2,211 skills, 93 agents
 - Disk: 85% (718MB trống) — cargo clean đã chạy hôm nay
 - 4 security findings trong src/ đã fix (SSRF, file-read, path-traversal)
 

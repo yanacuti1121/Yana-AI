@@ -153,3 +153,17 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 
 **Trạng thái cuối:** v0.17.0, CI ✅, disk 86%, 8 commits hôm nay
 **Pending:** Token rotation (npm/crates/PyPI) vẫn chưa làm
+
+## 2026-05-31 (tối) — Hermes Agent import + README sync
+
+**Đã làm:**
+- Sync README counts (2204→2207, 90→93 agents)
+- Explore NousResearch/hermes-agent (MIT, 90 skills, 99 tools)
+- Import 4 skills: kanban-dispatcher, claude-code-orchestration, writing-plans, hermes-tool-guardrails
+- skills: 2207 → 2211
+
+**Anh nói / quyết định:**
+- Lấy hết 4 skills từ Hermes
+
+**Trạng thái cuối:** v0.17.0, CI ✅, 2211 skills, 93 agents, disk 86%
+**Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
