@@ -202,6 +202,11 @@ h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -
 .install-alts a { font-family: var(--mono); font-size: .8125rem; color: var(--fg-muted); text-decoration: none; }
 .install-alts a:hover { color: var(--fg); }
 
+@keyframes gradShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
 /* Footer */
 footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
@@ -581,22 +586,33 @@ function copyCmd() {
 }
 // Terminal demo
 const termLines = [
-  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#888', delay: 0 },
-  { text: '$ ./come_my_way', color: '#888', delay: 600 },
-  { text: '════════════════════════════════════════════════', color: '#36d9d9', delay: 900 },
-  { text: '  Come My Way  ~  Sơn Tùng M-TP x Tyga', color: '#36d9d9', delay: 1100, bold: true },
-  { text: '════════════════════════════════════════════════', color: '#36d9d9', delay: 1300 },
-  { text: '', delay: 1500 },
-  { text: '[ Intro: Tyga ]', color: '#c678dd', delay: 1700, bold: true },
-  { text: '', delay: 2000 },
-  { text: '[ Verse 1: Sơn Tùng M-TP ]', color: '#98c379', delay: 2200, bold: true },
-  { text: '', delay: 2700 },
-  { text: '[ Pre-Chorus ]', color: '#e5c07b', delay: 2900, bold: true },
-  { text: '', delay: 3300 },
-  { text: '[ Chorus ]', color: '#61afef', delay: 3500, bold: true },
-  { text: '', delay: 4200 },
-  { text: '🎵  Come My Way — TNOA (2022)', color: '#555', delay: 4500 },
+  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#555', delay: 0,    type: 'type' },
+  { text: '$ ./come_my_way',                                       color: '#555', delay: 700,  type: 'type' },
+  { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1100, glow: '#1de9b6' },
+  { text: '  Come My Way  ~  Sơn Tùng M-TP x Tyga',               delay: 1350, gradient: true, bold: true },
+  { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1600, glow: '#1de9b6' },
+  { text: '', delay: 1850 },
+  { text: '[ Intro: Tyga ]',            color: '#ea80fc', delay: 2050, bold: true, glow: '#ea80fc', type: 'fade' },
+  { text: '', delay: 2450 },
+  { text: '[ Verse 1: Sơn Tùng M-TP ]',color: '#69ff47', delay: 2650, bold: true, glow: '#69ff47', type: 'fade' },
+  { text: '', delay: 3100 },
+  { text: '[ Pre-Chorus ]',             color: '#ffd740', delay: 3300, bold: true, glow: '#ffd740', type: 'fade' },
+  { text: '', delay: 3700 },
+  { text: '[ Chorus ]',                 color: '#40c4ff', delay: 3900, bold: true, glow: '#40c4ff', type: 'fade' },
+  { text: '', delay: 4600 },
+  { text: '🎵  Come My Way — TNOA (2022)', color: '#444', delay: 4800 },
 ];
+
+function typeWriter(span, text, cb) {
+  let i = 0;
+  const tick = () => {
+    span.textContent = text.slice(0, ++i) + (i < text.length ? '▋' : '');
+    if (i < text.length) setTimeout(tick, 28);
+    else { span.textContent = text; if (cb) cb(); }
+  };
+  tick();
+}
+
 let demoRunning = false;
 function runDemo() {
   if (demoRunning) return;
@@ -604,25 +620,50 @@ function runDemo() {
   const out = document.getElementById('term-out');
   const btn = document.getElementById('run-btn');
   const icon = document.getElementById('run-icon');
-  out.textContent = '';
+  out.innerHTML = '';
   btn.disabled = true;
   icon.textContent = '◼';
-  termLines.forEach(({ text, color, delay, bold }) => {
+
+  termLines.forEach(({ text, color, delay, bold, glow, gradient, type }) => {
     setTimeout(() => {
-      const span = document.createElement('span');
-      span.textContent = text + '\n';
-      if (color) span.style.color = color;
-      if (bold)  span.style.fontWeight = '700';
-      out.appendChild(span);
+      const line = document.createElement('div');
+      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
+
+      if (gradient) {
+        line.style.cssText += ';background:linear-gradient(90deg,#1de9b6,#40c4ff,#ea80fc,#ffd740);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
+      } else {
+        line.style.color = color || '#ccc';
+        if (bold) line.style.fontWeight = '700';
+        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
+      }
+
+      if (type === 'fade') {
+        line.style.opacity = '0';
+        line.style.transform = 'translateY(4px)';
+        line.textContent = text;
+        out.appendChild(line);
+        requestAnimationFrame(() => {
+          line.style.opacity = '1';
+          line.style.transform = 'translateY(0)';
+        });
+      } else if (type === 'type') {
+        line.textContent = '';
+        out.appendChild(line);
+        typeWriter(line, text);
+      } else {
+        line.textContent = text;
+        out.appendChild(line);
+      }
       out.scrollTop = out.scrollHeight;
     }, delay);
   });
+
   const last = termLines[termLines.length - 1].delay;
   setTimeout(() => {
     btn.disabled = false;
     icon.textContent = '▶';
     demoRunning = false;
-  }, last + 400);
+  }, last + 600);
 }
 
 // Fade in on scroll
