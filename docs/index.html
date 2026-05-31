@@ -494,6 +494,44 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </div>
 
+<!-- Lab -->
+<section style="border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Lab</div>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Side projects</h2>
+    <p class="section-sub" style="margin-bottom:2rem">Những thứ xây ngoài giờ.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem">
+
+      <!-- Come My Way card -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:.7rem;background:hsla(221,83%,53%,.12);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.25)">C++17</span>
+          <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/come_my_way_demo.cpp"
+             target="_blank"
+             style="color:var(--fg-muted);font-size:.75rem;text-decoration:none;display:flex;align-items:center;gap:.3rem;transition:color .15s"
+             onmouseover="this.style.color='var(--fg)'" onmouseout="this.style.color='var(--fg-muted)'">
+            view source ↗
+          </a>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:1rem;margin-bottom:.35rem">Come My Way — terminal player</div>
+          <div style="color:var(--fg-muted);font-size:.875rem;line-height:1.55">
+            Terminal lyrics display với ANSI color + phát nhạc nền qua <code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">fork/exec mpv</code>. Chạy thẳng trên Linux.
+          </div>
+        </div>
+        <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.875rem;font-family:var(--mono);font-size:.72rem;line-height:1.6;overflow-x:auto;margin:0"><code><span style="color:var(--fg-muted)">// phát nhạc background</span>
+<span style="color:var(--accent)">pid_t</span> pid = fork();
+<span style="color:var(--orange)">if</span> (pid == 0) {
+  execlp(<span style="color:hsl(142,71%,45%)">"mpv"</span>, <span style="color:hsl(142,71%,45%)">"--no-video"</span>,
+         <span style="color:hsl(142,71%,45%)">"song.mp3"</span>, nullptr);
+  _exit(1);
+}</code></pre>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Footer -->
 <footer>
   <div class="footer-inner">
