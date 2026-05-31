@@ -1145,6 +1145,11 @@ else:
     )
     # Change default fallback from zh to vi
     mjs_patched = mjs_patched.replace("return 'zh';", "return 'vi';")
+    # Remove zh fallback from t() — prevents Chinese text showing for missing VI keys
+    mjs_patched = mjs_patched.replace(
+        "const table = DICT[lang] || DICT.zh;\n            const fallbackEn = DICT.en;\n            const fallbackZh = DICT.zh;\n            const raw = (table && table[key]) || (fallbackEn && fallbackEn[key]) || (fallbackZh && fallbackZh[key]) || key;",
+        "const table = DICT[lang] || DICT.vi;\n            const fallbackEn = DICT.en;\n            const raw = (table && table[key]) || (fallbackEn && fallbackEn[key]) || key;"
+    )
     # Remove ja from DOM lang setter (both initI18n and setLang)
     mjs_patched = mjs_patched.replace(
         "else if (next === 'ja') document.documentElement.lang = 'ja';\n                    else if (next === 'vi') document.documentElement.lang = 'vi';",
