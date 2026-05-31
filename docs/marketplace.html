@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YAMTAM Marketplace — Skills & Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:hsl(38,30%,97%);--bg2:hsl(38,20%,93%);--bg3:hsl(0,0%,100%);
+  --border:hsl(38,15%,84%);--text:hsl(24,25%,12%);--muted:hsl(24,10%,45%);
+  --blue:hsl(221,75%,48%);--green:hsl(142,55%,36%);--orange:hsl(28,85%,50%);
+  --purple:hsl(250,65%,55%);--red:hsl(0,70%,52%);
+  --hand:"Caveat","Dancing Script",cursive;
+  --script:"Dancing Script","Caveat",cursive;
+  --mono:"JetBrains Mono",monospace;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+  background:hsla(38,30%,97%,.92);backdrop-filter:blur(12px)}
+.nav-logo{font-family:var(--script);font-size:1.15rem;font-weight:700;text-decoration:none;
+  background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);
+  background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:rainbow 3s linear infinite}
+@keyframes rainbow{0%{background-position:0%}100%{background-position:200%}}
+.nav-links{display:flex;gap:1.5rem;font-size:.875rem;align-items:center}
+.nav-links a{color:var(--muted);transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--blue)!important;color:#fff!important;padding:.35rem .85rem;border-radius:6px;font-weight:600;font-size:.8rem!important}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));
+  padding:4rem 2rem 3rem;text-align:center;color:#fff}
+.hero h1{font-family:var(--hand);font-size:clamp(2.2rem,4vw,3.2rem);font-weight:700;
+  letter-spacing:.01em;margin-bottom:.75rem}
+.hero p{color:hsla(0,0%,100%,.8);font-size:1.05rem;max-width:50ch;margin:0 auto 2rem}
+.search-hero{max-width:560px;margin:0 auto;position:relative}
+.search-hero input{width:100%;padding:.85rem 1rem .85rem 2.8rem;border:none;border-radius:12px;
+  font-size:1rem;font-family:inherit;background:#fff;color:var(--text);outline:none;
+  box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.search-hero svg{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search-hero span{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+
+/* TYPE PILLS */
+.type-bar{display:flex;justify-content:center;gap:.75rem;padding:1.75rem 2rem .5rem;flex-wrap:wrap}
+.type-pill{display:flex;align-items:center;gap:.45rem;padding:.5rem 1.1rem;border-radius:20px;
+  border:1.5px solid var(--border);background:var(--bg3);font-size:.85rem;font-weight:600;
+  cursor:pointer;color:var(--muted);transition:all .15s}
+.type-pill:hover{border-color:var(--blue);color:var(--text)}
+.type-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.type-pill .count{font-size:.75rem;opacity:.75;margin-left:.15rem}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;gap:2rem;max-width:1200px;
+  margin:0 auto;padding:1.5rem 2rem 4rem}
+
+/* SIDEBAR */
+.sidebar{}
+.sidebar-section{margin-bottom:1.75rem}
+.sidebar-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:.6rem}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;
+  border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--muted);transition:all .15s}
+.cat-item:hover{background:var(--bg2);color:var(--text)}
+.cat-item.active{background:hsla(221,75%,48%,.1);color:var(--blue);font-weight:600}
+.cat-item .cat-count{font-size:.75rem;background:var(--bg2);padding:.1rem .4rem;border-radius:10px}
+.cat-item.active .cat-count{background:hsla(221,75%,48%,.15)}
+
+/* GRID */
+.grid-area{}
+.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.grid-header h2{font-family:var(--hand);font-size:1.4rem;font-weight:700}
+.grid-header span{font-size:.85rem;color:var(--muted)}
+.sort-select{border:1px solid var(--border);border-radius:8px;padding:.35rem .7rem;
+  font-size:.82rem;background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit}
+
+/* FEATURED SECTION */
+.featured-row{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem}
+.featured-card{background:linear-gradient(135deg,var(--blue),var(--purple));
+  border-radius:14px;padding:1.4rem;color:#fff;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.featured-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,hsla(0,0%,100%,.05),transparent)}
+.featured-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.2)}
+.featured-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  opacity:.75;margin-bottom:.5rem}
+.featured-name{font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.3rem}
+.featured-desc{font-size:.82rem;opacity:.8;line-height:1.5;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;display:-webkit-box;overflow:hidden}
+.featured-badge{position:absolute;top:.9rem;right:.9rem;background:hsla(0,0%,100%,.2);
+  border-radius:10px;padding:.2rem .55rem;font-size:.7rem;font-weight:600}
+
+/* CARD GRID */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem}
+.mkt-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  padding:1.1rem;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:.6rem}
+.mkt-card:hover{border-color:var(--blue);box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px)}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+.card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;flex-shrink:0}
+.card-title{font-weight:600;font-size:.9rem;font-family:var(--mono);line-height:1.3;
+  word-break:break-word}
+.card-desc{font-size:.8rem;color:var(--muted);line-height:1.5;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;flex:1}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.2rem}
+.card-tags{display:flex;gap:.3rem;flex-wrap:wrap}
+.tag{font-size:.68rem;padding:.15rem .45rem;border-radius:4px;font-weight:600}
+.install-btn{border:none;background:var(--blue);color:#fff;border-radius:7px;
+  padding:.3rem .7rem;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:background .15s;white-space:nowrap}
+.install-btn:hover{background:hsl(221,75%,40%)}
+.install-btn.copied{background:var(--green)}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem;color:var(--muted);grid-column:1/-1}
+.empty h3{font-size:1.2rem;margin-bottom:.5rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:hsl(24,25%,12%);color:#fff;
+  padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;
+  transform:translateY(60px);opacity:0;transition:all .25s;z-index:999;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr;padding:1rem}
+  .sidebar{display:none}
+  .featured-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="./">YAMTAM ENGINE</a>
+  <div class="nav-links">
+    <a href="./">Home</a>
+    <a href="skills.html">Library</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">GitHub</a>
+    <a href="./skills.html" class="nav-cta">Browse all</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>YAMTAM Marketplace</h1>
+  <p>2,211 skills · 93 agents · Tìm và cài đặt cho Claude Code, Cursor, Codex</p>
+  <div class="search-hero">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+    </svg>
+    <input id="search" type="search" placeholder="Search skills, agents, tools..." autocomplete="off">
+    <span id="search-count"></span>
+  </div>
+</div>
+
+<!-- Type switcher -->
+<div class="type-bar">
+  <button class="type-pill active" data-type="all" onclick="setType('all')">
+    ✨ All <span class="count" id="cnt-all">2,304</span>
+  </button>
+  <button class="type-pill" data-type="skill" onclick="setType('skill')">
+    📚 Skills <span class="count" id="cnt-skill">2,211</span>
+  </button>
+  <button class="type-pill" data-type="agent" onclick="setType('agent')">
+    🤖 Agents <span class="count" id="cnt-agent">93</span>
+  </button>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Category</div>
+      <div id="cat-list"></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="grid-area">
+    <!-- Featured -->
+    <div class="featured-row" id="featured-row">
+      <div class="featured-card" style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%))" onclick="document.getElementById('search').value='security';applySearch()">
+        <div class="featured-label">⭐ Featured category</div>
+        <div class="featured-name">Security</div>
+        <div class="featured-desc">Prompt injection guards, secret scanning, OWASP checks, supply chain vetting</div>
+        <div class="featured-badge">🛡️ YAMTAM</div>
+      </div>
+      <div class="featured-card" style="background:linear-gradient(135deg,hsl(142,55%,36%),hsl(170,60%,35%))" onclick="document.getElementById('search').value='agent';applySearch()">
+        <div class="featured-label">🔥 Most popular</div>
+        <div class="featured-name">Agent Orchestration</div>
+        <div class="featured-desc">Multi-agent pipelines, task delegation, swarm routing, autonomous loops</div>
+        <div class="featured-badge">🤖 Agents</div>
+      </div>
+    </div>
+
+    <div class="grid-header">
+      <h2 id="grid-title">All items</h2>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span id="grid-count" style="font-size:.85rem;color:var(--muted)"></span>
+        <select class="sort-select" id="sort-select" onchange="render()">
+          <option value="default">Default</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Copied to clipboard</div>
+
+<script>
+let SKILLS = [], AGENTS = [], ALL = [];
+let currentType = 'all', currentCat = 'all', currentQ = '';
+
+const SKILL_CAT_MAP = {
+  yamtam:   {label:'YAMTAM Core',  icon:'🛡️', color:'#3b82f6'},
+  openai:   {label:'OpenAI Plugins',icon:'🔌', color:'#10a37f'},
+  terminal: {label:'TerminalSkills',icon:'⚡', color:'#6366f1'},
+  venice:   {label:'Venice AI',    icon:'🎨', color:'#f59e0b'},
+  sports:   {label:'Sports',       icon:'🏆', color:'#22c55e'},
+};
+const AGENT_DOM_MAP = {
+  core:         {label:'Core Dev',   icon:'⚙️', color:'#3b82f6'},
+  quality:      {label:'QA/Review',  icon:'✅', color:'#10a37f'},
+  infra:        {label:'Infra/DevOps',icon:'🏗️',color:'#6366f1'},
+  business:     {label:'Business',   icon:'💼', color:'#f59e0b'},
+  'data-ai':    {label:'Data / AI',  icon:'🧠', color:'#bc8cff'},
+  orchestration:{label:'Orchestration',icon:'🔀',color:'#f43f5e'},
+  forge:        {label:'Forge',      icon:'🔨', color:'#22c55e'},
+};
+const MODEL_COLORS = {opus:'#f43f5e',sonnet:'#3b82f6',haiku:'#10a37f'};
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function getCategories(type){
+  if(type==='skill') return Object.entries(SKILL_CAT_MAP);
+  if(type==='agent') return Object.entries(AGENT_DOM_MAP);
+  return [...Object.entries(SKILL_CAT_MAP).map(([k,v])=>['s_'+k,{...v,_key:k,_type:'skill'}]),
+          ...Object.entries(AGENT_DOM_MAP).map(([k,v])=>['a_'+k,{...v,_key:k,_type:'agent'}])];
+}
+
+function buildSidebar(){
+  const cats = getCategories(currentType);
+  let html = `<div class="cat-item ${currentCat==='all'?'active':''}" onclick="setCat('all')">
+    <span>All</span><span class="cat-count" id="cc-all">${filteredItems().length}</span></div>`;
+  cats.forEach(([key,meta])=>{
+    const count = ALL.filter(item=>{
+      if(currentType!=='all'){
+        return currentType==='skill' ? item._type==='skill'&&item.ns===key
+             : item._type==='agent'&&item.domain===key;
+      }
+      return item._type==='skill' ? item.ns===meta._key||item.ns===key.replace('s_','')
+           : item.domain===meta._key||item.domain===key.replace('a_','');
+    }).length;
+    html += `<div class="cat-item ${currentCat===key?'active':''}" onclick="setCat('${key}')">
+      <span>${meta.icon} ${meta.label}</span>
+      <span class="cat-count">${count}</span></div>`;
+  });
+  document.getElementById('cat-list').innerHTML = html;
+}
+
+function filteredItems(){
+  const q = currentQ.toLowerCase();
+  return ALL.filter(item=>{
+    if(currentType!=='all'&&item._type!==currentType) return false;
+    if(currentCat!=='all'){
+      const key = currentCat.replace(/^[sa]_/,'');
+      if(item._type==='skill'&&item.ns!==key) return false;
+      if(item._type==='agent'&&item.domain!==key) return false;
+    }
+    if(q){
+      const haystack = (item.name||'') + ' ' + (item.short||'') + ' ' + (item.desc||'');
+      if(!haystack.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function applySearch(){
+  currentQ = document.getElementById('search').value;
+  render();
+}
+
+function render(){
+  const sort = document.getElementById('sort-select').value;
+  let items = filteredItems();
+  if(sort==='az') items = [...items].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(sort==='za') items = [...items].sort((a,b)=>(b.name||'').localeCompare(a.name||''));
+
+  const shown = items.slice(0,200);
+  document.getElementById('grid-count').textContent = `${items.length.toLocaleString()} results`;
+  document.getElementById('grid-title').textContent =
+    currentCat==='all' ? (currentType==='all'?'All items':currentType==='skill'?'Skills':'Agents')
+                       : (getCategories(currentType).find(([k])=>k===currentCat)?.[1]?.label||'Items');
+
+  document.getElementById('cards').innerHTML = shown.length
+    ? shown.map(item => item._type==='skill' ? renderSkillCard(item) : renderAgentCard(item)).join('')
+    : `<div class="empty"><h3>No results found</h3><p>Try a different search term</p></div>`;
+
+  buildSidebar();
+  updateCounts();
+}
+
+function renderSkillCard(s){
+  const meta = SKILL_CAT_MAP[s.ns] || {label:s.ns,icon:'📦',color:'#8b949e'};
+  const ic   = `<div class="card-icon" style="background:${meta.color}22">${meta.icon}</div>`;
+  const cmd  = `npx yamtam-install --skill ${s.id||s.name}`;
+  return `<div class="mkt-card">
+    <div class="card-head">${ic}
+      <div style="flex:1;min-width:0"><div class="card-title">${esc(s.short||s.name)}</div></div>
+    </div>
+    <div class="card-desc">${esc(s.desc)}</div>
+    <div class="card-footer">
+      <div class="card-tags">
+        <span class="tag" style="background:${meta.color}18;color:${meta.color}">${meta.icon} ${meta.label}</span>
+        ${s.license?`<span class="tag" style="background:hsla(142,55%,36%,.1);color:var(--green)">${esc(s.license)}</span>`:''}
+      </div>
+      <button class="install-btn" onclick="copyInstall(this,'${esc(cmd)}')">Install</button>
+    </div>
+  </div>`;
+}
+
+function renderAgentCard(a){
+  const meta = AGENT_DOM_MAP[a.domain]||{label:a.domain,icon:'🤖',color:'#8b949e'};
+  const mc   = MODEL_COLORS[a.model]||'#8b949e';
+  const ic   = `<div class="card-icon" style="background:${meta.color}22">${meta.icon}</div>`;
+  const cmd  = `/agent ${a.name}`;
+  return `<div class="mkt-card">
+    <div class="card-head">${ic}
+      <div style="flex:1;min-width:0"><div class="card-title">${esc(a.name)}</div></div>
+    </div>
+    <div class="card-desc">${esc(a.desc)}</div>
+    <div class="card-footer">
+      <div class="card-tags">
+        <span class="tag" style="background:${meta.color}18;color:${meta.color}">${meta.icon} ${meta.label}</span>
+        <span class="tag" style="background:${mc}18;color:${mc}">${esc(a.model)}</span>
+      </div>
+      <button class="install-btn" onclick="copyInstall(this,'${esc(cmd)}')">Use</button>
+    </div>
+  </div>`;
+}
+
+function copyInstall(btn, cmd){
+  navigator.clipboard.writeText(cmd).catch(()=>{});
+  btn.textContent = '✓ Copied'; btn.classList.add('copied');
+  showToast(`Copied: ${cmd}`);
+  setTimeout(()=>{ btn.textContent = btn.closest('.mkt-card').querySelector('.tag').textContent.includes('agent')?'Use':'Install'; btn.classList.remove('copied'); }, 1800);
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function setType(type){
+  currentType = type; currentCat = 'all';
+  document.querySelectorAll('.type-pill').forEach(p=>p.classList.toggle('active', p.dataset.type===type));
+  render();
+}
+
+function setCat(cat){
+  currentCat = cat; render();
+}
+
+function updateCounts(){
+  document.getElementById('cnt-all').textContent = (SKILLS.length+AGENTS.length).toLocaleString();
+  document.getElementById('cnt-skill').textContent = SKILLS.length.toLocaleString();
+  document.getElementById('cnt-agent').textContent = AGENTS.length;
+}
+
+document.getElementById('search').addEventListener('input', e=>{ currentQ=e.target.value; render(); });
+
+Promise.all([
+  fetch('skills-data.json').then(r=>r.json()),
+  fetch('agents-data.json').then(r=>r.json()),
+]).then(([skills, agents])=>{
+  SKILLS = skills.map(s=>({...s, _type:'skill'}));
+  AGENTS = agents.map(a=>({...a, _type:'agent'}));
+  ALL = [...SKILLS, ...AGENTS];
+  render();
+}).catch(()=>{
+  document.getElementById('cards').innerHTML = '<div class="empty"><h3>Could not load data</h3><p>Open from a server</p></div>';
+});
+</script>
+</body>
+</html>
