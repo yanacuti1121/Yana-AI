@@ -508,7 +508,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span style="font-family:var(--mono);font-size:.7rem;background:hsla(221,83%,53%,.12);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.25)">C++17</span>
           <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/come_my_way_demo.cpp"
              target="_blank"
-             style="color:var(--fg-muted);font-size:.75rem;text-decoration:none;display:flex;align-items:center;gap:.3rem;transition:color .15s"
+             style="color:var(--fg-muted);font-size:.75rem;text-decoration:none;transition:color .15s"
              onmouseover="this.style.color='var(--fg)'" onmouseout="this.style.color='var(--fg-muted)'">
             view source ↗
           </a>
@@ -516,16 +516,29 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div>
           <div style="font-weight:600;font-size:1rem;margin-bottom:.35rem">Come My Way — terminal player</div>
           <div style="color:var(--fg-muted);font-size:.875rem;line-height:1.55">
-            Terminal lyrics display với ANSI color + phát nhạc nền qua <code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">fork/exec mpv</code>. Chạy thẳng trên Linux.
+            Terminal display với ANSI color + phát nhạc nền qua <code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">fork/exec mpv</code>. Linux only.
           </div>
         </div>
-        <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.875rem;font-family:var(--mono);font-size:.72rem;line-height:1.6;overflow-x:auto;margin:0"><code><span style="color:var(--fg-muted)">// phát nhạc background</span>
-<span style="color:var(--accent)">pid_t</span> pid = fork();
-<span style="color:var(--orange)">if</span> (pid == 0) {
-  execlp(<span style="color:hsl(142,71%,45%)">"mpv"</span>, <span style="color:hsl(142,71%,45%)">"--no-video"</span>,
-         <span style="color:hsl(142,71%,45%)">"song.mp3"</span>, nullptr);
-  _exit(1);
-}</code></pre>
+
+        <!-- Terminal window -->
+        <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;overflow:hidden">
+          <!-- title bar -->
+          <div style="background:#1a1a1a;padding:.45rem .75rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #2a2a2a">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
+            <span style="font-family:var(--mono);font-size:.7rem;color:#666;margin-left:.5rem">bash</span>
+          </div>
+          <!-- output area -->
+          <div id="term-out" style="padding:.75rem 1rem;font-family:var(--mono);font-size:.72rem;line-height:1.7;min-height:90px;color:#ccc;white-space:pre"></div>
+        </div>
+
+        <!-- Run button -->
+        <button id="run-btn" onclick="runDemo()"
+          style="align-self:flex-start;display:flex;align-items:center;gap:.4rem;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:.4rem .9rem;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s;font-family:var(--sans)"
+          onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
+          <span id="run-icon">▶</span> Run
+        </button>
       </div>
 
     </div>
@@ -566,6 +579,52 @@ function copyCmd() {
     setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
+// Terminal demo
+const termLines = [
+  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#888', delay: 0 },
+  { text: '$ ./come_my_way', color: '#888', delay: 600 },
+  { text: '════════════════════════════════════════════════', color: '#36d9d9', delay: 900 },
+  { text: '  Come My Way  ~  Sơn Tùng M-TP x Tyga', color: '#36d9d9', delay: 1100, bold: true },
+  { text: '════════════════════════════════════════════════', color: '#36d9d9', delay: 1300 },
+  { text: '', delay: 1500 },
+  { text: '[ Intro: Tyga ]', color: '#c678dd', delay: 1700, bold: true },
+  { text: '', delay: 2000 },
+  { text: '[ Verse 1: Sơn Tùng M-TP ]', color: '#98c379', delay: 2200, bold: true },
+  { text: '', delay: 2700 },
+  { text: '[ Pre-Chorus ]', color: '#e5c07b', delay: 2900, bold: true },
+  { text: '', delay: 3300 },
+  { text: '[ Chorus ]', color: '#61afef', delay: 3500, bold: true },
+  { text: '', delay: 4200 },
+  { text: '🎵  Come My Way — TNOA (2022)', color: '#555', delay: 4500 },
+];
+let demoRunning = false;
+function runDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+  const out = document.getElementById('term-out');
+  const btn = document.getElementById('run-btn');
+  const icon = document.getElementById('run-icon');
+  out.textContent = '';
+  btn.disabled = true;
+  icon.textContent = '◼';
+  termLines.forEach(({ text, color, delay, bold }) => {
+    setTimeout(() => {
+      const span = document.createElement('span');
+      span.textContent = text + '\n';
+      if (color) span.style.color = color;
+      if (bold)  span.style.fontWeight = '700';
+      out.appendChild(span);
+      out.scrollTop = out.scrollHeight;
+    }, delay);
+  });
+  const last = termLines[termLines.length - 1].delay;
+  setTimeout(() => {
+    btn.disabled = false;
+    icon.textContent = '▶';
+    demoRunning = false;
+  }, last + 400);
+}
+
 // Fade in on scroll
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
