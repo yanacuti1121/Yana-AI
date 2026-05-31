@@ -167,3 +167,30 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 
 **Trạng thái cuối:** v0.17.0, CI ✅, 2211 skills, 93 agents, disk 86%
 **Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
+
+## 2026-05-31 (tối) — Website redesign + full content build
+
+**Đã làm:**
+- Fix CI drift (plugin.json + marketplace.json 2204→2211, 90→93)
+- Đổi landing page sang **light warm theme** + handwriting fonts (Caveat/Dancing Script)
+- Thêm nút **EN/VI/KO** language switcher + dịch đầy đủ toàn bộ trang
+- Thêm **liquid glass** effect (cards, terminal, stats bar)
+- Tạo **marketplace.html** — GPT Store style, 2,571 items (skills+agents+hooks+commands+rules)
+- Tạo **agents-data.json** từ 93 agent .md files
+- Build hooks-data.json, commands-data.json, rules-data.json
+- Update **skills.html** — mode switcher Skills/Agents, light warm theme, rainbow nav
+- Thêm các sections: Skills CTA, Docs đầy đủ, Codexmate (v0.0.38-vi, 4-step guide), Yana, Projects
+- **Projects section**: JNMT featured card (6 languages, 55 deployments) + jnmt.vn, itro, yamtam cards
+- Sync nav 3 trang: Home/Skills/Marketplace/Projects/Yana/Codexmate/GitHub
+- Trim README xuống 50 dòng + npm badges
+- Dọn rác: ChatGPT image 1.9MB, WAL files, dist v0.15.0
+- Thêm come_my_way_demo.cpp C++ lyrics player + web terminal demo card
+
+**Anh nói / quyết định:**
+- JNMT thực chất 6 ngôn ngữ (không phải 100 — bản nộp bỏ 100 langs)
+- JNMT to hơn YAMTAM (620k vs ~155k dòng tự viết)
+- jnmt.vn là bản anh tự xây riêng từ khả năng tuỳ biến
+- Codexmate v0.0.38-vi là Vietnamese fork của anh
+
+**Trạng thái cuối:** v0.17.0, CI ✅, 3 trang web, marketplace 2571 items
+**Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
