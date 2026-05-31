@@ -441,7 +441,7 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 | Agents | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 2,204 |
+| Workflow skills | 2,207 |
 | Operating rules | 61 |
 | Utility scripts | 81 |
 | Verification checks | 826 |
@@ -515,7 +515,7 @@ YAMTAM is organized in three concentric layers: **Scanner** (static analysis), *
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  LAYER 3 — AGENT OS                                      │   │
-│  │  90 agents · 2,204 skills · 164 commands · 46 hooks      │   │
+│  │  93 agents · 2,207 skills · 164 commands · 46 hooks      │   │
 │  │  core/agents/  core/skills/  core/commands/  core/hooks/ │   │
 │  │                                                          │   │
 │  │   ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │   │
@@ -596,7 +596,7 @@ User runs Claude Code:
 | Gates | `core/gates/` | sovereign-interceptor, anti-graffiti, identity |
 | Rules | `core/rules/` | 61 operating rules (TIER 0–5) |
 | Agents | `core/agents/` | 90 specialized agents |
-| Skills | `core/skills/` | 2,197 workflow skills |
+| Skills | `core/skills/` | 2,207 workflow skills |
 | Hooks | `core/hooks/` | 46 runtime hooks |
 | Adapters | `adapters/` | Claude, Gemini, Continue, OpenRouter |
 
@@ -605,10 +605,10 @@ User runs Claude Code:
 ```
 yamtam-engine/
 ├── core/                ← SOURCE OF TRUTH — all canonical definitions live here
-│   ├── agents/          90 agent definitions
+│   ├── agents/          93 agent definitions
 │   ├── commands/        164 slash commands
 │   ├── hooks/           46 runtime hooks
-│   ├── skills/          2,197 workflow skills
+│   ├── skills/          2,207 workflow skills
 │   ├── scripts/         93 utility scripts (audit_scanner.py, doctor.py, …)
 │   ├── rules/           61 operating rules (TIER 0–5)
 │   ├── gates/           sovereign-interceptor, anti-graffiti, identity gate
@@ -872,7 +872,7 @@ Chuyển engine: `bash core/scripts/switch-engine.sh <engine>`
 | Agents chuyên biệt | 90 |
 | Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 2,197 |
+| Workflow skills | 2,207 |
 | Operating rules | 61 |
 | Utility scripts | 81 |
 | Verification checks | 826 |
