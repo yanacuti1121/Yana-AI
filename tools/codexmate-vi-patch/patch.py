@@ -1246,5 +1246,59 @@ if HEADER_HTML.exists():
 else:
     print("  ⚠ layout-header.html not found, skipping")
 
+print("Patching web-ui-render.precompiled.js (compiled render — actual UI source)...")
+RENDER_JS = NODE_MODULES / "web-ui" / "res" / "web-ui-render.precompiled.js"
+if RENDER_JS.exists():
+    render = RENDER_JS.read_text(encoding='utf-8')
+    if "setLang('zh')" not in render and "setLang('ja')" not in render:
+        print("web-ui-render.precompiled.js already patched. Skipping.")
+    else:
+        import re as _re3
+        # For each indentation level (header fab=12sp, side-rail=16sp):
+        def patch_render_buttons(code, indent):
+            sp = ' ' * indent
+            ZH = (f'{sp}_createElementVNode("button", {{\n'
+                  f'{sp}  type: "button",\n'
+                  f'{sp}  class: _normalizeClass(["lang-choice-btn", {{ active: (_ctx.lang || \'zh\') === \'zh\' }}]),\n'
+                  f'{sp}  "aria-pressed": (_ctx.lang || \'zh\') === \'zh\',\n'
+                  f'{sp}  onClick: $event => (_ctx.setLang(\'zh\'))\n'
+                  f'{sp}}}, "ZH", 10 /* CLASS, PROPS */, ["aria-pressed", "onClick"]),')
+            JA = (f'{sp}_createElementVNode("button", {{\n'
+                  f'{sp}  type: "button",\n'
+                  f'{sp}  class: _normalizeClass(["lang-choice-btn", {{ active: (_ctx.lang || \'zh\') === \'ja\' }}]),\n'
+                  f'{sp}  "aria-pressed": (_ctx.lang || \'zh\') === \'ja\',\n'
+                  f'{sp}  onClick: $event => (_ctx.setLang(\'ja\'))\n'
+                  f'{sp}}}, "日本語", 10 /* CLASS, PROPS */, ["aria-pressed", "onClick"])')
+            EN_OLD = (f'{sp}_createElementVNode("button", {{\n'
+                      f'{sp}  type: "button",\n'
+                      f'{sp}  class: _normalizeClass(["lang-choice-btn", {{ active: (_ctx.lang || \'zh\') === \'en\' }}]),\n'
+                      f'{sp}  "aria-pressed": (_ctx.lang || \'zh\') === \'en\',\n'
+                      f'{sp}  onClick: $event => (_ctx.setLang(\'en\'))\n'
+                      f'{sp}}}, "EN", 10 /* CLASS, PROPS */, ["aria-pressed", "onClick"]),')
+            EN_NEW = (f'{sp}_createElementVNode("button", {{\n'
+                      f'{sp}  type: "button",\n'
+                      f'{sp}  class: _normalizeClass(["lang-choice-btn", {{ active: (_ctx.lang || \'vi\') === \'en\' }}]),\n'
+                      f'{sp}  "aria-pressed": (_ctx.lang || \'vi\') === \'en\',\n'
+                      f'{sp}  onClick: $event => (_ctx.setLang(\'en\'))\n'
+                      f'{sp}}}, "EN", 10 /* CLASS, PROPS */, ["aria-pressed", "onClick"]),\n'
+                      f'{sp}_createElementVNode("button", {{\n'
+                      f'{sp}  type: "button",\n'
+                      f'{sp}  class: _normalizeClass(["lang-choice-btn", {{ active: (_ctx.lang || \'vi\') === \'vi\' }}]),\n'
+                      f'{sp}  "aria-pressed": (_ctx.lang || \'vi\') === \'vi\',\n'
+                      f'{sp}  onClick: $event => (_ctx.setLang(\'vi\'))\n'
+                      f'{sp}}}, "VI", 10 /* CLASS, PROPS */, ["aria-pressed", "onClick"])')
+            code = code.replace(ZH + '\n', '').replace(ZH, '')
+            code = code.replace(JA + ',\n', '').replace(JA, '')
+            code = code.replace(EN_OLD, EN_NEW)
+            return code
+        patched_r = patch_render_buttons(render, 12)  # header fab
+        patched_r = patch_render_buttons(patched_r, 16)  # side rail
+        RENDER_JS.write_text(patched_r, encoding='utf-8')
+        zh_left = patched_r.count("setLang('zh')") + patched_r.count("setLang('ja')")
+        vi_cnt  = patched_r.count("setLang('vi')")
+        print(f"  ✓ render patched — ZH/JA remaining: {zh_left}, VI buttons: {vi_cnt}")
+else:
+    print("  ⚠ web-ui-render.precompiled.js not found, skipping")
+
 print("\n✅ Patch complete! Restart codexmate — UI shows EN/VI only, default is VI.")
 print("   node tools/codexmate/cli.js run")
