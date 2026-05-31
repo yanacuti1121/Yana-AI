@@ -276,6 +276,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <a href="#runtime" data-i18n="nav.runtime">Runtime</a>
     <a href="#docs" data-i18n="nav.docs">Docs</a>
     <a href="skills.html" data-i18n="nav.skills">Skills</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="#yana">Yana</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
@@ -694,6 +696,68 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span id="run-icon">▶</span> Run
         </button>
 
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Yana -->
+<section id="yana" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label" style="font-family:var(--script)">Trợ lý AI cá nhân</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+      <div>
+        <h2 style="font-family:var(--hand);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;margin-bottom:1rem;letter-spacing:.01em">
+          Xin chào, tôi là <em style="font-style:italic;color:var(--accent)">Yana</em>
+        </h2>
+        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem">
+          Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(221,75%,48%,.1);display:flex;align-items:center;justify-content:center">📋</span>
+            <span>Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(142,55%,36%,.1);display:flex;align-items:center;justify-content:center">🔀</span>
+            <span>Điều phối 93 agents — route task đúng chuyên gia</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(28,85%,50%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
+            <span>Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(250,65%,55%,.1);display:flex;align-items:center;justify-content:center">🛡️</span>
+            <span>Canh gác bởi toàn bộ YAMTAM ENGINE safety layer</span>
+          </div>
+        </div>
+        <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank"
+           style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;padding:.55rem 1.15rem;border-radius:8px;font-weight:600;font-size:.875rem;text-decoration:none;transition:background .15s"
+           onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
+          Tìm hiểu thêm về YAMTAM ↗
+        </a>
+      </div>
+
+      <!-- Yana chat preview -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.08)">
+        <div style="background:var(--bg-subtle);padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple,hsl(250,65%,55%)));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;font-weight:700">Y</div>
+          <div>
+            <div style="font-weight:600;font-size:.875rem">Yana</div>
+            <div style="font-size:.72rem;color:var(--green)">● online</div>
+          </div>
+        </div>
+        <div style="padding:1.1rem;display:flex;flex-direction:column;gap:.85rem;font-size:.85rem">
+          <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
+            Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.
+          </div>
+          <div style="background:hsla(221,75%,48%,.08);border-radius:10px 0 10px 10px;padding:.7rem .9rem;max-width:88%;margin-left:auto;line-height:1.55">
+            lm đi em
+          </div>
+          <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
+            Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.
+          </div>
+        </div>
       </div>
     </div>
   </div>
