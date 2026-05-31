@@ -718,26 +718,56 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       </div>
 
       <!-- How to run -->
-      <div>
-        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;margin-bottom:.65rem;font-family:var(--mono)" data-i18n="codexmate.how">Cách bật</div>
-        <div style="background:hsl(24,10%,10%);border-radius:12px;overflow:hidden;font-family:var(--mono);font-size:.8rem">
-          <div style="background:hsl(24,10%,13%);padding:.5rem 1rem;border-bottom:1px solid hsl(24,10%,18%);display:flex;gap:.4rem">
-            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
-            <span style="color:hsl(0,0%,40%);margin-left:.4rem;font-size:.68rem">bash</span>
-          </div>
-          <div style="padding:1rem 1.2rem;line-height:2;color:#ccc">
-            <div style="color:#555" data-i18n="codexmate.c1"># 1. Cài node_modules (lần đầu)</div>
-            <div><span style="color:#69ff47">cd</span> tools/codexmate && <span style="color:#69ff47">npm</span> install</div>
-            <div style="margin-top:.4rem;color:#555"># 2. Bật server port 8080</div>
-            <div><span style="color:#ffd740">CODEXMATE_PORT</span>=8080 <span style="color:#69ff47">codexmate</span> run</div>
-            <div style="margin-top:.4rem;color:#555"># 3. Cloud Shell → Web Preview :8080</div>
-            <div style="margin-top:.4rem;color:#555"># Local → mở http://localhost:8080</div>
+      <div style="display:flex;flex-direction:column;gap:.85rem">
+        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;font-family:var(--mono)" data-i18n="codexmate.how">Cách bật</div>
+
+        <!-- Step 1 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">1</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s1">Clone yamtam-engine (nếu chưa có)</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc">
+              <span style="color:#69ff47">git</span> clone https://github.com/phamlongh230-lgtm/yamtam-engine
+            </div>
           </div>
         </div>
 
-        <div style="margin-top:.85rem;background:hsla(221,75%,48%,.06);border:1px solid hsla(221,75%,48%,.15);border-radius:8px;padding:.7rem 1rem;font-size:.8rem;color:var(--fg-muted);line-height:1.55">
+        <!-- Step 2 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">2</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s2">Cài dependencies</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc;line-height:1.8">
+              <div><span style="color:#69ff47">cd</span> yamtam-engine/tools/codexmate</div>
+              <div><span style="color:#69ff47">npm</span> install</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">3</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s3">Bật server</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc">
+              <span style="color:#ffd740">CODEXMATE_PORT</span>=8080 <span style="color:#69ff47">codexmate</span> run
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">✓</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s4">Mở trình duyệt</div>
+            <div style="display:flex;flex-direction:column;gap:.3rem;font-size:.78rem;color:var(--fg-muted)">
+              <div>☁️ <strong data-i18n="codexmate.cloud">Cloud Shell:</strong> <span data-i18n="codexmate.cloud2">Web Preview → Port 8080</span></div>
+              <div>💻 <strong data-i18n="codexmate.local">Local:</strong> <code style="font-family:var(--mono);color:var(--accent)">http://localhost:8080</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:hsla(221,75%,48%,.06);border:1px solid hsla(221,75%,48%,.15);border-radius:8px;padding:.65rem .9rem;font-size:.78rem;color:var(--fg-muted);line-height:1.55">
           💡 <span data-i18n="codexmate.tip">Nếu port bận:</span> <code style="font-family:var(--mono);color:var(--accent)">fuser -k 8080/tcp</code> <span data-i18n="codexmate.tip2">rồi chạy lại</span>
         </div>
       </div>
@@ -1075,6 +1105,7 @@ const T = {
     'docs.py':'Python CLI',
     'docs.npm':'Claude Code plugin',
     'docs.rust':'Rust runtime (~29× faster)',
+    'codexmate.s1':'Clone yamtam-engine (if not yet)','codexmate.s2':'Install dependencies','codexmate.s3':'Start server','codexmate.s4':'Open browser','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
     'codexmate.c1':'# 1. Install node_modules (first time)',
     'codexmate.c2':'# 2. Start server on port 8080',
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
@@ -1138,6 +1169,7 @@ const T = {
     'docs.py':'Python CLI',
     'docs.npm':'Claude Code plugin',
     'docs.rust':'Rust runtime (~29× nhanh hơn)',
+    'codexmate.s1':'Clone yamtam-engine (nếu chưa có)','codexmate.s2':'Cài dependencies','codexmate.s3':'Bật server','codexmate.s4':'Mở trình duyệt','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
     'codexmate.c1':'# 1. Cài node_modules (lần đầu)',
     'codexmate.c2':'# 2. Bật server port 8080',
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
@@ -1201,6 +1233,7 @@ const T = {
     'docs.py':'Python CLI',
     'docs.npm':'Claude Code 플러그인',
     'docs.rust':'Rust 런타임 (~29× 빠름)',
+    'codexmate.s1':'yamtam-engine 클론 (아직 없다면)','codexmate.s2':'의존성 설치','codexmate.s3':'서버 시작','codexmate.s4':'브라우저 열기','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → 포트 8080','codexmate.local':'로컬:',
     'codexmate.c1':'# 1. node_modules 설치 (최초 1회)',
     'codexmate.c2':'# 2. 포트 8080으로 서버 시작',
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
