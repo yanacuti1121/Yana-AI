@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YAMTAM Skill Library — 2,211 skills</title>
+<title>YAMTAM Library — Skills & Agents</title>
 <meta name="description" content="Browse 2,211 AI agent skills for Claude Code, Codex, Cursor and more.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -96,14 +96,34 @@ footer a:hover{color:var(--text)}
 </nav>
 
 <div class="hero">
-  <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:.01em">Browse <span id="total-count" style="color:var(--blue)">2,211</span> Agent Skills</h1>
-  <p>Compatible with Claude Code, Codex, Cursor, Gemini CLI and more.</p>
-  <div class="stat-chips">
+  <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:.01em">YAMTAM Library</h1>
+  <p>2,211 skills · 93 agents · tìm kiếm và lọc theo danh mục</p>
+
+  <!-- Mode switcher -->
+  <div style="display:inline-flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem;background:var(--bg2)">
+    <button id="mode-skills" onclick="setMode('skills')"
+      style="padding:.55rem 1.5rem;font-size:.9rem;font-weight:600;border:none;cursor:pointer;background:var(--blue);color:#fff;font-family:inherit;transition:all .15s">
+      📚 Skills <span style="opacity:.75;font-size:.8rem">2,211</span>
+    </button>
+    <button id="mode-agents" onclick="setMode('agents')"
+      style="padding:.55rem 1.5rem;font-size:.9rem;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--muted);font-family:inherit;transition:all .15s">
+      🤖 Agents <span style="opacity:.75;font-size:.8rem">93</span>
+    </button>
+  </div>
+
+  <div id="skills-chips" class="stat-chips">
     <div class="chip"><span>🛡️</span>740 YAMTAM Core</div>
     <div class="chip"><span>🔌</span>423 OpenAI Plugins</div>
     <div class="chip"><span>⚡</span>1009 TerminalSkills</div>
     <div class="chip"><span>🎨</span>19 Venice AI</div>
     <div class="chip"><span>🏆</span>20 Sports</div>
+  </div>
+  <div id="agents-chips" class="stat-chips" style="display:none">
+    <div class="chip"><span>⚙️</span>core</div>
+    <div class="chip"><span>✅</span>quality</div>
+    <div class="chip"><span>🏗️</span>infra</div>
+    <div class="chip"><span>💼</span>business</div>
+    <div class="chip"><span>🧠</span>data-ai</div>
   </div>
 </div>
 
@@ -111,12 +131,25 @@ footer a:hover{color:var(--text)}
   <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
   </svg>
-  <input class="search-input" id="search" type="search" placeholder="Search skills — name, description, tags..." autocomplete="off" spellcheck="false">
+  <input class="search-input" id="search" type="search" placeholder="Search skills or agents..." autocomplete="off" spellcheck="false">
   <span class="search-count" id="search-count"></span>
 </div>
 
 <div class="tabs" id="tabs">
-  <button class="tab active" data-ns="all">All <span class="tab-count">2211</span></button><button class="tab" data-ns="openai" style="--ns-color:#10a37f">🔌 OpenAI Plugins <span class="tab-count">423</span></button><button class="tab" data-ns="terminal" style="--ns-color:#6366f1">⚡ TerminalSkills <span class="tab-count">1009</span></button><button class="tab" data-ns="venice" style="--ns-color:#f59e0b">🎨 Venice AI <span class="tab-count">19</span></button><button class="tab" data-ns="sports" style="--ns-color:#22c55e">🏆 Sports / Markets <span class="tab-count">20</span></button><button class="tab" data-ns="yamtam" style="--ns-color:#3b82f6">🛡️ YAMTAM Core <span class="tab-count">740</span></button>
+  <button class="tab active" data-ns="all">All <span class="tab-count">2211</span></button>
+  <button class="tab" data-ns="openai" style="--ns-color:#10a37f">🔌 OpenAI <span class="tab-count">423</span></button>
+  <button class="tab" data-ns="terminal" style="--ns-color:#6366f1">⚡ Terminal <span class="tab-count">1009</span></button>
+  <button class="tab" data-ns="venice" style="--ns-color:#f59e0b">🎨 Venice <span class="tab-count">19</span></button>
+  <button class="tab" data-ns="sports" style="--ns-color:#22c55e">🏆 Sports <span class="tab-count">20</span></button>
+  <button class="tab" data-ns="yamtam" style="--ns-color:#3b82f6">🛡️ YAMTAM <span class="tab-count">740</span></button>
+</div>
+<div class="tabs" id="agent-tabs" style="display:none">
+  <button class="tab active" data-domain="all">All <span class="tab-count">93</span></button>
+  <button class="tab" data-domain="core" style="--ns-color:#3b82f6">⚙️ Core <span class="tab-count"></span></button>
+  <button class="tab" data-domain="quality" style="--ns-color:#10a37f">✅ Quality <span class="tab-count"></span></button>
+  <button class="tab" data-domain="infra" style="--ns-color:#6366f1">🏗️ Infra <span class="tab-count"></span></button>
+  <button class="tab" data-domain="business" style="--ns-color:#f59e0b">💼 Business <span class="tab-count"></span></button>
+  <button class="tab" data-domain="data-ai" style="--ns-color:#bc8cff">🧠 Data/AI <span class="tab-count"></span></button>
 </div>
 
 <div class="grid-wrap">
@@ -130,107 +163,146 @@ footer a:hover{color:var(--text)}
 <footer>
   <p>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a>
-    · v0.17.0 · Apache 2.0 · 2,211 skills from 5 open-source collections
+    · v0.17.0 · Apache 2.0 · 2,211 skills · 93 agents
   </p>
 </footer>
 
 <script>
-let SKILLS = [];
+let SKILLS = [], AGENTS = [];
+let mode = 'skills'; // 'skills' | 'agents'
 
-const NS_COLORS = {
-  openai:   "#10a37f",
-  terminal: "#6366f1",
-  venice:   "#f59e0b",
-  sports:   "#22c55e",
-  yamtam:   "#3b82f6",
-};
-const NS_ICONS = {
-  openai:"🔌", terminal:"⚡", venice:"🎨", sports:"🏆", yamtam:"🛡️"
-};
+const NS_COLORS = { openai:"#10a37f", terminal:"#6366f1", venice:"#f59e0b", sports:"#22c55e", yamtam:"#3b82f6" };
+const NS_ICONS  = { openai:"🔌", terminal:"⚡", venice:"🎨", sports:"🏆", yamtam:"🛡️" };
+const NS_LABELS = { openai:"OpenAI Plugins", terminal:"TerminalSkills", venice:"Venice AI", sports:"Sports", yamtam:"YAMTAM Core" };
+const DOM_COLORS = { core:"#3b82f6", quality:"#10a37f", infra:"#6366f1", business:"#f59e0b", 'data-ai':"#bc8cff", orchestration:"#f43f5e", forge:"#22c55e" };
+const DOM_ICONS  = { core:"⚙️", quality:"✅", infra:"🏗️", business:"💼", 'data-ai':"🧠", orchestration:"🔀", forge:"🔨" };
+const MODEL_COLORS = { opus:"#f43f5e", sonnet:"#3b82f6", haiku:"#10a37f" };
 
-let currentNs  = "all";
-let currentQ   = "";
-let rendered   = false;
+let currentNs = "all", currentDomain = "all", currentQ = "";
 
-const grid       = document.getElementById("grid");
-const emptyMsg   = document.getElementById("empty");
-const searchEl   = document.getElementById("search");
-const searchCount= document.getElementById("search-count");
-const tabs       = document.getElementById("tabs");
-
-function makeCard(s) {
-  const color = NS_COLORS[s.ns] || "#8b949e";
-  const icon  = NS_ICONS[s.ns]  || "•";
-  const lic   = s.license ? `<span class="badge badge-license">${s.license}</span>` : "";
-  const scr   = s.scripts  ? `<span class="badge badge-scripts">scripts</span>` : "";
-  return `<div class="card" data-ns="${s.ns}" style="border-left-color:${color}">
-    <div class="card-top">
-      <div class="card-name">${esc(s.short)}</div>
-      <div class="card-badges">${scr}${lic}</div>
-    </div>
-    <div class="card-desc">${esc(s.desc)}</div>
-    <div class="card-ns">
-      <div class="ns-dot" style="background:${color}"></div>
-      ${icon} ${NS_LABELS[s.ns] || s.ns}
-    </div>
-  </div>`;
-}
-
-const NS_LABELS = {
-  openai:"OpenAI Plugins", terminal:"TerminalSkills",
-  venice:"Venice AI", sports:"Sports", yamtam:"YAMTAM Core"
-};
+const grid = document.getElementById("grid");
+const emptyMsg = document.getElementById("empty");
+const searchEl = document.getElementById("search");
+const searchCount = document.getElementById("search-count");
+const tabs = document.getElementById("tabs");
+const agentTabs = document.getElementById("agent-tabs");
 
 function esc(s) {
   return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-function filter() {
+function makeSkillCard(s) {
+  const color = NS_COLORS[s.ns] || "#8b949e";
+  const icon  = NS_ICONS[s.ns]  || "•";
+  const lic   = s.license ? `<span class="badge badge-license">${esc(s.license)}</span>` : "";
+  const scr   = s.scripts ? `<span class="badge badge-scripts">scripts</span>` : "";
+  return `<div class="card" data-ns="${s.ns}" style="border-left-color:${color}">
+    <div class="card-top"><div class="card-name">${esc(s.short)}</div><div class="card-badges">${scr}${lic}</div></div>
+    <div class="card-desc">${esc(s.desc)}</div>
+    <div class="card-ns"><div class="ns-dot" style="background:${color}"></div>${icon} ${NS_LABELS[s.ns]||s.ns}</div>
+  </div>`;
+}
+
+function makeAgentCard(a) {
+  const color = DOM_COLORS[a.domain] || "#8b949e";
+  const icon  = DOM_ICONS[a.domain]  || "🤖";
+  const mc    = MODEL_COLORS[a.model] || "#8b949e";
+  const tools = a.tools ? `<span class="badge badge-scripts">${a.tools} tools</span>` : "";
+  const model = `<span class="badge" style="background:${mc}22;color:${mc}">${esc(a.model)}</span>`;
+  return `<div class="card" data-domain="${a.domain}" style="border-left-color:${color}">
+    <div class="card-top"><div class="card-name">${esc(a.name)}</div><div class="card-badges">${tools}${model}</div></div>
+    <div class="card-desc">${esc(a.desc)}</div>
+    <div class="card-ns"><div class="ns-dot" style="background:${color}"></div>${icon} ${a.domain}</div>
+  </div>`;
+}
+
+function filterSkills() {
   const q = currentQ.toLowerCase();
-  let shown = 0;
-  let html = "";
+  let shown = 0, html = "";
   for (const s of SKILLS) {
     if (currentNs !== "all" && s.ns !== currentNs) continue;
-    if (q && !s.name.toLowerCase().includes(q) && !s.short.toLowerCase().includes(q) && !s.desc.toLowerCase().includes(q)) continue;
-    html += makeCard(s);
-    shown++;
-    if (shown >= 500) break; // cap at 500 for perf
+    if (q && !s.name.toLowerCase().includes(q) && !(s.short||"").toLowerCase().includes(q) && !(s.desc||"").toLowerCase().includes(q)) continue;
+    html += makeSkillCard(s); shown++;
+    if (shown >= 500) break;
   }
   grid.innerHTML = html;
   emptyMsg.style.display = shown ? "none" : "block";
-  const total_ns = currentNs === "all" ? SKILLS.length
-    : SKILLS.filter(s => s.ns === currentNs).length;
-  searchCount.textContent = q || currentNs !== "all"
-    ? `${shown} / ${total_ns}`
-    : "";
+  emptyMsg.querySelector("h3").textContent = "No skills found";
+  const total = currentNs === "all" ? SKILLS.length : SKILLS.filter(s=>s.ns===currentNs).length;
+  searchCount.textContent = (q || currentNs !== "all") ? `${shown} / ${total}` : `${SKILLS.length.toLocaleString()}`;
 }
 
-searchEl.addEventListener("input", e => {
-  currentQ = e.target.value;
-  filter();
-});
+function filterAgents() {
+  const q = currentQ.toLowerCase();
+  let shown = 0, html = "";
+  for (const a of AGENTS) {
+    if (currentDomain !== "all" && a.domain !== currentDomain) continue;
+    if (q && !a.name.toLowerCase().includes(q) && !(a.desc||"").toLowerCase().includes(q)) continue;
+    html += makeAgentCard(a); shown++;
+  }
+  grid.innerHTML = html;
+  emptyMsg.style.display = shown ? "none" : "block";
+  emptyMsg.querySelector("h3").textContent = "No agents found";
+  searchCount.textContent = shown < AGENTS.length ? `${shown} / ${AGENTS.length}` : `${AGENTS.length}`;
+}
+
+function filter() { mode === 'skills' ? filterSkills() : filterAgents(); }
+
+searchEl.addEventListener("input", e => { currentQ = e.target.value; filter(); });
 
 tabs.addEventListener("click", e => {
-  const btn = e.target.closest(".tab");
-  if (!btn) return;
+  const btn = e.target.closest(".tab"); if (!btn) return;
   tabs.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  btn.classList.add("active");
-  currentNs = btn.dataset.ns;
-  filter();
+  btn.classList.add("active"); currentNs = btn.dataset.ns; filter();
 });
 
-// Load data async
-fetch("skills-data.json")
-  .then(r => r.json())
-  .then(data => {
-    SKILLS = data;
-    document.getElementById("total-count").textContent = SKILLS.length.toLocaleString();
-    filter();
-  })
-  .catch(() => {
-    emptyMsg.innerHTML = "<h3>Could not load skills data</h3><p>Open from a server, not file://</p>";
-    emptyMsg.style.display = "block";
-  });
+agentTabs.addEventListener("click", e => {
+  const btn = e.target.closest(".tab"); if (!btn) return;
+  agentTabs.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active"); currentDomain = btn.dataset.domain; filter();
+});
+
+function setMode(m) {
+  mode = m;
+  const skillsBtn = document.getElementById("mode-skills");
+  const agentsBtn = document.getElementById("mode-agents");
+  const skillsChips = document.getElementById("skills-chips");
+  const agentsChips = document.getElementById("agents-chips");
+
+  if (m === 'skills') {
+    skillsBtn.style.background = "var(--blue)"; skillsBtn.style.color = "#fff";
+    agentsBtn.style.background = "transparent"; agentsBtn.style.color = "var(--muted)";
+    tabs.style.display = "flex"; agentTabs.style.display = "none";
+    skillsChips.style.display = "flex"; agentsChips.style.display = "none";
+    searchEl.placeholder = "Search skills — name, description, tags...";
+  } else {
+    agentsBtn.style.background = "var(--blue)"; agentsBtn.style.color = "#fff";
+    skillsBtn.style.background = "transparent"; skillsBtn.style.color = "var(--muted)";
+    tabs.style.display = "none"; agentTabs.style.display = "flex";
+    skillsChips.style.display = "none"; agentsChips.style.display = "flex";
+    searchEl.placeholder = "Search agents — name, description, domain...";
+    // Update domain tab counts
+    const domains = {};
+    AGENTS.forEach(a => { domains[a.domain] = (domains[a.domain]||0)+1; });
+    agentTabs.querySelectorAll("[data-domain]").forEach(btn => {
+      const d = btn.dataset.domain;
+      if (d !== "all") { const span = btn.querySelector(".tab-count"); if (span) span.textContent = domains[d]||0; }
+    });
+  }
+  currentQ = ""; searchEl.value = ""; filter();
+}
+
+// Load both datasets
+Promise.all([
+  fetch("skills-data.json").then(r=>r.json()),
+  fetch("agents-data.json").then(r=>r.json()),
+]).then(([skills, agents]) => {
+  SKILLS = skills; AGENTS = agents;
+  filter();
+}).catch(() => {
+  emptyMsg.innerHTML = "<h3>Could not load data</h3><p>Open from a server, not file://</p>";
+  emptyMsg.style.display = "block";
+});
 </script>
 </body>
 </html>
