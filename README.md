@@ -1,436 +1,148 @@
 <p align="center">
-  <img
-    src="./docs/yamtam-engine-hero.png"
-    alt="YAMTAM ENGINE"
-    width="100%"
-  />
+  <img src="./docs/yamtam-engine-hero.png" alt="YAMTAM ENGINE" width="100%" />
 </p>
 
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">
-  <strong>Audits your AI coding agent setup before it can damage your repo.</strong><br/>
-  Scan first. Guard later.
+  <strong>The safety layer that stops AI coding agents before they break your repo.</strong><br/>
+  Hooks. Memory. Agents. Verification — all in one engine.
 </p>
 
 <p align="center">
-  <em>Built by a 17-year-old student — Vũ Văn Tâm</em>
-</p>
-
-<p align="center">
-  <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-system-map.html">
-    <img src="https://img.shields.io/badge/View-Interactive%20System%20Map-2563eb?style=for-the-badge" alt="Interactive System Map" />
-  </a>
-</p>
-
-<p align="center">
-  <img src="./docs/demo.svg" alt="YAMTAM ENGINE Demo — hooks blocking rm -rf, prompt injection, pipe-to-shell" width="100%" />
+  <em>Built by Vũ Văn Tâm · 17 · Vietnam</em>
 </p>
 
 <p align="center">
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.17.0-orange?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/badge/status-public-22c55e?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/badge/built%20for-Claude%20Code-5c6bc0?style=for-the-badge" alt="Built for Claude Code" />
+  <img src="https://img.shields.io/badge/version-v0.17.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yamtam-engine">
-    <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" alt="npm" />
+    <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" />
   </a>
   <a href="https://crates.io/crates/yamtam-rt">
-    <img src="https://img.shields.io/crates/v/yamtam-rt?style=for-the-badge&logo=rust&color=ce422b" alt="crates.io" />
+    <img src="https://img.shields.io/crates/v/yamtam-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
   <a href="https://pypi.org/project/yamtam-engine/">
-    <img src="https://img.shields.io/pypi/v/yamtam-engine?style=for-the-badge&logo=pypi&color=3775a9" alt="PyPI" />
+    <img src="https://img.shields.io/pypi/v/yamtam-engine?style=for-the-badge&logo=pypi&color=3775a9" />
   </a>
 </p>
+
+<p align="center">
+  <img src="./docs/demo.svg" alt="Demo — hooks blocking rm -rf, prompt injection, pipe-to-shell" width="100%" />
+</p>
+
+---
+
+## The problem
+
+AI coding agents are powerful — and unpredictable. Left unguarded, they can delete production data, execute injected instructions, expose secrets, and deploy without approval. These aren't hypothetical:
+
+- **Replit (July 2025)** — AI agent ran `rm -rf` on production data. Unguarded.
+- **PocketOS (April 2026)** — Prompt injection caused unauthorized file exfiltration.
+
+YAMTAM sits **outside** your codebase and intercepts every AI action before it runs:
+
+```
+You → Claude Code → [YAMTAM HOOKS] → blocked or allowed
+```
+
+---
+
+## Before / After
+
+| Without YAMTAM | With YAMTAM |
+|---|---|
+| `rm -rf /` silently executes | Hard blocked at L5 |
+| `curl \| bash` runs untrusted code | Supply chain guard blocks it |
+| AI claims "tests passed" with no evidence | Truth Gate requires proof |
+| Prompt injection overrides instructions | L3.5 injection guard intercepts |
+| `DROP TABLE users` in production | DB protect hook hard blocks |
+| AI deploys without approval | Deploy gate blocks gh/kubectl/docker |
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Check your environment before starting an agent session
-yamtam doctor .
-
-# 2. Scan your repo for AI agent risk patterns
+# Scan your repo for AI agent risks
+pip install yamtam-engine
 yamtam audit .
+
+# Health check before an agent session
+yamtam doctor .
 ```
 
-### Doctor — pre-session health check
-
-```
-YAMTAM Doctor — Runtime Health Check
-
-  [OK  ] python3                  Python 3.12.3, PyYAML available
-  [OK  ] git                      available
-  [OK  ] working tree             clean — no uncommitted changes
-  [WARN] git branch               on 'main' — agent changes will land on default branch
-  [WARN] .gitignore               missing entries: *.pem, credentials.json
-  [OK  ] claude settings          found, 8 allowed tools
-  [WARN] MCP config               db-server has no read_only: true
-
-  Health:  4 ok  ·  3 warn  ·  2 info
-
-  !  Review WARN items. Run with --fix for suggestions.
-```
-
-```bash
-yamtam doctor .          # health check
-yamtam doctor . --fix    # show fix for every WARN/FAIL
-yamtam doctor . --quiet  # single summary line (CI use)
-```
-
-### Audit — risk scan
-
+**Audit output:**
 ```
 YAMTAM Agent Audit Report
 
-  Score:    0 / 100
-  Risk:     CRITICAL
+  Score:  0 / 100   Risk: CRITICAL
 
   [CRITICAL] AC002  .claude/settings.json    allowedTools contains Bash(*) — wildcard shell
   [CRITICAL] SE001  .env:5                   Anthropic API key exposed
-  [CRITICAL] MCP001 .mcp.json                filesystem MCP server has full-root access
-  [CRITICAL] SH002  scripts/deploy.sh:12     curl | bash install step
-  [HIGH    ] CI004  .github/workflows/...    secrets echoed in workflow step
+  [CRITICAL] MCP001 .mcp.json                filesystem MCP has full-root access
   [HIGH    ] SH005  scripts/deploy.sh:19     eval with variable content
 
-  Summary:  14 critical · 9 high · 6 medium · 4 low
+  14 critical · 9 high · 6 medium · 4 low
 ```
+
+---
+
+## Install
 
 ```bash
-yamtam audit .                          # scan current repo
-yamtam audit . --markdown report.md     # export full Markdown report
-yamtam audit . --sarif audit.sarif      # GitHub Code Scanning format
-yamtam audit . --diff origin/main       # PR mode — scan only changed files
-yamtam audit . --fail-on high           # CI gate: exit 1 on HIGH+
-yamtam audit . --json                   # machine-readable output
+# Python CLI — audit, doctor, scan, fix, report
+pip install yamtam-engine
+
+# Claude Code plugin — hooks, agents, commands → .claude/
+npm install yamtam-engine && npx yamtam-install
+
+# Rust runtime — ~29× faster, single binary
+cargo install yamtam-rt
 ```
 
-**.yamtamignore** — suppress known-safe findings per file:
+> `curl | bash` is intentionally not the primary install.  
+> YAMTAM flags that pattern as a risk — we practice what we scan for.
+
+---
+
+## 6-Layer Gate System
+
+Every tool call passes through this pipeline before executing:
 
 ```
-# .yamtamignore
-SH008:scripts/legacy.sh              # known false positive — no set -e intentional
-CI003:.github/workflows/deploy.yml   # accepted risk, tracked in backlog
+L0  Audit         Every call logged to Merkle hash-chain
+L1  Scope         Warn on secret/env access, cross-scope writes
+L1.5 Validate     Block SSRF, path traversal, sensitive file reads
+L2  Commit        Advisory warning on cross-scope commits
+L3  Truth Gate    Block unsupported claims ("tests passed" → prove it)
+L3.5 Inject       Block identity override, jailbreaks, prompt injection
+L4  Deploy        Block gh / kubectl / docker / gcloud / fly
+L4.5 Supply       Block pipe-to-shell, typosquatting, git-URL packages
+L5  Destructive   Block rm -rf, DROP TABLE, DELETE without WHERE
 ```
 
-### Check File, Template, Audit --since (v0.12)
+**Emergency bypass:** `YAMTAM_DEPLOY_APPROVED=1` · `YAMTAM_SCOPE_OK=1` · `YAMTAM_TRUTH_GATE_BYPASS=1`
+
+---
+
+## Rust Runtime — 29× faster
 
 ```bash
-yamtam check .claude/settings.json    # scan single file against all rules
-yamtam check package.json --severity high
-yamtam template list                  # browse 5 policy templates
-yamtam template show claude-settings  # preview template content
-yamtam audit . --since "7 days ago"   # scan only recently changed files
-yamtam audit . --since 2026-05-01
-yamtam doctor . --fix                 # now includes yamtam CLI + hooks checks
+yamtam-rt scan .       # 4ms  vs  117ms Python
+yamtam-rt doctor .     # 4ms  vs  228ms Python
 ```
 
-### Lint, Snapshot, Policy Check, Export (v0.11)
-
-```bash
-yamtam lint                           # lint all scanner/ rule YAML files
-yamtam lint scanner/custom-checks.yml # lint single file
-yamtam snapshot save "before-deploy"  # save audit state
-yamtam snapshot list                  # list all snapshots
-yamtam snapshot diff snap1 snap2      # compare two snapshots
-yamtam export . --format csv          # CSV for Excel/Jira
-yamtam export . --format markdown     # Markdown report
-yamtam export . --format junit        # JUnit XML for CI
-yamtam policy check .                 # verify configs match templates
-```
-
-### Init, Verify, Monitor, Stats (v0.10)
-
-```bash
-yamtam init .                # interactive wizard: engine, profile, guards, CI
-yamtam init . --yes          # non-interactive (CI use)
-yamtam verify .              # check 8 safety hooks: exists + wired
-yamtam verify . --fix        # auto-install missing hooks
-yamtam monitor .             # real-time audit log tail with color
-yamtam monitor . --filter BLOCK  # show only BLOCK events
-yamtam stats . --record      # run scan + save to .yamtam/history.json
-yamtam stats .               # show score trend + bar chart
-```
-
-### HTML Report, Scan URL, Rule Import, Upgrade (v0.9)
-
-```bash
-yamtam report html .                          # standalone HTML report
-yamtam report html . --out report.html --open # write + open in browser
-yamtam scan https://github.com/owner/repo     # scan repo by URL (no clone left)
-yamtam scan https://github.com/x/y --html r.html
-yamtam rule import ./my-rules.yml             # import rule pack from file
-yamtam rule import https://example.com/r.yml  # import from URL
-yamtam upgrade --check                        # check if update available
-yamtam upgrade                                # self-update to latest
-```
-
-### CI Check, Diff, Custom Rules, Install (v0.8)
-
-```bash
-yamtam ci-check .                        # CI health: permissions, gates, pinned SHAs
-yamtam diff-report before.json after.json # score delta + new/resolved findings
-yamtam rule add --id CUSTOM001 --severity HIGH --target ".env" --pattern "MY_SECRET"
-yamtam rule list                         # show custom rules
-yamtam install /path/to/project          # one-command setup (--dry-run first)
-yamtam install . --guards                # also install runtime hooks
-```
-
-### Score, Badge, Watch, Fix (v0.7)
-
-```bash
-yamtam score .                        # score + risk + finding counts
-yamtam score . --explain              # full deduction trail: Start 100 → -10 CI007 → …
-yamtam badge .                        # shields.io badge URL + Markdown for README
-yamtam badge . --url-only             # URL only (for CI scripts)
-yamtam watch .                        # re-audit on file change, show score diff
-yamtam fix AC002 --dry-run            # preview fix without writing
-yamtam fix CI007 --yes                # auto-apply (skip confirm)
-```
-
-### Explain, Map, Init-Policy (v0.6)
-
-```bash
-yamtam explain CI001                  # why it's risky + how to fix
-yamtam explain --list                 # all 70 rules by category
-yamtam map .                          # agent blast radius: shell/read/write/git/mcp/CI
-yamtam map . --json                   # machine-readable
-yamtam init-policy claude             # write .claude/settings.recommended.json
-yamtam init-policy mcp --dry-run      # preview without writing
-yamtam init-policy list               # 5 available templates
-```
-
-### Runtime — yamtam-rt v1.1.0 (17 Rust subcommands)
-
-**Benchmark** — measured on this repo, best of 3 runs, Cloud Shell (x86\_64):
-
-| Command | Python | Rust (yamtam-rt) | Speedup |
-|---------|--------|-----------------|---------|
-| `scan .` | 117ms | 4ms | **~29×** |
-| `doctor .` | 228ms | 4ms | **~57×** |
-| `ci .` | 62ms | 4ms | **~15×** |
-
-*Rust binary starts in ~4ms regardless of subcommand — Python startup alone costs 60–230ms.*
-
-Track tasks with evidence-verified completion:
-
-```bash
-yamtam-rt task create "Fix auth bug" --scope "src/auth/"
-yamtam-rt task done <id> --evidence "12 tests passed, build ok"
-yamtam-rt eval run <id>     # → ✓ PASS · confidence: HIGH
-```
-
-#### Agent Message Bus
-
-Agents pass output to each other via `.yamtam/bus.jsonl` — no shared context window needed:
+Agent bus, L3 shared memory, task tracking — all in one binary:
 
 ```bash
 yamtam-rt bus emit planner executor task.assign '{"task":"review PR"}'
-yamtam-rt bus inbox executor          # messages addressed to executor
-yamtam-rt bus reply <id> executor '{"status":"done"}'
-yamtam-rt bus read --agent planner --last 20
+yamtam-rt memory store "arch.decision" "Use JSONL for bus" --tag arch
+yamtam-rt task create "Fix auth bug" --scope "src/auth/"
 ```
-
-#### L3 Shared Memory
-
-Workspace-level facts survive across sessions and agents. Promotion pipeline: L2 (session) → L3 (workspace) → L1 (permanent, git-tracked):
-
-```bash
-yamtam-rt memory store "arch.decision" "Use JSONL for bus" --tag arch --confidence high
-yamtam-rt memory list --tag arch
-yamtam-rt memory promote "arch.decision"   # writes to memory/L1_atomic/*.md
-yamtam-rt memory import                    # bulk import L2 session facts → L3
-```
-
-#### Config, Plugin, Cost
-
-```bash
-yamtam-rt config init              # generate .yamtam/settings.json for any repo
-yamtam-rt config set cost_tracking true
-
-yamtam-rt plugin add secret-scan "./scripts/scan.sh" --description "Scan for secrets"
-yamtam-rt plugin run secret-scan
-
-yamtam-rt cost log pr_review fast claude-haiku-4-5 1200 400
-yamtam-rt cost show                # summary by tier
-yamtam-rt cost breakdown model     # breakdown by model or task
-```
-
-### Try it on the demo repo
-
-`examples/unsafe-agent-repo/` is an intentionally misconfigured AI agent repo — 5 files, 34 findings, score 0/100. Run it to see what bad agent config looks like:
-
-```bash
-yamtam audit examples/unsafe-agent-repo
-```
-
-### CI Integration (GitHub Actions)
-
-Copy `.github/workflows/yamtam-audit.yml` into your repo. It auto-detects PR vs push and runs diff-mode or full scan accordingly, uploading SARIF results to GitHub's Security tab:
-
-```yaml
-- name: Run yamtam audit
-  run: |
-    python3 core/scripts/audit_scanner.py . \
-      --diff origin/${{ github.base_ref }} \
-      --sarif yamtam-audit.sarif \
-      --fail-on high
-```
-
----
-
-## What is YAMTAM?
-
-YAMTAM ENGINE is a **standalone agent operating system** that wraps Claude Code (and other AI coding tools) with runtime safety enforcement, memory, agents, and verification — without touching your product repositories.
-
-It sits **outside** your codebase and intercepts AI actions before they cause harm:
-
-```
-You → Claude Code → [YAMTAM HOOKS] → Tool executes (or gets blocked)
-```
-
-**Real incidents YAMTAM would have blocked:**
-- Replit (July 2025) — AI agent deleted production data via unguarded `rm -rf`
-- PocketOS (April 2026) — prompt injection caused unauthorized file exfiltration
-
----
-
-## Why use it?
-
-| Without YAMTAM | With YAMTAM |
-|---|---|
-| `rm -rf /` silently executes | Hard blocked at L5 |
-| `curl \| bash` runs untrusted code | Supply chain guard blocks it |
-| AI claims "tests passed" with no proof | Truth Gate requires evidence |
-| Prompt injection overrides instructions | L3.5 injection guard intercepts |
-| `DROP TABLE users` runs in prod | DB protect hook blocks it |
-| AI deploys to prod without approval | Deploy gate hard blocks |
-
----
-
-## Quick Install
-
-```bash
-# pip — Python CLI (yamtam audit, hunt, design, graph...)
-pip install yamtam-engine
-yamtam doctor .
-```
-
-```bash
-# npm — Claude Code plugin (hooks, commands, agents → .claude/)
-npm install yamtam-engine
-npx yamtam-install
-```
-
-```bash
-# Shell installer — full engine including all files
-curl -L -o install.sh https://raw.githubusercontent.com/phamlongh230-lgtm/yamtam-engine/main/install.sh
-bash install.sh
-```
-
-| Registry | Package | Install |
-|----------|---------|---------|
-| **PyPI** | [`yamtam-engine`](https://pypi.org/project/yamtam-engine/) | `pip install yamtam-engine` |
-| **npm** | [`yamtam-engine`](https://www.npmjs.com/package/yamtam-engine) | `npm install yamtam-engine` |
-| **GitHub** | [`yamtam-engine`](https://github.com/phamlongh230-lgtm/yamtam-engine) | `git clone ...` |
-
-> **Note:** `curl | bash` is intentionally not the primary install method.  
-> YAMTAM flags `curl | bash` as a risk pattern — we practice what we scan for.
-
----
-
-## 6-Layer Gate System (L0–L5)
-
-```
-L0 — Audit       audit-log.sh, telemetry-sender.sh
-                 Every tool call logged with hash-chain
-
-L1 — Scope       token-scope-guard.sh, scope-guard.sh
-                 Warn on secret/env access, cross-scope writes
-
-L1.5 — Validate  tool-validator.sh
-                 Block SSRF, path traversal, sensitive file reads
-
-L2 — Commit      commit-gate.sh
-                 Advisory warning on cross-scope commits
-
-L3 — Truth       truth-gate-guard.sh
-                 Block unsupported claims without evidence
-
-L3.5 — Inject    prompt-injection-guard.sh
-                 Block identity override, system prompt extraction, jailbreaks
-
-L4 — Deploy      deploy-gate.sh
-                 Block gh/kubectl/docker/gcloud/fly/heroku
-
-L4.5 — Supply    supply-chain-guard.sh
-                 Block pipe-to-shell, typosquatting, URL package installs
-
-L5 — Destructive guard-destructive.sh, db-protect.sh, api-destruct-guard.sh
-                 Block rm -rf, DROP TABLE, DELETE without WHERE
-```
-
-**Emergency bypass:** `YAMTAM_DEPLOY_APPROVED=1`, `YAMTAM_SCOPE_OK=1`, `YAMTAM_TRUTH_GATE_BYPASS=1`
-
----
-
-## Key Features
-
-### Truth Gate (L3)
-
-AI must show evidence before claiming success:
-
-```
-❌  "Tests passed"                          ← blocked, no proof
-✅  "Tests passed — 47 passed, 0 failed"   ← allowed, evidence shown
-```
-
-Claim verbs that require proof: `done`, `passed`, `clean`, `fixed`, `deployed`, `merged`, `verified`
-
-### Action Gate (L0–L5)
-
-Risk-tiered enforcement:
-
-| Level | Action | Enforcement |
-|---|---|---|
-| L0 | Read | Always allowed |
-| L1 | Local write | Logged |
-| L2 | Commit | Warn if cross-scope |
-| L3 | Push | Request approval |
-| L4 | Deploy | Blocked by default |
-| L5 | Production data | Hard block |
-
-### Scope Guard
-
-Prevents drift between YAMTAM tasks and product code:
-- YAMTAM-scoped tasks cannot edit `app/`, `components/`, `lib/`
-- Product-scoped tasks cannot edit YAMTAM files
-- Crossing boundaries requires explicit approval
-
-### Cross-Engine Support
-
-| Engine | Enforcement |
-|---|---|
-| **Claude Code** | Runtime blocking via hooks (L0–L5) |
-| **Cursor** | Hard enforcement via safe-run.sh proxy |
-| **Aider** | Hard enforcement via shell proxy |
-| **GitHub Copilot** | Advisory via prompt layer |
-| **Continue.dev** | Advisory via system prompt (`adapters/continue.md`) |
-| **Gemini Code Assist** | Advisory via system prompt (`adapters/gemini-code.md`) |
-| **OpenRouter** | Advisory via system prompt (`adapters/openrouter.md`) |
-
-Switch engines: `bash core/scripts/switch-engine.sh <engine>`
-
----
-
-## Memory System
-
-- **L1 Atomic Memory** — persistent facts, git-tracked, tagged, confidence-scored, expiry sweep
-- **L2 Session Memory** — ephemeral facts, gitignored, cleared each session
 
 ---
 
@@ -438,507 +150,90 @@ Switch engines: `bash core/scripts/switch-engine.sh <engine>`
 
 | Asset | Count |
 |---|---|
-| Agents | 90 |
-| Slash commands | 164 |
 | Runtime hooks | 45 |
-| Workflow skills | 2,207 |
+| Slash commands | 164 |
+| Agents | 93 |
+| Workflow skills | 2,211 |
 | Operating rules | 61 |
-| Utility scripts | 81 |
+| Utility scripts | 92 |
 | Verification checks | 826 |
-| Bundled tools | 1 |
 
-### Bundled Tools (`tools/`)
+### Agents (93) — domain specialists
 
-| Tool | Description |
+`fullstack-engineer` · `api-designer` · `security-engineer` · `devops-engineer` · `sre` · `cloud-architect` · `ml-engineer` · `llm-architect` · `data-engineer` · `business-analyst` · `penetration-tester` · `compliance-auditor` · [+81 more](core/agents/)
+
+### Bundled Tools
+
+| Tool | What it does |
 |---|---|
-| [`moss-tts-nano`](tools/moss-tts-nano) | MOSS-TTS-Nano — 0.1B multilingual TTS, CPU-friendly, realtime streaming (Apache 2.0) |
-| [`finetune-vi`](tools/finetune-vi) | Vietnamese finetuning recipe — VIVOS dataset (15h, CC BY-SA), one-click `bash run.sh` |
-| [`codexmate`](tools/codexmate) | Codexmate — unified dashboard for Codex, Claude Code & OpenClaw; skills marketplace, OpenAI bridge, MCP (Apache 2.0) |
-| [`codexmate-vi-patch`](tools/codexmate-vi-patch) | Vietnamese UI patch for Codexmate — 992 translated strings, adds VI language button (`python3 patch.py`) |
-
-```bash
-# First-time setup — download ONNX weights (~400MB)
-huggingface-cli download OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX \
-  --local-dir tools/moss-tts-nano/onnx_weights
-huggingface-cli download OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX \
-  --local-dir tools/moss-tts-nano/onnx_tokenizer
-
-# Run
-cd tools/moss-tts-nano && python app_onnx.py
-```
-
-### Agents (90)
-
-Specialized agents across domains:
-
-- **Core Development** (8): fullstack-engineer, api-designer, microservices-architect
-- **Quality Assurance** (6): test-automation-engineer, qa-lead, performance-tester
-- **Infrastructure** (8): devops-engineer, sre, cloud-architect
-- **Security** (4): security-engineer, penetration-tester, compliance-auditor
-- **Data / AI** (6): data-engineer, ml-engineer, llm-architect
-- **Business** (4): business-analyst, technical-writer, ux-researcher
-
-### Skills (1,851)
-
-| Category | Count |
-|---|---|
-| YAMTAM core (v0.1–v0.14) | 387 |
-| openai/plugins (MIT) | 423 |
-| TerminalSkills/skills (Apache-2.0) | 1,009 |
-| Venice AI API (MIT) | 19 |
-| Sports data / prediction markets (MIT) | 20 |
-
-### Key Commands
-
-| Command | Purpose |
-|---|---|
-| `/verify` | Full health check (git + hooks + tests + drift) |
-| `/memory [keyword]` | Search L1 + L2 memory |
-| `/risk-scan` | Pre-execution risk analysis |
-| `/scope-declare` | Declare file scope before edits |
-| `/security-audit` | Security review |
-| `/rollback` | List checkpoints and rollback |
-| `/handoff` | Generate session handoff |
-| `/status` | Project status card |
-
-Full list: `core/commands/` (164 commands)
+| [`codexmate`](tools/codexmate) | Unified dashboard for Codex, Claude Code & OpenClaw — skills marketplace, MCP bridge |
+| [`moss-tts-nano`](tools/moss-tts-nano) | 0.1B multilingual TTS, CPU-friendly, realtime streaming |
+| [`codexmate-vi-patch`](tools/codexmate-vi-patch) | Vietnamese UI for Codexmate — 992 translated strings |
 
 ---
 
-## System Architecture
-
-YAMTAM is organized in three concentric layers: **Scanner** (static analysis), **Runtime Gate** (live enforcement), and **Agent OS** (orchestration + memory).
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        YAMTAM ENGINE                            │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  LAYER 3 — AGENT OS                                      │   │
-│  │  93 agents · 2,207 skills · 164 commands · 46 hooks      │   │
-│  │  core/agents/  core/skills/  core/commands/  core/hooks/ │   │
-│  │                                                          │   │
-│  │   ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │   │
-│  │   │  Swarm Bus  │  │  Memory L1   │  │  Memory L2    │  │   │
-│  │   │  core/bus/  │  │  (permanent) │  │  (session)    │  │   │
-│  │   └─────────────┘  └──────────────┘  └───────────────┘  │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                              ▲  ▼                               │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  LAYER 2 — RUNTIME GATE  (6-layer L0–L5)                 │   │
-│  │                                                          │   │
-│  │  L0  audit-hardening   Merkle hash-chain log             │   │
-│  │  L1  anti-evasion      base64/pipe-to-shell block        │   │
-│  │  L2  tool-proxy        sanitize + mutate + sign          │   │
-│  │  L3  sandbox-exec      Docker/nsjail isolation           │   │
-│  │  L4  supply-chain      SLSA + dep vetting                │   │
-│  │  L5  ui-quality        color/type/contrast gate          │   │
-│  │                                                          │   │
-│  │  core/gates/   core/rules/ (61 rules)                    │   │
-│  │  core/scripts/safe-run.sh   core/scripts/tool-proxy.sh   │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                              ▲  ▼                               │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  LAYER 1 — SCANNER  (static analysis, zero dependencies) │   │
-│  │                                                          │   │
-│  │  scanner/*.yml  →  audit_scanner.py  →  report           │   │
-│  │                                                          │   │
-│  │  agent-config   shell-risk    mcp-permission             │   │
-│  │  ci-workflow    env-secret    auth-credential            │   │
-│  │  db-tool-risk                                            │   │
-│  │                                                          │   │
-│  │  Output: score/100 · SARIF · Markdown · JSON · HTML      │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│                  YAMTAM ENGINE                   │
+│                                                  │
+│  LAYER 3 — AGENT OS                              │
+│  93 agents · 2,211 skills · 164 commands         │
+│  core/agents/  core/skills/  core/commands/      │
+│                                                  │
+│  LAYER 2 — RUNTIME GATE (L0–L5)                  │
+│  tool-proxy.sh · safe-run.sh · sandbox-exec.sh   │
+│  core/gates/ · core/rules/ (61 rules)            │
+│                                                  │
+│  LAYER 1 — SCANNER (static, zero dependencies)   │
+│  scanner/*.yml → audit_scanner.py → report       │
+│  Output: score/100 · SARIF · JSON · HTML · MD    │
+└──────────────────────────────────────────────────┘
 ```
 
-### Data Flow
+---
 
+## Cross-Engine Support
+
+| Engine | Enforcement |
+|---|---|
+| **Claude Code** | Runtime blocking via hooks (L0–L5) |
+| **Cursor** | Hard enforcement via safe-run.sh proxy |
+| **Aider** | Hard enforcement via shell proxy |
+| **GitHub Copilot** | Advisory via prompt layer |
+| **Continue.dev** | Advisory via system prompt |
+| **Gemini Code Assist** | Advisory via system prompt |
+
+```bash
+bash core/scripts/switch-engine.sh <engine>
 ```
-User runs: yamtam audit .
-           │
-           ▼
-    audit_scanner.py          reads scanner/*.yml rules
-           │                  scans .claude/, .mcp.json, workflows, scripts
-           ▼
-    report (score/100)        SARIF → GitHub Code Scanning
-                              JSON  → CI gate (--fail-on high)
-                              HTML  → human review
-                              MD    → PR comment
-
-User runs Claude Code:
-    SessionStart hook
-           │
-           ▼
-    tool-proxy.sh (L2)        every tool call passes through
-           │
-    safe-run.sh               pattern match against 61 rules
-           │
-    sandbox-exec.sh (L3)      Docker/nsjail/ulimit isolation
-           │
-    audit-log.sh              Merkle hash-chain append
-           │
-           ▼
-    Tool executes
-```
-
-### Key Components
-
-| Component | Path | Purpose |
-|-----------|------|---------|
-| Scanner rules | `scanner/*.yml` | 7 YAML rule sets, 61 checks |
-| Audit scanner | `core/scripts/audit_scanner.py` | Core analysis engine |
-| Tool proxy | `core/scripts/tool-proxy.sh` | L1/L2 sanitize gate |
-| Safe run | `core/scripts/safe-run.sh` | Command allow/block |
-| Sandbox exec | `core/scripts/sandbox-exec.sh` | Runtime isolation |
-| Secure logger | `core/scripts/secure-logger.sh` | Merkle audit log |
-| Gates | `core/gates/` | sovereign-interceptor, anti-graffiti, identity |
-| Rules | `core/rules/` | 61 operating rules (TIER 0–5) |
-| Agents | `core/agents/` | 90 specialized agents |
-| Skills | `core/skills/` | 2,207 workflow skills |
-| Hooks | `core/hooks/` | 46 runtime hooks |
-| Adapters | `adapters/` | Claude, Gemini, Continue, OpenRouter |
-
-## Repository Structure
-
-```
-yamtam-engine/
-├── core/                ← SOURCE OF TRUTH — all canonical definitions live here
-│   ├── agents/          93 agent definitions
-│   ├── commands/        164 slash commands
-│   ├── hooks/           46 runtime hooks
-│   ├── skills/          2,207 workflow skills
-│   ├── scripts/         93 utility scripts (audit_scanner.py, doctor.py, …)
-│   ├── rules/           61 operating rules (TIER 0–5)
-│   ├── gates/           sovereign-interceptor, anti-graffiti, identity gate
-│   ├── bus/             swarm message bus
-│   ├── memory/          L1 persistent · L2 session
-│   └── tests/           826 verification checks
-├── .claude/             ← APPLIED PACK — loaded by Claude Code at runtime
-│   ├── agents/          → mirrors core/agents/
-│   ├── commands/        → mirrors core/commands/
-│   └── skills/          → mirrors core/skills/
-├── scanner/             Rule YAML files for yamtam audit (7 rule sets)
-├── adapters/            System prompt adapters per engine
-├── examples/            Demo repos — unsafe-agent-repo (0/100 score demo)
-├── gates/               Gate specifications
-└── docs/                Documentation + interactive system map
-```
-
-> **`core/` is the source of truth. `.claude/` is the applied pack** — it mirrors `core/`
-> so Claude Code can load agents/skills/commands without needing to know the full repo layout.
-> If content diverges, `core/scripts/drift-check.sh` detects it.
 
 ---
 
 ## Verification
 
-826 total checks — run before every release:
+826 checks run before every release:
 
 ```bash
-bash core/tests/hooks/run-hook-tests.sh        # 88 hook tests
-bash core/tests/skills/test-skill-triggering.sh  # 678 skill trigger tests
-```
-
-Breakdown: 65 hook tests · 12 audit tests · 678 skill trigger tests · 65 red-team scenarios · 6 smoke tests
-
----
-
-## What YAMTAM is NOT
-
-- Not a product app or user-facing software
-- Not bundled inside your product repo
-- Not a replacement for IAM, backups, RBAC, or production monitoring
-- Not allowed to claim success without evidence
-
----
-
-## YAMTAM Blackbox OS
-
-YAMTAM is not an IDE, not a terminal, and not just an agent pack. It is a blackbox and constitution runtime for AI coding agents: recording what agents do, verifying what agents claim, blocking unsafe actions, and turning past failures into future protection.
-
-Read the full direction: [docs/yamtam-blackbox-os.md](docs/yamtam-blackbox-os.md)
-
----
-
-## 🌱 Origin Story
-
-Before YAMTAM ENGINE became a full Personal Agent Operating System, it started from early personal experiments in web design, interface building, and AI-assisted development.
-
-The earliest version was a simple static web project:
-
-```
-myfirstapp522-main/
-├── index.html
-└── bg.mp3
-```
-
-| Item | Details |
-|---|---|
-| Owner | Vũ Văn Tâm |
-| Stack | HTML, CSS, JavaScript |
-| Interface | One-page static web page |
-| Media | Background music (`bg.mp3`) |
-| Theme | Korean poetry, soft visual mood |
-| Purpose | Early personal practice before building larger AI-assisted systems |
-
-This was not the teacher's original project — it was a personal milestone. It is kept as a historical marker showing the path from a small static web page to a standalone AI agent workflow system.
-
-```
-Static HTML prototype
-        ↓
-Personal web experiments
-        ↓
-AI-assisted development workflow
-        ↓
-Multi-agent project control
-        ↓
-YAMTAM ENGINE
+bash core/tests/hooks/run-hook-tests.sh           # 88 hook tests
+bash core/tests/skills/test-skill-triggering.sh   # 678 skill trigger tests
 ```
 
 ---
 
-## Contributing & Feedback
+## Try the demo repo
 
-YAMTAM improves through real-world use. If a hook fires when it shouldn't, or misses something it should catch — that's the most valuable signal.
+`examples/unsafe-agent-repo/` — intentionally misconfigured, 34 findings, score 0/100:
 
-**Most useful feedback:**
-- **False positives** — hook blocked something legitimate
-- **False negatives** — hook missed a real threat
-- **Real incidents** — AI behavior YAMTAM would have prevented
-- **Missing patterns** — attack vectors not covered by current rules
-
-Open an issue or PR. See `CONTRIBUTING.md` for how to add hooks, skills, or rules.
-
-**Direct contact:** phamlongh230@gmail.com · duybui4680@gmail.com · +82 010 6315 8995 · +84 037 495 5390
-
----
-
-## Documentation
-
-| File | Purpose |
-|---|---|
-| `AGENTS.md` | Entry point for AI assistants — read first |
-| `gates/truth_gate.md` | L3 Truth Gate specification |
-| `gates/action_gate.md` | L0–L5 Action Gate specification |
-| `docs/SEPARATION.md` | Boundary between YAMTAM and product repos |
-| `docs/AGENT_BEHAVIOR.md` | Good vs bad agent behavior examples |
-| `docs/HOOK_WIRING.md` | Hook configuration guide |
-| `examples/unsafe-agent-repo/` | Demo: intentionally misconfigured repo (score 0/100) |
-| `.yamtamignore.example` | Template for suppressing known-safe findings |
-| `.github/workflows/yamtam-audit.yml` | Copy-paste CI integration example |
-| `ROADMAP.md` | Feature roadmap |
-| `CHANGELOG.md` | Release history |
-| `docs/yamtam-system-map.html` | Interactive system map (open in browser) |
-
----
-
-## License
-
-Apache 2.0 License — Copyright © 2026 Vũ Văn Tâm.
-
-Free to use, fork, modify, and distribute. See `LICENSE` for full terms.
+```bash
+yamtam audit examples/unsafe-agent-repo
+```
 
 ---
 
 <p align="center">
-  <sub>v0.15.0 · Built for Claude Code · Apache 2.0 License · Maintained by Vũ Văn Tâm</sub>
-</p>
-
----
-
-<h2 align="center">🇻🇳 Giới thiệu tiếng Việt</h2>
-
-## YAMTAM ENGINE là gì?
-
-> Dự án được tạo ra bởi **học sinh 17 tuổi** — Vũ Văn Tâm.
-
-<p align="center">
-  <img src="./docs/demo.svg" alt="YAMTAM ENGINE Demo" width="100%" />
-</p>
-
-YAMTAM ENGINE là **hệ điều hành cho AI agents** — chạy song song với Claude Code để kiểm soát, bảo vệ và điều phối các tác vụ AI trước khi chúng gây ra hậu quả thực tế.
-
-Nó hoạt động **bên ngoài** các repository sản phẩm, chặn các hành động nguy hiểm ngay tại runtime:
-
-```
-Bạn → Claude Code → [YAMTAM HOOKS] → Lệnh thực thi (hoặc bị chặn)
-```
-
-**Những sự cố thực tế mà YAMTAM đã phòng ngừa:**
-- Replit (tháng 7/2025) — AI agent xóa dữ liệu production bằng `rm -rf` không được bảo vệ
-- PocketOS (tháng 4/2026) — prompt injection khiến AI exfiltrate file trái phép
-
----
-
-## Tại sao cần YAMTAM?
-
-| Không có YAMTAM | Có YAMTAM |
-|---|---|
-| `rm -rf /` chạy âm thầm | Bị chặn cứng tại L5 |
-| `curl \| bash` chạy code không tin cậy | Supply chain guard chặn lại |
-| AI tự nhận "tests passed" không có bằng chứng | Truth Gate yêu cầu phải có proof |
-| Prompt injection override instructions | L3.5 injection guard can thiệp |
-| `DROP TABLE users` chạy trên prod | DB protect hook chặn lại |
-| AI deploy lên prod không cần duyệt | Deploy gate chặn mặc định |
-
----
-
-## Cài đặt nhanh
-
-```bash
-# Cài qua Claude Code plugin
-/plugin install phamlongh230-lgtm/yamtam-engine
-
-# Hoặc giải nén vào project
-unzip releases/yamtam-engine-v0.15.0.zip -d /path/to/project/.claude/
-
-# Kiểm tra 826 checks
-bash .claude/tests/hooks/run-hook-tests.sh
-```
-
----
-
-## Audit — quét rủi ro
-
-```bash
-yamtam audit .                          # quét toàn bộ repo
-yamtam audit . --sarif audit.sarif      # GitHub Code Scanning format
-yamtam audit . --diff origin/main       # chỉ quét file thay đổi trong PR
-yamtam audit . --fail-on high           # CI gate: exit 1 nếu có HIGH+
-yamtam audit . --markdown report.md     # xuất báo cáo Markdown
-```
-
-**.yamtamignore** — bỏ qua finding đã biết và chấp nhận:
-
-```
-SH008:scripts/legacy.sh              # false positive đã xác nhận
-CI003:.github/workflows/deploy.yml   # rủi ro được chấp nhận
-```
-
-**Demo thực tế:** `examples/unsafe-agent-repo/` — 5 file, 34 finding, điểm 0/100 CRITICAL.
-
----
-
-## Hệ thống 6 lớp bảo vệ (L0–L5)
-
-| Lớp | Tên | Chức năng |
-|---|---|---|
-| L0 | Audit | Ghi log mọi tool call với hash-chain |
-| L1 | Scope | Cảnh báo khi truy cập secret/env, viết chéo scope |
-| L1.5 | Validate | Chặn SSRF, path traversal, đọc file nhạy cảm |
-| L2 | Commit | Cảnh báo khi commit chéo scope |
-| L3 | Truth | Chặn claim không có bằng chứng |
-| L3.5 | Inject | Chặn identity override, jailbreak, prompt injection |
-| L4 | Deploy | Chặn gh/kubectl/docker/gcloud/fly/heroku |
-| L4.5 | Supply | Chặn pipe-to-shell, typosquatting, cài package từ URL lạ |
-| L5 | Destructive | Chặn `rm -rf`, `DROP TABLE`, `DELETE` không có WHERE |
-
----
-
-## Tính năng nổi bật
-
-### Truth Gate (L3)
-AI bắt buộc phải đưa ra bằng chứng trước khi khai báo hoàn thành:
-```
-❌  "Tests passed"                          ← bị chặn, không có proof
-✅  "Tests passed — 47 passed, 0 failed"   ← được phép, có bằng chứng
-```
-
-### Hỗ trợ đa engine
-
-| Engine | Mức độ bảo vệ |
-|---|---|
-| Claude Code | Runtime blocking qua hooks (L0–L5) |
-| Cursor | Hard enforcement qua safe-run.sh proxy |
-| Aider | Hard enforcement qua shell proxy |
-| GitHub Copilot | Advisory qua prompt layer |
-| Continue.dev | Advisory qua system prompt adapter |
-| Gemini Code Assist | Advisory qua system prompt adapter |
-
-Chuyển engine: `bash core/scripts/switch-engine.sh <engine>`
-
-### Bộ nhớ 2 tầng
-- **L1 Atomic Memory** — facts bền vững, git-tracked, có confidence score
-- **L2 Session Memory** — facts tạm thời, gitignored, xóa sau mỗi session
-
----
-
-## Nội dung
-
-| Thành phần | Số lượng |
-|---|---|
-| Agents chuyên biệt | 90 |
-| Slash commands | 164 |
-| Runtime hooks | 45 |
-| Workflow skills | 2,207 |
-| Operating rules | 61 |
-| Utility scripts | 81 |
-| Verification checks | 826 |
-
----
-
-## 🌱 Câu chuyện khởi đầu
-
-Trước khi YAMTAM ENGINE trở thành một Personal Agent Operating System hoàn chỉnh, nó bắt đầu từ những thử nghiệm cá nhân về thiết kế web, xây dựng giao diện và phát triển với sự hỗ trợ của AI.
-
-Phiên bản sớm nhất là một dự án web tĩnh đơn giản:
-
-```
-myfirstapp522-main/
-├── index.html
-└── bg.mp3
-```
-
-| Thông tin | Chi tiết |
-|---|---|
-| Chủ sở hữu | Vũ Văn Tâm |
-| Công nghệ | HTML, CSS, JavaScript |
-| Giao diện | Trang web tĩnh một trang |
-| Media | Nhạc nền (`bg.mp3`) |
-| Chủ đề | Thơ Hàn Quốc, giao diện nhẹ nhàng, thẩm mỹ |
-| Mục đích | Thực hành cá nhân trước khi xây dựng hệ thống AI lớn hơn |
-
-Đây không phải project gốc của giáo viên — đây là cột mốc phát triển của cá nhân tôi. Nó được giữ lại như một dấu ấn lịch sử, thể hiện hành trình từ một trang HTML nhỏ đến hệ thống agent workflow độc lập.
-
-```
-Static HTML prototype
-        ↓
-Thử nghiệm web cá nhân
-        ↓
-Phát triển với sự hỗ trợ AI
-        ↓
-Multi-agent project control
-        ↓
-YAMTAM ENGINE
-```
-
----
-
-## Đóng góp & Phản hồi
-
-YAMTAM cải thiện qua thực tế sử dụng. Phản hồi có giá trị nhất:
-
-- **False positive** — hook chặn nhầm thứ hợp lệ
-- **False negative** — hook bỏ sót mối nguy hiểm thực sự
-- **Sự cố thực tế** — AI làm hại mà YAMTAM đáng lẽ phải ngăn được
-- **Pattern còn thiếu** — vector tấn công chưa được cover
-
-Mở issue hoặc PR. Xem `CONTRIBUTING.md` để biết cách thêm hooks, skills, rules.
-
-**Liên hệ trực tiếp:** phamlongh230@gmail.com · duybui4680@gmail.com · +82 010 6315 8995 · +84 037 495 5390
-
----
-
-## Giấy phép
-
-Apache License 2.0 — Copyright © 2026 Vũ Văn Tâm.
-
-Tự do sử dụng, fork, chỉnh sửa và phân phối. Xem `LICENSE` để biết đầy đủ điều khoản.
-
----
-
-<p align="center">
-  <sub>v0.15.0 · Xây dựng cho Claude Code · Apache 2.0 · Tác giả: Vũ Văn Tâm</sub>
+  <a href="https://phamlongh230-lgtm.github.io/yamtam-engine/">Website</a> ·
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/CHANGELOG.md">Changelog</a> ·
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/issues">Issues</a>
 </p>
