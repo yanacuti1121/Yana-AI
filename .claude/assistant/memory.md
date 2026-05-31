@@ -118,3 +118,38 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 - agentshield bổ sung cho strix: strix scan source code, agentshield scan agent config
 
 **Trạng thái cuối:** v0.17.0, CI ✅, disk 85%, token rotation vẫn pending, 5 commits hôm nay
+
+## 2026-05-31 (tiếp) — codexmate patch + security doc
+
+**Đã làm:**
+- Fix codexmate: node_modules install, patch precompiled render (ZH/JA → EN/VI)
+- Fix 2 JS syntax errors trong i18n.dict.mjs vi section (missing comma + literal newlines)
+- Bỏ zh fallback khỏi t() → không còn tiếng Trung sót
+- Tạo docs/CODEXMATE_SECURITY_MODEL.md
+
+**Anh nói:**
+- Codexmate = control panel, YAMTAM = safety engine — tách vậy là đúng
+- Không thêm feature, giữ MVP 5 tab
+- PreToolUse:Bash hook traceback còn sót — **để mai xử lý**
+
+**Pending sang mai:**
+- PreToolUse hook error: "Failed with non-blocking status code: Traceback" — debug hook nào đang throw Python traceback
+- Token rotation (npm/crates/PyPI) vẫn chưa làm
+
+## 2026-05-31 (buổi chiều) — codexmate full debug + hook fix
+
+**Đã làm:**
+- Cài node_modules cho tools/codexmate (5 deps, 8.6MB)
+- Patch precompiled render fn (web-ui-render.precompiled.js) → EN|VI only
+- Fix 2 JS syntax errors trong i18n.dict.mjs vi section
+- Bỏ zh fallback khỏi t() → không còn tiếng Trung sót
+- Fix port 8080 bận: dùng fuser -k 8080/tcp
+- Tạo docs/CODEXMATE_SECURITY_MODEL.md
+- Fix PreToolUse hook traceback: token-budget-guard.sh — 6 json.load() thiếu try/except → JSONDecodeError khi file rỗng
+
+**Anh nói:**
+- Codexmate = control panel, YAMTAM = safety engine — tách đẹp
+- Không thêm feature, giữ MVP
+
+**Trạng thái cuối:** v0.17.0, CI ✅, disk 86%, 8 commits hôm nay
+**Pending:** Token rotation (npm/crates/PyPI) vẫn chưa làm
