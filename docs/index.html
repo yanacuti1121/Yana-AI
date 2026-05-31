@@ -45,8 +45,9 @@ nav {
   background: hsla(222,84%,5%,.88); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; color: var(--fg); text-decoration: none; letter-spacing: .02em; }
-.nav-logo span { color: var(--accent); }
+.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; }
+.nav-logo span { -webkit-text-fill-color: transparent; }
+@keyframes rainbow { 0% { background-position: 0% } 100% { background-position: 200% } }
 .nav-links { display: flex; gap: 1.5rem; align-items: center; }
 .nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .875rem; transition: color .15s; }
 .nav-links a:hover { color: var(--fg); }
