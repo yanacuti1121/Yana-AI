@@ -3,15 +3,30 @@
 import os, re, sys
 from pathlib import Path
 
-try:
-    import importlib.util
-    NODE_MODULES = Path(
-        os.popen("npm root -g").read().strip()
-    ) / "codexmate"
-    if not NODE_MODULES.exists():
-        sys.exit("codexmate not found in global npm. Run: npm install -g codexmate")
-except Exception as e:
-    sys.exit(f"Error: {e}")
+def find_codexmate() -> Path:
+    candidates = [
+        # 1. global npm install
+        Path(os.popen("npm root -g 2>/dev/null").read().strip()) / "codexmate",
+        # 2. standalone installer (~/.codexmate)
+        Path.home() / ".codexmate",
+        # 3. local submodule (tools/codexmate/ relative to this script)
+        Path(__file__).resolve().parent.parent / "codexmate",
+        # 4. npm link / local dev install
+        Path(os.popen("npm root 2>/dev/null").read().strip()) / "codexmate",
+    ]
+    for c in candidates:
+        if c.exists() and (c / "web-ui").exists():
+            print(f"Found codexmate at: {c}")
+            return c
+    paths = "\n  ".join(str(c) for c in candidates)
+    sys.exit(
+        f"codexmate not found. Tried:\n  {paths}\n"
+        "Install options:\n"
+        "  npm install -g codexmate\n"
+        "  or run the standalone installer: tools/codexmate/scripts/install.sh"
+    )
+
+NODE_MODULES = find_codexmate()
 
 WEB_UI = NODE_MODULES / "web-ui" / "modules"
 I18N_MJS = WEB_UI / "i18n.mjs"
