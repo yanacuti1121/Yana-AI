@@ -647,6 +647,73 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </section>
 
+<!-- Codexmate -->
+<section style="border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Bundled Tool</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+
+      <div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,hsl(261,65%,55%),hsl(221,75%,48%));display:flex;align-items:center;justify-content:center;font-size:1.3rem">🎛️</div>
+          <h2 style="margin-bottom:0">Codexmate</h2>
+        </div>
+        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.25rem">
+          Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho <strong style="color:var(--fg)">Codex, Claude Code, OpenClaw</strong>. Local-first, không cloud.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> Marketplace skills + MCP bridge
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> Vietnamese UI (992 strings đã patch)
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> Zero telemetry — config lưu local
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> Bảo vệ bởi YAMTAM safety layer
+          </div>
+        </div>
+
+        <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/tree/main/tools/codexmate"
+           target="_blank"
+           style="display:inline-flex;align-items:center;gap:.45rem;background:var(--bg-subtle);border:1px solid var(--border);color:var(--fg);padding:.5rem 1rem;border-radius:8px;font-size:.875rem;font-weight:500;text-decoration:none;transition:all .15s"
+           onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          Xem source ↗
+        </a>
+      </div>
+
+      <!-- How to run -->
+      <div>
+        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;margin-bottom:.65rem;font-family:var(--mono)">Cách bật</div>
+        <div style="background:hsl(24,10%,10%);border-radius:12px;overflow:hidden;font-family:var(--mono);font-size:.8rem">
+          <div style="background:hsl(24,10%,13%);padding:.5rem 1rem;border-bottom:1px solid hsl(24,10%,18%);display:flex;gap:.4rem">
+            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
+            <span style="color:hsl(0,0%,40%);margin-left:.4rem;font-size:.68rem">bash</span>
+          </div>
+          <div style="padding:1rem 1.2rem;line-height:2;color:#ccc">
+            <div style="color:#555"># 1. Cài node_modules (lần đầu)</div>
+            <div><span style="color:#69ff47">cd</span> tools/codexmate && <span style="color:#69ff47">npm</span> install</div>
+            <div style="margin-top:.4rem;color:#555"># 2. Bật server port 8080</div>
+            <div><span style="color:#ffd740">CODEXMATE_PORT</span>=8080 <span style="color:#69ff47">codexmate</span> run</div>
+            <div style="margin-top:.4rem;color:#555"># 3. Cloud Shell → Web Preview :8080</div>
+            <div style="margin-top:.4rem;color:#555"># Local → mở http://localhost:8080</div>
+          </div>
+        </div>
+
+        <div style="margin-top:.85rem;background:hsla(221,75%,48%,.06);border:1px solid hsla(221,75%,48%,.15);border-radius:8px;padding:.7rem 1rem;font-size:.8rem;color:var(--fg-muted);line-height:1.55">
+          💡 Nếu port bận: <code style="font-family:var(--mono);color:var(--accent)">fuser -k 8080/tcp</code> rồi chạy lại
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Lab -->
 <section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(38,18%,92%) 100%)">
   <div class="section-inner">
