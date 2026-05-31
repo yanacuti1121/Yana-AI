@@ -60,6 +60,30 @@ nav {
 .lang-btn.active { background:var(--bg-card); color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.1); }
 .lang-btn:hover:not(.active) { color:var(--fg); }
 
+
+/* Liquid Glass */
+.glass {
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 8px 32px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.8);
+}
+.glass-dark {
+  background: rgba(15,10,5,.45);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.glass-blue {
+  background: hsla(221,75%,48%,.08);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid hsla(221,75%,60%,.2);
+  box-shadow: 0 4px 20px hsla(221,75%,48%,.1), inset 0 1px 0 hsla(221,75%,80%,.2);
+}
+
 /* Hero decorative */
 .hero { position:relative; overflow:hidden; }
 .hero::before {
@@ -118,8 +142,9 @@ h1 em { font-style: normal; color: var(--accent); }
 
 /* Terminal */
 .hero-terminal {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-  overflow: hidden; box-shadow: 0 24px 48px hsla(221,83%,10%,.5);
+  background: rgba(255,255,255,.6); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.75); border-radius: 12px;
+  overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.9);
 }
 .terminal-bar {
   display: flex; align-items: center; gap: .5rem;
@@ -137,7 +162,7 @@ h1 em { font-style: normal; color: var(--accent); }
 .t-prompt::before { content: "$ "; color: var(--fg-muted); }
 
 /* Stats bar */
-.stats-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
+.stats-bar { border-top: 1px solid rgba(255,255,255,.6); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.4); backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); }
 .stats-inner {
   max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem;
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; text-align: center;
@@ -365,7 +390,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 </div>
 
 <!-- Skills CTA -->
-<section style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));padding:4rem 2rem">
+<section style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));padding:4rem 2rem;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%,rgba(255,255,255,.04));pointer-events:none"></div>
   <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap">
     <div>
       <div style="font-family:var(--script);font-size:1rem;color:hsla(0,0%,100%,.7);margin-bottom:.5rem" data-i18n="skills.label">Thư viện Skills</div>
@@ -570,8 +595,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- What is -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">YAMTAM là gì?</h3>
-      <p style="color:var(--fg-muted);line-height:1.75;max-width:68ch">YAMTAM ENGINE là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.</p>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.what">YAMTAM là gì?</h3>
+      <p style="color:var(--fg-muted);line-height:1.75;max-width:68ch"><span data-i18n="docs.what">YAMTAM ENGINE là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.</span></p>
       <div style="margin-top:1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8rem;line-height:1.8;color:var(--fg-muted)">
         You → Claude Code → <span style="color:var(--accent);font-weight:600">[YAMTAM HOOKS]</span> → blocked hoặc allowed
       </div>
@@ -579,20 +604,20 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Install -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Cài đặt</h3>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.install">Cài đặt</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
-          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Python CLI</div>
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.py">Python CLI</div>
           <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">pip install yamtam-engine</code>
           <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">yamtam audit · doctor · scan · fix</div>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
-          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Claude Code plugin</div>
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.npm">Claude Code plugin</div>
           <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">npm install yamtam-engine</code>
           <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">hooks · agents · commands → .claude/</div>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
-          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Rust runtime (~29× faster)</div>
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.rust">Rust runtime (~29× faster)</div>
           <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">cargo install yamtam-rt</code>
           <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">scan · doctor · ci · bus · memory</div>
         </div>
@@ -601,7 +626,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Quick commands -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Lệnh cơ bản</h3>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.cmds">Lệnh cơ bản</h3>
       <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.8rem;line-height:2;color:#ccc;overflow-x:auto">
         <div><span style="color:#555"># Quét repo tìm lỗi cấu hình AI agent</span></div>
         <div><span style="color:#69ff47">yamtam</span> audit .</div>
@@ -616,7 +641,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Gate system -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">9 lớp bảo vệ (L0–L5)</h3>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">9 lớp bảo vệ (L0–L5)</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L0</span><span style="font-weight:600;font-size:.82rem">Audit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Log mọi tool call — Merkle hash-chain</div></div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1</span><span style="font-weight:600;font-size:.82rem">Scope</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Cảnh báo truy cập secret/env</div></div>
@@ -632,7 +657,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Structure -->
     <div>
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Cấu trúc repo</h3>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.struct">Cấu trúc repo</h3>
       <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.78rem;line-height:1.85;color:#ccc;overflow-x:auto">
         <div style="color:#69ff47">yamtam-engine/</div>
         <div style="color:#888">├── <span style="color:#40c4ff">core/</span>         agents · commands · hooks · skills · rules · gates · memory</div>
@@ -697,7 +722,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
             <span style="color:hsl(0,0%,40%);margin-left:.4rem;font-size:.68rem">bash</span>
           </div>
           <div style="padding:1rem 1.2rem;line-height:2;color:#ccc">
-            <div style="color:#555"># 1. Cài node_modules (lần đầu)</div>
+            <div style="color:#555" data-i18n="codexmate.c1"># 1. Cài node_modules (lần đầu)</div>
             <div><span style="color:#69ff47">cd</span> tools/codexmate && <span style="color:#69ff47">npm</span> install</div>
             <div style="margin-top:.4rem;color:#555"># 2. Bật server port 8080</div>
             <div><span style="color:#ffd740">CODEXMATE_PORT</span>=8080 <span style="color:#69ff47">codexmate</span> run</div>
@@ -776,7 +801,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
       <div>
         <h2 style="font-family:var(--hand);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;margin-bottom:1rem;letter-spacing:.01em">
-          Xin chào, tôi là <em style="font-style:italic;color:var(--accent)">Yana</em>
+          <span data-i18n="yana.greeting">Xin chào, tôi là</span> <em style="font-style:italic;color:var(--accent)">Yana</em>
         </h2>
         <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem" data-i18n="yana.desc">
           Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.
@@ -784,25 +809,25 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem">
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(221,75%,48%,.1);display:flex;align-items:center;justify-content:center">📋</span>
-            <span>Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc</span>
+            <span data-i18n="yana.f1">Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(142,55%,36%,.1);display:flex;align-items:center;justify-content:center">🔀</span>
-            <span>Điều phối 93 agents — route task đúng chuyên gia</span>
+            <span data-i18n="yana.f2">Điều phối 93 agents — route task đúng chuyên gia</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(28,85%,50%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
-            <span>Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session</span>
+            <span data-i18n="yana.f3">Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(250,65%,55%,.1);display:flex;align-items:center;justify-content:center">🛡️</span>
-            <span>Canh gác bởi toàn bộ YAMTAM ENGINE safety layer</span>
+            <span data-i18n="yana.f4">Canh gác bởi toàn bộ YAMTAM ENGINE safety layer</span>
           </div>
         </div>
         <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank"
            style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;padding:.55rem 1.15rem;border-radius:8px;font-weight:600;font-size:.875rem;text-decoration:none;transition:background .15s"
            onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
-          Tìm hiểu thêm về YAMTAM ↗
+          <span data-i18n="yana.cta">Tìm hiểu thêm về YAMTAM</span> ↗
         </a>
       </div>
 
@@ -817,13 +842,13 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </div>
         <div style="padding:1.1rem;display:flex;flex-direction:column;gap:.85rem;font-size:.85rem">
           <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
-            Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.
+            <span data-i18n="yana.msg1">Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.</span>
           </div>
           <div style="background:hsla(221,75%,48%,.08);border-radius:10px 0 10px 10px;padding:.7rem .9rem;max-width:88%;margin-left:auto;line-height:1.55">
-            lm đi em
+            <span data-i18n="yana.msg2">lm đi em</span>
           </div>
           <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
-            Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.
+            <span data-i18n="yana.msg3">Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.</span>
           </div>
         </div>
       </div>
@@ -1026,6 +1051,28 @@ const T = {
     'codexmate.f4':'Protected by YAMTAM safety layer',
     'codexmate.src':'View source','codexmate.how':'How to run',
     'codexmate.tip':'If port is busy:','codexmate.tip2':'then run again',
+    'yana.greeting':'Hello, I am',
+    'yana.f1':'Daily briefing — repo status, CI, task priorities',
+    'yana.f2':'Coordinate 93 agents — route tasks to the right specialist',
+    'yana.f3':'L1/L2 memory — remembers decisions across sessions',
+    'yana.f4':'Guarded by the full YAMTAM ENGINE safety layer',
+    'yana.cta':'Learn more about YAMTAM',
+    'yana.msg1':'Hi. Latest CI run: <strong style="color:var(--green)">✓ pass</strong>. 1 PR pending review, token rotation still pending.',
+    'yana.msg2':'do it',
+    'yana.msg3':'On it — checking CI log, fixing drift, pushing. Will report back.',
+    'docs.h3.what':'What is YAMTAM?',
+    'docs.h3.install':'Install',
+    'docs.h3.cmds':'Basic commands',
+    'docs.h3.gates':'9-layer protection (L0–L5)',
+    'docs.h3.struct':'Repo structure',
+    'docs.what':'YAMTAM ENGINE is an <strong style="color:var(--fg)">agent operating system</strong> that runs outside your codebase — intercepting every tool call from Claude Code, Cursor, Aider before it executes. No config, no product code changes. Install once, protect everything.',
+    'docs.py':'Python CLI',
+    'docs.npm':'Claude Code plugin',
+    'docs.rust':'Rust runtime (~29× faster)',
+    'codexmate.c1':'# 1. Install node_modules (first time)',
+    'codexmate.c2':'# 2. Start server on port 8080',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# Local → open http://localhost:8080',
     'yana.desc':'Personal executive assistant for <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — manages repo, monitors CI, suggests tasks, and coordinates agents in YAMTAM ENGINE daily.',
   },
   vi: {
@@ -1067,6 +1114,28 @@ const T = {
     'codexmate.f4':'Bảo vệ bởi YAMTAM safety layer',
     'codexmate.src':'Xem source','codexmate.how':'Cách bật',
     'codexmate.tip':'Nếu port bận:','codexmate.tip2':'rồi chạy lại',
+    'yana.greeting':'Xin chào, tôi là',
+    'yana.f1':'Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc',
+    'yana.f2':'Điều phối 93 agents — route task đúng chuyên gia',
+    'yana.f3':'Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session',
+    'yana.f4':'Canh gác bởi toàn bộ YAMTAM ENGINE safety layer',
+    'yana.cta':'Tìm hiểu thêm về YAMTAM',
+    'yana.msg1':'Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.',
+    'yana.msg2':'lm đi em',
+    'yana.msg3':'Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.',
+    'docs.h3.what':'YAMTAM là gì?',
+    'docs.h3.install':'Cài đặt',
+    'docs.h3.cmds':'Lệnh cơ bản',
+    'docs.h3.gates':'9 lớp bảo vệ (L0–L5)',
+    'docs.h3.struct':'Cấu trúc repo',
+    'docs.what':'YAMTAM ENGINE là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.',
+    'docs.py':'Python CLI',
+    'docs.npm':'Claude Code plugin',
+    'docs.rust':'Rust runtime (~29× nhanh hơn)',
+    'codexmate.c1':'# 1. Cài node_modules (lần đầu)',
+    'codexmate.c2':'# 2. Bật server port 8080',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# Local → mở http://localhost:8080',
     'yana.desc':'Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.',
   },
   ko: {
@@ -1108,6 +1177,28 @@ const T = {
     'codexmate.f4':'YAMTAM 안전 레이어로 보호',
     'codexmate.src':'소스 보기','codexmate.how':'실행 방법',
     'codexmate.tip':'포트가 사용 중인 경우:','codexmate.tip2':'후 다시 실행',
+    'yana.greeting':'안녕하세요, 저는',
+    'yana.f1':'일일 브리핑 — 저장소 상태, CI, 작업 우선순위',
+    'yana.f2':'93개 에이전트 조율 — 올바른 전문가에게 작업 라우팅',
+    'yana.f3':'L1/L2 메모리 — 세션 간 결정사항 기억',
+    'yana.f4':'YAMTAM ENGINE 전체 안전 레이어로 보호',
+    'yana.cta':'YAMTAM에 대해 더 알아보기',
+    'yana.msg1':'안녕하세요. 최신 CI 실행: <strong style="color:var(--green)">✓ pass</strong>. PR 1개 검토 대기 중, 토큰 교체 아직 미완료.',
+    'yana.msg2':'해줘',
+    'yana.msg3':'처리 중 — CI 로그 확인, 드리프트 수정, 푸시. 완료되면 보고드릴게요.',
+    'docs.h3.what':'YAMTAM이란?',
+    'docs.h3.install':'설치',
+    'docs.h3.cmds':'기본 명령어',
+    'docs.h3.gates':'9단계 보호 (L0–L5)',
+    'docs.h3.struct':'저장소 구조',
+    'docs.what':'YAMTAM ENGINE은 코드베이스 외부에서 실행되는 <strong style="color:var(--fg)">에이전트 운영 체제</strong>입니다 — Claude Code, Cursor, Aider의 모든 도구 호출을 실행 전에 차단합니다. 설정 불필요, 제품 코드 변경 없음. 한 번 설치로 전체 보호.',
+    'docs.py':'Python CLI',
+    'docs.npm':'Claude Code 플러그인',
+    'docs.rust':'Rust 런타임 (~29× 빠름)',
+    'codexmate.c1':'# 1. node_modules 설치 (최초 1회)',
+    'codexmate.c2':'# 2. 포트 8080으로 서버 시작',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# 로컬 → http://localhost:8080 열기',
     'yana.desc':'<strong style="color:var(--fg)">Vũ Văn Tâm</strong>의 개인 AI 어시스턴트 — 저장소 관리, CI 모니터링, 작업 제안, YAMTAM ENGINE 에이전트 조율.',
   }
 };
