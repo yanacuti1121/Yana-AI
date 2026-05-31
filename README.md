@@ -45,6 +45,26 @@ npm install yamtam-engine   # Claude Code plugin
 cargo install yamtam-rt     # Rust runtime
 ```
 
+<p>
+  <a href="https://www.npmjs.com/package/yamtam-engine">
+    <img src="https://img.shields.io/npm/v/yamtam-engine?style=flat-square&logo=npm&color=cb3837" />
+  </a>
+  <a href="https://www.npmjs.com/package/yamtam-engine">
+    <img src="https://img.shields.io/npm/dw/yamtam-engine?style=flat-square&color=cb3837&label=downloads%2Fweek" />
+  </a>
+  <a href="https://www.npmjs.com/package/yamtam-engine">
+    <img src="https://img.shields.io/npm/dt/yamtam-engine?style=flat-square&color=cb3837&label=total%20downloads" />
+  </a>
+</p>
+
+```bash
+# Sau khi cài npm — chạy installer để wiring hooks vào .claude/
+npx yamtam-install
+
+# Kiểm tra ngay
+yamtam doctor .
+```
+
 ---
 
 ## Contact
