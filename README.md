@@ -247,5 +247,6 @@ yamtam audit examples/unsafe-agent-repo
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
+| Phone | 010-6315-8995 |
 | Facebook | [facebook.com/share/1DfsLZo8hG](https://www.facebook.com/share/1DfsLZo8hG/) |
 | TikTok | [@.yana018](https://www.tiktok.com/@.yana018) |
