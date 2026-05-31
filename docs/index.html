@@ -11,7 +11,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600;1,700&family=Playfair+Display:ital,wght@1,400;1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -30,6 +30,8 @@
   --red:           hsl(0 84% 60%);
   --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --hand: "Caveat","Dancing Script",cursive;
+  --script: "Dancing Script","Caveat",cursive;
 }
 
 html { scroll-behavior: smooth; }
@@ -43,7 +45,7 @@ nav {
   background: hsla(222,84%,5%,.88); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo { font-family: var(--mono); font-size: .875rem; font-weight: 600; color: var(--fg); text-decoration: none; letter-spacing: .04em; }
+.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; color: var(--fg); text-decoration: none; letter-spacing: .02em; }
 .nav-logo span { color: var(--accent); }
 .nav-links { display: flex; gap: 1.5rem; align-items: center; }
 .nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .875rem; transition: color .15s; }
@@ -64,9 +66,9 @@ nav {
   padding: .25rem .75rem; margin-bottom: 1.5rem;
 }
 .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
-h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; line-height: 1.15; letter-spacing: -.03em; margin-bottom: 1.25rem; }
+h1 { font-family: var(--hand); font-size: clamp(2.6rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; letter-spacing: .01em; margin-bottom: 1.25rem; }
 h1 em { font-style: normal; color: var(--accent); }
-.hero-sub { color: var(--fg-muted); font-size: 1.125rem; line-height: 1.65; max-width: 44ch; margin-bottom: 2rem; }
+.hero-sub { font-family: var(--hand); color: var(--fg-muted); font-size: 1.3rem; line-height: 1.65; max-width: 44ch; margin-bottom: 2rem; }
 .hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; }
 .btn-primary {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -116,8 +118,8 @@ h1 em { font-style: normal; color: var(--accent); }
 /* Sections */
 section { padding: 5rem 2rem; }
 .section-inner { max-width: 1100px; margin: 0 auto; }
-.section-label { font-family: var(--mono); font-size: .75rem; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .75rem; }
-h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.2; margin-bottom: 1rem; }
+.section-label { font-family: var(--script); font-size: 1rem; color: var(--accent); letter-spacing: .02em; text-transform: none; margin-bottom: .75rem; font-weight: 600; }
+h2 { font-family: var(--hand); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; letter-spacing: .01em; line-height: 1.15; margin-bottom: 1rem; }
 .section-sub { color: var(--fg-muted); font-size: 1.0625rem; max-width: 52ch; line-height: 1.65; margin-bottom: 3rem; }
 
 /* Feature grid */
