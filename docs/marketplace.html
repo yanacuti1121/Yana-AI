@@ -149,7 +149,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 
 <div class="hero">
   <h1>YAMTAM Marketplace</h1>
-  <p>2,211 skills · 93 agents · Tìm và cài đặt cho Claude Code, Cursor, Codex</p>
+  <p>2,211 skills · 93 agents · 42 hooks · 164 commands · 61 rules</p>
   <div class="search-hero">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
       <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
@@ -161,15 +161,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 
 <!-- Type switcher -->
 <div class="type-bar">
-  <button class="type-pill active" data-type="all" onclick="setType('all')">
-    ✨ All <span class="count" id="cnt-all">2,304</span>
-  </button>
-  <button class="type-pill" data-type="skill" onclick="setType('skill')">
-    📚 Skills <span class="count" id="cnt-skill">2,211</span>
-  </button>
-  <button class="type-pill" data-type="agent" onclick="setType('agent')">
-    🤖 Agents <span class="count" id="cnt-agent">93</span>
-  </button>
+  <button class="type-pill active" data-type="all" onclick="setType('all')">✨ All <span class="count" id="cnt-all">2,571</span></button>
+  <button class="type-pill" data-type="skill" onclick="setType('skill')">📚 Skills <span class="count" id="cnt-skill">2,211</span></button>
+  <button class="type-pill" data-type="agent" onclick="setType('agent')">🤖 Agents <span class="count" id="cnt-agent">93</span></button>
+  <button class="type-pill" data-type="hook" onclick="setType('hook')">🪝 Hooks <span class="count" id="cnt-hook">42</span></button>
+  <button class="type-pill" data-type="command" onclick="setType('command')">⌨️ Commands <span class="count" id="cnt-command">164</span></button>
+  <button class="type-pill" data-type="rule" onclick="setType('rule')">📏 Rules <span class="count" id="cnt-rule">61</span></button>
 </div>
 
 <div class="layout">
@@ -218,7 +215,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 <div class="toast" id="toast">✓ Copied to clipboard</div>
 
 <script>
-let SKILLS = [], AGENTS = [], ALL = [];
+let SKILLS = [], AGENTS = [], HOOKS = [], COMMANDS = [], RULES = [], ALL = [];
 let currentType = 'all', currentCat = 'all', currentQ = '';
 
 const SKILL_CAT_MAP = {
@@ -303,7 +300,7 @@ function render(){
                        : (getCategories(currentType).find(([k])=>k===currentCat)?.[1]?.label||'Items');
 
   document.getElementById('cards').innerHTML = shown.length
-    ? shown.map(item => item._type==='skill' ? renderSkillCard(item) : renderAgentCard(item)).join('')
+    ? shown.map(item => item._type==='skill' ? renderSkillCard(item) : item._type==='agent' ? renderAgentCard(item) : item._type==='hook' ? renderHookCard(item) : item._type==='command' ? renderCommandCard(item) : renderRuleCard(item)).join('')
     : `<div class="empty"><h3>No results found</h3><p>Try a different search term</p></div>`;
 
   buildSidebar();
@@ -349,6 +346,62 @@ function renderAgentCard(a){
   </div>`;
 }
 
+const EVENT_COLORS = {'PreToolUse':'#f43f5e','PostToolUse':'#10a37f','SessionStart':'#3b82f6','Hook':'#8b949e'};
+
+function renderHookCard(h){
+  const ec = EVENT_COLORS[h.event]||'#8b949e';
+  const cmd = `bash core/hooks/${h.name}.sh`;
+  return `<div class="mkt-card">
+    <div class="card-head">
+      <div class="card-icon" style="background:${ec}22">🪝</div>
+      <div style="flex:1;min-width:0"><div class="card-title">${esc(h.name)}</div></div>
+    </div>
+    <div class="card-desc">${esc(h.desc)||'Runtime safety hook'}</div>
+    <div class="card-footer">
+      <div class="card-tags">
+        <span class="tag" style="background:${ec}18;color:${ec}">${esc(h.event)}</span>
+      </div>
+      <button class="install-btn" onclick="copyInstall(this,'${esc(cmd)}')">Copy</button>
+    </div>
+  </div>`;
+}
+
+function renderCommandCard(c){
+  const cmd = `/${c.name}`;
+  return `<div class="mkt-card">
+    <div class="card-head">
+      <div class="card-icon" style="background:hsla(221,75%,48%,.12)">⌨️</div>
+      <div style="flex:1;min-width:0"><div class="card-title">${esc(cmd)}</div></div>
+    </div>
+    <div class="card-desc">${esc(c.desc)||'Slash command for Claude Code'}</div>
+    <div class="card-footer">
+      <div class="card-tags">
+        <span class="tag" style="background:hsla(221,75%,48%,.1);color:var(--blue)">command</span>
+      </div>
+      <button class="install-btn" onclick="copyInstall(this,'${esc(cmd)}')">Copy</button>
+    </div>
+  </div>`;
+}
+
+const TIER_COLORS = {'TIER 0':'#f43f5e','TIER 1':'#f59e0b','TIER 2':'#3b82f6','TIER 3':'#10a37f','TIER 4':'#bc8cff','TIER 5':'#22c55e'};
+
+function renderRuleCard(r){
+  const tc = TIER_COLORS[r.tier]||'#8b949e';
+  return `<div class="mkt-card">
+    <div class="card-head">
+      <div class="card-icon" style="background:${tc}22">📏</div>
+      <div style="flex:1;min-width:0"><div class="card-title">${esc(r.name)}</div></div>
+    </div>
+    <div class="card-desc">${esc(r.desc)||'Operating rule'}</div>
+    <div class="card-footer">
+      <div class="card-tags">
+        ${r.tier?`<span class="tag" style="background:${tc}18;color:${tc}">${esc(r.tier)}</span>`:''}
+      </div>
+      <button class="install-btn" onclick="copyInstall(this,'${esc(r.name)}')">Copy</button>
+    </div>
+  </div>`;
+}
+
 function copyInstall(btn, cmd){
   navigator.clipboard.writeText(cmd).catch(()=>{});
   btn.textContent = '✓ Copied'; btn.classList.add('copied');
@@ -371,25 +424,37 @@ function setType(type){
   render();
 }
 
+function updateAllCounts(){
+  document.getElementById('cnt-all').textContent = ALL.length.toLocaleString();
+  document.getElementById('cnt-skill').textContent = SKILLS.length.toLocaleString();
+  document.getElementById('cnt-agent').textContent = AGENTS.length;
+  document.getElementById('cnt-hook').textContent = HOOKS.length;
+  document.getElementById('cnt-command').textContent = COMMANDS.length;
+  document.getElementById('cnt-rule').textContent = RULES.length;
+}
+
 function setCat(cat){
   currentCat = cat; render();
 }
 
-function updateCounts(){
-  document.getElementById('cnt-all').textContent = (SKILLS.length+AGENTS.length).toLocaleString();
-  document.getElementById('cnt-skill').textContent = SKILLS.length.toLocaleString();
-  document.getElementById('cnt-agent').textContent = AGENTS.length;
-}
+
 
 document.getElementById('search').addEventListener('input', e=>{ currentQ=e.target.value; render(); });
 
 Promise.all([
-  fetch('skills-data.json').then(r=>r.json()),
-  fetch('agents-data.json').then(r=>r.json()),
-]).then(([skills, agents])=>{
-  SKILLS = skills.map(s=>({...s, _type:'skill'}));
-  AGENTS = agents.map(a=>({...a, _type:'agent'}));
-  ALL = [...SKILLS, ...AGENTS];
+  fetch('skills-data.json').then(r=>r.json()).catch(()=>[]),
+  fetch('agents-data.json').then(r=>r.json()).catch(()=>[]),
+  fetch('hooks-data.json').then(r=>r.json()).catch(()=>[]),
+  fetch('commands-data.json').then(r=>r.json()).catch(()=>[]),
+  fetch('rules-data.json').then(r=>r.json()).catch(()=>[]),
+]).then(([skills, agents, hooks, commands, rules])=>{
+  SKILLS   = skills.map(s=>({...s,   _type:'skill'}));
+  AGENTS   = agents.map(a=>({...a,   _type:'agent'}));
+  HOOKS    = hooks.map(h=>({...h,    _type:'hook'}));
+  COMMANDS = commands.map(c=>({...c, _type:'command'}));
+  RULES    = rules.map(r=>({...r,    _type:'rule'}));
+  ALL = [...SKILLS, ...AGENTS, ...HOOKS, ...COMMANDS, ...RULES];
+  updateAllCounts();
   render();
 }).catch(()=>{
   document.getElementById('cards').innerHTML = '<div class="empty"><h3>Could not load data</h3><p>Open from a server</p></div>';
