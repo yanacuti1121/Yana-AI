@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::Subcommand;
 use regex::Regex;
 use std::collections::HashMap;
+use std::net::ToSocketAddrs;
 use std::path::Path;
 
 const DESIGN_DIR: &str = ".yamtam/design";
@@ -48,6 +49,7 @@ pub fn dispatch(action: DesignAction) {
 // ── Extract ───────────────────────────────────────────────────────────────────
 
 fn cmd_extract(source: &str, target: &str, as_json: bool, quiet: bool) -> Result<()> {
+    validate_relative_path(target, "--target")?;
     if !quiet { eprintln!("[design] fetching {}…", source); }
 
     let html = fetch_source(source)?;
@@ -69,6 +71,7 @@ fn cmd_extract(source: &str, target: &str, as_json: bool, quiet: bool) -> Result
 }
 
 fn cmd_show(target: &str, as_json: bool) -> Result<()> {
+    validate_relative_path(target, "--target")?;
     let path = Path::new(target).join(DESIGN_DIR).join(DESIGN_FILE);
     let s = std::fs::read_to_string(&path)
         .map_err(|_| anyhow::anyhow!("No design context. Run: yamtam-rt design extract <url>"))?;
@@ -79,27 +82,76 @@ fn cmd_show(target: &str, as_json: bool) -> Result<()> {
 }
 
 fn cmd_init(target: &str, out_path: Option<&str>) -> Result<()> {
+    validate_relative_path(target, "--target")?;
     let path = Path::new(target).join(DESIGN_DIR).join(DESIGN_FILE);
     let s = std::fs::read_to_string(&path)
         .map_err(|_| anyhow::anyhow!("No design context. Run: yamtam-rt design extract <url> first"))?;
     let tokens: DesignTokens = serde_json::from_str(&s)?;
     let md = tokens_to_markdown(&tokens);
     let dest = out_path.unwrap_or("DESIGN.md");
+    validate_relative_path(dest, "--out")?;
     std::fs::write(dest, &md)?;
     println!("[design] DESIGN.md → {}", dest);
     Ok(())
+}
+
+// ── Security helpers ──────────────────────────────────────────────────────────
+
+fn validate_relative_path(path: &str, label: &str) -> Result<()> {
+    let p = Path::new(path);
+    if p.is_absolute() {
+        anyhow::bail!("{} must be a relative path, got: '{}'", label, path);
+    }
+    for component in p.components() {
+        if matches!(component, std::path::Component::ParentDir) {
+            anyhow::bail!("{} must not contain '..': '{}'", label, path);
+        }
+    }
+    Ok(())
+}
+
+fn extract_url_host(url: &str) -> Option<&str> {
+    let without_scheme = url.split("://").nth(1)?;
+    let host_port = without_scheme.split('/').next()?;
+    Some(host_port.split(':').next()?)
+}
+
+fn is_private_ip(ip: std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => {
+            v4.is_loopback() || v4.is_private() || v4.is_link_local() || v4.is_unspecified()
+        }
+        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified(),
+    }
 }
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 
 fn fetch_source(source: &str) -> Result<String> {
     if source.starts_with("http://") || source.starts_with("https://") {
+        let host = extract_url_host(source)
+            .ok_or_else(|| anyhow::anyhow!("could not extract host from URL: '{}'", source))?;
+        // Resolve and reject private/internal IPs (SSRF prevention)
+        let resolved: Vec<_> = format!("{}:80", host)
+            .to_socket_addrs()
+            .map_err(|e| anyhow::anyhow!("DNS resolution failed for '{}': {}", host, e))?
+            .collect();
+        for addr in &resolved {
+            if is_private_ip(addr.ip()) {
+                anyhow::bail!(
+                    "SSRF blocked: '{}' resolves to private/internal address {}",
+                    host, addr.ip()
+                );
+            }
+        }
         let resp = ureq::get(source)
             .set("User-Agent", "yamtam-rt/0.9 design-extractor")
             .call()
             .map_err(|e| anyhow::anyhow!("fetch failed: {e}"))?;
         Ok(resp.into_string()?)
     } else {
+        // Local file — must stay within project (no absolute paths, no ..)
+        validate_relative_path(source, "source")?;
         Ok(std::fs::read_to_string(source)?)
     }
 }

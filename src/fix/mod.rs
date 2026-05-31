@@ -42,7 +42,21 @@ static FIXABLE_RULES: &[(&str, &str, bool)] = &[
     ("MCP001","Add read-only annotation to filesystem MCP server", true),
 ];
 
+fn validate_target(target: &str) -> Result<()> {
+    let p = Path::new(target);
+    if p.is_absolute() {
+        anyhow::bail!("target must be a relative path, got absolute: '{}'", target);
+    }
+    for component in p.components() {
+        if matches!(component, std::path::Component::ParentDir) {
+            anyhow::bail!("target must not contain '..': '{}'", target);
+        }
+    }
+    Ok(())
+}
+
 fn cmd_fix(rule_id: &str, target: &str, dry_run: bool) -> Result<()> {
+    validate_target(target)?;
     match rule_id.to_uppercase().as_str() {
         "AC001" => fix_ac001(target, dry_run),
         "AC002" => fix_ac002(target, dry_run),
