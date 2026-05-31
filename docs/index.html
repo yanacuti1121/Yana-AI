@@ -361,6 +361,24 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </div>
 
+<!-- Skills CTA -->
+<section style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));padding:4rem 2rem">
+  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap">
+    <div>
+      <div style="font-family:var(--script);font-size:1rem;color:hsla(0,0%,100%,.7);margin-bottom:.5rem" data-i18n="skills.label">Thư viện Skills</div>
+      <h2 style="font-family:var(--hand);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:#fff;letter-spacing:.01em;margin-bottom:.6rem;line-height:1.15" data-i18n="skills.title">2,211 workflow skills —<br>mở và khám phá</h2>
+      <p style="color:hsla(0,0%,100%,.75);font-size:1rem;max-width:44ch;line-height:1.6" data-i18n="skills.sub">Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.</p>
+    </div>
+    <a href="skills.html"
+       style="display:inline-flex;align-items:center;gap:.6rem;background:#fff;color:hsl(221,75%,45%);font-weight:700;font-size:1rem;padding:.85rem 1.75rem;border-radius:10px;text-decoration:none;white-space:nowrap;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(0,0,0,.2)"
+       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,.28)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(0,0,0,.2)'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 10h16M4 14h10"/><circle cx="17" cy="17" r="3"/><path d="m21 21-1.5-1.5"/></svg>
+      <span data-i18n="skills.btn">Xem tất cả Skills</span>
+    </a>
+  </div>
+</section>
+
 <!-- Features -->
 <section id="features">
   <div class="section-inner">
@@ -838,7 +856,7 @@ function runDemo() {
 // i18n
 const T = {
   en: {
-    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗',
+    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs','nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗','skills.label':'Skills Library','skills.title':'2,211 workflow skills —<br>explore them all','skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — all searchable and filterable by category.','skills.btn':'Browse all Skills',
     'hero.title':'Your AI agent\'s<br><em>safety layer</em>',
     'hero.sub':'Safety hooks that fire before damage happens. 2,211 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
     'hero.cta1':'Install free',
@@ -872,7 +890,7 @@ const T = {
     'gate.l5.n':'UI quality + scope drift',
   },
   vi: {
-    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗',
+    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu','nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗','skills.label':'Thư viện Skills','skills.title':'2.211 workflow skills —<br>mở và khám phá','skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.','skills.btn':'Xem tất cả Skills',
     'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
     'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2.211 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
     'hero.cta1':'Cài đặt miễn phí',
@@ -906,7 +924,7 @@ const T = {
     'gate.l5.n':'Chất lượng UI + scope drift',
   },
   ko: {
-    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗',
+    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서','nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗','skills.label':'스킬 라이브러리','skills.title':'2,211개 워크플로우 스킬 —<br>모두 탐색하기','skills.sub':'Frontend, Backend, AI/LLM, 보안, K8s, WebAssembly, DevOps — 카테고리별 검색 및 필터 가능.','skills.btn':'모든 스킬 보기',
     'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
     'hero.sub':'손상 전에 실행되는 안전 훅. 2,211개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
     'hero.cta1':'무료 설치',
