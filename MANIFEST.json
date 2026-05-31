@@ -561,7 +561,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 2204,
+      "count": 2205,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -932,7 +932,8 @@
         "core/skills/zip-memory-operations/SKILL.md",
         "core/skills/zk-proof-patterns/SKILL.md",
         "core/skills/zlib-stream-compression/SKILL.md",
-        "core/skills/zombie-process-cleanup/SKILL.md"
+        "core/skills/zombie-process-cleanup/SKILL.md",
+        "core/skills/openhack-security-review/SKILL.md"
       ]
     },
     "config": {
@@ -1001,5 +1002,5 @@
     ]
   },
   "_import_note": "v1.3.48 — 58 new skills (9 groups: sandbox/kernel/network/vector/config/graph/xss/persistence/telemetry/compression) + model-router.sh + token-budget-policy + tool-proxy 429 backoff (173→231 skills, 41→42 rules, 34→35 scripts)",
-  "skills_count": 2204
+  "skills_count": 2205
 }
