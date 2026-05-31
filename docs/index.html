@@ -16,18 +16,18 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:            hsl(24 18% 7%);
-  --bg-subtle:     hsl(24 14% 11%);
-  --bg-card:       hsl(24 12% 13%);
-  --border:        hsl(24 12% 20%);
-  --border-strong: hsl(24 12% 28%);
-  --fg:            hsl(38 40% 95%);
-  --fg-muted:      hsl(30 15% 58%);
-  --accent:        hsl(38 90% 52%);
-  --accent-hover:  hsl(38 90% 62%);
-  --green:         hsl(142 60% 42%);
-  --orange:        hsl(22 90% 55%);
-  --red:           hsl(0 75% 58%);
+  --bg:            hsl(38 30% 97%);
+  --bg-subtle:     hsl(38 20% 93%);
+  --bg-card:       hsl(0 0% 100%);
+  --border:        hsl(38 15% 84%);
+  --border-strong: hsl(38 12% 72%);
+  --fg:            hsl(24 25% 12%);
+  --fg-muted:      hsl(24 10% 45%);
+  --accent:        hsl(221 75% 48%);
+  --accent-hover:  hsl(221 75% 40%);
+  --green:         hsl(142 55% 36%);
+  --orange:        hsl(28 85% 50%);
+  --red:           hsl(0 70% 52%);
   --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --hand: "Caveat","Dancing Script",cursive;
@@ -42,7 +42,7 @@ nav {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 2rem; height: 56px;
-  background: hsla(24,18%,7%,.92); backdrop-filter: blur(12px);
+  background: hsla(38,30%,97%,.92); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
 .nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; }
@@ -505,8 +505,95 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </div>
 
+<!-- Full Docs -->
+<section id="docs" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label">Tài liệu</div>
+    <h2 style="margin-bottom:.5rem">Giới thiệu đầy đủ</h2>
+    <p class="section-sub">Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.</p>
+
+    <!-- What is -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">YAMTAM là gì?</h3>
+      <p style="color:var(--fg-muted);line-height:1.75;max-width:68ch">YAMTAM ENGINE là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.</p>
+      <div style="margin-top:1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8rem;line-height:1.8;color:var(--fg-muted)">
+        You → Claude Code → <span style="color:var(--accent);font-weight:600">[YAMTAM HOOKS]</span> → blocked hoặc allowed
+      </div>
+    </div>
+
+    <!-- Install -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Cài đặt</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Python CLI</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">pip install yamtam-engine</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">yamtam audit · doctor · scan · fix</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Claude Code plugin</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">npm install yamtam-engine</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">hooks · agents · commands → .claude/</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)">Rust runtime (~29× faster)</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">cargo install yamtam-rt</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">scan · doctor · ci · bus · memory</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick commands -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Lệnh cơ bản</h3>
+      <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.8rem;line-height:2;color:#ccc;overflow-x:auto">
+        <div><span style="color:#555"># Quét repo tìm lỗi cấu hình AI agent</span></div>
+        <div><span style="color:#69ff47">yamtam</span> audit .</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Kiểm tra sức khoẻ trước session</span></div>
+        <div><span style="color:#69ff47">yamtam</span> doctor .</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Xuất báo cáo HTML</span></div>
+        <div><span style="color:#69ff47">yamtam</span> report html . --open</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Rust runtime — nhanh hơn 29×</span></div>
+        <div><span style="color:#40c4ff">yamtam-rt</span> scan .</div>
+      </div>
+    </div>
+
+    <!-- Gate system -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">9 lớp bảo vệ (L0–L5)</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L0</span><span style="font-weight:600;font-size:.82rem">Audit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Log mọi tool call — Merkle hash-chain</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1</span><span style="font-weight:600;font-size:.82rem">Scope</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Cảnh báo truy cập secret/env</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1.5</span><span style="font-weight:600;font-size:.82rem">Validate</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn SSRF, path traversal</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L2</span><span style="font-weight:600;font-size:.82rem">Commit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Warn cross-scope commits</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L3</span><span style="font-weight:600;font-size:.82rem">Truth Gate</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Yêu cầu evidence trước khi claim</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L3.5</span><span style="font-weight:600;font-size:.82rem">Inject</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn prompt injection, jailbreak</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L4</span><span style="font-weight:600;font-size:.82rem">Deploy</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn gh / kubectl / docker</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L4.5</span><span style="font-weight:600;font-size:.82rem">Supply</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn pipe-to-shell, typosquatting</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L5</span><span style="font-weight:600;font-size:.82rem">Destructive</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn rm -rf, DROP TABLE</div></div>
+      </div>
+    </div>
+
+    <!-- Structure -->
+    <div>
+      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)">Cấu trúc repo</h3>
+      <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.78rem;line-height:1.85;color:#ccc;overflow-x:auto">
+        <div style="color:#69ff47">yamtam-engine/</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">core/</span>         agents · commands · hooks · skills · rules · gates · memory</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">scanner/</span>      7 YAML rule sets — 61 checks</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">src/</span>          Rust runtime (yamtam-rt) — ~4ms startup</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">tools/</span>        codexmate · moss-tts-nano · finetune-vi</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">adapters/</span>     Claude · Cursor · Gemini · Continue · OpenRouter</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">docs/</span>         trang web này</div>
+        <div style="color:#888">└── <span style="color:#40c4ff">.claude/</span>      applied pack — được load bởi Claude Code lúc runtime</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- Lab -->
-<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(24,14%,9%) 100%)">
+<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(38,18%,92%) 100%)">
   <div class="section-inner">
     <div class="section-label">Lab</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Side projects</h2>
@@ -514,7 +601,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
 
       <!-- Come My Way card -->
-      <div style="background:linear-gradient(160deg,hsl(24,12%,13%),hsl(24,10%,10%));border:1px solid hsl(24,12%,22%);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
 
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,83%,53%,.1);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.2);letter-spacing:.05em">C++17</span>
