@@ -9,6 +9,9 @@
 <meta property="og:description" content="The hook layer that stops AI agents before they cause real damage.">
 <meta property="og:image" content="https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-engine-overview.png">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600;1,700&family=Playfair+Display:ital,wght@1,400;1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -500,52 +503,55 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 </div>
 
 <!-- Lab -->
-<section style="border-top:1px solid var(--border)">
+<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(222,60%,7%) 100%)">
   <div class="section-inner">
     <div class="section-label">Lab</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Side projects</h2>
     <p class="section-sub" style="margin-bottom:2rem">Những thứ xây ngoài giờ.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
 
       <!-- Come My Way card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+      <div style="background:linear-gradient(160deg,hsl(222,40%,10%),hsl(240,30%,8%));border:1px solid hsl(217,33%,20%);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.7rem;background:hsla(221,83%,53%,.12);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.25)">C++17</span>
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,83%,53%,.1);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.2);letter-spacing:.05em">C++17</span>
           <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/come_my_way_demo.cpp"
              target="_blank"
-             style="color:var(--fg-muted);font-size:.75rem;text-decoration:none;transition:color .15s"
-             onmouseover="this.style.color='var(--fg)'" onmouseout="this.style.color='var(--fg-muted)'">
+             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
+             onmouseover="this.style.color='hsl(210,40%,75%)'" onmouseout="this.style.color='hsl(215,20%,45%)'">
             view source ↗
           </a>
         </div>
+
         <div>
-          <div style="font-weight:600;font-size:1rem;margin-bottom:.35rem">Come My Way — terminal player</div>
-          <div style="color:var(--fg-muted);font-size:.875rem;line-height:1.55">
-            Terminal display với ANSI color + phát nhạc nền qua <code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">fork/exec mpv</code>. Linux only.
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#e8d5b7,#c9a96e,#e8d5b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+            Come My Way
+          </div>
+          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
+            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:hsl(221,70%,60%)">fork/exec mpv</span> · Linux
           </div>
         </div>
 
         <!-- Terminal window -->
-        <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;overflow:hidden">
-          <!-- title bar -->
-          <div style="background:#1a1a1a;padding:.45rem .75rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #2a2a2a">
-            <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
-            <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></span>
-            <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
-            <span style="font-family:var(--mono);font-size:.7rem;color:#666;margin-left:.5rem">bash</span>
+        <div style="background:hsl(222,30%,5%);border:1px solid hsl(217,33%,15%);border-radius:10px;overflow:hidden">
+          <div style="background:hsl(222,30%,8%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(217,33%,13%)">
+            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block;box-shadow:0 0 4px #ff5f5766"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block;box-shadow:0 0 4px #febc2e66"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block;box-shadow:0 0 4px #28c84066"></span>
+            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — come_my_way_demo.cpp</span>
           </div>
-          <!-- output area -->
-          <div id="term-out" style="padding:.75rem 1rem;font-family:var(--mono);font-size:.72rem;line-height:1.7;min-height:90px;color:#ccc;white-space:pre"></div>
+          <div id="term-out" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
         </div>
 
         <!-- Run button -->
         <button id="run-btn" onclick="runDemo()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.4rem;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:.4rem .9rem;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s;font-family:var(--sans)"
-          onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
+          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,hsl(221,83%,48%),hsl(250,70%,55%));color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(221,83%,53%,.3)"
+          onmouseover="this.style.opacity='.85';this.style.boxShadow='0 6px 20px hsla(221,83%,53%,.45)'"
+          onmouseout="this.style.opacity='1';this.style.boxShadow='0 4px 16px hsla(221,83%,53%,.3)'">
           <span id="run-icon">▶</span> Run
         </button>
-      </div>
 
+      </div>
     </div>
   </div>
 </section>
@@ -586,21 +592,21 @@ function copyCmd() {
 }
 // Terminal demo
 const termLines = [
-  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#555', delay: 0,    type: 'type' },
-  { text: '$ ./come_my_way',                                       color: '#555', delay: 700,  type: 'type' },
+  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#4a4a5a', delay: 0,    type: 'type' },
+  { text: '$ ./come_my_way',                                       color: '#4a4a5a', delay: 700,  type: 'type' },
   { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1100, glow: '#1de9b6' },
-  { text: '  Come My Way  ~  Sơn Tùng M-TP x Tyga',               delay: 1350, gradient: true, bold: true },
+  { text: '  Come My Way  ~  Sơn Tùng M-TP × Tyga',               delay: 1350, gradient: true, bold: true },
   { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1600, glow: '#1de9b6' },
   { text: '', delay: 1850 },
-  { text: '[ Intro: Tyga ]',            color: '#ea80fc', delay: 2050, bold: true, glow: '#ea80fc', type: 'fade' },
-  { text: '', delay: 2450 },
-  { text: '[ Verse 1: Sơn Tùng M-TP ]',color: '#69ff47', delay: 2650, bold: true, glow: '#69ff47', type: 'fade' },
-  { text: '', delay: 3100 },
-  { text: '[ Pre-Chorus ]',             color: '#ffd740', delay: 3300, bold: true, glow: '#ffd740', type: 'fade' },
-  { text: '', delay: 3700 },
-  { text: '[ Chorus ]',                 color: '#40c4ff', delay: 3900, bold: true, glow: '#40c4ff', type: 'fade' },
-  { text: '', delay: 4600 },
-  { text: '🎵  Come My Way — TNOA (2022)', color: '#444', delay: 4800 },
+  { text: '[ Intro: Tyga ]',             color: '#ea80fc', delay: 2050, bold: true, glow: '#ea80fc', type: 'fade' },
+  { text: '', delay: 2400 },
+  { text: '[ Verse 1: Sơn Tùng M-TP ]', color: '#69ff47', delay: 2600, bold: true, glow: '#69ff47', type: 'fade' },
+  { text: '', delay: 3050 },
+  { text: '[ Pre-Chorus ]',              color: '#ffd740', delay: 3250, bold: true, glow: '#ffd740', type: 'fade' },
+  { text: '', delay: 3650 },
+  { text: '[ Chorus ]',                  color: '#40c4ff', delay: 3850, bold: true, glow: '#40c4ff', type: 'fade' },
+  { text: '', delay: 4500 },
+  { text: '♪  Come My Way — TNOA · 2022', color: '#3a3a4a', delay: 4700 },
 ];
 
 function typeWriter(span, text, cb) {
