@@ -427,6 +427,46 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </section>
 
+<!-- Agents -->
+<section id="agents" style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Agent Teams</div>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">93 specialized agents — <em style="font-style:normal;color:var(--accent)">auto-routed</em></h2>
+    <p class="section-sub" style="margin-bottom:2rem">Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Development</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">planner</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">code-reviewer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">tdd-guide</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">build-error-resolver</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">refactor-cleaner</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Security & QA</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">security-reviewer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">verify-agent</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">e2e-runner</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">database-reviewer</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Architecture</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">architect</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">systems-designer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">doc-updater</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">product-strategist</span>
+        </div>
+      </div>
+    </div>
+    <a href="skills.html#agents" style="display:inline-flex;align-items:center;gap:.5rem;font-size:.875rem;color:var(--accent);text-decoration:none;font-weight:600;border:1px solid hsla(221,75%,48%,.3);padding:.5rem 1rem;border-radius:8px;transition:all .15s" onmouseover="this.style.background='hsla(221,75%,48%,.08)'" onmouseout="this.style.background='transparent'">Browse all 93 agents →</a>
+  </div>
+</section>
+
 <!-- Features -->
 <section id="features">
   <div class="section-inner">
@@ -536,8 +576,19 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span class="cmd-chip new">graph</span>
           <span class="cmd-chip new">vault</span>
           <span class="cmd-chip new">design</span>
+          <span class="cmd-chip new">watch</span>
         </div>
-        <p style="font-size:.75rem;color:var(--fg-muted);margin-top:.75rem"><span style="color:hsl(221 83% 70%)">■</span> new in v0.17.0</p>
+        <p style="font-size:.75rem;color:var(--fg-muted);margin-top:.75rem"><span style="color:hsl(221 83% 70%)">■</span> new in v0.17.0 / v1.2.0</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:1.25rem;font-size:.8rem">
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">scan</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Security audit — secrets, SSRF, injection, supply chain</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">hunt</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Active scanner — deeper code vulns + dependency audit</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">ci</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">CI/CD health — unpinned actions, missing permissions</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">map</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Agent blast radius — what the AI can read/write/exec</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">fix</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Auto-apply safe fixes for known finding IDs</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">score</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Audit score with deduction breakdown</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">doctor</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Environment and dependency health check</td></tr>
+          <tr><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">watch</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Live monitor — print changes to skills/agents/rules</td></tr>
+        </table>
       </div>
       <div>
         <div class="rt-stats">
@@ -550,6 +601,39 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <div><span style="color:var(--green)">cargo</span> install yamtam-rt</div>
           <div style="margin-top:.5rem" class="t-dim"># or via npm</div>
           <div><span style="color:var(--green)">npm</span> install -g yamtam-engine</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sandbox -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Docker Sandbox</div>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Gate L3 — <em style="font-style:normal;color:var(--accent)">runtime isolation</em></h2>
+    <p class="section-sub" style="margin-bottom:2rem">Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:800px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Sandbox properties</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.825rem">
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--network none</code> — no outbound calls</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--read-only</code> — immutable filesystem</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--cap-drop ALL</code> — no Linux capabilities</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--user nobody</code> — uid 65534</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--pids-limit 64</code> — no fork bomb</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)">Auto-cleanup — <code style="font-size:.8em">--rm</code> on exit</span></div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Usage</div>
+        <div style="font-family:var(--mono);font-size:.775rem;line-height:1.7;color:var(--fg-muted)">
+          <div><span style="color:var(--green)">#</span> docker mode (full isolation)</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--accent)">YAMTAM_SANDBOX_MODE</span>=docker \</div>
+          <div style="margin-bottom:.75rem;padding-left:1rem">bash tool-proxy.sh &lt;cmd&gt;</div>
+          <div><span style="color:var(--green)">#</span> auto-detect best available</div>
+          <div><span style="color:var(--accent)">YAMTAM_SANDBOX_MODE</span>=auto \</div>
+          <div style="padding-left:1rem">bash tool-proxy.sh &lt;cmd&gt;</div>
         </div>
       </div>
     </div>
