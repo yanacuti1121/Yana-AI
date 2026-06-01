@@ -222,3 +222,14 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.17.0 · branch=main, 3 modified, last=efcc2ea feat(sandbox): wire sandbox-exec.sh into tool-proxy.
 
 ---
+
+## 2026-06-01 — cargo): use include instead of exclude to stay under 10MB cr
+
+**Đã làm:**
+- feat:  3 features — watch subcommand, health check,; assistant): milestone reminder — roadmap #6; assistant): auto-update memory script + CI sa
+- fix: cargo): use include instead of exclude to stay
+- chore:  bump yamtam-rt 1.1.0 → 1.2.0
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 1 modified, last=bc4aaea fix(cargo): use include instead of exclude to stay u
+
+---
