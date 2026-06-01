@@ -20,6 +20,18 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## Milestone — 1,000,000 lines
+*2026-06-01*
+
+YAMTAM ENGINE vượt mốc **1,026,000 dòng** — 15,502 files, không tính `.git` và `node_modules`.
+
+- Skills: 8,550 SKILL.md — 641,675 dòng
+- Safety layer: rules + hooks + gates + scripts — ~29,000 dòng
+- Tools (codexmate, finetune-vi, moss-tts-nano...): 225,703 dòng
+- Toàn bộ do một người build từ tháng 02/2026.
+
+---
+
 ## v0.17.0 — yamtam-rt v1.0.0: Full Python CLI parity in Rust
 *2026-05-30*
 
