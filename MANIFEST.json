@@ -1017,5 +1017,5 @@
     ]
   },
   "_import_note": "v1.3.48 — 58 new skills (9 groups: sandbox/kernel/network/vector/config/graph/xss/persistence/telemetry/compression) + model-router.sh + token-budget-policy + tool-proxy 429 backoff (173→231 skills, 41→42 rules, 34→35 scripts)",
-  "skills_count": 3424
+  "skills_count": 8545
 }

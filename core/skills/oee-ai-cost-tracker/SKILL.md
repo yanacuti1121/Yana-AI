@@ -1,0 +1,11 @@
+---
+name: oee-ai-cost-tracker
+description: "> by Odin's Eye Enterprises — Ancient Wisdom."
+risk: safe
+source: community
+date_added: "2026-06-01"
+---
+
+# oee-ai-cost-tracker
+
+> by Odin's Eye Enterprises — Ancient Wisdom.
