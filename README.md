@@ -27,6 +27,9 @@
   <a href="https://pypi.org/project/yamtam-engine/">
     <img src="https://img.shields.io/pypi/v/yamtam-engine?style=for-the-badge&logo=pypi&color=3775a9" />
   </a>
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine">
+    <img src="https://img.shields.io/badge/protected%20by-YAMTAM%20ENGINE-ff6b35?style=for-the-badge" />
+  </a>
 </p>
 
 ---
@@ -221,6 +224,33 @@ One person. No team. No funding. Starting from zero in February 2026.
 - **Month 2:** Rust runtime (`yamtam-rt`), 93 agents, 8,550 skills, multi-harness support
 
 The 8,550 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
+
+---
+
+## Add YAMTAM to your repo
+
+**Static badge** — paste into your README:
+
+```markdown
+[![Protected by YAMTAM](https://img.shields.io/badge/protected%20by-YAMTAM%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/phamlongh230-lgtm/yamtam-engine)
+```
+
+**Dynamic audit badge** — shows live security score:
+
+```bash
+yamtam badge .           # prints badge markdown with current score
+yamtam badge . --json    # machine-readable output
+```
+
+**GitHub Action** — scan every PR automatically:
+
+```yaml
+- uses: phamlongh230-lgtm/yamtam-engine/.github/actions/scan@main
+  with:
+    fail-on: 'high'
+```
+
+→ [Full workflow template](docs/install/github-action.yml)
 
 ---
 
