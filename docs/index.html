@@ -432,7 +432,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="section-inner">
     <div class="section-label">Agent Teams</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">93 specialized agents — <em style="font-style:normal;color:var(--accent)">auto-routed</em></h2>
-    <p class="section-sub" style="margin-bottom:2rem">Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.</p>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.agents">Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
         <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Development</div>
@@ -613,7 +613,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="section-inner">
     <div class="section-label">Docker Sandbox</div>
     <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Gate L3 — <em style="font-style:normal;color:var(--accent)">runtime isolation</em></h2>
-    <p class="section-sub" style="margin-bottom:2rem">Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.</p>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.sandbox">Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:800px">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
         <div style="font-size:.8rem;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Sandbox properties</div>
@@ -696,7 +696,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="section-inner">
     <div class="section-label" data-i18n="section.docs">Tài liệu</div>
     <h2 style="margin-bottom:.5rem" data-i18n="h2.docs">Giới thiệu đầy đủ</h2>
-    <p class="section-sub">Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.</p>
+    <p class="section-sub" data-i18n="sub.docs">Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.</p>
 
     <!-- What is -->
     <div style="margin-bottom:2.5rem">
@@ -1050,8 +1050,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <section id="projects" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
     <div class="section-label">Projects</div>
-    <h2 style="margin-bottom:.5rem">Những thứ đã xây</h2>
-    <p class="section-sub" style="margin-bottom:2.5rem">Dự án cá nhân và hợp tác — từ trường học đến AI tooling.</p>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.projects">Những thứ đã xây</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.projects">Dự án cá nhân và hợp tác — từ trường học đến AI tooling.</p>
 
     <!-- JNMT featured -->
     <div style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));border-radius:16px;padding:2rem;margin-bottom:1.25rem;position:relative;overflow:hidden;box-shadow:0 8px 32px hsla(221,75%,48%,.2)">
@@ -1103,7 +1103,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span style="font-weight:700;font-size:.92rem">YAMTAM ENGINE</span>
           <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v0.17.0</span>
         </div>
-        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem">Personal agent OS — 45 hooks, 8,545 skills, Rust runtime. An toàn cho mọi AI agent.</p>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yamtam.short">Personal agent OS — 45 hooks, 8,545 skills, Rust runtime. Safe for every AI agent.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Python</span>
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Rust</span>
@@ -1119,7 +1119,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span style="font-weight:700;font-size:.92rem">jnmt.vn</span>
           <span style="font-size:.67rem;background:hsla(142,55%,36%,.1);color:var(--green);padding:.1rem .4rem;border-radius:4px">Tự xây</span>
         </div>
-        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem">JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.</p>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.jnmt">JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Next.js</span>
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">TypeScript</span>
@@ -1698,6 +1698,12 @@ const T = {
     'sub.compat':"YAMTAM sits outside your editor — it doesn't care which AI you use.",
     'sub.docs':'Everything you need to run and use YAMTAM ENGINE.',
     'sub.lab':'Things built outside work hours.',
+    'sub.agents':'Each agent is a specialist in one domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> automatically picks the right agent for each task.',
+    'sub.sandbox':'Every tool call runs in an ephemeral container — no network, read-only filesystem, no root. Falls back to nsjail or ulimit if Docker is unavailable.',
+    'h2.projects':'Things built',
+    'sub.projects':'Personal and collaborative projects — from school to AI tooling.',
+    'sub.yamtam.short':'Personal agent OS — 45 hooks, 8,545 skills, Rust runtime. Safe for every AI agent.',
+    'sub.jnmt':'Built from scratch — custom design, custom features, independent deployment.',
     'feat.hook.t':'Pre-execution hooks','feat.rust.t':'Rust runtime',
     'feat.skills.t':'8,545 skills','feat.graph.t':'Knowledge graph',
     'feat.vault.t':'Vietnamese vault','feat.design.t':'Design token extractor',
@@ -1762,6 +1768,12 @@ const T = {
     'sub.compat':'YAMTAM chạy bên ngoài editor — không quan tâm bạn dùng AI nào.',
     'sub.docs':'Tất cả những gì cần biết để chạy và dùng YAMTAM ENGINE.',
     'sub.lab':'Những thứ xây ngoài giờ.',
+    'sub.agents':'Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.',
+    'sub.sandbox':'Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.',
+    'h2.projects':'Những thứ đã xây',
+    'sub.projects':'Dự án cá nhân và hợp tác — từ trường học đến AI tooling.',
+    'sub.yamtam.short':'Personal agent OS — 45 hooks, 8.545 skills, Rust runtime. An toàn cho mọi AI agent.',
+    'sub.jnmt':'JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.',
     'feat.hook.t':'Hook trước khi thực thi','feat.rust.t':'Rust runtime',
     'feat.skills.t':'8.545 skills','feat.graph.t':'Knowledge graph',
     'feat.vault.t':'Kho tri thức tiếng Việt','feat.design.t':'Trích xuất design token',
@@ -1826,6 +1838,12 @@ const T = {
     'sub.compat':'YAMTAM은 에디터 외부에서 실행 — 어떤 AI를 사용하든 상관없습니다.',
     'sub.docs':'YAMTAM ENGINE 실행에 필요한 모든 정보.',
     'sub.lab':'업무 외 시간에 만든 것들.',
+    'sub.agents':'각 에이전트는 하나의 도메인 전문가입니다. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code>가 각 작업에 맞는 에이전트를 자동으로 선택합니다.',
+    'sub.sandbox':'모든 도구 호출은 임시 컨테이너에서 실행됩니다 — 네트워크 없음, 읽기 전용 파일시스템, 루트 없음. Docker가 없으면 nsjail 또는 ulimit으로 자동 전환.',
+    'h2.projects':'제작한 것들',
+    'sub.projects':'개인 및 협업 프로젝트 — 학교부터 AI 툴링까지.',
+    'sub.yamtam.short':'개인 에이전트 OS — 훅 45개, 스킬 8,545개, Rust 런타임. 모든 AI 에이전트에 안전.',
+    'sub.jnmt':'처음부터 직접 구축 — 자체 디자인, 자체 기능, 독립 배포.',
     'feat.hook.t':'사전 실행 훅','feat.rust.t':'Rust 런타임',
     'feat.skills.t':'8,545개 스킬','feat.graph.t':'지식 그래프',
     'feat.vault.t':'베트남어 지식 저장소','feat.design.t':'디자인 토큰 추출기',
