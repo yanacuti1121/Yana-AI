@@ -118,6 +118,35 @@ bash core/scripts/switch-engine.sh status    # check all 12 adapters
 
 ---
 
+## GitHub Action
+
+Scan any repo's AI agent configuration on every PR — secrets, permissions, hook injection, MCP vulnerabilities.
+
+```yaml
+# .github/workflows/yamtam-scan.yml
+- uses: phamlongh230-lgtm/yamtam-engine/.github/actions/scan@main
+  with:
+    fail-on: 'high'       # fail CI on HIGH or CRITICAL findings
+    diff-only: 'true'     # scan only changed files on PRs
+    comment-on-pr: 'true' # post findings summary as PR comment
+```
+
+Posts a comment on every PR:
+
+```
+🟠 YAMTAM Security Scan — HIGH
+
+| Metric  | Value  |
+|---------|--------|
+| Risk    | HIGH   |
+| Score   | 58/100 |
+| Findings| 3      |
+```
+
+→ [Full workflow template](docs/install/github-action.yml)
+
+---
+
 ## Rust runtime — `yamtam-rt`
 
 17 subcommands. Zero Python dependency.
