@@ -43,6 +43,7 @@ LINT_PY="$REPO_ROOT/core/scripts/lint_rules.py"
 SNAPSHOT_PY="$REPO_ROOT/core/scripts/snapshot.py"
 POLICY_CHECK_PY="$REPO_ROOT/core/scripts/policy_check.py"
 EXPORT_PY="$REPO_ROOT/core/scripts/export_findings.py"
+HARNESS_PY="$REPO_ROOT/core/scripts/harness_export.py"
 CHECK_FILE_PY="$REPO_ROOT/core/scripts/check_file.py"
 TEMPLATE_PY="$REPO_ROOT/core/scripts/template_list.py"
 RULE_PY="$REPO_ROOT/core/scripts/rule_add.py"
@@ -95,6 +96,7 @@ Commands:
   lint   [path]          Lint rule YAML files for schema correctness
   snapshot <sub>         Save/list/diff/delete audit snapshots
   export [target]        Export findings to CSV/Markdown/JUnit/JSON
+  harness                Generate harness adapter files from core/rules/ (cursor/opencode/zed/all)
   policy check [target]  Verify applied configs match policy templates
   check  <file>          Scan a single file against all matching rules
   template list/show     List and preview policy templates
@@ -368,6 +370,9 @@ case "$COMMAND" in
     ;;
   export)
     python3 "$EXPORT_PY" "$@"
+    ;;
+  harness)
+    python3 "$HARNESS_PY" "$@"
     ;;
   check)
     python3 "$CHECK_FILE_PY" "$@"
