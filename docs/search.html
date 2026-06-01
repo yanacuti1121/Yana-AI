@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — YAMTAM ENGINE</title>
+  <style>
+    :root {
+      --bg:#0f0e0d;--bg2:#1a1917;--border:#2e2c28;
+      --text:#e8e2d9;--muted:#8a8070;--orange:#e8923a;--green:#4ade80;--blue:#60a5fa;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,sans-serif;min-height:100vh}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:var(--bg)}
+    .nav-logo{font-weight:800;font-size:1.1rem;text-decoration:none;color:var(--text)}
+    .nav-logo span{color:var(--orange)}
+    .nav-links{display:flex;gap:1.5rem;font-size:.9rem}
+    .nav-links a{color:var(--muted);text-decoration:none}.nav-links a:hover{color:var(--text)}
+    main{max-width:900px;margin:0 auto;padding:3rem 2rem}
+    h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+    .subtitle{color:var(--muted);margin-bottom:2rem;font-size:.95rem}
+    .search-wrap{position:relative;margin-bottom:1.5rem}
+    #q{width:100%;padding:.875rem 1.25rem .875rem 3rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:1rem;outline:none;transition:border-color .15s}
+    #q:focus{border-color:var(--orange)}
+    .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.1rem}
+    .filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+    .filter-btn{padding:.35rem .85rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .15s}
+    .filter-btn.active,.filter-btn:hover{background:var(--orange);border-color:var(--orange);color:#000}
+    .stats{color:var(--muted);font-size:.85rem;margin-bottom:1rem}
+    .results{display:grid;gap:.5rem}
+    .item{padding:.875rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s;text-decoration:none;display:block}
+    .item:hover{border-color:var(--orange)}
+    .item-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.3rem}
+    .item-name{font-weight:600;font-size:.95rem;color:var(--text)}
+    .badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
+    .badge-skill{background:#1a3a2a;color:var(--green)}
+    .badge-agent{background:#1a2a3a;color:var(--blue)}
+    .badge-command{background:#2a2a1a;color:#fbbf24}
+    .badge-rule{background:#2a1a1a;color:#f87171}
+    .item-desc{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .empty{text-align:center;color:var(--muted);padding:4rem 0}
+    .empty span{font-size:3rem;display:block;margin-bottom:1rem}
+    footer{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 0 2rem}
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="./"><span>⚡</span> YAMTAM ENGINE</a>
+  <div class="nav-links">
+    <a href="./">Home</a>
+    <a href="skills.html">Skills</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="changelog.html">Changelog</a>
+    <a href="guide.html">Guide</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<main>
+  <h1>Search</h1>
+  <p class="subtitle" id="subtitle">Loading index…</p>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="q" type="search" placeholder="Search skills, agents, commands, rules…" autofocus autocomplete="off">
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-type="all">All</button>
+    <button class="filter-btn" data-type="skill">Skills</button>
+    <button class="filter-btn" data-type="agent">Agents</button>
+    <button class="filter-btn" data-type="command">Commands</button>
+    <button class="filter-btn" data-type="rule">Rules</button>
+  </div>
+
+  <p class="stats" id="stats"></p>
+  <div class="results" id="results"></div>
+</main>
+
+<footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
+
+<script>
+let INDEX = [];
+let activeType = 'all';
+
+async function loadData() {
+  const [skills, agents, commands, rules] = await Promise.all([
+    fetch('skills-data.json').then(r=>r.json()).catch(()=>[]),
+    fetch('agents-data.json').then(r=>r.json()).catch(()=>[]),
+    fetch('commands-data.json').then(r=>r.json()).catch(()=>[]),
+    fetch('rules-data.json').then(r=>r.json()).catch(()=>[]),
+  ]);
+
+  INDEX = [
+    ...skills.map(s=>({type:'skill',   id:s.id||s.name, name:s.name||s.id, desc:s.desc||''})),
+    ...agents.map(a=>({type:'agent',   id:a.id||a.name, name:a.name||a.id, desc:a.desc||a.description||''})),
+    ...commands.map(c=>({type:'command',id:c.name||c.id, name:c.name||c.id, desc:c.description||c.desc||''})),
+    ...rules.map(r=>({type:'rule',     id:r.name||r.id, name:r.name||r.id, desc:r.description||r.desc||''})),
+  ];
+
+  document.getElementById('subtitle').textContent =
+    `${skills.length.toLocaleString()} skills · ${agents.length} agents · ${commands.length} commands · ${rules.length} rules`;
+
+  render('');
+}
+
+function search(q, type) {
+  const ql = q.toLowerCase().trim();
+  return INDEX.filter(item => {
+    if (type !== 'all' && item.type !== type) return false;
+    if (!ql) return true;
+    return item.name.toLowerCase().includes(ql) || item.desc.toLowerCase().includes(ql);
+  });
+}
+
+function badgeClass(type) {
+  return {skill:'badge-skill', agent:'badge-agent', command:'badge-command', rule:'badge-rule'}[type] || '';
+}
+
+function render(q) {
+  const results = search(q, activeType);
+  const shown = results.slice(0, 60);
+  const stats = document.getElementById('stats');
+  const container = document.getElementById('results');
+
+  stats.textContent = q || activeType !== 'all'
+    ? `${results.length.toLocaleString()} results`
+    : '';
+
+  if (!shown.length) {
+    container.innerHTML = `<div class="empty"><span>🔎</span>No results for "${q}"</div>`;
+    return;
+  }
+
+  container.innerHTML = shown.map(item => `
+    <a class="item" href="${item.type === 'skill' ? 'skills.html' : 'marketplace.html'}#${item.id}">
+      <div class="item-top">
+        <span class="item-name">${item.name}</span>
+        <span class="badge ${badgeClass(item.type)}">${item.type}</span>
+      </div>
+      <div class="item-desc">${item.desc || '—'}</div>
+    </a>
+  `).join('');
+}
+
+document.getElementById('q').addEventListener('input', e => render(e.target.value));
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeType = btn.dataset.type;
+    render(document.getElementById('q').value);
+  });
+});
+
+loadData();
+</script>
+</body>
+</html>
