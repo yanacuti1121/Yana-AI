@@ -10,7 +10,7 @@ documentation = "https://github.com/phamlongh230-lgtm/yamtam-engine#readme"
 keywords = ["ai-safety", "claude-code", "security", "agent", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 readme = "README.md"
-exclude = ["core/skills/*", "docs/*", ".claude/*", "target/*"]
+include = ["src/**", "Cargo.toml", "README.md", "LICENSE"]
 
 [[bin]]
 name = "yamtam-rt"
