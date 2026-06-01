@@ -863,6 +863,41 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </button>
       </div>
 
+      <!-- Sơn Thủy Trùng Mây card -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(180,70%,50%,.1);color:#2dd4bf;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(180,70%,50%,.2);letter-spacing:.05em">C++17</span>
+          <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/son_thuy_trung_may_demo.cpp"
+             target="_blank"
+             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
+             onmouseover="this.style.color='#2dd4bf'" onmouseout="this.style.color='hsl(215,20%,45%)'">
+            view source ↗
+          </a>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#2dd4bf,#818cf8,#fbbf24,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+            Sơn Thủy Trùng Mây
+          </div>
+          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
+            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#2dd4bf">fork/exec mpv</span> · Buitruonglinh
+          </div>
+        </div>
+        <div style="background:hsl(24,10%,6%);border:1px solid hsl(180,20%,14%);border-radius:10px;overflow:hidden">
+          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
+            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
+            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — son_thuy_trung_may_demo.cpp</span>
+          </div>
+          <div id="term-out-4" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
+        </div>
+        <button id="run-btn-4" onclick="runDemo4()"
+          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#0f766e,#4338ca);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(180,70%,30%,.3)"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span id="run-icon-4">▶</span> Run
+        </button>
+      </div>
+
       <!-- Come My Way card -->
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
 
@@ -1148,6 +1183,94 @@ function copyCmd() {
     setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
+// Sơn Thủy Trùng Mây terminal demo
+const termLines4 = [
+  { text: '$ g++ -std=c++17 son_thuy_trung_may_demo.cpp -o stm', color: '#4a4a5a', delay: 0,    type: 'type' },
+  { text: '$ ./stm',                                              color: '#4a4a5a', delay: 700,  type: 'type' },
+  { text: '──────────────────────────────────────────────────',   color: '#2dd4bf', delay: 1100 },
+  { text: '  Sơn Thủy Trùng Mây  ~  Buitruonglinh',              delay: 1350, gradient4: true, bold: true },
+  { text: '──────────────────────────────────────────────────',   color: '#2dd4bf', delay: 1600 },
+  { text: '', delay: 1800 },
+
+  { text: '[ Verse 1 ]', color: '#4ade80', delay: 1950, bold: true, glow: '#4ade80', type: 'fade' },
+  { text: '', delay: 2150 },
+  { text: 'Tựa hoa rơi bên thềm ta chìm trong cô liêu',          color: '#2dd4bf', delay: 2300 },
+  { text: 'Sông vắng tiêu điều mình ta',                         color: '#e2e8f0', delay: 2700 },
+  { text: 'Chẳng trách người quá vô tình xin đừng đi đừng đi',   color: '#c084fc', delay: 3100 },
+  { text: 'Vạn lí hoá chia ly vì ai',                            color: '#e2e8f0', delay: 3500 },
+  { text: '', delay: 3800 },
+
+  { text: '[ Pre-Chorus ]', color: '#c084fc', delay: 3950, bold: true, glow: '#c084fc', type: 'fade' },
+  { text: '', delay: 4150 },
+  { text: 'Lệ hoen bờ mi vì sao cớ sao đành quên câu thề',      color: '#c084fc', delay: 4300 },
+  { text: 'Để mình tôi trên lối mối duyên không thành',          color: '#e2e8f0', delay: 4700 },
+  { text: 'Tình nào không vội vàng ngang trái mãi chẳng vỡ tan', color: '#e2e8f0', delay: 5100 },
+  { text: '', delay: 5400 },
+
+  { text: '[ Chorus ]', color: '#fbbf24', delay: 5550, bold: true, glow: '#fbbf24', type: 'fade' },
+  { text: '', delay: 5750 },
+  { text: 'Ngày nào mơ ước một ngày sơn thuỷ trùng mây',         color: '#fbbf24', delay: 5900, rainbow4: true },
+  { text: 'Ngày ta hạnh phúc bên đời',                           color: '#e2e8f0', delay: 6280 },
+  { text: 'Ngày hoàng hôn trải khắp vạn hướng trùng dương',      color: '#fbbf24', delay: 6660 },
+  { text: 'Sợi tình duyên ấy bây giờ chẳng thấy còn đây',        color: '#2dd4bf', delay: 7040 },
+  { text: 'Tình muôn kiếp từ nay về sau làm sao biết tìm được nhau', color: '#e2e8f0', delay: 7420 },
+  { text: '', delay: 7750 },
+
+  { text: '[ Bridge ]', color: '#60a5fa', delay: 7900, bold: true, glow: '#60a5fa', type: 'fade' },
+  { text: '', delay: 8100 },
+  { text: 'Nợ tiền có trả là xong',                              color: '#e2e8f0', delay: 8250 },
+  { text: 'Nợ tình mắt chảy thành dòng',                        color: '#c084fc', delay: 8600 },
+  { text: 'Anh chờ em ngày sau về đâu',                          color: '#e2e8f0', delay: 8950 },
+  { text: 'Ngồi đây nhìn mây chờ em được không',                 color: '#2dd4bf', delay: 9300 },
+  { text: '', delay: 9600 },
+
+  { text: '[ Outro ]', color: '#2dd4bf', delay: 9750, bold: true, glow: '#2dd4bf', type: 'fade' },
+  { text: '', delay: 9950 },
+  { text: 'Rồi mưa giông đến đây thiếu vắng một bóng hình',      color: '#e2e8f0', delay: 10100 },
+  { text: 'Hoá mây ngàn dần tan theo ánh trăng vàng',            color: '#fbbf24', delay: 10480 },
+  { text: 'Hẹn ngày sơn thuỷ trùng mây',                         color: '#fbbf24', delay: 10860, rainbow4: true },
+  { text: '', delay: 11150 },
+  { text: '☁️   Sơn Thủy Trùng Mây — Buitruonglinh (2022)',       color: '#3a3a4a', delay: 11350 },
+];
+
+const LAST_DELAY_4 = 11350;
+let demo4Running = false;
+function runDemo4() {
+  if (demo4Running) return;
+  demo4Running = true;
+  const out  = document.getElementById('term-out-4');
+  const btn  = document.getElementById('run-btn-4');
+  const icon = document.getElementById('run-icon-4');
+  out.innerHTML = ''; btn.disabled = true; icon.textContent = '◼';
+
+  termLines4.forEach(({ text, color, delay, bold, glow, gradient4, rainbow4, type }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
+      if (gradient4) {
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
+      } else if (rainbow4) {
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
+      } else {
+        line.style.color = color || '#ccc';
+        if (bold) line.style.fontWeight = '700';
+        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
+      }
+      if (type === 'fade') {
+        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
+        line.textContent = text; out.appendChild(line);
+        requestAnimationFrame(() => { line.style.opacity='1'; line.style.transform='none'; });
+      } else if (type === 'type') {
+        const span = document.createElement('span');
+        line.appendChild(span); out.appendChild(line);
+        typeWriter(span, text, null);
+      } else { line.textContent = text; out.appendChild(line); }
+      out.scrollTop = out.scrollHeight;
+      if (delay === LAST_DELAY_4) { btn.disabled=false; icon.textContent='▶'; demo4Running=false; }
+    }, delay);
+  });
+}
+
 // Trót Yêu terminal demo
 const termLines3 = [
   { text: '$ g++ -std=c++17 trot_yeu_demo.cpp -o trot_yeu', color: '#4a4a5a', delay: 0,    type: 'type' },
