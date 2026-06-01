@@ -6,11 +6,13 @@
 - yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io yamtam-rt v1.2.0 ✅
 - CI ✅ YAMTAM Audit ✅ tất cả xanh
 - 2,353 skills, 93 agents
-- Website: index/skills/marketplace/changelog — light warm theme, i18n EN/VI/KO ✅
-- Sandbox: Dockerfile.sandbox built + wire vào tool-proxy.sh ✅
-- Trợ lý: weekly-summary, update-memory, check-milestones, health-check ✅ (tất cả roadmap items done)
+- Website: index/skills/marketplace/changelog/guide/search — dark/light toggle ✅
+- Sections mới: Agents, Runtime commands table, Docker Sandbox ✅
+- Lab: 4 bài C++ terminal demo (Sơn Thủy Trùng Mây, Trót Yêu, See Tình, Come My Way) ✅
+- Sandbox: Dockerfile built, wire tool-proxy.sh, CI workflow ✅
+- Trợ lý: 7/7 roadmap done (weekly, memory, milestone, health check) ✅
 
-## Phase hiện tại: ACTIVE (đã mở lại từ STABILIZE)
+## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
 1. **Rotate tokens** (npm + crates.io + PyPI) → update GitHub Secrets ← vẫn pending (anh tự làm trên web)

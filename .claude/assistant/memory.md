@@ -233,3 +233,13 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.17.0 · branch=main, 1 modified, last=bc4aaea fix(cargo): use include instead of exclude to stay u
 
 ---
+
+## 2026-06-01 — web): add 3 missing sections — Agents, yamtam-rt commands ta
+
+**Đã làm:**
+- feat: web): add 3 missing sections — Agents, yamtam; web): dark/light mode toggle — 3 pages; lab): Sơn Thủy Trùng Mây C++ terminal demo
+- chore:  session wrap-up 2026-06-01
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 1 modified, last=16d96c1 feat(web): add 3 missing sections — Agents, yamtam-r
+
+---
