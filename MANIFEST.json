@@ -386,7 +386,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 92,
+      "count": 93,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
