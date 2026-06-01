@@ -8,7 +8,7 @@ version = "0.17.0"
 description = "Audits your AI coding agent setup before it can damage your repo. Scan first. Guard later."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Vũ Văn Tâm", email = "phamlongh230@gmail.com" }]
 keywords = [
   "ai-agent", "claude-code", "security", "audit", "codex",

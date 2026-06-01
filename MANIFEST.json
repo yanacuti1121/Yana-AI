@@ -564,7 +564,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 2211,
+      "count": 2353,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",

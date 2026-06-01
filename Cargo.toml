@@ -26,11 +26,11 @@ shell-words = "1"
 regex      = "1"
 glob       = "0.3"
 walkdir    = "2"
-serde_yaml = "0.9"
 anyhow     = "1"
 unicode-normalization = "0.1"
 liteparse = { version = "2", default-features = false }
-ureq      = "2"
+ureq      = "3"
+serde_yml = "0.0.13"
 
 [dev-dependencies]
 tempfile = "3"

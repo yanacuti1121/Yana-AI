@@ -145,10 +145,10 @@ fn fetch_source(source: &str) -> Result<String> {
             }
         }
         let resp = ureq::get(source)
-            .set("User-Agent", "yamtam-rt/0.9 design-extractor")
+            .header("User-Agent", "yamtam-rt/0.9 design-extractor")
             .call()
             .map_err(|e| anyhow::anyhow!("fetch failed: {e}"))?;
-        Ok(resp.into_string()?)
+        Ok(resp.into_body().read_to_string()?)
     } else {
         // Local file — must stay within project (no absolute paths, no ..)
         validate_relative_path(source, "source")?;

@@ -10,27 +10,24 @@ pub struct RuleSet {
     pub source_file:      String,
 }
 
-fn yaml_to_json(val: serde_yaml::Value) -> serde_json::Value {
+fn yaml_to_json(val: serde_yml::Value) -> serde_json::Value {
     match val {
-        serde_yaml::Value::Null             => serde_json::Value::Null,
-        serde_yaml::Value::Bool(b)          => serde_json::Value::Bool(b),
-        serde_yaml::Value::Number(n) => {
+        serde_yml::Value::Null             => serde_json::Value::Null,
+        serde_yml::Value::Bool(b)          => serde_json::Value::Bool(b),
+        serde_yml::Value::Number(n) => {
             if let Some(i) = n.as_i64() { serde_json::json!(i) }
-            else if let Some(f) = n.as_f64() { serde_json::json!(f) }
-            else { serde_json::Value::Null }
+            else { serde_json::json!(n.as_f64()) }
         }
-        serde_yaml::Value::String(s)        => serde_json::Value::String(s),
-        serde_yaml::Value::Sequence(seq)    => serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect()),
-        serde_yaml::Value::Mapping(map)     => {
+        serde_yml::Value::String(s)        => serde_json::Value::String(s),
+        serde_yml::Value::Sequence(seq)    => serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect()),
+        serde_yml::Value::Mapping(map)     => {
             let mut obj = serde_json::Map::new();
             for (k, v) in map {
-                if let serde_yaml::Value::String(ks) = k {
-                    obj.insert(ks, yaml_to_json(v));
-                }
+                obj.insert(k, yaml_to_json(v));
             }
             serde_json::Value::Object(obj)
         }
-        serde_yaml::Value::Tagged(t)        => yaml_to_json(t.value),
+        serde_yml::Value::Tagged(t)        => yaml_to_json(t.value().clone()),
     }
 }
 
@@ -66,7 +63,7 @@ pub fn load_scanner_rules(scanner_dir: &str) -> Vec<RuleSet> {
         let content = match fs::read_to_string(path) {
             Ok(c) => c, Err(_) => continue,
         };
-        let yaml_val: serde_yaml::Value = match serde_yaml::from_str(&content) {
+        let yaml_val: serde_yml::Value = match serde_yml::from_str(&content) {
             Ok(v) => v, Err(e) => {
                 eprintln!("[warn] Could not parse {}: {e}", path.display()); continue;
             }
