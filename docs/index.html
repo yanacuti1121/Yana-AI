@@ -1150,27 +1150,75 @@ function copyCmd() {
 }
 // Trót Yêu terminal demo
 const termLines3 = [
-  { text: '$ g++ -std=c++17 trot_yeu_demo.cpp -o trot_yeu', color: '#4a4a5a', delay: 0,   type: 'type' },
-  { text: '$ ./trot_yeu',                                    color: '#4a4a5a', delay: 650, type: 'type' },
+  { text: '$ g++ -std=c++17 trot_yeu_demo.cpp -o trot_yeu', color: '#4a4a5a', delay: 0,    type: 'type' },
+  { text: '$ ./trot_yeu',                                    color: '#4a4a5a', delay: 650,  type: 'type' },
   { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1050 },
   { text: '  Trót Yêu  ~  T.R.I',                            delay: 1300, gradient3: true, bold: true },
   { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1550 },
   { text: '', delay: 1750 },
-  { text: '[ Verse 1 ]',   color: '#4ade80', delay: 1950, bold: true, glow: '#4ade80', type: 'fade' },
-  { text: 'Có chút bối rối chạm tay anh rồi',       color: '#67e8f9', delay: 2150 },
-  { text: 'Vì anh đang mơ rất dịu dàng',            color: '#e2e8f0', delay: 2500 },
-  { text: 'Vì anh luôn mong được có em',            color: '#fbbf24', delay: 2850 },
-  { text: '', delay: 3100 },
-  { text: '[ Chorus ]',   color: '#60a5fa', delay: 3250, bold: true, glow: '#60a5fa', type: 'fade' },
-  { text: 'Người nói yêu anh đi, người nói thương anh đi', color: '#60a5fa', delay: 3500 },
-  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn',       color: '#67e8f9', delay: 3850 },
-  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 4150 },
-  { text: '', delay: 4400 },
-  { text: '[ Outro ]',    color: '#c084fc', delay: 4550, bold: true, glow: '#c084fc', type: 'fade' },
-  { text: 'Để cho lòng anh thôi nhớ mong',          color: '#e2e8f0', delay: 4800 },
-  { text: '💙  Trót Yêu — T.R.I',                    color: '#3a3a4a', delay: 5100 },
+
+  // Verse 1
+  { text: '[ Verse 1 ]', color: '#4ade80', delay: 1900, bold: true, glow: '#4ade80', type: 'fade' },
+  { text: '', delay: 2100 },
+  { text: 'Có chút bối rối chạm tay anh rồi',                color: '#67e8f9', delay: 2250 },
+  { text: 'Vì anh đang mơ rất dịu dàng',                     color: '#e2e8f0', delay: 2630 },
+  { text: 'Có chút tan vỡ chạm môi anh rồi',                 color: '#67e8f9', delay: 3010 },
+  { text: 'Vì em yêu, chỉ yêu mùa ghé thôi',                color: '#e2e8f0', delay: 3390 },
+  { text: 'Có chút thương nhớ làn môi nhẹ nhàng',            color: '#67e8f9', delay: 3770 },
+  { text: 'Khi em yên say trong giấc',                       color: '#e2e8f0', delay: 4150 },
+  { text: 'Có chút yêu dấu chỉ là mơ mộng thôi',            color: '#67e8f9', delay: 4530 },
+  { text: 'Vì anh luôn mong được có em',                     color: '#fbbf24', delay: 4910 },
+  { text: '', delay: 5250 },
+
+  // Chorus
+  { text: '[ Chorus ]', color: '#60a5fa', delay: 5400, bold: true, glow: '#60a5fa', type: 'fade' },
+  { text: '', delay: 5600 },
+  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 5750 },
+  { text: 'Để cho con tim này đừng ngóng trong hao gầy',    color: '#e2e8f0', delay: 6130 },
+  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 6510 },
+  { text: 'Vì nơi con tim này luôn có',                     color: '#e2e8f0', delay: 6890 },
+  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 7150, rainbow3: true },
+  { text: '', delay: 7450 },
+  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 7600 },
+  { text: 'Để cho con tim này đừng ngóng trong hao gầy',    color: '#e2e8f0', delay: 7980 },
+  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 8360 },
+  { text: 'Vì nơi con tim nay luôn có',                     color: '#e2e8f0', delay: 8740 },
+  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 9000, rainbow3: true },
+  { text: '', delay: 9300 },
+
+  // Verse 2
+  { text: '[ Verse 2 ]', color: '#4ade80', delay: 9450, bold: true, glow: '#4ade80', type: 'fade' },
+  { text: '', delay: 9650 },
+  { text: 'Có chút bối rối chạm tay anh rồi',                color: '#67e8f9', delay: 9800 },
+  { text: 'Vì anh đang mơ rất dịu dàng',                     color: '#e2e8f0', delay: 10180 },
+  { text: 'Có chút tan vỡ chạm môi anh rồi',                 color: '#67e8f9', delay: 10560 },
+  { text: 'Vì em yêu chỉ yêu mùa ghé thôi',                 color: '#e2e8f0', delay: 10940 },
+  { text: 'Khi em yên say trong giấc',                       color: '#e2e8f0', delay: 11320 },
+  { text: 'Vì có chút yêu dấu chỉ là mơ mộng thôi',         color: '#67e8f9', delay: 11700 },
+  { text: 'Vì anh luôn mong được có em',                     color: '#fbbf24', delay: 12080 },
+  { text: '', delay: 12400 },
+
+  // Chorus repeat
+  { text: '[ Chorus ]', color: '#60a5fa', delay: 12550, bold: true, glow: '#60a5fa', type: 'fade' },
+  { text: '', delay: 12750 },
+  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 12900 },
+  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 13280 },
+  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 13660, rainbow3: true },
+  { text: '', delay: 13950 },
+
+  // Outro
+  { text: '[ Outro ]', color: '#c084fc', delay: 14100, bold: true, glow: '#c084fc', type: 'fade' },
+  { text: '', delay: 14300 },
+  { text: 'Có chút bối rối, có chút tan vỡ',                color: '#67e8f9', delay: 14450 },
+  { text: 'Có chút thương nhớ tình ai',                     color: '#e2e8f0', delay: 14830 },
+  { text: 'Người hỡi, đến bên anh này',                     color: '#60a5fa', delay: 15210 },
+  { text: 'Nói yêu mình anh thôi',                          color: '#e2e8f0', delay: 15590 },
+  { text: 'Để cho lòng anh thôi nhớ mong',                  color: '#fbbf24', delay: 15970 },
+  { text: '', delay: 16300 },
+  { text: '💙  Trót Yêu — T.R.I', color: '#3a3a4a', delay: 16500 },
 ];
 
+const LAST_DELAY_3 = 16500;
 let demo3Running = false;
 function runDemo3() {
   if (demo3Running) return;
@@ -1180,12 +1228,14 @@ function runDemo3() {
   const icon = document.getElementById('run-icon-3');
   out.innerHTML = ''; btn.disabled = true; icon.textContent = '◼';
 
-  termLines3.forEach(({ text, color, delay, bold, glow, gradient3, type }) => {
+  termLines3.forEach(({ text, color, delay, bold, glow, gradient3, rainbow3, type }) => {
     setTimeout(() => {
       const line = document.createElement('div');
       line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
       if (gradient3) {
-        line.style.cssText += ';background:linear-gradient(90deg,#60a5fa,#93c5fd,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
+      } else if (rainbow3) {
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
       } else {
         line.style.color = color || '#ccc';
         if (bold) line.style.fontWeight = '700';
@@ -1201,7 +1251,7 @@ function runDemo3() {
         typeWriter(span, text, null);
       } else { line.textContent = text; out.appendChild(line); }
       out.scrollTop = out.scrollHeight;
-      if (delay === 5100) { btn.disabled=false; icon.textContent='▶'; demo3Running=false; }
+      if (delay === LAST_DELAY_3) { btn.disabled=false; icon.textContent='▶'; demo3Running=false; }
     }, delay);
   });
 }
