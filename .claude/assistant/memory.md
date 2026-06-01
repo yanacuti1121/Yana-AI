@@ -211,3 +211,14 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 
 **Trạng thái cuối:** v0.17.0, 2229 skills, disk 90% (468M free), staging tự-fill là root cause
 **Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
+
+## 2026-06-01 — sandbox): wire sandbox-exec.sh into tool-proxy.sh Phase 3.5
+
+**Đã làm:**
+- feat: sandbox): wire sandbox-exec.sh into tool-prox; assistant): add weekly summary script; skills): import 34 security skills from Golde
+- fix: drift): sync skill count → 2353 across all fil
+- chore:  sync skill count 2211 → 2348 across web + R
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 3 modified, last=efcc2ea feat(sandbox): wire sandbox-exec.sh into tool-proxy.
+
+---

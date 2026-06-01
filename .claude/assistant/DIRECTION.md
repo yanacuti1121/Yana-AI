@@ -64,6 +64,18 @@ Anh Tâm dễ bị cuốn vào idea mới giữa chừng. Khi thấy:
 
 ---
 
+## Auto-update Memory
+
+Khi anh nói "wrap up", "nghỉ", "tạm" — chạy ngay:
+
+```bash
+python3 .claude/assistant/scripts/update-memory.py
+```
+
+Script tự đọc git log kể từ lần cập nhật cuối, generate entry và append vào `memory.md` + update `context.md`.
+
+---
+
 ## Weekly Summary
 
 Khi anh hỏi "weekly summary", "tuần này làm gì", hoặc mỗi thứ Hai đầu tuần:
@@ -104,6 +116,6 @@ Khi anh kết thúc (nói "wrap up", "nghỉ", "tạm"):
 | 2 | Đọc L1 memory YAMTAM | ✅ done |
 | 3 | Bộ nhớ riêng (file này) | ✅ done |
 | 4 | ENFP-T scope guard | ✅ done |
-| 5 | Tự update memory sau session | 🔲 chưa làm |
+| 5 | Tự update memory sau session | ✅ done |
 | 6 | Nhắc deadline / milestone | 🔲 chưa làm |
 | 7 | Weekly summary | ✅ done |
