@@ -34,6 +34,22 @@
   --script: "Dancing Script","Caveat",cursive;
 }
 
+.dark {
+  --bg:            hsl(24 15% 8%);
+  --bg-subtle:     hsl(24 12% 12%);
+  --bg-card:       hsl(24 10% 10%);
+  --border:        hsl(24 10% 18%);
+  --border-strong: hsl(24 10% 28%);
+  --fg:            hsl(38 20% 92%);
+  --fg-muted:      hsl(38 8% 55%);
+  --accent:        hsl(221 75% 62%);
+  --accent-hover:  hsl(221 75% 70%);
+  --green:         hsl(142 55% 48%);
+  --orange:        hsl(28 85% 58%);
+  --red:           hsl(0 70% 60%);
+}
+.dark nav { background: hsla(24,15%,8%,.92) !important; }
+
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
@@ -308,6 +324,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <a href="#yana">Yana</a>
     <a href="./#codexmate">Codexmate</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1.05rem;padding:.2rem .4rem;border-radius:6px;line-height:1;transition:background .15s" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">🌙</button>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('vi')">VI</button>
@@ -1793,6 +1810,19 @@ document.querySelectorAll('.feat-card,.gate-row,.compat-card').forEach(el => {
 });
 </script>
 <script>
+// Dark mode
+(function(){ if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); })();
+function toggleTheme(){
+  const dark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+window.addEventListener('DOMContentLoaded',function(){
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+});
+
 // Live download stats from npm + crates.io
 (async () => {
   try {
