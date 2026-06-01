@@ -1,0 +1,34 @@
+---
+description: YAMTAM TypeScript standards — type safety, imports, error handling
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+alwaysApply: false
+---
+
+# TypeScript Standards
+
+## Type safety
+- No `any` — use `unknown` + narrow, or define explicit type
+- No `as Foo` type assertions without runtime verification
+- No `!` non-null assertion — use `?.` and `??`
+- Explicit return types on all exported functions
+
+## Functions
+- Max 50 lines per function (prefer ≤ 30)
+- Max 5 parameters (use options object if more)
+- Max 3 nesting levels (use early return to flatten)
+- No `console.log` in production — use project logger
+
+## Imports
+- External packages first, then `src/` imports, then relative
+- No barrel `index.ts` that creates circular deps
+- Named exports over default exports on React components
+
+## Error handling
+- Never swallow: `catch (e) {}` — handle, rethrow, or log with context
+- Async functions: return `Result<T, E>` or throw typed error class
+- `try/catch` at service boundaries, not inside tight loops
+
+## Tests
+- Colocate tests: `utils.ts` → `utils.test.ts`
+- No `test.only` or `describe.only` (silently skips others in CI)
+- Coverage target: 80% on new features

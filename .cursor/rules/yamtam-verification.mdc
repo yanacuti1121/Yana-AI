@@ -1,0 +1,35 @@
+---
+description: YAMTAM verification law — no completion claims without evidence
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Verification Before Completion
+
+## Iron Law
+**NO completion claim without fresh verification evidence.**
+
+Before saying "done", "fixed", "passes", "clean":
+1. Run the relevant command now (not earlier)
+2. Read full output + exit code
+3. Only then state the result
+
+## Required evidence by claim type
+| Claim | Required |
+|-------|---------|
+| Tests pass | Test output: 0 failures |
+| Build succeeds | Build output: exit 0 |
+| Linter clean | Linter: 0 errors |
+| Bug fixed | Regression test: RED → GREEN |
+| Drift clean | `bash core/scripts/drift-check.sh` → CLEAN |
+
+## Banned phrases (without evidence)
+- "This should work"
+- "No issues expected"
+- "It probably passes"
+- "Looks correct to me"
+
+## Required phrases
+- "34/34 tests passed"
+- "Build: exit 0, 0 errors"
+- "drift-check: CLEAN"
