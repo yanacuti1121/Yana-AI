@@ -2,48 +2,52 @@
 
 ## Title
 ```
-Show HN: YAMTAM ENGINE – Agent OS for Claude Code/Cursor/Zed (8,550 skills, Rust runtime, 9-layer safety)
+Show HN: YAMTAM ENGINE – Safety OS for AI coding agents (Rust runtime, 9-layer gates, 8,550 skills)
 ```
 
 ## Body
 ```
-I'm 17, from Vietnam, and spent the last month building a safety layer for AI coding agents.
+I'm 17, from Vietnam. I spent the last month building a safety layer for AI coding agents after 
+watching Claude Code and Cursor make real mistakes — force-push to main, rm -rf the wrong directory, 
+suggest installing typosquatted packages.
 
-The problem: Claude Code, Cursor, and similar tools make real mistakes. Force-push to main. rm -rf the wrong dir. Install typosquatted packages. Commit secrets. By the time you notice, it's done.
+YAMTAM sits between the agent and your system. Every tool call passes through 9 gates before executing.
 
-YAMTAM sits between the agent and your system. Every tool call passes through 9 gates before execution:
-- Anti-evasion (blocks base64 decode+exec, pipe-to-shell)
-- Shell sanitization (quotes all vars, strips metacharacters)
-- Egress check (blocks SSRF, AWS metadata endpoint 169.254.169.254)
-- Supply chain gate (typosquatting detection, CVE check on every install)
-- Blast radius cap
-- Permission tiers
-- ECDSA code signing
-- Merkle audit log (tamper-detected hash chain)
-- Sovereign overlord (human can freeze all agents instantly)
+What each gate catches:
+- L1 Anti-evasion: base64 decode+exec, pipe-to-shell (curl | bash)
+- L2 Shell sanitization: unquoted variables, metacharacter injection
+- L3 Egress: SSRF to 169.254.169.254 (AWS metadata), RFC1918 ranges
+- L4 Supply chain: typosquatting detection (req-uests vs requests), CVE scan before every install
+- L5 Blast radius: caps how destructive a single action can be
+- L6 Permission tiers: agents have R/W/X/P authority levels
+- L7 ECDSA signing: generated code signed before execution
+- L8 Merkle audit log: hash-chained, tamper-detected instantly
+- L9 Sovereign gate: human can freeze all agents, full rollback to last verified snapshot
 
-What's in the repo:
-- 8,550 skill definitions (frontend, backend, AI/LLM, K8s, security, WASM, DevOps...)
-- 93 specialist agent definitions
-- 61 enforced security rules
-- 46 pre/post hooks
-- Rust runtime (yamtam-rt on crates.io) — 17 subcommands, 1256x faster than Python scanner
-- 12 harness adapters: Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...
+Beyond the safety gates:
+- yamtam scan: security scanner — secrets, CVEs, supply chain risks
+- yamtam graph: knowledge graph — file deps, import resolution (Rust/TS/Python/Go)
+- yamtam map: blast radius map — what can the agent actually touch in your repo?
+- yamtam vault: searchable skill library
+- yamtam doctor: full system health check
 
-Total: 1,026,000 lines, 15,502 files.
+8,550 skill definitions, 93 specialist agents, 61 enforced rules, 46 hooks.
+12 harness adapters: Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider.
 
-Built by one person in ~1 month. Apache 2.0.
+The Rust runtime (yamtam-rt) is 1256x faster than the Python equivalent on a 10k-file repo.
+
+Total: 1,026,000 lines, 15,502 files. One person, one month.
 
 Repo: https://github.com/phamlongh230-lgtm/yamtam-engine
 Docs: https://phamlongh230-lgtm.github.io/yamtam-engine/
 
-Happy to answer questions about the architecture or any specific gate.
+Happy to go deep on any of the gate implementations or the Rust architecture.
 ```
 
 ---
 
 ## Notes
-- Post under your GitHub account
-- Best time: Tuesday–Thursday 9–11am EST
-- Tag: show-hn, ai, security, rust, claude
-- Reply to every comment in first 2 hours — HN rewards engagement
+- Post Tuesday–Thursday 9–11am EST
+- Reply every comment in first 2 hours
+- Don't say "excited" or "thrilled" — HN hates that
+- If asked about the 8,550 skills: honest answer — mix of curated + imported, all searchable
