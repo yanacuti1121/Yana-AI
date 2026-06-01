@@ -243,3 +243,14 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.17.0 · branch=main, 1 modified, last=16d96c1 feat(web): add 3 missing sections — Agents, yamtam-r
 
 ---
+
+## 2026-06-01 — web): remove jnmt.vn link from small card
+
+**Đã làm:**
+- feat: cli): yamtam-rt init — auto-setup YAMTAM in a
+- fix: web): remove jnmt.vn link from small card; web): JNMT GitHub link → agents21 repo
+- chore:  add init to runtime commands table
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 2 modified, last=6977d92 fix(web): remove jnmt.vn link from small card
+
+---
