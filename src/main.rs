@@ -16,13 +16,14 @@ mod map;
 mod spec;
 mod vault;
 mod watch;
+mod init;
 
 use clap::{Parser, Subcommand};
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yamtam-rt", version = "1.2.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
+#[command(name = "yamtam-rt", version = "1.3.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -66,6 +67,8 @@ enum Commands {
     Vault  { #[command(subcommand)] action: vault::VaultAction },
     /// Live file watcher — monitor skills/agents/rules for changes
     Watch  { #[command(subcommand)] action: watch::WatchAction },
+    /// Initialize YAMTAM in a new project
+    Init   { #[command(subcommand)] action: init::InitAction },
     /// Audit AI agent setup for security risks (replaces audit_scanner.py)
     Scan {
         /// Directory to scan (default: .)
@@ -292,6 +295,7 @@ fn main() {
         Commands::Graph  { action } => graph::dispatch(action),
         Commands::Vault { action } => vault::dispatch(action),
         Commands::Watch { action } => watch::dispatch(action),
+        Commands::Init  { action } => init::dispatch(action),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
