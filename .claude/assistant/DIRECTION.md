@@ -64,6 +64,21 @@ Anh Tâm dễ bị cuốn vào idea mới giữa chừng. Khi thấy:
 
 ---
 
+## Milestone Check
+
+Chạy trong Bước 2 của mỗi briefing:
+
+```bash
+python3 .claude/assistant/scripts/check-milestones.py
+```
+
+- Nếu có output `MILESTONE_ALERT:` → hiện trong **PENDING QUYẾT ĐỊNH** hoặc **RISK RADAR**
+- Không có output → không cần nhắc
+- Thêm milestone mới: edit `.claude/assistant/milestones.md`
+- Alert: 🔴 ≤ 3 ngày, 🟡 ≤ 7 ngày, ⛔ quá hạn
+
+---
+
 ## Auto-update Memory
 
 Khi anh nói "wrap up", "nghỉ", "tạm" — chạy ngay:
@@ -117,5 +132,5 @@ Khi anh kết thúc (nói "wrap up", "nghỉ", "tạm"):
 | 3 | Bộ nhớ riêng (file này) | ✅ done |
 | 4 | ENFP-T scope guard | ✅ done |
 | 5 | Tự update memory sau session | ✅ done |
-| 6 | Nhắc deadline / milestone | 🔲 chưa làm |
+| 6 | Nhắc deadline / milestone | ✅ done |
 | 7 | Weekly summary | ✅ done |
