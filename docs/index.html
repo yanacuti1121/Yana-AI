@@ -1282,6 +1282,52 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </section>
 
+<!-- GitHub Action -->
+<section id="action" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label">GitHub Action</div>
+    <h2 style="margin-bottom:.5rem">Scan every PR automatically</h2>
+    <p class="section-sub" style="margin-bottom:2rem">One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.</p>
+
+    <div style="background:hsl(222,47%,9%);border:1px solid hsl(217,33%,17%);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;font-family:var(--mono);font-size:.875rem;line-height:1.7;color:hsl(210,40%,90%)">
+      <div style="color:hsl(215,20%,55%);margin-bottom:.75rem;font-size:.75rem;letter-spacing:.05em">▸ .github/workflows/yamtam-scan.yml</div>
+      <div><span style="color:hsl(221,75%,62%)">- uses</span><span style="color:hsl(210,40%,85%)">: phamlongh230-lgtm/yamtam-engine/.github/actions/scan@main</span></div>
+      <div style="padding-left:1.5rem"><span style="color:hsl(221,75%,62%)">with</span><span style="color:hsl(210,40%,85%)">:</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">fail-on</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'high'</span><span style="color:hsl(215,20%,55%)">        # fail CI on HIGH or CRITICAL</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">diff-only</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'true'</span><span style="color:hsl(215,20%,55%)">       # scan only changed files on PRs</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">comment-on-pr</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'true'</span><span style="color:hsl(215,20%,55%)">  # post findings as PR comment</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:.9375rem;margin-bottom:1rem">What it scans</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Hardcoded secrets (API keys, tokens)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Hook injection (variable interpolation, curl|exec)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>MCP server vulnerabilities (shell exec, filesystem)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Wildcard permissions (<code style="font-size:.8em">Bash(*)</code>, <code style="font-size:.8em">Write(*)</code>)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Prompt injection in agent definitions</li>
+        </ul>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:.9375rem;margin-bottom:1rem">PR comment preview</div>
+        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8125rem;line-height:1.65">
+          <div style="font-weight:700;margin-bottom:.5rem">🟠 YAMTAM Scan — HIGH</div>
+          <div style="color:var(--fg-muted);margin-bottom:.5rem">Score: 58/100 · 3 findings</div>
+          <div style="color:var(--red);font-size:.75rem">⚠ Hook injection in pre-commit (CRITICAL)</div>
+          <div style="color:var(--orange);font-size:.75rem">⚠ Wildcard Write(*) permission (HIGH)</div>
+          <div style="color:var(--fg-muted);font-size:.75rem">ℹ Missing deny list (MEDIUM)</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+      <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/docs/install/github-action.yml" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;padding:.6rem 1.25rem;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600">Full workflow template →</a>
+      <span style="font-size:.8125rem;color:var(--fg-muted)">Free · No server required · 102 detection rules</span>
+    </div>
+  </div>
+</section>
+
 <!-- Review -->
 <section id="review" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
