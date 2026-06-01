@@ -1292,7 +1292,10 @@ function runDemo2() {
       const line = document.createElement('div');
       line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
       if (gradient2) {
-        line.style.cssText += ';background:linear-gradient(90deg,#f472b6,#a78bfa,#67e8f9,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
+      } else if (text && text.toLowerCase().includes('see tình')) {
+        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
+        if (bold) line.style.fontWeight = '700';
       } else {
         line.style.color = color || '#ccc';
         if (bold) line.style.fontWeight = '700';
