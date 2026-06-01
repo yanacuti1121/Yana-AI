@@ -828,6 +828,41 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
       </div>
 
+      <!-- Trót Yêu card -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(220,80%,60%,.1);color:#60a5fa;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(220,80%,60%,.2);letter-spacing:.05em">C++17</span>
+          <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/trot_yeu_demo.cpp"
+             target="_blank"
+             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
+             onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='hsl(215,20%,45%)'">
+            view source ↗
+          </a>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#60a5fa,#93c5fd,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+            Trót Yêu
+          </div>
+          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
+            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#60a5fa">fork/exec mpv</span> · T.R.I
+          </div>
+        </div>
+        <div style="background:hsl(24,10%,6%);border:1px solid hsl(220,20%,16%);border-radius:10px;overflow:hidden">
+          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
+            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
+            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — trot_yeu_demo.cpp</span>
+          </div>
+          <div id="term-out-3" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
+        </div>
+        <button id="run-btn-3" onclick="runDemo3()"
+          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(220,80%,40%,.3)"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span id="run-icon-3">▶</span> Run
+        </button>
+      </div>
+
       <!-- Come My Way card -->
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
 
@@ -1113,6 +1148,64 @@ function copyCmd() {
     setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
+// Trót Yêu terminal demo
+const termLines3 = [
+  { text: '$ g++ -std=c++17 trot_yeu_demo.cpp -o trot_yeu', color: '#4a4a5a', delay: 0,   type: 'type' },
+  { text: '$ ./trot_yeu',                                    color: '#4a4a5a', delay: 650, type: 'type' },
+  { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1050 },
+  { text: '  Trót Yêu  ~  T.R.I',                            delay: 1300, gradient3: true, bold: true },
+  { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1550 },
+  { text: '', delay: 1750 },
+  { text: '[ Verse 1 ]',   color: '#4ade80', delay: 1950, bold: true, glow: '#4ade80', type: 'fade' },
+  { text: 'Có chút bối rối chạm tay anh rồi',       color: '#67e8f9', delay: 2150 },
+  { text: 'Vì anh đang mơ rất dịu dàng',            color: '#e2e8f0', delay: 2500 },
+  { text: 'Vì anh luôn mong được có em',            color: '#fbbf24', delay: 2850 },
+  { text: '', delay: 3100 },
+  { text: '[ Chorus ]',   color: '#60a5fa', delay: 3250, bold: true, glow: '#60a5fa', type: 'fade' },
+  { text: 'Người nói yêu anh đi, người nói thương anh đi', color: '#60a5fa', delay: 3500 },
+  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn',       color: '#67e8f9', delay: 3850 },
+  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 4150 },
+  { text: '', delay: 4400 },
+  { text: '[ Outro ]',    color: '#c084fc', delay: 4550, bold: true, glow: '#c084fc', type: 'fade' },
+  { text: 'Để cho lòng anh thôi nhớ mong',          color: '#e2e8f0', delay: 4800 },
+  { text: '💙  Trót Yêu — T.R.I',                    color: '#3a3a4a', delay: 5100 },
+];
+
+let demo3Running = false;
+function runDemo3() {
+  if (demo3Running) return;
+  demo3Running = true;
+  const out  = document.getElementById('term-out-3');
+  const btn  = document.getElementById('run-btn-3');
+  const icon = document.getElementById('run-icon-3');
+  out.innerHTML = ''; btn.disabled = true; icon.textContent = '◼';
+
+  termLines3.forEach(({ text, color, delay, bold, glow, gradient3, type }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
+      if (gradient3) {
+        line.style.cssText += ';background:linear-gradient(90deg,#60a5fa,#93c5fd,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
+      } else {
+        line.style.color = color || '#ccc';
+        if (bold) line.style.fontWeight = '700';
+        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
+      }
+      if (type === 'fade') {
+        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
+        line.textContent = text; out.appendChild(line);
+        requestAnimationFrame(() => { line.style.opacity='1'; line.style.transform='none'; });
+      } else if (type === 'type') {
+        const span = document.createElement('span');
+        line.appendChild(span); out.appendChild(line);
+        typeWriter(span, text, null);
+      } else { line.textContent = text; out.appendChild(line); }
+      out.scrollTop = out.scrollHeight;
+      if (delay === 5100) { btn.disabled=false; icon.textContent='▶'; demo3Running=false; }
+    }, delay);
+  });
+}
+
 // See Tình terminal demo
 const termLines2 = [
   { text: '$ g++ -std=c++17 see_tinh_demo.cpp -o see_tinh', color: '#4a4a5a', delay: 0,    type: 'type' },
