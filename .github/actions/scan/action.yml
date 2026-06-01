@@ -1,0 +1,209 @@
+name: YAMTAM Security Scan
+description: Scan AI agent configurations for security risks — secrets, permissions, hook injection, MCP vulnerabilities, prompt injection.
+author: Vũ Văn Tâm
+
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  target:
+    description: Directory to scan
+    required: false
+    default: '.'
+  fail-on:
+    description: Fail CI if findings at this severity or above (low/medium/high/critical)
+    required: false
+    default: 'high'
+  ignore:
+    description: Space-separated finding IDs to suppress (e.g. "AU010 CI008")
+    required: false
+    default: ''
+  diff-only:
+    description: Only scan files changed vs base branch (true/false)
+    required: false
+    default: 'false'
+  sarif:
+    description: Upload SARIF to GitHub Code Scanning (true/false)
+    required: false
+    default: 'true'
+  comment-on-pr:
+    description: Post findings summary as PR comment (true/false)
+    required: false
+    default: 'true'
+  yamtam-ref:
+    description: YAMTAM ENGINE ref to use (tag, branch, or SHA)
+    required: false
+    default: 'main'
+
+outputs:
+  risk-level:
+    description: Overall risk level (CRITICAL/HIGH/MEDIUM/LOW)
+    value: ${{ steps.scan.outputs.risk_level }}
+  score:
+    description: Security score (0-100)
+    value: ${{ steps.scan.outputs.score }}
+  findings-count:
+    description: Total number of findings
+    value: ${{ steps.scan.outputs.findings_count }}
+  sarif-path:
+    description: Path to generated SARIF file
+    value: ${{ steps.scan.outputs.sarif_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      with:
+        python-version: '3.11'
+
+    - name: Install YAMTAM ENGINE
+      shell: bash
+      env:
+        YAMTAM_REF: ${{ inputs.yamtam-ref }}
+      run: |
+        git clone --depth 1 --branch "$YAMTAM_REF" \
+          https://github.com/phamlongh230-lgtm/yamtam-engine.git /tmp/yamtam-engine
+        pip install pyyaml --quiet
+        chmod +x /tmp/yamtam-engine/bin/yamtam
+
+    - name: Run YAMTAM scan
+      id: scan
+      shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        IGNORE: ${{ inputs.ignore }}
+        DIFF_ONLY: ${{ inputs.diff-only }}
+        BASE_REF: ${{ github.base_ref }}
+        SARIF_ENABLED: ${{ inputs.sarif }}
+      run: |
+        IGNORE_FLAGS=""
+        for id in $IGNORE; do
+          IGNORE_FLAGS="$IGNORE_FLAGS --ignore $id"
+        done
+
+        DIFF_FLAG=""
+        if [[ "$DIFF_ONLY" == "true" && -n "$BASE_REF" ]]; then
+          git fetch origin "$BASE_REF" --depth=1 2>/dev/null || true
+          DIFF_FLAG="--diff origin/$BASE_REF"
+        fi
+
+        SARIF_FLAG=""
+        if [[ "$SARIF_ENABLED" == "true" ]]; then
+          SARIF_FLAG="--sarif yamtam-scan.sarif"
+        fi
+
+        set +e
+        /tmp/yamtam-engine/bin/yamtam audit "$TARGET" \
+          --fail-on "$FAIL_ON" \
+          --markdown yamtam-scan-report.md \
+          $DIFF_FLAG \
+          $SARIF_FLAG \
+          $IGNORE_FLAGS \
+          --no-color 2>&1 | tee yamtam-scan-output.txt
+        EXIT_CODE=$?
+        set -e
+
+        # Extract metrics from output
+        RISK_LEVEL=$(grep -oE 'Risk level: [A-Z]+' yamtam-scan-output.txt | awk '{print $NF}' || echo "UNKNOWN")
+        SCORE=$(grep -oE 'Score: [0-9]+' yamtam-scan-output.txt | awk '{print $NF}' || echo "0")
+        FINDINGS=$(grep -oE '[0-9]+ finding' yamtam-scan-output.txt | awk '{print $1}' || echo "0")
+
+        echo "risk_level=$RISK_LEVEL" >> "$GITHUB_OUTPUT"
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "findings_count=$FINDINGS" >> "$GITHUB_OUTPUT"
+        echo "sarif_path=yamtam-scan.sarif" >> "$GITHUB_OUTPUT"
+        echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+        exit $EXIT_CODE
+
+    - name: Upload SARIF to GitHub Code Scanning
+      if: ${{ inputs.sarif == 'true' && always() }}
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: yamtam-scan.sarif
+        category: yamtam-security-scan
+      continue-on-error: true
+
+    - name: Comment on PR
+      if: ${{ inputs.comment-on-pr == 'true' && github.event_name == 'pull_request' && always() }}
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const riskLevel = '${{ steps.scan.outputs.risk_level }}';
+          const score = '${{ steps.scan.outputs.score }}';
+          const findings = '${{ steps.scan.outputs.findings_count }}';
+
+          const emoji = {
+            'CRITICAL': '🔴',
+            'HIGH': '🟠',
+            'MEDIUM': '🟡',
+            'LOW': '🟢',
+          }[riskLevel] || '⚪';
+
+          let reportBody = '';
+          try {
+            reportBody = fs.readFileSync('yamtam-scan-report.md', 'utf8');
+          } catch (e) {
+            reportBody = '_No detailed report available._';
+          }
+
+          const body = [
+            `## ${emoji} YAMTAM Security Scan — ${riskLevel}`,
+            '',
+            `| Metric | Value |`,
+            `|--------|-------|`,
+            `| Risk level | **${riskLevel}** |`,
+            `| Score | ${score}/100 |`,
+            `| Findings | ${findings} |`,
+            '',
+            '<details><summary>Full report</summary>',
+            '',
+            reportBody,
+            '',
+            '</details>',
+            '',
+            '_Powered by [YAMTAM ENGINE](https://github.com/phamlongh230-lgtm/yamtam-engine)_',
+          ].join('\n');
+
+          // Find existing YAMTAM comment to update instead of creating new one
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c =>
+            c.user.login === 'github-actions[bot]' &&
+            c.body.includes('YAMTAM Security Scan')
+          );
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }
+
+    - name: Upload scan artifacts
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: yamtam-scan-results
+        path: |
+          yamtam-scan-report.md
+          yamtam-scan.sarif
+          yamtam-scan-output.txt
+        retention-days: 30

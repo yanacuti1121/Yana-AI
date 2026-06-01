@@ -1,0 +1,32 @@
+# Copy this file to .github/workflows/yamtam-scan.yml in YOUR repo
+# Full docs: https://phamlongh230-lgtm.github.io/yamtam-engine/
+
+name: YAMTAM Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pull-requests: write          # needed to post PR comments
+  security-events: write        # needed for SARIF upload to Code Scanning
+
+jobs:
+  yamtam-scan:
+    name: Agent Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: phamlongh230-lgtm/yamtam-engine/.github/actions/scan@main
+        with:
+          target: '.'
+          fail-on: 'high'          # fail CI on HIGH or CRITICAL findings
+          diff-only: 'true'        # on PRs: scan only changed files
+          sarif: 'true'            # upload to GitHub Code Scanning
+          comment-on-pr: 'true'    # post summary comment on PRs
