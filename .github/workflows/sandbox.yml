@@ -1,0 +1,65 @@
+name: Sandbox Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'core/sandbox/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build yamtam-sandbox Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5730b4b88b28b686a48e57a6e8a7acab148c2e0
+
+      - name: Build image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        with:
+          context: core/sandbox
+          file: core/sandbox/Dockerfile.sandbox
+          push: false
+          tags: yamtam-sandbox:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test — exec
+        run: |
+          docker build -f core/sandbox/Dockerfile.sandbox -t yamtam-sandbox:latest core/sandbox/
+          docker run --rm \
+            --network none --read-only \
+            --tmpfs /workspace:rw,size=64m,noexec \
+            --tmpfs /tmp:rw,size=32m,noexec \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user nobody \
+            yamtam-sandbox:latest echo "smoke test passed"
+
+      - name: Smoke test — network blocked
+        run: |
+          docker run --rm \
+            --network none --read-only \
+            --tmpfs /workspace:rw,size=64m,noexec \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user nobody \
+            yamtam-sandbox:latest \
+            bash -c "wget -q http://example.com -O /dev/null 2>&1 && echo FAIL || echo 'network blocked — PASS'"
+
+      - name: Smoke test — filesystem read-only
+        run: |
+          docker run --rm \
+            --network none --read-only \
+            --tmpfs /workspace:rw,size=64m,noexec \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user nobody \
+            yamtam-sandbox:latest \
+            bash -c "echo pwned > /etc/pwned 2>&1 && echo FAIL || echo 'read-only FS — PASS'"
