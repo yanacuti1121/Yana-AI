@@ -3,17 +3,14 @@
 **Cập nhật lần cuối:** 2026-06-01
 
 ## Trạng thái
-- yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io ✅
+- yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io yamtam-rt v1.2.0 ✅
 - CI ✅ YAMTAM Audit ✅ tất cả xanh
-- 2,229 skills, 93 agents
-- Website: 3 trang (index, skills, marketplace) — light warm theme, i18n EN/VI/KO ✅
-- Projects section: JNMT featured card + jnmt.vn, itro, yamtam grid ✅
-- Codexmate section: 4-step guide + v0.0.38-vi badge ✅
-- 4 security findings trong src/ đã fix (SSRF, file-read, path-traversal) ✅
-- agentshield scan ✅ done
+- 2,353 skills, 93 agents
+- Website: index/skills/marketplace/changelog — light warm theme, i18n EN/VI/KO ✅
+- Sandbox: Dockerfile.sandbox built + wire vào tool-proxy.sh ✅
+- Trợ lý: weekly-summary, update-memory, check-milestones, health-check ✅ (tất cả roadmap items done)
 
-## Phase hiện tại: STABILIZE
-Không thêm feature mới. Chỉ fix và ổn định.
+## Phase hiện tại: ACTIVE (đã mở lại từ STABILIZE)
 
 ## Ưu tiên tiếp theo
 1. **Rotate tokens** (npm + crates.io + PyPI) → update GitHub Secrets ← vẫn pending (anh tự làm trên web)
