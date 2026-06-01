@@ -62,6 +62,7 @@
       <li><a href="#hunt">hunt</a></li>
       <li><a href="#ci">ci</a></li>
       <li><a href="#watch">watch</a></li>
+      <li><a href="#init">init</a></li>
       <li><a href="#commands">All Commands</a></li>
       <li><span class="section-label">Skills & Agents</span></li>
       <li><a href="#skills">Using Skills</a></li>
@@ -149,10 +150,19 @@ yamtam-rt ci check .github/workflows/deploy.yml</code></pre>
 yamtam-rt watch start --dirs core/skills,src       # custom dirs
 yamtam-rt watch start --interval 5                 # poll every 5s</code></pre>
 
+    <!-- INIT -->
+    <h2 id="init">yamtam-rt init</h2>
+    <p>Auto-setup YAMTAM in any project — creates hooks, config, and settings skeleton in one command.</p>
+    <pre><code class="language-bash">yamtam-rt init run .          # setup current directory
+yamtam-rt init run ~/my-app   # setup another project
+yamtam-rt init dry .          # preview without writing files</code></pre>
+    <p>Creates: <code>.claude/settings.json</code>, <code>.claude/hooks/pre-tool-use.sh</code>, <code>.yamtam/config.toml</code>. Skips files that already exist.</p>
+
     <!-- ALL COMMANDS -->
     <h2 id="commands">All Commands</h2>
     <table>
       <tr><th>Command</th><th>Description</th></tr>
+      <tr><td>init</td><td>Auto-setup YAMTAM in any project — hooks, config, settings</td></tr>
       <tr><td>scan</td><td>Security audit of agent setup + source</td></tr>
       <tr><td>hunt</td><td>Active code vulnerability scanner</td></tr>
       <tr><td>ci</td><td>CI/CD workflow health check</td></tr>
