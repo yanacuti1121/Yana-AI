@@ -133,6 +133,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
   .sidebar{display:none}
   .featured-row{grid-template-columns:1fr}
 }
+.dark{--bg:hsl(24,15%,8%);--bg2:hsl(24,12%,12%);--bg3:hsl(24,10%,10%);--border:hsl(24,10%,18%);--text:hsl(38,20%,92%);--muted:hsl(38,8%,55%);--blue:hsl(221,75%,62%);--green:hsl(142,55%,48%);--orange:hsl(28,85%,58%)}
+.dark nav{background:hsla(24,15%,8%,.92)!important}
 </style>
 </head>
 <body>
@@ -150,9 +152,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
     <a href="./#yana">Yana</a>
     <a href="./#codexmate">Codexmate</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1.05rem;padding:.2rem .4rem;border-radius:6px;line-height:1">🌙</button>
   </div>
 
 </nav>
+<script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');var b=document.getElementById('theme-toggle');if(b)b.textContent=d?'☀️':'🌙';}window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});</script>
 
 <div class="hero">
   <h1>YAMTAM Marketplace</h1>
