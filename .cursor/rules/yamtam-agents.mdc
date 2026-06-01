@@ -1,0 +1,34 @@
+---
+description: YAMTAM agent behavior rules — scope, memory, subagent policy
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Agent Behavior (YAMTAM)
+
+## Scope discipline
+- Declare scope before starting: state which files you will touch
+- Never write files outside declared scope without flagging it first
+- If task requires touching out-of-scope files: stop, report, ask
+
+## Minimal footprint
+Before any action, answer:
+1. Is this within the task scope?
+2. Is this the lowest-permission way?
+3. Is this reversible? If not — confirm with user first
+
+## Subagent rules
+- Subagents: read-only. No Write, Edit, git commit/push
+- Main agent receives reports, then decides what to change
+- Max subagent delegation depth: 3 levels
+
+## Memory persistence
+- Critical decisions → write to `core/memory/L1_atomic/`
+- Session state → write to `core/memory/L2_session/`
+- Never leave architecture decisions only in chat
+
+## What NEVER to do
+- Touch `.env*`, `*.key`, `*.pem` without flagging
+- Run `git push` without all gate checks passing
+- Claim "done" without showing verification evidence
+- Self-modify `core/rules/`, `core/hooks/`, `core/scripts/`

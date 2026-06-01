@@ -26,6 +26,8 @@ usage() {
   echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
   echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
   echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
+  echo "  opencode   — activates OPENCODE.md (native harness file)"
+  echo "  zed        — activates .zed/settings.json with custom_system_prompt"
   echo "  continue   — generates .continue/config.json fragment (advisory mode)"
   echo "  status     — show which adapters are currently active"
   echo ""
@@ -480,6 +482,50 @@ CONTINUEEOF
     echo "See adapters/continue.md for the full system prompt content."
     ;;
 
+  opencode)
+    if [[ -f "OPENCODE.md" ]]; then
+      echo -e "${GREEN}✓ OPENCODE.md present${NC} ($(wc -l < OPENCODE.md) lines)"
+    else
+      echo -e "${RED}✗ OPENCODE.md missing${NC}"
+      echo "  Run: bash core/scripts/switch-engine.sh opencode to generate"
+      exit 1
+    fi
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "to_engine=opencode from_engine=$_FROM_ENGINE mode=advisory operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=opencode from_engine=$_FROM_ENGINE" 2>/dev/null || true
+    fi
+    echo ""
+    echo -e "${YELLOW}Advisory gap active.${NC} OPENCODE.md loaded by OpenCode natively."
+    echo "  YAMTAM safety hooks are NOT enforced at the OS level in OpenCode."
+    echo "  Rules are advisory via OPENCODE.md system prompt injection only."
+    echo ""
+    echo "  Key constraints active:"
+    echo "    • No rm -rf, no force push, no eval dynamic code"
+    echo "    • Evidence required before completion claims"
+    echo "    • Surgical changes only"
+    ;;
+
+  zed)
+    if [[ -f ".zed/settings.json" ]]; then
+      echo -e "${GREEN}✓ .zed/settings.json present${NC}"
+    else
+      echo -e "${RED}✗ .zed/settings.json missing${NC}"
+      exit 1
+    fi
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "to_engine=zed from_engine=$_FROM_ENGINE mode=advisory operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" advisory_gap_start "engine=zed from_engine=$_FROM_ENGINE" 2>/dev/null || true
+    fi
+    echo ""
+    echo -e "${YELLOW}Advisory gap active.${NC} .zed/settings.json loaded by Zed natively."
+    echo "  YAMTAM safety hooks are NOT enforced at the OS level in Zed."
+    echo "  Rules are advisory via custom_system_prompt in .zed/settings.json only."
+    echo ""
+    echo "  To update the system prompt: edit .zed/settings.json → custom_system_prompt"
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -510,6 +556,12 @@ CONTINUEEOF
     [[ -f "adapters/continue.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Continue  adapters/continue.md (advisory — Merkle gap)" \
       || echo -e "  ${YELLOW}✗${NC} Continue  adapters/continue.md missing"
+    [[ -f "OPENCODE.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} OpenCode  OPENCODE.md ($(wc -l < OPENCODE.md) lines)" \
+      || echo -e "  ${YELLOW}✗${NC} OpenCode  OPENCODE.md missing"
+    [[ -f ".zed/settings.json" ]] \
+      && echo -e "  ${GREEN}✓${NC} Zed       .zed/settings.json" \
+      || echo -e "  ${YELLOW}✗${NC} Zed       .zed/settings.json missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;

@@ -1,0 +1,11 @@
+{
+  "assistant": {
+    "version": "2",
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6"
+    }
+  },
+  "context_servers": {},
+  "custom_system_prompt": "You are operating under YAMTAM ENGINE governance in this repository.\n\nRead AGENTS.md first. Then gates/truth_gate.md.\n\nKey rules:\n- No rm -rf, no git push --force, no eval dynamic code\n- No completion claims without evidence (run the command, show output)\n- Surgical changes only — touch only what was asked\n- Before git push: bash core/scripts/drift-check.sh must show CLEAN\n- Max function: 50 lines · Max file: 300 lines · Max nesting: 3 levels\n- No hardcoded secrets or API keys anywhere\n\nThis repo has 8,550 skills in core/skills/, 93 agents in core/agents/, and a Rust runtime in yamtam-rt/.\nFull docs: https://phamlongh230-lgtm.github.io/yamtam-engine/"
+}

@@ -1,0 +1,38 @@
+---
+description: YAMTAM architecture constraints — file size, complexity, design principles
+globs: ["**/*.ts", "**/*.tsx", "**/*.py", "**/*.rs", "**/*.go"]
+alwaysApply: false
+---
+
+# Architecture Constraints (YAMTAM)
+
+## Hard metric limits
+| Metric | Hard limit |
+|--------|-----------|
+| Function length | 50 lines |
+| Parameters | 5 |
+| Nesting depth | 3 levels |
+| File length | 300 lines |
+| Cyclomatic complexity | 10 |
+
+Exceed a limit → refactor/split before delivering.
+
+## Design principles
+- Functions do ONE thing. "and" in name = split it
+- No abstraction until 3+ repetitions — three similar lines > premature abstraction
+- No feature flags or backwards-compatibility shims when you can just change the code
+- No error handling for scenarios that cannot happen
+- Validate at system boundaries only (user input, external APIs) — trust internal code
+
+## Surgical changes
+- Only change what was requested
+- Don't "improve" adjacent code, comments, or formatting
+- Match existing style, even if you'd do it differently
+- Unrelated dead code: mention it, don't delete it
+
+## Plan first gate
+Run `/plan` before writing code if ANY of:
+- New feature touching 3+ files
+- Architecture change
+- API endpoint change
+- DB schema change

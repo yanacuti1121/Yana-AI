@@ -1,0 +1,36 @@
+---
+description: YAMTAM git workflow rules — commit format, push gate, branch discipline
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Git Workflow (YAMTAM)
+
+## Commit Format
+```
+<type>: <description>
+
+Types: feat, fix, refactor, docs, test, chore, perf, ci
+```
+
+## Before git push — run ALL gates
+```bash
+bash core/tests/skills/test-skill-triggering.sh   # must show Result: PASS
+bash core/scripts/verify-skills-lock.sh            # no drift
+bash core/scripts/drift-check.sh                   # CLEAN
+git status --short                                 # no unintended changes
+```
+
+One FAIL = push blocked. No exceptions.
+
+## Hard rules
+- `git push --force` — NEVER
+- `git reset --hard` — never without explicit user instruction
+- `git push origin main` — only after all gates pass
+- Commit messages: no "WIP", no "fix", no "update" alone — be specific
+
+## Feature workflow
+1. Plan first (`/plan`) if touching 3+ files
+2. TDD: write failing test → implement → verify
+3. Code review before merge
+4. Detailed commit message (why, not what)
