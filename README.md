@@ -31,7 +31,7 @@
 
 ---
 
-YAMTAM ENGINE is a personal agent operating system for Claude Code — runtime safety hooks, memory tiers, 93 agents, 2,211 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+YAMTAM ENGINE is a personal agent operating system for Claude Code — runtime safety hooks, memory tiers, 93 agents, 2,348 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
 
