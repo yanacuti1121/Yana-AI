@@ -42,7 +42,7 @@ impl Note {
     }
 
     pub fn to_file_content(&self) -> anyhow::Result<String> {
-        let front = serde_yaml::to_string(&self.meta)?;
+        let front = serde_yml::to_string(&self.meta)?;
         Ok(format!("---\n{}---\n\n{}", front, self.body))
     }
 
@@ -56,7 +56,7 @@ pub fn parse_frontmatter(content: &str) -> anyhow::Result<(NoteMeta, String)> {
         if let Some(end) = rest.find("\n---\n") {
             let yaml = &rest[..end];
             let body = rest[end + 5..].trim_start().to_string();
-            let meta: NoteMeta = serde_yaml::from_str(yaml).unwrap_or_else(|_| default_meta());
+            let meta: NoteMeta = serde_yml::from_str(yaml).unwrap_or_else(|_| default_meta());
             return Ok((meta, body));
         }
     }

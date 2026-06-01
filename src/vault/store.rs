@@ -28,7 +28,7 @@ impl VaultConfig {
         let path = Self::config_path(dir);
         let s = std::fs::read_to_string(&path)
             .map_err(|_| anyhow::anyhow!("No vault found at '{}'. Run: yamtam-rt vault init {}", dir, dir))?;
-        Ok(serde_yaml::from_str(&s)?)
+        Ok(serde_yml::from_str(&s)?)
     }
 
     pub fn notes_path(&self, dir: &str) -> PathBuf {
@@ -50,7 +50,7 @@ pub fn init_vault(dir: &str, name: &str) -> Result<()> {
     };
     let notes_dir = config.notes_path(dir);
     std::fs::create_dir_all(&notes_dir)?;
-    std::fs::write(&config_path, serde_yaml::to_string(&config)?)?;
+    std::fs::write(&config_path, serde_yml::to_string(&config)?)?;
     println!("Vault '{}' initialized", name);
     println!("  config : {}", config_path.display());
     println!("  notes  : {}", notes_dir.display());
