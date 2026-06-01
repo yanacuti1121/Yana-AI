@@ -22,7 +22,7 @@ use clap::{Parser, Subcommand};
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yamtam-rt", version = "1.1.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
+#[command(name = "yamtam-rt", version = "1.2.0", about = "YAMTAM Runtime — full Python CLI parity in Rust")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
