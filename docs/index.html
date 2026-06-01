@@ -303,6 +303,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <a href="skills.html" data-i18n="nav.skills">Skills</a>
     <a href="marketplace.html">Marketplace</a>
     <a href="changelog.html">Changelog</a>
+    <a href="guide.html">Guide</a>
+    <a href="search.html">🔍</a>
     <a href="#yana">Yana</a>
     <a href="./#codexmate">Codexmate</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
@@ -318,7 +320,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Hero -->
 <div class="hero">
   <div>
-    <div class="hero-badge"><span class="dot"></span> v0.17.0 &nbsp;·&nbsp; yamtam-rt 1.0.0</div>
+    <div class="hero-badge"><span class="dot"></span> v0.17.0 &nbsp;·&nbsp; yamtam-rt 1.2.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
     <h1 data-i18n="hero.title">Your AI agent's<br><em>safety layer</em></h1>
     <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 2,353 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.</p>
     <div class="hero-ctas">
@@ -1370,6 +1372,23 @@ document.querySelectorAll('.feat-card,.gate-row,.compat-card').forEach(el => {
   el.style.cssText += 'opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease';
   io.observe(el);
 });
+</script>
+<script>
+// Live download stats from npm + crates.io
+(async () => {
+  try {
+    const [npm, cr] = await Promise.all([
+      fetch('https://api.npmjs.org/downloads/point/last-month/yamtam-engine').then(r=>r.json()).catch(()=>null),
+      fetch('https://crates.io/api/v1/crates/yamtam-rt', {headers:{'User-Agent':'yamtam-engine-website'}}).then(r=>r.json()).catch(()=>null),
+    ]);
+    const npmDl  = npm?.downloads  ? `npm ${(npm.downloads/1000).toFixed(1)}k/mo` : null;
+    const crDl   = cr?.crate?.recent_downloads ? `crates ${(cr.crate.recent_downloads/1000).toFixed(1)}k/mo` : null;
+    const parts  = [npmDl, crDl].filter(Boolean);
+    const el = document.getElementById('live-dl');
+    if (el && parts.length) el.textContent = parts.join(' · ');
+    else if (el) el.textContent = 'open source';
+  } catch {}
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide — YAMTAM ENGINE</title>
+  <style>
+    :root{--bg:#0f0e0d;--bg2:#1a1917;--border:#2e2c28;--text:#e8e2d9;--muted:#8a8070;--orange:#e8923a;--green:#4ade80;--blue:#60a5fa;--red:#f87171}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,sans-serif;line-height:1.6}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:var(--bg)}
+    .nav-logo{font-weight:800;font-size:1.1rem;text-decoration:none;color:var(--text)}.nav-logo span{color:var(--orange)}
+    .nav-links{display:flex;gap:1.5rem;font-size:.9rem}.nav-links a{color:var(--muted);text-decoration:none}.nav-links a:hover{color:var(--text)}
+    .layout{display:grid;grid-template-columns:220px 1fr;max-width:1100px;margin:0 auto;padding:3rem 2rem;gap:3rem}
+    aside{position:sticky;top:72px;height:fit-content}
+    aside ul{list-style:none;display:flex;flex-direction:column;gap:.25rem}
+    aside a{color:var(--muted);text-decoration:none;font-size:.875rem;padding:.3rem .75rem;border-radius:6px;display:block;transition:all .15s}
+    aside a:hover,aside a.active{color:var(--text);background:var(--bg2)}
+    aside .section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.75rem .75rem .25rem;margin-top:.5rem}
+    article{min-width:0}
+    h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+    h2{font-size:1.35rem;font-weight:700;margin:2.5rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border)}
+    h3{font-size:1rem;font-weight:600;margin:1.5rem 0 .5rem;color:var(--orange)}
+    p{color:var(--muted);margin-bottom:.75rem;font-size:.925rem}
+    pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:ui-monospace,monospace;font-size:.825rem;line-height:1.6}
+    code{font-family:ui-monospace,monospace;font-size:.875em;background:var(--bg2);padding:.1em .35em;border-radius:4px;color:var(--orange)}
+    .tip{background:#1a2a1a;border:1px solid #2a4a2a;border-radius:8px;padding:.875rem 1.25rem;margin:1rem 0;font-size:.875rem}
+    .tip strong{color:var(--green)}
+    .warn{background:#2a1a0a;border:1px solid #4a3a1a;border-radius:8px;padding:.875rem 1.25rem;margin:1rem 0;font-size:.875rem}
+    .warn strong{color:var(--orange)}
+    table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.875rem}
+    th{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+    td{padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--muted)}
+    td:first-child{color:var(--text);font-family:ui-monospace,monospace;font-size:.8rem}
+    footer{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 0 2rem;border-top:1px solid var(--border);margin-top:4rem}
+    @media(max-width:700px){.layout{grid-template-columns:1fr}aside{display:none}}
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="./"><span>⚡</span> YAMTAM ENGINE</a>
+  <div class="nav-links">
+    <a href="./">Home</a>
+    <a href="skills.html">Skills</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="changelog.html">Changelog</a>
+    <a href="guide.html">Guide</a>
+    <a href="search.html">Search</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside>
+    <ul>
+      <li><span class="section-label">Getting Started</span></li>
+      <li><a href="#install">Installation</a></li>
+      <li><a href="#first-scan">First Scan</a></li>
+      <li><a href="#gates">Gate System</a></li>
+      <li><span class="section-label">Runtime CLI</span></li>
+      <li><a href="#scan">scan</a></li>
+      <li><a href="#hunt">hunt</a></li>
+      <li><a href="#ci">ci</a></li>
+      <li><a href="#watch">watch</a></li>
+      <li><a href="#commands">All Commands</a></li>
+      <li><span class="section-label">Skills & Agents</span></li>
+      <li><a href="#skills">Using Skills</a></li>
+      <li><a href="#agents">Agent Teams</a></li>
+    </ul>
+  </aside>
+
+  <article>
+    <h1>YAMTAM ENGINE Guide</h1>
+    <p>Personal Agent OS for Claude Code — security gates, 2,353 skills, Rust runtime.</p>
+
+    <!-- INSTALL -->
+    <h2 id="install">Installation</h2>
+    <p>Three components, install what you need:</p>
+    <pre><code class="language-bash"># Claude Code plugin (hooks, skills, agents wired automatically)
+npm install yamtam-engine
+npx yamtam-install        # wire hooks into .claude/
+
+# Rust runtime (scan, hunt, watch, ci, map…)
+cargo install yamtam-rt
+
+# Python CLI (legacy commands)
+pip install yamtam-engine</code></pre>
+
+    <div class="tip"><strong>Tip:</strong> Run <code>npx yamtam-install</code> once after npm install — it wires the PreToolUse / PostToolUse hooks into your <code>.claude/settings.json</code>.</div>
+
+    <!-- FIRST SCAN -->
+    <h2 id="first-scan">First Scan</h2>
+    <p>Scan your project for agent security risks in 30 seconds:</p>
+    <pre><code class="language-bash">cd your-project
+yamtam-rt scan .
+
+# JSON output
+yamtam-rt scan . --json
+
+# Only show critical/high findings
+yamtam-rt scan . --fail-on high
+
+# Scan only changed files since main
+yamtam-rt scan . --diff origin/main</code></pre>
+
+    <p>Scanner checks: hardcoded secrets, SSRF vectors, path traversal, supply chain, prompt injection, tool poisoning, and 40+ other categories.</p>
+
+    <!-- GATES -->
+    <h2 id="gates">Gate System</h2>
+    <p>YAMTAM intercepts every Claude tool call through a layered gate pipeline:</p>
+    <table>
+      <tr><th>Gate</th><th>Layer</th><th>Blocks</th></tr>
+      <tr><td>L0</td><td>Audit chain</td><td>Log tampering, replay attacks</td></tr>
+      <tr><td>L1</td><td>Anti-evasion</td><td>base64 decode→exec, pipe-to-shell, eval</td></tr>
+      <tr><td>L2</td><td>Sanitize</td><td>Subshell injection, LD_PRELOAD, env hijack</td></tr>
+      <tr><td>L2.5</td><td>Overlay sandbox</td><td>Write to core/ without signature</td></tr>
+      <tr><td>L3</td><td>Runtime isolation</td><td>Docker/nsjail sandbox escape</td></tr>
+      <tr><td>L4</td><td>Supply chain</td><td>Unvetted package installs</td></tr>
+      <tr><td>L5</td><td>UI quality</td><td>Arbitrary hex colors, missing dark mode</td></tr>
+    </table>
+
+    <div class="warn"><strong>Note:</strong> Gates run automatically when hooks are wired. No config needed beyond <code>npx yamtam-install</code>.</div>
+
+    <!-- SCAN -->
+    <h2 id="scan">yamtam-rt scan</h2>
+    <p>Full security audit of your <code>.claude/</code> setup and source files.</p>
+    <pre><code class="language-bash">yamtam-rt scan .                    # full scan
+yamtam-rt scan . --only secrets     # secrets only
+yamtam-rt scan . --markdown out.md  # write report
+yamtam-rt scan . --sarif out.sarif  # SARIF for GitHub</code></pre>
+
+    <!-- HUNT -->
+    <h2 id="hunt">yamtam-rt hunt</h2>
+    <p>Active scanner — goes deeper into code vulnerabilities and supply chain.</p>
+    <pre><code class="language-bash">yamtam-rt hunt run .         # full hunt
+yamtam-rt hunt secrets .     # secrets only
+yamtam-rt hunt deps .        # dependency audit</code></pre>
+
+    <!-- CI -->
+    <h2 id="ci">yamtam-rt ci</h2>
+    <p>CI/CD workflow security check — unpinned actions, missing permissions, secret exposure.</p>
+    <pre><code class="language-bash">yamtam-rt ci check .github/workflows/
+yamtam-rt ci check .github/workflows/deploy.yml</code></pre>
+
+    <!-- WATCH -->
+    <h2 id="watch">yamtam-rt watch</h2>
+    <p>Live file watcher — prints changes to skills, agents, rules as they happen.</p>
+    <pre><code class="language-bash">yamtam-rt watch start                              # watch default dirs
+yamtam-rt watch start --dirs core/skills,src       # custom dirs
+yamtam-rt watch start --interval 5                 # poll every 5s</code></pre>
+
+    <!-- ALL COMMANDS -->
+    <h2 id="commands">All Commands</h2>
+    <table>
+      <tr><th>Command</th><th>Description</th></tr>
+      <tr><td>scan</td><td>Security audit of agent setup + source</td></tr>
+      <tr><td>hunt</td><td>Active code vulnerability scanner</td></tr>
+      <tr><td>ci</td><td>CI/CD workflow health check</td></tr>
+      <tr><td>map</td><td>Agent blast radius — what AI can reach</td></tr>
+      <tr><td>fix</td><td>Auto-apply safe fixes for known finding IDs</td></tr>
+      <tr><td>score</td><td>Audit score with deduction breakdown</td></tr>
+      <tr><td>doctor</td><td>Environment and dependency health</td></tr>
+      <tr><td>watch</td><td>Live file monitor for skills/agents/rules</td></tr>
+      <tr><td>graph</td><td>Knowledge graph — build/search/diff</td></tr>
+      <tr><td>vault</td><td>Vietnamese-first knowledge vault</td></tr>
+      <tr><td>bus</td><td>Agent message bus — emit/read/reply</td></tr>
+      <tr><td>memory</td><td>L3 shared memory across sessions</td></tr>
+      <tr><td>task</td><td>Task lifecycle with evidence</td></tr>
+      <tr><td>cost</td><td>Token usage and spend tracking</td></tr>
+    </table>
+
+    <!-- SKILLS -->
+    <h2 id="skills">Using Skills</h2>
+    <p>Skills are slash commands for Claude Code. With yamtam-engine installed, 2,353 skills are available.</p>
+    <pre><code class="language-bash"># In Claude Code chat:
+/security-review       # OWASP review of current diff
+/tdd-cycle             # Red → Green → Refactor loop
+/debug                 # Systematic debugging
+/code-review           # Code quality review
+/wrap-up               # End-of-session summary</code></pre>
+    <p>Browse all skills at <a href="skills.html" style="color:var(--orange)">skills.html</a> or search at <a href="search.html" style="color:var(--orange)">search.html</a>.</p>
+
+    <!-- AGENTS -->
+    <h2 id="agents">Agent Teams</h2>
+    <p>93 specialized agents auto-routed by <code>/agent-router</code>. Key agents:</p>
+    <table>
+      <tr><th>Agent</th><th>When used</th></tr>
+      <tr><td>planner</td><td>Before any 3+ file feature</td></tr>
+      <tr><td>code-reviewer</td><td>After writing code</td></tr>
+      <tr><td>security-reviewer</td><td>Before merge on sensitive code</td></tr>
+      <tr><td>tdd-guide</td><td>Test-driven development workflow</td></tr>
+      <tr><td>database-reviewer</td><td>Schema changes, migrations</td></tr>
+      <tr><td>build-error-resolver</td><td>When build fails</td></tr>
+    </table>
+  </article>
+</div>
+
+<footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
+</body>
+</html>
