@@ -2,109 +2,77 @@
 
 ---
 
-## r/ClaudeAI
+## r/ClaudeAI  ← đăng trước
 
 **Title:**
 ```
-I built a safety OS for Claude Code — 8,550 skills, 9-layer gate system, Rust runtime. Open source.
+I built a safety layer for Claude Code — intercepts dangerous actions before they execute (8,550 skills, Rust runtime, open source)
 ```
 
 **Body:**
 ```
-Been using Claude Code daily and kept running into the same problem: it's powerful but sometimes makes 
-real mistakes — force-pushes, wrong rm -rf, installing suspicious packages.
+We all know Claude Code is powerful. But it also makes real mistakes — force-push to main, 
+wrong rm -rf, suggesting packages that turn out to be typosquatted. By the time you notice, 
+it's done.
 
-So I built YAMTAM ENGINE: a hook layer that sits between Claude Code and your system.
+I spent the last month building YAMTAM ENGINE: a hook layer that sits between Claude Code 
+and your system, acting like a vigilant safety net for every tool call.
 
-Every tool call passes through gates before executing:
-- Blocks force push, rm -rf, curl|bash
-- Detects typosquatted packages before install
-- Blocks SSRF (AWS metadata endpoint, private IPs)
-- Merkle audit log — every action recorded, tamper-proof
-- Sovereign freeze — one command stops all agents instantly
+What it catches:
+- git push --force → blocked instantly
+- curl http://169.254.169.254 (AWS metadata SSRF) → blocked at egress gate
+- pip install req-uests (typosquatted) → flagged before install
+- Agent claiming "tests pass" without running them → verification gate
+- Secrets in code → scan before commit
 
-Also includes:
-- 8,550 skill definitions (searchable at the docs site)
+Also works with Cursor, OpenCode, Zed, Gemini, Copilot — 12 harness adapters total.
+
+What's included:
+- 8,550 skill definitions (frontend, backend, AI/LLM, K8s, security, WASM...)  
 - 93 specialist agent definitions
-- Rust CLI (yamtam-rt) — yamtam scan, yamtam graph, yamtam vault, yamtam doctor
-- Works with Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot
+- Rust CLI: yamtam scan, yamtam graph, yamtam vault, yamtam doctor
+- Blast radius map — shows exactly what the agent can touch in your repo
 
-Install: npm install yamtam-engine && npx yamtam-install
+Install:
+  npm install yamtam-engine && npx yamtam-install
+
+Built by one person (17yo, Vietnam) in ~1 month. Apache 2.0, free forever.
 
 Repo: https://github.com/phamlongh230-lgtm/yamtam-engine
 Docs: https://phamlongh230-lgtm.github.io/yamtam-engine/
-
-Apache 2.0, free forever. Built by one person (17yo, Vietnam) in ~1 month.
 ```
 
 ---
 
-## r/artificial
+## r/rust  ← đăng song song với HN
 
 **Title:**
 ```
-Show r/artificial: Agent OS with 9-layer safety gates for AI coding tools — blocks SSRF, force-push, typosquatting, and more before execution
+yamtam-rt: Rust CLI for AI agent safety — 17 subcommands, 1256x faster than Python (scan, graph, vault, blast-radius map)
 ```
 
 **Body:**
 ```
-The core problem with AI coding agents isn't capability — it's that mistakes happen silently and 
-irreversibly. By the time you see the damage, `git push --force` already ran.
-
-YAMTAM ENGINE is a hook-based safety layer that intercepts every tool call:
-
-Gate system (9 layers):
-1. Anti-evasion — base64 decode+exec, pipe-to-shell blocked at L1
-2. Shell sanitization — shellcheck-inspired, strips metacharacters
-3. Egress check — SSRF prevention (169.254.169.254, RFC1918 ranges)
-4. Supply chain — typosquatting detection, CVE scan before every npm/pip install
-5. Blast radius — caps how destructive a single action can be
-6. Permission tiers — agents have R/W/X/P authority levels
-7. ECDSA signing — generated code must be signed before execution
-8. Merkle audit chain — hash-chained log, tamper-detected instantly
-9. Sovereign gate — human veto + freeze swarm + full rollback
-
-Beyond safety:
-- 8,550 skill definitions across frontend, backend, AI/LLM, K8s, security, WASM
-- 93 specialist agent definitions
-- Rust runtime (1256x faster than Python scanner)
-- 12 harness adapters: Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider
-
-1,026,000 lines total. Apache 2.0.
-
-https://github.com/phamlongh230-lgtm/yamtam-engine
-```
-
----
-
-## r/rust (for yamtam-rt)
-
-**Title:**
-```
-yamtam-rt: Rust CLI for AI agent safety — scan, graph, vault, hunt, fix, doctor (17 subcommands, 1256x faster than Python)
-```
-
-**Body:**
-```
-Released yamtam-rt on crates.io — the Rust runtime for YAMTAM ENGINE, an agent safety OS for 
-Claude Code and other AI coding tools.
+Released yamtam-rt on crates.io — the Rust runtime powering YAMTAM ENGINE, 
+a safety OS for AI coding agents.
 
 cargo install yamtam-rt
 
-17 subcommands:
-- yamtam scan .       — security scan (secrets, CVEs, supply chain risks)
-- yamtam graph .      — knowledge graph (file deps, import resolution for Rust/TS/Python/Go)
-- yamtam vault search — search 8,550 skill definitions
-- yamtam hunt .       — OWASP pattern hunting
-- yamtam fix .        — auto-fix rule violations
-- yamtam doctor .     — full system health check
-- yamtam map .        — blast radius map for agent permissions
-- yamtam ci           — CI gate checks (826 rule checks)
-- yamtam watch .      — file watcher with hook triggers
+17 subcommands. The main ones:
 
-Benchmark on 10k-file repo: 1256x faster than the Python equivalent.
+yamtam scan .       — secrets, CVEs, supply chain risks
+yamtam graph .      — knowledge graph (import resolution: Rust/TS/Python/Go)
+yamtam vault search — search 8,550 skill definitions
+yamtam hunt .       — OWASP pattern hunting (injection, SSRF, XSS...)
+yamtam map .        — blast radius map (what can the agent access?)
+yamtam fix .        — auto-fix rule violations
+yamtam doctor .     — full system health check
+yamtam ci           — CI gate runner (826 rule checks)
+yamtam watch .      — file watcher with hook triggers
 
-Built with: clap, serde, walkdir, regex, sha2, ureq, rayon
+Stack: clap, serde, walkdir, regex, sha2, ureq, rayon
+
+Benchmark: yamtam scan on a 10k-file repo → 1256x faster than the Python equivalent.
 
 Repo: https://github.com/phamlongh230-lgtm/yamtam-engine
 Crate: https://crates.io/crates/yamtam-rt
@@ -112,50 +80,88 @@ Crate: https://crates.io/crates/yamtam-rt
 
 ---
 
-## r/programming
+## r/artificial  ← sau HN
 
 **Title:**
 ```
-I spent a month building a 9-layer safety system for AI coding agents. Here's what I learned about the attack surface.
+Built a 9-layer safety system for AI coding agents — here's what each gate catches and why
 ```
 
 **Body:**
 ```
-After using Claude Code and Cursor daily, I catalogued every dangerous action an AI agent could take 
-and built gates for each. Here's what surprised me:
+After months of using Claude Code and Cursor daily, I catalogued every dangerous action 
+an AI agent can take and built a gate for each. Here's what surprised me:
 
-1. The biggest risk isn't rm -rf — it's supply chain.
-   Agents suggest `pip install req-uests` (typosquatted). Users trust and run it.
-   Gate: pattern-match against top 1000 packages, flag 1-2 char differences.
+The biggest risk isn't rm -rf — it's supply chain.
+Agents suggest pip install req-uests (typosquatted). Users trust and run it.
+Gate: pattern-match against top packages, flag 1-2 char differences.
 
-2. SSRF via AI is real.
-   Agents with WebFetch tools can be prompted to hit 169.254.169.254 (AWS metadata).
-   Gate: resolve DNS before request, check against RFC1918 + link-local ranges.
+SSRF via AI is real.
+Agents with WebFetch tools can be prompted to hit 169.254.169.254 (AWS metadata).
+Gate: resolve DNS before request, check against RFC1918 + link-local ranges.
 
-3. Prompt injection through tool results.
-   External URL → agent fetches → result contains "ignore previous instructions".
-   Gate: scan tool results for injection markers before returning to context.
+Prompt injection through tool results.
+External URL → agent fetches → result says "ignore previous instructions".
+Gate: scan every tool result for injection markers before returning to context.
 
-4. Context flooding.
-   Attacker controls a tool result → returns 500KB of text → blows context window.
-   Gate: 16KB cap on all tool results.
+Context flooding.
+Attacker controls a tool result → returns 500KB → blows context window.
+Gate: 16KB hard cap on all tool results.
 
-5. Audit logs can be deleted.
-   An agent that can write to logs can delete evidence of its own mistakes.
-   Gate: Merkle hash chain — every entry includes SHA256 of previous entry.
-   Deletion = chain break = detected instantly.
+Audit logs can be deleted.
+An agent can write to logs, then delete evidence of its own mistakes.
+Gate: Merkle hash chain — every entry includes SHA256 of previous.
+Deletion breaks the chain → detected instantly.
 
 The full system (YAMTAM ENGINE) is open source:
 https://github.com/phamlongh230-lgtm/yamtam-engine
 
-Happy to go deeper on any of these attack vectors.
+1,026,000 lines, built by one person (17yo) in ~1 month. AMA.
 ```
 
 ---
 
-## Posting order (recommended)
-1. r/ClaudeAI — highest relevance, most likely to get traction fast
-2. HN Show HN — technical audience, best for long-term visibility
-3. r/rust — for yamtam-rt specifically
-4. r/artificial — broader AI safety angle
-5. r/programming — educational angle, attack surface breakdown
+## r/programming  ← sau r/artificial
+
+**Title:**
+```
+How I built a Merkle-chained audit log and 9-layer gate system for AI coding agents in Rust (Show r/programming)
+```
+
+**Body:**
+```
+I built YAMTAM ENGINE — a safety OS for AI coding tools — and wanted to share some 
+implementation details that might be interesting.
+
+Two things I'm most proud of technically:
+
+1. Merkle audit chain
+Every agent action is logged as: timestamp | session | event | message | prev_hash | this_hash
+where this_hash = SHA256(all fields including prev_hash).
+If any line is deleted or modified, the chain breaks → tamper detected instantly.
+This was inspired by Google's Trillian verifiable log.
+
+2. Blast radius mapping (yamtam map)
+Reads agent configs, MCP settings, .claude/settings.json, GitHub workflows.
+Outputs a permission map: what files/commands/endpoints can this agent actually reach?
+Useful for auditing before you give an agent more permissions.
+
+Other gates: SSRF prevention (resolves DNS then checks RFC1918/link-local), 
+supply chain (typosquatting + CVE scan), shell sanitization (shellcheck-inspired), 
+ECDSA code signing, BFT consensus for core infra writes.
+
+Stack: Rust (yamtam-rt) + Python CLI + 46 bash hooks + 61 rule files.
+
+Repo: https://github.com/phamlongh230-lgtm/yamtam-engine
+
+Built by one person in ~1 month, 17yo from Vietnam.
+```
+
+---
+
+## Thứ tự đăng
+1. **r/ClaudeAI** — ngay, audience rộng nhất
+2. **HN Show HN** — cùng ngày hoặc hôm sau
+3. **r/rust** — song song với HN
+4. **r/artificial** — sau 1-2 ngày
+5. **r/programming** — sau r/artificial
