@@ -153,14 +153,30 @@ fi
 
 [[ ${#MUTATIONS[@]} -gt 0 ]] && log_proxy "INFO" "mutated" "\"mutations\":\"${MUTATIONS[*]}\""
 
-# ─── PHASE 3.5 — OVERLAY SANDBOX (Anti-Graffiti L2.5) ────────────────────────
-# When YAMTAM_SANDBOX_MODE=1, wrap the command in a bubblewrap (bwrap) cage:
-#   - core dirs mounted read-only (lowerdir) — Agent cannot overwrite real disk
-#   - /tmp and SANDBOX_WRITEDIR mounted tmpfs (upperdir) — ephemeral, RAM-backed
-#   - All namespaces unshared: net, pid, ipc, uts, cgroup
-# If bwrap is unavailable, blocks unless YAMTAM_SANDBOX_STRICT=0 (warn-only mode)
+# ─── PHASE 3.5 — SANDBOX (Gate L3) ───────────────────────────────────────────
+# Path A: sandbox-exec.sh  (YAMTAM_SANDBOX_MODE=docker|nsjail|ulimit|auto)
+#           → full L3 isolation via Docker/nsjail/ulimit
+# Path B: bwrap legacy     (YAMTAM_SANDBOX_MODE=1)
+#           → OverlayFS bubblewrap cage
 PHASE="sandbox"
 
+# Path A — delegate to sandbox-exec.sh for docker/nsjail/ulimit/auto
+if [[ "$SANDBOX_MODE" == "docker" || "$SANDBOX_MODE" == "nsjail" || \
+      "$SANDBOX_MODE" == "ulimit" || "$SANDBOX_MODE" == "auto" ]]; then
+  SANDBOX_EXEC_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/sandbox-exec.sh"
+  if [[ ! -f "$SANDBOX_EXEC_BIN" ]]; then
+    proxy_block "sandbox-exec.sh not found at ${SANDBOX_EXEC_BIN}" 6
+  fi
+  log_proxy "INFO" "sandbox-exec-delegate" "\"mode\":\"${SANDBOX_MODE}\",\"bin\":\"${SANDBOX_EXEC_BIN}\""
+  if [[ "$DRY_RUN" == "1" ]]; then
+    log_proxy "INFO" "dry-run" "\"would-exec\":\"sandbox-exec --mode ${SANDBOX_MODE} $RAW_CMD\""
+    echo "[tool-proxy] DRY-RUN: sandbox-exec --mode ${SANDBOX_MODE} $RAW_CMD ${CLEAN_ARGS[*]:-}"
+    exit 0
+  fi
+  exec bash "$SANDBOX_EXEC_BIN" --mode "$SANDBOX_MODE" "$RAW_CMD" "${CLEAN_ARGS[@]}"
+fi
+
+# Path B — bwrap legacy (YAMTAM_SANDBOX_MODE=1)
 if [[ "$SANDBOX_MODE" == "1" ]]; then
   BWRAP_BIN="$(command -v bwrap 2>/dev/null || true)"
   SANDBOX_STRICT="${YAMTAM_SANDBOX_STRICT:-1}"
