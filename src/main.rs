@@ -15,6 +15,7 @@ mod hunt;
 mod map;
 mod spec;
 mod vault;
+mod watch;
 
 use clap::{Parser, Subcommand};
 
@@ -63,6 +64,8 @@ enum Commands {
     Graph  { #[command(subcommand)] action: graph::GraphAction },
     /// Vietnamese-first knowledge vault with multilingual translation links
     Vault  { #[command(subcommand)] action: vault::VaultAction },
+    /// Live file watcher — monitor skills/agents/rules for changes
+    Watch  { #[command(subcommand)] action: watch::WatchAction },
     /// Audit AI agent setup for security risks (replaces audit_scanner.py)
     Scan {
         /// Directory to scan (default: .)
@@ -288,6 +291,7 @@ fn main() {
         Commands::Design { action } => design::dispatch(action),
         Commands::Graph  { action } => graph::dispatch(action),
         Commands::Vault { action } => vault::dispatch(action),
+        Commands::Watch { action } => watch::dispatch(action),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
