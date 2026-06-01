@@ -787,6 +787,47 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.lab">Những thứ xây ngoài giờ.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
 
+      <!-- See Tình card -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(320,80%,53%,.1);color:#f472b6;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(320,80%,53%,.2);letter-spacing:.05em">C++17</span>
+          <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/blob/main/see_tinh_demo.cpp"
+             target="_blank"
+             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
+             onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='hsl(215,20%,45%)'">
+            view source ↗
+          </a>
+        </div>
+
+        <div>
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#f472b6,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+            See Tình
+          </div>
+          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
+            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#f472b6">fork/exec mpv</span> · Hoàng Thùy Linh
+          </div>
+        </div>
+
+        <!-- Terminal window -->
+        <div style="background:hsl(24,10%,6%);border:1px solid hsl(320,20%,16%);border-radius:10px;overflow:hidden">
+          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
+            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
+            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — see_tinh_demo.cpp</span>
+          </div>
+          <div id="term-out-2" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
+        </div>
+
+        <button id="run-btn-2" onclick="runDemo2()"
+          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#be185d,#7c3aed);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(320,80%,40%,.3)"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span id="run-icon-2">▶</span> Run
+        </button>
+
+      </div>
+
       <!-- Come My Way card -->
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
 
@@ -1072,6 +1113,67 @@ function copyCmd() {
     setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
+// See Tình terminal demo
+const termLines2 = [
+  { text: '$ g++ -std=c++17 see_tinh_demo.cpp -o see_tinh', color: '#4a4a5a', delay: 0,    type: 'type' },
+  { text: '$ ./see_tinh',                                    color: '#4a4a5a', delay: 650,  type: 'type' },
+  { text: '──────────────────────────────────────────────────', color: '#f472b6', delay: 1050 },
+  { text: '  See Tình  ~  Hoàng Thùy Linh',                  delay: 1300, gradient2: true, bold: true },
+  { text: '──────────────────────────────────────────────────', color: '#f472b6', delay: 1550 },
+  { text: '', delay: 1750 },
+  { text: '[ Intro ]',             color: '#4ade80', delay: 1950, bold: true, glow: '#4ade80', type: 'fade' },
+  { text: 'Uầy uầy uây uây sao mới gặp lần đầu mà đầu mình quay quay', color: '#f472b6', delay: 2200 },
+  { text: 'Bae bae bae bae em nói từ đầu baby can you stay',             color: '#fbbf24', delay: 2600 },
+  { text: '', delay: 2900 },
+  { text: '[ Chorus ]',            color: '#f472b6', delay: 3100, bold: true, glow: '#f472b6', type: 'fade' },
+  { text: 'Giây phút em gặp anh là em biết em see tình',     color: '#67e8f9', delay: 3350 },
+  { text: 'Tình tình tình tang tang tính tang tình…',         color: '#f472b6', delay: 3650 },
+  { text: '', delay: 3900 },
+  { text: '[ Bridge ]',            color: '#fbbf24', delay: 4050, bold: true, glow: '#fbbf24', type: 'fade' },
+  { text: 'Yah yah — Anh tính sao giờ đây anh tính sao',     color: '#fbbf24', delay: 4300 },
+  { text: '', delay: 4600 },
+  { text: '🌸  See Tình — Hoàng Thùy Linh (2022)', color: '#3a3a4a', delay: 4800 },
+];
+
+let demo2Running = false;
+function runDemo2() {
+  if (demo2Running) return;
+  demo2Running = true;
+  const out  = document.getElementById('term-out-2');
+  const btn  = document.getElementById('run-btn-2');
+  const icon = document.getElementById('run-icon-2');
+  out.innerHTML = '';
+  btn.disabled = true;
+  icon.textContent = '◼';
+
+  termLines2.forEach(({ text, color, delay, bold, glow, gradient2, type }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
+      if (gradient2) {
+        line.style.cssText += ';background:linear-gradient(90deg,#f472b6,#a78bfa,#67e8f9,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
+      } else {
+        line.style.color = color || '#ccc';
+        if (bold) line.style.fontWeight = '700';
+        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
+      }
+      if (type === 'fade') {
+        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
+        line.textContent = text; out.appendChild(line);
+        requestAnimationFrame(() => { line.style.opacity = '1'; line.style.transform = 'none'; });
+      } else if (type === 'type') {
+        const span = document.createElement('span');
+        line.appendChild(span); out.appendChild(line);
+        typeWriter(span, text, null);
+      } else {
+        line.textContent = text; out.appendChild(line);
+      }
+      out.scrollTop = out.scrollHeight;
+      if (delay === 4800) { btn.disabled = false; icon.textContent = '▶'; demo2Running = false; }
+    }, delay);
+  });
+}
+
 // Terminal demo
 const termLines = [
   { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#4a4a5a', delay: 0,    type: 'type' },
