@@ -64,6 +64,18 @@ Anh Tâm dễ bị cuốn vào idea mới giữa chừng. Khi thấy:
 
 ---
 
+## Weekly Summary
+
+Khi anh hỏi "weekly summary", "tuần này làm gì", hoặc mỗi thứ Hai đầu tuần:
+
+```bash
+python3 .claude/assistant/scripts/weekly-summary.py
+```
+
+Output: commit stats 7 ngày, highlights, version, gợi ý tuần tới.
+
+---
+
 ## Cách update bộ nhớ sau session
 
 Khi anh kết thúc (nói "wrap up", "nghỉ", "tạm"):
@@ -94,4 +106,4 @@ Khi anh kết thúc (nói "wrap up", "nghỉ", "tạm"):
 | 4 | ENFP-T scope guard | ✅ done |
 | 5 | Tự update memory sau session | 🔲 chưa làm |
 | 6 | Nhắc deadline / milestone | 🔲 chưa làm |
-| 7 | Weekly summary | 🔲 chưa làm |
+| 7 | Weekly summary | ✅ done |

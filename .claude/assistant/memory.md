@@ -194,3 +194,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 
 **Trạng thái cuối:** v0.17.0, CI ✅, 3 trang web, marketplace 2571 items
 **Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
+
+## 2026-06-01 — Import 23 skills addyosmani/agent-skills
+
+**Đã làm:**
+- Import 23 skills từ addyosmani/agent-skills (MIT), prefix `addyosmani--`
+- skills: 2211 → 2229, commit d86fac4, pushed
+- Phát hiện disk /home 100% full — claude staging tự-tải new versions ăn hết space
+- Giải phóng ~700MB: cargo registry cache, npm cache, claude 2.1.153 + 2.1.156 + 2.1.158 cũ
+- Codexmate VI patch — xác nhận đã patch xong từ session trước
+- anthropics/claude-code: skip (proprietary license)
+
+**Anh nói / quyết định:**
+- Bê repo addyosmani/agent-skills và anthropics/claude-code về
+- anthropics/claude-code không dùng được do license
+
+**Trạng thái cuối:** v0.17.0, 2229 skills, disk 90% (468M free), staging tự-fill là root cause
+**Pending:** Token rotation (npm/crates/PyPI) — vẫn chưa làm
