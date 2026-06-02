@@ -336,6 +336,29 @@ body {
   transition: transform .45s cubic-bezier(.16,1,.3,1);
 }
 
+/* Floating home bar above app windows */
+.home-float {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 60;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.home-float.visible { opacity: 1; pointer-events: auto; }
+.home-float-pill {
+  width: 120px; height: 5px;
+  background: rgba(255,255,255,.4);
+  border-radius: 3px;
+  transition: background .15s, transform .12s;
+}
+.home-float:active .home-float-pill { background: rgba(255,255,255,.7); transform: scaleX(.92); }
+.home-float-label {
+  font-size: .55rem; color: rgba(255,255,255,.3);
+  letter-spacing: .06em; text-transform: uppercase;
+  font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+
 .app-win-header {
   flex-shrink: 0;
   height: 56px;
@@ -827,6 +850,12 @@ code {
     <div class="home-indicator"></div>
   </div>
 
+  <!-- Floating home button (shows when any app is open) -->
+  <div class="home-float" id="home-float" onclick="closeCurrentApp()">
+    <div class="home-float-label">home</div>
+    <div class="home-float-pill"></div>
+  </div>
+
   <!-- ════ APP WINDOWS ════ -->
 
   <!-- Chat -->
@@ -1236,7 +1265,19 @@ function spawnDrops(win) {
   });
 }
 
+let currentApp = null;
+
+function updateHomeFloat() {
+  document.getElementById('home-float').classList.toggle('visible', !!currentApp);
+}
+
+function closeCurrentApp() {
+  if (currentApp) { closeApp(currentApp); currentApp = null; updateHomeFloat(); }
+}
+
 function openApp(id) {
+  currentApp = id;
+  updateHomeFloat();
   const win = document.getElementById('win-' + id);
   win.classList.add('open');
   spawnDrops(win);
@@ -1253,6 +1294,7 @@ function openApp(id) {
 }
 function closeApp(id) {
   document.getElementById('win-' + id).classList.remove('open');
+  if (currentApp === id) { currentApp = null; updateHomeFloat(); }
   if (id === 'chat') {
     // Collapse DI when chat closes
     diExpanded = false;
