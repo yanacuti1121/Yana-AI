@@ -45,11 +45,25 @@ To update your config, visit [yamtam-engine](https://github.com/phamlongh230-lgt
     return `https://github.com/${owner}/${repo}/commit/${refData.object.sha}`;
   }
 
-  // Get base SHA
-  const { data: refData } = await octokit.git.getRef({
-    owner, repo, ref: `heads/${base}`,
-  });
-  const baseSha = refData.object.sha;
+  // Get base SHA — repo might be empty (no commits yet)
+  let baseSha: string;
+  try {
+    const { data: refData } = await octokit.git.getRef({
+      owner, repo, ref: `heads/${base}`,
+    });
+    baseSha = refData.object.sha;
+  } catch {
+    // Empty repo — initialize with README then retry
+    await octokit.repos.createOrUpdateFileContents({
+      owner, repo, path: 'README.md', branch: base,
+      message: 'chore: initialize repository',
+      content: btoa(`# ${repo}\n`),
+    });
+    const { data: refData } = await octokit.git.getRef({
+      owner, repo, ref: `heads/${base}`,
+    });
+    baseSha = refData.object.sha;
+  }
 
   // Create branch yamtam/setup
   const branch = 'yamtam/setup';
