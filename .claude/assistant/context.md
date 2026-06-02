@@ -1,6 +1,6 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-01
+**Cập nhật lần cuối:** 2026-06-02
 
 ## Trạng thái
 - yamtam-engine v0.17.0 — npm ✅ PyPI ✅ crates.io yamtam-rt v1.2.0 ✅
@@ -20,9 +20,16 @@
 ## Đã biết / blockers
 - Token rotation: anh cần tự làm trên web rồi update GitHub Secrets
 - Codexmate chạy bằng `CODEXMATE_PORT=8080 codexmate run` + Web Preview 8080
-- Disk /home 90% full (4.8G) — `.cache/claude/staging/` tự-tải Claude updates, ăn hết freed space
+- Disk /home 81% (904MB free) — đã dọn kiro-cli + cache, ổn
 - Build Rust: CARGO_TARGET_DIR=/tmp/yamtam-build cargo build
 - Session bị lỗi 1M token khi đang tổng hợp context — tiếp tục session mới
+
+## Backup AI stack (khi Claude hết quota)
+- `gemini` → Gemini 2.5 Flash, 1,500 req/ngày, hooks active
+- `aider-groq` → Llama 3.3 70B trên Groq, 14,400 req/ngày
+- `aider-qwen` → Qwen3 32B trên Groq
+- Groq key: trong ~/.bashrc (cần rotate — đã paste vào chat)
+- Aider cài tại /tmp/aider-lib (mất sau khi reconnect, reinstall: `pip install aider-chat --target /tmp/aider-lib`)
 
 ## Ghi chú
 - Anh dùng Google Cloud Shell

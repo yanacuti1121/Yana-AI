@@ -254,3 +254,23 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.17.0 · branch=main, 2 modified, last=6977d92 fix(web): remove jnmt.vn link from small card
 
 ---
+
+## 2026-06-01 — marketplace): root action.yml + protected badge + nav Action
+
+**Đã làm:**
+- feat: marketplace): root action.yml + protected bad; harness): yamtam harness command + GitHub Act; action): GitHub Composite Action — scan AI ag
+- fix: drift): sync scripts count 92→93 across MANIFE; drift): sync skill count 8545→8550 across MANI
+- chore: milestone): 1,000,000 lines — 2026-06-01
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 1 modified, last=fefe1b4e feat(marketplace): root action.yml + protected badg
+
+---
+
+## 2026-06-02 — gemini): add .gemini/settings.json — hooks migrated from Cla
+
+**Đã làm:**
+- feat: gemini): add .gemini/settings.json — hooks mi
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 4 modified, last=35816898 feat(gemini): add .gemini/settings.json — hooks mig
+
+---
