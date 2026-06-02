@@ -356,6 +356,26 @@ body {
   pointer-events: none;
 }
 
+/* Switch-out: current app slides left + shrinks */
+@keyframes app-switch-out {
+  0%   { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(-18%) scale(.88); opacity: 0; }
+}
+.app-window.switching-out {
+  animation: app-switch-out .28s cubic-bezier(.4,0,.6,1) forwards;
+  pointer-events: none;
+}
+
+/* Switch-in: new app slides in from right */
+@keyframes app-switch-in {
+  0%   { transform: translateX(30%) scale(.94); opacity: 0; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+.app-window.switching-in {
+  animation: app-switch-in .38s cubic-bezier(.16,1,.3,1) forwards;
+  pointer-events: none;
+}
+
 /* Icon catch animation (icon reacts when app closes back to it) */
 @keyframes icon-catch {
   0%   { transform: scale(1); }
@@ -1330,39 +1350,86 @@ function closeCurrentApp() {
   if (currentApp) { closeApp(currentApp); currentApp = null; updateHomeFloat(); }
 }
 
+function launchWindow(id) {
+  currentApp = id;
+  updateHomeFloat();
+  const win = document.getElementById('win-' + id);
+  win.classList.add('open');
+  spawnDrops(win);
+  if (id === 'chat') {
+    initChat();
+    if (!diExpanded) {
+      diExpanded = true;
+      document.getElementById('di').classList.add('expanded');
+      initDI();
+      diAnim && diAnim.play();
+    }
+  }
+}
+
 function openApp(id) {
-  // Animate icon first
+  if (id === currentApp) return;
+
   const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
+
+  // Switching between apps
+  if (currentApp) {
+    const prevId = currentApp;
+    const prevWin = document.getElementById('win-' + prevId);
+
+    // Switch-out current app
+    prevWin.classList.remove('open');
+    prevWin.classList.add('switching-out');
+    prevWin.addEventListener('animationend', () => {
+      prevWin.classList.remove('switching-out');
+      // Icon catch for previous app
+      const prevIcon = document.querySelector(`.app-icon-img.app-${prevId}`);
+      if (prevIcon) {
+        prevIcon.classList.add('catching');
+        prevIcon.addEventListener('animationend', () => prevIcon.classList.remove('catching'), { once: true });
+      }
+    }, { once: true });
+
+    // Small burst on new icon
+    if (iconEl) {
+      iconEl.classList.add('launching');
+      iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true });
+    }
+
+    // Switch-in new app after brief overlap
+    setTimeout(() => {
+      currentApp = id;
+      updateHomeFloat();
+      const newWin = document.getElementById('win-' + id);
+      newWin.classList.add('open', 'switching-in');
+      newWin.addEventListener('animationend', () => newWin.classList.remove('switching-in'), { once: true });
+      spawnDrops(newWin);
+      if (id === 'chat') {
+        initChat();
+        if (!diExpanded) {
+          diExpanded = true;
+          document.getElementById('di').classList.add('expanded');
+          initDI();
+          diAnim && diAnim.play();
+        }
+      }
+    }, 160);
+    return;
+  }
+
+  // Fresh launch from home screen
   if (iconEl) {
-    // Launch burst
     const burst = document.createElement('div');
     burst.className = 'launch-burst';
     burst.style.cssText = `width:${iconEl.offsetWidth}px;height:${iconEl.offsetHeight}px;top:0;left:0;border-radius:${getComputedStyle(iconEl).borderRadius}`;
     iconEl.style.position = 'relative';
     iconEl.appendChild(burst);
     burst.addEventListener('animationend', () => burst.remove());
-
     iconEl.classList.add('launching');
     iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true });
   }
 
-  // Slight delay so icon animation plays first
-  setTimeout(() => {
-    currentApp = id;
-    updateHomeFloat();
-    const win = document.getElementById('win-' + id);
-    win.classList.add('open');
-    spawnDrops(win);
-    if (id === 'chat') {
-      initChat();
-      if (!diExpanded) {
-        diExpanded = true;
-        document.getElementById('di').classList.add('expanded');
-        initDI();
-        diAnim && diAnim.play();
-      }
-    }
-  }, 120);
+  setTimeout(() => launchWindow(id), 120);
 }
 function closeApp(id) {
   const win = document.getElementById('win-' + id);
