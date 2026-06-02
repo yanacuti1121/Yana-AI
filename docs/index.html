@@ -51,8 +51,6 @@
   --orange:        hsl(28 85% 58%);
   --red:           hsl(0 70% 60%);
 }
-.dark nav { background: hsla(24,15%,8%,.92) !important; }
-
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
@@ -63,19 +61,26 @@ nav {
   padding: 0 2rem; height: 56px;
   background: hsla(38,30%,97%,.92); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  gap: 1rem;
 }
-.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; }
+.dark nav { background: hsla(24,15%,8%,.92) !important; }
+.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; white-space: nowrap; flex-shrink: 0; }
 .nav-logo span { -webkit-text-fill-color: transparent; }
 @keyframes rainbow { 0% { background-position: 0% } 100% { background-position: 200% } }
-.nav-links { display: flex; gap: 1.5rem; align-items: center; }
-.nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .875rem; transition: color .15s; }
+
+/* Centre links — hidden on mobile */
+.nav-links { display: flex; gap: 1.25rem; align-items: center; flex: 1; justify-content: center; overflow: hidden; }
+.nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .84rem; transition: color .15s; white-space: nowrap; }
 .nav-links a:hover { color: var(--fg); }
-.nav-cta { background: var(--accent) !important; color: #fff !important; padding: .375rem .875rem; border-radius: 6px; font-size: .8125rem !important; font-weight: 600; transition: background .15s !important; }
+
+/* Right cluster — ALWAYS visible */
+.nav-right { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.nav-cta { background: var(--accent) !important; color: #fff !important; padding: .3rem .8rem; border-radius: 6px; font-size: .8rem !important; font-weight: 600; transition: background .15s !important; text-decoration: none; white-space: nowrap; }
 .nav-cta:hover { background: var(--accent-hover) !important; }
 
 /* Language switcher */
-.lang-switcher { display:flex; gap:.25rem; align-items:center; background:var(--bg-subtle); border:1px solid var(--border); border-radius:20px; padding:.15rem .3rem; }
-.lang-btn { border:none; background:transparent; cursor:pointer; font-size:.72rem; font-weight:600; padding:.2rem .5rem; border-radius:14px; color:var(--fg-muted); transition:all .15s; letter-spacing:.02em; }
+.lang-switcher { display:flex; gap:.2rem; align-items:center; background:var(--bg-subtle); border:1px solid var(--border); border-radius:20px; padding:.12rem .28rem; }
+.lang-btn { border:none; background:transparent; cursor:pointer; font-size:.7rem; font-weight:600; padding:.18rem .45rem; border-radius:14px; color:var(--fg-muted); transition:all .15s; letter-spacing:.02em; }
 .lang-btn.active { background:var(--bg-card); color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.1); }
 .lang-btn:hover:not(.active) { color:var(--fg); }
 
@@ -340,8 +345,10 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   .feat-grid { grid-template-columns: 1fr; }
   .rt-grid { grid-template-columns: 1fr; }
   .compat-grid { grid-template-columns: repeat(2, 1fr); }
-  nav { padding: 0 1.25rem; }
+  nav { padding: 0 1rem; gap: .5rem; }
   .nav-links { display: none; }
+  .nav-right { gap: .35rem; }
+  .nav-cta { display: none !important; }
   .hamburger { display: flex; }
   .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
   .footer-links { flex-wrap: wrap; justify-content: center; }
@@ -353,29 +360,29 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Nav -->
 <nav>
   <a class="nav-logo" href="#"><span>⚡</span> YAMTAM ENGINE</a>
+
+  <!-- Centre links (desktop only) -->
   <div class="nav-links">
-    <a href="#features" data-i18n="nav.features">Features</a>
-    <a href="#runtime" data-i18n="nav.runtime">Runtime</a>
-    <a href="#docs" data-i18n="nav.docs">Docs</a>
     <a href="skills.html" data-i18n="nav.skills">Skills</a>
-    <a href="#action">Action</a>
     <a href="marketplace.html">Marketplace</a>
-    <a href="changelog.html">Changelog</a>
     <a href="guide.html">Guide</a>
     <a href="io.html" style="color:var(--accent);font-weight:600">IO</a>
-    <a href="search.html">🔍</a>
-    <a href="#yana">Yana</a>
-    <a href="./#codexmate">Codexmate</a>
+    <a href="changelog.html">Changelog</a>
     <a href="https://github.com/apps/yamtam-engine" target="_blank" style="color:var(--accent);font-weight:600">App ⚡</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
-    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1.05rem;padding:.2rem .4rem;border-radius:6px;line-height:1;transition:background .15s" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">🌙</button>
+  </div>
+
+  <!-- Right cluster — always visible -->
+  <div class="nav-right">
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('vi')">VI</button>
       <button class="lang-btn" onclick="setLang('ko')">KO</button>
     </div>
-    <a href="#install" class="nav-cta" data-i18n="nav.cta">Get started</a>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:background .15s" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">🌙</button>
+    <a href="#install" class="nav-cta" data-i18n="nav.cta" style="display:none" id="nav-cta-desktop">Get started</a>
   </div>
+
   <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
