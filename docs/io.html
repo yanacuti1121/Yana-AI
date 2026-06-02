@@ -1291,6 +1291,16 @@ code {
 </div><!-- /phone -->
 
 <script>
+// ── Haptic feedback (Android Chrome / supported browsers) ──
+const haptic = {
+  light  : () => navigator.vibrate?.(8),
+  medium : () => navigator.vibrate?.(18),
+  heavy  : () => navigator.vibrate?.(35),
+  success: () => navigator.vibrate?.([10, 40, 10]),
+  error  : () => navigator.vibrate?.([30, 20, 30]),
+  swipe  : () => navigator.vibrate?.(6),
+};
+
 // ── Intro ──
 function showIntro() { document.getElementById('intro-overlay').classList.add('show'); }
 function hideIntro() { document.getElementById('intro-overlay').classList.remove('show'); }
@@ -1456,7 +1466,7 @@ function updateHomeFloat() {
 }
 
 function closeCurrentApp() {
-  if (currentApp) { closeApp(currentApp); currentApp = null; updateHomeFloat(); }
+  if (currentApp) { haptic.light(); closeApp(currentApp); currentApp = null; updateHomeFloat(); }
 }
 
 function launchWindow(id) {
@@ -1479,6 +1489,7 @@ function launchWindow(id) {
 
 function openApp(id) {
   if (id === currentApp) return;
+  haptic.medium();
 
   const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
 
@@ -1579,6 +1590,7 @@ function closeApp(id) {
 let diExpanded = false;
 
 function toggleDI() {
+  haptic.light();
   const di = document.getElementById('di');
   diExpanded = !diExpanded;
   di.classList.toggle('expanded', diExpanded);
@@ -1639,6 +1651,7 @@ async function sendChat() {
   const feed = document.getElementById('chat-feed');
   const text = inp.value.trim();
   if (!text || chatBusy) return;
+  haptic.medium();
   chatBusy = true; btn.disabled = true;
   inp.value = ''; inp.style.height = '24px';
 
@@ -1705,6 +1718,7 @@ async function sendChat() {
     feed.appendChild(em);
   }
 
+  haptic.success();
   setChatState('idle');
   chatBusy = false; btn.disabled = false; inp.focus();
 }
@@ -1744,19 +1758,18 @@ document.querySelectorAll('.app-window').forEach(win => {
 
     // Swipe DOWN to close (existing)
     if (dy > 70 && Math.abs(dx) < Math.abs(dy) && dt < 400) {
-      closeApp(id); return;
+      haptic.light(); closeApp(id); return;
     }
 
     // Swipe LEFT → next app, RIGHT → previous app
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
+      haptic.swipe();
       const idx = APP_ORDER.indexOf(id);
       if (idx === -1) return;
       if (dx < 0) {
-        // swipe left → next
         const next = APP_ORDER[(idx + 1) % APP_ORDER.length];
         openApp(next);
       } else {
-        // swipe right → previous
         const prev = APP_ORDER[(idx - 1 + APP_ORDER.length) % APP_ORDER.length];
         openApp(prev);
       }
