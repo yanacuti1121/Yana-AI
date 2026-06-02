@@ -94,8 +94,10 @@ body {
   flex-shrink: 0;
 }
 .status-time {
-  font-size: .9rem; font-weight: 600; color: #fff;
+  font-size: .9rem; font-weight: 600;
+  color: hsl(210, 90%, 88%);
   letter-spacing: -.01em;
+  text-shadow: 0 0 12px hsla(210,90%,70%,.5), 0 0 4px hsla(210,100%,90%,.3);
 }
 .status-icons {
   display: flex; align-items: center; gap: 6px;
@@ -507,9 +509,153 @@ code {
 }
 
 /* ── Keyframes ── */
-@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:.3} }
-@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
-@keyframes msgIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes blink    { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes bounce   { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+@keyframes msgIn    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══ WATER DROP EFFECTS ══ */
+
+/* Ripple on tap */
+.ripple-wrap { position:relative; overflow:hidden; }
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,.35);
+  transform: scale(0);
+  animation: ripple-expand .55s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events: none; z-index: 99;
+}
+@keyframes ripple-expand {
+  0%   { transform: scale(0); opacity: .6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* Water drop floating on glass panels */
+.water-drop {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; z-index: 2;
+  backdrop-filter: blur(4px) brightness(1.3);
+  -webkit-backdrop-filter: blur(4px) brightness(1.3);
+  border: 1px solid rgba(255,255,255,.4);
+  background: radial-gradient(ellipse 40% 30% at 35% 30%,
+    rgba(255,255,255,.55),
+    rgba(255,255,255,.08) 60%,
+    transparent);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.6),
+    inset -1px -1px 3px rgba(0,0,0,.15),
+    0 2px 8px rgba(0,0,0,.2);
+  animation: drop-float var(--dur,8s) ease-in-out var(--delay,0s) infinite;
+}
+@keyframes drop-float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  25%     { transform: translate(var(--dx1,4px), var(--dy1,-6px)) scale(1.04); }
+  50%     { transform: translate(var(--dx2,-3px), var(--dy2,4px)) scale(.97); }
+  75%     { transform: translate(var(--dx3,5px), var(--dy3,-2px)) scale(1.02); }
+}
+
+/* Slide-down water drip along top edge of panels */
+.drip {
+  position: absolute; top: 0; width: 3px;
+  background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.0));
+  border-radius: 0 0 50% 50%;
+  pointer-events: none; z-index: 3;
+  animation: drip-fall var(--ddur,3s) ease-in var(--ddelay,0s) infinite;
+  transform-origin: top center;
+}
+@keyframes drip-fall {
+  0%   { height: 0; opacity: 0; }
+  10%  { height: 4px; opacity: .8; }
+  60%  { height: 18px; opacity: .6; }
+  90%  { height: 22px; opacity: 0; }
+  100% { height: 0; opacity: 0; }
+}
+
+/* ── Intro button ── */
+.intro-btn {
+  position: absolute; bottom: 10px; right: 16px; z-index: 20;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.22);
+  border-top-color: rgba(255,255,255,.35);
+  border-radius: 20px;
+  padding: .3rem .75rem;
+  color: hsl(210,90%,88%);
+  font-size: .65rem; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.2);
+  transition: background .15s, transform .15s;
+  text-shadow: 0 0 8px hsla(210,90%,70%,.4);
+}
+.intro-btn:hover { background: rgba(255,255,255,.18); transform: scale(1.04); }
+
+/* ── Intro overlay ── */
+.intro-overlay {
+  position: absolute; inset: 0; z-index: 200;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  background: rgba(0,0,0,.7);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity .35s;
+  border-radius: 52px;
+  overflow: hidden;
+}
+.intro-overlay.show { opacity: 1; pointer-events: auto; }
+
+.intro-card {
+  width: 80%; max-width: 290px;
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.22);
+  border-top-color: rgba(255,255,255,.35);
+  border-radius: 24px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.15);
+  text-align: center;
+  transform: translateY(20px);
+  transition: transform .4s .1s cubic-bezier(.16,1,.3,1);
+}
+.intro-overlay.show .intro-card { transform: translateY(0); }
+
+.intro-logo { font-size: 2.5rem; margin-bottom: .75rem; }
+.intro-title {
+  font-size: 1.1rem; font-weight: 700;
+  color: hsl(210,90%,90%);
+  text-shadow: 0 0 16px hsla(210,90%,70%,.4);
+  letter-spacing: -.02em; margin-bottom: .5rem;
+}
+.intro-desc { font-size: .78rem; color: rgba(255,255,255,.6); line-height: 1.6; margin-bottom: 1.2rem; }
+
+.intro-steps {
+  display: flex; flex-direction: column; gap: .5rem;
+  margin-bottom: 1.25rem; text-align: left;
+}
+.intro-step {
+  display: flex; align-items: center; gap: .65rem;
+  font-size: .75rem; color: rgba(255,255,255,.75);
+}
+.intro-step-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.intro-close {
+  width: 100%; padding: .6rem;
+  background: linear-gradient(135deg, hsl(221,83%,55%), hsl(265,80%,58%));
+  border: none; border-radius: 14px;
+  color: #fff; font-size: .82rem; font-weight: 600;
+  cursor: pointer; letter-spacing: -.01em;
+  box-shadow: 0 4px 16px hsla(221,83%,50%,.4), inset 0 1px 0 rgba(255,255,255,.2);
+  transition: opacity .15s;
+}
+.intro-close:hover { opacity: .88; }
 </style>
 </head>
 <body>
@@ -548,6 +694,25 @@ code {
       <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M4.5 7.5C5.7 6.3 6.8 5.7 8 5.7s2.3.6 3.5 1.8" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/><path d="M1.5 4.8C3.4 2.9 5.6 1.8 8 1.8s4.6 1.1 6.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/></svg>
       <!-- Battery -->
       <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.2" fill="none" opacity=".8"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
+    </div>
+  </div>
+
+  <!-- Intro button -->
+  <button class="intro-btn" onclick="showIntro()">? Giới thiệu</button>
+
+  <!-- Intro overlay -->
+  <div class="intro-overlay" id="intro-overlay">
+    <div class="intro-card">
+      <div class="intro-logo">⚡</div>
+      <div class="intro-title">YAMTAM IO</div>
+      <div class="intro-desc">Giao diện điện thoại — mỗi tính năng là một ứng dụng riêng.</div>
+      <div class="intro-steps">
+        <div class="intro-step"><div class="intro-step-icon">👆</div>Tap icon để mở ứng dụng</div>
+        <div class="intro-step"><div class="intro-step-icon">💬</div>IO Chat — AI thật (Llama 3.3 70B)</div>
+        <div class="intro-step"><div class="intro-step-icon">🏝️</div>Tap Dynamic Island để xem trạng thái</div>
+        <div class="intro-step"><div class="intro-step-icon">👇</div>Vuốt xuống để đóng ứng dụng</div>
+      </div>
+      <button class="intro-close" onclick="hideIntro()">Bắt đầu →</button>
     </div>
   </div>
 
@@ -614,7 +779,13 @@ code {
 
   <!-- Dock -->
   <div class="dock">
-    <div class="dock-inner">
+    <div class="dock-inner" id="dock-inner">
+      <!-- Water drops on dock -->
+      <div class="water-drop" style="width:10px;height:12px;left:18%;top:8%;--dur:7s;--delay:0s;--dx1:3px;--dy1:-4px;--dx2:-2px;--dy2:3px;--dx3:4px;--dy3:-1px"></div>
+      <div class="water-drop" style="width:7px;height:9px;left:52%;top:12%;--dur:9s;--delay:1.5s;--dx1:-4px;--dy1:-3px;--dx2:3px;--dy2:4px;--dx3:-3px;--dy3:2px"></div>
+      <div class="water-drop" style="width:8px;height:10px;left:78%;top:6%;--dur:11s;--delay:3s;--dx1:2px;--dy1:-5px;--dx2:-3px;--dy2:2px;--dx3:4px;--dy3:-3px"></div>
+      <div class="drip" style="left:25%;--ddur:4s;--ddelay:.5s"></div>
+      <div class="drip" style="left:65%;--ddur:5.5s;--ddelay:2.2s"></div>
       <div class="app-icon" onclick="openApp('chat')" style="gap:0">
         <div class="app-icon-img app-chat" style="width:56px;height:56px;border-radius:14px">💬</div>
       </div>
@@ -886,6 +1057,32 @@ code {
 </div><!-- /phone -->
 
 <script>
+// ── Intro ──
+function showIntro() { document.getElementById('intro-overlay').classList.add('show'); }
+function hideIntro() { document.getElementById('intro-overlay').classList.remove('show'); }
+
+// ── Water drop ripple on tap ──
+function addRipple(e, el) {
+  const rect = el.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  const size = Math.max(rect.width, rect.height) * 1.2;
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  r.style.cssText = `width:${size}px;height:${size}px;left:${x - size/2}px;top:${y - size/2}px`;
+  el.appendChild(r);
+  r.addEventListener('animationend', () => r.remove());
+}
+
+// Attach ripple to all interactive elements
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.app-icon-img, .app-win-close, #chat-send, .intro-close, .intro-btn').forEach(el => {
+    el.classList.add('ripple-wrap');
+    el.addEventListener('click', e => addRipple(e, el));
+    el.addEventListener('touchstart', e => addRipple(e, el), { passive: true });
+  });
+});
+
 // ── Clock ──
 function updateClock() {
   const now = new Date();
