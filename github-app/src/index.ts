@@ -53,14 +53,19 @@ app.post('/webhook', async (c) => {
     const installationId: number = payload.installation.id;
     const results: string[] = [];
 
+    console.log(`[yamtam] repos_added count=${repos.length} installationId=${installationId}`);
+
     for (const repo of repos) {
       try {
         const octokit = getOctokit(c.env, installationId);
         const [owner, repoName] = repo.full_name.split('/');
         const prUrl = await installYamtam({ octokit, owner, repo: repoName });
         results.push(`${repo.full_name} → ${prUrl}`);
+        console.log(`[yamtam] Installed on ${repo.full_name}: ${prUrl}`);
       } catch (err) {
-        console.error(`[yamtam] Failed on ${repo.full_name}:`, err);
+        const msg = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
+        console.error(`[yamtam] Failed on ${repo.full_name}:`, msg);
+        results.push(`${repo.full_name} → ERROR: ${msg}`);
       }
     }
 

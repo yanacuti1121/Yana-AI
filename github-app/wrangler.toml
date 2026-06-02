@@ -4,7 +4,7 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-APP_ID = ""          # set via: wrangler secret put APP_ID
+APP_ID = "3936497"
 
 # Secrets (set via wrangler secret put):
 # GITHUB_APP_PRIVATE_KEY  - PEM private key (base64)
