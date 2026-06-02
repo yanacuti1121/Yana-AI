@@ -1097,8 +1097,56 @@ updateClock();
 setInterval(updateClock, 10000);
 
 // ── App open/close ──
+function spawnDrops(win) {
+  // Remove old drops first
+  win.querySelectorAll('.water-drop,.drip').forEach(d => d.remove());
+
+  const header = win.querySelector('.app-win-header');
+  const body   = win.querySelector('.app-win-body');
+  const targets = [header, body].filter(Boolean);
+
+  targets.forEach((el, ti) => {
+    el.style.position = 'relative';
+    el.style.overflow = 'hidden';
+
+    // 2-3 floating drops per panel
+    const count = ti === 0 ? 2 : 3;
+    for (let i = 0; i < count; i++) {
+      const d = document.createElement('div');
+      d.className = 'water-drop';
+      const s = 7 + Math.random() * 8;
+      const dx1 = (Math.random()*10-5).toFixed(1)+'px';
+      const dy1 = (Math.random()*10-5).toFixed(1)+'px';
+      const dx2 = (Math.random()*10-5).toFixed(1)+'px';
+      const dy2 = (Math.random()*10-5).toFixed(1)+'px';
+      const dx3 = (Math.random()*10-5).toFixed(1)+'px';
+      const dy3 = (Math.random()*10-5).toFixed(1)+'px';
+      d.style.cssText = [
+        `width:${s}px`, `height:${s*1.2}px`,
+        `left:${10+Math.random()*80}%`, `top:${5+Math.random()*70}%`,
+        `--dur:${7+Math.random()*6}s`, `--delay:${Math.random()*3}s`,
+        `--dx1:${dx1}`,`--dy1:${dy1}`,
+        `--dx2:${dx2}`,`--dy2:${dy2}`,
+        `--dx3:${dx3}`,`--dy3:${dy3}`,
+      ].join(';');
+      el.appendChild(d);
+    }
+
+    // 1-2 drip along top edge
+    const drips = ti === 0 ? 1 : 2;
+    for (let i = 0; i < drips; i++) {
+      const dr = document.createElement('div');
+      dr.className = 'drip';
+      dr.style.cssText = `left:${15+Math.random()*70}%;--ddur:${3+Math.random()*4}s;--ddelay:${Math.random()*4}s`;
+      el.appendChild(dr);
+    }
+  });
+}
+
 function openApp(id) {
-  document.getElementById('win-' + id).classList.add('open');
+  const win = document.getElementById('win-' + id);
+  win.classList.add('open');
+  spawnDrops(win);
   if (id === 'chat') {
     initChat();
     // Auto-expand DI when chat opens
