@@ -87,26 +87,76 @@ body {
 }
 .status-icons svg { fill: #fff; }
 
-/* Dynamic island */
+/* Dynamic Island */
 .dynamic-island {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  width: 120px; height: 34px;
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 30;
   background: #000;
   border-radius: 20px;
-  z-index: 20;
+  overflow: hidden;
+  cursor: pointer;
+
+  /* default: pill 126×36 */
+  width: 126px; height: 36px;
+  transition: width .45s cubic-bezier(.16,1,.3,1),
+              height .45s cubic-bezier(.16,1,.3,1),
+              border-radius .45s cubic-bezier(.16,1,.3,1);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+}
+
+/* Expanded state */
+.dynamic-island.expanded {
+  width: 310px; height: 76px;
+  border-radius: 28px;
+}
+
+/* Default inner: camera + sensor */
+.di-default {
+  position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity .2s;
 }
 .di-camera {
   width: 10px; height: 10px; border-radius: 50%;
-  background: #1a1a2a;
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 0 0 1.5px rgba(255,255,255,.04);
+  background: #1a1a2a; border: 1px solid rgba(255,255,255,.08);
 }
 .di-sensor {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #0f3a3a;
-  box-shadow: 0 0 4px #00ffff44;
+  background: #0f3a3a; box-shadow: 0 0 5px #00ffff66;
 }
+.dynamic-island.expanded .di-default { opacity: 0; pointer-events: none; }
+
+/* Expanded inner */
+.di-expanded {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s .2s;
+}
+.dynamic-island.expanded .di-expanded { opacity: 1; pointer-events: auto; }
+
+.di-av {
+  width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
+  background: rgba(255,255,255,.06); overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.di-av-inner { width: 100%; height: 100%; transform: scale(1.4); }
+
+.di-text { flex: 1; overflow: hidden; }
+.di-title { font-size: .72rem; font-weight: 600; color: #fff; white-space: nowrap; }
+.di-sub   {
+  font-size: .62rem; color: rgba(255,255,255,.45); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.di-badge {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #34d058; box-shadow: 0 0 5px #34d058;
+  flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+.di-badge.thinking  { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; animation: blink .7s ease-in-out infinite; }
+.di-badge.responding{ background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
 
 /* ── Home screen ── */
 .home-screen {
@@ -389,9 +439,21 @@ code {
   <div class="wallpaper"></div>
 
   <!-- Dynamic Island -->
-  <div class="dynamic-island">
-    <div class="di-sensor"></div>
-    <div class="di-camera"></div>
+  <div class="dynamic-island" id="di" onclick="toggleDI()">
+    <!-- Default: pill view -->
+    <div class="di-default">
+      <div class="di-sensor"></div>
+      <div class="di-camera"></div>
+    </div>
+    <!-- Expanded: live activity -->
+    <div class="di-expanded">
+      <div class="di-av"><div class="di-av-inner" id="di-lottie"></div></div>
+      <div class="di-text">
+        <div class="di-title">YAMTAM IO</div>
+        <div class="di-sub" id="di-sub-txt">Nhấn để mở chat</div>
+      </div>
+      <div class="di-badge" id="di-badge"></div>
+    </div>
   </div>
 
   <!-- Status bar -->
@@ -758,13 +820,62 @@ setInterval(updateClock, 10000);
 // ── App open/close ──
 function openApp(id) {
   document.getElementById('win-' + id).classList.add('open');
-  if (id === 'chat') initChat();
+  if (id === 'chat') {
+    initChat();
+    // Auto-expand DI when chat opens
+    if (!diExpanded) {
+      diExpanded = true;
+      document.getElementById('di').classList.add('expanded');
+      initDI();
+      diAnim && diAnim.play();
+    }
+  }
 }
 function closeApp(id) {
   document.getElementById('win-' + id).classList.remove('open');
+  if (id === 'chat') {
+    // Collapse DI when chat closes
+    diExpanded = false;
+    document.getElementById('di').classList.remove('expanded');
+    diAnim && diAnim.stop();
+    setDIState('idle');
+  }
 }
 
 // ── Chat logic ──
+// ── Dynamic Island ──
+let diAnim = null, diExpanded = false;
+
+function initDI() {
+  if (diAnim) return;
+  diAnim = makeLottie(document.getElementById('di-lottie'), false);
+}
+
+function toggleDI() {
+  const di = document.getElementById('di');
+  diExpanded = !diExpanded;
+  di.classList.toggle('expanded', diExpanded);
+  if (diExpanded) {
+    initDI();
+    diAnim && diAnim.play();
+  } else {
+    diAnim && diAnim.stop();
+  }
+}
+
+function setDIState(s) {
+  const badge = document.getElementById('di-badge');
+  const sub   = document.getElementById('di-sub-txt');
+  if (!badge) return;
+  badge.className = 'di-badge';
+  if (s === 'idle')       { sub.textContent = 'Sẵn sàng'; diAnim && diAnim.stop(); }
+  if (s === 'thinking')   { badge.classList.add('thinking');   sub.textContent = 'Đang nghĩ…';    diAnim && (diAnim.setSpeed(1.8), diAnim.play()); }
+  if (s === 'responding') { badge.classList.add('responding'); sub.textContent = 'Đang trả lời'; diAnim && (diAnim.setSpeed(1),   diAnim.play()); }
+}
+
+// Expand DI when chat opens
+const _origOpenApp = window.openApp;
+
 let chatInited = false, chatAnim = null, welcomeAnim = null, chatBusy = false;
 const chatDemos = [
   'Tôi có thể giúp bạn debug, review code, commit, hoặc lên kế hoạch sprint.',
@@ -793,6 +904,7 @@ function setChatState(s) {
   if (s === 'idle')       { chatAnim.stop(); dot.className='chat-dot'; txt.textContent='Sẵn sàng'; }
   if (s === 'thinking')   { chatAnim.setSpeed(1.8); chatAnim.play(); dot.className='chat-dot thinking'; txt.textContent='Đang nghĩ…'; }
   if (s === 'responding') { chatAnim.setSpeed(1);   chatAnim.play(); dot.className='chat-dot'; dot.style.cssText='background:#60a5fa;box-shadow:0 0 6px #60a5fa'; txt.textContent='Đang trả lời'; }
+  setDIState(s);
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
