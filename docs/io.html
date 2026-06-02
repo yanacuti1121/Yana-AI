@@ -433,6 +433,24 @@ body {
   letter-spacing: .06em; text-transform: uppercase;
   font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,.5);
 }
+/* Swipe hint dots */
+.swipe-hint {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; align-items: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+  z-index: 59;
+}
+.swipe-hint.visible { opacity: 1; }
+.swipe-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  transition: background .2s, transform .2s;
+}
+.swipe-dot.active {
+  background: rgba(255,255,255,.85);
+  transform: scale(1.3);
+}
 
 .app-win-header {
   flex-shrink: 0;
@@ -931,6 +949,9 @@ code {
     <div class="home-float-pill"></div>
   </div>
 
+  <!-- Swipe position dots -->
+  <div class="swipe-hint" id="swipe-hint"></div>
+
   <!-- ════ APP WINDOWS ════ -->
 
   <!-- Chat -->
@@ -1343,7 +1364,24 @@ function spawnDrops(win) {
 let currentApp = null;
 
 function updateHomeFloat() {
-  document.getElementById('home-float').classList.toggle('visible', !!currentApp);
+  const show = !!currentApp;
+  document.getElementById('home-float').classList.toggle('visible', show);
+
+  // Update swipe dots
+  const hint = document.getElementById('swipe-hint');
+  hint.classList.toggle('visible', show);
+  if (show) {
+    const idx = APP_ORDER.indexOf(currentApp);
+    // Show 5 dots centered on current
+    const half = 2;
+    const start = Math.max(0, Math.min(idx - half, APP_ORDER.length - 5));
+    hint.innerHTML = '';
+    for (let i = start; i < Math.min(start + 5, APP_ORDER.length); i++) {
+      const d = document.createElement('div');
+      d.className = 'swipe-dot' + (i === idx ? ' active' : '');
+      hint.appendChild(d);
+    }
+  }
 }
 
 function closeCurrentApp() {
@@ -1601,16 +1639,50 @@ document.getElementById('chat-input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 80) + 'px';
 });
 
-// Swipe down to close (touch)
-let touchStartY = 0;
+// ── App order for swipe navigation ──
+const APP_ORDER = [
+  'chat','skills','agents','debug',
+  'review','commit','security','deploy',
+  'sprint','docs','stats','settings',
+  'test','refactor','map','pr'
+];
+
+// Swipe gestures on all app windows
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
 document.querySelectorAll('.app-window').forEach(win => {
-  win.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive:true});
+  win.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
   win.addEventListener('touchend', e => {
-    if (e.changedTouches[0].clientY - touchStartY > 60) {
-      const id = win.id.replace('win-','');
-      closeApp(id);
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dt = Date.now() - touchStartTime;
+    const id = win.id.replace('win-', '');
+
+    // Swipe DOWN to close (existing)
+    if (dy > 70 && Math.abs(dx) < Math.abs(dy) && dt < 400) {
+      closeApp(id); return;
     }
-  }, {passive:true});
+
+    // Swipe LEFT → next app, RIGHT → previous app
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
+      const idx = APP_ORDER.indexOf(id);
+      if (idx === -1) return;
+      if (dx < 0) {
+        // swipe left → next
+        const next = APP_ORDER[(idx + 1) % APP_ORDER.length];
+        openApp(next);
+      } else {
+        // swipe right → previous
+        const prev = APP_ORDER[(idx - 1 + APP_ORDER.length) % APP_ORDER.length];
+        openApp(prev);
+      }
+    }
+  }, { passive: true });
 });
 </script>
 </body>
