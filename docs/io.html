@@ -877,14 +877,7 @@ function setDIState(s) {
 const _origOpenApp = window.openApp;
 
 let chatInited = false, chatAnim = null, welcomeAnim = null, chatBusy = false;
-const chatDemos = [
-  'Tôi có thể giúp bạn debug, review code, commit, hoặc lên kế hoạch sprint.',
-  'YAMTAM có <code>3,437</code> skills sẵn sàng. Bạn cần loại nào?',
-  'Dùng <code>/code-review</code>, <code>/debug</code>, hay <code>/quick-commit</code> để bắt đầu.',
-  'Tôi chạy trên <code>claude-sonnet-4-6</code>. Cứ hỏi thoải mái.',
-  'Mỗi request qua 9-bước middleware pipeline trước khi tôi trả lời.',
-];
-let chatDemoIdx = 0;
+const chatHistory = []; // [{role:'user'|'assistant', content:'...'}]
 
 function makeLottie(el, play) {
   return lottie.loadAnimation({ container:el, renderer:'svg', loop:true, autoplay:!!play, path:'chatgpt-atlas-animation.json' });
@@ -910,11 +903,24 @@ function setChatState(s) {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function esc(s)    { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function addThinkingBubble(feed) {
+  const tm = document.createElement('div'); tm.className = 'cmsg ai';
+  const tcav = document.createElement('div'); tcav.className = 'cav';
+  const tci = document.createElement('div'); tci.className = 'cav-inner';
+  tcav.appendChild(tci);
+  const tanim = makeLottie(tci, true);
+  const tdots = document.createElement('div'); tdots.className = 'think-dots';
+  tdots.innerHTML = '<span></span><span></span><span></span>';
+  tm.appendChild(tcav); tm.appendChild(tdots);
+  feed.appendChild(tm); feed.scrollTop = feed.scrollHeight;
+  return { el: tm, anim: tanim };
+}
+
 async function sendChat() {
-  const inp = document.getElementById('chat-input');
-  const btn = document.getElementById('chat-send');
-  const feed= document.getElementById('chat-feed');
-  const text= inp.value.trim();
+  const inp  = document.getElementById('chat-input');
+  const btn  = document.getElementById('chat-send');
+  const feed = document.getElementById('chat-feed');
+  const text = inp.value.trim();
   if (!text || chatBusy) return;
   chatBusy = true; btn.disabled = true;
   inp.value = ''; inp.style.height = '24px';
@@ -924,39 +930,67 @@ async function sendChat() {
   um.innerHTML = `<div class="cbubble">${esc(text)}</div><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0">You</div>`;
   feed.appendChild(um); feed.scrollTop = feed.scrollHeight;
 
+  chatHistory.push({ role: 'user', content: text });
   setChatState('thinking');
+  const { el: thinkEl, anim: thinkAnim } = addThinkingBubble(feed);
 
-  // Thinking indicator
-  const tm = document.createElement('div'); tm.className = 'cmsg ai';
-  const tcav = document.createElement('div'); tcav.className = 'cav';
-  const tci = document.createElement('div'); tci.className = 'cav-inner';
-  tcav.appendChild(tci); const tanim = makeLottie(tci, true);
-  const tdots = document.createElement('div'); tdots.className = 'think-dots';
-  tdots.innerHTML = '<span></span><span></span><span></span>';
-  tm.appendChild(tcav); tm.appendChild(tdots);
-  feed.appendChild(tm); feed.scrollTop = feed.scrollHeight;
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory }),
+    });
 
-  await sleep(1200 + Math.random() * 800);
-  tm.remove(); tanim.destroy();
-  setChatState('responding');
+    thinkEl.remove(); thinkAnim.destroy();
+    setChatState('responding');
 
-  // Type response
-  const reply = chatDemos[chatDemoIdx++ % chatDemos.length];
-  const plain = reply.replace(/<[^>]+>/g,'');
-  const am = document.createElement('div'); am.className = 'cmsg ai';
-  const acav = document.createElement('div'); acav.className = 'cav';
-  const aci = document.createElement('div'); aci.className = 'cav-inner';
-  acav.appendChild(aci); const aanim = makeLottie(aci, true);
-  const abub = document.createElement('div'); abub.className = 'cbubble';
-  am.appendChild(acav); am.appendChild(abub);
-  feed.appendChild(am);
+    // AI bubble
+    const am = document.createElement('div'); am.className = 'cmsg ai';
+    const acav = document.createElement('div'); acav.className = 'cav';
+    const aci = document.createElement('div'); aci.className = 'cav-inner';
+    acav.appendChild(aci);
+    const aanim = makeLottie(aci, true);
+    const abub = document.createElement('div'); abub.className = 'cbubble';
+    am.appendChild(acav); am.appendChild(abub);
+    feed.appendChild(am);
 
-  for (let i = 0; i <= plain.length; i++) {
-    abub.textContent = plain.slice(0, i);
-    feed.scrollTop = feed.scrollHeight;
-    await sleep(15);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Parse SSE stream
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '', full = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6);
+        if (raw === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(raw);
+          if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+            full += ev.delta.text;
+            abub.textContent = full;
+            feed.scrollTop = feed.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    chatHistory.push({ role: 'assistant', content: full });
+    aanim.stop();
+
+  } catch (err) {
+    thinkEl.remove();
+    const em = document.createElement('div'); em.className = 'cmsg ai';
+    em.innerHTML = `<div class="cbubble" style="color:rgba(255,100,100,.8);font-size:.75rem">⚠ ${esc(err.message)}</div>`;
+    feed.appendChild(em);
   }
-  abub.innerHTML = reply; aanim.stop();
 
   setChatState('idle');
   chatBusy = false; btn.disabled = false; inp.focus();
