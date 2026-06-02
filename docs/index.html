@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1127,6 +1129,32 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </button>
 
       </div>
+
+      <!-- Particle Visualizer card -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(280,80%,60%,.1);color:#a78bfa;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(280,80%,60%,.2);letter-spacing:.05em">Three.js</span>
+          <span style="color:hsl(215,20%,45%);font-size:.73rem;font-style:italic">Gemini experiment</span>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#a78bfa,#f472b6,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+            Particle Visualizer
+          </div>
+          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
+            SVG Path extraction · Particle morphing · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#a78bfa">GSAP Timeline</span>
+          </div>
+        </div>
+        <!-- Hidden SVG path source -->
+        <svg width="0" height="0" style="position:absolute;pointer-events:none">
+          <path id="demo-path" d="M120 52 L163 69 L163 112 Q163 149 120 170 Q77 149 77 112 L77 69 Z"/>
+        </svg>
+        <div id="particle-canvas-container" style="background:hsl(24,10%,6%);border:1px solid hsl(280,20%,16%);border-radius:10px;height:180px;overflow:hidden;position:relative"></div>
+        <button id="run-btn-particle" onclick="runParticleDemo()"
+          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(280,80%,40%,.3)"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span id="run-icon-particle">▶</span> Animate
+        </button>
+      </div>
     </div>
   </div>
 </section>
@@ -2213,6 +2241,104 @@ window.addEventListener('DOMContentLoaded',function(){
     else if (el) el.textContent = 'open source';
   } catch {}
 })();
+
+// Particle Visualizer Demo
+let particleScene, particleCamera, particleRenderer, particleSystem;
+let particleDemoRunning = false;
+
+function runParticleDemo() {
+  if (particleDemoRunning) return;
+  particleDemoRunning = true;
+  
+  const container = document.getElementById('particle-canvas-container');
+  const btn = document.getElementById('run-btn-particle');
+  const icon = document.getElementById('run-icon-particle');
+  
+  btn.disabled = true;
+  icon.textContent = '◼';
+  container.innerHTML = '';
+  
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  
+  particleScene = new THREE.Scene();
+  particleCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+  particleCamera.position.z = 150;
+  
+  particleRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  particleRenderer.setSize(width, height);
+  particleRenderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(particleRenderer.domElement);
+  
+  // Extract points from SVG
+  const path = document.getElementById('demo-path');
+  const points = [];
+  const totalLength = path.getTotalLength();
+  const numParticles = 400;
+  
+  for (let i = 0; i < numParticles; i++) {
+    const distance = (i / numParticles) * totalLength;
+    const point = path.getPointAtLength(distance);
+    points.push(new THREE.Vector3(point.x - 120, -(point.y - 110), 0));
+  }
+  
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.PointsMaterial({
+    color: 0xa78bfa,
+    size: 2,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  
+  particleSystem = new THREE.Points(geometry, material);
+  particleScene.add(particleSystem);
+  
+  // GSAP Animation
+  const positions = geometry.attributes.position.array;
+  const tl = gsap.timeline({
+    onComplete: () => {
+      btn.disabled = false;
+      icon.textContent = '▶';
+      particleDemoRunning = false;
+    }
+  });
+  
+  // Explode effect
+  for (let i = 0; i < numParticles; i++) {
+    const ix = i * 3;
+    tl.to(positions, {
+      [ix]: (Math.random() - 0.5) * 300,
+      [ix + 1]: (Math.random() - 0.5) * 300,
+      [ix + 2]: (Math.random() - 0.5) * 300,
+      duration: 1.5,
+      ease: "power2.out"
+    }, 0);
+  }
+  
+  // Morph back to shape
+  for (let i = 0; i < numParticles; i++) {
+    const ix = i * 3;
+    const target = points[i];
+    tl.to(positions, {
+      [ix]: target.x,
+      [ix + 1]: target.y,
+      [ix + 2]: target.z,
+      duration: 2,
+      ease: "elastic.out(1, 0.3)"
+    }, 1.5);
+  }
+  
+  function animate() {
+    if (!particleDemoRunning) return;
+    requestAnimationFrame(animate);
+    geometry.attributes.position.needsUpdate = true;
+    particleSystem.rotation.y += 0.01;
+    particleRenderer.render(particleScene, particleCamera);
+  }
+  
+  animate();
+}
 </script>
 </body>
 </html>
