@@ -1,0 +1,67 @@
+{
+  "version": "1.8.0",
+  "metadata": {
+    "description": "YAMTAM Capability Matrix - Definitive permission map for Agent Gates L0-L5",
+    "last_updated": "2026-06-02"
+  },
+  "tiers": {
+    "core": {
+      "description": "Full system access - Reserved for internal YAMTAM maintenance agents",
+      "capabilities": ["*"],
+      "gate_level_min": "L0",
+      "gate_level_max": "L3"
+    },
+    "standard": {
+      "description": "Standard coding assistant capabilities",
+      "capabilities": [
+        "filesystem_read",
+        "filesystem_write",
+        "shell_execute_safe",
+        "git_commit"
+      ],
+      "gate_level_min": "L1",
+      "gate_level_max": "L4"
+    },
+    "restricted": {
+      "description": "Limited access for speculative or untrusted research",
+      "capabilities": [
+        "filesystem_read",
+        "shell_execute_readonly"
+      ],
+      "gate_level_min": "L2",
+      "gate_level_max": "L5"
+    }
+  },
+  "gates": {
+    "L0_AUDIT": {
+      "action": "log",
+      "enforcement": "passive",
+      "description": "Logs every tool call without blocking."
+    },
+    "L1_SCOPE": {
+      "action": "check_whitelist",
+      "enforcement": "active",
+      "description": "Ensures edits stay within declared project boundaries."
+    },
+    "L2_COMMIT": {
+      "action": "warn_cross_scope",
+      "enforcement": "active",
+      "description": "Warns on commits spanning multiple architecture layers."
+    },
+    "L3_TRUTH": {
+      "action": "validate_evidence",
+      "enforcement": "strict",
+      "description": "Blocks claims of success without verifiable tool output."
+    },
+    "L4_DEPLOY": {
+      "action": "block_all",
+      "enforcement": "manual_approval",
+      "description": "Blocks all deployment and cloud-mutating commands."
+    },
+    "L5_DESTRUCTIVE": {
+      "action": "hard_block",
+      "enforcement": "forbidden",
+      "description": "Hard blocks rm -rf, drop table, and other destructive commands."
+    }
+  }
+}
