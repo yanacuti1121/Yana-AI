@@ -1377,30 +1377,59 @@ function spawnDrops(win) {
   });
 }
 
-// ── Scroll-in animation for app rows ──
+// ── Scroll-in + scroll-parallax animation ──
 function initScrollAnim(win) {
   const body = win.querySelector('.app-win-body');
   if (!body) return;
 
-  // Reset all rows to hidden
-  const rows = body.querySelectorAll('.app-row, .app-section-title');
+  // Reset all rows
+  const rows = [...body.querySelectorAll('.app-row, .app-section-title')];
   rows.forEach(el => el.classList.remove('visible'));
 
-  // Observe each row
+  // IntersectionObserver: animate in when entering viewport
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const el = entry.target;
-        const siblings = [...body.querySelectorAll('.app-row, .app-section-title')];
-        const idx = siblings.indexOf(el);
-        // Stagger: each item 55ms after previous
-        setTimeout(() => el.classList.add('visible'), idx * 55);
-        observer.unobserve(el);
+        const idx = rows.indexOf(entry.target);
+        setTimeout(() => entry.target.classList.add('visible'), idx * 45);
+        observer.unobserve(entry.target);
       }
     });
-  }, { root: body, threshold: 0.1 });
-
+  }, { root: body, threshold: 0.08 });
   rows.forEach(el => observer.observe(el));
+
+  // Scroll parallax: rows near top edge scale/fade slightly
+  const onScroll = () => {
+    const bodyRect = body.getBoundingClientRect();
+    const bodyH = body.clientHeight;
+    rows.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const relTop = rect.top - bodyRect.top;         // position relative to scroll container
+      const relBot = bodyRect.bottom - rect.bottom;
+
+      // Top fade-out: row scrolling off the top
+      if (relTop < 0) {
+        const ratio = Math.max(0, 1 + relTop / 60);  // 0→1 as top 60px scroll past
+        el.style.opacity = ratio;
+        el.style.transform = `translateY(${relTop * .15}px) scale(${0.92 + ratio * .08})`;
+      }
+      // Bottom fade-in: row entering from bottom
+      else if (relTop > bodyH - 24) {
+        const ratio = Math.max(0, 1 - (relTop - bodyH + 24) / 50);
+        el.style.opacity = ratio;
+        el.style.transform = `translateY(${(1 - ratio) * 10}px)`;
+      }
+      // Normal: full opacity in middle zone
+      else {
+        el.style.opacity = '';
+        el.style.transform = '';
+      }
+    });
+  };
+
+  body.addEventListener('scroll', onScroll, { passive: true });
+  // Store handler so we can remove on close
+  body._scrollHandler = onScroll;
 }
 
 let currentApp = null;
@@ -1520,6 +1549,12 @@ function closeApp(id) {
   win.classList.add('closing');
   win.addEventListener('animationend', () => {
     win.classList.remove('open', 'closing');
+    // Cleanup scroll handler
+    const body = win.querySelector('.app-win-body');
+    if (body && body._scrollHandler) {
+      body.removeEventListener('scroll', body._scrollHandler);
+      delete body._scrollHandler;
+    }
 
     // Icon catches the app coming back
     const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
