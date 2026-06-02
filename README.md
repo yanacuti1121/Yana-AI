@@ -34,7 +34,7 @@
 
 ---
 
-**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 93 specialist agents, 8,550 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 93 specialist agents, 3,432 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
@@ -74,7 +74,7 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **8,550** workflow skill definitions |
+| Skills | **3,432** workflow skill definitions |
 | Agents | **93** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
@@ -157,7 +157,7 @@ Posts a comment on every PR:
 ```bash
 yamtam scan .          # security scan — secrets, CVEs, supply chain risks
 yamtam graph .         # knowledge graph — file deps, import resolution
-yamtam vault search Q  # search 8,550 skills by keyword
+yamtam vault search Q  # search 3,432 skills by keyword
 yamtam hunt .          # hunt for security patterns (OWASP, injection, SSRF)
 yamtam fix .           # auto-fix rule violations
 yamtam doctor .        # full system health check
@@ -178,7 +178,7 @@ core/
 ├── scripts/        # safe-run.sh, drift-check.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 93 specialist agent definitions
-├── skills/         # 8,550 SKILL.md files
+├── skills/         # 3,432 SKILL.md files
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
     └── L2_session/ # session state — auto-expires
@@ -221,9 +221,9 @@ Key properties:
 One person. No team. No funding. Starting from zero in February 2026.
 
 - **Month 1:** Hook architecture, safety gates, Python CLI
-- **Month 2:** Rust runtime (`yamtam-rt`), 93 agents, 8,550 skills, multi-harness support
+- **Month 2:** Rust runtime (`yamtam-rt`), 93 agents, 3,432 skills, multi-harness support
 
-The 8,550 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
+The 3,432 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
 
 ---
 
