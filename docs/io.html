@@ -610,9 +610,25 @@ body {
   display:flex; align-items:center; gap:12px;
   background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
   border-radius:14px; padding:12px 14px; cursor:pointer;
-  transition:background .15s;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  /* scroll-in initial state */
+  opacity: 0;
+  transform: translateY(16px) scale(.97);
 }
-.app-row:hover { background:rgba(255,255,255,.1); }
+.app-row.visible {
+  animation: row-in .4s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes row-in {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.app-row:hover { background:rgba(255,255,255,.1); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+
+/* Section title scroll-in */
+.app-section-title {
+  opacity: 0; transform: translateX(-8px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.app-section-title.visible { opacity: 1; transform: translateX(0); }
 .app-row-icon { font-size:1.3rem; flex-shrink:0; width:36px; text-align:center; }
 .app-row-info { flex:1; }
 .app-row-title { font-size:.84rem; font-weight:500; color:rgba(255,255,255,.9); }
@@ -1361,6 +1377,32 @@ function spawnDrops(win) {
   });
 }
 
+// ── Scroll-in animation for app rows ──
+function initScrollAnim(win) {
+  const body = win.querySelector('.app-win-body');
+  if (!body) return;
+
+  // Reset all rows to hidden
+  const rows = body.querySelectorAll('.app-row, .app-section-title');
+  rows.forEach(el => el.classList.remove('visible'));
+
+  // Observe each row
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const siblings = [...body.querySelectorAll('.app-row, .app-section-title')];
+        const idx = siblings.indexOf(el);
+        // Stagger: each item 55ms after previous
+        setTimeout(() => el.classList.add('visible'), idx * 55);
+        observer.unobserve(el);
+      }
+    });
+  }, { root: body, threshold: 0.1 });
+
+  rows.forEach(el => observer.observe(el));
+}
+
 let currentApp = null;
 
 function updateHomeFloat() {
@@ -1394,6 +1436,7 @@ function launchWindow(id) {
   const win = document.getElementById('win-' + id);
   win.classList.add('open');
   spawnDrops(win);
+  setTimeout(() => initScrollAnim(win), 200);
   if (id === 'chat') {
     initChat();
     if (!diExpanded) {
@@ -1442,6 +1485,7 @@ function openApp(id) {
       newWin.classList.add('open', 'switching-in');
       newWin.addEventListener('animationend', () => newWin.classList.remove('switching-in'), { once: true });
       spawnDrops(newWin);
+      setTimeout(() => initScrollAnim(newWin), 250);
       if (id === 'chat') {
         initChat();
         if (!diExpanded) {
