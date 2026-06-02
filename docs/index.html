@@ -747,16 +747,16 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Install -->
 <div class="install-section" id="install">
   <div class="install-inner">
-    <h2>Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
-    <p class="install-sub">One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.</p>
+    <h2 data-i18n="h2.install">Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
+    <p class="install-sub" data-i18n="install.sub">One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.</p>
 
     <!-- GitHub App 1-click -->
     <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--bg-card);border:1px solid hsla(221,75%,48%,.35);border-radius:12px;text-align:left">
       <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
         <span style="font-size:1.4rem">⚡</span>
         <div>
-          <div style="font-weight:700;font-size:.9375rem">Fastest: GitHub App</div>
-          <div style="font-size:.8125rem;color:var(--fg-muted)">Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.</div>
+          <div style="font-weight:700;font-size:.9375rem" data-i18n="install.app.title">Fastest: GitHub App</div>
+          <div style="font-size:.8125rem;color:var(--fg-muted)" data-i18n="install.app.desc">Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
@@ -765,13 +765,13 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
            onmouseover="this.style.background='var(--accent-hover)'"
            onmouseout="this.style.background='var(--accent)'">
           <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-          Install GitHub App
+          <span data-i18n="install.app.btn">Install GitHub App</span>
         </a>
-        <span style="font-size:.8rem;color:var(--fg-muted)">Works on any public or private repo</span>
+        <span style="font-size:.8rem;color:var(--fg-muted)" data-i18n="install.app.note">Works on any public or private repo</span>
       </div>
     </div>
 
-    <div style="font-size:.8125rem;color:var(--fg-muted);margin-bottom:.75rem">or install manually:</div>
+    <div style="font-size:.8125rem;color:var(--fg-muted);margin-bottom:.75rem" data-i18n="install.manual">or install manually:</div>
     <div class="install-tabs">
       <button class="tab active" onclick="setTab(this,'curl')">curl</button>
       <button class="tab" onclick="setTab(this,'npm')">npm</button>
@@ -1358,9 +1358,9 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Scale -->
 <section id="scale" style="border-top:1px solid var(--border);background:var(--bg)">
   <div class="section-inner">
-    <div class="section-label">Scale</div>
-    <h2 style="margin-bottom:.5rem">1,026,000 dòng code</h2>
-    <p class="section-sub" style="margin-bottom:2.5rem">Một người xây — từ tháng 02/2026. Không template, không generate.</p>
+    <div class="section-label" data-i18n="section.scale">Scale</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.scale">1,026,000 dòng code</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.scale">Một người xây — từ tháng 02/2026. Không template, không generate.</p>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2.5rem">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
@@ -1432,9 +1432,9 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- GitHub Action -->
 <section id="action" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
-    <div class="section-label">GitHub Action</div>
-    <h2 style="margin-bottom:.5rem">Scan every PR automatically</h2>
-    <p class="section-sub" style="margin-bottom:2rem">One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.</p>
+    <div class="section-label" data-i18n="section.action">GitHub Action</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.action">Scan every PR automatically</h2>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.action">One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.</p>
 
     <div style="background:hsl(222,47%,9%);border:1px solid hsl(217,33%,17%);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;font-family:var(--mono);font-size:.875rem;line-height:1.7;color:hsl(210,40%,90%)">
       <div style="color:hsl(215,20%,55%);margin-bottom:.75rem;font-size:.75rem;letter-spacing:.05em">▸ .github/workflows/yamtam-scan.yml</div>
@@ -1478,9 +1478,9 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Review -->
 <section id="review" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
-    <div class="section-label">Đánh giá độc lập</div>
-    <h2 style="margin-bottom:.5rem">Nhận xét từ bên ngoài</h2>
-    <p class="section-sub" style="margin-bottom:2.5rem">Đánh giá kỹ thuật độc lập về kiến trúc, chất lượng mã nguồn và tiềm năng của YAMTAM ENGINE.</p>
+    <div class="section-label" data-i18n="section.review">Đánh giá độc lập</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.review">Nhận xét từ bên ngoài</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.review">Đánh giá kỹ thuật độc lập về kiến trúc, chất lượng mã nguồn và tiềm năng của YAMTAM ENGINE.</p>
 
     <!-- Summary quote -->
     <blockquote style="border-left:4px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;background:var(--bg-card);border-radius:0 12px 12px 0;font-size:1.0625rem;line-height:1.7;color:var(--fg);font-style:italic">
@@ -1574,8 +1574,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="footer-inner">
     <div class="footer-left">
       <strong>YAMTAM ENGINE</strong> — Apache 2.0 · v0.40.0<br>
-      Built by Vũ Văn Tâm · Vietnam<br>
-      <span style="opacity:.65;font-size:.8rem">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
+      <span data-i18n="footer.built">Built by Vũ Văn Tâm · Vietnam</span><br>
+      <span style="opacity:.65;font-size:.8rem" data-i18n="footer.skills">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
     </div>
     <div class="footer-links">
       <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
@@ -2066,6 +2066,23 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# Local → open http://localhost:8080',
     'yana.desc':'Personal executive assistant for <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — manages repo, monitors CI, suggests tasks, and coordinates agents in YAMTAM ENGINE daily.',
+    'install.sub':'One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.',
+    'install.app.title':'Fastest: GitHub App',
+    'install.app.desc':'Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.',
+    'install.app.btn':'Install GitHub App',
+    'install.app.note':'Works on any public or private repo',
+    'install.manual':'or install manually:',
+    'section.scale':'Scale',
+    'h2.scale':'1,026,000 lines of code',
+    'sub.scale':'One person built it — since Feb 2026. No templates, no generation.',
+    'section.action':'GitHub Action',
+    'h2.action':'Scan every PR automatically',
+    'sub.action':'One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.',
+    'section.review':'Independent Review',
+    'h2.review':'External feedback',
+    'sub.review':'Independent technical review of architecture, code quality, and potential of YAMTAM ENGINE.',
+    'footer.built':'Built by Vũ Văn Tâm · Vietnam',
+    'footer.skills':'Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
   },
   vi: {
     'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu',
@@ -2137,6 +2154,23 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# Local → mở http://localhost:8080',
     'yana.desc':'Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong YAMTAM ENGINE mỗi ngày.',
+    'install.sub':'Một lệnh. Cài hooks, tải release mới nhất, xác minh 826 checks pass.',
+    'install.app.title':'Nhanh nhất: GitHub App',
+    'install.app.desc':'Cài → tự tạo PR với CLAUDE.md + hooks → merge → xong. Không cần CLI.',
+    'install.app.btn':'Cài GitHub App',
+    'install.app.note':'Hoạt động trên mọi repo public hoặc private',
+    'install.manual':'hoặc cài thủ công:',
+    'section.scale':'Quy mô',
+    'h2.scale':'1.026.000 dòng code',
+    'sub.scale':'Một người xây — từ tháng 02/2026. Không template, không generate.',
+    'section.action':'GitHub Action',
+    'h2.action':'Quét mọi PR tự động',
+    'sub.action':'Một dòng. Quét cấu hình AI agent tìm secrets, hook injection, lỗ hổng MCP và vấn đề quyền. Đăng kết quả là PR comment.',
+    'section.review':'Đánh giá độc lập',
+    'h2.review':'Nhận xét từ bên ngoài',
+    'sub.review':'Đánh giá kỹ thuật độc lập về kiến trúc, chất lượng mã nguồn và tiềm năng của YAMTAM ENGINE.',
+    'footer.built':'Được xây bởi Vũ Văn Tâm · Việt Nam',
+    'footer.skills':'Skills lấy từ các kho lưu trữ công khai — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
   },
   ko: {
     'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서',
@@ -2208,12 +2242,30 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# 로컬 → http://localhost:8080 열기',
     'yana.desc':'<strong style="color:var(--fg)">Vũ Văn Tâm</strong>의 개인 AI 어시스턴트 — 저장소 관리, CI 모니터링, 작업 제안, YAMTAM ENGINE 에이전트 조율.',
+    'install.sub':'하나의 명령. 훅 설치, 최신 릴리스 다운로드, 826개 검사 통과 확인.',
+    'install.app.title':'가장 빠름: GitHub App',
+    'install.app.desc':'설치 → CLAUDE.md + 훅이 포함된 PR 자동 생성 → 머지 → 완료. CLI 불필요.',
+    'install.app.btn':'GitHub App 설치',
+    'install.app.note':'공개 또는 비공개 저장소 모두 지원',
+    'install.manual':'또는 수동으로 설치:',
+    'section.scale':'규모',
+    'h2.scale':'1,026,000줄의 코드',
+    'sub.scale':'혼자 제작 — 2026년 2월부터. 템플릿 없음, 자동 생성 없음.',
+    'section.action':'GitHub Action',
+    'h2.action':'모든 PR 자동 스캔',
+    'sub.action':'한 줄로 설정. AI 에이전트 설정에서 시크릿, 훅 인젝션, MCP 취약점, 권한 문제를 스캔하고 PR 코멘트로 결과를 게시합니다.',
+    'section.review':'독립 리뷰',
+    'h2.review':'외부 피드백',
+    'sub.review':'YAMTAM ENGINE의 아키텍처, 코드 품질, 잠재력에 대한 독립적인 기술 검토.',
+    'footer.built':'Vũ Văn Tâm 제작 · 베트남',
+    'footer.skills':'스킬 출처: 공개 저장소 — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
   }
 };
 let currentLang = localStorage.getItem('yamtam-lang') || 'en';
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('yamtam-lang', lang);
+  document.documentElement.lang = lang === 'ko' ? 'ko' : lang === 'vi' ? 'vi' : 'en';
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;

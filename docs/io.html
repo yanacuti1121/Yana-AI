@@ -1250,7 +1250,7 @@ async function sendChat() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: chatHistory }),
+      body: JSON.stringify({ messages: chatHistory, lang: localStorage.getItem('yamtam-lang') || 'vi' }),
     });
 
     thinkEl.remove();

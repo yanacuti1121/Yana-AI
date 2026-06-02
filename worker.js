@@ -33,9 +33,14 @@ export default {
       try { body = await request.json(); }
       catch { return new Response('Bad JSON', { status: 400, headers: CORS }); }
 
+      const { messages: bodyMessages, lang } = body;
+      const langInstruction = lang === 'ko' ? 'Respond ONLY in Korean (한국어).'
+        : lang === 'vi' ? 'Respond ONLY in Vietnamese (Tiếng Việt).'
+        : 'Respond ONLY in English.';
+
       const messages = [
-        { role: 'system', content: SYSTEM },
-        ...(body.messages ?? []),
+        { role: 'system', content: `${SYSTEM}\n\n${langInstruction}` },
+        ...(bodyMessages ?? []),
       ];
 
       const upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
