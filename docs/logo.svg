@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0a1a"/>
+      <stop offset="100%" style="stop-color:#1a0f2e"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="240" height="240" rx="40" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.06" stroke="#6366f1" stroke-width="0.5">
+    <line x1="0" y1="60" x2="240" y2="60"/>
+    <line x1="0" y1="120" x2="240" y2="120"/>
+    <line x1="0" y1="180" x2="240" y2="180"/>
+    <line x1="60" y1="0" x2="60" y2="240"/>
+    <line x1="120" y1="0" x2="120" y2="240"/>
+    <line x1="180" y1="0" x2="180" y2="240"/>
+  </g>
+
+  <!-- Shield -->
+  <path d="M120 38 L168 58 L168 108 Q168 148 120 172 Q72 148 72 108 L72 58 Z"
+        fill="url(#shield)" opacity="0.15"/>
+  <path d="M120 44 L163 62 L163 108 Q163 144 120 166 Q77 144 77 108 L77 62 Z"
+        fill="none" stroke="url(#shield)" stroke-width="2" opacity="0.8"/>
+
+  <!-- Lightning bolt -->
+  <path d="M128 70 L108 112 L122 112 L112 170 L140 118 L125 118 L142 70 Z"
+        fill="url(#bolt)" filter="url(#glow)"/>
+
+  <!-- Text: YT -->
+  <text x="120" y="210" text-anchor="middle"
+        font-family="ui-monospace,monospace" font-size="13"
+        font-weight="700" letter-spacing="4"
+        fill="#6366f1" opacity="0.9">YAMTAM</text>
+</svg>
