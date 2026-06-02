@@ -345,6 +345,28 @@ body {
     border-radius .4s ease;
 }
 
+/* Close animation */
+@keyframes app-close {
+  0%   { transform: translateY(0) scale(1);    opacity: 1; border-radius: 52px; }
+  20%  { transform: translateY(0) scale(.93);  opacity: .9; border-radius: 40px; }
+  100% { transform: translateY(105%) scale(.88); opacity: 0; border-radius: 52px; }
+}
+.app-window.closing {
+  animation: app-close .38s cubic-bezier(.4,0,.6,1) forwards;
+  pointer-events: none;
+}
+
+/* Icon catch animation (icon reacts when app closes back to it) */
+@keyframes icon-catch {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.82); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.app-icon-img.catching {
+  animation: icon-catch .35s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
 /* Icon launch animation */
 @keyframes icon-launch {
   0%   { transform: scale(1); }
@@ -1343,7 +1365,21 @@ function openApp(id) {
   }, 120);
 }
 function closeApp(id) {
-  document.getElementById('win-' + id).classList.remove('open');
+  const win = document.getElementById('win-' + id);
+
+  // Play close animation, then remove .open
+  win.classList.add('closing');
+  win.addEventListener('animationend', () => {
+    win.classList.remove('open', 'closing');
+
+    // Icon catches the app coming back
+    const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
+    if (iconEl) {
+      iconEl.classList.add('catching');
+      iconEl.addEventListener('animationend', () => iconEl.classList.remove('catching'), { once: true });
+    }
+  }, { once: true });
+
   if (currentApp === id) { currentApp = null; updateHomeFloat(); }
   if (id === 'chat') {
     // Collapse DI when chat closes
