@@ -6,7 +6,7 @@
 
 **Title:**
 ```
-I built a safety layer for Claude Code — intercepts dangerous actions before they execute (8,550 skills, Rust runtime, open source)
+I built a safety layer for Claude Code — intercepts dangerous actions before they execute (3,432 skills, Rust runtime, open source)
 ```
 
 **Body:**
@@ -28,7 +28,7 @@ What it catches:
 Also works with Cursor, OpenCode, Zed, Gemini, Copilot — 12 harness adapters total.
 
 What's included:
-- 8,550 skill definitions (frontend, backend, AI/LLM, K8s, security, WASM...)  
+- 3,432 skill definitions (frontend, backend, AI/LLM, K8s, security, WASM...)  
 - 93 specialist agent definitions
 - Rust CLI: yamtam scan, yamtam graph, yamtam vault, yamtam doctor
 - Blast radius map — shows exactly what the agent can touch in your repo
@@ -62,7 +62,7 @@ cargo install yamtam-rt
 
 yamtam scan .       — secrets, CVEs, supply chain risks
 yamtam graph .      — knowledge graph (import resolution: Rust/TS/Python/Go)
-yamtam vault search — search 8,550 skill definitions
+yamtam vault search — search 3,432 skill definitions
 yamtam hunt .       — OWASP pattern hunting (injection, SSRF, XSS...)
 yamtam map .        — blast radius map (what can the agent access?)
 yamtam fix .        — auto-fix rule violations
