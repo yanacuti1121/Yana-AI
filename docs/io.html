@@ -6,611 +6,844 @@
 <title>IO — YAMTAM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 
-:root {
-  --font: 'Inter', -apple-system, 'SF Pro Display', system-ui, sans-serif;
-
-  /* Background layers */
-  --bg-base:    #0a0a14;
-  --orb-1:      hsla(248, 80%, 55%, .45);
-  --orb-2:      hsla(200, 90%, 50%, .30);
-  --orb-3:      hsla(310, 70%, 55%, .20);
-
-  /* Glass tokens — iOS 26 Liquid Glass */
-  --glass-bg:         rgba(255,255,255,.07);
-  --glass-bg-strong:  rgba(255,255,255,.11);
-  --glass-border:     rgba(255,255,255,.14);
-  --glass-border-top: rgba(255,255,255,.22);
-  --glass-shadow:     0 8px 40px rgba(0,0,0,.45), 0 1px 0 var(--glass-border-top) inset;
-  --glass-blur:       blur(28px) saturate(180%);
-
-  /* Text */
-  --fg:        rgba(255,255,255,.95);
-  --fg-sec:    rgba(255,255,255,.55);
-  --fg-ter:    rgba(255,255,255,.35);
-
-  /* Accent */
-  --accent:       hsl(221,90%,62%);
-  --accent-soft:  hsla(221,90%,62%,.18);
-  --accent-glow:  hsla(221,90%,62%,.35);
-
-  /* Bubble colors */
-  --user-glass:  hsla(221,85%,58%,.22);
-  --user-border: hsla(221,85%,70%,.25);
-  --ai-glass:    rgba(255,255,255,.06);
-  --ai-border:   rgba(255,255,255,.10);
-
-  --radius-xl: 28px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --radius-pill: 999px;
-}
-
-html, body {
-  height: 100%; width: 100%;
-  background: var(--bg-base);
-  color: var(--fg);
-  font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.55;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── Animated background orbs ── */
-.bg-canvas {
-  position: fixed; inset: 0; z-index: 0;
-  overflow: hidden; pointer-events: none;
-}
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  will-change: transform;
-}
-.orb-1 {
-  width: 60vmax; height: 60vmax;
-  background: var(--orb-1);
-  top: -20%; left: -10%;
-  animation: drift1 18s ease-in-out infinite alternate;
-}
-.orb-2 {
-  width: 50vmax; height: 50vmax;
-  background: var(--orb-2);
-  bottom: -15%; right: -5%;
-  animation: drift2 22s ease-in-out infinite alternate;
-}
-.orb-3 {
-  width: 40vmax; height: 40vmax;
-  background: var(--orb-3);
-  top: 30%; left: 40%;
-  animation: drift3 15s ease-in-out infinite alternate;
-}
-
-/* ── App shell ── */
-.shell {
-  position: relative; z-index: 1;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100dvh;
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 0 1rem env(safe-area-inset-bottom, 1rem);
-  gap: .75rem;
-}
-
-/* ── Header — liquid glass bar ── */
-.header {
-  margin-top: max(env(safe-area-inset-top, .75rem), .75rem);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-border-top);
-  box-shadow: var(--glass-shadow);
-  border-radius: var(--radius-xl);
-  padding: .65rem 1rem .65rem .75rem;
+body {
+  min-height: 100dvh;
+  background: #000;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-}
-
-.header-left {
-  display: flex; align-items: center; gap: .75rem;
-}
-
-/* Avatar pill */
-.avatar-pill {
-  display: flex; align-items: center; gap: .55rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  padding: .2rem .75rem .2rem .2rem;
-  cursor: default;
-}
-.avatar-ring {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.3);
-  border: 1.5px solid var(--glass-border-top);
+  justify-content: center;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
   overflow: hidden;
-  flex-shrink: 0;
-  position: relative;
 }
-.avatar-ring::after {
+
+/* ── Desktop bg ── */
+.desktop-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 80% 60% at 20% 30%, hsla(248,80%,45%,.6), transparent),
+              radial-gradient(ellipse 60% 50% at 80% 70%, hsla(200,90%,40%,.4), transparent),
+              radial-gradient(ellipse 50% 40% at 50% 50%, hsla(310,70%,35%,.3), transparent),
+              #08080f;
+  overflow: hidden;
+}
+.desktop-bg::after {
   content: '';
   position: absolute; inset: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 60%);
-  pointer-events: none;
-}
-#avatar-lottie { width: 100%; height: 100%; transform: scale(1.5); }
-
-.avatar-info { display: flex; flex-direction: column; gap: 1px; }
-.avatar-name  { font-size: .82rem; font-weight: 600; letter-spacing: -.01em; }
-.avatar-status {
-  display: flex; align-items: center; gap: .35rem;
-  font-size: .68rem; color: var(--fg-sec);
-  font-weight: 400; letter-spacing: .01em;
-}
-.dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #34d058;
-  box-shadow: 0 0 5px #34d058;
-  transition: background .3s, box-shadow .3s;
-  flex-shrink: 0;
-}
-.dot.thinking {
-  background: #fbbf24;
-  box-shadow: 0 0 6px #fbbf24;
-  animation: blink .7s ease-in-out infinite;
-}
-.dot.responding {
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='.8' fill='white' fill-opacity='.25'/%3E%3C/svg%3E");
 }
 
-.header-back {
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  padding: .4rem .85rem;
-  color: var(--fg-sec);
-  text-decoration: none;
-  font-size: .78rem;
-  font-weight: 500;
-  letter-spacing: -.01em;
-  transition: background .15s, color .15s;
-  white-space: nowrap;
-}
-.header-back:hover {
-  background: var(--glass-bg-strong);
-  color: var(--fg);
-}
-
-/* ── Messages ── */
-.feed {
-  overflow-y: auto;
-  overflow-x: hidden;
+/* ── Phone frame ── */
+.phone {
+  position: relative; z-index: 1;
+  width: 375px;
+  height: 812px;
+  background: #0d0d1a;
+  border-radius: 52px;
+  border: 1.5px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 0 0 8px #1a1a2e,
+    0 0 0 9.5px rgba(255,255,255,.08),
+    0 40px 100px rgba(0,0,0,.8),
+    0 8px 30px rgba(0,0,0,.5);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: .65rem;
-  padding: .25rem 0 .5rem;
-  scrollbar-width: none;
+  transform-origin: center center;
 }
-.feed::-webkit-scrollbar { display: none; }
 
-.msg {
-  display: flex;
-  align-items: flex-end;
-  gap: .55rem;
-  animation: msgIn .28s cubic-bezier(.34,1.56,.64,1);
+/* Scale down on small screens */
+@media (max-height: 900px) { .phone { transform: scale(.88); } }
+@media (max-height: 780px) { .phone { transform: scale(.76); } }
+@media (max-width: 440px)  { .phone { transform: scale(.82); border-radius: 44px; } }
+
+/* ── Wallpaper ── */
+.wallpaper {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, hsla(248,80%,50%,.55), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 75%, hsla(200,90%,45%,.35), transparent),
+    radial-gradient(ellipse 40% 35% at 50% 50%, hsla(310,70%,40%,.25), transparent),
+    #0a0a1a;
 }
-.msg.user { flex-direction: row-reverse; }
 
-.msg-av {
-  width: 28px; height: 28px;
-  border-radius: 50%;
+/* ── Status bar ── */
+.status-bar {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px 0;
+  height: 50px;
   flex-shrink: 0;
-  overflow: hidden;
-  background: rgba(0,0,0,.25);
-  border: 1px solid var(--glass-border-top);
-  position: relative;
 }
-.msg-av::after {
+.status-time {
+  font-size: .9rem; font-weight: 600; color: #fff;
+  letter-spacing: -.01em;
+}
+.status-icons {
+  display: flex; align-items: center; gap: 6px;
+}
+.status-icons svg { fill: #fff; }
+
+/* Dynamic island */
+.dynamic-island {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 20;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.di-camera {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #1a1a2a;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,.04);
+}
+.di-sensor {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #0f3a3a;
+  box-shadow: 0 0 4px #00ffff44;
+}
+
+/* ── Home screen ── */
+.home-screen {
+  position: relative; z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 0;
+  overflow: hidden;
+}
+
+/* Date widget */
+.date-widget {
+  text-align: center;
+  padding: 12px 0 20px;
+  flex-shrink: 0;
+}
+.date-widget .day   { font-size: .78rem; color: rgba(255,255,255,.55); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
+.date-widget .date  { font-size: 4.5rem; font-weight: 200; color: #fff; line-height: 1; letter-spacing: -.03em; margin-top: 2px; }
+
+/* App grid */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 8px;
+  flex: 1;
+  align-content: start;
+  padding-bottom: 8px;
+}
+
+.app-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-icon:active .app-icon-img { transform: scale(.9); }
+
+.app-icon-img {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.7rem;
+  transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.app-icon-img::after {
   content: '';
-  position: absolute; inset: 0; border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,.10) 0%, transparent 55%);
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,.18) 0%, transparent 50%);
+  border-radius: 16px;
   pointer-events: none;
 }
-.msg-av-inner { width: 100%; height: 100%; transform: scale(1.4); }
+.app-icon-img:hover { transform: scale(1.06); }
 
-.user-av {
-  width: 28px; height: 28px;
-  border-radius: 50%;
+.app-label {
+  font-size: .62rem; color: rgba(255,255,255,.85);
+  font-weight: 500; text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  max-width: 64px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* App colors */
+.app-chat     { background: linear-gradient(145deg, #1e3a8a, #2563eb); }
+.app-skills   { background: linear-gradient(145deg, #064e3b, #059669); }
+.app-agents   { background: linear-gradient(145deg, #4c1d95, #7c3aed); }
+.app-debug    { background: linear-gradient(145deg, #7c2d12, #ea580c); }
+.app-review   { background: linear-gradient(145deg, #1e1b4b, #4338ca); }
+.app-commit   { background: linear-gradient(145deg, #134e4a, #0d9488); }
+.app-security { background: linear-gradient(145deg, #7f1d1d, #dc2626); }
+.app-deploy   { background: linear-gradient(145deg, #1a2e05, #65a30d); }
+.app-sprint   { background: linear-gradient(145deg, #0c4a6e, #0284c7); }
+.app-docs     { background: linear-gradient(145deg, #422006, #d97706); }
+.app-stats    { background: linear-gradient(145deg, #2d1b69, #9333ea); }
+.app-settings { background: linear-gradient(145deg, #1f2937, #6b7280); }
+
+/* ── Dock ── */
+.dock {
+  position: relative; z-index: 5;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent), hsl(265,80%,62%));
-  display: flex; align-items: center; justify-content: center;
-  font-size: .6rem; font-weight: 700; color: #fff;
-  letter-spacing: .03em;
-  border: 1px solid rgba(255,255,255,.2);
-  box-shadow: 0 2px 10px var(--accent-glow);
+  padding: 10px 16px 34px;
 }
-
-.bubble {
-  max-width: min(72%, 480px);
-  padding: .7rem 1rem;
-  font-size: .88rem;
-  line-height: 1.6;
-  word-break: break-word;
-  position: relative;
-}
-
-.msg.ai .bubble {
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  background: var(--ai-glass);
-  border: 1px solid var(--ai-border);
-  border-top-color: rgba(255,255,255,.16);
-  border-radius: var(--radius-sm) var(--radius-lg) var(--radius-lg) var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
-}
-.msg.user .bubble {
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  background: var(--user-glass);
-  border: 1px solid var(--user-border);
-  border-top-color: hsla(221,85%,80%,.3);
-  border-radius: var(--radius-lg) var(--radius-sm) var(--radius-lg) var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
-  color: rgba(255,255,255,.9);
-}
-
-/* Thinking dots */
-.think-wrap {
-  display: flex; align-items: center; gap: 5px;
-  padding: .75rem 1rem;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  background: var(--ai-glass);
-  border: 1px solid var(--ai-border);
-  border-top-color: rgba(255,255,255,.16);
-  border-radius: var(--radius-sm) var(--radius-lg) var(--radius-lg) var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
-}
-.think-wrap span {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--fg-sec);
-  animation: bounce .85s ease-in-out infinite;
-}
-.think-wrap span:nth-child(2) { animation-delay: .14s; }
-.think-wrap span:nth-child(3) { animation-delay: .28s; }
-
-/* code */
-code {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: .78em;
-  background: rgba(255,255,255,.08);
-  padding: .1em .38em;
-  border-radius: 5px;
-  border: 1px solid rgba(255,255,255,.10);
-  color: rgba(180,210,255,.9);
-}
-
-/* ── Input bar ── */
-.inputbar {
-  padding-bottom: max(env(safe-area-inset-bottom, .75rem), .5rem);
-}
-.input-glass {
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-border-top);
-  box-shadow: var(--glass-shadow);
-  border-radius: var(--radius-xl);
-  padding: .55rem .55rem .55rem .9rem;
+.dock-inner {
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 28px;
+  padding: 12px 16px;
   display: flex;
-  align-items: flex-end;
-  gap: .55rem;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
 }
-#user-input {
-  flex: 1;
-  background: transparent;
-  border: none; outline: none;
-  color: var(--fg);
-  font-family: var(--font);
-  font-size: .9rem;
-  line-height: 1.5;
-  resize: none;
-  height: 32px;
-  max-height: 120px;
-  padding: 4px 0;
-  scrollbar-width: none;
-  caret-color: var(--accent);
-}
-#user-input::-webkit-scrollbar { display: none; }
-#user-input::placeholder { color: var(--fg-ter); }
 
-#send-btn {
-  width: 36px; height: 36px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--accent), hsl(265,80%,60%));
-  border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 12px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.2);
-  transition: transform .15s, box-shadow .15s, opacity .15s;
+/* ── App window (slide-up sheet) ── */
+.app-window {
+  position: absolute; z-index: 50;
+  inset: 0;
+  display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.32,0,.67,0);
+  border-radius: 52px;
+  overflow: hidden;
 }
-#send-btn:hover  { transform: scale(1.05); box-shadow: 0 4px 20px var(--accent-glow); }
-#send-btn:active { transform: scale(.95); }
-#send-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
-#send-btn svg { width: 16px; height: 16px; fill: #fff; }
+.app-window.open {
+  transform: translateY(0);
+  transition: transform .45s cubic-bezier(.16,1,.3,1);
+}
+
+.app-win-header {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex; align-items: center; padding: 0 20px;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.app-win-title {
+  font-size: .92rem; font-weight: 600; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+.app-win-close {
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,.12);
+  border: none; border-radius: 50%; cursor: pointer;
+  color: rgba(255,255,255,.7); font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.app-win-close:hover { background: rgba(255,255,255,.2); }
+.app-win-body {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+}
+.app-win-body::-webkit-scrollbar { display: none; }
+
+/* ── Chat app ── */
+.chat-bg { background: #0a0a16; }
+.chat-avatar-zone {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 0 12px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+#chat-lottie {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.4);
+  border: 1.5px solid rgba(255,255,255,.12);
+  overflow: hidden;
+}
+#chat-lottie-inner { width: 100%; height: 100%; transform: scale(1.45); }
+.chat-ai-name { font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.9); margin-top: 8px; }
+.chat-ai-status { font-size: .68rem; color: rgba(255,255,255,.4); margin-top: 2px; display:flex; align-items:center; gap:4px; }
+.chat-dot { width:6px; height:6px; border-radius:50%; background:#34d058; box-shadow:0 0 5px #34d058; transition:background .3s,box-shadow .3s; }
+.chat-dot.thinking { background:#fbbf24; box-shadow:0 0 6px #fbbf24; animation:blink .7s ease-in-out infinite; }
+
+.chat-feed {
+  flex: 1;
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  overflow-y: auto; scrollbar-width: none;
+  max-height: 340px;
+  min-height: 200px;
+}
+.chat-feed::-webkit-scrollbar { display: none; }
+
+.cmsg { display:flex; gap:6px; align-items:flex-end; animation:msgIn .22s ease; }
+.cmsg.user { flex-direction:row-reverse; }
+.cav {
+  width:24px; height:24px; border-radius:50%; flex-shrink:0;
+  background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12); overflow:hidden;
+}
+.cav-inner { width:100%; height:100%; transform:scale(1.4); }
+.cbubble {
+  max-width: 72%; padding:.55rem .85rem;
+  font-size:.8rem; line-height:1.55; border-radius:14px;
+  word-break:break-word;
+}
+.cmsg.ai  .cbubble { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09); border-radius:4px 14px 14px 14px; color:rgba(255,255,255,.9); }
+.cmsg.user .cbubble { background:rgba(37,99,235,.35); border:1px solid rgba(96,165,250,.2); border-radius:14px 4px 14px 14px; color:rgba(255,255,255,.92); }
+.think-dots { display:flex; gap:4px; align-items:center; padding:.6rem .85rem; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09); border-radius:4px 14px 14px 14px; }
+.think-dots span { width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);animation:bounce .85s ease-in-out infinite; }
+.think-dots span:nth-child(2){animation-delay:.14s} .think-dots span:nth-child(3){animation-delay:.28s}
+
+.chat-input-bar {
+  flex-shrink:0; padding:10px 14px 14px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.chat-input-inner {
+  display:flex; align-items:flex-end; gap:8px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.11);
+  border-radius:18px; padding:8px 8px 8px 14px;
+}
+#chat-input {
+  flex:1; background:transparent; border:none; outline:none;
+  color:#fff; font-family:inherit; font-size:.82rem; line-height:1.5;
+  resize:none; height:24px; max-height:80px; scrollbar-width:none;
+  caret-color:#60a5fa;
+}
+#chat-input::placeholder { color:rgba(255,255,255,.3); }
+#chat-send {
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#1d4ed8,#4f46e5);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .12s,opacity .15s;
+  box-shadow:0 2px 10px rgba(37,99,235,.4);
+}
+#chat-send:hover{transform:scale(1.08)} #chat-send:active{transform:scale(.92)}
+#chat-send:disabled{opacity:.35;cursor:not-allowed;transform:none}
+#chat-send svg{width:14px;height:14px;fill:#fff}
+
+/* ── Generic app content ── */
+.generic-app {
+  padding: 20px 16px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.app-section-title {
+  font-size:.72rem; font-weight:600; color:rgba(255,255,255,.4);
+  text-transform:uppercase; letter-spacing:.08em; padding:0 4px;
+}
+.app-row {
+  display:flex; align-items:center; gap:12px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; padding:12px 14px; cursor:pointer;
+  transition:background .15s;
+}
+.app-row:hover { background:rgba(255,255,255,.1); }
+.app-row-icon { font-size:1.3rem; flex-shrink:0; width:36px; text-align:center; }
+.app-row-info { flex:1; }
+.app-row-title { font-size:.84rem; font-weight:500; color:rgba(255,255,255,.9); }
+.app-row-sub   { font-size:.72rem; color:rgba(255,255,255,.4); margin-top:1px; }
+.app-row-arrow { color:rgba(255,255,255,.25); font-size:.75rem; }
+
+code {
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:.75em;
+  background:rgba(255,255,255,.08);
+  padding:.1em .3em; border-radius:4px;
+  border:1px solid rgba(255,255,255,.1);
+  color:rgba(160,200,255,.9);
+}
 
 /* ── Keyframes ── */
-@keyframes drift1 {
-  from { transform: translate(0,0) scale(1); }
-  to   { transform: translate(6%,8%) scale(1.08); }
-}
-@keyframes drift2 {
-  from { transform: translate(0,0) scale(1); }
-  to   { transform: translate(-5%,-6%) scale(1.1); }
-}
-@keyframes drift3 {
-  from { transform: translate(0,0) scale(1); }
-  to   { transform: translate(4%,-5%) scale(.92); }
-}
-@keyframes blink {
-  0%,100% { opacity: 1; }
-  50%      { opacity: .3; }
-}
-@keyframes bounce {
-  0%,80%,100% { transform: translateY(0); }
-  40%          { transform: translateY(-5px); }
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(12px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
+@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+@keyframes msgIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
 
-<!-- Background -->
-<div class="bg-canvas">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
+<div class="desktop-bg"></div>
 
-<div class="shell">
+<!-- Phone -->
+<div class="phone" id="phone">
+  <div class="wallpaper"></div>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="header-left">
-      <div class="avatar-pill">
-        <div class="avatar-ring">
-          <div id="avatar-lottie"></div>
-        </div>
-        <div class="avatar-info">
-          <span class="avatar-name">YAMTAM IO</span>
-          <span class="avatar-status">
-            <span class="dot" id="dot"></span>
-            <span id="status-txt">Sẵn sàng</span>
-          </span>
-        </div>
-      </div>
+  <!-- Dynamic Island -->
+  <div class="dynamic-island">
+    <div class="di-sensor"></div>
+    <div class="di-camera"></div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-time" id="clock">9:41</div>
+    <div class="status-icons">
+      <!-- Signal -->
+      <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="8" width="3" height="4" rx="1" opacity=".4"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1" opacity=".6"/><rect x="9" y="3" width="3" height="9" rx="1" opacity=".8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+      <!-- Wifi -->
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M4.5 7.5C5.7 6.3 6.8 5.7 8 5.7s2.3.6 3.5 1.8" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/><path d="M1.5 4.8C3.4 2.9 5.6 1.8 8 1.8s4.6 1.1 6.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/></svg>
+      <!-- Battery -->
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.2" fill="none" opacity=".8"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
     </div>
-    <a class="header-back" href="index.html">← Trang chủ</a>
-  </header>
+  </div>
 
-  <!-- Feed -->
-  <div class="feed" id="feed">
-    <div class="msg ai">
-      <div class="msg-av"><div class="msg-av-inner" id="welcome-av"></div></div>
-      <div class="bubble">
-        Xin chào. Tôi là <code>YAMTAM IO</code>.<br>
-        Hỏi tôi bất cứ điều gì — tôi sẽ route đúng agent cho bạn.
+  <!-- Home screen -->
+  <div class="home-screen">
+    <!-- Date -->
+    <div class="date-widget">
+      <div class="day" id="day-label">Thứ Ba</div>
+      <div class="date" id="date-num">2</div>
+    </div>
+
+    <!-- App grid -->
+    <div class="app-grid">
+      <div class="app-icon" onclick="openApp('chat')">
+        <div class="app-icon-img app-chat">💬</div>
+        <span class="app-label">IO Chat</span>
+      </div>
+      <div class="app-icon" onclick="openApp('skills')">
+        <div class="app-icon-img app-skills">⚡</div>
+        <span class="app-label">Skills</span>
+      </div>
+      <div class="app-icon" onclick="openApp('agents')">
+        <div class="app-icon-img app-agents">🤖</div>
+        <span class="app-label">Agents</span>
+      </div>
+      <div class="app-icon" onclick="openApp('debug')">
+        <div class="app-icon-img app-debug">🐛</div>
+        <span class="app-label">Debug</span>
+      </div>
+      <div class="app-icon" onclick="openApp('review')">
+        <div class="app-icon-img app-review">🔍</div>
+        <span class="app-label">Review</span>
+      </div>
+      <div class="app-icon" onclick="openApp('commit')">
+        <div class="app-icon-img app-commit">📦</div>
+        <span class="app-label">Commit</span>
+      </div>
+      <div class="app-icon" onclick="openApp('security')">
+        <div class="app-icon-img app-security">🔐</div>
+        <span class="app-label">Security</span>
+      </div>
+      <div class="app-icon" onclick="openApp('deploy')">
+        <div class="app-icon-img app-deploy">🚀</div>
+        <span class="app-label">Deploy</span>
+      </div>
+      <div class="app-icon" onclick="openApp('sprint')">
+        <div class="app-icon-img app-sprint">🎯</div>
+        <span class="app-label">Sprint</span>
+      </div>
+      <div class="app-icon" onclick="openApp('docs')">
+        <div class="app-icon-img app-docs">📚</div>
+        <span class="app-label">Docs</span>
+      </div>
+      <div class="app-icon" onclick="openApp('stats')">
+        <div class="app-icon-img app-stats">📊</div>
+        <span class="app-label">Stats</span>
+      </div>
+      <div class="app-icon" onclick="openApp('settings')">
+        <div class="app-icon-img app-settings">⚙️</div>
+        <span class="app-label">Settings</span>
       </div>
     </div>
   </div>
 
-  <!-- Input -->
-  <div class="inputbar">
-    <div class="input-glass">
-      <textarea id="user-input" placeholder="Nhắn gì đó…" rows="1"></textarea>
-      <button id="send-btn" aria-label="Gửi">
-        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
+  <!-- Dock -->
+  <div class="dock">
+    <div class="dock-inner">
+      <div class="app-icon" onclick="openApp('chat')" style="gap:0">
+        <div class="app-icon-img app-chat" style="width:56px;height:56px;border-radius:14px">💬</div>
+      </div>
+      <div class="app-icon" onclick="openApp('skills')" style="gap:0">
+        <div class="app-icon-img app-skills" style="width:56px;height:56px;border-radius:14px">⚡</div>
+      </div>
+      <div class="app-icon" onclick="openApp('review')" style="gap:0">
+        <div class="app-icon-img app-review" style="width:56px;height:56px;border-radius:14px">🔍</div>
+      </div>
+      <div class="app-icon" onclick="openApp('settings')" style="gap:0">
+        <div class="app-icon-img app-settings" style="width:56px;height:56px;border-radius:14px">⚙️</div>
+      </div>
     </div>
   </div>
 
-</div>
+  <!-- ════ APP WINDOWS ════ -->
+
+  <!-- Chat -->
+  <div class="app-window chat-bg" id="win-chat">
+    <div class="app-win-header" style="background:rgba(0,0,0,.3);backdrop-filter:blur(20px)">
+      <div class="app-win-title">💬 IO Chat</div>
+      <button class="app-win-close" onclick="closeApp('chat')">✕</button>
+    </div>
+    <div class="app-win-body" style="display:flex;flex-direction:column;">
+      <div class="chat-avatar-zone">
+        <div id="chat-lottie"><div id="chat-lottie-inner"></div></div>
+        <div class="chat-ai-name">YAMTAM IO</div>
+        <div class="chat-ai-status">
+          <span class="chat-dot" id="chat-dot"></span>
+          <span id="chat-status-txt">Sẵn sàng</span>
+        </div>
+      </div>
+      <div class="chat-feed" id="chat-feed">
+        <div class="cmsg ai">
+          <div class="cav"><div class="cav-inner" id="welcome-cav"></div></div>
+          <div class="cbubble">Xin chào! Tôi là <code>YAMTAM IO</code>. Bạn cần gì?</div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <div class="chat-input-inner">
+          <textarea id="chat-input" placeholder="Nhắn gì đó…" rows="1"></textarea>
+          <button id="chat-send" aria-label="Gửi">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skills -->
+  <div class="app-window" id="win-skills" style="background:#030f07">
+    <div class="app-win-header" style="background:rgba(6,78,59,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">⚡ Skills</div>
+      <button class="app-win-close" onclick="closeApp('skills')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">3,437 skills available</div>
+        <div class="app-row"><div class="app-row-icon">🤖</div><div class="app-row-info"><div class="app-row-title">AI & LLM</div><div class="app-row-sub">RAG, prompt engineering, eval</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔒</div><div class="app-row-info"><div class="app-row-title">Security</div><div class="app-row-sub">OWASP, red team, vault</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">⚙️</div><div class="app-row-info"><div class="app-row-title">DevOps & Cloud</div><div class="app-row-sub">K8s, Terraform, CI/CD</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🎨</div><div class="app-row-info"><div class="app-row-title">UI & Design</div><div class="app-row-sub">Liquid glass, design tokens</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🧪</div><div class="app-row-info"><div class="app-row-title">Testing</div><div class="app-row-sub">TDD, E2E, mutation testing</div></div><div class="app-row-arrow">›</div></div>
+        <a href="skills.html" style="display:block;text-align:center;padding:12px;color:rgba(52,211,153,.8);font-size:.82rem;font-weight:500;text-decoration:none;margin-top:4px">Xem tất cả skills →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agents -->
+  <div class="app-window" id="win-agents" style="background:#0a0316">
+    <div class="app-win-header" style="background:rgba(76,29,149,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🤖 Agents</div>
+      <button class="app-win-close" onclick="closeApp('agents')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">93 agents</div>
+        <div class="app-row"><div class="app-row-icon">👨‍💻</div><div class="app-row-info"><div class="app-row-title">code-reviewer</div><div class="app-row-sub">Review PR, tìm bug, gợi ý cải thiện</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🏗️</div><div class="app-row-info"><div class="app-row-title">planner</div><div class="app-row-sub">Lên kế hoạch feature, phân tích risk</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔐</div><div class="app-row-info"><div class="app-row-title">security-auditor</div><div class="app-row-sub">OWASP, pentest, CVE scan</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🗄️</div><div class="app-row-info"><div class="app-row-title">database-reviewer</div><div class="app-row-sub">Schema, query, migration review</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🐛</div><div class="app-row-info"><div class="app-row-title">debugger</div><div class="app-row-sub">Trace lỗi, root cause analysis</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug -->
+  <div class="app-window" id="win-debug" style="background:#0f0500">
+    <div class="app-win-header" style="background:rgba(124,45,18,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🐛 Debug</div>
+      <button class="app-win-close" onclick="closeApp('debug')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Chạy lệnh</div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/debug</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Trace lỗi từ stack trace, tìm root cause, đề xuất fix.</div>
+        </div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/smart-debug</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Debug thông minh — tự chọn agent phù hợp.</div>
+        </div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/error-trace</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Trace error path toàn bộ call stack.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review -->
+  <div class="app-window" id="win-review" style="background:#050514">
+    <div class="app-win-header" style="background:rgba(30,27,75,.7);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🔍 Code Review</div>
+      <button class="app-win-close" onclick="closeApp('review')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Review tools</div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/code-review</div><div class="app-row-sub">Review toàn bộ diff hiện tại</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔎</div><div class="app-row-info"><div class="app-row-title">/diff-review</div><div class="app-row-sub">Review từng file thay đổi</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🛡️</div><div class="app-row-info"><div class="app-row-title">/security-review</div><div class="app-row-sub">Tìm lỗ hổng bảo mật</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/simplify</div><div class="app-row-sub">Tối giản code sau khi review</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commit -->
+  <div class="app-window" id="win-commit" style="background:#030d0c">
+    <div class="app-win-header" style="background:rgba(19,78,74,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">📦 Commit</div>
+      <button class="app-win-close" onclick="closeApp('commit')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Git workflow</div>
+        <div class="app-row"><div class="app-row-icon">⚡</div><div class="app-row-info"><div class="app-row-title">/quick-commit</div><div class="app-row-sub">Commit nhanh với message tự động</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → Tạo PR một bước</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Tạo changelog từ commit history</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="app-window" id="win-security" style="background:#0f0000">
+    <div class="app-win-header" style="background:rgba(127,29,29,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🔐 Security</div>
+      <button class="app-win-close" onclick="closeApp('security')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Bảo mật</div>
+        <div class="app-row"><div class="app-row-icon">🔴</div><div class="app-row-info"><div class="app-row-title">/red-team-check</div><div class="app-row-sub">Tấn công giả lập, tìm điểm yếu</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔵</div><div class="app-row-info"><div class="app-row-title">/blue-team-fix</div><div class="app-row-sub">Vá lỗi bảo mật sau red team</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔑</div><div class="app-row-info"><div class="app-row-title">/secrets-scan</div><div class="app-row-sub">Tìm secret, key bị lộ trong code</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/security-audit</div><div class="app-row-sub">Audit toàn bộ codebase</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deploy -->
+  <div class="app-window" id="win-deploy" style="background:#030a00">
+    <div class="app-win-header" style="background:rgba(26,46,5,.7);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🚀 Deploy</div>
+      <button class="app-win-close" onclick="closeApp('deploy')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Deployment</div>
+        <div class="app-row"><div class="app-row-icon">✅</div><div class="app-row-info"><div class="app-row-title">/deploy-checklist</div><div class="app-row-sub">Checklist trước khi deploy</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">/prepare-release</div><div class="app-row-sub">Chuẩn bị release, bump version</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">⏪</div><div class="app-row-info"><div class="app-row-title">/rollback</div><div class="app-row-sub">Rollback nhanh khi có sự cố</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sprint -->
+  <div class="app-window" id="win-sprint" style="background:#000c1a">
+    <div class="app-win-header" style="background:rgba(12,74,110,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">🎯 Sprint</div>
+      <button class="app-win-close" onclick="closeApp('sprint')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Quản lý dự án</div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/sprint-planning</div><div class="app-row-sub">Lên kế hoạch sprint, phân task</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📊</div><div class="app-row-info"><div class="app-row-title">/standup-report</div><div class="app-row-sub">Tạo báo cáo daily standup</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔄</div><div class="app-row-info"><div class="app-row-title">/retrospective-analyzer</div><div class="app-row-sub">Phân tích retrospective</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docs -->
+  <div class="app-window" id="win-docs" style="background:#0f0800">
+    <div class="app-win-header" style="background:rgba(66,32,6,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">📚 Docs</div>
+      <button class="app-win-close" onclick="closeApp('docs')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">Tài liệu</div>
+        <div class="app-row" onclick="window.open('guide.html')"><div class="app-row-icon">📖</div><div class="app-row-info"><div class="app-row-title">Guide</div><div class="app-row-sub">Hướng dẫn sử dụng YAMTAM</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('marketplace.html')"><div class="app-row-icon">🏪</div><div class="app-row-info"><div class="app-row-title">Marketplace</div><div class="app-row-sub">Skills, agents, hooks</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('changelog.html')"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">Changelog</div><div class="app-row-sub">Lịch sử cập nhật</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Trang chủ</div><div class="app-row-sub">yamtam-engine website</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="app-window" id="win-stats" style="background:#080013">
+    <div class="app-win-header" style="background:rgba(45,27,105,.6);backdrop-filter:blur(20px)">
+      <div class="app-win-title">📊 Stats</div>
+      <button class="app-win-close" onclick="closeApp('stats')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">YAMTAM v0.40.0</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
+            <div style="font-size:1.6rem;font-weight:700;color:#a78bfa">3,437</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Skills</div>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
+            <div style="font-size:1.6rem;font-weight:700;color:#60a5fa">93</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Agents</div>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
+            <div style="font-size:1.6rem;font-weight:700;color:#34d058">45</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Hooks</div>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
+            <div style="font-size:1.6rem;font-weight:700;color:#fbbf24">164</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Commands</div>
+          </div>
+        </div>
+        <div class="app-row"><div class="app-row-icon">⚙️</div><div class="app-row-info"><div class="app-row-title">/session-stats</div><div class="app-row-sub">Xem thống kê session hiện tại</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">💰</div><div class="app-row-info"><div class="app-row-title">/session-cost</div><div class="app-row-sub">Chi phí token đã dùng</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="app-window" id="win-settings" style="background:#0a0a0a">
+    <div class="app-win-header" style="background:rgba(31,41,55,.7);backdrop-filter:blur(20px)">
+      <div class="app-win-title">⚙️ Settings</div>
+      <button class="app-win-close" onclick="closeApp('settings')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app">
+        <div class="app-section-title">YAMTAM IO</div>
+        <div class="app-row"><div class="app-row-icon">🌐</div><div class="app-row-info"><div class="app-row-title">Website</div><div class="app-row-sub">phamlongh230-lgtm.github.io/yamtam-engine</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">Version</div><div class="app-row-sub">v0.40.0 — npm · PyPI · crates.io</div></div></div>
+        <div class="app-row"><div class="app-row-icon">⚡</div><div class="app-row-info"><div class="app-row-title">Runtime</div><div class="app-row-sub">claude-sonnet-4-6</div></div></div>
+        <div class="app-section-title" style="margin-top:4px">Links</div>
+        <div class="app-row" onclick="window.open('https://github.com/phamlongh230-lgtm/yamtam-engine')"><div class="app-row-icon">🐙</div><div class="app-row-info"><div class="app-row-title">GitHub</div><div class="app-row-sub">Source code</div></div><div class="app-row-arrow">↗</div></div>
+        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Trang chủ</div><div class="app-row-sub">Quay lại website</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
 
 <script>
-// ── Lottie ──
-function makeLottie(el, autoplay) {
-  return lottie.loadAnimation({
-    container: el, renderer: 'svg',
-    loop: true, autoplay: !!autoplay,
-    path: 'chatgpt-atlas-animation.json'
-  });
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+  const days = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  document.getElementById('day-label').textContent = days[now.getDay()];
+  document.getElementById('date-num').textContent = now.getDate();
 }
-const headerAnim = makeLottie(document.getElementById('avatar-lottie'), false);
-makeLottie(document.getElementById('welcome-av'), false);
+updateClock();
+setInterval(updateClock, 10000);
 
-// ── State ──
-let busy = false;
-
-function setState(s) {
-  const dot = document.getElementById('dot');
-  const txt = document.getElementById('status-txt');
-  dot.className = 'dot';
-  if (s === 'idle') {
-    headerAnim.stop(); txt.textContent = 'Sẵn sàng';
-  } else if (s === 'thinking') {
-    headerAnim.setSpeed(1.8); headerAnim.play();
-    dot.classList.add('thinking'); txt.textContent = 'Đang nghĩ…';
-  } else if (s === 'responding') {
-    headerAnim.setSpeed(1); headerAnim.play();
-    dot.classList.add('responding'); txt.textContent = 'Đang trả lời';
-  }
+// ── App open/close ──
+function openApp(id) {
+  document.getElementById('win-' + id).classList.add('open');
+  if (id === 'chat') initChat();
+}
+function closeApp(id) {
+  document.getElementById('win-' + id).classList.remove('open');
 }
 
-// ── Demo replies ──
-const demos = [
-  'Tôi có thể giúp bạn debug, review code, tạo PR, hoặc lên kế hoạch feature.',
-  'YAMTAM Engine hiện có <code>3,437</code> skills và <code>93</code> agents sẵn sàng. Bạn cần loại nào?',
-  'Dùng <code>/code-review</code> để review, <code>/debug</code> để trace lỗi, hoặc <code>/quick-commit</code> để commit nhanh.',
-  'Tôi đang chạy trên <code>claude-sonnet-4-6</code>. Token budget còn rộng — cứ hỏi thoải mái.',
-  'Mỗi câu hỏi được route qua middleware pipeline 9 bước trước khi tôi trả lời.',
+// ── Chat logic ──
+let chatInited = false, chatAnim = null, welcomeAnim = null, chatBusy = false;
+const chatDemos = [
+  'Tôi có thể giúp bạn debug, review code, commit, hoặc lên kế hoạch sprint.',
+  'YAMTAM có <code>3,437</code> skills sẵn sàng. Bạn cần loại nào?',
+  'Dùng <code>/code-review</code>, <code>/debug</code>, hay <code>/quick-commit</code> để bắt đầu.',
+  'Tôi chạy trên <code>claude-sonnet-4-6</code>. Cứ hỏi thoải mái.',
+  'Mỗi request qua 9-bước middleware pipeline trước khi tôi trả lời.',
 ];
-let demoIdx = 0;
+let chatDemoIdx = 0;
 
-// ── Helpers ──
-const feed  = document.getElementById('feed');
-const input = document.getElementById('user-input');
-const btn   = document.getElementById('send-btn');
+function makeLottie(el, play) {
+  return lottie.loadAnimation({ container:el, renderer:'svg', loop:true, autoplay:!!play, path:'chatgpt-atlas-animation.json' });
+}
 
-function scrollBottom() { feed.scrollTop = feed.scrollHeight; }
+function initChat() {
+  if (chatInited) return;
+  chatInited = true;
+  chatAnim = makeLottie(document.getElementById('chat-lottie-inner'), false);
+  welcomeAnim = makeLottie(document.getElementById('welcome-cav'), false);
+}
+
+function setChatState(s) {
+  const dot = document.getElementById('chat-dot');
+  const txt = document.getElementById('chat-status-txt');
+  if (!chatAnim) return;
+  if (s === 'idle')       { chatAnim.stop(); dot.className='chat-dot'; txt.textContent='Sẵn sàng'; }
+  if (s === 'thinking')   { chatAnim.setSpeed(1.8); chatAnim.play(); dot.className='chat-dot thinking'; txt.textContent='Đang nghĩ…'; }
+  if (s === 'responding') { chatAnim.setSpeed(1);   chatAnim.play(); dot.className='chat-dot'; dot.style.cssText='background:#60a5fa;box-shadow:0 0 6px #60a5fa'; txt.textContent='Đang trả lời'; }
+}
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(s)    { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function appendMsg(role, html) {
-  const wrap = document.createElement('div');
-  wrap.className = `msg ${role}`;
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send');
+  const feed= document.getElementById('chat-feed');
+  const text= inp.value.trim();
+  if (!text || chatBusy) return;
+  chatBusy = true; btn.disabled = true;
+  inp.value = ''; inp.style.height = '24px';
 
-  if (role === 'ai') {
-    const avEl = document.createElement('div');
-    avEl.className = 'msg-av';
-    const inner = document.createElement('div');
-    inner.className = 'msg-av-inner';
-    avEl.appendChild(inner);
-    makeLottie(inner, false);
+  // User bubble
+  const um = document.createElement('div'); um.className = 'cmsg user';
+  um.innerHTML = `<div class="cbubble">${esc(text)}</div><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0">You</div>`;
+  feed.appendChild(um); feed.scrollTop = feed.scrollHeight;
 
-    const bub = document.createElement('div');
-    bub.className = 'bubble';
-    bub.innerHTML = html;
+  setChatState('thinking');
 
-    wrap.appendChild(avEl);
-    wrap.appendChild(bub);
-  } else {
-    const bub = document.createElement('div');
-    bub.className = 'bubble';
-    bub.innerHTML = html;
+  // Thinking indicator
+  const tm = document.createElement('div'); tm.className = 'cmsg ai';
+  const tcav = document.createElement('div'); tcav.className = 'cav';
+  const tci = document.createElement('div'); tci.className = 'cav-inner';
+  tcav.appendChild(tci); const tanim = makeLottie(tci, true);
+  const tdots = document.createElement('div'); tdots.className = 'think-dots';
+  tdots.innerHTML = '<span></span><span></span><span></span>';
+  tm.appendChild(tcav); tm.appendChild(tdots);
+  feed.appendChild(tm); feed.scrollTop = feed.scrollHeight;
 
-    const av = document.createElement('div');
-    av.className = 'user-av';
-    av.textContent = 'You';
+  await sleep(1200 + Math.random() * 800);
+  tm.remove(); tanim.destroy();
+  setChatState('responding');
 
-    wrap.appendChild(bub);
-    wrap.appendChild(av);
-  }
-
-  feed.appendChild(wrap);
-  scrollBottom();
-  return wrap;
-}
-
-function addThinking() {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg ai';
-  wrap.id = '_think';
-
-  const avEl = document.createElement('div');
-  avEl.className = 'msg-av';
-  const inner = document.createElement('div');
-  inner.className = 'msg-av-inner';
-  avEl.appendChild(inner);
-  const anim = makeLottie(inner, true);
-
-  const bub = document.createElement('div');
-  bub.className = 'think-wrap';
-  bub.innerHTML = '<span></span><span></span><span></span>';
-
-  wrap.appendChild(avEl);
-  wrap.appendChild(bub);
-  feed.appendChild(wrap);
-  scrollBottom();
-  return { el: wrap, anim };
-}
-
-async function typeIn(html) {
-  // Strip tags for typing, set full HTML after
-  const plain = html.replace(/<[^>]+>/g, '');
-
-  const wrap = document.createElement('div');
-  wrap.className = 'msg ai';
-
-  const avEl = document.createElement('div');
-  avEl.className = 'msg-av';
-  const inner = document.createElement('div');
-  inner.className = 'msg-av-inner';
-  avEl.appendChild(inner);
-  const av = makeLottie(inner, true);
-
-  const bub = document.createElement('div');
-  bub.className = 'bubble';
-
-  wrap.appendChild(avEl);
-  wrap.appendChild(bub);
-  feed.appendChild(wrap);
+  // Type response
+  const reply = chatDemos[chatDemoIdx++ % chatDemos.length];
+  const plain = reply.replace(/<[^>]+>/g,'');
+  const am = document.createElement('div'); am.className = 'cmsg ai';
+  const acav = document.createElement('div'); acav.className = 'cav';
+  const aci = document.createElement('div'); aci.className = 'cav-inner';
+  acav.appendChild(aci); const aanim = makeLottie(aci, true);
+  const abub = document.createElement('div'); abub.className = 'cbubble';
+  am.appendChild(acav); am.appendChild(abub);
+  feed.appendChild(am);
 
   for (let i = 0; i <= plain.length; i++) {
-    bub.textContent = plain.slice(0, i);
-    scrollBottom();
-    await sleep(16);
+    abub.textContent = plain.slice(0, i);
+    feed.scrollTop = feed.scrollHeight;
+    await sleep(15);
   }
-  bub.innerHTML = html;
-  av.stop();
-  scrollBottom();
+  abub.innerHTML = reply; aanim.stop();
+
+  setChatState('idle');
+  chatBusy = false; btn.disabled = false; inp.focus();
 }
 
-// ── Send ──
-async function send() {
-  const text = input.value.trim();
-  if (!text || busy) return;
-  busy = true;
-  btn.disabled = true;
-  input.value = '';
-  input.style.height = '32px';
-
-  appendMsg('user', esc(text));
-  setState('thinking');
-  const { el: thinkEl } = addThinking();
-
-  await sleep(1100 + Math.random() * 900);
-
-  thinkEl.remove();
-  setState('responding');
-
-  const reply = demos[demoIdx++ % demos.length];
-  await typeIn(reply);
-
-  setState('idle');
-  busy = false;
-  btn.disabled = false;
-  input.focus();
-}
-
-// ── Events ──
-btn.addEventListener('click', send);
-input.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+document.getElementById('chat-send').addEventListener('click', sendChat);
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
 });
-input.addEventListener('input', function() {
-  this.style.height = '32px';
-  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = '24px';
+  this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+});
+
+// Swipe down to close (touch)
+let touchStartY = 0;
+document.querySelectorAll('.app-window').forEach(win => {
+  win.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive:true});
+  win.addEventListener('touchend', e => {
+    if (e.changedTouches[0].clientY - touchStartY > 60) {
+      const id = win.id.replace('win-','');
+      closeApp(id);
+    }
+  }, {passive:true});
 });
 </script>
 </body>
