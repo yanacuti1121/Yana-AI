@@ -47,6 +47,11 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "postinstall": "node scripts/npm-install.js --auto"
+    "postinstall": "node scripts/npm-install.js --auto",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.96.0"
   }
 }

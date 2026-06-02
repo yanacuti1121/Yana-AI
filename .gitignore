@@ -66,3 +66,9 @@ yamtam-patch-files*.zip
 .claude/assistant/memory.md
 come_my_way.mp3
 .aider*
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
