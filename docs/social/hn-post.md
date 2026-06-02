@@ -2,7 +2,7 @@
 
 ## Title
 ```
-Show HN: YAMTAM ENGINE – Safety OS for AI coding agents (Rust runtime, 9-layer gates, 8,550 skills)
+Show HN: YAMTAM ENGINE – Safety OS for AI coding agents (Rust runtime, 9-layer gates, 3,432 skills)
 ```
 
 ## Body
@@ -31,7 +31,7 @@ Beyond the safety gates:
 - yamtam vault: searchable skill library
 - yamtam doctor: full system health check
 
-8,550 skill definitions, 93 specialist agents, 61 enforced rules, 46 hooks.
+3,432 skill definitions, 93 specialist agents, 61 enforced rules, 46 hooks.
 12 harness adapters: Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider.
 
 The Rust runtime (yamtam-rt) is 1256x faster than the Python equivalent on a 10k-file repo.
@@ -50,4 +50,4 @@ Happy to go deep on any of the gate implementations or the Rust architecture.
 - Post Tuesday–Thursday 9–11am EST
 - Reply every comment in first 2 hours
 - Don't say "excited" or "thrilled" — HN hates that
-- If asked about the 8,550 skills: honest answer — mix of curated + imported, all searchable
+- If asked about the 3,432 skills: honest answer — mix of curated + imported, all searchable
