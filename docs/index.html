@@ -324,6 +324,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <a href="search.html">🔍</a>
     <a href="#yana">Yana</a>
     <a href="./#codexmate">Codexmate</a>
+    <a href="https://github.com/apps/yamtam-engine" target="_blank" style="color:var(--accent);font-weight:600">App ⚡</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
     <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1.05rem;padding:.2rem .4rem;border-radius:6px;line-height:1;transition:background .15s" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">🌙</button>
     <div class="lang-switcher">
@@ -674,6 +675,29 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div class="install-inner">
     <h2>Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
     <p class="install-sub">One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.</p>
+
+    <!-- GitHub App 1-click -->
+    <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--bg-card);border:1px solid hsla(221,75%,48%,.35);border-radius:12px;text-align:left">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+        <span style="font-size:1.4rem">⚡</span>
+        <div>
+          <div style="font-weight:700;font-size:.9375rem">Fastest: GitHub App</div>
+          <div style="font-size:.8125rem;color:var(--fg-muted)">Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <a href="https://github.com/apps/yamtam-engine" target="_blank"
+           style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;font-weight:600;font-size:.875rem;padding:.5rem 1.1rem;border-radius:7px;text-decoration:none;transition:background .15s"
+           onmouseover="this.style.background='var(--accent-hover)'"
+           onmouseout="this.style.background='var(--accent)'">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          Install GitHub App
+        </a>
+        <span style="font-size:.8rem;color:var(--fg-muted)">Works on any public or private repo</span>
+      </div>
+    </div>
+
+    <div style="font-size:.8125rem;color:var(--fg-muted);margin-bottom:.75rem">or install manually:</div>
     <div class="install-tabs">
       <button class="tab active" onclick="setTab(this,'curl')">curl</button>
       <button class="tab" onclick="setTab(this,'npm')">npm</button>
