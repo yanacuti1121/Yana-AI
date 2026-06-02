@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command",
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/guard-destructive.sh",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "write_file|replace",
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/scope-guard.sh",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "command": "bash .claude/hooks/audit-log.sh",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "bash /home/phamlongh230/yamtam-engine/.claude/hooks/truth-gate-guard.sh",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}
