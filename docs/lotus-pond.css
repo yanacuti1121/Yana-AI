@@ -1,13 +1,65 @@
-/* Lotus Pond — hồ sen Việt Nam background theme */
+/* Lotus Pond — hồ sen Việt Nam background + text theme */
 :root {
-  --bg:            hsl(150 28% 96%) !important;
-  --bg-subtle:     hsl(150 22% 92%) !important;
-  --bg-card:       rgba(255,255,255,0.72) !important;
-  --border:        rgba(120,190,155,0.25) !important;
+  --bg:               hsl(150 28% 96%) !important;
+  --bg-subtle:        hsl(150 22% 92%) !important;
+  --bg-card:          rgba(255,255,255,0.75) !important;
+  --border:           rgba(45,106,79,0.20) !important;
+
+  /* Text — xanh hoa sen đậm */
+  --fg:               hsl(155 55% 16%) !important;   /* #1b4332 — xanh tối */
+  --fg-muted:         hsl(155 35% 32%) !important;   /* #2d6a4f — xanh vừa */
+  --fg-subtle:        hsl(155 25% 45%) !important;   /* muted */
+
+  /* Accent */
+  --accent:           hsl(155 50% 35%) !important;   /* #2d8c5e */
+  --accent-hover:     hsl(155 50% 28%) !important;
+  --link:             hsl(155 55% 30%) !important;
 }
+
 html {
   background: hsl(150 35% 96%) !important;
 }
 body {
   background: transparent !important;
+  color: hsl(155 55% 16%) !important;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: hsl(155 60% 14%) !important;
+}
+
+/* Links */
+a { color: hsl(155 55% 30%) !important; }
+a:hover { color: hsl(155 60% 22%) !important; }
+
+/* Code / pre */
+code, pre {
+  background: rgba(45,106,79,0.08) !important;
+  color: hsl(155 55% 18%) !important;
+}
+
+/* Nav text */
+.nav-links a,
+.lang-btn,
+.nav-item { color: hsl(155 45% 28%) !important; }
+
+/* Muted text */
+.muted, [class*="muted"], .subtitle, .sub,
+.hero-sub, .v-date, .commit-date {
+  color: hsl(155 35% 38%) !important;
+}
+
+/* Cards */
+.card, .feature-tile, .version-block,
+.terminal, .stat-card {
+  background: rgba(255,255,255,0.78) !important;
+  border-color: rgba(45,106,79,0.15) !important;
+  color: hsl(155 55% 16%) !important;
+}
+
+/* Badges / chips */
+.badge, .tag, .commit-type,
+[class*="badge"], [class*="tag"] {
+  filter: hue-rotate(120deg) saturate(0.7) brightness(0.75);
 }
