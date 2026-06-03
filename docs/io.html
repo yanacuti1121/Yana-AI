@@ -757,6 +757,7 @@ code {
 .lang-btn:hover  { background: rgba(59,130,246,.09); color: hsl(220,78%,28%); }
 </style>
 
+  <link rel="stylesheet" href="lotus-pond.css">
 </head>
 <body>
 
@@ -838,57 +839,23 @@ code {
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
   <script>
-  (function(){
-    const DEFAULT_VID = 'aKSJAcG4V4o';
-    let _muted = localStorage.getItem('site-mute') === '1';
-    let _player = null;
-
-    function getVid()    { return localStorage.getItem('music-vid') || DEFAULT_VID; }
-    function getOffset() { return parseFloat(localStorage.getItem('music-offset') || '0'); }
-
-    // Save exact position before leaving
-    window.addEventListener('beforeunload', () => {
-      if (_player && typeof _player.getCurrentTime === 'function') {
-        try { localStorage.setItem('music-offset', _player.getCurrentTime()); } catch(e){}
-      }
-    });
-
-    window.onYouTubeIframeAPIReady = function() {
-      _player = new YT.Player('yt-music', {
-        videoId: getVid(),
-        playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, playsinline: 1 },
-        events: {
-          onReady: function(e) {
-            const off = getOffset();
-            if (off > 5) e.target.seekTo(off, true);
-            if (_muted) e.target.mute();
-            e.target.playVideo();
-          }
-        }
-      });
-    };
-
-    // Track change from music.html
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'music-vid' && _player) {
-        localStorage.setItem('music-offset', '0');
-        _player.loadVideoById({ videoId: e.newValue, startSeconds: 0 });
-        if (_muted) _player.mute();
-      }
-    });
-
-    window.toggleMute = function() {
-      _muted = !_muted;
-      localStorage.setItem('site-mute', _muted ? '1' : '0');
-      document.getElementById('mute-btn').textContent = _muted ? '🔇' : '🔊';
-      if (_player) _muted ? _player.mute() : _player.unMute();
-      if (!_muted && typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-      if (_muted) document.getElementById('mute-btn').textContent = '🔇';
-    });
-  })();
+  window._customToggleMute = true;
+  // io.html merged toggleMute: sfx + music
+  var _ioMuted = localStorage.getItem('site-mute') === '1';
+  window.toggleMute = function() {
+    _ioMuted = !_ioMuted;
+    localStorage.setItem('site-mute', _ioMuted ? '1' : '0');
+    var btn = document.getElementById('mute-btn');
+    if (btn) { btn.textContent = _ioMuted ? '🔇' : '🔊'; btn.classList.toggle('muted', _ioMuted); }
+    window._musicMute && window._musicMute(_ioMuted);
+    if (!_ioMuted && typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    if (_ioMuted) {
+      var btn = document.getElementById('mute-btn');
+      if (btn) { btn.textContent = '🔇'; btn.classList.add('muted'); }
+    }
+  });
   </script>
   <!-- Music player (merged with io sfx) -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
@@ -900,7 +867,6 @@ code {
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
   <script src="https://www.youtube.com/iframe_api"></script>
-  <script>window._customToggleMute = true;</script>
   <script src="music-player.js"></script>
 </body>
 </html>

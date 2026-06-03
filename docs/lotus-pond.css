@@ -1,0 +1,13 @@
+/* Lotus Pond — hồ sen Việt Nam background theme */
+:root {
+  --bg:            hsl(150 28% 96%) !important;
+  --bg-subtle:     hsl(150 22% 92%) !important;
+  --bg-card:       rgba(255,255,255,0.72) !important;
+  --border:        rgba(120,190,155,0.25) !important;
+}
+html {
+  background: hsl(150 35% 96%) !important;
+}
+body {
+  background: transparent !important;
+}
