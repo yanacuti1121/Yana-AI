@@ -827,6 +827,14 @@ code {
   <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
   <button class="intro-btn" id="intro-btn" onclick="showIntro()"></button>
 
+  <!-- Background music — YouTube embed (hidden) -->
+  <iframe id="yt-music"
+    src="https://www.youtube.com/embed/KeoAfgsM8o4?autoplay=1&loop=1&playlist=KeoAfgsM8o4&controls=0&mute=0&enablejsapi=1"
+    allow="autoplay; encrypted-media"
+    style="position:absolute;width:0;height:0;border:0;opacity:0;pointer-events:none"
+    title="bg-music">
+  </iframe>
+
   <!-- Intro overlay -->
   <div class="intro-overlay" id="intro-overlay">
     <div class="intro-card">
@@ -1433,6 +1441,14 @@ function toggleMute() {
   const btn = document.getElementById('mute-btn');
   btn.textContent = soundMuted ? '🔇' : '🔊';
   btn.classList.toggle('muted', soundMuted);
+  // Control YouTube background music
+  const yt = document.getElementById('yt-music');
+  if (yt && yt.contentWindow) {
+    yt.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: soundMuted ? 'muteVideo' : 'unMuteVideo', args: [] }),
+      '*'
+    );
+  }
   if (!soundMuted) sfx.tap();
 }
 
@@ -1440,6 +1456,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('mute-btn');
   if (soundMuted) { btn.textContent = '🔇'; btn.classList.add('muted'); }
   applyLang();
+  // Mute YT on load if previously muted
+  if (soundMuted) {
+    setTimeout(() => {
+      const yt = document.getElementById('yt-music');
+      if (yt && yt.contentWindow) {
+        yt.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'muteVideo', args: [] }), '*'
+        );
+      }
+    }, 2000);
+  }
 });
 
 let _ctx = null;
