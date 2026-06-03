@@ -238,10 +238,22 @@ body {
 /* Date widget */
 .date-widget {
   text-align: center;
-  padding: 12px 0 20px; flex-shrink: 0;
+  padding: 12px 0 14px; flex-shrink: 0;
 }
 .date-widget .day  { font-size: .78rem; color: rgba(20,90,55,.58); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
 .date-widget .date { font-size: 4.5rem; font-weight: 200; color: hsl(155,52%,18%); line-height: 1; letter-spacing: -.03em; margin-top: 2px; text-shadow: 0 2px 12px hsla(155,52%,32%,.16); }
+
+/* Weather strip */
+.weather-strip {
+  display: none; align-items: center; justify-content: center; gap: .55rem;
+  margin-top: 8px;
+  font-size: .72rem; color: hsl(155,45%,28%);
+  font-weight: 500; letter-spacing: .01em;
+}
+.weather-strip .ws-icon { font-size: 1rem; line-height: 1; }
+.weather-strip .ws-temp { font-weight: 700; color: hsl(155,52%,18%); }
+.weather-strip .ws-sep  { opacity: .3; }
+.weather-strip .ws-city { opacity: .6; font-size: .65rem; }
 
 /* App grid */
 .app-grid {
@@ -846,6 +858,14 @@ code {
     <div class="date-widget">
       <div class="day" id="day-label"></div>
       <div class="date" id="date-num">3</div>
+      <div class="weather-strip" id="io-weather">
+        <span class="ws-icon" id="io-w-icon">🌤️</span>
+        <span class="ws-temp" id="io-w-temp">—</span>
+        <span class="ws-sep">·</span>
+        <span id="io-w-humid"></span>
+        <span class="ws-sep">·</span>
+        <span class="ws-city" id="io-w-city">—</span>
+      </div>
     </div>
 
     <div class="app-grid">
@@ -1803,6 +1823,52 @@ document.querySelectorAll('.app-window').forEach(win => {
   }, { passive: true });
 });
 </script>
+  <script>
+  (function () {
+    const WMO = {
+      0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+      51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
+      71:'🌨️',73:'🌨️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',
+      95:'⛈️',96:'⛈️',99:'⛈️',
+    };
+    async function loadIOWeather() {
+      const strip = document.getElementById('io-weather');
+      if (!strip) return;
+      try {
+        let lat = 21.0245, lon = 105.8412, city = 'Hà Nội';
+        try {
+          const pos = await new Promise((res, rej) =>
+            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 }));
+          lat = pos.coords.latitude; lon = pos.coords.longitude; city = '';
+        } catch (_) {}
+
+        const r = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&current=temperature_2m,weather_code,relative_humidity_2m&timezone=auto&forecast_days=1`
+        );
+        const d = (await r.json()).current;
+
+        if (!city) {
+          try {
+            const g = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+              { headers: { 'Accept-Language': 'vi' } }
+            );
+            const gd = await g.json();
+            city = gd.address?.city || gd.address?.town || gd.address?.county || '';
+          } catch (_) {}
+        }
+
+        document.getElementById('io-w-icon').textContent  = WMO[d.weather_code] || WMO[Math.floor(d.weather_code/10)*10] || '🌡️';
+        document.getElementById('io-w-temp').textContent  = `${Math.round(d.temperature_2m)}°C`;
+        document.getElementById('io-w-humid').textContent = `💧${d.relative_humidity_2m}%`;
+        if (city) document.getElementById('io-w-city').textContent = city;
+        strip.style.display = 'flex';
+      } catch (_) {}
+    }
+    document.addEventListener('DOMContentLoaded', loadIOWeather);
+  })();
+  </script>
   <script src="water-droplet.js" defer></script>
   <script src="lotus-petals.js" defer></script>
   <script>window._customToggleMute = true;</script>
