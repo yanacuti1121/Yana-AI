@@ -243,17 +243,32 @@ body {
 .date-widget .day  { font-size: .78rem; color: rgba(20,90,55,.58); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
 .date-widget .date { font-size: 4.5rem; font-weight: 200; color: hsl(155,52%,18%); line-height: 1; letter-spacing: -.03em; margin-top: 2px; text-shadow: 0 2px 12px hsla(155,52%,32%,.16); }
 
-/* Weather strip */
-.weather-strip {
-  display: none; align-items: center; justify-content: center; gap: .55rem;
-  margin-top: 8px;
-  font-size: .72rem; color: hsl(155,45%,28%);
-  font-weight: 500; letter-spacing: .01em;
+/* Weather widget card */
+.weather-card {
+  display: none;
+  margin: 0 0 12px;
+  border-radius: 20px; overflow: hidden;
+  background: linear-gradient(135deg,
+    hsla(155,55%,38%,.82) 0%,
+    hsla(152,50%,28%,.88) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow:
+    0 8px 28px hsla(155,52%,20%,.22),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  padding: 14px 16px 12px;
+  flex-shrink: 0;
+  cursor: default;
 }
-.weather-strip .ws-icon { font-size: 1rem; line-height: 1; }
-.weather-strip .ws-temp { font-weight: 700; color: hsl(155,52%,18%); }
-.weather-strip .ws-sep  { opacity: .3; }
-.weather-strip .ws-city { opacity: .6; font-size: .65rem; }
+.wc-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.wc-city { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.75); letter-spacing: .05em; text-transform: uppercase; }
+.wc-desc { font-size: .68rem; color: rgba(255,255,255,.55); margin-top: 2px; }
+.wc-icon { font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,.2)); }
+.wc-temp { font-size: 2.8rem; font-weight: 200; color: #fff; letter-spacing: -.04em; line-height: 1; margin-top: 4px; }
+.wc-bottom { display: flex; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.12); }
+.wc-stat { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: rgba(255,255,255,.65); }
+.wc-stat span { font-weight: 600; color: rgba(255,255,255,.9); }
 
 /* App grid */
 .app-grid {
@@ -858,13 +873,22 @@ code {
     <div class="date-widget">
       <div class="day" id="day-label"></div>
       <div class="date" id="date-num">3</div>
-      <div class="weather-strip" id="io-weather">
-        <span class="ws-icon" id="io-w-icon">🌤️</span>
-        <span class="ws-temp" id="io-w-temp">—</span>
-        <span class="ws-sep">·</span>
-        <span id="io-w-humid"></span>
-        <span class="ws-sep">·</span>
-        <span class="ws-city" id="io-w-city">—</span>
+    </div>
+
+    <!-- Weather widget card -->
+    <div class="weather-card" id="io-weather">
+      <div class="wc-top">
+        <div>
+          <div class="wc-city" id="io-w-city">—</div>
+          <div class="wc-desc" id="io-w-desc">—</div>
+          <div class="wc-temp" id="io-w-temp">—</div>
+        </div>
+        <div class="wc-icon" id="io-w-icon">🌤️</div>
+      </div>
+      <div class="wc-bottom">
+        <div class="wc-stat">💧 <span id="io-w-humid">—</span></div>
+        <div class="wc-stat">💨 <span id="io-w-wind">—</span></div>
+        <div class="wc-stat">👁 <span id="io-w-vis">—</span></div>
       </div>
     </div>
 
@@ -1825,15 +1849,27 @@ document.querySelectorAll('.app-window').forEach(win => {
 </script>
   <script>
   (function () {
-    const WMO = {
+    const WMO_ICON = {
       0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
       51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
       71:'🌨️',73:'🌨️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',
       95:'⛈️',96:'⛈️',99:'⛈️',
     };
+    const WMO_DESC = {
+      0:'Trời quang',1:'Khá nắng',2:'Nhiều mây',3:'Âm u',
+      45:'Sương mù',48:'Sương mù dày',
+      51:'Mưa phùn nhẹ',53:'Mưa phùn',55:'Mưa phùn dày',
+      61:'Mưa nhẹ',63:'Mưa vừa',65:'Mưa to',
+      71:'Tuyết nhẹ',73:'Tuyết',75:'Tuyết dày',
+      80:'Mưa rào nhẹ',81:'Mưa rào',82:'Mưa rào to',
+      95:'Giông bão',96:'Giông + mưa đá',99:'Giông + mưa đá to',
+    };
+    const gi = c => WMO_ICON[c] || WMO_ICON[Math.floor(c/10)*10] || '🌡️';
+    const gd = c => WMO_DESC[c] || WMO_DESC[Math.floor(c/10)*10] || '';
+
     async function loadIOWeather() {
-      const strip = document.getElementById('io-weather');
-      if (!strip) return;
+      const card = document.getElementById('io-weather');
+      if (!card) return;
       try {
         let lat = 21.0245, lon = 105.8412, city = 'Hà Nội';
         try {
@@ -1844,7 +1880,7 @@ document.querySelectorAll('.app-window').forEach(win => {
 
         const r = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-          `&current=temperature_2m,weather_code,relative_humidity_2m&timezone=auto&forecast_days=1`
+          `&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,visibility&timezone=auto&forecast_days=1`
         );
         const d = (await r.json()).current;
 
@@ -1854,16 +1890,21 @@ document.querySelectorAll('.app-window').forEach(win => {
               `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
               { headers: { 'Accept-Language': 'vi' } }
             );
-            const gd = await g.json();
-            city = gd.address?.city || gd.address?.town || gd.address?.county || '';
+            const gj = await g.json();
+            city = gj.address?.city || gj.address?.town || gj.address?.county || '';
           } catch (_) {}
         }
 
-        document.getElementById('io-w-icon').textContent  = WMO[d.weather_code] || WMO[Math.floor(d.weather_code/10)*10] || '🌡️';
+        const c = d.weather_code;
+        document.getElementById('io-w-icon').textContent  = gi(c);
         document.getElementById('io-w-temp').textContent  = `${Math.round(d.temperature_2m)}°C`;
-        document.getElementById('io-w-humid').textContent = `💧${d.relative_humidity_2m}%`;
-        if (city) document.getElementById('io-w-city').textContent = city;
-        strip.style.display = 'flex';
+        document.getElementById('io-w-desc').textContent  = gd(c);
+        document.getElementById('io-w-humid').textContent = `${d.relative_humidity_2m}%`;
+        document.getElementById('io-w-wind').textContent  = `${Math.round(d.wind_speed_10m)} km/h`;
+        const vis = d.visibility;
+        document.getElementById('io-w-vis').textContent   = vis >= 1000 ? `${(vis/1000).toFixed(0)} km` : `${vis} m`;
+        if (city) document.getElementById('io-w-city').textContent = city.toUpperCase();
+        card.style.display = 'block';
       } catch (_) {}
     }
     document.addEventListener('DOMContentLoaded', loadIOWeather);
