@@ -96,7 +96,6 @@
     }
   </style>
 
-  <link rel="stylesheet" href="lotus-pond.css">
 </head>
 <body>
   <div class="container">
@@ -146,7 +145,8 @@
     { id: 'JCn0hoILmyw', name: 'List Chill 3 — Nhạc Không Lời',       artist: 'Relaxing Music',        icon: '🌿' },
   ];
 
-  let tracks = JSON.parse(localStorage.getItem('music-tracks') || 'null') || DEFAULT_TRACKS;
+  let _saved = JSON.parse(localStorage.getItem('music-tracks') || 'null');
+  let tracks = (_saved && _saved.length) ? _saved : DEFAULT_TRACKS;
   let _muted = localStorage.getItem('site-mute') === '1';
   let _ytReady = false, _seekDone = false;
 
