@@ -29,7 +29,7 @@
   --accent:        hsl(221 75% 48%);
   --accent-hover:  hsl(221 75% 40%);
   --green:         hsl(142 55% 36%);
-  --orange:        hsl(28 85% 50%);
+  --orange:        hsl(155 52% 32%);
   --red:           hsl(0 70% 52%);
   --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -48,7 +48,7 @@
   --accent:        hsl(221 75% 62%);
   --accent-hover:  hsl(221 75% 70%);
   --green:         hsl(142 55% 48%);
-  --orange:        hsl(28 85% 58%);
+  --orange:        hsl(155 52% 42%);
   --red:           hsl(0 70% 60%);
 }
 html { scroll-behavior: smooth; }
@@ -235,7 +235,7 @@ h2 { font-family: var(--hand); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-wei
 .gate-desc { font-size: .8125rem; color: var(--fg-muted); margin-top: .125rem; }
 .gate-badge { font-family: var(--mono); font-size: .6875rem; font-weight: 600; padding: .2rem .6rem; border-radius: 4px; white-space: nowrap; }
 .badge-block { background: hsla(0,84%,60%,.12);   color: hsl(0,84%,65%); }
-.badge-warn  { background: hsla(38,92%,50%,.12);  color: hsl(38,92%,55%); }
+.badge-warn  { background: hsla(155,52%,32%,.1);  color: hsl(155,52%,32%); }
 .badge-audit { background: hsla(221,83%,53%,.12); color: hsl(221,83%,70%); }
 
 /* Runtime */
@@ -1156,11 +1156,11 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <!-- ChatGPT Atlas Lottie card -->
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(38,92%,50%,.1);color:#fbbf24;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(38,92%,50%,.2);letter-spacing:.05em">Lottie</span>
+          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(155,52%,32%,.1);color:hsl(155,52%,42%);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(155,52%,32%,.2);letter-spacing:.05em">Lottie</span>
           <span style="color:hsl(215,20%,45%);font-size:.73rem;font-style:italic">ChatGPT experiment</span>
         </div>
         <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#fbbf24,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
+          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,hsl(155,52%,38%),hsl(340,70%,60%),hsl(155,52%,38%));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradShift 4s linear infinite">
             ChatGPT Atlas
           </div>
           <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
@@ -1287,7 +1287,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
           <span>🌅</span>
           <span style="font-weight:700;font-size:.92rem">itro</span>
-          <span style="font-size:.67rem;background:hsla(28,85%,50%,.1);color:var(--orange);padding:.1rem .4rem;border-radius:4px">HTML</span>
+          <span style="font-size:.67rem;background:hsla(155,52%,32%,.1);color:var(--orange);padding:.1rem .4rem;border-radius:4px">HTML</span>
         </div>
         <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem">Personal intro — sunset gradient, ember particles, nhạc nền. Aesthetic portfolio page.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
@@ -1326,7 +1326,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
             <span data-i18n="yana.f2">Điều phối 93 agents — route task đúng chuyên gia</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
-            <span style="width:32px;height:32px;border-radius:8px;background:hsla(28,85%,50%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(155,52%,32%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
             <span data-i18n="yana.f3">Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
@@ -1536,8 +1536,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Knowledge graph</span>
       <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Blast radius map</span>
       <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Multi-language import analysis</span>
-      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(28,85%,50%,.1);color:var(--orange);border:1px solid hsla(28,85%,50%,.25);padding:.3rem .75rem;border-radius:6px">Vietnamese-first vault</span>
-      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(28,85%,50%,.1);color:var(--orange);border:1px solid hsla(28,85%,50%,.25);padding:.3rem .75rem;border-radius:6px">Agent OS concept</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(155,52%,32%,.1);color:var(--orange);border:1px solid hsla(155,52%,32%,.25);padding:.3rem .75rem;border-radius:6px">Vietnamese-first vault</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(155,52%,32%,.1);color:var(--orange);border:1px solid hsla(155,52%,32%,.25);padding:.3rem .75rem;border-radius:6px">Agent OS concept</span>
     </div>
   </div>
 </section>
