@@ -12,7 +12,7 @@
 
 body {
   min-height: 100dvh;
-  background: #000;
+  background: #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,69 +20,76 @@ body {
   overflow: hidden;
 }
 
-/* ── Desktop bg ── */
+/* ── Desktop bg — blue sky ── */
 .desktop-bg {
   position: fixed; inset: 0; z-index: 0;
-  background: radial-gradient(ellipse 80% 60% at 20% 30%, hsla(248,80%,45%,.6), transparent),
-              radial-gradient(ellipse 60% 50% at 80% 70%, hsla(200,90%,40%,.4), transparent),
-              radial-gradient(ellipse 50% 40% at 50% 50%, hsla(310,70%,35%,.3), transparent),
-              #08080f;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, hsla(210,100%,82%,.9), transparent),
+    radial-gradient(ellipse 60% 45% at 85% 75%, hsla(200,100%,78%,.7), transparent),
+    radial-gradient(ellipse 55% 60% at 55% 5%,  hsla(220,100%,88%,.8), transparent),
+    linear-gradient(165deg, #f0f9ff 0%, #dbeafe 40%, #bfdbfe 70%, #93c5fd 100%);
   overflow: hidden;
+}
+.desktop-bg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 40% 55% at 75% 25%, rgba(255,255,255,.55), transparent),
+    radial-gradient(ellipse 35% 40% at 20% 75%, rgba(255,255,255,.35), transparent);
 }
 .desktop-bg::after {
   content: '';
   position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='.8' fill='white' fill-opacity='.25'/%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='.5' fill='%233b82f6' fill-opacity='.07'/%3E%3C/svg%3E");
 }
 
-/* ── Phone frame ── */
+/* ── Phone frame — white liquid glass ── */
 .phone {
   position: relative; z-index: 1;
   width: 375px; height: 812px;
-  background: rgba(8,8,22,.92);
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   border-radius: 52px;
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.75);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.06) inset,
-    0 0 0 8px rgba(20,20,40,.95),
-    0 0 0 9.5px rgba(255,255,255,.10),
-    0 0 0 10px rgba(255,255,255,.03),
-    0 50px 120px rgba(0,0,0,.85),
-    0 10px 40px hsla(248,80%,30%,.3);
+    0 0 0 1px rgba(255,255,255,.55) inset,
+    0 0 0 8px rgba(255,255,255,.65),
+    0 0 0 9.5px rgba(255,255,255,.45),
+    0 0 0 10px rgba(59,130,246,.12),
+    0 50px 120px rgba(59,130,246,.22),
+    0 10px 40px rgba(147,197,253,.35);
   overflow: hidden;
   display: flex; flex-direction: column;
   transform-origin: center center;
-  /* Glass refraction highlight on left edge */
   &::before {
     content: '';
     position: absolute; top: 5%; left: 0; width: 1.5px; height: 40%;
-    background: linear-gradient(180deg, transparent, rgba(255,255,255,.35), transparent);
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.85), transparent);
     border-radius: 1px; z-index: 100; pointer-events: none;
   }
 }
 
-/* Scale down on small screens */
 @media (max-height: 900px) { .phone { transform: scale(.88); } }
 @media (max-height: 780px) { .phone { transform: scale(.76); } }
 @media (max-width: 440px)  { .phone { transform: scale(.82); border-radius: 44px; } }
 
-/* ── Wallpaper — iOS style ── */
+/* ── Wallpaper — blue-white sky ── */
 .wallpaper {
   position: absolute; inset: 0; z-index: 0;
-  /* iOS 26 "Aurora" wallpaper — deep space with flowing color bands */
   background:
-    radial-gradient(ellipse 120% 70% at 50% -10%, hsla(248,90%,60%,.9), transparent 55%),
-    radial-gradient(ellipse 80% 60% at 0% 60%,   hsla(285,80%,55%,.7), transparent 55%),
-    radial-gradient(ellipse 90% 60% at 100% 40%,  hsla(210,95%,55%,.6), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 100%,  hsla(190,90%,45%,.5), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 30% 50%,   hsla(320,75%,50%,.35), transparent),
-    linear-gradient(180deg, #07061a 0%, #0c0820 40%, #0a1020 100%);
-  animation: wp-shift 20s ease-in-out infinite alternate;
+    radial-gradient(ellipse 120% 55% at 50% 0%,  rgba(255,255,255,.95), transparent 48%),
+    radial-gradient(ellipse 80% 55% at 5%  45%,  hsla(210,100%,82%,.7), transparent 55%),
+    radial-gradient(ellipse 80% 55% at 95% 30%,  hsla(200,100%,78%,.6), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, hsla(220,100%,68%,.65), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 25% 65%,  hsla(195,100%,78%,.4), transparent),
+    linear-gradient(180deg, #f0f9ff 0%, #dbeafe 28%, #bfdbfe 55%, #60a5fa 82%, #2563eb 100%);
+  animation: wp-shift 22s ease-in-out infinite alternate;
 }
 @keyframes wp-shift {
   0%   { filter: hue-rotate(0deg) brightness(1); }
-  50%  { filter: hue-rotate(12deg) brightness(1.06); }
-  100% { filter: hue-rotate(-8deg) brightness(.97); }
+  50%  { filter: hue-rotate(7deg) brightness(1.04); }
+  100% { filter: hue-rotate(-4deg) brightness(.98); }
 }
 
 /* ── Status bar ── */
@@ -90,47 +97,36 @@ body {
   position: relative; z-index: 10;
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 28px 0;
-  height: 50px;
-  flex-shrink: 0;
+  height: 50px; flex-shrink: 0;
 }
 .status-time {
   font-size: .9rem; font-weight: 600;
-  color: hsl(210, 90%, 88%);
+  color: hsl(220, 75%, 22%);
   letter-spacing: -.01em;
-  text-shadow: 0 0 12px hsla(210,90%,70%,.5), 0 0 4px hsla(210,100%,90%,.3);
 }
-.status-icons {
-  display: flex; align-items: center; gap: 6px;
-}
-.status-icons svg { fill: #fff; }
+.status-icons { display: flex; align-items: center; gap: 6px; }
+.status-icons svg { fill: hsl(220, 75%, 22%); }
 
 /* Dynamic Island */
 .dynamic-island {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
   z-index: 30;
-  background: rgba(0,0,0,.88);
+  background: rgba(8,18,38,.88);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
   border-radius: 20px;
-  overflow: hidden;
-  cursor: pointer;
+  overflow: hidden; cursor: pointer;
   width: 126px; height: 36px;
   transition: width .48s cubic-bezier(.16,1,.3,1),
               height .48s cubic-bezier(.16,1,.3,1),
               border-radius .48s cubic-bezier(.16,1,.3,1);
   box-shadow:
     0 0 0 1px rgba(255,255,255,.12),
-    0 4px 20px rgba(0,0,0,.6),
+    0 4px 20px rgba(0,0,0,.35),
     inset 0 1px 0 rgba(255,255,255,.08);
 }
+.dynamic-island.expanded { width: 310px; height: 76px; border-radius: 28px; }
 
-/* Expanded state */
-.dynamic-island.expanded {
-  width: 310px; height: 76px;
-  border-radius: 28px;
-}
-
-/* Default inner: camera + sensor */
 .di-default {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -138,15 +134,14 @@ body {
 }
 .di-camera {
   width: 10px; height: 10px; border-radius: 50%;
-  background: #1a1a2a; border: 1px solid rgba(255,255,255,.08);
+  background: #0f172a; border: 1px solid rgba(255,255,255,.08);
 }
 .di-sensor {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #0f3a3a; box-shadow: 0 0 5px #00ffff66;
+  background: #0c2a3a; box-shadow: 0 0 5px rgba(56,189,248,.6);
 }
 .dynamic-island.expanded .di-default { opacity: 0; pointer-events: none; }
 
-/* Expanded inner */
 .di-expanded {
   position: absolute; inset: 0;
   display: flex; align-items: center; gap: 10px; padding: 0 14px;
@@ -157,365 +152,276 @@ body {
 
 .di-av {
   width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
-  background: rgba(255,255,255,.06); overflow: hidden;
-  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.1); overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
 }
-.di-av-inner { width: 100%; height: 100%; transform: scale(1.4); }
-
 .di-text { flex: 1; overflow: hidden; }
 .di-title { font-size: .72rem; font-weight: 600; color: #fff; white-space: nowrap; }
-.di-sub   {
-  font-size: .62rem; color: rgba(255,255,255,.45); margin-top: 1px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
+.di-sub   { font-size: .62rem; color: rgba(255,255,255,.5); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .di-badge {
   width: 8px; height: 8px; border-radius: 50%;
   background: #34d058; box-shadow: 0 0 5px #34d058;
-  flex-shrink: 0;
-  transition: background .3s, box-shadow .3s;
+  flex-shrink: 0; transition: background .3s, box-shadow .3s;
 }
-.di-badge.thinking  { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; animation: blink .7s ease-in-out infinite; }
-.di-badge.responding{ background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+.di-badge.thinking   { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; animation: blink .7s ease-in-out infinite; }
+.di-badge.responding { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
 
 /* ── Home screen ── */
 .home-screen {
   position: relative; z-index: 5;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0 20px 0;
-  overflow: hidden;
+  flex: 1; display: flex; flex-direction: column;
+  padding: 0 20px; overflow: hidden;
 }
 
 /* Date widget */
 .date-widget {
   text-align: center;
-  padding: 12px 0 20px;
-  flex-shrink: 0;
+  padding: 12px 0 20px; flex-shrink: 0;
 }
-.date-widget .day   { font-size: .78rem; color: rgba(255,255,255,.55); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
-.date-widget .date  { font-size: 4.5rem; font-weight: 200; color: #fff; line-height: 1; letter-spacing: -.03em; margin-top: 2px; }
+.date-widget .day  { font-size: .78rem; color: rgba(30,58,138,.58); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
+.date-widget .date { font-size: 4.5rem; font-weight: 200; color: hsl(220,78%,18%); line-height: 1; letter-spacing: -.03em; margin-top: 2px; text-shadow: 0 2px 12px rgba(59,130,246,.18); }
 
 /* App grid */
 .app-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px 8px;
-  flex: 1;
-  align-content: start;
-  padding-bottom: 8px;
+  gap: 16px 8px; flex: 1;
+  align-content: start; padding-bottom: 8px;
 }
-
 .app-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 .app-icon:active .app-icon-img { transform: scale(.9); }
 
 .app-icon-img {
-  width: 64px; height: 64px;
-  border-radius: 18px;
+  width: 64px; height: 64px; border-radius: 18px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.75rem;
   transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
   position: relative; overflow: hidden;
   box-shadow:
-    0 6px 20px rgba(0,0,0,.5),
-    0 2px 6px rgba(0,0,0,.3),
-    inset 0 1px 0 rgba(255,255,255,.28),
-    inset 0 -1px 0 rgba(0,0,0,.2);
+    0 6px 20px rgba(59,130,246,.28),
+    0 2px 6px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -1px 0 rgba(0,0,0,.08);
 }
-/* Specular gloss highlight */
 .app-icon-img::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.04) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,.38) 0%, rgba(255,255,255,.06) 100%);
   border-radius: 18px 18px 50% 50% / 18px 18px 30px 30px;
   pointer-events: none; z-index: 1;
 }
 .app-icon-img::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 45%, rgba(0,0,0,.08) 100%);
-  border-radius: 18px;
-  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.22) 0%, transparent 45%, rgba(0,0,0,.05) 100%);
+  border-radius: 18px; pointer-events: none;
 }
-.app-icon-img:hover { transform: scale(1.08); box-shadow: 0 10px 28px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.3); }
+.app-icon-img:hover { transform: scale(1.08); box-shadow: 0 10px 28px rgba(59,130,246,.32), inset 0 1px 0 rgba(255,255,255,.55); }
 
 .app-label {
-  font-size: .62rem; color: rgba(255,255,255,.85);
-  font-weight: 500; text-align: center;
-  text-shadow: 0 1px 3px rgba(0,0,0,.6);
-  max-width: 64px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .62rem; color: hsl(220,68%,18%);
+  font-weight: 600; text-align: center;
+  text-shadow: 0 1px 4px rgba(255,255,255,.85);
+  max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* App colors */
-.app-chat     { background: linear-gradient(145deg, #1e3a8a, #2563eb); }
-.app-skills   { background: linear-gradient(145deg, #064e3b, #059669); }
-.app-agents   { background: linear-gradient(145deg, #4c1d95, #7c3aed); }
-.app-debug    { background: linear-gradient(145deg, #7c2d12, #ea580c); }
-.app-review   { background: linear-gradient(145deg, #1e1b4b, #4338ca); }
-.app-commit   { background: linear-gradient(145deg, #134e4a, #0d9488); }
-.app-security { background: linear-gradient(145deg, #7f1d1d, #dc2626); }
-.app-deploy   { background: linear-gradient(145deg, #1a2e05, #65a30d); }
-.app-sprint   { background: linear-gradient(145deg, #0c4a6e, #0284c7); }
-.app-docs     { background: linear-gradient(145deg, #422006, #d97706); }
-.app-stats    { background: linear-gradient(145deg, #2d1b69, #9333ea); }
-.app-settings { background: linear-gradient(145deg, #1f2937, #6b7280); }
-.app-test     { background: linear-gradient(145deg, #14532d, #16a34a); }
-.app-refactor { background: linear-gradient(145deg, #312e81, #6366f1); }
-.app-map      { background: linear-gradient(145deg, #1c1917, #78716c); }
-.app-pr       { background: linear-gradient(145deg, #0f172a, #3b82f6); }
+/* App colors — blue family */
+.app-chat     { background: linear-gradient(145deg, #1d4ed8, #3b82f6); }
+.app-skills   { background: linear-gradient(145deg, #0369a1, #0ea5e9); }
+.app-agents   { background: linear-gradient(145deg, #1e40af, #6366f1); }
+.app-debug    { background: linear-gradient(145deg, #1e3a8a, #2563eb); }
+.app-review   { background: linear-gradient(145deg, #075985, #0284c7); }
+.app-commit   { background: linear-gradient(145deg, #164e63, #0891b2); }
+.app-security { background: linear-gradient(145deg, #1e3a8a, #3730a3); }
+.app-deploy   { background: linear-gradient(145deg, #0c4a6e, #38bdf8); }
+.app-sprint   { background: linear-gradient(145deg, #1d4ed8, #818cf8); }
+.app-docs     { background: linear-gradient(145deg, #1e40af, #60a5fa); }
+.app-stats    { background: linear-gradient(145deg, #0f2a6e, #4f46e5); }
+.app-settings { background: linear-gradient(145deg, #334155, #64748b); }
+.app-test     { background: linear-gradient(145deg, #0369a1, #06b6d4); }
+.app-refactor { background: linear-gradient(145deg, #1e3a8a, #7c3aed); }
+.app-map      { background: linear-gradient(145deg, #0c4a6e, #0ea5e9); }
+.app-pr       { background: linear-gradient(145deg, #1d4ed8, #93c5fd); }
 
-/* ── Dock ── */
-.dock {
-  position: relative; z-index: 5;
-  flex-shrink: 0;
-  padding: 10px 16px 0;
-}
+/* ── Dock — white liquid glass ── */
+.dock { position: relative; z-index: 5; flex-shrink: 0; padding: 10px 16px 0; }
 .home-bar-wrap {
-  position: relative; z-index: 5;
-  flex-shrink: 0;
+  position: relative; z-index: 5; flex-shrink: 0;
   display: flex; flex-direction: column; align-items: center;
-  gap: 6px;
-  padding: 8px 0 14px;
+  gap: 6px; padding: 8px 0 14px;
 }
 .back-link {
-  font-size: .68rem; color: rgba(255,255,255,.35);
-  text-decoration: none; font-weight: 500;
-  letter-spacing: .01em;
+  font-size: .68rem; color: rgba(30,58,138,.48);
+  text-decoration: none; font-weight: 500; letter-spacing: .01em;
   transition: color .15s;
 }
-.back-link:hover { color: rgba(255,255,255,.65); }
+.back-link:hover { color: rgba(30,58,138,.78); }
 .home-indicator {
   width: 120px; height: 5px;
-  background: rgba(255,255,255,.28);
-  border-radius: 3px;
+  background: rgba(59,130,246,.3); border-radius: 3px;
 }
 .dock-inner {
-  background: rgba(255,255,255,.10);
-  backdrop-filter: blur(48px) saturate(220%) brightness(1.1);
-  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.1);
-  border: 1px solid rgba(255,255,255,.22);
-  border-top-color: rgba(255,255,255,.35);
-  border-radius: 32px;
-  padding: 12px 18px;
+  background: rgba(255,255,255,.38);
+  backdrop-filter: blur(52px) saturate(220%) brightness(1.08);
+  -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.08);
+  border: 1px solid rgba(255,255,255,.72);
+  border-top-color: rgba(255,255,255,.92);
+  border-radius: 32px; padding: 12px 18px;
   display: flex; justify-content: space-around; align-items: center;
   box-shadow:
-    0 8px 32px rgba(0,0,0,.45),
-    0 2px 8px rgba(0,0,0,.3),
-    inset 0 1px 0 rgba(255,255,255,.3),
-    inset 0 -1px 0 rgba(0,0,0,.15);
+    0 8px 32px rgba(59,130,246,.18),
+    0 2px 8px rgba(59,130,246,.08),
+    inset 0 1px 0 rgba(255,255,255,.85),
+    inset 0 -1px 0 rgba(59,130,246,.06);
   position: relative;
 }
 .dock-inner::before {
   content: '';
   position: absolute; inset: 0; border-radius: 32px;
-  background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 50%);
+  background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, transparent 55%);
   pointer-events: none;
 }
 
-/* ── App window (slide-up sheet) ── */
+/* ── App window ── */
 .app-window {
-  position: absolute; z-index: 50;
-  inset: 0;
+  position: absolute; z-index: 50; inset: 0;
   display: flex; flex-direction: column;
-  transform: translateY(100%) scale(.96);
-  opacity: 0;
-  transition:
-    transform .4s cubic-bezier(.32,0,.67,0),
-    opacity   .3s ease,
-    border-radius .4s ease;
-  border-radius: 52px;
-  overflow: hidden;
+  transform: translateY(100%) scale(.96); opacity: 0;
+  transition: transform .4s cubic-bezier(.32,0,.67,0), opacity .3s ease, border-radius .4s ease;
+  border-radius: 52px; overflow: hidden;
 }
 .app-window.open {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-  border-radius: 52px;
-  transition:
-    transform .48s cubic-bezier(.16,1,.3,1),
-    opacity   .28s ease,
-    border-radius .4s ease;
+  transform: translateY(0) scale(1); opacity: 1; border-radius: 52px;
+  transition: transform .48s cubic-bezier(.16,1,.3,1), opacity .28s ease, border-radius .4s ease;
 }
 
-/* Close animation */
 @keyframes app-close {
-  0%   { transform: translateY(0) scale(1);    opacity: 1; border-radius: 52px; }
-  20%  { transform: translateY(0) scale(.93);  opacity: .9; border-radius: 40px; }
-  100% { transform: translateY(105%) scale(.88); opacity: 0; border-radius: 52px; }
+  0%   { transform: translateY(0) scale(1);      opacity: 1;  border-radius: 52px; }
+  20%  { transform: translateY(0) scale(.93);    opacity: .9; border-radius: 40px; }
+  100% { transform: translateY(105%) scale(.88); opacity: 0;  border-radius: 52px; }
 }
-.app-window.closing {
-  animation: app-close .38s cubic-bezier(.4,0,.6,1) forwards;
-  pointer-events: none;
-}
+.app-window.closing { animation: app-close .38s cubic-bezier(.4,0,.6,1) forwards; pointer-events: none; }
 
-/* Switch-out: current app slides left + shrinks */
 @keyframes app-switch-out {
-  0%   { transform: translateX(0) scale(1); opacity: 1; }
+  0%   { transform: translateX(0) scale(1);     opacity: 1; }
   100% { transform: translateX(-18%) scale(.88); opacity: 0; }
 }
-.app-window.switching-out {
-  animation: app-switch-out .28s cubic-bezier(.4,0,.6,1) forwards;
-  pointer-events: none;
-}
+.app-window.switching-out { animation: app-switch-out .28s cubic-bezier(.4,0,.6,1) forwards; pointer-events: none; }
 
-/* Switch-in: new app slides in from right */
 @keyframes app-switch-in {
   0%   { transform: translateX(30%) scale(.94); opacity: 0; }
-  100% { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(0) scale(1);     opacity: 1; }
 }
-.app-window.switching-in {
-  animation: app-switch-in .38s cubic-bezier(.16,1,.3,1) forwards;
-  pointer-events: none;
-}
+.app-window.switching-in { animation: app-switch-in .38s cubic-bezier(.16,1,.3,1) forwards; pointer-events: none; }
 
-/* Icon catch animation (icon reacts when app closes back to it) */
 @keyframes icon-catch {
   0%   { transform: scale(1); }
   40%  { transform: scale(.82); }
   70%  { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
-.app-icon-img.catching {
-  animation: icon-catch .35s cubic-bezier(.34,1.56,.64,1) forwards;
-}
+.app-icon-img.catching { animation: icon-catch .35s cubic-bezier(.34,1.56,.64,1) forwards; }
 
-/* Icon launch animation */
 @keyframes icon-launch {
   0%   { transform: scale(1); }
-  30%  { transform: scale(1.18); box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+  30%  { transform: scale(1.18); }
   55%  { transform: scale(.94); }
   75%  { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
-.app-icon-img.launching {
-  animation: icon-launch .4s cubic-bezier(.34,1.56,.64,1) forwards;
-}
+.app-icon-img.launching { animation: icon-launch .4s cubic-bezier(.34,1.56,.64,1) forwards; }
 
-/* Ripple burst from icon on launch */
 @keyframes launch-burst {
-  0%   { transform: scale(0); opacity: .5; }
+  0%   { transform: scale(0); opacity: .4; }
   100% { transform: scale(3.5); opacity: 0; }
 }
 .launch-burst {
   position: absolute; border-radius: 18px;
-  background: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.32);
   pointer-events: none; z-index: 5;
   animation: launch-burst .4s ease-out forwards;
 }
 
-/* Floating home bar above app windows */
+/* Floating home bar */
 .home-float {
   position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-  z-index: 60;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  cursor: pointer;
-  opacity: 0; pointer-events: none;
-  transition: opacity .25s;
+  z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .25s;
 }
 .home-float.visible { opacity: 1; pointer-events: auto; }
 .home-float-pill {
   width: 120px; height: 5px;
-  background: rgba(255,255,255,.4);
-  border-radius: 3px;
+  background: rgba(255,255,255,.55); border-radius: 3px;
   transition: background .15s, transform .12s;
 }
-.home-float:active .home-float-pill { background: rgba(255,255,255,.7); transform: scaleX(.92); }
-.home-float-label {
-  font-size: .55rem; color: rgba(255,255,255,.3);
-  letter-spacing: .06em; text-transform: uppercase;
-  font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,.5);
-}
-/* Swipe hint dots */
+.home-float:active .home-float-pill { background: rgba(255,255,255,.88); transform: scaleX(.92); }
+.home-float-label { font-size: .55rem; color: rgba(255,255,255,.45); letter-spacing: .06em; text-transform: uppercase; font-weight: 500; }
+
 .swipe-hint {
   position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
   display: flex; gap: 5px; align-items: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity .25s;
-  z-index: 59;
+  opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 59;
 }
 .swipe-hint.visible { opacity: 1; }
-.swipe-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(255,255,255,.25);
-  transition: background .2s, transform .2s;
-}
-.swipe-dot.active {
-  background: rgba(255,255,255,.85);
-  transform: scale(1.3);
-}
+.swipe-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.28); transition: background .2s, transform .2s; }
+.swipe-dot.active { background: rgba(255,255,255,.88); transform: scale(1.3); }
 
+/* App window header — liquid glass */
 .app-win-header {
-  flex-shrink: 0;
-  height: 56px;
+  flex-shrink: 0; height: 56px;
   display: flex; align-items: center; padding: 0 20px;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.12);
 }
-.app-win-title {
-  font-size: .92rem; font-weight: 600; color: #fff;
-  display: flex; align-items: center; gap: 8px;
-}
+.app-win-title { font-size: .92rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px; }
 .app-win-close {
   width: 30px; height: 30px;
-  background: rgba(255,255,255,.12);
-  border: none; border-radius: 50%; cursor: pointer;
-  color: rgba(255,255,255,.7); font-size: .85rem;
+  background: rgba(255,255,255,.14); border: none; border-radius: 50%; cursor: pointer;
+  color: rgba(255,255,255,.8); font-size: .85rem;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s;
 }
-.app-win-close:hover { background: rgba(255,255,255,.2); }
-.app-win-body {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  scrollbar-width: none;
-}
+.app-win-close:hover { background: rgba(255,255,255,.24); }
+.app-win-body { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
 .app-win-body::-webkit-scrollbar { display: none; }
 
-/* ── Chat app ── */
-.chat-bg { background: #0a0a16; }
+/* ── Chat app — light blue ── */
+.chat-bg { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); }
 .chat-avatar-zone {
   display: flex; flex-direction: column; align-items: center;
   padding: 20px 0 12px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(59,130,246,.1);
 }
 .ai-logo {
-  width: 90px; height: 90px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.4);
-  border: 1.5px solid rgba(255,255,255,.15);
-  overflow: hidden;
+  width: 90px; height: 90px; border-radius: 50%;
+  background: rgba(255,255,255,.65);
+  border: 1.5px solid rgba(59,130,246,.2); overflow: hidden;
   transition: box-shadow .3s, transform .3s;
 }
 .ai-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ai-logo.thinking  { animation: logo-pulse .8s ease-in-out infinite; box-shadow: 0 0 18px hsla(248,80%,60%,.5); }
-.ai-logo.responding{ box-shadow: 0 0 14px hsla(221,90%,62%,.5); }
+.ai-logo.thinking  { animation: logo-pulse .8s ease-in-out infinite; box-shadow: 0 0 18px hsla(210,100%,60%,.38); }
+.ai-logo.responding{ box-shadow: 0 0 14px hsla(221,90%,62%,.38); }
 
-/* Small avatar in messages */
 .cav-logo { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
 
 @keyframes logo-pulse {
-  0%,100% { transform: scale(1); box-shadow: 0 0 14px hsla(248,80%,60%,.4); }
-  50%      { transform: scale(1.06); box-shadow: 0 0 24px hsla(248,80%,60%,.7); }
+  0%,100% { transform: scale(1);    box-shadow: 0 0 14px hsla(210,100%,60%,.28); }
+  50%     { transform: scale(1.06); box-shadow: 0 0 24px hsla(210,100%,60%,.58); }
 }
-.chat-ai-name { font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.9); margin-top: 8px; }
-.chat-ai-status { font-size: .68rem; color: rgba(255,255,255,.4); margin-top: 2px; display:flex; align-items:center; gap:4px; }
+.chat-ai-name { font-size: .8rem; font-weight: 600; color: hsl(220,70%,22%); margin-top: 8px; }
+.chat-ai-status { font-size: .68rem; color: rgba(30,64,175,.48); margin-top: 2px; display:flex; align-items:center; gap:4px; }
 .chat-dot { width:6px; height:6px; border-radius:50%; background:#34d058; box-shadow:0 0 5px #34d058; transition:background .3s,box-shadow .3s; }
 .chat-dot.thinking { background:#fbbf24; box-shadow:0 0 6px #fbbf24; animation:blink .7s ease-in-out infinite; }
 
 .chat-feed {
-  flex: 1;
-  padding: 12px 14px;
+  flex: 1; padding: 12px 14px;
   display: flex; flex-direction: column; gap: 8px;
   overflow-y: auto; scrollbar-width: none;
-  max-height: 340px;
-  min-height: 200px;
+  max-height: 340px; min-height: 200px;
 }
 .chat-feed::-webkit-scrollbar { display: none; }
 
@@ -523,139 +429,122 @@ body {
 .cmsg.user { flex-direction:row-reverse; }
 .cav {
   width:24px; height:24px; border-radius:50%; flex-shrink:0;
-  background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12); overflow:hidden;
+  background:rgba(255,255,255,.55); border:1px solid rgba(59,130,246,.18); overflow:hidden;
 }
-.cav-inner { width:100%; height:100%; transform:scale(1.4); }
-.cbubble {
-  max-width: 72%; padding:.55rem .85rem;
-  font-size:.8rem; line-height:1.55; border-radius:14px;
-  word-break:break-word;
-}
+.cbubble { max-width:72%; padding:.55rem .85rem; font-size:.8rem; line-height:1.55; border-radius:14px; word-break:break-word; }
+
 .cmsg.ai .cbubble {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.14);
-  border-top-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(59,130,246,.12);
+  border-top-color: rgba(255,255,255,.92);
   border-radius: 4px 16px 16px 16px;
-  color: rgba(255,255,255,.92);
-  box-shadow: 0 4px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.1);
+  color: hsl(220,58%,18%);
+  box-shadow: 0 4px 16px rgba(59,130,246,.08), inset 0 1px 0 rgba(255,255,255,.85);
 }
 .cmsg.user .cbubble {
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
-  background: rgba(37,99,235,.28);
-  border: 1px solid rgba(96,165,250,.28);
-  border-top-color: rgba(147,197,253,.4);
+  background: rgba(37,99,235,.88);
+  border: 1px solid rgba(96,165,250,.38);
+  border-top-color: rgba(147,197,253,.55);
   border-radius: 16px 4px 16px 16px;
-  color: rgba(255,255,255,.94);
-  box-shadow: 0 4px 16px rgba(37,99,235,.2), inset 0 1px 0 rgba(147,197,253,.15);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37,99,235,.28), inset 0 1px 0 rgba(147,197,253,.18);
 }
 .think-dots {
   display:flex; gap:4px; align-items:center; padding:.6rem .85rem;
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
-  border-top-color: rgba(255,255,255,.2);
+  background:rgba(255,255,255,.65); border:1px solid rgba(59,130,246,.12);
+  border-top-color: rgba(255,255,255,.92);
   border-radius:4px 16px 16px 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 4px 12px rgba(59,130,246,.08), inset 0 1px 0 rgba(255,255,255,.75);
 }
-.think-dots span { width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.45);animation:bounce .85s ease-in-out infinite; }
+.think-dots span { width:5px;height:5px;border-radius:50%;background:rgba(59,130,246,.45);animation:bounce .85s ease-in-out infinite; }
 .think-dots span:nth-child(2){animation-delay:.14s} .think-dots span:nth-child(3){animation-delay:.28s}
 
 .chat-input-bar {
   flex-shrink:0; padding:10px 14px 14px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.15);
+  border-top: 1px solid rgba(59,130,246,.08);
+  background: rgba(255,255,255,.32);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .chat-input-inner {
   display:flex; align-items:flex-end; gap:8px;
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  border-top-color: rgba(255,255,255,.28);
+  backdrop-filter: blur(36px) saturate(220%);
+  -webkit-backdrop-filter: blur(36px) saturate(220%);
+  background: rgba(255,255,255,.65);
+  border: 1px solid rgba(59,130,246,.18);
+  border-top-color: rgba(255,255,255,.92);
   border-radius: 20px; padding:8px 8px 8px 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12);
+  box-shadow: 0 4px 20px rgba(59,130,246,.08), inset 0 1px 0 rgba(255,255,255,.85);
 }
 #chat-input {
   flex:1; background:transparent; border:none; outline:none;
-  color:#fff; font-family:inherit; font-size:.82rem; line-height:1.5;
+  color:hsl(220,58%,18%); font-family:inherit; font-size:.82rem; line-height:1.5;
   resize:none; height:24px; max-height:80px; scrollbar-width:none;
-  caret-color:#60a5fa;
+  caret-color:#2563eb;
 }
-#chat-input::placeholder { color:rgba(255,255,255,.3); }
+#chat-input::placeholder { color:rgba(30,64,175,.32); }
 #chat-send {
   width:32px;height:32px;border-radius:10px;flex-shrink:0;
-  background:linear-gradient(135deg,#1d4ed8,#4f46e5);
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
   border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:transform .12s,opacity .15s;
-  box-shadow:0 2px 10px rgba(37,99,235,.4);
+  box-shadow:0 2px 10px rgba(37,99,235,.38);
 }
 #chat-send:hover{transform:scale(1.08)} #chat-send:active{transform:scale(.92)}
 #chat-send:disabled{opacity:.35;cursor:not-allowed;transform:none}
 #chat-send svg{width:14px;height:14px;fill:#fff}
 
 /* ── Generic app content ── */
-.generic-app {
-  padding: 20px 16px;
-  display:flex; flex-direction:column; gap:12px;
-}
+.generic-app { padding: 20px 16px; display:flex; flex-direction:column; gap:12px; }
 .app-section-title {
-  font-size:.72rem; font-weight:600; color:rgba(255,255,255,.4);
+  font-size:.72rem; font-weight:600; color:rgba(255,255,255,.48);
   text-transform:uppercase; letter-spacing:.08em; padding:0 4px;
-}
-.app-row {
-  display:flex; align-items:center; gap:12px;
-  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
-  border-radius:14px; padding:12px 14px; cursor:pointer;
-  transition: background .15s, transform .15s, box-shadow .15s;
-  /* scroll-in initial state */
-  opacity: 0;
-  transform: translateY(16px) scale(.97);
-}
-.app-row.visible {
-  animation: row-in .4s cubic-bezier(.16,1,.3,1) forwards;
-}
-@keyframes row-in {
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.app-row:hover { background:rgba(255,255,255,.1); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.25); }
-
-/* Section title scroll-in */
-.app-section-title {
   opacity: 0; transform: translateX(-8px);
   transition: opacity .3s ease, transform .3s ease;
 }
 .app-section-title.visible { opacity: 1; transform: translateX(0); }
+
+.app-row {
+  display:flex; align-items:center; gap:12px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
+  border-top-color: rgba(255,255,255,.28);
+  border-radius:14px; padding:12px 14px; cursor:pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: background .15s, transform .15s, box-shadow .15s;
+  opacity: 0; transform: translateY(16px) scale(.97);
+}
+.app-row.visible { animation: row-in .4s cubic-bezier(.16,1,.3,1) forwards; }
+@keyframes row-in { to { opacity: 1; transform: translateY(0) scale(1); } }
+.app-row:hover { background:rgba(255,255,255,.2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
 .app-row-icon { font-size:1.3rem; flex-shrink:0; width:36px; text-align:center; }
 .app-row-info { flex:1; }
-.app-row-title { font-size:.84rem; font-weight:500; color:rgba(255,255,255,.9); }
-.app-row-sub   { font-size:.72rem; color:rgba(255,255,255,.4); margin-top:1px; }
-.app-row-arrow { color:rgba(255,255,255,.25); font-size:.75rem; }
+.app-row-title { font-size:.84rem; font-weight:500; color:rgba(255,255,255,.92); }
+.app-row-sub   { font-size:.72rem; color:rgba(255,255,255,.42); margin-top:1px; }
+.app-row-arrow { color:rgba(255,255,255,.28); font-size:.75rem; }
 
 code {
   font-family:'JetBrains Mono',ui-monospace,monospace;
-  font-size:.75em;
-  background:rgba(255,255,255,.08);
+  font-size:.75em; background:rgba(255,255,255,.14);
   padding:.1em .3em; border-radius:4px;
-  border:1px solid rgba(255,255,255,.1);
-  color:rgba(160,200,255,.9);
+  border:1px solid rgba(255,255,255,.18);
+  color:rgba(147,197,253,.92);
 }
 
 /* ── Keyframes ── */
-@keyframes blink    { 0%,100%{opacity:1} 50%{opacity:.3} }
-@keyframes bounce   { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
-@keyframes msgIn    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+@keyframes msgIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
 /* ══ WATER DROP EFFECTS ══ */
-
-/* Ripple on tap */
 .ripple-wrap { position:relative; overflow:hidden; }
 .ripple {
   position: absolute; border-radius: 50%;
-  background: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.42);
   transform: scale(0);
   animation: ripple-expand .55s cubic-bezier(.4,0,.2,1) forwards;
   pointer-events: none; z-index: 99;
@@ -665,21 +554,18 @@ code {
   100% { transform: scale(4); opacity: 0; }
 }
 
-/* Water drop floating on glass panels */
 .water-drop {
   position: absolute; border-radius: 50%;
   pointer-events: none; z-index: 2;
-  backdrop-filter: blur(4px) brightness(1.3);
-  -webkit-backdrop-filter: blur(4px) brightness(1.3);
-  border: 1px solid rgba(255,255,255,.4);
+  backdrop-filter: blur(4px) brightness(1.18);
+  -webkit-backdrop-filter: blur(4px) brightness(1.18);
+  border: 1px solid rgba(255,255,255,.62);
   background: radial-gradient(ellipse 40% 30% at 35% 30%,
-    rgba(255,255,255,.55),
-    rgba(255,255,255,.08) 60%,
-    transparent);
+    rgba(255,255,255,.72), rgba(255,255,255,.12) 60%, transparent);
   box-shadow:
-    inset 0 1px 2px rgba(255,255,255,.6),
-    inset -1px -1px 3px rgba(0,0,0,.15),
-    0 2px 8px rgba(0,0,0,.2);
+    inset 0 1px 2px rgba(255,255,255,.82),
+    inset -1px -1px 3px rgba(59,130,246,.08),
+    0 2px 8px rgba(59,130,246,.12);
   animation: drop-float var(--dur,8s) ease-in-out var(--delay,0s) infinite;
 }
 @keyframes drop-float {
@@ -689,10 +575,9 @@ code {
   75%     { transform: translate(var(--dx3,5px), var(--dy3,-2px)) scale(1.02); }
 }
 
-/* Slide-down water drip along top edge of panels */
 .drip {
   position: absolute; top: 0; width: 3px;
-  background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.0));
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.0));
   border-radius: 0 0 50% 50%;
   pointer-events: none; z-index: 3;
   animation: drip-fall var(--ddur,3s) ease-in var(--ddelay,0s) infinite;
@@ -701,75 +586,65 @@ code {
 @keyframes drip-fall {
   0%   { height: 0; opacity: 0; }
   10%  { height: 4px; opacity: .8; }
-  60%  { height: 18px; opacity: .6; }
+  60%  { height: 18px; opacity: .55; }
   90%  { height: 22px; opacity: 0; }
   100% { height: 0; opacity: 0; }
 }
 
-/* ── Intro button ── */
+/* ── Mute + Intro buttons ── */
 .mute-btn {
   position: absolute; bottom: 10px; left: 16px; z-index: 20;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 50%;
-  width: 30px; height: 30px;
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  background: rgba(255,255,255,.35);
+  border: 1px solid rgba(255,255,255,.68);
+  border-radius: 50%; width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
-  font-size: .85rem;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.18);
-  transition: background .15s, transform .12s;
-  line-height: 1;
+  font-size: .85rem; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(59,130,246,.12), inset 0 1px 0 rgba(255,255,255,.75);
+  transition: background .15s, transform .12s; line-height: 1;
 }
-.mute-btn:hover   { background: rgba(255,255,255,.18); }
-.mute-btn:active  { transform: scale(.88); }
-.mute-btn.muted   { background: rgba(255,80,80,.18); border-color: rgba(255,80,80,.3); }
+.mute-btn:hover  { background: rgba(255,255,255,.55); }
+.mute-btn:active { transform: scale(.88); }
+.mute-btn.muted  { background: rgba(255,80,80,.14); border-color: rgba(255,80,80,.35); }
 
 .intro-btn {
   position: absolute; bottom: 10px; right: 16px; z-index: 20;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.22);
-  border-top-color: rgba(255,255,255,.35);
-  border-radius: 20px;
-  padding: .3rem .75rem;
-  color: hsl(210,90%,88%);
+  backdrop-filter: blur(24px) saturate(220%);
+  -webkit-backdrop-filter: blur(24px) saturate(220%);
+  background: rgba(255,255,255,.32);
+  border: 1px solid rgba(255,255,255,.68);
+  border-top-color: rgba(255,255,255,.92);
+  border-radius: 20px; padding: .3rem .75rem;
+  color: hsl(220,78%,28%);
   font-size: .65rem; font-weight: 600;
-  letter-spacing: .04em; text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.2);
+  letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(59,130,246,.12), inset 0 1px 0 rgba(255,255,255,.82);
   transition: background .15s, transform .15s;
-  text-shadow: 0 0 8px hsla(210,90%,70%,.4);
 }
-.intro-btn:hover { background: rgba(255,255,255,.18); transform: scale(1.04); }
+.intro-btn:hover { background: rgba(255,255,255,.52); transform: scale(1.04); }
 
 /* ── Intro overlay ── */
 .intro-overlay {
   position: absolute; inset: 0; z-index: 200;
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  background: rgba(219,234,254,.78);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0;
   opacity: 0; pointer-events: none;
-  transition: opacity .35s;
-  border-radius: 52px;
-  overflow: hidden;
+  transition: opacity .35s; border-radius: 52px; overflow: hidden;
 }
 .intro-overlay.show { opacity: 1; pointer-events: auto; }
 
 .intro-card {
   width: 80%; max-width: 290px;
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.22);
-  border-top-color: rgba(255,255,255,.35);
-  border-radius: 24px;
+  backdrop-filter: blur(44px) saturate(220%);
+  -webkit-backdrop-filter: blur(44px) saturate(220%);
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(255,255,255,.92);
+  border-top-color: #fff; border-radius: 24px;
   padding: 1.5rem 1.25rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow: 0 20px 60px rgba(59,130,246,.18), inset 0 1px 0 rgba(255,255,255,.92);
   text-align: center;
   transform: translateY(20px);
   transition: transform .4s .1s cubic-bezier(.16,1,.3,1);
@@ -777,45 +652,59 @@ code {
 .intro-overlay.show .intro-card { transform: translateY(0); }
 
 .intro-logo { font-size: 2.5rem; margin-bottom: .75rem; }
-.intro-title {
-  font-size: 1.1rem; font-weight: 700;
-  color: hsl(210,90%,90%);
-  text-shadow: 0 0 16px hsla(210,90%,70%,.4);
-  letter-spacing: -.02em; margin-bottom: .5rem;
-}
-.intro-desc { font-size: .78rem; color: rgba(255,255,255,.6); line-height: 1.6; margin-bottom: 1.2rem; }
+.intro-title { font-size: 1.1rem; font-weight: 700; color: hsl(220,78%,22%); letter-spacing: -.02em; margin-bottom: .5rem; }
+.intro-desc  { font-size: .78rem; color: rgba(30,64,175,.58); line-height: 1.6; margin-bottom: 1.2rem; }
 
-.intro-steps {
-  display: flex; flex-direction: column; gap: .5rem;
-  margin-bottom: 1.25rem; text-align: left;
-}
-.intro-step {
-  display: flex; align-items: center; gap: .65rem;
-  font-size: .75rem; color: rgba(255,255,255,.75);
-}
+.intro-steps { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.25rem; text-align: left; }
+.intro-step  { display: flex; align-items: center; gap: .65rem; font-size: .75rem; color: rgba(30,64,175,.78); }
 .intro-step-icon {
   width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .95rem;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
+  display: flex; align-items: center; justify-content: center; font-size: .95rem;
+  background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.14);
 }
-
 .intro-close {
   width: 100%; padding: .6rem;
-  background: linear-gradient(135deg, hsl(221,83%,55%), hsl(265,80%,58%));
-  border: none; border-radius: 14px;
-  color: #fff; font-size: .82rem; font-weight: 600;
-  cursor: pointer; letter-spacing: -.01em;
-  box-shadow: 0 4px 16px hsla(221,83%,50%,.4), inset 0 1px 0 rgba(255,255,255,.2);
+  background: linear-gradient(135deg, hsl(221,83%,52%), hsl(210,100%,48%));
+  border: none; border-radius: 14px; color: #fff;
+  font-size: .82rem; font-weight: 600; cursor: pointer; letter-spacing: -.01em;
+  box-shadow: 0 4px 16px hsla(221,83%,50%,.32), inset 0 1px 0 rgba(255,255,255,.22);
   transition: opacity .15s;
 }
 .intro-close:hover { opacity: .88; }
+
+/* ── Language bar (outside phone) ── */
+.lang-bar {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 100;
+  display: flex; gap: 4px;
+  backdrop-filter: blur(28px) saturate(220%);
+  -webkit-backdrop-filter: blur(28px) saturate(220%);
+  background: rgba(255,255,255,.42);
+  border: 1px solid rgba(255,255,255,.72);
+  border-top-color: rgba(255,255,255,.92);
+  border-radius: 20px; padding: 5px 7px;
+  box-shadow: 0 8px 32px rgba(59,130,246,.18), inset 0 1px 0 rgba(255,255,255,.85);
+}
+.lang-btn {
+  padding: .22rem .58rem; border: none; border-radius: 12px;
+  font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+  cursor: pointer; background: transparent;
+  color: rgba(30,64,175,.55); transition: background .15s, color .15s;
+}
+.lang-btn.active { background: rgba(37,99,235,.14); color: hsl(220,78%,28%); }
+.lang-btn:hover  { background: rgba(59,130,246,.09); color: hsl(220,78%,28%); }
 </style>
 </head>
 <body>
 
 <div class="desktop-bg"></div>
+
+<!-- Language bar -->
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('vi')">VI</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" onclick="setLang('ko')">KO</button>
+</div>
 
 <!-- Phone -->
 <div class="phone" id="phone">
@@ -823,17 +712,15 @@ code {
 
   <!-- Dynamic Island -->
   <div class="dynamic-island" id="di" onclick="toggleDI()">
-    <!-- Default: pill view -->
     <div class="di-default">
       <div class="di-sensor"></div>
       <div class="di-camera"></div>
     </div>
-    <!-- Expanded: live activity -->
     <div class="di-expanded">
       <div class="di-av"><img src="logo.svg" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>
       <div class="di-text">
         <div class="di-title">YAMTAM IO</div>
-        <div class="di-sub" id="di-sub-txt">Nhấn để mở chat</div>
+        <div class="di-sub" id="di-sub-txt"></div>
       </div>
       <div class="di-badge" id="di-badge"></div>
     </div>
@@ -843,44 +730,34 @@ code {
   <div class="status-bar">
     <div class="status-time" id="clock">9:41</div>
     <div class="status-icons">
-      <!-- Signal -->
       <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="8" width="3" height="4" rx="1" opacity=".4"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1" opacity=".6"/><rect x="9" y="3" width="3" height="9" rx="1" opacity=".8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
-      <!-- Wifi -->
-      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M4.5 7.5C5.7 6.3 6.8 5.7 8 5.7s2.3.6 3.5 1.8" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/><path d="M1.5 4.8C3.4 2.9 5.6 1.8 8 1.8s4.6 1.1 6.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/></svg>
-      <!-- Battery -->
-      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.2" fill="none" opacity=".8"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M4.5 7.5C5.7 6.3 6.8 5.7 8 5.7s2.3.6 3.5 1.8" stroke="hsl(220,75%,22%)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/><path d="M1.5 4.8C3.4 2.9 5.6 1.8 8 1.8s4.6 1.1 6.5 3" stroke="hsl(220,75%,22%)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="hsl(220,75%,22%)" stroke-width="1.2" fill="none" opacity=".8"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="hsl(220,75%,22%)"/><path d="M23 4v4a2 2 0 000-4z" fill="hsl(220,75%,22%)" opacity=".5"/></svg>
     </div>
   </div>
 
-  <!-- Intro button -->
-  <button class="mute-btn" id="mute-btn" onclick="toggleMute()" title="Tắt/Bật âm">🔊</button>
-  <button class="intro-btn" onclick="showIntro()">? Giới thiệu</button>
+  <!-- Buttons -->
+  <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+  <button class="intro-btn" id="intro-btn" onclick="showIntro()"></button>
 
   <!-- Intro overlay -->
   <div class="intro-overlay" id="intro-overlay">
     <div class="intro-card">
       <div class="intro-logo">⚡</div>
       <div class="intro-title">YAMTAM IO</div>
-      <div class="intro-desc">Giao diện điện thoại — mỗi tính năng là một ứng dụng riêng.</div>
-      <div class="intro-steps">
-        <div class="intro-step"><div class="intro-step-icon">👆</div>Tap icon để mở ứng dụng</div>
-        <div class="intro-step"><div class="intro-step-icon">💬</div>IO Chat — AI thật (Llama 3.3 70B)</div>
-        <div class="intro-step"><div class="intro-step-icon">🏝️</div>Tap Dynamic Island để xem trạng thái</div>
-        <div class="intro-step"><div class="intro-step-icon">👇</div>Vuốt xuống để đóng ứng dụng</div>
-      </div>
-      <button class="intro-close" onclick="hideIntro()">Bắt đầu →</button>
+      <div class="intro-desc" id="intro-desc"></div>
+      <div class="intro-steps" id="intro-steps"></div>
+      <button class="intro-close" id="intro-close" onclick="hideIntro()"></button>
     </div>
   </div>
 
   <!-- Home screen -->
   <div class="home-screen">
-    <!-- Date -->
     <div class="date-widget">
-      <div class="day" id="day-label">Thứ Ba</div>
-      <div class="date" id="date-num">2</div>
+      <div class="day" id="day-label"></div>
+      <div class="date" id="date-num">3</div>
     </div>
 
-    <!-- App grid -->
     <div class="app-grid">
       <div class="app-icon" onclick="openApp('chat')">
         <div class="app-icon-img app-chat">💬</div>
@@ -952,7 +829,6 @@ code {
   <!-- Dock -->
   <div class="dock">
     <div class="dock-inner" id="dock-inner">
-      <!-- Water drops on dock -->
       <div class="water-drop" style="width:10px;height:12px;left:18%;top:8%;--dur:7s;--delay:0s;--dx1:3px;--dy1:-4px;--dx2:-2px;--dy2:3px;--dx3:4px;--dy3:-1px"></div>
       <div class="water-drop" style="width:7px;height:9px;left:52%;top:12%;--dur:9s;--delay:1.5s;--dx1:-4px;--dy1:-3px;--dx2:3px;--dy2:4px;--dx3:-3px;--dy3:2px"></div>
       <div class="water-drop" style="width:8px;height:10px;left:78%;top:6%;--dur:11s;--delay:3s;--dx1:2px;--dy1:-5px;--dx2:-3px;--dy2:2px;--dx3:4px;--dy3:-3px"></div>
@@ -975,24 +851,24 @@ code {
 
   <!-- Home bar -->
   <div class="home-bar-wrap">
-    <a class="back-link" href="index.html">← Trang chủ</a>
+    <a class="back-link" id="back-link" href="index.html"></a>
     <div class="home-indicator"></div>
   </div>
 
-  <!-- Floating home button (shows when any app is open) -->
+  <!-- Floating home button -->
   <div class="home-float" id="home-float" onclick="closeCurrentApp()">
-    <div class="home-float-label">home</div>
+    <div class="home-float-label" id="home-float-label"></div>
     <div class="home-float-pill"></div>
   </div>
 
-  <!-- Swipe position dots -->
+  <!-- Swipe dots -->
   <div class="swipe-hint" id="swipe-hint"></div>
 
   <!-- ════ APP WINDOWS ════ -->
 
   <!-- Chat -->
   <div class="app-window chat-bg" id="win-chat">
-    <div class="app-win-header" style="background:rgba(0,0,0,.3);backdrop-filter:blur(20px)">
+    <div class="app-win-header" style="background:rgba(37,99,235,.55);backdrop-filter:blur(20px)">
       <div class="app-win-title">💬 IO Chat</div>
       <button class="app-win-close" onclick="closeApp('chat')">✕</button>
     </div>
@@ -1002,19 +878,19 @@ code {
         <div class="chat-ai-name">YAMTAM IO</div>
         <div class="chat-ai-status">
           <span class="chat-dot" id="chat-dot"></span>
-          <span id="chat-status-txt">Sẵn sàng</span>
+          <span id="chat-status-txt"></span>
         </div>
       </div>
       <div class="chat-feed" id="chat-feed">
         <div class="cmsg ai">
           <div class="cav"><img class="cav-logo" src="logo.svg" alt="YAMTAM"></div>
-          <div class="cbubble">Xin chào! Tôi là <code>YAMTAM IO</code>. Bạn cần gì?</div>
+          <div class="cbubble" id="chat-greeting"></div>
         </div>
       </div>
       <div class="chat-input-bar">
         <div class="chat-input-inner">
-          <textarea id="chat-input" placeholder="Nhắn gì đó…" rows="1"></textarea>
-          <button id="chat-send" aria-label="Gửi">
+          <textarea id="chat-input" rows="1"></textarea>
+          <button id="chat-send" aria-label="Send">
             <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
@@ -1023,169 +899,160 @@ code {
   </div>
 
   <!-- Skills -->
-  <div class="app-window" id="win-skills" style="background:#030f07">
-    <div class="app-win-header" style="background:rgba(6,78,59,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-skills" style="background:linear-gradient(180deg,#0c1a3a,#0a1628)">
+    <div class="app-win-header" style="background:rgba(3,105,161,.55);backdrop-filter:blur(20px)">
       <div class="app-win-title">⚡ Skills</div>
       <button class="app-win-close" onclick="closeApp('skills')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">3,437 skills available</div>
+        <div class="app-section-title">3,437 skills</div>
         <div class="app-row"><div class="app-row-icon">🤖</div><div class="app-row-info"><div class="app-row-title">AI & LLM</div><div class="app-row-sub">RAG, prompt engineering, eval</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🔒</div><div class="app-row-info"><div class="app-row-title">Security</div><div class="app-row-sub">OWASP, red team, vault</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">⚙️</div><div class="app-row-info"><div class="app-row-title">DevOps & Cloud</div><div class="app-row-sub">K8s, Terraform, CI/CD</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🎨</div><div class="app-row-info"><div class="app-row-title">UI & Design</div><div class="app-row-sub">Liquid glass, design tokens</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🧪</div><div class="app-row-info"><div class="app-row-title">Testing</div><div class="app-row-sub">TDD, E2E, mutation testing</div></div><div class="app-row-arrow">›</div></div>
-        <a href="skills.html" style="display:block;text-align:center;padding:12px;color:rgba(52,211,153,.8);font-size:.82rem;font-weight:500;text-decoration:none;margin-top:4px">Xem tất cả skills →</a>
+        <a href="skills.html" style="display:block;text-align:center;padding:12px;color:rgba(96,165,250,.85);font-size:.82rem;font-weight:500;text-decoration:none;margin-top:4px" data-i18n-href="skills.all">→</a>
       </div>
     </div>
   </div>
 
   <!-- Agents -->
-  <div class="app-window" id="win-agents" style="background:#0a0316">
-    <div class="app-win-header" style="background:rgba(76,29,149,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-agents" style="background:linear-gradient(180deg,#0e1240,#080e35)">
+    <div class="app-win-header" style="background:rgba(30,64,175,.55);backdrop-filter:blur(20px)">
       <div class="app-win-title">🤖 Agents</div>
       <button class="app-win-close" onclick="closeApp('agents')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
         <div class="app-section-title">93 agents</div>
-        <div class="app-row"><div class="app-row-icon">👨‍💻</div><div class="app-row-info"><div class="app-row-title">code-reviewer</div><div class="app-row-sub">Review PR, tìm bug, gợi ý cải thiện</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🏗️</div><div class="app-row-info"><div class="app-row-title">planner</div><div class="app-row-sub">Lên kế hoạch feature, phân tích risk</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">👨‍💻</div><div class="app-row-info"><div class="app-row-title">code-reviewer</div><div class="app-row-sub">Review PR, find bugs, suggest fixes</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🏗️</div><div class="app-row-info"><div class="app-row-title">planner</div><div class="app-row-sub">Plan features, analyze risks</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🔐</div><div class="app-row-info"><div class="app-row-title">security-auditor</div><div class="app-row-sub">OWASP, pentest, CVE scan</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🗄️</div><div class="app-row-info"><div class="app-row-title">database-reviewer</div><div class="app-row-sub">Schema, query, migration review</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🐛</div><div class="app-row-info"><div class="app-row-title">debugger</div><div class="app-row-sub">Trace lỗi, root cause analysis</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🐛</div><div class="app-row-info"><div class="app-row-title">debugger</div><div class="app-row-sub">Trace errors, root cause analysis</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Debug -->
-  <div class="app-window" id="win-debug" style="background:#0f0500">
-    <div class="app-win-header" style="background:rgba(124,45,18,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-debug" style="background:linear-gradient(180deg,#0a1535,#07102a)">
+    <div class="app-win-header" style="background:rgba(7,89,133,.55);backdrop-filter:blur(20px)">
       <div class="app-win-title">🐛 Debug</div>
       <button class="app-win-close" onclick="closeApp('debug')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Chạy lệnh</div>
-        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/debug</div>
-          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Trace lỗi từ stack trace, tìm root cause, đề xuất fix.</div>
-        </div>
-        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/smart-debug</div>
-          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Debug thông minh — tự chọn agent phù hợp.</div>
-        </div>
-        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.5);padding:2px 0">/error-trace</div>
-          <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5">Trace error path toàn bộ call stack.</div>
-        </div>
+        <div class="app-section-title">Commands</div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px"><div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(147,197,253,.6);padding:2px 0">/debug</div><div style="font-size:.8rem;color:rgba(255,255,255,.72);line-height:1.5">Trace errors from stack trace, find root cause, suggest fix.</div></div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px"><div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(147,197,253,.6);padding:2px 0">/smart-debug</div><div style="font-size:.8rem;color:rgba(255,255,255,.72);line-height:1.5">Smart debug — auto-selects the best agent.</div></div>
+        <div class="app-row" style="flex-direction:column;align-items:flex-start;gap:6px"><div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(147,197,253,.6);padding:2px 0">/error-trace</div><div style="font-size:.8rem;color:rgba(255,255,255,.72);line-height:1.5">Trace error path across the full call stack.</div></div>
       </div>
     </div>
   </div>
 
   <!-- Review -->
-  <div class="app-window" id="win-review" style="background:#050514">
-    <div class="app-win-header" style="background:rgba(30,27,75,.7);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-review" style="background:linear-gradient(180deg,#071535,#050f28)">
+    <div class="app-win-header" style="background:rgba(7,89,133,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">🔍 Code Review</div>
       <button class="app-win-close" onclick="closeApp('review')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
         <div class="app-section-title">Review tools</div>
-        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/code-review</div><div class="app-row-sub">Review toàn bộ diff hiện tại</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔎</div><div class="app-row-info"><div class="app-row-title">/diff-review</div><div class="app-row-sub">Review từng file thay đổi</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🛡️</div><div class="app-row-info"><div class="app-row-title">/security-review</div><div class="app-row-sub">Tìm lỗ hổng bảo mật</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/simplify</div><div class="app-row-sub">Tối giản code sau khi review</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/code-review</div><div class="app-row-sub">Review full current diff</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔎</div><div class="app-row-info"><div class="app-row-title">/diff-review</div><div class="app-row-sub">Review each changed file</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🛡️</div><div class="app-row-info"><div class="app-row-title">/security-review</div><div class="app-row-sub">Find security vulnerabilities</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/simplify</div><div class="app-row-sub">Simplify code after review</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Commit -->
-  <div class="app-window" id="win-commit" style="background:#030d0c">
-    <div class="app-win-header" style="background:rgba(19,78,74,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-commit" style="background:linear-gradient(180deg,#082038,#061628)">
+    <div class="app-win-header" style="background:rgba(22,78,99,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">📦 Commit</div>
       <button class="app-win-close" onclick="closeApp('commit')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
         <div class="app-section-title">Git workflow</div>
-        <div class="app-row"><div class="app-row-icon">⚡</div><div class="app-row-info"><div class="app-row-title">/quick-commit</div><div class="app-row-sub">Commit nhanh với message tự động</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → Tạo PR một bước</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Tạo changelog từ commit history</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">⚡</div><div class="app-row-info"><div class="app-row-title">/quick-commit</div><div class="app-row-sub">Quick commit with auto message</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → Create PR in one step</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Generate changelog from commit history</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Security -->
-  <div class="app-window" id="win-security" style="background:#0f0000">
-    <div class="app-win-header" style="background:rgba(127,29,29,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-security" style="background:linear-gradient(180deg,#0a1050,#07093a)">
+    <div class="app-win-header" style="background:rgba(30,58,138,.6);backdrop-filter:blur(20px)">
       <div class="app-win-title">🔐 Security</div>
       <button class="app-win-close" onclick="closeApp('security')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Bảo mật</div>
-        <div class="app-row"><div class="app-row-icon">🔴</div><div class="app-row-info"><div class="app-row-title">/red-team-check</div><div class="app-row-sub">Tấn công giả lập, tìm điểm yếu</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔵</div><div class="app-row-info"><div class="app-row-title">/blue-team-fix</div><div class="app-row-sub">Vá lỗi bảo mật sau red team</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔑</div><div class="app-row-info"><div class="app-row-title">/secrets-scan</div><div class="app-row-sub">Tìm secret, key bị lộ trong code</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/security-audit</div><div class="app-row-sub">Audit toàn bộ codebase</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Security</div>
+        <div class="app-row"><div class="app-row-icon">🔴</div><div class="app-row-info"><div class="app-row-title">/red-team-check</div><div class="app-row-sub">Simulated attack, find weak points</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔵</div><div class="app-row-info"><div class="app-row-title">/blue-team-fix</div><div class="app-row-sub">Patch security issues after red team</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔑</div><div class="app-row-info"><div class="app-row-title">/secrets-scan</div><div class="app-row-sub">Find exposed secrets in code</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/security-audit</div><div class="app-row-sub">Audit entire codebase</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Deploy -->
-  <div class="app-window" id="win-deploy" style="background:#030a00">
-    <div class="app-win-header" style="background:rgba(26,46,5,.7);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-deploy" style="background:linear-gradient(180deg,#071828,#04101c)">
+    <div class="app-win-header" style="background:rgba(12,74,110,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">🚀 Deploy</div>
       <button class="app-win-close" onclick="closeApp('deploy')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
         <div class="app-section-title">Deployment</div>
-        <div class="app-row"><div class="app-row-icon">✅</div><div class="app-row-info"><div class="app-row-title">/deploy-checklist</div><div class="app-row-sub">Checklist trước khi deploy</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">/prepare-release</div><div class="app-row-sub">Chuẩn bị release, bump version</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">⏪</div><div class="app-row-info"><div class="app-row-title">/rollback</div><div class="app-row-sub">Rollback nhanh khi có sự cố</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✅</div><div class="app-row-info"><div class="app-row-title">/deploy-checklist</div><div class="app-row-sub">Checklist before deploying</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">/prepare-release</div><div class="app-row-sub">Prepare release, bump version</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">⏪</div><div class="app-row-info"><div class="app-row-title">/rollback</div><div class="app-row-sub">Quick rollback on incidents</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Sprint -->
-  <div class="app-window" id="win-sprint" style="background:#000c1a">
-    <div class="app-win-header" style="background:rgba(12,74,110,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-sprint" style="background:linear-gradient(180deg,#0c1845,#080f30)">
+    <div class="app-win-header" style="background:rgba(29,78,216,.55);backdrop-filter:blur(20px)">
       <div class="app-win-title">🎯 Sprint</div>
       <button class="app-win-close" onclick="closeApp('sprint')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Quản lý dự án</div>
-        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/sprint-planning</div><div class="app-row-sub">Lên kế hoạch sprint, phân task</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📊</div><div class="app-row-info"><div class="app-row-title">/standup-report</div><div class="app-row-sub">Tạo báo cáo daily standup</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔄</div><div class="app-row-info"><div class="app-row-title">/retrospective-analyzer</div><div class="app-row-sub">Phân tích retrospective</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Project management</div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/sprint-planning</div><div class="app-row-sub">Plan sprint, assign tasks</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📊</div><div class="app-row-info"><div class="app-row-title">/standup-report</div><div class="app-row-sub">Generate daily standup report</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔄</div><div class="app-row-info"><div class="app-row-title">/retrospective-analyzer</div><div class="app-row-sub">Analyze retrospective</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Docs -->
-  <div class="app-window" id="win-docs" style="background:#0f0800">
-    <div class="app-win-header" style="background:rgba(66,32,6,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-docs" style="background:linear-gradient(180deg,#0d1f4a,#08152f)">
+    <div class="app-win-header" style="background:rgba(30,64,175,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">📚 Docs</div>
       <button class="app-win-close" onclick="closeApp('docs')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Tài liệu</div>
-        <div class="app-row" onclick="window.open('guide.html')"><div class="app-row-icon">📖</div><div class="app-row-info"><div class="app-row-title">Guide</div><div class="app-row-sub">Hướng dẫn sử dụng YAMTAM</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Documentation</div>
+        <div class="app-row" onclick="window.open('guide.html')"><div class="app-row-icon">📖</div><div class="app-row-info"><div class="app-row-title">Guide</div><div class="app-row-sub">YAMTAM usage guide</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row" onclick="window.open('marketplace.html')"><div class="app-row-icon">🏪</div><div class="app-row-info"><div class="app-row-title">Marketplace</div><div class="app-row-sub">Skills, agents, hooks</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row" onclick="window.open('changelog.html')"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">Changelog</div><div class="app-row-sub">Lịch sử cập nhật</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Trang chủ</div><div class="app-row-sub">yamtam-engine website</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('changelog.html')"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">Changelog</div><div class="app-row-sub">Update history</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Home</div><div class="app-row-sub">yamtam-engine website</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Stats -->
-  <div class="app-window" id="win-stats" style="background:#080013">
-    <div class="app-win-header" style="background:rgba(45,27,105,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-stats" style="background:linear-gradient(180deg,#08144a,#050d35)">
+    <div class="app-win-header" style="background:rgba(15,42,110,.6);backdrop-filter:blur(20px)">
       <div class="app-win-title">📊 Stats</div>
       <button class="app-win-close" onclick="closeApp('stats')">✕</button>
     </div>
@@ -1193,32 +1060,20 @@ code {
       <div class="generic-app">
         <div class="app-section-title">YAMTAM v0.40.0</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
-            <div style="font-size:1.6rem;font-weight:700;color:#a78bfa">3,437</div>
-            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Skills</div>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
-            <div style="font-size:1.6rem;font-weight:700;color:#60a5fa">93</div>
-            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Agents</div>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
-            <div style="font-size:1.6rem;font-weight:700;color:#34d058">45</div>
-            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Hooks</div>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 12px;text-align:center">
-            <div style="font-size:1.6rem;font-weight:700;color:#fbbf24">164</div>
-            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px">Commands</div>
-          </div>
+          <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:700;color:#93c5fd">3,437</div><div style="font-size:.68rem;color:rgba(255,255,255,.42);margin-top:2px">Skills</div></div>
+          <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:700;color:#60a5fa">93</div><div style="font-size:.68rem;color:rgba(255,255,255,.42);margin-top:2px">Agents</div></div>
+          <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:700;color:#38bdf8">45</div><div style="font-size:.68rem;color:rgba(255,255,255,.42);margin-top:2px">Hooks</div></div>
+          <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:700;color:#818cf8">164</div><div style="font-size:.68rem;color:rgba(255,255,255,.42);margin-top:2px">Commands</div></div>
         </div>
-        <div class="app-row"><div class="app-row-icon">⚙️</div><div class="app-row-info"><div class="app-row-title">/session-stats</div><div class="app-row-sub">Xem thống kê session hiện tại</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">💰</div><div class="app-row-info"><div class="app-row-title">/session-cost</div><div class="app-row-sub">Chi phí token đã dùng</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">⚙️</div><div class="app-row-info"><div class="app-row-title">/session-stats</div><div class="app-row-sub">View current session stats</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">💰</div><div class="app-row-info"><div class="app-row-title">/session-cost</div><div class="app-row-sub">Tokens used this session</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Settings -->
-  <div class="app-window" id="win-settings" style="background:#0a0a0a">
-    <div class="app-win-header" style="background:rgba(31,41,55,.7);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-settings" style="background:linear-gradient(180deg,#131c2e,#0c1220)">
+    <div class="app-win-header" style="background:rgba(51,65,85,.6);backdrop-filter:blur(20px)">
       <div class="app-win-title">⚙️ Settings</div>
       <button class="app-win-close" onclick="closeApp('settings')">✕</button>
     </div>
@@ -1230,80 +1085,80 @@ code {
         <div class="app-row"><div class="app-row-icon">⚡</div><div class="app-row-info"><div class="app-row-title">Runtime</div><div class="app-row-sub">claude-sonnet-4-6</div></div></div>
         <div class="app-section-title" style="margin-top:4px">Links</div>
         <div class="app-row" onclick="window.open('https://github.com/phamlongh230-lgtm/yamtam-engine')"><div class="app-row-icon">🐙</div><div class="app-row-info"><div class="app-row-title">GitHub</div><div class="app-row-sub">Source code</div></div><div class="app-row-arrow">↗</div></div>
-        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Trang chủ</div><div class="app-row-sub">Quay lại website</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row" onclick="window.open('index.html')"><div class="app-row-icon">🏠</div><div class="app-row-info"><div class="app-row-title">Home</div><div class="app-row-sub">Back to website</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Test -->
-  <div class="app-window" id="win-test" style="background:#030d05">
-    <div class="app-win-header" style="background:rgba(20,83,45,.65);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-test" style="background:linear-gradient(180deg,#071c40,#04122a)">
+    <div class="app-win-header" style="background:rgba(3,105,161,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">🧪 Test</div>
       <button class="app-win-close" onclick="closeApp('test')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Viết & chạy tests</div>
-        <div class="app-row"><div class="app-row-icon">🔴</div><div class="app-row-info"><div class="app-row-title">/tdd-red</div><div class="app-row-sub">Viết failing test trước</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🟢</div><div class="app-row-info"><div class="app-row-title">/tdd-green</div><div class="app-row-sub">Implement tối thiểu để test pass</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/tdd-refactor</div><div class="app-row-sub">Refactor sau khi tests xanh</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/write-tests</div><div class="app-row-sub">Tạo test cho code hiện tại</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📊</div><div class="app-row-info"><div class="app-row-title">/test-coverage</div><div class="app-row-sub">Xem coverage, tìm gaps</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🎭</div><div class="app-row-info"><div class="app-row-title">/run-e2e</div><div class="app-row-sub">Chạy Playwright E2E tests</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Write & run tests</div>
+        <div class="app-row"><div class="app-row-icon">🔴</div><div class="app-row-info"><div class="app-row-title">/tdd-red</div><div class="app-row-sub">Write failing test first</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🟢</div><div class="app-row-info"><div class="app-row-title">/tdd-green</div><div class="app-row-sub">Implement minimal to pass tests</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/tdd-refactor</div><div class="app-row-sub">Refactor after tests are green</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/write-tests</div><div class="app-row-sub">Generate tests for existing code</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📊</div><div class="app-row-info"><div class="app-row-title">/test-coverage</div><div class="app-row-sub">View coverage, find gaps</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🎭</div><div class="app-row-info"><div class="app-row-title">/run-e2e</div><div class="app-row-sub">Run Playwright E2E tests</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Refactor -->
-  <div class="app-window" id="win-refactor" style="background:#08071f">
-    <div class="app-win-header" style="background:rgba(49,46,129,.65);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-refactor" style="background:linear-gradient(180deg,#0c1240,#08092e)">
+    <div class="app-win-header" style="background:rgba(30,58,138,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">♻️ Refactor</div>
       <button class="app-win-close" onclick="closeApp('refactor')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Dọn dẹp code</div>
-        <div class="app-row"><div class="app-row-icon">🧹</div><div class="app-row-info"><div class="app-row-title">/refactor-clean</div><div class="app-row-sub">Xóa dead code, cải thiện cấu trúc</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">✂️</div><div class="app-row-info"><div class="app-row-title">/simplify</div><div class="app-row-sub">Tối giản — tìm cơ hội rút gọn</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">/refactor-extract</div><div class="app-row-sub">Tách function/component ra riêng</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🏷️</div><div class="app-row-info"><div class="app-row-title">/refactor-rename</div><div class="app-row-sub">Rename toàn codebase an toàn</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">💀</div><div class="app-row-info"><div class="app-row-title">/remove-dead-code</div><div class="app-row-sub">Tìm và xóa code không dùng</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Clean up code</div>
+        <div class="app-row"><div class="app-row-icon">🧹</div><div class="app-row-info"><div class="app-row-title">/refactor-clean</div><div class="app-row-sub">Remove dead code, improve structure</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✂️</div><div class="app-row-info"><div class="app-row-title">/simplify</div><div class="app-row-sub">Find simplification opportunities</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📦</div><div class="app-row-info"><div class="app-row-title">/refactor-extract</div><div class="app-row-sub">Extract functions/components</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🏷️</div><div class="app-row-info"><div class="app-row-title">/refactor-rename</div><div class="app-row-sub">Safe rename across codebase</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">💀</div><div class="app-row-info"><div class="app-row-title">/remove-dead-code</div><div class="app-row-sub">Find and remove unused code</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- Map -->
-  <div class="app-window" id="win-map" style="background:#0d0b08">
-    <div class="app-win-header" style="background:rgba(28,25,23,.8);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-map" style="background:linear-gradient(180deg,#091630,#060f22)">
+    <div class="app-win-header" style="background:rgba(12,74,110,.6);backdrop-filter:blur(20px)">
       <div class="app-win-title">🗺️ Map</div>
       <button class="app-win-close" onclick="closeApp('map')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
-        <div class="app-section-title">Phân tích codebase</div>
-        <div class="app-row"><div class="app-row-icon">🗺️</div><div class="app-row-info"><div class="app-row-title">yamtam-rt map</div><div class="app-row-sub">Blast radius — AI có thể đọc/viết gì</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔗</div><div class="app-row-info"><div class="app-row-title">yamtam-rt graph</div><div class="app-row-sub">Dependency graph toàn codebase</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🏗️</div><div class="app-row-info"><div class="app-row-title">/arch-diagram</div><div class="app-row-sub">Tạo architecture diagram</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🧭</div><div class="app-row-info"><div class="app-row-title">/code-tour</div><div class="app-row-sub">Onboarding guide cho codebase</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/tech-debt</div><div class="app-row-sub">Scan và report technical debt</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-section-title">Codebase analysis</div>
+        <div class="app-row"><div class="app-row-icon">🗺️</div><div class="app-row-info"><div class="app-row-title">yamtam-rt map</div><div class="app-row-sub">Blast radius — what AI can read/write</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔗</div><div class="app-row-info"><div class="app-row-title">yamtam-rt graph</div><div class="app-row-sub">Full codebase dependency graph</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🏗️</div><div class="app-row-info"><div class="app-row-title">/arch-diagram</div><div class="app-row-sub">Generate architecture diagram</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🧭</div><div class="app-row-info"><div class="app-row-title">/code-tour</div><div class="app-row-sub">Onboarding guide for codebase</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📋</div><div class="app-row-info"><div class="app-row-title">/tech-debt</div><div class="app-row-sub">Scan and report technical debt</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
 
   <!-- PR -->
-  <div class="app-window" id="win-pr" style="background:#000814">
-    <div class="app-win-header" style="background:rgba(15,23,42,.8);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-pr" style="background:linear-gradient(180deg,#071440,#04102e)">
+    <div class="app-win-header" style="background:rgba(29,78,216,.58);backdrop-filter:blur(20px)">
       <div class="app-win-title">📬 PR</div>
       <button class="app-win-close" onclick="closeApp('pr')">✕</button>
     </div>
     <div class="app-win-body">
       <div class="generic-app">
         <div class="app-section-title">Pull Request</div>
-        <div class="app-row"><div class="app-row-icon">➕</div><div class="app-row-info"><div class="app-row-title">/git-pr-create</div><div class="app-row-sub">Tạo PR với title + description</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">👀</div><div class="app-row-info"><div class="app-row-title">/git-pr-review</div><div class="app-row-sub">Review PR — tìm bug, suggest fix</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/pr-enhance</div><div class="app-row-sub">Cải thiện PR description</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → PR một lệnh</div></div><div class="app-row-arrow">›</div></div>
-        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Tạo changelog từ commit history</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">➕</div><div class="app-row-info"><div class="app-row-title">/git-pr-create</div><div class="app-row-sub">Create PR with title + description</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">👀</div><div class="app-row-info"><div class="app-row-title">/git-pr-review</div><div class="app-row-sub">Review PR — find bugs, suggest fix</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/pr-enhance</div><div class="app-row-sub">Improve PR description</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → PR in one command</div></div><div class="app-row-arrow">›</div></div>
+        <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Generate changelog from history</div></div><div class="app-row-arrow">›</div></div>
       </div>
     </div>
   </div>
@@ -1311,6 +1166,130 @@ code {
 </div><!-- /phone -->
 
 <script>
+// ── i18n ──
+const I18N = {
+  vi: {
+    di_sub:       'Nhấn để mở chat',
+    idle:         'Sẵn sàng',
+    thinking:     'Đang nghĩ…',
+    responding:   'Đang trả lời',
+    placeholder:  'Nhắn gì đó…',
+    greeting:     'Xin chào! Tôi là <code>YAMTAM IO</code>. Bạn cần gì?',
+    intro_btn:    '? Giới thiệu',
+    intro_desc:   'Giao diện điện thoại — mỗi tính năng là một ứng dụng riêng.',
+    intro_steps:  [
+      ['👆', 'Tap icon để mở ứng dụng'],
+      ['💬', 'IO Chat — AI thật (Llama 3.3 70B)'],
+      ['🏝️', 'Tap Dynamic Island để xem trạng thái'],
+      ['👇', 'Vuốt xuống để đóng ứng dụng'],
+    ],
+    intro_close:  'Bắt đầu →',
+    back:         '← Trang chủ',
+    home:         'home',
+    days:         ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'],
+  },
+  en: {
+    di_sub:       'Tap to open chat',
+    idle:         'Ready',
+    thinking:     'Thinking…',
+    responding:   'Responding',
+    placeholder:  'Type something…',
+    greeting:     'Hello! I\'m <code>YAMTAM IO</code>. How can I help?',
+    intro_btn:    '? About',
+    intro_desc:   'Phone interface — each feature is a separate app.',
+    intro_steps:  [
+      ['👆', 'Tap an icon to open an app'],
+      ['💬', 'IO Chat — real AI (Llama 3.3 70B)'],
+      ['🏝️', 'Tap Dynamic Island to see status'],
+      ['👇', 'Swipe down to close an app'],
+    ],
+    intro_close:  'Get started →',
+    back:         '← Home',
+    home:         'home',
+    days:         ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  },
+  ko: {
+    di_sub:       '탭하여 채팅 열기',
+    idle:         '준비됨',
+    thinking:     '생각 중…',
+    responding:   '응답 중',
+    placeholder:  '메시지를 입력하세요…',
+    greeting:     '안녕하세요! 저는 <code>YAMTAM IO</code>입니다. 무엇을 도와드릴까요?',
+    intro_btn:    '? 소개',
+    intro_desc:   '폰 인터페이스 — 각 기능은 별도의 앱입니다.',
+    intro_steps:  [
+      ['👆', '아이콘을 탭하여 앱 열기'],
+      ['💬', 'IO Chat — 실제 AI (Llama 3.3 70B)'],
+      ['🏝️', 'Dynamic Island 탭하여 상태 확인'],
+      ['👇', '아래로 스와이프하여 앱 닫기'],
+    ],
+    intro_close:  '시작하기 →',
+    back:         '← 홈',
+    home:         'home',
+    days:         ['일','월','화','수','목','금','토'],
+  },
+};
+
+let lang = localStorage.getItem('yamtam-lang') || 'vi';
+
+function t(key) { return I18N[lang]?.[key] ?? I18N.en[key] ?? key; }
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
+
+  // DI sub
+  const diSub = document.getElementById('di-sub-txt');
+  if (diSub) diSub.textContent = t('di_sub');
+
+  // Status text
+  const chatStatusTxt = document.getElementById('chat-status-txt');
+  if (chatStatusTxt) chatStatusTxt.textContent = t('idle');
+
+  // Chat greeting
+  const greeting = document.getElementById('chat-greeting');
+  if (greeting) greeting.innerHTML = t('greeting');
+
+  // Placeholder
+  const inp = document.getElementById('chat-input');
+  if (inp) inp.placeholder = t('placeholder');
+
+  // Intro btn
+  const iBtn = document.getElementById('intro-btn');
+  if (iBtn) iBtn.textContent = t('intro_btn');
+
+  // Intro card
+  const desc = document.getElementById('intro-desc');
+  if (desc) desc.textContent = t('intro_desc');
+
+  const steps = document.getElementById('intro-steps');
+  if (steps) {
+    steps.innerHTML = t('intro_steps').map(([icon, text]) =>
+      `<div class="intro-step"><div class="intro-step-icon">${icon}</div>${text}</div>`
+    ).join('');
+  }
+
+  const closeBtn = document.getElementById('intro-close');
+  if (closeBtn) closeBtn.textContent = t('intro_close');
+
+  // Back link
+  const back = document.getElementById('back-link');
+  if (back) back.textContent = t('back');
+
+  // Home float label
+  const hfl = document.getElementById('home-float-label');
+  if (hfl) hfl.textContent = t('home');
+
+  // Clock days
+  updateClock();
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('yamtam-lang', l);
+  applyLang();
+}
+
 // ── Haptic feedback ──
 const haptic = {
   light  : () => navigator.vibrate?.(8),
@@ -1321,7 +1300,7 @@ const haptic = {
   swipe  : () => navigator.vibrate?.(6),
 };
 
-// ── Sound effects (Web Audio API — no files needed) ──
+// ── Sound effects ──
 let soundMuted = localStorage.getItem('io-mute') === '1';
 
 function toggleMute() {
@@ -1330,13 +1309,13 @@ function toggleMute() {
   const btn = document.getElementById('mute-btn');
   btn.textContent = soundMuted ? '🔇' : '🔊';
   btn.classList.toggle('muted', soundMuted);
-  if (!soundMuted) sfx.tap(); // preview sound when unmuting
+  if (!soundMuted) sfx.tap();
 }
 
-// Apply saved mute state on load
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('mute-btn');
   if (soundMuted) { btn.textContent = '🔇'; btn.classList.add('muted'); }
+  applyLang();
 });
 
 let _ctx = null;
@@ -1346,7 +1325,7 @@ function getCtx() {
   return _ctx;
 }
 
-function playTone({ freq = 440, freq2, type = 'sine', vol = 0.18, dur = 0.08, attack = 0.004, decay = 0.06 } = {}) {
+function playTone({ freq = 440, freq2, type = 'sine', vol = 0.18, dur = 0.08, attack = 0.004 } = {}) {
   if (soundMuted) return;
   try {
     const ctx = getCtx();
@@ -1355,7 +1334,6 @@ function playTone({ freq = 440, freq2, type = 'sine', vol = 0.18, dur = 0.08, at
     g.gain.setValueAtTime(0, ctx.currentTime);
     g.gain.linearRampToValueAtTime(vol, ctx.currentTime + attack);
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-
     const osc = ctx.createOscillator();
     osc.type = type;
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
@@ -1367,47 +1345,21 @@ function playTone({ freq = 440, freq2, type = 'sine', vol = 0.18, dur = 0.08, at
 }
 
 const sfx = {
-  // Soft UI click
-  tap: () => playTone({ freq: 900, freq2: 700, type: 'sine', vol: .12, dur: .07, attack: .003 }),
-
-  // App opens — rising whoosh
-  open: () => {
-    playTone({ freq: 300, freq2: 680, type: 'sine', vol: .1, dur: .18, attack: .01 });
-    setTimeout(() => playTone({ freq: 680, freq2: 900, vol: .07, dur: .12, attack: .005 }), 80);
-  },
-
-  // App closes — falling whoosh
-  close: () => playTone({ freq: 600, freq2: 260, type: 'sine', vol: .1, dur: .16, attack: .005 }),
-
-  // Swipe — quick sweep
-  swipe: () => playTone({ freq: 500, freq2: 800, type: 'sine', vol: .08, dur: .1, attack: .002 }),
-
-  // Send message — soft pop
-  send: () => {
-    playTone({ freq: 620, type: 'sine', vol: .14, dur: .06, attack: .003 });
-    setTimeout(() => playTone({ freq: 900, vol: .09, dur: .05, attack: .002 }), 55);
-  },
-
-  // AI reply — pleasant chime
-  reply: () => {
-    [0, 70, 140].forEach((delay, i) => {
-      const freqs = [660, 880, 1100];
-      setTimeout(() => playTone({ freq: freqs[i], vol: .1, dur: .22, attack: .005 }), delay);
-    });
-  },
-
-  // Home button
-  home: () => playTone({ freq: 440, freq2: 320, type: 'sine', vol: .1, dur: .12, attack: .004 }),
-
-  // DI tap
-  di: () => playTone({ freq: 1100, freq2: 900, vol: .08, dur: .06, attack: .002 }),
+  tap  : () => playTone({ freq: 900, freq2: 700, vol: .12, dur: .07, attack: .003 }),
+  open : () => { playTone({ freq: 300, freq2: 680, vol: .1, dur: .18, attack: .01 }); setTimeout(() => playTone({ freq: 680, freq2: 900, vol: .07, dur: .12, attack: .005 }), 80); },
+  close: () => playTone({ freq: 600, freq2: 260, vol: .1, dur: .16, attack: .005 }),
+  swipe: () => playTone({ freq: 500, freq2: 800, vol: .08, dur: .1, attack: .002 }),
+  send : () => { playTone({ freq: 620, vol: .14, dur: .06, attack: .003 }); setTimeout(() => playTone({ freq: 900, vol: .09, dur: .05, attack: .002 }), 55); },
+  reply: () => { [0,70,140].forEach((delay,i) => { const f=[660,880,1100]; setTimeout(()=>playTone({freq:f[i],vol:.1,dur:.22,attack:.005}),delay); }); },
+  home : () => playTone({ freq: 440, freq2: 320, vol: .1, dur: .12, attack: .004 }),
+  di   : () => playTone({ freq: 1100, freq2: 900, vol: .08, dur: .06, attack: .002 }),
 };
 
 // ── Intro ──
 function showIntro() { document.getElementById('intro-overlay').classList.add('show'); }
 function hideIntro() { document.getElementById('intro-overlay').classList.remove('show'); }
 
-// ── Water drop ripple on tap ──
+// ── Ripple on tap ──
 function addRipple(e, el) {
   const rect = el.getBoundingClientRect();
   const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -1420,7 +1372,6 @@ function addRipple(e, el) {
   r.addEventListener('animationend', () => r.remove());
 }
 
-// Attach ripple to all interactive elements
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.app-icon-img, .app-win-close, #chat-send, .intro-close, .intro-btn').forEach(el => {
     el.classList.add('ripple-wrap');
@@ -1435,70 +1386,49 @@ function updateClock() {
   const h = now.getHours().toString().padStart(2,'0');
   const m = now.getMinutes().toString().padStart(2,'0');
   document.getElementById('clock').textContent = `${h}:${m}`;
-  const days = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  const days = t('days');
   document.getElementById('day-label').textContent = days[now.getDay()];
   document.getElementById('date-num').textContent = now.getDate();
 }
 updateClock();
 setInterval(updateClock, 10000);
 
-// ── App open/close ──
+// ── Water drops ──
 function spawnDrops(win) {
-  // Remove old drops first
   win.querySelectorAll('.water-drop,.drip').forEach(d => d.remove());
-
   const header = win.querySelector('.app-win-header');
   const body   = win.querySelector('.app-win-body');
-  const targets = [header, body].filter(Boolean);
-
-  targets.forEach((el, ti) => {
-    el.style.position = 'relative';
-    el.style.overflow = 'hidden';
-
-    // 2-3 floating drops per panel
+  [header, body].filter(Boolean).forEach((el, ti) => {
+    el.style.position = 'relative'; el.style.overflow = 'hidden';
     const count = ti === 0 ? 2 : 3;
     for (let i = 0; i < count; i++) {
-      const d = document.createElement('div');
-      d.className = 'water-drop';
+      const d = document.createElement('div'); d.className = 'water-drop';
       const s = 7 + Math.random() * 8;
-      const dx1 = (Math.random()*10-5).toFixed(1)+'px';
-      const dy1 = (Math.random()*10-5).toFixed(1)+'px';
-      const dx2 = (Math.random()*10-5).toFixed(1)+'px';
-      const dy2 = (Math.random()*10-5).toFixed(1)+'px';
-      const dx3 = (Math.random()*10-5).toFixed(1)+'px';
-      const dy3 = (Math.random()*10-5).toFixed(1)+'px';
       d.style.cssText = [
-        `width:${s}px`, `height:${s*1.2}px`,
-        `left:${10+Math.random()*80}%`, `top:${5+Math.random()*70}%`,
-        `--dur:${7+Math.random()*6}s`, `--delay:${Math.random()*3}s`,
-        `--dx1:${dx1}`,`--dy1:${dy1}`,
-        `--dx2:${dx2}`,`--dy2:${dy2}`,
-        `--dx3:${dx3}`,`--dy3:${dy3}`,
+        `width:${s}px`,`height:${s*1.2}px`,
+        `left:${10+Math.random()*80}%`,`top:${5+Math.random()*70}%`,
+        `--dur:${7+Math.random()*6}s`,`--delay:${Math.random()*3}s`,
+        `--dx1:${(Math.random()*10-5).toFixed(1)}px`,`--dy1:${(Math.random()*10-5).toFixed(1)}px`,
+        `--dx2:${(Math.random()*10-5).toFixed(1)}px`,`--dy2:${(Math.random()*10-5).toFixed(1)}px`,
+        `--dx3:${(Math.random()*10-5).toFixed(1)}px`,`--dy3:${(Math.random()*10-5).toFixed(1)}px`,
       ].join(';');
       el.appendChild(d);
     }
-
-    // 1-2 drip along top edge
     const drips = ti === 0 ? 1 : 2;
     for (let i = 0; i < drips; i++) {
-      const dr = document.createElement('div');
-      dr.className = 'drip';
+      const dr = document.createElement('div'); dr.className = 'drip';
       dr.style.cssText = `left:${15+Math.random()*70}%;--ddur:${3+Math.random()*4}s;--ddelay:${Math.random()*4}s`;
       el.appendChild(dr);
     }
   });
 }
 
-// ── Scroll-in + scroll-parallax animation ──
+// ── Scroll-in + parallax ──
 function initScrollAnim(win) {
   const body = win.querySelector('.app-win-body');
   if (!body) return;
-
-  // Reset all rows
   const rows = [...body.querySelectorAll('.app-row, .app-section-title')];
   rows.forEach(el => el.classList.remove('visible'));
-
-  // IntersectionObserver: animate in when entering viewport
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -1509,38 +1439,27 @@ function initScrollAnim(win) {
     });
   }, { root: body, threshold: 0.08 });
   rows.forEach(el => observer.observe(el));
-
-  // Scroll parallax: rows near top edge scale/fade slightly
   const onScroll = () => {
     const bodyRect = body.getBoundingClientRect();
     const bodyH = body.clientHeight;
     rows.forEach(el => {
       const rect = el.getBoundingClientRect();
-      const relTop = rect.top - bodyRect.top;         // position relative to scroll container
-      const relBot = bodyRect.bottom - rect.bottom;
-
-      // Top fade-out: row scrolling off the top
+      const relTop = rect.top - bodyRect.top;
       if (relTop < 0) {
-        const ratio = Math.max(0, 1 + relTop / 60);  // 0→1 as top 60px scroll past
+        const ratio = Math.max(0, 1 + relTop / 60);
         el.style.opacity = ratio;
         el.style.transform = `translateY(${relTop * .15}px) scale(${0.92 + ratio * .08})`;
-      }
-      // Bottom fade-in: row entering from bottom
-      else if (relTop > bodyH - 24) {
+      } else if (relTop > bodyH - 24) {
         const ratio = Math.max(0, 1 - (relTop - bodyH + 24) / 50);
         el.style.opacity = ratio;
         el.style.transform = `translateY(${(1 - ratio) * 10}px)`;
-      }
-      // Normal: full opacity in middle zone
-      else {
+      } else {
         el.style.opacity = '';
         el.style.transform = '';
       }
     });
   };
-
   body.addEventListener('scroll', onScroll, { passive: true });
-  // Store handler so we can remove on close
   body._scrollHandler = onScroll;
 }
 
@@ -1549,13 +1468,10 @@ let currentApp = null;
 function updateHomeFloat() {
   const show = !!currentApp;
   document.getElementById('home-float').classList.toggle('visible', show);
-
-  // Update swipe dots
   const hint = document.getElementById('swipe-hint');
   hint.classList.toggle('visible', show);
   if (show) {
     const idx = APP_ORDER.indexOf(currentApp);
-    // Show 5 dots centered on current
     const half = 2;
     const start = Math.max(0, Math.min(idx - half, APP_ORDER.length - 5));
     hint.innerHTML = '';
@@ -1572,149 +1488,86 @@ function closeCurrentApp() {
 }
 
 function launchWindow(id) {
-  sfx.open();
-  currentApp = id;
-  updateHomeFloat();
+  sfx.open(); currentApp = id; updateHomeFloat();
   const win = document.getElementById('win-' + id);
   win.classList.add('open');
   spawnDrops(win);
   setTimeout(() => initScrollAnim(win), 200);
   if (id === 'chat') {
     initChat();
-    if (!diExpanded) {
-      diExpanded = true;
-      document.getElementById('di').classList.add('expanded');
-      initDI();
-      diAnim && diAnim.play();
-    }
+    if (!diExpanded) { diExpanded = true; document.getElementById('di').classList.add('expanded'); initDI(); diAnim && diAnim.play(); }
   }
 }
 
 function openApp(id) {
   if (id === currentApp) return;
   haptic.medium(); sfx.tap();
-
   const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
-
-  // Switching between apps
   if (currentApp) {
     const prevId = currentApp;
     const prevWin = document.getElementById('win-' + prevId);
-
-    // Switch-out current app
-    prevWin.classList.remove('open');
-    prevWin.classList.add('switching-out');
+    prevWin.classList.remove('open'); prevWin.classList.add('switching-out');
     prevWin.addEventListener('animationend', () => {
       prevWin.classList.remove('switching-out');
-      // Icon catch for previous app
       const prevIcon = document.querySelector(`.app-icon-img.app-${prevId}`);
-      if (prevIcon) {
-        prevIcon.classList.add('catching');
-        prevIcon.addEventListener('animationend', () => prevIcon.classList.remove('catching'), { once: true });
-      }
+      if (prevIcon) { prevIcon.classList.add('catching'); prevIcon.addEventListener('animationend', () => prevIcon.classList.remove('catching'), { once: true }); }
     }, { once: true });
-
-    // Small burst on new icon
-    if (iconEl) {
-      iconEl.classList.add('launching');
-      iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true });
-    }
-
-    // Switch-in new app after brief overlap
+    if (iconEl) { iconEl.classList.add('launching'); iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true }); }
     setTimeout(() => {
-      currentApp = id;
-      updateHomeFloat();
+      currentApp = id; updateHomeFloat();
       const newWin = document.getElementById('win-' + id);
       newWin.classList.add('open', 'switching-in');
       newWin.addEventListener('animationend', () => newWin.classList.remove('switching-in'), { once: true });
-      spawnDrops(newWin);
-      setTimeout(() => initScrollAnim(newWin), 250);
-      if (id === 'chat') {
-        initChat();
-        if (!diExpanded) {
-          diExpanded = true;
-          document.getElementById('di').classList.add('expanded');
-          initDI();
-          diAnim && diAnim.play();
-        }
-      }
+      spawnDrops(newWin); setTimeout(() => initScrollAnim(newWin), 250);
+      if (id === 'chat') { initChat(); if (!diExpanded) { diExpanded = true; document.getElementById('di').classList.add('expanded'); initDI(); diAnim && diAnim.play(); } }
     }, 160);
     return;
   }
-
-  // Fresh launch from home screen
   if (iconEl) {
-    const burst = document.createElement('div');
-    burst.className = 'launch-burst';
+    const burst = document.createElement('div'); burst.className = 'launch-burst';
     burst.style.cssText = `width:${iconEl.offsetWidth}px;height:${iconEl.offsetHeight}px;top:0;left:0;border-radius:${getComputedStyle(iconEl).borderRadius}`;
-    iconEl.style.position = 'relative';
-    iconEl.appendChild(burst);
+    iconEl.style.position = 'relative'; iconEl.appendChild(burst);
     burst.addEventListener('animationend', () => burst.remove());
-    iconEl.classList.add('launching');
-    iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true });
+    iconEl.classList.add('launching'); iconEl.addEventListener('animationend', () => iconEl.classList.remove('launching'), { once: true });
   }
-
   setTimeout(() => launchWindow(id), 120);
 }
+
 function closeApp(id) {
   const win = document.getElementById('win-' + id);
-
-  // Play close animation, then remove .open
   win.classList.add('closing');
   win.addEventListener('animationend', () => {
     win.classList.remove('open', 'closing');
-    // Cleanup scroll handler
     const body = win.querySelector('.app-win-body');
-    if (body && body._scrollHandler) {
-      body.removeEventListener('scroll', body._scrollHandler);
-      delete body._scrollHandler;
-    }
-
-    // Icon catches the app coming back
+    if (body && body._scrollHandler) { body.removeEventListener('scroll', body._scrollHandler); delete body._scrollHandler; }
     const iconEl = document.querySelector(`.app-icon-img.app-${id}`);
-    if (iconEl) {
-      iconEl.classList.add('catching');
-      iconEl.addEventListener('animationend', () => iconEl.classList.remove('catching'), { once: true });
-    }
+    if (iconEl) { iconEl.classList.add('catching'); iconEl.addEventListener('animationend', () => iconEl.classList.remove('catching'), { once: true }); }
   }, { once: true });
-
   if (currentApp === id) { currentApp = null; updateHomeFloat(); }
-  if (id === 'chat') {
-    // Collapse DI when chat closes
-    diExpanded = false;
-    document.getElementById('di').classList.remove('expanded');
-    diAnim && diAnim.stop();
-    setDIState('idle');
-  }
+  if (id === 'chat') { diExpanded = false; document.getElementById('di').classList.remove('expanded'); diAnim && diAnim.stop(); setDIState('idle'); }
 }
 
-// ── Chat logic ──
 // ── Dynamic Island ──
 let diExpanded = false;
 
-function toggleDI() {
-  haptic.light(); sfx.di();
-  const di = document.getElementById('di');
-  diExpanded = !diExpanded;
-  di.classList.toggle('expanded', diExpanded);
-}
+function toggleDI() { haptic.light(); sfx.di(); const di = document.getElementById('di'); diExpanded = !diExpanded; di.classList.toggle('expanded', diExpanded); }
 
 function setDIState(s) {
   const badge = document.getElementById('di-badge');
   const sub   = document.getElementById('di-sub-txt');
   if (!badge) return;
   badge.className = 'di-badge';
-  if (s === 'idle')       { sub.textContent = 'Sẵn sàng'; }
-  if (s === 'thinking')   { badge.classList.add('thinking');   sub.textContent = 'Đang nghĩ…'; }
-  if (s === 'responding') { badge.classList.add('responding'); sub.textContent = 'Đang trả lời'; }
+  if (s === 'idle')       { sub.textContent = t('idle'); }
+  if (s === 'thinking')   { badge.classList.add('thinking');   sub.textContent = t('thinking'); }
+  if (s === 'responding') { badge.classList.add('responding'); sub.textContent = t('responding'); }
 }
 
-// Expand DI when chat opens
-const _origOpenApp = window.openApp;
-
+// ── Chat ──
 let chatInited = false, chatBusy = false;
 const chatHistory = [];
+let diAnim = null;
 
+function initDI() {}
 function initChat() { chatInited = true; }
 
 function makeAiAvatar() {
@@ -1729,22 +1582,21 @@ function setChatState(s) {
   const logo = document.getElementById('chat-logo');
   dot.className = 'chat-dot';
   if (logo) logo.className = 'ai-logo';
-  if (s === 'idle')       { txt.textContent = 'Sẵn sàng'; }
-  if (s === 'thinking')   { dot.classList.add('thinking');   txt.textContent = 'Đang nghĩ…';    if (logo) logo.classList.add('thinking'); }
-  if (s === 'responding') { dot.style.cssText='background:#60a5fa;box-shadow:0 0 6px #60a5fa'; txt.textContent = 'Đang trả lời'; if (logo) logo.classList.add('responding'); }
+  if (s === 'idle')       { txt.textContent = t('idle'); }
+  if (s === 'thinking')   { dot.classList.add('thinking');   txt.textContent = t('thinking');   if (logo) logo.classList.add('thinking'); }
+  if (s === 'responding') { dot.style.cssText='background:#60a5fa;box-shadow:0 0 6px #60a5fa'; txt.textContent = t('responding'); if (logo) logo.classList.add('responding'); }
   setDIState(s);
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function esc(s)    { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function addThinkingBubble(feed) {
   const tm = document.createElement('div'); tm.className = 'cmsg ai';
   tm.appendChild(makeAiAvatar());
   const tdots = document.createElement('div'); tdots.className = 'think-dots';
   tdots.innerHTML = '<span></span><span></span><span></span>';
-  tm.appendChild(tdots);
-  feed.appendChild(tm); feed.scrollTop = feed.scrollHeight;
+  tm.appendChild(tdots); feed.appendChild(tm); feed.scrollTop = feed.scrollHeight;
   return { el: tm };
 }
 
@@ -1757,125 +1609,68 @@ async function sendChat() {
   haptic.medium(); sfx.send();
   chatBusy = true; btn.disabled = true;
   inp.value = ''; inp.style.height = '24px';
-
-  // User bubble
   const um = document.createElement('div'); um.className = 'cmsg user';
-  um.innerHTML = `<div class="cbubble">${esc(text)}</div><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0">You</div>`;
+  um.innerHTML = `<div class="cbubble">${esc(text)}</div><div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0">You</div>`;
   feed.appendChild(um); feed.scrollTop = feed.scrollHeight;
-
   chatHistory.push({ role: 'user', content: text });
   setChatState('thinking');
   const { el: thinkEl } = addThinkingBubble(feed);
-
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: chatHistory, lang: localStorage.getItem('yamtam-lang') || 'vi' }),
+      body: JSON.stringify({ messages: chatHistory, lang }),
     });
-
-    thinkEl.remove();
-    setChatState('responding');
-
+    thinkEl.remove(); setChatState('responding');
     const am = document.createElement('div'); am.className = 'cmsg ai';
     am.appendChild(makeAiAvatar());
     const abub = document.createElement('div'); abub.className = 'cbubble';
-    am.appendChild(abub);
-    feed.appendChild(am);
-
+    am.appendChild(abub); feed.appendChild(am);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    // Parse SSE stream
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
+    const reader = res.body.getReader(); const dec = new TextDecoder();
     let buf = '', full = '';
-
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const { done, value } = await reader.read(); if (done) break;
       buf += dec.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
+      const lines = buf.split('\n'); buf = lines.pop();
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6);
-        if (raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          // Groq/OpenAI SSE format
-          const token = ev.choices?.[0]?.delta?.content;
-          if (token) {
-            full += token;
-            abub.textContent = full;
-            feed.scrollTop = feed.scrollHeight;
-          }
-        } catch {}
+        const raw = line.slice(6); if (raw === '[DONE]') continue;
+        try { const ev = JSON.parse(raw); const token = ev.choices?.[0]?.delta?.content; if (token) { full += token; abub.textContent = full; feed.scrollTop = feed.scrollHeight; } } catch {}
       }
     }
-
     chatHistory.push({ role: 'assistant', content: full });
   } catch (err) {
     thinkEl.remove();
     const em = document.createElement('div'); em.className = 'cmsg ai';
-    em.innerHTML = `<div class="cbubble" style="color:rgba(255,100,100,.8);font-size:.75rem">⚠ ${esc(err.message)}</div>`;
+    em.innerHTML = `<div class="cbubble" style="color:rgba(239,68,68,.85);font-size:.75rem">⚠ ${esc(err.message)}</div>`;
     feed.appendChild(em);
   }
-
-  haptic.success(); sfx.reply();
-  setChatState('idle');
+  haptic.success(); sfx.reply(); setChatState('idle');
   chatBusy = false; btn.disabled = false; inp.focus();
 }
 
 document.getElementById('chat-send').addEventListener('click', sendChat);
-document.getElementById('chat-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-});
-document.getElementById('chat-input').addEventListener('input', function() {
-  this.style.height = '24px';
-  this.style.height = Math.min(this.scrollHeight, 80) + 'px';
-});
+document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+document.getElementById('chat-input').addEventListener('input', function() { this.style.height = '24px'; this.style.height = Math.min(this.scrollHeight, 80) + 'px'; });
 
-// ── App order for swipe navigation ──
-const APP_ORDER = [
-  'chat','skills','agents','debug',
-  'review','commit','security','deploy',
-  'sprint','docs','stats','settings',
-  'test','refactor','map','pr'
-];
+// ── App order + swipe ──
+const APP_ORDER = ['chat','skills','agents','debug','review','commit','security','deploy','sprint','docs','stats','settings','test','refactor','map','pr'];
 
-// Swipe gestures on all app windows
 let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
-
 document.querySelectorAll('.app-window').forEach(win => {
-  win.addEventListener('touchstart', e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchStartTime = Date.now();
-  }, { passive: true });
-
+  win.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; touchStartTime = Date.now(); }, { passive: true });
   win.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
     const dt = Date.now() - touchStartTime;
     const id = win.id.replace('win-', '');
-
-    // Swipe DOWN to close (existing)
-    if (dy > 70 && Math.abs(dx) < Math.abs(dy) && dt < 400) {
-      haptic.light(); sfx.close(); closeApp(id); return;
-    }
-
-    // Swipe LEFT → next app, RIGHT → previous app
+    if (dy > 70 && Math.abs(dx) < Math.abs(dy) && dt < 400) { haptic.light(); sfx.close(); closeApp(id); return; }
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
       haptic.swipe(); sfx.swipe();
-      const idx = APP_ORDER.indexOf(id);
-      if (idx === -1) return;
-      if (dx < 0) {
-        const next = APP_ORDER[(idx + 1) % APP_ORDER.length];
-        openApp(next);
-      } else {
-        const prev = APP_ORDER[(idx - 1 + APP_ORDER.length) % APP_ORDER.length];
-        openApp(prev);
-      }
+      const idx = APP_ORDER.indexOf(id); if (idx === -1) return;
+      if (dx < 0) openApp(APP_ORDER[(idx + 1) % APP_ORDER.length]);
+      else openApp(APP_ORDER[(idx - 1 + APP_ORDER.length) % APP_ORDER.length]);
     }
   }, { passive: true });
 });
