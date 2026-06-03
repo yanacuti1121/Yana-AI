@@ -42,9 +42,9 @@
   "contents": {
     "hooks": 45,
     "commands": 164,
-    "agents": 93,
+    "agents": 94,
     "scripts": 93,
-    "skills": 3440,
+    "skills": 3441,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {
