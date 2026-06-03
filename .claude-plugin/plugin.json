@@ -2,24 +2,37 @@
   "schema_version": "1",
   "name": "yamtam-engine",
   "display_name": "YAMTAM ENGINE",
-  "version": "2.0.0",
+  "version": "0.40.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
     "name": "Vũ Văn Tâm",
-    "email": "phamlongh230@gmail.com"
+    "email": "phamlongh230@gmail.com",
+    "url": "https://github.com/phamlongh230-lgtm"
   },
-  "homepage": "https://github.com/phamlongh230-lgtm/yamtam-engine",
+  "homepage": "https://phamlongh230-lgtm.github.io/yamtam-engine/",
+  "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "keywords": [
-    "hooks",
-    "safety",
-    "memory",
-    "agents",
-    "gates",
-    "guards",
-    "circuit-breaker",
-    "sovereign"
+    "hooks", "safety", "memory", "agents", "gates",
+    "guards", "circuit-breaker", "sovereign", "claude-code",
+    "codex", "cursor", "audit", "ai-agent", "agent-os"
   ],
+  "metadata": {
+    "openclaw": {
+      "emoji": "🛡️",
+      "requires": {
+        "env": [],
+        "optionalEnv": [],
+        "bins": ["bash", "python3", "jq", "openssl"]
+      },
+      "tags": [
+        "hooks", "safety", "memory", "agents", "gates",
+        "guards", "circuit-breaker", "sovereign", "claude-code",
+        "codex", "cursor", "audit", "ai-agent", "agent-os"
+      ],
+      "homepage": "https://phamlongh230-lgtm.github.io/yamtam-engine/"
+    }
+  },
   "install": {
     "type": "zip",
     "source": "https://github.com/phamlongh230-lgtm/yamtam-engine/releases/latest/download/yamtam-engine-latest.zip",
@@ -31,7 +44,7 @@
     "commands": 164,
     "agents": 93,
     "scripts": 93,
-    "skills": 3437,
+    "skills": 3440,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {
@@ -41,18 +54,11 @@
       "command_smoke_checks": 6,
       "red_team_scenarios": 65
     },
-    "memory_tiers": [
-      "L1_atomic",
-      "L2_session"
-    ]
+    "memory_tiers": ["L1_atomic", "L2_session"]
   },
   "requires": {
     "claude_code": ">=1.0.0",
     "shell": "bash",
-    "tools": [
-      "jq",
-      "openssl",
-      "python3"
-    ]
+    "tools": ["jq", "openssl", "python3"]
   }
 }
