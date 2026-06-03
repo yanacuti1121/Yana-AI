@@ -5,7 +5,7 @@
   "version": "0.40.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
-    "name": "Vũ Văn Tâm",
+    "name": "V\u0169 V\u0103n T\u00e2m",
     "email": "phamlongh230@gmail.com",
     "url": "https://github.com/phamlongh230-lgtm"
   },
@@ -13,22 +13,49 @@
   "repository": "https://github.com/phamlongh230-lgtm/yamtam-engine",
   "license": "Apache-2.0",
   "keywords": [
-    "hooks", "safety", "memory", "agents", "gates",
-    "guards", "circuit-breaker", "sovereign", "claude-code",
-    "codex", "cursor", "audit", "ai-agent", "agent-os"
+    "hooks",
+    "safety",
+    "memory",
+    "agents",
+    "gates",
+    "guards",
+    "circuit-breaker",
+    "sovereign",
+    "claude-code",
+    "codex",
+    "cursor",
+    "audit",
+    "ai-agent",
+    "agent-os"
   ],
   "metadata": {
     "openclaw": {
-      "emoji": "🛡️",
+      "emoji": "\ud83d\udee1\ufe0f",
       "requires": {
         "env": [],
         "optionalEnv": [],
-        "bins": ["bash", "python3", "jq", "openssl"]
+        "bins": [
+          "bash",
+          "python3",
+          "jq",
+          "openssl"
+        ]
       },
       "tags": [
-        "hooks", "safety", "memory", "agents", "gates",
-        "guards", "circuit-breaker", "sovereign", "claude-code",
-        "codex", "cursor", "audit", "ai-agent", "agent-os"
+        "hooks",
+        "safety",
+        "memory",
+        "agents",
+        "gates",
+        "guards",
+        "circuit-breaker",
+        "sovereign",
+        "claude-code",
+        "codex",
+        "cursor",
+        "audit",
+        "ai-agent",
+        "agent-os"
       ],
       "homepage": "https://phamlongh230-lgtm.github.io/yamtam-engine/"
     }
@@ -42,9 +69,9 @@
   "contents": {
     "hooks": 45,
     "commands": 164,
-    "agents": 94,
+    "agents": 95,
     "scripts": 93,
-    "skills": 3441,
+    "skills": 3442,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {
@@ -54,11 +81,18 @@
       "command_smoke_checks": 6,
       "red_team_scenarios": 65
     },
-    "memory_tiers": ["L1_atomic", "L2_session"]
+    "memory_tiers": [
+      "L1_atomic",
+      "L2_session"
+    ]
   },
   "requires": {
     "claude_code": ">=1.0.0",
     "shell": "bash",
-    "tools": ["jq", "openssl", "python3"]
+    "tools": [
+      "jq",
+      "openssl",
+      "python3"
+    ]
   }
 }
