@@ -364,7 +364,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   .footer-links { flex-wrap: wrap; justify-content: center; }
 }
 </style>
-  <link rel="stylesheet" href="water-droplet.css">
 </head>
 <body>
 
@@ -436,7 +435,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 
   <!-- Terminal mockup -->
-  <div class="hero-terminal glass-wet">
+  <div class="hero-terminal">
     <div class="terminal-bar">
       <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
       <span class="terminal-title">yamtam-rt</span>
@@ -2469,49 +2468,6 @@ function toggleAtlas() {
 }
 </script>
 
-
-  <!-- Water droplet goo filter -->
-  <svg class="goo-svg" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="goo">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
-        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-      </filter>
-    </defs>
-  </svg>
-  <script>
-  // Inject water drops onto .glass-wet elements
-  (function spawnDrops() {
-    const containers = document.querySelectorAll('.glass-wet');
-    containers.forEach(el => {
-      // 3-5 falling drops per container
-      const nFall = 3 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < nFall; i++) {
-        const d = document.createElement('span');
-        d.className = 'drop';
-        d.style.left = (5 + Math.random() * 90) + '%';
-        d.style.setProperty('--drop-dur',   (3.5 + Math.random() * 4) + 's');
-        d.style.setProperty('--drop-delay', (Math.random() * 6) + 's');
-        el.appendChild(d);
-      }
-      // 4-7 still condensation dots
-      const nStill = 4 + Math.floor(Math.random() * 4);
-      for (let i = 0; i < nStill; i++) {
-        const s = document.createElement('span');
-        s.className = 'drop-still';
-        const sz = 3 + Math.random() * 5;
-        s.style.width  = sz + 'px';
-        s.style.height = (sz * 1.2) + 'px';
-        s.style.left   = (Math.random() * 92) + '%';
-        s.style.top    = (5 + Math.random() * 50) + '%';
-        s.style.setProperty('--still-dur',   (2.5 + Math.random() * 3) + 's');
-        s.style.setProperty('--still-delay', (Math.random() * 4) + 's');
-        el.appendChild(s);
-      }
-    });
-  })();
-  </script>
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
   <button id="mute-btn" onclick="toggleMute()" title="Nhạc" style="
