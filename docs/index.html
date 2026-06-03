@@ -2467,5 +2467,46 @@ function toggleAtlas() {
   }
 }
 </script>
+
+  <!-- Background music -->
+  <iframe id="yt-music"
+    src="https://www.youtube.com/embed/KeoAfgsM8o4?autoplay=1&loop=1&playlist=KeoAfgsM8o4&controls=0&mute=0&enablejsapi=1"
+    allow="autoplay; encrypted-media"
+    style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none"
+    title="bg-music">
+  </iframe>
+  <!-- Mute button -->
+  <button id="mute-btn" onclick="toggleMute()" style="
+    position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;
+    background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.2);border-radius:50%;
+    width:2.4rem;height:2.4rem;font-size:1rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .2s;
+  ">🔊</button>
+  <script>
+    let _muted = localStorage.getItem('site-mute') === '1';
+    function toggleMute() {
+      _muted = !_muted;
+      localStorage.setItem('site-mute', _muted ? '1' : '0');
+      document.getElementById('mute-btn').textContent = _muted ? '🔇' : '🔊';
+      const yt = document.getElementById('yt-music');
+      if (yt && yt.contentWindow) {
+        yt.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: _muted ? 'muteVideo' : 'unMuteVideo', args: [] }), '*'
+        );
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (_muted) {
+        document.getElementById('mute-btn').textContent = '🔇';
+        setTimeout(() => {
+          const yt = document.getElementById('yt-music');
+          if (yt && yt.contentWindow)
+            yt.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'muteVideo', args: [] }), '*');
+        }, 2000);
+      }
+    });
+  </script>
 </body>
 </html>
