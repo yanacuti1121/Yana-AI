@@ -274,3 +274,105 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.17.0 · branch=main, 4 modified, last=35816898 feat(gemini): add .gemini/settings.json — hooks mig
 
 ---
+
+## 2026-06-02 — drift): sync skill count 3432→3437 across MANIFEST + plugin 
+
+**Đã làm:**
+- feat: docs): change particle visualizer shape from ; phase2): implement capability matrix, structu; docs): integrate Three.js particle visualizer
+- fix: drift): sync skill count 3432→3437 across MANI;  add executable permission to yamtam-rt-wrappe
+- chore:  bump pyproject.toml version to 0.40.0
+
+**Trạng thái cuối:** v0.17.0 · branch=main, 4 modified, last=3d0855b8 fix(drift): sync skill count 3432→3437 across MANIF
+
+---
+
+## 2026-06-02 — version): sync v0.17.0 → v0.40.0 across website, MANIFEST, m
+
+**Đã làm:**
+- feat: io): animated Dynamic Island — expands on cha; io): add home indicator pill + back link belo; io): redesign as phone simulator — 12 app ico
+- fix: version): sync v0.17.0 → v0.40.0 across websit; nav): extract lang-switcher to always-visible 
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=688f99ec fix(version): sync v0.17.0 → v0.40.0 across website
+
+---
+
+## 2026-06-02 — io): wire real Claude API via Cloudflare Worker — streaming 
+
+**Đã làm:**
+- feat: io): wire real Claude API via Cloudflare Work
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=39020738 feat(io): wire real Claude API via Cloudflare Worke
+
+---
+
+## 2026-06-02 — io): spawn water drops on all app windows on open — random f
+
+**Đã làm:**
+- feat: io): spawn water drops on all app windows on ; io): blue-white clock, water drop effects, ri; io): full liquid glass upgrade — iOS 26 wallp
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=8bd88630 feat(io): spawn water drops on all app windows on o
+
+---
+
+## 2026-06-02 — i18n): add 18 new translation keys + data-i18n to install/sc
+
+**Đã làm:**
+- feat: nav): add IO button to always-visible nav-rig
+- fix: i18n): add 18 new translation keys + data-i18n; nav): hide IO btn on mobile to restore hamburg
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=bfb005c0 fix(i18n): add 18 new translation keys + data-i18n 
+
+---
+
+## 2026-06-02 — io): app switch animation — slide-left-out + slide-right-in 
+
+**Đã làm:**
+- feat: io): app switch animation — slide-left-out + ; io): close animation — window shrinks + slide; io): app launch animation — icon bounce + bur
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=dcd5a7dd feat(io): app switch animation — slide-left-out + s
+
+---
+
+## 2026-06-02 — io): mute button — toggle sound, persists in localStorage
+
+**Đã làm:**
+- feat: io): mute button — toggle sound, persists in ; io): Web Audio sound effects — tap/open/close; io): haptic feedback — tap icon, open/close/s
+
+**Trạng thái cuối:** v0.40.0 · branch=main, 6 modified, last=700ec527 feat(io): mute button — toggle sound, persists in l
+
+---
+
+## 2026-06-02 — io): mute + sounds + haptics + parallax + scroll-in animation; debug cache issue
+
+**Đã làm:** Gemini thêm 5 tính năng cho IO phone simulator: scroll-in animation, scroll parallax, haptic feedback, Web Audio sound effects, mute button
+**Anh hỏi:** IO vẫn hiện giao diện cũ → browser cache, hard refresh Ctrl+Shift+R
+**Trạng thái cuối:** v0.40.0 · Pages deployed từ 700ec527 ✅ · mai làm tiếp
+
+## 2026-06-03 — IO redesign + 4 trending repos tích hợp + UI sync toàn bộ
+
+**Đã làm:**
+- IO redesign: xanh/trắng palette, liquid glass chuẩn, i18n VI/EN/KO, nav pill + hamburger
+- Nav pill liquid glass (opacity 18%, blur 40px) đồng bộ 5 trang: index/skills/marketplace/guide/changelog
+- Google Drive MCP authenticated ✅
+- 4 repo trending: headroom (compress) + supermemory (memory API) + markitdown (file→MD) + hermes-webui (reference)
+- Skills count sync: 3,437 → 3,440 toàn bộ (index/skills/marketplace/io/MANIFEST/changelog)
+- tools/headroom-compress.py + tools/vault-import.py created
+- Disk dọn từ 100% → 96% (xóa node_modules github-app + codexmate + cache)
+
+**Anh quyết định:** IO palette xanh dương pha trắng, nav opacity 18%, làm theo lượt
+
+**Trạng thái cuối:** v0.40.0 · 3,440 skills · Pages live ✅
+
+## 2026-06-03 — Token rotation + openclaw plugin + mail reader + supermemory
+
+**Đã làm:**
+- Rotate 3 tokens: NPM_TOKEN + CARGO_REGISTRY_TOKEN + PYPI_TOKEN → GitHub Secrets ✅
+- Plugin openclaw format: marketplace.json plugins[] array + plugin.json metadata.openclaw ✅
+- skills/yamtam/SKILL.md — entry point, `npx skills add phamlongh230-lgtm/yamtam-engine` hoạt động ✅
+- Gmail IMAP reader: tools/check-mail.py + core/agents/mail-reader.md + skill /check-mail ✅
+- Supermemory: .mcp.json Bearer token auth, SUPERMEMORY_API_KEY lưu ~/.bashrc ✅
+- Fix CI drift: components.skills.count + components.agents.count sau khi add mail agent ✅
+
+**Anh quyết định:** Viết bài FB giới thiệu yamtam cho community (chưa đăng)
+
+**Trạng thái cuối:** v0.40.0 · 3,441 skills · 94 agents · CI xanh ✅ · GitHub Marketplace pending review
