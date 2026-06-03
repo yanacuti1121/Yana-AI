@@ -168,9 +168,10 @@
   function playTrack(vid) {
     localStorage.setItem('music-vid', vid);
     localStorage.setItem('music-offset', '0');
-    localStorage.setItem('music-page-ts', Date.now());
-    document.getElementById('yt-music').src = buildSrc(vid);
-    _ytReady = false; _seekDone = false;
+    if (window._ytPlayer) {
+      window._ytPlayer.loadVideoById({ videoId: vid, startSeconds: 0 });
+      if (_muted) window._ytPlayer.mute();
+    }
     renderList();
   }
 
@@ -253,5 +254,6 @@
     renderList();
   });
   </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>

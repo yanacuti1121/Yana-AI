@@ -762,11 +762,8 @@
         </section>
   </main>
   <footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
-  <!-- Persistent background music player -->
-  <iframe id="yt-music" allow="autoplay; encrypted-media"
-    style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none"
-    title="bg-music">
-  </iframe>
+  <!-- Persistent music player — YouTube IFrame API -->
+  <div id="yt-music" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
   <button id="mute-btn" onclick="toggleMute()" title="Nhạc" style="
     position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;
     background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
@@ -778,75 +775,57 @@
     position:fixed;bottom:1.2rem;right:4.2rem;z-index:9999;
     background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
     border:1px solid rgba(255,255,255,.18);border-radius:50%;
-    width:2.4rem;height:2.4rem;font-size:0.9rem;cursor:pointer;text-decoration:none;
+    width:2.4rem;height:2.4rem;font-size:.9rem;cursor:pointer;text-decoration:none;
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
-
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
   (function(){
     const DEFAULT_VID = 'aKSJAcG4V4o';
     let _muted = localStorage.getItem('site-mute') === '1';
-    let _ytReady = false, _seekDone = false;
+    let _player = null;
 
-    function getVid()   { return localStorage.getItem('music-vid') || DEFAULT_VID; }
+    function getVid()    { return localStorage.getItem('music-vid') || DEFAULT_VID; }
+    function getOffset() { return parseFloat(localStorage.getItem('music-offset') || '0'); }
 
-    function buildSrc(vid) {
-      return 'https://www.youtube-nocookie.com/embed/' + vid +
-        '?autoplay=1&controls=0&enablejsapi=1&modestbranding=1&rel=0';
-    }
-
-    const iframe = document.getElementById('yt-music');
-    iframe.src = buildSrc(getVid());
-
-    // Save offset every 3s
-    setInterval(() => {
-      if (!_ytReady) return;
-      const pageTs = parseInt(localStorage.getItem('music-page-ts')||'0',10);
-      if (!pageTs) return;
-      const base   = parseInt(localStorage.getItem('music-offset')||'0',10);
-      const delta  = Math.floor((Date.now() - pageTs) / 1000);
-      localStorage.setItem('music-offset', base + delta);
-      localStorage.setItem('music-page-ts', Date.now());
-    }, 3000);
-
-    window.addEventListener('message', (e) => {
-      try {
-        const d = JSON.parse(typeof e.data === 'string' ? e.data : '{}');
-        if (d.event === 'onReady') {
-          _ytReady = true;
-          if (_muted) sendCmd('mute');
-          if (!_seekDone) {
-            const off = parseInt(localStorage.getItem('music-offset')||'0',10);
-            if (off > 5) sendCmd('seekTo', [off, true]);
-            _seekDone = true;
-          }
-          localStorage.setItem('music-page-ts', Date.now());
-        }
-      } catch(_){}
+    // Save exact position before leaving
+    window.addEventListener('beforeunload', () => {
+      if (_player && typeof _player.getCurrentTime === 'function') {
+        try { localStorage.setItem('music-offset', _player.getCurrentTime()); } catch(e){}
+      }
     });
 
-    function sendCmd(func, args) {
-      iframe.contentWindow && iframe.contentWindow.postMessage(
-        JSON.stringify({event:'command', func, args: args||[]}), '*'
-      );
-    }
+    window.onYouTubeIframeAPIReady = function() {
+      _player = new YT.Player('yt-music', {
+        videoId: getVid(),
+        playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, playsinline: 1 },
+        events: {
+          onReady: function(e) {
+            const off = getOffset();
+            if (off > 5) e.target.seekTo(off, true);
+            if (_muted) e.target.mute();
+            e.target.playVideo();
+          }
+        }
+      });
+    };
+
+    // Track change from music.html
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'music-vid' && _player) {
+        localStorage.setItem('music-offset', '0');
+        _player.loadVideoById({ videoId: e.newValue, startSeconds: 0 });
+        if (_muted) _player.mute();
+      }
+    });
 
     window.toggleMute = function() {
       _muted = !_muted;
       localStorage.setItem('site-mute', _muted ? '1' : '0');
       document.getElementById('mute-btn').textContent = _muted ? '🔇' : '🔊';
-      sendCmd(_muted ? 'muteVideo' : 'unMuteVideo');
+      if (_player) _muted ? _player.mute() : _player.unMute();
       if (!_muted && typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
     };
-
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'music-vid') {
-        localStorage.setItem('music-offset', '0');
-        localStorage.setItem('music-page-ts', Date.now());
-        iframe.src = buildSrc(e.newValue);
-        _ytReady = false; _seekDone = false;
-      }
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
       if (_muted) document.getElementById('mute-btn').textContent = '🔇';
