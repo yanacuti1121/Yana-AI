@@ -1,65 +1,41 @@
-/* Lotus Pond — hồ sen Việt Nam background + text theme */
-:root {
-  --bg:               hsl(150 28% 96%) !important;
-  --bg-subtle:        hsl(150 22% 92%) !important;
-  --bg-card:          rgba(255,255,255,0.75) !important;
-  --border:           rgba(45,106,79,0.20) !important;
-
-  /* Text — xanh hoa sen đậm */
-  --fg:               hsl(155 55% 16%) !important;   /* #1b4332 — xanh tối */
-  --fg-muted:         hsl(155 35% 32%) !important;   /* #2d6a4f — xanh vừa */
-  --fg-subtle:        hsl(155 25% 45%) !important;   /* muted */
-
-  /* Accent */
-  --accent:           hsl(155 50% 35%) !important;   /* #2d8c5e */
-  --accent-hover:     hsl(155 50% 28%) !important;
-  --link:             hsl(155 55% 30%) !important;
-}
-
-html {
-  background: hsl(150 35% 96%) !important;
-}
-body {
-  background: transparent !important;
-  color: hsl(155 55% 16%) !important;
-}
+/* Lotus Pond — hồ sen Việt Nam */
+html { background: hsl(150 35% 96%) !important; }
+body { background: transparent !important; color: hsl(155 45% 22%) !important; }
 
 /* Headings */
-h1, h2, h3, h4, h5, h6 {
-  color: hsl(155 60% 14%) !important;
-}
+h1,h2,h3,h4,h5,h6 { color: hsl(155 50% 18%) !important; }
+
+/* Body text & paragraphs */
+p, li, td, th, span, div, label, caption { color: hsl(155 40% 24%) !important; }
 
 /* Links */
-a { color: hsl(155 55% 30%) !important; }
-a:hover { color: hsl(155 60% 22%) !important; }
+a { color: hsl(155 50% 30%) !important; }
+a:hover { color: hsl(155 55% 22%) !important; }
 
-/* Code / pre */
-code, pre {
-  background: rgba(45,106,79,0.08) !important;
-  color: hsl(155 55% 18%) !important;
-}
-
-/* Nav text */
-.nav-links a,
-.lang-btn,
-.nav-item { color: hsl(155 45% 28%) !important; }
-
-/* Muted text */
-.muted, [class*="muted"], .subtitle, .sub,
-.hero-sub, .v-date, .commit-date {
+/* Muted / secondary text */
+.muted, .subtitle, .sub, .hero-sub, .v-date,
+.commit-date, .t-dim, [class*="muted"],
+[class*="subtle"], small, figcaption {
   color: hsl(155 35% 38%) !important;
 }
 
+/* Code */
+code { background: rgba(45,110,82,0.09) !important; color: hsl(155 50% 20%) !important; }
+pre  { background: rgba(45,110,82,0.07) !important; color: hsl(155 50% 20%) !important; }
+
+/* Nav */
+nav, nav a, nav span, .nav-links a, .nav-logo,
+.lang-btn, header, header a { color: hsl(155 45% 22%) !important; }
+
 /* Cards */
-.card, .feature-tile, .version-block,
-.terminal, .stat-card {
+.card, .feature-tile, .version-block, .terminal,
+.stat-card, .hero-card, .glass, section {
   background: rgba(255,255,255,0.78) !important;
-  border-color: rgba(45,106,79,0.15) !important;
-  color: hsl(155 55% 16%) !important;
+  color: hsl(155 45% 22%) !important;
 }
 
-/* Badges / chips */
-.badge, .tag, .commit-type,
-[class*="badge"], [class*="tag"] {
-  filter: hue-rotate(120deg) saturate(0.7) brightness(0.75);
-}
+/* Keep icon/emoji & svg colours untouched */
+svg, img, [class*="icon"], .emoji { color: inherit; filter: none; }
+
+/* Don't override buttons that have explicit bg colors */
+button[style], a[style] { color: inherit !important; }
