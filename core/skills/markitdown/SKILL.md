@@ -1,99 +1,97 @@
 ---
 name: markitdown
-description: >
-  Convert any file or document to Markdown using Microsoft MarkItDown.
-  Use when user wants to "convert PDF to markdown", "import this doc into vault",
-  "turn this Word file into markdown", "extract text from PDF", "convert PPTX to notes",
-  "parse this Excel as markdown table", or needs to feed documents to an LLM pipeline.
-  Do NOT use for HTML → Markdown when browser rendering is needed — use a DOM parser instead.
-origin: adapted:microsoft/markitdown
-license: MIT © Microsoft
-version: 1.0.0
-compatibility: "Python 3.8+. pip install markitdown[all]"
+description: Convert mọi file (PDF, Word, Excel, PowerPoint, Image, Audio, HTML, CSV, YouTube URL) thành Markdown cho LLM. Tích hợp vào YAMTAM vault để import tài liệu.
+triggers:
+  - markitdown
+  - convert file to markdown
+  - pdf to markdown
+  - word to markdown
+  - import document
+  - import pdf
+  - đọc file pdf
+  - convert tài liệu
+  - vault import
+  - đưa file vào vault
 ---
 
-<!-- Adapted from microsoft/markitdown (MIT). Supports: PDF, DOCX, XLSX, PPTX, images, audio, HTML, CSV, JSON, XML, ZIP, YouTube URLs, EPubs. -->
+# markitdown — File → Markdown Converter
 
-## When to Use
+**Source**: github.com/microsoft/markitdown  
+**Version**: 0.1.6 (installed)  
+**License**: MIT · Built by Microsoft AutoGen team
 
-- Converting documents for LLM ingestion / vault import
-- Extracting structured text from office files
-- Batch-converting a directory of files to markdown
-- Feeding non-text files into a RAG pipeline
+## Supported formats
 
-Supported inputs: PDF, DOCX, XLSX, PPTX, images (OCR), audio (transcription), HTML, CSV, JSON, XML, ZIP, YouTube URLs, EPubs
+| Format | Notes |
+|--------|-------|
+| PDF | Text extraction |
+| Word (.docx) | Full structure |
+| PowerPoint (.pptx) | Slides → Markdown |
+| Excel (.xlsx) | Tables |
+| Image | EXIF + OCR (với LLM) |
+| Audio | Transcription |
+| HTML | Clean text |
+| CSV / JSON / XML | Structured |
+| YouTube URL | Transcript tự động |
+| EPub | Chapters |
 
-## Setup
+## Basic usage
 
-```bash
-pip install markitdown[all]   # full features (OCR, audio, etc.)
-# or minimal:
-pip install markitdown
-```
-
-## Usage
-
-### CLI
-```bash
-markitdown input.pdf > output.md
-markitdown input.docx -o output.md
-markitdown https://www.youtube.com/watch?v=... > transcript.md
-```
-
-### Python API
 ```python
 from markitdown import MarkItDown
 
 md = MarkItDown()
 
-# Single file
+# Convert file
 result = md.convert("document.pdf")
 print(result.text_content)
 
-# From URL
-result = md.convert("https://example.com/paper.pdf")
+# Convert URL
+result = md.convert("https://example.com")
 
-# From stream
-with open("file.docx", "rb") as f:
-    result = md.convert_stream(f, file_extension=".docx")
+# Convert YouTube → transcript
+result = md.convert("https://youtube.com/watch?v=xxx")
 ```
 
-### Batch conversion (directory → vault)
+## CLI
+
 ```bash
-for f in docs/*.{pdf,docx,pptx}; do
-  slug=$(basename "${f%.*}" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
-  markitdown "$f" > vault/notes/${slug}.md
-  echo "Converted: $f → ${slug}.md"
-done
+markitdown document.pdf > output.md
+markitdown document.pdf -o output.md
+markitdown https://example.com -o page.md
 ```
 
-### With LLM for image descriptions (optional)
+## Tích hợp YAMTAM vault
+
+```bash
+# Import PDF vào vault
+python3 tools/vault-import.py document.pdf
+
+# Import thư mục
+python3 tools/vault-import.py --dir ./docs/ --ext pdf,docx
+
+# Import + ghi vào knowledge base
+python3 tools/vault-import.py report.pdf --tag bao-cao --lang vi
+```
+
+## Với LLM (AI-powered OCR cho ảnh scan)
+
 ```python
+import anthropic
 from markitdown import MarkItDown
-import openai
 
-client = openai.OpenAI()
-md = MarkItDown(llm_client=client, llm_model="gpt-4o-mini")
-result = md.convert("diagram.png")  # describes images as markdown alt-text
+client = anthropic.Anthropic()
+md = MarkItDown(llm_client=client, llm_model="claude-haiku-4-5-20251001")
+
+result = md.convert("scan_bai_thi.jpg")
+print(result.text_content)
 ```
 
-## Vault Integration
+## Khi nào dùng trong YAMTAM
 
-Import directly into yamtam vault:
-```bash
-# Convert and import
-markitdown report.pdf > /tmp/report.md
-yamtam-rt vault new "$(head -1 /tmp/report.md | sed 's/^# //')" \
-  --lang vi --tags import,pdf --vault .
-# Then paste content into the created note
-```
-
-## Anti-Fake-Pass
-
-```
-❌ Claiming conversion worked without checking result.text_content is non-empty
-❌ Using markitdown for HTML pages that require JavaScript rendering
-❌ Not checking file extension support before converting
-✅ Verify output has content: len(result.text_content) > 100
-✅ Test with a small file first before batch conversion
-```
+- Import sách giáo khoa tiếng Việt (PDF) → vault search
+- Convert báo cáo Word/Excel → context cho Claude
+- Đọc slide PowerPoint → summary tự động
+- Transcribe YouTube tiếng Việt → text searchable
+- Parse CSV lớn → Markdown table cho LLM
+- Đọc tài liệu JNMT (Word, PDF) → AI context
