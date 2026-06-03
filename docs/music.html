@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhạc — YAMTAM ENGINE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: hsl(222 84% 5%);
+      color: hsl(210 40% 98%);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: .25rem; }
+    .sub { color: hsl(215 20% 65%); font-size: .875rem; margin-bottom: 2rem; }
+
+    .track-list { display: flex; flex-direction: column; gap: .75rem; }
+
+    .track {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .875rem 1rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .track:hover  { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); }
+    .track.active { background: rgba(99,179,237,.12); border-color: rgba(99,179,237,.35); }
+
+    .track-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .track-info { flex: 1; min-width: 0; }
+    .track-name { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-artist { font-size: .78rem; color: hsl(215 20% 55%); margin-top: .1rem; }
+    .track-badge {
+      font-size: .65rem; font-weight: 700; letter-spacing: .04em;
+      background: rgba(99,179,237,.18); color: #93c5fd;
+      padding: .15rem .5rem; border-radius: 20px; flex-shrink: 0;
+    }
+    .track.active .track-badge { background: rgba(99,179,237,.3); }
+
+    .now-playing {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(99,179,237,.08);
+      border: 1px solid rgba(99,179,237,.2);
+      border-radius: 12px;
+      font-size: .85rem;
+      color: #93c5fd;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .now-playing-label { font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: hsl(215 20% 55%); margin-bottom: .5rem; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: hsl(215 20% 55%); text-decoration: none; font-size: .84rem;
+      margin-bottom: 1.5rem; transition: color .15s;
+    }
+    .back-link:hover { color: hsl(210 40% 98%); }
+
+    .add-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,.08); }
+    .add-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: .75rem; }
+    .add-form { display: flex; gap: .5rem; }
+    .add-input {
+      flex: 1; padding: .6rem .9rem;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; color: inherit; font-size: .875rem; outline: none;
+      transition: border-color .15s;
+    }
+    .add-input::placeholder { color: hsl(215 20% 45%); }
+    .add-input:focus { border-color: rgba(99,179,237,.5); }
+    .add-btn {
+      padding: .6rem 1rem; background: rgba(99,179,237,.18);
+      border: 1px solid rgba(99,179,237,.3); border-radius: 8px;
+      color: #93c5fd; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .add-btn:hover { background: rgba(99,179,237,.28); }
+    .add-hint { font-size: .75rem; color: hsl(215 20% 45%); margin-top: .5rem; }
+
+    .mute-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1.5rem; padding: .875rem 1rem;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px;
+    }
+    .mute-label { font-size: .875rem; }
+    .mute-toggle {
+      padding: .4rem 1rem;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 20px; color: inherit; font-size: .8rem; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">← Về trang chủ</a>
+
+    <h1>🎵 Chọn nhạc</h1>
+    <p class="sub">Nhạc nền cho toàn bộ site — state lưu giữa các trang</p>
+
+    <div class="now-playing">
+      <span style="font-size:1.2rem">▶</span>
+      <div>
+        <div class="now-playing-label">Đang phát</div>
+        <div id="now-playing-name">—</div>
+      </div>
+    </div>
+
+    <div class="track-list" id="track-list"></div>
+
+    <div class="add-section">
+      <h2>Thêm bài từ YouTube</h2>
+      <div class="add-form">
+        <input class="add-input" id="add-url" type="text" placeholder="Paste link YouTube hoặc video ID...">
+        <button class="add-btn" onclick="addTrack()">Thêm</button>
+      </div>
+      <div class="add-hint">VD: https://youtu.be/aKSJAcG4V4o hoặc aKSJAcG4V4o</div>
+    </div>
+
+    <div class="mute-row">
+      <span class="mute-label">Tắt/bật nhạc</span>
+      <button class="mute-toggle" id="mute-toggle-btn" onclick="toggleMute()">🔊 Bật</button>
+    </div>
+  </div>
+
+  <!-- Persistent music player -->
+  <iframe id="yt-music" allow="autoplay; encrypted-media"
+    style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none"
+    title="bg-music">
+  </iframe>
+
+  <script>
+  const DEFAULT_TRACKS = [
+    { id: 'aKSJAcG4V4o', name: 'Chưa Được Yêu Như Thế', artist: 'Trang · 1 giờ lofi', icon: '🌙' },
+    { id: 'KeoAfgsM8o4', name: 'Nhạc Lofi Việt Chill',  artist: 'Lofi playlist · 2 giờ',  icon: '☕' },
+    { id: 'def8pw8Z0DE', name: 'Nhạc Chill 2026',       artist: 'Mix trending · Triệu view', icon: '🌊' },
+    { id: 'oy2CxxQCuhw', name: 'Bình Yên, Thằng Điên, Cứ Chill Thôi', artist: 'Nhạc Việt hay nhất', icon: '🎶' },
+    { id: 'w1wdiibZTl8', name: 'Nhạc Chill Chữa Lành Tâm Hồn',       artist: 'Hits nhạc trẻ',        icon: '🌸' },
+    { id: 'JCn0hoILmyw', name: 'List Chill 3 — Nhạc Không Lời',       artist: 'Relaxing Music',        icon: '🌿' },
+  ];
+
+  let tracks = JSON.parse(localStorage.getItem('music-tracks') || 'null') || DEFAULT_TRACKS;
+  let _muted = localStorage.getItem('site-mute') === '1';
+  let _ytReady = false, _seekDone = false;
+
+  function getVid() { return localStorage.getItem('music-vid') || DEFAULT_TRACKS[0].id; }
+
+  function buildSrc(vid) {
+    return 'https://www.youtube-nocookie.com/embed/' + vid +
+      '?autoplay=1&controls=0&enablejsapi=1&modestbranding=1&rel=0';
+  }
+
+  function saveTracks() { localStorage.setItem('music-tracks', JSON.stringify(tracks)); }
+
+  function extractId(url) {
+    url = url.trim();
+    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([a-zA-Z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    return null;
+  }
+
+  function playTrack(vid) {
+    localStorage.setItem('music-vid', vid);
+    localStorage.setItem('music-offset', '0');
+    localStorage.setItem('music-page-ts', Date.now());
+    document.getElementById('yt-music').src = buildSrc(vid);
+    _ytReady = false; _seekDone = false;
+    renderList();
+  }
+
+  function addTrack() {
+    const url = document.getElementById('add-url').value;
+    const vid = extractId(url);
+    if (!vid) { alert('Link không hợp lệ — paste link YouTube hoặc video ID (11 ký tự)'); return; }
+    if (tracks.find(t => t.id === vid)) { playTrack(vid); document.getElementById('add-url').value = ''; return; }
+    tracks.push({ id: vid, name: 'Bài thêm mới', artist: vid, icon: '🎵' });
+    saveTracks();
+    playTrack(vid);
+    document.getElementById('add-url').value = '';
+  }
+
+  function removeTrack(vid, e) {
+    e.stopPropagation();
+    tracks = tracks.filter(t => t.id !== vid);
+    saveTracks();
+    if (getVid() === vid) playTrack(tracks[0]?.id || DEFAULT_TRACKS[0].id);
+    else renderList();
+  }
+
+  function renderList() {
+    const cur = getVid();
+    const el = document.getElementById('track-list');
+    el.innerHTML = tracks.map(t => `
+      <div class="track ${t.id === cur ? 'active' : ''}" onclick="playTrack('${t.id}')">
+        <span class="track-icon">${t.icon}</span>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-artist">${t.artist}</div>
+        </div>
+        ${t.id === cur ? '<span class="track-badge">▶ Đang phát</span>' : ''}
+        ${!DEFAULT_TRACKS.find(d=>d.id===t.id) ? `<span onclick="removeTrack('${t.id}',event)" style="font-size:.8rem;opacity:.5;padding:0 .4rem;cursor:pointer" title="Xoá">✕</span>` : ''}
+      </div>`).join('');
+
+    const cur_track = tracks.find(t => t.id === cur);
+    document.getElementById('now-playing-name').textContent = cur_track ? `${cur_track.icon} ${cur_track.name}` : cur;
+  }
+
+  window.toggleMute = function() {
+    _muted = !_muted;
+    localStorage.setItem('site-mute', _muted ? '1' : '0');
+    document.getElementById('mute-toggle-btn').textContent = _muted ? '🔇 Đang tắt' : '🔊 Bật';
+    const yt = document.getElementById('yt-music');
+    if (yt && yt.contentWindow)
+      yt.contentWindow.postMessage(JSON.stringify({event:'command',func:_muted?'muteVideo':'unMuteVideo',args:[]}), '*');
+  };
+
+  window.addEventListener('message', (e) => {
+    try {
+      const d = JSON.parse(typeof e.data==='string' ? e.data : '{}');
+      if (d.event === 'onReady') {
+        _ytReady = true;
+        if (_muted) document.getElementById('yt-music').contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}), '*');
+        if (!_seekDone) {
+          const off = parseInt(localStorage.getItem('music-offset')||'0',10);
+          if (off > 5) document.getElementById('yt-music').contentWindow.postMessage(JSON.stringify({event:'command',func:'seekTo',args:[off,true]}), '*');
+          _seekDone = true;
+          localStorage.setItem('music-page-ts', Date.now());
+        }
+      }
+    } catch(_){}
+  });
+
+  // Save offset periodically
+  setInterval(() => {
+    if (!_ytReady) return;
+    const pageTs = parseInt(localStorage.getItem('music-page-ts')||'0',10);
+    if (!pageTs) return;
+    const base = parseInt(localStorage.getItem('music-offset')||'0',10);
+    const delta = Math.floor((Date.now()-pageTs)/1000);
+    localStorage.setItem('music-offset', base+delta);
+    localStorage.setItem('music-page-ts', Date.now());
+  }, 3000);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('yt-music').src = buildSrc(getVid());
+    document.getElementById('mute-toggle-btn').textContent = _muted ? '🔇 Đang tắt' : '🔊 Bật';
+    renderList();
+  });
+  </script>
+</body>
+</html>
