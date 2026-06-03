@@ -761,6 +761,31 @@ code {
 }
 .intro-close:hover { opacity: .88; }
 
+/* ── Desktop weather widget (outside phone) ── */
+.desk-weather {
+  display: none;
+  position: fixed; top: 80px; right: 28px; z-index: 100;
+  width: 168px;
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(32px) saturate(220%);
+  -webkit-backdrop-filter: blur(32px) saturate(220%);
+  border: 1px solid rgba(255,255,255,.55);
+  border-top-color: rgba(255,255,255,.82);
+  border-radius: 20px;
+  padding: 14px 15px 11px;
+  box-shadow: 0 8px 28px hsla(155,52%,24%,.14), inset 0 1px 0 rgba(255,255,255,.7);
+  cursor: default;
+}
+@media (max-width: 700px) { .desk-weather { display: none !important; } }
+.dw-city   { font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: hsl(155,45%,28%); }
+.dw-row    { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.dw-temp   { font-size: 2rem; font-weight: 200; color: hsl(155,52%,18%); letter-spacing: -.04em; line-height: 1; }
+.dw-icon   { font-size: 1.8rem; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,.12)); }
+.dw-desc   { font-size: .65rem; color: hsl(155,42%,38%); margin-top: 2px; }
+.dw-stats  { display: flex; gap: 8px; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.35); }
+.dw-stat   { font-size: .6rem; color: hsl(155,42%,35%); display: flex; align-items: center; gap: 2px; }
+.dw-stat b { font-weight: 600; color: hsl(155,52%,22%); }
+
 /* ── Language bar (outside phone) ── */
 .lang-bar {
   position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
@@ -811,6 +836,21 @@ code {
   <a href="guide.html">📖 Guide</a>
   <a href="changelog.html">📝 Changelog</a>
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">🐙 GitHub</a>
+</div>
+
+<!-- Desktop weather widget -->
+<div class="desk-weather" id="desk-weather">
+  <div class="dw-city" id="dw-city">—</div>
+  <div class="dw-row">
+    <div class="dw-temp" id="dw-temp">—</div>
+    <div class="dw-icon" id="dw-icon">🌤️</div>
+  </div>
+  <div class="dw-desc" id="dw-desc">—</div>
+  <div class="dw-stats">
+    <div class="dw-stat">💧 <b id="dw-humid">—</b></div>
+    <div class="dw-stat">💨 <b id="dw-wind">—</b></div>
+    <div class="dw-stat">👁 <b id="dw-vis">—</b></div>
+  </div>
 </div>
 
 <!-- Language bar -->
@@ -1896,15 +1936,37 @@ document.querySelectorAll('.app-window').forEach(win => {
         }
 
         const c = d.weather_code;
-        document.getElementById('io-w-icon').textContent  = gi(c);
-        document.getElementById('io-w-temp').textContent  = `${Math.round(d.temperature_2m)}°C`;
-        document.getElementById('io-w-desc').textContent  = gd(c);
-        document.getElementById('io-w-humid').textContent = `${d.relative_humidity_2m}%`;
-        document.getElementById('io-w-wind').textContent  = `${Math.round(d.wind_speed_10m)} km/h`;
-        const vis = d.visibility;
-        document.getElementById('io-w-vis').textContent   = vis >= 1000 ? `${(vis/1000).toFixed(0)} km` : `${vis} m`;
-        if (city) document.getElementById('io-w-city').textContent = city.toUpperCase();
+        const tempStr  = `${Math.round(d.temperature_2m)}°C`;
+        const descStr  = gd(c);
+        const iconStr  = gi(c);
+        const humStr   = `${d.relative_humidity_2m}%`;
+        const windStr  = `${Math.round(d.wind_speed_10m)} km/h`;
+        const vis      = d.visibility;
+        const visStr   = vis >= 1000 ? `${(vis/1000).toFixed(0)} km` : `${vis} m`;
+        const cityUp   = city ? city.toUpperCase() : '';
+
+        // Phone card
+        document.getElementById('io-w-icon').textContent  = iconStr;
+        document.getElementById('io-w-temp').textContent  = tempStr;
+        document.getElementById('io-w-desc').textContent  = descStr;
+        document.getElementById('io-w-humid').textContent = humStr;
+        document.getElementById('io-w-wind').textContent  = windStr;
+        document.getElementById('io-w-vis').textContent   = visStr;
+        if (cityUp) document.getElementById('io-w-city').textContent = cityUp;
         card.style.display = 'block';
+
+        // Desktop widget
+        const desk = document.getElementById('desk-weather');
+        if (desk) {
+          document.getElementById('dw-icon').textContent  = iconStr;
+          document.getElementById('dw-temp').textContent  = tempStr;
+          document.getElementById('dw-desc').textContent  = descStr;
+          document.getElementById('dw-humid').textContent = humStr;
+          document.getElementById('dw-wind').textContent  = windStr;
+          document.getElementById('dw-vis').textContent   = visStr;
+          if (cityUp) document.getElementById('dw-city').textContent = cityUp;
+          desk.style.display = 'block';
+        }
       } catch (_) {}
     }
     document.addEventListener('DOMContentLoaded', loadIOWeather);
