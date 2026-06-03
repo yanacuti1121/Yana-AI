@@ -110,7 +110,7 @@ footer a:hover{color:var(--text)}
 <script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');var b=document.getElementById('theme-toggle');if(b)b.textContent=d?'☀️':'🌙';}window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});</script>
 
 <div class="hero">
-  <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:.01em">YAMTAM Library</h1>
+  <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:.01em" data-i18n="hero.title">YAMTAM Library</h1>
   <p>3,440 skills · 93 agents · tìm kiếm và lọc theo danh mục</p>
 
   <!-- Mode switcher -->
@@ -145,7 +145,7 @@ footer a:hover{color:var(--text)}
   <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
   </svg>
-  <input class="search-input" id="search" type="search" placeholder="Search skills or agents..." autocomplete="off" spellcheck="false">
+  <input class="search-input" id="search" type="search" placeholder="Search skills or agents..." data-i18n-placeholder="search.ph" autocomplete="off" spellcheck="false">
   <span class="search-count" id="search-count"></span>
 </div>
 
@@ -340,5 +340,6 @@ Promise.all([
   ">🎵</a>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
+  <script src="i18n.js"></script>
 </body>
 </html>

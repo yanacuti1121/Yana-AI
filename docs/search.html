@@ -58,20 +58,20 @@
 </nav>
 
 <main>
-  <h1>Search</h1>
+  <h1 data-i18n="page.h1">Search</h1>
   <p class="subtitle" id="subtitle">Loading index…</p>
 
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input id="q" type="search" placeholder="Search skills, agents, commands, rules…" autofocus autocomplete="off">
+    <input id="q" type="search" placeholder="Search skills, agents, commands, rules…" data-i18n-placeholder="search.ph" autofocus autocomplete="off">
   </div>
 
   <div class="filters">
-    <button class="filter-btn active" data-type="all">All</button>
-    <button class="filter-btn" data-type="skill">Skills</button>
-    <button class="filter-btn" data-type="agent">Agents</button>
-    <button class="filter-btn" data-type="command">Commands</button>
-    <button class="filter-btn" data-type="rule">Rules</button>
+    <button class="filter-btn active" data-type="all" data-i18n="filter.all">All</button>
+    <button class="filter-btn" data-type="skill" data-i18n="filter.skill">Skills</button>
+    <button class="filter-btn" data-type="agent" data-i18n="filter.agent">Agents</button>
+    <button class="filter-btn" data-type="command" data-i18n="filter.command">Commands</button>
+    <button class="filter-btn" data-type="rule" data-i18n="filter.rule">Rules</button>
   </div>
 
   <p class="stats" id="stats"></p>
@@ -178,5 +178,6 @@ loadData();
   ">🎵</a>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
+  <script src="i18n.js"></script>
 </body>
 </html>

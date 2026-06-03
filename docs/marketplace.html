@@ -159,13 +159,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 <script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');var b=document.getElementById('theme-toggle');if(b)b.textContent=d?'☀️':'🌙';}window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});</script>
 
 <div class="hero">
-  <h1>YAMTAM Marketplace</h1>
+  <h1 data-i18n="hero.title">YAMTAM Marketplace</h1>
   <p>3,457 skills · 95 agents · 45 hooks · 164 commands · 61 rules</p>
   <div class="search-hero">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
       <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
     </svg>
-    <input id="search" type="search" placeholder="Search skills, agents, tools..." autocomplete="off">
+    <input id="search" type="search" placeholder="Search skills, agents, tools..." data-i18n-placeholder="search.ph" autocomplete="off">
     <span id="search-count"></span>
   </div>
 </div>
@@ -208,7 +208,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
     </div>
 
     <div class="grid-header">
-      <h2 id="grid-title">All items</h2>
+      <h2 id="grid-title" data-i18n="grid.all">All items</h2>
       <div style="display:flex;align-items:center;gap:.75rem">
         <span id="grid-count" style="font-size:.85rem;color:var(--muted)"></span>
         <select class="sort-select" id="sort-select" onchange="render()">
@@ -492,5 +492,6 @@ Promise.all([
   ">🎵</a>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
+  <script src="i18n.js"></script>
 </body>
 </html>
