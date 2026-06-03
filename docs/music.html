@@ -129,12 +129,6 @@
     </div>
   </div>
 
-  <!-- Persistent music player -->
-  <iframe id="yt-music" allow="autoplay; encrypted-media"
-    style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none"
-    title="bg-music">
-  </iframe>
-
   <script>
   const DEFAULT_TRACKS = [
     { id: 'aKSJAcG4V4o', name: 'Chưa Được Yêu Như Thế', artist: 'Trang · 1 giờ lofi', icon: '🌙' },
@@ -147,11 +141,8 @@
 
   let _saved = JSON.parse(localStorage.getItem('music-tracks') || 'null');
   let tracks = (_saved && _saved.length) ? _saved : DEFAULT_TRACKS;
-  let _muted = localStorage.getItem('site-mute') === '1';
-  let _ytReady = false, _seekDone = false;
 
   function getVid() { return localStorage.getItem('music-vid') || DEFAULT_TRACKS[0].id; }
-
 
   function saveTracks() { localStorage.setItem('music-tracks', JSON.stringify(tracks)); }
 
@@ -206,50 +197,20 @@
   }
 
   window.toggleMute = function() {
-    _muted = !_muted;
-    localStorage.setItem('site-mute', _muted ? '1' : '0');
-    document.getElementById('mute-toggle-btn').textContent = _muted ? '🔇 Đang tắt' : '🔊 Bật';
-    const yt = document.getElementById('yt-music');
-    if (yt && yt.contentWindow)
-      yt.contentWindow.postMessage(JSON.stringify({event:'command',func:_muted?'muteVideo':'unMuteVideo',args:[]}), '*');
+    const muted = !(localStorage.getItem('site-mute') === '1');
+    localStorage.setItem('site-mute', muted ? '1' : '0');
+    window._musicMute && window._musicMute(muted);
+    document.getElementById('mute-toggle-btn').textContent = muted ? '🔇 Đang tắt' : '🔊 Bật';
   };
 
-  window.addEventListener('message', (e) => {
-    try {
-      const d = JSON.parse(typeof e.data==='string' ? e.data : '{}');
-      if (d.event === 'onReady') {
-        _ytReady = true;
-        if (_muted) document.getElementById('yt-music').contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}), '*');
-        if (!_seekDone) {
-          const off = parseInt(localStorage.getItem('music-offset')||'0',10);
-          if (off > 5) document.getElementById('yt-music').contentWindow.postMessage(JSON.stringify({event:'command',func:'seekTo',args:[off,true]}), '*');
-          _seekDone = true;
-          localStorage.setItem('music-page-ts', Date.now());
-        }
-      }
-    } catch(_){}
-  });
-
-  // Save offset periodically
-  setInterval(() => {
-    if (!_ytReady) return;
-    const pageTs = parseInt(localStorage.getItem('music-page-ts')||'0',10);
-    if (!pageTs) return;
-    const base = parseInt(localStorage.getItem('music-offset')||'0',10);
-    const delta = Math.floor((Date.now()-pageTs)/1000);
-    localStorage.setItem('music-offset', base+delta);
-    localStorage.setItem('music-page-ts', Date.now());
-  }, 3000);
-
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('yt-music').src = buildSrc(getVid());
-    document.getElementById('mute-toggle-btn').textContent = _muted ? '🔇 Đang tắt' : '🔊 Bật';
+    const muted = localStorage.getItem('site-mute') === '1';
+    document.getElementById('mute-toggle-btn').textContent = muted ? '🔇 Đang tắt' : '🔊 Bật';
     renderList();
   });
   </script>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>

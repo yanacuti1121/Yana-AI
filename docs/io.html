@@ -829,7 +829,6 @@ code {
 
   <!-- Background music — YouTube embed (hidden) -->
   <iframe id="yt-music"
-    src="https://www.youtube.com/embed/KeoAfgsM8o4?autoplay=1&loop=1&playlist=KeoAfgsM8o4&controls=0&mute=0&enablejsapi=1"
     allow="autoplay; encrypted-media"
     style="position:absolute;width:0;height:0;border:0;opacity:0;pointer-events:none"
     title="bg-music">
@@ -1433,11 +1432,11 @@ const haptic = {
 };
 
 // ── Sound effects ──
-let soundMuted = localStorage.getItem('io-mute') === '1';
+let soundMuted = localStorage.getItem('site-mute') === '1';
 
 function toggleMute() {
   soundMuted = !soundMuted;
-  localStorage.setItem('io-mute', soundMuted ? '1' : '0');
+  localStorage.setItem('site-mute', soundMuted ? '1' : '0');
   const btn = document.getElementById('mute-btn');
   btn.textContent = soundMuted ? '🔇' : '🔊';
   btn.classList.toggle('muted', soundMuted);
@@ -1455,6 +1454,10 @@ function toggleMute() {
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('mute-btn');
   if (soundMuted) { btn.textContent = '🔇'; btn.classList.add('muted'); }
+  // Load track from shared music state
+  const vid = localStorage.getItem('music-vid') || 'aKSJAcG4V4o';
+  const yt = document.getElementById('yt-music');
+  if (yt) yt.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}&controls=0&mute=0&enablejsapi=1`;
   applyLang();
   // Mute YT on load if previously muted
   if (soundMuted) {

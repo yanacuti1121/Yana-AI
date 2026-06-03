@@ -90,3 +90,25 @@ svg, img, [class*="icon"] { filter: none; }
 
 /* Preserve white text on colored backgrounds */
 .btn-primary span, .nav-cta span { color: #fff !important; }
+
+/* Dark mode — do NOT override dark theme variables */
+html.dark                              { background: unset !important; }
+html.dark body                         { background: unset !important; color: unset !important; }
+html.dark h1, html.dark h2, html.dark h3,
+html.dark h4, html.dark h5, html.dark h6 { color: unset !important; }
+html.dark p, html.dark li, html.dark td,
+html.dark th, html.dark span, html.dark div,
+html.dark label, html.dark caption    { color: unset !important; }
+html.dark a                            { color: unset !important; }
+html.dark code, html.dark pre          { background: unset !important; color: unset !important; }
+html.dark nav, html.dark nav a,
+html.dark nav span, html.dark header,
+html.dark header a, html.dark .lang-btn { color: unset !important; }
+html.dark .card, html.dark .feature-tile,
+html.dark .version-block, html.dark .terminal,
+html.dark .stat-card, html.dark .hero-card,
+html.dark .glass, html.dark section    { background: unset !important; color: unset !important; }
+html.dark [style*="hsl(221"],
+html.dark [style*="#3b82f6"],
+html.dark [style*="#2563eb"],
+html.dark [style*="#1d4ed8"]           { filter: none !important; }
