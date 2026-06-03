@@ -1,5 +1,5 @@
 {
-  "fetched_at": 1780446215.3721964,
+  "fetched_at": 1780496129.9361043,
   "date": "2026-06-03",
   "lang": "",
   "repos": [
@@ -9,7 +9,7 @@
       "description": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 60-95% fewer tokens, same answers. Library",
       "language": "Python",
       "stars": 0,
-      "stars_today": 1265,
+      "stars_today": 3528,
       "relevant": true
     },
     {
@@ -18,7 +18,7 @@
       "description": "Python tool for converting files and office documents to Markdown.",
       "language": "Python",
       "stars": 0,
-      "stars_today": 3618,
+      "stars_today": 2006,
       "relevant": false
     },
     {
@@ -27,7 +27,7 @@
       "description": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development f",
       "language": "JavaScript",
       "stars": 0,
-      "stars_today": 1533,
+      "stars_today": 2147,
       "relevant": true
     },
     {
@@ -36,7 +36,7 @@
       "description": "🕷️ An adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl!",
       "language": "Python",
       "stars": 0,
-      "stars_today": 1182,
+      "stars_today": 1078,
       "relevant": false
     },
     {
@@ -45,7 +45,7 @@
       "description": "Hermes WebUI: The best way to use Hermes Agent from the web or from your phone!",
       "language": "Python",
       "stars": 0,
-      "stars_today": 1722,
+      "stars_today": 734,
       "relevant": true
     },
     {
@@ -54,7 +54,7 @@
       "description": "A modern platform for visual, flexible, and extensible graph-based investigations. For cybersecurity analysts and invest",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 124,
+      "stars_today": 509,
       "relevant": true
     },
     {
@@ -63,7 +63,7 @@
       "description": "VoxCPM2: Tokenizer-Free TTS for Multilingual Speech Generation, Creative Voice Design, and True-to-Life Cloning",
       "language": "Python",
       "stars": 0,
-      "stars_today": 783,
+      "stars_today": 713,
       "relevant": false
     },
     {
@@ -72,7 +72,7 @@
       "description": "Code for Machine Learning for Algorithmic Trading, 2nd edition.",
       "language": "Jupyter Notebook",
       "stars": 0,
-      "stars_today": 574,
+      "stars_today": 716,
       "relevant": false
     },
     {
@@ -81,7 +81,7 @@
       "description": "",
       "language": "Python",
       "stars": 0,
-      "stars_today": 30,
+      "stars_today": 372,
       "relevant": true
     },
     {
@@ -90,7 +90,7 @@
       "description": "Memory engine and app that is extremely fast, scalable. The Memory API for the AI era.",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 680,
+      "stars_today": 601,
       "relevant": true
     },
     {
@@ -99,7 +99,7 @@
       "description": "Talk to any LLM with hands-free voice interaction, voice interruption, and Live2D taking face running locally across pla",
       "language": "Python",
       "stars": 0,
-      "stars_today": 66,
+      "stars_today": 702,
       "relevant": true
     }
   ]

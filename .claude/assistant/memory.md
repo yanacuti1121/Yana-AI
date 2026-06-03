@@ -387,3 +387,13 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 - CI xanh toàn bộ ✅
 
 **Trạng thái cuối:** v0.40.0 · 3,442 skills · 95 agents · CI ✅ · Pages live
+
+## 2026-06-03 — Session 3: +9 trending skills, openclaw/agentskills format
+
+**Đã làm:**
+- +9 skills từ trending repos: openhack, flowsint, production-agentic-rag, taste-skill, agentskills-spec, hugoblox-kit, formatjs, odysseus, openclaw, metagpt
+- openclaw/agentskills compatible format hoàn chỉnh
+- IO + changelog + marketplace synced toàn bộ
+- CI xanh
+
+**Trạng thái cuối:** v0.40.0 · 3,451 skills · 95 agents · CI ✅
