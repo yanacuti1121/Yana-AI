@@ -22,7 +22,7 @@ a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 
 /* NAV */
-.nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:52px;position:sticky;top:12px;z-index:100;margin:12px 20px 0;background:rgba(255,255,255,.84)!important;backdrop-filter:blur(32px) saturate(220%);-webkit-backdrop-filter:blur(32px) saturate(220%);border:1px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 8px 32px rgba(59,130,246,.1),0 2px 8px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.95)}
 .nav-logo{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{color:var(--orange)}
 .nav-links{display:flex;gap:1.5rem;font-size:.9rem;color:var(--muted)}
@@ -88,7 +88,7 @@ footer a:hover{color:var(--text)}
 </head>
 <body>
 
-<nav class="nav" id="main-nav" style="background:hsla(38,30%,97%,.92);backdrop-filter:blur(12px)">
+<nav class="nav" id="main-nav">
   <a class="nav-logo" href="./" style="text-decoration:none;font-family:var(--script);font-size:1.15rem;font-weight:700;background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite">YAMTAM ENGINE</a>
   <style>@keyframes rainbow{0%{background-position:0%}100%{background-position:200%}}</style>
   <div class="nav-links">
