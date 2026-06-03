@@ -14,7 +14,7 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **GitHub Marketplace** — chờ review, check mail định kỳ bằng `/check-mail`
+1. **GitHub Marketplace** — chờ review → **CHECK MAIL ĐẦU SESSION: `python3 tools/check-mail.py --from github`**
 2. **Disk** — dọn thêm nếu xuống dưới 150MB
 
 ## Đã biết / blockers
