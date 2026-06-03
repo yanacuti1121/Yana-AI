@@ -150,10 +150,6 @@
 
   function getVid() { return localStorage.getItem('music-vid') || DEFAULT_TRACKS[0].id; }
 
-  function buildSrc(vid) {
-    return 'https://www.youtube-nocookie.com/embed/' + vid +
-      '?autoplay=1&controls=0&enablejsapi=1&modestbranding=1&rel=0';
-  }
 
   function saveTracks() { localStorage.setItem('music-tracks', JSON.stringify(tracks)); }
 
@@ -166,12 +162,7 @@
   }
 
   function playTrack(vid) {
-    localStorage.setItem('music-vid', vid);
-    localStorage.setItem('music-offset', '0');
-    if (window._ytPlayer) {
-      window._ytPlayer.loadVideoById({ videoId: vid, startSeconds: 0 });
-      if (_muted) window._ytPlayer.mute();
-    }
+    window._loadMusicTrack && window._loadMusicTrack(vid, true);
     renderList();
   }
 
@@ -255,5 +246,8 @@
   });
   </script>
   <script src="https://www.youtube.com/iframe_api"></script>
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="music-player.js"></script>
 </body>
 </html>

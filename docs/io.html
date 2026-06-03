@@ -829,13 +829,6 @@ code {
 
   <!-- Persistent music player — YouTube IFrame API -->
   <div id="yt-music" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
-  <button id="mute-btn" onclick="toggleMute()" title="Nhạc" style="
-    position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;
-    background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.2);border-radius:50%;
-    width:2.4rem;height:2.4rem;font-size:1rem;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:all .2s;
-  ">🔊</button>
   <a href="music.html" title="Chọn nhạc" style="
     position:fixed;bottom:1.2rem;right:4.2rem;z-index:9999;
     background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
@@ -843,7 +836,6 @@ code {
     width:2.4rem;height:2.4rem;font-size:.9rem;cursor:pointer;text-decoration:none;
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
   (function(){
     const DEFAULT_VID = 'aKSJAcG4V4o';
@@ -897,5 +889,17 @@ code {
     });
   })();
   </script>
+  <!-- Music player (merged with io sfx) -->
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <a href="music.html" title="Chọn nhạc" style="
+    position:fixed;bottom:1.2rem;right:4.2rem;z-index:9999;
+    background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.18);border-radius:50%;
+    width:2.4rem;height:2.4rem;font-size:.9rem;text-decoration:none;
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+  ">🎵</a>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>window._customToggleMute = true;</script>
+  <script src="music-player.js"></script>
 </body>
 </html>
