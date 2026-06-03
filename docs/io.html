@@ -10,6 +10,68 @@
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 
+/* ── IO Nav ── */
+.io-nav {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 200; width: min(480px, calc(100% - 32px));
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.2rem; height: 46px;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(40px) saturate(240%);
+  -webkit-backdrop-filter: blur(40px) saturate(240%);
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 24px;
+  box-shadow: 0 6px 24px rgba(59,130,246,.1), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.io-nav-logo {
+  font-size: .82rem; font-weight: 700;
+  color: hsl(220,75%,22%); text-decoration: none;
+  letter-spacing: -.01em; white-space: nowrap;
+}
+.io-nav-links {
+  display: flex; gap: 1rem; align-items: center;
+}
+.io-nav-links a {
+  font-size: .75rem; font-weight: 500;
+  color: rgba(30,58,138,.6); text-decoration: none;
+  transition: color .15s;
+}
+.io-nav-links a:hover { color: hsl(220,75%,22%); }
+.io-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  background: transparent; border: none; cursor: pointer; padding: .3rem;
+}
+.io-hamburger span {
+  display: block; width: 18px; height: 2px;
+  background: hsl(220,75%,28%); border-radius: 2px; transition: all .22s;
+}
+.io-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.io-hamburger.open span:nth-child(2) { opacity: 0; }
+.io-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.io-drawer {
+  display: none; position: fixed; top: 70px; left: 16px; right: 16px;
+  z-index: 199; flex-direction: column; gap: .15rem;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(40px) saturate(220%);
+  -webkit-backdrop-filter: blur(40px) saturate(220%);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 18px; padding: .75rem .5rem;
+  box-shadow: 0 12px 40px rgba(59,130,246,.15);
+}
+.io-drawer.open { display: flex; }
+.io-drawer a {
+  color: hsl(220,70%,25%); text-decoration: none;
+  font-size: .88rem; font-weight: 500;
+  padding: .6rem .85rem; border-radius: 10px; transition: background .15s;
+}
+.io-drawer a:hover { background: rgba(59,130,246,.08); }
+
+@media (max-width: 520px) {
+  .io-nav-links { display: none; }
+  .io-hamburger { display: flex; }
+}
+
 body {
   min-height: 100dvh;
   background: #dbeafe;
@@ -699,6 +761,31 @@ code {
 
 <div class="desktop-bg"></div>
 
+<!-- IO Nav -->
+<nav class="io-nav">
+  <a class="io-nav-logo" href="index.html">⚡ YAMTAM</a>
+  <div class="io-nav-links">
+    <a href="index.html">Home</a>
+    <a href="skills.html">Skills</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="guide.html">Guide</a>
+    <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+  </div>
+  <button class="io-hamburger" id="io-hb" onclick="toggleIOMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- IO Mobile drawer -->
+<div class="io-drawer" id="io-drawer">
+  <a href="index.html">🏠 Home</a>
+  <a href="skills.html">⚡ Skills</a>
+  <a href="marketplace.html">🏪 Marketplace</a>
+  <a href="guide.html">📖 Guide</a>
+  <a href="changelog.html">📝 Changelog</a>
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">🐙 GitHub</a>
+</div>
+
 <!-- Language bar -->
 <div class="lang-bar">
   <button class="lang-btn active" onclick="setLang('vi')">VI</button>
@@ -1166,6 +1253,21 @@ code {
 </div><!-- /phone -->
 
 <script>
+// ── IO Nav hamburger ──
+function toggleIOMenu() {
+  const hb = document.getElementById('io-hb');
+  const dr = document.getElementById('io-drawer');
+  hb.classList.toggle('open');
+  dr.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const hb = document.getElementById('io-hb');
+  const dr = document.getElementById('io-drawer');
+  if (!hb.contains(e.target) && !dr.contains(e.target)) {
+    hb.classList.remove('open'); dr.classList.remove('open');
+  }
+});
+
 // ── i18n ──
 const I18N = {
   vi: {
