@@ -85,6 +85,17 @@ footer a:hover{color:var(--text)}
 .dark{--bg:hsl(24,15%,8%);--bg2:hsl(24,12%,12%);--bg3:hsl(24,10%,10%);--border:hsl(24,10%,18%);--text:hsl(38,20%,92%);--muted:hsl(38,8%,55%);--blue:hsl(221,75%,62%);--green:hsl(142,55%,48%);--orange:hsl(28,85%,58%);--purple:hsl(250,65%,65%)}
 .dark .nav{background:rgba(12,18,38,.88)!important;border-color:rgba(255,255,255,.1)!important;box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07)!important}
 </style>
+
+  <style>
+  /* Water glass background override */
+  :root {
+    --bg:       hsl(210 60% 8%);
+    --bg-subtle: hsl(210 50% 11%);
+    --bg-card:   rgba(255,255,255,0.05);
+    --border:    rgba(255,255,255,0.12);
+  }
+  html, body { background: hsl(210 70% 6%) !important; }
+  </style>
 </head>
 <body>
 
@@ -317,6 +328,7 @@ Promise.all([
   emptyMsg.style.display = "block";
 });
 </script>
+  <script src="water-bg.js" defer></script>
   <script src="water-droplet.js" defer></script>
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>

@@ -271,6 +271,17 @@ body::before{
 .wrap>*:nth-child(9){animation-delay:.34s}
 .wrap>*:nth-child(10){animation-delay:.38s}
 </style>
+
+  <style>
+  /* Water glass background override */
+  :root {
+    --bg:       hsl(210 60% 8%);
+    --bg-subtle: hsl(210 50% 11%);
+    --bg-card:   rgba(255,255,255,0.05);
+    --border:    rgba(255,255,255,0.12);
+  }
+  html, body { background: hsl(210 70% 6%) !important; }
+  </style>
 </head>
 <body>
 <div class="wrap">
@@ -792,6 +803,7 @@ body::before{
 </div>
 
 </div>
+  <script src="water-bg.js" defer></script>
   <script src="water-droplet.js" defer></script>
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>

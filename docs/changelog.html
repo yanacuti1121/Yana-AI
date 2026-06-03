@@ -35,6 +35,17 @@
     .date { color:var(--muted); font-size:.75rem; flex-shrink:0 }
     footer { text-align:center; color:var(--muted); font-size:.85rem; padding:3rem 0 2rem }
   </style>
+
+  <style>
+  /* Water glass background override */
+  :root {
+    --bg:       hsl(210 60% 8%);
+    --bg-subtle: hsl(210 50% 11%);
+    --bg-card:   rgba(255,255,255,0.05);
+    --border:    rgba(255,255,255,0.12);
+  }
+  html, body { background: hsl(210 70% 6%) !important; }
+  </style>
 </head>
 <body>
   <nav class="nav">
@@ -762,6 +773,7 @@
         </section>
   </main>
   <footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
+  <script src="water-bg.js" defer></script>
   <script src="water-droplet.js" defer></script>
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
