@@ -1,0 +1,118 @@
+/* Water Droplet Effects — ported from JNMT
+ * Classes: .glass-wet (container), .drop (falling), .drop-still (condensation)
+ * Usage: add class="glass-wet" to any element, then inject .drop spans via JS
+ */
+
+/* ═══════════════════════════════════════════════════
+   WATER DROPLET EFFECTS — giọt nước / condensation
+   ═══════════════════════════════════════════════════ */
+
+/* Falling droplet keyframe: slight x-wobble + accelerate downward */
+@keyframes drop-fall {
+  0%   { transform: translate(0, 0)     scaleY(1);    opacity: 0;    }
+  6%   {                                               opacity: 0.82; }
+  30%  { transform: translate(2px, 25%) scaleY(1.18); opacity: 0.75; }
+  65%  { transform: translate(-1px,62%) scaleY(1.10); opacity: 0.55; }
+  88%  { transform: translate(1px, 90%) scaleY(1.04); opacity: 0.30; }
+  100% { transform: translate(0, 110%)  scaleY(0.90); opacity: 0;    }
+}
+/* Tiny stationary drops that pulse (condensation forming) */
+@keyframes drop-form {
+  0%,100% { transform: scale(0.85) scaleY(0.90); opacity: 0.55; }
+  45%     { transform: scale(1.05) scaleY(1.12); opacity: 0.88; }
+}
+/* Trail line left by a falling drop */
+@keyframes trail-fade {
+  0%   { transform: scaleY(0); transform-origin: top; opacity: 0.6; }
+  60%  { transform: scaleY(1); opacity: 0.4; }
+  100% { transform: scaleY(1); opacity: 0;   }
+}
+/* Soft specular shimmer across the whole glass surface */
+@keyframes surface-shimmer {
+  0%,100% { opacity: 0.45; }
+  50%      { opacity: 0.90; }
+}
+
+/* ── .glass-wet — adds condensation to any .glass card ── */
+.glass-wet {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Condensation: a field of tiny droplets etched via radial-gradient.
+   z-index: 1 keeps dots beneath card content (z-index: 2) so text/inputs remain readable. */
+.glass-wet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  /* 10 droplet circles — subtle opacity so content stays readable */
+  background-image:
+    radial-gradient(ellipse 6px 8px   at 14% 10%, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 4px 5px   at 68%  7%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 7px 9px   at 38% 20%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 5px 7px   at 82% 18%, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 3px 4px   at 55% 13%, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 8px 11px  at 25% 30%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 4px 5px   at 90% 28%, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 6px 8px   at  8% 32%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 9px 12px  at 75% 24%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 75%),
+    radial-gradient(ellipse 3px 4px   at 48%  8%, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0) 75%);
+  animation: surface-shimmer 6s ease-in-out infinite;
+}
+
+/* Falling droplet — use span.drop inside .glass-wet */
+.drop {
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 7px;
+  border-radius: 50% 50% 60% 60%;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.30) 70%);
+  border: 0.5px solid rgba(255,255,255,0.55);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.80), 0 1px 4px rgba(0,0,0,0.08);
+  pointer-events: none;
+  animation: drop-fall var(--drop-dur, 4s) var(--drop-delay, 0s) linear infinite;
+  z-index: 4;
+}
+/* Stationary condensation dots */
+.drop-still {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.20) 80%);
+  border: 0.5px solid rgba(255,255,255,0.50);
+  box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.85);
+  pointer-events: none;
+  animation: drop-form var(--still-dur, 3s) var(--still-delay, 0s) ease-in-out infinite;
+  z-index: 4;
+}
+
+/* Enhanced water-refraction edge glow on glass cards */
+.glass-wet {
+  box-shadow:
+    var(--glass-shadow),
+    var(--glass-specular),
+    inset 0 0 0 1px rgba(255,255,255,0.30),
+    0 0 24px rgba(147,197,253,0.18),   /* blue water tint */
+    0 0 8px  rgba(236,72,153,0.10);    /* pink highlight */
+}
+
+/* Goo / blob merge filter — apply to blob container for water-merge effect */
+.goo-filter {
+  filter: url(#goo);
+}
+
+/* Inline SVG goo filter (rendered offscreen) */
+.goo-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop, .drop-still, .glass-wet::before { animation: none !important; }
+}
