@@ -397,3 +397,12 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 - CI xanh
 
 **Trạng thái cuối:** v0.40.0 · 3,451 skills · 95 agents · CI ✅
+
+## 2026-06-03 — Session 4: +6 skills (ECC/Scrapling/VoxCPM/ml-trading/VTuber/TablePro)
+
+**Đã làm:**
+- +6 skills trending: ECC (205K), Scrapling (59.8K), VoxCPM (25.5K), ml-for-trading (18.9K), open-llm-vtuber (8.7K), TablePro (4.3K)
+- IO + changelog + marketplace synced — 3,457 skills
+- CI xanh ✅
+
+**Trạng thái cuối:** v0.40.0 · 3,457 skills · 95 agents · CI ✅ · 17 commits hôm nay

@@ -3,7 +3,7 @@
 **Cập nhật lần cuối:** 2026-06-03
 
 ## Trạng thái
-- yamtam-engine v0.40.0 — MANIFEST ✅ skills 3,451 · agents 95 · CI ✅ xanh
+- yamtam-engine v0.40.0 — MANIFEST ✅ skills 3,457 · agents 95 · CI ✅ xanh
 - Plugin format: openclaw/agentskills compatible ✅ — cài được bằng `npx skills add phamlongh230-lgtm/yamtam-engine`
 - Mail reader: `tools/check-mail.py` IMAP Gmail ✅ — GMAIL_APP_PASSWORD trong ~/.bashrc
 - Supermemory: .mcp.json với Bearer token ✅ — SUPERMEMORY_API_KEY trong ~/.bashrc
