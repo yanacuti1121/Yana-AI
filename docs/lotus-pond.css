@@ -34,8 +34,59 @@ nav, nav a, nav span, .nav-links a, .nav-logo,
   color: hsl(155 45% 22%) !important;
 }
 
-/* Keep icon/emoji & svg colours untouched */
-svg, img, [class*="icon"], .emoji { color: inherit; filter: none; }
+/* Override blue accent → xanh hoa sen */
+:root {
+  --accent:       hsl(155 52% 32%) !important;
+  --accent-hover: hsl(155 55% 26%) !important;
+}
 
-/* Don't override buttons that have explicit bg colors */
-button[style], a[style] { color: inherit !important; }
+/* Blue backgrounds → teal hoa sen */
+[style*="hsl(221"],
+[style*="#3b82f6"], [style*="#2563eb"], [style*="#1d4ed8"],
+[style*="rgb(59,130,246)"], [style*="rgb(37,99,235)"] {
+  filter: hue-rotate(120deg) saturate(0.85) !important;
+}
+
+/* Buttons & CTAs */
+.btn-primary, .nav-cta, button.primary,
+[class*="btn-primary"], [class*="cta"] {
+  background: hsl(155 52% 32%) !important;
+  border-color: hsl(155 52% 28%) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .nav-cta:hover {
+  background: hsl(155 55% 26%) !important;
+}
+
+/* Focus rings, borders with blue */
+[class*="ring"], [class*="focus"],
+*:focus-visible {
+  outline-color: hsl(155 52% 38%) !important;
+  box-shadow: 0 0 0 3px hsla(155,52%,38%,.25) !important;
+}
+
+/* Stat numbers, section labels, highlights */
+.rt-stat-num, .section-label, h1 em,
+[class*="accent"], [class*="highlight"] {
+  color: hsl(155 55% 26%) !important;
+}
+
+/* Badges / tags with blue */
+.badge-blue, [class*="badge"],
+.tag, [class*="tag"] {
+  background: hsla(155,50%,32%,.12) !important;
+  color: hsl(155 55% 24%) !important;
+  border-color: hsla(155,50%,32%,.25) !important;
+}
+
+/* Section underline gradient */
+[style*="gradient(90deg,var(--accent)"],
+[class*="underline"] {
+  background: linear-gradient(90deg, hsl(155 52% 32%), transparent) !important;
+}
+
+/* Keep icon/emoji & svg colours untouched */
+svg, img, [class*="icon"] { filter: none; }
+
+/* Preserve white text on colored backgrounds */
+.btn-primary span, .nav-cta span { color: #fff !important; }
