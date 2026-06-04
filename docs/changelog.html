@@ -15,10 +15,16 @@
 <meta name="description" content="Full release history of YAMTAM ENGINE — versions, features, and fixes.">
   <style>
     :root {
+      --bg: #fafaf9; --bg2: #f2f0ec; --border: #ddd9d0;
+      --text: #1a1714; --muted: #6b6560; --accent: hsl(155,52%,32%);
+      --green: #16a34a; --blue: #2563eb; --red: #dc2626;
+    }
+    .dark {
       --bg: #0f0e0d; --bg2: #1a1917; --border: #2e2c28;
       --text: #e8e2d9; --muted: #8a8070; --accent: hsl(155,52%,42%);
       --green: #4ade80; --blue: #60a5fa; --red: #f87171;
     }
+    html.theme-trans * { transition: background-color .25s ease, color .2s ease, border-color .2s ease !important; }
     * { box-sizing: border-box; margin: 0; padding: 0 }
     body { background: var(--bg); color: var(--text); font-family: ui-sans-serif,system-ui,sans-serif; }
     .nav { display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; height:52px; position:sticky; top:12px; z-index:100; margin:12px 20px 0; background:rgba(255,255,255,.18); backdrop-filter:blur(40px) saturate(240%); -webkit-backdrop-filter:blur(40px) saturate(240%); border:1px solid rgba(255,255,255,.9); border-radius:28px; box-shadow:0 8px 32px rgba(59,130,246,.1),0 2px 8px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.85); }
@@ -56,6 +62,7 @@
       <a href="marketplace.html">Marketplace</a>
       <a href="changelog.html">Changelog</a>
       <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
+      <button id="theme-toggle" onclick="toggleTheme()" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:background .15s">🌙</button>
     </div>
   </nav>
   <main>
@@ -792,6 +799,7 @@
     width:2.4rem;height:2.4rem;font-size:.9rem;text-decoration:none;
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
+  <script src="shared-theme.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
   <script src="i18n.js"></script>

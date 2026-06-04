@@ -166,7 +166,25 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
   </div>
 
 </nav>
-<script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');var b=document.getElementById('theme-toggle');if(b)b.textContent=d?'☀️':'🌙';}window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});</script>
+<script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){
+  const html = document.documentElement;
+  html.classList.add('theme-transitioning');
+  const dark = html.classList.toggle('dark');
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+  setTimeout(() => html.classList.remove('theme-transitioning'), 300);
+}window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});
+// Auto-detect + sync on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function(){
+  if(!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('theme','dark');
+  }
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+});
+</script>
 
 <div class="hero">
   <h1 data-i18n="hero.title">YAMTAM Marketplace</h1>
@@ -502,6 +520,7 @@ Promise.all([
   ">🎵</a>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
+  <script src="shared-theme.js"></script>
   <script src="i18n.js"></script>
 </body>
 </html>

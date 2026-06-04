@@ -52,6 +52,7 @@
   --red:           hsl(0 70% 60%);
 }
 html { scroll-behavior: smooth; }
+html.theme-transitioning * { transition: background-color .25s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
 /* Nav — liquid glass pill */
@@ -2340,14 +2341,31 @@ function closeMenu(){
   document.body.style.overflow = '';
 }
 function toggleTheme(){
-  const dark = document.documentElement.classList.toggle('dark');
+  const html = document.documentElement;
+  html.classList.add('theme-transitioning');
+  const dark = html.classList.toggle('dark');
   localStorage.setItem('theme', dark ? 'dark' : 'light');
   const btn = document.getElementById('theme-toggle');
   if(btn) btn.textContent = dark ? '☀️' : '🌙';
+  setTimeout(() => html.classList.remove('theme-transitioning'), 300);
 }
 window.addEventListener('DOMContentLoaded',function(){
+  // Auto-detect system preference if no saved preference
+  if(!localStorage.getItem('theme')) {
+    if(window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme','dark');
+    }
+  }
   const btn = document.getElementById('theme-toggle');
   if(btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  // Listen for system theme change
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if(!localStorage.getItem('theme')) {
+      document.documentElement.classList.toggle('dark', e.matches);
+      if(btn) btn.textContent = e.matches ? '☀️' : '🌙';
+    }
+  });
 });
 
 // Live download stats from npm + crates.io
