@@ -453,19 +453,26 @@ fn map_show_json() {
     assert!(v.get("risk").is_some(), "risk field in JSON");
 }
 
+fn scanner_dir() -> String {
+    let manifest = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+    format!("{manifest}/scanner")
+}
+
 // ── scan ──────────────────────────────────────────────────────────────────────
 
 #[test]
 fn scan_clean_repo_exits_ok() {
     let dir = tmpdir();
-    let (_, _, ok) = run(dir.path(), &["scan", "."]);
+    let sd = scanner_dir();
+    let (_, _, ok) = run(dir.path(), &["scan", ".", "--scanner-dir", &sd]);
     assert!(ok, "scan on empty repo should exit 0");
 }
 
 #[test]
 fn scan_json_output_has_required_fields() {
     let dir = tmpdir();
-    let (stdout, _, ok) = run(dir.path(), &["scan", ".", "--json"]);
+    let sd = scanner_dir();
+    let (stdout, _, ok) = run(dir.path(), &["scan", ".", "--json", "--scanner-dir", &sd]);
     assert!(ok);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON from scan");
     assert!(v.get("status").is_some(), "JSON has status");
@@ -476,8 +483,9 @@ fn scan_json_output_has_required_fields() {
 #[test]
 fn scan_quiet_flag_reduces_output() {
     let dir = tmpdir();
-    let (stdout_normal, _, _) = run(dir.path(), &["scan", "."]);
-    let (stdout_quiet, _, _) = run(dir.path(), &["scan", ".", "--quiet"]);
+    let sd = scanner_dir();
+    let (stdout_normal, _, _) = run(dir.path(), &["scan", ".", "--scanner-dir", &sd]);
+    let (stdout_quiet, _, _) = run(dir.path(), &["scan", ".", "--quiet", "--scanner-dir", &sd]);
     assert!(
         stdout_quiet.len() <= stdout_normal.len(),
         "--quiet should not produce more output than normal"
@@ -487,8 +495,9 @@ fn scan_quiet_flag_reduces_output() {
 #[test]
 fn scan_markdown_writes_file() {
     let dir = tmpdir();
+    let sd = scanner_dir();
     let report_path = dir.path().join("report.md");
-    run(dir.path(), &["scan", ".", "--markdown", report_path.to_str().unwrap()]);
+    run(dir.path(), &["scan", ".", "--markdown", report_path.to_str().unwrap(), "--scanner-dir", &sd]);
     assert!(report_path.exists(), "markdown report file created");
     let content = std::fs::read_to_string(&report_path).unwrap();
     assert!(content.contains('#'), "markdown has headers");
@@ -658,7 +667,8 @@ fn watch_exits_after_max_changes() {
 #[test]
 fn score_show_clean_repo() {
     let dir = tmpdir();
-    let (stdout, _, ok) = run(dir.path(), &["score", "show", "."]);
+    let sd = scanner_dir();
+    let (stdout, _, ok) = run(dir.path(), &["score", "show", ".", "--scanner-dir", &sd]);
     assert!(ok, "score show should succeed on empty repo");
     assert!(stdout.contains("Score") || stdout.contains("score"), "output has score label");
     assert!(stdout.contains("100") || stdout.contains("LOW"), "clean repo should score 100 / LOW risk");
