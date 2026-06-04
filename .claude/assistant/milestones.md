@@ -7,3 +7,4 @@
 | Date | Title | Priority |
 |------|-------|---------|
 | 2026-06-10 | Token rotation (npm + crates.io + PyPI) | P0 |
+| 2026-06-05 | GitHub Marketplace review result (GitHub App v2) | P1 |
