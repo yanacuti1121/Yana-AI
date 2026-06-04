@@ -111,12 +111,14 @@
     el.className = 'lp';
 
     const type = opts.type || pick(['fall','fall','fall','spin','float']);
-    const size = opts.size || (type === 'spin' ? rand(5,10) : type === 'float' ? rand(16,28) : rand(8,20));
+    const size = opts.size || (type === 'spin' ? rand(3,6) : type === 'float' ? rand(7,13) : rand(4,9));
     const palette = mkColor(pick(PALETTES), rand(.65, .92));
     const shape = pick(['lp-a','lp-b','lp-c']);
     el.classList.add(shape);
 
     const left = opts.left !== undefined ? opts.left : rand(0, 98);
+    // Spawn rải đều — không phải tất cả từ top: 0
+    const topStart = opts.topStart !== undefined ? opts.topStart : rand(-5, 35);
     const dur  = type === 'spin' ? rand(4,7) : type === 'float' ? rand(10,16) : rand(7,14);
     const delay = opts.delay !== undefined ? opts.delay : rand(0, 0.5);
 
@@ -135,7 +137,7 @@
 
     el.style.cssText = `
       left: ${left}%;
-      top: 0;
+      top: ${topStart}%;
       width: ${size}px;
       height: ${size * 2.2}px;
       background: linear-gradient(148deg, ${palette[0]}, ${palette[1]});
