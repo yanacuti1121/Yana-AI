@@ -293,7 +293,7 @@
 
     const bg = document.createElement('div');
     bg.style.cssText = `
-      position:fixed; bottom:0; left:0; right:0; height:${H}px;
+      position:absolute; bottom:0; left:0; right:0; height:${H}px;
       background:url(${canvas.toDataURL()}) bottom left / 100% 100% no-repeat;
       z-index:-1; pointer-events:none;
       opacity:0.82;
