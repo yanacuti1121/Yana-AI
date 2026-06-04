@@ -39,12 +39,24 @@
           _syncBtn();
         },
         onStateChange: function (e) {
-          // Auto-replay if ended
           if (e.data === YT.PlayerState.ENDED) e.target.playVideo();
+        },
+        onError: function () {
+          // Video unavailable — skip to next track in list
+          const tracks = JSON.parse(localStorage.getItem('music-tracks') || 'null') || DEFAULT_TRACKS;
+          const cur = getVid();
+          const idx = tracks.findIndex(t => t.id === cur);
+          const next = tracks[(idx + 1) % tracks.length];
+          if (next && next.id !== cur) _loadTrack(next.id, true);
         }
       }
     });
   };
+
+  const DEFAULT_TRACKS = [
+    'aKSJAcG4V4o','KeoAfgsM8o4','def8pw8Z0DE','oy2CxxQCuhw',
+    'w1wdiibZTl8','JCn0hoILmyw','fuXfT4Rv_WM',
+  ];
 
   // Change track — called from music.html or storage event
   function _loadTrack(vid, fromStart) {
