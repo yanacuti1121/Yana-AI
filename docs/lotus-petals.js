@@ -43,10 +43,14 @@
     100% { opacity:0; transform:translate(var(--dx3),100vh) scale(.4); }
   }
 
-  /* Cảnh hồ sen đáy */
+  /* Cảnh hồ sen đáy — chìm vào nền */
   .lp-pond {
     position:fixed; bottom:0; left:0; right:0;
-    height:115px; pointer-events:none; z-index:3; overflow:hidden;
+    height:115px; pointer-events:none; z-index:0; overflow:hidden;
+    opacity:0.28;
+    mask-image:linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.4) 55%, transparent 100%);
+    -webkit-mask-image:linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.4) 55%, transparent 100%);
+    filter:blur(0.4px) saturate(0.7);
   }
   @keyframes lp-sway {
     0%,100% { transform:rotate(var(--lr)) scaleY(var(--ls)); }
