@@ -63,10 +63,24 @@
   `;
   document.head.appendChild(style);
 
+  const MAX_PETALS = 50;
+  let paused = false;
+
   /* ── Container ───────────────────────────────────────────────────────── */
   const wrap = document.createElement('div');
   wrap.className = 'lp-wrap';
   document.body.appendChild(wrap);
+
+  /* ── Pause khi tab ẩn, dọn khi quay lại ─────────────────────────────── */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      paused = true;
+      // Xóa hết cánh đang tích khi tab bị ẩn
+      while (wrap.firstChild) wrap.removeChild(wrap.firstChild);
+    } else {
+      paused = false;
+    }
+  });
 
   /* ── Màu sắc ─────────────────────────────────────────────────────────── */
   const PALETTES = [
@@ -140,6 +154,7 @@
     `;
     el.appendChild(shine);
 
+    if (wrap.children.length >= MAX_PETALS) return;
     wrap.appendChild(el);
     el.addEventListener('animationend', () => el.remove(), { once: true });
   }
@@ -165,6 +180,7 @@
       --dx3: ${dx3}px;
       animation: lp-dust ${dur}s ${delay}s ease-in forwards;
     `;
+    if (wrap.children.length >= MAX_PETALS) return;
     wrap.appendChild(el);
     el.addEventListener('animationend', () => el.remove(), { once: true });
   }
@@ -188,17 +204,20 @@
 
     // Nhịp thường — 2–3 cánh mỗi 1.4s
     setInterval(() => {
+      if (paused) return;
       const n = Math.random() < .25 ? 4 : Math.random() < .5 ? 3 : 2;
       burst(n);
     }, 1400);
 
     // Burst lớn ngẫu nhiên mỗi ~18s
     setInterval(() => {
+      if (paused) return;
       if (Math.random() < .6) burst(rand(6, 10) | 0, 0);
     }, 18000);
 
     // Float lớn mỗi ~8s
     setInterval(() => {
+      if (paused) return;
       if (Math.random() < .7) {
         createPetal({ type: 'float', size: rand(18, 32), left: rand(0, 90) });
       }
