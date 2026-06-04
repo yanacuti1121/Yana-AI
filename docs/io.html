@@ -344,6 +344,60 @@ body {
 .app-refactor { background: linear-gradient(145deg, #4c1d95, #c084fc); }                  /* purple — refactor */
 .app-map      { background: linear-gradient(145deg, hsl(155,55%,14%), hsl(155,52%,28%)); }/* teal dark — map */
 .app-pr       { background: linear-gradient(145deg, #1e3a8a, #60a5fa); }                  /* blue — PR/GitHub */
+.app-multirun { background: linear-gradient(145deg, hsl(155,58%,16%), hsl(155,52%,32%), hsl(160,55%,28%)); } /* teal gradient — brand */
+
+/* Multi-Run app styles */
+.mr-input {
+  width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+  border-top-color:rgba(255,255,255,.28); border-radius:12px; padding:10px 12px;
+  color:#fff; font-size:.82rem; resize:none; outline:none; font-family:inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  transition: border-color .15s, box-shadow .15s;
+}
+.mr-input:focus { border-color:rgba(255,255,255,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 3px hsla(155,52%,42%,.2); }
+.mr-input::placeholder { color:rgba(255,255,255,.3); }
+.mr-run-btn {
+  width:100%; padding:11px; border-radius:12px; border:none; cursor:pointer;
+  background:linear-gradient(135deg, hsl(155,52%,32%), hsl(155,55%,26%));
+  color:#fff; font-size:.875rem; font-weight:700; letter-spacing:.02em;
+  box-shadow: 0 4px 16px hsla(155,52%,32%,.4), inset 0 1px 0 rgba(255,255,255,.2);
+  transition: all .15s;
+}
+.mr-run-btn:hover { background:linear-gradient(135deg, hsl(155,55%,36%), hsl(155,58%,30%)); transform:translateY(-1px); }
+.mr-run-btn:active { transform:translateY(0); }
+.mr-run-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.mr-task {
+  display:flex; align-items:flex-start; gap:10px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  border-top-color:rgba(255,255,255,.22); border-radius:12px; padding:10px 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+  animation: row-in .35s cubic-bezier(.16,1,.3,1) both;
+}
+.mr-task-num { font-size:.72rem; font-weight:700; color:hsl(155,52%,42%); min-width:18px; margin-top:1px; }
+.mr-task-text { flex:1; font-size:.8rem; color:rgba(255,255,255,.88); line-height:1.4; }
+.mr-task-status {
+  font-size:.62rem; font-weight:700; padding:.15rem .5rem; border-radius:20px;
+  flex-shrink:0; margin-top:1px;
+}
+.mr-status-pending  { background:rgba(255,255,255,.1); color:rgba(255,255,255,.45); }
+.mr-status-running  { background:hsla(155,52%,32%,.3); color:hsl(155,52%,55%); animation: mr-pulse .9s ease-in-out infinite; }
+.mr-status-done     { background:hsla(142,55%,36%,.3); color:hsl(142,55%,60%); }
+.mr-status-conflict { background:hsla(38,80%,40%,.3); color:hsl(38,80%,65%); }
+@keyframes mr-pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+.mr-result {
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  border-radius:10px; padding:10px 12px; font-size:.75rem;
+  color:rgba(255,255,255,.62); line-height:1.5; margin-top:2px;
+}
+.mr-result strong { color:hsl(155,52%,52%); display:block; margin-bottom:3px; font-size:.72rem; }
+.mr-summary {
+  background:hsla(155,52%,20%,.35); border:1px solid hsla(155,52%,42%,.3);
+  border-radius:12px; padding:12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+}
+.mr-summary-title { font-size:.72rem; font-weight:700; color:hsl(155,52%,52%); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
+.mr-badge-row { display:flex; gap:6px; flex-wrap:wrap; }
+.mr-badge { font-size:.65rem; font-weight:700; padding:.2rem .6rem; border-radius:20px; background:rgba(255,255,255,.1); color:rgba(255,255,255,.65); }
 
 /* ── Dock — white liquid glass ── */
 .dock { position: relative; z-index: 5; flex-shrink: 0; padding: 10px 16px 0; }
@@ -1047,6 +1101,10 @@ code {
         <div class="app-icon-img app-pr">📬</div>
         <span class="app-label">PR</span>
       </div>
+      <div class="app-icon" onclick="openApp('multirun')">
+        <div class="app-icon-img app-multirun">⚡</div>
+        <span class="app-label">Multi-Run</span>
+      </div>
     </div>
   </div>
 
@@ -1405,6 +1463,27 @@ code {
         <div class="app-row"><div class="app-row-icon">✨</div><div class="app-row-info"><div class="app-row-title">/pr-enhance</div><div class="app-row-sub">Improve PR description</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">🔀</div><div class="app-row-info"><div class="app-row-title">/commit-push-pr</div><div class="app-row-sub">Commit → Push → PR in one command</div></div><div class="app-row-arrow">›</div></div>
         <div class="app-row"><div class="app-row-icon">📝</div><div class="app-row-info"><div class="app-row-title">/git-changelog</div><div class="app-row-sub">Generate changelog from history</div></div><div class="app-row-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Run -->
+  <div class="app-window" id="win-multirun" style="background:linear-gradient(180deg,hsl(155,45%,6%),hsl(155,40%,4%))">
+    <div class="app-win-header" style="background:hsla(155,52%,20%,.7);backdrop-filter:blur(20px)">
+      <div class="app-win-title">⚡ Multi-Run</div>
+      <button class="app-win-close" onclick="closeApp('multirun')">✕</button>
+    </div>
+    <div class="app-win-body">
+      <div class="generic-app" id="mr-body">
+        <div class="app-section-title">Tasks — tách bằng |</div>
+
+        <textarea class="mr-input" id="mr-input" rows="3"
+          placeholder="fix auth bug | update README | add dark mode tests"></textarea>
+
+        <button class="mr-run-btn" id="mr-btn" onclick="mrRun()">⚡ Chạy song song</button>
+
+        <div id="mr-task-list"></div>
+        <div id="mr-summary-wrap"></div>
       </div>
     </div>
   </div>
@@ -1934,7 +2013,7 @@ document.getElementById('chat-input').addEventListener('keydown', e => { if (e.k
 document.getElementById('chat-input').addEventListener('input', function() { this.style.height = '24px'; this.style.height = Math.min(this.scrollHeight, 80) + 'px'; });
 
 // ── App order + swipe ──
-const APP_ORDER = ['chat','skills','agents','debug','review','commit','security','deploy','sprint','docs','stats','settings','test','refactor','map','pr'];
+const APP_ORDER = ['chat','skills','agents','debug','review','commit','security','deploy','sprint','docs','stats','settings','test','refactor','map','pr','multirun'];
 
 let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
 document.querySelectorAll('.app-window').forEach(win => {
@@ -2038,6 +2117,110 @@ document.querySelectorAll('.app-window').forEach(win => {
     }
     document.addEventListener('DOMContentLoaded', loadIOWeather);
   })();
+  </script>
+  <script>
+  // ── Multi-Run ──────────────────────────────────────────────────────────────
+  let mrTasks = [];
+  let mrRunning = false;
+
+  function mrRender() {
+    const list = document.getElementById('mr-task-list');
+    const summary = document.getElementById('mr-summary-wrap');
+    if (!list) return;
+
+    list.innerHTML = mrTasks.map((t, i) => `
+      <div class="mr-task" style="animation-delay:${i*60}ms">
+        <div class="mr-task-num">${i+1}</div>
+        <div class="mr-task-text">${t.text}</div>
+        <div class="mr-task-status mr-status-${t.status}">${
+          t.status === 'pending' ? '⏳ Chờ' :
+          t.status === 'running' ? '⚡ Đang chạy' :
+          t.status === 'done'    ? '✅ Xong' : '⚠ Conflict'
+        }</div>
+      </div>
+      ${t.result ? `<div class="mr-result"><strong>Agent ${i+1}:</strong>${t.result}</div>` : ''}
+    `).join('');
+
+    const done = mrTasks.filter(t => t.status === 'done').length;
+    if (done > 0 && done === mrTasks.length) {
+      summary.innerHTML = `
+        <div class="mr-summary">
+          <div class="mr-summary-title">✅ Hoàn tất — ${done}/${mrTasks.length} agents</div>
+          <div class="mr-badge-row">
+            <span class="mr-badge">⚡ ${done} tasks song song</span>
+            <span class="mr-badge">🔒 Không conflict</span>
+            <span class="mr-badge">✓ Sẵn sàng apply</span>
+          </div>
+        </div>`;
+    }
+  }
+
+  function mrRun() {
+    const input = document.getElementById('mr-input');
+    const btn = document.getElementById('mr-btn');
+    if (!input || mrRunning) return;
+
+    const raw = input.value.trim();
+    if (!raw) return;
+
+    const tasks = raw.split('|').map(s => s.trim()).filter(Boolean);
+    if (tasks.length < 2) {
+      input.style.borderColor = 'rgba(239,68,68,.6)';
+      setTimeout(() => { input.style.borderColor = ''; }, 1500);
+      return;
+    }
+
+    mrTasks = tasks.map(text => ({ text, status: 'pending', result: null }));
+    mrRunning = true;
+    btn.disabled = true;
+    btn.textContent = '⚡ Đang chạy...';
+    document.getElementById('mr-summary-wrap').innerHTML = '';
+    mrRender();
+    sfx.open && sfx.open();
+
+    // Simulate parallel execution with stagger
+    mrTasks.forEach((task, i) => {
+      setTimeout(() => {
+        task.status = 'running';
+        mrRender();
+
+        // Simulate agent working
+        const duration = 1200 + Math.random() * 1800;
+        setTimeout(() => {
+          task.status = 'done';
+          task.result = `Phân tích xong — đề xuất thay đổi trong scope "${task.text.split(' ').slice(0,3).join(' ')}..."`;
+          mrRender();
+          sfx.reply && sfx.reply();
+
+          // Check if all done
+          if (mrTasks.every(t => t.status === 'done')) {
+            mrRunning = false;
+            btn.disabled = false;
+            btn.textContent = '⚡ Chạy lại';
+          }
+        }, duration);
+      }, i * 180); // stagger start
+    });
+  }
+
+  // Reset when leaving app
+  document.addEventListener('DOMContentLoaded', () => {
+    const orig = window.closeApp;
+    window.closeApp = function(id) {
+      if (id === 'multirun') {
+        setTimeout(() => {
+          mrTasks = []; mrRunning = false;
+          const btn = document.getElementById('mr-btn');
+          if (btn) { btn.disabled = false; btn.textContent = '⚡ Chạy song song'; }
+          const list = document.getElementById('mr-task-list');
+          if (list) list.innerHTML = '';
+          const sw = document.getElementById('mr-summary-wrap');
+          if (sw) sw.innerHTML = '';
+        }, 400);
+      }
+      orig && orig(id);
+    };
+  });
   </script>
   <script src="water-droplet.js" defer></script>
   <script src="lotus-petals.js" defer></script>
