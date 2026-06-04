@@ -9,6 +9,73 @@
     position:fixed; inset:0; pointer-events:none;
     z-index:4; overflow:hidden;
   }
+
+  /* ── Ánh nắng ──────────────────────────────────────────────────────── */
+  .lp-sun {
+    position:fixed; inset:0; pointer-events:none; z-index:2;
+    overflow:hidden;
+  }
+  .lp-sun::before {
+    content:'';
+    position:absolute;
+    top:-20%; right:-10%;
+    width:80vw; height:80vw;
+    background: conic-gradient(
+      from 200deg at 80% 10%,
+      transparent 0deg,
+      rgba(255,240,180,.07) 8deg,
+      transparent 14deg,
+      transparent 22deg,
+      rgba(255,235,160,.05) 28deg,
+      transparent 34deg,
+      transparent 44deg,
+      rgba(255,245,200,.06) 48deg,
+      transparent 54deg,
+      transparent 66deg,
+      rgba(255,238,170,.04) 70deg,
+      transparent 76deg,
+      transparent 90deg,
+      rgba(255,242,185,.05) 94deg,
+      transparent 100deg,
+      transparent 360deg
+    );
+    animation: lp-sun-rot 28s linear infinite;
+    transform-origin: 80% 10%;
+    border-radius: 50%;
+  }
+  .lp-sun::after {
+    content:'';
+    position:absolute;
+    top:-5%; right:5%;
+    width:40vw; height:40vw;
+    background: radial-gradient(ellipse at center,
+      rgba(255,248,210,.22) 0%,
+      rgba(255,240,170,.10) 35%,
+      rgba(255,235,150,.04) 60%,
+      transparent 80%
+    );
+    animation: lp-sun-pulse 6s ease-in-out infinite;
+    border-radius: 50%;
+  }
+  @keyframes lp-sun-rot {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes lp-sun-pulse {
+    0%,100% { opacity:.7; transform: scale(1); }
+    50%     { opacity:1;  transform: scale(1.08); }
+  }
+
+  /* Hạt bụi ánh sáng lơ lửng */
+  .lp-mote {
+    position:absolute; pointer-events:none; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,248,200,.9), rgba(255,240,160,.3));
+    animation: lp-mote-float var(--md) var(--mdelay) ease-in-out infinite alternate;
+  }
+  @keyframes lp-mote-float {
+    0%   { transform: translate(0,0) scale(1);    opacity: var(--mo); }
+    100% { transform: translate(var(--mx),var(--my)) scale(1.4); opacity: calc(var(--mo) * .4); }
+  }
   .lp {
     position:absolute; pointer-events:none;
     will-change:transform,opacity; transform-origin:50% 65%;
@@ -46,8 +113,30 @@
   `;
   document.head.appendChild(style);
 
-  const MAX_PETALS = 50;
+  const MAX_PETALS = 70;
   let paused = false;
+
+  // Ánh nắng layer
+  const sun = document.createElement('div');
+  sun.className = 'lp-sun';
+  document.body.appendChild(sun);
+
+  // Hạt bụi ánh sáng lơ lửng (10 hạt)
+  for (let i = 0; i < 10; i++) {
+    const m = document.createElement('div');
+    m.className = 'lp-mote';
+    const sz = rand(2, 5);
+    m.style.cssText = `
+      left:${rand(50,95)}%; top:${rand(2,55)}%;
+      width:${sz}px; height:${sz}px;
+      --md:${rand(4,9).toFixed(1)}s;
+      --mdelay:-${rand(0,8).toFixed(1)}s;
+      --mx:${rand(-30,30).toFixed(0)}px;
+      --my:${rand(-20,20).toFixed(0)}px;
+      --mo:${rand(.35,.75).toFixed(2)};
+    `;
+    document.body.appendChild(m);
+  }
 
   const wrap = document.createElement('div');
   wrap.className = 'lp-wrap';
@@ -194,27 +283,28 @@
 
   /* ── RAF-based scheduler (no setInterval drift) ────────────────────── */
   function start() {
-    burst(8, 500);
+    burst(14, 400);
 
     const T = { burst: 0, lotus: 0, float: 0, big: 0 };
-    const IV = { burst: 1400, lotus: 12000, float: 8000, big: 18000 };
+    const IV = { burst: 900, lotus: 8000, float: 5000, big: 14000 };
 
     function tick(now) {
       if (!paused) {
         if (now - T.burst > IV.burst) {
-          burst(Math.random() < .25 ? 4 : Math.random() < .5 ? 3 : 2);
+          burst(Math.random() < .2 ? 6 : Math.random() < .5 ? 4 : 3);
           T.burst = now;
         }
         if (now - T.lotus > IV.lotus) {
-          if (Math.random() < .65) createFullLotus();
+          if (Math.random() < .8) createFullLotus();
+          if (Math.random() < .4) createFullLotus(); // đôi khi 2 bông cùng lúc
           T.lotus = now;
         }
         if (now - T.big > IV.big) {
-          if (Math.random() < .6) burst(rand(5,9)|0, 0);
+          if (Math.random() < .7) burst(rand(7,12)|0, 0);
           T.big = now;
         }
         if (now - T.float > IV.float) {
-          if (Math.random() < .7) createPetal({ type: 'float', left: rand(0, 90) });
+          if (Math.random() < .8) createPetal({ type: 'float', left: rand(0, 90) });
           T.float = now;
         }
       }
