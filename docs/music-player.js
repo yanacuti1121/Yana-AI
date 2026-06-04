@@ -74,6 +74,18 @@
     };
   }
 
+  // Pause / resume
+  window._pauseMusic = function () {
+    if (_player && typeof _player.pauseVideo === 'function') _player.pauseVideo();
+  };
+  window._resumeMusic = function () {
+    if (_player && typeof _player.playVideo === 'function') _player.playVideo();
+  };
+  window._getMusicPlaying = function () {
+    if (!_player || typeof _player.getPlayerState !== 'function') return false;
+    return _player.getPlayerState() === 1; // YT.PlayerState.PLAYING
+  };
+
   // Expose player for music.html
   window._getMusicPlayer = function () { return _player; };
   window._loadMusicTrack = _loadTrack;
