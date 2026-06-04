@@ -181,128 +181,6 @@
     el.addEventListener('animationend', () => el.remove(), { once: true });
   }
 
-  /* ── Vẽ lá sen trên canvas ─────────────────────────────────────────── */
-  function drawLeaf(ctx, x, y, r, rot, hue, sat, lit, alpha) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rot);
-    ctx.scale(1, 0.68);
-    const notch = rand(22, 32) * Math.PI / 180;
-    const a1 = -Math.PI / 2 + notch / 2;
-    const a2 = -Math.PI / 2 - notch / 2;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(r * Math.cos(a1), r * Math.sin(a1));
-    ctx.arc(0, 0, r, a1, a2, false);
-    ctx.closePath();
-    const g = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r);
-    g.addColorStop(0, `hsla(${hue},${sat}%,${lit + 10}%,${alpha})`);
-    g.addColorStop(1, `hsla(${hue},${sat - 8}%,${lit - 6}%,${alpha * 0.7})`);
-    ctx.fillStyle = g;
-    ctx.fill();
-    // Gân lá
-    ctx.strokeStyle = `hsla(${hue},${sat}%,${lit - 10}%,${alpha * 0.35})`;
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i < 5; i++) {
-      const vAngle = -Math.PI / 2 + (i - 2) * 0.22;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(r * 0.9 * Math.cos(vAngle), r * 0.9 * Math.sin(vAngle));
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  /* ── Vẽ hoa sen trên canvas ─────────────────────────────────────────── */
-  function drawFlower(ctx, x, y, sz, pc, r1, g1, b1, r2, g2, b2) {
-    const pw = sz * 0.36, ph = sz * 0.70;
-    const openY = sz * 0.28;
-    ctx.save();
-    ctx.translate(x, y);
-    for (let i = 0; i < pc; i++) {
-      const angle = (Math.PI * 2 / pc) * i;
-      ctx.save();
-      ctx.rotate(angle);
-      ctx.translate(0, -openY);
-      const g = ctx.createLinearGradient(0, -ph, 0, ph * 0.3);
-      g.addColorStop(0, `rgba(${r1},${g1},${b1},0.92)`);
-      g.addColorStop(1, `rgba(${r2},${g2},${b2},0.75)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      // cánh nhọn trên tròn dưới
-      ctx.moveTo(0, -ph);
-      ctx.bezierCurveTo( pw * 0.5, -ph * 0.75,  pw, 0,  pw, ph * 0.25);
-      ctx.bezierCurveTo( pw * 0.75, ph * 0.65,  pw * 0.3, ph * 0.9, 0, ph * 0.9);
-      ctx.bezierCurveTo(-pw * 0.3,  ph * 0.9, -pw * 0.75, ph * 0.65, -pw, ph * 0.25);
-      ctx.bezierCurveTo(-pw, 0, -pw * 0.5, -ph * 0.75, 0, -ph);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
-    // Nhụy
-    const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, sz * 0.18);
-    cg.addColorStop(0, 'rgba(255,230,80,0.95)');
-    cg.addColorStop(1, 'rgba(255,160,30,0.8)');
-    ctx.beginPath();
-    ctx.arc(0, 0, sz * 0.18, 0, Math.PI * 2);
-    ctx.fillStyle = cg;
-    ctx.fill();
-    ctx.restore();
-  }
-
-  /* ── Vẽ cảnh hồ sen → canvas → background-image ────────────────────── */
-  function initPond() {
-    const W = window.innerWidth;
-    const H = Math.round(window.innerHeight * 0.38); // 38% chiều cao màn hình
-    const canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d');
-
-    const pinkPairs = [
-      [255,75,130,  220,35,90],
-      [255,100,150, 230,55,105],
-      [240,55,105,  200,25,75],
-      [255,130,168, 240,75,120],
-    ];
-
-    // Lá sen — trải 3 hàng sâu
-    const leafN = Math.max(8, Math.round(W / 75));
-    for (let i = 0; i < leafN; i++) {
-      const row  = Math.floor(i % 3);            // 3 hàng
-      const lx   = (i / leafN) * W + rand(-30, 30);
-      const ly   = H * (0.55 + row * 0.18) + rand(-15, 15);
-      const r    = rand(30, 58);
-      const rot  = rand(-0.45, 0.45);
-      const hue  = rand(138, 162);
-      const sat  = rand(48, 66);
-      const lit  = rand(22, 38);
-      const a    = rand(0.55, 0.75);
-      drawLeaf(ctx, lx, ly, r, rot, hue, sat, lit, a);
-    }
-
-    // Hoa sen — rải giữa các lá
-    const flowerN = Math.max(4, Math.round(W / 180));
-    for (let i = 0; i < flowerN; i++) {
-      const fx  = ((i + 0.4) / flowerN) * W * 0.92 + rand(-20, 20);
-      const fy  = H * rand(0.45, 0.82);
-      const sz  = rand(20, 34);
-      const pc  = pick([6, 7, 8]);
-      const pp  = pick(pinkPairs);
-      drawFlower(ctx, fx, fy, sz, pc, pp[0],pp[1],pp[2], pp[3],pp[4],pp[5]);
-    }
-
-    const bg = document.createElement('div');
-    bg.style.cssText = `
-      position:absolute; bottom:0; left:0; right:0; height:${H}px;
-      background:url(${canvas.toDataURL()}) bottom left / 100% 100% no-repeat;
-      z-index:-1; pointer-events:none;
-      opacity:0.82;
-      mask-image:linear-gradient(to top, black 50%, rgba(0,0,0,.75) 75%, transparent 100%);
-      -webkit-mask-image:linear-gradient(to top, black 50%, rgba(0,0,0,.75) 75%, transparent 100%);
-    `;
-    document.body.appendChild(bg);
-  }
-
   /* ── Burst ──────────────────────────────────────────────────────────── */
   function burst(count, baseDelay = 0) {
     for (let i = 0; i < count; i++) {
@@ -316,7 +194,6 @@
 
   /* ── Start ──────────────────────────────────────────────────────────── */
   function start() {
-    initPond();
     burst(8, 500);
 
     // Cánh rơi đều
