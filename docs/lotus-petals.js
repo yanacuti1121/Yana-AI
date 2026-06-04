@@ -17,15 +17,15 @@
     transform-origin: 50% 65%;
   }
 
-  /* ── 3 hình dạng cánh sen ── */
+  /* ── 3 hình dạng cánh sen — nhọn trên, tròn dưới ── */
   .lp-a {
-    border-radius: 50% 50% 48% 48% / 58% 58% 42% 42%;
+    border-radius: 50% 50% 45% 45% / 85% 85% 15% 15%;
   }
   .lp-b {
-    border-radius: 42% 58% 52% 48% / 60% 56% 44% 40%;
+    border-radius: 45% 55% 48% 52% / 82% 82% 18% 18%;
   }
   .lp-c {
-    border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+    border-radius: 50% 50% 42% 42% / 88% 88% 12% 12%;
   }
 
   /* ── Rơi chính ── */
@@ -82,20 +82,20 @@
     }
   });
 
-  /* ── Màu sắc ─────────────────────────────────────────────────────────── */
+  /* ── Màu sắc — hoa sen thật: đậm bão hòa, không nhạt như hoa hồng ── */
   const PALETTES = [
-    // Hồng sen đậm
-    ['rgba(240,120,150,OP)', 'rgba(215,80,120,OP)'],
-    // Hồng nhạt
-    ['rgba(255,182,203,OP)', 'rgba(240,150,175,OP)'],
-    // Hồng trắng
-    ['rgba(255,225,235,OP)', 'rgba(255,195,215,OP)'],
-    // Tím hồng
-    ['rgba(220,150,200,OP)', 'rgba(190,110,175,OP)'],
-    // Trắng kem
-    ['rgba(255,245,248,OP)', 'rgba(250,220,230,OP)'],
-    // Hồng đào
-    ['rgba(255,160,160,OP)', 'rgba(235,120,130,OP)'],
+    // Sen hồng đậm
+    ['rgba(255,75,130,OP)', 'rgba(220,35,90,OP)'],
+    // Sen hồng tươi
+    ['rgba(255,100,150,OP)', 'rgba(230,55,105,OP)'],
+    // Sen hồng vừa
+    ['rgba(255,130,168,OP)', 'rgba(240,75,120,OP)'],
+    // Sen đỏ hồng
+    ['rgba(240,55,105,OP)', 'rgba(200,25,75,OP)'],
+    // Sen hồng sáng (cánh ngoài)
+    ['rgba(255,160,190,OP)', 'rgba(245,110,150,OP)'],
+    // Sen hồng đậm nhất
+    ['rgba(250,60,115,OP)', 'rgba(210,20,70,OP)'],
   ];
 
   function mkColor(pair, opacity) {
@@ -137,7 +137,7 @@
       left: ${left}%;
       top: 0;
       width: ${size}px;
-      height: ${size * 1.45}px;
+      height: ${size * 2.2}px;
       background: linear-gradient(148deg, ${palette[0]}, ${palette[1]});
       box-shadow: inset 0 1px 3px rgba(255,255,255,.5), 0 2px 6px rgba(180,60,100,.12);
       --dx1: ${dx1}px; --dx2: ${dx2}px; --dx3: ${dx3}px;
