@@ -53,6 +53,26 @@ P3 — Roadmap tiếp theo?               → gợi ý khi không có P0-P2
 
 ---
 
+## Multi-Run Auto-Detect
+
+Khi anh nhắn task có **3+ phần độc lập rõ ràng**, suggest `/multi-run`:
+
+**Dấu hiệu cần suggest:**
+- Task có 3+ động từ riêng biệt ("fix X, thêm Y, update Z")
+- Task mention nhiều file/module khác nhau không liên quan
+- Anh dùng từ "và", "+", "cùng", "luôn", "đồng thời" nối nhiều việc
+- Task ước tính > 30 phút nếu làm tuần tự
+
+**Cách suggest (1 dòng, cuối response):**
+> "Task này có [N] phần độc lập — `/multi-run` để chạy song song tiết kiệm ~[N]x thời gian không?"
+
+**Không suggest khi:**
+- Task có dependency (A phải xong trước B)
+- Task < 3 phần rõ ràng
+- Đang trong multi-run session rồi
+
+---
+
 ## Luật ENFP-T
 
 Anh Tâm dễ bị cuốn vào idea mới giữa chừng. Khi thấy:
