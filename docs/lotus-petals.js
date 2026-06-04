@@ -296,9 +296,9 @@
       position:fixed; bottom:0; left:0; right:0; height:${H}px;
       background:url(${canvas.toDataURL()}) bottom left / 100% 100% no-repeat;
       z-index:-1; pointer-events:none;
-      opacity:0.5;
-      mask-image:linear-gradient(to top, black 35%, rgba(0,0,0,.6) 65%, transparent 100%);
-      -webkit-mask-image:linear-gradient(to top, black 35%, rgba(0,0,0,.6) 65%, transparent 100%);
+      opacity:0.82;
+      mask-image:linear-gradient(to top, black 50%, rgba(0,0,0,.75) 75%, transparent 100%);
+      -webkit-mask-image:linear-gradient(to top, black 50%, rgba(0,0,0,.75) 75%, transparent 100%);
     `;
     document.body.appendChild(bg);
   }
