@@ -751,7 +751,7 @@ code {
 
 .intro-logo { font-size: 2.5rem; margin-bottom: .75rem; }
 .intro-title { font-size: 1.1rem; font-weight: 700; color: hsl(220,78%,22%); letter-spacing: -.02em; margin-bottom: .5rem; }
-.intro-desc  { font-size: .78rem; color: rgba(30,64,175,.58); line-height: 1.6; margin-bottom: 1.2rem; }
+.intro-desc  { font-size: .78rem; color: hsla(155,48%,18%,.65); line-height: 1.6; margin-bottom: 1.2rem; }
 
 .intro-steps { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.25rem; text-align: left; }
 .intro-step  { display: flex; align-items: center; gap: .65rem; font-size: .75rem; color: rgba(30,64,175,.78); }
@@ -812,7 +812,7 @@ code {
   padding: .22rem .58rem; border: none; border-radius: 12px;
   font-size: .68rem; font-weight: 600; letter-spacing: .04em;
   cursor: pointer; background: transparent;
-  color: rgba(30,64,175,.55); transition: background .15s, color .15s;
+  color: hsla(160,50%,18%,.65); transition: background .15s, color .15s;
 }
 .lang-btn.active { background: rgba(40,130,80,.14); color: hsl(155,52%,22%); }
 .lang-btn:hover  { background: rgba(40,130,80,.09); color: hsl(155,52%,22%); }
@@ -1052,7 +1052,7 @@ code {
 
   <!-- Chat -->
   <div class="app-window chat-bg" id="win-chat">
-    <div class="app-win-header" style="background:rgba(37,99,235,.55);backdrop-filter:blur(20px)">
+    <div class="app-win-header" style="background:hsla(155,52%,22%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">💬 IO Chat</div>
       <button class="app-win-close" onclick="closeApp('chat')">✕</button>
     </div>
@@ -1083,8 +1083,8 @@ code {
   </div>
 
   <!-- Skills -->
-  <div class="app-window" id="win-skills" style="background:linear-gradient(180deg,#0c1a3a,#0a1628)">
-    <div class="app-win-header" style="background:rgba(3,105,161,.55);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-skills" style="background:linear-gradient(180deg,hsl(155,45%,8%),hsl(155,40%,5%))">
+    <div class="app-win-header" style="background:hsla(160,52%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">⚡ Skills</div>
       <button class="app-win-close" onclick="closeApp('skills')">✕</button>
     </div>
@@ -1122,8 +1122,8 @@ code {
   </div>
 
   <!-- Agents -->
-  <div class="app-window" id="win-agents" style="background:linear-gradient(180deg,#0e1240,#080e35)">
-    <div class="app-win-header" style="background:rgba(30,64,175,.55);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-agents" style="background:linear-gradient(180deg,hsl(160,45%,8%),hsl(160,40%,5%))">
+    <div class="app-win-header" style="background:hsla(160,50%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🤖 Agents</div>
       <button class="app-win-close" onclick="closeApp('agents')">✕</button>
     </div>
@@ -1142,8 +1142,8 @@ code {
   </div>
 
   <!-- Debug -->
-  <div class="app-window" id="win-debug" style="background:linear-gradient(180deg,#0a1535,#07102a)">
-    <div class="app-win-header" style="background:rgba(7,89,133,.55);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-debug" style="background:linear-gradient(180deg,hsl(155,40%,7%),hsl(155,38%,4%))">
+    <div class="app-win-header" style="background:hsla(35,78%,26%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🐛 Debug</div>
       <button class="app-win-close" onclick="closeApp('debug')">✕</button>
     </div>
@@ -1158,8 +1158,8 @@ code {
   </div>
 
   <!-- Review -->
-  <div class="app-window" id="win-review" style="background:linear-gradient(180deg,#071535,#050f28)">
-    <div class="app-win-header" style="background:rgba(7,89,133,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-review" style="background:linear-gradient(180deg,hsl(175,45%,7%),hsl(175,40%,4%))">
+    <div class="app-win-header" style="background:hsla(175,52%,20%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🔍 Code Review</div>
       <button class="app-win-close" onclick="closeApp('review')">✕</button>
     </div>
@@ -1175,8 +1175,8 @@ code {
   </div>
 
   <!-- Commit -->
-  <div class="app-window" id="win-commit" style="background:linear-gradient(180deg,#082038,#061628)">
-    <div class="app-win-header" style="background:rgba(22,78,99,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-commit" style="background:linear-gradient(180deg,hsl(155,50%,8%),hsl(155,45%,5%))">
+    <div class="app-win-header" style="background:hsla(155,55%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">📦 Commit</div>
       <button class="app-win-close" onclick="closeApp('commit')">✕</button>
     </div>
@@ -1191,8 +1191,8 @@ code {
   </div>
 
   <!-- Security -->
-  <div class="app-window" id="win-security" style="background:linear-gradient(180deg,#0a1050,#07093a)">
-    <div class="app-win-header" style="background:rgba(30,58,138,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-security" style="background:linear-gradient(180deg,hsl(158,48%,7%),hsl(158,42%,4%))">
+    <div class="app-win-header" style="background:hsla(0,60%,22%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🔐 Security</div>
       <button class="app-win-close" onclick="closeApp('security')">✕</button>
     </div>
@@ -1208,8 +1208,8 @@ code {
   </div>
 
   <!-- Deploy -->
-  <div class="app-window" id="win-deploy" style="background:linear-gradient(180deg,#071828,#04101c)">
-    <div class="app-win-header" style="background:rgba(12,74,110,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-deploy" style="background:linear-gradient(180deg,hsl(185,50%,7%),hsl(185,45%,4%))">
+    <div class="app-win-header" style="background:hsla(185,55%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🚀 Deploy</div>
       <button class="app-win-close" onclick="closeApp('deploy')">✕</button>
     </div>
@@ -1224,8 +1224,8 @@ code {
   </div>
 
   <!-- Sprint -->
-  <div class="app-window" id="win-sprint" style="background:linear-gradient(180deg,#0c1845,#080f30)">
-    <div class="app-win-header" style="background:rgba(29,78,216,.55);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-sprint" style="background:linear-gradient(180deg,hsl(165,45%,8%),hsl(165,42%,5%))">
+    <div class="app-win-header" style="background:hsla(165,50%,20%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🎯 Sprint</div>
       <button class="app-win-close" onclick="closeApp('sprint')">✕</button>
     </div>
@@ -1240,8 +1240,8 @@ code {
   </div>
 
   <!-- Docs -->
-  <div class="app-window" id="win-docs" style="background:linear-gradient(180deg,#0d1f4a,#08152f)">
-    <div class="app-win-header" style="background:rgba(30,64,175,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-docs" style="background:linear-gradient(180deg,hsl(155,45%,8%),hsl(155,40%,5%))">
+    <div class="app-win-header" style="background:hsla(155,48%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">📚 Docs</div>
       <button class="app-win-close" onclick="closeApp('docs')">✕</button>
     </div>
@@ -1257,8 +1257,8 @@ code {
   </div>
 
   <!-- Stats -->
-  <div class="app-window" id="win-stats" style="background:linear-gradient(180deg,#08144a,#050d35)">
-    <div class="app-win-header" style="background:rgba(15,42,110,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-stats" style="background:linear-gradient(180deg,hsl(155,52%,7%),hsl(155,48%,4%))">
+    <div class="app-win-header" style="background:hsla(155,52%,16%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">📊 Stats</div>
       <button class="app-win-close" onclick="closeApp('stats')">✕</button>
     </div>
@@ -1278,8 +1278,8 @@ code {
   </div>
 
   <!-- Settings -->
-  <div class="app-window" id="win-settings" style="background:linear-gradient(180deg,#131c2e,#0c1220)">
-    <div class="app-win-header" style="background:rgba(51,65,85,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-settings" style="background:linear-gradient(180deg,hsl(158,35%,9%),hsl(158,30%,6%))">
+    <div class="app-win-header" style="background:hsla(158,35%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">⚙️ Settings</div>
       <button class="app-win-close" onclick="closeApp('settings')">✕</button>
     </div>
@@ -1297,8 +1297,8 @@ code {
   </div>
 
   <!-- Test -->
-  <div class="app-window" id="win-test" style="background:linear-gradient(180deg,#071c40,#04122a)">
-    <div class="app-win-header" style="background:rgba(3,105,161,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-test" style="background:linear-gradient(180deg,hsl(155,50%,7%),hsl(155,45%,4%))">
+    <div class="app-win-header" style="background:hsla(155,50%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🧪 Test</div>
       <button class="app-win-close" onclick="closeApp('test')">✕</button>
     </div>
@@ -1316,8 +1316,8 @@ code {
   </div>
 
   <!-- Refactor -->
-  <div class="app-window" id="win-refactor" style="background:linear-gradient(180deg,#0c1240,#08092e)">
-    <div class="app-win-header" style="background:rgba(30,58,138,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-refactor" style="background:linear-gradient(180deg,hsl(160,48%,7%),hsl(160,44%,4%))">
+    <div class="app-win-header" style="background:hsla(270,50%,22%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">♻️ Refactor</div>
       <button class="app-win-close" onclick="closeApp('refactor')">✕</button>
     </div>
@@ -1334,8 +1334,8 @@ code {
   </div>
 
   <!-- Map -->
-  <div class="app-window" id="win-map" style="background:linear-gradient(180deg,#091630,#060f22)">
-    <div class="app-win-header" style="background:rgba(12,74,110,.6);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-map" style="background:linear-gradient(180deg,hsl(185,48%,7%),hsl(185,44%,4%))">
+    <div class="app-win-header" style="background:hsla(185,52%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">🗺️ Map</div>
       <button class="app-win-close" onclick="closeApp('map')">✕</button>
     </div>
@@ -1352,8 +1352,8 @@ code {
   </div>
 
   <!-- PR -->
-  <div class="app-window" id="win-pr" style="background:linear-gradient(180deg,#071440,#04102e)">
-    <div class="app-win-header" style="background:rgba(29,78,216,.58);backdrop-filter:blur(20px)">
+  <div class="app-window" id="win-pr" style="background:linear-gradient(180deg,hsl(155,50%,7%),hsl(155,46%,4%))">
+    <div class="app-win-header" style="background:hsla(155,50%,18%,.65);backdrop-filter:blur(20px)">
       <div class="app-win-title">📬 PR</div>
       <button class="app-win-close" onclick="closeApp('pr')">✕</button>
     </div>
