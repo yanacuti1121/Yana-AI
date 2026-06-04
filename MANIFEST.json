@@ -388,7 +388,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 93,
+      "count": 94,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -441,6 +441,7 @@
         "core/scripts/skill-tier-check.sh",
         "core/scripts/swarm-orchestrator.sh",
         "core/scripts/sweep-expired-facts.sh",
+        "core/scripts/task-state.sh",
         "core/scripts/switch-engine.sh",
         "core/scripts/tool-proxy.sh",
         "core/scripts/update-skills-lock.sh",
