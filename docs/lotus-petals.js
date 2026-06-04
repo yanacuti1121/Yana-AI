@@ -252,51 +252,53 @@
 
   /* ── Vẽ cảnh hồ sen → canvas → background-image ────────────────────── */
   function initPond() {
-    const W = window.innerWidth, H = 130;
+    const W = window.innerWidth;
+    const H = Math.round(window.innerHeight * 0.38); // 38% chiều cao màn hình
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
 
-    // Lá sen
-    const leafN = Math.max(5, Math.round(W / 95));
-    for (let i = 0; i < leafN; i++) {
-      const lx   = (i / leafN) * W * 0.96 + rand(-20, 20);
-      const ly   = H - rand(10, 40);
-      const r    = rand(28, 52);
-      const rot  = rand(-0.38, 0.38);
-      const hue  = rand(138, 162);
-      const sat  = rand(46, 64);
-      const lit  = rand(22, 36);
-      const a    = rand(0.42, 0.62);
-      drawLeaf(ctx, lx, ly, r, rot, hue, sat, lit, a);
-    }
-
-    // Hoa sen
-    const flowerN = Math.max(3, Math.round(W / 210));
     const pinkPairs = [
       [255,75,130,  220,35,90],
       [255,100,150, 230,55,105],
       [240,55,105,  200,25,75],
       [255,130,168, 240,75,120],
     ];
+
+    // Lá sen — trải 3 hàng sâu
+    const leafN = Math.max(8, Math.round(W / 75));
+    for (let i = 0; i < leafN; i++) {
+      const row  = Math.floor(i % 3);            // 3 hàng
+      const lx   = (i / leafN) * W + rand(-30, 30);
+      const ly   = H * (0.55 + row * 0.18) + rand(-15, 15);
+      const r    = rand(30, 58);
+      const rot  = rand(-0.45, 0.45);
+      const hue  = rand(138, 162);
+      const sat  = rand(48, 66);
+      const lit  = rand(22, 38);
+      const a    = rand(0.55, 0.75);
+      drawLeaf(ctx, lx, ly, r, rot, hue, sat, lit, a);
+    }
+
+    // Hoa sen — rải giữa các lá
+    const flowerN = Math.max(4, Math.round(W / 180));
     for (let i = 0; i < flowerN; i++) {
-      const fx  = ((i + 0.55) / flowerN) * W * 0.90 + rand(-25, 25);
-      const fy  = H - rand(28, 60);
-      const sz  = rand(18, 30);
+      const fx  = ((i + 0.4) / flowerN) * W * 0.92 + rand(-20, 20);
+      const fy  = H * rand(0.45, 0.82);
+      const sz  = rand(20, 34);
       const pc  = pick([6, 7, 8]);
       const pp  = pick(pinkPairs);
       drawFlower(ctx, fx, fy, sz, pc, pp[0],pp[1],pp[2], pp[3],pp[4],pp[5]);
     }
 
-    // Áp làm background-image cố định, z-index -1
     const bg = document.createElement('div');
     bg.style.cssText = `
       position:fixed; bottom:0; left:0; right:0; height:${H}px;
       background:url(${canvas.toDataURL()}) bottom left / 100% 100% no-repeat;
       z-index:-1; pointer-events:none;
-      opacity:0.42;
-      mask-image:linear-gradient(to top, black 20%, rgba(0,0,0,.5) 60%, transparent 100%);
-      -webkit-mask-image:linear-gradient(to top, black 20%, rgba(0,0,0,.5) 60%, transparent 100%);
+      opacity:0.5;
+      mask-image:linear-gradient(to top, black 35%, rgba(0,0,0,.6) 65%, transparent 100%);
+      -webkit-mask-image:linear-gradient(to top, black 35%, rgba(0,0,0,.6) 65%, transparent 100%);
     `;
     document.body.appendChild(bg);
   }
