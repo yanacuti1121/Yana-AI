@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1 month · 1,026,000 lines</em>
+  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1 month · 1,129,782 lines</em>
 </p>
 
 <p align="center">
@@ -82,7 +82,7 @@ Execute (or block + log)
 | Harness adapters | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | Rust subcommands | **17** (`scan`, `graph`, `vault`, `hunt`, `fix`, `doctor`...) |
 | Rule checks in CI | **826** |
-| Total codebase | **1,026,000 lines · 15,502 files** |
+| Total codebase | **1,129,782 lines · 5,439 files** |
 
 ---
 
