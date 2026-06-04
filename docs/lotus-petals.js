@@ -43,24 +43,6 @@
     100% { opacity:0; transform:translate(var(--dx3),100vh) scale(.4); }
   }
 
-  /* Cảnh hồ sen đáy — chìm vào nền */
-  .lp-pond {
-    position:fixed; bottom:0; left:0; right:0;
-    height:115px; pointer-events:none; z-index:0; overflow:hidden;
-    opacity:0.28;
-    mask-image:linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.4) 55%, transparent 100%);
-    -webkit-mask-image:linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.4) 55%, transparent 100%);
-    filter:blur(0.4px) saturate(0.7);
-  }
-  @keyframes lp-sway {
-    0%,100% { transform:rotate(var(--lr)) scaleY(var(--ls)); }
-    33%     { transform:rotate(calc(var(--lr) + var(--sw1))) scaleY(var(--ls)); }
-    66%     { transform:rotate(calc(var(--lr) + var(--sw2))) scaleY(var(--ls)); }
-  }
-  @keyframes lp-bob {
-    0%,100% { transform:translateY(0) rotate(var(--br)); }
-    50%     { transform:translateY(-4px) rotate(var(--br)); }
-  }
   `;
   document.head.appendChild(style);
 
@@ -199,104 +181,124 @@
     el.addEventListener('animationend', () => el.remove(), { once: true });
   }
 
-  /* ── Lá sen ─────────────────────────────────────────────────────────── */
-  function makeLeaf(leftPct) {
-    const el = document.createElement('div');
-    const size = rand(36, 60);
-    const hue = rand(138, 163);
-    const sat = rand(46, 64);
-    const lit = rand(22, 36);
-    const a   = rand(0.50, 0.70).toFixed(2);
-    const notch = rand(20, 30);
-    const from  = rand(165, 185);
-    const rot   = rand(-20, 20);
-    const scY   = rand(0.60, 0.80).toFixed(2);
-    el.style.cssText = `
-      position:absolute;
-      left:${leftPct}%;
-      bottom:${rand(3,18)}px;
-      width:${size}px; height:${size*rand(0.78,0.95)}px;
-      border-radius:50%;
-      background:conic-gradient(
-        from ${from}deg at 50% 56%,
-        transparent 0deg, transparent ${notch}deg,
-        hsla(${hue},${sat}%,${lit}%,${a}) ${notch+2}deg,
-        hsla(${hue},${sat}%,${lit}%,${a}) ${360-notch-2}deg,
-        transparent ${360-notch}deg
-      );
-      --lr:${rot}deg; --ls:${scY};
-      --sw1:${rand(-5,5).toFixed(1)}deg;
-      --sw2:${rand(-5,5).toFixed(1)}deg;
-      animation:lp-sway ${rand(4,7)}s ${rand(0,3)}s ease-in-out infinite;
-      box-shadow:0 3px 10px rgba(0,70,30,.16);
-      will-change:transform;
-    `;
-    return el;
+  /* ── Vẽ lá sen trên canvas ─────────────────────────────────────────── */
+  function drawLeaf(ctx, x, y, r, rot, hue, sat, lit, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.scale(1, 0.68);
+    const notch = rand(22, 32) * Math.PI / 180;
+    const a1 = -Math.PI / 2 + notch / 2;
+    const a2 = -Math.PI / 2 - notch / 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(r * Math.cos(a1), r * Math.sin(a1));
+    ctx.arc(0, 0, r, a1, a2, false);
+    ctx.closePath();
+    const g = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r);
+    g.addColorStop(0, `hsla(${hue},${sat}%,${lit + 10}%,${alpha})`);
+    g.addColorStop(1, `hsla(${hue},${sat - 8}%,${lit - 6}%,${alpha * 0.7})`);
+    ctx.fillStyle = g;
+    ctx.fill();
+    // Gân lá
+    ctx.strokeStyle = `hsla(${hue},${sat}%,${lit - 10}%,${alpha * 0.35})`;
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < 5; i++) {
+      const vAngle = -Math.PI / 2 + (i - 2) * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(r * 0.9 * Math.cos(vAngle), r * 0.9 * Math.sin(vAngle));
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
-  /* ── Hoa sen nở dưới hồ ─────────────────────────────────────────────── */
-  function makeBottomFlower(leftPct) {
-    const wrap2 = document.createElement('div');
-    const sz  = rand(18, 30);
-    const pc  = pick([6, 7, 8]);
-    const palette = mkColor(pick(PALETTES), rand(.82, .97));
-    const pw = sz * 0.34, ph = sz * 0.67;
-    const openY = sz * rand(0.23, 0.33);
-    const br = `${rand(-10,10)}deg`;
-    wrap2.style.cssText = `
-      position:absolute;
-      left:${leftPct}%;
-      bottom:${rand(20,50)}px;
-      width:${sz}px; height:${sz}px;
-      will-change:transform;
-      --br:${br};
-      animation:lp-bob ${rand(3,5.5)}s ${rand(0,2)}s ease-in-out infinite;
-    `;
+  /* ── Vẽ hoa sen trên canvas ─────────────────────────────────────────── */
+  function drawFlower(ctx, x, y, sz, pc, r1, g1, b1, r2, g2, b2) {
+    const pw = sz * 0.36, ph = sz * 0.70;
+    const openY = sz * 0.28;
+    ctx.save();
+    ctx.translate(x, y);
     for (let i = 0; i < pc; i++) {
-      const angle = (360 / pc) * i;
-      const p = document.createElement('div');
-      p.style.cssText = `
-        position:absolute;
-        width:${pw}px; height:${ph}px;
-        background:linear-gradient(160deg,${palette[0]},${palette[1]});
-        border-radius:50% 50% 44% 44% / 84% 84% 16% 16%;
-        transform-origin:50% 100%;
-        transform:rotate(${angle}deg) translateY(-${openY}px);
-        left:${sz/2-pw/2}px; top:${sz/2-ph}px;
-        box-shadow:inset 0 1px 3px rgba(255,255,255,.44);
-      `;
-      wrap2.appendChild(p);
+      const angle = (Math.PI * 2 / pc) * i;
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.translate(0, -openY);
+      const g = ctx.createLinearGradient(0, -ph, 0, ph * 0.3);
+      g.addColorStop(0, `rgba(${r1},${g1},${b1},0.92)`);
+      g.addColorStop(1, `rgba(${r2},${g2},${b2},0.75)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      // cánh nhọn trên tròn dưới
+      ctx.moveTo(0, -ph);
+      ctx.bezierCurveTo( pw * 0.5, -ph * 0.75,  pw, 0,  pw, ph * 0.25);
+      ctx.bezierCurveTo( pw * 0.75, ph * 0.65,  pw * 0.3, ph * 0.9, 0, ph * 0.9);
+      ctx.bezierCurveTo(-pw * 0.3,  ph * 0.9, -pw * 0.75, ph * 0.65, -pw, ph * 0.25);
+      ctx.bezierCurveTo(-pw, 0, -pw * 0.5, -ph * 0.75, 0, -ph);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
-    const cs = sz * 0.30;
-    const center = document.createElement('div');
-    center.style.cssText = `
-      position:absolute; width:${cs}px; height:${cs}px;
-      background:radial-gradient(circle,#ffe566,#ffaa20);
-      border-radius:50%;
-      left:${sz/2-cs/2}px; top:${sz/2-cs/2}px;
-      box-shadow:0 1px 4px rgba(180,90,0,.28);
-    `;
-    wrap2.appendChild(center);
-    return wrap2;
+    // Nhụy
+    const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, sz * 0.18);
+    cg.addColorStop(0, 'rgba(255,230,80,0.95)');
+    cg.addColorStop(1, 'rgba(255,160,30,0.8)');
+    ctx.beginPath();
+    ctx.arc(0, 0, sz * 0.18, 0, Math.PI * 2);
+    ctx.fillStyle = cg;
+    ctx.fill();
+    ctx.restore();
   }
 
-  /* ── Khởi tạo cảnh hồ sen đáy ──────────────────────────────────────── */
+  /* ── Vẽ cảnh hồ sen → canvas → background-image ────────────────────── */
   function initPond() {
-    const pond = document.createElement('div');
-    pond.className = 'lp-pond';
-    document.body.appendChild(pond);
+    const W = window.innerWidth, H = 130;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-    const leafCount = Math.max(4, Math.round(window.innerWidth / 105));
-    for (let i = 0; i < leafCount; i++) {
-      const left = (i / leafCount) * 93 + rand(-3, 3);
-      pond.appendChild(makeLeaf(left));
+    // Lá sen
+    const leafN = Math.max(5, Math.round(W / 95));
+    for (let i = 0; i < leafN; i++) {
+      const lx   = (i / leafN) * W * 0.96 + rand(-20, 20);
+      const ly   = H - rand(10, 40);
+      const r    = rand(28, 52);
+      const rot  = rand(-0.38, 0.38);
+      const hue  = rand(138, 162);
+      const sat  = rand(46, 64);
+      const lit  = rand(22, 36);
+      const a    = rand(0.42, 0.62);
+      drawLeaf(ctx, lx, ly, r, rot, hue, sat, lit, a);
     }
 
-    const flowerCount = Math.max(2, Math.round(window.innerWidth / 240));
-    for (let i = 0; i < flowerCount; i++) {
-      const left = ((i + 0.6) / flowerCount) * 88 + rand(-4, 4);
-      pond.appendChild(makeBottomFlower(left));
+    // Hoa sen
+    const flowerN = Math.max(3, Math.round(W / 210));
+    const pinkPairs = [
+      [255,75,130,  220,35,90],
+      [255,100,150, 230,55,105],
+      [240,55,105,  200,25,75],
+      [255,130,168, 240,75,120],
+    ];
+    for (let i = 0; i < flowerN; i++) {
+      const fx  = ((i + 0.55) / flowerN) * W * 0.90 + rand(-25, 25);
+      const fy  = H - rand(28, 60);
+      const sz  = rand(18, 30);
+      const pc  = pick([6, 7, 8]);
+      const pp  = pick(pinkPairs);
+      drawFlower(ctx, fx, fy, sz, pc, pp[0],pp[1],pp[2], pp[3],pp[4],pp[5]);
     }
+
+    // Áp làm background-image cố định, z-index -1
+    const bg = document.createElement('div');
+    bg.style.cssText = `
+      position:fixed; bottom:0; left:0; right:0; height:${H}px;
+      background:url(${canvas.toDataURL()}) bottom left / 100% 100% no-repeat;
+      z-index:-1; pointer-events:none;
+      opacity:0.42;
+      mask-image:linear-gradient(to top, black 20%, rgba(0,0,0,.5) 60%, transparent 100%);
+      -webkit-mask-image:linear-gradient(to top, black 20%, rgba(0,0,0,.5) 60%, transparent 100%);
+    `;
+    document.body.appendChild(bg);
   }
 
   /* ── Burst ──────────────────────────────────────────────────────────── */
