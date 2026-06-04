@@ -36,11 +36,30 @@
         ]
       },
       {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/agent-budget-gate.sh"
+          }
+        ]
+      },
+      {
         "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash .claude/hooks/token-budget-guard.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-decompose.sh"
           }
         ]
       }
