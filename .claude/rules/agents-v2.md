@@ -32,6 +32,22 @@ using-superpowers의 "1% 규칙"에 의해 매 턴 agent-router 체크가 강제
 
 상세 라우팅 테이블: `/agent-router` 스킬 참조.
 
+## Chế độ thực thi mặc định (2026-06-04)
+
+**Mặc định: MULTI-AGENT**. Single-agent chỉ là fallback.
+
+```
+MULTI-AGENT (mặc định):
+  - Mọi task đều được decompose và chạy parallel
+  - 2-10+ agents cùng lúc tùy scope
+  - Luật chặt: file lock, report-only, main agent apply
+
+SINGLE-AGENT (fallback):
+  - Token budget ≤ 10% hạn mức
+  - Task thực sự atomic (1 file, 1 dòng)
+  - Hard dependency không thể parallel
+```
+
 ## Parallel Task Execution
 
 독립 작업은 항상 병렬 실행. 순차 실행이 필요한 경우만 예외.

@@ -53,23 +53,49 @@ P3 — Roadmap tiếp theo?               → gợi ý khi không có P0-P2
 
 ---
 
-## Multi-Run Auto-Detect
+## Chế độ thực thi — MẶC ĐỊNH MULTI-AGENT
 
-Khi anh nhắn task có **3+ phần độc lập rõ ràng**, suggest `/multi-run`:
+> Quyết định từ 2026-06-04: bỏ single-agent làm mặc định.
+> Từ giờ mọi task đều chạy multi-agent trừ khi có lý do cụ thể.
 
-**Dấu hiệu cần suggest:**
-- Task có 3+ động từ riêng biệt ("fix X, thêm Y, update Z")
-- Task mention nhiều file/module khác nhau không liên quan
-- Anh dùng từ "và", "+", "cùng", "luôn", "đồng thời" nối nhiều việc
-- Task ước tính > 30 phút nếu làm tuần tự
+### Luật thực thi
 
-**Cách suggest (1 dòng, cuối response):**
-> "Task này có [N] phần độc lập — `/multi-run` để chạy song song tiết kiệm ~[N]x thời gian không?"
+```
+MẶC ĐỊNH: Multi-agent (dù task chỉ có 1 phần)
+  → Luôn xem có thể tách thành 2+ subtask độc lập không
+  → Nếu được → spawn parallel, không hỏi
 
-**Không suggest khi:**
-- Task có dependency (A phải xong trước B)
-- Task < 3 phần rõ ràng
-- Đang trong multi-run session rồi
+FALLBACK về single-agent CHỈ KHI:
+  1. Token budget còn ≤ 10% hạn mức session
+  2. Task thực sự atomic (sửa 1 dòng, đổi 1 biến)
+  3. Task có hard dependency (A xong mới có input cho B)
+
+KHI FALLBACK: báo rõ lý do
+  "⚠ Token budget thấp (<10%) — chạy single agent"
+  "⚠ Task atomic — không tách được"
+```
+
+### Cách tách task tự động
+
+Khi nhận task từ anh, luôn decompose trước khi làm:
+
+```
+1. Đọc → Research (tìm hiểu context, đọc files liên quan)
+2. Plan → Design (quyết định approach)
+3. Implement → 2-5 parallel subtasks nếu scope khác nhau
+4. Verify → Review + test
+```
+
+Bước 1+2 thường sequential. Bước 3 thường parallel.
+
+### Token budget check
+
+Trước mỗi task lớn, estimate token consumption:
+- Task nhỏ (<5 files): ~5-10k tokens
+- Task vừa (5-20 files): ~20-50k tokens  
+- Task lớn (20+ files): ~50-150k tokens
+
+Nếu ước tính vượt ngưỡng còn lại → cảnh báo + suggest split session.
 
 ---
 
