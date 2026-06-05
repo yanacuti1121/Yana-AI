@@ -1,7 +1,7 @@
 [package]
 name = "yamtam-rt"
 version = "1.3.0"
-edition = "2024"
+edition = "2021"
 description = "YAMTAM Runtime — safety CLI for AI agents: scan, graph, vault, hunt, ci, map, fix, doctor"
 license = "Apache-2.0"
 repository = "https://github.com/phamlongh230-lgtm/yamtam-engine"

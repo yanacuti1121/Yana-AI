@@ -76,7 +76,7 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **3,457** workflow skill definitions |
+| Skills | **3,363** workflow skill definitions (88 stubs archived) |
 | Agents | **95** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
