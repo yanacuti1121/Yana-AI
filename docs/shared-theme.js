@@ -1,6 +1,6 @@
 // YAMTAM shared theme — dark/light mode across all pages
 (function () {
-  const KEY = 'yamtam-theme';
+  const KEY = 'theme';
   const html = document.documentElement;
 
   // Init: localStorage → system preference fallback

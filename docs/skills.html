@@ -93,6 +93,17 @@ footer a{color:var(--muted)}
 footer a:hover{color:var(--text)}
 .dark{--bg:hsl(24,15%,8%);--bg2:hsl(24,12%,12%);--bg3:hsl(24,10%,10%);--border:hsl(24,10%,18%);--text:hsl(38,20%,92%);--muted:hsl(38,8%,55%);--blue:hsl(221,75%,62%);--green:hsl(142,55%,48%);--orange:hsl(155,52%,42%);--purple:hsl(250,65%,65%)}
 .dark .nav{background:rgba(12,18,38,.88)!important;border-color:rgba(255,255,255,.1)!important;box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07)!important}
+@media(max-width:768px){.nav-links{display:none}.hbg{display:flex!important}}
+.hbg{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;border:none;background:transparent;padding:4px;border-radius:6px;flex-shrink:0}
+.hbg span{display:block;height:2px;width:22px;background:var(--text);border-radius:2px;transition:.25s}
+.hbg.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hbg.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hbg.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mob-drawer{display:none;position:fixed;inset:0;top:72px;background:rgba(250,248,245,.97);backdrop-filter:blur(20px);z-index:99;padding:1.5rem 2rem;flex-direction:column;gap:.75rem;border-top:1px solid var(--border)}
+.dark .mob-drawer{background:rgba(18,16,13,.97)}
+.mob-drawer.open{display:flex}
+.mob-drawer a{color:var(--text);text-decoration:none;font-size:1rem;font-weight:500;padding:.5rem .75rem;border-radius:8px}
+.mob-drawer a:hover{background:var(--bg2)}
 @keyframes _pg{from{opacity:0}to{opacity:1}}body{animation:_pg .32s ease-out both}
 </style>
 
@@ -110,13 +121,20 @@ footer a:hover{color:var(--text)}
     <a href="changelog.html">Changelog</a>
     <a href="guide.html">Guide</a>
     <a href="search.html">🔍</a>
-    <a href="./#projects">Projects</a>
-    <a href="./#yana">Yana</a>
-    <a href="./#codexmate">Codexmate</a>
     <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank">GitHub</a>
     <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1.05rem;padding:.2rem .4rem;border-radius:6px;line-height:1">🌙</button>
   </div>
+  <button class="hbg" id="hbg" onclick="toggleHbg()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
+<div class="mob-drawer" id="mob-drawer">
+  <a href="./" onclick="toggleHbg()">Home</a>
+  <a href="skills.html" onclick="toggleHbg()">Skills</a>
+  <a href="marketplace.html" onclick="toggleHbg()">Marketplace</a>
+  <a href="changelog.html" onclick="toggleHbg()">Changelog</a>
+  <a href="guide.html" onclick="toggleHbg()">Guide</a>
+  <a href="search.html" onclick="toggleHbg()">Search 🔍</a>
+  <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank" onclick="toggleHbg()">GitHub</a>
+</div>
 <script>(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');})();function toggleTheme(){
   const html = document.documentElement;
   html.classList.add('theme-transitioning');
@@ -126,6 +144,8 @@ footer a:hover{color:var(--text)}
   if(btn) btn.textContent = dark ? '☀️' : '🌙';
   setTimeout(() => html.classList.remove('theme-transitioning'), 300);
 }window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.classList.contains('dark')?'☀️':'🌙';});
+function toggleHbg(){var h=document.getElementById('hbg'),d=document.getElementById('mob-drawer');h.classList.toggle('open');d.classList.toggle('open');document.body.style.overflow=d.classList.contains('open')?'hidden':'';}
+
 // Auto-detect + sync on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function(){
   if(!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches) {
