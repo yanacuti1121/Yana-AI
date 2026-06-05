@@ -72,3 +72,7 @@ come_my_way.mp3
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Large Antigravity binaries
+tools/Antigravity-x64/antigravity
+tools/Antigravity-x64/resources/bin/language_server
