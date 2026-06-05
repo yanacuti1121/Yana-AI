@@ -8,6 +8,16 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.40.0 — Multi-agent parallel launcher + Antigravity integration
+*2026-06-05*
+
+- **multi-agent-launch.sh**: bật N agents song song có kiểm soát — concurrency cap, queue tự động, kill switch, per-agent log
+- **tools/Antigravity-x64**: tích hợp Electron app vào repo (large binaries excluded via .gitignore)
+- **README sync**: version badge v0.17.0→v0.40.0, agents 93→95, skills 3,432→3,457, hooks 45→46
+- **MANIFEST**: thêm `bundled_tools.Antigravity-x64`, cập nhật manifest_updated
+
+---
+
 ## v0.18.0 — yamtam-rt v1.1.0: CI publish + score command
 *TBD*
 
