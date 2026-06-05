@@ -16,7 +16,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.17.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.40.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yamtam-engine">
     <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" />
@@ -37,6 +37,8 @@
 **YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 93 specialist agents, 3,432 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
+
+> **New in v0.40.0:** [Multi-agent parallel launcher](#multi-agent-launcher) — spin up N agents simultaneously with concurrency control, live status, and kill switch.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
 
@@ -74,8 +76,8 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **3,432** workflow skill definitions |
-| Agents | **93** specialist agents |
+| Skills | **3,457** workflow skill definitions |
+| Agents | **95** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
 | Slash commands | **164** |
@@ -251,6 +253,55 @@ yamtam badge . --json    # machine-readable output
 ```
 
 → [Full workflow template](docs/install/github-action.yml)
+
+---
+
+## Multi-agent launcher
+
+Bật nhiều agents song song có kiểm soát — không bị vượt ngưỡng, có kill switch:
+
+```bash
+# Bật 3 agents cùng lúc, tối đa 3 chạy song song
+bash core/scripts/multi-agent-launch.sh start \
+  --agents "scanner,auditor,qa-team" \
+  --concurrency 3
+
+# Xem trạng thái real-time
+bash core/scripts/multi-agent-launch.sh status
+
+# Dừng một agent cụ thể
+bash core/scripts/multi-agent-launch.sh kill scanner
+
+# Kill switch — dừng tất cả ngay lập tức
+bash core/scripts/multi-agent-launch.sh kill all
+
+# Xem log của agent
+bash core/scripts/multi-agent-launch.sh log auditor
+```
+
+Hoặc dùng file danh sách task:
+```bash
+# tasks.txt — mỗi dòng: agent_name:mô tả task
+echo "scanner:quét toàn bộ repo
+auditor:kiểm tra hooks
+qa-team:chạy test suite" > tasks.txt
+
+bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurrency 4
+```
+
+Output mẫu:
+```
+═══ YAMTAM Multi-Agent Launcher ═══
+  Agents     : 3
+  Concurrency: 3 (tối đa chạy song song)
+  Kill switch: bash multi-agent-launch.sh kill all
+
+[LAUNCH] scanner → quét toàn bộ repo    PID 12341
+[LAUNCH] auditor → kiểm tra hooks       PID 12342
+[LAUNCH] qa-team → chạy test suite      PID 12343
+
+[OK] Đã launch 3/3 agents
+```
 
 ---
 

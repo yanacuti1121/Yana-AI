@@ -3,9 +3,18 @@
   "version": "0.40.0",
   "scaffold_version": "1.0",
   "release_date": "2026-06-04",
-  "manifest_updated": "2026-06-04",
+  "manifest_updated": "2026-06-05",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
+  "bundled_tools": {
+    "Antigravity-x64": {
+      "path": "tools/Antigravity-x64",
+      "type": "electron-app",
+      "platform": "linux-x64",
+      "note": "Large binaries (antigravity, language_server) excluded from git via .gitignore — reassemble locally from release archive",
+      "added": "2026-06-05"
+    }
+  },
   "import_notes": [
     "v1.7.3-synthesis \u2014 3 skills from 5-repo synthesis (NousResearch/hermes-agent + CloakHQ/CloakBrowser): (1) arxiv-research skill \u2014 arXiv API (zero-auth, 1req/3s, XML parse, BibTeX output); (2) semantic-scholar skill \u2014 citation lookup + author h-index (1req/s, JSON API); (3) stealth-browser-automation skill \u2014 CloakBrowser Playwright drop-in pattern (58 C++ patches, humanized mouse/keyboard, fingerprint evasion). Skipped: CodeGraph (already MCP server), Superpowers (imported Phase 2), OpenHuman (GPL-3.0 code). skills 384\u2192387. 2026-05-25.",
     "v1.7.2-synthesis \u2014 2 implementations from 3-repo synthesis (Lum1104/Understand-Anything + rohitg00/agentmemory): (1) codebase-onboard skill \u2014 4-step sequential pipeline (project-scanner\u2192architecture-analyzer\u2192dependency-mapper\u2192tour-builder) adapted from Understand-Anything 6-agent pattern, fixed output format with architecture diagram + reading-order table + 3 workflows + gotchas; (2) decay-memory.sh script \u2014 Ebbinghaus forgetting curve R=e^(-t/S) for L1 atomic facts, stability by confidence (high=90d/medium=30d/low=14d/unverified=7d), FRESH/FADING/STALE/DECAYED labels, --auto-flag writes decay_score to frontmatter. Skipped: triple-stream hybrid search (external vector deps violate dependency-sandbox-law). skills 383\u2192384, scripts +1. 2026-05-25.",
