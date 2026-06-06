@@ -1,6 +1,6 @@
 ---
 name: stealth-browser-automation
-description: "Use when asked to scrape a bot-protected website, bypass anti-bot detection, run Playwright with stealth patches, automate a site that blocks normal browsers, or simulate human-like browser behavior. Triggers on: 'scrape protected site', 'bypass bot detection', 'stealth playwright', 'anti-bot browser', 'cloudflare bypass', 'captcha avoidance', 'humanized browser', 'fingerprint evasion', 'trình duyệt chống phát hiện', 'vượt qua bot detection', 'cào dữ liệu trang bảo vệ'."
+description: "Use when asked to scrape a bot-protected website, bypass anti-bot detection, run Playwright with stealth patches, automate a site that blocks normal browsers, or simulate human-like browser behavior. Triggers on: 'scrape protected site', 'bypass bot detection', 'stealth playwright', 'anti-bot browser', 'cloudflare bypass', 'captcha avoidance', 'humanized browser', 'fingerprint evasion', 'botasaurus', 'python scraper', 'scraper ui', 'parallel scraping', 'trình duyệt chống phát hiện', 'vượt qua bot detection', 'cào dữ liệu trang bảo vệ'."
 ---
 
 # Stealth Browser Automation Skill
@@ -73,34 +73,7 @@ await page.setExtraHTTPHeaders({
 })
 ```
 
-### Pattern 2 — Humanized mouse movement
-
-```typescript
-// Bezier curve mouse movement (CloakBrowser pattern)
-async function humanMove(page, targetX: number, targetY: number) {
-  const startPos = await page.evaluate(() => ({
-    x: Math.random() * 200 + 100,
-    y: Math.random() * 200 + 100,
-  }))
-
-  // Generate bezier control points
-  const steps = 20 + Math.floor(Math.random() * 15)
-  const cp1 = {
-    x: startPos.x + (targetX - startPos.x) * 0.3 + (Math.random() - 0.5) * 100,
-    y: startPos.y + (targetY - startPos.y) * 0.3 + (Math.random() - 0.5) * 100,
-  }
-
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps
-    const x = Math.pow(1-t, 2) * startPos.x + 2*(1-t)*t * cp1.x + Math.pow(t,2) * targetX
-    const y = Math.pow(1-t, 2) * startPos.y + 2*(1-t)*t * cp1.y + Math.pow(t,2) * targetY
-    await page.mouse.move(x, y)
-    await page.waitForTimeout(10 + Math.random() * 20)
-  }
-}
-```
-
-### Pattern 3 — Humanized typing
+### Pattern 2 — Humanized typing
 
 ```typescript
 async function humanType(page, selector: string, text: string) {
@@ -169,6 +142,56 @@ Simple bot checks (User-Agent only):
 
 ---
 
+## Python / Botasaurus Pattern
+# Source: omkarcloud/botasaurus (MIT) — omit browser when not needed, auto-generate UI
+
+Botasaurus là Python framework tích hợp sẵn evasion + parallelization + UI generation.
+Dùng khi: cần Python, cần scale, hoặc cần expose scraper thành web app.
+
+### HTTP-mode (không cần browser — 97% rẻ hơn)
+
+```python
+from botasaurus.request import request, Request
+
+@request  # dùng HTTP thay vì browser — nhanh hơn, không bị fingerprint
+def scrape_api(request: Request, data):
+    response = request.get("https://example.com/api/data")
+    return response.json()
+
+# Chạy với caching built-in
+scrape_api()
+```
+
+### Browser-mode với evasion tự động
+
+```python
+from botasaurus.browser import browser, Driver
+
+@browser(block_images=True, reuse_driver=True)
+def scrape_page(driver: Driver, data):
+    driver.get("https://cloudflare-protected.com")
+    driver.wait_for_element(".content")
+    return driver.get_text(".content")
+
+# Parallel scraping — tự động chia URLs ra nhiều workers
+scrape_page(["https://site.com/page1", "https://site.com/page2", ...])
+```
+
+### Auto-generate Web UI từ scraper
+
+```python
+# Thêm @browser hoặc @request + chạy: python run.py
+# → Tự tạo web interface cho phép user nhập URL, xem kết quả, export CSV
+from botasaurus import *
+
+@browser
+def scrape(driver: Driver, data):
+    driver.get(data["url"])
+    return {"title": driver.title, "text": driver.get_text("body")}
+```
+
+---
+
 ## Anti-Fake-Pass Checks
 
 ```
@@ -182,3 +205,5 @@ Simple bot checks (User-Agent only):
 ## See also
 - `playwright-e2e` — standard automation không cần stealth
 - `web-scraper` — scraping pattern (data extraction)
+- `crawl4ai` — AI-native crawling với LLM extraction
+- `firecrawl` — managed scraping API (no infra)
