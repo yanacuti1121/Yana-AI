@@ -1,0 +1,4 @@
+# Exclude vendored/generated files from GitHub language stats
+tools/Antigravity-x64/** linguist-vendored
+docs-dist/** linguist-generated
+site/** linguist-generated
