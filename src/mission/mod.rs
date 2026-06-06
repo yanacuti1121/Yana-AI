@@ -35,6 +35,9 @@ pub enum MissionAction {
         /// Pass criteria: shell command that exits 0 on success
         #[arg(long, value_name = "CMD")]
         pass: Option<String>,
+        /// Custom agent instructions (overrides auto-generated brief)
+        #[arg(long)]
+        instructions: Option<String>,
     },
     /// Print JSON briefs for ready tasks (Yana dispatches these)
     Dispatch {
@@ -64,6 +67,20 @@ pub enum MissionAction {
         #[arg(long)]
         reason: String,
     },
+    /// Cancel a running task and reset it to pending
+    Cancel {
+        /// Mission ID (or prefix)
+        mission: String,
+        /// Task name
+        task: String,
+    },
+    /// Retry a failed task (reset to pending)
+    Retry {
+        /// Mission ID (or prefix)
+        mission: String,
+        /// Task name
+        task: String,
+    },
     /// Show mission status table
     Status {
         /// Mission ID (or prefix) — omit to list all missions
@@ -81,11 +98,13 @@ pub enum MissionAction {
 pub fn dispatch(action: MissionAction) {
     match action {
         MissionAction::Create { name, harness }         => cmd_create(name, harness),
-        MissionAction::Task { mission, name, owns, produces, consumes, agent, pass } =>
-            cmd_add_task(mission, name, owns, produces, consumes, agent, pass),
+        MissionAction::Task { mission, name, owns, produces, consumes, agent, pass, instructions } =>
+            cmd_add_task(mission, name, owns, produces, consumes, agent, pass, instructions),
         MissionAction::Dispatch { mission, max_parallel } => cmd_dispatch(mission, max_parallel),
         MissionAction::Done { mission, task, evidence }  => cmd_done(mission, task, evidence),
         MissionAction::Fail { mission, task, reason }    => cmd_fail(mission, task, reason),
+        MissionAction::Cancel { mission, task }          => cmd_cancel(mission, task),
+        MissionAction::Retry  { mission, task }          => cmd_retry(mission, task),
         MissionAction::Status { mission }               => cmd_status(mission),
         MissionAction::Report { mission }               => cmd_report(mission),
         MissionAction::List                             => cmd_list(),
@@ -112,6 +131,7 @@ pub struct Task {
     pub agent:         Option<String>,
     pub pass_criteria: Option<String>,
     pub status:        TaskStatus,
+    pub instructions:  Option<String>,
     pub evidence:      Option<String>,
     pub fail_reason:   Option<String>,
     pub created_at:    String,
@@ -226,6 +246,9 @@ fn is_ready(task: &Task, mission: &Mission) -> bool {
 
 /// Build the plain-English brief Yana pastes into agent dispatch
 fn build_instructions(task: &Task, mission: &Mission) -> String {
+    if let Some(ref custom) = task.instructions {
+        return custom.clone();
+    }
     let agent = task.agent.as_deref().unwrap_or("fullstack-engineer");
     let mut lines = vec![
         format!("You are acting as: **{}**", agent),
@@ -273,7 +296,7 @@ fn cmd_create(name: String, harness: Option<String>) {
 fn cmd_add_task(
     prefix: String, name: String,
     owns: Vec<String>, produces: Vec<String>, consumes: Vec<String>,
-    agent: Option<String>, pass: Option<String>,
+    agent: Option<String>, pass: Option<String>, instructions: Option<String>,
 ) {
     let mut m = match resolve(&prefix) {
         Ok(m) => m,
@@ -290,6 +313,7 @@ fn cmd_add_task(
         owns, consumes, produces,
         agent,
         pass_criteria: pass,
+        instructions,
         status:        TaskStatus::Pending,
         evidence:      None,
         fail_reason:   None,
@@ -303,7 +327,7 @@ fn cmd_add_task(
 }
 
 fn cmd_dispatch(prefix: String, max_parallel: usize) {
-    let m = match resolve(&prefix) {
+    let mut m = match resolve(&prefix) {
         Ok(m) => m,
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
     };
@@ -316,9 +340,11 @@ fn cmd_dispatch(prefix: String, max_parallel: usize) {
         std::process::exit(0);
     }
 
-    let ready: Vec<&Task> = m.tasks.iter()
+    // Clone ready tasks before mutating mission
+    let ready: Vec<Task> = m.tasks.iter()
         .filter(|t| is_ready(t, &m))
         .take(slots)
+        .cloned()
         .collect();
 
     if ready.is_empty() {
@@ -346,6 +372,17 @@ fn cmd_dispatch(prefix: String, max_parallel: usize) {
         instructions: build_instructions(task, &m),
         subagent_policy: "report-only — do not write files, return findings as plain text",
     }).collect();
+
+    // Mark dispatched tasks as Running so next dispatch won't re-issue them
+    let dispatched_ids: Vec<String> = ready.iter().map(|t| t.id.clone()).collect();
+    for t in m.tasks.iter_mut() {
+        if dispatched_ids.contains(&t.id) {
+            t.status     = TaskStatus::Running;
+            t.updated_at = now();
+        }
+    }
+    m.updated_at = now();
+    save(&m);
 
     println!("{}", serde_json::to_string_pretty(&briefs).unwrap());
 }
@@ -499,6 +536,49 @@ fn print_mission_table(m: &Mission) {
     }
 }
 
+fn cmd_cancel(prefix: String, task_name: String) {
+    let mut m = match resolve(&prefix) {
+        Ok(m) => m,
+        Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
+    };
+    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
+        Some(t) => t,
+        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
+    };
+    if task.status != TaskStatus::Running {
+        eprintln!("error: task '{}' is {:?} — only Running tasks can be cancelled", task_name, task.status);
+        std::process::exit(1);
+    }
+    task.status     = TaskStatus::Pending;
+    task.updated_at = now();
+    m.updated_at    = now();
+    save(&m);
+    println!("↺ task '{}' cancelled → pending", task_name);
+}
+
+fn cmd_retry(prefix: String, task_name: String) {
+    let mut m = match resolve(&prefix) {
+        Ok(m) => m,
+        Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
+    };
+    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
+        Some(t) => t,
+        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
+    };
+    if task.status != TaskStatus::Failed {
+        eprintln!("error: task '{}' is {:?} — only Failed tasks can be retried", task_name, task.status);
+        std::process::exit(1);
+    }
+    task.status      = TaskStatus::Pending;
+    task.fail_reason = None;
+    task.updated_at  = now();
+    // Recompute mission status — may lift a Blocked mission
+    m.status     = compute_mission_status(&m.tasks);
+    m.updated_at = now();
+    save(&m);
+    println!("↺ task '{}' retried → pending", task_name);
+}
+
 fn truncate(s: &str, max: usize) -> String {
     if s.chars().count() <= max {
         s.to_string()
@@ -518,7 +598,7 @@ mod tests {
             id: new_id(), name: name.into(),
             owns: vec![], consumes: consumes.into_iter().map(String::from).collect(),
             produces: produces.into_iter().map(String::from).collect(),
-            agent: None, pass_criteria: None,
+            agent: None, pass_criteria: None, instructions: None,
             status: TaskStatus::Pending,
             evidence: None, fail_reason: None,
             created_at: now(), updated_at: now(),
@@ -571,5 +651,41 @@ mod tests {
         let mut t = make_task("t1", vec![], vec![]);
         t.status = TaskStatus::Failed;
         assert_eq!(compute_mission_status(&[t]), MissionStatus::Blocked);
+    }
+
+    #[test]
+    fn running_task_not_redispatched() {
+        let mut t = make_task("backend", vec![], vec![]);
+        t.status = TaskStatus::Running;
+        let m = Mission {
+            id: new_id(), name: "test".into(), status: MissionStatus::Active,
+            harness_path: None, tasks: vec![t], created_at: now(), updated_at: now(),
+        };
+        let task = m.tasks.first().unwrap();
+        assert!(!is_ready(task, &m), "Running task must not be re-dispatched");
+    }
+
+    #[test]
+    fn retry_lifts_blocked_mission() {
+        let mut t = make_task("t1", vec![], vec![]);
+        t.status = TaskStatus::Failed;
+        t.fail_reason = Some("timeout".into());
+        let mut tasks = vec![t];
+        assert_eq!(compute_mission_status(&tasks), MissionStatus::Blocked);
+        // Simulate retry
+        tasks[0].status = TaskStatus::Pending;
+        tasks[0].fail_reason = None;
+        assert_eq!(compute_mission_status(&tasks), MissionStatus::Active);
+    }
+
+    #[test]
+    fn custom_instructions_used_in_brief() {
+        let mut t = make_task("custom", vec![], vec![]);
+        t.instructions = Some("do exactly this".into());
+        let m = Mission {
+            id: new_id(), name: "test".into(), status: MissionStatus::Active,
+            harness_path: None, tasks: vec![], created_at: now(), updated_at: now(),
+        };
+        assert_eq!(build_instructions(&t, &m), "do exactly this");
     }
 }
