@@ -208,6 +208,12 @@
     <div class="section-label">Danh sách phát</div>
     <div class="track-list" id="track-list"></div>
 
+    <!-- Local MP3 tracks -->
+    <div class="add-section" style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+      <div class="section-label" style="margin-bottom:.75rem">Tệp nhạc</div>
+      <div id="local-track-list"></div>
+    </div>
+
     <!-- Add track -->
     <div class="add-section">
       <h2>Thêm bài từ YouTube</h2>
@@ -352,10 +358,58 @@
     }
   }
 
+  // ── Local MP3 player ──────────────────────────────────────────────────────
+  const LOCAL_TRACKS = [
+    { name: 'DJ Thai Hoang Remix', artist: 'Giải Điệu DJ · SoundCloud', src: 'music/dj-thai-hoang-remix.mp3', icon: '🎧' },
+    // Thêm file MP3 khác: { name, artist, src, icon }
+  ];
+
+  let _localAudio = null;
+  let _localCur   = null;
+
+  function playLocal(idx) {
+    // Pause YouTube player
+    window._pauseMusic && window._pauseMusic();
+    _playing = false;
+    syncPlayBtn();
+
+    if (_localAudio) { _localAudio.pause(); _localAudio = null; }
+    _localCur = idx;
+    _localAudio = new Audio(LOCAL_TRACKS[idx].src);
+    _localAudio.volume = 0.8;
+    _localAudio.play().catch(() => {});
+    _localAudio.addEventListener('ended', () => {
+      _localCur = null;
+      renderLocalList();
+    });
+    renderLocalList();
+
+    // Update now-playing header
+    const t = LOCAL_TRACKS[idx];
+    document.getElementById('now-name').textContent   = `${t.icon} ${t.name}`;
+    document.getElementById('now-artist').textContent = t.artist;
+  }
+
+  function renderLocalList() {
+    const el = document.getElementById('local-track-list');
+    if (!el) return;
+    el.innerHTML = LOCAL_TRACKS.map((t, i) => `
+      <div class="track ${_localCur === i ? 'active' : ''}" onclick="playLocal(${i})" style="margin-bottom:.5rem">
+        <span class="track-icon">${t.icon}</span>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-artist">${t.artist}</div>
+        </div>
+        ${_localCur === i ? '<span class="track-badge">▶ Đang phát</span>' : '<span style="font-size:.7rem;color:var(--fg-muted)">MP3</span>'}
+      </div>`).join('');
+  }
+  // ── End local MP3 ──────────────────────────────────────────────────────────
+
   document.addEventListener('DOMContentLoaded', () => {
     syncMuteBtn();
     syncPlayBtn();
     renderList();
+    renderLocalList();
     startProgress();
     // Sync play button after player init
     setTimeout(() => { syncPlayBtn(); startProgress(); }, 2000);
