@@ -478,3 +478,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** GitHub Marketplace mail check
 
 ---
+
+## 2026-06-06 (session 2) — tune yana-router: confidence + agent selection + v0.41.0
+
+**Đã làm:**
+- Fix confidence divisor 4.0→2.5 — "implement" không còn hỏi lại (0.225→0.36)
+- Domain-aware agent selection: auth→security-engineer, db→database-expert, ui→frontend-developer, api→api-designer, devops→deployment-engineer
+- Thêm 8 VI keywords: phát triển, triển khai, xây dựng, cải thiện, tái cấu trúc, tối ưu, tích hợp, migrate
+- Fix "log" false-match "login" → dùng " log " (word boundary)
+- DIRECTION.md đã có auto-classify rule (kiểm tra — đã có từ session sáng)
+- Bump version 0.40.0 → 0.41.0
+
+**Anh nói / quyết định:** test auto-classify → tune confidence → thêm VI keywords → version bump
+
+**Trạng thái cuối:** v0.41.0 · 2 commits pushed · 7/7 route tests ✅
+**Pending:** GitHub Marketplace mail check (cần GMAIL_APP_PASSWORD)
+
+---

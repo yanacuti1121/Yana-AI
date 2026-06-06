@@ -3,7 +3,7 @@
 **Cập nhật lần cuối:** 2026-06-06
 
 ## Trạng thái
-- yamtam-engine v0.40.0 — CI ✅ · Pages ✅ · repo clean
+- yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean
 - Disk: 79% (~988MB free) — đã dọn sạch sáng nay
 - Git user: đã fix lại "Vũ Văn Tâm" (bị Gemini set thành "Gemini AI")
 - Submodule codexmate: đã fork → phamlongh230-lgtm/codexmate, VI patch pushed, URL updated
@@ -14,7 +14,6 @@
 
 ## Ưu tiên tiếp theo
 1. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
-2. **MANIFEST.json version bump** — xem xét lên v0.41.0 sau session hôm nay
 
 ## Đã biết / blockers
 - Token rotation: ✅ DONE (NPM + CARGO + PYPI đã rotate 03/06)
