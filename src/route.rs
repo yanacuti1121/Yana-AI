@@ -1,0 +1,323 @@
+use clap::Subcommand;
+use serde::{Deserialize, Serialize};
+use std::io::{self, Read};
+
+// ── Public CLI surface ────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum RouteAction {
+    /// Classify a task and return routing decision (JSON)
+    Classify {
+        /// Task description (omit to read from stdin)
+        task: Option<String>,
+        /// Output plain text instead of JSON
+        #[arg(long)]
+        plain: bool,
+    },
+    /// Show pattern tables used for classification
+    Patterns,
+}
+
+pub fn dispatch(action: RouteAction) {
+    match action {
+        RouteAction::Classify { task, plain } => cmd_classify(task, plain),
+        RouteAction::Patterns                 => cmd_patterns(),
+    }
+}
+
+// ── Output types ──────────────────────────────────────────────────────────────
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum Route {
+    Simple,
+    Complex,
+    External,
+}
+
+#[derive(Serialize)]
+pub struct RouteDecision {
+    pub route:            Route,
+    pub gate:             &'static str,
+    pub confidence:       f32,
+    pub reason:           String,
+    pub matched_signals:  Vec<String>,
+    pub suggested_agents: &'static [&'static str],
+}
+
+// ── Classifier ────────────────────────────────────────────────────────────────
+
+/// Pattern entry: keyword (lowercase), weight, explanation
+struct Pattern {
+    keyword: &'static str,
+    weight:  f32,
+    label:   &'static str,
+}
+
+// External — irreversible / crosses system boundary
+const EXTERNAL: &[Pattern] = &[
+    Pattern { keyword: "git push",       weight: 1.0, label: "remote publish" },
+    Pattern { keyword: "push origin",    weight: 1.0, label: "remote publish" },
+    Pattern { keyword: "npm publish",    weight: 1.0, label: "registry publish" },
+    Pattern { keyword: "pip publish",    weight: 1.0, label: "registry publish" },
+    Pattern { keyword: "cargo publish",  weight: 1.0, label: "registry publish" },
+    Pattern { keyword: "deploy",         weight: 0.9, label: "deployment" },
+    Pattern { keyword: "release",        weight: 0.8, label: "release" },
+    Pattern { keyword: "kubectl apply",  weight: 1.0, label: "k8s apply" },
+    Pattern { keyword: "terraform apply",weight: 1.0, label: "infra apply" },
+    Pattern { keyword: "terraform destroy",weight:1.0,label: "infra destroy" },
+    Pattern { keyword: "docker push",    weight: 1.0, label: "registry push" },
+    Pattern { keyword: "send email",     weight: 0.9, label: "external message" },
+    Pattern { keyword: "send message",   weight: 0.8, label: "external message" },
+    Pattern { keyword: "webhook",        weight: 0.8, label: "external call" },
+    Pattern { keyword: "stripe",         weight: 0.9, label: "payment api" },
+    Pattern { keyword: "payment",        weight: 0.8, label: "payment" },
+    Pattern { keyword: "curl ",          weight: 0.7, label: "http call" },
+    Pattern { keyword: "http request",   weight: 0.7, label: "http call" },
+    Pattern { keyword: "api call",       weight: 0.7, label: "external api" },
+    Pattern { keyword: "rm -rf",         weight: 1.0, label: "destructive delete" },
+    Pattern { keyword: "drop table",     weight: 1.0, label: "db drop" },
+    Pattern { keyword: "drop database",  weight: 1.0, label: "db drop" },
+    Pattern { keyword: "database migration", weight: 0.7, label: "db migration" },
+];
+
+// Complex — writes / multi-file / needs agents
+const COMPLEX: &[Pattern] = &[
+    Pattern { keyword: "implement",      weight: 0.9, label: "implementation" },
+    Pattern { keyword: "build",          weight: 0.7, label: "build task" },
+    Pattern { keyword: "create",         weight: 0.6, label: "create" },
+    Pattern { keyword: "write",          weight: 0.6, label: "write" },
+    Pattern { keyword: "add feature",    weight: 0.9, label: "feature" },
+    Pattern { keyword: "add ",           weight: 0.4, label: "add" },
+    Pattern { keyword: "fix",            weight: 0.7, label: "bug fix" },
+    Pattern { keyword: "refactor",       weight: 0.9, label: "refactor" },
+    Pattern { keyword: "update",         weight: 0.5, label: "update" },
+    Pattern { keyword: "modify",         weight: 0.6, label: "modify" },
+    Pattern { keyword: "migrate",        weight: 0.8, label: "migration" },
+    Pattern { keyword: "upgrade",        weight: 0.7, label: "upgrade" },
+    Pattern { keyword: "optimize",       weight: 0.8, label: "optimization" },
+    Pattern { keyword: "debug",          weight: 0.8, label: "debug" },
+    Pattern { keyword: "test",           weight: 0.6, label: "test" },
+    Pattern { keyword: "review",         weight: 0.6, label: "review" },
+    Pattern { keyword: "audit",          weight: 0.7, label: "audit" },
+    Pattern { keyword: "architect",      weight: 0.8, label: "architecture" },
+    Pattern { keyword: "design",         weight: 0.6, label: "design" },
+    Pattern { keyword: "set up",         weight: 0.6, label: "setup" },
+    Pattern { keyword: "setup",          weight: 0.6, label: "setup" },
+    Pattern { keyword: "integrate",      weight: 0.8, label: "integration" },
+    Pattern { keyword: "rename",         weight: 0.6, label: "rename" },
+    Pattern { keyword: "delete",         weight: 0.6, label: "delete" },
+    Pattern { keyword: "remove",         weight: 0.5, label: "remove" },
+    Pattern { keyword: "skill",          weight: 0.5, label: "skill work" },
+    Pattern { keyword: "nâng cấp",       weight: 0.8, label: "upgrade (vi)" },
+    Pattern { keyword: "viết",           weight: 0.7, label: "write (vi)" },
+    Pattern { keyword: "tạo",            weight: 0.6, label: "create (vi)" },
+    Pattern { keyword: "sửa",            weight: 0.7, label: "fix (vi)" },
+    Pattern { keyword: "thêm",           weight: 0.5, label: "add (vi)" },
+    Pattern { keyword: "xây",            weight: 0.7, label: "build (vi)" },
+];
+
+// Simple — read-only / explain / search
+const SIMPLE: &[Pattern] = &[
+    Pattern { keyword: "explain",        weight: 0.9, label: "explain" },
+    Pattern { keyword: "what is",        weight: 0.8, label: "question" },
+    Pattern { keyword: "how does",       weight: 0.8, label: "question" },
+    Pattern { keyword: "show me",        weight: 0.6, label: "show" },
+    Pattern { keyword: "list",           weight: 0.7, label: "list" },
+    Pattern { keyword: "read",           weight: 0.6, label: "read" },
+    Pattern { keyword: "view",           weight: 0.6, label: "view" },
+    Pattern { keyword: "check",          weight: 0.5, label: "check" },
+    Pattern { keyword: "search",         weight: 0.7, label: "search" },
+    Pattern { keyword: "find",           weight: 0.6, label: "find" },
+    Pattern { keyword: "grep",           weight: 0.8, label: "grep" },
+    Pattern { keyword: "count",          weight: 0.6, label: "count" },
+    Pattern { keyword: "diff",           weight: 0.7, label: "diff" },
+    Pattern { keyword: "log",            weight: 0.6, label: "log" },
+    Pattern { keyword: "summarize",      weight: 0.8, label: "summarize" },
+    Pattern { keyword: "describe",       weight: 0.7, label: "describe" },
+    Pattern { keyword: "status",         weight: 0.6, label: "status" },
+    Pattern { keyword: "show",           weight: 0.5, label: "show" },
+    Pattern { keyword: "display",        weight: 0.6, label: "display" },
+    Pattern { keyword: "tell me",        weight: 0.7, label: "question" },
+    Pattern { keyword: "what are",       weight: 0.7, label: "question" },
+    Pattern { keyword: "where is",       weight: 0.7, label: "question" },
+    Pattern { keyword: "why does",       weight: 0.7, label: "question" },
+    Pattern { keyword: "xem",            weight: 0.7, label: "view (vi)" },
+    Pattern { keyword: "giải thích",     weight: 0.8, label: "explain (vi)" },
+    Pattern { keyword: "tìm",            weight: 0.6, label: "find (vi)" },
+    Pattern { keyword: "kiểm tra",       weight: 0.5, label: "check (vi)" },
+    Pattern { keyword: "cho tôi xem",    weight: 0.7, label: "show (vi)" },
+];
+
+fn score_patterns(text: &str, patterns: &[Pattern]) -> (f32, Vec<String>) {
+    let lower = text.to_lowercase();
+    let mut total = 0f32;
+    let mut signals = Vec::new();
+    for p in patterns {
+        if lower.contains(p.keyword) {
+            total += p.weight;
+            signals.push(format!("{}({})", p.keyword, p.label));
+        }
+    }
+    (total, signals)
+}
+
+pub fn classify(task: &str) -> RouteDecision {
+    let (ext_score, ext_signals)  = score_patterns(task, EXTERNAL);
+    let (cplx_score, cplx_signals) = score_patterns(task, COMPLEX);
+    let (simp_score, simp_signals) = score_patterns(task, SIMPLE);
+
+    // External wins if any strong signal present
+    if ext_score >= 0.7 {
+        let conf = (ext_score / 3.0).min(1.0);
+        return RouteDecision {
+            route:            Route::External,
+            gate:             "confirm",
+            confidence:       conf,
+            reason:           "Task involves irreversible or cross-boundary action — human confirmation required".into(),
+            matched_signals:  ext_signals,
+            suggested_agents: &["security-engineer", "deployment-engineer"],
+        };
+    }
+
+    // Complex if write/modify signals dominate
+    if cplx_score > simp_score || cplx_score >= 0.8 {
+        let conf = (cplx_score / 4.0).min(1.0);
+        let agents: &[&str] = if cplx_signals.iter().any(|s| s.contains("test") || s.contains("debug")) {
+            &["qa-engineer", "debugger", "backend-developer"]
+        } else if cplx_signals.iter().any(|s| s.contains("refactor") || s.contains("review")) {
+            &["refactoring-specialist", "code-reviewer-pro"]
+        } else {
+            &["backend-developer", "frontend-developer", "fullstack-engineer"]
+        };
+        return RouteDecision {
+            route:            Route::Complex,
+            gate:             "harness",
+            confidence:       conf,
+            reason:           "Task requires code changes — spawning mini harness and agent dispatch".into(),
+            matched_signals:  cplx_signals,
+            suggested_agents: agents,
+        };
+    }
+
+    // Default: simple
+    let conf = if simp_score > 0.0 { (simp_score / 3.0).min(1.0) } else { 0.5 };
+    RouteDecision {
+        route:            Route::Simple,
+        gate:             "auto",
+        confidence:       conf,
+        reason:           "Read-only or explanatory task — Yana handles directly".into(),
+        matched_signals:  simp_signals,
+        suggested_agents: &[],
+    }
+}
+
+// ── Commands ──────────────────────────────────────────────────────────────────
+
+fn cmd_classify(task: Option<String>, plain: bool) {
+    let text = match task {
+        Some(t) => t,
+        None => {
+            let mut buf = String::new();
+            io::stdin().read_to_string(&mut buf).expect("failed to read stdin");
+            buf.trim().to_string()
+        }
+    };
+
+    if text.is_empty() {
+        eprintln!("error: no task provided (pass as argument or via stdin)");
+        std::process::exit(1);
+    }
+
+    let decision = classify(&text);
+
+    if plain {
+        let gate_icon = match decision.route {
+            Route::Simple   => "✓",
+            Route::Complex  => "⚙",
+            Route::External => "⚠",
+        };
+        println!("{} {} [{:.0}%] — {}",
+            gate_icon,
+            match decision.route { Route::Simple => "SIMPLE", Route::Complex => "COMPLEX", Route::External => "EXTERNAL" },
+            decision.confidence * 100.0,
+            decision.reason,
+        );
+        if !decision.matched_signals.is_empty() {
+            println!("  signals: {}", decision.matched_signals.join(", "));
+        }
+        if !decision.suggested_agents.is_empty() {
+            println!("  agents:  {}", decision.suggested_agents.join(", "));
+        }
+    } else {
+        println!("{}", serde_json::to_string_pretty(&decision).unwrap());
+    }
+}
+
+fn cmd_patterns() {
+    println!("=== EXTERNAL (gate: confirm) ===");
+    for p in EXTERNAL {
+        println!("  [{:.1}] {:30} — {}", p.weight, p.keyword, p.label);
+    }
+    println!("\n=== COMPLEX (gate: harness) ===");
+    for p in COMPLEX {
+        println!("  [{:.1}] {:30} — {}", p.weight, p.keyword, p.label);
+    }
+    println!("\n=== SIMPLE (gate: auto) ===");
+    for p in SIMPLE {
+        println!("  [{:.1}] {:30} — {}", p.weight, p.keyword, p.label);
+    }
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simple_question() {
+        let d = classify("explain how the auth middleware works");
+        assert_eq!(d.route, Route::Simple);
+        assert_eq!(d.gate, "auto");
+    }
+
+    #[test]
+    fn complex_implementation() {
+        let d = classify("implement OAuth2 login with refresh tokens");
+        assert_eq!(d.route, Route::Complex);
+        assert_eq!(d.gate, "harness");
+    }
+
+    #[test]
+    fn external_push() {
+        let d = classify("git push origin main and create release");
+        assert_eq!(d.route, Route::External);
+        assert_eq!(d.gate, "confirm");
+    }
+
+    #[test]
+    fn external_deploy() {
+        let d = classify("deploy to production");
+        assert_eq!(d.route, Route::External);
+        assert_eq!(d.gate, "confirm");
+    }
+
+    #[test]
+    fn vietnamese_simple() {
+        let d = classify("xem git log 10 commit gần nhất");
+        assert_eq!(d.route, Route::Simple);
+    }
+
+    #[test]
+    fn vietnamese_complex() {
+        let d = classify("sửa bug auth middleware không trả 401");
+        assert_eq!(d.route, Route::Complex);
+    }
+
+    #[test]
+    fn empty_defaults_simple() {
+        let d = classify("what time is it");
+        assert_eq!(d.route, Route::Simple);
+    }
+}

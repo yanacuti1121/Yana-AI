@@ -13,6 +13,7 @@ mod fix;
 mod graph;
 mod hunt;
 mod map;
+mod route;
 mod spec;
 mod vault;
 mod watch;
@@ -57,6 +58,8 @@ enum Commands {
     Score  { #[command(subcommand)] action: score::ScoreAction },
     /// Environment and dependency health checks
     Doctor { #[command(subcommand)] action: doctor::DoctorAction },
+    /// Route a task description → simple / complex / external (yana-router)
+    Route  { #[command(subcommand)] action: route::RouteAction },
     /// Validate task spec files against the yamtam schema
     Spec   { #[command(subcommand)] action: spec::SpecAction },
     /// Design token extractor — URL/file → colors, fonts, spacing, CSS vars
@@ -284,6 +287,7 @@ fn main() {
             } else if report.summary.critical > 0 { 0 } else { 0 };
             std::process::exit(exit_code);
         }
+        Commands::Route  { action } => route::dispatch(action),
         Commands::Hunt   { action } => hunt::dispatch(action),
         Commands::Ci     { action } => ci::dispatch(action),
         Commands::Map    { action } => map::dispatch(action),
