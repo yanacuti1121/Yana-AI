@@ -13,6 +13,7 @@ mod fix;
 mod graph;
 mod hunt;
 mod map;
+mod mission;
 mod route;
 mod spec;
 mod vault;
@@ -58,6 +59,8 @@ enum Commands {
     Score  { #[command(subcommand)] action: score::ScoreAction },
     /// Environment and dependency health checks
     Doctor { #[command(subcommand)] action: doctor::DoctorAction },
+    /// Parallel mission orchestrator — create, dispatch, track agent tasks
+    Mission { #[command(subcommand)] action: mission::MissionAction },
     /// Route a task description → simple / complex / external (yana-router)
     Route  { #[command(subcommand)] action: route::RouteAction },
     /// Validate task spec files against the yamtam schema
@@ -287,6 +290,7 @@ fn main() {
             } else if report.summary.critical > 0 { 0 } else { 0 };
             std::process::exit(exit_code);
         }
+        Commands::Mission { action } => mission::dispatch(action),
         Commands::Route  { action } => route::dispatch(action),
         Commands::Hunt   { action } => hunt::dispatch(action),
         Commands::Ci     { action } => ci::dispatch(action),
