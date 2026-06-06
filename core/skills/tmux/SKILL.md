@@ -363,6 +363,79 @@ tmux attach -t shared
 - **Problem:** Copy-mode selection doesn't work as expected
   **Solution:** Confirm `mode-keys vi` or `mode-keys emacs` is set to match your preference in `~/.tmux.conf`.
 
+## Controlling Interactive TUI Programs
+# Source: obra/superpowers-lab (MIT) — superpowers-lab/skills/using-tmux-for-interactive-commands
+
+Dùng tmux để lập trình control các TUI tools (vim, git rebase, Python REPL, psql...)
+mà không thể dùng stdin redirect thông thường.
+
+```bash
+# Pattern chuẩn: create → wait → send-keys → capture → loop → kill
+SESSION="interactive-$$"
+
+# 1. Tạo detached session với TUI tool
+tmux new-session -d -s "$SESSION" -x 200 -y 50 "vim myfile.py"
+sleep 0.3   # đợi TUI initialize (100-500ms tùy tool)
+
+# 2. Gửi keystrokes (dùng tmux key names, không phải escape sequences)
+tmux send-keys -t "$SESSION" "i"        # enter insert mode
+tmux send-keys -t "$SESSION" "hello"    # type text
+tmux send-keys -t "$SESSION" "Escape"   # exit insert mode — NOT \x1b
+tmux send-keys -t "$SESSION" ":wq" Enter
+
+# 3. Capture output để kiểm tra
+tmux capture-pane -t "$SESSION" -p
+
+# 4. Cleanup
+tmux kill-session -t "$SESSION"
+```
+
+**Wait-for-prompt helper** (dùng khi TUI cần load time):
+
+```bash
+wait_for_prompt() {
+  local target="$1" pattern="$2" timeout="${3:-10}"
+  for ((i=0; i<timeout*10; i++)); do
+    tmux capture-pane -t "$target" -p | grep -q "$pattern" && return 0
+    sleep 0.1
+  done
+  return 1   # timeout
+}
+
+# Ví dụ: đợi Python REPL sẵn sàng
+tmux new-session -d -s py -x 200 -y 50 "python3"
+wait_for_prompt py ">>>" 5
+tmux send-keys -t py "print('hello')" Enter
+sleep 0.2
+tmux capture-pane -t py -p | grep "hello"
+tmux kill-session -t py
+```
+
+**Các TUI tool phổ biến + gotchas:**
+
+```bash
+# git rebase -i
+tmux new-session -d -s rebase -x 200 -y 50 "git rebase -i HEAD~3"
+sleep 0.5  # vim cần thêm thời gian
+tmux send-keys -t rebase ":2s/pick/squash/" Enter  # squash line 2
+tmux send-keys -t rebase ":wq" Enter
+
+# psql interactive
+tmux new-session -d -s db -x 200 -y 50 "psql -U postgres mydb"
+wait_for_prompt db "=#" 5
+tmux send-keys -t db "SELECT COUNT(*) FROM users;" Enter
+sleep 0.3
+tmux capture-pane -t db -p | grep -A2 "count"
+tmux send-keys -t db "\\q" Enter
+tmux kill-session -t db
+```
+
+**Lỗi thường gặp:**
+- **Premature capture**: luôn sleep sau khi start, trước capture
+- **Missing Enter**: `send-keys "cmd" Enter` — Enter là argument riêng
+- **Wrong key names**: dùng `Enter Escape Tab` (Pascal case), không phải `\n \x1b \t`
+- **Orphaned sessions**: luôn `kill-session` sau khi xong
+
 ## Related Skills
 
 - `@bash-pro` — Writing the shell scripts that orchestrate tmux sessions
