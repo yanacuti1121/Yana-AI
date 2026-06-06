@@ -1,6 +1,6 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-04 (session sáng — anh đi có việc)
+**Cập nhật lần cuối:** 2026-06-06
 
 ## Trạng thái
 - yamtam-engine v0.40.0 — CI ✅ · Pages ✅ · repo clean
@@ -13,11 +13,13 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
-2. Không còn việc gì urgent
+1. **mission-dispatcher** — Rust binary: Tokio + Git2 + SQLite, pattern từ ECC2, parallel agent orchestration
+2. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
 
 ## Đã biết / blockers
 - Token rotation: ✅ DONE (NPM + CARGO + PYPI đã rotate 03/06)
+- yana-router: ✅ built, `yamtam-rt route classify` hoạt động
+- yana automation stack: ✅ route binary + yana-classify skill + DIRECTION routing law + dynamic-workflow-mode skill
 - Disk: 79% — thoải mái, build Rust được (vẫn nên dùng CARGO_TARGET_DIR=/tmp/yamtam-build)
 - Codexmate chạy bằng `CODEXMATE_PORT=8080 codexmate run` + Web Preview 8080
 

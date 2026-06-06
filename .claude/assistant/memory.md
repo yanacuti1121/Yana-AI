@@ -444,3 +444,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** Token rotation NPM+CARGO+PYPI deadline 07/06 (P0)
 
 ---
+
+## 2026-06-06 — yana-router + automation stack (Rust + 2 skills + routing law)
+
+**Đã làm:**
+- `yamtam-rt route classify` — Rust subcommand, 3 routes: simple/complex/external, 7 tests xanh
+- skill `yana-classify` — bridge Claude → yana-router, fallback heuristic nếu binary không có
+- `.claude/assistant/DIRECTION.md` — routing rules: confirm gate, confidence thresholds, override phrases
+- skill `dynamic-workflow-mode` từ ECC (MIT) — per-task harness: owns/consumes/produces/eval/handoff
+- fix(vault): word-boundary search bug pre-existing — "sync" ⊂ "async" false positive
+- Pushed 5 commits lên main (0bdda5b)
+
+**Anh quyết định:** Hướng automation — Yana là sole orchestrator, Rust cho speed-critical paths
+
+**Trạng thái cuối:** v0.40.0 · 3,465 skills · 95 agents · 10/10 tests ✅ · pushed
+**Pending:** mission-dispatcher Rust binary (Tokio + Git2 + SQLite, ECC2 pattern)
+
+---
