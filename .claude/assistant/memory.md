@@ -495,3 +495,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** GitHub Marketplace mail check (cần GMAIL_APP_PASSWORD)
 
 ---
+
+## 2026-06-06 (session 3) — music page + README + route tests
+
+**Đã làm:**
+- Test auto-classify: 3 route đều đúng
+- Tune confidence divisor 4.0→2.5 — implement không hỏi lại nữa
+- Domain-aware agents + 8 VI keywords + fix "log" false-match "login"
+- Bump v0.41.0, push README (yana-router + mission-dispatcher sections)
+- Thêm MP3 (DJ Thai Hoang Remix 3.4MB) vào docs/music/ + local player section trong music.html
+- DIRECTION.md auto-classify đã có từ session sáng (không cần thêm)
+
+**Anh nói / quyết định:** serve MP3 trực tiếp (không dùng YT ID), wrap up 2 lần
+
+**Trạng thái cuối:** v0.41.0 · 5 commits session này · 7/7 route tests ✅
+**Pending:** Marketplace mail — cần app password mới (2 cái cũ đã lộ trong chat)
+
+---

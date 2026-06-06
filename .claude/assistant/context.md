@@ -13,7 +13,7 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
+1. **GitHub Marketplace** — chờ review → CHECK MAIL (cần app password MỚI — 2 cái cũ đã lộ chat): `export GMAIL_APP_PASSWORD='...' && python3 tools/check-mail.py --from github`
 
 ## Đã biết / blockers
 - Token rotation: ✅ DONE (NPM + CARGO + PYPI đã rotate 03/06)
