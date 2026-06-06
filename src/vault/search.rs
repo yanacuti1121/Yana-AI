@@ -23,15 +23,14 @@ pub fn strip_diacritics(s: &str) -> String {
 /// Check if query matches text.
 /// accent_insensitive: "viet" matches "Việt", "nam" matches "Năm"
 pub fn matches(query: &str, text: &str, accent_insensitive: bool) -> bool {
-    if accent_insensitive {
-        let q = strip_diacritics(&normalize(query));
-        let t = strip_diacritics(&normalize(text));
-        q.split_whitespace().all(|term| t.contains(term))
+    let (q, t) = if accent_insensitive {
+        (strip_diacritics(&normalize(query)), strip_diacritics(&normalize(text)))
     } else {
-        let q = normalize(query);
-        let t = normalize(text);
-        q.split_whitespace().all(|term| t.contains(term))
-    }
+        (normalize(query), normalize(text))
+    };
+    // Each query term must appear as a whole word in text (prevents "sync"⊂"async")
+    let words: Vec<&str> = t.split_whitespace().collect();
+    q.split_whitespace().all(|term| words.contains(&term))
 }
 
 #[cfg(test)]
