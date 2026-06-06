@@ -209,6 +209,21 @@ enum CostAction {
 // ── main ─────────────────────────────────────────────────────────────────────
 
 fn main() {
+    // Exit quietly on broken pipe (e.g. `yamtam-rt mission dispatch | head`)
+    // instead of panicking with "failed printing to stdout: Broken pipe"
+    std::panic::set_hook(Box::new(|info| {
+        let msg = info.payload()
+            .downcast_ref::<String>()
+            .map(|s| s.as_str())
+            .or_else(|| info.payload().downcast_ref::<&str>().copied())
+            .unwrap_or("");
+        if msg.contains("Broken pipe") {
+            std::process::exit(0);
+        }
+        eprintln!("{info}");
+        std::process::exit(1);
+    }));
+
     let cli = Cli::parse();
     match cli.command {
         Commands::Task { action } => match action {
