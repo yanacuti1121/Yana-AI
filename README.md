@@ -16,7 +16,7 @@
   <a href="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml">
     <img src="https://github.com/phamlongh230-lgtm/yamtam-engine/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.40.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.41.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yamtam-engine">
     <img src="https://img.shields.io/npm/v/yamtam-engine?style=for-the-badge&logo=npm&color=cb3837" />
@@ -38,7 +38,7 @@
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
-> **New in v0.40.0:** [Multi-agent parallel launcher](#multi-agent-launcher) — spin up N agents simultaneously with concurrency control, live status, and kill switch.
+> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external and dispatches agents via parallel mission waves. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration with dependency resolution, built in Rust.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
 
@@ -82,7 +82,7 @@ Execute (or block + log)
 | Hooks | **46** pre/post-execution hooks |
 | Slash commands | **164** |
 | Harness adapters | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| Rust subcommands | **17** (`scan`, `graph`, `vault`, `hunt`, `fix`, `doctor`...) |
+| Rust subcommands | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | Rule checks in CI | **826** |
 | Total codebase | **1,129,782 lines · 5,439 files** |
 
@@ -157,14 +157,16 @@ Posts a comment on every PR:
 17 subcommands. Zero Python dependency.
 
 ```bash
-yamtam scan .          # security scan — secrets, CVEs, supply chain risks
-yamtam graph .         # knowledge graph — file deps, import resolution
-yamtam vault search Q  # search 3,432 skills by keyword
-yamtam hunt .          # hunt for security patterns (OWASP, injection, SSRF)
-yamtam fix .           # auto-fix rule violations
-yamtam doctor .        # full system health check
-yamtam map .           # blast radius map — what can the agent touch?
-yamtam ci              # run all gate checks (used in CI)
+yamtam scan .                        # security scan — secrets, CVEs, supply chain risks
+yamtam graph .                       # knowledge graph — file deps, import resolution
+yamtam vault search Q                # search 3,432 skills by keyword
+yamtam hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
+yamtam fix .                         # auto-fix rule violations
+yamtam doctor .                      # full system health check
+yamtam map .                         # blast radius map — what can the agent touch?
+yamtam ci                            # run all gate checks (used in CI)
+yamtam route classify "fix auth bug" # classify task → simple/complex/external
+yamtam mission create "add-auth"     # create parallel agent mission
 ```
 
 **Benchmark:** `yamtam scan` on a 10k-file repo: **1256x faster** than the Python equivalent.
@@ -253,6 +255,63 @@ yamtam badge . --json    # machine-readable output
 ```
 
 → [Full workflow template](docs/install/github-action.yml)
+
+---
+
+## Yana task router
+
+Every task is classified before execution — no more guessing whether to handle it inline or dispatch an agent.
+
+```bash
+yamtam route classify "implement JWT refresh token"
+# → { "route": "complex", "gate": "harness", "confidence": 0.36,
+#     "suggested_agents": ["security-engineer", "backend-developer"] }
+
+yamtam route classify "xem git log 10 commit"
+# → { "route": "simple", "gate": "auto", "confidence": 0.43 }
+
+yamtam route classify "deploy to production"
+# → { "route": "external", "gate": "confirm", "confidence": 0.30 }
+```
+
+Three routes:
+- **simple** → Yana handles directly (read-only, no agents needed)
+- **complex** → dispatch specialist agent(s) with scoped brief
+- **external** → stop, confirm with human before proceeding
+
+Domain-aware agent selection: auth tasks → `security-engineer`, database → `database-expert`, UI → `frontend-developer + ui-ux-designer`.
+
+---
+
+## Mission dispatcher
+
+Wave-based parallel orchestration with dependency resolution — built in Rust, zero Python.
+
+```bash
+# 1. Create mission
+MID=$(yamtam mission create "implement-auth" | awk '/id:/{print $2}')
+
+# 2. Declare tasks with dependencies
+yamtam mission task $MID "design-schema"   --agent database-expert --produces schema.sql
+yamtam mission task $MID "implement-auth"  --agent backend-developer \
+  --consumes schema.sql --produces src/auth.ts
+yamtam mission task $MID "write-tests"     --agent test-engineer \
+  --consumes src/auth.ts --produces tests/auth.test.ts
+
+# 3. Dispatch wave 1 — only tasks whose dependencies are satisfied
+yamtam mission dispatch $MID --max-parallel 3
+# → JSON briefs for each ready agent
+
+# 4. Mark complete, dispatch next wave
+yamtam mission done $MID "design-schema" --evidence schema.sql
+yamtam mission dispatch $MID  # → wave 2 unlocked
+
+# Cancel / retry stuck tasks
+yamtam mission cancel $MID "implement-auth"
+yamtam mission retry  $MID "write-tests"
+```
+
+Tasks marked **Running** on dispatch — re-running `dispatch` never double-dispatches the same task.
 
 ---
 
