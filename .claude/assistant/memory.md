@@ -461,3 +461,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** mission-dispatcher Rust binary (Tokio + Git2 + SQLite, ECC2 pattern)
 
 ---
+
+## 2026-06-06 — mission-dispatcher complete + yana automation stack end-to-end
+
+**Đã làm:**
+- fix(mission): dispatch marks tasks Running ngay lập tức (bug: gọi dispatch 2 lần sẽ re-issue cùng tasks)
+- feat(mission): thêm `cancel` (Running→Pending), `retry` (Failed→Pending), `--instructions` override
+- fix(rt): broken pipe exit 0 thay vì panic ("failed printing to stdout")
+- feat(skill): `mission-run` — full parallel mission loop (199 lines, under limit)
+- feat(skill): tích hợp mission-run vào `yana-classify` — Path A (1-2 agent, direct) vs Path B (3+ / deps, mission loop)
+- Tests: 8/8 mission tests xanh, full suite 52/52
+
+**Anh quyết định:** Tiếp tục automation stack — mission-dispatcher là nền cho Yana orchestrate
+
+**Trạng thái cuối:** v0.40.0 · 4 commits pushed · tests ✅ · automation stack complete
+**Pending:** GitHub Marketplace mail check
+
+---

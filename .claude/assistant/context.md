@@ -13,13 +13,15 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **mission-dispatcher** — Rust binary: Tokio + Git2 + SQLite, pattern từ ECC2, parallel agent orchestration
-2. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
+1. **GitHub Marketplace** — chờ review → CHECK MAIL: `python3 tools/check-mail.py --from github`
+2. **MANIFEST.json version bump** — xem xét lên v0.41.0 sau session hôm nay
 
 ## Đã biết / blockers
 - Token rotation: ✅ DONE (NPM + CARGO + PYPI đã rotate 03/06)
 - yana-router: ✅ built, `yamtam-rt route classify` hoạt động
-- yana automation stack: ✅ route binary + yana-classify skill + DIRECTION routing law + dynamic-workflow-mode skill
+- yana automation stack: ✅ COMPLETE — route binary + yana-classify (Path A/B) + mission-run skill + mission-dispatcher Rust + dynamic-workflow-mode
+- mission-dispatcher: ✅ DONE — dispatch marks Running, cancel/retry/--instructions, broken pipe fix, skill mission-run, tích hợp yana-classify
+- Binary build: CC/AR từ nix store, CARGO_TARGET_DIR=/tmp/yamtam-build (reset sau reconnect)
 - Disk: 79% — thoải mái, build Rust được (vẫn nên dùng CARGO_TARGET_DIR=/tmp/yamtam-build)
 - Codexmate chạy bằng `CODEXMATE_PORT=8080 codexmate run` + Web Preview 8080
 
