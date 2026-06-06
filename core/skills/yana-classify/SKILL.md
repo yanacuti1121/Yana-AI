@@ -74,17 +74,62 @@ Yana **tự xử lý**, không spawn agent, không cần xác nhận.
 
 ### `complex` → gate: `harness`
 
-Yana **tạo mini harness + dispatch agent** từ `suggested_agents`.
+Yana chọn **1 trong 2 path** tùy số subtasks và dependency:
+
+#### Path A — Single agent (1–2 subtasks, không có dep giữa chúng)
+
+Dispatch trực tiếp — không cần mission:
 
 ```
-1. Tạo task brief (scope, files, acceptance criteria)
-2. Dispatch agent phù hợp từ suggested_agents
-3. Nhận report từ agent (subagent-policy: report-only)
-4. Yana apply changes
-5. Verify (build/test nếu có)
+Agent(
+  subagent_type: "<suggested_agents[0]>",
+  prompt: """
+    Task: <task description>
+
+    Scope
+    - owns (may modify):  <files>
+    - produces (must create): <output files>
+    - consumes (available input): <input files nếu có>
+
+    Rules (subagent-policy: report-only)
+    - Do NOT modify any file.
+    - Do NOT run git commit or git push.
+    - Return: plain-text findings + recommended changes with file:line refs.
+  """
+)
+→ Nhận report → Yana apply changes → verify
 ```
 
 **Khi confidence < 0.4**: hỏi anh một câu để xác nhận scope trước khi dispatch.
+
+#### Path B — Multi-agent mission (3+ subtasks hoặc có dep A→B→C)
+
+Dùng `mission-run` để dispatch theo wave:
+
+```
+Dấu hiệu cần Path B:
+  □ suggested_agents có ≥ 2 loại khác nhau
+  □ Output của task A là input của task B
+  □ Task ước tính > 5 file thay đổi
+
+Cách chạy:
+  RT="${YAMTAM_RT:-/tmp/yamtam-build/debug/yamtam-rt}"
+  
+  # 1. Tạo mission
+  MID=$("$RT" mission create "<tên>" | awk '/id:/{print $2}')
+  
+  # 2. Add tasks (lặp cho từng subtask)
+  "$RT" mission task "$MID" "<name>" \
+    --agent <agent> --owns <files> \
+    --produces <out> --consumes <dep-out>
+  
+  # 3. Dispatch wave 1 — lấy JSON briefs
+  BRIEFS=$("$RT" mission dispatch "$MID")
+  
+  # 4. Với mỗi brief → spawn Agent() như Path A
+  #    → apply report → mark done/fail → dispatch wave tiếp
+  #    (xem mission-run skill để biết full loop)
+```
 
 ### `external` → gate: `confirm`
 
@@ -105,28 +150,7 @@ Chỉ proceed sau khi anh trả lời "y" / "có" / "ok" rõ ràng.
 
 ## Fallback — khi binary không build được
 
-Dùng heuristic thủ công (độ chính xác ~80%):
-
-```python
-def classify_fallback(task: str) -> str:
-    t = task.lower()
-    # External signals (highest priority)
-    if any(k in t for k in [
-        "git push", "push origin", "npm publish", "deploy",
-        "kubectl", "terraform apply", "rm -rf", "drop table",
-        "send email", "webhook", "stripe", "docker push"
-    ]):
-        return "external"
-    # Complex signals
-    if any(k in t for k in [
-        "implement", "build", "create", "write", "fix", "refactor",
-        "update", "migrate", "debug", "test", "integrate",
-        "sửa", "tạo", "viết", "thêm", "xây", "nâng cấp"
-    ]):
-        return "complex"
-    # Default: simple
-    return "simple"
-```
+Heuristic nhanh: external nếu có `push/deploy/publish/drop table` → complex nếu có `implement/fix/sửa/tạo` → simple.
 
 ---
 
@@ -177,6 +201,7 @@ Yana nên auto-classify **mọi task** ở đầu session nếu DIRECTION.md có
 ---
 
 ## See also
+- `mission-run` — full multi-agent loop (Path B chi tiết)
 - `subagent-policy` — quy tắc dispatch agent (report-only, không tự sửa file)
 - `conflict-resolution` — xử lý khi multi-agent đề xuất chồng chéo
 - `agents-v2` — agent routing table đầy đủ
