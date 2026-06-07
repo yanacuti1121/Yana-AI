@@ -1,47 +1,45 @@
 // YAMTAM Music Player — shared across all pages
 (function () {
   const DEFAULT_VID = 'aKSJAcG4V4o';
+  const DEFAULT_TRACKS = [
+    'aKSJAcG4V4o','KeoAfgsM8o4','def8pw8Z0DE','oy2CxxQCuhw',
+    'w1wdiibZTl8','JCn0hoILmyw','fuXfT4Rv_WM',
+  ];
+
   let _player = null;
-  let _muted = localStorage.getItem('site-mute') === '1';
+  let _muted   = localStorage.getItem('site-mute') === '1';
   let _resumeBtn = null;
-  let _unlockHandlerAdded = false;
+  let _pendingPlay = false;   // click happened before player ready
 
-  function getVid()    { return localStorage.getItem('music-vid') || DEFAULT_VID; }
-  function getOffset() { return parseFloat(localStorage.getItem('music-offset') || '0'); }
-  function wasPlaying(){ return localStorage.getItem('music-playing') === '1'; }
+  function getVid()     { return localStorage.getItem('music-vid') || DEFAULT_VID; }
+  function getOffset()  { return parseFloat(localStorage.getItem('music-offset') || '0'); }
+  function wasPlaying() { return localStorage.getItem('music-playing') === '1'; }
 
-  // Save exact position + playing state before leaving page
+  // ── Save state on page unload ─────────────────────────────────────────────
   window.addEventListener('beforeunload', () => {
-    if (_player && typeof _player.getCurrentTime === 'function') {
-      try {
-        localStorage.setItem('music-offset', _player.getCurrentTime());
-        const st = _player.getPlayerState();
-        localStorage.setItem('music-playing', st === 1 || st === 3 ? '1' : '0');
-      } catch (e) {}
-    }
+    if (!_player || typeof _player.getCurrentTime !== 'function') return;
+    try {
+      localStorage.setItem('music-offset', _player.getCurrentTime());
+      const st = _player.getPlayerState();
+      localStorage.setItem('music-playing', st === 1 || st === 3 ? '1' : '0');
+    } catch (e) {}
   });
 
-  // ── Resume button (shown when autoplay is blocked) ────────────────────────
+  // ── Resume button ─────────────────────────────────────────────────────────
   function _showResumeBtn() {
-    if (_resumeBtn) return;
+    if (_resumeBtn || window._customToggleMute) return;
     _resumeBtn = document.createElement('button');
     _resumeBtn.id = 'music-resume-btn';
     _resumeBtn.innerHTML = '▶ nhạc';
     Object.assign(_resumeBtn.style, {
       position: 'fixed', bottom: '72px', right: '18px', zIndex: '9999',
-      background: 'hsla(155 52% 28% / .92)', color: '#fff',
+      background: 'hsla(155, 52%, 28%, .92)', color: '#fff',
       border: 'none', borderRadius: '20px', padding: '7px 14px',
       fontSize: '13px', fontWeight: '600', cursor: 'pointer',
       boxShadow: '0 2px 12px rgba(0,0,0,.25)', backdropFilter: 'blur(6px)',
-      transition: 'opacity .2s', letterSpacing: '.02em',
+      transition: 'opacity .2s',
     });
-    _resumeBtn.addEventListener('click', () => {
-      if (_player && typeof _player.playVideo === 'function') {
-        _player.playVideo();
-        if (!_muted) _player.unMute();
-      }
-      _hideResumeBtn();
-    });
+    _resumeBtn.addEventListener('click', _doPlay);
     document.body.appendChild(_resumeBtn);
   }
 
@@ -51,35 +49,84 @@
     setTimeout(() => { _resumeBtn && _resumeBtn.remove(); _resumeBtn = null; }, 220);
   }
 
-  // After a user interaction on page, try to autoplay silently
-  function _addUnlockListener() {
-    if (_unlockHandlerAdded) return;
-    _unlockHandlerAdded = true;
-    const events = ['click', 'touchstart', 'keydown'];
-    function unlock() {
-      if (_player && typeof _player.getPlayerState === 'function') {
-        const st = _player.getPlayerState();
-        if (st !== 1 && st !== 3) { // not playing or buffering
-          _player.playVideo();
-          if (!_muted) _player.unMute();
-          _hideResumeBtn();
-        }
-      }
-      events.forEach(ev => document.removeEventListener(ev, unlock));
+  // ── Core play / pause helpers ─────────────────────────────────────────────
+  function _doPlay() {
+    if (!_player || typeof _player.playVideo !== 'function') {
+      _pendingPlay = true;   // execute once player is ready
+      return;
     }
-    events.forEach(ev => document.addEventListener(ev, unlock, { passive: true }));
+    _player.playVideo();
+    if (!_muted) _player.unMute();
+    _hideResumeBtn();
   }
 
-  // YouTube IFrame API callback
-  window.onYouTubeIframeAPIReady = function () {
+  function _doPause() {
+    if (!_player || typeof _player.pauseVideo !== 'function') return;
+    _player.pauseVideo();
+  }
+
+  // ── Sync button icon ──────────────────────────────────────────────────────
+  function _syncBtn() {
+    if (window._customToggleMute) return; // music.html / io.html manage their own
+    const btn = document.getElementById('mute-btn');
+    if (!btn) return;
+    const playing = _player &&
+      typeof _player.getPlayerState === 'function' &&
+      _player.getPlayerState() === 1;
+    btn.textContent = playing ? '⏸' : '▶';
+    btn.title       = playing ? 'Dừng nhạc' : 'Phát nhạc';
+  }
+
+  // ── toggleMute = play/pause on regular pages ──────────────────────────────
+  if (!window._customToggleMute) {
+    window.toggleMute = function () {
+      if (!_player || typeof _player.getPlayerState !== 'function') {
+        _pendingPlay = true;    // player not ready yet — play when ready
+        return;
+      }
+      const st = _player.getPlayerState();
+      if (st === 1 || st === 3) {
+        _doPause();
+        localStorage.setItem('music-playing', '0');
+      } else {
+        _doPlay();
+        localStorage.setItem('music-playing', '1');
+      }
+      setTimeout(_syncBtn, 150);
+    };
+  }
+
+  // Real mute toggle (used by music.html via toggleMuteLocal)
+  window.toggleMuteOnly = function () {
+    const muted = localStorage.getItem('site-mute') !== '1';
+    localStorage.setItem('site-mute', muted ? '1' : '0');
+    _muted = muted;
+    if (_player) _muted ? _player.mute() : _player.unMute();
+  };
+
+  // ── Player init ───────────────────────────────────────────────────────────
+  function _initPlayer() {
+    if (_player) return;   // already created
+    const el = document.getElementById('yt-player');
+    if (!el) return;
+
     _player = new YT.Player('yt-player', {
       videoId: getVid(),
       playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, playsinline: 1 },
       events: {
         onReady: function (e) {
+          // Restore position
           const off = getOffset();
           if (off > 3) e.target.seekTo(off, true);
-          e.target.playVideo();
+
+          // Execute pending play from button click before player was ready
+          if (_pendingPlay) {
+            _pendingPlay = false;
+            e.target.playVideo();
+          } else {
+            e.target.playVideo();
+          }
+
           if (_muted) {
             e.target.mute();
           } else {
@@ -91,24 +138,18 @@
               if (v >= 100) clearInterval(fade);
             }, 90);
           }
+
           _syncBtn();
 
-          // Check if autoplay was actually allowed after 900ms
-          // (browsers block silently — player stays at UNSTARTED=-1 or CUED=5)
+          // Check autoplay success after 1s
           setTimeout(() => {
             const st = e.target.getPlayerState();
-            if (st !== 1 && st !== 3) { // not playing/buffering
-              if (wasPlaying()) {
-                // Was playing before nav — show resume button
-                _showResumeBtn();
-                // Also try to unlock on first interaction
-                _addUnlockListener();
-              }
-            } else {
-              localStorage.setItem('music-playing', '1');
+            if (st !== 1 && st !== 3 && wasPlaying()) {
+              _showResumeBtn();
             }
-          }, 900);
+          }, 1000);
         },
+
         onStateChange: function (e) {
           if (e.data === YT.PlayerState.PLAYING) {
             localStorage.setItem('music-playing', '1');
@@ -122,22 +163,41 @@
           }
           _syncBtn();
         },
+
         onError: function () {
-          const tracks = JSON.parse(localStorage.getItem('music-tracks') || 'null') || DEFAULT_TRACKS;
+          const raw    = JSON.parse(localStorage.getItem('music-tracks') || 'null');
+          const tracks = raw
+            ? raw.map(t => (typeof t === 'object' ? t.id : t))
+            : DEFAULT_TRACKS;
           const cur = getVid();
-          const idx = tracks.findIndex(t => t.id === cur);
-          const next = tracks[(idx + 1) % tracks.length];
-          if (next && next.id !== cur) _loadTrack(next.id, true);
+          const idx = tracks.indexOf(cur);
+          const next = tracks[(idx < 0 ? 0 : idx + 1) % tracks.length];
+          if (next && next !== cur) _loadTrack(next, true);
         }
       }
     });
-  };
+  }
 
-  const DEFAULT_TRACKS = [
-    'aKSJAcG4V4o','KeoAfgsM8o4','def8pw8Z0DE','oy2CxxQCuhw',
-    'w1wdiibZTl8','JCn0hoILmyw','fuXfT4Rv_WM',
-  ];
+  // Handle YT API ready — works whether API loads fresh OR from cache
+  function _onYTReady() {
+    if (window.YT && window.YT.Player) {
+      _initPlayer();
+    }
+  }
 
+  // If YT API already available (cached page nav), call immediately
+  if (window.YT && window.YT.Player) {
+    _onYTReady();
+  } else {
+    // Otherwise wait for callback
+    const _prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      _prev && _prev();
+      _onYTReady();
+    };
+  }
+
+  // ── Track management ──────────────────────────────────────────────────────
   function _loadTrack(vid, fromStart) {
     localStorage.setItem('music-vid', vid);
     if (fromStart) localStorage.setItem('music-offset', '0');
@@ -147,58 +207,16 @@
     }
   }
 
+  // Sync track change from other tabs / music.html
   window.addEventListener('storage', (e) => {
     if (e.key === 'music-vid' && e.newValue) _loadTrack(e.newValue, true);
   });
 
-  window._musicMute = function (muted) {
-    _muted = muted;
-    if (_player) _muted ? _player.mute() : _player.unMute();
-  };
-
-  // Sync play/pause button icon — only on pages without a custom player UI
-  // (music.html and io.html manage their own button icons)
-  function _syncBtn() {
-    if (window._customToggleMute) return; // hands-off on custom pages
-    const btn = document.getElementById('mute-btn');
-    if (!btn) return;
-    const playing = _player && typeof _player.getPlayerState === 'function'
-      && _player.getPlayerState() === 1;
-    btn.textContent = playing ? '⏸' : '▶';
-    btn.title = playing ? 'Dừng nhạc' : 'Phát nhạc';
-  }
-
-  // On regular pages: toggleMute = play/pause
-  // On custom pages (music.html, io.html): their own toggleMute is used
-  if (!window._customToggleMute) {
-    window.toggleMute = function () {
-      if (!_player || typeof _player.getPlayerState !== 'function') return;
-      const st = _player.getPlayerState();
-      if (st === 1 || st === 3) { // playing or buffering → pause
-        _player.pauseVideo();
-        localStorage.setItem('music-playing', '0');
-      } else {                    // paused/stopped → play
-        _player.playVideo();
-        localStorage.setItem('music-playing', '1');
-        _hideResumeBtn();
-      }
-      setTimeout(_syncBtn, 100);
-    };
-  }
-
-  // Mute toggle — called by music.html / io.html directly
-  window.toggleMuteOnly = function () {
-    const muted = localStorage.getItem('site-mute') !== '1';
-    localStorage.setItem('site-mute', muted ? '1' : '0');
-    _muted = muted;
-    if (_player) _muted ? _player.mute() : _player.unMute();
-  };
-
-  window._pauseMusic  = function () { if (_player?.pauseVideo) _player.pauseVideo(); };
-  window._resumeMusic = function () { if (_player?.playVideo)  _player.playVideo(); };
-  window._getMusicPlaying = function () {
-    return _player?.getPlayerState?.() === 1;
-  };
+  // ── Public API ────────────────────────────────────────────────────────────
+  window._musicMute       = function (m) { _muted = m; if (_player) _muted ? _player.mute() : _player.unMute(); };
+  window._pauseMusic      = _doPause;
+  window._resumeMusic     = _doPlay;
+  window._getMusicPlaying = function () { return _player?.getPlayerState?.() === 1; };
   window._getMusicPlayer  = function () { return _player; };
   window._loadMusicTrack  = _loadTrack;
 
