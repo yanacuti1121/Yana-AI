@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="./docs/yamtam-engine-hero.png" alt="YAMTAM ENGINE" width="100%" />
-</p>
-
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">

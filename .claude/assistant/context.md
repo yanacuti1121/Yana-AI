@@ -3,8 +3,9 @@
 **Cập nhật lần cuối:** 2026-06-07
 
 ## Trạng thái
-- yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean
+- yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean · history rewritten (Antigravity removed)
 - Skills: **3,495** (hôm nay +32 từ GitHub trending, 5 batches)
+- Git history: sạch — không còn binary lớn, force-pushed 2026-06-07
 - Disk: 79% (~988MB free) — đã dọn sạch sáng nay
 - Git user: đã fix lại "Vũ Văn Tâm" (bị Gemini set thành "Gemini AI")
 - Submodule codexmate: đã fork → phamlongh230-lgtm/codexmate, VI patch pushed, URL updated
@@ -30,6 +31,18 @@
 - `aider-groq` → Llama 3.3 70B trên Groq, 14,400 req/ngày
 - `aider-qwen` → Qwen3 32B trên Groq
 - Aider cài tại /tmp/aider-lib (mất sau khi reconnect, reinstall: `pip install aider-chat --target /tmp/aider-lib`)
+
+## Nhắc hàng ngày — đọc to cuối mỗi briefing
+
+> **"Hôm nay tôi chỉ làm sâu hơn lớp cốt lõi — không mở rộng."**
+>
+> YAMTAM không phải tool code. Là lớp điều phối giữa con người và AI.
+> Routing · Safety · Orchestration · Context — làm thật tốt bốn thứ này,
+> mọi domain bên trên chỉ là application layer.
+
+*Trợ lý: cuối mỗi briefing, luôn quote câu in đậm trên.*
+
+---
 
 ## Ghi chú
 - Anh dùng Google Cloud Shell
