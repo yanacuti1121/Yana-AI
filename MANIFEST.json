@@ -11,8 +11,10 @@
       "path": "tools/Antigravity-x64",
       "type": "electron-app",
       "platform": "linux-x64",
-      "note": "Large binaries (antigravity, language_server) excluded from git via .gitignore — reassemble locally from release archive",
-      "added": "2026-06-05"
+      "git_status": "untracked — full folder excluded via .gitignore (2026-06-07)",
+      "note": "All binaries excluded from git. Local files preserved at tools/Antigravity-x64/. History cleaned via git filter-repo (removed ~123MB). Reassemble from release archive when needed.",
+      "added": "2026-06-05",
+      "cleaned": "2026-06-07"
     }
   },
   "import_notes": [
