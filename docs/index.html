@@ -2581,20 +2581,53 @@ function toggleAtlas() {
   <script src="lotus-petals.js" defer></script>
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
-  <button id="mute-btn" onclick="toggleMute()" title="Phát nhạc" style="
-    position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;
-    background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.2);border-radius:50%;
-    width:2.4rem;height:2.4rem;font-size:1rem;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:all .2s;
-  ">▶</button>
-  <a href="music.html" title="Chọn nhạc" style="
-    position:fixed;bottom:1.2rem;right:4.2rem;z-index:9999;
-    background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.18);border-radius:50%;
-    width:2.4rem;height:2.4rem;font-size:.9rem;text-decoration:none;
-    display:flex;align-items:center;justify-content:center;transition:all .2s;
-  ">🎵</a>
+  <audio id="page-mp3" src="music/dj-thai-hoang-remix.mp3" preload="none"></audio>
+  <div style="position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;display:flex;align-items:center;gap:.4rem">
+    <a href="music.html" title="Danh sách nhạc" style="
+      background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.18);border-radius:50%;
+      width:2.2rem;height:2.2rem;font-size:.85rem;text-decoration:none;
+      display:flex;align-items:center;justify-content:center;transition:all .2s;
+    ">🎵</a>
+    <button id="mp3-btn" onclick="togglePageMp3()" title="Phát nhạc tệp" style="
+      background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.2);border-radius:20px;
+      padding:0 .65rem;height:2.2rem;font-size:.72rem;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;gap:.25rem;color:inherit;transition:all .2s;
+    "><span id="mp3-icon">▶</span><span style="opacity:.75;font-size:.65rem;margin-left:.1rem">MP3</span></button>
+    <button id="mute-btn" onclick="toggleMute()" title="Phát nhạc YouTube" style="
+      background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.2);border-radius:20px;
+      padding:0 .65rem;height:2.2rem;font-size:.72rem;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;gap:.25rem;color:inherit;transition:all .2s;
+    "><span id="yt-icon">▶</span><span style="opacity:.75;font-size:.65rem;margin-left:.1rem">YT</span></button>
+  </div>
+  <script>
+  (function(){
+    const el = document.getElementById('page-mp3');
+    let _on = false;
+    window.togglePageMp3 = function() {
+      if (!el) return;
+      if (_on) {
+        el.pause(); _on = false;
+        document.getElementById('mp3-icon').textContent = '▶';
+        document.getElementById('mp3-btn').title = 'Phát nhạc tệp';
+      } else {
+        window._pauseMusic && window._pauseMusic();
+        localStorage.setItem('music-playing','0');
+        el.play().then(function(){
+          _on = true;
+          document.getElementById('mp3-icon').textContent = '⏸';
+          document.getElementById('mp3-btn').title = 'Dừng nhạc tệp';
+        }).catch(function(){});
+      }
+    };
+    el.addEventListener('ended', function(){
+      _on = false;
+      document.getElementById('mp3-icon').textContent = '▶';
+    });
+  })();
+  </script>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music-player.js"></script>
   <style>

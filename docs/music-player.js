@@ -73,8 +73,14 @@
     const playing = _player &&
       typeof _player.getPlayerState === 'function' &&
       _player.getPlayerState() === 1;
-    btn.textContent = playing ? '⏸' : '▶';
-    btn.title       = playing ? 'Dừng nhạc' : 'Phát nhạc';
+    // If button has a separate icon span (#yt-icon), update only that
+    const iconEl = document.getElementById('yt-icon');
+    if (iconEl) {
+      iconEl.textContent = playing ? '⏸' : '▶';
+    } else {
+      btn.textContent = playing ? '⏸' : '▶';
+    }
+    btn.title = playing ? 'Dừng nhạc YT' : 'Phát nhạc YouTube';
   }
 
   // ── toggleMute = play/pause on regular pages ──────────────────────────────
