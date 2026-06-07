@@ -391,8 +391,10 @@
   let _localCur   = null;
 
   function playLocal(idx) {
-    // Pause YouTube player
+    // Pause YouTube player and immediately mark as not-playing
+    // (pauseVideo is async — don't wait for onStateChange to fire)
     window._pauseMusic && window._pauseMusic();
+    localStorage.setItem('music-playing', '0');
     _playing = false;
     syncPlayBtn();
 
@@ -432,6 +434,14 @@
       </div>`).join('');
   }
   // ── End local MP3 ──────────────────────────────────────────────────────────
+
+  // If local MP3 is playing when navigating away, force music-playing=0
+  // so the next page doesn't autostart YouTube
+  window.addEventListener('beforeunload', () => {
+    if (_localAudio && !_localAudio.paused) {
+      localStorage.setItem('music-playing', '0');
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     syncMuteBtn();
