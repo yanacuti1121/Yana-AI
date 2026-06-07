@@ -1,0 +1,63 @@
+# ── Yana Web — production Dockerfile ──────────────────────────────────────
+# Compatible: Linux · macOS · Windows (via Docker Desktop)
+# Arch:       amd64 · arm64 (Apple M-series, Raspberry Pi, AWS Graviton)
+# Base:       node:20-alpine — ~50MB, no CVEs vs ubuntu/debian
+#
+# Build (từ root repo):
+#   docker build -f tools/yana-web/Dockerfile -t yana-web .
+#
+# Run:
+#   docker run -p 8081:8081 yana-web
+#
+# Custom port:
+#   docker run -e PORT=3000 -p 3000:3000 yana-web
+#
+# Mount live skills (dev mode — không cần rebuild khi sửa skills):
+#   docker run -p 8081:8081 \
+#     -v $(pwd)/core/skills:/app/core/skills:ro \
+#     -v $(pwd)/core/agents:/app/core/agents:ro \
+#     yana-web
+
+FROM node:20-alpine
+
+# ── System hardening ───────────────────────────────────────────────────────
+RUN apk add --no-cache tini \
+    && addgroup -S yana \
+    && adduser  -S yana -G yana
+
+# WORKDIR = repo root inside container so __dirname/../../ resolves correctly
+# server.js is at /app/tools/yana-web/server.js
+# __dirname/../.. = /app  →  /app/MANIFEST.json, /app/core/skills ✓
+WORKDIR /app
+
+# ── Copy only what the server needs ───────────────────────────────────────
+# 1. Server source
+COPY tools/yana-web/ ./tools/yana-web/
+
+# 2. MANIFEST (used by /api/status)
+COPY MANIFEST.json ./MANIFEST.json
+
+# 3. Skills — 3,400+ SKILL.md files for skill routing
+#    Comment out if you don't need skill routing (server falls back gracefully)
+COPY core/skills/ ./core/skills/
+
+# 4. Agents — system prompt .md files
+COPY core/agents/ ./core/agents/
+
+# ── Runtime config ─────────────────────────────────────────────────────────
+ENV PORT=8081
+ENV NODE_ENV=production
+
+RUN chown -R yana:yana /app
+USER yana
+
+EXPOSE 8081
+
+# Health check — /health returns {"ok":true,"skills":N}
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD node -e \
+      "require('http').get('http://localhost:'+process.env.PORT+'/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+
+# tini = PID 1 — proper SIGTERM handling, no zombie processes
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "tools/yana-web/server.js"]

@@ -1,0 +1,46 @@
+# Exclude everything by default, whitelist what yana-web needs
+
+# Build artifacts & caches
+node_modules/
+.git/
+*.log
+.DS_Store
+docs-dist/
+site/
+
+# Dev tools
+.idx/
+.planning/
+.vscode/
+.cursor/
+.gemini/
+
+# CI/CD
+.github/
+releases/
+
+# Rust build artifacts
+target/
+*.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+dist/
+
+# Large test fixtures
+core/tests/fixtures/
+examples/unsafe-agent-repo/
+
+# Docs (not needed at runtime)
+docs/
+ledger/
+memory/
+
+# Other tools — not needed for yana-web
+tools/Antigravity-x64/
+tools/codexmate/
+tools/finetune-vi/
+tools/moss-tts-nano/
+tools/codexmate-vi-patch/
