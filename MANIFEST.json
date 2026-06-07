@@ -3,7 +3,7 @@
   "version": "0.41.0",
   "scaffold_version": "1.0",
   "release_date": "2026-06-06",
-  "manifest_updated": "2026-06-06",
+  "manifest_updated": "2026-06-07",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "bundled_tools": {
@@ -16,6 +16,7 @@
     }
   },
   "import_notes": [
+    "v1.7.4-trending — 6 skills from 6 trending repos (2026-06-07): alibaba/open-code-review (AI code review CLI, deterministic file selection + parallel sub-agents, GitHub Actions integration, Apache-2.0), microsoft/Webwright (browser agent writes Playwright scripts not click traces, 86.7% Mind2Web SOTA, MIT), ClaudioDrews/memory-os (7-layer local memory: SQLite+FTS5+Qdrant+Fabric, Ground Truth layer prevents token waste, MIT), nexu-io/open-design (agent-native design platform, 150 DESIGN.md brand systems, 261 plugins, MCP server, Apache-2.0), rohitg00/ai-engineering-from-scratch (503 lessons 20 phases 320h curriculum, backprop→LLM→swarm, MIT), ashishpatel26/500-AI-Projects (reference list 500+ ML/CV/NLP projects with code). Skipped (already present): Botasaurus, claude-code-harness, Scrapling, Superpowers, Hermes Agent, HugoBlox. skills 3463→3469. 2026-06-07.",
     "v1.7.3-synthesis \u2014 3 skills from 5-repo synthesis (NousResearch/hermes-agent + CloakHQ/CloakBrowser): (1) arxiv-research skill \u2014 arXiv API (zero-auth, 1req/3s, XML parse, BibTeX output); (2) semantic-scholar skill \u2014 citation lookup + author h-index (1req/s, JSON API); (3) stealth-browser-automation skill \u2014 CloakBrowser Playwright drop-in pattern (58 C++ patches, humanized mouse/keyboard, fingerprint evasion). Skipped: CodeGraph (already MCP server), Superpowers (imported Phase 2), OpenHuman (GPL-3.0 code). skills 384\u2192387. 2026-05-25.",
     "v1.7.2-synthesis \u2014 2 implementations from 3-repo synthesis (Lum1104/Understand-Anything + rohitg00/agentmemory): (1) codebase-onboard skill \u2014 4-step sequential pipeline (project-scanner\u2192architecture-analyzer\u2192dependency-mapper\u2192tour-builder) adapted from Understand-Anything 6-agent pattern, fixed output format with architecture diagram + reading-order table + 3 workflows + gotchas; (2) decay-memory.sh script \u2014 Ebbinghaus forgetting curve R=e^(-t/S) for L1 atomic facts, stability by confidence (high=90d/medium=30d/low=14d/unverified=7d), FRESH/FADING/STALE/DECAYED labels, --auto-flag writes decay_score to frontmatter. Skipped: triple-stream hybrid search (external vector deps violate dependency-sandbox-law). skills 383\u2192384, scripts +1. 2026-05-25.",
     "v1.4.20 \u2014 Cross-engine hard enforcement + Circuit Breaker + advanced defense rules. safe-run.sh: --engine flag, HARD mode blocks elevated-risk commands for Cursor/Aider without TTY confirm, BYPASS sovereign override. switch-engine.sh cursor: generates .cursor/rules/yamtam-hard-enforcement.mdc routing all bash through safe-run.sh --engine cursor. switch-engine.sh aider: generates .aider.conf.yml with shell proxy + read-only gates on core/. token-budget-guard.sh: Circuit Breaker (CLOSED\u2192OPEN\u2192HALF-OPEN), HARD BLOCK at 5 consecutive calls, circuit-state.json, escalating cooldown (60s\u2192300s\u21921800s), fast-tier model recommendation (claude-haiku-4-5). Rules: 43-prompt-jailbreak-advanced (memory exfiltration, psychological manipulation Phase 1/2, identity spoofing, multi-turn chain detection), 44-supply-chain-vetting (typosquatting, lock file integrity, script injection gate, OSV scan gate, prohibited pipe-to-shell). 2026-05-23.",
@@ -576,7 +577,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 3463,
+      "count": 3469,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
