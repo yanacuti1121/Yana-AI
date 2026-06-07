@@ -68,9 +68,9 @@ if echo "$COMMAND" | grep -qE 'git\s+clean\s+.*-f'; then
   deny "Blocked: 'git clean -f' permanently deletes untracked files. Ask the human to confirm before running this."
 fi
 
-# Direct pushes to main/master are handled by branch protection, but block at hook level too.
+# Direct pushes to main/master require pre-push verification (rule 65-pre-push-verify-law).
 if echo "$COMMAND" | grep -qE 'git\s+push\s+(origin\s+)?(main|master)\b'; then
-  deny "Blocked: direct push to main/master. Create a feature branch and open a PR instead."
+  deny "Blocked: run 'bash .git/hooks/pre-push' to verify first, then disable this check temporarily to push (see 65-pre-push-verify-law.md)."
 fi
 
 # ── Destructive SQL operations ────────────────────────────────────────────────
