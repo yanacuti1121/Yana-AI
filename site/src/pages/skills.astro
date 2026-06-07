@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+---
+<BaseLayout
+  title="YAMTAM Library — Skills & Agents"
+  description="Browse 3,440 workflow skills and 93 agents for Claude Code, Cursor, and Codex."
+  ogUrl="https://phamlongh230-lgtm.github.io/yamtam-engine/skills"
+  active="skills"
+>
+  <Nav slot="nav" active="skills" />
+
+  <style>
+  .hero{padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto;text-align:center}
+  .stat-chips{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-bottom:2rem}
+  .chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:.35rem .9rem;font-size:.85rem;font-weight:600}
+  .chip span{color:var(--orange);margin-right:.35rem}
+  .search-wrap{max-width:600px;margin:0 auto 1.5rem;position:relative;padding:0 2rem}
+  .search-input{width:100%;padding:.75rem 1rem .75rem 2.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:1rem;font-family:inherit;outline:none;transition:var(--transition)}
+  .search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.15)}
+  .search-icon{position:absolute;left:2.85rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .search-count{position:absolute;right:2.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+  .tabs{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;padding:0 2rem 1.5rem;max-width:1200px;margin:0 auto}
+  .tab{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.4rem .9rem;font-size:.85rem;font-weight:500;cursor:pointer;color:var(--muted);transition:var(--transition);font-family:inherit}
+  .tab:hover{color:var(--text);border-color:var(--muted)}
+  .tab.active{background:var(--bg3);border-color:var(--ns-color,var(--orange));color:var(--ns-color,var(--orange))}
+  .tab-count{opacity:.6;margin-left:.3rem}
+  .grid-wrap{max-width:1200px;margin:0 auto;padding:0 2rem 4rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+  .card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;cursor:default;transition:var(--transition);border-left:3px solid transparent;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1)}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem}
+  .card-name{font-weight:600;font-size:.95rem;font-family:'JetBrains Mono',monospace;word-break:break-word;line-height:1.4}
+  .card-badges{display:flex;gap:.3rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+  .badge{font-size:.7rem;padding:.15rem .5rem;border-radius:4px;font-weight:600;white-space:nowrap}
+  .badge-scripts{background:rgba(88,166,255,.15);color:var(--blue)}
+  .badge-license{background:rgba(63,185,80,.1);color:var(--green)}
+  .card-desc{color:var(--muted);font-size:.82rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-ns{margin-top:.6rem;font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+  .ns-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .empty{text-align:center;padding:4rem;color:var(--muted)}
+  footer{text-align:center;padding:2rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--border)}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--text)}
+  </style>
+
+  <div class="hero">
+    <h1 style="font-family:var(--hand);font-size:clamp(2rem,4vw,3rem);font-weight:700" data-i18n="hero.title">YAMTAM Library</h1>
+    <p style="color:var(--muted);font-size:1.1rem;max-width:600px;margin:.75rem auto 2rem">3,440 skills · 93 agents · tìm kiếm và lọc theo danh mục</p>
+
+    <div style="display:inline-flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem;background:var(--bg2)">
+      <button id="mode-skills" onclick="setMode('skills')" style="padding:.55rem 1.5rem;font-size:.9rem;font-weight:600;border:none;cursor:pointer;background:var(--blue);color:#fff;font-family:inherit;transition:all .15s">📚 Skills <span style="opacity:.75;font-size:.8rem">3,440</span></button>
+      <button id="mode-agents" onclick="setMode('agents')" style="padding:.55rem 1.5rem;font-size:.9rem;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--muted);font-family:inherit;transition:all .15s">🤖 Agents <span style="opacity:.75;font-size:.8rem">93</span></button>
+    </div>
+
+    <div id="skills-chips" class="stat-chips">
+      <div class="chip"><span>🛡️</span>740 YAMTAM Core</div>
+      <div class="chip"><span>🔌</span>423 OpenAI Plugins</div>
+      <div class="chip"><span>⚡</span>1009 TerminalSkills</div>
+      <div class="chip"><span>🎨</span>19 Venice AI</div>
+      <div class="chip"><span>🏆</span>20 Sports</div>
+    </div>
+    <div id="agents-chips" class="stat-chips" style="display:none">
+      <div class="chip"><span>⚙️</span>core</div>
+      <div class="chip"><span>✅</span>quality</div>
+      <div class="chip"><span>🏗️</span>infra</div>
+      <div class="chip"><span>💼</span>business</div>
+      <div class="chip"><span>🧠</span>data-ai</div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+    </svg>
+    <input class="search-input" id="search" type="search" placeholder="Search skills or agents..." autocomplete="off" spellcheck="false">
+    <span class="search-count" id="search-count"></span>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-ns="all">All <span class="tab-count">3432</span></button>
+    <button class="tab" data-ns="openai" style="--ns-color:#10a37f">🔌 OpenAI <span class="tab-count">423</span></button>
+    <button class="tab" data-ns="terminal" style="--ns-color:#6366f1">⚡ Terminal <span class="tab-count">1009</span></button>
+    <button class="tab" data-ns="venice" style="--ns-color:#f59e0b">🎨 Venice <span class="tab-count">19</span></button>
+    <button class="tab" data-ns="sports" style="--ns-color:#22c55e">🏆 Sports <span class="tab-count">20</span></button>
+    <button class="tab" data-ns="yamtam" style="--ns-color:#3b82f6">🛡️ YAMTAM <span class="tab-count">740</span></button>
+  </div>
+  <div class="tabs" id="agent-tabs" style="display:none">
+    <button class="tab active" data-domain="all">All <span class="tab-count">93</span></button>
+    <button class="tab" data-domain="core" style="--ns-color:#3b82f6">⚙️ Core <span class="tab-count"></span></button>
+    <button class="tab" data-domain="quality" style="--ns-color:#10a37f">✅ Quality <span class="tab-count"></span></button>
+    <button class="tab" data-domain="infra" style="--ns-color:#6366f1">🏗️ Infra <span class="tab-count"></span></button>
+    <button class="tab" data-domain="business" style="--ns-color:#f59e0b">💼 Business <span class="tab-count"></span></button>
+    <button class="tab" data-domain="data-ai" style="--ns-color:#bc8cff">🧠 Data/AI <span class="tab-count"></span></button>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" style="display:none">
+      <h3>No skills found</h3>
+      <p>Try a different search term or filter</p>
+    </div>
+  </div>
+
+  <footer>
+    <p><a href="https://github.com/phamlongh230-lgtm/yamtam-engine">YAMTAM ENGINE</a> · v0.17.0 · Apache 2.0 · 3,440 skills · 93 agents</p>
+  </footer>
+
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <script src="/water-bg.js" defer></script>
+  <script src="/water-droplet.js" defer></script>
+  <script src="/lotus-petals.js" defer></script>
+
+  <script is:inline slot="scripts">
+  let SKILLS = [], AGENTS = [];
+  let mode = 'skills';
+  const NS_COLORS = { openai:"#10a37f", terminal:"#6366f1", venice:"#f59e0b", sports:"#22c55e", yamtam:"#3b82f6" };
+  const NS_ICONS  = { openai:"🔌", terminal:"⚡", venice:"🎨", sports:"🏆", yamtam:"🛡️" };
+  const NS_LABELS = { openai:"OpenAI Plugins", terminal:"TerminalSkills", venice:"Venice AI", sports:"Sports", yamtam:"YAMTAM Core" };
+  const DOM_COLORS = { core:"#3b82f6", quality:"#10a37f", infra:"#6366f1", business:"#f59e0b", 'data-ai':"#bc8cff" };
+  const DOM_ICONS  = { core:"⚙️", quality:"✅", infra:"🏗️", business:"💼", 'data-ai':"🧠" };
+  const MODEL_COLORS = { opus:"#f43f5e", sonnet:"#3b82f6", haiku:"#10a37f" };
+  let currentNs = "all", currentDomain = "all", currentQ = "";
+  const grid = document.getElementById("grid");
+  const emptyMsg = document.getElementById("empty");
+  const searchEl = document.getElementById("search");
+  const searchCount = document.getElementById("search-count");
+  const tabs = document.getElementById("tabs");
+  const agentTabs = document.getElementById("agent-tabs");
+  function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function makeSkillCard(s){
+    const color=NS_COLORS[s.ns]||"#8b949e",icon=NS_ICONS[s.ns]||"•",lic=s.license?`<span class="badge badge-license">${esc(s.license)}</span>`:"",scr=s.scripts?`<span class="badge badge-scripts">scripts</span>`:"";
+    return `<div class="card" style="border-left-color:${color}"><div class="card-top"><div class="card-name">${esc(s.short)}</div><div class="card-badges">${scr}${lic}</div></div><div class="card-desc">${esc(s.desc)}</div><div class="card-ns"><div class="ns-dot" style="background:${color}"></div>${icon} ${NS_LABELS[s.ns]||s.ns}</div></div>`;
+  }
+  function makeAgentCard(a){
+    const color=DOM_COLORS[a.domain]||"#8b949e",icon=DOM_ICONS[a.domain]||"🤖",mc=MODEL_COLORS[a.model]||"#8b949e",tools=a.tools?`<span class="badge badge-scripts">${a.tools} tools</span>`:"",model=`<span class="badge" style="background:${mc}22;color:${mc}">${esc(a.model)}</span>`;
+    return `<div class="card" style="border-left-color:${color}"><div class="card-top"><div class="card-name">${esc(a.name)}</div><div class="card-badges">${tools}${model}</div></div><div class="card-desc">${esc(a.desc)}</div><div class="card-ns"><div class="ns-dot" style="background:${color}"></div>${icon} ${a.domain}</div></div>`;
+  }
+  function filterSkills(){
+    const q=currentQ.toLowerCase();let shown=0,html="";
+    for(const s of SKILLS){
+      if(currentNs!=="all"&&s.ns!==currentNs)continue;
+      if(q&&!s.name.toLowerCase().includes(q)&&!(s.short||"").toLowerCase().includes(q)&&!(s.desc||"").toLowerCase().includes(q))continue;
+      html+=makeSkillCard(s);shown++;if(shown>=500)break;
+    }
+    grid.innerHTML=html;emptyMsg.style.display=shown?"none":"block";
+    const total=currentNs==="all"?SKILLS.length:SKILLS.filter(s=>s.ns===currentNs).length;
+    searchCount.textContent=(q||currentNs!=="all")?`${shown} / ${total}`:`${SKILLS.length.toLocaleString()}`;
+  }
+  function filterAgents(){
+    const q=currentQ.toLowerCase();let shown=0,html="";
+    for(const a of AGENTS){
+      if(currentDomain!=="all"&&a.domain!==currentDomain)continue;
+      if(q&&!a.name.toLowerCase().includes(q)&&!(a.desc||"").toLowerCase().includes(q))continue;
+      html+=makeAgentCard(a);shown++;
+    }
+    grid.innerHTML=html;emptyMsg.style.display=shown?"none":"block";
+    searchCount.textContent=shown<AGENTS.length?`${shown} / ${AGENTS.length}`:`${AGENTS.length}`;
+  }
+  function filter(){ mode==='skills'?filterSkills():filterAgents(); }
+  searchEl.addEventListener("input",e=>{currentQ=e.target.value;filter();});
+  tabs.addEventListener("click",e=>{const btn=e.target.closest(".tab");if(!btn)return;tabs.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");currentNs=btn.dataset.ns;filter();});
+  agentTabs.addEventListener("click",e=>{const btn=e.target.closest(".tab");if(!btn)return;agentTabs.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");currentDomain=btn.dataset.domain;filter();});
+  function setMode(m){
+    mode=m;const sb=document.getElementById("mode-skills"),ab=document.getElementById("mode-agents"),sc=document.getElementById("skills-chips"),ac=document.getElementById("agents-chips");
+    if(m==='skills'){sb.style.background="var(--blue)";sb.style.color="#fff";ab.style.background="transparent";ab.style.color="var(--muted)";tabs.style.display="flex";agentTabs.style.display="none";sc.style.display="flex";ac.style.display="none";searchEl.placeholder="Search skills...";}
+    else{ab.style.background="var(--blue)";ab.style.color="#fff";sb.style.background="transparent";sb.style.color="var(--muted)";tabs.style.display="none";agentTabs.style.display="flex";sc.style.display="none";ac.style.display="flex";searchEl.placeholder="Search agents...";
+      const domains={};AGENTS.forEach(a=>{domains[a.domain]=(domains[a.domain]||0)+1;});
+      agentTabs.querySelectorAll("[data-domain]").forEach(btn=>{const d=btn.dataset.domain;if(d!=="all"){const span=btn.querySelector(".tab-count");if(span)span.textContent=domains[d]||0;}});
+    }
+    currentQ="";searchEl.value="";filter();
+  }
+  Promise.all([fetch("/skills-data.json").then(r=>r.json()),fetch("/agents-data.json").then(r=>r.json())]).then(([skills,agents])=>{SKILLS=skills;AGENTS=agents;filter();}).catch(()=>{emptyMsg.innerHTML="<h3>Could not load data</h3><p>Open from a server</p>";emptyMsg.style.display="block";});
+  </script>
+</BaseLayout>

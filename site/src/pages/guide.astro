@@ -1,0 +1,186 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+---
+<BaseLayout
+  title="Guide — YAMTAM ENGINE"
+  description="Installation, CLI usage, gate system and skills documentation for YAMTAM ENGINE."
+  ogUrl="https://phamlongh230-lgtm.github.io/yamtam-engine/guide"
+  active="guide"
+>
+  <Nav slot="nav" active="guide" />
+
+  <style>
+  :root{--accent:hsl(155,52%,32%);--green:#16a34a;--red:#dc2626}
+  .dark{--accent:hsl(155,52%,42%);--green:#4ade80;--red:#f87171}
+  .layout{display:grid;grid-template-columns:220px 1fr;max-width:1100px;margin:0 auto;padding:3rem 2rem;gap:3rem}
+  @media(max-width:700px){.layout{grid-template-columns:1fr}aside{display:none}}
+  aside{position:sticky;top:88px;height:fit-content}
+  aside ul{list-style:none;display:flex;flex-direction:column;gap:.25rem}
+  aside a{color:var(--muted);text-decoration:none;font-size:.875rem;padding:.3rem .75rem;border-radius:6px;display:block;transition:all .15s}
+  aside a:hover,aside a.active{color:var(--text);background:var(--bg2)}
+  aside .section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.75rem .75rem .25rem;margin-top:.5rem;display:block}
+  article{min-width:0;line-height:1.6}
+  h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+  h2{font-size:1.35rem;font-weight:700;margin:2.5rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border)}
+  h3{font-size:1rem;font-weight:600;margin:1.5rem 0 .5rem;color:var(--accent)}
+  p{color:var(--muted);margin-bottom:.75rem;font-size:.925rem}
+  pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:ui-monospace,monospace;font-size:.825rem;line-height:1.6}
+  code{font-family:ui-monospace,monospace;font-size:.875em;background:var(--bg2);padding:.1em .35em;border-radius:4px;color:var(--accent)}
+  .tip{background:#1a2a1a;border:1px solid #2a4a2a;border-radius:8px;padding:.875rem 1.25rem;margin:1rem 0;font-size:.875rem}
+  .tip strong{color:var(--green)}
+  .warn{background:#2a1a0a;border:1px solid #4a3a1a;border-radius:8px;padding:.875rem 1.25rem;margin:1rem 0;font-size:.875rem}
+  .warn strong{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.875rem}
+  th{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  td{padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--muted)}
+  td:first-child{color:var(--text);font-family:ui-monospace,monospace;font-size:.8rem}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 0 2rem;border-top:1px solid var(--border);margin-top:4rem}
+  </style>
+
+  <div class="layout">
+    <aside>
+      <ul>
+        <li><span class="section-label">Getting Started</span></li>
+        <li><a href="#install">Installation</a></li>
+        <li><a href="#first-scan">First Scan</a></li>
+        <li><a href="#gates">Gate System</a></li>
+        <li><span class="section-label">Runtime CLI</span></li>
+        <li><a href="#scan">scan</a></li>
+        <li><a href="#hunt">hunt</a></li>
+        <li><a href="#ci">ci</a></li>
+        <li><a href="#watch">watch</a></li>
+        <li><a href="#init">init</a></li>
+        <li><a href="#commands">All Commands</a></li>
+        <li><span class="section-label">Skills & Agents</span></li>
+        <li><a href="#skills">Using Skills</a></li>
+        <li><a href="#agents">Agent Teams</a></li>
+      </ul>
+    </aside>
+
+    <article>
+      <h1>YAMTAM ENGINE Guide</h1>
+      <p>Everything you need to install, configure, and run YAMTAM ENGINE.</p>
+
+      <h2 id="install">Installation</h2>
+      <p>Three components, install what you need:</p>
+      <pre><code># Claude Code plugin (hooks, skills, agents wired automatically)
+npm install yamtam-engine
+npx yamtam-install        # wire hooks into .claude/
+
+# Rust runtime (scan, hunt, watch, ci, map…)
+cargo install yamtam-rt
+
+# Python CLI (legacy commands)
+pip install yamtam-engine</code></pre>
+      <div class="tip"><strong>Tip:</strong> Run <code>npx yamtam-install</code> once after npm install — it wires the PreToolUse / PostToolUse hooks into your <code>.claude/settings.json</code>.</div>
+
+      <h2 id="first-scan">First Scan</h2>
+      <p>Scan your project for agent security risks in 30 seconds:</p>
+      <pre><code>cd your-project
+yamtam-rt scan .
+
+# JSON output
+yamtam-rt scan . --json
+
+# Only show critical/high findings
+yamtam-rt scan . --fail-on high
+
+# Scan only changed files since main
+yamtam-rt scan . --diff origin/main</code></pre>
+
+      <h2 id="gates">Gate System</h2>
+      <p>YAMTAM intercepts every Claude tool call through a layered gate pipeline:</p>
+      <table>
+        <tr><th>Gate</th><th>Layer</th><th>Blocks</th></tr>
+        <tr><td>L0</td><td>Audit chain</td><td>Log tampering, replay attacks</td></tr>
+        <tr><td>L1</td><td>Anti-evasion</td><td>base64 decode→exec, pipe-to-shell, eval</td></tr>
+        <tr><td>L2</td><td>Sanitize</td><td>Subshell injection, LD_PRELOAD, env hijack</td></tr>
+        <tr><td>L2.5</td><td>Overlay sandbox</td><td>Write to core/ without signature</td></tr>
+        <tr><td>L3</td><td>Runtime isolation</td><td>Docker/nsjail sandbox escape</td></tr>
+        <tr><td>L4</td><td>Supply chain</td><td>Unvetted package installs</td></tr>
+        <tr><td>L5</td><td>UI quality</td><td>Arbitrary hex colors, missing dark mode</td></tr>
+      </table>
+      <div class="warn"><strong>Note:</strong> Gates run automatically when hooks are wired. No config needed beyond <code>npx yamtam-install</code>.</div>
+
+      <h2 id="scan">yamtam-rt scan</h2>
+      <p>Full security audit of your <code>.claude/</code> setup and source files.</p>
+      <pre><code>yamtam-rt scan .                    # full scan
+yamtam-rt scan . --only secrets     # secrets only
+yamtam-rt scan . --markdown out.md  # write report
+yamtam-rt scan . --sarif out.sarif  # SARIF for GitHub</code></pre>
+
+      <h2 id="hunt">yamtam-rt hunt</h2>
+      <p>Active scanner — goes deeper into code vulnerabilities and supply chain.</p>
+      <pre><code>yamtam-rt hunt run .         # full hunt
+yamtam-rt hunt secrets .     # secrets only
+yamtam-rt hunt deps .        # dependency audit</code></pre>
+
+      <h2 id="ci">yamtam-rt ci</h2>
+      <p>CI/CD workflow security check — unpinned actions, missing permissions, secret exposure.</p>
+      <pre><code>yamtam-rt ci check .github/workflows/
+yamtam-rt ci check .github/workflows/deploy.yml</code></pre>
+
+      <h2 id="watch">yamtam-rt watch</h2>
+      <p>Live file watcher — prints changes to skills, agents, rules as they happen.</p>
+      <pre><code>yamtam-rt watch start
+yamtam-rt watch start --dirs core/skills,src
+yamtam-rt watch start --interval 5</code></pre>
+
+      <h2 id="init">yamtam-rt init</h2>
+      <p>Auto-setup YAMTAM in any project.</p>
+      <pre><code>yamtam-rt init run .          # setup current directory
+yamtam-rt init run ~/my-app   # setup another project
+yamtam-rt init dry .          # preview without writing files</code></pre>
+
+      <h2 id="commands">All Commands</h2>
+      <table>
+        <tr><th>Command</th><th>Description</th></tr>
+        <tr><td>init</td><td>Auto-setup YAMTAM in any project</td></tr>
+        <tr><td>scan</td><td>Security audit of agent setup + source</td></tr>
+        <tr><td>hunt</td><td>Active code vulnerability scanner</td></tr>
+        <tr><td>ci</td><td>CI/CD workflow health check</td></tr>
+        <tr><td>map</td><td>Agent blast radius — what AI can reach</td></tr>
+        <tr><td>fix</td><td>Auto-apply safe fixes for known finding IDs</td></tr>
+        <tr><td>score</td><td>Audit score with deduction breakdown</td></tr>
+        <tr><td>doctor</td><td>Environment and dependency health</td></tr>
+        <tr><td>watch</td><td>Live file monitor for skills/agents/rules</td></tr>
+        <tr><td>graph</td><td>Knowledge graph — build/search/diff</td></tr>
+        <tr><td>vault</td><td>Vietnamese-first knowledge vault</td></tr>
+        <tr><td>bus</td><td>Agent message bus — emit/read/reply</td></tr>
+        <tr><td>memory</td><td>L3 shared memory across sessions</td></tr>
+        <tr><td>task</td><td>Task lifecycle with evidence</td></tr>
+        <tr><td>cost</td><td>Token usage and spend tracking</td></tr>
+      </table>
+
+      <h2 id="skills">Using Skills</h2>
+      <p>Skills are slash commands for Claude Code. With yamtam-engine installed, 3,457 skills are available.</p>
+      <pre><code># In Claude Code chat:
+/security-review       # OWASP review of current diff
+/tdd-cycle             # Red → Green → Refactor loop
+/debug                 # Systematic debugging
+/code-review           # Code quality review
+/wrap-up               # End-of-session summary</code></pre>
+      <p>Browse all skills at <a href="/skills" style="color:var(--accent)">Skills</a> or search at <a href="/search" style="color:var(--accent)">Search</a>.</p>
+
+      <h2 id="agents">Agent Teams</h2>
+      <p>95 specialized agents auto-routed by <code>/agent-router</code>. Key agents:</p>
+      <table>
+        <tr><th>Agent</th><th>When used</th></tr>
+        <tr><td>planner</td><td>Before any 3+ file feature</td></tr>
+        <tr><td>code-reviewer</td><td>After writing code</td></tr>
+        <tr><td>security-reviewer</td><td>Before merge on sensitive code</td></tr>
+        <tr><td>tdd-guide</td><td>Test-driven development workflow</td></tr>
+        <tr><td>database-reviewer</td><td>Schema changes, migrations</td></tr>
+        <tr><td>build-error-resolver</td><td>When build fails</td></tr>
+      </table>
+    </article>
+  </div>
+
+  <footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a> · Built by Vũ Văn Tâm · Vietnam</footer>
+
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <script src="/water-bg.js" defer></script>
+  <script src="/water-droplet.js" defer></script>
+  <script src="/lotus-petals.js" defer></script>
+</BaseLayout>

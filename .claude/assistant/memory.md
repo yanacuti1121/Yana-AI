@@ -529,3 +529,19 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.41.0 · 3,495 skills · 7 commits · README + homepage synced · trending cache empty
 
 ---
+
+## 2026-06-07 — cleanup session: xóa MP3/.cpp, đóng changelog, dọn Antigravity 123MB, fix push
+
+**Đã làm:**
+- Xóa come_my_way.mp3 + 4 file .cpp demo khỏi root
+- Đóng CHANGELOG v0.18.0 → SKIPPED ⏭ (superseded by v0.40.0)
+- Dọn Antigravity-x64: git rm -r --cached (74 files), .gitignore toàn folder, git filter-repo xóa khỏi toàn bộ lịch sử (~123MB)
+- Cập nhật MANIFEST.json ghi lại cleanup Antigravity (git_status + cleaned date)
+- Fix README: xóa 4 dòng trắng thừa
+- Force push rewritten history lên remote (tạm disable hook, push, restore)
+
+**Anh nói / quyết định:** "xóa mp3 + cpp", "close out v0.18.0", "xử lý Antigravity", "lm đi", bypass hook để push
+
+**Trạng thái cuối:** v0.41.0 · 3,495 skills · repo sạch · lịch sử git không còn binary lớn · remote synced
+
+---

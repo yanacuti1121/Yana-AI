@@ -1,0 +1,75 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  ogUrl?: string;
+  active?: string;
+  fonts?: string; // extra Google Fonts URL
+}
+
+const {
+  title,
+  description = 'YAMTAM ENGINE — AI workflow engine for Claude Code, Cursor, and Codex.',
+  ogImage = 'https://phamlongh230-lgtm.github.io/yamtam-engine/yamtam-engine-overview.png',
+  ogUrl,
+  active,
+  fonts,
+} = Astro.props;
+
+const canonicalUrl = ogUrl ?? `https://phamlongh230-lgtm.github.io/yamtam-engine${Astro.url.pathname}`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:url" content={canonicalUrl}>
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content={title}>
+  <meta name="twitter:description" content={description}>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href={`https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500${fonts ? `&${fonts}` : ''}&display=swap`} rel="stylesheet">
+  <link rel="stylesheet" href="/global.css">
+  <!-- Dark mode init — must run before paint to avoid flash -->
+  <script is:inline>
+    (function(){
+      var s = localStorage.getItem('theme');
+      if (s === 'dark' || (!s && matchMedia('(prefers-color-scheme:dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+  <slot name="head" />
+</head>
+<body>
+  <slot name="nav" />
+  <slot />
+
+  <!-- Fixed music controls -->
+  <button id="mute-btn" onclick="toggleMute()" title="Nhạc" style="position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:2.4rem;height:2.4rem;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s">🔊</button>
+  <a href="/music" title="Chọn nhạc" style="position:fixed;bottom:1.2rem;right:4.2rem;z-index:9999;background:rgba(255,255,255,.10);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);border-radius:50%;width:2.4rem;height:2.4rem;font-size:.9rem;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .2s">🎵</a>
+
+  <script is:inline src="/shared-theme.js"></script>
+  <script is:inline src="https://www.youtube.com/iframe_api"></script>
+  <script is:inline src="/music-player.js"></script>
+  <script is:inline src="/i18n.js"></script>
+  <script is:inline>
+    function toggleHbg(){
+      var h=document.getElementById('hbg'),d=document.getElementById('mob-drawer');
+      if(!h||!d) return;
+      h.classList.toggle('open');
+      d.classList.toggle('open');
+      document.body.style.overflow=d.classList.contains('open')?'hidden':'';
+    }
+  </script>
+  <slot name="scripts" />
+</body>
+</html>

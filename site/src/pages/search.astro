@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+---
+<BaseLayout
+  title="Search — YAMTAM ENGINE"
+  description="Search 3,457 skills, 95 agents, commands and rules in YAMTAM ENGINE."
+  ogUrl="https://phamlongh230-lgtm.github.io/yamtam-engine/search"
+  active="search"
+>
+  <Nav slot="nav" active="search" />
+
+  <style>
+  :root{--accent:hsl(155,52%,32%);--green:#16a34a}
+  .dark{--accent:hsl(155,52%,42%);--green:#4ade80}
+  main{max-width:900px;margin:0 auto;padding:3rem 2rem}
+  h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+  .subtitle{color:var(--muted);margin-bottom:2rem;font-size:.95rem}
+  .search-wrap{position:relative;margin-bottom:1.5rem}
+  #q{width:100%;padding:.875rem 1.25rem .875rem 3rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:1rem;outline:none;transition:border-color .15s;font-family:inherit}
+  #q:focus{border-color:var(--accent)}
+  .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.1rem;pointer-events:none}
+  .filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+  .filter-btn{padding:.35rem .85rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .15s;font-family:inherit}
+  .filter-btn.active,.filter-btn:hover{background:var(--accent);border-color:var(--accent);color:#000}
+  .stats{color:var(--muted);font-size:.85rem;margin-bottom:1rem}
+  .results{display:grid;gap:.5rem}
+  .item{padding:.875rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s;text-decoration:none;display:block}
+  .item:hover{border-color:var(--accent)}
+  .item-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.3rem}
+  .item-name{font-weight:600;font-size:.95rem;color:var(--text)}
+  .badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
+  .badge-skill{background:#1a3a2a;color:var(--green)}
+  .badge-agent{background:#1a2a3a;color:var(--blue)}
+  .badge-command{background:#2a2a1a;color:#fbbf24}
+  .badge-rule{background:#2a1a1a;color:#f87171}
+  .item-desc{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .empty{text-align:center;color:var(--muted);padding:4rem 0}
+  .empty span{font-size:3rem;display:block;margin-bottom:1rem}
+  .highlight{background:hsla(155,52%,42%,.22);color:hsl(155,52%,62%);border-radius:2px;padding:0 1px}
+  .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,#252320 50%,var(--bg2) 75%);background-size:200% 100%;animation:sk-shimmer 1.4s infinite;border-radius:10px;height:64px;border:1px solid var(--border)}
+  @keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .more-btn{display:block;width:100%;padding:.75rem;margin-top:.75rem;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:.85rem;cursor:pointer;transition:all .15s;font-family:inherit}
+  .more-btn:hover{border-color:var(--accent);color:var(--accent)}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 0 2rem}
+  </style>
+
+  <main>
+    <h1 data-i18n="page.h1">Search</h1>
+    <p class="subtitle" id="subtitle">Loading index…</p>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="q" type="search" placeholder="Search skills, agents, commands, rules…" autofocus autocomplete="off">
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-type="all">All</button>
+      <button class="filter-btn" data-type="skill">Skills</button>
+      <button class="filter-btn" data-type="agent">Agents</button>
+      <button class="filter-btn" data-type="command">Commands</button>
+      <button class="filter-btn" data-type="rule">Rules</button>
+    </div>
+
+    <p class="stats" id="stats"></p>
+    <div class="results" id="results"></div>
+  </main>
+
+  <footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
+
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <script src="/water-bg.js" defer></script>
+  <script src="/water-droplet.js" defer></script>
+  <script src="/lotus-petals.js" defer></script>
+
+  <script is:inline slot="scripts">
+  let INDEX=[],activeType='all',_shown=60,_debounce;
+  function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function hi(text,q){if(!q)return esc(text);const idx=text.toLowerCase().indexOf(q.toLowerCase());if(idx<0)return esc(text);return esc(text.slice(0,idx))+`<mark class="highlight">${esc(text.slice(idx,idx+q.length))}</mark>`+esc(text.slice(idx+q.length));}
+  function showSkeleton(){document.getElementById('results').innerHTML=Array(6).fill('<div class="skeleton"></div>').join('');}
+  async function loadData(){
+    showSkeleton();
+    const[skills,agents,commands,rules]=await Promise.all([
+      fetch('/skills-data.json').then(r=>r.json()).catch(()=>[]),
+      fetch('/agents-data.json').then(r=>r.json()).catch(()=>[]),
+      fetch('/commands-data.json').then(r=>r.json()).catch(()=>[]),
+      fetch('/rules-data.json').then(r=>r.json()).catch(()=>[]),
+    ]);
+    INDEX=[
+      ...skills.map(s=>({type:'skill',id:s.id||s.name,name:s.name||s.id,desc:s.desc||''})),
+      ...agents.map(a=>({type:'agent',id:a.id||a.name,name:a.name||a.id,desc:a.desc||a.description||''})),
+      ...commands.map(c=>({type:'command',id:c.name||c.id,name:c.name||c.id,desc:c.description||c.desc||''})),
+      ...rules.map(r=>({type:'rule',id:r.name||r.id,name:r.name||r.id,desc:r.description||r.desc||''})),
+    ];
+    document.getElementById('subtitle').textContent=`${skills.length.toLocaleString()} skills · ${agents.length} agents · ${commands.length} commands · ${rules.length} rules`;
+    render('');
+  }
+  function search(q,type){const ql=q.toLowerCase().trim();return INDEX.filter(item=>{if(type!=='all'&&item.type!==type)return false;if(!ql)return true;return item.name.toLowerCase().includes(ql)||item.desc.toLowerCase().includes(ql);});}
+  function badgeClass(type){return{skill:'badge-skill',agent:'badge-agent',command:'badge-command',rule:'badge-rule'}[type]||'';}
+  function render(q,reset=true){
+    if(reset)_shown=60;
+    const results=search(q,activeType),shown=results.slice(0,_shown);
+    const stats=document.getElementById('stats'),container=document.getElementById('results');
+    stats.textContent=(q||activeType!=='all')?`${results.length.toLocaleString()} kết quả`:'';
+    if(!shown.length){container.innerHTML=`<div class="empty"><span>🔍</span><p>Không tìm thấy kết quả cho "<strong>${esc(q)}</strong>"</p></div>`;return;}
+    container.innerHTML=shown.map(item=>`<a class="item" href="${item.type==='skill'?'/skills':'/marketplace'}#${item.id}"><div class="item-top"><span class="item-name">${hi(item.name,q)}</span><span class="badge ${badgeClass(item.type)}">${item.type}</span></div><div class="item-desc">${hi(item.desc||'—',q)}</div></a>`).join('');
+    if(results.length>_shown)container.innerHTML+=`<button class="more-btn" onclick="loadMore()">Xem thêm ${Math.min(60,results.length-_shown)} kết quả…</button>`;
+  }
+  function loadMore(){_shown+=60;render(document.getElementById('q').value,false);}
+  document.getElementById('q').addEventListener('input',e=>{clearTimeout(_debounce);_debounce=setTimeout(()=>render(e.target.value),150);});
+  document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeType=btn.dataset.type;render(document.getElementById('q').value);});});
+  loadData();
+  </script>
+</BaseLayout>

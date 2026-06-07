@@ -1,0 +1,118 @@
+/* Lotus Pond — hồ sen Việt Nam */
+html { background: hsl(150 35% 96%) !important; }
+body { background: transparent !important; color: hsl(155 45% 22%) !important; }
+
+/* Headings */
+h1,h2,h3,h4,h5,h6 { color: hsl(155 50% 18%) !important; }
+
+/* Body text & paragraphs */
+p, li, td, th, span, div, label, caption { color: hsl(155 40% 24%) !important; }
+
+/* Links */
+a { color: hsl(155 50% 30%) !important; }
+a:hover { color: hsl(155 55% 22%) !important; }
+
+/* Muted / secondary text */
+.muted, .subtitle, .sub, .hero-sub, .v-date,
+.commit-date, .t-dim, [class*="muted"],
+[class*="subtle"], small, figcaption {
+  color: hsl(155 35% 38%) !important;
+}
+
+/* Code */
+code { background: rgba(45,110,82,0.09) !important; color: hsl(155 50% 20%) !important; }
+pre  { background: rgba(45,110,82,0.07) !important; color: hsl(155 50% 20%) !important; }
+
+/* Nav */
+nav, nav a, nav span, .nav-links a, .nav-logo,
+.lang-btn, header, header a { color: hsl(155 45% 22%) !important; }
+
+/* Cards */
+.card, .feature-tile, .version-block, .terminal,
+.stat-card, .hero-card, .glass, section {
+  background: rgba(255,255,255,0.78) !important;
+  color: hsl(155 45% 22%) !important;
+  box-shadow: 0 2px 12px hsla(155 40% 22% / .08), 0 1px 3px hsla(155 40% 22% / .05) !important;
+}
+.card:hover, .feature-tile:hover, .stat-card:hover, .hero-card:hover {
+  box-shadow: 0 6px 24px hsla(155 40% 22% / .13), 0 2px 6px hsla(155 40% 22% / .07) !important;
+}
+
+/* Override blue accent → xanh hoa sen */
+:root {
+  --accent:       hsl(155 52% 32%) !important;
+  --accent-hover: hsl(155 55% 26%) !important;
+}
+
+/* Blue backgrounds → teal hoa sen */
+[style*="hsl(221"],
+[style*="#3b82f6"], [style*="#2563eb"], [style*="#1d4ed8"],
+[style*="rgb(59,130,246)"], [style*="rgb(37,99,235)"] {
+  filter: hue-rotate(120deg) saturate(0.85) !important;
+}
+
+/* Buttons & CTAs */
+.btn-primary, .nav-cta, button.primary,
+[class*="btn-primary"], [class*="cta"] {
+  background: hsl(155 52% 32%) !important;
+  border-color: hsl(155 52% 28%) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .nav-cta:hover {
+  background: hsl(155 55% 26%) !important;
+}
+
+/* Focus rings, borders with blue */
+[class*="ring"], [class*="focus"],
+*:focus-visible {
+  outline-color: hsl(155 52% 38%) !important;
+  box-shadow: 0 0 0 3px hsla(155,52%,38%,.25) !important;
+}
+
+/* Stat numbers, section labels, highlights */
+.rt-stat-num, .section-label, h1 em,
+[class*="accent"], [class*="highlight"] {
+  color: hsl(155 55% 26%) !important;
+}
+
+/* Badges / tags with blue */
+.badge-blue, [class*="badge"],
+.tag, [class*="tag"] {
+  background: hsla(155,50%,32%,.12) !important;
+  color: hsl(155 55% 24%) !important;
+  border-color: hsla(155,50%,32%,.25) !important;
+}
+
+/* Section underline gradient */
+[style*="gradient(90deg,var(--accent)"],
+[class*="underline"] {
+  background: linear-gradient(90deg, hsl(155 52% 32%), transparent) !important;
+}
+
+/* Keep icon/emoji & svg colours untouched */
+svg, img, [class*="icon"] { filter: none; }
+
+/* Preserve white text on colored backgrounds */
+.btn-primary span, .nav-cta span { color: #fff !important; }
+
+/* Dark mode — do NOT override dark theme variables */
+html.dark                              { background: unset !important; }
+html.dark body                         { background: unset !important; color: unset !important; }
+html.dark h1, html.dark h2, html.dark h3,
+html.dark h4, html.dark h5, html.dark h6 { color: unset !important; }
+html.dark p, html.dark li, html.dark td,
+html.dark th, html.dark span, html.dark div,
+html.dark label, html.dark caption    { color: unset !important; }
+html.dark a                            { color: unset !important; }
+html.dark code, html.dark pre          { background: unset !important; color: unset !important; }
+html.dark nav, html.dark nav a,
+html.dark nav span, html.dark header,
+html.dark header a, html.dark .lang-btn { color: unset !important; }
+html.dark .card, html.dark .feature-tile,
+html.dark .version-block, html.dark .terminal,
+html.dark .stat-card, html.dark .hero-card,
+html.dark .glass, html.dark section    { background: unset !important; color: unset !important; }
+html.dark [style*="hsl(221"],
+html.dark [style*="#3b82f6"],
+html.dark [style*="#2563eb"],
+html.dark [style*="#1d4ed8"]           { filter: none !important; }

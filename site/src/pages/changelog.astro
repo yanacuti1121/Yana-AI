@@ -1,0 +1,236 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+---
+<BaseLayout
+  title="Changelog — YAMTAM ENGINE"
+  description="Full release history of YAMTAM ENGINE — versions, features, and fixes."
+  ogUrl="https://phamlongh230-lgtm.github.io/yamtam-engine/changelog"
+  active="changelog"
+>
+  <Nav slot="nav" active="changelog" />
+
+  <style>
+  main{max-width:800px;margin:0 auto;padding:3rem 2rem}
+  h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+  .subtitle{color:var(--muted);margin-bottom:3rem;font-size:.95rem}
+  .version-block{margin-bottom:2.5rem;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .version-block.current{border-color:var(--accent)}
+  .version-block h2{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;background:var(--bg2);font-size:1rem;font-weight:600;border-top:none;margin:0;padding-top:1rem;border-top:none}
+  .version-block h2+h2{border-top:2px solid var(--border)}
+  .v-badge{background:var(--accent);color:#000;padding:.2rem .6rem;border-radius:6px;font-size:.8rem}
+  .current .v-badge{background:var(--blue)}
+  .v-date{color:var(--muted);font-size:.85rem;font-weight:400}
+  .v-count{color:var(--muted);font-size:.8rem;font-weight:400;margin-left:auto}
+  ul{list-style:none;padding:.5rem 0}
+  .commit{display:flex;align-items:baseline;gap:.75rem;padding:.5rem 1.5rem;font-size:.875rem;border-top:1px solid var(--border)}
+  .commit:first-child{border-top:none}
+  .icon{flex-shrink:0;width:1.2rem;text-align:center}
+  .sha{font-family:ui-monospace,monospace;font-size:.75rem;color:var(--muted);flex-shrink:0}
+  .msg{flex:1;color:var(--text)}
+  .date{color:var(--muted);font-size:.75rem;flex-shrink:0}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 0 2rem}
+  </style>
+
+  <main>
+    <h1 data-i18n="page.h1">Changelog</h1>
+    <p class="subtitle">Last 90 days · generated 03/06/2026 · v0.17.0</p>
+
+    <section class="version-block current">
+      <h2><span class="v-badge">🔵 HEAD</span><span class="v-date">2026-06-02 – 2026-06-03</span><span class="v-count">41 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">pending</code><span class="msg">skills): +6 — ECC, Scrapling, VoxCPM, ml-trading, VTuber, TablePro · 3451→3457</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">pending</code><span class="msg">skills): +3 — odysseus, openclaw, metagpt · 3448→3451</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5292284e</code><span class="msg">skills): +4 trending — taste-skill, agentskills-spec, hugoblox-kit, formatjs · 3444→3448</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">3394d544</code><span class="msg">skills): add flowsint (OSINT graph) + production-agentic-rag — skills 3442→3444</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a7718543</code><span class="msg">io): update stats + add check-mail/openhack to Skills &amp; Agents</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4ff5ba15</code><span class="msg">skills): add hadriansecurity/openhack skill + agent</span><span class="date">2026-06-03</span></li>
+        <li class="commit chore"><span class="icon">🔧</span><code class="sha">bfc111fb</code><span class="msg">session wrap-up 2026-06-03</span><span class="date">2026-06-03</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">e8bd3314</code><span class="msg">drift): components.skills.count 3440→3441</span><span class="date">2026-06-03</span></li>
+        <li class="commit chore"><span class="icon">🔧</span><code class="sha">4306f0f3</code><span class="msg">sync counts — agents 93→94, skills 3440→3441</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">8c1a8c03</code><span class="msg">mail): Gmail IMAP reader — check-mail agent + skill + script</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">448e8eb2</code><span class="msg">skills): add yamtam entry-point SKILL.md for npx skills add</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b07d170d</code><span class="msg">plugin): openclaw/agentskills compatible format — plugins[] array + metadata.openclaw</span><span class="date">2026-06-03</span></li>
+        <li class="commit chore"><span class="icon">🔧</span><code class="sha">1c65ffc6</code><span class="msg">update skill count 3,432 → 3,440 across index.html</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">11ea6825</code><span class="msg">io): update stats + add headroom/supermemory/markitdown to Skills app</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4bb26fa1</code><span class="msg">hermes-webui): add agent web UI reference skill</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b295be31</code><span class="msg">markitdown): file-to-markdown converter + vault import tool</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a7e44872</code><span class="msg">supermemory): persistent memory skill + MCP server config</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">c9ee55a0</code><span class="msg">headroom): integrate context compression — 60–95% ít token hơn</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">2e9de049</code><span class="msg">io): add nav pill + hamburger — links to all pages</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d332ef03</code><span class="msg">io): redesign — blue/white palette, liquid glass, i18n VI/EN/KO</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5e9cf7b7</code><span class="msg">nav): liquid glass pill nav — all pages (rounded, frosted)</span><span class="date">2026-06-03</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">854d25d6</code><span class="msg">nav): dark mode glass + aside sticky offset fix</span><span class="date">2026-06-03</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">700ec527</code><span class="msg">io): mute button — toggle sound, persists in localStorage</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">bf5da6f2</code><span class="msg">io): Web Audio sound effects — tap/open/close/swipe/send/reply chime</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">806503a5</code><span class="msg">io): haptic feedback — tap icon, open/close/swipe, send chat, AI reply</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4d58bb83</code><span class="msg">io): scroll parallax — rows fade+scale at edges while scrolling</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">30988e7a</code><span class="msg">io): scroll-in animation for app rows — staggered fade+slide on open</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">c97ffe4b</code><span class="msg">io): swipe left/right to switch apps + position dots indicator</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">dcd5a7dd</code><span class="msg">io): app switch animation — slide-left-out + slide-right-in</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">32bffb37</code><span class="msg">io): close animation — window shrinks + slides down, icon bounces</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">93db923b</code><span class="msg">io): app launch animation — icon bounce + burst + window scale-fade</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">90016e17</code><span class="msg">io): floating home button — pill appears when app open</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">f3fc28a5</code><span class="msg">io): add 4 new apps — Test, Refactor, Map, PR (grid 4×4)</span><span class="date">2026-06-02</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">bfb005c0</code><span class="msg">i18n): add 18 new translation keys — all 3 langs</span><span class="date">2026-06-02</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">0661dd17</code><span class="msg">nav): hide IO btn on mobile to restore hamburger</span><span class="date">2026-06-02</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">87cc3a6c</code><span class="msg">worker): force Vietnamese in system prompt</span><span class="date">2026-06-02</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">8bd88630</code><span class="msg">io): water drops on all app windows — random float + drip</span><span class="date">2026-06-02</span></li>
+      </ul>
+      <h2 style="border-top:2px solid var(--border);margin-top:0"><span class="v-badge" style="background:var(--muted)">v0.40.0</span><span class="v-date">2026-05-31 – 2026-06-01</span><span class="v-count">12 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a43fd15</code><span class="msg">milestone reminder — roadmap #6</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d9e3775</code><span class="msg">auto-update memory script + CI sandbox workflow</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">efcc2ea</code><span class="msg">wire sandbox-exec.sh into tool-proxy.sh Phase 3.5</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">74cd9be</code><span class="msg">add weekly summary script</span><span class="date">2026-06-01</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">acea868</code><span class="msg">sync skill count → 2353 across all files</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a22259a</code><span class="msg">import 34 security skills from GoldenWing-360 (MIT)</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">50123b6</code><span class="msg">import 59 skills from 3 repos (MIT)</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">6f473d3</code><span class="msg">import 26 skills from taches + alirezarezvani (MIT)</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d86fac4</code><span class="msg">import 23 skills from addyosmani/agent-skills (MIT)</span><span class="date">2026-06-01</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">deadf62</code><span class="msg">add Projects link to nav on all pages</span><span class="date">2026-05-31</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">4ff8260</code><span class="msg">JNMT — 100 languages → 6 core languages (accurate)</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">3459777</code><span class="msg">add Projects section — JNMT featured card + YAMTAM, jnmt.vn, itro grid</span><span class="date">2026-05-31</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v0.0.38</span><span class="v-date">2026-05-31</span><span class="v-count">13 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4345a7e</code><span class="msg">Codexmate full step-by-step guide (4 steps) + v0.0.38-vi badge</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">ebc6264</code><span class="msg">add Codexmate v0.0.38-vi badge — Vietnamese fork label</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d85eef1</code><span class="msg">fix all hardcoded Vietnamese + liquid glass UI on cards/terminal/stats</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4ca10ad</code><span class="msg">full i18n resync — Codexmate, Yana, all new sections EN/VI/KO</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">2a2dd14</code><span class="msg">add Codexmate link to nav on all pages</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">c90f8cc</code><span class="msg">add Codexmate section — intro, features, how to run</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">675a78e</code><span class="msg">sync nav across all pages — Home, Skills, Marketplace, Yana, GitHub</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">def9f6c</code><span class="msg">add hooks(42) + commands(164) + rules(61) — full 2,571 item catalog</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">3a9072e</code><span class="msg">add Yana section + Marketplace/Yana nav links</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">24cf1a3</code><span class="msg">add Agents tab — 93 agents searchable + domain filter, mode switcher Skills/Agents</span><span class="date">2026-05-31</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v0.17.0</span><span class="v-date">2026-05-30 – 2026-05-31</span><span class="v-count">15 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5a80390</code><span class="msg">sync design with index — light warm theme, v0.17.0, 2211 skills, rainbow nav</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">ae52c7c</code><span class="msg">add Skills CTA section with gradient banner + browse button</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">528135a</code><span class="msg">add Skills link to nav + clickable skills stat → skills.html</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">92407eb</code><span class="msg">full i18n sync — all sections translated EN/VI/KO</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">e91fd45</code><span class="msg">language switcher EN/VI/KO + design improvements</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">18c9650</code><span class="msg">light warm theme + full docs section (install, gates, structure)</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">82c074c</code><span class="msg">redesign color scheme — warm dark amber replaces cold navy</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b66f530</code><span class="msg">rainbow animated text for YAMTAM ENGINE nav logo</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">54b2e6e</code><span class="msg">handwriting fonts — Caveat h1/h2, Dancing Script nav+labels</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">eeb1b0a</code><span class="msg">Lab card redesign — Playfair Display italic, JetBrains Mono terminal, gradient title</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">461ca92</code><span class="msg">terminal demo — typewriter + gradient title + glow sections</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a4c2233</code><span class="msg">add terminal demo simulator to Lab card — Run button with animation</span><span class="date">2026-05-31</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b8b6f64</code><span class="msg">redesign landing page — v0.17.0</span><span class="date">2026-05-30</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v0.16.0</span><span class="v-date">2026-05-29 – 2026-05-30</span><span class="v-count">17 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">271797f</code><span class="msg">wire bin/yamtam → yamtam-rt + update README/web</span><span class="date">2026-05-30</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">322be75</code><span class="msg">regenerate compiled scanner rules — fix drift detection failure</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">c7bf97a</code><span class="msg">rewrite audit_scanner.py in Rust — yamtam-rt scan</span><span class="date">2026-05-29</span></li>
+        <li class="commit refactor"><span class="icon">♻️</span><code class="sha">b3dea11</code><span class="msg">split main.rs into modules + package yamtam-rt binary</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">540a306</code><span class="msg">F004 auto cost tracking from bus event payload</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a1e2eb6</code><span class="msg">bus→L3 auto-log, shell-words plugin parsing, 14 integration tests</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">8018c28</code><span class="msg">add Config + Plugin + Cost to yamtam-rt (Phase 3)</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">115564c</code><span class="msg">add L3 shared memory to yamtam-rt (Phase 2)</span><span class="date">2026-05-29</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">e1125d5</code><span class="msg">add Agent Message Bus to yamtam-rt (Phase 1)</span><span class="date">2026-05-29</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.0.0</span><span class="v-date">2026-05-29 – 2026-05-30</span><span class="v-count">12 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">1f9a55f</code><span class="msg">complete Python CLI parity — yamtam-rt v1.0.0</span><span class="date">2026-05-30</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">fa75143</code><span class="msg">port active scanner + design extractor to Rust</span><span class="date">2026-05-30</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">05f996b</code><span class="msg">port knowledge graph to Rust — yamtam-rt graph</span><span class="date">2026-05-30</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d209067</code><span class="msg">bulk import 225 skills from affaan-m/ECC (MIT)</span><span class="date">2026-05-30</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">0c2c257</code><span class="msg">Vietnamese-first knowledge vault with multilingual translation links</span><span class="date">2026-05-30</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">80ef3f7</code><span class="msg">canonicalize target path for correct strip_prefix + ignore .claude/.yamtam dirs</span><span class="date">2026-05-30</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">a56783f</code><span class="msg">add environment gate to npm publish job (CI008)</span><span class="date">2026-05-29</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">ec55855</code><span class="msg">regenerate skills-lock — sync drift after new skills added</span><span class="date">2026-05-29</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.8.0</span><span class="v-date">2026-05-24 – 2026-05-28</span><span class="v-count">13 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">e2958b1</code><span class="msg">bump version header 1.7.0 → 1.8.0</span><span class="date">2026-05-28</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">3e9d52e</code><span class="msg">register all 44 hooks in hooks.json</span><span class="date">2026-05-28</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">1a5c69b</code><span class="msg">add asyncRewake audit hook for git push/commit</span><span class="date">2026-05-28</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">0e0ec70</code><span class="msg">Add interactive system map HTML, update to v1.7.0</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">3f42094</code><span class="msg">Expand v1.8.0 roadmap: Gemini, Qwen3, DeepSeek, OpenRouter, Continue.dev adapters</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">8240074</code><span class="msg">Build v1.7.0 release pack, fix hooks drift (36→39), add adversarial tests</span><span class="date">2026-05-24</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.7.3</span><span class="v-date">2026-05-25 – 2026-05-26</span><span class="v-count">15 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">bbd1ad2</code><span class="msg">unsafe-agent-repo demo, scanner bug fixes, README update</span><span class="date">2026-05-26</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d88e9f1</code><span class="msg">SARIF output, --diff mode, .yamtamignore suppression</span><span class="date">2026-05-26</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5dbe062</code><span class="msg">add Continue.dev adapter and yamtam-audit GitHub Action example</span><span class="date">2026-05-26</span></li>
+        <li class="commit fix"><span class="icon">🐛</span><code class="sha">34ce065</code><span class="msg">condition engine + recompute stats + test fixtures</span><span class="date">2026-05-26</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">87d0eca</code><span class="msg">router suggest command, analytics hint, token ledger schema</span><span class="date">2026-05-26</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5c6152c</code><span class="msg">add yamtam doctor — runtime health check command</span><span class="date">2026-05-26</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">449639d</code><span class="msg">ship yamtam audit . CLI MVP v0.1.0</span><span class="date">2026-05-26</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.7.1</span><span class="v-date">2026-05-24 – 2026-05-25</span><span class="v-count">12 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">d9ad1b6</code><span class="msg">add 6 Tier-1 skills 351→357</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">f1c1c51</code><span class="msg">auto-apply CLAUDE.md — truly zero-touch one-liner</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">decc62f</code><span class="msg">add pixelle-video skill — topic → AI video via REST API</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a70ccb5</code><span class="msg">add landing page at docs/index.html</span><span class="date">2026-05-24</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">4e820b5</code><span class="msg">Add L5 per-tool circuit breaker hook and origin story section</span><span class="date">2026-05-24</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.6.1</span><span class="v-date">2026-05-23 – 2026-05-24</span><span class="v-count">13 changes</span></h2>
+      <ul>
+        <li class="commit other"><span class="icon">•</span><code class="sha">b3e352d</code><span class="msg">Switch license to Apache 2.0, fix MANIFEST version 1.6.1 → 1.7.0</span><span class="date">2026-05-24</span></li>
+        <li class="commit other"><span class="icon">•</span><code class="sha">1bdd1f9</code><span class="msg">Redesign README for public audience: English, better layout, contact info</span><span class="date">2026-05-24</span></li>
+        <li class="commit other"><span class="icon">•</span><code class="sha">df296bd</code><span class="msg">Revise README for YAMTAM ENGINE v1.6.1</span><span class="date">2026-05-23</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">49002f3</code><span class="msg">initial v1.6.1 feature set</span><span class="date">2026-05-23</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.3.14</span><span class="v-date">2026-05-17 – 2026-05-18</span><span class="v-count">14 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a22c44a</code><span class="msg">SC2295 quoting, chmod, version headers, remove CUTOFF</span><span class="date">2026-05-18</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">9dc5a1f</code><span class="msg">add /improve-skill human-gated skill loop (FIRE 4)</span><span class="date">2026-05-18</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">19d0b0e</code><span class="msg">specialist routing table + confidence threshold (FIRE 5)</span><span class="date">2026-05-18</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b438d1e</code><span class="msg">session trust score + LOW TRUST warning (FIRE 3)</span><span class="date">2026-05-18</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">a51f689</code><span class="msg">add /fact-check proactive claim verification (FIRE 2)</span><span class="date">2026-05-18</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">b308d29</code><span class="msg">hash-chain tamper-evident audit log (FIRE 1)</span><span class="date">2026-05-17</span></li>
+      </ul>
+    </section>
+
+    <section class="version-block">
+      <h2><span class="v-badge">v1.3.0</span><span class="v-date">2026-05-17</span><span class="v-count">8 changes</span></h2>
+      <ul>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">fa8dec0</code><span class="msg">extend /memory command to include L2 session layer</span><span class="date">2026-05-17</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">5588954</code><span class="msg">implement L2 session memory tier</span><span class="date">2026-05-17</span></li>
+        <li class="commit feature"><span class="icon">✨</span><code class="sha">6b161e2</code><span class="msg">add tag support to L1 fact schema and tools</span><span class="date">2026-05-17</span></li>
+        <li class="commit other"><span class="icon">•</span><code class="sha">301a15b</code><span class="msg">scaffold baseline</span><span class="date">2026-05-17</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>YAMTAM ENGINE · <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" style="color:var(--muted)">GitHub</a></footer>
+
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+  <script src="/water-bg.js" defer></script>
+  <script src="/water-droplet.js" defer></script>
+  <script src="/lotus-petals.js" defer></script>
+</BaseLayout>

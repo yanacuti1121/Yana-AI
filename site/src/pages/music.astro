@@ -1,0 +1,221 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Nhạc — YAMTAM ENGINE"
+  description="Background music player for YAMTAM ENGINE — synced across all pages."
+  ogUrl="https://phamlongh230-lgtm.github.io/yamtam-engine/music"
+>
+  <style>
+  *, *::before, *::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:hsl(40 30% 97%);--bg-card:hsl(0 0% 100%);--border:hsl(40 15% 88%);--fg:hsl(24 25% 12%);--fg-muted:hsl(24 10% 48%);--teal:hsl(155 52% 32%);--teal-lt:hsla(155 52% 32% / .10);--teal-md:hsla(155 52% 32% / .22);--shadow:0 2px 16px hsla(155 40% 20% / .10),0 1px 4px hsla(155 40% 20% / .06)}
+  .dark{--bg:hsl(24 15% 8%);--bg-card:hsl(24 10% 10%);--border:hsl(24 10% 18%);--fg:hsl(38 20% 92%);--fg-muted:hsl(38 8% 55%);--teal:hsl(155 52% 42%);--teal-lt:hsla(155 52% 42% / .12);--teal-md:hsla(155 52% 42% / .24)}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;padding:2.5rem 1rem 4rem;-webkit-font-smoothing:antialiased}
+  .container{max-width:520px;margin:0 auto}
+  .back-link{display:inline-flex;align-items:center;gap:.4rem;color:var(--fg-muted);text-decoration:none;font-size:.84rem;margin-bottom:2rem;transition:color .15s}
+  .back-link:hover{color:var(--teal)}
+  .page-header{margin-bottom:2rem}
+  .page-header h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em}
+  .page-header p{color:var(--fg-muted);font-size:.875rem;margin-top:.3rem}
+  .player-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.25rem 1rem;box-shadow:var(--shadow);margin-bottom:1.25rem}
+  .now-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:.6rem}
+  .now-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+  .now-info{flex:1;min-width:0}
+  .now-name{font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .now-artist{font-size:.78rem;color:var(--fg-muted);margin-top:.15rem}
+  .controls{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+  .btn-ctrl{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:1rem;transition:all .15s;color:var(--fg)}
+  .btn-ctrl:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-lt)}
+  .btn-play{width:44px;height:44px;font-size:1.1rem;background:var(--teal);border-color:var(--teal);color:#fff}
+  .btn-play:hover{background:hsl(155 55% 26%);border-color:hsl(155 55% 26%);color:#fff}
+  .btn-play.paused{background:var(--bg-card);color:var(--teal);border-color:var(--teal)}
+  .btn-play.paused:hover{background:var(--teal-lt)}
+  .progress-wrap{margin-top:1rem;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+  .progress-bar{height:100%;background:var(--teal);border-radius:2px;width:0%;transition:width .8s linear}
+  .section-label{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:.75rem}
+  .track-list{display:flex;flex-direction:column;gap:.5rem}
+  .track{display:flex;align-items:center;gap:.875rem;padding:.75rem .875rem;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+  .track:hover{border-color:hsla(155 52% 32% / .4);box-shadow:0 1px 8px hsla(155 40% 20% / .08)}
+  .track.active{background:var(--teal-lt);border-color:hsla(155 52% 32% / .35);box-shadow:0 2px 12px hsla(155 40% 20% / .10)}
+  .track-icon{font-size:1.3rem;flex-shrink:0;line-height:1}
+  .track-info{flex:1;min-width:0}
+  .track-name{font-weight:600;font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .track-artist{font-size:.75rem;color:var(--fg-muted);margin-top:.1rem}
+  .track-badge{font-size:.62rem;font-weight:700;letter-spacing:.04em;background:var(--teal-md);color:var(--teal);padding:.15rem .55rem;border-radius:20px;flex-shrink:0}
+  .track-remove{font-size:.75rem;opacity:0;padding:.15rem .4rem;cursor:pointer;color:var(--fg-muted);transition:opacity .15s;border-radius:4px}
+  .track:hover .track-remove{opacity:.6}
+  .track-remove:hover{opacity:1!important;color:hsl(0 65% 50%)}
+  .add-section{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+  .add-section h2{font-size:.9rem;font-weight:600;margin-bottom:.625rem}
+  .add-form{display:flex;gap:.5rem}
+  .add-input{flex:1;padding:.55rem .875rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-size:.875rem;outline:none;transition:border-color .15s}
+  .add-input::placeholder{color:var(--fg-muted)}
+  .add-input:focus{border-color:hsla(155 52% 32% / .5);box-shadow:0 0 0 3px hsla(155 52% 32% / .12)}
+  .add-btn{padding:.55rem 1rem;background:var(--teal);border:1px solid var(--teal);border-radius:8px;color:#fff;font-size:.875rem;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+  .add-btn:hover{background:hsl(155 55% 26%)}
+  .add-hint{font-size:.72rem;color:var(--fg-muted);margin-top:.4rem}
+  </style>
+
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
+      <a href="/" class="back-link" style="margin-bottom:0">← Về trang chủ</a>
+      <button id="theme-toggle" onclick="toggleTheme()" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px">🌙</button>
+    </div>
+
+    <div class="page-header">
+      <h1>🎵 Nhạc nền</h1>
+      <p>Phát xuyên trang — lưu vị trí giữa các lần truy cập</p>
+    </div>
+
+    <div class="player-card">
+      <div class="now-label">Đang phát</div>
+      <div class="now-row">
+        <div class="now-info">
+          <div class="now-name" id="now-name">—</div>
+          <div class="now-artist" id="now-artist"></div>
+        </div>
+        <div class="controls">
+          <button class="btn-ctrl" id="mute-btn" onclick="toggleMuteLocal()" title="Tắt tiếng">🔊</button>
+          <button class="btn-ctrl btn-play" id="play-btn" onclick="togglePlay()" title="Phát / Dừng">⏸</button>
+        </div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+
+    <div class="section-label">Danh sách phát</div>
+    <div class="track-list" id="track-list"></div>
+
+    <div class="add-section">
+      <h2>Thêm bài từ YouTube</h2>
+      <div class="add-form">
+        <input class="add-input" id="add-url" type="text" placeholder="Paste link YouTube hoặc video ID...">
+        <button class="add-btn" onclick="addTrack()">Thêm</button>
+      </div>
+      <div class="add-hint">VD: https://youtu.be/aKSJAcG4V4o hoặc aKSJAcG4V4o</div>
+    </div>
+  </div>
+
+  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
+
+  <script is:inline slot="scripts">
+  const DEFAULT_TRACKS = [
+    { id: 'aKSJAcG4V4o', name: 'Chưa Được Yêu Như Thế',             artist: 'Trang · 1 giờ lofi',             icon: '🌙' },
+    { id: 'KeoAfgsM8o4', name: 'Nhạc Lofi Việt Chill',               artist: 'Lofi playlist · 2 giờ',           icon: '☕' },
+    { id: 'oy2CxxQCuhw', name: 'Bình Yên, Thằng Điên, Cứ Chill Thôi', artist: 'Nhạc Việt hay nhất',            icon: '🎶' },
+    { id: 'w1wdiibZTl8', name: 'Nhạc Chill Chữa Lành Tâm Hồn',      artist: 'Hits nhạc trẻ',                  icon: '🌸' },
+    { id: 'JCn0hoILmyw', name: 'List Chill 3 — Nhạc Không Lời',      artist: 'Relaxing Music',                 icon: '🌿' },
+    { id: 'fuXfT4Rv_WM', name: 'Nhạc Piano Thư Giãn',                artist: 'Âm thanh nước chảy · Nhạc thiền', icon: '🎹' },
+    { id: 'fDYDUonzTnM', name: 'Nhạc Chill Mở Đầu Ngày Mới',        artist: 'Buộc Vào Cơn Gió · Playlist',    icon: '🌤' },
+    { id: 'meZ9yZeebE8', name: 'Restore Your Nervous System',         artist: 'Stop Overthinking · Sleep',       icon: '🌿' },
+    { id: 'GZKSEAlOZRc', name: 'Âm Nhạc Tích Cực Buổi Sáng',        artist: 'Thư Giãn · Năng Lượng · Hạnh Phúc', icon: '🌅' },
+    { id: 'rA0XEb6ZBeU', name: 'List Chill 1 — Nhạc Không Lời',      artist: 'Relaxing music',                  icon: '🎼' },
+    { id: 'jbge2Ymnhvw', name: 'Nhạc Áp Tai Gối',                    artist: 'Bèo Dạt Mây Trôi · Piano Ballad', icon: '🌙' },
+    { id: 'Wr5kpTtcPMM', name: 'Vô Tình Bật Lên MOOD Lên Quá Trời', artist: 'Playlist Nhạc Chill Mùa Hạ',       icon: '🍃' },
+    { id: 'xX1w3mmTvHU', name: '2-Hour Study With Me',               artist: 'Piano · Pomodoro 25-5 · Window',   icon: '📚' },
+    { id: 'y1-rYYJvVVI', name: 'Nhạc Chill Bắt Đầu Ngày Mới',       artist: 'Nơi Con Tim Yên Bình · Playlist',  icon: '☀️' },
+  ];
+
+  let _saved = JSON.parse(localStorage.getItem('music-tracks') || 'null');
+  let tracks = (_saved && _saved.length) ? _saved : DEFAULT_TRACKS;
+  let _playing = true;
+  let _progressInterval = null;
+
+  function getVid() { return localStorage.getItem('music-vid') || DEFAULT_TRACKS[0].id; }
+  function saveTracks() { localStorage.setItem('music-tracks', JSON.stringify(tracks)); }
+
+  function extractId(url) {
+    url = url.trim();
+    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([a-zA-Z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    return null;
+  }
+
+  function togglePlay() {
+    if (window._getMusicPlaying && window._getMusicPlaying()) {
+      window._pauseMusic && window._pauseMusic(); _playing = false;
+    } else {
+      window._resumeMusic && window._resumeMusic(); _playing = true;
+    }
+    syncPlayBtn();
+  }
+
+  function toggleMuteLocal() { window.toggleMute && window.toggleMute(); syncMuteBtn(); }
+
+  function syncPlayBtn() {
+    const btn = document.getElementById('play-btn');
+    if (!btn) return;
+    const isPlaying = window._getMusicPlaying ? window._getMusicPlaying() : _playing;
+    btn.textContent = isPlaying ? '⏸' : '▶';
+    btn.classList.toggle('paused', !isPlaying);
+    btn.title = isPlaying ? 'Dừng' : 'Phát';
+  }
+
+  function syncMuteBtn() {
+    const muted = localStorage.getItem('site-mute') === '1';
+    const btn = document.getElementById('mute-btn');
+    if (btn) { btn.textContent = muted ? '🔇' : '🔊'; btn.title = muted ? 'Bật tiếng' : 'Tắt tiếng'; }
+  }
+
+  function startProgress() {
+    clearInterval(_progressInterval);
+    _progressInterval = setInterval(() => {
+      const p = window._getMusicPlayer && window._getMusicPlayer();
+      if (!p || typeof p.getDuration !== 'function') return;
+      const dur = p.getDuration(), cur = p.getCurrentTime();
+      if (!dur) return;
+      const bar = document.getElementById('progress-bar');
+      if (bar) bar.style.width = Math.min(100, (cur / dur) * 100) + '%';
+    }, 1000);
+  }
+
+  function playTrack(vid) {
+    window._loadMusicTrack && window._loadMusicTrack(vid, true);
+    _playing = true;
+    setTimeout(() => { syncPlayBtn(); startProgress(); }, 300);
+    renderList();
+  }
+
+  function addTrack() {
+    const url = document.getElementById('add-url').value;
+    const vid = extractId(url);
+    if (!vid) { alert('Link không hợp lệ'); return; }
+    if (tracks.find(t => t.id === vid)) { playTrack(vid); document.getElementById('add-url').value = ''; return; }
+    tracks.push({ id: vid, name: 'Bài thêm mới', artist: vid, icon: '🎵' });
+    saveTracks(); playTrack(vid);
+    document.getElementById('add-url').value = '';
+  }
+
+  function removeTrack(vid, e) {
+    e.stopPropagation();
+    tracks = tracks.filter(t => t.id !== vid);
+    saveTracks();
+    if (getVid() === vid) playTrack(tracks[0]?.id || DEFAULT_TRACKS[0].id);
+    else renderList();
+  }
+
+  function renderList() {
+    const cur = getVid();
+    document.getElementById('track-list').innerHTML = tracks.map(t => `
+      <div class="track ${t.id === cur ? 'active' : ''}" onclick="playTrack('${t.id}')">
+        <span class="track-icon">${t.icon}</span>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-artist">${t.artist}</div>
+        </div>
+        ${t.id === cur ? '<span class="track-badge">▶ Đang phát</span>' : ''}
+        ${!DEFAULT_TRACKS.find(d => d.id === t.id) ? `<span class="track-remove" onclick="removeTrack('${t.id}',event)" title="Xoá">✕</span>` : ''}
+      </div>`).join('');
+    const ct = tracks.find(t => t.id === cur);
+    if (ct) {
+      document.getElementById('now-name').textContent = `${ct.icon} ${ct.name}`;
+      document.getElementById('now-artist').textContent = ct.artist;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    syncMuteBtn(); syncPlayBtn(); renderList(); startProgress();
+    setTimeout(() => { syncPlayBtn(); startProgress(); }, 2000);
+  });
+  </script>
+</BaseLayout>

@@ -1,0 +1,46 @@
+---
+export interface Props {
+  active?: string; // 'skills' | 'marketplace' | 'changelog' | 'guide' | 'search'
+}
+const { active = '' } = Astro.props;
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/skills', label: 'Skills' },
+  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/changelog', label: 'Changelog' },
+  { href: '/guide', label: 'Guide' },
+  { href: '/search', label: '🔍' },
+  { href: 'https://github.com/phamlongh230-lgtm/yamtam-engine', label: 'GitHub', external: true },
+];
+---
+
+<nav class="nav" id="main-nav">
+  <a class="nav-logo" href="/">YAMTAM ENGINE</a>
+
+  <div class="nav-links">
+    {links.map(l => (
+      <a href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noopener' : undefined}>
+        {l.label}
+      </a>
+    ))}
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light">🌙</button>
+    <div style="display:flex;gap:.25rem;margin-left:.25rem">
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VI</button>
+      <button class="lang-btn" onclick="setLang('ko')">KO</button>
+    </div>
+  </div>
+
+  <button class="hbg" id="hbg" onclick="toggleHbg()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mob-drawer" id="mob-drawer">
+  {links.map(l => (
+    <a href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noopener' : undefined} onclick="toggleHbg()">
+      {l.label === '🔍' ? 'Search 🔍' : l.label}
+    </a>
+  ))}
+</div>

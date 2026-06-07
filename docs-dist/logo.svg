@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" style="stop-color:#1e1040"/>
+      <stop offset="100%" style="stop-color:#060412"/>
+    </radialGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa"/>
+      <stop offset="60%" style="stop-color:#818cf8"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#fde68a"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="boltGlow" x="-40%" y="-20%" width="180%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shieldBlur" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="240" height="240" rx="48" fill="url(#bgGrad)"/>
+
+  <!-- Nebula glow center -->
+  <ellipse cx="120" cy="105" rx="72" ry="68" fill="#3730a3" opacity="0.18"/>
+  <ellipse cx="120" cy="105" rx="44" ry="40" fill="#6d28d9" opacity="0.12"/>
+
+  <!-- Stars scattered — small dots -->
+  <!-- tiny stars -->
+  <circle cx="34"  cy="28"  r="1"   fill="#fff" opacity="0.9"/>
+  <circle cx="72"  cy="19"  r="0.8" fill="#e0e7ff" opacity="0.8"/>
+  <circle cx="156" cy="24"  r="1.1" fill="#fff" opacity="0.85"/>
+  <circle cx="198" cy="35"  r="0.7" fill="#c7d2fe" opacity="0.75"/>
+  <circle cx="210" cy="72"  r="1"   fill="#fff" opacity="0.9"/>
+  <circle cx="222" cy="118" r="0.8" fill="#e0e7ff" opacity="0.7"/>
+  <circle cx="205" cy="162" r="1.2" fill="#fff" opacity="0.8"/>
+  <circle cx="186" cy="196" r="0.7" fill="#c7d2fe" opacity="0.65"/>
+  <circle cx="52"  cy="195" r="1"   fill="#fff" opacity="0.8"/>
+  <circle cx="28"  cy="155" r="0.9" fill="#e0e7ff" opacity="0.75"/>
+  <circle cx="18"  cy="105" r="1.1" fill="#fff" opacity="0.9"/>
+  <circle cx="28"  cy="60"  r="0.7" fill="#c7d2fe" opacity="0.7"/>
+  <circle cx="90"  cy="32"  r="0.9" fill="#fff" opacity="0.8"/>
+  <circle cx="140" cy="210" r="1"   fill="#e0e7ff" opacity="0.75"/>
+  <circle cx="100" cy="215" r="0.8" fill="#fff" opacity="0.7"/>
+  <circle cx="60"  cy="45"  r="0.6" fill="#fff" opacity="0.65"/>
+  <circle cx="175" cy="50"  r="0.8" fill="#e0e7ff" opacity="0.8"/>
+  <circle cx="218" cy="90"  r="0.7" fill="#fff" opacity="0.75"/>
+
+  <!-- 4-pointed star shapes (decorative) -->
+  <!-- Star top-left -->
+  <g transform="translate(44,52)" filter="url(#softGlow)">
+    <path d="M0,-7 L1.5,-1.5 L7,0 L1.5,1.5 L0,7 L-1.5,1.5 L-7,0 L-1.5,-1.5 Z"
+          fill="#e0e7ff" opacity="0.85"/>
+  </g>
+  <!-- Star top-right -->
+  <g transform="translate(192,45)" filter="url(#softGlow)">
+    <path d="M0,-6 L1.2,-1.2 L6,0 L1.2,1.2 L0,6 L-1.2,1.2 L-6,0 L-1.2,-1.2 Z"
+          fill="#c7d2fe" opacity="0.9"/>
+  </g>
+  <!-- Star right -->
+  <g transform="translate(216,138)" filter="url(#softGlow)">
+    <path d="M0,-5 L1,- 1 L5,0 L1,1 L0,5 L-1,1 L-5,0 L-1,-1 Z"
+          fill="#a5b4fc" opacity="0.8"/>
+  </g>
+  <!-- Star bottom-left -->
+  <g transform="translate(30,172)" filter="url(#softGlow)">
+    <path d="M0,-6 L1.2,-1.2 L6,0 L1.2,1.2 L0,6 L-1.2,1.2 L-6,0 L-1.2,-1.2 Z"
+          fill="#e0e7ff" opacity="0.75"/>
+  </g>
+  <!-- Star bottom-right small -->
+  <g transform="translate(170,188)" filter="url(#softGlow)">
+    <path d="M0,-4.5 L0.9,-0.9 L4.5,0 L0.9,0.9 L0,4.5 L-0.9,0.9 L-4.5,0 L-0.9,-0.9 Z"
+          fill="#c7d2fe" opacity="0.8"/>
+  </g>
+
+  <!-- 5-pointed star top-center (bright, featured) -->
+  <g transform="translate(120,26)" filter="url(#softGlow)">
+    <path d="M0,-10 L2.35,-7.23 L9.51,-7.69 L4.04,-2.63 L5.88,4.5 L0,1.2 L-5.88,4.5 L-4.04,-2.63 L-9.51,-7.69 L-2.35,-7.23 Z"
+          fill="#fde68a" opacity="0.95"/>
+  </g>
+
+  <!-- Shield body glow (back layer) -->
+  <path d="M120 50 L165 68 L165 112 Q165 152 120 174 Q75 152 75 112 L75 68 Z"
+        fill="url(#shieldGrad)" filter="url(#shieldBlur)" opacity="0.3"/>
+
+  <!-- Shield outline -->
+  <path d="M120 52 L163 69 L163 112 Q163 149 120 170 Q77 149 77 112 L77 69 Z"
+        fill="none" stroke="url(#shieldGrad)" stroke-width="2.5" opacity="0.9"/>
+
+  <!-- Shield fill (subtle) -->
+  <path d="M120 52 L163 69 L163 112 Q163 149 120 170 Q77 149 77 112 L77 69 Z"
+        fill="url(#shieldGrad)" opacity="0.08"/>
+
+  <!-- Lightning bolt -->
+  <path d="M130 62 L107 108 L122 108 L110 168 L143 114 L127 114 L144 62 Z"
+        fill="url(#boltGrad)" filter="url(#boltGlow)" opacity="0.95"/>
+  <path d="M130 62 L107 108 L122 108 L110 168 L143 114 L127 114 L144 62 Z"
+        fill="url(#boltGrad)"/>
+
+  <!-- Orbit ring around shield -->
+  <ellipse cx="120" cy="111" rx="56" ry="14" fill="none"
+           stroke="#818cf8" stroke-width="0.8" opacity="0.3"
+           transform="rotate(-15, 120, 111)"/>
+
+  <!-- Small star on orbit -->
+  <g transform="translate(168,97)" filter="url(#softGlow)">
+    <path d="M0,-4 L0.8,-0.8 L4,0 L0.8,0.8 L0,4 L-0.8,0.8 L-4,0 L-0.8,-0.8 Z"
+          fill="#fde68a" opacity="0.9"/>
+  </g>
+
+  <!-- Text -->
+  <text x="120" y="204" text-anchor="middle"
+        font-family="ui-monospace,'JetBrains Mono',monospace"
+        font-size="11.5" font-weight="700" letter-spacing="5"
+        fill="#a5b4fc" opacity="0.95">YAMTAM</text>
+</svg>
