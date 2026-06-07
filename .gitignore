@@ -73,6 +73,5 @@ come_my_way.mp3
 !.dev.vars.example
 !.env.example
 
-# Large Antigravity binaries
-tools/Antigravity-x64/antigravity
-tools/Antigravity-x64/resources/bin/language_server
+# Antigravity — full Electron app (reassemble from release archive)
+tools/Antigravity-x64/
