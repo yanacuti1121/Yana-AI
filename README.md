@@ -86,10 +86,6 @@ Execute (or block + log)
 
 
 
-
-
-
-
 | Rule checks in CI | **826** |
 | Total codebase | **1,129,782 lines · 5,439 files** |
 
