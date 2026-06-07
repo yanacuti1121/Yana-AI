@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./docs/logo-chatgpt.png" alt="YAMTAM" width="160" />
+</p>
+
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">
