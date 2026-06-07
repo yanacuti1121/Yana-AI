@@ -386,13 +386,23 @@ taskInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runTask(); }
 });
 
-// ── History ────────────────────────────────────────────────────────────────────
-const chatHistory = [];
-const MAX_HISTORY = 20;
+// ── History (persisted to localStorage) ───────────────────────────────────────
+const LS_HISTORY_KEY = 'yana-history';
+const MAX_HISTORY    = 30;
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]'); } catch (_) { return []; }
+}
+function saveHistory(arr) {
+  try { localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(arr)); } catch (_) {}
+}
+
+const chatHistory = loadHistory();
 
 function pushHistory(task, route) {
-  chatHistory.unshift({ task, route });
+  chatHistory.unshift({ task, route, ts: Date.now() });
   if (chatHistory.length > MAX_HISTORY) chatHistory.pop();
+  saveHistory(chatHistory);
   renderHistory();
 }
 
@@ -406,9 +416,10 @@ function renderHistory() {
     const li = document.createElement('li');
     li.className = 'history-item';
     li.tabIndex = 0;
+    const ago = item.ts ? relTime(item.ts) : '';
     li.innerHTML = `
       <div class="history-task">${escHtml(item.task)}</div>
-      <div class="history-meta">${escHtml(item.route || '')}</div>`;
+      <div class="history-meta">${escHtml(item.route || '')}${ago ? ' · ' + ago : ''}</div>`;
     const restore = () => {
       taskInput.value = item.task;
       autoResize();
@@ -419,6 +430,14 @@ function renderHistory() {
     li.addEventListener('keydown', e => { if (e.key === 'Enter') restore(); });
     historyList.appendChild(li);
   }
+}
+
+function relTime(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60_000)       return 'just now';
+  if (diff < 3_600_000)    return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000)   return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 renderHistory();
