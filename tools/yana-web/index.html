@@ -3,20 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Yana — AI Task Orchestration</title>
+  <title>Yana — YAMTAM Web</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="layout">
 
-    <!-- ── Sidebar: history ──────────────────────────────────────────── -->
+    <!-- ── Sidebar ───────────────────────────────────────────────────── -->
     <aside class="sidebar" aria-label="Task history">
       <h2 class="sidebar-title">History</h2>
       <ul id="history-list" class="history-list" aria-live="polite"></ul>
     </aside>
 
-    <!-- ── Main content ──────────────────────────────────────────────── -->
+    <!-- ── Main ──────────────────────────────────────────────────────── -->
     <main class="main">
+
+      <!-- YAMTAM stats bar -->
+      <div id="stats-bar" class="stats-bar" aria-label="YAMTAM status">
+        <span id="stat-version" class="stat-item stat-version">yamtam</span>
+        <span class="stat-sep">·</span>
+        <span id="stat-skills"  class="stat-item">— skills</span>
+        <span class="stat-sep">·</span>
+        <span id="stat-agents"  class="stat-item">— agents</span>
+        <span class="stat-sep">·</span>
+        <span id="stat-hooks"   class="stat-item">— hooks</span>
+      </div>
 
       <!-- API key -->
       <section class="key-section" aria-label="API key">
@@ -48,9 +59,7 @@
           </div>
           <div class="select-group">
             <label for="model-select" class="select-label">Model</label>
-            <select id="model-select" class="select-input">
-              <!-- populated by app.js -->
-            </select>
+            <select id="model-select" class="select-input"></select>
           </div>
         </div>
       </section>
@@ -85,6 +94,10 @@
           <span id="source-badge" class="source-badge"></span>
         </div>
         <div class="route-meta">
+          <div id="skill-row" class="meta-row hidden">
+            <span class="meta-label">Skill</span>
+            <span id="skill-value" class="skill-badge"></span>
+          </div>
           <div id="agents-row" class="meta-row hidden">
             <span class="meta-label">Agents</span>
             <span id="agents-value"></span>

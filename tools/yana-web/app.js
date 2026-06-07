@@ -24,6 +24,8 @@ const routeValue     = $('route-value');
 const gateValue      = $('gate-value');
 const confidenceEl   = $('confidence-value');
 const sourceBadge    = $('source-badge');
+const skillRow       = $('skill-row');
+const skillValue     = $('skill-value');
 const agentsRow      = $('agents-row');
 const agentsValue    = $('agents-value');
 const signalsRow     = $('signals-row');
@@ -37,14 +39,24 @@ const historyList    = $('history-list');
 const show = el => el.classList.remove('hidden');
 const hide = el => el.classList.add('hidden');
 
+// ── Stats bar ─────────────────────────────────────────────────────────────────
+fetch('/api/status')
+  .then(r => r.json())
+  .then(s => {
+    $('stat-version').textContent = `yamtam v${s.version}`;
+    $('stat-skills').textContent  = `${s.skills.toLocaleString()} skills`;
+    $('stat-agents').textContent  = `${s.agents} agents`;
+    $('stat-hooks').textContent   = `${s.hooks} hooks`;
+  })
+  .catch(() => {});
+
 // ── Provider + model ──────────────────────────────────────────────────────────
 function populateModels() {
   const models = PROVIDER_MODELS[providerSelect.value] || [];
   modelSelect.innerHTML = '';
   for (const m of models) {
     const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
+    opt.value = m; opt.textContent = m;
     modelSelect.appendChild(opt);
   }
   syncKeyStatus();
@@ -54,24 +66,20 @@ providerSelect.addEventListener('change', populateModels);
 populateModels();
 
 // ── API key (per-provider) ────────────────────────────────────────────────────
-function lsKey()    { return LS_KEY_PREFIX + providerSelect.value; }
-function getKey()   { return localStorage.getItem(lsKey()) || ''; }
+function lsKey()  { return LS_KEY_PREFIX + providerSelect.value; }
+function getKey() { return localStorage.getItem(lsKey()) || ''; }
 
 function syncKeyStatus() {
   const saved = !!getKey();
   keyStatus.textContent = saved ? 'saved' : 'no key';
   keyStatus.classList.toggle('saved', saved);
-  keyInput.placeholder = providerSelect.value === 'groq'
-    ? 'gsk_…'
-    : providerSelect.value === 'openai'
-      ? 'sk-…'
-      : 'sk-ant-…';
+  keyInput.placeholder = { groq: 'gsk_…', openai: 'sk-…' }[providerSelect.value] || 'sk-ant-…';
 }
 
 saveKeyBtn.addEventListener('click', () => {
   const val = keyInput.value.trim();
   if (val) { localStorage.setItem(lsKey(), val); keyInput.value = ''; }
-  else      { localStorage.removeItem(lsKey()); }
+  else     { localStorage.removeItem(lsKey()); }
   syncKeyStatus();
 });
 
@@ -86,6 +94,13 @@ function renderRoute(d) {
   sourceBadge.setAttribute('data-source', src);
   reasonValue.textContent = d.reason || '';
 
+  if (d.suggested_skill) {
+    skillValue.textContent = d.suggested_skill;
+    show(skillRow);
+  } else {
+    hide(skillRow);
+  }
+
   const agents = Array.isArray(d.suggested_agents) ? d.suggested_agents : [];
   agentsValue.textContent = agents.join(', ');
   agents.length > 0 ? show(agentsRow) : hide(agentsRow);
@@ -97,8 +112,8 @@ function renderRoute(d) {
   show(routeCard);
 }
 
-// ── SSE streaming (unified server format: data: {"text":"..."}) ───────────────
-function streamChat(task, apiKey, suggestedAgents) {
+// ── SSE streaming ─────────────────────────────────────────────────────────────
+function streamChat(task, apiKey, suggestedAgents, skill) {
   resultText.textContent = '';
   show(resultCard);
 
@@ -109,6 +124,7 @@ function streamChat(task, apiKey, suggestedAgents) {
       task, apiKey, suggestedAgents,
       provider: providerSelect.value,
       model:    modelSelect.value,
+      skill:    skill || null,
     }),
   }).then(res => {
     if (!res.ok || !res.body) { resultText.textContent = `HTTP error ${res.status}`; return; }
@@ -150,7 +166,7 @@ runBtn.addEventListener('click', async () => {
 
   hide(routeCard);
   hide(resultCard);
-  runBtn.disabled = true;
+  runBtn.disabled   = true;
   runBtn.textContent = 'Routing…';
 
   try {
@@ -167,10 +183,11 @@ runBtn.addEventListener('click', async () => {
         '⚠ External action detected — manual confirmation required before proceeding.';
       show(resultCard);
     } else if (!getKey()) {
-      resultText.textContent = `Save your ${providerSelect.value} API key above to get an AI response.`;
+      resultText.textContent =
+        `Save your ${providerSelect.value} API key above to get an AI response.`;
       show(resultCard);
     } else {
-      streamChat(task, getKey(), decision.suggested_agents || []);
+      streamChat(task, getKey(), decision.suggested_agents || [], decision.suggested_skill);
     }
 
     pushHistory(task, decision.route);
@@ -178,7 +195,7 @@ runBtn.addEventListener('click', async () => {
     resultText.textContent = `Error: ${err.message}`;
     show(resultCard);
   } finally {
-    runBtn.disabled  = false;
+    runBtn.disabled   = false;
     runBtn.textContent = 'Run';
   }
 });
@@ -188,7 +205,7 @@ taskInput.addEventListener('keydown', e => {
 });
 
 // ── History ───────────────────────────────────────────────────────────────────
-const history = [];
+const history    = [];
 const MAX_HISTORY = 20;
 
 function pushHistory(task, route) {
@@ -204,15 +221,15 @@ function renderHistory() {
   }
   historyList.innerHTML = '';
   for (const item of history) {
-    const li     = document.createElement('li');
+    const li = document.createElement('li');
     li.className = 'history-item';
     li.tabIndex  = 0;
 
-    const taskEl    = document.createElement('div');
+    const taskEl = document.createElement('div');
     taskEl.className = 'history-task';
     taskEl.textContent = item.task;
 
-    const metaEl    = document.createElement('div');
+    const metaEl = document.createElement('div');
     metaEl.className = 'history-meta';
     metaEl.textContent = item.route;
 
