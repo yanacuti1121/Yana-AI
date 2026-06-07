@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yana — AI Task Orchestration</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+
+    <!-- ── Sidebar: history ──────────────────────────────────────────── -->
+    <aside class="sidebar" aria-label="Task history">
+      <h2 class="sidebar-title">History</h2>
+      <ul id="history-list" class="history-list" aria-live="polite"></ul>
+    </aside>
+
+    <!-- ── Main content ──────────────────────────────────────────────── -->
+    <main class="main">
+
+      <!-- API key -->
+      <section class="key-section" aria-label="API key">
+        <label for="api-key-input" class="key-label">API Key</label>
+        <div class="key-row">
+          <input
+            id="api-key-input"
+            type="password"
+            class="key-input"
+            placeholder="sk-ant-… / gsk_… / sk-…"
+            autocomplete="off"
+            aria-describedby="key-status"
+          >
+          <button id="save-key-btn" class="btn btn-secondary" type="button">Save</button>
+          <span id="key-status" class="status-pill" aria-live="polite">no key</span>
+        </div>
+      </section>
+
+      <!-- Provider + model -->
+      <section class="model-section" aria-label="Model selector">
+        <div class="model-row">
+          <div class="select-group">
+            <label for="provider-select" class="select-label">Provider</label>
+            <select id="provider-select" class="select-input">
+              <option value="anthropic">Anthropic</option>
+              <option value="groq">Groq (free)</option>
+              <option value="openai">OpenAI</option>
+            </select>
+          </div>
+          <div class="select-group">
+            <label for="model-select" class="select-label">Model</label>
+            <select id="model-select" class="select-input">
+              <!-- populated by app.js -->
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Task input -->
+      <section class="task-section" aria-label="Task input">
+        <label for="task-input" class="task-label">Task</label>
+        <textarea
+          id="task-input"
+          class="task-textarea"
+          rows="4"
+          placeholder="Describe your task… (Ctrl+Enter to run)"
+          aria-label="Task description"
+        ></textarea>
+        <button id="run-btn" class="btn btn-primary" type="button">Run</button>
+      </section>
+
+      <!-- Route decision card -->
+      <section id="route-card" class="card route-card hidden" aria-label="Route decision" aria-live="polite">
+        <h2 class="card-title">Route Decision</h2>
+        <div class="route-grid">
+          <span class="route-label">Route</span>
+          <span id="route-value" class="route-badge"></span>
+
+          <span class="route-label">Gate</span>
+          <span id="gate-value" class="gate-value"></span>
+
+          <span class="route-label">Confidence</span>
+          <span id="confidence-value" class="confidence-value"></span>
+
+          <span class="route-label">Source</span>
+          <span id="source-badge" class="source-badge"></span>
+        </div>
+        <div class="route-meta">
+          <div id="agents-row" class="meta-row hidden">
+            <span class="meta-label">Agents</span>
+            <span id="agents-value"></span>
+          </div>
+          <div id="signals-row" class="meta-row hidden">
+            <span class="meta-label">Signals</span>
+            <span id="signals-value"></span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Reason</span>
+            <span id="reason-value"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Streaming result card -->
+      <section id="result-card" class="card result-card hidden" aria-label="AI response" aria-live="polite">
+        <h2 class="card-title">Response</h2>
+        <pre id="result-text" class="result-text"></pre>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
