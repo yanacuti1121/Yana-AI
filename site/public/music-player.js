@@ -120,6 +120,7 @@
           if (e.data === YT.PlayerState.ENDED) {
             e.target.playVideo();
           }
+          _syncBtn();
         },
         onError: function () {
           const tracks = JSON.parse(localStorage.getItem('music-tracks') || 'null') || DEFAULT_TRACKS;
@@ -153,21 +154,32 @@
   window._musicMute = function (muted) {
     _muted = muted;
     if (_player) _muted ? _player.mute() : _player.unMute();
-    _syncBtn();
   };
 
+  // Sync play/pause button icon based on actual player state
   function _syncBtn() {
     const btn = document.getElementById('mute-btn');
     if (!btn) return;
-    btn.textContent = _muted ? '🔇' : '🔊';
-    btn.classList && btn.classList.toggle('muted', _muted);
+    const playing = _player && typeof _player.getPlayerState === 'function'
+      && _player.getPlayerState() === 1;
+    btn.textContent = playing ? '⏸' : '▶';
+    btn.title = playing ? 'Dừng nhạc' : 'Phát nhạc';
   }
 
+  // toggleMute is now togglePlayPause — bound to the button onclick
   if (!window._customToggleMute) {
     window.toggleMute = function () {
-      _muted = !_muted;
-      localStorage.setItem('site-mute', _muted ? '1' : '0');
-      window._musicMute(_muted);
+      if (!_player || typeof _player.getPlayerState !== 'function') return;
+      const st = _player.getPlayerState();
+      if (st === 1 || st === 3) { // playing or buffering → pause
+        _player.pauseVideo();
+        localStorage.setItem('music-playing', '0');
+      } else {                    // paused/stopped → play
+        _player.playVideo();
+        localStorage.setItem('music-playing', '1');
+        _hideResumeBtn();
+      }
+      setTimeout(_syncBtn, 100);
     };
   }
 
