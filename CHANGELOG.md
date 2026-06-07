@@ -19,14 +19,14 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 ---
 
 ## v0.18.0 — yamtam-rt v1.1.0: CI publish + score command
-*TBD*
+*SKIPPED — 2026-06-07*
 
-### Status: UNRELEASED 🔲
+### Status: SKIPPED ⏭
 
-### Highlights
-- **yamtam-rt v1.1.0** — CI publish pipeline to crates.io + 35 integration tests + `score` subcommand
-- CI workflow publishes binary artifacts on release tag push
-- `score` subcommand for rule scoring and analysis
+Superseded by v0.40.0 which shipped yamtam-rt with full CI publish pipeline, binary artifact releases, and expanded subcommand set. Items planned here were absorbed into later milestones:
+- `score` subcommand → absorbed into `yamtam ci` gate scoring
+- CI publish → shipped in v0.40.0 CI workflow
+- Integration tests → shipped across v0.30.0–v0.40.0
 
 ---
 
