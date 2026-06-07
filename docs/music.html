@@ -204,24 +204,30 @@
       <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
     </div>
 
-    <!-- Track list -->
-    <div class="section-label">Danh sách phát</div>
+    <!-- YouTube track list -->
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+      <div class="section-label" style="margin-bottom:0">YouTube</div>
+      <span style="font-size:.68rem;padding:.1rem .45rem;border-radius:20px;background:var(--teal-lt);color:var(--teal);font-weight:700">▶ Phát xuyên trang</span>
+    </div>
     <div class="track-list" id="track-list"></div>
 
-    <!-- Local MP3 tracks -->
-    <div class="add-section" style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
-      <div class="section-label" style="margin-bottom:.75rem">Tệp nhạc</div>
-      <div id="local-track-list"></div>
-    </div>
-
-    <!-- Add track -->
-    <div class="add-section">
-      <h2>Thêm bài từ YouTube</h2>
+    <!-- Add YouTube track -->
+    <div style="margin-top:1rem;padding:.875rem;background:var(--bg-card);border:1px solid var(--border);border-radius:12px">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--fg-muted)">Thêm từ YouTube</div>
       <div class="add-form">
-        <input class="add-input" id="add-url" type="text" placeholder="Paste link YouTube hoặc video ID...">
+        <input class="add-input" id="add-url" type="text" placeholder="Link YouTube hoặc video ID...">
         <button class="add-btn" onclick="addTrack()">Thêm</button>
       </div>
-      <div class="add-hint">VD: https://youtu.be/aKSJAcG4V4o hoặc aKSJAcG4V4o</div>
+      <div class="add-hint" style="margin-top:.35rem">VD: https://youtu.be/aKSJAcG4V4o hoặc aKSJAcG4V4o</div>
+    </div>
+
+    <!-- Local MP3 tracks — clearly separated -->
+    <div style="margin-top:1.75rem;padding-top:1.5rem;border-top:2px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+        <div class="section-label" style="margin-bottom:0">Tệp nhạc</div>
+        <span style="font-size:.68rem;padding:.1rem .45rem;border-radius:20px;background:hsla(38,80%,50%,.12);color:hsl(38,70%,40%);font-weight:700">MP3 · Local</span>
+      </div>
+      <div id="local-track-list"></div>
     </div>
   </div>
 
@@ -278,13 +284,13 @@
       syncPlayBtn();
       return;
     }
-    // No local audio → control YT
-    const p = window._getMusicPlayer && window._getMusicPlayer();
-    if (!p) return;
-    if (window._getMusicPlaying && window._getMusicPlaying()) {
+    // YT: if currently playing → pause; otherwise → resume/start
+    const isPlaying = window._getMusicPlaying ? window._getMusicPlaying() : _playing;
+    if (isPlaying) {
       window._pauseMusic && window._pauseMusic();
       _playing = false;
     } else {
+      // Player may not be ready yet — _resumeMusic handles pending play
       window._resumeMusic && window._resumeMusic();
       _playing = true;
     }
@@ -300,8 +306,10 @@
     const btn = document.getElementById('play-btn');
     if (!btn) return;
     const localPlaying = _localAudio && !_localAudio.paused;
-    const ytPlaying    = window._getMusicPlaying ? window._getMusicPlaying() : _playing;
-    const isPlaying    = localPlaying || ytPlaying;
+    // Use actual player state if available, fall back to _playing intent
+    const ytActual  = window._getMusicPlaying ? window._getMusicPlaying() : false;
+    const ytPlaying = ytActual || _playing;
+    const isPlaying = localPlaying || ytPlaying;
     btn.textContent = isPlaying ? '⏸' : '▶';
     btn.classList.toggle('paused', !isPlaying);
     btn.title = isPlaying ? 'Dừng' : 'Phát';
