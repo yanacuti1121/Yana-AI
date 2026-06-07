@@ -649,13 +649,21 @@ renderHistory();
 
   async function init() {
     const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.replace('/login.html');
+      return;
+    }
     sbUser = session?.user ?? null;
     renderUserSection();
     if (sbUser) {
       await loadHistoryFromSupabase();
       await loadApiKeysFromSupabase();
     }
-    sb.auth.onAuthStateChange(async (_event, session) => {
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        window.location.replace('/login.html');
+        return;
+      }
       sbUser = session?.user ?? null;
       renderUserSection();
       if (sbUser) {

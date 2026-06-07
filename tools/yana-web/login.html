@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập — Yana</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg, #0f0f0f);
+      margin: 0;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+      padding: 2.5rem 2rem;
+      background: var(--bg-card, #141414);
+      border: 1px solid var(--border, #222);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .logo-y {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--primary, #3b82f6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.03em;
+    }
+    .login-title {
+      font-size: 1.25rem; font-weight: 600;
+      color: var(--fg, #f0f0f0); text-align: center;
+    }
+    .login-toggle {
+      display: flex; width: 100%;
+      border: 1px solid var(--border, #222);
+      border-radius: 8px; overflow: hidden;
+    }
+    .toggle-btn {
+      flex: 1; padding: 0.5rem;
+      background: transparent; border: none;
+      color: var(--fg-muted, #888);
+      cursor: pointer; font-size: 0.875rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .toggle-btn.active { background: var(--primary, #3b82f6); color: #fff; }
+    form { width: 100%; display: flex; flex-direction: column; gap: 0.875rem; }
+    .field input {
+      width: 100%; padding: 0.625rem 0.875rem; box-sizing: border-box;
+      background: var(--bg, #0f0f0f);
+      border: 1px solid var(--border, #222); border-radius: 8px;
+      color: var(--fg, #f0f0f0); font-size: 0.9375rem; outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: var(--primary, #3b82f6); }
+    .field input::placeholder { color: var(--fg-muted, #888); }
+    .btn-submit {
+      width: 100%; padding: 0.75rem;
+      background: var(--primary, #3b82f6); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg { font-size: 0.8125rem; text-align: center; min-height: 1.2em; }
+    .msg.error   { color: var(--danger, #f87171); }
+    .msg.success { color: var(--success, #4ade80); }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo-y">Y</div>
+    <div class="login-title" id="card-title">Đăng nhập</div>
+
+    <div class="login-toggle">
+      <button class="toggle-btn active" id="btn-login"    onclick="switchMode('login')">Đăng nhập</button>
+      <button class="toggle-btn"        id="btn-register" onclick="switchMode('register')">Đăng ký</button>
+    </div>
+
+    <form id="auth-form" onsubmit="handleSubmit(event)">
+      <div class="field"><input type="email"    id="email"    placeholder="Email"     required autocomplete="email" /></div>
+      <div class="field"><input type="password" id="password" placeholder="Mật khẩu" required autocomplete="current-password" minlength="6" /></div>
+      <button class="btn-submit" type="submit" id="submit-btn">Đăng nhập</button>
+    </form>
+
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const sb = window.supabase.createClient(
+      'https://kxuqqxmcnmgdlwjtpggq.supabase.co',
+      'sb_publishable_jCB2cKz0LmGUP0pcOY1bog_bnIFDff7'
+    )
+
+    let mode = 'login'
+
+    // Đã login → về trang chủ
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.replace('/')
+    })
+
+    function switchMode(m) {
+      mode = m
+      const isLogin = m === 'login'
+      document.getElementById('btn-login').classList.toggle('active', isLogin)
+      document.getElementById('btn-register').classList.toggle('active', !isLogin)
+      document.getElementById('card-title').textContent = isLogin ? 'Đăng nhập' : 'Đăng ký'
+      document.getElementById('submit-btn').textContent = isLogin ? 'Đăng nhập' : 'Tạo tài khoản'
+      document.getElementById('password').autocomplete  = isLogin ? 'current-password' : 'new-password'
+      setMsg('')
+    }
+
+    function setMsg(text, isError = true) {
+      const el = document.getElementById('msg')
+      el.textContent = text
+      el.className = 'msg ' + (text ? (isError ? 'error' : 'success') : '')
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault()
+      const email    = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+      const btn      = document.getElementById('submit-btn')
+      btn.disabled = true
+      setMsg('')
+
+      try {
+        let error
+        if (mode === 'login') {
+          ;({ error } = await sb.auth.signInWithPassword({ email, password }))
+        } else {
+          ;({ error } = await sb.auth.signUp({ email, password }))
+          if (!error) { setMsg('Kiểm tra email để xác nhận tài khoản.', false); btn.disabled = false; return }
+        }
+        if (error) setMsg(error.message)
+        else window.location.replace('/')
+      } catch { setMsg('Lỗi kết nối. Thử lại.') }
+
+      btn.disabled = false
+    }
+  </script>
+</body>
+</html>
