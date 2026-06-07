@@ -512,3 +512,20 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** Marketplace mail — cần app password mới (2 cái cũ đã lộ trong chat)
 
 ---
+
+## 2026-06-07 — bulk ingest 32 trending GitHub skills + README + trang chủ
+
+**Đã làm:**
+- Batch 1 (+6): open-code-review, webwright, memory-os, open-design, ai-engineering-from-scratch, 500-ai-projects · 3463→3469
+- Batch 2 (+5): mempalace, personal-ai-infra, career-ops, mxc, vibevoice · 3469→3474
+- Batch 3 (+6): harness, cybersecurity-skills, compound-engineering, oh-my-pi, spec-kit, mirofish · 3474→3480
+- Batch 4 (+9): liteparse, hexstrike-ai, awesome-llm-apps, free-llm-api, moneyprinter-turbo, vinext, mcp-context-forge, bitnet, khoj · 3480→3489
+- Batch 5 (+6): paddleocr, coding-interview-university, codex-plugins, copilot-sdk, agent-reach, cosmos · 3489→3495
+- Update README.md: 3,495 skills · 95 agents
+- Update docs/index.html: 3,495 skills · 95 agents · 46 hooks (EN+VI+KO)
+
+**Anh nói / quyết định:** "lấy hết đi" × 3 lần, "lấy thêm mấy repo trending mới đi", fetch --force khi cache cũ
+
+**Trạng thái cuối:** v0.41.0 · 3,495 skills · 7 commits · README + homepage synced · trending cache empty
+
+---

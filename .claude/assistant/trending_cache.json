@@ -1,105 +1,123 @@
 {
-  "fetched_at": 1780496129.9361043,
-  "date": "2026-06-03",
+  "fetched_at": 1780807689.4605606,
+  "date": "2026-06-07",
   "lang": "",
   "repos": [
     {
-      "name": "sponsors/chopratejas",
-      "url": "https://github.com/sponsors/chopratejas",
-      "description": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 60-95% fewer tokens, same answers. Library",
+      "name": "mvanhorn/last30days-skill",
+      "url": "https://github.com/mvanhorn/last30days-skill",
+      "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a gro",
       "language": "Python",
       "stars": 0,
-      "stars_today": 3528,
+      "stars_today": 439,
       "relevant": true
     },
     {
-      "name": "microsoft/markitdown",
-      "url": "https://github.com/microsoft/markitdown",
-      "description": "Python tool for converting files and office documents to Markdown.",
-      "language": "Python",
+      "name": "CopilotKit/CopilotKit",
+      "url": "https://github.com/CopilotKit/CopilotKit",
+      "description": "The Frontend Stack for Agents &amp; Generative UI. React, Angular, Mobile, Slack, and more. Makers of the AG-UI Protocol",
+      "language": "TypeScript",
       "stars": 0,
-      "stars_today": 2006,
-      "relevant": false
+      "stars_today": 631,
+      "relevant": true
     },
     {
-      "name": "sponsors/affaan-m",
-      "url": "https://github.com/sponsors/affaan-m",
-      "description": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development f",
+      "name": "MemPalace/mempalace",
+      "url": "https://github.com/MemPalace/mempalace",
+      "description": "The best-benchmarked open-source AI memory system. And it's free.",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 446,
+      "relevant": true
+    },
+    {
+      "name": "openai/plugins",
+      "url": "https://github.com/openai/plugins",
+      "description": "OpenAI Plugins",
       "language": "JavaScript",
       "stars": 0,
-      "stars_today": 2147,
+      "stars_today": 213,
       "relevant": true
     },
     {
-      "name": "sponsors/D4Vinci",
-      "url": "https://github.com/sponsors/D4Vinci",
-      "description": "🕷️ An adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl!",
+      "name": "Panniantong/Agent-Reach",
+      "url": "https://github.com/Panniantong/Agent-Reach",
+      "description": "Give your AI agent eyes to see the entire internet. Read &amp; search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHo",
       "language": "Python",
       "stars": 0,
-      "stars_today": 1078,
+      "stars_today": 683,
+      "relevant": true
+    },
+    {
+      "name": "nginx/nginx",
+      "url": "https://github.com/nginx/nginx",
+      "description": "The official NGINX Open Source repository.",
+      "language": "C",
+      "stars": 0,
+      "stars_today": 20,
       "relevant": false
     },
     {
-      "name": "sponsors/nesquena",
-      "url": "https://github.com/sponsors/nesquena",
-      "description": "Hermes WebUI: The best way to use Hermes Agent from the web or from your phone!",
-      "language": "Python",
+      "name": "aquasecurity/trivy",
+      "url": "https://github.com/aquasecurity/trivy",
+      "description": "Find vulnerabilities, misconfigurations, secrets, SBOM in containers, Kubernetes, code repositories, clouds and more",
+      "language": "Go",
       "stars": 0,
-      "stars_today": 734,
+      "stars_today": 159,
       "relevant": true
     },
     {
-      "name": "reconurge/flowsint",
-      "url": "https://github.com/reconurge/flowsint",
-      "description": "A modern platform for visual, flexible, and extensible graph-based investigations. For cybersecurity analysts and invest",
+      "name": "golang/go",
+      "url": "https://github.com/golang/go",
+      "description": "The Go programming language",
+      "language": "Go",
+      "stars": 0,
+      "stars_today": 30,
+      "relevant": false
+    },
+    {
+      "name": "lfnovo/open-notebook",
+      "url": "https://github.com/lfnovo/open-notebook",
+      "description": "An Open Source implementation of Notebook LM with more flexibility and features",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 509,
-      "relevant": true
-    },
-    {
-      "name": "OpenBMB/VoxCPM",
-      "url": "https://github.com/OpenBMB/VoxCPM",
-      "description": "VoxCPM2: Tokenizer-Free TTS for Multilingual Speech Generation, Creative Voice Design, and True-to-Life Cloning",
-      "language": "Python",
-      "stars": 0,
-      "stars_today": 713,
+      "stars_today": 794,
       "relevant": false
     },
     {
-      "name": "stefan-jansen/machine-learning-for-trading",
-      "url": "https://github.com/stefan-jansen/machine-learning-for-trading",
-      "description": "Code for Machine Learning for Algorithmic Trading, 2nd edition.",
-      "language": "Jupyter Notebook",
-      "stars": 0,
-      "stars_today": 716,
-      "relevant": false
-    },
-    {
-      "name": "jamwithai/production-agentic-rag-course",
-      "url": "https://github.com/jamwithai/production-agentic-rag-course",
-      "description": "",
+      "name": "openai/whisper",
+      "url": "https://github.com/openai/whisper",
+      "description": "Robust Speech Recognition via Large-Scale Weak Supervision",
       "language": "Python",
       "stars": 0,
-      "stars_today": 372,
+      "stars_today": 150,
       "relevant": true
     },
     {
-      "name": "supermemoryai/supermemory",
-      "url": "https://github.com/supermemoryai/supermemory",
-      "description": "Memory engine and app that is extremely fast, scalable. The Memory API for the AI era.",
-      "language": "TypeScript",
+      "name": "microsoft/mxc",
+      "url": "https://github.com/microsoft/mxc",
+      "description": "Policy-driven, layered isolation and containment",
+      "language": "Rust",
       "stars": 0,
-      "stars_today": 601,
+      "stars_today": 64,
       "relevant": true
     },
     {
-      "name": "Open-LLM-VTuber/Open-LLM-VTuber",
-      "url": "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber",
-      "description": "Talk to any LLM with hands-free voice interaction, voice interruption, and Live2D taking face running locally across pla",
+      "name": "PaddlePaddle/PaddleOCR",
+      "url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "description": "Turn any PDF or image document into structured data for your AI. A powerful, lightweight OCR toolkit that bridges the ga",
       "language": "Python",
       "stars": 0,
-      "stars_today": 702,
+      "stars_today": 433,
+      "relevant": true
+    },
+    {
+      "name": "microsoft/VibeVoice",
+      "url": "https://github.com/microsoft/VibeVoice",
+      "description": "Open-Source Frontier Voice AI",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 216,
       "relevant": true
     }
   ]
