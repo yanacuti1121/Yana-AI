@@ -227,6 +227,7 @@
 
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
   <script src="shared-theme.js"></script>
+  <script>window._customToggleMute = true;</script>
   <script src="music-player.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -278,7 +279,7 @@
   }
 
   function toggleMuteLocal() {
-    window.toggleMute && window.toggleMute();
+    window.toggleMuteOnly && window.toggleMuteOnly();
     syncMuteBtn();
   }
 

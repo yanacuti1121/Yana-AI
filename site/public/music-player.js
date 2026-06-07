@@ -156,8 +156,10 @@
     if (_player) _muted ? _player.mute() : _player.unMute();
   };
 
-  // Sync play/pause button icon based on actual player state
+  // Sync play/pause button icon — only on pages without a custom player UI
+  // (music.html and io.html manage their own button icons)
   function _syncBtn() {
+    if (window._customToggleMute) return; // hands-off on custom pages
     const btn = document.getElementById('mute-btn');
     if (!btn) return;
     const playing = _player && typeof _player.getPlayerState === 'function'
@@ -166,7 +168,8 @@
     btn.title = playing ? 'Dừng nhạc' : 'Phát nhạc';
   }
 
-  // toggleMute is now togglePlayPause — bound to the button onclick
+  // On regular pages: toggleMute = play/pause
+  // On custom pages (music.html, io.html): their own toggleMute is used
   if (!window._customToggleMute) {
     window.toggleMute = function () {
       if (!_player || typeof _player.getPlayerState !== 'function') return;
@@ -182,6 +185,14 @@
       setTimeout(_syncBtn, 100);
     };
   }
+
+  // Mute toggle — called by music.html / io.html directly
+  window.toggleMuteOnly = function () {
+    const muted = localStorage.getItem('site-mute') !== '1';
+    localStorage.setItem('site-mute', muted ? '1' : '0');
+    _muted = muted;
+    if (_player) _muted ? _player.mute() : _player.unMute();
+  };
 
   window._pauseMusic  = function () { if (_player?.pauseVideo) _player.pauseVideo(); };
   window._resumeMusic = function () { if (_player?.playVideo)  _player.playVideo(); };
