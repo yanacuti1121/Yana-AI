@@ -4,7 +4,7 @@ const LS_KEY_PREFIX = 'yana-api-key-';
 
 const PROVIDER_MODELS = {
   anthropic: ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-8'],
-  groq:      ['llama-3.3-70b-versatile', 'qwen-qwq-32b', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
+  groq:      ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'llama-3.1-70b-versatile'],
   openai:    ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'],
 };
 

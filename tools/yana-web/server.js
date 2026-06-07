@@ -212,8 +212,16 @@ async function handleApiChat(req, res) {
 
   const upstreamReq = https.request(options, upstreamRes => {
     if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
-      res.write(`data: ${JSON.stringify({ error: `Upstream HTTP ${upstreamRes.statusCode}` })}\n\n`);
-      res.end(); return;
+      let errBody = '';
+      upstreamRes.on('data', c => { errBody += c; });
+      upstreamRes.on('end', () => {
+        let detail = '';
+        try { const j = JSON.parse(errBody); detail = j.error?.message || j.message || ''; } catch (_) {}
+        const msg = `Upstream HTTP ${upstreamRes.statusCode}${detail ? ': ' + detail : ''}`;
+        res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
+        res.end();
+      });
+      return;
     }
     pipeNormalizedSSE(upstreamRes, res, p.extractText);
   });
