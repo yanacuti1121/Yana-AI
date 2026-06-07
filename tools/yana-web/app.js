@@ -140,8 +140,13 @@ function syncKeyStatus() {
 
 saveKeyBtn.addEventListener('click', () => {
   const val = keyInput.value.trim();
-  if (val) { localStorage.setItem(lsKey(), val); keyInput.value = ''; }
-  else     { localStorage.removeItem(lsKey()); }
+  if (val) {
+    localStorage.setItem(lsKey(), val);
+    keyInput.value = '';
+    _sbSaveApiKey(providerSelect.value, val);
+  } else {
+    localStorage.removeItem(lsKey());
+  }
   syncKeyStatus();
 });
 
@@ -386,6 +391,10 @@ taskInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runTask(); }
 });
 
+// ── Supabase stubs (replaced once Supabase loads at end of file) ───────────────
+let _sbPushHistory = () => {};
+let _sbSaveApiKey  = () => {};
+
 // ── History (persisted to localStorage) ───────────────────────────────────────
 const LS_HISTORY_KEY = 'yana-history';
 const MAX_HISTORY    = 30;
@@ -400,10 +409,12 @@ function saveHistory(arr) {
 const chatHistory = loadHistory();
 
 function pushHistory(task, route) {
-  chatHistory.unshift({ task, route, ts: Date.now() });
+  const item = { task, route, ts: Date.now() };
+  chatHistory.unshift(item);
   if (chatHistory.length > MAX_HISTORY) chatHistory.pop();
   saveHistory(chatHistory);
   renderHistory();
+  _sbPushHistory(item);
 }
 
 function renderHistory() {
@@ -441,3 +452,181 @@ function relTime(ts) {
 }
 
 renderHistory();
+
+// ── Supabase auth + sync ────────────────────────────────────────────────────────
+(function initSupabase() {
+  if (typeof window === 'undefined' || !window.supabase) return;
+
+  const SUPABASE_URL = 'https://kxuqqxmcnmgdlwjtpggq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_jCB2cKz0LmGUP0pcOY1bog_bnIFDff7';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let sbUser = null;
+
+  const userSection    = $('user-section');
+  const authOverlay    = $('auth-overlay');
+  const authModal      = $('auth-modal');
+  const authClose      = $('auth-close');
+  const authTitleEl    = $('auth-title');
+  const authForm       = $('auth-form');
+  const authEmailEl    = $('auth-email');
+  const authPasswordEl = $('auth-password');
+  const authSubmitEl   = $('auth-submit');
+  const authErrorEl    = $('auth-error');
+  const authSwitchBtn  = $('auth-switch');
+  const authToggleLabel= $('auth-toggle-label');
+
+  let authMode = 'login';
+
+  function openModal(mode) {
+    authMode = mode || 'login';
+    const isLogin = authMode === 'login';
+    authTitleEl.textContent     = isLogin ? 'Đăng nhập' : 'Đăng ký';
+    authSubmitEl.textContent    = isLogin ? 'Đăng nhập' : 'Tạo tài khoản';
+    authSwitchBtn.textContent   = isLogin ? 'Đăng ký'   : 'Đăng nhập';
+    authToggleLabel.textContent = isLogin ? 'Chưa có tài khoản? ' : 'Đã có tài khoản? ';
+    authErrorEl.textContent     = '';
+    authErrorEl.style.color     = 'var(--danger)';
+    authModal.classList.remove('hidden');
+    authOverlay.classList.remove('hidden');
+    authEmailEl.focus();
+  }
+
+  function closeModal() {
+    authModal.classList.add('hidden');
+    authOverlay.classList.add('hidden');
+    authForm.reset();
+    authErrorEl.textContent = '';
+  }
+
+  authClose.addEventListener('click', closeModal);
+  authOverlay.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  authSwitchBtn.addEventListener('click', () => openModal(authMode === 'login' ? 'signup' : 'login'));
+
+  authForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    authErrorEl.textContent  = '';
+    authSubmitEl.disabled    = true;
+    authSubmitEl.textContent = 'Đang xử lý…';
+    const email    = authEmailEl.value.trim();
+    const password = authPasswordEl.value;
+    try {
+      const { data, error } = authMode === 'login'
+        ? await sb.auth.signInWithPassword({ email, password })
+        : await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (authMode === 'signup' && !data.session) {
+        authErrorEl.style.color = 'var(--success)';
+        authErrorEl.textContent = 'Kiểm tra email để xác nhận tài khoản!';
+      } else {
+        closeModal();
+      }
+    } catch (err) {
+      authErrorEl.style.color = 'var(--danger)';
+      authErrorEl.textContent = err.message || 'Lỗi đăng nhập';
+    } finally {
+      authSubmitEl.disabled = false;
+      authSubmitEl.textContent = authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản';
+    }
+  });
+
+  function renderUserSection() {
+    if (!sbUser) {
+      userSection.innerHTML = `
+        <button class="signin-btn" id="signin-btn" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Đăng nhập
+        </button>`;
+      $('signin-btn').addEventListener('click', () => openModal('login'));
+    } else {
+      const initial = (sbUser.email || '?')[0].toUpperCase();
+      userSection.innerHTML = `
+        <div class="user-info">
+          <div class="user-avatar">${escHtml(initial)}</div>
+          <span class="user-email" title="${escHtml(sbUser.email)}">${escHtml(sbUser.email)}</span>
+          <button class="signout-btn" id="signout-btn" type="button" title="Đăng xuất">↪</button>
+        </div>`;
+      $('signout-btn').addEventListener('click', () => sb.auth.signOut());
+    }
+  }
+
+  _sbPushHistory = async function(item) {
+    if (!sbUser) return;
+    try {
+      await sb.from('yana_history').insert({
+        user_id: sbUser.id, task: item.task,
+        route: item.route || null, ts: item.ts,
+      });
+    } catch (_) {}
+  };
+
+  async function loadHistoryFromSupabase() {
+    if (!sbUser) return;
+    try {
+      const { data, error } = await sb.from('yana_history')
+        .select('task, route, ts').eq('user_id', sbUser.id)
+        .order('ts', { ascending: false }).limit(MAX_HISTORY);
+      if (error || !data) return;
+      const existingTs = new Set(chatHistory.map(h => h.ts));
+      for (const row of data) {
+        if (!existingTs.has(row.ts))
+          chatHistory.push({ task: row.task, route: row.route || '', ts: row.ts });
+      }
+      chatHistory.sort((a, b) => b.ts - a.ts);
+      if (chatHistory.length > MAX_HISTORY) chatHistory.length = MAX_HISTORY;
+      saveHistory(chatHistory);
+      renderHistory();
+    } catch (_) {}
+  }
+
+  _sbSaveApiKey = async function(provider, key) {
+    if (!sbUser) return;
+    try {
+      const { data } = await sb.from('yana_settings')
+        .select('api_keys').eq('user_id', sbUser.id).single();
+      const keys = { ...(data?.api_keys || {}), [provider]: key };
+      await sb.from('yana_settings').upsert({
+        user_id: sbUser.id, api_keys: keys,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (_) {}
+  };
+
+  async function loadApiKeysFromSupabase() {
+    if (!sbUser) return;
+    try {
+      const { data, error } = await sb.from('yana_settings')
+        .select('api_keys').eq('user_id', sbUser.id).single();
+      if (error || !data?.api_keys) return;
+      for (const [provider, key] of Object.entries(data.api_keys)) {
+        if (key) localStorage.setItem(LS_KEY_PREFIX + provider, key);
+      }
+      syncKeyStatus();
+    } catch (_) {}
+  }
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    sbUser = session?.user ?? null;
+    renderUserSection();
+    if (sbUser) {
+      await loadHistoryFromSupabase();
+      await loadApiKeysFromSupabase();
+    }
+    sb.auth.onAuthStateChange(async (_event, session) => {
+      sbUser = session?.user ?? null;
+      renderUserSection();
+      if (sbUser) {
+        await loadHistoryFromSupabase();
+        await loadApiKeysFromSupabase();
+      }
+    });
+  }
+
+  init().catch(() => {});
+})();

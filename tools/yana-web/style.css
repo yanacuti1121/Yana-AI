@@ -716,5 +716,125 @@ body {
 }
 .file-chip-remove:hover { color: var(--danger); }
 
+/* ── User section (sidebar) ──────────────────────────────────────── */
+.user-section { padding: 0.375rem 0.75rem 0; }
+
+.signin-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: color .12s, background .12s;
+}
+.signin-btn:hover { color: var(--fg); background: hsl(220 13% 18%); }
+
+.user-info {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+}
+.user-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, hsl(221 70% 45%), hsl(255 60% 55%));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.user-email {
+  flex: 1; font-size: 0.75rem; color: var(--fg-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.signout-btn {
+  background: none; border: none; color: var(--fg-dim);
+  cursor: pointer; font-size: 1rem; padding: 0; flex-shrink: 0;
+  transition: color .1s;
+}
+.signout-btn:hover { color: var(--danger); }
+
+/* ── Auth modal ───────────────────────────────────────────────────── */
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+.auth-modal {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  width: min(380px, calc(100vw - 2rem));
+}
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,.45);
+}
+.auth-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none;
+  color: var(--fg-muted); cursor: pointer;
+  font-size: 1rem; padding: 0.25rem; border-radius: 4px;
+  transition: color .1s;
+}
+.auth-close:hover { color: var(--fg); }
+.auth-logo {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, hsl(221 70% 38%), hsl(221 70% 54%));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 700; color: #fff;
+  margin: 0 auto 1.25rem;
+  font-family: var(--font-mono);
+}
+.auth-title {
+  text-align: center; font-size: 1.125rem; font-weight: 600;
+  margin-bottom: 1.25rem; color: var(--fg);
+}
+.auth-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.auth-form input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.875rem;
+  color: var(--fg); font-size: 0.9375rem;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.auth-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px hsl(221 83% 63% / .12);
+}
+.auth-form input::placeholder { color: var(--fg-dim); }
+.auth-submit {
+  margin-top: 0.25rem; padding: 0.625rem;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 0.9375rem; font-weight: 600;
+  cursor: pointer; transition: background .12s;
+}
+.auth-submit:hover:not(:disabled) { background: var(--primary-hover); }
+.auth-submit:disabled { opacity: .5; cursor: not-allowed; }
+.auth-error {
+  font-size: 0.8125rem; min-height: 1.25rem; text-align: center;
+  color: var(--danger);
+}
+.auth-toggle {
+  margin-top: 1rem; text-align: center;
+  font-size: 0.8125rem; color: var(--fg-muted);
+}
+.auth-toggle button {
+  background: none; border: none; color: var(--primary);
+  cursor: pointer; font-size: inherit; text-decoration: underline;
+}
+.auth-toggle button:hover { color: var(--primary-hover); }
+
 /* ── Utility ─────────────────────────────────────────────────────── */
 .hidden { display: none !important; }

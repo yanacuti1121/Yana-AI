@@ -28,6 +28,9 @@
         New chat
       </button>
 
+      <!-- User section -->
+      <div id="user-section" class="user-section"></div>
+
       <!-- Settings -->
       <div class="sidebar-section">
         <div class="section-label">Settings</div>
@@ -136,6 +139,24 @@
     </main>
   </div>
 
+  <!-- Auth modal -->
+  <div id="auth-overlay" class="auth-overlay hidden"></div>
+  <div id="auth-modal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <button class="auth-close" id="auth-close" aria-label="Close">✕</button>
+      <div class="auth-logo">Y</div>
+      <h2 class="auth-title" id="auth-title">Đăng nhập</h2>
+      <form id="auth-form" class="auth-form" novalidate>
+        <input id="auth-email"    type="email"    placeholder="Email"      autocomplete="email"            required>
+        <input id="auth-password" type="password" placeholder="Mật khẩu"  autocomplete="current-password" required>
+        <button id="auth-submit" class="auth-submit" type="submit">Đăng nhập</button>
+        <p id="auth-error" class="auth-error" aria-live="polite"></p>
+      </form>
+      <p class="auth-toggle"><span id="auth-toggle-label">Chưa có tài khoản? </span><button id="auth-switch" type="button">Đăng ký</button></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js" defer></script>
 </body>
 </html>
