@@ -34,7 +34,7 @@
 
 ---
 
-**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 93 specialist agents, 3,432 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 95 specialist agents, 3,495 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
@@ -76,13 +76,20 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **3,363** workflow skill definitions (88 stubs archived) |
+| Skills | **3,495** workflow skill definitions |
 | Agents | **95** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
 | Slash commands | **164** |
 | Harness adapters | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | Rust subcommands | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
+
+
+
+
+
+
+
 | Rule checks in CI | **826** |
 | Total codebase | **1,129,782 lines · 5,439 files** |
 
@@ -159,7 +166,7 @@ Posts a comment on every PR:
 ```bash
 yamtam scan .                        # security scan — secrets, CVEs, supply chain risks
 yamtam graph .                       # knowledge graph — file deps, import resolution
-yamtam vault search Q                # search 3,432 skills by keyword
+yamtam vault search Q                # search 3,495 skills by keyword
 yamtam hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yamtam fix .                         # auto-fix rule violations
 yamtam doctor .                      # full system health check
@@ -181,8 +188,8 @@ core/
 ├── rules/          # 61 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, drift-check.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
-├── agents/         # 93 specialist agent definitions
-├── skills/         # 3,432 SKILL.md files
+├── agents/         # 95 specialist agent definitions
+├── skills/         # 3,495 SKILL.md files
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
     └── L2_session/ # session state — auto-expires
@@ -191,7 +198,7 @@ core/
 Key properties:
 - **Merkle audit chain** — every action logged, tamper-detected
 - **BFT consensus** — 3-of-N vote required for core infrastructure writes
-- **Sovereign overlord** — human can freeze all 93 agents instantly
+- **Sovereign overlord** — human can freeze all 95 agents instantly
 - **Honeypot layer** — decoy files/env vars catch compromised agents
 
 ---
@@ -225,9 +232,9 @@ Key properties:
 One person. No team. No funding. Starting from zero in February 2026.
 
 - **Month 1:** Hook architecture, safety gates, Python CLI
-- **Month 2:** Rust runtime (`yamtam-rt`), 93 agents, 3,432 skills, multi-harness support
+- **Month 2:** Rust runtime (`yamtam-rt`), 95 agents, 3,495 skills, multi-harness support
 
-The 3,432 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
+The 3,495 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
 
 ---
 
