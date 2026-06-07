@@ -6,7 +6,12 @@ const PROVIDER_MODELS = {
   anthropic: ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-8'],
   groq:      ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'llama-3.1-70b-versatile'],
   openai:    ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'],
+  gemini:    ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  deepseek:  ['deepseek-chat', 'deepseek-reasoner'],
 };
+
+// Providers that support image input
+const VISION_PROVIDERS = new Set(['anthropic', 'openai', 'gemini']);
 
 const $ = id => document.getElementById(id);
 
@@ -135,7 +140,8 @@ function syncKeyStatus() {
   const saved = !!getKey();
   keyStatus.textContent = saved ? 'saved ✓' : 'no key';
   keyStatus.classList.toggle('saved', saved);
-  keyInput.placeholder = { groq: 'gsk_…', openai: 'sk-…' }[providerSelect.value] || 'sk-ant-…';
+  const placeholders = { groq: 'gsk_…', openai: 'sk-…', gemini: 'AIza…', deepseek: 'sk-…' };
+  keyInput.placeholder = placeholders[providerSelect.value] || 'sk-ant-…';
 }
 
 saveKeyBtn.addEventListener('click', () => {
@@ -221,7 +227,7 @@ function addAiMsg(html, decision) {
 }
 
 // ── SSE streaming ──────────────────────────────────────────────────────────────
-function streamChat(task, apiKey, decision) {
+function streamChat(task, apiKey, decision, images) {
   const textEl = startAiMsg(decision);
   let fullText = '';
 
@@ -234,6 +240,7 @@ function streamChat(task, apiKey, decision) {
       provider: providerSelect.value,
       model:    modelSelect.value,
       skill:    decision.suggested_skill || null,
+      images:   (images && images.length) ? images : undefined,
     }),
   }).then(res => {
     if (!res.ok || !res.body) {
@@ -275,7 +282,11 @@ function streamChat(task, apiKey, decision) {
 }
 
 // ── File attachments ───────────────────────────────────────────────────────────
-const attachedFiles = [];  // [{ name, size, content }]
+// text files: { name, size, content: string, isImage: false }
+// image files: { name, size, mimeType: string, data: string (base64), isImage: true }
+const attachedFiles = [];
+
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
 
 function fmtSize(bytes) {
   if (bytes < 1024) return `${bytes}B`;
@@ -309,8 +320,9 @@ fileChips.addEventListener('click', e => {
 attachBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', () => {
-  const MAX_FILE   = 64 * 1024;       // 64 KB per file
-  const MAX_TOTAL  = 256 * 1024;      // 256 KB total
+  const MAX_TEXT_FILE  = 64 * 1024;       // 64 KB per text file
+  const MAX_IMAGE_FILE = 4 * 1024 * 1024; // 4 MB per image
+  const MAX_TOTAL_TEXT = 256 * 1024;      // 256 KB total text
   const files = Array.from(fileInput.files || []);
   fileInput.value = '';
 
@@ -318,34 +330,51 @@ fileInput.addEventListener('change', () => {
   if (!pending) return;
 
   files.forEach(file => {
-    if (file.size > MAX_FILE) {
-      addAiMsg(`<span class="md-err">File <strong>${escHtml(file.name)}</strong> quá lớn (max 64 KB). Hãy paste đoạn code cần thiết thôi nhé.</span>`, {});
+    const isImage = IMAGE_TYPES.has(file.type);
+    const maxSize = isImage ? MAX_IMAGE_FILE : MAX_TEXT_FILE;
+    if (file.size > maxSize) {
+      addAiMsg(`<span class="md-err">File <strong>${escHtml(file.name)}</strong> quá lớn (max ${isImage ? '4 MB' : '64 KB'}).</span>`, {});
       pending--;
       return;
     }
-    const totalAfter = attachedFiles.reduce((s, f) => s + f.size, 0) + file.size;
-    if (totalAfter > MAX_TOTAL) {
-      addAiMsg(`<span class="md-err">Tổng file đính kèm vượt 256 KB. Bỏ bớt file cũ trước nhé.</span>`, {});
-      pending--;
-      return;
+    if (!isImage) {
+      const totalAfter = attachedFiles.filter(f => !f.isImage).reduce((s, f) => s + f.size, 0) + file.size;
+      if (totalAfter > MAX_TOTAL_TEXT) {
+        addAiMsg(`<span class="md-err">Tổng file text vượt 256 KB. Bỏ bớt file cũ trước nhé.</span>`, {});
+        pending--;
+        return;
+      }
     }
     const reader = new FileReader();
     reader.onload = () => {
-      attachedFiles.push({ name: file.name, size: file.size, content: reader.result });
+      if (isImage) {
+        // readAsDataURL gives "data:image/png;base64,XXXXX" — strip prefix
+        const dataUrl = reader.result;
+        const base64  = dataUrl.split(',')[1];
+        attachedFiles.push({ name: file.name, size: file.size, mimeType: file.type, data: base64, isImage: true });
+      } else {
+        attachedFiles.push({ name: file.name, size: file.size, content: reader.result, isImage: false });
+      }
       renderFileChips();
       pending--;
     };
     reader.onerror = () => { pending--; };
-    reader.readAsText(file);
+    if (isImage) reader.readAsDataURL(file);
+    else         reader.readAsText(file);
   });
 });
 
 function buildTaskWithFiles(userText) {
-  if (!attachedFiles.length) return userText;
-  const blocks = attachedFiles.map(f =>
-    `\`\`\`${f.name}\n${f.content}\n\`\`\``
-  ).join('\n\n');
+  const textFiles = attachedFiles.filter(f => !f.isImage);
+  if (!textFiles.length) return userText;
+  const blocks = textFiles.map(f => `\`\`\`${f.name}\n${f.content}\n\`\`\``).join('\n\n');
   return `${blocks}\n\n${userText}`.trim();
+}
+
+function getAttachedImages() {
+  return attachedFiles
+    .filter(f => f.isImage)
+    .map(f => ({ mimeType: f.mimeType, data: f.data }));
 }
 
 // ── Run ────────────────────────────────────────────────────────────────────────
@@ -353,9 +382,17 @@ async function runTask() {
   const raw = taskInput.value.trim();
   if (!raw && !attachedFiles.length) { taskInput.focus(); return; }
   const userText = raw || '(Xem file đính kèm)';
-  const task = buildTaskWithFiles(userText);
+  const task     = buildTaskWithFiles(userText);
+  const images   = getAttachedImages();
 
-  addUserMsg(userText + (attachedFiles.length ? `\n\n📎 ${attachedFiles.map(f => f.name).join(', ')}` : ''));
+  const fileNames = attachedFiles.map(f => f.name);
+  addUserMsg(userText + (fileNames.length ? `\n\n📎 ${fileNames.join(', ')}` : ''));
+
+  // Warn if images attached to a non-vision provider
+  if (images.length && !VISION_PROVIDERS.has(providerSelect.value)) {
+    addAiMsg(`<p>⚠ <strong>${escHtml(providerSelect.value)}</strong> không hỗ trợ ảnh. Chuyển sang Anthropic, OpenAI hoặc Gemini để dùng vision.</p>`, {});
+  }
+
   attachedFiles.length = 0;
   renderFileChips();
   taskInput.value = '';
@@ -375,7 +412,7 @@ async function runTask() {
     } else if (!getKey()) {
       addAiMsg(`<p>Add your <strong>${escHtml(providerSelect.value)}</strong> API key in the sidebar to get an AI response.</p>`, decision);
     } else {
-      streamChat(task, getKey(), decision);
+      streamChat(task, getKey(), decision, images);
     }
 
     pushHistory(task, decision.route);

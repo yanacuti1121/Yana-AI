@@ -21,26 +21,40 @@ const MIME = {
 };
 
 // ── Provider table ────────────────────────────────────────────────────────────
+// images = [{ mimeType: 'image/jpeg', data: '<base64>' }]
 const PROVIDERS = {
   anthropic: {
     hostname:     'api.anthropic.com',
     path:         '/v1/messages',
+    vision:       true,
     defaultModel: 'claude-sonnet-4-6',
     headers: key => ({
       'x-api-key':         key,
       'anthropic-version': '2023-06-01',
       'content-type':      'application/json',
     }),
-    body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, system, stream: true,
-      messages: [{ role: 'user', content: task }],
-    }),
+    body: (model, system, task, images) => {
+      const content = (images && images.length)
+        ? [
+            ...images.map(img => ({
+              type: 'image',
+              source: { type: 'base64', media_type: img.mimeType, data: img.data },
+            })),
+            { type: 'text', text: task },
+          ]
+        : task;
+      return JSON.stringify({
+        model, max_tokens: 2048, system, stream: true,
+        messages: [{ role: 'user', content }],
+      });
+    },
     extractText: evt => evt?.delta?.text || null,
   },
 
   groq: {
     hostname:     'api.groq.com',
     path:         '/openai/v1/chat/completions',
+    vision:       false,
     defaultModel: 'llama-3.3-70b-versatile',
     headers: key => ({
       'Authorization': `Bearer ${key}`,
@@ -56,7 +70,61 @@ const PROVIDERS = {
   openai: {
     hostname:     'api.openai.com',
     path:         '/v1/chat/completions',
+    vision:       true,
     defaultModel: 'gpt-4o-mini',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task, images) => {
+      const userContent = (images && images.length)
+        ? [
+            ...images.map(img => ({
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType};base64,${img.data}` },
+            })),
+            { type: 'text', text: task },
+          ]
+        : task;
+      return JSON.stringify({
+        model, max_tokens: 2048, stream: true,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user',   content: userContent },
+        ],
+      });
+    },
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
+  gemini: {
+    hostname:     'generativelanguage.googleapis.com',
+    vision:       true,
+    defaultModel: 'gemini-2.0-flash',
+    buildPath: (model, key) =>
+      `/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`,
+    headers: _key => ({ 'content-type': 'application/json' }),
+    body: (model, system, task, images) => {
+      const parts = [
+        ...(images || []).map(img => ({
+          inlineData: { mimeType: img.mimeType, data: img.data },
+        })),
+        { text: task },
+      ];
+      return JSON.stringify({
+        contents: [{ role: 'user', parts }],
+        systemInstruction: { parts: [{ text: system }] },
+        generationConfig: { maxOutputTokens: 2048 },
+      });
+    },
+    extractText: evt => evt?.candidates?.[0]?.content?.parts?.[0]?.text || null,
+  },
+
+  deepseek: {
+    hostname:     'api.deepseek.com',
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'deepseek-chat',
     headers: key => ({
       'Authorization': `Bearer ${key}`,
       'content-type':  'application/json',
@@ -178,13 +246,13 @@ function emitLines(lines, res, extractText) {
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 async function handleApiChat(req, res) {
   let body;
-  try { body = await readBody(req, 32 * 1024); }
+  try { body = await readBody(req, 10 * 1024 * 1024); }  // 10 MB for images
   catch (e) { jsonError(res, e && e.status === 413 ? 413 : 400, 'Bad request'); return; }
 
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images } = parsed;
   if (!apiKey || typeof apiKey !== 'string') { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task   || typeof task   !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
 
@@ -195,11 +263,16 @@ async function handleApiChat(req, res) {
 
   const p       = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   const modelId = (typeof model === 'string' && model.trim()) ? model.trim() : p.defaultModel;
-  const reqBody = p.body(modelId, systemPrompt, task);
+  // images: array of { mimeType, data } — only passed if provider supports vision
+  const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;
+  const reqBody = p.body(modelId, systemPrompt, task, imgs);
+
+  // Gemini embeds the API key in the path instead of a header
+  const reqPath = p.buildPath ? p.buildPath(modelId, apiKey) : p.path;
 
   const options = {
     hostname: p.hostname,
-    path:     p.path,
+    path:     reqPath,
     method:   'POST',
     headers:  { ...p.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
   };
