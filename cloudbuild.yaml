@@ -1,0 +1,19 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -f
+      - tools/yana-web/Dockerfile
+      - -t
+      - gcr.io/$PROJECT_ID/yana-web:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/yana-web:latest
+      - .
+
+images:
+  - gcr.io/$PROJECT_ID/yana-web:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/yana-web:latest
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
