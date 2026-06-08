@@ -71,18 +71,17 @@ Sau phase này: bất kỳ ai có thể `npm install yamtam-core` và build inte
 
 ---
 
-### Phase 4 — Prove Value *(2026-08+)*
+### Phase 4 — Prove Value ✅ *(2026-06-08)*
 
 **Mục tiêu:** Ít nhất 1 use case ngoài coding hoạt động tốt.
 
-Ứng viên:
-- **Học tập** — AI giải thích theo cách học sinh cần, không phải cách AI muốn nói
-- **Công việc hàng ngày** — task, lịch, email tóm tắt
-- **Workflow automation** — tích hợp [n8n](https://github.com/n8n-io/n8n) cho non-developer
-- **Knowledge graph** — tích hợp [graphify](https://github.com/graphify/graphify) để visualize dữ liệu
-- **Vietnam-specific** — vnpay integration, tiếng Việt ưu tiên
-
-**Done khi:** Ai đó dùng YAMTAM hàng ngày cho việc không liên quan đến coding.
+- [x] **Học tập** — `core/agents/hoc-tap.md` — giải thích analogy-first, Socratic, VI default
+- [x] **Công việc hàng ngày** — `core/agents/daily-assistant.md` — tóm tắt / lên kế hoạch / soạn email
+- [x] **Routing** — `yamtam-core` classify `learn` + `daily` routes, tách khỏi coding pipeline
+- [x] **Yana UI** — 6 welcome chips, subtitle cập nhật "coding · học tập · công việc"
+- [ ] Workflow automation (n8n) — future
+- [ ] Knowledge graph (graphify) — future
+- [ ] Vietnam-specific (VNPay) — future
 
 ---
 
