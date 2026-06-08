@@ -15459,6 +15459,36 @@
       "localPath": ".claude/skills/hermes-tool-guardrails",
       "addedAt": "2026-06-06T06:36:21Z"
     },
+    "hermes-streaming-scrubber": {
+      "computedHash": "17f6898c4b7d770863d39814e95c1522156cdaf85477ac28720594e5ca7b1b66",
+      "localPath": ".claude/skills/hermes-streaming-scrubber",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
+    "hermes-tool-loop-guard": {
+      "computedHash": "b063c9ff50f7aa40d532deda897c33b078d2b404e3f6903a00cb73c5dac116ba",
+      "localPath": ".claude/skills/hermes-tool-loop-guard",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
+    "hermes-memory-manager": {
+      "computedHash": "681b34678ac49f4508e7b8a575cb3d9277f497b7786fc203e82d2e5bb5536248",
+      "localPath": ".claude/skills/hermes-memory-manager",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
+    "hermes-system-prompt-tiers": {
+      "computedHash": "01e250175cce8a2a7fc3f1626db0cee12f008d470e694cf975d26c88b25dd73d",
+      "localPath": ".claude/skills/hermes-system-prompt-tiers",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
+    "hermes-context-compressor": {
+      "computedHash": "19ad4eef3871552ac02c3a9359f6658b64fad4d65f9e0a6d953cc8bfecf2df00",
+      "localPath": ".claude/skills/hermes-context-compressor",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
+    "hermes-conversation-loop": {
+      "computedHash": "9e724b9e51dcf127462a31cb6f8197d2df086531cc7dc2dc02db658ea2f318aa",
+      "localPath": ".claude/skills/hermes-conversation-loop",
+      "addedAt": "2026-06-08T14:00:00Z"
+    },
     "startup--earned-media-outreach": {
       "computedHash": "deff3274da87d023dabe5b092f750300a0b5767cecb6799395e6062903fbd4eb",
       "localPath": ".claude/skills/startup--earned-media-outreach",
