@@ -53,6 +53,31 @@ const PROVIDER_MODELS = {
     'deepseek-r1-0528',
     'deepseek-reasoner',
   ],
+  openrouter: [
+    // Google
+    'google/gemma-3-27b-it',
+    'google/gemma-3-12b-it',
+    'google/gemma-3-4b-it',
+    'google/gemini-2.5-pro-preview',
+    'google/gemini-2.5-flash-preview-05-20',
+    // Meta
+    'meta-llama/llama-4-scout',
+    'meta-llama/llama-4-maverick',
+    'meta-llama/llama-3.3-70b-instruct',
+    // Qwen
+    'qwen/qwq-32b',
+    'qwen/qwen3-235b-a22b',
+    'qwen/qwen3-32b',
+    // Mistral
+    'mistralai/mistral-small-3.2-24b-instruct',
+    'mistralai/devstral-small',
+    // DeepSeek
+    'deepseek/deepseek-chat-v3-0324',
+    'deepseek/deepseek-r1-0528',
+    // Microsoft
+    'microsoft/phi-4',
+    'microsoft/phi-4-reasoning-plus',
+  ],
 };
 
 // Providers that support image input
@@ -185,7 +210,7 @@ function syncKeyStatus() {
   const saved = !!getKey();
   keyStatus.textContent = saved ? 'saved ✓' : 'no key';
   keyStatus.classList.toggle('saved', saved);
-  const placeholders = { groq: 'gsk_…', openai: 'sk-…', gemini: 'AIza…', deepseek: 'sk-…' };
+  const placeholders = { groq: 'gsk_…', openai: 'sk-…', gemini: 'AIza…', deepseek: 'sk-…', openrouter: 'sk-or-…' };
   keyInput.placeholder = placeholders[providerSelect.value] || 'sk-ant-…';
 }
 
