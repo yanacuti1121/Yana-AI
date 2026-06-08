@@ -5,7 +5,7 @@
 <h1 align="center">YAMTAM ENGINE</h1>
 
 <p align="center">
-  <strong>The safety layer that stops AI coding agents before they break your repo.</strong>
+  <strong>The orchestration layer between humans and AI — routing, safety, and context for every domain.</strong>
 </p>
 
 <p align="center">
@@ -51,8 +51,8 @@ Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **Git
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        YAMTAM ENGINE v0.41.0                            │
-│          "The safety layer that stops AI coding agents                  │
-│                    before they break your repo."                        │
+│     "The orchestration layer between humans and AI —                    │
+│          routing, safety, and context for every domain."                │
 │                                                                         │
 │  Built by Vũ Văn Tâm · 17 · Vietnam · 1,129,782 lines        │
 └─────────────────────────────────────────────────────────────────────────┘
