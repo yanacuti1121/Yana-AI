@@ -142,7 +142,7 @@
         "core/agents/orchestration/multi-agent-coordinator.md",
         "core/agents/orchestration/workflow-director.md",
         "core/agents/performance-auditor.md",
-        "core/agents/planner.md",
+        "core/agents/planner/planner.md",
         "core/agents/project-architect.md",
         "core/agents/project-manager.md",
         "core/agents/prompt-firewall.md",
@@ -181,7 +181,8 @@
         "core/agents/react-reviewer.md",
         "core/agents/react-build-resolver.md",
         "core/agents/marketing-agent.md",
-        "core/agents/mail-reader.md"
+        "core/agents/mail-reader.md",
+        "core/agents/yana/yana.md"
       ],
       "review_later": [
         "react-native-developer.md",
