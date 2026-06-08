@@ -34,11 +34,11 @@
 
 ---
 
-**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 95 specialist agents, 3,498 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 3,501 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
-> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external and dispatches agents via parallel mission waves. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration with dependency resolution, built in Rust.
+> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana Web](#yana-web) now covers non-coding use cases: học tập (learning assistant) and công việc hàng ngày (daily work assistant) alongside coding. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
 
@@ -87,8 +87,8 @@ graph TB
     %% ── Core engine ──────────────────────────────────────────────────────
     subgraph CORE["⚙️ Core Engine"]
         direction TB
-        SKILLS["📚 3,405 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
-        AGENTS["🤖 95 specialist agents\n(planner, security-auditor,\ndatabase-expert, tdd-guide...)"]
+        SKILLS["📚 3,501 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
+        AGENTS["🤖 97 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 61 enforced rules\n(security, git, UI, TypeScript,\nAPI security, sandbox...)"]
         HOOKS["🪝 46 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 164 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
@@ -135,7 +135,7 @@ graph TB
         direction LR
         F1["① yamtam audit .\n30s · no learning needed\nScan any repo for AI agent risks"]
         F2["② Policy Kit\nAdopt safe configs piece by piece\n(CLAUDE.md · .mcp.json · CI gates)"]
-        F3["③ Full Control Layer\nAll 9 gates · 95 agents\nMerkle log · Sovereign veto"]
+        F3["③ Full Control Layer\nAll 9 gates · 97 agents\nMerkle log · Sovereign veto"]
         F1 --> F2 --> F3
     end
 
@@ -183,8 +183,8 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **3,498** workflow skill definitions |
-| Agents | **95** specialist agents |
+| Skills | **3,501** workflow skill definitions |
+| Agents | **97** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
 | Slash commands | **164** |
@@ -269,7 +269,7 @@ Posts a comment on every PR:
 ```bash
 yamtam scan .                        # security scan — secrets, CVEs, supply chain risks
 yamtam graph .                       # knowledge graph — file deps, import resolution
-yamtam vault search Q                # search 3,498 skills by keyword
+yamtam vault search Q                # search 3,501 skills by keyword
 yamtam hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yamtam fix .                         # auto-fix rule violations
 yamtam doctor .                      # full system health check
@@ -292,7 +292,7 @@ core/
 ├── scripts/        # safe-run.sh, drift-check.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 specialist agent definitions
-├── skills/         # 3,498 SKILL.md files
+├── skills/         # 3,501 SKILL.md files
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
     └── L2_session/ # session state — auto-expires
@@ -301,7 +301,7 @@ core/
 Key properties:
 - **Merkle audit chain** — every action logged, tamper-detected
 - **BFT consensus** — 3-of-N vote required for core infrastructure writes
-- **Sovereign overlord** — human can freeze all 95 agents instantly
+- **Sovereign overlord** — human can freeze all 97 agents instantly
 - **Honeypot layer** — decoy files/env vars catch compromised agents
 
 ---
@@ -341,8 +341,9 @@ User → Yana Web → YAMTAM Core (Router · Safety · Context) → Model
 ```
 
 - Zero signup — bring your own API key
-- Multi-provider: Anthropic · OpenAI · Groq
+- Multi-provider: Anthropic · OpenAI · Groq · DeepSeek · Gemini
 - Skill routing built in — type naturally, YAMTAM dispatches the right agent
+- **Non-coding use cases:** học tập (Socratic learning assistant), công việc hàng ngày (summarize / plan / draft)
 - SSE streaming, mobile-friendly
 
 If YAMTAM is the power grid, Yana is the first building plugged into it.
@@ -354,10 +355,10 @@ If YAMTAM is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yamtam-rt`), 95 agents, 3,498 skills, multi-harness support
+- Rust runtime (`yamtam-rt`), 97 agents, 3,501 skills, multi-harness support
 - 12 harness adapters (Claude Code, Cursor, Zed, Gemini, Copilot, Aider…)
 
-The 3,498 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
+The 3,501 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
 ---
 
@@ -404,8 +405,11 @@ yamtam route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-Three routes:
+Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
+- **skill** → matched against 3,501-entry index, dispatches exact skill agent
+- **learn** → routes to `hoc-tap` — Socratic learning assistant (học, giải thích, tại sao...)
+- **daily** → routes to `daily-assistant` — summarize / plan / draft (tóm tắt, viết email, lên kế hoạch...)
 - **complex** → dispatch specialist agent(s) with scoped brief
 - **external** → stop, confirm with human before proceeding
 
