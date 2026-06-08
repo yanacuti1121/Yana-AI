@@ -33,11 +33,8 @@ jobs:
       - name: Build sdist + wheel
         run: python -m build
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (trusted publishing)
         uses: pypa/gh-action-pypi-publish@76f52bc23e2c4e5bc591e56f4bc6e964e8f5c30b # release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
 
   publish-npm:
     name: npm — yamtam-engine
