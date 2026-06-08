@@ -10,20 +10,20 @@ This is a personal agent operating system. Features are added when a real proble
 
 > Đây là hướng đi, không phải checklist. Mỗi phase phải **chứng minh giá trị** trước khi qua phase tiếp theo.
 
-### Phase 1 — Define *(đang làm · 2026-06)*
+### Phase 1 — Define *(✅ done · 2026-06)*
 
 **Mục tiêu:** Trả lời rõ YAMTAM là gì, Yana là gì, và lõi nào không được đụng tới.
 
 - [x] VISION.md — la bàn, không phải roadmap
 - [x] ROADMAP.md — hướng đi chiến lược
-- [ ] ARCHITECTURE.md — sơ đồ hệ thống
-- [ ] README cập nhật — mô tả đúng YAMTAM cho người mới
+- [x] ARCHITECTURE.md — sơ đồ hệ thống
+- [x] README cập nhật — mô tả đúng YAMTAM cho người mới
 
 **Done khi:** Một người lạ đọc 3 file trên và hiểu YAMTAM mà không cần hỏi thêm.
 
 ---
 
-### Phase 2 — Yana Web MVP *(tiếp theo · 2026-06 → 2026-07)*
+### Phase 2 — Yana Web MVP *(✅ done · 2026-06)*
 
 **Mục tiêu:** Người dùng không phải developer mở được Yana, nhập API key, chat được với AI.
 
@@ -34,22 +34,23 @@ Luồng tối thiểu:
 
 **Scope cứng:**
 - ✅ Chat với 1 model (Claude trước)
-- ✅ Chọn provider (Anthropic / OpenAI / Gemini)
+- ✅ Chọn provider (Anthropic / OpenAI / Gemini + Groq + DeepSeek)
 - ✅ Lưu API key local (không lên server)
 - ✅ UI đơn giản, mobile-friendly
-- ✅ Deploy được (Railway / Vercel)
+- ✅ Deploy được (Railway — Dockerfile + railway.toml)
+- ✅ Auth optional — dùng được mà không cần tài khoản
 
 **Scope không làm trong phase này:**
 - ❌ 95 agent đầy đủ
 - ❌ Skill marketplace
-- ❌ Multi-user / auth
+- ❌ Bắt buộc auth
 - ❌ Billing
 
 **Done khi:** Người không biết code dùng được mà không cần đọc docs.
 
 ---
 
-### Phase 3 — Core Separation *(2026-07 → 2026-08)*
+### Phase 3 — Core Separation *(đang làm · 2026-06 → 2026-07)*
 
 **Mục tiêu:** Tách `yamtam-core` và `yana-web` thành 2 package độc lập.
 
