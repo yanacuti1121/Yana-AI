@@ -169,13 +169,21 @@ Deploy:   Railway (hiện tại đã có)
 
 ## Định hướng tích hợp tương lai (Phase 4)
 
+**Nhóm 1 — Tích hợp trực tiếp (tính năng / cổng kết nối)**
+
 | Repo | Mục đích | Tích hợp vào đâu |
 |------|----------|-----------------|
 | [n8n](https://github.com/n8n-io/n8n) | Workflow automation cho non-dev | Yana surface mới |
-| [graphify](https://github.com/graphify/graphify) | Knowledge graph visualization | Context/Memory layer |
-| vnpay SDK | Payment cho Vietnam market | Application layer |
-| [anime.js](https://github.com/juliangarnier/anime) | Smooth UI animation | Yana Web frontend |
-| [design.md](https://github.com/nickvdyck/design.md) | Docs framework | yamtam-core documentation |
+| [OpenWork](https://github.com/different-ai/openwork) | AI Agent Framework | YAMTAM Core orchestration |
+| [Graphify](https://github.com/safishamsi/graphify) | Graph data visualization | Context/Memory layer |
+| [VNPay](https://github.com/lehuygiang28/vnpay) | Payment cho Vietnam market | Application layer |
+
+**Nhóm 2 — Hỗ trợ Frontend & Tài liệu**
+
+| Repo | Mục đích | Tích hợp vào đâu |
+|------|----------|-----------------|
+| [anime.js](https://github.com/juliangarnier/anime) | Hiệu ứng chuyển động | Yana Web frontend |
+| [Google Labs design.md](https://github.com/google-labs-code/design.md) | Mẫu tài liệu thiết kế | yamtam-core documentation |
 
 Những thứ này **không làm ngay** — chỉ để biết phase 4 trông như thế nào.
 
