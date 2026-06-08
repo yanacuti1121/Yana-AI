@@ -31,17 +31,25 @@ RUN apk add --no-cache tini \
 WORKDIR /app
 
 # ── Copy only what the server needs ───────────────────────────────────────
-# 1. Server source
+# 1. Local dependency yamtam-core (must exist before npm ci resolves file: path)
+COPY packages/yamtam-core/ ./packages/yamtam-core/
+
+# 2. package files only — for layer caching (npm ci reruns only when these change)
+COPY tools/yana-web/package.json tools/yana-web/package-lock.json ./tools/yana-web/
+
+# 3. Install production deps (resolves file:../../packages/yamtam-core)
+RUN cd tools/yana-web && npm ci --omit=dev
+
+# 4. Server source (remaining files after deps installed)
 COPY tools/yana-web/ ./tools/yana-web/
 
-# 2. MANIFEST (used by /api/status)
+# 5. MANIFEST (used by /api/status)
 COPY MANIFEST.json ./MANIFEST.json
 
-# 3. Skills — 3,400+ SKILL.md files for skill routing
-#    Comment out if you don't need skill routing (server falls back gracefully)
+# 6. Skills — 3,400+ SKILL.md files for skill routing
 COPY core/skills/ ./core/skills/
 
-# 4. Agents — system prompt .md files
+# 7. Agents — system prompt .md files
 COPY core/agents/ ./core/agents/
 
 # ── Runtime config ─────────────────────────────────────────────────────────
