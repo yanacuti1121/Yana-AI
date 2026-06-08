@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1 month · 1,129,782 lines</em>
+  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1,129,782 lines</em>
 </p>
 
 <p align="center">
@@ -34,13 +34,15 @@
 
 ---
 
-**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 95 specialist agents, 3,495 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 95 specialist agents, 3,498 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
 > **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external and dispatches agents via parallel mission waves. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration with dependency resolution, built in Rust.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
+
+→ [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
 ---
 
@@ -52,7 +54,7 @@ Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **Git
 │          "The safety layer that stops AI coding agents                  │
 │                    before they break your repo."                        │
 │                                                                         │
-│  Built by Vũ Văn Tâm · 17 · Vietnam · 1 month · 1,129,782 lines        │
+│  Built by Vũ Văn Tâm · 17 · Vietnam · 1,129,782 lines        │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -181,7 +183,7 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| Skills | **3,495** workflow skill definitions |
+| Skills | **3,498** workflow skill definitions |
 | Agents | **95** specialist agents |
 | Safety rules | **61** enforced rules |
 | Hooks | **46** pre/post-execution hooks |
@@ -267,7 +269,7 @@ Posts a comment on every PR:
 ```bash
 yamtam scan .                        # security scan — secrets, CVEs, supply chain risks
 yamtam graph .                       # knowledge graph — file deps, import resolution
-yamtam vault search Q                # search 3,495 skills by keyword
+yamtam vault search Q                # search 3,498 skills by keyword
 yamtam hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yamtam fix .                         # auto-fix rule violations
 yamtam doctor .                      # full system health check
@@ -290,7 +292,7 @@ core/
 ├── scripts/        # safe-run.sh, drift-check.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 specialist agent definitions
-├── skills/         # 3,495 SKILL.md files
+├── skills/         # 3,498 SKILL.md files
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
     └── L2_session/ # session state — auto-expires
@@ -328,14 +330,34 @@ Key properties:
 
 ---
 
-## Built in 1 month
+## Yana Web
 
-One person. No team. No funding. Starting from zero in February 2026.
+**[Live →](https://yamtam-engine-production.up.railway.app)**
 
-- **Month 1:** Hook architecture, safety gates, Python CLI
-- **Month 2:** Rust runtime (`yamtam-rt`), 95 agents, 3,495 skills, multi-harness support
+Yana is the first interface built on YAMTAM core — a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
-The 3,495 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
+```
+User → Yana Web → YAMTAM Core (Router · Safety · Context) → Model
+```
+
+- Zero signup — bring your own API key
+- Multi-provider: Anthropic · OpenAI · Groq
+- Skill routing built in — type naturally, YAMTAM dispatches the right agent
+- SSE streaming, mobile-friendly
+
+If YAMTAM is the power grid, Yana is the first building plugged into it.
+
+---
+
+## Built by one person
+
+One person. No team. No funding.
+
+- Hook architecture, safety gates, Python CLI
+- Rust runtime (`yamtam-rt`), 95 agents, 3,498 skills, multi-harness support
+- 12 harness adapters (Claude Code, Cursor, Zed, Gemini, Copilot, Aider…)
+
+The 3,498 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more.
 
 ---
 
