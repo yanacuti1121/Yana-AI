@@ -15,6 +15,24 @@ const COMPLEX_SIGNALS = [
   'test', 'debug',
 ];
 
+// Learning signals → route to hoc-tap agent
+const LEARNING_SIGNALS = [
+  'giải thích', 'explain', 'học', 'hiểu', 'tại sao', 'why is',
+  'how does', 'hoạt động như thế nào', 'là gì', 'what is',
+  'ví dụ về', 'example of', 'dạy tôi', 'teach me',
+  'tóm tắt bài', 'summarize this article', 'ôn tập',
+  'bài tập', 'exercise', 'quiz', 'kiểm tra kiến thức',
+];
+
+// Daily work signals → route to daily-assistant agent
+const DAILY_SIGNALS = [
+  'tóm tắt', 'summarize', 'soạn email', 'write email', 'viết email',
+  'lên kế hoạch', 'plan', 'todo', 'danh sách việc', 'task list',
+  'nhắc tôi', 'remind me', 'lịch', 'schedule',
+  'phân tích', 'analyze this', 'pros cons', 'so sánh',
+  'soạn thảo', 'draft', 'báo cáo', 'report',
+];
+
 function findMatches(task, signals) {
   const lower = task.toLowerCase();
   return signals.filter(s => lower.includes(s.toLowerCase()));
@@ -90,6 +108,32 @@ function createClassifier({ indexPath } = {}) {
         matched_signals: top.hits,
         matched_skills:  skillMatches.map(s => s.name),
         suggested_agents: [top.name],
+      };
+    }
+
+    const learnMatches = findMatches(task, LEARNING_SIGNALS);
+    if (learnMatches.length > 0) {
+      return {
+        route:           'learn',
+        gate:            'auto',
+        confidence:      Math.min(0.65 + learnMatches.length * 0.08, 0.92),
+        reason:          'Learning or explanation request detected',
+        matched_signals: learnMatches,
+        matched_skills:  skillMatches.map(s => s.name),
+        suggested_agents: ['hoc-tap'],
+      };
+    }
+
+    const dailyMatches = findMatches(task, DAILY_SIGNALS);
+    if (dailyMatches.length > 0) {
+      return {
+        route:           'daily',
+        gate:            'auto',
+        confidence:      Math.min(0.65 + dailyMatches.length * 0.08, 0.92),
+        reason:          'Daily work task detected',
+        matched_signals: dailyMatches,
+        matched_skills:  skillMatches.map(s => s.name),
+        suggested_agents: ['daily-assistant'],
       };
     }
 
