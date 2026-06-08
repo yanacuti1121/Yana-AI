@@ -38,7 +38,7 @@
 
 Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
-> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana Web](#yana-web) now covers non-coding use cases: học tập (learning assistant) and công việc hàng ngày (daily work assistant) alongside coding. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust.
+> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-web) now covers non-coding use cases: học tập (learning assistant) and công việc hàng ngày (daily work assistant) alongside coding. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust.
 
 **→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yamtam-engine/)**
 
@@ -107,7 +107,7 @@ graph TB
     %% ── Tools ────────────────────────────────────────────────────────────
     subgraph TOOLS["🛠️ Tools — sub-projects"]
         direction LR
-        YANA["yana-web ✅\nZero-dep Node.js web UI\nAnthropic · Groq · OpenAI\nSkill routing · SSE streaming"]
+        YANA["yana-ai ✅\nZero-dep Node.js web UI\nAnthropic · Groq · Gemini · OpenAI\nSkill routing · SSE streaming"]
         CODEXMATE["codexmate\nOpenAI Codex integration\nVietnamese patch"]
         MOSS["moss-tts-nano\nTTS engine"]
         FINETUNE["finetune-vi\nVietnamese LLM fine-tuning"]
@@ -330,18 +330,18 @@ Key properties:
 
 ---
 
-## Yana Web
+## Yana AI
 
 **[Live →](https://yamtam-engine-production.up.railway.app)**
 
 Yana is the first interface built on YAMTAM core — a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
 ```
-User → Yana Web → YAMTAM Core (Router · Safety · Context) → Model
+User → Yana AI → YAMTAM Core (Router · Safety · Context) → Model
 ```
 
 - Zero signup — bring your own API key
-- Multi-provider: Anthropic · OpenAI · Groq · DeepSeek · Gemini
+- Multi-provider: Anthropic · Groq (Llama4 · Qwen3 · Gemma2) · Gemini 2.5 · OpenAI · DeepSeek
 - Skill routing built in — type naturally, YAMTAM dispatches the right agent
 - **Non-coding use cases:** học tập (Socratic learning assistant), công việc hàng ngày (summarize / plan / draft)
 - SSE streaming, mobile-friendly

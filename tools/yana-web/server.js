@@ -325,7 +325,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Yana Web on http://localhost:${PORT} — ${skillCount()} skills indexed`);
+  console.log(`Yana AI on http://localhost:${PORT} — ${skillCount()} skills indexed`);
 });
 
 module.exports = server;

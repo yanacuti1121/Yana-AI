@@ -3,11 +3,47 @@
 const LS_KEY_PREFIX = 'yana-api-key-';
 
 const PROVIDER_MODELS = {
-  anthropic: ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-8'],
-  groq:      ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'llama-3.1-70b-versatile'],
-  openai:    ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'],
-  gemini:    ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  deepseek:  ['deepseek-chat', 'deepseek-reasoner'],
+  anthropic: [
+    'claude-sonnet-4-6',
+    'claude-opus-4-8',
+    'claude-haiku-4-5-20251001',
+  ],
+  groq: [
+    // Llama
+    'llama-3.3-70b-versatile',
+    'llama-3.1-70b-versatile',
+    'llama-3.1-8b-instant',
+    'llama4-scout-17b-16e-instruct',
+    'llama4-maverick-17b-128e-instruct',
+    // Qwen
+    'qwen-qwq-32b',
+    'qwen3-32b',
+    // Gemma
+    'gemma2-9b-it',
+    // Mistral / DeepSeek / others
+    'mistral-saba-24b',
+    'deepseek-r1-distill-llama-70b',
+    'compound-beta',
+  ],
+  openai: [
+    'gpt-4o-mini',
+    'gpt-4o',
+    'o4-mini',
+    'o3-mini',
+    'gpt-4-turbo',
+  ],
+  gemini: [
+    'gemini-2.5-flash-preview-05-20',
+    'gemini-2.5-pro-preview-06-05',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+  ],
+  deepseek: [
+    'deepseek-chat',
+    'deepseek-reasoner',
+  ],
 };
 
 // Providers that support image input
