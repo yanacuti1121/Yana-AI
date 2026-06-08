@@ -648,11 +648,9 @@ renderHistory();
   }
 
   async function init() {
+    // Auth is optional — app works fully without a Supabase account.
+    // Supabase sync (history, API keys) is a bonus for logged-in users.
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.replace('/login.html');
-      return;
-    }
     sbUser = session?.user ?? null;
     renderUserSection();
     if (sbUser) {
@@ -661,7 +659,8 @@ renderHistory();
     }
     sb.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        window.location.replace('/login.html');
+        sbUser = null;
+        renderUserSection();
         return;
       }
       sbUser = session?.user ?? null;
