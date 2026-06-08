@@ -19,6 +19,9 @@ const PROVIDER_MODELS = {
     'qwen-qwq-32b',
     'qwen3-32b',
     // Gemma
+    'gemma3-27b-it',
+    'gemma3-12b-it',
+    'gemma3-4b-it',
     'gemma2-9b-it',
     // Mistral / DeepSeek / others
     'mistral-saba-24b',
