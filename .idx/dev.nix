@@ -10,10 +10,11 @@
     pkgs.curl
     pkgs.python311
     pkgs.python311Packages.pip
+    pkgs.nodejs_22
     # pkgs.go
-    # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
   ];
+
 
   # Sets environment variables in the workspace
   env = {};
