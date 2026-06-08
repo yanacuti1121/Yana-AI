@@ -34,56 +34,30 @@ fi
 # ── Initialize budget file ────────────────────────────────────────────────────
 if [[ ! -f "$BUDGET_FILE" ]]; then
   mkdir -p "$(dirname "$BUDGET_FILE")"
-  python3 -c "
-import json
-data = {
-    'session_start': '$TIMESTAMP',
-    'total_tokens_used': 0,
-    'actions': [],
-    'loop_attempts': {},
-    'fast_tier_triggered': False
-}
-print(json.dumps(data, indent=2))
-" > "$BUDGET_FILE"
+  printf '{"session_start":"%s","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}\n' \
+    "$TIMESTAMP" > "$BUDGET_FILE"
 fi
 
 # ── Initialize circuit state file ────────────────────────────────────────────
 if [[ ! -f "$CIRCUIT_FILE" ]]; then
   mkdir -p "$(dirname "$CIRCUIT_FILE")"
-  python3 -c "
-import json
-data = {'circuits': {}}
-print(json.dumps(data, indent=2))
-" > "$CIRCUIT_FILE"
+  printf '{"circuits":{}}\n' > "$CIRCUIT_FILE"
 fi
 
 # ── Circuit Breaker: check if tool is currently OPEN ─────────────────────────
-CIRCUIT_STATUS=$(python3 - "$CIRCUIT_FILE" "$TOOL_NAME" "$NOW_EPOCH" "$COOLDOWN_SECONDS" <<'PYEOF'
-import json, sys
-
-path, tool, now_epoch, cooldown = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
-
-with open(path) as f:
-    d = json.load(f)
-
-circuits = d.get('circuits', {})
-info = circuits.get(tool, {'state': 'closed'})
-state = info.get('state', 'closed')
-
-if state == 'open':
-    opened_at = info.get('opened_at_epoch', 0)
-    elapsed = now_epoch - opened_at
-    if elapsed >= cooldown:
-        print('half-open')
-    else:
-        remaining = cooldown - elapsed
-        print(f'open:{remaining}')
-elif state == 'half-open':
-    print('half-open')
-else:
-    print('closed')
-PYEOF
-)
+CIRCUIT_STATUS=$(node -e "
+const fs=require('fs');
+const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
+const info=(d.circuits||{})['$TOOL_NAME']||{state:'closed'};
+const state=info.state||'closed';
+if(state==='open'){
+  const elapsed=$NOW_EPOCH-(info.opened_at_epoch||0);
+  const cooldown=$COOLDOWN_SECONDS;
+  if(elapsed>=cooldown){process.stdout.write('half-open');}
+  else{process.stdout.write('open:'+(cooldown-elapsed));}
+}else if(state==='half-open'){process.stdout.write('half-open');}
+else{process.stdout.write('closed');}
+" 2>/dev/null || echo "closed")
 
 if [[ "$CIRCUIT_STATUS" == open:* ]]; then
   REMAINING="${CIRCUIT_STATUS#open:}"
@@ -100,14 +74,15 @@ if [[ "$CIRCUIT_STATUS" == open:* ]]; then
 fi
 
 # ── Read budget state ─────────────────────────────────────────────────────────
-BUDGET_STATE=$(cat "$BUDGET_FILE")
-TOTAL_TOKENS=$(echo "$BUDGET_STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('total_tokens_used', 0))")
+TOTAL_TOKENS=$(node -e "
+const d=JSON.parse(require('fs').readFileSync('$BUDGET_FILE','utf8'));
+process.stdout.write(String(d.total_tokens_used||0));
+" 2>/dev/null || echo "0")
 
-LOOP_COUNT=$(echo "$BUDGET_STATE" | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-print(d.get('loop_attempts', {}).get('$TOOL_NAME', 0))
-")
+LOOP_COUNT=$(node -e "
+const d=JSON.parse(require('fs').readFileSync('$BUDGET_FILE','utf8'));
+process.stdout.write(String((d.loop_attempts||{})['$TOOL_NAME']||0));
+" 2>/dev/null || echo "0")
 
 # ── Loop threshold reached → OPEN circuit + hard block ───────────────────────
 if [[ $LOOP_COUNT -ge $MAX_ATTEMPTS ]]; then
@@ -131,44 +106,27 @@ if [[ $LOOP_COUNT -ge $MAX_ATTEMPTS ]]; then
   echo ""
 
   # Open the circuit
-  python3 - "$CIRCUIT_FILE" "$TOOL_NAME" "$NOW_EPOCH" "$TIMESTAMP" "$MAX_ATTEMPTS" <<'PYEOF'
-import json, sys
-
-path, tool, now_epoch, ts, max_attempts = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
-with open(path) as f:
-    d = json.load(f)
-
-circuits = d.setdefault('circuits', {})
-prev = circuits.get(tool, {})
-open_count = prev.get('open_count', 0) + 1
-cooldown_map = {1: 60, 2: 300}
-cooldown = cooldown_map.get(open_count, 1800)
-
-circuits[tool] = {
-    'state': 'open',
-    'opened_at': ts,
-    'opened_at_epoch': now_epoch,
-    'open_count': open_count,
-    'cooldown_seconds': cooldown,
-    'reason': f'Loop: {tool} called ≥{max_attempts} times without success'
-}
-d['circuits'] = circuits
-with open(path, 'w') as f:
-    json.dump(d, f, indent=2)
-PYEOF
+  node -e "
+const fs=require('fs');
+const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
+const circuits=d.circuits||(d.circuits={});
+const prev=circuits['$TOOL_NAME']||{};
+const openCount=(prev.open_count||0)+1;
+const cooldownMap={1:60,2:300};
+const cooldown=cooldownMap[openCount]||1800;
+circuits['$TOOL_NAME']={state:'open',opened_at:'$TIMESTAMP',opened_at_epoch:$NOW_EPOCH,
+  open_count:openCount,cooldown_seconds:cooldown,
+  reason:'Loop: \$TOOL_NAME called >=$MAX_ATTEMPTS times without success'};
+fs.writeFileSync('$CIRCUIT_FILE',JSON.stringify(d,null,2));
+" 2>/dev/null || true
 
   # Mark fast-tier in budget file
-  python3 - "$BUDGET_FILE" "$TOOL_NAME" <<'PYEOF'
-import json, sys
-
-path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
-d['fast_tier_triggered'] = True
-d['fast_tier_tool'] = tool
-with open(path, 'w') as f:
-    json.dump(d, f, indent=2)
-PYEOF
+  node -e "
+const fs=require('fs');
+const d=JSON.parse(fs.readFileSync('$BUDGET_FILE','utf8'));
+d.fast_tier_triggered=true; d.fast_tier_tool='$TOOL_NAME';
+fs.writeFileSync('$BUDGET_FILE',JSON.stringify(d,null,2));
+" 2>/dev/null || true
 
   echo "[${TIMESTAMP}] CIRCUIT-TRIGGERED tool='$TOOL_NAME' loop_count=$LOOP_COUNT tokens=$TOTAL_TOKENS" >> "$LOG_FILE" 2>/dev/null || true
   exit 1  # HARD BLOCK
@@ -182,36 +140,25 @@ fi
 
 # ── Half-open: reset circuit on successful probe ──────────────────────────────
 if [[ "$CIRCUIT_STATUS" == "half-open" ]]; then
-  python3 - "$CIRCUIT_FILE" "$TOOL_NAME" <<'PYEOF'
-import json, sys
-path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
-circuits = d.get('circuits', {})
-if tool in circuits:
-    circuits[tool]['state'] = 'closed'
-    circuits[tool]['closed_at'] = __import__('datetime').datetime.utcnow().isoformat()
-d['circuits'] = circuits
-with open(path, 'w') as f:
-    json.dump(d, f, indent=2)
-PYEOF
+  node -e "
+const fs=require('fs');
+const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
+const circuits=d.circuits||{};
+if(circuits['$TOOL_NAME']){circuits['$TOOL_NAME'].state='closed';
+  circuits['$TOOL_NAME'].closed_at=new Date().toISOString();}
+fs.writeFileSync('$CIRCUIT_FILE',JSON.stringify(d,null,2));
+" 2>/dev/null || true
   echo "[token-budget-guard] Circuit CLOSED for $TOOL_NAME — probe succeeded"
 fi
 
 # ── Update loop counter ───────────────────────────────────────────────────────
-python3 - "$BUDGET_FILE" "$TOOL_NAME" <<'PYEOF'
-import json, sys
-
-path, tool = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    d = json.load(f)
-
-loops = d.setdefault('loop_attempts', {})
-loops[tool] = loops.get(tool, 0) + 1
-
-with open(path, 'w') as f:
-    json.dump(d, f, indent=2)
-PYEOF
+node -e "
+const fs=require('fs');
+const d=JSON.parse(fs.readFileSync('$BUDGET_FILE','utf8'));
+const loops=d.loop_attempts||(d.loop_attempts={});
+loops['$TOOL_NAME']=(loops['$TOOL_NAME']||0)+1;
+fs.writeFileSync('$BUDGET_FILE',JSON.stringify(d,null,2));
+" 2>/dev/null || true
 
 echo "[token-budget-guard] OK — $TOOL_NAME (attempt $((LOOP_COUNT + 1)) / $MAX_ATTEMPTS)"
 exit 0

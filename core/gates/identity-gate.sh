@@ -34,7 +34,11 @@ SOVEREIGN_HASH="1835d61de8ab496236617fd2a76317e5c818177477ff8fb2312b3520e2990937
 # hoặc để script tự tính từ YAMTAM_OPERATOR_PASS nếu có
 
 hash_input() {
-  echo -n "$1" | openssl dgst -sha256 2>/dev/null | awk '{print $2}'
+  if command -v openssl &>/dev/null; then
+    echo -n "$1" | openssl dgst -sha256 2>/dev/null | awk '{print $2}'
+  else
+    echo -n "$1" | sha256sum 2>/dev/null | awk '{print $1}'
+  fi
 }
 
 normalize() {

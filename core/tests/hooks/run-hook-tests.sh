@@ -462,12 +462,12 @@ else
 fi
 echo -n "circuit-breaker [hard blocks at attempt 5]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
-# Pre-seed budget with 4 prior attempts so next call triggers breaker
-python3 -c "
-import json, pathlib
-d = {'session_start':'2026-01-01T00:00:00Z','total_tokens_used':0,'actions':[],
-     'loop_attempts':{'circuit-test-tool':5},'fast_tier_triggered':False}
-pathlib.Path('$BUDGET_FILE').write_text(json.dumps(d))
+# Pre-seed budget with 5 prior attempts so next call triggers breaker
+node -e "
+const fs=require('fs');
+const d={session_start:'2026-01-01T00:00:00Z',total_tokens_used:0,actions:[],
+  loop_attempts:{'circuit-test-tool':5},fast_tier_triggered:false};
+fs.writeFileSync('$BUDGET_FILE', JSON.stringify(d));
 "
 _cb_out=$(YAMTAM_TOKEN_BUDGET="$BUDGET_FILE" YAMTAM_CIRCUIT_STATE="$CIRCUIT_TMP" \
    CLAUDE_TOOL_NAME="circuit-test-tool" YAMTAM_MAX_FIX_ATTEMPTS=5 \
