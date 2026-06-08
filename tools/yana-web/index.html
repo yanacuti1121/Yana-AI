@@ -68,6 +68,25 @@
         </div>
       </div>
 
+      <!-- Codebase context -->
+      <div class="sidebar-section">
+        <div class="section-label">Codebase</div>
+        <div class="codebase-box">
+          <div id="codebase-status" class="codebase-status">No index</div>
+          <div class="codebase-actions">
+            <button id="codebase-folder-btn" class="btn-codebase" type="button">📁 Folder</button>
+            <button id="codebase-files-btn" class="btn-codebase" type="button">📄 Files</button>
+            <button id="codebase-clear-btn" class="btn-codebase btn-codebase-clear" style="display:none" type="button">✕ Clear</button>
+          </div>
+          <label class="codebase-toggle-row" id="codebase-toggle-row" style="display:none">
+            <input type="checkbox" id="codebase-toggle" checked>
+            <span>Use in chat</span>
+          </label>
+        </div>
+        <input id="codebase-dir-input" type="file" webkitdirectory multiple hidden>
+        <input id="codebase-files-input" type="file" multiple hidden accept=".js,.ts,.jsx,.tsx,.py,.go,.rs,.java,.cpp,.c,.h,.cs,.rb,.php,.sh,.bash,.json,.yaml,.yml,.toml,.md,.txt,.html,.css,.sql">
+      </div>
+
       <!-- History -->
       <div class="sidebar-section sidebar-history">
         <div class="section-label">Recent</div>

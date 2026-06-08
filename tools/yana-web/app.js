@@ -298,6 +298,9 @@ function startAiMsg(decision) {
   if (decision.suggested_skill) {
     metaHtml += `<span class="meta-pill skill">${escHtml(decision.suggested_skill)}</span>`;
   }
+  if (decision.useIndex) {
+    metaHtml += `<span class="meta-pill ctx">ctx</span>`;
+  }
 
   div.innerHTML = `
     <div class="msg-ai-avatar">Y</div>
@@ -341,6 +344,7 @@ function streamChat(task, apiKey, decision, images) {
       model:    modelSelect.value,
       skill:    decision.suggested_skill || null,
       images:   (images && images.length) ? images : undefined,
+      useIndex: decision.useIndex === true,
     }),
   }).then(res => {
     if (!res.ok || !res.body) {
@@ -477,6 +481,99 @@ function getAttachedImages() {
     .map(f => ({ mimeType: f.mimeType, data: f.data }));
 }
 
+// ── Codebase index ─────────────────────────────────────────────────────────────
+let codebaseInfo = { files: 0, chunks: 0 };
+let useCodebase  = false;
+
+const codebaseDirInput   = $('codebase-dir-input');
+const codebaseFilesInput = $('codebase-files-input');
+const codebaseFolderBtn  = $('codebase-folder-btn');
+const codebaseFilesBtn   = $('codebase-files-btn');
+const codebaseClearBtn   = $('codebase-clear-btn');
+const codebaseToggle     = $('codebase-toggle');
+const codebaseStatusEl   = $('codebase-status');
+const codebaseToggleRow  = $('codebase-toggle-row');
+
+function updateCodebaseUI() {
+  if (!codebaseStatusEl) return;
+  const has = codebaseInfo.files > 0;
+  codebaseStatusEl.textContent = has
+    ? `${codebaseInfo.files} files · ${codebaseInfo.chunks} chunks`
+    : 'No index';
+  codebaseStatusEl.classList.toggle('indexed', has);
+  if (codebaseToggleRow) codebaseToggleRow.style.display = has ? '' : 'none';
+  if (codebaseClearBtn)  codebaseClearBtn.style.display  = has ? '' : 'none';
+  if (codebaseToggle)    codebaseToggle.checked = useCodebase;
+}
+
+async function uploadCodebase(files) {
+  if (!files || !files.length) return;
+  if (codebaseFolderBtn) { codebaseFolderBtn.disabled = true; codebaseFolderBtn.textContent = 'Indexing…'; }
+  if (codebaseFilesBtn)  { codebaseFilesBtn.disabled  = true; }
+  try {
+    const MAX_FILE = 100 * 1024;
+    const items = [];
+    for (const f of files) {
+      if (IMAGE_TYPES.has(f.type) || f.size > MAX_FILE) continue;
+      try {
+        const content = await f.text();
+        items.push({ name: f.webkitRelativePath || f.name, content });
+      } catch (_) {}
+    }
+    if (!items.length) {
+      addAiMsg('<p>Không tìm thấy file text nào để index.</p>', {});
+      return;
+    }
+    const res = await fetch('/api/index', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ files: items }),
+    });
+    if (!res.ok) { addAiMsg('<span class="md-err">Lỗi khi index codebase.</span>', {}); return; }
+    const d = await res.json();
+    codebaseInfo = { files: d.indexed, chunks: d.chunks };
+    useCodebase  = true;
+    updateCodebaseUI();
+    const skippedNote = d.skipped ? ` — bỏ qua ${d.skipped} file quá lớn/binary` : '';
+    addAiMsg(`<p>✓ Đã index <strong>${d.indexed}</strong> files (${d.chunks} chunks)${skippedNote}. Bật <em>Use in chat</em> để dùng ngữ cảnh này.</p>`, {});
+  } catch (err) {
+    addAiMsg(`<span class="md-err">Lỗi: ${escHtml(err.message)}</span>`, {});
+  } finally {
+    if (codebaseFolderBtn) { codebaseFolderBtn.disabled = false; codebaseFolderBtn.textContent = '📁 Folder'; }
+    if (codebaseFilesBtn)  { codebaseFilesBtn.disabled  = false; }
+  }
+}
+
+if (codebaseFolderBtn) codebaseFolderBtn.addEventListener('click', () => codebaseDirInput && codebaseDirInput.click());
+if (codebaseFilesBtn)  codebaseFilesBtn.addEventListener('click',  () => codebaseFilesInput && codebaseFilesInput.click());
+
+if (codebaseDirInput) codebaseDirInput.addEventListener('change', () => {
+  const files = Array.from(codebaseDirInput.files || []);
+  codebaseDirInput.value = '';
+  uploadCodebase(files);
+});
+
+if (codebaseFilesInput) codebaseFilesInput.addEventListener('change', () => {
+  const files = Array.from(codebaseFilesInput.files || []);
+  codebaseFilesInput.value = '';
+  uploadCodebase(files);
+});
+
+if (codebaseClearBtn) codebaseClearBtn.addEventListener('click', async () => {
+  await fetch('/api/index', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ files: [] }),
+  }).catch(() => {});
+  codebaseInfo = { files: 0, chunks: 0 };
+  useCodebase  = false;
+  updateCodebaseUI();
+});
+
+if (codebaseToggle) codebaseToggle.addEventListener('change', () => { useCodebase = codebaseToggle.checked; });
+
+updateCodebaseUI();
+
 // ── Run ────────────────────────────────────────────────────────────────────────
 async function runTask() {
   const raw = taskInput.value.trim();
@@ -506,6 +603,8 @@ async function runTask() {
       body:    JSON.stringify({ task }),
     });
     const decision = await res.json();
+
+    if (codebaseInfo.chunks > 0 && useCodebase) decision.useIndex = true;
 
     if (decision.route === 'external') {
       addAiMsg('<p>⚠ External action detected — manual confirmation required before proceeding.</p>', decision);

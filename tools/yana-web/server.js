@@ -170,6 +170,96 @@ const PROVIDERS = {
   },
 };
 
+// ── Codebase BM25 index (in-memory, server-scoped) ────────────────────────────
+const CODEBASE = { chunks: [], df: {}, N: 0, avgLen: 1 };
+const STOP = new Set(['the','a','an','is','in','of','to','and','or','for','with','that','this','it','be','as','at','by','from','on','are','was','has','had','have','will','do','not','but','if','so','we','you','can','all','its','new','const','let','var','return','function','class','import','export','default']);
+
+function codeTokenize(text) {
+  return (text.toLowerCase().match(/\b[a-z_$][a-z0-9_$]{0,}\b/g) || [])
+    .filter(t => t.length >= 2 && !STOP.has(t));
+}
+
+function rebuildIndex(chunks) {
+  const df = {};
+  for (const c of chunks) for (const t of new Set(c.tokens)) df[t] = (df[t] || 0) + 1;
+  CODEBASE.chunks = chunks;
+  CODEBASE.N      = chunks.length;
+  CODEBASE.df     = df;
+  CODEBASE.avgLen = chunks.length ? chunks.reduce((s, c) => s + c.tokens.length, 0) / chunks.length : 1;
+}
+
+function bm25Search(query, topK) {
+  const qTokens = codeTokenize(query);
+  if (!qTokens.length || !CODEBASE.N) return [];
+  const { chunks, df, N, avgLen } = CODEBASE;
+  const K1 = 1.5, B = 0.75;
+  return chunks
+    .map(c => {
+      const tf = {};
+      for (const t of c.tokens) tf[t] = (tf[t] || 0) + 1;
+      let score = 0;
+      for (const t of qTokens) {
+        if (!tf[t]) continue;
+        const idf = Math.log((N - (df[t] || 0) + 0.5) / ((df[t] || 0) + 0.5) + 1);
+        score += idf * (tf[t] * (K1 + 1)) / (tf[t] + K1 * (1 - B + B * c.tokens.length / avgLen));
+      }
+      return { ...c, score };
+    })
+    .filter(c => c.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK || 3);
+}
+
+function makeChunks(name, content, maxLines) {
+  const M = maxLines || 60;
+  const lines = content.split('\n');
+  if (lines.length <= M) return [{ file: name, line: 1, content, tokens: codeTokenize(content) }];
+  const out = [];
+  for (let i = 0; i < lines.length; i += M) {
+    const slice = lines.slice(i, i + M).join('\n');
+    out.push({ file: name, line: i + 1, content: slice, tokens: codeTokenize(slice) });
+  }
+  return out;
+}
+
+// ── POST /api/index ────────────────────────────────────────────────────────────
+async function handleApiIndex(req, res) {
+  let body;
+  try { body = await readBody(req, 6 * 1024 * 1024); }
+  catch (e) { jsonError(res, e && e.status === 413 ? 413 : 400, 'Payload too large'); return; }
+
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+
+  const files = parsed.files;
+  if (!Array.isArray(files)) { jsonError(res, 400, 'files must be an array'); return; }
+
+  if (!files.length) {
+    rebuildIndex([]);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ indexed: 0, chunks: 0, skipped: 0 }));
+    return;
+  }
+
+  const MAX_FILE = 100 * 1024;
+  const allChunks = [];
+  let indexed = 0, skipped = 0;
+
+  for (const f of files.slice(0, 500)) {
+    if (!f.name || typeof f.content !== 'string') continue;
+    if (f.content.length > MAX_FILE) { skipped++; continue; }
+    // Skip binary-looking content
+    const nonPrint = (f.content.match(/[^\x09\x0a\x0d\x20-\x7e]/g) || []).length;
+    if (f.content.length > 20 && nonPrint / f.content.length > 0.15) { skipped++; continue; }
+    allChunks.push(...makeChunks(f.name, f.content));
+    indexed++;
+  }
+
+  rebuildIndex(allChunks.slice(0, 3000));
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ indexed, chunks: CODEBASE.N, skipped }));
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function readBody(req, maxBytes) {
   const limit = maxBytes || 16 * 1024;
@@ -344,7 +434,7 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex } = parsed;
   if (!apiKey || typeof apiKey !== 'string') { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task   || typeof task   !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
 
@@ -352,6 +442,15 @@ async function handleApiChat(req, res) {
   let systemPrompt = null;
   if (skill && typeof skill === 'string') systemPrompt = loadSkillPrompt(skill);
   if (!systemPrompt) systemPrompt = loadSystemPrompt(Array.isArray(suggestedAgents) ? suggestedAgents : []);
+
+  // Codebase context injection via BM25 retrieval
+  if (useIndex && CODEBASE.N > 0) {
+    const hits = bm25Search(task, 3);
+    if (hits.length > 0) {
+      const ctx = hits.map(h => `// ${h.file}${h.line > 1 ? ` (line ${h.line}+)` : ''}\n${h.content}`).join('\n\n---\n\n');
+      systemPrompt = `[CODEBASE CONTEXT]\n${ctx}\n\n---\n\n${systemPrompt}`;
+    }
+  }
 
   const p       = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   const modelId = (typeof model === 'string' && model.trim()) ? model.trim() : p.defaultModel;
@@ -408,6 +507,7 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
+  if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }
   if (method === 'POST' && pathname === '/api/chat')    { await handleApiChat(req, res);  return; }
   if (method === 'GET')                                 { serveStatic(res, pathname === '/' ? '/index.html' : pathname); return; }
