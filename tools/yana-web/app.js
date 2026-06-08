@@ -26,11 +26,15 @@ const PROVIDER_MODELS = {
     'compound-beta',
   ],
   openai: [
-    'gpt-4o-mini',
+    'gpt-4.1',
+    'gpt-4.1-mini',
+    'gpt-4.1-nano',
     'gpt-4o',
+    'gpt-4o-mini',
+    'o3',
     'o4-mini',
     'o3-mini',
-    'gpt-4-turbo',
+    'o1',
   ],
   gemini: [
     'gemini-2.5-flash-preview-05-20',
@@ -41,7 +45,9 @@ const PROVIDER_MODELS = {
     'gemini-1.5-flash',
   ],
   deepseek: [
+    'deepseek-v3-0324',
     'deepseek-chat',
+    'deepseek-r1-0528',
     'deepseek-reasoner',
   ],
 };
