@@ -1,6 +1,6 @@
 {
-  "fetched_at": 1780807689.4605606,
-  "date": "2026-06-07",
+  "fetched_at": 1780909593.8452137,
+  "date": "2026-06-08",
   "lang": "",
   "repos": [
     {
@@ -9,71 +9,17 @@
       "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a gro",
       "language": "Python",
       "stars": 0,
-      "stars_today": 439,
+      "stars_today": 1111,
       "relevant": true
     },
     {
-      "name": "CopilotKit/CopilotKit",
-      "url": "https://github.com/CopilotKit/CopilotKit",
-      "description": "The Frontend Stack for Agents &amp; Generative UI. React, Angular, Mobile, Slack, and more. Makers of the AG-UI Protocol",
-      "language": "TypeScript",
-      "stars": 0,
-      "stars_today": 631,
-      "relevant": true
-    },
-    {
-      "name": "MemPalace/mempalace",
-      "url": "https://github.com/MemPalace/mempalace",
-      "description": "The best-benchmarked open-source AI memory system. And it's free.",
+      "name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
       "language": "Python",
       "stars": 0,
-      "stars_today": 446,
+      "stars_today": 1112,
       "relevant": true
-    },
-    {
-      "name": "openai/plugins",
-      "url": "https://github.com/openai/plugins",
-      "description": "OpenAI Plugins",
-      "language": "JavaScript",
-      "stars": 0,
-      "stars_today": 213,
-      "relevant": true
-    },
-    {
-      "name": "Panniantong/Agent-Reach",
-      "url": "https://github.com/Panniantong/Agent-Reach",
-      "description": "Give your AI agent eyes to see the entire internet. Read &amp; search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHo",
-      "language": "Python",
-      "stars": 0,
-      "stars_today": 683,
-      "relevant": true
-    },
-    {
-      "name": "nginx/nginx",
-      "url": "https://github.com/nginx/nginx",
-      "description": "The official NGINX Open Source repository.",
-      "language": "C",
-      "stars": 0,
-      "stars_today": 20,
-      "relevant": false
-    },
-    {
-      "name": "aquasecurity/trivy",
-      "url": "https://github.com/aquasecurity/trivy",
-      "description": "Find vulnerabilities, misconfigurations, secrets, SBOM in containers, Kubernetes, code repositories, clouds and more",
-      "language": "Go",
-      "stars": 0,
-      "stars_today": 159,
-      "relevant": true
-    },
-    {
-      "name": "golang/go",
-      "url": "https://github.com/golang/go",
-      "description": "The Go programming language",
-      "language": "Go",
-      "stars": 0,
-      "stars_today": 30,
-      "relevant": false
     },
     {
       "name": "lfnovo/open-notebook",
@@ -81,44 +27,98 @@
       "description": "An Open Source implementation of Notebook LM with more flexibility and features",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 794,
+      "stars_today": 554,
       "relevant": false
     },
     {
-      "name": "openai/whisper",
-      "url": "https://github.com/openai/whisper",
-      "description": "Robust Speech Recognition via Large-Scale Weak Supervision",
-      "language": "Python",
+      "name": "yikart/AiToEarn",
+      "url": "https://github.com/yikart/AiToEarn",
+      "description": "Let's use AI to Earn!",
+      "language": "TypeScript",
       "stars": 0,
-      "stars_today": 150,
+      "stars_today": 183,
       "relevant": true
     },
     {
-      "name": "microsoft/mxc",
-      "url": "https://github.com/microsoft/mxc",
-      "description": "Policy-driven, layered isolation and containment",
+      "name": "aaif-goose/goose",
+      "url": "https://github.com/aaif-goose/goose",
+      "description": "an open source, extensible AI agent that goes beyond code suggestions - install, execute, edit, and test with any LLM",
       "language": "Rust",
       "stars": 0,
-      "stars_today": 64,
+      "stars_today": 322,
       "relevant": true
     },
     {
-      "name": "PaddlePaddle/PaddleOCR",
-      "url": "https://github.com/PaddlePaddle/PaddleOCR",
-      "description": "Turn any PDF or image document into structured data for your AI. A powerful, lightweight OCR toolkit that bridges the ga",
-      "language": "Python",
+      "name": "Crosstalk-Solutions/project-nomad",
+      "url": "https://github.com/Crosstalk-Solutions/project-nomad",
+      "description": "Project N.O.M.A.D, is a self-contained, offline survival computer packed with critical tools, knowledge, and AI to keep ",
+      "language": "TypeScript",
       "stars": 0,
-      "stars_today": 433,
+      "stars_today": 309,
       "relevant": true
     },
     {
-      "name": "microsoft/VibeVoice",
-      "url": "https://github.com/microsoft/VibeVoice",
-      "description": "Open-Source Frontier Voice AI",
+      "name": "ggml-org/llama.cpp",
+      "url": "https://github.com/ggml-org/llama.cpp",
+      "description": "LLM inference in C/C++",
+      "language": "C++",
+      "stars": 0,
+      "stars_today": 158,
+      "relevant": true
+    },
+    {
+      "name": "RyanCodrai/turbovec",
+      "url": "https://github.com/RyanCodrai/turbovec",
+      "description": "A vector index built on TurboQuant, written in Rust with Python bindings",
       "language": "Python",
       "stars": 0,
-      "stars_today": 216,
+      "stars_today": 1554,
       "relevant": true
+    },
+    {
+      "name": "TapXWorld/ChinaTextbook",
+      "url": "https://github.com/TapXWorld/ChinaTextbook",
+      "description": "所有小初高、大学PDF教材。",
+      "language": "Roff",
+      "stars": 0,
+      "stars_today": 350,
+      "relevant": false
+    },
+    {
+      "name": "openai/plugins",
+      "url": "https://github.com/openai/plugins",
+      "description": "OpenAI Plugins",
+      "language": "JavaScript",
+      "stars": 0,
+      "stars_today": 262,
+      "relevant": true
+    },
+    {
+      "name": "refactoringhq/tolaria",
+      "url": "https://github.com/refactoringhq/tolaria",
+      "description": "Desktop app to manage markdown knowledge bases",
+      "language": "TypeScript",
+      "stars": 0,
+      "stars_today": 245,
+      "relevant": false
+    },
+    {
+      "name": "HunxByts/GhostTrack",
+      "url": "https://github.com/HunxByts/GhostTrack",
+      "description": "Useful tool to track location or mobile number",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 28,
+      "relevant": false
+    },
+    {
+      "name": "microsoft/pg_durable",
+      "url": "https://github.com/microsoft/pg_durable",
+      "description": "PostgreSQL in-database durable execution",
+      "language": "Rust",
+      "stars": 0,
+      "stars_today": 316,
+      "relevant": false
     }
   ]
 }

@@ -5,10 +5,12 @@
   channel = "stable-24.05"; # or "unstable"
 
   # Use https://search.nixos.org/packages to find packages
+  # Use https://search.nixos.org/packages to find packages
   packages = [
+    pkgs.curl
+    pkgs.python311
+    pkgs.python311Packages.pip
     # pkgs.go
-    # pkgs.python311
-    # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
   ];
