@@ -1,10 +1,9 @@
 'use strict';
 
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
 
-const AGENTS_DIR = path.join(__dirname, '..', '..', 'core', 'agents');
-const MAX_PROMPT_BYTES = 8 * 1024; // 8 KB cap
+const MAX_PROMPT_BYTES  = 8 * 1024;
 const TRUNCATION_MARKER = '\n\n[...system prompt truncated at 8 KB...]';
 
 const GENERIC_PROMPT = `Tên mình là Yana — lớp giao tiếp chính của YAMTAM. Senior engineer luôn online, không có kiên nhẫn với câu trả lời mơ hồ.
@@ -34,54 +33,45 @@ Ngôn ngữ:
 - Không dịch code comments hay variable names trừ khi được hỏi`;
 
 /**
- * Strip YAML frontmatter (between first two "---" lines) from markdown.
- * Returns the body after the closing ---.
+ * createAgents({ agentsDir }) → { loadSystemPrompt }
  */
-function stripFrontmatter(content) {
-  const lines = content.split('\n');
-  if (lines[0].trim() !== '---') return content;
-  const closeIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-  if (closeIdx < 0) return content;
-  return lines.slice(closeIdx + 1).join('\n').trim();
-}
+function createAgents({ agentsDir } = {}) {
+  const AGENTS_DIR = agentsDir || '';
 
-function tryLoadAgent(name) {
-  // Sanitize: agent names must be simple alphanumeric + hyphens
-  if (!/^[a-zA-Z0-9_-]+$/.test(name)) return null;
-  const filePath = path.join(AGENTS_DIR, name + '.md');
-  try {
-    const raw = fs.readFileSync(filePath, 'utf8');
-    return stripFrontmatter(raw);
-  } catch (_) {
-    return null;
+  function stripFrontmatter(content) {
+    const lines = content.split('\n');
+    if (lines[0].trim() !== '---') return content;
+    const closeIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
+    return closeIdx < 0 ? content : lines.slice(closeIdx + 1).join('\n').trim();
   }
-}
 
-/**
- * loadSystemPrompt(suggestedAgents) → system prompt string
- * Uses the first suggested agent whose .md file exists; falls back to generic.
- * @param {string[]} suggestedAgents
- * @returns {string}
- */
-function loadSystemPrompt(suggestedAgents) {
-  if (Array.isArray(suggestedAgents)) {
-    for (const name of suggestedAgents) {
-      if (typeof name !== 'string') continue;
-      const body = tryLoadAgent(name.trim());
-      if (body && body.length > 0) {
-        return capPrompt(body);
+  function tryLoadAgent(name) {
+    if (!AGENTS_DIR || !/^[a-zA-Z0-9_-]+$/.test(name)) return null;
+    try {
+      const raw = fs.readFileSync(path.join(AGENTS_DIR, name + '.md'), 'utf8');
+      return stripFrontmatter(raw);
+    } catch (_) { return null; }
+  }
+
+  function capPrompt(text) {
+    const buf = Buffer.from(text, 'utf8');
+    if (buf.length <= MAX_PROMPT_BYTES) return text;
+    const marker = Buffer.from(TRUNCATION_MARKER, 'utf8');
+    return buf.slice(0, MAX_PROMPT_BYTES - marker.length).toString('utf8') + TRUNCATION_MARKER;
+  }
+
+  function loadSystemPrompt(suggestedAgents) {
+    if (Array.isArray(suggestedAgents)) {
+      for (const name of suggestedAgents) {
+        if (typeof name !== 'string') continue;
+        const body = tryLoadAgent(name.trim());
+        if (body && body.length > 0) return capPrompt(body);
       }
     }
+    return GENERIC_PROMPT;
   }
-  return GENERIC_PROMPT;
+
+  return { loadSystemPrompt };
 }
 
-function capPrompt(text) {
-  const buf = Buffer.from(text, 'utf8');
-  if (buf.length <= MAX_PROMPT_BYTES) return text;
-  const marker = Buffer.from(TRUNCATION_MARKER, 'utf8');
-  const sliced = buf.slice(0, MAX_PROMPT_BYTES - marker.length);
-  return sliced.toString('utf8') + TRUNCATION_MARKER;
-}
-
-module.exports = { loadSystemPrompt };
+module.exports = { createAgents };

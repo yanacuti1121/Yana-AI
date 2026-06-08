@@ -5,9 +5,10 @@ const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 const url   = require('url');
-const { route }            = require('./router.js');
-const { loadSystemPrompt } = require('./agents.js');
-const { findBestSkill, loadSkillPrompt, skillCount } = require('./skills.js');
+const { createCore } = require('yamtam-core');
+const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
+  rootDir: path.join(__dirname, '..', '..'),
+});
 
 const PORT         = process.env.PORT || 8081;
 const STATIC_DIR   = __dirname;

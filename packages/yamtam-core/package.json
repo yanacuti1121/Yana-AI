@@ -1,0 +1,10 @@
+{
+  "name": "yamtam-core",
+  "version": "0.1.0",
+  "description": "YAMTAM core — Router · Safety · Context. Powers Yana and any interface built on YAMTAM.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "keywords": ["yamtam", "yana", "ai-router", "skill-matching", "agent"],
+  "license": "MIT"
+}
