@@ -50,7 +50,7 @@ Luồng tối thiểu:
 
 ---
 
-### Phase 3 — Core Separation *(đang làm · 2026-06 → 2026-07)*
+### Phase 3 — Core Separation *(✅ done · 2026-06)*
 
 **Mục tiêu:** Tách `yamtam-core` và `yana-web` thành 2 package độc lập.
 
@@ -62,7 +62,12 @@ yana-web      — UI chạy trên yamtam-core (app)
 **Tại sao:** Bây giờ mọi thứ trong 1 repo → khó test, khó contribute, khó dùng lại.  
 Sau phase này: bất kỳ ai có thể `npm install yamtam-core` và build interface riêng.
 
-**Done khi:** `yana-web` import `yamtam-core` từ npm, không phải relative path.
+**Đã làm:**
+- `packages/yamtam-core/` — npm package với `createCore({ rootDir })` factory API
+- `yana-web` import `require('yamtam-core')` — không còn relative path
+- Configurable dirs — bất kỳ repo nào cũng plug-in được
+
+**Done khi:** `yana-web` import `yamtam-core` từ npm, không phải relative path. ✅
 
 ---
 
