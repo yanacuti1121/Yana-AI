@@ -6,6 +6,80 @@ This is a personal agent operating system. Features are added when a real proble
 
 ---
 
+## Strategic Roadmap — 4 Phases
+
+> Đây là hướng đi, không phải checklist. Mỗi phase phải **chứng minh giá trị** trước khi qua phase tiếp theo.
+
+### Phase 1 — Define *(đang làm · 2026-06)*
+
+**Mục tiêu:** Trả lời rõ YAMTAM là gì, Yana là gì, và lõi nào không được đụng tới.
+
+- [x] VISION.md — la bàn, không phải roadmap
+- [x] ROADMAP.md — hướng đi chiến lược
+- [ ] ARCHITECTURE.md — sơ đồ hệ thống
+- [ ] README cập nhật — mô tả đúng YAMTAM cho người mới
+
+**Done khi:** Một người lạ đọc 3 file trên và hiểu YAMTAM mà không cần hỏi thêm.
+
+---
+
+### Phase 2 — Yana Web MVP *(tiếp theo · 2026-06 → 2026-07)*
+
+**Mục tiêu:** Người dùng không phải developer mở được Yana, nhập API key, chat được với AI.
+
+```
+Luồng tối thiểu:
+  User → nhập API key → chọn model → gõ tin nhắn → nhận câu trả lời
+```
+
+**Scope cứng:**
+- ✅ Chat với 1 model (Claude trước)
+- ✅ Chọn provider (Anthropic / OpenAI / Gemini)
+- ✅ Lưu API key local (không lên server)
+- ✅ UI đơn giản, mobile-friendly
+- ✅ Deploy được (Railway / Vercel)
+
+**Scope không làm trong phase này:**
+- ❌ 95 agent đầy đủ
+- ❌ Skill marketplace
+- ❌ Multi-user / auth
+- ❌ Billing
+
+**Done khi:** Người không biết code dùng được mà không cần đọc docs.
+
+---
+
+### Phase 3 — Core Separation *(2026-07 → 2026-08)*
+
+**Mục tiêu:** Tách `yamtam-core` và `yana-web` thành 2 package độc lập.
+
+```
+yamtam-core   — Router · Safety · Context · Memory (npm package)
+yana-web      — UI chạy trên yamtam-core (app)
+```
+
+**Tại sao:** Bây giờ mọi thứ trong 1 repo → khó test, khó contribute, khó dùng lại.  
+Sau phase này: bất kỳ ai có thể `npm install yamtam-core` và build interface riêng.
+
+**Done khi:** `yana-web` import `yamtam-core` từ npm, không phải relative path.
+
+---
+
+### Phase 4 — Prove Value *(2026-08+)*
+
+**Mục tiêu:** Ít nhất 1 use case ngoài coding hoạt động tốt.
+
+Ứng viên:
+- **Học tập** — AI giải thích theo cách học sinh cần, không phải cách AI muốn nói
+- **Công việc hàng ngày** — task, lịch, email tóm tắt
+- **Workflow automation** — tích hợp [n8n](https://github.com/n8n-io/n8n) cho non-developer
+- **Knowledge graph** — tích hợp [graphify](https://github.com/graphify/graphify) để visualize dữ liệu
+- **Vietnam-specific** — vnpay integration, tiếng Việt ưu tiên
+
+**Done khi:** Ai đó dùng YAMTAM hàng ngày cho việc không liên quan đến coding.
+
+---
+
 ## Completed ✅
 
 ### v0.5.0 — 2026-05-28 (Auditor CLI series)

@@ -85,6 +85,92 @@ AI thực thi. Người quyết định. Không có gì không thể rollback.
 
 ---
 
+## Các khái niệm — định nghĩa một lần, dùng mãi
+
+### Yana là gì?
+
+Yana là **giao diện đầu tiên của YAMTAM** — một ứng dụng web cho phép người dùng chat với AI, chọn provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
+
+Yana **không phải** YAMTAM. Yana là một application chạy *trên* YAMTAM core.
+
+```
+Người dùng → Yana Web → YAMTAM core → Model
+```
+
+Nếu YAMTAM là hệ điều hành, thì Yana là ứng dụng đầu tiên chạy trên đó.  
+Ngày mai có thể có Yana Mobile, Yana CLI — cùng core, khác surface.
+
+---
+
+### Agent là gì?
+
+Trong YAMTAM, agent **không phải** một process chạy độc lập.
+
+Agent là **một persona pattern** — một tập hướng dẫn, style, và behavior được inject vào context của LLM khi cần.
+
+```
+User: "Review code của tôi theo kiểu security-focused"
+  → Router: chọn agent "security-auditor"
+  → Inject persona + context vào prompt
+  → LLM trả lời theo style đó
+```
+
+Agent không có RAM riêng. Agent không chạy song song. Agent là config, không phải process.
+
+Đó là lý do 95 agent **không tốn resource** — chúng chỉ là file `.md` nằm trong `core/agents/`.
+
+---
+
+### Skill là gì?
+
+Skill là **plugin cho routing layer** — định nghĩa khi nào được kích hoạt và tool nào được gọi.
+
+```yaml
+# Ví dụ đơn giản
+trigger: ["review code", "xem code", "kiểm tra code"]
+description: "Code review với checklist chuẩn"
+tools: [Read, Grep]
+gate: L2
+```
+
+Khi user gõ "xem code của tôi", router match trigger → load skill → thực thi.
+
+Skill không phải code chạy trực tiếp. Skill là instruction được load vào context khi cần.  
+3,498 skill không tốn RAM — chúng chỉ tốn disk space (< 50MB toàn bộ).
+
+---
+
+### 95 agent có còn cần thiết không?
+
+**Câu trả lời thật:** Không — không phải cùng một lúc.
+
+Trong Yana Web MVP, chỉ 3–5 agent quan trọng:
+- `code-reviewer` — review code
+- `debugger` — debug
+- `planner` — lập kế hoạch
+- `backend-developer` / `frontend-developer` — implement
+
+95 agent còn lại là **thư viện** — sẵn sàng khi cần, không ảnh hưởng performance khi không dùng.
+
+Nếu ngày mai 90 agent biến mất, Yana Web vẫn chạy bình thường.
+
+---
+
+### Đâu là lõi không được đụng tới?
+
+Ba thứ này không được rewrite, không được bỏ, không được "cải tiến" nếu không có lý do rất rõ ràng:
+
+```
+Router    — routing request đúng agent/skill
+Safety    — gate, injection protection, scope guard  
+Context   — memory (L1/L2), session state
+```
+
+Mọi thứ còn lại — agent, skill, Yana Web, hooks, scripts — đều là **application layer**.  
+Application layer có thể thay đổi. Core thì không.
+
+---
+
 ## Câu nhắc — đọc trước khi bắt đầu ngày mới
 
 > **"Hôm nay tôi chỉ làm sâu hơn lớp cốt lõi — không mở rộng."**
