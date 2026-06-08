@@ -33,6 +33,35 @@ const DAILY_SIGNALS = [
   'soạn thảo', 'draft', 'báo cáo', 'report',
 ];
 
+// Creative writing signals → route to creative-writer agent
+const CREATIVE_SIGNALS = [
+  'viết bài', 'bài viết', 'blog', 'content', 'copywriting',
+  'sáng tác', 'kịch bản', 'story', 'câu chuyện', 'tiểu thuyết',
+  'thông điệp', 'slogan', 'tagline', 'quảng cáo', 'ad copy',
+  'caption', 'mô tả sản phẩm', 'product description',
+  'lời giới thiệu', 'introduction text', 'about us',
+  'viết lại', 'rewrite', 'paraphrase',
+];
+
+// Data analysis signals → route to data-analyst agent
+const DATA_SIGNALS = [
+  'phân tích dữ liệu', 'data analysis', 'dataset',
+  'sql', 'query', 'select from', 'join',
+  'excel', 'csv', 'pandas', 'dataframe', 'matplotlib',
+  'thống kê', 'statistics', 'biểu đồ', 'chart', 'dashboard',
+  'eda', 'exploratory', 'histogram', 'correlation',
+  'machine learning', 'model training', 'feature',
+];
+
+// Review / audit signals → route to reviewer agents
+const REVIEW_SIGNALS = [
+  'review code', 'code review', 'kiểm tra code',
+  'đánh giá', 'nhận xét', 'feedback on', 'góp ý',
+  'proofreading', 'chỉnh sửa văn bản', 'sửa lỗi chính tả',
+  'audit', 'kiểm tra lỗi', 'check this', 'xem lại',
+  'có vấn đề gì không', 'có bug không', 'bảo mật',
+];
+
 function findMatches(task, signals) {
   const lower = task.toLowerCase();
   return signals.filter(s => lower.includes(s.toLowerCase()));
@@ -134,6 +163,45 @@ function createClassifier({ indexPath } = {}) {
         matched_signals: dailyMatches,
         matched_skills:  skillMatches.map(s => s.name),
         suggested_agents: ['daily-assistant'],
+      };
+    }
+
+    const creativeMatches = findMatches(task, CREATIVE_SIGNALS);
+    if (creativeMatches.length > 0) {
+      return {
+        route:           'creative',
+        gate:            'auto',
+        confidence:      Math.min(0.65 + creativeMatches.length * 0.08, 0.92),
+        reason:          'Creative writing or content request detected',
+        matched_signals: creativeMatches,
+        matched_skills:  skillMatches.map(s => s.name),
+        suggested_agents: ['creative-writer', 'documentation-writer'],
+      };
+    }
+
+    const dataMatches = findMatches(task, DATA_SIGNALS);
+    if (dataMatches.length > 0) {
+      return {
+        route:           'data',
+        gate:            'auto',
+        confidence:      Math.min(0.65 + dataMatches.length * 0.08, 0.92),
+        reason:          'Data analysis or SQL task detected',
+        matched_signals: dataMatches,
+        matched_skills:  skillMatches.map(s => s.name),
+        suggested_agents: ['data-analyst', 'database-reviewer'],
+      };
+    }
+
+    const reviewMatches = findMatches(task, REVIEW_SIGNALS);
+    if (reviewMatches.length > 0) {
+      return {
+        route:           'review',
+        gate:            'auto',
+        confidence:      Math.min(0.65 + reviewMatches.length * 0.08, 0.92),
+        reason:          'Review or audit task detected',
+        matched_signals: reviewMatches,
+        matched_skills:  skillMatches.map(s => s.name),
+        suggested_agents: ['code-reviewer', 'react-reviewer'],
       };
     }
 

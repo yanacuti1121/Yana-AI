@@ -225,6 +225,65 @@ function handleApiStatus(req, res) {
   });
 }
 
+// ── POST /api/models — fetch live model list from provider ────────────────────
+async function handleApiModels(req, res) {
+  let body;
+  try { body = await readBody(req, 4096); }
+  catch (e) { jsonError(res, e && e.status === 413 ? 413 : 400, 'Bad request'); return; }
+
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+
+  const { provider, key } = parsed;
+  if (!provider || !key) { jsonError(res, 400, 'Missing provider or key'); return; }
+
+  const LIVE_PROVIDERS = {
+    openrouter: {
+      hostname: 'openrouter.ai',
+      path:     '/api/v1/models',
+      headers:  k => ({
+        'Authorization': `Bearer ${k}`,
+        'HTTP-Referer':  'https://github.com/phamlongh230-lgtm/yamtam-engine',
+        'X-Title':       'Yana AI',
+      }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    groq: {
+      hostname: 'api.groq.com',
+      path:     '/openai/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id && !m.id.startsWith('whisper') && !m.id.startsWith('distil'))
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+  };
+
+  const prov = LIVE_PROVIDERS[provider];
+  if (!prov) { jsonError(res, 400, `Provider "${provider}" has no live model API`); return; }
+
+  const options = { hostname: prov.hostname, path: prov.path, method: 'GET',
+                    headers: prov.headers(key) };
+
+  https.get(options, upRes => {
+    let raw = '';
+    upRes.on('data', c => { raw += c; });
+    upRes.on('end', () => {
+      if (upRes.statusCode < 200 || upRes.statusCode >= 300) {
+        jsonError(res, 502, `Upstream HTTP ${upRes.statusCode}`); return;
+      }
+      try {
+        const models = prov.transform(JSON.parse(raw));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ models }));
+      } catch (_) { jsonError(res, 502, 'Malformed upstream response'); }
+    });
+  }).on('error', () => jsonError(res, 502, 'Upstream connection failed'));
+}
+
 // ── POST /api/route (enhanced: adds suggested_skill for complex tasks) ────────
 async function handleApiRoute(req, res) {
   let body;
@@ -348,6 +407,7 @@ const server = http.createServer(async (req, res) => {
 
   if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
+  if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }
   if (method === 'POST' && pathname === '/api/chat')    { await handleApiChat(req, res);  return; }
   if (method === 'GET')                                 { serveStatic(res, pathname === '/' ? '/index.html' : pathname); return; }

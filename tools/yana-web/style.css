@@ -585,6 +585,12 @@ body {
 .meta-pill.route-simple   { background: hsl(142 55% 10%); color: hsl(142 55% 55%); border-color: hsl(142 55% 20%); }
 .meta-pill.route-complex  { background: hsl(38 90% 10%);  color: hsl(38 90% 60%);  border-color: hsl(38 90% 20%); }
 .meta-pill.route-external { background: hsl(0 75% 10%);   color: hsl(0 75% 60%);   border-color: hsl(0 75% 20%); }
+.meta-pill.route-skill    { background: hsl(210 70% 10%); color: hsl(210 70% 60%); border-color: hsl(210 70% 20%); }
+.meta-pill.route-learn    { background: hsl(175 60% 10%); color: hsl(175 60% 55%); border-color: hsl(175 60% 20%); }
+.meta-pill.route-daily    { background: hsl(250 55% 10%); color: hsl(250 55% 65%); border-color: hsl(250 55% 20%); }
+.meta-pill.route-creative { background: hsl(320 60% 10%); color: hsl(320 60% 65%); border-color: hsl(320 60% 20%); }
+.meta-pill.route-data     { background: hsl(195 70% 10%); color: hsl(195 70% 60%); border-color: hsl(195 70% 20%); }
+.meta-pill.route-review   { background: hsl(45 80% 10%);  color: hsl(45 80% 60%);  border-color: hsl(45 80% 20%); }
 .meta-pill.skill          { background: hsl(270 50% 10%); color: hsl(270 50% 65%); border-color: hsl(270 50% 20%); font-family: var(--font-mono); }
 .meta-pill.conf           { background: var(--bg-card);   color: var(--fg-dim);    border-color: var(--border); }
 

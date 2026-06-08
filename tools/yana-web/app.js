@@ -81,7 +81,7 @@ const PROVIDER_MODELS = {
 };
 
 // Providers that support image input
-const VISION_PROVIDERS = new Set(['anthropic', 'openai', 'gemini']);
+const VISION_PROVIDERS = new Set(['anthropic', 'openai', 'gemini', 'openrouter']);
 
 const $ = id => document.getElementById(id);
 
@@ -189,15 +189,44 @@ fetch('/api/status')
   .catch(() => {});
 
 // ── Provider + model ───────────────────────────────────────────────────────────
-function populateModels() {
-  const models = PROVIDER_MODELS[providerSelect.value] || [];
+const LIVE_FETCH_PROVIDERS = new Set(['openrouter', 'groq']);
+
+function fillModelSelect(models) {
+  const prev = modelSelect.value;
   modelSelect.innerHTML = '';
   for (const m of models) {
-    const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
+    const id    = typeof m === 'string' ? m : m.id;
+    const label = typeof m === 'string' ? m : (m.name || m.id);
+    const opt   = document.createElement('option');
+    opt.value = id; opt.textContent = label;
     modelSelect.appendChild(opt);
   }
+  if (prev && [...modelSelect.options].some(o => o.value === prev)) modelSelect.value = prev;
+}
+
+async function fetchLiveModels(provider, key) {
+  try {
+    const res = await fetch('/api/models', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ provider, key }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.models && data.models.length) ? data.models : null;
+  } catch (_) { return null; }
+}
+
+async function populateModels() {
+  const provider = providerSelect.value;
+  fillModelSelect(PROVIDER_MODELS[provider] || []);
   syncKeyStatus();
+
+  const key = getKey();
+  if (key && LIVE_FETCH_PROVIDERS.has(provider)) {
+    const live = await fetchLiveModels(provider, key);
+    if (live) fillModelSelect(live);
+  }
 }
 providerSelect.addEventListener('change', populateModels);
 populateModels();
@@ -224,6 +253,7 @@ saveKeyBtn.addEventListener('click', () => {
     localStorage.removeItem(lsKey());
   }
   syncKeyStatus();
+  populateModels(); // re-fetch live models with new key
 });
 
 // ── Suggestion chips ───────────────────────────────────────────────────────────
