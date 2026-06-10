@@ -464,6 +464,73 @@ function handleApiUsage(req, res) {
   res.end(JSON.stringify({ usage: out }));
 }
 
+// ── GET /api/dashboard — real system state (L1 memory, audit log, uptime) ─────
+const L1_DIR    = path.join(__dirname, '..', '..', 'memory', 'L1_atomic');
+const AUDIT_LOG = path.join(__dirname, '..', '..', 'core', 'memory', 'audit', 'agent-actions.log');
+
+function readL1Facts() {
+  let files = [];
+  try { files = fs.readdirSync(L1_DIR).filter(f => f.startsWith('fact-') && f.endsWith('.md')); }
+  catch (_) { return { total: 0, today: 0, recent: [] }; }
+
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  const entries = files.map(f => {
+    const p = path.join(L1_DIR, f);
+    let mtime = 0, kind = 'fact';
+    let text = f.replace(/^fact-/, '').replace(/\.md$/, '').replace(/-/g, ' ');
+    try {
+      mtime = fs.statSync(p).mtimeMs;
+      const head = fs.readFileSync(p, 'utf8').slice(0, 2048);
+      const sm = head.match(/^statement:\s*(.+)$/m);
+      const tm = head.match(/^type:\s*(.+)$/m);
+      if (sm) text = sm[1].trim();
+      if (tm) kind = tm[1].trim();
+    } catch (_) {}
+    return { kind, text, mtime };
+  }).sort((a, b) => b.mtime - a.mtime);
+
+  return {
+    total:  entries.length,
+    today:  entries.filter(e => e.mtime >= dayStart.getTime()).length,
+    recent: entries.slice(0, 3).map(e => ({ kind: e.kind, text: e.text })),
+  };
+}
+
+function readAuditStats() {
+  let raw = '';
+  try {
+    const { size } = fs.statSync(AUDIT_LOG);
+    const start = Math.max(0, size - 256 * 1024);   // tail only — log is append-only
+    const fd  = fs.openSync(AUDIT_LOG, 'r');
+    const buf = Buffer.alloc(size - start);
+    fs.readSync(fd, buf, 0, buf.length, start);
+    fs.closeSync(fd);
+    raw = buf.toString('utf8');
+  } catch (_) { return { events_today: 0, blocked_today: 0, last_incident: null }; }
+
+  const today = new Date().toISOString().slice(0, 10);
+  let events = 0, blocked = 0, lastIncident = null;
+  for (const line of raw.split('\n')) {
+    if (!line) continue;
+    const isToday = line.startsWith(today);
+    if (isToday) events++;
+    if (/VIOLATION|BLOCK/.test(line)) {
+      if (isToday) blocked++;
+      lastIncident = line.slice(0, 20);   // lines are chronological — last wins
+    }
+  }
+  return { events_today: events, blocked_today: blocked, last_incident: lastIncident };
+}
+
+function handleApiDashboard(req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({
+    memories: readL1Facts(),
+    safety:   readAuditStats(),
+    uptime_s: Math.round(process.uptime()),
+  }));
+}
+
 // ── SSE normalize: upstream SSE → unified data: {"text":"..."} ────────────────
 function pipeNormalizedSSE(upstreamRes, res, extractText, onDone) {
   let buf = '';
@@ -590,6 +657,7 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
+  if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }

@@ -1,14 +1,13 @@
 // Yana AI — demo data (plain JS, no JSX)
 window.YANA = {
   stats: {
-    agents: 97,
-    agentsActive: 14,
-    skills: 3507,
-    skillsUsedToday: 212,
-    missionsActive: 5,
-    memories: 12840,
-    memoriesToday: 47,
-    uptimeDays: 31,
+    // agents/skills filled from /api/status (MANIFEST) at runtime — see bottom.
+    // Nothing tracks live agent runs or per-day skill calls yet, so these stay
+    // at an honest 0 instead of a demo number.
+    agents: 0,
+    agentsActive: 0,
+    skills: 0,
+    skillsUsedToday: 0,
   },
 
   // Static catalog only — connection status, usage, latency, and keys are
@@ -22,12 +21,7 @@ window.YANA = {
     { id: "openrouter", name: "OpenRouter", company: "OpenRouter", models: ["Fallback pool · 40+ models"],          role: "Overflow & fallback routing" },
   ],
 
-  models: [
-    { id: "claude", name: "Claude", model: "Sonnet 4.6", status: "active", load: 62, latency: "1.1s", role: "Reasoning · Orchestration" },
-    { id: "gpt",    name: "GPT",    model: "4o",         status: "active", load: 38, latency: "0.9s", role: "Drafting · Vision" },
-    { id: "gemini", name: "Gemini", model: "2.0 Flash",  status: "active", load: 21, latency: "0.8s", role: "Long context · Search" },
-    { id: "groq",   name: "Groq",   model: "Llama 4",    status: "idle",   load: 4,  latency: "0.2s", role: "Fast inference · Routing" },
-  ],
+  // models card on the dashboard is now derived from providers + /api/usage
 
   agents: [
     { id: "sentinel",  name: "Sentinel",  role: "Safety Layer",        status: "active",  specialty: "Guardrails · Policy checks · Sandboxing", load: "Reviewing 3 actions", core: true },
@@ -42,47 +36,8 @@ window.YANA = {
     { id: "gardener",  name: "Gardener",  role: "Memory Pruner",        status: "idle",    specialty: "Dedup · Decay · Compression",             load: "Next run 02:00" },
   ],
 
-  missions: [
-    {
-      id: "m1", name: "Ship YAMTAM Engine v0.9", owner: "Navigator", progress: 72, due: "Jun 14", status: "on-track",
-      tasks: [
-        { name: "Skill registry migration", agent: "Forge",    state: "done" },
-        { name: "Safety layer regression suite", agent: "Sentinel", state: "active" },
-        { name: "Memory snapshot format v2", agent: "Curator",  state: "active" },
-        { name: "Release notes draft", agent: "Scribe",   state: "queued" },
-      ],
-    },
-    {
-      id: "m2", name: "Yana onboarding flow", owner: "Scribe", progress: 45, due: "Jun 18", status: "on-track",
-      tasks: [
-        { name: "First-run script", agent: "Scribe", state: "active" },
-        { name: "Provider connect UX copy", agent: "Scribe", state: "queued" },
-        { name: "Safety disclosure review", agent: "Sentinel", state: "queued" },
-      ],
-    },
-    {
-      id: "m3", name: "Agent eval harness research", owner: "Scout", progress: 58, due: "Jun 20", status: "on-track",
-      tasks: [
-        { name: "Survey 12 eval frameworks", agent: "Scout", state: "done" },
-        { name: "Synthesis memo", agent: "Scout", state: "active" },
-        { name: "Benchmark plan", agent: "Ledger", state: "queued" },
-      ],
-    },
-    {
-      id: "m4", name: "Nightly repo audit", owner: "Warden", progress: 100, due: "Daily", status: "recurring",
-      tasks: [
-        { name: "Dependency scan", agent: "Warden", state: "done" },
-        { name: "Secrets check", agent: "Sentinel", state: "done" },
-      ],
-    },
-    {
-      id: "m5", name: "Memory Garden spring cleaning", owner: "Gardener", progress: 12, due: "Jun 30", status: "scheduled",
-      tasks: [
-        { name: "Stale context decay pass", agent: "Gardener", state: "queued" },
-        { name: "Duplicate fact merge", agent: "Curator", state: "queued" },
-      ],
-    },
-  ],
+  // missions are created at runtime by the Mission Composer — none preloaded
+  missions: [],
 
   memories: [
     { id: 1, kind: "Fact",       text: "Tâm prefers terse commit messages — imperative mood, no emoji.", source: "Chat · Jun 9", fresh: true },
@@ -104,14 +59,7 @@ window.YANA = {
     { name: "Safety",         count: 390, top: "guard.action-review", usage: 6 },
   ],
 
-  safety: {
-    engine: "YAMTAM ENGINE",
-    status: "All guardrails active",
-    checksToday: 1284,
-    blocked: 3,
-    pendingReview: 2,
-    lastIncident: "27 days ago",
-  },
+  // safety stats now come from GET /api/dashboard (real audit log)
 
   chat: [
     { who: "user", text: "Where are we on the v0.9 release? Anything blocking?" },
