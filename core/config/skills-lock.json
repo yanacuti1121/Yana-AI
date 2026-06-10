@@ -1,47 +1,47 @@
 {
   "skills": {
     "a2a-protocol-patterns": {
-      "computedHash": "75a850cc3c15e088a47d504f1357f030c0bbacda14d60346f8a799753a0da44e",
+      "computedHash": "5dab406974a550902f3a760d8e11d67e379041b496151cac0335933c765e1860",
       "localPath": ".claude/skills/a2a-protocol-patterns",
       "addedAt": "2026-06-06T06:31:53Z"
     },
     "accessibility-audit": {
-      "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a",
+      "computedHash": "e6318dafa9dfed9a863b2a1bb66d7d95fd9bb16b6fdf9f6c3e2199edc38d4aff",
       "localPath": ".claude/skills/accessibility-audit",
       "addedAt": "2026-06-06T06:31:54Z"
     },
     "adr-writing": {
-      "computedHash": "34fbd1d3f9105e3839ce7a851d0a19474dd8b08cbde9e3678ed8c5872e630162",
+      "computedHash": "c0a9e0c453f8a6a4e89e5c76af4740029981216e4ca68c2b242f241aaf27c003",
       "localPath": ".claude/skills/adr-writing",
       "addedAt": "2026-06-06T06:31:59Z"
     },
     "advanced-color-math": {
-      "computedHash": "53f1d423ac9f62add3dbbb7e63472ad08d3723a4bf99aa0756496dff88373b40",
+      "computedHash": "209bfa9ecc17a153b44b59e5bfea6fc010df9819dbf7fe384c0d48eb7ba3c5ac",
       "localPath": ".claude/skills/advanced-color-math",
       "addedAt": "2026-06-06T06:31:59Z"
     },
     "advanced-motion-easing": {
-      "computedHash": "92fe805ea1f4b053d5f4a71adfc4aaf252b548baaf2f39345948aeb943e5c23b",
+      "computedHash": "79e4ae986cec8dc4dc7d2176c0e580cd1b721052ea6093c19a9e7d530c9ef778",
       "localPath": ".claude/skills/advanced-motion-easing",
       "addedAt": "2026-06-06T06:31:59Z"
     },
     "advanced-typography": {
-      "computedHash": "0f9e4842179f19edae51de14b3293311e9573407d0929295ab6a72bb3d09e35a",
+      "computedHash": "e502d4acb91c3a49fea5e0198e01bcff54979b16cc35a167f9d2862ec6bd887f",
       "localPath": ".claude/skills/advanced-typography",
       "addedAt": "2026-06-06T06:31:59Z"
     },
     "adversarial-prompt-testing": {
-      "computedHash": "2539885271644d370d0688b28d76d8b083bb566a1f5c5b63265c1b8893ad1d75",
+      "computedHash": "a72afb030cd7faad0329e08b88b41f340380d228af1d8a0469cde02115d83c27",
       "localPath": ".claude/skills/adversarial-prompt-testing",
       "addedAt": "2026-06-06T06:32:00Z"
     },
     "aesthetic-anchor": {
-      "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
+      "computedHash": "65107b1462baaa25d8521cc854fd0da8a103ffad0b96ca6809a170b78929261a",
       "localPath": ".claude/skills/aesthetic-anchor",
       "addedAt": "2026-06-06T06:32:00Z"
     },
     "agent-attack-surface": {
-      "computedHash": "f3f82f2be9f842d0e618130148c13629660e9817d75988f3098595eeeb245fd8",
+      "computedHash": "6977920537d4b028c0869a681a05b1ab29a687a18a5687a8d08d1772a3e6beec",
       "localPath": ".claude/skills/agent-attack-surface",
       "addedAt": "2026-06-06T06:32:00Z"
     },
@@ -51,42 +51,42 @@
       "addedAt": "2026-06-06T06:32:02Z"
     },
     "agent-memory-security": {
-      "computedHash": "0b4b7e65a68c48f3cc2c62bae616f6221e3e1f3e64932dca01e096f52a12d4f7",
+      "computedHash": "5cf5c1940ef14ba661ec1f49ab2a9a3b89ef008ec4e759c699ba67ad7909875c",
       "localPath": ".claude/skills/agent-memory-security",
       "addedAt": "2026-06-06T06:32:02Z"
     },
     "agent-messaging-patterns": {
-      "computedHash": "ea7903e082ddd6a917d38f7de092e24df6e3fa66962b1cd5692a39c5e54039e0",
+      "computedHash": "b58145e56cc8e60d0e7f4dbbf4760a1ff5fd6cb844bb331268537ef88dee2e46",
       "localPath": ".claude/skills/agent-messaging-patterns",
       "addedAt": "2026-06-06T06:32:03Z"
     },
     "agent-middleware-gate": {
-      "computedHash": "86b683db65d2fa28f3284c56b5da755e5d4f5dbbff0322fd5a3f789c48efec44",
+      "computedHash": "b38d2fec88400b12e49ef4ffcbce01de0321f4df936d0cc88b112e710b2f7556",
       "localPath": ".claude/skills/agent-middleware-gate",
       "addedAt": "2026-06-06T06:32:03Z"
     },
     "agent-safety-patterns": {
-      "computedHash": "a2e252b7fd5526e28549fd9dc14960d7fad4451e4cfc82465fe28d9c35283249",
+      "computedHash": "2fe0c1e0e49920ff2672c38802292a33bfa0d4ab3cc723c749c83f1bfcd83cf1",
       "localPath": ".claude/skills/agent-safety-patterns",
       "addedAt": "2026-06-06T06:32:03Z"
     },
     "agent-telemetry": {
-      "computedHash": "1c4781cb920deeeb694051cecf273282240b8c82143f3747aa5a5e631a692544",
+      "computedHash": "a550ccb3996349f0ea2e328cecaa82d812bef5d09bd3c6edd2c78c94fa898979",
       "localPath": ".claude/skills/agent-telemetry",
       "addedAt": "2026-06-06T06:32:04Z"
     },
     "agent-verification-gate": {
-      "computedHash": "408e252b84d1fb5bf260b5fa42398b4735ac247360ce95b7f996a85a7e3fa78b",
+      "computedHash": "4f03f9c3e581aeaae7429ebb72541e2ff32837ac53a87aff3a8f759124c94c45",
       "localPath": ".claude/skills/agent-verification-gate",
       "addedAt": "2026-06-06T06:32:05Z"
     },
     "agenthub": {
-      "computedHash": "de459ca54e361100827d262e74293937d82d29641ae70457a13fdc3be73c6200",
+      "computedHash": "867ddefa74dc2c5c46e7401bd99acad802c38a5c06b3663d20fedbb354eac48f",
       "localPath": ".claude/skills/agenthub",
       "addedAt": "2026-06-06T06:32:01Z"
     },
     "agentic-failure-modes": {
-      "computedHash": "7ac5e8da478be7fd281dffd54921d0094366794944d925ddc0dab0e1c127879d",
+      "computedHash": "8764d9c0633296fad88bffbbbfde4de630ba7a65702efa39e7c18a211872da03",
       "localPath": ".claude/skills/agentic-failure-modes",
       "addedAt": "2026-06-06T06:32:02Z"
     },
@@ -101,17 +101,17 @@
       "addedAt": "2026-06-06T06:32:07Z"
     },
     "ai-gateway-patterns": {
-      "computedHash": "fc4ef85481063ce8c73890bdea42f416c4e59526340bfc6e0ed192224157b452",
+      "computedHash": "f6941b3b768866153bc416f606aea732f2787c1d4f73e117ba4ae5d4d6af2142",
       "localPath": ".claude/skills/ai-gateway-patterns",
       "addedAt": "2026-06-06T06:32:07Z"
     },
     "ai-team-workflow": {
-      "computedHash": "1cd4d5afb4f88a9fc99f586cfe97da7c20603a8eb4174b317ac71fb26a0f669a",
+      "computedHash": "694a0ba8a4d6bf4e3c50cabe9ac7896604cb6f45ecafa4fbcc05dc522d9e9191",
       "localPath": ".claude/skills/ai-team-workflow",
       "addedAt": "2026-06-06T06:32:09Z"
     },
     "animation-principles": {
-      "computedHash": "50b9032def53e6e6b3736db1c0d413e6db74bac214b03b0f83193239bb77cb39",
+      "computedHash": "b1dcb1c861d0646c08e6d1f5c3d99a095ce2923d735ceff0bd73e4f7cd03b237",
       "localPath": ".claude/skills/animation-principles",
       "addedAt": "2026-06-06T06:32:13Z"
     },
@@ -126,27 +126,27 @@
       "addedAt": "2026-06-06T06:32:13Z"
     },
     "api-rate-limiting": {
-      "computedHash": "06162ae9b47b1a47b25bf7daed2262dddd1b744b89f0a4eb18a7fc65abfcff25",
+      "computedHash": "0788c83edbaf20538dee01b9fe0cabb425a45f1552e2ba5113be7b8999f4ae01",
       "localPath": ".claude/skills/api-rate-limiting",
       "addedAt": "2026-06-06T06:32:14Z"
     },
     "append-only-hypercore": {
-      "computedHash": "e83e8d82742824d825296dcd963b81ae6115fffba40031a60d99b81780dbe4d6",
+      "computedHash": "9c4cbbe205651b4a83e1225137bdd96c117968d72e950ff1d17653de0c0e282f",
       "localPath": ".claude/skills/append-only-hypercore",
       "addedAt": "2026-06-06T06:32:14Z"
     },
     "apply-premium-background": {
-      "computedHash": "60fe727cca9751aa1009e23a65c3410b8c8f597ee8814ca5415ce1df2204da48",
+      "computedHash": "97fe850f44b9ce5a3ac9dfe30c87de9b870192e3ceec68cc357efa02079a7744",
       "localPath": ".claude/skills/apply-premium-background",
       "addedAt": "2026-06-06T06:32:14Z"
     },
     "archive-stream-patterns": {
-      "computedHash": "66e6094f130e784571a6d8a6411508c1427ff736a3a5029e109039df0ab8abad",
+      "computedHash": "2ae6604d48569da4de88f90e245d80ce35a62da0106642aed310ac3d323ff90f",
       "localPath": ".claude/skills/archive-stream-patterns",
       "addedAt": "2026-06-06T06:32:15Z"
     },
     "argocd-gitops": {
-      "computedHash": "0502fbe9653b1de649fcfc9e8f021f8e23240a0985169c30a3b413479887c3c4",
+      "computedHash": "2061649b2671c870eab2e458eed0ee1b29a317848f2a7263bdf70482b98ea95b",
       "localPath": ".claude/skills/argocd-gitops",
       "addedAt": "2026-06-06T06:32:15Z"
     },
@@ -156,27 +156,27 @@
       "addedAt": "2026-06-06T06:32:16Z"
     },
     "assemblyscript-to-wasm": {
-      "computedHash": "cea06c64bb595556534db088b949194c28c0473bc3a35ed025592777f1ded488",
+      "computedHash": "cb8a361aa13681cc9af77ea9f7f8aaf4fd938d25715223424dd8cdd1a97534b8",
       "localPath": ".claude/skills/assemblyscript-to-wasm",
       "addedAt": "2026-06-06T06:32:16Z"
     },
     "ast-code-manipulation": {
-      "computedHash": "cddfad4d6a5d2994a4bf3f2159101fb0eba2995c9cc3942505d42b3b7c668d7e",
+      "computedHash": "36e2d605ae776a38227f7f1db5cf9b4e5c25da52d429e7a10e1f5b589929e677",
       "localPath": ".claude/skills/ast-code-manipulation",
       "addedAt": "2026-06-06T06:32:16Z"
     },
     "ast-codegen-patterns": {
-      "computedHash": "fe5735796e73531033a14f0a472c1e64c7e51b951327652b576f8593c51dd7d0",
+      "computedHash": "4d306a28196fea031f6d297c19bcff0cdfb5f0d8851b71097199a1242c911784",
       "localPath": ".claude/skills/ast-codegen-patterns",
       "addedAt": "2026-06-06T06:32:16Z"
     },
     "ast-injection-scanner": {
-      "computedHash": "e9d253edf30badb68c1bac0357d6842884217ff979bfae29bb45c0cf75a55078",
+      "computedHash": "04f0c2660ca910207a5f81c2e6760f4822d0a217202ac1da875fcc5dbaa1e43b",
       "localPath": ".claude/skills/ast-injection-scanner",
       "addedAt": "2026-06-06T06:32:17Z"
     },
     "async-storage-patterns": {
-      "computedHash": "b20c8d76018d5031ec35492f559aad5c2d3602f1225803a88efc04aa37252af0",
+      "computedHash": "cc028235f13f7ec5872a6811484f8a352b206115317e5ae904d3f0eaf43d68a5",
       "localPath": ".claude/skills/async-storage-patterns",
       "addedAt": "2026-06-06T06:32:17Z"
     },
@@ -186,17 +186,17 @@
       "addedAt": "2026-06-06T06:32:17Z"
     },
     "auth-patterns": {
-      "computedHash": "58f0d72ab6858651d2cdb53839abc208434b786008c1505ea22dbb3994fe4b4a",
+      "computedHash": "c0f1378f4211c8159b261a486803aabeb7d5fddbd37c4043b35b27c34b451f6c",
       "localPath": ".claude/skills/auth-patterns",
       "addedAt": "2026-06-06T06:32:18Z"
     },
     "auth-strategy-patterns": {
-      "computedHash": "0566ca45362d9cd6a1b5043d5b8f0bf81d8d2cb4da661b1388ca70810a093204",
+      "computedHash": "da78830da59651728984a17941b5bb8a9692e71bd7e66d629b2cacf3f5f9afdc",
       "localPath": ".claude/skills/auth-strategy-patterns",
       "addedAt": "2026-06-06T06:32:18Z"
     },
     "auto-feedback-loop": {
-      "computedHash": "cd6c2260a9ff6f253cccbf1c5e157dd497017b9a9d502df8979546d07b4945c4",
+      "computedHash": "4337a70afe0c196a92652aedf518e736f7f826abed8504675a2a24a03c64112a",
       "localPath": ".claude/skills/auto-feedback-loop",
       "addedAt": "2026-06-06T06:32:19Z"
     },
@@ -206,17 +206,17 @@
       "addedAt": "2026-06-06T06:32:19Z"
     },
     "automerge-crdt": {
-      "computedHash": "451fbc0d4e824356492c07c24a8d051cd55aed6186ab906bb70fea5f990c6eee",
+      "computedHash": "46d41fa5a1326bd2175001d7f92274c9141ac2e7e2d17cf30884a25a9cda9eec",
       "localPath": ".claude/skills/automerge-crdt",
       "addedAt": "2026-06-06T06:32:19Z"
     },
     "autonomous-patching-loop": {
-      "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36",
+      "computedHash": "6cdf4952216d6a11133dba396b732fe0084bdd9ef0ad7bb0194ec8fa5c71ddab",
       "localPath": ".claude/skills/autonomous-patching-loop",
       "addedAt": "2026-06-06T06:32:20Z"
     },
     "babel-ast-transform": {
-      "computedHash": "59e9fe3f593923425ef43764fdd575c395394d34dffe5a0f0503f4c81d8def1c",
+      "computedHash": "781de09b49b6294308a21bb6ed520ca45e90fc31dc9f00ad75cdf110c38e8df7",
       "localPath": ".claude/skills/babel-ast-transform",
       "addedAt": "2026-06-06T06:32:20Z"
     },
@@ -226,17 +226,17 @@
       "addedAt": "2026-06-06T06:32:20Z"
     },
     "baseline-ui": {
-      "computedHash": "0c52c65dbf5c0835b95556b6baa7f73f104ecf12506fe21421fd992008ee3886",
+      "computedHash": "72a86ae195042e01b78ec08f70c0833e232af7b1bd2f7261e7ce12b342bb013c",
       "localPath": ".claude/skills/baseline-ui",
       "addedAt": "2026-06-06T06:32:20Z"
     },
     "bft-consensus-patterns": {
-      "computedHash": "0f4cdbbabb17ae24d3d1c2b51282c8b677f5a72c852489a244b75d34be9cb23c",
+      "computedHash": "9155e5a0f13d10bfa0c68a9cc3b20d883da4a61347621c663063f59522b2fe18",
       "localPath": ".claude/skills/bft-consensus-patterns",
       "addedAt": "2026-06-06T06:32:21Z"
     },
     "blue-team-fix": {
-      "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d",
+      "computedHash": "bbf8c3018dcfaa870538871234afb85e3e31669d95d741f6de33fe681b003e03",
       "localPath": ".claude/skills/blue-team-fix",
       "addedAt": "2026-06-06T06:32:22Z"
     },
@@ -251,12 +251,12 @@
       "addedAt": "2026-06-06T06:32:32Z"
     },
     "build-system": {
-      "computedHash": "a2c90d77c6cbb40c08b25d7c0cddec1f151ddd68d7a2d0026cb1a198552f6928",
+      "computedHash": "c8a5a111676b31c1325fb9edebe1d24cb1841c64db98288afe0b64f54d7570d0",
       "localPath": ".claude/skills/build-system",
       "addedAt": "2026-06-06T06:32:32Z"
     },
     "bunyan-syslog-bridge": {
-      "computedHash": "fdd1e66ec5e36c9aab06c9ccfe190b8c466ccd014d9edb26e2ec20a052af324d",
+      "computedHash": "af586e72e775556832bce927551776df9db24e28b3aef023694087f4ce394633",
       "localPath": ".claude/skills/bunyan-syslog-bridge",
       "addedAt": "2026-06-06T06:32:32Z"
     },
@@ -266,102 +266,102 @@
       "addedAt": "2026-06-06T06:32:33Z"
     },
     "caching-memory-efficiency": {
-      "computedHash": "70d7d4ed71139b3a483792ab30dec87eb28e193bb7d2148d255c38943391c131",
+      "computedHash": "85708a7bc35a3ea0ba76b5e7953b7edea666570d9935031929be2ebfb4d51d2b",
       "localPath": ".claude/skills/caching-memory-efficiency",
       "addedAt": "2026-06-06T06:32:33Z"
     },
     "caching-patterns": {
-      "computedHash": "7cde7cc5047731b8d3565a3b0cd77fb5f476828856e419bf7698ad6ce29d7fa1",
+      "computedHash": "61b6fd11ab15281753e6d6fa1c360cab4811196a6e544d26dd4e9329a3377b12",
       "localPath": ".claude/skills/caching-patterns",
       "addedAt": "2026-06-06T06:32:33Z"
     },
     "cadvisor-container-metrics": {
-      "computedHash": "999cb0e60f17cbe199c13396d75653fc01c90cde6abcdfefae86eed2f824ada0",
+      "computedHash": "5412341f3e1748db2f0398215926c17b7ba9823dddcec50a0646419aaa27f466",
       "localPath": ".claude/skills/cadvisor-container-metrics",
       "addedAt": "2026-06-06T06:32:33Z"
     },
     "capability-dropping-linux": {
-      "computedHash": "b1c7d420399a6b3702a83321d74a3a04d7cc52ba91ded67f606fd4f1aa1af231",
+      "computedHash": "b74ba970ce7f0e2b82cbdc9345615815c721ea4728b8f71c1c13f77a76165c48",
       "localPath": ".claude/skills/capability-dropping-linux",
       "addedAt": "2026-06-06T06:32:34Z"
     },
     "caveman": {
-      "computedHash": "77566286fc1f8f357a6dbbe6fad0ec2c8e557eb94a57e775f583e38dd00c775d",
+      "computedHash": "9ecdd5a76946f0666bbd004635c6f13236c5f3e7efa53b2adb0d84799214b773",
       "localPath": ".claude/skills/caveman",
       "addedAt": "2026-06-06T06:32:34Z"
     },
     "chaos-engineering": {
-      "computedHash": "5378e0094c1a3561f9332670272e742e7c7647c4ff14fe5c17405161e26cdaf7",
+      "computedHash": "63421f17236efef3e468b8bd6a0ff60632a25640bc961d6e3bf28cdf389052b5",
       "localPath": ".claude/skills/chaos-engineering",
       "addedAt": "2026-06-06T06:32:35Z"
     },
     "chrome-devtools-a11y-audit": {
-      "computedHash": "c9bee5969b02529cf6046f886aafd1a1f6c712f827cdac61e6fa815a07c36241",
+      "computedHash": "b864a273d325b35e5d53cb60c2c18a2e682e92c2019c7a5aea656aaf2385e602",
       "localPath": ".claude/skills/chrome-devtools-a11y-audit",
       "addedAt": "2026-06-06T06:32:35Z"
     },
     "chrome-devtools-browser-automation": {
-      "computedHash": "90b41c3567720de7f22a0f1305f8da1909af1c7504b99f7c0bcd8e0d3f51d9cf",
+      "computedHash": "cbe271c252813070cfecbab70d9d7bd1ccee2f93d766efa00c8cb994b74062f0",
       "localPath": ".claude/skills/chrome-devtools-browser-automation",
       "addedAt": "2026-06-06T06:32:35Z"
     },
     "chrome-devtools-extensions": {
-      "computedHash": "f48e3294798ff8ce5c7cc9c2cf09b58bdb6d5ec381ff86f5248ba744d713f09f",
+      "computedHash": "0e45b6ddcbffb8d7d2e4955f98d651378acc179cbf769dbf78cf1aa358497265",
       "localPath": ".claude/skills/chrome-devtools-extensions",
       "addedAt": "2026-06-06T06:32:35Z"
     },
     "chrome-devtools-lcp-debug": {
-      "computedHash": "b2fd3bebbff129f4a7b7b37df76e7764415a0b3041fe3044f35e970b1b7dba44",
+      "computedHash": "a1b8d7dfbb5168da84501d7d45f840ffa47bdfda95aa8c715f3d0e44a89bf133",
       "localPath": ".claude/skills/chrome-devtools-lcp-debug",
       "addedAt": "2026-06-06T06:32:36Z"
     },
     "chrome-devtools-mcp": {
-      "computedHash": "ca801426744f726215cbd53fbdb8e6c1ba2f0eddae5ee563f5c60600f6c17386",
+      "computedHash": "0a8bfa8768d13f23b882fbb447eac88514eb5eebdca86efbc7802600ddacad44",
       "localPath": ".claude/skills/chrome-devtools-mcp",
       "addedAt": "2026-06-06T06:32:36Z"
     },
     "chrome-devtools-memory-leak": {
-      "computedHash": "e650c89e828ee31508e0a8b22932ececa7bc8127d77056c03a235778879ebaaa",
+      "computedHash": "40dccaa27ac808d74a9a709350ca03230f3da04a44ee70b999d0114d73f2f8b0",
       "localPath": ".claude/skills/chrome-devtools-memory-leak",
       "addedAt": "2026-06-06T06:32:36Z"
     },
     "chrome-devtools-network-inspector": {
-      "computedHash": "918f096e618568677e42929358f017abb5e4308d256281a5375387be9e66c860",
+      "computedHash": "2811e639c957e86f47477baac91c37ed9c6481d48ebdcb3a91681d77e6636043",
       "localPath": ".claude/skills/chrome-devtools-network-inspector",
       "addedAt": "2026-06-06T06:32:36Z"
     },
     "chrome-devtools-performance-trace": {
-      "computedHash": "c901670bc2cd734417b669508ef3ba6573adee9529f6bd40a56fd78911f71bee",
+      "computedHash": "c2307d731435d6744a89949389a446574d0366edbec4b02e9dda35879495f624",
       "localPath": ".claude/skills/chrome-devtools-performance-trace",
       "addedAt": "2026-06-06T06:32:36Z"
     },
     "chrome-devtools-screencast": {
-      "computedHash": "83ffddd3e4e0c82fa8212e97a1356245dbad94c98ef7d5ad4a7d1b7ae4afe6b4",
+      "computedHash": "963f4156e91e337041d8fc00922a873e2597b87d29924cafbe8fa0a3378eff3e",
       "localPath": ".claude/skills/chrome-devtools-screencast",
       "addedAt": "2026-06-06T06:32:37Z"
     },
     "cicd-patterns": {
-      "computedHash": "c0f0767b5f329bd67daa352e279221d1dd7a275061d058281a4519def3aaced2",
+      "computedHash": "3f7f6df8b4397a5a2278d6b8fe0e77dae4747daa0495c326297af5c8a6a53b4e",
       "localPath": ".claude/skills/cicd-patterns",
       "addedAt": "2026-06-06T06:32:37Z"
     },
     "circuit-breaker-rollback": {
-      "computedHash": "0c77ed45ae093593f630739324f427d034283ddf709f59a1c5f3e3e11de0f610",
+      "computedHash": "1f83585f983d6b0f189e7f73f3fd9782be875fee74fbc51a89c0827b413636a4",
       "localPath": ".claude/skills/circuit-breaker-rollback",
       "addedAt": "2026-06-06T06:32:37Z"
     },
     "cli-config-persistence": {
-      "computedHash": "7c1b7145a43ae2d0f5de81ce2b0dd73ba4ed272461386a111ece62f8cd9f0a65",
+      "computedHash": "70b3244bf1f77e21d18c82fb596b68e405ea87f00253ba520f15eab958e1f8c2",
       "localPath": ".claude/skills/cli-config-persistence",
       "addedAt": "2026-06-06T06:32:40Z"
     },
     "cloud-cost-optimization": {
-      "computedHash": "6d11ae01350ee2119461d06ac2ac406dbc0d1292f924ff65e37562d7bcccdbcb",
+      "computedHash": "18839115c0c1e5abb94db5b3af26bf97faa4e8aa6dbb7cb36b1e0579978e6797",
       "localPath": ".claude/skills/cloud-cost-optimization",
       "addedAt": "2026-06-06T06:32:40Z"
     },
     "cni-network-policies": {
-      "computedHash": "148775902401ab8b51b9af5ab63b3bb63caf4872657c64eec8794458283726bf",
+      "computedHash": "99ff419ed593f66ed2cd3f013a521299c6f03ede0ec4b30527f91ce71550e63b",
       "localPath": ".claude/skills/cni-network-policies",
       "addedAt": "2026-06-06T06:32:40Z"
     },
@@ -371,7 +371,7 @@
       "addedAt": "2026-06-06T06:32:41Z"
     },
     "code-tour": {
-      "computedHash": "dcfb4c0afbdcedd5eb6cc9bccf789209911de82d449c21c68b7ad2466e2898f4",
+      "computedHash": "6d3b734f324bdc213f0ff03f36e2ce5d2926cad8015fdb8ca5803afeb9e878c0",
       "localPath": ".claude/skills/code-tour",
       "addedAt": "2026-06-06T06:32:41Z"
     },
@@ -386,22 +386,22 @@
       "addedAt": "2026-06-06T06:32:42Z"
     },
     "color-math-system": {
-      "computedHash": "7132a2f3791b5aaf1f570e0a0884d06bb9a0a2cf83d5a4e3195004dd6ecb2ee4",
+      "computedHash": "4dd8f682f92e0229cd076006a6445ae66a6b09b195d758d3abb8ce69410d4d0b",
       "localPath": ".claude/skills/color-math-system",
       "addedAt": "2026-06-06T06:32:42Z"
     },
     "component-layout-patterns": {
-      "computedHash": "04667650343d4c53ba7cb8fb96fcb4e012714c0b7aeff36a38d358e8b13a8ce1",
+      "computedHash": "8f10f0ee1809e7906e6066f71054057d84e3c4bbe0bdece9c6577f7006012b25",
       "localPath": ".claude/skills/component-layout-patterns",
       "addedAt": "2026-06-06T06:32:42Z"
     },
     "container-interactivity": {
-      "computedHash": "791955907c2a4b8300d9945922040e3f86c3f0d0ffa439e001dd57b7909859af",
+      "computedHash": "c5ffde49d334f76275161711b322cb73893ad8d9b89b5c92a9d98ad8a26d135a",
       "localPath": ".claude/skills/container-interactivity",
       "addedAt": "2026-06-06T06:35:32Z"
     },
     "contract-testing": {
-      "computedHash": "ab6d2eca602da12626a16b9ec347af87722989c0a29220bbc12878032689d33d",
+      "computedHash": "aedf4cd613a6f05ba3fc36c502d149d1a2a5e930e4223c92e32ec76bca65eca0",
       "localPath": ".claude/skills/contract-testing",
       "addedAt": "2026-06-06T06:35:33Z"
     },
@@ -416,42 +416,42 @@
       "addedAt": "2026-06-06T06:35:35Z"
     },
     "crossplane-control-plane": {
-      "computedHash": "53a0b774bfe1e352a981e9275060ba349b9674e76cedf560f8efa04baa15bf6a",
+      "computedHash": "072064e4c9762b73efe10966e090d072fb5cdef961e15229c099e5eba7d119e5",
       "localPath": ".claude/skills/crossplane-control-plane",
       "addedAt": "2026-06-06T06:35:35Z"
     },
     "crypto-pki-patterns": {
-      "computedHash": "f9a29b2012a8a670696c49c89529489a21fcf7c1a3d4b177bfe14758a4e34cd8",
+      "computedHash": "8051c95c0438d90f1b2934aef6bc0fec1a1341a70a0861d3409d0e03098742a1",
       "localPath": ".claude/skills/crypto-pki-patterns",
       "addedAt": "2026-06-06T06:35:35Z"
     },
     "cyclomatic-complexity": {
-      "computedHash": "1464cfe8fba9b67a5276c0cddf6038e3a442c19addbd5798c968d263a99d3b93",
+      "computedHash": "bf0a880ebee5dddb84c6fdca90f256b37f000a9c497f65f6473582ac8155cb2b",
       "localPath": ".claude/skills/cyclomatic-complexity",
       "addedAt": "2026-06-06T06:35:36Z"
     },
     "dagre-layout-engine": {
-      "computedHash": "0eac49314ed11be5f44097fd45f29914a97b615c593bdf3a4b9e75000e48b31b",
+      "computedHash": "b7c6af87ce6e6f96a9406c5ef567ac740bb12a209f7878e7e0b43ab32fc806f2",
       "localPath": ".claude/skills/dagre-layout-engine",
       "addedAt": "2026-06-06T06:35:36Z"
     },
     "data-privacy": {
-      "computedHash": "949675c07c1838753ea2958be2c1d66f124085ee194264b276236052db484d13",
+      "computedHash": "7a8fd29f40af364aba909bc143fc76a2aa7f2e73e8c16a8cf396c451b484bca1",
       "localPath": ".claude/skills/data-privacy",
       "addedAt": "2026-06-06T06:35:37Z"
     },
     "database-migrations": {
-      "computedHash": "2c4611fb9defbe20ec903dafa145afc1655086d8f51372550a7b61c51f94b85e",
+      "computedHash": "c0fa3a119caa10b65e4ebe8224d28c5302bebceebedfee870fa383ca43677056",
       "localPath": ".claude/skills/database-migrations",
       "addedAt": "2026-06-06T06:35:37Z"
     },
     "database-patterns": {
-      "computedHash": "785baab0b44d7c2b0e8556c5363b9d7b95fca84198b039beabcfeeb771014ddf",
+      "computedHash": "b64d4d210a23550184403e66e48e65c0aba5c0cc9b4a332e7eeb89b31365711b",
       "localPath": ".claude/skills/database-patterns",
       "addedAt": "2026-06-06T06:35:37Z"
     },
     "database-query-safety": {
-      "computedHash": "c48df727a141dd9ca91451b101ae656d5742ef99cb3d0f7fc41b617846b2369e",
+      "computedHash": "a20b21596642e4cfe42d427edf173ec30de019b7b8bc5da7068d8b747aa27dc3",
       "localPath": ".claude/skills/database-query-safety",
       "addedAt": "2026-06-06T06:35:37Z"
     },
@@ -476,52 +476,52 @@
       "addedAt": "2026-06-06T06:35:39Z"
     },
     "deepspeed-zero-memory": {
-      "computedHash": "5dbb48b1bf1da00a690a824e328aed68f3738f1c73680d0f9742189417b62ae8",
+      "computedHash": "0d0db5252b8ad4267ce9969c32e5afcb46572ee7778b9f4ccf0f9ca6c256c030",
       "localPath": ".claude/skills/deepspeed-zero-memory",
       "addedAt": "2026-06-06T06:35:40Z"
     },
     "design-engineering": {
-      "computedHash": "cd81cc6c334a774e2a14e4ea7ebaaa503801625fda279ac047ca3b5902c9452e",
+      "computedHash": "e21975267e1594e2bc8aa8a13d566e6aacf82d088832148cd5647654fdd5a049",
       "localPath": ".claude/skills/design-engineering",
       "addedAt": "2026-06-06T06:35:44Z"
     },
     "design-system-gen": {
-      "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a",
+      "computedHash": "e7a61e2ef10ef669204f6d9de9a9ed934907406d50f72c6e8ab8d953806ae12b",
       "localPath": ".claude/skills/design-system-gen",
       "addedAt": "2026-06-06T06:35:51Z"
     },
     "design-taste-frontend": {
-      "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
+      "computedHash": "78514526f9ff2977ec5af8c26822904a76b6a16a4b4162d114584ae4f1855f7b",
       "localPath": ".claude/skills/design-taste-frontend",
       "addedAt": "2026-06-06T06:35:51Z"
     },
     "design-tokens-system": {
-      "computedHash": "a24f422f77eaaf8dd7e8e3fbe87ba24c78e39a2ba9979dad17b236b7881e58d4",
+      "computedHash": "a2754bd3899beab5f99eee5a6677232614b1ddb1c4f859db904cf9c14005f653",
       "localPath": ".claude/skills/design-tokens-system",
       "addedAt": "2026-06-06T06:35:52Z"
     },
     "did-credential-lifecycle": {
-      "computedHash": "cf7b59cf271b752ce3278486227c791d7a7b67473bea8ab2c9f59eeae96e349a",
+      "computedHash": "d41c63ff7c61d4636f54f6086d264d9bdbe9eb1554bca1c1177b6c20c20fe02d",
       "localPath": ".claude/skills/did-credential-lifecycle",
       "addedAt": "2026-06-06T06:35:52Z"
     },
     "did-resolver-patterns": {
-      "computedHash": "ba50e4d8efb025d0c6ba08c710db5ff1ac238e3ac072218fee8be589acaba887",
+      "computedHash": "59d771ee82fd7385eab0a4d64ecc0722c129884ca8c98c4a7fa63d39857d2e82",
       "localPath": ".claude/skills/did-resolver-patterns",
       "addedAt": "2026-06-06T06:35:53Z"
     },
     "disaggregated-prefill-decode": {
-      "computedHash": "e60a034adcb4bf2481849ba6cae05147e97bf32e7d003908108699c501e1b606",
+      "computedHash": "27e69a6238cd731238c3ec70ba45455e99d422fe80f8efb4c16167edba416fb3",
       "localPath": ".claude/skills/disaggregated-prefill-decode",
       "addedAt": "2026-06-06T06:35:53Z"
     },
     "distributed-tracing": {
-      "computedHash": "705c692a1a0b07a995f3fa41dbee358ca17868ed5c5992eb07a141ca2b9d903e",
+      "computedHash": "8d7d9d4106d2d4b4c97ca556a4a6425caa0bf150a6d296858e2477b18cfb5342",
       "localPath": ".claude/skills/distributed-tracing",
       "addedAt": "2026-06-06T06:35:53Z"
     },
     "docker-patterns": {
-      "computedHash": "c0c48ab57dc866a3b118c9ae0d864fd5562c7c266e4d1a588bc372382461a942",
+      "computedHash": "251e083c50ebf4cb5580083169e62aa694ac22e882f8bb8fa52f01780f2077b3",
       "localPath": ".claude/skills/docker-patterns",
       "addedAt": "2026-06-06T06:35:54Z"
     },
@@ -531,7 +531,7 @@
       "addedAt": "2026-06-06T06:35:54Z"
     },
     "dompurify-xss-prevention": {
-      "computedHash": "d52995679b7aabe6f7ec5aa322838c7341447b0c9d6f01cc38b48644189a00ac",
+      "computedHash": "c3780f053960dea6f1780048cb9e6754cbf292770bd2face8083cee2cd8fd54a",
       "localPath": ".claude/skills/dompurify-xss-prevention",
       "addedAt": "2026-06-06T06:35:55Z"
     },
@@ -541,7 +541,7 @@
       "addedAt": "2026-06-06T06:35:56Z"
     },
     "durable-task-queues": {
-      "computedHash": "6db3e0f2e2870f3edb748aebee0a19a7d8bc0b4b6596c4dc6f8a3888173c7e01",
+      "computedHash": "e355c19dabd6f8fe3c9402ac24cb3bb476491bfbf0c2cfdc431601e5e6ee0d9e",
       "localPath": ".claude/skills/durable-task-queues",
       "addedAt": "2026-06-06T06:35:56Z"
     },
@@ -551,32 +551,32 @@
       "addedAt": "2026-06-06T06:35:56Z"
     },
     "ebpf-runtime-tracing": {
-      "computedHash": "a2b759468453ed88393304639b1cc6b5a7411fbc98823b154c84b606671f9d50",
+      "computedHash": "1151a9c67677efd661ca3915c73d103d306b2af7bc7865d67a3d19f457dc4461",
       "localPath": ".claude/skills/ebpf-runtime-tracing",
       "addedAt": "2026-06-06T06:35:57Z"
     },
     "ebpf-syscall-monitoring": {
-      "computedHash": "816fc7c5ba54addbb61c42b2ddcf8a4805290918086ac560fc72b4ee5ffb6684",
+      "computedHash": "346cc1ca4cf3c7f8b5ce2902cbc8e31aa1b273fb6530efaeeda5e78ae7b1fdcc",
       "localPath": ".claude/skills/ebpf-syscall-monitoring",
       "addedAt": "2026-06-06T06:35:57Z"
     },
     "ecc-key-management": {
-      "computedHash": "a879fa2f50a356e1f02e3ba019ce460284e130f367f6c6a719650a7056402364",
+      "computedHash": "6794363214f641be1055ab79262d52a20633cf14fd340f517b2b940b905838b6",
       "localPath": ".claude/skills/ecc-key-management",
       "addedAt": "2026-06-06T06:35:57Z"
     },
     "enterprise-design-systems": {
-      "computedHash": "564580ef03c9e84986aa9a170473902fccd10d292865e71c26192e91874273e5",
+      "computedHash": "a929bd52797af341c13380b68fd18e82602095d22492a3c9680b55d9f5d42dbb",
       "localPath": ".claude/skills/enterprise-design-systems",
       "addedAt": "2026-06-06T06:35:58Z"
     },
     "envoy-proxy-patterns": {
-      "computedHash": "0d1a1a92c47a088b2bcc81b18fd297b519bc2674035da696ba5359d9baeec212",
+      "computedHash": "7835294dffaf2b9de309e2e412939b69ba9a259f607ff930521d98bb8ac69964",
       "localPath": ".claude/skills/envoy-proxy-patterns",
       "addedAt": "2026-06-06T06:35:58Z"
     },
     "error-handling": {
-      "computedHash": "927bf08eadc003b84b9a88c2732f1ab2c8069937162a6c4ae75511f5dbee896c",
+      "computedHash": "5f2d9c9d70adec1dc3845bab2cb8bfb9f9e3a1d4cb4bdefa118349f01f6fcbf4",
       "localPath": ".claude/skills/error-handling",
       "addedAt": "2026-06-06T06:35:58Z"
     },
@@ -586,27 +586,27 @@
       "addedAt": "2026-06-06T06:35:58Z"
     },
     "eslint-rule-engine": {
-      "computedHash": "11faf1e2b5c2b4a807d78085a992ccd8a9c74d8858434911b47fe0be89245308",
+      "computedHash": "92a59fb477a43e604ffeddc88514cebed83ac6d2ef8d2594e2ae5e3f36560ff6",
       "localPath": ".claude/skills/eslint-rule-engine",
       "addedAt": "2026-06-06T06:35:58Z"
     },
     "estree-ast-spec": {
-      "computedHash": "008de142cf38585fb09834d4116a7dcb9d8286d60da0a654f880a53b13a008df",
+      "computedHash": "e327bb3d6abf7d573d54ecae6ecb193af83b671747343becaab0a7134ded02f4",
       "localPath": ".claude/skills/estree-ast-spec",
       "addedAt": "2026-06-06T06:35:58Z"
     },
     "etcd-distributed-config": {
-      "computedHash": "c4b152e09cac3e9f159903ee155f0dd4ccf803ef88c95d4dcdcf64139dc154d6",
+      "computedHash": "897b0aca3b8b5a9970271537d53064610f2635199fdbe319de7b29b6c87aece9",
       "localPath": ".claude/skills/etcd-distributed-config",
       "addedAt": "2026-06-06T06:35:59Z"
     },
     "eval-driven-agent-dev": {
-      "computedHash": "48dafd605334f251cd0b137c6752a6a8faa23bc723303af9e2057a4ced717a7a",
+      "computedHash": "8bd12d6b2e0797ea8a7ca70232ad179e78db84b46fa6dd6a66c552e0197664c9",
       "localPath": ".claude/skills/eval-driven-agent-dev",
       "addedAt": "2026-06-06T06:35:59Z"
     },
     "event-driven-architecture": {
-      "computedHash": "cc7b8c491ac97c7a4348c2e083152ba0a23a9ee0d7a1df467ca7d3ab1b7ea62a",
+      "computedHash": "4e9d82e4902c50f23a4f670185348d69ca341b1e23e644e27fcf6814866c154c",
       "localPath": ".claude/skills/event-driven-architecture",
       "addedAt": "2026-06-06T06:35:59Z"
     },
@@ -616,22 +616,22 @@
       "addedAt": "2026-06-06T06:36:00Z"
     },
     "extism-wasm-plugins": {
-      "computedHash": "5452c8ddab5c86e429d8f66c70f64e7782f581042b2fee03025771fd5721d304",
+      "computedHash": "7d5a3a60f4573b92f75a167e926a766822185ebb0dbbc2d0532f05610d3d3a5f",
       "localPath": ".claude/skills/extism-wasm-plugins",
       "addedAt": "2026-06-06T06:36:00Z"
     },
     "extract-errors": {
-      "computedHash": "68cc6f6f432f4e93fbbaec50596663d220f2c12d6b8cdf75da369cb4655a7e43",
+      "computedHash": "44c88a8d6a8aaf52794aff34221fddd635ea41e638736d8bd435e8c24d044306",
       "localPath": ".claude/skills/extract-errors",
       "addedAt": "2026-06-06T06:36:00Z"
     },
     "feature-flags": {
-      "computedHash": "bc1482e6d9109565722540fc231e3b07cb4b5f1be05ab4ca64e690b9c90bceaa",
+      "computedHash": "dd0763c6d299dececa25c031bb0cde0fcf52c67fd5831c44fc288c77e0a7b49b",
       "localPath": ".claude/skills/feature-flags",
       "addedAt": "2026-06-06T06:36:02Z"
     },
     "fetch-redirect-ssrf-guard": {
-      "computedHash": "585b7b9fe09ec0ee2da9415b82c970eaab543e67bdd76fa632c46136f9853c5b",
+      "computedHash": "9dc22d89b966da42b9bb5e301518d784ff8d10f18440d15536c3fa467e696cb1",
       "localPath": ".claude/skills/fetch-redirect-ssrf-guard",
       "addedAt": "2026-06-06T06:36:02Z"
     },
@@ -641,12 +641,12 @@
       "addedAt": "2026-06-06T06:36:02Z"
     },
     "filesystem-isolation-chroot": {
-      "computedHash": "6df0956555077ce279aeba7b39fee71c1a7f19ace2e365da98d14c409aaa8bdb",
+      "computedHash": "f0cbec807c302dda790bdf5320e5e16e3f869f80b67eb07a42e0542654649e18",
       "localPath": ".claude/skills/filesystem-isolation-chroot",
       "addedAt": "2026-06-06T06:36:02Z"
     },
     "financial-velocity-budgeting": {
-      "computedHash": "b92226ed93ff75d480ebd0a2ffa98be78b233f949ca496c737e0d902452cf496",
+      "computedHash": "014cbc340ff51e7b07f6df9eb5accf7d012acdd2c8a804c44261435b6fc2bad4",
       "localPath": ".claude/skills/financial-velocity-budgeting",
       "addedAt": "2026-06-06T06:36:03Z"
     },
@@ -656,22 +656,22 @@
       "addedAt": "2026-06-06T06:36:03Z"
     },
     "fixing-accessibility": {
-      "computedHash": "4c3348146e175710f4e18930d074b0a8d21d62b39c9ec9e6f868cd882f863b21",
+      "computedHash": "544e87a992b2f724687ae7df9d7b268cabffc5b3e67e5cd7422a8767c8cec17d",
       "localPath": ".claude/skills/fixing-accessibility",
       "addedAt": "2026-06-06T06:36:03Z"
     },
     "fixing-motion-performance": {
-      "computedHash": "cf0b55a888e02e0595279939057c635dd205baa689bd6508331af3977d67c8c4",
+      "computedHash": "89f4e1fceff252baa6d4d3e2187bdc71a8d2361b693ac37dea28f6cd9283d20d",
       "localPath": ".claude/skills/fixing-motion-performance",
       "addedAt": "2026-06-06T06:36:03Z"
     },
     "flash-attention-patterns": {
-      "computedHash": "a7092a3b04c59297f2d5239fb5f60b3c4ca68a1d830ae388e6accab81e0a8405",
+      "computedHash": "080d21b567c26f8e26420e9c52eeb50387e1f4840e07226cbd183b22aadcfad4",
       "localPath": ".claude/skills/flash-attention-patterns",
       "addedAt": "2026-06-06T06:36:04Z"
     },
     "flow-anchor-connection": {
-      "computedHash": "51f1e071e9ace048660eeb8b5ae0b5e6cf559e3d1b98d90b8ebb1b0537dff51d",
+      "computedHash": "44f058146ecf40f3370df1876f30ffb3bbd8fb3254dfa500aadc087f88c67552",
       "localPath": ".claude/skills/flow-anchor-connection",
       "addedAt": "2026-06-06T06:36:04Z"
     },
@@ -681,7 +681,7 @@
       "addedAt": "2026-06-06T06:36:06Z"
     },
     "generative-ui-patterns": {
-      "computedHash": "bc43e3ed1779f2af5c46cfc03d3122b516645b14e13fb6b89921890a5fbf403c",
+      "computedHash": "6df4b2a3aad530826f48e3540ac823263ed04e78868f0678c8491e38f20ae80b",
       "localPath": ".claude/skills/generative-ui-patterns",
       "addedAt": "2026-06-06T06:36:07Z"
     },
@@ -691,12 +691,12 @@
       "addedAt": "2026-06-06T06:36:08Z"
     },
     "git-native-agent-protocol": {
-      "computedHash": "b963fd96250b9d07c3259b018d2d5cbbe35205ec617040172ea9a63e9fe8025c",
+      "computedHash": "eaee902d2c7eaf6210cf086726dd9d5d854cf3681539ef8a6c888c52f80b712e",
       "localPath": ".claude/skills/git-native-agent-protocol",
       "addedAt": "2026-06-06T06:36:08Z"
     },
     "gitignore-pattern-matching": {
-      "computedHash": "5800cc37aa3ef2aef309df94e769cb1a1f2304c046ce960042253c7a510072d0",
+      "computedHash": "e70c872d1a7a62ab264072421a9e2ad41414c99eec0449ed0a4cad13d2256a65",
       "localPath": ".claude/skills/gitignore-pattern-matching",
       "addedAt": "2026-06-06T06:36:08Z"
     },
@@ -750,132 +750,132 @@
       "computedHash": "7bca02970355f8176e157ddd6cca11d111949886407cf1382ccaaf1ca309694a"
     },
     "glob-minimatch-patterns": {
-      "computedHash": "0a79c75648ed5813af530f44e06c34845e31d14efb1443a9abe2202926f86871",
+      "computedHash": "bce02dcf85df9730225777210a5775a765883c08a040ccf897a77ebe0f40bb9a",
       "localPath": ".claude/skills/glob-minimatch-patterns",
       "addedAt": "2026-06-06T06:36:10Z"
     },
     "grammar-lexer-dsl": {
-      "computedHash": "34782b5e796812023fd51d7262ec595a38e6bfd67979c97ef60ceed16d257dd5",
+      "computedHash": "4ceda3edba8bb67a9e34c75a375d150798ba5f22a567b0f0dc299b3dd9f91942",
       "localPath": ".claude/skills/grammar-lexer-dsl",
       "addedAt": "2026-06-06T06:36:11Z"
     },
     "graph-data-structure-ops": {
-      "computedHash": "72a0c96f3fd7e6dea39c4714a8b2a35328a3604361e4f2420d8a384ef2d51a8a",
+      "computedHash": "7d733be0273eaa4e32d7e792110bbcb70d2065f9b5f79288c1c9f4ca7f4576bf",
       "localPath": ".claude/skills/graph-data-structure-ops",
       "addedAt": "2026-06-06T06:36:11Z"
     },
     "graph-dependency-resolution": {
-      "computedHash": "814defcef912db04d9be2c958e3cffd40630abf2b736e43c08ab64f688994ae7",
+      "computedHash": "6f009112e5d83f6f7e79d0d5b3a9b2408f7da9dbd542dd5f78dd219df310bd3d",
       "localPath": ".claude/skills/graph-dependency-resolution",
       "addedAt": "2026-06-06T06:36:11Z"
     },
     "graphql-patterns": {
-      "computedHash": "5b4d4ebf1fd2d1bab893583c8a527192edeaf8086335a5764c8624121405509b",
+      "computedHash": "75610b0bf26ffe0bb520b96f93622b1cd7c2deec91131d141fed18ff22d7be59",
       "localPath": ".claude/skills/graphql-patterns",
       "addedAt": "2026-06-06T06:36:12Z"
     },
     "grpc-streaming-rpc": {
-      "computedHash": "c5523ac94c5c50a7018d6e357d5e2d4c8420ea15709235bd4ed94e0c06bcc5a9",
+      "computedHash": "4f8a6a361c0ac11f8f6d54af16c571a9031ee8a5e1b1f7c766c4890544135c78",
       "localPath": ".claude/skills/grpc-streaming-rpc",
       "addedAt": "2026-06-06T06:36:12Z"
     },
     "handoff": {
-      "computedHash": "1341d0faf1137a8ef3ae53c157c2d0a837c645f4301fa59eb06df811e36031fe",
+      "computedHash": "3c36014ee5d34018455d95944177f434084445db5fffed16e49ae35041170f4c",
       "localPath": ".claude/skills/handoff",
       "addedAt": "2026-06-06T06:36:19Z"
     },
     "helm-chart-packaging": {
-      "computedHash": "8c2ace2e042b1d41abfdb27b943a6afeed86f48e65047492ea855282d9b95e4f",
+      "computedHash": "ee7283cac7c5a75623649fe1356f46fe5d3706d1f125819ef2e9e17af5aa30ce",
       "localPath": ".claude/skills/helm-chart-packaging",
       "addedAt": "2026-06-06T06:36:20Z"
     },
     "high-perf-data-algorithms": {
-      "computedHash": "8d40ebdb1d2167f2820d26553c6d9ca3fd63631d2ff0cbd9cf47e07ce54ddbf6",
+      "computedHash": "bc5859d2f323b14e5e78b30056086ba6cbf1545aae0bc1390dc97843c4e6de3a",
       "localPath": ".claude/skills/high-perf-data-algorithms",
       "addedAt": "2026-06-06T06:36:21Z"
     },
     "honeypot-deception-patterns": {
-      "computedHash": "d44ca776e15a5fdb21c7f1204905a1d0fbdc4b5471a623960f6d6042b89fdf2f",
+      "computedHash": "97587fe93e189e7f82f99157c17935290921430923098f146e6534f4020ced73",
       "localPath": ".claude/skills/honeypot-deception-patterns",
       "addedAt": "2026-06-06T06:36:23Z"
     },
     "hook-block-commands": {
-      "computedHash": "6f972932642e465835cbb1944c54567bc258b89b87036e7d118e8df8181d0d72",
+      "computedHash": "2149ab0d8bd681d1a6bfdabe9912bd989ddc726270efecc53d4c2e619ccaa181",
       "localPath": ".claude/skills/hook-block-commands",
       "addedAt": "2026-06-06T06:36:23Z"
     },
     "hook-protect-secrets": {
-      "computedHash": "d0bf6a046a72c4c318d3c8e17e5abdcaec86a61fae3051e06da90cfab11a64b1",
+      "computedHash": "59a1a4272896c3d603e5af360d0693e22efc2db29f2174dd22ff42fe20aeeaa4",
       "localPath": ".claude/skills/hook-protect-secrets",
       "addedAt": "2026-06-06T06:36:24Z"
     },
     "html-xss-filtering": {
-      "computedHash": "ae5727de23369015b35a1b72fbf768edc09b35f52ebba08e1d91e0846e00fcfa",
+      "computedHash": "d424772225387d1ffdd8c2558527339e41b67a96902930f2d5d08b3697d86c7d",
       "localPath": ".claude/skills/html-xss-filtering",
       "addedAt": "2026-06-06T06:36:24Z"
     },
     "htn-evolutionary-planning": {
-      "computedHash": "f5d98f5949c1a2bf2ce7df2d58edb750d1fabc2708081db8533ccbe60fe74920",
+      "computedHash": "f078199d6734b57f80a637260297ed3d3c49c00ad047ac9773b3019821e26248",
       "localPath": ".claude/skills/htn-evolutionary-planning",
       "addedAt": "2026-06-06T06:36:24Z"
     },
     "http-client-auth-patterns": {
-      "computedHash": "8c0c74d71c843c61b12c19240deb613dcab109c0d67967cd334c7f10271a139c",
+      "computedHash": "18d705707f1a0e3be114575f6623ddc53cf0d7bae5ba5e91364a3e2c81f50c60",
       "localPath": ".claude/skills/http-client-auth-patterns",
       "addedAt": "2026-06-06T06:36:24Z"
     },
     "http-proxy-intercept": {
-      "computedHash": "5f10654aaa8a451d5ed911400b0ee6f7908cc5d398db43f876bb51bf78369f4e",
+      "computedHash": "000c55cf828b59d9c47a550aa2362504e01b109854b15ff8cd937d7fd5197dcc",
       "localPath": ".claude/skills/http-proxy-intercept",
       "addedAt": "2026-06-06T06:36:24Z"
     },
     "http-tunnel-patterns": {
-      "computedHash": "ba03c9e0264a8dccdb8156ca023a2450aa2f5586b460e5ce6efaed2f5dca15ea",
+      "computedHash": "814837069e79f535fda9f0f07987f7721fc8be7a6f25b99cfbf74d91ddd931fc",
       "localPath": ".claude/skills/http-tunnel-patterns",
       "addedAt": "2026-06-06T06:36:25Z"
     },
     "hyperdrive-distributed-fs": {
-      "computedHash": "3ccab0fd5a3b058d2495dc90c33775c235bf481b2519b27d294c5d36e1d847b7",
+      "computedHash": "815b68804886220f37bdee2163a5aeedc6a5457a587ce88f8fd3b373e895c8aa",
       "localPath": ".claude/skills/hyperdrive-distributed-fs",
       "addedAt": "2026-06-06T06:36:25Z"
     },
     "i18n-patterns": {
-      "computedHash": "cec48989a1cd1689c10019f9cd853152a8f211b8d13e7ec00ae9539792aaefd4",
+      "computedHash": "d3b4ad9d508aebc2c7635af146af7a9f9fb5ac5d17995e1418b0dd6f210eede5",
       "localPath": ".claude/skills/i18n-patterns",
       "addedAt": "2026-06-06T06:36:25Z"
     },
     "image-to-code": {
-      "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
+      "computedHash": "7d3fa943564fd93fb4b4d4c26a06a2bc96d90ca2ccefe3494d0dbeb747f13f36",
       "localPath": ".claude/skills/image-to-code",
       "addedAt": "2026-06-06T06:36:26Z"
     },
     "immutable-identity-patterns": {
-      "computedHash": "2a3d89587c771097b732a237f86c25802e273ef88e241d430863f656c99c82a7",
+      "computedHash": "f67826431b57fac3ad78e628de3a6416667e414f83b003b54b9d2bd2ebdb2dda",
       "localPath": ".claude/skills/immutable-identity-patterns",
       "addedAt": "2026-06-06T06:36:26Z"
     },
     "impeccable": {
-      "computedHash": "a1ebe012536ce4528f0788126d93a165f37382a0c3fe0d2bca5cf4364be3bf54",
+      "computedHash": "ddaaaeb064ee31d71b389fa0274a832b3de22f8534ed7803af5a4c77169e7920",
       "localPath": ".claude/skills/impeccable",
       "addedAt": "2026-06-06T06:36:27Z"
     },
     "in-memory-vector-storage": {
-      "computedHash": "656bb338c25a81f6fda95f0ccc5ebed1decfb63db5b4d518409d78f53c4159fb",
+      "computedHash": "b0e54439e579ec69cf974db8df92bd3b635dddfe74d32fdaa9f177000c956656",
       "localPath": ".claude/skills/in-memory-vector-storage",
       "addedAt": "2026-06-06T06:36:28Z"
     },
     "incident-response-runbook": {
-      "computedHash": "72af96eb8309e76b83045448cf520ef2a36433376f38e5e8ae6b17738e113422",
+      "computedHash": "f257a78a035bce3877dc050f6351c67d5bad523447f9169831f034162ee2b6d1",
       "localPath": ".claude/skills/incident-response-runbook",
       "addedAt": "2026-06-06T06:36:27Z"
     },
     "ingest-repo": {
-      "computedHash": "a3cd0cbd07795d796d3bbab808126e5ebae5921e186161c9e8b2e9c33551e441",
+      "computedHash": "fad64521c10ea027475f849cbba67fd96db4261741e4b4a78f32786aa305cf1d",
       "localPath": ".claude/skills/ingest-repo",
       "addedAt": "2026-06-06T06:36:27Z"
     },
     "ini-config-parsing": {
-      "computedHash": "7c27eba4c5c37ebcb9199ef72ff71172542960fab2330d5446e0f593fd5c93d1",
+      "computedHash": "987a845ab7da469ec5d1303a08bb4ca8e81afd5fd3d18a4c5e8215c5a8ebdccc",
       "localPath": ".claude/skills/ini-config-parsing",
       "addedAt": "2026-06-06T06:36:28Z"
     },
@@ -885,47 +885,47 @@
       "addedAt": "2026-06-06T06:36:28Z"
     },
     "interface-feel": {
-      "computedHash": "8a023749774b27c849af588d66d5e2e75abbae17221ff100361ff7ef267a5565",
+      "computedHash": "4d802107c16041507b13e2ff6cfdcd1dd7054c64cd61cc073cb49697e9ac436c",
       "localPath": ".claude/skills/interface-feel",
       "addedAt": "2026-06-06T06:36:28Z"
     },
     "istio-traffic-management": {
-      "computedHash": "d9a8b9c9b70db9190a4ef4447a36de9957e77eb22928f55d085e60b7e527f293",
+      "computedHash": "5c9f211e1a662cc25c5ca800d1226978ef8d3b022db75ef7d95eb7ff5e22692d",
       "localPath": ".claude/skills/istio-traffic-management",
       "addedAt": "2026-06-06T06:36:30Z"
     },
     "jaeger-tracing-visualization": {
-      "computedHash": "36eeb5161815dd769db28a859d05fd955e6ec2382572e4c9d2146d3b967812da",
+      "computedHash": "9830347fc497d123b81098eb7288fc3b4e0c95bc721e734e3ee6fcb5cb48e18a",
       "localPath": ".claude/skills/jaeger-tracing-visualization",
       "addedAt": "2026-06-06T06:36:31Z"
     },
     "jepsen-fault-testing": {
-      "computedHash": "169348f5ea49b6943360dfa79c0b631e618f6060c6691d0c55bf146b8106b89c",
+      "computedHash": "fb6d62d829020fe6732fb9382d460f1dc0969ef474c2c0a590ab6a264f616f11",
       "localPath": ".claude/skills/jepsen-fault-testing",
       "addedAt": "2026-06-06T06:36:31Z"
     },
     "jest-test-generation": {
-      "computedHash": "a17a60b57703e234b724c2cc10fef6b6d4c69550701754aa3c9f5da832b154ac",
+      "computedHash": "77e4a88dd272ad72a7c93cc8eae03d9009c3ec0de5605a58a146643556e1fcd9",
       "localPath": ".claude/skills/jest-test-generation",
       "addedAt": "2026-06-06T06:36:32Z"
     },
     "jwt-jws-jwe-patterns": {
-      "computedHash": "3fb0c96e445267ef5f34b5146c5105f1abdba5588190324a9bc262ac51dc841c",
+      "computedHash": "ac132fd4e8dd2cff6a38c561e25b616b4762e99174a1c61e27ac3aa33f4d4d25",
       "localPath": ".claude/skills/jwt-jws-jwe-patterns",
       "addedAt": "2026-06-06T06:36:32Z"
     },
     "jwt-verification-patterns": {
-      "computedHash": "293e43c52afec4a05d859206a4680046b08f732fb8925cf36b614d6e5e9d6d2f",
+      "computedHash": "58b81b48379bfa2ee262bbeac3dbac57d09deab2add1e7ee60cd508f00075ac7",
       "localPath": ".claude/skills/jwt-verification-patterns",
       "addedAt": "2026-06-06T06:36:32Z"
     },
     "k8s-client-js": {
-      "computedHash": "23f7ed75768eade579aaf048d32f515592849b7178e9d017b8540d0731f5c6fe",
+      "computedHash": "4741c37a992deaebe49518acccdc3ba2e61d6b225ca0f7d63876e6ada175a439",
       "localPath": ".claude/skills/k8s-client-js",
       "addedAt": "2026-06-06T06:36:33Z"
     },
     "k8s-crd-controller": {
-      "computedHash": "945d1b97979aa285dbc2c57f3baf5845425dc1faf23b7c3ea0d4e0586ee2c2d3",
+      "computedHash": "636c304416b5ff3721d0bffb6c660dd0e3a4ee4d56091b2446085a0665c64217",
       "localPath": ".claude/skills/k8s-crd-controller",
       "addedAt": "2026-06-06T06:36:33Z"
     },
@@ -935,27 +935,27 @@
       "addedAt": "2026-06-06T06:36:33Z"
     },
     "keccak256-hash-patterns": {
-      "computedHash": "8c77767acadb3330d313fdb555900401e9076560bb35bea9dd966c922a0cf647",
+      "computedHash": "353cd8ef474c7ad9a625a91e2ea9046b2f3bbd0d34ef939e79bc606d00fd434d",
       "localPath": ".claude/skills/keccak256-hash-patterns",
       "addedAt": "2026-06-06T06:36:34Z"
     },
     "ktlint-auto-format": {
-      "computedHash": "669f136cd6f49ce3caff6559fc54da4086e0a456afe6840a44f82e9591c0ff1b",
+      "computedHash": "ed44ba90aeb34846ef8ce87ce3a132bf9820dee39a5de9ac2180f2a77f90ed87",
       "localPath": ".claude/skills/ktlint-auto-format",
       "addedAt": "2026-06-06T06:36:35Z"
     },
     "kubernetes-patterns": {
-      "computedHash": "102643a4a495e6c35c547d5da7c13d4095689d612b6771c1572283bcab62995d",
+      "computedHash": "f9b6d3c7f1d96d21eae36db98f99b4520e34029775fdaaf7beb7a3582225b202",
       "localPath": ".claude/skills/kubernetes-patterns",
       "addedAt": "2026-06-06T06:36:35Z"
     },
     "kv-cache-optimization": {
-      "computedHash": "1fde99f85ddcbeb9f1cdffc4aeee2a0fa559be0b9dab223983af6b86dc7f702c",
+      "computedHash": "0f29db3664fc6f8f5f924a5ac357491e7d265ad07626483bfa5d6a9f9cdb5dbb",
       "localPath": ".claude/skills/kv-cache-optimization",
       "addedAt": "2026-06-06T06:36:35Z"
     },
     "l1-promote": {
-      "computedHash": "1206e00910ce64c64057dc4fa6d76804be7959ca5e27501fe5b152306a470105",
+      "computedHash": "9b0e0955b2e8573665d06d3c656fa4d47a7a69a116988795c7de24aadced6e85",
       "localPath": ".claude/skills/l1-promote",
       "addedAt": "2026-06-06T06:36:35Z"
     },
@@ -970,17 +970,17 @@
       "addedAt": "2026-06-06T06:36:36Z"
     },
     "leak-check": {
-      "computedHash": "cccc575d19fe2f08fbed384d38015762ad55460e74e239e5f4a36241cdde922a",
+      "computedHash": "fc85af99c9e6058ebb5c28a64679fba4758a8905eb9ce884b69fff41209677d2",
       "localPath": ".claude/skills/leak-check",
       "addedAt": "2026-06-06T06:36:38Z"
     },
     "linkerd-service-mesh": {
-      "computedHash": "7ee8a88b8ae97062d626389e1a093bee7c68ed8080bf40cb9eddcbe2d5a11a3b",
+      "computedHash": "f96d57aa1bd09c0686aff1eeb89b8ef95ca6bdee4237abad5e4f507a4269d9f4",
       "localPath": ".claude/skills/linkerd-service-mesh",
       "addedAt": "2026-06-06T06:36:38Z"
     },
     "lint-staged-git-hook": {
-      "computedHash": "b363da5aef448aa51e10eed6676f8d27fb8df7310dfea960bf8e6f1d987a12c1",
+      "computedHash": "b3d9dfc896d74283de8ffbc642900d703a473f94d0e7155659cd8976c381c7f5",
       "localPath": ".claude/skills/lint-staged-git-hook",
       "addedAt": "2026-06-06T06:36:38Z"
     },
@@ -990,7 +990,7 @@
       "addedAt": "2026-06-06T06:36:39Z"
     },
     "llama-cpp-quantization": {
-      "computedHash": "da93ee2f539ce283ccd3067330175b40455e87e12acd187412a815d5148ea11d",
+      "computedHash": "59af1cb93bd80503041be63ba1853304b7437cd675c6c87e33c647f6b9d4ee63",
       "localPath": ".claude/skills/llama-cpp-quantization",
       "addedAt": "2026-06-06T06:36:39Z"
     },
@@ -1005,32 +1005,32 @@
       "addedAt": "2026-06-06T06:36:39Z"
     },
     "llm-eval-framework": {
-      "computedHash": "2b04840f4527ee1c575b1251ac0aa572619409948e5781604f23588c998c6ac5",
+      "computedHash": "f75e2b60cda9ac0316e6c440bcda8665a1e8fb9f4c906a4c06dfa5b5d1283074",
       "localPath": ".claude/skills/llm-eval-framework",
       "addedAt": "2026-06-06T06:36:39Z"
     },
     "llm-int8-quantization": {
-      "computedHash": "18cb8b1c9d1396cd256c1d64663304d12ce5b3cedb1bfaed16f671b65a131cdd",
+      "computedHash": "2122688f33ec232c19975a2153a35f7c5a9664a3f9c494c42efb5d3ef1494eab",
       "localPath": ".claude/skills/llm-int8-quantization",
       "addedAt": "2026-06-06T06:36:40Z"
     },
     "llm-load-testing": {
-      "computedHash": "5ac37048d1879be8a8b1dcb42daa11bb2a451d7b1d591d3ecbe52361bdd74c3b",
+      "computedHash": "13d68c65477df5a16597a3fbe98c57d8ab1d1e665e83292d39120150fbf56062",
       "localPath": ".claude/skills/llm-load-testing",
       "addedAt": "2026-06-06T06:36:40Z"
     },
     "llm-output-validation": {
-      "computedHash": "5ab4b99d456039869ac5dfca9a54e56c3537efda2d11e8a6e3a4d2148ac29e47",
+      "computedHash": "71fdb3658e2bc7430596bf4b39cd5652320e25b7ba0db8c2d3c820d08bba58c6",
       "localPath": ".claude/skills/llm-output-validation",
       "addedAt": "2026-06-06T06:36:40Z"
     },
     "llm-ui-patterns": {
-      "computedHash": "a3b704dba10012450a6d9562085a8750d0bd1a96ea08cae3aabc636624f56543",
+      "computedHash": "fe1e224391b2a769e7bab255bc1664c5017b44f5bd9b7be31fd6a3afc9292864",
       "localPath": ".claude/skills/llm-ui-patterns",
       "addedAt": "2026-06-06T06:36:40Z"
     },
     "load-testing": {
-      "computedHash": "116fbb25e506dc9ac70b7f038932b9e560e44718768bb1ede99de70c8680ae00",
+      "computedHash": "ebc6e44c81ab2b6daff2e918b8d3330ac9b0e27d67fd46b269824c92a4b18d75",
       "localPath": ".claude/skills/load-testing",
       "addedAt": "2026-06-06T06:36:41Z"
     },
@@ -1040,7 +1040,7 @@
       "addedAt": "2026-06-06T06:36:41Z"
     },
     "loki-log-aggregation": {
-      "computedHash": "f2a01848c00626c3cd72d8f82443bdb762ee2f1e799135f7b5e1d9496216067c",
+      "computedHash": "0786c5591b41ad655ce4bc84736733ce05af5dbf3b2b647256522259444e5839",
       "localPath": ".claude/skills/loki-log-aggregation",
       "addedAt": "2026-06-06T06:36:41Z"
     },
@@ -1050,12 +1050,12 @@
       "addedAt": "2026-06-06T06:36:42Z"
     },
     "magic-string-sourcemap": {
-      "computedHash": "fdcf97fbff79155881713aa320fd8613cbc005003f887f6cdbce6ee1459606ab",
+      "computedHash": "3a8ad7b65369d69297c6565addac8dacc078224f4b1da7228153dc652afc87d7",
       "localPath": ".claude/skills/magic-string-sourcemap",
       "addedAt": "2026-06-06T06:36:42Z"
     },
     "matrix-dimensionality-reduction": {
-      "computedHash": "e9bc8e6cff15b4972f2f9748a085e5c90f66ed6345784e6682ce1248f9e941fc",
+      "computedHash": "b7098d462874db477190961a6e1a00165146a95a49036fb9a824c68795806a55",
       "localPath": ".claude/skills/matrix-dimensionality-reduction",
       "addedAt": "2026-06-06T06:36:44Z"
     },
@@ -1070,57 +1070,57 @@
       "addedAt": "2026-06-06T06:36:45Z"
     },
     "memgpt-virtual-context": {
-      "computedHash": "583ebcbaa5fa34fc156d0254516b930e4cc13aabe046d2bef91b5d97209d1ee0",
+      "computedHash": "a08dfae29d6bf604f50ac02eb0aa2ab1a53f391b5e7a0f18e0dfdd5ace339737",
       "localPath": ".claude/skills/memgpt-virtual-context",
       "addedAt": "2026-06-06T06:36:45Z"
     },
     "memory-gc": {
-      "computedHash": "4ea32e7669a44f96dbd8ba2cedc314dfdca38800f1bb80b713aaf9870e8ee62b",
+      "computedHash": "1e170055d6e871acffd37a168d1e161c9f7fdbe3b6299e6d95e4ab2c3a22ba00",
       "localPath": ".claude/skills/memory-gc",
       "addedAt": "2026-06-06T06:36:45Z"
     },
     "memory-leak-detection": {
-      "computedHash": "fb61ae650f29159efce6c8676a3ee4e2b5a34985e8bad5e606f71f8ad43d4b48",
+      "computedHash": "0cadd678d816366c7ed0f70eb055a485293f0385e62861097c2420d44eb52445",
       "localPath": ".claude/skills/memory-leak-detection",
       "addedAt": "2026-06-06T06:36:45Z"
     },
     "merkle-mountain-ranges": {
-      "computedHash": "da50cf1f4f257780737be0d7525f4d56c1581cbfbfda48cb7bb2392b824a129c",
+      "computedHash": "762209551a83b05f80dc23d8cbf22825cd2ec9155dd440ffebf2f566ae5f69a3",
       "localPath": ".claude/skills/merkle-mountain-ranges",
       "addedAt": "2026-06-06T06:36:46Z"
     },
     "merkle-tree-audit": {
-      "computedHash": "cedfc6c8e552be614187805acfbb9050d8168adbd2688d1530f2fd91a414f8e6",
+      "computedHash": "c97b424e1c71107545ccb9cbde02b84e5ef8613f27991f166b36884087b3b6d1",
       "localPath": ".claude/skills/merkle-tree-audit",
       "addedAt": "2026-06-06T06:36:46Z"
     },
     "mermaid-diagram-generation": {
-      "computedHash": "5ad318cb57cadb93d2d9b35a81f1ed493bd479647a3a90714eb31c87db7626d2",
+      "computedHash": "b9b177fe169111f6748defd789864636971ddb600be616281ca9cd7cebec1e48",
       "localPath": ".claude/skills/mermaid-diagram-generation",
       "addedAt": "2026-06-06T06:36:46Z"
     },
     "minimal-base-image-patterns": {
-      "computedHash": "63c676180875c67b1ce398df7e68a7cdd2a391d4ba7bf5b326b3e2fd1b84b794",
+      "computedHash": "651e21c87e759adc63a2ee610466256e0bc9535886ff946b846315c8c0827d07",
       "localPath": ".claude/skills/minimal-base-image-patterns",
       "addedAt": "2026-06-06T06:36:46Z"
     },
     "minimalist-ui": {
-      "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
+      "computedHash": "774a77cfdcdbbb98c8a546b52e68a48da0e767d7ae77d5a5a135920c526122c2",
       "localPath": ".claude/skills/minimalist-ui",
       "addedAt": "2026-06-06T06:36:47Z"
     },
     "mlops": {
-      "computedHash": "660d76059de06fc5530a14e6c44b0cbac1bd8b81876a4fcdff1141b99900d707",
+      "computedHash": "3dff4ff999c9a0ff5e8aaf475cddf91321636a6419d217213c544f9c261f2d5f",
       "localPath": ".claude/skills/mlops",
       "addedAt": "2026-06-06T06:36:47Z"
     },
     "mlperf-inference-benchmarks": {
-      "computedHash": "0733bfac791ad9c4cf64699c9df2610545a6706d456845778109b8b0960b5dba",
+      "computedHash": "8cad6b449a137e727b471a8529835b2ae370cb71e621bb20aa3de9300593b466",
       "localPath": ".claude/skills/mlperf-inference-benchmarks",
       "addedAt": "2026-06-06T06:36:47Z"
     },
     "mobile-ux": {
-      "computedHash": "4483f56c95239e370e649a16376c7cb753b4d650b68eadb2d3bc7b965a8c6b44",
+      "computedHash": "530ecd6f3318bd1bd1ff2790538e37827e909f810c9215105d6c5a8334481f38",
       "localPath": ".claude/skills/mobile-ux",
       "addedAt": "2026-06-06T06:36:47Z"
     },
@@ -1130,37 +1130,37 @@
       "addedAt": "2026-06-06T06:36:48Z"
     },
     "monorepo-governance": {
-      "computedHash": "8fecc30f016edf014769ace7aeb2845815fec744a2ca2ed51710c66cc6eeac72",
+      "computedHash": "63288a2440ee293e80c723b247acf80c3229c8ec6ea4107a2f6c660c6c51f2ef",
       "localPath": ".claude/skills/monorepo-governance",
       "addedAt": "2026-06-06T06:36:48Z"
     },
     "monorepo-patterns": {
-      "computedHash": "7f31956f21250e24507b2462681b37a48164b53feae2fffb6610d0d8eabfdb23",
+      "computedHash": "18493e91a4b87e0eb9c97005d0d598a203a170645434c0fded2a45d830f655c5",
       "localPath": ".claude/skills/monorepo-patterns",
       "addedAt": "2026-06-06T06:36:48Z"
     },
     "motion-design": {
-      "computedHash": "516659be3fded4ad9afc3d345ced0adc827bb1d02c957c4ce559e4317ce53649",
+      "computedHash": "b10d0fa7ab0840bec59897484eff8d4b1017cd267b3e73a4014501755fa8a09c",
       "localPath": ".claude/skills/motion-design",
       "addedAt": "2026-06-06T06:36:49Z"
     },
     "motion-physics": {
-      "computedHash": "0f18cc4acb039673703199989dba65608e6f4acf3d16c3021a070f6b78b525e0",
+      "computedHash": "18772c68967941bc6f4d25dc3ef6aa5e62f688e9f68b3405bbca2f6451873a44",
       "localPath": ".claude/skills/motion-physics",
       "addedAt": "2026-06-06T06:36:49Z"
     },
     "msgpack-binary-encoding": {
-      "computedHash": "c4825c8db8725924cf14100e3e5088327eccda311dbca1dca06417603d93030a",
+      "computedHash": "7c1029ab7050bb32205e623cf478699d9c70660c53123386b77be84ad8bc3460",
       "localPath": ".claude/skills/msgpack-binary-encoding",
       "addedAt": "2026-06-06T06:36:50Z"
     },
     "multi-agent-debate": {
-      "computedHash": "c98b4583357f9a71963d406df5c74a8382ecae7c0009eb3a70880856e67a5cce",
+      "computedHash": "336e0f63edf5d4ed0bc2471551cc932ce4de3f0f408d9df9ca710b4791e3796e",
       "localPath": ".claude/skills/multi-agent-debate",
       "addedAt": "2026-06-06T06:36:50Z"
     },
     "multi-agent-handoff": {
-      "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573",
+      "computedHash": "560bae950da59adb8005a3ac8b2473917798ddeb39f3e90afe548d9c00c30407",
       "localPath": ".claude/skills/multi-agent-handoff",
       "addedAt": "2026-06-06T06:36:50Z"
     },
@@ -1170,27 +1170,27 @@
       "addedAt": "2026-06-06T06:36:51Z"
     },
     "ndarray-vector-math": {
-      "computedHash": "74e4e4efa7ea5e5595f65f7c567c0a865dca38b096e810b600da0af11de17d02",
+      "computedHash": "284937cb0e882718f8c0d67bd587906c626718664817ecb97a88cb4a5f4fbe45",
       "localPath": ".claude/skills/ndarray-vector-math",
       "addedAt": "2026-06-06T06:36:51Z"
     },
     "needle-haystack-context": {
-      "computedHash": "a8ea1d43560e4ab64304d1c0c9cf877322596c7f9f0d68af191fe6d1774b4497",
+      "computedHash": "b44cc944e6724407b3fd4e7c3f49d1cac539b4c8b3cba165c10c17543ecf39dc",
       "localPath": ".claude/skills/needle-haystack-context",
       "addedAt": "2026-06-06T06:36:51Z"
     },
     "nextjs-patterns": {
-      "computedHash": "d4efc351384b3623ca4e8372c91f02c5be91b15073bc9a96c58208420940c2f9",
+      "computedHash": "1b3d6e02af49664b0a663f2a5842a34fbe80c95c4e89fbff5baffccd96c8ac2a",
       "localPath": ".claude/skills/nextjs-patterns",
       "addedAt": "2026-06-06T06:36:52Z"
     },
     "nlp-normalization-patterns": {
-      "computedHash": "830748aa32f7b3db249a22683eaf74d3ee1f7cf4f6923d6f082b262ee76a516f",
+      "computedHash": "6322b26b6c7dba8a4206d1670850b03db1648ad6f7d48d3cf13e9233878cd473",
       "localPath": ".claude/skills/nlp-normalization-patterns",
       "addedAt": "2026-06-06T06:36:53Z"
     },
     "observability-instrumentation": {
-      "computedHash": "a5f50f302b0cf47b48b1f8a841ce8b2fce28138652cf4035e730e7142ff0ec61",
+      "computedHash": "12beb9f9bc27cbd51a27d80dad3321b50fc88277e09fccb771c653d28b5962b0",
       "localPath": ".claude/skills/observability-instrumentation",
       "addedAt": "2026-06-06T06:36:54Z"
     },
@@ -1200,17 +1200,17 @@
       "addedAt": "2026-06-06T06:36:54Z"
     },
     "onnxruntime-inference": {
-      "computedHash": "64aeba21508ec4e3dbc2857404425e1d4da0aafabffbfd067fb59b02e74cc0d3",
+      "computedHash": "15856fb138e1149a2bba94bd897c7fa19ffcbb26d80aa8f9647a75d26d09fd3c",
       "localPath": ".claude/skills/onnxruntime-inference",
       "addedAt": "2026-06-06T06:36:54Z"
     },
     "opentelemetry-distributed-tracing": {
-      "computedHash": "ea531ff6e65fdefac52f687402b524bf16cb5a9d673e94227bd16ae9e8fbd99b",
+      "computedHash": "25cb3dd6cb5ac060b174dd152a68a69a5d10722dd6cbe9cac437f7032813fe29",
       "localPath": ".claude/skills/opentelemetry-distributed-tracing",
       "addedAt": "2026-06-06T06:38:24Z"
     },
     "opentelemetry-semantic-telemetry": {
-      "computedHash": "b3cc12f629a3c2db8ae4250f349f1b0cb48ec269a052c5bb65cbf9259313ca2d",
+      "computedHash": "8e3415eed6afe69c1941b347e11358894cd6f9b758306a90f6fe5896b93fad92",
       "localPath": ".claude/skills/opentelemetry-semantic-telemetry",
       "addedAt": "2026-06-06T06:38:25Z"
     },
@@ -1220,22 +1220,22 @@
       "addedAt": "2026-06-06T06:38:25Z"
     },
     "output-enforcement": {
-      "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f",
+      "computedHash": "7f2619ddf72847b5c884c7f672e5b41c4515f4ab98cd718e572fab25212f3474",
       "localPath": ".claude/skills/output-enforcement",
       "addedAt": "2026-06-06T06:38:26Z"
     },
     "overlayfs-runtime-isolation": {
-      "computedHash": "9faf39527ffa33137a143fc79328fc2d1aeb81ded25e0b238993b1ffe4f4697e",
+      "computedHash": "baf59d014ece9330dcba1a1b5579d0dcc192edb982429f2587390cdf215dafcc",
       "localPath": ".claude/skills/overlayfs-runtime-isolation",
       "addedAt": "2026-06-06T06:38:26Z"
     },
     "owasp-llm-top10": {
-      "computedHash": "f76989da08b75ad71552dbc6668dc8b4d4c94064c769223248515701cc85a4ec",
+      "computedHash": "9968907acb3e18721ddb019b0b8cc2d37898f44e3ed54a3735b01044ac7d9ae4",
       "localPath": ".claude/skills/owasp-llm-top10",
       "addedAt": "2026-06-06T06:38:26Z"
     },
     "p2p-chronicle-log": {
-      "computedHash": "9d7512da56d89bdbd9d7acac3fa8a6cea18a6a01f347d1addc8432ac9ac645bf",
+      "computedHash": "cf2c1534d9a283813410b1807d9960d94329d9fc25fdb69937aa3d0b129b14cf",
       "localPath": ".claude/skills/p2p-chronicle-log",
       "addedAt": "2026-06-06T06:38:27Z"
     },
@@ -1260,72 +1260,72 @@
       "addedAt": "2026-06-06T06:38:31Z"
     },
     "pouchdb-sync-patterns": {
-      "computedHash": "c6fdcd5caeaf5f5f5719491b2f9331451554f7466a252f5e81808a56617e49f1",
+      "computedHash": "aecf479b7642bd6778279a4f3f9d13993d1a39a7aa4410653408dec61cff535b",
       "localPath": ".claude/skills/pouchdb-sync-patterns",
       "addedAt": "2026-06-06T06:38:31Z"
     },
     "pre-compact-backup": {
-      "computedHash": "c83e03942e493e9b1d5df1f14c4ff9b72a1191af9b75ea32a366b16946af3dba",
+      "computedHash": "9a3f687bfd59022f0943d0f321438836cf71083c635af7042ca0e660435a2ec0",
       "localPath": ".claude/skills/pre-compact-backup",
       "addedAt": "2026-06-06T06:38:32Z"
     },
     "process-existence-check": {
-      "computedHash": "822e7e69ff6a211b5dfb1205ea55774b91a5c0deb5f7ca0c7afeaf7a61b15a09",
+      "computedHash": "cd408f2d8efb5d59252306fe7b4d7cdc5719ddea4e6f76ce73aed0cdf5306591",
       "localPath": ".claude/skills/process-existence-check",
       "addedAt": "2026-06-06T06:38:34Z"
     },
     "process-list-monitoring": {
-      "computedHash": "73ad8b19a00a91a376c4873aed1f21924d6eee160414ae0836f6f04fbf6c0ffe",
+      "computedHash": "e19a3eb692b25ccacdb8d6b018cd27d0f116168a516042de72916d3bc4999c2d",
       "localPath": ".claude/skills/process-list-monitoring",
       "addedAt": "2026-06-06T06:38:34Z"
     },
     "profiling-benchmarking": {
-      "computedHash": "333628ead878070377435e0124f18b20daeea6602505add8be6188952ab5b585",
+      "computedHash": "1b1c8ae19c14dd187325cc7e3d8836f266c8c85de32569664f0f327ebbd9135c",
       "localPath": ".claude/skills/profiling-benchmarking",
       "addedAt": "2026-06-06T06:38:35Z"
     },
     "prometheus-ai-telemetry": {
-      "computedHash": "fcc316fca5ae7972703b526de9ee565a35fd71dfc50627d6d720797e785b4d1e",
+      "computedHash": "f47fb9f52db6c483730647bfcab2d87321f454dd73868426fe296abb1ac87182",
       "localPath": ".claude/skills/prometheus-ai-telemetry",
       "addedAt": "2026-06-06T06:38:36Z"
     },
     "prometheus-scraping-rules": {
-      "computedHash": "b1d3a366d2a6a773f39e5aa9f5b12e6ed87cbd39f0adaf429491b18b919427ad",
+      "computedHash": "58167b55bc7c259c3dd34dc8694f6e2805e7b9cbd0d46297fdba1593adac40cd",
       "localPath": ".claude/skills/prometheus-scraping-rules",
       "addedAt": "2026-06-06T06:38:37Z"
     },
     "prompt-caching-strategy": {
-      "computedHash": "43a38a2ece7dab6c24840f44068ff7767c474a98e2aaf633c23782e1f9f28600",
+      "computedHash": "3b49ff262f4a465b34aee35c8ea595de2bcd51df7b6aaafa8a1863262939bb2c",
       "localPath": ".claude/skills/prompt-caching-strategy",
       "addedAt": "2026-06-06T06:38:37Z"
     },
     "prompt-engineering": {
-      "computedHash": "39c30bed0aa3dfa5bd5707ea3bf13c22538259c75889bc45113e12eb2b76ebae",
+      "computedHash": "fa28c3e52bc7d2403f997d886380453f554427a2e2fa2f4cb19a877021bfa363",
       "localPath": ".claude/skills/prompt-engineering",
       "addedAt": "2026-06-06T06:38:37Z"
     },
     "prompt-firewall-patterns": {
-      "computedHash": "d7a7f0615b9455c93f5cc2c14f882787d67e2c1779739114643e2b8d64ba59b2",
+      "computedHash": "816ce25708b2af2a45b777b4524efeb4368d547be4c78c240b1032ce9a120d88",
       "localPath": ".claude/skills/prompt-firewall-patterns",
       "addedAt": "2026-06-06T06:38:37Z"
     },
     "protobuf-serialization": {
-      "computedHash": "1a08c2d15ea116cfe86162d1b08451f5cac4bd26ccbe8c408bd8dbf7aa3f1fd8",
+      "computedHash": "8bcb6f98e8b53c03fd17a709b179bdb5c7519d81c590dde73073ece726b3018f",
       "localPath": ".claude/skills/protobuf-serialization",
       "addedAt": "2026-06-06T06:38:38Z"
     },
     "protobufjs-dynamic-schema": {
-      "computedHash": "c17ee4bb7d324d5f82f7a6b5f6b2717ff954e07fce2e76b6ac9f37e509c0a51e",
+      "computedHash": "f180804b1c9202d090a465ed3f0210471a1b40487d7ee13b1c270022039285a7",
       "localPath": ".claude/skills/protobufjs-dynamic-schema",
       "addedAt": "2026-06-06T06:38:38Z"
     },
     "pulse": {
-      "computedHash": "54f0d335ba0fd03aa984df083e4936191383d3081eff3b2b9afc3bd6162b0790",
+      "computedHash": "599923ea71daee205f50189972c6049585e75c77154da51aea41add8f85e3ec2",
       "localPath": ".claude/skills/pulse",
       "addedAt": "2026-06-06T06:38:39Z"
     },
     "purple-team-report": {
-      "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
+      "computedHash": "e89dfeb709a7f3fdee5a3aa22e19a97463aa2030f73c651ba21710f98fd68b93",
       "localPath": ".claude/skills/purple-team-report",
       "addedAt": "2026-06-06T06:38:39Z"
     },
@@ -1335,7 +1335,7 @@
       "addedAt": "2026-06-06T06:38:39Z"
     },
     "pyre-type-analysis": {
-      "computedHash": "fe849bc80fd8214fd19d0fa39b677cf2deaa2b653151a8c9addae3f693c893c5",
+      "computedHash": "165968fdaff626a40a346235e8e1b42c49aec433ab770a00766f2ce7ae717d42",
       "localPath": ".claude/skills/pyre-type-analysis",
       "addedAt": "2026-06-06T06:38:40Z"
     },
@@ -1345,12 +1345,12 @@
       "addedAt": "2026-06-06T06:38:42Z"
     },
     "raft-consensus-patterns": {
-      "computedHash": "afcbdc4eca98ffdcaf5ffb59f72025bfe23b80b24b6e88d7c4dc2c2f8a7b3fc1",
+      "computedHash": "f38ce7d0ec35786eef4fdd5bc09182071bfadd2e1a0bd4dbd2e11449e13f05fd",
       "localPath": ".claude/skills/raft-consensus-patterns",
       "addedAt": "2026-06-06T06:38:43Z"
     },
     "raft-node-js-impl": {
-      "computedHash": "3b93f4cdce4c06d38bd992361a94351d542b5eaba5ba883934873fc70b0b7920",
+      "computedHash": "d7e69f8a04ca0a039dc194cb773c8c6e5113fe9ccd67faeef771ff7b5ba2d156",
       "localPath": ".claude/skills/raft-node-js-impl",
       "addedAt": "2026-06-06T06:38:44Z"
     },
@@ -1365,27 +1365,27 @@
       "addedAt": "2026-06-06T06:38:44Z"
     },
     "ramdisk-tmpfs-patterns": {
-      "computedHash": "944e150105f70ea77ca508b396d3e7e06e67b3813b4044bc67ca900fdf47a035",
+      "computedHash": "ae9859a72afc2a6c68d47b21b1b3a6f9ad3ed7b54c00d808a6ea1201a4904b1f",
       "localPath": ".claude/skills/ramdisk-tmpfs-patterns",
       "addedAt": "2026-06-06T06:38:44Z"
     },
     "raw-socket-diagnostics": {
-      "computedHash": "fd31d2c5d200912c3cb76774d511adf50c5efb287f33ba38fc6412795bea0645",
+      "computedHash": "f6c87f4d7f327efdb143d5ab1cb15bd4dd99e08d5fd6652a6f1d246066daac68",
       "localPath": ".claude/skills/raw-socket-diagnostics",
       "addedAt": "2026-06-06T06:38:45Z"
     },
     "react-agent-loop": {
-      "computedHash": "71dba23840221e50d5b7a2ff9412b41ab281cf41bc49ff7ea4ad38d607927d98",
+      "computedHash": "f884e7e306de9f04950fb356b879d12d9637e6cd83bacf08e80ad5f6f0a43c26",
       "localPath": ".claude/skills/react-agent-loop",
       "addedAt": "2026-06-06T06:38:45Z"
     },
     "react-doctor": {
-      "computedHash": "a08e5332ea3db3bfc9b199eb6e558c63ca02a721b95aba60c7f966cb9ca0e900",
+      "computedHash": "3370c42c1576712c0ea69fc2f4e2446dfb4f2cc34dcef0ed1251bd5a620437c8",
       "localPath": ".claude/skills/react-doctor",
       "addedAt": "2026-06-06T06:38:46Z"
     },
     "readonly-bind-mount-patterns": {
-      "computedHash": "4b7b8ea75ea3bb949633ae9e1f52455c10b4c373c733624e8dab485b1cee277a",
+      "computedHash": "3e7f1c17dfac7c787ebfca22dbac8c88be4948c26cd64dbdb9e2f1761363cf2f",
       "localPath": ".claude/skills/readonly-bind-mount-patterns",
       "addedAt": "2026-06-06T06:38:47Z"
     },
@@ -1395,27 +1395,27 @@
       "addedAt": "2026-06-06T06:38:47Z"
     },
     "red-team-check": {
-      "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f",
+      "computedHash": "b744a9376743709269c4652df3e945d29deef1b515a7c215a0ded0427fddaa4d",
       "localPath": ".claude/skills/red-team-check",
       "addedAt": "2026-06-06T06:38:49Z"
     },
     "refactor-patterns": {
-      "computedHash": "67667eb5e03e76e4c1ee3ef2605315dae7c25b19fcba32a0db26302f27e5e287",
+      "computedHash": "9852a6f539e2526c41b7b83a5d5a0515be47a76332d6e2beb97e4d1d4d363196",
       "localPath": ".claude/skills/refactor-patterns",
       "addedAt": "2026-06-06T06:38:49Z"
     },
     "reflect-metadata-injection": {
-      "computedHash": "f2a4fb2dcce7ac5ad42896283a98cc5bbeb81afdaee28841fcdb9cb11ee27465",
+      "computedHash": "d15c3b69b3fb1534ac78d7252c268b680da2f6ec6e4d947077121d1b2b760047",
       "localPath": ".claude/skills/reflect-metadata-injection",
       "addedAt": "2026-06-06T06:38:49Z"
     },
     "reflexion-verbal-rl": {
-      "computedHash": "b750968d960093b9dd234bd52fcac6ee1eee55d719e793f8fb8140ffe2adbd4d",
+      "computedHash": "a69ba54c835959478c189091e011adb845a3cbb37c7530b393668abc78e0262e",
       "localPath": ".claude/skills/reflexion-verbal-rl",
       "addedAt": "2026-06-06T06:38:50Z"
     },
     "regex-escape-redos-guard": {
-      "computedHash": "f88913ddc43a650d00f09dd23b4349b876674eb38dcfdfdbb890ddce9e518c49",
+      "computedHash": "61e8a0b15401323098f7dcede74bb63d6f87eb3bb9db337eb3d1dfa045bc585c",
       "localPath": ".claude/skills/regex-escape-redos-guard",
       "addedAt": "2026-06-06T06:38:50Z"
     },
@@ -1425,7 +1425,7 @@
       "addedAt": "2026-06-06T06:38:51Z"
     },
     "repl-code-execution": {
-      "computedHash": "974ffe729ec81156bb252ae63fd3ad9245d9840897cf716c7673e310c1b6f2c5",
+      "computedHash": "47c8731a953011ca489e25bdb8b26c732b9e42a0dd56321780f66271cfae3648",
       "localPath": ".claude/skills/repl-code-execution",
       "addedAt": "2026-06-06T06:38:51Z"
     },
@@ -1442,47 +1442,47 @@
       "computedHash": "f2f1faa546723d52ae9edb0210848274082fb17e760a552b03ed176124ea13e1"
     },
     "research-team": {
-      "computedHash": "e7db731bc304ffc396a6b75810d07bea613c8f3aa54c2b95390f9ee1dd341110",
+      "computedHash": "b539361a682ed8bd0da6aaa2493c0abe3d058dba5f2451f9f5025573e0391267",
       "localPath": ".claude/skills/research-team",
       "addedAt": "2026-06-06T06:38:52Z"
     },
     "resilience-circuit-breakers": {
-      "computedHash": "5dfbd33bf79e18fea5d9ecc03eaeabc78fd369119b7da73c5640c40e07bdcafb",
+      "computedHash": "8ae5c6d61182c53bd80f826031ba65c19cb46244d5a12823476c127b3a779916",
       "localPath": ".claude/skills/resilience-circuit-breakers",
       "addedAt": "2026-06-06T06:38:53Z"
     },
     "resilience-patterns": {
-      "computedHash": "80de4d392b8521797e0cf0f48c9f159dbafbc07a7186419101e545bd11e64866",
+      "computedHash": "663719d748c499d8a47873d0317e4a3a80caf1d1197677fb174656dcc926ba2a",
       "localPath": ".claude/skills/resilience-patterns",
       "addedAt": "2026-06-06T06:38:53Z"
     },
     "rewoo-plan-execute": {
-      "computedHash": "fc783521ee5c7bfe1531f7ba3f969e817e38504af72a3c0da4f12da0aceebcf0",
+      "computedHash": "cdf8c1653d71ce9632c5fb897a1d51062dd906f027df4910e934590fc5a8483f",
       "localPath": ".claude/skills/rewoo-plan-execute",
       "addedAt": "2026-06-06T06:38:53Z"
     },
     "runtime-metrics-meters": {
-      "computedHash": "24851f9e82db27b12d49d8052e6cdb62aa5feafbb7ec23de75f09eec45819981",
+      "computedHash": "75241c3617c7bf73d5971e8ffdea7032f092bc15cbc225ed255daf976cdac638",
       "localPath": ".claude/skills/runtime-metrics-meters",
       "addedAt": "2026-06-06T06:38:54Z"
     },
     "runtime-sandbox-runc": {
-      "computedHash": "85481bb6a380e8029941dd8f03be572d58c430f33057e93c57b26b1ee367f033",
+      "computedHash": "a359973e7609af54a083a85448910e023ff55c613995bf7a81a36d6fa8e88a73",
       "localPath": ".claude/skills/runtime-sandbox-runc",
       "addedAt": "2026-06-06T06:38:54Z"
     },
     "sanitize-html-cleanup": {
-      "computedHash": "f0d34b365a9c9353a570ab7d8d4d942319c70318563bc53baa159c134f280db2",
+      "computedHash": "130167f591ffc96a37db7151fe57e5d47d6b9dee372d6d2ad81c106e36bfb7d4",
       "localPath": ".claude/skills/sanitize-html-cleanup",
       "addedAt": "2026-06-06T06:38:57Z"
     },
     "secret-management": {
-      "computedHash": "fd2e898f8c3efbe8d56d9110186ca89ee43a583181829d94393262060f24452c",
+      "computedHash": "dddbec3c7f0c40ba52f085a4203f9cb6b1c92c6ff5decfcf3cf0d96d40c07d6f",
       "localPath": ".claude/skills/secret-management",
       "addedAt": "2026-06-06T06:39:00Z"
     },
     "secrets-vault-patterns": {
-      "computedHash": "0f4229cd0873a8827ae3b61042169287bcce44eff070a4d9995a9e784602d318",
+      "computedHash": "76f546b9ae221c4be5f8a30539cf3b06ef553709a297f59f796b197c122c5cb4",
       "localPath": ".claude/skills/secrets-vault-patterns",
       "addedAt": "2026-06-06T06:39:01Z"
     },
@@ -1492,7 +1492,7 @@
       "addedAt": "2026-06-06T06:39:02Z"
     },
     "security-pipeline": {
-      "computedHash": "ccf0bf5a3eea2b48ac53c4231ba8687e0e6134d53fea6008ec26696b25283a69",
+      "computedHash": "a32b9507be3dd36b4e2c50703d951b6c866c71ca0512a505df11c1cde76b2477",
       "localPath": ".claude/skills/security-pipeline",
       "addedAt": "2026-06-06T06:39:03Z"
     },
@@ -1502,7 +1502,7 @@
       "addedAt": "2026-06-06T06:39:04Z"
     },
     "self-refine-critic": {
-      "computedHash": "7eb2ac22c8a79012c91e3a48ae4252d105d74c8433b12de1ece9905014d954f3",
+      "computedHash": "77d5b5e49773bc9d497890de2df4a363d377d049a55a8de6a6c055f92c6151f3",
       "localPath": ".claude/skills/self-refine-critic",
       "addedAt": "2026-06-06T06:39:06Z"
     },
@@ -1512,7 +1512,7 @@
       "addedAt": "2026-05-29T14:16:29Z"
     },
     "serverless-patterns": {
-      "computedHash": "99e01740c128ae7d65689e3906dfd720398fb9e6407eec5c3640473c7788474e",
+      "computedHash": "e686d3af041f9afe4f7778e3fd7662e37beeca5c6c1993a12e1fbba7dda0c514",
       "localPath": ".claude/skills/serverless-patterns",
       "addedAt": "2026-06-06T06:39:07Z"
     },
@@ -1534,12 +1534,12 @@
       "addedAt": "2026-06-06T06:39:09Z"
     },
     "sglang-radix-attention": {
-      "computedHash": "c7241350134890d2441bf64907e2bcce8b659f7c3ca4708418948ca2ac67a18c",
+      "computedHash": "50bc805aee29f41cbf5e3f2bfaf071269130a49da9cfeb071d9b83d1da4ef7d6",
       "localPath": ".claude/skills/sglang-radix-attention",
       "addedAt": "2026-06-06T06:39:10Z"
     },
     "shadcn-patterns": {
-      "computedHash": "98e6f6082857426b99773a4cc3598ad443d1d95c8dfc40c56d1a520212c2beaa",
+      "computedHash": "33a952be394ef9ad75cabf23c751439753f2c50326e3bae8715779987795da6d",
       "localPath": ".claude/skills/shadcn-patterns",
       "addedAt": "2026-06-06T06:39:10Z"
     },
@@ -1549,17 +1549,17 @@
       "addedAt": "2026-06-06T06:39:13Z"
     },
     "skill-library-voyager": {
-      "computedHash": "60183934f4ea2d92c46d4b8b2f6f3371cb40d4e64789200aea2156135792514f",
+      "computedHash": "6749eb8da82f81dd3bca8bfec34232a8fe749310602fae51745673069b2099a7",
       "localPath": ".claude/skills/skill-library-voyager",
       "addedAt": "2026-06-06T06:39:13Z"
     },
     "slo-design": {
-      "computedHash": "e05b577d3b6015f4ba03d76c4f82417af3a1d7590b9a8cbe64a9b019c2532227",
+      "computedHash": "d5540434242c892b3bde5fcc254d2a8b9657ab2df106e56a2682d708516f2930",
       "localPath": ".claude/skills/slo-design",
       "addedAt": "2026-06-06T06:39:14Z"
     },
     "smart-layout-aesthetics": {
-      "computedHash": "3e24fd8feac64d2bac7f7c49263ff791436aebdd232a2c185c20b592d2e05040",
+      "computedHash": "a7d73566bf8aa1f3aae6318f0bd63739ea129a6d00dfdfb253aa0d8828d2d151",
       "localPath": ".claude/skills/smart-layout-aesthetics",
       "addedAt": "2026-06-06T06:39:14Z"
     },
@@ -1576,22 +1576,22 @@
       "computedHash": "67830110758f0db9f4ad25e7a14607538477334de366e7a4ef77d1757f22165e"
     },
     "sovereign-interceptor-patterns": {
-      "computedHash": "62c7f7208ba89399231e09b4f7c3932c539c6bd2df19bdded42bf8a7165a2a31",
+      "computedHash": "9e8b06d2b84fe2d849dbe52f33b784a04ad0fdacc00ede6207563cb14328d463",
       "localPath": ".claude/skills/sovereign-interceptor-patterns",
       "addedAt": "2026-06-06T06:39:15Z"
     },
     "sovereign-overlord-gate": {
-      "computedHash": "44f7635a84427fb516a7059a9c559780f86dd653ee1388081c63da77f1a7e0b2",
+      "computedHash": "f4a9342b7356435ee04e817e53ace6e94da110601b1119ac87fd2e76868a076c",
       "localPath": ".claude/skills/sovereign-overlord-gate",
       "addedAt": "2026-06-06T06:39:16Z"
     },
     "stanford-crypto-patterns": {
-      "computedHash": "62b71dc8161306e9b642f5dccc7e496305edc9217df323de4c3b09d133602506",
+      "computedHash": "b02f4a6ab3e4b6e7345f951cd0e8ae5bc8c85bab919132fa6ba2d821bf6d56f4",
       "localPath": ".claude/skills/stanford-crypto-patterns",
       "addedAt": "2026-06-06T06:39:23Z"
     },
     "state-machine-workflows": {
-      "computedHash": "c8aacd6a0e5dab8c67b676449e4ea2d00b9ea02f67113d3dc3529f9a5d025e4d",
+      "computedHash": "b74c0b5ed98dc40705bced3f6d814ec15d588db46a25a02ca02140bc8def93ba",
       "localPath": ".claude/skills/state-machine-workflows",
       "addedAt": "2026-06-06T06:39:33Z"
     },
@@ -1601,7 +1601,7 @@
       "addedAt": "2026-05-29T14:16:32Z"
     },
     "state-persistence-gateway": {
-      "computedHash": "031a98d17560b0713399caf59e9be5327097e5e68557b3eef3f4b19e1dde31e2",
+      "computedHash": "42a4aa460f0a896595375c59722c2264e6e79dd79fd37b1a5f89661c7d6c7e02",
       "localPath": ".claude/skills/state-persistence-gateway",
       "addedAt": "2026-06-06T06:39:33Z"
     },
@@ -1613,12 +1613,12 @@
       "computedHash": "0c44156b279e0f260a7daca49c619d9c6349cc87b969f56b4bb31ab1781d6ab9"
     },
     "stealth-browser-automation": {
-      "computedHash": "6780421b9629d244ef1694ea2c94e444c6ecb94b225b7b694d71626da0f960d4",
+      "computedHash": "37719c04aec03f37de4345b11cf5999e7103f651ba8750c17f33362a54c62940",
       "localPath": ".claude/skills/stealth-browser-automation",
       "addedAt": "2026-06-06T06:39:34Z"
     },
     "storage-fallback-patterns": {
-      "computedHash": "9532a5598f1b8edbceebd0fcdfce7873ad16abda83efc8da669ea751560c2d65",
+      "computedHash": "2db0cb2c6d009199ef61a0bce1dd4536abd1f5b070e2f501353a9388f8ee58d1",
       "localPath": ".claude/skills/storage-fallback-patterns",
       "addedAt": "2026-06-06T06:39:35Z"
     },
@@ -1628,7 +1628,7 @@
       "addedAt": "2026-06-06T06:39:35Z"
     },
     "stream-pipeline-patterns": {
-      "computedHash": "4a8e8c95f513ca33a51b022e103ad4235cf185c458a4f29f2ac14c4c2967990c",
+      "computedHash": "d9ddbd8df90654466cff98af9b667993f3d04163a5a5a3d89d977f75b54de7ac",
       "localPath": ".claude/skills/stream-pipeline-patterns",
       "addedAt": "2026-06-06T06:39:35Z"
     },
@@ -1640,7 +1640,7 @@
       "computedHash": "3967cd50907b985d035d67338da12d1eb43bf3c9206e5ce87c586825d9e8a02f"
     },
     "streaming-llm-infinite-context": {
-      "computedHash": "b9ed057cf20824ad72526f7ede56407c9ad69c6bf2e39aeec99ee29105d86f6a",
+      "computedHash": "ca4c4bcf028e629bc605e533626812095d0365551fd21ceba03c0f3f3afe21a2",
       "localPath": ".claude/skills/streaming-llm-infinite-context",
       "addedAt": "2026-06-06T06:39:35Z"
     },
@@ -1652,7 +1652,7 @@
       "computedHash": "6418a5b0de25e8b62353e204c22163c274357efe1f0a75c47accbf0d01bffa2b"
     },
     "string-validation-patterns": {
-      "computedHash": "47eaed5611c60dae912c40a29fc163d03d43a821ac4d8bd5d289217363383cbf",
+      "computedHash": "1f89d7be7ca4218e5c761c2ef5a84d29ffd073760250877a1e7796a9294828b7",
       "localPath": ".claude/skills/string-validation-patterns",
       "addedAt": "2026-06-06T06:39:36Z"
     },
@@ -1662,17 +1662,17 @@
       "addedAt": "2026-06-06T06:39:53Z"
     },
     "supply-chain-security": {
-      "computedHash": "52ce62a2ef70afb96661271034ed8d6e5873897ced594cee3241d002516feaf3",
+      "computedHash": "8c9ea844528ddbf187d56c706ac48419bc4e258f0accfd25a0798cf17f646a1c",
       "localPath": ".claude/skills/supply-chain-security",
       "addedAt": "2026-06-06T06:39:53Z"
     },
     "swarm-consensus": {
-      "computedHash": "a6046c80ea2c328e79f60737929815b7c363652d9cfa917c4e341c7e92964182",
+      "computedHash": "57c6e23dc9e4e93a4d3e3373280b28de18929110d68be58712e3ab22f56790b7",
       "localPath": ".claude/skills/swarm-consensus",
       "addedAt": "2026-06-06T06:39:54Z"
     },
     "swarm-honeynets": {
-      "computedHash": "ef59a926eb2509417bd21cdd7af81a4c72b1281a0f513122fb626bff431bce45",
+      "computedHash": "f2d548759ace5483df6af6686f8eb6fe67bea320231f3f288e3c538e0f3f27c8",
       "localPath": ".claude/skills/swarm-honeynets",
       "addedAt": "2026-06-06T06:39:54Z"
     },
@@ -1684,22 +1684,22 @@
       "computedHash": "1cf8fe94547a410b6601505ab183c2b3276be941a434e7b193c656d4dbe33625"
     },
     "symmetric-encryption-patterns": {
-      "computedHash": "05c828313fd160b1bae9f5c12ee2860fde50ae2eebe75bf308b1a5d1b4140282",
+      "computedHash": "77811094d15f17377302d4dc156cf12038849bab5a8fd8b39898d5258b54409d",
       "localPath": ".claude/skills/symmetric-encryption-patterns",
       "addedAt": "2026-06-06T06:39:55Z"
     },
     "syscall-filtering-seccomp": {
-      "computedHash": "05ded360dff8cf59a31e1306be58e9f855113ad2cdbe948a7eade4635a450dee",
+      "computedHash": "33cf36aa2fcb801622e41a2786117f330a08edf8a60e62db185eb2736130b843",
       "localPath": ".claude/skills/syscall-filtering-seccomp",
       "addedAt": "2026-06-06T06:39:55Z"
     },
     "syslog-integration": {
-      "computedHash": "96e2c9b9f44226442068f041956d4968e4ecc4e0105f965127b2dff4a6f91226",
+      "computedHash": "065245bae3f7ff16e02b50ce0a7d0fc5280c1d145ef1df17f5ae2ee55bbdba2d",
       "localPath": ".claude/skills/syslog-integration",
       "addedAt": "2026-06-06T06:39:55Z"
     },
     "system-info-telemetry": {
-      "computedHash": "da1179d68004affccb65d41c1418e3a53da4b2664629f8adc1817450108bb1db",
+      "computedHash": "cc922614dc6d261b6f508658bf703ca76caab397eccd4e55b90508c90bb0f48a",
       "localPath": ".claude/skills/system-info-telemetry",
       "addedAt": "2026-06-06T06:39:56Z"
     },
@@ -1714,7 +1714,7 @@
       "addedAt": "2026-06-06T06:39:59Z"
     },
     "team-orchestrator": {
-      "computedHash": "1ef0cde6029721e0c18479ffe2a3cd9c5c5c6e2fa8861ed9e78c73580bf54340",
+      "computedHash": "44210e0a7d4a22790e1cde394f033d17cd6ea5f377e8737fdf59dcdaa2812be9",
       "localPath": ".claude/skills/team-orchestrator",
       "addedAt": "2026-06-06T06:40:00Z"
     },
@@ -1736,12 +1736,12 @@
       "addedAt": "2026-06-06T06:42:12Z"
     },
     "tgi-streaming-inference": {
-      "computedHash": "48dfb95e3d4da341abc628429083491d599c17f4c1829c7b25d8421bf0ed4d4a",
+      "computedHash": "d12cad32e34317e8626c0a829f4df2e74a30d358cf5b909831f4d0d184a72b70",
       "localPath": ".claude/skills/tgi-streaming-inference",
       "addedAt": "2026-06-06T06:42:12Z"
     },
     "token-roi": {
-      "computedHash": "fab16f30e0fd9325cc3dee479c09c0418332aa8469d01db75d95b70b8c15b0bb",
+      "computedHash": "8658666a6f898b144a059383f7894ee5e45aa397d3f1b5eae2665efddabff02f",
       "localPath": ".claude/skills/token-roi",
       "addedAt": "2026-06-06T06:42:13Z"
     },
@@ -1772,7 +1772,7 @@
       "computedHash": "7785667a7943b80227dfe9dead2635271346c871d85ff78dcde9dcb159a6cfe6"
     },
     "ts-morph-refactor": {
-      "computedHash": "6856570efec0e9797d1860e87d2ed76b72a538845e9e563e5a174600e265e546",
+      "computedHash": "283017b173d44f905b9a5ec10d209bdaf4e9fffe51c6629d98a6e4e939c6444c",
       "localPath": ".claude/skills/ts-morph-refactor",
       "addedAt": "2026-06-06T06:42:13Z"
     },
@@ -1784,7 +1784,7 @@
       "computedHash": "2abd6b31950f60d78327ab57d9d2b027d55ecb31315eba25ba65084c308878ba"
     },
     "type-safe-api-contracts": {
-      "computedHash": "aebf52010d2cc98c7176beb6f62b423ff2c163a566074ef50d58dc4a2df28722",
+      "computedHash": "0a2aac8f9389ce74a31a7f82b48cde0eed315c955d46feee3bd388ad40d28141",
       "localPath": ".claude/skills/type-safe-api-contracts",
       "addedAt": "2026-06-06T06:42:13Z"
     },
@@ -1796,12 +1796,12 @@
       "computedHash": "6ea6912a624ae00a83b216110d994ded24cc3736f693a2c4351759d46fbd5d29"
     },
     "typescript-patterns": {
-      "computedHash": "c19fd19231bcced2a35d13719625766f981fb3bb50e8316dc5a21782f9e1de05",
+      "computedHash": "857e58b7a35d7e4ab606a3911a8b060d60f43a37f03cbd93aaf209e85baaeddc",
       "localPath": ".claude/skills/typescript-patterns",
       "addedAt": "2026-06-06T06:42:14Z"
     },
     "typography-scale": {
-      "computedHash": "0943c6b35a5754cf1cbecc261dc1e4ae7fe0e223a541583d44514ad98f44636a",
+      "computedHash": "988858a984396658055bb6e7aaa8b692a9cef652604bcfafe6d9f0617379f3c6",
       "localPath": ".claude/skills/typography-scale",
       "addedAt": "2026-06-06T06:42:14Z"
     },
@@ -1860,7 +1860,7 @@
       "computedHash": "440630ac68f77d84a37024ae17560e8020f78c81a794aa56149c4cd00981b430"
     },
     "vector-store-patterns": {
-      "computedHash": "3a7be24b9f9718b12ded122d4c5ba8441881b2f818265ea1edd8bc68cc39071b",
+      "computedHash": "42ad140b30229b3bacdc771ab3154a2878be2efac4b1afbdc4fdc804e8b29731",
       "localPath": ".claude/skills/vector-store-patterns",
       "addedAt": "2026-06-06T06:42:15Z"
     },
@@ -1900,12 +1900,12 @@
       "computedHash": "2d56516ccf91f460d76d99097edbc1a81ba244e664916130acc10d09e35588f2"
     },
     "vllm-paged-attention": {
-      "computedHash": "0affd9b0d9963b854e8f85802ef985819a27d57e32867fa25b5133357970be75",
+      "computedHash": "97efa15d12d3d2ed9ba2a5558023b07409878aa71ef096c30948cebe536341db",
       "localPath": ".claude/skills/vllm-paged-attention",
       "addedAt": "2026-06-06T06:42:16Z"
     },
     "wamp-pubsub-patterns": {
-      "computedHash": "16c7eeba24b56f040c8ba37fc9a3dc1b0963dfab8704b5b9e629b8af703fe240",
+      "computedHash": "34ad9ecfb200df2b6bfa817e8415b9ed669cc3055daede48d62d705afd8913e3",
       "localPath": ".claude/skills/wamp-pubsub-patterns",
       "addedAt": "2026-06-06T06:42:17Z"
     },
@@ -1990,7 +1990,7 @@
       "computedHash": "c27061384043f179f147f595c9e0d952df3939f4a2287ac03f8decb4a2de6b21"
     },
     "zero-trust-network-mesh": {
-      "computedHash": "db8b895d65b54bcc0e5074bad83713859417c8898715af34961bfb6dbd925705",
+      "computedHash": "ef5b0697576226cec36fad5b2353867ec59f99839c662a109ae44396ef305ec7",
       "localPath": ".claude/skills/zero-trust-network-mesh",
       "addedAt": "2026-06-06T06:42:18Z"
     },
@@ -10890,7 +10890,7 @@
       "addedAt": "2026-06-06T06:42:12Z"
     },
     "threat-mitigation-mapping": {
-      "computedHash": "aa524fe3c3603b1fc611a5b7953003de010e4904032b9c8c78c2ad1e3bd4a9fb",
+      "computedHash": "9d1692a003269f38242582c7cd7f629343a9c48d65a29f0cf38aa30773aa822b",
       "localPath": ".claude/skills/threat-mitigation-mapping",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -10900,17 +10900,17 @@
       "addedAt": "2026-06-06T06:42:13Z"
     },
     "tmux": {
-      "computedHash": "590dad5ff545ec626ad084cc44b883a7279aa4b1e9aecdd5c61cae3734e3fdb2",
+      "computedHash": "ca34d2043b2eb2bd0c7032d25b9e7702c9c153f9cedbcd171996e19adf9baa3e",
       "localPath": ".claude/skills/tmux",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "tool-design": {
-      "computedHash": "8c291bb71cf261a1e6f3dd1eda47467fe8acd655b3fee7be2483ea38e58ea829",
+      "computedHash": "4cf70f54f66df0091d0128774bf79202492c80a3687dd364af9da5963d447435",
       "localPath": ".claude/skills/tool-design",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "tool-use-guardian": {
-      "computedHash": "5319ca3c8bbb864dccd1be14fd125cd619ec8781a35d00c673379c494da6ad85",
+      "computedHash": "683543dc69ed759f3e2e3e8aef7adb7fe424f329257f894488e7e3b6354fd9e3",
       "localPath": ".claude/skills/tool-use-guardian",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -10925,7 +10925,7 @@
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "ui-skills": {
-      "computedHash": "939d8443d65b7e50c437045ab56790386f39c37d06baa2090ae395a362ccf742",
+      "computedHash": "8f6177aeb549289d00211d8792aa70b92be4b28ea17638a70dbb4d81c94d3ac4",
       "localPath": ".claude/skills/ui-skills",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -10955,37 +10955,37 @@
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "varlock-claude-skill": {
-      "computedHash": "6cc243b052afb890e601666ac4ebe061c0f33309655acc86818e9b8ce6bea1f5",
+      "computedHash": "5ca9e3cfc6905e8504a7be1326c5169fbf5f7eb57934f06dad11ff339f31573b",
       "localPath": ".claude/skills/varlock-claude-skill",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "vector-index-tuning": {
-      "computedHash": "d2a72bc107da7c1f2b1fca59377adb88cb8468dfb8bc0c6ab6c86355ea6e596e",
+      "computedHash": "73f57a49b8f327de895eeeed71ecaa5013cb24b85f6f4e33e0e43d502261fd90",
       "localPath": ".claude/skills/vector-index-tuning",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "vercel-ai-sdk-expert": {
-      "computedHash": "7003a787bb9aa0030979044188e5e23a486841ed05ce81163c103734d9f571a3",
+      "computedHash": "5788c3b6c7e6f83238adbd05ae8e4e061ab7d6920a5abda92c7316620d543ead",
       "localPath": ".claude/skills/vercel-ai-sdk-expert",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "vexor": {
-      "computedHash": "da5f6567807803e7a610456c08812cd864a7bef917883efc1d03be9ce7296c09",
+      "computedHash": "ff9bb6aa99cfc0518a3ae79922b9d06d60d45121c1cb244249e865f36227862a",
       "localPath": ".claude/skills/vexor",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "vibe-code-auditor": {
-      "computedHash": "12661804f044066008a5df703e47b71dbf0c52652ef9047377ed8ad118c82454",
+      "computedHash": "527f8d28f1b333f4529bcf1bcdd4a33886c2e499e7733f67480000a4e9d7aad6",
       "localPath": ".claude/skills/vibe-code-auditor",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "vibecode-production-qa-validator": {
-      "computedHash": "56d82b9828adb028ecc308169beb4e8d1481841b624aab5f2931677f948ce2cb",
+      "computedHash": "545feb38f1819565a4f8dee950b228da23bda6008c7a152897c73201e4bab2f0",
       "localPath": ".claude/skills/vibecode-production-qa-validator",
       "addedAt": "2026-06-01T00:00:00Z"
     },
     "voice-agents": {
-      "computedHash": "f2a2be89fc8559e7f0b3cf5ad4cda9fbc76fdf0d7230df7198cf229d3b1bc03f",
+      "computedHash": "a42c4d3666aae4733c57306e47838bc63d552fbe317d3dd629f54201927083ab",
       "localPath": ".claude/skills/voice-agents",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -11045,7 +11045,7 @@
       "addedAt": "2026-06-06T06:31:54Z"
     },
     "startup--cicd-setup": {
-      "computedHash": "dd986c0197eef6af6d41559abf92db91113da15d1dc8f4353cd44985cba47bf4",
+      "computedHash": "3c7e9107363285ebd954a1b53f7788d7ccf20bb13fd29d21d15855f98a1acf10",
       "localPath": ".claude/skills/startup--cicd-setup",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -11070,7 +11070,7 @@
       "addedAt": "2026-06-06T06:39:57Z"
     },
     "markitdown": {
-      "computedHash": "2684a2ee964f9e9f6fd769335b3e7fb643284453a3703ef18231fab9170b6453",
+      "computedHash": "e265439f7b4affee86dbfc583cc4c32db9c3b886e40b6c8853620851e6aa3fb0",
       "localPath": ".claude/skills/markitdown",
       "addedAt": "2026-06-06T06:36:44Z"
     },
@@ -11320,7 +11320,7 @@
       "addedAt": "2026-06-06T06:33:34Z"
     },
     "unified-notifications-ops": {
-      "computedHash": "d9c2d607662189c87934e563d62a21e77e39ea54cbdcd9117e2c726fbff65ce1",
+      "computedHash": "4c0b124e2042f901740363481edafc2ebcfd98a4ce7a2e7689b856b28beae3bc",
       "localPath": ".claude/skills/unified-notifications-ops",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -11585,7 +11585,7 @@
       "addedAt": "2026-06-06T06:33:31Z"
     },
     "startup--fundraising-email": {
-      "computedHash": "bb2433a55bf5b42704aa5f52e21f8f2386c114b9e2e342eb40c55d206cf1a5e9",
+      "computedHash": "772ace5dafbd7a3808414b6f2effc69b88f67946a6cadaeede5b810037548d82",
       "localPath": ".claude/skills/startup--fundraising-email",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -11595,7 +11595,7 @@
       "addedAt": "2026-06-06T06:34:55Z"
     },
     "taches--create-plans": {
-      "computedHash": "9baee213bd6d23ea830ce39d417a2b34f8901f925d8c0505df95e99a3856290f",
+      "computedHash": "42b6f5b9d5c89069e53387628a1f9a6cf9a3d49db0a5734452813b9faab1c587",
       "localPath": ".claude/skills/taches--create-plans",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -11825,7 +11825,7 @@
       "addedAt": "2026-06-06T06:33:25Z"
     },
     "scientific-db-uspto-database": {
-      "computedHash": "e04f3de04c0004ec8a5f83318fe78eafce50a45b13fa8003479fc553d26c7562",
+      "computedHash": "71aad36ca28c94cf96dbfb383923a4299dea8553a32c5469caa22a5405d6dc36",
       "localPath": ".claude/skills/scientific-db-uspto-database",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -12055,7 +12055,7 @@
       "addedAt": "2026-06-06T06:33:36Z"
     },
     "redesign-existing-projects": {
-      "computedHash": "bb277c1967ba4b2fe353ab979e760a3b5bbe13c4dcbff70ef834cc14b3c1432d",
+      "computedHash": "46776ebf2f6b89b90903227851b4e80d9ea8555a97dcff3b5b3cf09c19151bab",
       "localPath": ".claude/skills/redesign-existing-projects",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -12465,7 +12465,7 @@
       "addedAt": "2026-06-06T06:34:35Z"
     },
     "uncloud": {
-      "computedHash": "f98c8d0c338abd58445649653c6477d7351a6511667d6dfc5d05e0fc6333e3f1",
+      "computedHash": "0038a06f585bd5afaa3999ad5566818ef1253cb966d952d4e982e095a1d81178",
       "localPath": ".claude/skills/uncloud",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -12755,7 +12755,7 @@
       "addedAt": "2026-06-06T06:33:30Z"
     },
     "quarkus-verification": {
-      "computedHash": "c37c66b246dfa3cd9925c28c366cf8541ad5ee723c975c59308b938c89d987ae",
+      "computedHash": "8fd9470a506f62c32e3dd4fcec565b5a790cf3abc776caf29f0401f6e7350d71",
       "localPath": ".claude/skills/quarkus-verification",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -12875,7 +12875,7 @@
       "addedAt": "2026-06-06T06:34:39Z"
     },
     "token-budget-advisor": {
-      "computedHash": "c87bfe27ebd13ed12715967ac3a5e57f908147469058b79a7667526f5098a709",
+      "computedHash": "a968ee92a8d6894af4b6a15e0ac4c18867024215f5a73dbbb5e53572ef4d8c94",
       "localPath": ".claude/skills/token-budget-advisor",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13070,7 +13070,7 @@
       "addedAt": "2026-06-06T06:39:30Z"
     },
     "ui-to-vue": {
-      "computedHash": "6e7d011a0515fdefc7826336cf1b8f965f802560f174a4b6661314de776ccad6",
+      "computedHash": "3fd1165fd92f3171efbf19a4d90ce909ba1c8eb3d3b666b94c02ce350a6003c1",
       "localPath": ".claude/skills/ui-to-vue",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13130,7 +13130,7 @@
       "addedAt": "2026-06-06T06:32:42Z"
     },
     "startup--competitive-analysis": {
-      "computedHash": "00c5bd9c7ce1d31d7c871d8f0d70ee9f6def31e939c7c1ce76f85cdf991e28e1",
+      "computedHash": "19933b0f1c605e62d030735f60c81d10090e5bd5953eb182fba85b12c09eab37",
       "localPath": ".claude/skills/startup--competitive-analysis",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13210,7 +13210,7 @@
       "addedAt": "2026-06-06T06:38:51Z"
     },
     "startup--community-discovery": {
-      "computedHash": "4c73d13e5dbea4f1c7babbb38755ded4879408d31fefcf2327de0e38bbf2df5a",
+      "computedHash": "8f2f8263d1f0dfe28fd811351952e40aad8f624afad530a07f645cbf8c55394c",
       "localPath": ".claude/skills/startup--community-discovery",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13250,7 +13250,7 @@
       "addedAt": "2026-06-06T06:34:48Z"
     },
     "startup--board-update": {
-      "computedHash": "ba1e7a909052d7df3beef84a2db87ff86ad7ca64885673bb9c07fb6378dfb192",
+      "computedHash": "5b0eee51699f924707d4f3275aa92245dcab0115186e8969f91b3d23eb965906",
       "localPath": ".claude/skills/startup--board-update",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13290,7 +13290,7 @@
       "addedAt": "2026-06-06T06:34:30Z"
     },
     "startup--daily-product-digest": {
-      "computedHash": "2a5dd4457a36d00008682a2114224a8078c1ffd74921c2686102c59a76bd4b7f",
+      "computedHash": "c04ac3e04943c5137bda13b87ca9b69495c96e4064c0f92f21ada670cf27a4d9",
       "localPath": ".claude/skills/startup--daily-product-digest",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13415,7 +13415,7 @@
       "addedAt": "2026-06-06T06:33:15Z"
     },
     "startup--landing-page": {
-      "computedHash": "fc4591cb953ced390a56ad5405cd7b72e6bb7d0a11c066436a6ec00c3fa23d38",
+      "computedHash": "936142909e92d5fc5df0e5309fce7763fa0de87782547e83f9bfff5a1b44cdd4",
       "localPath": ".claude/skills/startup--landing-page",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13465,7 +13465,7 @@
       "addedAt": "2026-06-06T06:35:23Z"
     },
     "search-first": {
-      "computedHash": "e101458811e957563ed96d1cc3a4c078f84f05e56bd794709f72499aba1a3df4",
+      "computedHash": "bd23a64002c24453dd717cb6b5fd75e7f823d8197bf0f64dfa26eeea40e39d09",
       "localPath": ".claude/skills/search-first",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13555,7 +13555,7 @@
       "addedAt": "2026-06-06T06:33:18Z"
     },
     "raffle-winner-picker": {
-      "computedHash": "3ca742a080f4b257cfec431fa641006d270f7c53422a20d48465a38ccf75c5db",
+      "computedHash": "0638570a35807cfc6ecfb073ab8078e6c7e34f78ef12f7f82760b57dd5203cf4",
       "localPath": ".claude/skills/raffle-winner-picker",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -13905,7 +13905,7 @@
       "addedAt": "2026-06-06T06:33:10Z"
     },
     "startup--mvp-scoping": {
-      "computedHash": "d41d795ba90b31d67fe7213b8380776f5f3c7076eb18244a182e4e9cc3042edb",
+      "computedHash": "7cc438a29f83785658d522f33f51efe4e3634caa0d4a299a65c58a3aa455af79",
       "localPath": ".claude/skills/startup--mvp-scoping",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14015,7 +14015,7 @@
       "addedAt": "2026-06-06T06:38:33Z"
     },
     "visa-doc-translate": {
-      "computedHash": "a1cc5860f6cd0822860031b0f5842fc6c10e04a0b8a4da7f478396d05b99a348",
+      "computedHash": "820e9bbe2625609edf49be3fb3c5a43099aee169677c380170621ee1c3cd9215",
       "localPath": ".claude/skills/visa-doc-translate",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14295,7 +14295,7 @@
       "addedAt": "2026-06-06T06:34:30Z"
     },
     "springboot-tdd": {
-      "computedHash": "67d3d67c8f9d18109979944c028d8c0e1a219c0366ef96c95befd6fb3a0856d4",
+      "computedHash": "68aed58d70c3eb4946d8b38f73060621ce394d0930b7508b33d80e6bcf9d9dee",
       "localPath": ".claude/skills/springboot-tdd",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14420,7 +14420,7 @@
       "addedAt": "2026-06-06T06:33:34Z"
     },
     "quality-nonconformance": {
-      "computedHash": "5cc141c785c8b6116f0d414239658dbfdee2d0f59687bdf1cd7e64c1e83dcd27",
+      "computedHash": "2febc8a3a77d2a66574303aab3c5d2a05532848fa63ebf3032f3cd97aee296ed",
       "localPath": ".claude/skills/quality-nonconformance",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14490,7 +14490,7 @@
       "addedAt": "2026-06-06T06:36:18Z"
     },
     "taches--expertise-macos-apps": {
-      "computedHash": "2ebabe78f46270117080bb1e83ee24cf12e4887b4f8c06ecab9dd7adc4bd7259",
+      "computedHash": "67fc0d96567732cb2bc3ac7d983ae6f4d9a4a6f3814253edf0bb5e529665d83a",
       "localPath": ".claude/skills/taches--expertise-macos-apps",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14535,7 +14535,7 @@
       "addedAt": "2026-06-06T06:32:50Z"
     },
     "webapp-testing": {
-      "computedHash": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
+      "computedHash": "d93dceb2d56ec4088d2258ff2f7b0f6558074e209e48a0ef4af62dd8c6fcffc8",
       "localPath": ".claude/skills/webapp-testing",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14580,7 +14580,7 @@
       "addedAt": "2026-06-06T06:32:39Z"
     },
     "vite-patterns": {
-      "computedHash": "7c02f890c783033a4cf804aed686a6431ec57102936e7765b1e01c0936d6d046",
+      "computedHash": "f5da0276acab05c071e97eacc55e27c3a100a03073b02f60dfb3580b81ed1755",
       "localPath": ".claude/skills/vite-patterns",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14680,7 +14680,7 @@
       "addedAt": "2026-06-06T06:32:06Z"
     },
     "twitter-algorithm-optimizer": {
-      "computedHash": "c02a4b7ca7f2466fb8364557f83e5ea95bd876e05acb58d72e89e58cd62c6335",
+      "computedHash": "7513682ff03efe9be3a6f7f88617ee75c9f9eff7a292e45e669e12baedbd7979",
       "localPath": ".claude/skills/twitter-algorithm-optimizer",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14705,7 +14705,7 @@
       "addedAt": "2026-06-06T06:33:26Z"
     },
     "ui-demo": {
-      "computedHash": "b5b2bac1adbd3ffc0b34f589ff26b06ececc7d9f896c5a305b89aa834b0bb254",
+      "computedHash": "b06a59fc436af766bdb16e064d5fae482154dc9b95ccca5544cffe77e7aad07e",
       "localPath": ".claude/skills/ui-demo",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14780,7 +14780,7 @@
       "addedAt": "2026-06-06T06:33:50Z"
     },
     "openhack-security-review": {
-      "computedHash": "cbbacff6d35fd2542c259bd1b020e9994f9a69a64ba0e572f1bedce8614be3eb",
+      "computedHash": "cd37ce4ac32a649fdc1ca6a80c8751f0771e5411fe633879e021f40e47aa9c27",
       "localPath": ".claude/skills/openhack-security-review",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14840,7 +14840,7 @@
       "addedAt": "2026-06-06T06:33:22Z"
     },
     "startup--startup-context": {
-      "computedHash": "631d65fc417f9cc18fb46dce6cd707f8015752266ef6546152e7b5be189ba9a8",
+      "computedHash": "6fff89f57234342ce395991a998877c3a8d703da7e10e515f8e742fc27b1c063",
       "localPath": ".claude/skills/startup--startup-context",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -14895,7 +14895,7 @@
       "addedAt": "2026-06-06T06:34:20Z"
     },
     "x-api": {
-      "computedHash": "1eddd49bbd960624850f7d9668bf00bbc626b6fc05ecb642a80f9965b5cefe9a",
+      "computedHash": "242ed59426d1aea59a03fa5d876853f273a9d810a59d4b94a06619b593da88b9",
       "localPath": ".claude/skills/x-api",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15185,7 +15185,7 @@
       "addedAt": "2026-06-06T06:36:35Z"
     },
     "videodb": {
-      "computedHash": "85e9391e62346721a6248c952ff196e966f2907991a56e98b7d760585893b263",
+      "computedHash": "548c7f5cd603724a436155ba0063663e53743ddd711598f68147a82f55cbedb0",
       "localPath": ".claude/skills/videodb",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15230,7 +15230,7 @@
       "addedAt": "2026-06-06T06:33:48Z"
     },
     "skill-scout": {
-      "computedHash": "66f84ec5f124cafa45d5357017d8905219b0639d9e811610e780c2a11ac45643",
+      "computedHash": "a24af7816e8db0bf5a96f64082a41032fd881c8632e05e834a89764fc81e3973",
       "localPath": ".claude/skills/skill-scout",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15300,7 +15300,7 @@
       "addedAt": "2026-06-06T06:33:13Z"
     },
     "writing-plans": {
-      "computedHash": "fd632a15e22a9166a611e2250791320f19acd4a732c4768ff2d59de627163ba8",
+      "computedHash": "90e5f5b9e4c2882d53ca34660734819232bb7f9e90e057b6bc256d06dd8a50d5",
       "localPath": ".claude/skills/writing-plans",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15390,7 +15390,7 @@
       "addedAt": "2026-06-06T06:35:28Z"
     },
     "taches--debug-like-expert": {
-      "computedHash": "08733a155f502f01fdf7b9c14acd49a56798d636fa37705e03b9f4b3da5064fa",
+      "computedHash": "80e2881c65222835825564c7b69298c32d6d0276a54fc47817214c9705ca162d",
       "localPath": ".claude/skills/taches--debug-like-expert",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15460,32 +15460,32 @@
       "addedAt": "2026-06-06T06:36:21Z"
     },
     "hermes-streaming-scrubber": {
-      "computedHash": "17f6898c4b7d770863d39814e95c1522156cdaf85477ac28720594e5ca7b1b66",
+      "computedHash": "be8dbe939565883566008f257c16954e0511887d0851f1aa644d9af450e6e321",
       "localPath": ".claude/skills/hermes-streaming-scrubber",
       "addedAt": "2026-06-08T14:00:00Z"
     },
     "hermes-tool-loop-guard": {
-      "computedHash": "b063c9ff50f7aa40d532deda897c33b078d2b404e3f6903a00cb73c5dac116ba",
+      "computedHash": "a4308b21eaa08add15f015ebd6732cb67cd7e1bc0caaa927956e91e530569376",
       "localPath": ".claude/skills/hermes-tool-loop-guard",
       "addedAt": "2026-06-08T14:00:00Z"
     },
     "hermes-memory-manager": {
-      "computedHash": "681b34678ac49f4508e7b8a575cb3d9277f497b7786fc203e82d2e5bb5536248",
+      "computedHash": "528153e42eb944e9004fed69bfa07eda4d697f3298e7fa0b7a80b962db88b2a8",
       "localPath": ".claude/skills/hermes-memory-manager",
       "addedAt": "2026-06-08T14:00:00Z"
     },
     "hermes-system-prompt-tiers": {
-      "computedHash": "01e250175cce8a2a7fc3f1626db0cee12f008d470e694cf975d26c88b25dd73d",
+      "computedHash": "197548f800dbb16a789e664a2b88356d9e617fc670e34fdd582f9106db957a97",
       "localPath": ".claude/skills/hermes-system-prompt-tiers",
       "addedAt": "2026-06-08T14:00:00Z"
     },
     "hermes-context-compressor": {
-      "computedHash": "19ad4eef3871552ac02c3a9359f6658b64fad4d65f9e0a6d953cc8bfecf2df00",
+      "computedHash": "1eb4ca923809bdbf90f57cba4dc733c0625451f6f7a54fd1ce1507ceec924c15",
       "localPath": ".claude/skills/hermes-context-compressor",
       "addedAt": "2026-06-08T14:00:00Z"
     },
     "hermes-conversation-loop": {
-      "computedHash": "9e724b9e51dcf127462a31cb6f8197d2df086531cc7dc2dc02db658ea2f318aa",
+      "computedHash": "43c66945367cd762a5de912c747adde7909fa85c7f0f976171cb431c238ca53f",
       "localPath": ".claude/skills/hermes-conversation-loop",
       "addedAt": "2026-06-08T14:00:00Z"
     },
@@ -15675,7 +15675,7 @@
       "addedAt": "2026-06-06T06:33:48Z"
     },
     "workspace-surface-audit": {
-      "computedHash": "dddd3e1a1716f5224e3aac3f09b08104e6e2316d9c8c092d033b4b556b934ee4",
+      "computedHash": "cfc6177a58e28effc5960a8b92421674e35de6334647030fafca9816e2b2f57a",
       "localPath": ".claude/skills/workspace-surface-audit",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15725,7 +15725,7 @@
       "addedAt": "2026-06-06T06:33:56Z"
     },
     "rust-patterns": {
-      "computedHash": "2c8a7b1110a7c8d9f659a26f34db3cb774c592ca89c928df6d71255aa3eaafc6",
+      "computedHash": "dcfb8ce65fc7d223e35cb825d63673614d9039f7c63b7081d5599f53d60a530e",
       "localPath": ".claude/skills/rust-patterns",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -15815,7 +15815,7 @@
       "addedAt": "2026-06-06T06:32:34Z"
     },
     "startup--event-hosting": {
-      "computedHash": "48c19f0555237273d966885d0e34a208519503977f33c8f627b1ab28bd8335d4",
+      "computedHash": "07ba88effd509ad6590cab852481f1e38a687018757cd2d64bc1d1baa1be6817",
       "localPath": ".claude/skills/startup--event-hosting",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16005,7 +16005,7 @@
       "addedAt": "2026-06-06T06:34:05Z"
     },
     "tinystruct-patterns": {
-      "computedHash": "1f34f118a571b6d7779faf14982de0fca950b96a0aa1a422c2af74e420210c4d",
+      "computedHash": "e191c6cdf4e2253b86c328c4ba178a9e77d336fc2ebe4521b01832b524eadd8f",
       "localPath": ".claude/skills/tinystruct-patterns",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16080,7 +16080,7 @@
       "addedAt": "2026-06-06T06:34:14Z"
     },
     "startup--cold-outreach": {
-      "computedHash": "c5b87d027640f922dd0eb2e930a1abbdd819aeecff98e27498cd496e6651ce97",
+      "computedHash": "6fe7b9e02aae724d3a691d6ccff933db124ab79bfa015ff5a3a681d24d5e72ba",
       "localPath": ".claude/skills/startup--cold-outreach",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16115,7 +16115,7 @@
       "addedAt": "2026-06-06T06:33:44Z"
     },
     "terminal-ops": {
-      "computedHash": "ed228e078c880e92727731fc0e72b2a80459a42d2fc6a1603a1277f6f5b9f102",
+      "computedHash": "b67f723db2c051d7b1b6db1889084fe5c979652414d1837f3aeda38887ebdb22",
       "localPath": ".claude/skills/terminal-ops",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16265,7 +16265,7 @@
       "addedAt": "2026-06-06T06:35:03Z"
     },
     "video-downloader": {
-      "computedHash": "093c29459a2e05eb076f64d069817d24f98e327b3dab24d9b72085b8ac2909c6",
+      "computedHash": "c0fd0276aa66aefe58da3043adcede1236248d5de24a7b90cf6369ccfb9f3361",
       "localPath": ".claude/skills/video-downloader",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16340,7 +16340,7 @@
       "addedAt": "2026-06-06T06:36:35Z"
     },
     "scientific-thinking-literature-review": {
-      "computedHash": "d7dd7c8630d7489214cad356a93cc82444486f9602b7005eac54406445c7a5b4",
+      "computedHash": "a6dc0625607cdaeb8b01b7982ce53023f6cbe4428d0a43a339c98afddf55c182",
       "localPath": ".claude/skills/scientific-thinking-literature-review",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16425,7 +16425,7 @@
       "addedAt": "2026-06-06T06:33:22Z"
     },
     "startup--soc2-prep": {
-      "computedHash": "74a0f59e6f563d5bdac97664c2acf2471253c95559ea40b66518c0cfc454c8da",
+      "computedHash": "0a6622862e377f8ed6f59fc6c5d85ea101324d895ba5c754bf990174b249962c",
       "localPath": ".claude/skills/startup--soc2-prep",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -16835,7 +16835,7 @@
       "addedAt": "2026-06-06T06:36:00Z"
     },
     "video-editing": {
-      "computedHash": "ce3ab2e576e0863086453b78ca171e4a998f4d56d2b4c59fc530f920d88f5bf1",
+      "computedHash": "a89e3b583ed37a037f5c0ea18a316e4c49a011e3a346686652dedf7da3106557",
       "localPath": ".claude/skills/video-editing",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -17100,7 +17100,7 @@
       "addedAt": "2026-06-06T06:33:59Z"
     },
     "returns-reverse-logistics": {
-      "computedHash": "93f2bab5f391615e44f3732acf1bdc043d42cd538df819eea92cd4f31def1ab1",
+      "computedHash": "8d932e5625ce1c7a65c2ee839f82cdf3c7d16822ab4df983841e9cea39a5db94",
       "localPath": ".claude/skills/returns-reverse-logistics",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -17110,7 +17110,7 @@
       "addedAt": "2026-06-06T06:34:16Z"
     },
     "react-patterns": {
-      "computedHash": "c353e69674f5cbef9676fd26fe56fe5a5bc893bc826ea96800e4affa88117330",
+      "computedHash": "b346e75f8c4b7725bc81efeb9027df84c84a6ebf684363987e2403f191ee75bd",
       "localPath": ".claude/skills/react-patterns",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -17160,7 +17160,7 @@
       "addedAt": "2026-06-06T06:33:30Z"
     },
     "skill-stocktake": {
-      "computedHash": "b48b54c68e5d41d4a722afb267d5b02d4a356c4ee5b24cf4e8cc356fc65c11ee",
+      "computedHash": "1292f3cf7f87e8db87a84e9bd322a846571d230130e2211d4d05d9705ac180e0",
       "localPath": ".claude/skills/skill-stocktake",
       "addedAt": "2026-06-01T00:00:00Z"
     },
@@ -42945,7 +42945,7 @@
       "addedAt": "2026-06-06T06:36:19Z"
     },
     "headroom": {
-      "computedHash": "4e4b74a5dfffe78679b7db54c018a62b787c568b789f1eabda96aeb9888797c1",
+      "computedHash": "88c634f74255f47d15f15be7f3d071efe720bc4c49b857df4d0ad7b730190c4b",
       "localPath": ".claude/skills/headroom",
       "addedAt": "2026-06-06T06:36:19Z"
     },
@@ -43000,7 +43000,7 @@
       "addedAt": "2026-06-06T06:39:34Z"
     },
     "supermemory": {
-      "computedHash": "d42cbb5bc02e1d2b741735a429aca2bcecff70679a18b9270f2a3061e4380638",
+      "computedHash": "c9894617e7c577987632d38ef0ee38384c0660e7bcb44d51d55b99df0af810b4",
       "localPath": ".claude/skills/supermemory",
       "addedAt": "2026-06-06T06:39:53Z"
     },
@@ -43010,22 +43010,22 @@
       "addedAt": "2026-06-06T06:39:56Z"
     },
     "mission-run": {
-      "computedHash": "ceef796e9823a28b67280627cfb5adff7e93cbfc48086ed780574e16b2cb25fd",
+      "computedHash": "b36d82c12d5657b09c95348922885f22861806c26eb04c7d5f1bdd36af1b5356",
       "localPath": "core/skills/mission-run",
       "addedAt": "2026-06-06T13:17:56Z"
     },
     "vnpay-integration": {
-      "computedHash": "88a58d00d5db9de1b37d6dcaab1e172536893245cd22bd505cecf7ae10e5565d",
+      "computedHash": "8cf544fdd3631fcda8338e9bec463e3d5e6de50993fb06ca6a3643e9821deb2f",
       "localPath": "core/skills/vnpay-integration",
       "addedAt": "2026-06-08T06:12:31Z"
     },
     "openwork-agent": {
-      "computedHash": "01a1b119c296a62371c7adb565d891edd575aaffa7ce0b0cdba1270cf0aca665",
+      "computedHash": "02425fc2c1fda4b280aebf12e4137949ceb354ebf29c9bfe12a396b48f8d8791",
       "localPath": "core/skills/openwork-agent",
       "addedAt": "2026-06-08T06:12:31Z"
     },
     "graphify-knowledge-graph": {
-      "computedHash": "2b6e56c88d9d35ae155299d923253a359a9bee4b1e75706574921a8c564f9dab",
+      "computedHash": "cb69e24f431311ebef686f6555a101e080baacc3b9535fd583ae00f9a4e3e4a6",
       "localPath": "core/skills/graphify-knowledge-graph",
       "addedAt": "2026-06-08T06:12:31Z"
     }

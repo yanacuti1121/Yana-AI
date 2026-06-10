@@ -1,96 +1,24 @@
 {
-  "fetched_at": 1780909593.8452137,
-  "date": "2026-06-08",
+  "fetched_at": 1781098955.8761265,
+  "date": "2026-06-10",
   "lang": "",
   "repos": [
     {
-      "name": "mvanhorn/last30days-skill",
-      "url": "https://github.com/mvanhorn/last30days-skill",
-      "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a gro",
-      "language": "Python",
+      "name": "addyosmani/agent-skills",
+      "url": "https://github.com/addyosmani/agent-skills",
+      "description": "Production-grade engineering skills for AI coding agents.",
+      "language": "Shell",
       "stars": 0,
-      "stars_today": 1111,
+      "stars_today": 781,
       "relevant": true
     },
     {
-      "name": "NousResearch/hermes-agent",
-      "url": "https://github.com/NousResearch/hermes-agent",
-      "description": "The agent that grows with you",
-      "language": "Python",
+      "name": "phuryn/pm-skills",
+      "url": "https://github.com/phuryn/pm-skills",
+      "description": "PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and g",
+      "language": "",
       "stars": 0,
-      "stars_today": 1112,
-      "relevant": true
-    },
-    {
-      "name": "lfnovo/open-notebook",
-      "url": "https://github.com/lfnovo/open-notebook",
-      "description": "An Open Source implementation of Notebook LM with more flexibility and features",
-      "language": "TypeScript",
-      "stars": 0,
-      "stars_today": 554,
-      "relevant": false
-    },
-    {
-      "name": "yikart/AiToEarn",
-      "url": "https://github.com/yikart/AiToEarn",
-      "description": "Let's use AI to Earn!",
-      "language": "TypeScript",
-      "stars": 0,
-      "stars_today": 183,
-      "relevant": true
-    },
-    {
-      "name": "aaif-goose/goose",
-      "url": "https://github.com/aaif-goose/goose",
-      "description": "an open source, extensible AI agent that goes beyond code suggestions - install, execute, edit, and test with any LLM",
-      "language": "Rust",
-      "stars": 0,
-      "stars_today": 322,
-      "relevant": true
-    },
-    {
-      "name": "Crosstalk-Solutions/project-nomad",
-      "url": "https://github.com/Crosstalk-Solutions/project-nomad",
-      "description": "Project N.O.M.A.D, is a self-contained, offline survival computer packed with critical tools, knowledge, and AI to keep ",
-      "language": "TypeScript",
-      "stars": 0,
-      "stars_today": 309,
-      "relevant": true
-    },
-    {
-      "name": "ggml-org/llama.cpp",
-      "url": "https://github.com/ggml-org/llama.cpp",
-      "description": "LLM inference in C/C++",
-      "language": "C++",
-      "stars": 0,
-      "stars_today": 158,
-      "relevant": true
-    },
-    {
-      "name": "RyanCodrai/turbovec",
-      "url": "https://github.com/RyanCodrai/turbovec",
-      "description": "A vector index built on TurboQuant, written in Rust with Python bindings",
-      "language": "Python",
-      "stars": 0,
-      "stars_today": 1554,
-      "relevant": true
-    },
-    {
-      "name": "TapXWorld/ChinaTextbook",
-      "url": "https://github.com/TapXWorld/ChinaTextbook",
-      "description": "所有小初高、大学PDF教材。",
-      "language": "Roff",
-      "stars": 0,
-      "stars_today": 350,
-      "relevant": false
-    },
-    {
-      "name": "openai/plugins",
-      "url": "https://github.com/openai/plugins",
-      "description": "OpenAI Plugins",
-      "language": "JavaScript",
-      "stars": 0,
-      "stars_today": 262,
+      "stars_today": 775,
       "relevant": true
     },
     {
@@ -99,26 +27,89 @@
       "description": "Desktop app to manage markdown knowledge bases",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 245,
+      "stars_today": 618,
       "relevant": false
     },
     {
-      "name": "HunxByts/GhostTrack",
-      "url": "https://github.com/HunxByts/GhostTrack",
-      "description": "Useful tool to track location or mobile number",
+      "name": "mvanhorn/last30days-skill",
+      "url": "https://github.com/mvanhorn/last30days-skill",
+      "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a gro",
       "language": "Python",
       "stars": 0,
-      "stars_today": 28,
+      "stars_today": 2561,
+      "relevant": true
+    },
+    {
+      "name": "harry0703/MoneyPrinterTurbo",
+      "url": "https://github.com/harry0703/MoneyPrinterTurbo",
+      "description": "利用AI大模型，一键生成高清短视频 Generate short videos with one click using AI LLM.",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 1471,
+      "relevant": true
+    },
+    {
+      "name": "maziyarpanahi/openmed",
+      "url": "https://github.com/maziyarpanahi/openmed",
+      "description": "open-source healthcare ai",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 535,
+      "relevant": true
+    },
+    {
+      "name": "activeloopai/hivemind",
+      "url": "https://github.com/activeloopai/hivemind",
+      "description": "One brain for all your agents",
+      "language": "TypeScript",
+      "stars": 0,
+      "stars_today": 47,
+      "relevant": true
+    },
+    {
+      "name": "ruvnet/RuView",
+      "url": "https://github.com/ruvnet/RuView",
+      "description": "π RuView turns commodity WiFi signals into real-time spatial intelligence, vital sign monitoring, and presence detection",
+      "language": "Rust",
+      "stars": 0,
+      "stars_today": 439,
       "relevant": false
     },
     {
-      "name": "microsoft/pg_durable",
-      "url": "https://github.com/microsoft/pg_durable",
-      "description": "PostgreSQL in-database durable execution",
-      "language": "Rust",
+      "name": "roboflow/supervision",
+      "url": "https://github.com/roboflow/supervision",
+      "description": "We write your reusable computer vision tools. 💜",
+      "language": "Python",
       "stars": 0,
-      "stars_today": 316,
+      "stars_today": 699,
       "relevant": false
+    },
+    {
+      "name": "google/skills",
+      "url": "https://github.com/google/skills",
+      "description": "Agent Skills for Google products and technologies",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 680,
+      "relevant": true
+    },
+    {
+      "name": "FareedKhan-dev/train-llm-from-scratch",
+      "url": "https://github.com/FareedKhan-dev/train-llm-from-scratch",
+      "description": "A straightforward method for training your LLM, from downloading data to generating text.",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 241,
+      "relevant": true
+    },
+    {
+      "name": "apple/container",
+      "url": "https://github.com/apple/container",
+      "description": "A tool for creating and running Linux containers using lightweight virtual machines on a Mac. It is written in Swift, an",
+      "language": "Swift",
+      "stars": 0,
+      "stars_today": 1358,
+      "relevant": true
     }
   ]
 }
