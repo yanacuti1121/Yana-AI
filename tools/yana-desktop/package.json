@@ -1,0 +1,58 @@
+{
+  "name": "yana-desktop",
+  "version": "0.1.0",
+  "description": "Yana AI — desktop shell",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:linux": "electron-builder --linux",
+    "build:mac":   "electron-builder --mac",
+    "build:win":   "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron":         "31.3.0",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.yamtam.yana",
+    "productName": "Yana AI",
+    "copyright": "Copyright © 2026 Vũ Văn Tâm",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js"
+    ],
+    "extraFiles": [
+      {
+        "from": "../yana-web",
+        "to": "yana-web",
+        "filter": ["**/*", "!node_modules/**", "!dist/**"]
+      },
+      {
+        "from": "../../packages/yamtam-core",
+        "to": "yamtam-core",
+        "filter": ["**/*", "!node_modules/**"]
+      }
+    ],
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb",      "arch": ["x64"] }
+      ],
+      "category": "Development"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    }
+  }
+}
