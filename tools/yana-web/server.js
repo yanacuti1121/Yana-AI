@@ -465,35 +465,119 @@ function handleApiUsage(req, res) {
 }
 
 // ── GET /api/dashboard — real system state (L1 memory, audit log, uptime) ─────
-const L1_DIR    = path.join(__dirname, '..', '..', 'memory', 'L1_atomic');
-const AUDIT_LOG = path.join(__dirname, '..', '..', 'core', 'memory', 'audit', 'agent-actions.log');
+const L1_DIR     = path.join(__dirname, '..', '..', 'memory', 'L1_atomic');
+const AUDIT_LOG  = path.join(__dirname, '..', '..', 'core', 'memory', 'audit', 'agent-actions.log');
+const AGENTS_DIR = path.join(__dirname, '..', '..', 'core', 'agents');
+const SKILLS_DIR = path.join(__dirname, '..', '..', 'core', 'skills');
 
-function readL1Facts() {
+function fmHeader(file, maxBytes) {
+  // First N bytes of a markdown file — enough for YAML frontmatter
+  return fs.readFileSync(file, 'utf8').slice(0, maxBytes || 2048);
+}
+
+function fmField(head, key) {
+  const m = head.match(new RegExp('^' + key + ':\\s*(.+)$', 'm'));
+  return m ? m[1].trim() : null;
+}
+
+function readL1Entries() {
   let files = [];
   try { files = fs.readdirSync(L1_DIR).filter(f => f.startsWith('fact-') && f.endsWith('.md')); }
-  catch (_) { return { total: 0, today: 0, recent: [] }; }
+  catch (_) { return []; }
 
-  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
-  const entries = files.map(f => {
+  return files.map(f => {
     const p = path.join(L1_DIR, f);
-    let mtime = 0, kind = 'fact';
-    let text = f.replace(/^fact-/, '').replace(/\.md$/, '').replace(/-/g, ' ');
-    try {
-      mtime = fs.statSync(p).mtimeMs;
-      const head = fs.readFileSync(p, 'utf8').slice(0, 2048);
-      const sm = head.match(/^statement:\s*(.+)$/m);
-      const tm = head.match(/^type:\s*(.+)$/m);
-      if (sm) text = sm[1].trim();
-      if (tm) kind = tm[1].trim();
-    } catch (_) {}
-    return { kind, text, mtime };
+    let mtime = 0, head = '';
+    try { mtime = fs.statSync(p).mtimeMs; head = fmHeader(p); } catch (_) {}
+    return {
+      id:         f.replace(/\.md$/, ''),
+      kind:       fmField(head, 'type')       || 'fact',
+      text:       fmField(head, 'statement')  || f.replace(/^fact-/, '').replace(/\.md$/, '').replace(/-/g, ' '),
+      source:     fmField(head, 'source')     || '',
+      confidence: fmField(head, 'confidence') || '',
+      mtime,
+    };
   }).sort((a, b) => b.mtime - a.mtime);
+}
 
+function readL1Facts() {
+  const entries = readL1Entries();
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
   return {
     total:  entries.length,
     today:  entries.filter(e => e.mtime >= dayStart.getTime()).length,
     recent: entries.slice(0, 3).map(e => ({ kind: e.kind, text: e.text })),
   };
+}
+
+// GET /api/memories — every L1 atomic fact with metadata
+function handleApiMemories(req, res) {
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  const entries = readL1Entries().map(e => ({ ...e, fresh: e.mtime >= dayStart.getTime() }));
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ total: entries.length, memories: entries }));
+}
+
+// GET /api/agents — real agent catalog from core/agents/ (name + description
+// from frontmatter, category from subdirectory)
+let AGENTS_CACHE = null;
+function handleApiAgents(req, res) {
+  if (!AGENTS_CACHE) {
+    const agents = [];
+    const collect = (dir, category) => {
+      let items = [];
+      try { items = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) { return; }
+      for (const it of items) {
+        if (it.isFile() && it.name.endsWith('.md')) {
+          let head = '';
+          try { head = fmHeader(path.join(dir, it.name), 1024); } catch (_) {}
+          const description = fmField(head, 'description');
+          if (!description) continue;   // identity docs / journals are not agents
+          agents.push({
+            name: fmField(head, 'name') || it.name.replace(/\.md$/, ''),
+            description: description.slice(0, 180),
+            category,
+          });
+        } else if (it.isDirectory() && category === 'general' && it.name !== 'emotions') {
+          collect(path.join(dir, it.name), it.name);   // category dirs; emotions/ holds journals, not agents
+        }
+      }
+    };
+    collect(AGENTS_DIR, 'general');
+    agents.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    AGENTS_CACHE = agents;
+  }
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ total: AGENTS_CACHE.length, agents: AGENTS_CACHE }));
+}
+
+// GET /api/skills — real skill counts grouped by import pack (author--skill)
+let SKILLS_CACHE = null;
+function handleApiSkills(req, res) {
+  if (!SKILLS_CACHE) {
+    let names = [];
+    try {
+      names = fs.readdirSync(SKILLS_DIR, { withFileTypes: true })
+        .filter(d => d.isDirectory() && !d.name.startsWith('.'))
+        .map(d => d.name);
+    } catch (_) {}
+    const packs = {};
+    let standalone = 0;
+    for (const n of names) {
+      const i = n.indexOf('--');
+      if (i > 0) packs[n.slice(0, i)] = (packs[n.slice(0, i)] || 0) + 1;
+      else standalone++;
+    }
+    SKILLS_CACHE = {
+      total:      names.length,
+      standalone,
+      pack_count: Object.keys(packs).length,
+      packs: Object.entries(packs).sort((a, b) => b[1] - a[1]).slice(0, 8)
+        .map(([name, count]) => ({ name, count })),
+    };
+  }
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(SKILLS_CACHE));
 }
 
 function readAuditStats() {
@@ -658,6 +742,9 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
+  if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
+  if (method === 'GET'  && pathname === '/api/memories')  { handleApiMemories(req, res);  return; }
+  if (method === 'GET'  && pathname === '/api/skills')    { handleApiSkills(req, res);    return; }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }

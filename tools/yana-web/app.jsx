@@ -1,16 +1,28 @@
 // Yana AI — app shell, routing, tweaks wiring
 
-/* ---------- MemoryGarden stub ---------- */
+/* ---------- Memory Garden — real L1 atomic facts via /api/memories ---------- */
 function MemoryGarden() {
-  const D = window.YANA;
-  const kinds = ["All", "Fact", "Knowledge", "Experience", "Context"];
-  const [filter, setFilter] = React.useState("All");
-  const visible = filter === "All" ? D.memories : D.memories.filter((m) => m.kind === filter);
+  const [data, setData] = React.useState(null);
+  const [filter, setFilter] = React.useState("all");
+
+  React.useEffect(() => {
+    fetch("/api/memories")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setData(d); })
+      .catch(() => {});
+  }, []);
+
+  const memories = data ? data.memories : [];
+  const kinds = ["all", ...Array.from(new Set(memories.map((m) => m.kind)))];
+  const visible = filter === "all" ? memories : memories.filter((m) => m.kind === filter);
+
   return (
     <div data-screen-label="Memory Garden">
       <PageHeader
         title={L("Memory Garden", "Vườn ký ức")}
-        sub={D.stats.memories.toLocaleString() + L(" memories · +" + D.stats.memoriesToday + " today", " ký ức · +" + D.stats.memoriesToday + " hôm nay")}>
+        sub={data
+          ? data.total + L(" L1 atomic facts · persisted in memory/L1_atomic", " fact L1 · lưu tại memory/L1_atomic")
+          : L("Loading memories…", "Đang tải ký ức…")}>
         <div style={{ display: "flex", gap: 6 }}>
           {kinds.map((k) => (
             <button key={k} onClick={() => setFilter(k)} style={{
@@ -19,26 +31,27 @@ function MemoryGarden() {
               background: filter === k ? "var(--primary)" : "rgba(var(--shadow-rgb), .08)",
               color: filter === k ? "white" : "var(--ink-2)",
               transition: "background .15s",
-            }}>{k}</button>
+            }}>{k === "all" ? L("All", "Tất cả") : k}</button>
           ))}
         </div>
       </PageHeader>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)", maxWidth: 800 }}>
+        {data && visible.length === 0 && (
+          <div style={{ color: "var(--ink-3)", fontSize: 13 }}>{L("No memories yet.", "Chưa có ký ức nào.")}</div>
+        )}
         {visible.map((m) => (
           <div key={m.id} className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", gap: 14 }}>
             <div style={{ flex: "none", paddingTop: 2 }}>
-              <span style={{ color: m.pinned ? "var(--gold)" : "var(--pink)" }}>
-                {m.pinned ? Icons.pin(16) : Icons.memory(16)}
-              </span>
+              <span style={{ color: "var(--pink)" }}>{Icons.memory(16)}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <span className="chip neutral" style={{ fontSize: 11 }}>{m.kind}</span>
-                {m.pinned && <span className="chip gold" style={{ fontSize: 10.5 }}>Pinned</span>}
-                {m.fresh && <span className="chip" style={{ fontSize: 10.5, color: "var(--good)" }}>Fresh</span>}
+                {m.confidence && <span className="chip gold" style={{ fontSize: 10.5 }}>{m.confidence}</span>}
+                {m.fresh && <span className="chip" style={{ fontSize: 10.5, color: "var(--good)" }}>{L("Fresh", "Mới")}</span>}
               </div>
               <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink)" }}>{m.text}</p>
-              <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 7 }}>{m.source}</div>
+              {m.source && <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 7 }}>{m.source}</div>}
             </div>
           </div>
         ))}
@@ -47,35 +60,40 @@ function MemoryGarden() {
   );
 }
 
-/* ---------- Skills stub ---------- */
+/* ---------- Skills — real counts via /api/skills (core/skills on disk) ---------- */
 function Skills() {
-  const D = window.YANA;
-  const total = D.skillCategories.reduce((s, c) => s + c.count, 0);
+  const [data, setData] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch("/api/skills")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setData(d); })
+      .catch(() => {});
+  }, []);
+
+  const groups = data
+    ? [{ name: L("core (standalone)", "lõi (độc lập)"), count: data.standalone }, ...data.packs]
+    : [];
+
   return (
     <div data-screen-label="Skills">
       <PageHeader
         title={L("Skills", "Kỹ năng")}
-        sub={total.toLocaleString() + L(" skills across " + D.skillCategories.length + " categories · " + D.stats.skillsUsedToday + " used today",
-          " kỹ năng trong " + D.skillCategories.length + " danh mục · " + D.stats.skillsUsedToday + " dùng hôm nay")}>
-        <button style={{
-          display: "flex", alignItems: "center", gap: 7, padding: "8px 15px", borderRadius: 99,
-          border: "none", cursor: "pointer", background: "var(--primary)", color: "white",
-          fontSize: 13, fontWeight: 500, boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
-        }}>{Icons.plus(15)} {L("New skill", "Kỹ năng mới")}</button>
-      </PageHeader>
+        sub={data
+          ? data.total.toLocaleString() + L(" skills on disk · " + data.pack_count + " imported packs", " kỹ năng trên đĩa · " + data.pack_count + " gói đã nhập")
+          : L("Counting skills…", "Đang đếm kỹ năng…")} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--gap)" }}>
-        {D.skillCategories.map((c) => (
+        {groups.map((c) => (
           <div key={c.name} className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14.5, fontWeight: 500 }}>{c.name}</span>
-              <span className="chip neutral" style={{ fontSize: 11.5 }}>{c.count.toLocaleString()}</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <span style={{ fontSize: 14.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+              <span className="chip neutral" style={{ fontSize: 11.5, flex: "none" }}>{c.count.toLocaleString()}</span>
             </div>
             <div className="bar" style={{ height: 4 }}>
-              <i style={{ width: Math.round(c.usage / D.stats.skillsUsedToday * 100) + "%" }}></i>
+              <i style={{ width: Math.round(c.count / data.total * 100) + "%" }}></i>
             </div>
-            <div style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", justifyContent: "space-between" }}>
-              <span>{c.usage} {L("uses today", "lượt dùng hôm nay")}</span>
-              <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>{c.top}</span>
+            <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+              {Math.round(c.count / data.total * 100)}% {L("of catalog", "danh mục")}
             </div>
           </div>
         ))}

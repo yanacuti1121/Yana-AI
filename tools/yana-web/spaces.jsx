@@ -1,6 +1,6 @@
 // Yana AI — Agent Space + Mission Center
+// Agent catalog is real: GET /api/agents reads core/agents/*.md frontmatter.
 function AgentCard({ a }) {
-  const initial = a.name[0];
   return (
     <div className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
@@ -8,45 +8,50 @@ function AgentCard({ a }) {
           width: 38, height: 38, borderRadius: 13, flex: "none", display: "grid", placeItems: "center",
           fontSize: 15, fontWeight: 500, color: "var(--primary)",
           background: "var(--primary-soft)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.5)",
-        }}>{initial}</div>
+        }}>{a.name[0].toUpperCase()}</div>
         <div style={{ lineHeight: 1.25, minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 500, display: "flex", alignItems: "center", gap: 7 }}>
-            {a.name}
-            {a.core && <span className="chip gold" style={{ fontSize: 10.5, padding: "1px 8px" }}>Core</span>}
-          </div>
-          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{a.role}</div>
+          <div style={{ fontSize: 14.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{a.category}</div>
         </div>
-        <div style={{ marginLeft: "auto" }}><span className={"dot " + (a.status === "active" ? "on" : "idle")}></span></div>
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.5 }}>{a.specialty}</div>
-      <div style={{
-        fontSize: 12, color: a.status === "active" ? "var(--primary)" : "var(--ink-3)",
-        display: "flex", alignItems: "center", gap: 7, paddingTop: 8, borderTop: "1px solid var(--border)",
-      }}>
-        {a.status === "active" ? Icons.spark(13) : Icons.clock(13)} {a.load}
+      <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.5 }}>
+        {a.description || L("No description.", "Chưa có mô tả.")}
       </div>
     </div>
   );
 }
 
 function AgentSpace() {
-  const D = window.YANA;
-  const rest = D.stats.agents - D.agents.length;
+  const [data, setData] = React.useState(null);
+  const [filter, setFilter] = React.useState("all");
+
+  React.useEffect(() => {
+    fetch("/api/agents")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setData(d); })
+      .catch(() => {});
+  }, []);
+
+  const agents = data ? data.agents : [];
+  const categories = ["all", ...Array.from(new Set(agents.map((a) => a.category)))];
+  const visible = filter === "all" ? agents : agents.filter((a) => a.category === filter);
+
   return (
     <div data-screen-label="Agent Space">
-      <PageHeader title={L("Agent Space", "Không gian tác nhân")} sub={D.stats.agentsActive + L(" of ", " trong ") + D.stats.agents + L(" agents active · orchestrated by Navigator, reviewed by Sentinel", " tác nhân đang hoạt động · Navigator điều phối, Sentinel giám sát")}>
-        <button style={{
-          display: "flex", alignItems: "center", gap: 7, padding: "8px 15px", borderRadius: 99,
-          border: "none", cursor: "pointer", background: "var(--primary)", color: "white",
-          fontSize: 13, fontWeight: 500, boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
-        }}>{Icons.plus(15)} {L("New agent", "Tác nhân mới")}</button>
+      <PageHeader
+        title={L("Agent Space", "Không gian tác nhân")}
+        sub={data
+          ? data.total + L(" agents in catalog · none running — agents start when a mission dispatches", " tác nhân trong danh mục · chưa có tác nhân nào chạy — khởi động khi nhiệm vụ được giao")
+          : L("Loading agent catalog…", "Đang tải danh mục tác nhân…")}>
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{
+          padding: "7px 12px", borderRadius: 99, border: "1px solid var(--border-strong)",
+          background: "transparent", color: "var(--ink-2)", fontSize: 12.5, fontFamily: "inherit", cursor: "pointer",
+        }}>
+          {categories.map((c) => <option key={c} value={c}>{c === "all" ? L("All categories", "Tất cả danh mục") : c}</option>)}
+        </select>
       </PageHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "var(--gap)" }}>
-        {D.agents.map((a) => <AgentCard key={a.id} a={a} />)}
-        <div style={{
-          borderRadius: "var(--r-lg)", border: "1.5px dashed var(--border-strong)",
-          display: "grid", placeItems: "center", minHeight: 130, color: "var(--ink-3)", fontSize: 13,
-        }}>+ {rest} {L("more specialist agents", "tác nhân chuyên môn khác")}</div>
+        {visible.map((a) => <AgentCard key={a.category + "/" + a.name} a={a} />)}
       </div>
     </div>
   );
