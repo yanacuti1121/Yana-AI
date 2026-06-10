@@ -3,24 +3,50 @@ function ProviderCard({ p }) {
   const connected = p.status === "connected";
   const storageKey = "yana.key." + p.id;
   const [hasKey, setHasKey] = React.useState(() => !!localStorage.getItem(storageKey));
+  const [liveModels, setLiveModels] = React.useState(null);
+  const [checking, setChecking] = React.useState(false);
+
+  async function fetchLiveModels(key) {
+    if (p.id !== "openrouter" && p.id !== "groq") return;
+    setChecking(true);
+    try {
+      const r = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: p.id, key }),
+      });
+      if (r.ok) {
+        const { models } = await r.json();
+        setLiveModels(models.slice(0, 6).map((m) => m.name || m.id));
+      }
+    } catch (_) {}
+    setChecking(false);
+  }
 
   function promptKey() {
     const current = localStorage.getItem(storageKey) || "";
-    const raw = window.prompt("API key for " + p.name + " (leave blank to clear):", current);
-    if (raw === null) return; // cancelled
+    const raw = window.prompt(L("API key for ", "API key cho ") + p.name + L(" (leave blank to clear):", " (để trống để xóa):"), current);
+    if (raw === null) return;
     const trimmed = raw.trim();
     if (trimmed) {
       localStorage.setItem(storageKey, trimmed);
       setHasKey(true);
+      fetchLiveModels(trimmed);
     } else {
       localStorage.removeItem(storageKey);
       setHasKey(false);
+      setLiveModels(null);
     }
   }
 
   const keyDisplay = hasKey
     ? localStorage.getItem(storageKey).slice(0, 8) + "····"
     : (p.key || "—");
+
+  const displayModels = liveModels || p.models;
+  const modelLabel = liveModels
+    ? L("Live models", "Model thực tế")
+    : L("Models", "Mô hình");
 
   return (
     <div className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 11 }}>
@@ -36,26 +62,31 @@ function ProviderCard({ p }) {
         </div>
         <span className={"chip " + (connected ? "" : "gold")} style={{ marginLeft: "auto", fontSize: 11.5 }}>
           <span className={"dot " + (connected ? "on" : "idle")} style={{ width: 6, height: 6, boxShadow: "none" }}></span>
-          {connected ? "Connected" : "Standby"}
+          {connected ? L("Connected", "Kết nối") : L("Standby", "Dự phòng")}
         </span>
       </div>
 
       <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.5 }}>{p.role}</div>
 
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        {p.models.map((m) => <span key={m} className="chip neutral" style={{ fontSize: 11 }}>{m}</span>)}
+      <div>
+        <div style={{ fontSize: 11, color: "var(--ink-3)", marginBottom: 5 }}>
+          {checking ? L("Fetching live models…", "Đang tải model thực tế…") : modelLabel}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {displayModels.map((m) => <span key={m} className="chip neutral" style={{ fontSize: 11 }}>{m}</span>)}
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-        {[["Usage", p.usage], ["Latency", p.latency]].map(([k, v]) => (
+        {[[L("Usage", "Sử dụng"), p.usage], [L("Latency", "Độ trễ"), p.latency]].map(([k, v]) => (
           <div key={k} style={{ lineHeight: 1.35, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{k}</div>
             <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</div>
           </div>
         ))}
         <div style={{ lineHeight: 1.35, minWidth: 0 }}>
-          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>Key</div>
-          <button onClick={promptKey} title="Click to set API key" style={{
+          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{L("Key", "Khóa")}</div>
+          <button onClick={promptKey} title={L("Click to set API key", "Nhấn để đặt API key")} style={{
             background: "none", border: "none", padding: 0, cursor: "pointer",
             fontSize: 12, fontWeight: 500, color: hasKey ? "var(--good)" : "var(--primary)",
             display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
@@ -76,12 +107,14 @@ function Providers() {
   const connected = D.providers.filter((p) => p.status === "connected").length;
   return (
     <div data-screen-label="Providers">
-      <PageHeader title="Providers" sub={connected + " of " + D.providers.length + " providers connected · Groq routes, YAMTAM supervises every call"}>
+      <PageHeader
+        title={L("Providers", "Nhà cung cấp")}
+        sub={connected + L(" of ", " trong ") + D.providers.length + L(" providers connected · Groq routes, YAMTAM supervises every call", " nhà cung cấp đã kết nối · Groq định tuyến, YAMTAM giám sát mọi lệnh gọi")}>
         <button style={{
           display: "flex", alignItems: "center", gap: 7, padding: "8px 15px", borderRadius: 99,
           border: "none", cursor: "pointer", background: "var(--primary)", color: "white",
           fontSize: 13, fontWeight: 500, boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
-        }}>{Icons.plus(15)} Connect provider</button>
+        }}>{Icons.plus(15)} {L("Connect provider", "Kết nối nhà cung cấp")}</button>
       </PageHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--gap)" }}>
         {D.providers.map((p) => <ProviderCard key={p.id} p={p} />)}
@@ -179,8 +212,14 @@ function SliderRow({ label, value, onChange }) {
 const ACCENTS = ["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"];
 
 function AppearanceCard({ t, setTweak }) {
+  const toggleLabels = [
+    [L("Show agents on Lake", "Hiện tác nhân trên Mặt hồ"), "showAgents"],
+    [L("Show missions on Lake", "Hiện nhiệm vụ trên Mặt hồ"), "showMissions"],
+    [L("Show Memory Garden", "Hiện Vườn ký ức"), "showMemory"],
+    [L("Show system status", "Hiện trạng thái hệ thống"), "showSystem"],
+  ];
   return (
-    <Card title="Appearance" style={{ gridColumn: "1 / -1" }}>
+    <Card title={L("Appearance", "Giao diện")} style={{ gridColumn: "1 / -1" }}>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 18 }}>
         {THEME_PREVIEWS.map((p) => (
           <ThemeCard key={p.label} p={p} active={t.theme === p.label} onPick={() => setTweak("theme", p.label)} />
@@ -188,9 +227,9 @@ function AppearanceCard({ t, setTweak }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
-        <span style={{ fontSize: 13, width: 110, flex: "none" }}>Accent colour</span>
+        <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Accent colour", "Màu nhấn")}</span>
         <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
-          <button onClick={() => setTweak("accent", "")} title="Theme default" style={{
+          <button onClick={() => setTweak("accent", "")} title={L("Theme default", "Màu mặc định theme")} style={{
             width: 22, height: 22, borderRadius: "50%", cursor: "pointer", padding: 0,
             background: "conic-gradient(#2f7e6e, #3a7ca5, #b96b80, #b78f3d, #2f7e6e)",
             border: "none",
@@ -204,23 +243,25 @@ function AppearanceCard({ t, setTweak }) {
             }}></button>
           ))}
         </div>
-        <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>{t.accent ? t.accent : "Theme default"}</span>
+        <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>
+          {t.accent ? t.accent : L("Theme default", "Màu mặc định")}
+        </span>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
-        <span style={{ fontSize: 13, width: 110, flex: "none" }}>Density</span>
+        <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Density", "Mật độ")}</span>
         <YSeg options={["Compact", "Regular", "Spacious"]} value={t.layout} onChange={(v) => setTweak("layout", v)} />
       </div>
 
       <div style={{ padding: "8px 0 0", borderTop: "1px solid var(--border)" }}>
-        <SliderRow label="Blur" value={t.blur} onChange={(v) => setTweak("blur", v)} />
-        <SliderRow label="Transparency" value={t.transparency} onChange={(v) => setTweak("transparency", v)} />
-        <SliderRow label="Reflection" value={t.reflection} onChange={(v) => setTweak("reflection", v)} />
-        <SliderRow label="Depth" value={t.depth} onChange={(v) => setTweak("depth", v)} />
+        <SliderRow label={L("Blur", "Mờ")} value={t.blur} onChange={(v) => setTweak("blur", v)} />
+        <SliderRow label={L("Transparency", "Trong suốt")} value={t.transparency} onChange={(v) => setTweak("transparency", v)} />
+        <SliderRow label={L("Reflection", "Phản chiếu")} value={t.reflection} onChange={(v) => setTweak("reflection", v)} />
+        <SliderRow label={L("Depth", "Độ sâu")} value={t.depth} onChange={(v) => setTweak("depth", v)} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "4px 24px", paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-        {[["Show agents on Lake", "showAgents"], ["Show missions on Lake", "showMissions"], ["Show Memory Garden", "showMemory"], ["Show system status", "showSystem"]].map(([label, key]) => (
+        {toggleLabels.map(([label, key]) => (
           <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "7px 0" }}>
             <span style={{ fontSize: 13 }}>{label}</span>
             <YSwitch value={t[key]} onChange={(v) => setTweak(key, v)} />
@@ -252,7 +293,7 @@ function AboutField({ id, label, hint, placeholder, rows }) {
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
         <label htmlFor={"about-" + id} style={{ fontSize: 13, fontWeight: 500 }}>{label}</label>
         <span style={{ fontSize: 11, color: "var(--good)", opacity: saved ? 1 : 0, transition: "opacity .3s", display: "inline-flex", alignItems: "center", gap: 4 }}>
-          {Icons.check(11)} Planted in Memory Garden
+          {Icons.check(11)} {L("Planted in Memory Garden", "Đã lưu vào Vườn ký ức")}
         </span>
       </div>
       {hint && <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: -3 }}>{hint}</div>}
@@ -273,55 +314,93 @@ function AboutField({ id, label, hint, placeholder, rows }) {
 
 function AboutYouCard() {
   return (
-    <Card title="About you" style={{ gridColumn: "1 / -1" }}
-      aside={<span className="chip pink" style={{ fontSize: 11 }}>{Icons.memory(12)} Pinned · never pruned</span>}>
+    <Card title={L("About you", "Về bạn")} style={{ gridColumn: "1 / -1" }}
+      aside={<span className="chip pink" style={{ fontSize: 11 }}>{Icons.memory(12)} {L("Pinned · never pruned", "Đã ghim · không bao giờ xóa")}</span>}>
       <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55 }}>
-        Yana reads this before every mission. The more honestly you describe yourself, the better she routes, plans, and phrases things for you.
+        {L(
+          "Yana reads this before every mission. The more honestly you describe yourself, the better she routes, plans, and phrases things for you.",
+          "Yana đọc phần này trước mỗi nhiệm vụ. Bạn mô tả bản thân càng thực tế, cô ấy càng định tuyến, lên kế hoạch và diễn đạt tốt hơn cho bạn."
+        )}
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        <AboutField id="who" label="Who you are"
-          hint="Role, what you're building, how you work"
-          placeholder="e.g. I'm a system builder. I think in workflows, not code. I'd rather design the machine than turn its crank." rows={4} />
-        <AboutField id="strengths" label="Strengths"
-          hint="What Yana should lean on"
-          placeholder="e.g. Big-picture architecture, fast decisions, spotting what matters." rows={4} />
-        <AboutField id="weaknesses" label="Weak spots"
-          hint="Where Yana should quietly cover for you"
-          placeholder="e.g. I lose patience with long documents. Remind me of deadlines — once, gently." rows={4} />
-        <AboutField id="style" label="How Yana should respond"
-          hint="Tone, length, language"
-          placeholder="e.g. Calm and brief. No hype, no exclamation marks. Vietnamese is fine for casual notes." rows={4} />
+        <AboutField id="who" label={L("Who you are", "Bạn là ai")}
+          hint={L("Role, what you're building, how you work", "Vai trò, bạn đang xây dựng gì, cách bạn làm việc")}
+          placeholder={L("e.g. I'm a system builder. I think in workflows, not code.", "e.g. Tôi xây hệ thống. Tôi nghĩ theo luồng công việc, không phải code.")} rows={4} />
+        <AboutField id="strengths" label={L("Strengths", "Điểm mạnh")}
+          hint={L("What Yana should lean on", "Điều Yana nên dựa vào")}
+          placeholder={L("e.g. Big-picture architecture, fast decisions.", "e.g. Kiến trúc tổng thể, ra quyết định nhanh.")} rows={4} />
+        <AboutField id="weaknesses" label={L("Weak spots", "Điểm yếu")}
+          hint={L("Where Yana should quietly cover for you", "Nơi Yana nên lặng lẽ hỗ trợ bạn")}
+          placeholder={L("e.g. I lose patience with long documents.", "e.g. Tôi mất kiên nhẫn với tài liệu dài.")} rows={4} />
+        <AboutField id="style" label={L("How Yana should respond", "Yana nên trả lời thế nào")}
+          hint={L("Tone, length, language", "Giọng điệu, độ dài, ngôn ngữ")}
+          placeholder={L("e.g. Calm and brief. Vietnamese is fine for casual notes.", "e.g. Bình tĩnh và ngắn gọn. Tiếng Việt được cho ghi chú thường ngày.")} rows={4} />
       </div>
     </Card>
   );
 }
 
 function Settings({ t, setTweak }) {
+  const langDisplay = t.language === "Tiếng Việt"
+    ? L("English / Tiếng Việt ✓", "Tiếng Việt ✓ / English")
+    : L("English ✓ / Tiếng Việt", "English ✓ / Tiếng Việt");
+  function toggleLang() {
+    setTweak("language", t.language === "Tiếng Việt" ? "English" : "Tiếng Việt");
+  }
   return (
     <div data-screen-label="Settings">
-      <PageHeader title="Settings" sub="Quiet defaults. Everything supervised by YAMTAM Core." />
+      <PageHeader
+        title={L("Settings", "Cài đặt")}
+        sub={L("Quiet defaults. Everything supervised by YAMTAM Core.", "Cài đặt mặc định. Mọi thứ được YAMTAM Core giám sát.")} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "var(--gap)", maxWidth: 900 }}>
         <AppearanceCard t={t} setTweak={setTweak} />
         <AboutYouCard />
-        <Card title="Workspace">
-          <SettingRow label="Workspace name" value="Tâm's Lake" />
-          <SettingRow label="Language" value="English" />
-          <SettingRow label="Timezone" value="GMT+7 · Hà Nội" />
+        <Card title={L("Workspace", "Không gian làm việc")}>
+          <SettingRow label={L("Workspace name", "Tên không gian")} value={L("Tâm's Lake", "Mặt hồ của Tâm")} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ lineHeight: 1.35 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Language", "Ngôn ngữ")}</div>
+            </div>
+            <button onClick={toggleLang} style={{
+              background: "none", border: "1px solid var(--border)", padding: "4px 12px",
+              borderRadius: 99, cursor: "pointer", fontSize: 12, color: "var(--primary)",
+              fontWeight: 500, fontFamily: "inherit",
+            }}>{langDisplay}</button>
+          </div>
+          <SettingRow label={L("Timezone", "Múi giờ")} value="GMT+7 · Hà Nội" />
         </Card>
-        <Card title="Orchestration">
-          <SettingRow label="Default orchestrator" desc="Plans and delegates missions" value="Navigator · Claude" />
-          <SettingRow label="Router budget" desc="Max time for routing decisions" value="300 ms · Groq" />
-          <SettingRow label="Fallback chain" value="GPT → Gemini → OpenRouter" />
+        <Card title={L("Orchestration", "Điều phối")}>
+          <SettingRow
+            label={L("Default orchestrator", "Bộ điều phối mặc định")}
+            desc={L("Plans and delegates missions", "Lên kế hoạch và phân công nhiệm vụ")}
+            value="Navigator · Claude" />
+          <SettingRow
+            label={L("Router budget", "Ngân sách định tuyến")}
+            desc={L("Max time for routing decisions", "Thời gian tối đa cho quyết định định tuyến")}
+            value="300 ms · Groq" />
+          <SettingRow label={L("Fallback chain", "Chuỗi dự phòng")} value="GPT → Gemini → OpenRouter" />
         </Card>
-        <Card title="Safety">
-          <SettingRow label="Gate mode" desc="Every agent action is reviewed" value="Strict · deny by default" />
-          <SettingRow label="Merge protection" desc="Sentinel sign-off before main" value="On" />
-          <SettingRow label="Incident retention" value="90 days" />
+        <Card title={L("Safety", "Bảo mật")}>
+          <SettingRow
+            label={L("Gate mode", "Chế độ cổng")}
+            desc={L("Every agent action is reviewed", "Mọi hành động của tác nhân đều được xem xét")}
+            value={L("Strict · deny by default", "Nghiêm ngặt · từ chối mặc định")} />
+          <SettingRow
+            label={L("Merge protection", "Bảo vệ merge")}
+            desc={L("Sentinel sign-off before main", "Sentinel xét duyệt trước khi vào main")}
+            value={L("On", "Bật")} />
+          <SettingRow label={L("Incident retention", "Lưu trữ sự cố")} value={L("90 days", "90 ngày")} />
         </Card>
-        <Card title="Memory">
-          <SettingRow label="Garden pruning" desc="Gardener's nightly decay pass" value="02:00 daily" />
-          <SettingRow label="Pinned memories" desc="Never pruned" value="2 pinned" />
-          <SettingRow label="Storage" value="Local · encrypted" />
+        <Card title={L("Memory", "Bộ nhớ")}>
+          <SettingRow
+            label={L("Garden pruning", "Cắt tỉa Vườn ký ức")}
+            desc={L("Gardener's nightly decay pass", "Gardener chạy mỗi đêm để dọn ký ức cũ")}
+            value={L("02:00 daily", "02:00 hằng ngày")} />
+          <SettingRow
+            label={L("Pinned memories", "Ký ức đã ghim")}
+            desc={L("Never pruned", "Không bao giờ xóa")}
+            value={L("2 pinned", "2 đã ghim")} />
+          <SettingRow label={L("Storage", "Lưu trữ")} value={L("Local · encrypted", "Cục bộ · mã hóa")} />
         </Card>
       </div>
     </div>
