@@ -3,7 +3,7 @@
   "version": "0.41.0",
   "scaffold_version": "1.0",
   "release_date": "2026-06-06",
-  "manifest_updated": "2026-06-08",
+  "manifest_updated": "2026-06-10",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "bundled_tools": {
@@ -87,7 +87,7 @@
     ],
     "agents": {
       "status": "imported",
-      "count": 97,
+      "count": 204,
       "actual_present": [
         "core/agents/agent-gardener.md",
         "core/agents/agent-organizer.md",
@@ -408,7 +408,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 96,
+      "count": 55,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -504,7 +504,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 61,
+      "count": 63,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
@@ -526,6 +526,8 @@
         "core/rules/60-token-budget-velocity-law.md",
         "core/rules/61-code-signing-law.md",
         "core/rules/62-sovereign-overlord-gate-law.md",
+        "core/rules/66-client-secret-encryption-law.md",
+        "core/rules/67-core-integrity-lock-law.md",
         "core/rules/agent-code-constraints.md",
         "core/rules/agent-communication-policy.md",
         "core/rules/agent-excessive-agency-law.md",
@@ -587,7 +589,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 3501,
+      "count": 3510,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -1046,5 +1048,5 @@
   "hooks_count": 46,
   "scripts_count": 94,
   "commands_count": 164,
-  "rules_count": 61
+  "rules_count": 63
 }
