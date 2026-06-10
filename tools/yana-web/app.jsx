@@ -212,9 +212,11 @@ function Undercurrent() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+// Render only after the key vault has decrypted into its in-memory cache —
+// otherwise ProviderCard/Chat would see an empty vault on first paint.
+YanaVault.ready.then(() => ReactDOM.createRoot(document.getElementById("root")).render(
   <>
     <Undercurrent />
     <App />
   </>
-);
+));

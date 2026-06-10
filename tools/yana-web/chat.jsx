@@ -88,11 +88,11 @@ function ContextPanel() {
   );
 }
 
-// Find the first provider that has a stored API key in localStorage
+// Find the first provider that has a stored API key in the encrypted vault
 function getProviderConfig() {
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
   for (const id of order) {
-    const key = localStorage.getItem("yana.key." + id);
+    const key = YanaVault.getKey(id);
     if (key) return { provider: id, apiKey: key };
   }
   return { provider: "claude", apiKey: "" };

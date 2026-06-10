@@ -54,6 +54,8 @@ COPY core/agents/ ./core/agents/
 
 # ── Runtime config ─────────────────────────────────────────────────────────
 ENV PORT=8081
+# Server defaults to loopback; inside a container we must bind all interfaces
+ENV HOST=0.0.0.0
 ENV NODE_ENV=production
 
 RUN chown -R yana:yana /app

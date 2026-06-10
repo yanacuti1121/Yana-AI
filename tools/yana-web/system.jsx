@@ -1,8 +1,7 @@
 // Yana AI — Providers + Settings
 function ProviderCard({ p }) {
   const connected = p.status === "connected";
-  const storageKey = "yana.key." + p.id;
-  const [hasKey, setHasKey] = React.useState(() => !!localStorage.getItem(storageKey));
+  const [hasKey, setHasKey] = React.useState(() => YanaVault.hasKey(p.id));
   const [liveModels, setLiveModels] = React.useState(null);
   const [checking, setChecking] = React.useState(false);
 
@@ -23,24 +22,24 @@ function ProviderCard({ p }) {
     setChecking(false);
   }
 
-  function promptKey() {
-    const current = localStorage.getItem(storageKey) || "";
+  async function promptKey() {
+    const current = YanaVault.getKey(p.id) || "";
     const raw = window.prompt(L("API key for ", "API key cho ") + p.name + L(" (leave blank to clear):", " (để trống để xóa):"), current);
     if (raw === null) return;
     const trimmed = raw.trim();
     if (trimmed) {
-      localStorage.setItem(storageKey, trimmed);
+      await YanaVault.setKey(p.id, trimmed);
       setHasKey(true);
       fetchLiveModels(trimmed);
     } else {
-      localStorage.removeItem(storageKey);
+      YanaVault.removeKey(p.id);
       setHasKey(false);
       setLiveModels(null);
     }
   }
 
   const keyDisplay = hasKey
-    ? localStorage.getItem(storageKey).slice(0, 8) + "····"
+    ? YanaVault.getKey(p.id).slice(0, 8) + "····"
     : (p.key || "—");
 
   const displayModels = liveModels || p.models;

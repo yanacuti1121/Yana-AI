@@ -11,6 +11,9 @@ const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = 
 });
 
 const PORT         = process.env.PORT || 8081;
+// Loopback by default — Electron and Web Preview both talk to 127.0.0.1.
+// Docker/remote deploys opt in explicitly with HOST=0.0.0.0.
+const HOST         = process.env.HOST || '127.0.0.1';
 const STATIC_DIR   = __dirname;
 const MANIFEST_PATH = path.join(__dirname, '..', '..', 'MANIFEST.json');
 
@@ -102,9 +105,11 @@ const PROVIDERS = {
     hostname:     'generativelanguage.googleapis.com',
     vision:       true,
     defaultModel: 'gemini-2.0-flash',
-    buildPath: (model, key) =>
-      `/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`,
-    headers: _key => ({ 'content-type': 'application/json' }),
+    // Key goes in the x-goog-api-key header, never the URL — query strings
+    // leak into access logs and proxies (API2: broken authentication).
+    buildPath: (model, _key) =>
+      `/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,
+    headers: key => ({ 'content-type': 'application/json', 'x-goog-api-key': key }),
     body: (model, system, task, images) => {
       const parts = [
         ...(images || []).map(img => ({
@@ -260,6 +265,39 @@ async function handleApiIndex(req, res) {
   res.end(JSON.stringify({ indexed, chunks: CODEBASE.N, skipped }));
 }
 
+// ── Security: response headers + per-IP rate limit ────────────────────────────
+const SEC_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options':        'DENY',
+  'Referrer-Policy':        'no-referrer',
+  'Content-Security-Policy':
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; " + // Babel standalone needs eval + inline
+    "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; " +
+    "font-src https://fonts.bunny.net; " +
+    "img-src 'self' data: blob:; " +
+    "connect-src 'self'",
+};
+
+function applySecurityHeaders(res) {
+  for (const [k, v] of Object.entries(SEC_HEADERS)) res.setHeader(k, v);
+}
+
+const RATE = { windowMs: 60_000, max: 60, hits: new Map() };
+
+function rateLimited(req) {
+  const ip  = req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  let rec = RATE.hits.get(ip);
+  if (!rec || now - rec.start > RATE.windowMs) rec = { count: 0, start: now };
+  rec.count++;
+  RATE.hits.set(ip, rec);
+  if (RATE.hits.size > 1000) {
+    for (const [k, v] of RATE.hits) if (now - v.start > RATE.windowMs) RATE.hits.delete(k);
+  }
+  return rec.count > RATE.max;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function readBody(req, maxBytes) {
   const limit = maxBytes || 16 * 1024;
@@ -279,10 +317,13 @@ function readBody(req, maxBytes) {
 }
 
 function serveStatic(res, reqPath) {
-  if (reqPath.includes('..')) {
-    res.writeHead(400, { 'Content-Type': 'text/plain' }); res.end('Bad Request'); return;
+  const filePath = path.resolve(STATIC_DIR, '.' + reqPath);
+  const rel = path.relative(STATIC_DIR, filePath);
+  const escapes  = rel.startsWith('..') || path.isAbsolute(rel);
+  const hidden   = rel.split(path.sep).some(seg => seg.startsWith('.') || seg === 'node_modules');
+  if (escapes || hidden) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not Found'); return;
   }
-  const filePath = path.join(STATIC_DIR, reqPath);
   const contentType = MIME[path.extname(filePath)] || 'text/plain';
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not Found'); return; }
@@ -504,6 +545,14 @@ const server = http.createServer(async (req, res) => {
   const pathname = (url.parse(req.url || '/').pathname || '/');
   const method   = req.method || 'GET';
 
+  applySecurityHeaders(res);
+
+  if (method === 'POST' && rateLimited(req)) {
+    res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '60' });
+    res.end(JSON.stringify({ error: 'Too many requests' }));
+    return;
+  }
+
   if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
@@ -516,8 +565,8 @@ const server = http.createServer(async (req, res) => {
   res.end('Method Not Allowed');
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Yana AI on http://localhost:${PORT} — ${skillCount()} skills indexed`);
+server.listen(PORT, HOST, () => {
+  console.log(`Yana AI on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT} — ${skillCount()} skills indexed`);
 });
 
 module.exports = server;
