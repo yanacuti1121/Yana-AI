@@ -1,186 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yana AI</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="themes.css" />
 </head>
 <body>
-  <div class="layout" id="layout">
-
-    <!-- ── Sidebar ─────────────────────────────────────────────────── -->
-    <aside class="sidebar" id="sidebar" aria-label="Sidebar">
-
-      <div class="sidebar-header">
-        <div class="sidebar-brand">
-          <div class="brand-avatar">Y</div>
-          <div class="brand-info">
-            <span class="brand-name">Yana</span>
-            <span id="stat-skills" class="brand-sub">— skills</span>
-          </div>
-        </div>
-        <button class="icon-btn sidebar-close" id="sidebar-close" aria-label="Close sidebar">✕</button>
-      </div>
-
-      <button class="new-chat-btn" id="new-chat-btn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New chat
-      </button>
-
-      <!-- User section -->
-      <div id="user-section" class="user-section"></div>
-
-      <!-- Settings -->
-      <div class="sidebar-section">
-        <div class="section-label">Settings</div>
-
-        <div class="setting-group">
-          <label class="setting-label" for="provider-select">Provider</label>
-          <select id="provider-select" class="setting-select">
-            <option value="anthropic">Anthropic</option>
-            <option value="groq">Groq (free)</option>
-            <option value="openai">OpenAI</option>
-            <option value="gemini">Gemini</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="openrouter">OpenRouter (300+ models)</option>
-          </select>
-        </div>
-
-        <div class="setting-group">
-          <label class="setting-label" for="model-select">Model</label>
-          <select id="model-select" class="setting-select"></select>
-        </div>
-
-        <div class="setting-group">
-          <label class="setting-label" for="api-key-input">API Key</label>
-          <div class="key-row">
-            <input
-              id="api-key-input"
-              type="password"
-              class="key-input"
-              placeholder="sk-ant-…"
-              autocomplete="off"
-            >
-            <button id="save-key-btn" class="btn-save" type="button">Save</button>
-          </div>
-          <span id="key-status" class="key-status" aria-live="polite">no key</span>
-        </div>
-      </div>
-
-      <!-- Codebase context -->
-      <div class="sidebar-section">
-        <div class="section-label">Codebase</div>
-        <div class="codebase-box">
-          <div id="codebase-status" class="codebase-status">No index</div>
-          <div class="codebase-actions">
-            <button id="codebase-folder-btn" class="btn-codebase" type="button">📁 Folder</button>
-            <button id="codebase-files-btn" class="btn-codebase" type="button">📄 Files</button>
-            <button id="codebase-clear-btn" class="btn-codebase btn-codebase-clear" style="display:none" type="button">✕ Clear</button>
-          </div>
-          <label class="codebase-toggle-row" id="codebase-toggle-row" style="display:none">
-            <input type="checkbox" id="codebase-toggle" checked>
-            <span>Use in chat</span>
-          </label>
-        </div>
-        <input id="codebase-dir-input" type="file" webkitdirectory multiple hidden>
-        <input id="codebase-files-input" type="file" multiple hidden accept=".js,.ts,.jsx,.tsx,.py,.go,.rs,.java,.cpp,.c,.h,.cs,.rb,.php,.sh,.bash,.json,.yaml,.yml,.toml,.md,.txt,.html,.css,.sql">
-      </div>
-
-      <!-- History -->
-      <div class="sidebar-section sidebar-history">
-        <div class="section-label">Recent</div>
-        <ul id="history-list" class="history-list" aria-live="polite"></ul>
-      </div>
-
-    </aside>
-
-    <!-- Mobile overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <!-- ── Chat main ─────────────────────────────────────────────────── -->
-    <main class="chat-main">
-
-      <!-- Header -->
-      <header class="chat-header">
-        <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open sidebar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <div class="header-center">
-          <span class="header-title">Yana</span>
-          <span id="stat-version" class="header-sub">yamtam</span>
-        </div>
-        <div class="header-right">
-          <span id="stat-agents" class="header-stat">—</span>
-          <span class="header-stat-sep">·</span>
-          <span id="stat-hooks" class="header-stat">—</span>
-        </div>
-      </header>
-
-      <!-- Messages -->
-      <div class="messages" id="messages">
-        <div class="welcome" id="welcome">
-          <div class="welcome-avatar">Y</div>
-          <h1 class="welcome-title">Yana</h1>
-          <p class="welcome-sub">multi-provider AI · <span id="welcome-skills">3,501</span> skills · coding · học tập · công việc</p>
-          <div class="welcome-chips">
-            <button class="chip" type="button">Debug lỗi này giúp tôi</button>
-            <button class="chip" type="button">Giải thích cho mình hiểu về</button>
-            <button class="chip" type="button">Tóm tắt nội dung này</button>
-            <button class="chip" type="button">Review code này</button>
-            <button class="chip" type="button">Viết email cho</button>
-            <button class="chip" type="button">Lên kế hoạch học</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Input bar -->
-      <div class="input-bar">
-        <div id="file-chips" class="file-chips"></div>
-        <div class="input-wrap">
-          <button id="attach-btn" class="attach-btn" type="button" aria-label="Attach file" title="Đính kèm file">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 16.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
-          </button>
-          <input id="file-input" type="file" accept=".js,.ts,.jsx,.tsx,.py,.go,.rs,.java,.cpp,.c,.cs,.rb,.php,.sh,.bash,.zsh,.json,.yaml,.yml,.toml,.md,.txt,.html,.css,.sql,.env.example,.gitignore,text/*,image/png,image/jpeg,image/gif,image/webp" multiple hidden>
-          <textarea
-            id="task-input"
-            class="chat-input"
-            placeholder="Message Yana…"
-            rows="1"
-            aria-label="Message"
-          ></textarea>
-          <button id="run-btn" class="send-btn" type="button" aria-label="Send">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-            </svg>
-          </button>
-        </div>
-        <p class="input-tip">Enter to send · Shift+Enter for newline · 📎 file code hoặc ảnh</p>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- Auth modal -->
-  <div id="auth-overlay" class="auth-overlay hidden"></div>
-  <div id="auth-modal" class="auth-modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <div class="auth-card">
-      <button class="auth-close" id="auth-close" aria-label="Close">✕</button>
-      <div class="auth-logo">Y</div>
-      <h2 class="auth-title" id="auth-title">Đăng nhập</h2>
-      <form id="auth-form" class="auth-form" novalidate>
-        <input id="auth-email"    type="email"    placeholder="Email"      autocomplete="email"            required>
-        <input id="auth-password" type="password" placeholder="Mật khẩu"  autocomplete="current-password" required>
-        <button id="auth-submit" class="auth-submit" type="submit">Đăng nhập</button>
-        <p id="auth-error" class="auth-error" aria-live="polite"></p>
-      </form>
-      <p class="auth-toggle"><span id="auth-toggle-label">Chưa có tài khoản? </span><button id="auth-switch" type="button">Đăng ký</button></p>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="app.js" defer></script>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Plain JS first — sets window.YANA before any JSX runs -->
+  <script src="data.js"></script>
+  <!-- JSX components in dependency order -->
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="dashboard.jsx"></script>
+  <script type="text/babel" src="chat.jsx"></script>
+  <script type="text/babel" src="spaces.jsx"></script>
+  <script type="text/babel" src="system.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
 </body>
 </html>
