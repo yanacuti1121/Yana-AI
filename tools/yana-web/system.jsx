@@ -1,7 +1,13 @@
 // Yana AI — Providers + Settings
-function ProviderCard({ p }) {
-  const connected = p.status === "connected";
+function fmtTokens(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  return String(n);
+}
+
+function ProviderCard({ p, usage, onKeyChange }) {
   const [hasKey, setHasKey] = React.useState(() => YanaVault.hasKey(p.id));
+  const connected = hasKey; // real: a stored API key means connected
   const [liveModels, setLiveModels] = React.useState(null);
   const [checking, setChecking] = React.useState(false);
 
@@ -36,11 +42,16 @@ function ProviderCard({ p }) {
       setHasKey(false);
       setLiveModels(null);
     }
+    if (onKeyChange) onKeyChange();
   }
 
   const keyDisplay = hasKey
     ? YanaVault.getKey(p.id).slice(0, 8) + "····"
-    : (p.key || "—");
+    : "—";
+
+  const u = usage && usage[p.id];
+  const usageDisplay   = u ? "~" + fmtTokens(u.est_tokens) + L(" tokens", " tokens") : L("Not used yet", "Chưa dùng");
+  const latencyDisplay = u && u.avg_latency_ms ? (u.avg_latency_ms / 1000).toFixed(1) + "s" : "—";
 
   const displayModels = liveModels || p.models;
   const modelLabel = liveModels
@@ -77,7 +88,7 @@ function ProviderCard({ p }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-        {[[L("Usage", "Sử dụng"), p.usage], [L("Latency", "Độ trễ"), p.latency]].map(([k, v]) => (
+        {[[L("Usage", "Sử dụng"), usageDisplay], [L("Latency", "Độ trễ"), latencyDisplay]].map(([k, v]) => (
           <div key={k} style={{ lineHeight: 1.35, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{k}</div>
             <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</div>
@@ -103,7 +114,17 @@ function ProviderCard({ p }) {
 
 function Providers() {
   const D = window.YANA;
-  const connected = D.providers.filter((p) => p.status === "connected").length;
+  const [usage, setUsage] = React.useState(null);
+  const [, bump] = React.useReducer((x) => x + 1, 0);
+
+  React.useEffect(() => {
+    fetch("/api/usage")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setUsage(d.usage); })
+      .catch(() => {});
+  }, []);
+
+  const connected = D.providers.filter((p) => YanaVault.hasKey(p.id)).length;
   return (
     <div data-screen-label="Providers">
       <PageHeader
@@ -116,7 +137,7 @@ function Providers() {
         }}>{Icons.plus(15)} {L("Connect provider", "Kết nối nhà cung cấp")}</button>
       </PageHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--gap)" }}>
-        {D.providers.map((p) => <ProviderCard key={p.id} p={p} />)}
+        {D.providers.map((p) => <ProviderCard key={p.id} p={p} usage={usage} onKeyChange={bump} />)}
       </div>
     </div>
   );

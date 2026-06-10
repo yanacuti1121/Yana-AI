@@ -438,32 +438,62 @@ async function handleApiRoute(req, res) {
   } catch (_) { jsonError(res, 500, 'Routing error'); }
 }
 
+// ── Usage tracking — real numbers for the UI (in-memory, per server session) ──
+const USAGE = Object.create(null); // provider -> { requests, chars, totalMs, lastTs }
+
+function recordUsage(provider, chars, ms) {
+  const u = USAGE[provider] || (USAGE[provider] = { requests: 0, chars: 0, totalMs: 0, lastTs: 0 });
+  u.requests++;
+  u.chars   += chars;
+  u.totalMs += ms;
+  u.lastTs   = Date.now();
+}
+
+// GET /api/usage — per-provider session stats (tokens are a chars/4 estimate)
+function handleApiUsage(req, res) {
+  const out = {};
+  for (const [k, u] of Object.entries(USAGE)) {
+    out[k] = {
+      requests:       u.requests,
+      est_tokens:     Math.round(u.chars / 4),
+      avg_latency_ms: u.requests ? Math.round(u.totalMs / u.requests) : 0,
+      last_used:      u.lastTs,
+    };
+  }
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ usage: out }));
+}
+
 // ── SSE normalize: upstream SSE → unified data: {"text":"..."} ────────────────
-function pipeNormalizedSSE(upstreamRes, res, extractText) {
+function pipeNormalizedSSE(upstreamRes, res, extractText, onDone) {
   let buf = '';
+  let chars = 0;
   upstreamRes.on('data', chunk => {
     buf += chunk.toString();
     const lines = buf.split('\n');
     buf = lines.pop();
-    emitLines(lines, res, extractText);
+    chars += emitLines(lines, res, extractText);
   });
   upstreamRes.on('end', () => {
-    if (buf) emitLines(buf.split('\n'), res, extractText);
+    if (buf) chars += emitLines(buf.split('\n'), res, extractText);
     res.write('data: [DONE]\n\n');
     res.end();
+    if (onDone) onDone(chars);
   });
 }
 
 function emitLines(lines, res, extractText) {
+  let emitted = 0;
   for (const line of lines) {
     if (!line.startsWith('data: ')) continue;
     const raw = line.slice(6).trim();
-    if (raw === '[DONE]') return;
+    if (raw === '[DONE]') return emitted;
     try {
       const text = extractText(JSON.parse(raw));
-      if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
     } catch (_) {}
   }
+  return emitted;
 }
 
 // ── POST /api/chat ────────────────────────────────────────────────────────────
@@ -515,6 +545,9 @@ async function handleApiChat(req, res) {
     'Connection':    'keep-alive',
   });
 
+  const t0 = Date.now();
+  const usageId = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
+
   const upstreamReq = https.request(options, upstreamRes => {
     if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
       let errBody = '';
@@ -528,7 +561,8 @@ async function handleApiChat(req, res) {
       });
       return;
     }
-    pipeNormalizedSSE(upstreamRes, res, p.extractText);
+    pipeNormalizedSSE(upstreamRes, res, p.extractText,
+      chars => recordUsage(usageId, chars, Date.now() - t0));
   });
 
   upstreamReq.on('error', () => {
@@ -555,6 +589,7 @@ const server = http.createServer(async (req, res) => {
 
   if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
+  if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }

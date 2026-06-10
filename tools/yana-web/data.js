@@ -11,13 +11,15 @@ window.YANA = {
     uptimeDays: 31,
   },
 
+  // Static catalog only — connection status, usage, latency, and keys are
+  // real values resolved at runtime (YanaVault + GET /api/usage)
   providers: [
-    { id: "claude",     name: "Claude",     company: "Anthropic",  status: "connected", models: ["Opus 4.8", "Sonnet 4.6", "Haiku 4.5"], usage: "1.2M tokens today", latency: "1.1s", role: "Primary — reasoning & orchestration", key: "sk-ant-····7f2a" },
-    { id: "openai",     name: "OpenAI",     company: "OpenAI",     status: "connected", models: ["GPT-4o", "GPT-4o mini"],              usage: "640K tokens today", latency: "0.9s", role: "Drafting & vision",                key: "sk-····k91x" },
-    { id: "gemini",     name: "Gemini",     company: "Google",     status: "connected", models: ["2.0 Flash", "1.5 Pro"],               usage: "410K tokens today", latency: "0.8s", role: "Long context & search",            key: "AIza····m3q8" },
-    { id: "groq",       name: "Groq",       company: "Groq",       status: "connected", models: ["Llama 4 70B"],                        usage: "95K tokens today",  latency: "0.2s", role: "Router — sub-300ms decisions",     key: "gsk-····t5w2" },
-    { id: "deepseek",   name: "DeepSeek",   company: "DeepSeek",   status: "connected", models: ["V3", "R1"],                           usage: "180K tokens today", latency: "1.4s", role: "Deep reasoning — cost-efficient",  key: "sk-ds-····a7e1" },
-    { id: "openrouter", name: "OpenRouter", company: "OpenRouter", status: "standby",   models: ["Fallback pool · 40+ models"],         usage: "Not used today",    latency: "—",    role: "Overflow & fallback routing",      key: "sk-or-····9d4c" },
+    { id: "claude",     name: "Claude",     company: "Anthropic",  models: ["Opus 4.8", "Sonnet 4.6", "Haiku 4.5"], role: "Primary — reasoning & orchestration" },
+    { id: "openai",     name: "OpenAI",     company: "OpenAI",     models: ["GPT-4o", "GPT-4o mini"],               role: "Drafting & vision" },
+    { id: "gemini",     name: "Gemini",     company: "Google",     models: ["2.0 Flash", "1.5 Pro"],                role: "Long context & search" },
+    { id: "groq",       name: "Groq",       company: "Groq",       models: ["Llama 4 70B"],                         role: "Router — sub-300ms decisions" },
+    { id: "deepseek",   name: "DeepSeek",   company: "DeepSeek",   models: ["V3", "R1"],                            role: "Deep reasoning — cost-efficient" },
+    { id: "openrouter", name: "OpenRouter", company: "OpenRouter", models: ["Fallback pool · 40+ models"],          role: "Overflow & fallback routing" },
   ],
 
   models: [
