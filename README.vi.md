@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_kỹ_năng-3,516-2f7e6e?style=flat-square" />
+  <img src="https://img.shields.io/badge/🧩_kỹ_năng-3,518-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
   <img src="https://img.shields.io/badge/📜_quy_tắc-63-b96b80?style=flat-square" />
   <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
@@ -48,9 +48,13 @@
 
 ---
 
-**YAMTAM ENGINE** là một hệ điều hành agent cá nhân dành cho các công cụ lập trình AI — bao gồm các hook bảo mật runtime, các tầng bộ nhớ, 97 agent chuyên trách, 3,516 kỹ năng và một runtime viết bằng Rust giúp chặn các hành động nguy hiểm của AI trước khi chúng được thực thi.
+**YAMTAM ENGINE** là một hệ điều hành agent cá nhân dành cho các công cụ lập trình AI — bao gồm các hook bảo mật runtime, các tầng bộ nhớ, 97 agent chuyên trách, 3,518 kỹ năng và một runtime viết bằng Rust giúp chặn các hành động nguy hiểm của AI trước khi chúng được thực thi.
 
 Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, và nhiều công cụ khác.
+
+<p align="center">
+  <img src="./docs/demo.gif" alt="Hệ thống gate YAMTAM chặn rm -rf, pipe-to-shell, prompt injection và lệnh xóa production chưa duyệt — bản ghi thật" width="720" />
+</p>
 
 > **Mới trong v0.41.0:** [Yana task router](#bộ-định-tuyến-tác-vụ-yana) — tự động phân loại mọi tác vụ thành đơn giản/phức tạp/bên ngoài/**học tập**/**hàng ngày** và điều phối agent. [Yana AI](#yana-ai) chạy trên **100% dữ liệu thực** — kho khóa mã hóa (AES-256-GCM), thống kê provider trực tiếp, bộ nhớ L1 thật và bảng điều khiển audit-log. [Mission dispatcher](#hệ-thống-điều-phối-nhiệm-vụ-mission-dispatcher) — điều phối agent song song theo làn sóng (wave-based), viết bằng Rust. **Core-lock** — manifest SHA-256 ghim 216 tệp cốt lõi chống can thiệp trái phép (quy tắc 67).
 
@@ -103,7 +107,7 @@ graph TB
     %% ── Core engine ──────────────────────────────────────────────────────
     subgraph CORE["⚙️ Core Engine"]
         direction TB
-        SKILLS["📚 3,516 kỹ năng\nĐịnh nghĩa quy trình SKILL.md\n(frontend, backend, AI, K8s, bảo mật...)"]
+        SKILLS["📚 3,518 kỹ năng\nĐịnh nghĩa quy trình SKILL.md\n(frontend, backend, AI, K8s, bảo mật...)"]
         AGENTS["🤖 97 agent chuyên trách\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 63 quy tắc bắt buộc\n(bảo mật, git, UI, TypeScript,\nbảo mật API, core-lock...)"]
         HOOKS["🪝 46 hook\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
@@ -181,7 +185,7 @@ Thực thi (hoặc chặn + ghi log)
 
 | | |
 |---|---|
-| 🧩 Kỹ năng | **3,516** định nghĩa kỹ năng quy trình |
+| 🧩 Kỹ năng | **3,518** định nghĩa kỹ năng quy trình |
 | 🤖 Agent | **97** agent chuyên trách |
 | 📜 Quy tắc an toàn | **63** quy tắc được thực thi |
 | 🪝 Hook | **46** hook trước/sau thực thi |
@@ -267,7 +271,7 @@ Tự động đăng comment trên mỗi PR:
 ```bash
 yamtam scan .                        # quét bảo mật — secrets, CVE, rủi ro chuỗi cung ứng
 yamtam graph .                       # đồ thị tri thức — phụ thuộc tệp, phân giải import
-yamtam vault search Q                # tìm trong 3,516 kỹ năng theo từ khóa
+yamtam vault search Q                # tìm trong 3,518 kỹ năng theo từ khóa
 yamtam hunt .                        # săn các mẫu bảo mật (OWASP, injection, SSRF)
 yamtam fix .                         # tự động sửa vi phạm quy tắc
 yamtam doctor .                      # kiểm tra sức khỏe toàn hệ thống
@@ -290,7 +294,7 @@ core/
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 định nghĩa agent chuyên trách
-├── skills/         # 3,516 tệp SKILL.md
+├── skills/         # 3,518 tệp SKILL.md
 ├── config/
 │   ├── core-lock.json    # manifest SHA-256 — ghim 216 tệp cốt lõi
 │   └── skills-lock.json  # mã băm nội dung kỹ năng
@@ -359,10 +363,10 @@ Nếu YAMTAM là lưới điện, Yana là tòa nhà đầu tiên cắm vào dò
 Một người. Không đội ngũ. Không gọi vốn.
 
 - Kiến trúc hook, các cổng an toàn, Python CLI
-- Runtime Rust (`yamtam-rt`), 97 agent, 3,516 kỹ năng, hỗ trợ đa harness
+- Runtime Rust (`yamtam-rt`), 97 agent, 3,518 kỹ năng, hỗ trợ đa harness
 - 15 adapter harness (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-3,516 kỹ năng bao phủ: frontend, backend, AI/LLM, bảo mật, Kubernetes, WebAssembly, DevOps, cơ sở dữ liệu, kiểm thử, và nhiều hơn nữa. Hai agent persona mới phục vụ nhu cầu ngoài lập trình: học tập (`hoc-tap`) và năng suất hàng ngày (`daily-assistant`).
+3,518 kỹ năng bao phủ: frontend, backend, AI/LLM, bảo mật, Kubernetes, WebAssembly, DevOps, cơ sở dữ liệu, kiểm thử, và nhiều hơn nữa. Hai agent persona mới phục vụ nhu cầu ngoài lập trình: học tập (`hoc-tap`) và năng suất hàng ngày (`daily-assistant`).
 
 ---
 
@@ -411,7 +415,7 @@ yamtam route classify "deploy to production"
 
 Năm tuyến định hướng:
 - **simple** → Yana xử lý trực tiếp (chỉ đọc, không cần agent)
-- **skill** → đối chiếu danh mục 3,516 kỹ năng, điều phối đúng agent kỹ năng
+- **skill** → đối chiếu danh mục 3,518 kỹ năng, điều phối đúng agent kỹ năng
 - **learn** → chuyển sang `hoc-tap` — trợ lý học tập kiểu Socratic (học, giải thích, tại sao...)
 - **daily** → chuyển sang `daily-assistant` — tóm tắt / lên kế hoạch / soạn thảo (tóm tắt, viết email, lên kế hoạch...)
 - **complex** → điều phối (các) agent chuyên gia với brief giới hạn phạm vi

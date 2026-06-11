@@ -40,7 +40,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-3,516-2f7e6e?style=flat-square" />
+  <img src="https://img.shields.io/badge/🧩_skills-3,518-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
   <img src="https://img.shields.io/badge/📜_rules-63-b96b80?style=flat-square" />
   <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
@@ -51,9 +51,13 @@
 
 ---
 
-**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 3,516 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 3,518 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
+
+<p align="center">
+  <img src="./docs/demo.gif" alt="YAMTAM gate system blocking rm -rf, pipe-to-shell, prompt injection and an unapproved production delete — live recording" width="720" />
+</p>
 
 > **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-ai) now runs on **100% real data** — encrypted key vault (AES-256-GCM), live provider stats, real L1 memory and audit-log dashboard. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust. **Core-lock** — SHA-256 integrity manifest pinning 216 core files against tampering (rule 67).
 
@@ -107,7 +111,7 @@ graph TB
     %% ── Core engine ──────────────────────────────────────────────────────
     subgraph CORE["⚙️ Core Engine"]
         direction TB
-        SKILLS["📚 3,516 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
+        SKILLS["📚 3,518 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 97 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 63 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
         HOOKS["🪝 46 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
@@ -203,7 +207,7 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| 🧩 Skills | **3,516** workflow skill definitions |
+| 🧩 Skills | **3,518** workflow skill definitions |
 | 🤖 Agents | **97** specialist agents |
 | 📜 Safety rules | **63** enforced rules |
 | 🪝 Hooks | **46** pre/post-execution hooks |
@@ -289,7 +293,7 @@ Posts a comment on every PR:
 ```bash
 yamtam scan .                        # security scan — secrets, CVEs, supply chain risks
 yamtam graph .                       # knowledge graph — file deps, import resolution
-yamtam vault search Q                # search 3,516 skills by keyword
+yamtam vault search Q                # search 3,518 skills by keyword
 yamtam hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yamtam fix .                         # auto-fix rule violations
 yamtam doctor .                      # full system health check
@@ -312,7 +316,7 @@ core/
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 specialist agent definitions
-├── skills/         # 3,516 SKILL.md files
+├── skills/         # 3,518 SKILL.md files
 ├── config/
 │   ├── core-lock.json    # SHA-256 manifest — 216 core files pinned
 │   └── skills-lock.json  # skill content hashes
@@ -381,10 +385,10 @@ If YAMTAM is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yamtam-rt`), 97 agents, 3,516 skills, multi-harness support
+- Rust runtime (`yamtam-rt`), 97 agents, 3,518 skills, multi-harness support
 - 15 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-The 3,516 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
+The 3,518 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
 ---
 
@@ -433,7 +437,7 @@ yamtam route classify "deploy to production"
 
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
-- **skill** → matched against 3,516-entry index, dispatches exact skill agent
+- **skill** → matched against 3,518-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap` — Socratic learning assistant (học, giải thích, tại sao...)
 - **daily** → routes to `daily-assistant` — summarize / plan / draft (tóm tắt, viết email, lên kế hoạch...)
 - **complex** → dispatch specialist agent(s) with scoped brief
