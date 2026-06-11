@@ -67,10 +67,65 @@ function fmtUptime(s) {
   return (s / 86400).toFixed(1) + L(" days", " ngày");
 }
 
+/* ---------- Local time + weather (browser timezone = wherever you are) ----- */
+function greetingFor(hour, name) {
+  const who = name ? ", " + name : "";
+  if (hour >= 5  && hour < 12) return L("Good morning" + who,   "Chào buổi sáng" + who);
+  if (hour >= 12 && hour < 18) return L("Good afternoon" + who, "Chào buổi chiều" + who);
+  if (hour >= 18 && hour < 22) return L("Good evening" + who,   "Chào buổi tối" + who);
+  return L("Up late" + who, "Khuya rồi" + who);
+}
+
+// WMO weather codes → emoji + label (open-meteo current.weather_code)
+function describeWeather(code) {
+  if (code === 0)              return ["☀️", L("Clear", "Quang đãng")];
+  if (code <= 2)               return ["⛅", L("Partly cloudy", "Ít mây")];
+  if (code === 3)              return ["☁️", L("Overcast", "Nhiều mây")];
+  if (code === 45 || code === 48) return ["🌫️", L("Fog", "Sương mù")];
+  if (code <= 57)              return ["🌦️", L("Drizzle", "Mưa phùn")];
+  if (code <= 67)              return ["🌧️", L("Rain", "Mưa")];
+  if (code <= 77)              return ["🌨️", L("Snow", "Tuyết")];
+  if (code <= 82)              return ["🌧️", L("Showers", "Mưa rào")];
+  if (code <= 86)              return ["🌨️", L("Snow showers", "Mưa tuyết")];
+  return ["⛈️", L("Thunderstorm", "Dông bão")];
+}
+
+function useLocalWeather() {
+  const [weather, setWeather] = React.useState(null);
+  React.useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude.toFixed(3) +
+              "&longitude=" + longitude.toFixed(3) + "&current=temperature_2m,weather_code&timezone=auto")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => { if (d && d.current) setWeather(d.current); })
+          .catch(() => {});
+      },
+      () => {},            // permission denied → no widget, no nagging
+      { timeout: 10000, maximumAge: 30 * 60 * 1000 }
+    );
+  }, []);
+  return weather;
+}
+
 /* ---------- The heart of Yana: the mission composer ---------- */
 function MissionComposer({ onNav, missionCount }) {
   const D = window.YANA;
   const [v, setV] = React.useState("");
+  const [account, setAccount] = React.useState(null);
+  const [now, setNow] = React.useState(() => new Date());
+  const weather = useLocalWeather();
+
+  React.useEffect(() => {
+    fetch("/api/auth/status")
+      .then((r) => r.json())
+      .then((d) => setAccount(d.username || null))
+      .catch(() => {});
+    const id = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
   const suggestions = [
     ["Ship v0.9 safely", "Phát hành v0.9 an toàn"],
     ["Summarize what changed overnight", "Tóm tắt thay đổi qua đêm"],
@@ -98,7 +153,7 @@ function MissionComposer({ onNav, missionCount }) {
 
   return (
     <div style={{ maxWidth: 660, margin: "0 auto", padding: "calc(34px * var(--sp)) 0 calc(40px * var(--sp))", textAlign: "center" }}>
-      <h1 className="h-display" style={{ margin: "0 0 18px", fontSize: 30 }}>{L("Good morning, Tâm", "Chào buổi sáng, Tâm")}</h1>
+      <h1 className="h-display" style={{ margin: "0 0 18px", fontSize: 30 }}>{greetingFor(now.getHours(), account)}</h1>
       <div className="glass-strong" style={{ borderRadius: 18, padding: "10px 10px 10px 20px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}>
         <input
           value={v}
@@ -119,9 +174,17 @@ function MissionComposer({ onNav, missionCount }) {
           <button key={en} onClick={() => begin(en)} className="chip neutral" style={{ cursor: "pointer", fontSize: 12 }}>{L(en, vi)}</button>
         ))}
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, marginTop: 22, fontSize: 12.5, color: "var(--ink-3)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, marginTop: 22, fontSize: 12.5, color: "var(--ink-3)", flexWrap: "wrap" }}>
         <span className="dot on pulse"></span>
         <span>{L("Lake status:", "Trạng thái hồ:")} <b style={{ fontWeight: 500, color: "var(--ink-2)" }}>{L("Calm", "Tĩnh lặng")}</b></span>
+        <span style={{ opacity: .5 }}>·</span>
+        <span>{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        {weather && <span style={{ opacity: .5 }}>·</span>}
+        {weather && (
+          <span title={describeWeather(weather.weather_code)[1]}>
+            {describeWeather(weather.weather_code)[0]} {Math.round(weather.temperature_2m)}°C
+          </span>
+        )}
         <span style={{ opacity: .5 }}>·</span>
         <span>{connectedN} {L("providers connected", "nhà cung cấp đã kết nối")}</span>
         <span style={{ opacity: .5 }}>·</span>

@@ -281,7 +281,9 @@ const SEC_HEADERS = {
     "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; " +
     "font-src https://fonts.bunny.net; " +
     "img-src 'self' data: blob:; " +
-    "connect-src 'self'",
+    // open-meteo: keyless weather for the dashboard — fetched from the
+    // browser so the server's own egress surface stays 'self'-only
+    "connect-src 'self' https://api.open-meteo.com",
 };
 
 function applySecurityHeaders(res) {
