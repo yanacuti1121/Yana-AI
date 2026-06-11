@@ -89,19 +89,25 @@ function isAuthed(req) {
   return true;
 }
 
-function setCookie(res, token) {
-  const ttl = (sessions[token] && sessions[token].ttl) || SESSION_TTL;
+// req.secure is resolved by server.js (X-Forwarded-Proto behind a trusted
+// proxy) — the Secure flag keeps the session cookie off plain-HTTP hops.
+function setCookie(req, res, token) {
+  const ttl    = (sessions[token] && sessions[token].ttl) || SESSION_TTL;
+  const secure = req.secure ? '; Secure' : '';
   res.setHeader('Set-Cookie',
-    `${COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ttl / 1000}`);
+    `${COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ttl / 1000}${secure}`);
 }
 
-function clearCookie(res) {
-  res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+function clearCookie(req, res) {
+  const secure = req.secure ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`);
 }
 
 // ── Rate limit (login only — stricter than the global POST limiter) ──────────
 function loginRateLimited(req) {
-  const ip  = req.socket.remoteAddress || 'unknown';
+  // req.clientIp is the proxy-aware address resolved by server.js — without it
+  // every visitor behind Railway's proxy would share one rate-limit bucket
+  const ip  = req.clientIp || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   let rec = LOGIN_RATE.hits.get(ip);
   if (!rec || now - rec.start > LOGIN_RATE.windowMs) rec = { count: 0, start: now };
@@ -156,7 +162,7 @@ function handleSetup(req, res, body) {
     username: normalizeUsername(username),
     created: new Date().toISOString(),
   });
-  setCookie(res, createSession(!!body.remember));
+  setCookie(req, res, createSession(!!body.remember));
   json(res, 200, { ok: true });
 }
 
@@ -181,7 +187,7 @@ function handleLogin(req, res, body) {
   if (typeof password !== 'string' || !verifyPassword(password, rec)) {
     json(res, 401, { error: 'Wrong username or password' }); return;
   }
-  setCookie(res, createSession(!!body.remember));
+  setCookie(req, res, createSession(!!body.remember));
   json(res, 200, { ok: true });
 }
 
@@ -191,7 +197,7 @@ function handleLogout(req, res) {
     delete sessions[token];
     saveJson(SESSIONS_FILE, sessions);
   }
-  clearCookie(res);
+  clearCookie(req, res);
   json(res, 200, { ok: true });
 }
 

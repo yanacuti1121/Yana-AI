@@ -57,6 +57,9 @@ ENV PORT=8081
 # Server defaults to loopback; inside a container we must bind all interfaces
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
+# Railway/fly.io terminate TLS at their proxy — read the client IP from
+# X-Forwarded-For and detect HTTPS via X-Forwarded-Proto (see server.js)
+ENV YANA_TRUST_PROXY=1
 
 # Persistent data dir — mount a volume here (Railway: volume at /data +
 # RAILWAY_RUN_UID=0 so the entrypoint can chown it before dropping privileges)
