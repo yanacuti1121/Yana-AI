@@ -1,6 +1,6 @@
 {
   "name": "yamtam-engine",
-  "version": "0.41.1",
+  "version": "0.41.2",
   "description": "Audits your AI coding agent setup before it can damage your repo. 46 hooks · 3,363 skills · 95 agents · Claude Code + Codex compatible.",
   "keywords": [
     "ai-agent",

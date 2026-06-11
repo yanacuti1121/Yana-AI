@@ -8,6 +8,26 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.41.2 — rule 68 full-stack + Yana settings real + PyPI publish fix
+*2026-06-12*
+
+- **Rule 68 thành code thật 3 tầng**: `yamtam-rt route classify` trả `sensitivity`
+  (public/internal/confidential/sovereign) + `allow_persist` + `model_scope`;
+  yamtam-core classifier mirror + export `classifySensitivity`; Yana web có
+  **Confidential Mode** (nút 🔒 + auto-detect marker VI/EN → không lưu lịch sử,
+  không kèm about-context, SOVEREIGN chỉ đi model local)
+- **Ollama provider** (on-device, keyless, 127.0.0.1:11434) — tier SOVEREIGN;
+  server chặn 403 nếu nội dung sovereign cố đi cloud; missions từ chối tên mật
+- **Yana settings thật**: UI prefs persist qua reload (`yana.tweaks`); workspace
+  name sửa được; timezone detect thật; default-provider select wire vào Chat;
+  Safety/Memory cards đọc số liệu live từ /api/dashboard
+- **Tests**: crypto-store 17 (mới), classifier 14 (viết lại), router fixed,
+  missions +3 rule-68 → tổng 85+ JS tests xanh; cargo 76/76
+- **Demo tự động hoá**: `demo/demo.sh` + `demo/demo.tape` (vhs) + workflow
+  `demo-gif.yml` — hết render GIF tay
+- **PyPI publish fix**: repin `pypa/gh-action-pypi-publish` — SHA cũ không tồn
+  tại upstream là root cause mọi lần fail "Set up job" từ v0.41.0
+
 ## v0.41.1 — npm v12 prep + Yana auth hardening + 6 workflow skills
 *2026-06-11*
 
