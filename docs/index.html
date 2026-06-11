@@ -74,9 +74,10 @@ nav {
   border-color: rgba(255,255,255,.1) !important;
   box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.07) !important;
 }
-.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 3s linear infinite; white-space: nowrap; flex-shrink: 0; }
+.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 10s linear infinite; white-space: nowrap; flex-shrink: 0; }
 .nav-logo span { -webkit-text-fill-color: transparent; }
 @keyframes rainbow { 0% { background-position: 0% } 100% { background-position: 200% } }
+@media (prefers-reduced-motion: reduce) { .nav-logo { animation: none; } }
 
 /* Centre links — hidden on mobile */
 .nav-links { display: flex; gap: 1.25rem; align-items: center; flex: 1; justify-content: center; overflow: hidden; }
@@ -136,10 +137,16 @@ nav {
 
 /* Card hover lift */
 .feat-card, .gate-row, .compat-card {
-  transition: transform .2s ease, box-shadow .2s ease !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
 }
-.feat-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.1) !important; }
-.compat-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.08) !important; }
+.feat-card:hover { transform:translateY(-3px); border-color:hsla(221,75%,55%,.35) !important; box-shadow:0 10px 28px rgba(0,0,0,.09), 0 2px 8px hsla(221,75%,48%,.06) !important; }
+.compat-card:hover { transform:translateY(-2px); border-color:hsla(221,75%,55%,.3) !important; box-shadow:0 6px 16px rgba(0,0,0,.08) !important; }
+.gate-row:hover { border-color: var(--border-strong); }
+
+/* Keyboard focus — visible ring on interactive elements */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px;
+}
 
 /* Hero */
 .hero {
@@ -156,7 +163,7 @@ nav {
 .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
 h1 { font-family: var(--hand); font-size: clamp(2.6rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; letter-spacing: .01em; margin-bottom: 1.25rem; }
 h1 em { font-style: normal; color: var(--accent); }
-.hero-sub { font-family: var(--hand); color: var(--fg-muted); font-size: 1.3rem; line-height: 1.65; max-width: 44ch; margin-bottom: 2rem; }
+.hero-sub { color: var(--fg-muted); font-size: 1.0625rem; line-height: 1.7; max-width: 46ch; margin-bottom: 2rem; }
 .hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; }
 .btn-primary {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -327,9 +334,9 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 .footer-links a:hover { color: var(--fg); }
 
 /* Responsive */
-/* Hamburger button */
+/* Hamburger button — mobile only (shown in the 768px media query) */
 .hamburger {
-  display: flex;
+  display: none;
   flex-direction: column; gap: 5px; cursor: pointer;
   background: transparent; border: none; padding: .4rem;
 }
@@ -438,13 +445,17 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Hero -->
 <div class="hero">
   <div>
-    <div class="hero-badge"><span class="dot"></span> v0.40.0 &nbsp;·&nbsp; yamtam-rt 1.3.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
+    <div class="hero-badge"><span class="dot"></span> v0.41.0 &nbsp;·&nbsp; yamtam-rt 1.3.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
     <h1 data-i18n="hero.title">Your AI agent's<br><em>safety layer</em></h1>
     <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 3,516 skills, a full Rust runtime, and a 9-layer gate system — built and verified for Claude Code.</p>
     <div class="hero-ctas">
       <a href="#install" class="btn-primary">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
         <span data-i18n="hero.cta1">Install free</span>
+      </a>
+      <a href="https://github.com/marketplace/yamtam-engine" target="_blank" class="btn-ghost" style="border-color:hsla(221,75%,55%,.45);color:var(--accent)">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l2.09 4.26L14.8 5l-3.4 3.32.8 4.68L8 10.77 3.8 13l.8-4.68L1.2 5l4.71-.74L8 0z"/></svg>
+        <span data-i18n="hero.cta.mp">Marketplace</span>
       </a>
       <a href="https://github.com/phamlongh230-lgtm/yamtam-engine" target="_blank" class="btn-ghost">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -1282,7 +1293,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
           <span>🛡️</span>
           <span style="font-weight:700;font-size:.92rem">YAMTAM ENGINE</span>
-          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v0.40.0</span>
+          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v0.41.0</span>
         </div>
         <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yamtam.short">Personal agent OS — 46 hooks, 3,516 skills, Rust runtime. Safe for every AI agent.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
@@ -1610,7 +1621,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <footer>
   <div class="footer-inner">
     <div class="footer-left">
-      <strong>YAMTAM ENGINE</strong> — Apache 2.0 · v0.40.0<br>
+      <strong>YAMTAM ENGINE</strong> — Apache 2.0 · v0.41.0<br>
       <span data-i18n="footer.built">Built by Vũ Văn Tâm · Vietnam</span><br>
       <span style="opacity:.65;font-size:.8rem" data-i18n="footer.skills">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
     </div>
