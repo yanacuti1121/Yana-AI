@@ -1,10 +1,10 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-10
+**Cập nhật lần cuối:** 2026-06-11
 
 ## Trạng thái
 - yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean · history rewritten (Antigravity removed)
-- Skills: **3,495** (hôm nay +32 từ GitHub trending, 5 batches)
+- Skills: **3,516** (11/06: +6 prompt-pack cá nhân; lock đã đăng ký thêm 2,225)
 - Git history: sạch — không còn binary lớn, force-pushed 2026-06-07
 - Disk: 79% (~988MB free) — đã dọn sạch sáng nay
 - Git user: đã fix lại "Vũ Văn Tâm" (bị Gemini set thành "Gemini AI")
@@ -15,8 +15,9 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **Yana web/desktop** — security hardening DONE 10/06 (vault mã hóa key + server hardening + rule 66). Còn thiếu: test cho crypto-store/server, _test_router.js đang hỏng (require ./router.js đã move sang yamtam-core)
-2. **Marketplace post-launch** — cập nhật README/docs với badge + link Marketplace, theo dõi install count
+1. **Yana web** — login + missions DONE 11/06 (auth.js scrypt+session, missions.js file-backed + Plan with Yana, chat provider picker + persist + about-context, login.html AI-style). Còn thiếu: test cho auth/missions/crypto-store, _test_router.js đang hỏng (require ./router.js đã move sang yamtam-core)
+2. **Marketplace post-launch** — hero CTA đã có trên docs (11/06), theo dõi install count
+3. **skills-lock known issues** — 64 entry hash-drift (.claude/skills copy lệch core/skills) + 5,123 entry stale chưa gỡ; update-skills-lock.sh từng truncate file về 0 byte khi chạy trên lock đã auto-sync (đã khôi phục từ git) — cẩn thận khi chạy lại
 
 ## 🎉 GitHub Marketplace — APPROVED & LIVE (10/06/2026)
 - Listing: https://github.com/marketplace/yamtam-engine

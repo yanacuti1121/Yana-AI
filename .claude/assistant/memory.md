@@ -559,3 +559,19 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** milestone Token rotation 10/06 chưa rõ stale hay nhắc định kỳ; _test_router.js hỏng; test crypto-store/server chưa có
 
 ---
+
+## 2026-06-11 — Marketplace LIVE · 6 skills mới · Yana login+missions 100% · docs polish
+
+**Đã làm:**
+- 🎉 GitHub Marketplace approved & live (về sớm 1 tuần) — link đã lên hero docs
+- 6 skill mới từ prompt pack của anh: self-rule-extraction, claim-audit, option-tournament, pairwise-prioritization, untrusted-data-quarantine, token-capped-workflow → MANIFEST 3,516, trigger tests 678/678
+- skills-lock: đăng ký 2,225 skill chưa track (auto-sync). Sự cố: update-skills-lock.sh truncate lock về 0 byte trên file đã sync → khôi phục từ git, chạy lại OK
+- Yana web 50%→100%: auth.js (scrypt + session HttpOnly + rate limit), missions.js (file-backed + "Plan with Yana" LLM), login.html mới kiểu app AI, chat provider picker + persist + about-context, fix nút Connect provider. 17/17 HTTP tests + Babel parse 7/7
+- docs/index.html: fix hamburger hiện trên desktop, hero-sub sang sans, rainbow 3s→10s, focus ring, nút Marketplace, version 0.40→0.41
+
+**Anh nói / quyết định:** "lm nó hdt tất cả đi và tạo trang đăng nhập", "trang đăng nhập lm nó giống mấy áp ai", "đăng ký 2366 cái kia đi", push 2 lần
+
+**Trạng thái cuối:** v0.41.0 · 6 commits pushed (HEAD a43cf383) · repo clean · Pages deploy tự động
+**Pending:** milestone Token rotation chưa rõ stale; _test_router.js hỏng; tests cho auth/missions/crypto-store; 64 hash-drift + 5,123 stale entries trong skills-lock
+
+---
