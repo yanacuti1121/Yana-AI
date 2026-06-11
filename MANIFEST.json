@@ -589,7 +589,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 3510,
+      "count": 3516,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -973,7 +973,13 @@
         "core/skills/kanban-dispatcher/SKILL.md",
         "core/skills/claude-code-orchestration/SKILL.md",
         "core/skills/writing-plans/SKILL.md",
-        "core/skills/hermes-tool-guardrails/SKILL.md"
+        "core/skills/hermes-tool-guardrails/SKILL.md",
+        "core/skills/self-rule-extraction/SKILL.md",
+        "core/skills/claim-audit/SKILL.md",
+        "core/skills/option-tournament/SKILL.md",
+        "core/skills/pairwise-prioritization/SKILL.md",
+        "core/skills/untrusted-data-quarantine/SKILL.md",
+        "core/skills/token-capped-workflow/SKILL.md"
       ]
     },
     "config": {
