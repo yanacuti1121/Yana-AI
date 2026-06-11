@@ -198,7 +198,8 @@ Thực thi (hoặc chặn + ghi log)
 **→ [Cài từ GitHub Marketplace](https://github.com/marketplace/yamtam-engine)** — một cú click, listing chính thức.
 
 ```bash
-# Plugin Claude Code (hook tự động kết nối)
+# Plugin Claude Code — npx yamtam-install kết nối hook
+# (bắt buộc: npm v12+ mặc định không chạy postinstall script nữa)
 npm install yamtam-engine && npx yamtam-install
 
 # Python CLI

@@ -118,9 +118,9 @@
     <!-- INSTALL -->
     <h2 id="install" data-i18n="h2.install">Installation</h2>
     <p data-i18n="p.install">Three components, install what you need:</p>
-    <pre><code class="language-bash"># Claude Code plugin (hooks, skills, agents wired automatically)
+    <pre><code class="language-bash"># Claude Code plugin
 npm install yamtam-engine
-npx yamtam-install        # wire hooks into .claude/
+npx yamtam-install        # wire hooks into .claude/ (required)
 
 # Rust runtime (scan, hunt, watch, ci, map…)
 cargo install yamtam-rt
@@ -128,7 +128,7 @@ cargo install yamtam-rt
 # Python CLI (legacy commands)
 pip install yamtam-engine</code></pre>
 
-    <div class="tip"><strong>Tip:</strong> Run <code>npx yamtam-install</code> once after npm install — it wires the PreToolUse / PostToolUse hooks into your <code>.claude/settings.json</code>.</div>
+    <div class="tip"><strong>Important:</strong> Always run <code>npx yamtam-install</code> once after npm install — it wires the PreToolUse / PostToolUse hooks into your <code>.claude/settings.json</code>. From <strong>npm v12</strong> (July 2026) install scripts no longer run automatically, so this step is required — the postinstall fallback only fires on npm ≤ 11.</div>
 
     <!-- FIRST SCAN -->
     <h2 id="first-scan" data-i18n="h2.first-scan">First Scan</h2>

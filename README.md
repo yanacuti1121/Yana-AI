@@ -220,7 +220,8 @@ Execute (or block + log)
 **→ [Install from GitHub Marketplace](https://github.com/marketplace/yamtam-engine)** — one click, official listing.
 
 ```bash
-# Claude Code plugin (hooks wire automatically)
+# Claude Code plugin — npx yamtam-install wires the hooks
+# (required: npm v12+ no longer runs postinstall scripts by default)
 npm install yamtam-engine && npx yamtam-install
 
 # Python CLI
