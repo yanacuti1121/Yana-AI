@@ -1,4 +1,54 @@
 // Yana AI — Chat (orchestration-centric, not a chatbot clone)
+
+// ── Rule 68 — Confidential Mode ───────────────────────────────────────────────
+// Mirror of the canonical marker tables in src/route.rs / yamtam-core.
+// confidential → never persisted, no about-context attached
+// sovereign    → additionally: local model (Ollama) only — text never
+//                leaves the machine
+const SENS_SOVEREIGN = [
+  "chỉ mình anh biết", "chỉ anh biết", "chỉ riêng anh", "không ai được biết",
+  "sovereign only", "for my eyes only", "local model only", "chỉ model local",
+  "#sovereign",
+];
+const SENS_CONFIDENTIAL = [
+  "bí mật", "tuyệt mật", "confidential", "đừng ghi lại", "đừng lưu",
+  "không lưu lại", "không ghi lại", "không được lưu", "giữ kín",
+  "off the record", "do not log", "don't log", "do not save", "don't save",
+  "do not persist", "#mật", "#confidential", "#private",
+];
+const SENS_SMELLS = [
+  "mua công ty", "bán công ty", "thương vụ", "sáp nhập", "đàm phán",
+  "acquisition", "merger", "negotiation position", "lương của", "salary of",
+  "chẩn đoán", "diagnosis", "bệnh án", "health record", "kiện tụng", "lawsuit",
+  "chưa công bố", "chưa công khai", "unannounced",
+];
+
+function detectSensitivity(text) {
+  const lower = (text || "").toLowerCase();
+  if (SENS_SOVEREIGN.some((m) => lower.includes(m))) return "sovereign";
+  if (SENS_CONFIDENTIAL.some((m) => lower.includes(m))) return "confidential";
+  if (SENS_SMELLS.some((m) => lower.includes(m))) return "confidential";
+  return null;
+}
+
+// Providers usable without an API key (loopback/on-device)
+const KEYLESS_PROVIDERS = new Set(["ollama"]);
+function providerAvailable(id) {
+  return KEYLESS_PROVIDERS.has(id) || YanaVault.hasKey(id);
+}
+
+function ConfidentialBadge({ tier }) {
+  return (
+    <span className="chip neutral" style={{ fontSize: 10.5, marginTop: 5, display: "inline-flex", alignItems: "center", gap: 4 }}
+      title={L("Rule 68 — this message is never saved to history, memory, or missions.",
+               "Rule 68 — tin nhắn này không bao giờ được lưu vào lịch sử, ký ức hay mission.")}>
+      🔒 {tier === "sovereign"
+        ? L("Sovereign · local only · not saved", "Sovereign · chỉ local · không lưu")
+        : L("Confidential · not saved", "Mật · không lưu")}
+    </span>
+  );
+}
+
 function RouteChip({ route }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
@@ -13,13 +63,15 @@ function RouteChip({ route }) {
 function Message({ msg }) {
   if (msg.who === "user") {
     return (
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
         <div style={{
           maxWidth: "72%", padding: "10px 15px", borderRadius: "16px 16px 4px 16px",
           background: "var(--primary)", color: "rgba(255,255,255,.96)",
           fontSize: 13.8, lineHeight: 1.55,
           boxShadow: "0 4px 14px color-mix(in oklab, var(--primary) 25%, transparent)",
+          ...(msg.confidential ? { border: "1px dashed rgba(255,255,255,.55)" } : {}),
         }}>{msg.text}</div>
+        {msg.confidential && <ConfidentialBadge tier={msg.tier} />}
       </div>
     );
   }
@@ -61,6 +113,7 @@ const CHAT_MODELS = {
   deepseek:   "deepseek-chat",
   openrouter: "google/gemma-3-27b-it",
   "9router":  "kr/claude-sonnet-4.5",
+  ollama:     "llama3.2",
 };
 
 function ContextPanel() {
@@ -121,6 +174,9 @@ function ContextPanel() {
 // Find the first provider that has a stored API key in the encrypted vault
 function getProviderConfig(preferred) {
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
+  if (preferred && KEYLESS_PROVIDERS.has(preferred)) {
+    return { provider: preferred, apiKey: "" };
+  }
   if (preferred && YanaVault.hasKey(preferred)) {
     return { provider: preferred, apiKey: YanaVault.getKey(preferred) };
   }
@@ -158,6 +214,9 @@ function Chat({ t }) {
   const [draft, setDraft] = React.useState("");
   const [thinking, setThinking] = React.useState(false);
   const [providerSel, setProviderSel] = React.useState(() => localStorage.getItem("yana.chat.provider") || "");
+  // Rule 68 — manual Confidential Mode: everything sent while on is treated
+  // as confidential even without a marker. Never persisted itself.
+  const [confMode, setConfMode] = React.useState(false);
   const logRef = React.useRef(null);
   const readerRef = React.useRef(null);
 
@@ -166,10 +225,14 @@ function Chat({ t }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [msgs, thinking]);
 
-  // Persist the real conversation: across navigation AND reloads (last 60 turns)
+  // Persist the real conversation: across navigation AND reloads (last 60 turns).
+  // Confidential turns live in memory only (rule 68) — they survive navigation
+  // within this session via D.chat but are never written to localStorage.
   React.useEffect(() => {
     D.chat = msgs;
-    try { localStorage.setItem(CHAT_STORE, JSON.stringify(msgs.slice(-60))); } catch (_) {}
+    try {
+      localStorage.setItem(CHAT_STORE, JSON.stringify(msgs.filter((m) => !m.confidential).slice(-60)));
+    } catch (_) {}
   }, [msgs]);
   React.useEffect(() => { localStorage.setItem("yana.chat.provider", providerSel); }, [providerSel]);
 
@@ -181,28 +244,42 @@ function Chat({ t }) {
   async function send() {
     const text = draft.trim();
     if (!text || thinking) return;
-    setMsgs((m) => [...m, { who: "user", text }]);
+
+    // Rule 68 — classify before the first byte leaves this page
+    const detected = detectSensitivity(text);
+    const tier = detected === "sovereign" ? "sovereign"
+               : (detected || confMode)   ? "confidential"
+               : null;
+
+    setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier }]);
     setDraft("");
     setThinking(true);
 
-    const { provider, apiKey } = getProviderConfig(providerSel);
+    // Sovereign: local model only — never a cloud provider
+    let { provider, apiKey } = getProviderConfig(providerSel);
+    if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
 
-    // Real routing: classify the task so complex requests pick up a skill
+    // Real routing: classify the task so complex requests pick up a skill.
+    // Skipped for confidential turns — need-to-know, no extra processing.
     let skill = null;
-    try {
-      const rr = await fetch("/api/route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: text }),
-      });
-      if (rr.ok) { const d = await rr.json(); skill = d.suggested_skill || null; }
-    } catch (_) {}
+    if (!tier) {
+      try {
+        const rr = await fetch("/api/route", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task: text }),
+        });
+        if (rr.ok) { const d = await rr.json(); skill = d.suggested_skill || null; }
+      } catch (_) {}
+    }
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: text, apiKey, provider, skill, about: aboutContext() }),
+        body: JSON.stringify(tier
+          ? { task: text, apiKey, provider, sensitivity: tier }
+          : { task: text, apiKey, provider, skill, about: aboutContext() }),
       });
 
       if (!res.ok || !res.body) {
@@ -219,8 +296,15 @@ function Chat({ t }) {
       // Insert placeholder Yana message — route shows the real provider/model/skill
       setMsgs((m) => [...m, {
         who: "yana",
-        route: { agent: provider, model: (CHAT_MODELS[provider] || provider) + (skill ? " · " + skill : "") },
+        route: {
+          agent: provider,
+          model: (CHAT_MODELS[provider] || provider)
+            + (skill ? " · " + skill : "")
+            + (tier ? " · 🔒 " + (tier === "sovereign" ? "local-only" : "no-persist") : ""),
+        },
         text: "",
+        confidential: !!tier,
+        tier,
         _id: msgId,
       }]);
       setThinking(false);
@@ -254,8 +338,13 @@ function Chat({ t }) {
       setMsgs((m) => [...m, {
         who: "yana",
         route: { agent: provider, model: CHAT_MODELS[provider] || provider },
-        text: L("Could not reach the server. Check that Yana is running and a provider key is set.",
-                "Không kết nối được máy chủ. Kiểm tra Yana đang chạy và đã đặt API key."),
+        confidential: !!tier,
+        tier,
+        text: tier === "sovereign"
+          ? L("Could not reach the local model. SOVEREIGN content only goes to Ollama (127.0.0.1:11434) — start it with `ollama serve`.",
+              "Không kết nối được model local. Nội dung SOVEREIGN chỉ đi đến Ollama (127.0.0.1:11434) — chạy `ollama serve` trước.")
+          : L("Could not reach the server. Check that Yana is running and a provider key is set.",
+              "Không kết nối được máy chủ. Kiểm tra Yana đang chạy và đã đặt API key."),
       }]);
     }
   }
@@ -295,6 +384,23 @@ function Chat({ t }) {
             placeholder={L("Ask Yana, or give the system a direction…", "Hỏi Yana, hoặc giao cho hệ thống một hướng đi…")}
             style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "var(--ink)" }}
           />
+          <button
+            onClick={() => setConfMode((v) => !v)}
+            aria-pressed={confMode}
+            title={confMode
+              ? L("Confidential Mode ON — messages are not saved and carry no personal context (rule 68). Click to turn off.",
+                  "Chế độ Mật BẬT — tin nhắn không được lưu, không kèm ngữ cảnh cá nhân (rule 68). Bấm để tắt.")
+              : L("Turn on Confidential Mode — nothing you send is saved to history, memory, or missions.",
+                  "Bật chế độ Mật — mọi thứ anh gửi sẽ không được lưu vào lịch sử, ký ức hay mission.")}
+            style={{
+              border: "1px solid " + (confMode ? "var(--primary)" : "var(--border)"),
+              borderRadius: 99, padding: "5px 10px", cursor: "pointer", fontSize: 11.5,
+              fontFamily: "inherit",
+              background: confMode ? "var(--primary-soft)" : "transparent",
+              color: confMode ? "var(--primary)" : "var(--ink-3)",
+            }}>
+            🔒{confMode ? " " + L("Confidential", "Mật") : ""}
+          </button>
           <select value={providerSel || getProviderConfig().provider}
             onChange={(e) => setProviderSel(e.target.value)}
             title={L("Provider for this conversation", "Nhà cung cấp cho cuộc trò chuyện")}
@@ -304,8 +410,8 @@ function Chat({ t }) {
               fontFamily: "inherit", cursor: "pointer", maxWidth: 120,
             }}>
             {D.providers.map((p) => (
-              <option key={p.id} value={p.id} disabled={!YanaVault.hasKey(p.id)}>
-                {p.name}{YanaVault.hasKey(p.id) ? "" : " 🔒"}
+              <option key={p.id} value={p.id} disabled={!providerAvailable(p.id)}>
+                {p.name}{providerAvailable(p.id) ? "" : " 🔒"}
               </option>
             ))}
           </select>

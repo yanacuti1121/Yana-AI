@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { createClassifier } = require('./classifier');
+const { createClassifier, classifySensitivity } = require('./classifier');
 const { createAgents }     = require('./agents');
 const { createSkills }     = require('./skills');
 const { createRouter }     = require('./router');
@@ -34,4 +34,4 @@ function createCore(config = {}) {
   return { classify, matchSkills, route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount };
 }
 
-module.exports = { createCore };
+module.exports = { createCore, classifySensitivity };

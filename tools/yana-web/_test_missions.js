@@ -58,6 +58,19 @@ const routeBoom = async () => { throw new Error('router down'); };
   await missions.handleCreate(req, res, { name: 'second mission' }, routeBoom);
   t('create survives routeFn throw (route=null)', res.status === 200 && res.body.mission.route === null);
 
+  // ── rule 68: confidential content never enters the mission store ───────────
+  res = mockRes();
+  await missions.handleCreate(req, res, { name: 'bí mật: chuẩn bị mua công ty X' }, routeOk);
+  t('create confidential name → 403 (rule 68)', res.status === 403 && res.body.sensitivity === 'confidential');
+
+  res = mockRes();
+  await missions.handleCreate(req, res, { name: 'kế hoạch chỉ mình anh biết' }, routeOk);
+  t('create sovereign name → 403 (rule 68)', res.status === 403 && res.body.sensitivity === 'sovereign');
+
+  res = mockRes();
+  missions.handleUpdate(req, res, { id: m1.id, name: 'đừng ghi lại vụ này' });
+  t('rename to confidential → 403 (rule 68)', res.status === 403);
+
   // ── name cap ────────────────────────────────────────────────────────────────
   res = mockRes();
   await missions.handleCreate(req, res, { name: 'x'.repeat(500) }, routeOk);

@@ -19,6 +19,7 @@ window.YANA = {
     { id: "deepseek",   name: "DeepSeek",   company: "DeepSeek",   models: ["V3", "R1"],                            role: "Deep reasoning — cost-efficient" },
     { id: "openrouter", name: "OpenRouter", company: "OpenRouter", models: ["Fallback pool · 40+ models"],          role: "Overflow & fallback routing" },
     { id: "9router",    name: "9Router",    company: "Local gateway", models: ["40+ providers · auto-fallback"],    role: "Quota armor — localhost:20128, never hit limits" },
+    { id: "ollama",     name: "Ollama",     company: "On-device",  models: ["llama3.2", "qwen3", "gemma3"],         role: "Sovereign tier — rule 68, text never leaves the machine" },
   ],
 
   // missions are created at runtime by the Mission Composer — none preloaded

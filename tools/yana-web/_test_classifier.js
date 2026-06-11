@@ -1,25 +1,47 @@
 'use strict';
-const {classify} = require('./classifier.js');
+// Tests for the yamtam-core classifier (route + rule-68 sensitivity).
+// Run: node _test_classifier.js
+const { createClassifier, classifySensitivity } = require('yamtam-core/src/classifier.js');
+const { classify } = createClassifier({});
 
-// Test 1: external route
-const t1 = classify('git push origin main');
-console.assert(t1.route === 'external', 'T1 FAIL: got ' + t1.route);
-console.log('T1 route:', t1.route);
+let pass = 0, fail = 0;
+function t(name, cond) {
+  if (cond) { pass++; console.log('PASS  ' + name); }
+  else      { fail++; console.log('FAIL  ' + name); }
+}
 
-// Test 2: Vietnamese complex
-const t2 = classify('sửa bug auth middleware');
-console.assert(t2.route === 'complex', 'T2 FAIL: got ' + t2.route);
-console.log('T2 route:', t2.route);
+// ── Routing ───────────────────────────────────────────────────────────────────
+t('external route',          classify('git push origin main').route === 'external');
+t('Vietnamese complex',      classify('sửa bug auth middleware').route === 'complex');
+t('simple question',         classify('what time is it').route === 'simple');
 
-// Test 3: simple
-const t3 = classify('what time is it');
-console.assert(t3.route === 'simple', 'T3 FAIL: got ' + t3.route);
-console.log('T3 route:', t3.route);
+const keys = Object.keys(classify('what time is it')).sort().join(',');
+const expected = 'allow_persist,confidence,gate,matched_signals,matched_skills,'
+  + 'model_scope,reason,route,sensitivity,sensitivity_signals,suggested_agents';
+t('decision carries route + rule-68 keys', keys === expected);
 
-// Test 4: 6 keys
-const keys = Object.keys(t3).sort().join(',');
-const expected = 'confidence,gate,matched_signals,reason,route,suggested_agents';
-console.assert(keys === expected, '6-key FAIL: ' + keys);
-console.log('T4 keys:', keys === expected ? 'OK' : 'FAIL');
+// ── Rule 68 — sensitivity tiers ──────────────────────────────────────────────
+const sov = classify('chuyện này chỉ mình anh biết: kế hoạch năm sau');
+t('sovereign marker → sovereign',      sov.sensitivity === 'sovereign');
+t('sovereign → local-only',            sov.model_scope === 'local-only');
+t('sovereign → no persist',            sov.allow_persist === false);
 
-console.log('All classifier tests passed');
+const conf = classify('đừng ghi lại nhé — sắp có thay đổi nhân sự');
+t('confidential marker → confidential', conf.sensitivity === 'confidential');
+t('confidential → cloud-redacted',      conf.model_scope === 'cloud-redacted');
+t('confidential → no persist',          conf.allow_persist === false);
+
+const smell = classify('phân tích thương vụ sáp nhập chưa công bố');
+t('context smell → confidential',       smell.sensitivity === 'confidential');
+
+const sec = classify('sửa bug bảo mật trong auth middleware');
+t("security work ('bảo mật') stays internal", sec.sensitivity === 'internal' && sec.allow_persist === true);
+
+const plain = classify('explain how the router works');
+t('default tier is internal',           plain.sensitivity === 'internal' && plain.model_scope === 'any');
+
+const tag = classifySensitivity('#mật ghi chú buổi họp đối tác');
+t('hashtag marker via direct export',   tag.sensitivity === 'confidential' && tag.signals.length > 0);
+
+console.log('\nResult: ' + pass + ' pass, ' + fail + ' fail');
+process.exit(fail ? 1 : 0);

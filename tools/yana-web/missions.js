@@ -9,6 +9,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { classifySensitivity } = require('yamtam-core');
 
 // Same persistent data dir as auth.js — YANA_DATA_DIR points at a mounted
 // volume (e.g. /data on Railway) so missions survive redeploys.
@@ -60,6 +61,19 @@ async function handleCreate(req, res, body, routeFn) {
   const name = body && typeof body.name === 'string' ? body.name.trim().slice(0, 200) : '';
   if (!name) { json(res, 400, { error: 'Missing mission name' }); return; }
 
+  // Rule 68 — missions are persisted to disk; confidential content may not
+  // cross that boundary. Checked here directly (not via routeFn) so an old
+  // yamtam-rt binary without sensitivity fields can't sneak one through.
+  const sens = classifySensitivity(name);
+  if (sens.sensitivity === 'confidential' || sens.sensitivity === 'sovereign') {
+    json(res, 403, {
+      error: 'Confidential content cannot be stored in missions (rule 68). ' +
+             'Remove the confidential marker or keep this in chat with Confidential Mode on.',
+      sensitivity: sens.sensitivity,
+    });
+    return;
+  }
+
   const missions = load();
   if (missions.length >= MAX_MISSIONS) { json(res, 409, { error: 'Mission limit reached' }); return; }
 
@@ -93,7 +107,14 @@ function handleUpdate(req, res, body) {
   const m = missions.find(x => x.id === id);
   if (!m) { json(res, 404, { error: 'Mission not found' }); return; }
 
-  if (typeof body.name === 'string' && body.name.trim()) m.name = body.name.trim().slice(0, 200);
+  if (typeof body.name === 'string' && body.name.trim()) {
+    const sens = classifySensitivity(body.name);
+    if (sens.sensitivity === 'confidential' || sens.sensitivity === 'sovereign') {
+      json(res, 403, { error: 'Confidential content cannot be stored in missions (rule 68)', sensitivity: sens.sensitivity });
+      return;
+    }
+    m.name = body.name.trim().slice(0, 200);
+  }
   if (['planning', 'active', 'done'].includes(body.status)) m.status = body.status;
   const tasks = sanitizeTasks(body.tasks);
   if (tasks && tasks.length) m.tasks = tasks;

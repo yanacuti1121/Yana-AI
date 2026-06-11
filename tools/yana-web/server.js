@@ -127,6 +127,25 @@ const PROVIDERS = {
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
   },
 
+  // Ollama — on-device models (rule 68 SOVEREIGN tier: text that may never
+  // reach a cloud AI). Keyless by design; loopback only, like 9router.
+  ollama: {
+    protocol:     'http',
+    hostname:     '127.0.0.1',
+    port:         11434,
+    path:         '/v1/chat/completions',
+    vision:       false,
+    keyless:      true,
+    local:        true,
+    defaultModel: 'llama3.2',
+    headers: _key => ({ 'content-type': 'application/json' }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
   gemini: {
     hostname:     'generativelanguage.googleapis.com',
     vision:       true,
@@ -423,7 +442,7 @@ async function handleApiModels(req, res) {
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
   const { provider, key } = parsed;
-  if (!provider || !key) { jsonError(res, 400, 'Missing provider or key'); return; }
+  if (!provider || (!key && provider !== 'ollama')) { jsonError(res, 400, 'Missing provider or key'); return; }
 
   const LIVE_PROVIDERS = {
     openrouter: {
@@ -457,6 +476,17 @@ async function handleApiModels(req, res) {
       transform: data => (data.data || [])
         .filter(m => m.id)
         .map(m => ({ id: m.id, name: m.name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    ollama: {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     11434,
+      path:     '/v1/models',
+      headers:  _k => ({}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
         .sort((a, b) => a.id.localeCompare(b.id)),
     },
   };
@@ -725,22 +755,33 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about } = parsed;
-  if (!apiKey || typeof apiKey !== 'string') { jsonError(res, 400, 'Missing apiKey'); return; }
-  if (!task   || typeof task   !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity } = parsed;
+  const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
+  if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
+  if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
+
+  // Rule 68 — tier enforcement at the server boundary (defense in depth):
+  //   sovereign     → local model only, never a cloud provider
+  //   confidential+ → no personal/about context attached (need-to-know)
+  const tier = (sensitivity === 'sovereign' || sensitivity === 'confidential') ? sensitivity : null;
+  if (tier === 'sovereign' && !p.local) {
+    jsonError(res, 403, 'SOVEREIGN content may only go to a local model (rule 68). Select Ollama or remove the marker.');
+    return;
+  }
 
   // System prompt: skill → agent → generic fallback
   let systemPrompt = null;
   if (skill && typeof skill === 'string') systemPrompt = loadSkillPrompt(skill);
   if (!systemPrompt) systemPrompt = loadSystemPrompt(Array.isArray(suggestedAgents) ? suggestedAgents : []);
 
-  // "About you" personal context from Settings — plain text, capped
-  if (about && typeof about === 'string' && about.trim()) {
+  // "About you" personal context from Settings — plain text, capped.
+  // Never attached to confidential/sovereign turns (rule 68 need-to-know).
+  if (!tier && about && typeof about === 'string' && about.trim()) {
     systemPrompt = `[ABOUT THE USER]\n${about.trim().slice(0, 2000)}\n\n---\n\n${systemPrompt}`;
   }
 
   // Codebase context injection via BM25 retrieval
-  if (useIndex && CODEBASE.N > 0) {
+  if (!tier && useIndex && CODEBASE.N > 0) {
     const hits = bm25Search(task, 3);
     if (hits.length > 0) {
       const ctx = hits.map(h => `// ${h.file}${h.line > 1 ? ` (line ${h.line}+)` : ''}\n${h.content}`).join('\n\n---\n\n');
@@ -748,7 +789,6 @@ async function handleApiChat(req, res) {
     }
   }
 
-  const p       = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   const modelId = (typeof model === 'string' && model.trim()) ? model.trim() : p.defaultModel;
   // images: array of { mimeType, data } — only passed if provider supports vision
   const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;

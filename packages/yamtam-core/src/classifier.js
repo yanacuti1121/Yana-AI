@@ -62,6 +62,56 @@ const REVIEW_SIGNALS = [
   'có vấn đề gì không', 'có bug không', 'bảo mật',
 ];
 
+// ── Rule 68 — sensitivity tiers ──────────────────────────────────────────────
+// Canonical marker tables live in src/route.rs (yamtam-rt). This JS mirror
+// keeps the fallback classifier and the web UI honest when the binary is
+// missing or stale. Tier decides persistence + which model may see the text.
+
+const SOVEREIGN_MARKERS = [
+  'chỉ mình anh biết', 'chỉ anh biết', 'chỉ riêng anh', 'không ai được biết',
+  'sovereign only', 'for my eyes only', 'local model only', 'chỉ model local',
+  '#sovereign',
+];
+
+const CONFIDENTIAL_MARKERS = [
+  'bí mật', 'tuyệt mật', 'confidential', 'đừng ghi lại', 'đừng lưu',
+  'không lưu lại', 'không ghi lại', 'không được lưu', 'giữ kín',
+  'off the record', 'do not log', "don't log", 'do not save', "don't save",
+  'do not persist', '#mật', '#confidential', '#private',
+];
+
+const CONFIDENTIAL_SMELLS = [
+  'mua công ty', 'bán công ty', 'thương vụ', 'sáp nhập', 'đàm phán',
+  'acquisition', 'merger', 'negotiation position', 'lương của', 'salary of',
+  'chẩn đoán', 'diagnosis', 'bệnh án', 'health record', 'kiện tụng', 'lawsuit',
+  'chưa công bố', 'chưa công khai', 'unannounced',
+];
+
+const SENSITIVITY_POLICY = {
+  public:       { allow_persist: true,  model_scope: 'any' },
+  internal:     { allow_persist: true,  model_scope: 'any' },
+  confidential: { allow_persist: false, model_scope: 'cloud-redacted' },
+  sovereign:    { allow_persist: false, model_scope: 'local-only' },
+};
+
+/** classifySensitivity(text) → { sensitivity, signals } — marker > smell > public > internal */
+function classifySensitivity(text) {
+  const lower = String(text || '').toLowerCase();
+  const hits = set => set.filter(m => lower.includes(m));
+
+  const sov = hits(SOVEREIGN_MARKERS);
+  if (sov.length) return { sensitivity: 'sovereign', signals: sov };
+
+  const conf = hits(CONFIDENTIAL_MARKERS);
+  if (conf.length) return { sensitivity: 'confidential', signals: conf };
+
+  const smell = hits(CONFIDENTIAL_SMELLS);
+  if (smell.length) return { sensitivity: 'confidential', signals: smell };
+
+  if (lower.includes('#public')) return { sensitivity: 'public', signals: ['#public'] };
+  return { sensitivity: 'internal', signals: [] };
+}
+
 function findMatches(task, signals) {
   const lower = task.toLowerCase();
   return signals.filter(s => lower.includes(s.toLowerCase()));
@@ -111,7 +161,18 @@ function createClassifier({ indexPath } = {}) {
 
   function classify(task) {
     if (typeof task !== 'string') task = String(task || '');
+    const { sensitivity, signals } = classifySensitivity(task);
+    const policy = SENSITIVITY_POLICY[sensitivity];
+    return {
+      ...classifyRoute(task),
+      sensitivity,
+      allow_persist:       policy.allow_persist,
+      model_scope:         policy.model_scope,
+      sensitivity_signals: signals,
+    };
+  }
 
+  function classifyRoute(task) {
     const extMatches = findMatches(task, EXTERNAL_SIGNALS);
     if (extMatches.length > 0) {
       return {
@@ -232,4 +293,4 @@ function createClassifier({ indexPath } = {}) {
   return { classify, matchSkills };
 }
 
-module.exports = { createClassifier };
+module.exports = { createClassifier, classifySensitivity };
