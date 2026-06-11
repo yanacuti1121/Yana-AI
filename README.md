@@ -55,6 +55,16 @@ Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **Git
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
 ---
+What are the 97 agents?
+
+The 97 agents are not 97 AI models running at the same time.
+
+They are predefined specialist roles (security, frontend, backend, testing, learning, daily assistant, etc.) used for routing and task organization.
+
+In normal usage, only the agent required for the current task is activated.
+Most requests use a single model and a single agent route.
+
+---
 
 ## YAMTAM at a Glance
 
