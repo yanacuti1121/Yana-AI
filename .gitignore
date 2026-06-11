@@ -75,3 +75,6 @@ come_my_way.mp3
 
 # Antigravity — full Electron app (reassemble from release archive)
 tools/Antigravity-x64/
+
+# Yana web — local auth/session/mission data (never commit)
+tools/yana-web/.yana/

@@ -67,6 +67,12 @@ function Wordmark({ compact }) {
   );
 }
 
+/* ---------- Sign out ---------- */
+async function signOut() {
+  try { await fetch("/api/auth/logout", { method: "POST" }); } catch (_) {}
+  location.replace("/login.html");
+}
+
 /* ---------- Sidebar ---------- */
 const NAV = [
   { id: "dashboard", label: "Lake",          vi: "Mặt hồ",        icon: "dashboard" },
@@ -133,10 +139,19 @@ function Sidebar({ page, onNav }) {
           background: "linear-gradient(145deg, var(--gold), color-mix(in oklab, var(--gold) 55%, white))",
           color: "white", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600,
         }}>T</div>
-        <div style={{ lineHeight: 1.2 }}>
+        <div style={{ lineHeight: 1.2, flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 500 }}>Tâm Vũ</div>
           <div style={{ fontSize: 11, color: "var(--ink-3)" }}>Creator · YAMTAM</div>
         </div>
+        <button onClick={signOut} title={L("Sign out", "Đăng xuất")} aria-label={L("Sign out", "Đăng xuất")} style={{
+          background: "none", border: "none", cursor: "pointer", padding: 4,
+          color: "var(--ink-3)", display: "inline-flex", borderRadius: 8,
+        }}>
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12.5 6.5V4.5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 4.5v11A1.5 1.5 0 0 0 5 17h6a1.5 1.5 0 0 0 1.5-1.5v-2M8.5 10H17m0 0-2.5-2.5M17 10l-2.5 2.5" />
+          </svg>
+        </button>
       </div>
     </nav>
   );

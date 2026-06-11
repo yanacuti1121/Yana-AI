@@ -118,20 +118,45 @@ function ContextPanel() {
 }
 
 // Find the first provider that has a stored API key in the encrypted vault
-function getProviderConfig() {
+function getProviderConfig(preferred) {
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
+  if (preferred && YanaVault.hasKey(preferred)) {
+    return { provider: preferred, apiKey: YanaVault.getKey(preferred) };
+  }
   for (const id of order) {
     const key = YanaVault.getKey(id);
     if (key) return { provider: id, apiKey: key };
   }
   return { provider: "claude", apiKey: "" };
 }
+window.getProviderConfig = getProviderConfig;
+
+// "About you" from Settings — sent with every chat so Yana knows the user
+function aboutContext() {
+  const parts = [];
+  for (const [id, label] of [["who", "Who"], ["strengths", "Strengths"], ["weaknesses", "Weak spots"], ["style", "Response style"]]) {
+    const v = localStorage.getItem("yana.about." + id);
+    if (v && v.trim()) parts.push(label + ": " + v.trim());
+  }
+  return parts.join("\n");
+}
+
+const CHAT_STORE = "yana.chat";
+
+function loadChatHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CHAT_STORE));
+    if (Array.isArray(saved)) return saved;
+  } catch (_) {}
+  return window.YANA.chat;
+}
 
 function Chat({ t }) {
   const D = window.YANA;
-  const [msgs, setMsgs] = React.useState(D.chat);
+  const [msgs, setMsgs] = React.useState(loadChatHistory);
   const [draft, setDraft] = React.useState("");
   const [thinking, setThinking] = React.useState(false);
+  const [providerSel, setProviderSel] = React.useState(() => localStorage.getItem("yana.chat.provider") || "");
   const logRef = React.useRef(null);
   const readerRef = React.useRef(null);
 
@@ -140,8 +165,12 @@ function Chat({ t }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [msgs, thinking]);
 
-  // Persist the real conversation across page navigation (session-scoped)
-  React.useEffect(() => { D.chat = msgs; }, [msgs]);
+  // Persist the real conversation: across navigation AND reloads (last 60 turns)
+  React.useEffect(() => {
+    D.chat = msgs;
+    try { localStorage.setItem(CHAT_STORE, JSON.stringify(msgs.slice(-60))); } catch (_) {}
+  }, [msgs]);
+  React.useEffect(() => { localStorage.setItem("yana.chat.provider", providerSel); }, [providerSel]);
 
   // Cancel any in-flight stream on unmount
   React.useEffect(() => {
@@ -155,13 +184,24 @@ function Chat({ t }) {
     setDraft("");
     setThinking(true);
 
-    const { provider, apiKey } = getProviderConfig();
+    const { provider, apiKey } = getProviderConfig(providerSel);
+
+    // Real routing: classify the task so complex requests pick up a skill
+    let skill = null;
+    try {
+      const rr = await fetch("/api/route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: text }),
+      });
+      if (rr.ok) { const d = await rr.json(); skill = d.suggested_skill || null; }
+    } catch (_) {}
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: text, apiKey, provider }),
+        body: JSON.stringify({ task: text, apiKey, provider, skill, about: aboutContext() }),
       });
 
       if (!res.ok || !res.body) {
@@ -175,10 +215,10 @@ function Chat({ t }) {
       let accumulated = "";
       const msgId = Date.now();
 
-      // Insert placeholder Yana message — route shows the real provider/model
+      // Insert placeholder Yana message — route shows the real provider/model/skill
       setMsgs((m) => [...m, {
         who: "yana",
-        route: { agent: provider, model: CHAT_MODELS[provider] || provider },
+        route: { agent: provider, model: (CHAT_MODELS[provider] || provider) + (skill ? " · " + skill : "") },
         text: "",
         _id: msgId,
       }]);
@@ -254,6 +294,20 @@ function Chat({ t }) {
             placeholder={L("Ask Yana, or give the system a direction…", "Hỏi Yana, hoặc giao cho hệ thống một hướng đi…")}
             style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "var(--ink)" }}
           />
+          <select value={providerSel || getProviderConfig().provider}
+            onChange={(e) => setProviderSel(e.target.value)}
+            title={L("Provider for this conversation", "Nhà cung cấp cho cuộc trò chuyện")}
+            style={{
+              border: "1px solid var(--border)", borderRadius: 99, padding: "5px 9px",
+              background: "transparent", color: "var(--ink-2)", fontSize: 11.5,
+              fontFamily: "inherit", cursor: "pointer", maxWidth: 120,
+            }}>
+            {D.providers.map((p) => (
+              <option key={p.id} value={p.id} disabled={!YanaVault.hasKey(p.id)}>
+                {p.name}{YanaVault.hasKey(p.id) ? "" : " 🔒"}
+              </option>
+            ))}
+          </select>
           <span className="chip neutral" style={{ fontSize: 11.5 }}>{Icons.safety(12)} {L("Sentinel on", "Sentinel bật")}</span>
           <button onClick={send} aria-label="Send" style={{
             width: 36, height: 36, borderRadius: 11, border: "none", cursor: "pointer",

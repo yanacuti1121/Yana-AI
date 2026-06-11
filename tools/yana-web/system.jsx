@@ -125,19 +125,32 @@ function Providers() {
   }, []);
 
   const connected = D.providers.filter((p) => YanaVault.hasKey(p.id)).length;
+
+  // Connect provider: open the key prompt for the first provider without a key
+  async function connectNext() {
+    const next = D.providers.find((p) => !YanaVault.hasKey(p.id));
+    if (!next) { alert(L("All providers are connected.", "Tất cả nhà cung cấp đã kết nối.")); return; }
+    const raw = window.prompt(L("API key for ", "API key cho ") + next.name + ":");
+    if (raw === null || !raw.trim()) return;
+    await YanaVault.setKey(next.id, raw.trim());
+    bump();
+  }
+
   return (
     <div data-screen-label="Providers">
       <PageHeader
         title={L("Providers", "Nhà cung cấp")}
         sub={connected + L(" of ", " trong ") + D.providers.length + L(" providers connected · Groq routes, YAMTAM supervises every call", " nhà cung cấp đã kết nối · Groq định tuyến, YAMTAM giám sát mọi lệnh gọi")}>
-        <button style={{
+        <button onClick={connectNext} style={{
           display: "flex", alignItems: "center", gap: 7, padding: "8px 15px", borderRadius: 99,
           border: "none", cursor: "pointer", background: "var(--primary)", color: "white",
           fontSize: 13, fontWeight: 500, boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
         }}>{Icons.plus(15)} {L("Connect provider", "Kết nối nhà cung cấp")}</button>
       </PageHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--gap)" }}>
-        {D.providers.map((p) => <ProviderCard key={p.id} p={p} usage={usage} onKeyChange={bump} />)}
+        {D.providers.map((p) => (
+          <ProviderCard key={p.id + (YanaVault.hasKey(p.id) ? ":on" : ":off")} p={p} usage={usage} onKeyChange={bump} />
+        ))}
       </div>
     </div>
   );

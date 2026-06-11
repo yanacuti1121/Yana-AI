@@ -34,7 +34,7 @@ function MissionRowMini({ m, onOpen }) {
     }}>
       <div style={{ lineHeight: 1.3, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</div>
-        <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{m.owner} · due {m.due}</div>
+        <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{m.owner} · {m.status}</div>
       </div>
       <div className="bar"><i style={{ width: m.progress + "%" }}></i></div>
       <span style={{ fontSize: 12, color: "var(--ink-2)", textAlign: "right" }}>{m.progress}%</span>
@@ -68,7 +68,7 @@ function fmtUptime(s) {
 }
 
 /* ---------- The heart of Yana: the mission composer ---------- */
-function MissionComposer({ onNav }) {
+function MissionComposer({ onNav, missionCount }) {
   const D = window.YANA;
   const [v, setV] = React.useState("");
   const suggestions = [
@@ -77,19 +77,20 @@ function MissionComposer({ onNav }) {
     ["Prune stale memories", "Dọn ký ức cũ"],
   ];
 
-  function begin(text) {
+  async function begin(text) {
     const goal = (text || v).trim();
     if (!goal) return;
-    const id = "m" + Date.now();
-    D.missions.unshift({
-      id, name: goal, owner: "Navigator", progress: 4, due: "Planning", status: "analyzing",
-      tasks: [
-        { name: "Understanding the goal", agent: "Navigator", state: "active" },
-        { name: "Choosing agents & skills", agent: "Navigator", state: "queued" },
-        { name: "Drafting a plan for your review", agent: "Navigator", state: "queued" },
-      ],
-    });
-    D._openMission = id;
+    try {
+      const r = await fetch("/api/missions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: goal }),
+      });
+      if (r.ok) {
+        const { mission } = await r.json();
+        D._openMission = mission.id;
+      }
+    } catch (_) {}
     onNav("missions");
   }
 
@@ -124,7 +125,7 @@ function MissionComposer({ onNav }) {
         <span style={{ opacity: .5 }}>·</span>
         <span>{connectedN} {L("providers connected", "nhà cung cấp đã kết nối")}</span>
         <span style={{ opacity: .5 }}>·</span>
-        <span>{D.missions.length} {L("missions running", "nhiệm vụ đang chạy")}</span>
+        <span>{missionCount} {L("missions running", "nhiệm vụ đang chạy")}</span>
       </div>
     </div>
   );
@@ -134,10 +135,12 @@ function Dashboard({ t, onNav }) {
   const D = window.YANA;
   const [dash, setDash]   = React.useState(null);
   const [usage, setUsage] = React.useState(null);
+  const [missions, setMissions] = React.useState([]);
 
   React.useEffect(() => {
     fetch("/api/dashboard").then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setDash(d); }).catch(() => {});
     fetch("/api/usage").then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setUsage(d.usage); }).catch(() => {});
+    fetch("/api/missions").then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setMissions(d.missions); }).catch(() => {});
   }, []);
 
   const connected = D.providers.filter((p) => YanaVault.hasKey(p.id));
@@ -156,12 +159,12 @@ function Dashboard({ t, onNav }) {
 
   return (
     <div data-screen-label="Lake">
-      <MissionComposer onNav={onNav} />
+      <MissionComposer onNav={onNav} missionCount={missions.filter((m) => m.status !== "done").length} />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--gap)", marginBottom: "var(--gap)" }}>
         <StatTile label={L("Agents", "Tác nhân")} value={D.stats.agents || "—"} sub={L("in catalog", "trong danh mục")} accent />
         <StatTile label={L("Skills", "Kỹ năng")} value={(D.stats.skills || 0).toLocaleString()} sub={L("indexed & callable", "đã lập chỉ mục")} />
-        <StatTile label={L("Missions", "Nhiệm vụ")} value={D.missions.length} sub={L("in motion", "đang diễn ra")} />
+        <StatTile label={L("Missions", "Nhiệm vụ")} value={missions.filter((m) => m.status !== "done").length} sub={L("in motion", "đang diễn ra")} />
         <StatTile label={L("Memories", "Ký ức")} value={mem ? mem.total : "—"} sub={mem ? "+" + mem.today + L(" today", " hôm nay") : L("L1 atomic facts", "L1 atomic facts")} />
       </div>
 
@@ -181,8 +184,8 @@ function Dashboard({ t, onNav }) {
                 {L("Mission Center", "Trung tâm nhiệm vụ")} {Icons.chevron(13)}
               </button>
             }>
-              {D.missions.length
-                ? D.missions.slice(0, 4).map((m) => <MissionRowMini key={m.id} m={m} onOpen={() => onNav("missions")} />)
+              {missions.length
+                ? missions.slice(0, 4).map((m) => <MissionRowMini key={m.id} m={m} onOpen={() => { window.YANA._openMission = m.id; onNav("missions"); }} />)
                 : <EmptyHint text={L("No missions yet — start one above.", "Chưa có nhiệm vụ — bắt đầu một nhiệm vụ ở trên.")} />}
             </Card>
           )}

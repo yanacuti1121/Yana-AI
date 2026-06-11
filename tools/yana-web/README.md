@@ -35,8 +35,10 @@ HOST=0.0.0.0 node server.js    # expose beyond loopback (containers only)
 
 | Screen | Source |
 |---|---|
+| 🔑 Login | first run creates a password (scrypt hash), then HttpOnly session cookie — AI-app style page |
 | 🏠 Dashboard | `/api/status` (MANIFEST) · `/api/dashboard` (L1 memory + audit log + uptime) |
-| 💬 Chat | SSE streaming to 6 providers, conversation persists across navigation |
+| 💬 Chat | SSE streaming to 6 providers, provider picker, route classify + skill, history survives reloads |
+| 🎯 Missions | `/api/missions` — file-backed CRUD, "Plan with Yana" LLM task breakdown, click-to-advance tasks |
 | 🤖 Agent Space | `/api/agents` — 95 real agents from `core/agents/` frontmatter |
 | 🌸 Memory Garden | `/api/memories` — L1 atomic facts with confidence + freshness |
 | 🧩 Skills | `/api/skills` — on-disk counts grouped by import pack |
@@ -44,16 +46,20 @@ HOST=0.0.0.0 node server.js    # expose beyond loopback (containers only)
 
 ## Security
 
+- 🔑 **Login gate** (`auth.js`) — single-user password (scrypt, random salt) in `.yana/auth.json` (mode 600), 256-bit session tokens in an HttpOnly SameSite=Lax cookie, login rate-limited 5/15min per IP. Every page and API except `/health`, `/login.html`, and `/api/auth/*` requires a session.
 - 🔐 **Key vault** (`crypto-store.js`) — provider keys encrypted at rest with AES-256-GCM; the master key is a non-extractable WebCrypto `CryptoKey` in IndexedDB. localStorage only ever holds ciphertext. See rule `66-client-secret-encryption-law`.
 - 🛡️ Server binds `127.0.0.1` by default, per-IP rate limiting (60 POST/min), CSP + security headers, path-traversal-proof static serving, no API keys in URLs.
 
 ## API
 
 ```
-GET  /health          GET  /api/status       GET  /api/dashboard
-GET  /api/agents      GET  /api/memories     GET  /api/skills
-GET  /api/usage       POST /api/models       POST /api/route
-POST /api/chat        POST /api/index
+GET  /health             GET  /api/status        GET  /api/dashboard
+GET  /api/agents         GET  /api/memories      GET  /api/skills
+GET  /api/usage          GET  /api/missions      POST /api/missions
+POST /api/missions/update POST /api/missions/delete
+POST /api/models         POST /api/route         POST /api/chat
+POST /api/index          GET  /api/auth/status   POST /api/auth/setup
+POST /api/auth/login     POST /api/auth/logout
 ```
 
 ## Providers

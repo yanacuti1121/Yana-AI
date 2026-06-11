@@ -1,152 +1,229 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đăng nhập — Yana</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yana — Đăng nhập</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --primary: #2f7e6e;
+      --ink: #1d3530; --ink-2: #44615a; --ink-3: #7a948d;
+      --border: rgba(31, 70, 60, .14);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: var(--bg, #0f0f0f);
-      margin: 0;
+      margin: 0; display: grid; place-items: center; overflow: hidden;
+      font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%);
+      color: var(--ink);
     }
-    .login-card {
-      width: 100%;
-      max-width: 380px;
-      padding: 2.5rem 2rem;
-      background: var(--bg-card, #141414);
-      border: 1px solid var(--border, #222);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
+
+    /* ── Aurora backdrop — slow drifting blobs, AI-app style ── */
+    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); }
+    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
+    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
+    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(5vw, 6vh) scale(1.12); }
     }
-    .logo-y {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: var(--primary, #3b82f6);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.75rem; font-weight: 700; color: #fff;
-      letter-spacing: -0.03em;
+    @media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
+
+    /* ── Card ── */
+    .card {
+      position: relative; width: min(92vw, 400px); padding: 44px 36px 30px;
+      border-radius: 26px; text-align: center;
+      background: rgba(255,255,255,.58);
+      backdrop-filter: blur(22px) saturate(1.3);
+      -webkit-backdrop-filter: blur(22px) saturate(1.3);
+      border: 1px solid rgba(255,255,255,.7);
+      box-shadow: 0 24px 70px rgba(31,70,60,.16), inset 0 1px 0 rgba(255,255,255,.75);
+      animation: rise .55s cubic-bezier(.21,.8,.32,1) both;
     }
-    .login-title {
-      font-size: 1.25rem; font-weight: 600;
-      color: var(--fg, #f0f0f0); text-align: center;
+    @keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+
+    .mark {
+      width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 21px;
+      display: grid; place-items: center; position: relative;
+      background: linear-gradient(145deg, color-mix(in oklab, var(--primary) 88%, white), color-mix(in oklab, var(--primary) 60%, #b96b80));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 28px color-mix(in oklab, var(--primary) 35%, transparent);
+      animation: glow 3.6s ease-in-out infinite;
     }
-    .login-toggle {
-      display: flex; width: 100%;
-      border: 1px solid var(--border, #222);
-      border-radius: 8px; overflow: hidden;
+    @keyframes glow {
+      0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 28px color-mix(in oklab, var(--primary) 30%, transparent); }
+      50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 38px color-mix(in oklab, var(--primary) 48%, transparent); }
     }
-    .toggle-btn {
-      flex: 1; padding: 0.5rem;
-      background: transparent; border: none;
-      color: var(--fg-muted, #888);
-      cursor: pointer; font-size: 0.875rem;
-      transition: background 0.15s, color 0.15s;
-    }
-    .toggle-btn.active { background: var(--primary, #3b82f6); color: #fff; }
-    form { width: 100%; display: flex; flex-direction: column; gap: 0.875rem; }
+
+    h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+    .sub { margin: 0 0 26px; font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+
+    form { display: flex; flex-direction: column; gap: 12px; }
+    .field { position: relative; }
     .field input {
-      width: 100%; padding: 0.625rem 0.875rem; box-sizing: border-box;
-      background: var(--bg, #0f0f0f);
-      border: 1px solid var(--border, #222); border-radius: 8px;
-      color: var(--fg, #f0f0f0); font-size: 0.9375rem; outline: none;
-      transition: border-color 0.15s;
+      width: 100%; padding: 13px 46px 13px 16px; font-size: 14.5px; font-family: inherit;
+      border-radius: 14px; border: 1px solid var(--border); outline: none;
+      background: rgba(255,255,255,.75); color: var(--ink);
+      transition: border-color .15s, box-shadow .15s;
     }
-    .field input:focus { border-color: var(--primary, #3b82f6); }
-    .field input::placeholder { color: var(--fg-muted, #888); }
-    .btn-submit {
-      width: 100%; padding: 0.75rem;
-      background: var(--primary, #3b82f6); color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 0.9375rem; font-weight: 600; cursor: pointer;
-      transition: opacity 0.15s;
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent);
     }
-    .btn-submit:hover { opacity: 0.85; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-    .msg { font-size: 0.8125rem; text-align: center; min-height: 1.2em; }
-    .msg.error   { color: var(--danger, #f87171); }
-    .msg.success { color: var(--success, #4ade80); }
+    .eye {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; display: grid; place-items: center;
+      background: none; border: none; cursor: pointer; color: var(--ink-3); border-radius: 10px;
+    }
+    .eye:hover { color: var(--ink-2); }
+
+    button.cta {
+      width: 100%; padding: 13px; margin-top: 2px;
+      font-size: 14.5px; font-weight: 500; font-family: inherit;
+      border: none; border-radius: 14px; cursor: pointer; color: white;
+      background: var(--primary);
+      box-shadow: 0 8px 22px color-mix(in oklab, var(--primary) 35%, transparent);
+      transition: transform .12s, opacity .15s, box-shadow .2s;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+    }
+    button.cta:hover { box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 45%, transparent); }
+    button.cta:active { transform: translateY(1px); }
+    button.cta:disabled { opacity: .6; cursor: progress; }
+
+    .spinner {
+      width: 15px; height: 15px; border-radius: 50%; display: none;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: white;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: inline-block; }
+
+    .msg { min-height: 1.35em; margin: 14px 0 0; font-size: 12.5px; }
+    .msg.err { color: #b3503e; animation: shake .3s; }
+    .msg.ok  { color: var(--primary); }
+    @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    .foot {
+      margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-size: 11px; color: var(--ink-3); letter-spacing: .05em;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
   </style>
 </head>
 <body>
-  <div class="login-card">
-    <div class="logo-y">Y</div>
-    <div class="login-title" id="card-title">Đăng nhập</div>
+  <div class="aurora"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
 
-    <div class="login-toggle">
-      <button class="toggle-btn active" id="btn-login"    onclick="switchMode('login')">Đăng nhập</button>
-      <button class="toggle-btn"        id="btn-register" onclick="switchMode('register')">Đăng ký</button>
+  <main class="card">
+    <div class="mark" aria-label="Yana">
+      <svg width="38" height="38" viewBox="0 0 20 20" fill="none"
+        stroke="rgba(255,255,255,.95)" stroke-width="1.6" stroke-linecap="round">
+        <path d="M10 2.8C7.5 5.3 7.5 8.7 10 10.7c2.5-2 2.5-5.4 0-7.9Z" />
+        <path d="M4.8 13.3c1.6 1.5 3.3 2.2 5.2 2.2s3.6-.7 5.2-2.2" />
+        <path d="M7.3 16.5c.85.6 1.75.9 2.7.9s1.85-.3 2.7-.9" />
+      </svg>
     </div>
 
-    <form id="auth-form" onsubmit="handleSubmit(event)">
-      <div class="field"><input type="email"    id="email"    placeholder="Email"     required autocomplete="email" /></div>
-      <div class="field"><input type="password" id="password" placeholder="Mật khẩu" required autocomplete="current-password" minlength="6" /></div>
-      <button class="btn-submit" type="submit" id="submit-btn">Đăng nhập</button>
+    <h1 id="title">Chào mừng trở lại</h1>
+    <p class="sub" id="sub">Đăng nhập để tiếp tục với Yana.</p>
+
+    <form id="form">
+      <div class="field">
+        <input type="password" id="password" placeholder="Mật khẩu" required minlength="6"
+               autocomplete="current-password" autofocus />
+        <button type="button" class="eye" id="eye" aria-label="Hiện mật khẩu" tabindex="-1">
+          <svg id="eye-open" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 10S5.5 4.8 10 4.8 17.5 10 17.5 10 14.5 15.2 10 15.2 2.5 10 2.5 10Z"/><circle cx="10" cy="10" r="2.6"/>
+          </svg>
+          <svg id="eye-closed" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none">
+            <path d="M3.5 8.5c1.8 2 4 3.2 6.5 3.2s4.7-1.2 6.5-3.2M6 11l-1 2.2M10 11.9V14m4-3 1 2.2"/>
+          </svg>
+        </button>
+      </div>
+      <div class="field" id="confirm-wrap" style="display:none">
+        <input type="password" id="confirm" placeholder="Nhập lại mật khẩu" minlength="6" autocomplete="new-password" />
+      </div>
+      <button type="submit" class="cta" id="submit">
+        <span class="spinner"></span><span id="cta-text">Tiếp tục</span>
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>
+      </button>
     </form>
 
-    <p class="msg" id="msg"></p>
-  </div>
+    <p class="msg" id="msg" role="alert"></p>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <div class="foot"><span class="dot"></span> YAMTAM ENGINE · local &amp; private</div>
+  </main>
+
   <script>
-    const sb = window.supabase.createClient(
-      'https://kxuqqxmcnmgdlwjtpggq.supabase.co',
-      'sb_publishable_jCB2cKz0LmGUP0pcOY1bog_bnIFDff7'
-    )
+    'use strict';
+    var mode = 'login'; // 'login' | 'setup'
+    var $ = function (id) { return document.getElementById(id); };
 
-    let mode = 'login'
-
-    // Đã login → về trang chủ
-    sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) window.location.replace('/')
-    })
-
-    function switchMode(m) {
-      mode = m
-      const isLogin = m === 'login'
-      document.getElementById('btn-login').classList.toggle('active', isLogin)
-      document.getElementById('btn-register').classList.toggle('active', !isLogin)
-      document.getElementById('card-title').textContent = isLogin ? 'Đăng nhập' : 'Đăng ký'
-      document.getElementById('submit-btn').textContent = isLogin ? 'Đăng nhập' : 'Tạo tài khoản'
-      document.getElementById('password').autocomplete  = isLogin ? 'current-password' : 'new-password'
-      setMsg('')
+    function setMsg(text, ok) {
+      $('msg').textContent = text || '';
+      $('msg').className = 'msg ' + (text ? (ok ? 'ok' : 'err') : '');
     }
 
-    function setMsg(text, isError = true) {
-      const el = document.getElementById('msg')
-      el.textContent = text
-      el.className = 'msg ' + (text ? (isError ? 'error' : 'success') : '')
+    function setLoading(on) {
+      $('submit').disabled = on;
+      $('submit').classList.toggle('loading', on);
     }
 
-    async function handleSubmit(e) {
-      e.preventDefault()
-      const email    = document.getElementById('email').value.trim()
-      const password = document.getElementById('password').value
-      const btn      = document.getElementById('submit-btn')
-      btn.disabled = true
-      setMsg('')
-
-      try {
-        let error
-        if (mode === 'login') {
-          ;({ error } = await sb.auth.signInWithPassword({ email, password }))
-        } else {
-          ;({ error } = await sb.auth.signUp({ email, password }))
-          if (!error) { setMsg('Kiểm tra email để xác nhận tài khoản.', false); btn.disabled = false; return }
-        }
-        if (error) setMsg(error.message)
-        else window.location.replace('/')
-      } catch { setMsg('Lỗi kết nối. Thử lại.') }
-
-      btn.disabled = false
+    function applyMode() {
+      var setup = mode === 'setup';
+      $('title').textContent = setup ? 'Chào mừng đến Yana' : 'Chào mừng trở lại';
+      $('sub').textContent   = setup
+        ? 'Lần đầu tiên ở đây — hãy tạo mật khẩu cho mặt hồ của bạn.'
+        : 'Đăng nhập để tiếp tục với Yana.';
+      $('cta-text').textContent = setup ? 'Tạo mật khẩu' : 'Tiếp tục';
+      $('confirm-wrap').style.display = setup ? '' : 'none';
+      $('confirm').required = setup;
+      $('password').autocomplete = setup ? 'new-password' : 'current-password';
     }
+
+    // Show/hide password
+    $('eye').addEventListener('click', function () {
+      var p = $('password');
+      var show = p.type === 'password';
+      p.type = show ? 'text' : 'password';
+      $('eye-open').style.display   = show ? 'none' : '';
+      $('eye-closed').style.display = show ? '' : 'none';
+      p.focus();
+    });
+
+    fetch('/api/auth/status')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.authed) { location.replace('/'); return; }
+        mode = d.setup ? 'login' : 'setup';
+        applyMode();
+      })
+      .catch(function () { setMsg('Không kết nối được máy chủ.'); });
+
+    $('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var password = $('password').value;
+      if (mode === 'setup' && password !== $('confirm').value) {
+        setMsg('Mật khẩu nhập lại không khớp.'); return;
+      }
+      setLoading(true);
+      setMsg('');
+
+      fetch(mode === 'setup' ? '/api/auth/setup' : '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password }),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (out) {
+          if (out.ok) { setMsg('Đang vào mặt hồ…', true); location.replace('/'); }
+          else { setMsg(out.d.error || 'Có lỗi xảy ra.'); setLoading(false); }
+        })
+        .catch(function () { setMsg('Lỗi kết nối. Thử lại.'); setLoading(false); });
+    });
   </script>
 </body>
 </html>

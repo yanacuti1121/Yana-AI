@@ -9,6 +9,8 @@ const { createCore } = require('yamtam-core');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: path.join(__dirname, '..', '..'),
 });
+const auth     = require('./auth');
+const missions = require('./missions');
 
 const PORT         = process.env.PORT || 8081;
 // Loopback by default — Electron and Web Preview both talk to 127.0.0.1.
@@ -656,7 +658,7 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about } = parsed;
   if (!apiKey || typeof apiKey !== 'string') { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task   || typeof task   !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
 
@@ -664,6 +666,11 @@ async function handleApiChat(req, res) {
   let systemPrompt = null;
   if (skill && typeof skill === 'string') systemPrompt = loadSkillPrompt(skill);
   if (!systemPrompt) systemPrompt = loadSystemPrompt(Array.isArray(suggestedAgents) ? suggestedAgents : []);
+
+  // "About you" personal context from Settings — plain text, capped
+  if (about && typeof about === 'string' && about.trim()) {
+    systemPrompt = `[ABOUT THE USER]\n${about.trim().slice(0, 2000)}\n\n---\n\n${systemPrompt}`;
+  }
 
   // Codebase context injection via BM25 retrieval
   if (useIndex && CODEBASE.N > 0) {
@@ -725,6 +732,38 @@ async function handleApiChat(req, res) {
   upstreamReq.end();
 }
 
+// ── Auth plumbing ─────────────────────────────────────────────────────────────
+async function readJsonBody(req, res, maxBytes) {
+  let body;
+  try { body = await readBody(req, maxBytes || 4096); }
+  catch (e) { jsonError(res, e && e.status === 413 ? 413 : 400, 'Bad request'); return null; }
+  try { return JSON.parse(body); }
+  catch (_) { jsonError(res, 400, 'Invalid JSON'); return null; }
+}
+
+// Auth endpoints + the login page itself are public; everything else needs a
+// session. Unauthenticated page loads bounce to /login.html, API calls get 401.
+async function handleAuthRoutes(req, res, pathname, method) {
+  if (method === 'GET'  && pathname === '/api/auth/status') { auth.handleStatus(req, res); return true; }
+  if (method === 'POST' && pathname === '/api/auth/setup')  {
+    const body = await readJsonBody(req, res); if (body) auth.handleSetup(req, res, body); return true;
+  }
+  if (method === 'POST' && pathname === '/api/auth/login')  {
+    const body = await readJsonBody(req, res); if (body) auth.handleLogin(req, res, body); return true;
+  }
+  if (method === 'POST' && pathname === '/api/auth/logout') { auth.handleLogout(req, res); return true; }
+  return false;
+}
+
+function rejectUnauthed(res, pathname, method) {
+  if (method === 'GET' && !pathname.startsWith('/api/')) {
+    res.writeHead(302, { Location: '/login.html' });
+    res.end();
+  } else {
+    jsonError(res, 401, 'Not signed in');
+  }
+}
+
 // ── HTTP server ───────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   const pathname = (url.parse(req.url || '/').pathname || '/');
@@ -738,13 +777,29 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (method === 'GET'  && pathname === '/health')      { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
+  // Public surface: health probe, auth endpoints, the login page
+  if (method === 'GET' && pathname === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
+  if (await handleAuthRoutes(req, res, pathname, method)) return;
+  if (method === 'GET' && pathname === '/login.html') { serveStatic(res, pathname); return; }
+
+  if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
+
   if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
   if (method === 'GET'  && pathname === '/api/memories')  { handleApiMemories(req, res);  return; }
   if (method === 'GET'  && pathname === '/api/skills')    { handleApiSkills(req, res);    return; }
+  if (method === 'GET'  && pathname === '/api/missions')  { missions.handleList(req, res); return; }
+  if (method === 'POST' && pathname === '/api/missions') {
+    const body = await readJsonBody(req, res); if (body) await missions.handleCreate(req, res, body, route); return;
+  }
+  if (method === 'POST' && pathname === '/api/missions/update') {
+    const body = await readJsonBody(req, res, 64 * 1024); if (body) missions.handleUpdate(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/missions/delete') {
+    const body = await readJsonBody(req, res); if (body) missions.handleDelete(req, res, body); return;
+  }
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }
