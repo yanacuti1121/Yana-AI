@@ -148,8 +148,9 @@ print('[validate-manifest] Fixed skills count → $skills_actual')
   fi
 fi
 
-# Scripts: count .sh + .js files
-scripts_actual=$(find "$PROJECT_ROOT/core/scripts" \( -name "*.sh" -o -name "*.js" \) 2>/dev/null | wc -l | tr -d ' ')
+# Scripts: count .sh + .js + .py files — same definition as drift-check.sh
+# (top-level core/scripts files; Python tooling counts as scripts too)
+scripts_actual=$(find "$PROJECT_ROOT/core/scripts" -maxdepth 1 \( -name "*.sh" -o -name "*.js" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
 scripts_declared=$(read_count scripts)
 CHECKED_COUNT=$((CHECKED_COUNT + 1))
 if [[ "$scripts_actual" -eq "$scripts_declared" ]]; then
