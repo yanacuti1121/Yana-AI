@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yana — Trợ lý AI của bạn</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #2f7e6e;
+      --ink: #1d3530; --ink-2: #44615a; --ink-3: #7a948d;
+      --border: rgba(31, 70, 60, .14);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; overflow-x: hidden;
+      font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%);
+      color: var(--ink);
+      display: grid; place-items: center; min-height: 100vh;
+    }
+
+    /* ── Aurora backdrop ── */
+    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); z-index: 0; }
+    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
+    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
+    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(5vw, 6vh) scale(1.12); }
+    }
+    @media (prefers-reduced-motion: reduce) { .blob, .mark, .stage > * { animation: none !important; opacity: 1 !important; transform: none !important; } }
+
+    /* ── Stage ── */
+    .stage {
+      position: relative; z-index: 1; width: min(94vw, 720px);
+      padding: 48px 24px 36px; text-align: center;
+    }
+    .stage > * { animation: rise .6s cubic-bezier(.21,.8,.32,1) both; }
+
+    .lang {
+      position: fixed; top: 18px; right: 18px; z-index: 2;
+      display: flex; gap: 2px; padding: 3px;
+      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.7);
+      border-radius: 99px; backdrop-filter: blur(12px);
+    }
+    .lang button {
+      border: none; cursor: pointer; font-family: inherit;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .03em;
+      padding: 4px 10px; border-radius: 99px; color: var(--ink-3);
+      background: transparent; transition: background .15s, color .15s;
+    }
+    .lang button.on { background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 3px rgba(31,70,60,.12); }
+
+    .mark {
+      width: 84px; height: 84px; margin: 0 auto 24px; border-radius: 27px;
+      display: grid; place-items: center;
+      background: linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 14px 36px color-mix(in oklab, var(--primary) 32%, transparent);
+      animation: rise .6s cubic-bezier(.21,.8,.32,1) both, breathe 5s ease-in-out 1s infinite;
+    }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+
+    h1 {
+      margin: 0 0 10px; font-size: clamp(28px, 5vw, 38px); font-weight: 600;
+      letter-spacing: -0.02em; animation-delay: .06s;
+    }
+    h1 .name { color: var(--primary); }
+    .tagline {
+      margin: 0 auto 34px; max-width: 46ch;
+      font-size: clamp(13.5px, 2.2vw, 15.5px); color: var(--ink-2); line-height: 1.7;
+      animation-delay: .12s;
+    }
+
+    /* Feature cards */
+    .feats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px; margin-bottom: 36px; animation-delay: .18s;
+    }
+    .feat {
+      padding: 18px 14px 16px; border-radius: 18px; text-align: center;
+      background: rgba(255,255,255,.5);
+      backdrop-filter: blur(16px) saturate(1.2);
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: 0 8px 26px rgba(31,70,60,.07), inset 0 1px 0 rgba(255,255,255,.7);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .feat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(31,70,60,.11), inset 0 1px 0 rgba(255,255,255,.7); }
+    .feat .ico {
+      width: 38px; height: 38px; margin: 0 auto 10px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--primary);
+      background: color-mix(in oklab, var(--primary) 10%, transparent);
+    }
+    .feat .t { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .feat .d { font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
+
+    /* CTA */
+    .ctas { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; animation-delay: .24s; }
+    a.cta {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 14px 30px; border-radius: 16px; text-decoration: none;
+      font-size: 15px; font-weight: 500; color: white;
+      background: var(--primary);
+      box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 38%, transparent);
+      transition: transform .12s, box-shadow .2s;
+    }
+    a.cta:hover { box-shadow: 0 12px 34px color-mix(in oklab, var(--primary) 50%, transparent); transform: translateY(-1px); }
+    a.cta:active { transform: translateY(1px); }
+    .cta-note { font-size: 12px; color: var(--ink-3); margin-top: 14px; animation-delay: .3s; }
+
+    .foot {
+      margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-size: 11px; color: var(--ink-3); letter-spacing: .05em; animation-delay: .36s;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
+
+    @media (max-width: 540px) {
+      .feats { grid-template-columns: 1fr 1fr; }
+      .stage { padding-top: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" id="lang-vi" class="on">VI</button>
+    <button type="button" id="lang-en">EN</button>
+  </div>
+
+  <main class="stage">
+    <div class="mark" aria-label="Yana">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="rgba(255,255,255,.95)">
+        <path d="M12 2.6c-2.3 2.9-2.3 6.5 0 8.8 2.3-2.3 2.3-5.9 0-8.8Z"/>
+        <path d="M6.4 5.9c-.7 3.5.9 6.4 4.3 7.6-.2-3.5-1.7-6.1-4.3-7.6Z"/>
+        <path d="M17.6 5.9c.7 3.5-.9 6.4-4.3 7.6.2-3.5 1.7-6.1 4.3-7.6Z"/>
+        <path fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.5" stroke-linecap="round"
+          d="M4.6 16.4c2.3 1.8 4.8 2.7 7.4 2.7s5.1-.9 7.4-2.7M8 20.4c1.3.6 2.6.9 4 .9s2.7-.3 4-.9"/>
+      </svg>
+    </div>
+
+    <h1 id="title">Gặp <span class="name">Yana</span> — trợ lý AI của bạn</h1>
+    <p class="tagline" id="tagline">
+      Một cuộc trò chuyện, nhiều bàn tay. Yana định tuyến từng yêu cầu đến đúng mô hình,
+      ghi nhớ những gì quan trọng, và mọi hành động đều được YAMTAM giám sát an toàn.
+    </p>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 9.5c0 3.3-3.1 6-7 6-.9 0-1.8-.14-2.6-.4L3 16.5l1.2-3.1C3.4 12.3 3 11 3 9.5c0-3.3 3.1-6 7-6s7 2.7 7 6Z"/></svg>
+        </div>
+        <div class="t" id="f1t">Chat đa mô hình</div>
+        <div class="d" id="f1d">Claude, GPT, Gemini, Groq… — một khung chat, tự chọn đúng mô hình</div>
+      </div>
+      <div class="feat">
+        <div class="ico">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r="0.4" fill="currentColor"/></svg>
+        </div>
+        <div class="t" id="f2t">Nhiệm vụ</div>
+        <div class="d" id="f2d">Giao mục tiêu, Yana lập kế hoạch và theo dõi đến khi xong</div>
+      </div>
+      <div class="feat">
+        <div class="ico">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 17c4-1.6 6.2-4.4 6.2-8.1C16.2 6 14.5 4 12.3 4 11.3 4 10.4 4.5 10 5.3 9.6 4.5 8.7 4 7.7 4 5.5 4 3.8 6 3.8 8.9 3.8 12.6 6 15.4 10 17Z"/><path d="M10 17V9.5"/></svg>
+        </div>
+        <div class="t" id="f3t">Vườn ký ức</div>
+        <div class="d" id="f3d">Ghi nhớ điều quan trọng về bạn — lưu cục bộ, có mã hóa</div>
+      </div>
+      <div class="feat">
+        <div class="ico">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8 16 5v4.7c0 3.6-2.4 6.4-6 7.8-3.6-1.4-6-4.2-6-7.8V5l6-2.2Z"/><path d="m7.4 9.8 1.8 1.8 3.4-3.6"/></svg>
+        </div>
+        <div class="t" id="f4t">An toàn YAMTAM</div>
+        <div class="d" id="f4d">Mọi lệnh gọi đi qua lớp giám sát — chặn trước khi gây hại</div>
+      </div>
+    </div>
+
+    <div class="ctas">
+      <a class="cta" href="/login.html" id="cta">
+        <span id="cta-text">Bắt đầu</span>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>
+      </a>
+    </div>
+    <p class="cta-note" id="cta-note">Chạy trên máy bạn · Dùng API key của bạn · Không tài khoản đám mây</p>
+
+    <div class="foot"><span class="dot"></span> YAMTAM ENGINE · local &amp; private</div>
+  </main>
+
+  <script>
+    'use strict';
+    var lang = localStorage.getItem('yana.login.lang') || 'vi';
+    var $ = function (id) { return document.getElementById(id); };
+
+    var T = {
+      vi: {
+        title: 'Gặp <span class="name">Yana</span> — trợ lý AI của bạn',
+        tagline: 'Một cuộc trò chuyện, nhiều bàn tay. Yana định tuyến từng yêu cầu đến đúng mô hình, ghi nhớ những gì quan trọng, và mọi hành động đều được YAMTAM giám sát an toàn.',
+        f1t: 'Chat đa mô hình',  f1d: 'Claude, GPT, Gemini, Groq… — một khung chat, tự chọn đúng mô hình',
+        f2t: 'Nhiệm vụ',          f2d: 'Giao mục tiêu, Yana lập kế hoạch và theo dõi đến khi xong',
+        f3t: 'Vườn ký ức',        f3d: 'Ghi nhớ điều quan trọng về bạn — lưu cục bộ, có mã hóa',
+        f4t: 'An toàn YAMTAM',    f4d: 'Mọi lệnh gọi đi qua lớp giám sát — chặn trước khi gây hại',
+        ctaSetup: 'Bắt đầu', ctaLogin: 'Đăng nhập',
+        note: 'Chạy trên máy bạn · Dùng API key của bạn · Không tài khoản đám mây',
+      },
+      en: {
+        title: 'Meet <span class="name">Yana</span> — your AI assistant',
+        tagline: 'One conversation, many hands. Yana routes every request to the right model, remembers what matters, and every action is supervised by YAMTAM.',
+        f1t: 'Multi-model chat',  f1d: 'Claude, GPT, Gemini, Groq… — one chat, the right model picked for you',
+        f2t: 'Missions',          f2d: 'Give a goal — Yana plans the tasks and tracks them to done',
+        f3t: 'Memory Garden',     f3d: 'Remembers what matters about you — stored locally, encrypted',
+        f4t: 'YAMTAM safety',     f4d: 'Every call passes a supervision layer — blocked before harm',
+        ctaSetup: 'Get started', ctaLogin: 'Sign in',
+        note: 'Runs on your machine · Your own API keys · No cloud account',
+      },
+    };
+
+    var isSetUp = false;
+
+    function applyLang() {
+      var d = T[lang];
+      document.documentElement.lang = lang;
+      $('lang-vi').classList.toggle('on', lang === 'vi');
+      $('lang-en').classList.toggle('on', lang === 'en');
+      $('title').innerHTML = d.title;
+      $('tagline').textContent = d.tagline;
+      for (var i = 1; i <= 4; i++) {
+        $('f' + i + 't').textContent = d['f' + i + 't'];
+        $('f' + i + 'd').textContent = d['f' + i + 'd'];
+      }
+      $('cta-text').textContent = isSetUp ? d.ctaLogin : d.ctaSetup;
+      $('cta-note').textContent = d.note;
+    }
+
+    $('lang-vi').addEventListener('click', function () { lang = 'vi'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
+    $('lang-en').addEventListener('click', function () { lang = 'en'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
+
+    // Already signed in → straight to the app; password exists → CTA says "Sign in"
+    fetch('/api/auth/status')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.authed) { location.replace('/'); return; }
+        isSetUp = d.setup;
+        applyLang();
+      })
+      .catch(function () {});
+
+    applyLang();
+  </script>
+</body>
+</html>

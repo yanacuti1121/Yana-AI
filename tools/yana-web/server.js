@@ -757,7 +757,8 @@ async function handleAuthRoutes(req, res, pathname, method) {
 
 function rejectUnauthed(res, pathname, method) {
   if (method === 'GET' && !pathname.startsWith('/api/')) {
-    res.writeHead(302, { Location: '/login.html' });
+    // First run → welcome/intro page; returning user → straight to login
+    res.writeHead(302, { Location: auth.isSetUp() ? '/login.html' : '/welcome.html' });
     res.end();
   } else {
     jsonError(res, 401, 'Not signed in');
@@ -777,10 +778,10 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Public surface: health probe, auth endpoints, the login page
+  // Public surface: health probe, auth endpoints, welcome + login pages
   if (method === 'GET' && pathname === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (await handleAuthRoutes(req, res, pathname, method)) return;
-  if (method === 'GET' && pathname === '/login.html') { serveStatic(res, pathname); return; }
+  if (method === 'GET' && (pathname === '/login.html' || pathname === '/welcome.html')) { serveStatic(res, pathname); return; }
 
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 

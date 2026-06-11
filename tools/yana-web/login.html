@@ -232,7 +232,11 @@
 
     <p class="msg" id="msg" role="alert"></p>
 
-    <div class="foot"><span class="dot"></span> YAMTAM ENGINE · local &amp; private</div>
+    <div class="foot">
+      <span class="dot"></span> YAMTAM ENGINE · local &amp; private
+      <span style="opacity:.4">·</span>
+      <a href="/welcome.html" id="about-link" style="color:var(--primary);text-decoration:none">Giới thiệu Yana</a>
+    </div>
   </main>
 
   <script>
@@ -257,6 +261,7 @@
         wrongPw: 'Sai mật khẩu.', tooMany: 'Thử quá nhiều lần — chờ 15 phút.',
         tooShort: 'Mật khẩu cần ít nhất 6 ký tự.',
         sWeak: 'Yếu — thêm ký tự nữa', sFair: 'Tạm ổn', sGood: 'Tốt', sStrong: 'Rất mạnh',
+        about: 'Giới thiệu Yana',
       },
       en: {
         titleLogin: 'Welcome back',   subLogin: 'Sign in to continue with Yana.',
@@ -273,6 +278,7 @@
         wrongPw: 'Wrong password.', tooMany: 'Too many attempts — wait 15 minutes.',
         tooShort: 'Password must be at least 6 characters.',
         sWeak: 'Weak — add more characters', sFair: 'Fair', sGood: 'Good', sStrong: 'Very strong',
+        about: 'About Yana',
       },
     };
     function t(k) { return T[lang][k]; }
@@ -301,6 +307,7 @@
       $('forgot').textContent   = t('forgot');
       $('help-text').textContent = t('help');
       $('caps-text').textContent = t('caps');
+      $('about-link').textContent = t('about');
       applyMode();
     }
 

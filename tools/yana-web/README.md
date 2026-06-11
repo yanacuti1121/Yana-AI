@@ -35,7 +35,8 @@ HOST=0.0.0.0 node server.js    # expose beyond loopback (containers only)
 
 | Screen | Source |
 |---|---|
-| 🔑 Login | first run creates a password (scrypt hash), then HttpOnly session cookie — AI-app style page |
+| 🌊 Welcome | first-run intro page — what Yana is, feature highlights, "Get started" → login |
+| 🔑 Login | create password on first run (scrypt hash), then HttpOnly session cookie — AI-app style, VI/EN, remember-30d, Caps Lock hint, strength meter |
 | 🏠 Dashboard | `/api/status` (MANIFEST) · `/api/dashboard` (L1 memory + audit log + uptime) |
 | 💬 Chat | SSE streaming to 6 providers, provider picker, route classify + skill, history survives reloads |
 | 🎯 Missions | `/api/missions` — file-backed CRUD, "Plan with Yana" LLM task breakdown, click-to-advance tasks |
