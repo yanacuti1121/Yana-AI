@@ -586,3 +586,16 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.41.1 · branch=main, clean, last=640fb3a6 docs(rule-68): Platform Trust Reality — tiers decid
 
 ---
+
+## 2026-06-12 — rule 68 full-stack + Yana Settings thật + PR #193 fixed
+
+**Đã làm:**
+- Rust + JS + UI: rule 68 sensitivity tiers (sovereign/confidential) chạy thật end-to-end — Confidential Mode trong chat, Ollama on-device provider, missions guard
+- Settings hết fake: tweaks persist (yana.tweaks), workspace editable, provider select thật, Safety/Memory live data
+- Tests mới/sửa: crypto-store 17, classifier 14, router, missions +3 — tất cả xanh; cargo 76/76
+- vhs demo automation (demo/demo.sh + .tape + workflow)
+- publish.yml PyPI: root cause = SHA pin không tồn tại (không phải environment — đã verify qua API), repinned
+- codexmate PR #193: push fix CSS, retitle, comment — chờ upstream merge
+
+**Anh nói / quyết định:** "lm hết các công việc qua lưu đi có cả rust 68" · "cập nhật đầy đủ tính năng" + yêu cầu mới: Settings phải hoạt động thật, lưu thiết lập giao diện, fix chỗ chỉ là hình
+**Trạng thái cuối:** v0.41.1 · 6 commits local CHƯA PUSH (e6ebae60..44a2e6da) · repo sạch ngoài assistant files

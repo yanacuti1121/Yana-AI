@@ -1,6 +1,6 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-11
+**Cập nhật lần cuối:** 2026-06-12 (sáng KR)
 
 ## Trạng thái
 - yamtam-engine **v0.41.1** — npm ✅ LIVE · crates ✅ · Release tự động hóa hoàn chỉnh (push tag là publish) · CI ✅ xanh lại sau 30+ runs đỏ · repo clean
@@ -16,12 +16,20 @@
 
 ## Phase hiện tại: ACTIVE
 
-## Ưu tiên tiếp theo (anh chốt cuối ngày 11/06: "mai làm")
-1. **Yana Confidential Mode** — hiện thực rule 68 thành UI: tag mật trong chat → no-persist (không vào missions/memory/about-context) + tier routing (SOVEREIGN → local model). Em đề xuất, anh chưa chốt nhưng nghiêng theo
-2. **vhs .tape script** — tự động hóa demo GIF mỗi release (hiện render tay bằng agg /tmp/agg + font /tmp/fonts — mất sau reconnect)
-3. **PyPI environment** — publish job fail "Set up job" từ v0.41.0; sửa trong repo Settings → Environments (OIDC trusted publishing) thì PyPI mới lên 0.41.1
-4. **Tests còn thiếu** — crypto-store.js chưa có test; _test_router.js vẫn hỏng (require ./router.js đã move sang yamtam-core)
-5. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4, asciinema-player đã dùng)
+## Ưu tiên tiếp theo
+1. **PUSH** — 6 commits local trên main chưa push (e6ebae60..44a2e6da): rule 68 Rust + Confidential Mode + Settings thật + crypto tests + vhs + fix publish.yml. Chạy pre-push gates rồi push khi anh duyệt
+2. **Re-release PyPI** — sau khi push, tag mới (vd v0.41.2) sẽ test fix publish.yml (root cause là SHA pin sai của pypa/gh-action-pypi-publish, KHÔNG phải environment). Nếu PyPI vẫn fail ở bước publish → cần đăng ký trusted publisher trên pypi.org (repo yamtam-engine, workflow publish.yml, environment pypi)
+3. **codexmate PR #193** — đã fix xong phía mình (push 92d6b33, retitle, comment tổng kết) — chờ maintainer SakuraByteCore merge, theo dõi
+4. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4)
+
+## Đã xong 12/06 sáng KR (session "lm hết các công việc qua lưu đi")
+- Rule 68 thành code thật 3 tầng: Rust route.rs (Sensitivity enum, 13/13 tests), yamtam-core classifier (classifySensitivity export), yana-web UI
+- Yana Confidential Mode: nút 🔒 + auto-detect marker VI/EN → no-persist localStorage, không gửi about-context, SOVEREIGN → chỉ Ollama (provider mới, keyless, 127.0.0.1:11434), server chặn 403 defense-in-depth, missions reject 403 tên mật
+- Settings thật: useTweaks persist localStorage (yana.tweaks) — theme/accent/density/ngôn ngữ sống qua reload; workspace name editable; timezone detect thật; default provider select (wire vào yana.chat.provider); Safety/Memory cards đọc /api/dashboard; Ollama "On-device/keyless"
+- Tests: crypto-store 17/17 (mới), classifier 14/14 (viết lại), router fixed, missions 26/26 (+3 rule 68), auth 28/28, cargo 76/76
+- vhs: demo/demo.sh (nguồn duy nhất) + demo/demo.tape + workflow demo-gif.yml (workflow_dispatch)
+- publish.yml: repin pypa/gh-action-pypi-publish (SHA cũ không tồn tại upstream — root cause "Set up job" fail từ v0.41.0)
+- codexmate #193: CSS mutual-exclusion fix pushed, title "vn" → mô tả đúng, comment 5 điểm CodeRabbit resolved
 
 ## Đã xong hôm nay 11/06 (chiều — sau khi anh quay lại 14h KR)
 - npm 0.41.1 LIVE (sửa 3 tầng: drift CI → release auto → publish trigger tag-push + --allow-same-version)
