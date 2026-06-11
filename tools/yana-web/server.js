@@ -286,15 +286,44 @@ const SEC_HEADERS = {
     "connect-src 'self' https://api.open-meteo.com",
 };
 
-function applySecurityHeaders(res) {
+function applySecurityHeaders(req, res) {
   for (const [k, v] of Object.entries(SEC_HEADERS)) res.setHeader(k, v);
+  // HSTS only makes sense when the request actually arrived over TLS
+  if (isSecureRequest(req)) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+}
+
+// Behind a TLS proxy (Railway, fly.io…) every visitor shares the proxy's
+// socket address — per-IP rate limiting silently becomes one global bucket,
+// so 5 bad login attempts from anyone would lock the real owner out.
+// YANA_TRUST_PROXY=1 (set in the Dockerfile) reads the client from the
+// first X-Forwarded-For hop instead.
+const TRUST_PROXY = process.env.YANA_TRUST_PROXY === '1';
+
+function clientIp(req) {
+  if (TRUST_PROXY) {
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff.length) return xff.split(',')[0].trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function isSecureRequest(req) {
+  return TRUST_PROXY && req.headers['x-forwarded-proto'] === 'https';
 }
 
 const RATE = { windowMs: 60_000, max: 60, hits: new Map() };
 
 function rateLimited(req) {
-  const ip  = req.socket.remoteAddress || 'unknown';
+  const ip  = req.clientIp || clientIp(req);
   const now = Date.now();
+  // sweep expired buckets so unique-IP traffic can't grow the map forever
+  if (RATE.hits.size > 1000) {
+    for (const [k, v] of RATE.hits) {
+      if (now - v.start > RATE.windowMs) RATE.hits.delete(k);
+    }
+  }
   let rec = RATE.hits.get(ip);
   if (!rec || now - rec.start > RATE.windowMs) rec = { count: 0, start: now };
   rec.count++;
@@ -692,7 +721,8 @@ async function handleApiChat(req, res) {
   const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;
   const reqBody = p.body(modelId, systemPrompt, task, imgs);
 
-  // Gemini embeds the API key in the path instead of a header
+  // Gemini builds its path from the model id; the key always travels in the
+  // x-goog-api-key header, never the URL (rule 66 / API2)
   const reqPath = p.buildPath ? p.buildPath(modelId, apiKey) : p.path;
 
   const options = {
@@ -775,7 +805,11 @@ const server = http.createServer(async (req, res) => {
   const pathname = (url.parse(req.url || '/').pathname || '/');
   const method   = req.method || 'GET';
 
-  applySecurityHeaders(res);
+  // resolved once per request; auth.js reads these for rate limiting + cookies
+  req.clientIp = clientIp(req);
+  req.secure   = isSecureRequest(req);
+
+  applySecurityHeaders(req, res);
 
   if (method === 'POST' && rateLimited(req)) {
     res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '60' });

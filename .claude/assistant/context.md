@@ -52,6 +52,8 @@
 ---
 
 ## Ghi chú
+- ⏰ Lưu ý giờ: clock máy chủ chạy UTC — giờ của anh là GMT+9 (Hàn Quốc, chênh +9h). Briefing nên quy đổi theo giờ KR.
+- 11/06: anh hết token quota lúc ~10:00 sáng giờ KR, hẹn quay lại ~14:00 giờ KR — việc tiếp theo đã ghi ở 'Ưu tiên tiếp theo'
 - Anh dùng Google Cloud Shell
 - Build Rust: CARGO_TARGET_DIR=/tmp/yamtam-build cargo build
 - JNMT: 6 ngôn ngữ thực tế, 620k dòng tự viết, 55 deployments

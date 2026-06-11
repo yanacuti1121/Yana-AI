@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1,129,782 lines</em>
+  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1,034,519 lines</em>
 </p>
 
 <p align="center">
@@ -73,7 +73,7 @@ Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **Git
 │      "The orchestration layer between humans and AI —            │
 │        routing, safety, and context for every domain."           │
 │                                                                  │
-│        Built by Vũ Văn Tâm · 17 · Vietnam · 1.1M+ lines          │
+│        Built by Vũ Văn Tâm · 17 · Vietnam · 1M+ lines            │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -210,7 +210,7 @@ Execute (or block + log)
 | 🔌 Harness adapters | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Rust subcommands | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Rule checks in CI | **826** |
-| 📦 Total codebase | **1,129,782 lines · 5,439 files** |
+| 📦 Total codebase | **1,034,519 lines · 5,762 files** |
 
 ---
 

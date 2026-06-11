@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1,129,782 dòng mã</em>
+  <em>Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1,034,519 dòng mã</em>
 </p>
 
 <p align="center">
@@ -70,7 +70,7 @@ Hoạt động với **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemin
 │        "Lớp điều phối giữa con người và AI — định tuyến,         │
 │          bảo mật và ngữ cảnh cho mọi lĩnh vực."                  │
 │                                                                  │
-│   Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1.1M+ dòng    │
+│   Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1M+ dòng      │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -189,7 +189,7 @@ Thực thi (hoặc chặn + ghi log)
 | 🔌 Adapter harness | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Lệnh con Rust | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Kiểm tra quy tắc trong CI | **826** |
-| 📦 Tổng mã nguồn | **1,129,782 dòng · 5,439 tệp** |
+| 📦 Tổng mã nguồn | **1,034,519 dòng · 5,762 tệp** |
 
 ---
 
