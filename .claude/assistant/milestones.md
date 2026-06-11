@@ -7,7 +7,6 @@
 | Date | Title | Priority |
 |------|-------|---------|
 | 2026-06-10 | Token rotation (npm + crates.io + PyPI) | P0 |
-| 2026-06-17 | GitHub Marketplace — chờ kết quả vòng 2 sau khi fix lỗi dấu chấm | P1 |
 
-<!-- ✅ 2026-06-10: "GitHub Marketplace review result" — anh nhận review, còn 1 lỗi dính dấu chấm, đã sửa và resubmit. Chuyển thành milestone chờ vòng 2 ở trên. -->
-<!-- ℹ Token rotation 10/06: context.md ghi đã rotate xong 03/06 — nếu milestone này là nhắc rotate định kỳ thì giữ, nếu stale thì xóa. -->
+<!-- ✅ 2026-06-10: "GitHub Marketplace vòng 2" — APPROVED & LIVE 10/06, sớm hơn deadline 17/06 một tuần. https://github.com/marketplace/yamtam-engine -->
+<!-- ℹ Token rotation 10/06: context.md ghi đã rotate xong 03/06 — chờ anh chốt: nhắc định kỳ thì giữ, stale thì xóa. -->

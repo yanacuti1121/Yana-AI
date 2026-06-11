@@ -545,3 +545,17 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Trạng thái cuối:** v0.41.0 · 3,495 skills · repo sạch · lịch sử git không còn binary lớn · remote synced
 
 ---
+
+## 2026-06-10 — 🎉 GitHub Marketplace APPROVED & LIVE
+
+**Đã làm:**
+- Nhận mail GitHub: listing "YAMTAM ENGINE" approved, live tại github.com/marketplace/yamtam-engine
+- Update context.md: Marketplace done, ưu tiên chuyển sang Yana tests + post-launch
+- Update milestones.md: đóng milestone Marketplace vòng 2 (về sớm 1 tuần so với 17/06)
+
+**Anh nói / quyết định:** "thành công r" — vòng 2 approve ngay trong ngày resubmit
+
+**Trạng thái cuối:** v0.41.0 · repo clean · Marketplace LIVE
+**Pending:** milestone Token rotation 10/06 chưa rõ stale hay nhắc định kỳ; _test_router.js hỏng; test crypto-store/server chưa có
+
+---

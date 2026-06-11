@@ -1,6 +1,6 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-07
+**Cập nhật lần cuối:** 2026-06-10
 
 ## Trạng thái
 - yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean · history rewritten (Antigravity removed)
@@ -15,8 +15,13 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **GitHub Marketplace** — review vòng 1 ĐÃ VỀ (10/06): còn 1 lỗi dính dấu chấm, anh đã sửa + resubmit → chờ kết quả vòng 2 (milestone 17/06)
-2. **Yana web/desktop** — security hardening DONE 10/06 (vault mã hóa key + server hardening + rule 66). Còn thiếu: test cho crypto-store/server, _test_router.js đang hỏng (require ./router.js đã move sang yamtam-core)
+1. **Yana web/desktop** — security hardening DONE 10/06 (vault mã hóa key + server hardening + rule 66). Còn thiếu: test cho crypto-store/server, _test_router.js đang hỏng (require ./router.js đã move sang yamtam-core)
+2. **Marketplace post-launch** — cập nhật README/docs với badge + link Marketplace, theo dõi install count
+
+## 🎉 GitHub Marketplace — APPROVED & LIVE (10/06/2026)
+- Listing: https://github.com/marketplace/yamtam-engine
+- Manage: https://github.com/marketplace/yamtam-engine/edit
+- Vòng 2 approve ngày 10/06 — sớm hơn milestone 17/06 một tuần
 
 ## Đã biết / blockers
 - Token rotation: ✅ DONE (NPM + CARGO + PYPI đã rotate 03/06)
