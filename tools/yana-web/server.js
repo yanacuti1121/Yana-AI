@@ -24,6 +24,9 @@ const MIME = {
   '.js':   'application/javascript; charset=utf-8',
   '.css':  'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.png':  'image/png',
+  '.svg':  'image/svg+xml',
+  '.ico':  'image/x-icon',
 };
 
 // ── Provider table ────────────────────────────────────────────────────────────
@@ -781,7 +784,7 @@ const server = http.createServer(async (req, res) => {
   // Public surface: health probe, auth endpoints, welcome + login pages
   if (method === 'GET' && pathname === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (await handleAuthRoutes(req, res, pathname, method)) return;
-  if (method === 'GET' && (pathname === '/login.html' || pathname === '/welcome.html')) { serveStatic(res, pathname); return; }
+  if (method === 'GET' && (pathname === '/login.html' || pathname === '/welcome.html' || pathname === '/logo.png')) { serveStatic(res, pathname); return; }
 
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 

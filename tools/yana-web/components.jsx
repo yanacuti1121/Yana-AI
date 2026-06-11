@@ -43,13 +43,8 @@ function YanaMark({ size = 30 }) {
       boxShadow: "inset 0 1px 0 rgba(255,255,255,.4), 0 4px 12px color-mix(in oklab, var(--primary) 28%, transparent)",
       display: "grid", placeItems: "center",
     }}>
-      <svg width={size * 0.58} height={size * 0.58} viewBox="0 0 24 24" fill="rgba(255,255,255,.95)">
-        <path d="M12 2.6c-2.3 2.9-2.3 6.5 0 8.8 2.3-2.3 2.3-5.9 0-8.8Z" />
-        <path d="M6.4 5.9c-.7 3.5.9 6.4 4.3 7.6-.2-3.5-1.7-6.1-4.3-7.6Z" />
-        <path d="M17.6 5.9c.7 3.5-.9 6.4-4.3 7.6.2-3.5 1.7-6.1 4.3-7.6Z" />
-        <path fill="none" stroke="rgba(255,255,255,.95)" strokeWidth="1.5" strokeLinecap="round"
-          d="M4.6 16.4c2.3 1.8 4.8 2.7 7.4 2.7s5.1-.9 7.4-2.7M8 20.4c1.3.6 2.6.9 4 .9s2.7-.3 4-.9" />
-      </svg>
+      <img src="/logo.png" alt="" width={Math.round(size * 0.74)} height={Math.round(size * 0.74)}
+        style={{ display: "block" }} />
     </div>
   );
 }
@@ -88,6 +83,13 @@ const NAV = [
 
 function Sidebar({ page, onNav }) {
   const D = window.YANA;
+  const [account, setAccount] = useState(null);
+  useEffect(() => {
+    fetch("/api/auth/status")
+      .then((r) => r.json())
+      .then((d) => setAccount(d.username || null))
+      .catch(() => {});
+  }, []);
   return (
     <nav className="glass" style={{
       width: 218, flex: "none", borderRadius: "var(--r-lg)",
@@ -139,10 +141,13 @@ function Sidebar({ page, onNav }) {
           width: 28, height: 28, borderRadius: "50%", flex: "none",
           background: "linear-gradient(145deg, var(--gold), color-mix(in oklab, var(--gold) 55%, white))",
           color: "white", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600,
-        }}>T</div>
+        }}>{(account || "Y").trim().charAt(0).toUpperCase()}</div>
         <div style={{ lineHeight: 1.2, flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 500 }}>Tâm Vũ</div>
-          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>Creator · YAMTAM</div>
+          <div title={account || ""} style={{
+            fontSize: 12.5, fontWeight: 500,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{account || "Yana"}</div>
+          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{L("Account", "Tài khoản")} · YAMTAM</div>
         </div>
         <button onClick={signOut} title={L("Sign out", "Đăng xuất")} aria-label={L("Sign out", "Đăng xuất")} style={{
           background: "none", border: "none", cursor: "pointer", padding: 4,
