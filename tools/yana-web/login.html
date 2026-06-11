@@ -189,9 +189,14 @@
     <p class="sub" id="sub">Đăng nhập để tiếp tục với Yana.</p>
 
     <form id="form">
+      <div class="field" id="username-wrap">
+        <input type="text" id="username" placeholder="Tên tài khoản" required minlength="2" maxlength="32"
+               autocomplete="username" autocapitalize="off" spellcheck="false" autofocus />
+      </div>
+
       <div class="field">
         <input type="password" id="password" placeholder="Mật khẩu" required minlength="6"
-               autocomplete="current-password" autofocus />
+               autocomplete="current-password" />
         <button type="button" class="eye" id="eye" aria-label="Hiện mật khẩu" tabindex="-1">
           <svg id="eye-open" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 10S5.5 4.8 10 4.8 17.5 10 17.5 10 14.5 15.2 10 15.2 2.5 10 2.5 10Z"/><circle cx="10" cy="10" r="2.6"/>
@@ -245,14 +250,16 @@
   <script>
     'use strict';
     var mode = 'login'; // 'login' | 'setup'
+    var storedUsername = null; // account name from /api/auth/status (login prefill)
     var lang = localStorage.getItem('yana.login.lang') || 'vi';
     var $ = function (id) { return document.getElementById(id); };
 
     var T = {
       vi: {
         titleLogin: 'Chào mừng trở lại',  subLogin: 'Đăng nhập để tiếp tục với Yana.',
-        titleSetup: 'Chào mừng đến Yana', subSetup: 'Lần đầu tiên ở đây — hãy tạo mật khẩu cho mặt hồ của bạn.',
-        ctaLogin: 'Tiếp tục', ctaSetup: 'Tạo mật khẩu',
+        titleSetup: 'Chào mừng đến Yana', subSetup: 'Lần đầu tiên ở đây — hãy tạo tài khoản cho mặt hồ của bạn.',
+        ctaLogin: 'Tiếp tục', ctaSetup: 'Tạo tài khoản',
+        username: 'Tên tài khoản',
         password: 'Mật khẩu', confirm: 'Nhập lại mật khẩu',
         remember: 'Ghi nhớ 30 ngày', forgot: 'Quên mật khẩu?',
         help: 'Yana chạy hoàn toàn trên máy bạn — không có email khôi phục. Để đặt lại: xóa file tools/yana-web/.yana/auth.json trên máy chủ rồi tải lại trang này.',
@@ -262,14 +269,17 @@
         entering: 'Đang vào mặt hồ…', genericErr: 'Có lỗi xảy ra.',
         connErr: 'Lỗi kết nối. Thử lại.', serverErr: 'Không kết nối được máy chủ.',
         wrongPw: 'Sai mật khẩu.', tooMany: 'Thử quá nhiều lần — chờ 15 phút.',
+        wrongCred: 'Sai tên tài khoản hoặc mật khẩu.',
         tooShort: 'Mật khẩu cần ít nhất 6 ký tự.',
+        nameShort: 'Tên tài khoản cần 2–32 ký tự.',
         sWeak: 'Yếu — thêm ký tự nữa', sFair: 'Tạm ổn', sGood: 'Tốt', sStrong: 'Rất mạnh',
         about: 'Giới thiệu Yana',
       },
       en: {
         titleLogin: 'Welcome back',   subLogin: 'Sign in to continue with Yana.',
-        titleSetup: 'Welcome to Yana', subSetup: 'First time here — create a password for your lake.',
-        ctaLogin: 'Continue', ctaSetup: 'Create password',
+        titleSetup: 'Welcome to Yana', subSetup: 'First time here — create an account for your lake.',
+        ctaLogin: 'Continue', ctaSetup: 'Create account',
+        username: 'Account name',
         password: 'Password', confirm: 'Confirm password',
         remember: 'Remember for 30 days', forgot: 'Forgot password?',
         help: 'Yana runs entirely on your machine — there is no recovery email. To reset: delete tools/yana-web/.yana/auth.json on the server, then reload this page.',
@@ -279,7 +289,9 @@
         entering: 'Entering the lake…', genericErr: 'Something went wrong.',
         connErr: 'Connection error. Try again.', serverErr: 'Cannot reach the server.',
         wrongPw: 'Wrong password.', tooMany: 'Too many attempts — wait 15 minutes.',
+        wrongCred: 'Wrong account name or password.',
         tooShort: 'Password must be at least 6 characters.',
+        nameShort: 'Account name must be 2–32 characters.',
         sWeak: 'Weak — add more characters', sFair: 'Fair', sGood: 'Good', sStrong: 'Very strong',
         about: 'About Yana',
       },
@@ -304,6 +316,7 @@
       document.documentElement.lang = lang;
       $('lang-vi').classList.toggle('on', lang === 'vi');
       $('lang-en').classList.toggle('on', lang === 'en');
+      $('username').placeholder = t('username');
       $('password').placeholder = t('password');
       $('confirm').placeholder  = t('confirm');
       $('remember-text').textContent = t('remember');
@@ -324,6 +337,15 @@
       $('login-row').style.display = setup ? 'none' : 'flex';
       $('strength').classList.toggle('show', setup);
       $('password').autocomplete = setup ? 'new-password' : 'current-password';
+      // Accounts from before this upgrade have no stored name — hide the
+      // field at sign-in so the legacy owner isn't asked for a name that
+      // doesn't exist. Setup mode always shows it.
+      var showName = setup || !!storedUsername;
+      $('username-wrap').style.display = showName ? '' : 'none';
+      $('username').required = showName;
+      if (!setup && storedUsername && !$('username').value) {
+        $('username').value = storedUsername;
+      }
     }
 
     $('lang-vi').addEventListener('click', function () { lang = 'vi'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
@@ -410,20 +432,28 @@
       .then(function (d) {
         if (d.authed) { location.replace('/'); return; }
         mode = d.setup ? 'login' : 'setup';
+        storedUsername = d.username || null;
         applyLang();
+        if (mode === 'login' && storedUsername) $('password').focus();
       })
       .catch(function () { setMsg(t('serverErr')); });
 
     function apiError(msg) {
+      if (/wrong username/i.test(msg)) return t('wrongCred');
       if (/wrong password/i.test(msg)) return t('wrongPw');
       if (/too many/i.test(msg))       return t('tooMany');
       if (/at least 6/i.test(msg))     return t('tooShort');
+      if (/username must/i.test(msg))  return t('nameShort');
       return msg || t('genericErr');
     }
 
     $('form').addEventListener('submit', function (e) {
       e.preventDefault();
+      var username = $('username').value.normalize('NFC').trim();
       var password = pw('password');
+      if (mode === 'setup' && (username.length < 2 || username.length > 32)) {
+        setMsg(t('nameShort')); return;
+      }
       if (mode === 'setup' && password !== pw('confirm')) {
         setMsg(t('mismatch')); updateMatch(); return;
       }
@@ -433,7 +463,7 @@
       fetch(mode === 'setup' ? '/api/auth/setup' : '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: password, remember: $('remember').checked }),
+        body: JSON.stringify({ username: username, password: password, remember: $('remember').checked }),
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (out) {

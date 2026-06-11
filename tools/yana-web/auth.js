@@ -114,17 +114,45 @@ function json(res, status, obj) {
 }
 
 function handleStatus(req, res) {
-  json(res, 200, { setup: isSetUp(), authed: isAuthed(req) });
+  const rec = loadJson(AUTH_FILE);
+  json(res, 200, {
+    setup: isSetUp(),
+    authed: isAuthed(req),
+    // Account name is shown on the login screen (single-user local app) —
+    // it is display data, not a secret.
+    username: (rec && rec.username) || null,
+  });
 }
 
-// First run only: create the password, then sign in.
+// Account names are compared NFC-normalized and case-insensitive so that
+// Vietnamese IME composition differences never lock the owner out.
+function normalizeUsername(name) {
+  return String(name).normalize('NFC').trim();
+}
+
+function validUsername(name) {
+  if (typeof name !== 'string') return false;
+  const n = normalizeUsername(name);
+  // 2–32 visible chars, no control characters
+  return n.length >= 2 && n.length <= 32 && !/[\u0000-\u001f\u007f]/.test(n);
+}
+
+// First run only: create the account (username + password), then sign in.
 function handleSetup(req, res, body) {
   if (isSetUp()) { json(res, 409, { error: 'Already set up' }); return; }
+  const username = body && body.username;
   const password = body && body.password;
+  if (!validUsername(username)) {
+    json(res, 400, { error: 'Username must be 2-32 characters' }); return;
+  }
   if (typeof password !== 'string' || password.length < 6) {
     json(res, 400, { error: 'Password must be at least 6 characters' }); return;
   }
-  saveJson(AUTH_FILE, { ...hashPassword(password), created: new Date().toISOString() });
+  saveJson(AUTH_FILE, {
+    ...hashPassword(password),
+    username: normalizeUsername(username),
+    created: new Date().toISOString(),
+  });
   setCookie(res, createSession(!!body.remember));
   json(res, 200, { ok: true });
 }
@@ -138,8 +166,17 @@ function handleLogin(req, res, body) {
   const rec = loadJson(AUTH_FILE);
   if (!rec) { json(res, 409, { error: 'Not set up yet' }); return; }
   const password = body && body.password;
+  // Accounts created before usernames existed have no rec.username — skip the
+  // name check for them so the owner is never locked out by this upgrade.
+  if (rec.username) {
+    const given = body && body.username;
+    if (typeof given !== 'string' ||
+        normalizeUsername(given).toLowerCase() !== rec.username.toLowerCase()) {
+      json(res, 401, { error: 'Wrong username or password' }); return;
+    }
+  }
   if (typeof password !== 'string' || !verifyPassword(password, rec)) {
-    json(res, 401, { error: 'Wrong password' }); return;
+    json(res, 401, { error: 'Wrong username or password' }); return;
   }
   setCookie(res, createSession(!!body.remember));
   json(res, 200, { ok: true });
