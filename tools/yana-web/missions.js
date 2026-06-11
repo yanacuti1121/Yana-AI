@@ -10,7 +10,9 @@
 const fs   = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '.yana');
+// Same persistent data dir as auth.js — YANA_DATA_DIR points at a mounted
+// volume (e.g. /data on Railway) so missions survive redeploys.
+const DATA_DIR = process.env.YANA_DATA_DIR || path.join(__dirname, '.yana');
 const FILE     = path.join(DATA_DIR, 'missions.json');
 const MAX_MISSIONS = 200;
 const MAX_TASKS    = 30;

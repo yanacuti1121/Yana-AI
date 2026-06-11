@@ -21,7 +21,7 @@
 FROM node:20-alpine
 
 # ── System hardening ───────────────────────────────────────────────────────
-RUN apk add --no-cache tini \
+RUN apk add --no-cache tini su-exec \
     && addgroup -S yana \
     && adduser  -S yana -G yana
 
@@ -58,7 +58,13 @@ ENV PORT=8081
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
 
-RUN chown -R yana:yana /app
+# Persistent data dir — mount a volume here (Railway: volume at /data +
+# RAILWAY_RUN_UID=0 so the entrypoint can chown it before dropping privileges)
+ENV YANA_DATA_DIR=/data
+RUN mkdir -p /data && chown yana:yana /data && chmod 700 /data
+
+RUN chown -R yana:yana /app \
+    && chmod +x /app/tools/yana-web/docker-entrypoint.sh
 USER yana
 
 EXPOSE 8081
@@ -68,6 +74,8 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD node -e \
       "require('http').get('http://localhost:'+process.env.PORT+'/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
-# tini = PID 1 — proper SIGTERM handling, no zombie processes
-ENTRYPOINT ["/sbin/tini", "--"]
+# tini = PID 1 — proper SIGTERM handling, no zombie processes.
+# docker-entrypoint.sh: chown the volume if started as root (Railway
+# RAILWAY_RUN_UID=0), then drop to the unprivileged yana user.
+ENTRYPOINT ["/sbin/tini", "--", "/app/tools/yana-web/docker-entrypoint.sh"]
 CMD ["node", "tools/yana-web/server.js"]

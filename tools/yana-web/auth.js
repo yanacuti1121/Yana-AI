@@ -11,7 +11,10 @@ const crypto = require('crypto');
 const fs     = require('fs');
 const path   = require('path');
 
-const DATA_DIR      = path.join(__dirname, '.yana');   // dot-dir: static server never serves it
+// Persistent data dir. Default: dot-dir next to the server (static server never
+// serves it). Override with YANA_DATA_DIR to point at a mounted volume
+// (e.g. /data on Railway) so accounts survive redeploys.
+const DATA_DIR      = process.env.YANA_DATA_DIR || path.join(__dirname, '.yana');
 const AUTH_FILE     = path.join(DATA_DIR, 'auth.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const COOKIE        = 'yana_sid';
