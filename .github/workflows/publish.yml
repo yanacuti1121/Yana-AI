@@ -37,7 +37,9 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI (trusted publishing)
-        uses: pypa/gh-action-pypi-publish@76f52bc23e2c4e5bc591e56f4bc6e964e8f5c30b # release/v1
+        # SHA = release/v1 @ 2026-02-18 — previous pin pointed at a commit
+        # that does not exist upstream, failing every run at "Set up job"
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
 
   publish-npm:
     name: npm — yamtam-engine
