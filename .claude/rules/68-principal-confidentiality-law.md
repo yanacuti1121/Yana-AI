@@ -33,6 +33,29 @@ decision: no regex catches these. Classification is the only defense.
 **Default-deny:** when the agent is unsure which tier applies, treat as
 `CONFIDENTIAL` and ask — one question, once.
 
+## Platform Trust Reality (đọc trước khi tin bất cứ tier nào)
+
+Cloud LLMs MUST read plaintext to process it. No rule, no encryption
+changes this. Everything typed into a cloud AI session already transits
+the provider's infrastructure (Anthropic, Google, GitHub for the repo).
+**Rule 68 protects against agent-caused leaks — it cannot protect
+against the platform itself.**
+
+Therefore tiers also decide *which model may see the information at all*:
+
+```
+PUBLIC / INTERNAL → any cloud AI
+CONFIDENTIAL      → cloud AI allowed, but identifying details redacted
+                    BEFORE they enter the prompt ("a company" not its name)
+SOVEREIGN         → never typed into any cloud AI. Local model only
+                    (Ollama / llama.cpp on principal-owned hardware), or
+                    no AI involvement. This is the ONLY absolute defense.
+```
+
+Architectural hook: yana-router / 9router can route by sensitivity —
+sensitive tasks → local provider, routine tasks → cloud. Classification
+happens BEFORE the first keystroke, not after.
+
 ## Trust Boundaries (enforcement points)
 
 ```
