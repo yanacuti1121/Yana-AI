@@ -60,6 +60,7 @@ const CHAT_MODELS = {
   groq:       "llama-3.3-70b-versatile",
   deepseek:   "deepseek-chat",
   openrouter: "google/gemma-3-27b-it",
+  "9router":  "kr/claude-sonnet-4.5",
 };
 
 function ContextPanel() {

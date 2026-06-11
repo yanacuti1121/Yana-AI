@@ -106,6 +106,27 @@ const PROVIDERS = {
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
   },
 
+  // 9Router — local AI gateway (github.com/decolua/9router): one OpenAI-style
+  // endpoint that fans out to 40+ providers with automatic fallback when a
+  // quota runs out. Hardcoded loopback by design — never a remote host.
+  '9router': {
+    protocol:     'http',
+    hostname:     '127.0.0.1',
+    port:         20128,
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'kr/claude-sonnet-4.5',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
   gemini: {
     hostname:     'generativelanguage.googleapis.com',
     vision:       true,
@@ -427,15 +448,27 @@ async function handleApiModels(req, res) {
         .map(m => ({ id: m.id, name: m.id }))
         .sort((a, b) => a.id.localeCompare(b.id)),
     },
+    '9router': {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     20128,
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
   };
 
   const prov = LIVE_PROVIDERS[provider];
   if (!prov) { jsonError(res, 400, `Provider "${provider}" has no live model API`); return; }
 
-  const options = { hostname: prov.hostname, path: prov.path, method: 'GET',
-                    headers: prov.headers(key) };
+  const options = { hostname: prov.hostname, port: prov.port, path: prov.path,
+                    method: 'GET', headers: prov.headers(key) };
+  const liveTransport = (prov.protocol === 'http' && prov.hostname === '127.0.0.1') ? http : https;
 
-  https.get(options, upRes => {
+  liveTransport.get(options, upRes => {
     let raw = '';
     upRes.on('data', c => { raw += c; });
     upRes.on('end', () => {
@@ -727,10 +760,13 @@ async function handleApiChat(req, res) {
 
   const options = {
     hostname: p.hostname,
+    port:     p.port,
     path:     reqPath,
     method:   'POST',
     headers:  { ...p.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
   };
+  // http only for loopback providers (9router) — every remote host stays TLS
+  const transport = (p.protocol === 'http' && p.hostname === '127.0.0.1') ? http : https;
 
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',
@@ -741,7 +777,7 @@ async function handleApiChat(req, res) {
   const t0 = Date.now();
   const usageId = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
 
-  const upstreamReq = https.request(options, upstreamRes => {
+  const upstreamReq = transport.request(options, upstreamRes => {
     if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
       let errBody = '';
       upstreamRes.on('data', c => { errBody += c; });
