@@ -50,7 +50,7 @@
 
 **YAMTAM ENGINE** là một hệ điều hành agent cá nhân dành cho các công cụ lập trình AI — bao gồm các hook bảo mật runtime, các tầng bộ nhớ, 97 agent chuyên trách, 3,516 kỹ năng và một runtime viết bằng Rust giúp chặn các hành động nguy hiểm của AI trước khi chúng được thực thi.
 
-Hoạt động với **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, và nhiều công cụ khác.
+Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, và nhiều công cụ khác.
 
 > **Mới trong v0.41.0:** [Yana task router](#bộ-định-tuyến-tác-vụ-yana) — tự động phân loại mọi tác vụ thành đơn giản/phức tạp/bên ngoài/**học tập**/**hàng ngày** và điều phối agent. [Yana AI](#yana-ai) chạy trên **100% dữ liệu thực** — kho khóa mã hóa (AES-256-GCM), thống kê provider trực tiếp, bộ nhớ L1 thật và bảng điều khiển audit-log. [Mission dispatcher](#hệ-thống-điều-phối-nhiệm-vụ-mission-dispatcher) — điều phối agent song song theo làn sóng (wave-based), viết bằng Rust. **Core-lock** — manifest SHA-256 ghim 216 tệp cốt lõi chống can thiệp trái phép (quy tắc 67).
 
@@ -130,7 +130,7 @@ graph TB
     end
 
     %% ── Harness adapters ─────────────────────────────────────────────────
-    subgraph HARNESS["🔌 Bộ chuyển đổi harness (12)"]
+    subgraph HARNESS["🔌 Bộ chuyển đổi harness (15)"]
         direction LR
         H1["Claude Code\nCursor · Zed"]
         H2["Gemini · Copilot\nAider · OpenCode"]
@@ -186,7 +186,7 @@ Thực thi (hoặc chặn + ghi log)
 | 📜 Quy tắc an toàn | **63** quy tắc được thực thi |
 | 🪝 Hook | **46** hook trước/sau thực thi |
 | ⚡ Lệnh slash | **164** |
-| 🔌 Adapter harness | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
+| 🔌 Adapter harness | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Lệnh con Rust | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Kiểm tra quy tắc trong CI | **826** |
 | 📦 Tổng mã nguồn | **1,034,519 dòng · 5,762 tệp** |
@@ -226,7 +226,7 @@ bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
 bash core/scripts/switch-engine.sh zed       # .zed/settings.json
 bash core/scripts/switch-engine.sh gemini    # GEMINI.md
 bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # kiểm tra cả 12 adapter
+bash core/scripts/switch-engine.sh status    # kiểm tra cả 15 adapter
 ```
 
 ---
@@ -360,7 +360,7 @@ Một người. Không đội ngũ. Không gọi vốn.
 
 - Kiến trúc hook, các cổng an toàn, Python CLI
 - Runtime Rust (`yamtam-rt`), 97 agent, 3,516 kỹ năng, hỗ trợ đa harness
-- 12 adapter harness (Claude Code, Cursor, Zed, Gemini, Copilot, Aider…)
+- 15 adapter harness (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
 3,516 kỹ năng bao phủ: frontend, backend, AI/LLM, bảo mật, Kubernetes, WebAssembly, DevOps, cơ sở dữ liệu, kiểm thử, và nhiều hơn nữa. Hai agent persona mới phục vụ nhu cầu ngoài lập trình: học tập (`hoc-tap`) và năng suất hàng ngày (`daily-assistant`).
 

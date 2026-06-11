@@ -53,7 +53,7 @@
 
 **YAMTAM ENGINE** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 3,516 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
-Works with **Claude Code**, **Cursor**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
+Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
 > **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-ai) now runs on **100% real data** — encrypted key vault (AES-256-GCM), live provider stats, real L1 memory and audit-log dashboard. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust. **Core-lock** — SHA-256 integrity manifest pinning 216 core files against tampering (rule 67).
 
@@ -134,7 +134,7 @@ graph TB
     end
 
     %% ── Harness adapters ─────────────────────────────────────────────────
-    subgraph HARNESS["🔌 Harness Adapters (12)"]
+    subgraph HARNESS["🔌 Harness Adapters (15)"]
         direction LR
         H1["Claude Code\nCursor · Zed"]
         H2["Gemini · Copilot\nAider · OpenCode"]
@@ -208,7 +208,7 @@ Execute (or block + log)
 | 📜 Safety rules | **63** enforced rules |
 | 🪝 Hooks | **46** pre/post-execution hooks |
 | ⚡ Slash commands | **164** |
-| 🔌 Harness adapters | **12** (Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider...) |
+| 🔌 Harness adapters | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Rust subcommands | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Rule checks in CI | **826** |
 | 📦 Total codebase | **1,034,519 lines · 5,762 files** |
@@ -382,7 +382,7 @@ One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
 - Rust runtime (`yamtam-rt`), 97 agents, 3,516 skills, multi-harness support
-- 12 harness adapters (Claude Code, Cursor, Zed, Gemini, Copilot, Aider…)
+- 15 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
 The 3,516 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 

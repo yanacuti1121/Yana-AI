@@ -29,6 +29,9 @@ usage() {
   echo "  opencode   — activates OPENCODE.md (native harness file)"
   echo "  zed        — activates .zed/settings.json with custom_system_prompt"
   echo "  continue   — generates .continue/config.json fragment (advisory mode)"
+  echo "  windsurf   — generates .windsurf/rules/yamtam.md (Cascade workspace rule)"
+  echo "  kiro       — generates .kiro/steering/yamtam.md (always-included steering)"
+  echo "  antigravity — generates .agent/rules/yamtam.md (workspace rule, ≤12K chars)"
   echo "  status     — show which adapters are currently active"
   echo ""
   echo "Options:"
@@ -526,6 +529,50 @@ CONTINUEEOF
     echo "  To update the system prompt: edit .zed/settings.json → custom_system_prompt"
     ;;
 
+  windsurf|kiro|antigravity)
+    # Markdown-rules engines — same generation pattern, different destination
+    ADAPTER="adapters/$ENGINE.md"
+    case "$ENGINE" in
+      windsurf)    DEST=".windsurf/rules/yamtam.md"  ; READER="Windsurf Cascade" ;;
+      kiro)        DEST=".kiro/steering/yamtam.md"   ; READER="Kiro IDE & CLI"   ;;
+      antigravity) DEST=".agent/rules/yamtam.md"     ; READER="Google Antigravity" ;;
+    esac
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      [[ -f "$DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $DEST before overwrite${NC}"
+      echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
+    else
+      mkdir -p "$(dirname "$DEST")"
+      if [[ -f "$DEST" ]]; then
+        BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$DEST" "$BACKUP"
+        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+      fi
+      cp "$ADAPTER" "$DEST"
+      echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+
+      LOGGER="core/scripts/secure-logger.sh"
+      if [[ -x "$LOGGER" ]]; then
+        bash "$LOGGER" engine_switch "to_engine=$ENGINE from_engine=$_FROM_ENGINE mode=advisory source_adapter=$ADAPTER generated_file=$DEST operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_start "engine=$ENGINE from_engine=$_FROM_ENGINE" 2>/dev/null || true
+      fi
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Advisory gap active.${NC} $DEST loaded by $READER natively."
+    echo "  YAMTAM safety hooks are NOT enforced at the OS level in $READER."
+    echo "  Rules are advisory via the generated rules file only."
+    echo ""
+    echo "  Key constraints active:"
+    echo "    • No rm -rf, no force push, no pipe-to-shell, no eval dynamic code"
+    echo "    • Evidence required before completion claims"
+    echo "    • Surgical changes only"
+    ;;
+
   status)
     echo "=== YAMTAM Engine Adapter Status ==="
     echo ""
@@ -562,6 +609,15 @@ CONTINUEEOF
     [[ -f ".zed/settings.json" ]] \
       && echo -e "  ${GREEN}✓${NC} Zed       .zed/settings.json" \
       || echo -e "  ${YELLOW}✗${NC} Zed       .zed/settings.json missing"
+    [[ -f ".windsurf/rules/yamtam.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Windsurf  .windsurf/rules/yamtam.md" \
+      || echo -e "  ${YELLOW}✗${NC} Windsurf  .windsurf/rules/yamtam.md missing"
+    [[ -f ".kiro/steering/yamtam.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Kiro      .kiro/steering/yamtam.md" \
+      || echo -e "  ${YELLOW}✗${NC} Kiro      .kiro/steering/yamtam.md missing"
+    [[ -f ".agent/rules/yamtam.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Antigrav  .agent/rules/yamtam.md" \
+      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agent/rules/yamtam.md missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;
