@@ -17,10 +17,15 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **PUSH** — 6 commits local trên main chưa push (e6ebae60..44a2e6da): rule 68 Rust + Confidential Mode + Settings thật + crypto tests + vhs + fix publish.yml. Chạy pre-push gates rồi push khi anh duyệt
-2. **Re-release PyPI** — sau khi push, tag mới (vd v0.41.2) sẽ test fix publish.yml (root cause là SHA pin sai của pypa/gh-action-pypi-publish, KHÔNG phải environment). Nếu PyPI vẫn fail ở bước publish → cần đăng ký trusted publisher trên pypi.org (repo yamtam-engine, workflow publish.yml, environment pypi)
-3. **codexmate PR #193** — đã fix xong phía mình (push 92d6b33, retitle, comment tổng kết) — chờ maintainer SakuraByteCore merge, theo dõi
+1. **PyPI bước cuối — VIỆC CỦA ANH trên pypi.org**: v0.41.2 đã qua "Set up job" (fix SHA ăn), giờ fail ở publish vì pypi.org chưa đăng ký trusted publisher. Anh vào pypi.org → project yamtam-engine (hoặc Pending publishers nếu project chưa tồn tại) → Publishing → Add GitHub publisher: owner `phamlongh230-lgtm`, repo `yamtam-engine`, workflow `publish.yml`, environment `pypi`. Xong thì re-run job PyPI (hoặc đợi tag sau)
+2. **codexmate PR #193** — phía mình XONG; merge bị chặn bởi branch protection của SakuraByteCore (cần 1 review + maintainer approve workflow). Token fine-grained không comment sang repo họ được — anh tự đăng câu nhắn maintainer nếu muốn giục
+3. **Token**: anh đang xoá token sau mỗi đợt — token hiện tại trong remote sẽ chết; lần làm việc sau cần token mới (repo + workflow scope) nếu có push
 4. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4)
+
+## v0.41.2 RELEASED (12/06 sáng KR)
+- npm ✅ · crates.io ✅ · GitHub Release ✅ · PyPI chờ anh đăng ký trusted publisher
+- Toàn bộ 8 commits đã push (rule 68 full-stack, Confidential Mode, Settings thật, crypto tests 17, vhs demo, publish.yml repin)
+- Cảnh báo từ runner: actions/checkout + setup-python pin cũ chạy Node 20 — GitHub ép Node 24 từ 16/06/2026 → nên bump 2 pin này trước ngày đó
 
 ## Đã xong 12/06 sáng KR (session "lm hết các công việc qua lưu đi")
 - Rule 68 thành code thật 3 tầng: Rust route.rs (Sensitivity enum, 13/13 tests), yamtam-core classifier (classifySensitivity export), yana-web UI
