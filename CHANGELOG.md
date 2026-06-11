@@ -8,6 +8,26 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.41.1 — npm v12 prep + Yana auth hardening + 6 workflow skills
+*2026-06-11*
+
+- **npm v12 prep**: `npx yamtam-install` documented as the required install step —
+  npm v12 (ETA 07/2026) disables postinstall scripts by default; README (EN/VI),
+  docs install card + guide updated
+- **yana-web auth**: proxy-aware login rate limiting (`req.clientIp` từ X-Forwarded-For),
+  cookie `Secure` flag sau TLS proxy, `YANA_TRUST_PROXY=1` trong Dockerfile
+- **yana-web**: welcome flow, login v2, account name + password, `YANA_DATA_DIR`
+  Railway volume, dashboard greeting theo giờ local + live weather
+- **Tests**: 51 tests mới cho auth + missions (zero deps)
+- **+6 workflow skills** từ prompt pack: self-rule-extraction, claim-audit,
+  option-tournament, pairwise-prioritization, untrusted-data-quarantine,
+  token-capped-workflow → 3,516 skills
+- **skills-lock**: rebuild từ disk truth — 0 drift, 5,120 stale entries gỡ;
+  verify-skills-lock giờ là pure check (auto-add opt-in, --prune)
+- **core-lock**: manifest SHA-256 cho core surface + rule 67
+
+---
+
 ## v0.41.0 — yana-router + mission-dispatcher + +32 trending skills + cleanup
 *2026-06-07*
 
