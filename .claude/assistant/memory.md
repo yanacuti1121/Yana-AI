@@ -575,3 +575,14 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Pending:** milestone Token rotation chưa rõ stale; _test_router.js hỏng; tests cho auth/missions/crypto-store; 64 hash-drift + 5,123 stale entries trong skills-lock
 
 ---
+
+## 2026-06-11 — rule-68): Platform Trust Reality — tiers decide which model 
+
+**Đã làm:**
+- feat: rules): 68-principal-confidentiality-law — pr; docs+skills): README demo GIF + trending-puls; adapters): Windsurf + Kiro + Antigravity — 12
+- fix: gates): unify scripts count definition — CI dr; yana-web): finish proxy-aware auth — clientIp 
+- chore: assistant): session wrap — memory + context 
+
+**Trạng thái cuối:** v0.41.1 · branch=main, clean, last=640fb3a6 docs(rule-68): Platform Trust Reality — tiers decid
+
+---

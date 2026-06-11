@@ -3,8 +3,10 @@
 **Cập nhật lần cuối:** 2026-06-11
 
 ## Trạng thái
-- yamtam-engine v0.41.0 — CI ✅ · Pages ✅ · repo clean · history rewritten (Antigravity removed)
-- Skills: **3,516** (11/06: +6 prompt-pack cá nhân; lock đã đăng ký thêm 2,225)
+- yamtam-engine **v0.41.1** — npm ✅ LIVE · crates ✅ · Release tự động hóa hoàn chỉnh (push tag là publish) · CI ✅ xanh lại sau 30+ runs đỏ · repo clean
+- Skills: **3,518** (11/06 chiều: +9router-gateway, +trending-pulse-research) · Rules: **64** (+68 principal-confidentiality)
+- Adapters: **15** (+Windsurf, Kiro, Antigravity — switch-engine.sh)
+- Demo: GIF thật trong README (agg render) + asciinema player live trên docs homepage
 - Git history: sạch — không còn binary lớn, force-pushed 2026-06-07
 - Disk: 79% (~988MB free) — đã dọn sạch sáng nay
 - Git user: đã fix lại "Vũ Văn Tâm" (bị Gemini set thành "Gemini AI")
@@ -14,10 +16,21 @@
 
 ## Phase hiện tại: ACTIVE
 
-## Ưu tiên tiếp theo
-1. **Yana web** — login + missions DONE 11/06 (auth.js scrypt+session, missions.js file-backed + Plan with Yana, chat provider picker + persist + about-context, login.html AI-style). Còn thiếu: test cho auth/missions/crypto-store, _test_router.js đang hỏng (require ./router.js đã move sang yamtam-core)
-2. **Marketplace post-launch** — hero CTA đã có trên docs (11/06), theo dõi install count
-3. **skills-lock known issues** — 64 entry hash-drift (.claude/skills copy lệch core/skills) + 5,123 entry stale chưa gỡ; update-skills-lock.sh từng truncate file về 0 byte khi chạy trên lock đã auto-sync (đã khôi phục từ git) — cẩn thận khi chạy lại
+## Ưu tiên tiếp theo (anh chốt cuối ngày 11/06: "mai làm")
+1. **Yana Confidential Mode** — hiện thực rule 68 thành UI: tag mật trong chat → no-persist (không vào missions/memory/about-context) + tier routing (SOVEREIGN → local model). Em đề xuất, anh chưa chốt nhưng nghiêng theo
+2. **vhs .tape script** — tự động hóa demo GIF mỗi release (hiện render tay bằng agg /tmp/agg + font /tmp/fonts — mất sau reconnect)
+3. **PyPI environment** — publish job fail "Set up job" từ v0.41.0; sửa trong repo Settings → Environments (OIDC trusted publishing) thì PyPI mới lên 0.41.1
+4. **Tests còn thiếu** — crypto-store.js chưa có test; _test_router.js vẫn hỏng (require ./router.js đã move sang yamtam-core)
+5. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4, asciinema-player đã dùng)
+
+## Đã xong hôm nay 11/06 (chiều — sau khi anh quay lại 14h KR)
+- npm 0.41.1 LIVE (sửa 3 tầng: drift CI → release auto → publish trigger tag-push + --allow-same-version)
+- PR codexmate #193: root cause = merge giữ nhầm release.yml cũ → fix pushed (5a8ec81)
+- 9Router tích hợp yana-web (provider + live models + skill 9router-gateway)
+- 3 engine adapters mới: Windsurf, Kiro, Antigravity (15 tổng)
+- Demo: asciinema terminal live trên docs + GIF trong README EN+VI
+- Rule 68 principal-confidentiality (+ Platform Trust Reality) — anh định hướng: cho NGƯỜI DÙNG, không phải cho anh
+- Gate scripts thống nhất định nghĩa scripts count (validate-manifest = drift-check = 100)
 
 ## 🎉 GitHub Marketplace — APPROVED & LIVE (10/06/2026)
 - Listing: https://github.com/marketplace/yamtam-engine
