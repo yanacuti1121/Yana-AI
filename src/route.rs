@@ -35,14 +35,31 @@ pub enum Route {
     External,
 }
 
+/// Rule 68 — principal-confidentiality tier. The tier decides whether the
+/// text may be persisted and which model class may see it at all.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum Sensitivity {
+    Public,
+    Internal,
+    Confidential,
+    Sovereign,
+}
+
 #[derive(Serialize)]
 pub struct RouteDecision {
-    pub route:            Route,
-    pub gate:             &'static str,
-    pub confidence:       f32,
-    pub reason:           String,
-    pub matched_signals:  Vec<String>,
-    pub suggested_agents: &'static [&'static str],
+    pub route:               Route,
+    pub gate:                &'static str,
+    pub confidence:          f32,
+    pub reason:              String,
+    pub matched_signals:     Vec<String>,
+    pub suggested_agents:    &'static [&'static str],
+    pub sensitivity:         Sensitivity,
+    /// false for CONFIDENTIAL+ — caller must not write to memory/git/logs
+    pub allow_persist:       bool,
+    /// "any" | "cloud-redacted" | "local-only"
+    pub model_scope:         &'static str,
+    pub sensitivity_signals: Vec<String>,
 }
 
 // ── Classifier ────────────────────────────────────────────────────────────────
@@ -157,6 +174,101 @@ const SIMPLE: &[Pattern] = &[
     Pattern { keyword: "cho tôi xem",    weight: 0.7, label: "show (vi)" },
 ];
 
+// ── Rule 68 — sensitivity markers ─────────────────────────────────────────────
+// Sovereign: never typed into any cloud AI — local model only
+const SOVEREIGN_MARKERS: &[&str] = &[
+    "chỉ mình anh biết",
+    "chỉ anh biết",
+    "chỉ riêng anh",
+    "không ai được biết",
+    "sovereign only",
+    "for my eyes only",
+    "local model only",
+    "chỉ model local",
+    "#sovereign",
+];
+
+// Confidential: explicit no-persist / secrecy markers from the principal
+const CONFIDENTIAL_MARKERS: &[&str] = &[
+    "bí mật",
+    "tuyệt mật",
+    "confidential",
+    "đừng ghi lại",
+    "đừng lưu",
+    "không lưu lại",
+    "không ghi lại",
+    "không được lưu",
+    "giữ kín",
+    "off the record",
+    "do not log",
+    "don't log",
+    "do not save",
+    "don't save",
+    "do not persist",
+    "#mật",
+    "#confidential",
+    "#private",
+];
+
+// Context smells — money, deals, health, legal, unannounced plans.
+// Rule 68 default-deny: when context makes sensitivity obvious, treat as
+// CONFIDENTIAL even without an explicit marker.
+const CONFIDENTIAL_SMELLS: &[&str] = &[
+    "mua công ty",
+    "bán công ty",
+    "thương vụ",
+    "sáp nhập",
+    "đàm phán",
+    "acquisition",
+    "merger",
+    "negotiation position",
+    "lương của",
+    "salary of",
+    "chẩn đoán",
+    "diagnosis",
+    "bệnh án",
+    "health record",
+    "kiện tụng",
+    "lawsuit",
+    "chưa công bố",
+    "chưa công khai",
+    "unannounced",
+];
+
+/// Classify rule-68 sensitivity. Marker > smell > explicit-public > internal.
+pub fn classify_sensitivity(text: &str) -> (Sensitivity, Vec<String>) {
+    let lower = text.to_lowercase();
+    let hits = |set: &[&str]| -> Vec<String> {
+        set.iter().filter(|m| lower.contains(*m)).map(|m| m.to_string()).collect()
+    };
+
+    let sov = hits(SOVEREIGN_MARKERS);
+    if !sov.is_empty() {
+        return (Sensitivity::Sovereign, sov);
+    }
+    let conf = hits(CONFIDENTIAL_MARKERS);
+    if !conf.is_empty() {
+        return (Sensitivity::Confidential, conf);
+    }
+    let smell = hits(CONFIDENTIAL_SMELLS);
+    if !smell.is_empty() {
+        return (Sensitivity::Confidential, smell);
+    }
+    if lower.contains("#public") {
+        return (Sensitivity::Public, vec!["#public".into()]);
+    }
+    (Sensitivity::Internal, Vec::new())
+}
+
+/// (allow_persist, model_scope) per tier — see rule 68 Platform Trust Reality
+fn sensitivity_policy(s: Sensitivity) -> (bool, &'static str) {
+    match s {
+        Sensitivity::Public | Sensitivity::Internal => (true, "any"),
+        Sensitivity::Confidential                   => (false, "cloud-redacted"),
+        Sensitivity::Sovereign                      => (false, "local-only"),
+    }
+}
+
 fn score_patterns(text: &str, patterns: &[Pattern]) -> (f32, Vec<String>) {
     let lower = text.to_lowercase();
     let mut total = 0f32;
@@ -175,6 +287,9 @@ pub fn classify(task: &str) -> RouteDecision {
     let (cplx_score, cplx_signals) = score_patterns(task, COMPLEX);
     let (simp_score, simp_signals) = score_patterns(task, SIMPLE);
 
+    let (sensitivity, sensitivity_signals) = classify_sensitivity(task);
+    let (allow_persist, model_scope) = sensitivity_policy(sensitivity);
+
     // External wins if any strong signal present
     if ext_score >= 0.7 {
         let conf = (ext_score / 3.0).min(1.0);
@@ -185,6 +300,7 @@ pub fn classify(task: &str) -> RouteDecision {
             reason:           "Task involves irreversible or cross-boundary action — human confirmation required".into(),
             matched_signals:  ext_signals,
             suggested_agents: &["security-engineer", "deployment-engineer"],
+            sensitivity, allow_persist, model_scope, sensitivity_signals,
         };
     }
 
@@ -216,6 +332,7 @@ pub fn classify(task: &str) -> RouteDecision {
             reason:           "Task requires code changes — spawning mini harness and agent dispatch".into(),
             matched_signals:  cplx_signals,
             suggested_agents: agents,
+            sensitivity, allow_persist, model_scope, sensitivity_signals,
         };
     }
 
@@ -228,6 +345,7 @@ pub fn classify(task: &str) -> RouteDecision {
         reason:           "Read-only or explanatory task — Yana handles directly".into(),
         matched_signals:  simp_signals,
         suggested_agents: &[],
+        sensitivity, allow_persist, model_scope, sensitivity_signals,
     }
 }
 
@@ -267,6 +385,14 @@ fn cmd_classify(task: Option<String>, plain: bool) {
         }
         if !decision.suggested_agents.is_empty() {
             println!("  agents:  {}", decision.suggested_agents.join(", "));
+        }
+        if decision.sensitivity != Sensitivity::Internal && decision.sensitivity != Sensitivity::Public {
+            println!("  🔒 {:?} — persist={} scope={} ({})",
+                decision.sensitivity,
+                decision.allow_persist,
+                decision.model_scope,
+                decision.sensitivity_signals.join(", "),
+            );
         }
     } else {
         println!("{}", serde_json::to_string_pretty(&decision).unwrap());
@@ -338,5 +464,52 @@ mod tests {
     fn empty_defaults_simple() {
         let d = classify("what time is it");
         assert_eq!(d.route, Route::Simple);
+    }
+
+    // ── Rule 68 — sensitivity tiers ──────────────────────────────────────────
+
+    #[test]
+    fn sovereign_marker_vi() {
+        let d = classify("chuyện này chỉ mình anh biết: kế hoạch năm sau");
+        assert_eq!(d.sensitivity, Sensitivity::Sovereign);
+        assert_eq!(d.model_scope, "local-only");
+        assert!(!d.allow_persist);
+    }
+
+    #[test]
+    fn confidential_explicit_marker() {
+        let d = classify("đừng ghi lại nhé — sắp có thay đổi nhân sự");
+        assert_eq!(d.sensitivity, Sensitivity::Confidential);
+        assert_eq!(d.model_scope, "cloud-redacted");
+        assert!(!d.allow_persist);
+    }
+
+    #[test]
+    fn confidential_smell_deal() {
+        let d = classify("phân tích thương vụ sáp nhập chưa công bố");
+        assert_eq!(d.sensitivity, Sensitivity::Confidential);
+        assert!(!d.allow_persist);
+    }
+
+    #[test]
+    fn security_work_stays_internal() {
+        // "bảo mật" (security work) must NOT trigger the confidential tier
+        let d = classify("sửa bug bảo mật trong auth middleware");
+        assert_eq!(d.sensitivity, Sensitivity::Internal);
+        assert!(d.allow_persist);
+        assert_eq!(d.model_scope, "any");
+    }
+
+    #[test]
+    fn default_tier_is_internal() {
+        let d = classify("explain how the router works");
+        assert_eq!(d.sensitivity, Sensitivity::Internal);
+        assert!(d.allow_persist);
+    }
+
+    #[test]
+    fn hashtag_confidential() {
+        let d = classify("#mật ghi chú về buổi họp đối tác");
+        assert_eq!(d.sensitivity, Sensitivity::Confidential);
     }
 }
