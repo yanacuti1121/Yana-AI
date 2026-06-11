@@ -1,0 +1,32 @@
+name: demo-gif
+
+# Manual trigger — regenerates docs/demo.gif from demo/demo.tape with vhs
+# and pushes the result as a single commit. Run after editing demo/demo.sh.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/charmbracelet/vhs:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render GIF
+        run: vhs demo/demo.tape
+
+      - name: Commit refreshed GIF
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/demo.gif
+          if git diff --cached --quiet; then
+            echo "demo.gif unchanged — nothing to commit"
+          else
+            git commit -m "docs(demo): regenerate demo.gif from demo.tape [skip ci]"
+            git push
+          fi
