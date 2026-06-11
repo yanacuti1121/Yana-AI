@@ -83,8 +83,8 @@ When a skill becomes outdated or is superseded:
 2. Auto-register in `core/config/skills-lock.json`:
 ```bash
 bash core/scripts/update-skills-lock.sh   # updates hashes for existing entries
-# For new skills, run verify-skills-lock.sh — it will auto-add missing entries:
-bash core/scripts/verify-skills-lock.sh
+# For new skills, register them in the lockfile (auto-add is opt-in):
+bash core/scripts/verify-skills-lock.sh --auto-add
 ```
 
 3. Add trigger phrases to `core/tests/skills/test-skill-triggering.sh`:
@@ -191,9 +191,9 @@ deprecated: false
 **Các bước đăng ký:**
 
 1. Tạo `core/skills/<name>/SKILL.md` với frontmatter ở trên.
-2. Tự đăng ký vào `core/config/skills-lock.json`:
+2. Tự đăng ký vào `core/config/skills-lock.json` (auto-add là opt-in):
 ```bash
-bash core/scripts/verify-skills-lock.sh
+bash core/scripts/verify-skills-lock.sh --auto-add
 ```
 3. Thêm trigger phrases vào `core/tests/skills/test-skill-triggering.sh`
 4. Chạy kiểm tra: `bash core/tests/skills/test-skill-triggering.sh` → PASS

@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-06-10T14:09:53+00:00",
+  "generated": "2026-06-11T06:07:41+00:00",
   "count": 216,
   "files": {
     "core/gates/anti-graffiti-guard.js": "99697d7440d30f0c8d37db7fb4771a0fb0f7813d04fb5418504f4ff98ecb11eb",
@@ -215,7 +215,7 @@
     "core/scripts/verify-claude-pack.sh": "b12f8951285db4a253cd788c8bab71a46b5e43634ce8a4f3e79436e15156f881",
     "core/scripts/verify-core-lock.sh": "c1f32fdbb2ade1b4a96c7265643665c65f788bd0daad0f47e08869d3443b2aa1",
     "core/scripts/verify-rules.sh": "79cd8e867eb3fe46c062fb9d14cdbc1cc5b43c35ed8f4b5a2c0e8c578d40aaba",
-    "core/scripts/verify-skills-lock.sh": "7222893b26956bf43e381e7692949687e1849789909f62cf65c455350d7d5556",
+    "core/scripts/verify-skills-lock.sh": "8fbce74211b9f3f7d6165accd86e8fb9ea5b2ce9a3312da14b885ddf2146f76c",
     "core/scripts/verify_hooks.py": "042d97e74b2c47982205f17bfafcb7430c9248c67ce56479505ae45f31c59b77",
     "core/scripts/view-audit.sh": "6baafb659d6e5633bf980cfc662bc2aa0e2aed5f912496e78c05094e07a7c8aa",
     "core/scripts/watch.py": "3a735f416997b9c94af5de74ab670678d8c9f0e60c9453208f5560c1ae520997"

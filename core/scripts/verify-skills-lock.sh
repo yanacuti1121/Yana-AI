@@ -1,25 +1,38 @@
 #!/usr/bin/env bash
 # Verify that the skills on disk match the hashes recorded in skills-lock.json.
-# Also auto-adds skills found on disk that are NOT yet in the lockfile.
+#
+# By default this is a PURE CHECK — it never writes to the lockfile. A gate
+# that mutates the thing it is gating cannot be trusted as evidence, and the
+# old always-on auto-add silently re-registered thousands of entries during
+# routine pre-push verification (2026-06-11 incident).
 #
 # Exit codes:
-#   0 — all skills verified (and any new skills auto-added to lockfile)
+#   0 — all skills verified (with --prune: after stale entries were removed)
 #   1 — drift detected (skill content differs from lock) or missing files
 #   2 — cannot read lockfile or missing dependency (jq)
 #
 # Flags:
-#   --no-auto-add   Skip auto-add of new skills (verify only)
+#   --auto-add      Register skills found on disk that are NOT yet in the
+#                   lockfile (opt-in; use after intentionally adding skills)
+#   --prune         Remove lockfile entries whose skill no longer exists on
+#                   disk (opt-in; missing entries then do not fail the run)
+#   --no-auto-add   Deprecated no-op — verify-only is the default now
 #
 # Intended usage:
 #   - Run manually before trusting a shipped template.
-#   - Run after adding a new skill to auto-register it in the lockfile.
+#   - Run with --auto-add after adding a new skill to register it.
 #   - Wire into CI to detect accidental skill edits that should have bumped the lock.
 
 set -uo pipefail
 
-AUTO_ADD=true
+AUTO_ADD=false
+PRUNE=false
 for arg in "$@"; do
-  [[ "$arg" == "--no-auto-add" ]] && AUTO_ADD=false
+  case "$arg" in
+    --auto-add)    AUTO_ADD=true ;;
+    --prune)       PRUNE=true ;;
+    --no-auto-add) ;; # deprecated: verify-only is already the default
+  esac
 done
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
@@ -93,12 +106,18 @@ compute_hash() {
 drift=0
 missing=0
 ok=0
+prune_list=()
 
 while IFS=$'\t' read -r name local_path expected_hash; do
   full_path=$(resolve_skill_path "$local_path")
 
   if [[ -z "$full_path" ]]; then
-    echo "✗ MISSING  $name  (looked: $local_path | core/skills/... | skills/...)"
+    if [[ "$PRUNE" == "true" ]]; then
+      echo "− PRUNE    $name  (gone from disk: $local_path)"
+      prune_list+=("$name")
+    else
+      echo "✗ MISSING  $name  (looked: $local_path | core/skills/... | skills/...)"
+    fi
     missing=$((missing + 1))
     continue
   fi
@@ -165,9 +184,26 @@ if [[ "$AUTO_ADD" == "true" && -n "$SKILLS_ROOT" ]]; then
   done < <(find "$SKILLS_ROOT" -name "SKILL.md" | sort)
 fi
 
+# ── Phase 3: Prune stale entries (opt-in) ────────────────────────────────────
+pruned=0
+
+if [[ "$PRUNE" == "true" && ${#prune_list[@]} -gt 0 ]]; then
+  names_json=$(printf '%s\n' "${prune_list[@]}" | jq -R . | jq -s .)
+  tmp=$(mktemp)
+  if jq --argjson names "$names_json" '.skills |= with_entries(select(.key as $k | $names | index($k) | not))' \
+       "$LOCKFILE" > "$tmp" && jq -e '.skills | length > 0' "$tmp" > /dev/null; then
+    # write guard: never replace the lock with empty/invalid output
+    mv "$tmp" "$LOCKFILE"
+    pruned=${#prune_list[@]}
+  else
+    rm -f "$tmp"
+    echo "✗ prune aborted — jq produced invalid or empty output, lockfile untouched" >&2
+  fi
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
-echo "Summary: $ok ok · $drift drift · $missing missing · $added auto-added"
+echo "Summary: $ok ok · $drift drift · $missing missing · $added auto-added · $pruned pruned"
 
 if [[ $added -gt 0 ]]; then
   echo ""
@@ -175,10 +211,20 @@ if [[ $added -gt 0 ]]; then
   echo "Run update-skills-lock.sh to refresh all hashes if needed."
 fi
 
-if [[ $drift -gt 0 || $missing -gt 0 ]]; then
+if [[ $pruned -gt 0 ]]; then
+  echo ""
+  echo "$pruned stale entr(y/ies) removed from $(basename "$LOCKFILE"). Remember to commit it."
+fi
+
+# Pruned entries are resolved, not failures; anything still missing fails.
+unresolved_missing=$((missing - pruned))
+
+if [[ $drift -gt 0 || $unresolved_missing -gt 0 ]]; then
   echo ""
   echo "If drift is intentional, regenerate with:"
   echo "  bash core/scripts/update-skills-lock.sh"
+  echo "If skills were deleted on purpose, remove their entries with:"
+  echo "  bash core/scripts/verify-skills-lock.sh --prune"
   exit 1
 fi
 
