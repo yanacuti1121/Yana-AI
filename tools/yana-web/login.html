@@ -90,6 +90,9 @@
     }
     .field input.bad  { border-color: var(--danger); }
     .field input.good { border-color: var(--primary); }
+    /* IME-friendly masking: browsers disable Vietnamese IME (Telex) inside
+       type="password", so supported engines use type="text" + CSS masking */
+    .field input.masked { -webkit-text-security: disc; }
     .eye {
       position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
       width: 34px; height: 34px; display: grid; place-items: center;
@@ -326,13 +329,31 @@
     $('lang-vi').addEventListener('click', function () { lang = 'vi'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
     $('lang-en').addEventListener('click', function () { lang = 'en'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
 
+    // Vietnamese IME (Telex) is disabled by browsers inside type="password".
+    // Where -webkit-text-security is supported (Chrome/Edge/Safari), switch to
+    // type="text" masked by CSS — IME composes normally, dots still shown.
+    var MASK_OK = window.CSS && CSS.supports && CSS.supports('-webkit-text-security', 'disc');
+    var visible = false;
+
+    function applyVisibility() {
+      ['password', 'confirm'].forEach(function (id) {
+        var el = $(id);
+        if (MASK_OK) {
+          el.type = 'text';
+          el.classList.toggle('masked', !visible);
+        } else {
+          el.type = visible ? 'text' : 'password';
+        }
+      });
+      $('eye-open').style.display   = visible ? 'none' : '';
+      $('eye-closed').style.display = visible ? '' : 'none';
+    }
+    applyVisibility();
+
     // Show/hide password — applies to both fields so what you compare is what you see
     $('eye').addEventListener('click', function () {
-      var show = $('password').type === 'password';
-      $('password').type = show ? 'text' : 'password';
-      $('confirm').type  = show ? 'text' : 'password';
-      $('eye-open').style.display   = show ? 'none' : '';
-      $('eye-closed').style.display = show ? '' : 'none';
+      visible = !visible;
+      applyVisibility();
       $('password').focus();
     });
 
