@@ -39,7 +39,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_kỹ_năng-3,518-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_quy_tắc-63-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_quy_tắc-64-b96b80?style=flat-square" />
   <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_lệnh-164-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_cổng-9_lớp-ce422b?style=flat-square" />
@@ -109,7 +109,7 @@ graph TB
         direction TB
         SKILLS["📚 3,518 kỹ năng\nĐịnh nghĩa quy trình SKILL.md\n(frontend, backend, AI, K8s, bảo mật...)"]
         AGENTS["🤖 97 agent chuyên trách\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
-        RULES["📜 63 quy tắc bắt buộc\n(bảo mật, git, UI, TypeScript,\nbảo mật API, core-lock...)"]
+        RULES["📜 64 quy tắc bắt buộc\n(bảo mật, git, UI, TypeScript,\nbảo mật API, core-lock...)"]
         HOOKS["🪝 46 hook\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 164 lệnh slash\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         BUS["🚌 Bus tin nhắn agent\nJSON + chữ ký ECDSA\nchống replay, đồng thuận BFT"]
@@ -290,7 +290,7 @@ yamtam mission create "add-auth"     # tạo mission agent song song
 ```
 core/
 ├── hooks/          # 46 hook PreToolUse / PostToolUse / Stop
-├── rules/          # 63 quy tắc bắt buộc (bảo mật, tính đúng đắn, UI, git)
+├── rules/          # 64 quy tắc bắt buộc (bảo mật, tính đúng đắn, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 định nghĩa agent chuyên trách

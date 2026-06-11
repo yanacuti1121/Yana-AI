@@ -42,7 +42,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_skills-3,518-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-63-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_rules-64-b96b80?style=flat-square" />
   <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_commands-164-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_gates-9_layers-ce422b?style=flat-square" />
@@ -113,7 +113,7 @@ graph TB
         direction TB
         SKILLS["📚 3,518 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 97 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
-        RULES["📜 63 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
+        RULES["📜 64 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
         HOOKS["🪝 46 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 164 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         BUS["🚌 Agent message bus\nJSON + ECDSA sig\nreplay-protected, BFT consensus"]
@@ -312,7 +312,7 @@ yamtam mission create "add-auth"     # create parallel agent mission
 ```
 core/
 ├── hooks/          # 46 PreToolUse / PostToolUse / Stop hooks
-├── rules/          # 63 enforced rules (security, correctness, UI, git)
+├── rules/          # 64 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 95 specialist agent definitions
