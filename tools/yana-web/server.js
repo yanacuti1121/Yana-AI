@@ -923,7 +923,16 @@ const server = http.createServer(async (req, res) => {
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }
   if (method === 'POST' && pathname === '/api/chat')    { await handleApiChat(req, res);  return; }
   if (method === 'GET' && pathname === '/m')            { res.writeHead(302, { Location: '/mobile.html' }); res.end(); return; }
-  if (method === 'GET')                                 { serveStatic(res, pathname === '/' ? '/index.html' : pathname); return; }
+  if (method === 'GET') {
+    let file = pathname;
+    if (pathname === '/') {
+      // Phones land on the mobile shell automatically; ?desktop=1 opts out
+      const mobileUA    = /Mobi|Android|iPhone/i.test(req.headers['user-agent'] || '');
+      const wantDesktop = /[?&]desktop=1/.test(req.url || '');
+      file = (mobileUA && !wantDesktop) ? '/mobile.html' : '/index.html';
+    }
+    serveStatic(res, file); return;
+  }
 
   res.writeHead(405, { 'Content-Type': 'text/plain' });
   res.end('Method Not Allowed');
