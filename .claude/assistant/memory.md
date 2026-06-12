@@ -612,3 +612,18 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 **Anh nói / quyết định:** "học từ nhận xét của anh và bên kia để sửa... cái cần sửa nhất ở em là báo 'oke ngon lành' nhưng thực chất vẫn còn lỗi — dù bé cũng đừng bỏ sót, lm đến đâu sạch đến đấy" · duyệt thêm L6 ("anh có mấy ý muốn thêm")
 
 **Trạng thái cuối:** v0.41.2 · codexmate fork pushed · yamtam-engine: 3 commits local CHƯA push (chờ lệnh anh) · PR #193 chờ: anh reply reviewer + maintainer approve
+
+---
+
+## 2026-06-12 (chiều muộn KR) — Node24 + Yana mobile + SECURITY.md + fonts docs
+
+**Đã làm:**
+- Reply ymkiux đăng thật (issuecomment-4688928819) — token classic comment được sang repo họ
+- Credential helper: token GỠ khỏi remote URL, auth qua GIT_ASKPASS + cache RAM 8h, 0 ghp_ trên disk, push thật verify OK
+- Node 24 pins: 17 dòng uses: trên 6 workflow, SHA từ GitHub API. CI + Pages xanh. YAMTAM Audit fail từ TRƯỚC (cả 6 commit hôm nay, step "Run YAMTAM audit") — backlog riêng
+- Yana mobile: sidebar 218px → drawer ≤860px (hamburger + backdrop + auto-close), chat aside 240px ẩn mobile. Babel 7/7, tests 28+26+17 pass. CHƯA xem trên máy thật
+- SECURITY.md: viết lại từ 1.8.x → 0.41.x, 5 kênh phát hành, L0-L6 + core-lock, email thật, EN+VI
+- Fonts .io: Caveat/Dancing Script (viết tay) → Be Vietnam Pro (index) + Inter (skills/marketplace), size re-tune. Người dùng chê khó đọc — feedback thật
+
+**Trạng thái cuối:** v0.41.2 · main = origin (435380c2) · codexmate PR #193 chờ maintainer
+**Pending:** anh xem Yana mobile trên điện thoại + trang .io sau deploy · YAMTAM Audit workflow fail cần điều tra · L6 gate tooling
