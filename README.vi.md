@@ -66,6 +66,21 @@ Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**,
 
 ---
 
+## 🤝 Lời mời — hãy tự mình trải nghiệm
+
+Đừng tin lời README này — hãy cài engine, rồi yêu cầu trợ lý AI của bạn làm một việc đáng lẽ không nên làm, và xem các gate chặn lại trước:
+
+```bash
+npm install yamtam-engine && npx yamtam-install   # nối hooks (60 giây)
+yamtam doctor .                                   # kiểm tra mọi thứ đã sẵn sàng
+```
+
+Thử ngay: bảo agent `git push --force`, pipe một script từ internet vào bash, hay đọc file `.env` — mọi nỗ lực đều bị chặn, được giải thích rõ lý do, và ghi vào audit log. Khoảnh khắc đó chính là toàn bộ giá trị của dự án.
+
+Dự án được xây dựng bởi một bạn 17 tuổi ở Việt Nam — nghĩa là phản hồi từ thực tế của bạn là món quà giá trị nhất. Nếu có gì chặn quá tay, lọt lưới, hay gây khó hiểu: [mở issue](https://github.com/phamlongh230-lgtm/yamtam-engine/issues). Mỗi báo cáo đều giúp các gate sắc bén hơn.
+
+---
+
 ## Tổng quan về YAMTAM
 
 ```

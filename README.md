@@ -70,6 +70,21 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 Last updated: 2026-06-10
 ---
 
+## 🤝 An invitation — try it yourself
+
+Don't take this README's word for any of it. Install the engine, then ask your AI assistant to do something it shouldn't — and watch the gates catch it first:
+
+```bash
+npm install yamtam-engine && npx yamtam-install   # wire the hooks (60 seconds)
+yamtam doctor .                                   # verify everything is wired
+```
+
+Then try: ask your agent to `git push --force`, pipe a script from the internet into bash, or read a `.env` file — every attempt is intercepted, explained, and logged. That moment is the whole pitch.
+
+Built by one 17-year-old in Vietnam — which means real-world feedback is the most valuable thing you can give this project. If something blocks too much, too little, or confuses you: [open an issue](https://github.com/phamlongh230-lgtm/yamtam-engine/issues). Every report makes the gates sharper.
+
+---
+
 ## YAMTAM at a Glance
 
 ```
