@@ -32,6 +32,7 @@ const Icons = {
   providers: (s) => <Ic size={s} d={<><circle cx="10" cy="10" r="2.4"/><path d="M10 3v2.6M10 14.4V17M3 10h2.6M14.4 10H17M5.2 5.2l1.8 1.8M13 13l1.8 1.8M14.8 5.2 13 7M7 13l-1.8 1.8"/></>} />,
   settings:  (s) => <Ic size={s} d={<><circle cx="10" cy="10" r="2.6"/><path d="M10 2.8v2.4m0 9.6v2.4M2.8 10h2.4m9.6 0h2.4M4.9 4.9l1.7 1.7m6.8 6.8 1.7 1.7m0-10.2-1.7 1.7M6.6 13.4l-1.7 1.7"/></>} />,
   spark:     (s) => <Ic size={s} d={<path d="M10 3c.5 3.9 2.6 6.1 7 7-4.4.9-6.5 3.1-7 7-.5-3.9-2.6-6.1-7-7 4.4-.9 6.5-3.1 7-7Z"/>} />,
+  menu:      (s) => <Ic size={s} d={<path d="M3.5 6h13M3.5 10h13M3.5 14h13"/>} />,
 };
 
 /* ---------- Wordmark: lotus in bloom on the water (matches login.html) ---------- */
@@ -84,24 +85,32 @@ const NAV = [
 function Sidebar({ page, onNav }) {
   const D = window.YANA;
   const [account, setAccount] = useState(null);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     fetch("/api/auth/status")
       .then((r) => r.json())
       .then((d) => setAccount(d.username || null))
       .catch(() => {});
   }, []);
+  const nav = (id) => { onNav(id); setOpen(false); };
   return (
-    <nav className="glass" style={{
-      width: 218, flex: "none", borderRadius: "var(--r-lg)",
+    <>
+      <button className="glass-strong yana-menu-btn" aria-label={L("Open menu", "Mở menu")}
+        aria-expanded={open} onClick={() => setOpen(true)}>
+        {Icons.menu(18)}
+      </button>
+      <div className={"yana-backdrop" + (open ? " show" : "")} onClick={() => setOpen(false)} aria-hidden="true"></div>
+    <nav className={"glass yana-sidebar" + (open ? " open" : "")} style={{
+      borderRadius: "var(--r-lg)",
       display: "flex", flexDirection: "column",
-      padding: "calc(14px * var(--sp))", gap: 4, zIndex: 2,
+      padding: "calc(14px * var(--sp))", gap: 4,
     }}>
       <div style={{ marginBottom: "calc(14px * var(--sp))" }}><Wordmark /></div>
 
       {NAV.map((n) => {
         const active = page === n.id;
         return (
-          <button key={n.id} onClick={() => onNav(n.id)} style={{
+          <button key={n.id} onClick={() => nav(n.id)} style={{
             display: "flex", alignItems: "center", gap: 11,
             padding: "calc(8px * var(--sp)) 11px", borderRadius: "var(--r-sm)",
             border: "none", cursor: "pointer", width: "100%", textAlign: "left",
@@ -160,6 +169,7 @@ function Sidebar({ page, onNav }) {
         </button>
       </div>
     </nav>
+    </>
   );
 }
 

@@ -203,6 +203,53 @@ button { font-family: inherit; }
 *::-webkit-scrollbar-thumb { background: rgba(var(--shadow-rgb), 0.14); border-radius: 99px; border: 3px solid transparent; background-clip: content-box; }
 *::-webkit-scrollbar-track { background: transparent; }
 
+/* ============ responsive: sidebar becomes a drawer ≤ 860px ============ */
+.yana-app { padding: calc(16px * var(--sp)); }
+.yana-sidebar { width: 218px; flex: none; position: relative; z-index: 2; }
+.yana-chat-aside { width: 240px; flex: none; }
+.yana-menu-btn, .yana-backdrop { display: none; }
+
+@media (max-width: 860px) {
+  .yana-app { padding: 10px; }
+
+  .yana-sidebar {
+    position: fixed; top: 10px; bottom: 10px; left: 10px; z-index: 40;
+    width: min(280px, 80vw);
+    transform: translateX(calc(-100% - 20px));
+    transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+    overflow-y: auto;
+    /* drawer floats over content — needs a near-solid surface to stay readable */
+    background: rgba(var(--surface-rgb), .94);
+  }
+  .yana-sidebar.open { transform: translateX(0); }
+
+  .yana-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 39;
+    background: rgba(var(--shadow-rgb), .30);
+    opacity: 0; pointer-events: none;
+    transition: opacity .28s;
+  }
+  .yana-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  .yana-menu-btn {
+    display: grid; place-items: center;
+    position: fixed; top: 12px; left: 12px; z-index: 38;
+    width: 40px; height: 40px; border-radius: 13px;
+    border: 1px solid var(--border); cursor: pointer;
+    color: var(--ink-2);
+  }
+
+  /* clear the floating menu button */
+  .yana-main { padding-top: 50px; }
+
+  /* chat info panels (routing/context/safety) yield to the conversation */
+  .yana-chat-aside { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yana-sidebar, .yana-backdrop { transition: none; }
+}
+
 /* ============ life beneath the surface ============ */
 .pulse { animation: none; }
 .mote {

@@ -163,9 +163,9 @@ function App() {
   }[page] || (() => <Dashboard t={t} onNav={setPage} />);
 
   return (
-    <div key={t.language} style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", gap: "var(--gap)", padding: "calc(16px * var(--sp))" }}>
+    <div key={t.language} className="yana-app" style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", gap: "var(--gap)" }}>
       <Sidebar page={page} onNav={setPage} />
-      <main style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: page === "chat" ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
+      <main className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: page === "chat" ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <Page />
         </div>

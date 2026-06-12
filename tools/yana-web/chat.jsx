@@ -159,7 +159,7 @@ function ContextPanel() {
   const fallback = keyed[1];
 
   return (
-    <aside style={{ width: 240, flex: "none", display: "flex", flexDirection: "column", gap: "var(--gap)", overflowY: "auto" }}>
+    <aside className="yana-chat-aside" style={{ display: "flex", flexDirection: "column", gap: "var(--gap)", overflowY: "auto" }}>
       <Card title={L("Routing", "Định tuyến")}>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {[
