@@ -388,7 +388,7 @@ User → Yana AI → YAMTAM Core (Router · Safety · Context) → Model
 - Multi-provider: Anthropic · Groq (Llama4 · Qwen3 · Gemma2) · Gemini 2.5 · OpenAI · DeepSeek · OpenRouter
 - 📊 **100% real data** — live provider stats, L1 memory garden, audit-log health panel; zero demo numbers
 - Skill routing built in — type naturally, YAMTAM dispatches the right agent
-- **Non-coding use cases:** học tập (Socratic learning assistant), công việc hàng ngày (summarize / plan / draft)
+- **Non-coding use cases:** learning (Socratic learning assistant), daily work (summarize / plan / draft)
 - SSE streaming, mobile-friendly · Electron desktop shell (`tools/yana-desktop`)
 
 If YAMTAM is the power grid, Yana is the first building plugged into it.
@@ -453,8 +453,8 @@ yamtam route classify "deploy to production"
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
 - **skill** → matched against 3,518-entry index, dispatches exact skill agent
-- **learn** → routes to `hoc-tap` — Socratic learning assistant (học, giải thích, tại sao...)
-- **daily** → routes to `daily-assistant` — summarize / plan / draft (tóm tắt, viết email, lên kế hoạch...)
+- **learn** → routes to `hoc-tap` — Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
+- **daily** → routes to `daily-assistant` — summarize / plan / draft (triggers on "summarize", "write an email", "make a plan" — English and Vietnamese)
 - **complex** → dispatch specialist agent(s) with scoped brief
 - **external** → stop, confirm with human before proceeding
 
@@ -496,49 +496,49 @@ Tasks marked **Running** on dispatch — re-running `dispatch` never double-disp
 
 ## Multi-agent launcher
 
-Bật nhiều agents song song có kiểm soát — không bị vượt ngưỡng, có kill switch:
+Launch multiple agents in parallel with hard limits and a kill switch:
 
 ```bash
-# Bật 3 agents cùng lúc, tối đa 3 chạy song song
+# Launch 3 agents, at most 3 running in parallel
 bash core/scripts/multi-agent-launch.sh start \
   --agents "scanner,auditor,qa-team" \
   --concurrency 3
 
-# Xem trạng thái real-time
+# Real-time status
 bash core/scripts/multi-agent-launch.sh status
 
-# Dừng một agent cụ thể
+# Stop one specific agent
 bash core/scripts/multi-agent-launch.sh kill scanner
 
-# Kill switch — dừng tất cả ngay lập tức
+# Kill switch — stop everything immediately
 bash core/scripts/multi-agent-launch.sh kill all
 
-# Xem log của agent
+# Tail an agent's log
 bash core/scripts/multi-agent-launch.sh log auditor
 ```
 
-Hoặc dùng file danh sách task:
+Or drive it from a task-list file:
 ```bash
-# tasks.txt — mỗi dòng: agent_name:mô tả task
-echo "scanner:quét toàn bộ repo
-auditor:kiểm tra hooks
-qa-team:chạy test suite" > tasks.txt
+# tasks.txt — one line per task: agent_name:task description
+echo "scanner:scan the whole repo
+auditor:check the hooks
+qa-team:run the test suite" > tasks.txt
 
 bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurrency 4
 ```
 
-Output mẫu:
+Sample output:
 ```
 ═══ YAMTAM Multi-Agent Launcher ═══
   Agents     : 3
-  Concurrency: 3 (tối đa chạy song song)
+  Concurrency: 3 (max running in parallel)
   Kill switch: bash multi-agent-launch.sh kill all
 
-[LAUNCH] scanner → quét toàn bộ repo    PID 12341
-[LAUNCH] auditor → kiểm tra hooks       PID 12342
-[LAUNCH] qa-team → chạy test suite      PID 12343
+[LAUNCH] scanner → scan the whole repo    PID 12341
+[LAUNCH] auditor → check the hooks        PID 12342
+[LAUNCH] qa-team → run the test suite     PID 12343
 
-[OK] Đã launch 3/3 agents
+[OK] Launched 3/3 agents
 ```
 
 ---
