@@ -403,7 +403,9 @@ function serveStatic(res, reqPath) {
   const contentType = MIME[path.extname(filePath)] || 'text/plain';
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not Found'); return; }
-    res.writeHead(200, { 'Content-Type': contentType });
+    // no-cache: revalidate on every load — stale JSX/CSS made UI fixes
+    // (e.g. theme persistence) invisible until a hard refresh
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-cache' });
     res.end(data);
   });
 }

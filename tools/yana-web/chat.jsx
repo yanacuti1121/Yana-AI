@@ -118,6 +118,30 @@ const CHAT_MODELS = {
   ollama:     "llama3.2",
 };
 
+// Curated model choices per provider — providers in CHAT_LIVE_MODELS get the
+// real list fetched from /api/models when a key is available.
+const MODEL_CHOICES = {
+  claude:     ["claude-sonnet-4-6", "claude-opus-4-8", "claude-haiku-4-5"],
+  openai:     ["gpt-4o-mini", "gpt-4o"],
+  gemini:     ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
+  deepseek:   ["deepseek-chat", "deepseek-reasoner"],
+  groq:       ["llama-3.3-70b-versatile"],
+  openrouter: ["google/gemma-3-27b-it"],
+  "9router":  ["kr/claude-sonnet-4.5"],
+  ollama:     ["llama3.2"],
+};
+const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "9router", "ollama"]);
+
+const MODEL_STORE = "yana.chat.models"; // { providerId: modelId } — persisted
+
+function loadModelChoices() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MODEL_STORE));
+    if (saved && typeof saved === "object") return saved;
+  } catch (_) {}
+  return {};
+}
+
 function ContextPanel() {
   const D = window.YANA;
   const [facts, setFacts] = React.useState(null);
@@ -140,7 +164,7 @@ function ContextPanel() {
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {[
             [L("Provider", "Nhà cung cấp"), primary ? primary.name : L("None — add a key", "Chưa có key")],
-            [L("Model", "Mô hình"), primary ? (CHAT_MODELS[primary.id] || "—") : "—"],
+            [L("Model", "Mô hình"), primary ? (loadModelChoices()[primary.id] || CHAT_MODELS[primary.id] || "—") : "—"],
             [L("Fallback", "Dự phòng"), fallback ? fallback.name : "—"],
             [L("Connected", "Đã kết nối"), keyed.length + " / " + D.providers.length],
           ].map(([k, v]) => (
@@ -219,8 +243,41 @@ function Chat({ t }) {
   // Rule 68 — manual Confidential Mode: everything sent while on is treated
   // as confidential even without a marker. Never persisted itself.
   const [confMode, setConfMode] = React.useState(false);
+  // Model per provider — persisted; live lists fetched for CHAT_LIVE_MODELS
+  const [modelSel, setModelSel] = React.useState(loadModelChoices);
+  const [liveModels, setLiveModels] = React.useState({});  // providerId -> [ids]
   const logRef = React.useRef(null);
   const readerRef = React.useRef(null);
+
+  const activeProvider = providerSel || getProviderConfig().provider;
+  const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
+  const activeModel = modelSel[activeProvider] || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
+
+  function pickModel(v) {
+    setModelSel((prev) => {
+      const next = { ...prev, [activeProvider]: v };
+      try { localStorage.setItem(MODEL_STORE, JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
+  }
+
+  // Fetch the real model list when the provider supports it and is usable
+  React.useEffect(() => {
+    const id = activeProvider;
+    if (!CHAT_LIVE_MODELS.has(id) || !providerAvailable(id) || liveModels[id]) return;
+    fetch("/api/models", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: id, key: YanaVault.getKey(id) || "" }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && Array.isArray(d.models) && d.models.length) {
+          setLiveModels((m) => ({ ...m, [id]: d.models.slice(0, 60).map((x) => x.id) }));
+        }
+      })
+      .catch(() => {});
+  }, [activeProvider]);
 
   React.useEffect(() => {
     const el = logRef.current;
@@ -260,6 +317,7 @@ function Chat({ t }) {
     // Sovereign: local model only — never a cloud provider
     let { provider, apiKey } = getProviderConfig(providerSel);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
+    const model = modelSel[provider] || CHAT_MODELS[provider] || "";
 
     // Real routing: classify the task so complex requests pick up a skill.
     // Skipped for confidential turns — need-to-know, no extra processing.
@@ -280,8 +338,8 @@ function Chat({ t }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tier
-          ? { task: text, apiKey, provider, sensitivity: tier }
-          : { task: text, apiKey, provider, skill, about: aboutContext() }),
+          ? { task: text, apiKey, provider, model, sensitivity: tier }
+          : { task: text, apiKey, provider, model, skill, about: aboutContext() }),
       });
 
       if (!res.ok || !res.body) {
@@ -300,7 +358,7 @@ function Chat({ t }) {
         who: "yana",
         route: {
           agent: provider,
-          model: (CHAT_MODELS[provider] || provider)
+          model: (model || provider)
             + (skill ? " · " + skill : "")
             + (tier ? " · 🔒 " + (tier === "sovereign" ? "local-only" : "no-persist") : ""),
         },
@@ -339,7 +397,7 @@ function Chat({ t }) {
       setThinking(false);
       setMsgs((m) => [...m, {
         who: "yana",
-        route: { agent: provider, model: CHAT_MODELS[provider] || provider },
+        route: { agent: provider, model: model || provider },
         confidential: !!tier,
         tier,
         text: tier === "sovereign"
@@ -415,6 +473,17 @@ function Chat({ t }) {
               <option key={p.id} value={p.id} disabled={!providerAvailable(p.id)}>
                 {p.name}{providerAvailable(p.id) ? "" : " 🔒"}
               </option>
+            ))}
+          </select>
+          <select value={activeModel} onChange={(e) => pickModel(e.target.value)}
+            title={L("Model for this provider — choice is remembered", "Model cho nhà cung cấp này — lựa chọn được ghi nhớ")}
+            style={{
+              border: "1px solid var(--border)", borderRadius: 99, padding: "5px 9px",
+              background: "transparent", color: "var(--ink-2)", fontSize: 11.5,
+              fontFamily: "inherit", cursor: "pointer", maxWidth: 150,
+            }}>
+            {(modelOptions.includes(activeModel) ? modelOptions : [activeModel, ...modelOptions]).map((m) => (
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
           <span className="chip neutral" style={{ fontSize: 11.5 }}>{Icons.safety(12)} {L("Sentinel on", "Sentinel bật")}</span>
