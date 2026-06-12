@@ -504,7 +504,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 64,
+      "count": 65,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",

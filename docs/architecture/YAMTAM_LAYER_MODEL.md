@@ -29,6 +29,14 @@ This is **not** a linear numbering model like `L1 -> L9`.
 - Do **not** introduce `L6/L7/L8` unless architecture is formally changed.
 - `L5.5` is the top reinforcement layer in the current model; it is **not** `L6`.
 
+### Formal change record
+- **L6 — Cognitive Reliability Layer** was formally added on 2026-06-12 via
+  `docs/adr/ADR-006-cognitive-reliability-layer.md` + `core/rules/69-cognitive-reliability-law.md`.
+  L6 sits **outside** the interleaved execution stack above: it gates agent
+  *reports and decisions* (completion claims, evidence, scope, bias), not a
+  command pipeline stage. The L1–L5.5 execution model is unchanged.
+  Enforcement: behavioral (rule 69); automated gate tooling not yet implemented.
+
 ## 3. Meaning
 
 - `Lx` = base guard checkpoint.

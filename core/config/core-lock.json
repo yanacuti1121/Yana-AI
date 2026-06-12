@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-06-11T13:43:40+00:00",
-  "count": 217,
+  "generated": "2026-06-12T07:42:16+00:00",
+  "count": 218,
   "files": {
     "core/gates/anti-graffiti-guard.js": "99697d7440d30f0c8d37db7fb4771a0fb0f7813d04fb5418504f4ff98ecb11eb",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -81,6 +81,7 @@
     "core/rules/66-client-secret-encryption-law.md": "c88b784cfdf33041b53e0f5dbf1d9ba0a3f874e898a639de3f6c7555d93de4cc",
     "core/rules/67-core-integrity-lock-law.md": "5d6fb246c5ea5cc0144515889700a5a2ab877e2e239c0dbd2af0bcc9a20b1eb2",
     "core/rules/68-principal-confidentiality-law.md": "83428af56d37662bbebbf7361eb05c812e1a2f95ac9743d138711fb66791ca02",
+    "core/rules/69-cognitive-reliability-law.md": "7ddc0438ec8a63d5d4f7457f31428b99f69d78760c5f90147af1f5b6848d8f30",
     "core/rules/agent-code-constraints.md": "a8ce87c0c369c30bc028855c6415e13b027814dab111e9e202b45c8e8b556b40",
     "core/rules/agent-communication-policy.md": "5195df77565c0ea402f3f7c9a966f760d18e8dd2377016c24f5a9c5af94286c4",
     "core/rules/agent-excessive-agency-law.md": "8d8e6054bfc0398b54a1301f5361a25474967c42fb9e1242b39a4d9aaee7442d",
