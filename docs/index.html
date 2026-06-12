@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <!-- Three.js / GSAP / Lottie loaded lazily on demand — not on page load -->
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,9 +32,9 @@
   --orange:        hsl(155 52% 32%);
   --red:           hsl(0 70% 52%);
   --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
-  --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --hand: "Caveat","Dancing Script",cursive;
-  --script: "Dancing Script","Caveat",cursive;
+  --sans: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --hand: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --script: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 
 .dark {
@@ -161,7 +161,7 @@ a:focus-visible, button:focus-visible {
   padding: .25rem .75rem; margin-bottom: 1.5rem;
 }
 .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
-h1 { font-family: var(--hand); font-size: clamp(2.6rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; letter-spacing: .01em; margin-bottom: 1.25rem; }
+h1 { font-family: var(--hand); font-size: clamp(2.1rem, 4.2vw, 3.2rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 1.25rem; }
 h1 em { font-style: normal; color: var(--accent); }
 .hero-sub { color: var(--fg-muted); font-size: 1.0625rem; line-height: 1.7; max-width: 46ch; margin-bottom: 2rem; }
 .hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; }
@@ -230,8 +230,8 @@ h1 em { font-style: normal; color: var(--accent); }
 /* Sections */
 section { padding: 5rem 2rem; }
 .section-inner { max-width: 1100px; margin: 0 auto; }
-.section-label { font-family: var(--script); font-size: 1rem; color: var(--accent); letter-spacing: .02em; text-transform: none; margin-bottom: .75rem; font-weight: 600; }
-h2 { font-family: var(--hand); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; letter-spacing: .01em; line-height: 1.15; margin-bottom: 1rem; }
+.section-label { font-family: var(--script); font-size: .8rem; color: var(--accent); letter-spacing: .09em; text-transform: uppercase; margin-bottom: .75rem; font-weight: 600; }
+h2 { font-family: var(--hand); font-size: clamp(1.5rem, 2.8vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.18; margin-bottom: 1rem; }
 .section-sub { color: var(--fg-muted); font-size: 1.0625rem; max-width: 52ch; line-height: 1.65; margin-bottom: 3rem; }
 
 /* Feature grid */
@@ -557,7 +557,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap">
     <div>
       <div style="font-family:var(--script);font-size:1rem;color:hsla(0,0%,100%,.7);margin-bottom:.5rem" data-i18n="skills.label">Thư viện Skills</div>
-      <h2 style="font-family:var(--hand);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:#fff;letter-spacing:.01em;margin-bottom:.6rem;line-height:1.15" data-i18n="skills.title">3,516 workflow skills —<br>mở và khám phá</h2>
+      <h2 style="font-family:var(--hand);font-size:clamp(1.5rem,2.8vw,2.15rem);font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:.6rem;line-height:1.18" data-i18n="skills.title">3,516 workflow skills —<br>mở và khám phá</h2>
       <p style="color:hsla(0,0%,100%,.75);font-size:1rem;max-width:44ch;line-height:1.6" data-i18n="skills.sub">Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.</p>
     </div>
     <a href="skills.html"
@@ -870,7 +870,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- What is -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.what">YAMTAM là gì?</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.what">YAMTAM là gì?</h3>
       <p style="color:var(--fg-muted);line-height:1.75;max-width:68ch"><span data-i18n="docs.what">YAMTAM ENGINE là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.</span></p>
       <div style="margin-top:1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8rem;line-height:1.8;color:var(--fg-muted)">
         You → Claude Code → <span style="color:var(--accent);font-weight:600">[YAMTAM HOOKS]</span> → blocked hoặc allowed
@@ -879,7 +879,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Install -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.install">Cài đặt</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.install">Cài đặt</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
           <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.py">Python CLI</div>
@@ -901,7 +901,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Quick commands -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.cmds">Lệnh cơ bản</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.cmds">Lệnh cơ bản</h3>
       <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.8rem;line-height:2;color:#ccc;overflow-x:auto">
         <div><span style="color:#555"># Quét repo tìm lỗi cấu hình AI agent</span></div>
         <div><span style="color:#69ff47">yamtam</span> audit .</div>
@@ -916,7 +916,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Gate system -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">9 lớp bảo vệ (L0–L5)</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">9 lớp bảo vệ (L0–L5)</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L0</span><span style="font-weight:600;font-size:.82rem">Audit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Log mọi tool call — Merkle hash-chain</div></div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1</span><span style="font-weight:600;font-size:.82rem">Scope</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Cảnh báo truy cập secret/env</div></div>
@@ -932,7 +932,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Structure -->
     <div>
-      <h3 style="font-family:var(--hand);font-size:1.4rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.struct">Cấu trúc repo</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.struct">Cấu trúc repo</h3>
       <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.78rem;line-height:1.85;color:#ccc;overflow-x:auto">
         <div style="color:#69ff47">yamtam-engine/</div>
         <div style="color:#888">├── <span style="color:#40c4ff">core/</span>         agents · commands · hooks · skills · rules · gates · memory</div>
@@ -1370,7 +1370,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <div class="section-label" style="font-family:var(--script)" data-i18n="section.yana">Trợ lý AI cá nhân</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
       <div>
-        <h2 style="font-family:var(--hand);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;margin-bottom:1rem;letter-spacing:.01em">
+        <h2 style="font-family:var(--hand);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;margin-bottom:1rem;letter-spacing:-0.02em">
           <span data-i18n="yana.greeting">Xin chào, tôi là</span> <em style="font-style:italic;color:var(--accent)">Yana</em>
         </h2>
         <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem" data-i18n="yana.desc">
