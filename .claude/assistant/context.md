@@ -18,7 +18,7 @@
 
 ## Ưu tiên tiếp theo
 1. **PUSH yamtam-engine** — 3 commits local chưa push (922ee30b rule 69 + ADR-006, 79595557 submodule bump, + assistant sync). Giữ lại vì luật git-push-enforcement yêu cầu anh ra lệnh push main rõ ràng
-2. **Reply ymkiux trên PR #193** — fix đã push (885fd60, vi 1200/1200) nhưng cần TRẢ LỜI review thread (L6.11 Review Amnesia: fix pushed ≠ reviewer satisfied). Token không comment sang repo họ — anh tự đăng; draft reply đã đưa trong báo cáo session 12/06 chiều
+2. **PR #193 — reply ĐÃ ĐĂNG** (12/06 chiều, issuecomment-4688928819, đủ 3 điểm + evidence). Token classic ghp_ hiện tại COMMENT ĐƯỢC sang repo SakuraByteCore (ghi chú cũ "fine-grained không comment được" đã lỗi thời). Còn chờ: ymkiux phản hồi + maintainer approve workflow (Actions chưa chạy trên 885fd60) + 1 review
 3. **Bump action pins lên Node 24** — deadline 16/06/2026 (còn 4 ngày!); publish.yml đang Node 20. Cần token workflow scope
 4. **L6 follow-up (từ ADR-006)** — gate tooling tự động: wrap-up linter, completion-state check trong truth gate, cognitive-debt backlog. Hiện mới enforcement hành vi
 5. **Backlog repos** — xem `.claude/assistant/repo-backlog.md`
