@@ -17,15 +17,15 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **PyPI bước cuối — VIỆC CỦA ANH trên pypi.org**: v0.41.2 đã qua "Set up job" (fix SHA ăn), giờ fail ở publish vì pypi.org chưa đăng ký trusted publisher. Anh vào pypi.org → project yamtam-engine (hoặc Pending publishers nếu project chưa tồn tại) → Publishing → Add GitHub publisher: owner `phamlongh230-lgtm`, repo `yamtam-engine`, workflow `publish.yml`, environment `pypi`. Xong thì re-run job PyPI (hoặc đợi tag sau)
+1. **Bump action pins lên Node 24** — GitHub ép Node 24 từ 16/06/2026; actions/checkout + setup-python trong publish.yml đang chạy Node 20 (warning mỗi run). Cần token có workflow scope khi sửa
 2. **codexmate PR #193** — phía mình XONG; merge bị chặn bởi branch protection của SakuraByteCore (cần 1 review + maintainer approve workflow). Token fine-grained không comment sang repo họ được — anh tự đăng câu nhắn maintainer nếu muốn giục
-3. **Token**: anh đang xoá token sau mỗi đợt — token hiện tại trong remote sẽ chết; lần làm việc sau cần token mới (repo + workflow scope) nếu có push
+3. **Token**: anh xoá token sau mỗi đợt — lần làm việc sau cần token mới (repo + workflow scope) nếu có push
 4. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4)
 
-## v0.41.2 RELEASED (12/06 sáng KR)
-- npm ✅ · crates.io ✅ · GitHub Release ✅ · PyPI chờ anh đăng ký trusted publisher
-- Toàn bộ 8 commits đã push (rule 68 full-stack, Confidential Mode, Settings thật, crypto tests 17, vhs demo, publish.yml repin)
-- Cảnh báo từ runner: actions/checkout + setup-python pin cũ chạy Node 20 — GitHub ép Node 24 từ 16/06/2026 → nên bump 2 pin này trước ngày đó
+## v0.41.2 RELEASED — TRỌN BỘ 4 KÊNH ✅ (12/06 sáng KR)
+- npm ✅ · crates.io ✅ · GitHub Release ✅ · **PyPI ✅ 0.41.2 live 00:25 UTC** (lần đầu kể từ 0.40.0!)
+- PyPI 3 tầng lỗi đã gỡ tuần tự: (1) SHA pin pypa/gh-action-pypi-publish không tồn tại → repin; (2) OIDC chưa đăng ký → anh thêm trusted publisher; (3) thêm nhầm dạng pending trong khi project ĐÃ tồn tại → thêm vào project Manage → Publishing. Pipeline giờ tự động 100%: push tag là lên đủ 4 kênh
+- Toàn bộ commits đã push (rule 68 full-stack, Confidential Mode, Settings thật, crypto tests 17, vhs demo, publish.yml repin)
 
 ## Đã xong 12/06 sáng KR (session "lm hết các công việc qua lưu đi")
 - Rule 68 thành code thật 3 tầng: Rust route.rs (Sensitivity enum, 13/13 tests), yamtam-core classifier (classifySensitivity export), yana-web UI
