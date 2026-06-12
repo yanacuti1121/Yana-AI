@@ -1,10 +1,10 @@
 # Current Context
 
-**Cập nhật lần cuối:** 2026-06-12 (sáng KR)
+**Cập nhật lần cuối:** 2026-06-12 (chiều KR — session feedback/L6)
 
 ## Trạng thái
-- yamtam-engine **v0.41.1** — npm ✅ LIVE · crates ✅ · Release tự động hóa hoàn chỉnh (push tag là publish) · CI ✅ xanh lại sau 30+ runs đỏ · repo clean
-- Skills: **3,518** (11/06 chiều: +9router-gateway, +trending-pulse-research) · Rules: **64** (+68 principal-confidentiality)
+- yamtam-engine **v0.41.2** — 4 kênh ✅ · Release tự động hóa hoàn chỉnh (push tag là publish)
+- Skills: **3,518** · Rules: **65** (+69 cognitive-reliability — L6, từ ADR-006)
 - Adapters: **15** (+Windsurf, Kiro, Antigravity — switch-engine.sh)
 - Demo: GIF thật trong README (agg render) + asciinema player live trên docs homepage
 - Git history: sạch — không còn binary lớn, force-pushed 2026-06-07
@@ -17,10 +17,19 @@
 ## Phase hiện tại: ACTIVE
 
 ## Ưu tiên tiếp theo
-1. **Bump action pins lên Node 24** — GitHub ép Node 24 từ 16/06/2026; actions/checkout + setup-python trong publish.yml đang chạy Node 20 (warning mỗi run). Cần token có workflow scope khi sửa
-2. **codexmate PR #193** — phía mình XONG; merge bị chặn bởi branch protection của SakuraByteCore (cần 1 review + maintainer approve workflow). Token fine-grained không comment sang repo họ được — anh tự đăng câu nhắn maintainer nếu muốn giục
-3. **Token**: anh xoá token sau mỗi đợt — lần làm việc sau cần token mới (repo + workflow scope) nếu có push
-4. **Backlog repos** — xem `.claude/assistant/repo-backlog.md` (pm-skills học cho Phase 4)
+1. **PUSH yamtam-engine** — 3 commits local chưa push (922ee30b rule 69 + ADR-006, 79595557 submodule bump, + assistant sync). Giữ lại vì luật git-push-enforcement yêu cầu anh ra lệnh push main rõ ràng
+2. **Reply ymkiux trên PR #193** — fix đã push (885fd60, vi 1200/1200) nhưng cần TRẢ LỜI review thread (L6.11 Review Amnesia: fix pushed ≠ reviewer satisfied). Token không comment sang repo họ — anh tự đăng; draft reply đã đưa trong báo cáo session 12/06 chiều
+3. **Bump action pins lên Node 24** — deadline 16/06/2026 (còn 4 ngày!); publish.yml đang Node 20. Cần token workflow scope
+4. **L6 follow-up (từ ADR-006)** — gate tooling tự động: wrap-up linter, completion-state check trong truth gate, cognitive-debt backlog. Hiện mới enforcement hành vi
+5. **Backlog repos** — xem `.claude/assistant/repo-backlog.md`
+
+## Đã xong 12/06 chiều KR (session "học từ feedback + thêm L6")
+- **codexmate #193 theo review ymkiux**: merge upstream/main (lấy 4 key claude.model.* đã dịch sẵn từ #194) + tự thêm 4 key thiếu (templatesCount, diff.title.claudeSettings, copyPath, applyAria) → vi.mjs **1200/1200** với en.mjs, 0 thiếu 0 thừa 0 trùng; unit suite codexmate 11/11 pass; pushed 885fd60 → PR head cập nhật, CI đang chạy
+- **CSS point của reviewer**: KHÔNG đổi code — có bằng chứng base `.lang-switch-text` mặc định `translateY(10px)` (layout-shell.css:279) và rule vi theo đúng pattern opacity-only của zh/en upstream có sẵn → trả lời reviewer bằng evidence
+- **Docstring 33%**: PR chỉ đổi README/locale-data/CSS, không có exported function → không có gì để sửa
+- **ADR-006 + rule 69 (L6 Cognitive Reliability)**: docs/adr/ADR-006 (Accepted, guard table L6.0–L6.20) + core/rules/69 (Tier 2, completion vocabulary 8 trạng thái, Claim/Evidence/Confidence, cấm success-only wrap-up) + formal change record trong YAMTAM_LAYER_MODEL.md (L6 nằm NGOÀI stack L1–L5.5). verify-rules 4/4 PASS, core-lock 218 pinned, MANIFEST rules 65
+- **Memory dài hạn**: reporting_discipline.md — bài học #1 của anh ("đừng báo oke ngon lành khi còn lỗi") vào Claude memory index
+- **Ghi nhận**: MANIFEST `actual_present` của rules stale từ trước (61 entries / 65 rules) — script chỉ fix count; chưa sửa vì ngoài scope
 
 ## v0.41.2 RELEASED — TRỌN BỘ 4 KÊNH ✅ (12/06 sáng KR)
 - npm ✅ · crates.io ✅ · GitHub Release ✅ · **PyPI ✅ 0.41.2 live 00:25 UTC** (lần đầu kể từ 0.40.0!)

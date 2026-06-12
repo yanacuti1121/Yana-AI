@@ -599,3 +599,16 @@ Format: `## YYYY-MM-DD — [tóm tắt 1 dòng]`
 
 **Anh nói / quyết định:** "lm hết các công việc qua lưu đi có cả rust 68" · "cập nhật đầy đủ tính năng" + yêu cầu mới: Settings phải hoạt động thật, lưu thiết lập giao diện, fix chỗ chỉ là hình
 **Trạng thái cuối:** v0.41.1 · 6 commits local CHƯA PUSH (e6ebae60..44a2e6da) · repo sạch ngoài assistant files
+
+---
+
+## 2026-06-12 (chiều KR) — Feedback postmortem → L6 Cognitive Reliability + PR #193 closed out
+
+**Đã làm:**
+- PR #193: sync upstream + 8/8 key thiếu resolved (4 từ upstream #194, 4 tự dịch) → vi 1200/1200, tests 11/11, pushed 885fd60. CSS + docstring points: trả lời bằng evidence, không cần đổi code
+- ADR-006 + rule 69: L6 Cognitive Reliability Layer (đề xuất của bạn anh, anh duyệt) — guard L6.0–L6.20, output contract, formal change record trong layer model. Gates: verify-rules 4/4, core-lock 218, MANIFEST rules 65
+- Memory dài hạn: reporting_discipline.md — bài học "đừng báo oke khi còn lỗi"
+
+**Anh nói / quyết định:** "học từ nhận xét của anh và bên kia để sửa... cái cần sửa nhất ở em là báo 'oke ngon lành' nhưng thực chất vẫn còn lỗi — dù bé cũng đừng bỏ sót, lm đến đâu sạch đến đấy" · duyệt thêm L6 ("anh có mấy ý muốn thêm")
+
+**Trạng thái cuối:** v0.41.2 · codexmate fork pushed · yamtam-engine: 3 commits local CHƯA push (chờ lệnh anh) · PR #193 chờ: anh reply reviewer + maintainer approve

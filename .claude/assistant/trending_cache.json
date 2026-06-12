@@ -1,51 +1,24 @@
 {
-  "fetched_at": 1781098955.8761265,
-  "date": "2026-06-10",
+  "fetched_at": 1781217449.9146543,
+  "date": "2026-06-11",
   "lang": "",
   "repos": [
+    {
+      "name": "apple/container",
+      "url": "https://github.com/apple/container",
+      "description": "A tool for creating and running Linux containers using lightweight virtual machines on a Mac. It is written in Swift, an",
+      "language": "Swift",
+      "stars": 0,
+      "stars_today": 2419,
+      "relevant": true
+    },
     {
       "name": "addyosmani/agent-skills",
       "url": "https://github.com/addyosmani/agent-skills",
       "description": "Production-grade engineering skills for AI coding agents.",
       "language": "Shell",
       "stars": 0,
-      "stars_today": 781,
-      "relevant": true
-    },
-    {
-      "name": "phuryn/pm-skills",
-      "url": "https://github.com/phuryn/pm-skills",
-      "description": "PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and g",
-      "language": "",
-      "stars": 0,
-      "stars_today": 775,
-      "relevant": true
-    },
-    {
-      "name": "refactoringhq/tolaria",
-      "url": "https://github.com/refactoringhq/tolaria",
-      "description": "Desktop app to manage markdown knowledge bases",
-      "language": "TypeScript",
-      "stars": 0,
-      "stars_today": 618,
-      "relevant": false
-    },
-    {
-      "name": "mvanhorn/last30days-skill",
-      "url": "https://github.com/mvanhorn/last30days-skill",
-      "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a gro",
-      "language": "Python",
-      "stars": 0,
-      "stars_today": 2561,
-      "relevant": true
-    },
-    {
-      "name": "harry0703/MoneyPrinterTurbo",
-      "url": "https://github.com/harry0703/MoneyPrinterTurbo",
-      "description": "利用AI大模型，一键生成高清短视频 Generate short videos with one click using AI LLM.",
-      "language": "Python",
-      "stars": 0,
-      "stars_today": 1471,
+      "stars_today": 3275,
       "relevant": true
     },
     {
@@ -54,62 +27,98 @@
       "description": "open-source healthcare ai",
       "language": "Python",
       "stars": 0,
-      "stars_today": 535,
+      "stars_today": 427,
       "relevant": true
     },
     {
-      "name": "activeloopai/hivemind",
-      "url": "https://github.com/activeloopai/hivemind",
-      "description": "One brain for all your agents",
+      "name": "phuryn/pm-skills",
+      "url": "https://github.com/phuryn/pm-skills",
+      "description": "PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and g",
+      "language": "",
+      "stars": 0,
+      "stars_today": 1944,
+      "relevant": true
+    },
+    {
+      "name": "NVIDIA/SkillSpector",
+      "url": "https://github.com/NVIDIA/SkillSpector",
+      "description": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, and security risks.",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 308,
+      "relevant": true
+    },
+    {
+      "name": "refactoringhq/tolaria",
+      "url": "https://github.com/refactoringhq/tolaria",
+      "description": "Desktop app to manage markdown knowledge bases",
       "language": "TypeScript",
       "stars": 0,
-      "stars_today": 47,
-      "relevant": true
-    },
-    {
-      "name": "ruvnet/RuView",
-      "url": "https://github.com/ruvnet/RuView",
-      "description": "π RuView turns commodity WiFi signals into real-time spatial intelligence, vital sign monitoring, and presence detection",
-      "language": "Rust",
-      "stars": 0,
-      "stars_today": 439,
+      "stars_today": 604,
       "relevant": false
     },
     {
-      "name": "roboflow/supervision",
-      "url": "https://github.com/roboflow/supervision",
-      "description": "We write your reusable computer vision tools. 💜",
-      "language": "Python",
+      "name": "restic/restic",
+      "url": "https://github.com/restic/restic",
+      "description": "Fast, secure, efficient backup program",
+      "language": "Go",
       "stars": 0,
-      "stars_today": 699,
+      "stars_today": 33,
       "relevant": false
     },
     {
-      "name": "google/skills",
-      "url": "https://github.com/google/skills",
-      "description": "Agent Skills for Google products and technologies",
-      "language": "Python",
+      "name": "kenn-io/agentsview",
+      "url": "https://github.com/kenn-io/agentsview",
+      "description": "Local-first session intelligence and analytics for coding agents, supporting Claude Code, Codex, and more than 20 other ",
+      "language": "Go",
       "stars": 0,
-      "stars_today": 680,
+      "stars_today": 98,
       "relevant": true
     },
     {
-      "name": "FareedKhan-dev/train-llm-from-scratch",
-      "url": "https://github.com/FareedKhan-dev/train-llm-from-scratch",
-      "description": "A straightforward method for training your LLM, from downloading data to generating text.",
-      "language": "Python",
+      "name": "alchaincyf/zhangxuefeng-skill",
+      "url": "https://github.com/alchaincyf/zhangxuefeng-skill",
+      "description": "张雪峰.skill — 张雪峰的认知操作系统。高考志愿/考研/职业规划的实战思维框架。由女娲.skill生成。",
+      "language": "",
       "stars": 0,
-      "stars_today": 241,
+      "stars_today": 131,
       "relevant": true
     },
     {
-      "name": "apple/container",
-      "url": "https://github.com/apple/container",
-      "description": "A tool for creating and running Linux containers using lightweight virtual machines on a Mac. It is written in Swift, an",
-      "language": "Swift",
+      "name": "TapXWorld/ChinaTextbook",
+      "url": "https://github.com/TapXWorld/ChinaTextbook",
+      "description": "所有小初高、大学PDF教材。",
+      "language": "Roff",
       "stars": 0,
-      "stars_today": 1358,
+      "stars_today": 345,
+      "relevant": false
+    },
+    {
+      "name": "hexo-ai/sia",
+      "url": "https://github.com/hexo-ai/sia",
+      "description": "SIA is a Self Improving AI framework to autonomously improve the performance of any AI system (Model / Agent) on a bench",
+      "language": "Python",
+      "stars": 0,
+      "stars_today": 177,
       "relevant": true
+    },
+    {
+      "name": "mattermost/mattermost",
+      "url": "https://github.com/mattermost/mattermost",
+      "description": "Mattermost is an open source platform for secure collaboration across the entire software development lifecycle..",
+      "language": "TypeScript",
+      "stars": 0,
+      "stars_today": 26,
+      "relevant": false
+    },
+    {
+      "name": "bannedbook/fanqiang",
+      "url": "https://github.com/bannedbook/fanqiang",
+      "description": "翻墙-科学上网",
+      "language": "Kotlin",
+      "stars": 0,
+      "stars_today": 243,
+      "relevant": false
     }
   ]
 }
