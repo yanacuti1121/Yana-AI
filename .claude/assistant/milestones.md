@@ -6,7 +6,8 @@
 
 | Date | Title | Priority |
 |------|-------|---------|
-| 2026-06-15 | Bump actions pins Node 24 (checkout + setup-python) — GitHub ép từ 16/06 | P1 |
+
+<!-- ✅ 2026-06-12: "Bump actions pins Node 24" — đóng: commit 6818cb34 bump 17 dòng uses: trên 6 workflow, CI + Pages xanh (session 12/06 chiều muộn). Xong trước deadline 16/06 4 ngày. -->
 
 <!-- ✅ 2026-06-10: "GitHub Marketplace vòng 2" — APPROVED & LIVE 10/06, sớm hơn deadline 17/06 một tuần. https://github.com/marketplace/yamtam-engine -->
 <!-- ✅ 2026-06-12: "Token rotation 10/06" — đóng: rotation đã xong 03/06 (context.md), alert chỉ còn noise. -->

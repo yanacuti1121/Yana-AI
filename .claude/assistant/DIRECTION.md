@@ -110,6 +110,35 @@ Anh Tâm dễ bị cuốn vào idea mới giữa chừng. Khi thấy:
 
 ---
 
+## Memory GC — cơ chế đào thải ký ức chết
+
+> Quyết định từ 2026-06-12 (anh chỉ ra: có memory rồi nhưng thiếu cơ chế đào thải —
+> vụ token rotation xóa mấy hôm vẫn nhắc, rồi Node 24 alert kêu sau khi việc đã xong).
+
+**Root cause của zombie facts:** một fact sống ở nhiều chỗ (context.md, milestones.md,
+memory.md) — đóng ở một chỗ, các chỗ khác vẫn nhắc lại.
+
+**Chạy trong Bước 2 của mỗi briefing:**
+
+```bash
+python3 .claude/assistant/scripts/memory-gc.py
+```
+
+- `🧟 ZOMBIE` → fact đã tombstone nhưng còn sống trong context/milestones.
+  **Dọn ngay trước khi ra briefing** (sửa file đó), không nhắc fact đó trong briefing.
+- `⏳ STALE` → context.md quá 3 ngày chưa cập nhật — đối chiếu git log trước khi tin.
+- `📦 BLOAT` → memory.md/context.md phình — nén lịch sử cũ.
+
+**Quy trình đóng một việc (bắt buộc, 3 bước):**
+1. Thêm tombstone vào `tombstones.md` (pattern + evidence)
+2. Quét `context.md` + `milestones.md`, sửa MỌI chỗ fact đó còn sống
+3. Chạy `memory-gc.py` xác nhận im lặng — còn ZOMBIE nghĩa là bước 2 chưa sạch
+
+**Luật tin cậy khi mâu thuẫn:** repo thực tế (git log/status) > tombstones.md
+> context.md > memory.md. Memory là cache — repo mới là truth.
+
+---
+
 ## Milestone Check
 
 Chạy trong Bước 2 của mỗi briefing:
@@ -122,6 +151,7 @@ python3 .claude/assistant/scripts/check-milestones.py
 - Không có output → không cần nhắc
 - Thêm milestone mới: edit `.claude/assistant/milestones.md`
 - Alert: 🔴 ≤ 3 ngày, 🟡 ≤ 7 ngày, ⛔ quá hạn
+- **Khi milestone xong:** không chỉ comment-out ở đây — phải tombstone theo quy trình Memory GC ở trên
 
 ---
 
@@ -306,3 +336,4 @@ Override chỉ áp dụng cho task hiện tại, không lưu sang task tiếp th
 | 6 | Nhắc deadline / milestone | ✅ done |
 | 7 | Weekly summary | ✅ done |
 | 8 | Auto-routing yana-classify | ✅ done |
+| 9 | Memory GC — đào thải ký ức chết (tombstones + zombie scan) | ✅ done |

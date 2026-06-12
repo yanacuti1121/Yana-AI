@@ -1,0 +1,180 @@
+/* ============================================================
+   Yana Mobile — layout shell on top of yana/themes.css tokens.
+   A phone-shaped app column, centered on the lake on wider screens,
+   full-bleed on a real handset. Translucent top bar + tab bar,
+   slide-up sheets — native iOS rhythm over Yana's liquid glass.
+   ============================================================ */
+
+html, body { height: 100%; overflow: hidden; }
+#root { height: 100%; }
+body { overscroll-behavior: none; }
+
+/* centers the app column on the lake */
+.app-stage { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; }
+
+.app-mobile {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (min-width: 500px) {
+  .app-mobile {
+    height: min(900px, calc(100dvh - 36px));
+    border-radius: 34px;
+    border: 1px solid var(--border);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.5) inset,
+      0 40px 90px rgba(var(--shadow-rgb), .22);
+  }
+}
+
+/* ---------- Top bar (translucent) ---------- */
+.mtopbar {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 11px) 16px 11px;
+  background: rgba(var(--surface-rgb), calc(0.72 - var(--alpha) * 0.18));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.2);
+  backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.2);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+.mtopbar-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mtopbar-title { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtopbar-r { display: flex; align-items: center; gap: 8px; flex: none; }
+
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; flex: none;
+  display: grid; place-items: center; color: var(--ink-2);
+  background: rgba(var(--surface-rgb), .5);
+}
+.icon-btn:active { background: var(--primary-soft); color: var(--primary); }
+
+.lang-pill {
+  height: 30px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--border);
+  background: rgba(var(--surface-rgb), .5); color: var(--ink-2);
+  font: 600 11.5px/1 var(--font-ui); letter-spacing: .06em; cursor: pointer;
+}
+.lang-pill:active { color: var(--primary); border-color: var(--primary-soft); }
+
+.avatar-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; flex: none;
+  color: white; font: 600 12px/1 var(--font-ui); display: grid; place-items: center;
+  background: linear-gradient(145deg, var(--gold), color-mix(in oklab, var(--gold) 55%, white));
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--gold) 30%, transparent);
+}
+
+/* ---------- Main scroll region ---------- */
+.mmain {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: var(--gap);
+  padding: 18px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+}
+.mmain.flush { padding: 0; gap: 0; overflow: hidden; }
+.mmain::-webkit-scrollbar { width: 0; }
+
+/* large title block */
+.mhead { margin: 2px 0 4px; }
+.mhead-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.mhead-title { margin: 0; font-size: 27px; }
+.mhead-sub { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+
+/* ---------- Bottom tab bar (translucent) ---------- */
+.mtabbar {
+  flex: none;
+  display: flex; gap: 2px;
+  padding: 7px 6px calc(env(safe-area-inset-bottom, 0px) + 7px);
+  background: rgba(var(--surface-rgb), calc(0.76 - var(--alpha) * 0.16));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.25);
+  backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.25);
+  border-top: 1px solid var(--border);
+  z-index: 20;
+}
+.mtab {
+  flex: 1; min-width: 0; border: none; background: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 2px 4px; min-height: 50px; color: var(--ink-3);
+  font: 500 10px/1 var(--font-ui); letter-spacing: .01em;
+  transition: color .15s;
+}
+.mtab[data-on="1"] { color: var(--primary); }
+.mtab span { white-space: nowrap; }
+.mtab .tab-ic { transition: transform .18s cubic-bezier(.3,.7,.4,1); }
+.mtab[data-on="1"] .tab-ic { transform: translateY(-1px); }
+
+/* ---------- Slide-up sheet ---------- */
+.sheet-backdrop {
+  position: absolute; inset: 0; z-index: 40;
+  background: rgba(var(--shadow-rgb), .32);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity .28s ease;
+}
+.sheet-backdrop[data-show="1"] { opacity: 1; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 41;
+  max-height: 86%; display: flex; flex-direction: column;
+  padding: 8px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: rgba(var(--surface-rgb), calc(0.95 - var(--alpha) * 0.18));
+  -webkit-backdrop-filter: blur(34px) saturate(1.5); backdrop-filter: blur(34px) saturate(1.5);
+  border-top: 1px solid rgba(255,255,255,.5);
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -10px 40px rgba(var(--shadow-rgb), .18);
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,.3,1);
+}
+.sheet[data-show="1"] { transform: translateY(0); }
+.sheet-grab { width: 38px; height: 5px; border-radius: 99px; background: var(--border-strong); margin: 4px auto 12px; flex: none; }
+.sheet-title { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 12px; }
+.sheet-body { overflow-y: auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.sheet-body::-webkit-scrollbar { width: 0; }
+
+/* ---------- More sheet ---------- */
+.more-grid { display: flex; flex-direction: column; gap: 6px; }
+.more-item {
+  display: flex; align-items: center; gap: 13px; width: 100%; text-align: left;
+  padding: 13px 14px; border-radius: var(--r-md); border: none; cursor: pointer; color: inherit;
+  background: rgba(var(--surface-rgb), .55);
+}
+.more-item:active { background: var(--primary-soft); }
+.more-ic { width: 34px; height: 34px; border-radius: 11px; flex: none; display: grid; place-items: center; color: var(--primary); background: var(--primary-soft); }
+.more-lbl { flex: 1; font-size: 14.5px; font-weight: 500; }
+.more-chev { color: var(--ink-3); display: inline-flex; }
+
+/* ---------- Horizontal scroll rails ---------- */
+.hscroll {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -16px; padding: 2px 16px;
+}
+.hscroll::-webkit-scrollbar { height: 0; }
+.hscroll > * { flex: none; }
+
+/* ---------- Pill / filter chips ---------- */
+.fchip {
+  padding: 7px 15px; border-radius: 99px; font: 500 13px/1 var(--font-ui); cursor: pointer;
+  border: 1px solid var(--border); background: rgba(var(--surface-rgb), .55); color: var(--ink-2);
+  white-space: nowrap;
+}
+.fchip[data-on="1"] { background: var(--primary); color: white; border-color: transparent; }
+
+/* primary action pill */
+.pill-primary {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 99px;
+  border: none; cursor: pointer; background: var(--primary); color: white;
+  font: 500 13px/1 var(--font-ui); flex: none;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+.pill-ghost {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 99px;
+  border: 1px solid var(--border); cursor: pointer; background: rgba(var(--surface-rgb), .5);
+  color: var(--ink-2); font: 500 12.5px/1 var(--font-ui); flex: none;
+}
+
+/* hairline list rows inside cards */
+.mrow { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.mrow:last-child { border-bottom: none; }
+.mrow:first-child { padding-top: 2px; }
+
+input, textarea, select, button { font-family: var(--font-ui); }

@@ -1,0 +1,228 @@
+/* ============================================================
+   Yana AI — theme tokens
+   Four themes, one architecture:
+   dawn  — Lotus Dawn: pink-gold sunrise over the lake
+   jade  — Jade Lake: warm pearl, jade green, clear water
+   mist  — Morning Mist: near-monochrome paper, minimal glass
+   silver— Glass Silver: cool silver-blue liquid glass
+   Glass knobs (set by Tweaks): --blur, --alpha, --reflect, --depth (0..1)
+   Density: --sp (0.85 compact / 1 regular / 1.18 spacious)
+   ============================================================ */
+
+:root {
+  --font-ui: "Be Vietnam Pro", -apple-system, "Segoe UI", sans-serif;
+
+  --blur: 0.7;
+  --alpha: 0.6;
+  --reflect: 0.7;
+  --depth: 0.55;
+  --sp: 1;
+
+  --pad-card: calc(18px * var(--sp));
+  --gap: calc(14px * var(--sp));
+
+  --r-lg: 20px;
+  --r-md: 14px;
+  --r-sm: 9px;
+}
+
+/* ---------- Jade Lake (default) ---------- */
+[data-theme="jade"] {
+  --bg-base: #f2f7f4;
+  --bg-scene:
+    radial-gradient(1100px 520px at 12% -8%, rgba(233, 201, 138, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 88% 4%, rgba(232, 180, 192, 0.15), transparent 58%),
+    radial-gradient(1300px 800px at 50% 110%, rgba(122, 184, 168, 0.20), transparent 62%),
+    linear-gradient(180deg, #f6faf7 0%, #eef5f1 100%);
+  --surface-rgb: 255, 255, 255;
+  --shadow-rgb: 20, 40, 36;
+  --ink: #21403a;
+  --ink-2: #51695f;
+  --ink-3: #84988f;
+  --primary: #2f7e6e;
+  --primary-soft: rgba(47, 126, 110, 0.10);
+  --pink: #c77b92;
+  --pink-soft: rgba(199, 123, 146, 0.12);
+  --gold: #b78f3d;
+  --gold-soft: rgba(183, 143, 61, 0.13);
+  --good: #3d8b6e;
+  --warn: #b78f3d;
+  --border: rgba(31, 56, 51, 0.10);
+  --border-strong: rgba(31, 56, 51, 0.16);
+  --glass-blur-max: 24px;
+}
+
+/* ---------- Lotus Dawn ---------- */
+[data-theme="dawn"] {
+  --bg-base: #f9f4f2;
+  --bg-scene:
+    radial-gradient(1100px 540px at 16% -10%, rgba(236, 196, 134, 0.26), transparent 60%),
+    radial-gradient(1000px 620px at 86% 2%, rgba(231, 168, 185, 0.28), transparent 58%),
+    radial-gradient(1300px 760px at 50% 112%, rgba(168, 196, 186, 0.18), transparent 64%),
+    linear-gradient(180deg, #faf5f3 0%, #f4ece9 100%);
+  --surface-rgb: 255, 253, 252;
+  --shadow-rgb: 54, 36, 38;
+  --ink: #3c2e33;
+  --ink-2: #6f5d62;
+  --ink-3: #a08e92;
+  --primary: #b96b80;
+  --primary-soft: rgba(185, 107, 128, 0.11);
+  --pink: #b96b80;
+  --pink-soft: rgba(185, 107, 128, 0.11);
+  --gold: #b78a3f;
+  --gold-soft: rgba(183, 138, 63, 0.14);
+  --good: #4f8b6e;
+  --warn: #b78a3f;
+  --border: rgba(60, 46, 51, 0.10);
+  --border-strong: rgba(60, 46, 51, 0.16);
+  --glass-blur-max: 24px;
+}
+
+/* ---------- Morning Mist ---------- */
+[data-theme="mist"] {
+  --bg-base: #f7f6f3;
+  --bg-scene:
+    radial-gradient(1200px 600px at 50% -12%, rgba(214, 222, 214, 0.35), transparent 62%),
+    linear-gradient(180deg, #f8f7f4 0%, #f3f2ee 100%);
+  --surface-rgb: 255, 255, 255;
+  --shadow-rgb: 30, 38, 34;
+  --ink: #26302c;
+  --ink-2: #5b6661;
+  --ink-3: #939c96;
+  --primary: #4a7a6a;
+  --primary-soft: rgba(74, 122, 106, 0.09);
+  --pink: #ab7e8d;
+  --pink-soft: rgba(171, 126, 141, 0.10);
+  --gold: #a3884e;
+  --gold-soft: rgba(163, 136, 78, 0.11);
+  --good: #4a7a6a;
+  --warn: #a3884e;
+  --border: rgba(38, 48, 44, 0.09);
+  --border-strong: rgba(38, 48, 44, 0.15);
+  --glass-blur-max: 10px;
+}
+
+/* ---------- Glass Silver ---------- */
+[data-theme="silver"] {
+  --bg-base: #eef2f6;
+  --bg-scene:
+    radial-gradient(1100px 560px at 18% -10%, rgba(168, 199, 224, 0.30), transparent 60%),
+    radial-gradient(1000px 620px at 85% 0%, rgba(199, 214, 229, 0.32), transparent 58%),
+    radial-gradient(1300px 760px at 50% 112%, rgba(122, 158, 186, 0.22), transparent 64%),
+    linear-gradient(180deg, #f3f6fa 0%, #e9eef4 100%);
+  --surface-rgb: 252, 254, 255;
+  --shadow-rgb: 18, 34, 46;
+  --ink: #1c2f3a;
+  --ink-2: #4c6271;
+  --ink-3: #8194a1;
+  --primary: #3a7ca5;
+  --primary-soft: rgba(58, 124, 165, 0.10);
+  --pink: #b585a4;
+  --pink-soft: rgba(181, 133, 164, 0.12);
+  --gold: #a98e4b;
+  --gold-soft: rgba(169, 142, 75, 0.13);
+  --good: #44897c;
+  --warn: #a98e4b;
+  --border: rgba(28, 43, 51, 0.11);
+  --border-strong: rgba(28, 43, 51, 0.18);
+  --glass-blur-max: 32px;
+}
+
+/* ============ base ============ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+#root { height: 100%; }
+
+.scene { position: fixed; inset: 0; background: var(--bg-scene); z-index: 0; }
+
+/* Yana signature: quiet ripples on the lake surface */
+.scene::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    repeating-radial-gradient(circle at 78% 86%, rgba(var(--surface-rgb), 0) 0 54px, rgba(var(--shadow-rgb), 0.028) 54px 56px, rgba(var(--surface-rgb), 0) 56px 120px),
+    repeating-radial-gradient(circle at 14% 102%, rgba(var(--surface-rgb), 0) 0 70px, rgba(var(--shadow-rgb), 0.022) 70px 72px, rgba(var(--surface-rgb), 0) 72px 150px);
+  -webkit-mask-image: linear-gradient(180deg, transparent 30%, black 75%);
+  mask-image: linear-gradient(180deg, transparent 30%, black 75%);
+  pointer-events: none;
+}
+
+/* ============ glass surfaces ============ */
+/* Transparency slider raises see-through-ness; reflection lights the top edge;
+   depth scales the shadow; blur scales backdrop blur. */
+.glass, .glass-strong {
+  border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.15);
+  backdrop-filter: blur(calc(var(--glass-blur-max) * var(--blur))) saturate(1.15);
+  box-shadow:
+    0 1px 2px rgba(var(--shadow-rgb), calc(0.02 + var(--depth) * 0.05)),
+    0 12px 36px rgba(var(--shadow-rgb), calc(0.02 + var(--depth) * 0.10)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--reflect) * 0.85));
+}
+.glass { background: rgba(var(--surface-rgb), calc(0.92 - var(--alpha) * 0.48)); }
+.glass-strong { background: rgba(var(--surface-rgb), calc(0.97 - var(--alpha) * 0.25)); }
+
+/* ============ shared atoms ============ */
+.h-display { font-weight: 300; letter-spacing: -0.02em; }
+.label-xs {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.num-lg { font-size: 32px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; color: var(--ink); }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.dot.on   { background: var(--good); box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 18%, transparent); }
+.dot.idle { background: var(--gold); box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 16%, transparent); }
+.dot.off  { background: var(--ink-3); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 12px; font-weight: 500;
+  background: var(--primary-soft); color: var(--primary);
+}
+.chip.pink { background: var(--pink-soft); color: var(--pink); }
+.chip.gold { background: var(--gold-soft); color: var(--gold); }
+.chip.neutral { background: rgba(var(--surface-rgb), 0.6); border: 1px solid var(--border); color: var(--ink-2); }
+
+.bar { height: 5px; border-radius: 99px; background: rgba(var(--shadow-rgb), 0.08); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 99px; background: var(--primary); }
+
+button { font-family: inherit; }
+::selection { background: var(--primary-soft); }
+
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(var(--shadow-rgb), 0.14); border-radius: 99px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ============ life beneath the surface ============ */
+.pulse { animation: none; }
+.mote {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 60%, white);
+  opacity: 0; filter: blur(1.2px);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pulse { animation: yana-pulse 3.2s ease-in-out infinite; }
+  .mote { animation: yana-drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); }
+}
+@keyframes yana-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 18%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--good) 8%, transparent); }
+}
+@keyframes yana-drift {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  12%  { opacity: var(--peak, 0.22); }
+  88%  { opacity: var(--peak, 0.22); }
+  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)); opacity: 0; }
+}

@@ -20,9 +20,10 @@
 1. ~~PUSH yamtam-engine~~ ✅ ĐÃ PUSH (anh ra lệnh 12/06 chiều) — main đồng bộ origin tới 0a19487e+
    **Credential mới (12/06 chiều):** token ĐÃ GỠ khỏi remote URL — auth giờ qua GIT_ASKPASS của IDE + credential cache in-memory 8h (`credential.helper = cache --timeout=28800`). KHÔNG còn ghp_ plaintext trên disk (đã grep verify .git/config, submodule, ~/.gitconfig, ~/.git-credentials). Lưu ý: terminal ngoài IDE sẽ hỏi credential — paste token, cache giữ 8h trong RAM
 2. **PR #193 — reply ĐÃ ĐĂNG** (12/06 chiều, issuecomment-4688928819, đủ 3 điểm + evidence). Token classic ghp_ hiện tại COMMENT ĐƯỢC sang repo SakuraByteCore (ghi chú cũ "fine-grained không comment được" đã lỗi thời). Còn chờ: ymkiux phản hồi + maintainer approve workflow (Actions chưa chạy trên 885fd60) + 1 review
-3. **Bump action pins lên Node 24** — deadline 16/06/2026 (còn 4 ngày!); publish.yml đang Node 20. Cần token workflow scope
-4. **L6 follow-up (từ ADR-006)** — gate tooling tự động: wrap-up linter, completion-state check trong truth gate, cognitive-debt backlog. Hiện mới enforcement hành vi
-5. **Backlog repos** — xem `.claude/assistant/repo-backlog.md`
+3. ~~Bump action pins lên Node 24~~ ✅ XONG 12/06 chiều muộn — commit 6818cb34, 17 dòng uses: trên 6 workflow, CI + Pages xanh (tombstoned)
+4. **YAMTAM Audit workflow fail** — fail từ trước cả 6 commit ngày 12/06 (step "Run YAMTAM audit"), chưa điều tra root cause
+5. **L6 follow-up (từ ADR-006)** — gate tooling tự động: wrap-up linter, completion-state check trong truth gate, cognitive-debt backlog. Hiện mới enforcement hành vi
+6. **Backlog repos** — xem `.claude/assistant/repo-backlog.md`
 
 ## Đã xong 12/06 chiều KR (session "học từ feedback + thêm L6")
 - **codexmate #193 theo review ymkiux**: merge upstream/main (lấy 4 key claude.model.* đã dịch sẵn từ #194) + tự thêm 4 key thiếu (templatesCount, diff.title.claudeSettings, copyPath, applyAria) → vi.mjs **1200/1200** với en.mjs, 0 thiếu 0 thừa 0 trùng; unit suite codexmate 11/11 pass; pushed 885fd60 → PR head cập nhật, CI đang chạy
