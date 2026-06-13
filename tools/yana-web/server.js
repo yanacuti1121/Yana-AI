@@ -3,8 +3,10 @@
 const http  = require('http');
 const https = require('https');
 const fs    = require('fs');
+const os    = require('os');
 const path  = require('path');
 const url   = require('url');
+const { execFileSync } = require('child_process');
 const { createCore } = require('yamtam-core');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: path.join(__dirname, '..', '..'),
@@ -866,6 +868,60 @@ async function handleApiChat(req, res) {
 }
 
 // ── Auth plumbing ─────────────────────────────────────────────────────────────
+// ── POST /api/ocr — Surya OCR: base64 file → extracted text ──────────────────
+const OCR_WORKER = path.join(__dirname, 'ocr_worker.py');
+const OCR_ALLOWED_EXT = new Set(['.jpg','.jpeg','.png','.gif','.webp','.bmp','.tiff','.tif','.pdf']);
+const OCR_MAX_BYTES = 20 * 1024 * 1024; // 20 MB base64 payload limit
+
+async function handleApiOcr(req, res) {
+  let body;
+  try { body = await readBody(req, OCR_MAX_BYTES); }
+  catch (e) { jsonError(res, e && e.status === 413 ? 413 : 400, 'Payload too large (max 20 MB)'); return; }
+
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+
+  const { fileBase64, filename, lang } = parsed;
+  if (!fileBase64 || typeof fileBase64 !== 'string') { jsonError(res, 400, 'fileBase64 required'); return; }
+  if (!filename   || typeof filename   !== 'string') { jsonError(res, 400, 'filename required'); return; }
+
+  const ext = path.extname(filename).toLowerCase();
+  if (!OCR_ALLOWED_EXT.has(ext)) {
+    jsonError(res, 400, `Unsupported file type "${ext}". Allowed: jpg, png, gif, webp, bmp, tiff, pdf`); return;
+  }
+
+  // Sanitise filename: no path traversal, only the extension
+  const safeExt = ext.replace(/[^a-z0-9.]/g, '');
+  const rand    = Math.random().toString(36).slice(2, 10);
+  const tmpFile = path.join(os.tmpdir(), `yana-ocr-${Date.now()}-${rand}${safeExt}`);
+
+  try {
+    const buf = Buffer.from(fileBase64, 'base64');
+    fs.writeFileSync(tmpFile, buf);
+  } catch (e) {
+    jsonError(res, 500, 'Failed to write temp file'); return;
+  }
+
+  let result;
+  try {
+    const langArg = (lang && /^[a-z]{2,5}$/.test(lang)) ? lang : 'en';
+    const out = execFileSync('python3', [OCR_WORKER, tmpFile, langArg], {
+      timeout: 120000,
+      encoding: 'utf8',
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    result = JSON.parse(out.trim());
+  } catch (e) {
+    const stderr = (e.stderr || '').trim();
+    result = { ok: false, error: stderr || String(e.message || e) };
+  } finally {
+    try { fs.unlinkSync(tmpFile); } catch (_) {}
+  }
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(result));
+}
+
 async function readJsonBody(req, res, maxBytes) {
   let body;
   try { body = await readBody(req, maxBytes || 4096); }
@@ -948,6 +1004,7 @@ const server = http.createServer(async (req, res) => {
   if (method === 'POST' && pathname === '/api/models')  { handleApiModels(req, res);  return; }
   if (method === 'POST' && pathname === '/api/index')   { await handleApiIndex(req, res); return; }
   if (method === 'POST' && pathname === '/api/route')   { await handleApiRoute(req, res); return; }
+  if (method === 'POST' && pathname === '/api/ocr')     { await handleApiOcr(req, res);   return; }
   if (method === 'POST' && pathname === '/api/chat')    { await handleApiChat(req, res);  return; }
   if (method === 'GET' && pathname === '/m')            { res.writeHead(302, { Location: '/mobile/index.html' }); res.end(); return; }
   if (method === 'GET' && pathname === '/') {

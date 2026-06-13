@@ -246,8 +246,10 @@ function Chat({ t }) {
   // Model per provider — persisted; live lists fetched for CHAT_LIVE_MODELS
   const [modelSel, setModelSel] = React.useState(loadModelChoices);
   const [liveModels, setLiveModels] = React.useState({});  // providerId -> [ids]
-  const logRef = React.useRef(null);
+  const logRef  = React.useRef(null);
   const readerRef = React.useRef(null);
+  const fileRef = React.useRef(null);
+  const [ocrBusy, setOcrBusy] = React.useState(false);
 
   const activeProvider = providerSel || getProviderConfig().provider;
   const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
@@ -299,6 +301,36 @@ function Chat({ t }) {
   React.useEffect(() => {
     return () => { if (readerRef.current) readerRef.current.cancel(); };
   }, []);
+
+  async function handleOcr(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setOcrBusy(true);
+    try {
+      const b64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const resp = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileBase64: b64, filename: file.name }),
+      });
+      const data = await resp.json();
+      if (data.ok && data.text) {
+        setDraft((prev) => (prev ? prev + "\n\n" : "") + data.text);
+      } else {
+        setMsgs((m) => [...m, { who: "yana", text: "OCR failed: " + (data.error || "Unknown error") }]);
+      }
+    } catch (err) {
+      setMsgs((m) => [...m, { who: "yana", text: "OCR error: " + String(err) }]);
+    } finally {
+      setOcrBusy(false);
+    }
+  }
 
   async function send() {
     const text = draft.trim();
@@ -459,6 +491,7 @@ function Chat({ t }) {
           )}
         </div>
         <div className="glass-strong" style={{ borderRadius: "var(--r-lg)", padding: "10px 10px 10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+          <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -466,6 +499,18 @@ function Chat({ t }) {
             placeholder={L("Ask Yana, or give the system a direction…", "Hỏi Yana, hoặc giao cho hệ thống một hướng đi…")}
             style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "var(--ink)" }}
           />
+          <button
+            onClick={() => fileRef.current && fileRef.current.click()}
+            aria-label={L("Attach file for OCR", "Đính kèm file để nhận dạng văn bản")}
+            title={L("Attach image or PDF — extract text with Surya OCR", "Đính kèm ảnh hoặc PDF — trích xuất văn bản bằng Surya OCR")}
+            disabled={ocrBusy}
+            style={{
+              width: 32, height: 32, borderRadius: 9, border: "1px solid var(--border)", cursor: ocrBusy ? "not-allowed" : "pointer",
+              background: "transparent", color: ocrBusy ? "var(--ink-3)" : "var(--ink-2)",
+              display: "grid", placeItems: "center", flex: "none",
+            }}>
+            {ocrBusy ? "…" : Icons.attach(15)}
+          </button>
           <button
             onClick={() => setConfMode((v) => !v)}
             aria-pressed={confMode}

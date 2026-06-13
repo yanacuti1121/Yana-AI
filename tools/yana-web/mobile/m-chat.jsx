@@ -6,7 +6,7 @@ const M_CHAT_MODELS = {
   groq: "llama-3.3-70b-versatile", deepseek: "deepseek-chat",
   openrouter: "google/gemma-3-27b-it", "9router": "kr/claude-sonnet-4.5", ollama: "llama3.2",
 };
-const M_KEYLESS = new Set(["ollama"]);
+const M_KEYLESS = new Set(["ollama", "9router"]);
 
 function mGetProviderConfig(overrideProvider) {
   if (typeof YanaVault === "undefined") return { provider: overrideProvider || "claude", apiKey: "" };
@@ -167,8 +167,10 @@ function MChat() {
   const [draft, setDraft] = React.useState("");
   const [thinking, setThinking] = React.useState(false);
   const [ctx, setCtx] = React.useState(false);
-  const logRef = React.useRef(null);
+  const logRef  = React.useRef(null);
   const readerRef = React.useRef(null);
+  const fileRef = React.useRef(null);
+  const [ocrBusy, setOcrBusy] = React.useState(false);
 
   const [overrideProvider, setOverrideProvider] = React.useState(
     () => localStorage.getItem("yana.chat.provider") || ""
@@ -205,6 +207,36 @@ function MChat() {
   }, [msgs]);
 
   React.useEffect(() => { return () => { if (readerRef.current) readerRef.current.cancel(); }; }, []);
+
+  async function handleOcr(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setOcrBusy(true);
+    try {
+      const b64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const resp = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileBase64: b64, filename: file.name }),
+      });
+      const data = await resp.json();
+      if (data.ok && data.text) {
+        setDraft((prev) => (prev ? prev + "\n\n" : "") + data.text);
+      } else {
+        setMsgs((m) => [...m, { who: "yana", text: "OCR: " + (data.error || "Failed") }]);
+      }
+    } catch (err) {
+      setMsgs((m) => [...m, { who: "yana", text: "OCR error: " + String(err) }]);
+    } finally {
+      setOcrBusy(false);
+    }
+  }
 
   async function send() {
     const text = draft.trim();
@@ -322,6 +354,7 @@ function MChat() {
       </div>
 
       <div style={{ flex: "none", padding: "8px 12px calc(12px + env(safe-area-inset-bottom, 0px))" }}>
+        <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
         <div className="glass-strong" style={{ borderRadius: 18, padding: "7px 7px 7px 15px", display: "flex", alignItems: "center", gap: 9 }}>
           <input
             value={draft}
@@ -330,6 +363,16 @@ function MChat() {
             placeholder={L("Give Yana a direction…", "Giao cho Yana một hướng đi…")}
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontSize: 14.5, fontFamily: "inherit", color: "var(--ink)" }}
           />
+          <button
+            onClick={() => fileRef.current && fileRef.current.click()}
+            aria-label={L("Attach file", "Đính kèm file")}
+            disabled={ocrBusy}
+            style={{
+              width: 36, height: 36, borderRadius: 11, border: "1px solid var(--border)", cursor: ocrBusy ? "not-allowed" : "pointer", flex: "none",
+              background: "transparent", color: ocrBusy ? "var(--ink-3)" : "var(--ink-2)", display: "grid", placeItems: "center",
+            }}>
+            {ocrBusy ? "…" : Icons.attach(16)}
+          </button>
           <button onClick={send} aria-label="Send" style={{
             width: 38, height: 38, borderRadius: 12, border: "none", cursor: "pointer", flex: "none",
             background: "var(--primary)", color: "white", display: "grid", placeItems: "center",
