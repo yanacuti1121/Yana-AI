@@ -393,6 +393,28 @@ function Chat({ t }) {
           } catch (_) {}
         }
       }
+
+      // ChatGPT-style memory: the model nominates a durable fact with a
+      // trailing "MEMORY: …" line — strip it from the display and persist
+      // it server-side. Confidential turns never reach this branch with a
+      // marker (the server attaches no memory instruction), but gate anyway.
+      if (!tier) {
+        const mm = accumulated.match(/(?:^|\n)\s*MEMORY:\s*(.+?)\s*$/);
+        if (mm && mm[1]) {
+          const fact  = mm[1];
+          const shown = accumulated.slice(0, mm.index).trimEnd();
+          setMsgs((m) => m.map((msg) =>
+            msg._id === msgId
+              ? { ...msg, text: shown || msg.text, refs: [...(msg.refs || []), L("🌱 Remembered: ", "🌱 Đã nhớ: ") + fact] }
+              : msg
+          ));
+          fetch("/api/memory", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: fact }),
+          }).catch(() => {});
+        }
+      }
     } catch (err) {
       setThinking(false);
       setMsgs((m) => [...m, {
