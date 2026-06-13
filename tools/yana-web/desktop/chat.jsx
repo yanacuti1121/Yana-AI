@@ -32,7 +32,7 @@ function detectSensitivity(text) {
 }
 
 // Providers usable without an API key (loopback/on-device)
-const KEYLESS_PROVIDERS = new Set(["ollama"]);
+const KEYLESS_PROVIDERS = new Set(["ollama", "9router"]);
 function providerAvailable(id) {
   return KEYLESS_PROVIDERS.has(id) || YanaVault.hasKey(id);
 }
