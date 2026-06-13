@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="jade">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yana AI — HTML Maker</title>
+  <style>
+    /* ============ Design Tokens ============ */
+    :root {
+      --font-ui: -apple-system, "Segoe UI", sans-serif;
+      --blur: 0.7; --alpha: 0.6; --reflect: 0.7; --depth: 0.55; --sp: 1;
+      --pad-card: 18px; --gap: 14px;
+      --r-lg: 20px; --r-md: 14px; --r-sm: 9px;
+    }
+    /* Jade Lake theme */
+    [data-theme="jade"] {
+      --bg-base: #f2f7f4;
+      --bg-scene:
+        radial-gradient(1100px 520px at 12% -8%, rgba(233,201,138,.14), transparent 60%),
+        radial-gradient(900px 600px at 88% 4%, rgba(232,180,192,.15), transparent 58%),
+        radial-gradient(1300px 800px at 50% 110%, rgba(122,184,168,.20), transparent 62%),
+        linear-gradient(180deg, #f6faf7 0%, #eef5f1 100%);
+      --surface-rgb: 255,255,255;
+      --shadow-rgb: 20,40,36;
+      --ink: #21403a; --ink-2: #51695f; --ink-3: #84988f;
+      --primary: #2f7e6e; --primary-soft: rgba(47,126,110,.10);
+      --pink: #c77b92; --gold: #b78f3d; --good: #3d8b6e;
+      --border: rgba(31,56,51,.10); --border-strong: rgba(31,56,51,.16);
+      --glass-blur-max: 24px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: var(--font-ui); color: var(--ink);
+      background: var(--bg-base); -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.5; }
+    .scene { position: fixed; inset: 0; background: var(--bg-scene); z-index: 0; }
+    .glass {
+      border: 1px solid var(--border);
+      background: rgba(var(--surface-rgb), .75);
+      box-shadow: 0 1px 2px rgba(var(--shadow-rgb),.04), 0 12px 36px rgba(var(--shadow-rgb),.08),
+        inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    button { font-family: inherit; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 12px; font-weight: 500;
+      background: var(--primary-soft); color: var(--primary);
+    }
+
+    /* ============ App Shell ============ */
+    .yana-app {
+      position: relative; z-index: 1; height: 100%;
+      display: flex; gap: var(--gap); padding: 16px;
+    }
+    /* Sidebar */
+    .yana-sidebar {
+      width: 218px; flex: none; border-radius: var(--r-lg);
+      display: flex; flex-direction: column; padding: 14px; gap: 4px;
+    }
+    .wordmark { display: flex; align-items: center; gap: 10px; padding: 4px 2px; margin-bottom: 14px; }
+    .yana-mark {
+      width: 30px; height: 30px; border-radius: 9px; flex: none;
+      background: linear-gradient(150deg, #2f7e6e, #1d5249);
+      display: grid; place-items: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 4px 12px rgba(47,126,110,.28);
+    }
+    .yana-mark svg { display: block; }
+    .wordmark-text .name { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.15; }
+    .wordmark-text .sub { font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 8px 11px; border-radius: var(--r-sm);
+      border: none; cursor: pointer; width: 100%;
+      background: transparent; color: var(--ink-2); font-size: 13.5px;
+      text-align: left; transition: background .1s;
+    }
+    .nav-item.active {
+      background: var(--primary-soft); color: var(--primary); font-weight: 500;
+    }
+    .nav-item:hover:not(.active) { background: rgba(var(--shadow-rgb),.04); }
+    .nav-item svg { flex: none; }
+
+    .sidebar-footer {
+      margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 9px;
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex: none;
+      background: var(--primary-soft); border: 1px solid var(--border);
+      display: grid; place-items: center; font-size: 12px; color: var(--primary); font-weight: 600;
+    }
+    .username { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .logout-btn {
+      margin-left: auto; padding: 5px 8px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: transparent;
+      color: var(--ink-3); font-size: 12px; cursor: pointer;
+    }
+
+    /* ============ Main area ============ */
+    .yana-main {
+      flex: 1; min-width: 0; min-height: 0; overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+
+    /* Page header */
+    .page-header {
+      display: flex; align-items: baseline; gap: 14px; margin-bottom: var(--gap);
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .page-title { font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); }
+    .page-sub { font-size: 13px; color: var(--ink-3); }
+
+    /* HTML Maker body */
+    .html-maker {
+      display: flex; gap: var(--gap); flex: 1; min-height: 0; overflow: hidden;
+    }
+
+    /* Left skill picker */
+    .skill-picker {
+      width: 248px; flex: none; border-radius: var(--r-lg); padding: 12px;
+      display: flex; flex-direction: column; gap: 8px;
+      overflow-y: auto; max-height: calc(100vh - 140px);
+    }
+    .search-input {
+      width: 100%; padding: 7px 10px;
+      border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: transparent; color: var(--ink); font-size: 13px;
+      font-family: inherit; outline: none;
+    }
+    .cat-label {
+      font-size: 10.5px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--ink-3); padding: 6px 4px 3px;
+    }
+    .skill-btn {
+      display: flex; align-items: center; gap: 8px; width: 100%;
+      padding: 7px 8px; border-radius: var(--r-sm); text-align: left;
+      border: 1px solid transparent; background: transparent;
+      cursor: pointer; color: var(--ink); transition: background .1s;
+    }
+    .skill-btn:hover { background: rgba(var(--shadow-rgb),.05); }
+    .skill-btn.active {
+      border-color: var(--primary); background: var(--primary-soft);
+    }
+    .skill-emoji { font-size: 17px; flex: none; line-height: 1; }
+    .skill-zh { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .skill-en { font-size: 11px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .skill-btn.active .skill-zh { font-weight: 500; color: var(--primary); }
+
+    /* Right content + preview */
+    .content-area {
+      flex: 1; min-width: 0; display: flex; flex-direction: column;
+      gap: var(--gap); overflow: hidden;
+    }
+    .input-card {
+      border-radius: var(--r-lg); padding: var(--pad-card);
+      display: flex; flex-direction: column; gap: 10px; flex: none;
+    }
+    .selected-skill-header {
+      display: flex; align-items: center; gap: 10px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .selected-skill-header .emoji { font-size: 22px; line-height: 1; }
+    .selected-name { font-size: 14px; font-weight: 500; }
+    .selected-meta { font-size: 12px; color: var(--ink-3); }
+    .content-textarea {
+      width: 100%; box-sizing: border-box; resize: vertical;
+      padding: 10px 12px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: transparent;
+      color: var(--ink); font-size: 13.5px; line-height: 1.55;
+      font-family: inherit; outline: none; height: 120px;
+    }
+    .toolbar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .format-select {
+      padding: 6px 10px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: transparent;
+      color: var(--ink); font-size: 13px; font-family: inherit; cursor: pointer;
+    }
+    .gen-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 18px; border-radius: var(--r-sm);
+      border: none; background: var(--primary); color: white;
+      cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit;
+      transition: opacity .15s;
+    }
+    .gen-btn:hover { opacity: .88; }
+
+    /* Preview placeholder */
+    .preview-placeholder {
+      border-radius: var(--r-lg); flex: 1; min-height: 260px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px; color: var(--ink-3);
+    }
+    .preview-placeholder svg { opacity: .3; }
+    .preview-hint { font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="scene"></div>
+
+<div class="yana-app">
+  <!-- Sidebar -->
+  <nav class="glass yana-sidebar">
+    <div class="wordmark">
+      <div class="yana-mark">
+        <svg width="22" height="22" viewBox="0 0 38 38" fill="none">
+          <ellipse cx="19" cy="26" rx="7" ry="3.5" fill="rgba(255,255,255,.25)"/>
+          <path d="M19 8 C14 14 10 20 12 25 C14 29 24 29 26 25 C28 20 24 14 19 8Z" fill="rgba(255,255,255,.9)"/>
+          <circle cx="19" cy="25" r="3" fill="rgba(255,255,255,.5)"/>
+        </svg>
+      </div>
+      <div class="wordmark-text">
+        <div class="name">Yana</div>
+        <div class="sub">YAMTAM ENGINE</div>
+      </div>
+    </div>
+
+    <!-- Nav items -->
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" opacity=".7"><path d="M3 10L10 3l7 7v7H13v-5H7v5H3z"/></svg>
+      Lake
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><path d="M5 9l3 3 7-7M5 16h10"/></svg>
+      Missions
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><path d="M3 5h14M3 10h14M3 15h8"/></svg>
+      Conversation
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><circle cx="10" cy="8" r="3"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+      Agents
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><path d="M4 4h4v4H4zM12 4h4v4h-4zM4 12h4v4H4zM12 12h4v4h-4z" stroke-linejoin="round"/></svg>
+      Memory Garden
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><path d="M3 7h14M3 12h10M3 17h6"/></svg>
+      Skills
+    </button>
+    <button class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="5 8 2 10 5 12"/><polyline points="15 8 18 10 15 12"/><line x1="8" y1="16" x2="12" y2="4"/></svg>
+      HTML Maker
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 3"/></svg>
+      Providers
+    </button>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/></svg>
+      Settings
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="avatar">A</div>
+      <span class="username">admin</span>
+      <button class="logout-btn">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="yana-main">
+    <!-- Page header -->
+    <div class="page-header">
+      <span class="page-title">HTML Maker</span>
+      <span class="page-sub">78 templates — pick one, paste content, get world-class HTML</span>
+    </div>
+
+    <!-- HTML Maker body: left picker + right content -->
+    <div class="html-maker">
+
+      <!-- Left: skill picker -->
+      <div class="glass skill-picker">
+        <input class="search-input" placeholder="Search…" value="" />
+
+        <!-- article category -->
+        <div class="cat-label">article</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">📖</span>
+          <div><div class="skill-zh">杂志文章</div><div class="skill-en">Magazine Article</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📰</span>
+          <div><div class="skill-zh">博客长文</div><div class="skill-en">Blog Post</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📚</span>
+          <div><div class="skill-zh">电子指南</div><div class="skill-en">Digital E-Guide</div></div>
+        </button>
+
+        <!-- card category -->
+        <div class="cat-label">card</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🐦</span>
+          <div><div class="skill-zh">Twitter 分享卡</div><div class="skill-en">Twitter Share Card</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📱</span>
+          <div><div class="skill-zh">小红书图文卡片</div><div class="skill-en">Xiaohongshu Card</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🎵</span>
+          <div><div class="skill-zh">Spotify 正在播放卡</div><div class="skill-en">Spotify Now-Playing Card</div></div>
+        </button>
+
+        <!-- dashboard category -->
+        <div class="cat-label">dashboard</div>
+        <button class="skill-btn active">
+          <span class="skill-emoji">🎛️</span>
+          <div><div class="skill-zh">管理后台仪表板</div><div class="skill-en">Admin Dashboard</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📈</span>
+          <div><div class="skill-zh">Notion 风团队仪表板</div><div class="skill-en">Live Team Dashboard</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📌</span>
+          <div><div class="skill-zh">看板 / Kanban</div><div class="skill-en">Kanban Board</div></div>
+        </button>
+
+        <!-- data category -->
+        <div class="cat-label">data</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">📊</span>
+          <div><div class="skill-zh">数据可视化报告</div><div class="skill-en">Data Visualization Report</div></div>
+        </button>
+
+        <!-- doc category -->
+        <div class="cat-label">doc</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🧩</span>
+          <div><div class="skill-zh">竞品拆解</div><div class="skill-en">Competitive Teardown</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📜</span>
+          <div><div class="skill-zh">Kami 羊皮纸文档</div><div class="skill-en">Kami Parchment Document</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📘</span>
+          <div><div class="skill-zh">技术文档页</div><div class="skill-en">Docs Page</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📕</span>
+          <div><div class="skill-zh">工程 Runbook</div><div class="skill-en">Engineering Runbook</div></div>
+        </button>
+
+        <!-- finance category -->
+        <div class="cat-label">finance</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">💼</span>
+          <div><div class="skill-zh">季度财报</div><div class="skill-en">Finance Report</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🧾</span>
+          <div><div class="skill-zh">可打印发票</div><div class="skill-en">Printable Invoice</div></div>
+        </button>
+
+        <!-- poster category -->
+        <div class="cat-label">poster</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🗞️</span>
+          <div><div class="skill-zh">杂志风海报</div><div class="skill-en">Magazine Poster</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🖼️</span>
+          <div><div class="skill-zh">营销海报</div><div class="skill-en">Marketing Poster</div></div>
+        </button>
+
+        <!-- prototype category -->
+        <div class="cat-label">prototype</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🚀</span>
+          <div><div class="skill-zh">SaaS Landing</div><div class="skill-en">SaaS Landing</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🛠️</span>
+          <div><div class="skill-zh">Web 产品原型</div><div class="skill-en">Web Prototype</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">✉️</span>
+          <div><div class="skill-zh">等候名单页</div><div class="skill-en">Waitlist Page</div></div>
+        </button>
+
+        <!-- slides category -->
+        <div class="cat-label">slides</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🎬</span>
+          <div><div class="skill-zh">Keynote 风格 PPT</div><div class="skill-en">Keynote-style Slides</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🚀</span>
+          <div><div class="skill-zh">投资人 Pitch Deck</div><div class="skill-en">Investor Pitch Deck</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🌌</span>
+          <div><div class="skill-zh">暗底图谱 Deck</div><div class="skill-en">Graphify Dark Deck</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">🖋️</span>
+          <div><div class="skill-zh">贵赞编辑墨水 Deck</div><div class="skill-en">Guizang Editorial E-Ink Deck</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">💻</span>
+          <div><div class="skill-zh">技术分享 Deck</div><div class="skill-en">Tech Sharing Deck</div></div>
+        </button>
+
+        <!-- video category -->
+        <div class="cat-label">video</div>
+        <button class="skill-btn">
+          <span class="skill-emoji">🌊</span>
+          <div><div class="skill-zh">流体背景 Hero 帧</div><div class="skill-en">Liquid Background Hero</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">⚡</span>
+          <div><div class="skill-zh">故障艺术标题帧</div><div class="skill-en">Glitch Title Frame</div></div>
+        </button>
+        <button class="skill-btn">
+          <span class="skill-emoji">📈</span>
+          <div><div class="skill-zh">NYT 风数据图表帧</div><div class="skill-en">NYT-Style Data Chart Frame</div></div>
+        </button>
+      </div>
+
+      <!-- Right: input + preview -->
+      <div class="content-area">
+        <!-- Input card -->
+        <div class="glass input-card">
+          <div class="selected-skill-header">
+            <span class="emoji">🎛️</span>
+            <div>
+              <div class="selected-name">管理后台仪表板</div>
+              <div class="selected-meta">Admin Dashboard · 桌面 1440</div>
+            </div>
+          </div>
+
+          <textarea class="content-textarea"
+            placeholder="Paste your content — text, markdown, JSON, CSV…"></textarea>
+
+          <div class="toolbar">
+            <select class="format-select">
+              <option value="text">text</option>
+              <option value="markdown">markdown</option>
+              <option value="json">json</option>
+              <option value="csv">csv</option>
+            </select>
+            <div style="flex:1"></div>
+            <button class="gen-btn">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><path d="M10 2l2.5 5.5 6 .9-4.3 4.2 1 6-5.2-2.7L4.8 18.6l1-6L1.5 8.4l6-.9L10 2z"/></svg>
+              Generate HTML
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview area (empty state) -->
+        <div class="glass preview-placeholder">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="6" y="10" width="36" height="28" rx="3"/>
+            <line x1="6" y1="18" x2="42" y2="18"/>
+            <circle cx="12" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="24" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+          <div class="preview-hint">HTML preview appears here after generating</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
