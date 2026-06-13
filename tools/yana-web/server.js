@@ -872,11 +872,15 @@ async function handleApiChat(req, res) {
 const OCR_WORKER = path.join(__dirname, 'ocr_worker.py');
 const OCR_ALLOWED_EXT = new Set(['.jpg','.jpeg','.png','.gif','.webp','.bmp','.tiff','.tif','.pdf']);
 const OCR_MAX_BYTES = 20 * 1024 * 1024; // 20 MB base64 payload limit
-// Prefer the venv python (has surya-ocr), fall back to system python3
-const OCR_PYTHON = (() => {
+// Prefer the venv python (has easyocr), fall back to system python3
+function getOcrPython() {
   const venv = path.join(os.homedir(), '.local', 'yana-ocr-venv', 'bin', 'python3');
-  try { fs.accessSync(venv, fs.constants.X_OK); return venv; } catch (_) { return 'python3'; }
-})();
+  try { fs.accessSync(venv, fs.constants.X_OK); return venv; } catch (_) {}
+  for (const p of ['/usr/bin/python3', '/usr/local/bin/python3']) {
+    try { fs.accessSync(p, fs.constants.X_OK); return p; } catch (_) {}
+  }
+  return 'python3';
+}
 
 async function handleApiOcr(req, res) {
   let body;
@@ -910,7 +914,8 @@ async function handleApiOcr(req, res) {
   let result;
   try {
     const langArg = (lang && /^[a-z]{2,5}$/.test(lang)) ? lang : 'en';
-    const out = execFileSync(OCR_PYTHON, [OCR_WORKER, tmpFile, langArg], {
+    const pyBin = getOcrPython();
+    const out = execFileSync(pyBin, [OCR_WORKER, tmpFile, langArg], {
       timeout: 120000,
       encoding: 'utf8',
       maxBuffer: 4 * 1024 * 1024,
