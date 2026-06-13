@@ -93,11 +93,13 @@ function MMessage({ msg }) {
 
 function MContextSheet({ open, onClose }) {
   const D = window.YANA;
+  const { provider: _p } = mGetProviderConfig();
+  const _m = M_CHAT_MODELS[_p] || _p;
   return (
     <Sheet open={open} title={L("Routing & context", "Định tuyến & ngữ cảnh")} onClose={onClose}>
       <MCard title={L("Routing", "Định tuyến")}>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {[[L("Orchestrator", "Điều phối"), "Navigator"], [L("Model", "Mô hình"), "Claude Opus 4.5"], [L("Fallback", "Dự phòng"), "GPT 5.2"], [L("Router", "Bộ định tuyến"), "Groq · 0.2s"]].map(([k, v]) => (
+          {[[L("Orchestrator", "Điều phối"), "Navigator"], [L("Model", "Mô hình"), _m], [L("Provider", "Nhà cung cấp"), _p]].map(([k, v]) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
               <span style={{ color: "var(--ink-3)" }}>{k}</span>
               <span style={{ fontWeight: 500 }}>{v}</span>
