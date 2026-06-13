@@ -249,7 +249,30 @@ function MSettingRow({ label, desc, value }) {
   );
 }
 
+function _mDetectTz() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    const offMin = -new Date().getTimezoneOffset();
+    const sign = offMin >= 0 ? "+" : "−";
+    const h = Math.floor(Math.abs(offMin) / 60);
+    const m = Math.abs(offMin) % 60;
+    return "GMT" + sign + h + (m ? ":" + String(m).padStart(2, "0") : "") + " · " + tz.split("/").pop().replace(/_/g, " ");
+  } catch (_) { return "UTC"; }
+}
+
+const M_PROVIDER_NAMES = { claude: "Claude", openai: "OpenAI", gemini: "Gemini", groq: "Groq", deepseek: "DeepSeek", openrouter: "OpenRouter", "9router": "9Router", ollama: "Ollama" };
+
 function MSettings({ t, setTweak }) {
+  const _p = mGetProviderConfig().provider;
+  const _orchModel = M_CHAT_MODELS[_p] || _p;
+  const _wname = localStorage.getItem("yana.workspace.name") ||
+    ((window.YANA.username ? window.YANA.username + "'s Lake" : L("Yana's Lake", "Mặt hồ của Yana")));
+  const _chain = (() => {
+    const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter", "9router"];
+    if (typeof YanaVault === "undefined") return "—";
+    const found = order.filter((id) => YanaVault.getKey(id));
+    return found.map((id) => M_PROVIDER_NAMES[id] || id).join(" → ") || L("None — add key in Providers", "Chưa có — thêm key ở Providers");
+  })();
   return (
     <div data-screen-label="Settings" style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
       <MHead title={L("Settings", "Cài đặt")} sub={L("Quiet defaults. Everything supervised by YAMTAM Core.", "Mặc định tĩnh lặng. Mọi thứ do YAMTAM Core giám sát.")} />
@@ -312,13 +335,13 @@ function MSettings({ t, setTweak }) {
       </MCard>
 
       <MCard title={L("Workspace", "Không gian")}>
-        <MSettingRow label={L("Workspace name", "Tên không gian")} value="Tâm's Lake" />
-        <MSettingRow label={L("Timezone", "Múi giờ")} value="GMT+7 · Hà Nội" />
+        <MSettingRow label={L("Workspace name", "Tên không gian")} value={_wname} />
+        <MSettingRow label={L("Timezone", "Múi giờ")} desc={L("Detected from device", "Phát hiện từ thiết bị")} value={_mDetectTz()} />
       </MCard>
       <MCard title={L("Orchestration", "Điều phối")}>
-        <MSettingRow label={L("Default orchestrator", "Điều phối mặc định")} desc={L("Plans and delegates missions", "Lập kế hoạch & giao việc")} value="Navigator · Claude" />
-        <MSettingRow label={L("Router budget", "Ngân sách định tuyến")} desc={L("Max time for routing", "Thời gian tối đa")} value="300 ms · Groq" />
-        <MSettingRow label={L("Fallback chain", "Chuỗi dự phòng")} value="GPT → Gemini" />
+        <MSettingRow label={L("Default orchestrator", "Điều phối mặc định")} desc={L("Plans and delegates missions", "Lập kế hoạch & giao việc")} value={"Navigator · " + _orchModel} />
+        <MSettingRow label={L("Active provider", "Nhà cung cấp hiện dùng")} desc={L("First key you have set", "Key đầu tiên đã cài")} value={M_PROVIDER_NAMES[_p] || _p} />
+        <MSettingRow label={L("Fallback chain", "Chuỗi dự phòng")} value={_chain} />
       </MCard>
       <MCard title={L("Safety", "An toàn")}>
         <MSettingRow label={L("Gate mode", "Chế độ cổng")} desc={L("Every action is reviewed", "Mọi hành động được duyệt")} value={L("Strict", "Nghiêm ngặt")} />

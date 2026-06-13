@@ -55,7 +55,7 @@ function MComposer({ onNav }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-        <h1 className="h-display" style={{ margin: 0, fontSize: 23 }}>{L("Good morning, " + (window.YANA.username || "Tâm"), "Chào " + (window.YANA.username || "Tâm"))}</h1>
+        <h1 className="h-display" style={{ margin: 0, fontSize: 23 }}>{window.YANA.username ? L("Good morning, " + window.YANA.username, "Chào " + window.YANA.username) : L("Good morning", "Xin chào")}</h1>
         <span style={{ fontSize: 11.5, color: "var(--ink-3)", display: "inline-flex", alignItems: "center", gap: 6, flex: "none" }}>
           <span className="dot on pulse"></span>{L("Calm", "Tĩnh lặng")}
         </span>
