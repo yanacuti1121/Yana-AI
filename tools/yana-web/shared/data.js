@@ -3,6 +3,7 @@
 // (L1 memory + audit log), /api/agents, /api/memories, /api/skills,
 // /api/usage, and YanaVault for provider keys.
 window.YANA = {
+  username: null, // filled from /api/auth/status
   stats: {
     // filled from /api/status below — 0 until the server answers
     agents: 0,
@@ -55,6 +56,11 @@ fetch("/api/status").then(function(r) { return r.json(); }).then(function(d) {
   if (d.skills) window.YANA.stats.skills = d.skills;
   if (d.agents) window.YANA.stats.agents = d.agents;
   yanaTouch();
+}).catch(function() {});
+
+// Username for avatar + greeting
+fetch("/api/auth/status").then(function(r) { return r.json(); }).then(function(d) {
+  if (d.username) { window.YANA.username = d.username; yanaTouch(); }
 }).catch(function() {});
 
 // ── Mobile hydration ──────────────────────────────────────────────────────────

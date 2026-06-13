@@ -93,7 +93,9 @@ function TopBar({ page, lang, onLang, onMore }) {
       <div className="mtopbar-r">
         <button className="lang-pill" onClick={onLang}>{lang === "vi" ? "VI" : "EN"}</button>
         <button className="icon-btn" aria-label="Notifications">{Icons.bell(18)}</button>
-        <button className="avatar-btn" onClick={onMore} aria-label="Menu">T</button>
+        <button className="avatar-btn" onClick={onMore} aria-label="Menu">
+          {(window.YANA.username || "Y")[0].toUpperCase()}
+        </button>
       </div>
     </header>
   );
@@ -141,8 +143,25 @@ function Sheet({ open, title, onClose, children }) {
 /* ---------- More sheet (secondary nav) ---------- */
 function MoreSheet({ open, page, onNav, onClose }) {
   const D = window.YANA;
+  const username = D.username || L("My account", "Tài khoản");
+  function logout() {
+    fetch("/api/auth/logout", { method: "POST" }).finally(() => location.replace("/"));
+  }
   return (
     <Sheet open={open} title={L("All sections", "Tất cả mục")} onClose={onClose}>
+      {/* User identity card */}
+      <div className="glass" style={{ borderRadius: "var(--r-md)", padding: "11px 13px", display: "flex", alignItems: "center", gap: 11, marginBottom: 8 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 11, background: "var(--primary)", color: "#fff", display: "grid", placeItems: "center", fontSize: 15, fontWeight: 600, flex: "none" }}>
+          {username[0].toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500 }}>{username}</div>
+          <div style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{L("Sovereign account", "Tài khoản chủ sở hữu")}</div>
+        </div>
+        <button onClick={logout} style={{ fontSize: 12, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", padding: "6px 8px", borderRadius: 8, flex: "none" }}>
+          {L("Sign out", "Đăng xuất")}
+        </button>
+      </div>
       <div className="more-grid">
         {MORE_ITEMS.map((m) => (
           <button key={m.id} className="more-item" onClick={() => { onNav(m.id); onClose(); }}

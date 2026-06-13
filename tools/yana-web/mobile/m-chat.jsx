@@ -135,6 +135,9 @@ function MChat() {
   const [ctx, setCtx] = React.useState(false);
   const logRef = React.useRef(null);
   const readerRef = React.useRef(null);
+  // active provider for context bar — reflects the first key the user has set
+  const { provider: _activeProvider } = mGetProviderConfig();
+  const _activeModel = M_CHAT_MODELS[_activeProvider] || _activeProvider;
 
   React.useEffect(() => {
     const el = logRef.current;
@@ -253,7 +256,7 @@ function MChat() {
         background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", textAlign: "left",
       }}>
         <span style={{ color: "var(--primary)", display: "inline-flex" }}>{Icons.safety(15)}</span>
-        <span style={{ fontSize: 12.5, fontWeight: 500 }}>Navigator · Claude Opus 4.5</span>
+        <span style={{ fontSize: 12.5, fontWeight: 500 }}>{_activeProvider} · {_activeModel}</span>
         <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--ink-3)" }}>
           <span className="dot on" style={{ width: 6, height: 6, boxShadow: "none" }}></span>{L("Context", "Ngữ cảnh")} {Icons.chevron(13)}
         </span>
