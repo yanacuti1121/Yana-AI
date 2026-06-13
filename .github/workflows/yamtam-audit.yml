@@ -21,6 +21,8 @@ permissions:
 jobs:
   yamtam-audit:
     name: YAMTAM Agent Setup Audit
+    # This is a demo/example workflow. Skip it on the yamtam-engine repo itself.
+    if: github.repository != 'phamlongh230-lgtm/yamtam-engine'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
