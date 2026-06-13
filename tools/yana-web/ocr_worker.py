@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Surya OCR worker — called by /api/ocr endpoint.
+"""OCR worker — called by /api/ocr endpoint.
 Usage: python3 ocr_worker.py <filepath> [lang]
 Prints a single JSON line to stdout: { "ok": true, "text": "...", "pages": N }
 or { "ok": false, "error": "..." }
@@ -7,6 +7,19 @@ or { "ok": false, "error": "..." }
 import sys
 import json
 import os
+
+# easyocr uses different codes for some languages
+_LANG_MAP = {
+    "zh": "ch_sim",
+    "zh-cn": "ch_sim",
+    "zh-tw": "ch_tra",
+    "zht": "ch_tra",
+}
+
+
+def _easyocr_lang(lang):
+    return _LANG_MAP.get(lang.lower(), lang.lower())
+
 
 def run(filepath, lang="en"):
     if not os.path.isfile(filepath):
@@ -59,67 +72,79 @@ def run(filepath, lang="en"):
     if not images:
         return {"ok": False, "error": "No pages extracted from file"}
 
-    langs = [[lang]] * len(images)
-
-    # ── Run Surya OCR ─────────────────────────────────────────────────────────
+    # ── Primary: EasyOCR ──────────────────────────────────────────────────────
     try:
-        # Surya >= 0.6 API
+        import easyocr
+        import numpy as np
+
+        reader = easyocr.Reader([_easyocr_lang(lang)], gpu=False, verbose=False)
+        lines = []
+        for img in images:
+            results = reader.readtext(np.array(img))
+            page_text = "\n".join(r[1] for r in results if r[1].strip())
+            lines.append(page_text)
+
+        return {"ok": True, "text": "\n\n".join(lines).strip(), "pages": len(images), "engine": "easyocr"}
+
+    except ImportError:
+        pass
+    except Exception as e:
+        easyocr_err = str(e)
+    else:
+        easyocr_err = None
+
+    # ── Fallback: Surya >= 0.6 new API ───────────────────────────────────────
+    try:
         from surya.recognition import RecognitionPredictor
         from surya.detection import DetectionPredictor
 
+        langs = [[lang]] * len(images)
         det_predictor = DetectionPredictor()
         rec_predictor = RecognitionPredictor()
-
-        # Detection pass
         det_results = det_predictor(images)
         bboxes_per_image = [r.bboxes for r in det_results]
-
-        # Recognition pass
         rec_results = rec_predictor(images, bboxes_per_image, langs)
 
         lines = []
         for result in rec_results:
-            page_text = "\n".join(
-                line.text for line in (result.text_lines or [])
-            )
+            page_text = "\n".join(line.text for line in (result.text_lines or []))
             lines.append(page_text)
 
-        return {"ok": True, "text": "\n\n".join(lines).strip(), "pages": len(images)}
+        return {"ok": True, "text": "\n\n".join(lines).strip(), "pages": len(images), "engine": "surya-new"}
 
-    except ImportError:
+    except Exception:
         pass
 
-    # ── Fallback: older Surya API ─────────────────────────────────────────────
+    # ── Fallback: Surya old API ───────────────────────────────────────────────
     try:
         from surya.ocr import run_ocr
         from surya.model.detection.model import load_model as load_det, load_processor as load_det_proc
         from surya.model.recognition.model import load_model as load_rec
         from surya.model.recognition.processor import load_processor as load_rec_proc
 
+        langs_list = [[lang]] * len(images)
         det_processor = load_det_proc()
         det_model = load_det()
         rec_model = load_rec()
         rec_processor = load_rec_proc()
-
-        results = run_ocr(images, langs, det_model, det_processor, rec_model, rec_processor)
+        results = run_ocr(images, langs_list, det_model, det_processor, rec_model, rec_processor)
         lines = []
         for result in results:
             page_text = "\n".join(line.text for line in (result.text_lines or []))
             lines.append(page_text)
 
-        return {"ok": True, "text": "\n\n".join(lines).strip(), "pages": len(images)}
+        return {"ok": True, "text": "\n\n".join(lines).strip(), "pages": len(images), "engine": "surya-old"}
 
-    except ImportError:
-        return {
-            "ok": False,
-            "error": (
-                "surya-ocr not installed.\n"
-                "Run: pip install surya-ocr\n"
-                "Note: first run downloads ~1GB of model weights."
-            ),
-        }
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        pass
+
+    return {
+        "ok": False,
+        "error": (
+            "No OCR engine available. Install easyocr: pip install easyocr\n"
+            "Or surya: pip install surya-ocr"
+        ),
+    }
 
 
 if __name__ == "__main__":
