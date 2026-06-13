@@ -8,6 +8,25 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 ---
 
+## v0.41.3 — Yana mobile full + ChatGPT memory + L6 cognitive reliability
+*2026-06-13*
+
+- **Yana mobile UI hoàn chỉnh**: UA auto-route (`/` → mobile trên điện thoại),
+  slide-in drawer nav, context bar live (provider/model thật), username + logout,
+  desktop/mobile tách thành app độc lập với shared layer
+- **ChatGPT-style long-term memory**: model tự quyết nhớ gì (dòng `MEMORY:` cuối
+  reply), recall vào system prompt, Memory Garden UI, TTL 90 ngày, quota 200,
+  confidential/sovereign không đọc không ghi (rule 68)
+- **L6 Cognitive Reliability Layer** (ADR-006 + rule 69): guard L6.0–L6.20,
+  completion vocabulary 8 trạng thái, Claim/Evidence/Confidence contract,
+  cấm success-only wrap-up, formal layer model update
+- **CI**: bump tất cả action pins lên Node 24 (GitHub deadline 2026-06-16),
+  fix demo audit workflow không chạy trên yamtam-engine repo
+- **Docs**: SECURITY.md viết lại cho 0.41.x, fonts docs → Be Vietnam Pro + Inter,
+  README VI sections dịch sang EN
+
+---
+
 ## v0.41.2 — rule 68 full-stack + Yana settings real + PyPI publish fix
 *2026-06-12*
 
