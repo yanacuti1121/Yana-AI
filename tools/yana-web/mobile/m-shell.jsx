@@ -36,6 +36,7 @@ const Icons = {
   bell:      (s) => <Ic size={s} d={<><path d="M6 8.5a4 4 0 0 1 8 0c0 3 1 4.2 1.6 4.8H4.4C5 12.7 6 11.5 6 8.5Z"/><path d="M8.4 15.5a1.8 1.8 0 0 0 3.2 0"/></>} />,
   back:      (s) => <Ic size={s} d={<path d="m11.5 5-5 5 5 5"/>} />,
   attach:    (s) => <Ic size={s} d={<path d="M17.8 9.2l-7.6 7.6a5 5 0 0 1-7.08-7.08l7.65-7.65a3.3 3.3 0 0 1 4.7 4.7L7.8 13.9a1.65 1.65 0 0 1-2.35-2.35l7.07-7.07"/>} />,
+  pencil:    (s) => <Ic size={s} d={<><path d="M14 3.5a1.9 1.9 0 0 1 2.5 2.5L6 17H3v-3L14 3.5Z"/><path d="m12.5 5 2.5 2.5"/></>} />,
 };
 
 /* ---------- Wordmark: lotus bud resting on the water ---------- */
@@ -80,6 +81,8 @@ const PAGE_TITLE = (id) => {
 /* ---------- Top bar ---------- */
 function TopBar({ page, lang, onLang, onMore }) {
   const onLake = page === "dashboard";
+  const onChat = page === "chat";
+  function newChat() { window.dispatchEvent(new CustomEvent("yana:newchat")); }
   return (
     <header className="mtopbar">
       <div className="mtopbar-l">
@@ -92,6 +95,11 @@ function TopBar({ page, lang, onLang, onMore }) {
         </div>
       </div>
       <div className="mtopbar-r">
+        {onChat && (
+          <button className="icon-btn" onClick={newChat} aria-label={L("New conversation", "Cuộc trò chuyện mới")}>
+            {Icons.pencil(18)}
+          </button>
+        )}
         <button className="lang-pill" onClick={onLang}>{lang === "vi" ? "VI" : "EN"}</button>
         <button className="icon-btn" aria-label="Notifications">{Icons.bell(18)}</button>
         <button className="avatar-btn" onClick={onMore} aria-label="Menu">

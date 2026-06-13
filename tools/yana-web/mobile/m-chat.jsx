@@ -196,6 +196,13 @@ function MChat() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [msgs, thinking]);
 
+  // New-chat event from TopBar
+  React.useEffect(() => {
+    function onNew() { setMsgs([]); D.chat = []; }
+    window.addEventListener("yana:newchat", onNew);
+    return () => window.removeEventListener("yana:newchat", onNew);
+  }, []);
+
   // Persist chat history (non-confidential only)
   React.useEffect(() => {
     D.chat = msgs;
