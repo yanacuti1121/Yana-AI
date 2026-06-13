@@ -8,8 +8,12 @@ const M_CHAT_MODELS = {
 };
 const M_KEYLESS = new Set(["ollama"]);
 
-function mGetProviderConfig() {
-  if (typeof YanaVault === "undefined") return { provider: "claude", apiKey: "" };
+function mGetProviderConfig(overrideProvider) {
+  if (typeof YanaVault === "undefined") return { provider: overrideProvider || "claude", apiKey: "" };
+  if (overrideProvider) {
+    const apiKey = M_KEYLESS.has(overrideProvider) ? "" : (YanaVault.getKey(overrideProvider) || "");
+    return { provider: overrideProvider, apiKey };
+  }
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter", "9router"];
   for (const id of order) {
     if (M_KEYLESS.has(id)) continue;
@@ -91,20 +95,48 @@ function MMessage({ msg }) {
   );
 }
 
-function MContextSheet({ open, onClose }) {
+const M_ALL_PROVIDERS = Object.keys(M_CHAT_MODELS);
+
+function MContextSheet({ open, onClose, overrideProvider, overrideModel, onProviderChange, onModelChange }) {
   const D = window.YANA;
-  const { provider: _p } = mGetProviderConfig();
-  const _m = M_CHAT_MODELS[_p] || _p;
+  const { provider: _p } = mGetProviderConfig(overrideProvider);
+  const _m = overrideModel || M_CHAT_MODELS[_p] || _p;
+
+  function handleProviderSelect(e) {
+    const p = e.target.value;
+    onProviderChange(p);
+    onModelChange(M_CHAT_MODELS[p] || "");
+  }
+
+  const selectStyle = {
+    border: "1px solid var(--border)", borderRadius: 8, padding: "4px 8px",
+    fontSize: 12.5, fontWeight: 500, background: "var(--surface)", color: "var(--ink)",
+    cursor: "pointer", fontFamily: "inherit", maxWidth: 160,
+  };
+
   return (
     <Sheet open={open} title={L("Routing & context", "Định tuyến & ngữ cảnh")} onClose={onClose}>
       <MCard title={L("Routing", "Định tuyến")}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {[[L("Orchestrator", "Điều phối"), "Navigator"], [L("Model", "Mô hình"), _m], [L("Provider", "Nhà cung cấp"), _p]].map(([k, v]) => (
-            <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-              <span style={{ color: "var(--ink-3)" }}>{k}</span>
-              <span style={{ fontWeight: 500 }}>{v}</span>
-            </div>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+            <span style={{ color: "var(--ink-3)" }}>{L("Provider", "Nhà cung cấp")}</span>
+            <select value={_p} onChange={handleProviderSelect} style={selectStyle}>
+              {M_ALL_PROVIDERS.map(id => <option key={id} value={id}>{id}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+            <span style={{ color: "var(--ink-3)" }}>{L("Model", "Mô hình")}</span>
+            <input
+              value={_m}
+              onChange={e => onModelChange(e.target.value)}
+              onBlur={e => { if (!e.target.value.trim()) onModelChange(M_CHAT_MODELS[_p] || ""); }}
+              style={{ ...selectStyle, textAlign: "right", width: 164, cursor: "text", fontFamily: "ui-monospace, monospace", fontSize: 11.5 }}
+            />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "var(--ink-3)" }}>{L("Orchestrator", "Điều phối")}</span>
+            <span style={{ fontWeight: 500 }}>Navigator</span>
+          </div>
         </div>
       </MCard>
       <MCard title={L("Context in use", "Ngữ cảnh đang dùng")}>
@@ -137,9 +169,25 @@ function MChat() {
   const [ctx, setCtx] = React.useState(false);
   const logRef = React.useRef(null);
   const readerRef = React.useRef(null);
-  // active provider for context bar — reflects the first key the user has set
-  const { provider: _activeProvider } = mGetProviderConfig();
-  const _activeModel = M_CHAT_MODELS[_activeProvider] || _activeProvider;
+
+  const [overrideProvider, setOverrideProvider] = React.useState(
+    () => localStorage.getItem("yana.chat.provider") || ""
+  );
+  const [overrideModel, setOverrideModel] = React.useState(
+    () => localStorage.getItem("yana.chat.model") || ""
+  );
+
+  function handleProviderChange(p) {
+    setOverrideProvider(p);
+    try { localStorage.setItem("yana.chat.provider", p); } catch (_) {}
+  }
+  function handleModelChange(m) {
+    setOverrideModel(m);
+    try { if (m) localStorage.setItem("yana.chat.model", m); else localStorage.removeItem("yana.chat.model"); } catch (_) {}
+  }
+
+  const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
+  const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
 
   React.useEffect(() => {
     const el = logRef.current;
@@ -167,9 +215,9 @@ function MChat() {
     setDraft("");
     setThinking(true);
 
-    let { provider, apiKey } = mGetProviderConfig();
+    let { provider, apiKey } = mGetProviderConfig(overrideProvider);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
-    const model = M_CHAT_MODELS[provider] || "";
+    const model = overrideModel || M_CHAT_MODELS[provider] || "";
 
     try {
       const res = await fetch("/api/chat", {
@@ -290,7 +338,11 @@ function MChat() {
         </div>
       </div>
 
-      <MContextSheet open={ctx} onClose={() => setCtx(false)} />
+      <MContextSheet
+        open={ctx} onClose={() => setCtx(false)}
+        overrideProvider={overrideProvider} overrideModel={overrideModel}
+        onProviderChange={handleProviderChange} onModelChange={handleModelChange}
+      />
     </div>
   );
 }
