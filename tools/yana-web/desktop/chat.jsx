@@ -338,6 +338,9 @@ function Chat({ t }) {
   const [liveModels, setLiveModels] = React.useState({});  // providerId -> [ids]
   const [visionImage, setVisionImage] = React.useState(null); // {data, mimeType, name}
   const [artifact, setArtifact] = React.useState(null); // { html } — live HTML preview panel
+  const [htmlPicker, setHtmlPicker] = React.useState(false);
+  const [htmlSkills, setHtmlSkills] = React.useState([]);
+  const [htmlSearch, setHtmlSearch] = React.useState("");
   const logRef  = React.useRef(null);
   const readerRef = React.useRef(null);
   const fileRef = React.useRef(null);
@@ -635,6 +638,40 @@ function Chat({ t }) {
             {Icons.pencil(14)} {L("New", "Mới")}
           </button>
         </PageHeader>
+        {htmlPicker && (
+          <div className="glass-strong" style={{ borderRadius: "var(--r-lg)", padding: 10, display: "flex", flexDirection: "column", gap: 8, flex: "none", maxHeight: 260 }}>
+            <input
+              autoFocus
+              value={htmlSearch}
+              onChange={(e) => setHtmlSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") { setHtmlPicker(false); setHtmlSearch(""); } }}
+              placeholder={L("Search templates…", "Tìm template…")}
+              style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12.5, fontFamily: "inherit", background: "transparent", color: "var(--ink)", outline: "none", flex: "none" }}
+            />
+            <div style={{ overflowY: "auto", display: "flex", flexWrap: "wrap", gap: 5 }}>
+              {htmlSkills.length === 0
+                ? <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{L("Loading…", "Đang tải…")}</span>
+                : htmlSkills
+                    .filter((s) => {
+                      if (!htmlSearch) return true;
+                      const q = htmlSearch.toLowerCase();
+                      return (s.name || "").toLowerCase().includes(q) || (s.zhName || "").toLowerCase().includes(q) || (s.category || "").toLowerCase().includes(q);
+                    })
+                    .map((s) => (
+                      <button key={s.id}
+                        onClick={() => {
+                          setDraft((d) => (d ? d + " " : "") + (s.zhName || s.name) + ": ");
+                          setHtmlPicker(false);
+                          setHtmlSearch("");
+                        }}
+                        style={{ padding: "4px 11px", borderRadius: 99, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-2)", cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>
+                        {s.zhName || s.name}
+                      </button>
+                    ))
+              }
+            </div>
+          </div>
+        )}
         <div ref={logRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "calc(16px * var(--sp))", padding: "4px 4px 16px", minHeight: 0 }}>
           {msgs.length === 0 && !thinking && (
             <div style={{ margin: "auto", textAlign: "center", color: "var(--ink-3)", maxWidth: 380 }}>
@@ -703,6 +740,26 @@ function Chat({ t }) {
               {visionImage.name} ✕
             </span>
           )}
+          <button
+            onClick={() => {
+              if (!htmlPicker && !htmlSkills.length) {
+                fetch("/api/html/skills").then((r) => r.ok ? r.json() : null).then((d) => { if (d && d.skills) setHtmlSkills(d.skills); }).catch(() => {});
+              }
+              setHtmlPicker((v) => !v);
+              setHtmlSearch("");
+            }}
+            aria-pressed={htmlPicker}
+            title={L("HTML templates", "Template HTML")}
+            style={{
+              width: 32, height: 32, borderRadius: 9, flex: "none",
+              border: "1px solid " + (htmlPicker ? "var(--primary)" : "var(--border)"),
+              background: htmlPicker ? "var(--primary-soft)" : "transparent",
+              color: htmlPicker ? "var(--primary)" : "var(--ink-2)",
+              cursor: "pointer", fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              display: "grid", placeItems: "center",
+            }}>
+            &lt;/&gt;
+          </button>
           <button
             onClick={() => setConfMode((v) => !v)}
             aria-pressed={confMode}
