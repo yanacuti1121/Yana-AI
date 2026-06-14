@@ -125,7 +125,7 @@ const MODEL_CHOICES = {
   openai:     ["gpt-4o-mini", "gpt-4o"],
   gemini:     ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
   deepseek:   ["deepseek-chat", "deepseek-reasoner"],
-  groq:       ["llama-3.3-70b-versatile", "llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"],
+  groq:       ["llama-3.3-70b-versatile", "meta-llama/llama-4-scout-17b-16e-instruct"],
   openrouter: ["google/gemma-3-27b-it"],
   "9router":  ["kr/claude-sonnet-4.5"],
   ollama:     ["llama3.2"],
@@ -257,7 +257,7 @@ function Chat({ t }) {
   const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
   const activeModel = modelSel[activeProvider] || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
 
-  const isVisionModel = (model) => model && model.includes("vision");
+  const isVisionModel = (model) => model && (model.includes("vision") || model.includes("scout"));
 
   function pickModel(v) {
     setModelSel((prev) => {

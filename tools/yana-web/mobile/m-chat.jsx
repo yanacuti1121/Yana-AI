@@ -20,9 +20,8 @@ const M_MODEL_CATALOG = [
   { id: "gemini-2.0-flash",               provider: "gemini",     tag: "Nhanh",     label: "Gemini 2.0 Flash",     desc: "Nhanh, multimodal" },
   { id: "gemini-1.5-pro",                 provider: "gemini",     tag: "Mạnh",      label: "Gemini 1.5 Pro",       desc: "Context 1M token" },
   // Groq
-  { id: "llama-3.3-70b-versatile",        provider: "groq",       tag: "Nhanh",     label: "Llama 3.3 70B",        desc: "Văn bản, đa năng, rất nhanh" },
-  { id: "llama-3.2-11b-vision-preview",   provider: "groq",       tag: "Vision",    label: "Llama 3.2 11B Vision", desc: "Nhận dạng ảnh (nhẹ)" },
-  { id: "llama-3.2-90b-vision-preview",   provider: "groq",       tag: "Vision",    label: "Llama 3.2 90B Vision", desc: "Nhận dạng ảnh (chất lượng cao)" },
+  { id: "llama-3.3-70b-versatile",                        provider: "groq", tag: "Nhanh",  label: "Llama 3.3 70B",       desc: "Văn bản, đa năng, rất nhanh" },
+  { id: "meta-llama/llama-4-scout-17b-16e-instruct",    provider: "groq", tag: "Vision", label: "Llama 4 Scout Vision", desc: "Nhận dạng ảnh, multimodal" },
   // Deepseek
   { id: "deepseek-chat",                  provider: "deepseek",   tag: "Code",      label: "DeepSeek Chat",        desc: "Code + lý luận" },
   { id: "deepseek-reasoner",              provider: "deepseek",   tag: "Mạnh",      label: "DeepSeek Reasoner",    desc: "Suy luận chuỗi dài" },
@@ -269,7 +268,7 @@ function MChat() {
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
   const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
-  const isVisionModel = (m) => m && m.includes("vision");
+  const isVisionModel = (m) => m && (m.includes("vision") || m.includes("scout"));
 
   React.useEffect(() => {
     const el = logRef.current;
