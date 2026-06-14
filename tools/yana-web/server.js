@@ -283,6 +283,100 @@ const PROVIDERS = {
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
   },
+
+  nvidia: {
+    hostname:     'integrate.api.nvidia.com',
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'nvidia/llama-3.1-nemotron-70b-instruct',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
+  kimi: {
+    hostname:     'api.moonshot.cn',
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'moonshot-v1-8k',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
+  minimax: {
+    hostname:     'api.minimax.chat',
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'abab6.5s-chat',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
+  glm: {
+    hostname:     'open.bigmodel.cn',
+    path:         '/api/paas/v4/chat/completions',
+    vision:       true,
+    defaultModel: 'glm-4-flash',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task, images) => {
+      const userContent = (images && images.length)
+        ? [
+            ...images.map(img => ({
+              type: 'image_url',
+              image_url: { url: `data:${img.mimeType};base64,${img.data}` },
+            })),
+            { type: 'text', text: task },
+          ]
+        : task;
+      return JSON.stringify({
+        model, max_tokens: 2048, stream: true,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user',   content: userContent },
+        ],
+      });
+    },
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
+
+  huggingface: {
+    hostname:     'router.huggingface.co',
+    path:         '/v1/chat/completions',
+    vision:       false,
+    defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
+    headers: key => ({
+      'Authorization': `Bearer ${key}`,
+      'content-type':  'application/json',
+    }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+  },
 };
 
 // ── Codebase BM25 index (in-memory, server-scoped) ────────────────────────────
@@ -546,6 +640,51 @@ async function handleApiModels(req, res) {
     novita: {
       hostname: 'api.novita.ai',
       path:     '/v3/openai/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    nvidia: {
+      hostname: 'integrate.api.nvidia.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    kimi: {
+      hostname: 'api.moonshot.cn',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    minimax: {
+      hostname: 'api.minimax.chat',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    glm: {
+      hostname: 'open.bigmodel.cn',
+      path:     '/api/paas/v4/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    huggingface: {
+      hostname: 'router.huggingface.co',
+      path:     '/v1/models',
       headers:  k => ({ 'Authorization': `Bearer ${k}` }),
       transform: data => (data.data || [])
         .filter(m => m.id)

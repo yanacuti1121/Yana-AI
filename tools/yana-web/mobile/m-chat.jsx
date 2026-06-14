@@ -6,6 +6,9 @@ const M_CHAT_MODELS = {
   groq: "llama-3.3-70b-versatile", deepseek: "deepseek-chat",
   openrouter: "google/gemma-3-27b-it", xai: "grok-3-mini",
   novita: "meta-llama/llama-3.1-70b-instruct",
+  nvidia: "nvidia/llama-3.1-nemotron-70b-instruct",
+  kimi: "moonshot-v1-8k", minimax: "abab6.5s-chat",
+  glm: "glm-4-flash", huggingface: "meta-llama/Llama-3.3-70B-Instruct",
   "9router": "kr/claude-sonnet-4.5", ollama: "llama3.2",
 };
 const M_KEYLESS = new Set(["ollama", "9router"]);
@@ -35,6 +38,24 @@ const M_MODEL_CATALOG = [
   // Novita
   { id: "meta-llama/llama-3.1-70b-instruct", provider: "novita", tag: "Mạnh",      label: "Llama 3.1 70B",        desc: "Open source, mạnh" },
   { id: "meta-llama/llama-3.1-8b-instruct",  provider: "novita", tag: "Nhanh",     label: "Llama 3.1 8B",         desc: "Nhẹ, miễn phí" },
+  // NVIDIA NIM
+  { id: "nvidia/llama-3.1-nemotron-70b-instruct", provider: "nvidia", tag: "Mạnh", label: "Nemotron 70B",         desc: "NVIDIA, hiệu năng cao" },
+  { id: "meta/llama-3.3-70b-instruct",            provider: "nvidia", tag: "Nhanh",label: "Llama 3.3 70B (NIM)",  desc: "Llama trên NIM" },
+  // Kimi (Moonshot)
+  { id: "moonshot-v1-8k",   provider: "kimi", tag: "Nhanh", label: "Kimi 8K",    desc: "Context 8K, nhanh" },
+  { id: "moonshot-v1-32k",  provider: "kimi", tag: "Mạnh",  label: "Kimi 32K",   desc: "Context dài 32K" },
+  { id: "moonshot-v1-128k", provider: "kimi", tag: "Dài",   label: "Kimi 128K",  desc: "Context cực dài" },
+  // MiniMax
+  { id: "abab6.5s-chat",    provider: "minimax", tag: "Nhanh", label: "MiniMax 6.5s", desc: "Nhanh, đa năng" },
+  { id: "abab6.5g-chat",    provider: "minimax", tag: "Mạnh",  label: "MiniMax 6.5g", desc: "Mạnh hơn" },
+  // GLM (Zhipu)
+  { id: "glm-4-flash",      provider: "glm", tag: "Nhanh",  label: "GLM-4 Flash",  desc: "Miễn phí, nhanh" },
+  { id: "glm-4",            provider: "glm", tag: "Mạnh",   label: "GLM-4",        desc: "Mạnh nhất Zhipu" },
+  { id: "glm-4v",           provider: "glm", tag: "Vision", label: "GLM-4V",       desc: "Nhận dạng ảnh" },
+  // HuggingFace
+  { id: "meta-llama/Llama-3.3-70B-Instruct",  provider: "huggingface", tag: "Mạnh",  label: "Llama 3.3 70B (HF)", desc: "Open source" },
+  { id: "Qwen/Qwen2.5-72B-Instruct",          provider: "huggingface", tag: "Mạnh",  label: "Qwen 2.5 72B",       desc: "Alibaba, đa năng" },
+  { id: "mistralai/Mistral-7B-Instruct-v0.3", provider: "huggingface", tag: "Nhanh", label: "Mistral 7B",         desc: "Nhẹ, nhanh" },
   // Ollama
   { id: "llama3.2",                       provider: "ollama",     tag: "Local",     label: "Llama 3.2 (local)",    desc: "On-device, không cần key" },
 ];
@@ -127,7 +148,7 @@ function MMessage({ msg }) {
 }
 
 const M_ALL_PROVIDERS = Object.keys(M_CHAT_MODELS);
-const M_LIVE_PROVIDERS = new Set(["groq", "openrouter", "xai", "novita", "9router", "ollama"]);
+const M_LIVE_PROVIDERS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama"]);
 
 function MModelPickerSheet({ open, onClose, activeProvider, activeModel, onModelChange, liveModels }) {
   // Use live model list if available, fall back to curated catalog
@@ -284,7 +305,7 @@ function MChat() {
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
   const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
-  const isVisionModel = (_m) => ["claude", "openai", "gemini", "groq", "openrouter", "xai"].includes(_activeProvider);
+  const isVisionModel = (_m) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(_activeProvider);
 
   // Fetch real model list for live providers (groq, openrouter, etc.)
   React.useEffect(() => {

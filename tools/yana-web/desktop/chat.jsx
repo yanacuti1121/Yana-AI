@@ -116,6 +116,11 @@ const CHAT_MODELS = {
   openrouter: "google/gemma-3-27b-it",
   xai:        "grok-3-mini",
   novita:     "meta-llama/llama-3.1-70b-instruct",
+  nvidia:     "nvidia/llama-3.1-nemotron-70b-instruct",
+  kimi:       "moonshot-v1-8k",
+  minimax:    "abab6.5s-chat",
+  glm:        "glm-4-flash",
+  huggingface: "meta-llama/Llama-3.3-70B-Instruct",
   "9router":  "kr/claude-sonnet-4.5",
   ollama:     "llama3.2",
 };
@@ -131,10 +136,15 @@ const MODEL_CHOICES = {
   openrouter: ["google/gemma-3-27b-it"],
   xai:        ["grok-3-mini", "grok-3", "grok-2-vision-1212"],
   novita:     ["meta-llama/llama-3.1-70b-instruct", "meta-llama/llama-3.1-8b-instruct"],
+  nvidia:     ["nvidia/llama-3.1-nemotron-70b-instruct", "meta/llama-3.3-70b-instruct", "nvidia/llama-3.3-nemotron-super-49b-v1"],
+  kimi:       ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
+  minimax:    ["abab6.5s-chat", "abab6.5g-chat"],
+  glm:        ["glm-4-flash", "glm-4", "glm-4v", "glm-z1-flash"],
+  huggingface: ["meta-llama/Llama-3.3-70B-Instruct", "Qwen/Qwen2.5-72B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"],
   "9router":  ["kr/claude-sonnet-4.5"],
   ollama:     ["llama3.2"],
 };
-const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "9router", "ollama"]);
+const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama"]);
 
 const MODEL_STORE = "yana.chat.models"; // { providerId: modelId } — persisted
 
@@ -261,7 +271,7 @@ function Chat({ t }) {
   const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
   const activeModel = modelSel[activeProvider] || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
 
-  const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter", "xai"].includes(activeProvider);
+  const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(activeProvider);
 
   function pickModel(v) {
     setModelSel((prev) => {
