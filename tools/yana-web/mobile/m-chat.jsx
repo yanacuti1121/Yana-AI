@@ -8,6 +8,28 @@ const M_CHAT_MODELS = {
 };
 const M_KEYLESS = new Set(["ollama", "9router"]);
 
+const M_MODEL_CATALOG = [
+  // Claude
+  { id: "claude-sonnet-4-6",              provider: "claude",     tag: "Mạnh",      label: "Sonnet 4.6",           desc: "Lý luận sâu, code phức tạp" },
+  { id: "claude-opus-4-8",                provider: "claude",     tag: "Mạnh nhất", label: "Opus 4.8",             desc: "Tốt nhất, chậm hơn" },
+  { id: "claude-haiku-4-5-20251001",      provider: "claude",     tag: "Nhanh",     label: "Haiku 4.5",            desc: "Phản hồi tức thì" },
+  // OpenAI
+  { id: "gpt-4o-mini",                    provider: "openai",     tag: "Nhanh",     label: "GPT-4o mini",          desc: "Đa năng, tiết kiệm" },
+  { id: "gpt-4o",                         provider: "openai",     tag: "Vision",    label: "GPT-4o",               desc: "Xem ảnh + phân tích" },
+  // Gemini
+  { id: "gemini-2.0-flash",               provider: "gemini",     tag: "Nhanh",     label: "Gemini 2.0 Flash",     desc: "Nhanh, multimodal" },
+  { id: "gemini-1.5-pro",                 provider: "gemini",     tag: "Mạnh",      label: "Gemini 1.5 Pro",       desc: "Context 1M token" },
+  // Groq
+  { id: "llama-3.3-70b-versatile",        provider: "groq",       tag: "Nhanh",     label: "Llama 3.3 70B",        desc: "Văn bản, đa năng, rất nhanh" },
+  { id: "llama-3.2-11b-vision-preview",   provider: "groq",       tag: "Vision",    label: "Llama 3.2 11B Vision", desc: "Nhận dạng ảnh (nhẹ)" },
+  { id: "llama-3.2-90b-vision-preview",   provider: "groq",       tag: "Vision",    label: "Llama 3.2 90B Vision", desc: "Nhận dạng ảnh (chất lượng cao)" },
+  // Deepseek
+  { id: "deepseek-chat",                  provider: "deepseek",   tag: "Code",      label: "DeepSeek Chat",        desc: "Code + lý luận" },
+  { id: "deepseek-reasoner",              provider: "deepseek",   tag: "Mạnh",      label: "DeepSeek Reasoner",    desc: "Suy luận chuỗi dài" },
+  // Ollama
+  { id: "llama3.2",                       provider: "ollama",     tag: "Local",     label: "Llama 3.2 (local)",    desc: "On-device, không cần key" },
+];
+
 function mGetProviderConfig(overrideProvider) {
   if (typeof YanaVault === "undefined") return { provider: overrideProvider || "claude", apiKey: "" };
   if (overrideProvider) {
@@ -97,6 +119,60 @@ function MMessage({ msg }) {
 
 const M_ALL_PROVIDERS = Object.keys(M_CHAT_MODELS);
 
+function MModelPickerSheet({ open, onClose, activeProvider, activeModel, onModelChange }) {
+  const models = M_MODEL_CATALOG.filter(m => m.provider === activeProvider);
+
+  const tagColor = (tag) => {
+    if (tag === "Vision")    return { bg: "#6366f1", color: "#fff" };
+    if (tag === "Nhanh")     return { bg: "var(--surface)", color: "var(--accent, #6366f1)", border: "1px solid var(--accent, #6366f1)" };
+    if (tag === "Mạnh nhất") return { bg: "#f59e0b", color: "#fff" };
+    if (tag === "Mạnh")      return { bg: "var(--surface)", color: "var(--ink-2)", border: "1px solid var(--border)" };
+    if (tag === "Code")      return { bg: "#10b981", color: "#fff" };
+    if (tag === "Local")     return { bg: "#6b7280", color: "#fff" };
+    return { bg: "var(--surface)", color: "var(--ink-3)", border: "1px solid var(--border)" };
+  };
+
+  return (
+    <Sheet open={open} title={L("Chọn model", "Chọn model")} onClose={onClose}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 12 }}>
+        {models.length === 0 && (
+          <div style={{ fontSize: 13, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
+            {L("No models listed for this provider", "Chưa có model nào cho provider này")}
+          </div>
+        )}
+        {models.map(m => {
+          const isActive = activeModel === m.id;
+          const tc = tagColor(m.tag);
+          return (
+            <button
+              key={m.id}
+              onClick={() => { onModelChange(m.id); onClose(); }}
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "11px 14px", borderRadius: 12, cursor: "pointer",
+                border: isActive ? "1.5px solid var(--accent, #6366f1)" : "1px solid var(--border)",
+                background: isActive ? "rgba(99,102,241,.08)" : "var(--surface)",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 2 }}>{m.label}</div>
+                <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.4 }}>{m.desc}</div>
+              </div>
+              <span style={{
+                fontSize: 10.5, fontWeight: 600, padding: "2px 8px", borderRadius: 99,
+                whiteSpace: "nowrap", flexShrink: 0,
+                background: tc.bg, color: tc.color, border: tc.border || "none",
+              }}>{m.tag}</span>
+              {isActive && <span style={{ color: "var(--accent, #6366f1)", fontSize: 16, flexShrink: 0 }}>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+    </Sheet>
+  );
+}
+
 function MContextSheet({ open, onClose, overrideProvider, overrideModel, onProviderChange, onModelChange }) {
   const D = window.YANA;
   const { provider: _p } = mGetProviderConfig(overrideProvider);
@@ -133,32 +209,6 @@ function MContextSheet({ open, onClose, overrideProvider, overrideModel, onProvi
               style={{ ...selectStyle, textAlign: "right", width: 164, cursor: "text", fontFamily: "ui-monospace, monospace", fontSize: 11.5 }}
             />
           </div>
-          {_p === "groq" && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
-              <span style={{ color: "var(--ink-3)" }}>Mode</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  { label: "Text", model: "llama-3.3-70b-versatile" },
-                  { label: "Vision", model: "llama-3.2-11b-vision-preview" },
-                ].map(({ label, model }) => (
-                  <button
-                    key={label}
-                    onClick={() => onModelChange(model)}
-                    style={{
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      padding: "3px 10px",
-                      fontSize: 12,
-                      fontWeight: _m === model ? 600 : 400,
-                      background: _m === model ? "var(--accent, #6366f1)" : "var(--surface)",
-                      color: _m === model ? "#fff" : "var(--ink-2)",
-                      cursor: "pointer",
-                    }}
-                  >{label}</button>
-                ))}
-              </div>
-            </div>
-          )}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
             <span style={{ color: "var(--ink-3)" }}>{L("Orchestrator", "Điều phối")}</span>
             <span style={{ fontWeight: 500 }}>Navigator</span>
@@ -193,6 +243,7 @@ function MChat() {
   const [draft, setDraft] = React.useState("");
   const [thinking, setThinking] = React.useState(false);
   const [ctx, setCtx] = React.useState(false);
+  const [modelPicker, setModelPicker] = React.useState(false);
   const logRef  = React.useRef(null);
   const readerRef = React.useRef(null);
   const fileRef = React.useRef(null);
@@ -382,18 +433,34 @@ function MChat() {
 
   return (
     <div data-screen-label="Chat" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
-      {/* slim context bar replaces the desktop right rail */}
-      <button onClick={() => setCtx(true)} style={{
-        flex: "none", display: "flex", alignItems: "center", gap: 9, margin: "12px 16px 8px",
-        padding: "9px 13px", borderRadius: 99, border: "1px solid var(--border)", cursor: "pointer",
-        background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", textAlign: "left",
-      }}>
-        <span style={{ color: "var(--primary)", display: "inline-flex" }}>{Icons.safety(15)}</span>
-        <span style={{ fontSize: 12.5, fontWeight: 500 }}>{_activeProvider} · {_activeModel}</span>
-        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--ink-3)" }}>
-          <span className="dot on" style={{ width: 6, height: 6, boxShadow: "none" }}></span>{L("Context", "Ngữ cảnh")} {Icons.chevron(13)}
-        </span>
-      </button>
+      {/* slim context bar — two chips: provider/context + model picker */}
+      <div style={{ flex: "none", display: "flex", gap: 8, margin: "12px 16px 8px" }}>
+        {/* Provider / context chip — opens routing + context sheet */}
+        <button onClick={() => setCtx(true)} style={{
+          flex: 1, display: "flex", alignItems: "center", gap: 8,
+          padding: "9px 13px", borderRadius: 99, border: "1px solid var(--border)", cursor: "pointer",
+          background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", textAlign: "left",
+        }}>
+          <span style={{ color: "var(--primary)", display: "inline-flex" }}>{Icons.safety(15)}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 500 }}>{_activeProvider}</span>
+          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-3)" }}>
+            {L("Context", "Ngữ cảnh")} {Icons.chevron(13)}
+          </span>
+        </button>
+
+        {/* Model chip — opens model picker sheet */}
+        <button onClick={() => setModelPicker(true)} style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "9px 13px", borderRadius: 99, border: "1px solid var(--border)", cursor: "pointer",
+          background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", whiteSpace: "nowrap",
+        }}>
+          {isVisionModel(_activeModel) && <span style={{ fontSize: 12 }}>📷</span>}
+          <span style={{ fontSize: 12, fontWeight: 500, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }}>
+            {(M_MODEL_CATALOG.find(m => m.id === _activeModel) || {}).label || _activeModel.split("-").slice(0, 3).join("-")}
+          </span>
+          {Icons.chevron(13)}
+        </button>
+      </div>
 
       <div ref={logRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "calc(15px * var(--sp))", padding: "6px 16px 14px", minHeight: 0 }}>
         {msgs.map((m, i) => <MMessage key={i} msg={m} />)}
@@ -452,6 +519,13 @@ function MChat() {
         open={ctx} onClose={() => setCtx(false)}
         overrideProvider={overrideProvider} overrideModel={overrideModel}
         onProviderChange={handleProviderChange} onModelChange={handleModelChange}
+      />
+      <MModelPickerSheet
+        open={modelPicker}
+        onClose={() => setModelPicker(false)}
+        activeProvider={_activeProvider}
+        activeModel={_activeModel}
+        onModelChange={m => { handleModelChange(m); }}
       />
     </div>
   );
