@@ -793,7 +793,7 @@ function handleApiUsage(req, res) {
 }
 
 // ── Sessions ─────────────────────────────────────────────────────────────────
-const SESSIONS_FILE = path.join(YANA_DATA_DIR, 'sessions.json');
+const SESSIONS_FILE = path.join(YANA_DATA_DIR, 'conversations.json');
 const MAX_SESSIONS  = 500;
 
 function loadSessions() {
