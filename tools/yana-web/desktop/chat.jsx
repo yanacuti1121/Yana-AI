@@ -336,17 +336,39 @@ function Chat({ t }) {
     }
   }
 
-  function handleVisionAttach(e) {
+  function compressImageForVision(file) {
+    return new Promise(resolve => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const MAX = 1920;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          const ratio = MAX / Math.max(width, height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const [header, data] = ev.target.result.split(",");
+            resolve({ data, mimeType: header.replace("data:", "").replace(";base64", ""), name: file.name });
+          };
+          reader.readAsDataURL(blob);
+        }, "image/jpeg", 0.85);
+      };
+      img.src = objectUrl;
+    });
+  }
+
+  async function handleVisionAttach(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const dataUrl = ev.target.result; // data:image/jpeg;base64,...
-      const [header, data] = dataUrl.split(",");
-      const mimeType = header.replace("data:", "").replace(";base64", "");
-      setVisionImage({ data, mimeType, name: file.name });
-    };
-    reader.readAsDataURL(file);
+    setVisionImage(await compressImageForVision(file));
   }
 
   async function send() {
@@ -479,8 +501,8 @@ function Chat({ t }) {
         text: tier === "sovereign"
           ? L("Could not reach the local model. SOVEREIGN content only goes to Ollama (127.0.0.1:11434) — start it with `ollama serve`.",
               "Không kết nối được model local. Nội dung SOVEREIGN chỉ đi đến Ollama (127.0.0.1:11434) — chạy `ollama serve` trước.")
-          : L("Could not reach the server. Check that Yana is running and a provider key is set.",
-              "Không kết nối được máy chủ. Kiểm tra Yana đang chạy và đã đặt API key."),
+          : L("Could not reach the server (" + err.message + "). Check that Yana is running and a provider key is set.",
+              "Không kết nối được máy chủ (" + err.message + "). Kiểm tra Yana đang chạy và đã đặt API key."),
       }]);
     }
   }
