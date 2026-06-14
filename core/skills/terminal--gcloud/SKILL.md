@@ -16,7 +16,9 @@ The `gcloud` CLI manages GCP resources, configurations, and deployments from the
 
 ```bash
 # Install gcloud CLI
-curl https://sdk.cloud.google.com | bash
+curl https://sdk.cloud.google.com -o /tmp/gcloud-install.sh
+# Inspect first: head -40 /tmp/gcloud-install.sh — then run if safe:
+bash /tmp/gcloud-install.sh
 exec -l $SHELL
 
 # Initialize and authenticate

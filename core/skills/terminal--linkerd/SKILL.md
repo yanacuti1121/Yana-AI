@@ -16,7 +16,9 @@ Linkerd is an ultralight service mesh for Kubernetes focused on simplicity, secu
 
 ```bash
 # Install Linkerd CLI
-curl --proto '=https' -sSfL https://run.linkerd.io/install | sh
+curl --proto '=https' -sSfL https://run.linkerd.io/install -o /tmp/linkerd-install.sh
+# Inspect first: head -40 /tmp/linkerd-install.sh — then run if safe:
+sh /tmp/linkerd-install.sh
 export PATH=$HOME/.linkerd2/bin:$PATH
 
 # Pre-check cluster

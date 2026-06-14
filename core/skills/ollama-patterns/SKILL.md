@@ -29,7 +29,9 @@ see_also:
 
 ```bash
 # Install
-curl -fsSL https://ollama.ai/install.sh | sh
+curl -fsSL https://ollama.ai/install.sh -o /tmp/ollama-install.sh
+# Inspect first: head -40 /tmp/ollama-install.sh — then run if safe:
+sh /tmp/ollama-install.sh
 
 # Pull models
 ollama pull llama3.2             # 3B — fast, good for dev

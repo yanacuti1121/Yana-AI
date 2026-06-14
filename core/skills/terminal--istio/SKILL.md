@@ -16,7 +16,9 @@ Istio is a service mesh that provides traffic management, security, and observab
 
 ```bash
 # Download and install istioctl
-curl -L https://istio.io/downloadIstio | sh -
+curl -L https://istio.io/downloadIstio -o /tmp/istio-install.sh
+# Inspect first: head -40 /tmp/istio-install.sh — then run if safe:
+sh /tmp/istio-install.sh
 cd istio-* && export PATH=$PWD/bin:$PATH
 
 # Install with production profile

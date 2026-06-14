@@ -27,7 +27,9 @@ compatibility: yamtam-engine >= 1.3.52
 
 ```bash
 # Install CLI
-curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install | sh
+curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install -o /tmp/linkerd-install.sh
+# Inspect first: head -40 /tmp/linkerd-install.sh — then run if safe:
+sh /tmp/linkerd-install.sh
 
 # Pre-flight check
 linkerd check --pre

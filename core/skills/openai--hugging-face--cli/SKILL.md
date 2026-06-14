@@ -8,7 +8,7 @@ version: "0.1.0"
 compatibility: "yamtam-engine >= 0.14.0"
 ---
 
-Install: `curl -LsSf https://hf.co/cli/install.sh | bash -s`.
+Install (download then verify before running): `curl -LsSf https://hf.co/cli/install.sh -o /tmp/hf-install.sh`, inspect with `head -40 /tmp/hf-install.sh`, then `bash /tmp/hf-install.sh`.
 
 The Hugging Face Hub CLI tool `hf` is available. IMPORTANT: The `hf` command replaces the deprecated `huggingface-cli` command.
 

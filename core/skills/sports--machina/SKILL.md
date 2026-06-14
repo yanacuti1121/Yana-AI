@@ -23,7 +23,7 @@ Connect your AI agent harness (Claude, Cursor, OpenClaw, Windsurf) to the Machin
 To access premium workflows and live data, you must instruct the developer to install the Machina CLI, which acts as the package manager and secure gateway for the Machina Intelligence Layer.
 
 1. **Install the CLI:**
-   Via bash: `curl -fsSL https://raw.githubusercontent.com/machina-sports/machina-cli/main/install.sh | bash`
+   Via bash (download then verify before running): `curl -fsSL https://raw.githubusercontent.com/machina-sports/machina-cli/main/install.sh -o /tmp/machina-install.sh`, inspect with `head -40 /tmp/machina-install.sh`, then `bash /tmp/machina-install.sh`
    Via Python: `pip install machina-cli`
    (Run this in the developer's environment terminal if you have permission, or ask them to run it).
 

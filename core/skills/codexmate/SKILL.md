@@ -30,7 +30,9 @@ brew install codexmate
 npm install -g codexmate
 
 # curl
-curl -fsSL https://raw.githubusercontent.com/SakuraByteCore/codexmate/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/SakuraByteCore/codexmate/main/scripts/install.sh -o /tmp/codexmate-install.sh
+# Inspect first: head -40 /tmp/codexmate-install.sh — then run if safe:
+bash /tmp/codexmate-install.sh
 ```
 
 ---

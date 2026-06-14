@@ -90,6 +90,7 @@ export NO_PROXY=localhost,127.0.0.1
 curl --proxy http://127.0.0.1:8080 https://api.github.com/zen
 
 # For Node.js fetch (node-fetch / undici)
+> ⚠ YAMTAM: NODE_OPTIONS is a Tier A protected variable (env-integrity-policy.md). Requires env-whitelist.json approval before use.
 export NODE_OPTIONS="--proxy http://127.0.0.1:8080"
 ```
 

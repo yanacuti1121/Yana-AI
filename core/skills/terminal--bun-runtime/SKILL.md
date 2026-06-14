@@ -18,7 +18,9 @@ Bun is a fast, all-in-one JavaScript toolkit: runtime, package manager, bundler,
 
 ```bash
 # macOS / Linux
-curl -fsSL https://bun.sh/install | bash
+curl -fsSL https://bun.sh/install -o /tmp/bun-install.sh
+# Inspect first: head -40 /tmp/bun-install.sh — then run if safe:
+bash /tmp/bun-install.sh
 
 # Windows (via Scoop)
 scoop install bun

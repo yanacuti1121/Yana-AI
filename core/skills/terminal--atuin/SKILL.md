@@ -18,7 +18,9 @@ You are an expert in Atuin, the Rust-based shell history tool that replaces your
 
 ```bash
 # Install
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh -o /tmp/atuin-install.sh
+# Inspect first: head -40 /tmp/atuin-install.sh — then run if safe:
+sh /tmp/atuin-install.sh
 
 # Import existing history
 atuin import auto                         # Detects bash/zsh/fish
@@ -96,7 +98,9 @@ atuin init fish | source
 brew install atuin
 
 # Linux
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh -o /tmp/atuin-install.sh
+# Inspect first: head -40 /tmp/atuin-install.sh — then run if safe:
+sh /tmp/atuin-install.sh
 
 # Cargo
 cargo install atuin

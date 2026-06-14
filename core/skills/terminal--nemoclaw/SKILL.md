@@ -21,7 +21,9 @@ NemoClaw is an open-source stack by NVIDIA that installs and runs OpenClaw insid
 Prerequisites: Linux Ubuntu 22.04+, Node.js 20+, Docker running, NVIDIA OpenShell installed, NVIDIA API key from build.nvidia.com.
 
 ```bash
-curl -fsSL https://nvidia.com/nemoclaw.sh | bash
+curl -fsSL https://nvidia.com/nemoclaw.sh -o /tmp/nemoclaw-install.sh
+# Inspect first: head -40 /tmp/nemoclaw-install.sh — then run if safe:
+bash /tmp/nemoclaw-install.sh
 ```
 
 The installer runs the guided onboard wizard, creates a sandbox, configures inference (NVIDIA cloud), and applies security policies. After install you see:
@@ -83,7 +85,9 @@ Common issues: Docker not running → start daemon. API key invalid → re-run `
 2. Install OpenShell from https://github.com/NVIDIA/OpenShell
 3. Run the NemoClaw installer:
    ```bash
-   curl -fsSL https://nvidia.com/nemoclaw.sh | bash
+   curl -fsSL https://nvidia.com/nemoclaw.sh -o /tmp/nemoclaw-install.sh
+   # Inspect first: head -40 /tmp/nemoclaw-install.sh — then run if safe:
+   bash /tmp/nemoclaw-install.sh
    ```
 4. Follow onboard wizard — enter sandbox name `code-agent`, select Nemotron model, provide NVIDIA API key
 5. Connect to sandbox:

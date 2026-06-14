@@ -66,7 +66,9 @@ app.get('/api/orders', async (req, res) => {
 
 ```bash
 # Install infrastructure agent on Ubuntu
-curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash
+curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh -o /tmp/newrelic-install.sh
+# Inspect first: head -40 /tmp/newrelic-install.sh — then run if safe:
+bash /tmp/newrelic-install.sh
 sudo NEW_RELIC_API_KEY="NRAK-XXXXXXXXX" NEW_RELIC_ACCOUNT_ID="1234567" \
   /usr/local/bin/newrelic install -n infrastructure-agent-installer
 ```

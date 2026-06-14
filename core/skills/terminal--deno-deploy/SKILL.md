@@ -92,7 +92,9 @@ Deno.serve(app.fetch);
 
 ```bash
 # Install Deno
-curl -fsSL https://deno.land/install.sh | sh
+curl -fsSL https://deno.land/install.sh -o /tmp/deno-install.sh
+# Inspect first: head -40 /tmp/deno-install.sh — then run if safe:
+sh /tmp/deno-install.sh
 
 # Deploy
 deno install -Agf jsr:@deno/deployctl

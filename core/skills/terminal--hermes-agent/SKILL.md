@@ -10,6 +10,10 @@ compatibility: "yamtam-engine >= 0.14.0"
 
 # Hermes Agent — Self-Improving AI Agents
 
+> ⚠ **YAMTAM SECURITY RESTRICTION**
+> The self-modifying system prompt pattern in this skill (writing improvements back to agent config at runtime) is **PROHIBITED for YAMTAM agents** under `62-sovereign-overlord-gate-law.md` and `49-immutable-infrastructure-law.md`.
+> **Permitted use:** User-side application code examples ONLY. Never apply the `_save_config()` / runtime self-update pattern to YAMTAM agent configuration.
+
 ## Overview
 
 Inspired by [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent), this skill helps you build agents that **grow with usage** — capturing feedback, reflecting on their own behavior, and updating their instructions over time.

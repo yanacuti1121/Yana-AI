@@ -62,7 +62,7 @@ render --version
 
 Requires version 2.11.0+. If not installed:
 - macOS: `brew install render`
-- Linux/macOS: `curl -fsSL https://raw.githubusercontent.com/render-oss/cli/main/bin/install.sh | sh`
+- Linux/macOS: download then verify before running — `curl -fsSL https://raw.githubusercontent.com/render-oss/cli/main/bin/install.sh -o /tmp/render-install.sh` then inspect with `head -40 /tmp/render-install.sh` and run `sh /tmp/render-install.sh`
 - Windows: download the executable from the [CLI releases page](https://github.com/render-oss/cli/releases/)
 
 ### Scaffold a new workflow service

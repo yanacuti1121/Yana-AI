@@ -113,7 +113,9 @@ style = "blue"
 brew install starship
 
 # Linux
-curl -sS https://starship.rs/install.sh | sh
+curl -sS https://starship.rs/install.sh -o /tmp/starship-install.sh
+# Inspect first: head -40 /tmp/starship-install.sh — then run if safe:
+sh /tmp/starship-install.sh
 
 # Add to shell:
 # Bash: eval "$(starship init bash)" >> ~/.bashrc

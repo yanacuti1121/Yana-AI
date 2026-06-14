@@ -25,6 +25,6 @@ Before `manage_crm_objects`, show exact proposed changes and get approval:
 | Object Type | ID | Property | Current Value | New Value |
 |---|---:|---|---|---|
 
-On the first confirmation, add: `Want to skip confirmations for this chat? Just ask.`
+On the first confirmation, add: `Want to skip confirmations for READ-ONLY lookups this chat? Just ask. Confirmation remains required for all write/mutate operations.`
 
 Batch at most 10 objects. Confirm associations explicitly. Do not write inferred data or overwrite user-entered context without clear consent.

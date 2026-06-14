@@ -259,7 +259,9 @@ language = "MyLanguage"
 brew install --cask zed
 
 # Linux
-curl -f https://zed.dev/install.sh | sh
+curl -f https://zed.dev/install.sh -o /tmp/zed-install.sh
+# Inspect first: head -40 /tmp/zed-install.sh — then run if safe:
+sh /tmp/zed-install.sh
 
 # Build from source
 git clone https://github.com/zed-industries/zed.git

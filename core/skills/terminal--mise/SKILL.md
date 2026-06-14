@@ -17,7 +17,9 @@ mise manages tool versions — Node.js, Python, Go, Rust, Ruby, etc. One tool re
 
 ### Step 1: Install
 ```bash
-curl https://mise.run | sh
+curl https://mise.run -o /tmp/mise-install.sh
+# Inspect first: head -40 /tmp/mise-install.sh — then run if safe:
+sh /tmp/mise-install.sh
 echo 'eval "$(mise activate bash)"' >> ~/.bashrc
 ```
 

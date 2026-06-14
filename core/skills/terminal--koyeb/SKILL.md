@@ -23,7 +23,9 @@ Koyeb, the serverless cloud platform for deploying full-stack applications, APIs
 
 ```bash
 # Install Koyeb CLI
-curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh -o /tmp/koyeb-install.sh
+# Inspect first: head -40 /tmp/koyeb-install.sh — then run if safe:
+sh /tmp/koyeb-install.sh
 
 # Login
 koyeb login

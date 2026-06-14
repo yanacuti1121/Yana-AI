@@ -20,7 +20,9 @@ Ollama makes running large language models locally as simple as `ollama run llam
 
 ```bash
 # Linux
-curl -fsSL https://ollama.com/install.sh | sh
+curl -fsSL https://ollama.com/install.sh -o /tmp/ollama-install.sh
+# Inspect first: head -40 /tmp/ollama-install.sh — then run if safe:
+sh /tmp/ollama-install.sh
 
 # macOS
 brew install ollama

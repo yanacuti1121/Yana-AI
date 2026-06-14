@@ -10,7 +10,11 @@ PAI (Personal AI Infrastructure) cá»§a Daniel Miessler: Life Operating System â€
 ## Install
 
 ```bash
-curl -sSL https://ourpai.ai/install.sh | bash
+# Download and verify before executing (never pipe to a shell)
+curl -sSL https://ourpai.ai/install.sh -o /tmp/pai-install.sh
+# Inspect first: head -40 /tmp/pai-install.sh
+# If the content looks safe, then run it:
+bash /tmp/pai-install.sh
 # Setup: Bun + Git + ElevenLabs voice (optional) + DA identity
 ```
 

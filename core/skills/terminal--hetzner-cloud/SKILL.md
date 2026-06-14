@@ -186,7 +186,8 @@ hcloud firewall apply-to-resource coolify-firewall --type server --server coolif
 hcloud server ip coolify-server
 
 # 4. SSH in and install Coolify
-ssh root@<server-ip> "curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash"
+# Download then verify before running (never pipe to a shell):
+ssh root@<server-ip> "curl -fsSL https://cdn.coollabs.io/coolify/install.sh -o /tmp/coolify-install.sh && head -40 /tmp/coolify-install.sh && bash /tmp/coolify-install.sh"
 ```
 
 After installation, access Coolify at `http://<server-ip>:8000` and complete the setup wizard.

@@ -29,7 +29,9 @@ bun add -d drizzle-kit
 
 ```bash
 # Install Turso CLI
-curl -sSfL https://get.tur.so/install.sh | bash
+curl -sSfL https://get.tur.so/install.sh -o /tmp/turso-install.sh
+# Inspect first: head -40 /tmp/turso-install.sh — then run if safe:
+bash /tmp/turso-install.sh
 
 # Authenticate
 turso auth login

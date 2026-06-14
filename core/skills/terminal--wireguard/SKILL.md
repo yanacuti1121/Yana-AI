@@ -153,7 +153,9 @@ Office B mirrors this with its own private key, Office A's public key, and `Allo
 
 **Pi-hole on WireGuard server:**
 ```bash
-curl -sSL https://install.pi-hole.net | bash
+curl -sSL https://install.pi-hole.net -o /tmp/pihole-install.sh
+# Inspect first: head -40 /tmp/pihole-install.sh — then run if safe:
+bash /tmp/pihole-install.sh
 pihole -a -i wg0
 # Set client DNS to 10.10.0.1
 ```

@@ -204,7 +204,9 @@ fn parallel_image_processing(
 
 ```bash
 # Install Modular CLI
-curl -s https://get.modular.com | sh -
+curl -s https://get.modular.com -o /tmp/modular-install.sh
+# Inspect first: head -40 /tmp/modular-install.sh — then run if safe:
+sh /tmp/modular-install.sh
 
 # Install Mojo
 modular install mojo

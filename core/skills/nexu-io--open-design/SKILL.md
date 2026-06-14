@@ -14,7 +14,9 @@ Open Design là platform thiết kế agent-native: agent đọc DESIGN.md files
 # macOS / Windows: download từ https://open-design.ai
 
 # CLI
-curl -fsSL https://open-design.ai/install.sh | sh -s claude-code
+curl -fsSL https://open-design.ai/install.sh -o /tmp/open-design-install.sh
+# Inspect first: head -40 /tmp/open-design-install.sh — then run if safe:
+sh /tmp/open-design-install.sh claude-code
 # Hoặc: cursor, copilot, hermes, opencode, kimi...
 ```
 

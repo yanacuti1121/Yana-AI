@@ -24,8 +24,10 @@ Nixpacks, the build system created by Railway that automatically detects your ap
 Build any application into a Docker image:
 
 ```bash
-# Install Nixpacks
-curl -sSL https://nixpacks.com/install.sh | bash
+# Install Nixpacks — download then verify before running
+curl -sSL https://nixpacks.com/install.sh -o /tmp/nixpacks-install.sh
+# Inspect first: head -40 /tmp/nixpacks-install.sh — then run if safe:
+bash /tmp/nixpacks-install.sh
 
 # Build an image (auto-detects language and framework)
 nixpacks build ./my-node-app -n my-app
@@ -141,7 +143,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Nixpacks
-        run: curl -sSL https://nixpacks.com/install.sh | bash
+        run: curl -sSL https://nixpacks.com/install.sh -o /tmp/nixpacks-install.sh && bash /tmp/nixpacks-install.sh
 
       - name: Build image
         run: |

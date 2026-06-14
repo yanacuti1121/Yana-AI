@@ -183,7 +183,9 @@ anvil --fork-url $MAINNET_RPC             # Fork mainnet locally
 ## Installation
 
 ```bash
-curl -L https://foundry.paradigm.xyz | bash
+curl -L https://foundry.paradigm.xyz -o /tmp/foundry-install.sh
+# Inspect first: head -40 /tmp/foundry-install.sh — then run if safe:
+bash /tmp/foundry-install.sh
 foundryup                                 # Install/update forge, cast, anvil, chisel
 ```
 

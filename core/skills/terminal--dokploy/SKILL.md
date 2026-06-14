@@ -25,7 +25,9 @@ Deploy Dokploy on any VPS with one command:
 
 ```bash
 # Install Dokploy (requires Ubuntu 22.04+ or Debian 12+, minimum 1GB RAM)
-curl -sSL https://dokploy.com/install.sh | sh
+curl -sSL https://dokploy.com/install.sh -o /tmp/dokploy-install.sh
+# Inspect first: head -40 /tmp/dokploy-install.sh — then run if safe:
+sh /tmp/dokploy-install.sh
 
 # Access the dashboard at https://your-server-ip:3000
 # Default credentials are set during installation

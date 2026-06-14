@@ -80,7 +80,7 @@ Try to read `SOUL.md` from the workspace root.
 
 In Codex desktop/sandboxed runs, CLI network calls may fail with DNS/network errors until network approval/escalation is granted. Retry with escalation when needed.
 
-**Neither available:** Only if the app is unavailable AND the CLI doesn't work, tell the user once: "To use this skill, connect the HeyGen app or install the HeyGen CLI: `curl -fsSL https://static.heygen.ai/cli/install.sh | bash` then `heygen auth login`." If the only missing capability is local media upload, say that local photos need an HTTPS URL or a CLI/API asset upload first.
+**Neither available:** Only if the app is unavailable AND the CLI doesn't work, tell the user once: "To use this skill, connect the HeyGen app or install the HeyGen CLI (download then verify before running): `curl -fsSL https://static.heygen.ai/cli/install.sh -o /tmp/heygen-install.sh`, inspect with `head -40 /tmp/heygen-install.sh`, then `bash /tmp/heygen-install.sh` and `heygen auth login`." If the only missing capability is local media upload, say that local photos need an HTTPS URL or a CLI/API asset upload first.
 
 **API:** v3 only. Never call v1 or v2 endpoints.
 

@@ -38,7 +38,9 @@ Layer 7 — Ground Truth Hierarchy
 
 ```bash
 # One-command setup — Docker orchestrate Qdrant + Redis + ARQ worker
-curl -fsSL https://raw.githubusercontent.com/ClaudioDrews/memory-os/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ClaudioDrews/memory-os/main/install.sh -o /tmp/memory-os-install.sh
+# Inspect first: head -40 /tmp/memory-os-install.sh — then run if safe:
+bash /tmp/memory-os-install.sh
 ```
 
 ## Core Tools (Fabric Layer)

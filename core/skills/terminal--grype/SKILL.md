@@ -141,7 +141,9 @@ cosign attest --predicate sbom.json --type spdxjson myapp:v1.2.3
 brew install grype
 
 # Linux
-curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh -o /tmp/grype-install.sh
+# Inspect first: head -40 /tmp/grype-install.sh — then run if safe:
+sh /tmp/grype-install.sh -b /usr/local/bin
 
 # Docker
 docker run anchore/grype:latest myapp:latest

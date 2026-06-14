@@ -201,7 +201,9 @@ del(.user)
 brew install vector
 
 # Linux (script)
-curl --proto '=https' --tlsv1.2 -sSfL https://sh.vector.dev | bash
+curl --proto '=https' --tlsv1.2 -sSfL https://sh.vector.dev -o /tmp/vector-install.sh
+# Inspect first: head -40 /tmp/vector-install.sh — then run if safe:
+bash /tmp/vector-install.sh
 
 # Docker
 docker run -v $(pwd)/vector.toml:/etc/vector/vector.toml timberio/vector:latest-alpine

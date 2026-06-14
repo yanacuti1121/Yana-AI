@@ -11,7 +11,9 @@ omp (oh-my-pi): coding agent terminal-first với LSP và debugger wired in — 
 
 ```bash
 # macOS/Linux
-curl -fsSL https://omp.sh/install | sh
+curl -fsSL https://omp.sh/install -o /tmp/omp-install.sh
+# Inspect first: head -40 /tmp/omp-install.sh — then run if safe:
+sh /tmp/omp-install.sh
 
 # Bun
 bun install -g @oh-my-pi/pi-coding-agent

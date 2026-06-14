@@ -146,7 +146,9 @@ tofu import aws_s3_bucket.data my-bucket  # Import existing resources
 brew install opentofu
 
 # Linux
-curl -fsSL https://get.opentofu.org/install-opentofu.sh | sh
+curl -fsSL https://get.opentofu.org/install-opentofu.sh -o /tmp/opentofu-install.sh
+# Inspect first: head -40 /tmp/opentofu-install.sh — then run if safe:
+sh /tmp/opentofu-install.sh
 
 # Docker
 docker run -it ghcr.io/opentofu/opentofu:latest init

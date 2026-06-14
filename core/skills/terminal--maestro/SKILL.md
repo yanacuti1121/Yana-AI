@@ -29,8 +29,10 @@ You are an expert in Maestro, the mobile UI testing framework that uses simple Y
 # setup-maestro.sh — Install Maestro and verify it works.
 # Works on macOS and Linux.
 
-# Install
-curl -Ls "https://get.maestro.mobile.dev" | bash
+# Install — download then verify before running
+curl -Ls "https://get.maestro.mobile.dev" -o /tmp/maestro-install.sh
+# Inspect first: head -40 /tmp/maestro-install.sh — then run if safe:
+bash /tmp/maestro-install.sh
 
 # Verify
 maestro --version
@@ -182,7 +184,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Install Maestro
-        run: curl -Ls "https://get.maestro.mobile.dev" | bash
+        run: curl -Ls "https://get.maestro.mobile.dev" -o /tmp/maestro-install.sh && bash /tmp/maestro-install.sh
       - name: Start emulator and run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

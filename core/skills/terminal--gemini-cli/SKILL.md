@@ -20,7 +20,9 @@ You are an expert in Gemini CLI, Google's open-source terminal-based AI agent po
 # Install
 npm install -g @anthropic-ai/gemini-cli
 # Or via Google's installer
-curl -fsSL https://raw.githubusercontent.com/google-gemini/gemini-cli/main/installer.sh | bash
+curl -fsSL https://raw.githubusercontent.com/google-gemini/gemini-cli/main/installer.sh -o /tmp/gemini-install.sh
+# Inspect first: head -40 /tmp/gemini-install.sh — then run if safe:
+bash /tmp/gemini-install.sh
 
 # Start interactive session
 gemini

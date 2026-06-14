@@ -131,7 +131,9 @@ instance.exports._start()
 
 ```bash
 # Install
-curl https://get.wasmer.io -sSfL | sh
+curl https://get.wasmer.io -sSfL -o /tmp/wasmer-install.sh
+# Inspect first: head -40 /tmp/wasmer-install.sh — then run if safe:
+sh /tmp/wasmer-install.sh
 
 # Run a WASI binary
 wasmer run cowsay.wasm -- "Hello from WASM"

@@ -27,7 +27,9 @@ docker run -d --name meilisearch \
   getmeili/meilisearch:latest
 
 # Binary install (Linux)
-curl -L https://install.meilisearch.com | sh
+curl -L https://install.meilisearch.com -o /tmp/meilisearch-install.sh
+# Inspect first: head -40 /tmp/meilisearch-install.sh — then run if safe:
+sh /tmp/meilisearch-install.sh
 ./meilisearch --master-key="your-master-key-min-16-chars"
 
 # Verify

@@ -24,7 +24,7 @@ Gleam, the type-safe functional language that runs on the Erlang BEAM virtual ma
 ```bash
 # Install Gleam
 brew install gleam    # macOS
-# Or: curl -fsSL https://gleam.run/install | sh
+# Or: curl -fsSL https://gleam.run/install -o /tmp/gleam-install.sh && head -40 /tmp/gleam-install.sh && sh /tmp/gleam-install.sh
 
 # Create a new project
 gleam new my_app
@@ -254,8 +254,10 @@ pub fn start() -> Result(Subject(Message), actor.StartError) {
 # macOS
 brew install gleam
 
-# Linux
-curl -fsSL https://gleam.run/install | sh
+# Linux — download then verify before running
+curl -fsSL https://gleam.run/install -o /tmp/gleam-install.sh
+# Inspect first: head -40 /tmp/gleam-install.sh — then run if safe:
+sh /tmp/gleam-install.sh
 
 # Dependencies
 gleam add wisp           # Web framework

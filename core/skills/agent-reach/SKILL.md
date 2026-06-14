@@ -32,7 +32,9 @@ Mỗi channel dùng một open-source CLI backend riêng.
 pip install agent-reach
 
 # Hoặc để agent tự cài qua script
-curl -fsSL https://raw.githubusercontent.com/Panniantong/Agent-Reach/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Panniantong/Agent-Reach/main/install.sh -o /tmp/agent-reach-install.sh
+# Inspect first: head -40 /tmp/agent-reach-install.sh — then run if safe:
+bash /tmp/agent-reach-install.sh
 ```
 
 Sau khi cài, agent đọc docs được register tự động.

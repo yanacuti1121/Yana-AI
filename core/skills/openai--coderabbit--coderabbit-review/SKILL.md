@@ -26,7 +26,9 @@ coderabbit --version
 If the command is not found or reports that CodeRabbit is not installed, do not stop at the error. Install it:
 
 ```bash
-curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+curl -fsSL https://cli.coderabbit.ai/install.sh -o /tmp/coderabbit-install.sh
+# Inspect first: head -40 /tmp/coderabbit-install.sh — then run if safe:
+sh /tmp/coderabbit-install.sh
 ```
 
 Then re-run `coderabbit --version` to confirm the install succeeded before continuing. After a fresh install, proceed to the authentication step — the user will need to log in.

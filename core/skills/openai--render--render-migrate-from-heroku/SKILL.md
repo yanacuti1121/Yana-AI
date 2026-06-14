@@ -156,7 +156,7 @@ render --version
 If not installed, offer to install it:
 
 - macOS: `brew install render`
-- Linux/macOS: `curl -fsSL https://raw.githubusercontent.com/render-oss/cli/main/bin/install.sh | sh`
+- Linux/macOS: download then verify before running — `curl -fsSL https://raw.githubusercontent.com/render-oss/cli/main/bin/install.sh -o /tmp/render-install.sh` then inspect with `head -40 /tmp/render-install.sh` and run `sh /tmp/render-install.sh`
 
 Once the CLI is available, run the validation command and show the output to the user:
 

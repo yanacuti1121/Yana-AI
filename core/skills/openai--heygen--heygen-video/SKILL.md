@@ -65,7 +65,7 @@ Detect in this order:
 1. **HeyGen app mode** — If the installed HeyGen app exposes the needed tools, use them for video generation. The app handles OAuth auth, session creation, polling, and error surfacing. Frame Check still runs before submission.
 2. **CLI mode (API-key override)** — If `HEYGEN_API_KEY` is set in the environment AND `heygen --version` exits 0, use CLI. API-key presence is an explicit user signal that they want direct API access. No question asked.
 3. **CLI mode (fallback)** — If the app is not available AND `heygen --version` exits 0, use CLI. Auth via `heygen auth login` (persists to `~/.heygen/credentials`).
-4. **Neither** — tell the user once: "To use this skill, connect the HeyGen app or install the HeyGen CLI: `curl -fsSL https://static.heygen.ai/cli/install.sh | bash` then `heygen auth login`."
+4. **Neither** — tell the user once: "To use this skill, connect the HeyGen app or install the HeyGen CLI (download then verify before running): `curl -fsSL https://static.heygen.ai/cli/install.sh -o /tmp/heygen-install.sh`, inspect with `head -40 /tmp/heygen-install.sh`, then `bash /tmp/heygen-install.sh` and `heygen auth login`."
 
 ### Sandbox/Network Note (Codex)
 

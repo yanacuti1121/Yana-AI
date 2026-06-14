@@ -19,7 +19,9 @@ Build AI systems that work completely offline — local LLMs via Ollama, embedde
 ### Step 1: Install Ollama for Local LLMs
 
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
+curl -fsSL https://ollama.ai/install.sh -o /tmp/ollama-install.sh
+# Inspect first: head -40 /tmp/ollama-install.sh — then run if safe:
+sh /tmp/ollama-install.sh
 ollama pull llama3.1:8b       # General purpose (4.7GB)
 ollama pull nomic-embed-text   # Embeddings (274MB)
 ```

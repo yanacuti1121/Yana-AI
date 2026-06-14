@@ -114,7 +114,7 @@ npm install @libsql/client
 
 # CLI
 brew install tursodatabase/tap/turso       # macOS
-curl -sSfL https://get.tur.so/install.sh | bash  # Linux
+curl -sSfL https://get.tur.so/install.sh -o /tmp/turso-install.sh  # Linux — inspect then: bash /tmp/turso-install.sh
 
 turso db create my-app
 turso db tokens create my-app              # Get auth token
