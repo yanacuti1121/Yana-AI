@@ -463,7 +463,7 @@ async function handleApiModels(req, res) {
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
   const { provider, key } = parsed;
-  if (!provider || (!key && provider !== 'ollama')) { jsonError(res, 400, 'Missing provider or key'); return; }
+  if (!provider) { jsonError(res, 400, 'Missing provider'); return; }
 
   const LIVE_PROVIDERS = {
     openrouter: {
@@ -493,7 +493,8 @@ async function handleApiModels(req, res) {
       hostname: '127.0.0.1',
       port:     20128,
       path:     '/v1/models',
-      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      keyless:  true,
+      headers:  k => (k ? { 'Authorization': `Bearer ${k}` } : {}),
       transform: data => (data.data || [])
         .filter(m => m.id)
         .map(m => ({ id: m.id, name: m.name || m.id }))
@@ -504,6 +505,7 @@ async function handleApiModels(req, res) {
       hostname: '127.0.0.1',
       port:     11434,
       path:     '/v1/models',
+      keyless:  true,
       headers:  _k => ({}),
       transform: data => (data.data || [])
         .filter(m => m.id)
@@ -514,6 +516,7 @@ async function handleApiModels(req, res) {
 
   const prov = LIVE_PROVIDERS[provider];
   if (!prov) { jsonError(res, 400, `Provider "${provider}" has no live model API`); return; }
+  if (!key && !prov.keyless) { jsonError(res, 400, 'Missing key'); return; }
 
   const options = { hostname: prov.hostname, port: prov.port, path: prov.path,
                     method: 'GET', headers: prov.headers(key) };
