@@ -698,6 +698,26 @@ function Chat({ t }) {
         <div className="glass-strong" style={{ borderRadius: "var(--r-lg)", padding: "10px 10px 10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
           <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
           <input type="file" ref={visionRef} accept="image/*" style={{ display: "none" }} onChange={handleVisionAttach} />
+          <button
+            onClick={() => {
+              if (!htmlPicker && !htmlSkills.length) {
+                fetch("/api/html/skills").then((r) => r.ok ? r.json() : null).then((d) => { if (d && d.skills) setHtmlSkills(d.skills); }).catch(() => {});
+              }
+              setHtmlPicker((v) => !v);
+              setHtmlSearch("");
+            }}
+            aria-pressed={htmlPicker}
+            title={L("HTML templates", "Template HTML")}
+            style={{
+              width: 32, height: 32, borderRadius: 9, flex: "none",
+              border: "1px solid " + (htmlPicker ? "var(--primary)" : "var(--border)"),
+              background: htmlPicker ? "var(--primary-soft)" : "transparent",
+              color: htmlPicker ? "var(--primary)" : "var(--ink-2)",
+              cursor: "pointer", fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              display: "grid", placeItems: "center",
+            }}>
+            &lt;/&gt;
+          </button>
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -740,26 +760,6 @@ function Chat({ t }) {
               {visionImage.name} ✕
             </span>
           )}
-          <button
-            onClick={() => {
-              if (!htmlPicker && !htmlSkills.length) {
-                fetch("/api/html/skills").then((r) => r.ok ? r.json() : null).then((d) => { if (d && d.skills) setHtmlSkills(d.skills); }).catch(() => {});
-              }
-              setHtmlPicker((v) => !v);
-              setHtmlSearch("");
-            }}
-            aria-pressed={htmlPicker}
-            title={L("HTML templates", "Template HTML")}
-            style={{
-              width: 32, height: 32, borderRadius: 9, flex: "none",
-              border: "1px solid " + (htmlPicker ? "var(--primary)" : "var(--border)"),
-              background: htmlPicker ? "var(--primary-soft)" : "transparent",
-              color: htmlPicker ? "var(--primary)" : "var(--ink-2)",
-              cursor: "pointer", fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-              display: "grid", placeItems: "center",
-            }}>
-            &lt;/&gt;
-          </button>
           <button
             onClick={() => setConfMode((v) => !v)}
             aria-pressed={confMode}
