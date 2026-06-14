@@ -40,17 +40,16 @@ COPY tools/yana-web/package.json tools/yana-web/package-lock.json ./tools/yana-w
 # 3. Install production deps (resolves file:../../packages/yamtam-core)
 RUN cd tools/yana-web && npm ci --omit=dev
 
-# 4. Server source (remaining files after deps installed)
-COPY tools/yana-web/ ./tools/yana-web/
+# 4. Skills + Agents TRƯỚC code — layer này cache khi chỉ code thay đổi
+#    (3,400+ SKILL.md = 44MB, ít thay đổi hơn server code)
+COPY core/skills/ ./core/skills/
+COPY core/agents/ ./core/agents/
 
-# 5. MANIFEST (used by /api/status)
+# 5. MANIFEST
 COPY MANIFEST.json ./MANIFEST.json
 
-# 6. Skills — 3,400+ SKILL.md files for skill routing
-COPY core/skills/ ./core/skills/
-
-# 7. Agents — system prompt .md files
-COPY core/agents/ ./core/agents/
+# 6. Server source — thay đổi thường xuyên nhất, để cuối cùng
+COPY tools/yana-web/ ./tools/yana-web/
 
 # ── Runtime config ─────────────────────────────────────────────────────────
 ENV PORT=8081
