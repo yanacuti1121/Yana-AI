@@ -133,6 +133,32 @@ function MContextSheet({ open, onClose, overrideProvider, overrideModel, onProvi
               style={{ ...selectStyle, textAlign: "right", width: 164, cursor: "text", fontFamily: "ui-monospace, monospace", fontSize: 11.5 }}
             />
           </div>
+          {_p === "groq" && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+              <span style={{ color: "var(--ink-3)" }}>Mode</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[
+                  { label: "Text", model: "llama-3.3-70b-versatile" },
+                  { label: "Vision", model: "llama-3.2-11b-vision-preview" },
+                ].map(({ label, model }) => (
+                  <button
+                    key={label}
+                    onClick={() => onModelChange(model)}
+                    style={{
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      padding: "3px 10px",
+                      fontSize: 12,
+                      fontWeight: _m === model ? 600 : 400,
+                      background: _m === model ? "var(--accent, #6366f1)" : "var(--surface)",
+                      color: _m === model ? "#fff" : "var(--ink-2)",
+                      cursor: "pointer",
+                    }}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
             <span style={{ color: "var(--ink-3)" }}>{L("Orchestrator", "Điều phối")}</span>
             <span style={{ fontWeight: 500 }}>Navigator</span>
@@ -178,6 +204,8 @@ function MChat() {
   const [overrideModel, setOverrideModel] = React.useState(
     () => localStorage.getItem("yana.chat.model") || ""
   );
+  const [visionImage, setVisionImage] = React.useState(null);
+  const visionRef = React.useRef(null);
 
   function handleProviderChange(p) {
     setOverrideProvider(p);
@@ -190,6 +218,7 @@ function MChat() {
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
   const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
+  const isVisionModel = (m) => m && m.includes("vision");
 
   React.useEffect(() => {
     const el = logRef.current;
@@ -214,6 +243,19 @@ function MChat() {
   }, [msgs]);
 
   React.useEffect(() => { return () => { if (readerRef.current) readerRef.current.cancel(); }; }, []);
+
+  function handleVisionAttach(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dataUrl = ev.target.result;
+      const [header, data] = dataUrl.split(",");
+      const mimeType = header.replace("data:", "").replace(";base64", "");
+      setVisionImage({ data, mimeType, name: file.name });
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function handleOcr(e) {
     const file = e.target.files && e.target.files[0];
@@ -259,12 +301,14 @@ function MChat() {
     const model = overrideModel || M_CHAT_MODELS[provider] || "";
 
     try {
+      const capturedVisionImage = visionImage;
+      setVisionImage(null);
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tier
-          ? { task: text, apiKey, provider, model, sensitivity: tier }
-          : { task: text, apiKey, provider, model, about: mAboutContext() }),
+          ? { task: text, apiKey, provider, model, sensitivity: tier, ...(capturedVisionImage ? { images: [capturedVisionImage] } : {}) }
+          : { task: text, apiKey, provider, model, about: mAboutContext(), ...(capturedVisionImage ? { images: [capturedVisionImage] } : {}) }),
       });
 
       if (!res.ok || !res.body) throw new Error("HTTP " + res.status);
@@ -362,6 +406,7 @@ function MChat() {
 
       <div style={{ flex: "none", padding: "8px 12px calc(12px + env(safe-area-inset-bottom, 0px))" }}>
         <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
+        <input type="file" ref={visionRef} accept="image/*" style={{ display: "none" }} onChange={handleVisionAttach} />
         <div className="glass-strong" style={{ borderRadius: 18, padding: "7px 7px 7px 15px", display: "flex", alignItems: "center", gap: 9 }}>
           <input
             value={draft}
@@ -370,6 +415,21 @@ function MChat() {
             placeholder={L("Give Yana a direction…", "Giao cho Yana một hướng đi…")}
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontSize: 14.5, fontFamily: "inherit", color: "var(--ink)" }}
           />
+          {isVisionModel(_activeModel) && (
+            <button
+              onClick={() => visionRef.current && visionRef.current.click()}
+              style={{ background: "none", border: "none", padding: "0 4px", cursor: "pointer", opacity: visionImage ? 1 : 0.55 }}
+              title={visionImage ? visionImage.name : "Attach image"}
+            >
+              {visionImage ? "🖼️" : "📷"}
+            </button>
+          )}
+          {visionImage && (
+            <span
+              onClick={() => setVisionImage(null)}
+              style={{ fontSize: 10, color: "var(--ink-3)", cursor: "pointer" }}
+            >✕</span>
+          )}
           <button
             onClick={() => fileRef.current && fileRef.current.click()}
             aria-label={L("Attach file", "Đính kèm file")}
