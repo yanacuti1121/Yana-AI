@@ -50,24 +50,22 @@ Luồng tối thiểu:
 
 ---
 
-### Phase 3 — Core Separation *(✅ done · 2026-06)*
+### Phase 3 — Core Integration *(✅ done · 2026-06)*
 
-**Mục tiêu:** Tách `yamtam-core` và `yana-web` thành 2 package độc lập.
+**Quyết định:** Repo đã private — không cần tách core thành package riêng.
+
+Core router/classifier/agents/skills code được inline trực tiếp vào `tools/yana-web/lib/`:
 
 ```
-yamtam-core   — Router · Safety · Context · Memory (npm package)
-yana-web      — UI chạy trên yamtam-core (app)
+tools/yana-web/lib/
+  core.js        — createCore() factory
+  classifier.js  — task routing + Rule 68 sensitivity
+  agents.js      — system prompt loader
+  skills.js      — skill index + prompt loader
+  router.js      — yamtam-rt bridge + JS fallback
 ```
 
-**Tại sao:** Bây giờ mọi thứ trong 1 repo → khó test, khó contribute, khó dùng lại.  
-Sau phase này: bất kỳ ai có thể `npm install yamtam-core` và build interface riêng.
-
-**Đã làm:**
-- `packages/yamtam-core/` — npm package với `createCore({ rootDir })` factory API
-- `yana-web` import `require('yamtam-core')` — không còn relative path
-- Configurable dirs — bất kỳ repo nào cũng plug-in được
-
-**Done khi:** `yana-web` import `yamtam-core` từ npm, không phải relative path. ✅
+Configurable dirs — bất kỳ repo nào cũng plug-in được qua `createCore({ rootDir })`.
 
 ---
 
@@ -77,7 +75,7 @@ Sau phase này: bất kỳ ai có thể `npm install yamtam-core` và build inte
 
 - [x] **Học tập** — `core/agents/hoc-tap.md` — giải thích analogy-first, Socratic, VI default
 - [x] **Công việc hàng ngày** — `core/agents/daily-assistant.md` — tóm tắt / lên kế hoạch / soạn email
-- [x] **Routing** — `yamtam-core` classify `learn` + `daily` routes, tách khỏi coding pipeline
+- [x] **Routing** — classifier classify `learn` + `daily` routes, tách khỏi coding pipeline
 - [x] **Yana UI** — 6 welcome chips, subtitle cập nhật "coding · học tập · công việc"
 - [ ] Workflow automation (n8n) — future
 - [ ] Knowledge graph (graphify) — future
