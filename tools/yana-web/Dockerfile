@@ -31,16 +31,13 @@ RUN apk add --no-cache tini su-exec \
 WORKDIR /app
 
 # ── Copy only what the server needs ───────────────────────────────────────
-# 1. Local dependency yamtam-core (must exist before npm ci resolves file: path)
-COPY packages/yamtam-core/ ./packages/yamtam-core/
-
-# 2. package files only — for layer caching (npm ci reruns only when these change)
+# 1. package files only — for layer caching (npm ci reruns only when these change)
 COPY tools/yana-web/package.json tools/yana-web/package-lock.json ./tools/yana-web/
 
-# 3. Install production deps (resolves file:../../packages/yamtam-core)
+# 2. Install production deps (no external deps — installs nothing, writes lock)
 RUN cd tools/yana-web && npm ci --omit=dev
 
-# 4. Skills + Agents TRƯỚC code — layer này cache khi chỉ code thay đổi
+# 3. Skills + Agents TRƯỚC code — layer này cache khi chỉ code thay đổi
 #    (3,400+ SKILL.md = 44MB, ít thay đổi hơn server code)
 COPY core/skills/ ./core/skills/
 COPY core/agents/ ./core/agents/

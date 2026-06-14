@@ -8,8 +8,5 @@
   },
   "scripts": {
     "start": "node server.js"
-  },
-  "dependencies": {
-    "yamtam-core": "file:../../packages/yamtam-core"
   }
 }

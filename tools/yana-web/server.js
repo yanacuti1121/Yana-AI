@@ -7,7 +7,7 @@ const os    = require('os');
 const path  = require('path');
 const url   = require('url');
 const { execFileSync } = require('child_process');
-const { createCore } = require('yamtam-core');
+const { createCore } = require('./lib/core');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: path.join(__dirname, '..', '..'),
 });
