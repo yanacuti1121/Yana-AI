@@ -655,17 +655,17 @@ function Chat({ t }) {
                     .filter((s) => {
                       if (!htmlSearch) return true;
                       const q = htmlSearch.toLowerCase();
-                      return (s.name || "").toLowerCase().includes(q) || (s.zhName || "").toLowerCase().includes(q) || (s.category || "").toLowerCase().includes(q);
+                      return (s.enName || s.id).toLowerCase().includes(q) || (s.category || "").toLowerCase().includes(q);
                     })
                     .map((s) => (
                       <button key={s.id}
                         onClick={() => {
-                          setDraft((d) => (d ? d + " " : "") + (s.zhName || s.name) + ": ");
+                          setDraft((d) => (d ? d + " " : "") + (s.enName || s.id) + ": ");
                           setHtmlPicker(false);
                           setHtmlSearch("");
                         }}
                         style={{ padding: "4px 11px", borderRadius: 99, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-2)", cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>
-                        {s.zhName || s.name}
+                        {s.enName || s.id}
                       </button>
                     ))
               }
