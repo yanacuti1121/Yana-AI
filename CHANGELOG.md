@@ -32,7 +32,7 @@ All notable changes to YAMTAM ENGINE release packs are documented here.
 
 - **Rule 68 thành code thật 3 tầng**: `yamtam-rt route classify` trả `sensitivity`
   (public/internal/confidential/sovereign) + `allow_persist` + `model_scope`;
-  yamtam-core classifier mirror + export `classifySensitivity`; Yana web có
+  classifier mirror + export `classifySensitivity`; Yana web có
   **Confidential Mode** (nút 🔒 + auto-detect marker VI/EN → không lưu lịch sử,
   không kèm about-context, SOVEREIGN chỉ đi model local)
 - **Ollama provider** (on-device, keyless, 127.0.0.1:11434) — tier SOVEREIGN;
