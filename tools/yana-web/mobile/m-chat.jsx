@@ -18,6 +18,7 @@ const M_MODEL_CATALOG = [
   { id: "gpt-4o",                         provider: "openai",     tag: "Vision",    label: "GPT-4o",               desc: "Xem ảnh + phân tích" },
   // Gemini
   { id: "gemini-2.0-flash",               provider: "gemini",     tag: "Nhanh",     label: "Gemini 2.0 Flash",     desc: "Nhanh, multimodal" },
+  { id: "gemini-2.0-flash-lite",          provider: "gemini",     tag: "Siêu nhanh",label: "Gemini 2.0 Lite",      desc: "Nhỏ hơn, tiết kiệm hơn" },
   { id: "gemini-1.5-pro",                 provider: "gemini",     tag: "Mạnh",      label: "Gemini 1.5 Pro",       desc: "Context 1M token" },
   // Groq
   { id: "llama-3.3-70b-versatile",                        provider: "groq", tag: "Nhanh",  label: "Llama 3.3 70B",       desc: "Văn bản, đa năng, rất nhanh" },
@@ -274,7 +275,7 @@ function MChat() {
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
   const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
-  const isVisionModel = (m) => m && (m.includes("vision") || m.includes("scout") || m.includes("llama-4"));
+  const isVisionModel = (_m) => ["claude", "openai", "gemini", "groq", "openrouter"].includes(_activeProvider);
 
   // Fetch real model list for live providers (groq, openrouter, etc.)
   React.useEffect(() => {

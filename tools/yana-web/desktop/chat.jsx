@@ -121,9 +121,9 @@ const CHAT_MODELS = {
 // Curated model choices per provider — providers in CHAT_LIVE_MODELS get the
 // real list fetched from /api/models when a key is available.
 const MODEL_CHOICES = {
-  claude:     ["claude-sonnet-4-6", "claude-opus-4-8", "claude-haiku-4-5"],
+  claude:     ["claude-sonnet-4-6", "claude-opus-4-8", "claude-haiku-4-5-20251001"],
   openai:     ["gpt-4o-mini", "gpt-4o"],
-  gemini:     ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
+  gemini:     ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"],
   deepseek:   ["deepseek-chat", "deepseek-reasoner"],
   groq:       ["llama-3.3-70b-versatile", "meta-llama/llama-4-scout-17b-16e-instruct"],
   openrouter: ["google/gemma-3-27b-it"],
@@ -257,7 +257,7 @@ function Chat({ t }) {
   const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
   const activeModel = modelSel[activeProvider] || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
 
-  const isVisionModel = (model) => model && (model.includes("vision") || model.includes("scout"));
+  const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter"].includes(activeProvider);
 
   function pickModel(v) {
     setModelSel((prev) => {
