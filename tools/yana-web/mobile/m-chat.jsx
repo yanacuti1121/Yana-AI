@@ -117,9 +117,14 @@ function MMessage({ msg }) {
 }
 
 const M_ALL_PROVIDERS = Object.keys(M_CHAT_MODELS);
+const M_LIVE_PROVIDERS = new Set(["groq", "openrouter", "9router", "ollama"]);
 
-function MModelPickerSheet({ open, onClose, activeProvider, activeModel, onModelChange }) {
-  const models = M_MODEL_CATALOG.filter(m => m.provider === activeProvider);
+function MModelPickerSheet({ open, onClose, activeProvider, activeModel, onModelChange, liveModels }) {
+  // Use live model list if available, fall back to curated catalog
+  const liveIds = liveModels && liveModels[activeProvider];
+  const models = liveIds
+    ? liveIds.map(id => M_MODEL_CATALOG.find(m => m.id === id) || { id, provider: activeProvider, label: id, desc: "", tag: "" })
+    : M_MODEL_CATALOG.filter(m => m.provider === activeProvider);
 
   const tagColor = (tag) => {
     if (tag === "Vision")    return { bg: "#6366f1", color: "#fff" };
@@ -256,6 +261,7 @@ function MChat() {
   );
   const [visionImage, setVisionImage] = React.useState(null);
   const visionRef = React.useRef(null);
+  const [liveModels, setLiveModels] = React.useState({});
 
   function handleProviderChange(p) {
     setOverrideProvider(p);
@@ -268,7 +274,28 @@ function MChat() {
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
   const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
-  const isVisionModel = (m) => m && (m.includes("vision") || m.includes("scout"));
+  const isVisionModel = (m) => m && (m.includes("vision") || m.includes("scout") || m.includes("llama-4"));
+
+  // Fetch real model list for live providers (groq, openrouter, etc.)
+  React.useEffect(() => {
+    const id = _activeProvider;
+    if (!M_LIVE_PROVIDERS.has(id) || liveModels[id]) return;
+    if (typeof YanaVault === "undefined") return;
+    const key = YanaVault.getKey(id) || "";
+    if (!key && id !== "ollama" && id !== "9router") return;
+    fetch("/api/models", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: id, key }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d && Array.isArray(d.models) && d.models.length) {
+          setLiveModels(m => ({ ...m, [id]: d.models.slice(0, 60).map(x => x.id) }));
+        }
+      })
+      .catch(() => {});
+  }, [_activeProvider]);
 
   React.useEffect(() => {
     const el = logRef.current;
@@ -528,6 +555,7 @@ function MChat() {
         activeProvider={_activeProvider}
         activeModel={_activeModel}
         onModelChange={m => { handleModelChange(m); }}
+        liveModels={liveModels}
       />
     </div>
   );
