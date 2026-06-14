@@ -183,7 +183,7 @@ Deploy:   Railway (hiện tại đã có)
 | Repo | Mục đích | Tích hợp vào đâu |
 |------|----------|-----------------|
 | [anime.js](https://github.com/juliangarnier/anime) | Hiệu ứng chuyển động | Yana Web frontend |
-| [Google Labs design.md](https://github.com/google-labs-code/design.md) | Mẫu tài liệu thiết kế | yamtam-core documentation |
+| [Google Labs design.md](https://github.com/google-labs-code/design.md) | Mẫu tài liệu thiết kế | YAMTAM documentation |
 
 Những thứ này **không làm ngay** — chỉ để biết phase 4 trông như thế nào.
 
