@@ -3,7 +3,7 @@
 // audit log + uptime), /api/usage (per-provider stats), YanaVault (keys).
 function StatTile({ label, value, sub, accent }) {
   return (
-    <div className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 4 }}>
+    <div className="glass card-interactive" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 4 }}>
       <span className="label-xs">{label}</span>
       <span className="num-lg">{value}</span>
       <span style={{ fontSize: 12.5, color: accent ? "var(--primary)" : "var(--ink-3)" }}>{sub}</span>
@@ -224,14 +224,14 @@ function Dashboard({ t, onNav }) {
     <div data-screen-label="Lake">
       <MissionComposer onNav={onNav} missionCount={missions.filter((m) => m.status !== "done").length} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--gap)", marginBottom: "var(--gap)" }}>
+      <div className="grid-stat">
         <StatTile label={L("Agents", "Tác nhân")} value={D.stats.agents || "—"} sub={L("in catalog", "trong danh mục")} accent />
         <StatTile label={L("Skills", "Kỹ năng")} value={(D.stats.skills || 0).toLocaleString()} sub={L("indexed & callable", "đã lập chỉ mục")} />
         <StatTile label={L("Missions", "Nhiệm vụ")} value={missions.filter((m) => m.status !== "done").length} sub={L("in motion", "đang diễn ra")} />
         <StatTile label={L("Memories", "Ký ức")} value={mem ? mem.total : "—"} sub={mem ? "+" + mem.today + L(" today", " hôm nay") : L("L1 atomic facts", "L1 atomic facts")} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: "var(--gap)" }}>
+      <div className="grid-main">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
           <Card title={L("Active AI Models", "Mô hình AI đang hoạt động")} aside={<span className="chip neutral">{connected.length} {L("providers", "nhà cung cấp")}</span>}>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -280,7 +280,7 @@ function Dashboard({ t, onNav }) {
 
           {t.showSystem && (
             <Card title={L("System Health", "Sức khỏe hệ thống")}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="grid-2">
                 {[
                   [L("Audit events", "Sự kiện audit"), safety ? safety.events_today + L(" today", " hôm nay") : "—"],
                   [L("Blocked actions", "Hành động bị chặn"), safety ? String(safety.blocked_today) : "—"],

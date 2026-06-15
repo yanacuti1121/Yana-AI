@@ -130,7 +130,7 @@ function ProviderCard({ p, usage, onKeyChange }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+      <div className="grid-3" style={{ paddingTop: 10, borderTop: "1px solid var(--border)" }}>
         {[[L("Usage", "Sử dụng"), usageDisplay], [L("Latency", "Độ trễ"), latencyDisplay]].map(([k, v]) => (
           <div key={k} style={{ lineHeight: 1.35, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{k}</div>

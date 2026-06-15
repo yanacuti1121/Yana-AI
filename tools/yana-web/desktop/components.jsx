@@ -194,9 +194,10 @@ function PageHeader({ title, sub, children }) {
   );
 }
 
-function Card({ title, aside, children, style, className }) {
+function Card({ title, aside, children, style, className, interactive }) {
+  const iClass = interactive !== false ? "card-interactive" : "";
   return (
-    <section className={"glass " + (className || "")} style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", ...style }}>
+    <section className={"glass " + iClass + " " + (className || "")} style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", ...style }}>
       {(title || aside) && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           {title && <h2 className="label-xs" style={{ margin: 0 }}>{title}</h2>}

@@ -203,6 +203,79 @@ button { font-family: inherit; }
 *::-webkit-scrollbar-thumb { background: rgba(var(--shadow-rgb), 0.14); border-radius: 99px; border: 3px solid transparent; background-clip: content-box; }
 *::-webkit-scrollbar-track { background: transparent; }
 
+/* ============ responsive grid system ============ */
+.grid-stat {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+.grid-main {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: var(--gap);
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 860px) {
+  .grid-stat { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  .grid-main { grid-template-columns: 1fr; }
+  .grid-2    { grid-template-columns: 1fr; }
+  .grid-3    { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .grid-3    { grid-template-columns: 1fr; }
+}
+
+/* ============ card interactive feedback ============ */
+.card-interactive {
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition:
+    transform .18s cubic-bezier(.4, 0, .2, 1),
+    box-shadow .18s cubic-bezier(.4, 0, .2, 1);
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 6px  rgba(var(--shadow-rgb), calc(0.04 + var(--depth) * 0.08)),
+    0 18px 40px rgba(var(--shadow-rgb), calc(0.05 + var(--depth) * 0.14)),
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--reflect) * 0.95));
+}
+.card-interactive:active {
+  transform: translateY(0) scale(0.995);
+  transition-duration: .08s;
+}
+
+/* ripple spawned by water.js */
+.card-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: rgba(var(--surface-rgb), 0.50);
+  pointer-events: none;
+  animation: card-ripple-anim .55s cubic-bezier(.4, 0, .2, 1) forwards;
+}
+@keyframes card-ripple-anim {
+  to { transform: scale(5); opacity: 0; }
+}
+
+/* No horizontal overflow at any width */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+
 /* ============ responsive: sidebar becomes a drawer ≤ 860px ============ */
 .yana-app { padding: calc(16px * var(--sp)); }
 .yana-sidebar { width: 218px; flex: none; position: relative; z-index: 2; }
@@ -250,8 +323,104 @@ button { font-family: inherit; }
   .yana-sidebar, .yana-backdrop { transition: none; }
 }
 
+/* ============ living water — animated background layers ============ */
+
+/* Layer 1: slow swell — light shifting like sun refracted through deep water */
+.scene-swell {
+  position: absolute; inset: -18% -18%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  border-radius: 40%;
+}
+
+[data-theme="jade"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(122, 184, 168, 0.28) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(233, 201, 138, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(47, 126, 110, 0.18) 0%, transparent 68%);
+}
+[data-theme="dawn"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(236, 196, 134, 0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(231, 168, 185, 0.26) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(185, 107, 128, 0.18) 0%, transparent 68%);
+}
+[data-theme="mist"] .scene-swell {
+  background:
+    radial-gradient(ellipse 70% 55% at 30% 35%, rgba(180, 192, 180, 0.24) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 55% at 65% 85%, rgba(210, 220, 210, 0.18) 0%, transparent 68%);
+}
+[data-theme="silver"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(168, 199, 224, 0.32) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(199, 214, 229, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(58, 124, 165, 0.18) 0%, transparent 68%);
+}
+
+/* Layer 2: light caustics — small bright shimmer patches, like sun through water */
+.scene-caustics {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+
+[data-theme="jade"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 255, 255, 0.14) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 255, 255, 0.11) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 255, 255, 0.09) 0%, transparent 80%),
+    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(255, 255, 255, 0.10) 0%, transparent 80%);
+}
+[data-theme="dawn"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 240, 220, 0.16) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 220, 230, 0.13) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 240, 220, 0.10) 0%, transparent 80%);
+}
+[data-theme="mist"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 255, 255, 0.09) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 255, 255, 0.07) 0%, transparent 80%);
+}
+[data-theme="silver"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(220, 235, 255, 0.16) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(220, 235, 255, 0.13) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(220, 235, 255, 0.10) 0%, transparent 80%),
+    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(220, 235, 255, 0.11) 0%, transparent 80%);
+}
+
+/* Canvas ripple overlay — interactive + ambient */
+#yana-ripple-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scene-swell    { animation: yana-swell    26s ease-in-out infinite; }
+  .scene-caustics { animation: yana-caustics  9s ease-in-out infinite; }
+}
+
+@keyframes yana-swell {
+  0%   { transform: translate(  0%,   0%) scale(1.00); opacity: 0.65; }
+  18%  { transform: translate(  2.5%, 1.5%) scale(1.03); opacity: 0.88; }
+  36%  { transform: translate( -1.5%, 4.0%) scale(0.97); opacity: 0.72; }
+  54%  { transform: translate(  3.5%,-2.0%) scale(1.02); opacity: 0.82; }
+  72%  { transform: translate( -2.5%, 2.5%) scale(0.99); opacity: 0.78; }
+  100% { transform: translate(  0%,   0%) scale(1.00); opacity: 0.65; }
+}
+
+@keyframes yana-caustics {
+  0%, 100% { opacity: 0; }
+  22%      { opacity: 1;   transform: translate( 2%, -1%); }
+  48%      { opacity: 0.55; transform: translate(-1%,  2%); }
+  74%      { opacity: 0.85; transform: translate( 3%,  1%); }
+}
+
 /* ============ life beneath the surface ============ */
 .pulse { animation: none; }
+
+/* Primary mote — primary color, medium */
 .mote {
   position: absolute;
   width: 5px; height: 5px; border-radius: 50%;
@@ -259,17 +428,49 @@ button { font-family: inherit; }
   opacity: 0; filter: blur(1.2px);
   pointer-events: none;
 }
+
+/* Larger mote — warmer, slower */
+.mote-lg {
+  position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 35%, white);
+  opacity: 0; filter: blur(2.5px);
+  pointer-events: none;
+}
+
+/* Small gold mote — pollen / lotus dust */
+.mote-sm {
+  position: absolute;
+  width: 3px; height: 3px; border-radius: 50%;
+  background: color-mix(in oklab, var(--gold) 55%, white);
+  opacity: 0; filter: blur(0.7px);
+  pointer-events: none;
+}
+
+/* Pink mote — lotus petal blush */
+.mote-pink {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: color-mix(in oklab, var(--pink) 50%, white);
+  opacity: 0; filter: blur(1.8px);
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .pulse { animation: yana-pulse 3.2s ease-in-out infinite; }
-  .mote { animation: yana-drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote      { animation: yana-drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-lg   { animation: yana-drift var(--dur, 90s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-sm   { animation: yana-drift var(--dur, 52s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-pink { animation: yana-drift var(--dur, 78s) linear infinite; animation-delay: var(--delay, 0s); }
 }
+
 @keyframes yana-pulse {
   0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 18%, transparent); }
   50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--good) 8%, transparent); }
 }
 @keyframes yana-drift {
   0%   { transform: translate(0, 0); opacity: 0; }
-  12%  { opacity: var(--peak, 0.22); }
-  88%  { opacity: var(--peak, 0.22); }
+  10%  { opacity: var(--peak, 0.22); }
+  90%  { opacity: var(--peak, 0.22); }
   100% { transform: translate(var(--dx, 40px), var(--dy, -60px)); opacity: 0; }
 }
