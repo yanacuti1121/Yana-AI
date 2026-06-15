@@ -156,6 +156,7 @@
 
 /* ---------- iOS Night (ported from jnmt-hub dark) ---------- */
 [data-theme="ios-night"] {
+  color-scheme: dark;
   --bg-base: #14020a;
   --bg-scene:
     radial-gradient(1100px 560px at 18% -10%, rgba(200, 20, 90, 0.28), transparent 60%),
@@ -210,6 +211,7 @@
 
 /* ---------- Obsidian (dark liquid glass) ---------- */
 [data-theme="obsidian"] {
+  color-scheme: dark;
   --bg-base: #0c0c1a;
   --bg-scene:
     radial-gradient(1100px 580px at 22% -12%, rgba(80, 50, 200, 0.38), transparent 60%),
