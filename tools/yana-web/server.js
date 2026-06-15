@@ -15,6 +15,14 @@ const auth     = require('./auth');
 const missions = require('./missions');
 const memory   = require('./memory');
 
+// YANA_RESET_AUTH=1 — wipe auth.json so the setup screen appears on next load.
+// Set in Railway env vars, redeploy once, then remove the variable.
+if (process.env.YANA_RESET_AUTH === '1') {
+  const resetPath = path.join(process.env.YANA_DATA_DIR || path.join(__dirname, '.yana'), 'auth.json');
+  try { fs.unlinkSync(resetPath); console.log('[auth] auth.json wiped — setup screen active'); }
+  catch (_) { console.log('[auth] YANA_RESET_AUTH=1 set but no auth.json found'); }
+}
+
 const PORT         = process.env.PORT || 8081;
 // Loopback by default — Electron and Web Preview both talk to 127.0.0.1.
 // Docker/remote deploys opt in explicitly with HOST=0.0.0.0.
