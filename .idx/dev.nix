@@ -48,6 +48,7 @@
       # Runs when the workspace is (re)started
       onStart = {
         start-9router = "9router &";
+        yana-web = "cd /home/user/yamtam-engine/tools/yana-web && node server.js &";
       };
     };
   };
