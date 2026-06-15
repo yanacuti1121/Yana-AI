@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/logo-chatgpt.png" alt="Yana AI" width="160" />
+  <img src="./docs/yana-logo.png" alt="Yana AI" width="160" />
 </p>
 
 <h1 align="center">Yana AI</h1>
@@ -53,7 +53,7 @@
 Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, và nhiều công cụ khác.
 
 <p align="center">
-  <img src="./docs/demo.gif" alt="Hệ thống gate Yana AI chặn rm -rf, pipe-to-shell, prompt injection và lệnh xóa production chưa duyệt — bản ghi thật" width="720" />
+  <img src="./docs/yana-ai-hero.png" alt="Yamtam Engine — hệ thống agent cá nhân" width="720" />
 </p>
 
 > **Mới trong v0.41.0:** [Yana task router](#bộ-định-tuyến-tác-vụ-yana) — tự động phân loại mọi tác vụ thành đơn giản/phức tạp/bên ngoài/**học tập**/**hàng ngày** và điều phối agent. [Yana AI](#yana-ai) chạy trên **100% dữ liệu thực** — kho khóa mã hóa (AES-256-GCM), thống kê provider trực tiếp, bộ nhớ L1 thật và bảng điều khiển audit-log. [Mission dispatcher](#hệ-thống-điều-phối-nhiệm-vụ-mission-dispatcher) — điều phối agent song song theo làn sóng (wave-based), viết bằng Rust. **Core-lock** — manifest SHA-256 ghim 216 tệp cốt lõi chống can thiệp trái phép (quy tắc 67).
