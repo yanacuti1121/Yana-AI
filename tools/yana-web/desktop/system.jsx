@@ -478,7 +478,9 @@ function detectTimezone() {
 }
 
 /* ---------- Profile Hero ---------- */
-function ProfileHero({ t, dash }) {
+const DARK_THEMES = new Set(["iOS Night 🌙", "Obsidian 🌑"]);
+
+function ProfileHero({ t, setTweak, dash }) {
   const D = window.YANA;
   const account = D.account || "";
   const initial = account.trim().charAt(0).toUpperCase() || "Y";
@@ -507,12 +509,53 @@ function ProfileHero({ t, dash }) {
     return s;
   }, []);
 
+  // Color mode toggle
+  const [colorMode, setColorMode] = React.useState(() => {
+    const stored = localStorage.getItem("yana.color-mode");
+    if (stored === "auto") return "auto";
+    return DARK_THEMES.has(t.theme) ? "dark" : "light";
+  });
+  // Sync when theme changes externally (e.g. AppearanceCard click)
+  React.useEffect(() => {
+    if (localStorage.getItem("yana.color-mode") !== "auto") {
+      setColorMode(DARK_THEMES.has(t.theme) ? "dark" : "light");
+    }
+  }, [t.theme]);
+
+  function applyMode(mode) {
+    localStorage.setItem("yana.color-mode", mode);
+    setColorMode(mode);
+    if (mode === "dark") {
+      if (!DARK_THEMES.has(t.theme)) localStorage.setItem("yana.last-light-theme", t.theme);
+      setTweak("theme", localStorage.getItem("yana.last-dark-theme") || "iOS Night 🌙");
+    } else if (mode === "light") {
+      if (DARK_THEMES.has(t.theme)) localStorage.setItem("yana.last-dark-theme", t.theme);
+      setTweak("theme", localStorage.getItem("yana.last-light-theme") || "Jade Lake 🌿");
+    } else {
+      // auto — follow system preference
+      if (DARK_THEMES.has(t.theme)) localStorage.setItem("yana.last-dark-theme", t.theme);
+      else localStorage.setItem("yana.last-light-theme", t.theme);
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTweak("theme",
+        prefersDark
+          ? (localStorage.getItem("yana.last-dark-theme") || "iOS Night 🌙")
+          : (localStorage.getItem("yana.last-light-theme") || "Jade Lake 🌿")
+      );
+    }
+  }
+
   const connectedCount = D.providers.filter((p) => providerAvailable(p.id)).length;
   const heroStats = [
-    { v: D.stats.agents,              lb: L("agents", "tác nhân") },
+    { v: D.stats.agents,                  lb: L("agents", "tác nhân") },
     { v: dash ? dash.memories.total : "…", lb: L("memories", "ký ức") },
     { v: connectedCount + "/" + D.providers.length, lb: L("providers", "kết nối") },
-    { v: L("Strict", "Nghiêm"),       lb: L("gate mode", "chế độ cổng") },
+    { v: L("Strict", "Nghiêm"),            lb: L("gate mode", "chế độ cổng") },
+  ];
+
+  const MODES = [
+    { key: "light", icon: "☀️", label: L("Light", "Sáng") },
+    { key: "dark",  icon: "🌙", label: L("Dark", "Tối") },
+    { key: "auto",  icon: "✦",  label: L("Auto", "Tự động") },
   ];
 
   return (
@@ -562,6 +605,32 @@ function ProfileHero({ t, dash }) {
           padding: "3px 11px", borderRadius: 99, fontSize: 11.5, fontWeight: 600,
           flexShrink: 0, alignSelf: "flex-start",
         }}>Sovereign</span>
+      </div>
+
+      {/* Dark mode toggle row */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "9px 24px", borderTop: "0.5px solid var(--border)", position: "relative",
+      }}>
+        <span style={{ fontSize: 12.5, color: "var(--ink-2)" }}>
+          {L("Appearance mode", "Chế độ hiển thị")}
+        </span>
+        <div style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 9, background: "rgba(var(--shadow-rgb), .07)" }}>
+          {MODES.map(({ key, icon, label }) => (
+            <button key={key} onClick={() => applyMode(key)} style={{
+              display: "flex", alignItems: "center", gap: 4,
+              padding: "4px 11px", borderRadius: 7, border: "none", cursor: "pointer",
+              fontSize: 12, fontWeight: colorMode === key ? 500 : 400,
+              background: colorMode === key ? "rgba(var(--surface-rgb), .95)" : "transparent",
+              boxShadow: colorMode === key ? "0 1px 3px rgba(var(--shadow-rgb), .15)" : "none",
+              color: colorMode === key ? "var(--ink)" : "var(--ink-3)",
+              transition: "background .15s, color .15s", fontFamily: "inherit",
+            }}>
+              <span style={{ fontSize: 13 }}>{icon}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stats strip */}
@@ -618,7 +687,7 @@ function Settings({ t, setTweak }) {
       <div style={{ display: "flex", flexDirection: "column", gap: GAP, maxWidth: 900 }}>
 
         {/* Profile hero */}
-        <ProfileHero t={t} dash={dash} />
+        <ProfileHero t={t} setTweak={setTweak} dash={dash} />
 
         {/* Appearance — full width */}
         <AppearanceCard t={t} setTweak={setTweak} />
