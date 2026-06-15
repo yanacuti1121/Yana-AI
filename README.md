@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/yana-logo.png" alt="Yana AI" width="160" />
+  <img src="./docs/yana-logo.png" alt="Yana AI" width="100%" />
 </p>
 
 <h1 align="center">Yana AI</h1>
