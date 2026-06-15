@@ -87,10 +87,19 @@ function ProviderCard({ p, usage, onKeyChange }) {
           <div style={{ fontSize: 14.5, fontWeight: 500 }}>{p.name}</div>
           <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{p.company}</div>
         </div>
-        <span className={"chip " + (connected ? "" : "gold")} style={{ marginLeft: "auto", fontSize: 11.5 }}>
-          <span className={"dot " + (connected ? "on" : "idle")} style={{ width: 6, height: 6, boxShadow: "none" }}></span>
-          {keyless ? L("On-device", "Trên máy") : connected ? L("Connected", "Kết nối") : L("Standby", "Dự phòng")}
-        </span>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 5 }}>
+          {p.desktopOnly && (
+            <span className="chip neutral" style={{ fontSize: 10.5 }}
+              title={L("Only available on desktop — requires a local server running on this machine",
+                       "Chỉ dùng được trên máy tính — cần server local chạy trên máy này")}>
+              🖥 {L("Desktop", "Máy tính")}
+            </span>
+          )}
+          <span className={"chip " + (connected ? "" : "gold")} style={{ fontSize: 11.5 }}>
+            <span className={"dot " + (connected ? "on" : "idle")} style={{ width: 6, height: 6, boxShadow: "none" }}></span>
+            {keyless ? L("On-device", "Trên máy") : connected ? L("Connected", "Kết nối") : L("Standby", "Dự phòng")}
+          </span>
+        </div>
       </div>
 
       <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.5 }}>{p.role}</div>
@@ -528,7 +537,9 @@ function Settings({ t, setTweak }) {
               <option value="">{L("Auto (first connected)", "Tự động (kết nối đầu tiên)")}</option>
               {D.providers.map((p) => (
                 <option key={p.id} value={p.id} disabled={!providerAvailable(p.id)}>
-                  {p.name}{providerAvailable(p.id) ? "" : " 🔒"}
+                  {p.name}
+                  {p.desktopOnly ? " 🖥" : ""}
+                  {providerAvailable(p.id) ? "" : " 🔒"}
                 </option>
               ))}
             </select>

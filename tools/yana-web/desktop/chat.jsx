@@ -879,11 +879,15 @@ function Chat({ t }) {
             <select value={providerSel || getProviderConfig().provider}
               onChange={(e) => setProviderSel(e.target.value)}
               title={L("Provider for this conversation", "Nhà cung cấp cho cuộc trò chuyện")}>
-              {D.providers.map((p) => (
-                <option key={p.id} value={p.id} disabled={!providerAvailable(p.id)}>
-                  {p.name}{providerAvailable(p.id) ? "" : " 🔒"}
-                </option>
-              ))}
+              {D.providers
+                .filter((p) => !p.desktopOnly || window.innerWidth >= 860)
+                .map((p) => (
+                  <option key={p.id} value={p.id} disabled={!providerAvailable(p.id)}>
+                    {p.name}
+                    {p.desktopOnly ? " 🖥" : ""}
+                    {providerAvailable(p.id) ? "" : " 🔒"}
+                  </option>
+                ))}
             </select>
             <select value={activeModel} onChange={(e) => pickModel(e.target.value)}
               title={L("Model for this provider — choice is remembered", "Model cho nhà cung cấp này — lựa chọn được ghi nhớ")}>
