@@ -154,11 +154,16 @@ function Sidebar({ page, onNav }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 4px 2px" }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: "50%", flex: "none",
+        <button onClick={() => window.postMessage({ type: "__activate_edit_mode" }, "*")}
+          title={L("Customize UI", "Tuỳ biến giao diện")} style={{
+          width: 28, height: 28, borderRadius: "50%", flex: "none", border: "none", cursor: "pointer",
           background: "linear-gradient(145deg, var(--gold), color-mix(in oklab, var(--gold) 55%, white))",
           color: "white", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600,
-        }}>{(account || "Y").trim().charAt(0).toUpperCase()}</div>
+          transition: "opacity .15s, transform .15s",
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = ".8"; e.currentTarget.style.transform = "scale(1.08)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "scale(1)"; }}
+        >{(account || "Y").trim().charAt(0).toUpperCase()}</button>
         <div style={{ lineHeight: 1.2, flex: 1, minWidth: 0 }}>
           <div title={account || ""} style={{
             fontSize: 12.5, fontWeight: 500,

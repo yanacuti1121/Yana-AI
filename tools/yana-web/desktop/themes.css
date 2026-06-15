@@ -968,32 +968,3 @@ button:not([disabled]) {
 }
 
 /* ── Tweaks FAB — floating palette button (bottom-left) ──────────────────── */
-.tweaks-fab {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  z-index: 2147483645;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--glass, rgba(255,255,255,0.18));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  cursor: pointer;
-  font-size: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
-  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
-  opacity: 0.72;
-}
-.tweaks-fab:hover {
-  transform: scale(1.14);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.22);
-  opacity: 1;
-}
-.tweaks-fab:active {
-  transform: scale(0.95);
-}
