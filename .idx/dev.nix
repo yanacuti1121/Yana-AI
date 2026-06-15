@@ -47,7 +47,6 @@
       };
       # Runs when the workspace is (re)started
       onStart = {
-        yana-web = "cd tools/yana-web && node server.js &";
         start-9router = "9router &";
       };
     };
