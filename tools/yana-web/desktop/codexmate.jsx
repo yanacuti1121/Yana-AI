@@ -14,10 +14,11 @@ function CodemateTool() {
   }
 
   function check(p) {
+    const target = p || port;
     setStatus("checking");
-    fetch("/api/codexmate/status?port=" + encodeURIComponent(p || port))
-      .then(r => r.ok ? r.json() : null)
-      .then(d => setStatus(d && d.up ? "up" : "down"))
+    // Probe client-side so we check the user's local machine, not the server's localhost
+    fetch("http://127.0.0.1:" + target + "/", { mode: "no-cors", signal: AbortSignal.timeout(2000) })
+      .then(() => setStatus("up"))
       .catch(() => setStatus("down"));
   }
 
