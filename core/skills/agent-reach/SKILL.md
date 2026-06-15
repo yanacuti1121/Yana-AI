@@ -103,6 +103,19 @@ xhs-cli search "关键词" --limit 10
 # Cần login lần đầu: xhs-cli login
 ```
 
+### V2EX / Weibo / Xueqiu
+
+```bash
+# V2EX — qua RSS (không cần login)
+python3 -c "import feedparser; f=feedparser.parse('https://www.v2ex.com/index.xml'); [print(e.title, e.link) for e in f.entries[:5]]"
+
+# Weibo trending (via weibo-cli nếu cài)
+weibo-cli trending --limit 10
+
+# Xueqiu (stock discussion) — qua RSS public
+python3 -c "import feedparser; f=feedparser.parse('https://xueqiu.com/hq/rss'); [print(e.title) for e in f.entries[:5]]"
+```
+
 ### RSS / Podcast
 
 ```python
@@ -111,6 +124,20 @@ feed = feedparser.parse("https://example.com/feed.xml")
 for entry in feed.entries[:5]:
     print(entry.title, entry.link)
 ```
+
+### Exa AI — semantic search (free MCP tier)
+
+```bash
+# Cài Exa MCP (free, không cần API key với public tier)
+npx @modelcontextprotocol/inspector exa-mcp
+
+# Dùng trong workflow — semantic search thay vì keyword
+# Exa MCP trả về: title, URL, highlight, published date
+# Tốt hơn Google search cho research use cases
+```
+
+**Lưu ý:** `exa-search` skill dùng paid Exa API. Exa MCP free tier ≠ paid tier.
+Dùng Exa MCP khi cần semantic search; dùng platform CLIs ở trên khi cần nội dung cụ thể.
 
 ### GitHub (via gh CLI)
 
@@ -155,7 +182,8 @@ print("=== Web ===\n", web[:500].decode())
 ## Anti-Fake-Pass Checks
 
 ```
-❌ FAIL nếu dùng paid API (OpenAI browsing, Exa paid tier) khi agent-reach đủ
+❌ FAIL nếu dùng OpenAI browsing (trả phí) khi agent-reach đủ
+❌ FAIL nếu nhầm Exa MCP free tier với paid Exa API — đây là 2 thứ khác nhau
 ❌ FAIL nếu không cài backend CLI trước khi gọi (twitter-cli, rdt-cli, yt-dlp)
 ❌ FAIL nếu dùng để collect private/protected content
 ✅ PASS khi: CLI backend trả về data, không có rate-limit error, không cần API key
