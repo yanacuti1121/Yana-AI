@@ -65,6 +65,19 @@ function CodemateTool() {
             }}>
             {L("Refresh", "Làm mới")}
           </button>
+          <a
+            href={"http://127.0.0.1:" + port}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              padding: "5px 12px", borderRadius: 8,
+              border: "1px solid var(--border)", background: "transparent",
+              color: "var(--ink-2)", cursor: "pointer",
+              fontSize: 12, fontFamily: "inherit",
+              textDecoration: "none", display: "inline-block",
+            }}>
+            {L("Open in tab ↗", "Mở tab mới ↗")}
+          </a>
         </div>
       </PageHeader>
 

@@ -161,9 +161,10 @@ function App() {
     cron:      () => <Cron />,
     memory: () => <MemoryGarden />,
     skills: () => <Skills />,
-    providers:  () => <Providers />,
-    settings:   () => <Settings t={t} setTweak={setTweak} />,
-    codexmate:  () => <CodemateTool />,
+    providers:    () => <Providers />,
+    "html-maker": () => <HtmlMaker />,
+    settings:     () => <Settings t={t} setTweak={setTweak} />,
+    codexmate:    () => <CodemateTool />,
   }[page] || (() => <Dashboard t={t} onNav={setPage} />);
 
   return (

@@ -330,3 +330,5 @@ function HtmlMaker() {
     </div>
   );
 }
+
+window.HtmlMaker = HtmlMaker;

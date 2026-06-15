@@ -85,6 +85,7 @@ const NAV = [
   { id: "memory",    label: "Memory Garden", vi: "Vườn ký ức",    icon: "memory" },
   { id: "skills",    label: "Skills",        vi: "Kỹ năng",       icon: "skills" },
   { id: "providers",  label: "Providers",     vi: "Nhà cung cấp",  icon: "providers" },
+  { id: "html-maker", label: "HTML Maker",    vi: "Tạo HTML",      icon: "spark" },
   { id: "settings",   label: "Settings",      vi: "Cài đặt",       icon: "settings" },
   { id: "codexmate",  label: "Codexmate",     vi: "Codexmate",     icon: "code" },
 ];
