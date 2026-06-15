@@ -40,6 +40,21 @@ const MIME = {
   '.ico':  'image/x-icon',
 };
 
+// ── 9router local key (read once at startup) ─────────────────────────────────
+// 9router runs on 127.0.0.1:20128 and requires Bearer auth for chat completions.
+// Extract the first sk- API key from its SQLite database automatically so the
+// user never has to paste a local token into Settings.
+const NINE_ROUTER_KEY = (() => {
+  try {
+    const dbPath = path.join(os.homedir(), '.9router', 'db', 'data.sqlite');
+    const buf = fs.readFileSync(dbPath);
+    const m = buf.toString('binary').match(/sk-[a-f0-9]{16}-[a-z0-9]{4,8}-[a-f0-9]{8}/);
+    return m ? m[0] : '';
+  } catch (_) {
+    return '';
+  }
+})();
+
 // ── Provider table ────────────────────────────────────────────────────────────
 // images = [{ mimeType: 'image/jpeg', data: '<base64>' }]
 const PROVIDERS = {
@@ -140,11 +155,11 @@ const PROVIDERS = {
     port:         20128,
     path:         '/v1/chat/completions',
     vision:       false,
-    keyless:      false,
+    keyless:      true,
     local:        true,
     defaultModel: 'kr/claude-sonnet-4.5',
     headers: key => ({
-      'Authorization': `Bearer ${key}`,
+      'Authorization': 'Bearer ' + (key || NINE_ROUTER_KEY),
       'content-type':  'application/json',
     }),
     body: (model, system, task) => JSON.stringify({
