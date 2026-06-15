@@ -88,6 +88,50 @@ Tier B — log and wrap result:
 }
 ```
 
+## MCP Rug Pull Detection
+
+A **rug pull** occurs when an MCP tool or server that was previously trusted
+changes its behavior post-approval — altering tool descriptions, adding new
+tools, or returning different schemas than what was originally vetted.
+
+```typescript
+// Snapshot tool schemas at registration time
+interface ToolSnapshot {
+  name:        string
+  description: string
+  inputSchema: Record<string, unknown>
+  snapshotTs:  number
+  schemaHash:  string   // SHA-256(JSON.stringify(inputSchema))
+}
+
+function detectRugPull(current: ToolSchema, snapshot: ToolSnapshot): boolean {
+  const currentHash = sha256(JSON.stringify(current.inputSchema))
+  if (currentHash !== snapshot.schemaHash)       return true  // schema changed
+  if (current.description !== snapshot.description) return true  // description changed
+  return false
+}
+```
+
+**Triggers (any = rug pull alert, Tier A block):**
+```
+□ Tool description changed since last snapshot
+□ inputSchema fields added, removed, or type-changed
+□ New tools appeared on a previously approved MCP server
+□ Server URL or origin domain changed
+□ Tool's declared permissions expanded beyond original whitelist entry
+```
+
+**Response on rug pull detection:**
+```
+1. Revoke tool's approved status immediately
+2. Quarantine all pending tool calls from that server
+3. Log TOOL_RUG_PULL to Merkle audit chain
+4. Require human re-approval before tool may be used again
+5. Trust score for originating MCP server: set to 0
+```
+
+---
+
 ## Anti-Pattern Checklist
 
 ```
@@ -97,4 +141,6 @@ Tier B — log and wrap result:
 ❌ Tool result forwarded between agents without re-sanitization
 ❌ Tool description loaded from external source (npm, CDN) without review
 ❌ Tool result size uncapped (context flooding attack)
+❌ Tool schema not snapshotted at registration (rug pull undetectable)
+❌ MCP server re-approved automatically after schema change (rug pull succeeds)
 ```

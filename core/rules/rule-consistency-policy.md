@@ -102,6 +102,49 @@ New skills must pass this gate before being added to `skills-lock.json`:
 
 ---
 
+## Trigger Abuse Detection (SkillSpector TR1–TR3)
+
+Before registering any skill, check triggers against three abuse patterns:
+
+### TR1 — Overly Broad Trigger
+
+```
+REJECT if primary trigger is a single common word with no qualifiers:
+  ❌ "help", "do", "run", "go", "fix", "check", "make", "get", "use"
+  ❌ Any trigger matching > 30% of realistic user inputs in test suite
+
+REQUIRE: triggers that are ≥ 2 words OR contain a domain-specific noun
+  ✅ "fix bug", "security audit", "write tests", "docker build"
+```
+
+### TR2 — Shadowing Built-Ins
+
+```bash
+# Check if trigger phrase matches an existing core command or built-in skill
+grep -ri "^## trigger.*<proposed-trigger>" core/skills/*/SKILL.md
+grep -ri "<proposed-trigger>" core/commands/*.md
+
+REJECT if trigger:
+  - Matches or subsumes an existing built-in command (/plan, /commit, /review...)
+  - Would intercept inputs meant for the shell (ls, git, npm...)
+  - Shadows a native Claude Code slash command
+```
+
+### TR3 — Keyword Baiting
+
+```
+Patterns indicating a skill is designed to match ALL inputs:
+  ❌ Trigger list contains "anything", "everything", "always", "any request"
+  ❌ Trigger list has > 50 entries covering unrelated domains
+  ❌ Skill description says "can handle any task" or "general purpose"
+  ❌ No "Do NOT use for" section (every skill must have exclusions)
+
+Intent: keyword baiting inflates a skill's activation rate, degrading routing
+quality for legitimate skills and wasting tokens on false positives.
+```
+
+---
+
 ## Drift Detection
 
 Run periodically to catch accumulated drift:
