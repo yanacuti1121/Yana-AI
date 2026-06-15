@@ -720,7 +720,7 @@ async function handleApiModels(req, res) {
       port:     20128,
       path:     '/v1/models',
       keyless:  true,
-      headers:  k => ({ 'Authorization': `Bearer ${k || NINE_ROUTER_KEY}` }),
+      headers:  k => (k ? { 'Authorization': `Bearer ${k}` } : {}),
       transform: data => (data.data || [])
         .filter(m => m.id)
         .map(m => ({ id: m.id, name: m.name || m.id }))
