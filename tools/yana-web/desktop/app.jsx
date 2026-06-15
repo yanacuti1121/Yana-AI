@@ -145,6 +145,9 @@ function applyTweaks(t) {
     root.style.removeProperty("--primary");
     root.style.removeProperty("--primary-soft");
   }
+  const spd = (t.glassSpeed ?? 100) / 100;
+  root.style.setProperty("--shine-dur", spd > 0 ? (11 / spd).toFixed(2) + "s" : "0s");
+  root.style.setProperty("--anim-speed", spd.toFixed(3));
 }
 
 function App() {
@@ -209,6 +212,12 @@ function App() {
           options={["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakButton label="Use theme accent" onClick={() => setTweak("accent", "")} />
+
+        <TweakSection label="Animation" />
+        <TweakSlider label="Glass speed" value={t.glassSpeed ?? 100} min={0} max={200} unit="%" onChange={(v) => setTweak("glassSpeed", v)} />
+
+        <TweakSection label="Reset" />
+        <TweakButton label="↺ Restore defaults" secondary onClick={() => setTweak(TWEAK_DEFAULTS)} />
       </TweaksPanel>
 
       <button

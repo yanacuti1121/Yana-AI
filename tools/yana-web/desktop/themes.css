@@ -308,7 +308,7 @@ body {
   );
   transform: translateX(-130%) skewX(-18deg);
   will-change: transform, opacity;
-  animation: water-shine 11s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: water-shine var(--shine-dur, 11s) cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 /* stagger so cards don't all shimmer simultaneously */
 .glass:nth-child(2n)::after  { animation-delay: 2.2s; }
