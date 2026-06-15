@@ -62,6 +62,47 @@ function RouteChip({ route }) {
   );
 }
 
+// Parse <think>...</think> blocks out of model output.
+// Returns { display: string, reasoning: string|null }
+function parseThink(text) {
+  if (!text) return { display: text, reasoning: null };
+  const thinkRe = /<think>([\s\S]*?)<\/think>/gi;
+  const blocks = [];
+  let display = text.replace(thinkRe, (_, inner) => { blocks.push(inner.trim()); return ""; }).trim();
+  // Also catch unclosed <think> at the start (streaming mid-thought)
+  if (!blocks.length) {
+    const unclosed = text.match(/^<think>([\s\S]*)$/i);
+    if (unclosed) return { display: "", reasoning: unclosed[1].trim() };
+  }
+  return { display, reasoning: blocks.length ? blocks.join("\n\n---\n\n") : null };
+}
+
+function ThinkToggle({ reasoning }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <button onClick={() => setOpen((o) => !o)} style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        background: "none", border: "1px solid var(--border)", borderRadius: 99,
+        padding: "3px 10px", fontSize: 11.5, color: "var(--ink-3)", cursor: "pointer",
+        fontFamily: "inherit",
+      }}>
+        <span style={{ fontSize: 13 }}>🧠</span>
+        {open ? L("Hide reasoning", "Ẩn suy nghĩ") : L("Show reasoning", "Xem suy nghĩ")}
+        <span style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s", display: "inline-block" }}>▾</span>
+      </button>
+      {open && (
+        <div style={{
+          marginTop: 8, padding: "10px 12px", borderRadius: "var(--r-md)",
+          background: "rgba(var(--shadow-rgb), 0.04)", border: "1px solid var(--border)",
+          fontSize: 12.5, lineHeight: 1.6, color: "var(--ink-3)",
+          whiteSpace: "pre-wrap", maxHeight: 260, overflowY: "auto",
+        }}>{reasoning}</div>
+      )}
+    </div>
+  );
+}
+
 function Message({ msg }) {
   if (msg.who === "user") {
     return (
@@ -93,12 +134,14 @@ function Message({ msg }) {
       </div>
     );
   }
+  const parsed = parseThink(msg.text);
   return (
     <div className="msg-in" style={{ display: "flex", justifyContent: "flex-start" }}>
       <div style={{ maxWidth: "82%" }}>
         {msg.route && <RouteChip route={msg.route} />}
+        {parsed.reasoning && <ThinkToggle reasoning={parsed.reasoning} />}
         <div className="glass" style={{ padding: "12px 16px", borderRadius: "4px 16px 16px 16px", fontSize: 13.8, lineHeight: 1.6, color: "var(--ink)" }}>
-          {msg.text}
+          {parsed.display || (parsed.reasoning ? <span style={{ color: "var(--ink-3)", fontStyle: "italic" }}>{L("Reasoning…", "Đang suy nghĩ…")}</span> : "")}
           {msg.action && (
             <div style={{
               marginTop: 11, padding: "9px 12px", borderRadius: "var(--r-sm)",
