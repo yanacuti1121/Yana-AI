@@ -1,15 +1,25 @@
-Copyright (c) 2026 Vũ Văn Tâm. All Rights Reserved.
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
 
-Source code is made publicly visible for transparency and review purposes only.
+ Copyright (C) 2026 Vũ Văn Tâm
 
-You may NOT:
-- Use this software or any part of it in any project, product, or service
-- Copy, reproduce, or redistribute the source code
-- Modify, adapt, or create derivative works
-- Sublicense or sell copies of this software
-- Use the name, branding, or concepts of this project without permission
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published
+ by the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-All rights are reserved by the copyright owner.
-Explicit written permission from Vũ Văn Tâm is required for any use.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Affero General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+ADDITIONAL TERMS (per AGPLv3 Section 7):
+
+Commercial use of this software — including use in SaaS, products, or
+services — requires explicit written permission from Vũ Văn Tâm.
+Contact: phamlongh230@gmail.com
