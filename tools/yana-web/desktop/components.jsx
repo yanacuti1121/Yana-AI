@@ -155,26 +155,17 @@ function Sidebar({ page, onNav }) {
         {/* Account row */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {/* Avatar — click to open TweaksPanel */}
-          <button onClick={() => window.postMessage({ type: "__activate_edit_mode" }, "*")}
-            title={L("Customize UI", "Tuỳ biến giao diện")}
-            style={{
-              flexShrink: 0, width: 34, height: 34, borderRadius: "50%",
-              border: "1.5px solid rgba(var(--surface-rgb), 0.6)",
-              background: "linear-gradient(145deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--gold)))",
-              color: "white", display: "grid", placeItems: "center",
-              fontSize: 13, fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.18), 0 0 0 0 var(--primary)",
-              transition: "box-shadow .2s, transform .15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.06)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18), 0 0 0 3px var(--primary-soft)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18), 0 0 0 0 var(--primary)";
-            }}
-          >{(account || "Y").trim().charAt(0).toUpperCase()}</button>
+          <div className="sidebar-avatar-wrap">
+            <button onClick={() => window.postMessage({ type: "__activate_edit_mode" }, "*")}
+              title={L("Customize UI", "Tuỳ biến giao diện")}
+              className="sidebar-avatar"
+              style={{
+                background: "linear-gradient(145deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--gold)))",
+                color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                border: "2px solid rgba(var(--surface-rgb), 0.5)",
+              }}
+            >{(account || "Y").trim().charAt(0).toUpperCase()}</button>
+          </div>
 
           {/* Name + subtitle */}
           <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>

@@ -967,4 +967,53 @@ button:not([disabled]) {
   background: rgba(232, 121, 160, 0.08);
 }
 
-/* ── Tweaks FAB — floating palette button (bottom-left) ──────────────────── */
+/* ── Sidebar avatar — spinning gradient ring on hover ────────────────────── */
+.sidebar-avatar-wrap {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sidebar-avatar-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    var(--primary) 0%,
+    var(--gold) 38%,
+    color-mix(in oklab, var(--primary) 55%, var(--pink, #e879a0)) 68%,
+    var(--primary) 100%
+  );
+  opacity: 0;
+  animation: sidebar-ring-spin 1.6s linear infinite;
+  animation-play-state: paused;
+  transition: opacity .22s;
+}
+
+.sidebar-avatar-wrap:hover::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+@keyframes sidebar-ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sidebar-avatar {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: transform .15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-avatar-wrap:hover .sidebar-avatar {
+  transform: scale(1.05);
+}
