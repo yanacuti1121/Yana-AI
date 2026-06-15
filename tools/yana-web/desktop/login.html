@@ -33,7 +33,7 @@
       from { transform: translate(0, 0) scale(1); }
       to   { transform: translate(5vw, 6vh) scale(1.12); }
     }
-    @media (prefers-reduced-motion: reduce) { .blob, .mark { animation: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .blob, .mark-ring::before { animation: none !important; } }
 
     /* ── Card ── */
     .card {
@@ -62,16 +62,26 @@
     }
     .lang button.on { background: rgba(255,255,255,.9); color: var(--ink); box-shadow: 0 1px 3px rgba(31,70,60,.12); }
 
+    .mark-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .mark-ring {
+      position: relative; width: 72px; height: 72px;
+      display: grid; place-items: center;
+    }
+    .mark-ring::before {
+      content: ''; position: absolute; inset: -3px; border-radius: 24px;
+      background: conic-gradient(from 0deg, color-mix(in oklab, var(--primary) 80%, transparent), transparent 60%, color-mix(in oklab, var(--primary) 80%, transparent));
+      animation: spin-ring 4s linear infinite; opacity: .7;
+    }
+    @keyframes spin-ring { to { transform: rotate(360deg); } }
     .mark {
-      width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 21px;
-      display: grid; place-items: center; position: relative;
+      width: 64px; height: 64px; border-radius: 21px;
+      display: grid; place-items: center; position: relative; z-index: 1;
       background: linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530));
       box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 8px 24px color-mix(in oklab, var(--primary) 30%, transparent);
-      animation: breathe 5s ease-in-out infinite;
     }
-    @keyframes breathe {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.035); }
+    .mark-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--ink-3); display: none;
     }
 
     h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
@@ -176,8 +186,12 @@
       <button type="button" id="lang-en">EN</button>
     </div>
 
-    <div class="mark" aria-label="Yana">
-      <img src="/logo.png" alt="" width="38" height="38" style="display:block" />
+    <div class="mark-wrap">
+      <div class="mark-ring">
+        <div class="mark" aria-label="Yana">
+          <img src="/logo.png" alt="" width="38" height="38" style="display:block" />
+        </div>
+      </div>
     </div>
 
     <h1 id="title">Chào mừng trở lại</h1>
@@ -185,8 +199,8 @@
 
     <form id="form">
       <div class="field" id="username-wrap">
-        <input type="text" id="username" placeholder="Tên tài khoản" required minlength="2" maxlength="32"
-               autocomplete="username" autocapitalize="off" spellcheck="false" autofocus />
+        <input type="text" id="username" placeholder="Tên tài khoản" minlength="2" maxlength="32"
+               autocomplete="username" autocapitalize="off" spellcheck="false" />
       </div>
 
       <div class="field">
@@ -239,6 +253,9 @@
       <span class="dot"></span> Yana AI · local &amp; private
       <span style="opacity:.4">·</span>
       <a href="/welcome.html" id="about-link" style="color:var(--primary);text-decoration:none">Giới thiệu Yana</a>
+      <span style="opacity:.4">·</span>
+      <button type="button" class="link" id="back-btn"
+        onclick="history.length > 1 ? history.back() : location.href = '/'">← Quay lại</button>
     </div>
   </main>
 
@@ -269,6 +286,7 @@
         nameShort: 'Tên tài khoản cần 2–32 ký tự.',
         sWeak: 'Yếu — thêm ký tự nữa', sFair: 'Tạm ổn', sGood: 'Tốt', sStrong: 'Rất mạnh',
         about: 'Giới thiệu Yana',
+        back: 'Quay lại',
       },
       en: {
         titleLogin: 'Welcome back',   subLogin: 'Sign in to continue with Yana.',
@@ -289,6 +307,7 @@
         nameShort: 'Account name must be 2–32 characters.',
         sWeak: 'Weak — add more characters', sFair: 'Fair', sGood: 'Good', sStrong: 'Very strong',
         about: 'About Yana',
+        back: 'Back',
       },
     };
     function t(k) { return T[lang][k]; }
@@ -319,6 +338,7 @@
       $('help-text').textContent = t('help');
       $('caps-text').textContent = t('caps');
       $('about-link').textContent = t('about');
+      $('back-btn').textContent = '← ' + t('back');
       applyMode();
     }
 
@@ -332,12 +352,13 @@
       $('login-row').style.display = setup ? 'none' : 'flex';
       $('strength').classList.toggle('show', setup);
       $('password').autocomplete = setup ? 'new-password' : 'current-password';
-      // Accounts from before this upgrade have no stored name — hide the
-      // field at sign-in so the legacy owner isn't asked for a name that
-      // doesn't exist. Setup mode always shows it.
-      var showName = setup || !!storedUsername;
+      // Always show the username field — hiding it before the status fetch
+      // returns caused a race condition where the user could submit with an
+      // empty username and get "wrong password" errors. Legacy accounts
+      // (no rec.username) are handled server-side: the check is skipped.
+      var showName = true;
       $('username-wrap').style.display = showName ? '' : 'none';
-      $('username').required = showName;
+      $('username').required = showName && mode === 'setup';
       if (!setup && storedUsername && !$('username').value) {
         $('username').value = storedUsername;
       }
@@ -422,16 +443,22 @@
       $('help').classList.toggle('show');
     });
 
+    // Disable submit until status is known — prevents submitting with empty
+    // username before the prefill arrives from /api/auth/status.
+    $('submit').disabled = true;
+
     fetch('/api/auth/status')
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.authed) { location.replace('/'); return; }
         mode = d.setup ? 'login' : 'setup';
         storedUsername = d.username || null;
+        $('submit').disabled = false;
         applyLang();
         if (mode === 'login' && storedUsername) $('password').focus();
+        else $('username').focus();
       })
-      .catch(function () { setMsg(t('serverErr')); });
+      .catch(function () { $('submit').disabled = false; setMsg(t('serverErr')); });
 
     function apiError(msg) {
       if (/wrong username/i.test(msg)) return t('wrongCred');
