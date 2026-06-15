@@ -353,7 +353,7 @@ Các thuộc tính chính:
 
 ## Yana AI
 
-**[Dùng thử trực tuyến →](https://yana-ai-production.up.railway.app)**
+**[Dùng thử trực tuyến →](https://yamtam-engine-production.up.railway.app)**
 
 Yana là giao diện đầu tiên xây trên lõi Yana AI — một web UI cho phép bất kỳ ai trò chuyện với AI, chuyển đổi provider và dùng định tuyến kỹ năng mà không cần biết gì về hạ tầng bên dưới.
 
@@ -538,4 +538,4 @@ Apache 2.0 — miễn phí mãi mãi.
 | Email | phamlongh230@gmail.com |
 | Website | [phamlongh230-lgtm.github.io/yana-ai](https://phamlongh230-lgtm.github.io/yana-ai/) |
 | GitHub | [phamlongh230-lgtm](https://github.com/phamlongh230-lgtm) |
-| Yana AI | [yana-ai-production.up.railway.app](https://yana-ai-production.up.railway.app) |
+| Yana AI | [yamtam-engine-production.up.railway.app](https://yamtam-engine-production.up.railway.app) |

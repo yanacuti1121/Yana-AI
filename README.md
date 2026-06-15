@@ -375,7 +375,7 @@ Key properties:
 
 ## Yana AI
 
-**[Live →](https://yana-ai-production.up.railway.app)**
+**[Live →](https://yamtam-engine-production.up.railway.app)**
 
 Yana is the first interface built on Yana AI core — a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
@@ -571,7 +571,7 @@ Apache 2.0 — free forever.
 | Email | phamlongh230@gmail.com |
 | Website | [phamlongh230-lgtm.github.io/yana-ai](https://phamlongh230-lgtm.github.io/yana-ai/) |
 | GitHub | [phamlongh230-lgtm](https://github.com/phamlongh230-lgtm) |
-| Yana AI | [yana-ai-production.up.railway.app](https://yana-ai-production.up.railway.app) |
+| Yana AI | [yamtam-engine-production.up.railway.app](https://yamtam-engine-production.up.railway.app) |
 
 ---
 

@@ -162,7 +162,7 @@ Backend:  Node.js / Express
          → Yana AI core imported as module
 
 Deploy:   Railway (hiện tại đã có)
-         → https://yana-ai-production.up.railway.app
+         → https://yamtam-engine-production.up.railway.app
 ```
 
 ---
