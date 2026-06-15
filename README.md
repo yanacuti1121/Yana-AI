@@ -55,13 +55,9 @@
 
 Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
-<p align="center">
-  <img src="./docs/yana-ai-hero.png" alt="Yamtam Engine — personal agent operating system overview" width="720" />
-</p>
+<img src="./docs/yana-ai-hero.png" alt="Yamtam Engine — personal agent operating system overview" width="100%" />
 
-<p align="center">
-  <img src="./docs/yana-ai-overview.png" alt="Yamtam Engine — architecture and stats overview" width="720" />
-</p>
+<img src="./docs/yana-ai-overview.png" alt="Yamtam Engine — architecture and stats overview" width="100%" />
 
 > **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-ai) now runs on **100% real data** — encrypted key vault (AES-256-GCM), live provider stats, real L1 memory and audit-log dashboard. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust. **Core-lock** — SHA-256 integrity manifest pinning 216 core files against tampering (rule 67).
 
