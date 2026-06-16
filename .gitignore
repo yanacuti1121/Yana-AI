@@ -79,3 +79,4 @@ tools/Antigravity-x64/
 
 # Yana web — local auth/session/mission data (never commit)
 tools/yana-web/.yana/
+.yamtam/
