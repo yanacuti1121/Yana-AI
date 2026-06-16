@@ -1084,4 +1084,306 @@ button:not([disabled]) {
 
 .sidebar-avatar-wrap:hover .sidebar-avatar {
   transform: scale(1.05);
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW THEMES — added 2026-06-16
+   sage · amber · arctic · ocean · lavender · navy
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ---------- Sage Forest 🌲 ---------- */
+[data-theme="sage"] {
+  --bg-base: #f1f4ef;
+  --bg-scene:
+    radial-gradient(1100px 520px at 10% -6%, rgba(164, 196, 140, 0.20), transparent 60%),
+    radial-gradient(900px 600px at 88% 4%, rgba(200, 220, 160, 0.18), transparent 58%),
+    radial-gradient(1300px 800px at 50% 110%, rgba(90, 148, 90, 0.22), transparent 62%),
+    linear-gradient(180deg, #f4f7f1 0%, #ebf0e7 100%);
+  --surface-rgb: 255, 255, 255;
+  --shadow-rgb: 18, 36, 18;
+  --ink: #1e3320;
+  --ink-2: #4e6950;
+  --ink-3: #829c82;
+  --primary: #5a8a50;
+  --primary-soft: rgba(90, 138, 80, 0.10);
+  --pink: #c47b7b;
+  --pink-soft: rgba(196, 123, 123, 0.11);
+  --gold: #a08c3a;
+  --gold-soft: rgba(160, 140, 58, 0.12);
+  --good: #5a8a50;
+  --warn: #a08c3a;
+  --border: rgba(28, 50, 28, 0.09);
+  --border-strong: rgba(28, 50, 28, 0.15);
+  --glass-blur-max: 22px;
 }
+[data-theme="sage"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(120, 180, 100, 0.26) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(180, 220, 130, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(80, 140, 80, 0.16) 0%, transparent 68%);
+}
+[data-theme="sage"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(180, 240, 160, 0.14) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(160, 220, 140, 0.11) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(200, 240, 180, 0.09) 0%, transparent 80%);
+}
+[data-theme="sage"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(80, 140, 80, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(160, 140, 60, 0.08) 0%, transparent 70%);
+  filter: blur(18px);
+}
+
+/* ---------- Sunset Amber 🌅 ---------- */
+[data-theme="amber"] {
+  --bg-base: #f9f2e8;
+  --bg-scene:
+    radial-gradient(1100px 540px at 14% -8%, rgba(248, 200, 100, 0.32), transparent 58%),
+    radial-gradient(950px 580px at 88% 2%, rgba(240, 150, 80, 0.28), transparent 55%),
+    radial-gradient(1200px 700px at 50% 115%, rgba(210, 120, 60, 0.22), transparent 64%),
+    linear-gradient(180deg, #faf4e8 0%, #f5e9d4 100%);
+  --surface-rgb: 255, 252, 248;
+  --shadow-rgb: 50, 28, 8;
+  --ink: #2e1c06;
+  --ink-2: #6e4a20;
+  --ink-3: #a88050;
+  --primary: #c97c18;
+  --primary-soft: rgba(201, 124, 24, 0.11);
+  --pink: #c06050;
+  --pink-soft: rgba(192, 96, 80, 0.11);
+  --gold: #c97c18;
+  --gold-soft: rgba(201, 124, 24, 0.13);
+  --good: #5a8a50;
+  --warn: #c97c18;
+  --border: rgba(80, 48, 12, 0.10);
+  --border-strong: rgba(80, 48, 12, 0.17);
+  --glass-blur-max: 26px;
+}
+[data-theme="amber"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 16% 30%, rgba(248, 200, 100, 0.34) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 65%, rgba(240, 150, 80, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(210, 100, 50, 0.20) 0%, transparent 68%);
+}
+[data-theme="amber"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(255, 220, 140, 0.22) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(255, 180, 100, 0.18) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(255, 200, 120, 0.14) 0%, transparent 80%);
+}
+[data-theme="amber"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(210, 120, 50, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(240, 180, 80, 0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 160px 90px at 48% 92%, rgba(192, 96, 80, 0.10) 0%, transparent 70%);
+  filter: blur(18px);
+}
+
+/* ---------- Arctic Blue ❄️ ---------- */
+[data-theme="arctic"] {
+  --bg-base: #eef5fb;
+  --bg-scene:
+    radial-gradient(1100px 520px at 10% -6%, rgba(160, 210, 240, 0.30), transparent 60%),
+    radial-gradient(900px 600px at 88% 4%, rgba(180, 220, 250, 0.26), transparent 58%),
+    radial-gradient(1300px 800px at 50% 110%, rgba(90, 160, 200, 0.20), transparent 62%),
+    linear-gradient(180deg, #f3f8fc 0%, #e8f2fa 100%);
+  --surface-rgb: 252, 255, 255;
+  --shadow-rgb: 10, 28, 50;
+  --ink: #0f2034;
+  --ink-2: #3a5872;
+  --ink-3: #7298b4;
+  --primary: #1a7eb0;
+  --primary-soft: rgba(26, 126, 176, 0.10);
+  --pink: #8080c8;
+  --pink-soft: rgba(128, 128, 200, 0.11);
+  --gold: #6898c4;
+  --gold-soft: rgba(104, 152, 196, 0.13);
+  --good: #1a7eb0;
+  --warn: #9870a0;
+  --border: rgba(16, 40, 60, 0.09);
+  --border-strong: rgba(16, 40, 60, 0.15);
+  --glass-blur-max: 36px;
+}
+[data-theme="arctic"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(160, 210, 248, 0.36) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(200, 230, 255, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(80, 160, 210, 0.18) 0%, transparent 68%);
+}
+[data-theme="arctic"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(200, 230, 255, 0.20) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(180, 215, 250, 0.16) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(220, 240, 255, 0.12) 0%, transparent 80%),
+    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(190, 220, 248, 0.14) 0%, transparent 80%);
+}
+[data-theme="arctic"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(60, 140, 200, 0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(120, 160, 220, 0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 160px 90px at 48% 92%, rgba(160, 200, 240, 0.08) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+/* ---------- Deep Ocean 🌊 (dark) ---------- */
+[data-theme="ocean"] {
+  color-scheme: dark;
+  --bg-base: #071820;
+  --bg-scene:
+    radial-gradient(1100px 560px at 18% -10%, rgba(20, 100, 140, 0.42), transparent 60%),
+    radial-gradient(900px 500px at 84% -4%, rgba(10, 80, 120, 0.34), transparent 58%),
+    radial-gradient(700px 400px at 50% 55%, rgba(0, 160, 130, 0.18), transparent 60%),
+    radial-gradient(1300px 780px at 50% 118%, rgba(0, 180, 160, 0.22), transparent 65%),
+    linear-gradient(180deg, #091c24 0%, #051218 100%);
+  --surface-rgb: 10, 36, 50;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #d0f0f4;
+  --ink-2: #80bcc8;
+  --ink-3: #408090;
+  --primary: #00c4a7;
+  --primary-soft: rgba(0, 196, 167, 0.18);
+  --pink: #60d0e8;
+  --pink-soft: rgba(96, 208, 232, 0.15);
+  --gold: #40d8b0;
+  --gold-soft: rgba(64, 216, 176, 0.14);
+  --good: #00c4a7;
+  --warn: #f0b040;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --glass-blur-max: 38px;
+}
+[data-theme="ocean"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(20, 120, 160, 0.48) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(10, 90, 140, 0.38) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 78%, rgba(0, 180, 150, 0.24) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(0, 200, 170, 0.22) 0%, transparent 68%);
+}
+[data-theme="ocean"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(0, 200, 180, 0.28) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(20, 160, 200, 0.22) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(0, 220, 180, 0.18) 0%, transparent 80%),
+    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(40, 180, 220, 0.20) 0%, transparent 80%);
+}
+[data-theme="ocean"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(0, 160, 140, 0.32) 0%, transparent 70%),
+    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(0, 120, 160, 0.26) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(0, 200, 160, 0.20) 0%, transparent 70%),
+    radial-gradient(ellipse 160px 90px at 82% 74%, rgba(40, 220, 200, 0.16) 0%, transparent 70%);
+  filter: blur(22px);
+}
+[data-theme="ocean"] .ripple-ring {
+  border-color: rgba(0, 220, 200, 0.50);
+  background: rgba(0, 180, 160, 0.08);
+}
+
+/* ---------- Lavender Dream 💜 ---------- */
+[data-theme="lavender"] {
+  --bg-base: #f4f0fb;
+  --bg-scene:
+    radial-gradient(1100px 540px at 12% -8%, rgba(200, 180, 255, 0.30), transparent 58%),
+    radial-gradient(950px 580px at 88% 2%, rgba(180, 160, 255, 0.26), transparent 55%),
+    radial-gradient(1200px 700px at 50% 115%, rgba(150, 120, 220, 0.22), transparent 64%),
+    linear-gradient(180deg, #f7f4fd 0%, #ede8f8 100%);
+  --surface-rgb: 255, 255, 255;
+  --shadow-rgb: 28, 16, 50;
+  --ink: #22124a;
+  --ink-2: #5c4880;
+  --ink-3: #9c88c0;
+  --primary: #7c5cbf;
+  --primary-soft: rgba(124, 92, 191, 0.11);
+  --pink: #c070b0;
+  --pink-soft: rgba(192, 112, 176, 0.11);
+  --gold: #9880d0;
+  --gold-soft: rgba(152, 128, 208, 0.13);
+  --good: #5a8a9c;
+  --warn: #c07830;
+  --border: rgba(40, 20, 70, 0.09);
+  --border-strong: rgba(40, 20, 70, 0.15);
+  --glass-blur-max: 30px;
+}
+[data-theme="lavender"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(180, 160, 255, 0.34) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 68%, rgba(200, 180, 255, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 52% 80%, rgba(230, 200, 255, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(160, 120, 220, 0.18) 0%, transparent 68%);
+}
+[data-theme="lavender"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(200, 180, 255, 0.20) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(180, 160, 255, 0.17) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(220, 200, 255, 0.14) 0%, transparent 80%),
+    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(240, 210, 255, 0.15) 0%, transparent 80%);
+}
+[data-theme="lavender"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(140, 100, 220, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(190, 140, 255, 0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(220, 180, 255, 0.11) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+/* ---------- Midnight Navy 🌌 (dark) ---------- */
+[data-theme="navy"] {
+  color-scheme: dark;
+  --bg-base: #090e1a;
+  --bg-scene:
+    radial-gradient(1100px 580px at 22% -12%, rgba(40, 60, 160, 0.40), transparent 60%),
+    radial-gradient(900px 500px at 84% -4%, rgba(20, 40, 140, 0.32), transparent 58%),
+    radial-gradient(700px 400px at 50% 55%, rgba(60, 80, 180, 0.18), transparent 60%),
+    radial-gradient(1300px 780px at 50% 118%, rgba(80, 140, 200, 0.18), transparent 65%),
+    linear-gradient(180deg, #0c1220 0%, #070a14 100%);
+  --surface-rgb: 24, 32, 56;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #e0e8ff;
+  --ink-2: #8898d0;
+  --ink-3: #4860a0;
+  --primary: #6080e8;
+  --primary-soft: rgba(96, 128, 232, 0.18);
+  --pink: #80a0f0;
+  --pink-soft: rgba(128, 160, 240, 0.16);
+  --gold: #7090ff;
+  --gold-soft: rgba(112, 144, 255, 0.15);
+  --good: #60d0b0;
+  --warn: #d0a050;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --glass-blur-max: 40px;
+}
+[data-theme="navy"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(60, 80, 200, 0.46) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(30, 60, 180, 0.36) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 75%, rgba(80, 120, 220, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(100, 160, 240, 0.18) 0%, transparent 68%);
+}
+[data-theme="navy"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(80, 120, 255, 0.24) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(60, 100, 240, 0.18) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(100, 140, 255, 0.14) 0%, transparent 80%),
+    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(120, 160, 255, 0.16) 0%, transparent 80%);
+}
+[data-theme="navy"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(60, 100, 200, 0.30) 0%, transparent 70%),
+    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(40, 80, 180, 0.24) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(80, 140, 220, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 160px 90px at 82% 74%, rgba(100, 160, 255, 0.14) 0%, transparent 70%);
+  filter: blur(24px);
+}
+[data-theme="navy"] .ripple-ring {
+  border-color: rgba(120, 160, 255, 0.50);
+  background: rgba(80, 120, 220, 0.08);
+}
+
+/* Effects kill-switches (toggled via body class from Tweaks panel) */
+.no-motes .mote, .no-motes .mote-lg, .no-motes .mote-sm, .no-motes .mote-pink,
+.no-motes .scene-swell, .no-motes .scene-caustics, .no-motes .scene-shimmer,
+.no-motes .scene-lotus { display: none; }
+.no-ripple .scene::after { display: none; }
+.no-glass-shine .glass::after, .no-glass-shine .glass-strong::after { display: none; }
+.no-water #yana-ripple-canvas { display: none; }

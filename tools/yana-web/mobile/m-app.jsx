@@ -11,21 +11,32 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showMissions": true,
   "showMemory": true,
   "showSystem": true,
-  "accent": ""
+  "accent": "",
+  "showMotes": true,
+  "showRipple": true,
+  "showGlassShine": true
 }/*EDITMODE-END*/;
 
 const THEME_MAP = {
-  "Lotus Dawn 🌸":   "dawn",
-  "Jade Lake 🌿":    "jade",
-  "Morning Mist ☁️": "mist",
-  "Glass Silver ✨":  "silver",
-  "iOS Rose 🌷":     "ios-rose",
-  "iOS Night 🌙":    "ios-night",
-  "Prism Glass 🔮":  "liquid",
-  "Obsidian 🌑":     "obsidian",
+  /* ── Light ── */
+  "Jade Lake 🌿":      "jade",
+  "Lotus Dawn 🌸":     "dawn",
+  "Morning Mist ☁️":   "mist",
+  "Glass Silver ✨":   "silver",
+  "Sage Forest 🌲":    "sage",
+  "Sunset Amber 🌅":   "amber",
+  "Arctic Blue ❄️":    "arctic",
+  "Lavender Dream 💜": "lavender",
+  "iOS Rose 🌷":       "ios-rose",
+  /* ── Dark ── */
+  "iOS Night 🌙":      "ios-night",
+  "Prism Glass 🔮":    "liquid",
+  "Obsidian 🌑":       "obsidian",
+  "Deep Ocean 🌊":     "ocean",
+  "Midnight Navy 🌌":  "navy",
 };
 const DENSITY = { "Compact": 0.85, "Regular": 1, "Spacious": 1.18 };
-const DARK_THEMES = new Set(["iOS Night 🌙", "Obsidian 🌑"]);
+const DARK_THEMES = new Set(["iOS Night 🌙", "Obsidian 🌑", "Deep Ocean 🌊", "Midnight Navy 🌌"]);
 
 function applyTweaks(t) {
   const root = document.documentElement;
@@ -43,6 +54,9 @@ function applyTweaks(t) {
     root.style.removeProperty("--primary");
     root.style.removeProperty("--primary-soft");
   }
+  document.body.classList.toggle("no-motes",       t.showMotes      === false);
+  document.body.classList.toggle("no-ripple",      t.showRipple     === false);
+  document.body.classList.toggle("no-glass-shine", t.showGlassShine === false);
 }
 
 function App() {
@@ -124,6 +138,11 @@ function App() {
           options={["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakButton label="Use theme accent" onClick={() => setTweak("accent", "")} />
+
+        <TweakSection label="Effects" />
+        <TweakToggle label="Floating motes" value={t.showMotes} onChange={(v) => setTweak("showMotes", v)} />
+        <TweakToggle label="Water ripple" value={t.showRipple} onChange={(v) => setTweak("showRipple", v)} />
+        <TweakToggle label="Glass shine" value={t.showGlassShine} onChange={(v) => setTweak("showGlassShine", v)} />
       </TweaksPanel>
     </div>
   );

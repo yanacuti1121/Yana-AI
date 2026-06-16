@@ -115,18 +115,31 @@ const TWEAK_DEFAULTS = {
   "showMissions": true,
   "showMemory": true,
   "showSystem": true,
-  "accent": ""
+  "accent": "",
+  "showVTuber": true,
+  "showMotes": true,
+  "showRipple": true,
+  "showWater": true,
+  "showGlassShine": true,
 };
 
 const THEME_MAP = {
-  "Lotus Dawn 🌸": "dawn",
-  "Jade Lake 🌿": "jade",
+  /* ── Light ── */
+  "Jade Lake 🌿":    "jade",
+  "Lotus Dawn 🌸":   "dawn",
   "Morning Mist ☁️": "mist",
-  "Glass Silver ✨": "silver",
-  "iOS Rose 🌷": "ios-rose",
-  "iOS Night 🌙": "ios-night",
-  "Prism Glass 🔮": "liquid",
-  "Obsidian 🌑": "obsidian",
+  "Glass Silver ✨":  "silver",
+  "Sage Forest 🌲":  "sage",
+  "Sunset Amber 🌅": "amber",
+  "Arctic Blue ❄️":  "arctic",
+  "Lavender Dream 💜": "lavender",
+  "iOS Rose 🌷":     "ios-rose",
+  /* ── Dark ── */
+  "iOS Night 🌙":    "ios-night",
+  "Prism Glass 🔮":  "liquid",
+  "Obsidian 🌑":     "obsidian",
+  "Deep Ocean 🌊":   "ocean",
+  "Midnight Navy 🌌":"navy",
 };
 const DENSITY = { "Compact": 0.85, "Regular": 1, "Spacious": 1.18 };
 
@@ -148,6 +161,11 @@ function applyTweaks(t) {
   const spd = (t.glassSpeed ?? 100) / 100;
   root.style.setProperty("--shine-dur", spd > 0 ? (11 / spd).toFixed(2) + "s" : "0s");
   root.style.setProperty("--anim-speed", spd.toFixed(3));
+  // Effects
+  document.body.classList.toggle("no-motes",       t.showMotes      === false);
+  document.body.classList.toggle("no-ripple",      t.showRipple     === false);
+  document.body.classList.toggle("no-glass-shine", t.showGlassShine === false);
+  document.body.classList.toggle("no-water",       t.showWater      === false);
 }
 
 function App() {
@@ -183,11 +201,11 @@ function App() {
         </div>
       </main>
 
-      <VTuber />
+      {t.showVTuber !== false && <VTuber />}
 
       <TweaksPanel>
         <TweakSection label="Theme" />
-        <TweakSelect label="Direction" value={t.theme}
+        <TweakSelect label="Preset" value={t.theme}
           options={Object.keys(THEME_MAP)}
           onChange={(v) => setTweak("theme", v)} />
         <TweakRadio label="Language" value={t.language}
@@ -195,23 +213,30 @@ function App() {
           onChange={(v) => setTweak("language", v)} />
 
         <TweakSection label="Glass" />
-        <TweakSlider label="Blur strength" value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
+        <TweakSlider label="Blur" value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
         <TweakSlider label="Transparency" value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
         <TweakSlider label="Reflection" value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
         <TweakSlider label="Depth" value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
 
+        <TweakSection label="Effects" />
+        <TweakToggle label="Yana companion" value={t.showVTuber !== false} onChange={(v) => setTweak("showVTuber", v)} />
+        <TweakToggle label="Floating motes" value={t.showMotes !== false} onChange={(v) => setTweak("showMotes", v)} />
+        <TweakToggle label="Water ripple" value={t.showRipple !== false} onChange={(v) => setTweak("showRipple", v)} />
+        <TweakToggle label="Canvas waves" value={t.showWater !== false} onChange={(v) => setTweak("showWater", v)} />
+        <TweakToggle label="Glass shine" value={t.showGlassShine !== false} onChange={(v) => setTweak("showGlassShine", v)} />
+
         <TweakSection label="Layout" />
         <TweakRadio label="Density" value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
 
-        <TweakSection label="AI Control Center" />
-        <TweakToggle label="Show agents" value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
-        <TweakToggle label="Show missions" value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
-        <TweakToggle label="Show Memory Garden" value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
-        <TweakToggle label="Show system status" value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
+        <TweakSection label="AI panels" />
+        <TweakToggle label="Agents" value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
+        <TweakToggle label="Missions" value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
+        <TweakToggle label="Memory Garden" value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
+        <TweakToggle label="System status" value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
 
-        <TweakSection label="Visual style" />
-        <TweakColor label="Accent" value={t.accent || "#2f7e6e"}
-          options={["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"]}
+        <TweakSection label="Accent color" />
+        <TweakColor label="" value={t.accent || "#2f7e6e"}
+          options={["#2f7e6e","#5a8a50","#1a7eb0","#7c5cbf","#b96b80","#c97c18","#3a7ca5","#c06050","#56949f","#6f8f5a"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakButton label="Use theme accent" onClick={() => setTweak("accent", "")} />
 
