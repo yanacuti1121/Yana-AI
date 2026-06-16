@@ -230,14 +230,20 @@ function SettingRow({ label, desc, value }) {
 
 /* ---------- Settings: Appearance (Apple-style) ---------- */
 const THEME_PREVIEWS = [
-  { label: "Lotus Dawn 🌸",   accent: "#b96b80", sky: "linear-gradient(160deg, #faf5f3 30%, #f2dfdc 100%)", wash: "rgba(236,196,134,.45)" },
-  { label: "Jade Lake 🌿",    accent: "#2f7e6e", sky: "linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%)", wash: "rgba(122,184,168,.40)" },
-  { label: "Morning Mist ☁️", accent: "#4a7a6a", sky: "linear-gradient(160deg, #f8f7f4 30%, #ecebe5 100%)", wash: "rgba(214,222,214,.55)" },
-  { label: "Glass Silver ✨",  accent: "#3a7ca5", sky: "linear-gradient(160deg, #f3f6fa 30%, #dde6ef 100%)", wash: "rgba(168,199,224,.45)" },
-  { label: "iOS Rose 🌷",     accent: "#e879a0", sky: "linear-gradient(160deg, #fdf0f6 30%, #f5d0e8 100%)", wash: "rgba(232,121,160,.40)", dark: false },
-  { label: "iOS Night 🌙",    accent: "#e879a0", sky: "linear-gradient(160deg, #2a0818 30%, #14020a 100%)", wash: "rgba(232,121,160,.22)", dark: true },
-  { label: "Prism Glass 🔮",  accent: "#6060ff", sky: "linear-gradient(160deg, #f5f5fc 30%, #e0e0f8 100%)", wash: "rgba(96,96,255,.35)" },
-  { label: "Obsidian 🌑",     accent: "#8080ff", sky: "linear-gradient(160deg, #1a1a2e 30%, #0c0c1a 100%)", wash: "rgba(128,128,255,.22)", dark: true },
+  { label: "Lotus Dawn 🌸",      accent: "#b96b80", sky: "linear-gradient(160deg, #faf5f3 30%, #f2dfdc 100%)", wash: "rgba(236,196,134,.45)" },
+  { label: "Jade Lake 🌿",       accent: "#2f7e6e", sky: "linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%)", wash: "rgba(122,184,168,.40)" },
+  { label: "Morning Mist ☁️",    accent: "#4a7a6a", sky: "linear-gradient(160deg, #f8f7f4 30%, #ecebe5 100%)", wash: "rgba(214,222,214,.55)" },
+  { label: "Glass Silver ✨",     accent: "#3a7ca5", sky: "linear-gradient(160deg, #f3f6fa 30%, #dde6ef 100%)", wash: "rgba(168,199,224,.45)" },
+  { label: "Sage Forest 🌲",     accent: "#5a8a50", sky: "linear-gradient(160deg, #f4f7f1 30%, #e4ede0 100%)", wash: "rgba(120,180,100,.38)" },
+  { label: "Sunset Amber 🌅",    accent: "#c97c18", sky: "linear-gradient(160deg, #faf4e8 30%, #f0e4cc 100%)", wash: "rgba(248,200,100,.42)" },
+  { label: "Arctic Blue ❄️",     accent: "#1a7eb0", sky: "linear-gradient(160deg, #f3f8fc 30%, #ddeef8 100%)", wash: "rgba(160,210,248,.42)" },
+  { label: "Lavender Dream 💜",  accent: "#7c5cbf", sky: "linear-gradient(160deg, #f7f4fd 30%, #e8e0f8 100%)", wash: "rgba(190,170,255,.40)" },
+  { label: "iOS Rose 🌷",        accent: "#e879a0", sky: "linear-gradient(160deg, #fdf0f6 30%, #f5d0e8 100%)", wash: "rgba(232,121,160,.40)", dark: false },
+  { label: "iOS Night 🌙",       accent: "#e879a0", sky: "linear-gradient(160deg, #2a0818 30%, #14020a 100%)", wash: "rgba(232,121,160,.22)", dark: true },
+  { label: "Prism Glass 🔮",     accent: "#6060ff", sky: "linear-gradient(160deg, #f5f5fc 30%, #e0e0f8 100%)", wash: "rgba(96,96,255,.35)" },
+  { label: "Obsidian 🌑",        accent: "#8080ff", sky: "linear-gradient(160deg, #1a1a2e 30%, #0c0c1a 100%)", wash: "rgba(128,128,255,.22)", dark: true },
+  { label: "Deep Ocean 🌊",      accent: "#00c4a7", sky: "linear-gradient(160deg, #0d2030 30%, #071820 100%)", wash: "rgba(0,196,167,.28)", dark: true },
+  { label: "Midnight Navy 🌌",   accent: "#6080e0", sky: "linear-gradient(160deg, #121828 30%, #090e1a 100%)", wash: "rgba(60,80,200,.28)", dark: true },
 ];
 
 function ThemeCard({ p, active, onPick }) {
