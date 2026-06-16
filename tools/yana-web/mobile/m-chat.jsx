@@ -94,6 +94,40 @@ function mDetectSensitivity(text) {
 }
 
 
+// ── Markdown (shared logic with desktop/chat.jsx) ─────────────────────────────
+function mSafeHtml(html) {
+  return html.replace(/<script[\s\S]*?<\/script>/gi,"").replace(/ on\w+\s*=\s*["'][^"']*["']/gi,"").replace(/ on\w+\s*=\s*[^\s>]*/gi,"");
+}
+function mRenderMd(text) {
+  if (!text) return "";
+  if (typeof marked === "undefined") return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\n/g,"<br>");
+  try { marked.use({ gfm: true, breaks: true }); return mSafeHtml(marked.parse(text)); }
+  catch (_) { return text.replace(/\n/g,"<br>"); }
+}
+function MMarkdownBubble({ text }) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof hljs === "undefined") return;
+    el.querySelectorAll("pre code:not([data-highlighted])").forEach(b => hljs.highlightElement(b));
+  });
+  return <div ref={ref} className="yana-md" dangerouslySetInnerHTML={{ __html: mRenderMd(text) }} />;
+}
+function MCopyBtn({ text }) {
+  const [copied, setCopied] = React.useState(false);
+  function doCopy() {
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {});
+  }
+  return (
+    <button onClick={doCopy} title="Copy" style={{
+      width: 26, height: 26, borderRadius: 7, border: "1px solid var(--border)",
+      background: "rgba(var(--surface-rgb,255,255,255),.65)", cursor: "pointer",
+      fontSize: 11, display: "grid", placeItems: "center",
+      color: copied ? "var(--primary)" : "var(--ink-3)",
+    }}>{copied ? "✓" : "⧉"}</button>
+  );
+}
+
 function MRouteChip({ route }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
@@ -105,16 +139,23 @@ function MRouteChip({ route }) {
   );
 }
 
-function MMessage({ msg }) {
+function MMessage({ msg, isLastYana, onRegenerate }) {
   if (msg.who === "user") {
+    const userName  = localStorage.getItem("yana.about.who") || "You";
+    const avatarUrl = localStorage.getItem("yana.avatar-url");
+    const initial   = (userName[0] || "?").toUpperCase();
     return (
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end", gap: 8 }}>
         <div style={{
-          maxWidth: "84%", padding: "10px 14px", borderRadius: "16px 16px 4px 16px",
+          maxWidth: "82%", padding: "10px 14px", borderRadius: "16px 16px 4px 16px",
           background: "var(--primary)", color: "rgba(255,255,255,.96)",
           fontSize: 14, lineHeight: 1.55,
           boxShadow: "0 4px 14px color-mix(in oklab, var(--primary) 25%, transparent)",
         }}>{msg.text}</div>
+        {avatarUrl
+          ? <img src={avatarUrl} alt={userName} style={{ width: 28, height: 28, borderRadius: 99, objectFit: "cover", flex: "none", boxShadow: "0 2px 8px rgba(0,0,0,.15)" }} />
+          : <div style={{ width: 28, height: 28, borderRadius: 99, flex: "none", background: "var(--primary)", color: "white", fontSize: 12, fontWeight: 700, display: "grid", placeItems: "center", boxShadow: "0 2px 8px color-mix(in oklab, var(--primary) 35%, transparent)" }}>{initial}</div>
+        }
       </div>
     );
   }
@@ -123,7 +164,7 @@ function MMessage({ msg }) {
       <div style={{ maxWidth: "90%" }}>
         {msg.route && <MRouteChip route={msg.route} />}
         <div className="glass" style={{ padding: "12px 15px", borderRadius: "4px 16px 16px 16px", fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}>
-          {msg.text}
+          {msg.text ? <MMarkdownBubble text={msg.text} /> : ""}
           {msg.action && (
             <div style={{
               marginTop: 11, padding: "9px 12px", borderRadius: "var(--r-sm)",
@@ -142,6 +183,16 @@ function MMessage({ msg }) {
             {msg.refs.map((r) => <span key={r} className="chip neutral" style={{ fontSize: 10.5 }}>{r}</span>)}
           </div>
         )}
+        <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
+          {msg.text && <MCopyBtn text={msg.text} />}
+          {isLastYana && onRegenerate && (
+            <button onClick={onRegenerate} title="Retry" style={{
+              height: 26, padding: "0 9px", borderRadius: 7, border: "1px solid var(--border)",
+              background: "rgba(var(--surface-rgb,255,255,255),.65)", cursor: "pointer",
+              fontSize: 11, display: "flex", alignItems: "center", gap: 4, color: "var(--ink-3)",
+            }}>↺</button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -279,10 +330,20 @@ function MChat() {
   const [thinking, setThinking] = React.useState(false);
   const [ctx, setCtx] = React.useState(false);
   const [modelPicker, setModelPicker] = React.useState(false);
-  const logRef  = React.useRef(null);
+  const [streaming, setStreaming] = React.useState(false);
+  const [atBottom, setAtBottom]   = React.useState(true);
+  const logRef    = React.useRef(null);
   const readerRef = React.useRef(null);
-  const fileRef = React.useRef(null);
+  const fileRef   = React.useRef(null);
+  const inputRef  = React.useRef(null);
   const [ocrBusy, setOcrBusy] = React.useState(false);
+
+  function autoResize() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 140) + "px";
+  }
 
   const [overrideProvider, setOverrideProvider] = React.useState(
     () => localStorage.getItem("yana.chat.provider") || ""
@@ -330,8 +391,16 @@ function MChat() {
 
   React.useEffect(() => {
     const el = logRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [msgs, thinking]);
+    if (el && atBottom) el.scrollTop = el.scrollHeight;
+  }, [msgs, thinking, atBottom]);
+
+  React.useEffect(() => {
+    const el = logRef.current;
+    if (!el) return;
+    function onScroll() { setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80); }
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
 
   // New-chat event from TopBar
   React.useEffect(() => {
@@ -417,9 +486,24 @@ function MChat() {
     }
   }
 
-  async function send() {
-    const text = draft.trim();
-    if (!text || thinking) return;
+  function regenerate() {
+    const lastUser = [...msgs].reverse().find((m) => m.who === "user");
+    if (!lastUser || thinking || streaming) return;
+    setMsgs((m) => {
+      const lastYanaIdx = [...m].reverse().findIndex((x) => x.who === "yana");
+      if (lastYanaIdx === -1) return m;
+      return m.slice(0, m.length - 1 - lastYanaIdx);
+    });
+    setTimeout(() => sendText(lastUser.text), 0);
+  }
+
+  function stopStream() {
+    if (readerRef.current) { readerRef.current.cancel(); readerRef.current = null; }
+    setStreaming(false); setThinking(false);
+  }
+
+  async function sendText(text) {
+    if (!text || thinking || streaming) return;
 
     // Ensure vault has finished decrypting keys from IndexedDB before reading
     if (typeof YanaVault !== "undefined") await YanaVault.ready;
@@ -427,7 +511,12 @@ function MChat() {
     const tier = mDetectSensitivity(text);
     setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier }]);
     setDraft("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     setThinking(true);
+    setAtBottom(true);
+
+    // VTuber companion
+    if (!tier) window.dispatchEvent(new CustomEvent("yana-chat-message"));
 
     let { provider, apiKey } = mGetProviderConfig(overrideProvider);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
@@ -448,6 +537,7 @@ function MChat() {
 
       const reader = res.body.getReader();
       readerRef.current = reader;
+      setStreaming(true);
       const decoder = new TextDecoder();
       let buf = "";
       let accumulated = "";
@@ -479,6 +569,8 @@ function MChat() {
           } catch (_) {}
         }
       }
+      setStreaming(false);
+      readerRef.current = null;
 
       // ChatGPT-style memory — strip MEMORY: line and persist it
       if (!tier) {
@@ -500,6 +592,8 @@ function MChat() {
       }
     } catch (err) {
       setThinking(false);
+      setStreaming(false);
+      readerRef.current = null;
       setMsgs((m) => [...m, {
         who: "yana",
         route: { agent: provider, model },
@@ -513,8 +607,13 @@ function MChat() {
     }
   }
 
+  function send() {
+    const text = draft.trim();
+    if (text) sendText(text);
+  }
+
   return (
-    <div data-screen-label="Chat" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+    <div data-screen-label="Chat" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, position: "relative" }}>
       {/* slim context bar — two chips: provider/context + model picker */}
       <div style={{ flex: "none", display: "flex", gap: 8, margin: "12px 16px 8px" }}>
         {/* Provider / context chip — opens routing + context sheet */}
@@ -545,7 +644,12 @@ function MChat() {
       </div>
 
       <div ref={logRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "calc(15px * var(--sp))", padding: "6px 16px 14px", minHeight: 0 }}>
-        {msgs.map((m, i) => <MMessage key={i} msg={m} />)}
+        {msgs.map((m, i) => (
+          <MMessage key={i} msg={m}
+            isLastYana={!streaming && i === msgs.length - 1 && m.who === "yana"}
+            onRegenerate={regenerate}
+          />
+        ))}
         {thinking && (
           <div style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--ink-3)", fontSize: 12.5 }}>
             <YanaMark size={18} /> {L("Navigator is thinking…", "Navigator đang suy nghĩ…")}
@@ -553,16 +657,31 @@ function MChat() {
         )}
       </div>
 
+      {!atBottom && (
+        <button
+          onClick={() => { const el = logRef.current; if (el) { el.scrollTop = el.scrollHeight; setAtBottom(true); } }}
+          style={{
+            position: "absolute", bottom: "calc(90px + env(safe-area-inset-bottom, 0px))", right: 16,
+            width: 32, height: 32, borderRadius: 99, border: "1px solid var(--border)",
+            background: "var(--surface)", color: "var(--ink-2)", cursor: "pointer",
+            display: "grid", placeItems: "center", fontSize: 15,
+            boxShadow: "0 2px 10px rgba(0,0,0,.15)", zIndex: 10,
+          }}>↓</button>
+      )}
+
       <div style={{ flex: "none", padding: "8px 12px calc(12px + env(safe-area-inset-bottom, 0px))" }}>
         <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
         <input type="file" ref={visionRef} accept="image/*" style={{ display: "none" }} onChange={handleVisionAttach} />
         <div className="glass-strong" style={{ borderRadius: 18, padding: "7px 7px 7px 15px", display: "flex", alignItems: "center", gap: 9 }}>
-          <input
+          <textarea
+            ref={inputRef}
+            rows={1}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-            placeholder={L("Give Yana a direction…", "Giao cho Yana một hướng đi…")}
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontSize: 14.5, fontFamily: "inherit", color: "var(--ink)" }}
+            onChange={(e) => { setDraft(e.target.value); autoResize(); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder={L("Give Yana a direction… (Shift+Enter for new line)", "Giao cho Yana một hướng đi… (Shift+Enter xuống dòng)")}
+            className="chat-input"
+            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontSize: 14.5, fontFamily: "inherit", color: "var(--ink)", lineHeight: 1.5, maxHeight: 140, overflowY: "auto" }}
           />
           {isVisionModel(_activeModel) && (
             <button
@@ -589,11 +708,17 @@ function MChat() {
             }}>
             {ocrBusy ? "…" : Icons.attach(16)}
           </button>
-          <button onClick={send} aria-label="Send" style={{
-            width: 38, height: 38, borderRadius: 12, border: "none", cursor: "pointer", flex: "none",
-            background: "var(--primary)", color: "white", display: "grid", placeItems: "center",
-            boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
-          }}>{Icons.send(17)}</button>
+          {streaming || thinking
+            ? <button onClick={stopStream} aria-label="Stop" style={{
+                width: 38, height: 38, borderRadius: 12, border: "none", cursor: "pointer", flex: "none",
+                background: "var(--ink-3)", color: "white", display: "grid", placeItems: "center",
+              }}>■</button>
+            : <button onClick={send} aria-label="Send" style={{
+                width: 38, height: 38, borderRadius: 12, border: "none", cursor: "pointer", flex: "none",
+                background: "var(--primary)", color: "white", display: "grid", placeItems: "center",
+                boxShadow: "0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent)",
+              }}>{Icons.send(17)}</button>
+          }
         </div>
       </div>
 

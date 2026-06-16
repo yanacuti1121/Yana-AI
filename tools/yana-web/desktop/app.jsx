@@ -183,6 +183,8 @@ function App() {
         </div>
       </main>
 
+      <VTuber />
+
       <TweaksPanel>
         <TweakSection label="Theme" />
         <TweakSelect label="Direction" value={t.theme}

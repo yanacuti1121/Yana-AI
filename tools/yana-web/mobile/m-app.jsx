@@ -93,6 +93,8 @@ function App() {
         <MoreSheet open={more} page={page} onNav={nav} onClose={() => setMore(false)} />
       </div>
 
+      <VTuber />
+
       <TweaksPanel>
         <TweakSection label="Theme" />
         <TweakSelect label="Direction" value={t.theme}

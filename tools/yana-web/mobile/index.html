@@ -9,6 +9,36 @@
   <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="themes.css" />
   <link rel="stylesheet" href="mobile.css" />
+  <!-- Markdown + syntax highlight -->
+  <script src="https://unpkg.com/marked@12/marked.min.js"></script>
+  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
+  <style>
+    .yana-md { line-height: 1.65; word-break: break-word; }
+    .yana-md p { margin: 0 0 9px; } .yana-md p:last-child { margin-bottom: 0; }
+    .yana-md h1,.yana-md h2,.yana-md h3,.yana-md h4 { font-weight: 600; margin: 14px 0 5px; color: var(--ink); }
+    .yana-md h1 { font-size: 1.2em; } .yana-md h2 { font-size: 1.08em; } .yana-md h3 { font-size: 1em; }
+    .yana-md ul,.yana-md ol { padding-left: 18px; margin: 4px 0 9px; } .yana-md li { margin-bottom: 3px; }
+    .yana-md code:not(pre code) { background: rgba(var(--shadow-rgb),.09); border-radius: 4px; padding: 1px 5px; font-size: .855em; font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color: var(--primary); }
+    .yana-md pre { background: rgba(var(--shadow-rgb),.06); border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; overflow-x: auto; margin: 8px 0; }
+    .yana-md pre code { background: none; padding: 0; font-size: .82em; font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color: var(--ink); }
+    .yana-md blockquote { border-left: 3px solid var(--primary); margin: 8px 0; padding: 4px 12px; color: var(--ink-2); background: var(--primary-soft); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .yana-md table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: .88em; }
+    .yana-md th,.yana-md td { border: 1px solid var(--border); padding: 5px 9px; text-align: left; }
+    .yana-md th { background: rgba(var(--shadow-rgb),.06); font-weight: 600; }
+    .yana-md a { color: var(--primary); text-decoration: underline; }
+    .yana-md strong { font-weight: 600; }
+    .yana-md .hljs-keyword,.yana-md .hljs-built_in { color: #0055cc; }
+    .yana-md .hljs-string { color: #116611; }
+    .yana-md .hljs-comment { color: #777; font-style: italic; }
+    .yana-md .hljs-number { color: #994400; }
+    .yana-md .hljs-title { color: #0044aa; }
+    [data-theme=obsidian] .yana-md .hljs-keyword,[data-theme=ios-night] .yana-md .hljs-keyword { color: #89b4fa; }
+    [data-theme=obsidian] .yana-md .hljs-string,[data-theme=ios-night] .yana-md .hljs-string { color: #a6e3a1; }
+    [data-theme=obsidian] .yana-md .hljs-comment,[data-theme=ios-night] .yana-md .hljs-comment { color: #6c7086; }
+    [data-theme=obsidian] .yana-md .hljs-number,[data-theme=ios-night] .yana-md .hljs-number { color: #fab387; }
+    [data-theme=obsidian] .yana-md pre,[data-theme=ios-night] .yana-md pre { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.08); }
+    textarea.chat-input { resize: none; scrollbar-width: thin; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
@@ -26,9 +56,10 @@
   <script type="text/babel" src="m-shell.jsx"></script>
   <script type="text/babel" src="m-lake.jsx"></script>
   <script type="text/babel" src="m-missions.jsx"></script>
-  <script type="text/babel" src="m-chat.jsx"></script>
+  <script type="text/babel" src="m-chat.jsx?v=20260616b"></script>
   <script type="text/babel" src="m-garden.jsx"></script>
   <script type="text/babel" src="m-system.jsx"></script>
+  <script type="text/babel" src="/desktop/vtuber.jsx?v=20260616"></script>
   <script type="text/babel" src="m-app.jsx"></script>
 </body>
 </html>
