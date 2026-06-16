@@ -110,39 +110,39 @@ function App() {
       <VTuber />
 
       <TweaksPanel>
-        <TweakSection label="Theme" />
-        <TweakSelect label="Direction" value={t.theme}
+        <TweakSection label={L("Theme", "Giao diện")} />
+        <TweakSelect label={L("Preset", "Mẫu")} value={t.theme}
           options={Object.keys(THEME_MAP)}
           onChange={(v) => setTweak("theme", v)} />
-        <TweakRadio label="Language" value={t.language}
+        <TweakRadio label={L("Language", "Ngôn ngữ")} value={t.language}
           options={["English", "Tiếng Việt"]}
           onChange={(v) => setTweak("language", v)} />
 
-        <TweakSection label="Glass" />
-        <TweakSlider label="Blur strength" value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
-        <TweakSlider label="Transparency" value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
-        <TweakSlider label="Reflection" value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
-        <TweakSlider label="Depth" value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
+        <TweakSection label={L("Glass", "Kính")} />
+        <TweakSlider label={L("Blur", "Mờ")} value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
+        <TweakSlider label={L("Transparency", "Trong suốt")} value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
+        <TweakSlider label={L("Reflection", "Phản chiếu")} value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
+        <TweakSlider label={L("Depth", "Chiều sâu")} value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
 
-        <TweakSection label="Layout" />
-        <TweakRadio label="Density" value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
+        <TweakSection label={L("Layout", "Bố cục")} />
+        <TweakRadio label={L("Density", "Mật độ")} value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
 
-        <TweakSection label="Lake cards" />
-        <TweakToggle label="Show agents" value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
-        <TweakToggle label="Show missions" value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
-        <TweakToggle label="Show Memory Garden" value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
-        <TweakToggle label="Show system status" value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
+        <TweakSection label={L("Lake cards", "Thẻ Dashboard")} />
+        <TweakToggle label={L("Show agents", "Hiện tác nhân")} value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
+        <TweakToggle label={L("Show missions", "Hiện nhiệm vụ")} value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
+        <TweakToggle label={L("Show Memory Garden", "Hiện vườn ký ức")} value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
+        <TweakToggle label={L("Show system status", "Hiện trạng thái hệ thống")} value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
 
-        <TweakSection label="Visual style" />
-        <TweakColor label="Accent" value={t.accent || "#2f7e6e"}
+        <TweakSection label={L("Accent color", "Màu nhấn")} />
+        <TweakColor label="" value={t.accent || "#2f7e6e"}
           options={["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"]}
           onChange={(v) => setTweak("accent", v)} />
-        <TweakButton label="Use theme accent" onClick={() => setTweak("accent", "")} />
+        <TweakButton label={L("Use theme accent", "Dùng màu theo theme")} onClick={() => setTweak("accent", "")} />
 
-        <TweakSection label="Effects" />
-        <TweakToggle label="Floating motes" value={t.showMotes} onChange={(v) => setTweak("showMotes", v)} />
-        <TweakToggle label="Water ripple" value={t.showRipple} onChange={(v) => setTweak("showRipple", v)} />
-        <TweakToggle label="Glass shine" value={t.showGlassShine} onChange={(v) => setTweak("showGlassShine", v)} />
+        <TweakSection label={L("Effects", "Hiệu ứng")} />
+        <TweakToggle label={L("Floating motes", "Hạt nổi")} value={t.showMotes} onChange={(v) => setTweak("showMotes", v)} />
+        <TweakToggle label={L("Water ripple", "Gợn nước")} value={t.showRipple} onChange={(v) => setTweak("showRipple", v)} />
+        <TweakToggle label={L("Glass shine", "Ánh kính")} value={t.showGlassShine} onChange={(v) => setTweak("showGlassShine", v)} />
       </TweaksPanel>
     </div>
   );
