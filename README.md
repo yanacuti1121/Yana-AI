@@ -37,6 +37,9 @@
   <a href="https://github.com/marketplace/yana-ai">
     <img src="https://img.shields.io/badge/GitHub-Marketplace-2ea44f?style=for-the-badge&logo=github" />
   </a>
+  <a href="https://github.com/apps/yamtam">
+    <img src="https://img.shields.io/badge/Install-GitHub_App-0969da?style=for-the-badge&logo=github" />
+  </a>
 </p>
 
 <p align="center">
