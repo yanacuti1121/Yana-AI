@@ -1092,6 +1092,7 @@ button:not([disabled]) {
 
 /* ---------- Sage Forest 🌲 ---------- */
 [data-theme="sage"] {
+  color-scheme: light;
   --bg-base: #f1f4ef;
   --bg-scene:
     radial-gradient(1100px 520px at 10% -6%, rgba(164, 196, 140, 0.20), transparent 60%),
@@ -1136,6 +1137,7 @@ button:not([disabled]) {
 
 /* ---------- Sunset Amber 🌅 ---------- */
 [data-theme="amber"] {
+  color-scheme: light;
   --bg-base: #f9f2e8;
   --bg-scene:
     radial-gradient(1100px 540px at 14% -8%, rgba(248, 200, 100, 0.32), transparent 58%),
@@ -1181,6 +1183,7 @@ button:not([disabled]) {
 
 /* ---------- Arctic Blue ❄️ ---------- */
 [data-theme="arctic"] {
+  color-scheme: light;
   --bg-base: #eef5fb;
   --bg-scene:
     radial-gradient(1100px 520px at 10% -6%, rgba(160, 210, 240, 0.30), transparent 60%),
@@ -1281,6 +1284,7 @@ button:not([disabled]) {
 
 /* ---------- Lavender Dream 💜 ---------- */
 [data-theme="lavender"] {
+  color-scheme: light;
   --bg-base: #f4f0fb;
   --bg-scene:
     radial-gradient(1100px 540px at 12% -8%, rgba(200, 180, 255, 0.30), transparent 58%),
