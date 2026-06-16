@@ -1,7 +1,7 @@
 // Yana AI — VTuber companion
-// Slides in occasionally with a short, contextual hint. Click to dismiss.
+// Always-visible toggle button. Click to open/close the chat panel.
 
-const HINTS = {
+const VT_HINTS = {
   en: [
     "Try /code-review before merging! 🌿",
     "Wrap up your session with /wrap-up to save context.",
@@ -28,220 +28,331 @@ const HINTS = {
   ],
 };
 
-const IDLE_HINTS = {
-  en: ["Still here? 👀", "Take a short break if you need it 🍵", "How's everything going?"],
-  vi: ["Anh còn đó không? 👀", "Nghỉ ngơi tí đi anh 🍵", "Mọi thứ ổn không?"],
+const VT_IDLE = {
+  en: ["Still here? 👀", "Take a short break if you need it 🍵", "How's everything going? ✨"],
+  vi: ["Anh còn đó không? 👀", "Nghỉ ngơi tí đi anh 🍵", "Mọi thứ ổn không? ✨"],
 };
 
-/* ---------- Sprite ---------- */
-function YanaSprite({ blinking, talking, wiggling }) {
+const VT_GREET = {
+  en: ["Hi! Need help with anything? 🐰", "I'm here if you need me~", "What are we building today? ✨"],
+  vi: ["Chào anh! Cần em giúp gì không? 🐰", "Em ở đây nếu anh cần~", "Hôm nay mình build gì nào? ✨"],
+};
+
+function vtLang() { return window.YANA_LANG === "vi" ? "vi" : "en"; }
+function vtPick(pool) {
+  const arr = pool[vtLang()] || pool.en;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function VTCharacter({ talking, wiggling, size }) {
+  const s = size || 110;
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="72" height="72" viewBox="0 0 72 72"
-      style={{
-        filter: "drop-shadow(0 6px 16px rgba(47,126,110,0.40))",
-        animation: wiggling
-          ? "vt-wiggle 0.55s ease"
-          : "vt-float 3.2s ease-in-out infinite",
-        display: "block",
-      }}
-    >
+    <div style={{
+      width: s, height: s,
+      borderRadius: "50%",
+      overflow: "hidden",
+      border: "2.5px solid rgba(255,255,255,0.85)",
+      boxShadow: "0 4px 18px rgba(47,126,110,0.30)",
+      background: "#fff8f0",
+      flexShrink: 0,
+      animation: wiggling
+        ? "vt-wiggle 0.55s ease"
+        : "vt-float 3.2s ease-in-out infinite",
+    }}>
       <style>{`
-        @keyframes vt-float {
-          0%,100% { transform: translateY(0px); }
-          50%      { transform: translateY(-5px); }
-        }
-        @keyframes vt-wiggle {
-          0%,100% { transform: rotate(0deg) scale(1); }
-          20%     { transform: rotate(-9deg) scale(1.05); }
-          60%     { transform: rotate(9deg) scale(1.05); }
-        }
+        @keyframes vt-float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+        @keyframes vt-wiggle { 0%,100%{transform:rotate(0) scale(1)} 25%{transform:rotate(-8deg) scale(1.05)} 75%{transform:rotate(8deg) scale(1.05)} }
+        @keyframes vt-talk   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+        .vt-talking { animation: vt-talk 0.25s ease infinite; }
       `}</style>
-
-      {/* Left leaf-ear */}
-      <ellipse cx="18" cy="17" rx="9" ry="13" fill="#2f8c6e" transform="rotate(-22 18 17)" />
-      <ellipse cx="18" cy="17" rx="5.5" ry="8" fill="#4dbf96" transform="rotate(-22 18 17)" />
-
-      {/* Right leaf-ear */}
-      <ellipse cx="54" cy="17" rx="9" ry="13" fill="#2f8c6e" transform="rotate(22 54 17)" />
-      <ellipse cx="54" cy="17" rx="5.5" ry="8" fill="#4dbf96" transform="rotate(22 54 17)" />
-
-      {/* Head */}
-      <circle cx="36" cy="40" r="26" fill="#2a7a60" />
-      <circle cx="36" cy="40" r="24" fill="#3daa88" />
-
-      {/* Soft cheek blush */}
-      <ellipse cx="21" cy="46" rx="7" ry="4.5" fill="#5bcba6" opacity="0.45" />
-      <ellipse cx="51" cy="46" rx="7" ry="4.5" fill="#5bcba6" opacity="0.45" />
-
-      {/* Eyes */}
-      {blinking ? (
-        <>
-          <rect x="24" y="37" width="9"  height="3" rx="1.5" fill="#1a4a38" />
-          <rect x="39" y="37" width="9"  height="3" rx="1.5" fill="#1a4a38" />
-        </>
-      ) : (
-        <>
-          <circle cx="28.5" cy="39" r="5" fill="#1a4a38" />
-          <circle cx="43.5" cy="39" r="5" fill="#1a4a38" />
-          {/* Catchlights */}
-          <circle cx="30" cy="37" r="1.8" fill="white" />
-          <circle cx="45" cy="37" r="1.8" fill="white" />
-        </>
-      )}
-
-      {/* Mouth */}
-      {talking ? (
-        <ellipse cx="36" cy="49" rx="5.5" ry="4" fill="#1a4a38" />
-      ) : (
-        <path d="M29 47 Q36 53 43 47" stroke="#1a4a38" strokeWidth="2.2"
-              fill="none" strokeLinecap="round" />
-      )}
-
-      {/* Little top leaf accent */}
-      <ellipse cx="36" cy="17" rx="4.5" ry="8" fill="#2a7a60" transform="rotate(5 36 17)" />
-      <line x1="36" y1="25" x2="36" y2="14" stroke="#5bcba6" strokeWidth="1.2"
-            strokeLinecap="round" />
-    </svg>
+      <img
+        src="/desktop/vtuber-char.jpg"
+        alt="Yana"
+        className={talking ? "vt-talking" : ""}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+      />
+    </div>
   );
 }
 
-/* ---------- VTuber overlay ---------- */
 function VTuber() {
-  function lang() { return window.YANA_LANG === "vi" ? "vi" : "en"; }
-  function pickHint(pool) {
-    const arr = pool[lang()] || pool.en;
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  const [visible,  setVisible]  = React.useState(false);
-  const [hint,     setHint]     = React.useState("");
-  const [blinking, setBlinking] = React.useState(false);
+  const [open,     setOpen]     = React.useState(false);
+  const [msgs,     setMsgs]     = React.useState([]);
+  const [draft,    setDraft]    = React.useState("");
   const [talking,  setTalking]  = React.useState(false);
   const [wiggling, setWiggling] = React.useState(false);
+  const [dot,      setDot]      = React.useState(false);   // notification dot on button
+  const [sending,  setSending]  = React.useState(false);
+  const logRef   = React.useRef(null);
+  const inputRef = React.useRef(null);
 
-  const msgCountRef  = React.useRef(0);
-  const hideTimerRef = React.useRef(null);
-  const idleTimerRef = React.useRef(null);
+  function addMsg(who, text) {
+    setMsgs(m => [...m, { who, text, id: Date.now() + Math.random() }]);
+    setTimeout(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, 50);
+  }
 
-  function show(text) {
-    setHint(text);
-    setVisible(true);
+  function speak(text) {
     setTalking(true);
     setWiggling(true);
-    setTimeout(() => setTalking(false), 1800);
-    setTimeout(() => setWiggling(false), 650);
-    clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => setVisible(false), 9000);
-    resetIdle();
+    addMsg("yana", text);
+    setTimeout(() => setTalking(false), Math.min(text.length * 40, 2500));
+    setTimeout(() => setWiggling(false), 600);
+    if (!open) setDot(true);
   }
 
-  function dismiss() {
-    setVisible(false);
-    clearTimeout(hideTimerRef.current);
-    resetIdle();
+  function toggle() {
+    setOpen(o => {
+      if (!o) {
+        setDot(false);
+        if (msgs.length === 0) setTimeout(() => speak(vtPick(VT_GREET)), 300);
+      }
+      return !o;
+    });
   }
 
-  function resetIdle() {
-    clearTimeout(idleTimerRef.current);
-    // Pop an idle nudge after 3 minutes of silence
-    idleTimerRef.current = setTimeout(
-      () => show(pickHint(IDLE_HINTS)),
-      3 * 60 * 1000
-    );
+  // Chat with VTuber — calls /api/chat with a fun persona
+  async function send() {
+    const text = draft.trim();
+    if (!text || sending) return;
+    setDraft("");
+    addMsg("user", text);
+    setSending(true);
+    setTalking(true);
+
+    try {
+      if (typeof YanaVault !== "undefined") await YanaVault.ready;
+      const key = (typeof YanaVault !== "undefined") ? (YanaVault.getKey("claude") || YanaVault.getKey("openai") || YanaVault.getKey("gemini") || "") : "";
+      const providerOrder = ["claude", "openai", "gemini", "groq"];
+      let provider = "claude", apiKey = key;
+      if (typeof YanaVault !== "undefined") {
+        for (const p of providerOrder) {
+          const k = YanaVault.getKey(p);
+          if (k) { provider = p; apiKey = k; break; }
+        }
+      }
+
+      const persona = vtLang() === "vi"
+        ? "Bạn là Yana — trợ lý AI dễ thương, thân thiện. Trả lời ngắn gọn, tự nhiên, dùng emoji phù hợp. Đừng quá formal. Bạn đang chat trong một cửa sổ nhỏ."
+        : "You are Yana — a friendly, cute AI assistant. Keep replies short and natural, use appropriate emojis. You're chatting in a small side panel.";
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: text, apiKey, provider, model: "", about: persona }),
+      });
+
+      if (!res.ok || !res.body) throw new Error("HTTP " + res.status);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "", accumulated = "";
+      const msgId = Date.now();
+      setMsgs(m => [...m, { who: "yana", text: "…", id: msgId }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6).trim();
+          if (payload === "[DONE]") break;
+          try {
+            const obj = JSON.parse(payload);
+            if (obj.text) accumulated += obj.text;
+            const snap = accumulated;
+            setMsgs(m => m.map(msg => msg.id === msgId ? { ...msg, text: snap } : msg));
+            if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+          } catch (_) {}
+        }
+      }
+    } catch (_) {
+      speak(vtPick(VT_HINTS));
+    } finally {
+      setSending(false);
+      setTalking(false);
+    }
   }
 
-  // Listen for chat messages dispatched from chat.jsx
+  // Listen for chat messages from main chat
   React.useEffect(() => {
+    let msgCount = 0;
     function onMsg() {
-      msgCountRef.current++;
-      resetIdle();
-      // Every 5th message → skill tip
-      if (msgCountRef.current % 5 === 0) show(pickHint(HINTS));
+      msgCount++;
+      if (msgCount % 5 === 0) speak(vtPick(VT_HINTS));
     }
     window.addEventListener("yana-chat-message", onMsg);
-    resetIdle();
+    // Idle nudge after 3 min
+    const idleT = setTimeout(() => speak(vtPick(VT_IDLE)), 3 * 60 * 1000);
     return () => {
       window.removeEventListener("yana-chat-message", onMsg);
-      clearTimeout(hideTimerRef.current);
-      clearTimeout(idleTimerRef.current);
+      clearTimeout(idleT);
     };
   }, []);
 
-  // Random blink every 2.5–5.5 s
+  // Auto-scroll when panel opens
   React.useEffect(() => {
-    let t;
-    function scheduleBlink() {
-      t = setTimeout(() => {
-        setBlinking(true);
-        setTimeout(() => setBlinking(false), 145);
-        scheduleBlink();
-      }, 2500 + Math.random() * 3000);
-    }
-    scheduleBlink();
-    return () => clearTimeout(t);
-  }, []);
+    if (open && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+    if (open && inputRef.current) inputRef.current.focus();
+  }, [open]);
 
   return (
-    <div
-      style={{
+    <>
+      {/* ── Chat panel ── */}
+      <div style={{
         position: "fixed",
-        bottom: 24,
-        right: 24,
-        zIndex: 9998,
+        bottom: 80,
+        right: 20,
+        width: 280,
+        maxHeight: 420,
+        borderRadius: 20,
+        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: 10,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(110px) scale(0.85)",
-        opacity: visible ? 1 : 0,
-        transition:
-          "transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease",
-        pointerEvents: visible ? "auto" : "none",
-      }}
-    >
-      {/* Speech bubble */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.97)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-          borderRadius: 14,
-          padding: "9px 14px",
-          maxWidth: 210,
-          fontSize: 12.5,
-          lineHeight: 1.6,
-          color: "#1a2e1a",
-          boxShadow:
-            "0 4px 28px rgba(47,126,110,0.18), 0 1px 4px rgba(0,0,0,0.07)",
-          textAlign: "center",
-          position: "relative",
-        }}
-      >
-        {hint}
-        {/* Tail */}
-        <svg
-          style={{
-            position: "absolute",
-            bottom: -10,
-            left: "50%",
-            transform: "translateX(-50%)",
-          }}
-          width="22" height="11" viewBox="0 0 22 11"
-        >
-          <path d="M0 0 L11 11 L22 0 Z" fill="rgba(255,255,255,0.97)" />
-        </svg>
+        boxShadow: "0 8px 40px rgba(47,126,110,0.22), 0 2px 8px rgba(0,0,0,0.10)",
+        background: "rgba(255,255,255,0.97)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(47,126,110,0.15)",
+        transform: open ? "translateY(0) scale(1)" : "translateY(16px) scale(0.96)",
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? "auto" : "none",
+        transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease",
+        zIndex: 9997,
+      }}>
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 14px 8px",
+          borderBottom: "1px solid rgba(47,126,110,0.10)",
+          background: "rgba(47,126,110,0.05)",
+        }}>
+          <VTCharacter talking={talking} wiggling={wiggling} size={38} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1a2e1a" }}>Yana</div>
+            <div style={{ fontSize: 11, color: "#6a8c7a", display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 99, background: "#4dbf96", display: "inline-block" }}></span>
+              {vtLang() === "vi" ? "Đang hoạt động" : "Online"}
+            </div>
+          </div>
+          <button
+            onClick={() => setOpen(false)}
+            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#6a8c7a", fontSize: 16, lineHeight: 1 }}
+          >✕</button>
+        </div>
+
+        {/* Messages */}
+        <div ref={logRef} style={{
+          flex: 1, overflowY: "auto", padding: "10px 12px",
+          display: "flex", flexDirection: "column", gap: 8,
+          scrollbarWidth: "thin",
+        }}>
+          {msgs.map(m => (
+            <div key={m.id} style={{
+              display: "flex",
+              justifyContent: m.who === "user" ? "flex-end" : "flex-start",
+              alignItems: "flex-end", gap: 6,
+            }}>
+              {m.who === "yana" && (
+                <img src="/desktop/vtuber-char.jpg" alt="Yana" style={{
+                  width: 24, height: 24, borderRadius: 99, objectFit: "cover",
+                  objectPosition: "top center", flexShrink: 0, border: "1.5px solid rgba(47,126,110,0.2)",
+                }} />
+              )}
+              <div style={{
+                maxWidth: "78%",
+                padding: "7px 11px",
+                borderRadius: m.who === "user"
+                  ? "14px 14px 4px 14px"
+                  : "14px 14px 14px 4px",
+                background: m.who === "user"
+                  ? "linear-gradient(135deg, #2f7e6e, #4dbf96)"
+                  : "rgba(47,126,110,0.07)",
+                color: m.who === "user" ? "white" : "#1a2e1a",
+                fontSize: 12.5,
+                lineHeight: 1.55,
+              }}>{m.text}</div>
+            </div>
+          ))}
+          {sending && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
+              <img src="/desktop/vtuber-char.jpg" alt="Yana" style={{ width: 24, height: 24, borderRadius: 99, objectFit: "cover", objectPosition: "top center", flexShrink: 0, border: "1.5px solid rgba(47,126,110,0.2)" }} />
+              <div style={{ padding: "7px 12px", borderRadius: "14px 14px 14px 4px", background: "rgba(47,126,110,0.07)", fontSize: 18, letterSpacing: 2 }}>···</div>
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 7,
+          padding: "8px 10px 10px",
+          borderTop: "1px solid rgba(47,126,110,0.08)",
+        }}>
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder={vtLang() === "vi" ? "Nhắn cho Yana…" : "Message Yana…"}
+            style={{
+              flex: 1, border: "1px solid rgba(47,126,110,0.2)", borderRadius: 99,
+              padding: "6px 12px", fontSize: 12.5, outline: "none",
+              background: "rgba(47,126,110,0.04)", color: "#1a2e1a", fontFamily: "inherit",
+            }}
+          />
+          <button
+            onClick={send}
+            disabled={!draft.trim() || sending}
+            style={{
+              width: 32, height: 32, borderRadius: 99, border: "none", cursor: "pointer",
+              background: draft.trim() && !sending ? "linear-gradient(135deg,#2f7e6e,#4dbf96)" : "rgba(47,126,110,0.15)",
+              color: "white", display: "grid", placeItems: "center", flexShrink: 0,
+              transition: "background 0.2s",
+            }}
+          >{Icons && Icons.send ? Icons.send(13) : "↑"}</button>
+        </div>
       </div>
 
-      {/* Character — click to dismiss */}
-      <div
-        onClick={dismiss}
-        title={lang() === "vi" ? "Bấm để đóng" : "Click to dismiss"}
-        style={{ cursor: "pointer", userSelect: "none" }}
+      {/* ── Toggle button — always visible ── */}
+      <button
+        onClick={toggle}
+        title={vtLang() === "vi" ? "Chat với Yana" : "Chat with Yana"}
+        style={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          width: 52,
+          height: 52,
+          borderRadius: 99,
+          border: "2.5px solid rgba(255,255,255,0.9)",
+          background: "none",
+          padding: 0,
+          cursor: "pointer",
+          zIndex: 9998,
+          boxShadow: open
+            ? "0 4px 20px rgba(47,126,110,0.45)"
+            : "0 4px 16px rgba(47,126,110,0.30)",
+          transform: open ? "scale(1.05)" : "scale(1)",
+          transition: "box-shadow 0.2s, transform 0.2s",
+          overflow: "hidden",
+        }}
       >
-        <YanaSprite blinking={blinking} talking={talking} wiggling={wiggling} />
-      </div>
-    </div>
+        <img
+          src="/desktop/vtuber-char.jpg"
+          alt="Yana"
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+        />
+        {/* Notification dot */}
+        {dot && !open && (
+          <span style={{
+            position: "absolute", top: 2, right: 2,
+            width: 11, height: 11, borderRadius: 99,
+            background: "#ff6b6b", border: "2px solid white",
+          }} />
+        )}
+      </button>
+    </>
   );
 }
