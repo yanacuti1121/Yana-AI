@@ -614,29 +614,25 @@ function MChat() {
 
   return (
     <div data-screen-label="Chat" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, position: "relative" }}>
-      {/* slim context bar — two chips: provider/context + model picker */}
+      {/* slim context bar — compact routing icon + model picker chip */}
       <div style={{ flex: "none", display: "flex", gap: 8, margin: "12px 16px 8px" }}>
-        {/* Provider / context chip — opens routing + context sheet */}
-        <button onClick={() => setCtx(true)} style={{
-          flex: 1, display: "flex", alignItems: "center", gap: 8,
-          padding: "9px 13px", borderRadius: 99, border: "1px solid var(--border)", cursor: "pointer",
-          background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", textAlign: "left",
+        {/* Routing / context trigger — compact icon, expands the routing+context Sheet on tap */}
+        <button onClick={() => setCtx(true)} aria-label={L("Routing & context", "Định tuyến & ngữ cảnh")} title={_activeProvider} style={{
+          width: 40, height: 40, flex: "none", borderRadius: "var(--r-md)",
+          border: "1px solid var(--border)", background: "rgba(var(--surface-rgb), .5)", cursor: "pointer",
+          display: "grid", placeItems: "center", color: "var(--primary)",
         }}>
-          <span style={{ color: "var(--primary)", display: "inline-flex" }}>{Icons.safety(15)}</span>
-          <span style={{ fontSize: 12.5, fontWeight: 500 }}>{_activeProvider}</span>
-          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-3)" }}>
-            {L("Context", "Ngữ cảnh")} {Icons.chevron(13)}
-          </span>
+          {Icons.safety(17)}
         </button>
 
-        {/* Model chip — opens model picker sheet */}
+        {/* Model chip — opens model picker sheet, takes the freed-up width */}
         <button onClick={() => setModelPicker(true)} style={{
-          display: "flex", alignItems: "center", gap: 6,
+          flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6,
           padding: "9px 13px", borderRadius: 99, border: "1px solid var(--border)", cursor: "pointer",
-          background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)", whiteSpace: "nowrap",
+          background: "rgba(var(--surface-rgb), .5)", color: "var(--ink-2)",
         }}>
           {isVisionModel(_activeModel) && <span style={{ fontSize: 12 }}>📷</span>}
-          <span style={{ fontSize: 12, fontWeight: 500, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {(M_MODEL_CATALOG.find(m => m.id === _activeModel) || {}).label || _activeModel.split("-").slice(0, 3).join("-")}
           </span>
           {Icons.chevron(13)}
