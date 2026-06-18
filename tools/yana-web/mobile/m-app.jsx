@@ -91,6 +91,10 @@ function App() {
     memory:    () => <MMemoryGarden />,
     skills:    () => <MSkills />,
     providers: () => <MProviders />,
+    sessions:  () => <MSessions />,
+    analytics: () => <MAnalytics />,
+    cron:      () => <MCron />,
+    "html-maker": () => <MHtmlMaker />,
     settings:  () => <MSettings t={t} setTweak={setTweak} />,
   }[page] || (() => <MLake t={t} onNav={nav} />);
 

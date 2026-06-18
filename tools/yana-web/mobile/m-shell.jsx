@@ -67,10 +67,14 @@ const TABS = [
   { id: "agents",    label: "Agents",       vi: "Tác nhân",    icon: "agents" },
 ];
 const MORE_ITEMS = [
-  { id: "memory",    label: "Memory Garden", vi: "Vườn ký ức",   icon: "memory" },
-  { id: "skills",    label: "Skills",        vi: "Kỹ năng",      icon: "skills" },
-  { id: "providers", label: "Providers",     vi: "Nhà cung cấp", icon: "providers" },
-  { id: "settings",  label: "Settings",      vi: "Cài đặt",      icon: "settings" },
+  { id: "memory",     label: "Memory Garden", vi: "Vườn ký ức",    icon: "memory" },
+  { id: "skills",     label: "Skills",        vi: "Kỹ năng",       icon: "skills" },
+  { id: "providers",  label: "Providers",     vi: "Nhà cung cấp",  icon: "providers" },
+  { id: "sessions",   label: "Sessions",      vi: "Lịch sử",       icon: "memory" },
+  { id: "analytics",  label: "Analytics",     vi: "Thống kê",      icon: "dashboard" },
+  { id: "cron",       label: "Cron",          vi: "Tự động",       icon: "missions" },
+  { id: "html-maker", label: "HTML Maker",    vi: "Tạo HTML",      icon: "spark" },
+  { id: "settings",   label: "Settings",      vi: "Cài đặt",       icon: "settings" },
 ];
 const ALL_PAGES = [...TABS, ...MORE_ITEMS];
 const PAGE_TITLE = (id) => {
