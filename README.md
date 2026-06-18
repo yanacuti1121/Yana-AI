@@ -570,7 +570,7 @@ Sample output:
 |---|---|
 | Email | phamlongh230@gmail.com |
 | Website | [phamlongh230-lgtm.github.io/yana-ai](https://phamlongh230-lgtm.github.io/yana-ai/) |
-| GitHub | [yanacuti1121](htps://github.com/yanacuti1121/Yana-AI.git) |
+| GitHub | (github.com/yanacuti1121/Yana-AI.git) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
 
 ---
