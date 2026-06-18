@@ -1,6 +1,13 @@
 // Yana AI — VTuber companion
 // Always-visible toggle button. Click to open/close the chat panel.
 
+// Shared between /desktop and /mobile shells. Mobile has a bottom tab bar
+// (.mtabbar, ~64px + safe-area-inset-bottom) that the default bottom:20
+// offset sits on top of, hiding the rightmost tab — lift it clear there.
+const VT_IS_MOBILE_SHELL = typeof window !== "undefined" && window.location.pathname.startsWith("/mobile");
+const VT_TOGGLE_BOTTOM = VT_IS_MOBILE_SHELL ? "calc(78px + env(safe-area-inset-bottom, 0px))" : 20;
+const VT_PANEL_BOTTOM = VT_IS_MOBILE_SHELL ? "calc(138px + env(safe-area-inset-bottom, 0px))" : 80;
+
 const VT_HINTS = {
   en: [
     "Try /code-review before merging! 🌿",
@@ -203,7 +210,7 @@ function VTuber() {
       {/* ── Chat panel ── */}
       <div style={{
         position: "fixed",
-        bottom: 80,
+        bottom: VT_PANEL_BOTTOM,
         right: 20,
         width: 280,
         maxHeight: 420,
@@ -321,7 +328,7 @@ function VTuber() {
         title={vtLang() === "vi" ? "Chat với Yana" : "Chat with Yana"}
         style={{
           position: "fixed",
-          bottom: 20,
+          bottom: VT_TOGGLE_BOTTOM,
           right: 20,
           width: 52,
           height: 52,
