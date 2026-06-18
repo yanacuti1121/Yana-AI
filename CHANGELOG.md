@@ -8,6 +8,32 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v0.42.0 — Mobile feature parity + Pixel Office bridge + theming
+*2026-06-18*
+
+- **Mobile feature parity**: ported Sessions, Analytics, Cron, and HTML Maker
+  from desktop to the mobile app; collapsed oversized triggers (HTML Maker
+  template picker, Chat routing/context chip) into compact 40×40 icon
+  buttons that expand into a Sheet on tap, instead of eating most of the
+  screen width/height on a phone
+- **yana-pixel-bridge**: new independent tool — relays Claude Code
+  Agent/Task dispatch events (via a PreToolUse/PostToolUse hook) over
+  socket.io and forwards them to a sibling `agent-office` instance so its
+  existing walk-to-desk/work/idle animation drives the visual; verified
+  end-to-end (start + stop lifecycle)
+- **Theming**: 6 new themes + effect toggles on desktop and mobile,
+  bilingual tweaks panel, VTuber companion redesign (bunny girl + persistent
+  toggle + mini chat), liquid-glass and ripple polish
+- **Security**: patched curl|bash supply-chain risk across 41 skills,
+  closed 3 rule gaps found via NVIDIA/SkillSpector analysis
+- **CI/infra**: bumped all GitHub Actions pins to Node 24 runtimes, fixed
+  the wrangler-action `npx` hang, pinned `@babel/standalone` (root cause of
+  a white-screen bug), GitHub owner references updated to `yanacuti1121`
+- **Skills**: added mattermost, agency-agents, deerflow, video-linggo,
+  ai-system-prompts-intel, tencent-agent-memory; skill count 3427 → 3438
+
+---
+
 ## v0.41.3 — Yana mobile full + ChatGPT memory + L6 cognitive reliability
 *2026-06-13*
 

@@ -26,7 +26,7 @@
     {
       "name": "yana-ai",
       "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
-      "version": "0.40.0",
+      "version": "0.42.0",
       "author": {
         "name": "Vũ Văn Tâm",
         "url": "https://github.com/yanacuti1121"
