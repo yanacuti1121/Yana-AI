@@ -62,7 +62,7 @@ jobs:
 
             Install with:
             ```
-            /plugin install phamlongh230-lgtm/yana-ai
+            /plugin install yanacuti1121/yana-ai
             ```
 
             Or manually:
@@ -71,7 +71,7 @@ jobs:
             bash /path/to/project/.claude/tests/hooks/run-hook-tests.sh
             ```
 
-            See [ROADMAP.md](https://github.com/phamlongh230-lgtm/yana-ai/blob/main/ROADMAP.md) for changelog.
+            See [ROADMAP.md](https://github.com/yanacuti1121/yana-ai/blob/main/ROADMAP.md) for changelog.
           files: |
             releases/yana-ai-v${{ env.VERSION }}-fixed.zip
             releases/yana-ai-latest.zip

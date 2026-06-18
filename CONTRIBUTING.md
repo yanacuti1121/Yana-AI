@@ -9,7 +9,7 @@ Thank you for helping build the most comprehensive AI agent safety framework.
 ## Quick Start
 
 ```bash
-git clone https://github.com/phamlongh230-lgtm/yana-ai
+git clone https://github.com/yanacuti1121/yana-ai
 cd yana-ai
 bash core/tests/skills/test-skill-triggering.sh  # should show Result: PASS
 bash core/tests/hooks/run-hook-tests.sh          # should show all passing
@@ -152,7 +152,7 @@ Cảm ơn bạn đã giúp xây dựng framework an toàn cho AI agent toàn di�
 ### Bắt đầu nhanh
 
 ```bash
-git clone https://github.com/phamlongh230-lgtm/yana-ai
+git clone https://github.com/yanacuti1121/yana-ai
 cd yana-ai
 bash core/tests/skills/test-skill-triggering.sh  # phải hiện Result: PASS
 bash core/tests/hooks/run-hook-tests.sh          # phải hiện tất cả đạt

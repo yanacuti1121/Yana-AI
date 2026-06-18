@@ -38,8 +38,8 @@ Install:
 
 Built by one person (17yo, Vietnam) in ~1 month. Apache 2.0, free forever.
 
-Repo: https://github.com/phamlongh230-lgtm/yana-ai
-Docs: https://phamlongh230-lgtm.github.io/yana-ai/
+Repo: https://github.com/yanacuti1121/yana-ai
+Docs: https://yanacuti1121.github.io/yana-ai/
 ```
 
 ---
@@ -74,7 +74,7 @@ Stack: clap, serde, walkdir, regex, sha2, ureq, rayon
 
 Benchmark: yana-ai scan on a 10k-file repo → 1256x faster than the Python equivalent.
 
-Repo: https://github.com/phamlongh230-lgtm/yana-ai
+Repo: https://github.com/yanacuti1121/yana-ai
 Crate: https://crates.io/crates/yana-rt
 ```
 
@@ -114,7 +114,7 @@ Gate: Merkle hash chain — every entry includes SHA256 of previous.
 Deletion breaks the chain → detected instantly.
 
 The full system (Yana AI) is open source:
-https://github.com/phamlongh230-lgtm/yana-ai
+https://github.com/yanacuti1121/yana-ai
 
 1,026,000 lines, built by one person (17yo) in ~1 month. AMA.
 ```
@@ -152,7 +152,7 @@ ECDSA code signing, BFT consensus for core infra writes.
 
 Stack: Rust (yana-rt) + Python CLI + 46 bash hooks + 61 rule files.
 
-Repo: https://github.com/phamlongh230-lgtm/yana-ai
+Repo: https://github.com/yanacuti1121/yana-ai
 
 Built by one person in ~1 month, 17yo from Vietnam.
 ```

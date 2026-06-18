@@ -82,7 +82,7 @@ If upgrade is not possible:
 
 ### References
 
-- Commit: https://github.com/phamlongh230-lgtm/yana-ai/commit/<sha>
+- Commit: https://github.com/yanacuti1121/yana-ai/commit/<sha>
 - Related incident: [Replit July 2025 / PocketOS April 2026 / other]
 - CWE: https://cwe.mitre.org/data/definitions/XXX.html
 

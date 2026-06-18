@@ -22,7 +22,7 @@ jobs:
   yana-ai-audit:
     name: Yana AI Agent Setup Audit
     # This is a demo/example workflow. Skip it on the yana-ai repo itself.
-    if: github.repository != 'phamlongh230-lgtm/yana-ai'
+    if: github.repository != 'yanacuti1121/yana-ai'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -48,7 +48,7 @@ jobs:
         run: |
           YANA_REF="main"   # pin to a release tag in production, e.g. "v1.8.0"
           git clone --depth 1 --branch "$YANA_REF" \
-            https://github.com/phamlongh230-lgtm/yana-ai.git /tmp/yana-ai
+            https://github.com/yanacuti1121/yana-ai.git /tmp/yana-ai
           chmod +x /tmp/yana-ai/bin/yana-ai
 
       - name: Run Yana AI audit

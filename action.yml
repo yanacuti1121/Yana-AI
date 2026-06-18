@@ -64,7 +64,7 @@ runs:
         YANA_REF: ${{ inputs.yana-ai-ref }}
       run: |
         git clone --depth 1 --branch "$YANA_REF" \
-          https://github.com/phamlongh230-lgtm/yana-ai.git /tmp/yana-ai
+          https://github.com/yanacuti1121/yana-ai.git /tmp/yana-ai
         pip install pyyaml --quiet
         chmod +x /tmp/yana-ai/bin/yana-ai
 
@@ -166,7 +166,7 @@ runs:
             '',
             '</details>',
             '',
-            '_Powered by [Yana AI](https://github.com/phamlongh230-lgtm/yana-ai)_',
+            '_Powered by [Yana AI](https://github.com/yanacuti1121/yana-ai)_',
           ].join('\n');
 
           // Find existing Yana AI comment to update instead of creating new one

@@ -29,4 +29,4 @@ The App runs on [Cloudflare Workers](https://workers.cloudflare.com). Cloudflare
 
 ## Contact
 
-Questions: open an issue at [github.com/phamlongh230-lgtm/yana-ai/issues](https://github.com/phamlongh230-lgtm/yana-ai/issues)
+Questions: open an issue at [github.com/yanacuti1121/yana-ai/issues](https://github.com/yanacuti1121/yana-ai/issues)

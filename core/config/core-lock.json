@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-06-15T11:12:38+00:00",
+  "generated": "2026-06-18T05:32:12+00:00",
   "count": 218,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -113,7 +113,7 @@
     "core/rules/rule-consistency-policy.md": "752b0184084b0aed54ff11e65898a446de75a8bb48b00fbb7a6d3f3ccdf68155",
     "core/rules/security.md": "b039f26543a5d54d72f0022844e90df44a0672bd7418619fb2473c0dcc41cd18",
     "core/rules/shell-sanitize-law.md": "2ca8f37be450498bac2d5ddbdeb96cf9b71a14a23757d390d7cabc5483350e7a",
-    "core/rules/slsa-artifact-law.md": "a52abd9188abe59a7adff2d63e7c5c1ae9aa7de0480e63cdef2fc588bfe2b536",
+    "core/rules/slsa-artifact-law.md": "aebe578624ba3913b1ccf62c8549a321e93f00d074a70f2f8d8da2a5052cd353",
     "core/rules/subagent-policy.md": "d7ecc227ca41aeda7ca7d623bcfafb7f43b7470302b2ed902663739a1c5dea61",
     "core/rules/testing.md": "4bc0d9de243570b3984378bf939b61df4365a2ed0e57f9beb17132e8e7383351",
     "core/rules/tests.md": "5d4a8d7efc141767b6680a2b51693314309fab190a4069be1a64c7c9d8ee12b0",

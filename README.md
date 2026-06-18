@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/phamlongh230-lgtm/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/phamlongh230-lgtm/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
+    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
   <img src="https://img.shields.io/badge/version-v0.41.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
@@ -31,7 +31,7 @@
   <a href="https://pypi.org/project/yana-ai/">
     <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
   </a>
-  <a href="https://github.com/phamlongh230-lgtm/yana-ai">
+  <a href="https://github.com/yanacuti1121/yana-ai">
     <img src="https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge" />
   </a>
   <a href="https://github.com/marketplace/yana-ai">
@@ -61,7 +61,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 > **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-ai) now runs on **100% real data** — encrypted key vault (AES-256-GCM), live provider stats, real L1 memory and audit-log dashboard. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust. **Core-lock** — SHA-256 integrity manifest pinning 216 core files against tampering (rule 67).
 
-**→ [Full documentation & demo](https://phamlongh230-lgtm.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [Full documentation & demo](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -81,7 +81,7 @@ yana-ai doctor .                                   # verify everything is wired
 
 Then try: ask your agent to `git push --force`, pipe a script from the internet into bash, or read a `.env` file — every attempt is intercepted, explained, and logged. That moment is the whole pitch.
 
-Built by one 17-year-old in Vietnam — which means real-world feedback is the most valuable thing you can give this project. If something blocks too much, too little, or confuses you: [open an issue](https://github.com/phamlongh230-lgtm/yana-ai/issues). Every report makes the gates sharper.
+Built by one 17-year-old in Vietnam — which means real-world feedback is the most valuable thing you can give this project. If something blocks too much, too little, or confuses you: [open an issue](https://github.com/yanacuti1121/yana-ai/issues). Every report makes the gates sharper.
 
 ---
 
@@ -278,7 +278,7 @@ Scan any repo's AI agent configuration on every PR — secrets, permissions, hoo
 
 ```yaml
 # .github/workflows/yana-ai-scan.yml
-- uses: phamlongh230-lgtm/yana-ai/.github/actions/scan@main
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
   with:
     fail-on: 'high'       # fail CI on HIGH or CRITICAL findings
     diff-only: 'true'     # scan only changed files on PRs
@@ -425,7 +425,7 @@ The 3,518 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAsse
 **Static badge** — paste into your README:
 
 ```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/phamlongh230-lgtm/yana-ai)
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
 ```
 
 **Dynamic audit badge** — shows live security score:
@@ -438,7 +438,7 @@ yana-ai badge . --json    # machine-readable output
 **GitHub Action** — scan every PR automatically:
 
 ```yaml
-- uses: phamlongh230-lgtm/yana-ai/.github/actions/scan@main
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
   with:
     fail-on: 'high'
 ```
@@ -569,8 +569,8 @@ Sample output:
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [phamlongh230-lgtm.github.io/yana-ai](https://phamlongh230-lgtm.github.io/yana-ai/) |
-| GitHub | [phamlongh230-lgtm](https://github.com/phamlongh230-lgtm) |
+| Website | [yanacuti1121.github.io/yana-ai](https://yanacuti1121.github.io/yana-ai/) |
+| GitHub | [yanacuti1121](https://github.com/yanacuti1121) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
 
 ---

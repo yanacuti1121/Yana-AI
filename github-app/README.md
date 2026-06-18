@@ -19,7 +19,7 @@ Go to: github.com/settings/apps/new
 
 ```
 Name:              Yana AI
-Homepage URL:      https://github.com/phamlongh230-lgtm/yana-ai
+Homepage URL:      https://github.com/yanacuti1121/yana-ai
 Webhook URL:       https://yana-ai-github-app.<your-subdomain>.workers.dev/webhook
 Webhook secret:    <generate a random secret>
 

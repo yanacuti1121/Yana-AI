@@ -2,7 +2,7 @@
   "name": "yana-ai",
   "owner": {
     "name": "Vũ Văn Tâm",
-    "url": "https://github.com/phamlongh230-lgtm"
+    "url": "https://github.com/yanacuti1121"
   },
   "metadata": {
     "description": "Personal agent operating system — safety hooks, memory, agents, cross-engine hard enforcement for Claude Code.",
@@ -29,11 +29,11 @@
       "version": "0.40.0",
       "author": {
         "name": "Vũ Văn Tâm",
-        "url": "https://github.com/phamlongh230-lgtm"
+        "url": "https://github.com/yanacuti1121"
       },
       "source": "./",
       "category": "safety",
-      "homepage": "https://phamlongh230-lgtm.github.io/yana-ai/"
+      "homepage": "https://yanacuti1121.github.io/yana-ai/"
     }
   ]
 }

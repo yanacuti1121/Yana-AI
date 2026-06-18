@@ -19,13 +19,13 @@
   ],
   "author": "Vũ Văn Tâm <phamlongh230@gmail.com>",
   "license": "Apache-2.0",
-  "homepage": "https://phamlongh230-lgtm.github.io/yana-ai/",
+  "homepage": "https://yanacuti1121.github.io/yana-ai/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/phamlongh230-lgtm/yana-ai.git"
+    "url": "https://github.com/yanacuti1121/yana-ai.git"
   },
   "bugs": {
-    "url": "https://github.com/phamlongh230-lgtm/yana-ai/issues"
+    "url": "https://github.com/yanacuti1121/yana-ai/issues"
   },
   "engines": {
     "node": ">=18"

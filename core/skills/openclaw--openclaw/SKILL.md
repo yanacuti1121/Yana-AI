@@ -22,7 +22,7 @@ openclaw onboard   # guided setup: gateway, workspace, channels, skills
 
 ```bash
 # Install yamtam skills vào openclaw
-npx skills add phamlongh230-lgtm/yamtam-engine
+npx skills add yanacuti1121/yamtam-engine
 ```
 
 ## Features

@@ -7,10 +7,10 @@
   "author": {
     "name": "Vũ Văn Tâm",
     "email": "phamlongh230@gmail.com",
-    "url": "https://github.com/phamlongh230-lgtm"
+    "url": "https://github.com/yanacuti1121"
   },
-  "homepage": "https://phamlongh230-lgtm.github.io/yana-ai/",
-  "repository": "https://github.com/phamlongh230-lgtm/yana-ai",
+  "homepage": "https://yanacuti1121.github.io/yana-ai/",
+  "repository": "https://github.com/yanacuti1121/yana-ai",
   "license": "Apache-2.0",
   "keywords": [
     "hooks",
@@ -57,12 +57,12 @@
         "ai-agent",
         "agent-os"
       ],
-      "homepage": "https://phamlongh230-lgtm.github.io/yana-ai/"
+      "homepage": "https://yanacuti1121.github.io/yana-ai/"
     }
   },
   "install": {
     "type": "zip",
-    "source": "https://github.com/phamlongh230-lgtm/yana-ai/releases/latest/download/yana-ai-latest.zip",
+    "source": "https://github.com/yanacuti1121/yana-ai/releases/latest/download/yana-ai-latest.zip",
     "target": ".claude/",
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },

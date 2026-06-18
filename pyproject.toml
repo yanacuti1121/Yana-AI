@@ -36,10 +36,10 @@ pdf = ["weasyprint>=60.0"]
 audit = ["pip-audit>=2.0"]
 
 [project.urls]
-Homepage    = "https://phamlongh230-lgtm.github.io/yana-ai/"
-Repository  = "https://github.com/phamlongh230-lgtm/yana-ai"
-Changelog   = "https://github.com/phamlongh230-lgtm/yana-ai/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/phamlongh230-lgtm/yana-ai/issues"
+Homepage    = "https://yanacuti1121.github.io/yana-ai/"
+Repository  = "https://github.com/yanacuti1121/yana-ai"
+Changelog   = "https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/yanacuti1121/yana-ai/issues"
 
 [project.scripts]
 yana-ai    = "yana-ai_engine.cli:main"

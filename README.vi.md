@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/phamlongh230-lgtm/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/phamlongh230-lgtm/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
+    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
   <img src="https://img.shields.io/badge/version-v0.41.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
@@ -55,7 +55,7 @@ Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**,
 
 > **Mới trong v0.41.0:** [Yana task router](#bộ-định-tuyến-tác-vụ-yana) — tự động phân loại mọi tác vụ thành đơn giản/phức tạp/bên ngoài/**học tập**/**hàng ngày** và điều phối agent. [Yana AI](#yana-ai) chạy trên **100% dữ liệu thực** — kho khóa mã hóa (AES-256-GCM), thống kê provider trực tiếp, bộ nhớ L1 thật và bảng điều khiển audit-log. [Mission dispatcher](#hệ-thống-điều-phối-nhiệm-vụ-mission-dispatcher) — điều phối agent song song theo làn sóng (wave-based), viết bằng Rust. **Core-lock** — manifest SHA-256 ghim 216 tệp cốt lõi chống can thiệp trái phép (quy tắc 67).
 
-**→ [Tài liệu đầy đủ & demo](https://phamlongh230-lgtm.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [Tài liệu đầy đủ & demo](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -74,7 +74,7 @@ yana-ai doctor .                                   # kiểm tra mọi thứ đã
 
 Thử ngay: bảo agent `git push --force`, pipe một script từ internet vào bash, hay đọc file `.env` — mọi nỗ lực đều bị chặn, được giải thích rõ lý do, và ghi vào audit log. Khoảnh khắc đó chính là toàn bộ giá trị của dự án.
 
-Dự án được xây dựng bởi một bạn 17 tuổi ở Việt Nam — nghĩa là phản hồi từ thực tế của bạn là món quà giá trị nhất. Nếu có gì chặn quá tay, lọt lưới, hay gây khó hiểu: [mở issue](https://github.com/phamlongh230-lgtm/yana-ai/issues). Mỗi báo cáo đều giúp các gate sắc bén hơn.
+Dự án được xây dựng bởi một bạn 17 tuổi ở Việt Nam — nghĩa là phản hồi từ thực tế của bạn là món quà giá trị nhất. Nếu có gì chặn quá tay, lọt lưới, hay gây khó hiểu: [mở issue](https://github.com/yanacuti1121/yana-ai/issues). Mỗi báo cáo đều giúp các gate sắc bén hơn.
 
 ---
 
@@ -253,7 +253,7 @@ Quét cấu hình agent AI của bất kỳ repo nào trên mỗi PR — secrets
 
 ```yaml
 # .github/workflows/yana-ai-scan.yml
-- uses: phamlongh230-lgtm/yana-ai/.github/actions/scan@main
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
   with:
     fail-on: 'high'       # fail CI khi phát hiện mức HIGH hoặc CRITICAL
     diff-only: 'true'     # chỉ quét các tệp thay đổi trên PR
@@ -387,7 +387,7 @@ Một người. Không đội ngũ. Không gọi vốn.
 **Huy hiệu tĩnh** — dán vào README của bạn:
 
 ```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/phamlongh230-lgtm/yana-ai)
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
 ```
 
 **Huy hiệu audit động** — hiển thị điểm bảo mật trực tiếp:
@@ -400,7 +400,7 @@ yana-ai badge . --json    # xuất định dạng máy đọc được
 **GitHub Action** — tự động quét mỗi PR:
 
 ```yaml
-- uses: phamlongh230-lgtm/yana-ai/.github/actions/scan@main
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
   with:
     fail-on: 'high'
 ```
@@ -533,6 +533,6 @@ Output mẫu:
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [phamlongh230-lgtm.github.io/yana-ai](https://phamlongh230-lgtm.github.io/yana-ai/) |
-| GitHub | [phamlongh230-lgtm](https://github.com/phamlongh230-lgtm) |
+| Website | [yanacuti1121.github.io/yana-ai](https://yanacuti1121.github.io/yana-ai/) |
+| GitHub | [yanacuti1121](https://github.com/yanacuti1121) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |

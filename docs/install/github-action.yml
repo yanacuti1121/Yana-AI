@@ -1,5 +1,5 @@
 # Copy this file to .github/workflows/yana-ai-scan.yml in YOUR repo
-# Full docs: https://phamlongh230-lgtm.github.io/yana-ai/
+# Full docs: https://yanacuti1121.github.io/yana-ai/
 
 name: Yana AI Security Scan
 
@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: phamlongh230-lgtm/yana-ai/.github/actions/scan@main
+      - uses: yanacuti1121/yana-ai/.github/actions/scan@main
         with:
           target: '.'
           fail-on: 'high'          # fail CI on HIGH or CRITICAL findings

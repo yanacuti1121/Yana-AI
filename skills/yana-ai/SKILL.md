@@ -4,9 +4,9 @@ version: "0.40.0"
 description: "Sovereign-grade safety OS for AI coding agents. 45 hooks, 3,440 skills, L1 memory, circuit breakers, and cross-engine enforcement — blocks rm -rf, force push, pipe-to-shell, and 40+ attack vectors before they reach your repo."
 argument-hint: "yana-ai status | yana-ai audit | yana-ai hooks | yana-ai memory"
 allowed-tools: Bash, Read, Write
-homepage: https://phamlongh230-lgtm.github.io/yana-ai/
-repository: https://github.com/phamlongh230-lgtm/yana-ai
-author: phamlongh230-lgtm
+homepage: https://yanacuti1121.github.io/yana-ai/
+repository: https://github.com/yanacuti1121/yana-ai
+author: yanacuti1121
 license: Apache-2.0
 user-invocable: true
 metadata:
@@ -20,7 +20,7 @@ metadata:
         - python3
         - jq
         - openssl
-    homepage: https://phamlongh230-lgtm.github.io/yana-ai/
+    homepage: https://yanacuti1121.github.io/yana-ai/
     tags:
       - safety
       - hooks
@@ -55,10 +55,10 @@ When loaded, Yana AI automatically:
 
 ```bash
 # Install via skills CLI
-npx skills add phamlongh230-lgtm/yana-ai
+npx skills add yanacuti1121/yana-ai
 
 # Or install directly into .claude/
-curl -L https://github.com/phamlongh230-lgtm/yana-ai/releases/latest/download/yana-ai-latest.zip -o yana-ai.zip
+curl -L https://github.com/yanacuti1121/yana-ai/releases/latest/download/yana-ai-latest.zip -o yana-ai.zip
 unzip yana-ai.zip -d .claude/
 ```
 

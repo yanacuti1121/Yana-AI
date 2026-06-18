@@ -182,7 +182,7 @@ Kết luận: Yana AI không cần to hơn. Cần ít phần hơn nhưng mỗi p
 | 4 | **`--diff` mode** (`--diff origin/main`) | Chỉ scan file thay đổi trong PR — giảm noise, nhanh hơn, hợp CI hơn | ✅ done |
 | 5 | **`.yana-aiignore` + baseline** | Repo cũ có 50 findings không nản, chỉ fail trên risk mới | ✅ done |
 | 6 | **`examples/unsafe-agent-repo`** | Demo chạy được ngay — không cần tin lời | ✅ done |
-| 7 | **GitHub Action official** | `uses: phamlongh230-lgtm/yana-ai/actions/audit@v1` — adopt cực thấp | ✅ done |
+| 7 | **GitHub Action official** | `uses: yanacuti1121/yana-ai/actions/audit@v1` — adopt cực thấp | ✅ done |
 | 8 | **`yana-ai explain <rule>`** | Mỗi finding thành giáo trình bảo mật, không phải cảnh báo khô | ✅ done |
 | 9 | **Agent Blast Radius Map** (`yana-ai map .`) | Trả lời "agent của tôi chạm được tới đâu?" | ✅ done |
 | 10 | **`yana-ai init-policy <tool>`** | Generate safe config template, không auto-fix | ✅ done |

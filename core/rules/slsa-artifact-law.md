@@ -80,7 +80,7 @@ link.dump("build.link")
   "artifact": "yana-ai-v1.3.39.zip",
   "sha256": "<hash>",
   "builder":  { "id": "https://github.com/actions/runner" },
-  "source":   { "uri": "git+https://github.com/phamlongh230-lgtm/yana-ai@refs/tags/v1.3.39" },
+  "source":   { "uri": "git+https://github.com/yanacuti1121/yana-ai@refs/tags/v1.3.39" },
   "build_type": "https://slsa.dev/provenance/v1",
   "slsa_level": 2
 }

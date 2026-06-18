@@ -45,7 +45,7 @@ yana-ai help               Print help
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Yana AI Agent Audit Report                          │
-│  v0.1.0 · github.com/phamlongh230-lgtm/yana-ai │
+│  v0.1.0 · github.com/yanacuti1121/yana-ai │
 └─────────────────────────────────────────────────────┘
 
 Target:   .
@@ -173,7 +173,7 @@ jobs:
       
       - name: Install Yana AI
         run: |
-          curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yana-ai/main/install.sh | bash
+          curl -sSL https://raw.githubusercontent.com/yanacuti1121/yana-ai/main/install.sh | bash
       
       - name: Run audit
         run: yana-ai audit . --fail-on high --markdown audit-report.md

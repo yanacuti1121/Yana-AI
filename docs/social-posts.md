@@ -34,7 +34,7 @@ Also supports Cursor, Aider, Gemini Code, DeepSeek, Qwen via adapters.
 
 Apache 2.0. Built this over the past few weeks as a 17-year-old student.
 
-Repo: https://github.com/phamlongh230-lgtm/yana-ai
+Repo: https://github.com/yanacuti1121/yana-ai
 
 Would love feedback — especially false positives (hook blocked something it shouldn't) or patterns I'm missing.
 ```
@@ -72,7 +72,7 @@ Hooks intercept every tool call before execution. 6-layer gate system:
 
 Also has adapters for Cursor, Aider, Gemini Code, DeepSeek, Qwen3.
 
-Apache 2.0: https://github.com/phamlongh230-lgtm/yana-ai
+Apache 2.0: https://github.com/yanacuti1121/yana-ai
 
 Most useful feedback: false positives (blocked something it shouldn't), false negatives (missed something dangerous), or real incidents you've seen.
 ```
@@ -100,7 +100,7 @@ What gets blocked: rm -rf, curl|bash, prompt injection, unguarded deploys, DROP 
 
 39 hooks, 826 checks, Apache 2.0.
 
-https://github.com/phamlongh230-lgtm/yana-ai
+https://github.com/yanacuti1121/yana-ai
 
 Curious if anyone's had AI coding agents do something destructive — these are the incidents that motivated this.
 ```
@@ -173,7 +173,7 @@ Adapters for: Cursor, Aider, Gemini Code, DeepSeek V3/R1, Qwen3.
 
 Apache 2.0. Open source.
 
-→ github.com/phamlongh230-lgtm/yana-ai
+→ github.com/yanacuti1121/yana-ai
 
 Most useful feedback: what did I miss?
 ```

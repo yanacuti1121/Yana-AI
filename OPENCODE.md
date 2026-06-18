@@ -84,4 +84,4 @@ Register in `core/config/skills-lock.json` after adding.
 
 ## Full docs
 
-→ https://phamlongh230-lgtm.github.io/yana-ai/
+→ https://yanacuti1121.github.io/yana-ai/

@@ -301,7 +301,7 @@ Enables installation via the Claude Code plugin system:
 | `plugin.json` | Schema version, install method (zip), asset counts, entry point |
 | `marketplace.json` | Tagline, highlights, stats for plugin marketplace display |
 
-Installation via: `/plugin install phamlongh230-lgtm/yana-ai`
+Installation via: `/plugin install yanacuti1121/yana-ai`
 
 ---
 

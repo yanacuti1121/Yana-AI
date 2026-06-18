@@ -38,8 +38,8 @@ The Rust runtime (yana-rt) is 1256x faster than the Python equivalent on a 10k-f
 
 Total: 1,026,000 lines, 15,502 files. One person, one month.
 
-Repo: https://github.com/phamlongh230-lgtm/yana-ai
-Docs: https://phamlongh230-lgtm.github.io/yana-ai/
+Repo: https://github.com/yanacuti1121/yana-ai
+Docs: https://yanacuti1121.github.io/yana-ai/
 
 Happy to go deep on any of the gate implementations or the Rust architecture.
 ```
