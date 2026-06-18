@@ -144,29 +144,20 @@ function MHtmlMaker() {
   return (
     <div data-screen-label="HTML Maker" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap)' }}>
       <MHead title={L('HTML Maker', 'Tạo HTML')}
-        sub={skills.length
-          ? L(`${skills.length} templates`, `${skills.length} mẫu`)
-          : L('Loading templates…', 'Đang tải mẫu…')} />
-
-      {/* Template picker trigger */}
-      <button onClick={() => setPickerOpen(true)} className="glass" style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%', boxSizing: 'border-box',
-        borderRadius: 'var(--r-lg)', padding: '12px 14px', border: 'none', cursor: 'pointer',
-        textAlign: 'left', color: 'var(--ink)',
-      }}>
-        {selectedSkill ? (
-          <>
-            <span style={{ fontSize: 22, lineHeight: 1, flex: 'none' }}>{selectedSkill.emoji}</span>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedSkill.enName}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedSkill.zhName}</div>
-            </div>
-          </>
-        ) : (
-          <div style={{ fontSize: 13.5, color: 'var(--ink-3)', flex: 1 }}>{L('Choose a template…', 'Chọn một mẫu…')}</div>
-        )}
-        <span style={{ color: 'var(--ink-3)', flex: 'none' }}>{Icons.chevron(16)}</span>
-      </button>
+        sub={selectedSkill
+          ? selectedSkill.enName
+          : (skills.length
+            ? L(`${skills.length} templates — tap to choose`, `${skills.length} mẫu — bấm để chọn`)
+            : L('Loading templates…', 'Đang tải mẫu…'))}>
+        {/* Compact trigger — small square icon, expands the picker Sheet on tap */}
+        <button onClick={() => setPickerOpen(true)} aria-label={L('Choose a template', 'Chọn một mẫu')} style={{
+          width: 40, height: 40, flex: 'none', borderRadius: 'var(--r-md)',
+          border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer',
+          display: 'grid', placeItems: 'center', fontSize: 19, color: 'var(--ink-2)',
+        }}>
+          {selectedSkill ? selectedSkill.emoji : Icons.spark(18)}
+        </button>
+      </MHead>
 
       {/* Input card */}
       <div className="glass" style={{ borderRadius: 'var(--r-lg)', padding: 'var(--pad-card)', display: 'flex', flexDirection: 'column', gap: 10 }}>
