@@ -159,7 +159,7 @@ def export_opencode(rules: list[dict], output_dir: Path, dry_run: bool) -> list[
         "Yana AI is a personal agent OS for Claude Code, Cursor, OpenCode, Zed, and other AI coding harnesses.",
         "8,550 skills · 93 agents · 61 security rules · 46 safety hooks · Rust runtime",
         "",
-        "Full docs: https://phamlongh230-lgtm.github.io/yana-ai/",
+        "Full docs: https://yanacuti1121.github.io/yana-ai/",
         "",
         "---",
         "",
@@ -236,7 +236,7 @@ def export_zed(rules: list[dict], output_dir: Path, dry_run: bool) -> list[str]:
         + "\n".join(f"- {c}" for c in constraints) +
         "\n\nBefore git push: bash core/scripts/drift-check.sh must show CLEAN.\n\n"
         "This repo has 8,550 skills in core/skills/, 93 agents, and a Rust runtime.\n"
-        "Full docs: https://phamlongh230-lgtm.github.io/yana-ai/"
+        "Full docs: https://yanacuti1121.github.io/yana-ai/"
     )
 
     settings = {

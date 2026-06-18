@@ -10,7 +10,7 @@ import sys
 import tempfile
 import urllib.request
 
-REPO       = "phamlongh230-lgtm/yana-ai"
+REPO       = "yanacuti1121/yana-ai"
 API_URL    = f"https://api.github.com/repos/{REPO}/releases/latest"
 CLONE_URL  = f"https://github.com/{REPO}.git"
 

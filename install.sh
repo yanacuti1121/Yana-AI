@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI — One-line installer
-# Usage: curl -sSL https://raw.githubusercontent.com/phamlongh230-lgtm/yana-ai/main/install.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/yanacuti1121/yana-ai/main/install.sh | bash
 #
 # Options (env vars):
 #   YANA_DIR       — install target (default: .claude in current dir)
@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-REPO="phamlongh230-lgtm/yana-ai"
+REPO="yanacuti1121/yana-ai"
 INSTALL_DIR="${YANA_DIR:-.claude}"
 SKIP_TEST="${YANA_SKIP_TEST:-0}"
 TMP_ZIP="$(mktemp /tmp/yana-ai-XXXXXX.zip)"

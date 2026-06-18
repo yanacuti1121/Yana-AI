@@ -37,7 +37,7 @@ export async function installYamtam({ octokit, owner, repo }: InstallParams): Pr
 
 \`CLAUDE.md\` detected in this repo — Yana AI safety config is already active.
 
-To update your config, visit [yana-ai](https://github.com/phamlongh230-lgtm/yana-ai) for the latest rules.
+To update your config, visit [yana-ai](https://github.com/yanacuti1121/yana-ai) for the latest rules.
 
 ---
 *[Yana AI GitHub App](https://github.com/apps/yana-ai)*`,
@@ -142,7 +142,7 @@ Safe?      → logged + allowed
 
 - Merge this PR to activate Yana AI
 - Customize \`CLAUDE.md\` for your project's specific rules
-- Add more hooks from [yana-ai](https://github.com/phamlongh230-lgtm/yana-ai)
+- Add more hooks from [yana-ai](https://github.com/yanacuti1121/yana-ai)
 
 ---
 *Installed by [Yana AI GitHub App](https://github.com/apps/yana-ai)*

@@ -199,7 +199,7 @@ footer a:hover{{color:var(--text)}}
 <nav class="nav">
   <div class="nav-logo">🛡️ Yana AI <span>Skill Library</span></div>
   <div class="nav-links">
-    <a href="https://github.com/phamlongh230-lgtm/yana-ai">GitHub</a>
+    <a href="https://github.com/yanacuti1121/yana-ai">GitHub</a>
     <a href="./">Home</a>
     <a href="yana-ai-system-map.html">System Map</a>
   </div>
@@ -239,7 +239,7 @@ footer a:hover{{color:var(--text)}}
 
 <footer>
   <p>
-    <a href="https://github.com/phamlongh230-lgtm/yana-ai">Yana AI</a>
+    <a href="https://github.com/yanacuti1121/yana-ai">Yana AI</a>
     · v0.14.2 · Apache 2.0 · {total} skills from 5 open-source collections
   </p>
 </footer>
@@ -360,7 +360,7 @@ def main():
     size_kb = OUT_HTML.stat().st_size // 1024
     print(f" {OUT_HTML.name} ({size_kb}KB)")
 
-    print(f"\n  ✓ docs/skills.html → phamlongh230-lgtm.github.io/yana-ai/skills.html")
+    print(f"\n  ✓ docs/skills.html → yanacuti1121.github.io/yana-ai/skills.html")
 
 
 if __name__ == "__main__":

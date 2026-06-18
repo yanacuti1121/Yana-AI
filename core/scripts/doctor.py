@@ -369,7 +369,7 @@ def render(report: dict, no_color: bool = False, quiet: bool = False, fix: bool 
         "",
         c(CYAN + BOLD, "┌─────────────────────────────────────────────────────┐", nc),
         c(CYAN + BOLD, "│  Yana AI Doctor — Runtime Health Check               │", nc),
-        c(CYAN + BOLD, "│  github.com/phamlongh230-lgtm/yana-ai          │", nc),
+        c(CYAN + BOLD, "│  github.com/yanacuti1121/yana-ai          │", nc),
         c(CYAN + BOLD, "└─────────────────────────────────────────────────────┘", nc),
         "",
         f"  Target:  {report['target']}",

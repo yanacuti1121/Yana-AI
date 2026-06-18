@@ -93,6 +93,6 @@ say "  ${C_YELLOW}WARNED ${C_OFF}  unverified claim"
 say "  ${C_GREEN}ALLOWED${C_OFF}  git status"
 say ""
 say "${C_GREY}46 hooks · 826 checks · 3,518 skills · Apache 2.0${C_OFF}"
-say "${C_GREY}github.com/phamlongh230-lgtm/yana-ai${C_OFF}"
+say "${C_GREY}github.com/yanacuti1121/yana-ai${C_OFF}"
 say ""
 pause 2

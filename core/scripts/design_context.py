@@ -196,7 +196,7 @@ def tokens_to_markdown(tokens: dict, source: str) -> str:
         "cp .yana-ai/design/DESIGN.md ./DESIGN.md",
         "```",
         "",
-        "*Generated with [yana-ai design](https://github.com/phamlongh230-lgtm/yana-ai)*",
+        "*Generated with [yana-ai design](https://github.com/yanacuti1121/yana-ai)*",
     ]
     return "\n".join(lines)
 

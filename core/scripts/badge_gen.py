@@ -71,7 +71,7 @@ def main():
     score = data.get("score", 0)
     risk  = data.get("risk_level", "UNKNOWN")
     url   = make_badge_url(score, risk, args.style)
-    md    = f"[![Yana AI Audit]({url})](https://github.com/phamlongh230-lgtm/yana-ai)"
+    md    = f"[![Yana AI Audit]({url})](https://github.com/yanacuti1121/yana-ai)"
 
     if args.as_json:
         print(json.dumps({"score": score, "risk": risk, "badge_url": url, "markdown": md}))

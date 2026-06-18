@@ -3,4 +3,4 @@
 	url = https://github.com/OpenMOSS/MOSS-TTS-Nano.git
 [submodule "tools/codexmate"]
 	path = tools/codexmate
-	url = https://github.com/phamlongh230-lgtm/codexmate.git
+	url = https://github.com/yanacuti1121/codexmate.git

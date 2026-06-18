@@ -182,7 +182,7 @@ def cmd_onboard(graph: dict, out_file: str | None = None) -> None:
 
     # Attribution
     lines.append("---")
-    lines.append("*Knowledge graph built with [yana-ai](https://github.com/phamlongh230-lgtm/yana-ai)*")
+    lines.append("*Knowledge graph built with [yana-ai](https://github.com/yanacuti1121/yana-ai)*")
     lines.append("*Pipeline adapted from [Understand-Anything](https://github.com/Lum1104/Understand-Anything) (MIT)*")
 
     guide = "\n".join(lines)
