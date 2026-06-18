@@ -83,7 +83,7 @@ def _load_payload(cmd: list[str], expected_code: int) -> dict:
         raise SystemExit(f"invalid JSON output for cmd={' '.join(cmd)}: {e}\nstdout={p.stdout}\nstderr={p.stderr}")
 
 
-def _yana-ai_rt_available() -> bool:
+def _yana_ai_rt_available() -> bool:
     import shutil
     if shutil.which("yana-rt"):
         return True
@@ -91,7 +91,7 @@ def _yana-ai_rt_available() -> bool:
 
 
 def main() -> int:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping validator JSON schema tests")
         return 0
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))

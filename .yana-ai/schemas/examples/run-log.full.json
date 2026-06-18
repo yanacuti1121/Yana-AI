@@ -1,0 +1,14 @@
+{
+  "schema_version": "v1.0",
+  "task_id": "task.example.full",
+  "status": "completed",
+  "started_at": "2026-06-18T00:00:00Z",
+  "ended_at": "2026-06-18T00:10:00Z",
+  "verification": {
+    "evidence": [
+      { "kind": "test_run", "ref": "pytest tests/test_example.py -> 12 passed" },
+      { "kind": "screenshot", "ref": "https://example.com/evidence/screenshot.png" }
+    ]
+  },
+  "notes": "All acceptance criteria verified."
+}

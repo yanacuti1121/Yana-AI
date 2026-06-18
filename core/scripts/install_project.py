@@ -26,7 +26,7 @@ def step(n, total, label):
     print(f"  {c(CYAN, f'[{n}/{total}]')} {label}")
 
 
-Yana AIIGNORE_DEFAULT = """\
+YANA_AI_IGNORE_DEFAULT = """\
 # .yana-aiignore — suppress known-safe findings
 # Format: RULE_ID:path/to/file   or   path/glob/**
 #
@@ -127,7 +127,7 @@ def main():
     step(1, total, ".yana-aiignore")
     write_if_missing(
         os.path.join(target, ".yana-aiignore"),
-        Yana AIIGNORE_DEFAULT, ".yana-aiignore", args.dry_run
+        YANA_AI_IGNORE_DEFAULT, ".yana-aiignore", args.dry_run
     )
 
     # 2. .gitignore additions

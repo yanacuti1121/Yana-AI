@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/schemas/spec.schema.json",
+  "title": "Yana AI Task Spec",
+  "type": "object",
+  "required": ["id", "title", "goal", "scope", "acceptance_criteria", "verification_plan"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "goal": { "type": "string", "minLength": 1 },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "in_scope": { "type": "array", "items": { "type": "string" } },
+        "out_of_scope": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "verification_plan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "expected_evidence", "required"],
+        "properties": {
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "command": { "type": "string" },
+          "expected_evidence": { "type": "string" },
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      },
+      "minItems": 1
+    },
+    "owner": { "type": "string" },
+    "created_at": { "type": "string" }
+  },
+  "additionalProperties": true
+}

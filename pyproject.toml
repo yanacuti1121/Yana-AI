@@ -42,11 +42,11 @@ Changelog   = "https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/yanacuti1121/yana-ai/issues"
 
 [project.scripts]
-yana-ai    = "yana-ai_engine.cli:main"
-yana-rt = "yana-ai_engine.rt:main"
+yana-ai    = "yana_ai.cli:main"
+yana-rt = "yana_ai.rt:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/yana-ai_engine"]
+packages = ["src/yana_ai"]
 
 [tool.hatch.build.targets.sdist]
 include = [

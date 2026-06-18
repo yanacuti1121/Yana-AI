@@ -61,7 +61,7 @@ def _assert_json(path: str, expected_code: int, expected_status: str) -> dict:
     return payload
 
 
-def _yana-ai_rt_available() -> bool:
+def _yana_ai_rt_available() -> bool:
     import shutil
     if shutil.which("yana-rt"):
         return True
@@ -69,7 +69,7 @@ def _yana-ai_rt_available() -> bool:
 
 
 def main() -> int:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping context-pack regression tests")
         return 0
     _assert_ok("examples/context-packs/valid-basic")

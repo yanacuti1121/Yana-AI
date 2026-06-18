@@ -1,0 +1,31 @@
+{
+  "schema_version": "v1.0",
+  "id": "task.example.full",
+  "title": "Full example spec with all optional fields",
+  "goal": "Demonstrate every field a task spec may contain, including optional metadata.",
+  "scope": {
+    "in_scope": ["src/example.py", "tests/test_example.py"],
+    "out_of_scope": ["docs/**"]
+  },
+  "acceptance_criteria": [
+    "All new behavior is covered by a test.",
+    "No existing test regresses."
+  ],
+  "verification_plan": [
+    {
+      "type": "command",
+      "description": "Run the unit test suite.",
+      "command": "pytest tests/test_example.py",
+      "expected_evidence": "All tests pass (exit code 0).",
+      "required": true
+    },
+    {
+      "type": "manual",
+      "description": "Visual check of the rendered output.",
+      "expected_evidence": "Screenshot attached to the PR.",
+      "required": false
+    }
+  ],
+  "owner": "maintainer",
+  "created_at": "2026-06-18T00:00:00Z"
+}

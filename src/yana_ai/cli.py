@@ -9,11 +9,11 @@ def _find_repo_root() -> Path:
     """Find yana-ai repo root — works both installed and dev mode."""
     # When installed via pip, data files are in the package dir
     pkg_dir = Path(__file__).parent
-    # Dev mode: two levels up from src/yana-ai_engine/
+    # Dev mode: two levels up from src/yana_ai/
     candidates = [
         pkg_dir,
         pkg_dir.parent.parent,       # src/ → repo root
-        Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages" / "yana-ai_engine",
+        Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages" / "yana_ai",
     ]
     for c in candidates:
         if (c / "bin" / "yana-ai").exists():
@@ -23,10 +23,10 @@ def _find_repo_root() -> Path:
 
 def main():
     repo = _find_repo_root()
-    yana-ai_bin = repo / "bin" / "yana-ai"
+    yana_ai_bin = repo / "bin" / "yana-ai"
 
-    if not yana-ai_bin.exists():
-        print(f"Error: yana-ai not found at {yana-ai_bin}", file=sys.stderr)
+    if not yana_ai_bin.exists():
+        print(f"Error: yana-ai not found at {yana_ai_bin}", file=sys.stderr)
         print("Try: pip install --force-reinstall yana-ai", file=sys.stderr)
         sys.exit(3)
 
@@ -35,7 +35,7 @@ def main():
 
     try:
         result = subprocess.run(
-            ["bash", str(yana-ai_bin)] + sys.argv[1:],
+            ["bash", str(yana_ai_bin)] + sys.argv[1:],
             env=env,
         )
         sys.exit(result.returncode)

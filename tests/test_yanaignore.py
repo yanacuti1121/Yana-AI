@@ -20,7 +20,7 @@ def _assert(cond: bool, msg: str) -> None:
         raise AssertionError(msg)
 
 
-def _yana-ai_rt_available() -> bool:
+def _yana_ai_rt_available() -> bool:
     import shutil
     if shutil.which("yana-rt"):
         return True
@@ -30,7 +30,7 @@ def _yana-ai_rt_available() -> bool:
 
 
 def test_repo_root_audit_ignores_demo_fixture_findings() -> None:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping audit regression tests")
         return
     code, out, err = _run(["bash", "bin/yana-ai", "audit", "."])
@@ -44,7 +44,7 @@ def test_repo_root_audit_ignores_demo_fixture_findings() -> None:
 
 
 def test_direct_demo_target_still_reports_expected_unsafe_findings() -> None:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping audit regression tests")
         return
     code, out, err = _run(["bash", "bin/yana-ai", "audit", "examples/unsafe-agent-repo"])

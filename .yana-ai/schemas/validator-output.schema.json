@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/schemas/validator-output.schema.json",
+  "title": "Yana AI Validator JSON Output",
+  "type": "object",
+  "required": ["schema_version", "tool", "command", "status", "exit_code", "mode", "target", "findings", "summary"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "tool": { "type": "string" },
+    "command": { "type": "string" },
+    "status": { "type": "string", "enum": ["valid", "invalid", "error"] },
+    "exit_code": { "type": "integer", "enum": [0, 1, 2] },
+    "mode": { "type": "string" },
+    "target": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "message"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "type": "string" },
+          "message": { "type": "string" },
+          "file": { "type": "string" },
+          "rule": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["finding_count"],
+      "properties": {
+        "finding_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "context_pack": {
+      "type": "object",
+      "properties": {
+        "target": { "type": "string" },
+        "status": { "type": "string" },
+        "mode": { "type": "string" },
+        "finding_count": { "type": "integer" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -14,14 +14,14 @@ def run(args: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True)
 
 
-def _yana-ai_rt_available() -> bool:
+def _yana_ai_rt_available() -> bool:
     if shutil.which("yana-rt"):
         return True
     return (ROOT / "target" / "release" / "yana-rt").exists() or (ROOT / "target" / "debug" / "yana-rt").exists()
 
 
 def test_audit_json_mvp_output_contract() -> None:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         pytest.skip("yana-rt not installed")
     proc = run(["bash", "bin/yana-ai", "audit", ".", "--json"])
 

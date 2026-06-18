@@ -39,7 +39,7 @@ def check_workflows(target: str) -> list[dict]:
                          "fix": "Add at least one CI workflow"})
         return results
 
-    has_yana-ai_audit = False
+    has_yana_ai_audit = False
 
     for wf_path in wf_files:
         name = os.path.basename(wf_path)
@@ -51,7 +51,7 @@ def check_workflows(target: str) -> list[dict]:
 
         # Check: yana-ai audit present
         if "yana-ai" in content and "audit" in content:
-            has_yana-ai_audit = True
+            has_yana_ai_audit = True
 
         # Check: permissions block
         if "permissions:" not in content:
@@ -103,7 +103,7 @@ def check_workflows(target: str) -> list[dict]:
                              "msg": f"{name}: yana-ai used but --fail-on not set — audit won't gate the build",
                              "fix": "Add --fail-on high to yana-ai audit step"})
 
-    if not has_yana-ai_audit:
+    if not has_yana_ai_audit:
         results.append({"id": "CI-AUDIT-002", "level": "WARN",
                          "msg": "No yana-ai audit step found in any workflow",
                          "fix": "Copy .github/workflows/yana-ai-audit.yml into your repo"})

@@ -45,7 +45,7 @@ def _assert_json(cmd: list[str], expected_code: int, expected_status: str) -> di
     return payload
 
 
-def _yana-ai_rt_available() -> bool:
+def _yana_ai_rt_available() -> bool:
     import shutil
     if shutil.which("yana-rt"):
         return True
@@ -53,7 +53,7 @@ def _yana-ai_rt_available() -> bool:
 
 
 def main() -> int:
-    if not _yana-ai_rt_available():
+    if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping validate-spec regression tests")
         return 0
     ok = run(["bash", "bin/yana-ai", "validate-spec", "examples/specs/valid-task-spec.json"])

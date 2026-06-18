@@ -42,7 +42,7 @@ jobs:
         run: python3 tests/test_harness_schema_examples.py
 
       - name: Validate .yana-aiignore regression behavior
-        run: python3 tests/test_yana-aiignore.py
+        run: python3 tests/test_yanaignore.py
 
       - name: Validate spec command regression behavior
         run: python3 tests/test_validate_spec.py

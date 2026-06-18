@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/schemas/run-log.schema.json",
+  "title": "Yana AI Task Run Log",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "task_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "completed", "failed", "aborted"],
+      "minLength": 1
+    },
+    "started_at": { "type": "string" },
+    "ended_at": { "type": "string" },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "ref"],
+            "properties": {
+              "kind": { "type": "string" },
+              "ref": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "notes": { "type": "string" }
+  },
+  "if": {
+    "properties": { "status": { "const": "completed" } },
+    "required": ["status"]
+  },
+  "then": {
+    "required": ["ended_at"]
+  },
+  "additionalProperties": true
+}
