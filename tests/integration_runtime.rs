@@ -613,7 +613,7 @@ fn init_dry_run_prints_plan_no_files() {
 }
 
 #[test]
-fn init_run_creates_yana-ai_dir() {
+fn init_run_creates_yana_ai_dir() {
     let dir = tmpdir();
     let (_, _, ok) = run(dir.path(), &["init", "run", ".", "--yes"]);
     assert!(ok, "init run --yes should succeed");
