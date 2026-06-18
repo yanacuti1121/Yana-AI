@@ -49,7 +49,7 @@ pub struct ScanReport {
     pub schema_version: String,
     pub generated_at:   String,
     pub target:         String,
-    pub yana-ai_version: String,
+    pub yana_ai_version: String,
     pub score:          u32,
     pub risk_level:     String,
     pub status:         String,
