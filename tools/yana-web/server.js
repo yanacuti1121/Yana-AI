@@ -1685,12 +1685,18 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/codexmate/status') { handleApiCodexmateStatus(req, res); return; }
   if (method === 'GET'  && pathname === '/api/html/skills')  { handleApiHtmlSkills(req, res);        return; }
   if (method === 'POST' && pathname === '/api/html/convert') { await handleApiHtmlConvert(req, res); return; }
-  if (method === 'GET' && pathname === '/m')            { res.writeHead(302, { Location: '/mobile/index.html' }); res.end(); return; }
+  if (method === 'GET' && pathname === '/m')            { res.writeHead(302, { Location: '/mobile/index.html', 'Cache-Control': 'no-store' }); res.end(); return; }
   if (method === 'GET' && pathname === '/') {
-    // Redirect so relative asset paths in index.html resolve against the correct base URL
+    // Redirect so relative asset paths in index.html resolve against the correct base URL.
+    // no-store: this redirect depends on User-Agent + ?desktop=1 — a cached 302 from an
+    // earlier ?desktop=1 test visit would otherwise keep sending a phone to the desktop build.
     const mobileUA    = /Mobi|Android|iPhone/i.test(req.headers['user-agent'] || '');
     const wantDesktop = /[?&]desktop=1/.test(req.url || '');
-    res.writeHead(302, { Location: mobileUA && !wantDesktop ? '/mobile/index.html' : '/desktop/index.html' });
+    res.writeHead(302, {
+      Location: mobileUA && !wantDesktop ? '/mobile/index.html' : '/desktop/index.html',
+      'Cache-Control': 'no-store',
+      'Vary': 'User-Agent',
+    });
     res.end(); return;
   }
   if (method === 'GET') { serveStatic(res, pathname); return; }
