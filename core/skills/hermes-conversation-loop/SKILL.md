@@ -7,6 +7,27 @@ version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
 ---
 
+## Implementation (partial — added 2026-06-19)
+
+The real `agent/conversation_loop.py` (4486 lines) is, by its own docstring,
+hermes' entire per-turn orchestration body extracted from `AIAgent` — not a
+standalone algorithm. Porting it verbatim would mean pulling in most of
+hermes-agent's ~110-file package. Only the genuinely portable building
+blocks were ported:
+
+- Module: `core/lib/hermes_adapted/conversation_loop.py`
+  - `IterationBudget` — ported verbatim from `agent/iteration_budget.py`
+  - `jittered_backoff()` — ported verbatim from `agent/retry_utils.py`
+  - `FailoverReason` / `ClassifiedError` / `classify_api_error()` — condensed
+    from `agent/error_classifier.py` (1365 lines → generic HTTP-status +
+    billing/rate-limit keyword pipeline; provider-specific branches dropped)
+- Tests: `tests/test_hermes_conversation_loop.py` (12 passing)
+
+**Not implemented** (still prose-only, by deliberate scope cut — see the
+module's own docstring): stale-stream detection (90s), chunked retry on
+truncation, continuation prompt. These live inside the un-ported
+`run_conversation` body and have no standalone form in the original.
+
 # /hermes-conversation-loop
 
 ## When to Use

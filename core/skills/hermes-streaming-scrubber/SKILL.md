@@ -7,6 +7,15 @@ version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
 ---
 
+## Implementation (real, runnable — added 2026-06-19)
+
+`StreamingContextScrubber` was already pure and self-contained in the
+original — ported close to verbatim, no hermes-specific dependencies to
+strip.
+
+- Module: `core/lib/hermes_adapted/memory_manager.py` (`StreamingContextScrubber`)
+- Tests:  `tests/test_hermes_memory_manager.py` (10 passing, incl. 2 for this class)
+
 # /hermes-streaming-scrubber
 
 ## When to Use

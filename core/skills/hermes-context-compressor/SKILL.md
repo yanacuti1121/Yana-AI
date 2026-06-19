@@ -7,6 +7,21 @@ version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
 ---
 
+## Implementation (real, runnable — added 2026-06-19)
+
+This skill is no longer prose-only. The real algorithm was read from
+hermes-agent's actual source (commit `5378b941209d8f62a65455041658ce8ce8144cc9`)
+and ported — not copied verbatim, since the original extends hermes'
+`ContextEngine` and calls hermes' multi-provider client — into:
+
+- Module: `core/lib/hermes_adapted/context_compressor.py`
+- Tests:  `tests/test_hermes_context_compressor.py` (6 passing)
+- Provenance: `vendor/hermes-agent/_upstream/context_compressor.py` (original, for reference)
+
+Use `ContextCompressor(context_length, cfg, summarize_fn)` — pass your own
+`summarize_fn: Callable[[str], Optional[str]]` to wire in whatever model
+Yana AI uses for the auxiliary summary call.
+
 # /hermes-context-compressor
 
 ## When to Use

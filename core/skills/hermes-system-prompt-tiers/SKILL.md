@@ -7,6 +7,21 @@ version: 1.0.0
 compatibility: yamtam-engine >= 1.3.54
 ---
 
+## Implementation (architecture ported, content not — added 2026-06-19)
+
+Most of the original file's *content* (SOUL.md identity, kanban worker
+guidance, nous subscription prompts) is hermes-product-specific with no
+Yana AI equivalent. What's ported is the architecture: the 3-tier
+stable/context/volatile builder with cache-until-invalidated semantics,
+the platform-hint override resolver (ported close to verbatim — it was
+already pure), and the model-family-guidance matching pattern.
+
+- Module: `core/lib/hermes_adapted/system_prompt.py`
+- Tests:  `tests/test_hermes_system_prompt.py` (8 passing)
+
+Yana AI supplies its own tier-section callables and guidance text; this
+module only provides the assembly/caching/override mechanics.
+
 # /hermes-system-prompt-tiers
 
 ## When to Use
