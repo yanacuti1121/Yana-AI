@@ -3,9 +3,19 @@
 # Usage: yana-ai audit [target] [flags]
 set -euo pipefail
 
-YANA_VERSION="0.17.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Read live from .claude-plugin/plugin.json (same source of truth the banner's
+# agents/skills/rules counts already use) so this can't drift from the real
+# release version the way the old hardcoded "0.17.0" did. Falls back to a
+# fixed string only if the file or python3 is missing.
+YANA_VERSION="$(
+  if [[ -f "$REPO_ROOT/.claude-plugin/plugin.json" ]] && command -v python3 &>/dev/null; then
+    python3 -c "import json; print(json.load(open('$REPO_ROOT/.claude-plugin/plugin.json')).get('version','0.0.0'))" 2>/dev/null || true
+  fi
+)"
+[[ -n "$YANA_VERSION" ]] || YANA_VERSION="0.0.0"
 
 # ── yana-rt binary (prefer release, fall back to debug) ────────────────────
 _find_rt() {
@@ -68,7 +78,11 @@ info() { echo -e "  ${CYAN}→${RESET} $*"; }
 # on startup — own layout though, not a copy of Claude Code's. Stats are read
 # live from .claude-plugin/plugin.json so the banner never goes stale. Terminals
 # can't render the real mascot (girl-with-carrot logo in docs/yana-logo.png),
-# so the bunny+carrot emoji stands in for it here.
+# so the bunny+carrot emoji stands in for it here. A chafa-generated truecolor
+# block-art version was tried and reverted (2026-06-19) — it degrades to
+# unrecognizable noise on any terminal/viewer that doesn't render 24-bit ANSI
+# color, which isn't safe to assume. 🦀 sits next to it as a nod to yana-rt,
+# the Rust runtime this CLI shells out to (rt() above).
 
 _banner_pad() {
   local s="$1" w="$2" len=${#1}
@@ -183,7 +197,7 @@ banner() {
   blank="$(_banner_pad '' "$BANNER_W")"
 
   _banner_hop
-  printf "${ORANGE}  🐰🥕${RESET}\n\n"
+  printf "${ORANGE}  🐰🥕  🦀${RESET}\n\n"
   printf "${ORANGE}  ╭%s╮${RESET}\n" "$dashes"
   printf "${ORANGE}  │%s│${RESET}\n" "$blank"
 

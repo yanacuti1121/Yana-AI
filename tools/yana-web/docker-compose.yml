@@ -1,0 +1,51 @@
+# Qdrant — optional semantic memory backend for yana-web (Track 2, see TODO.md history).
+# Fully opt-in: yana-web works with zero infra when YANA_QDRANT_URL is unset.
+# This file only stands up Qdrant itself — the app keeps running as `node server.js`,
+# in this Dockerfile, or natively; it is not bundled here to avoid scope creep.
+#
+# Start:
+#   cd tools/yana-web && docker compose up -d
+# Then point the app at it:
+#   export YANA_QDRANT_URL=http://127.0.0.1:6333
+#
+# qdrant-init chowns the named volumes to uid 1000 once, as root, then exits —
+# the qdrant service itself never runs as root (container-hardening-law).
+# No in-container HEALTHCHECK: the published image's runtime stage ships no
+# curl/wget to probe with (unverified — not guessed at). Check from the host:
+#   curl http://127.0.0.1:6333/healthz
+
+services:
+  qdrant-init:
+    image: qdrant/qdrant:v1.18.2
+    user: "0:0"
+    entrypoint: ["sh", "-c", "mkdir -p /qdrant/storage /qdrant/snapshots && chown -R 1000:1000 /qdrant/storage /qdrant/snapshots"]
+    volumes:
+      - qdrant_storage:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    user: "1000:1000"
+    depends_on:
+      qdrant-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:6333:6333" # REST
+      - "127.0.0.1:6334:6334" # gRPC
+    volumes:
+      - qdrant_storage:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+volumes:
+  qdrant_storage:
+  qdrant_snapshots:
