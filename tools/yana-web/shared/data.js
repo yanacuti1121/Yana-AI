@@ -36,6 +36,7 @@ window.YANA = {
     { id: "openrouter", name: "OpenRouter", company: "OpenRouter", models: ["Fallback pool · 40+ models"],          role: "Overflow & fallback routing" },
     { id: "9router",    name: "9Router",    company: "Local gateway", models: ["40+ providers · auto-fallback"],    role: "Quota armor — localhost:20128, never hit limits", desktopOnly: true },
     { id: "ollama",     name: "Ollama",     company: "On-device",  models: ["llama3.2", "qwen3", "gemma3"],         role: "Sovereign tier — rule 68, text never leaves the machine", desktopOnly: true },
+    { id: "lmstudio",   name: "LM Studio",  company: "On-device",  models: ["local-model"],                         role: "Local server — port 1234, load any model in the app", desktopOnly: true },
   ],
 
   // missions are created at runtime by the Mission Composer — none preloaded

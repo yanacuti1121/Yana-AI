@@ -58,7 +58,7 @@ function MAgents() {
 
 /* ---------- Providers ---------- */
 function MProviderCard({ p }) {
-  const keyless = p.id === "ollama" || p.id === "9router";
+  const keyless = p.id === "ollama" || p.id === "lmstudio" || p.id === "9router";
   const vault = typeof YanaVault !== "undefined" ? YanaVault : null;
   const [hasKey, setHasKey] = React.useState(() => keyless || !!(vault && vault.getKey(p.id)));
   const connected = hasKey;
@@ -121,7 +121,7 @@ function MProviderCard({ p }) {
 function MProviders() {
   const D = window.YANA;
   const vault = typeof YanaVault !== "undefined" ? YanaVault : null;
-  const connected = vault ? D.providers.filter((p) => p.id === "ollama" || p.id === "9router" || vault.getKey(p.id)).length : 0;
+  const connected = vault ? D.providers.filter((p) => p.id === "ollama" || p.id === "lmstudio" || p.id === "9router" || vault.getKey(p.id)).length : 0;
   return (
     <div data-screen-label="Providers" style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
       <MHead title={L("Providers", "Nhà cung cấp")} sub={connected + " / " + D.providers.length + L(" connected", " đã nối")} />
@@ -268,7 +268,7 @@ function _mDetectTz() {
   } catch (_) { return "UTC"; }
 }
 
-const M_PROVIDER_NAMES = { claude: "Claude", openai: "OpenAI", gemini: "Gemini", groq: "Groq", deepseek: "DeepSeek", openrouter: "OpenRouter", "9router": "9Router", ollama: "Ollama" };
+const M_PROVIDER_NAMES = { claude: "Claude", openai: "OpenAI", gemini: "Gemini", groq: "Groq", deepseek: "DeepSeek", openrouter: "OpenRouter", "9router": "9Router", ollama: "Ollama", lmstudio: "LM Studio" };
 
 function MProfileHero({ t, setTweak }) {
   const D = window.YANA;

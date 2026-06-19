@@ -5,7 +5,7 @@ function fmtTokens(n) {
   return String(n);
 }
 
-const LIVE_MODEL_PROVIDERS = new Set(["openrouter", "groq", "9router", "ollama"]);
+const LIVE_MODEL_PROVIDERS = new Set(["openrouter", "groq", "9router", "ollama", "lmstudio"]);
 
 const PROVIDER_SETUP = {
   claude:     { url: "https://console.anthropic.com/settings/keys",   label: "Get key → console.anthropic.com" },
@@ -16,6 +16,7 @@ const PROVIDER_SETUP = {
   openrouter: { url: "https://openrouter.ai/settings/keys",           label: "Get key → openrouter.ai" },
   "9router":  { cmd: "npm install -g 9router",  cmd2: "9router",      label: "Local gateway — run on port 20128" },
   ollama:     { url: "https://ollama.com/download", cmd: "ollama serve", cmd2: "ollama pull llama3.2", label: "On-device — ollama.com/download" },
+  lmstudio:   { url: "https://lmstudio.ai/download", cmd: "Open LM Studio → Developer tab", cmd2: "Start server (port 1234), load a model", label: "On-device — lmstudio.ai/download" },
 };
 
 function ProviderCard({ p, usage, onKeyChange }) {
@@ -107,7 +108,7 @@ function ProviderCard({ p, usage, onKeyChange }) {
       {(() => {
         const s = PROVIDER_SETUP[p.id];
         if (!s) return null;
-        const isLocal = p.id === "9router" || p.id === "ollama";
+        const isLocal = p.id === "9router" || p.id === "ollama" || p.id === "lmstudio";
         if (!isLocal && connected) return null;
         return (
           <div style={{

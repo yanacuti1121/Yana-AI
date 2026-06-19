@@ -32,7 +32,7 @@ function detectSensitivity(text) {
 }
 
 // Providers usable without an API key (loopback/on-device)
-const KEYLESS_PROVIDERS = new Set(["ollama", "9router"]);
+const KEYLESS_PROVIDERS = new Set(["ollama", "lmstudio", "9router"]);
 function providerAvailable(id) {
   return KEYLESS_PROVIDERS.has(id) || YanaVault.hasKey(id);
 }
@@ -252,6 +252,7 @@ const CHAT_MODELS = {
   huggingface: "meta-llama/Llama-3.3-70B-Instruct",
   "9router":  "kr/claude-sonnet-4.5",
   ollama:     "llama3.2",
+  lmstudio:   "local-model",
 };
 
 // Curated model choices per provider — providers in CHAT_LIVE_MODELS get the
@@ -272,8 +273,9 @@ const MODEL_CHOICES = {
   huggingface: ["meta-llama/Llama-3.3-70B-Instruct", "Qwen/Qwen2.5-72B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"],
   "9router":  ["kr/claude-sonnet-4.5"],
   ollama:     ["llama3.2"],
+  lmstudio:   ["local-model"],
 };
-const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama"]);
+const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio"]);
 
 // Capability flags per model (or substring match for dynamic model lists).
 // v = vision  r = reasoning  t = text-only (explicit no-vision)

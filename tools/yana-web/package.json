@@ -8,5 +8,8 @@
   },
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "1.18.0"
   }
 }

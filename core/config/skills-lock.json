@@ -390,11 +390,6 @@
       "localPath": ".claude/skills/aiagency--agency-report-pdf",
       "addedAt": "2026-06-11T00:11:23Z"
     },
-    "aiagency--agency-stack": {
-      "computedHash": "126271d39ec09d9ff48741b584abb504f85c87481985bc7536b5e0dccac16050",
-      "localPath": ".claude/skills/aiagency--agency-stack",
-      "addedAt": "2026-06-11T13:33:35Z"
-    },
     "aiagency--agency-status": {
       "computedHash": "319aa55dc892aa612e5285d5f769475f6d8ea94aaf3e888fdb36eb0fb3a0c22a",
       "localPath": ".claude/skills/aiagency--agency-status",
@@ -10449,11 +10444,6 @@
       "computedHash": "d65d239fef9c384090cb20e46667aa4be8511b18d551c1ad177cf6f43e4ad033",
       "localPath": ".claude/skills/pairwise-prioritization",
       "addedAt": "2026-06-11T13:35:08Z"
-    },
-    "panniantong--agent-reach": {
-      "computedHash": "d8ba54d8161faea72ea5739af23f422d24b8a74a0da03b50e4a71ae4f011726f",
-      "localPath": ".claude/skills/panniantong--agent-reach",
-      "addedAt": "2026-06-11T13:19:33Z"
     },
     "parallel-execution-optimizer": {
       "computedHash": "f86cafcee2a9b8f12083c20ab877ce23b7a26685c7468fb18f4f0865a2b14f41",

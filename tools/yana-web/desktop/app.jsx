@@ -171,10 +171,25 @@ function applyTweaks(t) {
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [page, setPage] = React.useState(() => localStorage.getItem("yana.page") || "dashboard");
+  const mainRef = React.useRef(null);
   window.YANA_LANG = t.language === "Tiếng Việt" ? "vi" : "en";
 
   React.useEffect(() => applyTweaks(t), [t]);
   React.useEffect(() => localStorage.setItem("yana.page", page), [page]);
+
+  // Smooth scroll (Lenis) — desktop only, chat manages its own internal
+  // scroll so it's excluded; mobile already has native momentum scroll
+  // (-webkit-overflow-scrolling: touch in mobile.css) and doesn't need this.
+  React.useEffect(() => {
+    if (page === "chat" || !mainRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let lenis, cancelled = false;
+    import("https://unpkg.com/lenis@1.3.23/dist/lenis.mjs").then(({ default: Lenis }) => {
+      if (cancelled || !mainRef.current) return;
+      lenis = new Lenis({ wrapper: mainRef.current, content: mainRef.current.firstElementChild, autoRaf: true });
+    }).catch(() => {});
+    return () => { cancelled = true; lenis && lenis.destroy(); };
+  }, [page]);
 
   const Page = {
     dashboard: () => <Dashboard t={t} onNav={setPage} />,
@@ -195,7 +210,7 @@ function App() {
   return (
     <div key={t.language} className="yana-app" style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", gap: "var(--gap)" }}>
       <Sidebar page={page} onNav={setPage} />
-      <main className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: page === "chat" ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
+      <main ref={mainRef} className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: page === "chat" ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <Page />
         </div>

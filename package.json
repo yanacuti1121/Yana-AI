@@ -31,6 +31,7 @@
     "node": ">=18"
   },
   "bin": {
+    "yana-ai": "./bin/yana",
     "yana-ai-install": "./scripts/npm-install.js",
     "yana-rt": "./scripts/yana-rt-wrapper.js"
   },

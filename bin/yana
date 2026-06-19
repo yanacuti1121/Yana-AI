@@ -57,11 +57,202 @@ RULE_TEST_PY="$REPO_ROOT/core/scripts/rule_test.py"
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 RED='\033[31m'; CYAN='\033[36m'; BOLD='\033[1m'; RESET='\033[0m'
+ORANGE='\033[38;5;208m'; ORANGE_B='\033[1;38;5;208m'
+ORANGE_VER='\033[38;5;211m'; ORANGE_TXT='\033[38;5;230m'; ORANGE_PATH='\033[38;5;180m'
 
 err()  { echo -e "${RED}Error:${RESET} $*" >&2; }
 info() { echo -e "  ${CYAN}→${RESET} $*"; }
 
+# ── banner ───────────────────────────────────────────────────────────────────
+# Shown on bare `yana-ai` / `--help` invocation, mirrors how `claude` greets you
+# on startup — own layout though, not a copy of Claude Code's. Stats are read
+# live from .claude-plugin/plugin.json so the banner never goes stale. Terminals
+# can't render the real mascot (girl-with-carrot logo in docs/yana-logo.png),
+# so the bunny+carrot emoji stands in for it here.
+
+_banner_pad() {
+  local s="$1" w="$2" len=${#1}
+  if [ "$w" -le 0 ]; then printf ''; return; fi
+  if [ "$len" -gt "$w" ]; then
+    s="${s:0:$((w>1?w-1:0))}…"
+    len=$w
+  fi
+  printf '%s%*s' "$s" "$((w-len))" ""
+}
+
+# Truncates plain text to fit width $2 (with an ellipsis), used before
+# colorizing any dynamic value that might be longer than the box — release
+# notes, cwd, branch names. Keeps _banner_pad's padding math from going
+# negative, which previously caused an overflowing line + a stray "…".
+_banner_fit() {
+  local s="$1" w="$2" len=${#1}
+  if [ "$w" -le 0 ]; then printf ''; return; fi
+  if [ "$len" -gt "$w" ]; then
+    printf '%s…' "${s:0:$((w>1?w-1:0))}"
+  else
+    printf '%s' "$s"
+  fi
+}
+
+_banner_dashes() {
+  local i out="" n="$1"
+  for ((i=0; i<n; i++)); do out="${out}─"; done
+  printf '%s' "$out"
+}
+
+# Prints one boxed content row, right-padded to $BANNER_W using the plain-text
+# length so ANSI color codes in $2 never throw off the alignment math.
+_banner_row() {
+  local plain="$1" colored="$2" indent="${3:-2}"
+  printf "${ORANGE}  │%*s%b${ORANGE}%s│${RESET}\n" "$indent" "" "$colored" "$(_banner_pad '' "$((BANNER_W-indent-${#plain}))")"
+}
+
+# Two-column row: left cell ($LEFT_W wide) + divider + right cell ($RIGHT_W
+# wide). Falls back to plain (uncolored) text for a cell if it had to be
+# truncated, so an ellipsis never lands mid-escape-sequence.
+_banner_row2() {
+  local lplain="$1" lcolored="$2" rplain="$3" rcolored="$4"
+  local lfit rfit
+  lfit="$(_banner_fit "$lplain" "$((LEFT_W-1))")"
+  rfit="$(_banner_fit "$rplain" "$((RIGHT_W-1))")"
+  [[ "$lfit" != "$lplain" ]] && { lcolored="$lfit"; lplain="$lfit"; }
+  [[ "$rfit" != "$rplain" ]] && { rcolored="$rfit"; rplain="$rfit"; }
+  printf "${ORANGE}  │ %b%s${ORANGE}│ %b%s${ORANGE}│${RESET}\n" \
+    "$lcolored" "$(_banner_pad '' "$((LEFT_W-1-${#lplain}))")" \
+    "$rcolored" "$(_banner_pad '' "$((RIGHT_W-1-${#rplain}))")"
+}
+
+_banner_plugin_counts() {
+  [[ -f "$REPO_ROOT/.claude-plugin/plugin.json" ]] || return 1
+  command -v python3 &>/dev/null || return 1
+  python3 -c "
+import json
+d = json.load(open('$REPO_ROOT/.claude-plugin/plugin.json')).get('contents', {})
+print(d.get('agents',''), d.get('skills',''), d.get('rules',''), d.get('hooks',''), d.get('scripts',''), d.get('checks',''))
+" 2>/dev/null
+}
+
+_banner_release_note() {
+  local raw
+  raw="$(git -C "$REPO_ROOT" log --format=%s -1 --grep='^release:' 2>/dev/null)"
+  printf '%s' "${raw#release: }"
+}
+
+# Bunny hops left-to-right-and-back once before the banner settles. Set
+# YANA_NO_ANIM=1 to skip it (e.g. scripted/CI use, or if it gets annoying).
+_banner_hop() {
+  [[ -n "${YANA_NO_ANIM:-}" ]] && return 0
+  local positions=(0 3 6 9 12 9 6 3 0) p
+  for p in "${positions[@]}"; do
+    printf "\r  %*s${ORANGE}🐇${RESET}" "$p" ""
+    sleep 0.06
+  done
+  printf "\r\033[K"
+}
+
+_banner_art() {
+  # 6-row block-letter "YANA AI" wordmark — pure box-drawing chars, all
+  # single-width, safe to pad/center alongside the rest of the box.
+  printf '%s\n' \
+    '██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗' \
+    '╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║' \
+    ' ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║' \
+    '  ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║' \
+    '   ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║' \
+    '   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝'
+}
+
+banner() {
+  [[ -t 1 ]] || return 0
+  BANNER_W=80
+  LEFT_W=40
+  RIGHT_W=$((BANNER_W-LEFT_W-1))
+  local cwd="${PWD/#$HOME/~}"
+  local branch dirty status_txt
+  branch="$(git branch --show-current 2>/dev/null)"
+  [[ -n "$branch" ]] || branch="(no branch)"
+  dirty="$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+  [[ "$dirty" == "0" ]] && status_txt="clean" || status_txt="${dirty} changed"
+
+  local counts agents skills rules hooks scripts checks
+  counts="$(_banner_plugin_counts)"
+  read -r agents skills rules hooks scripts checks <<< "$counts"
+
+  local dashes blank
+  dashes="$(_banner_dashes "$BANNER_W")"
+  blank="$(_banner_pad '' "$BANNER_W")"
+
+  _banner_hop
+  printf "${ORANGE}  🐰🥕${RESET}\n\n"
+  printf "${ORANGE}  ╭%s╮${RESET}\n" "$dashes"
+  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
+
+  while IFS= read -r art_line; do
+    _banner_row "$art_line" "${ORANGE_B}${art_line}${RESET}" 3
+  done < <(_banner_art)
+
+  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
+
+  local username
+  username="$(git config user.name 2>/dev/null)"
+  [[ -n "$username" ]] || username="$(whoami 2>/dev/null)"
+  [[ -n "$username" ]] || username="bạn"
+
+  local release
+  release="$(_banner_release_note)"
+  [[ -n "$release" ]] || release="(no release notes found)"
+
+  # left column: identity + live stats + git/path
+  local left_plain=(
+    "v${YANA_VERSION} · chào ${username}"
+    "Personal Agent OS"
+    ""
+  )
+  local left_colored=(
+    "${ORANGE_VER}v${YANA_VERSION}${RESET} · ${ORANGE_TXT}chào ${username}${RESET}"
+    "Personal Agent OS"
+    ""
+  )
+  if [[ -n "$agents" ]]; then
+    left_plain+=("${agents} agents · ${skills} skills" "${rules} rules · ${hooks} hooks" "${scripts} scripts · ${checks} checks" "")
+    left_colored+=(
+      "${ORANGE_VER}${agents}${RESET} agents · ${ORANGE_VER}${skills}${RESET} skills"
+      "${ORANGE_VER}${rules}${RESET} rules · ${ORANGE_VER}${hooks}${RESET} hooks"
+      "${ORANGE_VER}${scripts}${RESET} scripts · ${ORANGE_VER}${checks}${RESET} checks"
+      ""
+    )
+  fi
+  left_plain+=("${branch} (${status_txt})" "${cwd}")
+  left_colored+=("${ORANGE_PATH}${branch}${RESET} (${status_txt})" "${ORANGE_PATH}${cwd}${RESET}")
+
+  # right column: tips + what's new (release note word-wrapped to fit)
+  local right_plain=("Tips for getting started" "yana-ai doctor" "yana-ai init" "")
+  local right_colored=("${ORANGE_TXT}Tips for getting started${RESET}" "${ORANGE_VER}yana-ai doctor${RESET}" "${ORANGE_VER}yana-ai init${RESET}" "")
+  right_plain+=("What's new")
+  right_colored+=("${ORANGE_TXT}What's new${RESET}")
+  # mapfile (not `while read`) — fold's last wrapped line has no trailing
+  # newline, which a `while read` loop silently drops on EOF.
+  local wrapped_lines wline
+  mapfile -t wrapped_lines < <(printf '%s' "$release" | fold -s -w "$((RIGHT_W-2))")
+  for wline in "${wrapped_lines[@]}"; do
+    right_plain+=("$wline")
+    right_colored+=("$wline")
+  done
+
+  local nrows=${#left_plain[@]}
+  [[ ${#right_plain[@]} -gt $nrows ]] && nrows=${#right_plain[@]}
+
+  local i
+  for ((i=0; i<nrows; i++)); do
+    _banner_row2 "${left_plain[$i]:-}" "${left_colored[$i]:-}" "${right_plain[$i]:-}" "${right_colored[$i]:-}"
+  done
+
+  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
+  printf "${ORANGE}  ╰%s╯${RESET}\n" "$dashes"
+}
+
 usage() {
+  banner
   cat <<EOF
 
 Usage: yana-ai <command> [target] [flags]
@@ -108,6 +299,7 @@ Commands:
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
   version                 Print version
+  banner                  Print the welcome banner only (no command list)
   help                    Show this help
 
 Doctor flags:
@@ -403,6 +595,9 @@ case "$COMMAND" in
     ;;
   version|--version|-v)
     cmd_version
+    ;;
+  banner)
+    banner
     ;;
   help|--help|-h|"")
     usage

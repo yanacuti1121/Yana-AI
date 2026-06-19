@@ -9,9 +9,9 @@ const M_CHAT_MODELS = {
   nvidia: "nvidia/llama-3.1-nemotron-70b-instruct",
   kimi: "moonshot-v1-8k", minimax: "abab6.5s-chat",
   glm: "glm-4-flash", huggingface: "meta-llama/Llama-3.3-70B-Instruct",
-  "9router": "kr/claude-sonnet-4.5", ollama: "llama3.2",
+  "9router": "kr/claude-sonnet-4.5", ollama: "llama3.2", lmstudio: "local-model",
 };
-const M_KEYLESS = new Set(["ollama", "9router"]);
+const M_KEYLESS = new Set(["ollama", "lmstudio", "9router"]);
 
 const M_MODEL_CATALOG = [
   // Claude
@@ -58,6 +58,8 @@ const M_MODEL_CATALOG = [
   { id: "mistralai/Mistral-7B-Instruct-v0.3", provider: "huggingface", tag: "Nhanh", label: "Mistral 7B",         desc: "Nhẹ, nhanh" },
   // Ollama
   { id: "llama3.2",                       provider: "ollama",     tag: "Local",     label: "Llama 3.2 (local)",    desc: "On-device, không cần key" },
+  // LM Studio
+  { id: "local-model",                    provider: "lmstudio",   tag: "Local",     label: "LM Studio (local)",    desc: "On-device, không cần key" },
 ];
 
 function mGetProviderConfig(overrideProvider) {
@@ -199,7 +201,7 @@ function MMessage({ msg, isLastYana, onRegenerate }) {
 }
 
 const M_ALL_PROVIDERS = Object.keys(M_CHAT_MODELS);
-const M_LIVE_PROVIDERS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama"]);
+const M_LIVE_PROVIDERS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio"]);
 
 function MModelPickerSheet({ open, onClose, activeProvider, activeModel, onModelChange, liveModels }) {
   // Use live model list if available, fall back to curated catalog
@@ -374,7 +376,7 @@ function MChat() {
     if (!M_LIVE_PROVIDERS.has(id) || liveModels[id]) return;
     if (typeof YanaVault === "undefined") return;
     const key = YanaVault.getKey(id) || "";
-    if (!key && id !== "ollama" && id !== "9router") return;
+    if (!key && id !== "ollama" && id !== "lmstudio" && id !== "9router") return;
     fetch("/api/models", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
