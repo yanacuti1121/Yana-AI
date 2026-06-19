@@ -20,8 +20,10 @@ blocks were ported:
   - `jittered_backoff()` — ported verbatim from `agent/retry_utils.py`
   - `FailoverReason` / `ClassifiedError` / `classify_api_error()` — condensed
     from `agent/error_classifier.py` (1365 lines → generic HTTP-status +
-    billing/rate-limit keyword pipeline; provider-specific branches dropped)
-- Tests: `tests/test_hermes_conversation_loop.py` (12 passing)
+    billing/rate-limit keyword pipeline + SSL/server-disconnect/timeout
+    transport heuristics, incl. "disconnect on a large session is likely
+    context overflow, not a network hiccup"; provider-specific branches dropped)
+- Tests: `tests/test_hermes_conversation_loop.py` (17 passing)
 
 **Not implemented** (still prose-only, by deliberate scope cut — see the
 module's own docstring): stale-stream detection (90s), chunked retry on

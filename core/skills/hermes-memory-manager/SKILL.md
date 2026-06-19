@@ -9,15 +9,20 @@ compatibility: yamtam-engine >= 1.3.54
 
 ## Implementation (real, runnable — added 2026-06-19)
 
-- Module: `core/lib/hermes_adapted/memory_manager.py`
-- Tests:  `tests/test_hermes_memory_manager.py` (10 passing)
+- Module: `core/lib/hermes_adapted/memory_manager.py` (registration, prefetch/sync)
+  - Lifecycle hooks (on_turn_start/on_session_end/on_session_switch/
+    on_pre_compress/on_memory_write/on_delegation) + tool-call dispatch
+    (get_all_tool_schemas/handle_tool_call/flush_pending) mixed in from
+    `core/lib/hermes_adapted/memory_manager_lifecycle.py`
+- Tests:  `tests/test_hermes_memory_manager.py` (14 passing)
 
 `MemoryManager` is condensed from the original (hermes' `MemoryProvider` ABC
 and reserved-tool-name set replaced with a plain duck-typed `Protocol` and
 an injectable `reserved_tool_names` set), but the real invariants carry
 over: exactly one external provider at a time, prefetch/sync run off the
 calling thread on a single-worker executor (ordering preserved), bounded-
-timeout shutdown so a wedged provider can't block teardown.
+timeout shutdown so a wedged provider can't block teardown, and a failing
+provider never breaks the hook for every other provider.
 
 # /hermes-memory-manager
 

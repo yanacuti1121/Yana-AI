@@ -13,8 +13,9 @@ compatibility: yamtam-engine >= 1.3.54
 original — ported close to verbatim, no hermes-specific dependencies to
 strip.
 
-- Module: `core/lib/hermes_adapted/memory_manager.py` (`StreamingContextScrubber`)
-- Tests:  `tests/test_hermes_memory_manager.py` (10 passing, incl. 2 for this class)
+- Module: `core/lib/hermes_adapted/context_scrubber.py` (`StreamingContextScrubber`,
+  split out from memory_manager.py to make room for its lifecycle hooks)
+- Tests:  `tests/test_hermes_context_scrubber.py` (5 passing, incl. 2 for this class)
 
 # /hermes-streaming-scrubber
 

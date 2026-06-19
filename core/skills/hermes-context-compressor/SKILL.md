@@ -15,7 +15,12 @@ and ported — not copied verbatim, since the original extends hermes'
 `ContextEngine` and calls hermes' multi-provider client — into:
 
 - Module: `core/lib/hermes_adapted/context_compressor.py`
-- Tests:  `tests/test_hermes_context_compressor.py` (6 passing)
+  - Tool-pair safety + tail anchoring (fixes for incidents #10896, #29824 in
+    the original — keeps the active task and the last visible reply out of
+    the compressed region, and cleans up orphaned tool_call/result pairs)
+    split into `core/lib/hermes_adapted/context_compressor_pairs.py`
+- Tests:  `tests/test_hermes_context_compressor.py` (6) +
+  `tests/test_hermes_context_compressor_pairs.py` (9) — 15 passing
 - Provenance: `vendor/hermes-agent/_upstream/context_compressor.py` (original, for reference)
 
 Use `ContextCompressor(context_length, cfg, summarize_fn)` — pass your own

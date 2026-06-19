@@ -149,16 +149,39 @@ _RATE_LIMIT_PATTERNS = (
     "rate limit", "rate_limit", "too many requests", "throttled",
     "requests per minute", "tokens per minute", "try again in", "resource_exhausted",
 )
+_TIMEOUT_MESSAGE_PATTERNS = (
+    "timed out", "turn timed out", "request timed out", "deadline exceeded",
+    "operation timed out", "upstream timed out",
+)
+# SSL/TLS mid-stream alerts are a transport hiccup, not a server-side
+# context-overflow signal — classify as timeout, never as context_overflow,
+# even on a large session (see _SERVER_DISCONNECT_PATTERNS below for the
+# case that DOES get the large-session check).
+_SSL_TRANSIENT_PATTERNS = (
+    "bad record mac", "ssl alert", "tls alert", "ssl handshake failure",
+    "bad_record_mac", "ssl_alert", "tls_alert", "[ssl:",
+)
+# A plain connection close is ambiguous: could be a transient transport
+# hiccup, or the gateway dropping the connection instead of returning a
+# proper 413/400 for an oversized request. Disambiguated by session size
+# below (large session -> context_overflow, else -> timeout).
+_SERVER_DISCONNECT_PATTERNS = (
+    "server disconnected", "peer closed connection", "connection reset by peer",
+    "connection was closed", "network connection lost", "unexpected eof",
+    "incomplete chunked read",
+)
 
 
 def classify_api_error(status_code: Optional[int], message: str, *,
-                        approx_tokens: int = 0, context_length: int = 200_000) -> ClassifiedError:
+                        approx_tokens: int = 0, context_length: int = 200_000,
+                        num_messages: int = 0) -> ClassifiedError:
     """Classify an API error into a structured recovery recommendation.
 
     Generic HTTP-status-code + keyword pipeline (condensed from the
     original's 8-stage, multi-provider pipeline — see module docstring for
     what was cut). Order: context overflow (token count) -> status code ->
-    billing/rate-limit keyword disambiguation -> generic 4xx/5xx fallback.
+    billing/rate-limit keyword disambiguation -> SSL/disconnect/timeout
+    transport heuristics -> generic 4xx/5xx fallback -> unknown.
     """
     msg = (message or "").lower()
 
@@ -205,7 +228,22 @@ def classify_api_error(status_code: Optional[int], message: str, *,
     if any(p in msg for p in _BILLING_PATTERNS):
         return ClassifiedError(FailoverReason.billing, status_code, message,
                                 retryable=False, should_rotate_credential=True, should_fallback=True)
-    if "timeout" in msg or "timed out" in msg:
+
+    # SSL alerts → timeout, never context_overflow, regardless of session size.
+    if any(p in msg for p in _SSL_TRANSIENT_PATTERNS):
+        return ClassifiedError(FailoverReason.timeout, status_code, message, retryable=True)
+
+    # Plain disconnect on a large session is more likely the gateway dropping
+    # an oversized request than a transient network hiccup.
+    if not status_code and any(p in msg for p in _SERVER_DISCONNECT_PATTERNS):
+        is_large = (approx_tokens > context_length * 0.6
+                    or (context_length <= 256_000 and (approx_tokens > 120_000 or num_messages > 200)))
+        if is_large:
+            return ClassifiedError(FailoverReason.context_overflow, status_code, message,
+                                    retryable=True, should_compress=True)
+        return ClassifiedError(FailoverReason.timeout, status_code, message, retryable=True)
+
+    if any(p in msg for p in _TIMEOUT_MESSAGE_PATTERNS):
         return ClassifiedError(FailoverReason.timeout, status_code, message, retryable=True)
 
     return ClassifiedError(FailoverReason.unknown, status_code, message, retryable=True)

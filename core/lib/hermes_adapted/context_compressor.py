@@ -27,6 +27,12 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from core.lib.hermes_adapted.context_compressor_pairs import (
+    ensure_last_assistant_message_in_tail,
+    ensure_last_user_message_in_tail,
+    sanitize_tool_pairs,
+)
+
 _SUMMARY_PREFIX = "[CONTEXT COMPACTION — REFERENCE ONLY]"
 _SUMMARY_END_MARKER = "[END OF COMPACTED SUMMARY — respond to the message below]"
 _DUPLICATE_PLACEHOLDER = "[Duplicate tool output — same content as a more recent call]"
@@ -142,7 +148,12 @@ class ContextCompressor:
         cut_idx = min(cut_idx, n - min_tail)
         if cut_idx <= head_end:
             cut_idx = head_end + 1
-        return self._align_backward(messages, cut_idx)
+        cut_idx = self._align_backward(messages, cut_idx)
+        # Anchor: never let the active task (#10896) or the user's last
+        # visible reply (#29824) fall into the compressed middle region.
+        cut_idx = ensure_last_user_message_in_tail(messages, cut_idx, head_end)
+        cut_idx = ensure_last_assistant_message_in_tail(messages, cut_idx, head_end, self._align_backward)
+        return cut_idx
 
     # ------------------------------------------------------------------
     # Phase 3: summarize the middle window
@@ -208,6 +219,7 @@ class ContextCompressor:
         summary_msg = {"role": summary_role, "content": f"{summary}\n\n{_SUMMARY_END_MARKER}"}
 
         compressed = messages[:head_end] + [summary_msg] + messages[tail_start:]
+        compressed = sanitize_tool_pairs(compressed)  # drop/stub orphaned tool_call pairs
 
         new_tokens = sum(len(str(m.get("content", ""))) for m in compressed) // 4
         saving_pct = max(0.0, 1 - (new_tokens / prompt_tokens)) if prompt_tokens else 0.0

@@ -85,3 +85,41 @@ def test_classify_api_error_unknown_when_nothing_matches():
     result = classify_api_error(None, "something weird happened")
     assert result.reason is FailoverReason.unknown
     assert result.retryable is True
+
+
+def test_classify_api_error_ssl_alert_is_timeout_even_on_large_session():
+    result = classify_api_error(
+        None, "SSL: BAD_RECORD_MAC alert during handshake",
+        approx_tokens=190_000, context_length=200_000,
+    )
+    assert result.reason is FailoverReason.timeout  # never context_overflow for SSL
+
+
+def test_classify_api_error_disconnect_on_small_session_is_timeout():
+    result = classify_api_error(
+        None, "Server disconnected without sending a response",
+        approx_tokens=500, context_length=200_000, num_messages=5,
+    )
+    assert result.reason is FailoverReason.timeout
+
+
+def test_classify_api_error_disconnect_on_large_session_is_context_overflow():
+    result = classify_api_error(
+        None, "peer closed connection unexpectedly",
+        approx_tokens=150_000, context_length=200_000, num_messages=5,
+    )
+    assert result.reason is FailoverReason.context_overflow
+    assert result.should_compress is True
+
+
+def test_classify_api_error_disconnect_on_large_message_count_is_context_overflow():
+    result = classify_api_error(
+        None, "connection reset by peer",
+        approx_tokens=1_000, context_length=200_000, num_messages=250,
+    )
+    assert result.reason is FailoverReason.context_overflow
+
+
+def test_classify_api_error_generic_timeout_message_pattern():
+    result = classify_api_error(None, "RuntimeError: operation timed out after 30s")
+    assert result.reason is FailoverReason.timeout

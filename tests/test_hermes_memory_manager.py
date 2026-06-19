@@ -1,14 +1,12 @@
-"""Smoke test for the ported memory_manager module.
+"""Smoke test for the ported memory_manager module (+ lifecycle mixin).
 
 Origin: core/lib/hermes_adapted/memory_manager.py
+        core/lib/hermes_adapted/memory_manager_lifecycle.py
         (ported from NousResearch/hermes-agent, MIT)
 """
-from core.lib.hermes_adapted.memory_manager import (
-    MemoryManager,
-    StreamingContextScrubber,
-    build_memory_context_block,
-    sanitize_context,
-)
+import json
+
+from core.lib.hermes_adapted.memory_manager import MemoryManager
 
 
 class _FakeProvider:
@@ -17,6 +15,7 @@ class _FakeProvider:
         self._prefetch_result = prefetch_result
         self._tools = tools or []
         self.synced = []
+        self.calls = []
 
     def prefetch(self, query, *, session_id=""):
         return self._prefetch_result
@@ -27,40 +26,27 @@ class _FakeProvider:
     def get_tool_schemas(self):
         return self._tools
 
+    def handle_tool_call(self, tool_name, args, **kwargs):
+        self.calls.append((tool_name, args))
+        return json.dumps({"ok": True})
 
-def test_sanitize_context_strips_memory_context_block():
-    raw = "before <memory-context>\nsecret stuff\n</memory-context> after"
-    assert sanitize_context(raw) == "before  after"
+    def on_turn_start(self, turn_number, message, **kwargs):
+        self.calls.append(("on_turn_start", turn_number))
 
+    def on_session_end(self, messages):
+        self.calls.append(("on_session_end", len(messages)))
 
-def test_build_memory_context_block_wraps_with_system_note():
-    block = build_memory_context_block("user likes dark mode")
-    assert block.startswith("<memory-context>")
-    assert block.endswith("</memory-context>")
-    assert "user likes dark mode" in block
+    def on_session_switch(self, new_session_id, **kwargs):
+        self.calls.append(("on_session_switch", new_session_id))
 
+    def on_pre_compress(self, messages):
+        return f"{self.name} context"
 
-def test_build_memory_context_block_empty_input_returns_empty():
-    assert build_memory_context_block("   ") == ""
+    def on_memory_write(self, action, target, content, metadata=None):
+        self.calls.append(("on_memory_write", action, target))
 
-
-def test_streaming_scrubber_hides_span_split_across_chunks():
-    # The scrubber only recognizes <memory-context> as a span opener when it
-    # starts a block (beginning of stream, or right after a newline) — this
-    # is the real, ported behavior, not a relaxed test: a tag appearing
-    # mid-line is left alone by design (see _is_block_boundary).
-    scrubber = StreamingContextScrubber()
-    out1 = scrubber.feed("Hello\n<memory-context>\nsecr")
-    out2 = scrubber.feed("et</memory-context>\nworld")
-    assert "secret" not in (out1 + out2)
-    assert "Hello" in out1
-    assert "world" in out2
-
-
-def test_streaming_scrubber_passes_through_normal_text():
-    scrubber = StreamingContextScrubber()
-    assert scrubber.feed("just normal text") == "just normal text"
-    assert scrubber.flush() == ""
+    def on_delegation(self, task, result, **kwargs):
+        self.calls.append(("on_delegation", task))
 
 
 def test_memory_manager_rejects_second_external_provider():
@@ -98,3 +84,87 @@ def test_memory_manager_sync_all_runs_in_background_and_drains_on_shutdown():
     mgr.sync_all("hi", "hello there")
     mgr.shutdown_all(timeout=2.0)
     assert provider.synced == [("hi", "hello there")]
+
+
+def test_handle_tool_call_routes_to_registered_provider():
+    mgr = MemoryManager()
+    provider = _FakeProvider("a", tools=[{"name": "recall"}])
+    mgr.add_provider(provider)
+    result = mgr.handle_tool_call("recall", {"q": "x"})
+    assert json.loads(result) == {"ok": True}
+    assert provider.calls == [("recall", {"q": "x"})]
+
+
+def test_handle_tool_call_unknown_tool_returns_error_json():
+    mgr = MemoryManager()
+    result = mgr.handle_tool_call("nonexistent", {})
+    assert "error" in json.loads(result)
+
+
+def test_get_all_tool_schemas_dedupes_and_skips_reserved():
+    mgr = MemoryManager(reserved_tool_names={"terminal"})
+    mgr.add_provider(_FakeProvider("a", tools=[{"name": "terminal"}, {"name": "recall"}]))
+    mgr.add_provider(_FakeProvider("builtin", tools=[{"name": "recall"}]))  # duplicate name
+    schemas = mgr.get_all_tool_schemas()
+    names = [s["name"] for s in schemas]
+    assert names == ["recall"]  # terminal skipped, duplicate recall deduped
+
+
+def test_on_turn_start_notifies_all_providers():
+    mgr = MemoryManager()
+    p1, p2 = _FakeProvider("a"), _FakeProvider("builtin")
+    mgr.add_provider(p1)
+    mgr.add_provider(p2)
+    mgr.on_turn_start(3, "hello")
+    assert ("on_turn_start", 3) in p1.calls
+    assert ("on_turn_start", 3) in p2.calls
+
+
+def test_on_pre_compress_merges_provider_context():
+    mgr = MemoryManager()
+    mgr.add_provider(_FakeProvider("a"))
+    mgr.add_provider(_FakeProvider("builtin"))
+    result = mgr.on_pre_compress([{"role": "user", "content": "hi"}])
+    assert "a context" in result and "builtin context" in result
+
+
+def test_on_memory_write_skips_builtin_provider():
+    mgr = MemoryManager()
+    builtin = _FakeProvider("builtin")
+    external = _FakeProvider("a")
+    mgr.add_provider(external)
+    mgr.add_provider(builtin)
+    mgr.on_memory_write("create", "note.md", "content")
+    assert any(c[0] == "on_memory_write" for c in external.calls)
+    assert not any(c[0] == "on_memory_write" for c in builtin.calls)
+
+
+def test_on_delegation_notifies_providers():
+    mgr = MemoryManager()
+    provider = _FakeProvider("a")
+    mgr.add_provider(provider)
+    mgr.on_delegation("research task", "done")
+    assert ("on_delegation", "research task") in provider.calls
+
+
+def test_provider_failure_does_not_break_other_providers():
+    class _BrokenProvider(_FakeProvider):
+        def on_turn_start(self, turn_number, message, **kwargs):
+            raise RuntimeError("boom")
+
+    mgr = MemoryManager()
+    broken = _BrokenProvider("a")
+    healthy = _FakeProvider("builtin")
+    mgr.add_provider(broken)
+    mgr.add_provider(healthy)
+    mgr.on_turn_start(1, "hi")  # must not raise
+    assert ("on_turn_start", 1) in healthy.calls
+
+
+def test_flush_pending_waits_for_queued_sync():
+    mgr = MemoryManager()
+    provider = _FakeProvider("a")
+    mgr.add_provider(provider)
+    mgr.sync_all("hi", "hello")
+    assert mgr.flush_pending(timeout=2.0) is True
+    assert provider.synced == [("hi", "hello")]
