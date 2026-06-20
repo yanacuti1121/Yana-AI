@@ -1,9 +1,21 @@
 ---
 name: hermes-tool-guardrails
 description: Command allowlist + approval gate pattern for safe tool execution. Block dangerous commands by default, prompt for approval on risky ones, auto-deny in non-interactive subagents. Complements YAMTAM's safe-run.sh at the agent decision level.
-license: MIT
-source: https://github.com/NousResearch/hermes-agent
 ---
+
+## Provenance correction (2026-06-20)
+
+This skill was originally tagged `license: MIT` / `source: https://github.com/NousResearch/hermes-agent`
+when imported (commit `98f1d51b`). After the real upstream source was vendored
+and read (`vendor/hermes-agent/_upstream/`), a full grep for this skill's
+content (`allowlist`, `auto_approve`, `require_approval`, `always_block`,
+"Approval needed") found **zero matches anywhere in the actual hermes-agent
+source**. The real `agent/tool_guardrails.py` is loop-detection logic only —
+ported verbatim as `core/lib/hermes_adapted/tool_guardrails.py` and documented
+correctly in [[hermes-tool-loop-guard]]. The attribution on this file was
+false provenance, not a real hermes-agent pattern. Source/license header
+removed; content below is Yana AI-native guidance, kept because it doesn't
+duplicate the cited rule files below — not because it came from hermes-agent.
 
 # Hermes Tool Guardrails
 

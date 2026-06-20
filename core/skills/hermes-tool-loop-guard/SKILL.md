@@ -20,8 +20,9 @@ so this is a near-verbatim port; only the two external imports
 Note: `core/skills/hermes-tool-guardrails/SKILL.md` (a separate skill) is
 NOT this — that skill describes a command-allowlist/approval-gate pattern
 that doesn't match what's actually in hermes-agent's real
-`tool_guardrails.py`. Flagging this as a found discrepancy, not fixing it
-here (out of this task's scope).
+`tool_guardrails.py`. Fixed 2026-06-20: false `source`/`license` attribution
+removed from that file (the pattern doesn't exist anywhere in the vendored
+upstream source — verified by grep), content kept as Yana AI-native.
 
 # /hermes-tool-loop-guard
 
