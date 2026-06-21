@@ -312,6 +312,7 @@ Commands:
   router suggest          Look up recommended model tier for a task type
   validate-spec <file>    Validate task spec file against spec schema
   check-context <dir>     Validate context-pack directory structure
+  provenance check [target] Verify ported code (core/lib/*_adapted) has vendor source + attribution
   version                 Print version
   banner                  Print the welcome banner only (no command list)
   help                    Show this help
@@ -501,7 +502,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|vault|spec)
+  task|eval|bus|memory|plugin|cost|vault|spec|provenance)
     rt "$COMMAND" "$@"
     ;;
   explain)
