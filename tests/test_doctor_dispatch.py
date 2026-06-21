@@ -74,6 +74,29 @@ enum Commands {
 }
 """
 
+EXEMPT_MAIN_RS = """
+#[derive(Subcommand)]
+enum Commands {
+    /// Foo command
+    Foo { #[command(subcommand)] action: FooAction },
+    /// Qux exists in Rust but Python is canonical
+    /// DOCTOR_DISPATCH_EXEMPT: core/scripts/qux.py is canonical —
+    /// it has more subcommands than this Rust port (2026-06-21).
+    Qux { #[command(subcommand)] action: QuxAction },
+}
+"""
+
+EXEMPT_BIN_YANA = """
+case "$COMMAND" in
+  foo)
+    rt foo "$@"
+    ;;
+  qux)
+    python3 "$QUX_PY" "$@"
+    ;;
+esac
+"""
+
 DRIFT_BIN_YANA = """
 case "$COMMAND" in
   foo)
@@ -141,6 +164,24 @@ def test_unreachable_and_routes_to_missing_are_detected() -> None:
         _assert("foo" not in kinds_by_name, f"'foo' is correctly wired — should not be flagged: {kinds_by_name}")
 
 
+def test_exempt_marker_suppresses_unreachable_finding() -> None:
+    if not _yana_ai_rt_available():
+        print("SKIP: yana-rt not installed — skipping doctor dispatch regression tests")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        fixture = Path(tmp)
+        _write_fixture(fixture, EXEMPT_MAIN_RS, EXEMPT_BIN_YANA)
+        code, out, err = _run(["bash", "bin/yana", "doctor", "dispatch", str(fixture), "--json"])
+        _assert(code == 0, f"exempt-only fixture should report no failing findings: code={code}\nSTDOUT:\n{out}\nSTDERR:\n{err}")
+        payload = json.loads(out)
+        _assert(payload["findings"] == [], f"expected no findings, got {payload['findings']}")
+        exempt_names = {e["name"] for e in payload["exempt"]}
+        _assert("qux" in exempt_names, f"expected 'qux' listed as exempt, got {payload['exempt']}")
+        reason = next(e["reason"] for e in payload["exempt"] if e["name"] == "qux")
+        _assert("core/scripts/qux.py is canonical" in reason and "more subcommands" in reason,
+                f"expected full multi-line reason, got: {reason!r}")
+
+
 def test_nested_case_inside_arm_does_not_break_parsing() -> None:
     if not _yana_ai_rt_available():
         print("SKIP: yana-rt not installed — skipping doctor dispatch regression tests")
@@ -157,5 +198,6 @@ def test_nested_case_inside_arm_does_not_break_parsing() -> None:
 if __name__ == "__main__":
     test_clean_dispatch_reports_no_findings()
     test_unreachable_and_routes_to_missing_are_detected()
+    test_exempt_marker_suppresses_unreachable_finding()
     test_nested_case_inside_arm_does_not_break_parsing()
     print("OK: doctor dispatch regression tests passed.")

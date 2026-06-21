@@ -21,6 +21,11 @@ pub struct DispatchFinding {
 
 pub struct DispatchReport {
     pub rust_subcommands: Vec<String>,
+    /// Names with a `DOCTOR_DISPATCH_EXEMPT: <reason>` doc comment on their
+    /// enum variant — a deliberate "Python is canonical" product decision,
+    /// not drift. Reported separately so they're visible without being
+    /// treated as failures forever.
+    pub exempt: Vec<(String, String)>,
     pub findings: Vec<DispatchFinding>,
 }
 
@@ -40,18 +45,34 @@ fn pascal_to_kebab(name: &str) -> String {
     out
 }
 
-/// Extracts top-level variant names from `enum Commands { ... }` in main.rs.
+/// Extracts top-level variant names from `enum Commands { ... }` in main.rs,
+/// plus the reason string for any variant whose preceding doc-comment block
+/// contains a `DOCTOR_DISPATCH_EXEMPT: <reason>` marker — a deliberate
+/// "the Python implementation is canonical for this name" product decision
+/// (see Config/Watch/Init in main.rs), not unwired Rust code.
+///
 /// Tracks brace depth so nested struct-variant fields (`{ target: String }`)
-/// aren't mistaken for new variants; skips doc-comment lines before counting
-/// braces so a `///` line mentioning `{` can't desync the depth counter.
-fn extract_rust_commands(main_rs: &str) -> Vec<String> {
-    let mut names = Vec::new();
+/// aren't mistaken for new variants; doc-comment lines are scanned for the
+/// marker but excluded from brace counting so a `///` line mentioning `{`
+/// can't desync the depth counter.
+fn extract_rust_commands(main_rs: &str) -> Vec<(String, Option<String>)> {
+    let mut names: Vec<(String, Option<String>)> = Vec::new();
     let mut in_enum = false;
     let mut depth: i32 = 0;
+    let mut pending_exempt: Option<String> = None;
 
     for raw_line in main_rs.lines() {
         let line = raw_line.trim();
         if line.starts_with("///") || line.starts_with("//") {
+            let comment_text = line.trim_start_matches('/').trim();
+            if let Some(reason) = comment_text.strip_prefix("DOCTOR_DISPATCH_EXEMPT:") {
+                pending_exempt = Some(reason.trim().to_string());
+            } else if let Some(reason) = pending_exempt.as_mut() {
+                // continuation line of a marker comment that wrapped —
+                // append so the reason isn't truncated to its first line
+                reason.push(' ');
+                reason.push_str(comment_text);
+            }
             continue;
         }
 
@@ -74,10 +95,11 @@ fn extract_rust_commands(main_rs: &str) -> Vec<String> {
                     && (line[first_word.len()..].trim_start().starts_with('{')
                         || line[first_word.len()..].trim_start().starts_with(','));
                 if is_variant_start {
-                    names.push(first_word.to_string());
+                    names.push((first_word.to_string(), pending_exempt.take()));
                 }
             }
         }
+        pending_exempt = None;
 
         for c in line.chars() {
             match c {
@@ -194,21 +216,30 @@ pub fn check(repo_root: &Path) -> DispatchReport {
     let main_rs = fs::read_to_string(&main_rs_path).unwrap_or_default();
     let bin_yana = fs::read_to_string(&bin_yana_path).unwrap_or_default();
 
-    let rust_variants = extract_rust_commands(&main_rs);
-    let rust_subcommands: Vec<String> = rust_variants.iter().map(|v| pascal_to_kebab(v)).collect();
+    let rust_variants: Vec<(String, Option<String>)> = extract_rust_commands(&main_rs)
+        .into_iter()
+        .map(|(name, reason)| (pascal_to_kebab(&name), reason))
+        .collect();
+    let rust_subcommands: Vec<String> = rust_variants.iter().map(|(n, _)| n.clone()).collect();
     let routed = extract_bin_yana_routes(&bin_yana);
 
     let mut findings = Vec::new();
+    let mut exempt = Vec::new();
 
-    for name in &rust_subcommands {
-        if !routed.iter().any(|r| r == name) {
-            findings.push(DispatchFinding {
-                rust_unreachable: true,
-                name: name.clone(),
-                detail: "Rust subcommand exists in src/main.rs but bin/yana never calls `rt ".to_string()
-                    + name + " ...` — unreachable from the CLI.",
-            });
+    for (name, reason) in &rust_variants {
+        if routed.iter().any(|r| r == name) {
+            continue;
         }
+        if let Some(reason) = reason {
+            exempt.push((name.clone(), reason.clone()));
+            continue;
+        }
+        findings.push(DispatchFinding {
+            rust_unreachable: true,
+            name: name.clone(),
+            detail: "Rust subcommand exists in src/main.rs but bin/yana never calls `rt ".to_string()
+                + name + " ...` — unreachable from the CLI.",
+        });
     }
     for name in &routed {
         if !rust_subcommands.iter().any(|r| r == name) {
@@ -220,7 +251,7 @@ pub fn check(repo_root: &Path) -> DispatchReport {
         }
     }
 
-    DispatchReport { rust_subcommands, findings }
+    DispatchReport { rust_subcommands, exempt, findings }
 }
 
 pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
@@ -230,6 +261,9 @@ pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
     if as_json {
         let out = serde_json::json!({
             "rust_subcommands": report.rust_subcommands,
+            "exempt": report.exempt.iter().map(|(name, reason)| serde_json::json!({
+                "name": name, "reason": reason,
+            })).collect::<Vec<_>>(),
             "findings": report.findings.iter().map(|f| serde_json::json!({
                 "kind": if f.rust_unreachable { "unreachable" } else { "routes_to_missing" },
                 "name": f.name,
@@ -242,6 +276,13 @@ pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
 
     println!("\n  yana doctor dispatch\n");
     println!("  {} Rust subcommand(s) in src/main.rs\n", report.rust_subcommands.len());
+
+    if !report.exempt.is_empty() {
+        for (name, reason) in &report.exempt {
+            println!("  \x1b[2m–\x1b[0m {name}  \x1b[2m(exempt: {reason})\x1b[0m");
+        }
+        println!();
+    }
 
     if report.findings.is_empty() {
         println!("  \x1b[32m✓ bin/yana dispatch table matches src/main.rs — no drift\x1b[0m\n");

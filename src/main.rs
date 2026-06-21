@@ -43,6 +43,8 @@ enum Commands {
     /// L3 shared memory — workspace-level facts across sessions
     Memory { #[command(subcommand)] action: MemoryAction },
     /// Configuration — init/read yana-ai settings for any repo
+    /// DOCTOR_DISPATCH_EXEMPT: core/scripts/config_manager.py is canonical —
+    /// it has get/reset subcommands this Rust port doesn't (2026-06-21).
     Config { #[command(subcommand)] action: ConfigAction },
     /// Plugin hooks — register custom guards without forking
     Plugin { #[command(subcommand)] action: PluginAction },
@@ -73,8 +75,14 @@ enum Commands {
     /// Vietnamese-first knowledge vault with multilingual translation links
     Vault  { #[command(subcommand)] action: vault::VaultAction },
     /// Live file watcher — monitor skills/agents/rules for changes
+    /// DOCTOR_DISPATCH_EXEMPT: core/scripts/watch.py is canonical for the
+    /// "watch" CLI command — it watches config + re-audits with score diff,
+    /// a different feature from this Rust action; not a duplicate (2026-06-21).
     Watch  { #[command(subcommand)] action: watch::WatchAction },
     /// Initialize Yana AI in a new project
+    /// DOCTOR_DISPATCH_EXEMPT: core/scripts/init_wizard.py is canonical —
+    /// interactive wizard that also drives guard_installer + audit_scanner;
+    /// this Rust action is a simpler flag-driven alternative (2026-06-21).
     Init   { #[command(subcommand)] action: init::InitAction },
     /// Verify ported code (core/lib/*_adapted) has vendor source + attribution
     Provenance { #[command(subcommand)] action: provenance::ProvenanceAction },
