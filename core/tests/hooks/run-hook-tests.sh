@@ -495,6 +495,61 @@ else
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# ── identity-gate.sh --verify regression tests (P0 audit fix, 2026-06-21) ────
+# Before the fix: --verify was never handled, fell through to the interactive
+# prompt, EOF'd to GUEST, and still `exit 0`'d — so safe-run.sh's BYPASS check
+# (`! bash identity-gate.sh --verify`) always passed for anyone, no creds
+# required. These tests pin the fail-closed behavior so this cannot regress
+# silently again.
+echo -n "identity-gate [--verify, no creds, non-interactive -> DENIED exit 8]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+env -i PATH="$PATH" bash "$IDENTITY_GATE" --verify </dev/null >/dev/null 2>&1
+_ig_exit=$?
+if [[ "$_ig_exit" -eq 8 ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8, got $_ig_exit)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "identity-gate [--verify guest -> always allowed exit 0]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+env -i PATH="$PATH" bash "$IDENTITY_GATE" --verify guest </dev/null >/dev/null 2>&1
+_ig_exit=$?
+if [[ "$_ig_exit" -eq 0 ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0, got $_ig_exit)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "identity-gate [--verify sovereign, valid env creds -> exit 0]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+YANA_SOVEREIGN_NAME="Vũ Văn Tâm" bash "$IDENTITY_GATE" --verify sovereign </dev/null >/dev/null 2>&1
+_ig_exit=$?
+if [[ "$_ig_exit" -eq 0 ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0, got $_ig_exit)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# ── safe-run.sh BYPASS regression test (end-to-end, same P0) ─────────────────
+echo -n "safe-run.sh [YANA_SAFE_RUN_BYPASS without creds -> denied, command never runs]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+SAFE_RUN="$CLAUDE_DIR/scripts/safe-run.sh"
+_sr_marker=$(mktemp)
+rm -f "$_sr_marker"
+env -i PATH="$PATH" YANA_SAFE_RUN_BYPASS=1 bash "$SAFE_RUN" "touch $_sr_marker" </dev/null >/dev/null 2>&1
+_sr_exit=$?
+if [[ "$_sr_exit" -ne 0 && ! -f "$_sr_marker" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected non-zero exit and no side effect, got exit=$_sr_exit marker_exists=$([[ -f "$_sr_marker" ]] && echo yes || echo no))"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -f "$_sr_marker"
+
 # ── token-budget-guard.sh circuit breaker tests ───────────────────────────────
 echo ""
 echo "=== token-budget-guard.sh circuit breaker ==="

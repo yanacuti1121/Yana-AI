@@ -17,6 +17,19 @@ const COPY_DIRS = [
   ["core/commands", ".claude/commands"],
   ["core/agents",   ".claude/agents"],
   ["core/rules",    ".claude/rules"],
+  // ── core/scripts + core/gates ──────────────────────────────────────────────
+  // FIX (audit 2026-06-21): these two were missing from COPY_DIRS even though
+  // they're listed in package.json "files" (so they DO ship inside the npm
+  // tarball) — they just never landed in the target project's .claude/.
+  // Several installed hooks reference them by relative path:
+  //   .claude/hooks/truth-gate-guard.sh      → ../scripts/session-trust.sh
+  //   .claude/hooks/session-checkpoint-hook.sh → ../scripts/session-checkpoint.sh
+  //   .claude/scripts/safe-run.sh            → ../gates/identity-gate.sh
+  // Without this fix those calls silently no-op (file not found, hook still
+  // exits 0) — real npm users got a quieter, weaker install than the repo's
+  // own dogfooded .claude/ copy, with no error or warning at install time.
+  ["core/scripts",  ".claude/scripts"],
+  ["core/gates",    ".claude/gates"],
   ["gates",         ".claude/gates"],
 ];
 

@@ -5,8 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IDEA LOOP AUTO-START: Ngay khi nh\u1eadn tin nh\u1eafn \u0111\u1ea7u ti\u00ean t\u1eeb ng\u01b0\u1eddi d\u00f9ng, h\u00e3y ch\u1ea1y /idea-loop \u0111\u1ec3 ki\u1ec3m tra tr\u1ea1ng th\u00e1i repo v\u00e0 g\u1ee3i \u00fd vi\u1ec7c l\u00e0m. Ch\u1ea1y tr\u01b0\u1edbc khi x\u1eed l\u00fd y\u00eau c\u1ea7u c\u1ee7a ng\u01b0\u1eddi d\u00f9ng.\"}}'",
-            "statusMessage": "Kh\u1edfi \u0111\u1ed9ng Idea Loop..."
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IDEA LOOP AUTO-START: Ngay khi nhận tin nhắn đầu tiên từ người dùng, hãy chạy /idea-loop để kiểm tra trạng thái repo và gợi ý việc làm. Chạy trước khi xử lý yêu cầu của người dùng.\"}}'",
+            "statusMessage": "Khởi động Idea Loop..."
           },
           {
             "type": "command",
@@ -22,11 +22,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/guard-destructive.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/guard-destructive.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/tool-proxy-enforcer.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-proxy-enforcer.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scope-guard.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/scope-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -44,11 +44,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/agent-budget-gate.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-budget-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/agent-pixel-notify.sh start"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh start"
           }
         ]
       },
@@ -57,11 +57,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/token-budget-guard.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/token-budget-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/per-tool-circuit-breaker.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/per-tool-circuit-breaker.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }
@@ -71,11 +71,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/auto-decompose.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/auto-decompose.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/session-bootstrap.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/session-bootstrap.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }
@@ -86,7 +86,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/truth-gate-guard.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/truth-gate-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }
@@ -97,11 +97,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/audit-log.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/audit-log.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/budget-sentinel.sh"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/budget-sentinel.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -110,7 +110,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/agent-pixel-notify.sh stop"
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh stop"
           }
         ]
       }

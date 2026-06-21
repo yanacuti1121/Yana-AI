@@ -13,6 +13,20 @@ receive a JSON payload on stdin. Exit 0 = allow, JSON + exit 2 = block.
 After applying the Yana AI pack (`unzip yana-ai-latest.zip -d .claude/`),
 create or merge this into your target project's `.claude/settings.json`:
 
+> **Timeout protection (recommended, added 2026-06-21):** every `bash
+> .claude/hooks/X.sh` command below can hang forever if `X.sh` blocks on a
+> network call, an infinite loop, or stray stdin read — there is no default
+> timeout. After wiring hooks manually (or via the generator below), run:
+>
+> ```bash
+> bash .claude/scripts/apply-hook-timeouts.sh .claude/settings.json
+> ```
+>
+> This rewrites each hook command to run under `hook-timeout-guard.sh`
+> (default 30s, override with `YANA_HOOK_TIMEOUT`), which kills a hung hook
+> and returns a proper `deny` decision instead of blocking the agent
+> indefinitely. It's idempotent — safe to re-run after adding new hooks.
+
 ```json
 {
   "hooks": {

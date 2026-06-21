@@ -43,6 +43,7 @@
     "core/agents/",
     "core/rules/",
     "core/scripts/",
+    "core/gates/",
     "scanner/",
     "gates/",
     ".claude-plugin/",
@@ -58,5 +59,8 @@
   },
   "devDependencies": {
     "wrangler": "^4.96.0"
+  },
+  "dependencies": {
+    "acorn": "^8.14.0"
   }
 }

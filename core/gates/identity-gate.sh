@@ -137,6 +137,35 @@ if [[ -n "$OPERATOR_INPUT_HASH" && "$OPERATOR_INPUT_HASH" == "$(hash_input "$(no
   exit 0
 fi
 
+# ─── Non-interactive verify mode (--verify [min_tier]) ───────────────────────
+# FIX (audit 2026-06-21): this flag was documented in the header comment and
+# called by safe-run.sh's BYPASS check, but never actually implemented — any
+# invocation of `identity-gate.sh --verify` fell through to the interactive
+# prompt below. On closed/non-tty stdin (exactly how callers like safe-run.sh
+# invoke it: `bash identity-gate.sh --verify 2>/dev/null`), `read` hits EOF
+# immediately, the loop defaults to GUEST, and the script still `exit 0`s —
+# so the "identity verification" added to safe-run.sh's BYPASS path always
+# passed, for any caller, with zero credentials. That made the P0 BYPASS fix
+# in CORE_AUDIT.md cosmetic rather than real. This block makes --verify fail
+# CLOSED (exit 8, the code the header already reserved for this) whenever
+# env-var auto-auth above did not already grant the requested tier — it never
+# touches stdin or the interactive loop.
+if [[ "${1:-}" == "--verify" ]]; then
+  REQUIRED="${2:-operator}"
+  case "$REQUIRED" in
+    guest)
+      exit 0 ;;  # guest is the floor — reaching here always satisfies it
+    operator|sovereign)
+      log_gate "guest" "VERIFY-DENIED" "non-interactive verify required>=${REQUIRED}, no matching credential env var"
+      echo "[identity-gate] DENIED — non-interactive verify requires tier >= ${REQUIRED}." >&2
+      echo "[identity-gate] Set YANA_OPERATOR_PASS (operator) or YANA_SOVEREIGN_NAME (sovereign) to authenticate." >&2
+      exit 8 ;;
+    *)
+      echo "[identity-gate] unknown tier '${REQUIRED}' for --verify (use guest|operator|sovereign)" >&2
+      exit 8 ;;
+  esac
+fi
+
 echo "  Nhập tên đầy đủ hoặc passphrase để xác thực." >&2
 echo "  (Nhấn Enter để tiếp tục với quyền GUEST)     " >&2
 echo "" >&2

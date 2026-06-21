@@ -29,7 +29,7 @@ esac
 if [[ "${YANA_SAFE_RUN_BYPASS:-0}" == "1" ]]; then
   IDENTITY_GATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/gates/identity-gate.sh"
   if [[ -f "$IDENTITY_GATE" ]]; then
-    if ! bash "$IDENTITY_GATE" --verify 2>/dev/null; then
+    if ! bash "$IDENTITY_GATE" --verify sovereign 2>/dev/null; then
       echo "[yana-ai/safe-run] BYPASS denied — identity verification failed" >&2
       echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] BYPASS-DENIED engine='$ENGINE' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
       exit 1

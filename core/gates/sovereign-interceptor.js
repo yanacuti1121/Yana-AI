@@ -15,14 +15,36 @@
  *
  * Exit codes:
  *   0 — PASS
- *   3 — AST violation detected
+ *   3 — AST violation detected (or: degraded scan blocked under YANA_AST_STRICT)
  *   7 — Honey-vault trip — agent quarantined
+ *
+ * Env:
+ *   YANA_AST_STRICT=1 — fail closed instead of silently degrading to the
+ *     regex fallback scanner when acorn isn't installed. Recommended for any
+ *     CI/prod gate; the regex fallback is defense-in-depth only and is not
+ *     a substitute for real AST analysis.
  *
  * Source: acorn (MIT), estree spec
  */
 
 import { readFileSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
+
+// ─── Acorn-missing warning (audit 2026-06-21) ─────────────────────────────────
+// Printed once per process the first time the scanner degrades to the regex
+// fallback, so a missing `npm install` is loud instead of silently weakening
+// every scan for the rest of the session.
+let _acornWarned = false;
+function _warnAcornMissing(err) {
+  if (_acornWarned) return;
+  _acornWarned = true;
+  process.stderr.write(
+    '[sovereign-interceptor] WARNING: acorn is not installed — AST scan is ' +
+    'running in REGEX FALLBACK mode (weaker, pattern-based only). ' +
+    'Run `npm install` to restore full AST analysis. ' +
+    'Set YANA_AST_STRICT=1 to block instead of degrading.\n'
+  );
+}
 
 // ─── Honey-Vault Registry ─────────────────────────────────────────────────────
 // These look like real secrets but are canary tokens.
@@ -159,16 +181,29 @@ export class SovereignSecurityInterceptor {
 
   /**
    * Parse and scan JS source code for dangerous patterns.
-   * Returns { safe: boolean, violations: [] }
+   * Returns { safe: boolean, violations: [], degraded: boolean }
    */
   scanCode(jsSource, label = 'unknown') {
     let ast;
     try {
-      // Dynamic import of acorn (optional dep — falls back to regex scan)
+      // acorn is now a real `dependencies` entry (package.json) — not optional.
+      // It is only ever missing if `npm install` wasn't run, which the warning
+      // below makes loud instead of silent.
       ast = this._parseAST(jsSource);
     } catch (e) {
-      // acorn not available — use regex fallback
-      return this._regexFallbackScan(jsSource, label);
+      // acorn not available — warn loudly (audit 2026-06-21: this used to be
+      // a silent fallback; an agent could never trigger it on purpose, but
+      // an operator who simply forgot `npm install` got a materially weaker
+      // scanner — 8 token patterns instead of real AST analysis — with zero
+      // indication anything had changed.)
+      _warnAcornMissing(e);
+      if (process.env.YANA_AST_STRICT === '1') {
+        const v = [{ type: 'AST_UNAVAILABLE', detail: 'acorn missing and YANA_AST_STRICT=1 — failing closed' }];
+        this._log('AST_DEGRADED_STRICT_BLOCK', label, v);
+        return { safe: false, violations: v, label, degraded: true };
+      }
+      const result = this._regexFallbackScan(jsSource, label);
+      return { ...result, degraded: true };
     }
 
     const violations = walkAST(ast);
@@ -177,11 +212,11 @@ export class SovereignSecurityInterceptor {
     if (!safe) {
       this._log('AST_VIOLATION', label, violations);
     }
-    return { safe, violations, label };
+    return { safe, violations, label, degraded: false };
   }
 
   _parseAST(source) {
-    // Try acorn (must be installed: npm i acorn)
+    // Try acorn (declared dependency — see package.json)
     try {
       const { parse } = require('acorn');
       return parse(source, { ecmaVersion: 2022, sourceType: 'module', locations: true });
@@ -191,15 +226,32 @@ export class SovereignSecurityInterceptor {
   }
 
   _regexFallbackScan(source, label) {
+    // Defense-in-depth pattern set for when acorn truly can't be installed
+    // (e.g. fully offline/air-gapped host). Wider than the original 8
+    // token patterns — still trivially bypassable by a determined attacker
+    // (string concatenation, computed member access, etc.), which is exactly
+    // why YANA_AST_STRICT=1 exists for anything resembling a production gate.
     const DANGER_RE = [
       /\beval\s*\(/,
+      /\bFunction\s*\(/,                       // new Function(...) ctor eval
       /\bexec\s*\(/,
-      /\bspawnSync\s*\(/,
-      /\bexecSync\s*\(/,
-      /process\.env/,
-      /require\s*\(\s*[^'"]/,     // dynamic require (non-literal arg)
+      /\bspawnSync?\s*\(/,
+      /\bexecSync?\s*\(/,
+      /\bexecFileSync?\s*\(/,
+      /\bfork\s*\(/,
+      /process\s*\.\s*env/,
+      /process\s*\.\s*binding/,
+      /process\s*\.\s*mainModule/,
+      /require\s*\(\s*[^'")\s]/,                // dynamic require (non-literal arg)
+      /import\s*\(\s*[^'")\s]/,                 // dynamic import() (non-literal arg)
       /child_process/,
-      /\.\.\//,
+      /\bvm\s*\.\s*(runInNewContext|runInThisContext|runInContext)\s*\(/,
+      /\.\.\//,                                 // path traversal
+      /\bfs\s*\.\s*(unlink|rm|rmdir|writeFile)Sync?\s*\(/,
+      /\bglobalThis\s*\[/,                      // computed globalThis access
+      /Buffer\s*\.\s*from\s*\([^)]*base64/i,     // base64 decode → likely exec chain
+      /\bnew\s+Proxy\s*\(/,                     // can be used to hide property access
+      /\.\s*constructor\s*\.\s*constructor/,    // classic eval-via-constructor escape
     ];
     const violations = [];
     for (const re of DANGER_RE) {
