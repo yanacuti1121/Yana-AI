@@ -360,7 +360,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 46,
+      "count": 47,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/api-destruct-guard.sh",
@@ -383,6 +383,7 @@
         "core/hooks/gitnexus-hook.js",
         "core/hooks/guard-destructive.sh",
         "core/hooks/hook-timeout-guard.sh",
+        "core/hooks/tool-proxy-enforcer.sh",
         "core/hooks/intent-inference.sh",
         "core/hooks/log-agent.sh",
         "core/hooks/multi-agent-lock.sh",
@@ -412,7 +413,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 100,
+      "count": 101,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -493,7 +494,8 @@
         "core/scripts/upgrade.py",
         "core/scripts/hook-health.js",
         "core/scripts/verify-claude-pack.js",
-        "core/scripts/strix-scan.sh"
+        "core/scripts/strix-scan.sh",
+        "core/scripts/apply-hook-timeouts.sh"
       ]
     },
     "tests": {
