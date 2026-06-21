@@ -3,12 +3,28 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use glob::glob;
 
+// Directories that are never audit targets — VCS internals, build output,
+// installed dependencies. The per-rule `excludes` param is wired to `&[]` at
+// every call site today, so without this hard skip, every recursive `**`
+// pattern walks (and reads, and regex-scans) the full contents of .git/,
+// target/, and node_modules/ on every single rule — the actual cause of
+// multi-minute `audit .` runs on this repo (2500+ files under target/,
+// 1300+ under node_modules/).
+const ALWAYS_SKIP_DIRS: &[&str] = &[".git", "target", "node_modules"];
+
+fn under_skipped_dir(path: &Path) -> bool {
+    path.components().any(|c| {
+        c.as_os_str().to_str().is_some_and(|s| ALWAYS_SKIP_DIRS.contains(&s))
+    })
+}
+
 pub fn resolve_files(target: &str, patterns: &[String], excludes: &[String]) -> Vec<PathBuf> {
     let mut matched: HashSet<PathBuf> = HashSet::new();
     for pattern in patterns {
         let full = format!("{target}/{pattern}");
         if let Ok(paths) = glob(&full) {
             for p in paths.flatten() {
+                if under_skipped_dir(&p) { continue; }
                 if p.is_file() {
                     if let Ok(canon) = p.canonicalize() { matched.insert(canon); }
                     else { matched.insert(p); }
