@@ -1,4 +1,6 @@
 use regex::{Regex, RegexBuilder};
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
 
 #[derive(Debug)]
 pub struct Match {
@@ -8,6 +10,35 @@ pub struct Match {
 
 fn get_str<'a>(v: &'a serde_json::Value, key: &str) -> &'a str {
     v.get(key).and_then(|x| x.as_str()).unwrap_or("")
+}
+
+fn regex_cache() -> &'static Mutex<HashMap<String, Regex>> {
+    static CACHE: OnceLock<Mutex<HashMap<String, Regex>>> = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Compile `pattern` once per (pattern, case_insensitive, multi_line)
+/// combination and reuse it afterward. `run_check` is invoked once per
+/// (file, check) pair — on this repo that's thousands of files times ~69
+/// checks — so without a cache, the same handful of distinct patterns were
+/// being recompiled on every single one of those calls. `Regex` clones are
+/// cheap (internally Arc-based), so caching by value is fine.
+fn cached_regex(pattern: &str, case_insensitive: bool, multi_line: bool) -> Option<Regex> {
+    let key = format!(
+        "{}{}\u{0}{pattern}",
+        if case_insensitive { "i" } else { "" },
+        if multi_line { "m" } else { "" },
+    );
+    if let Some(re) = regex_cache().lock().unwrap().get(&key) {
+        return Some(re.clone());
+    }
+    let re = RegexBuilder::new(pattern)
+        .case_insensitive(case_insensitive)
+        .multi_line(multi_line)
+        .build()
+        .ok()?;
+    regex_cache().lock().unwrap().insert(key, re.clone());
+    Some(re)
 }
 
 // ── Regex match engine ────────────────────────────────────────────────────────
@@ -23,12 +54,8 @@ pub fn run_regex_match(content: &str, check: &serde_json::Value) -> Vec<Match> {
 
     if pattern.is_empty() { return vec![]; }
 
-    let re = match RegexBuilder::new(pattern)
-        .case_insensitive(flags_str.contains('i'))
-        .multi_line(flags_str.contains('m'))
-        .build()
-    {
-        Ok(r) => r, Err(_) => return vec![],
+    let re = match cached_regex(pattern, flags_str.contains('i'), flags_str.contains('m')) {
+        Some(r) => r, None => return vec![],
     };
 
     // Resolve companion pattern
@@ -41,9 +68,7 @@ pub fn run_regex_match(content: &str, check: &serde_json::Value) -> Vec<Match> {
         .or_if_empty(get_str(check, "not_accompanied_by"));
 
     let companion_re: Option<Regex> = if !companion_raw.is_empty() {
-        RegexBuilder::new(&companion_raw)
-            .case_insensitive(flags_str.contains('i'))
-            .build().ok()
+        cached_regex(&companion_raw, flags_str.contains('i'), false)
     } else { None };
 
     let lines_vec: Vec<&str> = content.lines().collect();
@@ -188,7 +213,7 @@ pub fn run_json_match(content: &str, check: &serde_json::Value) -> Vec<Match> {
                 .filter(|o| {
                     if !pattern.is_empty() {
                         let s = serde_json::to_string(&serde_json::Value::Object((*o).clone())).unwrap_or_default();
-                        Regex::new(pattern).ok().map(|r| r.is_match(&s)).unwrap_or(false)
+                        cached_regex(pattern, false, false).map(|r| r.is_match(&s)).unwrap_or(false)
                     } else { true }
                 })
                 .filter(|o| !req_key.is_empty() && !o.contains_key(req_key))
@@ -214,12 +239,12 @@ pub fn run_json_match(content: &str, check: &serde_json::Value) -> Vec<Match> {
                     .collect();
             }
             if !pattern.is_empty() {
-                let re = match Regex::new(pattern) { Ok(r) => r, Err(_) => return vec![] };
+                let re = match cached_regex(pattern, false, false) { Some(r) => r, None => return vec![] };
                 return vals.into_iter()
                     .map(|v| v.to_string().trim_matches('"').to_string())
                     .filter(|sv| {
                         re.is_match(sv) && !allowlist.iter().any(|a| {
-                            sv == a || Regex::new(&a.replace('*', ".*")).ok().map(|r| r.is_match(sv)).unwrap_or(false)
+                            sv == a || cached_regex(&a.replace('*', ".*"), false, false).map(|r| r.is_match(sv)).unwrap_or(false)
                         })
                     })
                     .map(|sv| Match { line: None, matched_value: sv.chars().take(200).collect() })
