@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 279,939 dòng mã</em>
+  <em>Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1,848,363 dòng mã</em>
 </p>
 
 <p align="center">
@@ -86,7 +86,7 @@ Dự án được xây dựng bởi một bạn 17 tuổi ở Việt Nam — ngh
 │        "Lớp điều phối giữa con người và AI — định tuyến,         │
 │          bảo mật và ngữ cảnh cho mọi lĩnh vực."                  │
 │                                                                  │
-│   Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 280K+ dòng    │
+│   Phát triển bởi Vũ Văn Tâm · 17 tuổi · Việt Nam · 1.8M+ dòng    │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -205,7 +205,7 @@ Thực thi (hoặc chặn + ghi log)
 | 🔌 Adapter harness | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Lệnh con Rust | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Kiểm tra quy tắc trong CI | **826** |
-| 📦 Tổng mã nguồn | **279,939 dòng · 10,331 tệp** |
+| 📦 Tổng mã nguồn | **1,848,363 dòng · 10,331 tệp** |
 
 ---
 
@@ -522,7 +522,7 @@ Output mẫu:
 
 97 specialist roles defined in repo config
 4,288 skill definitions discovered by repository scan
-279,939 lines across 10,331 files, measured on 2026-06-21
+1,848,363 lines across 10,331 files, measured on 2026-06-21
 
 ---
 
