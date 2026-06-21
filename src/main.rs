@@ -304,21 +304,22 @@ fn main() {
                 std::fs::write(md_path, &md).expect("write markdown failed");
                 eprintln!("[yana-ai] Markdown written to {md_path}");
             }
+            // Exit code — computed once, shared by the JSON payload's
+            // "exit_code" field and the real process exit so the two can
+            // never disagree (tests/test_audit_json_mvp.py asserts they match).
+            let exit_code: i32 = if let Some(ref level) = fail_on {
+                let order = |s: &str| match s { "low" => 3, "medium" => 2, "high" => 1, _ => 0 };
+                let threshold = order(level);
+                let has_fail = report.findings.iter().any(|f| order(&f.severity.to_lowercase()) <= threshold && f.severity != "INFO");
+                if has_fail { if report.summary.critical > 0 { 2 } else { 1 } } else { 0 }
+            } else if report.summary.critical > 0 { 2 } else if report.summary.high > 0 || report.summary.medium > 0 { 1 } else { 0 };
             // Primary output
             if json {
-                let exit_code: i32 = if report.summary.critical > 0 { 2 } else if report.summary.high > 0 || report.summary.medium > 0 { 1 } else { 0 };
                 let status = if report.findings.iter().any(|f| f.severity != "INFO") { "findings" } else { "ok" };
                 println!("{}", serde_json::to_string_pretty(&scanner::render::build_json_output(&report, &target, exit_code, status)).unwrap());
             } else {
                 println!("{}", scanner::render::render_console(&report, no_color, quiet));
             }
-            // Exit code
-            let exit_code = if let Some(ref level) = fail_on {
-                let order = |s: &str| match s { "low" => 3, "medium" => 2, "high" => 1, _ => 0 };
-                let threshold = order(level);
-                let has_fail = report.findings.iter().any(|f| order(&f.severity.to_lowercase()) <= threshold && f.severity != "INFO");
-                if has_fail { if report.summary.critical > 0 { 2 } else { 1 } } else { 0 }
-            } else if report.summary.critical > 0 { 0 } else { 0 };
             std::process::exit(exit_code);
         }
         Commands::Mission { action } => mission::dispatch(action),
