@@ -29,12 +29,13 @@ TOOL_NAME=$(python3 -c "import json,sys; d=json.load(open('$TMP_INPUT')); print(
 # If YANA_GUARDED_HOOK is set, we're running as the inner hook — enforce timeout on self
 if [[ -n "${YANA_GUARDED_HOOK:-}" ]]; then
   HOOK_SCRIPT="$YANA_GUARDED_HOOK"
-  if [[ ! -x "$HOOK_SCRIPT" ]]; then
+  if [[ ! -r "$HOOK_SCRIPT" ]]; then
     exit 0
   fi
 
-  # Run hook with timeout, pass original input
-  timeout "$TIMEOUT" bash "$HOOK_SCRIPT" < "$TMP_INPUT"
+  # Run hook with timeout, forward any extra positional args (e.g.
+  # `agent-pixel-notify.sh start`), pass original stdin through unchanged.
+  timeout "$TIMEOUT" bash "$HOOK_SCRIPT" "$@" < "$TMP_INPUT"
   EXIT_CODE=$?
 
   if [[ $EXIT_CODE -eq 124 ]]; then
