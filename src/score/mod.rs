@@ -47,7 +47,7 @@ fn cmd_score(target: &str, explain: bool, as_json: bool, scanner_dir: &str) -> R
         // Run scan internally
     let diff_files: Option<std::collections::HashSet<String>> = None;
     let report = crate::scanner::run_audit(
-        target, scanner_dir, diff_files.as_ref(), &[], None,
+        target, scanner_dir, diff_files.as_ref(), &[], None, false,
     );
 
     // Calculate score

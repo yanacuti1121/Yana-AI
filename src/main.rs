@@ -113,6 +113,11 @@ enum Commands {
         /// Scanner rules directory
         #[arg(long, default_value = "scanner")]
         scanner_dir: String,
+        /// Also scan the skill-library deep-scan surface (file_patterns_extra
+        /// + core/skills/** excludes) — off by default: high false-positive
+        /// rate from skill docs/demo scripts, not production code.
+        #[arg(long)]
+        include_skills: bool,
     },
 }
 
@@ -271,13 +276,13 @@ fn main() {
             PluginAction::Disable { name }              => plugin::cmd_plugin_toggle(name, false),
             PluginAction::Run { name, input }           => plugin::cmd_plugin_run(name, input),
         },
-        Commands::Scan { target, json, markdown, sarif, fail_on, only, ignore_ids, diff, no_color, quiet, scanner_dir } => {
+        Commands::Scan { target, json, markdown, sarif, fail_on, only, ignore_ids, diff, no_color, quiet, scanner_dir, include_skills } => {
             use std::collections::HashSet;
             let diff_files: Option<HashSet<String>> = diff.as_deref()
                 .map(|base| scanner::files::get_diff_files(base, &target));
             let report = scanner::run_audit(
                 &target, &scanner_dir,
-                diff_files.as_ref(), &ignore_ids, only.as_deref(),
+                diff_files.as_ref(), &ignore_ids, only.as_deref(), include_skills,
             );
             // SARIF output
             if let Some(ref sarif_path) = sarif {

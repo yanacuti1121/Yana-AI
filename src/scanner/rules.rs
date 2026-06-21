@@ -3,11 +3,15 @@ use glob::glob;
 
 #[derive(Debug, Clone)]
 pub struct RuleSet {
-    pub scope:            String,
-    pub file_patterns:    Vec<String>,
-    pub exclude_patterns: Vec<String>,
-    pub checks:           Vec<serde_json::Value>,
-    pub source_file:      String,
+    pub scope:               String,
+    pub file_patterns:       Vec<String>,
+    /// Patterns only scanned with `--include-skills` — see file_patterns_extra
+    /// in scanner/*.yml for the evidence behind each one (high false-positive
+    /// rate from skill-library docs/demo scripts, not production code).
+    pub file_patterns_extra: Vec<String>,
+    pub exclude_patterns:    Vec<String>,
+    pub checks:              Vec<serde_json::Value>,
+    pub source_file:         String,
 }
 
 fn yaml_to_json(val: serde_yml::Value) -> serde_json::Value {
@@ -41,12 +45,17 @@ fn ruleset_from_json(data: serde_json::Value, source_file: String) -> Option<Rul
         .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
         .unwrap_or_default();
 
+    let file_patterns_extra = obj.get("file_patterns_extra")
+        .and_then(|v| v.as_array())
+        .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .unwrap_or_default();
+
     let exclude_patterns = obj.get("exclude_patterns")
         .and_then(|v| v.as_array())
         .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
         .unwrap_or_default();
 
-    Some(RuleSet { scope, file_patterns, exclude_patterns, checks, source_file })
+    Some(RuleSet { scope, file_patterns, file_patterns_extra, exclude_patterns, checks, source_file })
 }
 
 pub fn load_scanner_rules(scanner_dir: &str) -> Vec<RuleSet> {

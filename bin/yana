@@ -336,6 +336,9 @@ Audit flags:
   --no-color               Disable ANSI color output
   --quiet                  Only print score + risk level
   --watch                  Re-audit on file change (Ctrl-C to stop)
+  --include-skills         Also scan core/skills/** + markdown docs (off by
+                            default — high false-positive rate from skill
+                            library docs/demo scripts, not production code)
   (reads .yana-aiignore if present — suppress known/accepted findings)
 
 Router flags:

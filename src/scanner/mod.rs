@@ -58,6 +58,7 @@ pub fn run_audit(
     diff_files: Option<&HashSet<String>>,
     ignore_ids: &[String],
     only_category: Option<&str>,
+    include_skills: bool,
 ) -> ScanReport {
     let start = Instant::now();
     let rule_sets = rules::load_scanner_rules(scanner_dir);
@@ -104,17 +105,34 @@ pub fn run_audit(
             checks_applied += 1;
         }
 
-        if !rule_set.file_patterns.is_empty() {
+        // file_patterns_extra (and any exclude_patterns targeting
+        // core/skills/) are the skill-library deep-scan surface — high
+        // false-positive rate by default (see scanner/*.yml comments for
+        // the evidence), only scanned with --include-skills.
+        let mut effective_patterns = rule_set.file_patterns.clone();
+        if include_skills {
+            effective_patterns.extend(rule_set.file_patterns_extra.iter().cloned());
+        }
+        let effective_excludes: Vec<String> = if include_skills {
+            rule_set.exclude_patterns.iter()
+                .filter(|p| !p.starts_with("core/skills"))
+                .cloned()
+                .collect()
+        } else {
+            rule_set.exclude_patterns.clone()
+        };
+
+        if !effective_patterns.is_empty() {
             // resolve_files uses Rust's glob crate for exclusion, but that crate's `**` requires
             // at least one path component — it won't exclude files directly under a dir.
             // Re-apply the rule's exclude_patterns via is_ignored() which uses regex-based
             // glob_match where `**` → `.*`, correctly matching direct children too.
-            let target_files = files::resolve_files(target, &rule_set.file_patterns, &[]);
+            let target_files = files::resolve_files(target, &effective_patterns, &[]);
             for fp in target_files {
                 let rel = fp.strip_prefix(&canon_target).unwrap_or(&fp).to_string_lossy().to_string();
                 if let Some(df) = diff_files { if !df.contains(&rel) { files_skipped += 1; continue; } }
                 if files::is_ignored(&rel, &ignore_patterns) { files_ignored += 1; continue; }
-                if files::is_ignored(&rel, &rule_set.exclude_patterns) { files_ignored += 1; continue; }
+                if files::is_ignored(&rel, &effective_excludes) { files_ignored += 1; continue; }
                 let content = match files::read_file_safe(&fp) {
                     Some(c) => c,
                     None => {
