@@ -35,6 +35,7 @@ rt() { local bin; bin=$(_find_rt); [[ -n "$bin" ]] || { err "yana-rt not found. 
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
 ROUTER_PY="$REPO_ROOT/core/scripts/router_suggest.py"
 CHECK_CONTEXT_PY="$REPO_ROOT/core/scripts/check_context_pack.py"
+VALIDATE_SPEC_PY="$REPO_ROOT/core/scripts/validate_spec.py"
 POLICY_PY="$REPO_ROOT/core/scripts/policy_manager.py"
 GUARD_PY="$REPO_ROOT/core/scripts/guard_installer.py"
 INIT_POLICY_PY="$REPO_ROOT/core/scripts/init_policy.py"
@@ -458,9 +459,25 @@ cmd_guard() {
 }
 
 # ── validate-spec ─────────────────────────────────────────────────────────────
+# Routed to Python, not `rt spec validate` — the Rust port validates against
+# an invented ad-hoc schema (requires a `tasks` array) instead of the real
+# .yana-ai/schemas/spec.schema.json (id/title/goal/scope/acceptance_criteria/
+# verification_plan), has no --context-pack support, and maps invalid->exit 2
+# instead of 1. core/scripts/validate_spec.py is schema-correct; use that
+# until the Rust side is rewritten to match.
 
 cmd_validate_spec() {
-  rt spec validate "$@"
+  if ! command -v python3 &>/dev/null; then
+    err "python3 is required to run yana-ai validate-spec."
+    exit 3
+  fi
+
+  if [[ ! -f "$VALIDATE_SPEC_PY" ]]; then
+    err "validate-spec script not found at $VALIDATE_SPEC_PY"
+    exit 3
+  fi
+
+  python3 "$VALIDATE_SPEC_PY" "$@"
 }
 
 
