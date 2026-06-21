@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 1,034,519 lines</em>
+  <em>Built by Vũ Văn Tâm · 17 · Vietnam · 279,939 lines</em>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.41.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.42.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -43,9 +43,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-3,518-2f7e6e?style=flat-square" />
+  <img src="https://img.shields.io/badge/🧩_skills-4,288-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-64-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_rules-65-b96b80?style=flat-square" />
   <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_commands-164-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_gates-9_layers-ce422b?style=flat-square" />
@@ -54,12 +54,12 @@
 
 ---
 
-**Yana AI** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 3,518 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**Yana AI** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 4,288 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
 
-> **New in v0.41.0:** [Yana task router](#yana-task-router) — auto-classifies every task into simple/complex/external/**learn**/**daily** and dispatches agents. [Yana AI](#yana-ai) now runs on **100% real data** — encrypted key vault (AES-256-GCM), live provider stats, real L1 memory and audit-log dashboard. [Mission dispatcher](#mission-dispatcher) — wave-based parallel agent orchestration, built in Rust. **Core-lock** — SHA-256 integrity manifest pinning 216 core files against tampering (rule 67).
+> **New in v0.42.0:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 218 core files against tampering (rule 67).
 
 **→ [Full documentation & demo](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
@@ -67,7 +67,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 > **What are the 97 agents?** They are not 97 AI models running at the same time — they're predefined specialist roles (security, frontend, backend, testing, learning, daily assistant…) used for routing and task organization. In normal usage, only the agent required for the current task is activated; most requests use a single model and a single agent route.
 >Generated from repository metrics
-Last updated: 2026-06-10
+Last updated: 2026-06-21
 ---
 
 ## 🤝 An invitation — try it yourself
@@ -89,11 +89,11 @@ Built by one 17-year-old in Vietnam — which means real-world feedback is the m
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                     Yana AI v0.41.0                        │
+│                     Yana AI v0.42.0                        │
 │      "The orchestration layer between humans and AI —            │
 │        routing, safety, and context for every domain."           │
 │                                                                  │
-│        Built by Vũ Văn Tâm · 17 · Vietnam · 1M+ lines            │
+│        Built by Vũ Văn Tâm · 17 · Vietnam · 280K+ lines          │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -126,9 +126,9 @@ graph TB
     %% ── Core engine ──────────────────────────────────────────────────────
     subgraph CORE["⚙️ Core Engine"]
         direction TB
-        SKILLS["📚 3,518 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
+        SKILLS["📚 4,288 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 97 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
-        RULES["📜 64 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
+        RULES["📜 65 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
         HOOKS["🪝 46 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 164 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         BUS["🚌 Agent message bus\nJSON + ECDSA sig\nreplay-protected, BFT consensus"]
@@ -163,7 +163,7 @@ graph TB
     %% ── Active branches ──────────────────────────────────────────────────
     subgraph BRANCHES["🌿 Active Branches"]
         direction LR
-        BMAIN["main ✅\nv0.41.0 — stable"]
+        BMAIN["main ✅\nv0.42.0 — stable"]
         BVDEV["v1.8.0-dev\nnext release (in progress)"]
         BCF["cloudflare/workers-autoconfig\nWorkers zero-config setup"]
         BCX["codex/fix-hello-bug-in-bn\nCodex compatibility"]
@@ -222,15 +222,15 @@ Execute (or block + log)
 
 | | |
 |---|---|
-| 🧩 Skills | **3,518** workflow skill definitions |
+| 🧩 Skills | **4,288** workflow skill definitions |
 | 🤖 Agents | **97** specialist agents |
-| 📜 Safety rules | **63** enforced rules |
+| 📜 Safety rules | **65** enforced rules |
 | 🪝 Hooks | **46** pre/post-execution hooks |
 | ⚡ Slash commands | **164** |
 | 🔌 Harness adapters | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **19** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
+| 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Rule checks in CI | **826** |
-| 📦 Total codebase | **1,034,519 lines · 5,762 files** |
+| 📦 Total codebase | **279,939 lines · 10,331 files** |
 
 ---
 
@@ -303,12 +303,12 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-19 subcommands. Zero Python dependency.
+23 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai scan .                        # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
-yana-ai vault search Q                # search 3,518 skills by keyword
+yana-ai vault search Q                # search 4,288 skills by keyword
 yana-ai hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yana-ai fix .                         # auto-fix rule violations
 yana-ai doctor .                      # full system health check
@@ -327,13 +327,13 @@ yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 core/
 ├── hooks/          # 46 PreToolUse / PostToolUse / Stop hooks
-├── rules/          # 64 enforced rules (security, correctness, UI, git)
+├── rules/          # 65 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
-├── agents/         # 95 specialist agent definitions
-├── skills/         # 3,518 SKILL.md files
+├── agents/         # 97 specialist agent definitions
+├── skills/         # 4,288 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 216 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 218 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
@@ -413,10 +413,10 @@ If Yana AI is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 97 agents, 3,518 skills, multi-harness support
+- Rust runtime (`yana-rt`), 97 agents, 4,288 skills, multi-harness support
 - 15 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-The 3,518 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
+The 4,288 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
 ---
 
@@ -465,7 +465,7 @@ yana-ai route classify "deploy to production"
 
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
-- **skill** → matched against 3,518-entry index, dispatches exact skill agent
+- **skill** → matched against 4,288-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap` — Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
 - **daily** → routes to `daily-assistant` — summarize / plan / draft (triggers on "summarize", "write an email", "make a plan" — English and Vietnamese)
 - **complex** → dispatch specialist agent(s) with scoped brief
@@ -557,8 +557,8 @@ Sample output:
 ---
 
 97 specialist roles defined in repo config
-3,518 skill definitions discovered by repository scan
-1,034,519 lines across 5,762 files, measured on 2026-06-10
+4,288 skill definitions discovered by repository scan
+279,939 lines across 10,331 files, measured on 2026-06-21
 
 ---
 
