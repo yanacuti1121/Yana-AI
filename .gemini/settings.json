@@ -36,7 +36,7 @@
         "matcher": "",
         "hooks": [
           {
-            "command": "bash /home/yanacuti1121/yana-ai/.claude/hooks/truth-gate-guard.sh",
+            "command": "bash .claude/hooks/truth-gate-guard.sh",
             "type": "command"
           }
         ]
