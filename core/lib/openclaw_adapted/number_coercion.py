@@ -1,12 +1,15 @@
-"""Timer/integer bound-clamping helpers used by the gateway rate-limit ports.
+"""Timer/integer bound-clamping helpers used by the gateway and sessions ports.
 
 Origin:  openclaw/openclaw @ e2c567538d8964ab594f63ea3121ee72149f273d
          packages/normalization-core/src/number-coercion.ts
-         (resolveTimerTimeoutMs, resolveIntegerOption, MAX_TIMER_TIMEOUT_MS) (MIT)
-Ported:  2026-06-20. Direct translation of the two functions actually used by
-         this batch's rate-limit/guard ports. The rest of number-coercion.ts
-         (date/ISO helpers, secret-expiry helpers) was not needed and is not
-         ported here.
+         (resolveTimerTimeoutMs, resolveIntegerOption, MAX_TIMER_TIMEOUT_MS,
+         asPositiveSafeInteger) (MIT)
+Ported:  2026-06-20 (resolve_timer_timeout_ms, resolve_integer_option),
+         2026-06-22 (as_positive_safe_integer, added for the
+         transcript_events.py port). Direct translation of the functions
+         actually used by the gateway/rate-limit and sessions batches. The
+         rest of number-coercion.ts (date/ISO helpers, secret-expiry helpers)
+         was not needed and is not ported here.
 License: MIT (see vendor/openclaw/_upstream/LICENSE)
 """
 from __future__ import annotations
@@ -16,6 +19,9 @@ import math
 # Node's setTimeout/setInterval silently overflow past this value (2^31-1 ms
 # region, rounded down by the engine) -- mirrors the upstream constant.
 MAX_TIMER_TIMEOUT_MS = 2_147_000_000
+
+# Mirrors JS Number.MAX_SAFE_INTEGER (2^53 - 1).
+_MAX_SAFE_INTEGER = 2**53 - 1
 
 
 def _as_finite_number(value: object) -> float | int | None:
@@ -57,3 +63,14 @@ def _max(a: int, b: int) -> int:
 
 def _min(a: int, b: int) -> int:
     return a if a < b else b
+
+
+def as_positive_safe_integer(value: object) -> int | None:
+    """Return `value` as a positive int if it is a JS-safe integer, else None."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if isinstance(value, float) and (not math.isfinite(value) or not value.is_integer()):
+        return None
+    if not (-_MAX_SAFE_INTEGER <= value <= _MAX_SAFE_INTEGER):
+        return None
+    return int(value) if value > 0 else None
