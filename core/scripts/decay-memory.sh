@@ -28,6 +28,15 @@ set -euo pipefail
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 L1_DIR="$PROJECT_ROOT/memory/L1_atomic"
 
+# Portable `sed -i` — GNU sed accepts `-i` alone; BSD/macOS sed requires an
+# explicit (possibly empty) backup-suffix argument right after -i, otherwise
+# it silently consumes the next argument as that suffix instead of erroring.
+if sed --version >/dev/null 2>&1; then
+  SED_INPLACE=(-i)
+else
+  SED_INPLACE=(-i '')
+fi
+
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -103,7 +112,10 @@ while IFS= read -r -d '' fact_file; do
 
   # Check if manually expired
   if [[ -n "$expires_at" ]]; then
-    exp_ts=$(date -d "$expires_at" +%s 2>/dev/null || echo "0")
+    # GNU `date -d` vs BSD/macOS `date -j -f` — expires_at is always YYYY-MM-DD.
+    exp_ts=$(date -d "$expires_at" +%s 2>/dev/null \
+      || date -j -f "%Y-%m-%d" "$expires_at" +%s 2>/dev/null \
+      || echo "0")
     if [[ $exp_ts -gt 0 && $NOW -gt $exp_ts ]]; then
       printf "%-35s %-12s %5s %8s %10s\n" "${fact_id:0:34}" "$confidence" "EXP" "-" "EXPIRED"
       echo -e "  ${DIM}$fact_file${NC}"
@@ -144,10 +156,16 @@ while IFS= read -r -d '' fact_file; do
   # Auto-flag: write decay_score to frontmatter
   if $AUTO_FLAG && [[ "$status" == "STALE" || "$status" == "DECAYED" ]]; then
     if grep -q "^decay_score:" "$fact_file"; then
-      sed -i "s/^decay_score:.*/decay_score: $score  # updated $(date -u '+%Y-%m-%d')/" "$fact_file"
+      sed "${SED_INPLACE[@]}" "s/^decay_score:.*/decay_score: $score  # updated $(date -u '+%Y-%m-%d')/" "$fact_file"
     else
-      # Insert after confidence line
-      sed -i "/^confidence:/a decay_score: $score  # ebbinghaus R=$(( score ))% — re-verify or deprecate" "$fact_file"
+      # Insert after confidence line — avoid sed's `a` command here: GNU sed
+      # allows the one-line `a text` form used before, but BSD/macOS sed only
+      # accepts `a\` followed by a backslash-newline-text continuation, so the
+      # old one-liner would fail with "extra characters at the end of a command".
+      awk -v line="decay_score: $score  # ebbinghaus R=${score}% — re-verify or deprecate" '
+        { print }
+        /^confidence:/ { print line }
+      ' "$fact_file" > "$fact_file.tmp" && mv "$fact_file.tmp" "$fact_file"
     fi
   fi
 

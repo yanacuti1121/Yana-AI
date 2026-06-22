@@ -54,6 +54,17 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 2
 fi
 
+# macOS ships neither sha256sum nor an alias for it; `shasum -a 256` is the
+# native equivalent and emits the same "<hash>  filename" output format.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256=(sha256sum)
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256=(shasum -a 256)
+else
+  echo "✗ verify-skills-lock: sha256sum or shasum required" >&2
+  exit 2
+fi
+
 if [[ -z "$LOCKFILE" ]]; then
   echo "✗ verify-skills-lock: skills-lock.json not found in expected locations" >&2
   exit 2
@@ -96,9 +107,9 @@ resolve_skill_path() {
 compute_hash() {
   local dir="$1"
   cd "$dir" && \
-    find . -type f -not -name "mcp.json" -exec sha256sum {} \; \
+    find . -type f -not -name "mcp.json" -exec "${SHA256[@]}" {} \; \
       | sort \
-      | sha256sum \
+      | "${SHA256[@]}" \
       | cut -d' ' -f1
 }
 

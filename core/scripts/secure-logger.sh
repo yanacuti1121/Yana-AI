@@ -95,7 +95,15 @@ if [[ -f "$LOG_FILE" ]]; then
 fi
 
 RAW_ENTRY="$TIMESTAMP|$SESSION|$GIT_COMMIT|$EVENT_TYPE|$MESSAGE|$PREV_HASH"
-THIS_HASH=$(echo -n "$RAW_ENTRY" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "PENDING")
+# macOS ships neither sha256sum nor an alias for it; `shasum -a 256` is the
+# native equivalent and emits the same "<hash>  -" output format.
+if command -v sha256sum >/dev/null 2>&1; then
+  THIS_HASH=$(echo -n "$RAW_ENTRY" | sha256sum | cut -d' ' -f1)
+elif command -v shasum >/dev/null 2>&1; then
+  THIS_HASH=$(echo -n "$RAW_ENTRY" | shasum -a 256 | cut -d' ' -f1)
+else
+  THIS_HASH="PENDING"
+fi
 
 # ── Write log entry ───────────────────────────────────────────────────────────
 echo "$TIMESTAMP | session=$SESSION | commit=$GIT_COMMIT | $EVENT_TYPE | $MESSAGE | prev=$PREV_HASH | hash=$THIS_HASH" >> "$LOG_FILE"

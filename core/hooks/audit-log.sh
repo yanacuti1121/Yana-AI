@@ -11,9 +11,20 @@
 
 set -uo pipefail
 command -v jq >/dev/null 2>&1 || exit 0
-command -v sha256sum >/dev/null 2>&1 || exit 0
 
-GENESIS_HASH=$(printf 'YANA_GENESIS' | sha256sum | awk '{print $1}')
+# macOS ships neither sha256sum nor an alias for it; `shasum -a 256` is the
+# native equivalent and emits the same "<hash>  -" output format. Without
+# this, the hook used to silently no-op (exit 0) on every macOS host —
+# the audit chain would just never get written, with no warning.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256=(sha256sum)
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256=(shasum -a 256)
+else
+  exit 0
+fi
+
+GENESIS_HASH=$(printf 'YANA_GENESIS' | "${SHA256[@]}" | awk '{print $1}')
 
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null || true)
@@ -38,7 +49,7 @@ PREV_HASH=$(tail -1 "$LOG_FILE" 2>/dev/null | jq -r '.hash // ""' 2>/dev/null ||
 [[ -z "$PREV_HASH" ]] && PREV_HASH="$GENESIS_HASH"
 
 CONTENT="${TIMESTAMP}|audit-log|${TOOL_NAME}|${AGENT_NAME}|${INPUT_SAFE}|allow"
-HASH=$(printf '%s|%s' "$CONTENT" "$PREV_HASH" | sha256sum | awk '{print $1}')
+HASH=$(printf '%s|%s' "$CONTENT" "$PREV_HASH" | "${SHA256[@]}" | awk '{print $1}')
 
 # ── Write JSONL entry ─────────────────────────────────────────────────────────
 jq -cn \

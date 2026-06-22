@@ -6,6 +6,15 @@
 
 set -euo pipefail
 
+# Portable `sed -i` — GNU sed accepts `-i` alone; BSD/macOS sed requires an
+# explicit (possibly empty) backup-suffix argument right after -i, otherwise
+# it silently consumes the next argument as that suffix instead of erroring.
+if sed --version >/dev/null 2>&1; then
+  SED_INPLACE=(-i)
+else
+  SED_INPLACE=(-i '')
+fi
+
 AGENTS_DIR="$(dirname "$0")/../../core/agents"
 AGENT_NAME="${1:-}"
 
@@ -71,7 +80,7 @@ echo "  ✓ Created SOUL.md (stub — cần fill in)"
 # 5. Update MANIFEST.json
 MANIFEST="$(dirname "$0")/../../MANIFEST.json"
 if grep -q "\"core/agents/${AGENT_NAME}.md\"" "$MANIFEST"; then
-  sed -i "s|\"core/agents/${AGENT_NAME}.md\"|\"core/agents/${AGENT_NAME}/${AGENT_NAME}.md\"|g" "$MANIFEST"
+  sed "${SED_INPLACE[@]}" "s|\"core/agents/${AGENT_NAME}.md\"|\"core/agents/${AGENT_NAME}/${AGENT_NAME}.md\"|g" "$MANIFEST"
   echo "  ✓ Updated MANIFEST.json"
 else
   echo "  ⚠ ${AGENT_NAME}.md not found in MANIFEST — add manually"

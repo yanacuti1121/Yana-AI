@@ -51,7 +51,21 @@ MEM_MB="${YANA_SANDBOX_MEM_MB:-128}"
 CPU="${YANA_SANDBOX_CPU:-0.5}"
 LOG_FILE="${YANA_SANDBOX_LOG:-releases/logs/sandbox.log}"
 SESSION_ID="${YANA_SESSION_ID:-unknown}"
-SANDBOX_ID="sb-$(date +%s%N | md5sum | head -c 8)"
+
+# Portable short ID — `date +%N` (nanoseconds) and `md5sum` are both GNU-only;
+# macOS `date` ignores %N literally and ships `md5`/`shasum`, not `md5sum`.
+_seed="$$-${RANDOM:-0}-$(date +%s)"
+if command -v sha256sum >/dev/null 2>&1; then
+  SANDBOX_ID="sb-$(printf '%s' "$_seed" | sha256sum | head -c 8)"
+elif command -v shasum >/dev/null 2>&1; then
+  SANDBOX_ID="sb-$(printf '%s' "$_seed" | shasum -a 256 | head -c 8)"
+elif command -v md5 >/dev/null 2>&1; then
+  SANDBOX_ID="sb-$(printf '%s' "$_seed" | md5 | head -c 8)"
+elif command -v md5sum >/dev/null 2>&1; then
+  SANDBOX_ID="sb-$(printf '%s' "$_seed" | md5sum | head -c 8)"
+else
+  SANDBOX_ID="sb-$(printf '%s' "$_seed" | tr -dc 'a-z0-9' | head -c 8)"
+fi
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 log_sandbox() {

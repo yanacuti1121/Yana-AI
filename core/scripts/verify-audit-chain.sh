@@ -10,7 +10,16 @@
 set -uo pipefail
 
 command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required"; exit 2; }
-command -v sha256sum >/dev/null 2>&1 || { echo "ERROR: sha256sum required"; exit 2; }
+
+# macOS ships neither sha256sum nor an alias for it; `shasum -a 256` is the
+# native equivalent and emits the same "<hash>  -" output format.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256=(sha256sum)
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256=(shasum -a 256)
+else
+  echo "ERROR: sha256sum or shasum required"; exit 2
+fi
 
 STATE_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/state"
 LOG_FILE="${1:-$STATE_DIR/audit-chain.log}"
@@ -20,7 +29,7 @@ if [[ ! -f "$LOG_FILE" ]]; then
   exit 0
 fi
 
-GENESIS_HASH=$(printf 'YANA_GENESIS' | sha256sum | awk '{print $1}')
+GENESIS_HASH=$(printf 'YANA_GENESIS' | "${SHA256[@]}" | awk '{print $1}')
 EXPECTED_PREV="$GENESIS_HASH"
 LINE_NUM=0
 
@@ -46,7 +55,7 @@ while IFS= read -r line; do
   fi
 
   CONTENT="${TS}|${HOOK}|${TOOL}|${AGENT}|${INPUT}|${DECISION}"
-  EXPECTED_HASH=$(printf '%s|%s' "$CONTENT" "$STORED_PREV" | sha256sum | awk '{print $1}')
+  EXPECTED_HASH=$(printf '%s|%s' "$CONTENT" "$STORED_PREV" | "${SHA256[@]}" | awk '{print $1}')
 
   if [[ "$STORED_HASH" != "$EXPECTED_HASH" ]]; then
     echo "CHAIN BROKEN at entry $LINE_NUM — hash mismatch (entry may be tampered)"

@@ -66,7 +66,14 @@ cmd_roster() {
 cmd_request() {
   local subject="$1"
   local payload="$2"
-  local request_id; request_id="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s%N | md5sum | head -c 32)"
+  # /proc/sys/kernel/random/uuid is Linux-only; `date +%N` and `md5sum` are
+  # GNU-only, so the old fallback chain broke on macOS. `uuidgen` is native
+  # on both Linux and macOS — try it before the hash-based last resort.
+  local request_id
+  request_id="$(cat /proc/sys/kernel/random/uuid 2>/dev/null \
+    || uuidgen 2>/dev/null | tr 'A-Z' 'a-z' \
+    || printf '%s' "$$-${RANDOM:-0}-$(date +%s)" | sha256sum 2>/dev/null | cut -c1-32 \
+    || printf '%s' "$$-${RANDOM:-0}-$(date +%s)" | shasum -a 256 2>/dev/null | cut -c1-32)"
 
   mkdir -p "${VOTES_DIR}/${request_id}"
   echo "{\"subject\":\"${subject}\",\"payload\":${payload},\"opened\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
