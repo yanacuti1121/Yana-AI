@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <strong>Tiếng Việt</strong>
+  <a href="README.md">English</a> · <strong>Tiếng Việt</strong> · <a href="README.ko.md">🇰🇷 한국어</a>
 </p>
 
 <p align="center">

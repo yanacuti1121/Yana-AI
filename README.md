@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
+  <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a>
 </p>
 
 <p align="center">
@@ -575,6 +575,6 @@ Sample output:
 
 ---
 
-## 🇻🇳 Tiếng Việt
+## 🇻🇳 Tiếng Việt · 🇰🇷 한국어
 
-Bản dịch tiếng Việt đầy đủ của tài liệu này: **[README.vi.md](README.vi.md)**
+Full translations of this document: **[README.vi.md](README.vi.md)** (Tiếng Việt) · **[README.ko.md](README.ko.md)** (한국어)
