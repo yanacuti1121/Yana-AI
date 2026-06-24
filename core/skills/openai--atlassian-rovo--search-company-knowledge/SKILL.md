@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — atlassian-rovo/search-company-knowledge (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Search Company Knowledge

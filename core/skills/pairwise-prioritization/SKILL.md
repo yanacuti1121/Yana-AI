@@ -2,7 +2,7 @@
 name: pairwise-prioritization
 description: "Prioritize a task list by direct pairwise comparison instead of isolated scoring — compare every pair on importance, urgency, and impact, then produce a ranked execution order. Use when asked 'so từng cặp', 'sắp xếp ưu tiên', 'prioritize these tasks', 'việc nào làm trước', 'rank this backlog', 'đặt độ ưu tiên', or 'compare tasks head to head'. Do NOT use for: choosing between solution options — see option-tournament. Do NOT use for: sprint ceremony planning — see /sprint-planning."
 tier: TIER 3 — CONSISTENCY
-source: yamtam-engine (anh Tâm prompt pack, 2026-06-10)
+source: yana-ai (anh Tâm prompt pack, 2026-06-10)
 ---
 
 # Pairwise Prioritization — So từng cặp để xếp ưu tiên

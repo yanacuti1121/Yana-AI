@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — game-studio/web-3d-asset-pipeline (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Web 3D Asset Pipeline

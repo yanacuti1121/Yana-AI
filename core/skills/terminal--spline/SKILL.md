@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/TerminalSkills/skills (skill: spline)"
 license: Apache-2.0
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Spline — 3D Design Tool for the Web

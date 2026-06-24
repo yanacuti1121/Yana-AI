@@ -1,10 +1,10 @@
 ---
 name: agent-telemetry
 description: Telemetry and observability patterns for AI agent systems. Structured multi-transport logging, OpenTelemetry traces/spans through action gates, crash diagnostics, ultra-low-overhead logging, and percentile latency metrics. Sources: winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/metrics.
-origin: yamtam-engine — synthesized from winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/scalameter (metrics/percentile patterns)
+origin: yana-ai — synthesized from winstonjs/winston, open-telemetry/opentelemetry-js, nodejs/node-report, pinojs/pino, vladimir-kostyukov/scalameter (metrics/percentile patterns)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.43
+compatibility: yana-ai >= 1.3.43
 ---
 
 # /agent-telemetry
@@ -55,7 +55,7 @@ logger.info('tool_call', { tool: 'WebFetch', url, agentId, sessionId, blastScore
 ```typescript
 import { trace, context, SpanStatusCode } from '@opentelemetry/api'
 
-const tracer = trace.getTracer('yamtam-engine', '1.3.43')
+const tracer = trace.getTracer('yana-ai', '1.3.43')
 
 async function tracedToolCall(tool: string, args: unknown, execute: () => Promise<string>) {
   return tracer.startActiveSpan(`tool.${tool}`, async (span) => {

@@ -1,10 +1,10 @@
 ---
 name: fetch-redirect-ssrf-guard
 description: SSRF prevention via redirect chain control in HTTP fetch. Block automatic redirect following to internal IPs, validate post-redirect destination, manual redirect handling, and timeout enforcement. Sources: node-fetch/node-fetch, OWASP SSRF Cheat Sheet.
-origin: yamtam-engine — synthesized from node-fetch/node-fetch (MIT), OWASP SSRF Prevention Cheat Sheet
+origin: yana-ai — synthesized from node-fetch/node-fetch (MIT), OWASP SSRF Prevention Cheat Sheet
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /fetch-redirect-ssrf-guard

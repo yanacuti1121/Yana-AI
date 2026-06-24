@@ -1,10 +1,10 @@
 ---
 name: ai-gateway-patterns
 description: AI gateways for LLM serving — provider routing, fallback, retries, rate limiting, secrets, observability, guardrails. LiteLLM (OSS, <500 RPS), Portkey (guardrails, Apache 2.0 2026), Kong AI Gateway (228% faster than Portkey at scale), Bifrost (retry/fallback). Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /ai-gateway-patterns

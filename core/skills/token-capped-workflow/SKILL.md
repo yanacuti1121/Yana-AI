@@ -2,7 +2,7 @@
 name: token-capped-workflow
 description: "Design a task workflow under an explicit token cap (e.g. 10k total) — allocate budget per phase, verify the most critical part first, and degrade gracefully when the cap nears. Use when asked to 'giới hạn token', 'làm trong 10k token', 'token cap cho task này', 'budget workflow', 'tiết kiệm chi phí cho task', 'cheap mode', or 'work within a token limit'. Do NOT use for: choosing response length/depth — see token-budget-advisor. Do NOT use for: auditing context window bloat — see context-budget. Do NOT use for: cost-per-value scoring — see token-roi."
 tier: TIER 4 — TOKEN OPTIMIZATION
-source: yamtam-engine (anh Tâm prompt pack, 2026-06-10)
+source: yana-ai (anh Tâm prompt pack, 2026-06-10)
 ---
 
 # Token-Capped Workflow — Làm việc trong hạn mức token

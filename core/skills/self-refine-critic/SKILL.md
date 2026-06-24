@@ -1,10 +1,10 @@
 ---
 name: self-refine-critic
 description: Self-Refine iterative improvement (generate/feedback/refine loop, +20 avg across 7 tasks) and CRITIC external verification (tool-grounded critique for factual tasks). Anthropic evaluator-optimizer pattern. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /self-refine-critic

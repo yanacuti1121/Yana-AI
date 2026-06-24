@@ -1,10 +1,10 @@
 ---
 name: ast-codegen-patterns
 description: Code generation from AST back to source text. esotope-style compact code output, format-preserving reprint, and round-trip AST → source pipelines for codemods and refactoring tools. Sources: glaynge/esotope (BSD-2-Clause).
-origin: yamtam-engine — synthesized from glaynge/esotope (BSD-2-Clause), escodegen (BSD-2-Clause)
+origin: yana-ai — synthesized from glaynge/esotope (BSD-2-Clause), escodegen (BSD-2-Clause)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /ast-codegen-patterns

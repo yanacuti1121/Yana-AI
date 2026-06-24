@@ -1,10 +1,10 @@
 ---
 name: bunyan-syslog-bridge
 description: Bridge Bunyan structured JSON logs to syslog and centralized log aggregators. bunyan-syslog stream, log level mapping, RFC5424 structured data, and dual-write (file + syslog) audit patterns. Sources: trentm/node-bunyan-syslog.
-origin: yamtam-engine — synthesized from trentm/node-bunyan-syslog (MIT), bunyan (MIT)
+origin: yana-ai — synthesized from trentm/node-bunyan-syslog (MIT), bunyan (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /bunyan-syslog-bridge

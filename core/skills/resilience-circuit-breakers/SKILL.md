@@ -1,10 +1,10 @@
 ---
 name: resilience-circuit-breakers
 description: Resilience patterns for AI agent external calls. Circuit breakers, exponential backoff with jitter, stream recovery, batch error handling, and log fallback under disk pressure. Sources: nodeshift/opossum, softonic/axios-retry, vimeo/player.js, trentm/node-bunyan, visionmedia/batch.
-origin: yamtam-engine — synthesized from nodeshift/opossum, softonic/axios-retry, vimeo/player.js, trentm/node-bunyan, visionmedia/batch
+origin: yana-ai — synthesized from nodeshift/opossum, softonic/axios-retry, vimeo/player.js, trentm/node-bunyan, visionmedia/batch
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.43
+compatibility: yana-ai >= 1.3.43
 ---
 
 # /resilience-circuit-breakers

@@ -1,10 +1,10 @@
 ---
 name: durable-task-queues
 description: Durable background job and task queue patterns for AI agent systems. BullMQ Redis-backed queues with concurrency + rate limiting, Inngest event-driven durable functions, Trigger.dev background tasks, dead-letter queue patterns, and job failure diagnostics. Sources: taskforcesh/bullmq, inngest/inngest, triggerdotdev/trigger.dev, OptimalBits/bull, agenda/agenda.
-origin: yamtam-engine — synthesized from taskforcesh/bullmq, inngest/inngest, triggerdotdev/trigger.dev, OptimalBits/bull, agenda/agenda
+origin: yana-ai — synthesized from taskforcesh/bullmq, inngest/inngest, triggerdotdev/trigger.dev, OptimalBits/bull, agenda/agenda
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.44
+compatibility: yana-ai >= 1.3.44
 ---
 
 # /durable-task-queues

@@ -1,10 +1,10 @@
 ---
 name: lint-staged-git-hook
 description: lint-staged pre-commit hook for running linters only on Git-staged files. Pattern-matched task runners, auto-fix before commit, integration with husky, and staged-only analysis to minimize CI overhead. Sources: okonet/lint-staged (MIT).
-origin: yamtam-engine — synthesized from okonet/lint-staged (MIT)
+origin: yana-ai — synthesized from okonet/lint-staged (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /lint-staged-git-hook

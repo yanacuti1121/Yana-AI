@@ -1,10 +1,10 @@
 ---
 name: runtime-metrics-meters
 description: Runtime operational metrics with meters, timers, histograms, and moving averages. node-measured patterns for tracking request rates, execution durations, error rates, and EWMAs for agent performance observability. Sources: caustik/node-measured.
-origin: yamtam-engine — synthesized from caustik/node-measured (BSD-2-Clause), metrics patterns from Coda Hale's Metrics library
+origin: yana-ai — synthesized from caustik/node-measured (BSD-2-Clause), metrics patterns from Coda Hale's Metrics library
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /runtime-metrics-meters

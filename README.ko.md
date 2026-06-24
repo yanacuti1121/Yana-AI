@@ -61,7 +61,7 @@
 
 > **v0.42.0의 새 기능:** 모바일 기능 동기화 — Sessions, Analytics, Cron, HTML Maker가 데스크톱에서 모바일 앱으로 포팅되었습니다. **yana-pixel-bridge** — Claude Code의 Agent/Task 디스패치 이벤트를 `agent-office` 인스턴스로 중계하여 책상으로 걸어가기/작업/대기 애니메이션을 실시간으로 재생합니다. 새 테마 6종 + 이중 언어 환경설정 패널. 41개 스킬에 존재하던 curl\|bash 공급망 취약점을 패치했고, 3개의 규칙 공백을 닫았습니다. **Core-lock** — 218개 핵심 파일을 변조로부터 보호하는 SHA-256 정합성 매니페스트 (규칙 67).
 
-**→ [전체 문서 & 데모](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [전체 문서 & 데모](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -569,7 +569,7 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 | | |
 |---|---|
 | 이메일 | phamlongh230@gmail.com |
-| 웹사이트 | [yanacuti1121.github.io/yana-ai](https://yanacuti1121.github.io/yana-ai/) |
+| 웹사이트 | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
 

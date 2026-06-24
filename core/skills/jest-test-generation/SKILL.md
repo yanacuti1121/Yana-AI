@@ -1,10 +1,10 @@
 ---
 name: jest-test-generation
 description: Automated Jest test case generation from AST and type signatures. Bazel rules_jest integration, property-based test scaffolding, snapshot generation, and coverage-driven test augmentation. Sources: aspect-build/rules_jest (Apache-2.0).
-origin: yamtam-engine — synthesized from aspect-build/rules_jest (Apache-2.0), jest (MIT)
+origin: yana-ai — synthesized from aspect-build/rules_jest (Apache-2.0), jest (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /jest-test-generation

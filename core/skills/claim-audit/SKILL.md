@@ -2,7 +2,7 @@
 name: claim-audit
 description: "Extract every verifiable claim from a piece of content, check each against sources, and sort into 4 buckets: correct, unsourced, needs-fixing, misleading. Use when asked to 'kiểm chứng luận điểm', 'audit claims', 'verify this article', 'tách luận điểm', 'check facts in this doc', 'đối chiếu với nguồn', or 'is this content accurate'. Do NOT use for: verifying a single claim before stating it — see /fact-check command. Do NOT use for: code correctness — see verification-engine."
 tier: TIER 2 — CORRECTNESS
-source: yamtam-engine (anh Tâm prompt pack, 2026-06-10)
+source: yana-ai (anh Tâm prompt pack, 2026-06-10)
 ---
 
 # Claim Audit — Kiểm chứng luận điểm theo 4 nhóm

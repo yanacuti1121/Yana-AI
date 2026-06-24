@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — figma/figma-create-new-file (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # create_new_file — Create a New Figma File

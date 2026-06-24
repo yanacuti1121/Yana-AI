@@ -10,7 +10,7 @@ description: >
 origin: adapted:NanmiCoder/cc-haha (skillify.ts)
 license: MIT
 version: 1.0.0
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 <!-- Adapted from cc-haha/src/skills/bundled/skillify.ts (MIT). Logic: session analysis → user interview → SKILL.md generation. Changes: adapted to yamtam SKILL.md format, added Anti-Fake-Pass gates, removed ANT-only constraints. -->

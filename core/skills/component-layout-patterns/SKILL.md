@@ -1,10 +1,10 @@
 ---
 name: component-layout-patterns
 description: Production-grade component layout patterns. Dashboard grids, hero sections, masonry layouts, filter systems, and CSS-only complex components. Sources: tailwindlabs/tailwindcss-ui, saas-ui, refactoringui samples, shadcn-ui/taxonomy, tabler, and 5 others.
-origin: yamtam-engine — synthesized from tailwindlabs/tailwindcss-ui, saas-ui/saas-ui, creative-tim/material-kit, tabler/tabler, refactoringui/html-samples, shadcn-ui/taxonomy, lineicons/lineicons, modern-layout/patterns, vincenzocorona/pure-css-components, leandroercoli/ui-design-patterns
+origin: yana-ai — synthesized from tailwindlabs/tailwindcss-ui, saas-ui/saas-ui, creative-tim/material-kit, tabler/tabler, refactoringui/html-samples, shadcn-ui/taxonomy, lineicons/lineicons, modern-layout/patterns, vincenzocorona/pure-css-components, leandroercoli/ui-design-patterns
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.35
+compatibility: yana-ai >= 1.3.35
 ---
 
 # /component-layout-patterns

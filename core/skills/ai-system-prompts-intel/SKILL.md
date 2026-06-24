@@ -4,7 +4,7 @@ description: "Intelligence on leaked/published system prompts from 30+ AI coding
 origin: x1xhlol/system-prompts-and-models-of-ai-tools (141k⭐)
 license: see repo
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Read, WebFetch
 ---
 

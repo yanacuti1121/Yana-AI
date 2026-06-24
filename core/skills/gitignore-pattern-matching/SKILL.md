@@ -1,10 +1,10 @@
 ---
 name: gitignore-pattern-matching
 description: .gitignore-compatible pattern matching for agent file access control. Ignore rule parsing, negative patterns, per-directory scope, and building file access gates from gitignore-style rules. Sources: kaelzhang/node-ignore.
-origin: yamtam-engine — synthesized from kaelzhang/node-ignore (MIT)
+origin: yana-ai — synthesized from kaelzhang/node-ignore (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /gitignore-pattern-matching
@@ -31,7 +31,7 @@ import { readFileSync, readdirSync } from 'fs'
 
 // Load .gitignore rules
 const ig = ignore()
-ig.add(readFileSync('/workspaces/yamtam-engine/.gitignore', 'utf8'))
+ig.add(readFileSync('/workspaces/yana-ai/.gitignore', 'utf8'))
 
 // Add custom agent rules
 ig.add([
@@ -97,7 +97,7 @@ function loadClaudeIgnore(root: string): ReturnType<typeof ignore> {
 
 ```bash
 # Use git ls-files to list only tracked + unignored files
-git -C /workspaces/yamtam-engine ls-files --cached --others --exclude-standard \
+git -C /workspaces/yana-ai ls-files --cached --others --exclude-standard \
   | grep -v '^releases/logs/'
 
 # Check if a specific file would be ignored

@@ -29,8 +29,8 @@ Mount core infrastructure as read-only (lowerdir) and redirect all agent writes 
 ```bash
 # Basic: core read-only, /tmp writable, full namespace isolation
 bwrap \
-  --ro-bind /workspaces/yamtam-engine /app \
-  --bind   /workspaces/yamtam-engine/releases/logs /app/releases/logs \
+  --ro-bind /workspaces/yana-ai /app \
+  --bind   /workspaces/yana-ai/releases/logs /app/releases/logs \
   --tmpfs  /tmp \
   --proc   /proc \
   --dev    /dev \
@@ -48,13 +48,13 @@ mkdir -p /tmp/overlay/{upper,work}
 
 # Mount with lowerdir=read-only, upperdir=RAM writes
 mount -t overlay overlay \
-  -o lowerdir=/workspaces/yamtam-engine/core,\
+  -o lowerdir=/workspaces/yana-ai/core,\
      upperdir=/tmp/overlay/upper,\
      workdir=/tmp/overlay/work \
   /mnt/agent-view
 
 # Agent sees /mnt/agent-view — writes go to /tmp/overlay/upper
-# Real /workspaces/yamtam-engine/core is untouched
+# Real /workspaces/yana-ai/core is untouched
 
 # Cleanup on session end
 umount /mnt/agent-view
@@ -66,7 +66,7 @@ rm -rf /tmp/overlay
 ```bash
 # Enable via tool-proxy.sh
 export YAMTAM_SANDBOX_MODE=1
-export YAMTAM_SANDBOX_ROOTDIR=/workspaces/yamtam-engine
+export YAMTAM_SANDBOX_ROOTDIR=/workspaces/yana-ai
 export YAMTAM_SANDBOX_WRITEDIR=releases/logs
 
 bash core/scripts/tool-proxy.sh node agent-task.js
@@ -87,7 +87,7 @@ bash core/scripts/tool-proxy.sh node agent-task.js
 
 ```bash
 # After agent session ends, verify no writes escaped to real disk
-diff -r /workspaces/yamtam-engine/core /mnt/agent-view/
+diff -r /workspaces/yana-ai/core /mnt/agent-view/
 # Expected: empty diff (all changes were in tmpfs, now gone)
 ```
 
@@ -95,6 +95,6 @@ diff -r /workspaces/yamtam-engine/core /mnt/agent-view/
 
 - [ ] `bwrap --version` confirms bubblewrap is installed (≥ 0.4.0)
 - [ ] Write test: `echo test > /app/core/test.txt` inside sandbox → should succeed
-- [ ] After exit: `cat /workspaces/yamtam-engine/core/test.txt` → should NOT exist
+- [ ] After exit: `cat /workspaces/yana-ai/core/test.txt` → should NOT exist
 - [ ] `--die-with-parent` verified: killing parent kills bwrap child
 - [ ] Network isolation tested if `--share-net` removed

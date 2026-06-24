@@ -1,10 +1,10 @@
 ---
 name: motion-physics
 description: Physics-based UI animation system. Spring physics, easing curves, micro-interaction patterns, and timeline staggering for native-quality web animations. Sources: popmotion, framer/motion, anime.js, greensock, argyleink/transition.css, and 5 others.
-origin: yamtam-engine — synthesized from popmotion/popmotion, joshwcomeau/css-animations, the-creative-momentum/creative-motions, animate-css/animate.css, juliangarnier/anime, argyleink/transition.css, greenbadge/motion-spec, lottiefiles/lottie-web, delightful-ui/micro-effects, bameyrick/react-spring
+origin: yana-ai — synthesized from popmotion/popmotion, joshwcomeau/css-animations, the-creative-momentum/creative-motions, animate-css/animate.css, juliangarnier/anime, argyleink/transition.css, greenbadge/motion-spec, lottiefiles/lottie-web, delightful-ui/micro-effects, bameyrick/react-spring
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.35
+compatibility: yana-ai >= 1.3.35
 ---
 
 # /motion-physics

@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/veniceai/skills (skill: venice-errors)"
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Venice errors & retries

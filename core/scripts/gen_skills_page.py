@@ -360,7 +360,7 @@ def main():
     size_kb = OUT_HTML.stat().st_size // 1024
     print(f" {OUT_HTML.name} ({size_kb}KB)")
 
-    print(f"\n  ✓ docs/skills.html → yanacuti1121.github.io/yana-ai/skills.html")
+    print(f"\n  ✓ docs/skills.html → yanacuti1121.github.io/Yana-AI/skills.html")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
 ---
 name: wasmtime-wasi-sandbox
 description: Wasmtime WASI sandbox for agent-executed code — capability-based security, component model, WASI Preview 2. Isolate untrusted code from the host filesystem/network. Sources: bytecodealliance/wasmtime (Apache-2.0).
-origin: yamtam-engine — synthesized from bytecodealliance/wasmtime (Apache-2.0)
+origin: yana-ai — synthesized from bytecodealliance/wasmtime (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /wasmtime-wasi-sandbox

@@ -1,10 +1,10 @@
 ---
 name: database-query-safety
 description: Database query safety patterns — N+1 detection, query plan analysis, parameterized queries, SQL injection prevention, migration safety, and slow-query monitoring. Sources: prisma/prisma, drizzle-team/drizzle-orm, brianc/node-postgres, sequelize/sequelize, knex/knex.
-origin: yamtam-engine — synthesized from prisma/prisma, drizzle-team/drizzle-orm, brianc/node-postgres, sequelize/sequelize, knex/knex
+origin: yana-ai — synthesized from prisma/prisma, drizzle-team/drizzle-orm, brianc/node-postgres, sequelize/sequelize, knex/knex
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.39
+compatibility: yana-ai >= 1.3.39
 ---
 
 # /database-query-safety

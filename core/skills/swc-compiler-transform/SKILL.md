@@ -1,10 +1,10 @@
 ---
 name: swc-compiler-transform
 description: SWC (Speedy Web Compiler) Rust-based JS/TS transforms. Programmatic transpilation, custom plugins via WASM, minification, module format conversion, and performance-sensitive parse pipelines. Sources: swc-project/swc (Apache-2.0).
-origin: yamtam-engine — synthesized from swc-project/swc (Apache-2.0)
+origin: yana-ai — synthesized from swc-project/swc (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /swc-compiler-transform

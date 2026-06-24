@@ -1,10 +1,10 @@
 ---
 name: wamp-pubsub-patterns
 description: WAMP (Web Application Messaging Protocol) secure Pub/Sub for distributed agent event bus. Autobahn|JS patterns, authenticated subscriptions, RPC over WAMP, topic-based routing, and cryptographic message signing. Sources: crossbario/autobahn-js.
-origin: yamtam-engine — synthesized from crossbario/autobahn-js (MIT), WAMP spec v2
+origin: yana-ai — synthesized from crossbario/autobahn-js (MIT), WAMP spec v2
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /wamp-pubsub-patterns

@@ -104,7 +104,7 @@ profile = client.profile(container_tag="tam_profile")
 client.connectors.create(type="google_drive", credentials=...)
 
 # GitHub repo sync
-client.connectors.create(type="github", repo="yamtam-engine")
+client.connectors.create(type="github", repo="yana-ai")
 ```
 
 Supported: Google Drive · Gmail · Notion · OneDrive · GitHub

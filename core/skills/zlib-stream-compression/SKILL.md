@@ -1,10 +1,10 @@
 ---
 name: zlib-stream-compression
 description: Node.js zlib streaming compression for log rotation and release packaging. Gzip/Brotli/Deflate transform streams, compression level tuning, streaming decompress, and on-the-fly log archiving. Sources: Node.js zlib module, madler/zlib.
-origin: yamtam-engine — synthesized from Node.js zlib docs (MIT), madler/zlib (zlib License)
+origin: yana-ai — synthesized from Node.js zlib docs (MIT), madler/zlib (zlib License)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /zlib-stream-compression

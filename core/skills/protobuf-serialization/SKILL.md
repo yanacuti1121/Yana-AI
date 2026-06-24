@@ -1,10 +1,10 @@
 ---
 name: protobuf-serialization
 description: Protocol Buffers binary serialization for inter-agent messaging. .proto schema definition, encode/decode, backward-compatible field evolution, and performance benchmarks vs JSON. Sources: protocolbuffers/protobuf (BSD-3-Clause).
-origin: yamtam-engine — synthesized from protocolbuffers/protobuf (BSD-3-Clause)
+origin: yana-ai — synthesized from protocolbuffers/protobuf (BSD-3-Clause)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.50
+compatibility: yana-ai >= 1.3.50
 ---
 
 # /protobuf-serialization

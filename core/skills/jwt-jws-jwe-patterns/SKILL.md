@@ -1,10 +1,10 @@
 ---
 name: jwt-jws-jwe-patterns
 description: JWT/JWS/JWE token patterns for Swarm Bus agent identity. Sign JWTs with ES256/RS256, verify claims, encrypt payloads with JWE (A256GCM), short-lived token rotation, and agent-to-agent bearer auth. Sources: panva/jose.
-origin: yamtam-engine — synthesized from panva/jose (MIT)
+origin: yana-ai — synthesized from panva/jose (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /jwt-jws-jwe-patterns
@@ -40,7 +40,7 @@ async function issueAgentToken(agentId: string, tier: 'fast' | 'power'): Promise
   })
     .setProtectedHeader({ alg: 'ES256' })
     .setIssuedAt()
-    .setIssuer('yamtam-engine')
+    .setIssuer('yana-ai')
     .setAudience('swarm-bus')
     .setExpirationTime('15m')          // short-lived: 15 minutes
     .sign(privateKey)
@@ -49,7 +49,7 @@ async function issueAgentToken(agentId: string, tier: 'fast' | 'power'): Promise
 // Verify on receiving end
 async function verifyAgentToken(token: string): Promise<{ agentId: string; tier: string }> {
   const { payload } = await jwtVerify(token, publicKey, {
-    issuer:   'yamtam-engine',
+    issuer:   'yana-ai',
     audience: 'swarm-bus',
   })
   return { agentId: payload.sub!, tier: payload['tier'] as string }
@@ -91,7 +91,7 @@ verify_agent_token() {
 const { jwtVerify, importSPKI } = require('jose')
 const pub = process.env.YAMTAM_AGENT_PUBKEY
 importSPKI(pub, 'ES256').then(key =>
-  jwtVerify('$token', key, { issuer: 'yamtam-engine', audience: 'swarm-bus' })
+  jwtVerify('$token', key, { issuer: 'yana-ai', audience: 'swarm-bus' })
 ).then(r => console.log('OK:' + r.payload.sub))
   .catch(e => console.log('FAIL:' + e.message))
 " 2>/dev/null)

@@ -1,10 +1,10 @@
 ---
 name: smart-layout-aesthetics
 description: Smart layout patterns and aesthetic engineering from 20 production repos. Shadcn command patterns, floating UI positioning, virtual lists, drag-and-drop, resizable panels, CSS container queries, masonry, aesthetic micro-details (shadows, borders, glass), and accessible overlay stacks. Sources: shadcn-ui/ui, radix-ui/primitives, floating-ui, cmdk, vaul, embla-carousel, dnd-kit, swapy, react-resizable-panels, tanstack/virtual, react-grid-layout, masonic, css-grid-layout-generator, clsx, tailwind-merge, cva, tailwindlabs/tailwindcss, unocss, vanilla-extract, open-props.
-origin: yamtam-engine — synthesized from shadcn-ui/ui, radix-ui/primitives, floating-ui/floating-ui, pacocoursey/cmdk, emilkowalski/vaul, davidcetinkaya/embla-carousel, clauderic/dnd-kit, TahaSh/swapy, bvaughn/react-resizable-panels, TanStack/virtual, STRML/react-grid-layout, jaredLunde/masonic, nicowillis/css-grid-layout-generator, lukeed/clsx, nickmanning/tailwind-merge, joe-bell/cva, tailwindlabs/tailwindcss, antfu/unocss, vanilla-extract-css/vanilla-extract, argyleink/open-props
+origin: yana-ai — synthesized from shadcn-ui/ui, radix-ui/primitives, floating-ui/floating-ui, pacocoursey/cmdk, emilkowalski/vaul, davidcetinkaya/embla-carousel, clauderic/dnd-kit, TahaSh/swapy, bvaughn/react-resizable-panels, TanStack/virtual, STRML/react-grid-layout, jaredLunde/masonic, nicowillis/css-grid-layout-generator, lukeed/clsx, nickmanning/tailwind-merge, joe-bell/cva, tailwindlabs/tailwindcss, antfu/unocss, vanilla-extract-css/vanilla-extract, argyleink/open-props
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.37
+compatibility: yana-ai >= 1.3.37
 ---
 
 # /smart-layout-aesthetics

@@ -1,10 +1,10 @@
 ---
 name: agentic-failure-modes
 description: MASFT taxonomy of multi-agent failure modes (Berkeley 2025) — 14 modes in 3 categories. Five industry-recurring modes: hallucinated actions, scope creep, cascading errors, context loss, tool misuse. Detection, monitoring, and mitigation patterns. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /agentic-failure-modes

@@ -1,10 +1,10 @@
 ---
 name: htn-evolutionary-planning
 description: Hierarchical Task Network planning (provably correct plans via symbolic decomposition + LLM fallback) and AlphaEvolve evolutionary code search (fitness-gated genetic algorithm). ChatHTN 2025 hybrid, AlphaEvolve DeepMind 2025. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /htn-evolutionary-planning

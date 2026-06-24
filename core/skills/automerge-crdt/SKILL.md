@@ -1,10 +1,10 @@
 ---
 name: automerge-crdt
 description: Automerge CRDT for Git-like branching, independent editing, and automatic merge of agent state without a central server. Document fork/merge, change history, and conflict-free concurrent writes. Sources: automerge/automerge (MIT).
-origin: yamtam-engine — synthesized from automerge/automerge (MIT)
+origin: yana-ai — synthesized from automerge/automerge (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.50
+compatibility: yana-ai >= 1.3.50
 ---
 
 # /automerge-crdt

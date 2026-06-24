@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — vercel/agent-browser (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Browser Automation with agent-browser

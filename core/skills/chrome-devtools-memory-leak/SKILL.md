@@ -1,10 +1,10 @@
 ---
 name: chrome-devtools-memory-leak
 description: JavaScript/Node.js memory leak debugging via Chrome DevTools MCP. Heap snapshot workflow (baseline→target→final), memlab analysis, common leak patterns (detached DOM, closures, unbounded caches, event listeners). Sources: ChromeDevTools/chrome-devtools-mcp (Apache-2.0).
-origin: yamtam-engine — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+origin: yana-ai — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /chrome-devtools-memory-leak

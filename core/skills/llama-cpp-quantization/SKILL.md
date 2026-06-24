@@ -1,10 +1,10 @@
 ---
 name: llama-cpp-quantization
 description: llama.cpp GGUF/GGML quantization patterns for local LLM inference. Quantization levels (Q4_K_M, Q8_0, F16), CPU/GPU offloading, context window sizing, and embedding extraction via llama.cpp HTTP server. Sources: ggerganov/llama.cpp (MIT).
-origin: yamtam-engine — synthesized from ggerganov/llama.cpp (MIT)
+origin: yana-ai — synthesized from ggerganov/llama.cpp (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /llama-cpp-quantization

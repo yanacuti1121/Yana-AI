@@ -1,10 +1,10 @@
 ---
 name: swarm-consensus
 description: Multi-agent consensus and coordination patterns for YAMTAM agent swarms. Quorum voting with majority and super-majority thresholds, security-team veto protocol, inter-agent message passing via agent-message-bus.sh, swarm-orchestrator.sh coordination, Raft-inspired leader election concepts, and anti-split-brain patterns. Sources: hashicorp/raft, etcd-io/etcd, automerge/automerge, maelstrom-systems, swarm-consensus literature.
-origin: yamtam-engine — synthesized from hashicorp/raft, etcd-io/etcd, automerge/automerge, maelstrom-systems, agent-consensus literature
+origin: yana-ai — synthesized from hashicorp/raft, etcd-io/etcd, automerge/automerge, maelstrom-systems, agent-consensus literature
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.47
+compatibility: yana-ai >= 1.3.47
 ---
 
 # /swarm-consensus

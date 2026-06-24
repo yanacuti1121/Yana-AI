@@ -1,10 +1,10 @@
 ---
 name: wasm-bindgen-js-interop
 description: wasm-bindgen Rust↔JavaScript interop — export Rust functions/structs to JS, import JS APIs into Rust, wasm-pack build pipeline, TypeScript type generation, memory management across the boundary. Sources: rustwasm/wasm-bindgen (MIT/Apache-2.0).
-origin: yamtam-engine — synthesized from rustwasm/wasm-bindgen (MIT/Apache-2.0)
+origin: yana-ai — synthesized from rustwasm/wasm-bindgen (MIT/Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /wasm-bindgen-js-interop

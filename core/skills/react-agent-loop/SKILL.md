@@ -1,10 +1,10 @@
 ---
 name: react-agent-loop
 description: ReAct (Reason+Act) agent loop — the canonical Observe/Think/Act cycle. Tool registry, stop conditions, turn budget, observation formatting. Every 2026 agent framework runs this loop under the hood. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /react-agent-loop

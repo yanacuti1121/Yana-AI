@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — expo/expo-tailwind-setup (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Tailwind CSS Setup for Expo with react-native-css

@@ -4,7 +4,7 @@ description: "Library of 232 AI agent personalities across 16 business divisions
 origin: msitarzewski/agency-agents (MIT)
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Bash, Read, WebFetch
 ---
 

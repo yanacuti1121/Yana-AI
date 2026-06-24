@@ -1,10 +1,10 @@
 ---
 name: etcd-distributed-config
 description: etcd distributed key-value store for centralized agent config and distributed locking. Watch API for live config reload, lease-based TTL keys, transactions, and distributed mutex patterns. Sources: etcd-io/etcd (Apache-2.0).
-origin: yamtam-engine — synthesized from etcd-io/etcd (Apache-2.0)
+origin: yana-ai — synthesized from etcd-io/etcd (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.50
+compatibility: yana-ai >= 1.3.50
 ---
 
 # /etcd-distributed-config

@@ -1,10 +1,10 @@
 ---
 name: eslint-rule-engine
 description: ESLint custom rule architecture. AST visitor rules with auto-fix, rule metadata, nested rule hierarchies, RuleTester harness, and monorepo-wide static analysis configuration. Sources: eslint/eslint (MIT).
-origin: yamtam-engine — synthesized from eslint/eslint (MIT)
+origin: yana-ai — synthesized from eslint/eslint (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /eslint-rule-engine

@@ -1,10 +1,10 @@
 ---
 name: uid-gid-privilege-drop
 description: UID/GID privilege dropping for safe agent subprocess execution. setuid/setgid before exec, running commands as nobody/unprivileged user, Node.js uid/gid options on spawn, and preventing privilege re-escalation. Sources: stephenmathieson/node-uid, Linux credentials(7).
-origin: yamtam-engine — synthesized from stephenmathieson/node-uid (MIT), Linux setuid(2) man page
+origin: yana-ai — synthesized from stephenmathieson/node-uid (MIT), Linux setuid(2) man page
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /uid-gid-privilege-drop

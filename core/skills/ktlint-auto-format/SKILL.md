@@ -1,10 +1,10 @@
 ---
 name: ktlint-auto-format
 description: ktlint anti-bikeshedding Kotlin linter. Zero-config formatting, custom rule sets, auto-fix, Git pre-commit integration, and Gradle plugin setup. Sources: pinterest/ktlint (MIT).
-origin: yamtam-engine — synthesized from pinterest/ktlint (MIT)
+origin: yana-ai — synthesized from pinterest/ktlint (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /ktlint-auto-format
@@ -79,7 +79,7 @@ import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 class NoInstanceCompanionRule : Rule(
     ruleId    = RuleId("custom:no-instance-companion"),
     about     = About(
-        maintainer    = "yamtam-engine",
+        maintainer    = "yana-ai",
         repositoryUrl = "https://github.com/your/repo",
     ),
 ) {

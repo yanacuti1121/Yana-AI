@@ -1,10 +1,10 @@
 ---
 name: auth-strategy-patterns
 description: Pluggable authentication strategy architecture. Passport.js strategy pattern, bearer token strategy, local strategy, strategy switching between token/key/signature auth, and session-less agent auth. Sources: jaredhanson/passport.
-origin: yamtam-engine — synthesized from jaredhanson/passport (MIT)
+origin: yana-ai — synthesized from jaredhanson/passport (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /auth-strategy-patterns

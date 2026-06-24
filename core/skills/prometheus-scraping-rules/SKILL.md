@@ -1,10 +1,10 @@
 ---
 name: prometheus-scraping-rules
 description: Prometheus scrape configuration, recording rules, alerting rules, and Alertmanager routing. Service discovery, relabeling, federation, and cluster-wide agent health monitoring. Sources: prometheus/prometheus (Apache-2.0).
-origin: yamtam-engine — synthesized from prometheus/prometheus (Apache-2.0)
+origin: yana-ai — synthesized from prometheus/prometheus (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.52
+compatibility: yana-ai >= 1.3.52
 ---
 
 # /prometheus-scraping-rules

@@ -1,10 +1,10 @@
 ---
 name: symmetric-encryption-patterns
 description: AES-256 symmetric encryption for agent memory cache protection. CryptoJS AES encrypt/decrypt, HMAC integrity, secure key derivation, and encrypting agent session state at rest. Sources: brix/crypto-js.
-origin: yamtam-engine — synthesized from brix/crypto-js (MIT)
+origin: yana-ai — synthesized from brix/crypto-js (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /symmetric-encryption-patterns

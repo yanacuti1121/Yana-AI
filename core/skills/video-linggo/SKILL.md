@@ -4,7 +4,7 @@ description: "Video translation, dubbing and subtitle generation pipeline — Wh
 origin: skyconnfig/VideoLinggo (MIT)
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Bash, Read, Write
 ---
 

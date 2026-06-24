@@ -1,10 +1,10 @@
 ---
 name: advanced-typography
 description: Advanced typography engineering from 20 production repos. Fluid type scales, optical sizing, font subsetting, vertical metrics normalization, CJK/Vietnamese spacing, text-wrap balance, variable fonts, and readability constraints. Sources: rsms/inter, nicowillis/capsize, fontsource, typetura, modular-scale, text-balancer, fontkit, opentype.js, letterpress, typographist, Inter Display, google-fonts-knowledge, fluid-type, utopia.fyi, css-vars-ponyfill, matejlatin/Gutenberg, guardian/typefaces, vitesse, next/font, type-fest.
-origin: yamtam-engine — synthesized from rsms/inter, nicowillis/capsize, fontsource/fontsource, bramstein/typetura, modularscale/modularscale-sass, NYTimes/text-balancer, nicowillis/fontkit, opentypejs/opentype.js, letterpress/letterpress, politico/typographist, nicowillis/inter-display, google/google-fonts-knowledge, LeaVerou/fluid-type, nicowillis/utopia, nicowillis/css-vars-ponyfill, matejlatin/Gutenberg, guardian/frontend (typefaces), antfu/vitesse, vercel/next.js (next/font), sindresorhus/type-fest
+origin: yana-ai — synthesized from rsms/inter, nicowillis/capsize, fontsource/fontsource, bramstein/typetura, modularscale/modularscale-sass, NYTimes/text-balancer, nicowillis/fontkit, opentypejs/opentype.js, letterpress/letterpress, politico/typographist, nicowillis/inter-display, google/google-fonts-knowledge, LeaVerou/fluid-type, nicowillis/utopia, nicowillis/css-vars-ponyfill, matejlatin/Gutenberg, guardian/frontend (typefaces), antfu/vitesse, vercel/next.js (next/font), sindresorhus/type-fest
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.37
+compatibility: yana-ai >= 1.3.37
 ---
 
 # /advanced-typography

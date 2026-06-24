@@ -1,10 +1,10 @@
 ---
 name: rewoo-plan-execute
 description: ReWOO decoupled planning — Planner/Worker/Solver split. 5x fewer tokens than ReAct on HotpotQA, +4% accuracy. Plan-and-Execute generalization, planner distillation to 7B. When to use plan-first vs interleaved. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /rewoo-plan-execute

@@ -1,10 +1,10 @@
 ---
 name: runtime-sandbox-runc
 description: Low-level OCI container runtime patterns using Linux namespaces and cgroups. Namespace isolation (pid/net/mnt/uts/ipc), cgroup resource caps, rootless execution, OCI bundle structure, and runc lifecycle (create/start/kill/delete). Sources: opencontainers/runc.
-origin: yamtam-engine — synthesized from opencontainers/runc (Linux Foundation OCI standard)
+origin: yana-ai — synthesized from opencontainers/runc (Linux Foundation OCI standard)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /runtime-sandbox-runc

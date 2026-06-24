@@ -1,10 +1,10 @@
 ---
 name: capability-dropping-linux
 description: Linux capability management for agent processes. Drop unnecessary capabilities before exec, audit current capability sets, block CAP_SYS_ADMIN/CAP_NET_ADMIN/CAP_SETUID, and implement least-privilege subprocess execution. Sources: genuinetools/bane (renamed from bansh), libcap.
-origin: yamtam-engine — synthesized from genuinetools/bane, libcap (kernel.org), Linux capabilities(7) man page
+origin: yana-ai — synthesized from genuinetools/bane, libcap (kernel.org), Linux capabilities(7) man page
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /capability-dropping-linux

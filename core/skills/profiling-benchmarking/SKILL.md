@@ -1,10 +1,10 @@
 ---
 name: profiling-benchmarking
 description: Code profiling and benchmarking laws from 5 repos. Statistical benchmark harnesses, micro-second delta timing, string-processing performance comparison, IOPS throttle monitoring, and bundle size analysis. Sources: bestiejs/benchmark.js, alexhuszagh/rust-benchmarks, sindresorhus/time-span, holepunchto/hypercore, hughsk/disc.
-origin: yamtam-engine — synthesized from bestiejs/benchmark.js, alexhuszagh/rust-benchmarks, sindresorhus/time-span, holepunchto/hypercore, hughsk/disc
+origin: yana-ai — synthesized from bestiejs/benchmark.js, alexhuszagh/rust-benchmarks, sindresorhus/time-span, holepunchto/hypercore, hughsk/disc
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.38
+compatibility: yana-ai >= 1.3.38
 ---
 
 # /profiling-benchmarking

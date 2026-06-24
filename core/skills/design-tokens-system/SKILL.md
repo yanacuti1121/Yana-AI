@@ -1,10 +1,10 @@
 ---
 name: design-tokens-system
 description: Enterprise design token architecture. Defines spacing, scaling, elevation, and grid systems following Adobe Spectrum, Salesforce Lightning, Amazon Style Dictionary, and 6 other production token systems. Use when building or auditing a token layer for any UI project.
-origin: yamtam-engine — synthesized from adobe/spectrum-tokens, salesforce/design-system-tokens, amzn/style-dictionary, workday/canvas-tokens, elastic/eui, microsoft/fluentui-design-tokens, pinterest/gestalt, backpack/backpack-tokens, dekorator/design-tokens, audi/appearance
+origin: yana-ai — synthesized from adobe/spectrum-tokens, salesforce/design-system-tokens, amzn/style-dictionary, workday/canvas-tokens, elastic/eui, microsoft/fluentui-design-tokens, pinterest/gestalt, backpack/backpack-tokens, dekorator/design-tokens, audi/appearance
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.35
+compatibility: yana-ai >= 1.3.35
 ---
 
 # /design-tokens-system

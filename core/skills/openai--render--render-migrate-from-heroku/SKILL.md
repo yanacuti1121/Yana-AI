@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — render/render-migrate-from-heroku (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Heroku to Render Migration

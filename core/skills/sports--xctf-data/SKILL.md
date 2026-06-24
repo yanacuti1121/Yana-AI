@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/machina-sports/sports-skills (skill: xctf-data)"
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # XC/TF Data (TFRRS — NCAA Cross Country & Track and Field)

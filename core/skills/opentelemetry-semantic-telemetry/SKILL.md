@@ -28,7 +28,7 @@ Every agent action emits a span. Every span has a Trace ID. No action is invisib
 ```js
 import { trace, context, SpanStatusCode } from '@opentelemetry/api';
 
-const tracer = trace.getTracer('yamtam-engine', '1.4.0');
+const tracer = trace.getTracer('yana-ai', '1.4.0');
 
 async function instrumentedAgentCall(agentId, command, fn) {
   return tracer.startActiveSpan(`agent.${command}`, async (span) => {

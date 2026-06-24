@@ -1,10 +1,10 @@
 ---
 name: triton-inference-server
 description: NVIDIA Triton Inference Server for production GPU model serving. Model repository layout, dynamic batching, concurrent model execution, gRPC/HTTP clients, and ensemble pipelines. Sources: triton-inference-server/server (BSD-3-Clause).
-origin: yamtam-engine — synthesized from triton-inference-server/server (BSD-3-Clause)
+origin: yana-ai — synthesized from triton-inference-server/server (BSD-3-Clause)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /triton-inference-server

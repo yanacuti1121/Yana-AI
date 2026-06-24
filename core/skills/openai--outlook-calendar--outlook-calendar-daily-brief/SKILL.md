@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — outlook-calendar/outlook-calendar-daily-brief (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Outlook Calendar Daily Brief

@@ -1,10 +1,10 @@
 ---
 name: llm-int8-quantization
 description: LLM.int8() and bitsandbytes 4-bit quantization (NF4/FP4) for memory-efficient LLM loading. Mixed-precision decomposition, QLoRA fine-tuning, double quantization, and GPU OOM prevention patterns. Sources: TimDettmers/bitsandbytes (MIT).
-origin: yamtam-engine — synthesized from TimDettmers/bitsandbytes (MIT)
+origin: yana-ai — synthesized from TimDettmers/bitsandbytes (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /llm-int8-quantization

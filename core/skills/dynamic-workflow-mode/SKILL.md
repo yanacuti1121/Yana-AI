@@ -1,12 +1,12 @@
 ---
 name: dynamic-workflow-mode
 description: "Task-local harness system — declare owns/consumes/produces/pass-fail before dispatch, extract to shared skill when repeated. Use instead of inline ad-hoc steps for any task spanning >1 session or >3 files. Triggers on: 'dynamic workflow', 'task harness', 'harness per task', 'custom harness', 'adaptive workflow', 'task-local harness', 'owns consumes produces', 'harness template', 'dynamic mode', 'workflow harness'."
-source: affaan-m/ECC (MIT) — adapted for yamtam-engine
+source: affaan-m/ECC (MIT) — adapted for yana-ai
 tier: TIER 2 — CORRECTNESS
 ---
 
 # Dynamic Workflow Mode
-# Source: affaan-m/ECC (MIT) — adapted with yamtam-engine integration
+# Source: affaan-m/ECC (MIT) — adapted with yana-ai integration
 
 Biến mỗi task phức tạp thành một **harness có cấu trúc** thay vì chỉ run inline.
 Harness khai báo rõ: làm gì, không làm gì, input là gì, output là gì, pass/fail thế nào.

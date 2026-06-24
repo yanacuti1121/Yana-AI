@@ -1,10 +1,10 @@
 ---
 name: zombie-process-cleanup
 description: Detecting and reaping zombie/orphan processes in agent sandboxes. SIGCHLD handling, waitpid reaping, subreaper patterns, and Node.js child_process cleanup. Sources: node-modules/zombie, Linux waitpid(2) man page.
-origin: yamtam-engine — synthesized from node-modules/zombie (MIT), Linux process lifecycle docs
+origin: yana-ai — synthesized from node-modules/zombie (MIT), Linux process lifecycle docs
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /zombie-process-cleanup

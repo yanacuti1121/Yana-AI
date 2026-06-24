@@ -2,7 +2,7 @@
 name: 9router-gateway
 description: "Set up 9Router as a local AI gateway so coding agents never stop when a provider quota runs out — one OpenAI-compatible endpoint (localhost:20128) fanning out to 40+ providers with automatic fallback. Use when asked to 'set up 9router', 'cài 9router', 'hết quota Claude thì làm sao', 'fallback provider tự động', 'never hit rate limits', 'free AI router', or 'nối Claude Code vào nhiều provider'. Do NOT use for: cloud gateway architecture comparisons (LiteLLM/Portkey/Kong) — see ai-gateway-patterns. Do NOT use for: YAMTAM's internal task routing — see yana-router docs."
 tier: TIER 3 — CONSISTENCY
-source: github.com/decolua/9router (MIT) + yamtam-engine integration
+source: github.com/decolua/9router (MIT) + yana-ai integration
 ---
 
 # 9Router Gateway — Quota Armor cho mọi AI coding tool
