@@ -39,7 +39,7 @@ echo ""
 
 # Core existing skills
 check_skill "git-lessons"        "past bugs"
-check_skill "gitnexus/gitnexus-guide" "codebase"
+check_skill "gitnexus-guide" "codebase"
 
 # New skills from v1.3.12 Superpowers import + v1.3.13 glebis/claude-skills
 check_skill "plan-first"         "implement"
@@ -151,18 +151,18 @@ check_skill "mcp-server-patterns"    "MCP"
 check_skill "mcp-server-patterns"    "tools"
 
 # gitnexus skills beyond gitnexus-guide (v1.3.11)
-check_skill "gitnexus/gitnexus-cli"            "analyze"
-check_skill "gitnexus/gitnexus-cli"            "index"
-check_skill "gitnexus/gitnexus-debugging"      "bug"
-check_skill "gitnexus/gitnexus-debugging"      "error"
-check_skill "gitnexus/gitnexus-exploring"      "architecture"
-check_skill "gitnexus/gitnexus-exploring"      "how"
-check_skill "gitnexus/gitnexus-impact-analysis" "break"
-check_skill "gitnexus/gitnexus-impact-analysis" "impact"
-check_skill "gitnexus/gitnexus-pr-review"      "pull request"
-check_skill "gitnexus/gitnexus-pr-review"      "review"
-check_skill "gitnexus/gitnexus-refactoring"    "refactor"
-check_skill "gitnexus/gitnexus-refactoring"    "rename"
+check_skill "gitnexus-cli"            "analyze"
+check_skill "gitnexus-cli"            "index"
+check_skill "gitnexus-debugging"      "bug"
+check_skill "gitnexus-debugging"      "error"
+check_skill "gitnexus-exploring"      "architecture"
+check_skill "gitnexus-exploring"      "how"
+check_skill "gitnexus-impact-analysis" "break"
+check_skill "gitnexus-impact-analysis" "impact"
+check_skill "gitnexus-pr-review"      "pull request"
+check_skill "gitnexus-pr-review"      "review"
+check_skill "gitnexus-refactoring"    "refactor"
+check_skill "gitnexus-refactoring"    "rename"
 
 # karpathy guidelines + l1-promote (v1.3.17 / v1.3.26)
 check_skill "karpathy-guidelines"    "overcomplication"
