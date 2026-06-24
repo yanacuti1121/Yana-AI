@@ -1,10 +1,10 @@
 ---
 name: glob-minimatch-patterns
 description: Glob pattern matching and file filtering using minimatch. Convert glob patterns to optimized regex, batch file filtering, negation patterns, brace expansion, and ReDoS-safe usage. Sources: isaacs/minimatch.
-origin: yamtam-engine — synthesized from isaacs/minimatch (ISC License)
+origin: yana-ai — synthesized from isaacs/minimatch (ISC License)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /glob-minimatch-patterns
@@ -63,7 +63,7 @@ function filterFiles(
 
 // Example: all skill files, excluding drafts
 const skills = filterFiles(
-  '/workspaces/yamtam-engine/core/skills',
+  '/workspaces/yana-ai/core/skills',
   ['*/SKILL.md'],
   ['**/draft-*', '**/*.bak']
 )

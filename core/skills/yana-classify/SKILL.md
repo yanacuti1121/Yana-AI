@@ -2,11 +2,11 @@
 name: yana-classify
 description: "Yana's task router — classify a task description into simple/complex/external and decide next action. Use before handling any non-trivial request. Triggers on: 'classify task', 'route task', 'yana classify', 'what kind of task', 'should I handle this myself', 'dispatch or handle', 'yana router', 'task type', 'route request', 'auto or agent'."
 tier: TIER 2 — CORRECTNESS
-source: yamtam-engine (yana-router, src/route.rs)
+source: yana-ai (yana-router, src/route.rs)
 ---
 
 # yana-classify — Yana Task Router
-# Source: yamtam-engine internal — src/route.rs (yana-router Rust subcommand)
+# Source: yana-ai internal — src/route.rs (yana-router Rust subcommand)
 
 Classify bất kỳ task description nào → **simple / complex / external** để Yana
 quyết định tự xử lý hay cần dispatch agent / xin xác nhận anh.

@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/veniceai/skills (skill: venice-x402)"
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Venice x402 (wallet credits)

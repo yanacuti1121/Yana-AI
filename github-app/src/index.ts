@@ -13,7 +13,7 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.get('/', (c) => c.text('Yana AI GitHub App — webhook receiver'));
 
-app.get('/health', (c) => c.json({ status: 'ok', app: 'yana-ai-github-app' }));
+app.get('/health', (c) => c.json({ status: 'ok', app: 'yana-github-app' }));
 
 app.post('/webhook', async (c) => {
   const event = c.req.header('x-github-event');

@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — game-studio/react-three-fiber-game (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # React Three Fiber Game

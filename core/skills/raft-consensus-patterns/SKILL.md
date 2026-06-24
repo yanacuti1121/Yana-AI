@@ -1,10 +1,10 @@
 ---
 name: raft-consensus-patterns
 description: Raft distributed consensus algorithm patterns. Leader election, log replication, safety invariants, snapshot/compaction, and membership changes for replicated agent state machines. Sources: hashicorp/raft (MPL-2.0).
-origin: yamtam-engine — synthesized from hashicorp/raft (MPL-2.0), Raft paper (Ongaro & Ousterhout)
+origin: yana-ai — synthesized from hashicorp/raft (MPL-2.0), Raft paper (Ongaro & Ousterhout)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.50
+compatibility: yana-ai >= 1.3.50
 ---
 
 # /raft-consensus-patterns

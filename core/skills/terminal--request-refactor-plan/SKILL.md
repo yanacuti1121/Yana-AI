@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/TerminalSkills/skills (skill: request-refactor-plan)"
 license: Apache-2.0
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 This skill will be invoked when the user wants to create a refactor request. You should go through the steps below. You may skip steps if you don't consider them necessary.

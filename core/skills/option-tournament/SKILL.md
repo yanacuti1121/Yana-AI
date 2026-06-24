@@ -2,7 +2,7 @@
 name: option-tournament
 description: "Generate many candidate options across different styles (concise, simple, creative, professional), then run pairwise elimination rounds to select the top 3 with reasons. Use when asked for 'phương án', 'cho mấy phương án', 'generate options and pick best', 'so sánh phương án', 'naming candidates', 'top 3 approaches', 'loại dần phương án yếu', or 'which wording is best'. Do NOT use for: prioritizing a task list — see pairwise-prioritization. Do NOT use for: exploring solution trees in reasoning — see tree-of-thoughts."
 tier: TIER 3 — CONSISTENCY
-source: yamtam-engine (anh Tâm prompt pack, 2026-06-10)
+source: yana-ai (anh Tâm prompt pack, 2026-06-10)
 ---
 
 # Option Tournament — Cho phương án thi đấu

@@ -4,7 +4,7 @@ description: Multi-phase context compression — prune old tool results, protect
 origin: NousResearch/hermes-agent (MIT) — agent/context_compressor.py
 license: MIT
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 ## Implementation (real, runnable — added 2026-06-19)

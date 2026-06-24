@@ -1,10 +1,10 @@
 ---
 name: color-math-system
 description: Mathematically correct color system generation. Produces WCAG-compliant palettes, dark mode pairs, gradient smoothing, and dominant color extraction using LCH/LAB color math. Sources: framer/motion-palette, hughsk/color-space, gka/chroma.js, ant-design/ant-design-colors, atlassian/colors, and 5 others.
-origin: yamtam-engine — synthesized from framer/motion-palette, steveruizok/perfect-freehand, hughsk/color-space, ixora/color-thief, gka/chroma.js, meodai/color-names, ant-design/ant-design-colors, atlassian/colors, primer/github-colors, tailwindlabs/tailwindcss-palette-generator
+origin: yana-ai — synthesized from framer/motion-palette, steveruizok/perfect-freehand, hughsk/color-space, ixora/color-thief, gka/chroma.js, meodai/color-names, ant-design/ant-design-colors, atlassian/colors, primer/github-colors, tailwindlabs/tailwindcss-palette-generator
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.35
+compatibility: yana-ai >= 1.3.35
 ---
 
 # /color-math-system

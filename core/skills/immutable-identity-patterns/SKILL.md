@@ -1,10 +1,10 @@
 ---
 name: immutable-identity-patterns
 description: Immutable agent identity using content-addressed identifiers. ethr-did patterns, deterministic ID generation from public key hash, identity anchoring, and verifiable credential issuance. Sources: uport-project/ethr-did.
-origin: yamtam-engine — synthesized from uport-project/ethr-did (Apache-2.0)
+origin: yana-ai — synthesized from uport-project/ethr-did (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /immutable-identity-patterns

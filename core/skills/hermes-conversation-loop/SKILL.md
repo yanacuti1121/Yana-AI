@@ -4,7 +4,7 @@ description: Production-grade agent conversation loop — iteration budget with 
 origin: NousResearch/hermes-agent (MIT) — agent/conversation_loop.py
 license: MIT
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 ## Implementation (partial — added 2026-06-19)

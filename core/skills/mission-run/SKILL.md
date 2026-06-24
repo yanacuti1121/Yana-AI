@@ -1,12 +1,12 @@
 ---
 name: mission-run
 description: "Parallel multi-agent mission loop using yamtam-rt — decompose task into subtasks with deps, dispatch waves, collect reports, apply changes. Use when yana-classify returns route: complex. Triggers on: 'mission run', 'run mission', 'dispatch agents', 'parallel agents', 'multi-agent task', 'orchestrate agents', 'coordinate agents', 'agent mission', 'wave dispatch', 'mission loop', 'dispatch loop', 'parallel dispatch', 'yamtam-rt mission'."
-source: yamtam-engine (src/mission/mod.rs)
+source: yana-ai (src/mission/mod.rs)
 tier: TIER 2 — CORRECTNESS
 ---
 
 # mission-run — Parallel Multi-Agent Mission Loop
-# Source: yamtam-engine internal (src/mission/mod.rs)
+# Source: yana-ai internal (src/mission/mod.rs)
 
 Chạy toàn bộ vòng lặp: tạo mission → khai báo tasks với deps → dispatch
 wave-by-wave → collect reports → apply → repeat cho đến khi done hoặc blocked.

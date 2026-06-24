@@ -1,10 +1,10 @@
 ---
 name: flow-anchor-connection
 description: Visual flow connection patterns for generative UI agent workflows. jsPlumb anchor point architecture, connector routing, endpoint management, and dynamic flow diagram generation from agent pipeline state. Sources: jsplumb/jsplumb.
-origin: yamtam-engine — synthesized from jsplumb/jsplumb (MIT), jsPlumb Community Edition
+origin: yana-ai — synthesized from jsplumb/jsplumb (MIT), jsPlumb Community Edition
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /flow-anchor-connection

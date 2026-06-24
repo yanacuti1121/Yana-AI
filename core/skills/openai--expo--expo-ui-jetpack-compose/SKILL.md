@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — expo/expo-ui-jetpack-compose (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 > The instructions in this skill apply to SDK 55 only. For other SDK versions, refer to the Expo UI Jetpack Compose docs for that version for the most accurate information.

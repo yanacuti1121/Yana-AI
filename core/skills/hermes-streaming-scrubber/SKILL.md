@@ -4,7 +4,7 @@ description: Scrub <memory-context> tags from LLM streaming output before displa
 origin: NousResearch/hermes-agent (MIT) — agent/memory_manager.py
 license: MIT
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 ## Implementation (real, runnable — added 2026-06-19)

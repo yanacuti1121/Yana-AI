@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/TerminalSkills/skills (skill: n8n-workflow-sdk)"
 license: Sustainable Use License
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # n8n Workflow SDK

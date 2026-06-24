@@ -1,10 +1,10 @@
 ---
 name: owasp-llm-top10
 description: OWASP Top 10 for LLM applications — full checklist for AI agent systems. Prompt injection, insecure output, training data poisoning, DoS, supply chain, sensitive info disclosure, insecure plugins, excessive agency, overreliance, and model theft. Sources: OWASP/www-project-top-10-for-large-language-model-applications, guardrails-ai/guardrails, MITRE ATLAS, NIST AI RMF, leondz/garak.
-origin: yamtam-engine — synthesized from OWASP/www-project-top-10-for-large-language-model-applications, guardrails-ai/guardrails, MITRE/ATLAS, NIST/AI-RMF, leondz/garak, simonw/llm (Simon Willison indirect injection research), Riley Goodside prompt injection research, langchain-ai/langchain (guardrails), BerriAI/litellm (proxy guardrails)
+origin: yana-ai — synthesized from OWASP/www-project-top-10-for-large-language-model-applications, guardrails-ai/guardrails, MITRE/ATLAS, NIST/AI-RMF, leondz/garak, simonw/llm (Simon Willison indirect injection research), Riley Goodside prompt injection research, langchain-ai/langchain (guardrails), BerriAI/litellm (proxy guardrails)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.40
+compatibility: yana-ai >= 1.3.40
 ---
 
 # /owasp-llm-top10

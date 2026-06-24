@@ -1,10 +1,10 @@
 ---
 name: keccak256-hash-patterns
 description: Keccak256 and ethers.js cryptographic utilities for hash-chain integrity. keccak256 of log entries, ABI encoding, hex data manipulation, event topic hashing, and Ethereum-compatible hash structures. Sources: ethers-io/ethers.js.
-origin: yamtam-engine — synthesized from ethers-io/ethers.js (MIT)
+origin: yana-ai — synthesized from ethers-io/ethers.js (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /keccak256-hash-patterns

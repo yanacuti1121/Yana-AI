@@ -1,10 +1,10 @@
 ---
 name: kv-cache-optimization
 description: KV-cache optimization patterns for LLM inference. Prefix caching, sliding window attention, cache reuse across turns, static cache for fixed prompts, and TTFT reduction strategies. Sources: huggingface/transformers (Apache-2.0).
-origin: yamtam-engine — synthesized from huggingface/transformers (Apache-2.0)
+origin: yana-ai — synthesized from huggingface/transformers (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /kv-cache-optimization

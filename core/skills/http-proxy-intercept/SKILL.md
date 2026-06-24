@@ -1,10 +1,10 @@
 ---
 name: http-proxy-intercept
 description: HTTP/HTTPS proxy interception for agent network traffic. Trap outbound requests, inspect headers/bodies, enforce domain allowlists, inject auth tokens, and block SSRF targets. Sources: http-party/node-http-proxy.
-origin: yamtam-engine — synthesized from http-party/node-http-proxy (MIT)
+origin: yana-ai — synthesized from http-party/node-http-proxy (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /http-proxy-intercept

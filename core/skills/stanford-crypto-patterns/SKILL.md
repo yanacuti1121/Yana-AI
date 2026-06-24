@@ -1,10 +1,10 @@
 ---
 name: stanford-crypto-patterns
 description: Side-channel-resistant cryptography patterns from Stanford SJCL. Constant-time operations, AES-CCM authenticated encryption, PBKDF2 key derivation, random number generation, and timing-attack-safe comparisons. Sources: bitwiseshiftleft/sjcl (Stanford JavaScript Crypto Library).
-origin: yamtam-engine — synthesized from bitwiseshiftleft/sjcl (BSD-2-Clause, Stanford University)
+origin: yana-ai — synthesized from bitwiseshiftleft/sjcl (BSD-2-Clause, Stanford University)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /stanford-crypto-patterns

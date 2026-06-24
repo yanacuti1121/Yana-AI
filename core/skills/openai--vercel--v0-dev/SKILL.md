@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — vercel/v0-dev (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # v0 by Vercel

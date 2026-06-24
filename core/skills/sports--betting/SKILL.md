@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/machina-sports/sports-skills (skill: betting)"
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Betting Analysis

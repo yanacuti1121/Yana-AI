@@ -1,10 +1,10 @@
 ---
 name: vllm-paged-attention
 description: vLLM PagedAttention KV-cache management for high-throughput LLM serving. Continuous batching, memory utilization, OpenAI-compatible API, and multi-LoRA serving patterns. Sources: vllm-project/vllm (Apache-2.0).
-origin: yamtam-engine — synthesized from vllm-project/vllm (Apache-2.0)
+origin: yana-ai — synthesized from vllm-project/vllm (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /vllm-paged-attention

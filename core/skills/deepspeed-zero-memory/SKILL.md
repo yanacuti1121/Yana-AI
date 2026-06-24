@@ -1,10 +1,10 @@
 ---
 name: deepspeed-zero-memory
 description: DeepSpeed ZeRO memory optimization for large model training and inference. ZeRO-1/2/3 stages, CPU/NVMe offloading, ZeRO-Inference for multi-GPU serving, and memory footprint formulas. Sources: microsoft/DeepSpeed (Apache-2.0).
-origin: yamtam-engine — synthesized from microsoft/DeepSpeed (Apache-2.0)
+origin: yana-ai — synthesized from microsoft/DeepSpeed (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /deepspeed-zero-memory

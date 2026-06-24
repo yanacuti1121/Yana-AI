@@ -1,10 +1,10 @@
 ---
 name: vector-distance-metrics
 description: Vector similarity and distance algorithms for agent memory ranking. Cosine similarity, Euclidean distance, Manhattan distance, Jaccard, Hamming, and when to use each metric for different embedding types. Sources: mljs/distance.
-origin: yamtam-engine — synthesized from mljs/distance (MIT), Pinecone distance metric docs
+origin: yana-ai — synthesized from mljs/distance (MIT), Pinecone distance metric docs
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /vector-distance-metrics

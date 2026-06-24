@@ -1,10 +1,10 @@
 ---
 name: memgpt-virtual-context
 description: MemGPT virtual context — OS virtual-memory analogy for LLM context management. Two-tier (main context = RAM, external store = disk), page-in/page-out tools, archival/core memory split. Foundation for Letta, Mem0, multi-session persistence. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /memgpt-virtual-context

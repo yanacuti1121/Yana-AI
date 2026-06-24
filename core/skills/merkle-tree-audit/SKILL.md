@@ -1,10 +1,10 @@
 ---
 name: merkle-tree-audit
 description: Merkle tree construction for tamper-evident audit logs. Build Merkle root from audit log hashes, proof generation and verification, incremental append, and integrating with secure-logger.sh for L0 hash-chain integrity. Sources: miguelmota/merkletreejs.
-origin: yamtam-engine — synthesized from miguelmota/merkletreejs (MIT)
+origin: yana-ai — synthesized from miguelmota/merkletreejs (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /merkle-tree-audit

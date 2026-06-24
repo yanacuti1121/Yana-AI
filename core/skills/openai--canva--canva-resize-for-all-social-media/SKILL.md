@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — canva/canva-resize-for-all-social-media (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Canva Resize For Social Media

@@ -1,10 +1,10 @@
 ---
 name: wasmer-wasm-runtime
 description: Wasmer universal WASM runtime — Singlepass/Cranelift/LLVM backend selection, WASI support, embedded runtimes in Rust/Go/JS/Python/C. Run WASM modules from any host language. Sources: wasmerio/wasmer (MIT).
-origin: yamtam-engine — synthesized from wasmerio/wasmer (MIT)
+origin: yana-ai — synthesized from wasmerio/wasmer (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /wasmer-wasm-runtime

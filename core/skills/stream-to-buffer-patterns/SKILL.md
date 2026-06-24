@@ -1,10 +1,10 @@
 ---
 name: stream-to-buffer-patterns
 description: Safely collect stream data into a string or buffer. get-stream patterns, size limits to prevent OOM, encoding handling, binary vs text streams, and timeout guards. Sources: sindresorhus/get-stream.
-origin: yamtam-engine — synthesized from sindresorhus/get-stream (MIT)
+origin: yana-ai — synthesized from sindresorhus/get-stream (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /stream-to-buffer-patterns

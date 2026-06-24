@@ -1,10 +1,10 @@
 ---
 name: magic-string-sourcemap
 description: Source string mutation with automatic source map tracking. In-place overwrite, insertion, removal, and prepend/append operations that preserve accurate sourcemap positions for patch loops and codemods. Sources: unjs/magic-string (MIT).
-origin: yamtam-engine — synthesized from unjs/magic-string (MIT)
+origin: yana-ai — synthesized from unjs/magic-string (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /magic-string-sourcemap

@@ -1,10 +1,10 @@
 ---
 name: streaming-llm-infinite-context
 description: StreamingLLM attention sink patterns for infinite-context LLM inference. Attention sink tokens, rolling KV cache window, no recomputation on eviction, and enabling agents to process arbitrarily long sessions. Sources: mit-han-lab/streaming-llm (MIT).
-origin: yamtam-engine — synthesized from mit-han-lab/streaming-llm (MIT)
+origin: yana-ai — synthesized from mit-han-lab/streaming-llm (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /streaming-llm-infinite-context

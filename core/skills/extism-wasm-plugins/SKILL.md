@@ -1,10 +1,10 @@
 ---
 name: extism-wasm-plugins
 description: Extism plugin system — multi-language WASM plugins (Rust/Go/JS/Python/C) with PDK, host functions, shared memory protocol. Build extensible agent tools where each plugin is an isolated WASM module. Sources: extism/extism (BSD-3-Clause).
-origin: yamtam-engine — synthesized from extism/extism (BSD-3-Clause)
+origin: yana-ai — synthesized from extism/extism (BSD-3-Clause)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /extism-wasm-plugins

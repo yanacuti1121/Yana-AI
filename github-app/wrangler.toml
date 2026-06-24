@@ -1,7 +1,8 @@
-name = "yana-ai-github-app"
+name = "yana-github-app"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "4fbd0d5366c3ae24fb7aec18ba7ddefc"
 
 [vars]
 APP_ID = "3936497"

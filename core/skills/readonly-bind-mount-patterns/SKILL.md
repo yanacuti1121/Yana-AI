@@ -1,10 +1,10 @@
 ---
 name: readonly-bind-mount-patterns
 description: Read-only bind mount patterns for safe source code analysis. Mount workspace as ro inside containers, overlayfs for copy-on-write analysis, Docker ro bind mounts, detecting unauthorized writes before they reach source. Sources: docker/cli, OCI spec, overlayfs docs.
-origin: yamtam-engine — synthesized from docker/cli (Apache-2.0), Linux overlayfs documentation
+origin: yana-ai — synthesized from docker/cli (Apache-2.0), Linux overlayfs documentation
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /readonly-bind-mount-patterns
@@ -39,7 +39,7 @@ readonly_bind() {
   trap "umount -l '$dest'" EXIT
 }
 
-readonly_bind /workspaces/yamtam-engine /sandbox/workspace
+readonly_bind /workspaces/yana-ai /sandbox/workspace
 ```
 
 ---
@@ -70,7 +70,7 @@ setup_cow_workspace() {
 }
 
 trap 'umount /tmp/sandbox-merged 2>/dev/null || true' EXIT
-setup_cow_workspace /workspaces/yamtam-engine
+setup_cow_workspace /workspaces/yana-ai
 ```
 
 ---
@@ -128,7 +128,7 @@ ausearch -k workspace_write -ts recent --format csv | \
   {
     "destination": "/workspace",
     "type":        "bind",
-    "source":      "/workspaces/yamtam-engine",
+    "source":      "/workspaces/yana-ai",
     "options":     ["rbind","ro","nosuid","nodev"]
   },
   {

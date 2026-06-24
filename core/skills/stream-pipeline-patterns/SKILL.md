@@ -1,10 +1,10 @@
 ---
 name: stream-pipeline-patterns
 description: Node.js stream pipeline management with automatic cleanup. pump/pipeline error propagation, transform stream chains, backpressure handling, and preventing stream leaks when one stage errors. Sources: mafintosh/pump, Node.js stream.pipeline.
-origin: yamtam-engine — synthesized from mafintosh/pump (MIT), Node.js stream.pipeline docs
+origin: yana-ai — synthesized from mafintosh/pump (MIT), Node.js stream.pipeline docs
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /stream-pipeline-patterns

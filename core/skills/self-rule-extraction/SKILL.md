@@ -2,7 +2,7 @@
 name: self-rule-extraction
 description: "Mine session history for recurring mistakes and distill them into short CLAUDE.md rules. Use when asked to 'rút rule', 'tự rút rule', 'extract rules from sessions', 'lỗi lặp đi lặp lại', 'review past sessions for mistakes', 'optimize CLAUDE.md from history', 'gom lỗi thành rule', or 'what do I keep fixing'. Do NOT use for: generating a CLAUDE.md from scratch — see claude-md-enhancer. Do NOT use for: one-off retrospectives — see session-wrap."
 tier: TIER 3 — CONSISTENCY
-source: yamtam-engine (anh Tâm prompt pack, 2026-06-10)
+source: yana-ai (anh Tâm prompt pack, 2026-06-10)
 ---
 
 # Self-Rule Extraction — Tự rút rule từ lịch sử session

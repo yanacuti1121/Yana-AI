@@ -4,7 +4,7 @@ description: "Self-hosted open-source collaboration platform — chat, bots, web
 origin: mattermost/mattermost
 license: MIT + Enterprise (dual)
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Bash, Read, Write, WebFetch
 ---
 

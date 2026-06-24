@@ -1,10 +1,10 @@
 ---
 name: append-only-hypercore
 description: Merkle-tree-backed append-only log for distributed audit trails. Hypercore feed creation, append entries, replicate over network, sparse access, and integration with L0 audit hash-chain. Sources: holepunchto/hypercore.
-origin: yamtam-engine — synthesized from holepunchto/hypercore (MIT)
+origin: yana-ai — synthesized from holepunchto/hypercore (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /append-only-hypercore

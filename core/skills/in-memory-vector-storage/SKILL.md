@@ -1,10 +1,10 @@
 ---
 name: in-memory-vector-storage
 description: In-memory vector index with JSON persistence for small-scale agent RAG. Upsert/query/delete embeddings, cosine similarity search, JSON snapshot save/load, and memory-budget enforcement. Sources: wseagar/vector-storage.
-origin: yamtam-engine — synthesized from wseagar/vector-storage (MIT)
+origin: yana-ai — synthesized from wseagar/vector-storage (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /in-memory-vector-storage
@@ -98,7 +98,7 @@ async function indexSkills(skillsDir: string, embedFn: (text: string) => Promise
     const vec = await embedFn(desc)
     vectorStore.upsert(skill, vec, { path, skill })
   }
-  vectorStore.save('/workspaces/yamtam-engine/core/memory/skills-index.json')
+  vectorStore.save('/workspaces/yana-ai/core/memory/skills-index.json')
 }
 ```
 

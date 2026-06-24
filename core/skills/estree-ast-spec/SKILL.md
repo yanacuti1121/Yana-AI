@@ -1,10 +1,10 @@
 ---
 name: estree-ast-spec
 description: ESTree standard AST node types for JavaScript analysis. Node structure reference, custom AST walkers, node type guards, and building AST-based tools from the official ECMAScript AST specification. Sources: estree/estree (MIT).
-origin: yamtam-engine — synthesized from estree/estree (MIT)
+origin: yana-ai — synthesized from estree/estree (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /estree-ast-spec

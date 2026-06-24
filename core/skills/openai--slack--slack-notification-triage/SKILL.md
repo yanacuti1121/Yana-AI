@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — slack/slack-notification-triage (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Slack Notification Triage

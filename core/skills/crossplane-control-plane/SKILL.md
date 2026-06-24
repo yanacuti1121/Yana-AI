@@ -1,10 +1,10 @@
 ---
 name: crossplane-control-plane
 description: Crossplane universal control plane for cloud resource management via Kubernetes. Composite Resources (XR), Compositions, provider configuration, and managing AWS/GCP/Azure resources with kubectl. Sources: crossplane/crossplane (Apache-2.0).
-origin: yamtam-engine — synthesized from crossplane/crossplane (Apache-2.0)
+origin: yana-ai — synthesized from crossplane/crossplane (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.52
+compatibility: yana-ai >= 1.3.52
 ---
 
 # /crossplane-control-plane

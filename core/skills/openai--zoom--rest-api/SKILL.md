@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — zoom/rest-api (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Build Zoom REST API App

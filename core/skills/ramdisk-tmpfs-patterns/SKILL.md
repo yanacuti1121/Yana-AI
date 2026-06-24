@@ -1,10 +1,10 @@
 ---
 name: ramdisk-tmpfs-patterns
 description: RAM-backed virtual disk patterns for zero-latency sandbox scratch space. Linux tmpfs mounts, Node.js ramdisk creation, size-capped temp volumes, auto-cleanup on process exit, and race-condition-free temp directory isolation. Sources: mafintosh/ramdisk, Linux tmpfs docs.
-origin: yamtam-engine — synthesized from mafintosh/ramdisk (MIT), Linux kernel tmpfs documentation
+origin: yana-ai — synthesized from mafintosh/ramdisk (MIT), Linux kernel tmpfs documentation
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /ramdisk-tmpfs-patterns

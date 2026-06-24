@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — twilio-developer-kit/twilio-sendgrid-email-send (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 ## Overview

@@ -1,10 +1,10 @@
 ---
 name: skill-library-voyager
 description: Skill library patterns from Voyager — executable code as skills, semantic retrieval, composition, failure-driven refinement. Maps to Claude Agent SDK skills, skillkit, lifelong learning agents. Sources: rohitg00/ai-engineering-from-scratch (Apache-2.0).
-origin: yamtam-engine — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
+origin: yana-ai — synthesized from rohitg00/ai-engineering-from-scratch (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 # /skill-library-voyager

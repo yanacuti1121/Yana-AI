@@ -1,10 +1,10 @@
 ---
 name: typography-scale
 description: Mathematical typography scale system. Generates harmonious type hierarchies using golden ratio, perfect fifth, and other classical scales. Handles font pairing, line-height binding, CJK/special character spacing, and system font optimization. Sources: type-scale.com, google/fonts, braid-design-system, guardian/frontend, nytimes/typography, and 5 others.
-origin: yamtam-engine — synthesized from type-scale/type-scale.com, google/fonts, components-ai/theme, vladocar/minimal-css-typography, rasmusbe/font-smoothing, braid-design-system/braid, guardian/frontend, sparanoid/chinese-copywriting-guidelines, tachyons-css/tachyons-typography, nytimes/typography
+origin: yana-ai — synthesized from type-scale/type-scale.com, google/fonts, components-ai/theme, vladocar/minimal-css-typography, rasmusbe/font-smoothing, braid-design-system/braid, guardian/frontend, sparanoid/chinese-copywriting-guidelines, tachyons-css/tachyons-typography, nytimes/typography
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.35
+compatibility: yana-ai >= 1.3.35
 ---
 
 # /typography-scale

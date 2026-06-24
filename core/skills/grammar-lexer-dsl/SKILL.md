@@ -1,10 +1,10 @@
 ---
 name: grammar-lexer-dsl
 description: Grammar definition, lexing, and DSL compilation patterns for AI agent config parsing. Chevrotain high-performance LL(k) parser for custom rule DSLs, Handlebars safe template compilation without eval, marked Markdown-to-HTML with custom renderer, Prism tokenization for syntax highlighting, PEG.js parser generator from grammar expressions. Sources: chevrotain/chevrotain, handlebars-lang/handlebars.js, markedjs/marked, prismjs/prism, pegjs/pegjs.
-origin: yamtam-engine — synthesized from chevrotain/chevrotain, handlebars-lang/handlebars.js, markedjs/marked, prismjs/prism, pegjs/pegjs
+origin: yana-ai — synthesized from chevrotain/chevrotain, handlebars-lang/handlebars.js, markedjs/marked, prismjs/prism, pegjs/pegjs
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.46
+compatibility: yana-ai >= 1.3.46
 ---
 
 # /grammar-lexer-dsl

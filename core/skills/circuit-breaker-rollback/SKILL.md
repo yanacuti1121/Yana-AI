@@ -147,7 +147,7 @@ async function emergencyRollback() {
   const actual = sha256(readFileSync(snapshotPath));
   if (actual !== lastGoodRoot) throw new Error('SNAPSHOT_TAMPERED');
 
-  execSync(`tar -xzf ${snapshotPath} -C /workspaces/yamtam-engine/`);
+  execSync(`tar -xzf ${snapshotPath} -C /workspaces/yana-ai/`);
   secureLogger.logAction('system', 'emergency-rollback', 'PASS', { root: lastGoodRoot });
 }
 ```

@@ -1,10 +1,10 @@
 ---
 name: llm-eval-framework
 description: LLM evaluation harness for accuracy benchmarking. MMLU/HumanEval/MATH eval runners, model-graded scoring, prompt regression testing, and per-skill accuracy tracking. Sources: openai/simple-evals (MIT).
-origin: yamtam-engine — synthesized from openai/simple-evals (MIT)
+origin: yana-ai — synthesized from openai/simple-evals (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /llm-eval-framework

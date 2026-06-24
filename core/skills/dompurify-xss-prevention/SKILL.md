@@ -1,10 +1,10 @@
 ---
 name: dompurify-xss-prevention
 description: DOMPurify XSS sanitization for HTML content in agent outputs. Strip script tags and event handlers, allowlist-based tag/attribute filtering, sanitize LLM-generated HTML before rendering, and defend against DOM clobbering. Sources: cure53/DOMPurify.
-origin: yamtam-engine — synthesized from cure53/DOMPurify (Apache-2.0)
+origin: yana-ai — synthesized from cure53/DOMPurify (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /dompurify-xss-prevention

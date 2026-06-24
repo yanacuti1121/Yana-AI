@@ -1,10 +1,10 @@
 ---
 name: advanced-color-math
 description: Advanced color science and dynamic palette generation from 20 production repos. LCH/OKLAB perceptual math, dark-mode pair algorithms, contrast enforcement, gamut mapping, CSS color-mix(), and color extraction from images. Sources: chroma.js, culori, color.js, tinycolor2, d3-color, radix-ui/colors, primer/primitives, open-color, Ant Design palette, Atlassian color, Shopify Polaris tokens, vanilla-colorful, colorette, color2k, react-colorful, polychrome, bottosson/oklab, values.css, khroma, nivo/colors.
-origin: yamtam-engine — synthesized from gka/chroma.js, Evercoder/culori, nicowillis/colorjs, bgrins/tinycolor, d3/d3-color, radix-ui/colors, primer/primitives, yeun/open-color, ant-design/ant-design (palette algo), atlassian/atlassian-frontend-mirror, Shopify/polaris-tokens, web-padawan/vanilla-colorful, jorgebucaran/colorette, ricokahler/color2k, omgovich/react-colorful, Adechizy/polychrome, bottosson/oklab, values-css/values.css, google/khroma, plouc/nivo
+origin: yana-ai — synthesized from gka/chroma.js, Evercoder/culori, nicowillis/colorjs, bgrins/tinycolor, d3/d3-color, radix-ui/colors, primer/primitives, yeun/open-color, ant-design/ant-design (palette algo), atlassian/atlassian-frontend-mirror, Shopify/polaris-tokens, web-padawan/vanilla-colorful, jorgebucaran/colorette, ricokahler/color2k, omgovich/react-colorful, Adechizy/polychrome, bottosson/oklab, values-css/values.css, google/khroma, plouc/nivo
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.37
+compatibility: yana-ai >= 1.3.37
 ---
 
 # /advanced-color-math

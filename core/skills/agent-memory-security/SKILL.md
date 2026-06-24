@@ -1,10 +1,10 @@
 ---
 name: agent-memory-security
 description: Agent memory system security — poisoning prevention, L1/L2 integrity, context window attacks, memory exfiltration defense, and session isolation. Sources: anthropic/model-spec (minimal footprint), OWASP LLM01/LLM02, langchain-ai/langchain (memory modules), memgpt/memgpt, microsoft/autogen (agent memory), chromadb/chroma.
-origin: yamtam-engine — synthesized from anthropic/model-spec, OWASP/www-project-top-10-for-large-language-model-applications (LLM01, LLM02), langchain-ai/langchain (ConversationBufferMemory, VectorStoreRetrieverMemory), cpacker/MemGPT, microsoft/autogen (agent memory), chromadb/chroma, pinecone-io/pinecone-python-client
+origin: yana-ai — synthesized from anthropic/model-spec, OWASP/www-project-top-10-for-large-language-model-applications (LLM01, LLM02), langchain-ai/langchain (ConversationBufferMemory, VectorStoreRetrieverMemory), cpacker/MemGPT, microsoft/autogen (agent memory), chromadb/chroma, pinecone-io/pinecone-python-client
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.40
+compatibility: yana-ai >= 1.3.40
 ---
 
 # /agent-memory-security

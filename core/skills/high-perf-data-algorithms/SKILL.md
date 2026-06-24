@@ -1,10 +1,10 @@
 ---
 name: high-perf-data-algorithms
 description: High-performance data processing patterns from 5 repos. O(n log n) array algorithms, lazy evaluation chains, statistical computation on raw data, streaming JSON parsing for large files, and concurrent async queue management. Sources: d3/d3-array, lodash/lodash, simple-statistics/simple-statistics, vitorperes/json-stream, sindresorhus/p-queue.
-origin: yamtam-engine — synthesized from d3/d3-array, lodash/lodash, simple-statistics/simple-statistics, vitorperes/json-stream (jsonstream), sindresorhus/p-queue
+origin: yana-ai — synthesized from d3/d3-array, lodash/lodash, simple-statistics/simple-statistics, vitorperes/json-stream (jsonstream), sindresorhus/p-queue
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.38
+compatibility: yana-ai >= 1.3.38
 ---
 
 # /high-perf-data-algorithms

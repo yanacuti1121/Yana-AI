@@ -4,7 +4,7 @@ description: "ByteDance's open-source super agent harness — spawns parallel su
 origin: bytedance/deer-flow (Apache-2.0)
 license: Apache-2.0
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Bash, Read, Write, WebFetch
 ---
 

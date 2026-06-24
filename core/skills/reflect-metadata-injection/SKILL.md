@@ -1,10 +1,10 @@
 ---
 name: reflect-metadata-injection
 description: Runtime metadata reflection for TypeScript dependency injection. Decorator-based class metadata, design:type/paramtypes annotation, custom metadata keys, and DI container bootstrap. Sources: rbuckton/reflect-metadata (Apache-2.0).
-origin: yamtam-engine — synthesized from rbuckton/reflect-metadata (Apache-2.0)
+origin: yana-ai — synthesized from rbuckton/reflect-metadata (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /reflect-metadata-injection

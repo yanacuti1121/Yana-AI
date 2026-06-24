@@ -1,10 +1,10 @@
 ---
 name: needle-haystack-context
 description: Needle-in-a-Haystack context placement testing for LLM retrieval accuracy. Context window stress tests, information placement strategies, lost-in-the-middle avoidance, and optimal document ordering for agent prompts. Sources: gkamradt/LLMTest_NeedleInAHaystack (MIT).
-origin: yamtam-engine — synthesized from gkamradt/LLMTest_NeedleInAHaystack (MIT)
+origin: yana-ai — synthesized from gkamradt/LLMTest_NeedleInAHaystack (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /needle-haystack-context

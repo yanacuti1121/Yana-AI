@@ -3,10 +3,20 @@
 *.env.*
 .env.local
 .env.production
+*.pem
+*.key
+*.p12
+*.pfx
+*private-key*
+docs/*.pem
+docs/*private-key*
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Vet-repo staging zips — never under docs/ (live Cloudflare Worker assets dir, 25 MiB limit)
+.vet-staging/
 
 # Node
 node_modules/

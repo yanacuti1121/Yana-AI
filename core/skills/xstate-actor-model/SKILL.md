@@ -1,10 +1,10 @@
 ---
 name: xstate-actor-model
 description: XState finite state machines and actor model for agent lifecycle management. State/transition definitions, guards, actions, spawned child actors, and agent state visualization. Sources: statelyai/xstate (MIT).
-origin: yamtam-engine — synthesized from statelyai/xstate (MIT)
+origin: yana-ai — synthesized from statelyai/xstate (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.50
+compatibility: yana-ai >= 1.3.50
 ---
 
 # /xstate-actor-model

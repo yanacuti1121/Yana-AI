@@ -1,10 +1,10 @@
 ---
 name: memory-leak-detection
 description: Node.js memory leak detection and heap profiling. node-memwatch heap diffing, V8 heap snapshots, GC event monitoring, heap growth trending, and leak remediation patterns. Sources: lloyd/node-memwatch, Node.js v8 module.
-origin: yamtam-engine — synthesized from lloyd/node-memwatch (BSD-2-Clause), Node.js v8 heap docs
+origin: yana-ai — synthesized from lloyd/node-memwatch (BSD-2-Clause), Node.js v8 heap docs
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /memory-leak-detection

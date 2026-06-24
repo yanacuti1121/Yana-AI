@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — game-studio/game-ui-frontend (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Game UI Frontend

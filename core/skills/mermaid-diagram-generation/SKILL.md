@@ -1,10 +1,10 @@
 ---
 name: mermaid-diagram-generation
 description: Generating system diagrams as Mermaid text from agent state. Flowcharts, sequence diagrams, state machines, Gantt charts, and ER diagrams — all rendered from plain text without a browser. Sources: mermaid-js/mermaid, mermaid-js/mermaid-cli.
-origin: yamtam-engine — synthesized from mermaid-js/mermaid (MIT), mermaid-js/mermaid-cli
+origin: yana-ai — synthesized from mermaid-js/mermaid (MIT), mermaid-js/mermaid-cli
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /mermaid-diagram-generation
@@ -85,7 +85,7 @@ echo 'flowchart LR; A-->B-->C' > /tmp/diagram.mmd
 mmdc -i /tmp/diagram.mmd -o /tmp/diagram.svg
 
 # Batch render all diagrams in a directory
-find /workspaces/yamtam-engine/docs -name '*.mmd' | while read -r f; do
+find /workspaces/yana-ai/docs -name '*.mmd' | while read -r f; do
   mmdc -i "$f" -o "${f%.mmd}.svg" --quiet
 done
 ```

@@ -1,10 +1,10 @@
 ---
 name: chrome-devtools-lcp-debug
 description: LCP (Largest Contentful Paint) debugging and optimization via Chrome DevTools MCP. Four subparts (TTFB/load-delay/load-duration/render-delay), performance trace workflow, insight analysis, optimization checklist. Good LCP ≤2.5s. Sources: ChromeDevTools/chrome-devtools-mcp (Apache-2.0).
-origin: yamtam-engine — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+origin: yana-ai — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /chrome-devtools-lcp-debug

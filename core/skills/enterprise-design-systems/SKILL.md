@@ -1,10 +1,10 @@
 ---
 name: enterprise-design-systems
 description: Enterprise-grade component architecture patterns from 20 production design systems. Component naming, data-dense layouts, headless patterns, accessible forms, and dev-tool UI conventions. Sources: IBM Carbon, Adobe React Spectrum, Palantir Blueprint, GitHub Primer, Microsoft Fluent, Salesforce, Workday Canvas, Twilio Paste, Pinterest Gestalt, and 11 others.
-origin: yamtam-engine — synthesized from adobe/react-spectrum, workday/canvas-kit, salesforce/design-system, carbon-design-system/carbon-components, palantir/blueprint, twilio/paste, ecomfe/echarts, pinterest/gestalt, skyscanner/backpack, hashicorp/flightdeck, kickstarter/wistful, basecamp/trix, necolas/react-native-web, segmentio/evergreen, zendeskgarden/react-components, github/primer, microsoft/fluentui, grommet/grommet, guardian/csnx, reakit/reakit
+origin: yana-ai — synthesized from adobe/react-spectrum, workday/canvas-kit, salesforce/design-system, carbon-design-system/carbon-components, palantir/blueprint, twilio/paste, ecomfe/echarts, pinterest/gestalt, skyscanner/backpack, hashicorp/flightdeck, kickstarter/wistful, basecamp/trix, necolas/react-native-web, segmentio/evergreen, zendeskgarden/react-components, github/primer, microsoft/fluentui, grommet/grommet, guardian/csnx, reakit/reakit
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.36
+compatibility: yana-ai >= 1.3.36
 ---
 
 # /enterprise-design-systems

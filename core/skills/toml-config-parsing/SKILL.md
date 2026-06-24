@@ -1,10 +1,10 @@
 ---
 name: toml-config-parsing
 description: TOML configuration file parsing for Rust/Cargo-style configs. Type-preserving parse, nested table access, array of tables, inline tables, and validation patterns. Sources: iarna/iarna-toml (toml@latest).
-origin: yamtam-engine — synthesized from iarna/iarna-toml (ISC License), TOML v1.0 spec
+origin: yana-ai — synthesized from iarna/iarna-toml (ISC License), TOML v1.0 spec
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /toml-config-parsing
@@ -12,7 +12,7 @@ compatibility: yamtam-engine >= 1.3.48
 ## When to Use
 
 - Reading Rust Cargo.toml or Python pyproject.toml in agent pipelines
-- Parsing yamtam-engine config files written in TOML format
+- Parsing yana-ai config files written in TOML format
 - Type-safe config loading where TOML's strict typing prevents ambiguity
 - Replacing JSON configs where comments are needed (TOML supports # comments)
 

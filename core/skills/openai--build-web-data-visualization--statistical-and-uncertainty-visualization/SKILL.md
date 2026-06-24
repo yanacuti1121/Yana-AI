@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — build-web-data-visualization/statistical-and-uncertainty-visualization (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Statistical and Uncertainty Visualization

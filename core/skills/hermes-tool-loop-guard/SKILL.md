@@ -4,7 +4,7 @@ description: Detect and stop within-turn tool-call failure loops and no-progress
 origin: NousResearch/hermes-agent (MIT) — agent/tool_guardrails.py
 license: MIT
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.54
+compatibility: yana-ai >= 1.3.54
 ---
 
 ## Implementation (real, runnable — added 2026-06-19)

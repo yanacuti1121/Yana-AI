@@ -1,10 +1,10 @@
 ---
 name: zip-memory-operations
 description: In-memory ZIP read/write operations without temp files. adm-zip patterns for extracting, modifying, and inspecting ZIP archives entirely in RAM — ideal for release package verification. Sources: cthackers/adm-zip.
-origin: yamtam-engine — synthesized from cthackers/adm-zip (MIT)
+origin: yana-ai — synthesized from cthackers/adm-zip (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /zip-memory-operations

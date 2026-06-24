@@ -1,10 +1,10 @@
 ---
 name: llm-load-testing
 description: LLM inference load testing for throughput and concurrency limits. Token/s benchmarks, concurrent request sweeps, latency-vs-throughput curves, and breaking-point identification. Sources: vllm-project/vllm benchmarks (Apache-2.0).
-origin: yamtam-engine — synthesized from vllm-project/vllm benchmark scripts (Apache-2.0)
+origin: yana-ai — synthesized from vllm-project/vllm benchmark scripts (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.51
+compatibility: yana-ai >= 1.3.51
 ---
 
 # /llm-load-testing

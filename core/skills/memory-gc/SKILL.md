@@ -1,10 +1,10 @@
 ---
 name: memory-gc
 description: Session-end memory garbage collector. Promotes valuable L2 session facts to L1 atomic memory, wipes L2, and rotates oversized audit logs. Run at end of session to prevent context inflation and storage bloat.
-origin: yamtam-engine (custom)
+origin: yana-ai (custom)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.34
+compatibility: yana-ai >= 1.3.34
 ---
 
 # /memory-gc — Memory Garbage Collector

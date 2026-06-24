@@ -1,10 +1,10 @@
 ---
 name: statsd-metrics-streaming
 description: Real-time metrics streaming via StatsD UDP protocol. Counter, gauge, timer, and set metrics; sampling rates; DogStatsD tags; flush intervals; and integration with Datadog/Graphite dashboards. Sources: besquare/node-statsd, statsd spec.
-origin: yamtam-engine — synthesized from besquare/node-statsd (MIT), Etsy StatsD protocol spec
+origin: yana-ai — synthesized from besquare/node-statsd (MIT), Etsy StatsD protocol spec
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /statsd-metrics-streaming

@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/TerminalSkills/skills (skill: deep-live-cam)"
 license: AGPL-3.0
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Deep-Live-Cam — Real-Time Face Swap

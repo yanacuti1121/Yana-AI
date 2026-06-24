@@ -1,10 +1,10 @@
 ---
 name: cni-network-policies
 description: Container Network Interface (CNI) plugin patterns and Kubernetes NetworkPolicy for agent network isolation. CNI plugin structure, IPAM, namespace-level firewall rules, egress restrictions, and deny-all defaults. Sources: containernetworking/plugins (Apache-2.0).
-origin: yamtam-engine — synthesized from containernetworking/plugins (Apache-2.0)
+origin: yana-ai — synthesized from containernetworking/plugins (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.52
+compatibility: yana-ai >= 1.3.52
 ---
 
 # /cni-network-policies

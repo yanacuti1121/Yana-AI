@@ -5,7 +5,7 @@ description: >-
 origin: "openai/plugins — stripe/upgrade-stripe (MIT)"
 license: MIT
 version: "0.1.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 The latest Stripe API version is 2026-02-25.clover - use this version when upgrading unless the user specifies a different target version.

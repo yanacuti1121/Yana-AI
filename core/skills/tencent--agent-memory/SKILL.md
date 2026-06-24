@@ -4,7 +4,7 @@ description: "4-tier hierarchical agent memory — compress tool logs into Merma
 origin: Tencent/TencentDB-Agent-Memory (Apache-2.0)
 license: Apache-2.0
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.41.0"
+compatibility: "yana-ai >= 0.41.0"
 allowed-tools: Read, Write, Bash
 ---
 

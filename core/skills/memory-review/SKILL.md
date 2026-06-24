@@ -10,7 +10,7 @@ description: >
 origin: adapted:NanmiCoder/cc-haha (remember.ts)
 license: MIT
 version: 1.0.0
-compatibility: "yamtam-engine >= 0.14.0. Reads: CLAUDE.md, CLAUDE.local.md, auto-memory, L1/L2."
+compatibility: "yana-ai >= 0.14.0. Reads: CLAUDE.md, CLAUDE.local.md, auto-memory, L1/L2."
 ---
 
 <!-- Adapted from cc-haha/src/skills/bundled/remember.ts (MIT). Core pattern: collect → classify → propose → await approval. Changes: adapted to yamtam memory layers (L1/L2/auto-memory), added Anti-Fake-Pass. -->

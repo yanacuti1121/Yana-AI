@@ -1,10 +1,10 @@
 ---
 name: advanced-motion-easing
 description: Production-grade motion engineering from 20 repos. Spring physics, custom easing curves, GPU compositing rules, scroll-driven animations, micro-interactions, Lottie integration, reduced-motion, and stagger choreography. Sources: framer/motion, pmndrs/react-spring, popmotion, animejs, GSAP, auto-animate, @formkit/drag-and-drop, lottie-web, use-gesture, motion-canvas, react-transition-group, swiper, embla-carousel, scrollreveal, lax.js, use-spring, react-use-gesture, theatre.js, rive-app/rive-wasm, css-spring-easing.
-origin: yamtam-engine — synthesized from framer/motion, pmndrs/react-spring, popmotion/popmotion, juliangarnier/anime, greensock/gsap, formkit/auto-animate, formkit/drag-and-drop, airbnb/lottie-web, pmndrs/use-gesture, motion-canvas/motion-canvas, reactjs/react-transition-group, nolimits4web/swiper, davidcetinkaya/embla-carousel, jlmakes/scrollreveal, alexfoxy/lax.js, nicowillis/use-spring, pmndrs/react-use-gesture, ArthurHub/theatre, rive-app/rive-wasm, nicowillis/css-spring-easing
+origin: yana-ai — synthesized from framer/motion, pmndrs/react-spring, popmotion/popmotion, juliangarnier/anime, greensock/gsap, formkit/auto-animate, formkit/drag-and-drop, airbnb/lottie-web, pmndrs/use-gesture, motion-canvas/motion-canvas, reactjs/react-transition-group, nolimits4web/swiper, davidcetinkaya/embla-carousel, jlmakes/scrollreveal, alexfoxy/lax.js, nicowillis/use-spring, pmndrs/react-use-gesture, ArthurHub/theatre, rive-app/rive-wasm, nicowillis/css-spring-easing
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.37
+compatibility: yana-ai >= 1.3.37
 ---
 
 # /advanced-motion-easing

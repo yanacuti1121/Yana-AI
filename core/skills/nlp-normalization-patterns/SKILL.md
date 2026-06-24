@@ -1,10 +1,10 @@
 ---
 name: nlp-normalization-patterns
 description: NLP text normalization for cleaner LLM context. Stemming, lemmatization, stop-word removal, entity extraction, tokenization, and sentence boundary detection — all without calling an LLM. Sources: naturalnode/natural.
-origin: yamtam-engine — synthesized from naturalnode/natural (MIT)
+origin: yana-ai — synthesized from naturalnode/natural (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /nlp-normalization-patterns

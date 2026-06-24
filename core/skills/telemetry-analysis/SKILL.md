@@ -111,4 +111,4 @@ Recommendations:
 Nếu `.claude/state/` không tồn tại:
 1. YAMTAM chưa được apply vào project này
 2. Hoặc agent đang chạy từ engine repo, không phải target project
-3. Hướng dẫn: `unzip releases/yamtam-engine-latest.zip -d .claude/`
+3. Hướng dẫn: `unzip releases/yana-ai-latest.zip -d .claude/`

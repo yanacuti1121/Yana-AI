@@ -63,7 +63,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 > **New in v0.42.0:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 218 core files against tampering (rule 67).
 
-**→ [Full documentation & demo](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -571,7 +571,7 @@ Sample output:
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [yanacuti1121.github.io/yana-ai](https://yanacuti1121.github.io/yana-ai/) |
+| Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
 

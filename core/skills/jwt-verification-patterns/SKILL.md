@@ -1,10 +1,10 @@
 ---
 name: jwt-verification-patterns
 description: JWT sign/verify with claim validation and privilege-decay enforcement. auth0/node-jsonwebtoken patterns, algorithm lockdown, expiry enforcement, scope-based authorization, and token blacklisting. Sources: auth0/node-jsonwebtoken.
-origin: yamtam-engine — synthesized from auth0/node-jsonwebtoken (MIT)
+origin: yana-ai — synthesized from auth0/node-jsonwebtoken (MIT)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.49
+compatibility: yana-ai >= 1.3.49
 ---
 
 # /jwt-verification-patterns
@@ -38,7 +38,7 @@ function issueToken(agentId: string, scopes: string[]): string {
       sub:    agentId,
       scopes,
       tier:   'fast',
-      iss:    'yamtam-engine',
+      iss:    'yana-ai',
       aud:    'swarm-bus',
     },
     PRIVATE_KEY,
@@ -60,7 +60,7 @@ function verifyToken(token: string): jwt.JwtPayload {
   // CRITICAL: always specify algorithms — prevents 'none' and algorithm confusion
   const payload = jwt.verify(token, PUBLIC_KEY, {
     algorithms:  ['RS256'],   // never omit this
-    issuer:      'yamtam-engine',
+    issuer:      'yana-ai',
     audience:    'swarm-bus',
     complete:    false,
   }) as jwt.JwtPayload

@@ -1,10 +1,10 @@
 ---
 name: state-machine-workflows
 description: State machine and durable workflow patterns for AI agents. FSM-driven agent state, XState statecharts, Temporal durable execution, input validation at every transition, and memory-efficient state switches. Sources: statelyai/xstate, jakesgordon/javascript-state-machine, temporalio/temporal, chriso/validator.js, jlongster/fsm-utils.
-origin: yamtam-engine — synthesized from statelyai/xstate, jakesgordon/javascript-state-machine, temporalio/temporal, chriso/validator.js (validatorjs), jlongster/fsm-utils
+origin: yana-ai — synthesized from statelyai/xstate, jakesgordon/javascript-state-machine, temporalio/temporal, chriso/validator.js (validatorjs), jlongster/fsm-utils
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.43
+compatibility: yana-ai >= 1.3.43
 ---
 
 # /state-machine-workflows

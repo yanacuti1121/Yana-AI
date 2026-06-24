@@ -5,7 +5,7 @@ description: >-
 origin: "github.com/veniceai/skills (skill: venice-crypto-rpc)"
 license: MIT
 version: "1.0.0"
-compatibility: "yamtam-engine >= 0.14.0"
+compatibility: "yana-ai >= 0.14.0"
 ---
 
 # Venice Crypto RPC (JSON-RPC proxy)

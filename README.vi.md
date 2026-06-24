@@ -57,7 +57,7 @@ Hoạt động với **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**,
 
 > **Mới trong v0.42.0:** Đồng bộ tính năng mobile — Sessions, Analytics, Cron, HTML Maker được port từ desktop lên app di động. **yana-pixel-bridge** — chuyển tiếp sự kiện Agent/Task của Claude Code sang `agent-office` để hoạt ảnh đi-tới-bàn/làm-việc/rảnh chạy thời gian thực. 6 theme mới + panel tinh chỉnh song ngữ. Đã vá lỗ hổng chuỗi cung ứng curl\|bash trên 41 skill, vá 3 lỗ hổng quy tắc. **Core-lock** — manifest SHA-256 ghim 218 tệp cốt lõi chống can thiệp trái phép (quy tắc 67).
 
-**→ [Tài liệu đầy đủ & demo](https://yanacuti1121.github.io/yana-ai/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [Tài liệu đầy đủ & demo](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -535,6 +535,6 @@ Output mẫu:
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [yanacuti1121.github.io/yana-ai](https://yanacuti1121.github.io/yana-ai/) |
+| Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121](https://github.com/yanacuti1121) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |

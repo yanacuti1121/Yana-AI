@@ -1,10 +1,10 @@
 ---
 name: matrix-dimensionality-reduction
 description: Linear algebra matrix operations and dimensionality reduction for embedding compression. PCA, SVD basics, matrix multiply, transpose, and vector projection — pure JS for agent memory optimization. Sources: scijs/matrix, numeric.js patterns.
-origin: yamtam-engine — synthesized from scijs/matrix (MIT), PCA algorithm (Shlens 2014)
+origin: yana-ai — synthesized from scijs/matrix (MIT), PCA algorithm (Shlens 2014)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /matrix-dimensionality-reduction

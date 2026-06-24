@@ -1,10 +1,10 @@
 ---
 name: async-storage-patterns
 description: Async key-value storage with automatic driver selection. localForage API patterns, IndexedDB/WebSQL/localStorage fallback chain, binary data storage, expiry patterns, and offline-first agent state persistence. Sources: localForage/localForage.
-origin: yamtam-engine — synthesized from localForage/localForage (Apache-2.0)
+origin: yana-ai — synthesized from localForage/localForage (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /async-storage-patterns

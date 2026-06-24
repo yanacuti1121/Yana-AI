@@ -1,10 +1,10 @@
 ---
 name: chrome-devtools-mcp
 description: Chrome DevTools MCP server — agent-controlled browser via MCP. take_snapshot (accessibility tree + uids), click/fill/navigate automation, screenshot, evaluate_script, console/network inspection. 41k+ stars. Sources: ChromeDevTools/chrome-devtools-mcp (Apache-2.0).
-origin: yamtam-engine — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
+origin: yana-ai — synthesized from ChromeDevTools/chrome-devtools-mcp (Apache-2.0)
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.55
+compatibility: yana-ai >= 1.3.55
 ---
 
 # /chrome-devtools-mcp

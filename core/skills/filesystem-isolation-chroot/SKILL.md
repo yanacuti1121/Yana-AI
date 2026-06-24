@@ -1,10 +1,10 @@
 ---
 name: filesystem-isolation-chroot
 description: Filesystem isolation via chroot and pivot_root. Building minimal rootfs, chroot jail setup, pivot_root for OCI containers, preventing chroot escapes, and read-only bind-mount overlays. Sources: zetamatta/go-chroot, opencontainers/runc.
-origin: yamtam-engine — synthesized from zetamatta/go-chroot, opencontainers/runc
+origin: yana-ai — synthesized from zetamatta/go-chroot, opencontainers/runc
 license: Apache-2.0
 version: 1.0.0
-compatibility: yamtam-engine >= 1.3.48
+compatibility: yana-ai >= 1.3.48
 ---
 
 # /filesystem-isolation-chroot
