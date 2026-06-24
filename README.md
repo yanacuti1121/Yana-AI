@@ -16,6 +16,9 @@
   <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a>
 </p>
 
+"We are currently transitioning from Linux to macOS, and there are still a lot of bugs."
+(Chúng tôi hiện đang chuyển đổi từ Linux sang macOS, và vẫn còn rất nhiều lỗi.)
+
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
