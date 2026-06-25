@@ -399,18 +399,11 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
   <!-- Centre links (desktop only) -->
   <div class="nav-links">
-    <a href="skills.html" data-i18n="nav.skills">Skills</a>
-    <a href="marketplace.html">Marketplace</a>
-    <a href="guide.html">Guide</a>
-    <a href="io.html" style="color:var(--accent);font-weight:600">IO</a>
-    <a href="changelog.html">Changelog</a>
-    <a href="https://github.com/apps/yana-ai" target="_blank" style="color:var(--accent);font-weight:600">App ⚡</a>
     <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
   </div>
 
   <!-- Right cluster — always visible -->
   <div class="nav-right">
-    <a href="io.html" id="nav-io-btn" style="font-size:.8rem;font-weight:700;color:var(--accent);text-decoration:none;padding:.25rem .55rem;border:1px solid hsla(221,83%,53%,.3);border-radius:6px;transition:background .15s;white-space:nowrap" onmouseover="this.style.background='hsla(221,83%,53%,.1)'" onmouseout="this.style.background='transparent'">⚡ IO</a>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('vi')">VI</button>
@@ -430,13 +423,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <a href="#features" onclick="closeMenu()">Features</a>
   <a href="#runtime" onclick="closeMenu()">Runtime</a>
   <a href="#docs" onclick="closeMenu()">Docs</a>
-  <a href="skills.html" onclick="closeMenu()">Skills</a>
-  <a href="marketplace.html" onclick="closeMenu()">Marketplace</a>
-  <a href="changelog.html" onclick="closeMenu()">Changelog</a>
-  <a href="guide.html" onclick="closeMenu()">Guide</a>
-  <a href="io.html" onclick="closeMenu()" style="color:var(--accent);font-weight:600">⚡ IO — Phone UI</a>
   <a href="#yana" onclick="closeMenu()">Yana</a>
-  <a href="https://github.com/apps/yana-ai" target="_blank" style="color:var(--accent);font-weight:600">App ⚡</a>
   <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
   <a href="#install" class="mobile-cta" onclick="closeMenu()">Get started — free</a>
 </div>
@@ -505,10 +492,10 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Stats -->
 <div class="stats-bar">
   <div class="stats-inner">
-    <a href="skills.html" style="text-decoration:none;color:inherit;display:block;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+    <div>
       <div class="stat-num" style="color:var(--green)">4,200</div>
-      <div class="stat-label" data-i18n="stat.skills">Workflow Skills ↗</div>
-    </a>
+      <div class="stat-label" data-i18n="stat.skills">Workflow Skills</div>
+    </div>
     <div>
       <div class="stat-num" style="color:hsl(221 83% 63%)">17</div>
       <div class="stat-label">Rust Subcommands</div>
@@ -528,23 +515,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </div>
 
-<!-- Skills CTA -->
-<section style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));padding:4rem 2rem;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%,rgba(255,255,255,.04));pointer-events:none"></div>
-  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap">
-    <div>
-      <div style="font-family:var(--script);font-size:1rem;color:hsla(0,0%,100%,.7);margin-bottom:.5rem" data-i18n="skills.label">Thư viện Skills</div>
-      <h2 style="font-family:var(--hand);font-size:clamp(1.5rem,2.8vw,2.15rem);font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:.6rem;line-height:1.18" data-i18n="skills.title">4,200 workflow skills —<br>mở và khám phá</h2>
-      <p style="color:hsla(0,0%,100%,.75);font-size:1rem;max-width:44ch;line-height:1.6" data-i18n="skills.sub">Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.</p>
-    </div>
-    <a href="skills.html"
-       style="display:inline-flex;align-items:center;gap:.6rem;background:#fff;color:hsl(221,75%,45%);font-weight:700;font-size:1rem;padding:.85rem 1.75rem;border-radius:10px;text-decoration:none;white-space:nowrap;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(0,0,0,.2)"
-       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,.28)'"
-       onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(0,0,0,.2)'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 10h16M4 14h10"/><circle cx="17" cy="17" r="3"/><path d="m21 21-1.5-1.5"/></svg>
-      <span data-i18n="skills.btn">Xem tất cả Skills</span>
-    </a>
-  </div>
-</section>
 
 <!-- Agents -->
 <section id="agents" style="background:var(--bg-subtle);border-top:1px solid var(--border)">
@@ -582,7 +552,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         </div>
       </div>
     </div>
-    <a href="skills.html#agents" style="display:inline-flex;align-items:center;gap:.5rem;font-size:.875rem;color:var(--accent);text-decoration:none;font-weight:600;border:1px solid hsla(221,75%,48%,.3);padding:.5rem 1rem;border-radius:8px;transition:all .15s" onmouseover="this.style.background='hsla(221,75%,48%,.08)'" onmouseout="this.style.background='transparent'">Browse all 97 agents →</a>
   </div>
 </section>
 
@@ -1027,197 +996,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   </div>
 </section>
 
-<!-- Lab -->
-<section style="border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,hsl(38,18%,92%) 100%)">
-  <div class="section-inner">
-    <div class="section-label" data-i18n="section.lab">Lab</div>
-    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem"><span data-i18n="h2.lab">Side projects</span></h2>
-    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.lab">Những thứ xây ngoài giờ.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
-
-      <!-- See Tình card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(320,80%,53%,.1);color:#f472b6;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(320,80%,53%,.2);letter-spacing:.05em">C++17</span>
-          <a href="https://github.com/yanacuti1121/yana-ai/blob/main/see_tinh_demo.cpp"
-             target="_blank"
-             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
-             onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='hsl(215,20%,45%)'">
-            view source ↗
-          </a>
-        </div>
-
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#f472b6,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            See Tình
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#f472b6">fork/exec mpv</span> · Hoàng Thùy Linh
-          </div>
-        </div>
-
-        <!-- Terminal window -->
-        <div style="background:hsl(24,10%,6%);border:1px solid hsl(320,20%,16%);border-radius:10px;overflow:hidden">
-          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
-            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
-            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — see_tinh_demo.cpp</span>
-          </div>
-          <div id="term-out-2" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
-        </div>
-
-        <button id="run-btn-2" onclick="runDemo2()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#be185d,#7c3aed);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(320,80%,40%,.3)"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <span id="run-icon-2">▶</span> Run
-        </button>
-
-      </div>
-
-      <!-- Trót Yêu card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(220,80%,60%,.1);color:#60a5fa;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(220,80%,60%,.2);letter-spacing:.05em">C++17</span>
-          <a href="https://github.com/yanacuti1121/yana-ai/blob/main/trot_yeu_demo.cpp"
-             target="_blank"
-             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
-             onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='hsl(215,20%,45%)'">
-            view source ↗
-          </a>
-        </div>
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#60a5fa,#93c5fd,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            Trót Yêu
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#60a5fa">fork/exec mpv</span> · T.R.I
-          </div>
-        </div>
-        <div style="background:hsl(24,10%,6%);border:1px solid hsl(220,20%,16%);border-radius:10px;overflow:hidden">
-          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
-            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
-            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — trot_yeu_demo.cpp</span>
-          </div>
-          <div id="term-out-3" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
-        </div>
-        <button id="run-btn-3" onclick="runDemo3()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(220,80%,40%,.3)"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <span id="run-icon-3">▶</span> Run
-        </button>
-      </div>
-
-      <!-- Sơn Thủy Trùng Mây card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(180,70%,50%,.1);color:#2dd4bf;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(180,70%,50%,.2);letter-spacing:.05em">C++17</span>
-          <a href="https://github.com/yanacuti1121/yana-ai/blob/main/son_thuy_trung_may_demo.cpp"
-             target="_blank"
-             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
-             onmouseover="this.style.color='#2dd4bf'" onmouseout="this.style.color='hsl(215,20%,45%)'">
-            view source ↗
-          </a>
-        </div>
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#2dd4bf,#818cf8,#fbbf24,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            Sơn Thủy Trùng Mây
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#2dd4bf">fork/exec mpv</span> · Buitruonglinh
-          </div>
-        </div>
-        <div style="background:hsl(24,10%,6%);border:1px solid hsl(180,20%,14%);border-radius:10px;overflow:hidden">
-          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
-            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block"></span>
-            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — son_thuy_trung_may_demo.cpp</span>
-          </div>
-          <div id="term-out-4" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
-        </div>
-        <button id="run-btn-4" onclick="runDemo4()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#0f766e,#4338ca);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(180,70%,30%,.3)"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <span id="run-icon-4">▶</span> Run
-        </button>
-      </div>
-
-      <!-- Come My Way card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,83%,53%,.1);color:var(--accent);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(221,83%,53%,.2);letter-spacing:.05em">C++17</span>
-          <a href="https://github.com/yanacuti1121/yana-ai/blob/main/come_my_way_demo.cpp"
-             target="_blank"
-             style="color:hsl(215,20%,45%);font-size:.73rem;text-decoration:none;font-style:italic;transition:color .15s"
-             onmouseover="this.style.color='hsl(210,40%,75%)'" onmouseout="this.style.color='hsl(215,20%,45%)'">
-            view source ↗
-          </a>
-        </div>
-
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#e8d5b7,#c9a96e,#e8d5b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            Come My Way
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            Terminal display · ANSI color · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:hsl(221,70%,60%)">fork/exec mpv</span> · Linux
-          </div>
-        </div>
-
-        <!-- Terminal window -->
-        <div style="background:hsl(24,10%,6%);border:1px solid hsl(24,10%,16%);border-radius:10px;overflow:hidden">
-          <div style="background:hsl(24,10%,9%);padding:.45rem .85rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid hsl(24,10%,14%)">
-            <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block;box-shadow:0 0 4px #ff5f5766"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block;box-shadow:0 0 4px #febc2e66"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block;box-shadow:0 0 4px #28c84066"></span>
-            <span style="font-family:var(--mono);font-size:.68rem;color:hsl(215,15%,35%);margin-left:.5rem;font-style:italic">bash — come_my_way_demo.cpp</span>
-          </div>
-          <div id="term-out" style="padding:.85rem 1.1rem;font-family:'JetBrains Mono','Fira Code',var(--mono);font-style:italic;font-size:.78rem;line-height:1.85;min-height:100px;color:#aaa"></div>
-        </div>
-
-        <!-- Run button -->
-        <button id="run-btn" onclick="runDemo()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,hsl(221,83%,48%),hsl(250,70%,55%));color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(221,83%,53%,.3)"
-          onmouseover="this.style.opacity='.85';this.style.boxShadow='0 6px 20px hsla(221,83%,53%,.45)'"
-          onmouseout="this.style.opacity='1';this.style.boxShadow='0 4px 16px hsla(221,83%,53%,.3)'">
-          <span id="run-icon">▶</span> Run
-        </button>
-
-      </div>
-
-      <!-- Particle Visualizer card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(280,80%,60%,.1);color:#a78bfa;padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(280,80%,60%,.2);letter-spacing:.05em">Three.js</span>
-          <span style="color:hsl(215,20%,45%);font-size:.73rem;font-style:italic">Gemini experiment</span>
-        </div>
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,#a78bfa,#f472b6,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            Particle Visualizer
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            SVG Path extraction · Particle morphing · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#a78bfa">GSAP Timeline</span>
-          </div>
-        </div>
-        <!-- Hidden SVG path source -->
-        <svg width="0" height="0" style="position:absolute;pointer-events:none">
-          <path id="demo-path" d="M120 170 C120 170 55 128 38 92 C18 52 42 24 72 24 C93 24 112 42 120 58 C128 42 147 24 168 24 C198 24 222 52 202 92 C185 128 120 170 120 170 Z"/>
-        </svg>
-        <div id="particle-canvas-container" style="background:hsl(24,10%,6%);border:1px solid hsl(280,20%,16%);border-radius:10px;height:180px;overflow:hidden;position:relative"></div>
-        <button id="run-btn-particle" onclick="runParticleDemo()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(280,80%,40%,.3)"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <span id="run-icon-particle">▶</span> Animate
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- Projects -->
 <section id="projects" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
   <div class="section-inner">
@@ -1629,420 +1407,26 @@ function copyCmd() {
     setTimeout(() => btn.textContent = 'copy', 1500);
   });
 }
-// Sơn Thủy Trùng Mây terminal demo
-const termLines4 = [
-  { text: '$ g++ -std=c++17 son_thuy_trung_may_demo.cpp -o stm', color: '#4a4a5a', delay: 0,    type: 'type' },
-  { text: '$ ./stm',                                              color: '#4a4a5a', delay: 700,  type: 'type' },
-  { text: '──────────────────────────────────────────────────',   color: '#2dd4bf', delay: 1100 },
-  { text: '  Sơn Thủy Trùng Mây  ~  Buitruonglinh',              delay: 1350, gradient4: true, bold: true },
-  { text: '──────────────────────────────────────────────────',   color: '#2dd4bf', delay: 1600 },
-  { text: '', delay: 1800 },
-
-  { text: '[ Verse 1 ]', color: '#4ade80', delay: 1950, bold: true, glow: '#4ade80', type: 'fade' },
-  { text: '', delay: 2150 },
-  { text: 'Tựa hoa rơi bên thềm ta chìm trong cô liêu',          color: '#2dd4bf', delay: 2300 },
-  { text: 'Sông vắng tiêu điều mình ta',                         color: '#e2e8f0', delay: 2700 },
-  { text: 'Chẳng trách người quá vô tình xin đừng đi đừng đi',   color: '#c084fc', delay: 3100 },
-  { text: 'Vạn lí hoá chia ly vì ai',                            color: '#e2e8f0', delay: 3500 },
-  { text: '', delay: 3800 },
-
-  { text: '[ Pre-Chorus ]', color: '#c084fc', delay: 3950, bold: true, glow: '#c084fc', type: 'fade' },
-  { text: '', delay: 4150 },
-  { text: 'Lệ hoen bờ mi vì sao cớ sao đành quên câu thề',      color: '#c084fc', delay: 4300 },
-  { text: 'Để mình tôi trên lối mối duyên không thành',          color: '#e2e8f0', delay: 4700 },
-  { text: 'Tình nào không vội vàng ngang trái mãi chẳng vỡ tan', color: '#e2e8f0', delay: 5100 },
-  { text: '', delay: 5400 },
-
-  { text: '[ Chorus ]', color: '#fbbf24', delay: 5550, bold: true, glow: '#fbbf24', type: 'fade' },
-  { text: '', delay: 5750 },
-  { text: 'Ngày nào mơ ước một ngày sơn thuỷ trùng mây',         color: '#fbbf24', delay: 5900, rainbow4: true },
-  { text: 'Ngày ta hạnh phúc bên đời',                           color: '#e2e8f0', delay: 6280 },
-  { text: 'Ngày hoàng hôn trải khắp vạn hướng trùng dương',      color: '#fbbf24', delay: 6660 },
-  { text: 'Sợi tình duyên ấy bây giờ chẳng thấy còn đây',        color: '#2dd4bf', delay: 7040 },
-  { text: 'Tình muôn kiếp từ nay về sau làm sao biết tìm được nhau', color: '#e2e8f0', delay: 7420 },
-  { text: '', delay: 7750 },
-
-  { text: '[ Bridge ]', color: '#60a5fa', delay: 7900, bold: true, glow: '#60a5fa', type: 'fade' },
-  { text: '', delay: 8100 },
-  { text: 'Nợ tiền có trả là xong',                              color: '#e2e8f0', delay: 8250 },
-  { text: 'Nợ tình mắt chảy thành dòng',                        color: '#c084fc', delay: 8600 },
-  { text: 'Anh chờ em ngày sau về đâu',                          color: '#e2e8f0', delay: 8950 },
-  { text: 'Ngồi đây nhìn mây chờ em được không',                 color: '#2dd4bf', delay: 9300 },
-  { text: '', delay: 9600 },
-
-  { text: '[ Outro ]', color: '#2dd4bf', delay: 9750, bold: true, glow: '#2dd4bf', type: 'fade' },
-  { text: '', delay: 9950 },
-  { text: 'Rồi mưa giông đến đây thiếu vắng một bóng hình',      color: '#e2e8f0', delay: 10100 },
-  { text: 'Hoá mây ngàn dần tan theo ánh trăng vàng',            color: '#fbbf24', delay: 10480 },
-  { text: 'Hẹn ngày sơn thuỷ trùng mây',                         color: '#fbbf24', delay: 10860, rainbow4: true },
-  { text: '', delay: 11150 },
-  { text: '☁️   Sơn Thủy Trùng Mây — Buitruonglinh (2022)',       color: '#3a3a4a', delay: 11350 },
-];
-
-const LAST_DELAY_4 = 11350;
-let demo4Running = false;
-function runDemo4() {
-  if (demo4Running) return;
-  demo4Running = true;
-  const out  = document.getElementById('term-out-4');
-  const btn  = document.getElementById('run-btn-4');
-  const icon = document.getElementById('run-icon-4');
-  out.innerHTML = ''; btn.disabled = true; icon.textContent = '◼';
-
-  termLines4.forEach(({ text, color, delay, bold, glow, gradient4, rainbow4, type }) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
-      if (gradient4) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
-      } else if (rainbow4) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
-      } else {
-        line.style.color = color || '#ccc';
-        if (bold) line.style.fontWeight = '700';
-        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
-      }
-      if (type === 'fade') {
-        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
-        line.textContent = text; out.appendChild(line);
-        requestAnimationFrame(() => { line.style.opacity='1'; line.style.transform='none'; });
-      } else if (type === 'type') {
-        const span = document.createElement('span');
-        line.appendChild(span); out.appendChild(line);
-        typeWriter(span, text, null);
-      } else { line.textContent = text; out.appendChild(line); }
-      out.scrollTop = out.scrollHeight;
-      if (delay === LAST_DELAY_4) { btn.disabled=false; icon.textContent='▶'; demo4Running=false; }
-    }, delay);
-  });
-}
-
-// Trót Yêu terminal demo
-const termLines3 = [
-  { text: '$ g++ -std=c++17 trot_yeu_demo.cpp -o trot_yeu', color: '#4a4a5a', delay: 0,    type: 'type' },
-  { text: '$ ./trot_yeu',                                    color: '#4a4a5a', delay: 650,  type: 'type' },
-  { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1050 },
-  { text: '  Trót Yêu  ~  T.R.I',                            delay: 1300, gradient3: true, bold: true },
-  { text: '──────────────────────────────────────────────────', color: '#60a5fa', delay: 1550 },
-  { text: '', delay: 1750 },
-
-  // Verse 1
-  { text: '[ Verse 1 ]', color: '#4ade80', delay: 1900, bold: true, glow: '#4ade80', type: 'fade' },
-  { text: '', delay: 2100 },
-  { text: 'Có chút bối rối chạm tay anh rồi',                color: '#67e8f9', delay: 2250 },
-  { text: 'Vì anh đang mơ rất dịu dàng',                     color: '#e2e8f0', delay: 2630 },
-  { text: 'Có chút tan vỡ chạm môi anh rồi',                 color: '#67e8f9', delay: 3010 },
-  { text: 'Vì em yêu, chỉ yêu mùa ghé thôi',                color: '#e2e8f0', delay: 3390 },
-  { text: 'Có chút thương nhớ làn môi nhẹ nhàng',            color: '#67e8f9', delay: 3770 },
-  { text: 'Khi em yên say trong giấc',                       color: '#e2e8f0', delay: 4150 },
-  { text: 'Có chút yêu dấu chỉ là mơ mộng thôi',            color: '#67e8f9', delay: 4530 },
-  { text: 'Vì anh luôn mong được có em',                     color: '#fbbf24', delay: 4910 },
-  { text: '', delay: 5250 },
-
-  // Chorus
-  { text: '[ Chorus ]', color: '#60a5fa', delay: 5400, bold: true, glow: '#60a5fa', type: 'fade' },
-  { text: '', delay: 5600 },
-  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 5750 },
-  { text: 'Để cho con tim này đừng ngóng trong hao gầy',    color: '#e2e8f0', delay: 6130 },
-  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 6510 },
-  { text: 'Vì nơi con tim này luôn có',                     color: '#e2e8f0', delay: 6890 },
-  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 7150, rainbow3: true },
-  { text: '', delay: 7450 },
-  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 7600 },
-  { text: 'Để cho con tim này đừng ngóng trong hao gầy',    color: '#e2e8f0', delay: 7980 },
-  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 8360 },
-  { text: 'Vì nơi con tim nay luôn có',                     color: '#e2e8f0', delay: 8740 },
-  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 9000, rainbow3: true },
-  { text: '', delay: 9300 },
-
-  // Verse 2
-  { text: '[ Verse 2 ]', color: '#4ade80', delay: 9450, bold: true, glow: '#4ade80', type: 'fade' },
-  { text: '', delay: 9650 },
-  { text: 'Có chút bối rối chạm tay anh rồi',                color: '#67e8f9', delay: 9800 },
-  { text: 'Vì anh đang mơ rất dịu dàng',                     color: '#e2e8f0', delay: 10180 },
-  { text: 'Có chút tan vỡ chạm môi anh rồi',                 color: '#67e8f9', delay: 10560 },
-  { text: 'Vì em yêu chỉ yêu mùa ghé thôi',                 color: '#e2e8f0', delay: 10940 },
-  { text: 'Khi em yên say trong giấc',                       color: '#e2e8f0', delay: 11320 },
-  { text: 'Vì có chút yêu dấu chỉ là mơ mộng thôi',         color: '#67e8f9', delay: 11700 },
-  { text: 'Vì anh luôn mong được có em',                     color: '#fbbf24', delay: 12080 },
-  { text: '', delay: 12400 },
-
-  // Chorus repeat
-  { text: '[ Chorus ]', color: '#60a5fa', delay: 12550, bold: true, glow: '#60a5fa', type: 'fade' },
-  { text: '', delay: 12750 },
-  { text: 'Người nói yêu anh đi, người nói thương anh đi',  color: '#60a5fa', delay: 12900 },
-  { text: 'Hãy đến bên anh đi để cho tình trọn vẹn chúng ta', color: '#67e8f9', delay: 13280 },
-  { text: 'Tình yêu giấu kín cùng thương nhớ cho em',       color: '#fbbf24', delay: 13660, rainbow3: true },
-  { text: '', delay: 13950 },
-
-  // Outro
-  { text: '[ Outro ]', color: '#c084fc', delay: 14100, bold: true, glow: '#c084fc', type: 'fade' },
-  { text: '', delay: 14300 },
-  { text: 'Có chút bối rối, có chút tan vỡ',                color: '#67e8f9', delay: 14450 },
-  { text: 'Có chút thương nhớ tình ai',                     color: '#e2e8f0', delay: 14830 },
-  { text: 'Người hỡi, đến bên anh này',                     color: '#60a5fa', delay: 15210 },
-  { text: 'Nói yêu mình anh thôi',                          color: '#e2e8f0', delay: 15590 },
-  { text: 'Để cho lòng anh thôi nhớ mong',                  color: '#fbbf24', delay: 15970 },
-  { text: '', delay: 16300 },
-  { text: '💙  Trót Yêu — T.R.I', color: '#3a3a4a', delay: 16500 },
-];
-
-const LAST_DELAY_3 = 16500;
-let demo3Running = false;
-function runDemo3() {
-  if (demo3Running) return;
-  demo3Running = true;
-  const out  = document.getElementById('term-out-3');
-  const btn  = document.getElementById('run-btn-3');
-  const icon = document.getElementById('run-icon-3');
-  out.innerHTML = ''; btn.disabled = true; icon.textContent = '◼';
-
-  termLines3.forEach(({ text, color, delay, bold, glow, gradient3, rainbow3, type }) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
-      if (gradient3) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
-      } else if (rainbow3) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
-      } else {
-        line.style.color = color || '#ccc';
-        if (bold) line.style.fontWeight = '700';
-        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
-      }
-      if (type === 'fade') {
-        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
-        line.textContent = text; out.appendChild(line);
-        requestAnimationFrame(() => { line.style.opacity='1'; line.style.transform='none'; });
-      } else if (type === 'type') {
-        const span = document.createElement('span');
-        line.appendChild(span); out.appendChild(line);
-        typeWriter(span, text, null);
-      } else { line.textContent = text; out.appendChild(line); }
-      out.scrollTop = out.scrollHeight;
-      if (delay === LAST_DELAY_3) { btn.disabled=false; icon.textContent='▶'; demo3Running=false; }
-    }, delay);
-  });
-}
-
-// See Tình terminal demo
-const termLines2 = [
-  { text: '$ g++ -std=c++17 see_tinh_demo.cpp -o see_tinh', color: '#4a4a5a', delay: 0,     type: 'type' },
-  { text: '$ ./see_tinh',                                    color: '#4a4a5a', delay: 650,   type: 'type' },
-  { text: '──────────────────────────────────────────────────', color: '#f472b6', delay: 1050 },
-  { text: '  See Tình  ~  Hoàng Thùy Linh',                  delay: 1300, gradient2: true, bold: true },
-  { text: '──────────────────────────────────────────────────', color: '#f472b6', delay: 1550 },
-  { text: '', delay: 1750 },
-
-  // Intro
-  { text: '[ Intro ]', color: '#4ade80', delay: 1900, bold: true, glow: '#4ade80', type: 'fade' },
-  { text: '', delay: 2100 },
-  { text: 'Uầy uầy uây uây sao mới gặp lần đầu mà đầu mình quay quay', color: '#f472b6', delay: 2250 },
-  { text: 'Anh ơi anh à anh bỏ bùa gì mà lại làm em yêu vậy',          color: '#e2e8f0', delay: 2650 },
-  { text: 'Bae bae bae bae em nói từ đầu baby can you stay',             color: '#fbbf24', delay: 3050 },
-  { text: 'Mai đi coi ngày xem cưới ngày nào thì nhà mình đông con vậy',color: '#e2e8f0', delay: 3450 },
-  { text: '', delay: 3800 },
-
-  // Verse 1
-  { text: '[ Verse 1 ]', color: '#a78bfa', delay: 3950, bold: true, glow: '#a78bfa', type: 'fade' },
-  { text: '', delay: 4150 },
-  { text: 'Nếu như một câu nói có thể khiến anh vui',                   color: '#e2e8f0', delay: 4300 },
-  { text: 'Sẽ suốt ngày luôn nói không ngừng để anh cười',              color: '#e2e8f0', delay: 4680 },
-  { text: 'Nếu em làm như thế trông em có hâm không điên điên điên lắm',color: '#fbbf24', delay: 5060 },
-  { text: 'Đem ngay vô nhà thương  đem ngay vô nhà thương',             color: '#f472b6', delay: 5440 },
-  { text: 'Đem ngay vô nhà anh để thương',                              color: '#f472b6', delay: 5820 },
-  { text: '', delay: 6150 },
-
-  // Chorus
-  { text: '[ Chorus ]', color: '#f472b6', delay: 6300, bold: true, glow: '#f472b6', type: 'fade' },
-  { text: '', delay: 6500 },
-  { text: 'Giây phút em gặp anh là em biết em see tình',                color: '#67e8f9', delay: 6650 },
-  { text: 'Tình tình tình tang tang tính tang tình tình tình tang tang', color: '#f472b6', delay: 7030 },
-  { text: 'Giây phút em gặp anh là em biết em see tình',                color: '#67e8f9', delay: 7410 },
-  { text: 'Tình đừng tình toan tính toang tình mình tình tan tan tình',  color: '#f472b6', delay: 7790 },
-  { text: '', delay: 8100 },
-
-  // Bridge
-  { text: '[ Bridge ]', color: '#fbbf24', delay: 8250, bold: true, glow: '#fbbf24', type: 'fade' },
-  { text: '', delay: 8450 },
-  { text: 'Yah yah',                              color: '#fbbf24', delay: 8600 },
-  { text: 'Anh tính sao giờ đây anh tính sao',    color: '#e2e8f0', delay: 8900 },
-  { text: 'Yah yah',                              color: '#fbbf24', delay: 9250 },
-  { text: 'Anh tính sao giờ đây anh tính sao',    color: '#e2e8f0', delay: 9550 },
-  { text: '', delay: 9850 },
-
-  // Verse 2
-  { text: '[ Verse 2 ]', color: '#a78bfa', delay: 10000, bold: true, glow: '#a78bfa', type: 'fade' },
-  { text: '', delay: 10200 },
-  { text: 'Tới đâu thì tới tới đâu thì tới em cũng chẳng biết tới đâu', color: '#e2e8f0', delay: 10350 },
-  { text: 'Nếu yêu là khó không yêu cũng khó em cũng chẳng biết thế nào',color:'#e2e8f0',delay: 10730 },
-  { text: 'Hôm nay tia cực tím xuyên qua trời đêm',                     color: '#67e8f9', delay: 11110 },
-  { text: 'Nhưng anh như tia cực hiếm xuyên ngay vào tim',              color: '#f472b6', delay: 11490 },
-  { text: 'Ấy ấy ấy chết em rồi',                                        color: '#fbbf24', delay: 11870 },
-  { text: 'Ấy ấy chết thật thôi',                                        color: '#fbbf24', delay: 12200 },
-  { text: '', delay: 12500 },
-
-  // Chorus repeat
-  { text: '[ Chorus ]', color: '#f472b6', delay: 12650, bold: true, glow: '#f472b6', type: 'fade' },
-  { text: '', delay: 12850 },
-  { text: 'Giây phút em gặp anh là em biết em see tình',                color: '#67e8f9', delay: 13000 },
-  { text: 'Tình tình tình tang tang tính tang tình tình tình tang tang', color: '#f472b6', delay: 13380 },
-  { text: 'Giây phút em gặp anh là em biết em see tình',                color: '#67e8f9', delay: 13760 },
-  { text: 'Tình đừng tình toan tính toang tình mình tình tan tan tình',  color: '#f472b6', delay: 14140 },
-  { text: '', delay: 14450 },
-
-  { text: '🌸  See Tình — Hoàng Thùy Linh (2022)', color: '#3a3a4a', delay: 14650 },
-];
-
-const LAST_DELAY_2 = 14650;
-let demo2Running = false;
-function runDemo2() {
-  if (demo2Running) return;
-  demo2Running = true;
-  const out  = document.getElementById('term-out-2');
-  const btn  = document.getElementById('run-btn-2');
-  const icon = document.getElementById('run-icon-2');
-  out.innerHTML = '';
-  btn.disabled = true;
-  icon.textContent = '◼';
-
-  termLines2.forEach(({ text, color, delay, bold, glow, gradient2, type }) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
-      if (gradient2) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:rainbow 3s linear infinite';
-      } else if (text && text.toLowerCase().includes('see tình')) {
-        line.style.cssText += ';background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite';
-        if (bold) line.style.fontWeight = '700';
-      } else {
-        line.style.color = color || '#ccc';
-        if (bold) line.style.fontWeight = '700';
-        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
-      }
-      if (type === 'fade') {
-        line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
-        line.textContent = text; out.appendChild(line);
-        requestAnimationFrame(() => { line.style.opacity = '1'; line.style.transform = 'none'; });
-      } else if (type === 'type') {
-        const span = document.createElement('span');
-        line.appendChild(span); out.appendChild(line);
-        typeWriter(span, text, null);
-      } else {
-        line.textContent = text; out.appendChild(line);
-      }
-      out.scrollTop = out.scrollHeight;
-      if (delay === LAST_DELAY_2) { btn.disabled = false; icon.textContent = '▶'; demo2Running = false; }
-    }, delay);
-  });
-}
-
-// Terminal demo
-const termLines = [
-  { text: '$ g++ -std=c++17 come_my_way_demo.cpp -o come_my_way', color: '#4a4a5a', delay: 0,    type: 'type' },
-  { text: '$ ./come_my_way',                                       color: '#4a4a5a', delay: 700,  type: 'type' },
-  { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1100, glow: '#1de9b6' },
-  { text: '  Come My Way  ~  Sơn Tùng M-TP × Tyga',               delay: 1350, gradient: true, bold: true },
-  { text: '════════════════════════════════════════════════',       color: '#1de9b6', delay: 1600, glow: '#1de9b6' },
-  { text: '', delay: 1850 },
-  { text: '[ Intro: Tyga ]',             color: '#ea80fc', delay: 2050, bold: true, glow: '#ea80fc', type: 'fade' },
-  { text: '', delay: 2400 },
-  { text: '[ Verse 1: Sơn Tùng M-TP ]', color: '#69ff47', delay: 2600, bold: true, glow: '#69ff47', type: 'fade' },
-  { text: '', delay: 3050 },
-  { text: '[ Pre-Chorus ]',              color: '#ffd740', delay: 3250, bold: true, glow: '#ffd740', type: 'fade' },
-  { text: '', delay: 3650 },
-  { text: '[ Chorus ]',                  color: '#40c4ff', delay: 3850, bold: true, glow: '#40c4ff', type: 'fade' },
-  { text: '', delay: 4500 },
-  { text: '♪  Come My Way — TNOA · 2022', color: '#3a3a4a', delay: 4700 },
-];
-
-function typeWriter(span, text, cb) {
-  let i = 0;
-  const tick = () => {
-    span.textContent = text.slice(0, ++i) + (i < text.length ? '▋' : '');
-    if (i < text.length) setTimeout(tick, 28);
-    else { span.textContent = text; if (cb) cb(); }
-  };
-  tick();
-}
-
-let demoRunning = false;
-function runDemo() {
-  if (demoRunning) return;
-  demoRunning = true;
-  const out = document.getElementById('term-out');
-  const btn = document.getElementById('run-btn');
-  const icon = document.getElementById('run-icon');
-  out.innerHTML = '';
-  btn.disabled = true;
-  icon.textContent = '◼';
-
-  termLines.forEach(({ text, color, delay, bold, glow, gradient, type }) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.style.cssText = 'margin:0;line-height:1.7;transition:opacity .35s,transform .35s';
-
-      if (gradient) {
-        line.style.cssText += ';background:linear-gradient(90deg,#1de9b6,#40c4ff,#ea80fc,#ffd740);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;animation:gradShift 3s linear infinite;background-size:200%';
-      } else {
-        line.style.color = color || '#ccc';
-        if (bold) line.style.fontWeight = '700';
-        if (glow) line.style.textShadow = `0 0 8px ${glow}88`;
-      }
-
-      if (type === 'fade') {
-        line.style.opacity = '0';
-        line.style.transform = 'translateY(4px)';
-        line.textContent = text;
-        out.appendChild(line);
-        requestAnimationFrame(() => {
-          line.style.opacity = '1';
-          line.style.transform = 'translateY(0)';
-        });
-      } else if (type === 'type') {
-        line.textContent = '';
-        out.appendChild(line);
-        typeWriter(line, text);
-      } else {
-        line.textContent = text;
-        out.appendChild(line);
-      }
-      out.scrollTop = out.scrollHeight;
-    }, delay);
-  });
-
-  const last = termLines[termLines.length - 1].delay;
-  setTimeout(() => {
-    btn.disabled = false;
-    icon.textContent = '▶';
-    demoRunning = false;
-  }, last + 600);
-}
 
 // i18n
 const T = {
   en: {
     'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs',
-    'nav.skills':'Skills','nav.cta':'Get started','stat.skills':'Workflow Skills ↗',
-    'skills.label':'Skills Library',
-    'skills.title':'4,200 workflow skills —<br>explore them all',
-    'skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — all searchable and filterable.',
-    'skills.btn':'Browse all Skills',
+    'nav.cta':'Get started','stat.skills':'Workflow Skills',
     'section.why':'Why Yana AI','section.arch':'Architecture','section.runtime':'Rust Runtime',
     'section.compat':'Compatibility','section.docs':'Documentation',
-    'section.codexmate':'Bundled Tool','section.lab':'Lab','section.contact':'Contact',
+    'section.codexmate':'Bundled Tool','section.contact':'Contact',
     'section.yana':'Personal AI Assistant',
     'h2.why':'AI agents cause real damage.<br>Yana AI stops it before it happens.',
     'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.0.0',
     'h2.compat':'Works with every major AI coding tool',
-    'h2.docs':'Full documentation','h2.lab':'Side projects',
+    'h2.docs':'Full documentation',
     'h2.contact':'Get in touch','h2.install':'Install in seconds',
     'sub.why':'Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.',
     'sub.arch':"Each layer is independent. A bypassed outer layer doesn't break the inner ones.",
     'sub.runtime':'Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.',
     'sub.compat':"Yana AI sits outside your editor — it doesn't care which AI you use.",
     'sub.docs':'Everything you need to run and use Yana AI.',
-    'sub.lab':'Things built outside work hours.',
     'sub.agents':'Each agent is a specialist in one domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> automatically picks the right agent for each task.',
     'sub.sandbox':'Every tool call runs in an ephemeral container — no network, read-only filesystem, no root. Falls back to nsjail or ulimit if Docker is unavailable.',
     'h2.projects':'Things built',
@@ -2111,26 +1495,21 @@ const T = {
   },
   vi: {
     'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu',
-    'nav.skills':'Skills','nav.cta':'Bắt đầu','stat.skills':'Skills ↗',
-    'skills.label':'Thư viện Skills',
-    'skills.title':'4,200 workflow skills —<br>mở và khám phá',
-    'skills.sub':'Frontend, backend, AI/LLM, security, K8s, WebAssembly, DevOps — tất cả có thể tìm kiếm và lọc theo danh mục.',
-    'skills.btn':'Xem tất cả Skills',
+    'nav.cta':'Bắt đầu','stat.skills':'Skills',
     'section.why':'Tại sao Yana AI','section.arch':'Kiến trúc','section.runtime':'Rust Runtime',
     'section.compat':'Tương thích','section.docs':'Tài liệu',
-    'section.codexmate':'Công cụ đi kèm','section.lab':'Lab','section.contact':'Liên hệ',
+    'section.codexmate':'Công cụ đi kèm','section.contact':'Liên hệ',
     'section.yana':'Trợ lý AI cá nhân',
     'h2.why':'AI agent gây thiệt hại thật.<br>Yana AI ngăn chặn trước khi xảy ra.',
     'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.0.0',
     'h2.compat':'Hoạt động với mọi AI coding tool',
-    'h2.docs':'Giới thiệu đầy đủ','h2.lab':'Dự án phụ',
+    'h2.docs':'Giới thiệu đầy đủ',
     'h2.contact':'Liên hệ','h2.install':'Cài đặt trong vài giây',
     'sub.why':'Mọi tool call đều qua pipeline kiểm tra trước khi thực thi. Không cần cấu hình — cài một lần, bảo vệ tất cả.',
     'sub.arch':'Mỗi lớp độc lập. Bỏ qua lớp ngoài không ảnh hưởng lớp trong.',
     'sub.runtime':'Parity đầy đủ với Python CLI trong một binary Rust duy nhất. Thay thế ~4500 dòng Python.',
     'sub.compat':'Yana AI chạy bên ngoài editor — không quan tâm bạn dùng AI nào.',
     'sub.docs':'Tất cả những gì cần biết để chạy và dùng Yana AI.',
-    'sub.lab':'Những thứ xây ngoài giờ.',
     'sub.agents':'Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.',
     'sub.sandbox':'Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.',
     'h2.projects':'Những thứ đã xây',
@@ -2199,26 +1578,21 @@ const T = {
   },
   ko: {
     'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서',
-    'nav.skills':'스킬','nav.cta':'시작하기','stat.skills':'워크플로우 스킬 ↗',
-    'skills.label':'스킬 라이브러리',
-    'skills.title':'4,200개 워크플로우 스킬 —<br>모두 탐색하기',
-    'skills.sub':'Frontend, Backend, AI/LLM, 보안, K8s, WebAssembly, DevOps — 카테고리별 검색 및 필터 가능.',
-    'skills.btn':'모든 스킬 보기',
+    'nav.cta':'시작하기','stat.skills':'워크플로우 스킬',
     'section.why':'Yana AI 소개','section.arch':'아키텍처','section.runtime':'Rust 런타임',
     'section.compat':'호환성','section.docs':'문서',
-    'section.codexmate':'번들 도구','section.lab':'실험실','section.contact':'연락처',
+    'section.codexmate':'번들 도구','section.contact':'연락처',
     'section.yana':'개인 AI 어시스턴트',
     'h2.why':'AI 에이전트는 실제 피해를 줍니다.<br>Yana AI이 사전에 막습니다.',
     'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.0.0',
     'h2.compat':'모든 주요 AI 코딩 도구와 호환',
-    'h2.docs':'전체 문서','h2.lab':'사이드 프로젝트',
+    'h2.docs':'전체 문서',
     'h2.contact':'연락하기','h2.install':'몇 초 만에 설치',
     'sub.why':'모든 도구 호출은 실행 전 가드 파이프라인을 통과합니다. 설정 불필요 — 한 번 설치로 전체 보호.',
     'sub.arch':'각 레이어는 독립적입니다. 외부 레이어가 우회되어도 내부 레이어는 유지됩니다.',
     'sub.runtime':'단일 Rust 바이너리로 Python CLI 완전 대체. Python 코드 ~4500줄 교체.',
     'sub.compat':'Yana AI은 에디터 외부에서 실행 — 어떤 AI를 사용하든 상관없습니다.',
     'sub.docs':'Yana AI 실행에 필요한 모든 정보.',
-    'sub.lab':'업무 외 시간에 만든 것들.',
     'sub.agents':'각 에이전트는 하나의 도메인 전문가입니다. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code>가 각 작업에 맞는 에이전트를 자동으로 선택합니다.',
     'sub.sandbox':'모든 도구 호출은 임시 컨테이너에서 실행됩니다 — 네트워크 없음, 읽기 전용 파일시스템, 루트 없음. Docker가 없으면 nsjail 또는 ulimit으로 자동 전환.',
     'h2.projects':'제작한 것들',

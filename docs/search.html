@@ -81,10 +81,6 @@
   <a class="nav-logo" href="./"><span>⚡</span> Yana AI</a>
   <div class="nav-links">
     <a href="./">Home</a>
-    <a href="skills.html">Skills</a>
-    <a href="marketplace.html">Marketplace</a>
-    <a href="changelog.html">Changelog</a>
-    <a href="guide.html">Guide</a>
     <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
     <button id="theme-toggle" onclick="toggleTheme()" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px;line-height:1">🌙</button>
   </div>
@@ -92,10 +88,6 @@
 </nav>
 <div class="mob-drawer" id="mob-drawer">
   <a href="./" onclick="toggleHbg()">Home</a>
-  <a href="skills.html" onclick="toggleHbg()">Skills</a>
-  <a href="marketplace.html" onclick="toggleHbg()">Marketplace</a>
-  <a href="changelog.html" onclick="toggleHbg()">Changelog</a>
-  <a href="guide.html" onclick="toggleHbg()">Guide</a>
   <a href="https://github.com/yanacuti1121/yana-ai" target="_blank" onclick="toggleHbg()">GitHub</a>
 </div>
 
@@ -188,13 +180,13 @@ function render(q, reset=true) {
   }
 
   container.innerHTML = shown.map(item => `
-    <a class="item" href="${item.type==='skill'?'skills.html':'marketplace.html'}#${item.id}">
+    <div class="item">
       <div class="item-top">
         <span class="item-name">${hi(item.name, q)}</span>
         <span class="badge ${badgeClass(item.type)}">${item.type}</span>
       </div>
       <div class="item-desc">${hi(item.desc||'—', q)}</div>
-    </a>
+    </div>
   `).join('');
 
   if (results.length > _shown) {
