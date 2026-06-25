@@ -595,7 +595,7 @@
     },
     "skills": {
       "status": "imported",
-      "count": 4288,
+      "count": 1980,
       "actual_present": [
         "core/skills/a2a-protocol-patterns/SKILL.md",
         "core/skills/accessibility-audit/SKILL.md",
@@ -731,13 +731,6 @@
         "core/skills/git-lessons/SKILL.md",
         "core/skills/git-native-agent-protocol/SKILL.md",
         "core/skills/gitignore-pattern-matching/SKILL.md",
-        "core/skills/gitnexus/gitnexus-cli/SKILL.md",
-        "core/skills/gitnexus/gitnexus-debugging/SKILL.md",
-        "core/skills/gitnexus/gitnexus-exploring/SKILL.md",
-        "core/skills/gitnexus/gitnexus-guide/SKILL.md",
-        "core/skills/gitnexus/gitnexus-impact-analysis/SKILL.md",
-        "core/skills/gitnexus/gitnexus-pr-review/SKILL.md",
-        "core/skills/gitnexus/gitnexus-refactoring/SKILL.md",
         "core/skills/glob-minimatch-patterns/SKILL.md",
         "core/skills/grammar-lexer-dsl/SKILL.md",
         "core/skills/graph-data-structure-ops/SKILL.md",
