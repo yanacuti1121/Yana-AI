@@ -390,8 +390,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 @keyframes _pg{from{opacity:0}to{opacity:1}}body{animation:_pg .32s ease-out both}
 </style>
 
-  <link rel="stylesheet" href="lotus-pond.css">
-  <link rel="stylesheet" href="assets/asciinema-player.css">
 </head>
 <body>
 
@@ -529,28 +527,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     </div>
   </div>
 </div>
-
-<!-- Live demo — asciinema recording of the gate system in action -->
-<section id="live-demo" style="border-top:1px solid var(--border)">
-  <div style="max-width:780px;margin:0 auto;padding:4rem 1.5rem 4.5rem;text-align:center">
-    <h2 style="margin-bottom:.6rem">Watch it block — live</h2>
-    <p style="color:var(--fg-muted);max-width:560px;margin:0 auto 2rem">
-      A real recording of the gate system stopping <code>rm -rf</code>, pipe-to-shell,
-      prompt injection and an unapproved production delete — then letting safe work through.
-    </p>
-    <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 18px 40px hsla(221,60%,30%,.14);text-align:left;background:#121314">
-      <div class="terminal-bar">
-        <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
-        <span class="terminal-title">bash — yana-ai demo</span>
-      </div>
-      <div id="demo-player"></div>
-    </div>
-    <p style="font-size:.78rem;color:var(--fg-muted);margin-top:.9rem;font-family:var(--mono)">
-      recorded with asciinema · <a href="demo.cast" style="color:var(--accent)">demo.cast</a> ·
-      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/docs/demo.sh" style="color:var(--accent)">demo.sh</a>
-    </p>
-  </div>
-</section>
 
 <!-- Skills CTA -->
 <section style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));padding:4rem 2rem;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%,rgba(255,255,255,.04));pointer-events:none"></div>
@@ -1211,28 +1187,6 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span id="run-icon">▶</span> Run
         </button>
 
-      </div>
-
-      <!-- ChatGPT Atlas Lottie card -->
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--mono);font-size:.68rem;background:hsla(155,52%,32%,.1);color:hsl(155,52%,42%);padding:.2rem .55rem;border-radius:4px;border:1px solid hsla(155,52%,32%,.2);letter-spacing:.05em">Lottie</span>
-          <span style="color:hsl(215,20%,45%);font-size:.73rem;font-style:italic">ChatGPT experiment</span>
-        </div>
-        <div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.4rem;font-weight:700;letter-spacing:.02em;margin-bottom:.4rem;background:linear-gradient(90deg,hsl(155,52%,38%),hsl(340,70%,60%),hsl(155,52%,38%));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;will-change:background-position;animation:gradShift 5s linear infinite">
-            ChatGPT Atlas
-          </div>
-          <div style="color:hsl(215,20%,50%);font-size:.82rem;line-height:1.6;font-style:italic">
-            Lottie animation · 600×400 · 657 frames · <span style="font-family:var(--mono);font-style:normal;font-size:.75rem;color:#fbbf24">@lottiefiles/creator</span>
-          </div>
-        </div>
-        <div id="lottie-atlas-container" style="background:hsl(24,10%,6%);border:1px solid hsla(38,60%,30%,.3);border-radius:10px;height:180px;overflow:hidden;position:relative"></div>
-        <button id="run-btn-atlas" onclick="toggleAtlas()"
-          style="align-self:flex-start;display:flex;align-items:center;gap:.45rem;background:linear-gradient(135deg,#b45309,#d97706);color:#fff;border:none;border-radius:8px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:600;font-style:italic;cursor:pointer;transition:opacity .15s,box-shadow .15s;font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;box-shadow:0 4px 16px hsla(38,92%,40%,.3)"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <span id="atlas-icon">▶</span> Play
-        </button>
       </div>
 
       <!-- Particle Visualizer card -->
@@ -2516,37 +2470,6 @@ function runParticleDemo() {
   animate();
 }
 
-let atlasAnim = null;
-let atlasPlaying = false;
-function toggleAtlas() {
-  const container = document.getElementById('lottie-atlas-container');
-  const btn = document.getElementById('run-btn-atlas');
-  const icon = document.getElementById('atlas-icon');
-  if (!atlasAnim) {
-    atlasAnim = lottie.loadAnimation({
-      container: container,
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      path: 'chatgpt-atlas-animation.json'
-    });
-    atlasPlaying = true;
-    icon.textContent = '⏸';
-    btn.childNodes[1].textContent = ' Pause';
-    return;
-  }
-  if (atlasPlaying) {
-    atlasAnim.pause();
-    atlasPlaying = false;
-    icon.textContent = '▶';
-    btn.childNodes[1].textContent = ' Play';
-  } else {
-    atlasAnim.play();
-    atlasPlaying = true;
-    icon.textContent = '⏸';
-    btn.childNodes[1].textContent = ' Pause';
-  }
-}
 </script>
 
   <script>
@@ -2610,85 +2533,6 @@ function toggleAtlas() {
       load();
   })();
   </script>
-  <script src="assets/asciinema-player.min.js" defer></script>
-  <script defer>
-  // Live demo player — created lazily, starts the first time it scrolls into view
-  window.addEventListener('DOMContentLoaded', function () {
-    var el = document.getElementById('demo-player');
-    if (!el || typeof AsciinemaPlayer === 'undefined') return;
-    var player = null;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting && !player) {
-          player = AsciinemaPlayer.create('demo.cast', el, {
-            autoPlay: true,
-            loop: true,
-            controls: true,
-            fit: 'width',
-            terminalFontFamily: "'JetBrains Mono','Fira Code',ui-monospace,monospace",
-            theme: 'dracula',
-          });
-          io.disconnect();
-        }
-      });
-    }, { threshold: 0.35 });
-    io.observe(el);
-  });
-  </script>
-  <script src="water-bg.js" defer></script>
-  <script src="water-droplet.js" defer></script>
-  <script src="lotus-petals.js" defer></script>
-  <!-- Music player -->
-  <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
-  <audio id="page-mp3" src="music/dj-thai-hoang-remix.mp3" preload="none"></audio>
-  <div style="position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;display:flex;align-items:center;gap:.4rem">
-    <a href="music.html" title="Danh sách nhạc" style="
-      background:rgba(255,255,255,.10);backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.18);border-radius:50%;
-      width:2.2rem;height:2.2rem;font-size:.85rem;text-decoration:none;
-      display:flex;align-items:center;justify-content:center;transition:all .2s;
-    ">🎵</a>
-    <button id="mp3-btn" onclick="togglePageMp3()" title="Phát nhạc tệp" style="
-      background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.2);border-radius:20px;
-      padding:0 .65rem;height:2.2rem;font-size:.72rem;font-weight:600;
-      cursor:pointer;display:flex;align-items:center;gap:.25rem;color:inherit;transition:all .2s;
-    "><span id="mp3-icon">▶</span><span style="opacity:.75;font-size:.65rem;margin-left:.1rem">MP3</span></button>
-    <button id="mute-btn" onclick="toggleMute()" title="Phát nhạc YouTube" style="
-      background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.2);border-radius:20px;
-      padding:0 .65rem;height:2.2rem;font-size:.72rem;font-weight:600;
-      cursor:pointer;display:flex;align-items:center;gap:.25rem;color:inherit;transition:all .2s;
-    "><span id="yt-icon">▶</span><span style="opacity:.75;font-size:.65rem;margin-left:.1rem">YT</span></button>
-  </div>
-  <script>
-  (function(){
-    const el = document.getElementById('page-mp3');
-    let _on = false;
-    window.togglePageMp3 = function() {
-      if (!el) return;
-      if (_on) {
-        el.pause(); _on = false;
-        document.getElementById('mp3-icon').textContent = '▶';
-        document.getElementById('mp3-btn').title = 'Phát nhạc tệp';
-      } else {
-        window._pauseMusic && window._pauseMusic();
-        localStorage.setItem('music-playing','0');
-        el.play().then(function(){
-          _on = true;
-          document.getElementById('mp3-icon').textContent = '⏸';
-          document.getElementById('mp3-btn').title = 'Dừng nhạc tệp';
-        }).catch(function(){});
-      }
-    };
-    el.addEventListener('ended', function(){
-      _on = false;
-      document.getElementById('mp3-icon').textContent = '▶';
-    });
-  })();
-  </script>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="music-player.js"></script>
   <style>
     /* Pause tất cả CSS animation khi tab bị ẩn */
     body.anim-paused * { animation-play-state: paused !important; }
@@ -2719,12 +2563,6 @@ function toggleAtlas() {
       _runParticleDemo();
     };
 
-    // Wrap toggleAtlas — load Lottie trước
-    const _toggleAtlas = toggleAtlas;
-    window.toggleAtlas = async function() {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js');
-      _toggleAtlas();
-    };
   </script>
 </body>
 </html>
