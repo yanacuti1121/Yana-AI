@@ -1,6 +1,6 @@
 # Golden Principles
 
-> 12 core principles for writing clean, maintainable code.
+> 13 core principles for writing clean, maintainable code.
 
 ## 1. Immutability
 
@@ -68,6 +68,16 @@ When using subagent-driven development: spec compliance first, issues found = no
 - Unrelated dead code: mention it, don't delete it
 - Only clean up orphans (unused imports, etc.) that YOUR changes created
 
+## 13. Surface Assumptions Before Coding
+
+**Why?** Silently guessing intent, or silently picking one interpretation among several valid ones, leads to wasted work and wrong fixes. Hidden confusion surfaces later as a wrong implementation. This applies to every task, not just the large ones gated by #9.
+
+**How?** Before implementing — on every task, regardless of size:
+- State assumptions explicitly. If uncertain, ask instead of guessing.
+- If multiple valid interpretations exist, present them — don't silently pick one.
+- If a simpler approach exists, say so before implementing the requested one.
+- If something is unclear, stop. Name what's confusing, then ask.
+
 ---
 
 ## Anti-Rationalization (These excuses don't work)
@@ -91,3 +101,4 @@ When using subagent-driven development: spec compliance first, issues found = no
 | /simplify | "The complexity is necessary" | Run /simplify. If it finds reduction, it wasn't necessary |
 | Surgical | "While I'm here, let me clean up" | Only change requested lines. Cleanup is a separate request |
 | Simplicity | "Need abstraction for extensibility" | Only what's needed now. Abstract when repetition hits 3+ times |
+| Surface Assumptions | "It's obvious what they meant" | If 2+ readings are valid — say so, don't silently guess |

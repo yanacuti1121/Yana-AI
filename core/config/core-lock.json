@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-06-24T12:05:46+00:00",
+  "generated": "2026-06-25T05:48:34+00:00",
   "count": 220,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -103,7 +103,7 @@
     "core/rules/fuzz-testing-constraints.md": "dc989c3f8a36d0c8766560ea5cdb3d7a4ec5f1c7165a0fcc03c644f938d20141",
     "core/rules/git-push-enforcement.md": "a86e2d6b85ab761d98c4d72c3754be012edb3233c58de1cd2f71c3acc1b71048",
     "core/rules/git-workflow-v2.md": "e7ba7420be10c715129ad0dc80cde3394aba6afb0d2e810912e9574ca4a526b0",
-    "core/rules/golden-principles.md": "77ef0df0aff081b01534c2908e17f7265a3747f599bc80edb05b1a3992a9c014",
+    "core/rules/golden-principles.md": "283afe9b5150ff12c85e6084719cf51aaa46cb88e19a2acdfcd6f705cfff7ee5",
     "core/rules/human-gate-policy.md": "5e6d1ad30b42f7fc331a0d87b2f75aff133964b1f8affc5ea1c8e3058bf1c225",
     "core/rules/memory-persistence-law.md": "8657088d0a7a64a5ed6f9de7fcc937f0b665d69385f0d1d9dc92cec703371a76",
     "core/rules/migrations.md": "664902a217613d7dc87f233c1d9bee175586ae20547113300f67f15149b5a8af",
