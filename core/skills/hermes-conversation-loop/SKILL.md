@@ -43,7 +43,7 @@ truncation, continuation prompt. These live inside the un-ported
 
 - Single-turn completions (no loop needed)
 - Human-interactive chat where user drives pacing
-- See also: [[hermes-tool-guardrails]] for within-turn tool-call protection
+- See also: [[hermes-tool-loop-guard]] for within-turn tool-call failure-loop protection
 
 ---
 

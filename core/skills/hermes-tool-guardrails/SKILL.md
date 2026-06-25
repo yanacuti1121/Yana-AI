@@ -1,6 +1,6 @@
 ---
 name: hermes-tool-guardrails
-description: Command allowlist + approval gate pattern for safe tool execution. Block dangerous commands by default, prompt for approval on risky ones, auto-deny in non-interactive subagents. Complements YAMTAM's safe-run.sh at the agent decision level.
+description: Yana AI-native (not hermes-agent-derived — see Provenance correction below) command allowlist + approval-gate pattern for safe tool execution. Block dangerous commands by default, prompt for approval on risky ones, auto-deny in non-interactive subagents. Complements YAMTAM's safe-run.sh at the agent decision level. Distinct from [[hermes-tool-loop-guard]], which detects within-turn tool-call failure loops.
 ---
 
 ## Provenance correction (2026-06-20)
