@@ -90,3 +90,9 @@ tools/Antigravity-x64/
 # Yana web — local auth/session/mission data (never commit)
 tools/yana-web/.yana/
 .yamtam/
+
+# Generated build output (Astro) — regenerate via docs build script
+docs-dist/
+
+# Zed editor — personal config, not project config
+.zed/
