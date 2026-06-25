@@ -68,8 +68,11 @@ RULE_TEST_PY="$REPO_ROOT/core/scripts/rule_test.py"
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 RED='\033[31m'; CYAN='\033[36m'; BOLD='\033[1m'; RESET='\033[0m'
-ORANGE='\033[38;5;208m'; ORANGE_B='\033[1;38;5;208m'
-ORANGE_VER='\033[38;5;211m'; ORANGE_TXT='\033[38;5;230m'; ORANGE_PATH='\033[38;5;180m'
+# Pink-into-blue palette — box border/text in pink, numbers/highlights in
+# blue. The wordmark gets a per-row pink→blue gradient (PINK_GRADIENT).
+PINK='\033[38;5;213m'
+PINK_VER='\033[38;5;75m'; PINK_TXT='\033[38;5;225m'; PINK_PATH='\033[38;5;146m'
+PINK_GRADIENT=('\033[1;38;5;213m' '\033[1;38;5;207m' '\033[1;38;5;171m' '\033[1;38;5;135m' '\033[1;38;5;99m' '\033[1;38;5;75m')
 
 err()  { echo -e "${RED}Error:${RESET} $*" >&2; }
 info() { echo -e "  ${CYAN}→${RESET} $*"; }
@@ -119,7 +122,7 @@ _banner_dashes() {
 # length so ANSI color codes in $2 never throw off the alignment math.
 _banner_row() {
   local plain="$1" colored="$2" indent="${3:-2}"
-  printf "${ORANGE}  │%*s%b${ORANGE}%s│${RESET}\n" "$indent" "" "$colored" "$(_banner_pad '' "$((BANNER_W-indent-${#plain}))")"
+  printf "${PINK}  │%*s%b${PINK}%s│${RESET}\n" "$indent" "" "$colored" "$(_banner_pad '' "$((BANNER_W-indent-${#plain}))")"
 }
 
 # Two-column row: left cell ($LEFT_W wide) + divider + right cell ($RIGHT_W
@@ -132,7 +135,7 @@ _banner_row2() {
   rfit="$(_banner_fit "$rplain" "$((RIGHT_W-1))")"
   [[ "$lfit" != "$lplain" ]] && { lcolored="$lfit"; lplain="$lfit"; }
   [[ "$rfit" != "$rplain" ]] && { rcolored="$rfit"; rplain="$rfit"; }
-  printf "${ORANGE}  │ %b%s${ORANGE}│ %b%s${ORANGE}│${RESET}\n" \
+  printf "${PINK}  │ %b%s${PINK}│ %b%s${PINK}│${RESET}\n" \
     "$lcolored" "$(_banner_pad '' "$((LEFT_W-1-${#lplain}))")" \
     "$rcolored" "$(_banner_pad '' "$((RIGHT_W-1-${#rplain}))")"
 }
@@ -159,7 +162,7 @@ _banner_hop() {
   [[ -n "${YANA_NO_ANIM:-}" ]] && return 0
   local positions=(0 3 6 9 12 9 6 3 0) p
   for p in "${positions[@]}"; do
-    printf "\r  %*s${ORANGE}🐇${RESET}" "$p" ""
+    printf "\r  %*s${PINK}🐇${RESET}" "$p" ""
     sleep 0.06
   done
   printf "\r\033[K"
@@ -179,9 +182,21 @@ _banner_art() {
 
 banner() {
   [[ -t 1 ]] || return 0
-  BANNER_W=80
-  LEFT_W=40
-  RIGHT_W=$((BANNER_W-LEFT_W-1))
+  # Fit the box to the real terminal instead of a fixed width — a hardcoded
+  # wide box (previously 170) overflows on normal-size terminals and wraps
+  # into a mess. Clamp so it stays tidy on narrow terminals but still
+  # stretches out on wide ones instead of leaving the box looking narrow
+  # and tall in the middle of a wide window.
+  local cols
+  cols="$(tput cols 2>/dev/null || echo 80)"
+  BANNER_W=$((cols - 6))
+  [[ "$BANNER_W" -gt 140 ]] && BANNER_W=140
+  [[ "$BANNER_W" -lt 76 ]] && BANNER_W=76
+  LEFT_W=$((BANNER_W * 32 / 100))
+  # Floor LEFT_W so stats lines like "101 agents · 1980 skills" (24 chars)
+  # never get ellipsis-truncated on narrower terminals.
+  [[ "$LEFT_W" -lt 28 ]] && LEFT_W=28
+  RIGHT_W=$((BANNER_W - LEFT_W - 1))
   local cwd="${PWD/#$HOME/~}"
   local branch dirty status_txt
   branch="$(git branch --show-current 2>/dev/null)"
@@ -198,15 +213,20 @@ banner() {
   blank="$(_banner_pad '' "$BANNER_W")"
 
   _banner_hop
-  printf "${ORANGE}  🐰🥕  🦀${RESET}\n\n"
-  printf "${ORANGE}  ╭%s╮${RESET}\n" "$dashes"
-  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}  🐰🥕  🦀${RESET}\n\n"
+  printf "${PINK}  ╭%s╮${RESET}\n" "$dashes"
+  printf "${PINK}  │%s│${RESET}\n" "$blank"
 
+  local art_i=0
   while IFS= read -r art_line; do
-    _banner_row "$art_line" "${ORANGE_B}${art_line}${RESET}" 3
+    _banner_row "$art_line" "${PINK_GRADIENT[$art_i]}${art_line}${RESET}" 3
+    # NOT `((art_i++))` — with `set -e`, a bare arithmetic command whose
+    # result is 0 (true on the first iteration, when art_i is still 0)
+    # exits non-zero and kills the whole script under errexit.
+    art_i=$((art_i + 1))
   done < <(_banner_art)
 
-  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}  │%s│${RESET}\n" "$blank"
 
   local username
   username="$(git config user.name 2>/dev/null)"
@@ -224,27 +244,27 @@ banner() {
     ""
   )
   local left_colored=(
-    "${ORANGE_VER}v${YANA_VERSION}${RESET} · ${ORANGE_TXT}chào ${username}${RESET}"
+    "${PINK_VER}v${YANA_VERSION}${RESET} · ${PINK_TXT}chào ${username}${RESET}"
     "Personal Agent OS"
     ""
   )
   if [[ -n "$agents" ]]; then
     left_plain+=("${agents} agents · ${skills} skills" "${rules} rules · ${hooks} hooks" "${scripts} scripts · ${checks} checks" "")
     left_colored+=(
-      "${ORANGE_VER}${agents}${RESET} agents · ${ORANGE_VER}${skills}${RESET} skills"
-      "${ORANGE_VER}${rules}${RESET} rules · ${ORANGE_VER}${hooks}${RESET} hooks"
-      "${ORANGE_VER}${scripts}${RESET} scripts · ${ORANGE_VER}${checks}${RESET} checks"
+      "${PINK_VER}${agents}${RESET} agents · ${PINK_VER}${skills}${RESET} skills"
+      "${PINK_VER}${rules}${RESET} rules · ${PINK_VER}${hooks}${RESET} hooks"
+      "${PINK_VER}${scripts}${RESET} scripts · ${PINK_VER}${checks}${RESET} checks"
       ""
     )
   fi
   left_plain+=("${branch} (${status_txt})" "${cwd}")
-  left_colored+=("${ORANGE_PATH}${branch}${RESET} (${status_txt})" "${ORANGE_PATH}${cwd}${RESET}")
+  left_colored+=("${PINK_PATH}${branch}${RESET} (${status_txt})" "${PINK_PATH}${cwd}${RESET}")
 
   # right column: tips + what's new (release note word-wrapped to fit)
   local right_plain=("Tips for getting started" "yana-ai doctor" "yana-ai init" "")
-  local right_colored=("${ORANGE_TXT}Tips for getting started${RESET}" "${ORANGE_VER}yana-ai doctor${RESET}" "${ORANGE_VER}yana-ai init${RESET}" "")
+  local right_colored=("${PINK_TXT}Tips for getting started${RESET}" "${PINK_VER}yana-ai doctor${RESET}" "${PINK_VER}yana-ai init${RESET}" "")
   right_plain+=("What's new")
-  right_colored+=("${ORANGE_TXT}What's new${RESET}")
+  right_colored+=("${PINK_TXT}What's new${RESET}")
   # mapfile (not `while read`) — fold's last wrapped line has no trailing
   # newline, which a `while read` loop silently drops on EOF.
   local wrapped_lines wline
@@ -262,8 +282,8 @@ banner() {
     _banner_row2 "${left_plain[$i]:-}" "${left_colored[$i]:-}" "${right_plain[$i]:-}" "${right_colored[$i]:-}"
   done
 
-  printf "${ORANGE}  │%s│${RESET}\n" "$blank"
-  printf "${ORANGE}  ╰%s╯${RESET}\n" "$dashes"
+  printf "${PINK}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}  ╰%s╯${RESET}\n" "$dashes"
 }
 
 usage() {
