@@ -23,6 +23,7 @@
 //! PATH, falling back to their original jq/Node logic unchanged otherwise —
 //! so nothing breaks for anyone who hasn't built/installed yana-rt yet.
 
+mod blast_paths;
 mod blast_radius;
 mod token_budget;
 

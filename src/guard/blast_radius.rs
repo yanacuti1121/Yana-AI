@@ -1,53 +1,30 @@
 //! guard blast-radius — block by CONSEQUENCE, not by command name.
 //!
-//! Why this exists
-//! ---------------
-//! `guard destructive` (the sibling module) matches the *text* of a command
-//! against 8 regex patterns. That is the weakest possible defense: it is a
-//! blocklist, and a blocklist is an endless catch-up game. Concrete bypasses
-//! that `destructive` lets straight through today:
+//! The sibling `destructive` guard matches command *text* against regex. That
+//! is a blocklist — an endless catch-up game. Bypasses it lets through today:
+//! `find . -delete`, `find . -exec rm {} +`, `DELETE FROM users`,
+//! `truncate -s 0 *.db`, `git push origin +main` (force via '+' refspec).
 //!
-//!     rm -rf build/           BLOCKED   (matches the rm-rf pattern)
-//!     find . -delete          ALLOWED   (deletes just as much, no `rm`)
-//!     find . -exec rm {} +    ALLOWED   (the `rm` isn't in `rm -rf` shape)
-//!     DROP TABLE users        BLOCKED
-//!     DELETE FROM users       ALLOWED   (empties the table, no DROP)
-//!     truncate -s 0 *.db      ALLOWED   (zeroes files, not "TRUNCATE TABLE")
-//!     git push origin +main   ALLOWED   (force via refspec '+', no --force)
+//! The fix is not "add more patterns" — there is always another bypass. Instead
+//! we measure the *blast radius*: how many real files a write/delete-class
+//! command would hit, and whether any sit inside a protected path. A command
+//! that touches 4000 files or reaches into `core/rules/` is dangerous whether
+//! it spells itself `rm`, `find`, or `truncate`.
 //!
-//! The fix is not "add 7 more patterns" — there is always an 8th bypass.
-//! The fix is to stop guessing intent from the verb and instead measure the
-//! *blast radius*: how many real files on disk this command can write to or
-//! destroy, and whether any of them sit inside a protected path. A command
-//! that touches 4000 files or reaches into `core/rules/` is dangerous
-//! regardless of whether it spells itself `rm`, `find`, or `truncate`.
+//! Flow: read PreToolUse payload → tokenize with `shell-words` → extract
+//! write/delete operands → expand globs + walk with `walkdir` for the REAL file
+//! count (capped so a walk over `/` can't hang) → deny if any operand is in a
+//! protected path (see blast_paths.rs) or the total exceeds the ceiling.
 //!
-//! What it does
-//! ------------
-//! 1. Read the PreToolUse payload from stdin (same envelope as `destructive`).
-//! 2. Tokenize the command with `shell-words` (handles quotes/escapes — a
-//!    naive split would miscount `rm "a b"` as two paths).
-//! 3. Pull out the path-like operands of *write/delete-class* tools
-//!    (rm, find -delete/-exec rm, mv, truncate, dd, shred, tee, cp -r over
-//!    existing trees, redirections `>`/`>>`, git clean, etc).
-//! 4. For each operand, expand globs and walk the tree (see `blast_radius_fs`)
-//!    to get the REAL count of files that would be hit, capped so a walk
-//!    over `/` can't hang the guard.
-//! 5. Deny if (a) any operand resolves inside a protected path, or
-//!    (b) the total file count exceeds the configured ceiling.
-//!
-//! This is advisory-grade containment (it runs before the command, in the
-//! agent's own filesystem view) — it is NOT a kernel sandbox and does not
-//! claim to be. It closes the "looks innocent, wipes the repo" gap that the
-//! regex guard structurally cannot.
+//! This is advisory-grade containment (runs before the command, in the agent's
+//! own filesystem view) — NOT a kernel sandbox, and does not claim to be. It
+//! closes the "looks innocent, wipes the repo" gap regex structurally cannot.
 
-#[path = "blast_radius_fs.rs"]
-mod fs_measure;
-
-use fs_measure::{count_files, repo_relative};
+use super::blast_paths::protected_hit;
 use serde::Deserialize;
 use std::io::Read;
 use std::path::Path;
+use walkdir::WalkDir;
 
 // ── Tunables (env-overridable so a session can tighten/loosen per task) ──────
 
@@ -144,25 +121,15 @@ pub fn cmd_blast_radius() -> i32 {
         return 0; // no write/delete-class operand detected
     }
 
-    match evaluate_targets(&targets) {
-        Some(reason) => deny_json(&reason),
-        None => 0,
-    }
-}
-
-/// Walks every target operand, denying on the first protected-path hit or
-/// once the running file total crosses the configured ceiling. Returns the
-/// deny reason, or `None` if every target is within budget.
-fn evaluate_targets(targets: &[String]) -> Option<String> {
     let cap = walk_cap();
-    let protected = protected_prefixes();
     let mut total_files = 0usize;
+    let protected = protected_prefixes();
 
-    for raw in targets {
+    for raw in &targets {
         // 1) Protected-path check — independent of file count. Touching the
         //    safety surface in bulk is blocked even for a single file.
         if let Some(hit) = protected_hit(raw, &protected) {
-            return Some(format!(
+            return deny_json(&format!(
                 "Blocked: command targets a protected path '{hit}'. Bulk write/delete operations \
                  are not allowed inside Yana AI's own safety surface (rules, hooks, gates, .git, \
                  L1 memory). Edit one file at a time with an explicit path, or get human approval."
@@ -172,14 +139,14 @@ fn evaluate_targets(targets: &[String]) -> Option<String> {
         // 2) Real file count via a bounded walk.
         let n = count_files(raw, cap);
         if n >= cap {
-            return Some(format!(
+            return deny_json(&format!(
                 "Blocked: '{raw}' expands to at least {cap} files (walk cap hit). This command's \
                  blast radius is too large to verify safely. Narrow the path/glob and retry."
             ));
         }
         total_files += n;
         if total_files > max_files() {
-            return Some(format!(
+            return deny_json(&format!(
                 "Blocked: this command would write to or delete {}+ files (limit {}). High blast \
                  radius regardless of which tool ('rm', 'find', 'truncate'...) is used. Split it \
                  into smaller targeted operations, or raise YANA_BLAST_MAX_FILES deliberately.",
@@ -188,7 +155,8 @@ fn evaluate_targets(targets: &[String]) -> Option<String> {
             ));
         }
     }
-    None
+
+    0
 }
 
 /// Pull path-like operands from write/delete-class invocations.
@@ -249,25 +217,77 @@ fn extract_write_targets(tokens: &[String], raw_command: &str) -> Vec<String> {
     out
 }
 
-/// Does this operand resolve inside any protected prefix? Returns the prefix.
-///
-/// Uses `repo_relative` (not a bare lexical normalize) so an absolute path
-/// can't be used to spell the same protected target and slip past a plain
-/// string-prefix check — see `blast_radius_fs::repo_relative` for the bug
-/// this fixes.
-fn protected_hit(raw: &str, protected: &[String]) -> Option<String> {
-    let norm = repo_relative(Path::new(raw));
-    let norm_str = norm.to_string_lossy();
-    for p in protected {
-        // Match on a path-segment boundary so "core/rules" doesn't also flag
-        // an unrelated "core/rulesets-public" sibling.
-        if norm_str == p.as_str() || norm_str.starts_with(&format!("{p}/")) {
-            return Some(p.clone());
+/// Count real files under `raw` (expanding a trailing glob), bounded by `cap`.
+/// A non-existent path counts as 0 (e.g. `rm newfile` that doesn't exist yet
+/// is harmless). A single existing file counts as 1. A directory walks.
+fn count_files(raw: &str, cap: usize) -> usize {
+    // Glob expansion first: `rm build/*.o` -> each match walked.
+    if raw.contains('*') || raw.contains('?') || raw.contains('[') {
+        if let Ok(paths) = glob::glob(raw) {
+            let mut n = 0;
+            for entry in paths.flatten() {
+                n += count_path(&entry, cap - n.min(cap));
+                if n >= cap {
+                    return cap;
+                }
+            }
+            return n;
         }
     }
-    None
+    count_path(Path::new(raw), cap)
+}
+
+fn count_path(p: &Path, cap: usize) -> usize {
+    if !p.exists() {
+        return 0;
+    }
+    if p.is_file() {
+        return 1;
+    }
+    let mut n = 0;
+    for entry in WalkDir::new(p).into_iter().filter_map(|e| e.ok()) {
+        if entry.file_type().is_file() {
+            n += 1;
+            if n >= cap {
+                return cap;
+            }
+        }
+    }
+    n
 }
 
 #[cfg(test)]
-#[path = "blast_radius_test.rs"]
-mod tests;
+mod tests {
+    use super::*;
+
+    fn targets(cmd: &str) -> Vec<String> {
+        let toks = shell_words::split(cmd).unwrap();
+        extract_write_targets(&toks, cmd)
+    }
+
+    #[test]
+    fn detects_find_delete_that_regex_guard_misses() {
+        // The whole point: no `rm -rf` here, but it's a mass delete.
+        assert_eq!(targets("find . -delete"), vec!["."]);
+        assert_eq!(targets("find ./build -exec rm {} +"), vec!["./build"]);
+    }
+
+    #[test]
+    fn detects_redirection_truncate() {
+        assert_eq!(targets("echo x > important.db"), vec!["important.db"]);
+        assert_eq!(targets("cat a >> log.txt"), vec!["log.txt"]);
+    }
+
+    #[test]
+    fn ignores_read_only_commands() {
+        assert!(targets("grep -r foo .").is_empty());
+        assert!(targets("cat ./big.log").is_empty());
+        assert!(targets("ls -la /etc").is_empty());
+    }
+
+    #[test]
+    fn rm_collects_every_path_operand() {
+        assert_eq!(targets("rm a b c"), vec!["a", "b", "c"]);
+        assert_eq!(targets("rm -rf build"), vec!["build"]); // flags dropped
+    }
+}

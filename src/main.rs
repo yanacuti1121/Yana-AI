@@ -20,6 +20,7 @@ mod vault;
 mod watch;
 mod init;
 mod provenance;
+mod evidence;
 mod guard;
 
 use clap::{Parser, Subcommand};
@@ -90,6 +91,9 @@ enum Commands {
     Init   { #[command(subcommand)] action: init::InitAction },
     /// Verify ported code (core/lib/*_adapted) has vendor source + attribution
     Provenance { #[command(subcommand)] action: provenance::ProvenanceAction },
+    /// Evidence provenance for the Truth Gate — run a command and emit a signed
+    /// receipt, or verify pasted evidence is authentic (not model-fabricated).
+    Evidence { #[command(subcommand)] action: evidence::EvidenceAction },
     /// Audit AI agent setup for security risks (replaces audit_scanner.py)
     Scan {
         /// Directory to scan (default: .)
@@ -342,6 +346,7 @@ fn main() {
         Commands::Watch { action } => watch::dispatch(action),
         Commands::Init  { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
+        Commands::Evidence { action } => evidence::dispatch(action),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
