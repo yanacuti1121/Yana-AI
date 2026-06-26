@@ -3,76 +3,48 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: yana-rt
+            asset: yana-rt-linux-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: yana-rt
+            asset: yana-rt-macos-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary: yana-rt
+            asset: yana-rt-macos-x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: yana-rt.exe
+            asset: yana-rt-windows-x64.exe
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+      - uses: actions/checkout@v4
 
-      - name: Validate semver tag
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Error: tag '$TAG' is not strict semver (vX.Y.Z)" >&2
-            exit 1
-          fi
-          VERSION="${TAG#v}"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-
-      - name: Install dependencies
-        run: sudo apt-get install -y jq zip
-
-      - name: Run hook tests
-        run: bash core/tests/hooks/run-hook-tests.sh
-
-      - name: Drift check
-        run: bash core/scripts/drift-check.sh
-
-      - name: Build release pack
-        run: bash core/scripts/build-release.sh "$VERSION"
-
-      - name: Update plugin.json version
-        run: |
-          jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > /tmp/plugin.json
-          mv /tmp/plugin.json .claude-plugin/plugin.json
-
-      - name: Update marketplace.json version
-        run: |
-          jq --arg v "v$VERSION" '.latest_release = $v' .claude-plugin/marketplace.json > /tmp/marketplace.json
-          mv /tmp/marketplace.json .claude-plugin/marketplace.json
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0 (node24)
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          tag_name: ${{ env.TAG }}
-          name: "Yana AI ${{ env.TAG }}"
-          body: |
-            ## Yana AI ${{ env.TAG }}
+          targets: ${{ matrix.target }}
 
-            Install with:
-            ```
-            /plugin install yanacuti1121/yana-ai
-            ```
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
 
-            Or manually:
-            ```bash
-            unzip yana-ai-${{ env.VERSION }}-fixed.zip -d /path/to/project/.claude/
-            bash /path/to/project/.claude/tests/hooks/run-hook-tests.sh
-            ```
-
-            See [ROADMAP.md](https://github.com/yanacuti1121/yana-ai/blob/main/ROADMAP.md) for changelog.
-          files: |
-            releases/yana-ai-v${{ env.VERSION }}-fixed.zip
-            releases/yana-ai-latest.zip
-          fail_on_unmatched_files: true
+      - name: Upload binary to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/${{ matrix.target }}/release/${{ matrix.binary }}
+          asset_name: ${{ matrix.asset }}
