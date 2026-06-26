@@ -1,6 +1,6 @@
 {
   "name": "yana-ai",
-  "version": "0.42.0",
+  "version": "0.42.1",
   "description": "Yana AI — safety middleware and agent OS for AI coding tools",
   "bin": {
     "yana": "./bin/yana.js"
