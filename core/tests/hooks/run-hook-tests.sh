@@ -783,6 +783,56 @@ test_validator "Allow safe Write in project" \
 test_validator "Bypass suppresses block" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://localhost:9000"}}' "allow" "bypass"
 
+# 9. guard-blast-radius.sh (Rust-only — no bash fallback; the real
+# filesystem-walk/glob logic lives in src/guard/blast_radius.rs, see that
+# file's module doc for why a bash reimplementation isn't attempted here).
+# Needs its own fixture dir + PATH override since this guard's decision
+# depends on real files on disk, unlike the regex-only hooks above.
+echo ""
+echo "--- guard-blast-radius.sh ---"
+REPO_ROOT="$(cd "$CLAUDE_DIR/.." && pwd)"
+RT_BIN="$REPO_ROOT/target/release/yana-rt"
+
+if [[ -x "$RT_BIN" ]]; then
+    BLAST_FIXTURE="$(mktemp -d)"
+    mkdir -p "$BLAST_FIXTURE/core/rules" "$BLAST_FIXTURE/small"
+    echo "x" > "$BLAST_FIXTURE/core/rules/00-meta.md"
+    echo "x" > "$BLAST_FIXTURE/small/one.txt"
+
+    run_blast() {
+        local test_name=$1 cmd=$2 expect=$3
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        echo -n "Testing guard-blast-radius.sh [$test_name]... "
+        local out
+        out=$(cd "$BLAST_FIXTURE" && printf '%s' "{\"tool_input\":{\"command\":\"$cmd\"}}" \
+            | PATH="$REPO_ROOT/target/release:$PATH" bash "$HOOKS_DIR/guard-blast-radius.sh" 2>/dev/null)
+        local decision="allow"
+        if [[ -n "$out" ]] && echo "$out" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+            decision="deny"
+        fi
+        if [[ "$decision" == "$expect" ]]; then
+            echo "PASS"
+        else
+            echo "FAIL (expected $expect, got $decision)"
+            [[ -n "$out" ]] && echo "Output: $out"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    }
+
+    run_blast "Block single file inside protected path (relative)" \
+        "rm core/rules/00-meta.md" "deny"
+    run_blast "Block same file via absolute path (regression: absolute-path bypass fix)" \
+        "rm $BLAST_FIXTURE/core/rules/00-meta.md" "deny"
+    run_blast "Allow single file outside protected path" \
+        "rm small/one.txt" "allow"
+    run_blast "Allow read-only command" \
+        "grep -r foo small" "allow"
+
+    rm -rf "$BLAST_FIXTURE"
+else
+    echo "SKIP: yana-rt release binary not built — run 'cargo build --release' to test guard-blast-radius.sh"
+fi
+
 echo ""
 echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"

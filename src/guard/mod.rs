@@ -23,6 +23,7 @@
 //! PATH, falling back to their original jq/Node logic unchanged otherwise —
 //! so nothing breaks for anyone who hasn't built/installed yana-rt yet.
 
+mod blast_radius;
 mod token_budget;
 
 use clap::Subcommand;
@@ -43,12 +44,21 @@ pub enum GuardAction {
         #[arg(long)]
         tool: Option<String>,
     },
+    /// PreToolUse(Bash) — block by CONSEQUENCE, not command name. Measures how
+    /// many real files a write/delete-class command would hit (rm, find
+    /// -delete, truncate, redirections, git clean...) and denies if it exceeds
+    /// the blast-radius ceiling or targets a protected path. Catches the
+    /// `find . -delete` / `git push origin +main` bypasses the regex-based
+    /// `destructive` guard structurally cannot. Tunables: YANA_BLAST_MAX_FILES,
+    /// YANA_BLAST_WALK_CAP, YANA_BLAST_PROTECTED.
+    BlastRadius,
 }
 
 pub fn dispatch(action: GuardAction) {
     let code = match action {
         GuardAction::Destructive => cmd_destructive(),
         GuardAction::TokenBudget { tool } => token_budget::cmd_token_budget(tool),
+        GuardAction::BlastRadius => blast_radius::cmd_blast_radius(),
     };
     std::process::exit(code);
 }
