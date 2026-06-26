@@ -1,21 +1,21 @@
-```ansi
+```
 $ yana-ai
-[38;5;213m╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮[0m
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │                                                                                                                                            │
-│   [1;38;5;213m██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗[0m                                                                                       │
-│   [1;38;5;207m╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║[0m                                                                                       │
-│   [1;38;5;171m ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║[0m                                                                                       │
-│   [1;38;5;135m  ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║[0m                                                                                       │
-│   [1;38;5;99m   ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║[0m                                                                                       │
-│   [1;38;5;75m   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝[0m                                                                                       │
+│   ██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗                                                                                       │
+│   ╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║                                                                                       │
+│    ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║                                                                                       │
+│     ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║                                                                                       │
+│      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
+│      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ [38;5;75mv0.42.1[0m · [38;5;225mPersonal Agent OS[0m                │ Tips for getting started                                                                      │
-│ [38;5;75m101[0m agents · [38;5;75m1980[0m skills                   │ yana-ai doctor                                                                               │
-│ [38;5;75m61[0m rules · [38;5;75m48[0m hooks · [38;5;75m101[0m scripts          │ yana-ai init                                                                                  │
-│ [38;5;75m826[0m checks · [38;5;75m9[0m gate layers                 │                                                                                               │
+│ v0.42.1 · Personal Agent OS                │ Tips for getting started                                                                      │
+│ 101 agents · 1,980 skills                   │ yana-ai doctor                                                                               │
+│ 65 rules · 48 hooks · 101 scripts          │ yana-ai init                                                                                  │
+│ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
-│                                            │ [38;5;75mv0.42.1[0m — Mobile parity + Pixel Office + theming                                             │
-[38;5;213m╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯[0m
+│                                            │ v0.42.1 — Mobile parity + Pixel Office + theming                                             │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 <h1 align="center">Yana AI</h1>
@@ -62,9 +62,9 @@ $ yana-ai
 
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_skills-1,980-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
+  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
   <img src="https://img.shields.io/badge/📜_rules-65-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_hooks-48-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_commands-164-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_gates-9_layers-ce422b?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
@@ -72,12 +72,12 @@ $ yana-ai
 
 ---
 
-**Yana AI** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 97 specialist agents, 1,980 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
+**Yana AI** is a personal agent operating system for AI coding tools — runtime safety hooks, memory tiers, 101 specialist agents, 1,980 skills, and a Rust runtime that intercepts dangerous AI actions before they execute.
 
 Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
 
-> **New in v0.42.0:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 220 core files against tampering (rule 67).
+> **New in v0.42.1:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 221 core files against tampering (rule 67).
 
 **→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
@@ -103,11 +103,51 @@ Built by one 17-year-old in Vietnam — which means real-world feedback is the m
 
 ---
 
+## Installation
+
+### Requirements
+
+- Node.js 18+ (for npm package)
+- Git
+- Any AI coding tool: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider, etc.
+
+### Method 1 — npm (recommended, 60 seconds)
+
+```bash
+npm install -g yana-ai          # install CLI globally
+npx yana-ai-install             # wire hooks into current project
+yana-ai doctor                  # verify everything is working
+```
+
+### Method 2 — clone from source
+
+```bash
+git clone https://github.com/yanacuti1121/yana-ai.git
+cd yana-ai
+npm install
+bash install.sh                 # copies hooks + config into your project
+yana-ai doctor                  # verify
+```
+
+### Method 3 — GitHub App (no CLI needed)
+
+Install **[yana-ai](https://github.com/marketplace/yana-ai)** from GitHub Marketplace to add automatic safety checks and code review to any repository — no local setup required.
+
+### Verify
+
+```bash
+yana-ai doctor        # checks hook wiring, config integrity, gate health
+yana-ai --version     # confirms version
+```
+
+After install, try asking your AI agent to run `git push --force`, pipe a remote script to bash, or access a `.env` file — every attempt is intercepted, explained, and logged.
+
+
 ## Yana AI at a Glance
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                     Yana AI v0.42.0                        │
+│                     Yana AI v0.42.1                        │
 │      "The orchestration layer between humans and AI —            │
 │        routing, safety, and context for every domain."           │
 │                                                                  │

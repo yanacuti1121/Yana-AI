@@ -1,6 +1,22 @@
-<p align="center">
-  <img src="./docs/yana-logo.png" alt="Yana AI" width="100%" />
-</p>
+```
+$ yana-ai
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                            │
+│   ██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗                                                                                       │
+│   ╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║                                                                                       │
+│    ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║                                                                                       │
+│     ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║                                                                                       │
+│      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
+│      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
+│                                                                                                                                            │
+│ v0.42.1 · Personal Agent OS                │ Tips for getting started                                                                      │
+│ 101 agents · 1,980 skills                   │ yana-ai doctor                                                                               │
+│ 65 rules · 48 hooks · 101 scripts          │ yana-ai init                                                                                  │
+│ 826 checks · 9 gate layers                 │                                                                                               │
+│                                            │ What's new                                                                                    │
+│                                            │ v0.42.1 — Mobile parity + Pixel Office + theming                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
 <h1 align="center">Yana AI</h1>
 
@@ -22,7 +38,7 @@
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.42.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.42.1-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -40,9 +56,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_kỹ_năng-1,980-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-97-7d6aa8?style=flat-square" />
+  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
   <img src="https://img.shields.io/badge/📜_quy_tắc-65-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-46-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_hooks-48-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_lệnh-164-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_cổng-9_lớp-ce422b?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
