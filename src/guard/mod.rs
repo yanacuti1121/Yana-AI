@@ -25,6 +25,7 @@
 
 mod blast_paths;
 mod blast_radius;
+mod self_mod;
 mod token_budget;
 
 use clap::Subcommand;
@@ -53,6 +54,13 @@ pub enum GuardAction {
     /// `destructive` guard structurally cannot. Tunables: YANA_BLAST_MAX_FILES,
     /// YANA_BLAST_WALK_CAP, YANA_BLAST_PROTECTED.
     BlastRadius,
+    /// PreToolUse(Write|Edit|str_replace) — quarantine writes to Yana AI's own
+    /// safety surface (rules, hooks, gates, guard source, hook registry).
+    /// Closes the gap blast_radius can't: a single str_replace on
+    /// gates/truth_gate.md bypasses blast_radius (1 file < 50 limit) but is
+    /// the most dangerous self-modification possible. Every denied attempt is
+    /// appended to ledger/selfmod-tamper.log for audit.
+    SelfMod,
 }
 
 pub fn dispatch(action: GuardAction) {
@@ -60,6 +68,7 @@ pub fn dispatch(action: GuardAction) {
         GuardAction::Destructive => cmd_destructive(),
         GuardAction::TokenBudget { tool } => token_budget::cmd_token_budget(tool),
         GuardAction::BlastRadius => blast_radius::cmd_blast_radius(),
+        GuardAction::SelfMod => self_mod::cmd_self_mod(),
     };
     std::process::exit(code);
 }
