@@ -70,7 +70,7 @@ jobs:
 
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@da05d552573ad5aba039daea1a452d2b0cac0bf7
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: tools/yana-desktop/dist/${{ matrix.artifact }}
           fail_on_unmatched_files: false

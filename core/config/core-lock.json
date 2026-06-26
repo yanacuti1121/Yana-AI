@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-06-25T05:48:34+00:00",
-  "count": 220,
+  "generated": "2026-06-26T03:59:02+00:00",
+  "count": 221,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -31,6 +31,7 @@
     "core/hooks/deploy-gate.sh": "79322738dadb84ba82037ee9d663dde87f206750c3be7d7695574f0c344ddf67",
     "core/hooks/format-on-write.sh": "06d265ff1fa4fc7cb094d1a44af61ac63a4faa09ad410ebd401111a529eddc8e",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
+    "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
     "core/hooks/guard-destructive.sh": "c66f86aed23bcaf0783ed4296cf5484cbb2f1f52e25d6f5446556a2dce6c5690",
     "core/hooks/hook-timeout-guard.sh": "0745a34a5e51423fc38a1401adc76b34669892a757c01587322845bcb04a9e12",
     "core/hooks/intent-inference.sh": "d40b207e4de02a08ad8bf3c1c6eb11e6c6a7ade234df9da17b6d0074fdff5225",
