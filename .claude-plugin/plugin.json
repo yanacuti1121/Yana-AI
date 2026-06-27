@@ -2,7 +2,7 @@
   "schema_version": "1",
   "name": "yana-ai",
   "display_name": "Yana AI",
-  "version": "0.42.0",
+  "version": "0.42.1",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
     "name": "Vũ Văn Tâm",
@@ -71,7 +71,7 @@
     "commands": 164,
     "agents": 101,
     "scripts": 101,
-    "skills": 1980,
+    "skills": 1981,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {
