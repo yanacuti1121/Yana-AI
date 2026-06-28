@@ -1,6 +1,6 @@
 # ADR-007: Integrate Claude Agent SDK
 
-**Status:** Proposed  
+**Status:** Rejected  
 **Date:** 2026-06-29  
 **Author:** Vũ Văn Tâm
 
