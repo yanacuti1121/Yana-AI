@@ -360,7 +360,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 48,
+      "count": 49,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/api-destruct-guard.sh",
@@ -414,7 +414,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 101,
+      "count": 102,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -1052,8 +1052,8 @@
   "skills_count": 1982,
   "skills_stubs_archived": 88,
   "agents_count": 101,
-  "hooks_count": 48,
-  "scripts_count": 98,
+  "hooks_count": 49,
+  "scripts_count": 102,
   "commands_count": 164,
   "rules_count": 66
 }

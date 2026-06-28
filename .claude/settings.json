@@ -102,6 +102,11 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/budget-sentinel.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash core/hooks/context-compress-trigger.sh",
+            "statusMessage": "Context compression check..."
           }
         ]
       },
