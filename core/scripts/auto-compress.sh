@@ -75,21 +75,24 @@ Output strictly in this format:
 ### Next Steps"
 
 # ── Call Ollama ───────────────────────────────────────────────────────────────
-if ! command -v ollama >/dev/null 2>&1; then
-  exit 0
-fi
+# Resolve ollama path — hooks may run with minimal PATH
+OLLAMA_BIN=$(command -v ollama 2>/dev/null \
+  || ls /opt/homebrew/bin/ollama /usr/local/bin/ollama 2>/dev/null | head -1 \
+  || true)
 
-# Timeout: 30s — if Ollama is slow, don't hang
-if command -v timeout >/dev/null 2>&1; then
-  echo "$PROMPT" | timeout 30 ollama run "$OLLAMA_MODEL" 2>/dev/null > "$OUTPUT_FILE" || {
-    rm -f "$OUTPUT_FILE"
-    exit 0
-  }
+[[ -z "$OLLAMA_BIN" ]] && exit 0
+
+# macOS: timeout is gtimeout (coreutils); Linux: timeout
+TIMEOUT_BIN=$(command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null || true)
+
+strip_ansi() { sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | sed 's/\r//g'; }
+
+if [[ -n "$TIMEOUT_BIN" ]]; then
+  echo "$PROMPT" | "$TIMEOUT_BIN" 45 "$OLLAMA_BIN" run "$OLLAMA_MODEL" 2>/dev/null \
+    | strip_ansi > "$OUTPUT_FILE" || { rm -f "$OUTPUT_FILE"; exit 0; }
 else
-  echo "$PROMPT" | ollama run "$OLLAMA_MODEL" 2>/dev/null > "$OUTPUT_FILE" || {
-    rm -f "$OUTPUT_FILE"
-    exit 0
-  }
+  echo "$PROMPT" | "$OLLAMA_BIN" run "$OLLAMA_MODEL" 2>/dev/null \
+    | strip_ansi > "$OUTPUT_FILE" || { rm -f "$OUTPUT_FILE"; exit 0; }
 fi
 
 # Verify output is non-empty
