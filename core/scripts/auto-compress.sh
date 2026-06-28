@@ -74,25 +74,32 @@ Output strictly in this format:
 ### Open Items
 ### Next Steps"
 
-# ── Call Ollama ───────────────────────────────────────────────────────────────
-# Resolve ollama path — hooks may run with minimal PATH
-OLLAMA_BIN=$(command -v ollama 2>/dev/null \
-  || ls /opt/homebrew/bin/ollama /usr/local/bin/ollama 2>/dev/null | head -1 \
-  || true)
+# ── Call Ollama via HTTP API (stream:false avoids CLI line-wrap artifacts) ────
+OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
 
-[[ -z "$OLLAMA_BIN" ]] && exit 0
+# Build JSON payload — escape PROMPT for JSON
+PAYLOAD=$(python3 -c "
+import json, sys
+prompt = sys.stdin.read()
+print(json.dumps({'model': '$OLLAMA_MODEL', 'prompt': prompt, 'stream': False}))
+" <<< "$PROMPT" 2>/dev/null) || { exit 0; }
 
 # macOS: timeout is gtimeout (coreutils); Linux: timeout
 TIMEOUT_BIN=$(command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null || true)
 
-strip_ansi() { sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | sed 's/\r//g'; }
+call_ollama() {
+  curl -sf --max-time 60 \
+    -H "Content-Type: application/json" \
+    -d "$PAYLOAD" \
+    "${OLLAMA_HOST}/api/generate" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('response',''))"
+}
 
 if [[ -n "$TIMEOUT_BIN" ]]; then
-  echo "$PROMPT" | "$TIMEOUT_BIN" 45 "$OLLAMA_BIN" run "$OLLAMA_MODEL" 2>/dev/null \
-    | strip_ansi > "$OUTPUT_FILE" || { rm -f "$OUTPUT_FILE"; exit 0; }
+  "$TIMEOUT_BIN" 65 bash -c "$(declare -f call_ollama); call_ollama" \
+    > "$OUTPUT_FILE" 2>/dev/null || { rm -f "$OUTPUT_FILE"; exit 0; }
 else
-  echo "$PROMPT" | "$OLLAMA_BIN" run "$OLLAMA_MODEL" 2>/dev/null \
-    | strip_ansi > "$OUTPUT_FILE" || { rm -f "$OUTPUT_FILE"; exit 0; }
+  call_ollama > "$OUTPUT_FILE" 2>/dev/null || { rm -f "$OUTPUT_FILE"; exit 0; }
 fi
 
 # Verify output is non-empty
