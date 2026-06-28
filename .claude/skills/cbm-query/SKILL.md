@@ -76,11 +76,12 @@ trace_path(
 ```
 get_code_snippet(
   project="Users-vutam-Desktop-Yana-AI",
-  function_name="<exact name from search_graph>"
+  qualified_name="<qualified_name from search_graph result>"
 )
 ```
 
-Returns the source code of that symbol. Use after `search_graph` confirms it exists.
+**Use `qualified_name` (not `function_name`)** — copy from search_graph result field.
+Example: `Users-vutam-Desktop-Yana-AI.core.lib.hermes_adapted.context_compressor.ContextCompressor.compress`
 
 ---
 
