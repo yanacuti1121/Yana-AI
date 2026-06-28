@@ -13,7 +13,7 @@ SESSION_DIR="$PROJECT_ROOT/core/memory/L2_session"
 AUDIT_LOG="$PROJECT_ROOT/core/memory/audit/agent-actions.log"
 LOCK_FILE="$SESSION_DIR/.compress-lock"
 OUTPUT_FILE="$SESSION_DIR/auto-compress-$(date +%Y%m%dT%H%M%S).md"
-OLLAMA_MODEL="${YANA_COMPRESS_MODEL:-qwen2.5-coder:7b}"
+OLLAMA_MODEL="${YANA_COMPRESS_MODEL:-freehuntx/qwen3-coder:14b}"
 MIN_INTERVAL_SECONDS=300  # 5 minutes
 
 mkdir -p "$SESSION_DIR"
