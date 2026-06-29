@@ -4,6 +4,11 @@
   "description": "Yana AI — desktop shell",
   "main": "main.js",
   "private": true,
+  "author": "Vũ Văn Tâm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanacuti1121/Yana-AI"
+  },
   "scripts": {
     "start": "electron .",
     "build:linux": "electron-builder --linux",
