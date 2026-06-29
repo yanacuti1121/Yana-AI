@@ -44,6 +44,9 @@ $ yana-ai
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
+  <a href="https://www.npmjs.com/package/yana-rt">
+    <img src="https://img.shields.io/npm/v/yana-rt?style=for-the-badge&logo=npm&label=yana-rt+wasm&color=cb3837" />
+  </a>
   <a href="https://pypi.org/project/yana-ai/">
     <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
   </a>
