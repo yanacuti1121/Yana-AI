@@ -96,3 +96,4 @@ docs-dist/
 
 # Zed editor — personal config, not project config
 .zed/
+/pkg

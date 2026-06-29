@@ -21,8 +21,7 @@ wasm-pack build \
   --target "$TARGET" \
   --out-dir pkg \
   --no-default-features \
-  --features wasm \
-  --release
+  --features wasm
 
 echo ""
 echo "[yana-rt/wasm] done → pkg/"
