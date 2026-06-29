@@ -29,7 +29,21 @@ _find_rt() {
     echo ""
   fi
 }
-rt() { local bin; bin=$(_find_rt); [[ -n "$bin" ]] || { err "yana-rt not found. Run: cargo build --release"; exit 3; }; exec "$bin" "$@"; }
+rt() {
+  local bin; bin=$(_find_rt)
+  if [[ -z "$bin" ]]; then
+    echo -e "\n${RED}  ✗ yana-rt not found${RESET} — the Rust runtime is required for this command.\n" >&2
+    echo    "  Install options:" >&2
+    echo    "    cargo install yana-rt          # from crates.io (recommended)" >&2
+    echo    "    cargo build --release          # build from source (run in this repo)" >&2
+    echo -e "\n  Commands that work without yana-rt:" >&2
+    echo    "    yana-ai verify / init / policy / guard / router / watch / stats" >&2
+    echo    "    yana-ai explain / badge / harness / export / report / upgrade" >&2
+    echo    "" >&2
+    exit 3
+  fi
+  exec "$bin" "$@"
+}
 
 # ── Python scripts (not yet ported) ──────────────────────────────────────────
 SCANNER_PY="$REPO_ROOT/core/scripts/audit_scanner.py"
