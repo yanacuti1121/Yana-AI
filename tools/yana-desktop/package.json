@@ -4,7 +4,10 @@
   "description": "Yana AI — desktop shell",
   "main": "main.js",
   "private": true,
-  "author": "Vũ Văn Tâm",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/yanacuti1121/Yana-AI"
