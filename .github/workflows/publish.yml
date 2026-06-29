@@ -69,9 +69,15 @@ jobs:
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          if npm view "yana-ai@$VERSION" &>/dev/null 2>&1; then
+            echo "yana-ai@$VERSION already published, skipping."
+          else
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ inputs.version || github.ref_name }}
 
   publish-crates:
     name: crates.io — yana-rt
