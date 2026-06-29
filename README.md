@@ -14,7 +14,7 @@ $ yana-ai
 │ 66 rules · 49 hooks · 101 scripts          │ yana-ai init                                                                                  │
 │ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
-│                                            │ v0.42.2 — Mobile parity + Pixel Office + theming                                             │
+│                                            │ v0.42.2 — WASM guard + automated publish pipeline                                            │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -72,7 +72,7 @@ $ yana-ai
 Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**, **OpenCode**, **Zed**, **Gemini**, **GitHub Copilot**, **Aider**, and more.
 
 
-> **New in v0.42.2:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 221 core files against tampering (rule 67).
+> **New in v0.42.2:** **yana-rt now runs in the browser** — WebAssembly build via wasm-bindgen ships destructive-command guard to browser extensions, VS Code, and Node.js (`npm install yana-rt`). Publish pipeline fully automated — npm, PyPI, and crates.io all publish on tag push. Agent count reconciled to 162. Rule 70 added: context-faithfulness law enforcing provided data over training data.
 
 **→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)**
 
