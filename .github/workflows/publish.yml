@@ -7,6 +7,11 @@ on:
     release:
       types: [published]
     workflow_dispatch:
+      inputs:
+        version:
+          description: 'Version to publish (e.g. 0.42.1)'
+          required: true
+          default: '0.42.1'
 
 jobs:
   publish-pypi:
@@ -26,7 +31,7 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ inputs.version || github.ref_name }}"
           VERSION="${VERSION#v}"
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
           sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" src/yana_ai/__init__.py
@@ -59,7 +64,7 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ inputs.version || github.ref_name }}"
           VERSION="${VERSION#v}"
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
@@ -81,7 +86,7 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ inputs.version || github.ref_name }}"
           VERSION="${VERSION#v}"
           sed -i "s/^version = .*/version = \"$VERSION\"/" Cargo.toml
 
