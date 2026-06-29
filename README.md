@@ -41,20 +41,8 @@ $ yana-ai
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
   </a>
-  <a href="https://crates.io/crates/yana-rt">
-    <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
-  </a>
-  <a href="https://pypi.org/project/yana-ai/">
-    <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
-  </a>
   <a href="https://github.com/yanacuti1121/yana-ai">
     <img src="https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge" />
-  </a>
-  <a href="https://github.com/marketplace/yana-ai">
-    <img src="https://img.shields.io/badge/GitHub-Marketplace-2ea44f?style=for-the-badge&logo=github" />
-  </a>
-  <a href="https://github.com/apps/yamtam">
-    <img src="https://img.shields.io/badge/Install-GitHub_App-0969da?style=for-the-badge&logo=github" />
   </a>
 </p>
 
@@ -77,7 +65,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 > **New in v0.42.1:** Mobile feature parity — Sessions, Analytics, Cron, and HTML Maker ported from desktop to the mobile app. **yana-pixel-bridge** — relays Claude Code Agent/Task dispatch events to a sibling `agent-office` instance for live walk-to-desk/work/idle animation. 6 new themes + bilingual tweaks panel. Patched a curl\|bash supply-chain risk across 41 skills, closed 3 rule gaps. **Core-lock** — SHA-256 integrity manifest pinning 221 core files against tampering (rule 67).
 
-**→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
+**→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)**
 
 → [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
 
@@ -129,7 +117,7 @@ yana-ai doctor                  # verify
 
 ### Method 3 — GitHub App (no CLI needed)
 
-Install **[yana-ai](https://github.com/marketplace/yana-ai)** from GitHub Marketplace to add automatic safety checks and code review to any repository — no local setup required.
+Install via npm and wire into your project in 60 seconds — see Method 1 above.
 
 ### Verify
 
@@ -292,7 +280,7 @@ Execute (or block + log)
 
 ## Quick Install
 
-**→ [Install from GitHub Marketplace](https://github.com/marketplace/yana-ai)** — one click, official listing.
+**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
 
 ```bash
 # Claude Code plugin — npx yana-ai-install wires the hooks
