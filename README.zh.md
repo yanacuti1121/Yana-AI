@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.42.2 · Personal Agent OS                │ Tips for getting started                                                                      │
+│ v0.42.3 · Personal Agent OS                │ Tips for getting started                                                                      │
 │ 162 agents · 1,983 skills                   │ yana-ai doctor                                                                               │
 │ 66 rules · 49 hooks · 101 scripts          │ yana-ai init                                                                                  │
 │ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
-│                                            │ v0.42.2 — WASM guard + automated publish pipeline                                           │
+│                                            │ v0.42.3 — WASM guard + automated publish pipeline                                           │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,7 +36,7 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.42.2-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.42.3-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -75,7 +75,7 @@ $ yana-ai
 可与 **Claude Code**、**Cursor**、**Windsurf**、**Antigravity**、**Kiro**、**OpenCode**、**Zed**、**Gemini**、**GitHub Copilot**、**Aider** 等工具配合使用。
 
 
-> **v0.42.2 新功能：** **yana-rt 现在可在浏览器中运行** — 通过 wasm-bindgen 构建的 WebAssembly 将危险命令拦截守卫带到浏览器扩展、VS Code 和 Node.js（`npm install yana-rt`）。发布流水线已全面自动化 — 推送 tag 时自动发布至 npm、PyPI 和 crates.io。智能体数量已核准为 162 个。新增规则 70：上下文忠实法则 — 用户提供的数据优先于模型训练数据。
+> **v0.42.3 新功能：** **yana-rt 现在可在浏览器中运行** — 通过 wasm-bindgen 构建的 WebAssembly 将危险命令拦截守卫带到浏览器扩展、VS Code 和 Node.js（`npm install yana-rt`）。发布流水线已全面自动化 — 推送 tag 时自动发布至 npm、PyPI 和 crates.io。智能体数量已核准为 162 个。新增规则 70：上下文忠实法则 — 用户提供的数据优先于模型训练数据。
 
 **→ [完整文档与演示](https://yanacuti1121.github.io/Yana-AI/)** · **[GitHub Marketplace](https://github.com/marketplace/yana-ai)**
 
