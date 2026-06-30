@@ -557,7 +557,7 @@ cmd_check_context() {
 
 # ── dispatch ──────────────────────────────────────────────────────────────────
 
-COMMAND="${1:-help}"
+COMMAND="${1:-banner}"
 shift 2>/dev/null || true
 
 case "$COMMAND" in
