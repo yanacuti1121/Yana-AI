@@ -55,7 +55,12 @@
     "test": "bash core/tests/hooks/run-hook-tests.sh",
     "postinstall": "node scripts/npm-install.js --auto",
     "deploy": "wrangler deploy",
-    "preview": "wrangler dev"
+    "preview": "wrangler dev",
+    "electron:dev": "cd electron && npm start",
+    "electron:build": "cd electron && npm run build:all",
+    "electron:build:mac": "cd electron && npm run build:mac",
+    "electron:build:win": "cd electron && npm run build:win",
+    "electron:install": "cd electron && npm install"
   },
   "devDependencies": {
     "wrangler": "^4.96.0"

@@ -34,6 +34,7 @@ core/memory/L2_session/*.json
 
 # Build
 dist/
+electron/node_modules/
 .next/
 .claude/state/
 releases/logs/
