@@ -538,7 +538,7 @@ Output mẫu:
 
 ---
 
-97 specialist roles defined in repo config
+162 specialist roles defined in repo config
 1,983 skill definitions discovered by repository scan
 10,331 files, measured on 2026-06-21
 
