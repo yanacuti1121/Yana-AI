@@ -682,6 +682,82 @@ function handleApiLocalStatus(req, res) {
   }
 }
 
+// ── GET /api/ollama/models — list installed Ollama models ────────────────────
+function handleOllamaModels(_req, res) {
+  const req2 = http.get({ hostname: '127.0.0.1', port: 11434, path: '/api/tags', timeout: 2000 }, upRes => {
+    let raw = '';
+    upRes.on('data', c => { raw += c; });
+    upRes.on('end', () => {
+      try {
+        const data = JSON.parse(raw);
+        const models = (data.models || []).map(m => ({
+          name:    m.name || m.model,
+          size:    m.size,
+          modified: m.modified_at,
+          details: m.details || {},
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ models }));
+      } catch (_) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ models: [] }));
+      }
+    });
+  });
+  req2.on('error',   () => { res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'Ollama not running' })); });
+  req2.on('timeout', () => { req2.destroy(); res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'timeout' })); });
+}
+
+// ── POST /api/ollama/pull — pull a model with streamed progress ───────────────
+async function handleOllamaPull(req, res) {
+  let body;
+  try { body = await readBody(req, 1024); } catch (_) { jsonError(res, 400, 'Bad request'); return; }
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+  const name = (parsed.name || '').trim().replace(/[^a-zA-Z0-9:._/-]/g, '');
+  if (!name) { jsonError(res, 400, 'Missing model name'); return; }
+
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+
+  const pullBody = JSON.stringify({ name, stream: true });
+  const upReq = http.request({
+    hostname: '127.0.0.1', port: 11434, path: '/api/pull', method: 'POST',
+    headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(pullBody) },
+  }, upRes => {
+    upRes.on('data', chunk => {
+      for (const line of chunk.toString().split('\n')) {
+        if (line.trim()) res.write(`data: ${line}\n\n`);
+      }
+    });
+    upRes.on('end', () => { res.write('data: {"status":"done"}\n\n'); res.end(); });
+  });
+  upReq.on('error', () => { res.write('data: {"error":"Ollama not running"}\n\n'); res.end(); });
+  upReq.write(pullBody);
+  upReq.end();
+}
+
+// ── DELETE /api/ollama/models — remove an installed Ollama model ──────────────
+async function handleOllamaDelete(req, res) {
+  let body;
+  try { body = await readBody(req, 1024); } catch (_) { jsonError(res, 400, 'Bad request'); return; }
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+  const name = (parsed.name || '').trim().replace(/[^a-zA-Z0-9:._/-]/g, '');
+  if (!name) { jsonError(res, 400, 'Missing model name'); return; }
+
+  const delBody = JSON.stringify({ name });
+  const upReq = http.request({
+    hostname: '127.0.0.1', port: 11434, path: '/api/delete', method: 'DELETE',
+    headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(delBody) },
+  }, upRes => {
+    res.writeHead(upRes.statusCode < 300 ? 200 : upRes.statusCode, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: upRes.statusCode < 300 }));
+  });
+  upReq.on('error', () => { jsonError(res, 503, 'Ollama not running'); });
+  upReq.write(delBody);
+  upReq.end();
+}
+
 // ── POST /api/models — fetch live model list from provider ────────────────────
 async function handleApiModels(req, res) {
   let body;
@@ -1714,7 +1790,10 @@ const server = http.createServer(async (req, res) => {
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 
   if (method === 'GET'  && pathname === '/api/status')       { handleApiStatus(req, res);      return; }
-  if (method === 'GET'  && pathname === '/api/local-status') { handleApiLocalStatus(req, res);  return; }
+  if (method === 'GET'  && pathname === '/api/local-status')   { handleApiLocalStatus(req, res);  return; }
+  if (method === 'GET'  && pathname === '/api/ollama/models')  { handleOllamaModels(req, res);    return; }
+  if (method === 'POST' && pathname === '/api/ollama/pull')    { await handleOllamaPull(req, res); return; }
+  if (method === 'DELETE' && pathname === '/api/ollama/models') { await handleOllamaDelete(req, res); return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }

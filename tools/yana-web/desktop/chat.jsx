@@ -98,13 +98,174 @@ function ConfidentialBadge({ tier }) {
   );
 }
 
+// Approximate output token cost per 1K tokens (USD) — mid-tier models
+const PROVIDER_PRICE = {
+  claude: 0.003, openai: 0.0006, gemini: 0.0004, groq: 0.00008,
+  deepseek: 0.00028, openrouter: 0.001,
+  ollama: 0, lmstudio: 0, "9router": 0,
+};
+
 function RouteChip({ route }) {
+  const local = ["ollama", "lmstudio", "9router"].includes(route.agent) ||
+                (route.agent && route.agent.startsWith("Auto →") &&
+                 ["ollama", "lmstudio", "9router"].some(p => route.agent.includes(p)));
+  const priceKey = route.agent && route.agent.startsWith("Auto →")
+    ? (["ollama","lmstudio","9router"].find(p => route.agent.includes(p)) || route.agent.split("→")[1]?.trim() || "claude")
+    : route.agent;
+  const pricePer1k = PROVIDER_PRICE[priceKey] ?? 0.003;
+
+  const [meta, setMeta] = React.useState(null); // { secs, chars }
+  React.useEffect(() => {
+    if (route._streamDone) setMeta(route._streamDone);
+  }, [route._streamDone]);
+
+  const costStr = meta
+    ? (pricePer1k === 0
+        ? L("$0.00 · free", "$0.00 · miễn phí")
+        : "$" + ((meta.chars / 4 / 1000) * pricePer1k).toFixed(4))
+    : null;
+  const speedStr = meta ? (meta.secs < 60 ? meta.secs.toFixed(1) + "s" : Math.round(meta.secs) + "s") : null;
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7, flexWrap: "wrap" }}>
       <YanaMark size={20} />
       <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
         via <b style={{ fontWeight: 500, color: "var(--ink-2)" }}>{route.agent}</b> · {route.model}
       </span>
+      {speedStr && (
+        <span style={{ fontSize: 11, color: local ? "#16a34a" : "var(--ink-3)", background: local ? "color-mix(in srgb,#22c55e 10%,transparent)" : "color-mix(in srgb,var(--ink) 6%,transparent)", border: "1px solid color-mix(in srgb," + (local ? "#22c55e" : "var(--ink)") + " 15%,transparent)", borderRadius: 99, padding: "2px 7px", fontWeight: 500 }}>
+          {speedStr} · {costStr}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Ollama Model Manager ──────────────────────────────────────────────────────
+function OllamaManager() {
+  const [models, setModels]       = React.useState(null);   // null=loading, []=loaded
+  const [pullName, setPullName]   = React.useState("");
+  const [pulling, setPulling]     = React.useState(false);
+  const [pullLog, setPullLog]     = React.useState("");
+  const [open, setOpen]           = React.useState(false);
+  const [deleting, setDeleting]   = React.useState(null);
+
+  function reload() {
+    fetch("/api/ollama/models")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setModels(d ? d.models : []))
+      .catch(() => setModels([]));
+  }
+
+  React.useEffect(() => { if (open) reload(); }, [open]);
+
+  function formatSize(bytes) {
+    if (!bytes) return "";
+    if (bytes >= 1e9) return (bytes / 1e9).toFixed(1) + " GB";
+    return (bytes / 1e6).toFixed(0) + " MB";
+  }
+
+  async function doPull() {
+    const name = pullName.trim();
+    if (!name || pulling) return;
+    setPulling(true);
+    setPullLog("");
+    try {
+      const res = await fetch("/api/ollama/pull", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          const data = line.replace(/^data: /, "").trim();
+          if (!data) continue;
+          try {
+            const j = JSON.parse(data);
+            if (j.status === "done") { setPullLog("✓ " + L("Done", "Xong")); reload(); setPullName(""); }
+            else if (j.error)        { setPullLog("✗ " + j.error); }
+            else if (j.status)       { setPullLog(j.status + (j.completed && j.total ? ` ${Math.round(j.completed/j.total*100)}%` : "")); }
+          } catch (_) {}
+        }
+      }
+    } catch (e) { setPullLog("✗ " + e.message); }
+    setPulling(false);
+  }
+
+  async function doDelete(name) {
+    if (!confirm(L("Delete " + name + "?", "Xoá " + name + "?"))) return;
+    setDeleting(name);
+    try {
+      await fetch("/api/ollama/models", {
+        method: "DELETE", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      reload();
+    } catch (_) {}
+    setDeleting(null);
+  }
+
+  return (
+    <div style={{ marginTop: 8, textAlign: "left" }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        fontSize: 12, color: "var(--ink-3)", background: "transparent", border: "1px solid var(--border)",
+        borderRadius: 8, padding: "4px 10px", cursor: "pointer",
+      }}>
+        {open ? "▾" : "▸"} {L("Ollama models", "Quản lý model Ollama")}
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 8, padding: "10px 12px", borderRadius: 10, background: "color-mix(in srgb, var(--ink) 4%, transparent)", border: "1px solid var(--border)", fontSize: 12 }}>
+          {/* installed models list */}
+          {models === null
+            ? <div style={{ color: "var(--ink-3)" }}>{L("Loading…", "Đang tải…")}</div>
+            : models.length === 0
+              ? <div style={{ color: "var(--ink-3)" }}>{L("No models installed yet.", "Chưa cài model nào.")}</div>
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                  {models.map(m => (
+                    <div key={m.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "4px 0", borderBottom: "1px solid var(--border)" }}>
+                      <div>
+                        <span style={{ fontWeight: 500, color: "var(--ink-2)" }}>{m.name}</span>
+                        {m.size && <span style={{ color: "var(--ink-3)", marginLeft: 6 }}>{formatSize(m.size)}</span>}
+                        {m.details && m.details.parameter_size && <span style={{ color: "var(--ink-3)", marginLeft: 6 }}>{m.details.parameter_size}</span>}
+                      </div>
+                      <button onClick={() => doDelete(m.name)} disabled={deleting === m.name} style={{
+                        fontSize: 11, color: "var(--ink-3)", background: "transparent",
+                        border: "none", cursor: "pointer", padding: "2px 4px",
+                      }}>
+                        {deleting === m.name ? "…" : "✕"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
+          }
+
+          {/* pull new model */}
+          <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
+            <input value={pullName} onChange={e => setPullName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && doPull()}
+              placeholder={L("e.g. qwen2.5-coder:7b", "vd. qwen2.5-coder:7b")}
+              style={{ flex: 1, fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--ink)", outline: "none" }}
+            />
+            <button onClick={doPull} disabled={pulling || !pullName.trim()} style={{
+              fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "none",
+              background: "var(--primary)", color: "#fff", cursor: pulling ? "default" : "pointer", opacity: pulling ? 0.6 : 1,
+            }}>
+              {pulling ? L("Pulling…", "Đang tải…") : L("Pull", "Tải")}
+            </button>
+          </div>
+          {pullLog && <div style={{ marginTop: 5, fontSize: 11.5, color: pullLog.startsWith("✓") ? "#16a34a" : pullLog.startsWith("✗") ? "#dc2626" : "var(--ink-3)", fontFamily: "monospace" }}>{pullLog}</div>}
+        </div>
+      )}
     </div>
   );
 }
@@ -567,6 +728,7 @@ function Chat({ t }) {
   const [htmlPicker, setHtmlPicker] = React.useState(false);
   const [htmlSkills, setHtmlSkills] = React.useState([]);
   const [htmlSearch, setHtmlSearch] = React.useState("");
+  const [msgSearch, setMsgSearch]   = React.useState(null); // null=closed, ""=open
   const [streaming, setStreaming] = React.useState(false);
   const [atBottom, setAtBottom]   = React.useState(true);
   const [localStatus, setLocalStatus] = React.useState(null); // null=unknown, {}=probed
@@ -817,6 +979,7 @@ function Chat({ t }) {
       let buf = "";
       let accumulated = "";
       const msgId = Date.now();
+      const streamStart = Date.now();
 
       // Insert placeholder Yana message — route shows the real provider/model/skill
       setMsgs((m) => [...m, {
@@ -865,6 +1028,12 @@ function Chat({ t }) {
       }
 
       setStreaming(false);
+
+      // Attach timing + cost metadata so RouteChip can display speed/cost badge
+      const streamDone = { secs: (Date.now() - streamStart) / 1000, chars: accumulated.length };
+      setMsgs((m) => m.map((msg) =>
+        msg._id === msgId ? { ...msg, route: { ...msg.route, _streamDone: streamDone } } : msg
+      ));
 
       // After stream: if response is HTML, mark message as artifact
       if (/^\s*(?:<!DOCTYPE|<html)/i.test(accumulated)) {
@@ -942,12 +1111,27 @@ function Chat({ t }) {
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
         <PageHeader title={L("Conversation", "Trò chuyện")} sub={L("One conversation, many hands — Yana routes each request to the right agent.", "Một cuộc trò chuyện, nhiều bàn tay — Yana chuyển mỗi yêu cầu đến đúng tác nhân.")}>
           <button
+            onClick={() => setMsgSearch(s => s === null ? "" : null)}
+            title={L("Search conversation", "Tìm trong cuộc trò chuyện")}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 10px", borderRadius: 10, border: "1px solid var(--border)", background: msgSearch !== null ? "var(--primary-soft)" : "transparent", color: msgSearch !== null ? "var(--primary)" : "var(--ink-3)", cursor: "pointer", fontSize: 13, fontFamily: "inherit", flex: "none" }}>
+            🔍
+          </button>
+          <button
             onClick={() => { setMsgs([]); D.chat = []; try { localStorage.removeItem("yana.chat"); } catch (_) {} }}
             title={L("New conversation", "Cuộc trò chuyện mới")}
             style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", borderRadius: 10, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-2)", cursor: "pointer", fontSize: 13, fontFamily: "inherit", flex: "none" }}>
             {Icons.pencil(14)} {L("New", "Mới")}
           </button>
         </PageHeader>
+        {msgSearch !== null && (
+          <div style={{ padding: "0 0 8px 0", flex: "none" }}>
+            <input autoFocus value={msgSearch} onChange={e => setMsgSearch(e.target.value)}
+              onKeyDown={e => e.key === "Escape" && setMsgSearch(null)}
+              placeholder={L("Search messages…", "Tìm tin nhắn…")}
+              style={{ width: "100%", boxSizing: "border-box", border: "1px solid var(--border)", borderRadius: 9, padding: "7px 12px", fontSize: 13, fontFamily: "inherit", background: "var(--surface)", color: "var(--ink)", outline: "none" }}
+            />
+          </div>
+        )}
         {htmlPicker && (
           <div className="glass-strong" style={{ borderRadius: "var(--r-lg)", padding: 10, display: "flex", flexDirection: "column", gap: 8, flex: "none", maxHeight: 260 }}>
             <input
@@ -1030,6 +1214,11 @@ function Chat({ t }) {
                 return null;
               })()}
 
+              {/* Ollama model manager — only shown when Ollama is running */}
+              {localStatus && localStatus.ollama && localStatus.ollama.running && (
+                <OllamaManager />
+              )}
+
               <div style={{ fontSize: 12.5, lineHeight: 1.55, marginTop: 10 }}>
                 {getProviderConfig().apiKey
                   ? L("Yana routes your request to the connected provider and streams the answer here.",
@@ -1042,12 +1231,20 @@ function Chat({ t }) {
               </div>
             </div>
           )}
-          {msgs.map((m, i) => (
+          {(msgSearch
+              ? msgs.filter(m => m.text && m.text.toLowerCase().includes(msgSearch.toLowerCase()))
+              : msgs
+            ).map((m, i, arr) => (
             <Message key={m._id || i} msg={m}
-              isLastYana={!streaming && i === msgs.length - 1 && m.who === "yana"}
+              isLastYana={!streaming && i === arr.length - 1 && m.who === "yana"}
               onRegenerate={regenerate}
             />
           ))}
+          {msgSearch !== null && msgSearch && msgs.filter(m => m.text && m.text.toLowerCase().includes(msgSearch.toLowerCase())).length === 0 && (
+            <div style={{ textAlign: "center", color: "var(--ink-3)", fontSize: 12.5, marginTop: 20 }}>
+              {L("No messages match your search.", "Không tìm thấy tin nhắn.")}
+            </div>
+          )}
           {thinking && (
             <div style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--ink-3)", fontSize: 12.5 }}>
               <YanaMark size={20} /> {L("Navigator is thinking…", "Navigator đang suy nghĩ…")}
