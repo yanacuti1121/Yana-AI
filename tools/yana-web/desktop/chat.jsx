@@ -356,17 +356,7 @@ function CopyBtn({ text }) {
 }
 
 function Message({ msg, isLastYana, onRegenerate }) {
-  const [devMode, setDevMode] = React.useState(
-    () => localStorage.getItem("yana.dev.mode") === "true"
-  );
-  React.useEffect(() => {
-    const h = (e) => {
-      if (e.detail?.key === "yana.dev.mode")
-        setDevMode(e.detail.value === true || e.detail.value === "true");
-    };
-    window.addEventListener("yana-setting", h);
-    return () => window.removeEventListener("yana-setting", h);
-  }, []);
+  const devMode = localStorage.getItem("yana.dev.mode") === "true";
   if (msg.who === "user") {
     const userName  = localStorage.getItem("yana.about.who") || "You";
     const avatarUrl = localStorage.getItem("yana.avatar-url");
