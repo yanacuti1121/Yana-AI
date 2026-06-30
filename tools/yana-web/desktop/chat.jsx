@@ -286,7 +286,7 @@ function parseThink(text) {
 }
 
 function ThinkToggle({ reasoning }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(() => localStorage.getItem("yana.dev.expand-thinking") === "true");
   return (
     <div style={{ marginBottom: 6 }}>
       <button onClick={() => setOpen((o) => !o)} style={{
@@ -356,6 +356,17 @@ function CopyBtn({ text }) {
 }
 
 function Message({ msg, isLastYana, onRegenerate }) {
+  const [devMode, setDevMode] = React.useState(
+    () => localStorage.getItem("yana.dev.mode") === "true"
+  );
+  React.useEffect(() => {
+    const h = (e) => {
+      if (e.detail?.key === "yana.dev.mode")
+        setDevMode(e.detail.value === true || e.detail.value === "true");
+    };
+    window.addEventListener("yana-setting", h);
+    return () => window.removeEventListener("yana-setting", h);
+  }, []);
   if (msg.who === "user") {
     const userName  = localStorage.getItem("yana.about.who") || "You";
     const avatarUrl = localStorage.getItem("yana.avatar-url");
@@ -438,6 +449,28 @@ function Message({ msg, isLastYana, onRegenerate }) {
             }}>↺ {L("Retry", "Thử lại")}</button>
           )}
         </div>
+        {/* dev stats bar — visible only in Developer Mode */}
+        {devMode && msg.route?._streamDone && (() => {
+          const { secs, chars } = msg.route._streamDone;
+          return (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 7, marginTop: 4,
+              fontSize: 10.5, color: "var(--ink-3)", fontFamily: "ui-monospace,'SF Mono',Menlo,monospace",
+            }}>
+              <span title={L("Response time", "Thời gian phản hồi")}>⏱ {secs.toFixed(1)}s</span>
+              <span style={{ opacity: .4 }}>·</span>
+              <span title={L("Estimated tokens (1 tok ≈ 4 chars)", "Ước lượng token (1 tok ≈ 4 ký tự)")}>~{Math.round(chars / 4)} tok</span>
+              <span style={{ opacity: .4 }}>·</span>
+              <span title={L("Characters per second", "Ký tự/giây")}>{Math.round(chars / Math.max(secs, 0.1))} ch/s</span>
+              {msg.route.agent && (
+                <>
+                  <span style={{ opacity: .4 }}>·</span>
+                  <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{msg.route.agent}</span>
+                </>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

@@ -121,6 +121,8 @@ const TWEAK_DEFAULTS = {
   "showRipple": true,
   "showWater": true,
   "showGlassShine": true,
+  "chatFont": "System",
+  "reduceMotion": false,
 };
 
 const THEME_MAP = {
@@ -166,6 +168,13 @@ function applyTweaks(t) {
   document.body.classList.toggle("no-ripple",      t.showRipple     === false);
   document.body.classList.toggle("no-glass-shine", t.showGlassShine === false);
   document.body.classList.toggle("no-water",       t.showWater      === false);
+  document.body.classList.toggle("reduce-motion",  t.reduceMotion   === true);
+  const FONT_MAP = {
+    "System":     "ui-sans-serif, system-ui, -apple-system, sans-serif",
+    "Be Vietnam": "'Be Vietnam Pro', ui-sans-serif, sans-serif",
+    "Mono":       "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
+  };
+  root.style.setProperty("--chat-font", FONT_MAP[t.chatFont] || FONT_MAP["System"]);
 }
 
 function App() {

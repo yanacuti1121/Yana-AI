@@ -50,6 +50,15 @@
     .msg-wrap:hover .copy-btn { opacity: 1; }
     /* textarea reset */
     textarea.chat-input { resize: none; scrollbar-width: thin; }
+    /* chat font — controlled by Settings > chatFont tweak */
+    :root { --chat-font: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    .yana-md, textarea.chat-input, .msg-wrap { font-family: var(--chat-font); }
+    /* reduce motion — disables streaming animation, page transitions */
+    body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   </style>
 </head>
 <body>
@@ -64,16 +73,16 @@
   <script type="text/babel" src="/shared/tweaks-panel.jsx?v=20260615"></script>
   <script type="text/babel" src="components.jsx?v=20260615"></script>
   <script type="text/babel" src="dashboard.jsx?v=20260615"></script>
-  <script type="text/babel" src="chat.jsx?v=20260619a"></script>
+  <script type="text/babel" src="chat.jsx?v=20260630g"></script>
   <script type="text/babel" src="spaces.jsx?v=20260615"></script>
-  <script type="text/babel" src="system.jsx?v=20260630a"></script>
+  <script type="text/babel" src="system.jsx?v=20260630g"></script>
   <script type="text/babel" src="sessions.jsx?v=20260615"></script>
   <script type="text/babel" src="analytics.jsx?v=20260615"></script>
   <script type="text/babel" src="cron.jsx?v=20260615"></script>
   <script type="text/babel" src="html-maker.jsx?v=20260615"></script>
   <script type="text/babel" src="codexmate.jsx?v=20260615"></script>
   <script type="text/babel" src="vtuber.jsx?v=20260616b"></script>
-  <script type="text/babel" src="app.jsx?v=20260619a"></script>
+  <script type="text/babel" src="app.jsx?v=20260630b"></script>
   <!-- Living water: canvas ripple overlay, runs after React mounts -->
   <script src="water.js"></script>
 </body>

@@ -380,6 +380,7 @@ function AppearanceCard({ t, setTweak }) {
     [L("Show missions on Lake", "Hiện nhiệm vụ trên Mặt hồ"), "showMissions"],
     [L("Show Memory Garden", "Hiện Vườn ký ức"), "showMemory"],
     [L("Show system status", "Hiện trạng thái hệ thống"), "showSystem"],
+    [L("Reduce motion", "Giảm chuyển động"), "reduceMotion"],
   ];
   return (
     <Card title={L("Appearance", "Giao diện")} style={{ gridColumn: "1 / -1" }}>
@@ -414,6 +415,20 @@ function AppearanceCard({ t, setTweak }) {
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
         <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Density", "Mật độ")}</span>
         <YSeg options={["Compact", "Regular", "Spacious"]} value={t.layout} onChange={(v) => setTweak("layout", v)} />
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
+        <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Chat font", "Font trò chuyện")}</span>
+        <YSeg
+          options={["System", "Be Vietnam", "Mono"]}
+          value={t.chatFont || "System"}
+          onChange={(v) => setTweak("chatFont", v)}
+        />
+        <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>
+          {(t.chatFont || "System") === "System"    && L("ui-sans-serif — fastest", "ui-sans-serif — nhanh nhất")}
+          {(t.chatFont || "System") === "Be Vietnam" && L("Be Vietnam Pro — elegant", "Be Vietnam Pro — thanh lịch")}
+          {(t.chatFont || "System") === "Mono"       && L("ui-monospace — code-ready", "ui-monospace — thân thiện code")}
+        </span>
       </div>
 
       <div style={{ padding: "8px 0 0", borderTop: "1px solid var(--border)" }}>
@@ -829,7 +844,451 @@ function ProfileHero({ t, setTweak, dash }) {
   );
 }
 
+/* ---------- Settings: Profile card ---------- */
+const ROLE_OPTIONS_EN = ["Engineering", "Software Development", "Data Science / AI", "Design", "Product Management", "Marketing", "Research", "Business", "Education", "Automation / Robotics", "Mechanical Engineering", "Other"];
+const ROLE_OPTIONS_VI = ["Kỹ thuật", "Phát triển phần mềm", "Khoa học dữ liệu / AI", "Thiết kế", "Quản lý sản phẩm", "Marketing", "Nghiên cứu", "Kinh doanh", "Giáo dục", "Tự động hóa / Robotics", "Cơ khí", "Khác"];
+
+function ProfileCard({ lang }) {
+  const ROLE_OPTIONS = lang === "Tiếng Việt" ? ROLE_OPTIONS_VI : ROLE_OPTIONS_EN;
+  const [role, setRole] = React.useState(() => localStorage.getItem("yana.profile.role") || "");
+  const [instr, setInstr] = React.useState(() => localStorage.getItem("yana.profile.instructions") || "");
+  const [savedInstr, setSavedInstr] = React.useState(false);
+  const timer = React.useRef(null);
+
+  function onRoleChange(e) {
+    const v = e.target.value;
+    setRole(v);
+    localStorage.setItem("yana.profile.role", v);
+    window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key: "yana.profile.role", value: v } }));
+  }
+
+  function onInstrChange(e) {
+    const v = e.target.value;
+    setInstr(v);
+    localStorage.setItem("yana.profile.instructions", v);
+    setSavedInstr(false);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setSavedInstr(true), 800);
+  }
+
+  return (
+    <Card title={L("Profile", "Hồ sơ cá nhân")}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Profession / Role", "Lĩnh vực hoạt động")}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{L("Shapes how Yana frames context", "Định hình cách Yana xử lý ngữ cảnh")}</div>
+        </div>
+        <select value={role} onChange={onRoleChange} style={{
+          border: "1px solid var(--border)", borderRadius: 99, padding: "5px 10px",
+          background: "transparent", color: "var(--primary)", fontSize: 12,
+          fontWeight: 500, fontFamily: "inherit", cursor: "pointer", maxWidth: 190,
+        }}>
+          <option value="">{L("— select —", "— chọn —")}</option>
+          {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: "calc(11px * var(--sp))" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Yana Instructions", "Chỉ thị cho Yana")}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
+              {L("Rules Yana follows in every conversation", "Quy tắc Yana tuân theo trong mọi cuộc trò chuyện")}
+            </div>
+          </div>
+          <span style={{ fontSize: 11, color: "var(--good)", opacity: savedInstr ? 1 : 0, transition: "opacity .3s", display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            {Icons.check(11)} {L("Saved", "Đã lưu")}
+          </span>
+        </div>
+        <textarea value={instr} onChange={onInstrChange} rows={5}
+          placeholder={L(
+            "e.g. Always explain briefly. Prefer optimised code for Mac M4. Reply in Vietnamese for casual notes.",
+            "e.g. Luôn giải thích ngắn gọn. Ưu tiên code tối ưu cho Mac M4. Trả lời tiếng Việt cho ghi chú thường ngày."
+          )}
+          style={{
+            width: "100%", resize: "vertical", padding: "10px 13px",
+            borderRadius: "var(--r-sm)", border: "1px solid var(--border)",
+            background: "rgba(var(--surface-rgb), .6)", color: "var(--ink)",
+            fontFamily: "inherit", fontSize: 13.5, lineHeight: 1.55, outline: "none",
+            boxSizing: "border-box",
+          }}
+          onFocus={e => e.target.style.borderColor = "var(--primary)"}
+          onBlur={e => e.target.style.borderColor = "var(--border)"}
+        />
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Settings: Voice & Speech card ---------- */
+const VOICE_LANGS = [
+  { code: "vi-VN", label: "Tiếng Việt" },
+  { code: "en-US", label: "English (US)" },
+  { code: "en-GB", label: "English (UK)" },
+  { code: "ja-JP", label: "日本語" },
+  { code: "zh-CN", label: "中文 (简体)" },
+  { code: "ko-KR", label: "한국어" },
+  { code: "fr-FR", label: "Français" },
+  { code: "de-DE", label: "Deutsch" },
+];
+
+function VoiceCard({ lang }) {
+  const isVI = lang === "Tiếng Việt";
+  const speedOpts = isVI
+    ? ["Chậm", "Bình thường", "Nhanh"]
+    : ["Slow", "Normal", "Fast"];
+  const speedRate = { [speedOpts[0]]: 0.7, [speedOpts[1]]: 1.0, [speedOpts[2]]: 1.4 };
+
+  const [voiceLang, setVoiceLang] = React.useState(
+    () => localStorage.getItem("yana.voice.lang") || (isVI ? "vi-VN" : "en-US")
+  );
+  const [speed, setSpeed] = React.useState(
+    () => localStorage.getItem("yana.voice.speed") || speedOpts[1]
+  );
+  const [voices, setVoices] = React.useState([]);
+  const [selected, setSelected] = React.useState(
+    () => localStorage.getItem("yana.voice.name") || ""
+  );
+  const [testing, setTesting] = React.useState(false);
+
+  React.useEffect(() => {
+    function loadVoices() {
+      const all = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      const prefix = voiceLang.split("-")[0];
+      const filtered = all.filter(v => v.lang.startsWith(prefix));
+      setVoices(filtered);
+      if (filtered.length > 0 && !filtered.find(v => v.name === selected)) {
+        setSelected(filtered[0].name);
+        localStorage.setItem("yana.voice.name", filtered[0].name);
+      }
+    }
+    loadVoices();
+    if (window.speechSynthesis) window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => { if (window.speechSynthesis) window.speechSynthesis.removeEventListener("voiceschanged", loadVoices); };
+  }, [voiceLang]);
+
+  function persist(key, val) {
+    localStorage.setItem(key, val);
+    window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key, value: val } }));
+  }
+
+  function testVoice() {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(
+      isVI ? "Xin chào, tôi là Yana AI. Bạn nghe rõ không?" : "Hello, I am Yana AI. Can you hear me clearly?"
+    );
+    utter.lang = voiceLang;
+    utter.rate = speedRate[speed] || 1.0;
+    const v = voices.find(v => v.name === selected);
+    if (v) utter.voice = v;
+    setTesting(true);
+    utter.onend = () => setTesting(false);
+    utter.onerror = () => setTesting(false);
+    window.speechSynthesis.speak(utter);
+  }
+
+  const hasTTS = !!window.speechSynthesis;
+
+  return (
+    <Card title={L("Voice & Speech", "Giọng nói & Phản hồi")}>
+      {!hasTTS && (
+        <div style={{ fontSize: 12.5, color: "var(--ink-3)", padding: "8px 0 4px" }}>
+          {L("Text-to-speech is not available in this browser.", "Trình duyệt này chưa hỗ trợ đọc văn bản.")}
+        </div>
+      )}
+
+      {/* Language */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Language", "Ngôn ngữ giọng nói")}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{L("Language for text-to-speech output", "Ngôn ngữ cho đầu ra giọng nói")}</div>
+        </div>
+        <select value={voiceLang} onChange={e => { setVoiceLang(e.target.value); persist("yana.voice.lang", e.target.value); }}
+          style={{ border: "1px solid var(--border)", borderRadius: 99, padding: "5px 10px", background: "transparent", color: "var(--primary)", fontSize: 12, fontWeight: 500, fontFamily: "inherit", cursor: "pointer" }}>
+          {VOICE_LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+        </select>
+      </div>
+
+      {/* Voice */}
+      {voices.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ lineHeight: 1.35 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Voice", "Giọng đọc")}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{voices.length + L(" voices available", " giọng khả dụng")}</div>
+          </div>
+          <select value={selected} onChange={e => { setSelected(e.target.value); persist("yana.voice.name", e.target.value); }}
+            style={{ border: "1px solid var(--border)", borderRadius: 99, padding: "5px 10px", background: "transparent", color: "var(--primary)", fontSize: 12, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", maxWidth: 200 }}>
+            {voices.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* Speed */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Speed", "Tốc độ")}</div>
+        <YSeg options={speedOpts} value={speed} onChange={v => { setSpeed(v); persist("yana.voice.speed", v); }} />
+      </div>
+
+      {/* Test */}
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "calc(10px * var(--sp))" }}>
+        <button onClick={testVoice} disabled={testing || !hasTTS} style={{
+          display: "flex", alignItems: "center", gap: 7, padding: "7px 16px",
+          borderRadius: 99, border: "1px solid var(--border)", cursor: testing || !hasTTS ? "default" : "pointer",
+          background: testing ? "var(--primary-soft)" : "transparent",
+          color: "var(--primary)", fontSize: 12.5, fontWeight: 500, fontFamily: "inherit",
+          opacity: !hasTTS ? 0.4 : 1, transition: "background .15s",
+        }}>
+          {testing ? "🔊 " + L("Speaking…", "Đang đọc…") : "▶ " + L("Test voice", "Thử giọng")}
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Settings: Data Management card ---------- */
+function DataManagementCard() {
+  const [exporting, setExporting] = React.useState(false);
+  const [confirm, setConfirm] = React.useState(null); // "clear-chat" | "reset"
+  const [done, setDone] = React.useState(null);
+
+  async function exportData() {
+    setExporting(true);
+    try {
+      const [memRes, usageRes] = await Promise.all([
+        fetch("/api/memories").then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch("/api/usage").then(r => r.ok ? r.json() : null).catch(() => null),
+      ]);
+
+      // Collect all yana.* localStorage keys
+      const settings = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("yana.")) settings[k] = localStorage.getItem(k);
+      }
+
+      const payload = {
+        exported_at: new Date().toISOString(),
+        version: window.YANA.version || "unknown",
+        settings,
+        memories: memRes ? memRes.memories : [],
+        usage: usageRes ? usageRes.usage : {},
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "yana-ai-export-" + new Date().toISOString().slice(0, 10) + ".json";
+      a.click();
+      URL.revokeObjectURL(url);
+      setDone("export");
+      setTimeout(() => setDone(null), 2500);
+    } catch (_) {}
+    setExporting(false);
+  }
+
+  function clearChat() {
+    window.YANA.chat = [];
+    window.dispatchEvent(new Event("yana:data"));
+    setConfirm(null);
+    setDone("clear");
+    setTimeout(() => setDone(null), 2000);
+  }
+
+  function resetAll() {
+    // Remove all yana.* keys except member-since
+    const keep = ["yana.member-since"];
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("yana.") && !keep.includes(k)) keys.push(k);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+    setConfirm(null);
+    setDone("reset");
+    setTimeout(() => window.location.reload(), 1200);
+  }
+
+  const btnBase = {
+    display: "flex", alignItems: "center", gap: 7, padding: "8px 16px",
+    borderRadius: 99, fontSize: 12.5, fontWeight: 500, fontFamily: "inherit",
+    cursor: "pointer", border: "1px solid var(--border)", transition: "background .15s",
+  };
+
+  return (
+    <Card title={L("Data Management", "Quản lý dữ liệu")}>
+      {/* Export */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Export data", "Xuất dữ liệu")}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+            {L("Download all settings, memories and usage as JSON", "Tải về cài đặt, ký ức và lịch sử dùng dạng JSON")}
+          </div>
+        </div>
+        <button onClick={exportData} disabled={exporting} style={{ ...btnBase, background: "transparent", color: "var(--primary)" }}>
+          {done === "export" ? "✓ " + L("Downloaded", "Đã tải") : exporting ? L("Exporting…", "Đang xuất…") : "↓ " + L("Export", "Xuất")}
+        </button>
+      </div>
+
+      {/* Clear chat */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Clear chat history", "Xóa lịch sử trò chuyện")}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+            {L("Remove all messages from the current session", "Xóa tất cả tin nhắn trong phiên hiện tại")}
+          </div>
+        </div>
+        {confirm === "clear-chat" ? (
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={clearChat} style={{ ...btnBase, background: "var(--destructive, #e84040)", color: "#fff", border: "none" }}>
+              {L("Confirm", "Xác nhận")}
+            </button>
+            <button onClick={() => setConfirm(null)} style={{ ...btnBase, background: "transparent", color: "var(--ink-3)" }}>
+              {L("Cancel", "Huỷ")}
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirm("clear-chat")} style={{ ...btnBase, background: "transparent", color: done === "clear" ? "var(--good)" : "var(--ink-2)" }}>
+            {done === "clear" ? "✓ " + L("Cleared", "Đã xóa") : L("Clear", "Xóa")}
+          </button>
+        )}
+      </div>
+
+      {/* Reset all */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, paddingTop: "calc(11px * var(--sp))" }}>
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Reset to defaults", "Khôi phục mặc định")}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+            {L("Wipe all settings and reload — API keys are preserved", "Xóa toàn bộ cài đặt và tải lại — API key vẫn giữ nguyên")}
+          </div>
+        </div>
+        {confirm === "reset" ? (
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={resetAll} style={{ ...btnBase, background: "var(--destructive, #e84040)", color: "#fff", border: "none" }}>
+              {done === "reset" ? L("Resetting…", "Đang khôi phục…") : L("Confirm reset", "Xác nhận")}
+            </button>
+            <button onClick={() => setConfirm(null)} style={{ ...btnBase, background: "transparent", color: "var(--ink-3)" }}>
+              {L("Cancel", "Huỷ")}
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirm("reset")} style={{ ...btnBase, background: "transparent", color: "var(--ink-2)" }}>
+            {L("Reset", "Khôi phục")}
+          </button>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Settings: Model Hyperparameters card ---------- */
+function ModelParamsCard({ lang }) {
+  const isVI = lang === "Tiếng Việt";
+
+  const [temp, setTemp] = React.useState(() => {
+    const s = localStorage.getItem("yana.model.temperature");
+    return s !== null ? parseFloat(s) : 0.7;
+  });
+  const [maxTok, setMaxTok] = React.useState(
+    () => localStorage.getItem("yana.model.max-tokens") || "4K"
+  );
+
+  function onTempChange(e) {
+    const v = parseFloat(e.target.value);
+    setTemp(v);
+    localStorage.setItem("yana.model.temperature", v);
+    window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key: "yana.model.temperature", value: v } }));
+  }
+
+  function onMaxTokChange(v) {
+    setMaxTok(v);
+    localStorage.setItem("yana.model.max-tokens", v);
+    window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key: "yana.model.max-tokens", value: v } }));
+  }
+
+  // Temperature zone label
+  function tempZone(t) {
+    if (t <= 0.2) return isVI ? ["Chính xác", "Code, phân tích, sửa lỗi"] : ["Precise", "Code, analysis, bug fixes"];
+    if (t <= 0.5) return isVI ? ["Cân bằng", "Giải thích, tóm tắt, Q&A"] : ["Balanced", "Explanations, summaries, Q&A"];
+    if (t <= 0.79) return isVI ? ["Sáng tạo", "Viết lách, brainstorm, ý tưởng"] : ["Creative", "Writing, brainstorm, ideas"];
+    return isVI ? ["Rất sáng tạo", "Thơ, kịch bản, thử nghiệm"] : ["Very creative", "Poetry, scripts, experiments"];
+  }
+
+  function tempColor(t) {
+    if (t <= 0.2) return "#3a7ca5";
+    if (t <= 0.5) return "#2f7e6e";
+    if (t <= 0.79) return "#b07a4f";
+    return "#b96b80";
+  }
+
+  const [zoneName, zoneDesc] = tempZone(temp);
+  const color = tempColor(temp);
+
+  const TOKEN_OPTS = ["1K", "2K", "4K", "8K", "16K", "32K"];
+  const TOKEN_MAP = { "1K": 1024, "2K": 2048, "4K": 4096, "8K": 8192, "16K": 16384, "32K": 32768 };
+
+  return (
+    <Card title={L("Model Parameters", "Tham số mô hình")}>
+
+      {/* Temperature */}
+      <div style={{ paddingBottom: "calc(14px * var(--sp))", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Temperature", "Nhiệt độ")}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{L("Controls creativity vs precision", "Điều chỉnh sáng tạo so với chính xác")}</div>
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color }}>{temp.toFixed(2)}</span>
+            <div style={{ fontSize: 11, color, fontWeight: 500 }}>{zoneName}</div>
+          </div>
+        </div>
+
+        <input type="range" min="0" max="1" step="0.01" value={temp} onChange={onTempChange}
+          style={{ width: "100%", accentColor: color, height: 4, marginBottom: 6 }} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--ink-3)" }}>
+          <span>0.0 — {isVI ? "Chính xác" : "Precise"}</span>
+          <span style={{ fontSize: 12, color: "var(--ink-2)", textAlign: "center" }}>{zoneDesc}</span>
+          <span>1.0 — {isVI ? "Sáng tạo" : "Creative"}</span>
+        </div>
+      </div>
+
+      {/* Max tokens */}
+      <div style={{ paddingTop: "calc(12px * var(--sp))" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("Max response tokens", "Giới hạn token phản hồi")}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+              {"≈ " + Math.round(TOKEN_MAP[maxTok] * 0.75).toLocaleString() + L(" words", " từ")}
+            </div>
+          </div>
+          <YSeg options={TOKEN_OPTS} value={maxTok} onChange={onMaxTokChange} />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 /* ---------- Settings main ---------- */
+function AdvancedCard({ lang }) {
+  const isVI = lang === "Tiếng Việt";
+  return (
+    <Card title={isVI ? "Nâng cao / Nhà phát triển" : "Advanced / Developer"}>
+      <ToggleRow
+        label={isVI ? "Chế độ nhà phát triển" : "Developer mode"}
+        desc={isVI ? "Hiển thị thời gian phản hồi và ước lượng token dưới mỗi câu trả lời" : "Show response time and estimated token count under each reply"}
+        storeKey="yana.dev.mode"
+        defaultVal={false} />
+      <ToggleRow
+        label={isVI ? "Luôn mở rộng suy nghĩ" : "Always expand thinking"}
+        desc={isVI ? "Tự động mở khối <think> thay vì thu gọn" : "Auto-open <think> blocks instead of collapsing them"}
+        storeKey="yana.dev.expand-thinking"
+        defaultVal={false} />
+    </Card>
+  );
+}
+
 function Settings({ t, setTweak }) {
   const D = window.YANA;
 
@@ -867,6 +1326,9 @@ function Settings({ t, setTweak }) {
 
         {/* Profile hero */}
         <ProfileHero t={t} setTweak={setTweak} dash={dash} />
+
+        {/* Profile card — profession + custom instructions */}
+        <ProfileCard lang={t.language} />
 
         {/* Appearance — full width */}
         <AppearanceCard t={t} setTweak={setTweak} />
@@ -919,6 +1381,9 @@ function Settings({ t, setTweak }) {
               value={chain} />
           </Card>
         </div>
+
+        {/* Model Parameters — full width */}
+        <ModelParamsCard lang={t.language} />
 
         {/* About you — full width */}
         <AboutYouCard />
@@ -996,6 +1461,15 @@ function Settings({ t, setTweak }) {
               storeKey="yana.notify.errors" defaultVal={true} />
           </Card>
         </div>
+
+        {/* Voice & Data side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: GAP }}>
+          <VoiceCard lang={t.language} />
+          <DataManagementCard />
+        </div>
+
+        {/* Advanced / Developer */}
+        <AdvancedCard lang={t.language} />
 
         {/* About — full width */}
         <Card title={L("About Yana AI", "Về Yana AI")}>
