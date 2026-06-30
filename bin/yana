@@ -279,14 +279,13 @@ banner() {
   local right_colored=("${PINK_TXT}Tips for getting started${RESET}" "${PINK_VER}yana-ai doctor${RESET}" "${PINK_VER}yana-ai init${RESET}" "")
   right_plain+=("What's new")
   right_colored+=("${PINK_TXT}What's new${RESET}")
-  # mapfile (not `while read`) — fold's last wrapped line has no trailing
-  # newline, which a `while read` loop silently drops on EOF.
-  local wrapped_lines wline
-  mapfile -t wrapped_lines < <(printf '%s' "$release" | fold -s -w "$((RIGHT_W-2))")
-  for wline in "${wrapped_lines[@]}"; do
+  # Use `|| [[ -n "$wline" ]]` to capture fold's last line when it has no
+  # trailing newline (bash 3.2 compat — no mapfile).
+  local wline
+  while IFS= read -r wline || [[ -n "$wline" ]]; do
     right_plain+=("$wline")
     right_colored+=("$wline")
-  done
+  done < <(printf '%s' "$release" | fold -s -w "$((RIGHT_W-2))")
 
   local nrows=${#left_plain[@]}
   [[ ${#right_plain[@]} -gt $nrows ]] && nrows=${#right_plain[@]}
