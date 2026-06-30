@@ -575,6 +575,7 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 仓库配置中定义了 162 个专家角色
 仓库扫描发现了 1,983 个技能定义
 共 15,052 个文件,测量于 2026-06-30
+首次提交：2026-05-17
 
 ---
 

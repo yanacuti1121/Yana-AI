@@ -575,6 +575,7 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 저장소 설정에 정의된 전문 역할 97개
 저장소 스캔으로 발견된 스킬 정의 1,983개
 2026-06-30 기준 측정, 15,052개 파일
+첫 커밋: 2026-05-17
 
 ---
 

@@ -541,6 +541,7 @@ Output mẫu:
 162 specialist roles defined in repo config
 1,983 skill definitions discovered by repository scan
 15,052 files, measured on 2026-06-30
+First commit: 2026-05-17
 
 ---
 
