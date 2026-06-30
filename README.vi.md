@@ -223,7 +223,7 @@ Thực thi (hoặc chặn + ghi log)
 | 🔌 Adapter harness | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Lệnh con Rust | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Kiểm tra quy tắc trong CI | **826** |
-| 📦 Tổng mã nguồn | **10,331 tệp** |
+| 📦 Tổng mã nguồn | **15,052 tệp** |
 
 ---
 
@@ -540,7 +540,7 @@ Output mẫu:
 
 162 specialist roles defined in repo config
 1,983 skill definitions discovered by repository scan
-10,331 files, measured on 2026-06-21
+15,052 files, measured on 2026-06-30
 
 ---
 

@@ -80,7 +80,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 > **What are the 162 agents?** They are not 162 AI models running at the same time — they're predefined specialist roles (security, frontend, backend, testing, learning, daily assistant…) used for routing and task organization. In normal usage, only the agent required for the current task is activated; most requests use a single model and a single agent route.
 >Generated from repository metrics
-Last updated: 2026-06-21
+Last updated: 2026-06-30
 ---
 
 ## 🤝 An invitation — try it yourself
@@ -283,7 +283,7 @@ Execute (or block + log)
 | 🔌 Harness adapters | **15** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
 | ✅ Rule checks in CI | **826** |
-| 📦 Total codebase | **10,331 files** |
+| 📦 Total codebase | **15,052 files** |
 
 ---
 
@@ -611,7 +611,7 @@ Sample output:
 
 162 specialist roles defined in repo config
 1,983 skill definitions discovered by repository scan
-10,331 files, measured on 2026-06-21
+15,052 files, measured on 2026-06-30
 
 ---
 
