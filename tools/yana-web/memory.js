@@ -27,6 +27,9 @@ const TTL_DAYS     = Math.max(1, Number(process.env.YANA_MEMORY_TTL_DAYS) || 90)
 // Saved memories are re-injected into future system prompts, which makes the
 // store a prompt-injection persistence vector (OWASP LLM01). Reject entries
 // that look like instructions rather than facts about the user.
+// DF-5: MEMORY: lines are re-injected into the system prompt on every turn.
+// This list must catch adversarial content that looks like facts but contains
+// instruction overrides. Expand beyond the minimal set to cover known patterns.
 const INJECTION_PATTERNS = [
   /ignore\s+(?:(?:all|previous|prior|the|above|your)\s+)*(instructions|rules)/i,
   /you\s+are\s+now/i,
@@ -34,6 +37,19 @@ const INJECTION_PATTERNS = [
   /system\s*:/i,
   /\[INST\]/i,
   /<\|im_start\|>/i,
+  // Extended patterns — multi-turn and advanced jailbreak vectors (rule 43)
+  /forget\s+(?:everything|all\s+(?:instructions|rules)|your\s+training)/i,
+  /developer\s+mode/i,
+  /dan\s+mode/i,
+  /jailbreak/i,
+  /ignore\s+previous/i,
+  /override\s+(?:mode|instructions|rules)/i,
+  /act\s+as\s+(?:if|though)\s+you/i,
+  /pretend\s+(?:you\s+are|to\s+be)/i,
+  /from\s+now\s+on\s+you/i,
+  /respond\s+as\s+(?:if|though)\s+you/i,
+  /disregard\s+(?:your|all|prior)/i,
+  /\|\|prompt_injection/i,
 ];
 
 function load() {

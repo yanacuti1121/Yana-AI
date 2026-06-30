@@ -8,9 +8,10 @@
 //
 // Exposes window.YanaVault:
 //   ready            Promise — await before first render
+//   isSecure         bool — true when WebCrypto + IndexedDB are available
 //   getKey(id)       sync, from in-memory cache (null if absent)
 //   hasKey(id)       sync
-//   setKey(id, val)  async — encrypts + persists
+//   setKey(id, val)  async — encrypts + persists; throws if vault is not secure
 //   removeKey(id)    sync — wipes ciphertext + legacy plaintext
 
 (function () {
@@ -22,7 +23,7 @@
 
   const cache = Object.create(null); // id -> plaintext, in-memory only
   let masterKey = null;
-  let fallback  = false;             // plaintext mode when WebCrypto/IDB missing
+  let fallback  = false;             // true when WebCrypto/IDB missing — read-only mode
 
   function idbOpen() {
     return new Promise((resolve, reject) => {
@@ -115,7 +116,13 @@
     }
 
     if (fallback) {
-      console.warn('[yana-vault] WebCrypto/IndexedDB unavailable — keys stored in plaintext');
+      // Vault is in READ-ONLY mode — load legacy plaintext entries into the
+      // in-memory cache so existing keys are readable, but refuse new writes.
+      // Storing new API keys in plaintext localStorage would be a security
+      // regression: any localStorage dump, browser sync, or extension with
+      // storage access would yield the raw key.
+      console.error('[yana-vault] WebCrypto/IndexedDB unavailable — vault is READ-ONLY. ' +
+        'Existing keys are loaded but new keys cannot be stored securely. Use a modern browser.');
       for (const id of listStorageIds(LEGACY_PREFIX)) {
         cache[id] = localStorage.getItem(LEGACY_PREFIX + id);
       }
@@ -144,11 +151,20 @@
 
   window.YanaVault = {
     ready,
+    get isSecure() { return !fallback; },
     getKey(id) { return cache[id] || null; },
     hasKey(id) { return !!cache[id]; },
     async setKey(id, value) {
+      // Refuse to write in fallback mode — plaintext storage is not acceptable.
+      // Callers should check YanaVault.isSecure before calling setKey and surface
+      // an appropriate error to the user.
+      if (fallback) {
+        throw new Error(
+          'YanaVault: secure storage is unavailable in this environment. ' +
+          'API keys cannot be saved. Please use a modern browser with WebCrypto and IndexedDB support.'
+        );
+      }
       cache[id] = value;
-      if (fallback) { localStorage.setItem(LEGACY_PREFIX + id, value); return; }
       localStorage.setItem(ENC_PREFIX + id, await encrypt(value));
     },
     removeKey(id) {

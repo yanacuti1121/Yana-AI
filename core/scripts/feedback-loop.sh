@@ -15,6 +15,29 @@ MAX_ATTEMPTS="${2:-5}"
 SIGNAL_DIR=".claude/signals"
 mkdir -p "$SIGNAL_DIR"
 
+# DF-3: Validate TEST_CMD against key destructive patterns before any
+# execution. This mirrors safe-run.sh's BLOCKED_PATTERNS — an agent-supplied
+# test command string could otherwise chain destructive shell operations.
+DANGEROUS_CMD_PATTERNS=(
+  "rm -rf" "rm -r " "rm -fr"
+  "git push --force" "git push -f "
+  "git reset --hard" "git clean -f"
+  "dd if=" "mkfs\." "fdisk" "> /dev/"
+  "DROP TABLE" "DROP DATABASE" "TRUNCATE TABLE"
+  "npm publish"
+  "\| bash" "\| sh " "\| python" "\| python3"
+  "base64 -d.*\|" "source <[(]" "bash <[(]"
+  "LD_PRELOAD=" "LD_LIBRARY_PATH="
+  "[{][^}]*rm[^}]*[}]"
+)
+for _pat in "${DANGEROUS_CMD_PATTERNS[@]}"; do
+  if echo "$TEST_CMD" | grep -qiE "$_pat"; then
+    echo "[feedback-loop] BLOCKED: TEST_CMD matched dangerous pattern '$_pat': $TEST_CMD" >&2
+    exit 1
+  fi
+done
+unset _pat
+
 echo "=== Yana AI Feedback Loop ==="
 echo "Command:      $TEST_CMD"
 echo "Max attempts: $MAX_ATTEMPTS"

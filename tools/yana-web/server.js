@@ -542,10 +542,17 @@ function applySecurityHeaders(req, res) {
 // first X-Forwarded-For hop instead.
 const TRUST_PROXY = process.env.YANA_TRUST_PROXY === '1';
 
+// Basic IP validation — reject malformed values to prevent header-injection
+// from bypassing rate-limit buckets (AUTH-01).
+const IP_RE = /^([\d.]{7,15}|[\da-f:]{3,39})$/i;
+
 function clientIp(req) {
   if (TRUST_PROXY) {
     const xff = req.headers['x-forwarded-for'];
-    if (typeof xff === 'string' && xff.length) return xff.split(',')[0].trim();
+    if (typeof xff === 'string' && xff.length) {
+      const candidate = xff.split(',')[0].trim();
+      if (IP_RE.test(candidate)) return candidate;
+    }
   }
   return req.socket.remoteAddress || 'unknown';
 }
@@ -1357,8 +1364,24 @@ async function handleApiChat(req, res) {
 
   // "About you" personal context from Settings — plain text, capped.
   // Never attached to confidential/sovereign turns (rule 68 need-to-know).
+  // Strip injection-like content (EP-1 / DF-4): an attacker-controlled "about"
+  // field injected verbatim becomes a system-prompt override vector.
   if (!tier && about && typeof about === 'string' && about.trim()) {
-    systemPrompt = `[ABOUT THE USER]\n${about.trim().slice(0, 2000)}\n\n---\n\n${systemPrompt}`;
+    const rawAbout = about.trim().slice(0, 2000);
+    const ABOUT_INJECTION = [
+      /ignore\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions|rules)/i,
+      /you\s+are\s+now\b/i,
+      /new\s+(?:instructions|task|rules)\s*:/i,
+      /system\s*:/i,
+      /\[INST\]/i,
+      /<\|im_start\|>/i,
+      /forget\s+(?:everything|all|your\s+training)/i,
+      /jailbreak/i,
+      /override\s+(?:mode|instructions)/i,
+    ];
+    if (!ABOUT_INJECTION.some(p => p.test(rawAbout))) {
+      systemPrompt = `[ABOUT THE USER]\n${rawAbout}\n\n---\n\n${systemPrompt}`;
+    }
   }
 
   // Long-term memory — ChatGPT-style: recall saved facts on every normal
@@ -1382,7 +1405,13 @@ async function handleApiChat(req, res) {
     }
   }
 
-  const modelId = (typeof model === 'string' && model.trim()) ? model.trim() : p.defaultModel;
+  // Validate model ID against an allowlist pattern (EP-2): reject anything
+  // that isn't a known model-id format (alphanumeric, dots, hyphens).
+  // JSON.stringify would prevent JSON injection but a garbage model ID could
+  // still trigger unexpected upstream API errors or leak internal info.
+  const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,100}$/;
+  const rawModelId  = typeof model === 'string' ? model.trim() : '';
+  const modelId     = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : p.defaultModel;
   // images: array of { mimeType, data } — only passed if provider supports vision
   const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;
   const reqBody = p.body(modelId, systemPrompt, task, imgs);
@@ -1491,8 +1520,13 @@ async function handleApiOcr(req, res) {
     });
     result = JSON.parse(out.trim());
   } catch (e) {
-    const stderr = (e.stderr || '').trim();
-    result = { ok: false, error: stderr || String(e.message || e) };
+    // F4: Don't return raw stderr — it can contain absolute file paths
+    // (e.g. the tmp file location) which leaks internal server layout.
+    const rawStderr = (e.stderr || '').trim();
+    const safeError = rawStderr
+      ? rawStderr.replace(/\/[^\s"']+/g, '<path>').slice(0, 300)
+      : (String(e.message || 'OCR failed').replace(/\/[^\s"']+/g, '<path>').slice(0, 300));
+    result = { ok: false, error: safeError };
   } finally {
     try { fs.unlinkSync(tmpFile); } catch (_) {}
   }
@@ -1655,7 +1689,10 @@ function buildHtmlRequestBody(p, modelId, prompt) {
 // GET /api/codexmate/status?port=8080
 function handleApiCodexmateStatus(req, res) {
   const urlObj = new url.URL(req.url, 'http://localhost');
-  const port = Math.min(65535, Math.max(1, parseInt(urlObj.searchParams.get('port') || '8080', 10)));
+  const rawPort = parseInt(urlObj.searchParams.get('port') || '8080', 10);
+  // Restrict to user/ephemeral port range (EP-6/AUTH-03): ports 1–1023 are
+  // system/privileged and probing them exposes internal service discovery.
+  const port = (Number.isInteger(rawPort) && rawPort >= 1024 && rawPort <= 65535) ? rawPort : 8080;
   const probe = http.get({ hostname: '127.0.0.1', port, path: '/', timeout: 2000 }, (r) => {
     r.resume();
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -1776,7 +1813,10 @@ const server = http.createServer(async (req, res) => {
 
   applySecurityHeaders(req, res);
 
-  if (method === 'POST' && rateLimited(req)) {
+  // Rate-limit POST and GET /api/* — AUTH-02/F3: previously only POST was
+  // limited, so GET-based port scanning (/api/codexmate/status) was uncapped.
+  const isApiGet = method === 'GET' && pathname.startsWith('/api/');
+  if ((method === 'POST' || isApiGet) && rateLimited(req)) {
     res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '60' });
     res.end(JSON.stringify({ error: 'Too many requests' }));
     return;

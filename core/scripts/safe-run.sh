@@ -39,6 +39,7 @@ if [[ "${YANA_SAFE_RUN_BYPASS:-0}" == "1" ]]; then
     exit 1
   fi
   echo "[yana-ai/safe-run] BYPASS active (engine=$ENGINE, identity verified)" >> "$LOG_FILE" 2>/dev/null || true
+  set +B  # disable brace expansion — prevents {cmd,flags} injection via eval
   eval "$COMMAND"
   exit $?
 fi
@@ -84,9 +85,9 @@ BLOCKED_PATTERNS=(
   "base64 --decode.*\|"
   "openssl.*enc.*-d.*\|"
   "openssl.*base64.*-d"
-  "source <("
-  "bash <("
-  "\. <("
+  "source <[(]"
+  "bash <[(]"
+  "\. <[(]"
   # ── chmod on protected dirs (execution-environment.md) ────────────────────
   "chmod.*777.*core/"
   "chmod.*-x.*safe-run"
@@ -97,6 +98,15 @@ BLOCKED_PATTERNS=(
   "LD_LIBRARY_PATH="
   "DYLD_INSERT_LIBRARIES="
   "NODE_OPTIONS=.*--require"
+  # ── Brace expansion obfuscation (DF-1: {rm,-rf} bypasses string matching) ─
+  "[{][^}]*rm[^}]*[}]"
+  "[{][^}]*dd[^}]*[}]"
+  "[{][^}]*shred[^}]*[}]"
+  "[{][^}]*chmod[^}]*[}]"
+  "[{][^}]*curl[^}]*[}]"
+  "[{][^}]*wget[^}]*[}]"
+  # ── Semicolon-chain injection into destructive commands ────────────────────
+  ";[[:space:]]*(rm|dd|shred|mkfs|fdisk|chmod 777|chown -R root)"
 )
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -156,4 +166,6 @@ done
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] EXEC engine='$ENGINE' cmd='$COMMAND'" >> "$LOG_FILE" 2>/dev/null || true
 
 # ── Execute ───────────────────────────────────────────────────────────────────
+# set +B prevents brace expansion in eval (e.g. {rm,-rf} → rm -rf bypass)
+set +B
 eval "$COMMAND"

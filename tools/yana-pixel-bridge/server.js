@@ -13,7 +13,7 @@ const { Server } = require('socket.io');
 const AGENT_OFFICE_URL = process.env.AGENT_OFFICE_URL || 'http://127.0.0.1:3000';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '64kb' }));
 
 async function forwardToAgentOffice(payload) {
   try {
@@ -31,35 +31,64 @@ async function forwardToAgentOffice(payload) {
 }
 
 const server = http.createServer(app);
+
+// Restrict WebSocket origins to localhost — this is a local dev tool only.
+// Wildcard CORS would let any page (including attacker-controlled) open a
+// socket while the bridge is running, enabling CSRF-style event injection.
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:8081', 'http://127.0.0.1:8081',
+  'http://localhost:3000', 'http://127.0.0.1:3000',
+  'http://localhost:5000', 'http://127.0.0.1:5000',
+  'http://localhost:8080', 'http://127.0.0.1:8080',
+]);
 const io = new Server(server, {
-  cors: { origin: '*' },
+  cors: {
+    origin: (origin, cb) => {
+      // Allow requests without an Origin header (e.g. curl, Electron, same-origin)
+      if (!origin || ALLOWED_ORIGINS.has(origin)) return cb(null, true);
+      cb(new Error(`CORS rejected: ${origin}`));
+    },
+  },
 });
 
-app.get('/health', (req, res) => {
+// Loopback-only guard — all endpoints require the request to originate from
+// 127.0.0.1 / ::1. Defense-in-depth alongside the HOST=127.0.0.1 bind.
+function requireLoopback(req, res, next) {
+  const remote = req.socket.remoteAddress || '';
+  if (remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1') {
+    return next();
+  }
+  res.status(403).json({ error: 'Loopback only' });
+}
+
+app.get('/health', requireLoopback, (req, res) => {
   res.json({ status: 'ok', clients: io.engine.clientsCount });
 });
 
 // Generic event intake — any system (Claude Code hook, another AI tool,
 // a script) can POST here as long as it sends this shape.
-app.post('/webhook/agent-hook', (req, res) => {
+app.post('/webhook/agent-hook', requireLoopback, (req, res) => {
   const { event, tool_name, agent_type, subagent_type, description } = req.body || {};
 
   if (!event || !tool_name) {
     return res.status(400).json({ error: 'event and tool_name are required' });
   }
 
-  console.log(`[agent-hook] ${event} | tool=${tool_name} | subagent=${subagent_type || agent_type || '-'} | ${description || ''}`);
+  // Sanitise string fields — clamp length and strip control characters
+  const safeDesc = String(description || '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 500);
+
+  console.log(`[agent-hook] ${event} | tool=${tool_name} | subagent=${subagent_type || agent_type || '-'} | ${safeDesc}`);
 
   io.emit('agent_status_changed', {
-    event,        // "start" | "stop"
-    tool_name,
-    agent_type: agent_type || subagent_type || 'subagent',
-    description: description || '',
+    event,
+    tool_name:   String(tool_name).slice(0, 200),
+    agent_type:  String(agent_type || subagent_type || 'subagent').slice(0, 100),
+    description: safeDesc,
     ts: new Date().toISOString(),
   });
 
   // Fire-and-forget — never block or fail the webhook response on this.
-  forwardToAgentOffice({ event, description });
+  forwardToAgentOffice({ event, description: safeDesc });
 
   res.sendStatus(200);
 });
