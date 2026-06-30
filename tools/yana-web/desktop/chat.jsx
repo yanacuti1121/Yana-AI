@@ -701,7 +701,165 @@ function aboutContext() {
   return parts.join("\n");
 }
 
-const CHAT_STORE = "yana.chat";
+const CHAT_STORE    = "yana.chat";
+const CONV_LIST_KEY = "yana.convlist";
+const ONBOARDED_KEY = "yana.onboarded";
+
+function loadConvList() {
+  try { return JSON.parse(localStorage.getItem(CONV_LIST_KEY)) || []; }
+  catch (_) { return []; }
+}
+
+function convFromMsgs(msgs) {
+  const firstUser = msgs.find(m => m.role === "user");
+  const title = firstUser
+    ? firstUser.text.slice(0, 60).replace(/\n/g, " ")
+    : L("Chat", "Trò chuyện");
+  return {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    title,
+    ts: Date.now(),
+    msgs: msgs.filter(m => !m.confidential).slice(-40).map(m => ({
+      _id: m._id || m.id, role: m.role, text: m.text, ts: m.ts,
+    })),
+  };
+}
+
+/* ── Conversation history sidebar ────────────────────────────────────── */
+function ConvSidebar({ list, onLoad, onDelete, onClose }) {
+  return (
+    <div className="glass" style={{
+      width: 220, flex: "none", borderRadius: "var(--r-lg)", padding: 10,
+      display: "flex", flexDirection: "column", gap: 2,
+      overflowY: "auto", minHeight: 0,
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 600, color: "var(--ink-3)",
+        letterSpacing: ".07em", textTransform: "uppercase",
+        padding: "4px 7px 8px",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        {L("History", "Lịch sử")}
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-3)", fontSize: 17, lineHeight: 1, padding: "0 3px" }}>×</button>
+      </div>
+      {list.length === 0 && (
+        <div style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", padding: "20px 8px", lineHeight: 1.6 }}>
+          {L("Past conversations appear here after you start a new chat.", "Các cuộc trò chuyện cũ xuất hiện ở đây sau khi bạn tạo chat mới.")}
+        </div>
+      )}
+      {list.map(conv => (
+        <div key={conv.id} style={{ position: "relative", borderRadius: 9 }}>
+          <button onClick={() => onLoad(conv)} style={{
+            width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer",
+            padding: "8px 30px 8px 9px", borderRadius: 9, color: "var(--ink)", fontFamily: "inherit",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "var(--primary-soft)"}
+          onMouseLeave={e => e.currentTarget.style.background = "none"}
+          >
+            <div style={{ fontSize: 12.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.35 }}>
+              {conv.title}
+            </div>
+            <div style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 2 }}>
+              {new Date(conv.ts).toLocaleDateString()} · {conv.msgs.length} {L("msgs", "tin")}
+            </div>
+          </button>
+          <button onClick={e => { e.stopPropagation(); onDelete(conv.id); }}
+            title={L("Delete", "Xóa")}
+            style={{
+              position: "absolute", right: 5, top: "50%", transform: "translateY(-50%)",
+              background: "none", border: "none", cursor: "pointer", color: "var(--ink-3)",
+              fontSize: 14, padding: "3px 5px", lineHeight: 1, borderRadius: 5,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "rgba(239,68,68,.1)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-3)"; e.currentTarget.style.background = "none"; }}
+          >×</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── First-run onboarding overlay ────────────────────────────────────── */
+function OnboardingOverlay({ onDone }) {
+  const [step, setStep] = React.useState(0);
+  const back = (
+    <button onClick={() => setStep(0)} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-3)", fontSize: 14, cursor: "pointer" }}>←</button>
+  );
+  const doneBtn = (label) => (
+    <button onClick={onDone} style={{ flex: 1, padding: "10px 16px", borderRadius: 12, border: "none", background: "var(--primary)", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+      {label}
+    </button>
+  );
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "rgba(0,0,0,.55)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }} onClick={e => { if (e.target === e.currentTarget) onDone(); }}>
+      <div className="glass-strong" style={{ borderRadius: 20, padding: "28px 28px 24px", maxWidth: 420, width: "90vw", display: "flex", flexDirection: "column", gap: 18 }}>
+        {step === 0 && <>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <YanaMark size={38} />
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.025em" }}>{L("Welcome to Yana AI", "Chào mừng đến Yana AI")}</div>
+              <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 3 }}>{L("Smart chat · Local & Cloud AI", "Chat thông minh · AI Local & Cloud")}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.65 }}>
+            {L("To start chatting, connect a provider. Takes about 30 seconds.", "Để bắt đầu chat, kết nối một nhà cung cấp. Chỉ mất khoảng 30 giây.")}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            <button onClick={() => setStep(1)} style={{ padding: "12px 16px", borderRadius: 12, border: "none", background: "var(--primary)", color: "#fff", fontSize: 13.5, fontWeight: 500, cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>🖥 {L("Local AI — free & private (Ollama)", "Local AI — miễn phí & riêng tư (Ollama)")}</span>
+              <span style={{ opacity: .7 }}>→</span>
+            </button>
+            <button onClick={() => setStep(2)} style={{ padding: "12px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "transparent", color: "var(--ink)", fontSize: 13.5, fontWeight: 500, cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>☁ {L("Cloud provider — API key required", "Cloud provider — cần API key")}</span>
+              <span style={{ opacity: .4 }}>→</span>
+            </button>
+          </div>
+          <button onClick={onDone} style={{ fontSize: 12, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", alignSelf: "flex-end" }}>
+            {L("Skip for now", "Bỏ qua")}
+          </button>
+        </>}
+        {step === 1 && <>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>🖥 {L("Run AI locally — Ollama", "Chạy AI local — Ollama")}</div>
+          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65 }}>
+            {L("No API key needed. Model runs entirely on your machine — data never leaves.", "Không cần API key. Model chạy hoàn toàn trên máy của bạn — dữ liệu không rời đi.")}
+          </div>
+          {[
+            { n: "1", cmd: "ollama pull qwen2.5-coder:7b", note: L("download a model (~4 GB)", "tải model (~4 GB)") },
+            { n: "2", cmd: "ollama serve",                  note: L("start the local server", "khởi động server local") },
+          ].map(({ n, cmd, note }) => (
+            <div key={n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, background: "var(--primary)", color: "#fff", borderRadius: 99, width: 18, height: 18, display: "grid", placeItems: "center", flex: "none", marginTop: 3 }}>{n}</span>
+              <div>
+                <code style={{ display: "block", padding: "4px 9px", borderRadius: 7, background: "color-mix(in srgb, var(--ink) 8%, transparent)", fontSize: 11.5, fontFamily: "monospace", color: "var(--ink-2)" }}>{cmd}</code>
+                <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>{note}</div>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: 8 }}>{doneBtn(L("Done — I'll start Ollama", "Xong — tôi sẽ khởi động Ollama"))}{back}</div>
+        </>}
+        {step === 2 && <>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>☁ {L("Cloud Providers", "Cloud Providers")}</div>
+          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65 }}>
+            {L("Add an API key in the Providers page. Groq has a generous free tier.", "Thêm API key ở trang Providers. Groq có free tier rộng rãi.")}
+          </div>
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            {[["Groq", L("free tier", "miễn phí")], ["Claude", "Anthropic"], ["OpenAI", "GPT-4o"], ["Gemini", "Google"]].map(([n, note]) => (
+              <div key={n} className="chip neutral" style={{ fontSize: 12 }}>{n} <span style={{ opacity: .55 }}>· {note}</span></div>
+            ))}
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ink-2)", background: "var(--primary-soft)", borderRadius: 9, padding: "9px 12px", lineHeight: 1.6 }}>
+            💡 {L("Providers page → click the ✎ icon on any provider card to paste your key.", "Trang Providers → nhấn biểu tượng ✎ trên thẻ nhà cung cấp để dán key.")}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>{doneBtn(L("Got it — go to Providers", "Hiểu rồi — vào Providers"))}{back}</div>
+        </>}
+      </div>
+    </div>
+  );
+}
 
 function loadChatHistory() {
   try {
@@ -729,6 +887,12 @@ function Chat({ t }) {
   const [htmlSkills, setHtmlSkills] = React.useState([]);
   const [htmlSearch, setHtmlSearch] = React.useState("");
   const [msgSearch, setMsgSearch]   = React.useState(null); // null=closed, ""=open
+  const [convList, setConvList]     = React.useState(loadConvList);
+  const [sidebarOpen, setSidebarOpen] = React.useState(() => localStorage.getItem("yana.sidebar") === "1");
+  const [showOnboarding, setShowOnboarding] = React.useState(() => {
+    if (localStorage.getItem(ONBOARDED_KEY)) return false;
+    return !D.providers.some(p => !KEYLESS_PROVIDERS.has(p.id) && p.id !== "auto" && YanaVault.hasKey(p.id));
+  });
   const [streaming, setStreaming] = React.useState(false);
   const [atBottom, setAtBottom]   = React.useState(true);
   const [localStatus, setLocalStatus] = React.useState(null); // null=unknown, {}=probed
@@ -826,6 +990,47 @@ function Chat({ t }) {
   React.useEffect(() => {
     return () => { if (readerRef.current) readerRef.current.cancel(); };
   }, []);
+
+  function toggleSidebar() {
+    setSidebarOpen(v => {
+      const next = !v;
+      localStorage.setItem("yana.sidebar", next ? "1" : "0");
+      return next;
+    });
+  }
+
+  function newConversation() {
+    if (msgs.length > 0) {
+      const entry = convFromMsgs(msgs);
+      const updated = [entry, ...convList].slice(0, 30);
+      setConvList(updated);
+      try { localStorage.setItem(CONV_LIST_KEY, JSON.stringify(updated)); } catch (_) {}
+    }
+    setMsgs([]);
+    D.chat = [];
+    try { localStorage.removeItem(CHAT_STORE); } catch (_) {}
+  }
+
+  function loadConversation(conv) {
+    if (msgs.length > 0) {
+      const entry = convFromMsgs(msgs);
+      const updated = [entry, ...convList.filter(c => c.id !== conv.id)].slice(0, 30);
+      setConvList(updated);
+      try { localStorage.setItem(CONV_LIST_KEY, JSON.stringify(updated)); } catch (_) {}
+    } else {
+      const updated = convList.filter(c => c.id !== conv.id);
+      setConvList(updated);
+      try { localStorage.setItem(CONV_LIST_KEY, JSON.stringify(updated)); } catch (_) {}
+    }
+    setMsgs(conv.msgs || []);
+    D.chat = conv.msgs || [];
+  }
+
+  function deleteConversation(id) {
+    const updated = convList.filter(c => c.id !== id);
+    setConvList(updated);
+    try { localStorage.setItem(CONV_LIST_KEY, JSON.stringify(updated)); } catch (_) {}
+  }
 
   async function handleOcr(e) {
     const file = e.target.files && e.target.files[0];
@@ -1108,8 +1313,22 @@ function Chat({ t }) {
 
   return (
     <div data-screen-label="Chat" style={{ display: "flex", gap: "var(--gap)", height: "100%", minHeight: 0 }}>
+      {sidebarOpen && (
+        <ConvSidebar
+          list={convList}
+          onLoad={loadConversation}
+          onDelete={deleteConversation}
+          onClose={toggleSidebar}
+        />
+      )}
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
         <PageHeader title={L("Conversation", "Trò chuyện")} sub={L("One conversation, many hands — Yana routes each request to the right agent.", "Một cuộc trò chuyện, nhiều bàn tay — Yana chuyển mỗi yêu cầu đến đúng tác nhân.")}>
+          <button
+            onClick={toggleSidebar}
+            title={L("Conversation history", "Lịch sử trò chuyện")}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 10px", borderRadius: 10, border: "1px solid var(--border)", background: sidebarOpen ? "var(--primary-soft)" : "transparent", color: sidebarOpen ? "var(--primary)" : "var(--ink-3)", cursor: "pointer", fontSize: 14, fontFamily: "inherit", flex: "none" }}>
+            ☰
+          </button>
           <button
             onClick={() => setMsgSearch(s => s === null ? "" : null)}
             title={L("Search conversation", "Tìm trong cuộc trò chuyện")}
@@ -1117,7 +1336,7 @@ function Chat({ t }) {
             🔍
           </button>
           <button
-            onClick={() => { setMsgs([]); D.chat = []; try { localStorage.removeItem("yana.chat"); } catch (_) {} }}
+            onClick={newConversation}
             title={L("New conversation", "Cuộc trò chuyện mới")}
             style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 13px", borderRadius: 10, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-2)", cursor: "pointer", fontSize: 13, fontFamily: "inherit", flex: "none" }}>
             {Icons.pencil(14)} {L("New", "Mới")}
@@ -1420,6 +1639,12 @@ function Chat({ t }) {
         ? <ArtifactPanel artifact={artifact} onClose={() => setArtifact(null)} />
         : <ContextPanel />
       }
+      {showOnboarding && (
+        <OnboardingOverlay onDone={() => {
+          localStorage.setItem(ONBOARDED_KEY, "1");
+          setShowOnboarding(false);
+        }} />
+      )}
     </div>
   );
 }
