@@ -9,9 +9,20 @@
     "tagline": "45 hooks · 3,440 skills · sovereign-grade safety for AI coding agents",
     "category": "safety",
     "tags": [
-      "hooks", "safety", "memory", "agents", "guards", "gates",
-      "circuit-breaker", "sovereign", "claude-code", "codex",
-      "cursor", "audit", "ai-agent", "agent-os"
+      "hooks",
+      "safety",
+      "memory",
+      "agents",
+      "guards",
+      "gates",
+      "circuit-breaker",
+      "sovereign",
+      "claude-code",
+      "codex",
+      "cursor",
+      "audit",
+      "ai-agent",
+      "agent-os"
     ],
     "highlights": [
       "45 safety hooks — blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
