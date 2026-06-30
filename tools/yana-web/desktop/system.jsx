@@ -508,25 +508,48 @@ function AboutYouCard() {
 // Editable text row — click ✎ to rename, persisted in localStorage
 function EditableRow({ label, desc, storeKey, fallback }) {
   const [v, setV] = React.useState(() => localStorage.getItem(storeKey) || fallback);
-  function edit() {
-    const raw = window.prompt(label + ":", v);
-    if (raw === null) return;
-    const next = raw.trim() || fallback;
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState(v);
+  const inputRef = React.useRef(null);
+
+  function startEdit() {
+    setDraft(v);
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 20);
+  }
+  function save() {
+    const next = draft.trim() || fallback;
     setV(next);
     localStorage.setItem(storeKey, next);
     window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key: storeKey, value: next } }));
+    setEditing(false);
   }
+  function handleKeyDown(e) {
+    if (e.key === "Enter") save();
+    if (e.key === "Escape") setEditing(false);
+  }
+
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
       <div style={{ lineHeight: 1.35 }}>
         <div style={{ fontSize: 13.5, fontWeight: 500 }}>{label}</div>
         {desc && <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{desc}</div>}
       </div>
-      <button onClick={edit} title={L("Click to edit", "Nhấn để sửa")} style={{
-        background: "none", border: "1px solid var(--border)", padding: "4px 12px",
-        borderRadius: 99, cursor: "pointer", fontSize: 12, color: "var(--primary)",
-        fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
-      }}>{v} <span style={{ fontSize: 10, opacity: .6 }}>✎</span></button>
+      {editing ? (
+        <input ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown} onBlur={save}
+          style={{
+            fontSize: 12, padding: "4px 10px", borderRadius: 8, fontFamily: "inherit",
+            border: "1.5px solid var(--primary)", background: "var(--surface)",
+            color: "var(--ink)", outline: "none", width: 160,
+          }} />
+      ) : (
+        <button onClick={startEdit} title={L("Click to edit", "Nhấn để sửa")} style={{
+          background: "none", border: "1px solid var(--border)", padding: "4px 12px",
+          borderRadius: 99, cursor: "pointer", fontSize: 12, color: "var(--primary)",
+          fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
+        }}>{v} <span style={{ fontSize: 10, opacity: .6 }}>✎</span></button>
+      )}
     </div>
   );
 }
@@ -553,17 +576,30 @@ function ProfileHero({ t, setTweak, dash }) {
   const [dispName, setDispName] = React.useState(() =>
     localStorage.getItem("yana.display-name") || account || "Yana AI"
   );
+  const [editingName, setEditingName] = React.useState(false);
+  const [nameDraft, setNameDraft] = React.useState(() =>
+    localStorage.getItem("yana.display-name") || account || "Yana AI"
+  );
+  const nameInputRef = React.useRef(null);
   const [avatarUrl, setAvatarUrl] = React.useState(() =>
     localStorage.getItem("yana.avatar-url") || null
   );
   const avatarInputRef = React.useRef(null);
 
   function editName() {
-    const raw = window.prompt(L("Display name:", "Tên hiển thị:"), dispName);
-    if (raw === null) return;
-    const next = raw.trim() || account || "Yana AI";
+    setNameDraft(dispName);
+    setEditingName(true);
+    setTimeout(() => nameInputRef.current?.focus(), 20);
+  }
+  function saveName() {
+    const next = nameDraft.trim() || account || "Yana AI";
     setDispName(next);
     localStorage.setItem("yana.display-name", next);
+    setEditingName(false);
+  }
+  function handleNameKeyDown(e) {
+    if (e.key === "Enter") saveName();
+    if (e.key === "Escape") setEditingName(false);
   }
 
   function onAvatarChange(e) {
@@ -694,11 +730,25 @@ function ProfileHero({ t, setTweak, dash }) {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.2 }}>{dispName}</span>
-            <button onClick={editName} title={L("Edit name", "Sửa tên")} style={{
-              background: "none", border: "none", padding: "2px 8px", borderRadius: 6, cursor: "pointer",
-              fontSize: 11, color: "var(--ink-3)",
-            }}>✎</button>
+            {editingName ? (
+              <input ref={nameInputRef} value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onKeyDown={handleNameKeyDown} onBlur={saveName}
+                style={{
+                  fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.2,
+                  background: "transparent", border: "none",
+                  borderBottom: "1.5px solid var(--primary)",
+                  outline: "none", fontFamily: "inherit", minWidth: 80, width: "auto",
+                }} />
+            ) : (
+              <>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.2 }}>{dispName}</span>
+                <button onClick={editName} title={L("Edit name", "Sửa tên")} style={{
+                  background: "none", border: "none", padding: "2px 8px", borderRadius: 6, cursor: "pointer",
+                  fontSize: 11, color: "var(--ink-3)",
+                }}>✎</button>
+              </>
+            )}
           </div>
           <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 3 }}>{account}</div>
           <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2 }}>
