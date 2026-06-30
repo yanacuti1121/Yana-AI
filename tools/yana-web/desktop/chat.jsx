@@ -34,7 +34,54 @@ function detectSensitivity(text) {
 // Providers usable without an API key (loopback/on-device)
 const KEYLESS_PROVIDERS = new Set(["ollama", "lmstudio", "9router"]);
 function providerAvailable(id) {
+  if (id === "auto") return true;
   return KEYLESS_PROVIDERS.has(id) || YanaVault.hasKey(id);
+}
+
+// Smart provider routing — picks best provider based on task classification.
+// localStatus: { ollama: { running, models }, ... } from /api/local-status.
+// routeType: 'complex' | 'simple'  from /api/route decision field.
+// taskText: raw user message (used for keyword signals).
+function smartPickProvider(taskText, routeType, localStatus) {
+  const lower = (taskText || "").toLowerCase();
+  const running = (id) => localStatus && localStatus[id] && localStatus[id].running;
+  const keyed   = (id) => YanaVault.hasKey(id);
+
+  // Code tasks → local first (private, free), then cost-efficient cloud
+  const isCode = /\b(code|fix|bug|function|class|import|error|implement|refactor|debug|typescript|python|javascript|rust|bash)\b/.test(lower);
+  // Reasoning / long analysis → strongest model
+  const isDeep = routeType === "complex" || /\b(explain|analyze|compare|design|architect|why|how does|strategy|plan)\b/.test(lower);
+  // Fast/simple tasks → Groq (sub-300ms)
+  const isFast = routeType === "simple" && !isCode && !isDeep;
+
+  const localOrder  = ["ollama", "lmstudio", "9router"];
+  const firstLocal  = localOrder.find(id => running(id));
+
+  if (isCode) {
+    // Code: local (private) > DeepSeek (cheap code model) > Claude > rest
+    if (firstLocal)       return { provider: firstLocal, reason: "code · local · free" };
+    if (keyed("deepseek")) return { provider: "deepseek", reason: "code · cost-efficient" };
+    if (keyed("claude"))   return { provider: "claude",   reason: "code · best quality" };
+    if (keyed("openai"))   return { provider: "openai",   reason: "code · GPT-4o" };
+  } else if (isFast) {
+    // Simple / fast: Groq (sub-300ms) > local > Claude
+    if (keyed("groq"))    return { provider: "groq",   reason: "simple · sub-300ms" };
+    if (firstLocal)       return { provider: firstLocal, reason: "simple · local" };
+    if (keyed("claude"))  return { provider: "claude", reason: "simple · reliable" };
+  } else {
+    // Deep reasoning: Claude > DeepSeek R1 > local > Groq
+    if (keyed("claude"))    return { provider: "claude",    reason: "reasoning · best" };
+    if (keyed("deepseek"))  return { provider: "deepseek",  reason: "reasoning · R1" };
+    if (firstLocal)         return { provider: firstLocal,  reason: "reasoning · local" };
+    if (keyed("groq"))      return { provider: "groq",      reason: "reasoning · fast" };
+  }
+
+  // Final fallback: any available
+  if (firstLocal)           return { provider: firstLocal, reason: "local · free" };
+  const cloudOrder = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
+  const firstCloud = cloudOrder.find(id => keyed(id));
+  if (firstCloud)           return { provider: firstCloud, reason: "available" };
+  return { provider: "claude", reason: "fallback" };
 }
 window.providerAvailable = providerAvailable;
 window.KEYLESS_PROVIDERS = KEYLESS_PROVIDERS;
@@ -457,9 +504,18 @@ function ArtifactPanel({ artifact, onClose }) {
   );
 }
 
-// Find the first provider that has a stored API key in the encrypted vault
+// Find the first provider that has a stored API key in the encrypted vault.
+// "auto" is a virtual selection — returns a placeholder; sendText() overrides it.
 function getProviderConfig(preferred) {
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
+  if (preferred === "auto") {
+    // Real provider is resolved at send time by smartPickProvider()
+    for (const id of order) {
+      const key = YanaVault.getKey(id);
+      if (key) return { provider: id, apiKey: key };
+    }
+    return { provider: "claude", apiKey: "" };
+  }
   if (preferred && KEYLESS_PROVIDERS.has(preferred)) {
     return { provider: preferred, apiKey: "" };
   }
@@ -710,11 +766,12 @@ function Chat({ t }) {
     // Sovereign: local model only — never a cloud provider
     let { provider, apiKey } = getProviderConfig(providerSel);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
-    const model = modelSel[provider] || CHAT_MODELS[provider] || "";
 
     // Real routing: classify the task so complex requests pick up a skill.
     // Skipped for confidential turns — need-to-know, no extra processing.
     let skill = null;
+    let routeDecision = null;
+    let autoReason = null;
     if (!tier) {
       try {
         const rr = await fetch("/api/route", {
@@ -722,9 +779,22 @@ function Chat({ t }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ task: text }),
         });
-        if (rr.ok) { const d = await rr.json(); skill = d.suggested_skill || null; }
+        if (rr.ok) {
+          routeDecision = await rr.json();
+          skill = routeDecision.suggested_skill || null;
+        }
       } catch (_) {}
     }
+
+    // Smart auto-routing: when user picks "Auto", resolve to the best provider
+    if (providerSel === "auto" && !tier) {
+      const picked = smartPickProvider(text, routeDecision && routeDecision.route, localStatus);
+      provider = picked.provider;
+      autoReason = picked.reason;
+      apiKey = KEYLESS_PROVIDERS.has(provider) ? "" : (YanaVault.getKey(provider) || "");
+    }
+
+    const model = modelSel[provider] || CHAT_MODELS[provider] || "";
 
     try {
       const res = await fetch("/api/chat", {
@@ -752,9 +822,10 @@ function Chat({ t }) {
       setMsgs((m) => [...m, {
         who: "yana",
         route: {
-          agent: provider,
+          agent: autoReason ? `Auto → ${provider}` : provider,
           model: (model || provider)
             + (skill ? " · " + skill : "")
+            + (autoReason ? ` · ${autoReason}` : "")
             + (tier ? " · 🔒 " + (tier === "sovereign" ? "local-only" : "no-persist") : ""),
         },
         text: "",
@@ -1093,12 +1164,19 @@ function Chat({ t }) {
                   </option>
                 ))}
             </select>
-            <select value={activeModel} onChange={(e) => pickModel(e.target.value)}
-              title={L("Model for this provider — choice is remembered", "Model cho nhà cung cấp này — lựa chọn được ghi nhớ")}>
-              {(modelOptions.includes(activeModel) ? modelOptions : [activeModel, ...modelOptions]).map((m) => (
-                <option key={m} value={m}>{m}{capsLabel(m)}</option>
-              ))}
-            </select>
+            {activeProvider !== "auto" && (
+              <select value={activeModel} onChange={(e) => pickModel(e.target.value)}
+                title={L("Model for this provider — choice is remembered", "Model cho nhà cung cấp này — lựa chọn được ghi nhớ")}>
+                {(modelOptions.includes(activeModel) ? modelOptions : [activeModel, ...modelOptions]).map((m) => (
+                  <option key={m} value={m}>{m}{capsLabel(m)}</option>
+                ))}
+              </select>
+            )}
+            {localStatus && activeProvider === "auto" && ["ollama", "lmstudio", "9router"].some(id => localStatus[id]?.running) && (
+              <span style={{ fontSize: 11, color: "#7c3aed", background: "color-mix(in srgb,#7c3aed 12%,transparent)", border: "1px solid color-mix(in srgb,#7c3aed 22%,transparent)", borderRadius: 99, padding: "3px 8px", flexShrink: 0, fontWeight: 500 }}>
+                🤖 {L("Smart route", "Định tuyến thông minh")}
+              </span>
+            )}
             {localStatus && KEYLESS_PROVIDERS.has(activeProvider) && localStatus[activeProvider]?.running && (
               <span style={{ fontSize: 11, color: "#16a34a", background: "color-mix(in srgb,#22c55e 12%,transparent)", border: "1px solid color-mix(in srgb,#22c55e 22%,transparent)", borderRadius: 99, padding: "3px 8px", flexShrink: 0, fontWeight: 500 }}>
                 ● {L("Local · free", "Local · miễn phí")}

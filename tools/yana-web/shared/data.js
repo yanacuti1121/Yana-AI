@@ -28,6 +28,7 @@ window.YANA = {
   // Static catalog only — connection status, usage, latency, and keys are
   // real values resolved at runtime (YanaVault + GET /api/usage)
   providers: [
+    { id: "auto",       name: "🤖 Auto",    company: "Smart route", models: [],                                      role: "Auto-selects best provider based on task type" },
     { id: "claude",     name: "Claude",     company: "Anthropic",  models: ["Opus 4.8", "Sonnet 4.6", "Haiku 4.5"], role: "Primary — reasoning & orchestration" },
     { id: "openai",     name: "OpenAI",     company: "OpenAI",     models: ["GPT-4o", "GPT-4o mini"],               role: "Drafting & vision" },
     { id: "gemini",     name: "Gemini",     company: "Google",     models: ["2.0 Flash", "1.5 Pro"],                role: "Long context & search" },
