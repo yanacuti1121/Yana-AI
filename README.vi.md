@@ -554,3 +554,9 @@ Output mẫu:
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121](https://github.com/yanacuti1121) |
 | Yana AI | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+
+---
+
+## Ghi nhận
+
+Yana AI được xây dựng dựa trên ý tưởng, mô hình và công cụ từ cộng đồng mã nguồn mở — bao gồm các dự án được cấp phép theo Apache 2.0, MIT và các giấy phép mở khác. Tất cả nguồn bên thứ ba được sử dụng đúng theo giấy phép tương ứng. Dự án này không có bất kỳ ý định nào sao chép, mạo danh hay vi phạm quyền sở hữu trí tuệ của cá nhân hoặc tổ chức nào. Những dự án có ảnh hưởng trực tiếp đến các quyết định thiết kế đều được ghi nhận trong tệp mã nguồn và tài liệu rule liên quan.

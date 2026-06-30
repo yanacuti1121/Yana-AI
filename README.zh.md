@@ -594,3 +594,9 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 ## 🇬🇧 / 🇻🇳 / 🇰🇷 其他语言
 
 本文档的其他语言版本：**[README.md](README.md)**（English） · **[README.vi.md](README.vi.md)**（Tiếng Việt） · **[README.ko.md](README.ko.md)**（한국어）
+
+---
+
+## 致谢
+
+Yana AI 基于开源社区的理念、模式与工具构建，包括采用 Apache 2.0、MIT 等宽松许可证的项目。所有第三方来源均依照其各自许可证合规使用。本项目无意复制、冒用或侵犯任何个人或组织的知识产权。对设计决策产生直接影响的项目均已在相关源文件及规则文档中注明出处。

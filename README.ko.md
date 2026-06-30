@@ -594,3 +594,9 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 ## 🇬🇧 / 🇻🇳 / 🇨🇳 다른 언어
 
 이 문서의 다른 언어 버전: **[README.md](README.md)** (English) · **[README.vi.md](README.vi.md)** (Tiếng Việt) · **[README.zh.md](README.zh.md)** (中文)
+
+---
+
+## 감사의 말
+
+Yana AI는 오픈소스 커뮤니티의 아이디어, 패턴, 도구를 기반으로 구축되었습니다 — Apache 2.0, MIT 등 허용적 라이선스 하의 프로젝트들을 포함합니다. 모든 서드파티 소스는 해당 라이선스를 준수하여 사용됩니다. 이 프로젝트는 어떠한 개인이나 조직의 지적 재산권을 복제, 오용 또는 침해할 의도가 없습니다. 설계 결정에 직접적인 영향을 준 프로젝트는 관련 소스 파일 및 규칙 문서에 출처가 명시되어 있습니다.
