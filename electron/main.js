@@ -28,6 +28,10 @@ function startServer() {
       NODE_ENV:      'production',
       // User data dir survives app updates
       YANA_DATA_DIR: path.join(app.getPath('userData'), '.yana'),
+      // Repo root: bundled Resources/ when packaged, local repo when dev
+      YANA_ROOT_DIR: app.isPackaged
+        ? process.resourcesPath
+        : path.join(__dirname, '..'),
     },
     silent: true,
   });

@@ -8,8 +8,9 @@ const path  = require('path');
 const url   = require('url');
 const { execFileSync } = require('child_process');
 const { createCore } = require('./lib/core');
+const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
-  rootDir: path.join(__dirname, '..', '..'),
+  rootDir: REPO_ROOT,
 });
 const auth     = require('./auth');
 const missions = require('./missions');
@@ -28,7 +29,7 @@ const PORT         = process.env.PORT || 8081;
 // Docker/remote deploys opt in explicitly with HOST=0.0.0.0.
 const HOST         = process.env.HOST || '127.0.0.1';
 const STATIC_DIR   = __dirname;
-const MANIFEST_PATH = path.join(__dirname, '..', '..', 'MANIFEST.json');
+const MANIFEST_PATH = path.join(REPO_ROOT, 'MANIFEST.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -1147,10 +1148,10 @@ function handleApiCronDelete(req, res, id) {
 }
 
 // ── GET /api/dashboard — real system state (L1 memory, audit log, uptime) ─────
-const L1_DIR     = path.join(__dirname, '..', '..', 'memory', 'L1_atomic');
-const AUDIT_LOG  = path.join(__dirname, '..', '..', 'core', 'memory', 'audit', 'agent-actions.log');
-const AGENTS_DIR = path.join(__dirname, '..', '..', 'core', 'agents');
-const SKILLS_DIR = path.join(__dirname, '..', '..', 'core', 'skills');
+const L1_DIR     = path.join(REPO_ROOT, 'memory', 'L1_atomic');
+const AUDIT_LOG  = path.join(REPO_ROOT, 'core', 'memory', 'audit', 'agent-actions.log');
+const AGENTS_DIR = path.join(REPO_ROOT, 'core', 'agents');
+const SKILLS_DIR = path.join(REPO_ROOT, 'core', 'skills');
 
 function fmHeader(file, maxBytes) {
   // First N bytes of a markdown file — enough for YAML frontmatter

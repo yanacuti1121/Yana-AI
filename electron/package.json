@@ -29,10 +29,16 @@
           "lib/**",
           "html-skills/**",
           "desktop/**",
-          "node_modules/**",
-          "!node_modules/.cache/**",
-          "!node_modules/.bin/**"
+          "shared/**"
         ]
+      },
+      {
+        "from": "../core/skills",
+        "to": "core/skills"
+      },
+      {
+        "from": "../MANIFEST.json",
+        "to": "MANIFEST.json"
       }
     ],
     "mac": {
