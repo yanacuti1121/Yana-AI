@@ -195,7 +195,9 @@ _banner_art() {
 }
 
 banner() {
-  [[ -t 1 ]] || [[ "${YANA_FORCE_BANNER:-0}" == "1" ]] || return 0
+  # Only skip banner when stdout is piped AND user hasn't forced it.
+  # Explicit `yana banner` calls always render.
+  [[ -t 1 ]] || [[ "${YANA_FORCE_BANNER:-0}" == "1" ]] || [[ "${_YANA_BANNER_EXPLICIT:-0}" == "1" ]] || return 0
   # Fit the box to the real terminal instead of a fixed width — a hardcoded
   # wide box (previously 170) overflows on normal-size terminals and wraps
   # into a mess. Clamp so it stays tidy on narrow terminals but still
@@ -677,7 +679,7 @@ case "$COMMAND" in
     cmd_version
     ;;
   banner)
-    banner
+    _YANA_BANNER_EXPLICIT=1 banner
     ;;
   help|--help|-h|"")
     usage
