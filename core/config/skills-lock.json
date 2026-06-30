@@ -10349,6 +10349,21 @@
       "computedHash": "2683f02075f79a972101b681aaa0afb44300a73ed59314143222c68f1de897cc",
       "localPath": ".claude/skills/video-linggo",
       "addedAt": "2026-06-28T00:18:30Z"
+    },
+    "vuln-chain": {
+      "version": "1.0.0",
+      "triggers": [
+        "/vuln-chain",
+        "vulnerability chain",
+        "vuln chain",
+        "chain analysis",
+        "pentest chain",
+        "chain vulnerabilities",
+        "security chain audit"
+      ],
+      "path": "core/skills/vuln-chain/SKILL.md",
+      "added": "2026-06-30"
     }
-  }
+  },
+  "total": 2071
 }

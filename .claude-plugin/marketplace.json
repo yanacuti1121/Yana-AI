@@ -1,12 +1,12 @@
 {
   "name": "yana-ai",
   "owner": {
-    "name": "Vũ Văn Tâm",
+    "name": "V\u0169 V\u0103n T\u00e2m",
     "url": "https://github.com/yanacuti1121"
   },
   "metadata": {
-    "description": "Personal agent operating system — safety hooks, memory, agents, cross-engine hard enforcement for Claude Code.",
-    "tagline": "45 hooks · 3,440 skills · sovereign-grade safety for AI coding agents",
+    "description": "Personal agent operating system \u2014 safety hooks, memory, agents, cross-engine hard enforcement for Claude Code.",
+    "tagline": "45 hooks \u00b7 3,440 skills \u00b7 sovereign-grade safety for AI coding agents",
     "category": "safety",
     "tags": [
       "hooks",
@@ -25,11 +25,11 @@
       "agent-os"
     ],
     "highlights": [
-      "45 safety hooks — blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
-      "3,440 skills — frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, Chrome DevTools",
-      "93 agents — quality, security, infra, data-ai, orchestration, forge subfolders",
-      "61 rules — sovereignty tiers, jailbreak defense, supply chain vetting, BFT consensus law",
-      "L1 Atomic Memory — persistent facts with confidence levels and tag search",
+      "45 safety hooks \u2014 blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
+      "3,440 skills \u2014 frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, Chrome DevTools",
+      "93 agents \u2014 quality, security, infra, data-ai, orchestration, forge subfolders",
+      "61 rules \u2014 sovereignty tiers, jailbreak defense, supply chain vetting, BFT consensus law",
+      "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search",
       "826 checks: hook tests + skill trigger coverage + red-team scenarios"
     ]
   },
@@ -39,7 +39,7 @@
       "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
       "version": "0.43.0",
       "author": {
-        "name": "Vũ Văn Tâm",
+        "name": "V\u0169 V\u0103n T\u00e2m",
         "url": "https://github.com/yanacuti1121"
       },
       "source": "./",

@@ -5,7 +5,7 @@
   "version": "0.43.0",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
-    "name": "Vũ Văn Tâm",
+    "name": "V\u0169 V\u0103n T\u00e2m",
     "email": "phamlongh230@gmail.com",
     "url": "https://github.com/yanacuti1121"
   },
@@ -30,7 +30,7 @@
   ],
   "metadata": {
     "openclaw": {
-      "emoji": "🛡️",
+      "emoji": "\ud83d\udee1\ufe0f",
       "requires": {
         "env": [],
         "optionalEnv": [],
@@ -71,7 +71,7 @@
     "commands": 164,
     "agents": 101,
     "scripts": 102,
-    "skills": 1988,
+    "skills": 1989,
     "rules": 61,
     "checks": 826,
     "checks_breakdown": {
