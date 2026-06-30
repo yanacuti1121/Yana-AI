@@ -1,0 +1,28 @@
+# Yana AI — Render.com deployment config
+# Free tier: web service sleeps after 15 min of inactivity (wakes on first request ~30s)
+# Persistent disk: optional, add via Render dashboard
+#
+# Deploy steps:
+#   1. Go to render.com → New → Web Service
+#   2. Connect GitHub repo: yanacuti1121/Yana-AI
+#   3. Render detects this file automatically
+#   4. Click "Create Web Service" → get a free public URL
+
+services:
+  - type: web
+    name: yana-ai
+    runtime: docker
+    dockerfilePath: tools/yana-web/Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore   # closest to Vietnam; change to oregon/frankfurt if preferred
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"   # Render assigns this port automatically via $PORT env var
+      - key: HOST
+        value: "0.0.0.0"
+      - key: YANA_TRUST_PROXY
+        value: "1"
