@@ -513,6 +513,7 @@ function Chat({ t }) {
   const [htmlSearch, setHtmlSearch] = React.useState("");
   const [streaming, setStreaming] = React.useState(false);
   const [atBottom, setAtBottom]   = React.useState(true);
+  const [localStatus, setLocalStatus] = React.useState(null); // null=unknown, {}=probed
   const logRef    = React.useRef(null);
   const readerRef = React.useRef(null);
   const fileRef   = React.useRef(null);
@@ -586,6 +587,22 @@ function Chat({ t }) {
     } catch (_) {}
   }, [msgs]);
   React.useEffect(() => { localStorage.setItem("yana.chat.provider", providerSel); }, [providerSel]);
+
+  // Probe local providers on mount — auto-select Ollama if running and no provider chosen
+  React.useEffect(() => {
+    fetch("/api/local-status")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setLocalStatus(data);
+        // If user hasn't picked a provider yet, auto-select the first running local one
+        if (!localStorage.getItem("yana.chat.provider")) {
+          const first = ["ollama", "9router", "lmstudio"].find(id => data[id]?.running);
+          if (first) setProviderSel(first);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Cancel any in-flight stream on unmount
   React.useEffect(() => {
@@ -896,17 +913,61 @@ function Chat({ t }) {
         )}
         <div ref={logRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "calc(16px * var(--sp))", padding: "4px 4px 16px", minHeight: 0 }}>
           {msgs.length === 0 && !thinking && (
-            <div style={{ margin: "auto", textAlign: "center", color: "var(--ink-3)", maxWidth: 380 }}>
+            <div style={{ margin: "auto", textAlign: "center", color: "var(--ink-3)", maxWidth: 400 }}>
               <YanaMark size={34} />
               <div style={{ fontSize: 14, fontWeight: 500, color: "var(--ink-2)", marginTop: 12 }}>
                 {L("Start a conversation", "Bắt đầu trò chuyện")}
               </div>
-              <div style={{ fontSize: 12.5, lineHeight: 1.55, marginTop: 6 }}>
+
+              {/* Local AI status banner */}
+              {localStatus && (() => {
+                const running = ["ollama", "9router", "lmstudio"].filter(id => localStatus[id]?.running);
+                const allOffline = running.length === 0;
+                const hasCloud = getProviderConfig().apiKey;
+                if (allOffline && !hasCloud) {
+                  return (
+                    <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "color-mix(in srgb, var(--accent) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 20%, transparent)", fontSize: 12.5, lineHeight: 1.6, textAlign: "left" }}>
+                      <div style={{ fontWeight: 600, color: "var(--accent)", marginBottom: 4 }}>
+                        🖥 {L("Run AI locally for free", "Chạy AI miễn phí trên máy")}
+                      </div>
+                      <div style={{ color: "var(--ink-2)" }}>
+                        {L("No API key needed. Install Ollama then:", "Không cần API key. Cài Ollama rồi:")}
+                      </div>
+                      <code style={{ display: "block", marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "color-mix(in srgb, var(--ink) 8%, transparent)", fontSize: 12, color: "var(--ink-2)", fontFamily: "monospace" }}>
+                        ollama pull qwen2.5-coder:7b
+                      </code>
+                      <code style={{ display: "block", marginTop: 4, padding: "4px 8px", borderRadius: 6, background: "color-mix(in srgb, var(--ink) 8%, transparent)", fontSize: 12, color: "var(--ink-2)", fontFamily: "monospace" }}>
+                        ollama serve
+                      </code>
+                    </div>
+                  );
+                }
+                if (running.length > 0) {
+                  const names = { ollama: "Ollama", "9router": "9router", lmstudio: "LM Studio" };
+                  const modelList = running.flatMap(id => localStatus[id].models.slice(0, 2));
+                  return (
+                    <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 99, background: "color-mix(in srgb, #22c55e 10%, transparent)", border: "1px solid color-mix(in srgb, #22c55e 25%, transparent)", fontSize: 12 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", flex: "none" }} />
+                      <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>
+                        {running.map(id => names[id]).join(" · ")} {L("ready", "sẵn sàng")}
+                        {modelList.length > 0 && <span style={{ color: "var(--ink-3)", fontWeight: 400 }}> · {modelList[0]}</span>}
+                      </span>
+                      <span style={{ color: "var(--ink-3)" }}>{L("· free · private", "· miễn phí · riêng tư")}</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              <div style={{ fontSize: 12.5, lineHeight: 1.55, marginTop: 10 }}>
                 {getProviderConfig().apiKey
                   ? L("Yana routes your request to the connected provider and streams the answer here.",
                       "Yana chuyển yêu cầu của bạn đến nhà cung cấp đã kết nối và trả lời tại đây.")
-                  : L("No provider key set — add one in Providers first.",
-                      "Chưa có API key — thêm key ở mục Nhà cung cấp trước.")}
+                  : localStatus && ["ollama","9router","lmstudio"].some(id => localStatus[id]?.running)
+                    ? L("Local AI detected — select it in the provider bar below to start chatting for free.",
+                        "Đã phát hiện Local AI — chọn nó ở thanh bên dưới để chat miễn phí.")
+                    : L("No provider key set — add one in Providers, or run Ollama locally for free.",
+                        "Chưa có API key — thêm key ở mục Nhà cung cấp, hoặc chạy Ollama miễn phí.")}
               </div>
             </div>
           )}
@@ -1038,6 +1099,11 @@ function Chat({ t }) {
                 <option key={m} value={m}>{m}{capsLabel(m)}</option>
               ))}
             </select>
+            {localStatus && KEYLESS_PROVIDERS.has(activeProvider) && localStatus[activeProvider]?.running && (
+              <span style={{ fontSize: 11, color: "#16a34a", background: "color-mix(in srgb,#22c55e 12%,transparent)", border: "1px solid color-mix(in srgb,#22c55e 22%,transparent)", borderRadius: 99, padding: "3px 8px", flexShrink: 0, fontWeight: 500 }}>
+                ● {L("Local · free", "Local · miễn phí")}
+              </span>
+            )}
             <span className="chip neutral sentinel-chip" style={{ fontSize: 11.5, flexShrink: 0 }}>{Icons.safety(12)} {L("Sentinel on", "Sentinel bật")}</span>
           </div>
           {streaming || thinking

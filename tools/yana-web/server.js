@@ -635,6 +635,53 @@ function handleApiStatus(req, res) {
   });
 }
 
+// ── GET /api/local-status — probe on-device AI providers (Ollama, 9router, LM Studio) ──
+function handleApiLocalStatus(req, res) {
+  const LOCAL_PROBES = [
+    { id: 'ollama',   protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
+    { id: '9router',  protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
+    { id: 'lmstudio', protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
+  ];
+
+  let pending = LOCAL_PROBES.length;
+  const results = {};
+
+  function finish() {
+    if (--pending === 0) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(results));
+    }
+  }
+
+  for (const probe of LOCAL_PROBES) {
+    const req2 = http.get({
+      hostname: probe.hostname,
+      port:     probe.port,
+      path:     probe.path,
+      method:   'GET',
+      timeout:  800,
+    }, upRes => {
+      let raw = '';
+      upRes.on('data', c => { raw += c; });
+      upRes.on('end', () => {
+        try {
+          const data = JSON.parse(raw);
+          // Ollama: { models: [{name}] }  /  OpenAI-compat: { data: [{id}] }
+          const models = probe.id === 'ollama'
+            ? (data.models || []).map(m => m.name || m.model || m.id)
+            : (data.data   || []).map(m => m.id);
+          results[probe.id] = { running: true, models };
+        } catch (_) {
+          results[probe.id] = { running: true, models: [] };
+        }
+        finish();
+      });
+    });
+    req2.on('error',   () => { results[probe.id] = { running: false, models: [] }; finish(); });
+    req2.on('timeout', () => { req2.destroy(); results[probe.id] = { running: false, models: [] }; finish(); });
+  }
+}
+
 // ── POST /api/models — fetch live model list from provider ────────────────────
 async function handleApiModels(req, res) {
   let body;
@@ -1666,7 +1713,8 @@ const server = http.createServer(async (req, res) => {
 
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 
-  if (method === 'GET'  && pathname === '/api/status')  { handleApiStatus(req, res);  return; }
+  if (method === 'GET'  && pathname === '/api/status')       { handleApiStatus(req, res);      return; }
+  if (method === 'GET'  && pathname === '/api/local-status') { handleApiLocalStatus(req, res);  return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
