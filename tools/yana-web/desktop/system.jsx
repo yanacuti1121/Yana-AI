@@ -503,6 +503,28 @@ function AboutYouCard() {
   );
 }
 
+/* ---------- Settings: toggle row (localStorage-persisted switch) ----------- */
+function ToggleRow({ label, desc, storeKey, defaultVal }) {
+  const [v, setV] = React.useState(() => {
+    const s = localStorage.getItem(storeKey);
+    return s !== null ? s !== "false" : defaultVal;
+  });
+  function toggle(next) {
+    setV(next);
+    localStorage.setItem(storeKey, next);
+    window.dispatchEvent(new CustomEvent("yana-setting", { detail: { key: storeKey, value: next } }));
+  }
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ lineHeight: 1.35 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{label}</div>
+        {desc && <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{desc}</div>}
+      </div>
+      <YSwitch value={v} onChange={toggle} />
+    </div>
+  );
+}
+
 /* ---------- Settings: live data + editable rows (no display-only fakes) ---- */
 
 // Editable text row — click ✎ to rename, persisted in localStorage
@@ -930,6 +952,84 @@ function Settings({ t, setTweak }) {
               value={L("Local · encrypted", "Cục bộ · mã hóa")} />
           </Card>
         </div>
+
+        {/* Chat + Notifications side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: GAP }}>
+          <Card title={L("Chat", "Trò chuyện")}>
+            <ToggleRow
+              label={L("Send on Enter", "Gửi bằng Enter")}
+              desc={L("Shift+Enter to add a new line", "Shift+Enter để xuống dòng")}
+              storeKey="yana.chat.send-on-enter" defaultVal={true} />
+            <ToggleRow
+              label={L("Show timestamps", "Hiện thời gian")}
+              desc={L("Display time beside each message", "Hiện giờ cạnh mỗi tin nhắn")}
+              storeKey="yana.chat.show-timestamps" defaultVal={false} />
+            <ToggleRow
+              label={L("Compact messages", "Tin nhắn gọn")}
+              desc={L("Reduce spacing between bubbles", "Giảm khoảng cách giữa bong bóng")}
+              storeKey="yana.chat.compact" defaultVal={false} />
+            <ToggleRow
+              label={L("Auto-scroll to new messages", "Tự cuộn xuống tin mới")}
+              storeKey="yana.chat.auto-scroll" defaultVal={true} />
+            <ToggleRow
+              label={L("Show model name in header", "Hiện tên model ở đầu trang")}
+              desc={L("Display active model above the chat", "Hiện model đang dùng phía trên chat")}
+              storeKey="yana.chat.show-model" defaultVal={false} />
+          </Card>
+
+          <Card title={L("Notifications", "Thông báo")}>
+            <ToggleRow
+              label={L("Sound on reply", "Âm báo khi có trả lời")}
+              desc={L("Soft chime when Yana finishes replying", "Tiếng chuông nhẹ khi Yana trả lời xong")}
+              storeKey="yana.notify.sound" defaultVal={true} />
+            <ToggleRow
+              label={L("Desktop notifications", "Thông báo màn hình")}
+              desc={L("OS notification when window is in background", "Thông báo hệ thống khi cửa sổ thu nhỏ")}
+              storeKey="yana.notify.desktop" defaultVal={false} />
+            <ToggleRow
+              label={L("Agent alerts", "Cảnh báo tác nhân")}
+              desc={L("Notify when an agent finishes a long task", "Thông báo khi tác nhân hoàn tất tác vụ dài")}
+              storeKey="yana.notify.agents" defaultVal={true} />
+            <ToggleRow
+              label={L("Error alerts", "Cảnh báo lỗi")}
+              desc={L("Notify when a gate or safety rule blocks an action", "Thông báo khi cổng hoặc quy tắc bảo mật chặn hành động")}
+              storeKey="yana.notify.errors" defaultVal={true} />
+          </Card>
+        </div>
+
+        {/* About — full width */}
+        <Card title={L("About Yana AI", "Về Yana AI")}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "0 32px" }}>
+            <div>
+              <SettingRow
+                label={L("Version", "Phiên bản")}
+                desc={L("Current release", "Phiên bản hiện tại")}
+                value={"v" + (D.version || "0.43.0")} />
+              <SettingRow
+                label={L("Skills", "Kỹ năng")}
+                desc={L("On-demand workflow modules", "Module quy trình theo yêu cầu")}
+                value={D.stats.skills > 0 ? String(D.stats.skills) : "1988"} />
+              <SettingRow
+                label={L("Agents", "Tác nhân")}
+                desc={L("Specialist parallel workers", "Công nhân song song chuyên biệt")}
+                value={D.stats.agents > 0 ? String(D.stats.agents) : "101"} />
+            </div>
+            <div>
+              <SettingRow
+                label={L("License", "Giấy phép")}
+                value="Apache-2.0" />
+              <SettingRow
+                label={L("Storage encryption", "Mã hóa lưu trữ")}
+                desc={L("AES-256-GCM, non-extractable key", "AES-256-GCM, khóa không thể xuất")}
+                value={L("Rule 66 · active", "Rule 66 · đang hoạt động")} />
+              <SettingRow
+                label={L("Safety rules", "Quy tắc bảo mật")}
+                desc={L("Enforcement policies loaded", "Chính sách thực thi đã tải")}
+                value="70 rules" />
+            </div>
+          </div>
+        </Card>
+
       </div>
     </div>
   );

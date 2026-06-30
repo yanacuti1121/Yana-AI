@@ -4,6 +4,7 @@
 // /api/usage, and YanaVault for provider keys.
 window.YANA = {
   username: null, // filled from /api/auth/status
+  version:  null, // filled from /api/status
   stats: {
     // filled from /api/status below — 0 until the server answers
     agents: 0,
@@ -55,8 +56,9 @@ function yanaTouch() {
 
 // Pull live stats from MANIFEST.json via server
 fetch("/api/status").then(function(r) { return r.json(); }).then(function(d) {
-  if (d.skills) window.YANA.stats.skills = d.skills;
-  if (d.agents) window.YANA.stats.agents = d.agents;
+  if (d.skills)   window.YANA.stats.skills = d.skills;
+  if (d.agents)   window.YANA.stats.agents = d.agents;
+  if (d.version)  window.YANA.version      = d.version;
   yanaTouch();
 }).catch(function() {});
 
