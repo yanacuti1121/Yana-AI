@@ -25,21 +25,13 @@
       --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
 
-    body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-
+    body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
 
     /* ── Nav ─────────────────────────────────────────────── */
     nav {
       position: sticky; top: 0; z-index: 10;
-      background: rgba(246,250,248,.88);
-      backdrop-filter: blur(12px);
+      background: rgba(246,250,248,.88); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       padding: 0 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
@@ -47,22 +39,33 @@
     }
     .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; }
     .nav-brand img { width: 30px; height: 30px; border-radius: 8px; }
-    .nav-links { display: flex; gap: 1.5rem; font-size: .875rem; color: var(--fg-muted); }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; font-size: .875rem; color: var(--fg-muted); }
     .nav-links a:hover { color: var(--fg); }
+
+    /* Language switcher */
+    .lang-switcher {
+      display: flex; align-items: center; gap: 2px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 2px; font-size: .75rem;
+    }
+    .lang-btn {
+      padding: .25rem .45rem; border-radius: 6px;
+      font-weight: 600; cursor: pointer; color: var(--fg-muted);
+      transition: background .12s, color .12s;
+      border: none; background: none; font-size: .75rem; font-family: var(--sans);
+    }
+    .lang-btn.active { background: var(--primary); color: #fff; }
+    .lang-btn:hover:not(.active) { background: var(--border); color: var(--fg); }
+
     .nav-cta {
       background: var(--primary); color: #fff;
       padding: .45rem 1.1rem; border-radius: 8px;
-      font-size: .875rem; font-weight: 600;
-      transition: background .15s;
+      font-size: .875rem; font-weight: 600; transition: background .15s;
     }
     .nav-cta:hover { background: var(--primary-h); }
 
     /* ── Hero ─────────────────────────────────────────────── */
-    .hero {
-      max-width: 900px; margin: 0 auto;
-      padding: 5rem 1.5rem 3.5rem;
-      text-align: center;
-    }
+    .hero { max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3.5rem; text-align: center; }
     .hero-badge {
       display: inline-flex; align-items: center; gap: .5rem;
       background: color-mix(in oklab, var(--primary) 10%, transparent);
@@ -71,179 +74,84 @@
       padding: .3rem .85rem; border-radius: 99px; margin-bottom: 1.5rem;
     }
     .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-    h1 {
-      font-size: clamp(2.25rem, 5vw, 3.5rem);
-      font-weight: 800; line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 1.25rem;
-    }
+    h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
     h1 em { font-style: normal; color: var(--primary); }
-    .hero-sub {
-      font-size: 1.125rem; color: var(--fg-muted);
-      max-width: 52ch; margin: 0 auto 2.5rem;
-      line-height: 1.7;
-    }
+    .hero-sub { font-size: 1.125rem; color: var(--fg-muted); max-width: 52ch; margin: 0 auto 2.5rem; line-height: 1.7; }
 
     /* ── Download buttons ─────────────────────────────────── */
-    .dl-grid {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem;
-      margin-bottom: 1rem;
-    }
+    .dl-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-bottom: 1rem; }
     .dl-btn {
       display: flex; align-items: center; gap: .65rem;
       padding: .75rem 1.4rem; border-radius: var(--radius);
       font-size: .9375rem; font-weight: 600;
-      border: 1.5px solid var(--border);
-      background: var(--bg-card);
-      color: var(--fg);
+      border: 1.5px solid var(--border); background: var(--bg-card); color: var(--fg);
       box-shadow: 0 1px 3px rgba(0,0,0,.06);
-      transition: box-shadow .15s, border-color .15s, transform .1s;
-      cursor: pointer;
+      transition: box-shadow .15s, border-color .15s, transform .1s; cursor: pointer;
     }
     .dl-btn:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); border-color: var(--primary); transform: translateY(-1px); }
     .dl-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .dl-btn.primary:hover { background: var(--primary-h); border-color: var(--primary-h); }
     .dl-btn svg { flex: none; }
     .dl-btn-sub { font-size: .75rem; font-weight: 400; opacity: .7; display: block; }
-
     .hero-note { font-size: .8rem; color: var(--fg-muted); margin-top: .5rem; }
 
-    /* ── App screenshot ───────────────────────────────────── */
+    /* ── App mockup ───────────────────────────────────────── */
     .screenshot-wrap {
-      max-width: 860px; margin: 3rem auto 0;
+      max-width: 860px; margin: 3rem auto 0; padding: 0 1.5rem;
       border-radius: 20px; overflow: hidden;
       box-shadow: 0 24px 80px rgba(0,0,0,.14), 0 0 0 1px var(--border);
       background: var(--bg-card);
     }
-    .screenshot-bar {
-      display: flex; align-items: center; gap: 6px;
-      padding: 10px 16px;
-      background: hsl(160 10% 93%);
-      border-bottom: 1px solid var(--border);
-    }
+    .screenshot-bar { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: hsl(160 10% 93%); border-bottom: 1px solid var(--border); }
     .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
     .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e; }
     .dot-g { width: 12px; height: 12px; border-radius: 50%; background: #28c840; }
     .screenshot-inner { display: flex; background: hsl(155 15% 95%); min-height: 380px; }
-    .app-sidebar {
-      width: 200px; flex: none;
-      background: hsl(155 18% 92%);
-      border-right: 1px solid var(--border);
-      padding: 1rem .75rem;
-      display: flex; flex-direction: column; gap: .35rem;
-    }
+    .app-sidebar { width: 200px; flex: none; background: hsl(155 18% 92%); border-right: 1px solid var(--border); padding: 1rem .75rem; display: flex; flex-direction: column; gap: .35rem; }
     .app-logo { display: flex; align-items: center; gap: 8px; padding: .5rem .5rem .75rem; border-bottom: 1px solid var(--border); margin-bottom: .5rem; }
-    .app-logo-mark {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: linear-gradient(150deg, hsl(160 40% 35%), hsl(160 40% 22%));
-      display: grid; place-items: center; overflow: hidden;
-    }
+    .app-logo-mark { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(150deg, hsl(160 40% 35%), hsl(160 40% 22%)); display: grid; place-items: center; overflow: hidden; }
     .app-logo-mark img { width: 28px; height: 28px; object-fit: cover; }
     .app-logo-name { font-size: .875rem; font-weight: 600; }
-    .nav-item {
-      padding: .45rem .65rem; border-radius: 8px;
-      font-size: .8125rem; color: var(--fg-muted);
-      display: flex; align-items: center; gap: .5rem;
-    }
+    .nav-item { padding: .45rem .65rem; border-radius: 8px; font-size: .8125rem; color: var(--fg-muted); display: flex; align-items: center; gap: .5rem; }
     .nav-item.active { background: rgba(255,255,255,.7); color: var(--fg); font-weight: 500; }
     .nav-icon { font-size: .9rem; }
     .app-main { flex: 1; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-    .chat-bubble {
-      padding: .6rem 1rem; border-radius: 12px;
-      font-size: .8125rem; line-height: 1.5; max-width: 80%;
-    }
-    .chat-bubble.ai {
-      background: var(--bg-card);
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      border: 1px solid var(--border);
-      align-self: flex-start;
-    }
-    .chat-bubble.user {
-      background: var(--primary); color: #fff;
-      align-self: flex-end;
-    }
-    .chat-input {
-      margin-top: auto;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 10px; padding: .6rem 1rem;
-      font-size: .8125rem; color: var(--fg-muted);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .chat-send {
-      width: 28px; height: 28px; border-radius: 7px;
-      background: var(--primary); display: grid; place-items: center;
-    }
+    .chat-bubble { padding: .6rem 1rem; border-radius: 12px; font-size: .8125rem; line-height: 1.5; max-width: 80%; }
+    .chat-bubble.ai { background: var(--bg-card); box-shadow: 0 1px 4px rgba(0,0,0,.07); border: 1px solid var(--border); align-self: flex-start; }
+    .chat-bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
+    .chat-input { margin-top: auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: .6rem 1rem; font-size: .8125rem; color: var(--fg-muted); display: flex; align-items: center; justify-content: space-between; }
+    .chat-send { width: 28px; height: 28px; border-radius: 7px; background: var(--primary); display: grid; place-items: center; }
     .chat-send svg { color: #fff; }
 
     /* ── Features ─────────────────────────────────────────── */
-    .features {
-      max-width: 900px; margin: 5rem auto 0;
-      padding: 0 1.5rem;
-    }
-    .section-label {
-      text-align: center;
-      font-size: .8125rem; font-weight: 600; letter-spacing: .1em;
-      color: var(--primary); text-transform: uppercase; margin-bottom: .75rem;
-    }
-    .section-title {
-      text-align: center;
-      font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700;
-      letter-spacing: -0.02em; margin-bottom: .75rem;
-    }
+    .features { max-width: 900px; margin: 5rem auto 0; padding: 0 1.5rem; }
+    .section-label { text-align: center; font-size: .8125rem; font-weight: 600; letter-spacing: .1em; color: var(--primary); text-transform: uppercase; margin-bottom: .75rem; }
+    .section-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .75rem; }
     .section-sub { text-align: center; color: var(--fg-muted); margin-bottom: 3rem; font-size: 1rem; }
     .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; }
-    .feat-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,.05);
-    }
+    .feat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
     .feat-icon { font-size: 1.6rem; margin-bottom: .75rem; }
     .feat-title { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
     .feat-desc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; }
 
     /* ── Platforms ────────────────────────────────────────── */
-    .platforms {
-      max-width: 900px; margin: 5rem auto 0;
-      padding: 0 1.5rem;
-    }
+    .platforms { max-width: 900px; margin: 5rem auto 0; padding: 0 1.5rem; }
     .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-    .platform-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.5rem;
-      display: flex; flex-direction: column; gap: .75rem;
-      transition: box-shadow .15s;
-    }
+    .platform-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: .75rem; transition: box-shadow .15s; }
     .platform-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
     .platform-icon { font-size: 2rem; }
     .platform-name { font-size: 1.05rem; font-weight: 700; }
     .platform-arch { font-size: .8rem; color: var(--fg-muted); }
-    .platform-link {
-      display: inline-flex; align-items: center; gap: .4rem;
-      font-size: .875rem; font-weight: 600; color: var(--primary);
-      margin-top: auto; padding-top: .25rem;
-    }
+    .platform-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .875rem; font-weight: 600; color: var(--primary); margin-top: auto; padding-top: .25rem; }
     .platform-link:hover { text-decoration: underline; }
 
     /* ── CTA ──────────────────────────────────────────────── */
-    .cta-section {
-      max-width: 600px; margin: 5rem auto 4rem;
-      padding: 3rem 1.5rem;
-      text-align: center;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-    }
+    .cta-section { max-width: 600px; margin: 5rem auto 4rem; padding: 3rem 1.5rem; text-align: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
     .cta-section h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: .5rem; }
     .cta-section p { color: var(--fg-muted); margin-bottom: 1.75rem; }
 
     /* ── Footer ───────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: .8125rem; color: var(--fg-muted);
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem 1.5rem;
-    }
+    footer { border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; font-size: .8125rem; color: var(--fg-muted); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem 1.5rem; }
     footer a { color: var(--fg-muted); }
     footer a:hover { color: var(--fg); }
 
@@ -263,18 +171,24 @@
     Yana AI
   </a>
   <div class="nav-links">
-    <a href="/">Home</a>
+    <a href="/" data-i18n="nav_home">Home</a>
     <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank">GitHub</a>
     <a href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank">Releases</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VI</button>
+      <button class="lang-btn" onclick="setLang('ko')">한</button>
+      <button class="lang-btn" onclick="setLang('zh')">中</button>
+    </div>
   </div>
-  <a class="nav-cta" href="#download">Download</a>
+  <a class="nav-cta" href="#download" data-i18n="nav_cta">Download</a>
 </nav>
 
 <!-- Hero -->
 <section class="hero">
-  <div class="hero-badge"><span class="dot"></span> v0.43.0 &nbsp;·&nbsp; Latest release</div>
-  <h1>Your AI assistant,<br><em>running on your machine</em></h1>
-  <p class="hero-sub">
+  <div class="hero-badge"><span class="dot"></span> v0.43.0 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span></div>
+  <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
+  <p class="hero-sub" data-i18n="hero_sub">
     Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device.
     1989 skills, 204 agents, multi-layer security.
   </p>
@@ -282,38 +196,26 @@
   <div class="dl-grid" id="download">
     <a class="dl-btn primary" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      <div>
-        macOS Apple Silicon
-        <span class="dl-btn-sub">arm64 · .dmg</span>
-      </div>
+      <div>macOS Apple Silicon<span class="dl-btn-sub">arm64 · .dmg</span></div>
     </a>
     <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      <div>
-        macOS Intel
-        <span class="dl-btn-sub">x64 · .dmg</span>
-      </div>
+      <div>macOS Intel<span class="dl-btn-sub">x64 · .dmg</span></div>
     </a>
     <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI.Setup.0.43.0.exe">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.557L10.333 4.5v7.22H3V5.557zM11.167 4.38L21 3v8.72h-9.833V4.38zM3 12.5h7.333V19.5L3 18.44V12.5zM11.167 12.5H21v8.72l-9.833-1.38V12.5z"/></svg>
-      <div>
-        Windows
-        <span class="dl-btn-sub">x64 · .exe</span>
-      </div>
+      <div>Windows<span class="dl-btn-sub">x64 · .exe</span></div>
     </a>
     <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.AppImage">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.581 19.049L16.54 8.02C15.951 6.37 15.2 5.27 13.45 5.25h-.06c-1.7.02-2.49 1.02-3.08 2.77L6.27 19.05a1 1 0 0 0 1.88.68l1.57-4.35h4.57l1.53 4.36a1 1 0 1 0 1.88-.7zm-9.95-5.83l1.68-4.65c.28-.78.51-1.27.94-1.27s.67.5.94 1.27l1.64 4.65h-5.2z"/></svg>
-      <div>
-        Linux
-        <span class="dl-btn-sub">x64 · AppImage</span>
-      </div>
+      <div>Linux<span class="dl-btn-sub">x64 · AppImage</span></div>
     </a>
   </div>
-  <p class="hero-note">Free · Open source (Apache 2.0) · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v0.43.0" style="color:var(--primary)">All releases →</a></p>
+  <p class="hero-note"><span data-i18n="hero_note_free">Free · Open source (Apache 2.0)</span> · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v0.43.0" style="color:var(--primary)" data-i18n="hero_note_all">All releases →</a></p>
 </section>
 
 <!-- App mockup -->
-<div class="screenshot-wrap" style="margin-left:auto;margin-right:auto;padding:0 1.5rem">
+<div class="screenshot-wrap">
   <div class="screenshot-bar">
     <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
     <div style="flex:1;text-align:center;font-size:.75rem;color:#999">Yana AI</div>
@@ -321,27 +223,23 @@
   <div class="screenshot-inner">
     <div class="app-sidebar">
       <div class="app-logo">
-        <div class="app-logo-mark">
-          <img src="yana-logo.png" alt="" />
-        </div>
+        <div class="app-logo-mark"><img src="yana-logo.png" alt="" /></div>
         <span class="app-logo-name">Yana</span>
       </div>
       <div class="nav-item active"><span class="nav-icon">💬</span> Chat</div>
-      <div class="nav-item"><span class="nav-icon">🌊</span> Dashboard</div>
-      <div class="nav-item"><span class="nav-icon">🎯</span> Missions</div>
-      <div class="nav-item"><span class="nav-icon">🧠</span> Memory</div>
-      <div class="nav-item"><span class="nav-icon">📊</span> Analytics</div>
-      <div class="nav-item" style="margin-top:auto"><span class="nav-icon">⚙️</span> Settings</div>
+      <div class="nav-item"><span class="nav-icon">🌊</span> <span data-i18n="sidebar_dashboard">Dashboard</span></div>
+      <div class="nav-item"><span class="nav-icon">🎯</span> <span data-i18n="sidebar_missions">Missions</span></div>
+      <div class="nav-item"><span class="nav-icon">🧠</span> <span data-i18n="sidebar_memory">Memory</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> <span data-i18n="sidebar_analytics">Analytics</span></div>
+      <div class="nav-item" style="margin-top:auto"><span class="nav-icon">⚙️</span> <span data-i18n="sidebar_settings">Settings</span></div>
     </div>
     <div class="app-main">
-      <div class="chat-bubble ai">Hi! How can I help you today? 🌿</div>
-      <div class="chat-bubble user">Explain what RAG is</div>
-      <div class="chat-bubble ai">RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on the model's training knowledge, RAG lets the AI fetch relevant documents before answering, resulting in more accurate and up-to-date responses…</div>
+      <div class="chat-bubble ai" data-i18n="chat_ai1">Hi! How can I help you today? 🌿</div>
+      <div class="chat-bubble user" data-i18n="chat_user1">Explain what RAG is</div>
+      <div class="chat-bubble ai" data-i18n="chat_ai2">RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on training data, RAG fetches relevant documents before answering — more accurate, more up-to-date…</div>
       <div class="chat-input">
-        <span style="font-size:.8125rem">Message Yana…</span>
-        <div class="chat-send">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </div>
+        <span style="font-size:.8125rem" data-i18n="chat_placeholder">Message Yana…</span>
+        <div class="chat-send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
       </div>
     </div>
   </div>
@@ -349,39 +247,39 @@
 
 <!-- Features -->
 <section class="features">
-  <p class="section-label">Features</p>
-  <h2 class="section-title">Everything you need, running on your machine</h2>
-  <p class="section-sub">No cloud, no tracking. Your data stays with you.</p>
+  <p class="section-label" data-i18n="feat_label">Features</p>
+  <h2 class="section-title" data-i18n="feat_title">Everything you need, running on your machine</h2>
+  <p class="section-sub" data-i18n="feat_sub">No cloud, no tracking. Your data stays with you.</p>
   <div class="feat-grid">
     <div class="feat-card">
       <div class="feat-icon">🔑</div>
-      <div class="feat-title">Bring your own API key</div>
-      <div class="feat-desc">Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.</div>
+      <div class="feat-title" data-i18n="f1_title">Bring your own API key</div>
+      <div class="feat-desc" data-i18n="f1_desc">Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.</div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">🛡️</div>
-      <div class="feat-title">Multi-layer security</div>
-      <div class="feat-desc">49 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</div>
+      <div class="feat-title" data-i18n="f2_title">Multi-layer security</div>
+      <div class="feat-desc" data-i18n="f2_desc">49 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">🧠</div>
-      <div class="feat-title">1989 built-in skills</div>
-      <div class="feat-desc">The largest skill library — from code review and RAG to multi-agent orchestration, cybersecurity, and business ops.</div>
+      <div class="feat-title" data-i18n="f3_title">1989 built-in skills</div>
+      <div class="feat-desc" data-i18n="f3_desc">The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.</div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">⚡</div>
-      <div class="feat-title">Works offline</div>
-      <div class="feat-desc">Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.</div>
+      <div class="feat-title" data-i18n="f4_title">Works offline</div>
+      <div class="feat-desc" data-i18n="f4_desc">Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.</div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">🌊</div>
-      <div class="feat-title">Smart dashboard</div>
-      <div class="feat-desc">Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.</div>
+      <div class="feat-title" data-i18n="f5_title">Smart dashboard</div>
+      <div class="feat-desc" data-i18n="f5_desc">Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.</div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">🔒</div>
-      <div class="feat-title">Fully private</div>
-      <div class="feat-desc">No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.</div>
+      <div class="feat-title" data-i18n="f6_title">Fully private</div>
+      <div class="feat-desc" data-i18n="f6_desc">No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.</div>
     </div>
   </div>
 </section>
@@ -389,65 +287,226 @@
 <!-- Platforms -->
 <section class="platforms">
   <p class="section-label" style="margin-top:5rem">Download</p>
-  <h2 class="section-title">Available on every platform</h2>
-  <p class="section-sub">Version v0.43.0 — download and run instantly, no extra setup needed.</p>
+  <h2 class="section-title" data-i18n="plat_title">Available on every platform</h2>
+  <p class="section-sub" data-i18n="plat_sub">Version v0.43.0 — download and run instantly, no extra setup needed.</p>
   <div class="platform-grid">
     <div class="platform-card">
       <div class="platform-icon"></div>
       <div class="platform-name">macOS</div>
       <div class="platform-arch">Apple Silicon (arm64) · Intel (x64)</div>
-      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg">
-        Download .dmg (arm64) →
-      </a>
-      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.dmg">
-        Download .dmg (Intel) →
-      </a>
+      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (arm64) →</a>
+      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (Intel) →</a>
     </div>
     <div class="platform-card">
       <div class="platform-icon">🪟</div>
       <div class="platform-name">Windows</div>
       <div class="platform-arch">x64 · Installer (.exe)</div>
-      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI.Setup.0.43.0.exe">
-        Download .exe →
-      </a>
+      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI.Setup.0.43.0.exe"><span data-i18n="dl_prefix">Download</span> .exe →</a>
     </div>
     <div class="platform-card">
       <div class="platform-icon">🐧</div>
       <div class="platform-name">Linux</div>
       <div class="platform-arch">x64 · arm64 · AppImage</div>
-      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.AppImage">
-        Download AppImage (x64) →
-      </a>
-      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.AppImage">
-        Download AppImage (arm64) →
-      </a>
+      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (x64) →</a>
+      <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (arm64) →</a>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section" style="margin-left:auto;margin-right:auto">
-  <h2>Get started today</h2>
-  <p>Download, enter your API key, and you're ready — takes less than 2 minutes.</p>
+<section class="cta-section">
+  <h2 data-i18n="cta_title">Get started today</h2>
+  <p data-i18n="cta_sub">Download, enter your API key, and you're ready — takes less than 2 minutes.</p>
   <div class="dl-grid">
     <a class="dl-btn primary" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      Download for Mac
+      <span data-i18n="cta_btn_mac">Download for Mac</span>
     </a>
-    <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v0.43.0">
-      All releases →
-    </a>
+    <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v0.43.0" data-i18n="cta_btn_all">All releases →</a>
   </div>
 </section>
 
 <!-- Footer -->
 <footer>
   <span>© 2026 Yana AI · Apache 2.0</span>
-  <a href="/">Home</a>
+  <a href="/" data-i18n="nav_home">Home</a>
   <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
   <a href="https://github.com/yanacuti1121/Yana-AI/releases">Releases</a>
-  <a href="/privacy.html">Privacy</a>
 </footer>
 
+<script>
+const LANGS = {
+  en: {
+    nav_home: "Home", nav_cta: "Download",
+    badge_new: "Latest release",
+    hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
+    hero_sub: "Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device. 1989 skills, 204 agents, multi-layer security.",
+    hero_note_free: "Free · Open source (Apache 2.0)",
+    hero_note_all: "All releases →",
+    sidebar_dashboard: "Dashboard", sidebar_missions: "Missions",
+    sidebar_memory: "Memory", sidebar_analytics: "Analytics", sidebar_settings: "Settings",
+    chat_ai1: "Hi! How can I help you today? 🌿",
+    chat_user1: "Explain what RAG is",
+    chat_ai2: "RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on training data, RAG fetches relevant documents before answering — more accurate, more up-to-date…",
+    chat_placeholder: "Message Yana…",
+    feat_label: "Features",
+    feat_title: "Everything you need, running on your machine",
+    feat_sub: "No cloud, no tracking. Your data stays with you.",
+    f1_title: "Bring your own API key",
+    f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
+    f2_title: "Multi-layer security",
+    f2_desc: "49 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.",
+    f3_title: "1989 built-in skills",
+    f3_desc: "The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
+    f4_title: "Works offline",
+    f4_desc: "Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.",
+    f5_title: "Smart dashboard",
+    f5_desc: "Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.",
+    f6_title: "Fully private",
+    f6_desc: "No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.",
+    plat_title: "Available on every platform",
+    plat_sub: "Version v0.43.0 — download and run instantly, no extra setup needed.",
+    dl_prefix: "Download",
+    cta_title: "Get started today",
+    cta_sub: "Download, enter your API key, and you're ready — takes less than 2 minutes.",
+    cta_btn_mac: "Download for Mac",
+    cta_btn_all: "All releases →",
+  },
+  vi: {
+    nav_home: "Trang chủ", nav_cta: "Tải về",
+    badge_new: "Mới nhất",
+    hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
+    hero_sub: "Yana AI Desktop — dùng API key của bạn, chạy hoàn toàn local, dữ liệu không bao giờ rời khỏi thiết bị. 1989 skills, 204 agents, bảo mật đa lớp.",
+    hero_note_free: "Miễn phí · Mã nguồn mở (Apache 2.0)",
+    hero_note_all: "Xem tất cả phiên bản →",
+    sidebar_dashboard: "Mặt hồ", sidebar_missions: "Nhiệm vụ",
+    sidebar_memory: "Bộ nhớ", sidebar_analytics: "Thống kê", sidebar_settings: "Cài đặt",
+    chat_ai1: "Xin chào! Em có thể giúp gì cho anh hôm nay? 🌿",
+    chat_user1: "Giải thích RAG là gì",
+    chat_ai2: "RAG (Retrieval-Augmented Generation) là kỹ thuật kết hợp tìm kiếm thông tin với sinh văn bản. Thay vì chỉ dựa vào dữ liệu training, RAG truy xuất tài liệu liên quan trước khi trả lời — chính xác hơn, cập nhật hơn…",
+    chat_placeholder: "Nhắn tin với Yana…",
+    feat_label: "Tính năng",
+    feat_title: "Mọi thứ bạn cần, chạy trên máy của bạn",
+    feat_sub: "Không cloud, không tracking. Dữ liệu ở lại với bạn.",
+    f1_title: "API key của bạn",
+    f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
+    f2_title: "Bảo mật đa lớp",
+    f2_desc: "49 hooks bảo mật và 9 lớp gate chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
+    f3_title: "1989 skills tích hợp",
+    f3_desc: "Thư viện skill lớn nhất — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
+    f4_title: "Chạy offline",
+    f4_desc: "Kết nối Ollama để dùng model local (Llama, Qwen, Mistral). Không cần internet, không phí API.",
+    f5_title: "Dashboard thông minh",
+    f5_desc: "Theo dõi usage, agents, bộ nhớ và tasks trong một giao diện thống nhất — đẹp và nhanh.",
+    f6_title: "Riêng tư hoàn toàn",
+    f6_desc: "Không analytics, không telemetry, không chia sẻ hội thoại. Mã nguồn mở để bạn tự kiểm chứng.",
+    plat_title: "Hỗ trợ mọi nền tảng",
+    plat_sub: "Phiên bản v0.43.0 — tải về và dùng ngay, không cần cài thêm gì.",
+    dl_prefix: "Tải",
+    cta_title: "Bắt đầu ngay hôm nay",
+    cta_sub: "Tải về, nhập API key và dùng ngay — chưa tới 2 phút.",
+    cta_btn_mac: "Tải cho Mac",
+    cta_btn_all: "Tất cả phiên bản →",
+  },
+  ko: {
+    nav_home: "홈", nav_cta: "다운로드",
+    badge_new: "최신 릴리즈",
+    hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
+    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용, 완전 로컬 실행, 데이터가 장치를 벗어나지 않습니다. 1989개 스킬, 204개 에이전트, 다층 보안.",
+    hero_note_free: "무료 · 오픈소스 (Apache 2.0)",
+    hero_note_all: "모든 릴리즈 →",
+    sidebar_dashboard: "대시보드", sidebar_missions: "미션",
+    sidebar_memory: "메모리", sidebar_analytics: "통계", sidebar_settings: "설정",
+    chat_ai1: "안녕하세요! 오늘 무엇을 도와드릴까요? 🌿",
+    chat_user1: "RAG가 무엇인지 설명해 주세요",
+    chat_ai2: "RAG(검색 증강 생성)는 정보 검색과 텍스트 생성을 결합한 기술입니다. 학습 데이터에만 의존하지 않고, 답변 전에 관련 문서를 검색하여 더 정확하고 최신 정보를 제공합니다…",
+    chat_placeholder: "Yana에게 메시지 보내기…",
+    feat_label: "기능",
+    feat_title: "필요한 모든 것, 당신의 컴퓨터에서",
+    feat_sub: "클라우드 없음, 추적 없음. 데이터는 당신 것.",
+    f1_title: "나만의 API 키",
+    f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
+    f2_title: "다층 보안",
+    f2_desc: "49개 보안 훅과 9개 게이트 레이어로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
+    f3_title: "1989개 내장 스킬",
+    f3_desc: "최대 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
+    f4_title: "오프라인 작동",
+    f4_desc: "Ollama 연결로 로컬 모델 실행 (Llama, Qwen, Mistral). 인터넷 불필요, API 비용 없음.",
+    f5_title: "스마트 대시보드",
+    f5_desc: "사용량, 에이전트, 메모리, 태스크를 하나의 통합 인터페이스에서 빠르고 아름답게 추적.",
+    f6_title: "완전한 프라이버시",
+    f6_desc: "분석 없음, 텔레메트리 없음, 대화 공유 없음. 오픈소스로 직접 확인 가능.",
+    plat_title: "모든 플랫폼 지원",
+    plat_sub: "v0.43.0 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
+    dl_prefix: "다운로드",
+    cta_title: "지금 시작하기",
+    cta_sub: "다운로드하고 API 키를 입력하면 준비 완료 — 2분도 걸리지 않습니다.",
+    cta_btn_mac: "Mac용 다운로드",
+    cta_btn_all: "모든 릴리즈 →",
+  },
+  zh: {
+    nav_home: "首页", nav_cta: "下载",
+    badge_new: "最新版本",
+    hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
+    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，完全本地运行，数据永不离开设备。1989 个技能，204 个智能体，多层安全防护。",
+    hero_note_free: "免费 · 开源 (Apache 2.0)",
+    hero_note_all: "所有版本 →",
+    sidebar_dashboard: "仪表盘", sidebar_missions: "任务",
+    sidebar_memory: "记忆", sidebar_analytics: "统计", sidebar_settings: "设置",
+    chat_ai1: "你好！今天有什么可以帮助您的？ 🌿",
+    chat_user1: "请解释什么是 RAG",
+    chat_ai2: "RAG（检索增强生成）是将信息检索与文本生成相结合的技术。不再仅依赖训练数据，RAG 在回答前检索相关文档，提供更准确、更新的信息…",
+    chat_placeholder: "向 Yana 发送消息…",
+    feat_label: "功能特性",
+    feat_title: "您所需的一切，在您的设备上运行",
+    feat_sub: "无云端，无追踪。数据始终在您手中。",
+    f1_title: "使用您自己的 API 密钥",
+    f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
+    f2_title: "多层安全防护",
+    f2_desc: "49 个安全钩子和 9 层防护门，在运行时阻止提示词注入、命令注入和数据泄露。",
+    f3_title: "1989 个内置技能",
+    f3_desc: "最大技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
+    f4_title: "离线使用",
+    f4_desc: "连接 Ollama 运行本地模型（Llama、Qwen、Mistral）。无需网络，无 API 费用。",
+    f5_title: "智能仪表盘",
+    f5_desc: "在统一界面中跟踪使用量、智能体、记忆和任务——快速且美观。",
+    f6_title: "完全私密",
+    f6_desc: "无分析、无遥测、不共享对话。开源代码，可自行验证。",
+    plat_title: "支持所有平台",
+    plat_sub: "版本 v0.43.0 — 下载即用，无需额外配置。",
+    dl_prefix: "下载",
+    cta_title: "立即开始",
+    cta_sub: "下载后输入 API 密钥即可使用——不到 2 分钟。",
+    cta_btn_mac: "下载 Mac 版",
+    cta_btn_all: "所有版本 →",
+  }
+};
+
+function setLang(lang) {
+  const t = LANGS[lang];
+  if (!t) return;
+  localStorage.setItem('yana-lang', lang);
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === lang ||
+      (lang === 'ko' && btn.textContent === '한') ||
+      (lang === 'zh' && btn.textContent === '中'));
+  });
+}
+
+// Auto-detect on load
+(function() {
+  const saved = localStorage.getItem('yana-lang');
+  const browser = navigator.language.slice(0,2);
+  const map = { vi: 'vi', ko: 'ko', zh: 'zh' };
+  setLang(saved || map[browser] || 'en');
+})();
+</script>
 </body>
 </html>
