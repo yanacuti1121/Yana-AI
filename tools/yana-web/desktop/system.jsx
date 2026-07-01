@@ -658,7 +658,7 @@ function ProfileHero({ t, setTweak, dash }) {
     let s = localStorage.getItem(key);
     if (!s) {
       s = new Date().toLocaleDateString(
-        t.language === "Tiếng Việt" ? "vi-VN" : "en-US",
+        { "Tiếng Việt": "vi-VN", "한국어": "ko-KR", "中文": "zh-CN" }[t.language] || "en-US",
         { year: "numeric", month: "long" }
       );
       localStorage.setItem(key, s);
@@ -939,8 +939,9 @@ function VoiceCard({ lang }) {
     : ["Slow", "Normal", "Fast"];
   const speedRate = { [speedOpts[0]]: 0.7, [speedOpts[1]]: 1.0, [speedOpts[2]]: 1.4 };
 
+  const defaultVoiceLang = { "Tiếng Việt": "vi-VN", "한국어": "ko-KR", "中文": "zh-CN" }[lang] || "en-US";
   const [voiceLang, setVoiceLang] = React.useState(
-    () => localStorage.getItem("yana.voice.lang") || (isVI ? "vi-VN" : "en-US")
+    () => localStorage.getItem("yana.voice.lang") || defaultVoiceLang
   );
   const [speed, setSpeed] = React.useState(
     () => localStorage.getItem("yana.voice.speed") || speedOpts[1]
@@ -976,7 +977,7 @@ function VoiceCard({ lang }) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(
-      isVI ? "Xin chào, tôi là Yana AI. Bạn nghe rõ không?" : "Hello, I am Yana AI. Can you hear me clearly?"
+      { "Tiếng Việt": "Xin chào, tôi là Yana AI. Bạn nghe rõ không?", "한국어": "안녕하세요, 저는 Yana AI입니다. 잘 들리나요?", "中文": "你好，我是 Yana AI。你能听清楚吗？" }[lang] || "Hello, I am Yana AI. Can you hear me clearly?"
     );
     utter.lang = voiceLang;
     utter.rate = speedRate[speed] || 1.0;
@@ -1308,12 +1309,12 @@ function Settings({ t, setTweak }) {
   const available = D.providers.filter((p) => providerAvailable(p.id));
   const chain = available.map((p) => p.name).join(" → ") || L("None — add a key in Providers", "Chưa có — thêm key ở Nhà cung cấp");
 
+  const LANG_CYCLE = ["English", "Tiếng Việt", "한국어", "中文"];
   function toggleLang() {
-    setTweak("language", t.language === "Tiếng Việt" ? "English" : "Tiếng Việt");
+    const idx = LANG_CYCLE.indexOf(t.language);
+    setTweak("language", LANG_CYCLE[(idx + 1) % LANG_CYCLE.length]);
   }
-  const langDisplay = t.language === "Tiếng Việt"
-    ? L("English / Tiếng Việt ✓", "Tiếng Việt ✓ / English")
-    : L("English ✓ / Tiếng Việt", "English ✓ / Tiếng Việt");
+  const langDisplay = LANG_CYCLE.map((l) => l === t.language ? l + " ✓" : l).join(" / ");
 
   const GAP = "var(--gap)";
   return (
