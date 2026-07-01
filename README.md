@@ -428,7 +428,7 @@ Key properties:
 
 ## Yana AI
 
-**[Live →](https://yanai-production.up.railway.app)**
+**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
 
 Yana is the first interface built on Yana AI core — a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
@@ -455,7 +455,7 @@ User → Yana AI → Yana AI Core (Router · Safety · Context) → Model
 - 📊 **100% real data** — live provider stats, L1 memory garden, audit-log health panel; zero demo numbers
 - Skill routing built in — type naturally, Yana AI dispatches the right agent
 - **Non-coding use cases:** learning (Socratic learning assistant), daily work (summarize / plan / draft)
-- SSE streaming, mobile-friendly · Electron desktop shell (`tools/yana-desktop`)
+- SSE streaming, mobile-friendly · **[Electron desktop app](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
 
 If Yana AI is the power grid, Yana is the first building plugged into it.
 
