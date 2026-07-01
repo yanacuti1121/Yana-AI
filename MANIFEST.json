@@ -3,7 +3,7 @@
   "version": "0.43.0",
   "scaffold_version": "1.0",
   "release_date": "2026-06-30",
-  "manifest_updated": "2026-06-30T05:05:58Z",
+  "manifest_updated": "2026-07-01T00:00:00Z",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "bundled_tools": {
@@ -2657,9 +2657,9 @@
   "_import_note": "v1.3.48 \u2014 58 new skills (9 groups: sandbox/kernel/network/vector/config/graph/xss/persistence/telemetry/compression) + model-router.sh + token-budget-policy + tool-proxy 429 backoff (173\u2192231 skills, 41\u219242 rules, 34\u219235 scripts)",
   "skills_count": 1989,
   "skills_stubs_archived": 88,
-  "agents_count": 162,
+  "agents_count": 204,
   "hooks_count": 49,
-  "scripts_count": 102,
+  "scripts_count": 99,
   "commands_count": 164,
   "rules_count": 66
 }
