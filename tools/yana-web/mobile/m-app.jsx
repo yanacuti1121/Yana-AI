@@ -101,7 +101,7 @@ function App() {
 
   return (
     <div className="app-stage">
-      <div className="app-mobile" key={t.language}>
+      <div className="app-mobile">
         <TopBar page={page} lang={window.YANA_LANG} onLang={toggleLang} onMore={() => setMore(true)} />
 
         <main ref={mainRef} className={"mmain" + (isChat ? " flush" : "")}>

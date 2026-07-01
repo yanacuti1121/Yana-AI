@@ -15,7 +15,7 @@ let serverProcess = null;
 function serverScript() {
   return app.isPackaged
     ? path.join(process.resourcesPath, 'server', 'server.js')
-    : path.join(__dirname, '..', 'yana-web', 'server.js');
+    : path.join(__dirname, '..', 'tools', 'yana-web', 'server.js');
 }
 
 function startServer() {
@@ -26,7 +26,9 @@ function startServer() {
       PORT:          String(PORT),
       HOST:          '127.0.0.1',
       NODE_ENV:      'production',
+      // User data dir survives app updates
       YANA_DATA_DIR: path.join(app.getPath('userData'), '.yana'),
+      // Repo root: bundled Resources/ when packaged, local repo when dev
       YANA_ROOT_DIR: app.isPackaged
         ? process.resourcesPath
         : path.join(__dirname, '..'),
@@ -48,10 +50,11 @@ function stopServer() {
   serverProcess = null;
 }
 
+// Poll /health until ready (max 30 s)
 function waitForServer() {
   return new Promise((resolve, reject) => {
     let tries = 0;
-    const MAX  = 60;
+    const MAX  = 60;   // 60 × 500 ms = 30 s
     const tick = () => {
       http.get(`${SERVER_URL}/health`, (res) => {
         if (res.statusCode === 200) return resolve();
@@ -83,8 +86,10 @@ function createWindow() {
     },
   });
 
+  // Show only after the page is ready — no white flash
   mainWindow.once('ready-to-show', () => mainWindow.show());
 
+  // Open external links in the default browser, not inside the app
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (!url.startsWith(SERVER_URL)) shell.openExternal(url);
     return { action: 'deny' };
@@ -116,17 +121,15 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
+
+  // macOS: re-open window when dock icon is clicked
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    stopServer();
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('activate', () => {
-  if (!mainWindow) createWindow();
-});
-
-app.on('before-quit', () => stopServer());
+app.on('will-quit', () => stopServer());

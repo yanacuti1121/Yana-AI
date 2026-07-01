@@ -31,12 +31,13 @@
       "output": "dist"
     },
     "files": [
-      "main.js"
+      "main.js",
+      "preload.js"
     ],
     "extraFiles": [
       {
         "from": "../yana-web",
-        "to": "yana-web",
+        "to": "server",
         "filter": ["**/*", "!node_modules/**", "!dist/**"]
       }
     ],
