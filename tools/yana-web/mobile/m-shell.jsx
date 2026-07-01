@@ -1,8 +1,14 @@
 // Yana Mobile — shell: icons, wordmark, bilingual helper, mobile chrome, atoms
 const { useState, useEffect, useMemo, useRef } = React;
 
-/* Bilingual helper: L("English", "Tiếng Việt") */
-window.L = (en, vi) => (window.YANA_LANG === "vi" ? vi : en);
+/* Multilingual helper: L("English", "Tiếng Việt", "한국어", "中文") */
+window.L = (en, vi, ko, zh) => {
+  const lang = window.YANA_LANG || "en";
+  if (lang === "vi" && vi != null) return vi;
+  if (lang === "ko" && ko != null) return ko;
+  if (lang === "zh" && zh != null) return zh;
+  return en;
+};
 
 /* ---------- Icons: minimal 1.5px stroke, 20px grid ---------- */
 function Ic({ d, size = 18, ...rest }) {
@@ -104,7 +110,7 @@ function TopBar({ page, lang, onLang, onMore }) {
             {Icons.pencil(18)}
           </button>
         )}
-        <button className="lang-pill" onClick={onLang}>{lang === "vi" ? "VI" : "EN"}</button>
+        <button className="lang-pill" onClick={onLang}>{{ vi: "VI", ko: "KO", zh: "ZH" }[lang] || "EN"}</button>
         <button className="icon-btn" aria-label="Notifications">{Icons.bell(18)}</button>
         <button className="avatar-btn" onClick={onMore} aria-label="Menu">
           {(window.YANA.username || "Y")[0].toUpperCase()}

@@ -19,10 +19,10 @@ function MemoryGarden() {
   return (
     <div data-screen-label="Memory Garden">
       <PageHeader
-        title={L("Memory Garden", "Vườn ký ức")}
+        title={L("Memory Garden", "Vườn ký ức", "기억 정원", "记忆花园")}
         sub={data
-          ? data.total + L(" L1 atomic facts · persisted in memory/L1_atomic", " fact L1 · lưu tại memory/L1_atomic")
-          : L("Loading memories…", "Đang tải ký ức…")}>
+          ? data.total + L(" L1 atomic facts · persisted in memory/L1_atomic", " fact L1 · lưu tại memory/L1_atomic", " L1 원자 사실 · memory/L1_atomic에 저장", " L1 原子事实 · 存储于 memory/L1_atomic")
+          : L("Loading memories…", "Đang tải ký ức…", "기억 불러오는 중…", "加载记忆中…")}>
         <div style={{ display: "flex", gap: 6 }}>
           {kinds.map((k) => (
             <button key={k} onClick={() => setFilter(k)} style={{
@@ -31,13 +31,13 @@ function MemoryGarden() {
               background: filter === k ? "var(--primary)" : "rgba(var(--shadow-rgb), .08)",
               color: filter === k ? "white" : "var(--ink-2)",
               transition: "background .15s",
-            }}>{k === "all" ? L("All", "Tất cả") : k}</button>
+            }}>{k === "all" ? L("All", "Tất cả", "전체", "全部") : k}</button>
           ))}
         </div>
       </PageHeader>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)", maxWidth: 800 }}>
         {data && visible.length === 0 && (
-          <div style={{ color: "var(--ink-3)", fontSize: 13 }}>{L("No memories yet.", "Chưa có ký ức nào.")}</div>
+          <div style={{ color: "var(--ink-3)", fontSize: 13 }}>{L("No memories yet.", "Chưa có ký ức nào.", "아직 기억이 없습니다.", "暂无记忆。")}</div>
         )}
         {visible.map((m) => (
           <div key={m.id} className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", gap: 14 }}>
@@ -48,7 +48,7 @@ function MemoryGarden() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <span className="chip neutral" style={{ fontSize: 11 }}>{m.kind}</span>
                 {m.confidence && <span className="chip gold" style={{ fontSize: 10.5 }}>{m.confidence}</span>}
-                {m.fresh && <span className="chip" style={{ fontSize: 10.5, color: "var(--good)" }}>{L("Fresh", "Mới")}</span>}
+                {m.fresh && <span className="chip" style={{ fontSize: 10.5, color: "var(--good)" }}>{L("Fresh", "Mới", "최신", "最新")}</span>}
               </div>
               <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink)" }}>{m.text}</p>
               {m.source && <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 7 }}>{m.source}</div>}
@@ -72,16 +72,16 @@ function Skills() {
   }, []);
 
   const groups = data
-    ? [{ name: L("core (standalone)", "lõi (độc lập)"), count: data.standalone }, ...data.packs]
+    ? [{ name: L("core (standalone)", "lõi (độc lập)", "코어 (독립형)", "核心 (独立)"), count: data.standalone }, ...data.packs]
     : [];
 
   return (
     <div data-screen-label="Skills">
       <PageHeader
-        title={L("Skills", "Kỹ năng")}
+        title={L("Skills", "Kỹ năng", "스킬", "技能")}
         sub={data
-          ? data.total.toLocaleString() + L(" skills on disk · " + data.pack_count + " imported packs", " kỹ năng trên đĩa · " + data.pack_count + " gói đã nhập")
-          : L("Counting skills…", "Đang đếm kỹ năng…")} />
+          ? data.total.toLocaleString() + L(" skills on disk · " + data.pack_count + " imported packs", " kỹ năng trên đĩa · " + data.pack_count + " gói đã nhập", " 디스크의 스킬 · " + data.pack_count + " 가져온 팩", " 磁盘上的技能 · " + data.pack_count + " 个已导入包")
+          : L("Counting skills…", "Đang đếm kỹ năng…", "스킬 계산 중…", "正在统计技能…")} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--gap)" }}>
         {groups.map((c) => (
           <div key={c.name} className="glass" style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -93,7 +93,7 @@ function Skills() {
               <i style={{ width: Math.round(c.count / data.total * 100) + "%" }}></i>
             </div>
             <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
-              {Math.round(c.count / data.total * 100)}% {L("of catalog", "danh mục")}
+              {Math.round(c.count / data.total * 100)}% {L("of catalog", "danh mục", "카탈로그 중", "占目录")}
             </div>
           </div>
         ))}
@@ -181,7 +181,7 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [page, setPage] = React.useState(() => localStorage.getItem("yana.page") || "dashboard");
   const mainRef = React.useRef(null);
-  window.YANA_LANG = t.language === "Tiếng Việt" ? "vi" : "en";
+  window.YANA_LANG = { "Tiếng Việt": "vi", "한국어": "ko", "中文": "zh" }[t.language] || "en";
 
   React.useEffect(() => applyTweaks(t), [t]);
   React.useEffect(() => localStorage.setItem("yana.page", page), [page]);
@@ -228,47 +228,47 @@ function App() {
       {t.showVTuber !== false && <VTuber />}
 
       <TweaksPanel>
-        <TweakSection label={L("Theme", "Giao diện")} />
-        <TweakSelect label={L("Preset", "Mẫu")} value={t.theme}
+        <TweakSection label={L("Theme", "Giao diện", "테마", "主题")} />
+        <TweakSelect label={L("Preset", "Mẫu", "프리셋", "预设")} value={t.theme}
           options={Object.keys(THEME_MAP)}
           onChange={(v) => setTweak("theme", v)} />
-        <TweakRadio label={L("Language", "Ngôn ngữ")} value={t.language}
-          options={["English", "Tiếng Việt"]}
+        <TweakRadio label={L("Language", "Ngôn ngữ", "언어", "语言")} value={t.language}
+          options={["English", "Tiếng Việt", "한국어", "中文"]}
           onChange={(v) => setTweak("language", v)} />
 
-        <TweakSection label={L("Glass", "Kính")} />
-        <TweakSlider label={L("Blur", "Mờ")} value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
-        <TweakSlider label={L("Transparency", "Trong suốt")} value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
-        <TweakSlider label={L("Reflection", "Phản chiếu")} value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
-        <TweakSlider label={L("Depth", "Chiều sâu")} value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
+        <TweakSection label={L("Glass", "Kính", "유리", "玻璃")} />
+        <TweakSlider label={L("Blur", "Mờ", "흐림", "模糊")} value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
+        <TweakSlider label={L("Transparency", "Trong suốt", "투명도", "透明度")} value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
+        <TweakSlider label={L("Reflection", "Phản chiếu", "반사", "反射")} value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
+        <TweakSlider label={L("Depth", "Chiều sâu", "깊이", "深度")} value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
 
-        <TweakSection label={L("Effects", "Hiệu ứng")} />
-        <TweakToggle label={L("Yana companion", "Nhân vật Yana")} value={t.showVTuber !== false} onChange={(v) => setTweak("showVTuber", v)} />
-        <TweakToggle label={L("Floating motes", "Hạt nổi")} value={t.showMotes !== false} onChange={(v) => setTweak("showMotes", v)} />
-        <TweakToggle label={L("Water ripple", "Gợn nước")} value={t.showRipple !== false} onChange={(v) => setTweak("showRipple", v)} />
-        <TweakToggle label={L("Canvas waves", "Sóng canvas")} value={t.showWater !== false} onChange={(v) => setTweak("showWater", v)} />
-        <TweakToggle label={L("Glass shine", "Ánh kính")} value={t.showGlassShine !== false} onChange={(v) => setTweak("showGlassShine", v)} />
+        <TweakSection label={L("Effects", "Hiệu ứng", "효과", "效果")} />
+        <TweakToggle label={L("Yana companion", "Nhân vật Yana", "야나 동반자", "야나 伴侣")} value={t.showVTuber !== false} onChange={(v) => setTweak("showVTuber", v)} />
+        <TweakToggle label={L("Floating motes", "Hạt nổi", "부유 입자", "浮动粒子")} value={t.showMotes !== false} onChange={(v) => setTweak("showMotes", v)} />
+        <TweakToggle label={L("Water ripple", "Gợn nước", "물결 효과", "水面涟漪")} value={t.showRipple !== false} onChange={(v) => setTweak("showRipple", v)} />
+        <TweakToggle label={L("Canvas waves", "Sóng canvas", "캔버스 파도", "画布波浪")} value={t.showWater !== false} onChange={(v) => setTweak("showWater", v)} />
+        <TweakToggle label={L("Glass shine", "Ánh kính", "유리 광택", "玻璃光泽")} value={t.showGlassShine !== false} onChange={(v) => setTweak("showGlassShine", v)} />
 
-        <TweakSection label={L("Layout", "Bố cục")} />
-        <TweakRadio label={L("Density", "Mật độ")} value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
+        <TweakSection label={L("Layout", "Bố cục", "레이아웃", "布局")} />
+        <TweakRadio label={L("Density", "Mật độ", "밀도", "密度")} value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
 
-        <TweakSection label={L("AI panels", "Bảng AI")} />
-        <TweakToggle label={L("Agents", "Tác nhân")} value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
-        <TweakToggle label={L("Missions", "Nhiệm vụ")} value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
-        <TweakToggle label={L("Memory Garden", "Vườn ký ức")} value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
-        <TweakToggle label={L("System status", "Trạng thái hệ thống")} value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
+        <TweakSection label={L("AI panels", "Bảng AI", "AI 패널", "AI 面板")} />
+        <TweakToggle label={L("Agents", "Tác nhân", "에이전트", "代理")} value={t.showAgents} onChange={(v) => setTweak("showAgents", v)} />
+        <TweakToggle label={L("Missions", "Nhiệm vụ", "미션", "任务")} value={t.showMissions} onChange={(v) => setTweak("showMissions", v)} />
+        <TweakToggle label={L("Memory Garden", "Vườn ký ức", "기억 정원", "记忆花园")} value={t.showMemory} onChange={(v) => setTweak("showMemory", v)} />
+        <TweakToggle label={L("System status", "Trạng thái hệ thống", "시스템 상태", "系统状态")} value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
 
-        <TweakSection label={L("Accent color", "Màu nhấn")} />
+        <TweakSection label={L("Accent color", "Màu nhấn", "강조 색상", "强调色")} />
         <TweakColor label="" value={t.accent || "#2f7e6e"}
           options={["#2f7e6e","#5a8a50","#1a7eb0","#7c5cbf","#b96b80","#c97c18","#3a7ca5","#c06050","#56949f","#6f8f5a"]}
           onChange={(v) => setTweak("accent", v)} />
-        <TweakButton label={L("Use theme accent", "Dùng màu theo theme")} onClick={() => setTweak("accent", "")} />
+        <TweakButton label={L("Use theme accent", "Dùng màu theo theme", "테마 색상 사용", "使用主题色")} onClick={() => setTweak("accent", "")} />
 
-        <TweakSection label={L("Animation", "Hoạt ảnh")} />
-        <TweakSlider label={L("Glass speed", "Tốc độ kính")} value={t.glassSpeed ?? 100} min={0} max={200} unit="%" onChange={(v) => setTweak("glassSpeed", v)} />
+        <TweakSection label={L("Animation", "Hoạt ảnh", "애니메이션", "动画")} />
+        <TweakSlider label={L("Glass speed", "Tốc độ kính", "유리 속도", "玻璃速度")} value={t.glassSpeed ?? 100} min={0} max={200} unit="%" onChange={(v) => setTweak("glassSpeed", v)} />
 
-        <TweakSection label={L("Reset", "Đặt lại")} />
-        <TweakButton label={L("↺ Restore defaults", "↺ Khôi phục mặc định")} secondary onClick={() => setTweak(TWEAK_DEFAULTS)} />
+        <TweakSection label={L("Reset", "Đặt lại", "초기화", "重置")} />
+        <TweakButton label={L("↺ Restore defaults", "↺ Khôi phục mặc định", "↺ 기본값 복원", "↺ 恢复默认")} secondary onClick={() => setTweak(TWEAK_DEFAULTS)} />
       </TweaksPanel>
 
     </div>

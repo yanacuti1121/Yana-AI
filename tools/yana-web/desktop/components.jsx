@@ -1,8 +1,14 @@
 // Yana AI — shared components: icons, wordmark, sidebar, atoms
 const { useState, useEffect, useMemo, useRef } = React;
 
-/* Bilingual helper: L("English", "Tiếng Việt") */
-window.L = (en, vi) => (window.YANA_LANG === "vi" ? vi : en);
+/* Multilingual helper: L("English", "Tiếng Việt", "한국어", "中文") */
+window.L = (en, vi, ko, zh) => {
+  const lang = window.YANA_LANG || "en";
+  if (lang === "vi" && vi != null) return vi;
+  if (lang === "ko" && ko != null) return ko;
+  if (lang === "zh" && zh != null) return zh;
+  return en;
+};
 
 /* ---------- Icons: minimal 1.5px stroke, 20px grid ---------- */
 function Ic({ d, size = 18, ...rest }) {
