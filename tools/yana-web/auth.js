@@ -104,11 +104,25 @@ function clearCookie(req, res) {
 }
 
 // ── Rate limit (login only — stricter than the global POST limiter) ──────────
+// hits Map only ever grew — no entry was ever removed once its window
+// expired, just left stale (lazily overwritten only if that exact IP tried
+// again). On a public deployment (Railway/Render/Cloudflare — this server
+// does run there, see YANA_DATA_DIR above) with many distinct visitor IPs,
+// that's slow unbounded growth for the life of the process. Prune expired
+// entries opportunistically on each check (2026-07-08 audit fix) rather
+// than adding a timer — cheap relative to the scrypt hashing this guards.
+function pruneLoginRate(now) {
+  for (const [ip, rec] of LOGIN_RATE.hits) {
+    if (now - rec.start > LOGIN_RATE.windowMs) LOGIN_RATE.hits.delete(ip);
+  }
+}
+
 function loginRateLimited(req) {
   // req.clientIp is the proxy-aware address resolved by server.js — without it
   // every visitor behind Railway's proxy would share one rate-limit bucket
   const ip  = req.clientIp || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
+  pruneLoginRate(now);
   let rec = LOGIN_RATE.hits.get(ip);
   if (!rec || now - rec.start > LOGIN_RATE.windowMs) rec = { count: 0, start: now };
   rec.count++;

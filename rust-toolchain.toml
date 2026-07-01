@@ -1,0 +1,19 @@
+[toolchain]
+# Pinned to "stable" (same as .github/workflows/release.yml's
+# dtolnay/rust-toolchain@stable) rather than a fixed version number, so
+# local builds and CI always resolve to the same channel.
+#
+# Why this file exists: several dependencies in the `cli` feature's chain
+# (ureq's TLS backend → aws-lc-sys/zeroize) and in dev-dependencies
+# (tempfile → getrandom) require Cargo's `edition2024` support, which only
+# stabilized in Rust 1.85 (Feb 2025). Without this file, `rustup` falls
+# back to whatever default toolchain (or distro-packaged rustc, e.g. from
+# `apt install rustc cargo` on Ubuntu/Debian) happens to be active, which
+# is very often older than 1.85 and fails with:
+#
+#   error: package `zeroize v1.9.0` requires the Cargo feature `edition2024`
+#
+# If you hit that error and don't use rustup, upgrade via https://rustup.rs
+# — a distro package manager's Rust is not guaranteed to be new enough.
+channel = "stable"
+components = ["rustfmt", "clippy"]

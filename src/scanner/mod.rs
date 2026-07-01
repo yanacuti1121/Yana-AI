@@ -199,7 +199,7 @@ pub fn run_audit(
         schema_version: "0.1.0".into(),
         generated_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         target: target.to_string(),
-        yana_ai_version: "0.16.0".into(),
+        yana_ai_version: env!("CARGO_PKG_VERSION").into(),
         score,
         risk_level: compute_risk_level(score).to_string(),
         status: status.to_string(),

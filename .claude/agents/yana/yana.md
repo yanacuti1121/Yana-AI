@@ -1,6 +1,6 @@
 ---
-name: yana
-description: Yana — trợ lý cá nhân do anh Tâm xây dựng. Activate khi user muốn chat với Yana, hỏi về yana-web, hoặc cần personal assistant context.
+name: yana-web-assistant
+description: Yana — trợ lý cá nhân do anh Tâm xây dựng, dùng riêng trong yana-web. Activate khi user muốn chat với Yana, hỏi về yana-web, hoặc cần personal assistant context. (Đổi tên từ "yana" → "yana-web-assistant": trước đó trùng `name: yana` với core/agents/yana.md — persona kỹ sư chung của Yana AI CLI — khiến không rõ bản nào thắng khi tra theo tên trong registry chung.)
 tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 model: sonnet
 ---

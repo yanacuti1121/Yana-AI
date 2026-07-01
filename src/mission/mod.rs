@@ -244,6 +244,36 @@ fn is_ready(task: &Task, mission: &Mission) -> bool {
     })
 }
 
+/// Conservative overlap check between two tasks' `owns` lists: exact match,
+/// or one entry is a path-prefix of the other (so "src/" conflicts with
+/// "src/auth.ts", but "src/auth.ts" and "src/db.ts" do not). This is a
+/// heuristic, not full glob-intersection — e.g. it won't catch "src/*.ts"
+/// vs "src/auth.ts" overlapping — but it catches the common real cases
+/// (shared directory, or the literal same file) without pulling in a glob
+/// dependency for path matching specifically.
+///
+/// Added 2026-07-08 audit fix: previously nothing checked this at all —
+/// `cmd_dispatch` only looked at `consumes` before co-dispatching tasks in
+/// the same wave, so two tasks with overlapping `owns` (the exact race
+/// condition `owns` exists to prevent) could be handed to two agents in
+/// parallel with only a prompt-text instruction — not a technical
+/// constraint — keeping them apart.
+fn owns_conflict(a: &[String], b: &[String]) -> bool {
+    for pa in a {
+        for pb in b {
+            if pa == pb {
+                return true;
+            }
+            let (shorter, longer) = if pa.len() <= pb.len() { (pa, pb) } else { (pb, pa) };
+            let prefix = if shorter.ends_with('/') { shorter.clone() } else { format!("{shorter}/") };
+            if longer.starts_with(&prefix) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Build the plain-English brief Yana pastes into agent dispatch
 fn build_instructions(task: &Task, mission: &Mission) -> String {
     if let Some(ref custom) = task.instructions {
@@ -340,12 +370,40 @@ fn cmd_dispatch(prefix: String, max_parallel: usize) {
         std::process::exit(0);
     }
 
-    // Clone ready tasks before mutating mission
-    let ready: Vec<Task> = m.tasks.iter()
+    // Candidates whose `consumes` are satisfied — may exceed `slots`, and
+    // may conflict with each other or with already-Running tasks on `owns`
+    // (filtered below, not just truncated).
+    let candidates: Vec<Task> = m.tasks.iter()
         .filter(|t| is_ready(t, &m))
-        .take(slots)
         .cloned()
         .collect();
+
+    let running_owns: Vec<Vec<String>> = m.tasks.iter()
+        .filter(|t| t.status == TaskStatus::Running)
+        .map(|t| t.owns.clone())
+        .collect();
+
+    let mut ready: Vec<Task> = Vec::new();
+    let mut deferred: Vec<String> = Vec::new();
+    for cand in candidates {
+        if ready.len() >= slots {
+            break;
+        }
+        let conflicts_running = running_owns.iter().any(|o| owns_conflict(&cand.owns, o));
+        let conflicts_this_wave = ready.iter().any(|r| owns_conflict(&cand.owns, &r.owns));
+        if conflicts_running || conflicts_this_wave {
+            deferred.push(cand.name.clone());
+            continue;
+        }
+        ready.push(cand);
+    }
+
+    if !deferred.is_empty() {
+        eprintln!(
+            "⚠ deferred (owns overlaps a running or already-selected task this wave): {}",
+            deferred.join(", ")
+        );
+    }
 
     if ready.is_empty() {
         let pending = m.tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
@@ -392,6 +450,20 @@ fn cmd_done(prefix: String, task_name: String, evidence: String) {
         Ok(m) => m,
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
     };
+    // Verify the evidence path actually exists before trusting the
+    // completion claim — a `done` call with a nonexistent evidence path is
+    // exactly the kind of unverified SUMMARY.md-style claim the project's
+    // own Truth Gate / spec-verifier philosophy says not to trust elsewhere.
+    // Added 2026-07-08 audit fix: previously `evidence` was stored as-is
+    // with zero validation, from any caller, for any path.
+    if !Path::new(&evidence).exists() {
+        eprintln!(
+            "error: evidence path '{evidence}' does not exist — refusing to mark '{task_name}' done. \
+             If the agent's actual output is elsewhere, pass the real path; if it produced nothing \
+             checkable, use 'mission fail' with a reason instead."
+        );
+        std::process::exit(1);
+    }
     let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
         Some(t) => t,
         None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
@@ -644,6 +716,35 @@ mod tests {
         let mut t = make_task("t1", vec![], vec![]);
         t.status = TaskStatus::Done;
         assert_eq!(compute_mission_status(&[t]), MissionStatus::Done);
+    }
+
+    // ── owns_conflict — 2026-07-08 audit fix ─────────────────────────────────
+
+    #[test]
+    fn owns_conflict_exact_same_file() {
+        assert!(owns_conflict(&["src/auth.ts".into()], &["src/auth.ts".into()]));
+    }
+
+    #[test]
+    fn owns_conflict_directory_prefix_either_direction() {
+        assert!(owns_conflict(&["src/".into()], &["src/auth.ts".into()]));
+        assert!(owns_conflict(&["src/auth.ts".into()], &["src/".into()]));
+    }
+
+    #[test]
+    fn owns_no_conflict_different_files_same_dir() {
+        assert!(!owns_conflict(&["src/auth.ts".into()], &["src/db.ts".into()]));
+    }
+
+    #[test]
+    fn owns_no_conflict_unrelated_dirs() {
+        assert!(!owns_conflict(&["src/auth.ts".into()], &["tests/auth.test.ts".into()]));
+    }
+
+    #[test]
+    fn owns_conflict_empty_lists_never_conflict() {
+        assert!(!owns_conflict(&[], &["src/auth.ts".into()]));
+        assert!(!owns_conflict(&[], &[]));
     }
 
     #[test]

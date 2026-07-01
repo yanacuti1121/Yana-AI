@@ -8,8 +8,167 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
-## v0.42.0 — Mobile feature parity + Pixel Office bridge + theming
-*2026-06-18*
+## v0.43.0 — no changelog entry existed for this version
+
+*undated — package.json and MANIFEST.json were already at 0.43.0 with no
+corresponding entry here. Below is a best-effort reconstruction from what's
+observably new/changed vs. the v0.42.0 tree, not a full git log (this repo
+was audited from a zip export with no `.git` history) — please amend with
+anything missed.*
+
+- **New surfaces added**: Electron desktop shell (`electron/`), a GitHub App
+  on Cloudflare Workers (`github-app/`), a standalone Worker chat proxy
+  (`worker.js` + `wrangler.jsonc`), and deploy configs for Railway, Render,
+  and Google Cloud Build.
+- **New docs site**: Astro-based site under `site/`, plus `docs-dist/`.
+- **Security**: removed `chat-qwen.js` (had a hardcoded API key — flagged in
+  a prior audit); Qwen access now goes through `adapters/qwen.md` as a
+  portable system prompt for existing tools (Aider/OpenRouter) instead of a
+  bespoke authenticated script.
+- **Rust runtime**: `blast_radius.rs`, `blast_paths.rs`, `self_mod.rs`, and
+  `evidence/{mod,crypto}.rs` merged into `src/guard/` and `src/evidence/`
+  (previously built and unit-tested in isolation only).
+- **Known regression carried over, not yet fixed here**: `findBestSkill` in
+  `tools/yana-web/lib/skills.js` still matched only against skill folder
+  names, ignoring `description` — same bug flagged in a prior audit. Fixed
+  2026-07-01 (see below).
+
+---
+
+## Unreleased — 2026-07-08 deep-read audit + bug fixes
+
+*Second pass, going past docs/counts into actual Rust/bash/JS logic. Applied
+directly to this checkout; not yet a tagged release.*
+
+- **Fix (security)**: `guard-destructive.sh` (+ Rust `cmd_destructive` fast
+  path, `src/guard/mod.rs`) — the `rm -rf` / `git push --force` / `git clean
+  -f` checks used a single regex requiring one specific flag spelling.
+  Verified bypasses (real commands, tested against the pre-fix code):
+  `rm --recursive --force .`, `rm -r -f .`, `git push -uf origin main`,
+  `git clean -df`. All four are functionally identical to the blocked
+  forms. Replaced with tokenizing checks (`is_rm_rf`, `is_git_force` in
+  both bash and Rust) that detect recursive/force semantics in any spelling
+  — long-form, combined short flags, separated short flags, or mixed with
+  other short flags — while a chain-operator-aware segment split keeps
+  `ls -r x && curl -f y` from false-positiving as `rm -rf`. 26 bash test
+  cases + 24 Rust cases (compiled and run directly via `rustc`, not just
+  syntax-checked — `cargo test` doesn't run in the audit sandbox, see
+  `rust-toolchain.toml`) cover every bypass found plus the original cases
+  plus false-positive checks. Added 12 `#[cfg(test)]` regression tests to
+  `src/guard/mod.rs` so this can't silently regress again.
+  Note: `blast_radius.rs`'s consequence-based detection (counts actual
+  files touched, ignores flags entirely) already covers most real-world
+  `rm` cases regardless of this bug — this fix is defense-in-depth for
+  `rm`, but was the *only* protection for the `git push`/`git clean`
+  bypasses, which `blast_radius` doesn't cover at all (rm/shred/truncate/
+  mv/dd only).
+- **Fix**: `src/mission/mod.rs` — `cmd_dispatch` only checked `consumes`
+  before co-dispatching tasks in the same wave; two tasks with overlapping
+  `owns` could be sent to two agents in parallel with nothing but a prompt
+  instruction keeping them off each other's files — the exact race `owns`
+  exists to prevent. Added `owns_conflict()` (exact-match or directory-
+  prefix overlap) and used it to defer any candidate task that conflicts
+  with an already-Running task or another task selected earlier in the
+  same wave, instead of just taking the first N ready tasks. 8 new tests.
+- **Fix**: `src/mission/mod.rs` — `cmd_done` accepted any `evidence` string
+  with zero validation, from any caller, for any path — the exact
+  unverified-claim pattern the project's own Truth Gate / spec-verifier
+  philosophy argues against elsewhere. Now refuses (exit 1, does not mark
+  the task done) if the evidence path doesn't exist on disk.
+- **Fix**: `src/scanner/mod.rs` — `yana_ai_version` in every `yana-ai scan`
+  report (JSON and Markdown) was hardcoded to `"0.16.0"`, unrelated to the
+  actual crate version. Now `env!("CARGO_PKG_VERSION")`, resolved at
+  compile time from Cargo.toml.
+- **Fix**: `tools/yana-web/_test_crypto_store.js` — was failing outright
+  with `MODULE_NOT_FOUND` (path pointed at `crypto-store.js`, which moved
+  to `shared/crypto-store.js` in an earlier refactor that never updated
+  this test) — meaning the encrypted-API-key-vault tests hadn't actually
+  run in some time. Fixed the path; 14/14 of the original assertions then
+  passed unmodified (round-trip, no-plaintext-leakage, fresh IV per
+  encrypt, master-key persistence across reload, legacy-key migration, all
+  genuinely correct). The remaining "fallback mode" section, however,
+  asserted the *opposite* of what `shared/crypto-store.js` actually does on
+  purpose — its own comments say writes should throw rather than silently
+  degrade to plaintext ("not acceptable"), which is the more secure
+  design, so the code was right and the test was stale. Rewrote that
+  section to assert the real, intentional contract (write throws;
+  previously-migrated legacy reads still work). 18/18 pass now.
+- **Fix**: `tools/yana-web/auth.js` — `LOGIN_RATE.hits` (per-IP login
+  attempt map) only ever grew; expired entries were never removed, just
+  left stale until that same IP happened to try again. Unbounded slow
+  growth for the life of the process on a public deployment (this server
+  does run on Railway/Render — see `YANA_DATA_DIR`). Added opportunistic
+  pruning of expired entries on each check.
+
+---
+
+
+
+*Applied directly to this checkout in response to an audit; not yet a
+tagged release. Bump version and move this section up when you cut one.*
+
+- **Fix**: `tools/yana-web/lib/skills.js` — `findBestSkill` now also scores
+  matches against each skill's `description` frontmatter field (previously
+  matched folder name only, silently ignoring `description` in ~all skills).
+  Name matches keep priority weighting; short tokens (<4 chars) no longer
+  get substring-match credit against the name, to avoid accidental
+  collisions like `"tra"` inside `"contract"`.
+
+- **Fix**: `.claude/config/skills-lock.json` pruned from 8,557 entries (only
+  395 — 4.6% — resolved to a real `SKILL.md`) down to 414 verified entries.
+  Not fabricated data: 6,583 of the 8,557 entries share the exact same
+  `addedAt` date (2026-06-01), another 1,853 share 2026-05-29 — a bulk
+  auto-add scan, not hand-typed numbers. The entries accurately reflected
+  real content *at scan time*; the content was later removed/relocated
+  (consistent with `.npmignore`'s "Exclude large skill library — install
+  from repo directly if needed") and the lockfile was never pruned to
+  match. Root cause is the same known, already-diagnosed incident
+  referenced in `verify-skills-lock.sh`'s own comments (2026-06-11,
+  always-on auto-add) — that bug was already fixed (auto-add is opt-in
+  only now), but the stale entries it left behind were not, until now.
+- **Fix**: `core/config/skills-lock.json` — pruned 88 stale entries via the
+  existing `verify-skills-lock.sh --prune`; normalized one malformed entry
+  (`vuln-chain`) that used a different field schema (`path`/`triggers`
+  instead of `localPath`/`computedHash`), which had let it silently bypass
+  staleness checks.
+- **Fix**: agent name collision — `core/agents/yana.md` (general Yana AI
+  persona) and `core/agents/yana/yana.md` (yana-web product persona) both
+  registered as `name: yana`. Renamed the latter to `yana-web-assistant`.
+- **New**: `core/scripts/generate-stats.py` — generates agent/skill/hook/
+  rule/command counts from the filesystem; `--check` mode fails if
+  README.md disagrees. Root-cause fix for repeated "claimed count doesn't
+  match reality" findings across multiple prior audits (agent count alone
+  had 5 different values across 5 files: README 162, ARCHITECTURE.md 95,
+  the live docs-site data 93, raw file count 204, actual unique count 101).
+- **New**: `core/scripts/generate-agents-data.py` — regenerates
+  `site/public/agents-data.json` + `docs/agents-data.json` from real agent
+  frontmatter (was hand-maintained, frozen at 93 entries, silently missing
+  8 real agents incl. the entire `security-team`, `research`, and `planner`
+  category folders).
+- **New**: `rust-toolchain.toml` pinning the `stable` channel — several
+  dependencies (ureq's TLS stack; `tempfile`→`getrandom` in dev-deps)
+  require `edition2024` (Rust 1.85+), which isn't obvious from the error
+  message if you build with a distro-packaged Rust instead of rustup.
+- **Docs**: corrected agent/skill/hook/rule/command counts across
+  `README.md`, `README.vi.md`, `README.ko.md`, `README.zh.md`,
+  `ARCHITECTURE.md`, and `worker.js`'s system prompt — all now 101 agents /
+  1,989 skills / 67 rules / 50 hooks / 166 commands, matching
+  `generate-stats.py`'s output.
+- **Known issue flagged, not fixed here (needs your crates.io login)**:
+  `yana-rt` was published to crates.io as `1.3.0` *before* `0.42.1`–`0.43.0`
+  (crate-version vs. product-version schemes collided in the publish
+  pipeline). Since `1.3.0 > 0.43.0` in SemVer, `cargo install yana-rt` /
+  `cargo add yana-rt` with no version pin currently resolves to the older
+  `1.3.0`, not `0.43.0`. Needs `cargo yank --version 1.3.0 -p yana-rt` (or a
+  new release with a version higher than `1.3.0`) — see audit notes.
+- **Not attempted this pass**: the semantic embedding-based skill router
+  (581 lines of Rust across `mod.rs`/`embed.rs`/`index.rs`/`store.rs`, an
+  eval harness, a design doc) referenced in a prior audit summary is not
+  present anywhere in this repo. The `findBestSkill` fix above is a
+  pragmatic patch, not a replacement for it — worth a dedicated follow-up
+  if the full semantic router is still wanted.
+
+---
 
 - **Mobile feature parity**: ported Sessions, Analytics, Cron, and HTML Maker
   from desktop to the mobile app; collapsed oversized triggers (HTML Maker

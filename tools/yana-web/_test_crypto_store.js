@@ -5,7 +5,7 @@
 // Run: node _test_crypto_store.js
 
 const path = require('path');
-const MODULE = path.join(__dirname, 'crypto-store.js');
+const MODULE = path.join(__dirname, 'shared', 'crypto-store.js'); // moved here in a refactor; this test's path was never updated (2026-07-08 audit)
 
 let pass = 0, fail = 0;
 function t(name, cond) {
@@ -128,17 +128,30 @@ async function loadVault({ idb, localStorage }) {
     t('undecryptable entry not in cache',         vault.hasKey('gemini') === false);
   }
 
-  // ════ Fallback mode (no IndexedDB → documented plaintext degradation) ════
+  // ════ Fallback mode (no IndexedDB) ════
+  // crypto-store.js (see its own top-of-file doc + inline comments at the
+  // `fallback` flag and `setKey`) deliberately REFUSES to write in this mode
+  // — "plaintext storage is not acceptable" — rather than silently degrading
+  // to plaintext. This test previously asserted the opposite (silent
+  // plaintext write succeeds), which no longer matched the code and made
+  // this file fail to even run after a separate path fix (2026-07-08 audit).
+  // Fixed to test the actual, intentional contract: writes throw; reads of
+  // an already-migrated legacy key still work (read-only degradation).
   {
     const ls = makeLocalStorage();
+    ls.setItem('yana.key.groq', 'pre-existing-legacy-key'); // simulates a key saved before fallback was hit
     const vault = await loadVault({ idb: undefined, localStorage: ls });
 
-    await vault.setKey('groq', 'fallback-key');
-    t('fallback: key readable',                vault.getKey('groq') === 'fallback-key');
-    t('fallback: stored under legacy prefix',  ls.getItem('yana.key.groq') === 'fallback-key');
+    t('fallback: isSecure is false',           vault.isSecure === false);
 
-    vault.removeKey('groq');
-    t('fallback: removeKey wipes',             ls.getItem('yana.key.groq') === null && !vault.hasKey('groq'));
+    let threw = false;
+    try { await vault.setKey('groq', 'new-key-should-not-be-written'); }
+    catch (_) { threw = true; }
+    t('fallback: setKey throws (no silent plaintext write)', threw);
+
+    t('fallback: pre-existing legacy key still readable', vault.getKey('groq') === 'pre-existing-legacy-key');
+    t('fallback: setKey throw did not overwrite the legacy value',
+      ls.getItem('yana.key.groq') === 'pre-existing-legacy-key');
   }
 
   console.log('\nResult: ' + pass + ' pass, ' + fail + ' fail');
