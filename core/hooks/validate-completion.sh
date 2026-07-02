@@ -21,12 +21,17 @@ AUDIT_LOG="${CLAUDE_STATE_DIR:-.claude/state}/audit.log"
 SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 
 # PII Detection Patterns
-declare -A PII_PATTERNS=(
-  ["email"]='\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-  ["ssn"]='\b\d{3}-\d{2}-\d{4}\b'
-  ["credit_card"]='\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b'
-  ["passport"]='\b[A-Z]{2}\d{6,8}\b'
-  ["phone"]='\b\+?1?\d{10,11}\b|\b\(\d{3}\)\s?\d{3}-\d{4}\b'
+# Parallel indexed arrays, not `declare -A` — macOS ships bash 3.2 by
+# default (no Homebrew bash on PATH), which predates bash 4.0's
+# associative arrays. `declare -A` there fails with "invalid option" and
+# every PII check goes silently dark. Linux CI's bash 4/5 masked this.
+PII_TYPES=("email" "ssn" "credit_card" "passport" "phone")
+PII_PATTERNS=(
+  '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+  '\b\d{3}-\d{2}-\d{4}\b'
+  '\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b'
+  '\b[A-Z]{2}\d{6,8}\b'
+  '\b\+?1?\d{10,11}\b|\b\(\d{3}\)\s?\d{3}-\d{4}\b'
 )
 
 # Detect PII in text
@@ -34,10 +39,12 @@ detect_pii() {
   local text="$1"
   local detected=()
 
-  for pii_type in "${!PII_PATTERNS[@]}"; do
-    if echo "$text" | grep -qE "${PII_PATTERNS[$pii_type]}"; then
-      detected+=("$pii_type")
+  local i=0
+  while [[ $i -lt ${#PII_TYPES[@]} ]]; do
+    if echo "$text" | grep -qE "${PII_PATTERNS[$i]}"; then
+      detected+=("${PII_TYPES[$i]}")
     fi
+    i=$((i + 1))
   done
 
   if [[ ${#detected[@]} -gt 0 ]]; then
@@ -105,10 +112,12 @@ LAST_MESSAGE=$(get_last_message)
 if [[ -n "$LAST_MESSAGE" ]]; then
   if detect_pii "$LAST_MESSAGE"; then
     detected_types=()
-    for pii_type in "${!PII_PATTERNS[@]}"; do
-      if echo "$LAST_MESSAGE" | grep -qE "${PII_PATTERNS[$pii_type]}"; then
-        detected_types+=("$pii_type")
+    i=0
+    while [[ $i -lt ${#PII_TYPES[@]} ]]; do
+      if echo "$LAST_MESSAGE" | grep -qE "${PII_PATTERNS[$i]}"; then
+        detected_types+=("${PII_TYPES[$i]}")
       fi
+      i=$((i + 1))
     done
 
     pii_list=$(IFS=', '; echo "${detected_types[*]}")

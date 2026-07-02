@@ -123,7 +123,13 @@ if [[ "$TOOL_NAME" == "WebFetch" ]]; then
     fi
 
     # SSRF guard: block private IP ranges and localhost
-    HOST=$(printf '%s' "$URL" | grep -oE '(https?://)[^/:]+' | sed 's|https\?://||')
+    # Portable scheme-strip (no sed \? — that's a GNU extension; BSD/macOS
+    # sed treats it as a literal "?" and never strips the scheme, which
+    # silently defeats every check below on macOS while passing on Linux CI).
+    HOST="${URL#http://}"
+    HOST="${HOST#https://}"
+    HOST="${HOST%%/*}"
+    HOST="${HOST%%:*}"
     if printf '%s' "$HOST" | grep -qE \
       '^(localhost|127\.[0-9]+\.[0-9]+\.[0-9]+|0\.0\.0\.0|::1|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]+\.[0-9]+|192\.168\.[0-9]+\.[0-9]+|169\.254\.[0-9]+\.[0-9]+|100\.(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\.[0-9]+\.[0-9]+)$'; then
       deny "Blocked [L1.5 Tool Validator]: WebFetch to private/loopback address '${HOST}' is blocked (SSRF guard). Fetching internal network addresses may expose internal services. Bypass: YANA_TOOL_VALID_BYPASS=1"

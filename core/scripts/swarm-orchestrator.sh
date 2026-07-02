@@ -27,13 +27,20 @@ GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC
 
 # ─── Agent Tier Definitions ──────────────────────────────────────────────────
 # Tier 1 = highest authority (veto power). Tier 4 = advisory only.
-declare -A AGENT_TIERS=(
-  [security-team]=1
-  [core-development]=2
-  [qa-team]=3
-  [docs-team]=4
-  [design-team]=4
-)
+# A lookup function, not `declare -A` — macOS ships bash 3.2 by default (no
+# Homebrew bash on PATH), which predates bash 4.0's associative arrays.
+# `declare -A` there fails with "invalid option" and every tier lookup below
+# silently returns the unset/default fallback instead of the real tier.
+agent_tier() {
+  case "$1" in
+    security-team)    echo 1 ;;
+    core-development) echo 2 ;;
+    qa-team)          echo 3 ;;
+    docs-team)        echo 4 ;;
+    design-team)      echo 4 ;;
+    *)                echo "${2:-?}" ;;
+  esac
+}
 
 # Actions requiring super-majority (> 66%)
 SUPERMAJORITY_ACTIONS="push|deploy|merge|release|publish"
@@ -53,7 +60,7 @@ cmd_roster() {
   echo -e "${CYAN}═══ Yana AI Agent Swarm Roster ═══${NC}"
   for agent_dir in "${AGENTS_DIR}"/*/; do
     local agent; agent="$(basename "$agent_dir")"
-    local tier="${AGENT_TIERS[$agent]:-?}"
+    local tier; tier="$(agent_tier "$agent" "?")"
     local count; count="$(ls -1 "${agent_dir}"*.md 2>/dev/null | wc -l || echo 0)"
     local veto_marker=""
     for va in "${VETO_AGENTS[@]}"; do [[ "$va" == "$agent" ]] && veto_marker=" [VETO]"; done
@@ -96,7 +103,7 @@ cmd_vote() {
     echo "[swarm] ERROR: vote must be yes|no|abstain" >&2; exit 1
   fi
 
-  local tier="${AGENT_TIERS[$agent]:-4}"
+  local tier; tier="$(agent_tier "$agent" "4")"
   mkdir -p "${VOTES_DIR}/${request_id}"
 
   echo "{\"agent\":\"${agent}\",\"tier\":${tier},\"vote\":\"${decision}\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \

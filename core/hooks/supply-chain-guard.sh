@@ -99,23 +99,30 @@ if printf '%s' "$CMD" | grep -qE '(npm|yarn|pnpm).*(--ignore-scripts=false|--uns
 fi
 
 # ── Warn: typosquatting lookalike package names ───────────────────────────────
-# Known high-value targets and their common lookalikes
-declare -A TYPOSQUATS
-TYPOSQUATS=(
-  ["lodahs"]="lodash"        ["reqeust"]="request"      ["expres"]="express"
-  ["reacts"]="react"         ["angualr"]="angular"       ["vues"]="vue"
-  ["axois"]="axios"          ["moemnt"]="moment"         ["webapck"]="webpack"
-  ["babbel"]="babel"         ["eslitn"]="eslint"         ["pretiier"]="prettier"
-  ["typescirpt"]="typescript" ["jset"]="jest"            ["nodemon0"]="nodemon"
-  ["corors"]="cors"          ["dotevn"]="dotenv"         ["crossenv"]="cross-env"
-  ["cooke-parser"]="cookie-parser" ["body-parse"]="body-parser"
+# Known high-value targets and their common lookalikes.
+# Indexed arrays, not `declare -A` — macOS ships bash 3.2 by default (no
+# Homebrew bash on PATH), which predates bash 4.0's associative arrays.
+# `declare -A` there fails with "invalid option" and the whole check goes
+# silently dark (deny() is never reached). Linux CI's bash 4/5 masked this.
+TYPOSQUAT_FAKE=(
+  "lodahs" "reqeust" "expres" "reacts" "angualr" "vues" "axois" "moemnt"
+  "webapck" "babbel" "eslitn" "pretiier" "typescirpt" "jset" "nodemon0"
+  "corors" "dotevn" "crossenv" "cooke-parser" "body-parse"
+)
+TYPOSQUAT_REAL=(
+  "lodash" "request" "express" "react" "angular" "vue" "axios" "moment"
+  "webpack" "babel" "eslint" "prettier" "typescript" "jest" "nodemon"
+  "cors" "dotenv" "cross-env" "cookie-parser" "body-parser"
 )
 
-for fake in "${!TYPOSQUATS[@]}"; do
-  real="${TYPOSQUATS[$fake]}"
+i=0
+while [[ $i -lt ${#TYPOSQUAT_FAKE[@]} ]]; do
+  fake="${TYPOSQUAT_FAKE[$i]}"
+  real="${TYPOSQUAT_REAL[$i]}"
   if printf '%s' "$CMD" | grep -qE "(npm|yarn|pnpm|pip)\s+(install|add|i)\s+.*\b${fake}\b"; then
     deny "Blocked [L4.5 Supply Chain]: possible typosquatting detected — '${fake}' looks like '${real}'. Verify the package name before installing. Rule: core/rules/44-supply-chain-vetting.md | Bypass: YANA_SUPPLY_OK=1"
   fi
+  i=$((i + 1))
 done
 
 # ── Warn: missing lock file before install (advisory — does not block) ────────
