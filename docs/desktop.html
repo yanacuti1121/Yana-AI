@@ -13,16 +13,25 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       hsl(150 20% 97%);
-      --bg-card:  hsl(0 0% 100%);
-      --primary:  hsl(160 40% 30%);
-      --primary-h: hsl(160 40% 24%);
-      --fg:       hsl(160 15% 12%);
-      --fg-muted: hsl(160 8% 46%);
-      --border:   hsl(160 12% 88%);
-      --green:    hsl(142 60% 45%);
-      --radius:   16px;
+      /* Dark, premium palette — inspired by a Spline "Clarity Stream" hero
+         reference (flowing gradient ribbon, black backdrop, gradient
+         headline), rebuilt natively in CSS rather than embedding their
+         3D scene — keeps this a static, dependency-free download page. */
+      --bg:        hsl(240 26% 5%);
+      --bg-card:   hsl(240 20% 9%);
+      --bg-card-2: hsl(240 18% 13%);
+      --primary:   hsl(258 85% 67%);
+      --primary-h: hsl(258 85% 74%);
+      --fg:        hsl(240 25% 95%);
+      --fg-muted:  hsl(240 12% 68%);
+      --border:    hsl(240 20% 20%);
+      --green:     hsl(142 65% 55%);
+      --radius:    16px;
       --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, sans-serif;
+      /* Headline gradient stops — light blue -> white -> violet/magenta */
+      --grad-a: hsl(206 100% 80%);
+      --grad-b: hsl(0 0% 100%);
+      --grad-c: hsl(286 90% 74%);
     }
 
     body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
@@ -31,7 +40,7 @@
     /* ── Nav ─────────────────────────────────────────────── */
     nav {
       position: sticky; top: 0; z-index: 10;
-      background: rgba(246,250,248,.88); backdrop-filter: blur(12px);
+      background: rgba(8,8,14,.72); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       padding: 0 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
@@ -65,61 +74,93 @@
     .nav-cta:hover { background: var(--primary-h); }
 
     /* ── Hero ─────────────────────────────────────────────── */
-    .hero { max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3.5rem; text-align: center; }
+    .hero { position: relative; max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3.5rem; text-align: center; overflow: hidden; }
     .hero-badge {
+      position: relative; z-index: 1;
       display: inline-flex; align-items: center; gap: .5rem;
-      background: color-mix(in oklab, var(--primary) 10%, transparent);
-      color: var(--primary); border: 1px solid color-mix(in oklab, var(--primary) 25%, transparent);
+      background: color-mix(in oklab, var(--primary) 16%, transparent);
+      color: var(--grad-a); border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
       font-size: .8125rem; font-weight: 600; letter-spacing: .04em;
       padding: .3rem .85rem; border-radius: 99px; margin-bottom: 1.5rem;
     }
     .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-    h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
-    h1 em { font-style: normal; color: var(--primary); }
-    .hero-sub { font-size: 1.125rem; color: var(--fg-muted); max-width: 52ch; margin: 0 auto 2.5rem; line-height: 1.7; }
+    h1 {
+      position: relative; z-index: 1;
+      font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.03em; margin-bottom: 1.25rem;
+      background: linear-gradient(90deg, var(--grad-a), var(--grad-b) 50%, var(--grad-c));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    h1 em { font-style: normal; }
+    .hero-sub { position: relative; z-index: 1; font-size: 1.125rem; color: var(--fg-muted); max-width: 52ch; margin: 0 auto 2.5rem; line-height: 1.7; }
+
+    /* Flowing ribbon accent — CSS-only, no external embed. A blurred,
+       elongated conic gradient rotated into a diagonal streak, slowly
+       drifting. Purely decorative: aria-hidden, disabled under
+       prefers-reduced-motion. */
+    .hero-ribbon {
+      position: absolute; z-index: 0; pointer-events: none;
+      top: 40%; left: 50%; width: 140vw; max-width: 1400px; height: 340px;
+      transform: translate(-50%, -50%) rotate(-8deg);
+      background: conic-gradient(from 200deg at 30% 50%,
+        transparent 0deg,
+        color-mix(in oklab, var(--grad-c) 85%, transparent) 40deg,
+        color-mix(in oklab, var(--primary) 90%, transparent) 90deg,
+        color-mix(in oklab, var(--grad-a) 85%, transparent) 140deg,
+        transparent 200deg, transparent 360deg);
+      filter: blur(48px);
+      opacity: .55;
+      border-radius: 50%;
+      animation: ribbon-drift 22s ease-in-out infinite alternate;
+    }
+    @keyframes ribbon-drift {
+      from { transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+      to   { transform: translate(-46%, -54%) rotate(-4deg) scale(1.08); }
+    }
+    @media (prefers-reduced-motion: reduce) { .hero-ribbon { animation: none; } }
 
     /* ── Download buttons ─────────────────────────────────── */
-    .dl-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-bottom: 1rem; }
+    .dl-grid { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-bottom: 1rem; }
     .dl-btn {
       display: flex; align-items: center; gap: .65rem;
       padding: .75rem 1.4rem; border-radius: var(--radius);
       font-size: .9375rem; font-weight: 600;
       border: 1.5px solid var(--border); background: var(--bg-card); color: var(--fg);
-      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
       transition: box-shadow .15s, border-color .15s, transform .1s; cursor: pointer;
     }
-    .dl-btn:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); border-color: var(--primary); transform: translateY(-1px); }
+    .dl-btn:hover { box-shadow: 0 4px 20px color-mix(in oklab, var(--primary) 30%, transparent); border-color: var(--primary); transform: translateY(-1px); }
     .dl-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .dl-btn.primary:hover { background: var(--primary-h); border-color: var(--primary-h); }
     .dl-btn svg { flex: none; }
     .dl-btn-sub { font-size: .75rem; font-weight: 400; opacity: .7; display: block; }
-    .hero-note { font-size: .8rem; color: var(--fg-muted); margin-top: .5rem; }
+    .hero-note { position: relative; z-index: 1; font-size: .8rem; color: var(--fg-muted); margin-top: .5rem; }
 
     /* ── App mockup ───────────────────────────────────────── */
     .screenshot-wrap {
       max-width: 860px; margin: 3rem auto 0; padding: 0 1.5rem;
       border-radius: 20px; overflow: hidden;
-      box-shadow: 0 24px 80px rgba(0,0,0,.14), 0 0 0 1px var(--border);
+      box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px var(--border);
       background: var(--bg-card);
     }
-    .screenshot-bar { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: hsl(160 10% 93%); border-bottom: 1px solid var(--border); }
+    .screenshot-bar { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--bg-card-2); border-bottom: 1px solid var(--border); }
     .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
     .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e; }
     .dot-g { width: 12px; height: 12px; border-radius: 50%; background: #28c840; }
-    .screenshot-inner { display: flex; background: hsl(155 15% 95%); min-height: 380px; }
-    .app-sidebar { width: 200px; flex: none; background: hsl(155 18% 92%); border-right: 1px solid var(--border); padding: 1rem .75rem; display: flex; flex-direction: column; gap: .35rem; }
+    .screenshot-inner { display: flex; background: var(--bg-card); min-height: 380px; }
+    .app-sidebar { width: 200px; flex: none; background: var(--bg-card-2); border-right: 1px solid var(--border); padding: 1rem .75rem; display: flex; flex-direction: column; gap: .35rem; }
     .app-logo { display: flex; align-items: center; gap: 8px; padding: .5rem .5rem .75rem; border-bottom: 1px solid var(--border); margin-bottom: .5rem; }
-    .app-logo-mark { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(150deg, hsl(160 40% 35%), hsl(160 40% 22%)); display: grid; place-items: center; overflow: hidden; }
+    .app-logo-mark { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(150deg, var(--grad-a), var(--primary) 60%, var(--grad-c)); display: grid; place-items: center; overflow: hidden; }
     .app-logo-mark img { width: 28px; height: 28px; object-fit: cover; }
     .app-logo-name { font-size: .875rem; font-weight: 600; }
     .nav-item { padding: .45rem .65rem; border-radius: 8px; font-size: .8125rem; color: var(--fg-muted); display: flex; align-items: center; gap: .5rem; }
-    .nav-item.active { background: rgba(255,255,255,.7); color: var(--fg); font-weight: 500; }
+    .nav-item.active { background: color-mix(in oklab, var(--primary) 18%, transparent); color: var(--fg); font-weight: 500; }
     .nav-icon { font-size: .9rem; }
     .app-main { flex: 1; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
     .chat-bubble { padding: .6rem 1rem; border-radius: 12px; font-size: .8125rem; line-height: 1.5; max-width: 80%; }
-    .chat-bubble.ai { background: var(--bg-card); box-shadow: 0 1px 4px rgba(0,0,0,.07); border: 1px solid var(--border); align-self: flex-start; }
+    .chat-bubble.ai { background: var(--bg-card-2); box-shadow: 0 1px 4px rgba(0,0,0,.2); border: 1px solid var(--border); align-self: flex-start; }
     .chat-bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
-    .chat-input { margin-top: auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: .6rem 1rem; font-size: .8125rem; color: var(--fg-muted); display: flex; align-items: center; justify-content: space-between; }
+    .chat-input { margin-top: auto; background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 10px; padding: .6rem 1rem; font-size: .8125rem; color: var(--fg-muted); display: flex; align-items: center; justify-content: space-between; }
     .chat-send { width: 28px; height: 28px; border-radius: 7px; background: var(--primary); display: grid; place-items: center; }
     .chat-send svg { color: #fff; }
 
@@ -129,7 +170,8 @@
     .section-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .75rem; }
     .section-sub { text-align: center; color: var(--fg-muted); margin-bottom: 3rem; font-size: 1rem; }
     .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; }
-    .feat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+    .feat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: border-color .15s; }
+    .feat-card:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
     .feat-icon { font-size: 1.6rem; margin-bottom: .75rem; }
     .feat-title { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
     .feat-desc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; }
@@ -137,16 +179,27 @@
     /* ── Platforms ────────────────────────────────────────── */
     .platforms { max-width: 900px; margin: 5rem auto 0; padding: 0 1.5rem; }
     .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-    .platform-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: .75rem; transition: box-shadow .15s; }
-    .platform-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .platform-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: .75rem; transition: box-shadow .15s, border-color .15s; }
+    .platform-card:hover { box-shadow: 0 4px 20px color-mix(in oklab, var(--primary) 20%, transparent); border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
     .platform-icon { font-size: 2rem; }
     .platform-name { font-size: 1.05rem; font-weight: 700; }
     .platform-arch { font-size: .8rem; color: var(--fg-muted); }
-    .platform-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .875rem; font-weight: 600; color: var(--primary); margin-top: auto; padding-top: .25rem; }
+    .platform-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .875rem; font-weight: 600; color: var(--grad-a); margin-top: auto; padding-top: .25rem; }
     .platform-link:hover { text-decoration: underline; }
 
     /* ── CTA ──────────────────────────────────────────────── */
-    .cta-section { max-width: 600px; margin: 5rem auto 4rem; padding: 3rem 1.5rem; text-align: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .cta-section {
+      position: relative; overflow: hidden;
+      max-width: 600px; margin: 5rem auto 4rem; padding: 3rem 1.5rem; text-align: center;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .cta-section::before {
+      content: ""; position: absolute; inset: -40% -10% auto -10%; height: 200px;
+      background: linear-gradient(90deg, var(--grad-a), var(--primary), var(--grad-c));
+      filter: blur(60px); opacity: .25; pointer-events: none;
+    }
+    .cta-section > * { position: relative; z-index: 1; }
     .cta-section h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: .5rem; }
     .cta-section p { color: var(--fg-muted); margin-bottom: 1.75rem; }
 
@@ -186,6 +239,7 @@
 
 <!-- Hero -->
 <section class="hero">
+  <div class="hero-ribbon" aria-hidden="true"></div>
   <div class="hero-badge"><span class="dot"></span> v0.43.0 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span></div>
   <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
