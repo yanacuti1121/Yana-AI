@@ -44,15 +44,18 @@ test fact file (created and deleted, not committed) — output contained
 the correct wrapped block. Applied identically to both core/hooks/ and
 .claude/hooks/ copies (confirmed byte-identical after edit).
 
-Separately discovered, NOT fixed (out of scope for Phase 1): the L1 fact
-matching logic in session-bootstrap.sh greps fact files for a line
-starting with `^value:`, but memory/L1_atomic/SCHEMA.md's actual required
-field is `statement:` — no current fact file has a `value:` line, so
-MATCHED_FACTS is silently empty for every real fact today (confirmed:
-`grep -l "^value:" memory/L1_atomic/*.md` returns nothing). The L1
-fact-injection feature has likely been a no-op since it was written. Not
-fixed here — flagging for a human decision on whether to grep `statement:`
-instead (needs to check nothing downstream still relies on `value:`).
+Fixed 2026-07-02 (same day, follow-up): the `^value:` vs `statement:` schema
+mismatch above. Checked before changing — `grep -rn "value:" core/ .claude/`
+showed only these two session-bootstrap.sh copies referenced the old field;
+core/scripts/add-fact.sh (the canonical fact writer) has only ever written
+`statement:`; all 5 real fact files use `statement:`, none ever had
+`value:`. Changed the grep from `-A2 '^value:' | tail -1` (a multi-line
+pattern that never matched anything) to `-m1 '^statement:'` + strip the
+prefix. Verified against all 5 real facts — each now produces its actual
+sentence. Re-tested end-to-end: prompts mentioning "truth gate" or "hermes"
+now correctly inject the matching fact(s), properly wrapped by the Phase 1
+change above. Hook test suite still 91/95 (same 4 pre-existing unrelated
+failures). L1 fact injection is now genuinely live, not just wired.
 
 Next session: Phase 2 (system_prompt tiers). Re-read the module docstrings
 in core/lib/hermes_adapted/system_prompt.py first — the original plan file

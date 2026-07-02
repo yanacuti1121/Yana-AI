@@ -68,7 +68,10 @@ if [[ -d "$L1_DIR" ]]; then
 
     if [[ "$MATCHED" == true && $FACT_COUNT -lt 5 ]]; then
       FACT_NAME=$(grep -m1 '^name:' "$fact_file" 2>/dev/null | sed 's/name:\s*//' | tr -d '"' || basename "$fact_file" .md)
-      FACT_BODY=$(grep -A2 '^value:' "$fact_file" 2>/dev/null | tail -1 | sed 's/^\s*//' || true)
+      # SCHEMA.md's real field is `statement:`, not `value:` — no fact file
+      # has ever had a `value:` line (confirmed 2026-07-02), so this grep
+      # silently matched nothing since the day it was written. Fixed here.
+      FACT_BODY=$(grep -m1 '^statement:' "$fact_file" 2>/dev/null | sed 's/^statement:[[:space:]]*//' || true)
       [[ -n "$FACT_BODY" ]] && MATCHED_FACTS="${MATCHED_FACTS}[L1:${FACT_NAME}] ${FACT_BODY} | "
       FACT_COUNT=$((FACT_COUNT + 1))
     fi
