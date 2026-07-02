@@ -32,6 +32,9 @@ $ yana-ai
   <a href="README.md">English</a> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <strong>🇰🇷 한국어</strong> · <a href="README.zh.md">🇨🇳 中文</a>
 </p>
 
+Yana (You Are Not Alone)는 메모리, 워크플로우, 보안 제어(Safety Controls) 및 지속적인 학습을 통해 사용자와 AI 에이전트가 더욱 신뢰할 수 있는 방식으로 협업하도록 돕는 에이전트 운영체제(Agent OS)입니다.
+여기서 "You Are Not Alone"이라는 이름은 매우 광범위하고 전문적인 의미를 담고 있습니다. 이는 더 이상 인간의 외로움을 뜻하는 것이 아니라, 운영체제(OS)와 AI 에이전트 간의 신뢰할 수 있는 동행을 의미합니다. 당신은 독립적으로 작동하는 AI 에이전트가 길을 잃지 않고, 루프에 갇히지 않으며(Stuck), 항상 올바른 방향으로 나아갈 수 있도록 엄격하면서도 안전한 '감독관'을 만들어가고 있습니다.
+
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />

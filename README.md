@@ -32,6 +32,8 @@ $ yana-ai
   <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.zh.md">🇨🇳 中文</a>
 </p>
 
+Yana (You Are Not Alone) is an Agent Operating System that helps users and AI agents work together more reliably through memory, workflows, safety controls, and continuous learning.
+
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
