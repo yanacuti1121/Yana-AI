@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-02T11:31:12+00:00",
-  "count": 227,
+  "generated": "2026-07-02T22:51:32+00:00",
+  "count": 228,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -140,6 +140,7 @@
     "core/scripts/build-skill-index.js": "e6c0efe08464bedbf0e46db6a4356e4fe2a8b1461edea2f8481d874fe69cfeb7",
     "core/scripts/build-skills-snapshot.sh": "b253d13790f8ae1b93cae63305f938a9d75e3d4c0682e7e7e023a3f7d90bad3d",
     "core/scripts/check_context_pack.py": "b5fbcdf76f8cbb6e60188f8218b8e361e7a2e561cd8c2e24ae8bae45b4281514",
+    "core/scripts/check_counts.py": "941776c5ad85bfe2a9ae0918f0aa67e3254ddeda04273f7386ffc0cceeb98f7c",
     "core/scripts/check_file.py": "28ca7df9048a8d0497fae7d7152874bfa0e954321032e3434472161d3e5234f0",
     "core/scripts/ci_check.py": "5d54936c9fecf8998c757f758da2ee62ea00829baf0a9c81e0b2888134d66dbf",
     "core/scripts/clear-session.sh": "030d780ec625a9c52bd7cf7f285d27c34b28dff9e9183df88658eaab6dd11922",

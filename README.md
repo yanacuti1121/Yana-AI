@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.42.3 · Personal Agent OS                │ Tips for getting started                                                                      │
+│ v0.43.0 · Personal Agent OS                │ Tips for getting started                                                                      │
 │ 101 agents · 1,989 skills                   │ yana-ai doctor                                                                               │
-│ 67 rules · 50 hooks · 101 scripts          │ yana-ai init                                                                                  │
+│ 66 rules · 50 hooks · 102 scripts          │ yana-ai init                                                                                  │
 │ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
-│                                            │ v0.42.3 — WASM guard + automated publish pipeline                                            │
+│                                            │ v0.43.0 — WASM guard + automated publish pipeline                                            │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 

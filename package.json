@@ -1,7 +1,7 @@
 {
   "name": "yana-ai",
   "version": "0.43.0",
-  "description": "Audits your AI coding agent setup before it can damage your repo. 48 hooks · 1981 skills · 101 agents · Claude Code + Codex compatible.",
+  "description": "Audits your AI coding agent setup before it can damage your repo. 50 hooks · 1989 skills · 101 agents · Claude Code + Codex compatible.",
   "keywords": [
     "ai-agent",
     "claude-code",
