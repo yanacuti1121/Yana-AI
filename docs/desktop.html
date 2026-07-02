@@ -74,7 +74,7 @@
     .nav-cta:hover { background: var(--primary-h); }
 
     /* ── Hero ─────────────────────────────────────────────── */
-    .hero { position: relative; max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3.5rem; text-align: center; overflow: hidden; }
+    .hero { position: relative; max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3.5rem; text-align: center; overflow: hidden; perspective: 900px; }
     .hero-badge {
       position: relative; z-index: 1;
       display: inline-flex; align-items: center; gap: .5rem;
@@ -95,13 +95,16 @@
     .hero-sub { position: relative; z-index: 1; font-size: 1.125rem; color: var(--fg-muted); max-width: 52ch; margin: 0 auto 2.5rem; line-height: 1.7; }
 
     /* Flowing ribbon accent — CSS-only, no external embed. A blurred,
-       elongated conic gradient rotated into a diagonal streak, slowly
-       drifting. Purely decorative: aria-hidden, disabled under
+       elongated conic gradient banked through real 3D space (perspective +
+       rotateX on the .hero ancestor) rather than a flat blob, plus a
+       lighter highlight layer riding just above it to fake a curved,
+       lit surface. Purely decorative: aria-hidden, disabled under
        prefers-reduced-motion. */
     .hero-ribbon {
       position: absolute; z-index: 0; pointer-events: none;
       top: 40%; left: 50%; width: 140vw; max-width: 1400px; height: 340px;
-      transform: translate(-50%, -50%) rotate(-8deg);
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) rotateX(58deg) rotateZ(-8deg);
       background: conic-gradient(from 200deg at 30% 50%,
         transparent 0deg,
         color-mix(in oklab, var(--grad-c) 85%, transparent) 40deg,
@@ -113,9 +116,20 @@
       border-radius: 50%;
       animation: ribbon-drift 22s ease-in-out infinite alternate;
     }
+    .hero-ribbon::after {
+      content: "";
+      position: absolute; inset: 0; border-radius: inherit;
+      background: conic-gradient(from 200deg at 30% 50%,
+        transparent 0deg,
+        color-mix(in oklab, var(--grad-b) 70%, transparent) 70deg,
+        transparent 110deg, transparent 360deg);
+      transform: translateZ(18px);
+      filter: blur(30px);
+      opacity: .5;
+    }
     @keyframes ribbon-drift {
-      from { transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
-      to   { transform: translate(-46%, -54%) rotate(-4deg) scale(1.08); }
+      from { transform: translate(-50%, -50%) rotateX(58deg) rotateZ(-8deg) translateZ(0); }
+      to   { transform: translate(-46%, -54%) rotateX(62deg) rotateZ(-4deg) translateZ(24px); }
     }
     @media (prefers-reduced-motion: reduce) { .hero-ribbon { animation: none; } }
 
@@ -137,12 +151,20 @@
     .hero-note { position: relative; z-index: 1; font-size: .8rem; color: var(--fg-muted); margin-top: .5rem; }
 
     /* ── App mockup ───────────────────────────────────────── */
+    /* Mouse-tracked 3D tilt (--rx/--ry set by JS below). Pure CSS fallback:
+       both default to 0deg, so the card is flat/static without JS or for
+       reduced-motion users. */
+    .screenshot-outer { max-width: 860px; margin: 3rem auto 0; padding: 0 1.5rem; perspective: 900px; }
     .screenshot-wrap {
-      max-width: 860px; margin: 3rem auto 0; padding: 0 1.5rem;
+      --rx: 0deg; --ry: 0deg;
       border-radius: 20px; overflow: hidden;
       box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px var(--border);
       background: var(--bg-card);
+      transform: rotateX(var(--rx)) rotateY(var(--ry));
+      transition: transform .5s cubic-bezier(.2,.8,.2,1);
+      will-change: transform;
     }
+    @media (prefers-reduced-motion: reduce) { .screenshot-wrap { transition: none; } }
     .screenshot-bar { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--bg-card-2); border-bottom: 1px solid var(--border); }
     .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
     .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e; }
@@ -269,7 +291,8 @@
 </section>
 
 <!-- App mockup -->
-<div class="screenshot-wrap">
+<div class="screenshot-outer" id="screenshotOuter">
+<div class="screenshot-wrap" id="screenshotWrap">
   <div class="screenshot-bar">
     <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
     <div style="flex:1;text-align:center;font-size:.75rem;color:#999">Yana AI</div>
@@ -297,6 +320,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- Features -->
@@ -560,6 +584,33 @@ function setLang(lang) {
   const browser = navigator.language.slice(0,2);
   const map = { vi: 'vi', ko: 'ko', zh: 'zh' };
   setLang(saved || map[browser] || 'en');
+})();
+
+// 3D mouse-tracked tilt on the app screenshot mockup. Pure enhancement —
+// the card is a static flat card without JS (--rx/--ry default to 0deg
+// in CSS). Skipped entirely for prefers-reduced-motion.
+(function() {
+  const outer = document.getElementById('screenshotOuter');
+  const wrap = document.getElementById('screenshotWrap');
+  if (!outer || !wrap) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const MAX_TILT = 13; // degrees
+
+  outer.addEventListener('mousemove', (e) => {
+    const rect = outer.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;  // 0..1
+    const py = (e.clientY - rect.top) / rect.height;  // 0..1
+    const ry = (px - 0.5) * 2 * MAX_TILT;   // left/right -> rotateY
+    const rx = (0.5 - py) * 2 * MAX_TILT;   // up/down    -> rotateX
+    wrap.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+    wrap.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+  });
+
+  outer.addEventListener('mouseleave', () => {
+    wrap.style.setProperty('--rx', '0deg');
+    wrap.style.setProperty('--ry', '0deg');
+  });
 })();
 </script>
 </body>
