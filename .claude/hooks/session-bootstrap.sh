@@ -3,14 +3,18 @@
 # Version: 1.3.26
 # Status: active
 # Description: UserPromptSubmit — inject relevant L1 facts + session trust into Claude context
-# Last Reviewed: 2026-05-19
+# Last Reviewed: 2026-07-02
 #
 # Fires before every prompt Claude receives.
 # Stdout is injected as additional context Claude can read.
 # Keep this fast — it blocks model processing until complete.
 #
 # What it injects:
-#   1. L1 facts matching keywords from the user prompt (max 5)
+#   1. L1 facts matching keywords from the user prompt (max 5) — wrapped in
+#      <memory-context> via core/lib/hermes_adapted/context_scrubber.py
+#      (NousResearch/hermes-agent, MIT) so the model can't mistake injected
+#      memory for new user instructions. Falls back to a plain line if
+#      python3/the module is unavailable.
 #   2. Session trust score (if below 80)
 #   3. Budget Mode status (if ON)
 #   4. Active L2 session facts count (reminder to use /memory --l2)
@@ -70,7 +74,26 @@ if [[ -d "$L1_DIR" ]]; then
     fi
   done < <(find "$L1_DIR" -maxdepth 1 -name "*.md" -print0 2>/dev/null)
 
-  [[ -n "$MATCHED_FACTS" ]] && OUTPUT_PARTS+=("L1 facts: ${MATCHED_FACTS%| }")
+  if [[ -n "$MATCHED_FACTS" ]]; then
+    RAW_FACTS="${MATCHED_FACTS%| }"
+    # hermes-context-scrubber Phase 1 (NousResearch/hermes-agent, MIT) —
+    # wrap prefetched L1 facts in a fenced block + system note so the model
+    # can't mistake injected memory for new user instructions. Falls back
+    # to the unwrapped line if python3 or the module is unavailable.
+    WRAPPED=$(cd "$PROJECT_DIR" && printf '%s' "$RAW_FACTS" | python3 -c '
+import sys
+try:
+    from core.lib.hermes_adapted.context_scrubber import build_memory_context_block
+    sys.stdout.write(build_memory_context_block(sys.stdin.read()))
+except Exception:
+    sys.exit(1)
+' 2>/dev/null)
+    if [[ -n "$WRAPPED" ]]; then
+      OUTPUT_PARTS+=("$WRAPPED")
+    else
+      OUTPUT_PARTS+=("L1 facts: ${RAW_FACTS}")
+    fi
+  fi
 fi
 
 # ── 2. Session trust score ────────────────────────────────────────────────────
