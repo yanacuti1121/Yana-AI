@@ -75,6 +75,7 @@ core/rules/
   03-privilege-isolation.md   ← env/secret file write gate (YANA_SCOPE_OK=1)
   agent-code-constraints.md   ← hard metric limits (lines, params, nesting)
   agents-v2.md                ← multi-agent orchestration policy
+  anti-ai-slop-design-law.md  ← AI-generated-look design clichés (Gate L5, companion to color/typography-rules)
   api-security-gate.md        ← OWASP API Top 10 enforcement (Gate L3)
   audit-hardening-policy.md   ← Trillian hash-chain log integrity (Gate L0)
   color-rules.md              ← Radix 12-scale + Tailwind color enforcement

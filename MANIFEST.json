@@ -537,7 +537,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 66,
+      "count": 67,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
@@ -568,6 +568,7 @@
         "core/rules/agent-middleware-law.md",
         "core/rules/agent-tool-poisoning-guard.md",
         "core/rules/agents-v2.md",
+        "core/rules/anti-ai-slop-design-law.md",
         "core/rules/anti-evasion-law.md",
         "core/rules/api-security-gate.md",
         "core/rules/audit-hardening-policy.md",
@@ -2687,5 +2688,5 @@
   "hooks_count": 50,
   "scripts_count": 102,
   "commands_count": 164,
-  "rules_count": 66
+  "rules_count": 67
 }

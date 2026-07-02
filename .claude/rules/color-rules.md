@@ -4,6 +4,8 @@
 **Status:** Active  
 **Enforced by:** UI Quality Gate L5, frontend agents  
 **Companion skills:** `design-system-gen`, `accessibility-audit`, `aesthetic-anchor`
+**Companion rule:** `anti-ai-slop-design-law.md` — the AI-default warm-neutral
+background trap and other palette clichés this file's token rules don't catch
 
 ---
 
