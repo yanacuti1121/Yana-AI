@@ -32,7 +32,7 @@ $ yana-ai
   <a href="README.md">English</a> · <strong>Tiếng Việt</strong> · <a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.zh.md">🇨🇳 中文</a>
 </p>
 
-         (Chúng tôi hiện đang chuyển đổi từ Linux sang macOS, và vẫn còn rất nhiều lỗi.)
+Tên gọi Yana - You Are Not Alone ở đây mang một tầng nghĩa rất rộng và chuyên nghiệp. Nó không còn là sự cô đơn của con người nữa, mà là sự đồng hành đáng tin cậy giữa Hệ điều hành và AI Agent. Bạn đang tạo ra một "người giám sát" nghiêm khắc nhưng an toàn, đảm bảo các AI Agent khi làm việc độc lập sẽ không bị lạc lối, không bị "kẹt" (stuck) và luôn đi đúng hướng.
 
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
