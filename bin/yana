@@ -360,6 +360,8 @@ Commands:
   route <subcommand>      Classify a task description — simple/complex/external
   check-context <dir>     Validate context-pack directory structure
   provenance check [target] Verify ported code (core/lib/*_adapted) has vendor source + attribution
+  evidence run <cmd...>   Run a command, emit an HMAC-signed receipt as Truth Gate evidence
+  evidence verify         Verify a signed receipt from stdin
   version                 Print version
   banner                  Print the welcome banner only (no command list)
   help                    Show this help
@@ -577,7 +579,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route)
+  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route|evidence)
     rt "$COMMAND" "$@"
     ;;
   explain)

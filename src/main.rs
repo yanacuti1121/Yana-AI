@@ -30,7 +30,7 @@ use clap::{Parser, Subcommand};
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "yana-rt", version = "1.3.0", about = "Yana AI Runtime — full Python CLI parity in Rust")]
+#[command(name = "yana-rt", version = env!("CARGO_PKG_VERSION"), about = "Yana AI Runtime — full Python CLI parity in Rust")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -68,6 +68,12 @@ enum Commands {
     Doctor { #[command(subcommand)] action: doctor::DoctorAction },
     /// In-process PreToolUse hook ports (destructive-command guard, token
     /// budget + circuit breaker) — no jq/Node subprocess spawn per call
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design — called
+    /// directly as `exec yana-rt guard <name>` from core/hooks/*.sh (guard-
+    /// destructive.sh, token-budget-guard.sh, guard-blast-radius.sh) as a
+    /// fast path that skips the jq subprocess. `yana-ai guard` via bin/yana
+    /// is a different command (runs guard_installer.py to set up guards in
+    /// a new project), not this variant's check logic.
     Guard  { #[command(subcommand)] action: guard::GuardAction },
     /// Parallel mission orchestrator — create, dispatch, track agent tasks
     Mission { #[command(subcommand)] action: mission::MissionAction },

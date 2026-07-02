@@ -81,5 +81,8 @@ jobs:
       - name: Build yana-rt
         run: cargo build --bin yana-rt
 
+      - name: Check main.rs / bin/yana dispatch drift
+        run: ./target/debug/yana-rt doctor dispatch . --json
+
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
