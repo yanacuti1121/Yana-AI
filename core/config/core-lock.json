@@ -1,11 +1,11 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-03T09:27:15+00:00",
+  "generated": "2026-07-03T09:46:34+00:00",
   "count": 231,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
-    "core/gates/identity-gate.sh": "023bee5a8e9b2253ab4dcc1e69d6b038ee29c37cf9dd2f3c5cc36bad9c7ac4b6",
+    "core/gates/identity-gate.sh": "2d7f65aa0ca9fe38498cc31834c7ea93f252558d881d7b53d8bcb04ef8c67e0e",
     "core/gates/require-tier.sh": "a31f5fd91a4ceb227052a636b964696cd6a548825e3cae2b9710e6dd56fc921d",
     "core/gates/sovereign-interceptor.js": "cf83e2373ab0c20c38156c51939e2a9f73b37387d60d2e487e3ffadf0d23573e",
     "core/gates/structured-output-validator.js": "67d3c84eb17ec1d4c8e528bbb05c05190a42c4f2f3418cbb17e2e3418e1e0ef0",

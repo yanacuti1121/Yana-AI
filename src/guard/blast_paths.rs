@@ -15,8 +15,22 @@ use std::path::{Component, Path, PathBuf};
 /// Repo root used to strip absolute paths back to repo-relative form.
 /// Defaults to the current working directory (where the hook runs = repo root
 /// under Claude Code). Override with YANA_REPO_ROOT for tests or odd layouts.
+///
+/// Reads $PWD, not std::env::current_dir() — this was the absolute-path
+/// bypass regression (2026-07-03): current_dir() calls getcwd(), which
+/// resolves symlinks and returns the *physical* path, while a command's raw
+/// operand is whatever the caller typed (the *logical* path). On any system
+/// where part of the cwd is a symlink — every macOS run of this guard's own
+/// test suite, since /tmp -> /private/tmp there, and potentially real repo
+/// checkouts on iCloud Desktop sync or similar — repo_root() would resolve
+/// to /private/var/... while an absolute operand stayed /var/..., the
+/// strip_prefix below would never match, and the operand would fall through
+/// to the raw-absolute-path comparison, which a relative protected prefix
+/// like "core/rules" can never match. $PWD is what the shell's `cd` set it
+/// to, unresolved — the same logical form a typed command path would use.
 fn repo_root() -> PathBuf {
     std::env::var("YANA_REPO_ROOT")
+        .or_else(|_| std::env::var("PWD"))
         .map(PathBuf::from)
         .ok()
         .or_else(|| std::env::current_dir().ok())
@@ -106,6 +120,31 @@ mod tests {
         let hit = protected_hit("/workspaces/Yana-AI/core/rules/00-meta.md", &prot());
         std::env::remove_var("YANA_REPO_ROOT");
         assert!(hit.is_some(), "absolute path under repo root must be blocked");
+    }
+
+    #[test]
+    fn absolute_path_via_pwd_fallback_with_symlinked_cwd_is_protected() {
+        // THE 2026-07-03 REGRESSION: the test above only ever exercised the
+        // YANA_REPO_ROOT override branch, never the default fallback — so it
+        // kept passing even after repo_root() started calling
+        // std::env::current_dir() (which resolves symlinks) instead of
+        // reading $PWD (which doesn't). On macOS, /tmp -> /private/tmp, so
+        // any real invocation with cwd under /tmp — including this guard's
+        // own bash-driven end-to-end test suite — hit exactly this: raw
+        // operand path stayed "/var/folders/.../core/rules/x", repo_root()
+        // resolved to "/private/var/folders/.../", strip_prefix failed
+        // silently, and the absolute-path bypass was back. This test forces
+        // that exact mismatch (a $PWD that isn't what current_dir() would
+        // return) without needing an actual symlinked directory on disk.
+        std::env::remove_var("YANA_REPO_ROOT");
+        let prior_pwd = std::env::var("PWD").ok();
+        std::env::set_var("PWD", "/var/folders/fake/tmp.abc123");
+        let hit = protected_hit("/var/folders/fake/tmp.abc123/core/rules/00-meta.md", &prot());
+        match prior_pwd {
+            Some(v) => std::env::set_var("PWD", v),
+            None => std::env::remove_var("PWD"),
+        }
+        assert!(hit.is_some(), "absolute path resolved via $PWD fallback must be blocked");
     }
 
     #[test]
