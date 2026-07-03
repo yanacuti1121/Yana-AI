@@ -80,7 +80,7 @@ Works with **Claude Code**, **Cursor**, **Windsurf**, **Antigravity**, **Kiro**,
 
 **→ [Full documentation & demo](https://yanacuti1121.github.io/Yana-AI/)**
 
-→ [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md)
+→ [VISION.md](VISION.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md) · [VERSIONING.md](VERSIONING.md)
 
 > **What are the 101 agents?** They are not 101 AI models running at the same time — they're predefined specialist roles (security, frontend, backend, testing, learning, daily assistant…) used for routing and task organization. In normal usage, only the agent required for the current task is activated; most requests use a single model and a single agent route.
 >Generated from repository metrics
@@ -363,7 +363,7 @@ Posts a comment on every PR:
 23 subcommands. Zero Python dependency.
 
 ```bash
-yana-ai scan .                        # security scan — secrets, CVEs, supply chain risks
+yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
 yana-ai vault search Q                # search 1,989 skills by keyword
 yana-ai hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
@@ -375,7 +375,7 @@ yana-ai route classify "fix auth bug" # classify task → simple/complex/externa
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 
-**Benchmark:** `yana-ai scan` on a 10k-file repo: **1256x faster** than the Python equivalent.
+**Benchmark:** `yana-ai audit` on a 10k-file repo: **1256x faster** than the Python equivalent.
 
 ---
 

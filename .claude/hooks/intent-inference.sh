@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Intent Inference — detect true intent from tool sequence patterns and flag scope creep
 # Hook type: PreToolUse (advisory)
 # Last Reviewed: 2026-05-23

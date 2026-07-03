@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: UserPromptSubmit — inject relevant L1 facts + session trust into Claude context
 # Last Reviewed: 2026-07-02

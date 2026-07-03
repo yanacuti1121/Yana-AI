@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Hash-chain audit log — tamper-evident JSONL of every tool call
 # Last Reviewed: 2026-05-19

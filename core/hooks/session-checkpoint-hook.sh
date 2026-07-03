@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Auto-checkpoint trigger — calls session-checkpoint.sh every N tool calls
 # Hook type: PostToolUse
 # Last Reviewed: 2026-05-23

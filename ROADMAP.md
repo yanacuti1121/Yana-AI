@@ -348,7 +348,7 @@ Extend Yana AI hard enforcement to every major AI coding engine via `safe-run.sh
 ### v0.9.0 — 2026-05-28
 
 - [x] **`yana-ai report html`** — standalone HTML report (score bar, color-coded findings)
-- [x] **`yana-ai scan <url>`** — scan GitHub repo URL, temp clone, auto-cleanup
+- [x] **`yana-ai scan-url <url>`** — scan GitHub repo URL, temp clone, auto-cleanup
 - [x] **`yana-ai rule import <src>`** — import rule YAML from URL/file, conflict detection
 - [x] **`yana-ai upgrade [--check]`** — self-update from GitHub latest release
 

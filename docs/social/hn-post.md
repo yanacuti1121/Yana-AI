@@ -25,7 +25,7 @@ What each gate catches:
 - L9 Sovereign gate: human can freeze all agents, full rollback to last verified snapshot
 
 Beyond the safety gates:
-- yana-ai scan: security scanner — secrets, CVEs, supply chain risks
+- yana-ai audit: security scanner — secrets, CVEs, supply chain risks
 - yana-ai graph: knowledge graph — file deps, import resolution (Rust/TS/Python/Go)
 - yana-ai map: blast radius map — what can the agent actually touch in your repo?
 - yana-ai vault: searchable skill library

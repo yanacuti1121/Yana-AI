@@ -2,7 +2,6 @@
 # Yana AI - Canary Token Guard
 # Hook: Stop (fires after every agent response)
 # Purpose: Detect prompt extraction attempts via canary token echoing
-# Version: 1.0
 # Date: 2026-05-23
 
 set -euo pipefail

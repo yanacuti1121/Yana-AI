@@ -336,7 +336,7 @@ Commands:
   install [target]       One-command yana-ai setup for a project
   report html [target]   Export audit report as standalone HTML
   report pdf  [target]   Export audit report as PDF
-  scan    <url>          Scan a GitHub repo URL (no permanent clone)
+  scan-url <url>         Scan a GitHub repo URL (no permanent clone)
   rule import <src>      Import rule pack from URL or file
   upgrade                Self-update yana-ai to latest release
   init   [target]        Interactive setup wizard (engine, profile, guards)
@@ -628,7 +628,7 @@ case "$COMMAND" in
       *)    err "Unknown report subcommand: $SUBCMD (available: html, pdf)"; exit 1 ;;
     esac
     ;;
-  scan)
+  scan-url)
     python3 "$SCAN_URL_PY" "$@"
     ;;
   upgrade)

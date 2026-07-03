@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Self-Healing Hooks — detect unauthorized bypass usage and restore hook integrity
 # Hook type: PostToolUse (audit + remediation)
 # Last Reviewed: 2026-05-23

@@ -30,7 +30,7 @@ Also works with Cursor, OpenCode, Zed, Gemini, Copilot — 12 harness adapters t
 What's included:
 - 3,432 skill definitions (frontend, backend, AI/LLM, K8s, security, WASM...)  
 - 93 specialist agent definitions
-- Rust CLI: yana-ai scan, yana-ai graph, yana-ai vault, yana-ai doctor
+- Rust CLI: yana-ai audit, yana-ai graph, yana-ai vault, yana-ai doctor
 - Blast radius map — shows exactly what the agent can touch in your repo
 
 Install:
@@ -60,7 +60,7 @@ cargo install yana-rt
 
 17 subcommands. The main ones:
 
-yana-ai scan .       — secrets, CVEs, supply chain risks
+yana-ai audit .      — secrets, CVEs, supply chain risks
 yana-ai graph .      — knowledge graph (import resolution: Rust/TS/Python/Go)
 yana-ai vault search — search 3,432 skill definitions
 yana-ai hunt .       — OWASP pattern hunting (injection, SSRF, XSS...)
@@ -72,7 +72,7 @@ yana-ai watch .      — file watcher with hook triggers
 
 Stack: clap, serde, walkdir, regex, sha2, ureq, rayon
 
-Benchmark: yana-ai scan on a 10k-file repo → 1256x faster than the Python equivalent.
+Benchmark: yana-ai audit on a 10k-file repo → 1256x faster than the Python equivalent.
 
 Repo: https://github.com/yanacuti1121/yana-ai
 Crate: https://crates.io/crates/yana-rt

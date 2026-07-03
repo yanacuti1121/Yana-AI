@@ -2,7 +2,6 @@
 # Yana AI - SBOM Generator
 # Hook: PostToolUse (fires after tool execution)
 # Purpose: Generate Software Bill of Materials after dependency installations
-# Version: 1.0
 # Date: 2026-05-23
 
 set -euo pipefail

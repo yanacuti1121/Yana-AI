@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.7.0
 # Status: active
 # Description: L1.5 Tool Use Validation — schema-validate tool inputs, block path traversal and SSRF
 # Last Reviewed: 2026-05-24

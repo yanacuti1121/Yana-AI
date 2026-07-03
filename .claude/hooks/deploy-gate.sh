@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Block unauthorized deploys (gh/kubectl/docker/gcloud/fly/heroku)
 # Last Reviewed: 2026-05-19

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.7.0
 # Status: active
 # Description: Validate completion claims have evidence before Stop + PII detection
 # Last Reviewed: 2026-05-23

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Reset QA state after test run
 # Last Reviewed: 2026-05-19

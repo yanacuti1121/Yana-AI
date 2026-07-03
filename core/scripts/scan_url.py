@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""yana-ai scan <url> — scan a GitHub repo URL without cloning permanently."""
+"""yana-ai scan-url <url> — scan a GitHub repo URL without cloning permanently."""
 
 import argparse
 import json
@@ -45,7 +45,7 @@ def parse_github_url(url: str) -> tuple[str, str]:
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="yana-ai scan",
+        prog="yana-ai scan-url",
         description="Scan a GitHub repo URL for AI agent risks",
     )
     parser.add_argument("url", help="GitHub repo URL (https://github.com/owner/repo)")

@@ -301,7 +301,7 @@ Tự động đăng comment trên mỗi PR:
 23 lệnh con. Hoàn toàn không phụ thuộc Python.
 
 ```bash
-yana-ai scan .                        # quét bảo mật — secrets, CVE, rủi ro chuỗi cung ứng
+yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro chuỗi cung ứng
 yana-ai graph .                       # đồ thị tri thức — phụ thuộc tệp, phân giải import
 yana-ai vault search Q                # tìm trong 1,989 kỹ năng theo từ khóa
 yana-ai hunt .                        # săn các mẫu bảo mật (OWASP, injection, SSRF)
@@ -313,7 +313,7 @@ yana-ai route classify "fix auth bug" # phân loại tác vụ → đơn giản/
 yana-ai mission create "add-auth"     # tạo mission agent song song
 ```
 
-**Benchmark:** `yana-ai scan` trên repo 10k tệp: **nhanh hơn 1256 lần** so với bản Python tương đương.
+**Benchmark:** `yana-ai audit` trên repo 10k tệp: **nhanh hơn 1256 lần** so với bản Python tương đương.
 
 ---
 

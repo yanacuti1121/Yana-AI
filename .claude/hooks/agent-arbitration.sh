@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Multi-agent arbitration — PreToolUse hook that detects scope conflicts
 #   when 2+ agents claim overlapping file paths. Warns (advisory) or blocks (hard)
 #   depending on conflict severity.

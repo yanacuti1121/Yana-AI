@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Trigger QA pipeline automatically on code changes
 # Last Reviewed: 2026-05-19

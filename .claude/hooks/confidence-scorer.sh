@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Confidence Scorer — score action confidence 0–100 and annotate low-confidence actions
 # Hook type: PreToolUse (advisory, non-blocking)
 # Last Reviewed: 2026-05-23

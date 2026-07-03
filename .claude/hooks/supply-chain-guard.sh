@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.7.0
 # Status: active
 # Description: L4.5 Supply Chain Guard — block unsafe package installs, pipe-to-shell, typosquatting
 # Last Reviewed: 2026-05-24

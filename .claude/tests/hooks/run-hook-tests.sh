@@ -566,9 +566,9 @@ test_session_trust "reset → 100"           "reset"      ""   "100"
 test_session_trust "floor at 0"            "decrement"  "999" "0"
 test_session_trust "show alias"            "show"       ""   "100"
 
-# 10. Hook metadata / header checks for hooks added in v1.3.26
+# 10. Hook metadata / header checks
 echo ""
-echo "--- Hook metadata checks (v1.3.26 new hooks) ---"
+echo "--- Hook metadata checks ---"
 
 check_hook_meta() {
     local hook_file="$HOOKS_DIR/$1"
@@ -596,12 +596,18 @@ check_hook_meta() {
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 
+    # No longer checks for a "Version:" header — that field was removed
+    # from every hook (2026-07-03): nothing ever read it, it was never
+    # bumped on any consistent schedule, and 9 different stale values had
+    # accumulated across 40 hooks. "Description:" carries the same
+    # "this header block is present and filled in" signal without
+    # asserting a piece of dead metadata exists.
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
-    echo -n "Meta [$label] version header... "
-    if grep -q 'Version:' "$hook_file"; then
+    echo -n "Meta [$label] description header... "
+    if grep -q 'Description:' "$hook_file"; then
         echo "PASS"
     else
-        echo "FAIL (no Version: header)"
+        echo "FAIL (no Description: header)"
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 

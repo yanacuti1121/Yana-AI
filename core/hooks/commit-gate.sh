@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Advisory warn on cross-scope commits
 # Last Reviewed: 2026-05-19

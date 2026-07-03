@@ -2,7 +2,6 @@
 # code-quality-gate.sh — PostToolUse hook
 # Fires after every Write/Edit tool call.
 # Scans written code for AI-generated anti-patterns.
-# Version: 1.7.3
 # Gate: L2.5 — Code Quality
 
 set -euo pipefail

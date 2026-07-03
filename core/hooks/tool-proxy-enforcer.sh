@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # tool-proxy-enforcer.sh — PreToolUse:Bash hook
-# Version: 1.0.0
 # Status: active
 # Description: Enforce tool-proxy sanitize layer at hook level — blocks subshell
 #   injection and pipe-to-interpreter patterns not caught by guard-destructive.sh

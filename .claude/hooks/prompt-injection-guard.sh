@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.7.0
 # Status: active
 # Description: L3.5 Prompt Injection Guard — detect and block injection patterns in tool inputs
 # Last Reviewed: 2026-05-24

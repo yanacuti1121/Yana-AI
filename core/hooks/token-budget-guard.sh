@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Version: 1.4.20 | Status: active
+# Status: active
 # Description: Token Budget Guard — Circuit Breaker + fast-tier auto-routing
 # Hook type: PreToolUse (runs before each tool call)
 # Last Reviewed: 2026-05-23

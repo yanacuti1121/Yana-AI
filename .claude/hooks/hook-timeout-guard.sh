@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Hook Timeout Guard — kill any hook running longer than YANA_HOOK_TIMEOUT seconds
 # Hook type: PreToolUse (wraps execution of other hooks via subshell)
 # Last Reviewed: 2026-05-23

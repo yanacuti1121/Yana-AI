@@ -9,11 +9,11 @@
 
 Yana AI is a personal agent operating system for Claude Code, Cursor, OpenCode, and other AI coding harnesses.
 
-- **8,550 skills** in `core/skills/` — reference implementations for common dev tasks
-- **93 agents** in `core/agents/` — specialist agent definitions
-- **61 security rules** in `core/rules/` — enforced at runtime
-- **46 safety hooks** in `core/hooks/` — fire before dangerous actions
-- **Rust runtime** in `yana-rt/` — `yana-ai scan`, `yana-ai graph`, `yana-ai vault`, etc.
+- **1,989 skills** in `core/skills/` — reference implementations for common dev tasks
+- **101 agents** in `core/agents/` — specialist agent definitions
+- **68 security rules** in `core/rules/` — enforced at runtime
+- **50 safety hooks** in `core/hooks/` — fire before dangerous actions
+- **Rust runtime** in `yana-rt/` — `yana-ai audit`, `yana-ai graph`, `yana-ai vault`, etc.
 
 ---
 

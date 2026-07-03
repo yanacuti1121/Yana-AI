@@ -327,7 +327,7 @@ bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
 23개의 서브커맨드. Python 의존성 제로.
 
 ```bash
-yana-ai scan .                        # 보안 스캔 — 시크릿, CVE, 공급망 위험
+yana-ai audit .                       # 보안 스캔 — 시크릿, CVE, 공급망 위험
 yana-ai graph .                       # 지식 그래프 — 파일 의존성, import 해석
 yana-ai vault search Q                # 1,989개 스킬을 키워드로 검색
 yana-ai hunt .                        # 보안 패턴 탐색 (OWASP, 인젝션, SSRF)
@@ -339,7 +339,7 @@ yana-ai route classify "fix auth bug" # 작업 분류 → 단순/복잡/외부
 yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 ```
 
-**벤치마크:** 1만 개 파일 저장소에서 `yana-ai scan` 실행 — Python 버전 대비 **1256배 더 빠름**.
+**벤치마크:** 1만 개 파일 저장소에서 `yana-ai audit` 실행 — Python 버전 대비 **1256배 더 빠름**.
 
 ---
 

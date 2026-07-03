@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.6.0 | Status: active
+# Status: active
 # Description: Risk Scorer — score every AI action 0–100 before execution
 # Hook type: PreToolUse
 # Last Reviewed: 2026-05-23

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Warn when agent accesses token/secret files
 # Last Reviewed: 2026-05-19

@@ -327,7 +327,7 @@ bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
 23 个子命令。零 Python 依赖。
 
 ```bash
-yana-ai scan .                        # 安全扫描 — 密钥、CVE、供应链风险
+yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、import 解析
 yana-ai vault search Q                # 按关键词检索 1,989 个技能
 yana-ai hunt .                        # 检测安全模式（OWASP、注入、SSRF）
@@ -339,7 +339,7 @@ yana-ai route classify "fix auth bug" # 任务分类 → 简单/复杂/外部
 yana-ai mission create "add-auth"     # 创建并行智能体任务集
 ```
 
-**基准测试：** 在一万文件规模的仓库上运行 `yana-ai scan`——比 Python 版本**快 1256 倍**。
+**基准测试：** 在一万文件规模的仓库上运行 `yana-ai audit`——比 Python 版本**快 1256 倍**。
 
 ---
 

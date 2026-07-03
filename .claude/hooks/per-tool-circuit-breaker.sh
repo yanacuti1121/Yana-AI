@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.8.0
 # Status: active
 # Description: L5 Per-Tool Circuit Breaker — per-tool state tracking, adaptive backoff, fast-tier fallback
 # Last Reviewed: 2026-05-24

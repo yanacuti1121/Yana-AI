@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: Block destructive API calls (DELETE/DROP/TRUNCATE patterns)
 # Last Reviewed: 2026-05-19

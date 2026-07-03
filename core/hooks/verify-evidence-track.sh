@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.0.0
 # Status: active
 # Description: PostToolUse — track verify-command evidence + edit staleness for Truth Gate
 # Last Reviewed: 2026-07-02

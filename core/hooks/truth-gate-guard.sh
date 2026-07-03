@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.4.0
 # Status: active
 # Description: L3 Truth Gate — warn on unsupported done/passed/clean claims
 # Last Reviewed: 2026-07-02

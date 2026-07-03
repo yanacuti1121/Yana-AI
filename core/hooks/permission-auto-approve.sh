@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Version: 1.3.26
 # Status: active
 # Description: PermissionRequest — auto-approve known safe read-only tool patterns
 # Last Reviewed: 2026-05-19
