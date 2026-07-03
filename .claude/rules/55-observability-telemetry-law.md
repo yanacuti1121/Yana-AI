@@ -41,7 +41,7 @@ Audit trail compression: logs older than 7 days are compressed to `.gz` and SHA2
 
 ## SIEM Export
 
-Security-relevant spans (BLOCK, QUARANTINE, HONEY_TRIP, DEADMAN_TRIGGER) are forwarded to `YANA_SIEM_ENDPOINT` if set. Format: CEF (Common Event Format) over HTTPS.
+Security-relevant spans (BLOCK, QUARANTINE, HONEY_TRIP) are forwarded to `YANA_SIEM_ENDPOINT` if set. Format: CEF (Common Event Format) over HTTPS.
 
 ## Prohibited
 
