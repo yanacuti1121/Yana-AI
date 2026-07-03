@@ -417,7 +417,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 106,
+      "count": 107,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -434,6 +434,7 @@
         "core/scripts/build-skills-snapshot.sh",
         "core/scripts/check_context_pack.py",
         "core/scripts/check_counts.py",
+        "core/scripts/check_dangling_paths.py",
         "core/scripts/check_file.py",
         "core/scripts/ci_check.py",
         "core/scripts/clear-session.sh",
@@ -2689,7 +2690,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 106,
   "hooks_count": 51,
-  "scripts_count": 103,
+  "scripts_count": 104,
   "commands_count": 164,
   "rules_count": 68
 }

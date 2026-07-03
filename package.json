@@ -47,7 +47,7 @@
     "scanner/",
     "gates/",
     ".claude-plugin/",
-    "bin/yana-ai",
+    "bin/yana",
     "README.md",
     "CHANGELOG.md"
   ],
@@ -56,11 +56,11 @@
     "postinstall": "node scripts/npm-install.js --auto",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev",
-    "electron:dev": "cd electron && npm start",
-    "electron:build": "cd electron && npm run build:all",
-    "electron:build:mac": "cd electron && npm run build:mac",
-    "electron:build:win": "cd electron && npm run build:win",
-    "electron:install": "cd electron && npm install"
+    "electron:dev": "cd tools/yana-desktop && npm start",
+    "electron:build": "cd tools/yana-desktop && npm run build:linux && npm run build:mac && npm run build:win",
+    "electron:build:mac": "cd tools/yana-desktop && npm run build:mac",
+    "electron:build:win": "cd tools/yana-desktop && npm run build:win",
+    "electron:install": "cd tools/yana-desktop && npm install"
   },
   "devDependencies": {
     "wrangler": "^4.96.0"

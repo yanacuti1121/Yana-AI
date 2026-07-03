@@ -56,6 +56,9 @@ jobs:
       - name: Drift check
         run: bash core/scripts/drift-check.sh
 
+      - name: Check for dangling paths (package.json cd targets, files[], within-axis versions)
+        run: python3 core/scripts/check_dangling_paths.py
+
       - name: Check guards/index.yml drift
         run: python3 core/scripts/gen_guards_index.py --check
 
