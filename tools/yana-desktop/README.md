@@ -33,6 +33,15 @@ npm run build:mac      # dmg
 npm run build:win      # nsis installer
 ```
 
+**Known gap — not code-signed.** `package.json`'s `build` config has no
+`mac.hardenedRuntime`/notarization or `win.certificateFile` set, since
+that requires a paid Apple Developer ID / Windows code-signing certificate
+this project doesn't currently hold. Unsigned builds trigger Gatekeeper
+("unidentified developer") on macOS and SmartScreen warnings on Windows.
+This can't be fixed in code — it needs a certificate to be purchased and
+wired into the build pipeline (`CSC_LINK`/`CSC_KEY_PASSWORD` env vars for
+electron-builder) before it's resolved.
+
 ## Behavior
 
 - 🚀 Spawns `server.js` → polls `/api/status` (30 × 400ms) → opens window

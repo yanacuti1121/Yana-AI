@@ -562,6 +562,58 @@ function isSecureRequest(req) {
   return TRUST_PROXY && req.headers['x-forwarded-proto'] === 'https';
 }
 
+// ── DNS rebinding defense ─────────────────────────────────────────────────────
+// This server binds to 127.0.0.1 by default (loopback — Electron + Web
+// Preview). A page in the user's browser, hosted on any attacker domain, can
+// point that domain's DNS at 127.0.0.1 (TTL=0, "rebind" after the browser's
+// same-origin check already passed) and the browser will then happily send
+// requests that land on this loopback server — the Host header is the only
+// signal distinguishing "the real local UI" from "a rebound attacker page".
+// Only enforced for direct loopback binding: TRUST_PROXY deployments
+// (Railway/Docker, see YANA_TRUST_PROXY above) sit behind a proxy that
+// already routes on a known public domain, and enforcing this repo's
+// hardcoded localhost allowlist there would lock out that real domain
+// without YANA_ALLOWED_HOSTS being set up ahead of time.
+const ALLOWED_HOSTS = new Set([
+  `localhost:${PORT}`, `127.0.0.1:${PORT}`, `[::1]:${PORT}`,
+  'localhost', '127.0.0.1', '[::1]', // some clients omit the port
+]);
+if (process.env.YANA_ALLOWED_HOSTS) {
+  for (const h of process.env.YANA_ALLOWED_HOSTS.split(',')) {
+    const trimmed = h.trim();
+    if (trimmed) ALLOWED_HOSTS.add(trimmed);
+  }
+}
+
+function hostAllowed(req) {
+  if (TRUST_PROXY) return true;
+  const host = req.headers.host || '';
+  return ALLOWED_HOSTS.has(host);
+}
+
+// ── CSRF defense ──────────────────────────────────────────────────────────────
+// Sessions are cookie-based (auth.js) — a mutating request needs no secret
+// the browser wouldn't already attach automatically, so any page that can
+// get the user's browser to fire a cross-origin POST/PUT/PATCH/DELETE can
+// act as the signed-in user (classic CSRF). Require Origin (or Referer as a
+// fallback for the rare client that omits it) to name this same host.
+// Content-Type: application/json bodies can't be triggered by a plain HTML
+// form post, so any real browser fetch()/XHR to this API always sends
+// Origin — a request claiming to mutate state with neither header present
+// is treated as suspicious, not as a legitimate same-origin caller.
+function originAllowed(req) {
+  const host = req.headers.host || '';
+  const originHeader = req.headers.origin;
+  if (typeof originHeader === 'string' && originHeader) {
+    try { return new url.URL(originHeader).host === host; } catch (_) { return false; }
+  }
+  const referer = req.headers.referer;
+  if (typeof referer === 'string' && referer) {
+    try { return new url.URL(referer).host === host; } catch (_) { return false; }
+  }
+  return false;
+}
+
 const RATE = { windowMs: 60_000, max: 60, hits: new Map() };
 
 function rateLimited(req) {
@@ -1812,7 +1864,26 @@ const server = http.createServer(async (req, res) => {
   req.clientIp = clientIp(req);
   req.secure   = isSecureRequest(req);
 
+  // DNS rebinding guard — before anything else touches the request. A rebound
+  // attacker page can reach this loopback server at all; nothing downstream
+  // should run for a request whose Host header doesn't name this server.
+  if (!hostAllowed(req)) {
+    res.writeHead(421, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Misdirected request' }));
+    return;
+  }
+
   applySecurityHeaders(req, res);
+
+  // CSRF guard — any state-changing request must be same-origin. Runs before
+  // rate limiting / routing so a cross-origin mutation attempt never reaches
+  // a handler, authenticated or not (pre-auth mutating endpoints like
+  // /api/auth/setup are exactly the ones a forged cross-site POST would target).
+  const isMutating = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
+  if (isMutating && !originAllowed(req)) {
+    jsonError(res, 403, 'Cross-origin request blocked');
+    return;
+  }
 
   // Rate-limit POST and GET /api/* — AUTH-02/F3: previously only POST was
   // limited, so GET-based port scanning (/api/codexmate/status) was uncapped.

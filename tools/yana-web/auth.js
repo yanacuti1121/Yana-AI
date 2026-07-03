@@ -35,6 +35,15 @@ function saveJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data), { mode: 0o600 });
 }
 
+// Atomic create-only write — throws EEXIST instead of overwriting. Used for
+// account setup, where isSetUp()-then-writeFileSync would otherwise let two
+// concurrent POST /api/auth/setup requests both pass the check before either
+// writes, silently letting the second request's account overwrite the first.
+function saveJsonExclusive(file, data) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(data), { mode: 0o600, flag: 'wx' });
+}
+
 function hashPassword(password) {
   const salt = crypto.randomBytes(16);
   const hash = crypto.scryptSync(password, salt, SCRYPT.keylen, SCRYPT);
@@ -91,16 +100,22 @@ function isAuthed(req) {
 
 // req.secure is resolved by server.js (X-Forwarded-Proto behind a trusted
 // proxy) — the Secure flag keeps the session cookie off plain-HTTP hops.
+// SameSite=Strict, not Lax: this is a single-user local-app-style login, not
+// something users reach via an external link that should carry the cookie
+// on first cross-site navigation — server.js's Origin check (CSRF guard)
+// already rejects cross-origin mutations, but Strict means the browser
+// never attaches the cookie to a cross-site request in the first place,
+// which also covers simple cross-site GETs Origin-checking doesn't gate.
 function setCookie(req, res, token) {
   const ttl    = (sessions[token] && sessions[token].ttl) || SESSION_TTL;
   const secure = req.secure ? '; Secure' : '';
   res.setHeader('Set-Cookie',
-    `${COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ttl / 1000}${secure}`);
+    `${COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${ttl / 1000}${secure}`);
 }
 
 function clearCookie(req, res) {
   const secure = req.secure ? '; Secure' : '';
-  res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`);
+  res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`);
 }
 
 // ── Rate limit (login only — stricter than the global POST limiter) ──────────
@@ -161,6 +176,10 @@ function validUsername(name) {
 }
 
 // First run only: create the account (username + password), then sign in.
+// The isSetUp() precheck below is an early-exit for the common case only —
+// it does NOT provide the actual race safety. Two concurrent requests can
+// both pass it before either writes; saveJsonExclusive's atomic `wx` flag
+// is what actually guarantees only the first write wins.
 function handleSetup(req, res, body) {
   if (isSetUp()) { json(res, 409, { error: 'Already set up' }); return; }
   const username = body && body.username;
@@ -171,11 +190,16 @@ function handleSetup(req, res, body) {
   if (typeof password !== 'string' || password.length < 6) {
     json(res, 400, { error: 'Password must be at least 6 characters' }); return;
   }
-  saveJson(AUTH_FILE, {
-    ...hashPassword(password),
-    username: normalizeUsername(username),
-    created: new Date().toISOString(),
-  });
+  try {
+    saveJsonExclusive(AUTH_FILE, {
+      ...hashPassword(password),
+      username: normalizeUsername(username),
+      created: new Date().toISOString(),
+    });
+  } catch (err) {
+    if (err.code === 'EEXIST') { json(res, 409, { error: 'Already set up' }); return; }
+    throw err;
+  }
   setCookie(req, res, createSession(!!body.remember));
   json(res, 200, { ok: true });
 }
