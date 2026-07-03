@@ -32,6 +32,9 @@ jobs:
       - name: Drift check
         run: bash core/scripts/drift-check.sh
 
+      - name: Check guards/index.yml drift
+        run: python3 core/scripts/gen_guards_index.py --check
+
       - name: Verify install script is executable
         run: bash -n install.sh
 

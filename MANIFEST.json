@@ -416,7 +416,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 105,
+      "count": 106,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -448,6 +448,7 @@
         "core/scripts/explain_rule.py",
         "core/scripts/export_findings.py",
         "core/scripts/feedback-loop.sh",
+        "core/scripts/gen_guards_index.py",
         "core/scripts/gen_skills_page.py",
         "core/scripts/generate-agents-data.py",
         "core/scripts/generate-coverage-report.sh",
@@ -2687,7 +2688,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 106,
   "hooks_count": 50,
-  "scripts_count": 102,
+  "scripts_count": 103,
   "commands_count": 164,
   "rules_count": 68
 }

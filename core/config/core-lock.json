@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-03T09:18:38+00:00",
-  "count": 230,
+  "generated": "2026-07-03T09:27:15+00:00",
+  "count": 231,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -158,6 +158,7 @@
     "core/scripts/explain_rule.py": "acd5f289108ac6842696ba9fe7e1aa61208589720f9c318b85493f1b37ee2db6",
     "core/scripts/export_findings.py": "960b393999c82c1cdc320cbc511162db2ba66f0e12d9b5e6a29a6738d1e8ad4c",
     "core/scripts/feedback-loop.sh": "0d2d609054e67b8a64e6a8059f6c869a67adf552ce56a6114a3dfde977f1d23d",
+    "core/scripts/gen_guards_index.py": "f985e646af21ed27365225d883322ad88aae99ba6823ed4265ae5842d25f5904",
     "core/scripts/gen_skills_page.py": "b80f9461200b6875af08928970695b3fb5597e4b841990b97bd66115267134d4",
     "core/scripts/generate-agents-data.py": "6614fe5aeaa3bf6e51ff9ae1be610db66d5a1af0e7b23a59099b4553a3cff2b3",
     "core/scripts/generate-coverage-report.sh": "5ee3927b99709adb6b239cd85a719673e2f649c7d3d043fbdc25e07a96ca7e88",

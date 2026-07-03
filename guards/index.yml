@@ -1,36 +1,306 @@
 guards:
 
-  guard-destructive:
-    description: Block rm -rf, DROP TABLE, force push before they execute
+  agent-arbitration:
+    description: "Multi-agent arbitration — PreToolUse hook that detects scope conflicts"
     hook_type: PreToolUse
-    matcher: "Bash"
-    file: guard-destructive.sh
-    risk_level: critical
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: agent-arbitration.sh
 
-  scope-guard:
-    description: Warn when writing files outside declared task scope
+  api-destruct-guard:
+    description: "Block destructive API calls (DELETE/DROP/TRUNCATE patterns)"
     hook_type: PreToolUse
-    matcher: "Write|Edit|MultiEdit"
-    file: scope-guard.sh
-    risk_level: high
-
-  token-budget:
-    description: Circuit breaker — hard block after 5 consecutive tool calls
-    hook_type: PreToolUse
-    matcher: ".*"
-    file: token-budget-guard.sh
-    risk_level: high
-
-  truth-gate:
-    description: Require evidence before Claude claims a task is complete
-    hook_type: Stop
-    matcher: ""
-    file: truth-gate-guard.sh
-    risk_level: medium
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: api-destruct-guard.sh
 
   audit-log:
-    description: Hash-chain tamper-evident JSONL log of every tool call
+    description: "Hash-chain audit log — tamper-evident JSONL of every tool call"
     hook_type: PostToolUse
     matcher: ".*"
-    file: audit-log.sh
     risk_level: medium
+    file: audit-log.sh
+
+  auto-kill-stuck-tasks:
+    description: "Kill tasks stuck > timeout threshold"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: auto-kill-stuck-tasks.sh
+
+  auto-qa-reset:
+    description: "Reset QA state after test run"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: auto-qa-reset.sh
+
+  auto-qa-trigger:
+    description: "Trigger QA pipeline automatically on code changes"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: auto-qa-trigger.sh
+
+  canary-token-guard:
+    description: "Detect prompt extraction attempts via canary token echoing"
+    hook_type: Stop
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: canary-token-guard.sh
+
+  code-freeze:
+    description: "Block commits when code freeze flag is active"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: code-freeze.sh
+
+  code-quality-gate:
+    description: "Fires after every Write/Edit tool call."
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: code-quality-gate.sh
+
+  commit-gate:
+    description: "Advisory warn on cross-scope commits"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: commit-gate.sh
+
+  confidence-scorer:
+    description: "Confidence Scorer — score action confidence 0–100 and annotate low-confidence actions"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: confidence-scorer.sh
+
+  context-compress-trigger:
+    description: "Watches context-monitor state. When WARNING or CRITICAL fires,"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: context-compress-trigger.sh
+
+  context-gate-log:
+    description: "Log context gate decisions for audit"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: context-gate-log.sh
+
+  context-gate:
+    description: "Gate context window — warn when approaching token limit"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: context-gate.sh
+
+  context-monitor:
+    description: "PostToolUse hook — context window monitor."
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: context-monitor.js
+
+  cost-guard:
+    description: "Warn when session cost exceeds budget threshold"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: cost-guard.sh
+
+  coverage-gate:
+    description: "PreToolUse: Bash (git commit)"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: coverage-gate.sh
+
+  db-protect:
+    description: "Block destructive database operations"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: db-protect.sh
+
+  dependency-safety-gate:
+    description: "PostToolUse: Write|Edit"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: dependency-safety-gate.sh
+
+  deploy-gate:
+    description: "Block unauthorized deploys (gh/kubectl/docker/gcloud/fly/heroku)"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: deploy-gate.sh
+
+  format-on-write:
+    description: "Auto-format files on Write/Edit tool use"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: format-on-write.sh
+
+  gitnexus-hook:
+    description: "GitNexus Claude Code Plugin Hook"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: gitnexus-hook.js
+
+  guard-blast-radius:
+    description: "Block write/delete-class shell commands whose real blast"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: guard-blast-radius.sh
+
+  guard-destructive:
+    description: "Block destructive shell commands (rm -rf, kill, etc.)"
+    hook_type: PreToolUse
+    matcher: "Bash"
+    risk_level: critical
+    file: guard-destructive.sh
+
+  hook-timeout-guard:
+    description: "Hook Timeout Guard — kill any hook running longer than YANA_HOOK_TIMEOUT seconds"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: hook-timeout-guard.sh
+
+  intent-inference:
+    description: "Intent Inference — detect true intent from tool sequence patterns and flag scope creep"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: intent-inference.sh
+
+  log-agent:
+    description: "Log agent actions and decisions"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: log-agent.sh
+
+  multi-agent-lock:
+    description: "Chạy trước mỗi Write/Edit/MultiEdit tool call"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: multi-agent-lock.sh
+
+  per-tool-circuit-breaker:
+    description: "L5 Per-Tool Circuit Breaker — per-tool state tracking, adaptive backoff, fast-tier fallback"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: per-tool-circuit-breaker.sh
+
+  permission-auto-approve:
+    description: "PermissionRequest — auto-approve known safe read-only tool patterns"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: permission-auto-approve.sh
+
+  prompt-injection-guard:
+    description: "L3.5 Prompt Injection Guard — detect and block injection patterns in tool inputs"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: prompt-injection-guard.sh
+
+  rbac-guard:
+    description: "Enforce RBAC — block actions outside agent role"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: rbac-guard.sh
+
+  risk-scorer:
+    description: "Risk Scorer — score every AI action 0–100 before execution"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: risk-scorer.sh
+
+  sbom-generator:
+    description: "Generate Software Bill of Materials after dependency installations"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: sbom-generator.sh
+
+  scope-guard:
+    description: "Warn when agent reads secrets or writes to product directories"
+    hook_type: PreToolUse
+    matcher: "Write|Edit|MultiEdit"
+    risk_level: high
+    file: scope-guard.sh
+
+  self-healing-hooks:
+    description: "Self-Healing Hooks — detect unauthorized bypass usage and restore hook integrity"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: self-healing-hooks.sh
+
+  session-bootstrap:
+    description: "UserPromptSubmit — inject relevant L1 facts + session trust into Claude context"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: session-bootstrap.sh
+
+  session-checkpoint-hook:
+    description: "Auto-checkpoint trigger — calls session-checkpoint.sh every N tool calls"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: session-checkpoint-hook.sh
+
+  static-analysis-gate:
+    description: "PostToolUse: Write|Edit|MultiEdit"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: static-analysis-gate.sh
+
+  supply-chain-guard:
+    description: "L4.5 Supply Chain Guard — block unsafe package installs, pipe-to-shell, typosquatting"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: supply-chain-guard.sh
+
+  telemetry-sender:
+    description: "Emit telemetry events to session log"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: telemetry-sender.sh
+
+  test-runner-gate:
+    description: "PostToolUse: Write|Edit|MultiEdit"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: test-runner-gate.sh
+
+  token-budget-guard:
+    description: "Token Budget Guard — Circuit Breaker + fast-tier auto-routing"
+    hook_type: PreToolUse
+    matcher: ".*"
+    risk_level: high
+    file: token-budget-guard.sh
+
+  token-scope-guard:
+    description: "Warn when agent accesses token/secret files"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: token-scope-guard.sh
+
+  tool-attention:
+    description: "PostToolUse hook — Tool Attention tracker."
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: tool-attention.js
+
+  tool-proxy-enforcer:
+    description: "Enforce tool-proxy sanitize layer at hook level — blocks subshell"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: tool-proxy-enforcer.sh
+
+  tool-validator:
+    description: "L1.5 Tool Use Validation — schema-validate tool inputs, block path traversal and SSRF"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: tool-validator.sh
+
+  truth-gate-guard:
+    description: "L3 Truth Gate — warn on unsupported done/passed/clean claims"
+    hook_type: Stop
+    matcher: ""
+    risk_level: medium
+    file: truth-gate-guard.sh
+
+  validate-completion:
+    description: "Validate completion claims have evidence before Stop + PII detection"
+    hook_type: Stop
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: validate-completion.sh
+
+  verify-evidence-track:
+    description: "PostToolUse — track verify-command evidence + edit staleness for Truth Gate"
+    hook_type: Stop
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: verify-evidence-track.sh
