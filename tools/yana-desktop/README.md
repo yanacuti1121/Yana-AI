@@ -42,6 +42,25 @@ This can't be fixed in code — it needs a certificate to be purchased and
 wired into the build pipeline (`CSC_LINK`/`CSC_KEY_PASSWORD` env vars for
 electron-builder) before it's resolved.
 
+## Auto-update
+
+Wired via `electron-updater`, checking GitHub Releases (this repo,
+`build.publish` in `package.json`) on launch and every 4 hours after.
+Ask-before-download and ask-before-install — never silent.
+
+CI (`.github/workflows/desktop.yml`) builds with
+`electron-builder --publish onTag`, which uploads the installers **and**
+the `latest.yml`/`latest-mac.yml`/`latest-linux.yml` feed files
+electron-updater reads to know a newer version exists.
+
+Because of the code-signing gap above: on macOS, electron-updater verifies
+a downloaded update's signature before installing it, so today the app
+will correctly detect and offer a macOS update but `quitAndInstall()` will
+fail with a signature error until this project has a certificate. Windows
+(NSIS) and Linux (AppImage) are not signature-gated the same way and the
+full download → install flow works on those today, at the same reduced
+trust level any unsigned Windows/Linux binary already carries.
+
 ## Behavior
 
 - 🚀 Spawns `server.js` → polls `/api/status` (30 × 400ms) → opens window
@@ -49,6 +68,7 @@ electron-builder) before it's resolved.
 - 🔗 External links open in the OS browser, never embedded
 - 🧹 `before-quit` kills the server child process cleanly
 - 🔐 Server stays loopback-only (`127.0.0.1`) — nothing exposed to the network
+- 🔄 Checks for updates on launch + every 4h — see **Auto-update** above
 
 ---
 

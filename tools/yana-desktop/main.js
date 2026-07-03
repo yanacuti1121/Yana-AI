@@ -4,6 +4,7 @@ const path  = require('path');
 const fs    = require('fs');
 const { fork } = require('child_process');
 const http  = require('http');
+const { autoUpdater } = require('electron-updater');
 
 const PORT       = 8081;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
@@ -115,6 +116,66 @@ ipcMain.handle('yana:reveal-auth-file', () => {
   else shell.openPath(path.dirname(target));
 });
 
+// ── Auto-update ───────────────────────────────────────────────────────────────
+// Checks GitHub Releases (build.publish in package.json) for a newer tagged
+// build. Ask-before-download, ask-before-install — never silent, since an
+// auto-installed update the user didn't confirm is a bigger risk than a
+// missed notification.
+//
+// KNOWN GAP: this repo does not currently hold a code-signing certificate
+// (see tools/yana-desktop/README.md). On macOS, electron-updater verifies a
+// downloaded update's signature before allowing install; an unsigned build
+// will fail that check with a clear error rather than silently installing
+// unverified code — so today this menu genuinely tells a macOS user "update
+// available" but downloadUpdate()/quitAndInstall() will error out until a
+// certificate exists. Windows/Linux (AppImage) are not signature-gated the
+// same way and this flow works there today, at the reduced trust level any
+// unsigned Windows/Linux binary already carries.
+function setupAutoUpdater() {
+  if (!app.isPackaged) return; // dev runs have no publish feed to check
+
+  autoUpdater.autoDownload         = false; // ask first
+  autoUpdater.autoInstallOnAppQuit = false; // ask first
+
+  autoUpdater.on('update-available', (info) => {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update available',
+      message: `Yana AI ${info.version} is available — you have ${app.getVersion()}.`,
+      detail: 'Download it now?',
+      buttons: ['Download', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then(({ response }) => {
+      if (response === 0) autoUpdater.downloadUpdate();
+    });
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update ready',
+      message: 'The update has been downloaded.',
+      detail: 'Restart Yana AI now to install it?',
+      buttons: ['Restart now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then(({ response }) => {
+      if (response === 0) autoUpdater.quitAndInstall();
+    });
+  });
+
+  // Errors (offline, unsigned-build signature check on mac, no release yet)
+  // are logged, never surfaced as a dialog — a failed background version
+  // check must not interrupt someone who is just trying to use the app.
+  autoUpdater.on('error', (err) => console.error('[autoUpdater]', err.message));
+
+  autoUpdater.checkForUpdates();
+  // Re-check periodically for long-running sessions — 4h, not on every
+  // window focus, so this never becomes a noisy repeated background poll.
+  setInterval(() => autoUpdater.checkForUpdates(), 4 * 3600_000);
+}
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
@@ -132,6 +193,7 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
+  setupAutoUpdater();
 });
 
 app.on('window-all-closed', () => {

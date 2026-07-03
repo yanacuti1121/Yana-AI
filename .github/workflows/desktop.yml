@@ -55,9 +55,17 @@ jobs:
         working-directory: tools/yana-desktop
         run: npm install
 
+      # --publish onTag: electron-builder detects the tag-push CI event itself
+      # and only uploads to the GitHub Release in that case (workflow_dispatch
+      # runs still build locally, just without publishing) — this also emits
+      # latest.yml / latest-mac.yml / latest-linux.yml alongside the installer
+      # files, which is the feed electron-updater (see main.js) reads to know
+      # a new version exists. The previous plain "upload the installer" step
+      # never produced those files, so auto-update had nothing to check
+      # against even once wired up in the app.
       - name: Build app
         working-directory: tools/yana-desktop
-        run: npm run build:${{ matrix.platform }}
+        run: npx electron-builder --${{ matrix.platform }} --publish onTag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,10 +75,3 @@ jobs:
           name: yana-desktop-${{ matrix.platform }}
           path: tools/yana-desktop/dist/${{ matrix.artifact }}
           retention-days: 30
-
-      - name: Attach to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-        with:
-          files: tools/yana-desktop/dist/${{ matrix.artifact }}
-          fail_on_unmatched_files: false

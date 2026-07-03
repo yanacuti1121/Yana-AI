@@ -18,11 +18,21 @@
     "build:mac":   "electron-builder --mac",
     "build:win":   "electron-builder --win"
   },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  },
   "devDependencies": {
     "electron":         "31.3.0",
     "electron-builder": "24.13.3"
   },
   "build": {
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "yanacuti1121",
+        "repo": "Yana-AI"
+      }
+    ],
     "appId": "com.yana-ai.yana",
     "productName": "Yana AI",
     "copyright": "Copyright © 2026 Vũ Văn Tâm",
@@ -32,7 +42,9 @@
     },
     "files": [
       "main.js",
-      "preload.js"
+      "preload.js",
+      "package.json",
+      "node_modules/**/*"
     ],
     "extraFiles": [
       {
@@ -65,7 +77,8 @@
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
       ]
     },
     "win": {
