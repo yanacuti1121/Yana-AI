@@ -1010,15 +1010,13 @@ if [[ -x "$RT_BIN" ]]; then
     rm -rf "$BLAST_FIXTURE"
 else
     echo "SKIP: yana-rt release binary not built — run 'cargo build --release' to test guard-blast-radius.sh"
-    # ci.yml's "test" job never builds target/release/yana-rt (only the
-    # separate rust-tests job does, and only a debug build at that) — so
-    # today this SKIP fires on every CI run, not just local runs without a
-    # release build. That's not flagged as this script's own bug/scope to
-    # fix (rebuilding a release Rust binary just for 4 bash-invoked cases
-    # that substantially overlap src/guard/mod.rs's own #[cfg(test)]
-    # coverage is a real CI-runtime tradeoff, not an obvious call) — but it
-    # must not stay invisible either. Surfaced in the summary below instead
-    # of silently vanishing from "826 checks" with no trace anyone ran it.
+    # ci.yml's "test" job now builds target/release/yana-rt before this
+    # suite runs (added 2026-07-03, same day a real absolute-path bypass
+    # regression in src/guard/blast_paths.rs was found specifically
+    # because this section had never run in CI up to that point) — so this
+    # SKIP should only ever fire on a local run without a release build,
+    # not in CI. Still surfaced in the summary below rather than silently
+    # vanishing, in case that assumption ever breaks again.
     SKIPPED_SECTIONS+=("guard-blast-radius.sh (4 cases) — yana-rt release binary not built")
 fi
 

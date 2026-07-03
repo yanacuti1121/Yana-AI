@@ -26,6 +26,30 @@ jobs:
           sudo apt-get install -y jq python3-pip
           python3 -m pip install -r requirements-dev.txt
 
+      # guard-blast-radius.sh's 4 test cases in run-hook-tests.sh are
+      # Rust-only (no bash fallback — see the hook's own header comment)
+      # and SKIP silently without a built target/release/yana-rt. That
+      # meant this guard had never actually run in CI, on any commit,
+      # ever — which is exactly how a real absolute-path bypass regression
+      # in src/guard/blast_paths.rs went undetected until it was caught by
+      # chance during a manual local run (see the 2026-07-03 fix commit).
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+
+      - name: Build yana-rt (release, for guard-blast-radius.sh)
+        run: cargo build --release --bin yana-rt
+
       - name: Run hook test suite
         run: bash core/tests/hooks/run-hook-tests.sh
 
