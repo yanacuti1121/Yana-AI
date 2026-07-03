@@ -1,98 +1,76 @@
 **Rule:** agent-hierarchy-law
 **Status:** REVIEWED
-**Gate:** L1 — authority enforcement layer
-**Source:** yana-ai (swarm-orchestrator.sh), RBAC principles, hashicorp/raft consensus model
+**Gate:** L1 — infrastructure-write review requirement
+**Source:** yana-ai (rewritten 2026-07-03 — see [[54-bft-consensus-law]] for the mechanism this rule now points to)
 
 ---
 
 # Agent Hierarchy Law
 
+## Tier disambiguation (read this first)
+
+This repo uses the word "tier" for three separate, unrelated things. Before this rewrite, this file added a fourth. It doesn't anymore — there are two:
+
+1. **Rule-priority tiers** (`00-meta-rule-enforcer.md`, Tier 0–5) — which *rule* wins when two rules conflict. Nothing to do with agents.
+2. **Operator-privilege tiers** (`core/gates/require-tier.sh`, guest/operator/sovereign) — a real, working, human-identity gate. Nothing to do with agents either; it gates what the *human* is authenticated to authorize.
+
+There is no third, agent-authority tier system. The "TIER 1 security-team / TIER 2 core-development / ..." hierarchy this file used to define was never enforced by any code — `swarm-orchestrator.sh` is a manual CLI, not something any hook invokes automatically — and inventing a fourth meaning for "tier" only made the other two harder to find. What this file actually needs (independent review before a risky write, blocking power for a serious finding) doesn't require a tier system at all — see below.
+
 ## Principle
 
-Agents are organized in authority tiers. Higher-tier agents can **veto** actions initiated by lower-tier agents. No agent can elevate its own tier. The hierarchy is enforced by `swarm-orchestrator.sh` before any action with external side-effects is executed.
+Before a change lands in critical infrastructure, it gets read by someone other than the agent that wrote it. That's the whole requirement. The mechanism is: the main agent dispatches independent review subagents (per [[54-bft-consensus-law]]'s category table) and a Safety-severity finding from either one blocks the write until a human resolves it.
 
-## Authority Tiers
+## Review Roles
 
-```
-TIER 1 — security-team          [VETO POWER — overrides all lower tiers]
-  • Can veto any action from any lower tier
-  • Responsible for: gate enforcement, injection blocking, credential review
-  • Voting weight: 2× in consensus rounds
-  • Required quorum participant for: push, deploy, merge, publish
-
-TIER 2 — core-development
-  • Can initiate: write, edit, create, refactor
-  • Cannot bypass: security-team review for commits touching core/rules/ or core/scripts/
-  • Voting weight: 1×
-
-TIER 3 — qa-team
-  • Can initiate: test runs, smoke checks, report generation
-  • Cannot initiate: code changes, deployments
-  • Voting weight: 1×
-
-TIER 4 — docs-team, design-team  [ADVISORY — no blocking vote]
-  • Advisory votes only — cannot block consensus
-  • Voting weight: 0.5× (rounded down in tally)
-```
-
-## Veto Protocol
+Not an authority hierarchy — a mapping of *which* existing, already-read-only agent persona reviews *which kind* of change. Full trigger-path table lives in [[54-bft-consensus-law]] (single source, not duplicated here); the roles it draws from:
 
 ```
-1. security-team casts NO vote on any REQUEST message
-2. swarm-orchestrator.sh detects VETO via VETO_AGENTS check
-3. VETO message broadcast to all agents via agent-message-bus.sh
-4. Action is BLOCKED — exit code 2
-5. Initiating agent receives rejection with reason
-6. Human review required to override a security-team veto
-
-VETO cannot be:
-  - Overridden by majority vote of lower-tier agents
-  - Bypassed by spawning a sub-agent with elevated tier
-  - Timed out (no TTL on veto decisions)
-
-VETO can be:
-  - Lifted only by the same security-team agent that issued it
-  - Or by human operator with YANA_IRREVERSIBLE_OK=1
+security-team/security-auditor.md   — reviews every category (rules, hooks/gates,
+                                       agent personas, integrity files) — the one
+                                       constant across all four
+architecture-auditor.md             — paired reviewer for rules and agent personas
+code-auditor.md                     — paired reviewer for hooks/gates and
+                                       integrity-file-triggering changes
 ```
 
-## Consensus Thresholds
+All three are already read-only per [[subagent-policy]] — there's no separate "can this agent write" question to answer, subagent-policy.md already settled it for every subagent regardless of which persona is dispatched.
+
+## Blocking rule
+
+Any Safety-severity finding (per [[conflict-resolution]]'s existing Safety > Correctness > Performance > Style order) from a dispatched reviewer blocks the write. The main agent does not proceed, does not "note it and continue," and does not let a second reviewer's clean report override the first one's Safety finding — Safety wins regardless of what else was reported. Resolve via [[conflict-resolution]] Strategy C (human escalation), same procedure already used for any other direct conflict between subagent recommendations.
+
+Correctness-severity findings that break an existing enforced gate or test are also blocking, by the same [[conflict-resolution]] priority order. Performance/Style findings are advisory — they don't invent a new severity scale here, they use the one that already exists.
+
+## What actually backstops this today
+
+Not a fabricated file-access-by-tier ACL — three real mechanisms already enforce most of what that table used to claim:
 
 ```
-Standard actions (edit, read, test):
-  Quorum: simple majority > 50% of casting votes
-  Abstentions: do not count toward total
-  Veto: security-team NO = immediate block
-
-Irreversible actions (push, deploy, publish, DROP TABLE):
-  Quorum: super-majority > 66%
-  Requires: at least 1 vote from Tier 1 (security-team)
-  Veto: security-team NO = immediate block
-
-Emergency override (human-in-loop only):
-  YANA_IRREVERSIBLE_OK=1 set by human
-  Logged to audit trail with operator identity
-  Cannot be set by an agent (env-integrity-policy.md blocks it)
-```
-
-## File Access Restrictions by Tier
-
-```
-core/rules/        — Tier 1 write, Tier 2 read-only, others no access
-core/scripts/      — Tier 1 write, Tier 2 write (with Tier 1 approval)
-core/skills/       — Tier 2 write
-core/agents/       — Tier 1 write only
-core/bus/          — All tiers read/write (bus is shared)
-releases/          — Tier 2 write with Tier 3 approval (test gate)
+subagent-policy.md            — every subagent, regardless of persona, cannot
+                                 Write/Edit/commit/push/run-hooks; this is a
+                                 categorical block, not a tier-conditional one
+git-push-enforcement.md       — human gate before anything reaches origin,
+                                 independent of who/what proposed the change
+67-core-integrity-lock-law.md — core/ files are SHA-256-pinned in
+                                 core-lock.json; an out-of-band change to a
+                                 pinned file is detected on the next verify,
+                                 not prevented by an agent-side permission check
 ```
 
 ## Anti-Pattern Checklist
 
 ```
-❌ Agent self-assigns to a higher tier in its own config
-❌ Veto overridden by re-submitting same request with different wording
-❌ Sub-agent spawned with elevated permissions to bypass parent veto
-❌ Consensus proceeds without checking VETO_AGENTS list
-❌ security-team mailbox monitored by lower-tier agent (information leak)
-❌ Tier 4 advisory vote counted as blocking vote
-❌ Human override (YANA_IRREVERSIBLE_OK) set inside an agent script
+❌ Proceeding with an infra write after a reviewer returns a Safety-severity
+   finding, because a second reviewer's report looked clean
+❌ Dispatching only one reviewer when 54-bft-consensus-law.md's category
+   table calls for two
+❌ Treating an advisory (Performance/Style) finding as blocking, or a
+   blocking finding as advisory — conflict-resolution.md's priority order
+   already answers which is which
+❌ Re-introducing a tier/authority vocabulary for agents — if a future
+   change genuinely needs one, it needs a fresh design, not a revival of
+   this file's old async-voting model
+❌ Skipping the review step because the change "is small" — see
+   54-bft-consensus-law.md's trigger-path table; if the path matches,
+   the size of the diff isn't the gate
 ```

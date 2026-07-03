@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v0.43.0 · Personal Agent OS                │ Tips for getting started                                                                      │
 │ 101 agents · 1,989 skills                   │ yana-ai doctor                                                                               │
-│ 66 rules · 50 hooks · 102 scripts          │ yana-ai init                                                                                  │
+│ 66 rules · 51 hooks · 102 scripts          │ yana-ai init                                                                                  │
 │ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
 │                                            │ v0.43.0 — WASM guard + automated publish pipeline                                           │
@@ -64,8 +64,8 @@ Yana (You Are Not Alone) 是一款智能体操作系统 (Agent OS)。它通过�
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_技能-1,989-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_智能体-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_规则-67-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_钩子-50-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_规则-68-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_钩子-51-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_命令-166-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_网关-9_层-ce422b?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_制作于-越南-da251d?style=flat-square" />

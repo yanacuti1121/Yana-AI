@@ -1,7 +1,7 @@
 **Rule:** agent-communication-policy
 **Status:** REVIEWED
-**Gate:** L0 — all inter-agent messages are logged
-**Source:** yana-ai (agent-message-bus.sh), RFC 7519 (JWT claims model), NIST SP 800-207 (zero-trust)
+**Gate:** L0 — every subagent dispatch is traceable
+**Source:** yana-ai (rewritten 2026-07-03 to match the real dispatch model — see "Why not async messaging" below)
 
 ---
 
@@ -9,110 +9,69 @@
 
 ## Principle
 
-All communication between Yana AI agents MUST use the structured JSON message format defined below. No agent may communicate with another via shared global variables, unstructured stdout, or direct filesystem writes outside `core/bus/`. Every message is logged and integrity-checked.
+Every "agent" a session actually spawns is a Task-tool subagent, dispatched synchronously by the main agent within the same Claude Code session, that runs to completion and returns a plain-text report. There is no persistent, always-on second process to send a message to. The canonical format for that dispatch and that report is already defined in [[subagent-policy]] — this file does not duplicate it, it points at it.
 
-## Canonical Message Format
+No agent may communicate with another via shared global variables or direct filesystem writes outside its own declared task scope. That constraint doesn't need a message-bus protocol to enforce — it's already covered by [[subagent-policy]]'s read-only-unless-main-agent rule.
 
-```json
-{
-  "id":       "<uuid-v4>",
-  "from":     "<agent-name>",
-  "to":       "<agent-name> | *",
-  "type":     "REQUEST | RESPONSE | VETO | BROADCAST | HEARTBEAT",
-  "subject":  "<topic-slug>",
-  "payload":  {},
-  "ts":       "<ISO-8601-UTC>",
-  "nonce":    "<16-hex-chars>",
-  "ttl":      300,
-  "sig":      "<sha256(payload-json)>"
-}
+## The real dispatch/report contract
+
+**Dispatch** (main agent → subagent): a prompt stating the task, its scope, and what the subagent must not do (write, edit, commit, push, run hooks) — per [[subagent-policy]]'s dispatch template.
+
+**Report** (subagent → main agent): plain text, not a file, not a message envelope. Structure:
+
+```markdown
+## Review Report — [scope]
+
+**Files examined:** [list]
+**Findings:**
+- [finding 1]
+- [finding 2]
+
+**Evidence & Reasoning:**
+- Why this conclusion? (cite the pattern/logic found)
+- What was checked but found clean.
+
+**Recommended actions for main agent:**
+- [action 1] — at [file:line]
+
+**No files were modified.**
 ```
 
-## Field Constraints
+The main agent receives every report directly in its own context — there is no separate delivery step, no queue, no "did it arrive" question, because it's a synchronous function-call-shaped return, not a network hop.
 
-```
-id:       required, UUID v4, unique globally, used for deduplication
-from:     required, must match a registered agent name in core/agents/
-to:       required, "*" for broadcast, specific agent name for direct
-type:     required, one of REQUEST | RESPONSE | VETO | BROADCAST | HEARTBEAT
-subject:  required, kebab-case slug, max 64 chars (e.g. "commit-gate", "pr-review")
-payload:  required, valid JSON object, max 16KB (enforced by agent-message-bus.sh)
-ts:       required, UTC ISO-8601, must be within ±60s of recipient's clock
-nonce:    required, 16-char hex, prevents replay (bus rejects seen nonces for TTL window)
-ttl:      required, seconds until message expires (default 300, max 3600)
-sig:      required, SHA-256 of the serialized payload field (integrity check)
-```
+## What "logged" actually means here
 
-## Message Types
+Every subagent dispatch already passes through hooks wired in `.claude/settings.json`'s `PreToolUse`/`PostToolUse` matchers on `Agent|Task`: `agent-budget-gate.sh` and `agent-pixel-notify.sh` fire on dispatch, and the catch-all `audit-log.sh` (hash-chained JSONL, see `audit-hardening-policy.md`) logs every tool call including these. That's the real audit trail. There is no separate bus log to also maintain.
 
-```
-REQUEST:    Agent A asks Agent B to perform work or cast a vote
-RESPONSE:   Agent B replies to a REQUEST (must include original message id in payload.request_id)
-VETO:       Tier-1 agent blocks an action (broadcast to all, initiator receives exit 2)
-BROADCAST:  Informational — all agents receive, no response expected
-HEARTBEAT:  Agent announces it is alive (sent every 30s, recipient timeout = 90s)
-```
+## Multiple subagents in the same turn — resolving what they report back
 
-## Replay Attack Prevention
+When 2+ subagents are dispatched for related work and their findings conflict or overlap, resolve per [[conflict-resolution]] — priority order Safety > Correctness > Performance > Style, with human escalation (Strategy C) for genuine conflicts the priority order doesn't settle. That file already covers this; this file doesn't re-specify it.
 
-```
-1. nonce is stored in core/bus/seen-nonces/<agent>/<nonce> for TTL duration
-2. Any message with a nonce already in seen-nonces is dropped silently
-3. ts outside ±60s window is rejected with WARN log (clock skew or replay)
-4. Message consumed (moved to processed/) immediately on receipt — no double-delivery
-```
+For the specific case of *reviewing a change before it lands in critical infrastructure* (rules, hooks, gates, agent personas), see [[54-bft-consensus-law]] for which reviewers to dispatch and what counts as a blocking finding.
 
-## Message Size Limits
+## Why not async messaging
 
-```
-Total message:    16 KB (enforced by agent-message-bus.sh check_msg_size())
-payload field:    14 KB max (leaves room for envelope fields)
-subject length:   64 characters
-from/to length:   64 characters
-Oversized messages: rejected at send time (exit 1) — never written to mailbox
-```
+An earlier version of this policy specified a JSON message envelope (nonce, signature, TTL, clock-skew window), a file-based mailbox layout (`core/bus/mailboxes/<agent>/{inbox,processed}`), a replay-prevention nonce registry, and delivery guarantees (at-most-once, FIFO). None of that infrastructure exists on disk today except the mailbox script itself (`core/bus/agent-message-bus.sh`, kept as optional manual tooling — see below), and none of it is needed: a Task-tool dispatch has no network hop to defend, no delivery window (the call returns or the turn ends), and no second, independently-scheduled process that could receive a message hours later. That whole design solves problems a single-session, human-supervised system doesn't have.
 
-## Delivery Guarantees
+If Yana AI ever runs multiple genuinely independent, concurrently-scheduled agent processes that need to coordinate without a shared context, an async protocol like the one this file used to describe becomes the right tool again. Until then, describing it here as the *current* mechanism was the actual bug — this rewrite exists so that gap doesn't quietly reopen the next time someone reads this file looking for how agents really talk to each other.
 
-```
-At-most-once: file renamed atomically (tmp → final) — no partial writes
-No guaranteed delivery: if recipient is offline, message waits in inbox until TTL
-FIFO per mailbox: messages processed in timestamp order (filename sort)
-Broadcast: delivered to all current mailboxes at time of send — not new agents
-```
+## Optional manual tooling (not part of the automatic pipeline)
 
-## Mailbox Layout
-
-```
-core/bus/
-  mailboxes/
-    <agent-name>/
-      inbox/         ← unread messages (JSON files, named: <ts>_<id>.json)
-      processed/     ← consumed messages (kept for audit, 7-day retention)
-  votes/             ← swarm-orchestrator vote state per request_id
-  seen-nonces/       ← replay-prevention nonce registry
-```
-
-## Security Properties
-
-```
-□ sig field prevents payload tampering in transit
-□ nonce + ttl prevent replay attacks
-□ ts ±60s window prevents delayed-delivery attacks
-□ Mailboxes readable only by the owning agent (0700 permissions)
-□ processed/ kept for 7 days for audit trail
-□ No agent may read another agent's inbox directly (only bus script can deliver)
-```
+`core/bus/agent-message-bus.sh` and `core/bus/swarm-router.js` still exist and still work — they're useful if a human wants to manually coordinate multiple *separate* Claude Code sessions (e.g. running in different terminals) via a shared file-based mailbox. Neither is invoked automatically by any hook, and neither should be treated as "how agents communicate" for the normal single-session case this policy governs.
 
 ## Anti-Pattern Checklist
 
 ```
-❌ Agent-to-agent communication via shared global env var
-❌ Agent writes directly to another agent's inbox/ (bypasses bus integrity checks)
-❌ Message sent without sig field (payload tamper goes undetected)
-❌ nonce reused across messages (replay protection broken)
-❌ TTL set to 0 or missing (messages never expire = mailbox fills indefinitely)
-❌ payload > 16KB sent (agent-message-bus.sh rejects it — caller gets exit 1)
-❌ RESPONSE sent without payload.request_id (can't correlate request→response)
-❌ processed/ directory deleted or never retained (audit trail destroyed)
+❌ Subagent attempts Write/Edit/MultiEdit, git commit, git push, or running
+   a hook — banned outright by subagent-policy.md, not a communication
+   format issue
+❌ Main agent silently merges conflicting subagent findings instead of
+   applying conflict-resolution.md's priority order
+❌ Subagent report omits "Evidence & Reasoning" or claims a conclusion
+   without citing what was actually checked
+❌ Subagent report is a file diff instead of a text report (the "No files
+   were modified" line exists specifically to catch this)
+❌ Treating core/bus/*.sh as the enforcement mechanism for anything —
+   it's optional manual tooling for a scenario (independent concurrent
+   sessions) most tasks aren't in
 ```

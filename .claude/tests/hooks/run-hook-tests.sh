@@ -95,14 +95,16 @@ test_hook() {
         
         actual_decision=$(echo "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"')
 
-        # Special case for token-scope-guard which warns instead of denies.
-        # Only relabel "allow" -> "warn" when additionalContext is present;
-        # today this hook only ever warns, never denies, so the condition
-        # is currently a no-op guard — but without it, a future version of
-        # this hook that also denies (with an explanatory additionalContext
-        # alongside the deny) would have that deny silently relabeled as
-        # "warn" here, masking a real block as a mere advisory.
-        if [[ "$hook_name" == "token-scope-guard.sh" && "$actual_decision" == "allow" ]]; then
+        # Special case for hooks that warn instead of deny (token-scope-guard.sh,
+        # infra-review-reminder.sh). Only relabel "allow" -> "warn" when
+        # additionalContext is present; today these hooks only ever warn,
+        # never deny, so the condition is currently a no-op guard — but
+        # without it, a future version of one of these hooks that also
+        # denies (with an explanatory additionalContext alongside the deny)
+        # would have that deny silently relabeled as "warn" here, masking a
+        # real block as a mere advisory.
+        if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh") \
+              && "$actual_decision" == "allow" ]]; then
             if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null; then
                 actual_decision="warn"
             fi
@@ -1025,6 +1027,18 @@ else
     # vanishing, in case that assumption ever breaks again.
     SKIPPED_SECTIONS+=("guard-blast-radius.sh (4 cases) — yana-rt release binary not built")
 fi
+
+# 11. infra-review-reminder.sh — advisory-only, per 54-bft-consensus-law.md
+echo ""
+echo "--- infra-review-reminder.sh ---"
+test_hook "infra-review-reminder.sh" "Warn on Write to core/rules/" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/foo.md","content":"x"}}' "warn"
+test_hook "infra-review-reminder.sh" "Warn on Edit to core/hooks/" \
+    '{"tool_name":"Edit","tool_input":{"file_path":"core/hooks/foo.sh"}}' "warn"
+test_hook "infra-review-reminder.sh" "Warn on Write to MANIFEST.json" \
+    '{"tool_name":"Write","tool_input":{"file_path":"MANIFEST.json","content":"x"}}' "warn"
+test_hook "infra-review-reminder.sh" "Allow Write to unrelated file" \
+    '{"tool_name":"Write","tool_input":{"file_path":"README.md","content":"x"}}' "allow"
 
 echo ""
 echo "=== Summary ==="

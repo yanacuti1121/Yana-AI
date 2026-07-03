@@ -360,7 +360,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 50,
+      "count": 51,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/api-destruct-guard.sh",
@@ -387,6 +387,7 @@
         "core/hooks/guard-blast-radius.sh",
         "core/hooks/guard-destructive.sh",
         "core/hooks/hook-timeout-guard.sh",
+        "core/hooks/infra-review-reminder.sh",
         "core/hooks/intent-inference.sh",
         "core/hooks/log-agent.sh",
         "core/hooks/multi-agent-lock.sh",
@@ -2687,7 +2688,7 @@
   "skills_count": 1989,
   "skills_stubs_archived": 88,
   "agents_count": 106,
-  "hooks_count": 50,
+  "hooks_count": 51,
   "scripts_count": 103,
   "commands_count": 164,
   "rules_count": 68

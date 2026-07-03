@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # agent-message-bus.sh — JSON message bus for inter-agent communication
 #
+# NOT part of the automatic pipeline (2026-07-03). The normal case — one
+# Claude Code session dispatching Task-tool subagents — is synchronous and
+# needs no message bus; see core/rules/agent-communication-policy.md. This
+# script remains as optional manual tooling for a human coordinating
+# multiple *separate*, concurrently-running Claude Code sessions (e.g. in
+# different terminals) via a shared file-based mailbox. No hook invokes it.
+#
 # Architecture: file-based mailboxes + flock() mutual exclusion
 # Each agent has a mailbox directory: core/bus/mailboxes/<agent-name>/
 # Messages are JSON files written atomically via temp-file-then-rename.

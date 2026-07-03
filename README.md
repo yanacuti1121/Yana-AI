@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v0.43.0 · Personal Agent OS                │ Tips for getting started                                                                      │
 │ 101 agents · 1,989 skills                   │ yana-ai doctor                                                                               │
-│ 66 rules · 50 hooks · 102 scripts          │ yana-ai init                                                                                  │
+│ 66 rules · 51 hooks · 102 scripts          │ yana-ai init                                                                                  │
 │ 826 checks · 9 gate layers                 │                                                                                               │
 │                                            │ What's new                                                                                    │
 │                                            │ v0.43.0 — WASM guard + automated publish pipeline                                            │
@@ -60,8 +60,8 @@ Yana (You Are Not Alone) is an Agent Operating System that helps users and AI ag
 <p align="center">
   <img src="https://img.shields.io/badge/🧩_skills-1,989-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-67-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-50-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_rules-68-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_hooks-51-b78f3d?style=flat-square" />
   <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🔒_gates-9_layers-ce422b?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
@@ -186,7 +186,7 @@ graph TB
         SKILLS["📚 1,989 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 101 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 67 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
-        HOOKS["🪝 50 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
+        HOOKS["🪝 51 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 166 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         BUS["🚌 Agent message bus\nJSON + ECDSA sig\nreplay-protected, BFT consensus"]
         MEM["🧠 Memory tiers\nL1 permanent · L2 session\nMerkle-chained, AES-256-GCM"]

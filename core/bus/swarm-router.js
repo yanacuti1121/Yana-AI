@@ -1,9 +1,18 @@
 /**
  * swarm-router.js — Swarm Bus Routing with Dynamic Quarantine
  *
- * Routes payload between 87 agents via signed, SHA256-fingerprinted messages.
- * Integrates "Diplomatic Tail Cut" — silently redirects compromised agent
- * traffic to /dev/null (quarantine sink) while agent believes it's still live.
+ * NOT part of the automatic pipeline (2026-07-03). Not invoked by any hook.
+ * core/agents/ holds persona *definitions* for Task-tool subagent dispatch,
+ * not 87 concurrently-running processes this router could address — see
+ * core/rules/agent-communication-policy.md for the real (synchronous)
+ * dispatch model. Kept as optional manual tooling for coordinating
+ * multiple separate, concurrently-running Claude Code sessions, alongside
+ * agent-message-bus.sh.
+ *
+ * Routes payload between registered agents via signed, SHA256-fingerprinted
+ * messages. Integrates "Diplomatic Tail Cut" — silently redirects compromised
+ * agent traffic to /dev/null (quarantine sink) while agent believes it's
+ * still live.
  *
  * Features:
  *  - SHA256 payload fingerprinting (chain of custody)

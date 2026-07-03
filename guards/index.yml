@@ -152,6 +152,12 @@ guards:
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: hook-timeout-guard.sh
 
+  infra-review-reminder:
+    description: "Advisory reminder to dispatch independent reviewers before writing critical infrastructure"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: infra-review-reminder.sh
+
   intent-inference:
     description: "Intent Inference — detect true intent from tool sequence patterns and flag scope creep"
     hook_type: PreToolUse

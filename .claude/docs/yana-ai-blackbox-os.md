@@ -90,7 +90,8 @@ Yana AI Blackbox OS closes that gap.
 ```
 BLOCK if: agent claims DONE without running tests
 BLOCK if: agent modifies release artifacts without verifying MANIFEST
-BLOCK if: agent writes to core/rules/ without BFT quorum
+BLOCK if: agent writes to core/rules/ without dispatching the required
+          review subagents (see 54-bft-consensus-law.md)
 BLOCK if: agent marks task complete without showing evidence
 BLOCK if: agent claims file updated but diff is empty
 WARN  if: agent is about to touch more than 5 files outside declared scope

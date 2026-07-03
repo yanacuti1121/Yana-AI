@@ -178,7 +178,7 @@ Rules that are **only enforced on Claude Code** (not feasible in prompt-layer ad
 |---|---|
 | Merkle audit log | Requires `secure-logger.sh` PostToolUse hook |
 | Circuit breaker | Requires `token-budget-guard.sh` state file |
-| BFT consensus (54-bft-consensus-law) | Requires swarm-router.js bus |
+| Infra-write review (54-bft-consensus-law) | Requires Task-tool synchronous subagent dispatch |
 | Honeypot trap (59-honeypot-trap-law) | Requires inotify + PreToolUse interception |
 | Sandbox isolation (04-sandbox-isolation-law) | Requires Docker / nsjail wrapper |
 

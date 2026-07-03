@@ -1,6 +1,13 @@
 /**
  * trust-ledger.js — Persistent Agent Reputation Engine
  *
+ * DORMANT (2026-07-03): fully implemented but not fed any live events by
+ * any hook or agent code today. No rule should describe this as an active
+ * gate — wiring a real event source (e.g. a subagent-policy.md violation
+ * calling ledger.event()) is a legitimate future enhancement, deliberately
+ * not done here to avoid half-integrating it under time pressure. See
+ * core/rules/agent-hierarchy-law.md for the mechanism that's actually live.
+ *
  * Persists trust scores to trust-ledger.json. Integrates with SwarmRouter
  * for auto-quarantine when score drops below threshold (default: 60).
  *

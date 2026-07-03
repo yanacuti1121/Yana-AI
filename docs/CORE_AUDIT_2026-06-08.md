@@ -30,6 +30,9 @@
 - ✅ 61 rules total, 30 critical laws
 - ✅ Immutable infrastructure (49), deadman switch (50), code signing (61)
 - ✅ BFT consensus (54), scope drift detector (64)
+  *(superseded 2026-07-03 — rule 54 was rewritten from an unimplemented
+  async-vote design to a synchronous review-dispatch mechanism; this
+  audit entry reflects the pre-rewrite state, not current behavior)*
 
 ---
 

@@ -25,7 +25,7 @@
       "agent-os"
     ],
     "highlights": [
-      "50 safety hooks \u2014 blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
+      "51 safety hooks \u2014 blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
       "1,989 skills \u2014 frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, Chrome DevTools",
       "101 agents \u2014 quality, security, infra, data-ai, orchestration, forge subfolders",
       "68 rules \u2014 sovereignty tiers, jailbreak defense, supply chain vetting, BFT consensus law",

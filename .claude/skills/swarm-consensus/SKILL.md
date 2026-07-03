@@ -1,223 +1,93 @@
 ---
 name: swarm-consensus
-description: Multi-agent consensus and coordination patterns for YAMTAM agent swarms. Quorum voting with majority and super-majority thresholds, security-team veto protocol, inter-agent message passing via agent-message-bus.sh, swarm-orchestrator.sh coordination, Raft-inspired leader election concepts, and anti-split-brain patterns. Sources: hashicorp/raft, etcd-io/etcd, automerge/automerge, maelstrom-systems, swarm-consensus literature.
-origin: yana-ai — synthesized from hashicorp/raft, etcd-io/etcd, automerge/automerge, maelstrom-systems, agent-consensus literature
+description: When 2+ independent perspectives must agree before a risky Yana AI action — dispatching review subagents synchronously via the Task tool, resolving their findings by priority (Safety > Correctness > Performance > Style), and blocking on any Safety-severity finding. Replaces an earlier async message-bus/vote design that was never actually wired into the running system.
+origin: yana-ai (rewritten 2026-07-03 — see "What changed" below)
 license: Apache-2.0
-version: 1.0.0
-compatibility: yana-ai >= 1.3.47
+version: 2.0.0
+compatibility: yana-ai >= 0.43.0
 ---
 
 # /swarm-consensus
 
 ## When to Use
 
-- Multiple agents must agree before a high-risk action executes
-- "security-team should be able to block anything core-development tries to push"
-- Fan-out: one task dispatched to N agents, results aggregated
-- Coordination: agent A must wait for agent B to finish before proceeding
+- Multiple perspectives must agree before a high-risk action lands — e.g. a write to `core/rules/`, `core/hooks/`, `core/gates/`, or `core/agents/` (see `core/rules/54-bft-consensus-law.md` for the exact trigger paths)
+- "Security review should be able to block anything a code change tries to ship"
+- Fan-out: one question dispatched to N subagents, findings aggregated
 
 ## Do NOT use for
 
-- Single-agent decisions (no consensus needed — one agent acts)
-- Low-stakes read-only tool calls (majority vote is overkill)
+- Single-agent decisions (no second opinion needed)
+- Low-stakes read-only tool calls (dispatching a reviewer is overkill)
+- Anything needing a persistent, always-on second process — that's not how Task-tool subagents work; see "What changed" below
 
 ---
 
-## Architecture: YAMTAM Swarm Decision Flow
+## The real mechanism: synchronous dispatch, not async voting
+
+There is one Claude Code session. When it needs a second opinion, it dispatches a Task-tool subagent, which runs to completion and returns a plain-text report *in the same turn*. There is no separate vote-casting step, no polling for messages, no timeout window — the dispatch either returns a report or it doesn't finish.
 
 ```
-Initiating agent (core-development)
-         │
-         │  swarm-orchestrator.sh request "commit-gate" <payload>
-         ▼
-  [Voting Round Open — REQUEST broadcast to all agents]
-         │
-         ├──→ security-team     votes YES / NO (VETO power)
-         ├──→ qa-team           votes YES / NO
-         ├──→ docs-team         votes YES (advisory only)
-         └──→ ...other agents
+Main agent identifies a change needs review (per 54-bft-consensus-law.md's
+category table: rule changes, enforcement code, agent personas, or
+integrity/lock files)
          │
          ▼
-  [Tally: swarm-orchestrator.sh tally "commit-gate"]
+Dispatch both required reviewers synchronously, via the Task tool,
+scoped to the specific diff — per subagent-policy.md's dispatch template
          │
-         ├── VETO by security-team? → BLOCKED (exit 2)
-         ├── >= 66% YES (irreversible)? → APPROVED
-         ├── >= 50% YES (standard)? → APPROVED
-         └── < threshold → REJECTED (exit 1)
+         ├──→ Reviewer 1 (e.g. security-team/security-auditor.md) reports
+         └──→ Reviewer 2 (e.g. architecture-auditor.md or code-auditor.md) reports
+         │
+         ▼
+Main agent applies conflict-resolution.md's priority order across both
+reports: Safety > Correctness > Performance > Style
+         │
+         ├── Any Safety-severity finding? → BLOCK, escalate to human
+         │   (conflict-resolution.md Strategy C)
+         ├── Correctness finding that breaks an enforced gate/test? → BLOCK
+         └── Otherwise → proceed, log a short resolution note
 ```
 
----
+## Dispatching reviewers
 
-## Sending a Consensus Request
+Use the Task tool directly — this is not a shell command, so there's no `bash swarm-orchestrator.sh request` step. The dispatch prompt follows `subagent-policy.md`'s template: state the task, the scope, and that the subagent must not write/edit/commit — only report.
 
-```bash
-# core-development agent initiates a commit gate check
-REQUEST_ID=$(bash core/scripts/swarm-orchestrator.sh request "commit-gate" '{
-  "branch": "feat/new-middleware",
-  "files_changed": ["core/rules/agent-middleware-law.md", "core/scripts/tool-proxy.sh"],
-  "blast_score": 2,
-  "description": "Add tool-proxy.sh middleware layer"
-}')
+```
+Dispatch (conceptual, not literal shell):
+  Agent(security-team/security-auditor.md, scope: "review this diff to
+    core/hooks/foo.sh for security issues, read-only, report findings")
+  Agent(code-auditor.md, scope: "review this diff to core/hooks/foo.sh
+    for correctness/quality, read-only, report findings")
 
-echo "Request opened: $REQUEST_ID"
-
-# Wait for votes (up to YAMTAM_CONSENSUS_TIMEOUT seconds)
-sleep 10
-
-# Tally the result
-bash core/scripts/swarm-orchestrator.sh tally "commit-gate"
-# Exit 0 = approved, Exit 1 = rejected, Exit 2 = vetoed
+Both run, both return text reports in this turn — no polling, no
+"wait for vote" step.
 ```
 
----
+## Resolving findings
 
-## Casting a Vote
+Apply `conflict-resolution.md`'s existing priority table directly — this skill does not invent a second one:
 
-```bash
-# security-team agent reviews and votes
-bash core/scripts/swarm-orchestrator.sh vote "security-team" "$REQUEST_ID" yes
-
-# qa-team votes after running tests
-TEST_RESULT=$(bash core/scripts/run-all-tests.sh && echo "yes" || echo "no")
-bash core/scripts/swarm-orchestrator.sh vote "qa-team" "$REQUEST_ID" "$TEST_RESULT"
-
-# docs-team advisory vote
-bash core/scripts/swarm-orchestrator.sh vote "docs-team" "$REQUEST_ID" yes
+```
+1. Safety (security/data-integrity)   — always wins, always blocks
+2. Correctness                         — wins unless a Safety conflict exists
+3. Performance                         — after Correctness
+4. Style/cleanup                       — lowest priority
 ```
 
----
+If two reviewers give conflicting recommendations at the *same* priority level, that's a genuine conflict — escalate to the human per `conflict-resolution.md` Strategy C. Don't average, don't pick the more convenient one, don't silently proceed.
 
-## Veto Protocol (security-team)
+## Fan-out to more than 2 reviewers
 
-```bash
-# security-team discovered a gate bypass in the PR — issue veto
-bash core/scripts/swarm-orchestrator.sh vote "security-team" "$REQUEST_ID" no
-# This triggers the veto path in tally:
-#   1. VETO broadcast to all agents
-#   2. Initiating agent receives exit 2
-#   3. Logged to releases/logs/swarm.log
+For a broader question (not the specific 2-reviewer infra-write case), dispatch as many subagents as the question needs, in parallel (multiple `Agent` calls in the same response), and collect all reports before synthesizing — this is the same pattern `conflict-resolution.md` already documents for general subagent dispatch, not a special "swarm" mode.
 
-# Output:
-# [bus] VETO issued by security-team on 'commit-gate': gate bypass in tool-proxy.sh
-
-# Veto is lifted only by security-team itself:
-bash core/scripts/swarm-orchestrator.sh vote "security-team" "$REQUEST_ID" yes
 ```
-
----
-
-## TypeScript: Swarm Coordination Client
-
-```typescript
-import { execSync, spawn } from 'child_process'
-
-class SwarmCoordinator {
-  async requestConsensus(subject: string, payload: object): Promise<string> {
-    const payloadJson = JSON.stringify(payload)
-    const result = execSync(
-      `bash core/scripts/swarm-orchestrator.sh request "${subject}" '${payloadJson}'`
-    ).toString().trim()
-    return result  // returns request_id
-  }
-
-  async castVote(agent: string, requestId: string, decision: 'yes' | 'no' | 'abstain'): Promise<void> {
-    execSync(`bash core/scripts/swarm-orchestrator.sh vote "${agent}" "${requestId}" ${decision}`)
-  }
-
-  async tally(subject: string): Promise<'approved' | 'rejected' | 'vetoed'> {
-    try {
-      execSync(`bash core/scripts/swarm-orchestrator.sh tally "${subject}"`)
-      return 'approved'
-    } catch (e: any) {
-      if (e.status === 2) return 'vetoed'
-      return 'rejected'
-    }
-  }
-
-  // Poll until consensus reached or timeout
-  async waitForConsensus(subject: string, timeoutMs = 60_000): Promise<'approved' | 'rejected' | 'vetoed'> {
-    const deadline = Date.now() + timeoutMs
-    while (Date.now() < deadline) {
-      const result = await this.tally(subject)
-      if (result !== 'rejected') return result
-      await new Promise(r => setTimeout(r, 2000))
-    }
-    return 'rejected'  // timeout = implicit rejection
-  }
-}
-
-// Rule: always handle 'vetoed' separately from 'rejected' — they have different escalation paths
-// Rule: timeout = rejection, not approval (fail-closed consensus)
-```
-
----
-
-## Fan-Out + Aggregate Pattern
-
-```typescript
-// Dispatch one task to multiple agents and aggregate results
-async function fanOutTask(subject: string, agents: string[], payload: object) {
-  const coordinator = new SwarmCoordinator()
-  const requestId   = await coordinator.requestConsensus(subject, payload)
-
-  // All agents work independently — collect their RESPONSE messages
-  const responses = await Promise.allSettled(
-    agents.map(agent =>
-      new Promise<{ agent: string; result: unknown }>((resolve, reject) => {
-        const checkInbox = setInterval(async () => {
-          const msg = execSync(`bash core/bus/agent-message-bus.sh recv "${agent}"`).toString().trim()
-          if (msg) {
-            clearInterval(checkInbox)
-            const parsed = JSON.parse(msg)
-            if (parsed.type === 'RESPONSE' && parsed.payload?.request_id === requestId) {
-              resolve({ agent, result: parsed.payload })
-            }
-          }
-        }, 1000)
-        // Timeout after 30s
-        setTimeout(() => { clearInterval(checkInbox); reject(new Error(`${agent} timeout`)) }, 30_000)
-      })
-    )
-  )
-
-  const succeeded = responses.filter(r => r.status === 'fulfilled').map(r => (r as any).value)
-  const failed    = responses.filter(r => r.status === 'rejected').map(r => (r as any).reason.message)
-
-  return { succeeded, failed, quorum: succeeded.length > agents.length / 2 }
-}
-
-// Rule: Promise.allSettled() — collect ALL results even if some agents fail
-// Rule: quorum = majority of agents responded (not all) — some may be offline
-```
-
----
-
-## Anti-Split-Brain Pattern
-
-```typescript
-// Split-brain: two agents both think they're the leader and issue conflicting actions
-// Prevention: only the agent that initiated the request can act on its approval
-
-class SwarmLeaderLock {
-  private static activeRequests = new Map<string, string>()  // subject → requestId
-
-  static acquire(subject: string, requestId: string): boolean {
-    if (SwarmLeaderLock.activeRequests.has(subject)) {
-      console.error(`[swarm] Split-brain blocked: ${subject} already has active request`)
-      return false
-    }
-    SwarmLeaderLock.activeRequests.set(subject, requestId)
-    return true
-  }
-
-  static release(subject: string): void {
-    SwarmLeaderLock.activeRequests.delete(subject)
-  }
-}
-
-// Rule: only ONE request per subject can be open at a time
-// Rule: lock released in finally block (even on veto/rejection)
-// Rule: request timeout = implicit lock release (prevents deadlock)
+Rule: dispatch independent reviewers in parallel when their scopes don't
+overlap (see conflict-resolution.md's "Phòng ngừa conflict từ đầu" —
+scoping subagents narrowly from the start is cheaper than resolving
+conflicts after the fact)
+Rule: a subagent that never returns (crashes, times out) is a finding in
+itself — don't silently treat missing output as "no objection"
 ```
 
 ---
@@ -225,12 +95,19 @@ class SwarmLeaderLock {
 ## Anti-Fake-Pass Checklist
 
 ```
-❌ Consensus proceeds without checking for veto messages (veto ignored)
-❌ Timeout treated as approval instead of rejection (fail-open consensus)
-❌ Advisory votes (Tier 4) counted as blocking votes
-❌ Same subject has two open requests simultaneously (split-brain)
-❌ Veto lifted by a lower-tier agent (only security-team can lift its own veto)
-❌ Fan-out uses Promise.all() instead of allSettled() (one failure aborts all results)
-❌ Lock not released in finally block (deadlock on next request for same subject)
-❌ swarm-orchestrator.sh exit code not checked (approved/rejected/vetoed conflated)
+❌ Proceeding with an infra write after a Safety-severity finding, because
+   a second reviewer's report looked clean
+❌ Treating "the subagent didn't report anything" as approval — a missing
+   or crashed report is not a clean bill of health
+❌ Dispatching only one reviewer when 54-bft-consensus-law.md's category
+   table calls for two
+❌ Skipping dispatch because the change "is small" — the trigger-path
+   match in 54-bft-consensus-law.md is the gate, not the diff size
+❌ A subagent attempting Write/Edit/commit/push during "review" — banned
+   categorically by subagent-policy.md, not something this skill needs
+   to re-check
 ```
+
+## What changed (2026-07-03)
+
+This skill used to describe an async architecture: `swarm-orchestrator.sh request/vote/tally` over a file-based message bus, a TypeScript `SwarmCoordinator` client polling `agent-message-bus.sh recv` for RESPONSE messages, veto broadcasts, and split-brain locking for concurrent leader election. None of that was ever wired into the automatic pipeline — `swarm-orchestrator.sh` remains real, working, optional manual tooling (see `core/rules/54-bft-consensus-law.md`) for a human coordinating separate concurrent Claude Code sessions, but it was never how a single session's own review-before-write actually happens. This rewrite describes the mechanism that's actually running.

@@ -449,7 +449,7 @@ check_skill "grammar-lexer-dsl"           "Handlebars"
 check_skill "container-interactivity"    "Docker"
 check_skill "container-interactivity"    "nsjail"
 check_skill "swarm-consensus"            "veto"
-check_skill "swarm-consensus"            "quorum"
+check_skill "swarm-consensus"            "review subagents"
 
 
 # ── v1.5.0: trigger coverage for remaining skills ─────────────────────────────

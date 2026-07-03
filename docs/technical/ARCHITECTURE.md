@@ -141,7 +141,7 @@ Key scripts called by hooks or slash commands:
 | `secure-logger.sh` | Append-only Merkle hash-chain audit log |
 | `verify-audit-chain.sh` | Chain integrity verification (exit 1 = tamper detected) |
 | `model-router.sh` | Prompt → tier routing (fast/power/emergency) |
-| `swarm-orchestrator.sh` | Multi-agent orchestration + BFT quorum |
+| `swarm-orchestrator.sh` | Optional manual multi-session coordination tool (not automatic — see [[54-bft-consensus-law]]) |
 | `session-checkpoint.sh` | Manifest + index + L2 snapshot writer |
 | `session-rollback.sh` | Sovereign check + dry-run + L2 restore |
 | `add-fact.sh` | Interactive L1 atomic fact writer |
@@ -372,16 +372,9 @@ TIMESTAMP | session=SESSION | commit=GIT_COMMIT | EVENT | MESSAGE | prev=PREV_HA
 
 ---
 
-## Agent Hierarchy
+## Infrastructure-Write Review
 
-```
-Tier 1 — security-team          [VETO POWER — 2× voting weight]
-Tier 2 — core-development       [1× voting weight, write access with Tier 1 approval for core/]
-Tier 3 — qa-team                [1× voting weight, test runs only]
-Tier 4 — docs-team, design-team [advisory, 0.5× voting weight]
-```
-
-BFT consensus (54-bft-consensus-law): critical infrastructure writes require ≥3 affirmative votes from agents with trust score ≥60.
+Before a write to `core/rules/`, `core/hooks/`, `core/gates/`, or `core/agents/`, the main agent dispatches 2 independent review subagents synchronously via the Task tool (e.g. `security-team/security-auditor.md` + `architecture-auditor.md` for rule changes) and applies [[conflict-resolution]]'s priority order (Safety > Correctness > Performance > Style) across their reports. Any Safety-severity finding blocks the write and escalates to the human. See [[54-bft-consensus-law]] for the full category → reviewer table and [[agent-hierarchy-law]] for why this replaced an earlier, never-implemented async voting design.
 
 ---
 

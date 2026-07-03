@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 # swarm-orchestrator.sh — Coordinate work across multiple Yana AI agents
 #
-# Consensus model:
+# MANUAL, HUMAN-OPERATED TOOL — not invoked by any hook (2026-07-03). The
+# real infra-write review mechanism is core/rules/54-bft-consensus-law.md's
+# synchronous Task-tool reviewer dispatch, enforced by the main agent
+# during a normal session, not by this script. This tool's `tally` below
+# uses simple majority/super-majority percentages — a different algorithm
+# than 54-bft-consensus-law.md's old "minimum 3 votes" claim, which no
+# longer cites this script as its enforcement path. Useful if a human
+# wants a formally recorded multi-party sign-off outside a single Claude
+# Code session (e.g. coordinating separate terminals) — not required for
+# ordinary core/ edits.
+#
+# Consensus model (this script's own, independent of 54-bft-consensus-law.md):
 #   - Simple majority quorum (> 50%) for general decisions
 #   - Super-majority (> 66%) for irreversible actions (push, deploy, merge)
 #   - Veto power: security-team can block ANY core-development action
