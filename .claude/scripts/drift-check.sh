@@ -192,13 +192,16 @@ else:
     fi
   }
 
-  # core/agents/emotions/*.md are per-agent emotion-journal companion files,
-  # not agent definitions (verified 2026-06-21: 98 of them, one per most
-  # agents). IDENTITY.md/SOUL.md/CAPABILITIES.md are companion docs inside an
-  # agent's own subdir, not separate agents — all happen to be the only
-  # uppercase-leading filenames under core/agents/, so excluding by that
-  # pattern is safe and self-documenting rather than hardcoding each name.
-  cross_check "agents"    "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -path '*/emotions/*' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
+  # Per-agent emotion-journal companion files (98 of them, one per most
+  # agents) used to live at core/agents/emotions/, which conflated the
+  # agent count with journal-file count. Moved to core/memory/agent-journals/
+  # (2026-07-03) — memory content, not agent definitions, matching where
+  # they conceptually belong. IDENTITY.md/SOUL.md/CAPABILITIES.md are
+  # companion docs inside an agent's own subdir, not separate agents — all
+  # happen to be the only uppercase-leading filenames under core/agents/,
+  # so excluding by that pattern is safe and self-documenting rather than
+  # hardcoding each name.
+  cross_check "agents"    "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
   cross_check "commands"  "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
   cross_check "hooks"     "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
   cross_check "scripts"   "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
@@ -275,7 +278,7 @@ print(val)
     meta_check "plugin hooks"     "$PLUGIN_FILE" "contents.hooks"    "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
     meta_check "plugin skills"    "$PLUGIN_FILE" "contents.skills"   "find '$PROJECT_ROOT/core/skills' -name 'SKILL.md' | wc -l"
     meta_check "plugin commands"  "$PLUGIN_FILE" "contents.commands" "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
-    meta_check "plugin agents"    "$PLUGIN_FILE" "contents.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -path '*/emotions/*' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
+    meta_check "plugin agents"    "$PLUGIN_FILE" "contents.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
     meta_check "plugin scripts"   "$PLUGIN_FILE" "contents.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
     # checks total must equal sum of breakdown
     python3 - << PYEOF 2>/dev/null | while IFS= read -r issue; do emit_issue "$issue"; done
@@ -294,7 +297,7 @@ PYEOF
     meta_check "market hooks"    "$MARKET_FILE" "stats.hooks"    "find '$PROJECT_ROOT/core/hooks' -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' | wc -l"
     meta_check "market skills"   "$MARKET_FILE" "stats.skills"   "find '$PROJECT_ROOT/core/skills' -name 'SKILL.md' | wc -l"
     meta_check "market commands" "$MARKET_FILE" "stats.commands" "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
-    meta_check "market agents"   "$MARKET_FILE" "stats.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -path '*/emotions/*' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
+    meta_check "market agents"   "$MARKET_FILE" "stats.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
     meta_check "market scripts"  "$MARKET_FILE" "stats.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
   fi
 fi
