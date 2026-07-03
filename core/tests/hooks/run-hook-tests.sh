@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Yana AI v1.3.26 — Hook Test Suite
+# Yana AI — Hook Test Suite
 # Tests hooks with mock stdin inputs to verify block/warn logic.
 # Supports running from any directory.
 
@@ -9,9 +9,6 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
-RESULTS_DIR="$CLAUDE_DIR/state/test-results"
-
-mkdir -p "$RESULTS_DIR"
 
 # ── Dependency & File Checks ─────────────────────────────────────────────────
 if ! command -v jq >/dev/null 2>&1; then
@@ -19,10 +16,30 @@ if ! command -v jq >/dev/null 2>&1; then
     exit 1
 fi
 
+# ── Temp-file cleanup ─────────────────────────────────────────────────────────
+# One EXIT trap for the whole script, not one per test section — bash traps
+# for the same signal replace each other rather than stacking, so several
+# independent `trap ... EXIT` calls across this file would silently leave
+# only the last one active and leak every earlier section's temp dir/file
+# on a mid-run error or Ctrl-C. Sections register paths here instead.
+_TEMP_PATHS=()
+register_temp() { _TEMP_PATHS+=("$1"); }
+_cleanup_temps() {
+    local p
+    for p in "${_TEMP_PATHS[@]:-}"; do
+        [[ -n "$p" ]] && rm -rf "$p"
+    done
+}
+trap _cleanup_temps EXIT
+
 FAIL_COUNT=0
 TOTAL_COUNT=0
+SKIPPED_SECTIONS=()
 
-echo "=== Yana AI Hook Test Suite v1.3.26 ==="
+_MANIFEST="$CLAUDE_DIR/../MANIFEST.json"
+_SUITE_VERSION=$(jq -r '.version // "unknown"' "$_MANIFEST" 2>/dev/null || echo "unknown")
+
+echo "=== Yana AI Hook Test Suite (v${_SUITE_VERSION}) ==="
 echo "Hooks directory: $HOOKS_DIR"
 echo ""
 
@@ -43,14 +60,29 @@ test_hook() {
     fi
 
     echo -n "Testing $hook_name [$test_name]... "
-    
-    local output
+
+    local output exit_code
     if [[ -n "$env_var" ]]; then
         output=$(echo "$input_json" | env "$env_var"="$env_val" bash "$HOOKS_DIR/$hook_name" 2>/dev/null)
     else
         output=$(echo "$input_json" | bash "$HOOKS_DIR/$hook_name" 2>/dev/null)
     fi
-    
+    exit_code=$?
+
+    # Hook contract: exit 0 = allow (with or without a warn/additionalContext
+    # JSON body), exit 2 = deny (with a JSON body). Any other exit code with
+    # no output is the hook crashing, not deciding "allow" — a `set -e`
+    # trip, a syntax error, etc. Treating that as a silent "allow" (the old
+    # behavior: empty output always defaulted to "allow" regardless of exit
+    # code) would let a broken hook pass every "Allow ..." test case and
+    # fail "Block ..." cases with a misleading "expected deny, got allow"
+    # instead of the real "hook crashed" signal.
+    if [[ -z "$output" && "$exit_code" -ne 0 && "$exit_code" -ne 2 ]]; then
+        echo "FAIL (hook crashed, exit $exit_code, no output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
     local actual_decision="allow"
     if [[ -n "$output" ]]; then
         # Check if output is valid JSON
@@ -62,9 +94,15 @@ test_hook() {
         fi
         
         actual_decision=$(echo "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"')
-        
-        # Special case for token-scope-guard which warns instead of denies
-        if [[ "$hook_name" == "token-scope-guard.sh" ]]; then
+
+        # Special case for token-scope-guard which warns instead of denies.
+        # Only relabel "allow" -> "warn" when additionalContext is present;
+        # today this hook only ever warns, never denies, so the condition
+        # is currently a no-op guard — but without it, a future version of
+        # this hook that also denies (with an explanatory additionalContext
+        # alongside the deny) would have that deny silently relabeled as
+        # "warn" here, masking a real block as a mere advisory.
+        if [[ "$hook_name" == "token-scope-guard.sh" && "$actual_decision" == "allow" ]]; then
             if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null; then
                 actual_decision="warn"
             fi
@@ -197,6 +235,7 @@ test_truth_gate_transcript() {
 
     local tmp_transcript
     tmp_transcript=$(mktemp)
+    register_temp "$tmp_transcript"
     printf '%s\n' "$transcript_jsonl" > "$tmp_transcript"
 
     local output
@@ -321,6 +360,7 @@ test_verify_track() {
 
     local tmp_project
     tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
     local ledger_file="$tmp_project/.claude/state/verification-ledger.json"
 
     if [[ "$bypass" == "bypass" ]]; then
@@ -503,6 +543,7 @@ test_session_trust() {
 
     local tmpdir
     tmpdir=$(mktemp -d)
+    register_temp "$tmpdir"
     local result
     if [[ -n "$arg" ]]; then
         result=$(CLAUDE_PROJECT_DIR="$tmpdir" bash "$script" "$cmd" "$arg" 2>/dev/null || true)
@@ -584,9 +625,20 @@ echo "=== identity-gate.sh ==="
 
 IDENTITY_GATE="$CLAUDE_DIR/gates/identity-gate.sh"
 
+# Throwaway test credential + its hash — exercises the sovereign-tier auth
+# path via identity-gate.sh's IDENTITY_GATE_TEST_SOVEREIGN_HASH test seam
+# instead of ever putting the real sovereign name in this (public) test
+# file. Computed inline so name and hash can't drift apart from each other.
+_TEST_SOVEREIGN_NAME="test sovereign"
+if command -v openssl &>/dev/null; then
+  _TEST_SOVEREIGN_HASH=$(echo -n "$_TEST_SOVEREIGN_NAME" | openssl dgst -sha256 2>/dev/null | awk '{print $2}')
+else
+  _TEST_SOVEREIGN_HASH=$(echo -n "$_TEST_SOVEREIGN_NAME" | sha256sum 2>/dev/null | awk '{print $1}')
+fi
+
 echo -n "identity-gate [sovereign auto-auth from env]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
-_ig_out=$(YANA_SOVEREIGN_NAME="Vũ Văn Tâm" bash "$IDENTITY_GATE" 2>&1)
+_ig_out=$(IDENTITY_GATE_TEST_SOVEREIGN_HASH="$_TEST_SOVEREIGN_HASH" YANA_SOVEREIGN_NAME="$_TEST_SOVEREIGN_NAME" bash "$IDENTITY_GATE" 2>&1)
 if echo "$_ig_out" | grep -q "SOVEREIGN"; then
     echo "PASS"
 else
@@ -596,7 +648,7 @@ fi
 
 echo -n "identity-gate [case-insensitive: lowercase name]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
-_ig_out=$(YANA_SOVEREIGN_NAME="vũ văn tâm" bash "$IDENTITY_GATE" 2>&1)
+_ig_out=$(IDENTITY_GATE_TEST_SOVEREIGN_HASH="$_TEST_SOVEREIGN_HASH" YANA_SOVEREIGN_NAME="$(echo "$_TEST_SOVEREIGN_NAME" | tr '[:lower:]' '[:upper:]')" bash "$IDENTITY_GATE" 2>&1)
 if echo "$_ig_out" | grep -q "SOVEREIGN"; then
     echo "PASS"
 else
@@ -644,7 +696,7 @@ fi
 
 echo -n "identity-gate [--verify sovereign, valid env creds -> exit 0]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
-YANA_SOVEREIGN_NAME="Vũ Văn Tâm" bash "$IDENTITY_GATE" --verify sovereign </dev/null >/dev/null 2>&1
+IDENTITY_GATE_TEST_SOVEREIGN_HASH="$_TEST_SOVEREIGN_HASH" YANA_SOVEREIGN_NAME="$_TEST_SOVEREIGN_NAME" bash "$IDENTITY_GATE" --verify sovereign </dev/null >/dev/null 2>&1
 _ig_exit=$?
 if [[ "$_ig_exit" -eq 0 ]]; then
     echo "PASS"
@@ -658,6 +710,7 @@ echo -n "safe-run.sh [YANA_SAFE_RUN_BYPASS without creds -> denied, command neve
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
 SAFE_RUN="$CLAUDE_DIR/scripts/safe-run.sh"
 _sr_marker=$(mktemp)
+register_temp "$_sr_marker"  # only actually leaks if the test below fails
 rm -f "$_sr_marker"
 env -i PATH="$PATH" YANA_SAFE_RUN_BYPASS=1 bash "$SAFE_RUN" "touch $_sr_marker" </dev/null >/dev/null 2>&1
 _sr_exit=$?
@@ -674,6 +727,7 @@ echo ""
 echo "=== token-budget-guard.sh circuit breaker ==="
 
 BUDGET_TMP=$(mktemp -d)
+register_temp "$BUDGET_TMP"
 CIRCUIT_TMP="$BUDGET_TMP/circuit-state.json"
 BUDGET_FILE="$BUDGET_TMP/token-budget.json"
 
@@ -690,13 +744,18 @@ else
 fi
 echo -n "circuit-breaker [hard blocks at attempt 5]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
-# Pre-seed budget with 5 prior attempts so next call triggers breaker
-node -e "
-const fs=require('fs');
-const d={session_start:'2026-01-01T00:00:00Z',total_tokens_used:0,actions:[],
-  loop_attempts:{'circuit-test-tool':5},fast_tier_triggered:false};
-fs.writeFileSync('$BUDGET_FILE', JSON.stringify(d));
-"
+# Pre-seed budget with 5 prior attempts so next call triggers breaker.
+# jq, not node -e: jq is already a hard-checked dependency for this suite
+# (see the top-of-file check); node was an unchecked, implicit one — if
+# it weren't installed this would have failed with an obscure "command
+# not found" instead of the suite's own clear dependency error.
+jq -n --arg tool "circuit-test-tool" '{
+  session_start: "2026-01-01T00:00:00Z",
+  total_tokens_used: 0,
+  actions: [],
+  loop_attempts: {($tool): 5},
+  fast_tier_triggered: false
+}' > "$BUDGET_FILE"
 _cb_out=$(YANA_TOKEN_BUDGET="$BUDGET_FILE" YANA_CIRCUIT_STATE="$CIRCUIT_TMP" \
    CLAUDE_TOOL_NAME="circuit-test-tool" YANA_MAX_FIX_ATTEMPTS=5 \
    bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1 || true)
@@ -914,6 +973,7 @@ RT_BIN="$REPO_ROOT/target/release/yana-rt"
 
 if [[ -x "$RT_BIN" ]]; then
     BLAST_FIXTURE="$(mktemp -d)"
+    register_temp "$BLAST_FIXTURE"
     mkdir -p "$BLAST_FIXTURE/core/rules" "$BLAST_FIXTURE/small"
     echo "x" > "$BLAST_FIXTURE/core/rules/00-meta.md"
     echo "x" > "$BLAST_FIXTURE/small/one.txt"
@@ -923,7 +983,7 @@ if [[ -x "$RT_BIN" ]]; then
         TOTAL_COUNT=$((TOTAL_COUNT + 1))
         echo -n "Testing guard-blast-radius.sh [$test_name]... "
         local out
-        out=$(cd "$BLAST_FIXTURE" && printf '%s' "{\"tool_input\":{\"command\":\"$cmd\"}}" \
+        out=$(cd "$BLAST_FIXTURE" && jq -n --arg cmd "$cmd" '{tool_input:{command:$cmd}}' \
             | PATH="$REPO_ROOT/target/release:$PATH" bash "$HOOKS_DIR/guard-blast-radius.sh" 2>/dev/null)
         local decision="allow"
         if [[ -n "$out" ]] && echo "$out" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
@@ -950,6 +1010,16 @@ if [[ -x "$RT_BIN" ]]; then
     rm -rf "$BLAST_FIXTURE"
 else
     echo "SKIP: yana-rt release binary not built — run 'cargo build --release' to test guard-blast-radius.sh"
+    # ci.yml's "test" job never builds target/release/yana-rt (only the
+    # separate rust-tests job does, and only a debug build at that) — so
+    # today this SKIP fires on every CI run, not just local runs without a
+    # release build. That's not flagged as this script's own bug/scope to
+    # fix (rebuilding a release Rust binary just for 4 bash-invoked cases
+    # that substantially overlap src/guard/mod.rs's own #[cfg(test)]
+    # coverage is a real CI-runtime tradeoff, not an obvious call) — but it
+    # must not stay invisible either. Surfaced in the summary below instead
+    # of silently vanishing from "826 checks" with no trace anyone ran it.
+    SKIPPED_SECTIONS+=("guard-blast-radius.sh (4 cases) — yana-rt release binary not built")
 fi
 
 echo ""
@@ -957,6 +1027,12 @@ echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"
 echo "Passed: $((TOTAL_COUNT - FAIL_COUNT))"
 echo "Failed: $FAIL_COUNT"
+if [[ ${#SKIPPED_SECTIONS[@]} -gt 0 ]]; then
+    echo "Skipped sections (not counted above — see note per entry):"
+    for s in "${SKIPPED_SECTIONS[@]}"; do
+        echo "  - $s"
+    done
+fi
 
 if [[ $FAIL_COUNT -gt 0 ]]; then
     echo "Result: FAIL"

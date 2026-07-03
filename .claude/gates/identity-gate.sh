@@ -3,7 +3,7 @@
 #
 # TIER 0 — GUEST:    No auth. Read-only, basic skills, no write ops.
 # TIER 1 — OPERATOR: Knows passphrase. Can run tasks, limited commits.
-# TIER 2 — SOVEREIGN: Knows full name "Vũ Văn Tâm". Full access, all 100 layers.
+# TIER 2 — SOVEREIGN: Knows the sovereign's full name. Full access, all 100 layers.
 #
 # Usage:
 #   source core/gates/identity-gate.sh          — sets YANA_TIER in current shell
@@ -28,10 +28,17 @@ set -uo pipefail
 #   export YANA_SOVEREIGN_NAME="yana"
 #   export YANA_OPERATOR_PASS="<passphrase riêng>"
 #
-# SHA-256(lowercase("vũ văn tâm")) — so sánh sau khi normalize về thường
+# SHA-256(lowercase(<sovereign's full name>)) — so sánh sau khi normalize về thường
 SOVEREIGN_HASH="1835d61de8ab496236617fd2a76317e5c818177477ff8fb2312b3520e2990937"
 # SHA-256 của operator pass lưu tương tự — set YANA_OPERATOR_PASS_HASH trong ~/.bashrc
 # hoặc để script tự tính từ YANA_OPERATOR_PASS nếu có
+
+# Test seam — lets run-hook-tests.sh exercise the sovereign-tier auth path
+# with a throwaway test credential instead of ever putting the real name in
+# a public test file. Never set this outside a test run.
+if [[ -n "${IDENTITY_GATE_TEST_SOVEREIGN_HASH:-}" ]]; then
+  SOVEREIGN_HASH="$IDENTITY_GATE_TEST_SOVEREIGN_HASH"
+fi
 
 hash_input() {
   if command -v openssl &>/dev/null; then
@@ -90,7 +97,7 @@ print_tier() {
   case "$tier" in
     sovereign)
       echo "  ┌─────────────────────────────────────────┐" >&2
-      echo "  │  👑  SOVEREIGN — Vũ Văn Tâm              │" >&2
+      echo "  │  👑  SOVEREIGN — Full Access              │" >&2
       echo "  │  Tier 2 — Toàn quyền tối cao             │" >&2
       echo "  │  All 100 layers unlocked.                 │" >&2
       echo "  └─────────────────────────────────────────┘" >&2
