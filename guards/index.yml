@@ -6,6 +6,18 @@ guards:
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: agent-arbitration.sh
 
+  agent-budget-gate:
+    description: "agent-budget-gate.sh — PreToolUse: block spawn agent mới khi budget ≤ 10%"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: agent-budget-gate.sh
+
+  agent-pixel-notify:
+    description: "Notify the (optional, external) Pixel Office bridge server"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: agent-pixel-notify.sh
+
   api-destruct-guard:
     description: "Block destructive API calls (DELETE/DROP/TRUNCATE patterns)"
     hook_type: PreToolUse
@@ -18,6 +30,12 @@ guards:
     matcher: ".*"
     risk_level: medium
     file: audit-log.sh
+
+  auto-decompose:
+    description: "auto-decompose.sh — UserPromptSubmit: phát hiện task có thể parallel và hint decomposition"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: auto-decompose.sh
 
   auto-kill-stuck-tasks:
     description: "Kill tasks stuck > timeout threshold"
@@ -36,6 +54,12 @@ guards:
     hook_type: PostToolUse
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: auto-qa-trigger.sh
+
+  budget-sentinel:
+    description: "budget-sentinel.sh — PostToolUse: theo dõi token budget, cảnh báo theo %"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: budget-sentinel.sh
 
   canary-token-guard:
     description: "Detect prompt extraction attempts via canary token echoing"
