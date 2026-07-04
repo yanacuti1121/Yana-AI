@@ -66,13 +66,18 @@ AUDIT_FILE="releases/logs/identity-gate.log"
 SESSION_ID="${YANA_SESSION_ID:-$(date +%s)}"
 
 # ─── Permission matrix ────────────────────────────────────────────────────────
-# GUEST (0):    read files, list skills, ask questions, dry-run only
-# OPERATOR (1): run skills, create files, local commits (no push), no sovereign cmds
-# SOVEREIGN (2): all of above + freeze swarm, rollback, push, release quarantine
-
-GUEST_ALLOWS="read list ask dry-run skill-query"
-OPERATOR_ALLOWS="${GUEST_ALLOWS} run-skill write-file commit validate smoke-test"
-SOVEREIGN_ALLOWS="${OPERATOR_ALLOWS} push freeze-swarm rollback release-quarantine emergency-shutdown sovereign-gate"
+# GUEST (0):     read files, list skills, ask questions, dry-run only
+# OPERATOR (1):  run skills, create files, local commits (no push), no sovereign cmds
+# SOVEREIGN (2): all of above + push, git-revert-based rollback (see
+#                core/rules/62-sovereign-overlord-gate-law.md, rewritten
+#                2026-07-03) — this comment previously also listed
+#                "freeze swarm / release quarantine / emergency shutdown"
+#                and three unused GUEST_ALLOWS/OPERATOR_ALLOWS/
+#                SOVEREIGN_ALLOWS variables naming them; none of that was
+#                ever implemented or read by require-tier.sh (which only
+#                ever compares numeric tier levels), so both the claim
+#                and the dead variables are removed here rather than kept
+#                as vocabulary for a command set that doesn't exist.
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 log_gate() {

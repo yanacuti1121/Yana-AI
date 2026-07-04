@@ -713,6 +713,116 @@ else
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# ── require-tier.sh regression tests (2026-07-04 audit fix) ──────────────────
+# Before the fix: `TIER_LEVELS=([guest]=0 ...)` had no `declare -A`, so bash
+# parsed it as an indexed array and evaluated `[guest]` as an arithmetic
+# subscript — under `set -u` that's an "unbound variable" error that aborted
+# the script before the tier comparison ever ran, yet the script still
+# `exit 0`'d. Net effect: require-tier.sh silently no-op-passed on every
+# single call, never actually enforcing any tier restriction, on macOS's
+# stock /bin/bash 3.2 (no `declare -A`, no `${x^^}` support either — both
+# bash 4+ features the old code also used). These tests pin the fail-closed
+# behavior across both directions so this cannot regress silently again.
+REQUIRE_TIER="$CLAUDE_DIR/gates/require-tier.sh"
+
+echo -n "require-tier [guest denied sovereign-tier command, exit 8, command never runs]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=guest bash "$REQUIRE_TIER" sovereign "echo SHOULD-NOT-RUN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 8 && "$_rt_out" != *"SHOULD-NOT-RUN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8 and no command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [operator denied sovereign-tier command, exit 8]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=operator bash "$REQUIRE_TIER" sovereign "echo SHOULD-NOT-RUN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 8 && "$_rt_out" != *"SHOULD-NOT-RUN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8 and no command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [sovereign allowed sovereign-tier command, exit 0, command runs]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=sovereign bash "$REQUIRE_TIER" sovereign "echo COMMAND-RAN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 0 && "$_rt_out" == *"COMMAND-RAN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0 and command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [operator allowed operator-tier command, exit 0]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=operator bash "$REQUIRE_TIER" operator "echo COMMAND-RAN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 0 && "$_rt_out" == *"COMMAND-RAN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0 and command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [sovereign allowed guest-tier command — higher tier covers lower]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=sovereign bash "$REQUIRE_TIER" guest "echo COMMAND-RAN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 0 && "$_rt_out" == *"COMMAND-RAN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0 and command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [unknown/garbage required-tier value denied, exit 8]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=sovereign bash "$REQUIRE_TIER" godmode "echo SHOULD-NOT-RUN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 8 && "$_rt_out" != *"SHOULD-NOT-RUN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8 and no command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# ── require-tier.sh: unknown/mistyped YANA_TIER must fail CLOSED (2026-07-04) ─
+# A first pass at the bash-3.2 portability fix above replaced the array
+# lookup with a single tier_level() function sharing one "unknown -> 99"
+# fallback on both sides. That was itself a fail-OPEN regression: an
+# unrecognized or case-mistyped $YANA_TIER (e.g. "Guest" wrong-case, or
+# any garbage value a caller might pre-set) resolved to level 99 — HIGHER
+# than sovereign — bypassing the gate entirely instead of being denied.
+# Caught by security-auditor review before this landed. These two tests
+# pin the fail-closed fix (current_tier_level()'s separate "unknown -> 0"
+# fallback) so this specific regression can't reappear silently.
+echo -n "require-tier [garbage YANA_TIER denied sovereign-tier command, exit 8]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=nonsense bash "$REQUIRE_TIER" sovereign "echo SHOULD-NOT-RUN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 8 && "$_rt_out" != *"SHOULD-NOT-RUN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8 and no command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "require-tier [case-mistyped YANA_TIER=Guest denied sovereign-tier command, exit 8]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rt_out=$(YANA_TIER=Guest bash "$REQUIRE_TIER" sovereign "echo SHOULD-NOT-RUN" 2>&1)
+_rt_exit=$?
+if [[ "$_rt_exit" -eq 8 && "$_rt_out" != *"SHOULD-NOT-RUN"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 8 and no command output, got exit=$_rt_exit out=$_rt_out)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
 # ── safe-run.sh BYPASS regression test (end-to-end, same P0) ─────────────────
 echo -n "safe-run.sh [YANA_SAFE_RUN_BYPASS without creds -> denied, command never runs]... "
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
