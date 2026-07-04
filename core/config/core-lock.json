@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-04T03:20:55+00:00",
+  "generated": "2026-07-04T09:44:34+00:00",
   "count": 238,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -38,7 +38,7 @@
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
     "core/hooks/guard-destructive.sh": "c4d43db20605665260b8d7c9ab4beb220c78cb5c8e95cc933d345dd8c4aca79c",
-    "core/hooks/hook-timeout-guard.sh": "c5166c732fb674046dd1446c6b748e4f04272f36194b8da25341503eb33ac626",
+    "core/hooks/hook-timeout-guard.sh": "bcceaa81b7b09218a07b59b835b0a7e0c6d74a23c7d35c087b3fcb0867fd4617",
     "core/hooks/infra-review-reminder.sh": "8339cfc324be76c4692977059de7ebed073007541b9d9f44b3cb62c6e55b7db8",
     "core/hooks/intent-inference.sh": "724c37c3bf83fed679515d5e13a025365ab55ca3e16fbbefadf03c01e4641501",
     "core/hooks/log-agent.sh": "8ae5ffef4099405c242112aaa0f39fd752a6017f551dfdb1548ac2ba7d651bd0",

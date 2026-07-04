@@ -33,10 +33,31 @@ if [[ -n "${YANA_GUARDED_HOOK:-}" ]]; then
     exit 0
   fi
 
-  # Run hook with timeout, forward any extra positional args (e.g.
-  # `agent-pixel-notify.sh start`), pass original stdin through unchanged.
-  timeout "$TIMEOUT" bash "$HOOK_SCRIPT" "$@" < "$TMP_INPUT"
-  EXIT_CODE=$?
+  # BUG FIX (2026-07-04): macOS ships neither `timeout` nor `gtimeout` by
+  # default (GNU coreutils isn't installed unless the user ran `brew
+  # install coreutils`). Without this fallback, the line below failed
+  # with "timeout: command not found" (exit 127) BEFORE $HOOK_SCRIPT was
+  # ever invoked — bash treats `timeout N bash script` as one command,
+  # and if `timeout` isn't found, none of it runs. Net effect: every
+  # guarded hook wrapped by this script (all 15 in .claude/settings.json
+  # — guard-destructive.sh, audit-log.sh, token-budget-guard.sh,
+  # per-tool-circuit-breaker.sh, etc.) silently never executed on any
+  # machine lacking coreutils, with no error surfaced to the session.
+  # Confirmed directly: .claude/state/audit-chain.log had zero entries
+  # despite a full multi-hour session of tool calls that should each
+  # have logged one. Degraded mode (no timeout binary found) still runs
+  # the wrapped hook — just without the hard timeout kill — and logs the
+  # degradation so it stays discoverable instead of silently recurring.
+  TIMEOUT_BIN="$(command -v timeout || command -v gtimeout || true)"
+
+  if [[ -n "$TIMEOUT_BIN" ]]; then
+    "$TIMEOUT_BIN" "$TIMEOUT" bash "$HOOK_SCRIPT" "$@" < "$TMP_INPUT"
+    EXIT_CODE=$?
+  else
+    echo "{\"ts\":\"$TIMESTAMP\",\"hook\":\"$HOOK_SCRIPT\",\"tool\":\"$TOOL_NAME\",\"action\":\"degraded-no-timeout-binary\"}" >> "$LOG" 2>/dev/null || true
+    bash "$HOOK_SCRIPT" "$@" < "$TMP_INPUT"
+    EXIT_CODE=$?
+  fi
 
   if [[ $EXIT_CODE -eq 124 ]]; then
     echo "{\"ts\":\"$TIMESTAMP\",\"hook\":\"$HOOK_SCRIPT\",\"tool\":\"$TOOL_NAME\",\"timeout\":$TIMEOUT,\"action\":\"killed\"}" >> "$LOG" 2>/dev/null || true
