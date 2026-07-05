@@ -408,25 +408,32 @@ Key properties:
 
 ## What it looks like in practice
 
+Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04 — not aspirational copy. See "Known Limitations" below for what this guard does *not* yet catch.
+
 ```bash
 # Agent tries: git push --force origin main
-[yana-ai/02-terminal-validator] BLOCKED — force push prohibited
-  Command : git push --force origin main
-  Gate    : L1
-  Fix     : Run gate checks first, then push without --force
+Blocked: 'git push --force' (any flag spelling) is not allowed. The
+orchestrator pushes branches; force-pushing risks overwriting shared history.
 
-# Agent tries: curl http://169.254.169.254/latest/meta-data/
-[yana-ai/network-egress] BLOCKED — SSRF target detected
-  Host    : 169.254.169.254
-  Gate    : L3
-  Exit    : 3
+# Agent tries: rm -rf /some/path
+Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
+Use targeted 'rm' with explicit paths, or ask the human to confirm first.
 
-# Agent tries to install unvetted package
-[yana-ai/dependency-vetting] BLOCKED — unvetted package install
-  Package : req-uests@2.28.0
-  Reason  : typosquatting (similar to 'requests')
-  Gate    : L4
+# Agent tries: git clean -f
+Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
+files. Ask the human to confirm before running this.
 ```
+
+## Known Limitations
+
+Honest, not aspirational — verified directly against the live hooks, not the docs describing them:
+
+- **`guard-destructive.sh` is a command-string guard, not a shell parser.** It tokenizes on whitespace and matches known-dangerous spellings (`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, direct push to main/master). As of 2026-07-05 (4 rounds of adversarial review in one day) it normalizes whole-token quoting (`"..."`, `'...'`, `$'...'`), backslash-escaping, `${IFS}`-style variable splicing, and denies outright on brace-expansion shapes adjacent to a git/rm invocation — but it does **not** handle mid-token quote-splice concatenation (quoted and unquoted fragments alternating within one word with no separating whitespace, e.g. `--forc"e"` — a real shell resolves this to `--force`, this guard does not). Closing that needs character-run quote-state parsing, not another token comparison — tracked as a longer-term design question, not silently claimed as closed. A deliberately-crafted command can still slip past this guard; an ordinary agent typing a command normally will be caught.
+- **SSRF/metadata-endpoint blocking and typosquatting/unvetted-package-install blocking are documented policy, not yet wired as live hooks.** Earlier versions of this README showed them as working examples — verified directly (2026-07-04) that no currently-wired `PreToolUse` hook actually intercepts `curl` to a metadata endpoint or an `npm install` of a typosquatted package. This is now stated plainly instead of shown as a working demo.
+- **`core/` and `.claude/` are two copies of the same source by design**, not an accidental duplicate — `core/` is canonical, `.claude/` is what Claude Code reads at runtime, and `core/config/core-lock.json` pins SHA-256 hashes of both. If you see them as duplicated content, that's intentional, not a bug to "clean up."
+- **macOS ships no GNU `timeout`/`gtimeout` by default.** A hook that assumed one was present silently never executed any guarded hook on affected machines until this was found and fixed (2026-07-04) — fixed to degrade gracefully (run without a timeout cap) instead of silently no-op'ing, but worth knowing this class of "assumed environment" bug is exactly the kind of thing to watch for if you fork or extend these hooks.
+
+Found a gap not listed here? [Open an issue](https://github.com/yanacuti1121/yana-ai/issues) — real-world reports are how a guard like this actually gets sharper, not by adding more documentation about what it's supposed to do.
 
 ---
 
