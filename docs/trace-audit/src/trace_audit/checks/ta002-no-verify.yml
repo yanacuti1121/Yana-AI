@@ -1,0 +1,7 @@
+id: TA002
+name: NO-VERIFY
+severity: MED
+description: >
+  Code files were edited but no test/build/lint/typecheck command was run
+  after the last edit, before the session's conclusion.
+params: {}

@@ -1,0 +1,11 @@
+id: TA004
+name: SILENT-ERROR
+severity: LOW
+description: >
+  A tool result contains an error (is_error, non-zero exit, traceback) but the
+  agent's next message never acknowledges it.
+params:
+  ack_patterns:
+    - '\b(error|fail(ed|ure)?|exception|traceback|exit\s+code|broken|issue|problem|retry)\b'
+    - '\b(lỗi|thất\s+bại|hỏng)\b'
+    - "(didn't|doesn't|couldn't|can't|unable)"

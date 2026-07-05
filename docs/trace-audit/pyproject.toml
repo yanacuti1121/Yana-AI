@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trace-audit"
+version = "0.1.1"
+description = "Your coding agent says 'done, tests pass'. This tool checks if that's true. Deterministic audit of Claude Code session logs."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Vũ Văn Tâm" }]
+keywords = ["ai-agent", "claude-code", "audit", "evals", "trust", "verification"]
+dependencies = ["PyYAML>=6.0"]
+
+[project.scripts]
+trace-audit = "trace_audit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trace_audit"]
