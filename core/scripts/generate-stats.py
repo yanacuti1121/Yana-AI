@@ -58,7 +58,12 @@ def count_files(tree, suffix):
 
 
 def hooks_count():
-    return max(count_files("core/hooks", ".sh"), count_files(".claude/hooks", ".sh"))
+    # Hooks are .sh and .js (3 hooks are .js: tool-attention, gitnexus-hook,
+    # context-monitor). validate-counts.sh already counts both; this
+    # function silently didn't, undercounting by 3 until fixed 2026-07-05.
+    core_n = count_files("core/hooks", ".sh") + count_files("core/hooks", ".js")
+    claude_n = count_files(".claude/hooks", ".sh") + count_files(".claude/hooks", ".js")
+    return max(core_n, claude_n)
 
 
 def rules_count():
@@ -82,8 +87,11 @@ def stats():
 def main():
     s = stats()
     if "--check" in sys.argv:
-        # Cross-check the numbers actually printed in README.md against reality.
-        readme = open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
+        # Cross-check the numbers actually printed against reality. The
+        # Numbers table moved from README.md to docs/reference/architecture.md
+        # on 2026-07-05 when the README was shortened; this check follows it.
+        stats_file = os.path.join(ROOT, "docs", "reference", "architecture.md")
+        readme = open(stats_file, encoding="utf-8").read()
         problems = []
         checks = [
             ("agents", r"\*\*(\d[\d,]*)\*\*\s*specialist agents"),
@@ -98,14 +106,14 @@ def main():
             claimed = int(m.group(1).replace(",", ""))
             actual = s[key]
             if claimed != actual:
-                problems.append(f"  {key}: README says {claimed}, filesystem has {actual}")
+                problems.append(f"  {key}: docs/reference/architecture.md says {claimed}, filesystem has {actual}")
         if problems:
-            print("✗ README.md is out of sync with the filesystem:")
+            print("✗ docs/reference/architecture.md is out of sync with the filesystem:")
             print("\n".join(problems))
-            print("\nRe-run without --check to see current real numbers, then update README.md,")
-            print("ARCHITECTURE.md, and worker.js's SYSTEM prompt to match.")
+            print("\nRe-run without --check to see current real numbers, then update")
+            print("docs/reference/architecture.md, ARCHITECTURE.md, and worker.js's SYSTEM prompt to match.")
             sys.exit(1)
-        print("✓ README.md numbers match the filesystem.")
+        print("✓ docs/reference/architecture.md numbers match the filesystem.")
         return
     print(json.dumps(s, indent=2))
 
