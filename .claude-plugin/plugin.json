@@ -72,7 +72,7 @@
     "agents": 101,
     "scripts": 107,
     "skills": 1989,
-    "rules": 69,
+    "rules": 70,
     "checks": 826,
     "checks_breakdown": {
       "hook_tests": 65,

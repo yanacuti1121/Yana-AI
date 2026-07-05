@@ -546,7 +546,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 69,
+      "count": 70,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
@@ -608,6 +608,7 @@
         "core/rules/subagent-policy.md",
         "core/rules/testing.md",
         "core/rules/tests.md",
+        "core/rules/text-slop-law.md",
         "core/rules/token-budget-policy.md",
         "core/rules/typescript.md",
         "core/rules/typography-rules.md",
@@ -2699,5 +2700,5 @@
   "hooks_count": 55,
   "scripts_count": 104,
   "commands_count": 166,
-  "rules_count": 69
+  "rules_count": 70
 }
