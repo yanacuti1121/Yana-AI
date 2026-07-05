@@ -16,7 +16,21 @@ changed.
 `.github/workflows/publish.yml` sets each registry's version from the git
 tag at release time (`sed`/`npm version` against the relevant file), so a
 tagged release is internally consistent for whichever axes it actually
-touches — it does not force all three files to the same number.
+touches: it does not force all three files to the same number. Each axis
+has its own tag prefix (`v*` for product/npm, `rt-v*` for the crate,
+`py-v*` for the Python package) and each publish job only runs for its
+own prefix, fixed 2026-07-05 after finding the three jobs previously ran
+unconditionally on any `v*`-shaped tag.
+
+**Known residual gap:** `.github/workflows/release.yml` (builds and
+attaches `yana-rt` binaries to a GitHub Release) still triggers on any
+plain `v*` tag with no axis check, so a product-only release (tag `v*`)
+also kicks off a `yana-rt` binary build even when no Rust code changed
+this cycle. It doesn't corrupt any published version number, since it
+builds from whatever `Cargo.toml` already says, but it's an unnecessary
+build and a release page that implies a `yana-rt` change happened when
+it didn't. Not fixed as part of the 2026-07-05 `publish.yml` fix; noted
+here so it isn't assumed closed.
 
 **If you see three different version numbers across this repo, that's
 expected.** What should never happen: the *same* axis reporting two

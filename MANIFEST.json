@@ -1,9 +1,9 @@
 {
   "name": "yana-ai",
-  "version": "0.43.0",
+  "version": "0.43.1",
   "scaffold_version": "1.0",
-  "release_date": "2026-06-30",
-  "manifest_updated": "2026-07-01T00:00:00Z",
+  "release_date": "2026-07-05",
+  "manifest_updated": "2026-07-05T00:00:00Z",
   "description": "Personal agent operating system. Hook layer + safety guards + workflow rules for AI assistants.",
   "status": "runtime-imported",
   "bundled_tools": {

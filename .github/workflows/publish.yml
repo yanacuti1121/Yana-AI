@@ -1,9 +1,37 @@
 name: Publish to npm + PyPI + crates.io
 
+# Three independent version axes (see VERSIONING.md): product (npm,
+# package.json/MANIFEST.json), yana-rt crate (crates.io, Cargo.toml), and
+# the Python package (PyPI, pyproject.toml). Each axis has its own tag
+# prefix so pushing one axis's tag never touches the other two files.
+# Before 2026-07-05 all three jobs ran unconditionally on any
+# `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set its own version file to
+# that same tag number, silently collapsing the three axes into one and
+# contradicting VERSIONING.md's own stated design.
+#
+# Reviewed 2026-07-05 (security-auditor + code-auditor per
+# 54-bft-consensus-law.md) before this version landed. Two things the
+# first draft of this fix got wrong, now fixed:
+# 1. `github.ref_name` is populated on every trigger, including
+#    workflow_dispatch (it reflects whichever ref was picked to run the
+#    workflow from), so a ref_name-based condition with no event_name
+#    guard could fire alongside a workflow_dispatch run that selected a
+#    different target, publishing two registries at once. Every
+#    ref_name/tag_name clause below is now scoped to its own event type.
+# 2. The "Set version from tag" step interpolated the tag name directly
+#    into `${{ }}` inside the shell script. Git tag names can contain
+#    `$()`/backticks (not blocked by git's ref-name rules), so a
+#    maliciously named tag driving a `release: published` event could
+#    inject shell commands into a job holding publish secrets. Fixed by
+#    passing the raw value through `env:` and referencing it as a quoted
+#    shell variable instead, so its contents are never re-parsed as
+#    script text.
 on:
     push:
       tags:
-        - 'v[0-9]+.[0-9]+.[0-9]+'
+        - 'v[0-9]+.[0-9]+.[0-9]+'      # product version -> npm only
+        - 'rt-v[0-9]+.[0-9]+.[0-9]+'   # yana-rt crate version -> crates.io only
+        - 'py-v[0-9]+.[0-9]+.[0-9]+'   # Python package version -> PyPI only
     release:
       types: [published]
     workflow_dispatch:
@@ -12,16 +40,28 @@ on:
           description: 'Version to publish (e.g. 0.42.1)'
           required: true
           default: '0.42.1'
+        target:
+          description: 'Which registry to publish'
+          required: true
+          type: choice
+          options: [npm, pypi, crates]
+          default: 'npm'
 
 jobs:
   publish-pypi:
     name: PyPI — yana-ai
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref_name, 'py-v')) ||
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'py-v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     runs-on: ubuntu-latest
     environment:
       name: pypi
       url: https://pypi.org/project/yana-ai/
     permissions:
       contents: read
+    env:
+      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
@@ -31,8 +71,10 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ inputs.version || github.ref_name }}"
+          VERSION="$RAW_VERSION"
+          VERSION="${VERSION#py-v}"
           VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
           sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" src/yana_ai/__init__.py
 
@@ -50,10 +92,20 @@ jobs:
 
   publish-npm:
     name: npm — yana-ai
+    # The !startsWith(...,'rt-v'/'py-v') guards below are currently
+    # always-true once startsWith(ref,'v') is true, since no rt-v/py-v tag
+    # can also start with a bare 'v'. Kept as explicit future-proofing in
+    # case a fourth axis ever gets a prefix starting with 'v' too.
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref_name, 'v') && !startsWith(github.ref_name, 'rt-v') && !startsWith(github.ref_name, 'py-v')) ||
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && !startsWith(github.event.release.tag_name, 'rt-v') && !startsWith(github.event.release.tag_name, 'py-v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'npm')
     runs-on: ubuntu-latest
     environment:
       name: npm
       url: https://www.npmjs.com/package/yana-ai
+    env:
+      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
@@ -64,8 +116,9 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ inputs.version || github.ref_name }}"
+          VERSION="$RAW_VERSION"
           VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
@@ -77,14 +130,19 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          VERSION: ${{ inputs.version || github.ref_name }}
 
   publish-crates:
     name: crates.io — yana-rt
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref_name, 'rt-v')) ||
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'rt-v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'crates')
     runs-on: ubuntu-latest
     environment:
       name: crates-io
       url: https://crates.io/crates/yana-rt
+    env:
+      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
@@ -92,7 +150,8 @@ jobs:
 
       - name: Set version from tag
         run: |
-          VERSION="${{ inputs.version || github.ref_name }}"
+          VERSION="$RAW_VERSION"
+          VERSION="${VERSION#rt-v}"
           VERSION="${VERSION#v}"
           sed -i "s/^version = .*/version = \"$VERSION\"/" Cargo.toml
 
