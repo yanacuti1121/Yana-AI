@@ -8,6 +8,51 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v0.43.1 — 2026-07-05
+
+Patch release. Product version axis only (`package.json`/`MANIFEST.json`);
+`Cargo.toml` (`yana-rt`, crates.io) and `pyproject.toml` (PyPI) are
+unchanged this cycle, since neither the Rust runtime nor the Python
+package changed. See `VERSIONING.md` for why these three axes are
+independent, and why this file's own `publish.yml` fix below matters for
+that separation staying real.
+
+- **Fix**: `core/hooks/guard-destructive.sh`: 4 rounds of adversarial
+  review closed command-tokenization bypasses in the force-push, `rm -rf`,
+  and `git clean -f` guards (quote/backslash/`${IFS}` splicing, brace
+  expansion, global-option adjacency). 140 hook tests, up from 112. This
+  is a distinct, later round from the "Unreleased" section's
+  flag-spelling fix further down (`is_rm_rf`/`is_git_force`, bash + Rust):
+  that round covered spelling variants of the same flag
+  (`--recursive --force` vs `-rf`); this round covers a different bug
+  class entirely, bypasses via shell syntax around the command itself
+  (adjacent global options, quoting, `${IFS}`, brace expansion), found
+  and fixed only in the bash hook.
+- **Add**: `core/rules/text-slop-law.md`: bans AI-slop prose patterns (em
+  dashes, buzzword filler, significance padding) in agent-authored
+  commits/PRs/issues/docs, adapted from facebook/astryx's public Night
+  Watch wiki. Rule count 69 to 70.
+- **Docs**: `README.md` (+ vi/ko/zh) shrunk from 651 to 88 lines each;
+  detailed reference material (architecture diagram, CLI reference,
+  GitHub Action, yana-web product section) moved to `docs/reference/*.md`
+  unchanged, not deleted.
+- **Add**: `docs/trace-audit/` tracked into the repo (v0.2.0), a
+  deterministic auditor for Claude Code session transcripts. Fixed a
+  precision bug (TA003 attributed every modified test file to the same,
+  latest turn instead of each file's own edit turn) found by running the
+  tool on this session's own transcript.
+- **Fix**: `.github/workflows/publish.yml`: all three publish jobs
+  (npm/PyPI/crates.io) ran on any `v[0-9]+.[0-9]+.[0-9]+` tag and each
+  force-set its own version file to that tag's number, silently
+  collapsing three independent version axes into one and contradicting
+  `VERSIONING.md`'s own stated design. Found while preparing this release
+  (would have force-published crates.io at `0.43.1`, a downgrade from
+  `1.3.2`). Split into per-axis tag prefixes (`v*` for npm/product,
+  `rt-v*` for crates.io, `py-v*` for PyPI) with job-level gating, so
+  tagging one axis never touches the other two files.
+
+---
+
 ## v0.43.0 — no changelog entry existed for this version
 
 *undated — package.json and MANIFEST.json were already at 0.43.0 with no
