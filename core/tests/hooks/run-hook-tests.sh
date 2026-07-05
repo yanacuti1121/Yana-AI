@@ -142,6 +142,53 @@ test_hook "guard-destructive.sh" "Block rm -rf" '{"tool_name":"Bash","tool_input
 test_hook "guard-destructive.sh" "Block git push --force" '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force"}}' "deny"
 test_hook "guard-destructive.sh" "Allow ls" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' "allow"
 
+# git_subcommand() regex-adjacency bypass regression (2026-07-04 audit fix).
+# Before the fix, every git-subcommand check required "git" and the
+# subcommand to be textually adjacent (`git\s+push`). Any global option
+# between them (-C <path>, --git-dir=<path>, etc.) — an everyday, non-
+# malicious flag, not a crafted evasion — silently bypassed force-push,
+# clean -f, reset --hard, and direct-push-to-main detection all at once.
+test_hook "guard-destructive.sh" "Block git -C <path> push --force (bypass via -C)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git -C <path> clean -f (bypass via -C)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x clean -f"}}' "deny"
+test_hook "guard-destructive.sh" "Block git -C <path> push origin main (bypass via -C)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x push origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git -C <path> reset --hard (bypass via -C)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x reset --hard HEAD~1"}}' "deny"
+test_hook "guard-destructive.sh" "Allow git -C <path> status (legit -C usage)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x status"}}' "allow"
+
+# Round 2 (same day): the first fix gated the force/hard/main scan on
+# git_subcommand() resolving an exact match, which reopened the same
+# bypass through any global option NOT in the hardcoded with-arg list
+# (e.g. --super-prefix). Caught by reviewer dispatch before commit.
+test_hook "guard-destructive.sh" "Block git --super-prefix <path> push --force (unlisted global opt)" '{"tool_name":"Bash","tool_input":{"command":"git --super-prefix /tmp/x push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git --super-prefix <path> clean -fd (unlisted global opt)" '{"tool_name":"Bash","tool_input":{"command":"git --super-prefix /tmp/x clean -fd"}}' "deny"
+test_hook "guard-destructive.sh" "Allow git -C <path> log (legit, unrelated subcommand)" '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/x log --oneline -5"}}' "allow"
+
+# Round 3 (same day): adversarial review found the whole file compares raw,
+# unnormalized tokens — quotes, backslashes, and ${IFS}-style splicing all
+# produce a token that differs from the real argv a shell would build,
+# bypassing every check in the file, not just the git-subcommand ones.
+test_hook "guard-destructive.sh" "Block git \"push\" --force (quoted subcommand token)" '{"tool_name":"Bash","tool_input":{"command":"git \"push\" --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git \\\\push --force (backslash-escaped subcommand token)" '{"tool_name":"Bash","tool_input":{"command":"git \\push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git push \"--force\" (quoted force-flag token, non-main branch)" '{"tool_name":"Bash","tool_input":{"command":"git push \"--force\" origin feature-branch"}}' "deny"
+test_hook "guard-destructive.sh" "Block rm \"-rf\" (quoted rm flag token)" '{"tool_name":"Bash","tool_input":{"command":"rm \"-rf\" /tmp/x"}}' "deny"
+test_hook "guard-destructive.sh" "Block git\${IFS}push --force (IFS-spliced subcommand)" '{"tool_name":"Bash","tool_input":{"command":"git${IFS}push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block rm\${IFS}-rf (IFS-spliced rm flag)" '{"tool_name":"Bash","tool_input":{"command":"rm${IFS}-rf /tmp/x"}}' "deny"
+test_hook "guard-destructive.sh" "Allow normal env-var-prefixed git command (no adjacent-letter splice)" '{"tool_name":"Bash","tool_input":{"command":"GIT_AUTHOR_NAME=x git commit -m test"}}' "allow"
+test_hook "guard-destructive.sh" "Allow unrelated adjacent-letter splice with no git/rm mention" '{"tool_name":"Bash","tool_input":{"command":"echo a${b}c"}}' "allow"
+
+# Round 4 (same day): round 3's adversarial review found two more bypasses
+# cheap enough to close in the same pass — ANSI-C $'...' quoting (a form
+# strip_tok() didn't recognize at all) and brace expansion (a distinct
+# pre-tokenizing expansion phase, handled via the same deny-outright
+# precedent as the ${IFS}-splice check). A third gap (mid-token quote-
+# splice concatenation, e.g. --forc"e") was assessed as needing real
+# character-run quote-state parsing rather than a cheap fix, and is
+# documented as a known limitation instead — see README.md's "Known
+# Limitations" section and this file's own header comment.
+test_hook "guard-destructive.sh" "Block git \$'push' --force (ANSI-C quoted subcommand)" '{"tool_name":"Bash","tool_input":{"command":"git $'"'"'push'"'"' --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block git push \$'--force' (ANSI-C quoted force flag, non-main branch)" '{"tool_name":"Bash","tool_input":{"command":"git push $'"'"'--force'"'"' origin feature-branch"}}' "deny"
+test_hook "guard-destructive.sh" "Block rm -{rf,} (brace expansion alongside rm)" '{"tool_name":"Bash","tool_input":{"command":"rm -{rf,} /tmp/x"}}' "deny"
+test_hook "guard-destructive.sh" "Allow unrelated brace expansion with no git/rm mention" '{"tool_name":"Bash","tool_input":{"command":"echo file.{js,ts}"}}' "allow"
+
 # 4. db-protect.sh
 echo ""
 echo "--- db-protect.sh ---"
