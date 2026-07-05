@@ -76,6 +76,7 @@ core/rules/
   agent-code-constraints.md   ← hard metric limits (lines, params, nesting)
   agents-v2.md                ← multi-agent orchestration policy
   anti-ai-slop-design-law.md  ← AI-generated-look design clichés (Gate L5, companion to color/typography-rules)
+  text-slop-law.md            ← AI-generated-look prose tells in commits/PRs/issues/docs (Tier 3, agent-self-applied, companion to anti-ai-slop-design-law + stop-slop skill)
   api-security-gate.md        ← OWASP API Top 10 enforcement (Gate L3)
   audit-hardening-policy.md   ← Trillian hash-chain log integrity (Gate L0)
   color-rules.md              ← Radix 12-scale + Tailwind color enforcement
