@@ -101,3 +101,30 @@ def test_modified_test_without_weakening_is_med(dirty):
 def test_multitask_session_skips_scope_creep(multitask):
     """Real FP 2026-07-04: long multi-task session fired TA005. Must not."""
     assert "TA005" not in ids(multitask)
+
+
+# ── v0.2 regression: TA003 per-file turn attribution ─────────────────────────
+@pytest.fixture(scope="module")
+def multifile_tamper():
+    return run_all(build_model(FIX / "multifile-tamper.jsonl"))
+
+
+def test_ta003_reports_one_finding_per_file(multifile_tamper):
+    """Real bug found 2026-07-05 running trace-audit on a real 6,679-turn
+    session: two test files edited ~20 turns apart were bundled into one
+    Finding stamped with only the later turn, hiding when the earlier file
+    was actually touched."""
+    ta003 = [f for f in multifile_tamper if f.id == "TA003"]
+    assert len(ta003) == 2
+
+
+def test_ta003_turns_are_distinct_and_match_each_files_own_edit(multifile_tamper):
+    ta003 = [f for f in multifile_tamper if f.id == "TA003"]
+    turns = sorted(f.turn for f in ta003)
+    assert turns[0] < turns[1], "each file must keep its own turn, not the last edit's turn"
+    by_path = {}
+    for f in ta003:
+        for path in ("tests/test_auth.py", "tests/test_payments.py"):
+            if path in f.message:
+                by_path[path] = f.turn
+    assert by_path["tests/test_auth.py"] < by_path["tests/test_payments.py"]

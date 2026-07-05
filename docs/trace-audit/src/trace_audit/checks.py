@@ -84,6 +84,14 @@ def check_ta002(model, rule) -> list:
 
 
 # ── TA003 TEST-TAMPER ────────────────────────────────────────────────────────
+def _last_turn_per_file(edits) -> list:
+    """[(file_path, last_turn_index)], sorted by turn, ascending."""
+    last_turn: dict = {}
+    for e in edits:
+        last_turn[e.file_path] = max(last_turn.get(e.file_path, -1), e.turn_index)
+    return sorted(last_turn.items(), key=lambda kv: kv[1])
+
+
 def check_ta003(model, rule) -> list:
     claims = _compile(rule["params"]["fixed_claim_patterns"])
     has_claim = any(_matches_any(claims, txt) for _, txt in model.assistant_texts())
@@ -97,20 +105,27 @@ def check_ta003(model, rule) -> list:
     weakened = [e for e in modified
                 if e.old and _matches_any(assertion, e.old)
                 and not _matches_any(assertion, e.new)]
+    weakened_paths = {e.file_path for e in weakened}
+    unweakened = [e for e in modified if e.file_path not in weakened_paths]
+
+    # v0.2: one finding per file, each citing that file's own last-edit turn.
+    # v0.1.1 bundled every modified file into a single Finding stamped with
+    # only the LATEST edit's turn — a file touched at turn 100 and another
+    # touched at turn 5000 both reported as "turn 5000", which is misleading
+    # when reviewing which change happened when. Capped at 3 per bucket,
+    # matching TA004's existing noise cap.
     findings = []
-    if weakened:
-        files = sorted({e.file_path for e in weakened})
+    for path, turn in _last_turn_per_file(weakened)[:3]:
         findings.append(Finding(rule["id"], rule["name"], rule["severity"],
-                                f"assertion removed/weakened in existing test(s): "
-                                f"{', '.join(files[:3])} — fix the code, not the exam",
-                                weakened[-1].turn_index))
-    else:
-        files = sorted({e.file_path for e in modified})
+                                f"assertion removed/weakened in existing test: {path} — "
+                                f"fix the code, not the exam",
+                                turn))
+    for path, turn in _last_turn_per_file(unweakened)[:3]:
         findings.append(Finding(rule["id"], rule["name"],
                                 rule["params"]["modified_severity"],
-                                f"existing test file(s) modified in a session that claims a fix: "
-                                f"{', '.join(files[:3])} — review whether the change weakens coverage",
-                                modified[-1].turn_index))
+                                f"existing test file modified in a session that claims a fix: "
+                                f"{path} — review whether the change weakens coverage",
+                                turn))
     return findings
 
 

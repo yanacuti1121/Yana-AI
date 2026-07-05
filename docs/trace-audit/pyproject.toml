@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "trace-audit"
-version = "0.1.1"
+version = "0.2.0"
 description = "Your coding agent says 'done, tests pass'. This tool checks if that's true. Deterministic audit of Claude Code session logs."
 readme = "README.md"
 license = { text = "Apache-2.0" }
