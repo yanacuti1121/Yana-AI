@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-06T09:36:19+00:00",
-  "count": 239,
+  "generated": "2026-07-06T14:58:48+00:00",
+  "count": 240,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -60,6 +60,7 @@
     "core/hooks/token-budget-guard.sh": "8e892e1b57e28d9f2d12ba99bac4e916b49ee701ba369bc54c6422cd37af38ff",
     "core/hooks/token-scope-guard.sh": "e60da071a3a95a9a0d9717b40b7666e642958d9f5759e21cef185b0df40f6140",
     "core/hooks/tool-attention.js": "79939c10f7e234327245a162c60a33ed56acd2009cb2beca5e0d13034a4496d0",
+    "core/hooks/tool-guardrails-detector.sh": "644866b832ffc4f5db46369ba08656377a03fd14600dec9e88423b5c8644ead1",
     "core/hooks/tool-proxy-enforcer.sh": "d2ea16049c8a6156aebfcdd8bda3a1f48345caa307316ed7dcdec7cd142ca271",
     "core/hooks/tool-validator.sh": "ccde6a9b89ef76391301badecbb43893799354fd4ac66951003b7355c260d0cc",
     "core/hooks/truth-gate-guard.sh": "bae02e11eccc3281ab124a31c95f6b9bedd091cf3c1c49f927a582c8163602f5",
