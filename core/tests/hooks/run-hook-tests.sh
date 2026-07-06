@@ -452,6 +452,230 @@ test_verify_track "Bypass flag suppresses tracking" \
   '. == {}' \
   "bypass"
 
+# 5d. tool-guardrails-detector.sh — PostToolUse (record) + Stop (reset) per-turn
+# loop detector (hermes_adapted Phase 3). Runs against a throwaway
+# CLAUDE_PROJECT_DIR so it never touches the real state file.
+echo ""
+echo "--- tool-guardrails-detector.sh ---"
+
+test_toolguard() {
+    local test_name=$1
+    local mode=$2            # "record" or "reset"
+    local input_json=$3
+    local expect_warn=$4     # "warn" (stdout must mention a loop) or "silent"
+    local jq_check=${5:-""}  # optional jq boolean expression against the state file
+    local bypass=${6:-""}    # "bypass" to set YANA_TOOLGUARD_BYPASS=1
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/tool-guardrails-detector.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/tool-guardrails-detector.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    local state_file="$tmp_project/.claude/state/tool-guardrail-state.json"
+
+    local output
+    if [[ "$bypass" == "bypass" ]]; then
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" YANA_TOOLGUARD_BYPASS=1 \
+            bash "$HOOKS_DIR/tool-guardrails-detector.sh" "$mode" 2>/dev/null)
+    else
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" \
+            bash "$HOOKS_DIR/tool-guardrails-detector.sh" "$mode" 2>/dev/null)
+    fi
+
+    local state_content="{}"
+    [[ -f "$state_file" ]] && state_content=$(cat "$state_file")
+    rm -rf "$tmp_project"
+
+    local ok=1
+    if [[ "$expect_warn" == "warn" && "$output" != *"loop"* ]]; then
+        ok=0
+    elif [[ "$expect_warn" == "silent" && -n "$output" ]]; then
+        ok=0
+    fi
+    if [[ -n "$jq_check" ]] && ! echo "$state_content" | jq -e "$jq_check" >/dev/null 2>&1; then
+        ok=0
+    fi
+
+    if [[ "$ok" == "1" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (output: '$output', state: $state_content)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_toolguard "First identical failure is silent (below warn threshold)" "record" \
+  '{"session_id":"g1","tool_name":"Bash","tool_input":{"command":"flaky"},"tool_response":{"exit_code":1}}' \
+  "silent" \
+  '.sessions.g1.exact_failure_counts | to_entries | .[0].value == 1'
+
+test_toolguard_repeat() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [Second identical failure triggers a loop warning]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    local payload='{"session_id":"g2","tool_name":"Bash","tool_input":{"command":"flaky"},"tool_response":{"exit_code":1}}'
+
+    echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" record >/dev/null 2>&1
+    local output
+    output=$(echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" record 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ "$output" == *"loop"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (output: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_toolguard_repeat
+
+test_toolguard "Bypass flag suppresses everything, no state written" "record" \
+  '{"session_id":"g3","tool_name":"Bash","tool_input":{"command":"flaky"},"tool_response":{"exit_code":1}}' \
+  "silent" \
+  '. == {}' \
+  "bypass"
+
+test_toolguard "Successful call clears failure counts, stays silent" "record" \
+  '{"session_id":"g4","tool_name":"Bash","tool_input":{"command":"ls"},"tool_response":{"exit_code":0}}' \
+  "silent" \
+  '.sessions.g4.exact_failure_counts == {}'
+
+# reset(Stop) is tested against a pre-seeded state file, since a single
+# "reset" call has nothing to clear on its own.
+test_toolguard_reset() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [Stop event clears session state]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+    local state_file="$tmp_project/.claude/state/tool-guardrail-state.json"
+    echo '{"sessions":{"g5":{"exact_failure_counts":{"Bash:abc":2},"same_tool_failure_counts":{"Bash":2},"no_progress":{}},"g6":{"exact_failure_counts":{},"same_tool_failure_counts":{},"no_progress":{}}}}' \
+        > "$state_file"
+
+    echo '{"session_id":"g5"}' | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" reset >/dev/null 2>&1
+
+    local state_content
+    state_content=$(cat "$state_file")
+    rm -rf "$tmp_project"
+
+    if echo "$state_content" | jq -e '(.sessions.g5 == null) and (.sessions.g6 != null)' >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (state: $state_content)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_toolguard_reset
+
+test_toolguard_reset_harmless_without_prior_state() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [Stop event on a project with no prior state is harmless (empty sessions, no crash)]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    local state_file="$tmp_project/.claude/state/tool-guardrail-state.json"
+
+    local output
+    output=$(echo '{"session_id":"never-seen"}' | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" reset 2>/dev/null)
+    local exit_code=$?
+    local state_content="{}"
+    [[ -f "$state_file" ]] && state_content=$(cat "$state_file")
+    rm -rf "$tmp_project"
+
+    # The lock file handle (opened "a+" for flock) creates an empty state
+    # file as a side effect even when there's nothing to reset — harmless,
+    # since its content is just an empty sessions object, not a crash or a
+    # stray entry for a session that was never recorded.
+    if [[ -z "$output" && "$exit_code" == "0" ]] && \
+       echo "$state_content" | jq -e '.sessions == {} or .sessions == null' >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (output: '$output', exit: $exit_code, state: $state_content)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_toolguard_reset_harmless_without_prior_state
+
+test_toolguard_same_tool_varying_args_warns() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [Same tool failing with varying args triggers same_tool_failure warning]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local output=""
+    local i
+    for i in 1 2 3; do
+        output=$(echo "{\"session_id\":\"g7\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cmd-$i\"},\"tool_response\":{\"exit_code\":1}}" \
+            | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/tool-guardrails-detector.sh" record 2>/dev/null)
+    done
+    rm -rf "$tmp_project"
+
+    # same_tool_failure_warn_after defaults to 3 in tool_guardrails.py — the
+    # 3rd distinct-args failure on the same tool should warn.
+    if [[ "$output" == *"loop"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (output on 3rd call: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_toolguard_same_tool_varying_args_warns
+
+test_toolguard_large_truncated_failure_still_detected() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-guardrails-detector.sh [Large (>8000 char) failing output is still classified as a failure]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local big_output
+    big_output=$(python3 -c "print('x' * 9000)")
+    local payload
+    payload=$(python3 -c "
+import json
+print(json.dumps({
+    'session_id': 'g8', 'tool_name': 'Bash',
+    'tool_input': {'command': 'noisy-flaky'},
+    'tool_response': {'stdout': '$big_output', 'exit_code': 1},
+}))
+")
+
+    echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" record >/dev/null 2>&1
+    local output
+    output=$(echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/tool-guardrails-detector.sh" record 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ "$output" == *"loop"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected a loop warning despite truncated output, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_toolguard_large_truncated_failure_still_detected
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"

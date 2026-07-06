@@ -362,7 +362,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 55,
+      "count": 56,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -414,6 +414,7 @@
         "core/hooks/token-budget-guard.sh",
         "core/hooks/token-scope-guard.sh",
         "core/hooks/tool-attention.js",
+        "core/hooks/tool-guardrails-detector.sh",
         "core/hooks/tool-proxy-enforcer.sh",
         "core/hooks/tool-validator.sh",
         "core/hooks/truth-gate-guard.sh",

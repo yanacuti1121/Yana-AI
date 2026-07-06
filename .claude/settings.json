@@ -91,6 +91,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/truth-gate-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash .claude/hooks/hook-timeout-guard.sh reset"
           }
         ]
       }
@@ -110,6 +114,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/verify-evidence-track.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash .claude/hooks/hook-timeout-guard.sh record"
           },
           {
             "type": "command",
