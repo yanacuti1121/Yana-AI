@@ -137,3 +137,16 @@ Sample output:
 
 [OK] Launched 3/3 agents
 ```
+
+`status` shows 6 states, added 2026-07-06: `working` (alive, log updated
+recently), `blocked` (alive, but its log has not changed in over
+`YANA_AGENT_STALE_SECONDS` seconds, default 30, so it may be stuck or
+waiting on something), `done` (exited 0), `failed` (exited non-zero),
+`unknown` (the process is gone but never wrote its own exit code, for
+example after a SIGKILL, so success can't be assumed), `killed` (stopped
+via `kill`).
+
+Agent names passed to `--agents`/`--tasks-file` are restricted to
+`[A-Za-z0-9_-]` (rejected otherwise) since they flow directly into file
+paths and a shell command string; task descriptions are shell-escaped
+before use for the same reason.

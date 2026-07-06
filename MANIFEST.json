@@ -535,12 +535,13 @@
       ]
     },
     "tests": {
-      "count": 8,
+      "count": 9,
       "actual_present": [
         "core/tests/adversarial",
         "core/tests/commands",
         "core/tests/hooks",
         "core/tests/red-team",
+        "core/tests/scripts",
         "core/tests/skills"
       ]
     },
