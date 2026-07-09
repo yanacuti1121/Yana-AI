@@ -1459,10 +1459,16 @@ async function handleApiChat(req, res) {
   }
 
   // Validate model ID against an allowlist pattern (EP-2): reject anything
-  // that isn't a known model-id format (alphanumeric, dots, hyphens).
+  // that isn't a known model-id format (alphanumeric, dots, hyphens, plus
+  // ':' and '/' for Ollama tag syntax like "gemma4:e2b-it-q8_0" and
+  // namespaced IDs like "meta-llama/llama-3.1-70b-instruct" — several
+  // PROVIDERS[...].defaultModel values already use '/' unvalidated, so a
+  // client-supplied model of the same shape was being silently rejected
+  // here and replaced with the wrong provider's default, causing a 404
+  // even when the user picked a real, installed model).
   // JSON.stringify would prevent JSON injection but a garbage model ID could
   // still trigger unexpected upstream API errors or leak internal info.
-  const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,100}$/;
+  const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,100}$/;
   const rawModelId  = typeof model === 'string' ? model.trim() : '';
   const modelId     = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : p.defaultModel;
   // images: array of { mimeType, data } — only passed if provider supports vision
