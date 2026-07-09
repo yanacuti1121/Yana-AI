@@ -145,6 +145,12 @@ guards:
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: deploy-gate.sh
 
+  entry-point-verify-reminder:
+    description: "Advisory reminder to dispatch an independent verify-agent"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: entry-point-verify-reminder.sh
+
   format-on-write:
     description: "Auto-format files on Write/Edit tool use"
     hook_type: PostToolUse
@@ -303,6 +309,12 @@ guards:
     hook_type: PostToolUse
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: tool-attention.js
+
+  tool-guardrails-detector:
+    description: "PostToolUse/Stop — per-turn tool-call loop detector (warn-only)"
+    hook_type: unknown
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: tool-guardrails-detector.sh
 
   tool-proxy-enforcer:
     description: "Enforce tool-proxy sanitize layer at hook level — blocks subshell"
