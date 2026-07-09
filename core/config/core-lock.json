@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-06T14:58:48+00:00",
-  "count": 240,
+  "generated": "2026-07-09T15:16:59+00:00",
+  "count": 242,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -34,6 +34,7 @@
     "core/hooks/db-protect.sh": "d12379df7a181ea66f2f8943323251dc6e807e0139ee36c63a8ad747e6b33d07",
     "core/hooks/dependency-safety-gate.sh": "7aeb589841149f744ca633e4f8ef8b5194235055a39e031424ae9840525d4b64",
     "core/hooks/deploy-gate.sh": "2eebd8435af917bcfeb0048bd7e9679747b646f10abb78fc6ad1b5bfddad24e4",
+    "core/hooks/entry-point-verify-reminder.sh": "7cd6d27564e3094d6a97998aead139cd9499c869e7f87bb7c0b26840e9addd9e",
     "core/hooks/format-on-write.sh": "a93eebe1486662dcc436bcb878f8d8e6208bc7b5ab12aadd27ec584352428dff",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
@@ -94,6 +95,7 @@
     "core/rules/68-principal-confidentiality-law.md": "257db137814d169dc012351b1f0eaa872ea69d74325fd830ff0aede8d27dfe82",
     "core/rules/69-cognitive-reliability-law.md": "a2f5d8abe02fa8f50b20e5b4c9719df4e5bdc18545335ba747945030064855cc",
     "core/rules/70-context-faithfulness-law.md": "7af676ecb85e916add383084f73ff5e36fbc4fff4ad7eda281280fbdc8bdb103",
+    "core/rules/71-entry-point-verify-law.md": "6fc88aeb3b1dd3093506afb9ea795506b642caab240315f436a2b11b86e16350",
     "core/rules/agent-code-constraints.md": "53268ac8cdb7063ab9ecf1ae3a148f2091b8d1cfe6fcea93222a6880ab05a491",
     "core/rules/agent-communication-policy.md": "1c0b13ff5644f61ee9ba80a4a1275ef7f2c58aa5511a7f60abfe230cf5fb71ae",
     "core/rules/agent-excessive-agency-law.md": "4a0bb292c0729068cbb9cae509d8548f3643940d7476046d5263377157ff20cd",

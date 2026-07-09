@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 /**
  * yana-rt wrapper — finds and runs the yana-rt binary.

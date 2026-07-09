@@ -25,6 +25,7 @@
 
 mod blast_paths;
 mod blast_radius;
+mod entry_point_check;
 mod self_mod;
 mod token_budget;
 
@@ -61,6 +62,14 @@ pub enum GuardAction {
     /// the most dangerous self-modification possible. Every denied attempt is
     /// appended to ledger/selfmod-tamper.log for audit.
     SelfMod,
+    /// PostToolUse(Write|Edit|MultiEdit) — advisory reminder per
+    /// core/rules/71-entry-point-verify-law.md: a write to a registered
+    /// fragile entry-point file (scripts/yana-rt-wrapper.js by default,
+    /// extend via YANA_ENTRY_POINT_PATHS) needs an independent verify-agent
+    /// real-`exec()` pass, not just a diff re-read. Never denies (the write
+    /// already happened by PostToolUse) — surfaces additionalContext only,
+    /// same non-blocking shape as infra-review-reminder.sh.
+    EntryPointCheck,
 }
 
 pub fn dispatch(action: GuardAction) {
@@ -69,6 +78,7 @@ pub fn dispatch(action: GuardAction) {
         GuardAction::TokenBudget { tool } => token_budget::cmd_token_budget(tool),
         GuardAction::BlastRadius => blast_radius::cmd_blast_radius(),
         GuardAction::SelfMod => self_mod::cmd_self_mod(),
+        GuardAction::EntryPointCheck => entry_point_check::cmd_entry_point_check(),
     };
     std::process::exit(code);
 }

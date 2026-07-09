@@ -94,6 +94,33 @@ fn matches_prefix(candidate: &str, prefix: &str) -> bool {
     candidate == prefix || candidate.starts_with(&format!("{prefix}/"))
 }
 
+/// Repo-relative paths registered as fragile entry points — see
+/// core/rules/71-entry-point-verify-law.md. A syntactic mistake in one of
+/// these can break the whole tool (not just degrade a code path), so edits
+/// require an independent verify-agent exec pass, not just a diff review.
+/// Extend via YANA_ENTRY_POINT_PATHS (colon-separated) without recompiling.
+pub fn entry_point_prefixes() -> Vec<String> {
+    let mut v = vec!["scripts/yana-rt-wrapper.js".to_string()];
+    if let Ok(extra) = std::env::var("YANA_ENTRY_POINT_PATHS") {
+        v.extend(extra.split(':').filter(|s| !s.is_empty()).map(String::from));
+    }
+    v
+}
+
+/// Does this operand match a registered entry-point file? Reuses the same
+/// repo-relative normalization as `protected_hit`.
+pub fn entry_point_hit(raw: &str, entry_points: &[String]) -> Option<String> {
+    let rel = repo_relative(raw);
+    for p in entry_points {
+        // matches_prefix already covers the exact-match case internally
+        // (candidate == prefix), so no separate `rel == *p` check is needed.
+        if matches_prefix(&rel, p) || matches_prefix(raw, p) {
+            return Some(p.clone());
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,5 +186,52 @@ mod tests {
         let hit = protected_hit("/etc/passwd", &prot());
         std::env::remove_var("YANA_REPO_ROOT");
         assert!(hit.is_none());
+    }
+
+    // ── entry_point_hit / entry_point_prefixes (71-entry-point-verify-law) ──
+
+    fn entry_points() -> Vec<String> {
+        vec!["scripts/yana-rt-wrapper.js".to_string()]
+    }
+
+    #[test]
+    fn registered_entry_point_is_hit() {
+        assert!(entry_point_hit("scripts/yana-rt-wrapper.js", &entry_points()).is_some());
+    }
+
+    #[test]
+    fn dotdot_path_to_entry_point_is_hit() {
+        assert!(entry_point_hit("scripts/../scripts/yana-rt-wrapper.js", &entry_points()).is_some());
+    }
+
+    #[test]
+    fn absolute_path_to_entry_point_is_hit() {
+        std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
+        let hit = entry_point_hit(
+            "/workspaces/Yana-AI/scripts/yana-rt-wrapper.js",
+            &entry_points(),
+        );
+        std::env::remove_var("YANA_REPO_ROOT");
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn sibling_script_is_not_hit() {
+        assert!(entry_point_hit("scripts/other-wrapper.js", &entry_points()).is_none());
+    }
+
+    #[test]
+    fn unrelated_file_is_not_hit() {
+        assert!(entry_point_hit("src/main.rs", &entry_points()).is_none());
+    }
+
+    #[test]
+    fn env_extension_adds_entry_point() {
+        std::env::set_var("YANA_ENTRY_POINT_PATHS", "scripts/other-wrapper.sh:bin/cli.js");
+        let points = entry_point_prefixes();
+        std::env::remove_var("YANA_ENTRY_POINT_PATHS");
+        assert!(points.iter().any(|p| p == "scripts/yana-rt-wrapper.js"));
+        assert!(points.iter().any(|p| p == "scripts/other-wrapper.sh"));
+        assert!(points.iter().any(|p| p == "bin/cli.js"));
     }
 }

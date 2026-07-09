@@ -362,7 +362,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 56,
+      "count": 57,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -388,6 +388,7 @@
         "core/hooks/db-protect.sh",
         "core/hooks/dependency-safety-gate.sh",
         "core/hooks/deploy-gate.sh",
+        "core/hooks/entry-point-verify-reminder.sh",
         "core/hooks/format-on-write.sh",
         "core/hooks/gitnexus-hook.js",
         "core/hooks/guard-blast-radius.sh",
@@ -548,7 +549,7 @@
     },
     "rules": {
       "status": "imported",
-      "count": 70,
+      "count": 71,
       "actual_present": [
         "core/rules/00-meta-rule-enforcer.md",
         "core/rules/02-terminal-validator.md",
@@ -573,6 +574,7 @@
         "core/rules/65-pre-push-verify-law.md",
         "core/rules/66-client-secret-encryption-law.md",
         "core/rules/67-core-integrity-lock-law.md",
+        "core/rules/71-entry-point-verify-law.md",
         "core/rules/agent-code-constraints.md",
         "core/rules/agent-communication-policy.md",
         "core/rules/agent-excessive-agency-law.md",
