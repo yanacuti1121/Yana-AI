@@ -937,7 +937,11 @@ function Chat({ t }) {
 
   const activeProvider = providerSel || getProviderConfig().provider;
   const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
-  const activeModel = modelSel[activeProvider] || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
+  // Prefer the live-fetched first model over the static default when no
+  // explicit user pick exists yet — the static CHAT_MODELS default (e.g.
+  // "llama3.2" for Ollama) may not actually be installed, which caused a
+  // 404 even though the dropdown showed the real installed models.
+  const activeModel = modelSel[activeProvider] || (liveModels[activeProvider] && liveModels[activeProvider][0]) || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
 
   const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(activeProvider);
 
@@ -1186,7 +1190,9 @@ function Chat({ t }) {
       apiKey = KEYLESS_PROVIDERS.has(provider) ? "" : (YanaVault.getKey(provider) || "");
     }
 
-    const model = modelSel[provider] || CHAT_MODELS[provider] || "";
+    // Same fallback fix as activeModel above: prefer the live-fetched model
+    // list over the static default, which may not actually be installed.
+    const model = modelSel[provider] || (liveModels[provider] && liveModels[provider][0]) || CHAT_MODELS[provider] || "";
 
     try {
       const res = await fetch("/api/chat", {
