@@ -1,3 +1,4 @@
+
 #!/usr/bin/env node
 /**
  * yana-rt wrapper — finds and runs the yana-rt binary.
@@ -8,39 +9,64 @@
  *   4. Locally built: target/release/yana-rt (cargo build --release)
  *
  * BUG FIX (2026-07-07): npm's `bin` linking makes `yana-rt` on $PATH resolve
- * back to THIS SAME FILE when no compiled binary exists anywhere. The old
- * code exec'd the bare string "yana-rt" and let the OS search $PATH, which
- * found this wrapper again — spawning an identical child that did the same
- * PATH lookup, recursing without limit. Each level blocks on its child
- * (execFileSync is synchronous), so the process count and memory usage grow
- * without bound until the machine runs out of resources. Confirmed as the
- * root cause of a real incident: 100% CPU, 116°C, hard hang requiring a
- * forced shutdown. Fixed by resolving $PATH ourselves, comparing the real
- * path of anything found to our own real path, and refusing to exec a
- * self-match — plus a recursion-guard env var as a second line of defense.
+ * back to THIS SAME FILE. The old code exec'd the bare string "yana-rt",
+ * which found this wrapper again — unbounded synchronous recursion.
+ * Confirmed root cause of a real incident: 100% CPU, 116°C, hard hang.
+ *
+ * HARDENING (2026-07-09): the first fix only self-checked the $PATH
+ * candidate. $YANA_RT_BIN was trusted blindly — and the error message
+ * below tells users to set it, so `which yana-rt` (the npm symlink)
+ * pasted into YANA_RT_BIN re-armed the same infinite recursion, with
+ * the guard env var powerless because it only disabled the PATH lookup.
+ * Two changes:
+ *   (a) The guard is now a hard fail: this wrapper being re-entered is
+ *       never legitimate, so if the guard var is set we abort immediately.
+ *   (b) The realpath self-check applies to EVERY candidate, including
+ *       YANA_RT_BIN and any symlinked target/release path.
  */
 const { execFileSync } = require("child_process");
 const path = require("path");
 const fs   = require("fs");
-
+ 
 const PKG = path.join(__dirname, "..");
 const ARGS = process.argv.slice(2);
 const RECURSION_GUARD = "YANA_RT_WRAPPER_ACTIVE";
-
+ 
+// (a) Hard re-entry guard. If we are here twice, some candidate led back
+// to this wrapper. Abort — do not "continue to the next candidate", since
+// the parent already made its choice and exec'ing anything else now would
+// desync parent/child behavior.
+if (process.env[RECURSION_GUARD]) {
+  console.error(
+    "yana-rt: recursion detected — the wrapper was re-entered by a child it spawned.\n" +
+    "A candidate (likely $YANA_RT_BIN or a $PATH shim) resolves back to this wrapper.\n" +
+    "Unset YANA_RT_BIN, or point it at a real compiled binary (e.g. ~/.cargo/bin/yana-rt)."
+  );
+  process.exit(1);
+}
+ 
 function exists(p) { try { fs.accessSync(p, fs.constants.X_OK); return true; } catch { return false; } }
-
 function realpathOrNull(p) { try { return fs.realpathSync(p); } catch { return null; } }
-
+ 
+const selfRealpath = realpathOrNull(__filename);
+ 
+// (b) A candidate is usable only if it exists AND does not resolve back
+// to this file. Unresolvable realpath => reject (fail closed, not open).
+function usable(p) {
+  if (!p || !exists(p)) return false;
+  const real = realpathOrNull(p);
+  return real !== null && real !== selfRealpath;
+}
+ 
 function platformBin() {
   const plat = process.platform;        // linux, darwin, win32
   const arch = process.arch === "x64" ? "x86_64" : process.arch;
   const ext  = plat === "win32" ? ".exe" : "";
   return path.join(PKG, "bin", `yana-rt-${plat}-${arch}${ext}`);
 }
-
-// Manually resolve "yana-rt" on $PATH so we can detect (and refuse) a
-// self-reference BEFORE exec'ing anything — never delegate this lookup to
-// the OS/child_process, since that is exactly what recursed last time.
+ 
+// Manually resolve "yana-rt" on $PATH so the self-check above can run
+// BEFORE exec'ing anything — never delegate this lookup to the OS.
 function resolveOnPath(name) {
   const exts = process.platform === "win32" ? [".exe", ".cmd", ".bat", ""] : [""];
   for (const dir of (process.env.PATH || "").split(path.delimiter)) {
@@ -52,7 +78,7 @@ function resolveOnPath(name) {
   }
   return null;
 }
-
+ 
 function runAndExit(bin) {
   try {
     execFileSync(bin, ARGS, {
@@ -64,38 +90,27 @@ function runAndExit(bin) {
     process.exit(e.status ?? 1);
   }
 }
-
-const selfRealpath = realpathOrNull(__filename);
-
+ 
 const candidates = [
   process.env.YANA_RT_BIN,
-  platformBin(),                                     // pre-built for platform
-  path.join(PKG, "target", "release", "yana-rt"),   // cargo build --release
-].filter(Boolean);
-
-// Only attempt the $PATH candidate if we are not already inside a wrapper
-// invocation — this is the second, independent guard against recursion.
-if (!process.env[RECURSION_GUARD]) {
-  const onPath = resolveOnPath("yana-rt");
-  if (onPath) {
-    const onPathReal = realpathOrNull(onPath);
-    if (onPathReal && onPathReal !== selfRealpath) {
-      candidates.unshift(onPath);
-    }
-    // else: "yana-rt" on $PATH is this same wrapper (or unresolvable) —
-    // skip it silently and fall through to the prebuilt/cargo candidates.
-  }
-}
-
+  resolveOnPath("yana-rt"),
+  platformBin(),
+  path.join(PKG, "target", "release", "yana-rt"),
+];
+ 
 for (const bin of candidates) {
-  if (exists(bin)) runAndExit(bin);
+  if (usable(bin)) runAndExit(bin);
 }
-
+ 
 console.error([
   "yana-rt: binary not found.",
   "",
   "To install, run one of:",
-  "  cargo install --path " + PKG + "  # build from source (requires Rust)",
-  "  export YANA_RT_BIN=/path/to/yana-rt  # point to existing binary",
+  "  cargo install yana-rt                # real binary from crates.io (recommended)",
+  "  cargo build --release                # build from source inside the repo",
+  "",
+  "Do NOT set YANA_RT_BIN to the output of `which yana-rt` — on an npm",
+  "install that path is this wrapper itself, not a compiled binary.",
 ].join("\n"));
 process.exit(1);
+ 
