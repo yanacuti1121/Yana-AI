@@ -98,3 +98,6 @@ docs-dist/
 # Zed editor — personal config, not project config
 .zed/
 /pkg
+
+# macOS Spotlight exclusion marker (local-machine only, not project content)
+.metadata_never_index

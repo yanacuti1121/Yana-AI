@@ -12,12 +12,12 @@
     },
     "9router-gateway": {
       "addedAt": "2026-06-11T13:17:52Z",
-      "computedHash": "42ec4d9a7fde15dcc1704ce0381cb2e93efb010ebdb023daf2cbedc296960188",
+      "computedHash": "1cf3a260cc7aad45e1facfed908fc7fab8fa7c8b9e776703c237efc627b0c316",
       "localPath": ".claude/skills/9router-gateway"
     },
     "a2a-protocol-patterns": {
       "addedAt": "2026-06-11T13:33:32Z",
-      "computedHash": "e91edf9b6849db1d684fa659be55fb33965cf1c3a88aea970490ee36d93c8b7c",
+      "computedHash": "0f44bacac63ce944dd9874248ffe743cbdcd44e305b86d7ca8e361e02996ffc8",
       "localPath": ".claude/skills/a2a-protocol-patterns"
     },
     "acceptance-orchestrator": {
@@ -32,7 +32,7 @@
     },
     "accessibility-audit": {
       "addedAt": "2026-06-11T00:11:15Z",
-      "computedHash": "5e9d45432475fe7570f567bed32739f32c6a215dc02a720531d7d91971c4e59f",
+      "computedHash": "5610d6b86e1f39c9df27ce5a75bf6007df604d20d115f3a661cdd969ffe82a4a",
       "localPath": ".claude/skills/accessibility-audit"
     },
     "acquiring-disk-image-with-dd-and-dcfldd": {
@@ -162,7 +162,7 @@
     },
     "adr-writing": {
       "addedAt": "2026-06-11T13:33:33Z",
-      "computedHash": "48705d428a38ca39aa56b35b94bdb1f090b61aebba7acc8c35a452236ed9a985",
+      "computedHash": "34fbd1d3f9105e3839ce7a851d0a19474dd8b08cbde9e3678ed8c5872e630162",
       "localPath": ".claude/skills/adr-writing"
     },
     "advanced-color-math": {
@@ -192,7 +192,7 @@
     },
     "aesthetic-anchor": {
       "addedAt": "2026-06-11T13:33:33Z",
-      "computedHash": "1e277cb25efeaa3f3b638806d7978445cc2836cf2273594208d65d11816a47c7",
+      "computedHash": "1e0b91cd58a530e55c833cfbb2b9db8a7bcfce8db69c28fb3af2e640f7d35241",
       "localPath": ".claude/skills/aesthetic-anchor"
     },
     "affaan-m--ecc": {
@@ -217,7 +217,7 @@
     },
     "agent-attack-surface": {
       "addedAt": "2026-06-11T13:33:33Z",
-      "computedHash": "d10d9e74a5194a1c107ae4d274df2d86c35634c2b12ac7e9373578411edc18bf",
+      "computedHash": "653cc8888743a000b80e18c353e388993890c225e658fda7cb3691fec47f9c23",
       "localPath": ".claude/skills/agent-attack-surface"
     },
     "agent-eval": {
@@ -242,7 +242,7 @@
     },
     "agent-memory-security": {
       "addedAt": "2026-06-11T13:17:55Z",
-      "computedHash": "902ac0a8db11dde12752e98495a5848ed16f4ad080112d8fa85766a90adc67ef",
+      "computedHash": "d5f345ae3830147f82a8806f45fa0ad40bc89b2885b7a5ed7c03dfe157dafcf5",
       "localPath": ".claude/skills/agent-memory-security"
     },
     "agent-messaging-patterns": {
@@ -252,7 +252,7 @@
     },
     "agent-middleware-gate": {
       "addedAt": "2026-06-11T13:33:34Z",
-      "computedHash": "32d3bbd80ddae0c09361bb9f487f1123590a9422913f63110a5a6dd375147668",
+      "computedHash": "a8631eb6c4b24c79a298327de85bd21b2737e05942823788f588cc800cf0dc9f",
       "localPath": ".claude/skills/agent-middleware-gate"
     },
     "agent-orchestrator": {
@@ -272,7 +272,7 @@
     },
     "agent-safety-patterns": {
       "addedAt": "2026-06-11T13:33:34Z",
-      "computedHash": "a70533c382b4cdcc3add99705ee54aca2ab1f816bad54ba4b41d2045011ffbd6",
+      "computedHash": "a2e252b7fd5526e28549fd9dc14960d7fad4451e4cfc82465fe28d9c35283249",
       "localPath": ".claude/skills/agent-safety-patterns"
     },
     "agent-sort": {
@@ -282,12 +282,12 @@
     },
     "agent-telemetry": {
       "addedAt": "2026-06-11T13:17:55Z",
-      "computedHash": "62c4377752d193c788cd3f26298edc037ef24235ec8e303de3ffaf1c154f8ab0",
+      "computedHash": "bc46000cface7e9a1ee189e5bf8d9e8c8bec5b381da066d27a66d131872cb7aa",
       "localPath": ".claude/skills/agent-telemetry"
     },
     "agent-verification-gate": {
       "addedAt": "2026-06-11T13:33:35Z",
-      "computedHash": "fdbef7e85b35aca7a35389a8c6741fa8c1c0bc435eccfd59cfc5526997ca73de",
+      "computedHash": "28c6d7f7b6ba6d0788809f36df62122b9f86e808c3dc6129ce61e573e7215ce0",
       "localPath": ".claude/skills/agent-verification-gate"
     },
     "agentfolio": {
@@ -937,7 +937,7 @@
     },
     "api-rate-limiting": {
       "addedAt": "2026-06-11T13:33:37Z",
-      "computedHash": "7f909f098b4c920a1a01fb70f974444af50e7e351a8af908ce93c976a10e5e40",
+      "computedHash": "06162ae9b47b1a47b25bf7daed2262dddd1b744b89f0a4eb18a7fc65abfcff25",
       "localPath": ".claude/skills/api-rate-limiting"
     },
     "app-store-preflight": {
@@ -952,7 +952,7 @@
     },
     "append-only-hypercore": {
       "addedAt": "2026-06-11T00:11:28Z",
-      "computedHash": "12424388d711fd2fb5ec4fc74f782d038ba1db1bd5c69c76e96e75d0a0446764",
+      "computedHash": "ee2069b7ebef22cd516059de5bc6f3c46f13c86490fa5249ea4ed9839b27f494",
       "localPath": ".claude/skills/append-only-hypercore"
     },
     "apply-premium-background": {
@@ -972,12 +972,12 @@
     },
     "archive-stream-patterns": {
       "addedAt": "2026-06-11T13:17:58Z",
-      "computedHash": "3655671f837b4810aaa5af9d7cf67323cde0a00d4cb6c90869878ec3667be916",
+      "computedHash": "09c7af674c7e01ab6f534cf443074e61edf35fe0f4da52da67cdf411d48da619",
       "localPath": ".claude/skills/archive-stream-patterns"
     },
     "argocd-gitops": {
       "addedAt": "2026-06-11T13:33:37Z",
-      "computedHash": "745b98ffac59c47f1e92eb68bae3126c3dc2695e5c6b330b69cddfab79ace1b3",
+      "computedHash": "a1b5885bae22e27a8e54256ae526471f9ed389e59b21200e29743ee444658611",
       "localPath": ".claude/skills/argocd-gitops"
     },
     "article-writing": {
@@ -992,7 +992,7 @@
     },
     "arxiv-research": {
       "addedAt": "2026-06-11T13:17:58Z",
-      "computedHash": "b8c378c8c34aff8034cce7e2a85325ad03fad634bfaa5fadb3ca018c738def2e",
+      "computedHash": "aa114ee619e73f7e69ff8bc3fdb9acd1886967d2a06cf43fc55358ac426b3499",
       "localPath": ".claude/skills/arxiv-research"
     },
     "ashishpatel26--500-ai-projects": {
@@ -1017,7 +1017,7 @@
     },
     "ast-injection-scanner": {
       "addedAt": "2026-06-11T13:33:37Z",
-      "computedHash": "c01b1cfc9543241c3c35473502c846ebec7ce22d420aa5cb722af57d9608f5d9",
+      "computedHash": "e9d253edf30badb68c1bac0357d6842884217ff979bfae29bb45c0cf75a55078",
       "localPath": ".claude/skills/ast-injection-scanner"
     },
     "astro": {
@@ -1027,7 +1027,7 @@
     },
     "async-storage-patterns": {
       "addedAt": "2026-06-11T13:33:38Z",
-      "computedHash": "560454f5760d10650e0ae560c53dcfec0148f1543db9f193eeee194eb1c886b1",
+      "computedHash": "2c9d94376f516de7aee90a89171ab9effa84e7f73fdd797b35471c913bef29e1",
       "localPath": ".claude/skills/async-storage-patterns"
     },
     "audit-env-variables": {
@@ -1077,7 +1077,7 @@
     },
     "auth-patterns": {
       "addedAt": "2026-06-11T00:11:30Z",
-      "computedHash": "1cf4368f2d6f2d6c32297c5f7298a05611521b0493871ad0d34052089b34e83c",
+      "computedHash": "58f0d72ab6858651d2cdb53839abc208434b786008c1505ea22dbb3994fe4b4a",
       "localPath": ".claude/skills/auth-patterns"
     },
     "auth-strategy-patterns": {
@@ -1122,7 +1122,7 @@
     },
     "autonomous-patching-loop": {
       "addedAt": "2026-06-11T13:17:59Z",
-      "computedHash": "6ed2f0d946b2ec3a14d1302558793320d1a5e79baad63959c2b33691bb4e5455",
+      "computedHash": "be0dc8bb3fa528f11bea97ca891bc5d1d0163d64af1291d1a1e7944b38ec8b36",
       "localPath": ".claude/skills/autonomous-patching-loop"
     },
     "babel-ast-transform": {
@@ -1162,7 +1162,7 @@
     },
     "bft-consensus-patterns": {
       "addedAt": "2026-06-11T13:33:39Z",
-      "computedHash": "bdcc85be757218c7642d8fb305f0cbddbf23365e6a53261a59b3c8ab72659779",
+      "computedHash": "0f4cdbbabb17ae24d3d1c2b51282c8b677f5a72c852489a244b75d34be9cb23c",
       "localPath": ".claude/skills/bft-consensus-patterns"
     },
     "blender-motion-state-inspection": {
@@ -1172,7 +1172,7 @@
     },
     "blue-team-fix": {
       "addedAt": "2026-06-11T00:11:32Z",
-      "computedHash": "0f3c0303a002fb398fd44ab55834b77a11cacb766ba95655795a84d027a2dba1",
+      "computedHash": "4642a5645311f011761f965e660049a103fcb5799e88b91791aa38c44a47bf9d",
       "localPath": ".claude/skills/blue-team-fix"
     },
     "blueprint": {
@@ -1617,7 +1617,7 @@
     },
     "bunyan-syslog-bridge": {
       "addedAt": "2026-06-11T13:18:02Z",
-      "computedHash": "370335f0932794322a6fd72554d705f5472eac9611fb23e3c76f673c2249feac",
+      "computedHash": "f240800549429eec75f0240f5cc8917d2c374aa5fad58c96ea5323caab628b1d",
       "localPath": ".claude/skills/bunyan-syslog-bridge"
     },
     "bypassing-authentication-with-forced-browsing": {
@@ -1637,12 +1637,12 @@
     },
     "caching-patterns": {
       "addedAt": "2026-06-11T13:33:42Z",
-      "computedHash": "001c88ebdfc62d8932b032a47bb9b1658a87d07dcd32553e8740de00ce00ce02",
+      "computedHash": "7cde7cc5047731b8d3565a3b0cd77fb5f476828856e419bf7698ad6ce29d7fa1",
       "localPath": ".claude/skills/caching-patterns"
     },
     "cadvisor-container-metrics": {
       "addedAt": "2026-06-11T00:11:39Z",
-      "computedHash": "af367ac1c2d1448b7e68b6370668a4c4b51dd2168d027eac6046c4868411e2f1",
+      "computedHash": "0a566feadf9fd139c2e6533b72ba556cf44922527dda817df6729ff8b32ec31c",
       "localPath": ".claude/skills/cadvisor-container-metrics"
     },
     "can1357--oh-my-pi": {
@@ -1748,12 +1748,12 @@
     },
     "cicd-patterns": {
       "addedAt": "2026-06-11T13:33:43Z",
-      "computedHash": "4744d05585600c6d5099f0c6e4f943b36e0d53642d9877fef76869fa8e63b31f",
+      "computedHash": "c0f0767b5f329bd67daa352e279221d1dd7a275061d058281a4519def3aaced2",
       "localPath": ".claude/skills/cicd-patterns"
     },
     "circuit-breaker-rollback": {
       "addedAt": "2026-06-11T00:11:42Z",
-      "computedHash": "fef25b9501de4d9c75f4cfce07332baf123f3b76bdd0a4258a25cfe9b2e5079e",
+      "computedHash": "7fc7103340da2c647607cd8bf093ff30b99ed0069696c54740f40969deadc7e1",
       "localPath": ".claude/skills/circuit-breaker-rollback"
     },
     "cisco-ios-patterns": {
@@ -1823,7 +1823,7 @@
     },
     "cli-config-persistence": {
       "addedAt": "2026-06-11T00:11:44Z",
-      "computedHash": "5768da8f9f91bb11e9b2fed65ec77c50387cc4e33faa930eac7108953112aa41",
+      "computedHash": "d8f92b7a6f66bc4ca428ed05403802375e98482712d94b3dc0ca1118b5f4309a",
       "localPath": ".claude/skills/cli-config-persistence"
     },
     "click-path-audit": {
@@ -1843,7 +1843,7 @@
     },
     "cloud-cost-optimization": {
       "addedAt": "2026-06-11T00:11:44Z",
-      "computedHash": "7b684965e203ef7fbfcf8b5ac2404c5070734afe14f5bfbc6b8b8ae32f34030c",
+      "computedHash": "6d11ae01350ee2119461d06ac2ac406dbc0d1292f924ff65e37562d7bcccdbcb",
       "localPath": ".claude/skills/cloud-cost-optimization"
     },
     "cloudflare--vinext": {
@@ -1853,7 +1853,7 @@
     },
     "cni-network-policies": {
       "addedAt": "2026-06-11T13:33:44Z",
-      "computedHash": "44fb0cb0f5ae207f43ebf2e31c48d2e5f90c215c8def62799bf06351e8b2faac",
+      "computedHash": "ad1a72a18c4192928f39fe1c1e24333edff626b46a40ca7c6540b98f8de6534d",
       "localPath": ".claude/skills/cni-network-policies"
     },
     "code-review-checklist": {
@@ -1868,7 +1868,7 @@
     },
     "codebase-onboard": {
       "addedAt": "2026-06-28T00:17:46Z",
-      "computedHash": "0c7a3f9fc97fe8fc4f1810107d1f5301d5b31ea749b95ebdeb4a85ebb4a81069",
+      "computedHash": "43a5049e890f4bfd48d4a0c0de2c857e90cfe404bcc2d0b43eb2636578e29813",
       "localPath": ".claude/skills/codebase-onboard"
     },
     "codebase-onboarding": {
@@ -2153,7 +2153,7 @@
     },
     "container-interactivity": {
       "addedAt": "2026-06-11T13:34:24Z",
-      "computedHash": "6ec77bed5fd66aa4b46f9c7545992eabd535990f9c7278c7ac8a25ed43013b4d",
+      "computedHash": "ddcf0c59064a11915837698377b93ebd6131832fa3c47167db2d4bf3b8cc66b0",
       "localPath": ".claude/skills/container-interactivity"
     },
     "containing-active-breach": {
@@ -2205,7 +2205,7 @@
     },
     "contract-testing": {
       "addedAt": "2026-06-11T13:18:48Z",
-      "computedHash": "1a6f21d6480c4b11f2a43ea776c118776d3d9234464d0a8a20fa9f49651793d4",
+      "computedHash": "ab6d2eca602da12626a16b9ec347af87722989c0a29220bbc12878032689d33d",
       "localPath": ".claude/skills/contract-testing"
     },
     "correlating-security-events-in-qradar": {
@@ -2266,7 +2266,7 @@
     },
     "crossplane-control-plane": {
       "addedAt": "2026-06-11T13:34:25Z",
-      "computedHash": "3e5163b28b6d98a42313a0eb50f5571eada1e29c0b54b013b5388b0e6a868329",
+      "computedHash": "8f9f66eef09d5dd72ef67ef141031d851ab8a2f8052398433d304579c597426b",
       "localPath": ".claude/skills/crossplane-control-plane"
     },
     "crosspost": {
@@ -2276,7 +2276,7 @@
     },
     "crypto-pki-patterns": {
       "addedAt": "2026-06-11T13:34:25Z",
-      "computedHash": "1ceb493bf7d248291162bf1ce0a02c3ab18a77a2e7b5c12245e130c531af0cc8",
+      "computedHash": "542a93751fcba45a209739d4f2da2e96ac108cd51d420d2eceabefc87245b9ac",
       "localPath": ".claude/skills/crypto-pki-patterns"
     },
     "csharp-testing": {
@@ -2306,7 +2306,7 @@
     },
     "dagre-layout-engine": {
       "addedAt": "2026-06-11T13:34:25Z",
-      "computedHash": "cce473661b666daabd3d9c850ed4ee7c7f8db23d6ee359003e28474dd2319b52",
+      "computedHash": "1331962578a49d855532949e0ec0623b6b12c6f1e6adaceedbe30d62bc8eddf2",
       "localPath": ".claude/skills/dagre-layout-engine"
     },
     "danielmiessler--personal-ai-infra": {
@@ -2326,7 +2326,7 @@
     },
     "data-privacy": {
       "addedAt": "2026-06-11T13:34:26Z",
-      "computedHash": "8b93dee4e6251c814c53483daa9afb9fe97d665530cc3ac803d2097d62fbfc3f",
+      "computedHash": "949675c07c1838753ea2958be2c1d66f124085ee194264b276236052db484d13",
       "localPath": ".claude/skills/data-privacy"
     },
     "data-scraper-agent": {
@@ -2341,12 +2341,12 @@
     },
     "database-migrations": {
       "addedAt": "2026-06-11T00:13:56Z",
-      "computedHash": "1b5fe77652e8c62b9772ea1d7271daf6c6333dbd1967617c76e3590fcec58635",
+      "computedHash": "2c4611fb9defbe20ec903dafa145afc1655086d8f51372550a7b61c51f94b85e",
       "localPath": ".claude/skills/database-migrations"
     },
     "database-patterns": {
       "addedAt": "2026-06-11T13:34:26Z",
-      "computedHash": "5abceaa7f42c779d93810016923ed5f22d854ac96a91c9be015ae52117e956e8",
+      "computedHash": "785baab0b44d7c2b0e8556c5363b9d7b95fca84198b039beabcfeeb771014ddf",
       "localPath": ".claude/skills/database-patterns"
     },
     "database-query-safety": {
@@ -2826,12 +2826,12 @@
     },
     "design-system-gen": {
       "addedAt": "2026-06-11T13:34:30Z",
-      "computedHash": "7517959b1beaf3b7f0a77458ad176fa371be72af2e6ae0eed6889259587c8a39",
+      "computedHash": "e36c82b7d81c654e223a1f1c65b1f484f80700ababbe9201d0b0a7483b95d14a",
       "localPath": ".claude/skills/design-system-gen"
     },
     "design-taste-frontend": {
       "addedAt": "2026-06-11T13:34:30Z",
-      "computedHash": "ba63dbe1687d39d1e3ef52183703916b3272ee3e2f12ac2e62c357b96bb8bd23",
+      "computedHash": "5309961de74ebcd0715a3be151667d53a46c1ab5550bdd09785cfb4aa1885482",
       "localPath": ".claude/skills/design-taste-frontend"
     },
     "design-tokens-system": {
@@ -3286,12 +3286,12 @@
     },
     "did-credential-lifecycle": {
       "addedAt": "2026-06-11T13:34:30Z",
-      "computedHash": "81efb9b48784e145feae4cd9213c4451d1e421192ed88a009f1c0cbd215ca331",
+      "computedHash": "8cb25a57c236f8caff5a92c22e711ac644fbe51ef8cf801b930e5fb31578acce",
       "localPath": ".claude/skills/did-credential-lifecycle"
     },
     "did-resolver-patterns": {
       "addedAt": "2026-06-11T13:34:30Z",
-      "computedHash": "7565228b510a559e5cffc788a5874f378f62cbcf4e5cddb8ace295e0a62d7e3c",
+      "computedHash": "fdd223a2ec8ddf328d1f6947d18d1c8b168e2cd223cf4e73db78b909f4df43a3",
       "localPath": ".claude/skills/did-resolver-patterns"
     },
     "disaggregated-prefill-decode": {
@@ -3301,7 +3301,7 @@
     },
     "distributed-tracing": {
       "addedAt": "2026-06-11T13:34:30Z",
-      "computedHash": "2cc5828841bdb37712a54c0a1335c70844c6ba849e5ccabc9a84e5cb9940a79a",
+      "computedHash": "705c692a1a0b07a995f3fa41dbee358ca17868ed5c5992eb07a141ca2b9d903e",
       "localPath": ".claude/skills/distributed-tracing"
     },
     "django-celery": {
@@ -3336,7 +3336,7 @@
     },
     "docker-patterns": {
       "addedAt": "2026-06-11T13:34:31Z",
-      "computedHash": "5cebfe2a5e6cac5e3acec2214d09b2d3e3d05155aa1b8a547f97cb06baab5cd6",
+      "computedHash": "c0c48ab57dc866a3b118c9ae0d864fd5562c7c266e4d1a588bc372382461a942",
       "localPath": ".claude/skills/docker-patterns"
     },
     "document-skills--docx": {
@@ -3396,7 +3396,7 @@
     },
     "durable-task-queues": {
       "addedAt": "2026-06-11T13:34:31Z",
-      "computedHash": "de6d1263be0ea384a706a8101f20a1868000c85bf0573d910129de76e41e386c",
+      "computedHash": "cb1416c759953e0179a313f27060df33da398e1107c324e7ede90932dbf5687a",
       "localPath": ".claude/skills/durable-task-queues"
     },
     "dynamic-workflow-mode": {
@@ -3416,7 +3416,7 @@
     },
     "ebpf-syscall-monitoring": {
       "addedAt": "2026-06-11T13:34:32Z",
-      "computedHash": "155de26c83f38b8c5dc1d42b7f3d48a40dc8e38d8b03efe3673bcd86a7e40350",
+      "computedHash": "816fc7c5ba54addbb61c42b2ddcf8a4805290918086ac560fc72b4ee5ffb6684",
       "localPath": ".claude/skills/ebpf-syscall-monitoring"
     },
     "ecc": {
@@ -3436,7 +3436,7 @@
     },
     "ecc-key-management": {
       "addedAt": "2026-06-11T13:18:55Z",
-      "computedHash": "56d4f39108b34fc269c089e1d9aa0ddedf87af4d79bbfc55c47838be49fc99ac",
+      "computedHash": "d8cfd7ee110289007ffb8ce337a940cee4c98e3f455875ba5f4d958f8aa41c62",
       "localPath": ".claude/skills/ecc-key-management"
     },
     "ecc-tools-cost-audit": {
@@ -3466,7 +3466,7 @@
     },
     "envoy-proxy-patterns": {
       "addedAt": "2026-06-11T13:34:32Z",
-      "computedHash": "bdadefb942d01276d4479b40863df06b724a8f9f962f6fb1a5e7264de23953d4",
+      "computedHash": "90a034674bdd0d97fc7a6fe1eb6e826f5fda44f2f47f2c04641edbcce287c09f",
       "localPath": ".claude/skills/envoy-proxy-patterns"
     },
     "eradicating-malware-from-infected-systems": {
@@ -3476,7 +3476,7 @@
     },
     "error-handling": {
       "addedAt": "2026-06-11T13:34:32Z",
-      "computedHash": "b0b0ef3d1fe09b0140e716eac5e0a4eaedf2395076c7eaf11485a52c8e279ce7",
+      "computedHash": "927bf08eadc003b84b9a88c2732f1ab2c8069937162a6c4ae75511f5dbee896c",
       "localPath": ".claude/skills/error-handling"
     },
     "error-handling-patterns": {
@@ -3486,7 +3486,7 @@
     },
     "eslint-rule-engine": {
       "addedAt": "2026-06-11T00:14:15Z",
-      "computedHash": "aa29c1c4a91cea146de03522a67a4a5e4746bd999050331850e82991400f9614",
+      "computedHash": "07a640fba7fc182099aa141a0b29c92596c5449e22211ecec3af5678be22854d",
       "localPath": ".claude/skills/eslint-rule-engine"
     },
     "estree-ast-spec": {
@@ -3496,12 +3496,12 @@
     },
     "etcd-distributed-config": {
       "addedAt": "2026-06-11T13:18:55Z",
-      "computedHash": "efdeff2f6c4fd1eb6e3fc15c030955769ee84523b8b5a8358a8fa08fba89427d",
+      "computedHash": "a944f6dddf6e5f21942179408c8734c5202606994267d4134d9d80c3cd3de07b",
       "localPath": ".claude/skills/etcd-distributed-config"
     },
     "eval-driven-agent-dev": {
       "addedAt": "2026-06-11T13:34:32Z",
-      "computedHash": "40603a1cd1aef0e0fa652b56c3a318f6074d29a0587f7fb19ed6d722a5aff931",
+      "computedHash": "54a262b2944d8f58c6bbc3a0525bfb97f7d37e2096b4765b369175688543ce77",
       "localPath": ".claude/skills/eval-driven-agent-dev"
     },
     "eval-harness": {
@@ -3521,7 +3521,7 @@
     },
     "event-driven-architecture": {
       "addedAt": "2026-06-11T13:34:32Z",
-      "computedHash": "205e561f1b82886fd35acd866dde825b623fd3ae5087863f3c72124785eb55ab",
+      "computedHash": "cc7b8c491ac97c7a4348c2e083152ba0a23a9ee0d7a1df467ca7d3ab1b7ea62a",
       "localPath": ".claude/skills/event-driven-architecture"
     },
     "everyinc--compound-engineering": {
@@ -3801,7 +3801,7 @@
     },
     "feature-flags": {
       "addedAt": "2026-06-11T13:18:56Z",
-      "computedHash": "7e518ae3f30f0c43979e61bfaadd6cdc3df18e541c66fe7608a4fd57dac797fa",
+      "computedHash": "bc1482e6d9109565722540fc231e3b07cb4b5f1be05ab4ca64e690b9c90bceaa",
       "localPath": ".claude/skills/feature-flags"
     },
     "fetch-redirect-ssrf-guard": {
@@ -3836,7 +3836,7 @@
     },
     "financial-velocity-budgeting": {
       "addedAt": "2026-06-11T13:34:33Z",
-      "computedHash": "d7f0e231a8bba52d2d755dc6d663e8ee45ddd9179a0d910018648396973edd24",
+      "computedHash": "b92226ed93ff75d480ebd0a2ffa98be78b233f949ca496c737e0d902452cf496",
       "localPath": ".claude/skills/financial-velocity-budgeting"
     },
     "finding-duplicate-functions": {
@@ -3871,7 +3871,7 @@
     },
     "flow-anchor-connection": {
       "addedAt": "2026-06-11T13:34:34Z",
-      "computedHash": "52fffa2f0dfa084b53633920efa672aea7cb7962437bc0e3aeda974d87706046",
+      "computedHash": "56e1915fa4897f0066fd3b1b842c994e1ea2a107695841d930fe987a953b6dc0",
       "localPath": ".claude/skills/flow-anchor-connection"
     },
     "flox-environments": {
@@ -3981,7 +3981,7 @@
     },
     "git-lessons": {
       "addedAt": "2026-06-11T13:18:58Z",
-      "computedHash": "d4d031461c91a919890fe403ae64af23bd815971bfad1d454d6e011e4bb55168",
+      "computedHash": "307a9abb3cc92cf46a12b4357d5d0ab1ed3e44805c3b8ea9a599efd81408b6c7",
       "localPath": ".claude/skills/git-lessons"
     },
     "git-native-agent-protocol": {
@@ -4101,7 +4101,7 @@
     },
     "grammar-lexer-dsl": {
       "addedAt": "2026-06-11T13:18:59Z",
-      "computedHash": "ba247658b2947916dcc5b36c1312eaf8f20bed43c6610528562bb55272ecbf8e",
+      "computedHash": "552da32e7ed77472e2d7c9a214d7fd88e44c2c6e2bdd58127f0b5499076b9c91",
       "localPath": ".claude/skills/grammar-lexer-dsl"
     },
     "graph-data-structure-ops": {
@@ -4111,7 +4111,7 @@
     },
     "graph-dependency-resolution": {
       "addedAt": "2026-06-11T13:34:36Z",
-      "computedHash": "c8ca65c2b28f8e0990c9e0035e457a63dbaa7744444744bbb2af745a7bfe4ef7",
+      "computedHash": "507282251284185d1f71079b66887094fc0fa8355572c70ecb182771e66fff65",
       "localPath": ".claude/skills/graph-dependency-resolution"
     },
     "graphify-knowledge-graph": {
@@ -4126,7 +4126,7 @@
     },
     "graphql-patterns": {
       "addedAt": "2026-06-11T13:19:00Z",
-      "computedHash": "e6446973226d85618cc6c97ac0e61d48e827bb3e55bc0f59f257e062926c622b",
+      "computedHash": "5b4d4ebf1fd2d1bab893583c8a527192edeaf8086335a5764c8624121405509b",
       "localPath": ".claude/skills/graphql-patterns"
     },
     "grpc-golang": {
@@ -4136,7 +4136,7 @@
     },
     "grpc-streaming-rpc": {
       "addedAt": "2026-06-11T13:34:36Z",
-      "computedHash": "250305f52de05bb810346785f73b0053ec53d06804bd52defa1324d16c5f38a7",
+      "computedHash": "12977c1e9c89a4e0fe03fa81b96f41ca06ddd43b899fd7a1cbde4c70da172f7c",
       "localPath": ".claude/skills/grpc-streaming-rpc"
     },
     "gw360--agent-client-security": {
@@ -4346,7 +4346,7 @@
     },
     "headroom": {
       "addedAt": "2026-06-11T13:34:38Z",
-      "computedHash": "de3992c2ea789ec43f9440899c74f17ab83ffdb2164f307a96f7d1f99639ffbb",
+      "computedHash": "4e4b74a5dfffe78679b7db54c018a62b787c568b789f1eabda96aeb9888797c1",
       "localPath": ".claude/skills/headroom"
     },
     "healthcare-cdss-patterns": {
@@ -4371,17 +4371,17 @@
     },
     "helm-chart-packaging": {
       "addedAt": "2026-06-11T13:34:39Z",
-      "computedHash": "b3d31af6206d145ba507c4faf25f55293017986486a2f108515068cb270a9063",
+      "computedHash": "a286bd11de1464180d6b25b9ff8530b88c5aba18e6b97b76873e667674d5e3c8",
       "localPath": ".claude/skills/helm-chart-packaging"
     },
     "hermes-context-compressor": {
       "addedAt": "2026-06-11T00:14:35Z",
-      "computedHash": "7a3b77f442705ee6cee1195921b136ffbf2ca404095edf5d83e88b4ed04db7e0",
+      "computedHash": "4bead519df93dfc462343d30fea193b2c2ab56f4ac1c8707cb3cefde9adcb4ad",
       "localPath": ".claude/skills/hermes-context-compressor"
     },
     "hermes-conversation-loop": {
       "addedAt": "2026-06-11T13:19:02Z",
-      "computedHash": "a57047486e5befd793c801b9683a1e127af468a37f73c1c97dd783953cf95e9c",
+      "computedHash": "5e5263e0ebd724eebebf006d45c43cee55cc922a59771d0053aa36f2bedfd8df",
       "localPath": ".claude/skills/hermes-conversation-loop"
     },
     "hermes-imports": {
@@ -4391,17 +4391,17 @@
     },
     "hermes-memory-manager": {
       "addedAt": "2026-06-11T00:14:35Z",
-      "computedHash": "0cb998f56c2608965eb707d167c591444f82a85ec93dcbfefe404bc47e45fbea",
+      "computedHash": "85ad0eac4c6d97c859994e398e59c9a4dc1b9034591340f248f1b8bceef59045",
       "localPath": ".claude/skills/hermes-memory-manager"
     },
     "hermes-streaming-scrubber": {
       "addedAt": "2026-06-11T13:34:39Z",
-      "computedHash": "b081bf7a7fd2581bd44f7f39648871436f271ac9183b458014a5902e3b946aa1",
+      "computedHash": "7061e65893a17834bbb5e94374d83a8f2f411b448373a6ce31bb6fd40c3f3a25",
       "localPath": ".claude/skills/hermes-streaming-scrubber"
     },
     "hermes-system-prompt-tiers": {
       "addedAt": "2026-06-11T13:19:02Z",
-      "computedHash": "8d0361f1cae093826a4a8f0e258e9085877ea286994a6e5036e122d57c0f1260",
+      "computedHash": "8146a2399f4f2b2eaadc63e5ec6312d2041cbf2cfbef55538db43387db79d8f3",
       "localPath": ".claude/skills/hermes-system-prompt-tiers"
     },
     "hermes-tool-guardrails": {
@@ -4411,7 +4411,7 @@
     },
     "hermes-tool-loop-guard": {
       "addedAt": "2026-06-11T13:34:39Z",
-      "computedHash": "8533380584f109532a3c8b46cd328c5449a51c3b930f86ab0c4aa93789a81ad1",
+      "computedHash": "f8e7d70bfeafe0e08bc5d01e2c74d5418c904fff342ead45f44f969a39e4e452",
       "localPath": ".claude/skills/hermes-tool-loop-guard"
     },
     "hermes-webui": {
@@ -4466,7 +4466,7 @@
     },
     "honeypot-deception-patterns": {
       "addedAt": "2026-06-11T13:19:03Z",
-      "computedHash": "1bc1149b6552d31f30e2ae277b4ad1a8f86896871ed12abec4fb342b788af78a",
+      "computedHash": "d44ca776e15a5fdb21c7f1204905a1d0fbdc4b5471a623960f6d6042b89fdf2f",
       "localPath": ".claude/skills/honeypot-deception-patterns"
     },
     "hono": {
@@ -4476,12 +4476,12 @@
     },
     "hook-block-commands": {
       "addedAt": "2026-06-11T13:34:39Z",
-      "computedHash": "7023d74e5d306c9b5b0d0fb07e9001d6a0ebd1462e9cbe9e1605a2ff2aa7ce17",
+      "computedHash": "6f972932642e465835cbb1944c54567bc258b89b87036e7d118e8df8181d0d72",
       "localPath": ".claude/skills/hook-block-commands"
     },
     "hook-protect-secrets": {
       "addedAt": "2026-06-11T13:34:39Z",
-      "computedHash": "e627d8559d357a3903b62494aec25b4356d70efd9687bfb4745daeb6d15c5cc8",
+      "computedHash": "d0bf6a046a72c4c318d3c8e17e5abdcaec86a61fae3051e06da90cfab11a64b1",
       "localPath": ".claude/skills/hook-protect-secrets"
     },
     "hookify-rules": {
@@ -4501,17 +4501,17 @@
     },
     "http-client-auth-patterns": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "ad4e566b38a8e1aa9b5209cb559a289fedee79957e5ebea904d8ace00297b668",
+      "computedHash": "f72bc3aabd4cc2a97a8642172b9146959928c2e898bdf40d50849b7eacc4ea45",
       "localPath": ".claude/skills/http-client-auth-patterns"
     },
     "http-proxy-intercept": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "e821ae604876478932adc20c0877023741e0152992bbef0305412f9c68c3a569",
+      "computedHash": "8d71db3f5a8e7b77846dc513385faa2eb672d0469b472a438eb76f97a11c2177",
       "localPath": ".claude/skills/http-proxy-intercept"
     },
     "http-tunnel-patterns": {
       "addedAt": "2026-06-11T13:19:03Z",
-      "computedHash": "4d1833c8e2a83ab4f6539580b9e9e926d484662b8d4ed932d5648c094143c6e0",
+      "computedHash": "722acd36e6a94df12064ccf115ac9c6025db1696d01bf716282e0a9e2e052b3a",
       "localPath": ".claude/skills/http-tunnel-patterns"
     },
     "hugoblox--kit": {
@@ -4701,7 +4701,7 @@
     },
     "i18n-patterns": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "ba120ebd929d3c81aad981d451df4311516b4277b734e7d0a31ff78c96c61761",
+      "computedHash": "cec48989a1cd1689c10019f9cd853152a8f211b8d13e7ec00ae9539792aaefd4",
       "localPath": ".claude/skills/i18n-patterns"
     },
     "ibm--mcp-context-forge": {
@@ -4726,12 +4726,12 @@
     },
     "image-to-code": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "23d0932ef85615c2fdb91edde86ed2e2bed51dc4fb49c4c655cca68d8dc41e43",
+      "computedHash": "b2a1fc2f83cc7d95e6003a35c937863453be6730a1407ceb2a3fe733828b97a9",
       "localPath": ".claude/skills/image-to-code"
     },
     "immutable-identity-patterns": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "9a8a8e10f8a83457c50661d9f89b77c157f3c9e68aec2aa0ef9062396b239ddd",
+      "computedHash": "e7a573d543281b59f4afbdc5f20b4f62184f3c389fb3455a21e69e6cdee2d07d",
       "localPath": ".claude/skills/immutable-identity-patterns"
     },
     "impeccable": {
@@ -5576,12 +5576,12 @@
     },
     "in-memory-vector-storage": {
       "addedAt": "2026-06-11T13:34:41Z",
-      "computedHash": "1645b659683a36b536b57e767362b170fca46f76755721c12fd8aa8db411e088",
+      "computedHash": "faaf23946f74b914e0e900f57643345559a06cfaee0cee4b2f5a2325214156ad",
       "localPath": ".claude/skills/in-memory-vector-storage"
     },
     "incident-response-runbook": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "d775b9f6687f615439b6f751f6457b94a52c705484423995335da1e411c56a58",
+      "computedHash": "72af96eb8309e76b83045448cf520ef2a36433376f38e5e8ae6b17738e113422",
       "localPath": ".claude/skills/incident-response-runbook"
     },
     "industrial-brutalist-ui": {
@@ -5596,7 +5596,7 @@
     },
     "ingest-repo": {
       "addedAt": "2026-06-11T13:34:40Z",
-      "computedHash": "90b7bec449aed092a6521fafc5b5fe8a4fdda924661b6e32038b16063f235ca0",
+      "computedHash": "a3cd0cbd07795d796d3bbab808126e5ebae5921e186161c9e8b2e9c33551e441",
       "localPath": ".claude/skills/ingest-repo"
     },
     "ini-config-parsing": {
@@ -5687,7 +5687,7 @@
     },
     "istio-traffic-management": {
       "addedAt": "2026-06-11T13:19:05Z",
-      "computedHash": "629996df057aa0e9fa3cbbd7296f209efa2d69d93bb6ae489e8e0fa3d216c1cd",
+      "computedHash": "d1406997d25af336c1fd3690ba7f3d662eb434e30ca6df1dadc942eb644180b7",
       "localPath": ".claude/skills/istio-traffic-management"
     },
     "iterative-retrieval": {
@@ -5717,7 +5717,7 @@
     },
     "jaeger-tracing-visualization": {
       "addedAt": "2026-06-11T13:19:05Z",
-      "computedHash": "60c22eb9c4309af7e465901028f688593a7686396024344ea987b31120f3ed90",
+      "computedHash": "221ac5b5c3efe54352046f10f8ac512c32775219277a2478e02a89d1a93124ee",
       "localPath": ".claude/skills/jaeger-tracing-visualization"
     },
     "jamwithai--production-agentic-rag": {
@@ -5732,7 +5732,7 @@
     },
     "jepsen-fault-testing": {
       "addedAt": "2026-06-11T13:34:41Z",
-      "computedHash": "0f5d229146bbf913132fbe56710d2d0855238b77b62cae107499807726e59bbd",
+      "computedHash": "910db211d90121aefbbd08a93162285f2e2cdccc76d885d810d3058bfd55dc24",
       "localPath": ".claude/skills/jepsen-fault-testing"
     },
     "jest-test-generation": {
@@ -5762,7 +5762,7 @@
     },
     "jwt-jws-jwe-patterns": {
       "addedAt": "2026-06-11T13:34:42Z",
-      "computedHash": "f4381b9b55c3b8d40bc78205be4c9159da62c1458eb8dc79504d2cd4cd0b582a",
+      "computedHash": "14b40c2b379c098e13c4d44528fc7e8b83660ada8bc660c24b44e9d35a2d9a01",
       "localPath": ".claude/skills/jwt-jws-jwe-patterns"
     },
     "jwt-verification-patterns": {
@@ -5777,12 +5777,12 @@
     },
     "k8s-client-js": {
       "addedAt": "2026-06-11T00:14:46Z",
-      "computedHash": "67fa3ad972bd10ae0feb861073d41b92b2e2c978eccc693c8043d13a3b3ebf22",
+      "computedHash": "140abb4e1f130d43a5bb3bc05482551c5c330cd95a75457f636af532e15aeb74",
       "localPath": ".claude/skills/k8s-client-js"
     },
     "k8s-crd-controller": {
       "addedAt": "2026-06-11T13:34:42Z",
-      "computedHash": "b63683acc6a2cbb5e26445fafec1086544bc8909dd1ffb74f171e0b8a748735e",
+      "computedHash": "a8bbaac9da997b227d7e8502047eda1b9be6fa4affa5012eed43bc7dc8385247",
       "localPath": ".claude/skills/k8s-crd-controller"
     },
     "kanban-dispatcher": {
@@ -5847,17 +5847,17 @@
     },
     "kubernetes-patterns": {
       "addedAt": "2026-06-11T13:34:43Z",
-      "computedHash": "50a7046ea8a78e51b674d71aa3a0a9fabcd224e06a42e0f6fcc58bd24cd47765",
+      "computedHash": "102643a4a495e6c35c547d5da7c13d4095689d612b6771c1572283bcab62995d",
       "localPath": ".claude/skills/kubernetes-patterns"
     },
     "kv-cache-optimization": {
       "addedAt": "2026-06-11T00:14:48Z",
-      "computedHash": "b460925d9f245085ce4ebd5183af9ca41903b1949be3be51f0c7b3738c1a9ad4",
+      "computedHash": "58fb7c0dc2e9fc5a564cb62714dda3fa952b07d4636ded93f4dd3d3e6e051826",
       "localPath": ".claude/skills/kv-cache-optimization"
     },
     "l1-promote": {
       "addedAt": "2026-06-11T13:34:43Z",
-      "computedHash": "c5e4561cd3a05a7fe7dcf9207cb18d19cf4e91972a98d2e3e869a4dd8878cbf7",
+      "computedHash": "1206e00910ce64c64057dc4fa6d76804be7959ca5e27501fe5b152306a470105",
       "localPath": ".claude/skills/l1-promote"
     },
     "lambda-lang": {
@@ -5927,7 +5927,7 @@
     },
     "leak-check": {
       "addedAt": "2026-06-11T13:34:43Z",
-      "computedHash": "8308bb64d78fb6a273ea4f30b85225dc5f8cae7d6018a69dc0dc6dfd6a8a0f45",
+      "computedHash": "cccc575d19fe2f08fbed384d38015762ad55460e74e239e5f4a36241cdde922a",
       "localPath": ".claude/skills/leak-check"
     },
     "leonxlnx--taste-skill": {
@@ -5937,12 +5937,12 @@
     },
     "linkerd-service-mesh": {
       "addedAt": "2026-06-11T13:34:44Z",
-      "computedHash": "ed402851d1d675b36849a0d563fe9c8d9d95c912b65323c9aef15ecc0957ee90",
+      "computedHash": "c93d1af9d14174aeaccd6f8785b3a815725af96f05af5dd1484ac819ad71a5d1",
       "localPath": ".claude/skills/linkerd-service-mesh"
     },
     "lint-staged-git-hook": {
       "addedAt": "2026-06-11T13:34:44Z",
-      "computedHash": "98ae34ab2011ad6a4165dd60b8be63fc564f08c5e6b0e7d2e636041a34bd82a2",
+      "computedHash": "61f862c7c69c14b557161365dfef714eae9b924c4a95fac3570b27d2b7273de3",
       "localPath": ".claude/skills/lint-staged-git-hook"
     },
     "liquid-glass-design": {
@@ -5972,7 +5972,7 @@
     },
     "llm-eval-framework": {
       "addedAt": "2026-06-11T00:14:51Z",
-      "computedHash": "2d8168022a2c29ac3c8c58712bc12275e33aecf52d84869b76ddfdb1b5d0895d",
+      "computedHash": "12f54d9dd2639903f5ce00591391ee3464003542832100932ca214edf16f7535",
       "localPath": ".claude/skills/llm-eval-framework"
     },
     "llm-int8-quantization": {
@@ -6002,12 +6002,12 @@
     },
     "llm-ui-patterns": {
       "addedAt": "2026-06-11T13:34:44Z",
-      "computedHash": "df2119e62b5ed936de266e9b71a5582e7953af2e87c29b961e71805272cc7e54",
+      "computedHash": "a3b704dba10012450a6d9562085a8750d0bd1a96ea08cae3aabc636624f56543",
       "localPath": ".claude/skills/llm-ui-patterns"
     },
     "load-testing": {
       "addedAt": "2026-06-11T13:34:44Z",
-      "computedHash": "cef11b7e0eca5397ed4a7597098f0da75039ddc6b2be020f49478b49f6045a5e",
+      "computedHash": "116fbb25e506dc9ac70b7f038932b9e560e44718768bb1ede99de70c8680ae00",
       "localPath": ".claude/skills/load-testing"
     },
     "logging-observability": {
@@ -6027,7 +6027,7 @@
     },
     "loki-log-aggregation": {
       "addedAt": "2026-06-11T13:34:44Z",
-      "computedHash": "af4fb1dbe138eb4dfa8ab1dfaeb719736c7e125daa1ce1f54c578ebab93fae7b",
+      "computedHash": "3e59b486e3f1474d8fd9e2e95163cb0459e1f4324165a1e0e2259c775434bce6",
       "localPath": ".claude/skills/loki-log-aggregation"
     },
     "lsp-navigation": {
@@ -6112,7 +6112,7 @@
     },
     "markitdown": {
       "addedAt": "2026-06-11T13:19:08Z",
-      "computedHash": "a95b96e016acfad96953f0f520da1dd93e357e7c1107589d3546779994f4dd79",
+      "computedHash": "2684a2ee964f9e9f6fd769335b3e7fb643284453a3703ef18231fab9170b6453",
       "localPath": ".claude/skills/markitdown"
     },
     "matrix-dimensionality-reduction": {
@@ -6177,7 +6177,7 @@
     },
     "merkle-mountain-ranges": {
       "addedAt": "2026-06-11T13:19:09Z",
-      "computedHash": "bff5a89c66ffb982da2dcf452853475ea0bdd0b5d691a223dc4816aca95bc937",
+      "computedHash": "da50cf1f4f257780737be0d7525f4d56c1581cbfbfda48cb7bb2392b824a129c",
       "localPath": ".claude/skills/merkle-mountain-ranges"
     },
     "merkle-tree-audit": {
@@ -6227,7 +6227,7 @@
     },
     "minimalist-ui": {
       "addedAt": "2026-06-11T13:34:46Z",
-      "computedHash": "4e6d5b84fd9b2c2ed1f4984ec582252c8eb9490a2b9c169725d799c4c4189013",
+      "computedHash": "cf5bee2518597d3fe832cd2a50f8c5a10e3be703df390da53af3f12301b5c7f9",
       "localPath": ".claude/skills/minimalist-ui"
     },
     "mise-configurator": {
@@ -6247,17 +6247,17 @@
     },
     "mlops": {
       "addedAt": "2026-06-11T13:19:10Z",
-      "computedHash": "a5db3df473dd23d1c2d339daafdd2ff2f5df5e1d344b741a5dc03824fe1c62ba",
+      "computedHash": "660d76059de06fc5530a14e6c44b0cbac1bd8b81876a4fcdff1141b99900d707",
       "localPath": ".claude/skills/mlops"
     },
     "mlperf-inference-benchmarks": {
       "addedAt": "2026-06-11T13:34:46Z",
-      "computedHash": "7df97364ab4f550bb2bf39cf7325e54374ac320d6793dc6c98211b94e7cfa65a",
+      "computedHash": "bc22f60f1425cba89656224f1b5f522d841b40f388839ff4279e46f1f00cb441",
       "localPath": ".claude/skills/mlperf-inference-benchmarks"
     },
     "mobile-ux": {
       "addedAt": "2026-06-11T00:14:59Z",
-      "computedHash": "fa98a76280095ac1feebd42dc306cdc2bd8863ad3a450012753e676a4a88a818",
+      "computedHash": "4483f56c95239e370e649a16376c7cb753b4d650b68eadb2d3bc7b965a8c6b44",
       "localPath": ".claude/skills/mobile-ux"
     },
     "modal-serverless": {
@@ -6282,7 +6282,7 @@
     },
     "monorepo-patterns": {
       "addedAt": "2026-06-11T13:34:46Z",
-      "computedHash": "9601317fe695e85ccc8e9be0d35ad91cc2954f4a39bd76e3178d1a509cffa6dc",
+      "computedHash": "7f31956f21250e24507b2462681b37a48164b53feae2fffb6610d0d8eabfdb23",
       "localPath": ".claude/skills/monorepo-patterns"
     },
     "monte-carlo-monitor-creation": {
@@ -6312,7 +6312,7 @@
     },
     "motion-design": {
       "addedAt": "2026-06-11T13:34:46Z",
-      "computedHash": "edb9f1f58c64102d45e4fd55ee396c7bc522722d35b728f39ec13d5e635c5100",
+      "computedHash": "516659be3fded4ad9afc3d345ced0adc827bb1d02c957c4ce559e4317ce53649",
       "localPath": ".claude/skills/motion-design"
     },
     "motion-foundations": {
@@ -6342,7 +6342,7 @@
     },
     "msgpack-binary-encoding": {
       "addedAt": "2026-06-11T13:34:47Z",
-      "computedHash": "8ecb57df3d6fc21a09ff73d2fd1e9f9d079ffc8be8f61e9d4202a7586d77927a",
+      "computedHash": "90d4bdbeb2fb0296661e911b0635c71f586a05ab11f8030328bdb58c95130673",
       "localPath": ".claude/skills/msgpack-binary-encoding"
     },
     "mukul975--cybersecurity-skills": {
@@ -6362,7 +6362,7 @@
     },
     "multi-agent-handoff": {
       "addedAt": "2026-06-11T13:34:47Z",
-      "computedHash": "1254182fc507d0044a63688cb4234e2512b6fb63cf53b339e81b46f818cd6846",
+      "computedHash": "11e1a99deeec4cdb817049c8337b44d7f23213ad9e9efe4a6954f786e4195573",
       "localPath": ".claude/skills/multi-agent-handoff"
     },
     "mysql-patterns": {
@@ -6417,7 +6417,7 @@
     },
     "nextjs-patterns": {
       "addedAt": "2026-06-11T13:19:11Z",
-      "computedHash": "8512e64b46d977e3b71edadbfa6f03c4c85e71d274370742386487be6df5cd17",
+      "computedHash": "d4efc351384b3623ca4e8372c91f02c5be91b15073bc9a96c58208420940c2f9",
       "localPath": ".claude/skills/nextjs-patterns"
     },
     "nextjs-turbopack": {
@@ -6457,12 +6457,12 @@
     },
     "observability-instrumentation": {
       "addedAt": "2026-06-11T13:34:48Z",
-      "computedHash": "7f251568a26a1e29585ef06da10c446d7bb56446515e3f92ee1ef4e876848ce5",
+      "computedHash": "a5f50f302b0cf47b48b1f8a841ce8b2fce28138652cf4035e730e7142ff0ec61",
       "localPath": ".claude/skills/observability-instrumentation"
     },
     "ollama-patterns": {
       "addedAt": "2026-06-11T00:15:04Z",
-      "computedHash": "70a1fd52c9228a996ec925691316c400c4d6725e536b2ec1428a65b765ecb684",
+      "computedHash": "50f58eee6c3b1f81a3d44c4765f923e8687748cf722317a4a9bae1af3d3d42f8",
       "localPath": ".claude/skills/ollama-patterns"
     },
     "onnxruntime-inference": {
@@ -6737,12 +6737,12 @@
     },
     "opentelemetry-distributed-tracing": {
       "addedAt": "2026-06-11T13:35:07Z",
-      "computedHash": "7d0214b06b17765637d34ca509d2858327742c853430b20d06d23d694212e8e9",
+      "computedHash": "7363dc5925cbffb1f911fbbf8ee33667f6d6c8093a533d6a4014f8cd58adc9cc",
       "localPath": ".claude/skills/opentelemetry-distributed-tracing"
     },
     "opentelemetry-semantic-telemetry": {
       "addedAt": "2026-06-11T13:35:07Z",
-      "computedHash": "5423c5046cba34158bf887df7197f97cf63aca9a94c7b3cb22a1dce11aad270d",
+      "computedHash": "c5faef42225d9d2e3c8f92605bf077c32800182bbc5ee8c7c4326c97a69e1a03",
       "localPath": ".claude/skills/opentelemetry-semantic-telemetry"
     },
     "openwork-agent": {
@@ -6762,22 +6762,22 @@
     },
     "output-enforcement": {
       "addedAt": "2026-06-06T06:38:26Z",
-      "computedHash": "efae45b84eef11821ec969218faec5a49049a2d9cac9ac322e8e15e02a8584c9",
+      "computedHash": "bd1315a4df61f77c9b28cc10e8daa97c025402412462603487f9332a20c0563f",
       "localPath": ".claude/skills/output-enforcement"
     },
     "overlayfs-runtime-isolation": {
       "addedAt": "2026-06-11T13:35:08Z",
-      "computedHash": "dbf6997585bb37d83e59bec866511e23b44c63f1e637de38ba4988c98719b221",
+      "computedHash": "ccf5ae0388c10b191afe7c8d9833a2abfe71b57bb4272d13e406040a687f1608",
       "localPath": ".claude/skills/overlayfs-runtime-isolation"
     },
     "owasp-llm-top10": {
       "addedAt": "2026-06-06T06:38:26Z",
-      "computedHash": "5bc5fd084943ffffbb2f95022eef17682a8ea42620f13a67e5fbecaa4413d7ad",
+      "computedHash": "625fc99ebe6d38f69d6b422ca71f4bd24a236b492011e9b2a4017a9d056a0cd0",
       "localPath": ".claude/skills/owasp-llm-top10"
     },
     "p2p-chronicle-log": {
       "addedAt": "2026-06-11T13:35:08Z",
-      "computedHash": "735edb64ee9f3974cea62be7d08bc6161ae290c4ad395ff131c58b2b7d07b7f0",
+      "computedHash": "d14dbe97866a3472f5a778bee4404e64add4b78e5fb1d8738c1807aeda28cd00",
       "localPath": ".claude/skills/p2p-chronicle-log"
     },
     "paddlepaddle--paddleocr": {
@@ -7687,7 +7687,7 @@
     },
     "plan-first": {
       "addedAt": "2026-06-06T06:38:29Z",
-      "computedHash": "ba00ac6d5d335b2ed1df59cffe8c07199b2484f2fd7249efec76cee4baeb91da",
+      "computedHash": "80bbbbc580987603ce0e9955208d729463a78eb51187385b87aac73315477aea",
       "localPath": ".claude/skills/plan-first"
     },
     "plan-orchestrate": {
@@ -7712,7 +7712,7 @@
     },
     "pouchdb-sync-patterns": {
       "addedAt": "2026-06-11T13:35:08Z",
-      "computedHash": "3ce41da703950dc3f8af4548a6ee6f960fe83715537fabdbace75e109862e1e9",
+      "computedHash": "d8b8a8fd6d744db57e0fefc84d7cbea086822ebe1743873e58bf5c1b2c5de3e7",
       "localPath": ".claude/skills/pouchdb-sync-patterns"
     },
     "pre-compact-backup": {
@@ -7802,12 +7802,12 @@
     },
     "prometheus-ai-telemetry": {
       "addedAt": "2026-06-11T13:19:34Z",
-      "computedHash": "0f6c062194ead2c95d7322d610013dc6249968fa6d1685b02d5582b3ed40bcd3",
+      "computedHash": "9ab0a54fa97311ec701d1bb990bfd05b09edf546a0d00111d48e031ae922cd95",
       "localPath": ".claude/skills/prometheus-ai-telemetry"
     },
     "prometheus-scraping-rules": {
       "addedAt": "2026-06-06T06:38:37Z",
-      "computedHash": "af67507271e15297afc80fcb7997c3ee5bacfc738f79bf528248cfe9604fb689",
+      "computedHash": "0ba36ad3ae147c508600d2a746f0953c80ccf3052e0077d9799a21d225c7fc2e",
       "localPath": ".claude/skills/prometheus-scraping-rules"
     },
     "prompt-caching-strategy": {
@@ -7817,7 +7817,7 @@
     },
     "prompt-engineering": {
       "addedAt": "2026-06-11T13:35:09Z",
-      "computedHash": "6c3a8ab5ff2bcee940b7cd29a5959d2c784496a512e618e30d57fa4e92188667",
+      "computedHash": "39c30bed0aa3dfa5bd5707ea3bf13c22538259c75889bc45113e12eb2b76ebae",
       "localPath": ".claude/skills/prompt-engineering"
     },
     "prompt-firewall-patterns": {
@@ -7832,12 +7832,12 @@
     },
     "protobuf-serialization": {
       "addedAt": "2026-06-11T13:35:09Z",
-      "computedHash": "f032288cf5501c5377e0b27a5379aa964065cea1f346405d3a1a1a172db5646b",
+      "computedHash": "836b7cdf7e554dac10815f891ce3c92acba958e14ee170e042f09d7ff59c534d",
       "localPath": ".claude/skills/protobuf-serialization"
     },
     "protobufjs-dynamic-schema": {
       "addedAt": "2026-06-11T00:16:14Z",
-      "computedHash": "32436dc6d748c6fc41fdbe5ff64301c7cb74374e4cba6858fa2d95d89cce4d5c",
+      "computedHash": "477588ffda02f88f6ca0570746099c033b0d0b788f60cd69d56960edd15c4c64",
       "localPath": ".claude/skills/protobufjs-dynamic-schema"
     },
     "pulse": {
@@ -7847,7 +7847,7 @@
     },
     "purple-team-report": {
       "addedAt": "2026-06-11T13:35:09Z",
-      "computedHash": "0ba06dd100639ad7a723e073a2e0b2287eee43054cae0b7c1655ca5bbadd5660",
+      "computedHash": "7c2f0594654de43b1e75c26428f5c911b3affe18425f1216e4669739a38229e4",
       "localPath": ".claude/skills/purple-team-report"
     },
     "pydantic-ai": {
@@ -7947,7 +7947,7 @@
     },
     "rag-architect": {
       "addedAt": "2026-05-29T14:16:26Z",
-      "computedHash": "effa58b2a9576587a872cce683c5c243c05d4716043bf454d0697572a9dc6ce3",
+      "computedHash": "f75964513adc66c15c470e30a74d40a28c684b4bb0b120227c468717ebdff717",
       "localPath": ".claude/skills/rag-architect"
     },
     "ragas": {
@@ -8012,7 +8012,7 @@
     },
     "readonly-bind-mount-patterns": {
       "addedAt": "2026-06-11T00:16:16Z",
-      "computedHash": "c1fd09c8660169eabfccae7d8d89f39e0a6b5cc006462a7fed8b1e68d6794b3a",
+      "computedHash": "c97ed07542404075b1560e35d1d76e2b3a88a2d689bd2ce92ab3f70b40a840f4",
       "localPath": ".claude/skills/readonly-bind-mount-patterns"
     },
     "receiving-code-review": {
@@ -8047,7 +8047,7 @@
     },
     "red-team-check": {
       "addedAt": "2026-06-11T00:16:17Z",
-      "computedHash": "e5d4cbc191535ddcaff263ad8f668fdbcc4c035c3bad9257923f38a61dc5077c",
+      "computedHash": "317b2bb795130f0fb4a4e44c2834b48c6a0aef29ef13d2d315359e2e9b305c0f",
       "localPath": ".claude/skills/red-team-check"
     },
     "redesign-existing-projects": {
@@ -8062,17 +8062,17 @@
     },
     "refactor-patterns": {
       "addedAt": "2026-06-11T00:16:17Z",
-      "computedHash": "96da6ba044d66dbe8bfc517e4bccefc0aacb155d38799a89a7d5ce50a5bcdd96",
+      "computedHash": "67667eb5e03e76e4c1ee3ef2605315dae7c25b19fcba32a0db26302f27e5e287",
       "localPath": ".claude/skills/refactor-patterns"
     },
     "reflect-metadata-injection": {
       "addedAt": "2026-06-06T06:38:49Z",
-      "computedHash": "a97693d3ceb137097f97d629c32e195bf88a56185d3649527e1afbc37e87ca46",
+      "computedHash": "c3a67c61625ff9e134707d28bc29156a69975c462407cf3be534dbfda02412a2",
       "localPath": ".claude/skills/reflect-metadata-injection"
     },
     "reflexion-verbal-rl": {
       "addedAt": "2026-06-11T13:35:11Z",
-      "computedHash": "6e0df11428aeed5ecb74a882f060422219453da4bdc37e6b7ca8e746abe40fd0",
+      "computedHash": "ca1e5308b8db30d3e103843327a299e3bd694d93b33cf2f0d933fb068bbff21e",
       "localPath": ".claude/skills/reflexion-verbal-rl"
     },
     "regex-escape-redos-guard": {
@@ -8132,12 +8132,12 @@
     },
     "resilience-circuit-breakers": {
       "addedAt": "2026-06-11T00:16:18Z",
-      "computedHash": "e725cd50a7ef3b4b1dc23e887733cb3523233e36cbc7e197cf912b96f91fe59e",
+      "computedHash": "ae9fd9dea9a4eaedabe04e4cd1dc6ed1b069b499bf0b3136a8d83682c5f6cf3e",
       "localPath": ".claude/skills/resilience-circuit-breakers"
     },
     "resilience-patterns": {
       "addedAt": "2026-06-11T13:19:35Z",
-      "computedHash": "9f44f6f2e75fe925c3a559650c054ec11dfac5d4dc51e01f4b6af8fa175dd44f",
+      "computedHash": "80de4d392b8521797e0cf0f48c9f159dbafbc07a7186419101e545bd11e64866",
       "localPath": ".claude/skills/resilience-patterns"
     },
     "returns-reverse-logistics": {
@@ -8317,12 +8317,12 @@
     },
     "secret-management": {
       "addedAt": "2026-06-11T13:19:36Z",
-      "computedHash": "a8a9dd9abc02a96dbe88da165ff638bc4859e10489243b7ad72733afa5172819",
+      "computedHash": "fd2e898f8c3efbe8d56d9110186ca89ee43a583181829d94393262060f24452c",
       "localPath": ".claude/skills/secret-management"
     },
     "secrets-vault-patterns": {
       "addedAt": "2026-06-11T00:16:20Z",
-      "computedHash": "ffaa825168b52ddb8d1e4b046a3b16110fa3da664fada63774eea29b2fe6c065",
+      "computedHash": "0f4229cd0873a8827ae3b61042169287bcce44eff070a4d9995a9e784602d318",
       "localPath": ".claude/skills/secrets-vault-patterns"
     },
     "securing-api-gateway-with-aws-waf": {
@@ -8437,7 +8437,7 @@
     },
     "semantic-scholar": {
       "addedAt": "2026-05-29T14:16:29Z",
-      "computedHash": "bb3d818839f9c0c13cb0b782bd9229e6c7830e6bcd8918eae3c7e40f8ff56d72",
+      "computedHash": "fa930d189f2c6f927a114c5d76f3c87cdd4236db9eddb20f3cd2256ed38157ae",
       "localPath": ".claude/skills/semantic-scholar"
     },
     "senior-frontend": {
@@ -8452,7 +8452,7 @@
     },
     "serverless-patterns": {
       "addedAt": "2026-06-06T06:39:07Z",
-      "computedHash": "89373783841fc9ffee18a0620b9856c3887e2b1eed2fc61cc5b2c17c4853bc55",
+      "computedHash": "99e01740c128ae7d65689e3906dfd720398fb9e6407eec5c3640473c7788474e",
       "localPath": ".claude/skills/serverless-patterns"
     },
     "session-context": {
@@ -8527,7 +8527,7 @@
     },
     "skill-library-voyager": {
       "addedAt": "2026-06-11T00:16:22Z",
-      "computedHash": "b436c7bdddfe16348212bdf1e5cfa469e7ba2e430467b351f9a8398d9984edac",
+      "computedHash": "f7f41c7e7b209110c2384732a2efe0e7ea64879a79f5d33cb74d2e2c842337f0",
       "localPath": ".claude/skills/skill-library-voyager"
     },
     "skill-scout": {
@@ -8552,7 +8552,7 @@
     },
     "slo-design": {
       "addedAt": "2026-06-11T13:35:13Z",
-      "computedHash": "74b5bcda0ec8be97253f8f0c185e057b5f42a4369f78d72739ce43ba34824783",
+      "computedHash": "e05b577d3b6015f4ba03d76c4f82417af3a1d7590b9a8cbe64a9b019c2532227",
       "localPath": ".claude/skills/slo-design"
     },
     "smart-layout-aesthetics": {
@@ -8582,12 +8582,12 @@
     },
     "sovereign-interceptor-patterns": {
       "addedAt": "2026-06-06T06:39:15Z",
-      "computedHash": "c8325aae11e1d393c3ad2a49a26604c30b13bf9997f5bacf83e1af746eb36a56",
+      "computedHash": "62c7f7208ba89399231e09b4f7c3932c539c6bd2df19bdded42bf8a7165a2a31",
       "localPath": ".claude/skills/sovereign-interceptor-patterns"
     },
     "sovereign-overlord-gate": {
       "addedAt": "2026-06-11T13:35:13Z",
-      "computedHash": "4a412225c0f83ea47cfd990f7325501e155a28d852341ff854c1f0558ddd48cd",
+      "computedHash": "05ee587228629268d743beb922767b6d1c92259945698659041bb32f1dda96fe",
       "localPath": ".claude/skills/sovereign-overlord-gate"
     },
     "spline-3d-integration": {
@@ -8982,22 +8982,22 @@
     },
     "state-management-patterns": {
       "addedAt": "2026-05-29T14:16:32Z",
-      "computedHash": "7b6af077ac3c174faa0675e64cffb0a13acc096b2bd94af3c4640100d9373768",
+      "computedHash": "4e0e746c972579f24b8f600b7dfbfa5c756f64ab5399acf1db978bdc49959a9b",
       "localPath": ".claude/skills/state-management-patterns"
     },
     "state-persistence-gateway": {
       "addedAt": "2026-06-11T13:19:38Z",
-      "computedHash": "25d637285ea566e01c1085fadde641df73498294ede23985d8d3c53fb2c19971",
+      "computedHash": "476cc27065289e23ec7887c1bd10a86e0f81027e2206274f56d4709e577f7c2e",
       "localPath": ".claude/skills/state-persistence-gateway"
     },
     "statsd-metrics-streaming": {
       "addedAt": "2026-06-11T05:59:40.967Z",
-      "computedHash": "21a72881f4c7df9ff21950dbd5e04469e2dd1527b86c7b7ab556460fdadd91e0",
+      "computedHash": "487efa891765526ec6f556504691783b59d76f40f4b16eb65b208b7e813e2d6c",
       "localPath": ".claude/skills/statsd-metrics-streaming"
     },
     "stealth-browser-automation": {
       "addedAt": "2026-06-11T13:35:14Z",
-      "computedHash": "0536244457e16156551c1d928ba757ba4d6af5c8be3943d5bf0ac7d41e081ab9",
+      "computedHash": "6780421b9629d244ef1694ea2c94e444c6ecb94b225b7b694d71626da0f960d4",
       "localPath": ".claude/skills/stealth-browser-automation"
     },
     "stefan-jansen--ml-for-trading": {
@@ -9017,7 +9017,7 @@
     },
     "storage-fallback-patterns": {
       "addedAt": "2026-06-06T06:39:35Z",
-      "computedHash": "b8765725b69d438359ff1a4da09f3b0d1b8d077f5d0fbedc7806a924c0a6d889",
+      "computedHash": "40e2272b0840ba659836b485c92e90af1916107d91e502e3dc6d773b2455eaee",
       "localPath": ".claude/skills/storage-fallback-patterns"
     },
     "strategic-compact": {
@@ -9057,7 +9057,7 @@
     },
     "supermemory": {
       "addedAt": "2026-06-06T06:39:53Z",
-      "computedHash": "73d01a9c90b834fcc8e1730fd131cd5ab21ceaa3da547f84980788fdaf7eb968",
+      "computedHash": "02197598fce0a637590fb6ce88720ee23e6790abbe7b5254f417fb1b3e129c84",
       "localPath": ".claude/skills/supermemory"
     },
     "supply-chain-security": {
@@ -9077,12 +9077,12 @@
     },
     "swarm-consensus": {
       "addedAt": "2026-06-06T06:39:54Z",
-      "computedHash": "1e0c48f4c06bd86558f2483ec5cd2b38476f7b096d4a2fb359ff0ff5e8fbb13b",
+      "computedHash": "52a833cb9c0dc7a24de684bf6bd2644fd4a55185f4496d5b96543273709a0e71",
       "localPath": ".claude/skills/swarm-consensus"
     },
     "swarm-honeynets": {
       "addedAt": "2026-06-11T13:35:18Z",
-      "computedHash": "6d64d53d3bd5441a06d0071f982a83fbfba09bd86426acf23749dd023079d5df",
+      "computedHash": "ef59a926eb2509417bd21cdd7af81a4c72b1281a0f513122fb626bff431bce45",
       "localPath": ".claude/skills/swarm-honeynets"
     },
     "swc-compiler-transform": {
@@ -9112,7 +9112,7 @@
     },
     "symmetric-encryption-patterns": {
       "addedAt": "2026-06-06T06:39:55Z",
-      "computedHash": "137093a475fd4b4d7af3a1e409c61e453488faa0869d7ce44df6bde09e6181b6",
+      "computedHash": "547671396547b22489f3bd323aa014fdc87fedda45d9e0809b38335c507132d8",
       "localPath": ".claude/skills/symmetric-encryption-patterns"
     },
     "syscall-filtering-seccomp": {
@@ -9122,12 +9122,12 @@
     },
     "syslog-integration": {
       "addedAt": "2026-06-06T06:39:55Z",
-      "computedHash": "d68092cd0345af1e702fba4608b10492904a0f141dd4f51c4b3132697b541013",
+      "computedHash": "28d36c38e0781e3e43b67bfbcb1555a32e06a8a153e4b3acdb82531f44f363b6",
       "localPath": ".claude/skills/syslog-integration"
     },
     "system-info-telemetry": {
       "addedAt": "2026-06-06T06:39:56Z",
-      "computedHash": "48e81881c01d356210547ea893cc10f20b7f992bd21b84f3c6e1356b553961a8",
+      "computedHash": "da96eafc968d50ec128dc0c431c8a77b15affeb18501d9707d604fe00c981c2d",
       "localPath": ".claude/skills/system-info-telemetry"
     },
     "tableproapp--tablepro": {
@@ -9202,7 +9202,7 @@
     },
     "tdd": {
       "addedAt": "2026-06-11T13:19:42Z",
-      "computedHash": "abf99549c25066fdce2a78817419121ffb87786125145e6a6f1282a8411835ab",
+      "computedHash": "ecd4b3ab484f7ac571b5c230863a15be1419226b5a1448711fc5028d4a564d1d",
       "localPath": ".claude/skills/tdd"
     },
     "tdd-evidence": {
@@ -9232,7 +9232,7 @@
     },
     "telemetry-analysis": {
       "addedAt": "2026-06-11T13:35:19Z",
-      "computedHash": "796de3aca0e5fc33e942df803e94dbcf2f0712c17c00a6a5d518cdb1b01a25a1",
+      "computedHash": "64e3986b57b8620c32e66a36dc77a680282e4515786f2b3c82640d5843882d0e",
       "localPath": ".claude/skills/telemetry-analysis"
     },
     "template-skill": {
@@ -9257,7 +9257,7 @@
     },
     "terraform-patterns": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "31d33b0d60b4a09d14db9763a35c47f826725b773348b6bdb2cd4e3f8f3f7aad",
+      "computedHash": "d4dc375d0117833516e15b706dcba0a19f0ca11142ab3509c9356692e7efd8d2",
       "localPath": ".claude/skills/terraform-patterns"
     },
     "terraform-skill": {
@@ -9422,7 +9422,7 @@
     },
     "token-roi": {
       "addedAt": "2026-06-06T06:42:13Z",
-      "computedHash": "b39ba163b3f354e3e8e8065da75fbadbb668cf7c460ac4678aa5ef786f2d8704",
+      "computedHash": "fab16f30e0fd9325cc3dee479c09c0418332aa8469d01db75d95b70b8c15b0bb",
       "localPath": ".claude/skills/token-roi"
     },
     "toml-config-parsing": {
@@ -9453,7 +9453,7 @@
     },
     "traefik-ingress-routing": {
       "addedAt": "2026-05-29T14:14:53Z",
-      "computedHash": "859b5ec139af65fee2910b89c0dbb136b4b024f62d68d892b2db97712a38c863",
+      "computedHash": "c44b1c4d2f5dc79b01b6f16e0d9b4576a6bb799ec5ddb79cc4e7b1daf4608ecb",
       "localPath": ".claude/skills/traefik-ingress-routing"
     },
     "tree-of-thoughts": {
@@ -9498,7 +9498,7 @@
     },
     "twirp-rpc-patterns": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "eb4ab0ec3015b4c98f9dcb00053753d5a696adec360a651aa8c0e57f41b6d162",
+      "computedHash": "703764d225f6107e473b46c477914d51371e9dcf15e0b6c27cb655c52f90d988",
       "localPath": ".claude/skills/twirp-rpc-patterns"
     },
     "twitter-algorithm-optimizer": {
@@ -9508,7 +9508,7 @@
     },
     "type-safe-api-contracts": {
       "addedAt": "2026-06-06T06:42:13Z",
-      "computedHash": "a1e5429ebc8ad7e92867e40cd41b809e8654887399b1aa7ff05532bc1db07fe4",
+      "computedHash": "1d17af49d74aa83a239381d1c8ececbc4c174f1fd881e278fb00ee2af099cd8d",
       "localPath": ".claude/skills/type-safe-api-contracts"
     },
     "type-safety-patterns": {
@@ -9518,7 +9518,7 @@
     },
     "typescript-patterns": {
       "addedAt": "2026-06-06T06:42:14Z",
-      "computedHash": "ad97c52f4a2f09273a895624b956b69ea9e4baaf9232e5a1e82d32ecc245e9b5",
+      "computedHash": "c19fd19231bcced2a35d13719625766f981fb3bb50e8316dc5a21782f9e1de05",
       "localPath": ".claude/skills/typescript-patterns"
     },
     "typography-scale": {
@@ -9528,7 +9528,7 @@
     },
     "typography-system": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "42f73a2837b3e604fd38d53bfb3e7570b1be65cc21dbd3ea7026194efa7cbd13",
+      "computedHash": "07fc13087ef8cc2ae3fe10dfab4a749d812ac1d948047d8aeb87c0f76e18ada7",
       "localPath": ".claude/skills/typography-system"
     },
     "ui-demo": {
@@ -9538,7 +9538,7 @@
     },
     "ui-redesign": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "bcc1087db99087f0673bedda9126cc3d9554a6acfa062b4d5bafdd26784a8b2d",
+      "computedHash": "b3b26a43f0b26e0feb3b017962bbb43f8273865d17105627c07ba66718329020",
       "localPath": ".claude/skills/ui-redesign"
     },
     "ui-skills": {
@@ -9548,7 +9548,7 @@
     },
     "ui-states": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "12ce66de4d89722eb25870ea4834f0c80c5f52b2f6a480b72b96c4bd9d1d2d92",
+      "computedHash": "92ccc04da27a25a636c9c7522e0e773b10ef7109ea70eefae5224294f26410df",
       "localPath": ".claude/skills/ui-states"
     },
     "ui-to-vue": {
@@ -9558,7 +9558,7 @@
     },
     "uid-gid-privilege-drop": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "3e693ac2c6361ceffe08b167bd7fe6df9660d64f36eea4fffabd25f41feab3e0",
+      "computedHash": "7eb7a53f430962fd195ccb64b2a6635fb79ef74355919bb2b943c136f03f5561",
       "localPath": ".claude/skills/uid-gid-privilege-drop"
     },
     "uncle-bob-craft": {
@@ -9578,12 +9578,12 @@
     },
     "unit-testing-patterns": {
       "addedAt": "2026-05-29T14:14:54Z",
-      "computedHash": "16662295cb5f37006ffb82fdef0be6fa24205260007a9e4a5cc59b020f37ab31",
+      "computedHash": "168f05a1addb007dfc46b28c749e612f50a6427ba184b2dcbe0bcb7debc7a097",
       "localPath": ".claude/skills/unit-testing-patterns"
     },
     "unprivileged-sandbox-bubblewrap": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "1d1d6d963c42b38d822bfaa1973d6dc29b119864eb938ae5177d504675484f0d",
+      "computedHash": "df88a751812b08fc5dfd6a1c12ac637153393b7c084ae48d44ba6da2266e0435",
       "localPath": ".claude/skills/unprivileged-sandbox-bubblewrap"
     },
     "unreal-engine-cpp-pro": {
@@ -9603,7 +9603,7 @@
     },
     "ux-heuristics": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "5bd95b32d75ff94a9f37a00812aac5ee7bd6ee78d690d4f93ff50d0148d14c93",
+      "computedHash": "bf278760ce0476e60eda130c376374f1541db06042b8b3027892cadb98c95b2a",
       "localPath": ".claude/skills/ux-heuristics"
     },
     "validating-backup-integrity-for-recovery": {
@@ -9809,7 +9809,7 @@
     },
     "vllm-paged-attention": {
       "addedAt": "2026-06-06T06:42:16Z",
-      "computedHash": "7953ce0a4524c02e51561844195d8f202e26d0ea8e784d3cc2fa7b28ab30fcef",
+      "computedHash": "8103de50785f370e0837663a092dc2d5950127ece7e0d46ab7aa91d8a0c3e4bf",
       "localPath": ".claude/skills/vllm-paged-attention"
     },
     "vnpay-integration": {
@@ -9830,7 +9830,7 @@
     },
     "wamp-pubsub-patterns": {
       "addedAt": "2026-06-06T06:42:17Z",
-      "computedHash": "bd8b9abd1e3c9a68a4dbe2ad45b452fd2c01e5a84c57ef27b39231377b95f2cc",
+      "computedHash": "404c4a63b43b02fd5c4ed30898a4a3d1a52f1b1e4b89c1b2a8984525cb57e891",
       "localPath": ".claude/skills/wamp-pubsub-patterns"
     },
     "wasm-bindgen-js-interop": {
@@ -9840,7 +9840,7 @@
     },
     "wasmer-wasm-runtime": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "56985a0bab285ae5432f51ec5bd45a153ff037537d552ddfe9f638643301d2dd",
+      "computedHash": "b1d52795595d373a43d8889f2b1d265f4fd4b80a0e4bf069837d50f86ef47b3b",
       "localPath": ".claude/skills/wasmer-wasm-runtime"
     },
     "wasmtime-wasi-sandbox": {
@@ -9850,7 +9850,7 @@
     },
     "web-performance": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "89f35f560492c59de174b7826dc26fe9eb36b84af3f5feb588bb19e01ed9c6d9",
+      "computedHash": "84d464e80e4fd7b785074182ecf58609eb2efe49772130695e13af00a8805201",
       "localPath": ".claude/skills/web-performance"
     },
     "webapp-testing": {
@@ -9860,7 +9860,7 @@
     },
     "websocket-patterns": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "6819b3f2e03c837cea30a98962eb5c459e257a9f5b7b84c17febf87ee9b73290",
+      "computedHash": "c029a553a9202f09bfd1a1f558dd2e6b9781603ac6703477b5fc2b2ac93f0b1d",
       "localPath": ".claude/skills/websocket-patterns"
     },
     "websocket-protocol-codegen": {
@@ -9900,7 +9900,7 @@
     },
     "writing-skills": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "799bf0aa199b29a57d8434a33cc7d2a6f8e457de9730298068fe956ba588dfb9",
+      "computedHash": "90a9950358ddb03c108b35b7c5dfffd624dcbc9da3ada889ab9c3cd4412636d4",
       "localPath": ".claude/skills/writing-skills"
     },
     "x-api": {
@@ -9925,12 +9925,12 @@
     },
     "yjs-crdt-sync": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "c2726902f551bcc4577104d3346a1ad9c4b9e9a423c05ec37912b037da877709",
+      "computedHash": "29951e04fd875ebe20f54f93ceb684ac40278d8c3eb3ea19946b96f81ce73729",
       "localPath": ".claude/skills/yjs-crdt-sync"
     },
     "zero-trust-network-mesh": {
       "addedAt": "2026-06-06T06:42:18Z",
-      "computedHash": "d1ac83beab1f4e53381a42c8781754e2ec5323564bf4a1f28f23f460ca260ea0",
+      "computedHash": "db8b895d65b54bcc0e5074bad83713859417c8898715af34961bfb6dbd925705",
       "localPath": ".claude/skills/zero-trust-network-mesh"
     },
     "zero-trust-patterns": {
@@ -9940,12 +9940,12 @@
     },
     "zip-memory-operations": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "63e5ea39e4bffb057b11d99ebc9e4961009c092fa97f83a41547c86b2ab04e41",
+      "computedHash": "7b0f8d670c8bd96c03a6a6f0edf736058c9bfe88e3b41703c0e07fcfdce7da61",
       "localPath": ".claude/skills/zip-memory-operations"
     },
     "zk-proof-patterns": {
       "addedAt": "2026-06-11T05:59:40.978Z",
-      "computedHash": "f006e9c486dc5f51c9ffbc83f40ab59846ca4df56384626e8e000db0462d77df",
+      "computedHash": "7e91e1e4d5797008673a4535bf72ab1393bfa95e3febeac0124f707f290fb19e",
       "localPath": ".claude/skills/zk-proof-patterns"
     },
     "zlib-stream-compression": {
@@ -9957,7 +9957,127 @@
       "addedAt": "2026-06-11T05:59:40.978Z",
       "computedHash": "e2dd40e6c5f55627093be14c7ca3dd4f9c9b5c03215845c58f15b66a0e719c08",
       "localPath": ".claude/skills/zombie-process-cleanup"
+    },
+    "mattpocock--code-review": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "62676f2d5f6969c1c13cd010dfaeaf6a0da1ab130e6e14ebad2b80d6b2055e0f",
+      "localPath": ".claude/skills/mattpocock--code-review"
+    },
+    "mattpocock--codebase-design": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "b04509547aad917fa54bc3163222f9ed298516fb61312ac5eab0427facc6adbc",
+      "localPath": ".claude/skills/mattpocock--codebase-design"
+    },
+    "mattpocock--diagnosing-bugs": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "cfd690fca5b4d98bf7dfd8ebcf470600f03fe753f9978c64e72b0695a9176125",
+      "localPath": ".claude/skills/mattpocock--diagnosing-bugs"
+    },
+    "mattpocock--domain-modeling": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "b5df8715514e88b1dcd4f0de1255b173b9eef792560b0351d07db1b553761077",
+      "localPath": ".claude/skills/mattpocock--domain-modeling"
+    },
+    "mattpocock--grill-with-docs": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "016ec2353b42966fc7652361cb706cb19fae7f75d03f754b1e80015633f09d64",
+      "localPath": ".claude/skills/mattpocock--grill-with-docs"
+    },
+    "mattpocock--implement": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "2f37d0293e7aed5da966c0e7fd59457285cd3e10265c980756587f8277739311",
+      "localPath": ".claude/skills/mattpocock--implement"
+    },
+    "mattpocock--improve-codebase-architecture": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "e6fa57ca31f8f538a9d756df2f90c8dc352fa53389ca21c0b8fa4e0313700a48",
+      "localPath": ".claude/skills/mattpocock--improve-codebase-architecture"
+    },
+    "mattpocock--prototype": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "e5baf6e996b1ad43d1171c2ea10be0be052fd90d92afbd861d4d9d5b434e4300",
+      "localPath": ".claude/skills/mattpocock--prototype"
+    },
+    "mattpocock--research": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "cd418932bbaea440e4a699cf9b60e1b18e52e5f33587827daddd1a56925aab1c",
+      "localPath": ".claude/skills/mattpocock--research"
+    },
+    "mattpocock--resolving-merge-conflicts": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "b17d38d4c488fb250f8bf6aec2a334ad647d25505e1a773e9f538c5574c28809",
+      "localPath": ".claude/skills/mattpocock--resolving-merge-conflicts"
+    },
+    "mattpocock--tdd": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "6df4d0c655ab13703f184653fbe3d3f700d4e36d77adeb03e5c7697253a3e093",
+      "localPath": ".claude/skills/mattpocock--tdd"
+    },
+    "mattpocock--to-spec": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "07bf1425799ffc08ce8db0509731af88a7cae0de8a17d7381516b1bc9aa98f76",
+      "localPath": ".claude/skills/mattpocock--to-spec"
+    },
+    "mattpocock--to-tickets": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "eda0899fded7ebee00cc31c5aaf1c7a4a2799821397d32f7db099023e434415b",
+      "localPath": ".claude/skills/mattpocock--to-tickets"
+    },
+    "mattpocock--triage": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "3e5ff890dd4b518186ae9eccc86b743fefbbb9d4f7c1c6d4c19fac8837e690d3",
+      "localPath": ".claude/skills/mattpocock--triage"
+    },
+    "mattpocock--wayfinder": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "3a45e12688d5b5e2840b1e0de2b50fa52f93916ddb7f5c22790a7533c46f2b00",
+      "localPath": ".claude/skills/mattpocock--wayfinder"
+    },
+    "mattpocock--git-guardrails-claude-code": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "2d081914f2e5f401a6eaef9779b87d6ce8a6890221ebf1957639076d8bde4e48",
+      "localPath": ".claude/skills/mattpocock--git-guardrails-claude-code"
+    },
+    "mattpocock--migrate-to-shoehorn": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "09dd935417e15fc4151a47fc62d2e31bd7b0ce598aab935cba5a53e0e6e83c7f",
+      "localPath": ".claude/skills/mattpocock--migrate-to-shoehorn"
+    },
+    "mattpocock--scaffold-exercises": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "3e62352b142528330b62ea63d9d6e5dc894de7b2aeb7f2ec445c8db7526b4eda",
+      "localPath": ".claude/skills/mattpocock--scaffold-exercises"
+    },
+    "mattpocock--setup-pre-commit": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "53a985c82ab68a5f0ae4aa93b2246c21c1e9492d8ba54fb2f5d30f68eb4a9ed8",
+      "localPath": ".claude/skills/mattpocock--setup-pre-commit"
+    },
+    "mattpocock--grill-me": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "911d5aa4c9c9af5235db2f9e13f8c1179b07807fe4a852412558352677fa1cea",
+      "localPath": ".claude/skills/mattpocock--grill-me"
+    },
+    "mattpocock--grilling": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "0d29210cf05aa71d0148a96fc9d097476465c34a125fc743785b6f755171acb9",
+      "localPath": ".claude/skills/mattpocock--grilling"
+    },
+    "mattpocock--handoff": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "bcbf723cb69abfa61e2e46a5cf1e19057a7ad19f32aedc4232789a366cf708e1",
+      "localPath": ".claude/skills/mattpocock--handoff"
+    },
+    "mattpocock--teach": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "199476f4b4702f5f0e48d2146715221ff9565f665cfe927f9cc2f069d778ba6e",
+      "localPath": ".claude/skills/mattpocock--teach"
+    },
+    "mattpocock--writing-great-skills": {
+      "addedAt": "2026-07-08T00:00:00Z",
+      "computedHash": "6d87acf1abbdf721b2cea32d23ba7c7a2e20a08a7162dc96b8c3236706d3876c",
+      "localPath": ".claude/skills/mattpocock--writing-great-skills"
     }
   },
-  "total": 2071
+  "total": 2014
 }

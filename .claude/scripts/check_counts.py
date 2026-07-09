@@ -41,6 +41,7 @@ SCAN_FILES = [
     "README.zh.md",
     "ARCHITECTURE.md",
     "AGENTS.md",
+    "OPENCODE.md",
     "package.json",
 ]
 
