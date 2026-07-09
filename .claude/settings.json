@@ -134,6 +134,15 @@
             "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh stop"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/entry-point-verify-reminder.sh bash .claude/hooks/hook-timeout-guard.sh"
+          }
+        ]
       }
     ]
   }

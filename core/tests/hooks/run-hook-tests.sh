@@ -96,14 +96,16 @@ test_hook() {
         actual_decision=$(echo "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"')
 
         # Special case for hooks that warn instead of deny (token-scope-guard.sh,
-        # infra-review-reminder.sh). Only relabel "allow" -> "warn" when
-        # additionalContext is present; today these hooks only ever warn,
-        # never deny, so the condition is currently a no-op guard — but
-        # without it, a future version of one of these hooks that also
-        # denies (with an explanatory additionalContext alongside the deny)
-        # would have that deny silently relabeled as "warn" here, masking a
-        # real block as a mere advisory.
-        if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh") \
+        # infra-review-reminder.sh, entry-point-verify-reminder.sh). Only
+        # relabel "allow" -> "warn" when additionalContext is present; today
+        # these hooks only ever warn, never deny, so the condition is
+        # currently a no-op guard — but without it, a future version of one
+        # of these hooks that also denies (with an explanatory
+        # additionalContext alongside the deny) would have that deny
+        # silently relabeled as "warn" here, masking a real block as a mere
+        # advisory.
+        if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh" \
+               || "$hook_name" == "entry-point-verify-reminder.sh") \
               && "$actual_decision" == "allow" ]]; then
             if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null; then
                 actual_decision="warn"
@@ -1420,6 +1422,90 @@ test_hook "infra-review-reminder.sh" "Warn on Write to MANIFEST.json" \
     '{"tool_name":"Write","tool_input":{"file_path":"MANIFEST.json","content":"x"}}' "warn"
 test_hook "infra-review-reminder.sh" "Allow Write to unrelated file" \
     '{"tool_name":"Write","tool_input":{"file_path":"README.md","content":"x"}}' "allow"
+
+# 12. entry-point-verify-reminder.sh — advisory-only, per
+# core/rules/71-entry-point-verify-law.md. Rust-only (yana-rt guard
+# entry-point-check), same reason guard-blast-radius.sh has no bash
+# fallback: the path-matching logic lives in src/guard/blast_paths.rs and
+# a bash reimplementation could drift out of sync with it.
+echo ""
+echo "--- entry-point-verify-reminder.sh ---"
+ENTRY_RT_BIN="$REPO_ROOT/target/release/yana-rt"
+[[ -x "$ENTRY_RT_BIN" ]] || ENTRY_RT_BIN="$REPO_ROOT/target/debug/yana-rt"
+
+if [[ -x "$ENTRY_RT_BIN" ]]; then
+    ENTRY_RT_DIR="$(dirname "$ENTRY_RT_BIN")"
+
+    run_entry() {
+        local test_name=$1 tool=$2 path_json=$3 expect=$4
+        local extra_path=${5:-""}
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        echo -n "Testing entry-point-verify-reminder.sh [$test_name]... "
+        local out
+        out=$(jq -n --arg tool "$tool" --argjson input "$path_json" '{tool_name:$tool, tool_input:$input}' \
+            | PATH="${extra_path:+$extra_path:}$ENTRY_RT_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+        local decision="allow"
+        if [[ -n "$out" ]] && echo "$out" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+            decision="warn"
+        fi
+        if [[ "$decision" == "$expect" ]]; then
+            echo "PASS"
+        else
+            echo "FAIL (expected $expect, got $decision)"
+            [[ -n "$out" ]] && echo "Output: $out"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    }
+
+    run_entry "Warn on Write to registered entry point" "Write" \
+        '{"path":"scripts/yana-rt-wrapper.js"}' "warn"
+    run_entry "Warn on MultiEdit (file_path field) to registered entry point" "MultiEdit" \
+        '{"file_path":"scripts/yana-rt-wrapper.js"}' "warn"
+    run_entry "Allow Write to unrelated file" "Write" \
+        '{"path":"src/main.rs"}' "allow"
+    run_entry "Allow on Read tool (not a write tool)" "Read" \
+        '{"path":"scripts/yana-rt-wrapper.js"}' "allow"
+
+    # Bypass case — env var wraps the whole hook invocation, not the payload.
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing entry-point-verify-reminder.sh [Bypass suppresses reminder]... "
+    BYPASS_OUT=$(echo '{"tool_name":"Write","tool_input":{"path":"scripts/yana-rt-wrapper.js"}}' \
+        | env YANA_ENTRY_POINT_BYPASS=1 PATH="$ENTRY_RT_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+    if [[ -z "$BYPASS_OUT" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected no output, got: $BYPASS_OUT)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+
+    # Stale-binary fallback — a yana-rt on PATH that predates this
+    # subcommand must not make the wrapper itself fail. Simulated with a
+    # fake yana-rt that mimics clap's real "unrecognized subcommand" exit
+    # (non-zero, no stdout) for this one subcommand.
+    STALE_BIN_DIR="$(mktemp -d)"
+    register_temp "$STALE_BIN_DIR"
+    cat > "$STALE_BIN_DIR/yana-rt" <<'EOF'
+#!/usr/bin/env bash
+echo "error: unrecognized subcommand 'entry-point-check'" >&2
+exit 2
+EOF
+    chmod +x "$STALE_BIN_DIR/yana-rt"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing entry-point-verify-reminder.sh [Stale yana-rt on PATH doesn't fail the hook]... "
+    STALE_OUT=$(echo '{"tool_name":"Write","tool_input":{"path":"scripts/yana-rt-wrapper.js"}}' \
+        | PATH="$STALE_BIN_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+    STALE_EXIT=$?
+    if [[ "$STALE_EXIT" -eq 0 && -z "$STALE_OUT" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected exit 0 with no stdout, got exit $STALE_EXIT, output: $STALE_OUT)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    rm -rf "$STALE_BIN_DIR"
+else
+    echo "SKIP: yana-rt binary not built — run 'cargo build' (or --release) to test entry-point-verify-reminder.sh"
+    SKIPPED_SECTIONS+=("entry-point-verify-reminder.sh (6 cases) — yana-rt binary not built")
+fi
 
 echo ""
 echo "=== Summary ==="

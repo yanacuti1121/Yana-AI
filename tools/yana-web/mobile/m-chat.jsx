@@ -367,7 +367,12 @@ function MChat() {
   }
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
-  const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
+  // Prefer the live-fetched first model over the static default when no
+  // explicit user pick exists yet — mirrors the same fix in desktop/chat.jsx
+  // (the static M_CHAT_MODELS default, e.g. "llama3.2" for Ollama, may not
+  // actually be installed, causing a 404 even though the picker showed the
+  // real installed models).
+  const _activeModel = overrideModel || (liveModels[_activeProvider] && liveModels[_activeProvider][0]) || M_CHAT_MODELS[_activeProvider] || _activeProvider;
   const isVisionModel = (_m) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(_activeProvider);
 
   // Fetch real model list for live providers (groq, openrouter, etc.)
@@ -522,7 +527,9 @@ function MChat() {
 
     let { provider, apiKey } = mGetProviderConfig(overrideProvider);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
-    const model = overrideModel || M_CHAT_MODELS[provider] || "";
+    // Same fallback fix as _activeModel above: prefer the live-fetched model
+    // list over the static default, which may not actually be installed.
+    const model = overrideModel || (liveModels[provider] && liveModels[provider][0]) || M_CHAT_MODELS[provider] || "";
 
     try {
       const capturedVisionImage = visionImage;
