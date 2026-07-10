@@ -1,5 +1,6 @@
 ---
 name: creative-writer
+description: Creative writing and content specialist for copywriting, blog posts, and marketing content. Vietnamese-first unless the user asks for English.
 role: Creative Writing & Content Specialist
 tags: [creative, writing, content, copywriting, blog, marketing, vietnamese]
 ---

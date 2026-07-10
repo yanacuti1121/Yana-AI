@@ -1,6 +1,6 @@
 ---
 description: Test file standards — applied to all spec and test files
-globs: ["**/*.spec.ts", "**/*.spec.tsx", "**/*.test.ts", "**/*.test.tsx", "**/tests/**"]
+paths: ["**/*.spec.ts", "**/*.spec.tsx", "**/*.test.ts", "**/*.test.tsx", "**/tests/**"]
 ---
 
 # Test Standards
