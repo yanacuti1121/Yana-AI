@@ -525,7 +525,7 @@ button:not([disabled]) {
 /* ============ responsive: sidebar becomes a drawer ≤ 860px ============ */
 .yana-app { padding: calc(16px * var(--sp)); }
 .yana-sidebar { width: 218px; flex: none; position: relative; z-index: 2; }
-.yana-chat-aside { width: 240px; flex: none; }
+.yana-chat-aside { width: 240px; flex: none; display: flex; flex-direction: column; gap: var(--gap); overflow-y: auto; }
 .yana-menu-btn, .yana-backdrop { display: none; }
 
 @media (max-width: 860px) {

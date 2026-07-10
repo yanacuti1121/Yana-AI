@@ -357,6 +357,66 @@ function CopyBtn({ text }) {
   );
 }
 
+// Read-aloud button — POSTs to the local VieNeu-TTS sidecar via /api/tts and
+// plays the returned WAV. States: idle (🔊) / loading (spinner) / playing
+// (⏹, click to stop) / error (⚠, reverts to idle after a beat). The sidecar
+// is an opt-in local process (tools/yana-web/tts-sidecar/), so "not running"
+// is an expected, common state, not a bug — the error tooltip says so.
+function SpeakBtn({ text }) {
+  const [state, setState] = React.useState("idle"); // idle | loading | playing | error
+  const audioRef = React.useRef(null);
+
+  React.useEffect(() => () => { audioRef.current?.pause(); }, []);
+
+  function stop() {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setState("idle");
+  }
+
+  async function speak() {
+    if (state === "playing") { stop(); return; }
+    if (state === "loading") return;
+    setState("loading");
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error(await res.text().catch(() => "TTS failed"));
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { URL.revokeObjectURL(url); setState("idle"); };
+      audio.onerror = () => { URL.revokeObjectURL(url); setState("error"); setTimeout(() => setState("idle"), 2200); };
+      await audio.play();
+      setState("playing");
+    } catch (_) {
+      setState("error");
+      setTimeout(() => setState("idle"), 2200);
+    }
+  }
+
+  const glyph = state === "loading" ? "…" : state === "playing" ? "⏹" : state === "error" ? "⚠" : "🔊";
+  const title = state === "error"
+    ? L("TTS sidecar not running", "Sidecar TTS chưa chạy", "TTS 사이드카 미실행", "TTS 边车未运行")
+    : L("Read aloud", "Đọc", "읽어주기", "朗读");
+
+  return (
+    <button onClick={speak} className="copy-btn" title={title} disabled={state === "loading"} style={{
+      width: 24, height: 24, borderRadius: 6,
+      border: "1px solid var(--border)", background: "rgba(var(--surface-rgb,255,255,255),.7)",
+      cursor: state === "loading" ? "wait" : "pointer", fontSize: 11, display: "grid", placeItems: "center",
+      color: state === "playing" ? "var(--primary)" : state === "error" ? "#d14343" : "var(--ink-3)",
+      flexShrink: 0, opacity: state === "loading" ? .6 : 1,
+    }}>
+      {glyph}
+    </button>
+  );
+}
+
 function Message({ msg, isLastYana, onRegenerate }) {
   const devMode = localStorage.getItem("yana.dev.mode") === "true";
   if (msg.who === "user") {
@@ -432,6 +492,7 @@ function Message({ msg, isLastYana, onRegenerate }) {
         {/* copy + regenerate row */}
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
           {displayText && <CopyBtn text={displayText} />}
+          {displayText && <SpeakBtn text={displayText} />}
           {isLastYana && onRegenerate && (
             <button onClick={onRegenerate} className="copy-btn" title={L("Regenerate", "Thử lại", "다시 생성", "重新生成")} style={{
               height: 24, padding: "0 8px", borderRadius: 6,
@@ -591,8 +652,13 @@ function ContextPanel() {
   const primary  = keyed[0];
   const fallback = keyed[1];
 
+  // display/flex-direction/gap/overflow live in themes.css's .yana-chat-aside
+  // rule, not inline — an inline style here would beat the ≤860px media
+  // query's `display: none`, since inline styles always win over external
+  // stylesheet rules regardless of specificity (this was the actual bug:
+  // the panel stayed visible and overlapped the chat at narrow widths).
   return (
-    <aside className="yana-chat-aside" style={{ display: "flex", flexDirection: "column", gap: "var(--gap)", overflowY: "auto" }}>
+    <aside className="yana-chat-aside">
       <Card title={L("Routing", "Định tuyến", "라우팅", "路由")}>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {[
