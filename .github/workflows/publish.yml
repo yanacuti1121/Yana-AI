@@ -140,6 +140,13 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
+      # No NODE_AUTH_TOKEN here on purpose: actions/setup-node's
+      # registry-url wrote `_authToken=${NODE_AUTH_TOKEN}` into .npmrc,
+      # and npm prefers a configured (even if broken/revoked) authToken
+      # over attempting the OIDC Trusted Publisher exchange — so as long
+      # as a token was present, npm never actually tried OIDC, no matter
+      # how the trusted publisher was configured on npmjs.com. Leaving
+      # NODE_AUTH_TOKEN unset forces npm to fall through to OIDC.
       - name: Publish to npm
         run: |
           if npm view "yana-ai@$VERSION" &>/dev/null 2>&1; then
@@ -147,8 +154,6 @@ jobs:
           else
             npm publish --access public
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-crates:
     name: crates.io — yana-rt
