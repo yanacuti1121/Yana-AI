@@ -1,3 +1,8 @@
+---
+description: Typography rules — shared paths with color-rules.md, anti-ai-slop-design-law.md, and frontend-production-checklist.md so companion frontend rules always load together
+paths: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss", "**/*.html"]
+---
+
 # Yana AI — Typography Rules
 # Source: github/primer/primitives (tokens/functional/typography) + modern-font-stacks
 
