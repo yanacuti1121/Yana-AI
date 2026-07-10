@@ -104,6 +104,16 @@ jobs:
     environment:
       name: npm
       url: https://www.npmjs.com/package/yana-ai
+    # id-token: write is required for npm's OIDC Trusted Publisher flow
+    # (npmjs.com package Settings > Trusted Publisher, configured
+    # 2026-07-10) — without it GitHub Actions never issues the OIDC token
+    # npm needs, and publish falls back to NODE_AUTH_TOKEN below, which
+    # started getting rejected with a 403 registry-side even for a
+    # verified read-write collaborator using a fresh token (confirmed by
+    # reproducing the same 403 from a real `npm login` session locally).
+    permissions:
+      contents: read
+      id-token: write
     env:
       RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
     steps:
@@ -113,6 +123,11 @@ jobs:
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
+
+      # OIDC trusted publishing needs npm >= 11.5.1; Node 20's bundled npm
+      # predates that, so upgrade in-place before the publish step.
+      - name: Upgrade npm for OIDC trusted publishing support
+        run: npm install -g npm@latest
 
       - name: Set version from tag
         run: |
