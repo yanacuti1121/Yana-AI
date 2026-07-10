@@ -79,8 +79,12 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width:    1280,
     height:   800,
-    minWidth: 900,
-    minHeight: 600,
+    // Below the responsive drawer breakpoint (themes.css: 860px), so the
+    // window can actually reach the width needed to trigger the mobile
+    // sidebar-collapse layout — minWidth: 900 previously made that
+    // breakpoint unreachable no matter how far the window was shrunk.
+    minWidth: 420,
+    minHeight: 500,
     title:    'Yana AI',
     show:     false,
     webPreferences: {

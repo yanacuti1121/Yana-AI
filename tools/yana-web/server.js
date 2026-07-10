@@ -818,6 +818,80 @@ async function handleOllamaDelete(req, res) {
   upReq.end();
 }
 
+// ── VieNeu-TTS sidecar proxy ────────────────────────────────────────────────
+// Local Python/ONNX TTS sidecar (tools/yana-web/tts-sidecar/), same "hit a
+// local port, proxy the bytes" pattern already used for Ollama. Not started
+// automatically — a per-message "read aloud" button, not an always-on voice
+// mode, so a cold sidecar is a normal state, not an error.
+const TTS_SIDECAR_PORT = Number(process.env.VIENEU_SIDECAR_PORT) || 7861;
+
+// ── GET /api/tts/status — is the sidecar up? ──────────────────────────────────
+function handleTtsStatus(_req, res) {
+  const req2 = http.get(
+    { hostname: '127.0.0.1', port: TTS_SIDECAR_PORT, path: '/health', timeout: 800 },
+    upRes => {
+      let raw = '';
+      upRes.on('data', c => { raw += c; });
+      upRes.on('end', () => {
+        try {
+          const data = JSON.parse(raw);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ running: true, voices: data.voices || 0 }));
+        } catch (_) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ running: false, voices: 0 }));
+        }
+      });
+    },
+  );
+  req2.on('error',   () => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ running: false, voices: 0 })); });
+  req2.on('timeout', () => { req2.destroy(); res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ running: false, voices: 0 })); });
+}
+
+// ── POST /api/tts — synthesize speech, proxy the WAV bytes back ──────────────
+async function handleTts(req, res) {
+  let body;
+  try { body = await readBody(req, 8192); } catch (_) { jsonError(res, 400, 'Bad request'); return; }
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+
+  const text = typeof parsed.text === 'string' ? parsed.text.trim() : '';
+  if (!text) { jsonError(res, 400, 'Missing text'); return; }
+  if (text.length > 2000) { jsonError(res, 400, 'Text too long (max 2000 chars)'); return; }
+
+  const ttsBody = JSON.stringify({
+    text,
+    voice: typeof parsed.voice === 'string' && parsed.voice.trim() ? parsed.voice.trim() : undefined,
+    style: typeof parsed.style === 'string' && parsed.style.trim() ? parsed.style.trim() : undefined,
+  });
+
+  const upReq = http.request(
+    {
+      hostname: '127.0.0.1', port: TTS_SIDECAR_PORT, path: '/tts', method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(ttsBody) },
+      timeout: 30000,
+    },
+    upRes => {
+      if (upRes.statusCode !== 200) {
+        let raw = '';
+        upRes.on('data', c => { raw += c; });
+        upRes.on('end', () => {
+          jsonError(res, upRes.statusCode || 502, `TTS sidecar error: ${raw.slice(0, 300)}`);
+        });
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'audio/wav' });
+      upRes.pipe(res);
+    },
+  );
+  upReq.on('error', () => {
+    jsonError(res, 503, 'TTS sidecar not running — start it with tools/yana-web/tts-sidecar/run.sh');
+  });
+  upReq.on('timeout', () => { upReq.destroy(); jsonError(res, 504, 'TTS synthesis timed out'); });
+  upReq.write(ttsBody);
+  upReq.end();
+}
+
 // ── POST /api/models — fetch live model list from provider ────────────────────
 async function handleApiModels(req, res) {
   let body;
@@ -1912,6 +1986,8 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/ollama/models')  { handleOllamaModels(req, res);    return; }
   if (method === 'POST' && pathname === '/api/ollama/pull')    { await handleOllamaPull(req, res); return; }
   if (method === 'DELETE' && pathname === '/api/ollama/models') { await handleOllamaDelete(req, res); return; }
+  if (method === 'GET'  && pathname === '/api/tts/status')     { handleTtsStatus(req, res);       return; }
+  if (method === 'POST' && pathname === '/api/tts')             { await handleTts(req, res);       return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
