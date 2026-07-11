@@ -39,6 +39,10 @@
           },
           {
             "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/freeze-scope.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/infra-review-reminder.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]

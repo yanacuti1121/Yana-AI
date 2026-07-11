@@ -198,7 +198,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 168,
+      "count": 170,
       "actual_present": [
         "core/commands/accessibility-audit.md",
         "core/commands/add-authentication-system.md",
@@ -257,6 +257,7 @@
         "core/commands/fact-check.md",
         "core/commands/fix-issue.md",
         "core/commands/fix.md",
+        "core/commands/freeze.md",
         "core/commands/full-review.md",
         "core/commands/full-stack-feature.md",
         "core/commands/generate-api-documentation.md",
@@ -350,6 +351,7 @@
         "core/commands/test-harness.md",
         "core/commands/troubleshooting-guide.md",
         "core/commands/ultra-think.md",
+        "core/commands/unfreeze.md",
         "core/commands/v10-audit.md",
         "core/commands/v10-fix.md",
         "core/commands/verify-pack.md",
@@ -364,7 +366,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 57,
+      "count": 58,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -392,6 +394,7 @@
         "core/hooks/deploy-gate.sh",
         "core/hooks/entry-point-verify-reminder.sh",
         "core/hooks/format-on-write.sh",
+        "core/hooks/freeze-scope.sh",
         "core/hooks/gitnexus-hook.js",
         "core/hooks/guard-blast-radius.sh",
         "core/hooks/guard-destructive.sh",
@@ -427,7 +430,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 107,
+      "count": 108,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -460,6 +463,7 @@
         "core/scripts/explain_rule.py",
         "core/scripts/export_findings.py",
         "core/scripts/feedback-loop.sh",
+        "core/scripts/freeze-scope.sh",
         "core/scripts/gen_guards_index.py",
         "core/scripts/gen_skills_page.py",
         "core/scripts/generate-agents-data.py",
@@ -2703,8 +2707,8 @@
   "skills_count": 1989,
   "skills_stubs_archived": 88,
   "agents_count": 106,
-  "hooks_count": 55,
-  "scripts_count": 104,
-  "commands_count": 168,
+  "hooks_count": 58,
+  "scripts_count": 105,
+  "commands_count": 170,
   "rules_count": 70
 }

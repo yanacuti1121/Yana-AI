@@ -1508,6 +1508,79 @@ else
 fi
 
 echo ""
+echo "--- freeze-scope.sh ---"
+
+test_freeze_scope() {
+    local test_name=$1 scope=$2 input_json=$3 expected_decision=$4 extra_env_var=${5:-""} extra_env_val=${6:-""}
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing freeze-scope.sh [$test_name]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    if [[ -n "$scope" ]]; then
+        mkdir -p "$tmp_project/.claude/state"
+        printf '%s' "$scope" > "$tmp_project/.claude/state/FREEZE_SCOPE"
+    fi
+
+    local output exit_code
+    if [[ -n "$extra_env_var" ]]; then
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env "$extra_env_var"="$extra_env_val" \
+            bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null)
+    else
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null)
+    fi
+    exit_code=$?
+    rm -rf "$tmp_project"
+
+    local actual_decision="allow"
+    [[ $exit_code -eq 2 ]] && actual_decision="deny"
+
+    if [[ "$actual_decision" == "$expected_decision" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected $expected_decision, got $actual_decision — exit $exit_code, output: $output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_freeze_scope "Allow write inside frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/foo.md"}}' "allow"
+
+test_freeze_scope "Block write outside frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "deny"
+
+test_freeze_scope "Block Edit outside frozen scope" "core/rules" \
+    '{"tool_name":"Edit","tool_input":{"file_path":"core/hooks/guard-destructive.sh"}}' "deny"
+
+test_freeze_scope "Block MultiEdit (file_path field) outside frozen scope" "core/rules" \
+    '{"tool_name":"MultiEdit","tool_input":{"file_path":"src/main.rs"}}' "deny"
+
+test_freeze_scope "Allow when no freeze is set" "" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "allow"
+
+test_freeze_scope "Bash is not path-checked even when frozen (by design — see hook comment)" "core/rules" \
+    '{"tool_name":"Bash","tool_input":{"command":"rm src/main.rs"}}' "allow"
+
+test_freeze_scope "Bypass env var allows a write outside scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "allow" \
+    "YANA_FREEZE_SCOPE_BYPASS" "1"
+
+test_freeze_scope "Sibling directory with shared prefix is not treated as in-scope" "core/rule" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/foo.md"}}' "deny"
+
+test_freeze_scope "Traversal inside target path escapes the frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/../hooks/malicious.sh"}}' "deny"
+
+test_freeze_scope "Traversal that walks out of the project root entirely" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/../../../../etc/cron.d/evil"}}' "deny"
+
+test_freeze_scope "Absolute path outside the project root entirely" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"/etc/passwd"}}' "deny"
+
+echo ""
 echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"
 echo "Passed: $((TOTAL_COUNT - FAIL_COUNT))"

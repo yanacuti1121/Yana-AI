@@ -5,7 +5,7 @@
   "version": "0.43.2",
   "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
   "author": {
-    "name": "V\u0169 V\u0103n T\u00e2m",
+    "name": "Vũ Văn Tâm",
     "email": "phamlongh230@gmail.com",
     "url": "https://github.com/yanacuti1121"
   },
@@ -30,7 +30,7 @@
   ],
   "metadata": {
     "openclaw": {
-      "emoji": "\ud83d\udee1\ufe0f",
+      "emoji": "🛡️",
       "requires": {
         "env": [],
         "optionalEnv": [],
@@ -67,10 +67,10 @@
     "post_install": "bash .claude/tests/hooks/run-hook-tests.sh"
   },
   "contents": {
-    "hooks": 57,
-    "commands": 168,
+    "hooks": 58,
+    "commands": 170,
     "agents": 101,
-    "scripts": 107,
+    "scripts": 108,
     "skills": 2014,
     "rules": 71,
     "checks": 826,

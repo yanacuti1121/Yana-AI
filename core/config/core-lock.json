@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-11T07:37:40+00:00",
-  "count": 248,
+  "generated": "2026-07-11T08:51:34+00:00",
+  "count": 250,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -36,6 +36,7 @@
     "core/hooks/deploy-gate.sh": "2eebd8435af917bcfeb0048bd7e9679747b646f10abb78fc6ad1b5bfddad24e4",
     "core/hooks/entry-point-verify-reminder.sh": "7cd6d27564e3094d6a97998aead139cd9499c869e7f87bb7c0b26840e9addd9e",
     "core/hooks/format-on-write.sh": "a93eebe1486662dcc436bcb878f8d8e6208bc7b5ab12aadd27ec584352428dff",
+    "core/hooks/freeze-scope.sh": "c430ff378388979ab8e9c3f2f6540cf704963f6633a5549cf9fd5ff2d377ef61",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
     "core/hooks/guard-destructive.sh": "6a8d317be4329c92868feb4142565d928eb324a2741e650922ce6b7306eded2b",
@@ -169,6 +170,7 @@
     "core/scripts/explain_rule.py": "acd5f289108ac6842696ba9fe7e1aa61208589720f9c318b85493f1b37ee2db6",
     "core/scripts/export_findings.py": "960b393999c82c1cdc320cbc511162db2ba66f0e12d9b5e6a29a6738d1e8ad4c",
     "core/scripts/feedback-loop.sh": "0d2d609054e67b8a64e6a8059f6c869a67adf552ce56a6114a3dfde977f1d23d",
+    "core/scripts/freeze-scope.sh": "7a1ed2032b690275e1a8a76e3fb1046cffe4d4b526b3c7c422d955a7ff4799cf",
     "core/scripts/gen_guards_index.py": "f985e646af21ed27365225d883322ad88aae99ba6823ed4265ae5842d25f5904",
     "core/scripts/gen_skills_page.py": "b80f9461200b6875af08928970695b3fb5597e4b841990b97bd66115267134d4",
     "core/scripts/generate-agents-data.py": "6614fe5aeaa3bf6e51ff9ae1be610db66d5a1af0e7b23a59099b4553a3cff2b3",
