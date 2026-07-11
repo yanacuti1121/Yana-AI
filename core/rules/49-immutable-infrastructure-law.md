@@ -21,7 +21,7 @@ All write operations to the monorepo root surface MUST be:
 
 ## Prohibited Actions (Agent Runtime)
 
-- `rm`, `mv`, `cp` targeting `core/`, `gates/`, `rules/`, `hooks/`
+- `rm`, `mv`, `cp` targeting `core/`, `gates/`, `rules/`, `hooks/`, `src/guard/`
 - `git reset --hard`, `git clean -f` without explicit user authorization token
 - Any `eval` or raw `exec()` of strings received from external input
 - Writing to `MANIFEST.json`, `plugin.json`, `marketplace.json` without going through `validate-manifest.sh --fix`

@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-10T13:08:45+00:00",
-  "count": 242,
+  "generated": "2026-07-11T02:26:19+00:00",
+  "count": 248,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -73,12 +73,12 @@
     "core/rules/04-sandbox-isolation-law.md": "63192898cb2c2af8c292f1fc112c48c88f889555587a87a21964e2dda55ab81c",
     "core/rules/43-prompt-jailbreak-advanced.md": "86d5f4b3aebd7978736684ce060dc0d709c93cdc6d36cda63aa942614aa4de12",
     "core/rules/44-supply-chain-vetting.md": "489ba7184067a2dfb9b3c08d7811290710fe8b21f5e0cc69435d1a34ac09fd89",
-    "core/rules/49-immutable-infrastructure-law.md": "969dabf895de2eed65392b4a946babc1fe0cf3e77f55f3beb9d611aaaf84609e",
+    "core/rules/49-immutable-infrastructure-law.md": "07d41cdf88bd17616e4965b9f2dc2319f703fa1001233221a20f85427fb625d2",
     "core/rules/50-financial-deadman-switch-law.md": "63cc557718519f30eb3e0044917a9bd591598f2c5c10646c4fb4a6a0dc3e13ce",
     "core/rules/51-sovereign-runtime-law.md": "0b4a3262b2dfece0802eaac7f731a4f73a70be83ab14cbbce1103006cf70d3ea",
     "core/rules/52-secrets-vault-law.md": "f8b89e64f1a875621f1fe13bb25bf10a984ee73b2718a684b3602f49fe63f31e",
     "core/rules/53-network-egress-whitelist-law.md": "9bed0818e80f617f7c9b2f12c58ce6b220a10be712c0ff0e887b0d1bdcdacaca",
-    "core/rules/54-bft-consensus-law.md": "ff7146cdecf77bb7cf9ac270bc8401a7ba20549b8783fb9bfe0bbc954fd6c6a6",
+    "core/rules/54-bft-consensus-law.md": "61bc2e54789c7e6855e249e9e35f56b785249e6593851592821783a561016d90",
     "core/rules/55-observability-telemetry-law.md": "f2f68ea0e7e3ff92857e477be4daa732540fbd2b880a9732f64921597971ceba",
     "core/rules/56-circuit-breaker-law.md": "9b86222400b5e2e2b4bb239de325f857b7e1d6e06ff6cf0d6295d7a42fa7afed",
     "core/rules/57-canary-deployment-law.md": "9a7210ae122ef3a10b08db267c88493cf740efa8cad6a05f7820fcf07f917d2a",
@@ -230,7 +230,7 @@
     "core/scripts/task-state.sh": "e12d2ac808d8a526bbd566c1b6eadbc340987a7e62971b52e12ca22fe2ad3810",
     "core/scripts/template_list.py": "41fe7561ec6c29ae576d6c2055a8b24a870800ab4014bc87d449e3378dfee56c",
     "core/scripts/tool-proxy.sh": "6481e03a78bb4de9668f56329235d8039773c80fa4a9da348d7b7dc09039c406",
-    "core/scripts/update-core-lock.sh": "529b005142c8eb2535e34b09be7902589ae65fb482313f7232af1502f1bde17e",
+    "core/scripts/update-core-lock.sh": "f75e5d4451b3e85879f53fd7422560fefd92d2f82af46de923f6cd4e9457bff8",
     "core/scripts/update-skills-lock.sh": "173696842bf8ae1a1c6173a6b2cf2a9e3bc1481b10c58d1f51ed0c2772418c42",
     "core/scripts/upgrade.py": "1bd3fd08ded5f870c9e7464b3f865fcfa0b4f93c7802af0584198ce621ec0ef2",
     "core/scripts/validate-counts.sh": "e7dc2443be22a1b0ecac9f292f7830b682630fa9482b2f8c69383922ac62dcec",
@@ -239,11 +239,17 @@
     "core/scripts/verify-audit-chain.sh": "ddc4c0e1abf0440fc2613cdffc098436bbc4b8e01d53405186818a818c36fb12",
     "core/scripts/verify-claude-pack.js": "4f4c1d97b29d229bc8deeedc9114b7fe051f88b391ab63e439db8da5966b86a6",
     "core/scripts/verify-claude-pack.sh": "b12f8951285db4a253cd788c8bab71a46b5e43634ce8a4f3e79436e15156f881",
-    "core/scripts/verify-core-lock.sh": "caedbd1d3c7e182b0d99b7ca4d1a2b6e6c643d506515b9d06b1b775bdaa15aba",
+    "core/scripts/verify-core-lock.sh": "99b79c0421daff0ca969f9b9e7dcbdfbfabc15b343bee4f7d4c2b458cbd059df",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
     "core/scripts/verify-skills-lock.sh": "ba0e7825913d32a22657b39505ae3018ddafb38934d9a168b14fa3b5091b9999",
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",
     "core/scripts/view-audit.sh": "c16b40b435e48ac782f186527c98670e11ceffff86383bbae4ddc22cf76d9f82",
-    "core/scripts/watch.py": "01e162fea2397ce2414f3e5075d5e33a402178a43341243d31484a125d48b019"
+    "core/scripts/watch.py": "01e162fea2397ce2414f3e5075d5e33a402178a43341243d31484a125d48b019",
+    "src/guard/blast_paths.rs": "7dc8cedc765e30f9905c23d6b8f8d69f8df700f2a85ffa964a2db26c3c248e93",
+    "src/guard/blast_radius.rs": "45bca10f899f5cdd8052c0aee58bea5b2e2bfddd9ffb63ff8e77c4c3b5a1e56e",
+    "src/guard/entry_point_check.rs": "6e3748e5591c719f7eec06b012131c5e3626e5e4d405425a90be1df07159ff7e",
+    "src/guard/mod.rs": "fe42b3bf430c7089abeff7528ddb64b80bff671161c0fc2b84115d2876ae8161",
+    "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
+    "src/guard/token_budget.rs": "b7544e9e526737cc2650f70d2be7790aa05e2d1012db5668e993e697637c9dc8"
   }
 }
