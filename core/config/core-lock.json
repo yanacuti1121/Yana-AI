@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-11T02:42:11+00:00",
+  "generated": "2026-07-11T07:37:40+00:00",
   "count": 248,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -226,7 +226,7 @@
     "core/scripts/strix-scan.sh": "227b49dc2c6524dbca8dd610f656bcca97ba2d0c3925e37dd44dc9e6667ce3e4",
     "core/scripts/swarm-orchestrator.sh": "34f826b1f1cc0e5edbb3063d5a8de71ddc0c72a85bfab3c181679e90b75a13bf",
     "core/scripts/sweep-expired-facts.sh": "184633277ca19d9eb0cb0e45d5a918c4ec6573c75551831890113987aa27399f",
-    "core/scripts/switch-engine.sh": "ed5b2093bf5543b3c2452d74358f75b46c8880b688b2f50ad9d727d9bf997cf0",
+    "core/scripts/switch-engine.sh": "c624cab3a0509edef85bb569c94b61325dd156400a977ef81d86eef034468e77",
     "core/scripts/task-state.sh": "e12d2ac808d8a526bbd566c1b6eadbc340987a7e62971b52e12ca22fe2ad3810",
     "core/scripts/template_list.py": "41fe7561ec6c29ae576d6c2055a8b24a870800ab4014bc87d449e3378dfee56c",
     "core/scripts/tool-proxy.sh": "6481e03a78bb4de9668f56329235d8039773c80fa4a9da348d7b7dc09039c406",
