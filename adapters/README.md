@@ -11,6 +11,7 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 | **Gemini Code** | `adapters/gemini-code.md` | Copy to `GEMINI.md` at project root |
 | **DeepSeek V3/R1** | `adapters/deepseek.md` | `aider --model deepseek/deepseek-chat --system-prompt adapters/deepseek.md` |
 | **Qwen3 / Qwen2.5-Coder** | `adapters/qwen.md` | `aider --model openrouter/qwen/qwen3-235b-a22b --system-prompt adapters/qwen.md` |
+| **OpenAI Codex CLI** | `adapters/codex.md` | Copy to `AGENTS.md` at project root (only where none exists yet — see note below) |
 | **Windsurf** | `adapters/aider.md` (compatible format) | Add to Windsurf system prompt settings |
 
 ---
@@ -26,6 +27,7 @@ bash core/scripts/switch-engine.sh cursor     # activates .cursorrules
 bash core/scripts/switch-engine.sh copilot    # activates .github/copilot-instructions.md
 bash core/scripts/switch-engine.sh aider      # prints aider CLI command
 bash core/scripts/switch-engine.sh gemini     # copies adapter to GEMINI.md
+bash core/scripts/switch-engine.sh codex      # copies adapter to AGENTS.md (only if none exists yet)
 bash core/scripts/switch-engine.sh claude     # default — no adapter needed
 ```
 
@@ -48,3 +50,4 @@ bash core/scripts/switch-engine.sh claude     # default — no adapter needed
 - Claude Code: full enforcement via hooks (runtime blocking). Other engines: **advisory only** — rules are in the prompt, not enforced at shell level.
 - For hard runtime blocking on non-Claude engines, wrap commands with `bash core/scripts/safe-run.sh`.
 - Cursor `.mdc` rules require Cursor ≥ 0.40. Older versions use `.cursorrules` only.
+- `AGENTS.md` is a shared cross-tool convention file (several agentic CLIs beyond Codex read it), not an exclusively-Codex target — unlike `GEMINI.md`/`.windsurf/`/`.kiro/`/`.agent/`, a project may already have one for a broader purpose. `switch-engine.sh codex` will not overwrite an existing `AGENTS.md`; it only generates one where none exists yet. If one already exists, merge the relevant sections of `adapters/codex.md` in by hand.
