@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-11T02:26:19+00:00",
+  "generated": "2026-07-11T02:42:11+00:00",
   "count": 248,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -95,7 +95,7 @@
     "core/rules/68-principal-confidentiality-law.md": "257db137814d169dc012351b1f0eaa872ea69d74325fd830ff0aede8d27dfe82",
     "core/rules/69-cognitive-reliability-law.md": "a2f5d8abe02fa8f50b20e5b4c9719df4e5bdc18545335ba747945030064855cc",
     "core/rules/70-context-faithfulness-law.md": "7af676ecb85e916add383084f73ff5e36fbc4fff4ad7eda281280fbdc8bdb103",
-    "core/rules/71-entry-point-verify-law.md": "6fc88aeb3b1dd3093506afb9ea795506b642caab240315f436a2b11b86e16350",
+    "core/rules/71-entry-point-verify-law.md": "aebef7cfa4c8037418d6352d9d3899b2642d517fce46fe2bfc03141462aed1ff",
     "core/rules/agent-code-constraints.md": "53268ac8cdb7063ab9ecf1ae3a148f2091b8d1cfe6fcea93222a6880ab05a491",
     "core/rules/agent-communication-policy.md": "1c0b13ff5644f61ee9ba80a4a1275ef7f2c58aa5511a7f60abfe230cf5fb71ae",
     "core/rules/agent-excessive-agency-law.md": "4a0bb292c0729068cbb9cae509d8548f3643940d7476046d5263377157ff20cd",
@@ -245,7 +245,7 @@
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",
     "core/scripts/view-audit.sh": "c16b40b435e48ac782f186527c98670e11ceffff86383bbae4ddc22cf76d9f82",
     "core/scripts/watch.py": "01e162fea2397ce2414f3e5075d5e33a402178a43341243d31484a125d48b019",
-    "src/guard/blast_paths.rs": "7dc8cedc765e30f9905c23d6b8f8d69f8df700f2a85ffa964a2db26c3c248e93",
+    "src/guard/blast_paths.rs": "7ad796d67c9e1bf54d65a6efed205a68604f6b61ec0652e046dba298154d67fe",
     "src/guard/blast_radius.rs": "45bca10f899f5cdd8052c0aee58bea5b2e2bfddd9ffb63ff8e77c4c3b5a1e56e",
     "src/guard/entry_point_check.rs": "6e3748e5591c719f7eec06b012131c5e3626e5e4d405425a90be1df07159ff7e",
     "src/guard/mod.rs": "fe42b3bf430c7089abeff7528ddb64b80bff671161c0fc2b84115d2876ae8161",

@@ -100,7 +100,14 @@ fn matches_prefix(candidate: &str, prefix: &str) -> bool {
 /// require an independent verify-agent exec pass, not just a diff review.
 /// Extend via YANA_ENTRY_POINT_PATHS (colon-separated) without recompiling.
 pub fn entry_point_prefixes() -> Vec<String> {
-    let mut v = vec!["scripts/yana-rt-wrapper.js".to_string()];
+    let mut v = vec![
+        "scripts/yana-rt-wrapper.js".to_string(),
+        // Same npm-bin-linked, shebang-at-byte-0 fragility as
+        // yana-rt-wrapper.js's two incidents (71-entry-point-verify-law.md)
+        // — bin/yana is the primary `yana-ai` CLI entry point itself.
+        "bin/yana".to_string(),
+        "scripts/npm-install.js".to_string(),
+    ];
     if let Ok(extra) = std::env::var("YANA_ENTRY_POINT_PATHS") {
         v.extend(extra.split(':').filter(|s| !s.is_empty()).map(String::from));
     }
@@ -218,6 +225,16 @@ mod tests {
     #[test]
     fn sibling_script_is_not_hit() {
         assert!(entry_point_hit("scripts/other-wrapper.js", &entry_points()).is_none());
+    }
+
+    #[test]
+    fn bin_yana_is_registered_entry_point() {
+        assert!(entry_point_hit("bin/yana", &entry_point_prefixes()).is_some());
+    }
+
+    #[test]
+    fn npm_install_js_is_registered_entry_point() {
+        assert!(entry_point_hit("scripts/npm-install.js", &entry_point_prefixes()).is_some());
     }
 
     #[test]

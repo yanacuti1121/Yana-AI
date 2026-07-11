@@ -1,10 +1,13 @@
 # 71-entry-point-verify-law
 
-**Status:** DRAFT — written 2026-07-09, NOT yet reviewed per [[54-bft-consensus-law]]
-(this file itself falls under that rule's "Rule changes" category: requires
-`security-team/security-auditor.md` + `architecture-auditor.md` dispatch
-before commit. That dispatch has not happened yet — flagging honestly rather
-than claiming this is approved.)
+**Status:** REVIEWED — written 2026-07-09, reviewed 2026-07-11 per
+[[54-bft-consensus-law]]'s "Rule changes" category
+(`security-team/security-auditor.md` + `architecture-auditor.md` dispatch;
+no Safety-severity findings). The commit that originally added this file
+(6792487a) carried a commit message claiming review had already happened
+while this header said the opposite for the same content — that
+contradiction is why this file sat as DRAFT until today's actual dispatch,
+rather than trusting the earlier commit message.)
 **Tier:** TIER 1 — SECURITY
 **Gate:** L1 — PostToolUse on Write/Edit to a registered entry-point file
 **Scope:** CLI wrapper scripts and other files where a tiny syntactic mistake
@@ -62,7 +65,16 @@ what the edit just did).
 
 ```
 scripts/yana-rt-wrapper.js   — the exact file both incidents happened to
+bin/yana                     — primary `yana-ai` CLI entry point; same
+                                npm-bin-linked, shebang-at-byte-0 fragility
+scripts/npm-install.js       — same fragility class, npm-bin-linked as
+                                `yana-ai-install`
 ```
+
+(Added 2026-07-11, same review pass that cleared this file's DRAFT status:
+`package.json`'s `bin` field registers all three as npm executables, and
+the first two incidents this rule exists for could recur identically on
+either.)
 
 Add more via `YANA_ENTRY_POINT_PATHS` (colon-separated) without a code
 change — same pattern `core/rules/agent-middleware-law.md`'s blast-radius
