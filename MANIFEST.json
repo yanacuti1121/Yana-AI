@@ -198,7 +198,7 @@
     },
     "commands": {
       "status": "imported",
-      "count": 168,
+      "count": 170,
       "actual_present": [
         "core/commands/accessibility-audit.md",
         "core/commands/add-authentication-system.md",
@@ -2709,6 +2709,6 @@
   "agents_count": 106,
   "hooks_count": 58,
   "scripts_count": 105,
-  "commands_count": 168,
+  "commands_count": 170,
   "rules_count": 70
 }
