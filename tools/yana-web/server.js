@@ -6,12 +6,16 @@ const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
 const url   = require('url');
-const { execFileSync } = require('child_process');
+const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
 });
+// Same wrapper lib/core.js resolves by default for the router — reused here
+// to bridge real per-call token usage into the Rust cost ledger (`yana-rt
+// cost log`). See logRealUsageToLedger() near handleApiChat.
+const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js');
 const auth     = require('./auth');
 const missions = require('./missions');
 const memory   = require('./memory');
@@ -107,7 +111,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -115,6 +119,7 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   openai: {
@@ -137,7 +142,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -145,6 +150,7 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   // 9Router — local AI gateway (github.com/decolua/9router): one OpenAI-style
@@ -164,10 +170,11 @@ const PROVIDERS = {
       'content-type':  'application/json',
     }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   // Ollama — on-device models (rule 68 SOVEREIGN tier: text that may never
@@ -183,10 +190,11 @@ const PROVIDERS = {
     defaultModel: 'llama3.2',
     headers: _key => ({ 'content-type': 'application/json' }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   // LM Studio — on-device models, same shape as ollama (OpenAI-compatible
@@ -202,10 +210,11 @@ const PROVIDERS = {
     defaultModel: 'local-model',
     headers: _key => ({ 'content-type': 'application/json' }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   gemini: {
@@ -243,10 +252,11 @@ const PROVIDERS = {
       'content-type':  'application/json',
     }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   openrouter: {
@@ -271,7 +281,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -279,6 +289,7 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   xai: {
@@ -301,7 +312,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -309,6 +320,7 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage || null,
   },
 
   novita: {
@@ -1430,35 +1442,83 @@ function handleApiDashboard(req, res) {
 }
 
 // ── SSE normalize: upstream SSE → unified data: {"text":"..."} ────────────────
-function pipeNormalizedSSE(upstreamRes, res, extractText, onDone) {
+// TOKEN METERING (2026-07-12, docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md
+// section 2.1): providers were requested with `stream: true` but never
+// `stream_options: {include_usage: true}`, so even the OpenAI-shape
+// providers that support it never actually emitted a trailing `usage`
+// event — and extractText() only recognizes `.delta.content` events, so
+// even if a usage event had arrived, it would have been silently dropped
+// (text === null, no-op). `extractUsage` (now added per-provider, see
+// PROVIDERS table) reads that event's `.usage` object when present;
+// captured usage flows through emitLines → pipeNormalizedSSE → onDone.
+// `extractUsage` is optional — providers without it (Anthropic, Gemini:
+// different SSE shape entirely, not handled in this pass) simply never
+// populate `usage`, and `onDone` receives `null` for it as before.
+function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) {
   let buf = '';
   let chars = 0;
+  let usage = null;
   upstreamRes.on('data', chunk => {
     buf += chunk.toString();
     const lines = buf.split('\n');
     buf = lines.pop();
-    chars += emitLines(lines, res, extractText);
+    const r = emitLines(lines, res, extractText, extractUsage);
+    chars += r.chars;
+    if (r.usage) usage = r.usage;
   });
   upstreamRes.on('end', () => {
-    if (buf) chars += emitLines(buf.split('\n'), res, extractText);
+    if (buf) {
+      const r = emitLines(buf.split('\n'), res, extractText, extractUsage);
+      chars += r.chars;
+      if (r.usage) usage = r.usage;
+    }
     res.write('data: [DONE]\n\n');
     res.end();
-    if (onDone) onDone(chars);
+    if (onDone) onDone(chars, usage);
   });
 }
 
-function emitLines(lines, res, extractText) {
+function emitLines(lines, res, extractText, extractUsage) {
   let emitted = 0;
+  let usage = null;
   for (const line of lines) {
     if (!line.startsWith('data: ')) continue;
     const raw = line.slice(6).trim();
-    if (raw === '[DONE]') return emitted;
+    if (raw === '[DONE]') return { chars: emitted, usage };
     try {
-      const text = extractText(JSON.parse(raw));
+      const evt = JSON.parse(raw);
+      const text = extractText(evt);
       if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
+      if (extractUsage) {
+        const u = extractUsage(evt);
+        if (u) usage = u;
+      }
     } catch (_) {}
   }
-  return emitted;
+  return { chars: emitted, usage };
+}
+
+// Fire-and-forget bridge: real per-call token usage → `yana-rt cost log`
+// (src/cost.rs, already-shipped CLI, previously never called by this
+// gateway — see docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 2.1).
+// Reuses the same subprocess pattern lib/router.js already uses to resolve
+// scripts/yana-rt-wrapper.js for routing classification. Runs strictly
+// AFTER the chat response has already completed — errors are logged, never
+// thrown, and can't affect the response the user already received.
+// `tier` is passed as "standard" (cost.rs's own fallback rate bucket for
+// any value outside fast/standard/strong) since this gateway has no
+// fast/standard/strong concept of its own; `cost breakdown --by model`
+// still gives a real per-model view regardless of the tier bucket used.
+function logRealUsageToLedger({ task, model, inputTokens, outputTokens, durationMs }) {
+  if (!(inputTokens > 0) && !(outputTokens > 0)) return;
+  const args = [
+    YANA_RT_WRAPPER_PATH, 'cost', 'log', task, 'standard', model,
+    String(inputTokens), String(outputTokens),
+    '--duration-ms', String(durationMs),
+  ];
+  execFile('node', args, { env: process.env, timeout: 5000 }, err => {
+    if (err) console.error('[cost] yana-rt cost log failed (non-fatal):', err.message);
+  });
 }
 
 // ── POST /api/chat ────────────────────────────────────────────────────────────
@@ -1585,8 +1645,23 @@ async function handleApiChat(req, res) {
       });
       return;
     }
-    pipeNormalizedSSE(upstreamRes, res, p.extractText,
-      chars => recordUsage(usageId, chars, Date.now() - t0));
+    pipeNormalizedSSE(upstreamRes, res, p.extractText, p.extractUsage,
+      (chars, usage) => {
+        const ms = Date.now() - t0;
+        recordUsage(usageId, chars, ms);
+        // usage is the provider-native object (OpenAI-shape: {prompt_tokens,
+        // completion_tokens, ...}); cost.rs's ledger fields are
+        // input_tokens/output_tokens — map explicitly, don't assume names match.
+        if (usage) {
+          logRealUsageToLedger({
+            task: 'web-chat',
+            model: modelId,
+            inputTokens: usage.prompt_tokens || 0,
+            outputTokens: usage.completion_tokens || 0,
+            durationMs: ms,
+          });
+        }
+      });
   });
 
   upstreamReq.on('error', () => {
