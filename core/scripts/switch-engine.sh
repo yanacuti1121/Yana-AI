@@ -23,6 +23,7 @@ usage() {
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
   echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
+  echo "  codex    — generates AGENTS.md from adapters/codex.md"
   echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
   echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
   echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
@@ -268,6 +269,66 @@ AIDEREOF
     echo "GEMINI.md is read automatically by Gemini Code CLI on startup."
     echo "For shell-level blocking, additionally run:"
     echo "  bash core/scripts/safe-run.sh --engine gemini -- <command>"
+    ;;
+
+  codex)
+    ADAPTER="adapters/codex.md"
+    DEST="AGENTS.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+
+    # Unlike GEMINI.md/.windsurf/.kiro/.agent (files no other tool has a
+    # reason to already own), AGENTS.md is a shared cross-tool convention —
+    # this very repo already ships one at its root as its general "read
+    # this first" operating manual, unrelated to Codex specifically.
+    # Overwriting-with-backup (the gemini/windsurf/kiro/antigravity pattern)
+    # would silently replace that richer file with the narrower Codex
+    # adapter content. Follow the `continue)` case's precedent instead:
+    # never overwrite an existing AGENTS.md, only generate one where none
+    # exists yet.
+    if [[ -f "$DEST" ]]; then
+      echo -e "${YELLOW}↩ $DEST already exists${NC} ($(wc -l < "$DEST") lines) — not overwriting."
+      echo "  AGENTS.md is a shared cross-tool convention file; this one may already"
+      echo "  serve a broader purpose than Codex governance (e.g. Yana AI's own"
+      echo "  repo-level operating manual). Codex CLI already reads it automatically."
+      echo "  To add the Codex-specific sections, merge relevant parts of"
+      echo "  $ADAPTER into $DEST by hand."
+    elif [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
+    else
+      # Generate AGENTS.md from adapter source — only reached when no
+      # AGENTS.md exists yet, so there's nothing to clobber.
+      cp "$ADAPTER" "$DEST"
+      echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+
+      # Log via secure-logger.sh if available
+      LOGGER="core/scripts/secure-logger.sh"
+      if [[ -x "$LOGGER" ]]; then
+        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/codex.md generated_file=AGENTS.md operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_start "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
+      fi
+    fi
+
+    echo ""
+    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
+    echo "  Codex CLI has its own native sandbox/approval modes but no Yana AI"
+    echo "  hook layer — individual tool calls are NOT recorded in the Yana AI"
+    echo "  Merkle audit chain. Enforcement here is prompt-advisory only."
+    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
+    echo ""
+    echo -e "${CYAN}Enforcement tier summary:${NC}"
+    echo "  L0  Audit    — advisory only (no native hook; log manually)"
+    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
+    echo "  L2  Commit   — prompt-instructed"
+    echo "  L3  Truth    — prompt-instructed"
+    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
+    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
+    echo ""
+    echo "AGENTS.md is read automatically by Codex CLI on startup."
+    echo "For shell-level blocking, additionally run:"
+    echo "  bash core/scripts/safe-run.sh --engine codex -- <command>"
     ;;
 
   qwen)
@@ -591,6 +652,9 @@ CONTINUEEOF
     [[ -f "GEMINI.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Gemini    GEMINI.md ($(wc -l < GEMINI.md) lines)" \
       || echo -e "  ${YELLOW}✗${NC} Gemini    GEMINI.md missing"
+    [[ -f "AGENTS.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     AGENTS.md ($(wc -l < AGENTS.md) lines)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     AGENTS.md missing"
     [[ -f "adapters/qwen.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Qwen      adapters/qwen.md (advisory — no native hook)" \
       || echo -e "  ${YELLOW}✗${NC} Qwen      adapters/qwen.md missing"
