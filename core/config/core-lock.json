@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-11T08:51:34+00:00",
+  "generated": "2026-07-11T13:35:55+00:00",
   "count": 250,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -39,7 +39,7 @@
     "core/hooks/freeze-scope.sh": "c430ff378388979ab8e9c3f2f6540cf704963f6633a5549cf9fd5ff2d377ef61",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
-    "core/hooks/guard-destructive.sh": "6a8d317be4329c92868feb4142565d928eb324a2741e650922ce6b7306eded2b",
+    "core/hooks/guard-destructive.sh": "2ebf523c812138f9f503fd487f12ed3097a93a58b1b9da409751c63c43b72634",
     "core/hooks/hook-timeout-guard.sh": "bcceaa81b7b09218a07b59b835b0a7e0c6d74a23c7d35c087b3fcb0867fd4617",
     "core/hooks/infra-review-reminder.sh": "8339cfc324be76c4692977059de7ebed073007541b9d9f44b3cb62c6e55b7db8",
     "core/hooks/intent-inference.sh": "724c37c3bf83fed679515d5e13a025365ab55ca3e16fbbefadf03c01e4641501",
@@ -51,7 +51,7 @@
     "core/hooks/rbac-guard.sh": "3be44f2789a79420e905f471f01f14b714479e9c80b0022516d40cb093628058",
     "core/hooks/risk-scorer.sh": "be333f0c4c5e0d5faca7adf654888b76d58c6a3e6d1c714d2daf87b0b8dfde15",
     "core/hooks/sbom-generator.sh": "2d7c96ef5a7df0b32dd3953330863ab72fb55d1374a586e4838b83815e945268",
-    "core/hooks/scope-guard.sh": "ac9796df3a4202c9f5229064ce348369af4a23242edf5cadae0bc2ab5646bba1",
+    "core/hooks/scope-guard.sh": "280334d332bd484e2f88b0fbcbd0c3ecac349afac267f8fa388dfb15ce26921e",
     "core/hooks/self-healing-hooks.sh": "4e37871104a31be5c0f2122f25018c0bfc1413b63b2ae9a21f2a29f1806453f8",
     "core/hooks/session-bootstrap.sh": "bcad9750e95645bae7a918f8fbdad9edc9408b4410b75cc7fbed9ebe1ee513c1",
     "core/hooks/session-checkpoint-hook.sh": "357cf29cf7f4ab105fa9085bf935924dccb8e63bf9f07312b00954fd202538c1",
@@ -250,7 +250,7 @@
     "src/guard/blast_paths.rs": "7ad796d67c9e1bf54d65a6efed205a68604f6b61ec0652e046dba298154d67fe",
     "src/guard/blast_radius.rs": "45bca10f899f5cdd8052c0aee58bea5b2e2bfddd9ffb63ff8e77c4c3b5a1e56e",
     "src/guard/entry_point_check.rs": "6e3748e5591c719f7eec06b012131c5e3626e5e4d405425a90be1df07159ff7e",
-    "src/guard/mod.rs": "fe42b3bf430c7089abeff7528ddb64b80bff671161c0fc2b84115d2876ae8161",
+    "src/guard/mod.rs": "75203296778cb8ca87701e9e4215536f23e8e87f3829c1454eb9bfd2e2ed2451",
     "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
     "src/guard/token_budget.rs": "b7544e9e526737cc2650f70d2be7790aa05e2d1012db5668e993e697637c9dc8"
   }

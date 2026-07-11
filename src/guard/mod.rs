@@ -32,6 +32,7 @@ mod token_budget;
 use clap::Subcommand;
 use serde::Deserialize;
 use std::io::Read;
+use std::sync::LazyLock;
 
 #[derive(Subcommand)]
 pub enum GuardAction {
@@ -88,14 +89,123 @@ pub fn dispatch(action: GuardAction) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Deserialize, Default)]
-struct ToolInput {
-    command: Option<String>,
-}
-
-#[derive(Deserialize, Default)]
 struct HookEvent {
     #[serde(default)]
-    tool_input: ToolInput,
+    tool_name: String,
+    #[serde(default)]
+    tool_input: serde_json::Value,
+}
+
+/// Command-shaped JSON keys — checked as exact tokens (see `tokenize_key`),
+/// never raw substring containment, against MCP tool_input payloads.
+const COMMAND_LIKE_KEYS: &[&str] = &[
+    "command", "commands", "cmd", "script", "exec", "execute", "sql", "statement", "shell", "bash", "sh",
+];
+
+/// Splits a JSON object key into lowercase tokens on snake_case ('_'/'-')
+/// and camelCase boundaries, e.g. "shell_command" -> ["shell","command"],
+/// "executeScript" -> ["execute","script"]. Exact-token matching against
+/// `COMMAND_LIKE_KEYS` (not substring containment) is deliberate:
+/// "description" contains the raw substring "script" ("de-SCRIPT-ion") and
+/// must NOT be treated as command-shaped, or a ticket/notes-style MCP tool's
+/// `description` field would false-positive-trigger the destructive-command
+/// scan below on ordinary prose that merely mentions a dangerous command.
+// SECURITY FIX (2026-07-11, caught by code-auditor review of the MCP
+// coverage change): the original rule only inserted a `_` boundary before
+// an uppercase char whose PREVIOUS char was lowercase/digit — this misses
+// an acronym-run-to-word boundary, e.g. "SQLCommand" (S,Q,L all uppercase,
+// then "Command") never got a `_` before "Command", so it tokenized to the
+// single blob "sqlcommand", which matches nothing in COMMAND_LIKE_KEYS.
+// Verified live bypass before this fix: {"SQLCommand":"DROP TABLE users;"}
+// was silently allowed by both this function and its jq mirror in
+// guard-destructive.sh. Fix: also split when the previous char is
+// uppercase AND the char after the current one is lowercase (the acronym
+// "SQL" ends, a new capitalized word "Command" begins).
+fn tokenize_key(key: &str) -> Vec<String> {
+    let chars: Vec<char> = key.chars().collect();
+    let mut spaced = String::new();
+    for (i, &ch) in chars.iter().enumerate() {
+        if ch.is_uppercase() && i > 0 {
+            let prev = chars[i - 1];
+            let prev_lower_or_digit = prev.is_lowercase() || prev.is_ascii_digit();
+            let acronym_to_word_boundary =
+                prev.is_uppercase() && chars.get(i + 1).is_some_and(|c| c.is_lowercase());
+            if prev_lower_or_digit || acronym_to_word_boundary {
+                spaced.push('_');
+            }
+        }
+        spaced.push(ch.to_ascii_lowercase());
+    }
+    spaced.split(|c: char| !c.is_alphanumeric()).filter(|s| !s.is_empty()).map(str::to_string).collect()
+}
+
+/// True if any token of `key` (see `tokenize_key`) exactly matches a
+/// command-shaped key name.
+fn is_command_like_key(key: &str) -> bool {
+    tokenize_key(key).iter().any(|t| COMMAND_LIKE_KEYS.contains(&t.as_str()))
+}
+
+/// Recursion depth cap for `collect_command_like_strings`, per
+/// `core/rules/fuzz-testing-constraints.md`'s "no recursion without a depth
+/// limit" requirement — an adversarial MCP tool_input nested thousands of
+/// levels deep could otherwise exhaust the stack, which aborts the process
+/// outside this hook's documented 0/2 exit contract (the same failure
+/// category the 2026-07-10 UTF-8-panic fix elsewhere in this file worried
+/// about). Hitting the cap just stops collecting further candidates — it
+/// does not affect whatever was already found at shallower depth.
+const MAX_COLLECT_DEPTH: usize = 32;
+
+/// Recursively collects the string VALUES of every command-shaped KEY
+/// anywhere under `v` (any nesting depth up to `MAX_COLLECT_DEPTH` — MCP
+/// servers may nest args under e.g. {"params": {"command": ...}}),
+/// appending them to `out`. Only used for MCP tool_input trees (see
+/// `cmd_destructive`) — native Bash calls keep using the single
+/// `.tool_input.command` field, unchanged.
+///
+/// SECURITY FIX (2026-07-11, caught by code-auditor + security-auditor
+/// review): the original version only extracted a command-shaped key's
+/// value when that value was itself a STRING. `COMMAND_LIKE_KEYS` includes
+/// "commands" (plural) — which only makes sense for an array-of-strings
+/// shape (a batch/sequential-exec MCP tool) — but that shape was silently
+/// dropped: the array was recursed into looking for further nested
+/// OBJECTS, never checked for bare string elements. Verified live bypass
+/// before this fix: {"commands":["rm -rf /tmp/x","echo ok"]} was silently
+/// allowed. Fix: when a command-shaped key's value is an array, also
+/// collect any string elements directly (in addition to still recursing,
+/// so arrays of nested objects keep working exactly as before).
+fn collect_command_like_strings(v: &serde_json::Value, out: &mut Vec<String>) {
+    collect_command_like_strings_at(v, out, 0);
+}
+
+fn collect_command_like_strings_at(v: &serde_json::Value, out: &mut Vec<String>, depth: usize) {
+    if depth >= MAX_COLLECT_DEPTH {
+        return;
+    }
+    match v {
+        serde_json::Value::Object(map) => {
+            for (k, val) in map {
+                let key_is_command_like = is_command_like_key(k);
+                match val {
+                    serde_json::Value::String(s) if key_is_command_like => out.push(s.clone()),
+                    serde_json::Value::Array(arr) if key_is_command_like => {
+                        for item in arr {
+                            if let serde_json::Value::String(s) = item {
+                                out.push(s.clone());
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                collect_command_like_strings_at(val, out, depth + 1);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for val in arr {
+                collect_command_like_strings_at(val, out, depth + 1);
+            }
+        }
+        _ => {}
+    }
 }
 
 /// (pattern, case_insensitive, deny reason) — ported 1:1 from the grep -E /
@@ -119,6 +229,31 @@ fn destructive_patterns() -> [(&'static str, &'static str); 2] {
         ),
     ]
 }
+
+// PERFORMANCE FIX (2026-07-11, requested independently by both the human
+// reviewer and code-auditor's review of the MCP coverage change): every
+// regex below used to be compiled fresh via `regex::Regex::new(...)` on
+// every single call — and cmd_destructive() now calls into this check
+// pipeline once per MCP candidate string (previously once per invocation
+// total), multiplying the redundant compile cost. `LazyLock` (stable since
+// Rust 1.80, no new dependency needed) compiles each pattern exactly once
+// per process and reuses it for every subsequent call. All `.unwrap()`s
+// here are over this file's own fixed, hand-written pattern strings — never
+// user/attacker-controlled input — so a compile failure would only ever be
+// a bug in this file, not a runtime possibility worth handling gracefully.
+static RE_GIT_OR_RM: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\b(git|rm)\b").unwrap());
+static RE_ADJACENT_VAR_SPLICE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"[A-Za-z]\$\{?[A-Za-z_][A-Za-z0-9_]*\}?[A-Za-z]").unwrap());
+static RE_BRACE_EXPANSION: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\{[^{}]*,[^{}]*\}").unwrap());
+static RE_PUSH_TO_MAIN: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"\s(origin\s+)?(main|master)\b").unwrap());
+static RE_RESET_HARD: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"--hard\b").unwrap());
+static DESTRUCTIVE_PATTERNS_COMPILED: LazyLock<Vec<(regex::Regex, &'static str)>> = LazyLock::new(|| {
+    destructive_patterns()
+        .into_iter()
+        .map(|(pattern, reason)| (regex::Regex::new(pattern).expect("destructive_patterns() must contain only valid, fixed regex strings"), reason))
+        .collect()
+});
 
 /// Strip one matching pair of leading/trailing quote characters and
 /// un-escape backslashes from a single raw token — ported 1:1 from
@@ -225,13 +360,10 @@ fn git_segment_targets(seg: &str, want: &str) -> bool {
 /// outright on it (rather than trying to resolve what it expands to) costs
 /// nothing real.
 fn has_adjacent_variable_splice(cmd: &str) -> bool {
-    let has_git_or_rm = regex::Regex::new(r"\b(git|rm)\b").unwrap().is_match(cmd);
-    if !has_git_or_rm {
+    if !RE_GIT_OR_RM.is_match(cmd) {
         return false;
     }
-    regex::Regex::new(r"[A-Za-z]\$\{?[A-Za-z_][A-Za-z0-9_]*\}?[A-Za-z]")
-        .unwrap()
-        .is_match(cmd)
+    RE_ADJACENT_VAR_SPLICE.is_match(cmd)
 }
 
 /// True if `cmd` contains a brace-expansion pattern (e.g. `{a,b}`) alongside
@@ -243,20 +375,18 @@ fn has_adjacent_variable_splice(cmd: &str) -> bool {
 /// outright on the shape instead of reimplementing bash's expansion
 /// algorithm.
 fn has_brace_expansion(cmd: &str) -> bool {
-    let has_git_or_rm = regex::Regex::new(r"\b(git|rm)\b").unwrap().is_match(cmd);
-    if !has_git_or_rm {
+    if !RE_GIT_OR_RM.is_match(cmd) {
         return false;
     }
-    regex::Regex::new(r"\{[^{}]*,[^{}]*\}").unwrap().is_match(cmd)
+    RE_BRACE_EXPANSION.is_match(cmd)
 }
 
 /// git push targeting main/master directly, any global-option prefix.
 /// Ported 1:1 from `is_git_push_to_main()`.
 fn is_git_push_to_main(cmd: &str) -> bool {
-    let re = regex::Regex::new(r"\s(origin\s+)?(main|master)\b").unwrap();
     split_segments(cmd)
         .into_iter()
-        .any(|seg| git_segment_targets(seg, "push") && re.is_match(seg))
+        .any(|seg| git_segment_targets(seg, "push") && RE_PUSH_TO_MAIN.is_match(seg))
 }
 
 /// `git reset --hard`, any global-option prefix. Ported 1:1 from
@@ -265,10 +395,9 @@ fn is_git_push_to_main(cmd: &str) -> bool {
 /// bypassable via `git -C <path> reset --hard` or `git --super-prefix
 /// <path> reset --hard`.
 fn is_git_reset_hard(cmd: &str) -> bool {
-    let re = regex::Regex::new(r"--hard\b").unwrap();
     split_segments(cmd)
         .into_iter()
-        .any(|seg| git_segment_targets(seg, "reset") && re.is_match(seg))
+        .any(|seg| git_segment_targets(seg, "reset") && RE_RESET_HARD.is_match(seg))
 }
 
 /// Split a command line on shell chain/pipe operators (; && || |) so flags
@@ -444,67 +573,81 @@ fn cmd_destructive() -> i32 {
             );
         }
     };
-    let command = event.tool_input.command.unwrap_or_default();
-    if command.is_empty() {
-        return 0;
+    let primary = event.tool_input.get("command").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    // MCP tool calls (tool_name like mcp__<server>__<tool>) don't share a
+    // single field path for command/script content the way native tools do
+    // — each server picks its own key. When this is an MCP call, also
+    // collect string values at command-shaped keys anywhere in tool_input
+    // (any nesting depth) and check each candidate independently below.
+    // Mirrors core/hooks/guard-destructive.sh's CANDIDATES array — bash and
+    // Rust must stay in sync (see the "Non-negotiable" note in that file).
+    let mut candidates = vec![primary];
+    if event.tool_name.starts_with("mcp__") {
+        collect_command_like_strings(&event.tool_input, &mut candidates);
     }
 
-    // Ordered to match guard-destructive.sh exactly: the two deny-outright
-    // shape checks (variable-splice, brace-expansion) run first, since they
-    // catch expansions that would otherwise defeat every tokenizing check
-    // below by producing a different opaque token here than the real argv
-    // a shell builds.
-    if has_adjacent_variable_splice(&command) {
-        return deny_json(
-            "Blocked: command contains a variable reference glued directly between two letters (e.g. word${VAR}word) with no separating whitespace, alongside a git/rm invocation. This guard cannot safely verify commands using this pattern. Run the command without adjacent-letter variable splicing, or ask the human to confirm.",
-        );
-    }
-    if has_brace_expansion(&command) {
-        return deny_json(
-            "Blocked: command contains a brace-expansion pattern (e.g. {a,b}) alongside a git/rm invocation. This guard cannot safely verify commands using this pattern — brace expansion generates new arguments before any guard sees them. Run the command without brace expansion, or ask the human to confirm.",
-        );
-    }
-
-    if is_rm_rf(&command) {
-        return deny_json(
-            "Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible. Use targeted 'rm' with explicit paths, or ask the human to confirm first.",
-        );
-    }
-    if is_git_force(&command, "push") {
-        return deny_json(
-            "Blocked: 'git push --force' (any flag spelling) is not allowed. The orchestrator pushes branches; force-pushing risks overwriting shared history.",
-        );
-    }
-    if is_git_reset_hard(&command) {
-        return deny_json(
-            "Blocked: 'git reset --hard' discards uncommitted work irreversibly. Use 'git stash' or commit before resetting.",
-        );
-    }
-    if is_git_force(&command, "clean") {
-        return deny_json(
-            "Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked files. Ask the human to confirm before running this.",
-        );
-    }
-    if is_git_push_to_main(&command) {
-        return deny_json(
-            "Blocked: direct push to main/master. Create a feature branch and open a PR instead.",
-        );
-    }
-
-    for (pattern, reason) in destructive_patterns() {
-        // Each pattern string embeds its own (?i) where the original bash
-        // check used `grep -qiE` (pattern 6 only) — Regex::new respects that
-        // inline flag, so no case-insensitive builder option is needed here.
-        let re = match regex::Regex::new(pattern) {
-            Ok(re) => re,
-            Err(_) => continue, // unreachable for our fixed pattern set, but never panic on a guard
-        };
-        if re.is_match(&command) {
+    for command in candidates.iter().filter(|c| !c.is_empty()) {
+        if let Some(reason) = check_command(command) {
             return deny_json(reason);
         }
     }
 
     0
+}
+
+/// Runs the full destructive-command check pipeline against a single
+/// candidate string, returning the deny reason if any check matches.
+/// Order matches guard-destructive.sh exactly: the two deny-outright shape
+/// checks (variable-splice, brace-expansion) run first, since they catch
+/// expansions that would otherwise defeat every tokenizing check below by
+/// producing a different opaque token here than the real argv a shell
+/// builds. Extracted out of `cmd_destructive()` so it can be called once per
+/// MCP candidate and once for the primary Bash command, unchanged either
+/// way — this is the whole point of the design: zero changes to 4-rounds-
+/// of-adversarial-review detection logic.
+fn check_command(command: &str) -> Option<&'static str> {
+    if has_adjacent_variable_splice(command) {
+        return Some(
+            "Blocked: command contains a variable reference glued directly between two letters (e.g. word${VAR}word) with no separating whitespace, alongside a git/rm invocation. This guard cannot safely verify commands using this pattern. Run the command without adjacent-letter variable splicing, or ask the human to confirm.",
+        );
+    }
+    if has_brace_expansion(command) {
+        return Some(
+            "Blocked: command contains a brace-expansion pattern (e.g. {a,b}) alongside a git/rm invocation. This guard cannot safely verify commands using this pattern — brace expansion generates new arguments before any guard sees them. Run the command without brace expansion, or ask the human to confirm.",
+        );
+    }
+
+    if is_rm_rf(command) {
+        return Some(
+            "Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible. Use targeted 'rm' with explicit paths, or ask the human to confirm first.",
+        );
+    }
+    if is_git_force(command, "push") {
+        return Some(
+            "Blocked: 'git push --force' (any flag spelling) is not allowed. The orchestrator pushes branches; force-pushing risks overwriting shared history.",
+        );
+    }
+    if is_git_reset_hard(command) {
+        return Some("Blocked: 'git reset --hard' discards uncommitted work irreversibly. Use 'git stash' or commit before resetting.");
+    }
+    if is_git_force(command, "clean") {
+        return Some("Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked files. Ask the human to confirm before running this.");
+    }
+    if is_git_push_to_main(command) {
+        return Some("Blocked: direct push to main/master. Create a feature branch and open a PR instead.");
+    }
+
+    for (re, reason) in DESTRUCTIVE_PATTERNS_COMPILED.iter() {
+        // Each pattern string embeds its own (?i) where the original bash
+        // check used `grep -qiE` (pattern 6 only) — Regex::new respects that
+        // inline flag, so no case-insensitive builder option is needed here.
+        if re.is_match(command) {
+            return Some(reason);
+        }
+    }
+
+    None
 }
 
 #[cfg(test)]
@@ -769,6 +912,180 @@ mod tests {
     #[test]
     fn empty_json_object_parses_to_empty_command() {
         let event: HookEvent = serde_json::from_str("{}").unwrap();
-        assert!(event.tool_input.command.is_none());
+        assert!(event.tool_input.get("command").is_none());
+        assert_eq!(event.tool_name, "");
+    }
+
+    #[test]
+    fn hook_event_parses_tool_name_and_arbitrary_tool_input_shape() {
+        // tool_input is now a raw Value (not a fixed {command} struct) so it
+        // can hold whatever shape an MCP server's tool_input actually has.
+        let event: HookEvent =
+            serde_json::from_str(r#"{"tool_name":"mcp__x__y","tool_input":{"cmd":"ls"}}"#).unwrap();
+        assert_eq!(event.tool_name, "mcp__x__y");
+        assert_eq!(event.tool_input.get("cmd").and_then(|v| v.as_str()), Some("ls"));
+    }
+
+    // ── Regression tests for the 2026-07-11 MCP tool-call coverage fix ─────
+    // Before this fix, cmd_destructive() only ever read `.tool_input.command`
+    // — an MCP tool call (tool_name like mcp__<server>__<tool>) whose
+    // command lived under a server-specific key (cmd, script, nested
+    // params.command, ...) produced an empty command string and silently
+    // allowed, regardless of what the call actually did.
+
+    #[test]
+    fn tokenize_key_splits_snake_case() {
+        assert_eq!(tokenize_key("shell_command"), vec!["shell", "command"]);
+    }
+
+    #[test]
+    fn tokenize_key_splits_camel_case() {
+        assert_eq!(tokenize_key("executeScript"), vec!["execute", "script"]);
+        assert_eq!(tokenize_key("shellCommand"), vec!["shell", "command"]);
+    }
+
+    #[test]
+    fn tokenize_key_single_word_stays_one_token() {
+        assert_eq!(tokenize_key("description"), vec!["description"]);
+        assert_eq!(tokenize_key("command"), vec!["command"]);
+    }
+
+    #[test]
+    fn is_command_like_key_matches_exact_tokens_only() {
+        assert!(is_command_like_key("command"));
+        assert!(is_command_like_key("cmd"));
+        assert!(is_command_like_key("shell_command"));
+        assert!(is_command_like_key("executeScript"));
+        assert!(is_command_like_key("params_script"));
+    }
+
+    #[test]
+    fn is_command_like_key_rejects_substring_false_positives() {
+        // "description" contains the raw substring "script" — must NOT
+        // match. This is the exact bug this design was written to avoid:
+        // a ticket/notes-style MCP tool's free-text description field would
+        // otherwise false-positive-trigger the destructive-command scan.
+        assert!(!is_command_like_key("description"));
+        assert!(!is_command_like_key("content"));
+        assert!(!is_command_like_key("message"));
+        assert!(!is_command_like_key("prompt"));
+        assert!(!is_command_like_key("recommendation")); // contains "command" as substring, must not match on that
+    }
+
+    #[test]
+    fn collect_command_like_strings_finds_nested_value_ignores_sibling_prose() {
+        let v = serde_json::json!({
+            "description": "never run rm -rf in prod",
+            "params": { "command": "rm -rf /tmp/x" }
+        });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["rm -rf /tmp/x".to_string()]);
+    }
+
+    #[test]
+    fn collect_command_like_strings_finds_camel_case_key_at_top_level() {
+        let v = serde_json::json!({ "shellCommand": "git push --force origin main" });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["git push --force origin main".to_string()]);
+    }
+
+    #[test]
+    fn collect_command_like_strings_descends_into_arrays() {
+        let v = serde_json::json!({ "steps": [ { "cmd": "rm -rf /tmp/y" } ] });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["rm -rf /tmp/y".to_string()]);
+    }
+
+    #[test]
+    fn check_command_denies_rm_rf_regardless_of_source() {
+        // check_command has no notion of "which JSON key did this come
+        // from" — that filtering happens earlier, in
+        // collect_command_like_strings' key matching (tested above). This
+        // just confirms the extracted-and-passed-through path still denies.
+        assert!(check_command("rm -rf /tmp/x").is_some());
+    }
+
+    // ── Regression tests for the 2026-07-11 security/code-auditor review
+    // findings on the initial MCP coverage change. Both were verified live
+    // bypasses before these fixes.
+
+    #[test]
+    fn tokenize_key_splits_acronym_to_word_boundary() {
+        // "SQLCommand": an all-caps acronym run (S,Q,L) followed by a new
+        // capitalized word ("Command") — the original rule (split only on
+        // lowercase/digit -> uppercase) never inserted a boundary here,
+        // producing the single blob "sqlcommand", which matches nothing.
+        assert_eq!(tokenize_key("SQLCommand"), vec!["sql", "command"]);
+        assert_eq!(tokenize_key("URLExecScript"), vec!["url", "exec", "script"]);
+    }
+
+    #[test]
+    fn tokenize_key_ordinary_camel_case_unaffected_by_acronym_fix() {
+        assert_eq!(tokenize_key("shellCommand"), vec!["shell", "command"]);
+        assert_eq!(tokenize_key("executeScript"), vec!["execute", "script"]);
+    }
+
+    #[test]
+    fn is_command_like_key_matches_acronym_prefixed_key() {
+        assert!(is_command_like_key("SQLCommand"));
+    }
+
+    #[test]
+    fn collect_command_like_strings_finds_value_under_acronym_prefixed_key() {
+        let v = serde_json::json!({ "SQLCommand": "DROP TABLE users;" });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["DROP TABLE users;".to_string()]);
+    }
+
+    #[test]
+    fn collect_command_like_strings_extracts_array_of_strings_under_plural_key() {
+        // "commands" (plural) is in COMMAND_LIKE_KEYS specifically for this
+        // shape — a batch/sequential-exec MCP tool. Before this fix, an
+        // array value was recursed into looking for nested OBJECTS only;
+        // bare string elements were silently dropped.
+        let v = serde_json::json!({ "commands": ["rm -rf /tmp/x", "echo ok"] });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["rm -rf /tmp/x".to_string(), "echo ok".to_string()]);
+    }
+
+    #[test]
+    fn collect_command_like_strings_array_of_objects_still_works_after_array_fix() {
+        // Regression check: the array-of-strings fix must not break the
+        // pre-existing array-of-objects case.
+        let v = serde_json::json!({ "steps": [ { "cmd": "rm -rf /tmp/y" } ] });
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["rm -rf /tmp/y".to_string()]);
+    }
+
+    #[test]
+    fn collect_command_like_strings_respects_max_depth() {
+        // Build a payload nested well past MAX_COLLECT_DEPTH with the
+        // command-shaped value at the very bottom — it must NOT be found
+        // (proves the cap actually stops recursion), and this must not
+        // stack-overflow regardless.
+        let mut v = serde_json::json!({ "command": "rm -rf /tmp/deep" });
+        for _ in 0..(MAX_COLLECT_DEPTH + 10) {
+            v = serde_json::json!({ "wrapper": v });
+        }
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert!(out.is_empty(), "value past MAX_COLLECT_DEPTH must not be collected");
+    }
+
+    #[test]
+    fn collect_command_like_strings_within_max_depth_still_found() {
+        let mut v = serde_json::json!({ "command": "rm -rf /tmp/shallow" });
+        for _ in 0..(MAX_COLLECT_DEPTH - 5) {
+            v = serde_json::json!({ "wrapper": v });
+        }
+        let mut out = Vec::new();
+        collect_command_like_strings(&v, &mut out);
+        assert_eq!(out, vec!["rm -rf /tmp/shallow".to_string()]);
     }
 }
