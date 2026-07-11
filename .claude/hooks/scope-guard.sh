@@ -33,7 +33,7 @@ INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null || true)
 
 case "$TOOL_NAME" in
-  Write|Edit|MultiEdit) ;;
+  Write|Edit|MultiEdit|mcp__*) ;;
   *) exit 0 ;;
 esac
 
@@ -44,36 +44,62 @@ if [[ -z "$TARGET" && "$TOOL_NAME" == "MultiEdit" ]]; then
   TARGET=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null || true)
 fi
 
-[[ -z "$TARGET" ]] && exit 0
-
 # Normalise: strip leading ./ and leading absolute path prefix if inside PROJECT_ROOT
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-TARGET_NORM="${TARGET#./}"
-TARGET_NORM="${TARGET_NORM#"$PROJECT_ROOT"/}"
 
-# ── Guarded path patterns ─────────────────────────────────────────────────────
-VIOLATION=""
-
-case "$TARGET_NORM" in
-  app/*|app)               VIOLATION="app/ (product application code)" ;;
-  components/*|components) VIOLATION="components/ (product UI components)" ;;
-  lib/*|lib)               VIOLATION="lib/ (product library code)" ;;
-  db/*|db)                 VIOLATION="db/ (product database schema)" ;;
-  migrations/*|migrate/*)  VIOLATION="migrations/ (database migrations — irreversible risk)" ;;
-  public/*|public)         VIOLATION="public/ (product static assets)" ;;
-  src/*)                   VIOLATION="src/ (product source — confirm this is not a Yana AI-only task)" ;;
-esac
-
-if [[ -z "$VIOLATION" ]]; then
-  # File-level guards
-  filename=$(basename "$TARGET_NORM")
-  case "$filename" in
-    .env|.env.*|*.env)      VIOLATION=".env file (secrets must not be written by agents)" ;;
-    vercel.json)            VIOLATION="vercel.json (production deployment config)" ;;
-    next.config.js|next.config.ts|next.config.mjs) VIOLATION="next.config.* (production config)" ;;
-    docker-compose*.yml|docker-compose*.yaml)       VIOLATION="docker-compose (infrastructure config)" ;;
-    *.prod.js|*.prod.ts|*.production.*)             VIOLATION="*.prod.* (production-specific file)" ;;
+# ── Guarded path patterns (2026-07-11: extracted so the MCP fallback below
+# can reuse it against each candidate leaf, not just the primary $TARGET) ──
+check_target() {
+  local t="$1" filename
+  case "$t" in
+    app/*|app)               echo "app/ (product application code)"; return ;;
+    components/*|components) echo "components/ (product UI components)"; return ;;
+    lib/*|lib)                echo "lib/ (product library code)"; return ;;
+    db/*|db)                  echo "db/ (product database schema)"; return ;;
+    migrations/*|migrate/*)   echo "migrations/ (database migrations — irreversible risk)"; return ;;
+    public/*|public)          echo "public/ (product static assets)"; return ;;
+    src/*)                    echo "src/ (product source — confirm this is not a Yana AI-only task)"; return ;;
   esac
+  filename=$(basename "$t")
+  case "$filename" in
+    .env|.env.*|*.env)      echo ".env file (secrets must not be written by agents)"; return ;;
+    vercel.json)            echo "vercel.json (production deployment config)"; return ;;
+    next.config.js|next.config.ts|next.config.mjs) echo "next.config.* (production config)"; return ;;
+    docker-compose*.yml|docker-compose*.yaml)       echo "docker-compose (infrastructure config)"; return ;;
+    *.prod.js|*.prod.ts|*.production.*)             echo "*.prod.* (production-specific file)"; return ;;
+  esac
+}
+
+VIOLATION=""
+TARGET_NORM=""
+
+if [[ -n "$TARGET" ]]; then
+  TARGET_NORM="${TARGET#./}"
+  TARGET_NORM="${TARGET_NORM#"$PROJECT_ROOT"/}"
+  VIOLATION=$(check_target "$TARGET_NORM")
+fi
+
+# ── MCP fallback (2026-07-11) ─────────────────────────────────────────────
+# MCP file-writing tools don't share a single field path for the target
+# location the way native Write/Edit/MultiEdit do (server-specific key
+# names: "target_location", "destination", ...). When the primary
+# .path/.file_path extraction found nothing and this is an MCP call, scan
+# every string leaf in tool_input independently against check_target() —
+# safe to be broad here because this hook is advisory-only (never blocks,
+# see the module header), unlike guard-destructive.sh's blocking checks.
+if [[ -z "$VIOLATION" && "$TOOL_NAME" == mcp__* ]]; then
+  while IFS= read -r leaf; do
+    [[ -z "$leaf" ]] && continue
+    leaf_norm="${leaf#./}"
+    leaf_norm="${leaf_norm#"$PROJECT_ROOT"/}"
+    v=$(check_target "$leaf_norm")
+    if [[ -n "$v" ]]; then
+      TARGET="$leaf"
+      TARGET_NORM="$leaf_norm"
+      VIOLATION="$v"
+      break
+    fi
+  done < <(printf '%s' "$INPUT" | jq -r '.tool_input // {} | [.. | strings] | .[]' 2>/dev/null)
 fi
 
 [[ -z "$VIOLATION" ]] && exit 0

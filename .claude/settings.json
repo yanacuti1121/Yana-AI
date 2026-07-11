@@ -18,7 +18,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -31,7 +31,7 @@
         ]
       },
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Write|Edit|MultiEdit|mcp__.*",
         "hooks": [
           {
             "type": "command",
