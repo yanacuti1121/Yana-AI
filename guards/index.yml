@@ -157,6 +157,12 @@ guards:
     risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
     file: format-on-write.sh
 
+  freeze-scope:
+    description: "Restrict Write/Edit/MultiEdit to a single directory for the session"
+    hook_type: PreToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: freeze-scope.sh
+
   gitnexus-hook:
     description: "GitNexus Claude Code Plugin Hook"
     hook_type: PreToolUse
