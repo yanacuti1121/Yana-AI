@@ -89,6 +89,27 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.delta?.text || null,
+    // Anthropic splits usage across two SSE event types (both always
+    // present by default — no stream_options-equivalent request flag
+    // needed, unlike OpenAI-shape providers):
+    //   message_start:  event.message.usage = {input_tokens, output_tokens}
+    //                    (output_tokens here is a small placeholder, not final)
+    //   message_delta:  event.usage = {output_tokens} (the real final count;
+    //                    this event carries no input_tokens field at all)
+    // pipeNormalizedSSE/emitLines merge (not overwrite) successive usage
+    // objects specifically so this two-event split reassembles correctly:
+    // message_start's input_tokens survives, message_delta's output_tokens
+    // overwrites the placeholder.
+    extractUsage: evt => {
+      if (evt?.type === 'message_start' && evt.message?.usage) {
+        const u = evt.message.usage;
+        return { input_tokens: u.input_tokens || 0, output_tokens: u.output_tokens || 0 };
+      }
+      if (evt?.type === 'message_delta' && evt.usage) {
+        return { output_tokens: evt.usage.output_tokens || 0 };
+      }
+      return null;
+    },
   },
 
   groq: {
@@ -119,7 +140,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   openai: {
@@ -150,7 +176,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // 9Router — local AI gateway (github.com/decolua/9router): one OpenAI-style
@@ -174,7 +205,12 @@ const PROVIDERS = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // Ollama — on-device models (rule 68 SOVEREIGN tier: text that may never
@@ -194,7 +230,12 @@ const PROVIDERS = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // LM Studio — on-device models, same shape as ollama (OpenAI-compatible
@@ -214,7 +255,12 @@ const PROVIDERS = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   gemini: {
@@ -240,6 +286,14 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.candidates?.[0]?.content?.parts?.[0]?.text || null,
+    // Gemini includes usageMetadata by default in every streamed chunk
+    // (no request-side opt-in needed), as cumulative running totals —
+    // the last chunk's numbers are the true final ones. The merge in
+    // pipeNormalizedSSE/emitLines makes repeatedly "overwriting" with each
+    // successive cumulative snapshot converge to that final value.
+    extractUsage: evt => evt?.usageMetadata
+      ? { input_tokens: evt.usageMetadata.promptTokenCount || 0, output_tokens: evt.usageMetadata.candidatesTokenCount || 0 }
+      : null,
   },
 
   deepseek: {
@@ -256,7 +310,12 @@ const PROVIDERS = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   openrouter: {
@@ -289,7 +348,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   xai: {
@@ -320,7 +384,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
-    extractUsage: evt => evt?.usage || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   novita: {
@@ -1442,18 +1511,14 @@ function handleApiDashboard(req, res) {
 }
 
 // ── SSE normalize: upstream SSE → unified data: {"text":"..."} ────────────────
-// TOKEN METERING (2026-07-12, docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md
-// section 2.1): providers were requested with `stream: true` but never
-// `stream_options: {include_usage: true}`, so even the OpenAI-shape
-// providers that support it never actually emitted a trailing `usage`
-// event — and extractText() only recognizes `.delta.content` events, so
-// even if a usage event had arrived, it would have been silently dropped
-// (text === null, no-op). `extractUsage` (now added per-provider, see
-// PROVIDERS table) reads that event's `.usage` object when present;
-// captured usage flows through emitLines → pipeNormalizedSSE → onDone.
-// `extractUsage` is optional — providers without it (Anthropic, Gemini:
-// different SSE shape entirely, not handled in this pass) simply never
-// populate `usage`, and `onDone` receives `null` for it as before.
+// TOKEN METERING (docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 2.1):
+// every PROVIDERS entry's extractUsage (added incrementally: OpenAI-shape
+// providers first, then Anthropic + Gemini) normalizes to the same
+// {input_tokens, output_tokens} shape regardless of the upstream's native
+// field names, so this function and handleApiChat need no per-provider
+// branching. `extractUsage` is optional — a provider without one (there
+// are currently none) would simply never populate `usage`, and `onDone`
+// would receive `null` for it, same as before token metering existed.
 function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) {
   let buf = '';
   let chars = 0;
@@ -1464,13 +1529,20 @@ function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) 
     buf = lines.pop();
     const r = emitLines(lines, res, extractText, extractUsage);
     chars += r.chars;
-    if (r.usage) usage = r.usage;
+    // Merge (not overwrite): OpenAI-shape providers report usage once, in a
+    // single final event, so this is a no-op there. Anthropic splits usage
+    // across two events (message_start has input_tokens, message_delta has
+    // output_tokens) — overwriting on the second event would silently drop
+    // the first's input_tokens. Gemini resends the full cumulative object
+    // on every chunk, so the merge just keeps converging to the same
+    // (correct) final values.
+    if (r.usage) usage = { ...usage, ...r.usage };
   });
   upstreamRes.on('end', () => {
     if (buf) {
       const r = emitLines(buf.split('\n'), res, extractText, extractUsage);
       chars += r.chars;
-      if (r.usage) usage = r.usage;
+      if (r.usage) usage = { ...usage, ...r.usage };
     }
     res.write('data: [DONE]\n\n');
     res.end();
@@ -1491,7 +1563,12 @@ function emitLines(lines, res, extractText, extractUsage) {
       if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
       if (extractUsage) {
         const u = extractUsage(evt);
-        if (u) usage = u;
+        // Merge, not overwrite — see the matching comment in
+        // pipeNormalizedSSE for why (Anthropic splits usage across two
+        // events; a fast upstream could flush both into one chunk/lines
+        // batch, so this local accumulator needs the same behavior as
+        // the outer one, not just the outer one).
+        if (u) usage = { ...usage, ...u };
       }
     } catch (_) {}
   }
@@ -1649,15 +1726,15 @@ async function handleApiChat(req, res) {
       (chars, usage) => {
         const ms = Date.now() - t0;
         recordUsage(usageId, chars, ms);
-        // usage is the provider-native object (OpenAI-shape: {prompt_tokens,
-        // completion_tokens, ...}); cost.rs's ledger fields are
-        // input_tokens/output_tokens — map explicitly, don't assume names match.
+        // Every provider's extractUsage now normalizes to
+        // {input_tokens, output_tokens} — matches cost.rs's CostEntry
+        // field names directly, no per-provider mapping needed here.
         if (usage) {
           logRealUsageToLedger({
             task: 'web-chat',
             model: modelId,
-            inputTokens: usage.prompt_tokens || 0,
-            outputTokens: usage.completion_tokens || 0,
+            inputTokens: usage.input_tokens || 0,
+            outputTokens: usage.output_tokens || 0,
             durationMs: ms,
           });
         }
