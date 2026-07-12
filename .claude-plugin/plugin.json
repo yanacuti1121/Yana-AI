@@ -71,13 +71,13 @@
     "commands": 170,
     "agents": 101,
     "scripts": 108,
-    "skills": 2014,
+    "skills": 2016,
     "rules": 71,
-    "checks": 826,
+    "checks": 830,
     "checks_breakdown": {
       "hook_tests": 65,
       "audit_chain_tests": 12,
-      "skill_trigger_checks": 678,
+      "skill_trigger_checks": 682,
       "command_smoke_checks": 6,
       "red_team_scenarios": 65
     },
