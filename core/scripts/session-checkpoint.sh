@@ -17,7 +17,12 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 STATE_DIR="$PROJECT_DIR/.claude/state"
 CHECKPOINT_DIR="$STATE_DIR/checkpoints"
 L2_DIR="$PROJECT_DIR/memory/L2_session"
-BUDGET_FILE="${YANA_TOKEN_BUDGET:-$STATE_DIR/token-budget.json}"
+# core/memory/L2_session/, not $STATE_DIR — must match the path
+# token-budget-guard.sh / src/guard/token_budget.rs / core/mcp/
+# yana-ai-mcp-server.js actually read and write, or TOKENS_USED below
+# silently reads 0 forever (as it always has: $STATE_DIR/token-budget.json
+# has never existed on disk).
+BUDGET_FILE="${YANA_TOKEN_BUDGET:-$PROJECT_DIR/core/memory/L2_session/token-budget.json}"
 COUNTER_FILE="$STATE_DIR/checkpoint-counter.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EPOCH=$(date +%s)
@@ -84,7 +89,9 @@ fi
 TOKENS_USED=0
 if [[ -f "$BUDGET_FILE" ]]; then
   cp "$BUDGET_FILE" "$CP_DIR/token-budget-snapshot.json" 2>/dev/null || true
-  TOKENS_USED=$(python3 -c "import json; print(json.load(open('$BUDGET_FILE')).get('total_tokens_used',0))" 2>/dev/null || echo 0)
+  # BUDGET_FILE is externally-settable (YANA_TOKEN_BUDGET) — pass via env,
+  # not string interpolation, per shell-sanitize-law.md/env-integrity-policy.md.
+  TOKENS_USED=$(YANA_CP_BUDGET_FILE="$BUDGET_FILE" python3 -c "import json, os; print(json.load(open(os.environ['YANA_CP_BUDGET_FILE'])).get('total_tokens_used',0))" 2>/dev/null || echo 0)
 fi
 
 # -- 5. Write manifest

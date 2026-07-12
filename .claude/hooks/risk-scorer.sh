@@ -20,7 +20,12 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 STATE_DIR="$PROJECT_DIR/.claude/state"
 RISK_LOG="$STATE_DIR/risk-scores.jsonl"
-BUDGET_FILE="${YANA_TOKEN_BUDGET:-$STATE_DIR/token-budget.json}"
+# core/memory/L2_session/, not $STATE_DIR — this must match the path
+# token-budget-guard.sh / src/guard/token_budget.rs / core/mcp/
+# yana-ai-mcp-server.js actually read and write, or this file's
+# last_risk_score injection below silently no-ops forever (as it always
+# has: $STATE_DIR/token-budget.json has never existed on disk).
+BUDGET_FILE="${YANA_TOKEN_BUDGET:-$PROJECT_DIR/core/memory/L2_session/token-budget.json}"
 
 mkdir -p "$STATE_DIR"
 
@@ -136,14 +141,22 @@ open('$RISK_LOG','a').write(json.dumps(entry)+'\n')
 " 2>/dev/null || true
 
 # -- Inject into token-budget file
+# BUDGET_FILE (derived from the externally-settable YANA_TOKEN_BUDGET env
+# var) is passed via os.environ, not string-interpolated into the Python
+# source — see core/rules/shell-sanitize-law.md and
+# env-integrity-policy.md. SCORE/BAND stay interpolated: SCORE is always
+# bash-arithmetic-computed and BAND is always one of 4 hardcoded literals
+# ("LOW"/"MEDIUM"/"HIGH"/"CRITICAL", see the scoring block above), neither
+# is externally controllable.
 if [[ -f "$BUDGET_FILE" ]]; then
-  python3 -c "
-import json
+  YANA_RISK_BUDGET_FILE="$BUDGET_FILE" python3 -c "
+import json, os
 try:
-    d=json.load(open('$BUDGET_FILE'))
+    path = os.environ['YANA_RISK_BUDGET_FILE']
+    d=json.load(open(path))
     d['last_risk_score']=$SCORE; d['last_risk_band']='$BAND'
-    json.dump(d,open('$BUDGET_FILE','w'),indent=2)
-except: pass
+    json.dump(d,open(path,'w'),indent=2)
+except Exception: pass
 " 2>/dev/null || true
 fi
 
