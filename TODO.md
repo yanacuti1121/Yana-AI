@@ -22,7 +22,17 @@ xem ví dụ `core/skills/agent-reach/`).
       policy text reproduced. skills-lock.json hash regenerated, verify-skills-lock.sh and
       skill-trigger tests both pass. The zip file anh provided has been processed and
       deleted (content extracted, not needed anymore).
+- [ ] https://github.com/addyosmani/agent-skills — not yet reviewed for overlap against
+      existing `core/skills/` content.
+- [ ] https://github.com/msitarzewski/agency-agents — not yet reviewed for overlap.
+- [ ] https://github.com/ogulcancelik/herdr — not yet reviewed for overlap.
+- [ ] https://github.com/DeusData/codebase-memory-mcp — MCP server, so likely a candidate
+      for a "how to install/wire up this MCP" skill shape rather than a content-porting
+      skill (pattern differs from the others above) — not yet reviewed.
+- [ ] https://github.com/JuliusBrussee/caveman — not yet reviewed for overlap.
+- [ ] https://github.com/DietrichGebert/ponytail — not yet reviewed for overlap.
 
-> Note: anh nói tổng đang có **19 cái cần làm** — 3 link trên là phần mới nhất được
-> thêm vào, nay đã resolve hết (0 actionable). 16 cái còn lại đang được anh track ở nơi
+> Note: anh nói tổng đang có **19 cái cần làm** — 6 link mới nhất (agent-skills,
+> agency-agents, herdr, codebase-memory-mcp, caveman, ponytail) chưa research = 6
+> actionable (system_prompts_leaks đã xong). 12 cái còn lại đang được anh track ở nơi
 > khác (chưa có trong file này) — bổ sung vào đây khi có link.
