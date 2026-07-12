@@ -24,7 +24,15 @@ xem ví dụ `core/skills/agent-reach/`).
       (raw ChatGPT/Claude/Gemini/Grok prompts) — different vendor angle, not a straight
       duplicate. Recommend: extend `ai-system-prompts-intel` with a "general chat products"
       section sourced from this repo, rather than a new skill — not yet done.
+- [ ] https://github.com/addyosmani/agent-skills — not yet reviewed for overlap against
+      existing `core/skills/` content.
+- [ ] https://github.com/msitarzewski/agency-agents — not yet reviewed for overlap.
+- [ ] https://github.com/ogulcancelik/herdr — not yet reviewed for overlap.
+- [ ] https://github.com/DeusData/codebase-memory-mcp — MCP server, so likely a candidate
+      for a "how to install/wire up this MCP" skill shape rather than a content-porting
+      skill (pattern differs from the others above) — not yet reviewed.
 
-> Note: anh nói tổng đang có **19 cái cần làm** — 3 link trên là phần mới nhất được
-> thêm vào, nay đã resolve hết (0 actionable). 16 cái còn lại đang được anh track ở nơi
-> khác (chưa có trong file này) — bổ sung vào đây khi có link.
+> Note: anh nói tổng đang có **19 cái cần làm** — 4 link mới nhất (agent-skills,
+> agency-agents, herdr, codebase-memory-mcp) chưa research, cộng 1 cái pending từ trước
+> (system_prompts_leaks) = 5 actionable. 14 cái còn lại đang được anh track ở nơi khác
+> (chưa có trong file này) — bổ sung vào đây khi có link.
