@@ -105,7 +105,7 @@ test_hook() {
         # silently relabeled as "warn" here, masking a real block as a mere
         # advisory.
         if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh" \
-               || "$hook_name" == "entry-point-verify-reminder.sh") \
+               || "$hook_name" == "entry-point-verify-reminder.sh" || "$hook_name" == "scope-guard.sh") \
               && "$actual_decision" == "allow" ]]; then
             if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null; then
                 actual_decision="warn"
@@ -190,6 +190,43 @@ test_hook "guard-destructive.sh" "Block git \$'push' --force (ANSI-C quoted subc
 test_hook "guard-destructive.sh" "Block git push \$'--force' (ANSI-C quoted force flag, non-main branch)" '{"tool_name":"Bash","tool_input":{"command":"git push $'"'"'--force'"'"' origin feature-branch"}}' "deny"
 test_hook "guard-destructive.sh" "Block rm -{rf,} (brace expansion alongside rm)" '{"tool_name":"Bash","tool_input":{"command":"rm -{rf,} /tmp/x"}}' "deny"
 test_hook "guard-destructive.sh" "Allow unrelated brace expansion with no git/rm mention" '{"tool_name":"Bash","tool_input":{"command":"echo file.{js,ts}"}}' "allow"
+
+# MCP tool-call coverage (2026-07-11): before this fix, this hook only ever
+# read .tool_input.command — an MCP call (tool_name mcp__<server>__<tool>)
+# with its command under a server-specific key produced an empty $COMMAND
+# and silently allowed, regardless of what it actually did.
+test_hook "guard-destructive.sh" "Block MCP execute_command rm -rf (command field)" '{"tool_name":"mcp__desktop-commander__execute_command","tool_input":{"command":"rm -rf /tmp/x"}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool using cmd field, force-push" '{"tool_name":"mcp__some-server__run","tool_input":{"cmd":"git push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool with nested camelCase field, force-push" '{"tool_name":"mcp__x__y","tool_input":{"params":{"shellCommand":"git push --force origin main"}}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool with nested script field, destructive SQL" '{"tool_name":"mcp__code-exec__run","tool_input":{"params":{"script":"DROP TABLE users;"}}}' "deny"
+test_hook "guard-destructive.sh" "Allow MCP tool with rm -rf only in unrelated content field" '{"tool_name":"mcp__notes__create","tool_input":{"content":"Remember: never run rm -rf in prod!"}}' "allow"
+test_hook "guard-destructive.sh" "Allow MCP tool with benign description mentioning script" '{"tool_name":"mcp__ticket__create","tool_input":{"description":"Please update the onboarding script reference"}}' "allow"
+test_hook "guard-destructive.sh" "Allow MCP search with unrelated query text" '{"tool_name":"mcp__web-search__search","tool_input":{"query":"react hooks best practices"}}' "allow"
+test_hook "guard-destructive.sh" "Allow native Bash still works after MCP change (regression)" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' "allow"
+
+# 2026-07-11 security/code-auditor review findings on the initial MCP
+# coverage change — both were verified live bypasses before these fixes.
+test_hook "guard-destructive.sh" "Block MCP array-of-strings under plural 'commands' key" '{"tool_name":"mcp__x__y","tool_input":{"commands":["rm -rf /tmp/x","echo ok"]}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP acronym-prefixed key (SQLCommand)" '{"tool_name":"mcp__x__y","tool_input":{"SQLCommand":"DROP TABLE users;"}}' "deny"
+
+# 3b. scope-guard.sh — advisory-only (never blocks, exit 0 always; a
+# "warn" here means additionalContext was present — see the relabeling
+# special-case near the top of this file). Had zero coverage in this
+# harness before 2026-07-11's MCP fallback change; baseline pre-MCP cases
+# are included alongside the new ones so this ships with a regression net.
+echo ""
+echo "--- scope-guard.sh ---"
+test_hook "scope-guard.sh" "Warn on Write to app/" '{"tool_name":"Write","tool_input":{"path":"app/page.tsx"}}' "warn"
+test_hook "scope-guard.sh" "Warn on Edit to .env" '{"tool_name":"Edit","tool_input":{"file_path":".env.production"}}' "warn"
+test_hook "scope-guard.sh" "Allow Write to unrelated path" '{"tool_name":"Write","tool_input":{"path":"docs/notes.md"}}' "allow"
+test_hook "scope-guard.sh" "Bypass via YANA_SCOPE_OK" '{"tool_name":"Write","tool_input":{"path":"app/page.tsx"}}' "allow" "YANA_SCOPE_OK" "1"
+test_hook "scope-guard.sh" "Ignore unrelated tool_name (Read)" '{"tool_name":"Read","tool_input":{"file_path":"app/page.tsx"}}' "allow"
+# MCP fallback (2026-07-11): MCP file-writing tools don't share a single
+# field path for the target location the way native Write/Edit do.
+test_hook "scope-guard.sh" "Warn on MCP write_file with standard path field" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"path":"app/page.tsx","content":"x"}}' "warn"
+test_hook "scope-guard.sh" "Warn on MCP write with non-standard path key (fallback)" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"target_location":"components/Button.tsx"}}' "warn"
+test_hook "scope-guard.sh" "Allow MCP search with unrelated query text" '{"tool_name":"mcp__web-search__search","tool_input":{"query":"react hooks best practices"}}' "allow"
+test_hook "scope-guard.sh" "MCP bypass via YANA_SCOPE_OK" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"path":"app/page.tsx"}}' "allow" "YANA_SCOPE_OK" "1"
 
 # 4. db-protect.sh
 echo ""

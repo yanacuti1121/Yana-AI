@@ -87,6 +87,25 @@ function getOctokit(env: Env, installationId: number): Octokit {
   });
 }
 
+// SECURITY FIX (2026-07-12, docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md
+// section 1.4): a plain `===` on the signature string is not constant-time
+// — the JS engine can short-circuit at the first mismatched character,
+// which in principle leaks timing information an attacker could use to
+// recover the correct signature byte-by-byte. WebCrypto has no built-in
+// timing-safe compare, so this does it manually: check length first (the
+// hex-encoded SHA-256 output is always the same fixed length, so this
+// isn't itself a useful timing signal), then XOR every character pair and
+// accumulate into a single value, which always does the same number of
+// operations regardless of where — or whether — a mismatch occurs.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 async function verifySignature(body: string, signature: string, secret: string): Promise<boolean> {
   if (!signature || !secret) return false;
   const encoder = new TextEncoder();
@@ -95,7 +114,7 @@ async function verifySignature(body: string, signature: string, secret: string):
   );
   const mac = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
   const expected = 'sha256=' + Array.from(new Uint8Array(mac)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return signature === expected;
+  return timingSafeEqual(signature, expected);
 }
 
 export default app;
