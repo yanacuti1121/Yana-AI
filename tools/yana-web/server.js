@@ -8,6 +8,8 @@ const path  = require('path');
 const url   = require('url');
 const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
+const { OutputScrubber } = require('./lib/output-scrubber');
+const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
@@ -1519,15 +1521,32 @@ function handleApiDashboard(req, res) {
 // branching. `extractUsage` is optional — a provider without one (there
 // are currently none) would simply never populate `usage`, and `onDone`
 // would receive `null` for it, same as before token metering existed.
-function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) {
+// OUTPUT GUARDRAIL (docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section
+// 2.2): `scrubber` (an OutputScrubber instance, see
+// lib/output-scrubber.js, or null to skip — used by handleApiHtmlConvert's
+// call site, out of scope for this pass) runs every extracted text chunk
+// through secret/PII detection before it reaches `res.write`. A hard-block
+// match (high-confidence secret shapes) aborts the stream with a fixed
+// message instead of forwarding the match; PII matches are redacted in
+// place and streaming continues. The scrubber's own hold-back window means
+// a small amount of text always lags behind what's been generated — see
+// its module doc for why, and flush() is what releases the final tail.
+function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, scrubber, onDone) {
   let buf = '';
   let chars = 0;
   let usage = null;
+  let blocked = false;
+
+  const emitBlockedMessage = () => {
+    res.write(`data: ${JSON.stringify({ text: '[response blocked — potential secret detected]' })}\n\n`);
+  };
+
   upstreamRes.on('data', chunk => {
+    if (blocked) return;
     buf += chunk.toString();
     const lines = buf.split('\n');
     buf = lines.pop();
-    const r = emitLines(lines, res, extractText, extractUsage);
+    const r = emitLines(lines, res, extractText, extractUsage, scrubber);
     chars += r.chars;
     // Merge (not overwrite): OpenAI-shape providers report usage once, in a
     // single final event, so this is a no-op there. Anthropic splits usage
@@ -1537,12 +1556,36 @@ function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) 
     // on every chunk, so the merge just keeps converging to the same
     // (correct) final values.
     if (r.usage) usage = { ...usage, ...r.usage };
+    if (r.blocked) {
+      blocked = true;
+      emitBlockedMessage();
+      res.write('data: [DONE]\n\n');
+      res.end();
+      if (onDone) onDone(chars, usage);
+    }
   });
   upstreamRes.on('end', () => {
+    if (blocked) return;
     if (buf) {
-      const r = emitLines(buf.split('\n'), res, extractText, extractUsage);
+      const r = emitLines(buf.split('\n'), res, extractText, extractUsage, scrubber);
       chars += r.chars;
       if (r.usage) usage = { ...usage, ...r.usage };
+      if (r.blocked) {
+        emitBlockedMessage();
+        res.write('data: [DONE]\n\n');
+        res.end();
+        if (onDone) onDone(chars, usage);
+        return;
+      }
+    }
+    if (scrubber) {
+      const f = scrubber.flush();
+      if (f.blocked) {
+        emitBlockedMessage();
+      } else if (f.text) {
+        chars += f.text.length;
+        res.write(`data: ${JSON.stringify({ text: f.text })}\n\n`);
+      }
     }
     res.write('data: [DONE]\n\n');
     res.end();
@@ -1550,17 +1593,26 @@ function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) 
   });
 }
 
-function emitLines(lines, res, extractText, extractUsage) {
+function emitLines(lines, res, extractText, extractUsage, scrubber) {
   let emitted = 0;
   let usage = null;
   for (const line of lines) {
     if (!line.startsWith('data: ')) continue;
     const raw = line.slice(6).trim();
-    if (raw === '[DONE]') return { chars: emitted, usage };
+    if (raw === '[DONE]') return { chars: emitted, usage, blocked: false };
     try {
       const evt = JSON.parse(raw);
       const text = extractText(evt);
-      if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
+      if (text) {
+        if (scrubber) {
+          const r = scrubber.feed(text);
+          if (r.blocked) return { chars: emitted, usage, blocked: true };
+          if (r.text) { emitted += r.text.length; res.write(`data: ${JSON.stringify({ text: r.text })}\n\n`); }
+        } else {
+          emitted += text.length;
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
       if (extractUsage) {
         const u = extractUsage(evt);
         // Merge, not overwrite — see the matching comment in
@@ -1572,7 +1624,7 @@ function emitLines(lines, res, extractText, extractUsage) {
       }
     } catch (_) {}
   }
-  return { chars: emitted, usage };
+  return { chars: emitted, usage, blocked: false };
 }
 
 // Fire-and-forget bridge: real per-call token usage → `yana-rt cost log`
@@ -1598,6 +1650,47 @@ function logRealUsageToLedger({ task, model, inputTokens, outputTokens, duration
   });
 }
 
+// One breaker instance for the process lifetime — state must persist
+// across requests to actually detect "5 consecutive failures", so this
+// cannot be created per-call. See lib/provider-failover.js.
+const providerCircuitBreaker = new CircuitBreaker();
+
+// Extracted from the single connection attempt that used to live inline
+// in handleApiChat — same behavior for a single call (resolves on 2xx,
+// rejects with a descriptive Error on transport failure or non-2xx),
+// now reusable per fallback-chain candidate.
+function connectToProvider(providerEntry, apiKey, reqBody, reqPath) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: providerEntry.hostname,
+      port:     providerEntry.port,
+      path:     reqPath,
+      method:   'POST',
+      headers:  { ...providerEntry.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
+    };
+    // http only for loopback providers (9router) — every remote host stays TLS
+    const transport = (providerEntry.protocol === 'http' && providerEntry.hostname === '127.0.0.1') ? http : https;
+
+    const upstreamReq = transport.request(options, upstreamRes => {
+      if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
+        let errBody = '';
+        upstreamRes.on('data', c => { errBody += c; });
+        upstreamRes.on('end', () => {
+          let detail = '';
+          try { const j = JSON.parse(errBody); detail = j.error?.message || j.message || ''; } catch (_) {}
+          reject(new Error(`Upstream HTTP ${upstreamRes.statusCode}${detail ? ': ' + detail : ''}`));
+        });
+        return;
+      }
+      resolve(upstreamRes);
+    });
+
+    upstreamReq.on('error', err => reject(err));
+    upstreamReq.write(reqBody);
+    upstreamReq.end();
+  });
+}
+
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 async function handleApiChat(req, res) {
   let body;
@@ -1607,7 +1700,7 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys } = parsed;
   const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
@@ -1681,24 +1774,17 @@ async function handleApiChat(req, res) {
   // still trigger unexpected upstream API errors or leak internal info.
   const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,100}$/;
   const rawModelId  = typeof model === 'string' ? model.trim() : '';
-  const modelId     = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : p.defaultModel;
-  // images: array of { mimeType, data } — only passed if provider supports vision
-  const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;
-  const reqBody = p.body(modelId, systemPrompt, task, imgs);
+  const explicitModelId = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : null;
 
-  // Gemini builds its path from the model id; the key always travels in the
-  // x-goog-api-key header, never the URL (rule 66 / API2)
-  const reqPath = p.buildPath ? p.buildPath(modelId, apiKey) : p.path;
-
-  const options = {
-    hostname: p.hostname,
-    port:     p.port,
-    path:     reqPath,
-    method:   'POST',
-    headers:  { ...p.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
-  };
-  // http only for loopback providers (9router) — every remote host stays TLS
-  const transport = (p.protocol === 'http' && p.hostname === '127.0.0.1') ? http : https;
+  // Fallback chain: primary provider first, then any same-shape provider
+  // the client supplied a key for in fallbackApiKeys (BYOK — read fresh
+  // from this request body only, never persisted). A client that sends
+  // only apiKey (no fallbackApiKeys) gets a chain of exactly one
+  // candidate, the primary — a strict no-op vs. pre-failover behavior.
+  // See lib/provider-failover.js.
+  const primaryProviderKey = (typeof providerKey === 'string' && providerKey) ? providerKey : 'anthropic';
+  const primaryUsageId     = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
+  const chain = buildFallbackChain(primaryProviderKey, apiKey, fallbackApiKeys);
 
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',
@@ -1707,47 +1793,75 @@ async function handleApiChat(req, res) {
   });
 
   const t0 = Date.now();
-  const usageId = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
 
-  const upstreamReq = transport.request(options, upstreamRes => {
-    if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
-      let errBody = '';
-      upstreamRes.on('data', c => { errBody += c; });
-      upstreamRes.on('end', () => {
-        let detail = '';
-        try { const j = JSON.parse(errBody); detail = j.error?.message || j.message || ''; } catch (_) {}
-        const msg = `Upstream HTTP ${upstreamRes.statusCode}${detail ? ': ' + detail : ''}`;
-        res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
-        res.end();
-      });
-      return;
+  let upstreamRes   = null;
+  let usedCandidate = null;
+  let lastErr       = null;
+  for (const candidate of chain) {
+    if (!providerCircuitBreaker.canAttempt(candidate.providerKey)) {
+      lastErr = new Error(`circuit open for ${candidate.providerKey}`);
+      continue;
     }
-    pipeNormalizedSSE(upstreamRes, res, p.extractText, p.extractUsage,
-      (chars, usage) => {
-        const ms = Date.now() - t0;
-        recordUsage(usageId, chars, ms);
-        // Every provider's extractUsage now normalizes to
-        // {input_tokens, output_tokens} — matches cost.rs's CostEntry
-        // field names directly, no per-provider mapping needed here.
-        if (usage) {
-          logRealUsageToLedger({
-            task: 'web-chat',
-            model: modelId,
-            inputTokens: usage.input_tokens || 0,
-            outputTokens: usage.output_tokens || 0,
-            durationMs: ms,
-          });
-        }
-      });
-  });
+    const cp = PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic;
+    // Each candidate uses ITS OWN default model unless the client asked
+    // for a specific model id explicitly — reusing the primary's default
+    // model id against a different provider (e.g. a Groq-only model name
+    // replayed against OpenRouter) would 404 even though the fallback
+    // provider itself is healthy.
+    const candidateModelId = explicitModelId || cp.defaultModel;
+    const candidateImgs    = (cp.vision && Array.isArray(images) && images.length) ? images : null;
+    const candidateReqBody = cp.body(candidateModelId, systemPrompt, task, candidateImgs);
+    // Gemini builds its path from the model id; the key always travels in
+    // the x-goog-api-key header, never the URL (rule 66 / API2)
+    const candidateReqPath = cp.buildPath ? cp.buildPath(candidateModelId, candidate.apiKey) : cp.path;
 
-  upstreamReq.on('error', () => {
-    res.write(`data: ${JSON.stringify({ error: 'Upstream connection failed' })}\n\n`);
+    try {
+      upstreamRes = await connectToProvider(cp, candidate.apiKey, candidateReqBody, candidateReqPath);
+      providerCircuitBreaker.recordSuccess(candidate.providerKey);
+      usedCandidate = {
+        providerKey: candidate.providerKey,
+        provider:    cp,
+        modelId:     candidateModelId,
+        usageId:     candidate.providerKey === primaryProviderKey ? primaryUsageId : candidate.providerKey,
+      };
+      break;
+    } catch (err) {
+      providerCircuitBreaker.recordFailure(candidate.providerKey);
+      lastErr = err;
+    }
+  }
+
+  if (!upstreamRes) {
+    const msg = lastErr ? lastErr.message : 'All providers unavailable';
+    res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
     res.end();
-  });
+    return;
+  }
 
-  upstreamReq.write(reqBody);
-  upstreamReq.end();
+  // Only announce a provider switch when failover actually happened — a
+  // single-candidate chain (the overwhelmingly common case today) never
+  // emits this frame, so existing clients see no new frame shape.
+  if (usedCandidate.providerKey !== chain[0].providerKey) {
+    res.write(`data: ${JSON.stringify({ provider: usedCandidate.providerKey })}\n\n`);
+  }
+
+  pipeNormalizedSSE(upstreamRes, res, usedCandidate.provider.extractText, usedCandidate.provider.extractUsage, new OutputScrubber(),
+    (chars, usage) => {
+      const ms = Date.now() - t0;
+      recordUsage(usedCandidate.usageId, chars, ms);
+      // Every provider's extractUsage now normalizes to
+      // {input_tokens, output_tokens} — matches cost.rs's CostEntry
+      // field names directly, no per-provider mapping needed here.
+      if (usage) {
+        logRealUsageToLedger({
+          task: 'web-chat',
+          model: usedCandidate.modelId,
+          inputTokens: usage.input_tokens || 0,
+          outputTokens: usage.output_tokens || 0,
+          durationMs: ms,
+        });
+      }
+    });
 }
 
 // ── Auth plumbing ─────────────────────────────────────────────────────────────
