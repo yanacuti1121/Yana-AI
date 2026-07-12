@@ -798,6 +798,11 @@ check_skill "zlib-stream-compression"   "zlib"
 check_skill "zombie-process-cleanup"   "reaping"
 check_skill "zombie-process-cleanup"   "zombie/orphan"
 
+check_skill "deusdata--codebase-memory-mcp"   "codebase memory mcp"
+check_skill "deusdata--codebase-memory-mcp"   "code knowledge graph"
+check_skill "ponytail"   "ponytail mode"
+check_skill "ponytail"   "yagni"
+
 echo ""
 echo "=== Summary ==="
 echo "Passed: $PASS"
