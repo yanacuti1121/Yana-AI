@@ -10,9 +10,9 @@ $ yana-ai
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
 │ v0.43.2 · Safety firewall for AI coding agents │ Tips for getting started                                                                   │
-│ 101 agents · 2,013 skills                      │ yana-ai doctor                                                                             │
-│ 71 rules · 57 hooks · 107 scripts              │ yana-ai init                                                                               │
-│ 166 commands                                   │                                                                                           │
+│ 101 agents · 2,016 skills                      │ yana-ai doctor                                                                             │
+│ 71 rules · 58 hooks · 108 scripts              │ yana-ai init                                                                               │
+│ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
 │                                                 │ v0.43.2 — Ollama model-id fix, entry-point verify law                                     │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -50,11 +50,11 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-2,013-2f7e6e?style=flat-square" />
+  <img src="https://img.shields.io/badge/🧩_skills-2,016-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
   <img src="https://img.shields.io/badge/📜_rules-71-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-57-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_hooks-58-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/⚡_commands-170-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
@@ -96,7 +96,7 @@ Yana AI sits between the agent and your system: every risky tool call passes thr
 
 ## What it catches
 
-Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via 57 agent hooks backed by a Rust runtime (`yana-rt`). Under the hood: 101 specialist agents, 2,013 skills, and 71 enforced rules, checked 826 ways in CI.
+Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via 58 agent hooks backed by a Rust runtime (`yana-rt`). Under the hood: 101 specialist agents, 2,016 skills, and 71 enforced rules, checked 830 ways in CI.
 
 ## How it works
 
@@ -120,15 +120,15 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 
 | | |
 |---|---|
-| 🧩 Skills | **2,013** workflow skill definitions |
+| 🧩 Skills | **2,016** workflow skill definitions |
 | 🤖 Agents | **101** specialist agents |
 | 📜 Safety rules | **71** enforced rules |
-| 🪝 Hooks | **57** pre/post-execution hooks |
-| ⚡ Slash commands | **166** |
-| 🔧 Scripts | **107** |
+| 🪝 Hooks | **58** pre/post-execution hooks |
+| ⚡ Slash commands | **170** |
+| 🔧 Scripts | **108** |
 | 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
 | 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
-| ✅ Rule checks in CI | **826** |
+| ✅ Rule checks in CI | **830** |
 
 ---
 
@@ -222,7 +222,7 @@ Posts a comment on every PR:
 ```bash
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
-yana-ai vault search Q                # search 2,013 skills by keyword
+yana-ai vault search Q                # search 2,016 skills by keyword
 yana-ai hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yana-ai fix .                         # auto-fix rule violations
 yana-ai doctor .                      # full system health check
@@ -245,7 +245,7 @@ core/
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 specialist agent definitions
-├── skills/         # 2,013 SKILL.md files
+├── skills/         # 2,016 SKILL.md files
 ├── config/
 │   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
 │   └── skills-lock.json  # skill content hashes
@@ -334,10 +334,10 @@ If Yana AI is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 2,013 skills, multi-harness support
+- Rust runtime (`yana-rt`), 101 agents, 2,016 skills, multi-harness support
 - 12 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-The 2,013 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
+The 2,016 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
 ---
 
@@ -386,7 +386,7 @@ yana-ai route classify "deploy to production"
 
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
-- **skill** → matched against a 2,013-entry index, dispatches exact skill agent
+- **skill** → matched against a 2,016-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap`, a Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
 - **daily** → routes to `daily-assistant`, summarize / plan / draft (triggers on "summarize", "write an email", "make a plan" — English and Vietnamese)
 - **complex** → dispatch specialist agent(s) with a scoped brief
