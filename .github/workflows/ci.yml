@@ -116,3 +116,80 @@ jobs:
 
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
+
+  self-audit:
+    name: Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)
+    # .github/workflows/yana-audit.yml is a copy-paste EXAMPLE for other
+    # repos (its own header says so, and it explicitly skips itself here:
+    # `if: github.repository != 'yanacuti1121/yana-ai'`) — this job is the
+    # real thing: the tool that audits other people's agent setups,
+    # actually run against its own source, built fresh from this commit
+    # rather than a possibly-stale `cargo install`'d release.
+    # docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 3.5 #31.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write   # required for SARIF upload to GitHub Code Scanning
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+        with:
+          fetch-depth: 0   # needed for --diff origin/<base> on pull_request
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+
+      - name: Build yana-rt (release)
+        run: cargo build --release --bin yana-rt
+
+      - name: Run self-audit
+        run: |
+          # On PRs: only the files changed in this PR — a ratchet that
+          # blocks new debt without failing on whatever of this repo's
+          # existing medium/low findings haven't been cleaned up yet. On
+          # push to main: full-repo scan, since there's no "base" diff for
+          # a direct push. AU010/CI008 ignored for the same documented
+          # reason .github/workflows/yana-audit.yml's own template already
+          # ignores them: known-noisy heuristics on a repo that legitimately
+          # documents these exact patterns and legitimately publishes
+          # packages.
+          DIFF_FLAG=""
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            DIFF_FLAG="--diff origin/${{ github.base_ref }}"
+          fi
+          ./target/release/yana-rt scan . \
+            $DIFF_FLAG \
+            --fail-on high \
+            --ignore AU010 \
+            --ignore CI008 \
+            --sarif yana-ai-self-audit.sarif \
+            --markdown yana-ai-self-audit-report.md
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: yana-ai-self-audit.sarif
+          category: yana-ai-self-audit
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1 (node24)
+        with:
+          name: yana-ai-self-audit-report
+          path: |
+            yana-ai-self-audit-report.md
+            yana-ai-self-audit.sarif
+          retention-days: 30
