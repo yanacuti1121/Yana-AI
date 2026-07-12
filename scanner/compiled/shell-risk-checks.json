@@ -129,7 +129,11 @@
     "core/bus/**",
     "scanner/**",
     "reports/**",
-    "docs/**"
+    "docs/**",
+    ".venv/**",
+    "**/site-packages/**",
+    "tests/**",
+    "demo/**"
   ],
   "file_patterns": [
     "**/*.sh",

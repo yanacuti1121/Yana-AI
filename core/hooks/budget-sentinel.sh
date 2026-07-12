@@ -41,6 +41,47 @@ json.dump(d, open(path,'w'))
   [[ $TOKENS_REMAINING -lt 0 ]] && TOKENS_REMAINING=0
 fi
 
+# ── Cập nhật total_tokens_used trong token-budget.json ──────────────────────
+# token-budget.json (written by token-budget-guard.sh / src/guard/token_budget.rs,
+# a PreToolUse hook) has always initialized total_tokens_used to 0 and never
+# written a nonzero value afterward — every reader of that field
+# (session-checkpoint.sh, core/mcp/yana-ai-mcp-server.js, and
+# token_budget.rs's own BUDGET WARNING check) has always seen a permanent 0.
+# This is the one hook in the chain that already has a real-or-estimated
+# running token count (TOKENS_USED above) on every PostToolUse call, so it
+# is the natural place to keep that shared field live. Read-modify-write,
+# not overwrite: token-budget-guard.sh owns loop_attempts/fast_tier_* on the
+# same file and must not have those clobbered by this hook.
+export YANA_TOKEN_BUDGET_FILE="${YANA_TOKEN_BUDGET:-${CLAUDE_PROJECT_DIR:-.}/core/memory/L2_session/token-budget.json}"
+export YANA_TOKENS_USED_NOW="$TOKENS_USED"
+python3 -c "
+import json, os
+from datetime import datetime, timezone
+
+# Path and token count come in via env, not string-interpolated into this
+# script — YANA_TOKEN_BUDGET is an externally-settable env var and must
+# never be spliced directly into a Python source string (injection risk;
+# see core/rules/shell-sanitize-law.md and env-integrity-policy.md).
+path = os.environ['YANA_TOKEN_BUDGET_FILE']
+tokens_used = int(os.environ['YANA_TOKENS_USED_NOW'])
+
+d = {}
+if os.path.exists(path):
+    try: d = json.load(open(path))
+    except Exception: d = {}
+if not isinstance(d, dict):
+    d = {}
+d.setdefault('session_start', datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
+d.setdefault('actions', [])
+d.setdefault('loop_attempts', {})
+d.setdefault('fast_tier_triggered', False)
+d['total_tokens_used'] = tokens_used
+parent = os.path.dirname(path)
+if parent:
+    os.makedirs(parent, exist_ok=True)
+json.dump(d, open(path, 'w'), indent=2)
+" 2>/dev/null || true
+
 # ── Tính phần trăm ───────────────────────────────────────────────────────────
 TOTAL=$((TOKENS_USED + TOKENS_REMAINING))
 [[ $TOTAL -eq 0 ]] && exit 0

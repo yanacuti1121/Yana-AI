@@ -1167,6 +1167,150 @@ else
 fi
 rm -rf "$BUDGET_TMP"
 
+# ── budget-sentinel.sh: total_tokens_used bridge ──────────────────────────────
+# token-budget.json's total_tokens_used field was written by nothing (always
+# stuck at 0, per the schema default in token_budget.rs/token-budget-guard.sh)
+# even though 4 different readers expected a real running count. This hook
+# is now the bridge: every PostToolUse call writes its current TOKENS_USED
+# (real, from CLAUDE_CONTEXT_TOKENS_USED, or the tool-call-count estimate)
+# into the same shared file, without disturbing the fields
+# token-budget-guard.sh itself owns (loop_attempts, fast_tier_triggered).
+echo ""
+echo "=== budget-sentinel.sh: total_tokens_used bridge ==="
+
+SENTINEL_TMP=$(mktemp -d)
+register_temp "$SENTINEL_TMP"
+SENTINEL_BUDGET_FILE="$SENTINEL_TMP/token-budget.json"
+
+echo -n "budget-sentinel [writes real TOKENS_USED into token-budget.json]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+CLAUDE_CONTEXT_TOKENS_USED=12345 CLAUDE_CONTEXT_TOKENS_REMAINING=187655 CLAUDE_CONTEXT_WINDOW=200000 \
+   YANA_TOKEN_BUDGET="$SENTINEL_BUDGET_FILE" \
+   bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 || true
+_written=$(jq -r '.total_tokens_used // "MISSING"' "$SENTINEL_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+if [[ "$_written" == "12345" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected total_tokens_used=12345, got $_written)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "budget-sentinel [read-modify-write preserves loop_attempts/fast_tier_triggered]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+jq -n '{
+  session_start: "2026-01-01T00:00:00Z",
+  total_tokens_used: 0,
+  actions: [],
+  loop_attempts: {"Bash": 3},
+  fast_tier_triggered: true,
+  fast_tier_tool: "Bash"
+}' > "$SENTINEL_BUDGET_FILE"
+CLAUDE_CONTEXT_TOKENS_USED=99999 CLAUDE_CONTEXT_TOKENS_REMAINING=100001 CLAUDE_CONTEXT_WINDOW=200000 \
+   YANA_TOKEN_BUDGET="$SENTINEL_BUDGET_FILE" \
+   bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 || true
+_loop=$(jq -r '.loop_attempts.Bash // "MISSING"' "$SENTINEL_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+_fast=$(jq -r '.fast_tier_triggered // "MISSING"' "$SENTINEL_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+_tok=$(jq -r '.total_tokens_used // "MISSING"' "$SENTINEL_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+if [[ "$_loop" == "3" && "$_fast" == "true" && "$_tok" == "99999" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected loop_attempts.Bash=3 fast_tier_triggered=true total_tokens_used=99999, got loop=$_loop fast=$_fast tok=$_tok)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "budget-sentinel [malicious YANA_TOKEN_BUDGET path cannot execute code]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_injection_marker="$SENTINEL_TMP/INJECTED"
+rm -f "$_injection_marker"
+_malicious_path="$SENTINEL_TMP/pwned'; import os as _o; _o.system('touch $_injection_marker'); x='.json"
+CLAUDE_CONTEXT_TOKENS_USED=1 CLAUDE_CONTEXT_TOKENS_REMAINING=1 CLAUDE_CONTEXT_WINDOW=2 \
+   YANA_TOKEN_BUDGET="$_malicious_path" \
+   bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 || true
+if [[ ! -f "$_injection_marker" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (injection marker file was created — path was interpolated unsafely)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -rf "$SENTINEL_TMP"
+
+# ── token-budget.json: risk-scorer.sh / session-checkpoint.sh path bridge ────
+# Both scripts' YANA_TOKEN_BUDGET fallback used to default to
+# $STATE_DIR/token-budget.json (.claude/state/), a file that never existed —
+# a completely different path than the one token-budget-guard.sh / src/guard/
+# token_budget.rs / core/mcp/yana-ai-mcp-server.js / budget-sentinel.sh (see
+# above) actually read and write (core/memory/L2_session/token-budget.json).
+# Found during code-auditor review of the budget-sentinel.sh bridge above —
+# that bridge alone didn't reach these two consumers because of this split.
+# This test proves the fix end-to-end: all three scripts, run in sequence
+# against the same YANA_TOKEN_BUDGET override, actually share state now.
+echo ""
+echo "=== token-budget.json: risk-scorer.sh / session-checkpoint.sh path bridge ==="
+
+BRIDGE_TMP=$(mktemp -d)
+register_temp "$BRIDGE_TMP"
+BRIDGE_BUDGET_FILE="$BRIDGE_TMP/token-budget.json"
+
+echo -n "path bridge [budget-sentinel writes, risk-scorer reads+injects the same file]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+CLAUDE_CONTEXT_TOKENS_USED=5000 CLAUDE_CONTEXT_TOKENS_REMAINING=195000 CLAUDE_CONTEXT_WINDOW=200000 \
+   YANA_TOKEN_BUDGET="$BRIDGE_BUDGET_FILE" \
+   bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 || true
+YANA_TOKEN_BUDGET="$BRIDGE_BUDGET_FILE" \
+   bash "$CLAUDE_DIR/hooks/risk-scorer.sh" <<< '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' >/dev/null 2>&1 || true
+_bridge_tok=$(jq -r '.total_tokens_used // "MISSING"' "$BRIDGE_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+_bridge_band=$(jq -r '.last_risk_band // "MISSING"' "$BRIDGE_BUDGET_FILE" 2>/dev/null || echo "MISSING")
+if [[ "$_bridge_tok" == "5000" && "$_bridge_band" != "MISSING" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected total_tokens_used=5000 and a last_risk_band present, got tok=$_bridge_tok band=$_bridge_band)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "path bridge [risk-scorer malicious YANA_TOKEN_BUDGET path cannot execute code]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+# risk-scorer.sh's real vulnerable shape was `open('$BUDGET_FILE')` NESTED
+# inside json.load(...), not a standalone `path = '$VAR'` assignment (that's
+# budget-sentinel.sh's shape, tested above). Breaking out of a nested call
+# needs the injected payload to close both open() and json.load() before
+# starting new statements ('...')); <code>#), and — critically — Python
+# evaluates open() eagerly, so the *truncated prefix* (everything up to the
+# first unescaped quote) must itself be a real, valid-JSON file or the
+# exploit raises before ever reaching the injected code. A payload that
+# just breaks the quote (no paren-closing, no real prefix file) produces a
+# SyntaxError/FileNotFoundError that's silently swallowed either way —
+# passing regardless of whether the fix is present, which proves nothing.
+# BRIDGE_BUDGET_FILE (already valid JSON from the sub-test above) is reused
+# as that real prefix file. The injected marker name is bare (no path
+# separator) — embedding an absolute path inside the injected payload would
+# itself break the *outer* decoy-file setup below, since the last "/"
+# anywhere in the crafted string is what `touch` treats as the required
+# parent directory for the decoy file.
+_rs_injection_marker="RS_INJECTED"
+rm -f "$BRIDGE_TMP/$_rs_injection_marker"
+_rs_malicious_path="${BRIDGE_BUDGET_FILE}')); import os as _o; _o.system('touch $_rs_injection_marker')#"
+touch "$_rs_malicious_path" 2>/dev/null || true  # decoy file at the full literal path, so the [[ -f ]] guard inside risk-scorer.sh doesn't just skip the block
+(cd "$BRIDGE_TMP" && YANA_TOKEN_BUDGET="$_rs_malicious_path" \
+   bash "$CLAUDE_DIR/hooks/risk-scorer.sh" <<< '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' >/dev/null 2>&1) || true
+if [[ ! -f "$BRIDGE_TMP/$_rs_injection_marker" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (injection marker file was created — path was interpolated unsafely)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "path bridge [session-checkpoint reads real total_tokens_used from the shared file]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_ckpt_out=$(YANA_TOKEN_BUDGET="$BRIDGE_BUDGET_FILE" bash "$CLAUDE_DIR/scripts/session-checkpoint.sh" --name "bridge-test" --force 2>&1 || true)
+if echo "$_ckpt_out" | grep -q "tokens=5000"; then
+    echo "PASS"
+else
+    echo "FAIL (expected checkpoint output to report tokens=5000)"
+    echo "Output: $_ckpt_out"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -rf "$BRIDGE_TMP"
+
 # ── prompt-injection-guard.sh ─────────────────────────────────────────────────
 echo ""
 echo "=== prompt-injection-guard.sh (L3.5) ==="
