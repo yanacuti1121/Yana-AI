@@ -10078,7 +10078,17 @@
       "computedHash": "2978ddc2d1da0a1a82956416afb6d2d9e22c95af8614ce6c417b5fb0c9e6cb4b",
       "localPath": ".claude/skills/langchain-ai--openwiki",
       "addedAt": "2026-07-11T02:57:16Z"
+    },
+    "deusdata--codebase-memory-mcp": {
+      "computedHash": "d699a6fe991c7c97c9552949cf67ba4fa130bf1794672741b7748fa35fdd8cad",
+      "localPath": ".claude/skills/deusdata--codebase-memory-mcp",
+      "addedAt": "2026-07-12T13:20:54Z"
+    },
+    "ponytail": {
+      "computedHash": "8289a79d0f094ceeae7911a2211c79341df0bbe6d5c2307ba3c5d0f3f1fff09f",
+      "localPath": ".claude/skills/ponytail",
+      "addedAt": "2026-07-12T13:20:54Z"
     }
   },
-  "total": 2014
+  "total": 2017
 }
