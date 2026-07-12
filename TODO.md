@@ -31,8 +31,10 @@ xem ví dụ `core/skills/agent-reach/`).
 - [ ] https://github.com/DeusData/codebase-memory-mcp — MCP server, so likely a candidate
       for a "how to install/wire up this MCP" skill shape rather than a content-porting
       skill (pattern differs from the others above) — not yet reviewed.
+- [ ] https://github.com/JuliusBrussee/caveman — not yet reviewed for overlap.
+- [ ] https://github.com/DietrichGebert/ponytail — not yet reviewed for overlap.
 
-> Note: anh nói tổng đang có **19 cái cần làm** — 4 link mới nhất (agent-skills,
-> agency-agents, herdr, codebase-memory-mcp) chưa research, cộng 1 cái pending từ trước
-> (system_prompts_leaks) = 5 actionable. 14 cái còn lại đang được anh track ở nơi khác
-> (chưa có trong file này) — bổ sung vào đây khi có link.
+> Note: anh nói tổng đang có **19 cái cần làm** — 6 link mới nhất (agent-skills,
+> agency-agents, herdr, codebase-memory-mcp, caveman, ponytail) chưa research, cộng 1 cái
+> pending từ trước (system_prompts_leaks) = 7 actionable. 12 cái còn lại đang được anh
+> track ở nơi khác (chưa có trong file này) — bổ sung vào đây khi có link.
