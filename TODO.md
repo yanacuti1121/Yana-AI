@@ -15,15 +15,13 @@ xem ví dụ `core/skills/agent-reach/`).
 - [x] https://github.com/Panniantong/Agent-Reach — already done, and done twice. Deduped:
       removed `core/skills/panniantong--agent-reach/` (thinner installer-style dup), kept
       `core/skills/agent-reach/` (richer, has Anti-Fake-Pass + See Also). Lockfile pruned.
-- [ ] https://github.com/asgeirtj/system_prompts_leaks — 56k⭐, CC0, updated today. Leaked
-      system prompts from foundation-model chat products (Anthropic Claude, OpenAI ChatGPT/
-      Codex, Google Gemini, xAI Grok, Copilot, Perplexity, Mistral, Notion, Qwen). PARTIAL
-      overlap with `core/skills/ai-system-prompts-intel/` (sourced from a different repo,
-      x1xhlol/system-prompts-and-models-of-ai-tools, 141k⭐) — that skill covers *coding
-      tools* (Cursor, Windsurf, Devin, v0...), this one covers *general chat products*
-      (raw ChatGPT/Claude/Gemini/Grok prompts) — different vendor angle, not a straight
-      duplicate. Recommend: extend `ai-system-prompts-intel` with a "general chat products"
-      section sourced from this repo, rather than a new skill — not yet done.
+- [x] https://github.com/asgeirtj/system_prompts_leaks — DONE. Extended
+      `core/skills/ai-system-prompts-intel/` (both `core/` and `.claude/` copies) with a
+      new "Key patterns — general chat products" section (Claude claude.ai, Gemini, Grok,
+      Perplexity Comet, Mistral) — structural/pattern analysis only, no verbatim leaked
+      policy text reproduced. skills-lock.json hash regenerated, verify-skills-lock.sh and
+      skill-trigger tests both pass. The zip file anh provided has been processed and
+      deleted (content extracted, not needed anymore).
 
 > Note: anh nói tổng đang có **19 cái cần làm** — 3 link trên là phần mới nhất được
 > thêm vào, nay đã resolve hết (0 actionable). 16 cái còn lại đang được anh track ở nơi
