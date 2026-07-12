@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.1 · AI 编程代理的安全防火墙                  │ 上手小贴士                                                                            │
-│ 101 agents · 1,989 skills                        │ yana-ai doctor                                                                         │
-│ 70 rules · 56 hooks · 107 scripts                │ yana-ai init                                                                           │
-│ 166 commands                                     │                                                                                       │
+│ v0.43.2 · AI 编程代理的安全防火墙                  │ 上手小贴士                                                                            │
+│ 101 agents · 2,016 skills                        │ yana-ai doctor                                                                         │
+│ 71 rules · 58 hooks · 108 scripts                │ yana-ai init                                                                           │
+│ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
-│                                                   │ v0.43.1 — 修复发布流水线，新增 hermes_adapted 工具循环检测器                          │
+│                                                   │ v0.43.2 — 修复 Ollama model-id，新增 entry-point verify law                          │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,7 +36,7 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.1-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v0.43.2-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -50,11 +50,11 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-1,989-2f7e6e?style=flat-square" />
+  <img src="https://img.shields.io/badge/🧩_skills-2,016-2f7e6e?style=flat-square" />
   <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-70-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-56-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
+  <img src="https://img.shields.io/badge/📜_rules-71-b96b80?style=flat-square" />
+  <img src="https://img.shields.io/badge/🪝_hooks-58-b78f3d?style=flat-square" />
+  <img src="https://img.shields.io/badge/⚡_commands-170-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
@@ -96,7 +96,7 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
 
 ## 它能拦截什么
 
-破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过 56 个由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。底层是 101 个专业代理、1,989 个技能，以及在 CI 中以 826 种方式检查的 70 条规则。
+破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过 58 个由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。底层是 101 个专业代理、2,016 个技能，以及在 CI 中以 830 种方式检查的 71 条规则。
 
 ## 工作原理
 
@@ -120,15 +120,15 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 | | |
 |---|---|
-| 🧩 技能 | **1,989** 个工作流技能定义 |
+| 🧩 技能 | **2,016** 个工作流技能定义 |
 | 🤖 代理 | **101** 个专业代理 |
-| 📜 安全规则 | **70** 条强制规则 |
-| 🪝 Hooks | **56** 个执行前/后钩子 |
-| ⚡ 斜杠命令 | **166** 个 |
-| 🔧 脚本 | **107** 个 |
+| 📜 安全规则 | **71** 条强制规则 |
+| 🪝 Hooks | **58** 个执行前/后钩子 |
+| ⚡ 斜杠命令 | **170** 个 |
+| 🔧 脚本 | **108** 个 |
 | 🔌 适配器 | **12** 个（Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、Copilot、Aider...） |
 | 🦀 Rust 子命令 | **23** 个（`scan`、`graph`、`vault`、`route`、`mission`、`hunt`、`fix`、`doctor`...） |
-| ✅ CI 中的规则检查 | **826** 次 |
+| ✅ CI 中的规则检查 | **830** 次 |
 
 ---
 
@@ -222,7 +222,7 @@ bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
 ```bash
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、导入解析
-yana-ai vault search Q                # 按关键词搜索 1,989 个技能
+yana-ai vault search Q                # 按关键词搜索 2,016 个技能
 yana-ai hunt .                        # 搜寻安全模式（OWASP、注入、SSRF）
 yana-ai fix .                         # 自动修复规则违规
 yana-ai doctor .                      # 全面系统健康检查
@@ -240,12 +240,12 @@ yana-ai mission create "add-auth"     # 创建并行代理任务
 
 ```
 core/
-├── hooks/          # 56 个 PreToolUse / PostToolUse / Stop 钩子
-├── rules/          # 70 条强制规则（安全、正确性、UI、git）
+├── hooks/          # 58 个 PreToolUse / PostToolUse / Stop 钩子
+├── rules/          # 71 条强制规则（安全、正确性、UI、git）
 ├── scripts/        # safe-run.sh、verify-core-lock.sh、secure-logger.sh
 ├── gates/          # truth_gate.md、action_gate.md
 ├── agents/         # 101 个专业代理定义
-├── skills/         # 1,989 个 SKILL.md 文件
+├── skills/         # 2,016 个 SKILL.md 文件
 ├── config/
 │   ├── core-lock.json    # SHA-256 清单 — 固定 240 个核心文件
 │   └── skills-lock.json  # 技能内容哈希
@@ -334,10 +334,10 @@ Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无
 一个人。没有团队。没有资金。
 
 - Hook 架构、安全网关、Python CLI
-- Rust 运行时（`yana-rt`）、101 个代理、1,989 个技能、多引擎支持
+- Rust 运行时（`yana-rt`）、101 个代理、2,016 个技能、多引擎支持
 - 12 个适配器（Claude Code、Cursor、Windsurf、Antigravity、Kiro、Zed、Gemini、Copilot、Aider…）
 
-这 1,989 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
+这 2,016 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
 
 ---
 
@@ -386,7 +386,7 @@ yana-ai route classify "deploy to production"
 
 五种路由：
 - **simple** → Yana 直接处理（只读，不需要代理）
-- **skill** → 与 1,989 条技能索引匹配，派发到确切的技能代理
+- **skill** → 与 2,016 条技能索引匹配，派发到确切的技能代理
 - **learn** → 路由到 `hoc-tap`（苏格拉底式学习助手，遇到"learn"、"explain"、"why" 等词触发——支持英语和越南语）
 - **daily** → 路由到 `daily-assistant`，总结 / 计划 / 起草（遇到"summarize"、"write an email"、"make a plan" 等词触发——支持英语和越南语）
 - **complex** → 携带明确范围的简报派发给专业代理
