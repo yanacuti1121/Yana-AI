@@ -8,6 +8,7 @@ const path  = require('path');
 const url   = require('url');
 const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
+const { OutputScrubber } = require('./lib/output-scrubber');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
@@ -1454,23 +1455,64 @@ function handleApiDashboard(req, res) {
 // `extractUsage` is optional — providers without it (Anthropic, Gemini:
 // different SSE shape entirely, not handled in this pass) simply never
 // populate `usage`, and `onDone` receives `null` for it as before.
-function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) {
+// OUTPUT GUARDRAIL (2026-07-12, docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md
+// section 2.2): `scrubber` (an OutputScrubber instance, see
+// lib/output-scrubber.js, or null to skip — used by handleApiHtmlConvert's
+// call site, out of scope for this pass) runs every extracted text chunk
+// through secret/PII detection before it reaches `res.write`. A hard-block
+// match (high-confidence secret shapes) aborts the stream with a fixed
+// message instead of forwarding the match; PII matches are redacted in
+// place and streaming continues. The scrubber's own hold-back window means
+// a small amount of text always lags behind what's been generated — see
+// its module doc for why, and flush() is what releases the final tail.
+function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, scrubber, onDone) {
   let buf = '';
   let chars = 0;
   let usage = null;
+  let blocked = false;
+
+  const emitBlockedMessage = () => {
+    res.write(`data: ${JSON.stringify({ text: '[response blocked — potential secret detected]' })}\n\n`);
+  };
+
   upstreamRes.on('data', chunk => {
+    if (blocked) return;
     buf += chunk.toString();
     const lines = buf.split('\n');
     buf = lines.pop();
-    const r = emitLines(lines, res, extractText, extractUsage);
+    const r = emitLines(lines, res, extractText, extractUsage, scrubber);
     chars += r.chars;
     if (r.usage) usage = r.usage;
+    if (r.blocked) {
+      blocked = true;
+      emitBlockedMessage();
+      res.write('data: [DONE]\n\n');
+      res.end();
+      if (onDone) onDone(chars, usage);
+    }
   });
   upstreamRes.on('end', () => {
+    if (blocked) return;
     if (buf) {
-      const r = emitLines(buf.split('\n'), res, extractText, extractUsage);
+      const r = emitLines(buf.split('\n'), res, extractText, extractUsage, scrubber);
       chars += r.chars;
       if (r.usage) usage = r.usage;
+      if (r.blocked) {
+        emitBlockedMessage();
+        res.write('data: [DONE]\n\n');
+        res.end();
+        if (onDone) onDone(chars, usage);
+        return;
+      }
+    }
+    if (scrubber) {
+      const f = scrubber.flush();
+      if (f.blocked) {
+        emitBlockedMessage();
+      } else if (f.text) {
+        chars += f.text.length;
+        res.write(`data: ${JSON.stringify({ text: f.text })}\n\n`);
+      }
     }
     res.write('data: [DONE]\n\n');
     res.end();
@@ -1478,24 +1520,33 @@ function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, onDone) 
   });
 }
 
-function emitLines(lines, res, extractText, extractUsage) {
+function emitLines(lines, res, extractText, extractUsage, scrubber) {
   let emitted = 0;
   let usage = null;
   for (const line of lines) {
     if (!line.startsWith('data: ')) continue;
     const raw = line.slice(6).trim();
-    if (raw === '[DONE]') return { chars: emitted, usage };
+    if (raw === '[DONE]') return { chars: emitted, usage, blocked: false };
     try {
       const evt = JSON.parse(raw);
       const text = extractText(evt);
-      if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
+      if (text) {
+        if (scrubber) {
+          const r = scrubber.feed(text);
+          if (r.blocked) return { chars: emitted, usage, blocked: true };
+          if (r.text) { emitted += r.text.length; res.write(`data: ${JSON.stringify({ text: r.text })}\n\n`); }
+        } else {
+          emitted += text.length;
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
       if (extractUsage) {
         const u = extractUsage(evt);
         if (u) usage = u;
       }
     } catch (_) {}
   }
-  return { chars: emitted, usage };
+  return { chars: emitted, usage, blocked: false };
 }
 
 // Fire-and-forget bridge: real per-call token usage → `yana-rt cost log`
@@ -1645,7 +1696,7 @@ async function handleApiChat(req, res) {
       });
       return;
     }
-    pipeNormalizedSSE(upstreamRes, res, p.extractText, p.extractUsage,
+    pipeNormalizedSSE(upstreamRes, res, p.extractText, p.extractUsage, new OutputScrubber(),
       (chars, usage) => {
         const ms = Date.now() - t0;
         recordUsage(usageId, chars, ms);
