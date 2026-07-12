@@ -17,7 +17,7 @@ Otherwise ask: "What task are you planning? Describe the scope briefly."
 ## Step 2 — Analyze current session cost
 
 ```bash
-cat ".claude/state/token-budget.json" 2>/dev/null | python3 -c "
+cat "core/memory/L2_session/token-budget.json" 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 used = d.get('total_tokens_used', 0)
