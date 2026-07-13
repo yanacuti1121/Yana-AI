@@ -127,7 +127,7 @@ Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết
 | ⚡ Slash commands | **170** |
 | 🔧 Scripts | **108** |
 | 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
+| 🦀 Rust subcommands | **26** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `filescan`...) |
 | ✅ Rule checks trong CI | **830** |
 
 ---
@@ -217,7 +217,7 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-23 subcommand. Không phụ thuộc Python.
+26 subcommand. Không phụ thuộc Python.
 
 ```bash
 yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro supply chain

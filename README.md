@@ -127,7 +127,7 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 | ⚡ Slash commands | **170** |
 | 🔧 Scripts | **108** |
 | 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
+| 🦀 Rust subcommands | **26** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `filescan`...) |
 | ✅ Rule checks in CI | **830** |
 
 ---
@@ -217,7 +217,7 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-23 subcommands. Zero Python dependency.
+26 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks

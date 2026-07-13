@@ -127,7 +127,7 @@ Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은
 | ⚡ Slash commands | **170**개 |
 | 🔧 Scripts | **108**개 |
 | 🔌 Harness adapters | **12**개 (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23**개 (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
+| 🦀 Rust subcommands | **26**개 (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `filescan`...) |
 | ✅ CI 규칙 검사 | **830**회 |
 
 ---
@@ -217,7 +217,7 @@ bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-23개 서브커맨드. Python 의존성 없음.
+26개 서브커맨드. Python 의존성 없음.
 
 ```bash
 yana-ai audit .                       # 보안 스캔 — secrets, CVE, 공급망 위험
