@@ -236,6 +236,20 @@ yana-ai mission create "add-auth"     # 创建并行代理任务
 
 ---
 
+## 版本管理
+
+Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — 这是刻意设计，不是混乱（与 Kubernetes、LLVM 类似：组件独立、发布节奏独立）。
+
+| 轴 | 版本 | 注册表 |
+|---|---|---|
+| 产品（rules/hooks/skills/agents/CLI） | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
+
+---
+
 ## 安全架构
 
 ```
