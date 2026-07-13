@@ -104,12 +104,43 @@ else: print(0)
 }
 
 # ── Component checks ──────────────────────────────────────────────────────────
-check_component "agents"   "core/agents"   "*.md"      "$(read_count agents)"
+# Find patterns below MUST match drift-check.sh (the only one of the three
+# count-validator scripts actually wired into CI — .github/workflows/ci.yml)
+# exactly. They didn't, silently, until 2026-07-13: core/scripts has 3 .js
+# files this script's old scripts pattern missed, and agents wasn't excluding
+# README.md/uppercase-leading companion docs the way drift-check.sh does —
+# both real, confirmed disagreements, not hypothetical.
 check_component "commands" "core/commands" "*.md"      "$(read_count commands)"
 check_component "rules"    "core/rules"    "*.md"      "$(read_count rules)"
 check_component "templates" "core/templates" "*.md"    "$(read_count templates)"
-# Hooks: count *.sh + *.js (exclude CLAUDE.md)
-hooks_actual=$(find "$PROJECT_ROOT/core/hooks" \( -name "*.sh" -o -name "*.js" \) 2>/dev/null | wc -l | tr -d ' ')
+
+# Agents: exclude README.md and uppercase-leading companion docs (some
+# agents used to live under core/agents/emotions/, which conflated
+# companion docs inside an agent's own subdir with separate agents — all
+# happen to be the only uppercase-leading filenames under core/agents/)
+agents_actual=$(find "$PROJECT_ROOT/core/agents" -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' 2>/dev/null | wc -l | tr -d ' ')
+agents_declared=$(read_count agents)
+CHECKED_COUNT=$((CHECKED_COUNT + 1))
+if [[ "$agents_actual" -eq "$agents_declared" ]]; then
+  echo -e "${GREEN}[validate-manifest] OK${NC}    agents: declared=$agents_declared actual=$agents_actual"
+else
+  echo -e "${RED}[validate-manifest] DRIFT${NC} agents: declared=$agents_declared actual=$agents_actual (delta=$(( agents_actual - agents_declared )))"
+  DRIFT_COUNT=$((DRIFT_COUNT + 1))
+  if [[ "$FIX_MODE" == true ]]; then
+    python3 -c "
+import json, pathlib
+m = json.loads(pathlib.Path('$MANIFEST').read_text())
+m['components']['agents']['count'] = $agents_actual
+pathlib.Path('$MANIFEST').write_text(json.dumps(m, indent=2, ensure_ascii=False) + '\n')
+print('[validate-manifest] Fixed agents count → $agents_actual')
+"
+  fi
+fi
+
+# Hooks: all top-level files except CLAUDE.md and dotfiles (matches
+# drift-check.sh exactly — not just *.sh/*.js, so a future non-shell/JS
+# hook file doesn't silently create a new disagreement)
+hooks_actual=$(find "$PROJECT_ROOT/core/hooks" -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
 hooks_declared=$(read_count hooks)
 CHECKED_COUNT=$((CHECKED_COUNT + 1))
 if [[ "$hooks_actual" -eq "$hooks_declared" ]]; then
@@ -148,9 +179,10 @@ print('[validate-manifest] Fixed skills count → $skills_actual')
   fi
 fi
 
-# Scripts: count .sh + .js + .py files — same definition as drift-check.sh
-# (top-level core/scripts files; Python tooling counts as scripts too)
-scripts_actual=$(find "$PROJECT_ROOT/core/scripts" -maxdepth 1 \( -name "*.sh" -o -name "*.js" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
+# Scripts: all top-level files (matches drift-check.sh exactly — not just
+# .sh/.js/.py, so a future script in another language doesn't silently
+# create a new disagreement)
+scripts_actual=$(find "$PROJECT_ROOT/core/scripts" -maxdepth 1 -type f ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
 scripts_declared=$(read_count scripts)
 CHECKED_COUNT=$((CHECKED_COUNT + 1))
 if [[ "$scripts_actual" -eq "$scripts_declared" ]]; then
@@ -170,8 +202,15 @@ print('[validate-manifest] Fixed scripts count → $scripts_actual')
 fi
 
 # ── Semver bump validation ────────────────────────────────────────────────────
+# MANIFEST.json's version field is the PRODUCT axis (see VERSIONING.md —
+# 3 independent axes: product/npm, Rust crate rt-v*, Python package py-v*,
+# each with its own tag prefix since the 2026-07-05 publish.yml fix).
+# --match restricts this to product-axis tags so a future rt-v*/py-v* tag
+# (neither exists yet, but the workflow now creates them) can't be picked
+# up by --abbrev=0's "most recent tag" and produce a false-positive
+# mismatch warning against a completely different axis's version.
 MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['version'])")
-GIT_TAG_VERSION=$(git -C "$PROJECT_ROOT" describe --tags --abbrev=0 2>/dev/null || echo "none")
+GIT_TAG_VERSION=$(git -C "$PROJECT_ROOT" describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "none")
 
 echo ""
 echo -e "${CYAN}[validate-manifest] Semver check:${NC}"
