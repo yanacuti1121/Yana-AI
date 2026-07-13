@@ -236,6 +236,20 @@ yana-ai mission create "add-auth"     # tạo mission agent song song
 
 ---
 
+## Versioning
+
+Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version riêng — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập).
+
+| Trục | Version | Registry |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
+
+---
+
 ## Kiến trúc an toàn
 
 ```

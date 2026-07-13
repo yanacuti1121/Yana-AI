@@ -236,6 +236,20 @@ yana-ai mission create "add-auth"     # create parallel agent mission
 
 ---
 
+## Versioning
+
+Yana AI ships to three registries, each with its own version number — deliberate, not drift (same pattern as Kubernetes or LLVM: independent components, independent release cadence).
+
+| Axis | Version | Registry |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
+
+---
+
 ## Safety architecture
 
 ```

@@ -236,6 +236,20 @@ yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 
 ---
 
+## 버전 관리
+
+Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버전 번호를 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기).
+
+| 축 | 버전 | 레지스트리 |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Rust 런타임 (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 패키지 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
+
+---
+
 ## 안전 아키텍처
 
 ```
