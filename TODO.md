@@ -72,3 +72,13 @@ per this repo's dual-copy convention.
 > researched (0 actionable left in this batch: 2 built, 3 skipped as duplicate/non-skill-
 > shaped, 1 already done previously). 12 cái còn lại đang được anh track ở nơi khác
 > (chưa có trong file này) — bổ sung vào đây khi có link.
+
+- [ ] https://github.com/bestagentkits/ck-skills — not yet reviewed.
+- [ ] https://github.com/JustVugg/colibri — not yet reviewed.
+- [ ] https://github.com/Dicklesworthstone/destructive_command_guard — not yet reviewed;
+      name suggests direct overlap with this repo's own `guard-destructive.sh` /
+      `02-terminal-validator.md` — worth checking first for cross-pollination ideas
+      even if not ported as a standalone skill.
+- [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
+      application, not skill-shaped content) but not yet confirmed — flagging the likely
+      call rather than silently deciding without checking license/shape first.
