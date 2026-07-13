@@ -127,7 +127,7 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 | ⚡ 斜杠命令 | **170** 个 |
 | 🔧 脚本 | **108** 个 |
 | 🔌 适配器 | **12** 个（Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、Copilot、Aider...） |
-| 🦀 Rust 子命令 | **23** 个（`scan`、`graph`、`vault`、`route`、`mission`、`hunt`、`fix`、`doctor`...） |
+| 🦀 Rust 子命令 | **26** 个（`scan`、`graph`、`vault`、`route`、`mission`、`hunt`、`fix`、`doctor`、`filescan`...） |
 | ✅ CI 中的规则检查 | **830** 次 |
 
 ---
@@ -217,7 +217,7 @@ bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-23 个子命令，零 Python 依赖。
+26 个子命令，零 Python 依赖。
 
 ```bash
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险

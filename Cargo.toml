@@ -26,7 +26,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["cli"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
-  "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml",
+  "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
 ]
 wasm = ["wasm-bindgen", "js-sys"]
 
@@ -48,6 +48,7 @@ unicode-normalization = { version = "0.1",           optional = true }
 liteparse  = { version = "2", default-features = false, optional = true }
 ureq       = { version = "3",                        optional = true }
 serde_yml  = { version = "0.0.13",                   optional = true }
+sha2       = { version = "0.10",                     optional = true }
 
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }

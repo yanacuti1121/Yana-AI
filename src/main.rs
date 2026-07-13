@@ -24,6 +24,7 @@ mod init;
 mod provenance;
 mod evidence;
 mod guard;
+mod filescan;
 
 use clap::{Parser, Subcommand};
 
@@ -143,6 +144,10 @@ enum Commands {
         #[arg(long)]
         include_skills: bool,
     },
+    /// On-demand malware check for a downloaded file (VirusTotal hash lookup —
+    /// no file content uploaded). Not real-time/background protection — see
+    /// src/filescan/mod.rs's module doc for why that's a different product.
+    Filescan { #[command(subcommand)] action: filescan::FilescanAction },
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
@@ -346,6 +351,7 @@ fn main() {
         Commands::Fix    { action } => fix::dispatch(action),
         Commands::Score  { action } => score::dispatch(action),
         Commands::Doctor { action } => doctor::dispatch(action),
+        Commands::Filescan { action } => filescan::dispatch(action),
         Commands::Guard  { action } => guard::dispatch(action),
         Commands::Spec   { action } => spec::dispatch(action),
         Commands::Design { action } => design::dispatch(action),
