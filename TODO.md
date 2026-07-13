@@ -82,3 +82,40 @@ per this repo's dual-copy convention.
 - [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
       application, not skill-shaped content) but not yet confirmed — flagging the likely
       call rather than silently deciding without checking license/shape first.
+
+## Pre-1.0 priorities (from a 2026-07-13 cross-AI evidence-based review — see
+## PR #72 and memory/feedback_evidence_hierarchy_review.md for the full exchange)
+
+Converged after verifying two AI-generated reviews of this repo against real
+code/git history (most of the reviews' specific claims were wrong — 21k files
+vs. real 13,391 tracked, "missing roadmap/architecture/contributing" when all
+3 exist — but the underlying concerns were directionally reasonable). Not yet
+started, no priority order committed to — anh said "dừng ở đây được rồi" before
+picking a next step.
+
+- [ ] BENCHMARK.md or a benchmarks dashboard — startup time, memory, hook
+      latency, dispatch latency. One number already exists inline in README
+      ("yana-ai audit 1256x faster than the Python equivalent on a 10k-file
+      repo") but nothing dedicated/comprehensive.
+- [ ] Demo GIF/video — 1-2 min showing an agent trying something destructive
+      and Yana blocking it in real time. README already has real captured
+      terminal output (not staged) but no visual/video walkthrough.
+- [ ] Documentation/version consistency CI check — package.json, MANIFEST.json,
+      Cargo.toml, pyproject.toml, and README's stated counts (skills/agents/
+      hooks/rules/commands/scripts) drifting apart is a REAL, repeated pattern
+      in this repo's history (found and fixed 3 separate times just in this
+      session: MANIFEST/README count drift PR #67/#68/#69, ROADMAP/VERSIONING.md
+      discoverability PR #72). `drift-check.sh`/`validate-manifest.sh`/
+      `validate-counts.sh` already exist but don't fully agree with each other
+      on methodology (see PR #71's commit message for one concrete example —
+      `components.agents.count` vs `agents_count` disagreeing) — worth
+      reconciling into one canonical check before adding more.
+- [ ] Release governance checklist for the 3-axis version scheme (see
+      VERSIONING.md) — ensure each artifact gets the right axis bumped and
+      related docs updated together, not piecemeal.
+- [ ] (Lower priority, explicitly not urgent per the review exchange) —
+      skill governance / duplicate-detection tooling for the 2016 SKILL.md
+      files (near-duplicate names like "X", "X_v2", "X_fixed"), and an audit
+      of whether all 101 agents are actually reachable/used vs. overlapping
+      responsibilities (e.g. backend-developer vs. api-designer vs.
+      backend-reviewer). Raised as a real concern, not yet investigated.
