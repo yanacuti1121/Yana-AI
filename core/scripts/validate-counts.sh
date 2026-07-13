@@ -29,13 +29,16 @@ scripts_manifest=$(grep '"scripts_count"' "$MANIFEST" | grep -o '[0-9]*' | head 
 commands_manifest=$(grep '"commands_count"' "$MANIFEST" | grep -o '[0-9]*' | head -1)
 rules_manifest=$(grep '"rules_count"' "$MANIFEST" | grep -o '[0-9]*' | head -1)
 
-# Đếm thực tế
-skills_actual=$(ls -d "$ROOT/core/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
-agents_actual=$(find "$ROOT/core/agents" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
-hooks_actual=$(ls "$ROOT/core/hooks"/*.sh "$ROOT/core/hooks"/*.js 2>/dev/null | wc -l | tr -d ' ')
-scripts_actual=$(ls "$ROOT/core/scripts"/*.sh "$ROOT/core/scripts"/*.py 2>/dev/null | wc -l | tr -d ' ')
-commands_actual=$(find "$ROOT/core/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
-rules_actual=$(find "$ROOT/core/rules" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+# Đếm thực tế — các pattern find PHẢI khớp hệt drift-check.sh (script duy nhất
+# chạy CI thật), không được tự sáng tác pattern riêng. 3 script từng đếm
+# core/scripts khác nhau (thiếu .js) và core/agents khác nhau (không loại
+# README.md/file viết hoa) — phát hiện thật ngày 2026-07-13, không phải giả thuyết.
+skills_actual=$(find "$ROOT/core/skills" -name 'SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
+agents_actual=$(find "$ROOT/core/agents" -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' 2>/dev/null | wc -l | tr -d ' ')
+hooks_actual=$(find "$ROOT/core/hooks" -maxdepth 1 -type f ! -name 'CLAUDE.md' ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+scripts_actual=$(find "$ROOT/core/scripts" -maxdepth 1 -type f ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+commands_actual=$(find "$ROOT/core/commands" -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+rules_actual=$(find "$ROOT/core/rules" -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
 
 check "skills"   "$skills_manifest"   "$skills_actual"
 check "agents"   "$agents_manifest"   "$agents_actual"
