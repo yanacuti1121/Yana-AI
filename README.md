@@ -503,3 +503,4 @@ Full translations of this document: **[README.vi.md](README.vi.md)** (Tiếng Vi
 ## Acknowledgements
 
 Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.
+---end----
