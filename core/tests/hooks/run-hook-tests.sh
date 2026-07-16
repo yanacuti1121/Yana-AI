@@ -715,6 +715,150 @@ print(json.dumps({
 }
 test_toolguard_large_truncated_failure_still_detected
 
+# 5e. context-compress-stop.sh — Stop event real-transcript context
+# compressor (hermes_adapted Phase 4). The actual compression runs in a
+# backgrounded subshell (see the hook's own header comment for why), so
+# these tests focus on the deterministic foreground fast-paths (bypass,
+# missing transcript, no severity state, severity OK) plus one end-to-end
+# check that waits briefly for the background job and tolerates it
+# producing a static-fallback summary rather than a real Ollama one, since
+# CI has no Ollama server to reach.
+echo ""
+echo "--- context-compress-stop.sh ---"
+
+test_compress_stop_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}   # e.g. "YANA_CONTEXT_COMPRESS_BYPASS=1"
+    local ctx_state_setup=${4:-""}  # "none" | "ok" | "warning"
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing context-compress-stop.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/context-compress-stop.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/context-compress-stop.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local session_id
+    session_id=$(echo "$input_json" | jq -r '.session_id // "default"')
+    local ctx_state_file="/tmp/claude-ctx-${session_id}.json"
+    rm -f "$ctx_state_file"
+    register_temp "$ctx_state_file"
+    if [[ "$ctx_state_setup" == "ok" ]]; then
+        echo '{"lastSeverity":"OK"}' > "$ctx_state_file"
+    elif [[ "$ctx_state_setup" == "warning" ]]; then
+        echo '{"lastSeverity":"WARNING"}' > "$ctx_state_file"
+    fi
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/context-compress-stop.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+    rm -f "$ctx_state_file"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_compress_stop_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"cc1","transcript_path":"/nonexistent.jsonl"}' \
+    "YANA_CONTEXT_COMPRESS_BYPASS=1"
+
+test_compress_stop_silent "Missing transcript_path is silent (fails open)" \
+    '{"session_id":"cc2"}' \
+    "" "warning"
+
+test_compress_stop_silent "No context-monitor state file yet is silent (fresh session)" \
+    '{"session_id":"cc3","transcript_path":"/nonexistent.jsonl"}' \
+    "" "none"
+
+test_compress_stop_silent "Severity OK does not trigger compression" \
+    '{"session_id":"cc4","transcript_path":"/nonexistent.jsonl"}' \
+    "" "ok"
+
+test_compress_stop_end_to_end() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing context-compress-stop.sh [WARNING severity + real transcript triggers background compression]... "
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "SKIP (python3 not available)"
+        return 0
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/core/memory/L2_session"
+
+    local transcript_file
+    transcript_file=$(mktemp)
+    register_temp "$transcript_file"
+    # Enough turns that a tiny YANA_CONTEXT_LENGTH is exceeded, and enough
+    # messages that ContextCompressor.compress() doesn't bail out early on
+    # "too few messages" (needs > head_end + 4, head_end defaults to 3).
+    {
+        for i in $(seq 1 12); do
+            echo "{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"turn $i: please look at file number $i and tell me what is in it\"}}"
+            echo "{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":\"turn $i: here is what I found in that file, it looks fine to me\"}}"
+        done
+    } > "$transcript_file"
+
+    local ctx_state_file="/tmp/claude-ctx-cc5.json"
+    echo '{"lastSeverity":"WARNING"}' > "$ctx_state_file"
+    register_temp "$ctx_state_file"
+
+    local payload
+    payload=$(jq -n --arg tp "$transcript_file" '{"session_id":"cc5","transcript_path":$tp}')
+
+    local output
+    # YANA_CONTEXT_LENGTH tiny + OLLAMA_HOST pointed at a closed port so the
+    # summarize_fn call fails fast and deterministically instead of hanging
+    # on a real network timeout — exercises the static-fallback-summary path.
+    output=$(echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        YANA_CONTEXT_LENGTH=50 OLLAMA_HOST="http://127.0.0.1:1" \
+        bash "$HOOKS_DIR/context-compress-stop.sh" 2>/dev/null)
+
+    # Foreground message must fire immediately regardless of background outcome.
+    if [[ "$output" != *"context-compress"* ]]; then
+        echo "FAIL (expected a [context-compress] message, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        rm -rf "$tmp_project"
+        return 1
+    fi
+
+    # Give the backgrounded job a moment to finish (no real network call —
+    # OLLAMA_HOST is unreachable, so this resolves via the static fallback
+    # summary almost immediately, not a real 60s timeout).
+    local waited=0
+    local found=""
+    while [[ $waited -lt 10 ]]; do
+        found=$(find "$tmp_project/core/memory/L2_session" -name "context-compress-*.md" 2>/dev/null | head -1)
+        [[ -n "$found" ]] && break
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    rm -rf "$tmp_project"
+
+    if [[ -n "$found" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (no context-compress-*.md written within ${waited}s)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_compress_stop_end_to_end
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"
@@ -1760,6 +1904,28 @@ test_freeze_scope "Traversal that walks out of the project root entirely" "core/
 
 test_freeze_scope "Absolute path outside the project root entirely" "core/rules" \
     '{"tool_name":"Write","tool_input":{"file_path":"/etc/passwd"}}' "deny"
+
+# ── giamthi-halt-check.sh ────────────────────────────────────────────────────
+# This hook takes no stdin content into account (only the lock file's
+# presence), so input_json is a trivial placeholder for every case here.
+# It has no bypass by design (see hook header) — no bypass-case test exists.
+_GIAMTHI_LOCK="$CLAUDE_DIR/state/GIAMTHI_HALT.lock"
+_GIAMTHI_LOCK_PRE_EXISTED=0
+[[ -f "$_GIAMTHI_LOCK" ]] && _GIAMTHI_LOCK_PRE_EXISTED=1
+
+mkdir -p "$(dirname "$_GIAMTHI_LOCK")" 2>/dev/null || true
+rm -f "$_GIAMTHI_LOCK"
+test_hook "giamthi-halt-check.sh" "Allow when no lock exists" '{"tool_name":"Read","tool_input":{}}' "allow"
+
+echo "=== GIAM THI HALT — test fixture ===" > "$_GIAMTHI_LOCK"
+echo "manufactured for run-hook-tests.sh — safe to ignore outside a test run" >> "$_GIAMTHI_LOCK"
+test_hook "giamthi-halt-check.sh" "Block every tool call while lock exists" '{"tool_name":"Read","tool_input":{}}' "deny"
+test_hook "giamthi-halt-check.sh" "Block applies regardless of tool_name (Bash)" '{"tool_name":"Bash","tool_input":{"command":"ls"}}' "deny"
+
+rm -f "$_GIAMTHI_LOCK"
+if [[ "$_GIAMTHI_LOCK_PRE_EXISTED" -eq 1 ]]; then
+    echo "WARNING: $_GIAMTHI_LOCK existed before this test run and was overwritten, then removed. If a real halt was in progress, it is now cleared — check $CLAUDE_DIR/state/giamthi-reports.log."
+fi
 
 echo ""
 echo "=== Summary ==="

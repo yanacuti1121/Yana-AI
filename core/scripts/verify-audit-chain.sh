@@ -21,13 +21,50 @@ else
   echo "ERROR: sha256sum or shasum required"; exit 2
 fi
 
-STATE_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/state"
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+STATE_DIR="$PROJECT_ROOT/.claude/state"
 LOG_FILE="${1:-$STATE_DIR/audit-chain.log}"
+KNOWN_BREAKS_FILE="$PROJECT_ROOT/core/config/audit-chain-known-breaks.json"
 
 if [[ ! -f "$LOG_FILE" ]]; then
   echo "INFO: No audit chain log found at $LOG_FILE"
   exit 0
 fi
+
+# A documented, human-reviewed exception list for entries whose prev_hash
+# legitimately doesn't match the running EXPECTED_PREV — e.g. a concurrent-
+# write race captured and fixed after the fact (see audit-log.sh's 2026-07-16
+# mkdir-lock fix).
+#
+# SECURITY FIX (2026-07-16, code-auditor review, reproduced live): the first
+# version of this function matched on ts+hash alone, on the theory that the
+# entry's own hash-self-check below (against its OWN claimed prev_hash)
+# made forgery infeasible. That reasoning was incomplete and the bypass was
+# demonstrated: an attacker who can already write to audit-chain.log (the
+# exact threat model this file exists to catch) doesn't need to forge
+# anything — they can fabricate arbitrary garbage as entry 1, then splice
+# in a byte-for-byte copy of any real allowlisted line from elsewhere in
+# real history as entry 2. ts+hash still matched, the self-check still
+# passed (it's a real, previously-valid entry), and verification silently
+# resumed as if the fabricated entry 1 had never happened — exit 0, no
+# CHAIN BROKEN line, indistinguishable from a clean run.
+#
+# The fix: also require the CURRENT, ACTUALLY-COMPUTED $EXPECTED_PREV (the
+# value this script has genuinely derived by walking every real entry from
+# GENESIS up to this point in THIS run) to match a value recorded in the
+# allowlist at the time a human reviewed the real historical break. An
+# attacker can still replay the ts+hash pair, but they cannot make the
+# genuinely-computed EXPECTED_PREV match the recorded one without either
+# reproducing the entire real, untampered prefix up to that exact point
+# (which defeats forging anything) or a SHA-256 preimage attack (treated as
+# infeasible). This is what the original comment claimed to guarantee.
+is_known_break() {
+  local ts="$1" hash="$2" expected_prev="$3"
+  [[ -f "$KNOWN_BREAKS_FILE" ]] || return 1
+  jq -e --arg ts "$ts" --arg hash "$hash" --arg expected_prev "$expected_prev" \
+    '(.known_breaks // []) | any(.ts == $ts and .hash == $hash and .expected_prev == $expected_prev)' \
+    "$KNOWN_BREAKS_FILE" >/dev/null 2>&1
+}
 
 GENESIS_HASH=$(printf 'YANA_GENESIS' | "${SHA256[@]}" | awk '{print $1}')
 EXPECTED_PREV="$GENESIS_HASH"
@@ -47,11 +84,15 @@ while IFS= read -r line; do
   STORED_HASH=$(printf '%s' "$line" | jq -r '.hash // ""' 2>/dev/null || true)
 
   if [[ "$STORED_PREV" != "$EXPECTED_PREV" ]]; then
-    echo "CHAIN BROKEN at entry $LINE_NUM — prev_hash mismatch"
-    echo "  expected prev : $EXPECTED_PREV"
-    echo "  stored   prev : $STORED_PREV"
-    echo "  entry         : $TS | $TOOL | $AGENT"
-    exit 1
+    if is_known_break "$TS" "$STORED_HASH" "$EXPECTED_PREV"; then
+      echo "NOTE: entry $LINE_NUM ($TS | $TOOL | $AGENT) is a documented, reviewed break — see core/config/audit-chain-known-breaks.json. Its own hash is still verified below; continuing the chain from it."
+    else
+      echo "CHAIN BROKEN at entry $LINE_NUM — prev_hash mismatch"
+      echo "  expected prev : $EXPECTED_PREV"
+      echo "  stored   prev : $STORED_PREV"
+      echo "  entry         : $TS | $TOOL | $AGENT"
+      exit 1
+    fi
   fi
 
   CONTENT="${TS}|${HOOK}|${TOOL}|${AGENT}|${INPUT}|${DECISION}"

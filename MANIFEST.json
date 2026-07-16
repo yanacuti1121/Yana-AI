@@ -366,7 +366,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 58,
+      "count": 60,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -383,6 +383,7 @@
         "core/hooks/code-quality-gate.sh",
         "core/hooks/commit-gate.sh",
         "core/hooks/confidence-scorer.sh",
+        "core/hooks/context-compress-stop.sh",
         "core/hooks/context-compress-trigger.sh",
         "core/hooks/context-gate-log.sh",
         "core/hooks/context-gate.sh",
@@ -395,6 +396,7 @@
         "core/hooks/entry-point-verify-reminder.sh",
         "core/hooks/format-on-write.sh",
         "core/hooks/freeze-scope.sh",
+        "core/hooks/giamthi-halt-check.sh",
         "core/hooks/gitnexus-hook.js",
         "core/hooks/guard-blast-radius.sh",
         "core/hooks/guard-destructive.sh",
@@ -430,7 +432,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 108,
+      "count": 109,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -470,6 +472,7 @@
         "core/scripts/generate-coverage-report.sh",
         "core/scripts/generate-stats.py",
         "core/scripts/generate-wiki.sh",
+        "core/scripts/giamthi-watch.sh",
         "core/scripts/graph_builder.py",
         "core/scripts/graph_query.py",
         "core/scripts/guard_installer.py",
