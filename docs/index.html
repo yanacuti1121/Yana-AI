@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Yana AI — Personal Agent OS for Claude Code</title>
-<meta name="description" content="Safety hooks, 4,200 skills, and a Rust runtime that block AI agents from breaking production. For Claude Code, Cursor, Codex.">
+<meta name="description" content="Safety hooks, 2,016 skills, and a Rust runtime that block AI agents from breaking production. For Claude Code, Cursor, Codex.">
 <link rel="canonical" href="https://yana-ai.pages.dev/">
 <link rel="sitemap" type="application/xml" href="/sitemap.xml">
 <meta property="og:title" content="Yana AI">
@@ -433,7 +433,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
   <div>
     <div class="hero-badge"><span class="dot"></span> v0.41.0 &nbsp;·&nbsp; yana-rt 1.3.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
     <h1 data-i18n="hero.title">Your AI agent's<br><em>safety layer</em></h1>
-    <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 4,200 skills, a full Rust runtime, and a 9-layer gate system — built and verified for Claude Code.</p>
+    <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 2,016 skills, a full Rust runtime, and a 9-layer gate system — built and verified for Claude Code.</p>
     <div class="hero-ctas">
       <a href="#install" class="btn-primary">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
@@ -477,7 +477,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div style="margin-top:1rem;color:var(--fg-muted)">──────────────────────</div>
       <div class="t-prompt" style="margin-top:.75rem">yana-rt scan .</div>
       <div style="margin-top:.5rem">
-        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">45 active</span></div>
+        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">58 active</span></div>
         <div><span class="t-grn">✓</span>  rules &nbsp;<span class="t-dim">826 checks pass</span></div>
         <div><span class="t-grn">✓</span>  permissions &nbsp;<span class="t-dim">scoped</span></div>
       </div>
@@ -493,7 +493,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <div class="stats-bar">
   <div class="stats-inner">
     <div>
-      <div class="stat-num" style="color:var(--green)">4,200</div>
+      <div class="stat-num" style="color:var(--green)">2,016</div>
       <div class="stat-label" data-i18n="stat.skills">Workflow Skills</div>
     </div>
     <div>
@@ -501,7 +501,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div class="stat-label">Rust Subcommands</div>
     </div>
     <div>
-      <div class="stat-num" style="color:var(--orange)">45</div>
+      <div class="stat-num" style="color:var(--orange)">58</div>
       <div class="stat-label">Safety Hooks</div>
     </div>
     <div>
@@ -509,7 +509,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div class="stat-label">Rule Checks</div>
     </div>
     <div>
-      <div class="stat-num" style="color:var(--red)">90</div>
+      <div class="stat-num" style="color:var(--red)">101</div>
       <div class="stat-label">Specialist Agents</div>
     </div>
   </div>
@@ -520,7 +520,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <section id="agents" style="background:var(--bg-subtle);border-top:1px solid var(--border)">
   <div class="section-inner">
     <div class="section-label">Agent Teams</div>
-    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">95 specialized agents — <em style="font-style:normal;color:var(--accent)">auto-routed</em></h2>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">101 specialized agents — <em style="font-style:normal;color:var(--accent)">auto-routed</em></h2>
     <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.agents">Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
@@ -565,7 +565,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div class="feat-card">
         <div class="feat-icon">🛡️</div>
         <div class="feat-title" data-i18n="feat.hook.t">Pre-execution hooks</div>
-        <div class="feat-desc">46 hooks fire before any tool call. Block <code class="feat-code">rm -rf</code>, prompt injection, pipe-to-shell, and force-push — before damage happens.</div>
+        <div class="feat-desc">58 hooks fire before any tool call. Block <code class="feat-code">rm -rf</code>, prompt injection, pipe-to-shell, and force-push — before damage happens.</div>
       </div>
       <div class="feat-card">
         <div class="feat-icon">⚡</div>
@@ -574,7 +574,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       </div>
       <div class="feat-card">
         <div class="feat-icon">📚</div>
-        <div class="feat-title" data-i18n="feat.skills.t">4,200 skills</div>
+        <div class="feat-title" data-i18n="feat.skills.t">2,016 skills</div>
         <div class="feat-desc">The largest open-source skill library for Claude Code. Imported from ECC, taste-skill, stop-slop, and more — all MIT-licensed and anti-fake-pass verified.</div>
       </div>
       <div class="feat-card">
@@ -1050,7 +1050,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <span style="font-weight:700;font-size:.92rem">Yana AI</span>
           <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v0.41.0</span>
         </div>
-        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yana-ai.short">Personal agent OS — 46 hooks, 4,200 skills, Rust runtime. Safe for every AI agent.</p>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yana-ai.short">Personal agent OS — 58 hooks, 2,016 skills, Rust runtime. Safe for every AI agent.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Python</span>
           <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Rust</span>
@@ -1115,7 +1115,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(142,55%,36%,.1);display:flex;align-items:center;justify-content:center">🔀</span>
-            <span data-i18n="yana.f2">Điều phối 97 agents — route task đúng chuyên gia</span>
+            <span data-i18n="yana.f2">Điều phối 101 agents — route task đúng chuyên gia</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(155,52%,32%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
@@ -1167,22 +1167,22 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2.5rem">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--green);line-height:1;margin-bottom:.4rem">4,200</div>
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--green);line-height:1;margin-bottom:.4rem">2,016</div>
         <div style="font-size:.875rem;color:var(--fg-muted)">Workflow Skills</div>
         <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">641,675 dòng</div>
       </div>
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(221,75%,55%);line-height:1;margin-bottom:.4rem">95</div>
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(221,75%,55%);line-height:1;margin-bottom:.4rem">101</div>
         <div style="font-size:.875rem;color:var(--fg-muted)">Specialist Agents</div>
         <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">11,879 dòng</div>
       </div>
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--orange);line-height:1;margin-bottom:.4rem">164</div>
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--orange);line-height:1;margin-bottom:.4rem">170</div>
         <div style="font-size:.875rem;color:var(--fg-muted)">Slash Commands</div>
         <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">42,408 dòng</div>
       </div>
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
-        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(280,65%,60%);line-height:1;margin-bottom:.4rem">46</div>
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(280,65%,60%);line-height:1;margin-bottom:.4rem">58</div>
         <div style="font-size:.875rem;color:var(--fg-muted)">Safety Hooks</div>
         <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">4,685 dòng</div>
       </div>
@@ -1431,17 +1431,17 @@ const T = {
     'sub.sandbox':'Every tool call runs in an ephemeral container — no network, read-only filesystem, no root. Falls back to nsjail or ulimit if Docker is unavailable.',
     'h2.projects':'Things built',
     'sub.projects':'Personal and collaborative projects — from school to AI tooling.',
-    'sub.yana-ai.short':'Personal agent OS — 46 hooks, 4,200 skills, Rust runtime. Safe for every AI agent.',
+    'sub.yana-ai.short':'Personal agent OS — 58 hooks, 2,016 skills, Rust runtime. Safe for every AI agent.',
     'sub.jnmt':'Built from scratch — custom design, custom features, independent deployment.',
     'jnmt.desc':'International student support platform at <strong style="color:#fff">Jeonnam Future International High School</strong> — AI chatbot, timetable, achievements, room booking, parent portal. Co-dev with <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>.',
     'feat.hook.t':'Pre-execution hooks','feat.rust.t':'Rust runtime',
-    'feat.skills.t':'4,200 skills','feat.graph.t':'Knowledge graph',
+    'feat.skills.t':'2,016 skills','feat.graph.t':'Knowledge graph',
     'feat.vault.t':'Vietnamese vault','feat.design.t':'Design token extractor',
     'gate.l0.n':'Audit chain','gate.l1.n':'Anti-evasion',
     'gate.l2.n':'Shell sanitize + env integrity','gate.l3.n':'Sandbox isolation',
     'gate.l4.n':'Supply chain vetting','gate.l5.n':'UI quality + scope drift',
     'hero.title':"Your AI agent's<br><em>safety layer</em>",
-    'hero.sub':'Safety hooks that fire before damage happens. 4,200 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
+    'hero.sub':'Safety hooks that fire before damage happens. 2,016 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
     'hero.cta1':'Install free',
     'codexmate.desc':'AI coding agents control panel — switch provider, manage sessions, orchestrate tasks for',
     'codexmate.desc2':'Local-first, no cloud.',
@@ -1453,7 +1453,7 @@ const T = {
     'codexmate.tip':'If port is busy:','codexmate.tip2':'then run again',
     'yana.greeting':'Hello, I am',
     'yana.f1':'Daily briefing — repo status, CI, task priorities',
-    'yana.f2':'Coordinate 97 agents — route tasks to the right specialist',
+    'yana.f2':'Coordinate 101 agents — route tasks to the right specialist',
     'yana.f3':'L1/L2 memory — remembers decisions across sessions',
     'yana.f4':'Guarded by the full Yana AI safety layer',
     'yana.cta':'Learn more about Yana AI',
@@ -1514,17 +1514,17 @@ const T = {
     'sub.sandbox':'Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.',
     'h2.projects':'Những thứ đã xây',
     'sub.projects':'Dự án cá nhân và hợp tác — từ trường học đến AI tooling.',
-    'sub.yana-ai.short':'Personal agent OS — 46 hooks, 4,200 skills, Rust runtime. An toàn cho mọi AI agent.',
+    'sub.yana-ai.short':'Personal agent OS — 58 hooks, 2,016 skills, Rust runtime. An toàn cho mọi AI agent.',
     'sub.jnmt':'JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.',
     'jnmt.desc':'Nền tảng hỗ trợ học sinh quốc tế tại <strong style="color:#fff">THPT Quốc tế Tương lai Jeonnam</strong> — AI chatbot, thời khoá biểu, thành tích, đặt phòng, cổng phụ huynh. Co-dev với <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>.',
     'feat.hook.t':'Hook trước khi thực thi','feat.rust.t':'Rust runtime',
-    'feat.skills.t':'4,200 skills','feat.graph.t':'Knowledge graph',
+    'feat.skills.t':'2,016 skills','feat.graph.t':'Knowledge graph',
     'feat.vault.t':'Kho tri thức tiếng Việt','feat.design.t':'Trích xuất design token',
     'gate.l0.n':'Audit chain','gate.l1.n':'Chống evasion',
     'gate.l2.n':'Shell sanitize + bảo vệ env','gate.l3.n':'Sandbox isolation',
     'gate.l4.n':'Kiểm duyệt supply chain','gate.l5.n':'Chất lượng UI + scope drift',
     'hero.title':'Lớp bảo vệ cho<br><em>AI agent của bạn</em>',
-    'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 4,200 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
+    'hero.sub':'Hook an toàn kích hoạt trước khi xảy ra thiệt hại. 2,016 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
     'hero.cta1':'Cài đặt miễn phí',
     'codexmate.desc':'Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho',
     'codexmate.desc2':'Local-first, không cloud.',
@@ -1536,7 +1536,7 @@ const T = {
     'codexmate.tip':'Nếu port bận:','codexmate.tip2':'rồi chạy lại',
     'yana.greeting':'Xin chào, tôi là',
     'yana.f1':'Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc',
-    'yana.f2':'Điều phối 97 agents — route task đúng chuyên gia',
+    'yana.f2':'Điều phối 101 agents — route task đúng chuyên gia',
     'yana.f3':'Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session',
     'yana.f4':'Canh gác bởi toàn bộ Yana AI safety layer',
     'yana.cta':'Tìm hiểu thêm về Yana AI',
@@ -1597,17 +1597,17 @@ const T = {
     'sub.sandbox':'모든 도구 호출은 임시 컨테이너에서 실행됩니다 — 네트워크 없음, 읽기 전용 파일시스템, 루트 없음. Docker가 없으면 nsjail 또는 ulimit으로 자동 전환.',
     'h2.projects':'제작한 것들',
     'sub.projects':'개인 및 협업 프로젝트 — 학교부터 AI 툴링까지.',
-    'sub.yana-ai.short':'개인 에이전트 OS — 훅 46개, 스킬 4,200개, Rust 런타임. 모든 AI 에이전트에 안전.',
+    'sub.yana-ai.short':'개인 에이전트 OS — 훅 58개, 스킬 2,016개, Rust 런타임. 모든 AI 에이전트에 안전.',
     'sub.jnmt':'처음부터 직접 구축 — 자체 디자인, 자체 기능, 독립 배포.',
     'jnmt.desc':'<strong style="color:#fff">전남미래국제고등학교</strong> 국제 학생 지원 플랫폼 — AI 챗봇, 시간표, 성적, 예약, 학부모 포털. <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>과 공동 개발.',
     'feat.hook.t':'사전 실행 훅','feat.rust.t':'Rust 런타임',
-    'feat.skills.t':'4,200개 스킬','feat.graph.t':'지식 그래프',
+    'feat.skills.t':'2,016개 스킬','feat.graph.t':'지식 그래프',
     'feat.vault.t':'베트남어 지식 저장소','feat.design.t':'디자인 토큰 추출기',
     'gate.l0.n':'감사 체인','gate.l1.n':'회피 방지',
     'gate.l2.n':'셸 정제 + 환경 무결성','gate.l3.n':'샌드박스 격리',
     'gate.l4.n':'공급망 검증','gate.l5.n':'UI 품질 + 범위 이탈',
     'hero.title':'AI 에이전트를 위한<br><em>안전 레이어</em>',
-    'hero.sub':'손상 전에 실행되는 안전 훅. 4,200개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
+    'hero.sub':'손상 전에 실행되는 안전 훅. 2,016개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
     'hero.cta1':'무료 설치',
     'codexmate.desc':'AI 코딩 에이전트 대시보드 — 프로바이더 전환, 세션 관리, 작업 조율',
     'codexmate.desc2':'로컬 퍼스트, 클라우드 없음.',
