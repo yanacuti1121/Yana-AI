@@ -48,6 +48,46 @@ check "commands" "$commands_manifest" "$commands_actual"
 check "rules"    "$rules_manifest"    "$rules_actual"
 
 echo ""
+echo "=== Marketing-copy drift check (README/marketplace/SKILL.md/docs) ==="
+# 2026-07-16: MANIFEST.json/README.md were already internally consistent, but
+# marketplace.json, skills/yana-ai/SKILL.md, and docs/{index,desktop}.html
+# (+ their .claude/docs/ mirrors) had drifted to stale hardcoded numbers
+# (45/51/59 hooks, 1989/3440/4200 skills, 68 rules, 90/95/204 agents) that
+# never got updated when MANIFEST.json's real counts changed. This section
+# catches that specific class going forward: for each file, pull every
+# "<number> <keyword>" mention (English copy only — the dominant phrasing)
+# and flag any that doesn't match this file's own canonical count above.
+# Known limit: numbers split across separate HTML elements (e.g. a
+# <div class="stat-num">) aren't adjacent text and won't match — this is a
+# best-effort heuristic, not exhaustive coverage. "checks" is intentionally
+# not checked here: no canonical count for it exists in MANIFEST.json.
+check_doc_stat() {
+  local file="$1" keyword="$2" canonical="$3"
+  [ -f "$ROOT/$file" ] || return 0
+  local found
+  found=$(grep -oE "[0-9][0-9,]*[[:space:]]+$keyword" "$ROOT/$file" 2>/dev/null \
+          | grep -oE "^[0-9,]+" | tr -d ',' | sort -u)
+  local bad=""
+  for n in $found; do
+    [ "$n" = "$canonical" ] || bad="$bad $n"
+  done
+  if [ -n "$bad" ]; then
+    echo -e "  ${RED}FAIL${NC} $file: stale '$keyword' number(s):$bad (should be $canonical)"
+    ((errors++))
+  fi
+}
+
+for f in .claude-plugin/marketplace.json skills/yana-ai/SKILL.md \
+         docs/index.html docs/desktop.html \
+         .claude/docs/index.html .claude/docs/desktop.html; do
+  check_doc_stat "$f" "hooks"    "$hooks_manifest"
+  check_doc_stat "$f" "skills"   "$skills_manifest"
+  check_doc_stat "$f" "rules"    "$rules_manifest"
+  check_doc_stat "$f" "agents"   "$agents_manifest"
+  check_doc_stat "$f" "commands" "$commands_manifest"
+done
+
+echo ""
 if [ $errors -eq 0 ]; then
   echo -e "${GREEN}All counts match.${NC}"
   exit 0

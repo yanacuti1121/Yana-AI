@@ -61,12 +61,16 @@ xem ví dụ `core/skills/agent-reach/`).
 678-case skill-trigger suite both pass. Both new skills mirrored into `.claude/skills/`
 per this repo's dual-copy convention.
 
-> Note: MANIFEST.json's `skills_count` (1989) is stale against the real skill directory
-> count (2016, post this pass) by a much larger margin than these 2 additions explain —
-> `core/scripts/validate-counts.sh` already reports this drift plus a separate `rules`
-> count mismatch (70 vs 71), both pre-existing and NOT caused by this pass. Out of scope
-> here (would need auditing which of ~27 skill dirs went uncounted, likely across several
-> prior sessions) — flagging for a dedicated pass, not silently fixing or silently ignoring.
+> Update 2026-07-16: resolved. MANIFEST.json's `skills_count`/`rules_count` were already
+> correct by the time of this pass (2016 / 71 — `validate-counts.sh` confirms OK on both).
+> The actual drift turned out to live outside MANIFEST.json entirely: `.claude-plugin/
+> marketplace.json`, `skills/yana-ai/SKILL.md`, and `docs/{index,desktop}.html` (+ their
+> `.claude/docs/` mirrors) all had stale hardcoded counts (45/51/59 hooks, 1989/3440/4200
+> skills, 68 rules, 90/95/204 agents) that never got updated when MANIFEST.json's real
+> numbers changed. Fixed all of them to match MANIFEST.json (58 hooks, 2016 skills, 71
+> rules, 101 agents, 170 commands) in the same pass as this note. `validate-counts.sh`
+> itself currently reports 2 unrelated mismatches (hooks 58→60, scripts 108→109) caused by
+> a separate in-progress session adding new hook/script files — not part of this fix.
 
 > Note: anh nói tổng đang có **19 cái cần làm** — the 6 links above are now fully
 > researched (0 actionable left in this batch: 2 built, 3 skipped as duplicate/non-skill-
