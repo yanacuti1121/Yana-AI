@@ -96,14 +96,16 @@ test_hook() {
         actual_decision=$(echo "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"')
 
         # Special case for hooks that warn instead of deny (token-scope-guard.sh,
-        # infra-review-reminder.sh). Only relabel "allow" -> "warn" when
-        # additionalContext is present; today these hooks only ever warn,
-        # never deny, so the condition is currently a no-op guard — but
-        # without it, a future version of one of these hooks that also
-        # denies (with an explanatory additionalContext alongside the deny)
-        # would have that deny silently relabeled as "warn" here, masking a
-        # real block as a mere advisory.
-        if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh") \
+        # infra-review-reminder.sh, entry-point-verify-reminder.sh). Only
+        # relabel "allow" -> "warn" when additionalContext is present; today
+        # these hooks only ever warn, never deny, so the condition is
+        # currently a no-op guard — but without it, a future version of one
+        # of these hooks that also denies (with an explanatory
+        # additionalContext alongside the deny) would have that deny
+        # silently relabeled as "warn" here, masking a real block as a mere
+        # advisory.
+        if [[ ("$hook_name" == "token-scope-guard.sh" || "$hook_name" == "infra-review-reminder.sh" \
+               || "$hook_name" == "entry-point-verify-reminder.sh" || "$hook_name" == "scope-guard.sh") \
               && "$actual_decision" == "allow" ]]; then
             if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null; then
                 actual_decision="warn"
@@ -188,6 +190,43 @@ test_hook "guard-destructive.sh" "Block git \$'push' --force (ANSI-C quoted subc
 test_hook "guard-destructive.sh" "Block git push \$'--force' (ANSI-C quoted force flag, non-main branch)" '{"tool_name":"Bash","tool_input":{"command":"git push $'"'"'--force'"'"' origin feature-branch"}}' "deny"
 test_hook "guard-destructive.sh" "Block rm -{rf,} (brace expansion alongside rm)" '{"tool_name":"Bash","tool_input":{"command":"rm -{rf,} /tmp/x"}}' "deny"
 test_hook "guard-destructive.sh" "Allow unrelated brace expansion with no git/rm mention" '{"tool_name":"Bash","tool_input":{"command":"echo file.{js,ts}"}}' "allow"
+
+# MCP tool-call coverage (2026-07-11): before this fix, this hook only ever
+# read .tool_input.command — an MCP call (tool_name mcp__<server>__<tool>)
+# with its command under a server-specific key produced an empty $COMMAND
+# and silently allowed, regardless of what it actually did.
+test_hook "guard-destructive.sh" "Block MCP execute_command rm -rf (command field)" '{"tool_name":"mcp__desktop-commander__execute_command","tool_input":{"command":"rm -rf /tmp/x"}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool using cmd field, force-push" '{"tool_name":"mcp__some-server__run","tool_input":{"cmd":"git push --force origin main"}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool with nested camelCase field, force-push" '{"tool_name":"mcp__x__y","tool_input":{"params":{"shellCommand":"git push --force origin main"}}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP tool with nested script field, destructive SQL" '{"tool_name":"mcp__code-exec__run","tool_input":{"params":{"script":"DROP TABLE users;"}}}' "deny"
+test_hook "guard-destructive.sh" "Allow MCP tool with rm -rf only in unrelated content field" '{"tool_name":"mcp__notes__create","tool_input":{"content":"Remember: never run rm -rf in prod!"}}' "allow"
+test_hook "guard-destructive.sh" "Allow MCP tool with benign description mentioning script" '{"tool_name":"mcp__ticket__create","tool_input":{"description":"Please update the onboarding script reference"}}' "allow"
+test_hook "guard-destructive.sh" "Allow MCP search with unrelated query text" '{"tool_name":"mcp__web-search__search","tool_input":{"query":"react hooks best practices"}}' "allow"
+test_hook "guard-destructive.sh" "Allow native Bash still works after MCP change (regression)" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' "allow"
+
+# 2026-07-11 security/code-auditor review findings on the initial MCP
+# coverage change — both were verified live bypasses before these fixes.
+test_hook "guard-destructive.sh" "Block MCP array-of-strings under plural 'commands' key" '{"tool_name":"mcp__x__y","tool_input":{"commands":["rm -rf /tmp/x","echo ok"]}}' "deny"
+test_hook "guard-destructive.sh" "Block MCP acronym-prefixed key (SQLCommand)" '{"tool_name":"mcp__x__y","tool_input":{"SQLCommand":"DROP TABLE users;"}}' "deny"
+
+# 3b. scope-guard.sh — advisory-only (never blocks, exit 0 always; a
+# "warn" here means additionalContext was present — see the relabeling
+# special-case near the top of this file). Had zero coverage in this
+# harness before 2026-07-11's MCP fallback change; baseline pre-MCP cases
+# are included alongside the new ones so this ships with a regression net.
+echo ""
+echo "--- scope-guard.sh ---"
+test_hook "scope-guard.sh" "Warn on Write to app/" '{"tool_name":"Write","tool_input":{"path":"app/page.tsx"}}' "warn"
+test_hook "scope-guard.sh" "Warn on Edit to .env" '{"tool_name":"Edit","tool_input":{"file_path":".env.production"}}' "warn"
+test_hook "scope-guard.sh" "Allow Write to unrelated path" '{"tool_name":"Write","tool_input":{"path":"docs/notes.md"}}' "allow"
+test_hook "scope-guard.sh" "Bypass via YANA_SCOPE_OK" '{"tool_name":"Write","tool_input":{"path":"app/page.tsx"}}' "allow" "YANA_SCOPE_OK" "1"
+test_hook "scope-guard.sh" "Ignore unrelated tool_name (Read)" '{"tool_name":"Read","tool_input":{"file_path":"app/page.tsx"}}' "allow"
+# MCP fallback (2026-07-11): MCP file-writing tools don't share a single
+# field path for the target location the way native Write/Edit do.
+test_hook "scope-guard.sh" "Warn on MCP write_file with standard path field" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"path":"app/page.tsx","content":"x"}}' "warn"
+test_hook "scope-guard.sh" "Warn on MCP write with non-standard path key (fallback)" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"target_location":"components/Button.tsx"}}' "warn"
+test_hook "scope-guard.sh" "Allow MCP search with unrelated query text" '{"tool_name":"mcp__web-search__search","tool_input":{"query":"react hooks best practices"}}' "allow"
+test_hook "scope-guard.sh" "MCP bypass via YANA_SCOPE_OK" '{"tool_name":"mcp__filesystem__write_file","tool_input":{"path":"app/page.tsx"}}' "allow" "YANA_SCOPE_OK" "1"
 
 # 4. db-protect.sh
 echo ""
@@ -675,6 +714,150 @@ print(json.dumps({
     fi
 }
 test_toolguard_large_truncated_failure_still_detected
+
+# 5e. context-compress-stop.sh — Stop event real-transcript context
+# compressor (hermes_adapted Phase 4). The actual compression runs in a
+# backgrounded subshell (see the hook's own header comment for why), so
+# these tests focus on the deterministic foreground fast-paths (bypass,
+# missing transcript, no severity state, severity OK) plus one end-to-end
+# check that waits briefly for the background job and tolerates it
+# producing a static-fallback summary rather than a real Ollama one, since
+# CI has no Ollama server to reach.
+echo ""
+echo "--- context-compress-stop.sh ---"
+
+test_compress_stop_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}   # e.g. "YANA_CONTEXT_COMPRESS_BYPASS=1"
+    local ctx_state_setup=${4:-""}  # "none" | "ok" | "warning"
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing context-compress-stop.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/context-compress-stop.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/context-compress-stop.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local session_id
+    session_id=$(echo "$input_json" | jq -r '.session_id // "default"')
+    local ctx_state_file="/tmp/claude-ctx-${session_id}.json"
+    rm -f "$ctx_state_file"
+    register_temp "$ctx_state_file"
+    if [[ "$ctx_state_setup" == "ok" ]]; then
+        echo '{"lastSeverity":"OK"}' > "$ctx_state_file"
+    elif [[ "$ctx_state_setup" == "warning" ]]; then
+        echo '{"lastSeverity":"WARNING"}' > "$ctx_state_file"
+    fi
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/context-compress-stop.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+    rm -f "$ctx_state_file"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_compress_stop_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"cc1","transcript_path":"/nonexistent.jsonl"}' \
+    "YANA_CONTEXT_COMPRESS_BYPASS=1"
+
+test_compress_stop_silent "Missing transcript_path is silent (fails open)" \
+    '{"session_id":"cc2"}' \
+    "" "warning"
+
+test_compress_stop_silent "No context-monitor state file yet is silent (fresh session)" \
+    '{"session_id":"cc3","transcript_path":"/nonexistent.jsonl"}' \
+    "" "none"
+
+test_compress_stop_silent "Severity OK does not trigger compression" \
+    '{"session_id":"cc4","transcript_path":"/nonexistent.jsonl"}' \
+    "" "ok"
+
+test_compress_stop_end_to_end() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing context-compress-stop.sh [WARNING severity + real transcript triggers background compression]... "
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "SKIP (python3 not available)"
+        return 0
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/core/memory/L2_session"
+
+    local transcript_file
+    transcript_file=$(mktemp)
+    register_temp "$transcript_file"
+    # Enough turns that a tiny YANA_CONTEXT_LENGTH is exceeded, and enough
+    # messages that ContextCompressor.compress() doesn't bail out early on
+    # "too few messages" (needs > head_end + 4, head_end defaults to 3).
+    {
+        for i in $(seq 1 12); do
+            echo "{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"turn $i: please look at file number $i and tell me what is in it\"}}"
+            echo "{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":\"turn $i: here is what I found in that file, it looks fine to me\"}}"
+        done
+    } > "$transcript_file"
+
+    local ctx_state_file="/tmp/claude-ctx-cc5.json"
+    echo '{"lastSeverity":"WARNING"}' > "$ctx_state_file"
+    register_temp "$ctx_state_file"
+
+    local payload
+    payload=$(jq -n --arg tp "$transcript_file" '{"session_id":"cc5","transcript_path":$tp}')
+
+    local output
+    # YANA_CONTEXT_LENGTH tiny + OLLAMA_HOST pointed at a closed port so the
+    # summarize_fn call fails fast and deterministically instead of hanging
+    # on a real network timeout — exercises the static-fallback-summary path.
+    output=$(echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        YANA_CONTEXT_LENGTH=50 OLLAMA_HOST="http://127.0.0.1:1" \
+        bash "$HOOKS_DIR/context-compress-stop.sh" 2>/dev/null)
+
+    # Foreground message must fire immediately regardless of background outcome.
+    if [[ "$output" != *"context-compress"* ]]; then
+        echo "FAIL (expected a [context-compress] message, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        rm -rf "$tmp_project"
+        return 1
+    fi
+
+    # Give the backgrounded job a moment to finish (no real network call —
+    # OLLAMA_HOST is unreachable, so this resolves via the static fallback
+    # summary almost immediately, not a real 60s timeout).
+    local waited=0
+    local found=""
+    while [[ $waited -lt 10 ]]; do
+        found=$(find "$tmp_project/core/memory/L2_session" -name "context-compress-*.md" 2>/dev/null | head -1)
+        [[ -n "$found" ]] && break
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    rm -rf "$tmp_project"
+
+    if [[ -n "$found" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (no context-compress-*.md written within ${waited}s)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_compress_stop_end_to_end
 
 # 6. cost-guard.sh
 echo ""
@@ -1564,6 +1747,185 @@ test_hook "infra-review-reminder.sh" "Warn on Write to MANIFEST.json" \
     '{"tool_name":"Write","tool_input":{"file_path":"MANIFEST.json","content":"x"}}' "warn"
 test_hook "infra-review-reminder.sh" "Allow Write to unrelated file" \
     '{"tool_name":"Write","tool_input":{"file_path":"README.md","content":"x"}}' "allow"
+
+# 12. entry-point-verify-reminder.sh — advisory-only, per
+# core/rules/71-entry-point-verify-law.md. Rust-only (yana-rt guard
+# entry-point-check), same reason guard-blast-radius.sh has no bash
+# fallback: the path-matching logic lives in src/guard/blast_paths.rs and
+# a bash reimplementation could drift out of sync with it.
+echo ""
+echo "--- entry-point-verify-reminder.sh ---"
+ENTRY_RT_BIN="$REPO_ROOT/target/release/yana-rt"
+[[ -x "$ENTRY_RT_BIN" ]] || ENTRY_RT_BIN="$REPO_ROOT/target/debug/yana-rt"
+
+if [[ -x "$ENTRY_RT_BIN" ]]; then
+    ENTRY_RT_DIR="$(dirname "$ENTRY_RT_BIN")"
+
+    run_entry() {
+        local test_name=$1 tool=$2 path_json=$3 expect=$4
+        local extra_path=${5:-""}
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        echo -n "Testing entry-point-verify-reminder.sh [$test_name]... "
+        local out
+        out=$(jq -n --arg tool "$tool" --argjson input "$path_json" '{tool_name:$tool, tool_input:$input}' \
+            | PATH="${extra_path:+$extra_path:}$ENTRY_RT_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+        local decision="allow"
+        if [[ -n "$out" ]] && echo "$out" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+            decision="warn"
+        fi
+        if [[ "$decision" == "$expect" ]]; then
+            echo "PASS"
+        else
+            echo "FAIL (expected $expect, got $decision)"
+            [[ -n "$out" ]] && echo "Output: $out"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    }
+
+    run_entry "Warn on Write to registered entry point" "Write" \
+        '{"path":"scripts/yana-rt-wrapper.js"}' "warn"
+    run_entry "Warn on MultiEdit (file_path field) to registered entry point" "MultiEdit" \
+        '{"file_path":"scripts/yana-rt-wrapper.js"}' "warn"
+    run_entry "Allow Write to unrelated file" "Write" \
+        '{"path":"src/main.rs"}' "allow"
+    run_entry "Allow on Read tool (not a write tool)" "Read" \
+        '{"path":"scripts/yana-rt-wrapper.js"}' "allow"
+
+    # Bypass case — env var wraps the whole hook invocation, not the payload.
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing entry-point-verify-reminder.sh [Bypass suppresses reminder]... "
+    BYPASS_OUT=$(echo '{"tool_name":"Write","tool_input":{"path":"scripts/yana-rt-wrapper.js"}}' \
+        | env YANA_ENTRY_POINT_BYPASS=1 PATH="$ENTRY_RT_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+    if [[ -z "$BYPASS_OUT" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected no output, got: $BYPASS_OUT)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+
+    # Stale-binary fallback — a yana-rt on PATH that predates this
+    # subcommand must not make the wrapper itself fail. Simulated with a
+    # fake yana-rt that mimics clap's real "unrecognized subcommand" exit
+    # (non-zero, no stdout) for this one subcommand.
+    STALE_BIN_DIR="$(mktemp -d)"
+    register_temp "$STALE_BIN_DIR"
+    cat > "$STALE_BIN_DIR/yana-rt" <<'EOF'
+#!/usr/bin/env bash
+echo "error: unrecognized subcommand 'entry-point-check'" >&2
+exit 2
+EOF
+    chmod +x "$STALE_BIN_DIR/yana-rt"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing entry-point-verify-reminder.sh [Stale yana-rt on PATH doesn't fail the hook]... "
+    STALE_OUT=$(echo '{"tool_name":"Write","tool_input":{"path":"scripts/yana-rt-wrapper.js"}}' \
+        | PATH="$STALE_BIN_DIR:$PATH" bash "$HOOKS_DIR/entry-point-verify-reminder.sh" 2>/dev/null)
+    STALE_EXIT=$?
+    if [[ "$STALE_EXIT" -eq 0 && -z "$STALE_OUT" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected exit 0 with no stdout, got exit $STALE_EXIT, output: $STALE_OUT)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    rm -rf "$STALE_BIN_DIR"
+else
+    echo "SKIP: yana-rt binary not built — run 'cargo build' (or --release) to test entry-point-verify-reminder.sh"
+    SKIPPED_SECTIONS+=("entry-point-verify-reminder.sh (6 cases) — yana-rt binary not built")
+fi
+
+echo ""
+echo "--- freeze-scope.sh ---"
+
+test_freeze_scope() {
+    local test_name=$1 scope=$2 input_json=$3 expected_decision=$4 extra_env_var=${5:-""} extra_env_val=${6:-""}
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing freeze-scope.sh [$test_name]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    if [[ -n "$scope" ]]; then
+        mkdir -p "$tmp_project/.claude/state"
+        printf '%s' "$scope" > "$tmp_project/.claude/state/FREEZE_SCOPE"
+    fi
+
+    local output exit_code
+    if [[ -n "$extra_env_var" ]]; then
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env "$extra_env_var"="$extra_env_val" \
+            bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null)
+    else
+        output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null)
+    fi
+    exit_code=$?
+    rm -rf "$tmp_project"
+
+    local actual_decision="allow"
+    [[ $exit_code -eq 2 ]] && actual_decision="deny"
+
+    if [[ "$actual_decision" == "$expected_decision" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected $expected_decision, got $actual_decision — exit $exit_code, output: $output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_freeze_scope "Allow write inside frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/foo.md"}}' "allow"
+
+test_freeze_scope "Block write outside frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "deny"
+
+test_freeze_scope "Block Edit outside frozen scope" "core/rules" \
+    '{"tool_name":"Edit","tool_input":{"file_path":"core/hooks/guard-destructive.sh"}}' "deny"
+
+test_freeze_scope "Block MultiEdit (file_path field) outside frozen scope" "core/rules" \
+    '{"tool_name":"MultiEdit","tool_input":{"file_path":"src/main.rs"}}' "deny"
+
+test_freeze_scope "Allow when no freeze is set" "" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "allow"
+
+test_freeze_scope "Bash is not path-checked even when frozen (by design — see hook comment)" "core/rules" \
+    '{"tool_name":"Bash","tool_input":{"command":"rm src/main.rs"}}' "allow"
+
+test_freeze_scope "Bypass env var allows a write outside scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"src/main.rs"}}' "allow" \
+    "YANA_FREEZE_SCOPE_BYPASS" "1"
+
+test_freeze_scope "Sibling directory with shared prefix is not treated as in-scope" "core/rule" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/foo.md"}}' "deny"
+
+test_freeze_scope "Traversal inside target path escapes the frozen scope" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/../hooks/malicious.sh"}}' "deny"
+
+test_freeze_scope "Traversal that walks out of the project root entirely" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/rules/../../../../etc/cron.d/evil"}}' "deny"
+
+test_freeze_scope "Absolute path outside the project root entirely" "core/rules" \
+    '{"tool_name":"Write","tool_input":{"file_path":"/etc/passwd"}}' "deny"
+
+# ── giamthi-halt-check.sh ────────────────────────────────────────────────────
+# This hook takes no stdin content into account (only the lock file's
+# presence), so input_json is a trivial placeholder for every case here.
+# It has no bypass by design (see hook header) — no bypass-case test exists.
+_GIAMTHI_LOCK="$CLAUDE_DIR/state/GIAMTHI_HALT.lock"
+_GIAMTHI_LOCK_PRE_EXISTED=0
+[[ -f "$_GIAMTHI_LOCK" ]] && _GIAMTHI_LOCK_PRE_EXISTED=1
+
+mkdir -p "$(dirname "$_GIAMTHI_LOCK")" 2>/dev/null || true
+rm -f "$_GIAMTHI_LOCK"
+test_hook "giamthi-halt-check.sh" "Allow when no lock exists" '{"tool_name":"Read","tool_input":{}}' "allow"
+
+echo "=== GIAM THI HALT — test fixture ===" > "$_GIAMTHI_LOCK"
+echo "manufactured for run-hook-tests.sh — safe to ignore outside a test run" >> "$_GIAMTHI_LOCK"
+test_hook "giamthi-halt-check.sh" "Block every tool call while lock exists" '{"tool_name":"Read","tool_input":{}}' "deny"
+test_hook "giamthi-halt-check.sh" "Block applies regardless of tool_name (Bash)" '{"tool_name":"Bash","tool_input":{"command":"ls"}}' "deny"
+
+rm -f "$_GIAMTHI_LOCK"
+if [[ "$_GIAMTHI_LOCK_PRE_EXISTED" -eq 1 ]]; then
+    echo "WARNING: $_GIAMTHI_LOCK existed before this test run and was overwritten, then removed. If a real halt was in progress, it is now cleared — check $CLAUDE_DIR/state/giamthi-reports.log."
+fi
 
 echo ""
 echo "=== Summary ==="

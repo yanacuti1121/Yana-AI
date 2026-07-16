@@ -18,6 +18,15 @@
     ],
     "PreToolUse": [
       {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/giamthi-halt-check.sh bash .claude/hooks/hook-timeout-guard.sh"
+          }
+        ]
+      },
+      {
         "matcher": "Bash|mcp__.*",
         "hooks": [
           {
@@ -99,6 +108,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash .claude/hooks/hook-timeout-guard.sh reset"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/context-compress-stop.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }
