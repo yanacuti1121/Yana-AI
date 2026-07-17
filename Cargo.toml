@@ -27,6 +27,7 @@ default = ["cli"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
   "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
+  "ratatui", "crossterm",
 ]
 wasm = ["wasm-bindgen", "js-sys"]
 
@@ -46,9 +47,14 @@ walkdir              = { version = "2",              optional = true }
 anyhow               = { version = "1",              optional = true }
 unicode-normalization = { version = "0.1",           optional = true }
 liteparse  = { version = "2", default-features = false, optional = true }
-ureq       = { version = "3",                        optional = true }
+ureq       = { version = "3", features = ["json"],   optional = true }
 serde_yml  = { version = "0.0.13",                   optional = true }
 sha2       = { version = "0.10",                     optional = true }
+# TUI for `yana chat` — synchronous poll/read API only, deliberately not
+# opting into crossterm's `event-stream` feature (would pull in async/
+# futures plumbing this crate has nowhere else).
+ratatui    = { version = "0.30",                     optional = true }
+crossterm  = { version = "0.29",                     optional = true }
 
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }
