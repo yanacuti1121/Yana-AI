@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/schemas/chat-message.schema.json",
+  "title": "Yana AI Chat History Line",
+  "type": "object",
+  "required": ["schema_version", "session_id", "id", "ts", "role", "content"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "session_id": { "type": "string" },
+    "id": { "type": "string" },
+    "ts": { "type": "string" },
+    "role": {
+      "type": "string",
+      "enum": ["user", "assistant"],
+      "minLength": 1
+    },
+    "provider": { "type": "string" },
+    "model": { "type": "string" },
+    "content": { "type": "string" },
+    "input_tokens": { "type": "integer", "minimum": 0 },
+    "output_tokens": { "type": "integer", "minimum": 0 },
+    "duration_ms": { "type": "integer", "minimum": 0 },
+    "truncated": { "type": "boolean" },
+    "error": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

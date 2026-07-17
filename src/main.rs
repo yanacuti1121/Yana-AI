@@ -1,6 +1,7 @@
 #![cfg(feature = "cli")]
 
 mod bus;
+mod chat;
 mod config;
 mod cost;
 mod memory;
@@ -148,6 +149,27 @@ enum Commands {
     /// no file content uploaded). Not real-time/background protection — see
     /// src/filescan/mod.rs's module doc for why that's a different product.
     Filescan { #[command(subcommand)] action: filescan::FilescanAction },
+    /// Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama).
+    /// Pure conversation only: no tool-calling, no shell/file execution —
+    /// see src/chat/mod.rs's module doc for why that scope cut is the
+    /// actual answer to whether this needs to route through the hook system.
+    Chat {
+        /// anthropic | openai | ollama (default: auto-detect via env, else ollama)
+        #[arg(long)]
+        provider: Option<String>,
+        /// Model name (default: provider's own default)
+        #[arg(long)]
+        model: Option<String>,
+        /// System prompt
+        #[arg(long)]
+        system: Option<String>,
+        /// Resume an existing session by ID — preloads its history as context
+        #[arg(long)]
+        resume: Option<String>,
+        /// Print full upstream error detail instead of a generic message
+        #[arg(long)]
+        verbose: bool,
+    },
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
@@ -361,6 +383,8 @@ fn main() {
         Commands::Init  { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
+        Commands::Chat { provider, model, system, resume, verbose } =>
+            chat::dispatch(provider, model, system, resume, verbose),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
