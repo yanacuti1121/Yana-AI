@@ -206,7 +206,7 @@
     .section-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .75rem; }
     .section-sub { text-align: center; color: var(--fg-muted); margin-bottom: 3rem; font-size: 1rem; }
     /* Asymmetric grid, not a repeated icon+title+text card × 6: the
-       security claim is the strongest differentiator (58 hooks, 9 gate
+       security claim is the strongest differentiator (60 hooks, 9 gate
        layers is a specific, checkable number, not marketing copy), so it
        gets a wider spotlight slot with room for a supporting stat instead
        of being visually identical to "works offline" or "smart dashboard". */
@@ -331,7 +331,7 @@
   <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
     Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device.
-    <strong>2016 skills</strong>, <strong>101 agents</strong>, multi-layer security.
+    <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.
   </p>
 
   <div class="gh-stats" id="ghStats" hidden>
@@ -409,10 +409,10 @@
       <div class="feat-icon" aria-hidden="true">🛡️</div>
       <div>
         <h3 class="feat-title" data-i18n="f2_title">Multi-layer security</h3>
-        <p class="feat-desc" data-i18n="f2_desc">58 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</p>
+        <p class="feat-desc" data-i18n="f2_desc">60 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</p>
       </div>
       <div class="feat-stat">
-        <div class="feat-stat-num">58</div>
+        <div class="feat-stat-num">60</div>
         <div class="feat-stat-label" data-i18n="f2_stat_label">Active hooks</div>
       </div>
     </li>
@@ -423,7 +423,7 @@
     </li>
     <li class="feat-card">
       <div class="feat-icon" aria-hidden="true">🧠</div>
-      <h3 class="feat-title" data-i18n="f3_title">2016 built-in skills</h3>
+      <h3 class="feat-title" data-i18n="f3_title">2025 built-in skills</h3>
       <p class="feat-desc" data-i18n="f3_desc">The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.</p>
     </li>
     <li class="feat-card">
@@ -464,7 +464,7 @@
   </details>
   <details class="faq-item">
     <summary data-i18n="faq_q4">What does "multi-layer security" actually block?</summary>
-    <p class="faq-answer" data-i18n="faq_a4">58 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
+    <p class="faq-answer" data-i18n="faq_a4">60 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
   </details>
 </section>
 
@@ -525,7 +525,7 @@ const LANGS = {
     nav_home: "Home", nav_cta: "Download",
     badge_new: "Latest release",
     hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
-    hero_sub: "Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device. <strong>2016 skills</strong>, <strong>101 agents</strong>, multi-layer security.",
+    hero_sub: "Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device. <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.",
     gh_stars: "stars on GitHub",
     gh_star_one: "star on GitHub",
     gh_forks: "forks",
@@ -543,9 +543,9 @@ const LANGS = {
     f1_title: "Bring your own API key",
     f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
     f2_title: "Multi-layer security",
-    f2_desc: "58 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.",
+    f2_desc: "60 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.",
     f2_stat_label: "Active hooks",
-    f3_title: "2016 built-in skills",
+    f3_title: "2025 built-in skills",
     f3_desc: "The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
     f4_title: "Works offline",
     f4_desc: "Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.",
@@ -563,7 +563,7 @@ const LANGS = {
     faq_q3: "I don't have an API key — can I still use it?",
     faq_a3: "Yes. Connect Ollama and run an open-weight model (Llama, Qwen, Mistral) fully offline, with no key and no cost. Cloud providers are optional, not required.",
     faq_q4: "What does \"multi-layer security\" actually block?",
-    faq_a4: "58 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
+    faq_a4: "60 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
     plat_title: "Available on every platform",
     plat_sub: "Version v0.43.0 — download and run instantly, no extra setup needed.",
     dl_prefix: "Download",
@@ -576,7 +576,7 @@ const LANGS = {
     nav_home: "Trang chủ", nav_cta: "Tải về",
     badge_new: "Mới nhất",
     hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
-    hero_sub: "Yana AI Desktop — dùng API key của bạn, chạy hoàn toàn local, dữ liệu không bao giờ rời khỏi thiết bị. <strong>2016 skills</strong>, <strong>101 agents</strong>, bảo mật đa lớp.",
+    hero_sub: "Yana AI Desktop — dùng API key của bạn, chạy hoàn toàn local, dữ liệu không bao giờ rời khỏi thiết bị. <strong>2025 skills</strong>, <strong>101 agents</strong>, bảo mật đa lớp.",
     gh_stars: "lượt sao trên GitHub",
     gh_star_one: "lượt sao trên GitHub",
     gh_forks: "lượt fork",
@@ -594,9 +594,9 @@ const LANGS = {
     f1_title: "API key của bạn",
     f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
     f2_title: "Bảo mật đa lớp",
-    f2_desc: "58 hooks bảo mật và 9 lớp gate chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
+    f2_desc: "60 hooks bảo mật và 9 lớp gate chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
     f2_stat_label: "Hooks hoạt động",
-    f3_title: "2016 skills tích hợp",
+    f3_title: "2025 skills tích hợp",
     f3_desc: "Thư viện skill lớn nhất — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
     f4_title: "Chạy offline",
     f4_desc: "Kết nối Ollama để dùng model local (Llama, Qwen, Mistral). Không cần internet, không phí API.",
@@ -614,7 +614,7 @@ const LANGS = {
     faq_q3: "Tôi không có API key — vẫn dùng được không?",
     faq_a3: "Được. Kết nối Ollama để chạy model mã nguồn mở (Llama, Qwen, Mistral) hoàn toàn offline, không cần key, không tốn phí. Provider cloud là tùy chọn, không bắt buộc.",
     faq_q4: "\"Bảo mật đa lớp\" thực sự chặn những gì?",
-    faq_a4: "58 hooks runtime và 9 lớp gate kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
+    faq_a4: "60 hooks runtime và 9 lớp gate kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
     plat_title: "Hỗ trợ mọi nền tảng",
     plat_sub: "Phiên bản v0.43.0 — tải về và dùng ngay, không cần cài thêm gì.",
     dl_prefix: "Tải",
@@ -627,7 +627,7 @@ const LANGS = {
     nav_home: "홈", nav_cta: "다운로드",
     badge_new: "최신 릴리즈",
     hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
-    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용, 완전 로컬 실행, 데이터가 장치를 벗어나지 않습니다. <strong>2016개 스킬</strong>, <strong>101개 에이전트</strong>, 다층 보안.",
+    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용, 완전 로컬 실행, 데이터가 장치를 벗어나지 않습니다. <strong>2025개 스킬</strong>, <strong>101개 에이전트</strong>, 다층 보안.",
     gh_stars: "GitHub 스타",
     gh_star_one: "GitHub 스타",
     gh_forks: "포크",
@@ -645,9 +645,9 @@ const LANGS = {
     f1_title: "나만의 API 키",
     f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
     f2_title: "다층 보안",
-    f2_desc: "58개 보안 훅과 9개 게이트 레이어로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
+    f2_desc: "60개 보안 훅과 9개 게이트 레이어로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
     f2_stat_label: "활성 훅",
-    f3_title: "2016개 내장 스킬",
+    f3_title: "2025개 내장 스킬",
     f3_desc: "최대 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
     f4_title: "오프라인 작동",
     f4_desc: "Ollama 연결로 로컬 모델 실행 (Llama, Qwen, Mistral). 인터넷 불필요, API 비용 없음.",
@@ -665,7 +665,7 @@ const LANGS = {
     faq_q3: "API 키가 없어도 사용할 수 있나요?",
     faq_a3: "네. Ollama를 연결해 오픈 웨이트 모델(Llama, Qwen, Mistral)을 완전히 오프라인으로 실행할 수 있으며, 키도 비용도 필요 없습니다. 클라우드 공급자는 선택 사항일 뿐 필수가 아닙니다.",
     faq_q4: "\"다층 보안\"이 실제로 무엇을 차단하나요?",
-    faq_a4: "58개의 런타임 훅과 9개의 게이트 레이어가 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
+    faq_a4: "60개의 런타임 훅과 9개의 게이트 레이어가 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
     plat_title: "모든 플랫폼 지원",
     plat_sub: "v0.43.0 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
     dl_prefix: "다운로드",
@@ -678,7 +678,7 @@ const LANGS = {
     nav_home: "首页", nav_cta: "下载",
     badge_new: "最新版本",
     hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
-    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，完全本地运行，数据永不离开设备。<strong>2016 个技能</strong>，<strong>101 个智能体</strong>，多层安全防护。",
+    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，完全本地运行，数据永不离开设备。<strong>2025 个技能</strong>，<strong>101 个智能体</strong>，多层安全防护。",
     gh_stars: "GitHub 星标",
     gh_star_one: "GitHub 星标",
     gh_forks: "分支数",
@@ -696,9 +696,9 @@ const LANGS = {
     f1_title: "使用您自己的 API 密钥",
     f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
     f2_title: "多层安全防护",
-    f2_desc: "58 个安全钩子和 9 层防护门，在运行时阻止提示词注入、命令注入和数据泄露。",
+    f2_desc: "60 个安全钩子和 9 层防护门，在运行时阻止提示词注入、命令注入和数据泄露。",
     f2_stat_label: "活跃钩子",
-    f3_title: "2016 个内置技能",
+    f3_title: "2025 个内置技能",
     f3_desc: "最大技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
     f4_title: "离线使用",
     f4_desc: "连接 Ollama 运行本地模型（Llama、Qwen、Mistral）。无需网络，无 API 费用。",
@@ -716,7 +716,7 @@ const LANGS = {
     faq_q3: "我没有 API 密钥，还能使用吗？",
     faq_a3: "可以。连接 Ollama 即可完全离线运行开放权重模型（Llama、Qwen、Mistral），无需密钥，也无需付费。云端提供商是可选项，并非必需。",
     faq_q4: "\"多层安全防护\"具体阻止了什么？",
-    faq_a4: "58 个运行时钩子和 9 层防护门会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
+    faq_a4: "60 个运行时钩子和 9 层防护门会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
     plat_title: "支持所有平台",
     plat_sub: "版本 v0.43.0 — 下载即用，无需额外配置。",
     dl_prefix: "下载",

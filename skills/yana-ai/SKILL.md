@@ -1,7 +1,7 @@
 ---
 name: yana-ai
 version: "0.40.0"
-description: "Sovereign-grade safety OS for AI coding agents. 58 hooks, 2,016 skills, L1 memory, circuit breakers, and cross-engine enforcement — blocks rm -rf, force push, pipe-to-shell, and 40+ attack vectors before they reach your repo."
+description: "Sovereign-grade safety OS for AI coding agents. 60 hooks, 2,025 skills, L1 memory, circuit breakers, and cross-engine enforcement — blocks rm -rf, force push, pipe-to-shell, and 40+ attack vectors before they reach your repo."
 argument-hint: "yana-ai status | yana-ai audit | yana-ai hooks | yana-ai memory"
 allowed-tools: Bash, Read, Write
 homepage: https://yanacuti1121.github.io/yana-ai/
@@ -40,16 +40,16 @@ metadata:
 
 # Yana AI — Sovereign Safety OS
 
-Yana AI is an agent operating system layered on top of Claude Code (and other AI coding agents). It intercepts dangerous commands, enforces safety rules, manages persistent memory, and provides 2,016+ reusable skills.
+Yana AI is an agent operating system layered on top of Claude Code (and other AI coding agents). It intercepts dangerous commands, enforces safety rules, manages persistent memory, and provides 2,025+ reusable skills.
 
 ## What Yana AI does
 
 When loaded, Yana AI automatically:
 
-- **Blocks 40+ attack vectors** via 58 pre/post hooks — `rm -rf`, force push, pipe-to-shell, path traversal, supply chain attacks, and more
+- **Blocks 40+ attack vectors** via 60 pre/post hooks — `rm -rf`, force push, pipe-to-shell, path traversal, supply chain attacks, and more
 - **Enforces rules** across all agent actions using a 9-layer middleware pipeline (injection scan → blast radius → permission check → egress → sanitize → PII scrub → size cap → audit log)
 - **Persists memory** in a 2-tier system: L1 Atomic (permanent, hash-chained) and L2 session facts
-- **Provides 2,016 skills** covering frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, and more
+- **Provides 2,025 skills** covering frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, and more
 
 ## Install
 
