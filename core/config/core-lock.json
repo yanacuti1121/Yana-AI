@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-18T01:26:10+00:00",
-  "count": 254,
+  "generated": "2026-07-18T13:14:01+00:00",
+  "count": 255,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -186,6 +186,7 @@
     "core/scripts/harness_export.py": "303eb89cf3b6b56c491888289c4659a623b2e8aeb09a8a5b687834998cd1f984",
     "core/scripts/hook-health.js": "688ce4f48a313d865fb02d0776d01b21bf9ec7f444aa8c0db1e7ce8740e1d1da",
     "core/scripts/hunt.py": "5365c5da18a2f08d903c945be06e56cdc241d56d12643616b9840b246e5af6e8",
+    "core/scripts/implementation-coverage-audit.sh": "f2492dc9696c4784dddbb89053d06fe5a899f2b61282e401ed16c24dec9494ea",
     "core/scripts/import_book_rules.py": "b728550dc11d0116273a23b113fcbed24a31a7c014d4d024edf7cb68bf916290",
     "core/scripts/import_openai_plugins.py": "59c2c848b24aabf8529b30c726c3ba4d8574ffb38337c396d05ade82a604e6b7",
     "core/scripts/import_skills_flat.py": "fd903c2dd68b2b205f21c9a6dfa5c4d62f9411d5c176953cab0907b404145295",
