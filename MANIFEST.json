@@ -432,7 +432,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 109,
+      "count": 111,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -2711,7 +2711,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 60,
-  "scripts_count": 109,
+  "scripts_count": 111,
   "commands_count": 170,
   "rules_count": 71
 }

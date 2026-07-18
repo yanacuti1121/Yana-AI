@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Command safety wrapper — blocks destructive patterns before execution
-# Usage: safe-run.sh [--engine <cursor|aider|copilot|claude>] <command and args>
+# Usage: safe-run.sh [--engine <cursor|aider|copilot|kimi|claude>] <command and args>
 # All agents should route terminal commands through this wrapper.
 #
 # Enforcement modes:
-#   ADVISORY (Claude, default) — WARN_PATTERNS prompt for confirmation
-#   HARD     (Cursor, Aider)   — WARN_PATTERNS are blocked without prompting
+#   ADVISORY (Claude, default)      — WARN_PATTERNS prompt for confirmation
+#   HARD     (Cursor/Aider/Kimi)    — WARN_PATTERNS are blocked without prompting
 #
 # Bypass: YANA_SAFE_RUN_BYPASS=1 skips all checks (sovereign use only)
 set -euo pipefail
@@ -22,7 +22,7 @@ LOG_FILE="${YANA_LOG:-/tmp/yana-ai-audit.log}"
 # Hard enforcement for non-Claude engines (no interactive prompt available)
 HARD_MODE=false
 case "$ENGINE" in
-  cursor|aider|copilot) HARD_MODE=true ;;
+  cursor|aider|copilot|kimi) HARD_MODE=true ;;
 esac
 
 # Bypass — sovereign override only (requires identity verification)

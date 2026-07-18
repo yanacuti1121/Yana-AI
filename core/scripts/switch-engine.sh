@@ -22,6 +22,7 @@ usage() {
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
+  echo "  kimi     — writes real PreToolUse hook into ~/.kimi-code/config.toml (hard mode, asks first)"
   echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
   echo "  codex    — generates AGENTS.md from adapters/codex.md"
   echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
@@ -224,6 +225,94 @@ AIDEREOF
     echo "  aider --model claude-sonnet-4-6"
     echo ""
     echo "All bash commands routed through safe-run.sh --engine aider (Hard mode)"
+    ;;
+
+  kimi)
+    ADAPTER="adapters/kimi.md"
+    if [[ ! -f "$ADAPTER" ]]; then
+      echo -e "${RED}✗ $ADAPTER missing${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ Kimi Code CLI adapter ready${NC}"
+
+    HOOK_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/kimi-hook-adapter.sh"
+    KIMI_DIR="$HOME/.kimi-code"
+    KIMI_CONFIG="$KIMI_DIR/config.toml"
+    MARK_START="# yana-ai-managed-hook-start"
+    MARK_END="# yana-ai-managed-hook-end"
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would write/update a [[hooks]] block in $KIMI_CONFIG${NC}"
+      echo -e "${CYAN}[dry-run] This is OUTSIDE the project (global, ~/.kimi-code/) — would ask for confirmation first${NC}"
+    else
+    # ── Unlike every other engine here, this writes OUTSIDE the project ──────
+    # (~/.kimi-code/config.toml is global, shared across every project using
+    # Kimi Code CLI on this machine) — no other case in this script touches
+    # $HOME, so this is the first one that needs an explicit human gate
+    # before writing, per human-gate-policy.md's blast-radius rule.
+    echo ""
+    echo -e "${YELLOW}⚠ This writes to $KIMI_CONFIG${NC}"
+    echo -e "${YELLOW}  That's OUTSIDE this project — it affects every project that uses${NC}"
+    echo -e "${YELLOW}  Kimi Code CLI on this machine, not just this repo.${NC}"
+    printf "Confirm? (y/N): "
+    read -r _kimi_confirm < /dev/tty 2>/dev/null || _kimi_confirm="N"
+    if [[ ! "$_kimi_confirm" =~ ^[Yy]$ ]]; then
+      echo "Cancelled — nothing written."
+      exit 0
+    fi
+
+    mkdir -p "$KIMI_DIR"
+    touch "$KIMI_CONFIG"
+
+    # Block content goes through a temp file, not embedded in a python -c
+    # string, so marker/path values never need shell-inside-python escaping.
+    BLOCK_FILE=$(mktemp)
+    cat > "$BLOCK_FILE" << BLOCKEOF
+$MARK_START
+[[hooks]]
+event = "PreToolUse"
+matcher = "Shell"
+command = "bash $HOOK_SCRIPT"
+timeout = 10
+$MARK_END
+BLOCKEOF
+
+    if grep -qF "$MARK_START" "$KIMI_CONFIG"; then
+      # Idempotent: replace the existing block between markers instead of
+      # appending a duplicate on repeated runs.
+      python3 - "$KIMI_CONFIG" "$BLOCK_FILE" "$MARK_START" "$MARK_END" << 'PYEOF'
+import re, sys
+config_path, block_path, mark_start, mark_end = sys.argv[1:5]
+with open(config_path) as f:
+    text = f.read()
+with open(block_path) as f:
+    new_block = f.read().rstrip("\n")
+pattern = re.compile(re.escape(mark_start) + r".*?" + re.escape(mark_end), re.DOTALL)
+text = pattern.sub(new_block, text)
+with open(config_path, "w") as f:
+    f.write(text)
+PYEOF
+      echo -e "${GREEN}✓ Existing Yana AI hook block updated${NC}: $KIMI_CONFIG"
+    else
+      { echo ""; cat "$BLOCK_FILE"; } >> "$KIMI_CONFIG"
+      echo -e "${GREEN}✓ Hook block appended${NC}: $KIMI_CONFIG"
+    fi
+    rm "$BLOCK_FILE"
+
+    LOGGER="core/scripts/secure-logger.sh"
+    if [[ -x "$LOGGER" ]]; then
+      bash "$LOGGER" engine_switch "to_engine=kimi from_engine=$_FROM_ENGINE mode=hard-runtime generated_file=$KIMI_CONFIG operator=$_OPERATOR" 2>/dev/null || true
+    fi
+    fi  # end dry-run guard
+
+    echo ""
+    echo -e "${CYAN}Kimi Code CLI enforcement: REAL runtime interception, not prompt-only.${NC}"
+    echo "  Kimi Code CLI's PreToolUse hook uses the same exit-code contract as"
+    echo "  Claude Code's own hooks (exit 0 allow / exit 2 block) — unlike the"
+    echo "  cursor engine (self-labeled hard, actually prompt-only). See"
+    echo "  adapters/kimi.md for the sources this is based on."
+    echo ""
+    echo "Hooks apply the next time you run: kimi-code"
     ;;
 
   gemini)
