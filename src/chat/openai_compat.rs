@@ -30,6 +30,20 @@ pub fn openai() -> OpenAiCompatProvider {
     }
 }
 
+pub fn kimi() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "kimi",
+        // Moonshot AI's Kimi K3 (2.8T params, launched 2026-07-16) — OpenAI-
+        // compatible Chat Completions endpoint, confirmed against official
+        // docs (platform.kimi.ai/docs/api/overview): base_url
+        // https://api.moonshot.ai/v1, model id "kimi-k3".
+        url: "https://api.moonshot.ai/v1/chat/completions",
+        default_model: "kimi-k3",
+        keyless: false,
+        env_var: "MOONSHOT_API_KEY",
+    }
+}
+
 pub fn ollama() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
         provider_name: "ollama",
