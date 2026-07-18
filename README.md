@@ -50,11 +50,6 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-2,016-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-71-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-58-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-170-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
@@ -96,7 +91,7 @@ Yana AI sits between the agent and your system: every risky tool call passes thr
 
 ## What it catches
 
-Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via 58 agent hooks backed by a Rust runtime (`yana-rt`). Under the hood: 101 specialist agents, 2,016 skills, and 71 enforced rules, checked 830 ways in CI.
+Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via agent hooks backed by a Rust runtime (`yana-rt`).
 
 ## How it works
 
@@ -115,20 +110,6 @@ Execute (or block + log)
 ```
 
 See [Known Limitations](docs/reference/known-limitations.md) for exactly which of these are live, wired hooks today versus documented policy an agent applies by convention, verified directly against the code rather than the docs describing it.
-
-## Numbers
-
-| | |
-|---|---|
-| 🧩 Skills | **2,016** workflow skill definitions |
-| 🤖 Agents | **101** specialist agents |
-| 📜 Safety rules | **71** enforced rules |
-| 🪝 Hooks | **58** pre/post-execution hooks |
-| ⚡ Slash commands | **170** |
-| 🔧 Scripts | **108** |
-| 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **26** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `filescan`...) |
-| ✅ Rule checks in CI | **830** |
 
 ---
 
