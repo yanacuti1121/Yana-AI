@@ -32,6 +32,36 @@ const TICK: Duration = Duration::from_millis(50);
 const IDLE_POLL: Duration = Duration::from_millis(250);
 const SCROLL_PAGE: u16 = 10;
 
+/// Product-level identity (version + asset counts), read once at startup
+/// from `.claude-plugin/plugin.json` — the same source of truth `bin/yana`'s
+/// own bash banner reads (`_banner_plugin_counts()`), kept live rather than
+/// hardcoded so the header never drifts from the real counts. Only looked
+/// up relative to the current working directory (matching how `history.rs`/
+/// `cost.rs` already resolve `.yana-ai/` in this crate) — if `yana chat` is
+/// run from outside the Yana AI repo (e.g. a globally npm-installed
+/// `yana-ai` used in an unrelated project), there's no reliable relative
+/// path back to this repo's own `plugin.json`, so the header just omits
+/// the stats line rather than guessing.
+struct PluginInfo {
+    version: String,
+    agents: u64,
+    skills: u64,
+    rules: u64,
+}
+
+fn read_plugin_info() -> Option<PluginInfo> {
+    let path = std::env::current_dir().ok()?.join(".claude-plugin").join("plugin.json");
+    let text = std::fs::read_to_string(path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&text).ok()?;
+    let contents = json.get("contents")?;
+    Some(PluginInfo {
+        version: json.get("version")?.as_str()?.to_string(),
+        agents: contents.get("agents")?.as_u64()?,
+        skills: contents.get("skills")?.as_u64()?,
+        rules: contents.get("rules")?.as_u64()?,
+    })
+}
+
 enum StreamEvent {
     Chunk(String),
     Done(Result<ChatUsage>),
@@ -58,6 +88,7 @@ pub struct App {
     api_key: Option<String>,
     verbose: bool,
     should_quit: bool,
+    plugin_info: Option<PluginInfo>,
 }
 
 impl App {
@@ -87,6 +118,7 @@ impl App {
             api_key,
             verbose,
             should_quit: false,
+            plugin_info: read_plugin_info(),
         }
     }
 
@@ -125,6 +157,11 @@ impl App {
         }
         self.input.clear();
 
+        if let Some(rest) = text.strip_prefix("/model") {
+            self.handle_model_command(rest.trim());
+            return;
+        }
+
         if !self.breaker.can_attempt() {
             let secs = self.breaker.cooldown_remaining_secs().unwrap_or(0);
             self.status = format!(
@@ -141,6 +178,58 @@ impl App {
         }
         self.history.push(ChatMessage { role: Role::User, content: text });
         self.spawn_turn();
+    }
+
+    /// `/model <provider> [model-name]` — switch provider/model without
+    /// leaving the TUI. Confirmed behavior: always starts a fresh session
+    /// (cleared history, new session_id, new breaker) rather than carrying
+    /// the old conversation over to the new model — avoids cross-model
+    /// context confusion at the cost of conversational continuity.
+    fn handle_model_command(&mut self, args: &str) {
+        let mut parts = args.split_whitespace();
+        let Some(provider_name) = parts.next() else {
+            self.status = "usage: /model <anthropic|openai|ollama> [model-name]".to_string();
+            return;
+        };
+
+        let new_provider = match super::try_select_provider(provider_name) {
+            Ok(p) => p,
+            Err(msg) => {
+                self.status = msg;
+                return;
+            }
+        };
+
+        let api_key = if new_provider.requires_key() {
+            match std::env::var(new_provider.env_var()) {
+                Ok(k) if !k.is_empty() => Some(k),
+                _ => {
+                    self.status = format!(
+                        "{} not set — export it before switching to {}",
+                        new_provider.env_var(),
+                        new_provider.name()
+                    );
+                    return;
+                }
+            }
+        } else {
+            None
+        };
+
+        let model = parts
+            .next()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| new_provider.default_model().to_string());
+
+        self.status = format!("switched to {} / {model} — new session", new_provider.name());
+        self.provider = new_provider;
+        self.model = model;
+        self.api_key = api_key;
+        self.history.clear();
+        self.streaming_reply.clear();
+        self.session_id = uuid::Uuid::new_v4().to_string();
+        self.breaker = super::circuit_breaker::CircuitBreaker::new();
+        self.scroll = u16::MAX;
     }
 
     fn spawn_turn(&mut self) {
@@ -302,15 +391,32 @@ fn drain_stream_events(app: &mut App) {
 }
 
 fn draw_ui(frame: &mut Frame, app: &mut App) {
-    let [history_area, input_area] =
-        Layout::vertical([Constraint::Min(3), Constraint::Length(3)]).areas(frame.area());
+    let [header_area, history_area, input_area] = Layout::vertical([
+        Constraint::Length(4),
+        Constraint::Min(3),
+        Constraint::Length(3),
+    ])
+    .areas(frame.area());
 
-    let title = format!(
-        " yana chat — {} / {} — session {} ",
-        app.provider.name(),
-        app.model,
-        &app.session_id[..8.min(app.session_id.len())]
-    );
+    let session_short = &app.session_id[..8.min(app.session_id.len())];
+    let header_lines = match &app.plugin_info {
+        Some(info) => vec![
+            Line::raw(format!(
+                "Yana AI v{} · {} agents · {} skills · {} rules",
+                info.version, info.agents, info.skills, info.rules
+            )),
+            Line::raw(format!("{} / {} · session {session_short} · /model to switch", app.provider.name(), app.model)),
+        ],
+        // No .claude-plugin/plugin.json reachable from cwd (e.g. running
+        // outside the Yana AI repo) — degrade to the crate's own version
+        // rather than guessing at product-level stats.
+        None => vec![
+            Line::raw(format!("yana-rt v{}", env!("CARGO_PKG_VERSION"))),
+            Line::raw(format!("{} / {} · session {session_short} · /model to switch", app.provider.name(), app.model)),
+        ],
+    };
+    let header_widget = Paragraph::new(header_lines).block(Block::bordered());
+    frame.render_widget(header_widget, header_area);
 
     let mut lines: Vec<Line> = Vec::with_capacity(app.history.len() + 1);
     for msg in &app.history {
@@ -338,7 +444,7 @@ fn draw_ui(frame: &mut Frame, app: &mut App) {
     app.scroll = app.scroll.min(max_scroll);
 
     let history_widget = Paragraph::new(Text::from(lines))
-        .block(Block::bordered().title(title))
+        .block(Block::bordered().title(" history "))
         .wrap(Wrap { trim: false })
         .scroll((app.scroll, 0));
     frame.render_widget(history_widget, history_area);
