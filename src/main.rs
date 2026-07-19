@@ -190,8 +190,19 @@ enum TaskAction {
 
 #[derive(Subcommand)]
 enum EvalAction {
-    /// Validate task evidence against schema
+    /// Validate task evidence against schema (regex/keyword heuristic)
     Run { id: String },
+    /// LLM-judge second opinion on task evidence, with a persisted retry
+    /// circuit breaker (5 consecutive FAILs -> escalating cooldown)
+    Judge {
+        id: String,
+        /// anthropic | openai | ollama | kimi (default: ollama, keyless)
+        #[arg(long)]
+        provider: Option<String>,
+        /// Model name (default: provider's own default)
+        #[arg(long)]
+        model: Option<String>,
+    },
     /// Show the evidence schema
     Schema,
 }
@@ -294,6 +305,7 @@ fn main() {
         },
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => task::cmd_eval_run(id),
+            EvalAction::Judge { id, provider, model } => task::cmd_eval_judge(id, provider, model),
             EvalAction::Schema     => task::cmd_eval_schema(),
         },
         Commands::Bus { action } => match action {

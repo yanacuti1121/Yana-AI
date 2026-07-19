@@ -23,7 +23,12 @@ mod banner;
 mod circuit_breaker;
 mod history;
 mod openai_compat;
-mod provider;
+// pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
+// `chat`, not a descendant) needs `provider::ask_once` and the
+// `ChatProvider` trait itself in scope to call `.requires_key()`/`.env_var()`
+// — private-to-`chat` visibility only reaches `chat`'s own descendants
+// (anthropic.rs, tui/, etc.), not siblings under the crate root.
+pub(crate) mod provider;
 mod terminal_guard;
 mod tui;
 
