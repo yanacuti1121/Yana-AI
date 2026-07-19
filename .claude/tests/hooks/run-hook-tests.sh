@@ -1974,6 +1974,206 @@ test_freeze_scope "Traversal that walks out of the project root entirely" "core/
 test_freeze_scope "Absolute path outside the project root entirely" "core/rules" \
     '{"tool_name":"Write","tool_input":{"file_path":"/etc/passwd"}}' "deny"
 
+# Multi-pattern format (2026-07-19, roadmap #15 — freeze-scope.sh upgraded
+# to support multiple POSIX-ERE regex patterns instead of one directory
+# prefix, since "per-agent fileRegex boundaries" doesn't map onto this
+# repo's real architecture — see the plan file's Context section). State
+# file is now a JSON array; legacy plain-directory-string files (written
+# by an older session, or the tests above) must keep working unchanged —
+# proven by the untouched test_freeze_scope cases above all still passing.
+test_freeze_scope_patterns() {
+    local test_name=$1 patterns_json=$2 input_json=$3 expected_decision=$4
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing freeze-scope.sh [multi-pattern: $test_name]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+    printf '%s' "$patterns_json" > "$tmp_project/.claude/state/FREEZE_SCOPE"
+
+    local output exit_code
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null)
+    exit_code=$?
+    rm -rf "$tmp_project"
+
+    local actual_decision="allow"
+    [[ $exit_code -eq 2 ]] && actual_decision="deny"
+
+    if [[ "$actual_decision" == "$expected_decision" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected $expected_decision, got $actual_decision — exit $exit_code, output: $output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_freeze_scope_patterns "Matches first of 2 patterns" \
+    '["^core/hooks/foo\\.sh$", "^core/commands/bar\\.md$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/foo.sh"}}' "allow"
+
+test_freeze_scope_patterns "Matches second of 2 patterns" \
+    '["^core/hooks/foo\\.sh$", "^core/commands/bar\\.md$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/commands/bar.md"}}' "allow"
+
+test_freeze_scope_patterns "Matches neither of 2 patterns" \
+    '["^core/hooks/foo\\.sh$", "^core/commands/bar\\.md$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/other.sh"}}' "deny"
+
+test_freeze_scope_patterns "Explicit wildcard regex allows any matching extension" \
+    '["^core/hooks/.*\\.sh$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/anything.sh"}}' "allow"
+
+test_freeze_scope_patterns "Explicit wildcard regex denies non-matching extension" \
+    '["^core/hooks/.*\\.sh$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/anything.md"}}' "deny"
+
+test_freeze_scope_patterns "A malformed pattern present degrades safely (denies) rather than crashing, when the well-formed sibling pattern also doesn't match" \
+    '["^core/hooks/(unbalanced.sh$", "^core/commands/bar\\.md$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/totally/unrelated.txt"}}' "deny"
+
+test_freeze_scope_patterns "A malformed pattern present still allows via its well-formed sibling pattern" \
+    '["^core/hooks/(unbalanced.sh$", "^core/commands/bar\\.md$"]' \
+    '{"tool_name":"Write","tool_input":{"file_path":"core/commands/bar.md"}}' "allow"
+
+# core/scripts/freeze-scope.sh (CLI setter) — real end-to-end, not just the
+# hook's own state-file parsing.
+echo ""
+echo "--- core/scripts/freeze-scope.sh (CLI) ---"
+
+test_freeze_cli() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing core/scripts/freeze-scope.sh [Malformed regex is rejected at set time, no state file written]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local set_output set_exit
+    set_output=$(CLAUDE_PROJECT_DIR="$tmp_project" bash "$CLAUDE_DIR/scripts/freeze-scope.sh" set '^core/hooks/(unbalanced.sh$' 2>&1)
+    set_exit=$?
+
+    if [[ "$set_exit" == "2" ]] && [[ ! -f "$tmp_project/.claude/state/FREEZE_SCOPE" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (set exit=$set_exit, state file exists: $(test -f "$tmp_project/.claude/state/FREEZE_SCOPE" && echo yes || echo no), output: $set_output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    rm -rf "$tmp_project"
+}
+test_freeze_cli
+
+test_freeze_cli_multi_arg_roundtrip() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing core/scripts/freeze-scope.sh [set with 2 real files -> hook allows both, denies a third]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/core/hooks" "$tmp_project/core/commands"
+    touch "$tmp_project/core/hooks/foo.sh" "$tmp_project/core/commands/bar.md"
+
+    CLAUDE_PROJECT_DIR="$tmp_project" bash "$CLAUDE_DIR/scripts/freeze-scope.sh" set core/hooks/foo.sh core/commands/bar.md >/dev/null 2>&1
+
+    local allow1 allow2 deny1
+    allow1=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/foo.sh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    allow2=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/commands/bar.md"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    deny1=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/other.sh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    rm -rf "$tmp_project"
+
+    if [[ "$allow1" == *"exit:0" ]] && [[ "$allow2" == *"exit:0" ]] && [[ "$deny1" == *"exit:2" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (allow1=$allow1, allow2=$allow2, deny1=$deny1)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_freeze_cli_multi_arg_roundtrip
+
+# Safety-severity regression test (2026-07-19, security-auditor review):
+# `set` on a NOT-YET-EXISTING file (the FILES I WILL CREATE case
+# scope-declare.md's Step 4 exercises on essentially every task that
+# creates something) must still produce an escaped, anchored exact-match
+# pattern — not fall through to "treat as literal regex" unescaped and
+# unanchored just because -d/-f found nothing on disk yet. Reproduced live
+# before the fix: an unescaped "." wildcarded a sibling filename, and a
+# missing anchor let the pattern match as a substring anywhere in a path.
+test_freeze_cli_not_yet_existing_file() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing core/scripts/freeze-scope.sh [set on a not-yet-existing file is escaped+anchored, not left as a loose literal regex]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/core/hooks"
+    # Deliberately do NOT create core/hooks/new-feature.sh — this is the
+    # "FILES I WILL CREATE" case, the file must not exist yet.
+
+    CLAUDE_PROJECT_DIR="$tmp_project" bash "$CLAUDE_DIR/scripts/freeze-scope.sh" set core/hooks/new-feature.sh >/dev/null 2>&1
+
+    local allow_exact deny_dot_widened deny_unanchored
+    allow_exact=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/new-feature.sh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    # Would have been wrongly ALLOWED before the fix: unescaped "." in the
+    # stored pattern wildcards to match any character, including "X".
+    deny_dot_widened=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/new-featureXsh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    # Would have been wrongly ALLOWED before the fix: no ^/$ anchors meant
+    # the raw string matched anywhere as a substring.
+    deny_unanchored=$(echo '{"tool_name":"Write","tool_input":{"file_path":"totally/different/dir/core/hooks/new-feature.sh/extra"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    rm -rf "$tmp_project"
+
+    if [[ "$allow_exact" == *"exit:0" ]] && [[ "$deny_dot_widened" == *"exit:2" ]] && [[ "$deny_unanchored" == *"exit:2" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (allow_exact=$allow_exact, deny_dot_widened=$deny_dot_widened, deny_unanchored=$deny_unanchored)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_freeze_cli_not_yet_existing_file
+
+# Safety-severity regression test, round 2 (2026-07-19, code-auditor
+# review): an EXISTING file whose name contains a syntactically VALID
+# regex metacharacter sequence (e.g. balanced parens) was misclassified
+# by looks_like_regex() as caller-authored — the resulting pattern
+# matched neither its own source file (denied) nor stayed anchored
+# (allowed an unrelated sibling without the parens). Reproduced live
+# before the fix (existence-check-first ordering).
+test_freeze_cli_existing_file_with_metachar() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing core/scripts/freeze-scope.sh [set on an EXISTING file with balanced-paren metacharacters in its name is escaped+anchored to itself, not treated as a regex]... "
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/core/hooks"
+    touch "$tmp_project/core/hooks/(balanced).sh"
+
+    CLAUDE_PROJECT_DIR="$tmp_project" bash "$CLAUDE_DIR/scripts/freeze-scope.sh" set 'core/hooks/(balanced).sh' >/dev/null 2>&1
+
+    local allow_self deny_sibling
+    allow_self=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/(balanced).sh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    # Would have been wrongly ALLOWED before the fix: the unanchored
+    # capture-group pattern matched this unrelated sibling filename too.
+    deny_sibling=$(echo '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/balanced.sh"}}' \
+        | CLAUDE_PROJECT_DIR="$tmp_project" bash "$HOOKS_DIR/freeze-scope.sh" 2>/dev/null; echo "exit:$?")
+    rm -rf "$tmp_project"
+
+    if [[ "$allow_self" == *"exit:0" ]] && [[ "$deny_sibling" == *"exit:2" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (allow_self=$allow_self, deny_sibling=$deny_sibling)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_freeze_cli_existing_file_with_metachar
+
 # ── giamthi-halt-check.sh ────────────────────────────────────────────────────
 # This hook takes no stdin content into account (only the lock file's
 # presence), so input_json is a trivial placeholder for every case here.
