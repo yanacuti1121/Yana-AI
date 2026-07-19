@@ -754,3 +754,83 @@ fn score_show_clean_repo() {
     assert!(stdout.contains("Score") || stdout.contains("score"), "output has score label");
     assert!(stdout.contains("100") || stdout.contains("LOW"), "clean repo should score 100 / LOW risk");
 }
+
+// ── observability ────────────────────────────────────────────────────────────
+// audit-log.sh (a bash PostToolUse hook, not this CLI) is the only real
+// writer of audit-chain.log — these tests seed a synthetic file directly,
+// same as context-compress-stop.sh's tests seed synthetic transcript state.
+
+fn seed_audit_log(dir: &std::path::Path, lines: &[&str]) {
+    let state_dir = dir.join(".claude").join("state");
+    fs::create_dir_all(&state_dir).unwrap();
+    fs::write(state_dir.join("audit-chain.log"), lines.join("\n") + "\n").unwrap();
+}
+
+#[test]
+fn observability_show_no_data_is_graceful() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok, "show with no audit log should not fail");
+    assert!(stdout.contains("No audit data"), "explains why: {stdout}");
+}
+
+#[test]
+fn observability_show_summarizes_real_entries() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+        r#"{"ts":"2026-01-01T00:00:03Z","hook":"audit-log","tool":"Read","agent":"manual","input":"{}","decision":"allow","prev_hash":"d","hash":"e"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok);
+    assert!(stdout.contains("last 4 calls"), "counted all 4 seeded lines: {stdout}");
+    assert!(stdout.contains("audit.decision.allow"), "{stdout}");
+    assert!(stdout.contains("audit.tool.Bash"), "{stdout}");
+
+    let (json_out, _, json_ok) = run(dir.path(), &["observability", "show", "--json"]);
+    assert!(json_ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 4);
+    assert_eq!(parsed["by_decision"]["allow"], 3);
+    assert_eq!(parsed["by_decision"]["deny"], 1);
+    assert_eq!(parsed["by_tool"]["Bash"], 3);
+}
+
+#[test]
+fn observability_show_respects_last_n() {
+    let dir = tmpdir();
+    let lines: Vec<String> = (0..10)
+        .map(|i| format!(
+            r#"{{"ts":"2026-01-01T00:00:{i:02}Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{{}}","decision":"allow","prev_hash":"x","hash":"y{i}"}}"#
+        ))
+        .collect();
+    let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+    seed_audit_log(dir.path(), &refs);
+
+    let (json_out, _, ok) = run(dir.path(), &["observability", "show", "--last", "3", "--json"]);
+    assert!(ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 3, "must only summarize the last 3, not all 10");
+}
+
+#[test]
+fn observability_breakdown_by_hook() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Write","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "breakdown", "hook"]);
+    assert!(ok);
+    assert!(stdout.contains("guard-destructive"), "{stdout}");
+    assert!(stdout.contains("audit-log"), "{stdout}");
+    // guard-destructive appears twice, should sort above audit-log (once)
+    let gd_pos = stdout.find("guard-destructive").unwrap();
+    let al_pos = stdout.find("audit-log").unwrap();
+    assert!(gd_pos < al_pos, "higher count sorts first: {stdout}");
+}

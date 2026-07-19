@@ -26,6 +26,7 @@ mod provenance;
 mod evidence;
 mod guard;
 mod filescan;
+mod observability;
 
 use clap::{Parser, Subcommand};
 
@@ -56,6 +57,11 @@ enum Commands {
     Plugin { #[command(subcommand)] action: PluginAction },
     /// Cost dashboard — token usage and spend tracking
     Cost   { #[command(subcommand)] action: CostAction },
+    /// Audit activity dashboard — read-only summary over audit-chain.log
+    /// (tool-call volume, allow/deny/warn rate, busiest tools/hooks). No
+    /// new data collection, no new hook — summarizes what audit-log.sh
+    /// already writes on every tool call.
+    Observability { #[command(subcommand)] action: observability::ObservabilityAction },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt   { #[command(subcommand)] action: hunt::HuntAction },
     /// CI/CD workflow health check — secrets, unpinned actions, permissions
@@ -402,6 +408,12 @@ fn main() {
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
                 cost::cmd_cost_log(task, tier, model, input_tokens, output_tokens, duration_ms),
             CostAction::Breakdown { by }               => cost::cmd_cost_breakdown(by),
+        },
+        Commands::Observability { action } => match action {
+            observability::ObservabilityAction::Show { last, json } =>
+                observability::cmd_observability_show(last, json),
+            observability::ObservabilityAction::Breakdown { by, last } =>
+                observability::cmd_observability_breakdown(by, last),
         },
     }
 }
