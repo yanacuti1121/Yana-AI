@@ -112,6 +112,73 @@ pub fn append_assistant(
     )
 }
 
+pub struct SessionSummary {
+    pub session_id: String,
+    pub last_ts: String,
+    pub provider: Option<String>,
+    pub model: Option<String>,
+    pub turn_count: usize,
+    /// First user message, truncated — shown in the recent-sessions list
+    /// so `--resume <id>` has something more useful to pick from than a
+    /// bare UUID.
+    pub preview: String,
+}
+
+const PREVIEW_CHARS: usize = 60;
+
+fn summarize_session(path: &std::path::Path) -> Option<SessionSummary> {
+    let text = fs::read_to_string(path).ok()?;
+    let mut session_id = None;
+    let mut last_ts = String::new();
+    let mut provider = None;
+    let mut model = None;
+    let mut turn_count = 0usize;
+    let mut preview = String::new();
+
+    for line in text.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let Ok(entry) = serde_json::from_str::<HistoryLine>(line) else { continue };
+        session_id.get_or_insert_with(|| entry.session_id.clone());
+        last_ts = entry.ts.clone();
+        if entry.content.is_empty() {
+            continue; // error-marker line — not a real turn
+        }
+        turn_count += 1;
+        if preview.is_empty() && entry.role == Role::User {
+            preview = entry.content.chars().take(PREVIEW_CHARS).collect();
+        }
+        if entry.role == Role::Assistant {
+            provider = entry.provider.clone();
+            model = entry.model.clone();
+        }
+    }
+
+    Some(SessionSummary { session_id: session_id?, last_ts, provider, model, turn_count, preview })
+}
+
+/// Most recently modified sessions, newest first, for display when opening
+/// `yana chat` without `--resume`. Session files are small (a handful of
+/// KB for a normal conversation), so a full read per file is cheap — no
+/// need for partial/streaming reads at this scale. Sorting key is
+/// filesystem mtime (cheap, no parsing needed just to order candidates);
+/// per-session *content* (provider/model/preview/turn count) is only
+/// parsed for the files that actually make the cut.
+pub fn list_recent_sessions(limit: usize) -> Vec<SessionSummary> {
+    let Ok(entries) = fs::read_dir(history_dir()) else { return Vec::new() };
+
+    let mut files: Vec<(PathBuf, std::time::SystemTime)> = entries
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "jsonl"))
+        .filter_map(|e| Some((e.path(), e.metadata().ok()?.modified().ok()?)))
+        .collect();
+    files.sort_by(|a, b| b.1.cmp(&a.1));
+    files.truncate(limit);
+
+    files.iter().filter_map(|(path, _)| summarize_session(path)).collect()
+}
+
 /// Load a prior session's turns as conversation context for `--resume`.
 /// Lines that fail to parse (corrupted, hand-edited, or — the specific
 /// case this guards against — a `"role"` value outside `user`/`assistant`,

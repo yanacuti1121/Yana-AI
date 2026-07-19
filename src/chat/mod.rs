@@ -19,6 +19,7 @@
 //! reading `core/gates/sovereign-interceptor.js` directly).
 
 mod anthropic;
+mod banner;
 mod circuit_breaker;
 mod history;
 mod openai_compat;
@@ -96,6 +97,7 @@ pub fn dispatch(
         None
     };
 
+    let resumed = resume.is_some();
     let (session_id, history) = match &resume {
         Some(id) => match history::load(id) {
             Ok(msgs) => (id.clone(), msgs),
@@ -119,7 +121,7 @@ pub fn dispatch(
         }
     };
 
-    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose);
+    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose, resumed);
     if let Err(e) = tui::run(&mut guard, app) {
         drop(guard); // restore the terminal before printing, not after
         eprintln!("[chat] fatal: {e:#}");
