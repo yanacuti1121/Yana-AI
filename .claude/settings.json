@@ -36,6 +36,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-proxy-enforcer.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/sandbox-wrap.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },

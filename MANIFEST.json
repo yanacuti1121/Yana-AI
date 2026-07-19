@@ -366,7 +366,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 60,
+      "count": 61,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -410,6 +410,7 @@
         "core/hooks/prompt-injection-guard.sh",
         "core/hooks/rbac-guard.sh",
         "core/hooks/risk-scorer.sh",
+        "core/hooks/sandbox-wrap.sh",
         "core/hooks/sbom-generator.sh",
         "core/hooks/scope-guard.sh",
         "core/hooks/self-healing-hooks.sh",
@@ -2710,7 +2711,7 @@
   "skills_count": 2025,
   "skills_stubs_archived": 88,
   "agents_count": 101,
-  "hooks_count": 60,
+  "hooks_count": 61,
   "scripts_count": 111,
   "commands_count": 170,
   "rules_count": 71

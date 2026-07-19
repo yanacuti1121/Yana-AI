@@ -43,6 +43,17 @@ set -uo pipefail
 
 YANA_ENV="${YANA_ENV:-dev}"
 
+# Portable `timeout` resolution (2026-07-19, found via real end-to-end
+# testing of core/hooks/sandbox-wrap.sh on a stock macOS dev machine: GNU
+# coreutils' `timeout` isn't present by default there, only `gtimeout` via
+# `brew install coreutils`, so every branch below was hard-failing with
+# "timeout: command not found" — exit 127, not even a real sandbox attempt).
+# Same resolution pattern already used by hook-timeout-guard.sh:51. If
+# neither binary is found, degrade to running without a timeout wrapper
+# (logged) rather than hard-failing — matches that same script's own
+# degraded-but-functional precedent for a missing timeout binary.
+TIMEOUT_BIN="$(command -v timeout || command -v gtimeout || true)"
+
 # ─── Config ──────────────────────────────────────────────────────────────────
 MODE="${YANA_SANDBOX_MODE:-auto}"
 IMAGE="${YANA_SANDBOX_IMAGE:-yana-ai-sandbox:latest}"
@@ -77,6 +88,19 @@ log_sandbox() {
 }
 
 die() { echo "[sandbox-exec] ERROR: $1" >&2; log_sandbox "ERROR" "$1"; exit "${2:-1}"; }
+
+# Wraps `timeout <secs> <cmd...>` via TIMEOUT_BIN (resolved above). Degrades
+# to running without a wall-time cap, logged, if no timeout binary exists —
+# same precedent as hook-timeout-guard.sh's own missing-binary handling.
+run_with_timeout() {
+  local secs="$1"; shift
+  if [[ -n "$TIMEOUT_BIN" ]]; then
+    "$TIMEOUT_BIN" "$secs" "$@"
+  else
+    log_sandbox "WARN" "no timeout binary found (checked: timeout, gtimeout) — running without a wall-time cap"
+    "$@"
+  fi
+}
 
 # ─── Parse --mode flag ────────────────────────────────────────────────────────
 if [[ "${1:-}" == "--mode" ]]; then
@@ -144,7 +168,7 @@ if [[ "$RESOLVED_MODE" == "docker" ]]; then
   log_sandbox "INFO" "docker-launch" "\"image\":\"${IMAGE}\""
 
   EXIT_CODE=0
-  timeout "$TIMEOUT" docker "${DOCKER_ARGS[@]}" "$IMAGE" "${COMMAND[@]}" || EXIT_CODE=$?
+  run_with_timeout "$TIMEOUT" docker "${DOCKER_ARGS[@]}" "$IMAGE" "${COMMAND[@]}" || EXIT_CODE=$?
 
   if [[ $EXIT_CODE -eq 124 ]]; then
     log_sandbox "BLOCK" "timeout exceeded" "\"seconds\":${TIMEOUT}"
@@ -210,7 +234,7 @@ if [[ "$RESOLVED_MODE" == "ulimit" ]]; then
   ulimit -n 32          2>/dev/null || true  # open file descriptors
 
   EXIT_CODE=0
-  timeout "$TIMEOUT" "${COMMAND[@]}" || EXIT_CODE=$?
+  run_with_timeout "$TIMEOUT" "${COMMAND[@]}" || EXIT_CODE=$?
 
   [[ $EXIT_CODE -eq 124 ]] && { log_sandbox "BLOCK" "ulimit timeout"; exit 3; }
   log_sandbox "INFO" "ulimit-exit" "\"code\":${EXIT_CODE}"
