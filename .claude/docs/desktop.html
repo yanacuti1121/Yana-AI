@@ -84,6 +84,20 @@
       padding: .3rem .85rem; border-radius: 99px; margin-bottom: 1.5rem;
     }
     .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    /* Live GitHub stats — real numbers fetched client-side, not a static
+       claim. Falls back to hidden if the API call fails or is rate-limited
+       (no fake placeholder number shown). */
+    .gh-stats {
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 1.1rem;
+      margin-bottom: 1.75rem; font-size: .875rem; color: var(--fg-muted);
+    }
+    .gh-stats a { display: inline-flex; align-items: center; gap: .4rem; transition: color .15s; }
+    .gh-stats a:hover { color: var(--fg); }
+    .gh-stats svg { flex: none; opacity: .8; }
+    .gh-stats strong { color: var(--fg); font-weight: 700; }
+    .gh-stats[hidden] { display: none; }
     h1 {
       position: relative; z-index: 1;
       font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1;
@@ -191,16 +205,65 @@
     .section-label { text-align: center; font-size: .8125rem; font-weight: 600; letter-spacing: .1em; color: var(--primary); text-transform: uppercase; margin-bottom: .75rem; }
     .section-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .75rem; }
     .section-sub { text-align: center; color: var(--fg-muted); margin-bottom: 3rem; font-size: 1rem; }
-    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; }
+    /* Asymmetric grid, not a repeated icon+title+text card × 6: the
+       security claim is the strongest differentiator (60 hooks, 9 gate
+       layers is a specific, checkable number, not marketing copy), so it
+       gets a wider spotlight slot with room for a supporting stat instead
+       of being visually identical to "works offline" or "smart dashboard". */
+    .feat-grid {
+      display: grid;
+      list-style: none;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-auto-flow: dense;
+      gap: 1.25rem;
+    }
     .feat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: border-color .15s; }
     .feat-card:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
     .feat-icon { font-size: 1.6rem; margin-bottom: .75rem; }
     .feat-title { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
     .feat-desc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; }
 
+    .feat-card.spotlight {
+      grid-column: span 2;
+      display: flex; align-items: center; gap: 1.5rem;
+      background: linear-gradient(135deg, var(--bg-card-2), var(--bg-card));
+      border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    }
+    .feat-card.spotlight .feat-icon { font-size: 2.25rem; margin-bottom: 0; flex: none; }
+    .feat-card.spotlight .feat-stat {
+      flex: none; text-align: center; padding: 0 1.25rem;
+      border-left: 1px solid var(--border); margin-left: auto;
+    }
+    .feat-card.spotlight .feat-stat-num { font-size: 1.75rem; font-weight: 800; color: var(--grad-a); line-height: 1; }
+    .feat-card.spotlight .feat-stat-label { font-size: .6875rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .35rem; }
+    @media (max-width: 640px) {
+      .feat-card.spotlight { grid-column: span 1; flex-wrap: wrap; }
+      .feat-card.spotlight .feat-stat { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: .75rem 0 0; text-align: left; }
+    }
+
+    /* ── FAQ ──────────────────────────────────────────────── */
+    .faq { max-width: 720px; margin: 5rem auto 0; padding: 0 1.5rem; }
+    .faq-item {
+      border: 1px solid var(--border); border-radius: 12px;
+      background: var(--bg-card); margin-bottom: .75rem; overflow: hidden;
+    }
+    .faq-item summary {
+      cursor: pointer; list-style: none; padding: 1.1rem 1.35rem;
+      font-weight: 600; font-size: .9375rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: "+"; flex: none; font-size: 1.25rem; font-weight: 400;
+      color: var(--fg-muted); transition: transform .2s;
+    }
+    .faq-item[open] summary::after { transform: rotate(45deg); }
+    .faq-item summary:hover { color: var(--grad-a); }
+    .faq-answer { padding: 0 1.35rem 1.1rem; font-size: .875rem; color: var(--fg-muted); line-height: 1.7; }
+
     /* ── Platforms ────────────────────────────────────────── */
     .platforms { max-width: 900px; margin: 5rem auto 0; padding: 0 1.5rem; }
-    .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .platform-grid { display: grid; list-style: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
     .platform-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: .75rem; transition: box-shadow .15s, border-color .15s; }
     .platform-card:hover { box-shadow: 0 4px 20px color-mix(in oklab, var(--primary) 20%, transparent); border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
     .platform-icon { font-size: 2rem; }
@@ -239,8 +302,8 @@
 </head>
 <body>
 
-<!-- Nav -->
-<nav>
+<header>
+<nav aria-label="Primary">
   <a href="/" class="nav-brand">
     <img src="yana-logo.png" alt="Yana AI" />
     Yana AI
@@ -258,16 +321,29 @@
   </div>
   <a class="nav-cta" href="#download" data-i18n="nav_cta">Download</a>
 </nav>
+</header>
 
+<main>
 <!-- Hero -->
 <section class="hero">
   <div class="hero-ribbon" aria-hidden="true"></div>
-  <div class="hero-badge"><span class="dot"></span> v0.43.0 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span></div>
+  <div class="hero-badge"><span class="dot"></span> v0.43.0 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span> <time datetime="2026-06-30">(Jun 30, 2026)</time></div>
   <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
     Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device.
-    2025 skills, 101 agents, multi-layer security.
+    <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.
   </p>
+
+  <div class="gh-stats" id="ghStats" hidden>
+    <a href="https://github.com/yanacuti1121/Yana-AI/stargazers" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      <strong id="ghStars">–</strong> <span data-i18n="gh_stars">stars on GitHub</span>
+    </a>
+    <a href="https://github.com/yanacuti1121/Yana-AI/network/members" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"/></svg>
+      <strong id="ghForks">–</strong> <span data-i18n="gh_forks">forks</span>
+    </a>
+  </div>
 
   <div class="dl-grid" id="download">
     <a class="dl-btn primary" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg">
@@ -328,38 +404,68 @@
   <p class="section-label" data-i18n="feat_label">Features</p>
   <h2 class="section-title" data-i18n="feat_title">Everything you need, running on your machine</h2>
   <p class="section-sub" data-i18n="feat_sub">No cloud, no tracking. Your data stays with you.</p>
-  <div class="feat-grid">
-    <div class="feat-card">
-      <div class="feat-icon">🔑</div>
-      <div class="feat-title" data-i18n="f1_title">Bring your own API key</div>
-      <div class="feat-desc" data-i18n="f1_desc">Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🛡️</div>
-      <div class="feat-title" data-i18n="f2_title">Multi-layer security</div>
-      <div class="feat-desc" data-i18n="f2_desc">60 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🧠</div>
-      <div class="feat-title" data-i18n="f3_title">2025 built-in skills</div>
-      <div class="feat-desc" data-i18n="f3_desc">The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">⚡</div>
-      <div class="feat-title" data-i18n="f4_title">Works offline</div>
-      <div class="feat-desc" data-i18n="f4_desc">Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🌊</div>
-      <div class="feat-title" data-i18n="f5_title">Smart dashboard</div>
-      <div class="feat-desc" data-i18n="f5_desc">Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🔒</div>
-      <div class="feat-title" data-i18n="f6_title">Fully private</div>
-      <div class="feat-desc" data-i18n="f6_desc">No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.</div>
-    </div>
-  </div>
+  <ul class="feat-grid">
+    <li class="feat-card spotlight">
+      <div class="feat-icon" aria-hidden="true">🛡️</div>
+      <div>
+        <h3 class="feat-title" data-i18n="f2_title">Multi-layer security</h3>
+        <p class="feat-desc" data-i18n="f2_desc">60 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.</p>
+      </div>
+      <div class="feat-stat">
+        <div class="feat-stat-num">60</div>
+        <div class="feat-stat-label" data-i18n="f2_stat_label">Active hooks</div>
+      </div>
+    </li>
+    <li class="feat-card">
+      <div class="feat-icon" aria-hidden="true">🔑</div>
+      <h3 class="feat-title" data-i18n="f1_title">Bring your own API key</h3>
+      <p class="feat-desc" data-i18n="f1_desc">Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.</p>
+    </li>
+    <li class="feat-card">
+      <div class="feat-icon" aria-hidden="true">🧠</div>
+      <h3 class="feat-title" data-i18n="f3_title">2025 built-in skills</h3>
+      <p class="feat-desc" data-i18n="f3_desc">The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.</p>
+    </li>
+    <li class="feat-card">
+      <div class="feat-icon" aria-hidden="true">⚡</div>
+      <h3 class="feat-title" data-i18n="f4_title">Works offline</h3>
+      <p class="feat-desc" data-i18n="f4_desc">Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.</p>
+    </li>
+    <li class="feat-card">
+      <div class="feat-icon" aria-hidden="true">🌊</div>
+      <h3 class="feat-title" data-i18n="f5_title">Smart dashboard</h3>
+      <p class="feat-desc" data-i18n="f5_desc">Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.</p>
+    </li>
+    <li class="feat-card">
+      <div class="feat-icon" aria-hidden="true">🔒</div>
+      <h3 class="feat-title" data-i18n="f6_title">Fully private</h3>
+      <p class="feat-desc" data-i18n="f6_desc">No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.</p>
+    </li>
+  </ul>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <p class="section-label" data-i18n="faq_label">FAQ</p>
+  <h2 class="section-title" data-i18n="faq_title">Common questions</h2>
+  <p class="section-sub" data-i18n="faq_sub">Still deciding? Here's what people usually ask first.</p>
+
+  <details class="faq-item">
+    <summary data-i18n="faq_q1">Do I have to pay for Yana AI Desktop?</summary>
+    <p class="faq-answer" data-i18n="faq_a1">The app itself is free and open source (Apache 2.0). You bring your own API key from Anthropic, OpenAI, Gemini, or a local model — you only pay the provider directly for what you actually use, at their normal rate. No subscription, no markup.</p>
+  </details>
+  <details class="faq-item">
+    <summary data-i18n="faq_q2">Is my data actually private?</summary>
+    <p class="faq-answer" data-i18n="faq_a2">The app runs entirely on your machine — no Yana AI server sits between you and your chosen provider. There's no analytics, no telemetry, and no conversation logging on our end. Since it's open source, you can read the code yourself instead of taking our word for it.</p>
+  </details>
+  <details class="faq-item">
+    <summary data-i18n="faq_q3">I don't have an API key — can I still use it?</summary>
+    <p class="faq-answer" data-i18n="faq_a3">Yes. Connect Ollama and run an open-weight model (Llama, Qwen, Mistral) fully offline, with no key and no cost. Cloud providers are optional, not required.</p>
+  </details>
+  <details class="faq-item">
+    <summary data-i18n="faq_q4">What does "multi-layer security" actually block?</summary>
+    <p class="faq-answer" data-i18n="faq_a4">60 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
+  </details>
 </section>
 
 <!-- Platforms -->
@@ -367,28 +473,28 @@
   <p class="section-label" style="margin-top:5rem">Download</p>
   <h2 class="section-title" data-i18n="plat_title">Available on every platform</h2>
   <p class="section-sub" data-i18n="plat_sub">Version v0.43.0 — download and run instantly, no extra setup needed.</p>
-  <div class="platform-grid">
-    <div class="platform-card">
-      <div class="platform-icon"></div>
-      <div class="platform-name">macOS</div>
-      <div class="platform-arch">Apple Silicon (arm64) · Intel (x64)</div>
+  <ul class="platform-grid">
+    <li class="platform-card">
+      <div class="platform-icon" aria-hidden="true"></div>
+      <h3 class="platform-name">macOS</h3>
+      <p class="platform-arch">Apple Silicon (arm64) · Intel (x64)</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (arm64) →</a>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (Intel) →</a>
-    </div>
-    <div class="platform-card">
-      <div class="platform-icon">🪟</div>
-      <div class="platform-name">Windows</div>
-      <div class="platform-arch">x64 · Installer (.exe)</div>
+    </li>
+    <li class="platform-card">
+      <div class="platform-icon" aria-hidden="true">🪟</div>
+      <h3 class="platform-name">Windows</h3>
+      <p class="platform-arch">x64 · Installer (.exe)</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI.Setup.0.43.0.exe"><span data-i18n="dl_prefix">Download</span> .exe →</a>
-    </div>
-    <div class="platform-card">
-      <div class="platform-icon">🐧</div>
-      <div class="platform-name">Linux</div>
-      <div class="platform-arch">x64 · arm64 · AppImage</div>
+    </li>
+    <li class="platform-card">
+      <div class="platform-icon" aria-hidden="true">🐧</div>
+      <h3 class="platform-name">Linux</h3>
+      <p class="platform-arch">x64 · arm64 · AppImage</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (x64) →</a>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v0.43.0/Yana.AI-0.43.0-arm64.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (arm64) →</a>
-    </div>
-  </div>
+    </li>
+  </ul>
 </section>
 
 <!-- CTA -->
@@ -403,6 +509,7 @@
     <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v0.43.0" data-i18n="cta_btn_all">All releases →</a>
   </div>
 </section>
+</main>
 
 <!-- Footer -->
 <footer>
@@ -418,7 +525,10 @@ const LANGS = {
     nav_home: "Home", nav_cta: "Download",
     badge_new: "Latest release",
     hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
-    hero_sub: "Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device. 2025 skills, 101 agents, multi-layer security.",
+    hero_sub: "Yana AI Desktop — bring your own API key, runs fully local, your data never leaves your device. <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.",
+    gh_stars: "stars on GitHub",
+    gh_star_one: "star on GitHub",
+    gh_forks: "forks",
     hero_note_free: "Free · Open source (Apache 2.0)",
     hero_note_all: "All releases →",
     sidebar_dashboard: "Dashboard", sidebar_missions: "Missions",
@@ -434,6 +544,7 @@ const LANGS = {
     f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
     f2_title: "Multi-layer security",
     f2_desc: "60 security hooks and 9 gate layers block prompt injection, command injection, and data leaks at runtime.",
+    f2_stat_label: "Active hooks",
     f3_title: "2025 built-in skills",
     f3_desc: "The largest skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
     f4_title: "Works offline",
@@ -442,6 +553,17 @@ const LANGS = {
     f5_desc: "Track usage, agents, memory, and tasks in one unified interface — fast and beautiful.",
     f6_title: "Fully private",
     f6_desc: "No analytics, no telemetry, no conversation sharing. Open source — verify it yourself.",
+    faq_label: "FAQ",
+    faq_title: "Common questions",
+    faq_sub: "Still deciding? Here's what people usually ask first.",
+    faq_q1: "Do I have to pay for Yana AI Desktop?",
+    faq_a1: "The app itself is free and open source (Apache 2.0). You bring your own API key from Anthropic, OpenAI, Gemini, or a local model — you only pay the provider directly for what you actually use, at their normal rate. No subscription, no markup.",
+    faq_q2: "Is my data actually private?",
+    faq_a2: "The app runs entirely on your machine — no Yana AI server sits between you and your chosen provider. There's no analytics, no telemetry, and no conversation logging on our end. Since it's open source, you can read the code yourself instead of taking our word for it.",
+    faq_q3: "I don't have an API key — can I still use it?",
+    faq_a3: "Yes. Connect Ollama and run an open-weight model (Llama, Qwen, Mistral) fully offline, with no key and no cost. Cloud providers are optional, not required.",
+    faq_q4: "What does \"multi-layer security\" actually block?",
+    faq_a4: "60 runtime hooks and 9 gate layers check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
     plat_title: "Available on every platform",
     plat_sub: "Version v0.43.0 — download and run instantly, no extra setup needed.",
     dl_prefix: "Download",
@@ -454,7 +576,10 @@ const LANGS = {
     nav_home: "Trang chủ", nav_cta: "Tải về",
     badge_new: "Mới nhất",
     hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
-    hero_sub: "Yana AI Desktop — dùng API key của bạn, chạy hoàn toàn local, dữ liệu không bao giờ rời khỏi thiết bị. 2025 skills, 101 agents, bảo mật đa lớp.",
+    hero_sub: "Yana AI Desktop — dùng API key của bạn, chạy hoàn toàn local, dữ liệu không bao giờ rời khỏi thiết bị. <strong>2025 skills</strong>, <strong>101 agents</strong>, bảo mật đa lớp.",
+    gh_stars: "lượt sao trên GitHub",
+    gh_star_one: "lượt sao trên GitHub",
+    gh_forks: "lượt fork",
     hero_note_free: "Miễn phí · Mã nguồn mở (Apache 2.0)",
     hero_note_all: "Xem tất cả phiên bản →",
     sidebar_dashboard: "Mặt hồ", sidebar_missions: "Nhiệm vụ",
@@ -470,6 +595,7 @@ const LANGS = {
     f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
     f2_title: "Bảo mật đa lớp",
     f2_desc: "60 hooks bảo mật và 9 lớp gate chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
+    f2_stat_label: "Hooks hoạt động",
     f3_title: "2025 skills tích hợp",
     f3_desc: "Thư viện skill lớn nhất — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
     f4_title: "Chạy offline",
@@ -478,6 +604,17 @@ const LANGS = {
     f5_desc: "Theo dõi usage, agents, bộ nhớ và tasks trong một giao diện thống nhất — đẹp và nhanh.",
     f6_title: "Riêng tư hoàn toàn",
     f6_desc: "Không analytics, không telemetry, không chia sẻ hội thoại. Mã nguồn mở để bạn tự kiểm chứng.",
+    faq_label: "Câu hỏi thường gặp",
+    faq_title: "Câu hỏi thường gặp",
+    faq_sub: "Còn phân vân? Đây là những điều mọi người hay hỏi trước tiên.",
+    faq_q1: "Yana AI Desktop có mất phí không?",
+    faq_a1: "Bản thân ứng dụng miễn phí và mã nguồn mở (Apache 2.0). Bạn dùng API key của riêng mình từ Anthropic, OpenAI, Gemini, hoặc model local — chỉ trả tiền trực tiếp cho provider theo mức sử dụng thực tế, đúng giá gốc. Không phí đăng ký, không tính thêm.",
+    faq_q2: "Dữ liệu của tôi có thực sự riêng tư không?",
+    faq_a2: "Ứng dụng chạy hoàn toàn trên máy của bạn — không có server nào của Yana AI đứng giữa bạn và provider bạn chọn. Không analytics, không telemetry, không lưu log hội thoại phía chúng tôi. Vì mã nguồn mở, bạn có thể tự đọc code thay vì phải tin lời chúng tôi.",
+    faq_q3: "Tôi không có API key — vẫn dùng được không?",
+    faq_a3: "Được. Kết nối Ollama để chạy model mã nguồn mở (Llama, Qwen, Mistral) hoàn toàn offline, không cần key, không tốn phí. Provider cloud là tùy chọn, không bắt buộc.",
+    faq_q4: "\"Bảo mật đa lớp\" thực sự chặn những gì?",
+    faq_a4: "60 hooks runtime và 9 lớp gate kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
     plat_title: "Hỗ trợ mọi nền tảng",
     plat_sub: "Phiên bản v0.43.0 — tải về và dùng ngay, không cần cài thêm gì.",
     dl_prefix: "Tải",
@@ -490,7 +627,10 @@ const LANGS = {
     nav_home: "홈", nav_cta: "다운로드",
     badge_new: "최신 릴리즈",
     hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
-    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용, 완전 로컬 실행, 데이터가 장치를 벗어나지 않습니다. 2025개 스킬, 101개 에이전트, 다층 보안.",
+    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용, 완전 로컬 실행, 데이터가 장치를 벗어나지 않습니다. <strong>2025개 스킬</strong>, <strong>101개 에이전트</strong>, 다층 보안.",
+    gh_stars: "GitHub 스타",
+    gh_star_one: "GitHub 스타",
+    gh_forks: "포크",
     hero_note_free: "무료 · 오픈소스 (Apache 2.0)",
     hero_note_all: "모든 릴리즈 →",
     sidebar_dashboard: "대시보드", sidebar_missions: "미션",
@@ -506,6 +646,7 @@ const LANGS = {
     f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
     f2_title: "다층 보안",
     f2_desc: "60개 보안 훅과 9개 게이트 레이어로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
+    f2_stat_label: "활성 훅",
     f3_title: "2025개 내장 스킬",
     f3_desc: "최대 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
     f4_title: "오프라인 작동",
@@ -514,6 +655,17 @@ const LANGS = {
     f5_desc: "사용량, 에이전트, 메모리, 태스크를 하나의 통합 인터페이스에서 빠르고 아름답게 추적.",
     f6_title: "완전한 프라이버시",
     f6_desc: "분석 없음, 텔레메트리 없음, 대화 공유 없음. 오픈소스로 직접 확인 가능.",
+    faq_label: "자주 묻는 질문",
+    faq_title: "자주 묻는 질문",
+    faq_sub: "아직 고민 중이신가요? 사람들이 가장 먼저 묻는 질문들입니다.",
+    faq_q1: "Yana AI Desktop은 유료인가요?",
+    faq_a1: "앱 자체는 무료이며 오픈소스(Apache 2.0)입니다. Anthropic, OpenAI, Gemini 또는 로컬 모델의 API 키를 직접 사용하며, 실제 사용한 만큼만 공급자에게 정가로 직접 결제합니다. 구독료나 추가 수수료가 없습니다.",
+    faq_q2: "제 데이터는 정말 안전한가요?",
+    faq_a2: "앱은 전적으로 사용자의 컴퓨터에서 실행되며, Yana AI 서버가 사용자와 선택한 공급자 사이에 개입하지 않습니다. 분석이나 텔레메트리, 대화 로그 저장이 전혀 없습니다. 오픈소스이므로 저희 말을 믿는 대신 직접 코드를 확인하실 수 있습니다.",
+    faq_q3: "API 키가 없어도 사용할 수 있나요?",
+    faq_a3: "네. Ollama를 연결해 오픈 웨이트 모델(Llama, Qwen, Mistral)을 완전히 오프라인으로 실행할 수 있으며, 키도 비용도 필요 없습니다. 클라우드 공급자는 선택 사항일 뿐 필수가 아닙니다.",
+    faq_q4: "\"다층 보안\"이 실제로 무엇을 차단하나요?",
+    faq_a4: "60개의 런타임 훅과 9개의 게이트 레이어가 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
     plat_title: "모든 플랫폼 지원",
     plat_sub: "v0.43.0 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
     dl_prefix: "다운로드",
@@ -526,7 +678,10 @@ const LANGS = {
     nav_home: "首页", nav_cta: "下载",
     badge_new: "最新版本",
     hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
-    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，完全本地运行，数据永不离开设备。2025 个技能，101 个智能体，多层安全防护。",
+    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，完全本地运行，数据永不离开设备。<strong>2025 个技能</strong>，<strong>101 个智能体</strong>，多层安全防护。",
+    gh_stars: "GitHub 星标",
+    gh_star_one: "GitHub 星标",
+    gh_forks: "分支数",
     hero_note_free: "免费 · 开源 (Apache 2.0)",
     hero_note_all: "所有版本 →",
     sidebar_dashboard: "仪表盘", sidebar_missions: "任务",
@@ -542,6 +697,7 @@ const LANGS = {
     f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
     f2_title: "多层安全防护",
     f2_desc: "60 个安全钩子和 9 层防护门，在运行时阻止提示词注入、命令注入和数据泄露。",
+    f2_stat_label: "活跃钩子",
     f3_title: "2025 个内置技能",
     f3_desc: "最大技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
     f4_title: "离线使用",
@@ -550,6 +706,17 @@ const LANGS = {
     f5_desc: "在统一界面中跟踪使用量、智能体、记忆和任务——快速且美观。",
     f6_title: "完全私密",
     f6_desc: "无分析、无遥测、不共享对话。开源代码，可自行验证。",
+    faq_label: "常见问题",
+    faq_title: "常见问题",
+    faq_sub: "还在犹豫？这些是大家最常问的问题。",
+    faq_q1: "Yana AI Desktop 需要付费吗？",
+    faq_a1: "应用本身免费且开源（Apache 2.0）。您使用自己的 Anthropic、OpenAI、Gemini 或本地模型的 API 密钥——只需按实际使用量直接向提供商支付原价费用。无订阅费，无加价。",
+    faq_q2: "我的数据真的私密吗？",
+    faq_a2: "应用完全在您的设备上运行——没有 Yana AI 服务器介于您和所选提供商之间。我们这边没有任何分析、遥测或对话记录。由于是开源的，您可以自行查看代码，而不必只相信我们的说法。",
+    faq_q3: "我没有 API 密钥，还能使用吗？",
+    faq_a3: "可以。连接 Ollama 即可完全离线运行开放权重模型（Llama、Qwen、Mistral），无需密钥，也无需付费。云端提供商是可选项，并非必需。",
+    faq_q4: "\"多层安全防护\"具体阻止了什么？",
+    faq_a4: "60 个运行时钩子和 9 层防护门会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
     plat_title: "支持所有平台",
     plat_sub: "版本 v0.43.0 — 下载即用，无需额外配置。",
     dl_prefix: "下载",
@@ -577,6 +744,40 @@ function setLang(lang) {
       (lang === 'zh' && btn.textContent === '中'));
   });
 }
+
+// Live GitHub stats — real numbers only. Stays hidden on any failure
+// (rate limit, offline, blocked request) rather than showing a stale or
+// fake placeholder count.
+(function() {
+  const el = document.getElementById('ghStats');
+  if (!el) return;
+  fetch('https://api.github.com/repos/yanacuti1121/Yana-AI')
+    .then(r => { if (!r.ok) throw new Error('gh api ' + r.status); return r.json(); })
+    .then(data => {
+      const stars = data.stargazers_count;
+      const forks = data.forks_count;
+      if (typeof stars !== 'number' || typeof forks !== 'number') return;
+      document.getElementById('ghStars').textContent = stars.toLocaleString();
+      document.getElementById('ghForks').textContent = forks.toLocaleString();
+
+      // Proper plural handling for the "star(s)" label (frontend-production-
+      // checklist.md: never hand-roll pluralization). Only English actually
+      // inflects among the 4 supported languages, but Intl.PluralRules
+      // keeps this correct if a future language needs its own rule too.
+      const starLabel = document.querySelector('#ghStats [data-i18n^="gh_star"]');
+      if (starLabel) {
+        const lang = document.documentElement.lang || 'en';
+        const category = new Intl.PluralRules(lang).select(stars);
+        const key = category === 'one' ? 'gh_star_one' : 'gh_stars';
+        const t = LANGS[lang] || LANGS.en;
+        starLabel.setAttribute('data-i18n', key);
+        starLabel.textContent = t[key] || t.gh_stars;
+      }
+
+      el.hidden = false;
+    })
+    .catch(() => { /* stay hidden — no fake number shown */ });
+})();
 
 // Auto-detect on load
 (function() {
