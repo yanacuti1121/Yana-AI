@@ -8,6 +8,7 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 | **Cursor** | `.cursorrules` (root) + `.cursor/rules/*.mdc` | Already at repo root — Cursor picks up automatically |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | Copilot reads this file automatically in VS Code |
 | **Aider** | `adapters/aider.md` | `aider --system-prompt adapters/aider.md` |
+| **Kimi Code CLI** | `adapters/kimi.md` | `bash core/scripts/switch-engine.sh kimi` — real hook, not prompt-only (see note below) |
 | **Gemini Code** | `adapters/gemini-code.md` | Copy to `GEMINI.md` at project root |
 | **DeepSeek V3/R1** | `adapters/deepseek.md` | `aider --model deepseek/deepseek-chat --system-prompt adapters/deepseek.md` |
 | **Qwen3 / Qwen2.5-Coder** | `adapters/qwen.md` | `aider --model openrouter/qwen/qwen3-235b-a22b --system-prompt adapters/qwen.md` |
@@ -26,6 +27,7 @@ bash core/scripts/switch-engine.sh <engine>
 bash core/scripts/switch-engine.sh cursor     # activates .cursorrules
 bash core/scripts/switch-engine.sh copilot    # activates .github/copilot-instructions.md
 bash core/scripts/switch-engine.sh aider      # prints aider CLI command
+bash core/scripts/switch-engine.sh kimi       # writes real PreToolUse hook (asks first — writes outside project)
 bash core/scripts/switch-engine.sh gemini     # copies adapter to GEMINI.md
 bash core/scripts/switch-engine.sh codex      # copies adapter to AGENTS.md (only if none exists yet)
 bash core/scripts/switch-engine.sh claude     # default — no adapter needed
@@ -47,7 +49,7 @@ bash core/scripts/switch-engine.sh claude     # default — no adapter needed
 
 ## Limitations
 
-- Claude Code: full enforcement via hooks (runtime blocking). Other engines: **advisory only** — rules are in the prompt, not enforced at shell level.
+- Claude Code: full enforcement via hooks (runtime blocking). Kimi Code CLI: also real enforcement — it uses the same hook exit-code contract as Claude Code (`core/scripts/kimi-hook-adapter.sh` translates into the existing `safe-run.sh` logic). Every other engine here: **advisory only** — rules are in the prompt, not enforced at shell level (this includes Cursor, despite its adapter self-labeling "hard": that's a prompt asking the model to self-prefix commands, not a real intercept — see `.claude/assistant/context.md`'s research on this).
 - For hard runtime blocking on non-Claude engines, wrap commands with `bash core/scripts/safe-run.sh`.
 - Cursor `.mdc` rules require Cursor ≥ 0.40. Older versions use `.cursorrules` only.
 - `AGENTS.md` is a shared cross-tool convention file (several agentic CLIs beyond Codex read it), not an exclusively-Codex target — unlike `GEMINI.md`/`.windsurf/`/`.kiro/`/`.agent/`, a project may already have one for a broader purpose. `switch-engine.sh codex` will not overwrite an existing `AGENTS.md`; it only generates one where none exists yet. If one already exists, merge the relevant sections of `adapters/codex.md` in by hand.

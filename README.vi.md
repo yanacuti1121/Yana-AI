@@ -50,11 +50,6 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-2,016-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-71-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-58-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-170-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
@@ -96,7 +91,7 @@ Yana AI nằm giữa agent và hệ thống của bạn: mọi lệnh có rủi 
 
 ## Nó chặn gì
 
-Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua 58 agent hooks có Rust runtime (`yana-rt`) hỗ trợ. Bên dưới: 101 agent chuyên biệt, 2.016 skills, và 71 rule được thực thi, kiểm tra 830 cách trong CI.
+Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua agent hooks có Rust runtime (`yana-rt`) hỗ trợ.
 
 ## Cách hoạt động
 
@@ -115,20 +110,6 @@ Thực thi (hoặc chặn + log)
 ```
 
 Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết chính xác cái nào đang là hook sống, cái nào chỉ là chính sách agent tự áp dụng theo quy ước, đã xác minh trực tiếp trên code chứ không phải trên tài liệu mô tả nó.
-
-## Con số
-
-| | |
-|---|---|
-| 🧩 Skills | **2.016** định nghĩa workflow skill |
-| 🤖 Agents | **101** agent chuyên biệt |
-| 📜 Safety rules | **71** rule được thực thi |
-| 🪝 Hooks | **58** hook trước/sau khi thực thi |
-| ⚡ Slash commands | **170** |
-| 🔧 Scripts | **108** |
-| 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **26** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `filescan`...) |
-| ✅ Rule checks trong CI | **830** |
 
 ---
 

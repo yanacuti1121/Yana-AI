@@ -50,11 +50,6 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-2,016-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-71-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-58-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-170-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
@@ -96,7 +91,7 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
 
 ## 它能拦截什么
 
-破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过 58 个由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。底层是 101 个专业代理、2,016 个技能，以及在 CI 中以 830 种方式检查的 71 条规则。
+破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。
 
 ## 工作原理
 
@@ -115,20 +110,6 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 ```
 
 关于哪些是真正接入的 hook、哪些只是代理按惯例遵循的文档化策略，请查看[已知局限](docs/reference/known-limitations.md)，其中直接对照代码本身验证，而非依据描述它的文档。
-
-## 数字
-
-| | |
-|---|---|
-| 🧩 技能 | **2,016** 个工作流技能定义 |
-| 🤖 代理 | **101** 个专业代理 |
-| 📜 安全规则 | **71** 条强制规则 |
-| 🪝 Hooks | **58** 个执行前/后钩子 |
-| ⚡ 斜杠命令 | **170** 个 |
-| 🔧 脚本 | **108** 个 |
-| 🔌 适配器 | **12** 个（Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、Copilot、Aider...） |
-| 🦀 Rust 子命令 | **26** 个（`scan`、`graph`、`vault`、`route`、`mission`、`hunt`、`fix`、`doctor`、`filescan`...） |
-| ✅ CI 中的规则检查 | **830** 次 |
 
 ---
 

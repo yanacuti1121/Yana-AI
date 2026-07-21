@@ -71,18 +71,55 @@ update_state() {
   local backoff="$5"
   local fast_tier="$6"
 
-  grep -v "\"tool_name\"[[:space:]]*:[[:space:]]*\"${tool}\"" "$CIRCUIT_STATE_FILE" > "${CIRCUIT_STATE_FILE}.tmp" 2>/dev/null || true
-  mv "${CIRCUIT_STATE_FILE}.tmp" "$CIRCUIT_STATE_FILE" 2>/dev/null || true
+  # Locked read-modify-write (2026-07-19 fix — code-auditor review found a
+  # real, reproducible race: the old grep-to-fixed-tmp-name-then-mv pattern
+  # has no protection against two genuinely concurrent callers, which
+  # core/hooks/sandbox-wrap.sh's own pre-check now guarantees happens
+  # whenever YANA_SANDBOX_MODE is set, since Claude Code hooks run in
+  # parallel. Reproduced live: 8 concurrent invocations against a 2-entry
+  # state file silently deleted an unrelated tool's OPEN circuit entry —
+  # exactly the protection 56-circuit-breaker-law.md depends on. Same
+  # fcntl.flock(LOCK_EX) pattern already used by
+  # tool-guardrails-detector.sh for the identical shared-JSONL-state-file
+  # problem — python3's fcntl, not the `flock` CLI, which isn't preinstalled
+  # on macOS (same portability class as the timeout/grep -P fixes earlier
+  # this session). Values passed via env vars, never interpolated into the
+  # Python source string, matching tool-proxy-enforcer.sh's match_re()
+  # design for the same reason (no injection surface from untrusted content).
+  CIRCUIT_STATE_FILE="$CIRCUIT_STATE_FILE" _TOOL="$tool" _STATE="$new_state" \
+  _FAILURES="$failures" _COOLDOWN="$cooldown_epoch" _BACKOFF="$backoff" \
+  _FAST_TIER="$fast_tier" _TS="$TIMESTAMP" python3 -c '
+import fcntl, json, os
 
-  jq -cn \
-    --arg tool "$tool" \
-    --arg state "$new_state" \
-    --argjson failures "$failures" \
-    --argjson cooldown "$cooldown_epoch" \
-    --argjson backoff "$backoff" \
-    --arg fast_tier "$fast_tier" \
-    --arg ts "$TIMESTAMP" \
-    '{tool_name:$tool,state:$state,failure_count:$failures,last_failure_time:$ts,cooldown_until_epoch:$cooldown,backoff_exponent:$backoff,fast_tier_triggered:($fast_tier=="true")}' >> "$CIRCUIT_STATE_FILE"
+path = os.environ["CIRCUIT_STATE_FILE"]
+tool = os.environ["_TOOL"]
+entry = {
+    "tool_name": tool,
+    "state": os.environ["_STATE"],
+    "failure_count": int(os.environ["_FAILURES"]),
+    "last_failure_time": os.environ["_TS"],
+    "cooldown_until_epoch": int(os.environ["_COOLDOWN"]),
+    "backoff_exponent": int(os.environ["_BACKOFF"]),
+    "fast_tier_triggered": os.environ["_FAST_TIER"] == "true",
+}
+
+with open(path, "a+") as f:
+    fcntl.flock(f, fcntl.LOCK_EX)
+    f.seek(0)
+    lines = [ln for ln in f.read().splitlines() if ln.strip()]
+    kept = []
+    for ln in lines:
+        try:
+            if json.loads(ln).get("tool_name") == tool:
+                continue
+        except Exception:
+            pass  # malformed line — drop rather than risk keeping/losing it silently wrong
+        kept.append(ln)
+    kept.append(json.dumps(entry, separators=(",", ":")))
+    f.seek(0)
+    f.truncate()
+    f.write("\n".join(kept) + "\n")
+' 2>/dev/null || true
 }
 
 # ── Configuration ─────────────────────────────────────────────────────────────

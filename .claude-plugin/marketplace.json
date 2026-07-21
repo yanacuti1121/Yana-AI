@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Personal agent operating system \u2014 safety hooks, memory, agents, cross-engine hard enforcement for Claude Code.",
-    "tagline": "58 hooks \u00b7 2,016 skills \u00b7 sovereign-grade safety for AI coding agents",
+    "tagline": "60 hooks \u00b7 2,025 skills \u00b7 sovereign-grade safety for AI coding agents",
     "category": "safety",
     "tags": [
       "hooks",
@@ -25,8 +25,8 @@
       "agent-os"
     ],
     "highlights": [
-      "58 safety hooks \u2014 blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
-      "2,016 skills \u2014 frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, Chrome DevTools",
+      "60 safety hooks \u2014 blocks rm -rf, force push, pipe-to-shell, prod deploys, circuit breaker at 5 stuck calls",
+      "2,025 skills \u2014 frontend, backend, IaC, AI/LLM, security, multi-agent, K8s, WebAssembly, Chrome DevTools",
       "101 agents \u2014 quality, security, infra, data-ai, orchestration, forge subfolders",
       "71 rules \u2014 sovereignty tiers, jailbreak defense, supply chain vetting, BFT consensus law",
       "L1 Atomic Memory \u2014 persistent facts with confidence levels and tag search",

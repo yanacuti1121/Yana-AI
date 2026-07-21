@@ -115,6 +115,17 @@ function installGiamthiWatcher(targetPath) {
 
   fs.writeFileSync(plistPath, plist);
 
+  // Best-effort unload first: on a re-install (e.g. upgrading the package)
+  // the LaunchAgent from a previous run may already be loaded, and
+  // `launchctl load` on an already-loaded job can exit non-zero — tripping
+  // the catch below with a false "load failed" message even though the
+  // watcher is running fine. Unloading first makes every load a fresh one.
+  try {
+    execFileSync("launchctl", ["unload", plistPath], { stdio: "ignore" });
+  } catch {
+    // Nothing was loaded yet — expected on a first install, ignore.
+  }
+
   try {
     execFileSync("launchctl", ["load", plistPath], { stdio: "ignore" });
   } catch (e) {
@@ -126,6 +137,7 @@ function installGiamthiWatcher(targetPath) {
   console.log(`  ✓ Giám thị watcher installed: ${plistPath}`);
   console.log(`    Runs every 6h + on login. Logs: ${logPath}`);
   console.log(`    To remove: launchctl unload "${plistPath}" && rm "${plistPath}"`);
+  console.log(`    Tip: brew install terminal-notifier — makes halt alerts clickable (optional).`);
 }
 
 async function maybeInstallGiamthiWatcher(targetPath) {

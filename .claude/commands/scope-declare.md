@@ -85,9 +85,23 @@ Do NOT proceed without explicit approval.
 
 ---
 
-## Step 4 — Log approved scope to L2 memory
+## Step 4 — Enforce the approved scope, then log it
 
-Once approved:
+Once approved, turn the declaration from a self-reported convention into a real, hook-enforced
+boundary (roadmap #15 — closes the gap where nothing stopped a drifted write from happening, it
+only got flagged after the fact at Step 5):
+
+```bash
+# Only if there's something to freeze — a pure investigation task with
+# nothing under FILES I WILL CREATE/MODIFY/DELETE has nothing to enforce,
+# and freeze-scope.sh requires at least one argument. FILES I WILL READ
+# are correctly excluded — freeze-scope.sh only ever gates writes.
+bash core/scripts/freeze-scope.sh set [every path listed under
+  FILES I WILL CREATE, FILES I WILL MODIFY, and FILES I WILL DELETE —
+  space-separated, exact paths as declared above]
+```
+
+Then:
 
 ```bash
 bash core/scripts/add-session-fact.sh \
@@ -95,11 +109,20 @@ bash core/scripts/add-session-fact.sh \
   --tag scope
 ```
 
-Then begin the task, staying strictly within the declared scope.
+Then begin the task. `core/hooks/freeze-scope.sh` now actively denies any `Write`/`Edit`/`MultiEdit`
+outside the declared paths — staying within scope is enforced, not just intended. If the task
+genuinely needs to touch something outside the declaration partway through, don't work around the
+denial — stop, explain why to the user, and either re-run `/freeze` with the expanded list or get
+explicit approval to drop the restriction (`/unfreeze`) for the rest of the task.
 
 ---
 
 ## Step 5 — On completion, verify scope was honored
+
+This is now a second, redundant check on top of Step 4's live enforcement — cheap to keep, and it
+catches the one gap live enforcement can't: `/unfreeze` being run mid-task (intentionally or not),
+after which the hook stops denying anything. Don't skip it just because Step 4 already blocked
+most drift in real time.
 
 At the end of the task:
 

@@ -80,6 +80,30 @@ pub trait ChatProvider: Send + Sync {
     ) -> Result<ChatUsage>;
 }
 
+/// One-shot, non-interactive LLM call — no TUI, no history file, no
+/// streaming channel. Collects the full response into a `String` and
+/// returns it once the stream completes. Every existing call site for
+/// `stream_chat` lives inside the interactive TUI loop (`tui/turn.rs`,
+/// spawned on a worker thread, feeding an `mpsc` channel the render loop
+/// drains) — this is the first caller that just wants one answer to one
+/// question and doesn't need any of that plumbing (used by `yana-rt eval
+/// judge`, see `task.rs`).
+pub fn ask_once(
+    provider: &dyn ChatProvider,
+    api_key: Option<&str>,
+    model: &str,
+    system: &str,
+    user_message: &str,
+) -> Result<String> {
+    let messages = [ChatMessage { role: Role::User, content: user_message.to_string() }];
+    let mut full = String::new();
+    provider.stream_chat(api_key, model, Some(system), &messages, &mut |chunk| {
+        full.push_str(chunk);
+        Ok(())
+    })?;
+    Ok(full)
+}
+
 /// Shared HTTP agent for all providers. Neither existing `ureq` call site
 /// in this crate (`design/mod.rs`, `filescan/mod.rs`) sets an explicit
 /// timeout — a real gap for a one-shot request, and a genuine hang risk

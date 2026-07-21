@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # Yana AI — Giám thị (independent watcher)
 # Status: active
-# Description: Runs OUTSIDE any Claude session, via a real OS-level crontab
-#   entry. Checks core-lock integrity, audit-chain integrity, and recent
-#   changes to security-sensitive paths. On any finding, writes
-#   .claude/state/GIAMTHI_HALT.lock (read by .claude/hooks/giamthi-halt-check.sh,
-#   which denies every tool call in every Claude session against this repo
-#   until a human removes the lock) and a human-readable report, then sends
-#   a best-effort desktop notification.
-# Last Reviewed: 2026-07-13
+# Description: Runs OUTSIDE any Claude session, scheduled either via a
+#   real OS-level crontab entry (manual install, see below) or via a
+#   macOS LaunchAgent (installed automatically — opt-in — by
+#   scripts/npm-install.js on `npx yana-ai`). Checks core-lock integrity,
+#   audit-chain integrity, and recent changes to security-sensitive paths.
+#   On any finding, writes .claude/state/GIAMTHI_HALT.lock (read by
+#   .claude/hooks/giamthi-halt-check.sh, which denies every tool call in
+#   every Claude session against this repo until a human removes the lock)
+#   and a human-readable report, then sends a best-effort desktop
+#   notification.
+# Last Reviewed: 2026-07-18
 #
 # Design intent (per anh's instruction, 2026-07-13): observe, don't
 # auto-block automation under normal conditions; the one power this script
@@ -17,8 +20,12 @@
 # is what makes it a real, independent check rather than the agent grading
 # its own homework.
 #
-# Install (one-time, on this machine, outside the repo):
-#   crontab -l | { cat; echo "0 */6 * * * /usr/bin/env bash $PWD/.claude/scripts/giamthi-watch.sh >> $PWD/.claude/state/giamthi-cron.log 2>&1"; } | crontab -
+# Install — two paths:
+#   1. npm installs (opt-in prompt during `npx yana-ai`): a macOS
+#      LaunchAgent under ~/Library/LaunchAgents/, RunAtLoad + every 6h.
+#      See scripts/npm-install.js's installGiamthiWatcher().
+#   2. Manual crontab (this dev machine, or any non-npm checkout):
+#        crontab -l | { cat; echo "0 */6 * * * /usr/bin/env bash $PWD/.claude/scripts/giamthi-watch.sh >> $PWD/.claude/state/giamthi-cron.log 2>&1"; } | crontab -
 
 set -uo pipefail
 
@@ -108,8 +115,17 @@ if [[ ${#ISSUES[@]} -gt 0 ]]; then
     echo
   } >> "$REPORT_LOG"
 
-  if command -v osascript >/dev/null 2>&1; then
-    FIRST_ISSUE="${ISSUES[0]:0:180}"
+  FIRST_ISSUE="${ISSUES[0]:0:180}"
+  if command -v terminal-notifier >/dev/null 2>&1; then
+    # Preferred: terminal-notifier is a real bundled app, so clicking the
+    # notification just dismisses it — no blank Script Editor window.
+    # `osascript -e 'display notification'` has no app identity of its own;
+    # macOS attributes the click to Script Editor and opens it empty, which
+    # reads as "the notification has nothing behind it" (real bug report,
+    # 2026-07-17). Fall back to osascript only when terminal-notifier isn't
+    # installed — same content, same best-effort/non-fatal behavior.
+    terminal-notifier -title "Giám thị Yana AI — HALT" -message "$FIRST_ISSUE" >/dev/null 2>&1 || true
+  elif command -v osascript >/dev/null 2>&1; then
     osascript -e "display notification \"${FIRST_ISSUE}\" with title \"Giám thị Yana AI — HALT\"" >/dev/null 2>&1 || true
   fi
 else

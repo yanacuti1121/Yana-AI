@@ -598,6 +598,87 @@ fn eval_run_unknown_task_errors_gracefully() {
     // Should exit non-zero but not panic
 }
 
+#[test]
+fn eval_judge_unknown_task_errors_gracefully() {
+    let dir = tmpdir();
+    let (_, _, ok) = run(dir.path(), &["eval", "judge", "nonexistent-task-id"]);
+    assert!(!ok, "unknown task id should fail before any provider/network call");
+}
+
+#[test]
+fn eval_judge_no_evidence_errors_gracefully() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["task", "create", "no-evidence-task"]);
+    assert!(ok, "task create should succeed");
+    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
+    let (_, stderr, ok2) = run(dir.path(), &["eval", "judge", id]);
+    assert!(!ok2, "judge without evidence should fail before any network call");
+    assert!(stderr.contains("no evidence"), "error names the real cause: {stderr}");
+}
+
+/// Breaker-open check happens before provider selection/the network call —
+/// verified here by priming persisted state directly (no ollama daemon
+/// needed in CI, and no dependency on a real LLM's verdict wording).
+#[test]
+fn eval_judge_breaker_blocks_when_open_no_network_needed() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["task", "create", "breaker-primed-task"]);
+    assert!(ok);
+    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
+    run(dir.path(), &["task", "done", id, "--evidence", "irrelevant"]);
+
+    // Prime the breaker open by writing a future eval_judge_breaker_until
+    // directly into tasks.json — same file the CLI itself reads/writes,
+    // just skipping straight to "already failed 5 times" instead of
+    // burning 5 real (non-deterministic) LLM calls to get there.
+    let store_path = dir.path().join(".yana-ai").join("tasks.json");
+    let raw = fs::read_to_string(&store_path).expect("read tasks.json");
+    let mut store: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let tasks = store["tasks"].as_object_mut().unwrap();
+    let (_key, task) = tasks.iter_mut().next().expect("one task present");
+    task["eval_judge_attempts"] = serde_json::json!(5);
+    // Same "%Y-%m-%dT%H:%M:%SZ" format `task.rs`'s own `now()`/`future_ts()`
+    // write — chrono is a real (non-dev) dependency via the default `cli`
+    // feature, so this matches production formatting exactly rather than
+    // approximating it via a shelled-out `date` call.
+    let future_ts = (chrono::Utc::now() + chrono::Duration::seconds(120))
+        .format("%Y-%m-%dT%H:%M:%SZ").to_string();
+    task["eval_judge_breaker_until"] = serde_json::json!(future_ts);
+    fs::write(&store_path, serde_json::to_string_pretty(&store).unwrap()).unwrap();
+
+    let out = Command::new(bin()).args(["eval", "judge", id]).current_dir(dir.path()).output().unwrap();
+    assert_eq!(out.status.code(), Some(2), "breaker-open must exit 2, distinct from a real FAIL's exit 1");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.to_lowercase().contains("breaker"), "names the reason: {stderr}");
+}
+
+/// A `tasks.json` written before `eval_judge_attempts`/`eval_judge_breaker_until`
+/// existed has neither field. `#[serde(default)]` must let it still load.
+#[test]
+fn task_store_without_judge_fields_still_loads() {
+    let dir = tmpdir();
+    let store_dir = dir.path().join(".yana-ai");
+    fs::create_dir_all(&store_dir).unwrap();
+    let old_format = serde_json::json!({
+        "tasks": {
+            "11111111-1111-1111-1111-111111111111": {
+                "id": "11111111-1111-1111-1111-111111111111",
+                "name": "pre-existing task from before the judge feature",
+                "status": "open",
+                "scope": null,
+                "created_at": "2026-01-01T00:00:00Z",
+                "updated_at": "2026-01-01T00:00:00Z",
+                "evidence": null
+            }
+        }
+    });
+    fs::write(store_dir.join("tasks.json"), serde_json::to_string_pretty(&old_format).unwrap()).unwrap();
+
+    let (stdout, _, ok) = run(dir.path(), &["task", "list"]);
+    assert!(ok, "old-format store must still load, not crash");
+    assert!(stdout.contains("pre-existing task"), "old task is visible: {stdout}");
+}
+
 // ── init ──────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -672,4 +753,84 @@ fn score_show_clean_repo() {
     assert!(ok, "score show should succeed on empty repo");
     assert!(stdout.contains("Score") || stdout.contains("score"), "output has score label");
     assert!(stdout.contains("100") || stdout.contains("LOW"), "clean repo should score 100 / LOW risk");
+}
+
+// ── observability ────────────────────────────────────────────────────────────
+// audit-log.sh (a bash PostToolUse hook, not this CLI) is the only real
+// writer of audit-chain.log — these tests seed a synthetic file directly,
+// same as context-compress-stop.sh's tests seed synthetic transcript state.
+
+fn seed_audit_log(dir: &std::path::Path, lines: &[&str]) {
+    let state_dir = dir.join(".claude").join("state");
+    fs::create_dir_all(&state_dir).unwrap();
+    fs::write(state_dir.join("audit-chain.log"), lines.join("\n") + "\n").unwrap();
+}
+
+#[test]
+fn observability_show_no_data_is_graceful() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok, "show with no audit log should not fail");
+    assert!(stdout.contains("No audit data"), "explains why: {stdout}");
+}
+
+#[test]
+fn observability_show_summarizes_real_entries() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+        r#"{"ts":"2026-01-01T00:00:03Z","hook":"audit-log","tool":"Read","agent":"manual","input":"{}","decision":"allow","prev_hash":"d","hash":"e"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok);
+    assert!(stdout.contains("last 4 calls"), "counted all 4 seeded lines: {stdout}");
+    assert!(stdout.contains("audit.decision.allow"), "{stdout}");
+    assert!(stdout.contains("audit.tool.Bash"), "{stdout}");
+
+    let (json_out, _, json_ok) = run(dir.path(), &["observability", "show", "--json"]);
+    assert!(json_ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 4);
+    assert_eq!(parsed["by_decision"]["allow"], 3);
+    assert_eq!(parsed["by_decision"]["deny"], 1);
+    assert_eq!(parsed["by_tool"]["Bash"], 3);
+}
+
+#[test]
+fn observability_show_respects_last_n() {
+    let dir = tmpdir();
+    let lines: Vec<String> = (0..10)
+        .map(|i| format!(
+            r#"{{"ts":"2026-01-01T00:00:{i:02}Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{{}}","decision":"allow","prev_hash":"x","hash":"y{i}"}}"#
+        ))
+        .collect();
+    let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+    seed_audit_log(dir.path(), &refs);
+
+    let (json_out, _, ok) = run(dir.path(), &["observability", "show", "--last", "3", "--json"]);
+    assert!(ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 3, "must only summarize the last 3, not all 10");
+}
+
+#[test]
+fn observability_breakdown_by_hook() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Write","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "breakdown", "hook"]);
+    assert!(ok);
+    assert!(stdout.contains("guard-destructive"), "{stdout}");
+    assert!(stdout.contains("audit-log"), "{stdout}");
+    // guard-destructive appears twice, should sort above audit-log (once)
+    let gd_pos = stdout.find("guard-destructive").unwrap();
+    let al_pos = stdout.find("audit-log").unwrap();
+    assert!(gd_pos < al_pos, "higher count sorts first: {stdout}");
 }

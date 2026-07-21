@@ -19,10 +19,16 @@
 //! reading `core/gates/sovereign-interceptor.js` directly).
 
 mod anthropic;
+mod banner;
 mod circuit_breaker;
 mod history;
 mod openai_compat;
-mod provider;
+// pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
+// `chat`, not a descendant) needs `provider::ask_once` and the
+// `ChatProvider` trait itself in scope to call `.requires_key()`/`.env_var()`
+// — private-to-`chat` visibility only reaches `chat`'s own descendants
+// (anthropic.rs, tui/, etc.), not siblings under the crate root.
+pub(crate) mod provider;
 mod terminal_guard;
 mod tui;
 
@@ -31,15 +37,30 @@ use provider::ChatProvider;
 use std::sync::Arc;
 use uuid::Uuid;
 
+/// Non-exiting core: used both by startup (which wraps it with
+/// exit-on-error, safe since it always runs before any `TerminalGuard`
+/// exists) and by the in-session `/model` command (`tui.rs`), which must
+/// NEVER call `std::process::exit()` — that would skip the render loop's
+/// Drop-based terminal cleanup on the way out.
+pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, String> {
+    match name {
+        "anthropic" => Ok(Arc::new(AnthropicProvider)),
+        "openai" => Ok(Arc::new(openai_compat::openai())),
+        "ollama" => Ok(Arc::new(openai_compat::ollama())),
+        "kimi" => Ok(Arc::new(openai_compat::kimi())),
+        other => Err(format!("unknown provider '{other}' — use anthropic | openai | ollama | kimi")),
+    }
+}
+
 fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
     match name {
-        Some("anthropic") => Arc::new(AnthropicProvider),
-        Some("openai") => Arc::new(openai_compat::openai()),
-        Some("ollama") => Arc::new(openai_compat::ollama()),
-        Some(other) => {
-            eprintln!("[chat] unknown provider '{other}' — use anthropic | openai | ollama");
-            std::process::exit(2);
-        }
+        Some(n) => match try_select_provider(n) {
+            Ok(p) => p,
+            Err(msg) => {
+                eprintln!("[chat] {msg}");
+                std::process::exit(2);
+            }
+        },
         // Auto-detect: prefer a cloud provider whose key is already set,
         // fall back to local Ollama (keyless, so always "selectable" even
         // though the daemon might not actually be running — that's a
@@ -81,6 +102,7 @@ pub fn dispatch(
         None
     };
 
+    let resumed = resume.is_some();
     let (session_id, history) = match &resume {
         Some(id) => match history::load(id) {
             Ok(msgs) => (id.clone(), msgs),
@@ -104,7 +126,7 @@ pub fn dispatch(
         }
     };
 
-    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose);
+    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose, resumed);
     if let Err(e) = tui::run(&mut guard, app) {
         drop(guard); // restore the terminal before printing, not after
         eprintln!("[chat] fatal: {e:#}");
