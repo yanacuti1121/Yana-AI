@@ -48,7 +48,7 @@ Docs: https://yanacuti1121.github.io/yana-ai/
 
 **Title:**
 ```
-yana-rt: Rust CLI for AI agent safety — 17 subcommands, 1256x faster than Python (scan, graph, vault, blast-radius map)
+yana-rt: Rust CLI for AI agent safety — 17 subcommands, up to ~12x faster than Python on bounded commands (BENCHMARK.md) (scan, graph, vault, blast-radius map)
 ```
 
 **Body:**
@@ -72,7 +72,7 @@ yana-ai watch .      — file watcher with hook triggers
 
 Stack: clap, serde, walkdir, regex, sha2, ureq, rayon
 
-Benchmark: yana-ai audit on a 10k-file repo → 1256x faster than the Python equivalent.
+Benchmark: yana-ai audit converges to ~1.1x on a full 19k-file scan, up to ~12x faster on bounded commands like doctor/ci — see BENCHMARK.md.
 
 Repo: https://github.com/yanacuti1121/yana-ai
 Crate: https://crates.io/crates/yana-rt

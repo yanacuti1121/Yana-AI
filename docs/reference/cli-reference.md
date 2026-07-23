@@ -20,7 +20,7 @@ yana-ai route classify "fix auth bug" # classify task → simple/complex/externa
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 
-**Benchmark:** `yana-ai audit` on a 10k-file repo: **1256x faster** than the Python equivalent.
+**Benchmark:** bounded commands ~2-12x faster than Python; full-repo scan converges to ~1.1x at 19k files — see `BENCHMARK.md` for full methodology.
 
 ## Multi-harness support
 

@@ -86,6 +86,8 @@ per this repo's dual-copy convention.
 - [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
       application, not skill-shaped content) but not yet confirmed — flagging the likely
       call rather than silently deciding without checking license/shape first.
+- [ ] https://github.com/vxcontrol/pentagi — not yet reviewed (added 2026-07-23).
+- [ ] https://github.com/koala73/worldmonitor — not yet reviewed (added 2026-07-23).
 
 ## Pre-1.0 priorities (from a 2026-07-13 cross-AI evidence-based review — see
 ## PR #72 and memory/feedback_evidence_hierarchy_review.md for the full exchange)
@@ -97,10 +99,22 @@ vs. real 13,391 tracked, "missing roadmap/architecture/contributing" when all
 started, no priority order committed to — anh said "dừng ở đây được rồi" before
 picking a next step.
 
-- [ ] BENCHMARK.md or a benchmarks dashboard — startup time, memory, hook
-      latency, dispatch latency. One number already exists inline in README
-      ("yana-ai audit 1256x faster than the Python equivalent on a 10k-file
-      repo") but nothing dedicated/comprehensive.
+- [x] BENCHMARK.md — DONE 2026-07-23. Real measured numbers (startup,
+      memory, hook latency, dispatch latency, scan/doctor/ci Rust-vs-Python
+      at two scales). Found and fixed a real bug in the process: README's
+      inline "1256x faster" claim was already debunked once (2026-05-31,
+      commit fb6a0cd7) and had silently regressed back via an unrelated
+      README restore (2026-07-07) — not reproducible by any measurement,
+      then or now. Fixed everywhere it appeared (README.md — the zh/vi/ko
+      translations were checked and don't have this claim, docs/index.html
+      + mirror, docs/reference/cli-reference.md,
+      docs/social/{hn-post,reddit-posts}.md + mirrors). Also found: stale
+      "2,016 skills"/"58 hooks" counts in README.md were never covered by
+      drift-check.sh's marketing-copy check (only marketplace.json/SKILL.md/
+      docs html were in that file list) — fixed by hand this pass, NOT added
+      to the automated check, since README.md has legitimate non-total-count
+      number mentions (e.g. "Launch 3 agents" in an example command) that
+      would false-positive against the existing simple regex heuristic.
 - [ ] Demo GIF/video — 1-2 min showing an agent trying something destructive
       and Yana blocking it in real time. README already has real captured
       terminal output (not staged) but no visual/video walkthrough.
