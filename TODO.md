@@ -86,8 +86,18 @@ per this repo's dual-copy convention.
 - [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
       application, not skill-shaped content) but not yet confirmed — flagging the likely
       call rather than silently deciding without checking license/shape first.
-- [ ] https://github.com/vxcontrol/pentagi — not yet reviewed (added 2026-07-23).
-- [ ] https://github.com/koala73/worldmonitor — not yet reviewed (added 2026-07-23).
+- [x] https://github.com/vxcontrol/pentagi — SKIP. Standalone autonomous
+      pentest multi-agent system (MIT), but a full deployable platform
+      (Docker, Go backend, React frontend, Postgres/Neo4j/Grafana/Jaeger
+      stack) — same "not a skill shape" call as `devbeta-hcode/pig-agents`
+      and `ogulcancelik/herdr` earlier in this queue, not a prompt/
+      instruction-content repo.
+- [x] https://github.com/koala73/worldmonitor — SKIP. Real-time news/
+      intelligence dashboard (web+desktop+CLI+MCP server), but AGPL-3.0-only
+      — same copyleft complication already flagged for `herdr`. Also a full
+      standalone application, not skill-shaped content. Has an MCP-server
+      component worth another look on its own if ever revisited specifically
+      for that piece, separate from the rest of the app.
 
 ## Pre-1.0 priorities (from a 2026-07-13 cross-AI evidence-based review — see
 ## PR #72 and memory/feedback_evidence_hierarchy_review.md for the full exchange)
