@@ -269,12 +269,44 @@ fn sensitivity_policy(s: Sensitivity) -> (bool, &'static str) {
     }
 }
 
+/// Whether `needle` appears in `haystack` bounded by non-alphanumeric
+/// characters (or the start/end of the string) on both sides. Plain
+/// `str::contains` treats `"test"` as present inside `"latest"`,
+/// `"fastest"`, `"contest"` — a purely explanatory question like "what's
+/// the latest version" silently inflated the COMPLEX score via a
+/// substring that has nothing to do with the intended "test" signal.
+/// `char::is_alphanumeric` covers Vietnamese diacritic letters the same as
+/// ASCII, so `"sửa"` inside `"sửa lại"` still matches while avoiding
+/// false hits inside unrelated longer words.
+fn contains_word_boundary(haystack: &str, needle: &str) -> bool {
+    if needle.is_empty() {
+        return false;
+    }
+    let hay: Vec<char> = haystack.chars().collect();
+    let need: Vec<char> = needle.chars().collect();
+    if need.len() > hay.len() {
+        return false;
+    }
+    for start in 0..=(hay.len() - need.len()) {
+        if hay[start..start + need.len()] != need[..] {
+            continue;
+        }
+        let before_ok = start == 0 || !hay[start - 1].is_alphanumeric();
+        let end = start + need.len();
+        let after_ok = end == hay.len() || !hay[end].is_alphanumeric();
+        if before_ok && after_ok {
+            return true;
+        }
+    }
+    false
+}
+
 fn score_patterns(text: &str, patterns: &[Pattern]) -> (f32, Vec<String>) {
     let lower = text.to_lowercase();
     let mut total = 0f32;
     let mut signals = Vec::new();
     for p in patterns {
-        if lower.contains(p.keyword) {
+        if contains_word_boundary(&lower, p.keyword) {
             total += p.weight;
             signals.push(format!("{}({})", p.keyword, p.label));
         }
@@ -511,5 +543,76 @@ mod tests {
     fn hashtag_confidential() {
         let d = classify("#mật ghi chú về buổi họp đối tác");
         assert_eq!(d.sensitivity, Sensitivity::Confidential);
+    }
+
+    // ── Wave 1 (2026-07-23) — unanchored substring match fix ────────────────
+    // score_patterns() used to match keywords via plain `str::contains`, so
+    // e.g. the COMPLEX keyword "test" matched inside "latest"/"fastest"/
+    // "contest" — a purely explanatory question could be misrouted into the
+    // Complex/harness path over a false signal that has nothing to do with
+    // testing. docs/PLATFORM-READINESS-WAVE0.md documents the finding this
+    // fix closes.
+
+    #[test]
+    fn latest_does_not_trigger_test_keyword() {
+        let d = classify("what's the latest version of yana-ai");
+        assert_eq!(d.route, Route::Simple, "'latest' must not false-match the COMPLEX 'test' keyword");
+    }
+
+    #[test]
+    fn fastest_does_not_trigger_test_keyword() {
+        let d = classify("what is the fastest way to read this file");
+        assert!(
+            !d.matched_signals.iter().any(|s| s.starts_with("test(")),
+            "'fastest' must not false-match the COMPLEX 'test' keyword: {:?}",
+            d.matched_signals
+        );
+    }
+
+    #[test]
+    fn preview_does_not_trigger_view_keyword() {
+        let d = classify("show me a preview of the changelog");
+        assert!(
+            !d.matched_signals.iter().any(|s| s.starts_with("view(")),
+            "'preview' must not false-match the SIMPLE 'view' keyword: {:?}",
+            d.matched_signals
+        );
+    }
+
+    #[test]
+    fn already_does_not_trigger_read_keyword() {
+        let d = classify("explain how the already-deployed service differs");
+        assert!(
+            !d.matched_signals.iter().any(|s| s.starts_with("read(")),
+            "'already' must not false-match the SIMPLE 'read' keyword: {:?}",
+            d.matched_signals
+        );
+    }
+
+    #[test]
+    fn genuine_test_keyword_still_matches() {
+        let d = classify("write a test for the login flow");
+        assert!(
+            d.matched_signals.iter().any(|s| s.starts_with("test(")),
+            "a genuine standalone 'test' word must still match: {:?}",
+            d.matched_signals
+        );
+        assert_eq!(d.route, Route::Complex);
+    }
+
+    #[test]
+    fn genuine_review_keyword_still_matches_at_string_boundaries() {
+        let d = classify("review");
+        assert!(
+            d.matched_signals.iter().any(|s| s.starts_with("review(")),
+            "a single-word task equal to the keyword itself must still match: {:?}",
+            d.matched_signals
+        );
+    }
+
+    #[test]
+    fn multi_word_keyword_still_matches_with_internal_space() {
+        let d = classify("please git push origin main");
+        assert_eq!(d.route, Route::External, "multi-word keywords like 'git push' must still match across their internal space");
     }
 }
