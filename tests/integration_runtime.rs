@@ -834,3 +834,90 @@ fn observability_breakdown_by_hook() {
     let al_pos = stdout.find("audit-log").unwrap();
     assert!(gd_pos < al_pos, "higher count sorts first: {stdout}");
 }
+
+// ── Mission concurrency (ADR-008) ───────────────────────────────────────────
+//
+// docs/adr/ADR-008-shared-locking-infrastructure.md — regression coverage
+// for the real bug this ADR fixes in src/mission/mod.rs: `cmd_dispatch`
+// hands out up to `max_parallel` tasks to genuinely parallel agents, each
+// of which eventually calls `mission done` as a SEPARATE OS process. Before
+// the fix, `save()` was a plain unlocked `fs::write` — two concurrent
+// `mission done` calls on different tasks in the same mission could lose
+// one completion when the second process's full-document overwrite raced
+// the first's. This test reproduces the real failure shape (separate
+// processes, not threads within one process) and would have failed on the
+// pre-fix code.
+
+#[test]
+fn mission_done_survives_concurrent_completions_across_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "concurrency-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const TASK_COUNT: usize = 8;
+    for i in 0..TASK_COUNT {
+        let (_, stderr, ok) = run(dir.path(), &[
+            "mission", "task", &mission_id, &format!("task{i}"),
+            "--produces", &format!("out{i}.txt"),
+        ]);
+        assert!(ok, "adding task{i} should succeed: {stderr}");
+    }
+
+    let evidence_path = dir.path().join("evidence.txt");
+    fs::write(&evidence_path, "fake evidence").unwrap();
+    let evidence_str = evidence_path.to_string_lossy().to_string();
+
+    // Real separate processes, not threads — this is the actual concurrency
+    // shape `cmd_dispatch`'s parallel-agent model produces in practice, and
+    // the shape the pre-fix unlocked `save()` lost updates under.
+    let handles: Vec<_> = (0..TASK_COUNT)
+        .map(|i| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            let evidence_str = evidence_str.clone();
+            std::thread::spawn(move || {
+                let out = Command::new(bin())
+                    .args(["mission", "done", &mission_id, &format!("task{i}"), "--evidence", &evidence_str])
+                    .current_dir(&dir_path)
+                    // Generous wait budget (production default is 10s) —
+                    // this test itself runs alongside ~60 other integration
+                    // tests under `cargo test`'s default --test-threads=4,
+                    // and 8 processes serializing through one lock while the
+                    // whole machine is also busy with unrelated concurrent
+                    // subprocess spawns intermittently exceeded 10s in CI
+                    // (~17% of runs), never in isolation — see
+                    // with_mission_locked's doc comment in src/mission/mod.rs.
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission done");
+                out.status.success()
+            })
+        })
+        .collect();
+
+    let results: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+    assert!(results.iter().all(|ok| *ok), "every concurrent `mission done` call should exit successfully: {results:?}");
+
+    let (report_out, _, ok) = run(dir.path(), &["mission", "report", &mission_id]);
+    assert!(ok, "mission report should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&report_out).expect("valid JSON report");
+    let tasks = parsed["tasks"].as_array().expect("tasks array");
+    assert_eq!(tasks.len(), TASK_COUNT, "no tasks should have vanished");
+
+    let done_count = tasks.iter()
+        .filter(|t| t["status"].as_str().map(|s| s.eq_ignore_ascii_case("done")).unwrap_or(false))
+        .count();
+    assert_eq!(
+        done_count, TASK_COUNT,
+        "all {TASK_COUNT} concurrently-completed tasks must persist as done — got {done_count}. \
+         A lower count means a concurrent `mission done` call's write was silently lost, \
+         which is exactly the race docs/adr/ADR-008-shared-locking-infrastructure.md exists to close. \
+         Full report: {report_out}"
+    );
+}

@@ -114,6 +114,18 @@ jobs:
       - name: Check main.rs / bin/yana dispatch drift
         run: ./target/debug/yana-rt doctor dispatch . --json
 
+      # ADR-008: `cargo test --test integration_runtime` (below) only runs
+      # that one named integration binary — it does NOT pick up
+      # `#[cfg(test)] mod tests` blocks inside src/*.rs (e.g.
+      # src/guard/lock.rs's own unit tests), which is a bare `cargo test`
+      # invocation this repo didn't have until now. --test-threads=1
+      # because guard::blast_paths' existing tests have a known $PWD race
+      # under parallel execution (see that module's own test comments) —
+      # unrelated to this addition, but this step would otherwise
+      # intermittently fail on it.
+      - name: Run unit tests
+        run: cargo test --bin yana-rt -- --test-threads=1
+
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
 

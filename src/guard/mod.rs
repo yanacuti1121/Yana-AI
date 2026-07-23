@@ -26,6 +26,7 @@
 mod blast_paths;
 mod blast_radius;
 mod entry_point_check;
+pub mod lock;
 mod self_mod;
 mod token_budget;
 
@@ -71,6 +72,28 @@ pub enum GuardAction {
     /// already happened by PostToolUse) — surfaces additionalContext only,
     /// same non-blocking shape as infra-review-reminder.sh.
     EntryPointCheck,
+    /// ADR-008 — run a command with a shared mkdir-based lock held for its
+    /// entire execution. Lock name is derived from `--resource` (usually the
+    /// target file path being mutated), so bash/Python/Node/Rust callers
+    /// touching the same resource contend for the same lock regardless of
+    /// which language invoked this. `--timeout` bounds only how long this
+    /// call waits for contention to clear — staleness/reclaim eligibility
+    /// for a lock another process holds is a separate, fixed threshold
+    /// (`YANA_LOCK_STALE_AFTER_SECS`, default 5s — see `src/guard/lock.rs`
+    /// module doc for why these two are deliberately not the same number).
+    /// See `docs/adr/ADR-008-shared-locking-infrastructure.md` and
+    /// `core/lib/locking.sh` (the bash call site this wraps).
+    LockWith {
+        /// Resource identifier the lock name is derived from — usually the
+        /// target file path the wrapped command reads/writes
+        #[arg(long)]
+        resource: String,
+        /// Seconds to wait for the lock to become free before failing
+        #[arg(long, default_value = "30")]
+        timeout: u64,
+        #[arg(trailing_var_arg = true, required = true)]
+        command: Vec<String>,
+    },
 }
 
 pub fn dispatch(action: GuardAction) {
@@ -80,6 +103,8 @@ pub fn dispatch(action: GuardAction) {
         GuardAction::BlastRadius => blast_radius::cmd_blast_radius(),
         GuardAction::SelfMod => self_mod::cmd_self_mod(),
         GuardAction::EntryPointCheck => entry_point_check::cmd_entry_point_check(),
+        GuardAction::LockWith { resource, timeout, command } =>
+            lock::cmd_lock_with(&resource, timeout, &command),
     };
     std::process::exit(code);
 }

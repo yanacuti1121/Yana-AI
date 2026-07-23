@@ -1561,6 +1561,102 @@ else
     echo "Output: $_ckpt_out"
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
+
+# ── ADR-008: real concurrent cross-language race on token-budget.json ───────
+# docs/adr/ADR-008-shared-locking-infrastructure.md. Not a sequential
+# "both scripts touched the same file" check like the bridge tests above —
+# this actually races risk-scorer.sh (Python), budget-sentinel.sh (Python),
+# and token-budget-guard.sh (bash — whichever of its two lock paths fires
+# depends on whether yana-rt is on PATH in the environment running this
+# suite; both are ADR-008-covered and either is a valid pass) as real
+# concurrent OS processes against the identical file, the same shape
+# `cmd_dispatch`-style parallel agents or
+# simply several PreToolUse-matched hooks firing close together produce in
+# practice. Before the fix, each was an independent unlocked
+# read-modify-write; this reproduces the loss and would fail on pre-fix code.
+echo ""
+echo "=== token-budget.json: real concurrent cross-language race (ADR-008) ==="
+
+RACE_TMP=$(mktemp -d)
+register_temp "$RACE_TMP"
+RACE_BUDGET_FILE="$RACE_TMP/token-budget.json"
+echo '{"session_start":"seed","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}' > "$RACE_BUDGET_FILE"
+
+# Prefer this checkout's freshly-built binary over any stale globally
+# installed yana-rt (e.g. an older `cargo install`'d copy) that might
+# otherwise resolve first on a developer machine's normal PATH — this
+# suite must exercise the fix under test, not whatever happened to be
+# installed globally before it. Falls through silently if no local build
+# exists (test still runs, just against the bash/Node fallback logic).
+# Scoped to ONLY these two race sub-tests via save/restore below — an
+# earlier version of this left PATH modified for the rest of the script
+# and silently changed a LATER, unrelated test's behavior (guard-
+# destructive.sh's own jq-missing fail-closed test started resolving
+# yana-rt via this same PATH change and exec'd into the Rust port, which
+# doesn't need jq at all — masking the exact bash-fallback behavior that
+# test exists to check). Global PATH mutation in a shared test script is
+# exactly the kind of cross-test coupling this suite should not have.
+RACE_ORIGINAL_PATH="$PATH"
+RACE_LOCAL_BIN_DIR="$CLAUDE_DIR/../target/debug"
+[[ -x "$RACE_LOCAL_BIN_DIR/yana-rt" ]] && export PATH="$RACE_LOCAL_BIN_DIR:$PATH"
+
+echo -n "race [10x risk-scorer + 10x token-budget-guard on the same file, zero lost updates]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_race_pids=()
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/risk-scorer.sh" <<< '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+    >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _pid in "${_race_pids[@]}"; do wait "$_pid"; done
+
+_race_json_valid="no"
+python3 -c "import json; json.load(open('$RACE_BUDGET_FILE'))" 2>/dev/null && _race_json_valid="yes"
+_race_loop_count=$(jq -r '.loop_attempts.RaceTool // 0' "$RACE_BUDGET_FILE" 2>/dev/null || echo 0)
+if [[ "$_race_json_valid" == "yes" && "$_race_loop_count" == "10" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (json_valid=$_race_json_valid loop_attempts.RaceTool=$_race_loop_count, expected yes/10 — lost update(s) under real concurrency)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "race [10x budget-sentinel + 10x token-budget-guard on the same file, zero lost updates]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+RACE_BUDGET_FILE2="$RACE_TMP/token-budget-2.json"
+echo '{"session_start":"seed","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}' > "$RACE_BUDGET_FILE2"
+_race_pids=()
+for _i in $(seq 1 10); do
+  ( CLAUDE_CONTEXT_TOKENS_USED=1000 CLAUDE_CONTEXT_TOKENS_REMAINING=199000 CLAUDE_CONTEXT_WINDOW=200000 \
+    CLAUDE_TOOL_NAME="RaceTool2" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE2" \
+    bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool2" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE2" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _pid in "${_race_pids[@]}"; do wait "$_pid"; done
+
+_race2_json_valid="no"
+python3 -c "import json; json.load(open('$RACE_BUDGET_FILE2'))" 2>/dev/null && _race2_json_valid="yes"
+_race2_loop_count=$(jq -r '.loop_attempts.RaceTool2 // 0' "$RACE_BUDGET_FILE2" 2>/dev/null || echo 0)
+if [[ "$_race2_json_valid" == "yes" && "$_race2_loop_count" == "10" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (json_valid=$_race2_json_valid loop_attempts.RaceTool2=$_race2_loop_count, expected yes/10 — lost update(s) under real concurrency)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Restore PATH — see the comment above RACE_ORIGINAL_PATH's assignment for
+# why this must not leak into the rest of the suite.
+export PATH="$RACE_ORIGINAL_PATH"
 rm -rf "$BRIDGE_TMP"
 
 # ── prompt-injection-guard.sh ─────────────────────────────────────────────────

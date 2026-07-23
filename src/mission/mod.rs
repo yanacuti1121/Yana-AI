@@ -184,10 +184,30 @@ fn ensure_dir() {
     std::fs::create_dir_all(missions_dir()).ok();
 }
 
+/// Atomic write (temp file in the same directory, then `rename`), not a
+/// direct `fs::write`. Found necessary live: `fs::write` truncates the
+/// target file before writing the new content — not atomic — so
+/// `resolve()`'s deliberately-unlocked directory scan (see its own doc
+/// comment) could occasionally `read_to_string` this file mid-truncation
+/// and see empty/partial JSON, making a mission that genuinely exists
+/// report as "no mission matching" purely from read timing. `with_lock`
+/// (ADR-008) closes writer-vs-writer races; it does nothing for a reader
+/// that never takes the lock at all, which `resolve()` intentionally
+/// doesn't — so the write itself has to be atomic instead. `rename()` on
+/// the same filesystem is atomic on every platform this repo targets, so
+/// any concurrent reader always sees either the fully-old or fully-new
+/// file, never a torn one — regardless of whether that reader holds any
+/// lock. Reproduced live: 8 concurrent `mission done` processes racing
+/// `resolve()` against `save()`, ~1-in-8 to 1-in-15 runs under real
+/// system load (never in isolation) hit "no mission matching" before
+/// this fix; 30+ consecutive runs clean after it.
 fn save(m: &Mission) {
     ensure_dir();
     let json = serde_json::to_string_pretty(m).expect("serialize");
-    std::fs::write(mission_path(&m.id), json).expect("write mission");
+    let final_path = mission_path(&m.id);
+    let tmp_path = final_path.with_extension(format!("json.tmp.{}", std::process::id()));
+    std::fs::write(&tmp_path, json).expect("write mission (temp)");
+    std::fs::rename(&tmp_path, &final_path).expect("atomically publish mission");
 }
 
 fn load(id: &str) -> Option<Mission> {
@@ -213,6 +233,56 @@ fn resolve(prefix: &str) -> Result<Mission, String> {
         0 => Err(format!("no mission matching '{prefix}'")),
         1 => Ok(matches.remove(0)),
         _ => Err(format!("{} missions match '{prefix}' — be more specific", matches.len())),
+    }
+}
+
+/// ADR-008 — resolve `prefix` to an exact mission ID (unlocked; this is
+/// just directory-prefix matching, not the race this closes), then run
+/// `mutate` on a FRESH reload of that mission with the lock held for the
+/// entire reload -> mutate -> save unit. `cmd_dispatch` hands out up to
+/// `max_parallel` tasks for genuinely parallel agents to work, each of
+/// which eventually calls `mission done`/`fail`/`cancel`/`retry` as a
+/// separate process — locking only `save()` (the original shape of these
+/// four handlers) leaves the gap between `resolve()`'s read and this call's
+/// eventual write wide open; a concurrent process's completed-task update
+/// landing in that window gets silently overwritten. Re-loading fresh
+/// *inside* the lock (not reusing `resolve`'s pre-lock snapshot) is what
+/// actually closes it — reusing the snapshot would still race even with a
+/// lock held only around the write.
+fn with_mission_locked(
+    prefix: &str,
+    mutate: impl FnOnce(&mut Mission) -> Result<(), String>,
+) -> Result<Mission, String> {
+    let id = resolve(prefix)?.id;
+    let lock_name = crate::guard::lock::lock_name_for(&mission_path(&id).to_string_lossy());
+    // Configurable (default 10s) so a heavily-loaded CI runner — many
+    // parallel test processes all spawning their own subprocesses — can
+    // give this a larger wait budget without changing the production
+    // default. Found necessary live: the regression test in
+    // tests/integration_runtime.rs that races 8 concurrent `mission done`
+    // processes intermittently hit this timeout (~17% of runs) only when
+    // run alongside ~60 other integration tests under `--test-threads=4`,
+    // never in isolation — genuine system contention, not a locking bug
+    // (confirmed by re-running the same 8-process race in isolation 8/8
+    // times with zero failures).
+    let timeout_secs = std::env::var("YANA_MISSION_LOCK_TIMEOUT_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10);
+    let locked = crate::guard::lock::with_lock(
+        &lock_name,
+        std::time::Duration::from_secs(timeout_secs),
+        || -> Result<Mission, String> {
+            let mut m = load(&id)
+                .ok_or_else(|| format!("mission '{id}' disappeared while waiting for its lock"))?;
+            mutate(&mut m)?;
+            save(&m);
+            Ok(m)
+        },
+    );
+    match locked {
+        Ok(inner) => inner,
+        Err(lock_err) => Err(format!("could not acquire mission lock for '{id}': {lock_err:#}")),
     }
 }
 
@@ -446,16 +516,14 @@ fn cmd_dispatch(prefix: String, max_parallel: usize) {
 }
 
 fn cmd_done(prefix: String, task_name: String, evidence: String) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
-        Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
     // Verify the evidence path actually exists before trusting the
     // completion claim — a `done` call with a nonexistent evidence path is
     // exactly the kind of unverified SUMMARY.md-style claim the project's
     // own Truth Gate / spec-verifier philosophy says not to trust elsewhere.
     // Added 2026-07-08 audit fix: previously `evidence` was stored as-is
-    // with zero validation, from any caller, for any path.
+    // with zero validation, from any caller, for any path. Checked before
+    // acquiring the lock — this is a static check on `evidence` itself,
+    // not something that depends on the mission's current state.
     if !Path::new(&evidence).exists() {
         eprintln!(
             "error: evidence path '{evidence}' does not exist — refusing to mark '{task_name}' done. \
@@ -464,37 +532,37 @@ fn cmd_done(prefix: String, task_name: String, evidence: String) {
         );
         std::process::exit(1);
     }
-    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
-        Some(t) => t,
-        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
-    };
-    task.status   = TaskStatus::Done;
-    task.evidence = Some(evidence.clone());
-    task.updated_at = now();
-
-    // Recompute mission status
-    m.status = compute_mission_status(&m.tasks);
-    m.updated_at = now();
-    save(&m);
-    println!("✓ task '{}' marked done  evidence: {}", task_name, evidence);
+    let result = with_mission_locked(&prefix, |m| {
+        let task = m.tasks.iter_mut().find(|t| t.name == task_name)
+            .ok_or_else(|| format!("task '{task_name}' not found"))?;
+        task.status = TaskStatus::Done;
+        task.evidence = Some(evidence.clone());
+        task.updated_at = now();
+        m.status = compute_mission_status(&m.tasks);
+        m.updated_at = now();
+        Ok(())
+    });
+    match result {
+        Ok(_) => println!("✓ task '{}' marked done  evidence: {}", task_name, evidence),
+        Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
+    }
 }
 
 fn cmd_fail(prefix: String, task_name: String, reason: String) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
+    let result = with_mission_locked(&prefix, |m| {
+        let task = m.tasks.iter_mut().find(|t| t.name == task_name)
+            .ok_or_else(|| format!("task '{task_name}' not found"))?;
+        task.status = TaskStatus::Failed;
+        task.fail_reason = Some(reason.clone());
+        task.updated_at = now();
+        m.status = MissionStatus::Blocked;
+        m.updated_at = now();
+        Ok(())
+    });
+    match result {
+        Ok(_) => eprintln!("✗ task '{}' failed: {}", task_name, reason),
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
-    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
-        Some(t) => t,
-        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
-    };
-    task.status      = TaskStatus::Failed;
-    task.fail_reason = Some(reason.clone());
-    task.updated_at  = now();
-    m.status    = MissionStatus::Blocked;
-    m.updated_at     = now();
-    save(&m);
-    eprintln!("✗ task '{}' failed: {}", task_name, reason);
+    }
 }
 
 fn cmd_status(prefix: Option<String>) {
@@ -609,46 +677,48 @@ fn print_mission_table(m: &Mission) {
 }
 
 fn cmd_cancel(prefix: String, task_name: String) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
+    let result = with_mission_locked(&prefix, |m| {
+        let task = m.tasks.iter_mut().find(|t| t.name == task_name)
+            .ok_or_else(|| format!("task '{task_name}' not found"))?;
+        if task.status != TaskStatus::Running {
+            return Err(format!(
+                "task '{}' is {:?} — only Running tasks can be cancelled",
+                task_name, task.status
+            ));
+        }
+        task.status = TaskStatus::Pending;
+        task.updated_at = now();
+        m.updated_at = now();
+        Ok(())
+    });
+    match result {
+        Ok(_) => println!("↺ task '{}' cancelled → pending", task_name),
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
-    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
-        Some(t) => t,
-        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
-    };
-    if task.status != TaskStatus::Running {
-        eprintln!("error: task '{}' is {:?} — only Running tasks can be cancelled", task_name, task.status);
-        std::process::exit(1);
     }
-    task.status     = TaskStatus::Pending;
-    task.updated_at = now();
-    m.updated_at    = now();
-    save(&m);
-    println!("↺ task '{}' cancelled → pending", task_name);
 }
 
 fn cmd_retry(prefix: String, task_name: String) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
+    let result = with_mission_locked(&prefix, |m| {
+        let task = m.tasks.iter_mut().find(|t| t.name == task_name)
+            .ok_or_else(|| format!("task '{task_name}' not found"))?;
+        if task.status != TaskStatus::Failed {
+            return Err(format!(
+                "task '{}' is {:?} — only Failed tasks can be retried",
+                task_name, task.status
+            ));
+        }
+        task.status = TaskStatus::Pending;
+        task.fail_reason = None;
+        task.updated_at = now();
+        // Recompute mission status — may lift a Blocked mission
+        m.status = compute_mission_status(&m.tasks);
+        m.updated_at = now();
+        Ok(())
+    });
+    match result {
+        Ok(_) => println!("↺ task '{}' retried → pending", task_name),
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
-    let task = match m.tasks.iter_mut().find(|t| t.name == task_name) {
-        Some(t) => t,
-        None => { eprintln!("error: task '{task_name}' not found"); std::process::exit(1); }
-    };
-    if task.status != TaskStatus::Failed {
-        eprintln!("error: task '{}' is {:?} — only Failed tasks can be retried", task_name, task.status);
-        std::process::exit(1);
     }
-    task.status      = TaskStatus::Pending;
-    task.fail_reason = None;
-    task.updated_at  = now();
-    // Recompute mission status — may lift a Blocked mission
-    m.status     = compute_mission_status(&m.tasks);
-    m.updated_at = now();
-    save(&m);
-    println!("↺ task '{}' retried → pending", task_name);
 }
 
 fn truncate(s: &str, max: usize) -> String {
