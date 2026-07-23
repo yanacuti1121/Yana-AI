@@ -398,121 +398,163 @@ fn cmd_add_task(
     owns: Vec<String>, produces: Vec<String>, consumes: Vec<String>,
     agent: Option<String>, pass: Option<String>, instructions: Option<String>,
 ) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
+    // Migrated under ADR-008 (2026-07-23 follow-up): the duplicate-name
+    // check MUST run against the freshly-reloaded, lock-held state, not a
+    // pre-lock `resolve()` snapshot — two concurrent `mission add-task`
+    // calls with the same name racing the old unlocked resolve->check->
+    // push->save shape could both pass the duplicate check before either
+    // saved, producing two tasks with the same name. See
+    // `with_mission_locked`'s doc comment for why reload-inside-lock (not
+    // lock-only-the-write) is what actually closes this.
+    let result = with_mission_locked(&prefix, |m| {
+        if m.tasks.iter().any(|t| t.name == name) {
+            return Err(format!("task '{}' already exists in mission '{}'", name, m.name));
+        }
+        let task = Task {
+            id:            new_id(),
+            name:          name.clone(),
+            owns, consumes, produces,
+            agent,
+            pass_criteria: pass,
+            instructions,
+            status:        TaskStatus::Pending,
+            evidence:      None,
+            fail_reason:   None,
+            created_at:    now(),
+            updated_at:    now(),
+        };
+        m.tasks.push(task);
+        m.updated_at = now();
+        Ok(())
+    });
+    match result {
+        Ok(m) => println!("task '{}' added to mission '{}'", name, m.name),
         Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
-    // Reject duplicate task name
-    if m.tasks.iter().any(|t| t.name == name) {
-        eprintln!("error: task '{}' already exists in mission '{}'", name, m.name);
-        std::process::exit(1);
     }
-    let task = Task {
-        id:            new_id(),
-        name:          name.clone(),
-        owns, consumes, produces,
-        agent,
-        pass_criteria: pass,
-        instructions,
-        status:        TaskStatus::Pending,
-        evidence:      None,
-        fail_reason:   None,
-        created_at:    now(),
-        updated_at:    now(),
-    };
-    m.tasks.push(task);
-    m.updated_at = now();
-    save(&m);
-    println!("task '{}' added to mission '{}'", name, m.name);
+}
+
+/// Outcome of one `cmd_dispatch` attempt, computed and decided entirely
+/// inside the mission lock (see `with_mission_locked`'s doc comment) —
+/// carried out of the closure via the `outcome` slot below rather than
+/// returned directly, since `with_mission_locked`'s `mutate` signature is
+/// fixed at `Result<(), String>` and is shared by all five migrated
+/// handlers.
+enum DispatchOutcome {
+    NoSlots { running: usize, max_parallel: usize },
+    NoneReady { pending: usize },
+    Dispatched { briefs: Vec<TaskBrief>, deferred: Vec<String> },
 }
 
 fn cmd_dispatch(prefix: String, max_parallel: usize) {
-    let mut m = match resolve(&prefix) {
-        Ok(m) => m,
-        Err(e) => { eprintln!("error: {e}"); std::process::exit(1); }
-    };
-
-    // Count already-running tasks (cap total in-flight)
-    let running = m.tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
-    let slots = max_parallel.saturating_sub(running);
-    if slots == 0 {
-        eprintln!("⚠ {running}/{max_parallel} slots in use — wait for tasks to finish");
-        std::process::exit(0);
-    }
-
-    // Candidates whose `consumes` are satisfied — may exceed `slots`, and
-    // may conflict with each other or with already-Running tasks on `owns`
-    // (filtered below, not just truncated).
-    let candidates: Vec<Task> = m.tasks.iter()
-        .filter(|t| is_ready(t, &m))
-        .cloned()
-        .collect();
-
-    let running_owns: Vec<Vec<String>> = m.tasks.iter()
-        .filter(|t| t.status == TaskStatus::Running)
-        .map(|t| t.owns.clone())
-        .collect();
-
-    let mut ready: Vec<Task> = Vec::new();
-    let mut deferred: Vec<String> = Vec::new();
-    for cand in candidates {
-        if ready.len() >= slots {
-            break;
+    // Migrated under ADR-008 (2026-07-23 follow-up): readiness (`is_ready`)
+    // and owns-conflict decisions MUST be made against the freshly-
+    // reloaded, lock-held mission state, not a pre-lock `resolve()`
+    // snapshot — deciding "ready" outside the lock and only locking the
+    // final `save()` (the original shape of this handler) leaves the same
+    // TOCTOU gap open that `with_mission_locked` exists to close: two
+    // concurrent dispatches could each decide the same task is ready and
+    // hand it to two different agents. All of readiness filtering, owns-
+    // conflict filtering, and the Running-status flip now happen inside
+    // one lock-held reload -> decide -> mutate -> save unit.
+    let mut outcome: Option<DispatchOutcome> = None;
+    let result = with_mission_locked(&prefix, |m| {
+        // Count already-running tasks (cap total in-flight)
+        let running = m.tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
+        let slots = max_parallel.saturating_sub(running);
+        if slots == 0 {
+            outcome = Some(DispatchOutcome::NoSlots { running, max_parallel });
+            return Ok(());
         }
-        let conflicts_running = running_owns.iter().any(|o| owns_conflict(&cand.owns, o));
-        let conflicts_this_wave = ready.iter().any(|r| owns_conflict(&cand.owns, &r.owns));
-        if conflicts_running || conflicts_this_wave {
-            deferred.push(cand.name.clone());
-            continue;
+
+        // Candidates whose `consumes` are satisfied — may exceed `slots`, and
+        // may conflict with each other or with already-Running tasks on `owns`
+        // (filtered below, not just truncated).
+        let candidates: Vec<Task> = m.tasks.iter()
+            .filter(|t| is_ready(t, m))
+            .cloned()
+            .collect();
+
+        let running_owns: Vec<Vec<String>> = m.tasks.iter()
+            .filter(|t| t.status == TaskStatus::Running)
+            .map(|t| t.owns.clone())
+            .collect();
+
+        let mut ready: Vec<Task> = Vec::new();
+        let mut deferred: Vec<String> = Vec::new();
+        for cand in candidates {
+            if ready.len() >= slots {
+                break;
+            }
+            let conflicts_running = running_owns.iter().any(|o| owns_conflict(&cand.owns, o));
+            let conflicts_this_wave = ready.iter().any(|r| owns_conflict(&cand.owns, &r.owns));
+            if conflicts_running || conflicts_this_wave {
+                deferred.push(cand.name.clone());
+                continue;
+            }
+            ready.push(cand);
         }
-        ready.push(cand);
-    }
 
-    if !deferred.is_empty() {
-        eprintln!(
-            "⚠ deferred (owns overlaps a running or already-selected task this wave): {}",
-            deferred.join(", ")
-        );
-    }
-
-    if ready.is_empty() {
-        let pending = m.tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
-        if pending == 0 {
-            println!("✓ all tasks done");
-        } else {
-            eprintln!("⚠ {pending} pending task(s) but none are ready — check consumes dependencies");
+        if ready.is_empty() {
+            let pending = m.tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
+            outcome = Some(DispatchOutcome::NoneReady { pending });
+            return Ok(());
         }
-        std::process::exit(0);
+
+        let briefs: Vec<TaskBrief> = ready.iter().map(|task| TaskBrief {
+            mission_id:   m.id.clone(),
+            mission_name: m.name.clone(),
+            task_id:      task.id.clone(),
+            task_name:    task.name.clone(),
+            agent:        task.agent.clone().unwrap_or_else(|| "fullstack-engineer".into()),
+            scope: BriefScope {
+                owns:     task.owns.clone(),
+                consumes: task.consumes.clone(),
+                produces: task.produces.clone(),
+            },
+            pass_criteria: task.pass_criteria.clone(),
+            instructions: build_instructions(task, m),
+            subagent_policy: "report-only — do not write files, return findings as plain text",
+        }).collect();
+
+        // Mark dispatched tasks as Running so next dispatch won't re-issue them
+        let dispatched_ids: Vec<String> = ready.iter().map(|t| t.id.clone()).collect();
+        for t in m.tasks.iter_mut() {
+            if dispatched_ids.contains(&t.id) {
+                t.status     = TaskStatus::Running;
+                t.updated_at = now();
+            }
+        }
+        m.updated_at = now();
+        outcome = Some(DispatchOutcome::Dispatched { briefs, deferred });
+        Ok(())
+    });
+
+    if let Err(e) = result {
+        eprintln!("error: {e}");
+        std::process::exit(1);
     }
 
-    let briefs: Vec<TaskBrief> = ready.iter().map(|task| TaskBrief {
-        mission_id:   m.id.clone(),
-        mission_name: m.name.clone(),
-        task_id:      task.id.clone(),
-        task_name:    task.name.clone(),
-        agent:        task.agent.clone().unwrap_or_else(|| "fullstack-engineer".into()),
-        scope: BriefScope {
-            owns:     task.owns.clone(),
-            consumes: task.consumes.clone(),
-            produces: task.produces.clone(),
-        },
-        pass_criteria: task.pass_criteria.clone(),
-        instructions: build_instructions(task, &m),
-        subagent_policy: "report-only — do not write files, return findings as plain text",
-    }).collect();
-
-    // Mark dispatched tasks as Running so next dispatch won't re-issue them
-    let dispatched_ids: Vec<String> = ready.iter().map(|t| t.id.clone()).collect();
-    for t in m.tasks.iter_mut() {
-        if dispatched_ids.contains(&t.id) {
-            t.status     = TaskStatus::Running;
-            t.updated_at = now();
+    match outcome.expect("with_mission_locked returned Ok without setting outcome") {
+        DispatchOutcome::NoSlots { running, max_parallel } => {
+            eprintln!("⚠ {running}/{max_parallel} slots in use — wait for tasks to finish");
+        }
+        DispatchOutcome::NoneReady { pending } => {
+            if pending == 0 {
+                println!("✓ all tasks done");
+            } else {
+                eprintln!("⚠ {pending} pending task(s) but none are ready — check consumes dependencies");
+            }
+        }
+        DispatchOutcome::Dispatched { briefs, deferred } => {
+            if !deferred.is_empty() {
+                eprintln!(
+                    "⚠ deferred (owns overlaps a running or already-selected task this wave): {}",
+                    deferred.join(", ")
+                );
+            }
+            println!("{}", serde_json::to_string_pretty(&briefs).unwrap());
         }
     }
-    m.updated_at = now();
-    save(&m);
-
-    println!("{}", serde_json::to_string_pretty(&briefs).unwrap());
 }
 
 fn cmd_done(prefix: String, task_name: String, evidence: String) {

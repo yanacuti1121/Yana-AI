@@ -54,15 +54,50 @@ _yana_lock_version_ge() {
   return 0
 }
 
+# Derive the lock directory name the SAME way src/guard/lock.rs and
+# core/lib/py/file_lock.py do (SHA-256-first-4-bytes-hex + sanitized
+# prefix) by calling the Python implementation directly, rather than
+# re-deriving it a third time by hand in bash.
+#
+# FOUND LIVE (2026-07-23, independent security-auditor + code-auditor
+# review, both converged on this same bug): this function used to compute
+# its own hash via `cksum`, a completely different algorithm/value-space
+# than the canonical SHA-256 scheme — for the same resource string, the
+# two derivations point at DIFFERENT lock directories. In the exact
+# "yana-rt absent" scenario this fallback exists for, that meant
+# token-budget-guard.sh's bash fallback and risk-scorer.sh/
+# budget-sentinel.sh's Python FileLock (which always use the SHA-256
+# scheme, no yana-rt delegation at all) stopped contending for the same
+# lock entirely — reproduced live by code-auditor: 20% lost-update rate
+# racing 10x risk-scorer.sh against 10x token-budget-guard.sh with
+# yana-rt off PATH. Calling the Python function directly (rather than
+# hand-porting SHA-256 into bash as a third independent implementation)
+# is deliberate: the parity bug happened specifically because the bash
+# version was authored separately from the two implementations that DO
+# have a golden parity test — this makes bash text-identical instead of
+# giving it a 4th thing to drift.
+_yana_lock_name_for() {
+  local resource="$1"
+  python3 -c "
+import sys, os
+sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+from core.lib.py.file_lock import lock_name_for
+print(lock_name_for(sys.argv[1]))
+" "$resource"
+}
+
 # Minimal native fallback — mkdir mutex, unconditional-rmdir stale reclaim.
 # See file header for why this is intentionally simpler (and correctness-
 # degraded) relative to src/guard/lock.rs.
 _yana_lock_native_fallback() {
   local resource="$1" timeout_secs="$2"; shift 2
-  local safe_name hash lock_dir stale_after=5
-  safe_name=$(printf '%s' "$resource" | tr -c 'a-zA-Z0-9-' '_' | cut -c1-48)
-  hash=$(printf '%s' "$resource" | cksum | cut -d' ' -f1)
-  lock_dir=".claude/state/locks/${safe_name}-${hash}.lock"
+  local lock_name lock_dir stale_after=5
+  lock_name=$(_yana_lock_name_for "$resource")
+  if [[ -z "$lock_name" ]]; then
+    echo "with_lock: could not derive lock name for '$resource' (python3 unavailable?) — refusing to proceed unlocked" >&2
+    return 1
+  fi
+  lock_dir=".claude/state/locks/${lock_name}.lock"
   mkdir -p "$(dirname "$lock_dir")"
 
   if [[ -d "$lock_dir" ]]; then

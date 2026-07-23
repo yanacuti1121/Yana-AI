@@ -921,3 +921,153 @@ fn mission_done_survives_concurrent_completions_across_processes() {
          Full report: {report_out}"
     );
 }
+
+#[test]
+// Migrated under ADR-008 (2026-07-23 follow-up): `cmd_add_task` used to
+// read-decide-write unlocked (resolve -> duplicate-name check -> push ->
+// save), so two concurrent `mission task` calls with the same name could
+// both pass the duplicate check before either saved. Races real separate
+// processes (the actual shape unlocked callers produced this bug under),
+// not threads, against the SAME task name — exactly one must win.
+fn mission_add_task_rejects_concurrent_duplicate_names_across_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "duplicate-task-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const ATTEMPTS: usize = 8;
+    let handles: Vec<_> = (0..ATTEMPTS)
+        .map(|_| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            std::thread::spawn(move || {
+                Command::new(bin())
+                    .args(["mission", "task", &mission_id, "same-name", "--produces", "out.txt"])
+                    .current_dir(&dir_path)
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission task")
+                    .status
+                    .success()
+            })
+        })
+        .collect();
+
+    let results: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+    let successes = results.iter().filter(|ok| **ok).count();
+    assert_eq!(
+        successes, 1,
+        "exactly one of {ATTEMPTS} concurrent `mission task` calls racing the same task name \
+         should succeed — got {successes}. More than one means the duplicate-name check ran \
+         against a stale pre-lock snapshot (the exact TOCTOU gap ADR-008's follow-up fix closes); \
+         zero means something else broke entirely. results: {results:?}"
+    );
+
+    let (report_out, _, ok) = run(dir.path(), &["mission", "report", &mission_id]);
+    assert!(ok, "mission report should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&report_out).expect("valid JSON report");
+    let tasks = parsed["tasks"].as_array().expect("tasks array");
+    let same_name_count = tasks.iter()
+        .filter(|t| t["name"].as_str() == Some("same-name"))
+        .count();
+    assert_eq!(
+        same_name_count, 1,
+        "mission must persist exactly one task named 'same-name', not {same_name_count}. \
+         Full report: {report_out}"
+    );
+}
+
+#[test]
+// Migrated under ADR-008 (2026-07-23 follow-up): `cmd_dispatch` used to
+// compute readiness/owns-conflicts against a pre-lock `resolve()` snapshot
+// and only lock the final `save()`, so two concurrent `mission dispatch`
+// calls could each independently decide the same task was "ready" and hand
+// it to two different agents. Races real separate processes calling
+// dispatch concurrently against a mission with a fixed, non-conflicting
+// task set; every task must be dispatched to exactly one caller.
+fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "dispatch-race-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const TASK_COUNT: usize = 8;
+    for i in 0..TASK_COUNT {
+        // Distinct `owns` per task so none of them are excluded from a wave
+        // by the (unrelated) owns-conflict check — this test is about the
+        // readiness/Running-flip race, not owns-conflict deferral.
+        let (_, stderr, ok) = run(dir.path(), &[
+            "mission", "task", &mission_id, &format!("task{i}"),
+            "--owns", &format!("file{i}.txt"),
+            "--produces", &format!("out{i}.txt"),
+        ]);
+        assert!(ok, "adding task{i} should succeed: {stderr}");
+    }
+
+    // Each concurrent dispatch call asks for up to TASK_COUNT slots — if
+    // unlocked, every one of the 5 concurrent callers could see 0 running
+    // and 8 ready, dispatching all 8 tasks 5 times over.
+    const CALLERS: usize = 5;
+    let handles: Vec<_> = (0..CALLERS)
+        .map(|_| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            std::thread::spawn(move || {
+                let out = Command::new(bin())
+                    .args(["mission", "dispatch", &mission_id, "--max-parallel", &TASK_COUNT.to_string()])
+                    .current_dir(&dir_path)
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission dispatch");
+                (out.status.success(), String::from_utf8_lossy(&out.stdout).to_string())
+            })
+        })
+        .collect();
+
+    let results: Vec<(bool, String)> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+
+    // Collect every task_id that appeared in any successful dispatch's
+    // brief output — a task_id appearing more than once means it was
+    // double-dispatched.
+    let mut dispatched_ids: Vec<String> = Vec::new();
+    for (ok, stdout) in &results {
+        if !ok || stdout.trim().is_empty() {
+            continue; // "no slots"/"none ready" callers print to stderr, empty stdout
+        }
+        let briefs: serde_json::Value = serde_json::from_str(stdout)
+            .unwrap_or_else(|e| panic!("dispatch stdout must be valid JSON when non-empty: {e}\nstdout: {stdout}"));
+        let briefs = briefs.as_array().expect("dispatch output must be a JSON array of briefs");
+        for brief in briefs {
+            let task_id = brief["task_id"].as_str().expect("brief must have task_id").to_string();
+            dispatched_ids.push(task_id);
+        }
+    }
+
+    let mut unique_ids = dispatched_ids.clone();
+    unique_ids.sort();
+    unique_ids.dedup();
+    assert_eq!(
+        dispatched_ids.len(), unique_ids.len(),
+        "every task must be dispatched to exactly one caller, but {} total dispatches collapsed \
+         to {} unique task_ids — a duplicate means the same task was handed to two concurrent \
+         `mission dispatch` callers, exactly the race ADR-008's follow-up fix closes. \
+         all results: {results:?}",
+        dispatched_ids.len(), unique_ids.len()
+    );
+    assert_eq!(
+        unique_ids.len(), TASK_COUNT,
+        "all {TASK_COUNT} tasks should eventually be dispatched across the {CALLERS} concurrent \
+         callers (non-conflicting owns, slots >= TASK_COUNT per caller) — got {}. all results: {results:?}",
+        unique_ids.len()
+    );
+}

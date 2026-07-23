@@ -50,6 +50,106 @@ anything about the writer-vs-writer guarantee locking provides; it closes
 the separate reader-vs-writer gap that guarantee was never scoped to
 cover in the first place.
 
+**Third round — 2026-07-23 follow-up, after re-dispatching security-auditor
+(verdict: BLOCK) and code-auditor (verdict: NEEDS REWORK) against the
+already-merged implementation above.** Both independently converged on the
+same core findings; all are now fixed and re-verified:
+
+1. **Deployment gap.** Every fix above was made to `core/hooks/*.sh` only.
+   This repo mirrors hooks to `.claude/hooks/` and `.codex/hooks/` (the
+   paths Claude Code and Codex actually execute from), and nothing
+   automatically keeps those mirrors in sync — `budget-sentinel.sh`,
+   `risk-scorer.sh`, `intent-inference.sh`, and `token-budget-guard.sh`
+   silently stayed on their pre-ADR-008, fully-unlocked versions in both
+   mirrors for the entire time between merge and this follow-up. Fixed by
+   re-copying all four from `core/hooks/` to both mirrors and verifying
+   byte-identical via `diff -rq`. This is a process gap, not a code gap —
+   no test or hook currently enforces mirror parity automatically; that
+   remains open (see "Still open" below).
+2. **`core/lib/locking.sh`'s native fallback derived lock names via `cksum`**,
+   a different algorithm and value-space than the SHA-256 scheme every
+   other call site (Rust, the two Python sites, the Node site) uses. For
+   the identical resource string, the two derivations point at different
+   lock directories — in the exact "yana-rt absent" scenario this fallback
+   exists for, `token-budget-guard.sh`'s bash fallback and
+   `risk-scorer.sh`/`budget-sentinel.sh`'s Python `FileLock` stopped
+   contending for the same lock entirely. code-auditor reproduced a 20%
+   lost-update rate racing 10x `risk-scorer.sh` against 10x
+   `token-budget-guard.sh` with `yana-rt` off PATH. Fixed by having the
+   bash fallback shell out to `core/lib/py/file_lock.py`'s `lock_name_for`
+   directly instead of re-deriving the hash a third time by hand — bash is
+   now byte-identical to the two implementations that already have a
+   golden parity test, instead of being a fourth thing that could drift.
+   Verified: the same 10x/10x cross-language race, now in
+   `core/tests/hooks/run-hook-tests.sh` as a permanent regression test,
+   zero lost updates.
+3. **`.claude/hooks/token-budget-guard.sh` would crash outright** the
+   moment its bash fallback path was actually reached: it sourced
+   `core/lib/locking.sh` via a `BASH_SOURCE`-relative path
+   (`"$(dirname "${BASH_SOURCE[0]}")/../lib/locking.sh"`), which resolves
+   to `.claude/lib/locking.sh` from that mirror — a file that was never
+   created, since `core/lib/` is intentionally not mirrored. Under
+   `set -e` (this script's own header) a failed `source` aborts the
+   script entirely. Found independently while investigating finding #1,
+   not flagged by either reviewer. Fixed by sourcing via an absolute,
+   project-root-relative path
+   (`"${CLAUDE_PROJECT_DIR:-$(pwd)}/core/lib/locking.sh"`) instead — every
+   mirror copy sources the one canonical `core/lib/` copy, so a future new
+   `core/lib/*.sh` file needs no mirror-sync step at all, unlike
+   `core/hooks/*.sh` itself (see finding #1).
+4. **Fencing-token reclaim never protected the original holder.** The
+   `rename()`-based fencing token in `try_reclaim_stale` guarantees only
+   that when two *reclaimers* race, exactly one wins — it never addressed
+   whether a lock should be reclaimed *at all* while its original holder
+   is still alive but slower than `stale_after()` (5s default). Nothing
+   refreshed a held lock's mtime while it was held, so a holder past the
+   threshold but still legitimately working could have its lock reclaimed
+   by a second process mid-critical-section — reproduced live by
+   code-auditor (2.49s double-acquisition window). The existing
+   `slow_but_alive_holder_is_not_double_acquired` test didn't catch this
+   because it slept only 300ms against the real 5000ms `stale_after()`
+   default, never actually approaching the boundary it claimed to test.
+   Fixed with lease-renewal: `LockGuard` now spawns a background heartbeat
+   thread (`spawn_heartbeat` in `src/guard/lock.rs`) that refreshes the
+   lock dir's mtime every `stale_after()/3` for as long as the guard is
+   alive, by creating and removing a marker file inside it (portable mtime
+   touch, no new dependency) — stopped and joined on `Drop`, bounded to
+   one poll interval (50ms) of added release latency. A holder whose
+   process dies stops heartbeating with it, so `stale_lock_is_reclaimed_after_timeout`
+   still passes — that test was rewritten to simulate a crash by creating
+   the lock dir directly rather than `acquire()` + `std::mem::forget`,
+   since forgetting a real `LockGuard` now leaks its heartbeat thread too
+   (forgetting a struct doesn't stop a thread it spawned) and would have
+   made that test pass vacuously. `slow_but_alive_holder_is_not_double_acquired`
+   was rewritten to hold for 7s against the real 5s default and give the
+   contender a 6s wait budget — both now genuinely cross the boundary
+   being tested.
+5. **`cmd_add_task` and `cmd_dispatch` in `src/mission/mod.rs`** were the
+   two mission-lock handlers left out of the original migration (only
+   `done`/`fail`/`cancel`/`retry` were migrated) — both reviewers flagged
+   this as the identical unlocked read-decide-write race the other four
+   handlers already closed. Migrated to `with_mission_locked`: the
+   duplicate-task-name check in `cmd_add_task` and the readiness/owns-
+   conflict decision plus Running-status flip in `cmd_dispatch` now all
+   run against the freshly-reloaded, lock-held mission state rather than a
+   pre-lock snapshot. Added two permanent regression tests in
+   `tests/integration_runtime.rs`
+   (`mission_add_task_rejects_concurrent_duplicate_names_across_processes`,
+   `mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes`),
+   both racing real separate processes, 10 consecutive clean runs each.
+
+Full suite re-verified after all five fixes: 149 unit tests
+(`cargo test --bin yana-rt`), 63 integration tests × 10 consecutive
+full-parallel runs (`cargo test --test integration_runtime -- --test-threads=4`),
+241 hook tests (`core/tests/hooks/run-hook-tests.sh`) — all green.
+
+**Still open, deliberately deferred, not part of this follow-up:**
+mirror-parity enforcement (finding #1) is currently a manual discipline,
+not a check — a future pre-commit or CI step that diffs `core/hooks/`
+against `.claude/hooks/`/`.codex/hooks/` and fails on drift would close
+this properly; not implemented here to keep this follow-up scoped to the
+findings both reviewers actually raised.
+
 ## Context
 
 **Corrected count: 4 confirmed-open race sites, not 5.**

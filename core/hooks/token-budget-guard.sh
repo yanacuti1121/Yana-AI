@@ -68,7 +68,22 @@ fi
 # the same logic in Rust (that path is preferred whenever yana-rt is on
 # PATH — see the `exec` above — so this bash/Node path is the fallback,
 # used only when it isn't).
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/locking.sh"
+#
+# Absolute, project-root-relative path — NOT BASH_SOURCE-relative. This
+# script is deployed as three mirror copies (core/hooks/, .claude/hooks/,
+# .codex/hooks/), each in a sibling directory tree with no core/lib/ next
+# to it; a BASH_SOURCE-relative "../lib/locking.sh" resolves to a
+# different, nonexistent path from each copy (e.g. .claude/lib/locking.sh,
+# which was never created) and crashes this script outright under
+# `set -e` the moment yana-rt is absent and this fallback path is actually
+# reached. core/lib/ is intentionally NOT mirrored to .claude/lib.codex/lib
+# — every hook sources the one canonical copy by project-root path instead,
+# so a future new core/lib/*.sh file needs zero mirror-sync steps, unlike
+# core/hooks/*.sh itself (see the incident this comment exists to prevent:
+# core/hooks/budget-sentinel.sh was fixed under ADR-008 while its
+# .claude/hooks/ and .codex/hooks/ copies silently stayed unpatched for a
+# full session because nothing forced them back in sync).
+source "${CLAUDE_PROJECT_DIR:-$(pwd)}/core/lib/locking.sh"
 
 # BSD mktemp (macOS default) does NOT support a suffix after the X's in a
 # template — "yana-token-budget-XXXXXX.js" is returned byte-for-byte

@@ -32,6 +32,9 @@ use anyhow::{bail, Context, Result};
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant, SystemTime};
 
 const LOCK_ROOT: &str = ".claude/state/locks";
@@ -40,14 +43,75 @@ const POLL_INTERVAL_MS: u64 = 50;
 /// A held lock. Releases on drop — including on panic unwind, matching this
 /// repo's existing `src/chat/terminal_guard.rs` precedent for "a resource
 /// that must be released even if the closure holding it panics."
+///
+/// Holds a background heartbeat thread that periodically refreshes the lock
+/// dir's mtime for as long as the guard is alive — see [`spawn_heartbeat`]
+/// for why this exists: without it, `try_reclaim_stale`'s mtime-age check
+/// alone cannot distinguish "holder crashed" from "holder is merely slower
+/// than `stale_after()`," and a live-but-slow holder could be reclaimed out
+/// from under itself (found live 2026-07-23, independent security-auditor +
+/// code-auditor review of the initial ADR-008 implementation — the fencing-
+/// token rename in `try_reclaim_stale` only guarantees at most one
+/// *reclaimer* wins when two processes race to reclaim; it never protected
+/// the original holder from being reclaimed in the first place).
 pub struct LockGuard {
     dir: PathBuf,
+    heartbeat_stop: Arc<AtomicBool>,
+    heartbeat_handle: Option<JoinHandle<()>>,
 }
 
 impl Drop for LockGuard {
     fn drop(&mut self) {
+        // Signal-then-join, bounded by the heartbeat thread's own poll
+        // granularity (POLL_INTERVAL_MS) — never blocks release for longer
+        // than one heartbeat tick.
+        self.heartbeat_stop.store(true, Ordering::SeqCst);
+        if let Some(handle) = self.heartbeat_handle.take() {
+            let _ = handle.join();
+        }
         let _ = std::fs::remove_dir(&self.dir); // best-effort: if this fails, the next acquirer's staleness check reclaims it
     }
+}
+
+/// Bump a lock directory's mtime without touching its meaning as a mutex.
+/// Directory mtime updates whenever an entry inside it is added or removed
+/// on every POSIX filesystem this repo targets — creating and immediately
+/// removing a marker file is a portable "touch this dir's mtime" with no
+/// new dependency (the alternative, `filetime::set_file_mtime`, would add a
+/// crate for one call). `Err` here means the lock dir is already gone (the
+/// holder released, or — should never happen while this guard is alive —
+/// someone else's reclaim raced ahead), and the heartbeat thread should
+/// simply stop rather than error: there is nothing left to keep alive.
+fn touch_lock_dir(dir: &Path) -> std::io::Result<()> {
+    let marker = dir.join(".heartbeat");
+    std::fs::File::create(&marker)?;
+    std::fs::remove_file(&marker)?;
+    Ok(())
+}
+
+/// Spawn the background thread that keeps `dir`'s mtime fresh for as long
+/// as `stop` isn't set. Refreshes at `stale_after / 3` (well inside the
+/// staleness window, so a live holder's mtime never has a chance to cross
+/// it) but polls the stop flag every `POLL_INTERVAL_MS` so `LockGuard`'s
+/// `Drop` isn't stuck waiting out a multi-second heartbeat interval just to
+/// release promptly.
+fn spawn_heartbeat(dir: PathBuf, stop: Arc<AtomicBool>, refresh_every: Duration) -> JoinHandle<()> {
+    std::thread::spawn(move || {
+        let mut since_last_touch = Duration::ZERO;
+        loop {
+            std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
+            if stop.load(Ordering::SeqCst) {
+                return;
+            }
+            since_last_touch += Duration::from_millis(POLL_INTERVAL_MS);
+            if since_last_touch >= refresh_every {
+                since_last_touch = Duration::ZERO;
+                if touch_lock_dir(&dir).is_err() {
+                    return; // dir is gone — nothing left to heartbeat
+                }
+            }
+        }
+    })
 }
 
 /// Derive a collision-resistant, length-capped lock name from an arbitrary
@@ -119,7 +183,12 @@ pub fn acquire(lock_name: &str, wait_timeout: Duration) -> Result<LockGuard> {
     let deadline = Instant::now() + wait_timeout;
     loop {
         match std::fs::create_dir(&dir) {
-            Ok(()) => return Ok(LockGuard { dir }),
+            Ok(()) => {
+                let heartbeat_stop = Arc::new(AtomicBool::new(false));
+                let refresh_every = stale_after() / 3;
+                let heartbeat_handle = spawn_heartbeat(dir.clone(), Arc::clone(&heartbeat_stop), refresh_every);
+                return Ok(LockGuard { dir, heartbeat_stop, heartbeat_handle: Some(heartbeat_handle) });
+            }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
                 if try_reclaim_stale(&dir, stale_after())? {
                     continue; // we just removed a stale lock — retry create_dir immediately, no sleep
@@ -324,8 +393,20 @@ mod tests {
     #[test]
     fn stale_lock_is_reclaimed_after_timeout() {
         let name = unique_lock_name("stale");
-        let holder = acquire(&name, Duration::from_secs(60)).unwrap();
-        std::mem::forget(holder); // simulate a crashed holder: lock dir stays on disk, no Drop runs
+        // Simulate a crashed holder by creating the lock dir directly,
+        // bypassing acquire()/LockGuard entirely — NOT by
+        // `acquire()` + `std::mem::forget(holder)` as this test used to.
+        // Since heartbeat renewal was added (2026-07-23 follow-up, closing
+        // the slow-but-alive-holder gap), forgetting a real LockGuard only
+        // leaks its struct — the background heartbeat thread it spawned
+        // keeps running regardless (forgetting doesn't stop threads),
+        // which would keep refreshing this lock's mtime forever and make
+        // it never look stale, breaking this exact test. A real process
+        // crash kills the holder's heartbeat thread along with the rest of
+        // the process; creating the dir directly (no acquire() call, so no
+        // heartbeat thread ever spawned for it) reproduces that correctly.
+        let dir = lock_dir(&project_dir(), &name);
+        std::fs::create_dir_all(&dir).unwrap();
         // Waits past the real stale_after() default (5s) rather than
         // overriding YANA_LOCK_STALE_AFTER_SECS, which would race other
         // tests mutating/reading the same process-global env var
@@ -338,30 +419,53 @@ mod tests {
 
     #[test]
     fn slow_but_alive_holder_is_not_double_acquired() {
-        // The fencing-token race this ADR's reclaim design specifically closes:
-        // a holder past the "stale" threshold but still alive and still working
-        // must not have its lock handed to a second process while the first is
-        // still using it.
+        // Rewritten 2026-07-23 (independent security-auditor + code-auditor
+        // review, both converged on the same finding): the original version
+        // of this test slept only 300ms against the real default
+        // stale_after() of 5000ms and gave the contender an 80ms wait
+        // budget — the contender's own timeout fired long before the
+        // staleness threshold was anywhere close, so this test passed
+        // regardless of whether reclaim-of-a-live-holder protection worked
+        // at all. It never actually exercised the boundary its name and
+        // comment claimed to test. This version holds well past the real
+        // 5s default (matching `stale_lock_is_reclaimed_after_timeout`'s
+        // existing precedent of waiting out the real threshold rather than
+        // overriding YANA_LOCK_STALE_AFTER_SECS, which would race other
+        // tests mutating the same process-global env var) and gives the
+        // contender a wait budget that also crosses that threshold — so if
+        // heartbeat renewal (added the same day, see `spawn_heartbeat`)
+        // were broken or absent, this test would genuinely fail: the
+        // contender would reclaim the "stale-looking but still refreshing"
+        // lock and return Ok while the original holder is still inside its
+        // critical section.
         let name = Arc::new(unique_lock_name("slow-alive"));
         let n1 = Arc::clone(&name);
         let holder = std::thread::spawn(move || {
-            with_lock(&n1, Duration::from_secs(5), || {
-                std::thread::sleep(Duration::from_millis(300)); // outlives the contender's short staleness window below, simulating "slow, not dead"
+            with_lock(&n1, Duration::from_secs(15), || {
+                std::thread::sleep(Duration::from_secs(7)); // outlives the real 5s stale_after() default by a wide margin
                 "holder finished"
             })
             .unwrap()
         });
-        std::thread::sleep(Duration::from_millis(20)); // let the holder acquire first
+        std::thread::sleep(Duration::from_millis(200)); // let the holder actually acquire (and its heartbeat start) first
         let n2 = Arc::clone(&name);
         let contender_saw_exclusion = std::thread::spawn(move || {
-            // A short timeout so this contender's own staleness check fires
-            // while the first holder (300ms) is still legitimately working —
-            // it must NOT succeed in reclaiming a lock that's slow, not dead.
-            acquire(&n2, Duration::from_millis(80)).is_err()
+            // Waits past the real 5s stale_after() while the holder (7s) is
+            // still legitimately working — with heartbeat renewal intact,
+            // this must time out, not reclaim.
+            acquire(&n2, Duration::from_secs(6)).is_err()
         })
         .join()
         .unwrap();
         holder.join().unwrap();
-        assert!(contender_saw_exclusion, "a slow-but-alive holder was reclaimed by a second process — fencing-token protection failed");
+        assert!(
+            contender_saw_exclusion,
+            "a slow-but-alive holder past stale_after() was reclaimed by a second process while its \
+             heartbeat should have kept the lock dir's mtime fresh — heartbeat renewal is broken"
+        );
+
+        // Now that the original holder has released, acquisition must succeed immediately.
+        let guard = acquire(&name, Duration::from_millis(200)).unwrap();
+        drop(guard);
     }
 }
