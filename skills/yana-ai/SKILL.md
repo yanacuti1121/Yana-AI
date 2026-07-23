@@ -1,7 +1,7 @@
 ---
 name: yana-ai
 version: "0.40.0"
-description: "Sovereign-grade safety OS for AI coding agents. 60 hooks, 2,025 skills, L1 memory, circuit breakers, and cross-engine enforcement — blocks rm -rf, force push, pipe-to-shell, and 40+ attack vectors before they reach your repo."
+description: "Sovereign-grade safety OS for AI coding agents. 61 hooks, 2,025 skills, L1 memory, circuit breakers, and cross-engine enforcement — blocks rm -rf, force push, pipe-to-shell, and 40+ attack vectors before they reach your repo."
 argument-hint: "yana-ai status | yana-ai audit | yana-ai hooks | yana-ai memory"
 allowed-tools: Bash, Read, Write
 homepage: https://yanacuti1121.github.io/yana-ai/

@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-23T12:58:18+00:00",
+  "generated": "2026-07-23T13:07:52+00:00",
   "count": 260,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -169,7 +169,7 @@
     "core/scripts/design_context.py": "e4961ac50f6f7c1a6a82d2695f3d5279cd4102c42fd1d6ea5a29124b3ef42ae1",
     "core/scripts/diff_report.py": "5fec2bcc09b6f4713625288e80975e67f8d36938d393c4be01439c03c9a6a5c0",
     "core/scripts/doctor.py": "c89abd5c07a2c99361514e79b5756038d37f940f3e196f143de23129be32b4ed",
-    "core/scripts/drift-check.sh": "f055f1a57d3f8115e55c262d21fd2ccf005e8d3daff070e90bd678be05ea53bf",
+    "core/scripts/drift-check.sh": "bdbc8ab43268e110372b2b62c995736d27a81fc130bc773a4fb2d7e0a2fb34d7",
     "core/scripts/explain_rule.py": "acd5f289108ac6842696ba9fe7e1aa61208589720f9c318b85493f1b37ee2db6",
     "core/scripts/export_findings.py": "960b393999c82c1cdc320cbc511162db2ba66f0e12d9b5e6a29a6738d1e8ad4c",
     "core/scripts/feedback-loop.sh": "0d2d609054e67b8a64e6a8059f6c869a67adf552ce56a6114a3dfde977f1d23d",
