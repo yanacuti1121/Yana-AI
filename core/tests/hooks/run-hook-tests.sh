@@ -2521,6 +2521,134 @@ test_sandbox_wrap_pipe_preserved() {
 }
 test_sandbox_wrap_pipe_preserved
 
+# ── verify-hook-mirrors.sh — ADR-008 "Still open" follow-up ──────────────────
+# core/scripts/verify-hook-mirrors.sh (2026-07-23) closes the exact gap that
+# let ADR-008's own hook fixes silently stay unpatched in .claude/hooks/ and
+# .codex/hooks/ for a full session, caught only by an independent review, not
+# by any check. These are hermetic fixture tests against a fake project root
+# (not the real repo), plus one live check against the real repo state —
+# that live check IS the actual gate: it fails this whole suite if
+# core/hooks/, .claude/hooks/, or .codex/hooks/ drift apart going forward.
+SCRIPTS_DIR="$CLAUDE_DIR/scripts"
+
+_mirror_fixture_root() {
+    local root
+    root=$(mktemp -d)
+    register_temp "$root"
+    mkdir -p "$root/core/hooks" "$root/.claude/hooks" "$root/.codex/hooks"
+    echo "$root"
+}
+
+test_hook_mirror_parity_passes_when_synced() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Passes when all three copies are byte-identical]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+
+    if CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (expected exit 0 for identical mirrors)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_passes_when_synced
+
+test_hook_mirror_parity_detects_drift() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Detects content drift, not just filename presence]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+    printf '#!/bin/sh\necho STALE\n' > "$root/.claude/hooks/example.sh"  # present, but drifted content
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 1 ]] && echo "$output" | grep -q "DRIFT.*\.claude/hooks/example.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 1 + DRIFT line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_detects_drift
+
+test_hook_mirror_parity_detects_missing() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Detects a mirror missing a file entirely]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    # .codex/hooks/example.sh intentionally not created
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 1 ]] && echo "$output" | grep -q "MISSING.*\.codex/hooks/example.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 1 + MISSING line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_detects_missing
+
+test_hook_mirror_parity_extra_file_is_informational_only() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Mirror-only extra file is reported but does not block]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+    printf '#!/bin/sh\necho leftover\n' > "$root/.claude/hooks/orphaned.sh"  # no core/hooks/ counterpart
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 0 ]] && echo "$output" | grep -q "EXTRA.*orphaned.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 0 + EXTRA line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_extra_file_is_informational_only
+
+test_hook_mirror_parity_real_repo_is_synced() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [LIVE: real repo's core/hooks/, .claude/hooks/, .codex/hooks/ are in sync]... "
+
+    local project_root
+    project_root="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+    local output
+    output=$(cd "$project_root" && CLAUDE_PROJECT_DIR="$project_root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL — real mirror drift detected, run: bash core/scripts/sync-hook-mirrors.sh"
+        echo "$output" | sed 's/^/    /'
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_real_repo_is_synced
+
 echo ""
 echo "=== Summary ==="
 echo "Total tests: $TOTAL_COUNT"

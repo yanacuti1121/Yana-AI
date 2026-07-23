@@ -143,12 +143,26 @@ Full suite re-verified after all five fixes: 149 unit tests
 full-parallel runs (`cargo test --test integration_runtime -- --test-threads=4`),
 241 hook tests (`core/tests/hooks/run-hook-tests.sh`) — all green.
 
-**Still open, deliberately deferred, not part of this follow-up:**
-mirror-parity enforcement (finding #1) is currently a manual discipline,
-not a check — a future pre-commit or CI step that diffs `core/hooks/`
-against `.claude/hooks/`/`.codex/hooks/` and fails on drift would close
-this properly; not implemented here to keep this follow-up scoped to the
-findings both reviewers actually raised.
+**Mirror-parity enforcement — closed, 2026-07-23 (second follow-up).**
+`core/scripts/verify-hook-mirrors.sh` diffs `core/hooks/*.sh` (canonical)
+against `.claude/hooks/` and `.codex/hooks/`, byte-for-byte, and exits
+nonzero on any DRIFT or MISSING file (an EXTRA file — present in a mirror
+with no `core/hooks/` counterpart — is reported but not blocking).
+`core/scripts/sync-hook-mirrors.sh` is the one-directional fix (core →
+mirrors only, never the reverse). Wired into
+`core/tests/hooks/run-hook-tests.sh` as a live check against the real repo
+state, so it now runs automatically as part of the standard gate every
+push already goes through — not a script someone has to remember to run
+separately. Running it live for the first time found MORE drift than the
+original incident's own manual `diff -rq` had caught: `.codex/hooks/`
+had three files (`freeze-scope.sh`, `per-tool-circuit-breaker.sh`,
+`tool-proxy-enforcer.sh`) silently *content*-drifted (not just the one
+*missing* file, `sandbox-wrap.sh`, found by filename comparison alone) —
+confirming a content-diff check catches strictly more than the filename-
+only comparison this incident was first found with. All four synced;
+5 new regression tests (hermetic drift/missing/extra/synced fixtures +
+the live real-repo check) added to `run-hook-tests.sh`, full suite now
+246/246.
 
 ## Context
 

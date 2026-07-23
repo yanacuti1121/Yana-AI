@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-23T07:13:51+00:00",
-  "count": 258,
+  "generated": "2026-07-23T12:58:18+00:00",
+  "count": 260,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -236,6 +236,7 @@
     "core/scripts/swarm-orchestrator.sh": "34f826b1f1cc0e5edbb3063d5a8de71ddc0c72a85bfab3c181679e90b75a13bf",
     "core/scripts/sweep-expired-facts.sh": "184633277ca19d9eb0cb0e45d5a918c4ec6573c75551831890113987aa27399f",
     "core/scripts/switch-engine.sh": "091451d2ffec62e135e91411c3dcc3d8f4d68640e53719c0dadc7fc50b99b187",
+    "core/scripts/sync-hook-mirrors.sh": "8df8279ee3fd7bf2db3393b761173f60a504c82e573ba65d7b2f1e2c5bc01b94",
     "core/scripts/task-state.sh": "e12d2ac808d8a526bbd566c1b6eadbc340987a7e62971b52e12ca22fe2ad3810",
     "core/scripts/template_list.py": "41fe7561ec6c29ae576d6c2055a8b24a870800ab4014bc87d449e3378dfee56c",
     "core/scripts/tool-proxy.sh": "6481e03a78bb4de9668f56329235d8039773c80fa4a9da348d7b7dc09039c406",
@@ -249,6 +250,7 @@
     "core/scripts/verify-claude-pack.js": "4f4c1d97b29d229bc8deeedc9114b7fe051f88b391ab63e439db8da5966b86a6",
     "core/scripts/verify-claude-pack.sh": "b12f8951285db4a253cd788c8bab71a46b5e43634ce8a4f3e79436e15156f881",
     "core/scripts/verify-core-lock.sh": "99b79c0421daff0ca969f9b9e7dcbdfbfabc15b343bee4f7d4c2b458cbd059df",
+    "core/scripts/verify-hook-mirrors.sh": "6a1cc4f15bf9d0011f5d408d02db3228b15d76aa3a0192679e782367ad63003d",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
     "core/scripts/verify-skills-lock.sh": "ba0e7825913d32a22657b39505ae3018ddafb38934d9a168b14fa3b5091b9999",
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",
