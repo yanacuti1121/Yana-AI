@@ -316,6 +316,7 @@ usage() {
 Usage: yana-ai <command> [target] [flags]
 
 Commands:
+  chat   [--provider p]   Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
   doctor [target]         Check environment health before starting an agent session
   doctor dispatch [target] Cross-check src/main.rs Commands enum vs bin/yana dispatch table
   audit  [target]         Scan AI agent setup for risk patterns (default target: .)
@@ -323,6 +324,9 @@ Commands:
   guard  <subcommand>     Control Layer — install runtime enforcement hooks
   task   <subcommand>     Runtime — task lifecycle (create/list/done/status/drop)
   eval   <subcommand>     Runtime — evaluate task evidence (run/schema)
+  memory <subcommand>     L3 shared memory — workspace-level facts across sessions
+  bus    <subcommand>     Agent message bus — emit/read/reply/inbox
+  cost   <subcommand>     Cost dashboard — token usage and spend tracking
   explain <rule-id>       Explain a finding — what it means, why it's risky, how to fix
   map    [target]         Agent Blast Radius Map — what your agent can reach
   init-policy <tool>      Generate safe config template (claude/mcp/github-actions/gitignore/env)
@@ -356,8 +360,11 @@ Commands:
   filescan check <file>   On-demand malware check for a downloaded file (VirusTotal
                           hash lookup — needs VT_API_KEY, no file content uploaded)
   config <subcommand>     Manage .yana-ai/config.yml (list/get/set/reset/show)
+  plugin <subcommand>     Plugin hooks — register custom guards without forking
+  vault  <subcommand>     Vietnamese-first knowledge vault with translation links
   router suggest          Look up recommended model tier for a task type
-  validate-spec <file>    Validate task spec file against spec schema
+  validate-spec <file>    Validate task spec file against spec schema (legacy Python validator)
+  spec   <subcommand>     Validate task spec files against the yana-ai schema (Rust — see also validate-spec)
   mission <subcommand>    Parallel mission orchestrator — create/task/dispatch/track
   route <subcommand>      Classify a task description — simple/complex/external
   check-context <dir>     Validate context-pack directory structure

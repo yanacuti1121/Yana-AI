@@ -198,9 +198,10 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-26 subcommands. Zero Python dependency.
+27 subcommands. Zero Python dependency.
 
 ```bash
+yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
 yana-ai vault search Q                # search 2,016 skills by keyword
