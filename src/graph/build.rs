@@ -1,7 +1,7 @@
+use crate::graph::imports::extract_imports;
 use crate::graph::types::*;
 use anyhow::Result;
 use chrono::Utc;
-use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 use walkdir::WalkDir;
@@ -160,46 +160,6 @@ fn analyze_files(root: &str, files: &[(String, String)], quiet: bool) -> (Vec<No
 
     edges.dedup_by(|a, b| a.source == b.source && a.target == b.target);
     (nodes, edges)
-}
-
-fn extract_imports(content: &str, lang: &str) -> Vec<String> {
-    let mut imports = Vec::new();
-    match lang {
-        "Rust" => {
-            let re = Regex::new(r"use\s+(?:crate::)?([a-zA-Z_][a-zA-Z0-9_:]*)")
-                .unwrap();
-            for cap in re.captures_iter(content) {
-                imports.push(cap[1].replace("::", "/"));
-            }
-        }
-        "TypeScript" | "JavaScript" => {
-            let re = Regex::new(r#"(?:import|from)\s+['"]([^'"]+)['"]"#).unwrap();
-            for cap in re.captures_iter(content) {
-                imports.push(cap[1].to_string());
-            }
-        }
-        "Python" => {
-            let re = Regex::new(r"(?:from\s+([\w.]+)\s+import|import\s+([\w.]+))")
-                .unwrap();
-            for cap in re.captures_iter(content) {
-                let m = cap.get(1).or(cap.get(2))
-                    .map(|m| m.as_str().replace('.', "/"))
-                    .unwrap_or_default();
-                if !m.is_empty() { imports.push(m); }
-            }
-        }
-        "Go" => {
-            let re = Regex::new(r#""([^"]+)""#).unwrap();
-            let in_import = content.contains("import (") || content.contains("import\t\"");
-            if in_import {
-                for cap in re.captures_iter(content) {
-                    imports.push(cap[1].to_string());
-                }
-            }
-        }
-        _ => {}
-    }
-    imports
 }
 
 /// Whether `needle` appears in `haystack` aligned to `/`-separated path

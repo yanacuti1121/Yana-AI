@@ -28,6 +28,8 @@ cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
   "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
   "ratatui", "crossterm",
+  "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
+  "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
 ]
 wasm = ["wasm-bindgen", "js-sys"]
 
@@ -55,6 +57,16 @@ sha2       = { version = "0.10",                     optional = true }
 # futures plumbing this crate has nowhere else).
 ratatui    = { version = "0.30",                     optional = true }
 crossterm  = { version = "0.29",                     optional = true }
+# src/graph/build.rs import extraction — replaces per-language regex
+# (2026-07-23, Wave 0 finding #2 follow-up: the regex approach was the
+# root cause of the graph's noisy/wrong edges, not just the unanchored
+# path-matching bug already fixed in resolve_import()).
+tree-sitter            = { version = "0.26.11", optional = true }
+tree-sitter-rust       = { version = "0.24.2",  optional = true }
+tree-sitter-typescript = { version = "0.23.2",  optional = true }
+tree-sitter-javascript = { version = "0.25.0",  optional = true }
+tree-sitter-python     = { version = "0.25.0",  optional = true }
+tree-sitter-go         = { version = "0.25.0",  optional = true }
 
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }
