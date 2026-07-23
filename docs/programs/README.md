@@ -46,7 +46,7 @@ Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không tha
 | D | Engineering Excellence | `Draft` — chỉ §D7 có nội dung thật, các mục khác (D1-D6?) chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
 | F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` — tên và ý tưởng đến từ chỉ đạo hôm nay, chưa có nội dung đầy đủ | `PROGRAM-F-SKELETON.md` |
 | H | Autonomous Safety & Execution Assurance | `Specification Required` | `PROGRAM-H-SKELETON.md` |
-| J | Universal Capability Runtime | `Specification Required` | `PROGRAM-J-SKELETON.md` |
+| J | Universal Capability Runtime | `Draft` — nguồn thật từ 2 video tham khảo (InsForge, MCP-vs-API) nhận 2026-07-23, transcribe đầy đủ vào Vision/Problem Statement/Design Goals; Architecture + 4 Open Question còn chờ anh quyết | `PROGRAM-J-SKELETON.md` |
 
 Program G, I và các Program khác được nhắc trong `docs/VISION-2.4.md` hoặc
 trong hội thoại trước đó nhưng chưa có file riêng — thêm khi có nhu cầu cụ
