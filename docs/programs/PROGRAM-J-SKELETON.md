@@ -5,10 +5,15 @@
 mở, roadmap không đề cập). Phase 2 (Capability Inventory) bắt đầu
 2026-07-24: liệt kê 6 capability, đọc code thật `core/adapters/` phát
 hiện 1 câu hỏi kiến trúc MỚI (MCP Server thay thế hay mở rộng pattern
-translator-per-engine hiện có?) — chưa trả lời, chặn Phase 3.
+translator-per-engine hiện có?) — chưa trả lời, chặn Phase 3. Cùng ngày,
+thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được repo) với
+1 câu hỏi phạm vi thứ 2 (M=4 hay M=5?) — xem "Input bổ sung" bên dưới.
+**2 câu hỏi mở đều cần anh Tâm quyết định trực tiếp trước khi viết tiếp
+Phase 1 Scope cho use case mới, hoặc Phase 3 Architecture cho use case cũ.**
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
-(2026-07-24, cho 3 câu trả lời dưới đây).
+(2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
+thoại 2026-07-24 (Input bổ sung).
 **Template:** ADS v1 Phase 1 (19 trường).
 
 > Ranh giới rõ: mục nào ghi **"Nguồn gốc"** là nguyên văn/paraphrase sát
@@ -194,13 +199,63 @@ _(TODO — chưa tới Phase 9)_
 - [ ] Cost
 - [ ] Context
 
+## Input bổ sung — 2026-07-24 (trực tiếp từ anh Tâm, không phải suy diễn)
+
+**Nguồn gốc:** anh Tâm, giữa hội thoại 2026-07-24, sau khi xác nhận
+`yana-ai chat --provider ollama` đã chạy được thật (test trực tiếp,
+model `qwen2.5-coder:14b`) nhưng chỉ là hội thoại thuần — không đọc
+được file, không thấy repo (xem `src/chat/mod.rs`'s module doc, quyết
+định phạm vi có chủ đích từ bản kế hoạch gốc `mellow-sleeping-jellyfish.md`
+decision 4). Nguyên văn ý định: *"2 cái đó là ý định anh muốn từ trước,
+nó giống Claude Code ấy, nó cũng có thể đọc được repo"* — chọn thẳng
+hướng B (tự mở rộng `yana-ai chat`) khi được hỏi so với hướng A (dùng
+`core/adapters/cursor/` đã có sẵn + Cursor trỏ vào Ollama, độ chắc chắn
+thấp hơn vì không verify được Cursor Agent mode có support Ollama).
+
+**Yêu cầu cụ thể:** `yana-ai chat` (hoặc một chế độ mới của nó) khi chạy
+với `--provider ollama` cần có khả năng đọc (và có thể sau này là thao
+tác) repo thật, giống Claude Code đang làm trong phiên này — không còn
+là "hội thoại thuần" nữa.
+
+**Câu hỏi phạm vi CHƯA quyết — cần anh, không phải AI tự suy diễn:**
+việc này có nằm TRONG scope Program J hay không? Lý do cân nhắc: Program
+J's Scope hiện tại định nghĩa M = "4 AI tool đã nêu tên rõ trong roadmap
+(Claude/Cursor/Gemini/Codex)" (trích từ `VISION-2.4.md`) — `yana-ai chat`
+chạy Ollama local KHÔNG nằm trong danh sách 4 đó, và grep trực tiếp
+`VISION-2.4.md` xác nhận **không có** chỗ nào nhắc tới "yana-ai chat"/
+"local model client" trong 30-capability roadmap gốc. Nếu đưa vào Program
+J, đây là MỞ RỘNG Scope thật sự (M = 5, không phải 4), không phải điền
+cho đủ nội dung đã có sẵn — khác hẳn cách 3/4 Open Question cũ được trả
+lời (thuần đọc lại tài liệu gốc, không thêm ý mới). Nếu anh xác nhận
+"có" thì Scope/Capability List ở trên cần cập nhật thêm dòng
+"yana-ai chat (Ollama local)" vào cột client; nếu "không", đây có thể là
+một Program riêng hoặc một sub-goal độc lập của Program D (Engineering
+Excellence, vì liên quan trực tiếp tới quota/hiệu suất làm việc, không
+phải universal-capability-layer).
+
+**An toàn — đã xác định rõ trước khi bàn tới Phase 3 Architecture:** đây
+KHÔNG phải một thay đổi nhỏ. Hiện tại `yana-ai chat` cố tình zero
+tool-calling/zero execution — chính vì lý do đó mà nó nằm ngoài tầm với
+của toàn bộ hệ hook bảo vệ (`.claude/settings.json`'s PreToolUse/
+PostToolUse chỉ bắt được tool-call Claude Code tự làm, không thấy được
+process độc lập). Cho nó đọc file/chạy lệnh thật nghĩa là nó cần bắt đầu
+tuân theo TOÀN BỘ hàng rào repo này đã xây: `04-sandbox-isolation-law.md`,
+`agent-excessive-agency-law.md` (min-permission, irreversible-action
+gate), `agent-tool-poisoning-guard.md`, `execution-environment.md`'s
+banned runtime functions. Không có ngoại lệ vì model chạy local — model
+yếu hơn Claude không có nghĩa lệnh nó tạo ra kém nguy hiểm hơn.
+
 ## Open Questions
 
-Còn lại 1/4 câu hỏi ban đầu (3 câu kia đã trả lời được từ
-`VISION-2.4.md`, xem Architecture/Scope/Non Goals ở trên):
+2 câu hỏi thật sự mở (1 câu cũ từ roadmap gốc + 1 câu mới từ input trên):
 
 1. Quan hệ với `44-supply-chain-vetting.md`/`agent-tool-poisoning-guard.md`
    (MCP server whitelist đã có ở `core/config/mcp-whitelist.json`) —
    Program J có mở rộng cơ chế whitelist này, hay xây riêng? **Roadmap
    không đề cập** — cần anh quyết định trực tiếp, không suy ra được từ
    tài liệu hiện có.
+2. (Mới, 2026-07-24) `yana-ai chat` + Ollama local có thuộc Scope Program
+   J (M=5, mở rộng danh sách client) hay là một Program/sub-goal riêng?
+   Xem "Input bổ sung" ở trên cho đầy đủ ngữ cảnh — chặn việc viết tiếp
+   Phase 1 Scope/Capability List cho use case này cho tới khi có câu trả
+   lời.
