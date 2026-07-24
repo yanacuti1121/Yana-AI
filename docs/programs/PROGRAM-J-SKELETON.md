@@ -10,8 +10,12 @@ trúc MỚI — **đã trả lời cùng ngày: anh Tâm chọn MCP Server thay 
 toàn pattern translator-per-engine**, xem "Capability List" bên dưới.
 Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được
 repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc Program J, M=5
-(xem mục Scope). **Phase 3 Architecture mở khoá, chưa bắt đầu vẽ chi
-tiết** (session 2026-07-24 dừng ở đây do độ dài phiên).
+(xem mục Scope). **Phase 3 Architecture: 2 sơ đồ luồng đã vẽ (real-time
+hook enforcement + capability discovery), grounded trên code thật
+(`src/guard/mod.rs::check_command()`), 1 giả định scope cần anh xác nhận
+(Claude Code có nằm trong phạm vi thay thế hay không). Phase 4 (Workflow
+chi tiết) và Interfaces (message schema) chưa bắt đầu** — dừng ở đây,
+2026-07-24.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -110,17 +114,115 @@ chính mình (registry) cho nhiều AI client (Claude/Cursor/Gemini/Codex,
 code hardcode riêng. Đây là hướng kiến trúc cấp cao, CHƯA phải bản vẽ
 chi tiết (module/interface cụ thể) — cần Phase 3 riêng để vẽ đầy đủ.
 
-_(Sơ đồ chi tiết + quyết định "Yana AI có cần đóng thêm vai MCP Client
-để tiêu thụ MCP server khác không, hay thuần Server" — chưa viết, đây là
-Phase 3 thật sự, không phải điền cho đủ ở Phase 1)_
+_(Câu hỏi "Yana AI có cần đóng thêm vai MCP Client để tiêu thụ MCP server
+khác không, hay thuần Server" — vẫn CHƯA trả lời, không nằm trong scope
+2 câu Open Question đã chốt. Không suy diễn ở đây; Phase 3 dưới đây giả
+định Yana AI thuần Server, vì đó là hướng duy nhất có bằng chứng cụ thể
+(4 client hiện có đều là consumer, không phải server khác cần tiêu thụ).
+Nếu giả định này sai, phần dưới cần sửa lại.)_
+
+## Phase 3 — Sơ đồ kiến trúc (2026-07-24, "sơ đồ luồng, không code" theo ADS v1)
+
+**Đọc code thật trước khi vẽ** (không đoán): `src/guard/mod.rs`'s
+`check_command(command: &str) -> Option<&'static str>` (dòng 691) là hàm
+thuần — không I/O, không side-effect, chính là logic phán đoán "lệnh này
+có nguy hiểm không" mà `core/hooks/guard-destructive.sh` (bash) và
+`cmd_destructive()` (Rust CLI wrapper, gọi qua `dispatch()`) đều dựa vào.
+Comment ngay tại hàm đó đã tự nói rõ ý định: *"Extracted out of
+cmd_destructive() so it can be called once per MCP candidate... this is
+the whole point of the design"* — tức là hạ tầng MCP-ready đã được chuẩn
+bị sẵn một phần, dù chưa có MCP Server nào thật sự gọi tới.
+
+**Ràng buộc phải giữ nguyên khi thay translator bằng MCP Server** (rút ra
+từ đọc `core/adapters/cursor/before-shell-execution.js` trực tiếp, không
+suy diễn): fail-closed ở MỌI lớp (input không đọc được → deny, timeout →
+deny, JSON không hợp lệ → deny, status lạ → deny, không bao giờ đoán là
+an toàn), đồng bộ/có giới hạn thời gian (hiện tại 15s qua `spawnSync`),
+và `guard-destructive.sh`/`src/guard/mod.rs` vẫn là NGUỒN PHÁN ĐOÁN DUY
+NHẤT — MCP Server chỉ là lớp giao thức/vận chuyển mới, không được tự
+thêm logic phán đoán riêng.
+
+**Vấn đề implementation cụ thể đã phát hiện, chưa có ở Phase 1/2** (ghi
+lại vì ảnh hưởng trực tiếp Phase 9 Implementation Plan sau này): `dispatch()`
+(dòng 99) gọi `std::process::exit(code)` trực tiếp — thiết kế cho CLI
+one-shot, KHÔNG gọi được nguyên trạng từ một MCP Server chạy dài hạn (gọi
+vào sẽ giết luôn cả process server). Điểm nối đúng là `check_command()`
+(hiện đang `fn` riêng tư, cần đổi `pub fn`), không phải `dispatch()` hay
+`cmd_destructive()`.
+
+**Sơ đồ luồng 1 — Real-time hook enforcement** (thay thế translator-per-engine,
+VD lệnh `rm -rf` từ Cursor/Codex/Gemini/`yana-ai chat`):
+
+```
+Client (Cursor / Gemini / Codex / yana-ai chat --provider ollama)
+        │  muốn chạy 1 lệnh shell
+        ▼
+MCP tool call: tools/call "check_command" { command: "..." }
+        │
+        ▼
+Yana AI MCP Server (mode mới của binary yana-rt sẵn có,
+                     VD `yana-rt mcp-server` — chưa quyết tên,
+                     không phải service tách rời)
+        │  gọi TRỰC TIẾP trong process, không shell-out
+        ▼
+src/guard/mod.rs::check_command(&command) -> Option<&'static str>
+        │  (giống hệt logic guard-destructive.sh bash — 2 bản đã kiểm
+        │   chứng đồng bộ qua các đợt review trước, không viết lại)
+        ▼
+MCP Server bọc kết quả thành MCP tool result
+        │  None → { permission: "allow" }
+        │  Some(reason) → { permission: "deny", reason }
+        ▼
+Client nhận quyết định, thực thi hoặc chặn
+```
+
+**Sơ đồ luồng 2 — Capability discovery** (cái MCP thêm mới, translator
+cũ không làm được): client hỏi "Yana AI có công cụ gì" thay vì mỗi
+engine tự hardcode danh sách.
+
+```
+Client → MCP "tools/list" (chuẩn giao thức MCP, không phải API riêng)
+        │
+        ▼
+Yana AI MCP Server → đọc registry từ core/skills/, core/hooks/,
+                      core/commands/ lúc runtime (không hardcode)
+        │
+        ▼
+Trả về danh sách tool/capability động — thêm 1 skill/hook mới vào
+core/ = tự động xuất hiện cho MỌI client, không cần sửa code adapter
+```
+
+**Ranh giới scope — giả định cần anh xác nhận, KHÔNG tự quyết:** "MCP
+Server thay thế translator-per-engine" áp dụng cho các engine ĐANG/SẼ
+cần translator (Cursor đã có, Windsurf/Kiro/OpenCode/Codex dự kiến theo
+comment trong chính `before-shell-execution.js`). **Claude Code không
+nằm trong nhóm này** — Claude Code có PreToolUse/PostToolUse hook native
+qua `.claude/settings.json`, gọi thẳng `core/hooks/*.sh`, không qua
+translator nào cả (khác cơ chế hoàn toàn với Cursor). Giả định ở đây:
+Phase 3 này KHÔNG đổi cách Claude Code hoạt động — chỉ thay cách
+Cursor/Codex/Gemini/yana-ai-chat nối vào. Nếu anh muốn Claude Code cũng
+chuyển qua MCP, đó là quyết định khác, lớn hơn, chưa nằm trong phạm vi
+đã chốt.
 
 ## Modules
 
-_(TODO — Phase 3, cần vẽ kiến trúc chi tiết trước)_
+Rút ra trực tiếp từ 2 sơ đồ trên (không phải danh sách đầy đủ — Phase 4
+Workflow mới vẽ pipeline chi tiết):
+
+| Module | Vai trò | Đã có hay mới |
+|---|---|---|
+| MCP Server (mode mới trong `yana-rt`) | Nhận MCP request, gọi guard logic, trả kết quả | **Mới** |
+| `src/guard/mod.rs::check_command()` | Logic phán đoán lệnh nguy hiểm | **Đã có**, cần đổi `pub` |
+| Capability Registry reader | Đọc `core/skills/`/`core/hooks/`/`core/commands/` lúc runtime | **Mới** |
+| `core/adapters/cursor/before-shell-execution.js` | Translator cũ | **Sẽ bị thay thế** (không xoá ngay — xem Deliverables/Roadmap sau) |
+| `.claude/settings.json` PreToolUse/PostToolUse | Hook native Claude Code | **Không đổi** (ngoài scope, xem "Ranh giới scope") |
 
 ## Interfaces
 
-_(TODO — Phase 3)_
+_(TODO — cần Phase 4 Workflow xong để định nghĩa message schema/API cụ
+thể của MCP tool `check_command`/`tools/list`. Không suy diễn schema chi
+tiết ở Phase 3 — đây vẫn là sơ đồ luồng theo đúng định nghĩa ADS v1, chưa
+phải interface contract.)_
 
 ## Workflow
 
