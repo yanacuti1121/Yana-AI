@@ -176,9 +176,43 @@ picking a next step.
       why; this is the how — per-axis manual-vs-CI-automatic steps, drift
       gates, tag/push order, post-publish verification, 5 anti-patterns each
       tied to a real incident).
-- [ ] (Lower priority, explicitly not urgent per the review exchange) —
-      skill governance / duplicate-detection tooling for the 2016 SKILL.md
-      files (near-duplicate names like "X", "X_v2", "X_fixed"), and an audit
-      of whether all 101 agents are actually reachable/used vs. overlapping
-      responsibilities (e.g. backend-developer vs. api-designer vs.
-      backend-reviewer). Raised as a real concern, not yet investigated.
+- [x] Skill-governance / agent-reachability audit — INVESTIGATED 2026-07-24
+      (not "resolved" — see below, this was findings-gathering, not a merge).
+      Both original concerns turned out narrower than assumed once measured:
+      - Near-duplicate skill names: built `core/scripts/detect_skill_dupes.py`
+        (normalizes `-v2`/`-fixed`/etc. suffixes, groups collisions). Ran
+        against all 2025 skills: exactly 1 collision group
+        (`continuous-learning` / `continuous-learning-v2`), and that pair
+        already cross-references itself correctly (v1's own description says
+        "Phiên bản cũ hơn continuous-learning-v2") — not an accidental
+        duplicate needing cleanup. Name-based dupes are not a real problem
+        at this repo's current scale; script kept as permanent tooling since
+        that was explicitly asked for, in case it stops being true later.
+      - Agent reachability: grepped all 101 real agent personas (the
+        `validate-manifest.sh`-canonical count, i.e. excluding
+        IDENTITY.md/SOUL.md/CAPABILITIES.md companions) by name against
+        core/rules, core/skills, core/commands, docs, README — 0 agents
+        with zero references outside core/agents/ itself. All 101 are also
+        trivially reachable regardless, via direct Agent-tool dispatch by
+        name. "Unreachable" isn't a real problem either.
+      - Overlapping responsibilities: this is the one part that's a real,
+        narrower finding, not a non-issue. The item's own example
+        ("backend-reviewer") doesn't exist in this repo and never has (git
+        history checked) — likely misremembered from a different agent
+        catalog. What IS a genuine adjacent-scope cluster, found by reading
+        descriptions: database-admin (ops: replication/backup) vs
+        database-expert (design: schema/indexing, also proactively reviews
+        migrations) vs database-reviewer (review: query/security/Supabase)
+        — real blur between database-expert and database-reviewer on who
+        owns "reviewing a migration." Also api-designer (REST+GraphQL spec)
+        vs graphql-architect (GraphQL schema/resolvers specifically) vs
+        backend-developer (implementation, including "creating API
+        endpoints"). Did not attempt a full 101-choose-2 semantic audit —
+        that's a large, judgment-heavy pass and this item was explicitly
+        the lowest-priority one in the file; flagging the pattern is the
+        deliverable here, not exhaustive coverage.
+      - Not done, and shouldn't be done without anh's sign-off: merging or
+        deleting any agent persona. core/agents/** is in
+        `54-bft-consensus-law.md`'s dual-review trigger table for a reason
+        — that's an architecture decision (which specialist wins routing
+        ambiguity), not a mechanical cleanup.
