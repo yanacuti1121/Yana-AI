@@ -12,10 +12,11 @@ Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc đ�
 repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc Program J, M=5
 (xem mục Scope). **Phase 3 Architecture: 2 sơ đồ luồng đã vẽ (real-time
 hook enforcement + capability discovery), grounded trên code thật
-(`src/guard/mod.rs::check_command()`), 1 giả định scope cần anh xác nhận
-(Claude Code có nằm trong phạm vi thay thế hay không). Phase 4 (Workflow
-chi tiết) và Interfaces (message schema) chưa bắt đầu** — dừng ở đây,
-2026-07-24.
+(`src/guard/mod.rs::check_command()`). Claude Code CŨNG nằm trong phạm
+vi thay thế (anh Tâm xác nhận cùng ngày — chuyển được vì chỉ đổi nội
+dung bên trong hook script, không đổi cơ chế chặn bắt buộc của Claude
+Code, nên không đánh đổi an toàn). Phase 4 (Workflow chi tiết) và
+Interfaces (message schema) chưa bắt đầu** — dừng ở đây, 2026-07-24.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -192,17 +193,32 @@ Trả về danh sách tool/capability động — thêm 1 skill/hook mới vào
 core/ = tự động xuất hiện cho MỌI client, không cần sửa code adapter
 ```
 
-**Ranh giới scope — giả định cần anh xác nhận, KHÔNG tự quyết:** "MCP
-Server thay thế translator-per-engine" áp dụng cho các engine ĐANG/SẼ
-cần translator (Cursor đã có, Windsurf/Kiro/OpenCode/Codex dự kiến theo
-comment trong chính `before-shell-execution.js`). **Claude Code không
-nằm trong nhóm này** — Claude Code có PreToolUse/PostToolUse hook native
-qua `.claude/settings.json`, gọi thẳng `core/hooks/*.sh`, không qua
-translator nào cả (khác cơ chế hoàn toàn với Cursor). Giả định ở đây:
-Phase 3 này KHÔNG đổi cách Claude Code hoạt động — chỉ thay cách
-Cursor/Codex/Gemini/yana-ai-chat nối vào. Nếu anh muốn Claude Code cũng
-chuyển qua MCP, đó là quyết định khác, lớn hơn, chưa nằm trong phạm vi
-đã chốt.
+**Ranh giới scope — ĐÃ QUYẾT 2026-07-24:** anh Tâm trả lời "nếu chuyển
+được thì cứ, không thì nếu vẫn hỗ trợ thì dùng như cũ là được" — ưu tiên
+chuyển Claude Code qua MCP luôn nếu khả thi, không ép nếu không được.
+
+**Đánh giá khả thi (đọc kỹ trước khi kết luận, vì đây là câu hỏi an toàn
+thật, không chỉ kỹ thuật):** Claude Code's PreToolUse hook và MCP là 2
+khái niệm khác nhau — hook là cơ chế CHẶN bắt buộc (Claude Code tự động
+chạy trước MỌI lệnh Bash/Write/Edit, model không có quyền bỏ qua), còn
+MCP tool là khả năng model TỰ CHỌN có gọi hay không. Nếu "chuyển qua MCP"
+nghĩa là biến việc kiểm tra thành 1 MCP tool mà Claude tự quyết định có
+gọi hay không — đó là RỤT LÙI an toàn thật sự (model có thể bị prompt
+injection dụ bỏ qua bước gọi tool tự nguyện), đi ngược mục đích cốt lõi
+của toàn bộ hệ hook đang có.
+
+**Cách chuyển được mà KHÔNG rút lùi an toàn:** không đổi cơ chế chặn của
+Claude Code (`.claude/settings.json`'s PreToolUse vẫn bắt buộc chạy y
+hệt hiện tại, model không biết/không can thiệp được) — chỉ đổi NỘI DUNG
+BÊN TRONG hook script đang chạy: từ gọi thẳng `core/hooks/guard-destructive.sh`
+sang gọi MCP Server mới (client thin-bridge, cùng pattern với
+`core/adapters/cursor/before-shell-execution.js`, chỉ khác là caller là
+Claude Code's hook runner thay vì Cursor). Cơ chế "bắt buộc, model không
+biết" giữ nguyên 100%; chỉ có nguồn phán đoán được hợp nhất qua MCP Server
+chung với 4 client kia. **Kết luận: chuyển được, không cần giữ bản cũ.**
+
+Vậy Claude Code CŨNG nằm trong scope thay thế — không còn ngoại lệ. Sửa
+Modules table bên dưới cho khớp.
 
 ## Modules
 
@@ -215,7 +231,8 @@ Workflow mới vẽ pipeline chi tiết):
 | `src/guard/mod.rs::check_command()` | Logic phán đoán lệnh nguy hiểm | **Đã có**, cần đổi `pub` |
 | Capability Registry reader | Đọc `core/skills/`/`core/hooks/`/`core/commands/` lúc runtime | **Mới** |
 | `core/adapters/cursor/before-shell-execution.js` | Translator cũ | **Sẽ bị thay thế** (không xoá ngay — xem Deliverables/Roadmap sau) |
-| `.claude/settings.json` PreToolUse/PostToolUse | Hook native Claude Code | **Không đổi** (ngoài scope, xem "Ranh giới scope") |
+| `.claude/settings.json` PreToolUse/PostToolUse (cơ chế chặn) | Cơ chế chặn bắt buộc của Claude Code | **Không đổi** — vẫn bắt buộc, model không biết/can thiệp được |
+| Hook script Claude Code gọi (nội dung bên trong) | Hiện gọi thẳng `guard-destructive.sh` | **Sẽ đổi** — gọi MCP Server thay vì gọi thẳng, cùng pattern client-mỏng như Cursor |
 
 ## Interfaces
 
