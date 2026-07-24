@@ -77,15 +77,45 @@ per this repo's dual-copy convention.
 > shaped, 1 already done previously). 12 cái còn lại đang được anh track ở nơi khác
 > (chưa có trong file này) — bổ sung vào đây khi có link.
 
-- [ ] https://github.com/bestagentkits/ck-skills — not yet reviewed.
-- [ ] https://github.com/JustVugg/colibri — not yet reviewed.
-- [ ] https://github.com/Dicklesworthstone/destructive_command_guard — not yet reviewed;
-      name suggests direct overlap with this repo's own `guard-destructive.sh` /
-      `02-terminal-validator.md` — worth checking first for cross-pollination ideas
-      even if not ported as a standalone skill.
-- [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
-      application, not skill-shaped content) but not yet confirmed — flagging the likely
-      call rather than silently deciding without checking license/shape first.
+- [x] https://github.com/bestagentkits/ck-skills — SKIP as a bundle. 14
+      Claude Code skills (MIT), genuinely skill-shaped, but 12-13 of 14
+      substantially overlap with skills this repo already has (research,
+      code-review, database, remotion-video-creation, design-system,
+      codex-security, skill-scout, brainstorming). Non-overlapping angles
+      worth folding in later if wanted: `ck:copywriting` (no direct
+      duplicate found) and `ck:xia` (feature-porting-between-repos meta-
+      skill, niche but no direct match). `ck:ui-ux-pro-max` — the skill
+      anh separately asked about, part of this same bundle — already
+      substantially covered by this repo's own enforced rules
+      (anti-ai-slop-design-law.md, color-rules.md, typography-rules.md,
+      frontend-production-checklist.md), which are stronger (enforced
+      rules, not just an invokable skill) than what the bundle offers.
+- [x] https://github.com/JustVugg/colibri — SKIP. C runtime engine for
+      running a 744B-param MoE model (GLM-5.2) on consumer hardware
+      (~25GB RAM), Apache 2.0, but a full standalone application (C/CUDA/
+      Metal binary + web dashboard, needs ~372GB model weights) — not
+      skill-shaped content, same call as `pig-agents`/`herdr` earlier in
+      this queue.
+- [x] https://github.com/Dicklesworthstone/destructive_command_guard —
+      SKIP as a skill (standalone CLI app, custom/non-standard license —
+      caution flag per dependency-vetting-law.md), but the cross-
+      pollination check this item was queued for found a REAL, live
+      security bypass in Yana AI's own guard-destructive.sh + Rust guard:
+      `python3 -c "import os; os.system('rm -rf ...')"` (and node/ruby/
+      perl/bash/sh equivalents) were allowed (exit 0) by both
+      implementations — every existing check tokenizes on shell
+      whitespace, and content inside a quoted -c/-e argument isn't shell
+      syntax to this guard. Fixed (2 rounds — security-auditor's
+      adversarial review of round 1 found 3 further live bypasses: case-
+      sensitivity, bash/sh missing from the interpreter list, git clean -f
+      missing from the pattern list — all fixed in round 2, code-auditor
+      reviewed round 2 clean, no Safety findings). See commit `684f2c60`.
+      260/260 hook tests, 183/183 Rust unit tests, both up from before
+      this fix.
+- [x] https://github.com/Comfy-Org/ComfyUI — SKIP, confirmed. Large node-
+      based diffusion-model GUI/API, GPL-3.0 (copyleft), standalone
+      desktop/cloud application — not skill-shaped content, matches the
+      predicted call from when this item was queued.
 - [x] https://github.com/vxcontrol/pentagi — SKIP. Standalone autonomous
       pentest multi-agent system (MIT), but a full deployable platform
       (Docker, Go backend, React frontend, Postgres/Neo4j/Grafana/Jaeger
