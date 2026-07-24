@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-23T13:07:52+00:00",
+  "generated": "2026-07-24T07:34:08+00:00",
   "count": 260,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -41,7 +41,7 @@
     "core/hooks/giamthi-halt-check.sh": "093e625f19fd818d0998013ebc7df741f9b1116dee55eb5c6ff0a24ff7813e3d",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
-    "core/hooks/guard-destructive.sh": "2ebf523c812138f9f503fd487f12ed3097a93a58b1b9da409751c63c43b72634",
+    "core/hooks/guard-destructive.sh": "c98894844e48b94636d2bd13fd4d97c16eee0468bbde4bfe84dde5037c158907",
     "core/hooks/hook-timeout-guard.sh": "bcceaa81b7b09218a07b59b835b0a7e0c6d74a23c7d35c087b3fcb0867fd4617",
     "core/hooks/infra-review-reminder.sh": "8339cfc324be76c4692977059de7ebed073007541b9d9f44b3cb62c6e55b7db8",
     "core/hooks/intent-inference.sh": "7407c422469777ed28f517a41a678e538232a26618a142399014b54d64cfac7f",
@@ -260,7 +260,7 @@
     "src/guard/blast_radius.rs": "45bca10f899f5cdd8052c0aee58bea5b2e2bfddd9ffb63ff8e77c4c3b5a1e56e",
     "src/guard/entry_point_check.rs": "6e3748e5591c719f7eec06b012131c5e3626e5e4d405425a90be1df07159ff7e",
     "src/guard/lock.rs": "44ce2a511357986ef22049ce57d7fccb1892d86b822cd7adfef5d4730b03008f",
-    "src/guard/mod.rs": "379337e95b8d14db745098efa724b1c9822a3ae515b32baa0e405685c03b329c",
+    "src/guard/mod.rs": "f8c8dd0621ff97f1fb4807015b15830f0e1868bd98dcf35a4a9675841ed92bbf",
     "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
     "src/guard/token_budget.rs": "4cbb3390e04a694769d454caa9ad680cf0baee469affad2edea9a57536297013"
   }

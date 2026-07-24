@@ -209,6 +209,30 @@ test_hook "guard-destructive.sh" "Allow native Bash still works after MCP change
 test_hook "guard-destructive.sh" "Block MCP array-of-strings under plural 'commands' key" '{"tool_name":"mcp__x__y","tool_input":{"commands":["rm -rf /tmp/x","echo ok"]}}' "deny"
 test_hook "guard-destructive.sh" "Block MCP acronym-prefixed key (SQLCommand)" '{"tool_name":"mcp__x__y","tool_input":{"SQLCommand":"DROP TABLE users;"}}' "deny"
 
+# 2026-07-24 finding: every check above tokenizes on shell whitespace, so
+# a destructive command hidden inside a quoted -c/-e argument to an
+# interpreter (python/node/ruby/perl) was never seen as a real token —
+# verified live bypass (exit 0/allow) before this fix, both this bash hook
+# and src/guard/mod.rs's Rust path. Found while reviewing an external
+# destructive-command-guard project's design for cross-pollination ideas.
+test_hook "guard-destructive.sh" "Block python3 -c inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block node -e inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"node -e \"require('"'"'child_process'"'"').execSync('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block ruby -e inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"ruby -e \"system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block python3 -c inline DROP TABLE (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"cursor.execute('"'"'DROP TABLE users'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block python3 -c inline git push --force (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"os.system('"'"'git push --force origin main'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Allow python3 -c with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"print('"'"'hello world'"'"')\""}}' "allow"
+test_hook "guard-destructive.sh" "Allow python3 script.py with no -c flag (unaffected)" '{"tool_name":"Bash","tool_input":{"command":"python3 script.py"}}' "allow"
+
+# Round 2 (2026-07-24) -- caught by security-auditor adversarial review of
+# round 1, all three live-verified bypasses of round 1's own new check.
+test_hook "guard-destructive.sh" "Block capitalized interpreter name Python3 (round 1 case-sensitivity bypass)" '{"tool_name":"Bash","tool_input":{"command":"Python3 -c \"import os; os.system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block capitalized inner payload RM -RF (round 1 case-sensitivity bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'RM -RF /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block bash -c inline rm -rf (round 1 missing-interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"bash -c \"rm -rf /tmp/x\""}}' "deny"
+test_hook "guard-destructive.sh" "Block sh -c inline rm -rf (round 1 missing-interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"sh -c \"rm -rf /tmp/x\""}}' "deny"
+test_hook "guard-destructive.sh" "Block git clean -f inside python -c (round 1 missing-pattern bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'git clean -fdx'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block git reset --hard inside python -c (bash/Rust test-parity gap, code-auditor finding)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'git reset --hard HEAD~5'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Allow benign bash -c with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"bash -c \"echo hello world\""}}' "allow"
+
 # 3a. tool-proxy-enforcer.sh — had ZERO direct test coverage before this
 # addition (2026-07-19), despite being one of 5 hooks in the live default
 # PreToolUse chain for every Bash call. That gap is exactly how its `grep -P`
