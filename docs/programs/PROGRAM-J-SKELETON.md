@@ -6,10 +6,11 @@ mở, roadmap không đề cập). Phase 2 (Capability Inventory) bắt đầu
 2026-07-24: liệt kê 6 capability, đọc code thật `core/adapters/` phát
 hiện 1 câu hỏi kiến trúc MỚI (MCP Server thay thế hay mở rộng pattern
 translator-per-engine hiện có?) — chưa trả lời, chặn Phase 3. Cùng ngày,
-thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được repo) với
-1 câu hỏi phạm vi thứ 2 (M=4 hay M=5?) — xem "Input bổ sung" bên dưới.
-**2 câu hỏi mở đều cần anh Tâm quyết định trực tiếp trước khi viết tiếp
-Phase 1 Scope cho use case mới, hoặc Phase 3 Architecture cho use case cũ.**
+thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được repo);
+anh Tâm đã trả lời câu hỏi phạm vi của Input này ngay trong ngày — Có,
+thuộc Program J, M=5 (xem mục Scope). Câu hỏi kiến trúc gốc (MCP Server
+vs translator-per-engine) vẫn còn mở, vẫn chặn Phase 3 cho toàn bộ
+Program J kể cả use case mới này.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -86,6 +87,18 @@ skill/hook hiện có của Yana AI (`core/skills/`, `core/hooks/`,
 đã tồn tại trong repo. Không mở rộng sang dịch vụ ngoài (GitHub/Linear/
 Slack) trong phạm vi Program J này.
 
+**Cập nhật 2026-07-24 — anh Tâm xác nhận trực tiếp** ("program J đi, gộp
+vào cho gọn", trả lời Open Question 2 bên dưới): **M = 5**, thêm
+`yana-ai chat` (chế độ `--provider ollama`, local model) làm client thứ
+5, cùng hạng với Claude/Cursor/Gemini/Codex. Khác với 4 client kia —
+vốn là editor/CLI BÊN NGOÀI mà Yana AI viết adapter để nối vào — client
+thứ 5 này là **binary Yana AI tự sở hữu** (`yana-rt chat`), nên khả năng
+nối vào Capability Engine có thể trực tiếp hơn (gọi hàm Rust nội bộ)
+thay vì qua translator script kiểu `core/adapters/cursor/`. Đây là nhận
+định sơ bộ, KHÔNG phải quyết định kiến trúc — Phase 3 (còn bị chặn bởi
+Open Question kiến trúc cũ: MCP Server thay thế hay mở rộng pattern
+translator-per-engine) mới là nơi vẽ chi tiết chuyện này.
+
 ## Architecture
 
 **Trả lời từ `VISION-2.4.md`** (nguyên tắc #2 + "Capability Registry +
@@ -140,7 +153,7 @@ Danh sách capability (nguồn: `VISION-2.4.md` mục 2, đã gộp sẵn):
 
 | Name | Purpose | Input | Output | Dependency | Priority | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| AI Adapter Layer | Dịch hook event của từng AI tool sang format chung, không hardcode logic riêng | Tool-native hook payload (vd Cursor's beforeShellExecution JSON) | Tool-native permission response | `core/hooks/*.sh` (logic gốc dùng chung) | _(TODO)_ | _(TODO)_ | **Có thật, hẹp** — 1/4+ engine (chỉ Cursor), 1 hook type (destructive-command) |
+| AI Adapter Layer | Dịch hook event của từng AI tool sang format chung, không hardcode logic riêng | Tool-native hook payload (vd Cursor's beforeShellExecution JSON) | Tool-native permission response | `core/hooks/*.sh` (logic gốc dùng chung) | _(TODO)_ | _(TODO)_ | **Có thật, hẹp** — 1/4+ engine (chỉ Cursor), 1 hook type (destructive-command). Client thứ 5 (`yana-ai chat`, xác nhận 2026-07-24, xem mục Scope) chưa có adapter — vì là binary Yana AI tự sở hữu, có thể không cần pattern translator-script như 4 client kia, nhưng đây là giả thuyết, chưa quyết ở Phase 3 |
 | Prompt Translation Engine | Dịch Prompt AST sang format riêng từng AI | _(TODO — chưa rõ input cụ thể)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu |
 | Capability Engine (Registry + Dynamic Discovery) | Agent hỏi "có công cụ gì" thay vì hardcode if/else theo provider | _(TODO — phụ thuộc câu hỏi kiến trúc ở trên: MCP hay mở rộng translator)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu — đây là phần lõi MCP-Server hướng đã chốt |
 | Model Router | Định tuyến task theo độ khó (Simple→Haiku, Medium→Sonnet, Hard→Opus) | Task description | Model tier quyết định | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu |
@@ -217,21 +230,12 @@ với `--provider ollama` cần có khả năng đọc (và có thể sau này l
 tác) repo thật, giống Claude Code đang làm trong phiên này — không còn
 là "hội thoại thuần" nữa.
 
-**Câu hỏi phạm vi CHƯA quyết — cần anh, không phải AI tự suy diễn:**
-việc này có nằm TRONG scope Program J hay không? Lý do cân nhắc: Program
-J's Scope hiện tại định nghĩa M = "4 AI tool đã nêu tên rõ trong roadmap
-(Claude/Cursor/Gemini/Codex)" (trích từ `VISION-2.4.md`) — `yana-ai chat`
-chạy Ollama local KHÔNG nằm trong danh sách 4 đó, và grep trực tiếp
-`VISION-2.4.md` xác nhận **không có** chỗ nào nhắc tới "yana-ai chat"/
-"local model client" trong 30-capability roadmap gốc. Nếu đưa vào Program
-J, đây là MỞ RỘNG Scope thật sự (M = 5, không phải 4), không phải điền
-cho đủ nội dung đã có sẵn — khác hẳn cách 3/4 Open Question cũ được trả
-lời (thuần đọc lại tài liệu gốc, không thêm ý mới). Nếu anh xác nhận
-"có" thì Scope/Capability List ở trên cần cập nhật thêm dòng
-"yana-ai chat (Ollama local)" vào cột client; nếu "không", đây có thể là
-một Program riêng hoặc một sub-goal độc lập của Program D (Engineering
-Excellence, vì liên quan trực tiếp tới quota/hiệu suất làm việc, không
-phải universal-capability-layer).
+**Câu hỏi phạm vi — ĐÃ QUYẾT 2026-07-24:** anh Tâm xác nhận trực tiếp
+("program J đi, gộp vào cho gọn") — việc này nằm TRONG scope Program J,
+chấp nhận mở rộng Scope thật sự (M = 5, không phải 4 như roadmap gốc
+`VISION-2.4.md` nêu). Xem mục Scope ở trên cho nội dung đã cập nhật.
+Đây là quyết định của anh Tâm, không phải AI tự suy diễn — ghi lại đúng
+nguyên văn để có dấu vết.
 
 **An toàn — đã xác định rõ trước khi bàn tới Phase 3 Architecture:** đây
 KHÔNG phải một thay đổi nhỏ. Hiện tại `yana-ai chat` cố tình zero
@@ -247,15 +251,18 @@ yếu hơn Claude không có nghĩa lệnh nó tạo ra kém nguy hiểm hơn.
 
 ## Open Questions
 
-2 câu hỏi thật sự mở (1 câu cũ từ roadmap gốc + 1 câu mới từ input trên):
+1 câu hỏi thật sự còn mở (câu về `yana-ai chat` đã được anh Tâm trả lời
+2026-07-24 — "có", xem Scope + "Input bổ sung" ở trên):
 
 1. Quan hệ với `44-supply-chain-vetting.md`/`agent-tool-poisoning-guard.md`
    (MCP server whitelist đã có ở `core/config/mcp-whitelist.json`) —
    Program J có mở rộng cơ chế whitelist này, hay xây riêng? **Roadmap
    không đề cập** — cần anh quyết định trực tiếp, không suy ra được từ
    tài liệu hiện có.
-2. (Mới, 2026-07-24) `yana-ai chat` + Ollama local có thuộc Scope Program
-   J (M=5, mở rộng danh sách client) hay là một Program/sub-goal riêng?
-   Xem "Input bổ sung" ở trên cho đầy đủ ngữ cảnh — chặn việc viết tiếp
-   Phase 1 Scope/Capability List cho use case này cho tới khi có câu trả
-   lời.
+
+**Đã trả lời (2026-07-24):** ~~`yana-ai chat` + Ollama local có thuộc
+Scope Program J (M=5) hay Program/sub-goal riêng?~~ → Có, thuộc Program J,
+M=5. Vẫn còn chặn Phase 3 Architecture cho riêng use case này (xem mục
+Scope: cần Phase 3 chung của Program J xong trước, vì câu hỏi kiến trúc
+gốc — MCP Server thay thế hay mở rộng translator-per-engine — chưa có
+câu trả lời).
