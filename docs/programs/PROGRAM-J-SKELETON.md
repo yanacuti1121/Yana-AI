@@ -1,29 +1,19 @@
 # Program J — Universal Capability Runtime
 
-**Status:** `Draft` — Phase 0 (Input) đầy đủ. Phase 1 (Specification):
-**0 Open Question còn lại** (2026-07-24 — cả 2 câu ban đầu đã trả lời,
-xem "Open Questions" bên dưới cho chi tiết, kể cả phát hiện giữa chừng
-rằng `core/config/mcp-whitelist.json` chưa từng tồn tại trước khi được
-tạo hôm nay). Phase 2 (Capability Inventory) bắt đầu 2026-07-24: liệt kê
-6 capability, đọc code thật `core/adapters/` phát hiện 1 câu hỏi kiến
-trúc MỚI — **đã trả lời cùng ngày: anh Tâm chọn MCP Server thay thế hoàn
-toàn pattern translator-per-engine**, xem "Capability List" bên dưới.
-Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được
-repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc Program J, M=5
-(xem mục Scope). **Phase 3 Architecture: 2 sơ đồ luồng đã vẽ (real-time
-hook enforcement + capability discovery), grounded trên code thật
-(`src/guard/mod.rs::check_command()`). Claude Code CŨNG nằm trong phạm
-vi thay thế (anh Tâm xác nhận cùng ngày — chuyển được vì chỉ đổi nội
-dung bên trong hook script, không đổi cơ chế chặn bắt buộc của Claude
-Code, nên không đánh đổi an toàn). **Interfaces + Phase 4 Workflow**
-xong cùng ngày — schema `check_command` tool dựa trên MCP spec thật
-(fetch trực tiếp `modelcontextprotocol.io`, không tự bịa format), pipeline
-đầy đủ có nhánh lỗi/timeout/audit log. Điểm mấu chốt: cả 2 kênh lỗi của
-MCP (Protocol Error và `isError:true`) đều PHẢI map thành `deny`, không
-có ngoại lệ, để giữ đúng triết lý fail-closed đang có. 3 mục còn treo cho
-Phase 9 Implementation (tên lệnh CLI, con số timeout, cách khởi động MCP
-Server) — chưa quyết, không suy diễn.** Phase 5 Readiness chưa bắt đầu —
-dừng ở đây, 2026-07-24.
+**Status:** `Draft` — Phase 0-4 xong 2026-07-24 (Input, Specification 0
+Open Question, Capability Inventory, Architecture 2 sơ đồ luồng,
+Interfaces + Workflow dựa trên MCP spec thật). Kiến trúc chốt: MCP Server
+(mode mới của `yana-rt`) thay thế hoàn toàn pattern translator-per-engine
+— áp dụng cho cả 5 client (Claude Code/Cursor/Gemini/Codex/`yana-ai chat`)
+— gọi `src/guard/mod.rs::check_command()` trực tiếp trong process, giữ
+nguyên triết lý fail-closed (cả 2 kênh lỗi MCP đều map thành deny), không
+đổi cơ chế chặn bắt buộc của Claude Code. **Phase 5 Readiness: 60%
+(5 Ready + 2 cách-hiểu-chưa-chắc + 2 Not-ready) → BLOCK theo đúng luật
+ADS v1** — chưa đủ điều kiện Phase 10 Implementation, cần Benchmark/Cost
+thật trước (xem "Readiness Matrix" bên dưới). Đã fix 1 gap tìm thấy giữa
+chừng: quyết định kiến trúc chưa từng được ghi vào L1 memory — đã ghi
+(`fact-20260724-233122`). Dừng ở Phase 5, 2026-07-24 — Phase 6 ADR/Phase
+7 Research/Phase 8 Design Review là bước tiếp theo, không phải code.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -479,18 +469,38 @@ _(TODO — chưa tới Phase 9)_
 
 ---
 
-## Readiness Matrix (Phase 5 — chưa đánh giá, chưa qua Phase 1-4 đầy đủ)
+## Readiness Matrix (Phase 5 — đánh giá 2026-07-24, sau khi Phase 1-4 xong)
 
-- [ ] Repository
-- [ ] Knowledge
-- [ ] Notebook
-- [ ] Memory
-- [ ] Runtime
-- [ ] Governance
-- [ ] Security
-- [ ] Benchmark
-- [ ] Cost
-- [ ] Context
+**Lưu ý trước khi đọc bảng:** `ADS-v1.md` chỉ liệt kê tên 10 mục, không
+định nghĩa rubric cụ thể cho từng mục — bảng dưới là đánh giá trung thực
+theo cách hiểu hợp lý nhất của từng tên mục, có nêu bằng chứng, KHÔNG
+phải chấm theo tiêu chuẩn chính thức đã có sẵn (vì tiêu chuẩn đó chưa
+được viết ra). Mục nào cách hiểu không chắc, ghi rõ "cách hiểu chưa chắc"
+thay vì chấm điểm giả vờ chắc chắn.
+
+| Mục | Trạng thái | Bằng chứng |
+|---|---|---|
+| Repository | ✅ Ready | Vị trí code rõ ràng: `src/guard/mod.rs` (đã có, cần đổi `pub`), `core/adapters/` (pattern cũ cần thay), module MCP Server mới sẽ nằm trong crate `yana-rt` sẵn có |
+| Knowledge | ✅ Ready | MCP spec thật đã fetch trực tiếp (không suy đoán), code thật đã đọc (`check_command`, `before-shell-execution.js`), Phase 0-4 đều có nguồn gốc rõ |
+| Notebook | ⚠️ Cách hiểu chưa chắc | Nếu "Notebook" nghĩa là nhật ký nghiên cứu/quyết định đang chạy cho Program này — chính file `PROGRAM-J-SKELETON.md` đang làm đúng vai trò đó (mọi quyết định đều có tag "Nguồn gốc"/ngày tháng). Nếu nghĩa khác (VD hệ thống Notebook riêng của Yana AI) — chưa xác nhận có tồn tại hay không, chưa grep kiểm tra |
+| Memory | ✅ Ready (vừa fix) | Trước đánh giá này: KHÔNG có fact nào ở `memory/L1_atomic/` — vi phạm `memory-persistence-law.md`. Đã fix ngay: `fact-20260724-233122` ghi quyết định kiến trúc chính |
+| Runtime | ✅ Ready | `yana-rt` là binary thật, đang chạy tốt (183 unit + 63 integration test pass, xác nhận lúc chuẩn bị PR #80 cùng session này), thêm 1 mode/subcommand mới là pattern quen thuộc của codebase |
+| Governance | ✅ Ready | Đang tự áp dụng đúng quy trình D7/ADS v1; `54-bft-consensus-law.md`'s dual-review sẽ áp dụng khi code thật đụng `core/hooks/`/`core/adapters/` |
+| Security | ✅ Ready | Mục được đầu tư kỹ nhất trong toàn bộ Phase 1-4: ánh xạ fail-closed cho 2 kênh lỗi MCP, phân biệt rõ "chặn bắt buộc" (Claude Code hook) vs "tool tự nguyện" (MCP thường), giữ nguyên `check_command()` làm nguồn phán đoán duy nhất |
+| Benchmark | ❌ Not ready | Chưa đo gì — số timeout cụ thể, độ trễ in-process vs spawn-bash, đều ghi rõ "chưa quyết, cần Phase 12" trong Workflow ở trên. Không có ngay cả ước lượng thô |
+| Cost | ❌ Not ready | Chưa đề cập ở đâu trong Phase 1-4. Liên quan tới cuộc trao đổi "giảm quota Claude" đầu phiên nhưng chưa nối 2 việc lại với nhau thành phân tích cụ thể |
+| Context | ⚠️ Cách hiểu chưa chắc | Nếu nghĩa là "phạm vi có đủ gọn để implement không phát sinh phức tạp" — có vẻ Ready (1 tool mới, tái dùng hàm thuần có sẵn, module boundary rõ). Nếu nghĩa khác (VD ngân sách context window lúc chạy) — chưa đánh giá |
+
+**Điểm tổng (tự tính, không phải công thức chính thức):** 5 Ready + 2
+"cách hiểu chưa chắc" (tính 0.5) + 2 Not ready (tính 0) = 6/10 = **60%**.
+
+**Kết luận theo đúng luật ADS v1** ("Readiness < 80% → Block, chỉ được
+Research/ADR/Design, không code"): **Program J CHƯA đủ điều kiện vào
+Phase 10 Implementation.** Đây không phải tin xấu — đúng thực tế hiện
+tại (mới xong Phase 1-4, chưa qua Phase 6 ADR/Phase 7 Research/Phase 8
+Design Review), và đúng chức năng của Readiness Matrix: chặn code chạy
+sớm khi Cost/Benchmark chưa có số liệu thật, thay vì đoán rồi implement
+sai hướng.
 
 ## Input bổ sung — 2026-07-24 (trực tiếp từ anh Tâm, không phải suy diễn)
 
