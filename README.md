@@ -61,7 +61,13 @@ Your agent tries something dangerous. Yana intercepts it, explains why, and logs
 npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
 ```
 
-Then ask your agent to misbehave, and watch. Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04, not aspirational copy (see [Known Limitations](docs/reference/known-limitations.md) for what this guard does not yet catch):
+Then ask your agent to misbehave, and watch.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04, not aspirational copy (see [Known Limitations](docs/reference/known-limitations.md) for what this guard does not yet catch):
 
 ```bash
 # Agent tries: git push --force origin main
