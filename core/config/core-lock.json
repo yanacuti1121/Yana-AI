@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-24T07:34:08+00:00",
-  "count": 260,
+  "generated": "2026-07-24T08:05:54+00:00",
+  "count": 261,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -167,6 +167,7 @@
     "core/scripts/decay-memory.sh": "f5f3ed8b233c62cad5c76ebb0df3d4543902c808cf580c90c4e42e12d1dae7a8",
     "core/scripts/deprecate-fact.sh": "5040d17e8362306298ca8841036af1c01bacbd9def8a603afbfcf40e231f41a9",
     "core/scripts/design_context.py": "e4961ac50f6f7c1a6a82d2695f3d5279cd4102c42fd1d6ea5a29124b3ef42ae1",
+    "core/scripts/detect_skill_dupes.py": "1dffbe4a5171b7c5295d4c143ba0ace8fe2bdf2e0dc09b8fa14d6b6b9c01702b",
     "core/scripts/diff_report.py": "5fec2bcc09b6f4713625288e80975e67f8d36938d393c4be01439c03c9a6a5c0",
     "core/scripts/doctor.py": "c89abd5c07a2c99361514e79b5756038d37f940f3e196f143de23129be32b4ed",
     "core/scripts/drift-check.sh": "bdbc8ab43268e110372b2b62c995736d27a81fc130bc773a4fb2d7e0a2fb34d7",
