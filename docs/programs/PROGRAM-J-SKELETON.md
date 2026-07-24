@@ -15,8 +15,15 @@ hook enforcement + capability discovery), grounded trên code thật
 (`src/guard/mod.rs::check_command()`). Claude Code CŨNG nằm trong phạm
 vi thay thế (anh Tâm xác nhận cùng ngày — chuyển được vì chỉ đổi nội
 dung bên trong hook script, không đổi cơ chế chặn bắt buộc của Claude
-Code, nên không đánh đổi an toàn). Phase 4 (Workflow chi tiết) và
-Interfaces (message schema) chưa bắt đầu** — dừng ở đây, 2026-07-24.
+Code, nên không đánh đổi an toàn). **Interfaces + Phase 4 Workflow**
+xong cùng ngày — schema `check_command` tool dựa trên MCP spec thật
+(fetch trực tiếp `modelcontextprotocol.io`, không tự bịa format), pipeline
+đầy đủ có nhánh lỗi/timeout/audit log. Điểm mấu chốt: cả 2 kênh lỗi của
+MCP (Protocol Error và `isError:true`) đều PHẢI map thành `deny`, không
+có ngoại lệ, để giữ đúng triết lý fail-closed đang có. 3 mục còn treo cho
+Phase 9 Implementation (tên lệnh CLI, con số timeout, cách khởi động MCP
+Server) — chưa quyết, không suy diễn.** Phase 5 Readiness chưa bắt đầu —
+dừng ở đây, 2026-07-24.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -234,20 +241,159 @@ Workflow mới vẽ pipeline chi tiết):
 | `.claude/settings.json` PreToolUse/PostToolUse (cơ chế chặn) | Cơ chế chặn bắt buộc của Claude Code | **Không đổi** — vẫn bắt buộc, model không biết/can thiệp được |
 | Hook script Claude Code gọi (nội dung bên trong) | Hiện gọi thẳng `guard-destructive.sh` | **Sẽ đổi** — gọi MCP Server thay vì gọi thẳng, cùng pattern client-mỏng như Cursor |
 
-## Interfaces
+## Interfaces (2026-07-24)
 
-_(TODO — cần Phase 4 Workflow xong để định nghĩa message schema/API cụ
-thể của MCP tool `check_command`/`tools/list`. Không suy diễn schema chi
-tiết ở Phase 3 — đây vẫn là sơ đồ luồng theo đúng định nghĩa ADS v1, chưa
-phải interface contract.)_
+**Nguồn:** MCP spec chính thức (`modelcontextprotocol.io/specification/2025-06-18/server/tools`,
+fetch trực tiếp 2026-07-24, KHÔNG tự bịa format) — JSON-RPC 2.0. Schema
+dưới đây map từ spec thật vào nhu cầu thật của `check_command`, không
+phải interface tự nghĩ ra.
 
-## Workflow
+**Tool definition** (trả về trong `tools/list`):
 
-_(TODO — Phase 4, cần Architecture chi tiết trước)_
+```json
+{
+  "name": "check_command",
+  "title": "Yana AI destructive-command guard",
+  "description": "Checks whether a shell command is destructive (rm -rf, git push --force, git reset --hard, SQL DROP/TRUNCATE, disguised inline-script bypasses, etc.) before it runs. Single source of truth: src/guard/mod.rs::check_command(), identical logic to core/hooks/guard-destructive.sh.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "command": { "type": "string", "description": "The raw shell command about to be executed" }
+    },
+    "required": ["command"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "permission": { "type": "string", "enum": ["allow", "deny"] },
+      "reason": { "type": "string", "description": "Present only when permission is deny" }
+    },
+    "required": ["permission"]
+  }
+}
+```
+
+**`tools/call` request** (client → MCP Server):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": { "name": "check_command", "arguments": { "command": "rm -rf /important-data" } }
+}
+```
+
+**`tools/call` response — allow** (`check_command()` trả `None`):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{ "type": "text", "text": "{\"permission\":\"allow\"}" }],
+    "structuredContent": { "permission": "allow" },
+    "isError": false
+  }
+}
+```
+
+**`tools/call` response — deny** (`check_command()` trả `Some(reason)`):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{ "type": "text", "text": "{\"permission\":\"deny\",\"reason\":\"Blocked: 'rm -rf' ...\"}" }],
+    "structuredContent": { "permission": "deny", "reason": "Blocked: 'rm -rf' ..." },
+    "isError": false
+  }
+}
+```
+
+**Ánh xạ fail-closed — điểm QUAN TRỌNG NHẤT của toàn bộ Interfaces này**
+(không phải chi tiết phụ): MCP spec tự định nghĩa 2 kênh lỗi khác nhau —
+*Protocol Error* (JSON-RPC `error` field, VD tool không tồn tại, tham số
+sai) và *Tool Execution Error* (`isError: true` bên trong `result`, VD
+lỗi logic nghiệp vụ). `guard-destructive.sh`/`check_command()` hiện tại
+**không có khái niệm "lỗi" tách biệt với "deny"** — mọi trường hợp không
+verify được (input không đọc được, JSON hỏng, timeout, status lạ) đều
+là `deny`, không phải allow, không phải "lỗi trung tính". Khi chuyển
+qua MCP, **cả 2 kênh lỗi của MCP (Protocol Error VÀ Tool Execution
+Error) đều phải được hook script phía client hiểu là `deny`**, không có
+ngoại lệ — nếu client code coi "có lỗi giao thức" khác với "coi như
+allow luôn cho nhanh", đó chính là kiểu rút lùi an toàn mà `before-shell-execution.js`'s
+toàn bộ thiết kế (đọc ở Phase 3) đang cố tránh. Đây là yêu cầu bắt buộc
+cho Phase 9 Implementation, không phải gợi ý.
+
+**`tools/list` response** (Capability Registry, ví dụ rút gọn — danh sách
+thật sẽ dài hơn khi có thêm tool ngoài `check_command`):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": { "tools": [ { "name": "check_command", "...": "..." } ] }
+}
+```
+
+## Workflow (Phase 4 — pipeline chi tiết, 2026-07-24)
+
+Mở rộng Sơ đồ luồng 1 (Phase 3) thành pipeline đầy đủ, có nhánh lỗi —
+đúng tinh thần ADS v1 Phase 4 ("vẽ toàn bộ pipeline, có review/lỗi, không
+chỉ happy path"):
+
+```
+1. KHỞI ĐỘNG
+   yana-rt mcp-server khởi động (tên lệnh tạm, chưa chốt) — process nền,
+   sống suốt phiên làm việc, KHÔNG spawn mới mỗi request (khác hẳn
+   before-shell-execution.js's spawnSync mỗi lần gọi guard-destructive.sh)
+
+2. CLIENT KẾT NỐI
+   Cursor / Codex / Gemini / yana-ai chat / Claude Code's hook script
+   → kết nối MCP Server 1 lần (không phải 1 lần/request)
+
+3. CLIENT MUỐN CHẠY LỆNH
+   → gửi tools/call "check_command" { command }
+   → MCP Server gọi check_command(&command) TRỰC TIẾP trong process
+     (không shell-out, không spawn con — khác before-shell-execution.js)
+
+4. NHÁNH KẾT QUẢ
+   a. check_command() trả None            → { permission: "allow" }
+   b. check_command() trả Some(reason)    → { permission: "deny", reason }
+   c. MCP Server tự lỗi (panic, timeout nội bộ, request quá khổ)
+      → Protocol Error HOẶC isError:true — client BẮT BUỘC hiểu là deny
+        (xem "Ánh xạ fail-closed" ở Interfaces, không phải tuỳ chọn)
+   d. MCP Server không phản hồi kịp thời hạn phía client
+      → client tự áp timeout riêng (giữ nguyên tinh thần "15s" của
+        before-shell-execution.js, con số cụ thể chưa chốt — cần đo thật
+        ở Phase 12 Benchmark, không đoán ở đây) → hết hạn = deny
+
+5. CLIENT NHẬN QUYẾT ĐỊNH → thực thi lệnh hoặc chặn + hiện lý do cho
+   người dùng (đúng yêu cầu MCP spec: "Prompt for user confirmation on
+   sensitive operations")
+
+6. AUDIT LOG (yêu cầu MCP spec: "Log tool usage for audit purposes",
+   trùng khớp với `audit-hardening-policy.md` đã có) — MCP Server ghi
+   mỗi lần gọi `check_command` vào audit chain hiện có, KHÔNG tạo hệ
+   thống log riêng song song
+```
+
+**Chưa quyết, cần Phase 9 Implementation Plan hoặc anh Tâm quyết định
+trước:**
+- Tên lệnh CLI chính xác cho MCP Server mode (`yana-rt mcp-server`?
+  `yana-rt serve`?) — chưa chốt, chỉ là placeholder ở trên
+- Con số timeout cụ thể phía client khi gọi MCP Server (giữ 15s như cũ,
+  hay đo lại vì giờ gọi in-process nhanh hơn nhiều so với spawn bash?)
+- MCP Server chạy nền như thế nào trong phiên Claude Code/Cursor (tự
+  khởi động lần đầu? cần lệnh cài đặt riêng như `npx yana-ai-install`?)
 
 ## Data Flow
 
-_(TODO — Phase 4)_
+Trùng với Workflow ở trên — Program J's pipeline chỉ có 1 luồng dữ liệu
+chính (command string → phán đoán → permission decision), không có luồng
+dữ liệu phụ nào khác đáng vẽ riêng ở mức Phase 4 này.
 
 ## Capability List (Phase 2 — Capability Inventory)
 
