@@ -9,10 +9,13 @@ báo `mcpServers` ngay trong `plugin.json` hiện có (Phase 7 Research phát
 hiện) — không cần user tự setup. **Phase 5 Readiness: 70% → vẫn BLOCK**
 (cần ≥80%, xem "Readiness Matrix"). ADR: `docs/adr/ADR-010-mcp-server-
 replaces-translator-per-engine.md`. Quyết định kiến trúc đã ghi L1 memory
-(`fact-20260724-233122`). Dừng ở Phase 7, 2026-07-24 — Phase 8 Design
-Review là bước tiếp theo, không phải code. Gap còn treo cho Phase 8: cơ
-chế kết nối MCP local của Cursor/Codex/Gemini chưa nghiên cứu, chỉ mới
-xác nhận của Claude Code.
+(`fact-20260724-233122`). **Phase 8 Design Review xong cùng ngày**: 7/9
+mục Ready, 1 lưu ý (pin `rmcp` bản stable `2.2.0`, không phải
+`3.0.0-beta.1`), 1 gap thật (tên lệnh CLI chưa chốt). Không mục nào Fail.
+Design Review không tự nâng Readiness — vẫn 70%, vẫn BLOCK Phase 10.
+Dừng ở Phase 8, 2026-07-24 — Phase 9 Implementation Plan là bước tiếp
+theo. Gap còn treo, chưa xong: cơ chế kết nối MCP local của
+Cursor/Codex/Gemini chưa nghiên cứu, chỉ mới xác nhận của Claude Code.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -521,7 +524,29 @@ Server — chỉ cần thêm 1 entry `mcpServers` vào `plugin.json` hiện có.
 **Chưa nghiên cứu, còn thiếu cho Phase 8 Design Review:** cách Cursor/
 Codex/Gemini (3 trong 5 client của Program J) tự kết nối MCP server local
 — chỉ mới xác nhận cơ chế của Claude Code. Cần fetch riêng cho từng cái,
-không giả định giống Claude Code.
+không giả định giống Claude Code. **Vẫn còn thiếu sau Phase 8 dưới đây**
+— không đủ thời gian trong phiên này, ghi rõ là gap thật, không giả vờ
+đã xong.
+
+## Design Review (Phase 8 — checklist 9 mục theo ADS v1, 2026-07-24)
+
+| Mục | Đánh giá | Bằng chứng |
+|---|---|---|
+| Architecture | ✅ Ổn | 2 sơ đồ luồng (Phase 3) + Workflow pipeline (Phase 4), cả 2 đều grounded trên code thật, không suy diễn |
+| Naming | ⚠️ Thiếu | Tên lệnh CLI cho MCP Server mode CHƯA chốt (`yana-rt mcp-server`? `yana-rt serve`?) — đã ghi rõ ở Workflow, chưa quyết ở đây |
+| Dependency | ✅ Qua vetting, có lưu ý | `rmcp`: 17.1 triệu lượt tải, Apache-2.0 (khớp license Yana AI), cập nhật 23/07/2026 (hôm qua) — qua dễ dàng `dependency-vetting-law.md`'s 8 tiêu chí. **Lưu ý quan trọng:** bản mới nhất trên crates.io là `3.0.0-beta.1`, bản **stable** là `2.2.0` — Phase 9 nên pin `2.2.0`, không phải bản beta, cho một dependency của guard bảo mật |
+| Duplicate | ✅ Không trùng | Thay thế translator-per-engine, không xây song song; tái dùng `check_command()` có sẵn, không viết lại logic phán đoán |
+| Security | ✅ Mạnh nhất trong 9 mục | Ánh xạ fail-closed 2 kênh lỗi MCP (Interfaces), phân biệt rõ chặn-bắt-buộc vs tool-tự-nguyện cho Claude Code (ADR-010) |
+| Maintainability | ✅ Ổn, 1 câu hỏi tương lai | Macro-based tool definition (`rmcp`) thay viết tay JSON-RPC — giảm bề mặt lỗi. Câu hỏi chưa cần trả lời ngay: `guard-destructive.sh` (bash) có nên deprecate sau khi MCP thay thế hoàn toàn translator không, hay giữ song song cho mục đích khác? Không quyết ở Phase 8 này |
+| Performance | ✅ Có số liệu thật | Baseline đo trực tiếp 178-310ms/lần gọi (translator hiện tại); ước lượng có định hướng rằng in-process nhanh hơn ít nhất 1 bậc độ lớn — số thật của chính MCP Server chờ Phase 12 |
+| Scalability | ✅ Ổn (đọc code trực tiếp, không suy đoán) | `check_command(command: &str) -> Option<&'static str>` — không state chia sẻ, không lock, không I/O — an toàn gọi đồng thời từ nhiều client cùng lúc, không cần đồng bộ hoá thêm |
+| Governance | ✅ Ổn | `54-bft-consensus-law.md`'s dual-review sẽ áp dụng khi Phase 10 đụng `core/hooks/`/`core/adapters/`; đang tự áp dụng đúng quy trình D7/ADS v1 |
+
+**Kết luận:** 7/9 Ready rõ ràng, 1 mục có lưu ý cần xử lý ở Phase 9 (pin
+`rmcp` bản stable, không phải beta) chứ không phải chặn, 1 mục thiếu
+thật (Naming — tên lệnh CLI). Không có mục nào Fail. Design Review
+KHÔNG tự động nâng điểm Readiness Matrix (Phase 5) — đó là 2 gate khác
+nhau; Readiness vẫn đứng ở 70%, cần đi thật qua Phase 9 mới biết rõ hơn.
 
 ## Roadmap
 
