@@ -59,7 +59,7 @@ Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không tha
 | D | Engineering Excellence | `Draft` — §D7 + §D8 (ADS v1) có nội dung thật, D1-D6 chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
 | F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` | `PROGRAM-F-SKELETON.md` |
 | H | Autonomous Safety & Execution Assurance | `Specification Required` | `PROGRAM-H-SKELETON.md` |
-| J | Universal Capability Runtime | `Draft` — Architecture/Scope/Non-Goals trả lời được từ VISION-2.4.md (2026-07-24); còn 1 Open Question (mcp-whitelist.json relationship) thật sự mở, chưa qua Phase 2-4 đầy đủ | `PROGRAM-J-SKELETON.md` |
+| J | Universal Capability Runtime | `Draft` — Phase 1 gần xong (3/4 Open Question trả lời), Phase 2 (Capability Inventory) bắt đầu — phát hiện câu hỏi kiến trúc mới (MCP Server vs pattern translator-per-engine hiện có ở `core/adapters/`), chặn Phase 3 | `PROGRAM-J-SKELETON.md` |
 
 Program G, I và các Program khác được nhắc trong `docs/VISION-2.4.md` hoặc
 trong hội thoại trước đó nhưng chưa có file riêng — thêm khi có nhu cầu cụ

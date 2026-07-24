@@ -1,10 +1,11 @@
 # Program J — Universal Capability Runtime
 
 **Status:** `Draft` — Phase 0 (Input) đầy đủ. Phase 1 (Specification) điền
-được 3/4 Open Question ban đầu bằng cách đọc lại kỹ `docs/VISION-2.4.md`
-(anh Tâm chỉ ra 2026-07-24: "cái này là ở trong roadmap 2.4 có") — không
-phải nội dung mới, chỉ là đọc đúng cái đã có. Còn 1 câu hỏi thật sự mở
-(Open Question 4, roadmap không đề cập).
+được 3/4 Open Question ban đầu từ `docs/VISION-2.4.md` (còn 1 câu thật sự
+mở, roadmap không đề cập). Phase 2 (Capability Inventory) bắt đầu
+2026-07-24: liệt kê 6 capability, đọc code thật `core/adapters/` phát
+hiện 1 câu hỏi kiến trúc MỚI (MCP Server thay thế hay mở rộng pattern
+translator-per-engine hiện có?) — chưa trả lời, chặn Phase 3.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây).
@@ -110,16 +111,40 @@ _(TODO — Phase 4, cần Architecture chi tiết trước)_
 
 _(TODO — Phase 4)_
 
-## Capability List
+## Capability List (Phase 2 — Capability Inventory)
 
-Ghi chú tham khảo từ `VISION-2.4.md` mục 2 (bản gộp, cần rà lại từng mục
-khi vào Phase 2 thật sự): Universal AI Platform, Prompt Translation
-Engine, Capability Engine (Registry + Dynamic Discovery), Model Router,
-AI Marketplace, Extension SDK — Marketplace/SDK là **lớp phân phối**,
-không phải capability riêng (theo chính roadmap).
+**Phát hiện thật trước khi liệt kê** (đọc trực tiếp
+`core/adapters/cursor/before-shell-execution.js`, file DUY NHẤT hiện có
+trong `core/adapters/`): pattern THẬT đang chạy không phải "MCP Server
+expose registry" — mà là **mỗi AI engine có 1 translator mỏng riêng cho
+từng loại hook, forward vào logic gốc dùng chung** (comment trong chính
+file đó: "Windsurf/Kiro/OpenCode/Codex translators planned to follow this
+same pattern"). Cách này ĐÃ giải một phần M×N (logic gốc — vd
+`guard-destructive.sh` — chỉ sống ở 1 nơi), nhưng vẫn còn M×N ở cấp
+"số loại hook × số engine" (mỗi hook type mới × mỗi engine mới = 1
+translator mới cần viết tay).
 
-_(Phase 2 đầy đủ — Name/Purpose/Input/Output/Dependency/Priority/Owner/
-Status cho từng capability — chưa làm, đây mới là ghi chú tham khảo)_
+**Câu hỏi kiến trúc thật, chưa có câu trả lời** (không phải Open Question
+cũ, phát hiện MỚI ở Phase 2 này): Program J's hướng MCP Server có **thay
+thế** pattern translator-per-engine hiện tại, hay **mở rộng thêm 1 lớp**
+bên trên nó (MCP cho capability discovery, translator vẫn giữ cho hook
+enforcement thời gian thực)? Ảnh hưởng trực tiếp Phase 3 Architecture —
+cần anh quyết định trước khi vẽ chi tiết.
+
+Danh sách capability (nguồn: `VISION-2.4.md` mục 2, đã gộp sẵn):
+
+| Name | Purpose | Input | Output | Dependency | Priority | Owner | Status |
+|---|---|---|---|---|---|---|---|
+| AI Adapter Layer | Dịch hook event của từng AI tool sang format chung, không hardcode logic riêng | Tool-native hook payload (vd Cursor's beforeShellExecution JSON) | Tool-native permission response | `core/hooks/*.sh` (logic gốc dùng chung) | _(TODO)_ | _(TODO)_ | **Có thật, hẹp** — 1/4+ engine (chỉ Cursor), 1 hook type (destructive-command) |
+| Prompt Translation Engine | Dịch Prompt AST sang format riêng từng AI | _(TODO — chưa rõ input cụ thể)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu |
+| Capability Engine (Registry + Dynamic Discovery) | Agent hỏi "có công cụ gì" thay vì hardcode if/else theo provider | _(TODO — phụ thuộc câu hỏi kiến trúc ở trên: MCP hay mở rộng translator)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu — đây là phần lõi MCP-Server hướng đã chốt |
+| Model Router | Định tuyến task theo độ khó (Simple→Haiku, Medium→Sonnet, Hard→Opus) | Task description | Model tier quyết định | _(TODO)_ | _(TODO)_ | _(TODO)_ | Chưa bắt đầu |
+| Marketplace (lớp phân phối) | Phân phối capability đã đóng gói | _(TODO)_ | _(TODO)_ | Capability Engine (phải có trước) | _(TODO)_ | _(TODO)_ | Chưa bắt đầu — phụ thuộc Capability Engine |
+| Extension SDK (lớp phân phối) | Cho phép bên thứ 3 viết thêm capability | _(TODO)_ | _(TODO)_ | Capability Engine (phải có trước) | _(TODO)_ | _(TODO)_ | Chưa bắt đầu — phụ thuộc Capability Engine |
+
+Nhiều ô `_(TODO)_` — đúng theo ADS v1: Priority/Owner/Input/Output cụ thể
+cần anh quyết định hoặc cần Phase 3 Architecture xong trước, không suy
+diễn cho đủ bảng.
 
 ## Dependencies
 
