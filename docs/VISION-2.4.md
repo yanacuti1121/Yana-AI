@@ -79,7 +79,24 @@ số đo thật.
 
 ---
 
-## Readiness Assessment (chèn giữa Capability và Implementation)
+## Readiness Assessment / Decision Workflow — SUPERSEDED 2026-07-24
+
+**Nâng cấp lên ADS v1** (`docs/programs/ADS-v1.md`) — sau ~2 ngày anh Tâm
+nghiên cứu tổng hợp, thay cho bản phác thảo ban đầu dưới đây. Giữ lại
+nguyên văn bản cũ để tham khảo lịch sử, KHÔNG dùng làm quy trình hiện
+hành nữa:
+
+- Readiness Assessment (5 mục) → **Readiness Matrix (10 mục)**: thêm
+  Knowledge, Notebook, Security, Benchmark, Context — xem `ADS-v1.md`
+  Phase 5.
+- Decision Workflow (6 câu hỏi: Need/Existing Solution/Ownership/
+  Readiness/Cost vs Value/Decision) → **Decision Workflow ADS v1** (6
+  bước: Problem/Existing Solution/Duplicate Check/Readiness/Cost vs
+  Value/Decision) — tách "Existing Solution" và "Duplicate Check" thành
+  2 bước riêng, đổi "Need" thành "Problem".
+
+<details>
+<summary>Bản gốc 2026-07-23 (lịch sử, không dùng nữa)</summary>
 
 ```
 Vision → Program → Capability → Readiness Assessment → Implementation
@@ -89,14 +106,15 @@ Vision → Program → Capability → Readiness Assessment → Implementation
 Governance / Cost Readiness. Readiness < 80% → chỉ được Research/ADR/Design,
 không được code.
 
-## Decision Workflow (6 câu hỏi, trước mọi capability)
-
+Decision Workflow (6 câu hỏi, trước mọi capability):
 1. Need — có thực sự cần không?
 2. Existing Solution — đã có gì rồi (Duplicate Check)?
 3. Ownership — capability nào chịu trách nhiệm?
 4. Readiness — Repository/Memory/Runtime/Governance/Cost đạt chuẩn chưa?
 5. Cost vs Value — có đáng token/thời gian không?
 6. Decision — làm / không làm / để dành, kèm lý do.
+
+</details>
 
 ---
 

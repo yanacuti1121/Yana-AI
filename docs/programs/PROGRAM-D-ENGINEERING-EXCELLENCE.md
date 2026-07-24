@@ -1,9 +1,9 @@
 # Program D — Engineering Excellence
 
-**Status:** `Draft` — nội dung §D7 dưới đây là thật, do anh Tâm cung cấp
-trực tiếp 2026-07-23 (không phải AI suy diễn). Các mục D1-D6 chưa được
-xác định — nếu Program D có thêm nội dung khác ngoài D7, cần bổ sung ở
-đây khi có, không đoán trước.
+**Status:** `Draft` — nội dung §D7 (2026-07-23) và §D8 (2026-07-24) đều
+thật, do anh Tâm cung cấp trực tiếp (không phải AI suy diễn). Các mục
+D1-D6 chưa được xác định — nếu Program D có thêm nội dung khác, cần bổ
+sung ở đây khi có, không đoán trước.
 
 ## Vision
 
@@ -41,6 +41,21 @@ Backlog skeleton (`docs/programs/PROGRAM-H-SKELETON.md`,
 `PROGRAM-J-SKELETON.md`) là bước chuẩn bị hợp lệ duy nhất được phép ở
 trạng thái `Specification Required` — không phải một cách lách luật để
 "vẫn làm được gì đó" trong lúc thiếu spec.
+
+## D8. Architecture Development Standard (ADS v1)
+
+Nội dung thật, do anh Tâm tổng hợp 2026-07-24 sau ~2 ngày nghiên cứu.
+Xem toàn văn ở `docs/programs/ADS-v1.md`. Đây là bản **operationalize**
+đầy đủ của D7: 5 bước triết lý (`Idea → Specification → ADR → Readiness
+→ Implementation`) được tách thành 16 phase cụ thể (Phase 0-15), có
+template Specification 19 trường (thay cho 9 mục cũ), Readiness Matrix
+10 mục (thay cho 5 mục cũ), Decision Workflow 6 bước, và hướng dẫn dùng
+cho bất kỳ AI nào (Claude/Codex/Cursor/Gemini) để ra kết quả nhất quán.
+
+**Từ 2026-07-24, ADS v1 là quy trình bắt buộc cho MỌI Program mới** —
+thay cho skeleton 9-mục đơn giản đã dùng cho D/F/H/J trước đó. Các
+skeleton cũ được nâng cấp dần sang template ADS v1 khi có nội dung mới
+để điền (xem `PROGRAM-J-SKELETON.md` — Program đầu tiên áp dụng).
 
 ## Quan hệ với các rule hiện có
 

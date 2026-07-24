@@ -1,40 +1,53 @@
 # Program Architecture Backlog
 
 > Tạo 2026-07-23, theo chỉ đạo trực tiếp của anh Tâm sau khi Wave 2 (Program
-> H/J implementation) bị chặn vì thiếu specification gốc. Đây KHÔNG phải
-> Wave 2 implementation — đây là bước chuẩn bị cấu trúc để phiên sau điền
-> nội dung thật từ đặc tả gốc (video tham khảo / conversation gốc), theo
-> đúng nguyên tắc Program D §D7 dưới đây.
+> H/J implementation) bị chặn vì thiếu specification gốc. Nâng cấp 2026-07-24
+> lên quy trình đầy đủ **ADS v1** (xem `ADS-v1.md`) sau ~2 ngày anh Tâm
+> nghiên cứu — thay cho skeleton 9-mục đơn giản ban đầu.
 >
 > **AI không tự suy diễn nội dung Program nào trong thư mục này.** Mọi mục
-> `_(TODO)_` trong các file skeleton phải được điền bởi anh Tâm hoặc từ một
+> `_(TODO)_`/`Specification Required` phải được điền bởi anh Tâm hoặc từ một
 > nguồn đặc tả đã xác minh, không phải AI đoán cho xong.
 
-## Nguyên tắc nền: Program D §D7 — Specification-first Development
+## Quy trình chuẩn: ADS v1 (từ 2026-07-24)
 
-Xem `PROGRAM-D-ENGINEERING-EXCELLENCE.md` cho nội dung đầy đủ. Tóm tắt:
+Xem `ADS-v1.md` cho toàn văn 16 phase. Đây là bản operationalize đầy đủ
+của Program D §D7 (`PROGRAM-D-ENGINEERING-EXCELLENCE.md`) — cùng triết
+lý gốc (`Idea → Specification → ADR → Readiness → Implementation`),
+tách thành quy trình cụ thể có template, checklist, tiêu chí đo được:
 
 ```
-Idea → Specification → ADR → Readiness → Implementation
+Phase 0  INPUT (Vision, Problem, Goals, Motivation)
+Phase 1  SPECIFICATION (19-field template — không code)
+Phase 2  CAPABILITY INVENTORY
+Phase 3  ARCHITECTURE (sơ đồ, không code)
+Phase 4  WORKFLOW (pipeline, không code)
+Phase 5  READINESS (Readiness Matrix 10 mục — <80% = Block)
+Phase 6  ADR
+Phase 7  RESEARCH (không code)
+Phase 8  DESIGN REVIEW
+Phase 9  IMPLEMENTATION PLAN
+Phase 10 IMPLEMENTATION (mới được code)
+Phase 11 REVIEW
+Phase 12 BENCHMARK
+Phase 13 EVALUATION
+Phase 14 DOCUMENTATION
+Phase 15 CONTINUOUS IMPROVEMENT
 ```
 
-Thiếu Specification ở bất kỳ Program nào → **Implementation = BLOCKED** cho
-Program đó, không có ngoại lệ, kể cả khi AI "có vẻ" suy ra được nội dung
-hợp lý từ ngữ cảnh xung quanh.
+Thiếu Specification (Phase 1) → **Implementation = BLOCKED**, không có
+ngoại lệ, kể cả khi AI "có vẻ" suy ra được nội dung hợp lý từ ngữ cảnh.
 
-## Trạng thái vocabulary (mới, bổ sung 2026-07-23)
+## Trạng thái vocabulary
 
-Roadmap trước đây (`ROADMAP.md`) chỉ có phase-level markers (done/planned).
-Bổ sung 4 trạng thái Program-level, xếp theo thứ tự của pipeline Program D
-ở trên — mỗi trạng thái tương ứng với Program đang ở bước nào trong chuỗi
-Idea → Specification → ADR → Readiness → Implementation:
+4 trạng thái Program-level, ánh xạ lên các cụm phase của ADS v1:
 
-| Trạng thái | Ý nghĩa | Được phép làm gì |
+| Trạng thái | Tương ứng ADS v1 | Được phép làm gì |
 |---|---|---|
-| `Draft` | Có ý tưởng (Idea), chưa có specification đầy đủ | Thảo luận, phác thảo |
-| `Specification Required` | Ý tưởng đã có tên/khung, nhưng nội dung chi tiết (vision, capability list, architecture...) chưa được viết ra ở đâu có thể xác minh | Chỉ chuẩn bị skeleton (file này) — KHÔNG code, KHÔNG viết ADR |
-| `Architecture Review` | Specification đã đầy đủ, đang review (per `54-bft-consensus-law.md` nếu chạm infra) | ADR có thể viết, chưa implement |
-| `Ready for Implementation` | Readiness Assessment ≥ 80% theo 5 tiêu chí VISION-2.4.md (Repository/Memory/Runtime/Governance/Cost) | Code được phép bắt đầu |
+| `Draft` | Phase 0 (Input) xong, Phase 1 (Specification) chưa đầy đủ | Thảo luận, phác thảo |
+| `Specification Required` | Chưa qua được Phase 0 — thiếu Vision/Problem/Goals/Motivation nguồn thật | Chỉ chuẩn bị skeleton — KHÔNG code, KHÔNG viết ADR |
+| `Architecture Review` | Phase 1-4 xong (Spec + Capability + Architecture + Workflow), đang Phase 8 Design Review | ADR có thể viết (Phase 6), chưa implement |
+| `Ready for Implementation` | Phase 5 Readiness ≥ 80% theo Readiness Matrix (10 mục) | Phase 10 — code được phép bắt đầu |
 
 (Ngoài 4 trạng thái Program-level này, `ROADMAP.md`'s phase markers —
 Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không thay thế.)
@@ -43,10 +56,10 @@ Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không tha
 
 | Program | Tên | Trạng thái | File |
 |---|---|---|---|
-| D | Engineering Excellence | `Draft` — chỉ §D7 có nội dung thật, các mục khác (D1-D6?) chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
-| F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` — tên và ý tưởng đến từ chỉ đạo hôm nay, chưa có nội dung đầy đủ | `PROGRAM-F-SKELETON.md` |
+| D | Engineering Excellence | `Draft` — §D7 + §D8 (ADS v1) có nội dung thật, D1-D6 chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
+| F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` | `PROGRAM-F-SKELETON.md` |
 | H | Autonomous Safety & Execution Assurance | `Specification Required` | `PROGRAM-H-SKELETON.md` |
-| J | Universal Capability Runtime | `Draft` — nguồn thật từ 2 video tham khảo (InsForge, MCP-vs-API) nhận 2026-07-23, transcribe đầy đủ vào Vision/Problem Statement/Design Goals; Architecture + 4 Open Question còn chờ anh quyết | `PROGRAM-J-SKELETON.md` |
+| J | Universal Capability Runtime | `Draft` — Program đầu tiên áp dụng template ADS v1 (2026-07-24) | `PROGRAM-J-SKELETON.md` |
 
 Program G, I và các Program khác được nhắc trong `docs/VISION-2.4.md` hoặc
 trong hội thoại trước đó nhưng chưa có file riêng — thêm khi có nhu cầu cụ
@@ -54,6 +67,8 @@ thể, không tạo trước.
 
 ## Liên quan
 
+- `ADS-v1.md` — quy trình chuẩn đầy đủ (16 phase), bắt buộc từ 2026-07-24
+- `PROGRAM-D-ENGINEERING-EXCELLENCE.md` — §D7 (triết lý gốc) + §D8 (ADS v1)
 - `docs/VISION-2.4.md` — tầm nhìn dài hạn, nơi Program H/J lần đầu được đặt tên
 - `docs/PLATFORM-READINESS-WAVE0.md` — audit Wave 0, mục 2 tham chiếu Program J
 - `docs/adr/` — nơi ADR của từng Program sẽ được viết khi lên `Architecture Review`
