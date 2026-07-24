@@ -7,11 +7,13 @@ Interfaces + Workflow dựa trên MCP spec thật). Kiến trúc chốt: MCP Ser
 — áp dụng cho cả 5 client (Claude Code/Cursor/Gemini/Codex/`yana-ai chat`)
 — gọi `src/guard/mod.rs::check_command()` trực tiếp trong process, giữ
 nguyên triết lý fail-closed (cả 2 kênh lỗi MCP đều map thành deny), không
-đổi cơ chế chặn bắt buộc của Claude Code. **Phase 5 Readiness: 60%
-(5 Ready + 2 cách-hiểu-chưa-chắc + 2 Not-ready) → BLOCK theo đúng luật
-ADS v1** — chưa đủ điều kiện Phase 10 Implementation, cần Benchmark/Cost
-thật trước (xem "Readiness Matrix" bên dưới). Đã fix 1 gap tìm thấy giữa
-chừng: quyết định kiến trúc chưa từng được ghi vào L1 memory — đã ghi
+đổi cơ chế chặn bắt buộc của Claude Code. **Phase 5 Readiness: 70%**
+(nâng từ 60% sau khi đo Benchmark thật — translator hiện tại 178-310ms/lần
+gọi, đo trực tiếp — và tự viết Cost analysis sau khi 2 model local đều
+fail việc brainstorm này) **→ vẫn BLOCK theo đúng luật ADS v1** (cần
+≥80%) — chưa đủ điều kiện Phase 10 Implementation (xem "Readiness Matrix"
+bên dưới cho chi tiết từng mục). Đã fix 1 gap tìm thấy giữa chừng: quyết
+định kiến trúc chưa từng được ghi vào L1 memory — đã ghi
 (`fact-20260724-233122`). Dừng ở Phase 5, 2026-07-24 — Phase 6 ADR/Phase
 7 Research/Phase 8 Design Review là bước tiếp theo, không phải code.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
@@ -487,20 +489,24 @@ thay vì chấm điểm giả vờ chắc chắn.
 | Runtime | ✅ Ready | `yana-rt` là binary thật, đang chạy tốt (183 unit + 63 integration test pass, xác nhận lúc chuẩn bị PR #80 cùng session này), thêm 1 mode/subcommand mới là pattern quen thuộc của codebase |
 | Governance | ✅ Ready | Đang tự áp dụng đúng quy trình D7/ADS v1; `54-bft-consensus-law.md`'s dual-review sẽ áp dụng khi code thật đụng `core/hooks/`/`core/adapters/` |
 | Security | ✅ Ready | Mục được đầu tư kỹ nhất trong toàn bộ Phase 1-4: ánh xạ fail-closed cho 2 kênh lỗi MCP, phân biệt rõ "chặn bắt buộc" (Claude Code hook) vs "tool tự nguyện" (MCP thường), giữ nguyên `check_command()` làm nguồn phán đoán duy nhất |
-| Benchmark | ❌ Not ready | Chưa đo gì — số timeout cụ thể, độ trễ in-process vs spawn-bash, đều ghi rõ "chưa quyết, cần Phase 12" trong Workflow ở trên. Không có ngay cả ước lượng thô |
-| Cost | ❌ Not ready | Chưa đề cập ở đâu trong Phase 1-4. Liên quan tới cuộc trao đổi "giảm quota Claude" đầu phiên nhưng chưa nối 2 việc lại với nhau thành phân tích cụ thể |
+| Benchmark | ⚠️ Partial (nâng từ Not ready, 2026-07-24) | **Đo thật, không phải đoán:** cơ chế translator hiện tại (`before-shell-execution.js` → spawn bash → `guard-destructive.sh`) = **178-310ms/lần gọi, trung bình ~220ms** (5 lần đo trực tiếp, `node` + `spawnSync`, lệnh benign `ls -la`). So với số đã có sẵn từ `BENCHMARK.md` (2026-07-23): Rust binary startup ~22-24ms, `yana-rt guard token-budget` dispatch (in-process nhưng có lock overhead) ~65ms. `check_command()` là hàm thuần, không lock, không I/O — hướng ước lượng mạnh là MCP Server in-process sẽ nhanh hơn translator hiện tại ít nhất một bậc độ lớn, nhưng **số thật của chính MCP Server chưa đo được vì chưa implement** — đây là giới hạn thật, không phải lười đo |
+| Cost | ⚠️ Partial (nâng từ Not ready, 2026-07-24) | Thử giao cho 2 model local brainstorm cost factor trước khi tự viết — cả 2 đều fail (14B trả lời lạc đề/cắt cụt; 9.7B "thinking" chạy quá 120s rồi lỗi JSON rỗng, không phải do thiếu kiên nhẫn mà do output không hợp lệ). Tự viết bằng Claude thay vì ép model yếu ra kết quả giả. Yếu tố chi phí thật cần cân nhắc: (1) engineering time viết + review MCP Server module mới, (2) chi phí vận hành gần như 0 (chạy local trong `yana-rt` sẵn có, không gọi API ngoài), (3) rủi ro chi phí ẩn lớn nhất — nếu bước "map lỗi MCP thành deny" (Interfaces, đã ghi) làm sai, chi phí là an toàn bị suy yếu, không phải tiền — nên đây là hạng mục cần review kỹ hơn benchmark tiền bạc thông thường |
 | Context | ⚠️ Cách hiểu chưa chắc | Nếu nghĩa là "phạm vi có đủ gọn để implement không phát sinh phức tạp" — có vẻ Ready (1 tool mới, tái dùng hàm thuần có sẵn, module boundary rõ). Nếu nghĩa khác (VD ngân sách context window lúc chạy) — chưa đánh giá |
 
-**Điểm tổng (tự tính, không phải công thức chính thức):** 5 Ready + 2
-"cách hiểu chưa chắc" (tính 0.5) + 2 Not ready (tính 0) = 6/10 = **60%**.
+**Điểm tổng (tự tính, không phải công thức chính thức, cập nhật sau khi
+đo Benchmark + viết Cost, cùng ngày):** 5 Ready + 4 Partial/cách-hiểu-
+chưa-chắc (tính 0.5) + 0 Not ready = 5 + 2 = 7/10 = **70%** (tăng từ 60%
+lúc đánh giá lần đầu).
 
 **Kết luận theo đúng luật ADS v1** ("Readiness < 80% → Block, chỉ được
-Research/ADR/Design, không code"): **Program J CHƯA đủ điều kiện vào
-Phase 10 Implementation.** Đây không phải tin xấu — đúng thực tế hiện
-tại (mới xong Phase 1-4, chưa qua Phase 6 ADR/Phase 7 Research/Phase 8
-Design Review), và đúng chức năng của Readiness Matrix: chặn code chạy
-sớm khi Cost/Benchmark chưa có số liệu thật, thay vì đoán rồi implement
-sai hướng.
+Research/ADR/Design, không code"): **Program J vẫn CHƯA đủ điều kiện vào
+Phase 10 Implementation** — 70% < 80%, dù đã cải thiện. Đây không phải
+tin xấu — đúng thực tế hiện tại (mới xong Phase 1-4, chưa qua Phase 6
+ADR/Phase 7 Research/Phase 8 Design Review), và đúng chức năng của
+Readiness Matrix: chặn code chạy sớm khi số liệu thật của chính MCP
+Server (chưa tồn tại) vẫn chưa đo được, thay vì đoán rồi implement sai
+hướng. Cách nâng điểm thật sự tiếp theo: đi qua Phase 6-8 trước, không
+phải cố "chấm cho đủ 80%".
 
 ## Input bổ sung — 2026-07-24 (trực tiếp từ anh Tâm, không phải suy diễn)
 
