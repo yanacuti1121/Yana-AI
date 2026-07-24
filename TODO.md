@@ -155,22 +155,27 @@ picking a next step.
       to the automated check, since README.md has legitimate non-total-count
       number mentions (e.g. "Launch 3 agents" in an example command) that
       would false-positive against the existing simple regex heuristic.
-- [ ] Demo GIF/video — 1-2 min showing an agent trying something destructive
-      and Yana blocking it in real time. README already has real captured
-      terminal output (not staged) but no visual/video walkthrough.
-- [ ] Documentation/version consistency CI check — package.json, MANIFEST.json,
-      Cargo.toml, pyproject.toml, and README's stated counts (skills/agents/
-      hooks/rules/commands/scripts) drifting apart is a REAL, repeated pattern
-      in this repo's history (found and fixed 3 separate times just in this
-      session: MANIFEST/README count drift PR #67/#68/#69, ROADMAP/VERSIONING.md
-      discoverability PR #72). `drift-check.sh`/`validate-manifest.sh`/
-      `validate-counts.sh` already exist but don't fully agree with each other
-      on methodology (see PR #71's commit message for one concrete example —
-      `components.agents.count` vs `agents_count` disagreeing) — worth
-      reconciling into one canonical check before adding more.
-- [ ] Release governance checklist for the 3-axis version scheme (see
-      VERSIONING.md) — ensure each artifact gets the right axis bumped and
-      related docs updated together, not piecemeal.
+- [x] Demo GIF/video — DONE 2026-07-24. `docs/assets/demo.gif`, recorded with
+      asciinema+agg from a real invocation of `guard-destructive.sh` (force-push,
+      `rm -rf`, and the `python3 -c` inline-script bypass fixed earlier this
+      session), embedded in README right after the intro line.
+- [x] Documentation/version consistency CI check — the "3 scripts disagreeing
+      on methodology" problem this item was actually about was already fixed
+      before this session (`3f986cc4 fix: reconcile the 3 count-validator
+      scripts' find patterns`, 2026-07-13) and re-verified live 2026-07-24:
+      `drift-check.sh` (CI-wired), `validate-manifest.sh` (wired into
+      `verify-rules.sh` Gate 4 + `lint-staged-git-hook` skill), and
+      `validate-counts.sh` (manual second-opinion, per RELEASE-CHECKLIST.md)
+      all report 0 drift on the same 7 counts. Left as 3 scripts rather than
+      physically merged into 1 — they run at 3 different points (CI, local
+      pre-commit-style gate, manual check) and merging would remove that
+      defense-in-depth for no correctness gain now that they agree; revisit
+      only if they drift apart again.
+- [x] Release governance checklist for the 3-axis version scheme — DONE
+      2026-07-23 as `docs/RELEASE-CHECKLIST.md` (see VERSIONING.md for the
+      why; this is the how — per-axis manual-vs-CI-automatic steps, drift
+      gates, tag/push order, post-publish verification, 5 anti-patterns each
+      tied to a real incident).
 - [ ] (Lower priority, explicitly not urgent per the review exchange) —
       skill governance / duplicate-detection tooling for the 2016 SKILL.md
       files (near-duplicate names like "X", "X_v2", "X_fixed"), and an audit
