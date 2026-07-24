@@ -8,9 +8,10 @@ tiếp, giữ nguyên fail-closed + cơ chế chặn bắt buộc Claude Code, c
 zero-config qua `plugin.json`. ADR: `docs/adr/ADR-010-...md`. L1 memory:
 `fact-20260724-233122`. **Phase 5 Readiness: 70% → vẫn BLOCK theo ADS v1**
 (cần ≥80%) — Roadmap (Phase 9) chia 5 giai đoạn Research→Prototype→Alpha→
-Beta→Stable nhưng **CHƯA bắt đầu Phase 10 code**, đúng luật. Gap còn treo
-cho giai đoạn Research: cơ chế MCP local của Cursor/Codex/Gemini chưa
-nghiên cứu.
+Beta→Stable. **Giai đoạn Research xong 2026-07-25** — config file MCP
+của cả 4 client còn lại đã xác nhận (Cursor/Gemini dùng chung schema
+JSON với Claude Code, Codex dùng TOML riêng). anh Tâm cho phép vượt cổng
+Readiness làm 1 spike nhỏ (Prototype) — xem tiến độ ở "Roadmap" bên dưới.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -516,12 +517,23 @@ của Yana AI ("`npx yana-ai-install` wires the hooks (60 seconds)", README.md).
 **Ảnh hưởng Phase 9:** không cần thêm bước cài đặt thủ công nào cho MCP
 Server — chỉ cần thêm 1 entry `mcpServers` vào `plugin.json` hiện có.
 
-**Chưa nghiên cứu, còn thiếu cho Phase 8 Design Review:** cách Cursor/
-Codex/Gemini (3 trong 5 client của Program J) tự kết nối MCP server local
-— chỉ mới xác nhận cơ chế của Claude Code. Cần fetch riêng cho từng cái,
-không giả định giống Claude Code. **Vẫn còn thiếu sau Phase 8 dưới đây**
-— không đủ thời gian trong phiên này, ghi rõ là gap thật, không giả vờ
-đã xong.
+**4. Gap đã đóng — 2026-07-25, fetch riêng từng client, không giả định
+giống nhau:**
+
+| Client | File config (project-scoped) | Format | Nguồn |
+|---|---|---|---|
+| Claude Code | `.mcp.json` (hoặc auto qua `plugin.json`'s `mcpServers`) | JSON, `mcpServers: {name: {command,args,env}}` | `code.claude.com/docs/en/mcp` |
+| Cursor | `.cursor/mcp.json` | JSON, **cùng schema `mcpServers` y hệt Claude Code** | `cursor.com/docs/context/mcp` |
+| Gemini CLI | `.gemini/settings.json` | JSON, **cùng schema `mcpServers` y hệt Claude Code** | `github.com/google-gemini/gemini-cli` docs |
+| Codex CLI | `.codex/config.toml` | **TOML, khác hẳn** — `[mcp_servers.<name>]` table, không phải JSON | `learn.chatgpt.com/docs/extend/mcp` |
+
+**Phát hiện quan trọng cho Phase 9:** 3/4 client (Cursor, Gemini, và
+Claude Code khi không dùng auto-plugin) dùng **chung 1 schema JSON**
+(`mcpServers: {name: {command, args, env}}`) — script cài đặt của Yana
+AI có thể sinh gần như cùng 1 block cho cả 3, chỉ khác đường dẫn file.
+Chỉ Codex cần nhánh riêng (TOML). Repo này đã có sẵn `.cursor/`, `.codex/`,
+`.gemini/` (đều đang untracked, từ công việc trước đó session này) —
+đúng vị trí cần ghi các file config này vào khi tới Phase 10.
 
 ## Design Review (Phase 8 — checklist 9 mục theo ADS v1, 2026-07-24)
 
@@ -557,9 +569,9 @@ nguồn suy luận để không phải suy diễn mù.
 **5 giai đoạn theo đúng khuôn ADS v1 (Research → Prototype → Alpha →
 Beta → Stable):**
 
-1. **Research** (còn thiếu, chưa xong): nghiên cứu cơ chế MCP local của
-   Cursor/Codex/Gemini (gap đã ghi từ Phase 7/8, chưa giải quyết). Spike
-   nhỏ: nối `rmcp` (pin `2.2.0` stable, không phải `3.0.0-beta.1` — Phase
+1. **Research** — ✅ xong 2026-07-25 (config file từng client đã xác
+   nhận, xem bảng ở "Capability List"). Còn lại của giai đoạn này: spike
+   nhỏ nối `rmcp` (pin `2.2.0` stable, không phải `3.0.0-beta.1` — Phase
    8 finding) với `check_command()` (đổi `pub`) qua 1 tool duy nhất
    (`check_command`), chạy thử stdio mode, KHÔNG thay bất kỳ client thật
    nào chưa.
