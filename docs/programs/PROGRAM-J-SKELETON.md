@@ -1,21 +1,16 @@
 # Program J — Universal Capability Runtime
 
-**Status:** `Draft` — Phase 0-7 xong 2026-07-24. Kiến trúc chốt: MCP
-Server (mode mới của `yana-rt`, dùng SDK Rust chính thức `rmcp`) thay
-thế hoàn toàn pattern translator-per-engine cho cả 5 client, gọi
-`src/guard/mod.rs::check_command()` trực tiếp, giữ nguyên fail-closed và
-cơ chế chặn bắt buộc của Claude Code. Cài đặt dự kiến zero-config: khai
-báo `mcpServers` ngay trong `plugin.json` hiện có (Phase 7 Research phát
-hiện) — không cần user tự setup. **Phase 5 Readiness: 70% → vẫn BLOCK**
-(cần ≥80%, xem "Readiness Matrix"). ADR: `docs/adr/ADR-010-mcp-server-
-replaces-translator-per-engine.md`. Quyết định kiến trúc đã ghi L1 memory
-(`fact-20260724-233122`). **Phase 8 Design Review xong cùng ngày**: 7/9
-mục Ready, 1 lưu ý (pin `rmcp` bản stable `2.2.0`, không phải
-`3.0.0-beta.1`), 1 gap thật (tên lệnh CLI chưa chốt). Không mục nào Fail.
-Design Review không tự nâng Readiness — vẫn 70%, vẫn BLOCK Phase 10.
-Dừng ở Phase 8, 2026-07-24 — Phase 9 Implementation Plan là bước tiếp
-theo. Gap còn treo, chưa xong: cơ chế kết nối MCP local của
-Cursor/Codex/Gemini chưa nghiên cứu, chỉ mới xác nhận của Claude Code.
+**Status:** `Draft` — Phase 0-9 xong 2026-07-24 (Input → Implementation
+Plan; xem section tương ứng cho chi tiết từng phase). Kiến trúc chốt: MCP
+Server (`yana-rt mcp`, dùng SDK `rmcp` bản stable `2.2.0`) thay thế hoàn
+toàn translator-per-engine cho cả 5 client, gọi `check_command()` trực
+tiếp, giữ nguyên fail-closed + cơ chế chặn bắt buộc Claude Code, cài đặt
+zero-config qua `plugin.json`. ADR: `docs/adr/ADR-010-...md`. L1 memory:
+`fact-20260724-233122`. **Phase 5 Readiness: 70% → vẫn BLOCK theo ADS v1**
+(cần ≥80%) — Roadmap (Phase 9) chia 5 giai đoạn Research→Prototype→Alpha→
+Beta→Stable nhưng **CHƯA bắt đầu Phase 10 code**, đúng luật. Gap còn treo
+cho giai đoạn Research: cơ chế MCP local của Cursor/Codex/Gemini chưa
+nghiên cứu.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -548,9 +543,59 @@ thật (Naming — tên lệnh CLI). Không có mục nào Fail. Design Review
 KHÔNG tự động nâng điểm Readiness Matrix (Phase 5) — đó là 2 gate khác
 nhau; Readiness vẫn đứng ở 70%, cần đi thật qua Phase 9 mới biết rõ hơn.
 
-## Roadmap
+## Roadmap (Phase 9 — Implementation Plan, 2026-07-24)
 
-_(TODO — chưa tới Phase 9)_
+**Tên lệnh CLI — đề xuất, không phải suy diễn tuỳ tiện:** `yana-rt mcp`
+(top-level command, flag phẳng — VD `--transport stdio`), theo đúng
+pattern đã có của `Chat` (`src/main.rs` dòng 162, cũng flag phẳng, không
+có nested action enum) — vì MCP Server, giống `chat`, là "chạy như 1
+mode" chứ không phải CRUD resource kiểu `Task`/`Guard` (noun + action
+enum). Đây là quyết định housekeeping/naming theo convention có sẵn,
+không phải kiến trúc — không cần chờ anh Tâm duyệt riêng, nhưng ghi rõ
+nguồn suy luận để không phải suy diễn mù.
+
+**5 giai đoạn theo đúng khuôn ADS v1 (Research → Prototype → Alpha →
+Beta → Stable):**
+
+1. **Research** (còn thiếu, chưa xong): nghiên cứu cơ chế MCP local của
+   Cursor/Codex/Gemini (gap đã ghi từ Phase 7/8, chưa giải quyết). Spike
+   nhỏ: nối `rmcp` (pin `2.2.0` stable, không phải `3.0.0-beta.1` — Phase
+   8 finding) với `check_command()` (đổi `pub`) qua 1 tool duy nhất
+   (`check_command`), chạy thử stdio mode, KHÔNG thay bất kỳ client thật
+   nào chưa.
+
+2. **Prototype**: `yana-rt mcp --transport stdio` chạy được, expose đúng
+   1 tool `check_command` theo schema đã định nghĩa ở Interfaces (Phase
+   1). Test tay bằng 1 MCP client thật (VD `mcp-inspector` hoặc tương
+   đương) — chưa nối vào Cursor/Claude Code thật. Xác nhận sống được cả
+   2 nhánh lỗi (Protocol Error, `isError:true`) đều map đúng thành deny
+   như Interfaces đã ghi — đây là điều kiện bắt buộc trước khi qua Alpha,
+   không phải tuỳ chọn.
+
+3. **Alpha**: thay 1 client duy nhất — Cursor (đã có translator để so
+   sánh song song) — sang gọi `yana-rt mcp` thay vì
+   `core/adapters/cursor/before-shell-execution.js`. Chạy song song có
+   kiểm soát (feature-flag hoặc branch riêng), đo Benchmark thật (Phase
+   12) so với baseline 178-310ms đã đo. Không tắt translator cũ cho tới
+   khi số liệu thật xác nhận parity + nhanh hơn.
+
+4. **Beta**: mở rộng sang các client còn lại theo Phase 3's Modules table
+   — Claude Code's hook script (đổi nội dung bên trong, không đổi cơ chế
+   chặn), Codex/Gemini (cần Research bước 1 xong trước), `yana-ai chat`
+   (client thật đầu tiên chưa từng có translator, use case gốc khởi động
+   toàn bộ Program J này). `core/config/mcp-whitelist.json` (đã tạo,
+   chưa enforce — gap từ Open Question 1) cần có điểm wire enforcement
+   thật ở giai đoạn này, không để tiếp tục là file mồ côi.
+
+5. **Stable**: tất cả 5 client qua MCP Server. `core/adapters/cursor/
+   before-shell-execution.js` và `guard-destructive.sh` (bash) — quyết
+   định deprecate hay giữ (câu hỏi đã nêu ở Design Review's mục
+   Maintainability, chưa trả lời) cần chốt ở giai đoạn này, không phải
+   trước.
+
+**Không nằm trong Implementation Plan này — thuộc Phase 10 trở đi:** code
+thật, test thật, PR thật. Roadmap này chỉ chia giai đoạn, không phải bắt
+đầu code.
 
 ---
 
