@@ -209,6 +209,30 @@ test_hook "guard-destructive.sh" "Allow native Bash still works after MCP change
 test_hook "guard-destructive.sh" "Block MCP array-of-strings under plural 'commands' key" '{"tool_name":"mcp__x__y","tool_input":{"commands":["rm -rf /tmp/x","echo ok"]}}' "deny"
 test_hook "guard-destructive.sh" "Block MCP acronym-prefixed key (SQLCommand)" '{"tool_name":"mcp__x__y","tool_input":{"SQLCommand":"DROP TABLE users;"}}' "deny"
 
+# 2026-07-24 finding: every check above tokenizes on shell whitespace, so
+# a destructive command hidden inside a quoted -c/-e argument to an
+# interpreter (python/node/ruby/perl) was never seen as a real token —
+# verified live bypass (exit 0/allow) before this fix, both this bash hook
+# and src/guard/mod.rs's Rust path. Found while reviewing an external
+# destructive-command-guard project's design for cross-pollination ideas.
+test_hook "guard-destructive.sh" "Block python3 -c inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block node -e inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"node -e \"require('"'"'child_process'"'"').execSync('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block ruby -e inline rm -rf (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"ruby -e \"system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block python3 -c inline DROP TABLE (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"cursor.execute('"'"'DROP TABLE users'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block python3 -c inline git push --force (interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"os.system('"'"'git push --force origin main'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Allow python3 -c with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"print('"'"'hello world'"'"')\""}}' "allow"
+test_hook "guard-destructive.sh" "Allow python3 script.py with no -c flag (unaffected)" '{"tool_name":"Bash","tool_input":{"command":"python3 script.py"}}' "allow"
+
+# Round 2 (2026-07-24) -- caught by security-auditor adversarial review of
+# round 1, all three live-verified bypasses of round 1's own new check.
+test_hook "guard-destructive.sh" "Block capitalized interpreter name Python3 (round 1 case-sensitivity bypass)" '{"tool_name":"Bash","tool_input":{"command":"Python3 -c \"import os; os.system('"'"'rm -rf /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block capitalized inner payload RM -RF (round 1 case-sensitivity bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'RM -RF /tmp/x'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block bash -c inline rm -rf (round 1 missing-interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"bash -c \"rm -rf /tmp/x\""}}' "deny"
+test_hook "guard-destructive.sh" "Block sh -c inline rm -rf (round 1 missing-interpreter bypass)" '{"tool_name":"Bash","tool_input":{"command":"sh -c \"rm -rf /tmp/x\""}}' "deny"
+test_hook "guard-destructive.sh" "Block git clean -f inside python -c (round 1 missing-pattern bypass)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'git clean -fdx'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Block git reset --hard inside python -c (bash/Rust test-parity gap, code-auditor finding)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'git reset --hard HEAD~5'"'"')\""}}' "deny"
+test_hook "guard-destructive.sh" "Allow benign bash -c with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"bash -c \"echo hello world\""}}' "allow"
+
 # 3a. tool-proxy-enforcer.sh — had ZERO direct test coverage before this
 # addition (2026-07-19), despite being one of 5 hooks in the live default
 # PreToolUse chain for every Bash call. That gap is exactly how its `grep -P`
@@ -1561,6 +1585,102 @@ else
     echo "Output: $_ckpt_out"
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
+
+# ── ADR-008: real concurrent cross-language race on token-budget.json ───────
+# docs/adr/ADR-008-shared-locking-infrastructure.md. Not a sequential
+# "both scripts touched the same file" check like the bridge tests above —
+# this actually races risk-scorer.sh (Python), budget-sentinel.sh (Python),
+# and token-budget-guard.sh (bash — whichever of its two lock paths fires
+# depends on whether yana-rt is on PATH in the environment running this
+# suite; both are ADR-008-covered and either is a valid pass) as real
+# concurrent OS processes against the identical file, the same shape
+# `cmd_dispatch`-style parallel agents or
+# simply several PreToolUse-matched hooks firing close together produce in
+# practice. Before the fix, each was an independent unlocked
+# read-modify-write; this reproduces the loss and would fail on pre-fix code.
+echo ""
+echo "=== token-budget.json: real concurrent cross-language race (ADR-008) ==="
+
+RACE_TMP=$(mktemp -d)
+register_temp "$RACE_TMP"
+RACE_BUDGET_FILE="$RACE_TMP/token-budget.json"
+echo '{"session_start":"seed","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}' > "$RACE_BUDGET_FILE"
+
+# Prefer this checkout's freshly-built binary over any stale globally
+# installed yana-rt (e.g. an older `cargo install`'d copy) that might
+# otherwise resolve first on a developer machine's normal PATH — this
+# suite must exercise the fix under test, not whatever happened to be
+# installed globally before it. Falls through silently if no local build
+# exists (test still runs, just against the bash/Node fallback logic).
+# Scoped to ONLY these two race sub-tests via save/restore below — an
+# earlier version of this left PATH modified for the rest of the script
+# and silently changed a LATER, unrelated test's behavior (guard-
+# destructive.sh's own jq-missing fail-closed test started resolving
+# yana-rt via this same PATH change and exec'd into the Rust port, which
+# doesn't need jq at all — masking the exact bash-fallback behavior that
+# test exists to check). Global PATH mutation in a shared test script is
+# exactly the kind of cross-test coupling this suite should not have.
+RACE_ORIGINAL_PATH="$PATH"
+RACE_LOCAL_BIN_DIR="$CLAUDE_DIR/../target/debug"
+[[ -x "$RACE_LOCAL_BIN_DIR/yana-rt" ]] && export PATH="$RACE_LOCAL_BIN_DIR:$PATH"
+
+echo -n "race [10x risk-scorer + 10x token-budget-guard on the same file, zero lost updates]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_race_pids=()
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/risk-scorer.sh" <<< '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+    >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _pid in "${_race_pids[@]}"; do wait "$_pid"; done
+
+_race_json_valid="no"
+python3 -c "import json; json.load(open('$RACE_BUDGET_FILE'))" 2>/dev/null && _race_json_valid="yes"
+_race_loop_count=$(jq -r '.loop_attempts.RaceTool // 0' "$RACE_BUDGET_FILE" 2>/dev/null || echo 0)
+if [[ "$_race_json_valid" == "yes" && "$_race_loop_count" == "10" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (json_valid=$_race_json_valid loop_attempts.RaceTool=$_race_loop_count, expected yes/10 — lost update(s) under real concurrency)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "race [10x budget-sentinel + 10x token-budget-guard on the same file, zero lost updates]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+RACE_BUDGET_FILE2="$RACE_TMP/token-budget-2.json"
+echo '{"session_start":"seed","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}' > "$RACE_BUDGET_FILE2"
+_race_pids=()
+for _i in $(seq 1 10); do
+  ( CLAUDE_CONTEXT_TOKENS_USED=1000 CLAUDE_CONTEXT_TOKENS_REMAINING=199000 CLAUDE_CONTEXT_WINDOW=200000 \
+    CLAUDE_TOOL_NAME="RaceTool2" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE2" \
+    bash "$CLAUDE_DIR/hooks/budget-sentinel.sh" <<< '{}' >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _i in $(seq 1 10); do
+  ( CLAUDE_TOOL_NAME="RaceTool2" YANA_TOKEN_BUDGET="$RACE_BUDGET_FILE2" YANA_MAX_FIX_ATTEMPTS=1000 \
+    bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" >/dev/null 2>&1 ) &
+  _race_pids+=($!)
+done
+for _pid in "${_race_pids[@]}"; do wait "$_pid"; done
+
+_race2_json_valid="no"
+python3 -c "import json; json.load(open('$RACE_BUDGET_FILE2'))" 2>/dev/null && _race2_json_valid="yes"
+_race2_loop_count=$(jq -r '.loop_attempts.RaceTool2 // 0' "$RACE_BUDGET_FILE2" 2>/dev/null || echo 0)
+if [[ "$_race2_json_valid" == "yes" && "$_race2_loop_count" == "10" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (json_valid=$_race2_json_valid loop_attempts.RaceTool2=$_race2_loop_count, expected yes/10 — lost update(s) under real concurrency)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Restore PATH — see the comment above RACE_ORIGINAL_PATH's assignment for
+# why this must not leak into the rest of the suite.
+export PATH="$RACE_ORIGINAL_PATH"
 rm -rf "$BRIDGE_TMP"
 
 # ── prompt-injection-guard.sh ─────────────────────────────────────────────────
@@ -2424,6 +2544,134 @@ test_sandbox_wrap_pipe_preserved() {
     fi
 }
 test_sandbox_wrap_pipe_preserved
+
+# ── verify-hook-mirrors.sh — ADR-008 "Still open" follow-up ──────────────────
+# core/scripts/verify-hook-mirrors.sh (2026-07-23) closes the exact gap that
+# let ADR-008's own hook fixes silently stay unpatched in .claude/hooks/ and
+# .codex/hooks/ for a full session, caught only by an independent review, not
+# by any check. These are hermetic fixture tests against a fake project root
+# (not the real repo), plus one live check against the real repo state —
+# that live check IS the actual gate: it fails this whole suite if
+# core/hooks/, .claude/hooks/, or .codex/hooks/ drift apart going forward.
+SCRIPTS_DIR="$CLAUDE_DIR/scripts"
+
+_mirror_fixture_root() {
+    local root
+    root=$(mktemp -d)
+    register_temp "$root"
+    mkdir -p "$root/core/hooks" "$root/.claude/hooks" "$root/.codex/hooks"
+    echo "$root"
+}
+
+test_hook_mirror_parity_passes_when_synced() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Passes when all three copies are byte-identical]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+
+    if CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (expected exit 0 for identical mirrors)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_passes_when_synced
+
+test_hook_mirror_parity_detects_drift() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Detects content drift, not just filename presence]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+    printf '#!/bin/sh\necho STALE\n' > "$root/.claude/hooks/example.sh"  # present, but drifted content
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 1 ]] && echo "$output" | grep -q "DRIFT.*\.claude/hooks/example.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 1 + DRIFT line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_detects_drift
+
+test_hook_mirror_parity_detects_missing() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Detects a mirror missing a file entirely]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    # .codex/hooks/example.sh intentionally not created
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 1 ]] && echo "$output" | grep -q "MISSING.*\.codex/hooks/example.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 1 + MISSING line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_detects_missing
+
+test_hook_mirror_parity_extra_file_is_informational_only() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [Mirror-only extra file is reported but does not block]... "
+
+    local root
+    root=$(_mirror_fixture_root)
+    printf '#!/bin/sh\necho hi\n' > "$root/core/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.claude/hooks/example.sh"
+    cp "$root/core/hooks/example.sh" "$root/.codex/hooks/example.sh"
+    printf '#!/bin/sh\necho leftover\n' > "$root/.claude/hooks/orphaned.sh"  # no core/hooks/ counterpart
+
+    local output
+    output=$(CLAUDE_PROJECT_DIR="$root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 0 ]] && echo "$output" | grep -q "EXTRA.*orphaned.sh"; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, expected exit 0 + EXTRA line; output: ${output:0:200})"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_extra_file_is_informational_only
+
+test_hook_mirror_parity_real_repo_is_synced() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing verify-hook-mirrors.sh [LIVE: real repo's core/hooks/, .claude/hooks/, .codex/hooks/ are in sync]... "
+
+    local project_root
+    project_root="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+    local output
+    output=$(cd "$project_root" && CLAUDE_PROJECT_DIR="$project_root" bash "$SCRIPTS_DIR/verify-hook-mirrors.sh" 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL — real mirror drift detected, run: bash core/scripts/sync-hook-mirrors.sh"
+        echo "$output" | sed 's/^/    /'
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_hook_mirror_parity_real_repo_is_synced
 
 echo ""
 echo "=== Summary ==="

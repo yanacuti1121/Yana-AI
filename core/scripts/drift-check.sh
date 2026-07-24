@@ -300,6 +300,51 @@ PYEOF
     meta_check "market agents"   "$MARKET_FILE" "stats.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
     meta_check "market scripts"  "$MARKET_FILE" "stats.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
   fi
+
+  # ── Marketing-copy prose drift (Check 5) ──────────────────────────────────
+  # Ported from validate-counts.sh 2026-07-23 — this is the one check that
+  # existed but was never actually enforced: drift-check.sh is the only one
+  # of the three count-validator scripts wired into CI
+  # (.github/workflows/ci.yml), but it only checked marketplace.json's
+  # STRUCTURED stats.* fields above, not free-text prose mentions like
+  # "60 hooks" embedded in docs/index.html, docs/desktop.html, and
+  # skills/yana-ai/SKILL.md. validate-counts.sh had this exact check all
+  # along and would have caught real drift (hooks 60 vs actual 61, found
+  # live the same day this port was written) — it just never ran in CI.
+  # Known limit: numbers split across separate HTML elements (e.g. a
+  # <div class="stat-num">) aren't adjacent text and won't match — this is
+  # a best-effort heuristic, not exhaustive coverage.
+  check_doc_stat() {
+    local file="$1" keyword="$2" canonical="$3"
+    [[ -f "$PROJECT_ROOT/$file" ]] || return 0
+    local found
+    found=$(grep -oE "[0-9][0-9,]*[[:space:]]+$keyword" "$PROJECT_ROOT/$file" 2>/dev/null \
+            | grep -oE "^[0-9,]+" | tr -d ',' | sort -u)
+    local bad=""
+    local n
+    for n in $found; do
+      [[ "$n" == "$canonical" ]] || bad="$bad $n"
+    done
+    if [[ -n "$bad" ]]; then
+      emit_issue "STALE-COPY: $file mentions stale '$keyword' number(s):$bad (canonical is $canonical)"
+    fi
+  }
+
+  hooks_canonical=$(manifest_count hooks)
+  skills_canonical=$(manifest_count skills)
+  rules_canonical=$(manifest_count rules)
+  agents_canonical=$(manifest_count agents)
+  commands_canonical=$(manifest_count commands)
+
+  for f in .claude-plugin/marketplace.json skills/yana-ai/SKILL.md \
+           docs/index.html docs/desktop.html \
+           .claude/docs/index.html .claude/docs/desktop.html; do
+    [[ "$hooks_canonical" != "-1" ]]    && check_doc_stat "$f" "hooks"    "$hooks_canonical"
+    [[ "$skills_canonical" != "-1" ]]   && check_doc_stat "$f" "skills"   "$skills_canonical"
+    [[ "$rules_canonical" != "-1" ]]    && check_doc_stat "$f" "rules"    "$rules_canonical"
+    [[ "$agents_canonical" != "-1" ]]   && check_doc_stat "$f" "agents"   "$agents_canonical"
+    [[ "$commands_canonical" != "-1" ]] && check_doc_stat "$f" "commands" "$commands_canonical"
+  done
 fi
 
 # ── Report ────────────────────────────────────────────────────────────────────

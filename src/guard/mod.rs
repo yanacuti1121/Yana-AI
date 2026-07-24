@@ -26,6 +26,7 @@
 mod blast_paths;
 mod blast_radius;
 mod entry_point_check;
+pub mod lock;
 mod self_mod;
 mod token_budget;
 
@@ -71,6 +72,28 @@ pub enum GuardAction {
     /// already happened by PostToolUse) — surfaces additionalContext only,
     /// same non-blocking shape as infra-review-reminder.sh.
     EntryPointCheck,
+    /// ADR-008 — run a command with a shared mkdir-based lock held for its
+    /// entire execution. Lock name is derived from `--resource` (usually the
+    /// target file path being mutated), so bash/Python/Node/Rust callers
+    /// touching the same resource contend for the same lock regardless of
+    /// which language invoked this. `--timeout` bounds only how long this
+    /// call waits for contention to clear — staleness/reclaim eligibility
+    /// for a lock another process holds is a separate, fixed threshold
+    /// (`YANA_LOCK_STALE_AFTER_SECS`, default 5s — see `src/guard/lock.rs`
+    /// module doc for why these two are deliberately not the same number).
+    /// See `docs/adr/ADR-008-shared-locking-infrastructure.md` and
+    /// `core/lib/locking.sh` (the bash call site this wraps).
+    LockWith {
+        /// Resource identifier the lock name is derived from — usually the
+        /// target file path the wrapped command reads/writes
+        #[arg(long)]
+        resource: String,
+        /// Seconds to wait for the lock to become free before failing
+        #[arg(long, default_value = "30")]
+        timeout: u64,
+        #[arg(trailing_var_arg = true, required = true)]
+        command: Vec<String>,
+    },
 }
 
 pub fn dispatch(action: GuardAction) {
@@ -80,6 +103,8 @@ pub fn dispatch(action: GuardAction) {
         GuardAction::BlastRadius => blast_radius::cmd_blast_radius(),
         GuardAction::SelfMod => self_mod::cmd_self_mod(),
         GuardAction::EntryPointCheck => entry_point_check::cmd_entry_point_check(),
+        GuardAction::LockWith { resource, timeout, command } =>
+            lock::cmd_lock_with(&resource, timeout, &command),
     };
     std::process::exit(code);
 }
@@ -248,6 +273,48 @@ static RE_BRACE_EXPANSION: LazyLock<regex::Regex> = LazyLock::new(|| regex::Rege
 static RE_PUSH_TO_MAIN: LazyLock<regex::Regex> =
     LazyLock::new(|| regex::Regex::new(r"\s(origin\s+)?(main|master)\b").unwrap());
 static RE_RESET_HARD: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"--hard\b").unwrap());
+// Inline-script bypass detection (2026-07-24 finding, ported 1:1 from
+// core/hooks/guard-destructive.sh — see that file's matching comment for
+// the full writeup, including the verified live bypass this closes: bash
+// and Rust must stay in sync). Coarse, non-tokenized substring/regex
+// checks against the raw command text — content inside a quoted -c/-e
+// argument isn't shell syntax, so the token-precise checks above (is_rm_rf
+// et al.) never see it as a real "rm" token in the first place.
+//
+// SECURITY FIX (2026-07-24, round 2 — caught by security-auditor
+// adversarial review of round 1; same three findings as
+// core/hooks/guard-destructive.sh's matching comment, ported here to keep
+// bash and Rust in sync): all five patterns now case-insensitive (`(?i)`)
+// — `Python3 -c "..."` and an inner-payload-only-capitalized `os.system('RM
+// -RF ...')` both bypassed round 1 on this repo's own case-insensitive
+// Darwin filesystem. `bash|sh|zsh` added to the interpreter alternation —
+// `bash -c "..."`'s argument is real shell syntax, not a harder evasion
+// than python/node/ruby/perl, and was omitted from round 1 entirely.
+// `git clean -f` added to the OR-list below (round 1 only checked rm-rf,
+// SQL DROP/TRUNCATE, git push --force, git reset --hard).
+static RE_INLINE_SCRIPT_INTERPRETER: LazyLock<regex::Regex> = LazyLock::new(|| {
+    regex::Regex::new(r"(?i)\b(python3?|node|ruby|perl|bash|sh|zsh)\b[^|;&]*(-c|-e|--eval)\b").unwrap()
+});
+static RE_INLINE_RM_RF: LazyLock<regex::Regex> = LazyLock::new(|| {
+    regex::Regex::new(r"(?i)\brm\b[^|;&]*(-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|--recursive|--force)").unwrap()
+});
+static RE_INLINE_GIT_FORCE_PUSH: LazyLock<regex::Regex> = LazyLock::new(|| {
+    // A single leading (?i) applies to the whole pattern including branches
+    // after a top-level `|` (regex crate's own documented behavior,
+    // confirmed live during code-auditor review) -- a second (?i) on the
+    // right branch was redundant, not a scoping bug, removed for clarity.
+    regex::Regex::new(r"(?i)\bgit\b[^|;&]*\bpush\b[^|;&]*--force|\bgit\b[^|;&]*--force[^|;&]*\bpush\b").unwrap()
+});
+static RE_INLINE_GIT_RESET_HARD: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"(?i)\bgit\b[^|;&]*\breset\b[^|;&]*--hard").unwrap());
+static RE_INLINE_GIT_CLEAN_FORCE: LazyLock<regex::Regex> = LazyLock::new(|| {
+    regex::Regex::new(r"(?i)\bgit\b[^|;&]*\bclean\b[^|;&]*(-[a-zA-Z]*f[a-zA-Z]*|--force)").unwrap()
+});
+// Same pattern as destructive_patterns()'s DROP/TRUNCATE entry — a separate
+// named regex rather than indexing into DESTRUCTIVE_PATTERNS_COMPILED[0],
+// so this check doesn't silently break if that array is ever reordered.
+static RE_INLINE_SQL_DESTRUCTIVE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"(?i)\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)\b").unwrap());
 static DESTRUCTIVE_PATTERNS_COMPILED: LazyLock<Vec<(regex::Regex, &'static str)>> = LazyLock::new(|| {
     destructive_patterns()
         .into_iter()
@@ -606,6 +673,21 @@ fn cmd_destructive() -> i32 {
 /// MCP candidate and once for the primary Bash command, unchanged either
 /// way — this is the whole point of the design: zero changes to 4-rounds-
 /// of-adversarial-review detection logic.
+/// True if `command` invokes an interpreter with an inline script
+/// (-c/-e/--eval) whose raw text contains a destructive pattern. See the
+/// static regexes above and core/hooks/guard-destructive.sh's matching
+/// comment for the full writeup of the bypass this closes.
+fn has_inline_script_bypass(command: &str) -> bool {
+    if !RE_INLINE_SCRIPT_INTERPRETER.is_match(command) {
+        return false;
+    }
+    RE_INLINE_RM_RF.is_match(command)
+        || RE_INLINE_SQL_DESTRUCTIVE.is_match(command)
+        || RE_INLINE_GIT_FORCE_PUSH.is_match(command)
+        || RE_INLINE_GIT_RESET_HARD.is_match(command)
+        || RE_INLINE_GIT_CLEAN_FORCE.is_match(command)
+}
+
 fn check_command(command: &str) -> Option<&'static str> {
     if has_adjacent_variable_splice(command) {
         return Some(
@@ -645,6 +727,12 @@ fn check_command(command: &str) -> Option<&'static str> {
         if re.is_match(command) {
             return Some(reason);
         }
+    }
+
+    if has_inline_script_bypass(command) {
+        return Some(
+            "Blocked: command invokes an interpreter (python/node/ruby/perl/bash/sh/zsh) with an inline script (-c/-e/--eval) whose content appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). This guard cannot safely verify commands embedded inside interpreter scripts. Run the destructive operation directly (not wrapped in an inline script), or ask the human to confirm.",
+        );
     }
 
     None
@@ -1087,5 +1175,91 @@ mod tests {
         let mut out = Vec::new();
         collect_command_like_strings(&v, &mut out);
         assert_eq!(out, vec!["rm -rf /tmp/shallow".to_string()]);
+    }
+
+    // ── Regression tests for the 2026-07-24 inline-script bypass fix ────────
+    // Verified as a real, live bypass before this fix (both this Rust path
+    // and core/hooks/guard-destructive.sh's bash path): every check above
+    // tokenizes on shell whitespace, and content inside a quoted -c/-e
+    // argument to python/node/ruby/perl isn't shell syntax at all, so
+    // `os.system('rm -rf ...')` never produced a bare "rm" token.
+
+    #[test]
+    fn python_c_rm_rf_bypass_now_blocked() {
+        assert!(check_command("python3 -c \"import os; os.system('rm -rf /tmp/x')\"").is_some());
+        assert!(check_command("python -c \"import os; os.system('rm -rf /tmp/x')\"").is_some());
+    }
+
+    #[test]
+    fn node_e_rm_rf_bypass_now_blocked() {
+        assert!(check_command("node -e \"require('child_process').execSync('rm -rf /tmp/x')\"").is_some());
+    }
+
+    #[test]
+    fn ruby_e_and_perl_e_rm_rf_bypass_now_blocked() {
+        assert!(check_command("ruby -e \"system('rm -rf /tmp/x')\"").is_some());
+        assert!(check_command("perl -e \"system('rm -rf /tmp/x')\"").is_some());
+    }
+
+    #[test]
+    fn python_c_drop_table_bypass_now_blocked() {
+        assert!(check_command("python3 -c \"cursor.execute('DROP TABLE users')\"").is_some());
+    }
+
+    #[test]
+    fn python_c_git_force_push_bypass_now_blocked() {
+        assert!(check_command("python3 -c \"os.system('git push --force origin main')\"").is_some());
+    }
+
+    #[test]
+    fn python_c_git_reset_hard_bypass_now_blocked() {
+        assert!(check_command("python3 -c \"os.system('git reset --hard HEAD~5')\"").is_some());
+    }
+
+    #[test]
+    fn benign_inline_scripts_not_blocked() {
+        // Real interpreter -c/-e usage with no destructive pattern anywhere
+        // in the script text must stay allowed — this fix is deliberately
+        // coarse (substring/regex, not a real interpreter-language parser)
+        // and must not turn every inline script into a denial.
+        assert!(check_command("python3 -c \"print('hello world')\"").is_none());
+        assert!(check_command("python3 -c \"import json; print(json.dumps({'a': 1}))\"").is_none());
+        assert!(check_command("node -e \"console.log('hi')\"").is_none());
+        assert!(check_command("python3 -c \"print('please remove the file manually')\"").is_none());
+        assert!(check_command("python3 -c \"import os.path; print(os.path.exists('/tmp'))\"").is_none());
+    }
+
+    #[test]
+    fn interpreter_without_inline_flag_not_affected() {
+        // `python3 script.py` (no -c/-e) is running a real file Yana AI's
+        // other tooling can review — this fix must not touch that case.
+        assert!(check_command("python3 script.py").is_none());
+        assert!(check_command("node index.js").is_none());
+    }
+
+    // ── Round 2 (2026-07-24) — security-auditor adversarial review of round 1
+    // found all three of these as live bypasses of round 1's own new check,
+    // on this repo's own Darwin dev machine (case-insensitive filesystem
+    // resolves `Python3`/`RM` to the real binaries).
+
+    #[test]
+    fn capitalized_interpreter_name_no_longer_bypasses() {
+        assert!(check_command("Python3 -c \"import os; os.system('rm -rf /tmp/x')\"").is_some());
+    }
+
+    #[test]
+    fn capitalized_inner_payload_no_longer_bypasses() {
+        assert!(check_command("python3 -c \"import os; os.system('RM -RF /tmp/x')\"").is_some());
+    }
+
+    #[test]
+    fn bash_c_and_sh_c_inline_rm_rf_now_blocked() {
+        assert!(check_command("bash -c \"rm -rf /tmp/x\"").is_some());
+        assert!(check_command("sh -c \"rm -rf /tmp/x\"").is_some());
+    }
+
+    #[test]
+    fn git_clean_force_inside_interpreter_now_blocked() {
+        assert!(check_command("python3 -c \"import os; os.system('git clean -fdx')\"").is_some());
     }
 }

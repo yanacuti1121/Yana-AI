@@ -531,6 +531,70 @@ if echo "$COMMAND" | grep -qiE '\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TAB
   deny "Blocked: destructive SQL (DROP TABLE / TRUNCATE) detected. Database migrations must be reversible. Use ALTER/soft-delete patterns and ask the human to confirm schema drops."
 fi
 
+# ── Inline-script bypass detection (2026-07-24 finding) ──────────────────────
+# python3 -c "...", node -e "...", ruby -e "...", perl -e "..." let a
+# destructive command hide inside a string literal passed to an interpreter
+# -- every check above operates on whitespace-tokenized shell words, and
+# content inside a quoted -c/-e argument is not shell syntax at all from
+# this guard's point of view (it's Python/Ruby/Node/Perl syntax, one opaque
+# string to bash). Verified live bypass, both this bash implementation and
+# the Rust src/guard/mod.rs path: `python3 -c "import os;
+# os.system('rm -rf /tmp/x')"` returned exit 0 (allow) from both, despite
+# is_rm_rf's own pattern appearing verbatim inside the string -- because
+# `os.system('rm` is one glued token to this guard's tokenizer, not a
+# whitespace-separated "rm". Found while reviewing an external destructive-
+# command-guard project's design for cross-pollination ideas (see
+# docs/PLATFORM-READINESS-WAVE0.md-adjacent session notes) — that project's
+# own README specifically calls out heredoc/inline-script scanning as a
+# design requirement its own guard has and this one, until now, didn't.
+#
+# Fix: when the command invokes an interpreter with an inline-script flag,
+# also scan the RAW command text (not tokenized -- this content isn't shell
+# syntax, so shell tokenization doesn't apply to it) for the same keyword
+# patterns already blocked above. Deliberately coarser than the token-
+# precise checks elsewhere in this file (a plain substring/regex match, so
+# it could theoretically flag a destructive-looking string appearing inside
+# an unrelated string constant in a legitimate script) -- for a destructive-
+# command guard, an occasional false "please confirm" is the correct
+# failure direction; a missed rm -rf is not (same philosophy already
+# applied to git_segment_targets's fallback above). Not a full interpreter-
+# language parser, same class of documented limitation as this file's
+# other checks -- tracked as a longer-term design question if a more
+# precise per-language extraction is ever wanted, not silently claimed as
+# exhaustive by this fix.
+#
+# SECURITY FIX (2026-07-24, round 2 -- caught by security-auditor
+# adversarial review of round 1, all three live-verified on this repo's
+# own Darwin dev machine before this fix):
+#  1. Case sensitivity: `grep -qE` (not `-qiE`) meant `Python3 -c "..."`
+#     (macOS/APFS resolves this to a real binary, confirmed via
+#     `command -v Python3`) and an inner payload capitalized only in the
+#     dangerous part (`os.system('RM -RF /tmp/x')`) both bypassed round 1
+#     entirely -- exit 0 on both counts. Every pattern below is now
+#     case-insensitive (`-qiE`).
+#  2. `bash -c "..."` / `sh -c "..."` were not in the interpreter list at
+#     all -- and unlike python/node/ruby/perl, their `-c` argument IS real
+#     shell syntax, so this is if anything the MORE natural evasion, not a
+#     harder one. Added to the interpreter alternation. (`eval "rm -rf
+#     ..."` is a related, pre-existing, NOT-yet-fixed gap -- no -c/-e flag
+#     at all, a bash builtin -- tracked separately, not silently claimed
+#     closed by this round.)
+#  3. `git clean -f` was missing from the inline OR-list entirely (only
+#     rm-rf, SQL DROP/TRUNCATE, git push --force, git reset --hard were
+#     checked) -- `python3 -c "import os; os.system('git clean -fdx')"`
+#     bypassed both the pre-existing token-based is_git_clean_force() (the
+#     leading "git" is glued to the preceding quote, one opaque token) and
+#     round 1 of this fix. Added.
+if echo "$COMMAND" | grep -qiE '\b(python3?|node|ruby|perl|bash|sh|zsh)\b[^|;&]*(-c|-e|--eval)\b'; then
+  if echo "$COMMAND" | grep -qiE '\brm\b[^|;&]*(-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|--recursive|--force)' \
+     || echo "$COMMAND" | grep -qiE '\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bpush\b[^|;&]*--force|\bgit\b[^|;&]*--force[^|;&]*\bpush\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\breset\b[^|;&]*--hard' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bclean\b[^|;&]*(-[a-zA-Z]*f[a-zA-Z]*|--force)'; then
+    deny "Blocked: command invokes an interpreter (python/node/ruby/perl/bash/sh/zsh) with an inline script (-c/-e/--eval) whose content appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). This guard cannot safely verify commands embedded inside interpreter scripts. Run the destructive operation directly (not wrapped in an inline script), or ask the human to confirm."
+  fi
+fi
+
 # ── Dangerous package operations ─────────────────────────────────────────────
 if echo "$COMMAND" | grep -qE 'npm\s+publish|yarn\s+publish|pnpm\s+publish'; then
   deny "Blocked: publishing to npm requires explicit human approval. Ask the human to run this command manually."

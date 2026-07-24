@@ -34,7 +34,7 @@ Beyond the safety gates:
 3,432 skill definitions, 93 specialist agents, 61 enforced rules, 46 hooks.
 12 harness adapters: Claude Code, Cursor, OpenCode, Zed, Gemini, Copilot, Aider.
 
-The Rust runtime (yana-rt) is 1256x faster than the Python equivalent on a 10k-file repo.
+The Rust runtime (yana-rt) is up to ~12x faster than the Python equivalent on bounded commands (see BENCHMARK.md — the gap narrows to ~1.1x on a full 19k-file scan).
 
 Total: 1,026,000 lines, 15,502 files. One person, one month.
 

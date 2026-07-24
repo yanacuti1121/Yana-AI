@@ -10,8 +10,8 @@ $ yana-ai
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
 │ v0.43.2 · Safety firewall for AI coding agents │ Tips for getting started                                                                   │
-│ 101 agents · 2,016 skills                      │ yana-ai doctor                                                                             │
-│ 71 rules · 58 hooks · 108 scripts              │ yana-ai init                                                                               │
+│ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
+│ 71 rules · 61 hooks · 108 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
 │                                                 │ v0.43.2 — Ollama model-id fix, entry-point verify law                                     │
@@ -61,7 +61,13 @@ Your agent tries something dangerous. Yana intercepts it, explains why, and logs
 npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
 ```
 
-Then ask your agent to misbehave, and watch. Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04, not aspirational copy (see [Known Limitations](docs/reference/known-limitations.md) for what this guard does not yet catch):
+Then ask your agent to misbehave, and watch.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04, not aspirational copy (see [Known Limitations](docs/reference/known-limitations.md) for what this guard does not yet catch):
 
 ```bash
 # Agent tries: git push --force origin main
@@ -125,7 +131,7 @@ npm install yana-ai && npx yana-ai-install
 # Python CLI
 pip install yana-ai
 
-# Rust runtime (1256x faster scanner)
+# Rust runtime (up to ~12x faster on bounded commands — see BENCHMARK.md)
 cargo install yana-rt
 ```
 
@@ -198,12 +204,13 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-26 subcommands. Zero Python dependency.
+27 subcommands. Zero Python dependency.
 
 ```bash
+yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
-yana-ai vault search Q                # search 2,016 skills by keyword
+yana-ai vault search Q                # search 2,025 skills by keyword
 yana-ai hunt .                        # hunt for security patterns (OWASP, injection, SSRF)
 yana-ai fix .                         # auto-fix rule violations
 yana-ai doctor .                      # full system health check
@@ -213,7 +220,14 @@ yana-ai route classify "fix auth bug" # classify task → simple/complex/externa
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 
-**Benchmark:** `yana-ai audit` on a 10k-file repo: **1256x faster** than the Python equivalent.
+**Benchmark** (measured 2026-07-23, full methodology in `BENCHMARK.md`):
+bounded commands like `doctor`/`ci` are ~2–12x faster than Python
+(startup-dominated); a full-repo `scan` converges to ~1.1x at 19k files
+(work-dominated, not startup-dominated at that scale). The `1256x` figure
+this line used to claim was already found unverified once
+(2026-05-31, commit `fb6a0cd7`) and regressed back in by an unrelated
+README restore (2026-07-07) — not reproducible by any measurement in
+`BENCHMARK.md`, then or now.
 
 ---
 
@@ -329,10 +343,10 @@ If Yana AI is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 2,016 skills, multi-harness support
+- Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
 - 12 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-The 2,016 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
+The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
 ---
 

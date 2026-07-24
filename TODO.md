@@ -77,15 +77,57 @@ per this repo's dual-copy convention.
 > shaped, 1 already done previously). 12 cái còn lại đang được anh track ở nơi khác
 > (chưa có trong file này) — bổ sung vào đây khi có link.
 
-- [ ] https://github.com/bestagentkits/ck-skills — not yet reviewed.
-- [ ] https://github.com/JustVugg/colibri — not yet reviewed.
-- [ ] https://github.com/Dicklesworthstone/destructive_command_guard — not yet reviewed;
-      name suggests direct overlap with this repo's own `guard-destructive.sh` /
-      `02-terminal-validator.md` — worth checking first for cross-pollination ideas
-      even if not ported as a standalone skill.
-- [ ] https://github.com/Comfy-Org/ComfyUI — likely SKIP on sight (large node-based image-gen
-      application, not skill-shaped content) but not yet confirmed — flagging the likely
-      call rather than silently deciding without checking license/shape first.
+- [x] https://github.com/bestagentkits/ck-skills — SKIP as a bundle. 14
+      Claude Code skills (MIT), genuinely skill-shaped, but 12-13 of 14
+      substantially overlap with skills this repo already has (research,
+      code-review, database, remotion-video-creation, design-system,
+      codex-security, skill-scout, brainstorming). Non-overlapping angles
+      worth folding in later if wanted: `ck:copywriting` (no direct
+      duplicate found) and `ck:xia` (feature-porting-between-repos meta-
+      skill, niche but no direct match). `ck:ui-ux-pro-max` — the skill
+      anh separately asked about, part of this same bundle — already
+      substantially covered by this repo's own enforced rules
+      (anti-ai-slop-design-law.md, color-rules.md, typography-rules.md,
+      frontend-production-checklist.md), which are stronger (enforced
+      rules, not just an invokable skill) than what the bundle offers.
+- [x] https://github.com/JustVugg/colibri — SKIP. C runtime engine for
+      running a 744B-param MoE model (GLM-5.2) on consumer hardware
+      (~25GB RAM), Apache 2.0, but a full standalone application (C/CUDA/
+      Metal binary + web dashboard, needs ~372GB model weights) — not
+      skill-shaped content, same call as `pig-agents`/`herdr` earlier in
+      this queue.
+- [x] https://github.com/Dicklesworthstone/destructive_command_guard —
+      SKIP as a skill (standalone CLI app, custom/non-standard license —
+      caution flag per dependency-vetting-law.md), but the cross-
+      pollination check this item was queued for found a REAL, live
+      security bypass in Yana AI's own guard-destructive.sh + Rust guard:
+      `python3 -c "import os; os.system('rm -rf ...')"` (and node/ruby/
+      perl/bash/sh equivalents) were allowed (exit 0) by both
+      implementations — every existing check tokenizes on shell
+      whitespace, and content inside a quoted -c/-e argument isn't shell
+      syntax to this guard. Fixed (2 rounds — security-auditor's
+      adversarial review of round 1 found 3 further live bypasses: case-
+      sensitivity, bash/sh missing from the interpreter list, git clean -f
+      missing from the pattern list — all fixed in round 2, code-auditor
+      reviewed round 2 clean, no Safety findings). See commit `684f2c60`.
+      260/260 hook tests, 183/183 Rust unit tests, both up from before
+      this fix.
+- [x] https://github.com/Comfy-Org/ComfyUI — SKIP, confirmed. Large node-
+      based diffusion-model GUI/API, GPL-3.0 (copyleft), standalone
+      desktop/cloud application — not skill-shaped content, matches the
+      predicted call from when this item was queued.
+- [x] https://github.com/vxcontrol/pentagi — SKIP. Standalone autonomous
+      pentest multi-agent system (MIT), but a full deployable platform
+      (Docker, Go backend, React frontend, Postgres/Neo4j/Grafana/Jaeger
+      stack) — same "not a skill shape" call as `devbeta-hcode/pig-agents`
+      and `ogulcancelik/herdr` earlier in this queue, not a prompt/
+      instruction-content repo.
+- [x] https://github.com/koala73/worldmonitor — SKIP. Real-time news/
+      intelligence dashboard (web+desktop+CLI+MCP server), but AGPL-3.0-only
+      — same copyleft complication already flagged for `herdr`. Also a full
+      standalone application, not skill-shaped content. Has an MCP-server
+      component worth another look on its own if ever revisited specifically
+      for that piece, separate from the rest of the app.
 
 ## Pre-1.0 priorities (from a 2026-07-13 cross-AI evidence-based review — see
 ## PR #72 and memory/feedback_evidence_hierarchy_review.md for the full exchange)
@@ -97,29 +139,80 @@ vs. real 13,391 tracked, "missing roadmap/architecture/contributing" when all
 started, no priority order committed to — anh said "dừng ở đây được rồi" before
 picking a next step.
 
-- [ ] BENCHMARK.md or a benchmarks dashboard — startup time, memory, hook
-      latency, dispatch latency. One number already exists inline in README
-      ("yana-ai audit 1256x faster than the Python equivalent on a 10k-file
-      repo") but nothing dedicated/comprehensive.
-- [ ] Demo GIF/video — 1-2 min showing an agent trying something destructive
-      and Yana blocking it in real time. README already has real captured
-      terminal output (not staged) but no visual/video walkthrough.
-- [ ] Documentation/version consistency CI check — package.json, MANIFEST.json,
-      Cargo.toml, pyproject.toml, and README's stated counts (skills/agents/
-      hooks/rules/commands/scripts) drifting apart is a REAL, repeated pattern
-      in this repo's history (found and fixed 3 separate times just in this
-      session: MANIFEST/README count drift PR #67/#68/#69, ROADMAP/VERSIONING.md
-      discoverability PR #72). `drift-check.sh`/`validate-manifest.sh`/
-      `validate-counts.sh` already exist but don't fully agree with each other
-      on methodology (see PR #71's commit message for one concrete example —
-      `components.agents.count` vs `agents_count` disagreeing) — worth
-      reconciling into one canonical check before adding more.
-- [ ] Release governance checklist for the 3-axis version scheme (see
-      VERSIONING.md) — ensure each artifact gets the right axis bumped and
-      related docs updated together, not piecemeal.
-- [ ] (Lower priority, explicitly not urgent per the review exchange) —
-      skill governance / duplicate-detection tooling for the 2016 SKILL.md
-      files (near-duplicate names like "X", "X_v2", "X_fixed"), and an audit
-      of whether all 101 agents are actually reachable/used vs. overlapping
-      responsibilities (e.g. backend-developer vs. api-designer vs.
-      backend-reviewer). Raised as a real concern, not yet investigated.
+- [x] BENCHMARK.md — DONE 2026-07-23. Real measured numbers (startup,
+      memory, hook latency, dispatch latency, scan/doctor/ci Rust-vs-Python
+      at two scales). Found and fixed a real bug in the process: README's
+      inline "1256x faster" claim was already debunked once (2026-05-31,
+      commit fb6a0cd7) and had silently regressed back via an unrelated
+      README restore (2026-07-07) — not reproducible by any measurement,
+      then or now. Fixed everywhere it appeared (README.md — the zh/vi/ko
+      translations were checked and don't have this claim, docs/index.html
+      + mirror, docs/reference/cli-reference.md,
+      docs/social/{hn-post,reddit-posts}.md + mirrors). Also found: stale
+      "2,016 skills"/"58 hooks" counts in README.md were never covered by
+      drift-check.sh's marketing-copy check (only marketplace.json/SKILL.md/
+      docs html were in that file list) — fixed by hand this pass, NOT added
+      to the automated check, since README.md has legitimate non-total-count
+      number mentions (e.g. "Launch 3 agents" in an example command) that
+      would false-positive against the existing simple regex heuristic.
+- [x] Demo GIF/video — DONE 2026-07-24. `docs/assets/demo.gif`, recorded with
+      asciinema+agg from a real invocation of `guard-destructive.sh` (force-push,
+      `rm -rf`, and the `python3 -c` inline-script bypass fixed earlier this
+      session), embedded in README right after the intro line.
+- [x] Documentation/version consistency CI check — the "3 scripts disagreeing
+      on methodology" problem this item was actually about was already fixed
+      before this session (`3f986cc4 fix: reconcile the 3 count-validator
+      scripts' find patterns`, 2026-07-13) and re-verified live 2026-07-24:
+      `drift-check.sh` (CI-wired), `validate-manifest.sh` (wired into
+      `verify-rules.sh` Gate 4 + `lint-staged-git-hook` skill), and
+      `validate-counts.sh` (manual second-opinion, per RELEASE-CHECKLIST.md)
+      all report 0 drift on the same 7 counts. Left as 3 scripts rather than
+      physically merged into 1 — they run at 3 different points (CI, local
+      pre-commit-style gate, manual check) and merging would remove that
+      defense-in-depth for no correctness gain now that they agree; revisit
+      only if they drift apart again.
+- [x] Release governance checklist for the 3-axis version scheme — DONE
+      2026-07-23 as `docs/RELEASE-CHECKLIST.md` (see VERSIONING.md for the
+      why; this is the how — per-axis manual-vs-CI-automatic steps, drift
+      gates, tag/push order, post-publish verification, 5 anti-patterns each
+      tied to a real incident).
+- [x] Skill-governance / agent-reachability audit — INVESTIGATED 2026-07-24
+      (not "resolved" — see below, this was findings-gathering, not a merge).
+      Both original concerns turned out narrower than assumed once measured:
+      - Near-duplicate skill names: built `core/scripts/detect_skill_dupes.py`
+        (normalizes `-v2`/`-fixed`/etc. suffixes, groups collisions). Ran
+        against all 2025 skills: exactly 1 collision group
+        (`continuous-learning` / `continuous-learning-v2`), and that pair
+        already cross-references itself correctly (v1's own description says
+        "Phiên bản cũ hơn continuous-learning-v2") — not an accidental
+        duplicate needing cleanup. Name-based dupes are not a real problem
+        at this repo's current scale; script kept as permanent tooling since
+        that was explicitly asked for, in case it stops being true later.
+      - Agent reachability: grepped all 101 real agent personas (the
+        `validate-manifest.sh`-canonical count, i.e. excluding
+        IDENTITY.md/SOUL.md/CAPABILITIES.md companions) by name against
+        core/rules, core/skills, core/commands, docs, README — 0 agents
+        with zero references outside core/agents/ itself. All 101 are also
+        trivially reachable regardless, via direct Agent-tool dispatch by
+        name. "Unreachable" isn't a real problem either.
+      - Overlapping responsibilities: this is the one part that's a real,
+        narrower finding, not a non-issue. The item's own example
+        ("backend-reviewer") doesn't exist in this repo and never has (git
+        history checked) — likely misremembered from a different agent
+        catalog. What IS a genuine adjacent-scope cluster, found by reading
+        descriptions: database-admin (ops: replication/backup) vs
+        database-expert (design: schema/indexing, also proactively reviews
+        migrations) vs database-reviewer (review: query/security/Supabase)
+        — real blur between database-expert and database-reviewer on who
+        owns "reviewing a migration." Also api-designer (REST+GraphQL spec)
+        vs graphql-architect (GraphQL schema/resolvers specifically) vs
+        backend-developer (implementation, including "creating API
+        endpoints"). Did not attempt a full 101-choose-2 semantic audit —
+        that's a large, judgment-heavy pass and this item was explicitly
+        the lowest-priority one in the file; flagging the pattern is the
+        deliverable here, not exhaustive coverage.
+      - Not done, and shouldn't be done without anh's sign-off: merging or
+        deleting any agent persona. core/agents/** is in
+        `54-bft-consensus-law.md`'s dual-review trigger table for a reason
+        — that's an architecture decision (which specialist wins routing
+        ambiguity), not a mechanical cleanup.

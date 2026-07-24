@@ -32,7 +32,13 @@ if os.path.exists(path):
     except: d = {}
 d['tool_calls'] = $COUNT
 d['updated'] = '$(date -u +"%Y-%m-%dT%H:%M:%SZ")'
-json.dump(d, open(path,'w'))
+# Atomic write (temp + os.replace) — this hook is PostToolUse (fires on
+# every tool call), so concurrent instances of ITSELF can race on this
+# same sentinel.json; a plain open(path,'w') truncates before writing,
+# which a concurrent reader/writer could observe mid-truncation.
+_tmp = path + '.tmp.' + str(os.getpid())
+json.dump(d, open(_tmp, 'w'))
+os.replace(_tmp, path)
 " 2>/dev/null
 
   # Estimate: avg ~2000 tokens per tool call, 200k session limit
@@ -52,11 +58,22 @@ fi
 # is the natural place to keep that shared field live. Read-modify-write,
 # not overwrite: token-budget-guard.sh owns loop_attempts/fast_tier_* on the
 # same file and must not have those clobbered by this hook.
+# ADR-008: found during code review of the other token-budget.json writers
+# — this hook was a 6th unlocked read-modify-write site on the same file
+# token-budget-guard.sh/risk-scorer.sh/src/guard/token_budget.rs write,
+# missed by both the original security audit's site count and ADR-008's
+# own migration-target table. Same lock-name derivation (from the file
+# path) as every other writer of this file, so this one now actually
+# contends for the same lock instead of racing them.
 export YANA_TOKEN_BUDGET_FILE="${YANA_TOKEN_BUDGET:-${CLAUDE_PROJECT_DIR:-.}/core/memory/L2_session/token-budget.json}"
 export YANA_TOKENS_USED_NOW="$TOKENS_USED"
+export YANA_SENTINEL_LOG_FILE="${YANA_LOG:-/tmp/yana-ai-audit.log}"
 python3 -c "
-import json, os
+import json, os, sys
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+from core.lib.py.file_lock import FileLock, LockTimeoutError
 
 # Path and token count come in via env, not string-interpolated into this
 # script — YANA_TOKEN_BUDGET is an externally-settable env var and must
@@ -65,21 +82,48 @@ from datetime import datetime, timezone
 path = os.environ['YANA_TOKEN_BUDGET_FILE']
 tokens_used = int(os.environ['YANA_TOKENS_USED_NOW'])
 
-d = {}
-if os.path.exists(path):
-    try: d = json.load(open(path))
-    except Exception: d = {}
-if not isinstance(d, dict):
-    d = {}
-d.setdefault('session_start', datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
-d.setdefault('actions', [])
-d.setdefault('loop_attempts', {})
-d.setdefault('fast_tier_triggered', False)
-d['total_tokens_used'] = tokens_used
-parent = os.path.dirname(path)
-if parent:
-    os.makedirs(parent, exist_ok=True)
-json.dump(d, open(path, 'w'), indent=2)
+# core/hooks/CLAUDE.md: 'Hooks must fail loudly or warn loudly.' A bare
+# 'except: pass' would silently drop total_tokens_used updates on lock
+# contention with zero trace — log to YANA_LOG instead (not stderr, which
+# this call already redirects to /dev/null below).
+def _warn(msg):
+    ts = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    try:
+        with open(os.environ['YANA_SENTINEL_LOG_FILE'], 'a') as f:
+            f.write(f'[{ts}] budget-sentinel: {msg}\n')
+    except Exception:
+        pass  # logging itself is best-effort — must never crash the hook
+
+try:
+    with FileLock(path, timeout=5.0):
+        d = {}
+        if os.path.exists(path):
+            try: d = json.load(open(path))
+            except Exception: d = {}
+        if not isinstance(d, dict):
+            d = {}
+        d.setdefault('session_start', datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
+        d.setdefault('actions', [])
+        d.setdefault('loop_attempts', {})
+        d.setdefault('fast_tier_triggered', False)
+        d['total_tokens_used'] = tokens_used
+        parent = os.path.dirname(path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        # Atomic write — an unlocked reader (core/scripts/session-checkpoint.sh
+        # reads this same file without taking this lock) must never observe
+        # a torn/truncated write, even though it's protected against other
+        # LOCKED writers by FileLock above.
+        _tmp_path = f'{path}.tmp.{os.getpid()}'
+        json.dump(d, open(_tmp_path, 'w'), indent=2)
+        os.replace(_tmp_path, path)
+except LockTimeoutError:
+    # non-fatal — this hook's own PostToolUse warning logic below does not
+    # depend on this write succeeding — but a timeout means
+    # total_tokens_used silently went stale, worth knowing.
+    _warn(f'lock timeout writing total_tokens_used to {path}')
+except Exception as e:
+    _warn(f'failed to write total_tokens_used: {e}')
 " 2>/dev/null || true
 
 # ── Tính phần trăm ───────────────────────────────────────────────────────────
@@ -132,7 +176,9 @@ if os.path.exists(path):
     try: d = json.load(open(path))
     except: d = {}
 d['last_warned_pct'] = $PCT_LEFT
-json.dump(d, open(path,'w'))
+_tmp = path + '.tmp.' + str(os.getpid())
+json.dump(d, open(_tmp, 'w'))
+os.replace(_tmp, path)
 " 2>/dev/null
 
     # Output warning — Claude Code PostToolUse hook format
