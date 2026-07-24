@@ -14,8 +14,12 @@ fail việc brainstorm này) **→ vẫn BLOCK theo đúng luật ADS v1** (cầ
 ≥80%) — chưa đủ điều kiện Phase 10 Implementation (xem "Readiness Matrix"
 bên dưới cho chi tiết từng mục). Đã fix 1 gap tìm thấy giữa chừng: quyết
 định kiến trúc chưa từng được ghi vào L1 memory — đã ghi
-(`fact-20260724-233122`). Dừng ở Phase 5, 2026-07-24 — Phase 6 ADR/Phase
-7 Research/Phase 8 Design Review là bước tiếp theo, không phải code.
+(`fact-20260724-233122`). **Phase 6 ADR xong cùng ngày**:
+`docs/adr/ADR-010-mcp-server-replaces-translator-per-engine.md`, đúng
+template ADS v1 (Decision/Problem/Alternatives/Tradeoffs/Reason/
+Consequence), tự ghi rõ KHÔNG mở khoá Phase 10 vì Readiness còn 70%.
+Dừng ở Phase 6, 2026-07-24 — Phase 7 Research/Phase 8 Design Review là
+bước tiếp theo, không phải code.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -463,7 +467,12 @@ có sẵn (chi tiết = Open Question 4).
 
 ## ADR
 
-_(TODO — chưa tới Phase 6)_
+`docs/adr/ADR-010-mcp-server-replaces-translator-per-engine.md` — viết
+2026-07-24, theo đúng template ADS v1 Phase 6 (Decision/Problem/
+Alternatives/Tradeoffs/Reason/Consequence). Chưng cất lại nội dung
+Phase 0-5 ở trên thành 1 ADR, không thêm quyết định mới nào không có
+nguồn. Trạng thái: Draft — ADR này tự ghi rõ nó KHÔNG mở khoá Phase 10
+(Readiness vẫn 70%, cần Phase 7 Research + Phase 8 Design Review trước).
 
 ## Roadmap
 
