@@ -59,7 +59,7 @@ Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không tha
 | D | Engineering Excellence | `Draft` — §D7 + §D8 (ADS v1) có nội dung thật, D1-D6 chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
 | F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` | `PROGRAM-F-SKELETON.md` |
 | H | Autonomous Safety & Execution Assurance | `Specification Required` | `PROGRAM-H-SKELETON.md` |
-| J | Universal Capability Runtime | `Draft` — Phase 1 gần xong (3/4 Open Question gốc trả lời), Phase 2 (Capability Inventory) bắt đầu — phát hiện câu hỏi kiến trúc mới (MCP Server vs pattern translator-per-engine hiện có ở `core/adapters/`), vẫn chặn Phase 3. 2026-07-24: Scope mở rộng M=4→5 (thêm `yana-ai chat` + Ollama local làm client thứ 5, anh Tâm xác nhận trực tiếp) | `PROGRAM-J-SKELETON.md` |
+| J | Universal Capability Runtime | `Draft` — Phase 1: 0 Open Question còn lại (2026-07-24, xem file). Scope mở rộng M=4→5 (`yana-ai chat` + Ollama local, xác nhận trực tiếp). Kiến trúc chốt: MCP Server thay thế hoàn toàn translator-per-engine. `core/config/mcp-whitelist.json` được tạo (rule đã nhắc từ trước nhưng chưa từng tồn tại). Phase 3 Architecture mở khoá, chưa bắt đầu vẽ | `PROGRAM-J-SKELETON.md` |
 
 Program G, I và các Program khác được nhắc trong `docs/VISION-2.4.md` hoặc
 trong hội thoại trước đó nhưng chưa có file riêng — thêm khi có nhu cầu cụ

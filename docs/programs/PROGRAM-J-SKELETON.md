@@ -1,15 +1,17 @@
 # Program J — Universal Capability Runtime
 
-**Status:** `Draft` — Phase 0 (Input) đầy đủ. Phase 1 (Specification) điền
-được 3/4 Open Question ban đầu từ `docs/VISION-2.4.md` (còn 1 câu thật sự
-mở, roadmap không đề cập). Phase 2 (Capability Inventory) bắt đầu
-2026-07-24: liệt kê 6 capability, đọc code thật `core/adapters/` phát
-hiện 1 câu hỏi kiến trúc MỚI — **đã trả lời cùng ngày: anh Tâm chọn MCP
-Server thay thế hoàn toàn pattern translator-per-engine**, xem "Capability
-List" bên dưới. Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama
-local cần đọc được repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc
-Program J, M=5 (xem mục Scope). **Cả 2 câu hỏi kiến trúc từng chặn Phase 3
-đã có câu trả lời — Phase 3 Architecture giờ mở khoá.**
+**Status:** `Draft` — Phase 0 (Input) đầy đủ. Phase 1 (Specification):
+**0 Open Question còn lại** (2026-07-24 — cả 2 câu ban đầu đã trả lời,
+xem "Open Questions" bên dưới cho chi tiết, kể cả phát hiện giữa chừng
+rằng `core/config/mcp-whitelist.json` chưa từng tồn tại trước khi được
+tạo hôm nay). Phase 2 (Capability Inventory) bắt đầu 2026-07-24: liệt kê
+6 capability, đọc code thật `core/adapters/` phát hiện 1 câu hỏi kiến
+trúc MỚI — **đã trả lời cùng ngày: anh Tâm chọn MCP Server thay thế hoàn
+toàn pattern translator-per-engine**, xem "Capability List" bên dưới.
+Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được
+repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc Program J, M=5
+(xem mục Scope). **Phase 3 Architecture mở khoá, chưa bắt đầu vẽ chi
+tiết** (session 2026-07-24 dừng ở đây do độ dài phiên).
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -264,18 +266,31 @@ yếu hơn Claude không có nghĩa lệnh nó tạo ra kém nguy hiểm hơn.
 
 ## Open Questions
 
-1 câu hỏi thật sự còn mở (câu về `yana-ai chat` đã được anh Tâm trả lời
-2026-07-24 — "có", xem Scope + "Input bổ sung" ở trên):
+0 câu hỏi mở còn lại — cả 2 câu ban đầu đã được trả lời (xem "Đã trả lời"
+bên dưới cho cả hai, kể cả 1 phát hiện mới giữa chừng làm đổi hình dạng
+câu hỏi số 1).
 
-1. Quan hệ với `44-supply-chain-vetting.md`/`agent-tool-poisoning-guard.md`
-   (MCP server whitelist đã có ở `core/config/mcp-whitelist.json`) —
-   Program J có mở rộng cơ chế whitelist này, hay xây riêng? **Roadmap
-   không đề cập** — cần anh quyết định trực tiếp, không suy ra được từ
-   tài liệu hiện có.
+**Đã trả lời (2026-07-24) — Open Question 1:** ~~Quan hệ với
+`44-supply-chain-vetting.md`/`agent-tool-poisoning-guard.md` (MCP server
+whitelist đã có ở `core/config/mcp-whitelist.json`) — Program J có mở
+rộng cơ chế whitelist này, hay xây riêng?~~ → **Phát hiện giữa chừng: file
+này KHÔNG hề tồn tại** trước 2026-07-24, dù 4 file rule/skill khác
+(`agent-tool-poisoning-guard.md`, `owasp-llm-top10`, `agent-attack-surface`,
+`deusdata--codebase-memory-mcp`) đều nhắc như đã có sẵn — cùng loại lỗi
+với `yana-router` (rule mô tả hạ tầng chưa từng build). Câu hỏi "mở rộng
+hay xây riêng" vì vậy không còn ý nghĩa như cũ; anh Tâm trả lời trực tiếp
+("không có thì tạo") — đã tạo `core/config/mcp-whitelist.json` theo đúng
+schema đã có sẵn trong `agent-tool-poisoning-guard.md` (policy
+deny-by-default, 1 server khởi điểm: `ollama`, xác nhận thật đang chạy
+session này). **Lưu ý quan trọng, chưa phải xong:** chưa có hook/script
+nào đọc file này để enforce — file tồn tại nhưng chưa được wire vào bất
+kỳ gate nào (đã grep `sovereign-interceptor.js` + `core/hooks/*.sh` xác
+nhận). Việc wire enforcement là việc riêng, có thể là một phần của Phase
+3 Architecture (MCP Server) hoặc một fix nhỏ độc lập — chưa quyết.
 
-**Đã trả lời (2026-07-24):** ~~`yana-ai chat` + Ollama local có thuộc
+**Đã trả lời (2026-07-24) — Open Question cũ (yana-ai chat scope):** ~~`yana-ai chat` + Ollama local có thuộc
 Scope Program J (M=5) hay Program/sub-goal riêng?~~ → Có, thuộc Program J,
-M=5. Vẫn còn chặn Phase 3 Architecture cho riêng use case này (xem mục
-Scope: cần Phase 3 chung của Program J xong trước, vì câu hỏi kiến trúc
-gốc — MCP Server thay thế hay mở rộng translator-per-engine — chưa có
-câu trả lời).
+M=5 (xem mục Scope). Câu hỏi kiến trúc gốc (MCP Server thay thế hay mở
+rộng translator-per-engine) cũng đã được trả lời cùng ngày — Thay thế
+hoàn toàn (xem "Capability List" phía trên) — nên Phase 3 Architecture
+không còn bị chặn cho use case này nữa.
