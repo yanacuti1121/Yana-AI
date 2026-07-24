@@ -1,25 +1,18 @@
 # Program J — Universal Capability Runtime
 
-**Status:** `Draft` — Phase 0-4 xong 2026-07-24 (Input, Specification 0
-Open Question, Capability Inventory, Architecture 2 sơ đồ luồng,
-Interfaces + Workflow dựa trên MCP spec thật). Kiến trúc chốt: MCP Server
-(mode mới của `yana-rt`) thay thế hoàn toàn pattern translator-per-engine
-— áp dụng cho cả 5 client (Claude Code/Cursor/Gemini/Codex/`yana-ai chat`)
-— gọi `src/guard/mod.rs::check_command()` trực tiếp trong process, giữ
-nguyên triết lý fail-closed (cả 2 kênh lỗi MCP đều map thành deny), không
-đổi cơ chế chặn bắt buộc của Claude Code. **Phase 5 Readiness: 70%**
-(nâng từ 60% sau khi đo Benchmark thật — translator hiện tại 178-310ms/lần
-gọi, đo trực tiếp — và tự viết Cost analysis sau khi 2 model local đều
-fail việc brainstorm này) **→ vẫn BLOCK theo đúng luật ADS v1** (cần
-≥80%) — chưa đủ điều kiện Phase 10 Implementation (xem "Readiness Matrix"
-bên dưới cho chi tiết từng mục). Đã fix 1 gap tìm thấy giữa chừng: quyết
-định kiến trúc chưa từng được ghi vào L1 memory — đã ghi
-(`fact-20260724-233122`). **Phase 6 ADR xong cùng ngày**:
-`docs/adr/ADR-010-mcp-server-replaces-translator-per-engine.md`, đúng
-template ADS v1 (Decision/Problem/Alternatives/Tradeoffs/Reason/
-Consequence), tự ghi rõ KHÔNG mở khoá Phase 10 vì Readiness còn 70%.
-Dừng ở Phase 6, 2026-07-24 — Phase 7 Research/Phase 8 Design Review là
-bước tiếp theo, không phải code.
+**Status:** `Draft` — Phase 0-7 xong 2026-07-24. Kiến trúc chốt: MCP
+Server (mode mới của `yana-rt`, dùng SDK Rust chính thức `rmcp`) thay
+thế hoàn toàn pattern translator-per-engine cho cả 5 client, gọi
+`src/guard/mod.rs::check_command()` trực tiếp, giữ nguyên fail-closed và
+cơ chế chặn bắt buộc của Claude Code. Cài đặt dự kiến zero-config: khai
+báo `mcpServers` ngay trong `plugin.json` hiện có (Phase 7 Research phát
+hiện) — không cần user tự setup. **Phase 5 Readiness: 70% → vẫn BLOCK**
+(cần ≥80%, xem "Readiness Matrix"). ADR: `docs/adr/ADR-010-mcp-server-
+replaces-translator-per-engine.md`. Quyết định kiến trúc đã ghi L1 memory
+(`fact-20260724-233122`). Dừng ở Phase 7, 2026-07-24 — Phase 8 Design
+Review là bước tiếp theo, không phải code. Gap còn treo cho Phase 8: cơ
+chế kết nối MCP local của Cursor/Codex/Gemini chưa nghiên cứu, chỉ mới
+xác nhận của Claude Code.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -473,6 +466,62 @@ Alternatives/Tradeoffs/Reason/Consequence). Chưng cất lại nội dung
 Phase 0-5 ở trên thành 1 ADR, không thêm quyết định mới nào không có
 nguồn. Trạng thái: Draft — ADR này tự ghi rõ nó KHÔNG mở khoá Phase 10
 (Readiness vẫn 70%, cần Phase 7 Research + Phase 8 Design Review trước).
+
+## Research (Phase 7 — 2026-07-24)
+
+**Nguồn:** fetch trực tiếp `github.com/modelcontextprotocol/rust-sdk` và
+`code.claude.com/docs/en/mcp` (2026-07-24, không suy đoán). Tổng hợp bản
+nháp qua local model (`qwen2.5-coder:14b`, chỉ giao việc rút gọn nguồn
+đã có sẵn — khác 2 lần thử trước đó cùng ngày, KHÔNG bắt tự suy luận từ
+đầu, và kết quả lần này đúng/dùng được), sau đó tự bổ sung chi tiết đầy
+đủ dưới đây trước khi đưa vào doc chính thức.
+
+**1. `rmcp` — SDK Rust chính thức của Anthropic cho MCP server**
+(`cargo add rmcp --features server`). Đang phát triển tích cực (593
+commit), hỗ trợ cả bản draft mới nhất lẫn `2025-11-25` stable. Định nghĩa
+tool bằng macro khai báo, không phải viết tay JSON-RPC:
+
+```rust
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct CheckCommandParams { command: String }
+
+#[tool_router(server_handler)]
+impl YanaGuard {
+    #[tool(description = "Checks whether a shell command is destructive")]
+    fn check_command(&self, Parameters(CheckCommandParams { command }): Parameters<CheckCommandParams>) -> String {
+        // gọi src/guard/mod.rs::check_command() thật ở đây
+    }
+}
+```
+
+Hỗ trợ cả stdio mode và Streamable HTTP mode, cả 2 đều chạy dài hạn,
+phục vụ nhiều client lặp lại — đúng nhu cầu Program J's Workflow (Phase
+4) đã vẽ. **Ảnh hưởng Phase 9:** dùng `rmcp` thay vì tự viết JSON-RPC
+tay — giảm hẳn rủi ro tự implement sai spec, đặc biệt phần map lỗi mà
+Interfaces (Phase 1) đã nhấn mạnh là bắt buộc.
+
+**2. Claude Code kết nối MCP server local qua `.mcp.json`** (project-scoped)
+hoặc `~/.claude.json` (user-scoped): `{"mcpServers": {"<name>": {"command": "...", "args": [...], "env": {...}}}}`.
+Với stdio transport cụ thể: `claude mcp add --transport stdio <name> -- <command> [args...]`.
+Claude Code tự set `CLAUDE_PROJECT_DIR` trong environment của server con
+— **trùng khớp 100% với convention đã dùng trong `before-shell-execution.js`**
+(`process.env.CLAUDE_PROJECT_DIR || process.env.CLAUDE_PROJECT_DIR`, đọc
+trực tiếp ở Phase 3) — không cần convention mới.
+
+**3. Phát hiện quan trọng nhất, ảnh hưởng trực tiếp trải nghiệm cài đặt:**
+Claude Code **plugin** (Yana AI đã ship dưới dạng plugin — có `plugin.json`,
+`marketplace.json`) có thể khai báo `mcpServers` NGAY TRONG `plugin.json`,
+dùng placeholder `${CLAUDE_PLUGIN_ROOT}` (tự resolve về thư mục cài plugin).
+Server khai báo kiểu này **tự kết nối lúc session khởi động, không cần
+user tự tay setup `.mcp.json`** — khớp thẳng với triết lý cài đặt hiện có
+của Yana AI ("`npx yana-ai-install` wires the hooks (60 seconds)", README.md).
+**Ảnh hưởng Phase 9:** không cần thêm bước cài đặt thủ công nào cho MCP
+Server — chỉ cần thêm 1 entry `mcpServers` vào `plugin.json` hiện có.
+
+**Chưa nghiên cứu, còn thiếu cho Phase 8 Design Review:** cách Cursor/
+Codex/Gemini (3 trong 5 client của Program J) tự kết nối MCP server local
+— chỉ mới xác nhận cơ chế của Claude Code. Cần fetch riêng cho từng cái,
+không giả định giống Claude Code.
 
 ## Roadmap
 

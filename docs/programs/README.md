@@ -59,7 +59,7 @@ Planned/done — vẫn giữ nguyên cho các mục nhỏ hơn phase; không tha
 | D | Engineering Excellence | `Draft` — §D7 + §D8 (ADS v1) có nội dung thật, D1-D6 chưa xác định | `PROGRAM-D-ENGINEERING-EXCELLENCE.md` |
 | F | (cost-aware refusal — "không đủ specification để tiếp tục") | `Specification Required` | `PROGRAM-F-SKELETON.md` |
 | H | Autonomous Safety & Execution Assurance | `Specification Required` | `PROGRAM-H-SKELETON.md` |
-| J | Universal Capability Runtime | `Draft` — Phase 0-6 xong 2026-07-24 (Input→ADR). MCP Server thay translator-per-engine cho cả 5 client (kể cả Claude Code, không đánh đổi an toàn). **Phase 5 Readiness: 70% → vẫn BLOCK theo ADS v1** (cần ≥80%) — chưa đủ điều kiện code. ADR: `docs/adr/ADR-010-mcp-server-replaces-translator-per-engine.md`. Quyết định kiến trúc đã ghi L1 memory (`fact-20260724-233122`) | `PROGRAM-J-SKELETON.md` |
+| J | Universal Capability Runtime | `Draft` — Phase 0-7 xong 2026-07-24 (Input→Research). MCP Server (dùng SDK `rmcp` chính thức) thay translator-per-engine cho cả 5 client, cài đặt dự kiến zero-config qua `plugin.json`. **Phase 5 Readiness: 70% → vẫn BLOCK theo ADS v1** (cần ≥80%). ADR: `docs/adr/ADR-010-mcp-server-replaces-translator-per-engine.md`. Gap còn treo: cơ chế MCP local của Cursor/Codex/Gemini chưa nghiên cứu | `PROGRAM-J-SKELETON.md` |
 
 Program G, I và các Program khác được nhắc trong `docs/VISION-2.4.md` hoặc
 trong hội thoại trước đó nhưng chưa có file riêng — thêm khi có nhu cầu cụ
