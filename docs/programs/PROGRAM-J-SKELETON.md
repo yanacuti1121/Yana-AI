@@ -4,13 +4,12 @@
 được 3/4 Open Question ban đầu từ `docs/VISION-2.4.md` (còn 1 câu thật sự
 mở, roadmap không đề cập). Phase 2 (Capability Inventory) bắt đầu
 2026-07-24: liệt kê 6 capability, đọc code thật `core/adapters/` phát
-hiện 1 câu hỏi kiến trúc MỚI (MCP Server thay thế hay mở rộng pattern
-translator-per-engine hiện có?) — chưa trả lời, chặn Phase 3. Cùng ngày,
-thêm 1 Input mới (`yana-ai chat` + Ollama local cần đọc được repo);
-anh Tâm đã trả lời câu hỏi phạm vi của Input này ngay trong ngày — Có,
-thuộc Program J, M=5 (xem mục Scope). Câu hỏi kiến trúc gốc (MCP Server
-vs translator-per-engine) vẫn còn mở, vẫn chặn Phase 3 cho toàn bộ
-Program J kể cả use case mới này.
+hiện 1 câu hỏi kiến trúc MỚI — **đã trả lời cùng ngày: anh Tâm chọn MCP
+Server thay thế hoàn toàn pattern translator-per-engine**, xem "Capability
+List" bên dưới. Cùng ngày, thêm 1 Input mới (`yana-ai chat` + Ollama
+local cần đọc được repo); anh Tâm đã trả lời câu hỏi phạm vi — Có, thuộc
+Program J, M=5 (xem mục Scope). **Cả 2 câu hỏi kiến trúc từng chặn Phase 3
+đã có câu trả lời — Phase 3 Architecture giờ mở khoá.**
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -142,12 +141,26 @@ same pattern"). Cách này ĐÃ giải một phần M×N (logic gốc — vd
 "số loại hook × số engine" (mỗi hook type mới × mỗi engine mới = 1
 translator mới cần viết tay).
 
-**Câu hỏi kiến trúc thật, chưa có câu trả lời** (không phải Open Question
-cũ, phát hiện MỚI ở Phase 2 này): Program J's hướng MCP Server có **thay
-thế** pattern translator-per-engine hiện tại, hay **mở rộng thêm 1 lớp**
-bên trên nó (MCP cho capability discovery, translator vẫn giữ cho hook
-enforcement thời gian thực)? Ảnh hưởng trực tiếp Phase 3 Architecture —
-cần anh quyết định trước khi vẽ chi tiết.
+**Câu hỏi kiến trúc — ĐÃ QUYẾT 2026-07-24:** anh Tâm chọn **Thay thế hoàn
+toàn** (qua `AskUserQuestion`, giữa 2 lựa chọn: mở rộng thêm lớp — được
+đề xuất vì rủi ro thấp hơn — vs thay thế hoàn toàn). MCP Server sẽ thay
+thế pattern translator-per-engine hiện tại (`core/adapters/cursor/
+before-shell-execution.js` và tương lai các translator khác), không giữ
+song song 2 cơ chế.
+
+**Rủi ro đã nêu trước khi anh quyết, ghi lại để không mất dấu (không phải
+để phản đối quyết định — đây là quyết định của anh, không phải AI tự
+suy diễn):** cơ chế enforce hook thời gian thực hiện tại (guard-destructive.sh
+qua Cursor) đã chạy thật, đã proven; thay thế hoàn toàn nghĩa là phải
+viết lại/re-validate toàn bộ đường enforce đó qua MCP. MCP vốn là mô hình
+request/response — cần xác nhận rõ trong Phase 3 rằng nó đáp ứng được
+yêu cầu chặn nhanh/không được lỗi của một `PreToolUse` hook trước khi
+implement, không giả định suông. Đây là mục cần kiểm chứng cụ thể trong
+Phase 3 Architecture, không phải lý do trì hoãn quyết định đã chốt.
+
+**Mở khoá Phase 3 Architecture** cho toàn bộ Program J (bao gồm cả use
+case `yana-ai chat` mới) — cả 2 câu hỏi kiến trúc từng chặn Phase 3 giờ
+đã có câu trả lời.
 
 Danh sách capability (nguồn: `VISION-2.4.md` mục 2, đã gộp sẵn):
 
