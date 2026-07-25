@@ -688,7 +688,15 @@ fn has_inline_script_bypass(command: &str) -> bool {
         || RE_INLINE_GIT_CLEAN_FORCE.is_match(command)
 }
 
-fn check_command(command: &str) -> Option<&'static str> {
+/// `pub`, not the module-private default this function had until Program J's
+/// Phase 9 spike (docs/programs/PROGRAM-J-SKELETON.md) needed to call it from
+/// `src/mcp.rs` without going through `dispatch()`/`cmd_destructive()` (both
+/// route to `std::process::exit()` — `dispatch()` calls it directly,
+/// `cmd_destructive()` returns the code `dispatch()` then exits with — fatal
+/// either way if invoked from a long-running server process; see Phase 3's
+/// Architecture section for why this exact function, not those two, is the
+/// real MCP integration point).
+pub fn check_command(command: &str) -> Option<&'static str> {
     if has_adjacent_variable_splice(command) {
         return Some(
             "Blocked: command contains a variable reference glued directly between two letters (e.g. word${VAR}word) with no separating whitespace, alongside a git/rm invocation. This guard cannot safely verify commands using this pattern. Run the command without adjacent-letter variable splicing, or ask the human to confirm.",

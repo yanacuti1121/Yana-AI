@@ -27,6 +27,11 @@ mod evidence;
 mod guard;
 mod filescan;
 mod observability;
+// Program J Phase 9 spike only — gated separately from `cli` because it
+// pulls in tokio (see Cargo.toml's `mcp` feature comment). Not part of any
+// default build.
+#[cfg(feature = "mcp")]
+mod mcp;
 
 use clap::{Parser, Subcommand};
 
@@ -176,6 +181,11 @@ enum Commands {
         #[arg(long)]
         verbose: bool,
     },
+    /// Program J Phase 9 spike — MCP Server exposing `check_command` over
+    /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
+    /// not call this yet). See docs/programs/PROGRAM-J-SKELETON.md.
+    #[cfg(feature = "mcp")]
+    Mcp,
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
@@ -415,5 +425,17 @@ fn main() {
             observability::ObservabilityAction::Breakdown { by, last } =>
                 observability::cmd_observability_breakdown(by, last),
         },
+        // Program J Phase 9 spike — the only command in this match that
+        // needs an async runtime (rmcp requires tokio). Bridged with a
+        // one-off Runtime rather than making `main()` itself async, since
+        // every other command here is deliberately synchronous.
+        #[cfg(feature = "mcp")]
+        Commands::Mcp => {
+            let rt = tokio::runtime::Runtime::new().expect("failed to start tokio runtime for MCP server");
+            if let Err(e) = rt.block_on(mcp::run_stdio()) {
+                eprintln!("yana-rt mcp: {e}");
+                std::process::exit(1);
+            }
+        }
     }
 }

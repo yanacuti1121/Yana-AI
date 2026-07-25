@@ -20,4 +20,5 @@ Schema: `memory/L1_atomic/SCHEMA.md`
 <!-- add-fact.sh appends rows above this line -->
 | fact-20260710-220852 | constraint | Yana AI | unverified | Claude Code rule-scoping frontmatter key is paths: (list of … | [fact-20260710-220852.md](fact-20260710-220852.md) |
 | fact-20260710-220901 | constraint | Yana AI | unverified | 54-bft-consensus-law.md two-reviewer dispatch does not trans… | [fact-20260710-220901.md](fact-20260710-220901.md) |
+| fact-20260724-233122 | decision | Yana AI | unverified | Program J: MCP Server replaces translator-per-engine pattern… | [fact-20260724-233122.md](fact-20260724-233122.md) |
 <!-- END INDEX -->

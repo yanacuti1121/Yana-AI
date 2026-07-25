@@ -32,6 +32,17 @@ cli = [
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
 ]
 wasm = ["wasm-bindgen", "js-sys"]
+# Program J (docs/programs/PROGRAM-J-SKELETON.md) Phase 9 Research/Prototype
+# spike ONLY — not wired into any live client path, not part of default
+# `cli`. Deliberately isolated: rmcp pulls in tokio (this crate's first
+# async runtime dependency, confirmed via docs.rs before adding this —
+# every other feature above is sync), and a spike shouldn't change the
+# default build's footprint or introduce an async runtime into code that
+# doesn't need one yet. `features = ["full"]` on tokio here is a spike
+# convenience, not a Phase 10 recommendation — trim to the actual
+# required feature set (rt-multi-thread/macros/io-std, likely) once this
+# graduates past prototype.
+mcp = ["rmcp", "tokio"]
 
 [dependencies]
 # Always available (WASM-safe)
@@ -67,6 +78,13 @@ tree-sitter-typescript = { version = "0.23.2",  optional = true }
 tree-sitter-javascript = { version = "0.25.0",  optional = true }
 tree-sitter-python     = { version = "0.25.0",  optional = true }
 tree-sitter-go         = { version = "0.25.0",  optional = true }
+
+# Program J Phase 9 spike only (see `mcp` feature above) — pinned to the
+# stable 2.2.0 line, not crates.io's max_version 3.0.0-beta.1, per Phase 8
+# Design Review's own finding: a beta dependency on a security-critical
+# guard path is a real risk, not a style preference.
+rmcp  = { version = "=2.2.0", features = ["server", "transport-io"], optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
 
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }
