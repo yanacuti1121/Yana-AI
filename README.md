@@ -61,6 +61,14 @@ Your agent tries something dangerous. Yana intercepts it, explains why, and logs
 npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
 ```
 
+> **⚠️ Known issue: `yana-rt` could self-invoke and spin at 100% CPU indefinitely** — on one affected machine this drove the CPU to 116°C before a forced shutdown. Root cause: the `yana-rt` entry point script resolves the real binary via `$PATH`/`which`, and on some installs that lookup finds the entry point script itself, causing infinite recursion. This affects the **currently published npm package (v0.43.1)** and, until 2026-07-25, affected every published PyPI release too (same bug, separate wrapper file, fixed but not yet re-released to PyPI as of this writing).
+>
+> **`cargo install yana-rt` is unaffected** — it installs the compiled Rust binary directly, with no wrapper script to recurse through:
+> ```bash
+> cargo install yana-rt
+> ```
+> npm and PyPI both carry the bug in their latest published release; the fix is merged in this repo but blocked from reaching npm by an unrelated registry issue (tracked, in progress) and not yet cut as a new PyPI release. If you installed via npm or pip and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and avoid invoking `yana-rt` directly until a release notice removes this warning.
+
 Then ask your agent to misbehave, and watch.
 
 <p align="center">
