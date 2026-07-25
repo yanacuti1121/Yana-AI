@@ -1,17 +1,23 @@
 # Program J — Universal Capability Runtime
 
-**Status:** `Draft` — Phase 0-9 xong 2026-07-24 (Input → Implementation
-Plan; xem section tương ứng cho chi tiết từng phase). Kiến trúc chốt: MCP
-Server (`yana-rt mcp`, dùng SDK `rmcp` bản stable `2.2.0`) thay thế hoàn
+**Status:** `Draft` — Phase 0-9 xong (Input → Implementation Plan). Kiến
+trúc chốt: MCP Server (`yana-rt mcp`, SDK `rmcp` `2.2.0`) thay thế hoàn
 toàn translator-per-engine cho cả 5 client, gọi `check_command()` trực
-tiếp, giữ nguyên fail-closed + cơ chế chặn bắt buộc Claude Code, cài đặt
-zero-config qua `plugin.json`. ADR: `docs/adr/ADR-010-...md`. L1 memory:
-`fact-20260724-233122`. **Phase 5 Readiness: 70% → vẫn BLOCK theo ADS v1**
-(cần ≥80%) — Roadmap (Phase 9) chia 5 giai đoạn Research→Prototype→Alpha→
-Beta→Stable. **Giai đoạn Research xong 2026-07-25** — config file MCP
-của cả 4 client còn lại đã xác nhận (Cursor/Gemini dùng chung schema
-JSON với Claude Code, Codex dùng TOML riêng). anh Tâm cho phép vượt cổng
-Readiness làm 1 spike nhỏ (Prototype) — xem tiến độ ở "Roadmap" bên dưới.
+tiếp, giữ nguyên fail-closed + cơ chế chặn bắt buộc Claude Code. ADR:
+`docs/adr/ADR-010-...md`. L1 memory: `fact-20260724-233122`.
+
+**2026-07-25 — spike Prototype thật đã chạy** (anh Tâm cho phép vượt
+cổng Readiness): `yana-rt mcp` sống thật qua stdio, 3 case xác nhận
+đúng (allow/deny/bypass-fix-cùng-session), latency đo thật **p50
+0.134ms** (so với baseline cũ 178-310ms — nhanh ~1400-1600 lần). Research
+gap đóng: config MCP của Cursor/Gemini/Codex đã xác nhận. `cargo test`
+183/183 pass, không phá gì có sẵn.
+
+**Phase 5 Readiness: 70% → 85%** (Benchmark nâng Ready nhờ số liệu thật
+vừa đo) — **vượt ngưỡng 80% ADS v1, nhưng đây là kết quả 1 spike nhỏ,
+không phải Phase 10 hoàn chỉnh.** Quyết định có chính thức mở khoá Phase
+10 hay không là của anh Tâm — xem "Readiness Matrix" bên dưới cho đầy đủ
+bằng chứng và giới hạn thật của spike này trước khi quyết.
 **Nguồn:** anh Tâm's tóm tắt trực tiếp 2 video tham khảo (InsForge,
 "Tại sao cần MCP trong khi đã có API?", 2026-07-23) + `docs/VISION-2.4.md`
 (2026-07-24, cho 3 câu trả lời dưới đây) + anh Tâm trực tiếp trong hội
@@ -576,13 +582,31 @@ Beta → Stable):**
    (`check_command`), chạy thử stdio mode, KHÔNG thay bất kỳ client thật
    nào chưa.
 
-2. **Prototype**: `yana-rt mcp --transport stdio` chạy được, expose đúng
-   1 tool `check_command` theo schema đã định nghĩa ở Interfaces (Phase
-   1). Test tay bằng 1 MCP client thật (VD `mcp-inspector` hoặc tương
-   đương) — chưa nối vào Cursor/Claude Code thật. Xác nhận sống được cả
-   2 nhánh lỗi (Protocol Error, `isError:true`) đều map đúng thành deny
-   như Interfaces đã ghi — đây là điều kiện bắt buộc trước khi qua Alpha,
-   không phải tuỳ chọn.
+2. **Prototype — ✅ xong 2026-07-25, anh Tâm cho phép vượt cổng Readiness
+   làm spike:** `yana-rt mcp` (feature Cargo riêng `mcp`, tách khỏi `cli`
+   mặc định — xem Cargo.toml, vì `rmcp` kéo theo `tokio`, async runtime
+   ĐẦU TIÊN của crate này, xác nhận qua docs.rs trước khi thêm, không
+   suy đoán) chạy thật qua stdio, expose đúng 1 tool `check_command`.
+   Test tay bằng 1 MCP client Python thật (handshake `initialize` →
+   `notifications/initialized` → `tools/call`, không giả lập) — xác nhận
+   3 case sống: lệnh benign → allow, `rm -rf` → deny đúng lý do,
+   **bypass `python3 -c` vừa fix trong chính session này → deny đúng lý
+   do y hệt bash gốc** (chứng minh trực tiếp `check_command()` dùng
+   chung logic, không viết lại). Đo latency thật: **p50 0.134ms, avg
+   0.154ms** — so với baseline translator cũ 178-310ms, nhanh hơn
+   ~1400-1600 lần. `cargo test --features cli` (mcp không bật) vẫn
+   183/183 pass, đơn luồng — code mới không phá gì hiện có. Phát hiện
+   phụ, không thuộc scope: 1 test flaky có sẵn (`blast_paths::
+   absolute_path_under_repo_root_is_protected`, race điều kiện qua biến
+   môi trường `YANA_REPO_ROOT` giữa các test chạy song song) — không tự
+   sửa, ghi nhận riêng.
+
+   **Chưa làm trong spike này, còn thật sự treo cho Prototype đầy đủ:**
+   xác nhận 2 nhánh lỗi MCP (Protocol Error, `isError:true`) map đúng
+   thành deny phía CLIENT thật — spike này mới kiểm chứng phía SERVER
+   (server trả lời đúng, nhánh lỗi phía client chưa viết vì chưa có
+   client thật nào gọi vào). Đây là điều kiện bắt buộc trước khi qua
+   Alpha, không phải đã xong.
 
 3. **Alpha**: thay 1 client duy nhất — Cursor (đã có translator để so
    sánh song song) — sang gọi `yana-rt mcp` thay vì
@@ -629,24 +653,24 @@ thay vì chấm điểm giả vờ chắc chắn.
 | Runtime | ✅ Ready | `yana-rt` là binary thật, đang chạy tốt (183 unit + 63 integration test pass, xác nhận lúc chuẩn bị PR #80 cùng session này), thêm 1 mode/subcommand mới là pattern quen thuộc của codebase |
 | Governance | ✅ Ready | Đang tự áp dụng đúng quy trình D7/ADS v1; `54-bft-consensus-law.md`'s dual-review sẽ áp dụng khi code thật đụng `core/hooks/`/`core/adapters/` |
 | Security | ✅ Ready | Mục được đầu tư kỹ nhất trong toàn bộ Phase 1-4: ánh xạ fail-closed cho 2 kênh lỗi MCP, phân biệt rõ "chặn bắt buộc" (Claude Code hook) vs "tool tự nguyện" (MCP thường), giữ nguyên `check_command()` làm nguồn phán đoán duy nhất |
-| Benchmark | ⚠️ Partial (nâng từ Not ready, 2026-07-24) | **Đo thật, không phải đoán:** cơ chế translator hiện tại (`before-shell-execution.js` → spawn bash → `guard-destructive.sh`) = **178-310ms/lần gọi, trung bình ~220ms** (5 lần đo trực tiếp, `node` + `spawnSync`, lệnh benign `ls -la`). So với số đã có sẵn từ `BENCHMARK.md` (2026-07-23): Rust binary startup ~22-24ms, `yana-rt guard token-budget` dispatch (in-process nhưng có lock overhead) ~65ms. `check_command()` là hàm thuần, không lock, không I/O — hướng ước lượng mạnh là MCP Server in-process sẽ nhanh hơn translator hiện tại ít nhất một bậc độ lớn, nhưng **số thật của chính MCP Server chưa đo được vì chưa implement** — đây là giới hạn thật, không phải lười đo |
+| Benchmark | ✅ Ready (nâng từ Partial, 2026-07-25 — spike thật đã chạy) | **Đo thật cả 2 phía, không còn ước lượng:** translator cũ = 178-310ms/lần gọi (đo 2026-07-24). MCP Server spike thật (`yana-rt mcp`, stdio, `rmcp` 2.2.0, 50 lần gọi `check_command` sau warm-up) = **p50 0.134ms, avg 0.154ms, p95 0.247ms, max 0.671ms** — nhanh hơn ~1400-1600 lần. Xác nhận cả 3 case thật: lệnh benign → allow, `rm -rf` → deny đúng lý do, và chính bypass `python3 -c` vừa fix session này → deny đúng lý do y hệt bash gốc. **Giới hạn thật của con số này** (không giấu): đo trên 1 client Python đơn giản, 1 tool duy nhất, không có tải đồng thời nhiều client thật, chưa tính chi phí khởi động server 1 lần đầu (khác biệt với per-call cost) — đủ để quyết định hướng đi, chưa phải Benchmark toàn diện của Phase 12 |
 | Cost | ⚠️ Partial (nâng từ Not ready, 2026-07-24) | Thử giao cho 2 model local brainstorm cost factor trước khi tự viết — cả 2 đều fail (14B trả lời lạc đề/cắt cụt; 9.7B "thinking" chạy quá 120s rồi lỗi JSON rỗng, không phải do thiếu kiên nhẫn mà do output không hợp lệ). Tự viết bằng Claude thay vì ép model yếu ra kết quả giả. Yếu tố chi phí thật cần cân nhắc: (1) engineering time viết + review MCP Server module mới, (2) chi phí vận hành gần như 0 (chạy local trong `yana-rt` sẵn có, không gọi API ngoài), (3) rủi ro chi phí ẩn lớn nhất — nếu bước "map lỗi MCP thành deny" (Interfaces, đã ghi) làm sai, chi phí là an toàn bị suy yếu, không phải tiền — nên đây là hạng mục cần review kỹ hơn benchmark tiền bạc thông thường |
 | Context | ⚠️ Cách hiểu chưa chắc | Nếu nghĩa là "phạm vi có đủ gọn để implement không phát sinh phức tạp" — có vẻ Ready (1 tool mới, tái dùng hàm thuần có sẵn, module boundary rõ). Nếu nghĩa khác (VD ngân sách context window lúc chạy) — chưa đánh giá |
 
-**Điểm tổng (tự tính, không phải công thức chính thức, cập nhật sau khi
-đo Benchmark + viết Cost, cùng ngày):** 5 Ready + 4 Partial/cách-hiểu-
-chưa-chắc (tính 0.5) + 0 Not ready = 5 + 2 = 7/10 = **70%** (tăng từ 60%
-lúc đánh giá lần đầu).
+**Điểm tổng, cập nhật 2026-07-25 sau spike thật (anh Tâm cho phép vượt
+cổng làm Research/Prototype):** Repository/Knowledge/Memory/Runtime/
+Governance/Security/**Benchmark** = 7 Ready. Notebook/Cost/Context = 3
+Partial/cách-hiểu-chưa-chắc (0.5). Tổng: 7 + 1.5 = **8.5/10 = 85%**
+(tăng từ 70%).
 
-**Kết luận theo đúng luật ADS v1** ("Readiness < 80% → Block, chỉ được
-Research/ADR/Design, không code"): **Program J vẫn CHƯA đủ điều kiện vào
-Phase 10 Implementation** — 70% < 80%, dù đã cải thiện. Đây không phải
-tin xấu — đúng thực tế hiện tại (mới xong Phase 1-4, chưa qua Phase 6
-ADR/Phase 7 Research/Phase 8 Design Review), và đúng chức năng của
-Readiness Matrix: chặn code chạy sớm khi số liệu thật của chính MCP
-Server (chưa tồn tại) vẫn chưa đo được, thay vì đoán rồi implement sai
-hướng. Cách nâng điểm thật sự tiếp theo: đi qua Phase 6-8 trước, không
-phải cố "chấm cho đủ 80%".
+**Điểm đáng nói thẳng, không giấu:** 85% vượt ngưỡng 80% của ADS v1 —
+nhưng đây là kết quả của 1 spike nhỏ (1 tool, 1 client test đơn giản,
+không phải triển khai thật), không phải Phase 10 đã hoàn thành. Tự nâng
+điểm Benchmark từ Partial lên Ready dựa trên số liệu thật vừa đo (không
+phải "cố chấm cho đủ 80%" — ngược lại, số liệu tới trước, điểm số theo
+sau). **Quyết định có chính thức coi Program J đã qua cổng Readiness hay
+không là của anh Tâm, không phải AI tự tuyên bố** — ghi rõ điểm số và
+bằng chứng ở đây, chưa tự ý kết luận "sẵn sàng code thật" thay anh.
 
 ## Input bổ sung — 2026-07-24 (trực tiếp từ anh Tâm, không phải suy diễn)
 
