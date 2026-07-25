@@ -140,6 +140,22 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
+      # Temporary diagnostic for the still-unresolved E403 on the actual
+      # publish PUT (OIDC token exchange + provenance signing already
+      # confirmed working, per docs/ discussion 2026-07-25) — prints
+      # exactly the repo/ref/workflow identity GitHub Actions presents,
+      # to hand-compare against npmjs.com's Trusted Publisher entry for
+      # a mismatch the logs otherwise don't surface. Remove once the
+      # 403 is root-caused; not meant to be permanent.
+      - name: Debug — show GitHub OIDC identity context
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Ref: $GITHUB_REF"
+          echo "Workflow: $GITHUB_WORKFLOW"
+          echo "Job: $GITHUB_JOB"
+          echo "Event: $GITHUB_EVENT_NAME"
+          echo "Actor: $GITHUB_ACTOR"
+
       # No NODE_AUTH_TOKEN here on purpose: actions/setup-node's
       # registry-url wrote `_authToken=${NODE_AUTH_TOKEN}` into .npmrc,
       # and npm prefers a configured (even if broken/revoked) authToken
