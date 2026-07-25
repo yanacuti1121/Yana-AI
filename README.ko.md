@@ -10,8 +10,8 @@ $ yana-ai
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
 │ v0.43.2 · AI 코딩 에이전트를 위한 안전 방화벽        │ 시작하기 팁                                                                         │
-│ 101 agents · 2,016 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 58 hooks · 108 scripts                │ yana-ai init                                                                           │
+│ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
+│ 71 rules · 61 hooks · 108 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 새 소식                                                                              │
 │                                                   │ v0.43.2 — Ollama model-id 수정, entry-point verify law 추가                          │
@@ -61,7 +61,21 @@ $ yana-ai
 npm install -g yana-ai && npx yana-ai-install   # 훅 연결 (60초)
 ```
 
-이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요. 아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
+> **⚠️ 알려진 문제: `yana-rt`가 자기 자신을 재귀 호출하여 CPU 100%로 무한히 도는 경우가 있습니다** — 영향받은 한 기기에서는 강제 종료 전 CPU가 116°C까지 올라갔습니다. 근본 원인: `yana-rt` 진입점 스크립트가 `$PATH`/`which`를 통해 실제 바이너리를 찾는데, 일부 설치 환경에서는 이 조회가 진입점 스크립트 자기 자신을 찾아버려 무한 재귀가 발생합니다. 이는 **현재 배포된 npm 패키지(v0.43.1)**에 영향을 미치며, 2026-07-25까지는 배포된 모든 PyPI 릴리스에도 영향을 미쳤습니다(같은 버그, 다른 래퍼 파일, 수정은 됐지만 이 글을 쓰는 시점까지 PyPI에 재배포되지 않음).
+>
+> **`cargo install yana-rt`는 영향받지 않습니다** — 컴파일된 Rust 바이너리를 직접 설치하므로 재귀를 일으킬 래퍼 스크립트가 없습니다:
+> ```bash
+> cargo install yana-rt
+> ```
+> npm과 PyPI 모두 최신 배포 릴리스에 이 버그를 갖고 있습니다; 수정 사항은 이 저장소에 머지되었지만 관련 없는 레지스트리 문제(추적 중, 진행 중)로 npm에 반영되지 못하고 있고, 아직 새 PyPI 릴리스로 잘리지도 않았습니다. npm이나 pip로 설치했고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고, `YANA_RT_BIN`을 설정했다면 해제하고, 이 경고가 릴리스 공지로 사라질 때까지 `yana-rt`를 직접 호출하지 마세요.
+
+이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
 
 ```bash
 # Agent tries: git push --force origin main
@@ -125,7 +139,7 @@ npm install yana-ai && npx yana-ai-install
 # Python CLI
 pip install yana-ai
 
-# Rust 런타임 (1256배 빠른 스캐너)
+# Rust 런타임 (범위가 제한된 명령에서 최대 ~12배 빠름 — BENCHMARK.md 참고)
 cargo install yana-rt
 ```
 
@@ -198,12 +212,13 @@ bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-26개 서브커맨드. Python 의존성 없음.
+27개 서브커맨드. Python 의존성 없음.
 
 ```bash
+yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)
 yana-ai audit .                       # 보안 스캔 — secrets, CVE, 공급망 위험
 yana-ai graph .                       # 지식 그래프 — 파일 의존성, import 해석
-yana-ai vault search Q                # 2,016개 스킬을 키워드로 검색
+yana-ai vault search Q                # 2,025개 스킬을 키워드로 검색
 yana-ai hunt .                        # 보안 패턴 탐지 (OWASP, injection, SSRF)
 yana-ai fix .                         # 규칙 위반 자동 수정
 yana-ai doctor .                      # 전체 시스템 상태 점검
@@ -213,7 +228,13 @@ yana-ai route classify "fix auth bug" # 작업 분류 → simple/complex/externa
 yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 ```
 
-**벤치마크:** 1만 개 파일 리포지토리에서 `yana-ai audit`은 Python 버전보다 **1256배 빠릅니다**.
+**벤치마크** (2026-07-23 측정, 전체 방법론은 `BENCHMARK.md` 참고):
+`doctor`/`ci` 같이 범위가 제한된 명령은 Python보다 약 ~2–12배 빠릅니다
+(시작 시간이 지배적); 전체 리포지토리 `scan`은 19,000개 파일 규모에서 ~1.1배로 수렴합니다
+(그 규모에서는 시작 시간이 아니라 작업량이 지배적). 이 줄이 예전에 주장했던 `1256배`라는
+수치는 이미 한 번 검증되지 않은 것으로 밝혀졌고(2026-05-31, 커밋 `fb6a0cd7`)
+관련 없는 README 복원(2026-07-07)으로 다시 들어왔습니다 — 그때나 지금이나
+`BENCHMARK.md`의 어떤 측정으로도 재현되지 않습니다.
 
 ---
 
@@ -235,7 +256,7 @@ Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버�
 
 ```
 core/
-├── hooks/          # 58개 PreToolUse / PostToolUse / Stop 훅
+├── hooks/          # 57개 PreToolUse / PostToolUse / Stop 훅
 ├── rules/          # 71개 시행 규칙 (보안, 정확성, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
@@ -329,10 +350,10 @@ Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입�
 한 사람. 팀 없음. 투자 없음.
 
 - 훅 아키텍처, 안전 게이트, Python CLI
-- Rust 런타임(`yana-rt`), 101개 에이전트, 2,016개 스킬, 멀티 하니스 지원
+- Rust 런타임(`yana-rt`), 101개 에이전트, 2,025개 스킬, 멀티 하니스 지원
 - 12개 하니스 어댑터 (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-2,016개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
+2,025개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
 
 ---
 
