@@ -67,7 +67,7 @@ npm install -g yana-ai && npx yana-ai-install   # 훅 연결 (60초)
 > ```bash
 > cargo install yana-rt
 > ```
-> npm과 PyPI 모두 최신 배포 릴리스에 이 버그를 갖고 있습니다; 수정 사항은 이 저장소에 머지되었지만 관련 없는 레지스트리 문제(추적 중, 진행 중)로 npm에 반영되지 못하고 있고, 아직 새 PyPI 릴리스로 잘리지도 않았습니다. npm이나 pip로 설치했고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고, `YANA_RT_BIN`을 설정했다면 해제하고, 이 경고가 릴리스 공지로 사라질 때까지 `yana-rt`를 직접 호출하지 마세요.
+> npm과 PyPI 모두 최신 배포 릴리스에 이 버그를 갖고 있습니다; 수정 사항은 이 저장소에 머지되었지만 npm 배포가 동결되어 있고(위 빠른 설치의 참고 사항 참조 — 이 수정과 무관한, 동일한 npm 계정 수준 문제입니다), 아직 새 PyPI 릴리스로 잘리지도 않았습니다. npm이나 pip로 설치했고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고, `YANA_RT_BIN`을 설정했다면 해제하고, 이 경고가 릴리스 공지로 사라질 때까지 `yana-rt`를 직접 호출하지 마세요 — 또는 이미 수정 사항이 반영된 `cargo`로 설치하세요.
 
 이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
 
@@ -130,6 +130,8 @@ Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은
 ## 빠른 설치
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+
+> **참고 (2026-07-26): npm 패키지는 현재 v0.43.1에서 동결되어 있습니다.** 새 버전 배포가 npm 계정 수준의 문제로 막혀 있습니다 — 이쪽 설정 문제가 아님을 확인했습니다(같은 계정의 여러 패키지에서 CI의 OIDC trusted publishing과 브라우저 수동 로그인 양쪽 모두 동일한 403이 재현되며, npm 자체 `access list`는 모든 패키지에 read-write 권한이 있다고 보고합니다). npm 지원팀에 여러 차례 신고했지만 해결되지 않았습니다. 이 문제가 해결될 때까지 최신 버전은 아래 `pip install yana-ai` 또는 `cargo install yana-rt`를 사용하세요.
 
 ```bash
 # Claude Code 플러그인 — npx yana-ai-install 이 훅을 연결합니다

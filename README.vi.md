@@ -67,7 +67,7 @@ npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
 > ```bash
 > cargo install yana-rt
 > ```
-> Cả npm và PyPI đều mang lỗi này trong bản published mới nhất; bản fix đã merge vào repo này nhưng bị chặn không lên được npm do một sự cố registry không liên quan (đang theo dõi, đang xử lý) và chưa cắt bản PyPI mới. Nếu bạn cài qua npm hoặc pip và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu bạn đã set, và tránh gọi `yana-rt` trực tiếp cho đến khi có thông báo release gỡ cảnh báo này.
+> Cả npm và PyPI đều mang lỗi này trong bản published mới nhất; bản fix đã merge vào repo này nhưng việc publish npm đang bị đóng băng (xem ghi chú ở phần Cài đặt nhanh phía trên — cùng vấn đề account-level của npm, không liên quan riêng tới fix này) và bản PyPI mới cũng chưa được cắt. Nếu bạn cài qua npm hoặc pip và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu bạn đã set, và tránh gọi `yana-rt` trực tiếp cho đến khi có thông báo release gỡ cảnh báo này — hoặc cài qua `cargo` thay thế, bản đó đã có fix rồi.
 
 Sau đó thử bảo agent làm bậy, và xem.
 
@@ -130,6 +130,8 @@ Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết
 ## Cài đặt nhanh
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+
+> **Lưu ý (2026-07-26): package npm hiện đang đóng băng ở v0.43.1.** Việc publish bản mới hơn bị chặn bởi một vấn đề ở mức account phía npm — đã xác nhận không phải lỗi cấu hình bên mình (cùng lỗi 403 tái hiện trên nhiều package khác nhau dưới cùng account, qua cả OIDC trusted publishing của CI lẫn login tay qua browser, trong khi chính `access list` của npm báo read-write trên tất cả). Đã báo npm support nhiều lần, chưa được giải quyết. Dùng `pip install yana-ai` hoặc `cargo install yana-rt` bên dưới để có bản mới nhất cho tới khi việc này thay đổi.
 
 ```bash
 # Claude Code plugin — npx yana-ai-install gắn hooks

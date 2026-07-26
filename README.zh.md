@@ -67,7 +67,7 @@ npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
 > ```bash
 > cargo install yana-rt
 > ```
-> npm 和 PyPI 的最新发布版本都带有这个 bug；修复已合并进本仓库，但因为一个无关的注册表问题（正在跟踪、处理中）被挡在 npm 之外，也尚未发布新的 PyPI 版本。如果你通过 npm 或 pip 安装并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，并在这条警告因发布公告移除之前避免直接调用 `yana-rt`。
+> npm 和 PyPI 的最新发布版本都带有这个 bug；修复已合并进本仓库，但 npm 发布目前处于冻结状态（见上面"快速安装"里的说明——是同一个账号层面的 npm 问题，与这个修复本身无关），新的 PyPI 版本也还没发布。如果你通过 npm 或 pip 安装并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，并在这条警告因发布公告移除之前避免直接调用 `yana-rt`——或者改用 `cargo` 安装，那边已经包含修复。
 
 然后试着让你的代理做点坏事，看看会发生什么。
 
@@ -130,6 +130,8 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 ## 快速安装
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+
+> **说明（2026-07-26）：npm 包目前冻结在 v0.43.1。** 发布更新版本被 npm 账号层面的问题阻塞——已确认不是我们这边的配置问题（同一账号下多个不同的包，无论通过 CI 的 OIDC trusted publishing 还是浏览器手动登录，都复现同样的 403，而 npm 自己的 `access list` 显示对所有包都有 read-write 权限）。已多次向 npm 支持团队反馈，尚未解决。在这个问题解决之前，请使用下面的 `pip install yana-ai` 或 `cargo install yana-rt` 获取当前版本。
 
 ```bash
 # Claude Code 插件 — npx yana-ai-install 会接入 hooks

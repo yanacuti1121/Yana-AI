@@ -67,7 +67,7 @@ npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
 > ```bash
 > cargo install yana-rt
 > ```
-> npm and PyPI both carry the bug in their latest published release; the fix is merged in this repo but blocked from reaching npm by an unrelated registry issue (tracked, in progress) and not yet cut as a new PyPI release. If you installed via npm or pip and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and avoid invoking `yana-rt` directly until a release notice removes this warning.
+> npm and PyPI both carry the bug in their latest published release; the fix is merged in this repo but npm publishing is frozen (see the note in Quick Install above — this is the same account-level npm issue, not specific to this fix) and a new PyPI release hasn't been cut yet either. If you installed via npm or pip and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and avoid invoking `yana-rt` directly until a release notice removes this warning — or install via `cargo` instead, which already has the fix.
 
 Then ask your agent to misbehave, and watch.
 
@@ -130,6 +130,15 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 ## Quick install
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+
+> **Note (2026-07-26): the npm package is frozen at v0.43.1.** Publishing
+> newer versions is blocked by an account-level issue on npm's own side —
+> confirmed not a config problem here (same 403 reproduces across multiple
+> packages under the same account, via both CI's OIDC trusted publishing
+> and a fresh manual browser login, while npm's own `access list` reports
+> read-write on every one of them). Reported to npm support repeatedly with
+> no resolution. Use `pip install yana-ai` or `cargo install yana-rt` below
+> for the current version until this changes.
 
 ```bash
 # Claude Code plugin — npx yana-ai-install wires the hooks
