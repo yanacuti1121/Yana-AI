@@ -44,6 +44,52 @@ Cursor, Codex, Antigravity) rewrite Bash commands transparently — you
 keep typing `git status`, the hook resolves it to `rtk git status`
 before it runs, and the agent reads the compact result.
 
+## Optional: Yana AI's own bridge hook
+
+`core/hooks/rtk-bridge.sh` (mirrored at `.claude/hooks/rtk-bridge.sh`)
+ships in this repo as an opt-in `PreToolUse` hook for the Bash tool. It
+is **not** wired into `.claude/settings.json`'s default hook chain — it
+does nothing at all unless you enable it yourself:
+
+```bash
+export YANA_RTK_BRIDGE=1
+```
+
+With that set (and `rtk` + `jq` on `PATH`), the hook calls `rtk rewrite`
+on every Bash command before it runs and lets `rtk` decide whether to
+rewrite it, following rtk's own exit-code contract. Without the env var,
+`rtk`, or `jq`, the hook exits immediately with no output — safe to add
+to `settings.json` even if you haven't installed `rtk` yet.
+
+Two things worth knowing before you turn this on:
+
+- **The hook never grants its own execution approval.** It only ever
+  supplies the rewritten command back to your harness — Yana AI's own
+  destructive-command guards and your harness's normal permission flow
+  still decide allow/deny/ask, exactly as they would for a command this
+  hook never touched. It also refuses to trust a rewrite that doesn't
+  contain your original command text verbatim, and falls back to the
+  untouched original if `rtk` (or a PATH-hijacked binary pretending to be
+  `rtk`) returns anything else. Set `YANA_RTK_BIN=/absolute/path/to/rtk`
+  to pin the exact binary instead of relying on `PATH` resolution.
+- **Every Bash command's literal text is handed to the `rtk` process**
+  once this is on — an unaudited, non-vendored third-party binary. If a
+  command embeds a secret or token, that content now transits it.
+
+To wire the hook in, add an entry alongside the existing `PreToolUse|Bash` hooks:
+
+```json
+{ "matcher": "Bash", "hooks": [
+  { "type": "command", "command": "bash .claude/hooks/rtk-bridge.sh" }
+]}
+```
+
+This is a thin bridge, not a reimplementation — all the actual
+filtering/compression logic lives in the `rtk` binary itself. See
+`core/hooks/rtk-bridge.sh`'s header comment for the exact safety
+reasoning (why a command-rewriting hook can't be allowed to weaken
+Yana AI's own destructive-command guards).
+
 ## What it doesn't fix
 
 `rtk` only compresses **bash output** — one contributor to input
