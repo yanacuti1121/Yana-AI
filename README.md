@@ -317,6 +317,19 @@ Found a gap not listed here? [Open an issue](https://github.com/yanacuti1121/yan
 
 ---
 
+## Cutting your own token bill
+
+Yana AI enforces safety on what an agent does — it does not reduce how
+many tokens an agent burns reading command output. If that's your actual
+pain point, pair it with [`rtk`](https://github.com/rtk-ai/rtk), a
+separate Apache-2.0 tool built for exactly that (filters/compresses bash
+output before your agent reads it, up to 90% smaller on common commands).
+Not vendored, not a dependency — see
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+for install + wiring into Claude Code/Cursor/Codex/Antigravity.
+
+---
+
 ## Yana AI (the web product)
 
 **[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
