@@ -68,6 +68,21 @@ silently carried:**
 - **Docs**: All four READMEs now document the npm freeze plainly in
   Quick Install, with a pointer to `pip`/`cargo` for the current
   version.
+- **Add**: `core/hooks/rtk-bridge.sh` — opt-in `PreToolUse` bridge to the
+  external `rtk` CLI (github.com/rtk-ai/rtk, Apache-2.0) for agent
+  token-consumption reduction. Not vendored, not wired into
+  `.claude/settings.json`'s default hook chain — inert unless a user
+  sets `YANA_RTK_BRIDGE=1` and has `rtk` installed. Two rounds of
+  security-auditor + code-auditor review found and fixed real issues
+  before commit: removed an auto-`permissionDecision:allow` grant based
+  purely on `rtk`'s own self-reported exit code, added a verbatim-
+  substring invariant check so an unrelated/malicious rewrite falls back
+  to the untouched original, added `YANA_RTK_BIN` to pin an absolute
+  path instead of bare `PATH` lookup, and added a timeout (with the same
+  macOS `timeout`/`gtimeout` degrade-gracefully pattern already used in
+  `hook-timeout-guard.sh`, after the first attempt hit that exact
+  landmine). See `docs/reference/token-optimization.md`. 25 new hook
+  tests, `run-hook-tests.sh` 260/260.
 
 ---
 
