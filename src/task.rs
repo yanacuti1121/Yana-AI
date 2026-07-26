@@ -316,6 +316,13 @@ pub fn cmd_eval_judge(id: String, provider_name: Option<String>, model: Option<S
             std::process::exit(1);
         }
     };
+    // Captured before this function's own mutation below overwrites
+    // `updated_at` — in the normal flow this equals the `task done`
+    // timestamp, i.e. the end of the task's actual work window, not
+    // whenever `eval judge` happens to run (which can be much later).
+    // See skill_quality::record_outcome's doc comment for why that
+    // distinction matters for cross-task attribution.
+    let work_window_end = task.updated_at.clone();
 
     if let BreakerState::Open { remaining_secs } = judge_breaker_state(task) {
         eprintln!(
@@ -385,7 +392,10 @@ pub fn cmd_eval_judge(id: String, provider_name: Option<String>, model: Option<S
     }
     task.updated_at = now();
     let task_name = task.name.clone();
+    let task_id = task.id.clone();
+    let task_created_at = task.created_at.clone();
     save_store(&store);
+    crate::skill_quality::record_outcome(&task_id, &task_created_at, &work_window_end, pass);
 
     let icon = if pass { "✓" } else { "✗" };
     println!("{icon} {}  {}", if pass { "PASS" } else { "FAIL" }, &key[..8]);
