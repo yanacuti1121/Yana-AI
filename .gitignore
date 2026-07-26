@@ -67,6 +67,7 @@ reports/audit-local.*
 .yana-ai/snapshots/
 .yana-ai/history.json
 .yana-ai/tasks.json
+.yana-ai/skill_quality.json
 yana-ai-*.html
 yana-ai-*.sarif
 releases/*.zip

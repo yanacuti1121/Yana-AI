@@ -27,6 +27,7 @@ mod evidence;
 mod guard;
 mod filescan;
 mod observability;
+mod skill_quality;
 // Program J Phase 9 spike only — gated separately from `cli` because it
 // pulls in tokio (see Cargo.toml's `mcp` feature comment). Not part of any
 // default build.
@@ -67,6 +68,12 @@ enum Commands {
     /// new data collection, no new hook — summarizes what audit-log.sh
     /// already writes on every tool call.
     Observability { #[command(subcommand)] action: observability::ObservabilityAction },
+    /// Per-skill outcome ledger — quality from real task verdicts, human-
+    /// gated promotion. No new hook, no LLM call: correlates audit-chain.log
+    /// (which skill/agent a task's session invoked) with `eval judge`'s
+    /// PASS/FAIL verdict. Idea borrowed from HKUDS/OpenSpace, reimplemented
+    /// from scratch — no dependency on that project or its cloud.
+    SkillQuality { #[command(subcommand)] action: skill_quality::SkillQualityAction },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt   { #[command(subcommand)] action: hunt::HuntAction },
     /// CI/CD workflow health check — secrets, unpinned actions, permissions
@@ -425,6 +432,7 @@ fn main() {
             observability::ObservabilityAction::Breakdown { by, last } =>
                 observability::cmd_observability_breakdown(by, last),
         },
+        Commands::SkillQuality { action } => skill_quality::dispatch(action),
         // Program J Phase 9 spike — the only command in this match that
         // needs an async runtime (rmcp requires tokio). Bridged with a
         // one-off Runtime rather than making `main()` itself async, since

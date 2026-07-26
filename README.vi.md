@@ -10,8 +10,8 @@ $ yana-ai
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
 │ v0.43.2 · Tường lửa an toàn cho AI coding agent │ Mẹo bắt đầu                                                                               │
-│ 101 agents · 2.016 skills                       │ yana-ai doctor                                                                            │
-│ 71 rules · 58 hooks · 108 scripts               │ yana-ai init                                                                              │
+│ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
+│ 71 rules · 61 hooks · 108 scripts               │ yana-ai init                                                                              │
 │ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
 │                                                  │ v0.43.2 — sửa Ollama model-id, thêm entry-point verify law                               │
@@ -61,7 +61,21 @@ Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải th�
 npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
 ```
 
-Sau đó thử bảo agent làm bậy, và xem. Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
+> **⚠️ Lỗi đã biết: `yana-rt` có thể tự gọi lại chính nó và chạy 100% CPU vô hạn** — trên một máy bị ảnh hưởng, lỗi này đẩy CPU lên 116°C trước khi phải tắt máy cưỡng bức. Nguyên nhân gốc: script entry point `yana-rt` resolve binary thật qua `$PATH`/`which`, và trên một số bản cài, việc tra cứu đó lại tìm ra chính script entry point, gây đệ quy vô hạn. Lỗi này ảnh hưởng **bản npm đang published hiện tại (v0.43.1)** và, cho đến 2026-07-25, cũng ảnh hưởng mọi bản PyPI đã published (cùng lỗi, khác file wrapper, đã fix nhưng chưa re-release lên PyPI tính đến lúc viết bài này).
+>
+> **`cargo install yana-rt` không bị ảnh hưởng** — nó cài trực tiếp binary Rust đã biên dịch, không có wrapper script nào để đệ quy qua:
+> ```bash
+> cargo install yana-rt
+> ```
+> Cả npm và PyPI đều mang lỗi này trong bản published mới nhất; bản fix đã merge vào repo này nhưng việc publish npm đang bị đóng băng (xem ghi chú ở phần Cài đặt nhanh phía trên — cùng vấn đề account-level của npm, không liên quan riêng tới fix này) và bản PyPI mới cũng chưa được cắt. Nếu bạn cài qua npm hoặc pip và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu bạn đã set, và tránh gọi `yana-rt` trực tiếp cho đến khi có thông báo release gỡ cảnh báo này — hoặc cài qua `cargo` thay thế, bản đó đã có fix rồi.
+
+Sau đó thử bảo agent làm bậy, và xem.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
 
 ```bash
 # Agent thử: git push --force origin main
@@ -117,6 +131,8 @@ Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
 
+> **Lưu ý (2026-07-26): package npm hiện đang đóng băng ở v0.43.1.** Việc publish bản mới hơn bị chặn bởi một vấn đề ở mức account phía npm — đã xác nhận không phải lỗi cấu hình bên mình (cùng lỗi 403 tái hiện trên nhiều package khác nhau dưới cùng account, qua cả OIDC trusted publishing của CI lẫn login tay qua browser, trong khi chính `access list` của npm báo read-write trên tất cả). Đã báo npm support nhiều lần, chưa được giải quyết. Dùng `pip install yana-ai` hoặc `cargo install yana-rt` bên dưới để có bản mới nhất cho tới khi việc này thay đổi.
+
 ```bash
 # Claude Code plugin — npx yana-ai-install gắn hooks
 # (bắt buộc: npm v12+ không còn tự chạy postinstall scripts mặc định)
@@ -125,7 +141,7 @@ npm install yana-ai && npx yana-ai-install
 # Python CLI
 pip install yana-ai
 
-# Rust runtime (nhanh hơn 1256 lần)
+# Rust runtime (nhanh hơn ~2–12 lần với lệnh giới hạn phạm vi — xem BENCHMARK.md)
 cargo install yana-rt
 ```
 
@@ -198,12 +214,13 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-26 subcommand. Không phụ thuộc Python.
+27 subcommand. Không phụ thuộc Python.
 
 ```bash
+yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)
 yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro supply chain
 yana-ai graph .                       # knowledge graph — dependency file, resolve import
-yana-ai vault search Q                # tìm trong 2.016 skills theo từ khóa
+yana-ai vault search Q                # tìm trong 2.025 skills theo từ khóa
 yana-ai hunt .                        # săn pattern bảo mật (OWASP, injection, SSRF)
 yana-ai fix .                         # tự động fix vi phạm rule
 yana-ai doctor .                      # kiểm tra sức khỏe hệ thống toàn diện
@@ -213,7 +230,14 @@ yana-ai route classify "fix auth bug" # phân loại task → simple/complex/ext
 yana-ai mission create "add-auth"     # tạo mission agent song song
 ```
 
-**Benchmark:** `yana-ai audit` trên repo 10k file: **nhanh hơn 1256 lần** so với bản Python tương đương.
+**Benchmark** (đo ngày 2026-07-23, phương pháp đầy đủ trong `BENCHMARK.md`):
+các lệnh giới hạn phạm vi như `doctor`/`ci` nhanh hơn Python khoảng ~2–12 lần
+(chủ yếu do thời gian khởi động); `scan` toàn repo hội tụ về ~1.1 lần ở quy mô 19k file
+(chủ yếu do khối lượng công việc, không còn bị chi phối bởi khởi động ở quy mô đó). Con số `1256 lần`
+mà dòng này từng tuyên bố đã từng bị phát hiện là chưa được xác minh một lần
+(2026-05-31, commit `fb6a0cd7`) và bị đưa trở lại qua một lần khôi phục README
+không liên quan (2026-07-07) — không thể tái hiện bằng bất kỳ phép đo nào trong
+`BENCHMARK.md`, cả trước lẫn giờ.
 
 ---
 
@@ -235,7 +259,7 @@ Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`,
 
 ```
 core/
-├── hooks/          # 58 hook PreToolUse / PostToolUse / Stop
+├── hooks/          # 57 hook PreToolUse / PostToolUse / Stop
 ├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
@@ -329,10 +353,10 @@ Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm v�
 Một người. Không team. Không tài trợ.
 
 - Kiến trúc hook, safety gate, Python CLI
-- Rust runtime (`yana-rt`), 101 agent, 2.016 skill, hỗ trợ đa harness
+- Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
 - 12 harness adapter (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
 
-2.016 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
+2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
 
 ---
 

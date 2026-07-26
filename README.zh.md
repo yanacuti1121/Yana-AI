@@ -10,8 +10,8 @@ $ yana-ai
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
 │ v0.43.2 · AI 编程代理的安全防火墙                  │ 上手小贴士                                                                            │
-│ 101 agents · 2,016 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 58 hooks · 108 scripts                │ yana-ai init                                                                           │
+│ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
+│ 71 rules · 61 hooks · 108 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
 │                                                   │ v0.43.2 — 修复 Ollama model-id，新增 entry-point verify law                          │
@@ -61,7 +61,21 @@ $ yana-ai
 npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
 ```
 
-然后试着让你的代理做点坏事，看看会发生什么。下面每个示例都是 2026-07-04 对 `core/hooks/guard-destructive.sh` 真实运行的实录复制，而非营销文案（这个防护尚未能拦截的内容见[已知局限](docs/reference/known-limitations.md)）：
+> **⚠️ 已知问题：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这影响**当前发布的 npm 包（v0.43.1）**，并且截至 2026-07-25 之前，也影响了所有已发布的 PyPI 版本（同一个 bug，不同的 wrapper 文件，已修复但截至撰写时尚未重新发布到 PyPI）。
+>
+> **`cargo install yana-rt` 不受影响** — 它直接安装编译好的 Rust 二进制文件，没有会递归的 wrapper 脚本：
+> ```bash
+> cargo install yana-rt
+> ```
+> npm 和 PyPI 的最新发布版本都带有这个 bug；修复已合并进本仓库，但 npm 发布目前处于冻结状态（见上面"快速安装"里的说明——是同一个账号层面的 npm 问题，与这个修复本身无关），新的 PyPI 版本也还没发布。如果你通过 npm 或 pip 安装并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，并在这条警告因发布公告移除之前避免直接调用 `yana-rt`——或者改用 `cargo` 安装，那边已经包含修复。
+
+然后试着让你的代理做点坏事，看看会发生什么。
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+下面每个示例都是 2026-07-04 对 `core/hooks/guard-destructive.sh` 真实运行的实录复制，而非营销文案（这个防护尚未能拦截的内容见[已知局限](docs/reference/known-limitations.md)）：
 
 ```bash
 # Agent tries: git push --force origin main
@@ -117,6 +131,8 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 **→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
 
+> **说明（2026-07-26）：npm 包目前冻结在 v0.43.1。** 发布更新版本被 npm 账号层面的问题阻塞——已确认不是我们这边的配置问题（同一账号下多个不同的包，无论通过 CI 的 OIDC trusted publishing 还是浏览器手动登录，都复现同样的 403，而 npm 自己的 `access list` 显示对所有包都有 read-write 权限）。已多次向 npm 支持团队反馈，尚未解决。在这个问题解决之前，请使用下面的 `pip install yana-ai` 或 `cargo install yana-rt` 获取当前版本。
+
 ```bash
 # Claude Code 插件 — npx yana-ai-install 会接入 hooks
 # （必需：npm v12+ 默认不再运行 postinstall 脚本）
@@ -125,7 +141,7 @@ npm install yana-ai && npx yana-ai-install
 # Python CLI
 pip install yana-ai
 
-# Rust 运行时（快 1256 倍的扫描器）
+# Rust 运行时（对有限范围命令快约 2–12 倍 — 见 BENCHMARK.md）
 cargo install yana-rt
 ```
 
@@ -198,12 +214,13 @@ bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-26 个子命令，零 Python 依赖。
+27 个子命令，零 Python 依赖。
 
 ```bash
+yana-ai chat                          # 交互式聊天 REPL — 云端（Anthropic/OpenAI）或本地（Ollama）
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、导入解析
-yana-ai vault search Q                # 按关键词搜索 2,016 个技能
+yana-ai vault search Q                # 按关键词搜索 2,025 个技能
 yana-ai hunt .                        # 搜寻安全模式（OWASP、注入、SSRF）
 yana-ai fix .                         # 自动修复规则违规
 yana-ai doctor .                      # 全面系统健康检查
@@ -213,7 +230,13 @@ yana-ai route classify "fix auth bug" # 任务分类 → simple/complex/external
 yana-ai mission create "add-auth"     # 创建并行代理任务
 ```
 
-**性能基准：** 在一万文件规模的仓库上，`yana-ai audit` 比对应的 Python 实现**快 1256 倍**。
+**性能基准**（2026-07-23 测得，完整方法见 `BENCHMARK.md`）：
+`doctor`/`ci` 这类范围有限的命令比 Python 快约 ~2–12 倍
+（主要受启动时间影响）；对整个仓库的 `scan` 在 1.9 万文件规模下收敛到约 1.1 倍
+（在这个规模下主要受工作量影响，而非启动时间）。这一行曾经宣称的 `1256 倍`
+这个数字此前已被发现一次未经验证
+（2026-05-31，提交 `fb6a0cd7`），又被一次无关的 README 恢复
+（2026-07-07）带回来——在 `BENCHMARK.md` 中的任何测量里，无论当时还是现在都无法复现。
 
 ---
 
@@ -235,7 +258,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 ```
 core/
-├── hooks/          # 58 个 PreToolUse / PostToolUse / Stop 钩子
+├── hooks/          # 57 个 PreToolUse / PostToolUse / Stop 钩子
 ├── rules/          # 71 条强制规则（安全、正确性、UI、git）
 ├── scripts/        # safe-run.sh、verify-core-lock.sh、secure-logger.sh
 ├── gates/          # truth_gate.md、action_gate.md
@@ -329,10 +352,10 @@ Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无
 一个人。没有团队。没有资金。
 
 - Hook 架构、安全网关、Python CLI
-- Rust 运行时（`yana-rt`）、101 个代理、2,016 个技能、多引擎支持
+- Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
 - 12 个适配器（Claude Code、Cursor、Windsurf、Antigravity、Kiro、Zed、Gemini、Copilot、Aider…）
 
-这 2,016 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
+这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
 
 ---
 
