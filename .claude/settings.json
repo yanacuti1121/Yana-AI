@@ -40,6 +40,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/sandbox-wrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_RTK_BRIDGE=1 YANA_GUARDED_HOOK=.claude/hooks/rtk-bridge.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
