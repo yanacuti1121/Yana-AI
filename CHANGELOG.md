@@ -8,6 +8,69 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.0.0 — 2026-07-26
+
+First 1.0 release. Product version axis only (`package.json`/
+`MANIFEST.json`/`.claude-plugin/marketplace.json`/`.claude-plugin/
+plugin.json`); `Cargo.toml` (`yana-rt`, crates.io, already at `1.3.3`)
+and `pyproject.toml` (PyPI, `0.42.3`) are unchanged this cycle — neither
+the Rust runtime nor the Python package changed. See `VERSIONING.md` for
+why these three axes are independent.
+
+**Known issues, not fixed by this release — stated plainly, not
+silently carried:**
+- **npm publish is frozen at v0.43.1.** Publishing newer versions is
+  blocked by an account-level issue on npm's own side, confirmed not a
+  config problem here (the same 403 reproduces across multiple packages
+  under the same account, via both CI's OIDC trusted publishing and a
+  fresh manual browser login, while npm's own `access list` reports
+  read-write on every one of them). Reported to npm support repeatedly
+  with no resolution. `npm install -g yana-ai` will keep installing
+  v0.43.1 until this is resolved — use `pip install yana-ai` or
+  `cargo install yana-rt` for the current version.
+- **The desktop app's auto-update pipeline is broken.** `tools/
+  yana-desktop/package.json`'s version was never bumped past `0.1.0`,
+  so every desktop build tries to publish an identically-named
+  installer asset; the last attempt (for the v0.43.2 tag, 2026-07-10)
+  failed with `overwrite published file ... reason=already exists on
+  GitHub`. The in-app auto-updater code itself is correct (checks
+  GitHub Releases every 4h and on launch, always asks before
+  downloading/installing) — it simply has nothing newer to find.
+
+- **Add**: `src/skill_quality.rs` — per-skill outcome ledger. Correlates
+  `.claude/state/audit-chain.log` (which skill/agent a task's session
+  invoked) with `eval judge`'s PASS/FAIL verdict to score skill quality
+  from real task outcomes. Idea borrowed from HKUDS/OpenSpace's
+  quality-from-real-tasks model, reimplemented from scratch in Rust —
+  no dependency on that project or its cloud. `yana-ai skill-quality
+  show|promote`; promotion always requires an explicit human command,
+  demotion on a fresh FAIL streak is automatic. 262 tests passing
+  (199 unit + 63 integration).
+- **Cut**: `core/scripts/switch-engine.sh` harness adapter support, from
+  15 engines down to 4 actually in use (Claude Code, Cursor, Codex,
+  Antigravity). Removed the copilot/aider/kimi/gemini/qwen/deepseek/
+  openrouter/continue/opencode/zed/windsurf/kiro cases, their adapter
+  source files, and stale generated artifacts (`GEMINI.md`,
+  `OPENCODE.md`, `.github/copilot-instructions.md`, `.windsurf/`,
+  `.kiro/`). `yana chat`'s own model-provider list (Anthropic/OpenAI/
+  Gemini/Groq/DeepSeek/OpenRouter/9Router/Ollama/Kimi) is a separate
+  system and is unaffected.
+- **Fix**: `MANIFEST.json`/`.claude-plugin/plugin.json` scripts count
+  (114 → 113, following the `kimi-hook-adapter.sh` deletion above) and
+  `.claude-plugin/marketplace.json`'s version (which had lagged one
+  patch behind `package.json`/`MANIFEST.json`/`plugin.json` at `0.43.1`
+  while the other three read `0.43.2`) — all four now read `1.0.0`.
+- **Fix**: `bin/yana`'s subcommand dispatch allow-list was missing two
+  real, already-shipped `yana-rt` subcommands — `observability` and
+  `skill-quality` both existed in `src/main.rs` but fell through to
+  `Unknown command` when invoked via `yana-ai observability`/
+  `yana-ai skill-quality`. Both now dispatch correctly.
+- **Docs**: All four READMEs now document the npm freeze plainly in
+  Quick Install, with a pointer to `pip`/`cargo` for the current
+  version.
+
+---
+
 ## v0.43.1 — 2026-07-05
 
 Patch release. Product version axis only (`package.json`/`MANIFEST.json`);

@@ -588,7 +588,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route|evidence|chat)
+  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route|evidence|chat|observability|skill-quality)
     rt "$COMMAND" "$@"
     ;;
   explain)

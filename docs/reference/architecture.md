@@ -12,7 +12,7 @@ sections for the full accounting of what was never real.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                     Yana AI v0.43.1                        │
+│                     Yana AI v1.0.0                          │
 │         "A safety firewall between your AI coding             │
 │                agent and your shell."                           │
 │                                                                  │
