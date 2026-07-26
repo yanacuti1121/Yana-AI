@@ -173,12 +173,10 @@ yana-ai doctor                  # 确认
 Yana AI 会适配你正在使用的工具：
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 个 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + 真实的 beforeShellExecution 钩子
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 ```
 
 ---
@@ -353,7 +351,7 @@ Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无
 
 - Hook 架构、安全网关、Python CLI
 - Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
-- 12 个适配器（Claude Code、Cursor、Windsurf、Antigravity、Kiro、Zed、Gemini、Copilot、Aider…）
+- 4 个适配器（Claude Code、Cursor、Codex、Antigravity）
 
 这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
 

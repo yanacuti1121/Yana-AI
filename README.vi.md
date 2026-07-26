@@ -173,12 +173,10 @@ yana-ai doctor                  # xác nhận
 Yana AI thích ứng với bất kỳ công cụ nào bạn dùng:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # kiểm tra cả 12 adapter
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + hook beforeShellExecution thật
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 ```
 
 ---
@@ -354,7 +352,7 @@ Một người. Không team. Không tài trợ.
 
 - Kiến trúc hook, safety gate, Python CLI
 - Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
-- 12 harness adapter (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
 
 2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
 

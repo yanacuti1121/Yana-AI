@@ -173,12 +173,10 @@ yana-ai doctor                  # 확인
 Yana AI는 사용하는 도구에 맞춰 적응합니다:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7개 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + 실제 beforeShellExecution 훅
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 ```
 
 ---
@@ -353,7 +351,7 @@ Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입�
 
 - 훅 아키텍처, 안전 게이트, Python CLI
 - Rust 런타임(`yana-rt`), 101개 에이전트, 2,025개 스킬, 멀티 하니스 지원
-- 12개 하니스 어댑터 (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- 4개 하니스 어댑터 (Claude Code, Cursor, Codex, Antigravity)
 
 2,025개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
 
