@@ -146,7 +146,23 @@ Cursor ──────── .cursorrules (legacy) ────────�
 Codex ───────── adapters/codex.md → AGENTS.md ────────► Advisory (prompt layer)
 
 Antigravity ─── adapters/antigravity.md → .agent/rules/yana-ai.md ──► Advisory (prompt layer)
+
+Any MCP client ─ yana-rt mcp (Program J spike) ───────► Hard enforcement
+             │    exposes check_command() as an MCP tool         (per-call, opt-in
+             │    over stdio, gated behind the `mcp`               by whether the
+             │    Cargo feature — build-it-yourself,               calling agent
+             │    not shipped in the default binary                 invokes it)
+             └─ First real consumer: Buzz (block/buzz)'s buzz-acp,
+                  via BUZZ_ACP_MCP_COMMAND → scripts/yana-rt-mcp-wrapper.sh
+                  — see docs/programs/buzz-mcp-integration.md
 ```
+
+The MCP row differs from the other four in one important way: it's a
+tool an agent can *choose* to call, not a hook that intercepts every
+command unconditionally. Whether a given MCP-connected agent actually
+invokes `check_command` before running a shell command depends on that
+agent's own tool-use policy — nothing on the wire forces it, unlike
+Claude Code's native hooks or Cursor's `beforeShellExecution`.
 
 **Switch engine:**
 ```bash
