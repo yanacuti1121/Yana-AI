@@ -269,7 +269,7 @@ core/
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 specialist agent definitions
-├── skills/         # 2,016 SKILL.md files
+├── skills/         # 2,025 SKILL.md files
 ├── config/
 │   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
 │   └── skills-lock.json  # skill content hashes
@@ -423,7 +423,7 @@ yana-ai route classify "deploy to production"
 
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
-- **skill** → matched against a 2,016-entry index, dispatches exact skill agent
+- **skill** → matched against a 2,025-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap`, a Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
 - **daily** → routes to `daily-assistant`, summarize / plan / draft (triggers on "summarize", "write an email", "make a plan" — English and Vietnamese)
 - **complex** → dispatch specialist agent(s) with a scoped brief
