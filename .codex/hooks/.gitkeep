@@ -1,0 +1,6 @@
+# Placeholder.
+# Import hook source files from Yana AI_ENGINE_v1.2.9-fixed pack:
+#   api-destruct-guard.sh
+#   token-scope-guard.sh
+#   guard-destructive.sh
+#   db-protect.sh
