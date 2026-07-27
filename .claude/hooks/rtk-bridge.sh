@@ -17,6 +17,19 @@
 # path, that content now transits that process. See 68-principal-
 # confidentiality-law.md and docs/reference/token-optimization.md.
 #
+# INCIDENT (2026-07-26): this hook was briefly wired into the live
+# PreToolUse|Bash chain by default, then unwired the same session after a
+# concrete failure was observed: with the bridge active, an agent's own
+# `git log --oneline | wc -l` silently returned 50 instead of the true
+# 1,478 (rtk's compact `git log` format truncates). "Never emits more
+# tokens than the raw command" (rtk's own guard) is a token-count
+# guarantee, not a completeness guarantee — for anything read for
+# verification/counting/fact-checking rather than casual glancing, a
+# compacted result can be quietly wrong. Do not wire this into a default
+# hook chain an agent relies on for evidence-based claims (see
+# verification.md's Iron Law) without that agent knowing to bypass it, or
+# double-check counts/facts against an uncompressed source, first.
+#
 # Security review findings this file was rewritten to address (2026-07-26,
 # security-auditor + code-auditor per 54-bft-consensus-law.md):
 #   1. The exit-0 path used to grant an explicit `permissionDecision: allow`

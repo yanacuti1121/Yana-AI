@@ -61,7 +61,7 @@ rewrite it, following rtk's own exit-code contract. Without the env var,
 `rtk`, or `jq`, the hook exits immediately with no output — safe to add
 to `settings.json` even if you haven't installed `rtk` yet.
 
-Two things worth knowing before you turn this on:
+Three things worth knowing before you turn this on:
 
 - **The hook never grants its own execution approval.** It only ever
   supplies the rewritten command back to your harness — Yana AI's own
@@ -75,6 +75,17 @@ Two things worth knowing before you turn this on:
 - **Every Bash command's literal text is handed to the `rtk` process**
   once this is on — an unaudited, non-vendored third-party binary. If a
   command embeds a secret or token, that content now transits it.
+- **Compact output can be incomplete, not just shorter.** This was wired
+  into the live default hook chain briefly (2026-07-26) and unwired the
+  same session after a concrete failure: with it active, an agent's own
+  `git log --oneline | wc -l` silently returned 50 instead of the true
+  1,478 — `rtk`'s compact `git log` format truncates rather than
+  counting everything. rtk's own "never emits more tokens than the raw
+  command" guard is a *token-count* promise, not a *completeness*
+  promise. If an agent (or you) is reading output to verify a fact, count
+  something exactly, or otherwise rely on it being the complete picture
+  — not just skimming — either bypass this hook for that one command or
+  double-check the number against an uncompressed source first.
 
 To wire the hook in, add an entry alongside the existing `PreToolUse|Bash` hooks:
 
