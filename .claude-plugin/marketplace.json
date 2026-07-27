@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Personal agent operating system \u2014 safety hooks, memory, agents, cross-engine hard enforcement for Claude Code.",
-    "tagline": "61 hooks \u00b7 2,025 skills \u00b7 sovereign-grade safety for AI coding agents",
+    "tagline": "62 hooks \u00b7 2,025 skills \u00b7 sovereign-grade safety for AI coding agents",
     "category": "safety",
     "tags": [
       "hooks",
@@ -37,7 +37,7 @@
     {
       "name": "yana-ai",
       "description": "Personal agent operating system for Claude Code. Safety hooks, memory tiers, agents, commands, and cross-engine hard enforcement.",
-      "version": "0.43.1",
+      "version": "1.0.0",
       "author": {
         "name": "V\u0169 V\u0103n T\u00e2m",
         "url": "https://github.com/yanacuti1121"

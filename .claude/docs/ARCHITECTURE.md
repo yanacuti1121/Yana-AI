@@ -139,24 +139,22 @@ Claude Code ──── settings.json hooks ───────────�
                                                           Native hook API
 Cursor ──────── .cursorrules (legacy) ────────────────► Advisory (context)
              └─ .cursor/rules/yana-ai-security.mdc ───► Advisory (MDC)
-             └─ .cursor/rules/yana-ai-hard-enforcement.mdc
-                  bash core/scripts/safe-run.sh --engine cursor
-                  → HARD BLOCK on blocked/warn patterns, no TTY      ► Hard enforcement
+             └─ .cursor/hooks/before-shell-execution.js
+                  real beforeShellExecution hook, screens
+                  destructive commands before Cursor runs them        ► Hard enforcement
 
-Aider ───────── adapters/aider.md (--system-prompt) ──► Advisory (prompt)
-             └─ .aider.conf.yml
-                  shell: bash core/scripts/safe-run.sh --engine aider
-                  → HARD BLOCK, read-only gates on core/             ► Hard enforcement
+Codex ───────── adapters/codex.md → AGENTS.md ────────► Advisory (prompt layer)
 
-Copilot ─────── .github/copilot-instructions.md ──────► Advisory (prompt layer)
+Antigravity ─── adapters/antigravity.md → .agent/rules/yana-ai.md ──► Advisory (prompt layer)
 ```
 
 **Switch engine:**
 ```bash
-bash core/scripts/switch-engine.sh cursor   # generates MDC + hard enforcement
-bash core/scripts/switch-engine.sh aider    # generates .aider.conf.yml
-bash core/scripts/switch-engine.sh claude   # reset to native hooks
-bash core/scripts/switch-engine.sh status   # show current adapter state
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
+bash core/scripts/switch-engine.sh codex       # generates AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # generates .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh claude      # reset to native hooks
+bash core/scripts/switch-engine.sh status      # show current adapter state
 ```
 
 ---

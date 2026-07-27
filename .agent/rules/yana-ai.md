@@ -95,22 +95,11 @@ bash core/scripts/search-facts.sh "keyword"
 For shell-level blocking (beyond prompt advisory), route all bash through Yana AI proxy:
 
 ```bash
-# One-time setup — adds safe-run wrapper to shell profile
-bash core/scripts/switch-engine.sh gemini
+# One-time setup — regenerates .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh antigravity
 
 # Manual use
-bash core/scripts/safe-run.sh --engine gemini -- <your command>
+bash core/scripts/safe-run.sh --engine antigravity -- <your command>
 ```
 
 This routes through the same L0–L5 gate stack used by Claude Code hooks.
-
----
-# GEMINI.md usage example:
-#
-# 1. Copy this file to your project root as GEMINI.md:
-#    cp yana-ai/adapters/gemini-code.md /path/to/project/GEMINI.md
-#
-# 2. Gemini Code CLI will load it automatically.
-#
-# 3. For hard enforcement, additionally run:
-#    bash yana-ai/core/scripts/switch-engine.sh gemini

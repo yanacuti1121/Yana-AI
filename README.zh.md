@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.2 · AI 编程代理的安全防火墙                  │ 上手小贴士                                                                            │
+│ v1.0.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 61 hooks · 108 scripts                │ yana-ai init                                                                           │
+│ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
-│                                                   │ v0.43.2 — 修复 Ollama model-id，新增 entry-point verify law                          │
+│                                                   │ v1.0.0 — skill-quality ledger，harness 适配器从 15 个精简到 4 个，新增 rtk-bridge 钩子 │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,7 +36,7 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.2-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、GitHub Copilot、Aider 等更多工具。
+当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Codex、Antigravity。
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
@@ -173,12 +173,10 @@ yana-ai doctor                  # 确认
 Yana AI 会适配你正在使用的工具：
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 个 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + 真实的 beforeShellExecution 钩子
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 ```
 
 ---
@@ -246,7 +244,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
 | Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -311,6 +309,18 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 降低你自己的 token 账单
+
+Yana AI 对代理的行为执行安全防护——它本身并不减少代理读取命令输出时消耗
+的 token。如果这才是你真正的痛点，可以搭配使用
+[`rtk`](https://github.com/rtk-ai/rtk)，一个专为此设计的独立 Apache-2.0
+工具（在代理读取之前过滤/压缩 bash 输出，常见命令下可减少最多 90%）。
+不内嵌代码，也不作为依赖——安装方法以及如何接入 Claude Code/Cursor/
+Codex/Antigravity，见
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)。
+
+---
+
 ## Yana AI（网页产品）
 
 **[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -353,7 +363,7 @@ Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无
 
 - Hook 架构、安全网关、Python CLI
 - Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
-- 12 个适配器（Claude Code、Cursor、Windsurf、Antigravity、Kiro、Zed、Gemini、Copilot、Aider…）
+- 4 个适配器（Claude Code、Cursor、Codex、Antigravity）
 
 这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
 

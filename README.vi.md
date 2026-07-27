@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.2 · Tường lửa an toàn cho AI coding agent │ Mẹo bắt đầu                                                                               │
+│ v1.0.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
 │ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
-│ 71 rules · 61 hooks · 108 scripts               │ yana-ai init                                                                              │
+│ 71 rules · 62 hooks · 113 scripts               │ yana-ai init                                                                              │
 │ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
-│                                                  │ v0.43.2 — sửa Ollama model-id, thêm entry-point verify law                               │
+│                                                  │ v1.0.0 — skill-quality ledger, cắt harness adapter 15 → 4, hook rtk-bridge               │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,7 +36,7 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.2-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider, và nhiều công cụ khác.
+Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Codex, và Antigravity.
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
@@ -173,12 +173,10 @@ yana-ai doctor                  # xác nhận
 Yana AI thích ứng với bất kỳ công cụ nào bạn dùng:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # kiểm tra cả 12 adapter
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + hook beforeShellExecution thật
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 ```
 
 ---
@@ -247,7 +245,7 @@ Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version r
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Product (rules/hooks/skills/agents/CLI) | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -259,7 +257,7 @@ Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`,
 
 ```
 core/
-├── hooks/          # 57 hook PreToolUse / PostToolUse / Stop
+├── hooks/          # 62 hook PreToolUse / PostToolUse / Stop
 ├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
@@ -312,6 +310,18 @@ Tìm thấy lỗ hổng chưa liệt kê ở đây? [Mở issue](https://github.
 
 ---
 
+## Cắt giảm chi phí token của chính bạn
+
+Yana AI thực thi an toàn cho những gì agent làm — nó không giảm số token
+agent đốt khi đọc output lệnh. Nếu đó mới là vấn đề thật của bạn, dùng kèm
+[`rtk`](https://github.com/rtk-ai/rtk), một công cụ Apache-2.0 riêng biệt
+được viết cho đúng việc đó (lọc/nén output bash trước khi agent đọc, giảm
+tới 90% trên các lệnh thông dụng). Không nhúng code, không phải dependency
+— xem [docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+để cài đặt + nối vào Claude Code/Cursor/Codex/Antigravity.
+
+---
+
 ## Yana AI (sản phẩm web)
 
 **[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -354,7 +364,7 @@ Một người. Không team. Không tài trợ.
 
 - Kiến trúc hook, safety gate, Python CLI
 - Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
-- 12 harness adapter (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
 
 2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
 

@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.2 · Safety firewall for AI coding agents │ Tips for getting started                                                                   │
+│ v1.0.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
 │ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
-│ 71 rules · 61 hooks · 108 scripts              │ yana-ai init                                                                               │
+│ 71 rules · 62 hooks · 113 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
-│                                                 │ v0.43.2 — Ollama model-id fix, entry-point verify law                                     │
+│                                                 │ v1.0.0 — skill-quality ledger, harness adapters cut 15 → 4, rtk-bridge hook                │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,7 +36,7 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.2-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://www.npmjs.com/package/yana-ai">
     <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider, and more.
+Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Codex, and Antigravity.
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
@@ -180,12 +180,10 @@ yana-ai doctor                  # verify
 Yana AI adapts to whichever tool you use:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # check all 12 adapters
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # check all 4 adapters
 ```
 
 ---
@@ -254,7 +252,7 @@ Yana AI ships to three registries, each with its own version number — delibera
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **0.43.2** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Product (rules/hooks/skills/agents/CLI) | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -266,12 +264,12 @@ If you see three different numbers across this repo (including in `git tag`, `RO
 
 ```
 core/
-├── hooks/          # 57 PreToolUse / PostToolUse / Stop hooks
+├── hooks/          # 62 PreToolUse / PostToolUse / Stop hooks
 ├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 specialist agent definitions
-├── skills/         # 2,016 SKILL.md files
+├── skills/         # 2,025 SKILL.md files
 ├── config/
 │   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
 │   └── skills-lock.json  # skill content hashes
@@ -319,6 +317,19 @@ Found a gap not listed here? [Open an issue](https://github.com/yanacuti1121/yan
 
 ---
 
+## Cutting your own token bill
+
+Yana AI enforces safety on what an agent does — it does not reduce how
+many tokens an agent burns reading command output. If that's your actual
+pain point, pair it with [`rtk`](https://github.com/rtk-ai/rtk), a
+separate Apache-2.0 tool built for exactly that (filters/compresses bash
+output before your agent reads it, up to 90% smaller on common commands).
+Not vendored, not a dependency — see
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+for install + wiring into Claude Code/Cursor/Codex/Antigravity.
+
+---
+
 ## Yana AI (the web product)
 
 **[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -361,7 +372,7 @@ One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
 - Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
-- 12 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- 4 harness adapters (Claude Code, Cursor, Codex, Antigravity)
 
 The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
 
@@ -412,7 +423,7 @@ yana-ai route classify "deploy to production"
 
 Five routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
-- **skill** → matched against a 2,016-entry index, dispatches exact skill agent
+- **skill** → matched against a 2,025-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap`, a Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
 - **daily** → routes to `daily-assistant`, summarize / plan / draft (triggers on "summarize", "write an email", "make a plan" — English and Vietnamese)
 - **complex** → dispatch specialist agent(s) with a scoped brief
