@@ -11,10 +11,10 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.0.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
 │ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
-│ 71 rules · 61 hooks · 113 scripts              │ yana-ai init                                                                               │
+│ 71 rules · 62 hooks · 113 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
-│                                                 │ v1.0.0 — skill-quality ledger, harness adapters cut 15 → 4                                │
+│                                                 │ v1.0.0 — skill-quality ledger, harness adapters cut 15 → 4, rtk-bridge hook                │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider, and more.
+Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Codex, and Antigravity.
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
@@ -264,7 +264,7 @@ If you see three different numbers across this repo (including in `git tag`, `RO
 
 ```
 core/
-├── hooks/          # 57 PreToolUse / PostToolUse / Stop hooks
+├── hooks/          # 62 PreToolUse / PostToolUse / Stop hooks
 ├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md

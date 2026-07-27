@@ -11,10 +11,10 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.0.0 · AI 코딩 에이전트를 위한 안전 방화벽         │ 시작하기 팁                                                                         │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 61 hooks · 113 scripts                │ yana-ai init                                                                           │
+│ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 새 소식                                                                              │
-│                                                   │ v1.0.0 — skill-quality ledger, 하니스 어댑터 15개 → 4개로 축소                        │
+│                                                   │ v1.0.0 — skill-quality ledger, 하니스 어댑터 15개 → 4개로 축소, rtk-bridge 훅         │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다. Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider 등과 함께 작동합니다.
+에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다. Claude Code, Cursor, Codex, Antigravity와 함께 작동합니다.
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # 훅 연결 (60초)
@@ -306,6 +306,20 @@ files. Ask the human to confirm before running this.
 - **macOS는 기본적으로 GNU `timeout`/`gtimeout`을 제공하지 않습니다.** 이것이 항상 존재한다고 가정했던 훅은 영향받는 기기에서 발견되어 수정될 때까지(2026-07-04) 어떤 보호된 훅도 조용히 실행하지 못했습니다. 이제는 조용히 아무것도 하지 않는 대신 타임아웃 상한 없이 실행하도록 우아하게 저하되지만, 이런 유형의 "환경을 가정한" 버그는 이 훅들을 fork하거나 확장할 때 정확히 주의해야 할 부분입니다.
 
 여기에 없는 문제를 발견하셨나요? [이슈를 열어주세요](https://github.com/yanacuti1121/yana-ai/issues). 실제 사례 보고야말로 이런 가드가 더 날카로워지는 방법이지, 해야 할 일에 대한 문서를 더 추가하는 것이 아닙니다.
+
+---
+
+## 토큰 비용 줄이기
+
+Yana AI는 에이전트가 하는 행동에 대한 안전을 실행하지만, 에이전트가 명령
+출력을 읽으며 소모하는 토큰 자체는 줄이지 않습니다. 그게 실제 고민이라면
+바로 그 목적으로 만들어진 별도의 Apache-2.0 도구인
+[`rtk`](https://github.com/rtk-ai/rtk)를 함께 쓰세요 (에이전트가 읽기 전에
+bash 출력을 필터링/압축하며, 흔한 명령에서 최대 90%까지 줄입니다). 코드를
+내장하거나 의존성으로 추가하지 않습니다 — 설치 및 Claude Code/Cursor/
+Codex/Antigravity 연결 방법은
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+참고.
 
 ---
 

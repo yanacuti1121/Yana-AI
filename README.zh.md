@@ -11,10 +11,10 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.0.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 61 hooks · 113 scripts                │ yana-ai init                                                                           │
+│ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
-│                                                   │ v1.0.0 — skill-quality ledger，harness 适配器从 15 个精简到 4 个                     │
+│                                                   │ v1.0.0 — skill-quality ledger，harness 适配器从 15 个精简到 4 个，新增 rtk-bridge 钩子 │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、GitHub Copilot、Aider 等更多工具。
+当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Codex、Antigravity。
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
@@ -306,6 +306,18 @@ files. Ask the human to confirm before running this.
 - **macOS 默认不自带 GNU `timeout`/`gtimeout`。** 有个 hook 曾假定它一定存在，在受影响的机器上曾悄无声息地从未真正执行过任何受保护的 hook，直到这个问题被发现并修复（2026-07-04）。现在它会优雅降级（不设超时上限运行）而不是悄悄什么都不做，但这类"假定环境存在"的 bug 正是你 fork 或扩展这些 hooks 时需要特别留意的。
 
 发现了这里没列出的问题？[提交 issue](https://github.com/yanacuti1121/yana-ai/issues)。真实世界的反馈才是让这样的防护真正变得更锋利的方式，而不是给它应该做什么再加一份文档。
+
+---
+
+## 降低你自己的 token 账单
+
+Yana AI 对代理的行为执行安全防护——它本身并不减少代理读取命令输出时消耗
+的 token。如果这才是你真正的痛点，可以搭配使用
+[`rtk`](https://github.com/rtk-ai/rtk)，一个专为此设计的独立 Apache-2.0
+工具（在代理读取之前过滤/压缩 bash 输出，常见命令下可减少最多 90%）。
+不内嵌代码，也不作为依赖——安装方法以及如何接入 Claude Code/Cursor/
+Codex/Antigravity，见
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)。
 
 ---
 

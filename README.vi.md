@@ -11,10 +11,10 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.0.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
 │ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
-│ 71 rules · 61 hooks · 113 scripts               │ yana-ai init                                                                              │
+│ 71 rules · 62 hooks · 113 scripts               │ yana-ai init                                                                              │
 │ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
-│                                                  │ v1.0.0 — skill-quality ledger, cắt harness adapter từ 15 xuống 4                        │
+│                                                  │ v1.0.0 — skill-quality ledger, cắt harness adapter 15 → 4, hook rtk-bridge               │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -55,7 +55,7 @@ $ yana-ai
 
 ---
 
-Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider, và nhiều công cụ khác.
+Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Codex, và Antigravity.
 
 ```bash
 npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
@@ -257,7 +257,7 @@ Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`,
 
 ```
 core/
-├── hooks/          # 57 hook PreToolUse / PostToolUse / Stop
+├── hooks/          # 62 hook PreToolUse / PostToolUse / Stop
 ├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
@@ -307,6 +307,18 @@ Trung thực, không quảng cáo: đã xác minh trực tiếp trên hook sốn
 - **macOS không có sẵn `timeout`/`gtimeout` kiểu GNU.** Một hook từng giả định luôn có timeout này đã âm thầm không bao giờ chạy được hook nào trên các máy bị ảnh hưởng cho đến khi phát hiện và fix (2026-07-04). Giờ nó xuống cấp một cách nhẹ nhàng (chạy không giới hạn timeout) thay vì âm thầm không làm gì cả, nhưng đáng lưu ý loại bug "giả định môi trường" này là chính xác thứ cần để ý nếu bạn fork hoặc mở rộng các hook này.
 
 Tìm thấy lỗ hổng chưa liệt kê ở đây? [Mở issue](https://github.com/yanacuti1121/yana-ai/issues). Báo cáo thực tế là cách một guard như thế này thực sự trở nên sắc bén hơn, không phải bằng cách viết thêm tài liệu mô tả nó nên làm gì.
+
+---
+
+## Cắt giảm chi phí token của chính bạn
+
+Yana AI thực thi an toàn cho những gì agent làm — nó không giảm số token
+agent đốt khi đọc output lệnh. Nếu đó mới là vấn đề thật của bạn, dùng kèm
+[`rtk`](https://github.com/rtk-ai/rtk), một công cụ Apache-2.0 riêng biệt
+được viết cho đúng việc đó (lọc/nén output bash trước khi agent đọc, giảm
+tới 90% trên các lệnh thông dụng). Không nhúng code, không phải dependency
+— xem [docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+để cài đặt + nối vào Claude Code/Cursor/Codex/Antigravity.
 
 ---
 
