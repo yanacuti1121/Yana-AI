@@ -1,0 +1,165 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/giamthi-halt-check.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/guard-destructive.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-proxy-enforcer.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/scope-guard.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/freeze-scope.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/infra-review-reminder.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-budget-gate.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh' start"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/token-budget-guard.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/per-tool-circuit-breaker.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/audit-log.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/budget-sentinel.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/verify-evidence-track.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh' record"
+          },
+          {
+            "type": "command",
+            "command": "bash core/hooks/context-compress-trigger.sh",
+            "statusMessage": "Context compression check..."
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh' stop"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/entry-point-verify-reminder.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IDEA LOOP AUTO-START: Ngay khi nhận tin nhắn đầu tiên từ người dùng, hãy chạy /idea-loop để kiểm tra trạng thái repo và gợi ý việc làm. Chạy trước khi xử lý yêu cầu của người dùng.\"}}'",
+            "statusMessage": "Khởi động Idea Loop..."
+          },
+          {
+            "type": "command",
+            "command": "python3 -c \"from headroom import compress; print('[headroom] ready')\" 2>/dev/null || true",
+            "statusMessage": "Headroom context compressor..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/auto-decompose.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/session-bootstrap.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/truth-gate-guard.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh' reset"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/context-compress-stop.sh bash '/Users/vutam/Yana-AI/.codex/hooks/hook-timeout-guard.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}
