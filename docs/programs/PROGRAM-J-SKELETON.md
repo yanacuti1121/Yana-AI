@@ -24,6 +24,34 @@ bằng chứng và giới hạn thật của spike này trước khi quyết.
 thoại 2026-07-24 (Input bổ sung).
 **Template:** ADS v1 Phase 1 (19 trường).
 
+**2026-07-27 — Phase 10 mở khoá, phạm vi hẹp (Buzz là consumer thật đầu
+tiên):** anh Tâm chọn tích hợp với [block/buzz](https://github.com/block/buzz)
+"như một phân hệ thống, không phải riêng lẻ" — nghiên cứu 2 bên (xem
+`buzz-mcp-integration.md`) tìm ra: `crates/buzz-acp/`'s `BUZZ_ACP_MCP_COMMAND`
+là đúng điểm nối buzz-acp đã xây sẵn cho việc gắn thêm 1 MCP server ngoài
+vào bất kỳ agent nào nó điều phối (goose/codex/claude-code/buzz-agent).
+Đây **là** quyết định mở khoá Phase 10 mà mục ở trên nói "của anh Tâm" —
+nhưng phạm vi hẹp: chỉ phần "Buzz làm consumer cho MCP server có sẵn,"
+KHÔNG phải toàn bộ Phase 10 của cả Program (thay thế translator Cursor/
+Codex/Antigravity vẫn `Draft`, chưa động tới).
+
+Đã làm và verify thật (không phải claim suông): build `--features mcp`
+sạch; viết `scripts/yana-rt-mcp-wrapper.sh` (buzz-acp gọi
+`BUZZ_ACP_MCP_COMMAND` với 0 tham số — xác nhận trực tiếp từ
+`crates/buzz-acp/src/lib.rs`'s `build_mcp_servers()`: `args: vec![]` —
+nên cần wrapper cung cấp subcommand `mcp`); chạy wrapper qua stdio JSON-RPC
+thật (`initialize` + 2 `tools/call check_command`), đối chiếu verdict với
+`core/hooks/guard-destructive.sh` chạy trực tiếp cho cùng 2 lệnh — khớp
+từng chữ. `src/mcp.rs` **không đổi** — không có gì cần "hardened" ở phía
+Yana AI (nhầm lẫn ban đầu: lỗi MCP-level fail-closed là trách nhiệm phía
+client/buzz-acp, không phải server này, vì `check_command()` là hàm
+total, không bao giờ trả `Err`).
+
+Chưa verify: buzz-acp thật chạy sống + agent thật gọi tool giữa phiên —
+cần dựng Buzz Desktop (Docker + Hermit + Tauri build), ngoài khả năng môi
+trường phiên này. Chi tiết đầy đủ, bằng chứng, giới hạn: xem
+`buzz-mcp-integration.md`.
+
 > Ranh giới rõ: mục nào ghi **"Nguồn gốc"** là nguyên văn/paraphrase sát
 > nguồn, KHÔNG sửa ý. Mục nào ghi **"Chưa quyết — cần anh"** là phần thật
 > sự chưa có câu trả lời ở bất kỳ đâu, KHÔNG phải AI tự điền.
