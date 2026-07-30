@@ -91,7 +91,7 @@ jobs:
           skip-existing: true
 
   publish-npm:
-    name: npm — yana-ai
+    name: npm — @vutam-yana-ai/yana-ai
     # The !startsWith(...,'rt-v'/'py-v') guards below are currently
     # always-true once startsWith(ref,'v') is true, since no rt-v/py-v tag
     # can also start with a bare 'v'. Kept as explicit future-proofing in
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: npm
-      url: https://www.npmjs.com/package/yana-ai
+      url: https://www.npmjs.com/package/@vutam-yana-ai/yana-ai
     # id-token: write is required for npm's OIDC Trusted Publisher flow
     # (npmjs.com package Settings > Trusted Publisher, configured
     # 2026-07-10) — without it GitHub Actions never issues the OIDC token
@@ -165,8 +165,8 @@ jobs:
       # NODE_AUTH_TOKEN unset forces npm to fall through to OIDC.
       - name: Publish to npm
         run: |
-          if npm view "yana-ai@$VERSION" &>/dev/null 2>&1; then
-            echo "yana-ai@$VERSION already published, skipping."
+          if npm view "@vutam-yana-ai/yana-ai@$VERSION" &>/dev/null 2>&1; then
+            echo "@vutam-yana-ai/yana-ai@$VERSION already published, skipping."
           else
             npm publish --access public
           fi
