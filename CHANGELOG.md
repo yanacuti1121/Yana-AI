@@ -10,11 +10,48 @@ All notable changes to Yana AI release packs are documented here.
 
 ## v1.1.0 — 2026-07-30
 
-Product version axis only (`package.json`/`MANIFEST.json`/`.claude-plugin/
-marketplace.json`/`.claude-plugin/plugin.json`); `Cargo.toml` (`yana-rt`,
-crates.io, `1.3.3`) and `pyproject.toml` (PyPI, `0.42.3`) are unchanged
-this cycle — see `VERSIONING.md` for why these axes move independently.
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+marketplace.json`/`.claude-plugin/plugin.json`) no longer maps to any
+public registry — see "Discontinued: npm distribution" below.
+`Cargo.toml` (`yana-rt`, crates.io, `1.3.3`) version is unchanged this
+cycle. `pyproject.toml`'s version number (PyPI, `0.42.3`) is also
+unchanged, but its packaging *configuration* changed — see "Fix: PyPI
+package was fundamentally broken" below. See `VERSIONING.md` for why
+these axes move independently.
 
+- **Discontinued: npm distribution.** Yana AI is no longer published to
+  npm. The original account hit a persistent, unresolved account-level
+  publish block (403 despite full read-write access; reported to npm
+  support repeatedly, never resolved — see the v1.0.0 entry below). A
+  replacement account and scoped package (`@vutam-yana-ai/yana-ai`) were
+  set up, but its first publish attempt hit a *separate* 403 — a
+  new-account anti-abuse hold, confirmed via the registry's own request
+  log (two clean 404 existence checks, then a flat 403 on the PUT, no
+  OTP/EOTP error). Given the identical unresolved history with npm
+  support on the first account, npm distribution was dropped rather than
+  pursued further. `package.json` still exists (it backs local tooling —
+  `npm test`, `npm run deploy`, the Electron build scripts,
+  `postinstall`) and is now marked `"private": true` so it can never be
+  published again, by accident or otherwise. `publish-npm` was removed
+  from `.github/workflows/publish.yml` entirely. Full account/registry
+  history: `VERSIONING.md`'s "Why product has no registry" section.
+- **Fix: the PyPI package was fundamentally broken for its primary
+  entry point.** Found while writing the npm-removal docs above and
+  verified end-to-end (not just by reading code): a real `pip install
+  yana-ai` in a clean venv could never run the `yana-ai` command at all.
+  `src/yana_ai/cli.py` looked for `bin/yana-ai` (a file that has never
+  existed — the real script is `bin/yana`), and even after fixing that
+  typo, `pyproject.toml`'s wheel/sdist packaging only shipped
+  `src/yana_ai/`'s Python code — `bin/`, `core/`, `.claude-plugin/`,
+  `gates/`, `scanner/`, and `policy/` (all required for `bin/yana` to do
+  anything) were never included in the distributed package at all.
+  Fixed both: corrected the filename in `cli.py`, and added
+  `force-include`/sdist `include` entries for all six directories.
+  Verified by building the wheel locally, installing it into a fresh
+  venv, and confirming `yana-ai version` and `yana-ai install .` both
+  run correctly end-to-end (including the two policy templates
+  `yana-ai install` copies, which were silently "missing" before this
+  fix and are now included).
 - **Add**: `COMMANDS.md` — a root-level catalog of every `yana-ai` CLI
   command in one place (audit, guard/policy, runtime task/eval/bus/
   memory/mission/route/evidence, knowledge graph, security scanning),
@@ -37,7 +74,9 @@ this cycle — see `VERSIONING.md` for why these axes move independently.
   now routed alongside the other `rt`-forwarded subcommands.
 - **Docs**: all four README locales gained an "MCP integration — Buzz"
   section and a link to `COMMANDS.md`; the pre-existing stale skill
-  count (2,016 → 2,025) was fixed at two locations per locale.
+  count (2,016 → 2,025) was fixed at two locations per locale. All four
+  also dropped npm as an install method (pip/cargo only now) and the
+  version badge/banner example were bumped to v1.1.0.
 - **Style**: `yana chat`'s TUI header border is now magenta, and the
   input box border switches between cyan (idle) and yellow (a turn is
   streaming) — a lighter-touch borrow from superfile's status-by-border-
