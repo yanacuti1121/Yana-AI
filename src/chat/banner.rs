@@ -30,18 +30,19 @@ const ASCII_ART: [&str; 6] = [
     "   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝",
 ];
 
-/// Pink→blue gradient across the 6 art rows — linear interpolation between
-/// `render.rs`'s LIGHT_PINK (255,218,228) and LIGHT_BLUE (198,226,245), so
-/// the wordmark ties directly to the border palette instead of picking
-/// separate colors. Muted/pastel per request ("nhạt hơn") — not the more
-/// saturated first pass.
+/// Pink→purple→blue gradient across the 6 art rows — piecewise linear
+/// through `render.rs`'s 3-color trio (LIGHT_PINK 255,192,210 → LIGHT_PURPLE
+/// 200,180,230 → LIGHT_BLUE 165,210,235), so the wordmark ties directly to
+/// the border palette. Third anchor color (purple) added on request — a
+/// straight 2-point pink→blue lerp read as "missing a color, not
+/// harmonious"; the middle hue rounds it into a real 3-color scheme.
 const ART_GRADIENT: [Color; 6] = [
-    Color::Rgb(255, 218, 228),
-    Color::Rgb(244, 220, 231),
-    Color::Rgb(232, 221, 235),
-    Color::Rgb(221, 223, 238),
-    Color::Rgb(210, 224, 241),
-    Color::Rgb(198, 226, 245),
+    Color::Rgb(255, 192, 210),
+    Color::Rgb(237, 188, 217),
+    Color::Rgb(218, 184, 223),
+    Color::Rgb(200, 180, 230),
+    Color::Rgb(182, 195, 232),
+    Color::Rgb(165, 210, 235),
 ];
 
 /// Greedy word-wrap, no dependency — bash's banner uses `fold -s`, this is
