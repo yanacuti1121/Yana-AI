@@ -431,7 +431,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Hero -->
 <div class="hero">
   <div>
-    <div class="hero-badge"><span class="dot"></span> v0.41.0 &nbsp;·&nbsp; yana-rt 1.3.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
+    <div class="hero-badge"><span class="dot"></span> v1.1.0 &nbsp;·&nbsp; yana-rt 1.3.3 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
     <h1 data-i18n="hero.title">Your AI agent's<br><em>safety layer</em></h1>
     <p class="hero-sub" data-i18n="hero.sub">Safety hooks that fire before damage happens. 2,025 skills, a full Rust runtime, and a 9-layer gate system — built and verified for Claude Code.</p>
     <div class="hero-ctas">
@@ -641,7 +641,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <section id="runtime">
   <div class="section-inner">
     <div class="section-label" data-i18n="section.runtime">Rust Runtime</div>
-    <h2 data-i18n="h2.runtime">yana-rt v1.0.0</h2>
+    <h2 data-i18n="h2.runtime">yana-rt v1.3.3</h2>
     <p class="section-sub" data-i18n="sub.runtime">Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.</p>
     <div class="rt-grid">
       <div>
@@ -688,8 +688,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div class="code-block">
           <div class="t-dim"># install the binary</div>
           <div><span style="color:var(--green)">cargo</span> install yana-rt</div>
-          <div style="margin-top:.5rem" class="t-dim"># or via npm</div>
-          <div><span style="color:var(--green)">npm</span> install -g yana-ai</div>
+          <div style="margin-top:.5rem" class="t-dim"># or the full CLI via pip</div>
+          <div><span style="color:var(--green)">pip</span> install yana-ai</div>
         </div>
       </div>
     </div>
@@ -790,16 +790,16 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
     <div style="font-size:.8125rem;color:var(--fg-muted);margin-bottom:.75rem" data-i18n="install.manual">or install manually:</div>
     <div class="install-tabs">
       <button class="tab active" onclick="setTab(this,'curl')">curl</button>
-      <button class="tab" onclick="setTab(this,'npm')">npm</button>
+      <button class="tab" onclick="setTab(this,'pip')">pip</button>
       <button class="tab" onclick="setTab(this,'cargo')">cargo</button>
     </div>
     <div class="cmd-box">
-      <code id="install-cmd">curl -sSL https://yanacuti1121.github.io/yana-ai/install | bash</code>
+      <code id="install-cmd">curl -sSL https://yanacuti1121.github.io/yana-ai/install.sh | bash</code>
       <button class="copy-btn" onclick="copyCmd()">copy</button>
     </div>
     <div class="install-alts">
       <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">★ Star on GitHub</a>
-      <a href="https://www.npmjs.com/package/yana-ai" target="_blank">npm</a>
+      <a href="https://pypi.org/project/yana-ai/" target="_blank">pip</a>
       <a href="https://crates.io/crates/yana-rt" target="_blank">crates.io</a>
       <a href="https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
     </div>
@@ -832,8 +832,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">yana-ai audit · doctor · scan · fix</div>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
-          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.npm">Claude Code plugin</div>
-          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">npm i yana-ai && npx yana-ai-install</code>
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.npm">Wire hooks</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">pip install yana-ai && yana-ai install</code>
           <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">hooks · agents · commands → .claude/</div>
         </div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
@@ -1048,7 +1048,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
           <span>🛡️</span>
           <span style="font-weight:700;font-size:.92rem">Yana AI</span>
-          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v0.41.0</span>
+          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v1.1.0</span>
         </div>
         <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yana-ai.short">Personal agent OS — 62 hooks, 2,025 skills, Rust runtime. Safe for every AI agent.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
@@ -1303,7 +1303,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Kiểm thử tích hợp end-to-end cho nhiều module</li>
           <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Phân tích import đa ngôn ngữ: Rust, TS, Python, Go</li>
           <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Tập trung vào an toàn AI — blast radius map, vault, scanner</li>
-          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Tích hợp đa nền tảng: Python CLI, NPM, crates.io</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Tích hợp đa nền tảng: Python CLI, crates.io</li>
         </ul>
       </div>
       <!-- Opportunities -->
@@ -1376,13 +1376,13 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <footer>
   <div class="footer-inner">
     <div class="footer-left">
-      <strong>Yana AI</strong> — Apache 2.0 · v0.41.0<br>
+      <strong>Yana AI</strong> — Apache 2.0 · v1.1.0<br>
       <span data-i18n="footer.built">Built by Vũ Văn Tâm · Vietnam</span><br>
       <span style="opacity:.65;font-size:.8rem" data-i18n="footer.skills">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
     </div>
     <div class="footer-links">
       <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
-      <a href="https://www.npmjs.com/package/yana-ai" target="_blank">npm</a>
+      <a href="https://pypi.org/project/yana-ai/" target="_blank">pip</a>
       <a href="https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
       <a href="https://github.com/yanacuti1121/yana-ai/issues" target="_blank">Issues</a>
     </div>
@@ -1391,8 +1391,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
 <script>
 const cmds = {
-  curl:  'curl -sSL https://yanacuti1121.github.io/yana-ai/install | bash',
-  npm:   'npm install -g yana-ai',
+  curl:  'curl -sSL https://yanacuti1121.github.io/yana-ai/install.sh | bash',
+  pip:   'pip install yana-ai && yana-ai install',
   cargo: 'cargo install yana-rt',
 };
 function setTab(btn, key) {
@@ -1418,7 +1418,7 @@ const T = {
     'section.codexmate':'Bundled Tool','section.contact':'Contact',
     'section.yana':'Personal AI Assistant',
     'h2.why':'AI agents cause real damage.<br>Yana AI stops it before it happens.',
-    'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.0.0',
+    'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.3.3',
     'h2.compat':'Works with every major AI coding tool',
     'h2.docs':'Full documentation',
     'h2.contact':'Get in touch','h2.install':'Install in seconds',
@@ -1467,7 +1467,7 @@ const T = {
     'docs.h3.struct':'Repo structure',
     'docs.what':'Yana AI is an <strong style="color:var(--fg)">agent operating system</strong> that runs outside your codebase — intercepting every tool call from Claude Code, Cursor, Aider before it executes. No config, no product code changes. Install once, protect everything.',
     'docs.py':'Python CLI',
-    'docs.npm':'Claude Code plugin',
+    'docs.npm':'Wire hooks',
     'docs.rust':'Rust runtime (~29× faster)',
     'codexmate.s1':'Clone yana-ai (if not yet)','codexmate.s2':'Install dependencies','codexmate.s3':'Start server','codexmate.s4':'Open browser','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
     'codexmate.c1':'# 1. Install node_modules (first time)',
@@ -1501,7 +1501,7 @@ const T = {
     'section.codexmate':'Công cụ đi kèm','section.contact':'Liên hệ',
     'section.yana':'Trợ lý AI cá nhân',
     'h2.why':'AI agent gây thiệt hại thật.<br>Yana AI ngăn chặn trước khi xảy ra.',
-    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.0.0',
+    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.3.3',
     'h2.compat':'Hoạt động với mọi AI coding tool',
     'h2.docs':'Giới thiệu đầy đủ',
     'h2.contact':'Liên hệ','h2.install':'Cài đặt trong vài giây',
@@ -1550,7 +1550,7 @@ const T = {
     'docs.h3.struct':'Cấu trúc repo',
     'docs.what':'Yana AI là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.',
     'docs.py':'Python CLI',
-    'docs.npm':'Claude Code plugin',
+    'docs.npm':'Kết nối hooks',
     'docs.rust':'Rust runtime (~29× nhanh hơn)',
     'codexmate.s1':'Clone yana-ai (nếu chưa có)','codexmate.s2':'Cài dependencies','codexmate.s3':'Bật server','codexmate.s4':'Mở trình duyệt','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
     'codexmate.c1':'# 1. Cài node_modules (lần đầu)',
@@ -1584,7 +1584,7 @@ const T = {
     'section.codexmate':'번들 도구','section.contact':'연락처',
     'section.yana':'개인 AI 어시스턴트',
     'h2.why':'AI 에이전트는 실제 피해를 줍니다.<br>Yana AI이 사전에 막습니다.',
-    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.0.0',
+    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.3.3',
     'h2.compat':'모든 주요 AI 코딩 도구와 호환',
     'h2.docs':'전체 문서',
     'h2.contact':'연락하기','h2.install':'몇 초 만에 설치',
@@ -1633,7 +1633,7 @@ const T = {
     'docs.h3.struct':'저장소 구조',
     'docs.what':'Yana AI은 코드베이스 외부에서 실행되는 <strong style="color:var(--fg)">에이전트 운영 체제</strong>입니다 — Claude Code, Cursor, Aider의 모든 도구 호출을 실행 전에 차단합니다. 설정 불필요, 제품 코드 변경 없음. 한 번 설치로 전체 보호.',
     'docs.py':'Python CLI',
-    'docs.npm':'Claude Code 플러그인',
+    'docs.npm':'훅 연결',
     'docs.rust':'Rust 런타임 (~29× 빠름)',
     'codexmate.s1':'yana-ai 클론 (아직 없다면)','codexmate.s2':'의존성 설치','codexmate.s3':'서버 시작','codexmate.s4':'브라우저 열기','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → 포트 8080','codexmate.local':'로컬:',
     'codexmate.c1':'# 1. node_modules 설치 (최초 1회)',
@@ -1730,16 +1730,17 @@ window.addEventListener('DOMContentLoaded',function(){
   });
 });
 
-// Live download stats from npm + crates.io
+// Live download stats from PyPI + crates.io (npm distribution discontinued
+// -- see VERSIONING.md's "Why product has no registry")
 (async () => {
   try {
-    const [npm, cr] = await Promise.all([
-      fetch('https://api.npmjs.org/downloads/point/last-month/yana-ai').then(r=>r.json()).catch(()=>null),
+    const [py, cr] = await Promise.all([
+      fetch('https://pypistats.org/api/packages/yana-ai/recent').then(r=>r.json()).catch(()=>null),
       fetch('https://crates.io/api/v1/crates/yana-rt', {headers:{'User-Agent':'yana-ai-website'}}).then(r=>r.json()).catch(()=>null),
     ]);
-    const npmDl  = npm?.downloads  ? `npm ${(npm.downloads/1000).toFixed(1)}k/mo` : null;
+    const pyDl   = py?.data?.last_month ? `pip ${(py.data.last_month/1000).toFixed(1)}k/mo` : null;
     const crDl   = cr?.crate?.recent_downloads ? `crates ${(cr.crate.recent_downloads/1000).toFixed(1)}k/mo` : null;
-    const parts  = [npmDl, crDl].filter(Boolean);
+    const parts  = [pyDl, crDl].filter(Boolean);
     const el = document.getElementById('live-dl');
     if (el && parts.length) el.textContent = parts.join(' · ');
     else if (el) el.textContent = 'open source';
