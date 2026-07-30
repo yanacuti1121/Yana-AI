@@ -52,7 +52,7 @@ $ yana-ai
 
 ---
 
-Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Codex, and Antigravity.
+Your agent tries something dangerous. Yana intercepts it, explains why, and logs it — hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity.
 
 ```bash
 pip install yana-ai && yana-ai install   # wire the hooks (60 seconds)

@@ -52,7 +52,7 @@ $ yana-ai
 
 ---
 
-에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다. Claude Code, Cursor, Codex, Antigravity와 함께 작동합니다.
+에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다 — Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고(advisory) 수준입니다.
 
 ```bash
 pip install yana-ai && yana-ai install   # 훅 연결 (60초)
