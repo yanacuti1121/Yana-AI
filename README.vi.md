@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v1.0.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
+│ v1.1.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
 │ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
 │ 71 rules · 62 hooks · 113 scripts               │ yana-ai init                                                                              │
 │ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
-│                                                  │ v1.0.0 — skill-quality ledger, cắt harness adapter 15 → 4, hook rtk-bridge               │
+│                                                  │ v1.1.0 — thêm COMMANDS.md, sửa nền banner, đổi màu viền yana chat                        │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,11 +36,8 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
-  </a>
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -58,16 +55,16 @@ $ yana-ai
 Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Codex, và Antigravity.
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
+pip install yana-ai && yana-ai install   # gắn hooks (60 giây)
 ```
 
-> **⚠️ Lỗi đã biết: `yana-rt` có thể tự gọi lại chính nó và chạy 100% CPU vô hạn** — trên một máy bị ảnh hưởng, lỗi này đẩy CPU lên 116°C trước khi phải tắt máy cưỡng bức. Nguyên nhân gốc: script entry point `yana-rt` resolve binary thật qua `$PATH`/`which`, và trên một số bản cài, việc tra cứu đó lại tìm ra chính script entry point, gây đệ quy vô hạn. Lỗi này ảnh hưởng **bản npm đang published hiện tại (v0.43.1)** và, cho đến 2026-07-25, cũng ảnh hưởng mọi bản PyPI đã published (cùng lỗi, khác file wrapper, đã fix nhưng chưa re-release lên PyPI tính đến lúc viết bài này).
+> **⚠️ Lỗi đã biết (lịch sử, chỉ trên PyPI): `yana-rt` có thể tự gọi lại chính nó và chạy 100% CPU vô hạn** — trên một máy bị ảnh hưởng, lỗi này đẩy CPU lên 116°C trước khi phải tắt máy cưỡng bức. Nguyên nhân gốc: script entry point `yana-rt` resolve binary thật qua `$PATH`/`which`, và trên một số bản cài, việc tra cứu đó lại tìm ra chính script entry point, gây đệ quy vô hạn. Lỗi này từng ảnh hưởng mọi bản PyPI đã published cho tới 2026-07-25 (đã fix). Yana AI không còn phân phối qua npm nữa — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry).
 >
-> **`cargo install yana-rt` không bị ảnh hưởng** — nó cài trực tiếp binary Rust đã biên dịch, không có wrapper script nào để đệ quy qua:
+> **`cargo install yana-rt` chưa bao giờ bị ảnh hưởng** — nó cài trực tiếp binary Rust đã biên dịch, không có wrapper script nào để đệ quy qua:
 > ```bash
 > cargo install yana-rt
 > ```
-> Cả npm và PyPI đều mang lỗi này trong bản published mới nhất; bản fix đã merge vào repo này nhưng việc publish npm đang bị đóng băng (xem ghi chú ở phần Cài đặt nhanh phía trên — cùng vấn đề account-level của npm, không liên quan riêng tới fix này) và bản PyPI mới cũng chưa được cắt. Nếu bạn cài qua npm hoặc pip và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu bạn đã set, và tránh gọi `yana-rt` trực tiếp cho đến khi có thông báo release gỡ cảnh báo này — hoặc cài qua `cargo` thay thế, bản đó đã có fix rồi.
+> Nếu anh còn cài bản PyPI cũ và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu đã set, rồi nâng cấp (`pip install -U yana-ai`).
 
 Sau đó thử bảo agent làm bậy, và xem.
 
@@ -129,17 +126,14 @@ Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết
 
 ## Cài đặt nhanh
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **Lưu ý (2026-07-26): package npm hiện đang đóng băng ở v0.43.1.** Việc publish bản mới hơn bị chặn bởi một vấn đề ở mức account phía npm — đã xác nhận không phải lỗi cấu hình bên mình (cùng lỗi 403 tái hiện trên nhiều package khác nhau dưới cùng account, qua cả OIDC trusted publishing của CI lẫn login tay qua browser, trong khi chính `access list` của npm báo read-write trên tất cả). Đã báo npm support nhiều lần, chưa được giải quyết. Dùng `pip install yana-ai` hoặc `cargo install yana-rt` bên dưới để có bản mới nhất cho tới khi việc này thay đổi.
+> **Lưu ý (2026-07-30): không phân phối qua npm.** Yana AI không còn (và không có kế hoạch) publish lên npm registry nữa — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) để biết toàn bộ lịch sử. Dùng `pip` hoặc `cargo` bên dưới.
 
 ```bash
-# Claude Code plugin — npx yana-ai-install gắn hooks
-# (bắt buộc: npm v12+ không còn tự chạy postinstall scripts mặc định)
-npm install yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — cài lệnh yana-ai
 pip install yana-ai
+yana-ai install                # gắn hooks vào dự án hiện tại
 
 # Rust runtime (nhanh hơn ~2–12 lần với lệnh giới hạn phạm vi — xem BENCHMARK.md)
 cargo install yana-rt
@@ -152,7 +146,7 @@ yana-ai doctor .
 
 ### Yêu cầu
 
-- Node.js 18+ (cho package npm)
+- Python 3.11+ (cho package pip) hoặc Rust/Cargo (cho `cargo install yana-rt`)
 - Git
 - Bất kỳ AI coding tool nào: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider, v.v.
 
@@ -245,7 +239,7 @@ Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version r
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 

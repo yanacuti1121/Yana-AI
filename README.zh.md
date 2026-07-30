@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v1.0.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
+│ v1.1.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
 │ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
-│                                                   │ v1.0.0 — skill-quality ledger，harness 适配器从 15 个精简到 4 个，新增 rtk-bridge 钩子 │
+│                                                   │ v1.1.0 — 新增 COMMANDS.md，修复 banner 背景色，chat TUI 边框颜色                     │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,11 +36,8 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
-  </a>
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -58,16 +55,16 @@ $ yana-ai
 当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Codex、Antigravity。
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
+pip install yana-ai && yana-ai install   # 接入 hooks（60 秒）
 ```
 
-> **⚠️ 已知问题：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这影响**当前发布的 npm 包（v0.43.1）**，并且截至 2026-07-25 之前，也影响了所有已发布的 PyPI 版本（同一个 bug，不同的 wrapper 文件，已修复但截至撰写时尚未重新发布到 PyPI）。
+> **⚠️ 已知问题（历史遗留，仅限 PyPI）：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这曾影响截至 2026-07-25 之前发布的所有 PyPI 版本（此后已修复）。Yana AI 不再通过 npm 分发 — 原因见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。
 >
-> **`cargo install yana-rt` 不受影响** — 它直接安装编译好的 Rust 二进制文件，没有会递归的 wrapper 脚本：
+> **`cargo install yana-rt` 从未受影响** — 它直接安装编译好的 Rust 二进制文件，没有会递归的 wrapper 脚本：
 > ```bash
 > cargo install yana-rt
 > ```
-> npm 和 PyPI 的最新发布版本都带有这个 bug；修复已合并进本仓库，但 npm 发布目前处于冻结状态（见上面"快速安装"里的说明——是同一个账号层面的 npm 问题，与这个修复本身无关），新的 PyPI 版本也还没发布。如果你通过 npm 或 pip 安装并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，并在这条警告因发布公告移除之前避免直接调用 `yana-rt`——或者改用 `cargo` 安装，那边已经包含修复。
+> 如果你还在使用旧版 PyPI 包，并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，然后升级（`pip install -U yana-ai`）。
 
 然后试着让你的代理做点坏事，看看会发生什么。
 
@@ -129,17 +126,14 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 ## 快速安装
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **说明（2026-07-26）：npm 包目前冻结在 v0.43.1。** 发布更新版本被 npm 账号层面的问题阻塞——已确认不是我们这边的配置问题（同一账号下多个不同的包，无论通过 CI 的 OIDC trusted publishing 还是浏览器手动登录，都复现同样的 403，而 npm 自己的 `access list` 显示对所有包都有 read-write 权限）。已多次向 npm 支持团队反馈，尚未解决。在这个问题解决之前，请使用下面的 `pip install yana-ai` 或 `cargo install yana-rt` 获取当前版本。
+> **说明（2026-07-30）：不再通过 npm 分发。** Yana AI 已不再、也不再计划发布到 npm registry —— 完整经过见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。请使用下面的 `pip` 或 `cargo`。
 
 ```bash
-# Claude Code 插件 — npx yana-ai-install 会接入 hooks
-# （必需：npm v12+ 默认不再运行 postinstall 脚本）
-npm install yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — 安装 yana-ai 命令
 pip install yana-ai
+yana-ai install                # 将 hooks 接入当前项目
 
 # Rust 运行时（对有限范围命令快约 2–12 倍 — 见 BENCHMARK.md）
 cargo install yana-rt
@@ -152,7 +146,7 @@ yana-ai doctor .
 
 ### 环境要求
 
-- Node.js 18+（用于 npm 包）
+- Python 3.11+（用于 pip 包）或 Rust/Cargo（用于 `cargo install yana-rt`）
 - Git
 - 任意 AI 编程工具：[Claude Code](https://claude.ai/code)、Cursor、Windsurf、Aider 等
 
@@ -244,7 +238,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
