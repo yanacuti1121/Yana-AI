@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v1.0.0 · AI 코딩 에이전트를 위한 안전 방화벽         │ 시작하기 팁                                                                         │
+│ v1.1.0 · AI 코딩 에이전트를 위한 안전 방화벽         │ 시작하기 팁                                                                         │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
 │ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 새 소식                                                                              │
-│                                                   │ v1.0.0 — skill-quality ledger, 하니스 어댑터 15개 → 4개로 축소, rtk-bridge 훅         │
+│                                                   │ v1.1.0 — COMMANDS.md 추가, 배너 배경 버그 수정, chat TUI 테두리 색상                  │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,10 +36,10 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
+  <a href="https://www.npmjs.com/package/@vutam-yana-ai/yana-ai">
+    <img src="https://img.shields.io/npm/v/@vutam-yana-ai/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
   </a>
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -58,16 +58,16 @@ $ yana-ai
 에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다. Claude Code, Cursor, Codex, Antigravity와 함께 작동합니다.
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # 훅 연결 (60초)
+npm install -g @vutam-yana-ai/yana-ai && npx yana-ai-install   # 훅 연결 (60초)
 ```
 
-> **⚠️ 알려진 문제: `yana-rt`가 자기 자신을 재귀 호출하여 CPU 100%로 무한히 도는 경우가 있습니다** — 영향받은 한 기기에서는 강제 종료 전 CPU가 116°C까지 올라갔습니다. 근본 원인: `yana-rt` 진입점 스크립트가 `$PATH`/`which`를 통해 실제 바이너리를 찾는데, 일부 설치 환경에서는 이 조회가 진입점 스크립트 자기 자신을 찾아버려 무한 재귀가 발생합니다. 이는 **현재 배포된 npm 패키지(v0.43.1)**에 영향을 미치며, 2026-07-25까지는 배포된 모든 PyPI 릴리스에도 영향을 미쳤습니다(같은 버그, 다른 래퍼 파일, 수정은 됐지만 이 글을 쓰는 시점까지 PyPI에 재배포되지 않음).
+> **⚠️ 알려진 문제 (과거 이력): `yana-rt`가 자기 자신을 재귀 호출하여 CPU 100%로 무한히 도는 경우가 있습니다** — 영향받은 한 기기에서는 강제 종료 전 CPU가 116°C까지 올라갔습니다. 근본 원인: `yana-rt` 진입점 스크립트가 `$PATH`/`which`를 통해 실제 바이너리를 찾는데, 일부 설치 환경에서는 이 조회가 진입점 스크립트 자기 자신을 찾아버려 무한 재귀가 발생합니다. 이는 이전 계정에서 배포되던 npm 패키지(마지막 버전 v0.43.1)에 영향을 미쳤으며, 2026-07-25까지는 배포된 모든 PyPI 릴리스에도 영향을 미쳤습니다(같은 버그, 다른 래퍼 파일). 수정 사항은 이 저장소에 이미 머지되었고, 현재 npm 패키지(`@vutam-yana-ai/yana-ai`, 아래 빠른 설치 참조)는 수정된 코드로 배포되므로 이 문제가 없습니다.
 >
-> **`cargo install yana-rt`는 영향받지 않습니다** — 컴파일된 Rust 바이너리를 직접 설치하므로 재귀를 일으킬 래퍼 스크립트가 없습니다:
+> **`cargo install yana-rt`는 처음부터 영향받지 않았습니다** — 컴파일된 Rust 바이너리를 직접 설치하므로 재귀를 일으킬 래퍼 스크립트가 없습니다:
 > ```bash
 > cargo install yana-rt
 > ```
-> npm과 PyPI 모두 최신 배포 릴리스에 이 버그를 갖고 있습니다; 수정 사항은 이 저장소에 머지되었지만 npm 배포가 동결되어 있고(위 빠른 설치의 참고 사항 참조 — 이 수정과 무관한, 동일한 npm 계정 수준 문제입니다), 아직 새 PyPI 릴리스로 잘리지도 않았습니다. npm이나 pip로 설치했고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고, `YANA_RT_BIN`을 설정했다면 해제하고, 이 경고가 릴리스 공지로 사라질 때까지 `yana-rt`를 직접 호출하지 마세요 — 또는 이미 수정 사항이 반영된 `cargo`로 설치하세요.
+> 예전의 스코프 없는 `yana-ai` 패키지를 npm이나 오래된 PyPI 릴리스로 설치해 두었고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고 `YANA_RT_BIN`을 설정했다면 해제한 뒤 현재 패키지로 다시 설치하세요.
 
 이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
 
@@ -129,14 +129,14 @@ Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은
 
 ## 빠른 설치
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [npm install](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai)** — `npm install -g @vutam-yana-ai/yana-ai`
 
-> **참고 (2026-07-26): npm 패키지는 현재 v0.43.1에서 동결되어 있습니다.** 새 버전 배포가 npm 계정 수준의 문제로 막혀 있습니다 — 이쪽 설정 문제가 아님을 확인했습니다(같은 계정의 여러 패키지에서 CI의 OIDC trusted publishing과 브라우저 수동 로그인 양쪽 모두 동일한 403이 재현되며, npm 자체 `access list`는 모든 패키지에 read-write 권한이 있다고 보고합니다). npm 지원팀에 여러 차례 신고했지만 해결되지 않았습니다. 이 문제가 해결될 때까지 최신 버전은 아래 `pip install yana-ai` 또는 `cargo install yana-rt`를 사용하세요.
+> **참고 (2026-07-30): npm 패키지가 새 스코프로 이전되었습니다.** 이전의 스코프 없는 `yana-ai` 패키지 계정이 계정 수준 배포 차단(read-write 권한이 있는데도 배포할 때마다 403, npm 지원팀에 여러 차례 신고했지만 해결되지 않음)에 걸려 unpublish되었습니다. `@vutam-yana-ai/yana-ai`가 현재 실제로 배포 중인 패키지입니다 — 예전에 저장해 둔 `npm install -g yana-ai` 명령이 있다면 아래 스코프 이름으로 바꿔주세요.
 
 ```bash
 # Claude Code 플러그인 — npx yana-ai-install 이 훅을 연결합니다
 # (필수: npm v12+ 는 기본적으로 postinstall 스크립트를 더 이상 실행하지 않음)
-npm install yana-ai && npx yana-ai-install
+npm install @vutam-yana-ai/yana-ai && npx yana-ai-install
 
 # Python CLI
 pip install yana-ai
@@ -244,7 +244,7 @@ Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | [npmjs.com/package/@vutam-yana-ai/yana-ai](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai) |
 | Rust 런타임 (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 패키지 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 

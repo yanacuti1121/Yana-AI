@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v1.0.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
+│ v1.1.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
 │ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
 │ 71 rules · 62 hooks · 113 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
-│                                                 │ v1.0.0 — skill-quality ledger, harness adapters cut 15 → 4, rtk-bridge hook                │
+│                                                 │ v1.1.0 — COMMANDS.md added, banner background fix, chat TUI colors                        │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,10 +36,10 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.0.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
+  <a href="https://www.npmjs.com/package/@vutam-yana-ai/yana-ai">
+    <img src="https://img.shields.io/npm/v/@vutam-yana-ai/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
   </a>
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -58,16 +58,16 @@ $ yana-ai
 Your agent tries something dangerous. Yana intercepts it, explains why, and logs it. Works with Claude Code, Cursor, Codex, and Antigravity.
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
+npm install -g @vutam-yana-ai/yana-ai && npx yana-ai-install   # wire the hooks (60 seconds)
 ```
 
-> **⚠️ Known issue: `yana-rt` could self-invoke and spin at 100% CPU indefinitely** — on one affected machine this drove the CPU to 116°C before a forced shutdown. Root cause: the `yana-rt` entry point script resolves the real binary via `$PATH`/`which`, and on some installs that lookup finds the entry point script itself, causing infinite recursion. This affects the **currently published npm package (v0.43.1)** and, until 2026-07-25, affected every published PyPI release too (same bug, separate wrapper file, fixed but not yet re-released to PyPI as of this writing).
+> **⚠️ Known issue (historical): `yana-rt` could self-invoke and spin at 100% CPU indefinitely** — on one affected machine this drove the CPU to 116°C before a forced shutdown. Root cause: the `yana-rt` entry point script resolves the real binary via `$PATH`/`which`, and on some installs that lookup finds the entry point script itself, causing infinite recursion. This affected the npm package published under the old account (last version there: v0.43.1) and, until 2026-07-25, every published PyPI release too (same bug, separate wrapper file). The fix has been merged in this repo since; the current npm package (`@vutam-yana-ai/yana-ai`, see Quick Install below) publishes from post-fix code, so this does not affect it.
 >
-> **`cargo install yana-rt` is unaffected** — it installs the compiled Rust binary directly, with no wrapper script to recurse through:
+> **`cargo install yana-rt` was always unaffected** — it installs the compiled Rust binary directly, with no wrapper script to recurse through:
 > ```bash
 > cargo install yana-rt
 > ```
-> npm and PyPI both carry the bug in their latest published release; the fix is merged in this repo but npm publishing is frozen (see the note in Quick Install above — this is the same account-level npm issue, not specific to this fix) and a new PyPI release hasn't been cut yet either. If you installed via npm or pip and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and avoid invoking `yana-rt` directly until a release notice removes this warning — or install via `cargo` instead, which already has the fix.
+> If you still have the old, unscoped `yana-ai` package installed from npm or an old PyPI release and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and reinstall from the current package instead.
 
 Then ask your agent to misbehave, and watch.
 
@@ -129,21 +129,20 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 
 ## Quick install
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [npm install](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai)** — `npm install -g @vutam-yana-ai/yana-ai`
 
-> **Note (2026-07-26): the npm package is frozen at v0.43.1.** Publishing
-> newer versions is blocked by an account-level issue on npm's own side —
-> confirmed not a config problem here (same 403 reproduces across multiple
-> packages under the same account, via both CI's OIDC trusted publishing
-> and a fresh manual browser login, while npm's own `access list` reports
-> read-write on every one of them). Reported to npm support repeatedly with
-> no resolution. Use `pip install yana-ai` or `cargo install yana-rt` below
-> for the current version until this changes.
+> **Note (2026-07-30): the npm package moved to a new scope.** The
+> previous unscoped `yana-ai` package's npm account hit a persistent
+> account-level publish block (403 on every publish attempt despite full
+> read-write access, reported to npm support repeatedly with no
+> resolution) and has since been unpublished. `@vutam-yana-ai/yana-ai`
+> is the current, actively-published package — update any bookmarked
+> `npm install -g yana-ai` command to the scoped name below.
 
 ```bash
 # Claude Code plugin — npx yana-ai-install wires the hooks
 # (required: npm v12+ no longer runs postinstall scripts by default)
-npm install yana-ai && npx yana-ai-install
+npm install @vutam-yana-ai/yana-ai && npx yana-ai-install
 
 # Python CLI
 pip install yana-ai
@@ -252,7 +251,7 @@ Yana AI ships to three registries, each with its own version number — delibera
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.0.0** | [npmjs.com/package/yana-ai](https://www.npmjs.com/package/yana-ai) |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | [npmjs.com/package/@vutam-yana-ai/yana-ai](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai) |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
