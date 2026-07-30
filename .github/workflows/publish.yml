@@ -1,13 +1,27 @@
-name: Publish to npm + PyPI + crates.io
+name: Publish to PyPI + crates.io
 
-# Three independent version axes (see VERSIONING.md): product (npm,
-# package.json/MANIFEST.json), yana-rt crate (crates.io, Cargo.toml), and
-# the Python package (PyPI, pyproject.toml). Each axis has its own tag
-# prefix so pushing one axis's tag never touches the other two files.
-# Before 2026-07-05 all three jobs ran unconditionally on any
-# `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set its own version file to
-# that same tag number, silently collapsing the three axes into one and
-# contradicting VERSIONING.md's own stated design.
+# Two independent version axes (see VERSIONING.md): the yana-rt crate
+# (crates.io, Cargo.toml) and the Python package (PyPI, pyproject.toml).
+# Each axis has its own tag prefix so pushing one axis's tag never
+# touches the other's file.
+#
+# A third axis, product (npm, package.json/MANIFEST.json), was removed
+# 2026-07-30 — the npm package (originally unscoped `yana-ai`, briefly
+# `@vutam-yana-ai/yana-ai`) is no longer distributed via npm. The
+# original account hit a persistent, unresolved account-level publish
+# block; the replacement account's very first publish attempt hit a
+# separate 403 (new-account anti-abuse hold, confirmed via registry log:
+# two clean 404 existence checks followed by a flat 403 on the PUT, no
+# OTP/EOTP error). Given the prior account's identical unresolved history
+# with npm support, distributing via npm was dropped rather than pursued
+# further. `package.json` still exists for local tooling (test/deploy/
+# electron-build scripts, `postinstall`) and is marked `"private": true`
+# so it can never be published by accident.
+#
+# Before 2026-07-05 all three jobs (npm included, at the time) ran
+# unconditionally on any `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set
+# its own version file to that same tag number, silently collapsing the
+# axes into one and contradicting VERSIONING.md's own stated design.
 #
 # Reviewed 2026-07-05 (security-auditor + code-auditor per
 # 54-bft-consensus-law.md) before this version landed. Two things the
@@ -29,7 +43,6 @@ name: Publish to npm + PyPI + crates.io
 on:
     push:
       tags:
-        - 'v[0-9]+.[0-9]+.[0-9]+'      # product version -> npm only
         - 'rt-v[0-9]+.[0-9]+.[0-9]+'   # yana-rt crate version -> crates.io only
         - 'py-v[0-9]+.[0-9]+.[0-9]+'   # Python package version -> PyPI only
     release:
@@ -44,8 +57,8 @@ on:
           description: 'Which registry to publish'
           required: true
           type: choice
-          options: [npm, pypi, crates]
-          default: 'npm'
+          options: [pypi, crates]
+          default: 'pypi'
 
 jobs:
   publish-pypi:
@@ -89,87 +102,6 @@ jobs:
         with:
           password: ${{ secrets.PYPI_TOKEN }}
           skip-existing: true
-
-  publish-npm:
-    name: npm — @vutam-yana-ai/yana-ai
-    # The !startsWith(...,'rt-v'/'py-v') guards below are currently
-    # always-true once startsWith(ref,'v') is true, since no rt-v/py-v tag
-    # can also start with a bare 'v'. Kept as explicit future-proofing in
-    # case a fourth axis ever gets a prefix starting with 'v' too.
-    if: >-
-      (github.event_name == 'push' && startsWith(github.ref_name, 'v') && !startsWith(github.ref_name, 'rt-v') && !startsWith(github.ref_name, 'py-v')) ||
-      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && !startsWith(github.event.release.tag_name, 'rt-v') && !startsWith(github.event.release.tag_name, 'py-v')) ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'npm')
-    runs-on: ubuntu-latest
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/@vutam-yana-ai/yana-ai
-    # id-token: write is required for npm's OIDC Trusted Publisher flow
-    # (npmjs.com package Settings > Trusted Publisher, configured
-    # 2026-07-10) — without it GitHub Actions never issues the OIDC token
-    # npm needs, and publish falls back to NODE_AUTH_TOKEN below, which
-    # started getting rejected with a 403 registry-side even for a
-    # verified read-write collaborator using a fresh token (confirmed by
-    # reproducing the same 403 from a real `npm login` session locally).
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0 (node24)
-        with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-
-      # OIDC trusted publishing needs npm >= 11.5.1; Node 20's bundled npm
-      # predates that, so upgrade in-place before the publish step. Pinned
-      # to the 11.x line, not `npm@latest` — npm 12 requires Node >=22.22
-      # and fails with EBADENGINE on this job's Node 20 (confirmed by a
-      # real failed run: "Required: node ^22.22.2 || ^24.15.0 || >=26.0.0,
-      # Actual: node v20.20.2").
-      - name: Upgrade npm for OIDC trusted publishing support
-        run: npm install -g npm@11
-
-      - name: Set version from tag
-        run: |
-          VERSION="$RAW_VERSION"
-          VERSION="${VERSION#v}"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-      # Temporary diagnostic for the still-unresolved E403 on the actual
-      # publish PUT (OIDC token exchange + provenance signing already
-      # confirmed working, per docs/ discussion 2026-07-25) — prints
-      # exactly the repo/ref/workflow identity GitHub Actions presents,
-      # to hand-compare against npmjs.com's Trusted Publisher entry for
-      # a mismatch the logs otherwise don't surface. Remove once the
-      # 403 is root-caused; not meant to be permanent.
-      - name: Debug — show GitHub OIDC identity context
-        run: |
-          echo "Repository: $GITHUB_REPOSITORY"
-          echo "Ref: $GITHUB_REF"
-          echo "Workflow: $GITHUB_WORKFLOW"
-          echo "Job: $GITHUB_JOB"
-          echo "Event: $GITHUB_EVENT_NAME"
-          echo "Actor: $GITHUB_ACTOR"
-
-      # No NODE_AUTH_TOKEN here on purpose: actions/setup-node's
-      # registry-url wrote `_authToken=${NODE_AUTH_TOKEN}` into .npmrc,
-      # and npm prefers a configured (even if broken/revoked) authToken
-      # over attempting the OIDC Trusted Publisher exchange — so as long
-      # as a token was present, npm never actually tried OIDC, no matter
-      # how the trusted publisher was configured on npmjs.com. Leaving
-      # NODE_AUTH_TOKEN unset forces npm to fall through to OIDC.
-      - name: Publish to npm
-        run: |
-          if npm view "@vutam-yana-ai/yana-ai@$VERSION" &>/dev/null 2>&1; then
-            echo "@vutam-yana-ai/yana-ai@$VERSION already published, skipping."
-          else
-            npm publish --access public
-          fi
 
   publish-crates:
     name: crates.io — yana-rt

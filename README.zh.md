@@ -38,9 +38,6 @@ $ yana-ai
   </a>
   <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/@vutam-yana-ai/yana-ai">
-    <img src="https://img.shields.io/npm/v/@vutam-yana-ai/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
-  </a>
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -58,16 +55,16 @@ $ yana-ai
 当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Codex、Antigravity。
 
 ```bash
-npm install -g @vutam-yana-ai/yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
+pip install yana-ai && yana-ai install   # 接入 hooks（60 秒）
 ```
 
-> **⚠️ 已知问题（历史遗留）：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这曾影响旧账号下发布的 npm 包（该账号最后发布版本为 v0.43.1），并且截至 2026-07-25 之前，也影响了所有已发布的 PyPI 版本（同一个 bug，不同的 wrapper 文件）。修复早已合并进本仓库；当前的 npm 包（`@vutam-yana-ai/yana-ai`，见下方快速安装）是从已修复的代码发布的，不受此问题影响。
+> **⚠️ 已知问题（历史遗留，仅限 PyPI）：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这曾影响截至 2026-07-25 之前发布的所有 PyPI 版本（此后已修复）。Yana AI 不再通过 npm 分发 — 原因见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。
 >
 > **`cargo install yana-rt` 从未受影响** — 它直接安装编译好的 Rust 二进制文件，没有会递归的 wrapper 脚本：
 > ```bash
 > cargo install yana-rt
 > ```
-> 如果你还在使用通过 npm 或旧版 PyPI 安装的、无 scope 的旧版 `yana-ai` 包，并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，然后改用当前的包重新安装。
+> 如果你还在使用旧版 PyPI 包，并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，然后升级（`pip install -U yana-ai`）。
 
 然后试着让你的代理做点坏事，看看会发生什么。
 
@@ -129,17 +126,14 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 ## 快速安装
 
-**→ [npm install](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai)** — `npm install -g @vutam-yana-ai/yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **说明（2026-07-30）：npm 包已迁移到新的 scope。** 旧的无 scope `yana-ai` 包所在账号遇到账号层面的发布封锁（尽管有完整读写权限，每次发布都返回 403，已多次向 npm 支持团队反馈未解决），现已 unpublish。`@vutam-yana-ai/yana-ai` 是当前实际发布的包 —— 如果你收藏过旧的 `npm install -g yana-ai` 命令，请改用下面的新 scope 名称。
+> **说明（2026-07-30）：不再通过 npm 分发。** Yana AI 已不再、也不再计划发布到 npm registry —— 完整经过见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。请使用下面的 `pip` 或 `cargo`。
 
 ```bash
-# Claude Code 插件 — npx yana-ai-install 会接入 hooks
-# （必需：npm v12+ 默认不再运行 postinstall 脚本）
-npm install @vutam-yana-ai/yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — 安装 yana-ai 命令
 pip install yana-ai
+yana-ai install                # 将 hooks 接入当前项目
 
 # Rust 运行时（对有限范围命令快约 2–12 倍 — 见 BENCHMARK.md）
 cargo install yana-rt
@@ -152,7 +146,7 @@ yana-ai doctor .
 
 ### 环境要求
 
-- Node.js 18+（用于 npm 包）
+- Python 3.11+（用于 pip 包）或 Rust/Cargo（用于 `cargo install yana-rt`）
 - Git
 - 任意 AI 编程工具：[Claude Code](https://claude.ai/code)、Cursor、Windsurf、Aider 等
 
@@ -244,7 +238,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | [npmjs.com/package/@vutam-yana-ai/yana-ai](https://www.npmjs.com/package/@vutam-yana-ai/yana-ai) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
