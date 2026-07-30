@@ -52,7 +52,7 @@ $ yana-ai
 
 ---
 
-Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Codex, và Antigravity.
+Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log — chặn cứng trên Claude Code và Cursor, tư vấn (advisory) trên Codex và Antigravity.
 
 ```bash
 pip install yana-ai && yana-ai install   # gắn hooks (60 giây)

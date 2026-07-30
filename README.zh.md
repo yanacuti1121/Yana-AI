@@ -52,7 +52,7 @@ $ yana-ai
 
 ---
 
-当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Codex、Antigravity。
+当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来 —— 在 Claude Code 和 Cursor 上是强制拦截，在 Codex 和 Antigravity 上仅为建议（advisory）。
 
 ```bash
 pip install yana-ai && yana-ai install   # 接入 hooks（60 秒）
