@@ -49,16 +49,27 @@ on:
       types: [published]
     workflow_dispatch:
       inputs:
-        version:
-          description: 'Version to publish (e.g. 0.42.1)'
-          required: true
-          default: '0.42.1'
         target:
           description: 'Which registry to publish'
           required: true
           type: choice
           options: [pypi, crates]
           default: 'pypi'
+        # Separate version fields per target -- a single shared field
+        # (removed 2026-07-30) let someone select target=crates while
+        # typing a PyPI-axis-looking number, which crates.io then
+        # rejected as "already exists" since these two axes are
+        # genuinely independent (see VERSIONING.md). Each field below is
+        # only read by its own job, defaulted to that axis's own current
+        # version, so a wrong-axis number can no longer cross over.
+        pypi_version:
+          description: 'PyPI version (only used when target=pypi, e.g. 0.42.4)'
+          required: false
+          default: '0.42.4'
+        crates_version:
+          description: 'crates.io version (only used when target=crates, e.g. 1.3.3)'
+          required: false
+          default: '1.3.3'
 
 jobs:
   publish-pypi:
@@ -74,7 +85,7 @@ jobs:
     permissions:
       contents: read
     env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
+      RAW_VERSION: ${{ inputs.pypi_version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
@@ -114,7 +125,7 @@ jobs:
       name: crates-io
       url: https://crates.io/crates/yana-rt
     env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
+      RAW_VERSION: ${{ inputs.crates_version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
