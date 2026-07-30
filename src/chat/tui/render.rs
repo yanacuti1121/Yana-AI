@@ -13,13 +13,16 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
 
-// Personalized palette (requested 2026-07-31, then muted further on
-// request — "nhạt hơn"): very soft, near-white pastel pink/blue in place
-// of the plain ANSI Magenta/Cyan/default-white borders. Rgb, not a named
-// Color variant — ratatui's named colors are the 16-color ANSI set and
-// have no pastel entries close enough to these.
-const LIGHT_PINK: Color = Color::Rgb(255, 218, 228);
-const LIGHT_BLUE: Color = Color::Rgb(198, 226, 245);
+// Personalized palette (requested 2026-07-31; iterated twice since — first
+// "nhạt hơn" made it too pale/washed out, then "thiếu một màu, không hài
+// hòa" asked for a third hue to round it out). Settled on a pink→purple→
+// blue trio, one hue per pane (header/input/history) instead of reusing
+// just two, at a saturation between the original vivid pass and the
+// over-pale one. Rgb, not a named Color variant — ratatui's named colors
+// are the 16-color ANSI set and have no pastel entries close to these.
+const LIGHT_PINK: Color = Color::Rgb(255, 192, 210);
+const LIGHT_PURPLE: Color = Color::Rgb(200, 180, 230);
+const LIGHT_BLUE: Color = Color::Rgb(165, 210, 235);
 
 pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     // Inner width = full-frame width minus the header block's own left+
@@ -64,7 +67,7 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     let input_border_color = if matches!(app.turn, TurnState::Streaming(_)) {
         Color::Yellow
     } else {
-        LIGHT_PINK
+        LIGHT_PURPLE
     };
     let input_widget = Paragraph::new(app.input.as_str()).block(
         Block::bordered()
