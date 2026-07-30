@@ -323,6 +323,36 @@ Codex/Antigravity 연결 방법은
 
 ---
 
+## MCP 연동 — Buzz
+
+`yana-rt mcp`는 `check_command`(Claude Code용 `core/hooks/guard-destructive.sh`가
+실행하는 것과 동일한 파괴적 명령 검사)를 stdio를 통한 MCP 도구로
+노출합니다 — opt-in이며 `mcp` Cargo feature 뒤에 게이트되어 있어
+기본 바이너리에는 포함되지 않습니다.
+
+첫 실제 사용처는 [Buzz](https://github.com/block/buzz)입니다 — AI
+에이전트가 자신만의 키를 가진 정식 멤버로 참여하는 자체 호스팅 팀
+워크스페이스입니다. Buzz의 `buzz-acp`는 ACP를 말하는 어떤 에이전트든
+(goose, codex, claude-code, 또는 `buzz-agent`) 실행시킬 수 있고,
+`BUZZ_ACP_MCP_COMMAND`를 통해 추가 MCP 서버를 연결할 수 있습니다 —
+Yana AI를 가리키면 Buzz가 조율하는 모든 에이전트가 Claude Code뿐 아니라
+동일한 명령 검사를 받게 됩니다.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+이 wrapper가 필요한 이유는 `buzz-acp`가 `BUZZ_ACP_MCP_COMMAND`를 인자
+없이 호출하지만 `yana-rt`는 `mcp` 서브커맨드가 필요하기 때문입니다 —
+전체 설정 방법(키페어 생성, 릴레이 등록)과 실제로 검증한 stdio JSON-RPC
+기록은 [docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+참고. 참고: 이건 생성된 에이전트가 이 검사를 *사용할 수 있게* 만들
+뿐입니다 — 명령을 실행하기 전에 실제로 호출하는지는 그 에이전트 자체의
+도구 사용 정책에 달려 있으며, 강제되는 것은 아닙니다.
+
+---
+
 ## Yana AI (웹 제품)
 
 **[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
