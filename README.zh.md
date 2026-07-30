@@ -491,7 +491,7 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 `status` 显示 6 种状态：`working`（存活，日志最近有更新）、`blocked`（存活，但日志已超过 `YANA_AGENT_STALE_SECONDS` 秒（默认 30）未更新，可能卡住了）、`done`（以 0 退出）、`failed`（以非 0 退出）、`unknown`（进程已消失但从未写入自己的退出码，例如被 SIGKILL 之后）、`killed`（通过 `kill` 停止）。
 
-更多示例输出和细节见[完整 CLI 参考文档](docs/reference/cli-reference.md)。
+更多示例输出和细节见[完整 CLI 参考文档](docs/reference/cli-reference.md)，或查看 **[COMMANDS.md](COMMANDS.md)** 了解所有 `yana-ai` 命令。
 
 ---
 

@@ -27,7 +27,8 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     ])
     .areas(frame.area());
 
-    let header_widget = Paragraph::new(header_lines).block(Block::bordered());
+    let header_widget = Paragraph::new(header_lines)
+        .block(Block::bordered().border_style(Style::default().fg(Color::Magenta)));
     frame.render_widget(header_widget, header_area);
 
     if app.show_recent_sessions && app.history.is_empty() {
@@ -41,7 +42,19 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     } else {
         format!(" {} ", app.status)
     };
-    let input_widget = Paragraph::new(app.input.as_str()).block(Block::bordered().title(input_title));
+    // Busy (a turn in flight) gets a distinct border color from idle-and-
+    // ready — a glanceable "is it my turn to type" signal that doesn't
+    // depend on reading the status text.
+    let input_border_color = if matches!(app.turn, TurnState::Streaming(_)) {
+        Color::Yellow
+    } else {
+        Color::Cyan
+    };
+    let input_widget = Paragraph::new(app.input.as_str()).block(
+        Block::bordered()
+            .title(input_title)
+            .border_style(Style::default().fg(input_border_color)),
+    );
     frame.render_widget(input_widget, input_area);
     frame.set_cursor_position((
         input_area.x + 1 + app.input.len() as u16,

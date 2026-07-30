@@ -500,7 +500,7 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 `status` shows 6 states: `working` (alive, log updated recently), `blocked` (alive, but its log hasn't changed in over `YANA_AGENT_STALE_SECONDS` seconds, default 30, so it may be stuck), `done` (exited 0), `failed` (exited non-zero), `unknown` (the process is gone but never wrote its own exit code, e.g. after a SIGKILL), `killed` (stopped via `kill`).
 
-See the [full CLI reference](docs/reference/cli-reference.md) for sample output and more detail.
+See the [full CLI reference](docs/reference/cli-reference.md) for sample output and more detail, or **[COMMANDS.md](COMMANDS.md)** for every `yana-ai` command in one place.
 
 ---
 

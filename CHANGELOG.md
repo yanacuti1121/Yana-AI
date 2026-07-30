@@ -8,6 +8,41 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.1.0 — 2026-07-30
+
+Product version axis only (`package.json`/`MANIFEST.json`/`.claude-plugin/
+marketplace.json`/`.claude-plugin/plugin.json`); `Cargo.toml` (`yana-rt`,
+crates.io, `1.3.3`) and `pyproject.toml` (PyPI, `0.42.3`) are unchanged
+this cycle — see `VERSIONING.md` for why these axes move independently.
+
+- **Add**: `COMMANDS.md` — a root-level catalog of every `yana-ai` CLI
+  command in one place (audit, guard/policy, runtime task/eval/bus/
+  memory/mission/route/evidence, knowledge graph, security scanning),
+  cross-checked directly against `bin/yana`'s dispatch table and
+  `src/main.rs`'s clap definitions rather than hand-recalled.
+- **Fix**: `bin/yana`'s startup banner (shown on bare `yana-ai`/`yana`
+  with no subcommand) now fills with a light-pink background
+  (`\033[48;5;224m`) across every row without gaps. The first pass at
+  this had two real bugs, both caught by independent verify-agent
+  dispatches rather than self-certified: `_banner_row2()` reapplied the
+  background color *after* the row's padding argument instead of
+  before it, and three live-stats lines had a second embedded RESET
+  (before " agents"/" hooks"/" checks") that dropped the background for
+  that trailing text. Both are fixed and re-verified via direct byte-
+  level inspection of the actual ANSI output.
+- **Fix**: `bin/yana`'s `usage()` help text was missing three commands
+  that were already dispatchable (`observability`, `skill-quality`,
+  `mcp`) — added so `yana-ai help` matches what the CLI actually runs.
+- **Fix**: `bin/yana` didn't dispatch `mcp` at all in an earlier pass;
+  now routed alongside the other `rt`-forwarded subcommands.
+- **Docs**: all four README locales gained an "MCP integration — Buzz"
+  section and a link to `COMMANDS.md`; the pre-existing stale skill
+  count (2,016 → 2,025) was fixed at two locations per locale.
+- **Style**: `yana chat`'s TUI header border is now magenta, and the
+  input box border switches between cyan (idle) and yellow (a turn is
+  streaming) — a lighter-touch borrow from superfile's status-by-border-
+  color pattern, not a full redesign.
+
 ## v1.0.0 — 2026-07-26
 
 First 1.0 release. Product version axis only (`package.json`/
