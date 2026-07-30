@@ -125,6 +125,38 @@ These all forward straight to the Rust runtime (`yana-rt`) under the hood.
 | `yana-ai skill-quality <subcommand>` | Per-skill outcome ledger from real task verdicts (human-gated promotion) |
 | `yana-ai mcp` | Program J MCP server over stdio — opt-in build (`--features mcp`), not wired into any client by default |
 
+## Chat REPL — usage
+
+`yana-ai chat` is pure conversation — send text, get streamed text back. No
+tool-calling, no file edits, no shell execution: it runs as its own process
+outside any agent session, so Yana AI's hook system has nothing to intercept
+here (the same reason it can't see you running `curl` by hand).
+
+| Provider | Flag | Needs | Default model |
+|---|---|---|---|
+| Anthropic (Claude) | `--provider anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-6` |
+| OpenAI | `--provider openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| Kimi (Moonshot AI) | `--provider kimi` | `MOONSHOT_API_KEY` | `kimi-k3` |
+| Ollama (local) | `--provider ollama` | nothing — but `ollama serve` must be running on `127.0.0.1:11434` | `llama3.2` |
+
+With no `--provider` flag it auto-detects, in order: `ANTHROPIC_API_KEY` set →
+Anthropic, else `OPENAI_API_KEY` set → OpenAI, else falls back to local Ollama
+(no key needed, but nothing stops it from trying even if the daemon isn't
+actually running — that surfaces as a connection error on your first message,
+not a selection error up front).
+
+```bash
+yana-ai chat                                        # auto-detect provider
+yana-ai chat --provider ollama                       # force local, keyless
+yana-ai chat --provider anthropic --model claude-sonnet-4-6
+yana-ai chat --resume <session-id>                   # continue a saved conversation
+yana-ai chat --system "You are a terse code reviewer" --verbose
+```
+
+A missing key for a cloud provider prints the exact env var to export and
+exits immediately — it never silently falls back to a different provider
+mid-session.
+
 ## Knowledge graph & design context
 
 | Command | What it does |

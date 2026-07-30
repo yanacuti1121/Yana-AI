@@ -520,6 +520,18 @@ Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết
 
 ---
 
+## Liên kết dự án
+
+| | |
+|---|---|
+| Toàn bộ lệnh CLI | [COMMANDS.md](COMMANDS.md) |
+| Đóng góp | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Quy tắc ứng xử | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Chính sách bảo mật | [SECURITY.md](SECURITY.md) |
+| Giấy phép | [Apache 2.0](LICENSE) |
+
+---
+
 ## Liên hệ
 
 **Vũ Văn Tâm** · Việt Nam · 17 tuổi

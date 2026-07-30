@@ -517,6 +517,18 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 ---
 
+## 项目链接
+
+| | |
+|---|---|
+| 完整命令参考 | [COMMANDS.md](COMMANDS.md) |
+| 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| 行为准则 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| 安全政策 | [SECURITY.md](SECURITY.md) |
+| 许可证 | [Apache 2.0](LICENSE) |
+
+---
+
 ## 联系方式
 
 **Vũ Văn Tâm** · 越南 · 17 岁
