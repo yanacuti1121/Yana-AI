@@ -1,11 +1,13 @@
 //! Header content for the chat TUI — ported from `bin/yana`'s bash
 //! `banner()` (lines ~205-306) so `yana chat` feels continuous with the
-//! banner shown by plain `yana-ai`, not a different product. Keeps the
-//! same *content and order* (identity/version, 6 live asset counts, git
-//! branch+status, cwd, release note) but drops the 2-column ASCII-art
-//! layout entirely — there's no room for it in a TUI header region, and
-//! the brief this was built from explicitly asked for content parity, not
-//! pixel parity.
+//! banner shown by plain `yana-ai`, not a different product. Originally
+//! kept content parity only (identity/version, live asset counts, git
+//! branch+status, cwd, release note) and dropped the 2-column ASCII-art
+//! layout for lack of header room. Reversed 2026-07-31 on explicit
+//! request (a pasted mockup of the exact bash layout) — now ports the
+//! wordmark and the 2-column tips/what's-new layout too, so header height
+//! grows accordingly; `render.rs` sizes the header region from real
+//! content length, not a small fixed clamp, to match.
 //!
 //! Everything here is gathered once at session start (`BannerInfo::gather`)
 //! and cached on `App`, not recomputed every frame — matches the bash
@@ -15,6 +17,77 @@
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
 use std::process::Command;
+
+/// 6-row block-letter "YANA AI" wordmark, ported verbatim (same
+/// box-drawing characters) from `bin/yana`'s own `_banner_art()` so the
+/// chat TUI's header matches the plain `yana-ai` banner exactly.
+const ASCII_ART: [&str; 6] = [
+    "██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗",
+    "╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║",
+    " ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║",
+    "  ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║",
+    "   ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║",
+    "   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝",
+];
+
+/// Pink→blue gradient across the 6 art rows — linear interpolation between
+/// `render.rs`'s LIGHT_PINK (255,218,228) and LIGHT_BLUE (198,226,245), so
+/// the wordmark ties directly to the border palette instead of picking
+/// separate colors. Muted/pastel per request ("nhạt hơn") — not the more
+/// saturated first pass.
+const ART_GRADIENT: [Color; 6] = [
+    Color::Rgb(255, 218, 228),
+    Color::Rgb(244, 220, 231),
+    Color::Rgb(232, 221, 235),
+    Color::Rgb(221, 223, 238),
+    Color::Rgb(210, 224, 241),
+    Color::Rgb(198, 226, 245),
+];
+
+/// Greedy word-wrap, no dependency — bash's banner uses `fold -s`, this is
+/// the same idea (fill each line up to `width`, break on whitespace only).
+fn wrap_text(text: &str, width: usize) -> Vec<String> {
+    if width == 0 {
+        return vec![text.to_string()];
+    }
+    let mut lines = Vec::new();
+    let mut current = String::new();
+    for word in text.split_whitespace() {
+        if current.is_empty() {
+            current.push_str(word);
+        } else if current.chars().count() + 1 + word.chars().count() <= width {
+            current.push(' ');
+            current.push_str(word);
+        } else {
+            lines.push(std::mem::take(&mut current));
+            current.push_str(word);
+        }
+    }
+    if !current.is_empty() {
+        lines.push(current);
+    }
+    if lines.is_empty() {
+        lines.push(String::new());
+    }
+    lines
+}
+
+/// Truncates to `width` with a trailing ellipsis, then right-pads with
+/// spaces to exactly `width` — keeps the two-column layout aligned no
+/// matter how long a dynamic value (cwd, branch, release note) gets.
+fn pad_to(s: &str, width: usize) -> String {
+    let len = s.chars().count();
+    if width == 0 {
+        return String::new();
+    }
+    if len > width {
+        let keep = width.saturating_sub(1);
+        let truncated: String = s.chars().take(keep).collect();
+        format!("{truncated}…")
+    } else {
+        format!("{s}{}", " ".repeat(width - len))
+    }
+}
 
 pub struct PluginCounts {
     pub agents: u64,
@@ -141,38 +214,81 @@ impl BannerInfo {
     }
 }
 
-/// Builds the header's content lines. Line count varies (git info and
-/// release note are each omitted when unavailable) — callers size the
-/// header region's `Constraint::Length` from `lines.len()`, not a fixed
-/// constant, so nothing gets clipped when a line is skipped or shown.
-pub fn header_lines(info: &BannerInfo, provider: &str, model: &str, session_id: &str) -> Vec<Line<'static>> {
-    let mut lines = Vec::with_capacity(5);
+/// Builds the header's content lines: the ASCII wordmark, then a 2-column
+/// block (left: identity/stats/git/cwd, right: tips + what's new) ported
+/// from `bin/yana`'s `banner()`, then a TUI-only provider/session line
+/// underneath (bash has no such concept — this is chat-specific). `width`
+/// is the header area's *inner* width (already minus the block's own left/
+/// right border, see `render.rs`), used to size the two columns the same
+/// way bash sizes `LEFT_W`/`RIGHT_W` from `tput cols`. Line count varies
+/// (git info, counts, release note are each omitted when unavailable) —
+/// callers size the header region's `Constraint::Length` from
+/// `lines.len()`, not a fixed constant, so nothing gets clipped.
+pub fn header_lines(info: &BannerInfo, provider: &str, model: &str, session_id: &str, width: u16) -> Vec<Line<'static>> {
+    let mut lines = Vec::with_capacity(20);
 
-    lines.push(Line::raw(format!("Yana AI v{} · chào {}", info.version, info.username)));
+    // Wordmark, pink→blue gradient per row.
+    for (i, art_line) in ASCII_ART.iter().enumerate() {
+        lines.push(Line::styled(*art_line, Style::default().fg(ART_GRADIENT[i])));
+    }
+    lines.push(Line::raw(""));
 
+    // Column widths mirror bash's `LEFT_W = BANNER_W * 32 / 100` (floored at
+    // 28) / `RIGHT_W = BANNER_W - LEFT_W - 1` (the 1 is the " │ " divider).
+    let inner_w = width as usize;
+    let left_w = ((inner_w * 32 / 100).max(28)).min(inner_w.saturating_sub(4));
+    let right_w = inner_w.saturating_sub(left_w + 3); // 3 = " │ "
+
+    let version_style = Style::default().fg(ART_GRADIENT[5]);
+
+    // Left column, exact content/order as bash's `left_plain`/`left_colored`.
+    let mut left: Vec<(String, Option<Style>)> = vec![
+        (format!("v{} · chào {}", info.version, info.username), Some(version_style)),
+        ("Personal Agent OS".to_string(), None),
+        (String::new(), None),
+    ];
     if let Some(c) = &info.counts {
-        lines.push(Line::raw(format!(
-            "{} agents · {} skills · {} rules · {} hooks · {} scripts · {} checks",
-            c.agents, c.skills, c.rules, c.hooks, c.scripts, c.checks
-        )));
+        left.push((format!("{} agents · {} skills", c.agents, c.skills), None));
+        left.push((format!("{} rules · {} hooks", c.rules, c.hooks), None));
+        left.push((format!("{} scripts · {} checks", c.scripts, c.checks), None));
+        left.push((String::new(), None));
+    }
+    let branch_display = info.git_branch.clone().unwrap_or_else(|| "(no branch)".to_string());
+    let status_txt = match info.git_dirty {
+        Some(0) => "clean".to_string(),
+        Some(n) => format!("{n} changed"),
+        None => "no git".to_string(),
+    };
+    left.push((format!("{branch_display} ({status_txt})"), None));
+    left.push((info.cwd.clone(), None));
+
+    // Right column: tips + what's new, exact content/order as bash's
+    // `right_plain`/`right_colored`.
+    let mut right: Vec<(String, Option<Style>)> = vec![
+        ("Tips for getting started".to_string(), None),
+        ("yana-ai doctor".to_string(), None),
+        ("yana-ai init".to_string(), None),
+        (String::new(), None),
+        ("What's new".to_string(), None),
+    ];
+    let note = info.release_note.clone().unwrap_or_else(|| "(no release notes found)".to_string());
+    for wrapped in wrap_text(&note, right_w.max(1)) {
+        right.push((wrapped, None));
     }
 
-    if let Some(branch) = &info.git_branch {
-        let status = match info.git_dirty {
-            Some(0) => "clean".to_string(),
-            Some(n) => format!("{n} changed"),
-            None => "no git".to_string(),
-        };
-        lines.push(Line::raw(format!("{branch} ({status}) · {}", info.cwd)));
-    } else {
-        lines.push(Line::raw(info.cwd.clone()));
+    let rows = left.len().max(right.len());
+    for i in 0..rows {
+        let (ltext, lstyle) = left.get(i).cloned().unwrap_or_default();
+        let (rtext, rstyle) = right.get(i).cloned().unwrap_or_default();
+        let mut spans = vec![Span::styled(pad_to(&ltext, left_w), lstyle.unwrap_or_default())];
+        spans.push(Span::raw(" │ "));
+        spans.push(Span::styled(pad_to(&rtext, right_w), rstyle.unwrap_or_default()));
+        lines.push(Line::from(spans));
     }
 
-    if let Some(note) = &info.release_note {
-        lines.push(Line::raw(format!("What's new: {note}")));
-    }
-
+    // TUI-only addition (bash's banner has no provider/session concept).
     let session_short = &session_id[..8.min(session_id.len())];
+    lines.push(Line::raw(""));
     lines.push(Line::from(vec![
         Span::styled(format!("{provider} / {model}"), Style::default().fg(Color::Yellow)),
         Span::raw(format!(" · session {session_short} · /model to switch")),

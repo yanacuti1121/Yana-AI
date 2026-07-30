@@ -13,12 +13,28 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
 
+// Personalized palette (requested 2026-07-31, then muted further on
+// request — "nhạt hơn"): very soft, near-white pastel pink/blue in place
+// of the plain ANSI Magenta/Cyan/default-white borders. Rgb, not a named
+// Color variant — ratatui's named colors are the 16-color ANSI set and
+// have no pastel entries close enough to these.
+const LIGHT_PINK: Color = Color::Rgb(255, 218, 228);
+const LIGHT_BLUE: Color = Color::Rgb(198, 226, 245);
+
 pub fn draw_ui(frame: &mut Frame, app: &mut App) {
-    let header_lines = banner::header_lines(&app.banner_info, app.provider.name(), &app.model, &app.session_id);
-    // Header height follows real content (git info / release note are each
-    // omitted when unavailable) rather than a fixed constant, so nothing
-    // gets clipped when a line is skipped — see banner::header_lines's doc.
-    let header_height = (header_lines.len() as u16 + 2).clamp(4, 8);
+    // Inner width = full-frame width minus the header block's own left+
+    // right border chars — Layout::vertical only splits height, so the
+    // header area's width always equals frame.area().width.
+    let header_inner_w = frame.area().width.saturating_sub(2);
+    let header_lines = banner::header_lines(&app.banner_info, app.provider.name(), &app.model, &app.session_id, header_inner_w);
+    // Header height follows real content (git info / release note / the
+    // wordmark + 2-column block are each variable-length) rather than a
+    // small fixed clamp, so nothing gets clipped — see
+    // banner::header_lines's doc. Upper bound is generous (a long,
+    // heavily-wrapped release note is the only thing that grows this much)
+    // rather than unbounded, so a pathological release-note string can't
+    // push the history/input panes off-screen entirely.
+    let header_height = (header_lines.len() as u16 + 2).clamp(4, 28);
 
     let [header_area, history_area, input_area] = Layout::vertical([
         Constraint::Length(header_height),
@@ -28,7 +44,7 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     .areas(frame.area());
 
     let header_widget = Paragraph::new(header_lines)
-        .block(Block::bordered().border_style(Style::default().fg(Color::Magenta)));
+        .block(Block::bordered().border_style(Style::default().fg(LIGHT_PINK)));
     frame.render_widget(header_widget, header_area);
 
     if app.show_recent_sessions && app.history.is_empty() {
@@ -48,7 +64,7 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     let input_border_color = if matches!(app.turn, TurnState::Streaming(_)) {
         Color::Yellow
     } else {
-        Color::Cyan
+        LIGHT_PINK
     };
     let input_widget = Paragraph::new(app.input.as_str()).block(
         Block::bordered()
@@ -89,7 +105,7 @@ fn draw_history(frame: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
     app.scroll = app.scroll.min(max_scroll);
 
     let widget = Paragraph::new(Text::from(lines))
-        .block(Block::bordered().title(" history "))
+        .block(Block::bordered().title(" history ").border_style(Style::default().fg(LIGHT_BLUE)))
         .wrap(Wrap { trim: false })
         .scroll((app.scroll, 0));
     frame.render_widget(widget, area);
@@ -124,7 +140,7 @@ fn draw_recent_sessions(frame: &mut Frame, app: &App, area: ratatui::layout::Rec
         }
     }
     let widget = Paragraph::new(Text::from(lines))
-        .block(Block::bordered().title(" history "))
+        .block(Block::bordered().title(" history ").border_style(Style::default().fg(LIGHT_BLUE)))
         .wrap(Wrap { trim: false });
     frame.render_widget(widget, area);
 }
