@@ -523,6 +523,18 @@ See the [full CLI reference](docs/reference/cli-reference.md) for sample output 
 
 ---
 
+## Project links
+
+| | |
+|---|---|
+| Full command reference | [COMMANDS.md](COMMANDS.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Security policy | [SECURITY.md](SECURITY.md) |
+| License | [Apache 2.0](LICENSE) |
+
+---
+
 ## Contact
 
 **Vũ Văn Tâm** · Vietnam · 17
