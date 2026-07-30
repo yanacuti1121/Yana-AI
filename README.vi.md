@@ -36,6 +36,9 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
+  </a>
   <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
@@ -58,13 +61,7 @@ Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải th�
 pip install yana-ai && yana-ai install   # gắn hooks (60 giây)
 ```
 
-> **⚠️ Lỗi đã biết (lịch sử, chỉ trên PyPI): `yana-rt` có thể tự gọi lại chính nó và chạy 100% CPU vô hạn** — trên một máy bị ảnh hưởng, lỗi này đẩy CPU lên 116°C trước khi phải tắt máy cưỡng bức. Nguyên nhân gốc: script entry point `yana-rt` resolve binary thật qua `$PATH`/`which`, và trên một số bản cài, việc tra cứu đó lại tìm ra chính script entry point, gây đệ quy vô hạn. Lỗi này từng ảnh hưởng mọi bản PyPI đã published cho tới 2026-07-25 (đã fix). Yana AI không còn phân phối qua npm nữa — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry).
->
-> **`cargo install yana-rt` chưa bao giờ bị ảnh hưởng** — nó cài trực tiếp binary Rust đã biên dịch, không có wrapper script nào để đệ quy qua:
-> ```bash
-> cargo install yana-rt
-> ```
-> Nếu anh còn cài bản PyPI cũ và thấy `yana-rt` chạy CPU mất kiểm soát, kill process đó, unset `YANA_RT_BIN` nếu đã set, rồi nâng cấp (`pip install -U yana-ai`).
+> **Lỗi đã biết, đã fix từ 2026-07-25:** bản PyPI cũ của `yana-rt` có thể tự đệ quy và chiếm 100% CPU — xem [CHANGELOG.md](CHANGELOG.md) để biết chi tiết sự cố. `pip install -U yana-ai` (hoặc `cargo install yana-rt`, chưa từng bị ảnh hưởng) là hết.
 
 Sau đó thử bảo agent làm bậy, và xem.
 
