@@ -330,6 +330,35 @@ for install + wiring into Claude Code/Cursor/Codex/Antigravity.
 
 ---
 
+## MCP integration — Buzz
+
+`yana-rt mcp` exposes `check_command` (the same destructive-command
+check `core/hooks/guard-destructive.sh` enforces for Claude Code) as an
+MCP tool over stdio — opt-in, gated behind the `mcp` Cargo feature, not
+part of the default binary.
+
+Its first real consumer is [Buzz](https://github.com/block/buzz), a
+self-hostable team workspace where AI agents are first-class members
+with their own keys. Buzz's `buzz-acp` spawns any ACP-compliant agent
+(goose, codex, claude-code, or `buzz-agent`) and can wire in an extra
+MCP server via `BUZZ_ACP_MCP_COMMAND` — pointed at Yana AI, every agent
+Buzz orchestrates gets the same command check, not just Claude Code.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+The wrapper exists because `buzz-acp` invokes `BUZZ_ACP_MCP_COMMAND` with
+no arguments, but `yana-rt` needs the `mcp` subcommand — see
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+for full setup (keypair generation, relay registration) and the verified
+stdio JSON-RPC transcript. Note: this makes the check *available* to the
+spawned agent — whether that agent actually calls it before running a
+command depends on the agent's own tool-use policy, nothing forces it.
+
+---
+
 ## Yana AI (the web product)
 
 **[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**

@@ -321,6 +321,34 @@ Codex/Antigravity，见
 
 ---
 
+## MCP 集成 — Buzz
+
+`yana-rt mcp` 将 `check_command`（与 `core/hooks/guard-destructive.sh`
+为 Claude Code 执行的破坏性命令检查完全相同）以 MCP 工具的形式通过
+stdio 暴露出来——可选启用，位于 `mcp` Cargo feature 之后，不包含在默认
+二进制文件中。
+
+它的第一个真实使用方是 [Buzz](https://github.com/block/buzz)——一个
+自托管的团队工作区，AI 代理在其中是拥有自己密钥的正式成员。Buzz 的
+`buzz-acp` 可以启动任何支持 ACP 的代理（goose、codex、claude-code，或
+`buzz-agent`），并可以通过 `BUZZ_ACP_MCP_COMMAND` 接入额外的 MCP
+服务器——指向 Yana AI 后，Buzz 编排的每个代理都会获得同样的命令检查，
+不只是 Claude Code。
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+需要这个 wrapper 的原因是 `buzz-acp` 调用 `BUZZ_ACP_MCP_COMMAND` 时不带
+任何参数，而 `yana-rt` 需要 `mcp` 子命令——完整设置方法（生成密钥对、
+向 relay 注册）以及已验证的 stdio JSON-RPC 记录，见
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)。
+注意：这只是让被启动的代理*可以使用*该检查——它是否会在运行命令前真正
+调用，取决于该代理自身的工具使用策略，没有任何机制强制它这么做。
+
+---
+
 ## Yana AI（网页产品）
 
 **[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**

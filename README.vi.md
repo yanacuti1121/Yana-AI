@@ -322,6 +322,36 @@ tới 90% trên các lệnh thông dụng). Không nhúng code, không phải de
 
 ---
 
+## Tích hợp MCP — Buzz
+
+`yana-rt mcp` lộ ra `check_command` (đúng kiểm tra lệnh phá hoại mà
+`core/hooks/guard-destructive.sh` đang thực thi cho Claude Code) như một
+MCP tool qua stdio — opt-in, gated sau Cargo feature `mcp`, không nằm
+trong binary mặc định.
+
+Đối tượng dùng thật đầu tiên là [Buzz](https://github.com/block/buzz),
+một workspace nhóm tự host nơi AI agent là thành viên chính thức với key
+riêng. `buzz-acp` của Buzz sinh ra bất kỳ agent nào nói ACP (goose,
+codex, claude-code, hoặc `buzz-agent`) và có thể gắn thêm 1 MCP server
+qua `BUZZ_ACP_MCP_COMMAND` — trỏ vào Yana AI thì mọi agent Buzz điều
+phối đều có cùng kiểm tra lệnh, không chỉ riêng Claude Code.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+Cần wrapper vì `buzz-acp` gọi `BUZZ_ACP_MCP_COMMAND` không kèm tham số
+nào, mà `yana-rt` cần subcommand `mcp` — xem
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+để biết cách setup đầy đủ (sinh keypair, đăng ký với relay) và bản ghi
+JSON-RPC qua stdio đã verify thật. Lưu ý: đây chỉ làm cho công cụ kiểm
+tra *có sẵn* cho agent được sinh ra — agent đó có thực sự gọi nó trước
+khi chạy lệnh hay không phụ thuộc vào chính sách dùng tool của agent đó,
+không có gì bắt buộc.
+
+---
+
 ## Yana AI (sản phẩm web)
 
 **[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
