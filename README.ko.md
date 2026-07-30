@@ -36,6 +36,9 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
+  </a>
   <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
@@ -58,13 +61,7 @@ $ yana-ai
 pip install yana-ai && yana-ai install   # 훅 연결 (60초)
 ```
 
-> **⚠️ 알려진 문제 (과거 이력, PyPI 전용): `yana-rt`가 자기 자신을 재귀 호출하여 CPU 100%로 무한히 도는 경우가 있습니다** — 영향받은 한 기기에서는 강제 종료 전 CPU가 116°C까지 올라갔습니다. 근본 원인: `yana-rt` 진입점 스크립트가 `$PATH`/`which`를 통해 실제 바이너리를 찾는데, 일부 설치 환경에서는 이 조회가 진입점 스크립트 자기 자신을 찾아버려 무한 재귀가 발생합니다. 이는 2026-07-25까지 배포된 모든 PyPI 릴리스에 영향을 미쳤습니다 (이후 수정됨). Yana AI는 더 이상 npm으로 배포되지 않습니다 — 이유는 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고.
->
-> **`cargo install yana-rt`는 처음부터 영향받지 않았습니다** — 컴파일된 Rust 바이너리를 직접 설치하므로 재귀를 일으킬 래퍼 스크립트가 없습니다:
-> ```bash
-> cargo install yana-rt
-> ```
-> 오래된 PyPI 릴리스를 설치해 두었고 `yana-rt`가 CPU를 폭주시키는 것을 발견했다면, 프로세스를 종료하고 `YANA_RT_BIN`을 설정했다면 해제한 뒤 업그레이드하세요 (`pip install -U yana-ai`).
+> **알려진 문제, 2026-07-25에 수정됨:** 오래된 PyPI 설치본의 `yana-rt`가 자기 재귀로 CPU 100%를 유발할 수 있었습니다 — 사건 경위는 [CHANGELOG.md](CHANGELOG.md) 참고. `pip install -U yana-ai` (또는 처음부터 영향받지 않은 `cargo install yana-rt`)로 해결됩니다.
 
 이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
 

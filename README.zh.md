@@ -36,6 +36,9 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
+  </a>
   <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
@@ -58,13 +61,7 @@ $ yana-ai
 pip install yana-ai && yana-ai install   # 接入 hooks（60 秒）
 ```
 
-> **⚠️ 已知问题（历史遗留，仅限 PyPI）：`yana-rt` 可能自我调用并无限占用 100% CPU** — 在一台受影响的机器上，这曾把 CPU 温度推到 116°C，最终被强制关机。根本原因：`yana-rt` 入口脚本通过 `$PATH`/`which` 解析真正的二进制文件，在某些安装环境下，这个查找会找到入口脚本自身，导致无限递归。这曾影响截至 2026-07-25 之前发布的所有 PyPI 版本（此后已修复）。Yana AI 不再通过 npm 分发 — 原因见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。
->
-> **`cargo install yana-rt` 从未受影响** — 它直接安装编译好的 Rust 二进制文件，没有会递归的 wrapper 脚本：
-> ```bash
-> cargo install yana-rt
-> ```
-> 如果你还在使用旧版 PyPI 包，并发现 `yana-rt` CPU 占用失控，请终止该进程，如果设置过 `YANA_RT_BIN` 就取消设置，然后升级（`pip install -U yana-ai`）。
+> **已知问题，已于 2026-07-25 修复：** 旧版 PyPI 安装的 `yana-rt` 曾可能自我递归并占满 100% CPU — 事件详情见 [CHANGELOG.md](CHANGELOG.md)。`pip install -U yana-ai`（或从未受影响的 `cargo install yana-rt`）即可解决。
 
 然后试着让你的代理做点坏事，看看会发生什么。
 

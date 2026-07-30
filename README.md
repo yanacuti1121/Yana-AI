@@ -36,6 +36,9 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
+  </a>
   <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
@@ -58,13 +61,7 @@ Your agent tries something dangerous. Yana intercepts it, explains why, and logs
 pip install yana-ai && yana-ai install   # wire the hooks (60 seconds)
 ```
 
-> **⚠️ Known issue (historical, PyPI only): `yana-rt` could self-invoke and spin at 100% CPU indefinitely** — on one affected machine this drove the CPU to 116°C before a forced shutdown. Root cause: the `yana-rt` entry point script resolves the real binary via `$PATH`/`which`, and on some installs that lookup finds the entry point script itself, causing infinite recursion. This affected every published PyPI release until 2026-07-25 (fixed since). Yana AI is no longer distributed via npm at all — see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) for why.
->
-> **`cargo install yana-rt` was always unaffected** — it installs the compiled Rust binary directly, with no wrapper script to recurse through:
-> ```bash
-> cargo install yana-rt
-> ```
-> If you have an old PyPI release installed and notice `yana-rt` running away with CPU, kill the process, unset `YANA_RT_BIN` if you'd set it, and upgrade (`pip install -U yana-ai`).
+> **Known issue, fixed 2026-07-25:** old PyPI installs of `yana-rt` could self-recurse and spike CPU to 100% — see [CHANGELOG.md](CHANGELOG.md) for the incident writeup. `pip install -U yana-ai` (or `cargo install yana-rt`, never affected) resolves it.
 
 Then ask your agent to misbehave, and watch.
 

@@ -142,6 +142,16 @@ silently carried:**
 - **Docs**: All four READMEs now document the npm freeze plainly in
   Quick Install, with a pointer to `pip`/`cargo` for the current
   version.
+- **Fix (historical)**: `yana-rt`'s entry-point scripts resolved the
+  real binary via `$PATH`/`which` with no self-check — on some installs
+  that lookup found the entry point script itself, causing infinite
+  self-recursion (100% CPU; one affected machine reached 116°C before a
+  forced shutdown). First fixed in the JS wrapper (`scripts/
+  yana-rt-wrapper.js`) 2026-07-08/09; the same bug class in the
+  Python-installed CLI's own entry point (`src/yana_ai/rt.py`) wasn't
+  ported until 2026-07-25 (`552cafbb`). Affected every PyPI release
+  published before that date; `cargo install yana-rt` was never
+  affected (installs the compiled binary directly, no wrapper script).
 - **Add**: `core/hooks/rtk-bridge.sh` — opt-in `PreToolUse` bridge to the
   external `rtk` CLI (github.com/rtk-ai/rtk, Apache-2.0) for agent
   token-consumption reduction. Not vendored, not wired into
