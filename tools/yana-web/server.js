@@ -38,13 +38,18 @@ const STATIC_DIR   = __dirname;
 const MANIFEST_PATH = path.join(REPO_ROOT, 'MANIFEST.json');
 
 const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js':   'application/javascript; charset=utf-8',
-  '.css':  'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png':  'image/png',
-  '.svg':  'image/svg+xml',
-  '.ico':  'image/x-icon',
+  '.html':  'text/html; charset=utf-8',
+  '.js':    'application/javascript; charset=utf-8',
+  '.css':   'text/css; charset=utf-8',
+  '.json':  'application/json; charset=utf-8',
+  '.png':   'image/png',
+  '.svg':   'image/svg+xml',
+  '.ico':   'image/x-icon',
+  // Added for the Vite-built desktop-v2 bundle: sourcemaps and self-hosted
+  // font formats Vite can emit, previously unmapped (fell back to text/plain).
+  '.map':   'application/json; charset=utf-8',
+  '.woff2': 'font/woff2',
+  '.woff':  'font/woff',
 };
 
 // ── 9router local key (read once at startup) ─────────────────────────────────

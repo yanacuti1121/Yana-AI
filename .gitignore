@@ -21,6 +21,11 @@ Thumbs.db
 # Node
 node_modules/
 
+# Vite build output for the desktop-v2 frontend rewrite (scoped, not a
+# blanket "build/" pattern — tools/yana-desktop/build/ holds tracked
+# electron-builder icon assets and must stay tracked)
+tools/yana-web/desktop-v2/build/
+
 # Memory pipeline
 memory/L0_raw/
 memory/L1_atomic/private/
