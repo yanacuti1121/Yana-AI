@@ -1,13 +1,13 @@
 // Yana AI — shared components: icons, wordmark, sidebar, atoms
 import React from 'react';
+import { currentLang } from './lib/i18n-lang.js';
 const { useState, useEffect, useRef } = React;
 
 /* Multilingual helper: L("English", "Tiếng Việt", "한국어", "中文") */
 export function L(en, vi, ko, zh) {
-  const lang = window.YANA_LANG || "en";
-  if (lang === "vi" && vi != null) return vi;
-  if (lang === "ko" && ko != null) return ko;
-  if (lang === "zh" && zh != null) return zh;
+  if (currentLang === "vi" && vi != null) return vi;
+  if (currentLang === "ko" && ko != null) return ko;
+  if (currentLang === "zh" && zh != null) return zh;
   return en;
 }
 

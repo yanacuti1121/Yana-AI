@@ -1,4 +1,6 @@
 // Yana AI — VTuber companion: canned phrase pools + language/pick helpers.
+import { currentLang } from '../lib/i18n-lang.js';
+
 export const VT_HINTS = {
   en: [
     "Try /code-review before merging! 🌿",
@@ -36,7 +38,7 @@ export const VT_GREET = {
   vi: ["Chào anh! Cần em giúp gì không? 🐰", "Em ở đây nếu anh cần~", "Hôm nay mình build gì nào? ✨"],
 };
 
-export function vtLang() { return window.YANA_LANG === "vi" ? "vi" : "en"; }
+export function vtLang() { return currentLang === "vi" ? "vi" : "en"; }
 export function vtPick(pool) {
   const arr = pool[vtLang()] || pool.en;
   return arr[Math.floor(Math.random() * arr.length)];
