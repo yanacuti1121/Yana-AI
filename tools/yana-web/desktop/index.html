@@ -11,6 +11,10 @@
   <!-- Markdown + syntax highlight (no build step — CDN UMD bundles) -->
   <script src="https://unpkg.com/marked@12/marked.min.js"></script>
   <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
+  <!-- Terminal page (Electron desktop app only — see terminal.jsx) -->
+  <link rel="stylesheet" href="https://unpkg.com/@xterm/xterm@5/css/xterm.css" />
+  <script src="https://unpkg.com/@xterm/xterm@5/lib/xterm.js"></script>
+  <script src="https://unpkg.com/@xterm/addon-fit@0/lib/addon-fit.js"></script>
   <style>
     /* ── Yana markdown output ─────────────────────────────────── */
     .yana-md { line-height: 1.65; word-break: break-word; }
@@ -82,6 +86,7 @@
   <script type="text/babel" src="html-maker.jsx?v=20260615"></script>
   <script type="text/babel" src="codexmate.jsx?v=20260615"></script>
   <script type="text/babel" src="vtuber.jsx?v=20260616b"></script>
+  <script type="text/babel" src="terminal.jsx?v=20260731a"></script>
   <script type="text/babel" src="app.jsx?v=20260702"></script>
   <!-- Living water: canvas ripple overlay, runs after React mounts -->
   <script src="water.js"></script>
