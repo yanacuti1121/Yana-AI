@@ -16,16 +16,22 @@
 //! `ISIG` termios flag) — it arrives as an ordinary `Event::Key`, same as
 //! Ctrl-D, and both are handled here as plain "quit" key events.
 
+mod approval;
 mod model_command;
 mod render;
+mod tool_dispatch;
 mod turn;
 
 use super::banner::BannerInfo;
 use super::history;
 use super::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
 use super::terminal_guard::TerminalGuard;
+use super::tool_types::StreamOutcome;
+use super::tools::round_guard::ToolRoundGuard;
+use super::tools::run_command::ExecOutcome;
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -38,12 +44,34 @@ const RECENT_SESSIONS_LIMIT: usize = 5;
 
 enum StreamEvent {
     Chunk(String),
-    Done(Result<ChatUsage>),
+    Done(Result<(ChatUsage, StreamOutcome)>),
+}
+
+/// A `run_command` tool call waiting on a human y/N in the TUI before
+/// (or instead of) executing. `guard_verdict.is_some()` means
+/// `crate::guard::check_command()` already denied it — in that case the
+/// approval UI offers acknowledge-only, no y-path at all (see
+/// `approval.rs`).
+struct PendingApproval {
+    call_id: String,
+    command: String,
+    argv: Vec<String>,
+    guard_verdict: Option<&'static str>,
+}
+
+enum ToolExecEvent {
+    Done(Result<ExecOutcome, String>),
 }
 
 enum TurnState {
     Idle,
     Streaming(mpsc::Receiver<StreamEvent>),
+    AwaitingApproval(PendingApproval),
+    /// `call_id` rides alongside the receiver so the eventual
+    /// `ToolExecEvent::Done` can be turned into a `ToolResultRecord`
+    /// addressed back to the right call — the channel itself only ever
+    /// carries the execution outcome, not which call it belongs to.
+    ExecutingTool { call_id: String, rx: mpsc::Receiver<ToolExecEvent> },
 }
 
 pub struct App {
@@ -69,6 +97,21 @@ pub struct App {
     /// `--resume`d session that somehow loaded zero turns doesn't
     /// re-surface a picker mid-conversation-intent.
     show_recent_sessions: bool,
+    /// Caps consecutive tool-call rounds within the turn currently in
+    /// flight — reset in `submit()`, not tied to session lifetime the way
+    /// `breaker` is (see `tools::round_guard`'s module doc for why this
+    /// isn't just a second `CircuitBreaker`).
+    tool_rounds: ToolRoundGuard,
+    /// Anchor for `read_file`'s Gate L5 sandboxing — cwd at chat startup,
+    /// matching `history.rs::history_dir()`'s own cwd-anchoring
+    /// convention (`yana chat` has no `$CLAUDE_PROJECT_DIR` equivalent of
+    /// its own).
+    repo_root: PathBuf,
+    /// Whether `run_command` routes through `core/scripts/sandbox-exec.sh`
+    /// for real isolation. Default `true`; `--no-sandbox` is an explicit,
+    /// human-invoked opt-out — never a silent runtime fallback if a
+    /// sandbox mode turns out to be unavailable (see the plan).
+    use_sandbox: bool,
 }
 
 impl App {
@@ -82,6 +125,7 @@ impl App {
         history: Vec<ChatMessage>,
         verbose: bool,
         resumed: bool,
+        use_sandbox: bool,
     ) -> Self {
         Self {
             history,
@@ -102,6 +146,9 @@ impl App {
             banner_info: BannerInfo::gather(),
             recent_sessions: if resumed { Vec::new() } else { history::list_recent_sessions(RECENT_SESSIONS_LIMIT) },
             show_recent_sessions: !resumed,
+            tool_rounds: ToolRoundGuard::new(),
+            repo_root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+            use_sandbox,
         }
     }
 
@@ -111,6 +158,14 @@ impl App {
         // Windows always sets it accurately — guard so a Windows Release
         // event is never double-handled as a second keypress.
         if key.kind != KeyEventKind::Press {
+            return;
+        }
+        // Approval state takes over the keyboard entirely — free-text
+        // input is disabled while a `run_command` proposal is pending
+        // (see `approval.rs`), including Ctrl-C/Ctrl-D quit-quit, since a
+        // half-approved command state shouldn't be abandoned by accident.
+        if matches!(self.turn, TurnState::AwaitingApproval(_)) {
+            self.handle_approval_key(key);
             return;
         }
         match (key.code, key.modifiers) {
@@ -131,14 +186,16 @@ impl App {
 
     fn submit(&mut self) {
         let text = self.input.trim().to_string();
-        // Blocks double-submit while a turn is in flight — the old
-        // single-threaded design got this for free by construction
-        // (blocked on the network call); the threaded design needs it
-        // explicit.
-        if text.is_empty() || matches!(self.turn, TurnState::Streaming(_)) {
+        // Blocks double-submit while a turn is in flight (any non-Idle
+        // state — Streaming, awaiting tool approval, or a tool actually
+        // executing) — the old single-threaded design got this for free
+        // by construction (blocked on the network call); the threaded
+        // design needs it explicit.
+        if text.is_empty() || !matches!(self.turn, TurnState::Idle) {
             return;
         }
         self.input.clear();
+        self.tool_rounds.reset();
 
         if let Some(rest) = text.strip_prefix("/model") {
             self.handle_model_command(rest.trim());
@@ -164,7 +221,7 @@ impl App {
         } else {
             self.status.clear();
         }
-        self.history.push(ChatMessage { role: Role::User, content: text });
+        self.history.push(ChatMessage::text(Role::User, text));
         self.spawn_turn();
     }
 }
@@ -174,8 +231,13 @@ pub fn run(terminal: &mut TerminalGuard, mut app: App) -> Result<()> {
         terminal.draw(|frame| render::draw_ui(frame, &mut app))?;
 
         drain_stream_events(&mut app);
+        approval::drain_tool_exec_events(&mut app);
 
-        let timeout = if matches!(app.turn, TurnState::Streaming(_)) { TICK } else { IDLE_POLL };
+        let timeout = if matches!(app.turn, TurnState::Streaming(_) | TurnState::ExecutingTool { .. }) {
+            TICK
+        } else {
+            IDLE_POLL
+        };
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 app.on_key(key);
@@ -203,7 +265,7 @@ fn drain_stream_events(app: &mut App) {
                 Ok(ev) => ev,
                 Err(_) => return, // empty or disconnected — nothing more to drain this tick
             },
-            TurnState::Idle => return,
+            TurnState::Idle | TurnState::AwaitingApproval(_) | TurnState::ExecutingTool { .. } => return,
         };
         match event {
             StreamEvent::Chunk(s) => app.streaming_reply.push_str(&s),

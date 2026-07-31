@@ -168,9 +168,13 @@ enum Commands {
     /// src/filescan/mod.rs's module doc for why that's a different product.
     Filescan { #[command(subcommand)] action: filescan::FilescanAction },
     /// Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama).
-    /// Pure conversation only: no tool-calling, no shell/file execution —
-    /// see src/chat/mod.rs's module doc for why that scope cut is the
-    /// actual answer to whether this needs to route through the hook system.
+    /// Supports 2 tools (read_file, run_command) — run_command always
+    /// requires interactive human approval before executing, gated by
+    /// the same check_command() guard core/hooks/guard-destructive.sh
+    /// uses. See src/chat/mod.rs's module doc for the full safety design
+    /// (this is a standalone process invisible to Claude Code's own
+    /// PreToolUse/PostToolUse hooks, so it builds its own gate in-process
+    /// rather than relying on that hook system).
     Chat {
         /// anthropic | openai | ollama (default: auto-detect via env, else ollama)
         #[arg(long)]
@@ -187,6 +191,12 @@ enum Commands {
         /// Print full upstream error detail instead of a generic message
         #[arg(long)]
         verbose: bool,
+        /// Run `run_command` tool calls directly instead of routing them
+        /// through core/scripts/sandbox-exec.sh. Human approval is still
+        /// required either way — this only controls isolation, an
+        /// explicit human opt-out, never a silent fallback.
+        #[arg(long)]
+        no_sandbox: bool,
     },
     /// Program J Phase 9 spike — MCP Server exposing `check_command` over
     /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
@@ -418,8 +428,8 @@ fn main() {
         Commands::Init  { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
-        Commands::Chat { provider, model, system, resume, verbose } =>
-            chat::dispatch(provider, model, system, resume, verbose),
+        Commands::Chat { provider, model, system, resume, verbose, no_sandbox } =>
+            chat::dispatch(provider, model, system, resume, verbose, !no_sandbox),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
