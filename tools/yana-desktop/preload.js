@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('yana', {
   ptyStart: (opts) => ipcRenderer.invoke('yana:pty-start', opts),
   ptyWrite: (data) => ipcRenderer.invoke('yana:pty-write', data),
   ptyStop:  ()     => ipcRenderer.invoke('yana:pty-stop'),
+  listDir:  (relPath) => ipcRenderer.invoke('yana:list-dir', relPath),
   // The app's first push-style (main -> renderer) listeners — every other
   // method above is request/response `invoke`, which can't fit unsolicited
   // streaming PTY output. Both return an unsubscribe function so a React

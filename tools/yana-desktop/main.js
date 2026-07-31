@@ -90,6 +90,49 @@ function stopPty() {
   ptyProcess = null;
 }
 
+// ── File tree (Terminal page sidebar) ───────────────────────────────────────────
+// Same repo-root resolution `wrapperScript()`/`ptyBridgeBinary()` already use —
+// primarily meaningful in dev mode (a packaged build's `resourcesPath` only
+// ships a partial tree — core/, memory/, the server — not full source), but
+// harmless either way since this just lists whatever directory actually exists.
+function repoRoot() {
+  return app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..');
+}
+
+// Lists the immediate children of `relPath` (relative to the repo root) — one
+// directory at a time, not a recursive walk, so this stays cheap even next to
+// huge dirs like `target/`/`node_modules/`. Sandboxed the same way
+// `src/chat/tools/read_file.rs` already is on the Rust side (Gate L5):
+// resolve, realpath, and reject anything that escapes the repo root.
+function listDir(relPath) {
+  const root = fs.realpathSync(repoRoot());
+  const candidate = path.join(root, relPath || '');
+  let resolved;
+  try {
+    resolved = fs.realpathSync(candidate);
+  } catch (e) {
+    return { ok: false, error: `cannot resolve path: ${e.message}` };
+  }
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    return { ok: false, error: 'path escapes repo root' };
+  }
+  let dirents;
+  try {
+    dirents = fs.readdirSync(resolved, { withFileTypes: true });
+  } catch (e) {
+    return { ok: false, error: `cannot read directory: ${e.message}` };
+  }
+  const entries = dirents
+    .filter((d) => d.name !== '.git')
+    .map((d) => ({
+      name: d.name,
+      isDir: d.isDirectory(),
+      relPath: path.join(relPath || '', d.name),
+    }))
+    .sort((a, b) => (a.isDir === b.isDir ? a.name.localeCompare(b.name) : a.isDir ? -1 : 1));
+  return { ok: true, entries };
+}
+
 function waitForServer() {
   return new Promise((resolve, reject) => {
     let tries = 0;
@@ -204,6 +247,8 @@ ipcMain.handle('yana:pty-write', (event, data) => {
 });
 
 ipcMain.handle('yana:pty-stop', () => stopPty());
+
+ipcMain.handle('yana:list-dir', (event, relPath) => listDir(relPath));
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged

@@ -24,6 +24,101 @@ function xtermTheme() {
   };
 }
 
+// Single-quote-wraps a path for safe use inside a shell command string
+// typed into the terminal (`cat <path>`) — protects spaces/special
+// characters. This is the one place in the terminal feature that builds
+// a shell string rather than passing argv directly (unlike `run_command`'s
+// Rust side), since it's typed into an already-interactive shell the same
+// way a human would type it.
+function shellQuote(p) {
+  return "'" + p.replace(/'/g, `'\\''`) + "'";
+}
+
+// Left-side repo browser for the Terminal page (VS Code/Antigravity-style).
+// Lazily fetches one directory's contents at a time via `window.yana.listDir`
+// — clicking a folder expands/collapses it, clicking a file sends `cat
+// <path>` into the running terminal (anh's explicit choice — see the plan;
+// no separate file-viewer panel).
+function FileTree({ onOpenFile }) {
+  const [root, setRoot] = useState(null); // entries at "" once loaded
+  const [expanded, setExpanded] = useState(() => new Set());
+  const cacheRef = useRef(new Map()); // relPath -> entries
+
+  useEffect(() => {
+    window.yana.listDir("").then((res) => {
+      if (res.ok) {
+        cacheRef.current.set("", res.entries);
+        setRoot(res.entries);
+      }
+    });
+  }, []);
+
+  function toggle(entry) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(entry.relPath)) {
+        next.delete(entry.relPath);
+      } else {
+        next.add(entry.relPath);
+        if (!cacheRef.current.has(entry.relPath)) {
+          window.yana.listDir(entry.relPath).then((res) => {
+            if (res.ok) {
+              cacheRef.current.set(entry.relPath, res.entries);
+              // Force a re-render now that the cache has this entry's
+              // children — cheapest way without a second piece of state.
+              setExpanded((s) => new Set(s));
+            }
+          });
+        }
+      }
+      return next;
+    });
+  }
+
+  function renderEntries(entries, depth) {
+    return entries.map((entry) => (
+      <div key={entry.relPath}>
+        <div
+          onClick={() => (entry.isDir ? toggle(entry) : onOpenFile(entry))}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            paddingLeft: 8 + depth * 14, paddingRight: 8,
+            height: 24, cursor: "pointer", borderRadius: 5,
+            fontSize: 12.5, color: "var(--ink-2)", userSelect: "none",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(var(--shadow-rgb), .06)"}
+          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+        >
+          <span style={{ width: 10, flex: "none", opacity: entry.isDir ? 1 : 0 }}>
+            {entry.isDir ? (expanded.has(entry.relPath) ? "▾" : "▸") : ""}
+          </span>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.name}</span>
+        </div>
+        {entry.isDir && expanded.has(entry.relPath) && cacheRef.current.has(entry.relPath) &&
+          renderEntries(cacheRef.current.get(entry.relPath), depth + 1)}
+      </div>
+    ));
+  }
+
+  return (
+    <div
+      className="glass"
+      style={{
+        width: 220, flex: "none", minHeight: 0, borderRadius: "var(--r-lg)",
+        padding: "8px 4px", overflowY: "auto",
+      }}
+    >
+      {root === null ? (
+        <div style={{ padding: "8px 12px", fontSize: 12.5, color: "var(--ink-2)" }}>
+          {L("Loading…", "Đang tải…", "로딩 중…", "加载中…")}
+        </div>
+      ) : (
+        renderEntries(root, 0)
+      )}
+    </div>
+  );
+}
+
 function TerminalPage() {
   if (!IS_ELECTRON) {
     return (
@@ -99,24 +194,29 @@ function TerminalPane() {
           "yana-rt chat，运行在真实终端中。",
         )}
       />
-      <div
-        className="glass"
-        style={{
-          flex: 1, minHeight: 0, borderRadius: "var(--r-lg)",
-          padding: "10px 12px", display: "flex", flexDirection: "column",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flex: "none" }}>
-          <span className={"dot " + (status === "running" ? "on" : "off")} />
-          <span style={{ fontSize: 12.5, color: "var(--ink-2)" }}>
-            {status === "starting"
-              ? L("Starting…", "Đang khởi động…", "시작 중…", "启动中…")
-              : status === "running"
-                ? L("Running", "Đang chạy", "실행 중", "运行中")
-                : L("Exited", "Đã thoát", "종료됨", "已退出")}
-          </span>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", gap: "var(--gap)" }}>
+        <FileTree
+          onOpenFile={(entry) => window.yana.ptyWrite("cat " + shellQuote(entry.relPath) + "\n")}
+        />
+        <div
+          className="glass"
+          style={{
+            flex: 1, minHeight: 0, borderRadius: "var(--r-lg)",
+            padding: "10px 12px", display: "flex", flexDirection: "column",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flex: "none" }}>
+            <span className={"dot " + (status === "running" ? "on" : "off")} />
+            <span style={{ fontSize: 12.5, color: "var(--ink-2)" }}>
+              {status === "starting"
+                ? L("Starting…", "Đang khởi động…", "시작 중…", "启动中…")
+                : status === "running"
+                  ? L("Running", "Đang chạy", "실행 중", "运行中")
+                  : L("Exited", "Đã thoát", "종료됨", "已退出")}
+            </span>
+          </div>
+          <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
         </div>
-        <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
       </div>
     </div>
   );
