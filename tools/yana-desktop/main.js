@@ -71,13 +71,12 @@ function ptyBridgeBinary() {
 }
 
 // `scripts/yana-rt-wrapper.js` — reused unmodified as the bridge's spawned
-// command, so its already-hardened 4-tier binary resolution (env var → PATH
-// walk → packaged prebuilt platform binary → local release build, plus the
-// documented recursion-guard fix) doesn't need to be duplicated here.
-// KNOWN GAP: `package.json`'s `extraFiles` doesn't currently ship `scripts/`
-// at all, so this packaged-branch path won't resolve in a built installer —
-// real, pre-existing gap, not fixed here (see the terminal-embedding plan's
-// "explicitly out of scope" list — production packaging is a later pass).
+// command, so its recursion-guard fix doesn't need to be duplicated here.
+// Its own multi-tier PATH/prebuilt-binary resolution is bypassed in
+// practice by the `YANA_RT_BIN` override set on this spawn (see
+// `yana:pty-start` below) — that env var is the wrapper's own first-tier
+// check, pointed here at exactly the binary this app was built with.
+// `package.json`'s `extraFiles` ships this file to `Resources/scripts/`.
 function wrapperScript() {
   return app.isPackaged
     ? path.join(process.resourcesPath, 'scripts', 'yana-rt-wrapper.js')
@@ -216,17 +215,18 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
   const childArgv = ['node', wrapperScript(), 'chat', ...(args || [])];
   ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
     stdio: ['pipe', 'pipe', 'pipe'],
-    // In dev mode, force the wrapper to use this repo's own local release
-    // build rather than whatever it finds first on $PATH — the wrapper's
-    // normal resolution order (env var -> PATH walk -> packaged prebuilt
-    // -> local release) is correct for an end user, but during local
-    // desktop-app development a stale globally-installed `yana-rt` (e.g.
-    // from an earlier `cargo install`) would otherwise silently shadow
-    // the build actually being tested. Packaged builds leave this unset
-    // and rely on the wrapper's own packaged-prebuilt-binary tier.
-    env: app.isPackaged ? process.env : {
+    // Always force the wrapper to use the exact `yana-rt` binary this app
+    // ships/was built with, via $YANA_RT_BIN (the wrapper's own first-tier
+    // resolution) — rather than trusting its PATH-walk/prebuilt-binary
+    // fallback tiers. Dev mode: a stale globally-installed `yana-rt` (e.g.
+    // from an earlier `cargo install`) would otherwise silently shadow the
+    // build actually being tested. Packaged mode: points at the binary
+    // bundled via package.json's `extraFiles` (Resources/bin/yana-rt).
+    env: {
       ...process.env,
-      YANA_RT_BIN: path.join(__dirname, '..', '..', 'target', 'release', 'yana-rt'),
+      YANA_RT_BIN: app.isPackaged
+        ? path.join(process.resourcesPath, 'bin', 'yana-rt')
+        : path.join(__dirname, '..', '..', 'target', 'release', 'yana-rt'),
     },
   });
 

@@ -57,6 +57,18 @@
         "to": "Resources/MANIFEST.json"
       },
       {
+        "from": "../../scripts/yana-rt-wrapper.js",
+        "to": "Resources/scripts/yana-rt-wrapper.js"
+      },
+      {
+        "from": "../../target/release/yana-rt",
+        "to": "Resources/bin/yana-rt"
+      },
+      {
+        "from": "../../target/release/pty_bridge",
+        "to": "Resources/pty-bridge/pty_bridge"
+      },
+      {
         "from": "../../core",
         "to": "Resources/core",
         "filter": ["agents/**", "skills/**", "config/**", "memory/**"]
