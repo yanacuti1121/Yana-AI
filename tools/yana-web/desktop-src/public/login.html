@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <title>Yana — Đăng nhập</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #2f7e6e;
+      --ink: #1d3530; --ink-2: #44615a; --ink-3: #7a948d;
+      --border: rgba(31, 70, 60, .14);
+      --danger: #b3503e;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; display: grid; place-items: center; overflow: hidden;
+      font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%);
+      color: var(--ink);
+    }
+
+    /* ── Aurora backdrop — slow drifting blobs ── */
+    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); }
+    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
+    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
+    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(5vw, 6vh) scale(1.12); }
+    }
+    @media (prefers-reduced-motion: reduce) { .blob, .mark-ring::before { animation: none !important; } }
+
+    /* ── Card ── */
+    .card {
+      position: relative; width: min(92vw, 400px); padding: 40px 36px 28px;
+      border-radius: 26px; text-align: center;
+      background: rgba(255,255,255,.58);
+      backdrop-filter: blur(22px) saturate(1.3);
+      -webkit-backdrop-filter: blur(22px) saturate(1.3);
+      border: 1px solid rgba(255,255,255,.7);
+      box-shadow: 0 24px 70px rgba(31,70,60,.16), inset 0 1px 0 rgba(255,255,255,.75);
+      animation: rise .55s cubic-bezier(.21,.8,.32,1) both;
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+
+    /* Language toggle — top-right of the card */
+    .lang {
+      position: absolute; top: 14px; right: 14px;
+      display: flex; gap: 2px; padding: 3px;
+      background: rgba(31,70,60,.06); border-radius: 99px;
+    }
+    .lang button {
+      border: none; cursor: pointer; font-family: inherit;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .03em;
+      padding: 3px 9px; border-radius: 99px; color: var(--ink-3);
+      background: transparent; transition: background .15s, color .15s;
+    }
+    .lang button.on { background: rgba(255,255,255,.9); color: var(--ink); box-shadow: 0 1px 3px rgba(31,70,60,.12); }
+
+    .mark-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .mark-ring {
+      position: relative; width: 72px; height: 72px;
+      display: grid; place-items: center;
+    }
+    .mark-ring::before {
+      content: ''; position: absolute; inset: -3px; border-radius: 24px;
+      background: conic-gradient(from 0deg, color-mix(in oklab, var(--primary) 80%, transparent), transparent 60%, color-mix(in oklab, var(--primary) 80%, transparent));
+      animation: spin-ring 4s linear infinite; opacity: .7;
+    }
+    @keyframes spin-ring { to { transform: rotate(360deg); } }
+    .mark {
+      width: 64px; height: 64px; border-radius: 21px;
+      display: grid; place-items: center; position: relative; z-index: 1;
+      background: linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 8px 24px color-mix(in oklab, var(--primary) 30%, transparent);
+    }
+    .mark-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--ink-3); display: none;
+    }
+
+    h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+    .sub { margin: 0 0 24px; font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+
+    form { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+    .field { position: relative; }
+    .field input[type="password"], .field input[type="text"] {
+      width: 100%; padding: 13px 46px 13px 16px; font-size: 14.5px; font-family: inherit;
+      border-radius: 14px; border: 1px solid var(--border); outline: none;
+      background: rgba(255,255,255,.75); color: var(--ink);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent);
+    }
+    .field input.bad  { border-color: var(--danger); }
+    .field input.good { border-color: var(--primary); }
+    /* IME-friendly masking: browsers disable Vietnamese IME (Telex) inside
+       type="password", so supported engines use type="text" + CSS masking */
+    .field input.masked { -webkit-text-security: disc; }
+    .eye {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; display: grid; place-items: center;
+      background: none; border: none; cursor: pointer; color: var(--ink-3); border-radius: 10px;
+    }
+    .eye:hover { color: var(--ink-2); }
+    .match {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      font-size: 12px; pointer-events: none; font-weight: 500;
+    }
+    .match.ok { color: var(--primary); }
+    .match.no { color: var(--danger); }
+
+    /* Password strength (setup mode) */
+    .strength { display: none; margin-top: -4px; }
+    .strength.show { display: block; }
+    .strength .track { height: 4px; border-radius: 99px; background: rgba(31,70,60,.1); overflow: hidden; }
+    .strength .fill  { height: 100%; width: 0; border-radius: 99px; transition: width .25s, background .25s; }
+    .strength .label { font-size: 11px; color: var(--ink-3); margin-top: 4px; min-height: 1.2em; }
+
+    /* Caps Lock hint */
+    .caps { display: none; font-size: 11.5px; color: var(--danger); margin-top: -4px; }
+    .caps.show { display: flex; align-items: center; gap: 5px; }
+
+    /* Remember + forgot row */
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: -2px; }
+    .check { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; color: var(--ink-2); user-select: none; }
+    .check input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
+    .link { background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 12.5px; color: var(--primary); }
+    .link:hover { text-decoration: underline; }
+
+    .help {
+      display: none; margin-top: 2px; padding: 10px 13px; border-radius: 12px; text-align: left;
+      background: rgba(31,70,60,.05); border: 1px solid var(--border);
+      font-size: 12px; color: var(--ink-2); line-height: 1.6;
+    }
+    .help.show { display: block; }
+    .help code { font-size: 11px; background: rgba(255,255,255,.8); padding: 1px 5px; border-radius: 5px; }
+
+    button.cta {
+      width: 100%; padding: 13px; margin-top: 2px;
+      font-size: 14.5px; font-weight: 500; font-family: inherit;
+      border: none; border-radius: 14px; cursor: pointer; color: white;
+      background: var(--primary);
+      box-shadow: 0 8px 22px color-mix(in oklab, var(--primary) 35%, transparent);
+      transition: transform .12s, opacity .15s, box-shadow .2s;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+    }
+    button.cta:hover { box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 45%, transparent); }
+    button.cta:active { transform: translateY(1px); }
+    button.cta:disabled { opacity: .6; cursor: progress; }
+
+    .spinner {
+      width: 15px; height: 15px; border-radius: 50%; display: none;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: white;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: inline-block; }
+
+    .msg { min-height: 1.35em; margin: 14px 0 0; font-size: 12.5px; }
+    .msg.err { color: var(--danger); animation: shake .3s; }
+    .msg.ok  { color: var(--primary); }
+    @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    .foot {
+      margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-size: 11px; color: var(--ink-3); letter-spacing: .05em;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="aurora"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+
+  <main class="card">
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-vi" class="on">VI</button>
+      <button type="button" id="lang-en">EN</button>
+    </div>
+
+    <div class="mark-wrap">
+      <div class="mark-ring">
+        <div class="mark" aria-label="Yana">
+          <img src="/logo.png" alt="" width="38" height="38" style="display:block" />
+        </div>
+      </div>
+    </div>
+
+    <h1 id="title">Chào mừng trở lại</h1>
+    <p class="sub" id="sub">Đăng nhập để tiếp tục với Yana.</p>
+
+    <form id="form">
+      <div class="field" id="username-wrap">
+        <input type="text" id="username" placeholder="Tên tài khoản" minlength="2" maxlength="32"
+               autocomplete="username" autocapitalize="off" spellcheck="false" />
+      </div>
+
+      <div class="field">
+        <input type="password" id="password" placeholder="Mật khẩu" required minlength="6"
+               autocomplete="current-password" />
+        <button type="button" class="eye" id="eye" aria-label="Hiện mật khẩu" tabindex="-1">
+          <svg id="eye-open" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 10S5.5 4.8 10 4.8 17.5 10 17.5 10 14.5 15.2 10 15.2 2.5 10 2.5 10Z"/><circle cx="10" cy="10" r="2.6"/>
+          </svg>
+          <svg id="eye-closed" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none">
+            <path d="M3.5 8.5c1.8 2 4 3.2 6.5 3.2s4.7-1.2 6.5-3.2M6 11l-1 2.2M10 11.9V14m4-3 1 2.2"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="caps" id="caps">⚠ <span id="caps-text">Caps Lock đang bật</span></div>
+
+      <div class="strength" id="strength">
+        <div class="track"><div class="fill" id="strength-fill"></div></div>
+        <div class="label" id="strength-label"></div>
+      </div>
+
+      <div class="field" id="confirm-wrap" style="display:none">
+        <input type="password" id="confirm" placeholder="Nhập lại mật khẩu" minlength="6" autocomplete="new-password" />
+        <span class="match" id="match" aria-live="polite"></span>
+      </div>
+
+      <div class="row" id="login-row" style="display:none">
+        <label class="check">
+          <input type="checkbox" id="remember" />
+          <span id="remember-text">Ghi nhớ 30 ngày</span>
+        </label>
+        <span style="display:flex;gap:10px">
+          <button type="button" class="link" id="forgot">Quên mật khẩu?</button>
+          <button type="button" class="link" id="new-account">Tạo tài khoản mới?</button>
+        </span>
+      </div>
+
+      <div class="help" id="help">
+        <span id="help-pre"></span><code id="help-path">tools/yana-web/.yana/auth.json</code><span id="help-post"></span>
+        <button type="button" class="link" id="reveal-btn" style="display:none;margin-top:8px"></button>
+        <button type="button" class="link" id="reload-btn" style="display:block;margin-top:8px"></button>
+      </div>
+
+      <button type="submit" class="cta" id="submit">
+        <span class="spinner"></span><span id="cta-text">Tiếp tục</span>
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>
+      </button>
+    </form>
+
+    <p class="msg" id="msg" role="alert"></p>
+
+    <div class="foot">
+      <span class="dot"></span> Yana AI · local &amp; private
+      <span style="opacity:.4">·</span>
+      <a href="/welcome.html" id="about-link" style="color:var(--primary);text-decoration:none">Giới thiệu Yana</a>
+      <span style="opacity:.4">·</span>
+      <button type="button" class="link" id="back-btn"
+        onclick="history.length > 1 ? history.back() : location.href = '/'">← Quay lại</button>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+    var mode = 'login'; // 'login' | 'setup'
+    var storedUsername = null; // account name from /api/auth/status (login prefill)
+    var lang = localStorage.getItem('yana.login.lang') || 'vi';
+    var $ = function (id) { return document.getElementById(id); };
+
+    var T = {
+      vi: {
+        titleLogin: 'Chào mừng trở lại',  subLogin: 'Đăng nhập để tiếp tục với Yana.',
+        titleSetup: 'Chào mừng đến Yana', subSetup: 'Lần đầu tiên ở đây — hãy tạo tài khoản cho mặt hồ của bạn.',
+        ctaLogin: 'Tiếp tục', ctaSetup: 'Tạo tài khoản',
+        username: 'Tên tài khoản',
+        password: 'Mật khẩu', confirm: 'Nhập lại mật khẩu',
+        remember: 'Ghi nhớ 30 ngày', forgot: 'Quên mật khẩu?', newAccount: 'Tạo tài khoản mới?',
+        helpPre: 'Yana chạy hoàn toàn trên máy bạn — không có email khôi phục. Để đặt lại hoặc tạo tài khoản mới: xóa file ',
+        helpPost: ' rồi tải lại trang này. Lưu ý: thao tác này xóa luôn tài khoản hiện tại.',
+        revealBtn: 'Mở thư mục chứa file', reloadBtn: 'Tôi đã xóa — Tải lại trang',
+        caps: 'Caps Lock đang bật',
+        match: 'Khớp ✓', noMatch: 'Chưa khớp',
+        mismatch: 'Mật khẩu nhập lại không khớp.',
+        entering: 'Đang vào mặt hồ…', genericErr: 'Có lỗi xảy ra.',
+        connErr: 'Lỗi kết nối. Thử lại.', serverErr: 'Không kết nối được máy chủ.',
+        wrongPw: 'Sai mật khẩu.', tooMany: 'Thử quá nhiều lần — chờ 15 phút.',
+        wrongCred: 'Sai tên tài khoản hoặc mật khẩu.',
+        tooShort: 'Mật khẩu cần ít nhất 6 ký tự.',
+        nameShort: 'Tên tài khoản cần 2–32 ký tự.',
+        sWeak: 'Yếu — thêm ký tự nữa', sFair: 'Tạm ổn', sGood: 'Tốt', sStrong: 'Rất mạnh',
+        about: 'Giới thiệu Yana',
+        back: 'Quay lại',
+      },
+      en: {
+        titleLogin: 'Welcome back',   subLogin: 'Sign in to continue with Yana.',
+        titleSetup: 'Welcome to Yana', subSetup: 'First time here — create an account for your lake.',
+        ctaLogin: 'Continue', ctaSetup: 'Create account',
+        username: 'Account name',
+        password: 'Password', confirm: 'Confirm password',
+        remember: 'Remember for 30 days', forgot: 'Forgot password?', newAccount: 'Create new account?',
+        helpPre: 'Yana runs entirely on your machine — there is no recovery email. To reset or create a new account: delete ',
+        helpPost: ', then reload this page. Note: this also deletes your current account.',
+        revealBtn: 'Open containing folder', reloadBtn: "I've deleted it — Reload page",
+        caps: 'Caps Lock is on',
+        match: 'Match ✓', noMatch: 'No match',
+        mismatch: 'Passwords do not match.',
+        entering: 'Entering the lake…', genericErr: 'Something went wrong.',
+        connErr: 'Connection error. Try again.', serverErr: 'Cannot reach the server.',
+        wrongPw: 'Wrong password.', tooMany: 'Too many attempts — wait 15 minutes.',
+        wrongCred: 'Wrong account name or password.',
+        tooShort: 'Password must be at least 6 characters.',
+        nameShort: 'Account name must be 2–32 characters.',
+        sWeak: 'Weak — add more characters', sFair: 'Fair', sGood: 'Good', sStrong: 'Very strong',
+        about: 'About Yana',
+        back: 'Back',
+      },
+    };
+    function t(k) { return T[lang][k]; }
+
+    // Vietnamese IME can emit decomposed Unicode (NFD) in one field and
+    // composed (NFC) in another — identical on screen, different strings.
+    // Normalize before comparing or sending.
+    function pw(id) { return $(id).value.normalize('NFC'); }
+
+    function setMsg(text, ok) {
+      $('msg').textContent = text || '';
+      $('msg').className = 'msg ' + (text ? (ok ? 'ok' : 'err') : '');
+    }
+    function setLoading(on) {
+      $('submit').disabled = on;
+      $('submit').classList.toggle('loading', on);
+    }
+
+    function applyLang() {
+      document.documentElement.lang = lang;
+      $('lang-vi').classList.toggle('on', lang === 'vi');
+      $('lang-en').classList.toggle('on', lang === 'en');
+      $('username').placeholder = t('username');
+      $('password').placeholder = t('password');
+      $('confirm').placeholder  = t('confirm');
+      $('remember-text').textContent = t('remember');
+      $('forgot').textContent   = t('forgot');
+      $('new-account').textContent = t('newAccount');
+      $('help-pre').textContent  = t('helpPre');
+      $('help-post').textContent = t('helpPost');
+      $('reveal-btn').textContent = t('revealBtn');
+      $('reload-btn').textContent = t('reloadBtn');
+      $('caps-text').textContent = t('caps');
+      $('about-link').textContent = t('about');
+      $('back-btn').textContent = '← ' + t('back');
+      applyMode();
+    }
+
+    function applyMode() {
+      var setup = mode === 'setup';
+      $('title').textContent    = setup ? t('titleSetup') : t('titleLogin');
+      $('sub').textContent      = setup ? t('subSetup')   : t('subLogin');
+      $('cta-text').textContent = setup ? t('ctaSetup')   : t('ctaLogin');
+      $('confirm-wrap').style.display = setup ? '' : 'none';
+      $('confirm').required = setup;
+      $('login-row').style.display = setup ? 'none' : 'flex';
+      $('strength').classList.toggle('show', setup);
+      $('password').autocomplete = setup ? 'new-password' : 'current-password';
+      // Always show the username field — hiding it before the status fetch
+      // returns caused a race condition where the user could submit with an
+      // empty username and get "wrong password" errors. Legacy accounts
+      // (no rec.username) are handled server-side: the check is skipped.
+      var showName = true;
+      $('username-wrap').style.display = showName ? '' : 'none';
+      $('username').required = showName && mode === 'setup';
+      if (!setup && storedUsername && !$('username').value) {
+        $('username').value = storedUsername;
+      }
+    }
+
+    $('lang-vi').addEventListener('click', function () { lang = 'vi'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
+    $('lang-en').addEventListener('click', function () { lang = 'en'; localStorage.setItem('yana.login.lang', lang); applyLang(); });
+
+    // Vietnamese IME (Telex) is disabled by browsers inside type="password".
+    // Where -webkit-text-security is supported (Chrome/Edge/Safari), switch to
+    // type="text" masked by CSS — IME composes normally, dots still shown.
+    var MASK_OK = window.CSS && CSS.supports && CSS.supports('-webkit-text-security', 'disc');
+    var visible = false;
+
+    function applyVisibility() {
+      ['password', 'confirm'].forEach(function (id) {
+        var el = $(id);
+        if (MASK_OK) {
+          el.type = 'text';
+          el.classList.toggle('masked', !visible);
+        } else {
+          el.type = visible ? 'text' : 'password';
+        }
+      });
+      $('eye-open').style.display   = visible ? 'none' : '';
+      $('eye-closed').style.display = visible ? '' : 'none';
+    }
+    applyVisibility();
+
+    // Show/hide password — applies to both fields so what you compare is what you see
+    $('eye').addEventListener('click', function () {
+      visible = !visible;
+      applyVisibility();
+      $('password').focus();
+    });
+
+    // Caps Lock hint
+    function capsCheck(e) {
+      if (typeof e.getModifierState !== 'function') return;
+      $('caps').classList.toggle('show', e.getModifierState('CapsLock'));
+    }
+    $('password').addEventListener('keyup', capsCheck);
+    $('confirm').addEventListener('keyup', capsCheck);
+
+    // Password strength (setup mode): length + variety heuristic
+    function strength(v) {
+      var score = 0;
+      if (v.length >= 6)  score++;
+      if (v.length >= 10) score++;
+      if (/[A-ZÀ-Ỹ]/.test(v) && /[a-zà-ỹ]/.test(v)) score++;
+      if (/\d/.test(v)) score++;
+      if (/[^A-Za-z0-9À-ỹ]/.test(v)) score++;
+      return Math.min(score, 4);
+    }
+    var S_COLORS = ['#b3503e', '#b3503e', '#b78f3d', '#6f8f5a', '#2f7e6e'];
+    function updateStrength() {
+      if (mode !== 'setup') return;
+      var v = pw('password');
+      var s = v ? strength(v) : 0;
+      $('strength-fill').style.width = (s / 4 * 100) + '%';
+      $('strength-fill').style.background = S_COLORS[s];
+      $('strength-label').textContent = !v ? '' : [t('sWeak'), t('sWeak'), t('sFair'), t('sGood'), t('sStrong')][s];
+    }
+
+    // Live match indicator on the confirm field
+    function updateMatch() {
+      var c = $('confirm'), m = $('match');
+      if (mode !== 'setup' || !c.value) {
+        m.textContent = ''; c.classList.remove('good', 'bad'); return;
+      }
+      var ok = pw('password') === pw('confirm');
+      m.textContent = ok ? t('match') : t('noMatch');
+      m.className = 'match ' + (ok ? 'ok' : 'no');
+      c.classList.toggle('good', ok);
+      c.classList.toggle('bad', !ok);
+    }
+    $('password').addEventListener('input', function () { updateStrength(); updateMatch(); });
+    $('confirm').addEventListener('input', updateMatch);
+
+    // Forgot password / create new account — both point at the same local
+    // recovery instructions: delete auth.json, reload. Deleting it wipes the
+    // current account, so a fresh setup screen is the natural next step —
+    // that's why "create new account" doesn't need its own server logic.
+    $('forgot').addEventListener('click', function () {
+      $('help').classList.toggle('show');
+    });
+    $('new-account').addEventListener('click', function () {
+      $('help').classList.toggle('show');
+    });
+    $('reload-btn').addEventListener('click', function () { location.reload(); });
+
+    // Desktop (Electron) only: window.yana is injected by preload.js and is
+    // never present in a plain browser tab. The packaged app's auth.json
+    // lives inside Electron's per-OS userData dir, not the dev-relative path
+    // shown by default above — ask the main process for the real path and
+    // offer to reveal it in Finder/Explorer instead of making the owner
+    // guess a hidden directory.
+    if (window.yana && window.yana.getAuthFilePath) {
+      $('reveal-btn').style.display = 'block';
+      window.yana.getAuthFilePath()
+        .then(function (p) { $('help-path').textContent = p; })
+        .catch(function () {});
+      $('reveal-btn').addEventListener('click', function () {
+        window.yana.revealAuthFile().catch(function () {});
+      });
+    }
+
+    // Disable submit until status is known — prevents submitting with empty
+    // username before the prefill arrives from /api/auth/status.
+    $('submit').disabled = true;
+
+    fetch('/api/auth/status')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.authed) { location.replace('/'); return; }
+        mode = d.setup ? 'login' : 'setup';
+        storedUsername = d.username || null;
+        $('submit').disabled = false;
+        applyLang();
+        if (mode === 'login' && storedUsername) $('password').focus();
+        else $('username').focus();
+      })
+      .catch(function () { $('submit').disabled = false; setMsg(t('serverErr')); });
+
+    function apiError(msg) {
+      if (/wrong username/i.test(msg)) return t('wrongCred');
+      if (/wrong password/i.test(msg)) return t('wrongPw');
+      if (/too many/i.test(msg))       return t('tooMany');
+      if (/at least 6/i.test(msg))     return t('tooShort');
+      if (/username must/i.test(msg))  return t('nameShort');
+      return msg || t('genericErr');
+    }
+
+    $('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = $('username').value.normalize('NFC').trim();
+      var password = pw('password');
+      if (mode === 'setup' && (username.length < 2 || username.length > 32)) {
+        setMsg(t('nameShort')); return;
+      }
+      if (mode === 'setup' && password !== pw('confirm')) {
+        setMsg(t('mismatch')); updateMatch(); return;
+      }
+      setLoading(true);
+      setMsg('');
+
+      fetch(mode === 'setup' ? '/api/auth/setup' : '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password, remember: $('remember').checked }),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (out) {
+          if (out.ok) { setMsg(t('entering'), true); location.replace('/'); }
+          else { setMsg(apiError(out.d.error)); setLoading(false); }
+        })
+        .catch(function () { setMsg(t('connErr')); setLoading(false); });
+    });
+
+    applyLang();
+  </script>
+</body>
+</html>

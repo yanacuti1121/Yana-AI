@@ -1,4 +1,11 @@
-// Yana AI desktop-v2 — Vite build config.
+// Yana AI desktop — Vite build config. Source lives here (desktop-src/);
+// the build writes directly to ../desktop/, which is what server.js's
+// hardcoded /desktop/index.html routes and rewrites actually serve — so
+// the built app is reachable with zero server.js changes. tools/yana-web/
+// desktop/ is therefore now generated output (gitignored), not source;
+// run `npm run build:desktop` (from tools/yana-web/) before `npm start`
+// or before packaging the Electron app.
+//
 // .mjs extension so this loads as ESM regardless of the yana-web
 // package.json's "type": "commonjs" (Vite's own config loader would handle
 // either way, but the explicit extension removes any ambiguity).
@@ -15,17 +22,14 @@ export default defineConfig({
   resolve: {
     alias: {
       // shared/ is also consumed by the (out-of-scope, unmodified) mobile
-      // frontend as raw classic scripts — this alias lets desktop-v2 import
-      // the same source files as real ES modules without duplicating them.
+      // frontend as raw classic scripts — this alias lets desktop's source
+      // import the same source files as real ES modules without
+      // duplicating them.
       '@shared': path.resolve(here, '../shared'),
     },
   },
   build: {
-    // Named "build", not "dist" — tools/yana-desktop/package.json's
-    // electron-builder extraFiles filter excludes "!dist/**" when copying
-    // yana-web/ into the packaged app; "build" sidesteps that collision
-    // entirely instead of requiring a filter edit.
-    outDir: 'build',
+    outDir: '../desktop',
     emptyOutDir: true,
   },
 });

@@ -7,8 +7,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node server.js",
-    "build:desktop": "vite build --config desktop-v2/vite.config.mjs"
+    "start": "npm run build:desktop && node server.js",
+    "build:desktop": "vite build --config desktop-src/vite.config.mjs"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "1.18.0",
