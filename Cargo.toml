@@ -17,6 +17,18 @@ name = "yana-rt"
 path = "src/main.rs"
 required-features = ["cli"]
 
+# Generic PTY-over-stdio bridge for embedding `yana-rt chat` (or any
+# other program) inside Yana AI's Electron desktop app, the same way
+# VS Code/Cursor embed their own terminal — Electron's main process
+# spawns this as a plain child process and talks to it over stdin/
+# stdout, no native Node module required. Deliberately generic (spawns
+# whatever argv it's given), not chat-specific. See
+# tools/yana-desktop/main.js for the Electron side.
+[[bin]]
+name = "pty_bridge"
+path = "src/bin/pty_bridge.rs"
+required-features = ["pty-bridge"]
+
 [lib]
 name = "yana_rt"
 path = "src/lib.rs"
@@ -43,6 +55,9 @@ wasm = ["wasm-bindgen", "js-sys"]
 # required feature set (rt-multi-thread/macros/io-std, likely) once this
 # graduates past prototype.
 mcp = ["rmcp", "tokio"]
+# `pty_bridge` binary only — isolated from `cli` the same way `mcp` is,
+# so the default `yana-rt` build never pulls in portable-pty.
+pty-bridge = ["portable-pty"]
 
 [dependencies]
 # Always available (WASM-safe)
@@ -85,6 +100,12 @@ tree-sitter-go         = { version = "0.25.0",  optional = true }
 # guard path is a real risk, not a style preference.
 rmcp  = { version = "=2.2.0", features = ["server", "transport-io"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
+
+# `pty_bridge` binary only (see `pty-bridge` feature above) — the same
+# crate the wezterm terminal emulator uses; cross-platform (handles
+# Windows ConPTY as well as Unix ptys), avoids reimplementing PTY
+# allocation's real OS-level edge cases from scratch.
+portable-pty = { version = "0.9", optional = true }
 
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }

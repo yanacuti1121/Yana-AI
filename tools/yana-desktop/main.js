@@ -2,7 +2,7 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
-const { fork } = require('child_process');
+const { fork, spawn } = require('child_process');
 const http  = require('http');
 const { autoUpdater } = require('electron-updater');
 
@@ -11,6 +11,7 @@ const SERVER_URL = `http://127.0.0.1:${PORT}`;
 
 let mainWindow    = null;
 let serverProcess = null;
+let ptyProcess     = null;
 
 // Same layout auth.js uses under the hood — kept in one place so the reveal-
 // in-Finder button and the server's YANA_DATA_DIR can never drift apart.
@@ -53,6 +54,40 @@ function stopServer() {
   if (!serverProcess) return;
   serverProcess.kill('SIGTERM');
   serverProcess = null;
+}
+
+// ── Embedded terminal (yana-rt chat via a PTY) ──────────────────────────────────
+// `pty_bridge` (this repo's Cargo project, `pty-bridge` feature) is a small,
+// generic Rust binary — opens a real pseudo-terminal, spawns whatever argv
+// it's given inside it, then shuttles raw bytes over its own stdin/stdout.
+// No native Node module (node-pty) needed: this is a plain child process,
+// same integration shape `startServer()` already uses for `server.js`.
+
+function ptyBridgeBinary() {
+  const name = process.platform === 'win32' ? 'pty_bridge.exe' : 'pty_bridge';
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'pty-bridge', name)
+    : path.join(__dirname, '..', '..', 'target', 'release', name);
+}
+
+// `scripts/yana-rt-wrapper.js` — reused unmodified as the bridge's spawned
+// command, so its already-hardened 4-tier binary resolution (env var → PATH
+// walk → packaged prebuilt platform binary → local release build, plus the
+// documented recursion-guard fix) doesn't need to be duplicated here.
+// KNOWN GAP: `package.json`'s `extraFiles` doesn't currently ship `scripts/`
+// at all, so this packaged-branch path won't resolve in a built installer —
+// real, pre-existing gap, not fixed here (see the terminal-embedding plan's
+// "explicitly out of scope" list — production packaging is a later pass).
+function wrapperScript() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'scripts', 'yana-rt-wrapper.js')
+    : path.join(__dirname, '..', '..', 'scripts', 'yana-rt-wrapper.js');
+}
+
+function stopPty() {
+  if (!ptyProcess) return;
+  ptyProcess.kill('SIGTERM');
+  ptyProcess = null;
 }
 
 function waitForServer() {
@@ -119,6 +154,56 @@ ipcMain.handle('yana:reveal-auth-file', () => {
   if (fs.existsSync(target)) shell.showItemInFolder(target);
   else shell.openPath(path.dirname(target));
 });
+
+// Single terminal session for v1 (see the plan's "explicitly out of scope"
+// list) — a second start() call while one is already running is rejected
+// rather than silently replacing it.
+ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
+  if (ptyProcess) return { ok: false, error: 'terminal already running' };
+
+  const bridgeBin = ptyBridgeBinary();
+  if (!fs.existsSync(bridgeBin)) {
+    return {
+      ok: false,
+      error: `pty bridge binary not found at ${bridgeBin} — run: `
+        + 'cargo build --release --features pty-bridge --bin pty_bridge',
+    };
+  }
+
+  const childArgv = ['node', wrapperScript(), 'chat', ...(args || [])];
+  ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    // In dev mode, force the wrapper to use this repo's own local release
+    // build rather than whatever it finds first on $PATH — the wrapper's
+    // normal resolution order (env var -> PATH walk -> packaged prebuilt
+    // -> local release) is correct for an end user, but during local
+    // desktop-app development a stale globally-installed `yana-rt` (e.g.
+    // from an earlier `cargo install`) would otherwise silently shadow
+    // the build actually being tested. Packaged builds leave this unset
+    // and rely on the wrapper's own packaged-prebuilt-binary tier.
+    env: app.isPackaged ? process.env : {
+      ...process.env,
+      YANA_RT_BIN: path.join(__dirname, '..', '..', 'target', 'release', 'yana-rt'),
+    },
+  });
+
+  ptyProcess.stdout.on('data', (buf) =>
+    mainWindow?.webContents.send('yana:pty-data', buf.toString('utf8')));
+  ptyProcess.stderr.on('data', (buf) =>
+    console.error('[pty_bridge]', buf.toString('utf8')));
+  ptyProcess.on('exit', (code) => {
+    mainWindow?.webContents.send('yana:pty-exit', code);
+    ptyProcess = null;
+  });
+
+  return { ok: true };
+});
+
+ipcMain.handle('yana:pty-write', (event, data) => {
+  ptyProcess?.stdin.write(data);
+});
+
+ipcMain.handle('yana:pty-stop', () => stopPty());
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged
@@ -201,6 +286,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  stopPty(); // never let a live terminal session survive as an orphan
   if (process.platform !== 'darwin') {
     stopServer();
     app.quit();
@@ -211,4 +297,4 @@ app.on('activate', () => {
   if (!mainWindow) createWindow();
 });
 
-app.on('before-quit', () => stopServer());
+app.on('before-quit', () => { stopServer(); stopPty(); });

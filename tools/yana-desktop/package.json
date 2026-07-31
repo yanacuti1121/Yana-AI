@@ -94,5 +94,8 @@
       "createStartMenuShortcut": true,
       "deleteAppDataOnUninstall": false
     }
+  },
+  "allowScripts": {
+    "electron@31.3.0": true
   }
 }

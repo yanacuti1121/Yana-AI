@@ -214,6 +214,7 @@ function App() {
     "html-maker": () => <HtmlMaker />,
     settings:     () => <Settings t={t} setTweak={setTweak} />,
     codexmate:    () => <CodemateTool />,
+    terminal:     () => <TerminalPage />,
   }[page] || (() => <Dashboard t={t} onNav={setPage} />);
 
   return (

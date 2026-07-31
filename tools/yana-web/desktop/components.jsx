@@ -93,6 +93,7 @@ const NAV = [
   { id: "providers",  label: "Providers",     vi: "Nhà cung cấp",  ko: "프로바이더",    zh: "提供商",   icon: "providers" },
   { id: "html-maker", label: "HTML Maker",    vi: "Tạo HTML",      ko: "HTML 메이커",   zh: "HTML 制作", icon: "spark" },
   { id: "codexmate",  label: "Codexmate",     vi: "Codexmate",     ko: "Codexmate",    zh: "Codexmate", icon: "code" },
+  { id: "terminal",   label: "Terminal",      vi: "Dòng lệnh",     ko: "터미널",        zh: "终端",      icon: "code" },
 ];
 
 function Sidebar({ page, onNav }) {
