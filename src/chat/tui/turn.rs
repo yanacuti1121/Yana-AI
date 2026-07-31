@@ -75,8 +75,24 @@ impl App {
             // response came back) — `breaker` tracks connection health,
             // not conversational completion, so a success is recorded
             // here too, same as the plain-text arm above.
-            Ok((_usage, StreamOutcome::ToolCalls(calls))) => {
+            Ok((usage, StreamOutcome::ToolCalls(calls))) => {
                 self.breaker.record_success();
+                // A model can stream preamble text ("Let me check that
+                // file...") in the same turn it proposes a tool call —
+                // `reply` must not be silently dropped just because this
+                // turn didn't end in plain `Text`. Same push/persist/cost
+                // shape as the Text arm above, just conditional on there
+                // being anything to show.
+                if !reply.is_empty() {
+                    self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
+                    if let Err(e) = super::super::history::append_assistant(
+                        &self.session_id, self.provider.name(), &self.model, &reply,
+                        usage.input_tokens, usage.output_tokens, duration_ms, false, None,
+                    ) {
+                        self.status = format!("warning: failed to persist assistant preamble: {e}");
+                    }
+                    track_cost(self.provider.name(), &self.model, usage, duration_ms);
+                }
                 self.handle_tool_calls(calls);
             }
             Err(e) if reply.is_empty() => {
