@@ -4,6 +4,7 @@
 //! turn, still logically part of `App`.
 
 use super::super::provider::{ChatMessage, ChatUsage, Role};
+use super::super::tool_types::StreamOutcome;
 use super::{App, StreamEvent, TurnState};
 use anyhow::Result;
 use std::sync::{mpsc, Arc};
@@ -19,6 +20,7 @@ impl App {
         let messages = self.history.clone();
         let (tx, rx) = mpsc::channel::<StreamEvent>();
 
+        let tools = super::super::tools::catalog();
         thread::spawn(move || {
             let mut on_chunk = |chunk: &str| -> Result<()> {
                 tx.send(StreamEvent::Chunk(chunk.to_string())).ok();
@@ -29,6 +31,7 @@ impl App {
                 &model,
                 system.as_deref(),
                 &messages,
+                &tools,
                 &mut on_chunk,
             );
             tx.send(StreamEvent::Done(result)).ok();
@@ -40,11 +43,13 @@ impl App {
     }
 
     /// Near-verbatim port of the old single-threaded `run_turn`'s three
-    /// match arms (Ok / Err-before-any-output / Err-mid-stream) — same
+    /// Ok/Err match arms, plus a new `Ok` sub-branch for
+    /// `StreamOutcome::ToolCalls` (delegated to
+    /// `tool_dispatch::handle_tool_calls` — see that file). Same
     /// conditions, same `history::append_assistant`/`track_cost`/
-    /// `breaker.record_*` calls, writing to `self.status` instead of
-    /// `println!`/`eprintln!`.
-    pub(super) fn finish_turn(&mut self, result: Result<ChatUsage>) {
+    /// `breaker.record_*` calls for the plain-text path, writing to
+    /// `self.status` instead of `println!`/`eprintln!`.
+    pub(super) fn finish_turn(&mut self, result: Result<(ChatUsage, StreamOutcome)>) {
         let duration_ms = self
             .turn_started_at
             .take()
@@ -54,9 +59,9 @@ impl App {
         self.turn = TurnState::Idle;
 
         match result {
-            Ok(usage) => {
+            Ok((usage, StreamOutcome::Text)) => {
                 self.breaker.record_success();
-                self.history.push(ChatMessage { role: Role::Assistant, content: reply.clone() });
+                self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
                 self.status = match super::super::history::append_assistant(
                     &self.session_id, self.provider.name(), &self.model, &reply,
                     usage.input_tokens, usage.output_tokens, duration_ms, false, None,
@@ -65,6 +70,14 @@ impl App {
                     Err(e) => format!("warning: failed to persist assistant message: {e}"),
                 };
                 track_cost(self.provider.name(), &self.model, usage, duration_ms);
+            }
+            // The network call itself succeeded (a valid tool-call
+            // response came back) — `breaker` tracks connection health,
+            // not conversational completion, so a success is recorded
+            // here too, same as the plain-text arm above.
+            Ok((_usage, StreamOutcome::ToolCalls(calls))) => {
+                self.breaker.record_success();
+                self.handle_tool_calls(calls);
             }
             Err(e) if reply.is_empty() => {
                 // Failed before any output — nothing conversational
@@ -93,7 +106,7 @@ impl App {
                 } else {
                     "stream interrupted. Rerun with --verbose for details.".to_string()
                 };
-                self.history.push(ChatMessage { role: Role::Assistant, content: reply.clone() });
+                self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
                 if let Err(e2) = super::super::history::append_assistant(
                     &self.session_id, self.provider.name(), &self.model, &reply,
                     0, 0, duration_ms, true, Some(&e.to_string()),

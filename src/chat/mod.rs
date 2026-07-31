@@ -1,14 +1,29 @@
-//! `yana-rt chat` — interactive TUI. Pure conversation only for this MVP:
-//! send text, stream text back, zero tool-calling, zero ability to execute
-//! anything on the user's behalf. See the approved plan
-//! (`mellow-sleeping-jellyfish.md`, decision 4 in the original chat plan)
-//! for why that scope cut is the actual answer to "should this go through
-//! Yana AI's hook system" — `.claude/settings.json`'s PreToolUse/PostToolUse
-//! hooks fire only on tool calls Claude Code itself makes; a standalone
-//! binary run directly by a human is a separate process those hooks
-//! structurally cannot see, the same way they can't see a human typing
-//! `curl`. With nothing being executed here, there is nothing for "bypass
-//! the hooks" to mean.
+//! `yana-rt chat` — interactive TUI. Was pure conversation only through
+//! the first MVP (send text, stream text back, zero tool-calling); now
+//! supports 2 tools — `read_file` (repo-root-sandboxed, no approval
+//! needed) and `run_command` (gated by `crate::guard::check_command()`
+//! plus mandatory interactive human approval before every execution, see
+//! `tui/approval.rs`). This is Program J's ("Universal Capability
+//! Runtime," `docs/programs/PROGRAM-J-SKELETON.md`) originally-planned
+//! "Phase 4 — Beta" scope for this client, brought forward ahead of that
+//! doc's documented Alpha phase (Cursor MCP migration, not yet started)
+//! at anh's explicit request — see that doc's Roadmap section for the
+//! reprioritization note.
+//!
+//! `.claude/settings.json`'s PreToolUse/PostToolUse hooks fire only on
+//! tool calls Claude Code itself makes; a standalone binary run directly
+//! by a human is a separate process those hooks structurally cannot see,
+//! the same way they can't see a human typing `curl`. That's exactly why
+//! `run_command` cannot lean on Claude Code's hook system for safety and
+//! instead builds its own gate in-process: `check_command()` (the same
+//! judgment function `core/hooks/guard-destructive.sh` and Program J's
+//! MCP spike, `src/mcp.rs`, both already use — never a second pattern
+//! list) as a hard pre-check, then a mandatory y/N in the TUI before
+//! anything executes, then (by default) routing through
+//! `core/scripts/sandbox-exec.sh` for real isolation on top of both.
+//! `read_file` needs no such gate — it's read-only and sandboxed to the
+//! repo root (Gate L5 path-traversal check), so it runs inline without
+//! pausing the turn.
 //!
 //! Side note on `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`: reading these from
 //! the process environment to authenticate this CLI's own outbound request
@@ -30,6 +45,8 @@ mod openai_compat;
 // (anthropic.rs, tui/, etc.), not siblings under the crate root.
 pub(crate) mod provider;
 mod terminal_guard;
+mod tool_types;
+mod tools;
 mod tui;
 
 use anthropic::AnthropicProvider;
@@ -84,6 +101,7 @@ pub fn dispatch(
     system: Option<String>,
     resume: Option<String>,
     verbose: bool,
+    use_sandbox: bool,
 ) {
     let provider = select_provider(provider_name.as_deref());
     let model = model.unwrap_or_else(|| provider.default_model().to_string());
@@ -126,7 +144,7 @@ pub fn dispatch(
         }
     };
 
-    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose, resumed);
+    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose, resumed, use_sandbox);
     if let Err(e) = tui::run(&mut guard, app) {
         drop(guard); // restore the terminal before printing, not after
         eprintln!("[chat] fatal: {e:#}");

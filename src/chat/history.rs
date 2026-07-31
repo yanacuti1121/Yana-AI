@@ -4,6 +4,7 @@
 //! inventing a new state location.
 
 use super::provider::{ChatMessage, Role};
+use super::tool_types::{ToolCallRecord, ToolResultRecord};
 use anyhow::Result;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -14,6 +15,15 @@ use uuid::Uuid;
 
 pub const SCHEMA_VERSION: &str = "1.0";
 
+/// Tool-call turns: `role: Assistant`, `content: ""`, `tool_call:
+/// Some(...)`. Tool-result turns: `role: User`, `content: ""`,
+/// `tool_result: Some(...)`. Deliberately reuses `User`/`Assistant`
+/// instead of adding a `Role::Tool` variant — matches how both providers'
+/// wire formats already nest these (see `anthropic.rs`), and preserves
+/// `Role`'s security property verbatim: nothing here ever claims `role ==
+/// "system"`, so a hand-edited `--resume` file still can't smuggle a
+/// system-authority turn in — that property is about which *roles
+/// exist*, not what a `User`/`Assistant` turn's payload contains.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HistoryLine {
     pub schema_version: String,
@@ -36,6 +46,10 @@ pub struct HistoryLine {
     pub truncated: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool_call: Option<ToolCallRecord>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool_result: Option<ToolResultRecord>,
 }
 
 fn history_dir() -> PathBuf {
@@ -76,6 +90,8 @@ pub fn append_user(session_id: &str, content: &str) -> Result<()> {
             duration_ms: None,
             truncated: false,
             error: None,
+            tool_call: None,
+            tool_result: None,
         },
     )
 }
@@ -108,6 +124,59 @@ pub fn append_assistant(
             duration_ms: Some(duration_ms),
             truncated,
             error: error.map(|e| e.to_string()),
+            tool_call: None,
+            tool_result: None,
+        },
+    )
+}
+
+/// Persists a tool call the model proposed (see `HistoryLine`'s module
+/// doc for the `role: Assistant` / empty-`content` convention this uses).
+pub fn append_tool_call(session_id: &str, provider: &str, model: &str, call: &ToolCallRecord) -> Result<()> {
+    append_line(
+        session_id,
+        &HistoryLine {
+            schema_version: SCHEMA_VERSION.to_string(),
+            session_id: session_id.to_string(),
+            id: Uuid::new_v4().to_string(),
+            ts: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+            role: Role::Assistant,
+            content: String::new(),
+            provider: Some(provider.to_string()),
+            model: Some(model.to_string()),
+            input_tokens: None,
+            output_tokens: None,
+            duration_ms: None,
+            truncated: false,
+            error: None,
+            tool_call: Some(call.clone()),
+            tool_result: None,
+        },
+    )
+}
+
+/// Persists what running (or declining to run) a tool call produced (see
+/// `HistoryLine`'s module doc for the `role: User` / empty-`content`
+/// convention this uses).
+pub fn append_tool_result(session_id: &str, result: &ToolResultRecord) -> Result<()> {
+    append_line(
+        session_id,
+        &HistoryLine {
+            schema_version: SCHEMA_VERSION.to_string(),
+            session_id: session_id.to_string(),
+            id: Uuid::new_v4().to_string(),
+            ts: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+            role: Role::User,
+            content: String::new(),
+            provider: None,
+            model: None,
+            input_tokens: None,
+            output_tokens: None,
+            duration_ms: None,
+            truncated: false,
+            error: None,
+            tool_call: None,
+            tool_result: Some(result.clone()),
         },
     )
 }
@@ -198,8 +267,20 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
             continue;
         }
         match serde_json::from_str::<HistoryLine>(line) {
+            // Tool-call/tool-result turns legitimately have empty
+            // `content` (the payload lives in `tool_call`/`tool_result`
+            // instead) — checked before the plain-text empty-content
+            // skip below, so they're never mistaken for an error marker.
+            Ok(entry) if entry.tool_call.is_some() || entry.tool_result.is_some() => {
+                messages.push(ChatMessage {
+                    role: entry.role,
+                    content: entry.content,
+                    tool_call: entry.tool_call,
+                    tool_result: entry.tool_result,
+                });
+            }
             Ok(entry) if !entry.content.is_empty() => {
-                messages.push(ChatMessage { role: entry.role, content: entry.content });
+                messages.push(ChatMessage::text(entry.role, entry.content));
             }
             Ok(_) => {} // empty-content marker line (e.g. a recorded error) — skip
             Err(e) => {
@@ -209,3 +290,9 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
     }
     Ok(messages)
 }
+
+// Split out — see `history/tests.rs`'s own doc comment for why (this
+// file is already at the 300-line budget from `agent-code-constraints.md`
+// without room for the round-trip test cases).
+#[cfg(test)]
+mod tests;

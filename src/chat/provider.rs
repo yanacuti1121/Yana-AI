@@ -5,6 +5,7 @@
 //! field extraction differs, which is why this lives here once instead of
 //! being duplicated per provider).
 
+use super::tool_types::{StreamOutcome, ToolSpec};
 use anyhow::Result;
 use std::io::{BufRead, BufReader, Read};
 use std::time::Duration;
@@ -26,6 +27,23 @@ pub enum Role {
 pub struct ChatMessage {
     pub role: Role,
     pub content: String,
+    /// Set when this turn is the model proposing a tool call (always
+    /// paired with `role: Assistant`). Additive field, not a new `Role`
+    /// variant — see `Role`'s own doc comment for why.
+    pub tool_call: Option<crate::chat::tool_types::ToolCallRecord>,
+    /// Set when this turn is a tool-execution result being reported back
+    /// (always paired with `role: User` — matches both providers' own
+    /// wire convention of addressing tool results back as a user-facing
+    /// turn). See `history.rs`'s module doc for the full reasoning.
+    pub tool_result: Option<crate::chat::tool_types::ToolResultRecord>,
+}
+
+impl ChatMessage {
+    /// Plain-text turn constructor — the common case at every existing
+    /// call site, now that the struct has two more fields to fill in.
+    pub fn text(role: Role, content: impl Into<String>) -> Self {
+        Self { role, content: content.into(), tool_call: None, tool_result: None }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -67,17 +85,23 @@ pub trait ChatProvider: Send + Sync {
     fn env_var(&self) -> &str;
 
     /// Blocking call. Streams text chunks via `on_chunk` as they arrive;
-    /// returns final usage once the stream completes (or an error). Error
-    /// messages may contain upstream detail — callers decide whether to
-    /// print it in full (--verbose) or collapse it to a generic class.
+    /// returns final usage plus what the turn produced once the stream
+    /// completes (or an error). `tools` is the catalog offered to the
+    /// model this turn — pass `&[]` for a plain-text-only call (that's
+    /// also what every implementation must treat as "never emit
+    /// `StreamOutcome::ToolCalls`," since a provider has nothing to call
+    /// if it was offered nothing). Error messages may contain upstream
+    /// detail — callers decide whether to print it in full (--verbose) or
+    /// collapse it to a generic class.
     fn stream_chat(
         &self,
         api_key: Option<&str>,
         model: &str,
         system: Option<&str>,
         messages: &[ChatMessage],
+        tools: &[ToolSpec],
         on_chunk: &mut dyn FnMut(&str) -> Result<()>,
-    ) -> Result<ChatUsage>;
+    ) -> Result<(ChatUsage, StreamOutcome)>;
 }
 
 /// One-shot, non-interactive LLM call — no TUI, no history file, no
@@ -95,12 +119,19 @@ pub fn ask_once(
     system: &str,
     user_message: &str,
 ) -> Result<String> {
-    let messages = [ChatMessage { role: Role::User, content: user_message.to_string() }];
+    let messages = [ChatMessage::text(Role::User, user_message)];
     let mut full = String::new();
-    provider.stream_chat(api_key, model, Some(system), &messages, &mut |chunk| {
+    let (_, outcome) = provider.stream_chat(api_key, model, Some(system), &messages, &[], &mut |chunk| {
         full.push_str(chunk);
         Ok(())
     })?;
+    // `tools: &[]` above means a well-behaved provider never returns
+    // `ToolCalls` — but "never silently drop a tool call" outranks "this
+    // should never happen in practice" (see plan's tool-poisoning-defense
+    // note), so a violation here is a loud error, not a silent String.
+    if matches!(outcome, StreamOutcome::ToolCalls(_)) {
+        anyhow::bail!("provider proposed a tool call in a non-tool-aware context (ask_once)");
+    }
     Ok(full)
 }
 

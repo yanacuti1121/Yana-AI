@@ -4,6 +4,8 @@
 //! read `App`'s private fields directly instead of needing a getter for
 //! every one of them.
 
+mod render_tools;
+
 use super::super::banner;
 use super::super::provider::Role;
 use super::{App, TurnState};
@@ -56,15 +58,24 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         draw_history(frame, app, history_area);
     }
 
+    if let TurnState::AwaitingApproval(pending) = &app.turn {
+        // Replaces the input box entirely — free-text input is disabled
+        // in this state (`tui.rs::on_key`'s early-return branch routes
+        // every key to `handle_approval_key` instead), so no cursor is
+        // shown either.
+        render_tools::draw_approval_prompt(frame, pending, input_area);
+        return;
+    }
+
     let input_title = if app.status.is_empty() {
         " message ".to_string()
     } else {
         format!(" {} ", app.status)
     };
-    // Busy (a turn in flight) gets a distinct border color from idle-and-
-    // ready — a glanceable "is it my turn to type" signal that doesn't
-    // depend on reading the status text.
-    let input_border_color = if matches!(app.turn, TurnState::Streaming(_)) {
+    // Busy (a turn in flight, or a tool actually executing) gets a
+    // distinct border color from idle-and-ready — a glanceable "is it my
+    // turn to type" signal that doesn't depend on reading the status text.
+    let input_border_color = if matches!(app.turn, TurnState::Streaming(_) | TurnState::ExecutingTool { .. }) {
         Color::Yellow
     } else {
         LIGHT_PURPLE
@@ -84,6 +95,16 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
 fn draw_history(frame: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
     let mut lines: Vec<Line> = Vec::with_capacity(app.history.len() + 1);
     for msg in &app.history {
+        if let Some(call) = &msg.tool_call {
+            lines.push(render_tools::tool_call_line(call));
+            lines.push(Line::raw(""));
+            continue;
+        }
+        if let Some(result) = &msg.tool_result {
+            lines.push(render_tools::tool_result_line(result));
+            lines.push(Line::raw(""));
+            continue;
+        }
         let (label, style) = match msg.role {
             Role::User => ("You", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
             Role::Assistant => ("AI", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),

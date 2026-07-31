@@ -661,6 +661,22 @@ Beta → Stable):**
 thật, test thật, PR thật. Roadmap này chỉ chia giai đoạn, không phải bắt
 đầu code.
 
+**Cập nhật thứ tự thực tế (2026-07-31):** anh Tâm yêu cầu làm thẳng phần
+`yana-ai chat` của mục 4 (Beta) trước, **bỏ qua thứ tự Alpha→Beta ở trên**
+— Alpha (migrate Cursor sang MCP) chưa bắt đầu (vẫn dừng ở Research/
+Prototype cho spike `yana-rt mcp`). Đây là quyết định tái ưu tiên có chủ
+đích của anh Tâm (không phải AI tự suy diễn), không phải đi lệch âm thầm.
+Khác biệt so với mô tả gốc ở mục 4: `yana-ai chat`'s `run_command` tool
+gọi thẳng `crate::guard::check_command()` **in-process** (không qua MCP
+Server/`src/mcp.rs` — MCP Server vẫn "dormant, not wired into any live
+client path" đúng như `src/mcp.rs`'s doc comment nói), cộng thêm 1 lớp an
+toàn Program J's Phase 3 diagram không có: bắt buộc người duyệt y/N qua
+TUI trước MỌI lần thực thi, không có exception ngay cả khi guard cho
+qua. `core/config/mcp-whitelist.json`'s enforcement gap (nhắc ở mục 4)
+**vẫn chưa giải quyết** — việc này nằm ngoài phạm vi phần vừa làm, để
+dành đúng như mục 4 đã ghi. Xem `src/chat/mod.rs`'s module doc để có chi
+tiết implementation đầy đủ.
+
 ---
 
 ## Readiness Matrix (Phase 5 — đánh giá 2026-07-24, sau khi Phase 1-4 xong)
