@@ -63,7 +63,13 @@
   <script type="text/babel" src="m-analytics.jsx"></script>
   <script type="text/babel" src="m-cron.jsx"></script>
   <script type="text/babel" src="m-html-maker.jsx?v=20260618b"></script>
-  <script type="text/babel" src="/desktop/vtuber.jsx?v=20260616"></script>
+  <!-- Relocated from /desktop/vtuber.jsx to /shared/vtuber.jsx (2026-07-31):
+       desktop/ is migrating to a Vite ES-module build (see
+       .claude/plans/functional-shimmying-boole.md) and this raw classic-
+       script copy is now the canonical one for mobile's continued use;
+       desktop-v2 has its own separately-converted ES-module copy since a
+       classic script and a real module have incompatible scoping. -->
+  <script type="text/babel" src="/shared/vtuber.jsx?v=20260616"></script>
   <script type="text/babel" src="m-app.jsx?v=20260702"></script>
 </body>
 </html>
