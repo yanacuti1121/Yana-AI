@@ -11,6 +11,9 @@
 import React from 'react';
 import { L, Icons } from './components.jsx';
 import vtuberChar from './vtuber-char.jpg';
+import { VT_HINTS, VT_IDLE, VT_GREET, vtLang, vtPick } from './vtuber/phrases.js';
+import { VTCharacter } from './vtuber/character.jsx';
+import { VTMessageBubble } from './vtuber/message-bubble.jsx';
 
 // Shared between /desktop and /mobile shells. Mobile has a bottom tab bar
 // (.mtabbar, ~64px + safe-area-inset-bottom) that the default bottom:20
@@ -20,80 +23,6 @@ import vtuberChar from './vtuber-char.jpg';
 const VT_IS_MOBILE_SHELL = typeof window !== "undefined" && window.location.pathname.startsWith("/mobile");
 const VT_TOGGLE_BOTTOM = VT_IS_MOBILE_SHELL ? "calc(78px + env(safe-area-inset-bottom, 0px))" : 20;
 const VT_PANEL_BOTTOM = VT_IS_MOBILE_SHELL ? "calc(138px + env(safe-area-inset-bottom, 0px))" : 80;
-
-const VT_HINTS = {
-  en: [
-    "Try /code-review before merging! 🌿",
-    "Wrap up your session with /wrap-up to save context.",
-    "Need tests? /write-tests can scaffold them fast.",
-    "Feeling stuck? /debug traces the issue step by step.",
-    "Quick commit ready? /quick-commit handles it in one go.",
-    "Big task ahead? /plan first — then code.",
-    "Want a deep review? /code-review ultra runs multi-agent.",
-    "Check overall health with /project-health-check.",
-    "Spent a while on this? /session-wrap saves your progress.",
-    "Refactor time? /refactor-clean keeps it surgical.",
-  ],
-  vi: [
-    "Thử /code-review trước khi merge nhé! 🌿",
-    "Dùng /wrap-up để lưu context trước khi tắt.",
-    "Cần test? /write-tests tạo nhanh cho anh.",
-    "Bí rồi? /debug trace từng bước.",
-    "Commit nhanh? /quick-commit là đủ.",
-    "Task lớn? /plan trước — rồi mới code.",
-    "Cần review sâu? /code-review ultra chạy đa agent.",
-    "Xem tổng thể? /project-health-check đi.",
-    "Làm lâu rồi? /session-wrap để lưu lại.",
-    "Refactor? /refactor-clean cho gọn.",
-  ],
-};
-
-const VT_IDLE = {
-  en: ["Still here? 👀", "Take a short break if you need it 🍵", "How's everything going? ✨"],
-  vi: ["Anh còn đó không? 👀", "Nghỉ ngơi tí đi anh 🍵", "Mọi thứ ổn không? ✨"],
-};
-
-const VT_GREET = {
-  en: ["Hi! Need help with anything? 🐰", "I'm here if you need me~", "What are we building today? ✨"],
-  vi: ["Chào anh! Cần em giúp gì không? 🐰", "Em ở đây nếu anh cần~", "Hôm nay mình build gì nào? ✨"],
-};
-
-function vtLang() { return window.YANA_LANG === "vi" ? "vi" : "en"; }
-function vtPick(pool) {
-  const arr = pool[vtLang()] || pool.en;
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function VTCharacter({ talking, wiggling, size }) {
-  const s = size || 110;
-  return (
-    <div style={{
-      width: s, height: s,
-      borderRadius: "50%",
-      overflow: "hidden",
-      border: "2.5px solid rgba(255,255,255,0.85)",
-      boxShadow: "0 4px 18px rgba(47,126,110,0.30)",
-      background: "#fff8f0",
-      flexShrink: 0,
-      animation: wiggling
-        ? "vt-wiggle 0.55s ease"
-        : "vt-float 3.2s ease-in-out infinite",
-    }}>
-      <style>{`
-        @keyframes vt-float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-        @keyframes vt-wiggle { 0%,100%{transform:rotate(0) scale(1)} 25%{transform:rotate(-8deg) scale(1.05)} 75%{transform:rotate(8deg) scale(1.05)} }
-        @keyframes vt-talk   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
-        .vt-talking { animation: vt-talk 0.25s ease infinite; }
-      `}</style>
-      <img
-        src={vtuberChar}
-        alt="Yana"
-        className={talking ? "vt-talking" : ""}
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
-      />
-    </div>
-  );
-}
 
 export function VTuber() {
   const [open,     setOpen]     = React.useState(false);
@@ -269,33 +198,7 @@ export function VTuber() {
           display: "flex", flexDirection: "column", gap: 8,
           scrollbarWidth: "thin",
         }}>
-          {msgs.map(m => (
-            <div key={m.id} style={{
-              display: "flex",
-              justifyContent: m.who === "user" ? "flex-end" : "flex-start",
-              alignItems: "flex-end", gap: 6,
-            }}>
-              {m.who === "yana" && (
-                <img src={vtuberChar} alt="Yana" style={{
-                  width: 24, height: 24, borderRadius: 99, objectFit: "cover",
-                  objectPosition: "top center", flexShrink: 0, border: "1.5px solid rgba(47,126,110,0.2)",
-                }} />
-              )}
-              <div style={{
-                maxWidth: "78%",
-                padding: "7px 11px",
-                borderRadius: m.who === "user"
-                  ? "14px 14px 4px 14px"
-                  : "14px 14px 14px 4px",
-                background: m.who === "user"
-                  ? "linear-gradient(135deg, #2f7e6e, #4dbf96)"
-                  : "rgba(47,126,110,0.07)",
-                color: m.who === "user" ? "white" : "#1a2e1a",
-                fontSize: 12.5,
-                lineHeight: 1.55,
-              }}>{m.text}</div>
-            </div>
-          ))}
+          {msgs.map(m => <VTMessageBubble key={m.id} m={m} />)}
           {sending && (
             <div style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
               <img src={vtuberChar} alt="Yana" style={{ width: 24, height: 24, borderRadius: 99, objectFit: "cover", objectPosition: "top center", flexShrink: 0, border: "1.5px solid rgba(47,126,110,0.2)" }} />

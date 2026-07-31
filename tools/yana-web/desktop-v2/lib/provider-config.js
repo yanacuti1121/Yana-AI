@@ -9,6 +9,11 @@
 
 export const KEYLESS_PROVIDERS = new Set(["ollama", "lmstudio", "9router"]);
 
+export function providerAvailable(id) {
+  if (id === "auto") return true;
+  return KEYLESS_PROVIDERS.has(id) || YanaVault.hasKey(id);
+}
+
 export function getProviderConfig(preferred) {
   const order = ["claude", "openai", "gemini", "groq", "deepseek", "openrouter"];
   if (preferred === "auto") {
