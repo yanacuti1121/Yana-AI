@@ -50,7 +50,7 @@
       {
         "from": "../yana-web",
         "to": "Resources/server",
-        "filter": ["**/*", "!node_modules/**", "!dist/**", "!.yana/**"]
+        "filter": ["**/*", "!node_modules/**", "!dist/**", "!.yana/**", "!desktop-old/**", "!desktop-src/**"]
       },
       {
         "from": "../../MANIFEST.json",

@@ -18,6 +18,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: here,
+  // App is served at /desktop/index.html, not domain root — without this,
+  // Vite emits root-relative asset paths (/assets/...) that resolve to
+  // tools/yana-web/assets/ on disk (doesn't exist) instead of
+  // tools/yana-web/desktop/assets/ (the real build output), 404-ing every
+  // JS/CSS asset and white-screening the app.
+  base: '/desktop/',
   plugins: [react()],
   resolve: {
     alias: {

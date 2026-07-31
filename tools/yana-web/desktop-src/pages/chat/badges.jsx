@@ -20,15 +20,17 @@ export function ConfidentialBadge({ tier }) {
 const PROVIDER_PRICE = {
   claude: 0.003, openai: 0.0006, gemini: 0.0004, groq: 0.00008,
   deepseek: 0.00028, openrouter: 0.001,
-  ollama: 0, lmstudio: 0, "9router": 0,
+  ollama: 0, lmstudio: 0, "9router": 0, turbofieldfare: 0,
 };
 
+const LOCAL_PROVIDERS = ["ollama", "lmstudio", "9router", "turbofieldfare"];
+
 export function RouteChip({ route }) {
-  const local = ["ollama", "lmstudio", "9router"].includes(route.agent) ||
+  const local = LOCAL_PROVIDERS.includes(route.agent) ||
                 (route.agent && route.agent.startsWith("Auto →") &&
-                 ["ollama", "lmstudio", "9router"].some(p => route.agent.includes(p)));
+                 LOCAL_PROVIDERS.some(p => route.agent.includes(p)));
   const priceKey = route.agent && route.agent.startsWith("Auto →")
-    ? (["ollama","lmstudio","9router"].find(p => route.agent.includes(p)) || route.agent.split("→")[1]?.trim() || "claude")
+    ? (LOCAL_PROVIDERS.find(p => route.agent.includes(p)) || route.agent.split("→")[1]?.trim() || "claude")
     : route.agent;
   const pricePer1k = PROVIDER_PRICE[priceKey] ?? 0.003;
 

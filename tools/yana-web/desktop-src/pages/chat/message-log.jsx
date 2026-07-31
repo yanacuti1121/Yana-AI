@@ -8,7 +8,7 @@ import { OllamaManager } from './ollama-manager.jsx';
 import { Message } from './message.jsx';
 
 function LocalAiStatusBanner({ localStatus }) {
-  const running = ["ollama", "9router", "lmstudio"].filter(id => localStatus[id]?.running);
+  const running = ["ollama", "9router", "lmstudio", "turbofieldfare"].filter(id => localStatus[id]?.running);
   const allOffline = running.length === 0;
   const hasCloud = getProviderConfig().apiKey;
   if (allOffline && !hasCloud) {
@@ -30,7 +30,7 @@ function LocalAiStatusBanner({ localStatus }) {
     );
   }
   if (running.length > 0) {
-    const names = { ollama: "Ollama", "9router": "9router", lmstudio: "LM Studio" };
+    const names = { ollama: "Ollama", "9router": "9router", lmstudio: "LM Studio", turbofieldfare: "TurboFieldfare" };
     const modelList = running.flatMap(id => localStatus[id].models.slice(0, 2));
     return (
       <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 99, background: "color-mix(in srgb, #22c55e 10%, transparent)", border: "1px solid color-mix(in srgb, #22c55e 25%, transparent)", fontSize: 12 }}>
@@ -67,7 +67,7 @@ function EmptyState({ localStatus }) {
               "Yana chuyển yêu cầu của bạn đến nhà cung cấp đã kết nối và trả lời tại đây.",
               "Yana가 요청을 연결된 프로바이더로 전달하고 여기에 답변을 스트리밍합니다.",
               "Yana 会将你的请求路由到已连接的提供商，并在此处流式显示回答。")
-          : localStatus && ["ollama","9router","lmstudio"].some(id => localStatus[id]?.running)
+          : localStatus && ["ollama","9router","lmstudio","turbofieldfare"].some(id => localStatus[id]?.running)
             ? L("Local AI detected — select it in the provider bar below to start chatting for free.",
                 "Đã phát hiện Local AI — chọn nó ở thanh bên dưới để chat miễn phí.",
                 "로컬 AI가 감지되었습니다 — 아래 프로바이더 바에서 선택하면 무료로 채팅을 시작할 수 있습니다.",

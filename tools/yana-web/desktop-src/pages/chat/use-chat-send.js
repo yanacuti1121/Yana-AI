@@ -88,9 +88,16 @@ export function useChatSend({
     // VTuber companion — notify so it can count messages and show hints
     if (!tier) window.dispatchEvent(new CustomEvent("yana-chat-message"));
 
-    // Sovereign: local model only — never a cloud provider
+    // Sovereign: local model only — never a cloud provider. Both ollama and
+    // turbofieldfare are loopback-only (127.0.0.1, no auth/TLS by design),
+    // so either satisfies the "never leaves the machine" guarantee; prefer
+    // turbofieldfare when it's actually running since it's the stronger model.
     let { provider, apiKey } = getProviderConfig(providerSel);
-    if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
+    if (tier === "sovereign") {
+      provider = (localStatus && localStatus.turbofieldfare && localStatus.turbofieldfare.running)
+        ? "turbofieldfare" : "ollama";
+      apiKey = "";
+    }
 
     // Real routing: classify the task so complex requests pick up a skill.
     // Skipped for confidential turns — need-to-know, no extra processing.
@@ -222,10 +229,10 @@ export function useChatSend({
         confidential: !!tier,
         tier,
         text: tier === "sovereign"
-          ? L("Could not reach the local model. SOVEREIGN content only goes to Ollama (127.0.0.1:11434) — start it with `ollama serve`.",
-              "Không kết nối được model local. Nội dung SOVEREIGN chỉ đi đến Ollama (127.0.0.1:11434) — chạy `ollama serve` trước.",
-              "로컬 모델에 연결할 수 없습니다. SOVEREIGN 콘텐츠는 Ollama (127.0.0.1:11434)로만 전송됩니다 — `ollama serve`로 먼저 실행하세요.",
-              "无法连接本地模型。SOVEREIGN 内容仅发送至 Ollama（127.0.0.1:11434）— 请先运行 `ollama serve`。")
+          ? L("Could not reach the local model. SOVEREIGN content only goes to a loopback-only local model — start Ollama (`ollama serve`, 127.0.0.1:11434) or TurboFieldfareServer (127.0.0.1:8091).",
+              "Không kết nối được model local. Nội dung SOVEREIGN chỉ đi đến model local chạy loopback — chạy Ollama (`ollama serve`, 127.0.0.1:11434) hoặc TurboFieldfareServer (127.0.0.1:8091).",
+              "로컬 모델에 연결할 수 없습니다. SOVEREIGN 콘텐츠는 루프백 로컬 모델로만 전송됩니다 — Ollama(`ollama serve`, 127.0.0.1:11434) 또는 TurboFieldfareServer(127.0.0.1:8091)를 실행하세요.",
+              "无法连接本地模型。SOVEREIGN 内容仅发送至仅限回环的本地模型 — 请运行 Ollama（`ollama serve`，127.0.0.1:11434）或 TurboFieldfareServer（127.0.0.1:8091）。")
           : L("Could not reach the server (" + err.message + "). Check that Yana is running and a provider key is set.",
               "Không kết nối được máy chủ (" + err.message + "). Kiểm tra Yana đang chạy và đã đặt API key.",
               "서버에 연결할 수 없습니다 (" + err.message + "). Yana가 실행 중인지, 프로바이더 키가 설정되었는지 확인하세요.",

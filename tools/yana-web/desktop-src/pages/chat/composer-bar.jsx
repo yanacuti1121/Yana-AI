@@ -127,7 +127,7 @@ export function ComposerBar({
             ))}
           </select>
         )}
-        {localStatus && activeProvider === "auto" && ["ollama", "lmstudio", "9router"].some(id => localStatus[id]?.running) && (
+        {localStatus && activeProvider === "auto" && ["ollama", "lmstudio", "9router", "turbofieldfare"].some(id => localStatus[id]?.running) && (
           <span style={{ fontSize: 11, color: "#7c3aed", background: "color-mix(in srgb,#7c3aed 12%,transparent)", border: "1px solid color-mix(in srgb,#7c3aed 22%,transparent)", borderRadius: 99, padding: "3px 8px", flexShrink: 0, fontWeight: 500 }}>
             🤖 {L("Smart route", "Định tuyến thông minh", "스마트 라우팅", "智能路由")}
           </span>

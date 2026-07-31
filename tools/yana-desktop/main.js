@@ -98,12 +98,10 @@ function repoRoot() {
   return app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..');
 }
 
-// Lists the immediate children of `relPath` (relative to the repo root) — one
-// directory at a time, not a recursive walk, so this stays cheap even next to
-// huge dirs like `target/`/`node_modules/`. Sandboxed the same way
-// `src/chat/tools/read_file.rs` already is on the Rust side (Gate L5):
-// resolve, realpath, and reject anything that escapes the repo root.
-function listDir(relPath) {
+// Shared sandboxing for any repo-relative path operation (Gate L5, same
+// pattern `src/chat/tools/read_file.rs` uses on the Rust side): resolve,
+// realpath, reject anything that escapes the repo root.
+function resolveSandboxed(relPath) {
   const root = fs.realpathSync(repoRoot());
   const candidate = path.join(root, relPath || '');
   let resolved;
@@ -115,9 +113,18 @@ function listDir(relPath) {
   if (resolved !== root && !resolved.startsWith(root + path.sep)) {
     return { ok: false, error: 'path escapes repo root' };
   }
+  return { ok: true, resolved };
+}
+
+// Lists the immediate children of `relPath` (relative to the repo root) — one
+// directory at a time, not a recursive walk, so this stays cheap even next to
+// huge dirs like `target/`/`node_modules/`.
+function listDir(relPath) {
+  const sandboxed = resolveSandboxed(relPath);
+  if (!sandboxed.ok) return sandboxed;
   let dirents;
   try {
-    dirents = fs.readdirSync(resolved, { withFileTypes: true });
+    dirents = fs.readdirSync(sandboxed.resolved, { withFileTypes: true });
   } catch (e) {
     return { ok: false, error: `cannot read directory: ${e.message}` };
   }
@@ -248,7 +255,7 @@ ipcMain.handle('yana:pty-write', (event, data) => {
 
 ipcMain.handle('yana:pty-stop', () => stopPty());
 
-ipcMain.handle('yana:list-dir', (event, relPath) => listDir(relPath));
+ipcMain.handle('yana:list-dir',   (event, relPath) => listDir(relPath));
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged

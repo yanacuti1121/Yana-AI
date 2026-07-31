@@ -50,7 +50,10 @@ export function smartPickProvider(taskText, routeType, localStatus) {
   // Fast/simple tasks → Groq (sub-300ms)
   const isFast = routeType === "simple" && !isCode && !isDeep;
 
-  const localOrder  = ["ollama", "lmstudio", "9router"];
+  // turbofieldfare first: same loopback-only guarantee as ollama/lmstudio,
+  // but a genuinely stronger model (26B MoE vs the small 3-8B models Ollama
+  // typically runs) — prefer it over the others whenever it's running.
+  const localOrder  = ["turbofieldfare", "ollama", "lmstudio", "9router"];
   const firstLocal  = localOrder.find(id => running(id));
 
   if (isCode) {

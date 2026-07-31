@@ -18,6 +18,7 @@ export const CHAT_MODELS = {
   "9router":  "kr/claude-sonnet-4.5",
   ollama:     "llama3.2",
   lmstudio:   "local-model",
+  turbofieldfare: "gemma-4-26b-a4b-it",
 };
 
 // Curated model choices per provider — providers in CHAT_LIVE_MODELS get the
@@ -39,8 +40,9 @@ export const MODEL_CHOICES = {
   "9router":  ["kr/claude-sonnet-4.5"],
   ollama:     ["llama3.2"],
   lmstudio:   ["local-model"],
+  turbofieldfare: ["gemma-4-26b-a4b-it"],
 };
-export const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio"]);
+export const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio", "turbofieldfare"]);
 
 // Capability flags per model (or substring match for dynamic model lists).
 // v = vision  r = reasoning  t = text-only (explicit no-vision)

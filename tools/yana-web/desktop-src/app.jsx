@@ -22,7 +22,7 @@ import { Providers } from './pages/system/providers.jsx';
 import { HtmlMaker } from './html-maker.jsx';
 import { Settings } from './pages/system/settings.jsx';
 import { CodemateTool } from './codexmate.jsx';
-import { TerminalPage } from './terminal.jsx';
+import { TerminalPanel } from './terminal.jsx';
 import { VTuber } from './vtuber.jsx';
 
 const TWEAK_DEFAULTS = {
@@ -136,16 +136,28 @@ export function App() {
     "html-maker": () => <HtmlMaker />,
     settings:     () => <Settings t={t} setTweak={setTweak} />,
     codexmate:    () => <CodemateTool />,
-    terminal:     () => <TerminalPage />,
+    // Not routed here — see the <TerminalPanel> comment below.
   }[page] || (() => <Dashboard t={t} onNav={setPage} />);
 
   return (
     <div className="yana-app" style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", gap: "var(--gap)" }}>
       <Sidebar page={page} onNav={setPage} />
-      <main ref={mainRef} className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: page === "chat" ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
-        <div key={t.language} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      {/* chat and terminal both manage their own internal scroll regions
+          (message log; file tree / editor / terminal buffer) instead of
+          letting the whole page grow tall and scroll as one block — with
+          <main> itself set to overflow-y: auto, those inner flex children
+          never get a stable bounded height to scroll within (the classic
+          "overflow: auto ancestor breaks flex: 1 + min-height: 0 children"
+          issue), so their own scrollbars silently stop working. */}
+      <main ref={mainRef} className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: (page === "chat" || page === "terminal") ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
+        <div key={t.language} style={{ flex: 1, minHeight: 0, display: page === "terminal" ? "none" : "flex", flexDirection: "column" }}>
           <PageErrorBoundary pageId={page}><Page /></PageErrorBoundary>
         </div>
+        {/* Always mounted (not swapped in/out with the rest of Page above)
+            so navigating away and back doesn't reload the embedded VS Code
+            — anh's explicit requirement. Toggled purely with CSS display,
+            same technique as the per-page div above. */}
+        <TerminalPanel active={page === "terminal"} />
       </main>
 
       {t.showVTuber !== false && <VTuber />}

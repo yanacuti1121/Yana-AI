@@ -270,6 +270,33 @@ const PROVIDERS = {
       : null,
   },
 
+  // TurboFieldfare — on-device Gemma 4 26B-A4B, same shape as ollama/lmstudio
+  // (OpenAI-compatible local server, keyless, loopback). Confirmed against
+  // Sources/TurboFieldfareServer/Core/OpenAIModels.swift +HTTPServer.swift:
+  // it decodes stream/stream_options.include_usage and emits standard
+  // choices[].delta.content chunks + usage.{prompt,completion}_tokens —
+  // identical wire shape to ollama/lmstudio, no provider-specific branching
+  // needed here.
+  turbofieldfare: {
+    protocol:     'http',
+    hostname:     '127.0.0.1',
+    port:         8091,
+    path:         '/v1/chat/completions',
+    vision:       false,
+    keyless:      true,
+    local:        true,
+    defaultModel: 'gemma-4-26b-a4b-it',
+    headers: _key => ({ 'content-type': 'application/json' }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
+  },
+
   gemini: {
     hostname:     'generativelanguage.googleapis.com',
     vision:       true,
@@ -613,7 +640,11 @@ const SEC_HEADERS = {
     "img-src 'self' data: blob:; " +
     // open-meteo: keyless weather for the dashboard — fetched from the
     // browser so the server's own egress surface stays 'self'-only
-    "connect-src 'self' https://api.open-meteo.com",
+    "connect-src 'self' https://api.open-meteo.com; " +
+    // code-server (real VS Code, coder/code-server) embedded in the
+    // Terminal page — loopback-only, own separate local server, same
+    // pattern as the Ollama/TurboFieldfare local-provider integrations.
+    "frame-src 'self' http://127.0.0.1:8092",
 };
 
 function applySecurityHeaders(req, res) {
@@ -786,9 +817,10 @@ function handleApiStatus(req, res) {
 // ── GET /api/local-status — probe on-device AI providers (Ollama, 9router, LM Studio) ──
 function handleApiLocalStatus(req, res) {
   const LOCAL_PROBES = [
-    { id: 'ollama',   protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
-    { id: '9router',  protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
-    { id: 'lmstudio', protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
+    { id: 'ollama',         protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
+    { id: '9router',        protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
+    { id: 'lmstudio',       protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
+    { id: 'turbofieldfare', protocol: 'http', hostname: '127.0.0.1', port: 8091,  path: '/v1/models' },
   ];
 
   let pending = LOCAL_PROBES.length;
@@ -1106,6 +1138,18 @@ async function handleApiModels(req, res) {
       protocol: 'http',
       hostname: '127.0.0.1',
       port:     1234,
+      path:     '/v1/models',
+      keyless:  true,
+      headers:  _k => ({}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    turbofieldfare: {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     8091,
       path:     '/v1/models',
       keyless:  true,
       headers:  _k => ({}),
