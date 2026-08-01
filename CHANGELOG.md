@@ -8,6 +8,38 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.3.0 — 2026-08-01
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`) bumped to `1.3.0` for one
+reason, not a framework-content change under `core/`: the Yana AI Desktop
+Electron app (`tools/yana-desktop`) shipped a v1.3.0 release (flat
+Claude-style redesign, chat feature parity — see the app's own GitHub
+Release notes), and the desktop app's Settings screen reads its displayed
+version from `MANIFEST.json` via `/api/status` — a separate code path
+from the Electron shell's own `app.getVersion()`, which already correctly
+reported `1.3.0`. Before this bump the two disagreed (Settings showed
+`1.1.0`), which is what got reported and fixed.
+
+This intentionally skips `1.2.0` — no product-axis content shipped under
+that number, so there is nothing to backfill a changelog entry for.
+
+Per rule-54 review (security-auditor + architecture-auditor, both
+clean of Safety-severity findings): the desktop/Electron shell version
+is not one of `VERSIONING.md`'s three documented axes, so this bump
+borrows a number from an undocumented fourth axis rather than
+representing organic product-axis work — flagged here rather than
+silently treated as a normal product release. Two real follow-ups this
+surfaced, not done as part of this fix: (1) `VERSIONING.md` could
+document the desktop shell as its own explicit axis instead of the
+product axis absorbing its number by convention; (2) `/api/status`
+could read the version electron already has correct (`app.getVersion()`
+via IPC) instead of `MANIFEST.json`, so this specific staleness can't
+recur on the next desktop release without someone remembering a 4-file
+manual sync.
+
+---
+
 ## v1.1.0 — 2026-07-30
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
