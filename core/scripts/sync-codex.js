@@ -79,6 +79,12 @@ function renderAgent(sourcePath) {
   ].join('\n');
 }
 
+function agentName(sourcePath) {
+  const source = fs.readFileSync(sourcePath, 'utf8');
+  const { metadata } = readFrontmatter(source);
+  return metadata.name || path.basename(sourcePath, '.md');
+}
+
 function renderCommandSkill(sourcePath) {
   const source = fs.readFileSync(sourcePath, 'utf8');
   const { metadata, body } = readFrontmatter(source);
@@ -113,6 +119,44 @@ function listDirectoriesWithFile(root, filename) {
     .sort();
 }
 
+function listFilesRecursively(root) {
+  if (!fs.existsSync(root)) return [];
+
+  const files = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const entryPath = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listFilesRecursively(entryPath));
+    } else if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+  return files.sort();
+}
+
+function canonicalAgentFiles(sourceRoot) {
+  return listFilesRecursively(path.join(sourceRoot, 'core', 'agents'))
+    .filter((filePath) => {
+      const basename = path.basename(filePath);
+      return basename.endsWith('.md') && basename !== 'README.md' && !/^[A-Z]/.test(basename);
+    });
+}
+
+function expectedAgents(sourceRoot) {
+  const expected = new Map();
+  for (const sourcePath of canonicalAgentFiles(sourceRoot)) {
+    const slug = agentName(sourcePath).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+    if (!slug) throw new Error(`Codex agent name cannot be converted to a filename: ${sourcePath}`);
+
+    const filename = `${slug}.toml`;
+    if (expected.has(filename)) {
+      throw new Error(`Codex agent filename collision: ${expected.get(filename).sourcePath} and ${sourcePath}`);
+    }
+    expected.set(filename, { sourcePath, rendered: renderAgent(sourcePath) });
+  }
+  return expected;
+}
+
 function copyTree(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
   let copied = 0;
@@ -133,6 +177,16 @@ function copyTree(source, destination) {
   return copied;
 }
 
+function copyFileIfChanged(source, destination) {
+  const current = fs.existsSync(destination) ? fs.readFileSync(destination) : null;
+  const next = fs.readFileSync(source);
+  if (current && current.equals(next)) return 0;
+
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(source, destination);
+  return 1;
+}
+
 function listRelativeFiles(root, prefix = '') {
   if (!fs.existsSync(root)) return [];
   const files = [];
@@ -149,6 +203,9 @@ function listRelativeFiles(root, prefix = '') {
 }
 
 function staleTreeFiles(source, destination) {
+  // Intentional limitation: this checker compares expected source files only;
+  // orphaned agent, skill, or command output left after source deletion is not
+  // detected in this PR.
   return listRelativeFiles(source).filter((relativePath) => {
     const sourcePath = path.join(source, relativePath);
     const destinationPath = path.join(destination, relativePath);
@@ -158,15 +215,12 @@ function staleTreeFiles(source, destination) {
 }
 
 function syncAgents(sourceRoot, targetRoot) {
-  const sourceDir = path.join(sourceRoot, 'core', 'agents');
   const targetDir = path.join(targetRoot, '.codex', 'agents');
   fs.mkdirSync(targetDir, { recursive: true });
 
   let written = 0;
-  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
-    const destination = path.join(targetDir, `${path.basename(entry.name, '.md')}.toml`);
-    const rendered = renderAgent(path.join(sourceDir, entry.name));
+  for (const [filename, { rendered }] of expectedAgents(sourceRoot)) {
+    const destination = path.join(targetDir, filename);
     if (!fs.existsSync(destination) || fs.readFileSync(destination, 'utf8') !== rendered) {
       fs.writeFileSync(destination, rendered);
       written += 1;
@@ -196,9 +250,24 @@ function syncCommands(sourceRoot, targetRoot) {
 }
 
 function checkCodex(sourceRoot, targetRoot) {
-  const sourceAgents = fs.readdirSync(path.join(sourceRoot, 'core', 'agents'))
-    .filter((name) => name.endsWith('.md'))
-    .map((name) => path.basename(name, '.md'))
+  if (!fs.existsSync(targetRoot)) {
+    console.error(`Codex target missing: ${targetRoot}. Run sync-codex.js --target <directory> first.`);
+    return false;
+  }
+
+  const generatedRoots = ['.codex/agents', '.agents/skills', '.codex/hooks'];
+  const missingRoots = generatedRoots.filter((relativePath) => !fs.existsSync(path.join(targetRoot, relativePath)));
+  if (missingRoots.length) {
+    console.error(
+      `Codex generated output missing: ${missingRoots.join(', ')}. `
+      + `Run sync-codex.js --target ${targetRoot} first.`,
+    );
+    return false;
+  }
+
+  const expectedAgentFiles = expectedAgents(sourceRoot);
+  const sourceAgents = [...expectedAgentFiles.keys()]
+    .map((filename) => path.basename(filename, '.toml'))
     .sort();
   const targetAgents = fs.existsSync(path.join(targetRoot, '.codex', 'agents'))
     ? fs.readdirSync(path.join(targetRoot, '.codex', 'agents'))
@@ -215,9 +284,9 @@ function checkCodex(sourceRoot, targetRoot) {
   const missingAgents = sourceAgents.filter((name) => !targetAgents.includes(name));
   const missingSkills = sourceSkills.filter((name) => !targetSkills.includes(name));
   const staleAgents = sourceAgents.filter((name) => {
-    const sourcePath = path.join(sourceRoot, 'core', 'agents', `${name}.md`);
+    const { rendered } = expectedAgentFiles.get(`${name}.toml`);
     const targetPath = path.join(targetRoot, '.codex', 'agents', `${name}.toml`);
-    return fs.existsSync(targetPath) && fs.readFileSync(targetPath, 'utf8') !== renderAgent(sourcePath);
+    return fs.existsSync(targetPath) && fs.readFileSync(targetPath, 'utf8') !== rendered;
   });
   const staleSkillFiles = staleTreeFiles(
     path.join(sourceRoot, 'core', 'skills'),
@@ -236,17 +305,26 @@ function checkCodex(sourceRoot, targetRoot) {
   const requiredFiles = ['AGENTS.md', '.codex/config.toml', '.codex/hooks.json'];
   requiredFiles.push('.codex/hooks/guard-destructive.sh');
   const missingFiles = requiredFiles.filter((name) => !fs.existsSync(path.join(targetRoot, name)));
+  const staleFiles = [
+    ['.codex/config.toml', path.join(sourceRoot, '.codex', 'config.toml')],
+    ['.codex/hooks.json', path.join(sourceRoot, '.codex', 'hooks.json')],
+  ].filter(([relativePath, sourcePath]) => {
+    const targetPath = path.join(targetRoot, relativePath);
+    return fs.existsSync(targetPath) && !fs.readFileSync(targetPath).equals(fs.readFileSync(sourcePath));
+  }).map(([relativePath]) => relativePath);
 
   if (
     missingAgents.length
     || missingSkills.length
     || missingFiles.length
+    || staleFiles.length
     || staleAgents.length
     || staleSkillFiles.length
     || staleHookFiles.length
     || staleCommands.length
   ) {
     if (missingFiles.length) console.error(`Missing Codex files: ${missingFiles.join(', ')}`);
+    if (staleFiles.length) console.error(`Stale Codex files: ${staleFiles.join(', ')}`);
     if (missingAgents.length) console.error(`Missing Codex agents: ${missingAgents.join(', ')}`);
     if (missingSkills.length) console.error(`Missing Codex skills: ${missingSkills.join(', ')}`);
     if (staleAgents.length) console.error(`Stale Codex agents: ${staleAgents.join(', ')}`);
@@ -273,8 +351,20 @@ function syncCodex(sourceRoot, targetRoot) {
     path.join(sourceRoot, 'core', 'hooks'),
     path.join(targetRoot, '.codex', 'hooks'),
   );
+  const configWritten = copyFileIfChanged(
+    path.join(sourceRoot, '.codex', 'config.toml'),
+    path.join(targetRoot, '.codex', 'config.toml'),
+  );
+  const hookConfigWritten = copyFileIfChanged(
+    path.join(sourceRoot, '.codex', 'hooks.json'),
+    path.join(targetRoot, '.codex', 'hooks.json'),
+  );
+  const guidancePath = path.join(targetRoot, 'AGENTS.md');
+  const guidanceWritten = fs.existsSync(guidancePath)
+    ? 0
+    : copyFileIfChanged(path.join(sourceRoot, 'adapters', 'codex.md'), guidancePath);
   console.log(
-    `Codex sync: ${agentsWritten} agent files, ${commandsWritten} command adapters, ${skillsCopied} skill files, ${hooksCopied} hook files updated`,
+    `Codex sync: ${agentsWritten} agent files, ${commandsWritten} command adapters, ${skillsCopied} skill files, ${hooksCopied} hook files, ${configWritten + hookConfigWritten + guidanceWritten} config files updated`,
   );
 }
 
@@ -296,4 +386,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { checkCodex, renderCommandSkill, syncCodex };
+module.exports = { agentName, checkCodex, renderCommandSkill, syncCodex };

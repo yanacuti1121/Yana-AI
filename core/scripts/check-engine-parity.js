@@ -4,7 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { renderCommandSkill } = require('./sync-codex.js');
+const { agentName, renderCommandSkill } = require('./sync-codex.js');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
 const targetIndex = process.argv.indexOf('--target');
@@ -13,10 +13,26 @@ const targetRoot = targetIndex === -1
   : path.resolve(process.argv[targetIndex + 1] || '');
 
 function names(root, extension) {
+  if (!fs.existsSync(root)) return [];
   return fs.readdirSync(root)
     .filter((name) => name.endsWith(extension))
     .map((name) => path.basename(name, extension))
     .sort();
+}
+
+function agentNames(root) {
+  if (!fs.existsSync(root)) return [];
+
+  const result = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const entryPath = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      result.push(...agentNames(entryPath));
+    } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md' && !/^[A-Z]/.test(entry.name)) {
+      result.push(agentName(entryPath));
+    }
+  }
+  return result.sort();
 }
 
 function missing(source, target) {
@@ -24,6 +40,7 @@ function missing(source, target) {
 }
 
 function skillNames(root) {
+  if (!fs.existsSync(root)) return [];
   return fs.readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(root, entry.name, 'SKILL.md')))
     .map((entry) => entry.name)
@@ -31,6 +48,7 @@ function skillNames(root) {
 }
 
 function hookScripts(configPath) {
+  if (!fs.existsSync(configPath)) return [];
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const scripts = new Set();
   for (const groups of Object.values(config.hooks || {})) {
@@ -56,8 +74,8 @@ function main() {
   const manifestPath = path.join(repoRoot, 'core', 'config', 'engine-capabilities.json');
   JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-  const sourceAgents = names(path.join(repoRoot, 'core', 'agents'), '.md');
-  const claudeAgents = names(path.join(targetRoot, '.claude', 'agents'), '.md');
+  const sourceAgents = agentNames(path.join(repoRoot, 'core', 'agents'));
+  const claudeAgents = agentNames(path.join(targetRoot, '.claude', 'agents'));
   const codexAgents = names(path.join(targetRoot, '.codex', 'agents'), '.toml');
   const sourceSkills = skillNames(path.join(repoRoot, 'core', 'skills'));
   const claudeSkills = skillNames(path.join(targetRoot, '.claude', 'skills'));
