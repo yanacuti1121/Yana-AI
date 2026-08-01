@@ -96,7 +96,7 @@ export function DataManagementCard() {
         </div>
         {confirm === "clear-chat" ? (
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={clearChat} style={{ ...btnBase, background: "var(--destructive, #e84040)", color: "#fff", border: "none" }}>
+            <button onClick={clearChat} style={{ ...btnBase, background: "var(--color-destructive)", color: "#fff", border: "none" }}>
               {L("Confirm", "Xác nhận", "확인", "确认")}
             </button>
             <button onClick={() => setConfirm(null)} style={{ ...btnBase, background: "transparent", color: "var(--ink-3)" }}>
@@ -120,7 +120,7 @@ export function DataManagementCard() {
         </div>
         {confirm === "reset" ? (
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={resetAll} style={{ ...btnBase, background: "var(--destructive, #e84040)", color: "#fff", border: "none" }}>
+            <button onClick={resetAll} style={{ ...btnBase, background: "var(--color-destructive)", color: "#fff", border: "none" }}>
               {done === "reset" ? L("Resetting…", "Đang khôi phục…", "재설정 중…", "重置中…") : L("Confirm reset", "Xác nhận", "재설정 확인", "确认重置")}
             </button>
             <button onClick={() => setConfirm(null)} style={{ ...btnBase, background: "transparent", color: "var(--ink-3)" }}>

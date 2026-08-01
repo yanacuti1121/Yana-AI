@@ -4,7 +4,8 @@ import React from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import { L, Icons } from '../../components.jsx';
-import { RouteChip, ConfidentialBadge } from './badges.jsx';
+import { RouteChip } from './badges.jsx';
+import { UserMessage } from './user-message.jsx';
 
 // Parse <think>...</think> blocks out of model output.
 // Returns { display: string, reasoning: string|null }
@@ -61,25 +62,51 @@ export function renderMd(text) {
     return safeHtml(marked.parse(text));
   } catch (_) { return text.replace(/\n/g,"<br>"); }
 }
+// Shared clipboard-copy logic for the whole-message CopyBtn and the
+// per-code-block buttons MarkdownBubble injects — one clipboard call site.
+function copyToClipboard(text, onDone) {
+  navigator.clipboard.writeText(text).then(() => {
+    onDone(true);
+    setTimeout(() => onDone(false), 1800);
+  }).catch(() => {});
+}
+
+// Injects one copy button per <pre> block (skips ones already wired) —
+// imperative DOM, matching the existing hljs.highlightElement walk below,
+// since this content came in via dangerouslySetInnerHTML rather than JSX.
+function attachCodeCopyButtons(container) {
+  container.querySelectorAll("pre:not([data-copy-btn])").forEach((pre) => {
+    pre.setAttribute("data-copy-btn", "1");
+    const code = pre.querySelector("code");
+    if (!code) return;
+    const btn = document.createElement("button");
+    btn.className = "code-copy-btn";
+    btn.type = "button";
+    btn.title = L("Copy", "Sao chép", "복사", "复制");
+    btn.textContent = "⧉";
+    btn.onclick = () => {
+      copyToClipboard(code.innerText, (copied) => {
+        btn.textContent = copied ? "✓" : "⧉";
+      });
+    };
+    pre.appendChild(btn);
+  });
+}
+
 export function MarkdownBubble({ text }) {
   const ref = React.useRef(null);
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.querySelectorAll("pre code:not([data-highlighted])").forEach(b => hljs.highlightElement(b));
+    attachCodeCopyButtons(el);
   });
   return <div ref={ref} className="yana-md" dangerouslySetInnerHTML={{ __html: renderMd(text) }} />;
 }
 export function CopyBtn({ text }) {
   const [copied, setCopied] = React.useState(false);
-  function doCopy() {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    }).catch(() => {});
-  }
   return (
-    <button onClick={doCopy} className="copy-btn" title={L("Copy", "Sao chép", "복사", "复制")} style={{
+    <button onClick={() => copyToClipboard(text, setCopied)} className="copy-btn" title={L("Copy", "Sao chép", "복사", "复制")} style={{
       width: 24, height: 24, borderRadius: 6,
       border: "1px solid var(--border)", background: "rgba(var(--surface-rgb,255,255,255),.7)",
       cursor: "pointer", fontSize: 11, display: "grid", placeItems: "center",
@@ -142,7 +169,7 @@ export function SpeakBtn({ text }) {
       width: 24, height: 24, borderRadius: 6,
       border: "1px solid var(--border)", background: "rgba(var(--surface-rgb,255,255,255),.7)",
       cursor: state === "loading" ? "wait" : "pointer", fontSize: 11, display: "grid", placeItems: "center",
-      color: state === "playing" ? "var(--primary)" : state === "error" ? "#d14343" : "var(--ink-3)",
+      color: state === "playing" ? "var(--primary)" : state === "error" ? "var(--color-destructive)" : "var(--ink-3)",
       flexShrink: 0, opacity: state === "loading" ? .6 : 1,
     }}>
       {glyph}
@@ -150,30 +177,10 @@ export function SpeakBtn({ text }) {
   );
 }
 
-export function Message({ msg, isLastYana, onRegenerate }) {
+export function Message({ msg, msgIndex, isLastYana, onRegenerate, onEdit }) {
   const devMode = localStorage.getItem("yana.dev.mode") === "true";
   if (msg.who === "user") {
-    const userName  = localStorage.getItem("yana.about.who") || "You";
-    const avatarUrl = localStorage.getItem("yana.avatar-url");
-    const initial   = (userName[0] || "?").toUpperCase();
-    return (
-      <div className="msg-in msg-wrap" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, justifyContent: "flex-end" }}>
-          <div style={{
-            maxWidth: "72%", padding: "10px 15px", borderRadius: "16px 16px 4px 16px",
-            background: "var(--primary)", color: "rgba(255,255,255,.96)",
-            fontSize: 13.8, lineHeight: 1.55,
-            boxShadow: "0 4px 14px color-mix(in oklab, var(--primary) 25%, transparent)",
-            ...(msg.confidential ? { border: "1px dashed rgba(255,255,255,.55)" } : {}),
-          }}>{msg.text}</div>
-          {avatarUrl
-            ? <img src={avatarUrl} alt={userName} style={{ width: 28, height: 28, borderRadius: 99, objectFit: "cover", flex: "none", boxShadow: "0 2px 8px rgba(0,0,0,.15)" }} />
-            : <div style={{ width: 28, height: 28, borderRadius: 99, flex: "none", background: "var(--primary)", color: "white", fontSize: 12, fontWeight: 700, display: "grid", placeItems: "center", boxShadow: "0 2px 8px color-mix(in oklab, var(--primary) 35%, transparent)" }}>{initial}</div>
-          }
-        </div>
-        {msg.confidential && <ConfidentialBadge tier={msg.tier} />}
-      </div>
-    );
+    return <UserMessage msg={msg} msgIndex={msgIndex} onEdit={onEdit} />;
   }
   if (msg.isHtml) {
     return (

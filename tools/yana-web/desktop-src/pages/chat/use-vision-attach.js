@@ -39,5 +39,12 @@ export function useVisionAttach() {
     setVisionImage(await compressImageForVision(file));
   }
 
-  return { visionImage, setVisionImage, handleVisionAttach };
+  // Second entry point into the same compress+encode path, for clipboard
+  // paste (composer-bar.jsx's onPaste) instead of the file-picker input.
+  async function handleVisionPaste(file) {
+    if (!file) return;
+    setVisionImage(await compressImageForVision(file));
+  }
+
+  return { visionImage, setVisionImage, handleVisionAttach, handleVisionPaste };
 }

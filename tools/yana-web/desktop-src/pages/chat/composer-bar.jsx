@@ -7,7 +7,7 @@ import { KEYLESS_PROVIDERS, providerAvailable, getProviderConfig } from '../../l
 import { modelCaps, capsLabel } from './model-select.js';
 
 export function ComposerBar({
-  fileRef, visionRef, inputRef, handleOcr, handleVisionAttach, ocrBusy,
+  fileRef, visionRef, inputRef, handleOcr, handleVisionAttach, handleVisionPaste, ocrBusy,
   htmlPicker, setHtmlPicker, htmlSkills, setHtmlSkills, setHtmlSearch,
   draft, setDraft, autoResize, send, stopStream, streaming, thinking,
   isVisionModel, activeModel, visionImage, setVisionImage,
@@ -15,6 +15,17 @@ export function ComposerBar({
   providers, providerSel, setProviderSel, activeProvider, pickModel, modelOptions,
   localStatus,
 }) {
+  // Clipboard image paste — only wired for vision-capable models, same
+  // gate the file-picker vision button below already uses. Falls through
+  // to the browser's default text-paste for anything that isn't an image.
+  function onComposerPaste(e) {
+    if (!isVisionModel(activeModel)) return;
+    const item = Array.from(e.clipboardData?.items || []).find((i) => i.type.startsWith("image/"));
+    if (!item) return;
+    e.preventDefault();
+    const file = item.getAsFile();
+    if (file) handleVisionPaste(file);
+  }
   return (
     <div className="glass-strong chat-bar" style={{ borderRadius: "var(--r-lg)", padding: "10px 10px 10px 16px" }}>
       <input type="file" ref={fileRef} accept="image/*,.pdf" style={{ display: "none" }} onChange={handleOcr} />
@@ -45,6 +56,7 @@ export function ComposerBar({
         value={draft}
         onChange={(e) => { setDraft(e.target.value); autoResize(); }}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+        onPaste={onComposerPaste}
         placeholder={L("Ask Yana… (Shift+Enter for new line)", "Hỏi Yana… (Shift+Enter xuống dòng)", "Yana에게 물어보기… (Shift+Enter로 줄바꿈)", "问 Yana…（Shift+Enter 换行）")}
         className="chat-input"
         style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "var(--ink)", lineHeight: 1.5, maxHeight: 180, overflowY: "auto" }}
@@ -155,14 +167,26 @@ export function ComposerBar({
   );
 }
 
-export function ModelCapabilityHint({ activeModel }) {
+// Rough token estimate (1 tok ≈ 4 chars) — same approximation the
+// dev-stats bar in message.jsx already uses per-message; here it's summed
+// across the whole conversation and always visible, not dev-mode-gated.
+function estimateContextTokens(msgs) {
+  let chars = 0;
+  for (const m of msgs || []) {
+    if (typeof m.text === "string") chars += m.text.length;
+  }
+  return Math.round(chars / 4);
+}
+
+export function ModelCapabilityHint({ activeModel, msgs }) {
   const caps = modelCaps(activeModel);
   const hints = [];
   if (caps.v) hints.push({ label: L("Vision ✓", "Nhận ảnh ✓", "비전 ✓", "视觉 ✓"), ok: true });
   else hints.push({ label: L("No vision", "Không nhận ảnh", "비전 미지원", "不支持视觉"), ok: false });
   if (caps.r) hints.push({ label: L("Reasoning", "Suy luận", "추론", "推理"), ok: true });
+  const tokens = estimateContextTokens(msgs);
   return (
-    <div style={{ display: "flex", gap: 6, paddingTop: 5, paddingLeft: 4 }}>
+    <div style={{ display: "flex", gap: 6, paddingTop: 5, paddingLeft: 4, alignItems: "center" }}>
       {hints.map((h) => (
         <span key={h.label} style={{
           fontSize: 10.5, padding: "1px 7px", borderRadius: 99,
@@ -172,6 +196,12 @@ export function ModelCapabilityHint({ activeModel }) {
         }}>{h.label}</span>
       ))}
       <span style={{ fontSize: 10.5, color: "var(--ink-3)" }}>{activeModel}</span>
+      {tokens > 0 && (
+        <span title={L("Estimated context used (1 tok ≈ 4 chars)", "Ước lượng ngữ cảnh đã dùng (1 tok ≈ 4 ký tự)", "예상 컨텍스트 사용량 (1 tok ≈ 4자)", "预估上下文用量（1 tok ≈ 4 字符）")}
+          style={{ fontSize: 10.5, color: "var(--ink-3)", marginLeft: "auto" }}>
+          ~{tokens.toLocaleString()} tok
+        </span>
+      )}
     </div>
   );
 }
