@@ -1,21 +1,20 @@
-name: Publish to PyPI + crates.io + npm
+name: Publish to PyPI + crates.io
 
-# Three independent version axes (see VERSIONING.md): the yana-rt crate
-# (crates.io, Cargo.toml), the Python package (PyPI, pyproject.toml), and
-# the product/CLI package (npm, package.json/MANIFEST.json). Each axis
-# has its own tag prefix so pushing one axis's tag never touches the
-# other's file.
+# Two independent version axes (see VERSIONING.md): the yana-rt crate
+# (crates.io, Cargo.toml) and the Python package (PyPI, pyproject.toml).
+# Each axis has its own tag prefix so pushing one axis's tag never
+# touches the other's file.
 #
-# npm history: originally unscoped `yana-ai`, dropped 2026-07-30 after
-# the publishing account hit a persistent 403; a replacement account +
-# `@vutam-yana-ai/yana-ai` also failed (new-account anti-abuse hold).
-# Reinstated 2026-08-01 as `@yanacuti/yana-ai` — same original account
-# (confirmed healthy again, the 403 coincided with an npm registry
-# incident), new scoped name so it doesn't collide with the unowned but
-# unreclaimable unscoped `yana-ai`. Full history in VERSIONING.md's "Why
-# product is a scoped npm package". `package.json` no longer has
-# `"private": true`; `"publishConfig": { "access": "public" }` instead,
-# since scoped packages default to restricted access otherwise.
+# A third axis, product (npm, package.json/MANIFEST.json), was removed
+# 2026-07-30 — the npm package (tried as unscoped `yana-ai`, then
+# `@vutam-yana-ai/yana-ai`, then `@yanacuti/yana-ai` — three attempts,
+# three 403s, full history in VERSIONING.md) is no longer distributed
+# via npm. `package.json` still exists for local tooling (test/deploy/
+# electron-build scripts, `postinstall`) and is marked `"private": true`
+# so it can never be published by accident. Do not re-add an npm publish
+# job without new evidence from npm support that the account-level block
+# is actually resolved — see VERSIONING.md's 2026-08-01 entry for why a
+# passing local dry-run isn't that evidence.
 #
 # Before 2026-07-05 all three jobs (npm included, at the time) ran
 # unconditionally on any `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set
@@ -42,9 +41,8 @@ name: Publish to PyPI + crates.io + npm
 on:
     push:
       tags:
-        - 'rt-v[0-9]+.[0-9]+.[0-9]+'    # yana-rt crate version -> crates.io only
-        - 'py-v[0-9]+.[0-9]+.[0-9]+'    # Python package version -> PyPI only
-        - 'npm-v[0-9]+.[0-9]+.[0-9]+'   # Product/CLI version -> npm only
+        - 'rt-v[0-9]+.[0-9]+.[0-9]+'   # yana-rt crate version -> crates.io only
+        - 'py-v[0-9]+.[0-9]+.[0-9]+'   # Python package version -> PyPI only
     release:
       types: [published]
     workflow_dispatch:
@@ -53,7 +51,7 @@ on:
           description: 'Which registry to publish'
           required: true
           type: choice
-          options: [pypi, crates, npm]
+          options: [pypi, crates]
           default: 'pypi'
         # Separate version fields per target -- a single shared field
         # (removed 2026-07-30) let someone select target=crates while
@@ -70,10 +68,6 @@ on:
           description: 'crates.io version (only used when target=crates, e.g. 1.3.3)'
           required: false
           default: '1.3.3'
-        npm_version:
-          description: 'npm version (only used when target=npm, e.g. 1.1.1)'
-          required: false
-          default: '1.1.1'
 
 jobs:
   publish-pypi:
@@ -152,37 +146,3 @@ jobs:
         run: cargo publish --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-  publish-npm:
-    name: npm — @yanacuti/yana-ai
-    if: >-
-      (github.event_name == 'push' && startsWith(github.ref_name, 'npm-v')) ||
-      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'npm-v')) ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'npm')
-    runs-on: ubuntu-latest
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/@yanacuti/yana-ai
-    permissions:
-      contents: read
-    env:
-      RAW_VERSION: ${{ inputs.npm_version || github.event.release.tag_name || github.ref_name }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
-
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Set version from tag
-        run: |
-          VERSION="$RAW_VERSION"
-          VERSION="${VERSION#npm-v}"
-          VERSION="${VERSION#v}"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" package.json
-
-      - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
