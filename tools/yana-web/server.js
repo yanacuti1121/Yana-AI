@@ -11,8 +11,10 @@ const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
 const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
+const YANA_RT_BIN = process.env.YANA_RT_BIN || '';
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
+  binaryPath: YANA_RT_BIN,
 });
 // Same wrapper lib/core.js resolves by default for the router — reused here
 // to bridge real per-call token usage into the Rust cost ledger (`yana-rt
@@ -30,7 +32,10 @@ if (process.env.YANA_RESET_AUTH === '1') {
   catch (_) { console.log('[auth] YANA_RESET_AUTH=1 set but no auth.json found'); }
 }
 
-const PORT         = process.env.PORT || 8081;
+const requestedPort = Number.parseInt(process.env.PORT || '8081', 10);
+const PORT         = Number.isInteger(requestedPort) && requestedPort >= 0 && requestedPort <= 65535
+  ? requestedPort
+  : 8081;
 // Loopback by default — Electron and Web Preview both talk to 127.0.0.1.
 // Docker/remote deploys opt in explicitly with HOST=0.0.0.0.
 const HOST         = process.env.HOST || '127.0.0.1';
@@ -1689,12 +1694,14 @@ function emitLines(lines, res, extractText, extractUsage, scrubber) {
 // still gives a real per-model view regardless of the tier bucket used.
 function logRealUsageToLedger({ task, model, inputTokens, outputTokens, durationMs }) {
   if (!(inputTokens > 0) && !(outputTokens > 0)) return;
+  const command = YANA_RT_BIN || process.execPath;
   const args = [
-    YANA_RT_WRAPPER_PATH, 'cost', 'log', task, 'standard', model,
+    ...(YANA_RT_BIN ? [] : [YANA_RT_WRAPPER_PATH]),
+    'cost', 'log', task, 'standard', model,
     String(inputTokens), String(outputTokens),
     '--duration-ms', String(durationMs),
   ];
-  execFile('node', args, { env: process.env, timeout: 5000 }, err => {
+  execFile(command, args, { env: process.env, timeout: 5000 }, err => {
     if (err) console.error('[cost] yana-rt cost log failed (non-fatal):', err.message);
   });
 }
@@ -2373,7 +2380,15 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Yana AI on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT} — ${skillCount()} skills indexed`);
+  const address = server.address();
+  const boundPort = address && typeof address === 'object' ? address.port : PORT;
+  ALLOWED_HOSTS.add(`localhost:${boundPort}`);
+  ALLOWED_HOSTS.add(`127.0.0.1:${boundPort}`);
+  ALLOWED_HOSTS.add(`[::1]:${boundPort}`);
+  if (typeof process.send === 'function') {
+    process.send({ type: 'yana-server-ready', port: boundPort });
+  }
+  console.log(`Yana AI on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${boundPort} — ${skillCount()} skills indexed`);
 });
 
 // Memory hygiene: expire entries older than TTL_DAYS (default 90, override

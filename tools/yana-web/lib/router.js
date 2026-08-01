@@ -8,15 +8,20 @@ const { execFile } = require('child_process');
  *
  * Tries the yana-rt native binary first; falls back to JS classifier.
  */
-function createRouter({ classify, wrapperPath } = {}) {
+function createRouter({ classify, wrapperPath, binaryPath } = {}) {
   const WRAPPER = wrapperPath || null;
+  const BINARY = binaryPath || null;
 
   function spawnRouter(task) {
     return new Promise((resolve, reject) => {
-      if (!WRAPPER) { reject(new Error('no wrapper')); return; }
+      if (!BINARY && !WRAPPER) { reject(new Error('no yana-rt command')); return; }
+      const command = BINARY || process.execPath;
+      const args = BINARY
+        ? ['route', 'classify', task]
+        : [WRAPPER, 'route', 'classify', task];
       execFile(
-        'node',
-        [WRAPPER, 'route', 'classify', task],
+        command,
+        args,
         { env: process.env, timeout: 5000 },
         (err, stdout) => {
           if (err) { reject(err); return; }

@@ -14,24 +14,31 @@
 
 ---
 
-Minimal wrapper: spawns the `yana-web` Node server as a child process, waits for
-`/api/status`, then opens it in a `BrowserWindow`. No duplicated UI code —
+Minimal wrapper: spawns the `yana-web` Node server on an available loopback port,
+waits for `/health`, then opens it in a `BrowserWindow`. No duplicated UI code —
 the web app **is** the desktop app.
 
 ## Run
 
 ```bash
-npm install
+cd ../yana-web && npm ci && npm run build:desktop
+cd ../.. && cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
+cd tools/yana-desktop && npm ci
 npm start
 ```
 
 ## Build
 
 ```bash
+npm run stage:runtime
 npm run build:linux    # AppImage + deb
-npm run build:mac      # dmg
+npm run build:mac      # dmg + zip
 npm run build:win      # nsis installer
 ```
+
+The release workflow builds the web UI and both Rust binaries before packaging.
+Each architecture runs on a matching GitHub-hosted runner, so the Electron shell,
+`yana-rt`, and `pty_bridge` always have the same architecture.
 
 **Known gap — not code-signed.** `package.json`'s `build` config has no
 `mac.hardenedRuntime`/notarization or `win.certificateFile` set, since
@@ -49,9 +56,9 @@ Wired via `electron-updater`, checking GitHub Releases (this repo,
 Ask-before-download and ask-before-install — never silent.
 
 CI (`.github/workflows/desktop.yml`) builds with
-`electron-builder --publish onTag`, which uploads the installers **and**
-the `latest.yml`/`latest-mac.yml`/`latest-linux.yml` feed files
-electron-updater reads to know a newer version exists.
+`electron-builder --publish never`, then explicitly uploads installers, update
+archives, blockmaps, and the `latest.yml`/`latest-mac.yml`/`latest-linux*.yml`
+feed files electron-updater reads to know a newer version exists.
 
 Because of the code-signing gap above: on macOS, electron-updater verifies
 a downloaded update's signature before installing it, so today the app
@@ -63,7 +70,7 @@ trust level any unsigned Windows/Linux binary already carries.
 
 ## Behavior
 
-- 🚀 Spawns `server.js` → polls `/api/status` (30 × 400ms) → opens window
+- 🚀 Spawns `server.js` on a free loopback port → polls `/health` → opens window
 - 🧭 System tray: Open · Open in browser · Quit
 - 🔗 External links open in the OS browser, never embedded
 - 🧹 `before-quit` kills the server child process cleanly

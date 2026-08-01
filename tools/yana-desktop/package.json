@@ -14,6 +14,8 @@
   },
   "scripts": {
     "start": "electron .",
+    "stage:runtime": "node scripts/stage-runtime.js",
+    "test": "node _test_runtime_paths.js",
     "build:linux": "electron-builder --linux",
     "build:mac":   "electron-builder --mac",
     "build:win":   "electron-builder --win"
@@ -35,6 +37,7 @@
     ],
     "appId": "com.yana-ai.yana",
     "productName": "Yana AI",
+    "artifactName": "Yana-AI-${version}-${arch}.${ext}",
     "copyright": "Copyright © 2026 Vũ Văn Tâm",
     "icon": "build/icon.png",
     "directories": {
@@ -43,6 +46,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "runtime-paths.js",
       "package.json",
       "node_modules/**/*"
     ],
@@ -61,12 +65,14 @@
         "to": "Resources/scripts/yana-rt-wrapper.js"
       },
       {
-        "from": "../../target/release/yana-rt",
-        "to": "Resources/bin/yana-rt"
+        "from": "../../target/desktop-runtime/bin",
+        "to": "Resources/bin",
+        "filter": ["**/*"]
       },
       {
-        "from": "../../target/release/pty_bridge",
-        "to": "Resources/pty-bridge/pty_bridge"
+        "from": "../../target/desktop-runtime/pty-bridge",
+        "to": "Resources/pty-bridge",
+        "filter": ["**/*"]
       },
       {
         "from": "../../core",
@@ -81,22 +87,20 @@
     ],
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64", "arm64"] },
-        { "target": "deb",      "arch": ["x64"] }
+        "AppImage",
+        "deb"
       ],
       "category": "Development"
     },
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] },
-        { "target": "zip", "arch": ["x64", "arm64"] }
+        "dmg",
+        "zip"
       ]
     },
     "win": {
-      "target": [
-        { "target": "nsis", "arch": ["x64"] }
-      ]
+      "target": ["nsis"]
     },
     "nsis": {
       "oneClick": false,
