@@ -1,7 +1,8 @@
 # Versioning
 
-Yana AI ships to three independent registries, each with its own version
-number. This is deliberate, not drift — each axis tracks a different
+Yana AI ships to two independent registries, each with its own version
+number, plus a product axis that is tracked but no longer distributed
+anywhere. This is deliberate, not drift — each axis tracks a different
 artifact with its own release cadence, and forcing one global version
 number across all of them would either block a release on an unrelated
 component or require lockstep bumps that don't reflect what actually
@@ -9,56 +10,61 @@ changed.
 
 | Axis | Source of truth | Registry | Bumped when |
 |---|---|---|---|
-| **Product version** | `package.json`, `MANIFEST.json` (kept in sync) | [npmjs.com/package/@yanacuti/yana-ai](https://www.npmjs.com/package/@yanacuti/yana-ai) — scoped, see "Why product is a scoped npm package" below | The overall Yana AI framework changes — rules, hooks, skills, agents, CLI behavior |
+| **Product version** | `package.json`, `MANIFEST.json` (kept in sync) | None — not distributed via npm. See "Why product has no registry" below. | The overall Yana AI framework changes — rules, hooks, skills, agents, CLI behavior |
 | **Runtime crate version** | `Cargo.toml` | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) | `yana-rt`, the Rust runtime, changes — independent of the product version, since the crate can gain/fix functionality without every framework release needing a new crate publish |
 | **Python package version** | `pyproject.toml`, `src/yana_ai/__init__.py` (kept in sync) | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) | The Python CLI/package changes |
 
-## Why product is a scoped npm package
+## Why product has no registry
 
-Through 2026-07, the product axis published to npm as the unscoped
-`yana-ai`. That name is retired for npm purposes: the account publishing
-it (`yanacuti`) hit a persistent 403 on every publish attempt despite
-full read-write access, reported to npm support repeatedly with no
-resolution at the time (see `CHANGELOG.md`'s v1.0.0 entry). A replacement
-account and a different scoped name (`@vutam-yana-ai/yana-ai`) were tried
-next, but that account's very first publish attempt hit a *separate* 403
-— a new-account anti-abuse hold, confirmed via the registry's own request
-log (two clean 404 existence checks, then a flat 403 on the PUT, no
-OTP/EOTP error of the kind npm returns for a real 2FA-related rejection).
-Given both attempts failed, npm distribution was dropped entirely as of
-2026-07-30 and `package.json` was marked `"private": true`.
+Through 2026-07, the product axis published to npm (`npmjs.com/package/
+yana-ai`). That distribution channel is discontinued as of 2026-07-30:
+the original npm account hit a persistent, unresolved account-level
+publish block (403 on every publish attempt despite full read-write
+access, reported to npm support repeatedly with no resolution — see
+`CHANGELOG.md`'s v1.0.0 entry). A replacement account and a scoped
+package name (`@vutam-yana-ai/yana-ai`) were set up, but its very first
+publish attempt hit a separate 403 (a new-account anti-abuse hold,
+confirmed via the registry's own request log: two clean 404 existence
+checks followed by a flat 403 on the actual PUT, with no OTP/EOTP error
+of the kind npm returns for a real 2FA-related rejection). Given the
+identical, unresolved history with npm support on the first account,
+further npm distribution was dropped rather than pursued again.
 
-**2026-08-01: npm distribution reinstated**, after npm/GitHub support
-confirmed (in response to the original ticket) that the 403 coincided
-with two separate npm registry incidents
-(status.npmjs.org/incidents/nwz55wql2vlc, .../r3v0vxwksk7s) rather than a
-permanent block on the account. Re-tested directly against the
-*original* `yanacuti` account (not the replacement one that hit the
-new-account hold) — the publish attempt got past the point the old 403
-used to occur and hit only the `"private": true` guard, confirming the
-account itself is healthy. Rather than reclaim the unscoped `yana-ai`
-name (unpublished 2026-07-30 and now unowned, but npm's anti-abuse
-policy can block re-registering an unpublished name, sometimes
-permanently, even for the original owner — reclaiming it was judged not
-worth that risk), the product now publishes as **`@yanacuti/yana-ai`** —
-same, already-established account, new scoped name, avoiding both
-failure modes above: no unscoped-name reclaim risk, and no new-account
-anti-abuse hold since the account isn't new.
+`package.json` still exists and is still versioned — it backs local
+tooling (`npm test`, `npm run deploy`, the Electron build scripts,
+`postinstall`) — but it is marked `"private": true` so it can never be
+published, by accident or otherwise. The product version number in
+`package.json`/`MANIFEST.json` is bumped for the same reasons as before
+and tracked in `CHANGELOG.md`; it simply has no external registry to
+push to.
 
-`package.json` no longer has `"private": true` and instead sets
-`"publishConfig": { "access": "public" }`, since npm scoped packages
-default to restricted/private access otherwise. The product version
-number in `package.json`/`MANIFEST.json` is bumped for the same reasons
-as before and tracked in `CHANGELOG.md`.
+**2026-08-01: tried a third time, same result — treat this as closed.**
+npm/GitHub support had suggested the original 403 coincided with two npm
+registry incidents rather than a permanent block, so a scoped
+`@yanacuti/yana-ai` package (same, already-established account, avoiding
+the new-account anti-abuse hold that sank the second attempt) was set up
+and tag-pushed to trigger a real CI publish. It reached the actual
+registry PUT this time — the tarball built and uploaded correctly — and
+still got a 403, with the same generic message as every prior attempt.
+The earlier optimism (a local `npm publish` dry run getting past the
+`EPRIVATE` check) turned out to be a false signal: `EPRIVATE` is a
+client-side check that fires *before* any network call, so passing it
+never actually validated the account against the registry — the CI run
+was the first time a real PUT ever reached npm for this account since
+the original block. All npm-facing config from that attempt has been
+reverted. **Do not re-attempt npm distribution again without new,
+concrete evidence from npm support that the account-level block is
+actually lifted** — a local dry-run passing a client-side check is not
+that evidence, as this entry documents.
 
 `.github/workflows/publish.yml` sets each registry's version from the git
 tag at release time (`sed` against the relevant file), so a tagged
 release is internally consistent for whichever axis it actually touches:
 it does not force both files to the same number. Each axis has its own
-tag prefix (`rt-v*` for the crate, `py-v*` for the Python package,
-`npm-v*` for the npm package) and each publish job only runs for its own
-prefix, fixed 2026-07-05 after finding the jobs previously ran
-unconditionally on any `v*`-shaped tag.
+tag prefix (`rt-v*` for the crate, `py-v*` for the Python package) and
+each publish job only runs for its own prefix, fixed 2026-07-05 after
+finding the jobs previously ran unconditionally on any `v*`-shaped tag
+(back when a third, `v*`-prefixed npm job also existed).
 
 **Known residual gap:** `.github/workflows/release.yml` (builds and
 attaches `yana-rt` binaries to a GitHub Release) still triggers on any

@@ -125,15 +125,12 @@ Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
+> **참고 (2026-07-30): npm으로 배포하지 않습니다.** Yana AI는 더 이상 npm 레지스트리에 게시되지 않으며, 앞으로도 계획이 없습니다 — 전체 경위는 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고. 아래 `pip` 또는 `cargo`를 사용하세요.
+
 ```bash
 # Python CLI — yana-ai 명령을 설치합니다
 pip install yana-ai
 yana-ai install                # 현재 프로젝트에 훅을 연결합니다
-
-# npm — 스코프 패키지 (스코프를 쓰는 이유는
-# VERSIONING.md#why-product-has-no-registry 참고)
-npm install -g @yanacuti/yana-ai
-yana-ai install
 
 # Rust 런타임 (범위가 제한된 명령에서 최대 ~12배 빠름 — BENCHMARK.md 참고)
 cargo install yana-rt
@@ -238,7 +235,7 @@ Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | [npmjs.com/package/@yanacuti/yana-ai](https://www.npmjs.com/package/@yanacuti/yana-ai) — 스코프를 쓰는 이유는 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
 | Rust 런타임 (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 패키지 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
