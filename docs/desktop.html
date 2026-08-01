@@ -262,7 +262,13 @@
     .install-steps code {
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       font-size: .75rem; background: var(--bg-card-2); border: 1px solid var(--border);
-      border-radius: 4px; padding: 1px 5px; word-break: break-all;
+      border-radius: 4px; padding: 1px 5px;
+      /* break-word (not anywhere): only breaks mid-word as an absolute
+         last resort, when the word can't fit even alone on a fresh line —
+         anywhere breaks mid-word any time a word starts near a line's
+         end, even with plenty of room on the next line (that's what
+         caused "libfuse2" to split into "lib"/"fus"/"e2"). */
+      overflow-wrap: break-word; white-space: normal;
     }
 
     /* ── CTA ──────────────────────────────────────────────── */
@@ -315,7 +321,7 @@
   <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
     Yana AI Desktop — bring your own API key, or run fully offline with Ollama.
-    No Yana AI server ever sits between you and your data. <strong>2,025 skills</strong>, <strong>101 agents</strong>, multi-layer security.
+    No Yana AI server ever sits between you and your data. <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.
   </p>
 
   <div class="gh-stats" id="ghStats" hidden>
@@ -406,7 +412,7 @@
     </li>
     <li class="feat-card">
       <div class="feat-icon" aria-hidden="true">🧠</div>
-      <h3 class="feat-title" data-i18n="f3_title">2,025 built-in skills</h3>
+      <h3 class="feat-title" data-i18n="f3_title">2025 built-in skills</h3>
       <p class="feat-desc" data-i18n="f3_desc">An extensive skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.</p>
     </li>
     <li class="feat-card">
@@ -523,7 +529,7 @@ const LANGS = {
     nav_home: "Home", nav_cta: "Download",
     badge_new: "Latest release",
     hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
-    hero_sub: "Yana AI Desktop — bring your own API key, or run fully offline with Ollama. No Yana AI server ever sits between you and your data. <strong>2,025 skills</strong>, <strong>101 agents</strong>, multi-layer security.",
+    hero_sub: "Yana AI Desktop — bring your own API key, or run fully offline with Ollama. No Yana AI server ever sits between you and your data. <strong>2025 skills</strong>, <strong>101 agents</strong>, multi-layer security.",
     gh_stars: "stars on GitHub",
     gh_star_one: "star on GitHub",
     gh_forks: "forks",
@@ -542,7 +548,7 @@ const LANGS = {
     f2_title: "Multi-layer security",
     f2_desc: "62 security hooks block prompt injection, command injection, and data leaks at runtime.",
     f2_stat_label: "Active hooks",
-    f3_title: "2,025 built-in skills",
+    f3_title: "2025 built-in skills",
     f3_desc: "An extensive skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
     f4_title: "Works offline",
     f4_desc: "Connect Ollama to run local models (Llama, Qwen, Mistral). No internet required, no API costs.",
@@ -582,7 +588,7 @@ const LANGS = {
     nav_home: "Trang chủ", nav_cta: "Tải về",
     badge_new: "Mới nhất",
     hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
-    hero_sub: "Yana AI Desktop — dùng API key riêng của bạn, hoặc chạy hoàn toàn offline với Ollama. Không có server nào của Yana AI đứng giữa bạn và dữ liệu. <strong>2.025 skills</strong>, <strong>101 agents</strong>, bảo mật đa lớp.",
+    hero_sub: "Yana AI Desktop — dùng API key riêng của bạn, hoặc chạy hoàn toàn offline với Ollama. Không có server nào của Yana AI đứng giữa bạn và dữ liệu. <strong>2025 skills</strong>, <strong>101 agents</strong>, bảo mật đa lớp.",
     gh_stars: "lượt sao trên GitHub",
     gh_star_one: "lượt sao trên GitHub",
     gh_forks: "lượt fork",
@@ -601,7 +607,7 @@ const LANGS = {
     f2_title: "Bảo mật đa lớp",
     f2_desc: "62 hooks bảo mật chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
     f2_stat_label: "Hooks hoạt động",
-    f3_title: "2.025 skills tích hợp",
+    f3_title: "2025 skills tích hợp",
     f3_desc: "Thư viện skill đa dạng — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
     f4_title: "Chạy offline",
     f4_desc: "Kết nối Ollama để dùng model local (Llama, Qwen, Mistral). Không cần internet, không phí API.",
@@ -641,7 +647,7 @@ const LANGS = {
     nav_home: "홈", nav_cta: "다운로드",
     badge_new: "최신 릴리즈",
     hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
-    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용하거나, Ollama로 완전 오프라인 실행. Yana AI 서버가 당신과 데이터 사이에 끼어드는 일은 없습니다. <strong>2,025개 스킬</strong>, <strong>101개 에이전트</strong>, 다층 보안.",
+    hero_sub: "Yana AI Desktop — 본인의 API 키를 사용하거나, Ollama로 완전 오프라인 실행. Yana AI 서버가 당신과 데이터 사이에 끼어드는 일은 없습니다. <strong>2025개 스킬</strong>, <strong>101개 에이전트</strong>, 다층 보안.",
     gh_stars: "GitHub 스타",
     gh_star_one: "GitHub 스타",
     gh_forks: "포크",
@@ -660,7 +666,7 @@ const LANGS = {
     f2_title: "다층 보안",
     f2_desc: "62개 보안 훅으로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
     f2_stat_label: "활성 훅",
-    f3_title: "2,025개 내장 스킬",
+    f3_title: "2025개 내장 스킬",
     f3_desc: "다양한 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
     f4_title: "오프라인 작동",
     f4_desc: "Ollama 연결로 로컬 모델 실행 (Llama, Qwen, Mistral). 인터넷 불필요, API 비용 없음.",
@@ -700,7 +706,7 @@ const LANGS = {
     nav_home: "首页", nav_cta: "下载",
     badge_new: "最新版本",
     hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
-    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，或通过 Ollama 完全离线运行。Yana AI 服务器绝不会介于您和您的数据之间。<strong>2,025 个技能</strong>，<strong>101 个智能体</strong>，多层安全防护。",
+    hero_sub: "Yana AI Desktop — 使用您自己的 API 密钥，或通过 Ollama 完全离线运行。Yana AI 服务器绝不会介于您和您的数据之间。<strong>2025 个技能</strong>，<strong>101 个智能体</strong>，多层安全防护。",
     gh_stars: "GitHub 星标",
     gh_star_one: "GitHub 星标",
     gh_forks: "分支数",
@@ -719,7 +725,7 @@ const LANGS = {
     f2_title: "多层安全防护",
     f2_desc: "62 个安全钩子在运行时阻止提示词注入、命令注入和数据泄露。",
     f2_stat_label: "活跃钩子",
-    f3_title: "2,025 个内置技能",
+    f3_title: "2025 个内置技能",
     f3_desc: "丰富的技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
     f4_title: "离线使用",
     f4_desc: "连接 Ollama 运行本地模型（Llama、Qwen、Mistral）。无需网络，无 API 费用。",
