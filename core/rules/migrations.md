@@ -1,6 +1,6 @@
 ---
 description: Database migration standards — applied to all SQL files and files in any migrations/ directory
-globs: ["**/*.sql", "**/migrations/**", "**/migrate/**"]
+paths: ["**/*.sql", "**/migrations/**", "**/migrate/**"]
 ---
 
 # Database Migration Standards

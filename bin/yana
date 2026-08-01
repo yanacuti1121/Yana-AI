@@ -95,6 +95,12 @@ RED='\033[31m'; CYAN='\033[36m'; BOLD='\033[1m'; RESET='\033[0m'
 PINK='\033[38;5;213m'
 PINK_VER='\033[38;5;75m'; PINK_TXT='\033[38;5;225m'; PINK_PATH='\033[38;5;146m'
 PINK_GRADIENT=('\033[1;38;5;213m' '\033[1;38;5;207m' '\033[1;38;5;171m' '\033[1;38;5;135m' '\033[1;38;5;99m' '\033[1;38;5;75m')
+# Light-pink background fill for the banner box interior (256-color index
+# 224 = #ffd7d7). FG-only codes (PINK_VER/PINK_TXT/PINK_GRADIENT/PINK_PATH
+# above) never touch the background byte, so they layer on top of this
+# correctly as long as BG_PINK is set before them and RESET only happens
+# at the end of each row's own printf -- never mid-row.
+BG_PINK='\033[48;5;224m'
 
 err()  { echo -e "${RED}Error:${RESET} $*" >&2; }
 info() { echo -e "  ${CYAN}→${RESET} $*"; }
@@ -144,7 +150,7 @@ _banner_dashes() {
 # length so ANSI color codes in $2 never throw off the alignment math.
 _banner_row() {
   local plain="$1" colored="$2" indent="${3:-2}"
-  printf "${PINK}  │%*s%b${PINK}%s│${RESET}\n" "$indent" "" "$colored" "$(_banner_pad '' "$((BANNER_W-indent-${#plain}))")"
+  printf "${PINK}${BG_PINK}  │%*s%b${PINK}${BG_PINK}%s│${RESET}\n" "$indent" "" "$colored" "$(_banner_pad '' "$((BANNER_W-indent-${#plain}))")"
 }
 
 # Two-column row: left cell ($LEFT_W wide) + divider + right cell ($RIGHT_W
@@ -157,7 +163,7 @@ _banner_row2() {
   rfit="$(_banner_fit "$rplain" "$((RIGHT_W-1))")"
   [[ "$lfit" != "$lplain" ]] && { lcolored="$lfit"; lplain="$lfit"; }
   [[ "$rfit" != "$rplain" ]] && { rcolored="$rfit"; rplain="$rfit"; }
-  printf "${PINK}  │ %b%s${PINK}│ %b%s${PINK}│${RESET}\n" \
+  printf "${PINK}${BG_PINK}  │ %b${PINK}${BG_PINK}%s│ %b${PINK}${BG_PINK}%s│${RESET}\n" \
     "$lcolored" "$(_banner_pad '' "$((LEFT_W-1-${#lplain}))")" \
     "$rcolored" "$(_banner_pad '' "$((RIGHT_W-1-${#rplain}))")"
 }
@@ -238,8 +244,8 @@ banner() {
 
   _banner_hop
   printf "${PINK}  🐰🥕  🦀${RESET}\n\n"
-  printf "${PINK}  ╭%s╮${RESET}\n" "$dashes"
-  printf "${PINK}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}${BG_PINK}  ╭%s╮${RESET}\n" "$dashes"
+  printf "${PINK}${BG_PINK}  │%s│${RESET}\n" "$blank"
 
   local art_i=0
   while IFS= read -r art_line; do
@@ -250,7 +256,7 @@ banner() {
     art_i=$((art_i + 1))
   done < <(_banner_art)
 
-  printf "${PINK}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}${BG_PINK}  │%s│${RESET}\n" "$blank"
 
   local username
   username="$(git config user.name 2>/dev/null)"
@@ -268,21 +274,21 @@ banner() {
     ""
   )
   local left_colored=(
-    "${PINK_VER}v${YANA_VERSION}${RESET} · ${PINK_TXT}chào ${username}${RESET}"
+    "${PINK_VER}v${YANA_VERSION}${RESET}${PINK}${BG_PINK} · ${PINK_TXT}chào ${username}${RESET}"
     "Personal Agent OS"
     ""
   )
   if [[ -n "$agents" ]]; then
     left_plain+=("${agents} agents · ${skills} skills" "${rules} rules · ${hooks} hooks" "${scripts} scripts · ${checks} checks" "")
     left_colored+=(
-      "${PINK_VER}${agents}${RESET} agents · ${PINK_VER}${skills}${RESET} skills"
-      "${PINK_VER}${rules}${RESET} rules · ${PINK_VER}${hooks}${RESET} hooks"
-      "${PINK_VER}${scripts}${RESET} scripts · ${PINK_VER}${checks}${RESET} checks"
+      "${PINK_VER}${agents}${RESET}${PINK}${BG_PINK} agents · ${PINK_VER}${skills}${RESET}${PINK}${BG_PINK} skills"
+      "${PINK_VER}${rules}${RESET}${PINK}${BG_PINK} rules · ${PINK_VER}${hooks}${RESET}${PINK}${BG_PINK} hooks"
+      "${PINK_VER}${scripts}${RESET}${PINK}${BG_PINK} scripts · ${PINK_VER}${checks}${RESET}${PINK}${BG_PINK} checks"
       ""
     )
   fi
   left_plain+=("${branch} (${status_txt})" "${cwd}")
-  left_colored+=("${PINK_PATH}${branch}${RESET} (${status_txt})" "${PINK_PATH}${cwd}${RESET}")
+  left_colored+=("${PINK_PATH}${branch}${RESET}${PINK}${BG_PINK} (${status_txt})" "${PINK_PATH}${cwd}${RESET}")
 
   # right column: tips + what's new (release note word-wrapped to fit)
   local right_plain=("Tips for getting started" "yana-ai doctor" "yana-ai init" "")
@@ -305,8 +311,8 @@ banner() {
     _banner_row2 "${left_plain[$i]:-}" "${left_colored[$i]:-}" "${right_plain[$i]:-}" "${right_colored[$i]:-}"
   done
 
-  printf "${PINK}  │%s│${RESET}\n" "$blank"
-  printf "${PINK}  ╰%s╯${RESET}\n" "$dashes"
+  printf "${PINK}${BG_PINK}  │%s│${RESET}\n" "$blank"
+  printf "${PINK}${BG_PINK}  ╰%s╯${RESET}\n" "$dashes"
 }
 
 usage() {
@@ -316,6 +322,7 @@ usage() {
 Usage: yana-ai <command> [target] [flags]
 
 Commands:
+  chat   [--provider p]   Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
   doctor [target]         Check environment health before starting an agent session
   doctor dispatch [target] Cross-check src/main.rs Commands enum vs bin/yana dispatch table
   audit  [target]         Scan AI agent setup for risk patterns (default target: .)
@@ -323,6 +330,9 @@ Commands:
   guard  <subcommand>     Control Layer — install runtime enforcement hooks
   task   <subcommand>     Runtime — task lifecycle (create/list/done/status/drop)
   eval   <subcommand>     Runtime — evaluate task evidence (run/schema)
+  memory <subcommand>     L3 shared memory — workspace-level facts across sessions
+  bus    <subcommand>     Agent message bus — emit/read/reply/inbox
+  cost   <subcommand>     Cost dashboard — token usage and spend tracking
   explain <rule-id>       Explain a finding — what it means, why it's risky, how to fix
   map    [target]         Agent Blast Radius Map — what your agent can reach
   init-policy <tool>      Generate safe config template (claude/mcp/github-actions/gitignore/env)
@@ -353,15 +363,23 @@ Commands:
   graph  <subcommand>     Knowledge graph (build/show/search/onboard/diff)
   hunt   [target]         Active security scanner (secrets/code/deps/supply-chain)
   design <subcommand>     Design context (extract/show/init)
+  filescan check <file>   On-demand malware check for a downloaded file (VirusTotal
+                          hash lookup — needs VT_API_KEY, no file content uploaded)
   config <subcommand>     Manage .yana-ai/config.yml (list/get/set/reset/show)
+  plugin <subcommand>     Plugin hooks — register custom guards without forking
+  vault  <subcommand>     Vietnamese-first knowledge vault with translation links
   router suggest          Look up recommended model tier for a task type
-  validate-spec <file>    Validate task spec file against spec schema
+  validate-spec <file>    Validate task spec file against spec schema (legacy Python validator)
+  spec   <subcommand>     Validate task spec files against the yana-ai schema (Rust — see also validate-spec)
   mission <subcommand>    Parallel mission orchestrator — create/task/dispatch/track
   route <subcommand>      Classify a task description — simple/complex/external
   check-context <dir>     Validate context-pack directory structure
   provenance check [target] Verify ported code (core/lib/*_adapted) has vendor source + attribution
   evidence run <cmd...>   Run a command, emit an HMAC-signed receipt as Truth Gate evidence
   evidence verify         Verify a signed receipt from stdin
+  observability <subcommand> Audit activity dashboard — tool-call volume, allow/deny/warn rate
+  skill-quality <subcommand> Per-skill outcome ledger from real task verdicts (human-gated)
+  mcp                     Program J MCP server over stdio (opt-in build, not wired into any client)
   version                 Print version
   banner                  Print the welcome banner only (no command list)
   help                    Show this help
@@ -579,7 +597,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route|evidence)
+  task|eval|bus|memory|plugin|cost|vault|spec|provenance|mission|route|evidence|chat|observability|skill-quality|mcp)
     rt "$COMMAND" "$@"
     ;;
   explain)
@@ -681,6 +699,9 @@ case "$COMMAND" in
     ;;
   design)
     rt design "$@"
+    ;;
+  filescan)
+    rt filescan "$@"
     ;;
   config)
     python3 "$CONFIG_PY" "$@"

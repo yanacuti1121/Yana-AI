@@ -108,6 +108,43 @@ test_case \
   "jq -cn '{tool_name:\"Write\",state:\"HALF_OPEN\",failure_count:5,cooldown_until_epoch:0,backoff_exponent:2,fast_tier_triggered:false}' >> $STATE_DIR/per-tool-circuit.jsonl" \
   '{"tool_name":"Write"}'
 
+# Test 7: concurrent update_state() calls don't corrupt an unrelated tool's
+# entry (2026-07-19 fix — code-auditor review of core/hooks/sandbox-wrap.sh
+# found this state file's old grep-to-fixed-tmp-name-then-mv pattern has no
+# protection against genuinely concurrent callers, reproduced live: 8
+# concurrent invocations against a 2-entry file silently deleted an
+# unrelated tool's OPEN entry. Fixed with fcntl.flock(LOCK_EX) around the
+# whole read-modify-write, same pattern tool-guardrails-detector.sh already
+# uses for the identical shared-JSONL-state-file problem. This test drives
+# real concurrent subprocesses, not a single-call unit check — the bug
+# specifically didn't reproduce under sequential single-invocation testing.
+echo ""
+echo -n "Testing per-tool-circuit-breaker.sh [8 concurrent OPEN->HALF_OPEN transitions for one tool don't corrupt an unrelated tool's entry]... "
+TOTAL_CONCURRENCY_TESTS=$((TESTS_PASSED + TESTS_FAILED + 1))
+_concurrency_tmp=$(mktemp -d)
+_concurrency_state="$_concurrency_tmp/per-tool-circuit.jsonl"
+printf '{"tool_name":"Bash","state":"OPEN","failure_count":5,"last_failure_time":"2026-07-19T00:00:00Z","cooldown_until_epoch":1,"backoff_exponent":1,"fast_tier_triggered":false}\n{"tool_name":"WebFetch","state":"OPEN","failure_count":5,"last_failure_time":"2026-07-19T00:00:00Z","cooldown_until_epoch":2000000000,"backoff_exponent":1,"fast_tier_triggered":false}\n' \
+  > "$_concurrency_state"
+
+for _i in 1 2 3 4 5 6 7 8; do
+  ( echo '{"tool_name":"Bash"}' | YANA_CIRCUIT_STATE_FILE="$_concurrency_state" \
+      bash "$HOOKS_DIR/per-tool-circuit-breaker.sh" >/dev/null 2>&1 ) &
+done
+wait
+
+_line_count=$(wc -l < "$_concurrency_state" | tr -d ' ')
+_webfetch_count=$(grep -c "WebFetch" "$_concurrency_state" || true)
+_bash_count=$(grep -c '"tool_name":"Bash"' "$_concurrency_state" || true)
+rm -rf "$_concurrency_tmp"
+
+if [[ "$_line_count" == "2" && "$_webfetch_count" == "1" && "$_bash_count" == "1" ]]; then
+  echo -e "${GREEN}✓ PASS${NC}"
+  TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+  echo -e "${RED}✗ FAIL${NC} (expected 2 lines / 1 WebFetch / 1 Bash entry, got lines=$_line_count webfetch=$_webfetch_count bash=$_bash_count)"
+  TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
 echo ""
 echo "=== Summary ==="
 echo "Total tests: $((TESTS_PASSED + TESTS_FAILED))"

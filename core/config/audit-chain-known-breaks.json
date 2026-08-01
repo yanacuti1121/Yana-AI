@@ -1,0 +1,60 @@
+{
+  "known_breaks": [
+    {
+      "ts": "2026-07-09T15:06:47Z",
+      "hash": "b8a0e3a32dc7e28f902de7f4e63cc2a92fa039f2d8e8a1f20dfa413fdcc01ca6",
+      "expected_prev": "25e17c2df30573b91bc53ce105bee3c7f5f291bcbf3b250b264da6de8a256ff0",
+      "reason": "Concurrent PostToolUse audit-log.sh invocations (Claude Code firing parallel tool calls in one turn) raced on a read-tail-then-append with no lock — a fork, not tampering. Root cause fixed in .claude/hooks/audit-log.sh (mkdir-based lock) on 2026-07-16, found live by giamthi-watch.sh's first real run. A full scan of audit-chain.log (2026-07-16) found 8 occurrences of this same signature between 2026-07-09 and 2026-07-13, all listed in this file; none after the fix. `expected_prev` is the hash the verifier had genuinely computed by walking the real chain up to this exact point, at the time this exception was reviewed and recorded (2026-07-16) — required in addition to ts+hash so this exception cannot be replayed against a forged prefix (see verify-audit-chain.sh's is_known_break()).",
+      "reviewed": "2026-07-16, code-auditor (fixed after a real replay-bypass this exact allowlist mechanism was found to have, in an earlier version keyed on ts+hash alone)"
+    },
+    {
+      "ts": "2026-07-10T09:56:05Z",
+      "hash": "fe8b18addc4bddc0c46ec451ed2b8dfa6b674820814440cd6e0d91a19acfd757",
+      "expected_prev": "b8edc0416af2e476de2e756c5ee977c5fe6d2982ded5ad2123f07c219300e3bd",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-10T09:56:14Z",
+      "hash": "4a2eae885bb9117fc56118620d7e1860b671ec75177a72289c9c032f69293ce5",
+      "expected_prev": "3a655cfbe5c966fdbe7299db5b83c9d6b9009ebe88e270177eda777f1ab9b8e4",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-11T03:09:09Z",
+      "hash": "7efd5f945281b2285bcc0b4570c3a9bf95f9d13a3221d8b45cb68f2099c5cb39",
+      "expected_prev": "818217750fa69b28e3a58c3862fe040ae898b34a4b140002671741b4a17d4efe",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-11T07:32:42Z",
+      "hash": "af8285daceaa516a340b1926fd1b3dadca079fb307234ae71e810b340f485b2b",
+      "expected_prev": "6b6d78d74654fceac334db64edf5ab7be0af917b3e0b6451b00e81be8b0dbb32",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-11T13:16:36Z",
+      "hash": "16a9157c2c1d52a60e7d69fed037edf6db4ebeac81bb66b7a231ebc5ab2924b6",
+      "expected_prev": "aaa55d4776a598bea2b2cfe40562d24ed36ab27cac9b6dc8b8cc5dfa0c91f486",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-11T23:31:11Z",
+      "hash": "c9803e65a63b22c044d4b3da0b818a04e0f534ad9f658940c595ddc57a8bd3db",
+      "expected_prev": "a4ecb3c4a99597d2400de71db5f93762d2c77c2bbe680aaef24c8e1bcfa8659b",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    },
+    {
+      "ts": "2026-07-13T04:33:32Z",
+      "hash": "1878efe5069cb3173861a84b1774f3b3497ee69b63da87f29e417ba30f9f62d8",
+      "expected_prev": "0a96dbe9a7d112c9a865142174a1f4e9c7110dfa1bd89077ebfb5c3655f98084",
+      "reason": "Same race-condition signature as the 2026-07-09T15:06:47Z entry above — see that entry's reason.",
+      "reviewed": "2026-07-16, code-auditor"
+    }
+  ]
+}

@@ -39,7 +39,7 @@ You are read-only. You never modify files. You only read and synthesize.
 - `.claude/state/audit-chain.log` — hash-chain of every tool call
 - `.claude/state/risk-scores.jsonl` — risk scores per tool call
 - `.claude/state/checkpoints/index.json` — checkpoint timeline
-- `.claude/state/token-budget.json` — token usage
+- `core/memory/L2_session/token-budget.json` — token usage
 - `.claude/state/session-trust.json` — trust score history
 - `memory/L2_session/*.md` — session facts
 

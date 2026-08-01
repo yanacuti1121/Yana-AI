@@ -1,6 +1,7 @@
 #![cfg(feature = "cli")]
 
 mod bus;
+mod chat;
 mod config;
 mod cost;
 mod memory;
@@ -24,6 +25,14 @@ mod init;
 mod provenance;
 mod evidence;
 mod guard;
+mod filescan;
+mod observability;
+mod skill_quality;
+// Program J Phase 9 spike only — gated separately from `cli` because it
+// pulls in tokio (see Cargo.toml's `mcp` feature comment). Not part of any
+// default build.
+#[cfg(feature = "mcp")]
+mod mcp;
 
 use clap::{Parser, Subcommand};
 
@@ -54,6 +63,17 @@ enum Commands {
     Plugin { #[command(subcommand)] action: PluginAction },
     /// Cost dashboard — token usage and spend tracking
     Cost   { #[command(subcommand)] action: CostAction },
+    /// Audit activity dashboard — read-only summary over audit-chain.log
+    /// (tool-call volume, allow/deny/warn rate, busiest tools/hooks). No
+    /// new data collection, no new hook — summarizes what audit-log.sh
+    /// already writes on every tool call.
+    Observability { #[command(subcommand)] action: observability::ObservabilityAction },
+    /// Per-skill outcome ledger — quality from real task verdicts, human-
+    /// gated promotion. No new hook, no LLM call: correlates audit-chain.log
+    /// (which skill/agent a task's session invoked) with `eval judge`'s
+    /// PASS/FAIL verdict. Idea borrowed from HKUDS/OpenSpace, reimplemented
+    /// from scratch — no dependency on that project or its cloud.
+    SkillQuality { #[command(subcommand)] action: skill_quality::SkillQualityAction },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt   { #[command(subcommand)] action: hunt::HuntAction },
     /// CI/CD workflow health check — secrets, unpinned actions, permissions
@@ -143,6 +163,46 @@ enum Commands {
         #[arg(long)]
         include_skills: bool,
     },
+    /// On-demand malware check for a downloaded file (VirusTotal hash lookup —
+    /// no file content uploaded). Not real-time/background protection — see
+    /// src/filescan/mod.rs's module doc for why that's a different product.
+    Filescan { #[command(subcommand)] action: filescan::FilescanAction },
+    /// Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama).
+    /// Supports 2 tools (read_file, run_command) — run_command always
+    /// requires interactive human approval before executing, gated by
+    /// the same check_command() guard core/hooks/guard-destructive.sh
+    /// uses. See src/chat/mod.rs's module doc for the full safety design
+    /// (this is a standalone process invisible to Claude Code's own
+    /// PreToolUse/PostToolUse hooks, so it builds its own gate in-process
+    /// rather than relying on that hook system).
+    Chat {
+        /// anthropic | openai | ollama (default: auto-detect via env, else ollama)
+        #[arg(long)]
+        provider: Option<String>,
+        /// Model name (default: provider's own default)
+        #[arg(long)]
+        model: Option<String>,
+        /// System prompt
+        #[arg(long)]
+        system: Option<String>,
+        /// Resume an existing session by ID — preloads its history as context
+        #[arg(long)]
+        resume: Option<String>,
+        /// Print full upstream error detail instead of a generic message
+        #[arg(long)]
+        verbose: bool,
+        /// Run `run_command` tool calls directly instead of routing them
+        /// through core/scripts/sandbox-exec.sh. Human approval is still
+        /// required either way — this only controls isolation, an
+        /// explicit human opt-out, never a silent fallback.
+        #[arg(long)]
+        no_sandbox: bool,
+    },
+    /// Program J Phase 9 spike — MCP Server exposing `check_command` over
+    /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
+    /// not call this yet). See docs/programs/PROGRAM-J-SKELETON.md.
+    #[cfg(feature = "mcp")]
+    Mcp,
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
@@ -163,8 +223,19 @@ enum TaskAction {
 
 #[derive(Subcommand)]
 enum EvalAction {
-    /// Validate task evidence against schema
+    /// Validate task evidence against schema (regex/keyword heuristic)
     Run { id: String },
+    /// LLM-judge second opinion on task evidence, with a persisted retry
+    /// circuit breaker (5 consecutive FAILs -> escalating cooldown)
+    Judge {
+        id: String,
+        /// anthropic | openai | ollama | kimi (default: ollama, keyless)
+        #[arg(long)]
+        provider: Option<String>,
+        /// Model name (default: provider's own default)
+        #[arg(long)]
+        model: Option<String>,
+    },
     /// Show the evidence schema
     Schema,
 }
@@ -267,6 +338,7 @@ fn main() {
         },
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => task::cmd_eval_run(id),
+            EvalAction::Judge { id, provider, model } => task::cmd_eval_judge(id, provider, model),
             EvalAction::Schema     => task::cmd_eval_schema(),
         },
         Commands::Bus { action } => match action {
@@ -346,6 +418,7 @@ fn main() {
         Commands::Fix    { action } => fix::dispatch(action),
         Commands::Score  { action } => score::dispatch(action),
         Commands::Doctor { action } => doctor::dispatch(action),
+        Commands::Filescan { action } => filescan::dispatch(action),
         Commands::Guard  { action } => guard::dispatch(action),
         Commands::Spec   { action } => spec::dispatch(action),
         Commands::Design { action } => design::dispatch(action),
@@ -355,11 +428,32 @@ fn main() {
         Commands::Init  { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
+        Commands::Chat { provider, model, system, resume, verbose, no_sandbox } =>
+            chat::dispatch(provider, model, system, resume, verbose, !no_sandbox),
         Commands::Cost { action } => match action {
             CostAction::Show                            => cost::cmd_cost_show(),
             CostAction::Log { task, tier, model, input_tokens, output_tokens, duration_ms } =>
                 cost::cmd_cost_log(task, tier, model, input_tokens, output_tokens, duration_ms),
             CostAction::Breakdown { by }               => cost::cmd_cost_breakdown(by),
         },
+        Commands::Observability { action } => match action {
+            observability::ObservabilityAction::Show { last, json } =>
+                observability::cmd_observability_show(last, json),
+            observability::ObservabilityAction::Breakdown { by, last } =>
+                observability::cmd_observability_breakdown(by, last),
+        },
+        Commands::SkillQuality { action } => skill_quality::dispatch(action),
+        // Program J Phase 9 spike — the only command in this match that
+        // needs an async runtime (rmcp requires tokio). Bridged with a
+        // one-off Runtime rather than making `main()` itself async, since
+        // every other command here is deliberately synchronous.
+        #[cfg(feature = "mcp")]
+        Commands::Mcp => {
+            let rt = tokio::runtime::Runtime::new().expect("failed to start tokio runtime for MCP server");
+            if let Err(e) = rt.block_on(mcp::run_stdio()) {
+                eprintln!("yana-rt mcp: {e}");
+                std::process::exit(1);
+            }
+        }
     }
 }

@@ -1,3 +1,8 @@
+---
+description: Color token rules — shared paths with typography-rules.md, anti-ai-slop-design-law.md, and frontend-production-checklist.md so companion frontend rules always load together
+paths: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss", "**/*.html"]
+---
+
 # Yana AI — Color Rules
 # Source: radix-ui/colors (12-scale system) + tailwindlabs/tailwindcss (theme.css)
 

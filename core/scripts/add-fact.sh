@@ -93,7 +93,7 @@ echo "Scope options: Yana AI | product | both"
 read -rp "Scope (required): " input_scope
 abort_if_quit "$input_scope"
 case "$input_scope" in
-  Yana AI|product|both) ;;
+  "Yana AI"|product|both) ;;
   *) echo "Error: Scope must be Yana AI, product, or both." >&2; exit 1 ;;
 esac
 scope="$input_scope"
@@ -123,7 +123,13 @@ abort_if_quit "${raw_tags:-}"
 echo "Body (additional context, multi-line — press Enter twice to finish):"
 body_lines=()
 while IFS= read -rp "" body_line; do
-  [[ -z "$body_line" && ${#body_lines[@]} -gt 0 && -z "${body_lines[-1]}" ]] && break
+  # macOS ships bash 3.2 as /bin/bash, which predates negative array
+  # indices (added in bash 4.3) — arr[-1] hard-errors under `set -u` there.
+  # Compute the last index arithmetically instead so this stays portable.
+  if [[ -z "$body_line" ]] && [[ ${#body_lines[@]} -gt 0 ]]; then
+    last_idx=$(( ${#body_lines[@]} - 1 ))
+    if [[ -z "${body_lines[$last_idx]}" ]]; then break; fi
+  fi
   body_lines+=("$body_line")
 done
 body="$(printf '%s\n' "${body_lines[@]}" | sed '/^$/d')"

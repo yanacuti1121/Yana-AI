@@ -25,8 +25,11 @@ cat > "$TMP_INPUT"
 trap 'rm -f "$TMP_INPUT"' EXIT
 
 python3 - "$TMP_INPUT" "$INTENT_LOG" "$SEQUENCE_FILE" "$TIMESTAMP" << 'PYEOF'
-import json, sys, re
+import json, os, sys, re
 from pathlib import Path
+
+sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+from core.lib.py.file_lock import FileLock, LockTimeoutError
 
 input_file, intent_log, seq_file, ts = sys.argv[1:]
 
@@ -39,20 +42,49 @@ try:
 except Exception:
     sys.exit(0)
 
-# Load tool sequence (last N tool calls)
+# Load tool sequence (last N tool calls).
+#
+# ADR-008: the whole read -> append -> truncate -> write unit is inside one
+# FileLock, not just write_text() — this hook fires on every PreToolUse
+# call, so without the lock, two calls landing close together (a common
+# case: several hooks matching the same event run in parallel) can each
+# read the same pre-update sequence and the second writer silently drops
+# the first's entry.
 seq = []
 seq_path = Path(seq_file)
-if seq_path.exists():
+current_entry = {'tool': tool, 'cmd': cmd[:60], 'path': path[:60], 'ts': ts}
+try:
+    with FileLock(str(seq_path), timeout=5.0):
+        if seq_path.exists():
+            try:
+                seq = json.loads(seq_path.read_text()).get('sequence', [])
+            except Exception:
+                seq = []
+        seq.append(current_entry)
+        if len(seq) > 20:
+            seq = seq[-20:]
+        # Atomic write (temp + os.replace) — write_text() truncates before
+        # writing; this file has no other known unlocked reader today, but
+        # this hook fires on every PreToolUse call, so a future reader
+        # (or a lock-bypass under YANA_INTENT_BYPASS) could still observe
+        # a torn write without this.
+        _tmp_path = seq_path.with_name(seq_path.name + f'.tmp.{os.getpid()}')
+        _tmp_path.write_text(json.dumps({'sequence': seq}, indent=2))
+        _tmp_path.replace(seq_path)
+except LockTimeoutError:
+    # Advisory hook — never let a lock timeout block the pattern-detection
+    # below. Degrade to in-memory-only for this one call: whatever was on
+    # disk before contention is lost for this call's flags, but nothing
+    # crashes and nothing corrupts the persisted file. core/hooks/CLAUDE.md:
+    # "Hooks must fail loudly or warn loudly" — logged to intent_log's own
+    # JSONL stream (same file/format this hook already writes below), not
+    # silently swallowed.
+    seq = [current_entry]
     try:
-        seq = json.loads(seq_path.read_text()).get('sequence', [])
+        with open(intent_log, 'a') as f:
+            f.write(json.dumps({'ts': ts, 'tool': tool, 'warning': 'lock_timeout_on_sequence_file'}) + '\n')
     except Exception:
-        seq = []
-
-# Append current
-seq.append({'tool': tool, 'cmd': cmd[:60], 'path': path[:60], 'ts': ts})
-if len(seq) > 20:
-    seq = seq[-20:]
-seq_path.write_text(json.dumps({'sequence': seq}, indent=2))
+        pass  # logging itself is best-effort — must never crash the hook
 
 # Detect intent patterns from last N calls
 recent_tools = [e['tool'] for e in seq[-5:]]

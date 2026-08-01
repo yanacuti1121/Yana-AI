@@ -1,6 +1,6 @@
 ---
 description: TypeScript coding standards — applied to all .ts and .tsx files
-globs: ["**/*.ts", "**/*.tsx"]
+paths: ["**/*.ts", "**/*.tsx"]
 ---
 
 # TypeScript Standards

@@ -79,3 +79,60 @@ def test_compress_falls_back_to_static_summary_when_summarizer_fails():
 
     result = cc.compress(messages, prompt_tokens=5_000)
     assert any("Summarizer unavailable" in str(m.get("content", "")) for m in result)
+
+
+# ---------------------------------------------------------------------------
+# Failure cooldown (added 2026-07-16, see vendor/hermes-agent/UPSTREAM_DRIFT.md)
+# ---------------------------------------------------------------------------
+
+def _long_transcript():
+    messages = [_msg("system", "sys")]
+    for i in range(20):
+        messages.append(_msg("user", f"message number {i} " * 20))
+    return messages
+
+
+def test_no_cooldown_before_any_failures():
+    cc = ContextCompressor(context_length=10_000)
+    assert cc.get_active_compression_failure_cooldown() is None
+
+
+def test_repeated_fallback_compressions_trigger_cooldown():
+    cfg = CompressorConfig(
+        threshold_percent=0.1, protect_first_n=1, protect_last_n=2,
+        fallback_streak_cooldown_threshold=3, failure_cooldown_seconds=60.0,
+    )
+    cc = ContextCompressor(context_length=2_000, cfg=cfg, summarize_fn=lambda _p: None)
+
+    for _ in range(3):
+        cc.compress(_long_transcript(), prompt_tokens=5_000)
+
+    cooldown = cc.get_active_compression_failure_cooldown()
+    assert cooldown is not None
+    assert cooldown["fallback_streak"] == 3
+    assert 0 < cooldown["remaining_seconds"] <= 60.0
+
+
+def test_should_compress_returns_false_during_active_cooldown():
+    cfg = CompressorConfig(
+        threshold_percent=0.1, protect_first_n=1, protect_last_n=2,
+        fallback_streak_cooldown_threshold=1, failure_cooldown_seconds=60.0,
+    )
+    cc = ContextCompressor(context_length=2_000, cfg=cfg, summarize_fn=lambda _p: None)
+    cc.compress(_long_transcript(), prompt_tokens=5_000)  # 1 fallback -> cooldown active
+
+    assert cc.should_compress(5_000) is False
+
+
+def test_successful_compaction_clears_streak_and_cooldown():
+    cfg = CompressorConfig(
+        threshold_percent=0.1, protect_first_n=1, protect_last_n=2,
+        fallback_streak_cooldown_threshold=1, failure_cooldown_seconds=60.0,
+    )
+    cc = ContextCompressor(context_length=2_000, cfg=cfg, summarize_fn=lambda _p: None)
+    cc.compress(_long_transcript(), prompt_tokens=5_000)  # fallback -> cooldown active
+    assert cc.get_active_compression_failure_cooldown() is not None
+
+    cc.record_completed_compaction(used_fallback=False)
+    assert cc.get_active_compression_failure_cooldown() is None
+    assert cc._fallback_compression_streak == 0

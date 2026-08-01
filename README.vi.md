@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.1 · Tường lửa an toàn cho AI coding agent │ Mẹo bắt đầu                                                                               │
-│ 101 agents · 1.989 skills                       │ yana-ai doctor                                                                            │
-│ 70 rules · 56 hooks · 107 scripts               │ yana-ai init                                                                              │
-│ 166 commands                                    │                                                                                          │
+│ v1.1.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
+│ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
+│ 71 rules · 62 hooks · 113 scripts               │ yana-ai init                                                                              │
+│ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
-│                                                  │ v0.43.1 — sửa publish pipeline, thêm hermes_adapted tool-loop detector                   │
+│                                                  │ v1.1.0 — thêm COMMANDS.md, sửa nền banner, đổi màu viền yana chat                        │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,11 +36,11 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.1-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -50,23 +50,26 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-1,989-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-70-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-56-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
 ---
 
-Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log. Hoạt động với Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider, và nhiều công cụ khác.
+Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log — chặn cứng trên Claude Code và Cursor, tư vấn (advisory) trên Codex và Antigravity.
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # gắn hooks (60 giây)
+pip install yana-ai && yana-ai install   # gắn hooks (60 giây)
 ```
 
-Sau đó thử bảo agent làm bậy, và xem. Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
+> **Lỗi đã biết, đã fix từ 2026-07-25:** bản PyPI cũ của `yana-rt` có thể tự đệ quy và chiếm 100% CPU — xem [CHANGELOG.md](CHANGELOG.md) để biết chi tiết sự cố. `pip install -U yana-ai` (hoặc `cargo install yana-rt`, chưa từng bị ảnh hưởng) là hết.
+
+Sau đó thử bảo agent làm bậy, và xem.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
 
 ```bash
 # Agent thử: git push --force origin main
@@ -96,7 +99,7 @@ Yana AI nằm giữa agent và hệ thống của bạn: mọi lệnh có rủi 
 
 ## Nó chặn gì
 
-Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua 56 agent hooks có Rust runtime (`yana-rt`) hỗ trợ. Bên dưới: 101 agent chuyên biệt, 1.989 skills, và 70 rule được thực thi, kiểm tra 826 cách trong CI.
+Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua agent hooks có Rust runtime (`yana-rt`) hỗ trợ.
 
 ## Cách hoạt động
 
@@ -116,35 +119,20 @@ Thực thi (hoặc chặn + log)
 
 Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết chính xác cái nào đang là hook sống, cái nào chỉ là chính sách agent tự áp dụng theo quy ước, đã xác minh trực tiếp trên code chứ không phải trên tài liệu mô tả nó.
 
-## Con số
-
-| | |
-|---|---|
-| 🧩 Skills | **1.989** định nghĩa workflow skill |
-| 🤖 Agents | **101** agent chuyên biệt |
-| 📜 Safety rules | **70** rule được thực thi |
-| 🪝 Hooks | **56** hook trước/sau khi thực thi |
-| ⚡ Slash commands | **166** |
-| 🔧 Scripts | **107** |
-| 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
-| ✅ Rule checks trong CI | **826** |
-
 ---
 
 ## Cài đặt nhanh
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
+
+> **Lưu ý (2026-07-30): không phân phối qua npm.** Yana AI không còn (và không có kế hoạch) publish lên npm registry nữa — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) để biết toàn bộ lịch sử. Dùng `pip` hoặc `cargo` bên dưới.
 
 ```bash
-# Claude Code plugin — npx yana-ai-install gắn hooks
-# (bắt buộc: npm v12+ không còn tự chạy postinstall scripts mặc định)
-npm install yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — cài lệnh yana-ai
 pip install yana-ai
+yana-ai install                # gắn hooks vào dự án hiện tại
 
-# Rust runtime (nhanh hơn 1256 lần)
+# Rust runtime (nhanh hơn ~2–12 lần với lệnh giới hạn phạm vi — xem BENCHMARK.md)
 cargo install yana-rt
 ```
 
@@ -155,7 +143,7 @@ yana-ai doctor .
 
 ### Yêu cầu
 
-- Node.js 18+ (cho package npm)
+- Python 3.11+ (cho package pip) hoặc Rust/Cargo (cho `cargo install yana-rt`)
 - Git
 - Bất kỳ AI coding tool nào: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider, v.v.
 
@@ -176,12 +164,10 @@ yana-ai doctor                  # xác nhận
 Yana AI thích ứng với bất kỳ công cụ nào bạn dùng:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # kiểm tra cả 12 adapter
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + hook beforeShellExecution thật
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 ```
 
 ---
@@ -217,12 +203,13 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-23 subcommand. Không phụ thuộc Python.
+27 subcommand. Không phụ thuộc Python.
 
 ```bash
+yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)
 yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro supply chain
 yana-ai graph .                       # knowledge graph — dependency file, resolve import
-yana-ai vault search Q                # tìm trong 1.989 skills theo từ khóa
+yana-ai vault search Q                # tìm trong 2.025 skills theo từ khóa
 yana-ai hunt .                        # săn pattern bảo mật (OWASP, injection, SSRF)
 yana-ai fix .                         # tự động fix vi phạm rule
 yana-ai doctor .                      # kiểm tra sức khỏe hệ thống toàn diện
@@ -232,7 +219,28 @@ yana-ai route classify "fix auth bug" # phân loại task → simple/complex/ext
 yana-ai mission create "add-auth"     # tạo mission agent song song
 ```
 
-**Benchmark:** `yana-ai audit` trên repo 10k file: **nhanh hơn 1256 lần** so với bản Python tương đương.
+**Benchmark** (đo ngày 2026-07-23, phương pháp đầy đủ trong `BENCHMARK.md`):
+các lệnh giới hạn phạm vi như `doctor`/`ci` nhanh hơn Python khoảng ~2–12 lần
+(chủ yếu do thời gian khởi động); `scan` toàn repo hội tụ về ~1.1 lần ở quy mô 19k file
+(chủ yếu do khối lượng công việc, không còn bị chi phối bởi khởi động ở quy mô đó). Con số `1256 lần`
+mà dòng này từng tuyên bố đã từng bị phát hiện là chưa được xác minh một lần
+(2026-05-31, commit `fb6a0cd7`) và bị đưa trở lại qua một lần khôi phục README
+không liên quan (2026-07-07) — không thể tái hiện bằng bất kỳ phép đo nào trong
+`BENCHMARK.md`, cả trước lẫn giờ.
+
+---
+
+## Versioning
+
+Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version riêng — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập).
+
+| Trục | Version | Registry |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
 
 ---
 
@@ -240,12 +248,12 @@ yana-ai mission create "add-auth"     # tạo mission agent song song
 
 ```
 core/
-├── hooks/          # 56 hook PreToolUse / PostToolUse / Stop
-├── rules/          # 70 rule được thực thi (security, correctness, UI, git)
+├── hooks/          # 62 hook PreToolUse / PostToolUse / Stop
+├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 định nghĩa agent chuyên biệt
-├── skills/         # 1.989 file SKILL.md
+├── skills/         # 2.016 file SKILL.md
 ├── config/
 │   ├── core-lock.json    # manifest SHA-256 — pin 240 file core
 │   └── skills-lock.json  # hash nội dung skill
@@ -293,6 +301,48 @@ Tìm thấy lỗ hổng chưa liệt kê ở đây? [Mở issue](https://github.
 
 ---
 
+## Cắt giảm chi phí token của chính bạn
+
+Yana AI thực thi an toàn cho những gì agent làm — nó không giảm số token
+agent đốt khi đọc output lệnh. Nếu đó mới là vấn đề thật của bạn, dùng kèm
+[`rtk`](https://github.com/rtk-ai/rtk), một công cụ Apache-2.0 riêng biệt
+được viết cho đúng việc đó (lọc/nén output bash trước khi agent đọc, giảm
+tới 90% trên các lệnh thông dụng). Không nhúng code, không phải dependency
+— xem [docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+để cài đặt + nối vào Claude Code/Cursor/Codex/Antigravity.
+
+---
+
+## Tích hợp MCP — Buzz
+
+`yana-rt mcp` lộ ra `check_command` (đúng kiểm tra lệnh phá hoại mà
+`core/hooks/guard-destructive.sh` đang thực thi cho Claude Code) như một
+MCP tool qua stdio — opt-in, gated sau Cargo feature `mcp`, không nằm
+trong binary mặc định.
+
+Đối tượng dùng thật đầu tiên là [Buzz](https://github.com/block/buzz),
+một workspace nhóm tự host nơi AI agent là thành viên chính thức với key
+riêng. `buzz-acp` của Buzz sinh ra bất kỳ agent nào nói ACP (goose,
+codex, claude-code, hoặc `buzz-agent`) và có thể gắn thêm 1 MCP server
+qua `BUZZ_ACP_MCP_COMMAND` — trỏ vào Yana AI thì mọi agent Buzz điều
+phối đều có cùng kiểm tra lệnh, không chỉ riêng Claude Code.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+Cần wrapper vì `buzz-acp` gọi `BUZZ_ACP_MCP_COMMAND` không kèm tham số
+nào, mà `yana-rt` cần subcommand `mcp` — xem
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+để biết cách setup đầy đủ (sinh keypair, đăng ký với relay) và bản ghi
+JSON-RPC qua stdio đã verify thật. Lưu ý: đây chỉ làm cho công cụ kiểm
+tra *có sẵn* cho agent được sinh ra — agent đó có thực sự gọi nó trước
+khi chạy lệnh hay không phụ thuộc vào chính sách dùng tool của agent đó,
+không có gì bắt buộc.
+
+---
+
 ## Yana AI (sản phẩm web)
 
 **[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -334,10 +384,10 @@ Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm v�
 Một người. Không team. Không tài trợ.
 
 - Kiến trúc hook, safety gate, Python CLI
-- Rust runtime (`yana-rt`), 101 agent, 1.989 skill, hỗ trợ đa harness
-- 12 harness adapter (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
+- 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
 
-1.989 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
+2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
 
 ---
 
@@ -386,7 +436,7 @@ yana-ai route classify "deploy to production"
 
 Năm route:
 - **simple** → Yana xử lý trực tiếp (chỉ đọc, không cần agent)
-- **skill** → so khớp với index 1.989 skill, dispatch đúng agent skill
+- **skill** → so khớp với index 2.016 skill, dispatch đúng agent skill
 - **learn** → route tới `hoc-tap`, trợ lý học kiểu Socratic (kích hoạt khi gặp "học", "giải thích", "tại sao" — cả tiếng Anh và tiếng Việt)
 - **daily** → route tới `daily-assistant`, tóm tắt / lên kế hoạch / soạn thảo (kích hoạt khi gặp "tóm tắt", "viết email", "lên kế hoạch" — cả tiếng Anh và tiếng Việt)
 - **complex** → dispatch agent chuyên biệt với brief đã giới hạn phạm vi
@@ -463,7 +513,19 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 `status` hiện 6 trạng thái: `working` (còn sống, log vừa cập nhật), `blocked` (còn sống nhưng log không đổi quá `YANA_AGENT_STALE_SECONDS` giây, mặc định 30, có thể đang kẹt), `done` (thoát với mã 0), `failed` (thoát với mã khác 0), `unknown` (process đã mất nhưng chưa từng ghi mã thoát riêng, ví dụ sau khi bị SIGKILL), `killed` (đã dừng bằng `kill`).
 
-Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết ví dụ output và chi tiết hơn.
+Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết ví dụ output và chi tiết hơn, hoặc **[COMMANDS.md](COMMANDS.md)** để xem toàn bộ lệnh `yana-ai` ở một chỗ.
+
+---
+
+## Liên kết dự án
+
+| | |
+|---|---|
+| Toàn bộ lệnh CLI | [COMMANDS.md](COMMANDS.md) |
+| Đóng góp | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Quy tắc ứng xử | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Chính sách bảo mật | [SECURITY.md](SECURITY.md) |
+| Giấy phép | [Apache 2.0](LICENSE) |
 
 ---
 

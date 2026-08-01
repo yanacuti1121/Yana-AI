@@ -20,19 +20,17 @@ yana-ai route classify "fix auth bug" # classify task → simple/complex/externa
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 
-**Benchmark:** `yana-ai audit` on a 10k-file repo: **1256x faster** than the Python equivalent.
+**Benchmark:** bounded commands ~2-12x faster than Python; full-repo scan converges to ~1.1x at 19k files — see `BENCHMARK.md` for full methodology.
 
 ## Multi-harness support
 
 Yana AI adapts to whichever tool you use:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # check all 12 adapters
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # check all 4 adapters
 ```
 
 ## Yana task router

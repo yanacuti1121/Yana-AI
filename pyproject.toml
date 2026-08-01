@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yana-ai"
-version = "0.42.3"
+version = "0.42.4"
 description = "Audits your AI coding agent setup before it can damage your repo. Scan first. Guard later."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -48,10 +48,28 @@ yana-rt = "yana_ai.rt:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/yana_ai"]
 
+# bin/yana + its supporting core/ dirs live outside src/yana_ai/ in the
+# repo. force-include copies them INTO the installed package directory
+# (site-packages/yana_ai/bin, .../core, etc.) so cli.py's subprocess call
+# to "bin/yana" (relative to its own package dir) actually finds a real
+# file after a normal `pip install`, not just in an editable/dev checkout.
+[tool.hatch.build.targets.wheel.force-include]
+"bin" = "yana_ai/bin"
+"core" = "yana_ai/core"
+".claude-plugin" = "yana_ai/.claude-plugin"
+"gates" = "yana_ai/gates"
+"scanner" = "yana_ai/scanner"
+"policy" = "yana_ai/policy"
+
 [tool.hatch.build.targets.sdist]
 include = [
   "src/",
+  "bin/",
+  "core/",
+  ".claude-plugin/",
+  "gates/",
   "scanner/",
+  "policy/",
   "README.md",
   "CHANGELOG.md",
   "LICENSE",

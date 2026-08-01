@@ -13,7 +13,15 @@ TARGET="${1:-web}"
 
 if ! command -v wasm-pack &>/dev/null; then
   echo "[yana-rt/wasm] wasm-pack not found — installing..."
-  curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+  # SECURITY FIX (2026-07-12, dogfooding CI setup —
+  # docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 3.5 #31): download
+  # first, then execute as a separate step, per this repo's own
+  # 44-supply-chain-vetting.md / anti-evasion-law.md — never pipe a remote
+  # script straight into a shell, even for a well-known installer.
+  WASM_PACK_INSTALLER="$(mktemp)"
+  trap 'rm -f "$WASM_PACK_INSTALLER"' EXIT
+  curl -sSf -o "$WASM_PACK_INSTALLER" https://rustwasm.github.io/wasm-pack/installer/init.sh
+  sh "$WASM_PACK_INSTALLER"
 fi
 
 echo "[yana-rt/wasm] building for target: $TARGET"

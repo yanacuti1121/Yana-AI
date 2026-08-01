@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Switch active AI engine adapter
-# Usage: bash core/scripts/switch-engine.sh <claude|codex|cursor|copilot|aider>
+# Usage: bash core/scripts/switch-engine.sh <claude|cursor|codex|antigravity|status>
 set -euo pipefail
 
 # Parse arguments: ENGINE is the first non-flag arg; --dry-run sets DRY_RUN=1
@@ -19,19 +19,8 @@ usage() {
   echo ""
   echo "Engines:"
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
-  echo "  codex    — synchronizes .codex agents/hooks + .agents skills"
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
-  echo "  copilot  — activates .github/copilot-instructions.md"
-  echo "  aider    — prints aider CLI command with system prompt"
-  echo "  gemini   — generates GEMINI.md from adapters/gemini-code.md"
-  echo "  qwen      — prints Aider/OpenRouter command template (advisory mode)"
-  echo "  deepseek   — prints Aider/DeepSeek command template (advisory mode)"
-  echo "  openrouter — prints generic Aider/OpenRouter template (advisory mode)"
-  echo "  opencode   — activates OPENCODE.md (native harness file)"
-  echo "  zed        — activates .zed/settings.json with custom_system_prompt"
-  echo "  continue   — generates .continue/config.json fragment (advisory mode)"
-  echo "  windsurf   — generates .windsurf/rules/yana-ai.md (Cascade workspace rule)"
-  echo "  kiro       — generates .kiro/steering/yana-ai.md (always-included steering)"
+  echo "  codex    — synchronizes Codex agents, skills, commands, and hooks"
   echo "  antigravity — generates .agent/rules/yana-ai.md (workspace rule, ≤12K chars)"
   echo "  status     — show which adapters are currently active"
   echo ""
@@ -76,32 +65,6 @@ case "$ENGINE" in
     echo "Run: bash core/tests/hooks/run-hook-tests.sh to verify"
     ;;
 
-  codex)
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo -e "${CYAN}[dry-run] Would synchronize core/agents → .codex/agents${NC}"
-      echo -e "${CYAN}[dry-run] Would synchronize core/skills → .agents/skills${NC}"
-      echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
-      echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
-    else
-      node core/scripts/sync-codex.js --target .
-      node core/scripts/sync-codex.js --check --target .
-
-      LOGGER="core/scripts/secure-logger.sh"
-      if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=hard-runtime generated_file=.codex/config.toml operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_end "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
-      fi
-    fi
-
-    echo ""
-    echo -e "${GREEN}Codex project support active.${NC}"
-    echo "  Guidance: AGENTS.md"
-    echo "  Agents:   .codex/agents/*.toml"
-    echo "  Skills:   .agents/skills/*/SKILL.md"
-    echo "  Commands: \$yana-command-<name> (generated from core/commands)"
-    echo "  Hooks:    .codex/hooks.json (review/trust with /hooks)"
-    ;;
-
   cursor)
     if [[ -f ".cursorrules" ]]; then
       echo -e "${GREEN}✓ .cursorrules present${NC} ($(wc -l < .cursorrules) lines)"
@@ -114,6 +77,17 @@ case "$ENGINE" in
     fi
 
     # ── Hard enforcement: inject safe-run proxy rule into Cursor ──────────────
+    # _MDC_WRITTEN / _HOOK_FILE_WIRED / _HOOKS_JSON_WIRED track what ACTUALLY
+    # happened in this run (not what was attempted) — the closing summary and
+    # the audit log below both read these instead of assuming success, per a
+    # code-auditor finding (54-bft-consensus-law.md review) that the old
+    # unconditional "✓ REAL enforcement active" banner printed even when the
+    # hook source was missing or jq was unavailable, directly under its own
+    # correct ✗ error for the same failure.
+    _MDC_WRITTEN=0
+    _HOOK_FILE_WIRED=0
+    _HOOKS_JSON_WIRED=0
+
     MDC=".cursor/rules/yana-ai-hard-enforcement.mdc"
     if [[ "$DRY_RUN" -eq 1 ]]; then
       [[ -d ".cursor/rules" ]] || echo -e "${CYAN}[dry-run] Would create .cursor/rules/${NC}"
@@ -161,409 +135,188 @@ bash core/scripts/safe-run.sh --engine cursor git push --force
 
 Yana AI's L0–L5 gate stack screens every command for destructive patterns, LD_PRELOAD hijacks,
 pipe-to-shell exploits, and elevated-risk operations before execution.
-Cursor does not have a native hook layer — safe-run.sh is the enforcement proxy.
+
+Cursor DOES have a native hook layer as of `.cursor/hooks.json` +
+`.cursor/hooks/before-shell-execution.js`: every shell command you run is now
+technically screened (not just prompt-advised) by `core/hooks/guard-destructive.sh`
+before Cursor executes it — rm -rf, force-push, reset --hard, clean -f, direct push
+to main/master, destructive SQL, and npm/yarn/pnpm publish are hard-blocked, no
+matter what you write in your command.
+
+That technical block covers a NARROWER pattern set than safe-run.sh's prefix screen —
+LD_PRELOAD/DYLD hijacks, pipe-to-shell (curl|bash), chmod 777, dd/mkfs/fdisk are NOT
+checked by the native hook. For those, the safe-run.sh prefix below remains the only
+coverage that exists today:
+
+```
+bash core/scripts/safe-run.sh --engine cursor <your command here>
+```
 
 ## Violations
 
-Any command executed without the safe-run proxy is a TIER-2 security violation.
-Log: /tmp/yana-ai-audit.log
+Any command in the categories above executed without the safe-run proxy is a TIER-2
+security violation. Log: /tmp/yana-ai-audit.log
+
+Any command in guard-destructive.sh's category (rm -rf, force-push, etc.) submitted as a
+native shell command is now blocked before it runs via Cursor's beforeShellExecution hook.
+Cursor's MCP tool calls go through a separate event this hook does not cover — an MCP tool
+that runs an equivalent destructive action is not screened by it, so the safe-run.sh prefix
+above still matters for MCP-originated commands too.
 CURSOREOF
     echo -e "${GREEN}✓ Hard enforcement rule written${NC}: $MDC"
+    _MDC_WRITTEN=1
+    fi  # end dry-run guard
 
-    # Log via secure-logger.sh if available
+    # ── Real hard enforcement: Cursor beforeShellExecution hook ────────────────
+    # Thin translator only — core/hooks/guard-destructive.sh stays the single
+    # source of truth for destructive-command detection (see
+    # core/adapters/cursor/before-shell-execution.js's own header and
+    # core/rules/54-bft-consensus-law.md). This wires the real technical block
+    # Cursor's native hook API now supports, on top of the .mdc prompt guidance
+    # written above (which still covers the broader pattern set the hook
+    # doesn't check — see the corrected "Why" section in the .mdc itself).
+    HOOK_SRC="core/adapters/cursor/before-shell-execution.js"
+    HOOK_DEST=".cursor/hooks/before-shell-execution.js"
+    HOOKS_JSON=".cursor/hooks.json"
+
+    _JQ_AVAILABLE=0
+    command -v jq >/dev/null 2>&1 && _JQ_AVAILABLE=1
+
+    if [[ ! -f "$HOOK_SRC" ]]; then
+      echo -e "${RED}✗ $HOOK_SRC missing — cannot wire real Cursor enforcement.${NC}"
+    elif [[ "$DRY_RUN" -eq 1 ]]; then
+      [[ -d ".cursor/hooks" ]] || echo -e "${CYAN}[dry-run] Would create .cursor/hooks/${NC}"
+      [[ -f "$HOOK_DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $HOOK_DEST before overwrite${NC}"
+      echo -e "${CYAN}[dry-run] Would copy $HOOK_SRC → $HOOK_DEST (chmod +x)${NC}"
+      if [[ "$_JQ_AVAILABLE" -eq 1 ]]; then
+        [[ -f "$HOOKS_JSON" ]] \
+          && echo -e "${CYAN}[dry-run] Would merge beforeShellExecution entry into existing $HOOKS_JSON${NC}" \
+          || echo -e "${CYAN}[dry-run] Would create $HOOKS_JSON${NC}"
+      else
+        echo -e "${RED}[dry-run] jq not found — $HOOKS_JSON would NOT be written; hook would not actually be wired.${NC}"
+      fi
+    else
+      mkdir -p ".cursor/hooks"
+      if [[ -f "$HOOK_DEST" ]]; then
+        BACKUP="${HOOK_DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$HOOK_DEST" "$BACKUP"
+        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+      fi
+      cp "$HOOK_SRC" "$HOOK_DEST"
+      chmod +x "$HOOK_DEST"
+      echo -e "${GREEN}✓ Real enforcement hook written${NC}: $HOOK_DEST"
+      _HOOK_FILE_WIRED=1
+
+      # Merge (not overwrite) — hooks.json is general-purpose Cursor config a
+      # user could have hand-edited for unrelated hooks (e.g. their own
+      # afterFileEdit formatter), unlike the .mdc above, which Yana AI fully
+      # owns.
+      if [[ "$_JQ_AVAILABLE" -ne 1 ]]; then
+        echo -e "${RED}✗ jq not found — cannot safely merge $HOOKS_JSON.${NC}"
+        echo "  Manually add this entry under .hooks.beforeShellExecution:"
+        echo '  {"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        echo -e "${YELLOW}  Until then, the hook file is on disk but Cursor has nothing telling it to run it.${NC}"
+      else
+        NEW_ENTRY='{"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        if [[ -f "$HOOKS_JSON" ]]; then
+          BACKUP="${HOOKS_JSON}.bak.$(date +%Y%m%d_%H%M%S)"
+          cp "$HOOKS_JSON" "$BACKUP"
+          echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+          MERGED=$(jq --argjson entry "$NEW_ENTRY" '
+            .version //= 1
+            | .hooks //= {}
+            | .hooks.beforeShellExecution //= []
+            | .hooks.beforeShellExecution
+                |= (map(select(.command != $entry.command)) + [$entry])
+          ' "$HOOKS_JSON")
+          printf '%s\n' "$MERGED" > "$HOOKS_JSON"
+        else
+          jq -n --argjson entry "$NEW_ENTRY" \
+            '{version: 1, hooks: {beforeShellExecution: [$entry]}}' > "$HOOKS_JSON"
+        fi
+        echo -e "${GREEN}✓ Wired${NC}: $HOOKS_JSON → beforeShellExecution"
+        _HOOKS_JSON_WIRED=1
+      fi
+    fi  # end real-hook dry-run guard
+
+    # One unified, unconditional log entry reflecting what ACTUALLY happened
+    # (mdc_written / hook_wired / hooks_json_wired each independently 0 or 1)
+    # — fires every invocation, dry-run or not, so a partial/failed run still
+    # leaves an audit trail instead of silently producing no log line at all.
     LOGGER="core/scripts/secure-logger.sh"
     if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=cursor from_engine=$_FROM_ENGINE mode=hard-runtime generated_file=.cursor/rules/yana-ai-hard-enforcement.mdc operator=$_OPERATOR" 2>/dev/null || true
+      bash "$LOGGER" engine_switch "to_engine=cursor from_engine=$_FROM_ENGINE mode=hard-runtime dry_run=$DRY_RUN mdc_written=$_MDC_WRITTEN hook_wired=$_HOOK_FILE_WIRED hooks_json_wired=$_HOOKS_JSON_WIRED operator=$_OPERATOR" 2>/dev/null || true
     fi
-    fi  # end dry-run guard
 
     echo ""
     echo -e "${CYAN}Cursor picks up these files automatically.${NC}"
-    echo "Hard enforcement active — all bash calls must route through safe-run.sh --engine cursor"
-    ;;
-
-  copilot)
-    INSTRUCTIONS=".github/copilot-instructions.md"
-    if [[ -f "$INSTRUCTIONS" ]]; then
-      echo -e "${GREEN}✓ $INSTRUCTIONS present${NC} ($(wc -l < "$INSTRUCTIONS") lines)"
+    if [[ "$_HOOK_FILE_WIRED" -eq 1 && "$_HOOKS_JSON_WIRED" -eq 1 ]]; then
+      echo -e "${GREEN}✓ REAL enforcement active${NC} (via Cursor's beforeShellExecution hook):"
+      echo "  Every native shell command Cursor runs is now technically screened by"
+      echo "  core/hooks/guard-destructive.sh — rm -rf, git push --force,"
+      echo "  git reset --hard, git clean -f, direct push to main/master,"
+      echo "  destructive SQL (DROP/TRUNCATE), npm/yarn/pnpm publish."
+      echo -e "${YELLOW}  Not covered by this hook${NC}:"
+      echo "  (1) safe-run.sh's broader, prompt-only set — LD_PRELOAD/DYLD hijacks,"
+      echo "      pipe-to-shell (curl|bash), chmod 777, dd/mkfs/fdisk."
+      echo "  (2) Cursor's MCP tool calls — a separate event this hook doesn't cover."
+      echo "  For both, the .mdc's safe-run.sh prefix guidance is still the only"
+      echo "  coverage that exists today."
+    elif [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] No files were written — re-run without --dry-run to activate real enforcement.${NC}"
     else
-      echo -e "${RED}✗ $INSTRUCTIONS missing${NC}"
-      exit 1
+      echo -e "${YELLOW}⚠ Real enforcement is NOT fully active${NC} — see the ✗ message(s) above for what's missing."
+      echo "  Until resolved, Cursor has no technical block on destructive commands;"
+      echo "  only the .mdc's prompt-based guidance (safe-run.sh prefix) applies."
     fi
-    echo ""
-    echo -e "${CYAN}GitHub Copilot reads this file automatically in VS Code.${NC}"
-    echo "Ensure: GitHub Copilot extension ≥ 1.100 for instructions support."
     ;;
 
-  aider)
-    ADAPTER="adapters/aider.md"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
-      exit 1
-    fi
-    echo -e "${GREEN}✓ Aider adapter ready${NC}"
-
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo -e "${CYAN}[dry-run] Would write .aider.conf.yml (Yana AI Aider configuration)${NC}"
-    else
-    # Log via secure-logger.sh if available
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=aider from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/aider.md generated_file=.aider.conf.yml operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=aider from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-
-    # ── Hard enforcement: write .aider.conf.yml with safe-run proxy ───────────
-    cat > ".aider.conf.yml" << 'AIDEREOF'
-# Yana AI Hard Enforcement — Aider configuration
-# Generated by: bash core/scripts/switch-engine.sh aider
-
-# Route all bash commands through Yana AI safe-run proxy
-shell: bash core/scripts/safe-run.sh --engine aider
-
-# Governance system prompt
-system_prompt: adapters/aider.md
-
-# Safety defaults
-auto_commits: false
-dirty_commits: false
-auto_lint: false
-
-# Prevent aider from running arbitrary install commands
-read_only:
-  - core/gates/
-  - core/hooks/
-  - core/memory/L1/
-AIDEREOF
-    echo -e "${GREEN}✓ Hard enforcement config written${NC}: .aider.conf.yml"
-    fi  # end dry-run guard
-
-    echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  Aider enforces safe-run.sh via the shell: config directive — stronger than prompt-only."
-    echo "  However, Aider has no native Yana AI hook layer (OS-level intercept is Claude Code only)."
-    echo "  Individual Aider tool calls are NOT recorded in the Yana AI Merkle audit chain."
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Run aider with Yana AI governance:${NC}"
-    echo ""
-    echo "  aider --model claude-sonnet-4-6"
-    echo ""
-    echo "All bash commands routed through safe-run.sh --engine aider (Hard mode)"
-    ;;
-
-  gemini)
-    ADAPTER="adapters/gemini-code.md"
-    DEST="GEMINI.md"
+  codex)
+    ADAPTER="adapters/codex.md"
+    DEST="AGENTS.md"
     if [[ ! -f "$ADAPTER" ]]; then
       echo -e "${RED}✗ $ADAPTER missing${NC}"
       exit 1
     fi
 
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      [[ -f "$DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $DEST before overwrite${NC}"
+    if [[ -f "$DEST" ]]; then
+      echo -e "${YELLOW}↩ $DEST already exists${NC} ($(wc -l < "$DEST") lines) — not overwriting."
+    elif [[ "$DRY_RUN" -eq 1 ]]; then
       echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
     else
-      # Backup existing GEMINI.md before overwrite
-      if [[ -f "$DEST" ]]; then
-        BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$DEST" "$BACKUP"
-        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-      fi
-
-      # Generate GEMINI.md from adapter source
       cp "$ADAPTER" "$DEST"
       echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
-
-      # Log via secure-logger.sh if available
-      LOGGER="core/scripts/secure-logger.sh"
-      if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=gemini from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/gemini-code.md generated_file=GEMINI.md operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=gemini from_engine=$_FROM_ENGINE" 2>/dev/null || true
-      fi
-    fi
-
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary:${NC}"
-    echo "  L0  Audit    — every tool call logged (do not skip)"
-    echo "  L1  Scope    — no secret/env access without declaration"
-    echo "  L2  Commit   — warn on cross-scope commits"
-    echo "  L3  Truth    — no unsupported completion claims"
-    echo "  L4  Deploy   — requires YANA_DEPLOY_APPROVED=1"
-    echo "  L5  Destruct — hard block rm -rf / DROP TABLE / DELETE without WHERE"
-    echo ""
-    echo "GEMINI.md is read automatically by Gemini Code CLI on startup."
-    echo "For shell-level blocking, additionally run:"
-    echo "  bash core/scripts/safe-run.sh --engine gemini -- <command>"
-    ;;
-
-  qwen)
-    ADAPTER="adapters/qwen.md"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
-      exit 1
-    fi
-    echo -e "${GREEN}✓ Qwen adapter ready${NC}: $ADAPTER"
-
-    # Log via secure-logger.sh if available
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=qwen from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/qwen.md operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=qwen from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-
-    echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  Qwen runs via OpenRouter — no native hook layer is available."
-    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
-    echo "  For shell-level blocking, manually prefix commands:"
-    echo "    bash core/scripts/safe-run.sh --engine qwen -- <command>"
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
-    echo "  L0  Audit    — advisory only (no native hook; log manually)"
-    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
-    echo "  L2  Commit   — prompt-instructed"
-    echo "  L3  Truth    — prompt-instructed"
-    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
-    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
-    echo ""
-    echo -e "${CYAN}Run Qwen via Aider + OpenRouter (use placeholders — do not paste real keys here):${NC}"
-    echo ""
-    echo "  # Qwen3 235B (flagship):"
-    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
-    echo "    --model openrouter/qwen/qwen3-235b-a22b \\"
-    echo "    --system-prompt adapters/qwen.md"
-    echo ""
-    echo "  # Qwen3 30B (fast):"
-    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
-    echo "    --model openrouter/qwen/qwen3-30b-a3b \\"
-    echo "    --system-prompt adapters/qwen.md"
-    echo ""
-    echo "  # Qwen2.5-Coder 32B:"
-    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
-    echo "    --model openrouter/qwen/qwen2.5-coder-32b-instruct \\"
-    echo "    --system-prompt adapters/qwen.md"
-    echo ""
-    echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
-    ;;
-
-  deepseek)
-    ADAPTER="adapters/deepseek.md"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
-      exit 1
-    fi
-    echo -e "${GREEN}✓ DeepSeek adapter ready${NC}: $ADAPTER"
-
-    # Log via secure-logger.sh if available
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=deepseek from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/deepseek.md operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=deepseek from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-
-    echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  DeepSeek runs via Aider (direct API or OpenRouter) — no native hook layer."
-    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
-    echo "  For shell-level blocking, manually prefix commands:"
-    echo "    bash core/scripts/safe-run.sh --engine deepseek -- <command>"
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
-    echo "  L0  Audit    — advisory only (no native hook; log manually)"
-    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
-    echo "  L2  Commit   — prompt-instructed"
-    echo "  L3  Truth    — prompt-instructed"
-    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
-    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
-    echo ""
-    echo -e "${CYAN}Run DeepSeek via Aider (use placeholders — do not paste real keys here):${NC}"
-    echo ""
-    echo "  # DeepSeek V3 (direct API):"
-    echo "  DEEPSEEK_API_KEY=<your-key> aider \\"
-    echo "    --model deepseek/deepseek-chat \\"
-    echo "    --system-prompt adapters/deepseek.md"
-    echo ""
-    echo "  # DeepSeek R1 — reasoning model (direct API):"
-    echo "  DEEPSEEK_API_KEY=<your-key> aider \\"
-    echo "    --model deepseek/deepseek-reasoner \\"
-    echo "    --system-prompt adapters/deepseek.md"
-    echo ""
-    echo "  # DeepSeek V3 via OpenRouter:"
-    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
-    echo "    --model openrouter/deepseek/deepseek-chat \\"
-    echo "    --system-prompt adapters/deepseek.md"
-    echo ""
-    echo "Set DEEPSEEK_API_KEY or OPENROUTER_API_KEY in your shell — never hardcode it."
-    ;;
-
-  openrouter)
-    ADAPTER="adapters/openrouter.md"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
-      exit 1
-    fi
-    echo -e "${GREEN}✓ OpenRouter adapter ready${NC}: $ADAPTER"
-
-    # Log via secure-logger.sh if available
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=openrouter from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/openrouter.md operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=openrouter from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-
-    echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  OpenRouter has no native Yana AI hook layer."
-    echo "  Tool calls in this session are NOT recorded in the Yana AI Merkle audit chain."
-    echo "  The engine_switch event above is the only audit entry for this session."
-    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
-    echo "  For shell-level blocking, manually prefix commands:"
-    echo "    bash core/scripts/safe-run.sh --engine openrouter -- <command>"
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
-    echo "  L0  Audit    — engine_switch logged; individual tool calls NOT in Merkle chain"
-    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
-    echo "  L2  Commit   — prompt-instructed"
-    echo "  L3  Truth    — prompt-instructed"
-    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
-    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
-    echo ""
-    echo -e "${CYAN}Run any OpenRouter model via Aider (use placeholders — do not paste real keys here):${NC}"
-    echo ""
-    echo "  OPENROUTER_API_KEY=<your-key> aider \\"
-    echo "    --model openrouter/<provider>/<model-slug> \\"
-    echo "    --openai-api-base https://openrouter.ai/api/v1 \\"
-    echo "    --openai-api-key <your-key> \\"
-    echo "    --no-auto-commits \\"
-    echo "    --system-prompt adapters/openrouter.md"
-    echo ""
-    echo -e "${CYAN}Example model slugs:${NC}"
-    echo "  openrouter/qwen/qwen3-235b-a22b"
-    echo "  openrouter/deepseek/deepseek-chat"
-    echo "  openrouter/mistralai/mistral-large"
-    echo "  openrouter/meta-llama/llama-3.1-405b-instruct"
-    echo "  openrouter/<provider>/<model-slug>   ← any OpenRouter-listed model"
-    echo ""
-    echo "Set OPENROUTER_API_KEY in your shell environment — never hardcode it."
-    ;;
-
-  continue)
-    ADAPTER="adapters/continue.md"
-    DEST=".continue/config.json"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
-      exit 1
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo -e "${CYAN}[dry-run] Would create .continue/ directory${NC}"
-      echo -e "${CYAN}[dry-run] Would generate $DEST with systemMessage from $ADAPTER${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/agents → .codex/agents${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/skills → .agents/skills${NC}"
+      echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
     else
-      mkdir -p .continue
+      node core/scripts/sync-codex.js --target .
+      node core/scripts/sync-codex.js --check --target .
 
-      # Extract system prompt body (lines after the last header comment block)
-      SYSTEM_MSG=$(awk '/^You are an AI coding assistant/,0' "$ADAPTER" | \
-        grep -v '^#' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | head -c 8000)
-
-      # Write config.json fragment if not already present
-      if [[ -f "$DEST" ]]; then
-        echo -e "${YELLOW}↩ $DEST already exists — not overwriting${NC}"
-        echo "  Manually add the systemMessage from $ADAPTER"
-      else
-        cat > "$DEST" <<CONTINUEEOF
-{
-  "models": [],
-  "systemMessage": "${SYSTEM_MSG}"
-}
-CONTINUEEOF
-        echo -e "${GREEN}✓ Generated:${NC} $DEST"
-        echo "  Add your model entries to the models array."
-      fi
-
-      # Log via secure-logger.sh if available
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=continue from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/continue.md generated_file=$DEST operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=continue from_engine=$_FROM_ENGINE" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=project-hooks generated_file=.codex/config.toml operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_end "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
       fi
     fi
 
     echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  Continue.dev has no native Yana AI hook layer."
-    echo "  Tool calls in this session are NOT recorded in the Yana AI Merkle audit chain."
-    echo "  Enforcement is prompt-advisory only; safe-run.sh is NOT auto-wired."
-    echo "  For shell-level blocking, manually prefix commands:"
-    echo "    bash core/scripts/safe-run.sh --engine continue -- <command>"
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary (advisory):${NC}"
-    echo "  L0  Audit    — engine_switch logged; individual tool calls NOT in Merkle chain"
-    echo "  L1–L5        — prompt-instructed (no runtime intercept)"
-    echo ""
-    echo -e "${CYAN}Config location:${NC}"
-    echo "  Project scope : .continue/config.json       ← generated above"
-    echo "  Global scope  : ~/.continue/config.json     ← edit manually for cross-project use"
-    echo ""
-    echo "See adapters/continue.md for the full system prompt content."
+    echo -e "${GREEN}Codex project support active.${NC}"
+    echo "  Guidance: AGENTS.md"
+    echo "  Agents:   .codex/agents/*.toml"
+    echo "  Skills:   .agents/skills/*/SKILL.md"
+    echo "  Commands: \$yana-command-<name>"
+    echo "  Hooks:    .codex/hooks.json"
     ;;
 
-  opencode)
-    if [[ -f "OPENCODE.md" ]]; then
-      echo -e "${GREEN}✓ OPENCODE.md present${NC} ($(wc -l < OPENCODE.md) lines)"
-    else
-      echo -e "${RED}✗ OPENCODE.md missing${NC}"
-      echo "  Run: bash core/scripts/switch-engine.sh opencode to generate"
-      exit 1
-    fi
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=opencode from_engine=$_FROM_ENGINE mode=advisory operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=opencode from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-    echo ""
-    echo -e "${YELLOW}Advisory gap active.${NC} OPENCODE.md loaded by OpenCode natively."
-    echo "  Yana AI safety hooks are NOT enforced at the OS level in OpenCode."
-    echo "  Rules are advisory via OPENCODE.md system prompt injection only."
-    echo ""
-    echo "  Key constraints active:"
-    echo "    • No rm -rf, no force push, no eval dynamic code"
-    echo "    • Evidence required before completion claims"
-    echo "    • Surgical changes only"
-    ;;
-
-  zed)
-    if [[ -f ".zed/settings.json" ]]; then
-      echo -e "${GREEN}✓ .zed/settings.json present${NC}"
-    else
-      echo -e "${RED}✗ .zed/settings.json missing${NC}"
-      exit 1
-    fi
-    LOGGER="core/scripts/secure-logger.sh"
-    if [[ -x "$LOGGER" ]]; then
-      bash "$LOGGER" engine_switch "to_engine=zed from_engine=$_FROM_ENGINE mode=advisory operator=$_OPERATOR" 2>/dev/null || true
-      bash "$LOGGER" advisory_gap_start "engine=zed from_engine=$_FROM_ENGINE" 2>/dev/null || true
-    fi
-    echo ""
-    echo -e "${YELLOW}Advisory gap active.${NC} .zed/settings.json loaded by Zed natively."
-    echo "  Yana AI safety hooks are NOT enforced at the OS level in Zed."
-    echo "  Rules are advisory via custom_system_prompt in .zed/settings.json only."
-    echo ""
-    echo "  To update the system prompt: edit .zed/settings.json → custom_system_prompt"
-    ;;
-
-  windsurf|kiro|antigravity)
-    # Markdown-rules engines — same generation pattern, different destination
-    ADAPTER="adapters/$ENGINE.md"
-    case "$ENGINE" in
-      windsurf)    DEST=".windsurf/rules/yana-ai.md"  ; READER="Windsurf Cascade" ;;
-      kiro)        DEST=".kiro/steering/yana-ai.md"   ; READER="Kiro IDE & CLI"   ;;
-      antigravity) DEST=".agent/rules/yana-ai.md"     ; READER="Google Antigravity" ;;
-    esac
+  antigravity)
+    ADAPTER="adapters/antigravity.md"
+    DEST=".agent/rules/yana-ai.md"
+    READER="Google Antigravity"
     if [[ ! -f "$ADAPTER" ]]; then
       echo -e "${RED}✗ $ADAPTER missing${NC}"
       exit 1
@@ -604,7 +357,7 @@ CONTINUEEOF
     echo "=== Yana AI Engine Adapter Status ==="
     echo ""
     [[ -f ".codex/config.toml" && -f ".codex/hooks.json" ]] \
-      && echo -e "  ${GREEN}✓${NC} Codex     .codex/config.toml + hooks.json" \
+      && echo -e "  ${GREEN}✓${NC} Codex     project config + hooks" \
       || echo -e "  ${YELLOW}✗${NC} Codex     project config or hooks missing"
     [[ -d ".codex/agents" ]] \
       && echo -e "  ${GREEN}✓${NC} Codex     .codex/agents/ ($(find .codex/agents -maxdepth 1 -name '*.toml' | wc -l | tr -d ' ') agents)" \
@@ -618,39 +371,9 @@ CONTINUEEOF
     [[ -d ".cursor/rules" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursor/rules/ ($(ls .cursor/rules/*.mdc 2>/dev/null | wc -l) .mdc files)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursor/rules/ missing"
-    [[ -f ".github/copilot-instructions.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Copilot   .github/copilot-instructions.md" \
-      || echo -e "  ${YELLOW}✗${NC} Copilot   .github/copilot-instructions.md missing"
-    [[ -f "adapters/aider.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Aider     adapters/aider.md" \
-      || echo -e "  ${YELLOW}✗${NC} Aider     adapters/aider.md missing"
-    [[ -f "GEMINI.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Gemini    GEMINI.md ($(wc -l < GEMINI.md) lines)" \
-      || echo -e "  ${YELLOW}✗${NC} Gemini    GEMINI.md missing"
-    [[ -f "adapters/qwen.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Qwen      adapters/qwen.md (advisory — no native hook)" \
-      || echo -e "  ${YELLOW}✗${NC} Qwen      adapters/qwen.md missing"
-    [[ -f "adapters/deepseek.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} DeepSeek   adapters/deepseek.md (advisory — no native hook)" \
-      || echo -e "  ${YELLOW}✗${NC} DeepSeek   adapters/deepseek.md missing"
-    [[ -f "adapters/openrouter.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} OpenRouter adapters/openrouter.md (advisory — Merkle gap)" \
-      || echo -e "  ${YELLOW}✗${NC} OpenRouter adapters/openrouter.md missing"
-    [[ -f "adapters/continue.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Continue  adapters/continue.md (advisory — Merkle gap)" \
-      || echo -e "  ${YELLOW}✗${NC} Continue  adapters/continue.md missing"
-    [[ -f "OPENCODE.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} OpenCode  OPENCODE.md ($(wc -l < OPENCODE.md) lines)" \
-      || echo -e "  ${YELLOW}✗${NC} OpenCode  OPENCODE.md missing"
-    [[ -f ".zed/settings.json" ]] \
-      && echo -e "  ${GREEN}✓${NC} Zed       .zed/settings.json" \
-      || echo -e "  ${YELLOW}✗${NC} Zed       .zed/settings.json missing"
-    [[ -f ".windsurf/rules/yana-ai.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Windsurf  .windsurf/rules/yana-ai.md" \
-      || echo -e "  ${YELLOW}✗${NC} Windsurf  .windsurf/rules/yana-ai.md missing"
-    [[ -f ".kiro/steering/yana-ai.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Kiro      .kiro/steering/yana-ai.md" \
-      || echo -e "  ${YELLOW}✗${NC} Kiro      .kiro/steering/yana-ai.md missing"
+    [[ -f ".cursor/hooks.json" ]] \
+      && echo -e "  ${GREEN}✓${NC} Cursor    .cursor/hooks.json (real beforeShellExecution enforcement)" \
+      || echo -e "  ${YELLOW}✗${NC} Cursor    .cursor/hooks.json missing"
     [[ -f ".agent/rules/yana-ai.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Antigrav  .agent/rules/yana-ai.md" \
       || echo -e "  ${YELLOW}✗${NC} Antigrav  .agent/rules/yana-ai.md missing"

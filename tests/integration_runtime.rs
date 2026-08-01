@@ -598,6 +598,87 @@ fn eval_run_unknown_task_errors_gracefully() {
     // Should exit non-zero but not panic
 }
 
+#[test]
+fn eval_judge_unknown_task_errors_gracefully() {
+    let dir = tmpdir();
+    let (_, _, ok) = run(dir.path(), &["eval", "judge", "nonexistent-task-id"]);
+    assert!(!ok, "unknown task id should fail before any provider/network call");
+}
+
+#[test]
+fn eval_judge_no_evidence_errors_gracefully() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["task", "create", "no-evidence-task"]);
+    assert!(ok, "task create should succeed");
+    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
+    let (_, stderr, ok2) = run(dir.path(), &["eval", "judge", id]);
+    assert!(!ok2, "judge without evidence should fail before any network call");
+    assert!(stderr.contains("no evidence"), "error names the real cause: {stderr}");
+}
+
+/// Breaker-open check happens before provider selection/the network call —
+/// verified here by priming persisted state directly (no ollama daemon
+/// needed in CI, and no dependency on a real LLM's verdict wording).
+#[test]
+fn eval_judge_breaker_blocks_when_open_no_network_needed() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["task", "create", "breaker-primed-task"]);
+    assert!(ok);
+    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
+    run(dir.path(), &["task", "done", id, "--evidence", "irrelevant"]);
+
+    // Prime the breaker open by writing a future eval_judge_breaker_until
+    // directly into tasks.json — same file the CLI itself reads/writes,
+    // just skipping straight to "already failed 5 times" instead of
+    // burning 5 real (non-deterministic) LLM calls to get there.
+    let store_path = dir.path().join(".yana-ai").join("tasks.json");
+    let raw = fs::read_to_string(&store_path).expect("read tasks.json");
+    let mut store: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    let tasks = store["tasks"].as_object_mut().unwrap();
+    let (_key, task) = tasks.iter_mut().next().expect("one task present");
+    task["eval_judge_attempts"] = serde_json::json!(5);
+    // Same "%Y-%m-%dT%H:%M:%SZ" format `task.rs`'s own `now()`/`future_ts()`
+    // write — chrono is a real (non-dev) dependency via the default `cli`
+    // feature, so this matches production formatting exactly rather than
+    // approximating it via a shelled-out `date` call.
+    let future_ts = (chrono::Utc::now() + chrono::Duration::seconds(120))
+        .format("%Y-%m-%dT%H:%M:%SZ").to_string();
+    task["eval_judge_breaker_until"] = serde_json::json!(future_ts);
+    fs::write(&store_path, serde_json::to_string_pretty(&store).unwrap()).unwrap();
+
+    let out = Command::new(bin()).args(["eval", "judge", id]).current_dir(dir.path()).output().unwrap();
+    assert_eq!(out.status.code(), Some(2), "breaker-open must exit 2, distinct from a real FAIL's exit 1");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.to_lowercase().contains("breaker"), "names the reason: {stderr}");
+}
+
+/// A `tasks.json` written before `eval_judge_attempts`/`eval_judge_breaker_until`
+/// existed has neither field. `#[serde(default)]` must let it still load.
+#[test]
+fn task_store_without_judge_fields_still_loads() {
+    let dir = tmpdir();
+    let store_dir = dir.path().join(".yana-ai");
+    fs::create_dir_all(&store_dir).unwrap();
+    let old_format = serde_json::json!({
+        "tasks": {
+            "11111111-1111-1111-1111-111111111111": {
+                "id": "11111111-1111-1111-1111-111111111111",
+                "name": "pre-existing task from before the judge feature",
+                "status": "open",
+                "scope": null,
+                "created_at": "2026-01-01T00:00:00Z",
+                "updated_at": "2026-01-01T00:00:00Z",
+                "evidence": null
+            }
+        }
+    });
+    fs::write(store_dir.join("tasks.json"), serde_json::to_string_pretty(&old_format).unwrap()).unwrap();
+
+    let (stdout, _, ok) = run(dir.path(), &["task", "list"]);
+    assert!(ok, "old-format store must still load, not crash");
+    assert!(stdout.contains("pre-existing task"), "old task is visible: {stdout}");
+}
+
 // ── init ──────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -672,4 +753,321 @@ fn score_show_clean_repo() {
     assert!(ok, "score show should succeed on empty repo");
     assert!(stdout.contains("Score") || stdout.contains("score"), "output has score label");
     assert!(stdout.contains("100") || stdout.contains("LOW"), "clean repo should score 100 / LOW risk");
+}
+
+// ── observability ────────────────────────────────────────────────────────────
+// audit-log.sh (a bash PostToolUse hook, not this CLI) is the only real
+// writer of audit-chain.log — these tests seed a synthetic file directly,
+// same as context-compress-stop.sh's tests seed synthetic transcript state.
+
+fn seed_audit_log(dir: &std::path::Path, lines: &[&str]) {
+    let state_dir = dir.join(".claude").join("state");
+    fs::create_dir_all(&state_dir).unwrap();
+    fs::write(state_dir.join("audit-chain.log"), lines.join("\n") + "\n").unwrap();
+}
+
+#[test]
+fn observability_show_no_data_is_graceful() {
+    let dir = tmpdir();
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok, "show with no audit log should not fail");
+    assert!(stdout.contains("No audit data"), "explains why: {stdout}");
+}
+
+#[test]
+fn observability_show_summarizes_real_entries() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+        r#"{"ts":"2026-01-01T00:00:03Z","hook":"audit-log","tool":"Read","agent":"manual","input":"{}","decision":"allow","prev_hash":"d","hash":"e"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
+    assert!(ok);
+    assert!(stdout.contains("last 4 calls"), "counted all 4 seeded lines: {stdout}");
+    assert!(stdout.contains("audit.decision.allow"), "{stdout}");
+    assert!(stdout.contains("audit.tool.Bash"), "{stdout}");
+
+    let (json_out, _, json_ok) = run(dir.path(), &["observability", "show", "--json"]);
+    assert!(json_ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 4);
+    assert_eq!(parsed["by_decision"]["allow"], 3);
+    assert_eq!(parsed["by_decision"]["deny"], 1);
+    assert_eq!(parsed["by_tool"]["Bash"], 3);
+}
+
+#[test]
+fn observability_show_respects_last_n() {
+    let dir = tmpdir();
+    let lines: Vec<String> = (0..10)
+        .map(|i| format!(
+            r#"{{"ts":"2026-01-01T00:00:{i:02}Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{{}}","decision":"allow","prev_hash":"x","hash":"y{i}"}}"#
+        ))
+        .collect();
+    let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+    seed_audit_log(dir.path(), &refs);
+
+    let (json_out, _, ok) = run(dir.path(), &["observability", "show", "--last", "3", "--json"]);
+    assert!(ok);
+    let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
+    assert_eq!(parsed["total"], 3, "must only summarize the last 3, not all 10");
+}
+
+#[test]
+fn observability_breakdown_by_hook() {
+    let dir = tmpdir();
+    seed_audit_log(dir.path(), &[
+        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+        r#"{"ts":"2026-01-01T00:00:01Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"b","hash":"c"}"#,
+        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Write","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+    ]);
+
+    let (stdout, _, ok) = run(dir.path(), &["observability", "breakdown", "hook"]);
+    assert!(ok);
+    assert!(stdout.contains("guard-destructive"), "{stdout}");
+    assert!(stdout.contains("audit-log"), "{stdout}");
+    // guard-destructive appears twice, should sort above audit-log (once)
+    let gd_pos = stdout.find("guard-destructive").unwrap();
+    let al_pos = stdout.find("audit-log").unwrap();
+    assert!(gd_pos < al_pos, "higher count sorts first: {stdout}");
+}
+
+// ── Mission concurrency (ADR-008) ───────────────────────────────────────────
+//
+// docs/adr/ADR-008-shared-locking-infrastructure.md — regression coverage
+// for the real bug this ADR fixes in src/mission/mod.rs: `cmd_dispatch`
+// hands out up to `max_parallel` tasks to genuinely parallel agents, each
+// of which eventually calls `mission done` as a SEPARATE OS process. Before
+// the fix, `save()` was a plain unlocked `fs::write` — two concurrent
+// `mission done` calls on different tasks in the same mission could lose
+// one completion when the second process's full-document overwrite raced
+// the first's. This test reproduces the real failure shape (separate
+// processes, not threads within one process) and would have failed on the
+// pre-fix code.
+
+#[test]
+fn mission_done_survives_concurrent_completions_across_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "concurrency-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const TASK_COUNT: usize = 8;
+    for i in 0..TASK_COUNT {
+        let (_, stderr, ok) = run(dir.path(), &[
+            "mission", "task", &mission_id, &format!("task{i}"),
+            "--produces", &format!("out{i}.txt"),
+        ]);
+        assert!(ok, "adding task{i} should succeed: {stderr}");
+    }
+
+    let evidence_path = dir.path().join("evidence.txt");
+    fs::write(&evidence_path, "fake evidence").unwrap();
+    let evidence_str = evidence_path.to_string_lossy().to_string();
+
+    // Real separate processes, not threads — this is the actual concurrency
+    // shape `cmd_dispatch`'s parallel-agent model produces in practice, and
+    // the shape the pre-fix unlocked `save()` lost updates under.
+    let handles: Vec<_> = (0..TASK_COUNT)
+        .map(|i| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            let evidence_str = evidence_str.clone();
+            std::thread::spawn(move || {
+                let out = Command::new(bin())
+                    .args(["mission", "done", &mission_id, &format!("task{i}"), "--evidence", &evidence_str])
+                    .current_dir(&dir_path)
+                    // Generous wait budget (production default is 10s) —
+                    // this test itself runs alongside ~60 other integration
+                    // tests under `cargo test`'s default --test-threads=4,
+                    // and 8 processes serializing through one lock while the
+                    // whole machine is also busy with unrelated concurrent
+                    // subprocess spawns intermittently exceeded 10s in CI
+                    // (~17% of runs), never in isolation — see
+                    // with_mission_locked's doc comment in src/mission/mod.rs.
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission done");
+                out.status.success()
+            })
+        })
+        .collect();
+
+    let results: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+    assert!(results.iter().all(|ok| *ok), "every concurrent `mission done` call should exit successfully: {results:?}");
+
+    let (report_out, _, ok) = run(dir.path(), &["mission", "report", &mission_id]);
+    assert!(ok, "mission report should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&report_out).expect("valid JSON report");
+    let tasks = parsed["tasks"].as_array().expect("tasks array");
+    assert_eq!(tasks.len(), TASK_COUNT, "no tasks should have vanished");
+
+    let done_count = tasks.iter()
+        .filter(|t| t["status"].as_str().map(|s| s.eq_ignore_ascii_case("done")).unwrap_or(false))
+        .count();
+    assert_eq!(
+        done_count, TASK_COUNT,
+        "all {TASK_COUNT} concurrently-completed tasks must persist as done — got {done_count}. \
+         A lower count means a concurrent `mission done` call's write was silently lost, \
+         which is exactly the race docs/adr/ADR-008-shared-locking-infrastructure.md exists to close. \
+         Full report: {report_out}"
+    );
+}
+
+#[test]
+// Migrated under ADR-008 (2026-07-23 follow-up): `cmd_add_task` used to
+// read-decide-write unlocked (resolve -> duplicate-name check -> push ->
+// save), so two concurrent `mission task` calls with the same name could
+// both pass the duplicate check before either saved. Races real separate
+// processes (the actual shape unlocked callers produced this bug under),
+// not threads, against the SAME task name — exactly one must win.
+fn mission_add_task_rejects_concurrent_duplicate_names_across_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "duplicate-task-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const ATTEMPTS: usize = 8;
+    let handles: Vec<_> = (0..ATTEMPTS)
+        .map(|_| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            std::thread::spawn(move || {
+                Command::new(bin())
+                    .args(["mission", "task", &mission_id, "same-name", "--produces", "out.txt"])
+                    .current_dir(&dir_path)
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission task")
+                    .status
+                    .success()
+            })
+        })
+        .collect();
+
+    let results: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+    let successes = results.iter().filter(|ok| **ok).count();
+    assert_eq!(
+        successes, 1,
+        "exactly one of {ATTEMPTS} concurrent `mission task` calls racing the same task name \
+         should succeed — got {successes}. More than one means the duplicate-name check ran \
+         against a stale pre-lock snapshot (the exact TOCTOU gap ADR-008's follow-up fix closes); \
+         zero means something else broke entirely. results: {results:?}"
+    );
+
+    let (report_out, _, ok) = run(dir.path(), &["mission", "report", &mission_id]);
+    assert!(ok, "mission report should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&report_out).expect("valid JSON report");
+    let tasks = parsed["tasks"].as_array().expect("tasks array");
+    let same_name_count = tasks.iter()
+        .filter(|t| t["name"].as_str() == Some("same-name"))
+        .count();
+    assert_eq!(
+        same_name_count, 1,
+        "mission must persist exactly one task named 'same-name', not {same_name_count}. \
+         Full report: {report_out}"
+    );
+}
+
+#[test]
+// Migrated under ADR-008 (2026-07-23 follow-up): `cmd_dispatch` used to
+// compute readiness/owns-conflicts against a pre-lock `resolve()` snapshot
+// and only lock the final `save()`, so two concurrent `mission dispatch`
+// calls could each independently decide the same task was "ready" and hand
+// it to two different agents. Races real separate processes calling
+// dispatch concurrently against a mission with a fixed, non-conflicting
+// task set; every task must be dispatched to exactly one caller.
+fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes() {
+    let dir = tmpdir();
+
+    let (create_out, _, ok) = run(dir.path(), &["mission", "create", "dispatch-race-test"]);
+    assert!(ok, "mission create should succeed");
+    let mission_id = create_out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("id:"))
+        .map(|s| s.trim().to_string())
+        .expect("mission create output must contain an 'id:' line");
+
+    const TASK_COUNT: usize = 8;
+    for i in 0..TASK_COUNT {
+        // Distinct `owns` per task so none of them are excluded from a wave
+        // by the (unrelated) owns-conflict check — this test is about the
+        // readiness/Running-flip race, not owns-conflict deferral.
+        let (_, stderr, ok) = run(dir.path(), &[
+            "mission", "task", &mission_id, &format!("task{i}"),
+            "--owns", &format!("file{i}.txt"),
+            "--produces", &format!("out{i}.txt"),
+        ]);
+        assert!(ok, "adding task{i} should succeed: {stderr}");
+    }
+
+    // Each concurrent dispatch call asks for up to TASK_COUNT slots — if
+    // unlocked, every one of the 5 concurrent callers could see 0 running
+    // and 8 ready, dispatching all 8 tasks 5 times over.
+    const CALLERS: usize = 5;
+    let handles: Vec<_> = (0..CALLERS)
+        .map(|_| {
+            let dir_path = dir.path().to_path_buf();
+            let mission_id = mission_id.clone();
+            std::thread::spawn(move || {
+                let out = Command::new(bin())
+                    .args(["mission", "dispatch", &mission_id, "--max-parallel", &TASK_COUNT.to_string()])
+                    .current_dir(&dir_path)
+                    .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
+                    .output()
+                    .expect("run yana-rt mission dispatch");
+                (out.status.success(), String::from_utf8_lossy(&out.stdout).to_string())
+            })
+        })
+        .collect();
+
+    let results: Vec<(bool, String)> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+
+    // Collect every task_id that appeared in any successful dispatch's
+    // brief output — a task_id appearing more than once means it was
+    // double-dispatched.
+    let mut dispatched_ids: Vec<String> = Vec::new();
+    for (ok, stdout) in &results {
+        if !ok || stdout.trim().is_empty() {
+            continue; // "no slots"/"none ready" callers print to stderr, empty stdout
+        }
+        let briefs: serde_json::Value = serde_json::from_str(stdout)
+            .unwrap_or_else(|e| panic!("dispatch stdout must be valid JSON when non-empty: {e}\nstdout: {stdout}"));
+        let briefs = briefs.as_array().expect("dispatch output must be a JSON array of briefs");
+        for brief in briefs {
+            let task_id = brief["task_id"].as_str().expect("brief must have task_id").to_string();
+            dispatched_ids.push(task_id);
+        }
+    }
+
+    let mut unique_ids = dispatched_ids.clone();
+    unique_ids.sort();
+    unique_ids.dedup();
+    assert_eq!(
+        dispatched_ids.len(), unique_ids.len(),
+        "every task must be dispatched to exactly one caller, but {} total dispatches collapsed \
+         to {} unique task_ids — a duplicate means the same task was handed to two concurrent \
+         `mission dispatch` callers, exactly the race ADR-008's follow-up fix closes. \
+         all results: {results:?}",
+        dispatched_ids.len(), unique_ids.len()
+    );
+    assert_eq!(
+        unique_ids.len(), TASK_COUNT,
+        "all {TASK_COUNT} tasks should eventually be dispatched across the {CALLERS} concurrent \
+         callers (non-conflicting owns, slots >= TASK_COUNT per caller) — got {}. all results: {results:?}",
+        unique_ids.len()
+    );
 }

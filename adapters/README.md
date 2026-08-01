@@ -5,14 +5,9 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 | Engine | Adapter file | How to apply |
 |---|---|---|
 | **Claude Code** | _(native — no adapter needed)_ | Drop into `.claude/` via release zip |
-| **Codex** | `AGENTS.md` + `.codex/` + `.agents/skills/` | `bash core/scripts/switch-engine.sh codex` (commands become `$yana-command-*` skills) |
-| **Cursor** | `.cursorrules` (root) + `.cursor/rules/*.mdc` | Already at repo root — Cursor picks up automatically |
-| **GitHub Copilot** | `.github/copilot-instructions.md` | Copilot reads this file automatically in VS Code |
-| **Aider** | `adapters/aider.md` | `aider --system-prompt adapters/aider.md` |
-| **Gemini Code** | `adapters/gemini-code.md` | Copy to `GEMINI.md` at project root |
-| **DeepSeek V3/R1** | `adapters/deepseek.md` | `aider --model deepseek/deepseek-chat --system-prompt adapters/deepseek.md` |
-| **Qwen3 / Qwen2.5-Coder** | `adapters/qwen.md` | `aider --model openrouter/qwen/qwen3-235b-a22b --system-prompt adapters/qwen.md` |
-| **Windsurf** | `adapters/aider.md` (compatible format) | Add to Windsurf system prompt settings |
+| **Cursor** | `.cursorrules` (root) + `.cursor/rules/*.mdc` + real `beforeShellExecution` hook | Already at repo root — Cursor picks up automatically |
+| **OpenAI Codex CLI** | `AGENTS.md` + `.codex/` + `.agents/skills/` | `bash core/scripts/switch-engine.sh codex` — synchronizes agents, skills, commands, and hooks |
+| **Google Antigravity** | `adapters/antigravity.md` | `bash core/scripts/switch-engine.sh antigravity` — copies to `.agent/rules/yana-ai.md` |
 
 ---
 
@@ -23,33 +18,33 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 bash core/scripts/switch-engine.sh <engine>
 
 # Examples:
-bash core/scripts/switch-engine.sh codex      # syncs agents, skills, hooks
-bash core/scripts/switch-engine.sh cursor     # activates .cursorrules
-bash core/scripts/switch-engine.sh copilot    # activates .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh aider      # prints aider CLI command
-bash core/scripts/switch-engine.sh gemini     # copies adapter to GEMINI.md
-bash core/scripts/switch-engine.sh claude     # default — no adapter needed
+bash core/scripts/switch-engine.sh cursor       # real beforeShellExecution hook + .cursorrules
+bash core/scripts/switch-engine.sh codex        # syncs agents, skills, commands, and hooks
+bash core/scripts/switch-engine.sh antigravity  # copies adapter to .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh claude       # default — no adapter needed
+bash core/scripts/switch-engine.sh status       # show which adapters are currently active
 ```
 
 ---
 
 ## What's Mapped Across All Adapters
 
-| Yana AI Rule | Claude Code | Codex | Cursor | Copilot | Aider | Gemini Code |
-|---|---|---|---|---|---|---|
-| Security prohibitions | hooks (L0-L5) | `.codex/hooks.json` | `.cursorrules` | `copilot-instructions.md` | system prompt | `GEMINI.md` |
-| Code constraints (50 lines, 5 params) | `agent-code-constraints.md` | `AGENTS.md` | `.mdc` rule | instructions | system prompt | `GEMINI.md` |
-| Evidence-first policy | truth-gate-guard.sh | Stop hook | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
-| Git push gate | `git-push-enforcement.md` | PreToolUse hook | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
-| Hard shell enforcement | hooks | `.codex/hooks.json` | safe-run.sh | — | safe-run.sh | safe-run.sh |
+| Yana AI Rule | Claude Code | Cursor | Codex | Antigravity |
+|---|---|---|---|---|
+| Security prohibitions | hooks (L0-L5) | `.cursorrules` + real hook | `.codex/hooks.json` | `.agent/rules/yana-ai.md` |
+| Code constraints (50 lines, 5 params) | `agent-code-constraints.md` | `.mdc` rule | `AGENTS.md` | `.agent/rules/yana-ai.md` |
+| Evidence-first policy | truth-gate-guard.sh | `.cursorrules` | Codex Stop hook | `.agent/rules/yana-ai.md` |
+| Git push gate | `git-push-enforcement.md` | `.cursorrules` | Codex PreToolUse hook | `.agent/rules/yana-ai.md` |
+| Hard shell enforcement | hooks | real `beforeShellExecution` hook | project-scoped Codex hooks | `safe-run.sh` prefix (advisory) |
 
 ---
 
 ## Limitations
 
-- Claude Code: full enforcement via hooks (runtime blocking).
-- Codex: project-scoped hooks, custom agents, and skills are synchronized from `core/`; review changed hooks with `/hooks` before relying on them.
+- **Claude Code**: full enforcement via hooks (runtime blocking, every tool call in the Merkle audit chain).
+- **Cursor**: real enforcement as of `.cursor/hooks.json` + `.cursor/hooks/before-shell-execution.js` — every shell command is technically screened by `core/hooks/guard-destructive.sh` before Cursor executes it (a narrower pattern set than `safe-run.sh`'s prompt-based prefix — see the `.mdc` rule's own "Why" section for exactly what's covered vs not). MCP tool calls are a separate event this hook doesn't cover.
+- **Codex**: project-scoped hooks, custom agents, and skills are synchronized from `core/`; review changed hooks before trusting them in a target project.
 - Claude `/name` commands map to Codex `$yana-command-name` skills because repository-scoped Codex custom prompts are deprecated; the workflow content remains shared and parity-tested.
-- Other engines: **advisory only** — rules are in the prompt, not enforced at shell level.
-- For hard runtime blocking on non-Claude engines, wrap commands with `bash core/scripts/safe-run.sh`.
+- **Antigravity**: advisory only — rules are in `.agent/rules/yana-ai.md`, not enforced at shell level. For hard runtime blocking, wrap commands with `bash core/scripts/safe-run.sh`.
 - Cursor `.mdc` rules require Cursor ≥ 0.40. Older versions use `.cursorrules` only.
+- `AGENTS.md` is a shared cross-tool convention file (several agentic CLIs beyond Codex read it), not an exclusively-Codex target. `switch-engine.sh codex` will not overwrite an existing `AGENTS.md`; it only generates one where none exists yet. If one already exists, merge the relevant sections of `adapters/codex.md` in by hand.

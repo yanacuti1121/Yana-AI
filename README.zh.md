@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.1 · AI 编程代理的安全防火墙                  │ 上手小贴士                                                                            │
-│ 101 agents · 1,989 skills                        │ yana-ai doctor                                                                         │
-│ 70 rules · 56 hooks · 107 scripts                │ yana-ai init                                                                           │
-│ 166 commands                                     │                                                                                       │
+│ v1.1.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
+│ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
+│ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
+│ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
-│                                                   │ v0.43.1 — 修复发布流水线，新增 hermes_adapted 工具循环检测器                          │
+│                                                   │ v1.1.0 — 新增 COMMANDS.md，修复 banner 背景色，chat TUI 边框颜色                     │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,11 +36,11 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.1-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -50,23 +50,26 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-1,989-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-70-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-56-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
 ---
 
-当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来。支持 Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、GitHub Copilot、Aider 等更多工具。
+当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来 —— 在 Claude Code 和 Cursor 上是强制拦截，在 Codex 和 Antigravity 上仅为建议（advisory）。
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # 接入 hooks（60 秒）
+pip install yana-ai && yana-ai install   # 接入 hooks（60 秒）
 ```
 
-然后试着让你的代理做点坏事，看看会发生什么。下面每个示例都是 2026-07-04 对 `core/hooks/guard-destructive.sh` 真实运行的实录复制，而非营销文案（这个防护尚未能拦截的内容见[已知局限](docs/reference/known-limitations.md)）：
+> **已知问题，已于 2026-07-25 修复：** 旧版 PyPI 安装的 `yana-rt` 曾可能自我递归并占满 100% CPU — 事件详情见 [CHANGELOG.md](CHANGELOG.md)。`pip install -U yana-ai`（或从未受影响的 `cargo install yana-rt`）即可解决。
+
+然后试着让你的代理做点坏事，看看会发生什么。
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+下面每个示例都是 2026-07-04 对 `core/hooks/guard-destructive.sh` 真实运行的实录复制，而非营销文案（这个防护尚未能拦截的内容见[已知局限](docs/reference/known-limitations.md)）：
 
 ```bash
 # Agent tries: git push --force origin main
@@ -96,7 +99,7 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
 
 ## 它能拦截什么
 
-破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过 56 个由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。底层是 101 个专业代理、1,989 个技能，以及在 CI 中以 826 种方式检查的 70 条规则。
+破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。
 
 ## 工作原理
 
@@ -116,35 +119,20 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 关于哪些是真正接入的 hook、哪些只是代理按惯例遵循的文档化策略，请查看[已知局限](docs/reference/known-limitations.md)，其中直接对照代码本身验证，而非依据描述它的文档。
 
-## 数字
-
-| | |
-|---|---|
-| 🧩 技能 | **1,989** 个工作流技能定义 |
-| 🤖 代理 | **101** 个专业代理 |
-| 📜 安全规则 | **70** 条强制规则 |
-| 🪝 Hooks | **56** 个执行前/后钩子 |
-| ⚡ 斜杠命令 | **166** 个 |
-| 🔧 脚本 | **107** 个 |
-| 🔌 适配器 | **12** 个（Claude Code、Cursor、Windsurf、Antigravity、Kiro、OpenCode、Zed、Gemini、Copilot、Aider...） |
-| 🦀 Rust 子命令 | **23** 个（`scan`、`graph`、`vault`、`route`、`mission`、`hunt`、`fix`、`doctor`...） |
-| ✅ CI 中的规则检查 | **826** 次 |
-
 ---
 
 ## 快速安装
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
+
+> **说明（2026-07-30）：不再通过 npm 分发。** Yana AI 已不再、也不再计划发布到 npm registry —— 完整经过见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。请使用下面的 `pip` 或 `cargo`。
 
 ```bash
-# Claude Code 插件 — npx yana-ai-install 会接入 hooks
-# （必需：npm v12+ 默认不再运行 postinstall 脚本）
-npm install yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — 安装 yana-ai 命令
 pip install yana-ai
+yana-ai install                # 将 hooks 接入当前项目
 
-# Rust 运行时（快 1256 倍的扫描器）
+# Rust 运行时（对有限范围命令快约 2–12 倍 — 见 BENCHMARK.md）
 cargo install yana-rt
 ```
 
@@ -155,7 +143,7 @@ yana-ai doctor .
 
 ### 环境要求
 
-- Node.js 18+（用于 npm 包）
+- Python 3.11+（用于 pip 包）或 Rust/Cargo（用于 `cargo install yana-rt`）
 - Git
 - 任意 AI 编程工具：[Claude Code](https://claude.ai/code)、Cursor、Windsurf、Aider 等
 
@@ -176,12 +164,10 @@ yana-ai doctor                  # 确认
 Yana AI 会适配你正在使用的工具：
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7 个 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + 真实的 beforeShellExecution 钩子
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 ```
 
 ---
@@ -217,12 +203,13 @@ bash core/scripts/switch-engine.sh status    # 检查全部 12 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-23 个子命令，零 Python 依赖。
+27 个子命令，零 Python 依赖。
 
 ```bash
+yana-ai chat                          # 交互式聊天 REPL — 云端（Anthropic/OpenAI）或本地（Ollama）
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、导入解析
-yana-ai vault search Q                # 按关键词搜索 1,989 个技能
+yana-ai vault search Q                # 按关键词搜索 2,025 个技能
 yana-ai hunt .                        # 搜寻安全模式（OWASP、注入、SSRF）
 yana-ai fix .                         # 自动修复规则违规
 yana-ai doctor .                      # 全面系统健康检查
@@ -232,7 +219,27 @@ yana-ai route classify "fix auth bug" # 任务分类 → simple/complex/external
 yana-ai mission create "add-auth"     # 创建并行代理任务
 ```
 
-**性能基准：** 在一万文件规模的仓库上，`yana-ai audit` 比对应的 Python 实现**快 1256 倍**。
+**性能基准**（2026-07-23 测得，完整方法见 `BENCHMARK.md`）：
+`doctor`/`ci` 这类范围有限的命令比 Python 快约 ~2–12 倍
+（主要受启动时间影响）；对整个仓库的 `scan` 在 1.9 万文件规模下收敛到约 1.1 倍
+（在这个规模下主要受工作量影响，而非启动时间）。这一行曾经宣称的 `1256 倍`
+这个数字此前已被发现一次未经验证
+（2026-05-31，提交 `fb6a0cd7`），又被一次无关的 README 恢复
+（2026-07-07）带回来——在 `BENCHMARK.md` 中的任何测量里，无论当时还是现在都无法复现。
+
+---
+
+## 版本管理
+
+Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — 这是刻意设计，不是混乱（与 Kubernetes、LLVM 类似：组件独立、发布节奏独立）。
+
+| 轴 | 版本 | 注册表 |
+|---|---|---|
+| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
 
 ---
 
@@ -240,12 +247,12 @@ yana-ai mission create "add-auth"     # 创建并行代理任务
 
 ```
 core/
-├── hooks/          # 56 个 PreToolUse / PostToolUse / Stop 钩子
-├── rules/          # 70 条强制规则（安全、正确性、UI、git）
+├── hooks/          # 57 个 PreToolUse / PostToolUse / Stop 钩子
+├── rules/          # 71 条强制规则（安全、正确性、UI、git）
 ├── scripts/        # safe-run.sh、verify-core-lock.sh、secure-logger.sh
 ├── gates/          # truth_gate.md、action_gate.md
 ├── agents/         # 101 个专业代理定义
-├── skills/         # 1,989 个 SKILL.md 文件
+├── skills/         # 2,016 个 SKILL.md 文件
 ├── config/
 │   ├── core-lock.json    # SHA-256 清单 — 固定 240 个核心文件
 │   └── skills-lock.json  # 技能内容哈希
@@ -293,6 +300,46 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 降低你自己的 token 账单
+
+Yana AI 对代理的行为执行安全防护——它本身并不减少代理读取命令输出时消耗
+的 token。如果这才是你真正的痛点，可以搭配使用
+[`rtk`](https://github.com/rtk-ai/rtk)，一个专为此设计的独立 Apache-2.0
+工具（在代理读取之前过滤/压缩 bash 输出，常见命令下可减少最多 90%）。
+不内嵌代码，也不作为依赖——安装方法以及如何接入 Claude Code/Cursor/
+Codex/Antigravity，见
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)。
+
+---
+
+## MCP 集成 — Buzz
+
+`yana-rt mcp` 将 `check_command`（与 `core/hooks/guard-destructive.sh`
+为 Claude Code 执行的破坏性命令检查完全相同）以 MCP 工具的形式通过
+stdio 暴露出来——可选启用，位于 `mcp` Cargo feature 之后，不包含在默认
+二进制文件中。
+
+它的第一个真实使用方是 [Buzz](https://github.com/block/buzz)——一个
+自托管的团队工作区，AI 代理在其中是拥有自己密钥的正式成员。Buzz 的
+`buzz-acp` 可以启动任何支持 ACP 的代理（goose、codex、claude-code，或
+`buzz-agent`），并可以通过 `BUZZ_ACP_MCP_COMMAND` 接入额外的 MCP
+服务器——指向 Yana AI 后，Buzz 编排的每个代理都会获得同样的命令检查，
+不只是 Claude Code。
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+需要这个 wrapper 的原因是 `buzz-acp` 调用 `BUZZ_ACP_MCP_COMMAND` 时不带
+任何参数，而 `yana-rt` 需要 `mcp` 子命令——完整设置方法（生成密钥对、
+向 relay 注册）以及已验证的 stdio JSON-RPC 记录，见
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)。
+注意：这只是让被启动的代理*可以使用*该检查——它是否会在运行命令前真正
+调用，取决于该代理自身的工具使用策略，没有任何机制强制它这么做。
+
+---
+
 ## Yana AI（网页产品）
 
 **[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -334,10 +381,10 @@ Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无
 一个人。没有团队。没有资金。
 
 - Hook 架构、安全网关、Python CLI
-- Rust 运行时（`yana-rt`）、101 个代理、1,989 个技能、多引擎支持
-- 12 个适配器（Claude Code、Cursor、Windsurf、Antigravity、Kiro、Zed、Gemini、Copilot、Aider…）
+- Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
+- 4 个适配器（Claude Code、Cursor、Codex、Antigravity）
 
-这 1,989 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
+这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
 
 ---
 
@@ -386,7 +433,7 @@ yana-ai route classify "deploy to production"
 
 五种路由：
 - **simple** → Yana 直接处理（只读，不需要代理）
-- **skill** → 与 1,989 条技能索引匹配，派发到确切的技能代理
+- **skill** → 与 2,016 条技能索引匹配，派发到确切的技能代理
 - **learn** → 路由到 `hoc-tap`（苏格拉底式学习助手，遇到"learn"、"explain"、"why" 等词触发——支持英语和越南语）
 - **daily** → 路由到 `daily-assistant`，总结 / 计划 / 起草（遇到"summarize"、"write an email"、"make a plan" 等词触发——支持英语和越南语）
 - **complex** → 携带明确范围的简报派发给专业代理
@@ -463,7 +510,19 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 `status` 显示 6 种状态：`working`（存活，日志最近有更新）、`blocked`（存活，但日志已超过 `YANA_AGENT_STALE_SECONDS` 秒（默认 30）未更新，可能卡住了）、`done`（以 0 退出）、`failed`（以非 0 退出）、`unknown`（进程已消失但从未写入自己的退出码，例如被 SIGKILL 之后）、`killed`（通过 `kill` 停止）。
 
-更多示例输出和细节见[完整 CLI 参考文档](docs/reference/cli-reference.md)。
+更多示例输出和细节见[完整 CLI 参考文档](docs/reference/cli-reference.md)，或查看 **[COMMANDS.md](COMMANDS.md)** 了解所有 `yana-ai` 命令。
+
+---
+
+## 项目链接
+
+| | |
+|---|---|
+| 完整命令参考 | [COMMANDS.md](COMMANDS.md) |
+| 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| 行为准则 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| 安全政策 | [SECURITY.md](SECURITY.md) |
+| 许可证 | [Apache 2.0](LICENSE) |
 
 ---
 

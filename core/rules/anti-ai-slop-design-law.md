@@ -1,3 +1,8 @@
+---
+description: Anti-AI-slop visual design checklist — shared paths with color-rules.md, typography-rules.md, and frontend-production-checklist.md so companion frontend rules always load together
+paths: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss", "**/*.html"]
+---
+
 # Yana AI — Anti-AI-Slop Design Law
 # Informed by patterns independently observed across several public
 # "anti-slop frontend" agent skills (2026) — rewritten in Yana AI's own

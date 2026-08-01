@@ -6,12 +6,18 @@ const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
 const url   = require('url');
-const { execFileSync } = require('child_process');
+const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
+const { OutputScrubber } = require('./lib/output-scrubber');
+const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
 });
+// Same wrapper lib/core.js resolves by default for the router — reused here
+// to bridge real per-call token usage into the Rust cost ledger (`yana-rt
+// cost log`). See logRealUsageToLedger() near handleApiChat.
+const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js');
 const auth     = require('./auth');
 const missions = require('./missions');
 const memory   = require('./memory');
@@ -32,13 +38,18 @@ const STATIC_DIR   = __dirname;
 const MANIFEST_PATH = path.join(REPO_ROOT, 'MANIFEST.json');
 
 const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js':   'application/javascript; charset=utf-8',
-  '.css':  'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png':  'image/png',
-  '.svg':  'image/svg+xml',
-  '.ico':  'image/x-icon',
+  '.html':  'text/html; charset=utf-8',
+  '.js':    'application/javascript; charset=utf-8',
+  '.css':   'text/css; charset=utf-8',
+  '.json':  'application/json; charset=utf-8',
+  '.png':   'image/png',
+  '.svg':   'image/svg+xml',
+  '.ico':   'image/x-icon',
+  // Added for the Vite-built desktop-v2 bundle: sourcemaps and self-hosted
+  // font formats Vite can emit, previously unmapped (fell back to text/plain).
+  '.map':   'application/json; charset=utf-8',
+  '.woff2': 'font/woff2',
+  '.woff':  'font/woff',
 };
 
 // ── 9router local key (read once at startup) ─────────────────────────────────
@@ -85,6 +96,27 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.delta?.text || null,
+    // Anthropic splits usage across two SSE event types (both always
+    // present by default — no stream_options-equivalent request flag
+    // needed, unlike OpenAI-shape providers):
+    //   message_start:  event.message.usage = {input_tokens, output_tokens}
+    //                    (output_tokens here is a small placeholder, not final)
+    //   message_delta:  event.usage = {output_tokens} (the real final count;
+    //                    this event carries no input_tokens field at all)
+    // pipeNormalizedSSE/emitLines merge (not overwrite) successive usage
+    // objects specifically so this two-event split reassembles correctly:
+    // message_start's input_tokens survives, message_delta's output_tokens
+    // overwrites the placeholder.
+    extractUsage: evt => {
+      if (evt?.type === 'message_start' && evt.message?.usage) {
+        const u = evt.message.usage;
+        return { input_tokens: u.input_tokens || 0, output_tokens: u.output_tokens || 0 };
+      }
+      if (evt?.type === 'message_delta' && evt.usage) {
+        return { output_tokens: evt.usage.output_tokens || 0 };
+      }
+      return null;
+    },
   },
 
   groq: {
@@ -107,7 +139,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -115,6 +147,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   openai: {
@@ -137,7 +175,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -145,6 +183,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // 9Router — local AI gateway (github.com/decolua/9router): one OpenAI-style
@@ -164,10 +208,16 @@ const PROVIDERS = {
       'content-type':  'application/json',
     }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // Ollama — on-device models (rule 68 SOVEREIGN tier: text that may never
@@ -183,10 +233,16 @@ const PROVIDERS = {
     defaultModel: 'llama3.2',
     headers: _key => ({ 'content-type': 'application/json' }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   // LM Studio — on-device models, same shape as ollama (OpenAI-compatible
@@ -202,10 +258,43 @@ const PROVIDERS = {
     defaultModel: 'local-model',
     headers: _key => ({ 'content-type': 'application/json' }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
+  },
+
+  // TurboFieldfare — on-device Gemma 4 26B-A4B, same shape as ollama/lmstudio
+  // (OpenAI-compatible local server, keyless, loopback). Confirmed against
+  // Sources/TurboFieldfareServer/Core/OpenAIModels.swift +HTTPServer.swift:
+  // it decodes stream/stream_options.include_usage and emits standard
+  // choices[].delta.content chunks + usage.{prompt,completion}_tokens —
+  // identical wire shape to ollama/lmstudio, no provider-specific branching
+  // needed here.
+  turbofieldfare: {
+    protocol:     'http',
+    hostname:     '127.0.0.1',
+    port:         8091,
+    path:         '/v1/chat/completions',
+    vision:       false,
+    keyless:      true,
+    local:        true,
+    defaultModel: 'gemma-4-26b-a4b-it',
+    headers: _key => ({ 'content-type': 'application/json' }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   gemini: {
@@ -231,6 +320,14 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.candidates?.[0]?.content?.parts?.[0]?.text || null,
+    // Gemini includes usageMetadata by default in every streamed chunk
+    // (no request-side opt-in needed), as cumulative running totals —
+    // the last chunk's numbers are the true final ones. The merge in
+    // pipeNormalizedSSE/emitLines makes repeatedly "overwriting" with each
+    // successive cumulative snapshot converge to that final value.
+    extractUsage: evt => evt?.usageMetadata
+      ? { input_tokens: evt.usageMetadata.promptTokenCount || 0, output_tokens: evt.usageMetadata.candidatesTokenCount || 0 }
+      : null,
   },
 
   deepseek: {
@@ -243,10 +340,16 @@ const PROVIDERS = {
       'content-type':  'application/json',
     }),
     body: (model, system, task) => JSON.stringify({
-      model, max_tokens: 2048, stream: true,
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
       messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
     }),
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   openrouter: {
@@ -271,7 +374,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -279,6 +382,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   xai: {
@@ -301,7 +410,7 @@ const PROVIDERS = {
           ]
         : task;
       return JSON.stringify({
-        model, max_tokens: 2048, stream: true,
+        model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
         messages: [
           { role: 'system', content: system },
           { role: 'user',   content: userContent },
@@ -309,6 +418,12 @@ const PROVIDERS = {
       });
     },
     extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    // Normalized to {input_tokens, output_tokens} — same output shape as
+    // every other provider's extractUsage, so handleApiChat's ledger
+    // bridge needs no provider-specific field-name branching.
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
   },
 
   novita: {
@@ -525,7 +640,11 @@ const SEC_HEADERS = {
     "img-src 'self' data: blob:; " +
     // open-meteo: keyless weather for the dashboard — fetched from the
     // browser so the server's own egress surface stays 'self'-only
-    "connect-src 'self' https://api.open-meteo.com",
+    "connect-src 'self' https://api.open-meteo.com; " +
+    // code-server (real VS Code, coder/code-server) embedded in the
+    // Terminal page — loopback-only, own separate local server, same
+    // pattern as the Ollama/TurboFieldfare local-provider integrations.
+    "frame-src 'self' http://127.0.0.1:8092",
 };
 
 function applySecurityHeaders(req, res) {
@@ -698,9 +817,10 @@ function handleApiStatus(req, res) {
 // ── GET /api/local-status — probe on-device AI providers (Ollama, 9router, LM Studio) ──
 function handleApiLocalStatus(req, res) {
   const LOCAL_PROBES = [
-    { id: 'ollama',   protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
-    { id: '9router',  protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
-    { id: 'lmstudio', protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
+    { id: 'ollama',         protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
+    { id: '9router',        protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
+    { id: 'lmstudio',       protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
+    { id: 'turbofieldfare', protocol: 'http', hostname: '127.0.0.1', port: 8091,  path: '/v1/models' },
   ];
 
   let pending = LOCAL_PROBES.length;
@@ -815,6 +935,80 @@ async function handleOllamaDelete(req, res) {
   });
   upReq.on('error', () => { jsonError(res, 503, 'Ollama not running'); });
   upReq.write(delBody);
+  upReq.end();
+}
+
+// ── VieNeu-TTS sidecar proxy ────────────────────────────────────────────────
+// Local Python/ONNX TTS sidecar (tools/yana-web/tts-sidecar/), same "hit a
+// local port, proxy the bytes" pattern already used for Ollama. Not started
+// automatically — a per-message "read aloud" button, not an always-on voice
+// mode, so a cold sidecar is a normal state, not an error.
+const TTS_SIDECAR_PORT = Number(process.env.VIENEU_SIDECAR_PORT) || 7861;
+
+// ── GET /api/tts/status — is the sidecar up? ──────────────────────────────────
+function handleTtsStatus(_req, res) {
+  const req2 = http.get(
+    { hostname: '127.0.0.1', port: TTS_SIDECAR_PORT, path: '/health', timeout: 800 },
+    upRes => {
+      let raw = '';
+      upRes.on('data', c => { raw += c; });
+      upRes.on('end', () => {
+        try {
+          const data = JSON.parse(raw);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ running: true, voices: data.voices || 0 }));
+        } catch (_) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ running: false, voices: 0 }));
+        }
+      });
+    },
+  );
+  req2.on('error',   () => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ running: false, voices: 0 })); });
+  req2.on('timeout', () => { req2.destroy(); res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ running: false, voices: 0 })); });
+}
+
+// ── POST /api/tts — synthesize speech, proxy the WAV bytes back ──────────────
+async function handleTts(req, res) {
+  let body;
+  try { body = await readBody(req, 8192); } catch (_) { jsonError(res, 400, 'Bad request'); return; }
+  let parsed;
+  try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
+
+  const text = typeof parsed.text === 'string' ? parsed.text.trim() : '';
+  if (!text) { jsonError(res, 400, 'Missing text'); return; }
+  if (text.length > 2000) { jsonError(res, 400, 'Text too long (max 2000 chars)'); return; }
+
+  const ttsBody = JSON.stringify({
+    text,
+    voice: typeof parsed.voice === 'string' && parsed.voice.trim() ? parsed.voice.trim() : undefined,
+    style: typeof parsed.style === 'string' && parsed.style.trim() ? parsed.style.trim() : undefined,
+  });
+
+  const upReq = http.request(
+    {
+      hostname: '127.0.0.1', port: TTS_SIDECAR_PORT, path: '/tts', method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(ttsBody) },
+      timeout: 30000,
+    },
+    upRes => {
+      if (upRes.statusCode !== 200) {
+        let raw = '';
+        upRes.on('data', c => { raw += c; });
+        upRes.on('end', () => {
+          jsonError(res, upRes.statusCode || 502, `TTS sidecar error: ${raw.slice(0, 300)}`);
+        });
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'audio/wav' });
+      upRes.pipe(res);
+    },
+  );
+  upReq.on('error', () => {
+    jsonError(res, 503, 'TTS sidecar not running — start it with tools/yana-web/tts-sidecar/run.sh');
+  });
+  upReq.on('timeout', () => { upReq.destroy(); jsonError(res, 504, 'TTS synthesis timed out'); });
+  upReq.write(ttsBody);
   upReq.end();
 }
 
@@ -944,6 +1138,18 @@ async function handleApiModels(req, res) {
       protocol: 'http',
       hostname: '127.0.0.1',
       port:     1234,
+      path:     '/v1/models',
+      keyless:  true,
+      headers:  _k => ({}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    turbofieldfare: {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     8091,
       path:     '/v1/models',
       keyless:  true,
       headers:  _k => ({}),
@@ -1356,35 +1562,182 @@ function handleApiDashboard(req, res) {
 }
 
 // ── SSE normalize: upstream SSE → unified data: {"text":"..."} ────────────────
-function pipeNormalizedSSE(upstreamRes, res, extractText, onDone) {
+// TOKEN METERING (docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 2.1):
+// every PROVIDERS entry's extractUsage (added incrementally: OpenAI-shape
+// providers first, then Anthropic + Gemini) normalizes to the same
+// {input_tokens, output_tokens} shape regardless of the upstream's native
+// field names, so this function and handleApiChat need no per-provider
+// branching. `extractUsage` is optional — a provider without one (there
+// are currently none) would simply never populate `usage`, and `onDone`
+// would receive `null` for it, same as before token metering existed.
+// OUTPUT GUARDRAIL (docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section
+// 2.2): `scrubber` (an OutputScrubber instance, see
+// lib/output-scrubber.js, or null to skip — used by handleApiHtmlConvert's
+// call site, out of scope for this pass) runs every extracted text chunk
+// through secret/PII detection before it reaches `res.write`. A hard-block
+// match (high-confidence secret shapes) aborts the stream with a fixed
+// message instead of forwarding the match; PII matches are redacted in
+// place and streaming continues. The scrubber's own hold-back window means
+// a small amount of text always lags behind what's been generated — see
+// its module doc for why, and flush() is what releases the final tail.
+function pipeNormalizedSSE(upstreamRes, res, extractText, extractUsage, scrubber, onDone) {
   let buf = '';
   let chars = 0;
+  let usage = null;
+  let blocked = false;
+
+  const emitBlockedMessage = () => {
+    res.write(`data: ${JSON.stringify({ text: '[response blocked — potential secret detected]' })}\n\n`);
+  };
+
   upstreamRes.on('data', chunk => {
+    if (blocked) return;
     buf += chunk.toString();
     const lines = buf.split('\n');
     buf = lines.pop();
-    chars += emitLines(lines, res, extractText);
+    const r = emitLines(lines, res, extractText, extractUsage, scrubber);
+    chars += r.chars;
+    // Merge (not overwrite): OpenAI-shape providers report usage once, in a
+    // single final event, so this is a no-op there. Anthropic splits usage
+    // across two events (message_start has input_tokens, message_delta has
+    // output_tokens) — overwriting on the second event would silently drop
+    // the first's input_tokens. Gemini resends the full cumulative object
+    // on every chunk, so the merge just keeps converging to the same
+    // (correct) final values.
+    if (r.usage) usage = { ...usage, ...r.usage };
+    if (r.blocked) {
+      blocked = true;
+      emitBlockedMessage();
+      res.write('data: [DONE]\n\n');
+      res.end();
+      if (onDone) onDone(chars, usage);
+    }
   });
   upstreamRes.on('end', () => {
-    if (buf) chars += emitLines(buf.split('\n'), res, extractText);
+    if (blocked) return;
+    if (buf) {
+      const r = emitLines(buf.split('\n'), res, extractText, extractUsage, scrubber);
+      chars += r.chars;
+      if (r.usage) usage = { ...usage, ...r.usage };
+      if (r.blocked) {
+        emitBlockedMessage();
+        res.write('data: [DONE]\n\n');
+        res.end();
+        if (onDone) onDone(chars, usage);
+        return;
+      }
+    }
+    if (scrubber) {
+      const f = scrubber.flush();
+      if (f.blocked) {
+        emitBlockedMessage();
+      } else if (f.text) {
+        chars += f.text.length;
+        res.write(`data: ${JSON.stringify({ text: f.text })}\n\n`);
+      }
+    }
     res.write('data: [DONE]\n\n');
     res.end();
-    if (onDone) onDone(chars);
+    if (onDone) onDone(chars, usage);
   });
 }
 
-function emitLines(lines, res, extractText) {
+function emitLines(lines, res, extractText, extractUsage, scrubber) {
   let emitted = 0;
+  let usage = null;
   for (const line of lines) {
     if (!line.startsWith('data: ')) continue;
     const raw = line.slice(6).trim();
-    if (raw === '[DONE]') return emitted;
+    if (raw === '[DONE]') return { chars: emitted, usage, blocked: false };
     try {
-      const text = extractText(JSON.parse(raw));
-      if (text) { emitted += text.length; res.write(`data: ${JSON.stringify({ text })}\n\n`); }
+      const evt = JSON.parse(raw);
+      const text = extractText(evt);
+      if (text) {
+        if (scrubber) {
+          const r = scrubber.feed(text);
+          if (r.blocked) return { chars: emitted, usage, blocked: true };
+          if (r.text) { emitted += r.text.length; res.write(`data: ${JSON.stringify({ text: r.text })}\n\n`); }
+        } else {
+          emitted += text.length;
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+      if (extractUsage) {
+        const u = extractUsage(evt);
+        // Merge, not overwrite — see the matching comment in
+        // pipeNormalizedSSE for why (Anthropic splits usage across two
+        // events; a fast upstream could flush both into one chunk/lines
+        // batch, so this local accumulator needs the same behavior as
+        // the outer one, not just the outer one).
+        if (u) usage = { ...usage, ...u };
+      }
     } catch (_) {}
   }
-  return emitted;
+  return { chars: emitted, usage, blocked: false };
+}
+
+// Fire-and-forget bridge: real per-call token usage → `yana-rt cost log`
+// (src/cost.rs, already-shipped CLI, previously never called by this
+// gateway — see docs/Yana-AI-Danh-gia-Kien-truc-Bao-mat.md section 2.1).
+// Reuses the same subprocess pattern lib/router.js already uses to resolve
+// scripts/yana-rt-wrapper.js for routing classification. Runs strictly
+// AFTER the chat response has already completed — errors are logged, never
+// thrown, and can't affect the response the user already received.
+// `tier` is passed as "standard" (cost.rs's own fallback rate bucket for
+// any value outside fast/standard/strong) since this gateway has no
+// fast/standard/strong concept of its own; `cost breakdown --by model`
+// still gives a real per-model view regardless of the tier bucket used.
+function logRealUsageToLedger({ task, model, inputTokens, outputTokens, durationMs }) {
+  if (!(inputTokens > 0) && !(outputTokens > 0)) return;
+  const args = [
+    YANA_RT_WRAPPER_PATH, 'cost', 'log', task, 'standard', model,
+    String(inputTokens), String(outputTokens),
+    '--duration-ms', String(durationMs),
+  ];
+  execFile('node', args, { env: process.env, timeout: 5000 }, err => {
+    if (err) console.error('[cost] yana-rt cost log failed (non-fatal):', err.message);
+  });
+}
+
+// One breaker instance for the process lifetime — state must persist
+// across requests to actually detect "5 consecutive failures", so this
+// cannot be created per-call. See lib/provider-failover.js.
+const providerCircuitBreaker = new CircuitBreaker();
+
+// Extracted from the single connection attempt that used to live inline
+// in handleApiChat — same behavior for a single call (resolves on 2xx,
+// rejects with a descriptive Error on transport failure or non-2xx),
+// now reusable per fallback-chain candidate.
+function connectToProvider(providerEntry, apiKey, reqBody, reqPath) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: providerEntry.hostname,
+      port:     providerEntry.port,
+      path:     reqPath,
+      method:   'POST',
+      headers:  { ...providerEntry.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
+    };
+    // http only for loopback providers (9router) — every remote host stays TLS
+    const transport = (providerEntry.protocol === 'http' && providerEntry.hostname === '127.0.0.1') ? http : https;
+
+    const upstreamReq = transport.request(options, upstreamRes => {
+      if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
+        let errBody = '';
+        upstreamRes.on('data', c => { errBody += c; });
+        upstreamRes.on('end', () => {
+          let detail = '';
+          try { const j = JSON.parse(errBody); detail = j.error?.message || j.message || ''; } catch (_) {}
+          reject(new Error(`Upstream HTTP ${upstreamRes.statusCode}${detail ? ': ' + detail : ''}`));
+        });
+        return;
+      }
+      resolve(upstreamRes);
+    });
+
+    upstreamReq.on('error', err => reject(err));
+    upstreamReq.write(reqBody);
+    upstreamReq.end();
+  });
 }
 
 // ── POST /api/chat ────────────────────────────────────────────────────────────
@@ -1396,7 +1749,7 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys } = parsed;
   const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
@@ -1459,29 +1812,28 @@ async function handleApiChat(req, res) {
   }
 
   // Validate model ID against an allowlist pattern (EP-2): reject anything
-  // that isn't a known model-id format (alphanumeric, dots, hyphens).
+  // that isn't a known model-id format (alphanumeric, dots, hyphens, plus
+  // ':' and '/' for Ollama tag syntax like "gemma4:e2b-it-q8_0" and
+  // namespaced IDs like "meta-llama/llama-3.1-70b-instruct" — several
+  // PROVIDERS[...].defaultModel values already use '/' unvalidated, so a
+  // client-supplied model of the same shape was being silently rejected
+  // here and replaced with the wrong provider's default, causing a 404
+  // even when the user picked a real, installed model).
   // JSON.stringify would prevent JSON injection but a garbage model ID could
   // still trigger unexpected upstream API errors or leak internal info.
-  const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,100}$/;
+  const MODEL_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,100}$/;
   const rawModelId  = typeof model === 'string' ? model.trim() : '';
-  const modelId     = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : p.defaultModel;
-  // images: array of { mimeType, data } — only passed if provider supports vision
-  const imgs    = (p.vision && Array.isArray(images) && images.length) ? images : null;
-  const reqBody = p.body(modelId, systemPrompt, task, imgs);
+  const explicitModelId = (rawModelId && MODEL_ID_RE.test(rawModelId)) ? rawModelId : null;
 
-  // Gemini builds its path from the model id; the key always travels in the
-  // x-goog-api-key header, never the URL (rule 66 / API2)
-  const reqPath = p.buildPath ? p.buildPath(modelId, apiKey) : p.path;
-
-  const options = {
-    hostname: p.hostname,
-    port:     p.port,
-    path:     reqPath,
-    method:   'POST',
-    headers:  { ...p.headers(apiKey), 'content-length': Buffer.byteLength(reqBody) },
-  };
-  // http only for loopback providers (9router) — every remote host stays TLS
-  const transport = (p.protocol === 'http' && p.hostname === '127.0.0.1') ? http : https;
+  // Fallback chain: primary provider first, then any same-shape provider
+  // the client supplied a key for in fallbackApiKeys (BYOK — read fresh
+  // from this request body only, never persisted). A client that sends
+  // only apiKey (no fallbackApiKeys) gets a chain of exactly one
+  // candidate, the primary — a strict no-op vs. pre-failover behavior.
+  // See lib/provider-failover.js.
+  const primaryProviderKey = (typeof providerKey === 'string' && providerKey) ? providerKey : 'anthropic';
+  const primaryUsageId     = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
+  const chain = buildFallbackChain(primaryProviderKey, apiKey, fallbackApiKeys);
 
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',
@@ -1490,32 +1842,75 @@ async function handleApiChat(req, res) {
   });
 
   const t0 = Date.now();
-  const usageId = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
 
-  const upstreamReq = transport.request(options, upstreamRes => {
-    if (upstreamRes.statusCode < 200 || upstreamRes.statusCode >= 300) {
-      let errBody = '';
-      upstreamRes.on('data', c => { errBody += c; });
-      upstreamRes.on('end', () => {
-        let detail = '';
-        try { const j = JSON.parse(errBody); detail = j.error?.message || j.message || ''; } catch (_) {}
-        const msg = `Upstream HTTP ${upstreamRes.statusCode}${detail ? ': ' + detail : ''}`;
-        res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
-        res.end();
-      });
-      return;
+  let upstreamRes   = null;
+  let usedCandidate = null;
+  let lastErr       = null;
+  for (const candidate of chain) {
+    if (!providerCircuitBreaker.canAttempt(candidate.providerKey)) {
+      lastErr = new Error(`circuit open for ${candidate.providerKey}`);
+      continue;
     }
-    pipeNormalizedSSE(upstreamRes, res, p.extractText,
-      chars => recordUsage(usageId, chars, Date.now() - t0));
-  });
+    const cp = PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic;
+    // Each candidate uses ITS OWN default model unless the client asked
+    // for a specific model id explicitly — reusing the primary's default
+    // model id against a different provider (e.g. a Groq-only model name
+    // replayed against OpenRouter) would 404 even though the fallback
+    // provider itself is healthy.
+    const candidateModelId = explicitModelId || cp.defaultModel;
+    const candidateImgs    = (cp.vision && Array.isArray(images) && images.length) ? images : null;
+    const candidateReqBody = cp.body(candidateModelId, systemPrompt, task, candidateImgs);
+    // Gemini builds its path from the model id; the key always travels in
+    // the x-goog-api-key header, never the URL (rule 66 / API2)
+    const candidateReqPath = cp.buildPath ? cp.buildPath(candidateModelId, candidate.apiKey) : cp.path;
 
-  upstreamReq.on('error', () => {
-    res.write(`data: ${JSON.stringify({ error: 'Upstream connection failed' })}\n\n`);
+    try {
+      upstreamRes = await connectToProvider(cp, candidate.apiKey, candidateReqBody, candidateReqPath);
+      providerCircuitBreaker.recordSuccess(candidate.providerKey);
+      usedCandidate = {
+        providerKey: candidate.providerKey,
+        provider:    cp,
+        modelId:     candidateModelId,
+        usageId:     candidate.providerKey === primaryProviderKey ? primaryUsageId : candidate.providerKey,
+      };
+      break;
+    } catch (err) {
+      providerCircuitBreaker.recordFailure(candidate.providerKey);
+      lastErr = err;
+    }
+  }
+
+  if (!upstreamRes) {
+    const msg = lastErr ? lastErr.message : 'All providers unavailable';
+    res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
     res.end();
-  });
+    return;
+  }
 
-  upstreamReq.write(reqBody);
-  upstreamReq.end();
+  // Only announce a provider switch when failover actually happened — a
+  // single-candidate chain (the overwhelmingly common case today) never
+  // emits this frame, so existing clients see no new frame shape.
+  if (usedCandidate.providerKey !== chain[0].providerKey) {
+    res.write(`data: ${JSON.stringify({ provider: usedCandidate.providerKey })}\n\n`);
+  }
+
+  pipeNormalizedSSE(upstreamRes, res, usedCandidate.provider.extractText, usedCandidate.provider.extractUsage, new OutputScrubber(),
+    (chars, usage) => {
+      const ms = Date.now() - t0;
+      recordUsage(usedCandidate.usageId, chars, ms);
+      // Every provider's extractUsage now normalizes to
+      // {input_tokens, output_tokens} — matches cost.rs's CostEntry
+      // field names directly, no per-provider mapping needed here.
+      if (usage) {
+        logRealUsageToLedger({
+          task: 'web-chat',
+          model: usedCandidate.modelId,
+          inputTokens: usage.input_tokens || 0,
+          outputTokens: usage.output_tokens || 0,
+          durationMs: ms,
+        });
+      }
+    });
 }
 
 // ── Auth plumbing ─────────────────────────────────────────────────────────────
@@ -1906,6 +2301,8 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/ollama/models')  { handleOllamaModels(req, res);    return; }
   if (method === 'POST' && pathname === '/api/ollama/pull')    { await handleOllamaPull(req, res); return; }
   if (method === 'DELETE' && pathname === '/api/ollama/models') { await handleOllamaDelete(req, res); return; }
+  if (method === 'GET'  && pathname === '/api/tts/status')     { handleTtsStatus(req, res);       return; }
+  if (method === 'POST' && pathname === '/api/tts')             { await handleTts(req, res);       return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }

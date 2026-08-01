@@ -1,0 +1,16 @@
+{
+  "policy": "allowlist",
+  "allowed_hosts": [
+    "api.github.com",
+    "registry.npmjs.org",
+    "pypi.org",
+    "api.anthropic.com",
+    "www.virustotal.com"
+  ],
+  "allow_patterns": [
+    "*.githubusercontent.com",
+    "*.pkg.dev"
+  ],
+  "blocked_schemes": ["file", "gopher", "ftp", "dict"],
+  "note": "deny-by-default — add hosts explicitly. Not yet mechanically enforced by any script as of this file's creation (2026-07-13) — this is the registry network-egress-law.md's Allowlist Mode section documents, created here to match reality for the first entry that actually needed it (src/filescan/mod.rs's VirusTotal hash lookup). Wiring an actual enforcement point that reads this file is a separate follow-up task."
+}

@@ -130,6 +130,59 @@ function MCopyBtn({ text }) {
   );
 }
 
+// Read-aloud button, mobile — mirrors SpeakBtn in desktop/chat.jsx. Calls
+// the same /api/tts route (proxies the local VieNeu-TTS sidecar).
+function MSpeakBtn({ text }) {
+  const [state, setState] = React.useState("idle"); // idle | loading | playing | error
+  const audioRef = React.useRef(null);
+
+  React.useEffect(() => () => { audioRef.current?.pause(); }, []);
+
+  function stop() {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setState("idle");
+  }
+
+  async function speak() {
+    if (state === "playing") { stop(); return; }
+    if (state === "loading") return;
+    setState("loading");
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error(await res.text().catch(() => "TTS failed"));
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { URL.revokeObjectURL(url); setState("idle"); };
+      audio.onerror = () => { URL.revokeObjectURL(url); setState("error"); setTimeout(() => setState("idle"), 2200); };
+      await audio.play();
+      setState("playing");
+    } catch (_) {
+      setState("error");
+      setTimeout(() => setState("idle"), 2200);
+    }
+  }
+
+  const glyph = state === "loading" ? "…" : state === "playing" ? "⏹" : state === "error" ? "⚠" : "🔊";
+  const title = state === "error" ? "TTS sidecar chưa chạy" : "Đọc";
+
+  return (
+    <button onClick={speak} title={title} disabled={state === "loading"} style={{
+      width: 26, height: 26, borderRadius: 7, border: "1px solid var(--border)",
+      background: "rgba(var(--surface-rgb,255,255,255),.65)", cursor: state === "loading" ? "wait" : "pointer",
+      fontSize: 11, display: "grid", placeItems: "center",
+      color: state === "playing" ? "var(--primary)" : state === "error" ? "#d14343" : "var(--ink-3)",
+      opacity: state === "loading" ? .6 : 1,
+    }}>{glyph}</button>
+  );
+}
+
 function MRouteChip({ route }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
@@ -187,6 +240,7 @@ function MMessage({ msg, isLastYana, onRegenerate }) {
         )}
         <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
           {msg.text && <MCopyBtn text={msg.text} />}
+          {msg.text && <MSpeakBtn text={msg.text} />}
           {isLastYana && onRegenerate && (
             <button onClick={onRegenerate} title="Retry" style={{
               height: 26, padding: "0 9px", borderRadius: 7, border: "1px solid var(--border)",
@@ -367,7 +421,12 @@ function MChat() {
   }
 
   const { provider: _activeProvider } = mGetProviderConfig(overrideProvider);
-  const _activeModel = overrideModel || M_CHAT_MODELS[_activeProvider] || _activeProvider;
+  // Prefer the live-fetched first model over the static default when no
+  // explicit user pick exists yet — mirrors the same fix in desktop/chat.jsx
+  // (the static M_CHAT_MODELS default, e.g. "llama3.2" for Ollama, may not
+  // actually be installed, causing a 404 even though the picker showed the
+  // real installed models).
+  const _activeModel = overrideModel || (liveModels[_activeProvider] && liveModels[_activeProvider][0]) || M_CHAT_MODELS[_activeProvider] || _activeProvider;
   const isVisionModel = (_m) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(_activeProvider);
 
   // Fetch real model list for live providers (groq, openrouter, etc.)
@@ -522,7 +581,9 @@ function MChat() {
 
     let { provider, apiKey } = mGetProviderConfig(overrideProvider);
     if (tier === "sovereign") { provider = "ollama"; apiKey = ""; }
-    const model = overrideModel || M_CHAT_MODELS[provider] || "";
+    // Same fallback fix as _activeModel above: prefer the live-fetched model
+    // list over the static default, which may not actually be installed.
+    const model = overrideModel || (liveModels[provider] && liveModels[provider][0]) || M_CHAT_MODELS[provider] || "";
 
     try {
       const capturedVisionImage = visionImage;

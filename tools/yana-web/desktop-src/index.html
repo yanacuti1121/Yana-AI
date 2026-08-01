@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <title>Yana AI</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600,700&display=swap" rel="stylesheet" />
+  <!-- Plain JS first — sets window.YanaVault / window.YANA before React boots.
+       Served generically by server.js's static fallback from /shared/, same
+       path as today's desktop/ app; not part of the Vite bundle. -->
+  <script src="/shared/crypto-store.js"></script>
+  <script src="/shared/data.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/main.jsx"></script>
+</body>
+</html>

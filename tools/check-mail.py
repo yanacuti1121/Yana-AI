@@ -10,7 +10,8 @@ Usage:
 
 Requires env:
   GMAIL_APP_PASSWORD  — 16-char Google App Password
-  GMAIL_USER          — Gmail address (default: phamlongh230@gmail.com)
+  GMAIL_USER          — Gmail address to check (no default — anyone else
+                         running this script must set their own)
 """
 
 import imaplib
@@ -21,7 +22,7 @@ import argparse
 from email.header import decode_header
 from datetime import datetime
 
-GMAIL_USER = os.environ.get("GMAIL_USER", "phamlongh230@gmail.com")
+GMAIL_USER = os.environ.get("GMAIL_USER", "")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 IMAP_HOST = "imap.gmail.com"
 
@@ -40,6 +41,10 @@ def decode_str(s):
 
 
 def connect():
+    if not GMAIL_USER:
+        print("ERROR: GMAIL_USER not set.")
+        print("Set it with: export GMAIL_USER='you@gmail.com'")
+        sys.exit(1)
     if not GMAIL_APP_PASSWORD:
         print("ERROR: GMAIL_APP_PASSWORD not set.")
         print("Set it with: export GMAIL_APP_PASSWORD='your-app-password'")

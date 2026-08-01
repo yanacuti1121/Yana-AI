@@ -168,21 +168,27 @@ else
 fi
 
 # -- Audit entry
+# BUG FIX (2026-07-16): this used to hand-roll its own entry (no prev_hash,
+# a different hash formula than audit-log.sh/verify-audit-chain.sh use, and
+# no lock) — every rollback permanently broke the chain. Now goes through
+# the shared helper both this script and rotate-audit-log.sh use, which
+# produces a verifiable entry and takes the same lock audit-log.sh does.
 echo "  [4/4] Writing audit entry..."
-python3 -c "
-import json, hashlib
-ts = '$(date -u +"%Y-%m-%dT%H:%M:%SZ")'
-entry = {
-  'ts': ts, 'hook': 'session-rollback', 'tool': 'rollback',
-  'agent': 'sovereign:$SOVEREIGN',
-  'input': json.dumps({'checkpoint_id': '$TARGET_ID', 'restore_l2': $( [[ "$RESTORE_L2" == true ]] && echo True || echo False )}),
-  'decision': 'rollback_applied'
-}
-h = hashlib.sha256(json.dumps(entry).encode()).hexdigest()
-entry['hash'] = h
-with open('$STATE_DIR/audit-chain.log','a') as f:
-    f.write(json.dumps(entry) + '\n')
-" 2>/dev/null || true
+source "$(dirname "${BASH_SOURCE[0]}")/lib/audit-chain-append.sh"
+# SECURITY FIX (2026-07-16, code-auditor review): TARGET_ID used to be
+# spliced directly into a Python string literal inside `python3 -c "..."` —
+# a value containing a stray quote could break out of the literal and
+# execute arbitrary Python. Passed via a real environment variable instead,
+# read with os.environ (never interpolated into source text) so no value
+# of TARGET_ID/RESTORE_L2 can be parsed as anything but data.
+ROLLBACK_INPUT=$(YANA_ROLLBACK_TARGET_ID="$TARGET_ID" YANA_ROLLBACK_RESTORE_L2="$RESTORE_L2" python3 -c "
+import json, os
+print(json.dumps({
+    'checkpoint_id': os.environ.get('YANA_ROLLBACK_TARGET_ID', ''),
+    'restore_l2': os.environ.get('YANA_ROLLBACK_RESTORE_L2', 'false') == 'true',
+}))
+" 2>/dev/null || echo '{}')
+audit_chain_append "session-rollback" "rollback" "sovereign:$SOVEREIGN" "$ROLLBACK_INPUT" "rollback_applied" 2>/dev/null || true
 
 echo ""
 echo "  Rollback complete"

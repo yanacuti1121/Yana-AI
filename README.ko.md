@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v0.43.1 · AI 코딩 에이전트를 위한 안전 방화벽        │ 시작하기 팁                                                                         │
-│ 101 agents · 1,989 skills                        │ yana-ai doctor                                                                         │
-│ 70 rules · 56 hooks · 107 scripts                │ yana-ai init                                                                           │
-│ 166 commands                                     │                                                                                       │
+│ v1.1.0 · AI 코딩 에이전트를 위한 안전 방화벽         │ 시작하기 팁                                                                         │
+│ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
+│ 71 rules · 62 hooks · 113 scripts                │ yana-ai init                                                                           │
+│ 170 commands                                     │                                                                                       │
 │                                                   │ 새 소식                                                                              │
-│                                                   │ v0.43.1 — publish 파이프라인 수정, hermes_adapted tool-loop 감지기 추가              │
+│                                                   │ v1.1.0 — COMMANDS.md 추가, 배너 배경 버그 수정, chat TUI 테두리 색상                  │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -36,11 +36,11 @@ $ yana-ai
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <img src="https://img.shields.io/badge/version-v0.43.1-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://www.npmjs.com/package/yana-ai">
-    <img src="https://img.shields.io/npm/v/yana-ai?style=for-the-badge&logo=npm&color=cb3837" />
+  <a href="COMMANDS.md">
+    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
+  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
   </a>
@@ -50,23 +50,26 @@ $ yana-ai
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🧩_skills-1,989-2f7e6e?style=flat-square" />
-  <img src="https://img.shields.io/badge/🤖_agents-101-7d6aa8?style=flat-square" />
-  <img src="https://img.shields.io/badge/📜_rules-70-b96b80?style=flat-square" />
-  <img src="https://img.shields.io/badge/🪝_hooks-56-b78f3d?style=flat-square" />
-  <img src="https://img.shields.io/badge/⚡_commands-166-3a7ca5?style=flat-square" />
   <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
 </p>
 
 ---
 
-에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다. Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, GitHub Copilot, Aider 등과 함께 작동합니다.
+에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다 — Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고(advisory) 수준입니다.
 
 ```bash
-npm install -g yana-ai && npx yana-ai-install   # 훅 연결 (60초)
+pip install yana-ai && yana-ai install   # 훅 연결 (60초)
 ```
 
-이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요. 아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
+> **알려진 문제, 2026-07-25에 수정됨:** 오래된 PyPI 설치본의 `yana-rt`가 자기 재귀로 CPU 100%를 유발할 수 있었습니다 — 사건 경위는 [CHANGELOG.md](CHANGELOG.md) 참고. `pip install -U yana-ai` (또는 처음부터 영향받지 않은 `cargo install yana-rt`)로 해결됩니다.
+
+이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
 
 ```bash
 # Agent tries: git push --force origin main
@@ -96,7 +99,7 @@ Yana AI는 에이전트와 시스템 사이에 위치합니다: 위험할 수 �
 
 ## 무엇을 막는가
 
-파괴적인 git 작업, 워크스페이스 밖의 `rm`, 인터넷 콘텐츠를 bash로 파이프하는 행위, 검증되지 않은 패키지 설치를 Rust 런타임(`yana-rt`)이 뒷받침하는 56개의 에이전트 훅으로 막습니다. 그 아래에는 101개의 전문 에이전트, 1,989개의 스킬, CI에서 826가지 방식으로 검사되는 70개의 시행 규칙이 있습니다.
+파괴적인 git 작업, 워크스페이스 밖의 `rm`, 인터넷 콘텐츠를 bash로 파이프하는 행위, 검증되지 않은 패키지 설치를 Rust 런타임(`yana-rt`)이 뒷받침하는 에이전트 훅으로 막습니다.
 
 ## 작동 방식
 
@@ -116,35 +119,20 @@ Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은
 
 어떤 것이 실제로 연결된 훅이고 어떤 것이 에이전트가 관례적으로 따르는 정책 문서인지는 [알려진 한계](docs/reference/known-limitations.md)에서 코드 자체를 직접 검증한 내용으로 확인하세요.
 
-## 숫자
-
-| | |
-|---|---|
-| 🧩 Skills | **1,989**개 워크플로 스킬 정의 |
-| 🤖 Agents | **101**개 전문 에이전트 |
-| 📜 Safety rules | **70**개 시행 규칙 |
-| 🪝 Hooks | **56**개 실행 전/후 훅 |
-| ⚡ Slash commands | **166**개 |
-| 🔧 Scripts | **107**개 |
-| 🔌 Harness adapters | **12**개 (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23**개 (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
-| ✅ CI 규칙 검사 | **826**회 |
-
 ---
 
 ## 빠른 설치
 
-**→ [npm install](https://www.npmjs.com/package/yana-ai)** — `npm install -g yana-ai`
+**→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
+
+> **참고 (2026-07-30): npm으로 배포하지 않습니다.** Yana AI는 더 이상 npm 레지스트리에 게시되지 않으며, 앞으로도 계획이 없습니다 — 전체 경위는 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고. 아래 `pip` 또는 `cargo`를 사용하세요.
 
 ```bash
-# Claude Code 플러그인 — npx yana-ai-install 이 훅을 연결합니다
-# (필수: npm v12+ 는 기본적으로 postinstall 스크립트를 더 이상 실행하지 않음)
-npm install yana-ai && npx yana-ai-install
-
-# Python CLI
+# Python CLI — yana-ai 명령을 설치합니다
 pip install yana-ai
+yana-ai install                # 현재 프로젝트에 훅을 연결합니다
 
-# Rust 런타임 (1256배 빠른 스캐너)
+# Rust 런타임 (범위가 제한된 명령에서 최대 ~12배 빠름 — BENCHMARK.md 참고)
 cargo install yana-rt
 ```
 
@@ -155,7 +143,7 @@ yana-ai doctor .
 
 ### 요구 사항
 
-- Node.js 18+ (npm 패키지용)
+- Python 3.11+ (pip 패키지용) 또는 Rust/Cargo (`cargo install yana-rt`용)
 - Git
 - 어떤 AI 코딩 도구든: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider 등
 
@@ -176,12 +164,10 @@ yana-ai doctor                  # 확인
 Yana AI는 사용하는 도구에 맞춰 적응합니다:
 
 ```bash
-bash core/scripts/switch-engine.sh cursor    # .cursorrules + 7개 .cursor/rules/*.mdc
-bash core/scripts/switch-engine.sh opencode  # OPENCODE.md
-bash core/scripts/switch-engine.sh zed       # .zed/settings.json
-bash core/scripts/switch-engine.sh gemini    # GEMINI.md
-bash core/scripts/switch-engine.sh copilot   # .github/copilot-instructions.md
-bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + 실제 beforeShellExecution 훅
+bash core/scripts/switch-engine.sh codex       # AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 ```
 
 ---
@@ -217,12 +203,13 @@ bash core/scripts/switch-engine.sh status    # 12개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-23개 서브커맨드. Python 의존성 없음.
+27개 서브커맨드. Python 의존성 없음.
 
 ```bash
+yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)
 yana-ai audit .                       # 보안 스캔 — secrets, CVE, 공급망 위험
 yana-ai graph .                       # 지식 그래프 — 파일 의존성, import 해석
-yana-ai vault search Q                # 1,989개 스킬을 키워드로 검색
+yana-ai vault search Q                # 2,025개 스킬을 키워드로 검색
 yana-ai hunt .                        # 보안 패턴 탐지 (OWASP, injection, SSRF)
 yana-ai fix .                         # 규칙 위반 자동 수정
 yana-ai doctor .                      # 전체 시스템 상태 점검
@@ -232,7 +219,27 @@ yana-ai route classify "fix auth bug" # 작업 분류 → simple/complex/externa
 yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 ```
 
-**벤치마크:** 1만 개 파일 리포지토리에서 `yana-ai audit`은 Python 버전보다 **1256배 빠릅니다**.
+**벤치마크** (2026-07-23 측정, 전체 방법론은 `BENCHMARK.md` 참고):
+`doctor`/`ci` 같이 범위가 제한된 명령은 Python보다 약 ~2–12배 빠릅니다
+(시작 시간이 지배적); 전체 리포지토리 `scan`은 19,000개 파일 규모에서 ~1.1배로 수렴합니다
+(그 규모에서는 시작 시간이 아니라 작업량이 지배적). 이 줄이 예전에 주장했던 `1256배`라는
+수치는 이미 한 번 검증되지 않은 것으로 밝혀졌고(2026-05-31, 커밋 `fb6a0cd7`)
+관련 없는 README 복원(2026-07-07)으로 다시 들어왔습니다 — 그때나 지금이나
+`BENCHMARK.md`의 어떤 측정으로도 재현되지 않습니다.
+
+---
+
+## 버전 관리
+
+Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버전 번호를 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기).
+
+| 축 | 버전 | 레지스트리 |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Rust 런타임 (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 패키지 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
 
 ---
 
@@ -240,12 +247,12 @@ yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 
 ```
 core/
-├── hooks/          # 56개 PreToolUse / PostToolUse / Stop 훅
-├── rules/          # 70개 시행 규칙 (보안, 정확성, UI, git)
+├── hooks/          # 57개 PreToolUse / PostToolUse / Stop 훅
+├── rules/          # 71개 시행 규칙 (보안, 정확성, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101개 전문 에이전트 정의
-├── skills/         # 1,989개 SKILL.md 파일
+├── skills/         # 2,016개 SKILL.md 파일
 ├── config/
 │   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 240개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
@@ -293,6 +300,50 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 토큰 비용 줄이기
+
+Yana AI는 에이전트가 하는 행동에 대한 안전을 실행하지만, 에이전트가 명령
+출력을 읽으며 소모하는 토큰 자체는 줄이지 않습니다. 그게 실제 고민이라면
+바로 그 목적으로 만들어진 별도의 Apache-2.0 도구인
+[`rtk`](https://github.com/rtk-ai/rtk)를 함께 쓰세요 (에이전트가 읽기 전에
+bash 출력을 필터링/압축하며, 흔한 명령에서 최대 90%까지 줄입니다). 코드를
+내장하거나 의존성으로 추가하지 않습니다 — 설치 및 Claude Code/Cursor/
+Codex/Antigravity 연결 방법은
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+참고.
+
+---
+
+## MCP 연동 — Buzz
+
+`yana-rt mcp`는 `check_command`(Claude Code용 `core/hooks/guard-destructive.sh`가
+실행하는 것과 동일한 파괴적 명령 검사)를 stdio를 통한 MCP 도구로
+노출합니다 — opt-in이며 `mcp` Cargo feature 뒤에 게이트되어 있어
+기본 바이너리에는 포함되지 않습니다.
+
+첫 실제 사용처는 [Buzz](https://github.com/block/buzz)입니다 — AI
+에이전트가 자신만의 키를 가진 정식 멤버로 참여하는 자체 호스팅 팀
+워크스페이스입니다. Buzz의 `buzz-acp`는 ACP를 말하는 어떤 에이전트든
+(goose, codex, claude-code, 또는 `buzz-agent`) 실행시킬 수 있고,
+`BUZZ_ACP_MCP_COMMAND`를 통해 추가 MCP 서버를 연결할 수 있습니다 —
+Yana AI를 가리키면 Buzz가 조율하는 모든 에이전트가 Claude Code뿐 아니라
+동일한 명령 검사를 받게 됩니다.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+이 wrapper가 필요한 이유는 `buzz-acp`가 `BUZZ_ACP_MCP_COMMAND`를 인자
+없이 호출하지만 `yana-rt`는 `mcp` 서브커맨드가 필요하기 때문입니다 —
+전체 설정 방법(키페어 생성, 릴레이 등록)과 실제로 검증한 stdio JSON-RPC
+기록은 [docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+참고. 참고: 이건 생성된 에이전트가 이 검사를 *사용할 수 있게* 만들
+뿐입니다 — 명령을 실행하기 전에 실제로 호출하는지는 그 에이전트 자체의
+도구 사용 정책에 달려 있으며, 강제되는 것은 아닙니다.
+
+---
+
 ## Yana AI (웹 제품)
 
 **[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
@@ -334,10 +385,10 @@ Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입�
 한 사람. 팀 없음. 투자 없음.
 
 - 훅 아키텍처, 안전 게이트, Python CLI
-- Rust 런타임(`yana-rt`), 101개 에이전트, 1,989개 스킬, 멀티 하니스 지원
-- 12개 하니스 어댑터 (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider…)
+- Rust 런타임(`yana-rt`), 101개 에이전트, 2,025개 스킬, 멀티 하니스 지원
+- 4개 하니스 어댑터 (Claude Code, Cursor, Codex, Antigravity)
 
-1,989개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
+2,025개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
 
 ---
 
@@ -386,7 +437,7 @@ yana-ai route classify "deploy to production"
 
 다섯 가지 경로:
 - **simple** → Yana가 직접 처리 (읽기 전용, 에이전트 불필요)
-- **skill** → 1,989개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
+- **skill** → 2,016개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
 - **learn** → `hoc-tap`(소크라테스식 학습 도우미)로 라우팅 (영어/베트남어로 "learn", "explain", "why" 등에서 트리거)
 - **daily** → `daily-assistant`로 라우팅, 요약 / 계획 / 초안 작성 (영어/베트남어로 "summarize", "write an email", "make a plan" 등에서 트리거)
 - **complex** → 범위가 지정된 브리프와 함께 전문 에이전트(들) 디스패치
@@ -463,7 +514,19 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 `status`는 6가지 상태를 보여줍니다: `working`(살아있고 로그가 최근에 갱신됨), `blocked`(살아있지만 로그가 `YANA_AGENT_STALE_SECONDS`초, 기본값 30초 동안 변경되지 않아 멈췄을 수 있음), `done`(0으로 종료), `failed`(0이 아닌 값으로 종료), `unknown`(프로세스는 사라졌지만 자체 종료 코드를 기록한 적이 없음, 예: SIGKILL 이후), `killed`(`kill`로 중지됨).
 
-더 자세한 내용과 출력 예시는 [전체 CLI 레퍼런스](docs/reference/cli-reference.md)를 참고하세요.
+더 자세한 내용과 출력 예시는 [전체 CLI 레퍼런스](docs/reference/cli-reference.md)를, 모든 `yana-ai` 명령을 한곳에서 보려면 **[COMMANDS.md](COMMANDS.md)**를 참고하세요.
+
+---
+
+## 프로젝트 링크
+
+| | |
+|---|---|
+| 전체 명령어 목록 | [COMMANDS.md](COMMANDS.md) |
+| 기여 안내 | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| 행동 강령 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| 보안 정책 | [SECURITY.md](SECURITY.md) |
+| 라이선스 | [Apache 2.0](LICENSE) |
 
 ---
 

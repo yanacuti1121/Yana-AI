@@ -1,13 +1,25 @@
-name: Publish to npm + PyPI + crates.io
+name: Publish to PyPI + crates.io
 
-# Three independent version axes (see VERSIONING.md): product (npm,
-# package.json/MANIFEST.json), yana-rt crate (crates.io, Cargo.toml), and
-# the Python package (PyPI, pyproject.toml). Each axis has its own tag
-# prefix so pushing one axis's tag never touches the other two files.
-# Before 2026-07-05 all three jobs ran unconditionally on any
-# `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set its own version file to
-# that same tag number, silently collapsing the three axes into one and
-# contradicting VERSIONING.md's own stated design.
+# Two independent version axes (see VERSIONING.md): the yana-rt crate
+# (crates.io, Cargo.toml) and the Python package (PyPI, pyproject.toml).
+# Each axis has its own tag prefix so pushing one axis's tag never
+# touches the other's file.
+#
+# A third axis, product (npm, package.json/MANIFEST.json), was removed
+# 2026-07-30 — the npm package (tried as unscoped `yana-ai`, then
+# `@vutam-yana-ai/yana-ai`, then `@yanacuti/yana-ai` — three attempts,
+# three 403s, full history in VERSIONING.md) is no longer distributed
+# via npm. `package.json` still exists for local tooling (test/deploy/
+# electron-build scripts, `postinstall`) and is marked `"private": true`
+# so it can never be published by accident. Do not re-add an npm publish
+# job without new evidence from npm support that the account-level block
+# is actually resolved — see VERSIONING.md's 2026-08-01 entry for why a
+# passing local dry-run isn't that evidence.
+#
+# Before 2026-07-05 all three jobs (npm included, at the time) ran
+# unconditionally on any `v[0-9]+.[0-9]+.[0-9]+` tag and each force-set
+# its own version file to that same tag number, silently collapsing the
+# axes into one and contradicting VERSIONING.md's own stated design.
 #
 # Reviewed 2026-07-05 (security-auditor + code-auditor per
 # 54-bft-consensus-law.md) before this version landed. Two things the
@@ -29,23 +41,33 @@ name: Publish to npm + PyPI + crates.io
 on:
     push:
       tags:
-        - 'v[0-9]+.[0-9]+.[0-9]+'      # product version -> npm only
         - 'rt-v[0-9]+.[0-9]+.[0-9]+'   # yana-rt crate version -> crates.io only
         - 'py-v[0-9]+.[0-9]+.[0-9]+'   # Python package version -> PyPI only
     release:
       types: [published]
     workflow_dispatch:
       inputs:
-        version:
-          description: 'Version to publish (e.g. 0.42.1)'
-          required: true
-          default: '0.42.1'
         target:
           description: 'Which registry to publish'
           required: true
           type: choice
-          options: [npm, pypi, crates]
-          default: 'npm'
+          options: [pypi, crates]
+          default: 'pypi'
+        # Separate version fields per target -- a single shared field
+        # (removed 2026-07-30) let someone select target=crates while
+        # typing a PyPI-axis-looking number, which crates.io then
+        # rejected as "already exists" since these two axes are
+        # genuinely independent (see VERSIONING.md). Each field below is
+        # only read by its own job, defaulted to that axis's own current
+        # version, so a wrong-axis number can no longer cross over.
+        pypi_version:
+          description: 'PyPI version (only used when target=pypi, e.g. 0.42.4)'
+          required: false
+          default: '0.42.4'
+        crates_version:
+          description: 'crates.io version (only used when target=crates, e.g. 1.3.3)'
+          required: false
+          default: '1.3.3'
 
 jobs:
   publish-pypi:
@@ -61,7 +83,7 @@ jobs:
     permissions:
       contents: read
     env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
+      RAW_VERSION: ${{ inputs.pypi_version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
@@ -90,47 +112,6 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
           skip-existing: true
 
-  publish-npm:
-    name: npm — yana-ai
-    # The !startsWith(...,'rt-v'/'py-v') guards below are currently
-    # always-true once startsWith(ref,'v') is true, since no rt-v/py-v tag
-    # can also start with a bare 'v'. Kept as explicit future-proofing in
-    # case a fourth axis ever gets a prefix starting with 'v' too.
-    if: >-
-      (github.event_name == 'push' && startsWith(github.ref_name, 'v') && !startsWith(github.ref_name, 'rt-v') && !startsWith(github.ref_name, 'py-v')) ||
-      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && !startsWith(github.event.release.tag_name, 'rt-v') && !startsWith(github.event.release.tag_name, 'py-v')) ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'npm')
-    runs-on: ubuntu-latest
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/yana-ai
-    env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0 (node24)
-        with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Set version from tag
-        run: |
-          VERSION="$RAW_VERSION"
-          VERSION="${VERSION#v}"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-      - name: Publish to npm
-        run: |
-          if npm view "yana-ai@$VERSION" &>/dev/null 2>&1; then
-            echo "yana-ai@$VERSION already published, skipping."
-          else
-            npm publish --access public
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
   publish-crates:
     name: crates.io — yana-rt
     if: >-
@@ -142,7 +123,7 @@ jobs:
       name: crates-io
       url: https://crates.io/crates/yana-rt
     env:
-      RAW_VERSION: ${{ inputs.version || github.event.release.tag_name || github.ref_name }}
+      RAW_VERSION: ${{ inputs.crates_version || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 

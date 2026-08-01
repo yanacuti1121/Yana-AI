@@ -1,3 +1,8 @@
+---
+description: Frontend production-readiness checklist — shared paths with color-rules.md, typography-rules.md, and anti-ai-slop-design-law.md so companion frontend rules always load together
+paths: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scss", "**/*.html"]
+---
+
 # Yana AI — Frontend Production Checklist
 # Informed by patterns independently observed across several public
 # production-frontend agent skills (2026) — rewritten in Yana AI's own

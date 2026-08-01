@@ -1,7 +1,7 @@
+use crate::graph::imports::extract_imports;
 use crate::graph::types::*;
 use anyhow::Result;
 use chrono::Utc;
-use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 use walkdir::WalkDir;
@@ -162,44 +162,34 @@ fn analyze_files(root: &str, files: &[(String, String)], quiet: bool) -> (Vec<No
     (nodes, edges)
 }
 
-fn extract_imports(content: &str, lang: &str) -> Vec<String> {
-    let mut imports = Vec::new();
-    match lang {
-        "Rust" => {
-            let re = Regex::new(r"use\s+(?:crate::)?([a-zA-Z_][a-zA-Z0-9_:]*)")
-                .unwrap();
-            for cap in re.captures_iter(content) {
-                imports.push(cap[1].replace("::", "/"));
-            }
-        }
-        "TypeScript" | "JavaScript" => {
-            let re = Regex::new(r#"(?:import|from)\s+['"]([^'"]+)['"]"#).unwrap();
-            for cap in re.captures_iter(content) {
-                imports.push(cap[1].to_string());
-            }
-        }
-        "Python" => {
-            let re = Regex::new(r"(?:from\s+([\w.]+)\s+import|import\s+([\w.]+))")
-                .unwrap();
-            for cap in re.captures_iter(content) {
-                let m = cap.get(1).or(cap.get(2))
-                    .map(|m| m.as_str().replace('.', "/"))
-                    .unwrap_or_default();
-                if !m.is_empty() { imports.push(m); }
-            }
-        }
-        "Go" => {
-            let re = Regex::new(r#""([^"]+)""#).unwrap();
-            let in_import = content.contains("import (") || content.contains("import\t\"");
-            if in_import {
-                for cap in re.captures_iter(content) {
-                    imports.push(cap[1].to_string());
-                }
-            }
-        }
-        _ => {}
+/// Whether `needle` appears in `haystack` aligned to `/`-separated path
+/// segment boundaries on both sides (start/end of string count as
+/// boundaries too). Subsumes what the old code split across two checks —
+/// `k.contains(imp)` (any position, no anchoring at all) and
+/// `k.ends_with(&format!("{}.rs", imp))` (anchored on the right only, and
+/// itself not left-boundary-safe: `imp = "od"` would match `"src/mod.rs"`
+/// via the literal suffix `"od.rs"`). Both were the same underlying bug:
+/// an import name that happens to be a substring of an unrelated path
+/// resolved to the wrong file — e.g. `imp = "auth"` matching inside
+/// `"oauth/client.rs"`, non-deterministically depending on `HashMap`
+/// iteration order when multiple unrelated paths collided this way. Wave 0
+/// audit finding (`docs/PLATFORM-READINESS-WAVE0.md`, mục 2).
+fn path_segment_match(haystack: &str, needle: &str) -> bool {
+    if needle.is_empty() {
+        return false;
     }
-    imports
+    let mut start = 0;
+    while let Some(rel) = haystack[start..].find(needle) {
+        let abs = start + rel;
+        let end = abs + needle.len();
+        let before_ok = abs == 0 || haystack.as_bytes()[abs - 1] == b'/';
+        let after_ok = end == haystack.len() || haystack.as_bytes()[end] == b'/';
+        if before_ok && after_ok {
+            return true;
+        }
+        start = abs + 1; // keep scanning — an earlier unaligned occurrence shouldn't hide a later aligned one
+    }
+    false
 }
 
 fn resolve_import(imp: &str, from_file: &str, id_map: &HashMap<String, String>) -> Option<String> {
@@ -219,13 +209,70 @@ fn resolve_import(imp: &str, from_file: &str, id_map: &HashMap<String, String>) 
             return id_map.get(clean.as_ref()).cloned();
         }
     }
-    // Internal module path (e.g., "crate/vault/mod")
+    // Internal module path (e.g., "crate/vault/mod") — match against the
+    // path with its extension stripped, aligned to segment boundaries.
     for (k, v) in id_map {
-        if k.contains(imp) || k.ends_with(&format!("{}.rs", imp)) {
+        let stem = k.rsplit_once('.').map(|(s, _)| s).unwrap_or(k.as_str());
+        if path_segment_match(stem, imp) {
             return Some(v.clone());
         }
     }
     None
+}
+
+#[cfg(test)]
+mod resolve_import_tests {
+    use super::*;
+
+    fn map(pairs: &[(&str, &str)]) -> HashMap<String, String> {
+        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    }
+
+    #[test]
+    fn does_not_false_match_substring_inside_unrelated_path() {
+        // The exact false-positive Wave 0 named: "auth" must not resolve
+        // into "oauth/client.rs" just because it's a substring.
+        let id_map = map(&[("src/oauth/client.rs", "file:src/oauth/client.rs")]);
+        assert_eq!(resolve_import("auth", "src/main.rs", &id_map), None);
+    }
+
+    #[test]
+    fn resolves_genuine_segment_aligned_module_path() {
+        let id_map = map(&[("src/vault/mod.rs", "file:src/vault/mod.rs")]);
+        assert_eq!(
+            resolve_import("vault/mod", "src/main.rs", &id_map),
+            Some("file:src/vault/mod.rs".to_string())
+        );
+    }
+
+    #[test]
+    fn resolves_when_needle_is_a_suffix_segment() {
+        let id_map = map(&[("core/guard/lock.rs", "file:core/guard/lock.rs")]);
+        assert_eq!(
+            resolve_import("guard/lock", "src/main.rs", &id_map),
+            Some("file:core/guard/lock.rs".to_string())
+        );
+    }
+
+    #[test]
+    fn does_not_false_match_suffix_that_is_not_segment_aligned() {
+        // Old `k.ends_with(&format!("{}.rs", imp))` branch would have
+        // matched "od" against "src/mod.rs" via the literal suffix
+        // "od.rs" — not a real module named "od".
+        let id_map = map(&[("src/mod.rs", "file:src/mod.rs")]);
+        assert_eq!(resolve_import("od", "src/main.rs", &id_map), None);
+    }
+
+    // NOTE: a relative-import resolution test ("./foo" resolving against
+    // "src/bar.rs") was deliberately NOT added here. Path::new("src").
+    // join("./foo") produces "src/./foo" (Rust's Path::join does not
+    // normalize "." components), which then never matches a clean map key
+    // like "src/foo.rs" — relative imports (./foo, ../bar) appear to be
+    // broken today for reasons entirely unrelated to this fix (the
+    // relative-import branch returns before ever reaching the code this
+    // file's fix touches). Out of scope for the Wave 0 finding this fix
+    // addresses (docs/PLATFORM-READINESS-WAVE0.md, mục 2, specifically
+    // about k.contains(imp)) — flagged separately, not fixed here.
 }
 
 fn build_tour(nodes: &[Node], edges: &[Edge]) -> Vec<TourStep> {

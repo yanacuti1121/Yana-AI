@@ -139,24 +139,38 @@ Claude Code ──── settings.json hooks ───────────�
                                                           Native hook API
 Cursor ──────── .cursorrules (legacy) ────────────────► Advisory (context)
              └─ .cursor/rules/yana-ai-security.mdc ───► Advisory (MDC)
-             └─ .cursor/rules/yana-ai-hard-enforcement.mdc
-                  bash core/scripts/safe-run.sh --engine cursor
-                  → HARD BLOCK on blocked/warn patterns, no TTY      ► Hard enforcement
+             └─ .cursor/hooks/before-shell-execution.js
+                  real beforeShellExecution hook, screens
+                  destructive commands before Cursor runs them        ► Hard enforcement
 
-Aider ───────── adapters/aider.md (--system-prompt) ──► Advisory (prompt)
-             └─ .aider.conf.yml
-                  shell: bash core/scripts/safe-run.sh --engine aider
-                  → HARD BLOCK, read-only gates on core/             ► Hard enforcement
+Codex ───────── adapters/codex.md → AGENTS.md ────────► Advisory (prompt layer)
 
-Copilot ─────── .github/copilot-instructions.md ──────► Advisory (prompt layer)
+Antigravity ─── adapters/antigravity.md → .agent/rules/yana-ai.md ──► Advisory (prompt layer)
+
+Any MCP client ─ yana-rt mcp (Program J spike) ───────► Hard enforcement
+             │    exposes check_command() as an MCP tool         (per-call, opt-in
+             │    over stdio, gated behind the `mcp`               by whether the
+             │    Cargo feature — build-it-yourself,               calling agent
+             │    not shipped in the default binary                 invokes it)
+             └─ First real consumer: Buzz (block/buzz)'s buzz-acp,
+                  via BUZZ_ACP_MCP_COMMAND → scripts/yana-rt-mcp-wrapper.sh
+                  — see docs/programs/buzz-mcp-integration.md
 ```
+
+The MCP row differs from the other four in one important way: it's a
+tool an agent can *choose* to call, not a hook that intercepts every
+command unconditionally. Whether a given MCP-connected agent actually
+invokes `check_command` before running a shell command depends on that
+agent's own tool-use policy — nothing on the wire forces it, unlike
+Claude Code's native hooks or Cursor's `beforeShellExecution`.
 
 **Switch engine:**
 ```bash
-bash core/scripts/switch-engine.sh cursor   # generates MDC + hard enforcement
-bash core/scripts/switch-engine.sh aider    # generates .aider.conf.yml
-bash core/scripts/switch-engine.sh claude   # reset to native hooks
-bash core/scripts/switch-engine.sh status   # show current adapter state
+bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
+bash core/scripts/switch-engine.sh codex       # generates AGENTS.md
+bash core/scripts/switch-engine.sh antigravity # generates .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh claude      # reset to native hooks
+bash core/scripts/switch-engine.sh status      # show current adapter state
 ```
 
 ---

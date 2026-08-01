@@ -58,17 +58,16 @@ cp "$AUDIT_LOG" "$ROTATED"
 : > "$AUDIT_LOG"
 
 # Write rotation event to fresh log
-python3 -c "
-import json
-entry = {
-  'ts': '$TIMESTAMP', 'hook': 'rotate-audit-log', 'tool': 'rotate',
-  'action': 'rotated',
-  'archived': '$ROTATED',
-  'lines_archived': $LINES,
-  'size_bytes': $FILE_SIZE_BYTES
-}
-open('$AUDIT_LOG', 'a').write(json.dumps(entry) + '\n')
-" 2>/dev/null || true
+# BUG FIX (2026-07-16): this used to write a plain dict with no hash/
+# prev_hash at all — verify-audit-chain.sh could never verify it (a missing
+# hash field always mismatches the recomputed one), so every rotation
+# permanently broke the chain right at its own first entry. Now goes
+# through the same shared, lockable, verifiable helper session-rollback.sh
+# uses. The log was just truncated above, so tail -1 is empty here and this
+# correctly becomes a fresh GENESIS-rooted first entry for the new chain.
+source "$(dirname "${BASH_SOURCE[0]}")/lib/audit-chain-append.sh"
+ROTATE_INPUT=$(printf '{"archived":"%s","lines_archived":%s,"size_bytes":%s}' "$ROTATED" "$LINES" "$FILE_SIZE_BYTES")
+audit_chain_append "rotate-audit-log" "rotate" "system" "$ROTATE_INPUT" "rotated" 2>/dev/null || true
 
 # Prune old rotations beyond KEEP
 python3 -c "

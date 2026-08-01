@@ -8,6 +8,168 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.1.0 — 2026-07-30
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+marketplace.json`/`.claude-plugin/plugin.json`) no longer maps to any
+public registry — see "Discontinued: npm distribution" below.
+`Cargo.toml` (`yana-rt`, crates.io, `1.3.3`) version is unchanged this
+cycle. `pyproject.toml`'s version number (PyPI, `0.42.3`) is also
+unchanged, but its packaging *configuration* changed — see "Fix: PyPI
+package was fundamentally broken" below. See `VERSIONING.md` for why
+these axes move independently.
+
+- **Discontinued: npm distribution.** Yana AI is no longer published to
+  npm. The original account hit a persistent, unresolved account-level
+  publish block (403 despite full read-write access; reported to npm
+  support repeatedly, never resolved — see the v1.0.0 entry below). A
+  replacement account and scoped package (`@vutam-yana-ai/yana-ai`) were
+  set up, but its first publish attempt hit a *separate* 403 — a
+  new-account anti-abuse hold, confirmed via the registry's own request
+  log (two clean 404 existence checks, then a flat 403 on the PUT, no
+  OTP/EOTP error). Given the identical unresolved history with npm
+  support on the first account, npm distribution was dropped rather than
+  pursued further. `package.json` still exists (it backs local tooling —
+  `npm test`, `npm run deploy`, the Electron build scripts,
+  `postinstall`) and is now marked `"private": true` so it can never be
+  published again, by accident or otherwise. `publish-npm` was removed
+  from `.github/workflows/publish.yml` entirely. Full account/registry
+  history: `VERSIONING.md`'s "Why product has no registry" section.
+- **Fix: the PyPI package was fundamentally broken for its primary
+  entry point.** Found while writing the npm-removal docs above and
+  verified end-to-end (not just by reading code): a real `pip install
+  yana-ai` in a clean venv could never run the `yana-ai` command at all.
+  `src/yana_ai/cli.py` looked for `bin/yana-ai` (a file that has never
+  existed — the real script is `bin/yana`), and even after fixing that
+  typo, `pyproject.toml`'s wheel/sdist packaging only shipped
+  `src/yana_ai/`'s Python code — `bin/`, `core/`, `.claude-plugin/`,
+  `gates/`, `scanner/`, and `policy/` (all required for `bin/yana` to do
+  anything) were never included in the distributed package at all.
+  Fixed both: corrected the filename in `cli.py`, and added
+  `force-include`/sdist `include` entries for all six directories.
+  Verified by building the wheel locally, installing it into a fresh
+  venv, and confirming `yana-ai version` and `yana-ai install .` both
+  run correctly end-to-end (including the two policy templates
+  `yana-ai install` copies, which were silently "missing" before this
+  fix and are now included).
+- **Add**: `COMMANDS.md` — a root-level catalog of every `yana-ai` CLI
+  command in one place (audit, guard/policy, runtime task/eval/bus/
+  memory/mission/route/evidence, knowledge graph, security scanning),
+  cross-checked directly against `bin/yana`'s dispatch table and
+  `src/main.rs`'s clap definitions rather than hand-recalled.
+- **Fix**: `bin/yana`'s startup banner (shown on bare `yana-ai`/`yana`
+  with no subcommand) now fills with a light-pink background
+  (`\033[48;5;224m`) across every row without gaps. The first pass at
+  this had two real bugs, both caught by independent verify-agent
+  dispatches rather than self-certified: `_banner_row2()` reapplied the
+  background color *after* the row's padding argument instead of
+  before it, and three live-stats lines had a second embedded RESET
+  (before " agents"/" hooks"/" checks") that dropped the background for
+  that trailing text. Both are fixed and re-verified via direct byte-
+  level inspection of the actual ANSI output.
+- **Fix**: `bin/yana`'s `usage()` help text was missing three commands
+  that were already dispatchable (`observability`, `skill-quality`,
+  `mcp`) — added so `yana-ai help` matches what the CLI actually runs.
+- **Fix**: `bin/yana` didn't dispatch `mcp` at all in an earlier pass;
+  now routed alongside the other `rt`-forwarded subcommands.
+- **Docs**: all four README locales gained an "MCP integration — Buzz"
+  section and a link to `COMMANDS.md`; the pre-existing stale skill
+  count (2,016 → 2,025) was fixed at two locations per locale. All four
+  also dropped npm as an install method (pip/cargo only now) and the
+  version badge/banner example were bumped to v1.1.0.
+- **Style**: `yana chat`'s TUI header border is now magenta, and the
+  input box border switches between cyan (idle) and yellow (a turn is
+  streaming) — a lighter-touch borrow from superfile's status-by-border-
+  color pattern, not a full redesign.
+
+## v1.0.0 — 2026-07-26
+
+First 1.0 release. Product version axis only (`package.json`/
+`MANIFEST.json`/`.claude-plugin/marketplace.json`/`.claude-plugin/
+plugin.json`); `Cargo.toml` (`yana-rt`, crates.io, already at `1.3.3`)
+and `pyproject.toml` (PyPI, `0.42.3`) are unchanged this cycle — neither
+the Rust runtime nor the Python package changed. See `VERSIONING.md` for
+why these three axes are independent.
+
+**Known issues, not fixed by this release — stated plainly, not
+silently carried:**
+- **npm publish is frozen at v0.43.1.** Publishing newer versions is
+  blocked by an account-level issue on npm's own side, confirmed not a
+  config problem here (the same 403 reproduces across multiple packages
+  under the same account, via both CI's OIDC trusted publishing and a
+  fresh manual browser login, while npm's own `access list` reports
+  read-write on every one of them). Reported to npm support repeatedly
+  with no resolution. `npm install -g yana-ai` will keep installing
+  v0.43.1 until this is resolved — use `pip install yana-ai` or
+  `cargo install yana-rt` for the current version.
+- **The desktop app's auto-update pipeline is broken.** `tools/
+  yana-desktop/package.json`'s version was never bumped past `0.1.0`,
+  so every desktop build tries to publish an identically-named
+  installer asset; the last attempt (for the v0.43.2 tag, 2026-07-10)
+  failed with `overwrite published file ... reason=already exists on
+  GitHub`. The in-app auto-updater code itself is correct (checks
+  GitHub Releases every 4h and on launch, always asks before
+  downloading/installing) — it simply has nothing newer to find.
+
+- **Add**: `src/skill_quality.rs` — per-skill outcome ledger. Correlates
+  `.claude/state/audit-chain.log` (which skill/agent a task's session
+  invoked) with `eval judge`'s PASS/FAIL verdict to score skill quality
+  from real task outcomes. Idea borrowed from HKUDS/OpenSpace's
+  quality-from-real-tasks model, reimplemented from scratch in Rust —
+  no dependency on that project or its cloud. `yana-ai skill-quality
+  show|promote`; promotion always requires an explicit human command,
+  demotion on a fresh FAIL streak is automatic. 262 tests passing
+  (199 unit + 63 integration).
+- **Cut**: `core/scripts/switch-engine.sh` harness adapter support, from
+  15 engines down to 4 actually in use (Claude Code, Cursor, Codex,
+  Antigravity). Removed the copilot/aider/kimi/gemini/qwen/deepseek/
+  openrouter/continue/opencode/zed/windsurf/kiro cases, their adapter
+  source files, and stale generated artifacts (`GEMINI.md`,
+  `OPENCODE.md`, `.github/copilot-instructions.md`, `.windsurf/`,
+  `.kiro/`). `yana chat`'s own model-provider list (Anthropic/OpenAI/
+  Gemini/Groq/DeepSeek/OpenRouter/9Router/Ollama/Kimi) is a separate
+  system and is unaffected.
+- **Fix**: `MANIFEST.json`/`.claude-plugin/plugin.json` scripts count
+  (114 → 113, following the `kimi-hook-adapter.sh` deletion above) and
+  `.claude-plugin/marketplace.json`'s version (which had lagged one
+  patch behind `package.json`/`MANIFEST.json`/`plugin.json` at `0.43.1`
+  while the other three read `0.43.2`) — all four now read `1.0.0`.
+- **Fix**: `bin/yana`'s subcommand dispatch allow-list was missing two
+  real, already-shipped `yana-rt` subcommands — `observability` and
+  `skill-quality` both existed in `src/main.rs` but fell through to
+  `Unknown command` when invoked via `yana-ai observability`/
+  `yana-ai skill-quality`. Both now dispatch correctly.
+- **Docs**: All four READMEs now document the npm freeze plainly in
+  Quick Install, with a pointer to `pip`/`cargo` for the current
+  version.
+- **Fix (historical)**: `yana-rt`'s entry-point scripts resolved the
+  real binary via `$PATH`/`which` with no self-check — on some installs
+  that lookup found the entry point script itself, causing infinite
+  self-recursion (100% CPU; one affected machine reached 116°C before a
+  forced shutdown). First fixed in the JS wrapper (`scripts/
+  yana-rt-wrapper.js`) 2026-07-08/09; the same bug class in the
+  Python-installed CLI's own entry point (`src/yana_ai/rt.py`) wasn't
+  ported until 2026-07-25 (`552cafbb`). Affected every PyPI release
+  published before that date; `cargo install yana-rt` was never
+  affected (installs the compiled binary directly, no wrapper script).
+- **Add**: `core/hooks/rtk-bridge.sh` — opt-in `PreToolUse` bridge to the
+  external `rtk` CLI (github.com/rtk-ai/rtk, Apache-2.0) for agent
+  token-consumption reduction. Not vendored, not wired into
+  `.claude/settings.json`'s default hook chain — inert unless a user
+  sets `YANA_RTK_BRIDGE=1` and has `rtk` installed. Two rounds of
+  security-auditor + code-auditor review found and fixed real issues
+  before commit: removed an auto-`permissionDecision:allow` grant based
+  purely on `rtk`'s own self-reported exit code, added a verbatim-
+  substring invariant check so an unrelated/malicious rewrite falls back
+  to the untouched original, added `YANA_RTK_BIN` to pin an absolute
+  path instead of bare `PATH` lookup, and added a timeout (with the same
+  macOS `timeout`/`gtimeout` degrade-gracefully pattern already used in
+  `hook-timeout-guard.sh`, after the first attempt hit that exact
+  landmine). See `docs/reference/token-optimization.md`. 25 new hook
+  tests, `run-hook-tests.sh` 260/260.
+
+---
+
 ## v0.43.1 — 2026-07-05
 
 Patch release. Product version axis only (`package.json`/`MANIFEST.json`);

@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "purpose": "Referenced by core/rules/agent-tool-poisoning-guard.md, core/skills/owasp-llm-top10/SKILL.md, core/skills/agent-attack-surface/SKILL.md, and core/skills/deusdata--codebase-memory-mcp/SKILL.md as if it already existed. It didn't -- created 2026-07-24 per anh Tam's direct instruction ('không có thì tạo') after Program J's Phase 2/3 work found the gap. No hook or script currently reads this file (checked: grepped core/gates/sovereign-interceptor.js and core/hooks/*.sh for any reference, found none) -- wiring an actual enforcement point is separate, not-yet-done work, tracked as an open item, not silently implied by this file's existence.",
+    "schema_source": "core/rules/agent-tool-poisoning-guard.md, section 'MCP server whitelist (core/config/mcp-whitelist.json pattern)'",
+    "last_reviewed": "2026-07-24"
+  },
+  "policy": "deny-by-default",
+  "unknown_server_action": "block-and-log",
+  "approved_mcp_servers": [
+    {
+      "name": "ollama",
+      "origin": "local",
+      "permissions": ["chat", "generate", "list", "ps"],
+      "note": "Confirmed live and in real use this session (Program J's local-model-client work) -- 127.0.0.1 only, not a network-reachable server."
+    }
+  ]
+}

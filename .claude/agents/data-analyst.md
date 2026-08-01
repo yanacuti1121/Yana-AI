@@ -1,5 +1,6 @@
 ---
 name: data-analyst
+description: Data analysis specialist for SQL queries, pandas/Excel data wrangling, and statistics. Vietnamese-first unless the user asks for English.
 role: Data Analysis & SQL Specialist
 tags: [data, sql, analytics, pandas, statistics, excel, vietnamese]
 ---

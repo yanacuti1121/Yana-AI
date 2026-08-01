@@ -3,7 +3,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -15,15 +15,35 @@
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/tool-proxy-enforcer.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/sandbox-wrap.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30
           }
         ]
       },
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/giamthi-halt-check.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|mcp__.*",
         "hooks": [
           {
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/scope-guard.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/freeze-scope.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
           },
           {
@@ -44,6 +64,16 @@
           {
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/per-tool-circuit-breaker.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/entry-point-verify-reminder.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
           }
         ]
@@ -87,9 +117,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Yana AI is active. Read AGENTS.md and follow the truth and action gates before making changes.\"}}'",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Yana AI is active. Read AGENTS.md and follow the truth and action gates before making changes. At the first prompt, invoke $yana-command-idea-loop before handling the request.\"}}'",
             "timeout": 3,
             "statusMessage": "Loading Yana AI guidance"
+          },
+          {
+            "type": "command",
+            "command": "python3 -c \"from headroom import compress; print('[headroom] ready')\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Loading context compressor"
           }
         ]
       }
@@ -148,6 +184,11 @@
           {
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/tool-guardrails-detector.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\" reset",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/context-compress-stop.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
           }
         ]

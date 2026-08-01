@@ -1,7 +1,8 @@
 {
   "name": "yana-ai",
-  "version": "0.43.1",
-  "description": "Audits your AI coding agent setup before it can damage your repo. 55 hooks · 1989 skills · 101 agents · Claude Code + Codex compatible.",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Audits your AI coding agent setup before it can damage your repo. 61 hooks · 2,025 skills · 101 agents · Claude Code + Codex compatible. Not distributed via npm — see VERSIONING.md; this file exists for local tooling (test/deploy/electron scripts, postinstall).",
   "keywords": [
     "ai-agent",
     "claude-code",
@@ -22,7 +23,7 @@
   "homepage": "https://yanacuti1121.github.io/yana-ai/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yanacuti1121/yana-ai.git"
+    "url": "https://github.com/yanacuti1121/Yana-AI.git"
   },
   "bugs": {
     "url": "https://github.com/yanacuti1121/yana-ai/issues"

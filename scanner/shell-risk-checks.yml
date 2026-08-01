@@ -25,6 +25,18 @@ exclude_patterns:
   - "scanner/**"
   - "reports/**"
   - "docs/**"
+  # Vendored Python virtualenvs — see env-secret-checks.yml's identical
+  # entry for the evidence (2026-07-12 dogfooding CI setup).
+  - ".venv/**"
+  - "**/site-packages/**"
+  # This repo's own scanner regression-test fixtures live at the top
+  # level too, not just core/tests/** (already excluded above).
+  - "tests/**"
+  # demo/demo.sh narrates commands (curl|bash, wget|sh) that Yana AI's own
+  # guards would block, as terminal-recording narration strings — not real
+  # executable risk. Evidence: 2026-07-12 dogfooding CI setup, SH002 x3 at
+  # demo/demo.sh:37,39,89.
+  - "demo/**"
 
 checks:
 

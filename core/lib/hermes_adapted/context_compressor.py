@@ -20,10 +20,25 @@ Algorithm (faithful to the original):
      summary iteratively instead of re-summarizing from scratch each time.
   4. On summarizer failure: abort (return unchanged) or insert a static
      fallback summary, depending on `abort_on_summary_failure`.
+
+Failure cooldown (added 2026-07-16, see vendor/hermes-agent/UPSTREAM_DRIFT.md):
+  Upstream grew a compression-failure cooldown keyed off a sqlite-backed
+  `session_db` (get/set_compression_fallback_streak,
+  get/record/clear_compression_failure_cooldown) plus a ContextEngine
+  `on_session_start` hook — none of which exist in this port (no session_db,
+  no ContextEngine base). Adapted here as a self-contained streak counter:
+  after `cfg.fallback_streak_cooldown_threshold` consecutive compressions
+  that fell back to the static summary (summarize_fn kept returning None),
+  `should_compress()` backs off for `cfg.failure_cooldown_seconds` instead of
+  calling a clearly-broken/unreachable summarizer every single turn. State
+  lives in plain instance attributes, same as `_previous_summary`/
+  `_last_savings_pct` above — persisted across hook invocations by
+  context_compressor_io.py's load_compressor()/dump_state(), not by a DB.
 """
 from __future__ import annotations
 
 import hashlib
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -46,6 +61,8 @@ class CompressorConfig:
     summary_target_ratio: float = 0.20   # tail token budget = threshold_tokens * this ratio
     abort_on_summary_failure: bool = False
     min_saving_percent: float = 0.10     # anti-thrash: skip if last 2 compressions saved less
+    fallback_streak_cooldown_threshold: int = 3   # consecutive fallback summaries before cooldown
+    failure_cooldown_seconds: float = 600.0        # how long should_compress() backs off after that
 
 
 class ContextCompressor:
@@ -63,6 +80,9 @@ class ContextCompressor:
         self._last_savings_pct: List[float] = []
         self.compression_count = 0
 
+        self._fallback_compression_streak: int = 0
+        self._summary_failure_cooldown_until: float = 0.0  # time.monotonic() deadline, 0 = none
+
     # ------------------------------------------------------------------
     # Phase 0: should we compress at all?
     # ------------------------------------------------------------------
@@ -70,10 +90,43 @@ class ContextCompressor:
     def should_compress(self, prompt_tokens: int) -> bool:
         if prompt_tokens < self.threshold_tokens:
             return False
+        if self.get_active_compression_failure_cooldown() is not None:
+            return False  # summarizer has been failing repeatedly — back off
         recent = self._last_savings_pct[-2:]
         if len(recent) >= 2 and all(s < self.cfg.min_saving_percent for s in recent):
             return False  # anti-thrash: last 2 compressions barely helped — stop looping
         return True
+
+    # ------------------------------------------------------------------
+    # Failure cooldown — see module docstring for why this is a plain
+    # streak counter instead of upstream's sqlite-backed session_db version
+    # ------------------------------------------------------------------
+
+    def get_active_compression_failure_cooldown(self) -> Optional[Dict[str, Any]]:
+        """Return the live cooldown state, or None if not currently in one."""
+        remaining = self._summary_failure_cooldown_until - time.monotonic()
+        if remaining <= 0:
+            return None
+        return {"remaining_seconds": remaining, "fallback_streak": self._fallback_compression_streak}
+
+    def _record_compression_failure_cooldown(self, cooldown_seconds: float) -> None:
+        self._summary_failure_cooldown_until = time.monotonic() + cooldown_seconds
+
+    def _clear_compression_failure_cooldown(self) -> None:
+        self._summary_failure_cooldown_until = 0.0
+
+    def record_completed_compaction(self, *, used_fallback: bool = False) -> None:
+        """Update the fallback streak after one compaction, entering or
+        clearing the cooldown as needed. Called automatically at the end of
+        `compress()` — exposed as its own method (matching upstream's shape)
+        in case a caller ever needs to record one out of band."""
+        if used_fallback:
+            self._fallback_compression_streak += 1
+            if self._fallback_compression_streak >= self.cfg.fallback_streak_cooldown_threshold:
+                self._record_compression_failure_cooldown(self.cfg.failure_cooldown_seconds)
+        else:
+            self._fallback_compression_streak = 0
+            self._clear_compression_failure_cooldown()
 
     # ------------------------------------------------------------------
     # Phase 1: cheap pruning (no LLM call)
@@ -210,10 +263,13 @@ class ContextCompressor:
         turns = messages[head_end:tail_start]
 
         summary = self._generate_summary(turns, focus_topic)
+        used_fallback = not summary
         if not summary and self.cfg.abort_on_summary_failure:
+            self.record_completed_compaction(used_fallback=True)
             return messages
         if not summary:
             summary = self._static_fallback_summary(turns)
+        self.record_completed_compaction(used_fallback=used_fallback)
 
         summary_role = "user" if messages[head_end - 1].get("role") in ("assistant", "tool") else "assistant"
         summary_msg = {"role": summary_role, "content": f"{summary}\n\n{_SUMMARY_END_MARKER}"}

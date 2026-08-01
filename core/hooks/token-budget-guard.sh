@@ -56,121 +56,176 @@ if [[ ! -f "$CIRCUIT_FILE" ]]; then
   printf '{"circuits":{}}\n' > "$CIRCUIT_FILE"
 fi
 
-# ── Circuit Breaker: check if tool is currently OPEN ─────────────────────────
-CIRCUIT_STATUS=$(node -e "
-const fs=require('fs');
-const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
-const info=(d.circuits||{})['$TOOL_NAME']||{state:'closed'};
-const state=info.state||'closed';
-if(state==='open'){
-  const elapsed=$NOW_EPOCH-(info.opened_at_epoch||0);
-  const cooldown=$COOLDOWN_SECONDS;
-  if(elapsed>=cooldown){process.stdout.write('half-open');}
-  else{process.stdout.write('open:'+(cooldown-elapsed));}
-}else if(state==='half-open'){process.stdout.write('half-open');}
-else{process.stdout.write('closed');}
-" 2>/dev/null || echo "closed")
+# ── ADR-008: entire read(budget+circuit) -> decide -> write unit runs as ONE
+# Node process under ONE lock, keyed on BUDGET_FILE (the file
+# core/hooks/risk-scorer.sh's Python side also writes on the same
+# PreToolUse event). Previously this ran the same 5 decisions as 5 separate
+# `node -e` subprocesses interleaved with bash control flow — each its own
+# unlocked read-modify-write, and locking only the write half of any one of
+# them would still have left the read-then-decide window open. Consolidating
+# into a single script is what makes "hold one lock for the whole thing"
+# possible at all. See src/guard/token_budget.rs::run_critical_section for
+# the same logic in Rust (that path is preferred whenever yana-rt is on
+# PATH — see the `exec` above — so this bash/Node path is the fallback,
+# used only when it isn't).
+#
+# Absolute, project-root-relative path — NOT BASH_SOURCE-relative. This
+# script is deployed as three mirror copies (core/hooks/, .claude/hooks/,
+# .codex/hooks/), each in a sibling directory tree with no core/lib/ next
+# to it; a BASH_SOURCE-relative "../lib/locking.sh" resolves to a
+# different, nonexistent path from each copy (e.g. .claude/lib/locking.sh,
+# which was never created) and crashes this script outright under
+# `set -e` the moment yana-rt is absent and this fallback path is actually
+# reached. core/lib/ is intentionally NOT mirrored to .claude/lib.codex/lib
+# — every hook sources the one canonical copy by project-root path instead,
+# so a future new core/lib/*.sh file needs zero mirror-sync steps, unlike
+# core/hooks/*.sh itself (see the incident this comment exists to prevent:
+# core/hooks/budget-sentinel.sh was fixed under ADR-008 while its
+# .claude/hooks/ and .codex/hooks/ copies silently stayed unpatched for a
+# full session because nothing forced them back in sync).
+source "${CLAUDE_PROJECT_DIR:-$(pwd)}/core/lib/locking.sh"
 
-if [[ "$CIRCUIT_STATUS" == open:* ]]; then
-  REMAINING="${CIRCUIT_STATUS#open:}"
-  echo "╔══════════════════════════════════════════════════════╗"
-  echo "║  [token-budget-guard] CIRCUIT BREAKER — OPEN         ║"
-  echo "╚══════════════════════════════════════════════════════╝"
-  echo "  Tool     : $TOOL_NAME"
-  echo "  State    : OPEN (cooldown: ${REMAINING}s remaining)"
-  echo "  Action   : HARD BLOCKED — loop detected, circuit is open"
-  echo "  Fix      : Wait for cooldown, then retry with a different strategy"
-  echo "  Fast tier: Switch model to $FAST_TIER_MODEL to reduce cost"
-  echo "[${TIMESTAMP}] CIRCUIT-OPEN tool='$TOOL_NAME' cooldown_remaining=${REMAINING}s" >> "$LOG_FILE" 2>/dev/null || true
-  exit 1
-fi
+# BSD mktemp (macOS default) does NOT support a suffix after the X's in a
+# template — "yana-token-budget-XXXXXX.js" is returned byte-for-byte
+# unmodified instead of randomized (confirmed live on this exact host: the
+# trailing 'X's must be the literal end of the template — see `man
+# mktemp`). GNU mktemp's --suffix flag isn't a portable fix either (BSD
+# mktemp has no --suffix). mktemp -d has no such restriction on either
+# platform, so create a unique directory and put the fixed-name script
+# inside it instead of relying on suffix-preserving randomization.
+TMP_DIR=$(mktemp -d /tmp/yana-token-budget-XXXXXX)
+TMP_SCRIPT="$TMP_DIR/run.js"
+trap 'rm -f "$TMP_SCRIPT"; rmdir "$TMP_DIR" 2>/dev/null || true' EXIT
 
-# ── Read budget state ─────────────────────────────────────────────────────────
-TOTAL_TOKENS=$(node -e "
-const d=JSON.parse(require('fs').readFileSync('$BUDGET_FILE','utf8'));
-process.stdout.write(String(d.total_tokens_used||0));
-" 2>/dev/null || echo "0")
+cat > "$TMP_SCRIPT" << 'NODEEOF'
+const fs = require('fs');
+const path = require('path');
 
-LOOP_COUNT=$(node -e "
-const d=JSON.parse(require('fs').readFileSync('$BUDGET_FILE','utf8'));
-process.stdout.write(String((d.loop_attempts||{})['$TOOL_NAME']||0));
-" 2>/dev/null || echo "0")
+const [, , budgetPath, circuitPath, toolName, maxLoopTokensStr, maxAttemptsStr,
+       cooldownSecondsStr, logFile, fastTierModel, timestamp, nowEpochStr] = process.argv;
+const maxLoopTokens = parseInt(maxLoopTokensStr, 10);
+const maxAttempts = parseInt(maxAttemptsStr, 10);
+const cooldownSeconds = parseInt(cooldownSecondsStr, 10);
+const nowEpoch = parseInt(nowEpochStr, 10);
 
-# ── Loop threshold reached → OPEN circuit + hard block ───────────────────────
-if [[ $LOOP_COUNT -ge $MAX_ATTEMPTS ]]; then
-  echo "╔══════════════════════════════════════════════════════╗"
-  echo "║  [token-budget-guard] CIRCUIT BREAKER TRIGGERED      ║"
-  echo "╚══════════════════════════════════════════════════════╝"
-  echo "  Tool       : $TOOL_NAME"
-  echo "  Loop count : $LOOP_COUNT / $MAX_ATTEMPTS (threshold exceeded)"
-  echo "  Tokens used: $TOTAL_TOKENS"
-  echo "  Action     : Circuit OPENED — tool BLOCKED for ${COOLDOWN_SECONDS}s"
-  echo ""
-  echo "  ── Fast-Tier Recommendation ──────────────────────────"
-  echo "  Switch model to: $FAST_TIER_MODEL"
-  echo "  Reason: Sonnet costs accumulating on a stuck loop."
-  echo "  Command: Set ANTHROPIC_MODEL=$FAST_TIER_MODEL in your env"
-  echo ""
-  echo "  ── Recovery Options ──────────────────────────────────"
-  echo "  1. Stop the loop — pick a completely different approach"
-  echo "  2. Use /tree-of-thoughts to re-plan from scratch"
-  echo "  3. Escalate to human: too complex for auto-fix"
-  echo ""
+function readJson(p, fallback) {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
+}
+// Atomic write (temp file + rename), not a direct writeFileSync — same
+// fix as src/mission/mod.rs::save() / src/guard/token_budget.rs::write_json,
+// for the same reason: writeFileSync truncates before writing, so an
+// UNLOCKED reader of this file (core/scripts/session-checkpoint.sh reads
+// token-budget.json this way on purpose) can occasionally see a
+// torn/partial write. The lock this runs under only serializes against
+// other locked writers, not an unlocked reader that was never part of it.
+function writeJson(p, d) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  const tmpPath = `${p}.tmp.${process.pid}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(d, null, 2));
+  fs.renameSync(tmpPath, p);
+}
+function appendLog(line) {
+  try { fs.appendFileSync(logFile, line + '\n'); } catch {}
+}
 
-  # Open the circuit
-  node -e "
-const fs=require('fs');
-const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
-const circuits=d.circuits||(d.circuits={});
-const prev=circuits['$TOOL_NAME']||{};
-const openCount=(prev.open_count||0)+1;
-const cooldownMap={1:60,2:300};
-const cooldown=cooldownMap[openCount]||1800;
-circuits['$TOOL_NAME']={state:'open',opened_at:'$TIMESTAMP',opened_at_epoch:$NOW_EPOCH,
-  open_count:openCount,cooldown_seconds:cooldown,
-  reason:'Loop: \$TOOL_NAME called >=$MAX_ATTEMPTS times without success'};
-fs.writeFileSync('$CIRCUIT_FILE',JSON.stringify(d,null,2));
-" 2>/dev/null || true
+let budget = readJson(budgetPath, {
+  session_start: timestamp, total_tokens_used: 0, actions: [],
+  loop_attempts: {}, fast_tier_triggered: false,
+});
+let circuits = readJson(circuitPath, { circuits: {} });
 
-  # Mark fast-tier in budget file
-  node -e "
-const fs=require('fs');
-const d=JSON.parse(fs.readFileSync('$BUDGET_FILE','utf8'));
-d.fast_tier_triggered=true; d.fast_tier_tool='$TOOL_NAME';
-fs.writeFileSync('$BUDGET_FILE',JSON.stringify(d,null,2));
-" 2>/dev/null || true
+const info = (circuits.circuits || {})[toolName] || { state: 'closed' };
+let status;
+if (info.state === 'open') {
+  const elapsed = nowEpoch - (info.opened_at_epoch || 0);
+  status = elapsed >= cooldownSeconds ? 'half-open' : 'open:' + (cooldownSeconds - elapsed);
+} else if (info.state === 'half-open') {
+  status = 'half-open';
+} else {
+  status = 'closed';
+}
 
-  echo "[${TIMESTAMP}] CIRCUIT-TRIGGERED tool='$TOOL_NAME' loop_count=$LOOP_COUNT tokens=$TOTAL_TOKENS" >> "$LOG_FILE" 2>/dev/null || true
-  exit 1  # HARD BLOCK
-fi
+if (status.startsWith('open:')) {
+  const remaining = status.slice(5);
+  console.log("╔══════════════════════════════════════════════════════╗");
+  console.log("║  [token-budget-guard] CIRCUIT BREAKER — OPEN         ║");
+  console.log("╚══════════════════════════════════════════════════════╝");
+  console.log(`  Tool     : ${toolName}`);
+  console.log(`  State    : OPEN (cooldown: ${remaining}s remaining)`);
+  console.log(`  Action   : HARD BLOCKED — loop detected, circuit is open`);
+  console.log(`  Fix      : Wait for cooldown, then retry with a different strategy`);
+  console.log(`  Fast tier: Switch model to ${fastTierModel} to reduce cost`);
+  appendLog(`[${timestamp}] CIRCUIT-OPEN tool='${toolName}' cooldown_remaining=${remaining}s`);
+  process.exit(1);
+}
 
-# ── Budget ceiling warning ────────────────────────────────────────────────────
-if [[ $TOTAL_TOKENS -gt $MAX_LOOP_TOKENS ]]; then
-  echo "[token-budget-guard] BUDGET WARNING: $TOTAL_TOKENS tokens used (limit: $MAX_LOOP_TOKENS)"
-  echo "[token-budget-guard] Run /cost-report to review ROI before continuing"
-fi
+const totalTokens = budget.total_tokens_used || 0;
+const loopCount = (budget.loop_attempts || {})[toolName] || 0;
 
-# ── Half-open: reset circuit on successful probe ──────────────────────────────
-if [[ "$CIRCUIT_STATUS" == "half-open" ]]; then
-  node -e "
-const fs=require('fs');
-const d=JSON.parse(fs.readFileSync('$CIRCUIT_FILE','utf8'));
-const circuits=d.circuits||{};
-if(circuits['$TOOL_NAME']){circuits['$TOOL_NAME'].state='closed';
-  circuits['$TOOL_NAME'].closed_at=new Date().toISOString();}
-fs.writeFileSync('$CIRCUIT_FILE',JSON.stringify(d,null,2));
-" 2>/dev/null || true
-  echo "[token-budget-guard] Circuit CLOSED for $TOOL_NAME — probe succeeded"
-fi
+if (loopCount >= maxAttempts) {
+  console.log("╔══════════════════════════════════════════════════════╗");
+  console.log("║  [token-budget-guard] CIRCUIT BREAKER TRIGGERED      ║");
+  console.log("╚══════════════════════════════════════════════════════╝");
+  console.log(`  Tool       : ${toolName}`);
+  console.log(`  Loop count : ${loopCount} / ${maxAttempts} (threshold exceeded)`);
+  console.log(`  Tokens used: ${totalTokens}`);
+  console.log(`  Action     : Circuit OPENED — tool BLOCKED for ${cooldownSeconds}s`);
+  console.log("");
+  console.log("  ── Fast-Tier Recommendation ──────────────────────────");
+  console.log(`  Switch model to: ${fastTierModel}`);
+  console.log(`  Reason: Sonnet costs accumulating on a stuck loop.`);
+  console.log(`  Command: Set ANTHROPIC_MODEL=${fastTierModel} in your env`);
+  console.log("");
+  console.log("  ── Recovery Options ──────────────────────────────────");
+  console.log("  1. Stop the loop — pick a completely different approach");
+  console.log("  2. Use /tree-of-thoughts to re-plan from scratch");
+  console.log("  3. Escalate to human: too complex for auto-fix");
+  console.log("");
 
-# ── Update loop counter ───────────────────────────────────────────────────────
-node -e "
-const fs=require('fs');
-const d=JSON.parse(fs.readFileSync('$BUDGET_FILE','utf8'));
-const loops=d.loop_attempts||(d.loop_attempts={});
-loops['$TOOL_NAME']=(loops['$TOOL_NAME']||0)+1;
-fs.writeFileSync('$BUDGET_FILE',JSON.stringify(d,null,2));
-" 2>/dev/null || true
+  circuits.circuits = circuits.circuits || {};
+  const prevOpenCount = (circuits.circuits[toolName] || {}).open_count || 0;
+  const openCount = prevOpenCount + 1;
+  const cooldownMap = { 1: 60, 2: 300 };
+  const storedCooldown = cooldownMap[openCount] || 1800;
+  circuits.circuits[toolName] = {
+    state: 'open', opened_at: timestamp, opened_at_epoch: nowEpoch,
+    open_count: openCount, cooldown_seconds: storedCooldown,
+    reason: `Loop: ${toolName} called >=${maxAttempts} times without success`,
+  };
+  writeJson(circuitPath, circuits);
 
-echo "[token-budget-guard] OK — $TOOL_NAME (attempt $((LOOP_COUNT + 1)) / $MAX_ATTEMPTS)"
-exit 0
+  budget.fast_tier_triggered = true;
+  budget.fast_tier_tool = toolName;
+  writeJson(budgetPath, budget);
+
+  appendLog(`[${timestamp}] CIRCUIT-TRIGGERED tool='${toolName}' loop_count=${loopCount} tokens=${totalTokens}`);
+  process.exit(1); // HARD BLOCK
+}
+
+if (totalTokens > maxLoopTokens) {
+  console.log(`[token-budget-guard] BUDGET WARNING: ${totalTokens} tokens used (limit: ${maxLoopTokens})`);
+  console.log(`[token-budget-guard] Run /cost-report to review ROI before continuing`);
+}
+
+if (status === 'half-open') {
+  circuits.circuits = circuits.circuits || {};
+  if (circuits.circuits[toolName]) {
+    circuits.circuits[toolName].state = 'closed';
+    circuits.circuits[toolName].closed_at = new Date().toISOString();
+  }
+  writeJson(circuitPath, circuits);
+  console.log(`[token-budget-guard] Circuit CLOSED for ${toolName} — probe succeeded`);
+}
+
+budget.loop_attempts = budget.loop_attempts || {};
+budget.loop_attempts[toolName] = (budget.loop_attempts[toolName] || 0) + 1;
+writeJson(budgetPath, budget);
+
+console.log(`[token-budget-guard] OK — ${toolName} (attempt ${loopCount + 1} / ${maxAttempts})`);
+process.exit(0);
+NODEEOF
+
+with_lock "$BUDGET_FILE" 10 -- node "$TMP_SCRIPT" \
+  "$BUDGET_FILE" "$CIRCUIT_FILE" "$TOOL_NAME" "$MAX_LOOP_TOKENS" "$MAX_ATTEMPTS" \
+  "$COOLDOWN_SECONDS" "$LOG_FILE" "$FAST_TIER_MODEL" "$TIMESTAMP" "$NOW_EPOCH"
+exit $?

@@ -1,3 +1,8 @@
+---
+description: Container/K8s/Terraform hardening rules — applied to Dockerfiles, compose files, Kubernetes manifests, and Terraform files
+paths: ["**/Dockerfile*", "**/*.dockerfile", "**/docker-compose*.yml", "**/docker-compose*.yaml", "**/k8s/**/*.yml", "**/k8s/**/*.yaml", "**/kubernetes/**/*.yml", "**/kubernetes/**/*.yaml", "**/*.tf"]
+---
+
 # Yana AI — Container Hardening Law
 # Sources:
 #   hadolint/hadolint (GPL-3.0)        — github.com/hadolint/hadolint

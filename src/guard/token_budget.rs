@@ -49,6 +49,59 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
         .or_else(|| std::env::var("CLAUDE_TOOL_NAME").ok())
         .unwrap_or_else(|| "unknown".to_string());
 
+    // ADR-008 — the entire read(budget+circuit) -> decide -> write unit
+    // below is one locked critical section, keyed on budget_path. This is
+    // the file core/hooks/risk-scorer.sh (Python) also writes on the same
+    // PreToolUse event, with no prior coordination between the two; and
+    // this Rust path is what most invocations actually hit (the bash/node
+    // script execs straight into it whenever yana-rt is on PATH — see
+    // core/hooks/token-budget-guard.sh's own comment), so locking only
+    // the bash/node fallback would leave the cross-language race open in
+    // the common case. On a lock timeout, degrade to running unlocked
+    // rather than hard-blocking the tool call over a budget-tracking
+    // hook's own contention — this hook's own long-standing convention
+    // (see the `2>/dev/null || true` pattern throughout the original bash
+    // script) is to fail open on infrastructure problems, not to let them
+    // block real work.
+    let params = TokenBudgetParams {
+        tool_name: &tool_name,
+        budget_path: &budget_path,
+        circuit_path: &circuit_path,
+        max_loop_tokens,
+        max_attempts,
+        cooldown_seconds,
+        log_file: &log_file,
+        fast_tier_model: &fast_tier_model,
+    };
+    let lock_name = crate::guard::lock::lock_name_for(&budget_path);
+    match crate::guard::lock::with_lock(&lock_name, std::time::Duration::from_secs(10), || {
+        run_critical_section(&params)
+    }) {
+        Ok(code) => code,
+        Err(lock_err) => {
+            eprintln!("[token-budget-guard] lock unavailable, proceeding unlocked (degraded): {lock_err:#}");
+            run_critical_section(&params)
+        }
+    }
+}
+
+struct TokenBudgetParams<'a> {
+    tool_name: &'a str,
+    budget_path: &'a str,
+    circuit_path: &'a str,
+    max_loop_tokens: u64,
+    max_attempts: u64,
+    cooldown_seconds: u64,
+    log_file: &'a str,
+    fast_tier_model: &'a str,
+}
+
+fn run_critical_section(p: &TokenBudgetParams) -> i32 {
+    let TokenBudgetParams {
+        tool_name, budget_path, circuit_path, max_loop_tokens,
+        max_attempts, cooldown_seconds, log_file, fast_tier_model,
+    } = *p;
+
     let timestamp = Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
     let now_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
 
@@ -96,7 +149,7 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
             _ => 1800,
         };
         ensure_object(&mut circuits, "circuits");
-        circuits["circuits"][tool_name.as_str()] = json!({
+        circuits["circuits"][tool_name] = json!({
             "state": "open",
             "opened_at": timestamp,
             "opened_at_epoch": now_epoch,
@@ -131,8 +184,8 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
     }
 
     ensure_object(&mut budget, "loop_attempts");
-    let new_count = budget["loop_attempts"].get(tool_name.as_str()).and_then(Value::as_u64).unwrap_or(0) + 1;
-    budget["loop_attempts"][tool_name.as_str()] = json!(new_count);
+    let new_count = budget["loop_attempts"].get(tool_name).and_then(Value::as_u64).unwrap_or(0) + 1;
+    budget["loop_attempts"][tool_name] = json!(new_count);
     write_json(&budget_path, &budget);
 
     println!("[token-budget-guard] OK — {tool_name} (attempt {} / {max_attempts})", loop_count + 1);
@@ -177,11 +230,26 @@ fn load_or_init(path: &str, default: impl Fn() -> Value) -> Value {
     value
 }
 
+/// Atomic write (temp file + `rename`), not a direct `fs::write` — same
+/// fix as `src/mission/mod.rs::save()` and for the same reason: `fs::write`
+/// truncates before writing, so an UNLOCKED reader of this file
+/// (`core/scripts/session-checkpoint.sh` reads `token-budget.json` this
+/// way on purpose — no lock, just a snapshot copy + one field read) can
+/// occasionally see a torn/partial write mid-truncation. The ADR-008 lock
+/// this function is called under only serializes this process against
+/// other *locked* writers; it does nothing for a reader that was never
+/// part of the lock in the first place. `rename()` on the same filesystem
+/// is atomic, so any such reader always sees either the fully-old or
+/// fully-new file.
 fn write_json(path: &str, value: &Value) {
     if let Some(parent) = Path::new(path).parent() {
         let _ = fs::create_dir_all(parent);
     }
-    let _ = fs::write(path, serde_json::to_string_pretty(value).unwrap_or_default());
+    let json = serde_json::to_string_pretty(value).unwrap_or_default();
+    let tmp_path = format!("{path}.tmp.{}", std::process::id());
+    if fs::write(&tmp_path, json).is_ok() {
+        let _ = fs::rename(&tmp_path, path);
+    }
 }
 
 fn append_log(log_file: &str, line: &str) {

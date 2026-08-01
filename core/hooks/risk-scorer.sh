@@ -20,7 +20,12 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 STATE_DIR="$PROJECT_DIR/.claude/state"
 RISK_LOG="$STATE_DIR/risk-scores.jsonl"
-BUDGET_FILE="${YANA_TOKEN_BUDGET:-$STATE_DIR/token-budget.json}"
+# core/memory/L2_session/, not $STATE_DIR — this must match the path
+# token-budget-guard.sh / src/guard/token_budget.rs / core/mcp/
+# yana-ai-mcp-server.js actually read and write, or this file's
+# last_risk_score injection below silently no-ops forever (as it always
+# has: $STATE_DIR/token-budget.json has never existed on disk).
+BUDGET_FILE="${YANA_TOKEN_BUDGET:-$PROJECT_DIR/core/memory/L2_session/token-budget.json}"
 
 mkdir -p "$STATE_DIR"
 
@@ -136,14 +141,60 @@ open('$RISK_LOG','a').write(json.dumps(entry)+'\n')
 " 2>/dev/null || true
 
 # -- Inject into token-budget file
+# BUDGET_FILE (derived from the externally-settable YANA_TOKEN_BUDGET env
+# var) is passed via os.environ, not string-interpolated into the Python
+# source — see core/rules/shell-sanitize-law.md and
+# env-integrity-policy.md. SCORE/BAND stay interpolated: SCORE is always
+# bash-arithmetic-computed and BAND is always one of 4 hardcoded literals
+# ("LOW"/"MEDIUM"/"HIGH"/"CRITICAL", see the scoring block above), neither
+# is externally controllable.
+#
+# ADR-008: wrapped with FileLock spanning the ENTIRE read-mutate-write —
+# not just the json.dump() — because token-budget-guard.sh (Node) writes
+# this identical file on the same PreToolUse event with no coordination.
+# Lock name is derived from BUDGET_FILE's path, matching
+# src/guard/lock.rs's/token-budget-guard.sh's derivation exactly, so this
+# Python process and that Node process contend for the same lock.
 if [[ -f "$BUDGET_FILE" ]]; then
-  python3 -c "
-import json
+  YANA_RISK_BUDGET_FILE="$BUDGET_FILE" YANA_RISK_LOG_FILE="${YANA_LOG:-/tmp/yana-ai-audit.log}" python3 -c "
+import json, os, sys
+from datetime import datetime, timezone
+sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+from core.lib.py.file_lock import FileLock, LockTimeoutError
+
+# core/hooks/CLAUDE.md: 'Hooks must fail loudly or warn loudly. A hook
+# that does nothing without explanation is worse than no hook.' A bare
+# 'except: pass' here would silently drop last_risk_score/last_risk_band
+# updates on lock contention with no trace anywhere — logging to
+# YANA_LOG (not stderr, which this call already redirects to /dev/null
+# below) is what actually survives to be inspectable.
+def _warn(msg):
+    ts = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    try:
+        with open(os.environ['YANA_RISK_LOG_FILE'], 'a') as f:
+            f.write(f'[{ts}] risk-scorer: {msg}\n')
+    except Exception:
+        pass  # logging itself is best-effort — must never crash the hook
+
 try:
-    d=json.load(open('$BUDGET_FILE'))
-    d['last_risk_score']=$SCORE; d['last_risk_band']='$BAND'
-    json.dump(d,open('$BUDGET_FILE','w'),indent=2)
-except: pass
+    path = os.environ['YANA_RISK_BUDGET_FILE']
+    with FileLock(path, timeout=5.0):
+        d = json.load(open(path))
+        d['last_risk_score'] = $SCORE
+        d['last_risk_band'] = '$BAND'
+        # Atomic write — an unlocked reader (session-checkpoint.sh) must
+        # never observe a torn write, even though other LOCKED writers
+        # (token-budget-guard.sh) are already correctly serialized above.
+        _tmp_path = f'{path}.tmp.{os.getpid()}'
+        json.dump(d, open(_tmp_path, 'w'), indent=2)
+        os.replace(_tmp_path, path)
+except LockTimeoutError:
+    # non-fatal: this hook's own risk-scoring/blocking decision (below)
+    # does not depend on this write succeeding — but a timeout means
+    # last_risk_score/last_risk_band silently went stale, worth knowing.
+    _warn(f'lock timeout writing last_risk_score to {os.environ[\"YANA_RISK_BUDGET_FILE\"]}')
+except Exception as e:
+    _warn(f'failed to write last_risk_score: {e}')
 " 2>/dev/null || true
 fi
 

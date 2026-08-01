@@ -34,8 +34,51 @@ set -euo pipefail
 # same deny-reason text; see src/guard/mod.rs::cmd_destructive). Falls
 # through unchanged to the jq-based logic if yana-rt isn't found, so this
 # hook keeps working exactly as before on a machine without it installed.
+#
+# SECURITY FIX (2026-07-11, Safety-severity finding from security-auditor
+# review of the MCP coverage change): `exec` replaces this process — once it
+# fires there is no "after," so a version check must happen BEFORE deciding
+# to exec, not by inspecting the result. Without this check, any machine
+# with a pre-existing yana-rt binary built before this fix (an entirely
+# ordinary state, not a hypothetical — reproduced live on this repo's own
+# dev machine) would `exec` straight into the OLD `cmd_destructive()`, which
+# only ever reads `.tool_input.command` — every MCP tool call would keep
+# silently bypassing rm -rf/force-push/DROP TABLE detection exactly as
+# before this fix, with zero error or warning, because the old binary still
+# "succeeds" from its own point of view (empty command -> allow). A stale
+# binary must fall through to the jq/bash logic below instead, which is
+# fully MCP-aware on its own regardless of what's on PATH.
+YANA_RT_MIN_VERSION="1.3.3"  # first version with MCP-aware `guard destructive` (this fix)
+
+# True if $1 >= $2, both dotted-numeric versions (e.g. "1.3.3" vs "1.3.2").
+# A malformed/missing version component compares as 0, so "1.3" >= "1.3.0"
+# and a version string this can't parse never wins a >= comparison it
+# shouldn't — the caller then correctly falls through to the safe jq path.
+version_ge() {
+  local IFS=.
+  local -a v1=($1) v2=($2)
+  local i a b
+  for ((i = 0; i < 3; i++)); do
+    a="${v1[i]:-0}"; b="${v2[i]:-0}"
+    [[ "$a" =~ ^[0-9]+$ ]] || a=0
+    [[ "$b" =~ ^[0-9]+$ ]] || b=0
+    if ((10#$a > 10#$b)); then return 0; fi
+    if ((10#$a < 10#$b)); then return 1; fi
+  done
+  return 0
+}
+
 if command -v yana-rt >/dev/null 2>&1; then
-  exec yana-rt guard destructive
+  YANA_RT_VER=$(yana-rt --version 2>/dev/null | awk '{print $2}')
+  if [[ -n "$YANA_RT_VER" ]] && version_ge "$YANA_RT_VER" "$YANA_RT_MIN_VERSION"; then
+    exec yana-rt guard destructive
+  fi
+  # Stale (or unversioned/unparseable) binary: deliberately fall through to
+  # the jq/bash logic below rather than exec-ing into a build that predates
+  # MCP tool-call coverage. No warning is printed here — this is a
+  # PreToolUse hook on a hot path (every Bash/MCP call), and the fallback
+  # path is fully correct on its own, not degraded, so this is a silent-but-
+  # safe path, not a silent-but-unsafe one like the bug this fixes.
 fi
 
 # ── Dependency guard ─────────────────────────────────────────────────────────
@@ -58,7 +101,87 @@ EOF
 fi
 
 INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+CANDIDATES=("$COMMAND")
+
+# ── MCP tool-call coverage (2026-07-11) ──────────────────────────────────────
+# MCP tool calls (tool_name like mcp__<server>__<tool>) don't share a single
+# field path for command/script content the way native tools do — each
+# server picks its own key (DesktopCommanderMCP's execute_command tool uses
+# "command"; another server might use "cmd", "script", "sql", nested under
+# arbitrary parent keys). Previously this guard only ever inspected
+# `.tool_input.command`, so an MCP payload with no such field silently
+# produced an empty $COMMAND and fell through to allow — every MCP tool call
+# bypassed rm -rf/force-push/DROP TABLE detection entirely, regardless of
+# what it actually did. Fix: when this is an MCP call, also collect string
+# values at command-shaped keys (see cmdkeys below) anywhere in tool_input,
+# any nesting depth, and check each candidate independently through the
+# exact same pipeline below (mirrors src/guard/mod.rs's
+# collect_command_like_strings() — bash and Rust must stay in sync). Keys
+# are matched as exact tokens after splitting snake_case/camelCase, never
+# raw substring containment: "description" contains the substring "script"
+# ("de-SCRIPT-ion") and must NOT be treated as command-shaped, or an
+# MCP tool's free-text description field would false-positive-block on
+# ordinary prose that merely mentions a dangerous command.
+# SECURITY FIX (2026-07-11, findings from security-auditor + code-auditor
+# review of the initial MCP coverage change):
+#   1. camel_to_snake only split before an uppercase char whose PREVIOUS
+#      char was lowercase/digit, missing an acronym-run-to-word boundary
+#      (e.g. "SQLCommand" tokenized to the single blob "sqlcommand", which
+#      matches nothing in cmdkeys). Verified live bypass:
+#      {"SQLCommand":"DROP TABLE users;"} was silently allowed. Fixed by
+#      also splitting when the previous char is uppercase AND the next char
+#      is lowercase.
+#   2. The extraction only ever collected a command-shaped key's value when
+#      that value was a STRING. cmdkeys includes "commands" (plural) —
+#      which only makes sense for an array-of-strings shape — but that
+#      shape was silently dropped. Verified live bypass:
+#      {"commands":["rm -rf /tmp/x","..."]} was silently allowed. Fixed by
+#      also collecting string elements when a command-shaped key's value is
+#      an array (replaces the `.. | objects` walk with an explicit
+#      depth-capped walk_cmdlike, matching src/guard/mod.rs's
+#      MAX_COLLECT_DEPTH — see that file's comment for why the cap exists).
+if [[ "$TOOL_NAME" == mcp__* ]]; then
+  while IFS= read -r extra; do
+    [[ -n "$extra" ]] && CANDIDATES+=("$extra")
+  done < <(echo "$INPUT" | jq -r '
+    def cmdkeys: ["command","commands","cmd","script","exec","execute","sql","statement","shell","bash","sh"];
+    def camel_to_snake:
+      explode as $cs
+      | ($cs | length) as $n
+      | reduce range(0; $n) as $i
+          ("";
+            . + (if $i > 0 and ($cs[$i] >= 65 and $cs[$i] <= 90)
+                    and (
+                      (($cs[$i-1] >= 97 and $cs[$i-1] <= 122) or ($cs[$i-1] >= 48 and $cs[$i-1] <= 57))
+                      or
+                      (($cs[$i-1] >= 65 and $cs[$i-1] <= 90) and ($i+1 < $n) and ($cs[$i+1] >= 97 and $cs[$i+1] <= 122))
+                    )
+                 then "_" else "" end)
+              + ([$cs[$i]] | implode | ascii_downcase)
+          );
+    def tokenize: camel_to_snake | [splits("[^a-z0-9]+")] | map(select(length > 0));
+    def is_cmdlike: tokenize as $t | any($t[]; IN(cmdkeys[]));
+    def walk_cmdlike(depth):
+      if depth > 32 then empty
+      elif (type == "object") then
+        (to_entries[]
+          | (if (.key | is_cmdlike) then
+               (.value
+                 | if type == "string" then .
+                   elif type == "array" then (.[] | select(type == "string"))
+                   else empty end)
+             else empty end),
+            (.value | walk_cmdlike(depth + 1))
+        )
+      elif (type == "array") then
+        (.[] | walk_cmdlike(depth + 1))
+      else empty
+      end;
+    [.tool_input // {} | walk_cmdlike(0)] | .[]
+  ' 2>/dev/null)
+fi
 
 deny() {
   local reason="$1"
@@ -338,6 +461,14 @@ is_git_reset_hard() {
   return 1
 }
 
+# ── Per-candidate check loop (2026-07-11, MCP coverage) ─────────────────────
+# CANDIDATES is [$COMMAND] for a native Bash call (loop runs once, identical
+# to pre-MCP behavior) or [$COMMAND, ...MCP command-shaped field values] for
+# an mcp__* call. Every check below is otherwise byte-for-byte unchanged —
+# deny() calls exit 2 internally, so the loop short-circuits on first match
+# exactly like the un-looped version did.
+for COMMAND in "${CANDIDATES[@]}"; do
+
 # ── Suspicious variable-splice detection (round 3 fix, part 2) ──────────────
 # `git${IFS}push` / `rm${IFS}-rf` are each ONE opaque token to every check
 # above (no whitespace for `for tok in $segment` to split on) — a real
@@ -400,10 +531,76 @@ if echo "$COMMAND" | grep -qiE '\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TAB
   deny "Blocked: destructive SQL (DROP TABLE / TRUNCATE) detected. Database migrations must be reversible. Use ALTER/soft-delete patterns and ask the human to confirm schema drops."
 fi
 
+# ── Inline-script bypass detection (2026-07-24 finding) ──────────────────────
+# python3 -c "...", node -e "...", ruby -e "...", perl -e "..." let a
+# destructive command hide inside a string literal passed to an interpreter
+# -- every check above operates on whitespace-tokenized shell words, and
+# content inside a quoted -c/-e argument is not shell syntax at all from
+# this guard's point of view (it's Python/Ruby/Node/Perl syntax, one opaque
+# string to bash). Verified live bypass, both this bash implementation and
+# the Rust src/guard/mod.rs path: `python3 -c "import os;
+# os.system('rm -rf /tmp/x')"` returned exit 0 (allow) from both, despite
+# is_rm_rf's own pattern appearing verbatim inside the string -- because
+# `os.system('rm` is one glued token to this guard's tokenizer, not a
+# whitespace-separated "rm". Found while reviewing an external destructive-
+# command-guard project's design for cross-pollination ideas (see
+# docs/PLATFORM-READINESS-WAVE0.md-adjacent session notes) — that project's
+# own README specifically calls out heredoc/inline-script scanning as a
+# design requirement its own guard has and this one, until now, didn't.
+#
+# Fix: when the command invokes an interpreter with an inline-script flag,
+# also scan the RAW command text (not tokenized -- this content isn't shell
+# syntax, so shell tokenization doesn't apply to it) for the same keyword
+# patterns already blocked above. Deliberately coarser than the token-
+# precise checks elsewhere in this file (a plain substring/regex match, so
+# it could theoretically flag a destructive-looking string appearing inside
+# an unrelated string constant in a legitimate script) -- for a destructive-
+# command guard, an occasional false "please confirm" is the correct
+# failure direction; a missed rm -rf is not (same philosophy already
+# applied to git_segment_targets's fallback above). Not a full interpreter-
+# language parser, same class of documented limitation as this file's
+# other checks -- tracked as a longer-term design question if a more
+# precise per-language extraction is ever wanted, not silently claimed as
+# exhaustive by this fix.
+#
+# SECURITY FIX (2026-07-24, round 2 -- caught by security-auditor
+# adversarial review of round 1, all three live-verified on this repo's
+# own Darwin dev machine before this fix):
+#  1. Case sensitivity: `grep -qE` (not `-qiE`) meant `Python3 -c "..."`
+#     (macOS/APFS resolves this to a real binary, confirmed via
+#     `command -v Python3`) and an inner payload capitalized only in the
+#     dangerous part (`os.system('RM -RF /tmp/x')`) both bypassed round 1
+#     entirely -- exit 0 on both counts. Every pattern below is now
+#     case-insensitive (`-qiE`).
+#  2. `bash -c "..."` / `sh -c "..."` were not in the interpreter list at
+#     all -- and unlike python/node/ruby/perl, their `-c` argument IS real
+#     shell syntax, so this is if anything the MORE natural evasion, not a
+#     harder one. Added to the interpreter alternation. (`eval "rm -rf
+#     ..."` is a related, pre-existing, NOT-yet-fixed gap -- no -c/-e flag
+#     at all, a bash builtin -- tracked separately, not silently claimed
+#     closed by this round.)
+#  3. `git clean -f` was missing from the inline OR-list entirely (only
+#     rm-rf, SQL DROP/TRUNCATE, git push --force, git reset --hard were
+#     checked) -- `python3 -c "import os; os.system('git clean -fdx')"`
+#     bypassed both the pre-existing token-based is_git_clean_force() (the
+#     leading "git" is glued to the preceding quote, one opaque token) and
+#     round 1 of this fix. Added.
+if echo "$COMMAND" | grep -qiE '\b(python3?|node|ruby|perl|bash|sh|zsh)\b[^|;&]*(-c|-e|--eval)\b'; then
+  if echo "$COMMAND" | grep -qiE '\brm\b[^|;&]*(-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|--recursive|--force)' \
+     || echo "$COMMAND" | grep -qiE '\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bpush\b[^|;&]*--force|\bgit\b[^|;&]*--force[^|;&]*\bpush\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\breset\b[^|;&]*--hard' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bclean\b[^|;&]*(-[a-zA-Z]*f[a-zA-Z]*|--force)'; then
+    deny "Blocked: command invokes an interpreter (python/node/ruby/perl/bash/sh/zsh) with an inline script (-c/-e/--eval) whose content appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). This guard cannot safely verify commands embedded inside interpreter scripts. Run the destructive operation directly (not wrapped in an inline script), or ask the human to confirm."
+  fi
+fi
+
 # ── Dangerous package operations ─────────────────────────────────────────────
 if echo "$COMMAND" | grep -qE 'npm\s+publish|yarn\s+publish|pnpm\s+publish'; then
   deny "Blocked: publishing to npm requires explicit human approval. Ask the human to run this command manually."
 fi
+
+done
 
 # Allow everything else
 exit 0
