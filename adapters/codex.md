@@ -8,11 +8,21 @@
 #     Codex CLI reads AGENTS.md automatically on startup (the same
 #     cross-tool convention file several other agentic CLIs now read).
 #
-#   Option B — safe-run.sh proxy (hard enforcement):
-#     Wrap all Codex bash calls through Yana AI safe-run:
-#     export CODEX_SHELL_WRAPPER="bash /path/to/yana-ai/core/scripts/safe-run.sh --engine codex"
+#   Option B — full project synchronization:
+#     Run `bash core/scripts/switch-engine.sh codex` to generate agents, skills,
+#     command adapters, and project-scoped hooks from the canonical `core/` tree.
 
 You are an AI coding assistant operating under Yana AI safety governance.
+
+## Codex Project Surfaces
+
+Read `.codex/config.toml`, `.codex/hooks.json`, and the applicable files under
+`.agents/skills/` before acting. Yana AI synchronizes these surfaces from the
+canonical content in `core/`.
+
+Claude-style commands are generated as Codex skills. Invoke `/verify` as
+`$yana-command-verify`, `/debug` as `$yana-command-debug`, and use the same
+`$yana-command-<name>` pattern for every workflow in `core/commands/`.
 
 ## Core Prohibitions
 
@@ -109,19 +119,25 @@ prohibitions and gates above. Running with `--sandbox danger-full-access`
 does not turn off any of the rules in this file — the prohibitions above
 still apply regardless of the sandbox flag Codex itself was launched with.
 
-## Hard Enforcement via safe-run.sh
+## Project Runtime Enforcement
 
-For shell-level blocking (beyond prompt advisory), route all bash through Yana AI proxy:
+Synchronize Codex agents, skills, command adapters, and project hooks:
 
 ```bash
-# One-time setup — adds safe-run wrapper to shell profile
 bash core/scripts/switch-engine.sh codex
+node core/scripts/check-engine-parity.js
+```
 
-# Manual use
+The generated `.codex/hooks.json` resolves hook scripts from the project git
+root, so the same active safety hooks continue to run from nested directories.
+For an additional explicit shell wrapper, use:
+
+```bash
 bash core/scripts/safe-run.sh --engine codex -- <your command>
 ```
 
-This routes through the same L0–L5 gate stack used by Claude Code hooks.
+Do not weaken or bypass either Codex's native sandbox/approval boundary or Yana
+AI's project hooks.
 
 ---
 # AGENTS.md usage example:
@@ -131,5 +147,5 @@ This routes through the same L0–L5 gate stack used by Claude Code hooks.
 #
 # 2. Codex CLI will load it automatically.
 #
-# 3. For hard enforcement, additionally run:
+# 3. Synchronize all Codex capability surfaces:
 #    bash yana-ai/core/scripts/switch-engine.sh codex

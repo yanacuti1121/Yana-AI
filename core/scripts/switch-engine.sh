@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Switch active AI engine adapter
-# Usage: bash core/scripts/switch-engine.sh <claude|cursor|codex|antigravity>
+# Usage: bash core/scripts/switch-engine.sh <claude|cursor|codex|antigravity|status>
 set -euo pipefail
 
 # Parse arguments: ENGINE is the first non-flag arg; --dry-run sets DRY_RUN=1
@@ -20,7 +20,7 @@ usage() {
   echo "Engines:"
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
-  echo "  codex    — generates AGENTS.md from adapters/codex.md"
+  echo "  codex    — synchronizes Codex agents, skills, commands, and hooks"
   echo "  antigravity — generates .agent/rules/yana-ai.md (workspace rule, ≤12K chars)"
   echo "  status     — show which adapters are currently active"
   echo ""
@@ -279,56 +279,38 @@ CURSOREOF
       exit 1
     fi
 
-    # Unlike GEMINI.md/.windsurf/.kiro/.agent (files no other tool has a
-    # reason to already own), AGENTS.md is a shared cross-tool convention —
-    # this very repo already ships one at its root as its general "read
-    # this first" operating manual, unrelated to Codex specifically.
-    # Overwriting-with-backup (the gemini/windsurf/kiro/antigravity pattern)
-    # would silently replace that richer file with the narrower Codex
-    # adapter content. Follow the `continue)` case's precedent instead:
-    # never overwrite an existing AGENTS.md, only generate one where none
-    # exists yet.
     if [[ -f "$DEST" ]]; then
       echo -e "${YELLOW}↩ $DEST already exists${NC} ($(wc -l < "$DEST") lines) — not overwriting."
-      echo "  AGENTS.md is a shared cross-tool convention file; this one may already"
-      echo "  serve a broader purpose than Codex governance (e.g. Yana AI's own"
-      echo "  repo-level operating manual). Codex CLI already reads it automatically."
-      echo "  To add the Codex-specific sections, merge relevant parts of"
-      echo "  $ADAPTER into $DEST by hand."
     elif [[ "$DRY_RUN" -eq 1 ]]; then
       echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
     else
-      # Generate AGENTS.md from adapter source — only reached when no
-      # AGENTS.md exists yet, so there's nothing to clobber.
       cp "$ADAPTER" "$DEST"
       echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+    fi
 
-      # Log via secure-logger.sh if available
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would synchronize core/agents → .codex/agents${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/skills → .agents/skills${NC}"
+      echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
+    else
+      node core/scripts/sync-codex.js --target .
+      node core/scripts/sync-codex.js --check --target .
+
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/codex.md generated_file=AGENTS.md operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=project-hooks generated_file=.codex/config.toml operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_end "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
       fi
     fi
 
     echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  Codex CLI has its own native sandbox/approval modes but no Yana AI"
-    echo "  hook layer — individual tool calls are NOT recorded in the Yana AI"
-    echo "  Merkle audit chain. Enforcement here is prompt-advisory only."
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary:${NC}"
-    echo "  L0  Audit    — advisory only (no native hook; log manually)"
-    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
-    echo "  L2  Commit   — prompt-instructed"
-    echo "  L3  Truth    — prompt-instructed"
-    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
-    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
-    echo ""
-    echo "AGENTS.md is read automatically by Codex CLI on startup."
-    echo "For shell-level blocking, additionally run:"
-    echo "  bash core/scripts/safe-run.sh --engine codex -- <command>"
+    echo -e "${GREEN}Codex project support active.${NC}"
+    echo "  Guidance: AGENTS.md"
+    echo "  Agents:   .codex/agents/*.toml"
+    echo "  Skills:   .agents/skills/*/SKILL.md"
+    echo "  Commands: \$yana-command-<name>"
+    echo "  Hooks:    .codex/hooks.json"
     ;;
 
   antigravity)
@@ -374,6 +356,15 @@ CURSOREOF
   status)
     echo "=== Yana AI Engine Adapter Status ==="
     echo ""
+    [[ -f ".codex/config.toml" && -f ".codex/hooks.json" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     project config + hooks" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     project config or hooks missing"
+    [[ -d ".codex/agents" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .codex/agents/ ($(find .codex/agents -maxdepth 1 -name '*.toml' | wc -l | tr -d ' ') agents)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .codex/agents/ missing"
+    [[ -d ".agents/skills" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .agents/skills/ ($(find .agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ') skills)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .agents/skills/ missing"
     [[ -f ".cursorrules" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursorrules ($(wc -l < .cursorrules) lines)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursorrules missing"
@@ -383,9 +374,6 @@ CURSOREOF
     [[ -f ".cursor/hooks.json" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursor/hooks.json (real beforeShellExecution enforcement)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursor/hooks.json missing"
-    [[ -f "AGENTS.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Codex     AGENTS.md ($(wc -l < "AGENTS.md") lines)" \
-      || echo -e "  ${YELLOW}✗${NC} Codex     AGENTS.md missing"
     [[ -f ".agent/rules/yana-ai.md" ]] \
       && echo -e "  ${GREEN}✓${NC} Antigrav  .agent/rules/yana-ai.md" \
       || echo -e "  ${YELLOW}✗${NC} Antigrav  .agent/rules/yana-ai.md missing"

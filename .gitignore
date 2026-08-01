@@ -48,6 +48,12 @@ releases/logs/
 .mcp.json
 .codegraph/
 
+# Generated cross-engine adapter outputs — regenerate with switch-engine.sh
+.agents/skills/
+.codex/agents/
+.codex/hooks/
+.codex/environments/
+
 # Local runtime audit logs
 core/memory/audit/*
 !core/memory/audit/.gitkeep

@@ -6,7 +6,8 @@ Yana AI is a **personal agent operating system**.
 It is NOT a product. It is NOT bundled with any product repo by default.
 
 Any product repo that uses Yana AI treats it as an **external tool**, applied
-via a release pack into the target's `.claude/` directory.
+through the target's `.claude/` directory for Claude Code and the standard
+`.codex/`, `.agents/skills/`, and `AGENTS.md` surfaces for Codex.
 
 ---
 
@@ -58,6 +59,12 @@ any product-specific handover documents
 .claude/hooks/      ← copied from Yana AI release pack
 .claude/scripts/    ← copied from Yana AI release pack
 .claude/tests/      ← copied from Yana AI release pack
+.codex/config.toml  ← Codex project settings
+.codex/hooks.json   ← Codex lifecycle hook registration
+.codex/hooks/       ← Codex-compatible copies of Yana AI hooks
+.codex/agents/      ← Codex custom-agent TOML files
+.agents/skills/     ← Codex project skills + generated command adapters
+AGENTS.md           ← created only when the target has no existing guidance
 ```
 
 ### Target product repo does NOT contain:
@@ -85,8 +92,13 @@ docs/               ← Yana AI internal (product has its own docs/)
    chore: apply Yana AI vX.Y.Z-fixed
    ```
 
-The release pack contains only `hooks/`, `scripts/`, `tests/`.
+The Claude release pack contains only `hooks/`, `scripts/`, `tests/`.
 No memory, no docs, no operating files.
+
+For Codex, run `bash core/scripts/switch-engine.sh codex` from the Yana AI
+source checkout or use the npm installer. Existing target `AGENTS.md` files are
+preserved; the installer creates one only when the target has none.
+Parity rules and engine mappings are documented in `docs/ENGINE_PARITY.md`.
 
 ---
 

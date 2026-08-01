@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "sourceOfTruth": {
+    "instructions": "AGENTS.md",
+    "agents": "core/agents/*.md",
+    "skills": "core/skills/*/SKILL.md",
+    "commands": "core/commands/*.md",
+    "hooks": ".claude/settings.json"
+  },
+  "requiredParity": [
+    "instructions",
+    "agents",
+    "skills",
+    "commands",
+    "hooks"
+  ],
+  "engines": {
+    "claude": {
+      "instructions": "AGENTS.md",
+      "agents": ".claude/agents/*.md",
+      "skills": ".claude/skills/*/SKILL.md",
+      "commands": ".claude/commands/*.md",
+      "hooks": ".claude/settings.json",
+      "commandInvocation": "/<command>"
+    },
+    "codex": {
+      "instructions": "AGENTS.md",
+      "agents": ".codex/agents/*.toml",
+      "skills": ".agents/skills/*/SKILL.md",
+      "commands": ".agents/skills/yana-command-*/SKILL.md",
+      "hooks": ".codex/hooks.json",
+      "commandInvocation": "$yana-command-<command>"
+    }
+  },
+  "interfaceDifferences": {
+    "commands": "Codex project-shared reusable workflows use skills because repository-scoped custom slash prompts are deprecated and unsupported.",
+    "hooks": "Claude Agent/Task tool matchers map to Codex SubagentStart/SubagentStop lifecycle events."
+  }
+}
