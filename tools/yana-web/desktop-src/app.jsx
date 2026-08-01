@@ -7,7 +7,7 @@ import { setLang } from './lib/i18n-lang.js';
 import { PageErrorBoundary } from './lib/page-error-boundary.jsx';
 import { useTweaks } from './lib/tweaks/use-tweaks.js';
 import { TweaksPanel } from './lib/tweaks/panel.jsx';
-import { TweakSection, TweakSlider, TweakToggle, TweakRadio, TweakSelect } from './lib/tweaks/controls.jsx';
+import { TweakSection, TweakToggle, TweakRadio, TweakSelect } from './lib/tweaks/controls.jsx';
 import { TweakColor, TweakButton } from './lib/tweaks/color-control.jsx';
 
 import { Dashboard } from './dashboard.jsx';
@@ -28,10 +28,6 @@ import { VTuber } from './vtuber.jsx';
 const TWEAK_DEFAULTS = {
   "theme": "Jade Lake 🌿",
   "language": "English",
-  "blur": 70,
-  "transparency": 60,
-  "reflection": 70,
-  "depth": 55,
   "layout": "Regular",
   "showAgents": true,
   "showMissions": true,
@@ -42,7 +38,6 @@ const TWEAK_DEFAULTS = {
   "showMotes": true,
   "showRipple": true,
   "showWater": true,
-  "showGlassShine": true,
   "chatFont": "System",
   "reduceMotion": false,
 };
@@ -70,10 +65,6 @@ const DENSITY = { "Compact": 0.85, "Regular": 1, "Spacious": 1.18 };
 function applyTweaks(t) {
   const root = document.documentElement;
   root.setAttribute("data-theme", THEME_MAP[t.theme] || "jade");
-  root.style.setProperty("--blur", t.blur / 100);
-  root.style.setProperty("--alpha", t.transparency / 100);
-  root.style.setProperty("--reflect", t.reflection / 100);
-  root.style.setProperty("--depth", t.depth / 100);
   root.style.setProperty("--sp", DENSITY[t.layout] || 1);
   if (t.accent) {
     root.style.setProperty("--primary", t.accent);
@@ -82,13 +73,9 @@ function applyTweaks(t) {
     root.style.removeProperty("--primary");
     root.style.removeProperty("--primary-soft");
   }
-  const spd = (t.glassSpeed ?? 100) / 100;
-  root.style.setProperty("--shine-dur", spd > 0 ? (11 / spd).toFixed(2) + "s" : "0s");
-  root.style.setProperty("--anim-speed", spd.toFixed(3));
   // Effects
   document.body.classList.toggle("no-motes",       t.showMotes      === false);
   document.body.classList.toggle("no-ripple",      t.showRipple     === false);
-  document.body.classList.toggle("no-glass-shine", t.showGlassShine === false);
   document.body.classList.toggle("no-water",       t.showWater      === false);
   document.body.classList.toggle("reduce-motion",  t.reduceMotion   === true);
   const FONT_MAP = {
@@ -171,18 +158,11 @@ export function App() {
           options={["English", "Tiếng Việt", "한국어", "中文"]}
           onChange={(v) => setTweak("language", v)} />
 
-        <TweakSection label={L("Glass", "Kính", "유리", "玻璃")} />
-        <TweakSlider label={L("Blur", "Mờ", "흐림", "模糊")} value={t.blur} min={0} max={100} unit="%" onChange={(v) => setTweak("blur", v)} />
-        <TweakSlider label={L("Transparency", "Trong suốt", "투명도", "透明度")} value={t.transparency} min={0} max={100} unit="%" onChange={(v) => setTweak("transparency", v)} />
-        <TweakSlider label={L("Reflection", "Phản chiếu", "반사", "反射")} value={t.reflection} min={0} max={100} unit="%" onChange={(v) => setTweak("reflection", v)} />
-        <TweakSlider label={L("Depth", "Chiều sâu", "깊이", "深度")} value={t.depth} min={0} max={100} unit="%" onChange={(v) => setTweak("depth", v)} />
-
         <TweakSection label={L("Effects", "Hiệu ứng", "효과", "效果")} />
         <TweakToggle label={L("Yana companion", "Nhân vật Yana", "야나 동반자", "야나 伴侣")} value={t.showVTuber !== false} onChange={(v) => setTweak("showVTuber", v)} />
         <TweakToggle label={L("Floating motes", "Hạt nổi", "부유 입자", "浮动粒子")} value={t.showMotes !== false} onChange={(v) => setTweak("showMotes", v)} />
         <TweakToggle label={L("Water ripple", "Gợn nước", "물결 효과", "水面涟漪")} value={t.showRipple !== false} onChange={(v) => setTweak("showRipple", v)} />
         <TweakToggle label={L("Canvas waves", "Sóng canvas", "캔버스 파도", "画布波浪")} value={t.showWater !== false} onChange={(v) => setTweak("showWater", v)} />
-        <TweakToggle label={L("Glass shine", "Ánh kính", "유리 광택", "玻璃光泽")} value={t.showGlassShine !== false} onChange={(v) => setTweak("showGlassShine", v)} />
 
         <TweakSection label={L("Layout", "Bố cục", "레이아웃", "布局")} />
         <TweakRadio label={L("Density", "Mật độ", "밀도", "密度")} value={t.layout} options={["Compact", "Regular", "Spacious"]} onChange={(v) => setTweak("layout", v)} />
@@ -198,9 +178,6 @@ export function App() {
           options={["#2f7e6e","#5a8a50","#1a7eb0","#7c5cbf","#b96b80","#c97c18","#3a7ca5","#c06050","#56949f","#6f8f5a"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakButton label={L("Use theme accent", "Dùng màu theo theme", "테마 색상 사용", "使用主题色")} onClick={() => setTweak("accent", "")} />
-
-        <TweakSection label={L("Animation", "Hoạt ảnh", "애니메이션", "动画")} />
-        <TweakSlider label={L("Glass speed", "Tốc độ kính", "유리 속도", "玻璃速度")} value={t.glassSpeed ?? 100} min={0} max={200} unit="%" onChange={(v) => setTweak("glassSpeed", v)} />
 
         <TweakSection label={L("Reset", "Đặt lại", "초기화", "重置")} />
         <TweakButton label={L("↺ Restore defaults", "↺ Khôi phục mặc định", "↺ 기본값 복원", "↺ 恢复默认")} secondary onClick={() => setTweak(TWEAK_DEFAULTS)} />

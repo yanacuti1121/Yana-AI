@@ -141,10 +141,9 @@ export function ProfileHero({ t, setTweak, dash }) {
   return (
     <div style={{
       borderRadius: "var(--r-md)",
-      background: "rgba(var(--surface-rgb), 0.65)",
-      backdropFilter: "blur(20px) saturate(140%)",
-      border: "0.5px solid var(--border)",
-      boxShadow: "0 4px 28px rgba(var(--shadow-rgb), .1), 0 1px 0 rgba(255,255,255,.22) inset",
+      background: "var(--color-bg-subtle)",
+      border: "1px solid var(--color-border)",
+      boxShadow: "0 1px 2px rgba(var(--shadow-rgb), 0.04)",
       overflow: "hidden",
       position: "relative",
     }}>

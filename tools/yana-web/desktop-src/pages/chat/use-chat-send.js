@@ -12,13 +12,20 @@ import { KEYLESS_PROVIDERS, getProviderConfig } from '../../lib/provider-config.
 import { detectSensitivity, smartPickProvider } from './routing.js';
 import { CHAT_MODELS } from './model-select.js';
 
-// "About you" from Settings — sent with every chat so Yana knows the user
+// "About you" + Profile (Settings) — sent with every chat so Yana knows the
+// user. Profile's role/instructions live under a separate "yana.profile.*"
+// key namespace from the "About you" card's "yana.about.*" — both are read
+// here so neither Settings field is a silent no-op.
 function aboutContext() {
   const parts = [];
   for (const [id, label] of [["who", "Who"], ["strengths", "Strengths"], ["weaknesses", "Weak spots"], ["style", "Response style"]]) {
     const v = localStorage.getItem("yana.about." + id);
     if (v && v.trim()) parts.push(label + ": " + v.trim());
   }
+  const role = localStorage.getItem("yana.profile.role");
+  if (role && role.trim()) parts.push("Profession / role: " + role.trim());
+  const instructions = localStorage.getItem("yana.profile.instructions");
+  if (instructions && instructions.trim()) parts.push("Instructions: " + instructions.trim());
   return parts.join("\n");
 }
 
@@ -264,5 +271,15 @@ export function useChatSend({
     setTimeout(() => sendText(lastUser.text), 0);
   }
 
-  return { thinking, streaming, sendText, send, stopStream, regenerate };
+  // Edit-and-resend: editing a user turn invalidates everything after it,
+  // so truncate at that turn (dropping it and every later message, same
+  // as regenerate() does for the last turn) then resend the new text.
+  function editAndResend(msgIndex, newText) {
+    const text = (newText || "").trim();
+    if (!text || thinking || streaming) return;
+    setMsgs((m) => m.slice(0, msgIndex));
+    setTimeout(() => sendText(text), 0);
+  }
+
+  return { thinking, streaming, sendText, send, stopStream, regenerate, editAndResend };
 }

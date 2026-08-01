@@ -21,6 +21,7 @@ import { useLocalStatus } from './chat/use-local-status.js';
 import { useVisionAttach } from './chat/use-vision-attach.js';
 import { useOcr } from './chat/use-ocr.js';
 import { useChatSend } from './chat/use-chat-send.js';
+import { useChatShortcuts } from './chat/use-shortcuts.js';
 
 const ONBOARDED_KEY = "yana.onboarded";
 
@@ -50,9 +51,9 @@ export function Chat({ t }) {
   const { msgs, setMsgs, convList, sidebarOpen, toggleSidebar, newConversation, loadConversation, deleteConversation } = useChatHistory();
   const localStatus = useLocalStatus(setProviderSel);
   const { modelSel, liveModels, activeProvider, modelOptions, activeModel, isVisionModel, pickModel } = useChatModels(providerSel);
-  const { visionImage, setVisionImage, handleVisionAttach } = useVisionAttach();
+  const { visionImage, setVisionImage, handleVisionAttach, handleVisionPaste } = useVisionAttach();
   const { ocrBusy, handleOcr } = useOcr(setDraft, setMsgs);
-  const { thinking, streaming, send, stopStream, regenerate } = useChatSend({
+  const { thinking, streaming, send, stopStream, regenerate, editAndResend } = useChatSend({
     msgs, setMsgs, draft, setDraft, providerSel, confMode, modelSel, liveModels,
     visionImage, setVisionImage, localStatus, inputRef, setAtBottom, setArtifact,
   });
@@ -81,6 +82,11 @@ export function Chat({ t }) {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  useChatShortcuts({
+    toggleSearch: () => setMsgSearch((s) => (s === null ? "" : null)),
+    newConversation,
+  });
+
   return (
     <div data-screen-label="Chat" style={{ display: "flex", gap: "var(--gap)", height: "100%", minHeight: 0 }}>
       {sidebarOpen && (
@@ -103,13 +109,13 @@ export function Chat({ t }) {
           <HtmlTemplatePicker htmlSkills={htmlSkills} htmlSearch={htmlSearch} setHtmlSearch={setHtmlSearch} setHtmlPicker={setHtmlPicker} setDraft={setDraft} />
         )}
 
-        <MessageLog logRef={logRef} msgs={msgs} thinking={thinking} streaming={streaming} localStatus={localStatus} msgSearch={msgSearch} regenerate={regenerate} />
+        <MessageLog logRef={logRef} msgs={msgs} thinking={thinking} streaming={streaming} localStatus={localStatus} msgSearch={msgSearch} regenerate={regenerate} onEdit={editAndResend} />
 
         <ScrollToBottomButton show={!atBottom} onClick={() => { const el = logRef.current; if (el) { el.scrollTop = el.scrollHeight; setAtBottom(true); } }} />
 
         <ComposerBar
           fileRef={fileRef} visionRef={visionRef} inputRef={inputRef}
-          handleOcr={handleOcr} handleVisionAttach={handleVisionAttach} ocrBusy={ocrBusy}
+          handleOcr={handleOcr} handleVisionAttach={handleVisionAttach} handleVisionPaste={handleVisionPaste} ocrBusy={ocrBusy}
           htmlPicker={htmlPicker} setHtmlPicker={setHtmlPicker} htmlSkills={htmlSkills} setHtmlSkills={setHtmlSkills} setHtmlSearch={setHtmlSearch}
           draft={draft} setDraft={setDraft} autoResize={autoResize} send={send} stopStream={stopStream} streaming={streaming} thinking={thinking}
           isVisionModel={isVisionModel} activeModel={activeModel} visionImage={visionImage} setVisionImage={setVisionImage}
@@ -119,7 +125,7 @@ export function Chat({ t }) {
           localStatus={localStatus}
         />
 
-        <ModelCapabilityHint activeModel={activeModel} />
+        <ModelCapabilityHint activeModel={activeModel} msgs={msgs} />
       </div>
 
       {artifact

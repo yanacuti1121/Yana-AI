@@ -44,18 +44,6 @@ function ThemeCard({ p, active, onPick }) {
   );
 }
 
-function SliderRow({ label, value, onChange }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "110px 1fr 42px", alignItems: "center", gap: 14, padding: "7px 0" }}>
-      <span style={{ fontSize: 13 }}>{label}</span>
-      <input type="range" min="0" max="100" value={value}
-        onChange={(e) => onChange(+e.target.value)}
-        style={{ width: "100%", accentColor: "var(--primary)", height: 4 }} />
-      <span style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "right" }}>{value}%</span>
-    </div>
-  );
-}
-
 const ACCENTS = ["#2f7e6e", "#56949f", "#3a7ca5", "#7d6aa8", "#b96b80", "#b07a4f", "#b78f3d", "#6f8f5a", "#5b7282"];
 
 export function AppearanceCard({ t, setTweak }) {
@@ -113,13 +101,6 @@ export function AppearanceCard({ t, setTweak }) {
           {(t.chatFont || "System") === "Be Vietnam" && L("Be Vietnam Pro — elegant", "Be Vietnam Pro — thanh lịch", "Be Vietnam Pro — 우아함", "Be Vietnam Pro — 优雅")}
           {(t.chatFont || "System") === "Mono"       && L("ui-monospace — code-ready", "ui-monospace — thân thiện code", "ui-monospace — 코드에 적합", "ui-monospace — 适合代码")}
         </span>
-      </div>
-
-      <div style={{ padding: "8px 0 0", borderTop: "1px solid var(--border)" }}>
-        <SliderRow label={L("Blur", "Mờ", "블러", "模糊")} value={t.blur} onChange={(v) => setTweak("blur", v)} />
-        <SliderRow label={L("Transparency", "Trong suốt", "투명도", "透明度")} value={t.transparency} onChange={(v) => setTweak("transparency", v)} />
-        <SliderRow label={L("Reflection", "Phản chiếu", "반사", "反光")} value={t.reflection} onChange={(v) => setTweak("reflection", v)} />
-        <SliderRow label={L("Depth", "Độ sâu", "깊이", "深度")} value={t.depth} onChange={(v) => setTweak("depth", v)} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "4px 24px", paddingTop: 10, borderTop: "1px solid var(--border)" }}>

@@ -15,7 +15,7 @@ export function L(en, vi, ko, zh) {
 function Ic({ d, size = 18, ...rest }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none"
-      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...rest}>
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...rest}>
       {d}
     </svg>
   );
@@ -248,8 +248,8 @@ export function PageHeader({ title, sub, children }) {
   return (
     <header style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: "var(--gap)" }}>
       <div>
-        <h1 className="h-display" style={{ margin: 0, fontSize: 26 }}>{title}</h1>
-        {sub && <p style={{ margin: "3px 0 0", color: "var(--ink-2)", fontSize: 13.5 }}>{sub}</p>}
+        <h1 className="h-display" style={{ margin: 0, fontSize: "var(--font-size-2xl)" }}>{title}</h1>
+        {sub && <p style={{ margin: "3px 0 0", color: "var(--color-text-muted)", fontSize: "var(--font-size-sm)" }}>{sub}</p>}
       </div>
       {children}
     </header>
@@ -262,7 +262,7 @@ export function Card({ title, aside, children, style, className, interactive }) 
     <section className={"glass " + iClass + " " + (className || "")} style={{ borderRadius: "var(--r-lg)", padding: "var(--pad-card)", ...style }}>
       {(title || aside) && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          {title && <h2 className="label-xs" style={{ margin: 0 }}>{title}</h2>}
+          {title && <h2 className="card-title" style={{ margin: 0 }}>{title}</h2>}
           {aside}
         </div>
       )}

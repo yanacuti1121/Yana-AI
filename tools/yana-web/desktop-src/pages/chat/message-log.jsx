@@ -81,7 +81,7 @@ function EmptyState({ localStatus }) {
   );
 }
 
-export function MessageLog({ logRef, msgs, thinking, streaming, localStatus, msgSearch, regenerate }) {
+export function MessageLog({ logRef, msgs, thinking, streaming, localStatus, msgSearch, regenerate, onEdit }) {
   const visible = msgSearch
     ? msgs.filter(m => m.text && m.text.toLowerCase().includes(msgSearch.toLowerCase()))
     : msgs;
@@ -92,8 +92,10 @@ export function MessageLog({ logRef, msgs, thinking, streaming, localStatus, msg
 
       {visible.map((m, i, arr) => (
         <Message key={m._id || i} msg={m}
+          msgIndex={msgs.indexOf(m)}
           isLastYana={!streaming && i === arr.length - 1 && m.who === "yana"}
           onRegenerate={regenerate}
+          onEdit={onEdit}
         />
       ))}
 
@@ -118,10 +120,9 @@ export function ScrollToBottomButton({ show, onClick }) {
     <button onClick={onClick}
       style={{
         position: "absolute", bottom: 110, right: 24, width: 32, height: 32, borderRadius: 99,
-        border: "1px solid var(--border)", background: "var(--glass-bg, rgba(255,255,255,.85))",
+        border: "1px solid var(--color-border)", background: "var(--color-bg)",
         cursor: "pointer", fontSize: 14, display: "grid", placeItems: "center",
-        color: "var(--ink-2)", boxShadow: "0 2px 10px rgba(0,0,0,.12)",
-        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+        color: "var(--color-text-muted)", boxShadow: "0 2px 10px rgba(var(--shadow-rgb), .12)",
       }}>↓</button>
   );
 }
