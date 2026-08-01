@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Switch active AI engine adapter
-# Usage: bash core/scripts/switch-engine.sh <claude|cursor|copilot|aider>
+# Usage: bash core/scripts/switch-engine.sh <claude|codex|cursor|copilot|aider>
 set -euo pipefail
 
 # Parse arguments: ENGINE is the first non-flag arg; --dry-run sets DRY_RUN=1
@@ -19,6 +19,7 @@ usage() {
   echo ""
   echo "Engines:"
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
+  echo "  codex    — synchronizes .codex agents/hooks + .agents skills"
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
   echo "  copilot  — activates .github/copilot-instructions.md"
   echo "  aider    — prints aider CLI command with system prompt"
@@ -73,6 +74,32 @@ case "$ENGINE" in
     echo ""
     echo "Hooks in core/hooks/ are enforced at runtime via .claude/settings.json"
     echo "Run: bash core/tests/hooks/run-hook-tests.sh to verify"
+    ;;
+
+  codex)
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would synchronize core/agents → .codex/agents${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/skills → .agents/skills${NC}"
+      echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
+    else
+      node core/scripts/sync-codex.js --target .
+      node core/scripts/sync-codex.js --check --target .
+
+      LOGGER="core/scripts/secure-logger.sh"
+      if [[ -x "$LOGGER" ]]; then
+        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=hard-runtime generated_file=.codex/config.toml operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_end "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
+      fi
+    fi
+
+    echo ""
+    echo -e "${GREEN}Codex project support active.${NC}"
+    echo "  Guidance: AGENTS.md"
+    echo "  Agents:   .codex/agents/*.toml"
+    echo "  Skills:   .agents/skills/*/SKILL.md"
+    echo "  Commands: \$yana-command-<name> (generated from core/commands)"
+    echo "  Hooks:    .codex/hooks.json (review/trust with /hooks)"
     ;;
 
   cursor)
@@ -576,6 +603,15 @@ CONTINUEEOF
   status)
     echo "=== Yana AI Engine Adapter Status ==="
     echo ""
+    [[ -f ".codex/config.toml" && -f ".codex/hooks.json" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .codex/config.toml + hooks.json" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     project config or hooks missing"
+    [[ -d ".codex/agents" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .codex/agents/ ($(find .codex/agents -maxdepth 1 -name '*.toml' | wc -l | tr -d ' ') agents)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .codex/agents/ missing"
+    [[ -d ".agents/skills" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .agents/skills/ ($(find .agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ') skills)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .agents/skills/ missing"
     [[ -f ".cursorrules" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursorrules ($(wc -l < .cursorrules) lines)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursorrules missing"

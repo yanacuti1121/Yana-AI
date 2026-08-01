@@ -7,6 +7,7 @@
 
 const fs   = require("fs");
 const path = require("path");
+const { syncCodex } = require("../core/scripts/sync-codex.js");
 
 const PKG_ROOT  = path.join(__dirname, "..");
 const AUTO_MODE = process.argv.includes("--auto");
@@ -16,6 +17,7 @@ const COPY_DIRS = [
   ["core/hooks",    ".claude/hooks"],
   ["core/commands", ".claude/commands"],
   ["core/agents",   ".claude/agents"],
+  ["core/skills",   ".claude/skills"],
   ["core/rules",    ".claude/rules"],
   // ── core/scripts + core/gates ──────────────────────────────────────────────
   // FIX (audit 2026-06-21): these two were missing from COPY_DIRS even though
@@ -36,6 +38,8 @@ const COPY_DIRS = [
 const COPY_FILES = [
   [".claude-plugin/plugin.json",      ".claude-plugin/plugin.json"],
   [".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"],
+  [".codex/config.toml",               ".codex/config.toml"],
+  [".codex/hooks.json",                ".codex/hooks.json"],
 ];
 
 function copyDir(src, dest) {
@@ -83,12 +87,23 @@ function main() {
     }
   }
 
+  syncCodex(PKG_ROOT, TARGET);
+
+  const agentsPath = path.join(TARGET, "AGENTS.md");
+  if (!fs.existsSync(agentsPath)) {
+    fs.copyFileSync(path.join(PKG_ROOT, "adapters/codex.md"), agentsPath);
+    console.log("  ✓ AGENTS.md (Yana AI Codex guidance)");
+    total++;
+  } else {
+    console.log("  ↪ AGENTS.md preserved (existing project guidance)");
+  }
+
   if (total === 0) {
     console.log("  ✗ Nothing copied — run from your project root.");
     process.exit(1);
   }
 
-  console.log(`\n  ✓ ${total} files installed to .claude/`);
+  console.log(`\n  ✓ ${total} base files installed; Codex agents, skills, and hooks synchronized`);
   console.log("  Next: yana-ai doctor .\n");
 }
 

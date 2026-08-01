@@ -5,6 +5,7 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 | Engine | Adapter file | How to apply |
 |---|---|---|
 | **Claude Code** | _(native — no adapter needed)_ | Drop into `.claude/` via release zip |
+| **Codex** | `AGENTS.md` + `.codex/` + `.agents/skills/` | `bash core/scripts/switch-engine.sh codex` (commands become `$yana-command-*` skills) |
 | **Cursor** | `.cursorrules` (root) + `.cursor/rules/*.mdc` | Already at repo root — Cursor picks up automatically |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | Copilot reads this file automatically in VS Code |
 | **Aider** | `adapters/aider.md` | `aider --system-prompt adapters/aider.md` |
@@ -22,6 +23,7 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 bash core/scripts/switch-engine.sh <engine>
 
 # Examples:
+bash core/scripts/switch-engine.sh codex      # syncs agents, skills, hooks
 bash core/scripts/switch-engine.sh cursor     # activates .cursorrules
 bash core/scripts/switch-engine.sh copilot    # activates .github/copilot-instructions.md
 bash core/scripts/switch-engine.sh aider      # prints aider CLI command
@@ -33,18 +35,21 @@ bash core/scripts/switch-engine.sh claude     # default — no adapter needed
 
 ## What's Mapped Across All Adapters
 
-| Yana AI Rule | Claude Code | Cursor | Copilot | Aider | Gemini Code |
-|---|---|---|---|---|---|
-| Security prohibitions | hooks (L0-L5) | `.cursorrules` | `copilot-instructions.md` | system prompt | `GEMINI.md` |
-| Code constraints (50 lines, 5 params) | `agent-code-constraints.md` | `.mdc` rule | instructions | system prompt | `GEMINI.md` |
-| Evidence-first policy | truth-gate-guard.sh | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
-| Git push gate | `git-push-enforcement.md` | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
-| Hard shell enforcement | hooks | safe-run.sh | — | safe-run.sh | safe-run.sh |
+| Yana AI Rule | Claude Code | Codex | Cursor | Copilot | Aider | Gemini Code |
+|---|---|---|---|---|---|---|
+| Security prohibitions | hooks (L0-L5) | `.codex/hooks.json` | `.cursorrules` | `copilot-instructions.md` | system prompt | `GEMINI.md` |
+| Code constraints (50 lines, 5 params) | `agent-code-constraints.md` | `AGENTS.md` | `.mdc` rule | instructions | system prompt | `GEMINI.md` |
+| Evidence-first policy | truth-gate-guard.sh | Stop hook | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
+| Git push gate | `git-push-enforcement.md` | PreToolUse hook | `.cursorrules` | instructions | system prompt | `GEMINI.md` |
+| Hard shell enforcement | hooks | `.codex/hooks.json` | safe-run.sh | — | safe-run.sh | safe-run.sh |
 
 ---
 
 ## Limitations
 
-- Claude Code: full enforcement via hooks (runtime blocking). Other engines: **advisory only** — rules are in the prompt, not enforced at shell level.
+- Claude Code: full enforcement via hooks (runtime blocking).
+- Codex: project-scoped hooks, custom agents, and skills are synchronized from `core/`; review changed hooks with `/hooks` before relying on them.
+- Claude `/name` commands map to Codex `$yana-command-name` skills because repository-scoped Codex custom prompts are deprecated; the workflow content remains shared and parity-tested.
+- Other engines: **advisory only** — rules are in the prompt, not enforced at shell level.
 - For hard runtime blocking on non-Claude engines, wrap commands with `bash core/scripts/safe-run.sh`.
 - Cursor `.mdc` rules require Cursor ≥ 0.40. Older versions use `.cursorrules` only.
