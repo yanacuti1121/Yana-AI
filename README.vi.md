@@ -125,12 +125,15 @@ Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **Lưu ý (2026-07-30): không phân phối qua npm.** Yana AI không còn (và không có kế hoạch) publish lên npm registry nữa — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) để biết toàn bộ lịch sử. Dùng `pip` hoặc `cargo` bên dưới.
-
 ```bash
 # Python CLI — cài lệnh yana-ai
 pip install yana-ai
 yana-ai install                # gắn hooks vào dự án hiện tại
+
+# npm — gói scoped (xem VERSIONING.md#why-product-has-no-registry
+# để biết vì sao dùng tên scoped thay vì `yana-ai` không scope)
+npm install -g @yanacuti/yana-ai
+yana-ai install
 
 # Rust runtime (nhanh hơn ~2–12 lần với lệnh giới hạn phạm vi — xem BENCHMARK.md)
 cargo install yana-rt
@@ -236,7 +239,7 @@ Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version r
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | [npmjs.com/package/@yanacuti/yana-ai](https://www.npmjs.com/package/@yanacuti/yana-ai) — xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) để biết vì sao dùng tên scoped |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 

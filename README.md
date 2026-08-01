@@ -125,15 +125,15 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **Note (2026-07-30): not distributed via npm.** Yana AI is not, and is
-> no longer planned to be, published to the npm registry — see
-> [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) for the
-> full history. Use `pip` or `cargo` below.
-
 ```bash
 # Python CLI — installs the yana-ai command
 pip install yana-ai
 yana-ai install                # wires the hooks into the current project
+
+# npm — scoped package (see VERSIONING.md#why-product-has-no-registry
+# for why it's scoped rather than the unscoped `yana-ai` name)
+npm install -g @yanacuti/yana-ai
+yana-ai install
 
 # Rust runtime (up to ~12x faster on bounded commands — see BENCHMARK.md)
 cargo install yana-rt
@@ -239,7 +239,7 @@ Yana AI ships to three registries, each with its own version number — delibera
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | [npmjs.com/package/@yanacuti/yana-ai](https://www.npmjs.com/package/@yanacuti/yana-ai) — see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) for why it's scoped |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
