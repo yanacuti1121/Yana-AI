@@ -21,6 +21,13 @@ Thumbs.db
 # Node
 node_modules/
 
+# Vite build output for the desktop frontend (source lives in
+# tools/yana-web/desktop-src/, builds directly to tools/yana-web/desktop/ —
+# run `npm run build:desktop` before `npm start` or before packaging).
+# Anchored to this exact path — tools/yana-desktop/build/ holds tracked
+# electron-builder icon assets and must stay tracked.
+tools/yana-web/desktop/
+
 # Memory pipeline
 memory/L0_raw/
 memory/L1_atomic/private/
