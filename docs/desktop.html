@@ -240,8 +240,30 @@
     .platform-icon { font-size: 2rem; }
     .platform-name { font-size: 1.05rem; font-weight: 700; }
     .platform-arch { font-size: .8rem; color: var(--fg-muted); }
-    .platform-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .875rem; font-weight: 600; color: var(--primary); margin-top: auto; padding-top: .25rem; }
+    .platform-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .875rem; font-weight: 600; color: var(--primary); padding-top: .25rem; }
     .platform-link:hover { text-decoration: underline; }
+    .install-steps {
+      list-style: none; counter-reset: step; margin-top: .25rem;
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .install-steps li {
+      counter-increment: step;
+      display: flex; gap: .55rem; align-items: baseline;
+      font-size: .8125rem; color: var(--fg-muted); line-height: 1.5;
+    }
+    .install-steps li::before {
+      content: counter(step);
+      flex: none; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--bg-card-2); border: 1px solid var(--border);
+      color: var(--fg); font-size: .6875rem; font-weight: 700;
+      display: grid; place-items: center; line-height: 1;
+      transform: translateY(1px);
+    }
+    .install-steps code {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: .75rem; background: var(--bg-card-2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; word-break: break-all;
+    }
 
     /* ── CTA ──────────────────────────────────────────────── */
     .cta-section {
@@ -439,14 +461,23 @@
       <p class="platform-arch">Apple Silicon (arm64) · Intel (x64)</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0-arm64.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (arm64) →</a>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (Intel) →</a>
-      <p class="platform-arch" style="margin-top:.5rem" data-i18n="mac_gatekeeper_note">Not code-signed yet — macOS will warn "unidentified developer": right-click the app → Open → Open again to launch it.</p>
+      <ol class="install-steps">
+        <li data-i18n="mac_step1">Open the .dmg, drag "Yana AI" into Applications.</li>
+        <li data-i18n="mac_step2">Open the app from Applications (not from inside the .dmg).</li>
+        <li data-i18n="mac_step3">Not code-signed yet, so macOS will warn "unidentified developer" — right-click the app → Open → Open again.</li>
+        <li data-i18n="mac_step4">If it instead says the app "is damaged" (newer macOS — same warning, just stricter, right-click won't work): open Terminal and run <code>xattr -cr "/Applications/Yana AI.app"</code></li>
+      </ol>
     </li>
     <li class="platform-card">
       <div class="platform-icon" aria-hidden="true">🪟</div>
       <h3 class="platform-name">Windows</h3>
       <p class="platform-arch">x64 · Installer (.exe)</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI.Setup.1.3.0.exe"><span data-i18n="dl_prefix">Download</span> .exe →</a>
-      <p class="platform-arch" style="margin-top:.5rem" data-i18n="win_smartscreen_note">Not code-signed yet — Windows SmartScreen will warn: click "More info" → "Run anyway" to launch it.</p>
+      <ol class="install-steps">
+        <li data-i18n="win_step1">Run the downloaded .exe.</li>
+        <li data-i18n="win_step2">Not code-signed yet, so Windows SmartScreen will warn — click "More info" → "Run anyway".</li>
+        <li data-i18n="win_step3">Follow the installer, then launch Yana AI from the Start menu.</li>
+      </ol>
     </li>
     <li class="platform-card">
       <div class="platform-icon" aria-hidden="true">🐧</div>
@@ -454,6 +485,11 @@
       <p class="platform-arch">x64 · arm64 · AppImage</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (x64) →</a>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0-arm64.AppImage"><span data-i18n="dl_prefix">Download</span> AppImage (arm64) →</a>
+      <ol class="install-steps">
+        <li data-i18n="linux_step1">Make it executable: <code>chmod +x Yana.AI-1.3.0.AppImage</code></li>
+        <li data-i18n="linux_step2">Run it: <code>./Yana.AI-1.3.0.AppImage</code></li>
+        <li data-i18n="linux_step3">If it complains about missing FUSE (common on newer Ubuntu/Fedora), install <code>libfuse2</code>, or run with <code>--appimage-extract-and-run</code> instead.</li>
+      </ol>
     </li>
   </ul>
 </section>
@@ -526,8 +562,16 @@ const LANGS = {
     faq_a4: "62 runtime hooks check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
     plat_title: "Available on every platform",
     plat_sub: "v1.3.0 for every platform — download and run instantly, no extra setup needed.",
-    mac_gatekeeper_note: "Not code-signed yet — macOS will warn \"unidentified developer\": right-click the app → Open → Open again to launch it.",
-    win_smartscreen_note: "Not code-signed yet — Windows SmartScreen will warn: click \"More info\" → \"Run anyway\" to launch it.",
+    mac_step1: "Open the .dmg, drag \"Yana AI\" into Applications.",
+    mac_step2: "Open the app from Applications (not from inside the .dmg).",
+    mac_step3: "Not code-signed yet, so macOS will warn \"unidentified developer\" — right-click the app → Open → Open again.",
+    mac_step4: "If it instead says the app \"is damaged\" (newer macOS — same warning, just stricter, right-click won't work): open Terminal and run <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    win_step1: "Run the downloaded .exe.",
+    win_step2: "Not code-signed yet, so Windows SmartScreen will warn — click \"More info\" → \"Run anyway\".",
+    win_step3: "Follow the installer, then launch Yana AI from the Start menu.",
+    linux_step1: "Make it executable: <code>chmod +x Yana.AI-1.3.0.AppImage</code>",
+    linux_step2: "Run it: <code>./Yana.AI-1.3.0.AppImage</code>",
+    linux_step3: "If it complains about missing FUSE (common on newer Ubuntu/Fedora), install <code>libfuse2</code>, or run with <code>--appimage-extract-and-run</code> instead.",
     dl_prefix: "Download",
     cta_title: "Get started today",
     cta_sub: "Download, enter your API key, and you're ready — takes less than 2 minutes.",
@@ -577,8 +621,16 @@ const LANGS = {
     faq_a4: "62 hooks runtime kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
     plat_title: "Hỗ trợ mọi nền tảng",
     plat_sub: "v1.3.0 cho mọi nền tảng — tải về và dùng ngay, không cần cài thêm gì.",
-    mac_gatekeeper_note: "Chưa ký code (code-signed) — macOS sẽ cảnh báo \"nhà phát triển chưa xác định\": chuột phải vào app → Open → Open lần nữa để mở.",
-    win_smartscreen_note: "Chưa ký code — Windows SmartScreen sẽ cảnh báo: bấm \"More info\" → \"Run anyway\" để mở.",
+    mac_step1: "Mở file .dmg, kéo \"Yana AI\" vào Applications.",
+    mac_step2: "Mở app từ Applications (không mở thẳng từ trong .dmg).",
+    mac_step3: "Chưa ký code nên macOS sẽ báo \"nhà phát triển chưa xác định\" — chuột phải vào app → Open → Open lần nữa.",
+    mac_step4: "Nếu báo app \"bị hỏng\" (macOS mới — vẫn là cảnh báo trên, chỉ chặt hơn, chuột phải không ăn thua): mở Terminal, chạy <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    win_step1: "Chạy file .exe vừa tải.",
+    win_step2: "Chưa ký code nên Windows SmartScreen sẽ cảnh báo — bấm \"More info\" → \"Run anyway\".",
+    win_step3: "Làm theo trình cài đặt, xong mở Yana AI từ Start menu.",
+    linux_step1: "Cấp quyền chạy: <code>chmod +x Yana.AI-1.3.0.AppImage</code>",
+    linux_step2: "Chạy: <code>./Yana.AI-1.3.0.AppImage</code>",
+    linux_step3: "Nếu báo thiếu FUSE (thường gặp trên Ubuntu/Fedora mới), cài <code>libfuse2</code>, hoặc chạy kèm <code>--appimage-extract-and-run</code>.",
     dl_prefix: "Tải",
     cta_title: "Bắt đầu ngay hôm nay",
     cta_sub: "Tải về, nhập API key và dùng ngay — chưa tới 2 phút.",
@@ -628,8 +680,16 @@ const LANGS = {
     faq_a4: "62개의 런타임 훅이 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
     plat_title: "모든 플랫폼 지원",
     plat_sub: "모든 플랫폼 v1.3.0 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
-    mac_gatekeeper_note: "아직 코드 서명이 되어 있지 않습니다 — macOS가 \"확인되지 않은 개발자\" 경고를 표시합니다: 앱을 마우스 오른쪽 버튼으로 클릭 → 열기 → 다시 열기를 눌러 실행하세요.",
-    win_smartscreen_note: "아직 코드 서명이 되어 있지 않습니다 — Windows SmartScreen이 경고를 표시합니다: \"추가 정보\" → \"실행\"을 클릭해 실행하세요.",
+    mac_step1: ".dmg 파일을 열고 \"Yana AI\"를 Applications로 드래그하세요.",
+    mac_step2: "Applications에서 앱을 여세요 (.dmg 안에서 바로 열지 마세요).",
+    mac_step3: "아직 코드 서명이 되어 있지 않아 macOS가 \"확인되지 않은 개발자\" 경고를 표시합니다 — 앱을 마우스 오른쪽 버튼으로 클릭 → 열기 → 다시 열기.",
+    mac_step4: "대신 앱이 \"손상되었습니다\"라고 표시되면(최신 macOS — 같은 경고가 더 엄격해진 것, 마우스 오른쪽 클릭은 소용없음): 터미널을 열고 실행하세요 <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    win_step1: "다운로드한 .exe를 실행하세요.",
+    win_step2: "아직 코드 서명이 되어 있지 않아 Windows SmartScreen이 경고를 표시합니다 — \"추가 정보\" → \"실행\"을 클릭하세요.",
+    win_step3: "설치 마법사를 따라간 뒤 시작 메뉴에서 Yana AI를 실행하세요.",
+    linux_step1: "실행 권한 부여: <code>chmod +x Yana.AI-1.3.0.AppImage</code>",
+    linux_step2: "실행: <code>./Yana.AI-1.3.0.AppImage</code>",
+    linux_step3: "FUSE가 없다는 오류가 나오면(최신 Ubuntu/Fedora에서 흔함) <code>libfuse2</code>를 설치하거나 <code>--appimage-extract-and-run</code>과 함께 실행하세요.",
     dl_prefix: "다운로드",
     cta_title: "지금 시작하기",
     cta_sub: "다운로드하고 API 키를 입력하면 준비 완료 — 2분도 걸리지 않습니다.",
@@ -679,8 +739,16 @@ const LANGS = {
     faq_a4: "62 个运行时钩子会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
     plat_title: "支持所有平台",
     plat_sub: "所有平台均为 v1.3.0 — 下载即用，无需额外配置。",
-    mac_gatekeeper_note: "尚未进行代码签名 — macOS 会提示“无法验证开发者”：右键点击该应用 → 打开 → 再次点击打开即可启动。",
-    win_smartscreen_note: "尚未进行代码签名 — Windows SmartScreen 会发出警告：点击“更多信息” → “仍要运行”即可启动。",
+    mac_step1: "打开 .dmg，将 \"Yana AI\" 拖到 Applications 中。",
+    mac_step2: "从 Applications 打开应用（不要直接从 .dmg 内打开）。",
+    mac_step3: "尚未进行代码签名，macOS 会提示“无法验证开发者” — 右键点击该应用 → 打开 → 再次点击打开。",
+    mac_step4: "如果提示应用“已损坏”（较新版本 macOS — 同样的警告，只是更严格，右键无效）：打开终端并运行 <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    win_step1: "运行下载的 .exe 文件。",
+    win_step2: "尚未进行代码签名，Windows SmartScreen 会发出警告 — 点击“更多信息” → “仍要运行”。",
+    win_step3: "按照安装向导完成安装，然后从开始菜单启动 Yana AI。",
+    linux_step1: "赋予可执行权限：<code>chmod +x Yana.AI-1.3.0.AppImage</code>",
+    linux_step2: "运行：<code>./Yana.AI-1.3.0.AppImage</code>",
+    linux_step3: "如果提示缺少 FUSE（较新版本 Ubuntu/Fedora 常见），请安装 <code>libfuse2</code>，或改用 <code>--appimage-extract-and-run</code> 运行。",
     dl_prefix: "下载",
     cta_title: "立即开始",
     cta_sub: "下载后输入 API 密钥即可使用——不到 2 分钟。",
