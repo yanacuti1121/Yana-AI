@@ -439,7 +439,7 @@
       <p class="platform-arch">Apple Silicon (arm64) · Intel (x64)</p>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0-arm64.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (arm64) →</a>
       <a class="platform-link" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.3.0/Yana.AI-1.3.0.dmg"><span data-i18n="dl_prefix">Download</span> .dmg (Intel) →</a>
-      <p class="platform-arch" style="margin-top:.5rem" data-i18n="mac_gatekeeper_note">Not code-signed yet — macOS will warn "unidentified developer": right-click the app → Open → Open again to launch it.</p>
+      <p class="platform-arch" style="margin-top:.5rem" data-i18n="mac_gatekeeper_note">Not code-signed yet. Try right-click the app → Open → Open again. If macOS instead says the app "is damaged" (newer macOS), that's the same unsigned-software warning, just stricter — move the app to Applications, then in Terminal run: xattr -cr "/Applications/Yana AI.app"</p>
     </li>
     <li class="platform-card">
       <div class="platform-icon" aria-hidden="true">🪟</div>
@@ -526,7 +526,7 @@ const LANGS = {
     faq_a4: "62 runtime hooks check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
     plat_title: "Available on every platform",
     plat_sub: "v1.3.0 for every platform — download and run instantly, no extra setup needed.",
-    mac_gatekeeper_note: "Not code-signed yet — macOS will warn \"unidentified developer\": right-click the app → Open → Open again to launch it.",
+    mac_gatekeeper_note: "Not code-signed yet. Try right-click the app → Open → Open again. If macOS instead says the app \"is damaged\" (newer macOS), that's the same unsigned-software warning, just stricter — move the app to Applications, then in Terminal run: xattr -cr \"/Applications/Yana AI.app\"",
     win_smartscreen_note: "Not code-signed yet — Windows SmartScreen will warn: click \"More info\" → \"Run anyway\" to launch it.",
     dl_prefix: "Download",
     cta_title: "Get started today",
@@ -577,7 +577,7 @@ const LANGS = {
     faq_a4: "62 hooks runtime kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
     plat_title: "Hỗ trợ mọi nền tảng",
     plat_sub: "v1.3.0 cho mọi nền tảng — tải về và dùng ngay, không cần cài thêm gì.",
-    mac_gatekeeper_note: "Chưa ký code (code-signed) — macOS sẽ cảnh báo \"nhà phát triển chưa xác định\": chuột phải vào app → Open → Open lần nữa để mở.",
+    mac_gatekeeper_note: "Chưa ký code. Thử chuột phải vào app → Open → Open lần nữa. Nếu macOS báo app \"bị hỏng\" (macOS mới) thì đó vẫn là cảnh báo phần mềm chưa ký, chỉ chặt hơn — chuyển app vào Applications rồi mở Terminal chạy: xattr -cr \"/Applications/Yana AI.app\"",
     win_smartscreen_note: "Chưa ký code — Windows SmartScreen sẽ cảnh báo: bấm \"More info\" → \"Run anyway\" để mở.",
     dl_prefix: "Tải",
     cta_title: "Bắt đầu ngay hôm nay",
@@ -628,7 +628,7 @@ const LANGS = {
     faq_a4: "62개의 런타임 훅이 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
     plat_title: "모든 플랫폼 지원",
     plat_sub: "모든 플랫폼 v1.3.0 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
-    mac_gatekeeper_note: "아직 코드 서명이 되어 있지 않습니다 — macOS가 \"확인되지 않은 개발자\" 경고를 표시합니다: 앱을 마우스 오른쪽 버튼으로 클릭 → 열기 → 다시 열기를 눌러 실행하세요.",
+    mac_gatekeeper_note: "아직 코드 서명이 되어 있지 않습니다. 앱을 마우스 오른쪽 버튼으로 클릭 → 열기 → 다시 열기를 시도해보세요. 대신 macOS가 앱이 \"손상되었습니다\"라고 표시하면(최신 macOS), 같은 미서명 경고가 더 엄격하게 나타난 것입니다 — 앱을 Applications로 옮긴 뒤 터미널에서 다음을 실행하세요: xattr -cr \"/Applications/Yana AI.app\"",
     win_smartscreen_note: "아직 코드 서명이 되어 있지 않습니다 — Windows SmartScreen이 경고를 표시합니다: \"추가 정보\" → \"실행\"을 클릭해 실행하세요.",
     dl_prefix: "다운로드",
     cta_title: "지금 시작하기",
@@ -679,7 +679,7 @@ const LANGS = {
     faq_a4: "62 个运行时钩子会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
     plat_title: "支持所有平台",
     plat_sub: "所有平台均为 v1.3.0 — 下载即用，无需额外配置。",
-    mac_gatekeeper_note: "尚未进行代码签名 — macOS 会提示“无法验证开发者”：右键点击该应用 → 打开 → 再次点击打开即可启动。",
+    mac_gatekeeper_note: "尚未进行代码签名。请尝试右键点击该应用 → 打开 → 再次点击打开。如果 macOS 提示应用“已损坏”（较新版本 macOS），这其实是同样的未签名警告，只是更严格 — 请将应用移动到 Applications，然后在终端运行：xattr -cr \"/Applications/Yana AI.app\"",
     win_smartscreen_note: "尚未进行代码签名 — Windows SmartScreen 会发出警告：点击“更多信息” → “仍要运行”即可启动。",
     dl_prefix: "下载",
     cta_title: "立即开始",
