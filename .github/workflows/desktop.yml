@@ -17,16 +17,43 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            artifact: "*.AppImage"
-          - os: macos-latest
+            arch: x64
+            artifact: |
+              tools/yana-desktop/dist/*.AppImage
+              tools/yana-desktop/dist/*.AppImage.blockmap
+              tools/yana-desktop/dist/latest-linux.yml
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+            artifact: |
+              tools/yana-desktop/dist/*.AppImage
+              tools/yana-desktop/dist/*.AppImage.blockmap
+              tools/yana-desktop/dist/latest-linux-arm64.yml
+          - os: macos-15-intel
             platform: mac
-            artifact: "*.dmg"
+            arch: x64
+            artifact: |
+              tools/yana-desktop/dist/*.dmg
+              tools/yana-desktop/dist/*.zip
+              tools/yana-desktop/dist/*.zip.blockmap
+          - os: macos-15
+            platform: mac
+            arch: arm64
+            artifact: |
+              tools/yana-desktop/dist/*.dmg
+              tools/yana-desktop/dist/*.zip
+              tools/yana-desktop/dist/*.zip.blockmap
+              tools/yana-desktop/dist/latest-mac.yml
           - os: windows-latest
             platform: win
-            artifact: "*.exe"
+            arch: x64
+            artifact: |
+              tools/yana-desktop/dist/*.exe
+              tools/yana-desktop/dist/*.exe.blockmap
+              tools/yana-desktop/dist/latest.yml
 
     runs-on: ${{ matrix.os }}
-    name: Build (${{ matrix.platform }})
+    name: Build (${{ matrix.platform }}-${{ matrix.arch }})
 
     steps:
       - name: Checkout
@@ -37,41 +64,56 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Generate 512×512 icon from SVG (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y imagemagick
           convert -background none tools/yana-desktop/build/icon.svg \
             -resize 512x512 tools/yana-desktop/build/icon.png
 
       - name: Generate 512×512 icon from SVG (macOS)
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           brew install imagemagick
           magick -background none tools/yana-desktop/build/icon.svg \
             -resize 512x512 tools/yana-desktop/build/icon.png
 
+      - name: Install web dependencies
+        working-directory: tools/yana-web
+        run: npm ci
+
+      - name: Build desktop web UI
+        working-directory: tools/yana-web
+        run: npm run build:desktop
+
+      - name: Build bundled runtime
+        run: cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
+
       - name: Install yana-desktop dependencies
         working-directory: tools/yana-desktop
-        run: npm install
+        run: npm ci
 
-      # --publish onTag: electron-builder detects the tag-push CI event itself
-      # and only uploads to the GitHub Release in that case (workflow_dispatch
-      # runs still build locally, just without publishing) — this also emits
-      # latest.yml / latest-mac.yml / latest-linux.yml alongside the installer
-      # files, which is the feed electron-updater (see main.js) reads to know
-      # a new version exists. The previous plain "upload the installer" step
-      # never produced those files, so auto-update had nothing to check
-      # against even once wired up in the app.
+      - name: Stage bundled runtime
+        working-directory: tools/yana-desktop
+        run: npm run stage:runtime
+
       - name: Build app
         working-directory: tools/yana-desktop
-        run: npx electron-builder --${{ matrix.platform }} --publish onTag
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never
 
       - name: Upload artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
-          name: yana-desktop-${{ matrix.platform }}
-          path: tools/yana-desktop/dist/${{ matrix.artifact }}
+          name: yana-desktop-${{ matrix.platform }}-${{ matrix.arch }}
+          path: ${{ matrix.artifact }}
           retention-days: 30
+
+      - name: Attach installers and updater metadata to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@da05d552573ad5aba039daea1a452d2b0cac0bf7
+        with:
+          files: ${{ matrix.artifact }}
+          fail_on_unmatched_files: true

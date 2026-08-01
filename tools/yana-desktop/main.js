@@ -5,13 +5,16 @@ const fs    = require('fs');
 const { fork, spawn } = require('child_process');
 const http  = require('http');
 const { autoUpdater } = require('electron-updater');
-
-const PORT       = 8081;
-const SERVER_URL = `http://127.0.0.1:${PORT}`;
+const {
+  runtimeBinaryPath,
+  parseServerReadyPort,
+  serverUrl: buildServerUrl,
+} = require('./runtime-paths');
 
 let mainWindow    = null;
 let serverProcess = null;
 let ptyProcess     = null;
+let serverUrl      = null;
 
 // Same layout auth.js uses under the hood — kept in one place so the reveal-
 // in-Finder button and the server's YANA_DATA_DIR can never drift apart.
@@ -26,15 +29,26 @@ function serverScript() {
     : path.join(__dirname, '..', 'yana-web', 'server.js');
 }
 
+function runtimePath(name) {
+  return runtimeBinaryPath({
+    name,
+    packaged: app.isPackaged,
+    resourcesPath: process.resourcesPath,
+    repoRoot: path.join(__dirname, '..', '..'),
+  });
+}
+
 function startServer() {
   const script = serverScript();
+  serverUrl = null;
   serverProcess = fork(script, [], {
     env: {
       ...process.env,
-      PORT:          String(PORT),
+      PORT:          '0',
       HOST:          '127.0.0.1',
       NODE_ENV:      'production',
       YANA_DATA_DIR: dataDir(),
+      YANA_RT_BIN:   runtimePath('yana-rt'),
       YANA_ROOT_DIR: app.isPackaged
         ? process.resourcesPath
         : path.join(__dirname, '..'),
@@ -46,6 +60,10 @@ function startServer() {
     console.log('[server]', d.toString().trimEnd()));
   serverProcess.stderr?.on('data', (d) =>
     console.error('[server]', d.toString().trimEnd()));
+  serverProcess.on('message', (message) => {
+    const port = parseServerReadyPort(message);
+    if (port) serverUrl = buildServerUrl(port);
+  });
   serverProcess.on('exit', (code) =>
     console.log('[server] exited', code));
 }
@@ -64,23 +82,7 @@ function stopServer() {
 // same integration shape `startServer()` already uses for `server.js`.
 
 function ptyBridgeBinary() {
-  const name = process.platform === 'win32' ? 'pty_bridge.exe' : 'pty_bridge';
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'pty-bridge', name)
-    : path.join(__dirname, '..', '..', 'target', 'release', name);
-}
-
-// `scripts/yana-rt-wrapper.js` — reused unmodified as the bridge's spawned
-// command, so its recursion-guard fix doesn't need to be duplicated here.
-// Its own multi-tier PATH/prebuilt-binary resolution is bypassed in
-// practice by the `YANA_RT_BIN` override set on this spawn (see
-// `yana:pty-start` below) — that env var is the wrapper's own first-tier
-// check, pointed here at exactly the binary this app was built with.
-// `package.json`'s `extraFiles` ships this file to `Resources/scripts/`.
-function wrapperScript() {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'scripts', 'yana-rt-wrapper.js')
-    : path.join(__dirname, '..', '..', 'scripts', 'yana-rt-wrapper.js');
+  return runtimePath('pty_bridge');
 }
 
 function stopPty() {
@@ -144,7 +146,8 @@ function waitForServer() {
     let tries = 0;
     const MAX  = 60;
     const tick = () => {
-      http.get(`${SERVER_URL}/health`, (res) => {
+      if (!serverUrl) { retry(); return; }
+      http.get(`${serverUrl}/health`, (res) => {
         if (res.statusCode === 200) return resolve();
         retry();
       }).on('error', retry);
@@ -181,18 +184,18 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => mainWindow.show());
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(SERVER_URL)) shell.openExternal(url);
+    if (!serverUrl || !url.startsWith(serverUrl)) shell.openExternal(url);
     return { action: 'deny' };
   });
 
-  mainWindow.loadURL(SERVER_URL);
+  mainWindow.loadURL(serverUrl);
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 // ── IPC ───────────────────────────────────────────────────────────────────────
 
 ipcMain.handle('yana:version',    () => app.getVersion());
-ipcMain.handle('yana:server-url', () => SERVER_URL);
+ipcMain.handle('yana:server-url', () => serverUrl);
 
 // Locked-out recovery: the login screen's "forgot password" panel offers a
 // button that reveals this file in Finder/Explorer instead of asking the
@@ -219,21 +222,17 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
     };
   }
 
-  const childArgv = ['node', wrapperScript(), 'chat', ...(args || [])];
+  const yanaRtBin = runtimePath('yana-rt');
+  if (!fs.existsSync(yanaRtBin)) {
+    return { ok: false, error: `yana-rt binary not found at ${yanaRtBin}` };
+  }
+
+  const childArgv = [yanaRtBin, 'chat', ...(args || [])];
   ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
     stdio: ['pipe', 'pipe', 'pipe'],
-    // Always force the wrapper to use the exact `yana-rt` binary this app
-    // ships/was built with, via $YANA_RT_BIN (the wrapper's own first-tier
-    // resolution) — rather than trusting its PATH-walk/prebuilt-binary
-    // fallback tiers. Dev mode: a stale globally-installed `yana-rt` (e.g.
-    // from an earlier `cargo install`) would otherwise silently shadow the
-    // build actually being tested. Packaged mode: points at the binary
-    // bundled via package.json's `extraFiles` (Resources/bin/yana-rt).
     env: {
       ...process.env,
-      YANA_RT_BIN: app.isPackaged
-        ? path.join(process.resourcesPath, 'bin', 'yana-rt')
-        : path.join(__dirname, '..', '..', 'target', 'release', 'yana-rt'),
+      YANA_RT_BIN: yanaRtBin,
     },
   });
 
@@ -288,7 +287,10 @@ function setupAutoUpdater() {
       defaultId: 0,
       cancelId: 1,
     }).then(({ response }) => {
-      if (response === 0) autoUpdater.downloadUpdate();
+      if (response === 0) {
+        autoUpdater.downloadUpdate().catch(err =>
+          console.error('[autoUpdater] download failed:', err.message));
+      }
     });
   });
 
@@ -311,10 +313,14 @@ function setupAutoUpdater() {
   // check must not interrupt someone who is just trying to use the app.
   autoUpdater.on('error', (err) => console.error('[autoUpdater]', err.message));
 
-  autoUpdater.checkForUpdates();
+  const checkForUpdates = () => {
+    autoUpdater.checkForUpdates().catch(err =>
+      console.error('[autoUpdater] check failed:', err.message));
+  };
+  checkForUpdates();
   // Re-check periodically for long-running sessions — 4h, not on every
   // window focus, so this never becomes a noisy repeated background poll.
-  setInterval(() => autoUpdater.checkForUpdates(), 4 * 3600_000);
+  setInterval(checkForUpdates, 4 * 3600_000);
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -327,7 +333,7 @@ app.whenReady().then(async () => {
   } catch (err) {
     await dialog.showErrorBox(
       'Yana AI — startup error',
-      `Server failed to start:\n${err.message}\n\nCheck that port ${PORT} is free.`
+      `Server failed to start:\n${err.message}`
     );
     app.quit();
     return;
