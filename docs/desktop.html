@@ -262,7 +262,13 @@
     .install-steps code {
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       font-size: .75rem; background: var(--bg-card-2); border: 1px solid var(--border);
-      border-radius: 4px; padding: 1px 5px; word-break: break-all;
+      border-radius: 4px; padding: 1px 5px;
+      /* break-word (not anywhere): only breaks mid-word as an absolute
+         last resort, when the word can't fit even alone on a fresh line —
+         anywhere breaks mid-word any time a word starts near a line's
+         end, even with plenty of room on the next line (that's what
+         caused "libfuse2" to split into "lib"/"fus"/"e2"). */
+      overflow-wrap: break-word; white-space: normal;
     }
 
     /* ── CTA ──────────────────────────────────────────────── */
