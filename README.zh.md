@@ -125,12 +125,15 @@ Human gate             — 不可逆操作（push、publish、delete）需要明
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
 
-> **说明（2026-07-30）：不再通过 npm 分发。** Yana AI 已不再、也不再计划发布到 npm registry —— 完整经过见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry)。请使用下面的 `pip` 或 `cargo`。
-
 ```bash
 # Python CLI — 安装 yana-ai 命令
 pip install yana-ai
 yana-ai install                # 将 hooks 接入当前项目
+
+# npm — 作用域包（scoped package，使用作用域名称的原因见
+# VERSIONING.md#why-product-has-no-registry）
+npm install -g @yanacuti/yana-ai
+yana-ai install
 
 # Rust 运行时（对有限范围命令快约 2–12 倍 — 见 BENCHMARK.md）
 cargo install yana-rt
@@ -235,7 +238,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | [npmjs.com/package/@yanacuti/yana-ai](https://www.npmjs.com/package/@yanacuti/yana-ai) —— 使用作用域名称的原因见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
