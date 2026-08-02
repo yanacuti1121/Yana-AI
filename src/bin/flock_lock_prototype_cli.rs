@@ -46,6 +46,7 @@ mod flock_lock;
 #[allow(dead_code)]
 mod lock;
 
+use std::os::unix::process::CommandExt;
 use std::process::{Command, ExitCode};
 use std::time::Duration;
 
@@ -87,6 +88,10 @@ fn main() -> ExitCode {
         eprintln!("flock_lock_prototype_cli: no command given after --");
         return ExitCode::from(2);
     }
+    if !timeout_secs.is_finite() || timeout_secs < 0.0 {
+        eprintln!("flock_lock_prototype_cli: --timeout must be finite and non-negative");
+        return ExitCode::from(2);
+    }
 
     let lock_name = lock::lock_name_for(&resource);
     let guard = match flock_lock::acquire(&lock_name, Duration::from_secs_f64(timeout_secs)) {
@@ -97,24 +102,13 @@ fn main() -> ExitCode {
         }
     };
 
-    let (program, args) = command.split_first().expect("checked non-empty above");
-    let status = Command::new(program).args(args).status();
-    drop(guard); // explicit — documents the release point, same as flock_run.py's explicit LOCK_UN
-
-    match status {
-        Ok(status) => {
-            #[cfg(unix)]
-            {
-                use std::os::unix::process::ExitStatusExt;
-                if let Some(sig) = status.signal() {
-                    return ExitCode::from((128 + sig) as u8);
-                }
-            }
-            ExitCode::from(status.code().unwrap_or(1) as u8)
-        }
-        Err(e) => {
-            eprintln!("flock_lock_prototype_cli: failed to spawn '{program}': {e}");
-            ExitCode::from(2)
-        }
+    if let Err(e) = guard.clear_cloexec_for_exec() {
+        eprintln!("flock_lock_prototype_cli: {e:#}");
+        return ExitCode::from(2);
     }
+    let (program, args) = command.split_first().expect("checked non-empty above");
+    let error = Command::new(program).args(args).exec();
+    drop(guard);
+    eprintln!("flock_lock_prototype_cli: could not exec '{program}': {error}");
+    ExitCode::from(2)
 }

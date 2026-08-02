@@ -24,7 +24,7 @@ Absolute invariants this file must never violate:
 Exit codes:
   0        — child ran and exited 0
   <n>      — child ran and exited <n> (n in 1..255), forwarded verbatim
-  128+sig  — child was terminated by signal `sig` (POSIX convention)
+    128 + sig — child was terminated by signal `sig` (POSIX convention)
   2        — this wrapper itself failed: bad arguments, could not open/
              lock the file for a reason other than contention, or timed
              out waiting for the lock. Distinguished from child exit codes
@@ -32,12 +32,17 @@ Exit codes:
              are a shared space with the child's own, so callers that need
              an unambiguous "did the wrapper fail vs. did the child fail
              with code 2" signal must check stderr, not just the code.
+
+Limitation: the lock fd is deliberately inherited by the exec'd command.
+Any descendant that keeps that fd open can keep the lock after the command's
+main process exits. This prototype is therefore not a safe general-purpose
+process-tree supervisor.
 """
 import argparse
 import errno
 import fcntl
+import math
 import os
-import signal
 import sys
 import time
 
@@ -59,6 +64,8 @@ def parse_args(argv):
         command = command[1:]
     if not command:
         parser.error("no command given after --")
+    if not math.isfinite(args.timeout) or args.timeout < 0:
+        parser.error("--timeout must be finite and non-negative")
     return args.lock_file, args.timeout, command
 
 
@@ -92,34 +99,6 @@ def acquire_flock_with_timeout(fd, timeout_secs):
             time.sleep(POLL_INTERVAL_SECS)
 
 
-def run_child_with_signal_forwarding(command):
-    """Spawn `command` in its own process group; forward SIGTERM/SIGINT to
-    that group; return (returncode, terminating_signal_or_None).
-    """
-    import subprocess
-
-    proc = subprocess.Popen(command, start_new_session=True)
-
-    forwarded = {"sig": None}
-
-    def _forward(signum, _frame):
-        forwarded["sig"] = signum
-        try:
-            os.killpg(proc.pid, signum)
-        except ProcessLookupError:
-            pass
-
-    prev_term = signal.signal(signal.SIGTERM, _forward)
-    prev_int = signal.signal(signal.SIGINT, _forward)
-    try:
-        returncode = proc.wait()
-    finally:
-        signal.signal(signal.SIGTERM, prev_term)
-        signal.signal(signal.SIGINT, prev_int)
-
-    return returncode, forwarded["sig"]
-
-
 def main(argv):
     lock_path, timeout_secs, command = parse_args(argv)
 
@@ -137,15 +116,13 @@ def main(argv):
             )
             return 2
 
-        returncode, _forwarding_signal = run_child_with_signal_forwarding(command)
-
-        if returncode < 0:
-            # subprocess reports signal termination as a negative returncode
-            # (== -signum) on POSIX. Convert to the standard 128+signum
-            # shell convention so this wrapper's own exit code is a valid
-            # process exit status, not a negative number.
-            return 128 + (-returncode)
-        return returncode
+        fd_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+        fcntl.fcntl(fd, fcntl.F_SETFD, fd_flags & ~fcntl.FD_CLOEXEC)
+        try:
+            os.execvp(command[0], command)
+        except OSError as e:
+            print(f"flock_run: could not exec '{command[0]}': {e}", file=sys.stderr)
+            return 2
     finally:
         # Explicit LOCK_UN is redundant with close()'s implicit release
         # (flock is tied to the open file description) but stated

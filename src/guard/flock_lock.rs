@@ -22,6 +22,10 @@
 //!   - same canonical path and lock-name derivation as [`super::lock`]'s
 //!     existing [`super::lock::lock_name_for`] — cross-language parity
 //!     with `core/lib/py/flock_run.py` depends on this staying identical.
+//!   - acquire-then-exec callers intentionally pass the lock fd into the
+//!     target process. A descendant that inherits it can keep the lock after
+//!     the target's main process exits, so this prototype is not a general
+//!     process-tree supervisor.
 
 // Prototype only — no production call site references acquire()/with_lock()
 // yet (that's the next PR, after architectural review). cargo build would
@@ -60,6 +64,20 @@ fn project_dir() -> PathBuf {
 /// since flock is tied to the open file description).
 pub struct FlockGuard {
     file: File,
+}
+
+impl FlockGuard {
+    pub fn clear_cloexec_for_exec(&self) -> Result<()> {
+        let fd = self.file.as_raw_fd();
+        let flags = unsafe { libc::fcntl(fd, libc::F_GETFD) };
+        if flags == -1 {
+            return Err(std::io::Error::last_os_error()).context("reading lock fd flags");
+        }
+        if unsafe { libc::fcntl(fd, libc::F_SETFD, flags & !libc::FD_CLOEXEC) } == -1 {
+            return Err(std::io::Error::last_os_error()).context("clearing lock fd CLOEXEC");
+        }
+        Ok(())
+    }
 }
 
 impl Drop for FlockGuard {

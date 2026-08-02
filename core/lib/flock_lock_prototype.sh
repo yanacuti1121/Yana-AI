@@ -10,16 +10,16 @@
 # path core/lib/py/file_lock.py already computes (lock_name_for, unchanged
 # — only the *shape* of what's at that path changes, directory to file)
 # and hands off entirely to core/lib/py/flock_run.py, which is the only
-# place that actually opens/flocks/spawns/waits. No mkdir, no flock(1)
+# place that actually opens/flocks and then execs the target. No mkdir, no flock(1)
 # binary (not preinstalled on macOS), no owner token, no stale-reclaim
 # logic of any kind lives in this file or its target — see the ABA-safety
 # audit that motivated this design for why the mkdir + rename-reclaim
 # approach this replaces cannot be made safe with portable primitives.
 #
-# If python3 is unavailable, this prototype fails loudly and stops —
-# fail-open vs. fail-closed for that case is explicitly undecided pending
-# architectural review (see the accompanying report's "Python Availability
-# Findings" section), not silently chosen here.
+# If python3 is unavailable, this prototype fails closed. Running an
+# unlocked command would violate the locking contract; a future production
+# migration must make Python an explicit runtime prerequisite or use a
+# separately reviewed non-Python implementation.
 
 # This script's own directory — where core/lib/py/{file_lock,flock_run}.py
 # actually live, always, regardless of which project's resource is being
@@ -69,7 +69,7 @@ flock_lock_with() {
   [[ "${1:-}" == "--" ]] && shift
 
   if ! command -v python3 >/dev/null 2>&1; then
-    echo "flock_lock_with: python3 not found — this prototype has no non-Python fallback (undecided fail-open/fail-closed policy, see architectural review)" >&2
+    echo "flock_lock_with: python3 not found — refusing to run without the required lock helper" >&2
     return 2
   fi
 
@@ -92,8 +92,7 @@ flock_lock_with() {
   # Direct argv exec — no eval, no command-string concatenation. "$@" at
   # this point is exactly the caller's <command...>, passed through
   # unmodified as separate argv entries to flock_run.py, which itself
-  # passes them through unmodified (subprocess.Popen(command), no shell)
-  # to the actual child. flock_run.py's own path is BASH_SOURCE-relative
+  # execs them directly (os.execvp, no shell). flock_run.py's own path is BASH_SOURCE-relative
   # (see _yana_flock_proto_lib_dir) — the lock *file* path above is the
   # only thing derived from $CLAUDE_PROJECT_DIR.
   python3 "$lib_dir/py/flock_run.py" \
