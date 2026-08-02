@@ -8,6 +8,38 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.3.1 — 2026-08-02
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`) plus `tools/yana-desktop/
+package.json` bumped to `1.3.1` together, in one commit, for a real
+desktop-app fix: `tools/yana-web/shared/data.js` was missing a
+`turbofieldfare` entry in its `providers` catalog (commit `b3646a7b`) —
+the on-device Gemma 4 26B-A4B provider was already wired through
+`KEYLESS_PROVIDERS`, the local-status badges, and the auto-select-on-
+first-run path, but never actually listed in the array that populates
+both the Settings → Providers cards and the chat composer's provider
+dropdown, so auto-select would target a provider id with no matching UI
+entry.
+
+Same undocumented-fourth-axis situation as `v1.3.0` below — repeated
+here rather than silently glossed over. Moving `tools/yana-desktop/
+package.json` into the same commit as the other four files (the v1.3.0
+bump synced the other four *to* an already-bumped desktop version,
+across two commits) is the one process change from last time: it
+removes the window where `MANIFEST.json` (Settings, via `/api/status`)
+and `app.getVersion()` (Electron) could disagree, without waiting on
+the still-open follow-up of `/api/status` reading `app.getVersion()`
+directly.
+
+Per rule-54 review (security-auditor + code-auditor, both clean of
+Safety-severity findings). code-auditor's one Correctness-severity,
+non-blocking finding — this changelog entry was initially missing,
+against this repo's own established convention — is resolved by this
+entry.
+
+---
+
 ## v1.3.0 — 2026-08-01
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
