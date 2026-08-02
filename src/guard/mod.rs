@@ -26,6 +26,8 @@
 mod blast_paths;
 mod blast_radius;
 mod entry_point_check;
+#[cfg(unix)]
+mod flock_lock; // PROTOTYPE — kernel-flock design, not wired into any CLI subcommand yet
 pub mod lock;
 mod self_mod;
 mod token_budget;

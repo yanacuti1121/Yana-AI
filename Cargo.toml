@@ -29,6 +29,15 @@ name = "pty_bridge"
 path = "src/bin/pty_bridge.rs"
 required-features = ["pty-bridge"]
 
+# PROTOTYPE ONLY — kernel-flock design proof, cross-process/cross-language
+# test harness driver. Not the production yana-rt CLI; see
+# src/bin/flock_lock_prototype_cli.rs's own header for why a separate
+# process (not just cargo test's in-process threads) is needed here.
+[[bin]]
+name = "flock_lock_prototype_cli"
+path = "src/bin/flock_lock_prototype_cli.rs"
+required-features = ["flock-lock-prototype"]
+
 [lib]
 name = "yana_rt"
 path = "src/lib.rs"
@@ -58,6 +67,15 @@ mcp = ["rmcp", "tokio"]
 # `pty_bridge` binary only — isolated from `cli` the same way `mcp` is,
 # so the default `yana-rt` build never pulls in portable-pty.
 pty-bridge = ["portable-pty"]
+# `flock_lock_prototype_cli` binary only — kernel-flock locking design
+# audit prototype (docs/adr/ADR-008-shared-locking-infrastructure.md
+# follow-up), isolated from `cli` and `default` the same way `mcp`/
+# `pty-bridge` are. Not wired into any production hook or the main
+# `yana-rt` CLI dispatch. Needs sha2 too — this binary reuses
+# src/guard/lock.rs's existing, already cross-language-golden-tested
+# lock_name_for() (via #[path]) rather than re-deriving lock names by
+# hand a second time.
+flock-lock-prototype = ["anyhow", "sha2"]
 
 [dependencies]
 # Always available (WASM-safe)
@@ -110,6 +128,21 @@ portable-pty = { version = "0.9", optional = true }
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys       = { version = "0.3", optional = true }
+
+# flock(2) is Unix-only (macOS/Linux, matching this repo's actual filesystem
+# targets — see docs/adr/ADR-008-shared-locking-infrastructure.md's kernel-
+# lock follow-up audit). Not a new dependency in practice: libc 0.2.186 is
+# already resolved transitively in Cargo.lock (pulled in by crossterm/
+# tree-sitter's own dependency trees) — this pins the exact same version as
+# a direct dependency so src/guard/flock_lock.rs can call libc::flock
+# without hand-writing FFI bindings, adding zero new compiled code to any
+# build that already includes the `cli` feature. Scoped to cfg(unix) rather
+# than added unconditionally since it's meaningless outside that target and
+# the `guard` module tree (src/main.rs's `mod guard;`) is never compiled
+# into the WASM cdylib target (src/lib.rs has its own separate `mod wasm`
+# that does not include `guard` — confirmed by reading src/lib.rs directly).
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.186"
 
 [dev-dependencies]
 tempfile = "3"
