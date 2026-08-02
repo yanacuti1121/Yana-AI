@@ -40,6 +40,30 @@ echo "PASS: agent and skill inventory"
 $PYTHON_BIN core/scripts/check_engine_parity.py --target "$TARGET"
 echo "PASS: Claude and Codex capability parity"
 
+for missing_target_case in empty codex-without-hooks; do
+  MISSING_TARGET=$(mktemp -d "${TMPDIR:-/tmp}/yana-codex-parity-missing.XXXXXX")
+  if [[ "$missing_target_case" == "codex-without-hooks" ]]; then
+    mkdir -p "$MISSING_TARGET/.codex"
+  fi
+  set +e
+  $PYTHON_BIN core/scripts/check_engine_parity.py --target "$MISSING_TARGET" >"$MISSING_TARGET/parity.out" 2>&1
+  parity_exit=$?
+  set -e
+  if [[ "$parity_exit" -ne 1 ]]; then
+    echo "FAIL: $missing_target_case missing hooks.json returned exit $parity_exit"
+    exit 1
+  fi
+  if ! grep -Fq 'FAIL: Codex target missing: .codex/hooks.json' "$MISSING_TARGET/parity.out"; then
+    echo "FAIL: $missing_target_case missing hooks.json lacked an actionable diagnostic"
+    exit 1
+  fi
+  if grep -Fq 'Traceback' "$MISSING_TARGET/parity.out"; then
+    echo "FAIL: $missing_target_case missing hooks.json emitted a traceback"
+    exit 1
+  fi
+  echo "PASS: $missing_target_case missing hooks.json reports cleanly"
+done
+
 $PYTHON_BIN -m json.tool "$TARGET/.codex/hooks.json" >/dev/null
 echo "PASS: hooks.json syntax"
 
@@ -152,14 +176,24 @@ fi
 echo "PASS: Codex-only Python install"
 
 $PYTHON_BIN - <<'PY'
+import ast
+import json
+import pathlib
 import tomllib
+
+install_source = pathlib.Path("core/scripts/install_project.py").read_text()
+assert ast.get_docstring(ast.parse(install_source)) == "yana-ai install [target] — one-command project setup."
 
 with open("pyproject.toml", "rb") as handle:
     project = tomllib.load(handle)
 force_include = project["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
 for entry in ("adapters", ".codex/config.toml", ".codex/hooks.json"):
     assert entry in force_include, f"wheel missing {entry}"
+
+npm_files = json.loads(pathlib.Path("package.json").read_text())["files"]
+for entry in ("core/scripts/", "adapters/codex.md", ".codex/config.toml", ".codex/hooks.json"):
+    assert entry in npm_files, f"npm package missing {entry}"
 PY
-echo "PASS: PyPI package surfaces"
+echo "PASS: PyPI and npm package surfaces"
 
 echo "Result: PASS"

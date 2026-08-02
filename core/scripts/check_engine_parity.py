@@ -51,8 +51,14 @@ def codex_agent_names(root: Path) -> set[str]:
     return names
 
 
-def hook_scripts(config_path: Path) -> set[str]:
-    config = json.loads(config_path.read_text())
+def hook_scripts(config_path: Path, *, missing_ok: bool = False) -> set[str] | None:
+    try:
+        config_text = config_path.read_text()
+    except FileNotFoundError:
+        if missing_ok:
+            return None
+        raise
+    config = json.loads(config_text)
     scripts: set[str] = set()
     for groups in config.get("hooks", {}).values():
         for group in groups:
@@ -90,7 +96,12 @@ def main() -> int:
     source_commands = command_names(SOURCE_ROOT / "core" / "commands")
     claude_commands = command_names(target_root / ".claude" / "commands")
     claude_hooks = hook_scripts(SOURCE_ROOT / ".claude" / "settings.json")
-    codex_hooks = hook_scripts(target_root / ".codex" / "hooks.json")
+    codex_hooks = hook_scripts(
+        target_root / ".codex" / "hooks.json", missing_ok=True
+    )
+    if codex_hooks is None:
+        print("FAIL: Codex target missing: .codex/hooks.json", file=sys.stderr)
+        return 1
 
     failed = False
     failed = report_missing("Claude agents missing", source_agents, claude_agents) or failed
