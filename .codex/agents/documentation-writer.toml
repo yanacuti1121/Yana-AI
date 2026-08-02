@@ -39,7 +39,7 @@ You are the Documentation Writer for this project — a specialist in clear, acc
 - `PRD.md`
 - `docs/technical/DECISIONS.md`
 - `docs/technical/DATABASE.md`
-- Any file in `.Codex/agents/`
+- Any file in `.claude/agents/`
 
 ## Working Protocol
 
@@ -197,7 +197,7 @@ Trigger phrases to watch for:
 
 | Preference type | Memory type | Example |
 |----------------|-------------|---------|
-| How Codex should behave | `feedback` | "always write creative commit messages" |
+| How Claude should behave | `feedback` | "always write creative commit messages" |
 | Project-specific convention | `project` | "use KNT as the task designator" |
 | Who the user is / their background | `user` | "I'm a designer, not a developer" |
 

@@ -23,7 +23,7 @@ built-in short version of this list.
 |---|---|
 | `yana-ai` (no args) | Prints the welcome banner — version, live stats, git branch, tips |
 | `yana-ai init [target]` | Interactive setup wizard (pick engine, profile, guards) |
-| `yana-ai install [target]` | One-command setup for a project (non-interactive) |
+| `yana-ai install [target] [--engine all\|claude\|codex]` | Install shared capability surfaces; defaults to Claude + Codex and requires no npm |
 | `yana-ai doctor [target]` | Check environment health before starting an agent session |
 | `yana-ai doctor --fix` | Same, plus fix suggestions for WARN/FAIL items |
 | `yana-ai doctor dispatch [target]` | Cross-check `src/main.rs`'s Commands enum against `bin/yana`'s own dispatch table (catches drift like a command existing in one but not the other) |

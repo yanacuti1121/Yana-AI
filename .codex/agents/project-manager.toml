@@ -31,7 +31,7 @@ You are the Project Manager for this project — a specialist in delivery, backl
 ## Documents You Read (Read-Only)
 
 - `PRD.md` — Source of truth for requirements and scope. **Only modify with explicit human approval.** You use it to validate that backlog items map to real requirements and to catch scope creep.
-- `AGENTS.md` — Project conventions and available agents
+- `CLAUDE.md` — Project conventions and available agents
 - `docs/technical/DECISIONS.md` — Prior architectural decisions that may affect task sequencing
 - `docs/technical/ARCHITECTURE.md` — System design context for estimating task dependencies
 

@@ -8,7 +8,7 @@ not independent implementations.
 | Capability | Canonical source |
 |---|---|
 | Instructions | `AGENTS.md` |
-| Agents | `core/agents/*.md` |
+| Agents | `core/agents/**/*.md` (101 canonical personas, excluding companion docs) |
 | Skills | `core/skills/*/SKILL.md` |
 | Commands | `core/commands/*.md` |
 | Hooks | `.claude/settings.json` + `core/hooks/` |
@@ -21,7 +21,7 @@ The machine-readable contract lives in
 | Capability | Claude Code | Codex |
 |---|---|---|
 | Instructions | `AGENTS.md` | `AGENTS.md` |
-| Agents | `.claude/agents/*.md` | `.codex/agents/*.toml` |
+| Agents | `.claude/agents/**/*.md` | `.codex/agents/*.toml` |
 | Skills | `.claude/skills/*/SKILL.md` | `.agents/skills/*/SKILL.md` |
 | Commands | `/name` | `$yana-command-name` |
 | Hooks | `.claude/settings.json` | `.codex/hooks.json` |
@@ -36,9 +36,13 @@ active when Codex starts in a nested directory.
 ## Synchronize and verify
 
 ```bash
-bash core/scripts/switch-engine.sh codex
-node core/scripts/check-engine-parity.js
+yana-ai install --engine all
+python3 core/scripts/check_engine_parity.py
 ```
+
+From a source checkout, `bash core/scripts/switch-engine.sh codex` remains a
+supported shortcut. Both paths use the same Python synchronizer; npm is not an
+installation dependency.
 
 The parity check fails when either engine is missing shared instructions,
 agents, skills, commands, or active hook scripts. It also fails when a generated

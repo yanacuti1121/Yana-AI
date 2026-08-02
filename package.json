@@ -60,7 +60,7 @@
   "scripts": {
     "test": "bash core/tests/hooks/run-hook-tests.sh && bash core/tests/codex/test-codex-support.sh",
     "test:codex": "bash core/tests/codex/test-codex-support.sh",
-    "test:parity": "node core/scripts/check-engine-parity.js",
+    "test:parity": "node core/scripts/check-engine-parity.js; parity_status=$?; bash core/tests/codex/test-source-only-adapter-contract.sh; contract_status=$?; bash core/tests/codex/test-codex-support.sh; support_status=$?; test \"$parity_status\" -eq 0 && test \"$contract_status\" -eq 0 && test \"$support_status\" -eq 0",
     "postinstall": "node scripts/npm-install.js --auto",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev",

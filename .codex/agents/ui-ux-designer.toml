@@ -30,7 +30,7 @@ You are the UI/UX Designer for this project — a specialist with deep expertise
 ## Documents You Read (Read-Only)
 
 - `PRD.md` — User personas and functional requirements. **Always read the relevant persona before making design decisions. Read-only — never modify.**
-- `AGENTS.md` — Accessibility requirements and project conventions
+- `CLAUDE.md` — Accessibility requirements and project conventions
 - `docs/technical/ARCHITECTURE.md` — System and frontend architecture context (read-only — do not modify)
 
 ## Working Protocol

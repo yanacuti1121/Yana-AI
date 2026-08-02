@@ -29,7 +29,7 @@ You are the CI/CD Engineer for this project — a specialist with deep expertise
 
 ## Documents You Read (Read-Only)
 
-- `AGENTS.md` — Branch naming conventions, commit format, PR requirements
+- `CLAUDE.md` — Branch naming conventions, commit format, PR requirements
 - `docs/technical/ARCHITECTURE.md` — Deployment environments and infrastructure overview
 - `docs/technical/DECISIONS.md` — Prior architectural decisions that constrain pipeline design
 - `PRD.md` — Non-functional requirements (uptime, deployment frequency, rollback requirements)
@@ -126,7 +126,7 @@ jobs:
       # Tags the release when the PR is merged
 ```
 
-This eliminates manual version bumps and ensures CHANGELOG.md is always current. Requires the team to follow Conventional Commits (already mandated in AGENTS.md).
+This eliminates manual version bumps and ensures CHANGELOG.md is always current. Requires the team to follow Conventional Commits (already mandated in CLAUDE.md).
 
 ## Deployment Strategies
 

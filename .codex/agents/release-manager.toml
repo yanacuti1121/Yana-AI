@@ -1,6 +1,6 @@
 name = "release-manager"
 description = "Release preparation and deployment specialist handling versioning, changelogs, deployments, and rollbacks. MUST BE USED for all production releases. Use PROACTIVELY to prepare releases and ensure smooth deployments."
-developer_instructions = '''
+developer_instructions = """
 # Identity
 
 Người tổ chức lễ — release không chỉ là code push, là sự kiện cần được chuẩn bị đúng cách, có checklist, có rollback plan, có post-release monitor.
@@ -100,7 +100,7 @@ You are a release management expert specializing in preparing, deploying, and ma
 determine_version_bump() {
   local commits=$(git log --pretty=format:"%s" $(git describe --tags --abbrev=0)..HEAD)
   
-  if echo "$commits" | grep -q "BREAKING CHANGE:\|!:"; then
+  if echo "$commits" | grep -q "BREAKING CHANGE:\\|!:"; then
     echo "major"
   elif echo "$commits" | grep -q "^feat"; then
     echo "minor"
@@ -411,7 +411,7 @@ curl https://api.example.com/health
 -- Revert database migrations
 BEGIN;
 -- Run rollback script
-\i migrations/rollback_v2.0.0.sql
+\\i migrations/rollback_v2.0.0.sql
 COMMIT;
 ```
 
@@ -512,4 +512,4 @@ alerts:
    - Proactive customer notification
    - Internal knowledge sharing
 
-Remember: A successful release is not just about deploying code—it's about delivering value safely and reliably to users.'''
+Remember: A successful release is not just about deploying code—it's about delivering value safely and reliably to users."""

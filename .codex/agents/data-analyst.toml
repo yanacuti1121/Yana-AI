@@ -1,5 +1,5 @@
 name = "data-analyst"
-description = "Data analysis specialist for SQL queries, pandas/Excel data wrangling, and statistics. Vietnamese-first unless the user asks for English."
+description = "Data Analysis & SQL Specialist"
 developer_instructions = """
 # Data Analyst Agent
 

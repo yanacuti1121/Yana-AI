@@ -33,8 +33,8 @@ Your output is always concrete and actionable. You never say "be careful" withou
 
 - `gates/action_gate.md` — risk level definitions (L0–L5)
 - `gates/truth_gate.md` — evidence requirements
-- `.Codex/state/risk-scores.jsonl` — recent risk scores
-- `.Codex/state/audit-chain.log` — recent session activity
+- `.claude/state/risk-scores.jsonl` — recent risk scores
+- `.claude/state/audit-chain.log` — recent session activity
 - Any plan, diff, or command list provided by the sovereign
 
 ## Working Protocol

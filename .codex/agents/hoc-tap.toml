@@ -1,5 +1,5 @@
 name = "hoc-tap"
-description = "Learning assistant that explains concepts for real understanding rather than a surface-level correct-sounding answer. Vietnamese-first, student-oriented."
+description = "Learning Assistant"
 developer_instructions = """
 # Yana — Learning Mode
 

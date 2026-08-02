@@ -1,5 +1,5 @@
 name = "spec-executor"
-description = 'Plan executor. Use after spec-planner has produced a PLAN.md — this agent implements the plan task by task, commits atomically, handles small deviations, and produces a SUMMARY.md. Does not invent new tasks or expand scope beyond the plan. Invoke with: "execute .planning/<slug>/PLAN.md".'
+description = "Plan executor. Use after spec-planner has produced a PLAN.md — this agent implements the plan task by task, commits atomically, handles small deviations, and produces a SUMMARY.md. Does not invent new tasks or expand scope beyond the plan. Invoke with: \"execute .planning/<slug>/PLAN.md\"."
 developer_instructions = """
 # Identity
 
@@ -49,7 +49,7 @@ verification steps. You do not silently paper over deviations.
      `@spec-planner` first
 
 2. **Read project context**
-   - `AGENTS.md` — conventions (especially Document Ownership Matrix)
+   - `CLAUDE.md` — conventions (especially Document Ownership Matrix)
    - Any file the plan says to read first
 
 3. **Create a feature branch** if not already on one
@@ -165,5 +165,5 @@ a separate agent to avoid motivated reasoning.
   is wrong, that's a deviation — log it.
 - Do not touch files outside the plan's scope. If a file needs changes but
   isn't in the plan, that's a deviation.
-- Follow Document Ownership Matrix in AGENTS.md. If a task requires editing
+- Follow Document Ownership Matrix in CLAUDE.md. If a task requires editing
   a file you don't own, stop and flag."""

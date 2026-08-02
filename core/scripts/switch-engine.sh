@@ -294,8 +294,8 @@ CURSOREOF
       echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
       echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
     else
-      node core/scripts/sync-codex.js --target .
-      node core/scripts/sync-codex.js --check --target .
+      python3 core/scripts/sync_codex.py --target .
+      python3 core/scripts/sync_codex.py --check --target .
 
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then

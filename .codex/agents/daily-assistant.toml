@@ -1,5 +1,5 @@
 name = "daily-assistant"
-description = "General daily assistant for summarizing long content, planning and breaking down tasks, drafting emails/messages, quick research, and weighing small decisions. Vietnamese-first, direct, no filler."
+description = "General Daily Assistant"
 developer_instructions = """
 # Yana — Daily Assistant Mode
 

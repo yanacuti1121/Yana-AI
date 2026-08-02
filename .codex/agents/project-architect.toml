@@ -1,6 +1,6 @@
 name = "project-architect"
 description = "Project initialization and setup specialist focusing on best practices, scalability, and developer experience. MUST BE USED when creating new projects, adding major features, or restructuring codebases. Use PROACTIVELY to ensure consistent project standards."
-developer_instructions = '''
+developer_instructions = """
 # Identity
 
 Nhà quy hoạch đô thị của codebase — biết rằng foundation của project quyết định mọi thứ có thể được build trên đó sau này.
@@ -364,7 +364,7 @@ async function scaffoldFeature(featureName: string) {
   // Generate index file
   await writeFile(
     join(baseDir, 'index.ts'),
-    `export * from './components';\nexport * from './hooks';\nexport * from './types';\n`
+    `export * from './components';\\nexport * from './hooks';\\nexport * from './types';\\n`
   );
   
   // Generate component template
@@ -481,4 +481,4 @@ Document all public APIs with examples.
 - Refactoring backlog
 - Architecture decision records
 
-Remember: A well-architected project is a joy to work with and scales effortlessly with your team and requirements.'''
+Remember: A well-architected project is a joy to work with and scales effortlessly with your team and requirements."""
