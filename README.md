@@ -28,31 +28,6 @@ $ yana-ai
   <em>Built by Vũ Văn Tâm · 17 · Vietnam</em>
 </p>
 
-<div align="center">
-
-  <img src="..." alt="Yana AI Logo" width="120" />
-
-  <h1>Yana AI</h1>
-
-  <p><strong>A safety firewall between your AI coding agent and your shell.</strong></p>
-
-  <p>
-    <!-- release, CI, license, platform badges -->
-  </p>
-
-  <a href="LINK_TRENDSHIFT_CUA_YANA"
-     target="_blank"
-     rel="noopener noreferrer">
-    <img
-      src="LINK_BADGE_TRENDSHIFT_CUA_YANA"
-      alt="yanacuti1121/Yana-AI | Trendshift"
-      width="250"
-      height="55"
-    />
-  </a>
-
-</div>
-
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
     <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
