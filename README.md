@@ -32,7 +32,21 @@ $ yana-ai
   <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.zh.md">🇨🇳 中文</a>
 </p>
 
-<a href="https://trendshift.io/repositories/29310?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-29310" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/29310" alt="TencentCloud%2FTencentDB-Agent-Memory | Trendshift" width="250" height="55"/></a>
+<div align="center">
+
+  <!-- Yana logo -->
+
+  <h1>Yana AI</h1>
+
+  <p><strong>A safety firewall between your AI coding agent and your shell.</strong></p>
+
+  <!-- Các badge nhỏ: CI, license, release... -->
+
+  <br />
+
+  <!-- Trendshift badge đặt tại đây -->
+
+</div>
 
 <p align="center">
   <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
