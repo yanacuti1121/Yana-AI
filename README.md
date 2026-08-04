@@ -28,23 +28,28 @@ $ yana-ai
   <em>Built by Vũ Văn Tâm · 17 · Vietnam</em>
 </p>
 
-<p align="center">
-  <strong>English</strong> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.zh.md">🇨🇳 中文</a>
-</p>
-
 <div align="center">
 
-  <!-- Yana logo -->
+  <img src="..." alt="Yana AI Logo" width="120" />
 
   <h1>Yana AI</h1>
 
   <p><strong>A safety firewall between your AI coding agent and your shell.</strong></p>
 
-  <!-- Các badge nhỏ: CI, license, release... -->
+  <p>
+    <!-- release, CI, license, platform badges -->
+  </p>
 
-  <br />
-
-  <!-- Trendshift badge đặt tại đây -->
+  <a href="LINK_TRENDSHIFT_CUA_YANA"
+     target="_blank"
+     rel="noopener noreferrer">
+    <img
+      src="LINK_BADGE_TRENDSHIFT_CUA_YANA"
+      alt="yanacuti1121/Yana-AI | Trendshift"
+      width="250"
+      height="55"
+    />
+  </a>
 
 </div>
 
