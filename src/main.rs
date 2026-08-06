@@ -1,6 +1,7 @@
 #![cfg(feature = "cli")]
 
 mod bus;
+mod capability;
 mod chat;
 mod config;
 mod cost;
