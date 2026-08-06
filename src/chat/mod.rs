@@ -65,7 +65,10 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
         "openai" => Ok(Arc::new(openai_compat::openai())),
         "ollama" => Ok(Arc::new(openai_compat::ollama())),
         "kimi" => Ok(Arc::new(openai_compat::kimi())),
-        other => Err(format!("unknown provider '{other}' — use anthropic | openai | ollama | kimi")),
+        "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
+        other => Err(format!(
+            "unknown provider '{other}' — use anthropic | openai | ollama | kimi | turbofieldfare"
+        )),
     }
 }
 
