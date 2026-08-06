@@ -91,7 +91,14 @@ print(lock_name_for(sys.argv[1]))
 # degraded) relative to src/guard/lock.rs.
 _yana_lock_native_fallback() {
   local resource="$1" timeout_secs="$2"; shift 2
-  local lock_name lock_dir stale_after=5
+  # YANA_LOCK_STALE_AFTER_SECS mirrors core/lib/py/file_lock.py's own
+  # _stale_after_secs() override — same env var name, same purpose (a
+  # legitimately longer critical section, or a fast regression test that
+  # doesn't want to sleep past a real 5s window). Previously hardcoded
+  # here with no override, unlike the Python side which already had one.
+  local resolved_stale_after="${YANA_LOCK_STALE_AFTER_SECS:-5}"
+  [[ "$resolved_stale_after" =~ ^[0-9]+$ ]] || resolved_stale_after=5
+  local lock_name lock_dir stale_after="$resolved_stale_after"
   lock_name=$(_yana_lock_name_for "$resource")
   if [[ -z "$lock_name" ]]; then
     echo "with_lock: could not derive lock name for '$resource' (python3 unavailable?) — refusing to proceed unlocked" >&2
@@ -100,14 +107,34 @@ _yana_lock_native_fallback() {
   lock_dir=".claude/state/locks/${lock_name}.lock"
   mkdir -p "$(dirname "$lock_dir")"
 
-  if [[ -d "$lock_dir" ]]; then
-    local mtime age
-    mtime=$(stat -f '%m' "$lock_dir" 2>/dev/null || stat -c '%Y' "$lock_dir" 2>/dev/null || echo "")
-    if [[ -n "$mtime" ]]; then
-      age=$(( $(date +%s) - mtime ))
-      if (( age >= stale_after )); then rmdir "$lock_dir" 2>/dev/null || true; fi
-    fi
-  fi
+  # Staleness must be re-checked on EVERY failed mkdir attempt, not once
+  # before the loop starts. A one-time pre-loop check only catches a lock
+  # that was ALREADY stale the instant this process began acquiring —
+  # under real contention (many processes queued on the same lock name,
+  # each holding it briefly in turn), a later-queued process's first
+  # mkdir attempt can easily land more than stale_after seconds after
+  # whichever holder is CURRENTLY active started, even though that holder
+  # is not stale relative to its own acquisition time and is still alive.
+  # Repro: reproduced live 2026-08-06 racing 10x risk-scorer.sh (Python)
+  # against 10x token-budget-guard.sh (this fallback) on the same file —
+  # a holder starting at t=0 and a waiter whose first check lands at t=6
+  # (past stale_after=5) rmdir'd the still-active holder's lock mid-use,
+  # producing two simultaneous holders and lost writes (CI's
+  # "token-budget.json: real concurrent cross-language race (ADR-008)"
+  # test). Matches the loop-per-iteration pattern
+  # core/lib/py/file_lock.py's FileLock already uses correctly (its
+  # _try_reclaim_stale() runs inside the retry loop, not before it) —
+  # this brings the bash fallback in line with that, not a new design.
+  _yana_lock_reclaim_if_stale() {
+    local dir="$1" mtime age
+    [[ -d "$dir" ]] || return 0
+    mtime=$(stat -f '%m' "$dir" 2>/dev/null || stat -c '%Y' "$dir" 2>/dev/null || echo "")
+    [[ -n "$mtime" ]] || return 0
+    age=$(( $(date +%s) - mtime ))
+    if (( age >= stale_after )); then rmdir "$dir" 2>/dev/null || true; fi
+  }
+
+  _yana_lock_reclaim_if_stale "$lock_dir"
 
   local tries=0 max_tries=$(( timeout_secs * 20 )) # 50ms poll interval
   while ! mkdir "$lock_dir" 2>/dev/null; do
@@ -116,6 +143,7 @@ _yana_lock_native_fallback() {
       echo "with_lock: timed out acquiring lock for '$resource' after ${timeout_secs}s" >&2
       return 1
     fi
+    _yana_lock_reclaim_if_stale "$lock_dir"
     sleep 0.05
   done
 
