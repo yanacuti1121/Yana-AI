@@ -14,7 +14,9 @@ impl App {
     pub(super) fn handle_model_command(&mut self, args: &str) {
         let mut parts = args.split_whitespace();
         let Some(provider_name) = parts.next() else {
-            self.status = "usage: /model <anthropic|openai|ollama> [model-name]".to_string();
+            self.status =
+                "usage: /model <anthropic|openai|ollama|kimi|turbofieldfare> [model-name]"
+                    .to_string();
             return;
         };
 

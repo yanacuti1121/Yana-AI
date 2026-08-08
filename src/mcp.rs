@@ -1,83 +1,200 @@
-//! Program J (docs/programs/PROGRAM-J-SKELETON.md) Phase 9 Research/
-//! Prototype spike. Exposes `check_command` as an MCP tool over stdio,
-//! calling `crate::guard::check_command()` directly, in-process — the
-//! same pure judgment function `core/hooks/guard-destructive.sh` mirrors.
-//!
-//! NOT wired into any live client path. No existing hook, adapter, or
-//! CLI-default behavior changes because this file exists. Gated behind
-//! the `mcp` Cargo feature (not part of default `cli`) specifically so a
-//! spike doesn't change the footprint of the normal build — see Cargo.toml's
-//! `mcp` feature comment for why (this crate's first tokio dependency).
-//!
-//! "deny" is a successful tool response carrying `permission: deny` in its
-//! content, not an MCP protocol-level error — check_command() always
-//! produces a definite answer for well-formed input, so there is no
-//! internal "couldn't tell" case to simulate here. The Interfaces section's
-//! fail-closed requirement (both MCP error channels map to deny) is a
-//! CLIENT-side obligation for genuine MCP-level failures (server crash,
-//! timeout, malformed request) — this file being clean of AC error paths
-//! doesn't satisfy that requirement, it's a separate, not-yet-built piece.
+//! Program J capability runtime over MCP stdio.
 
 use rmcp::{
-    ErrorData as McpError, ServerHandler, ServiceExt,
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerInfo},
     schemars, tool, tool_handler, tool_router,
     transport::stdio,
+    ErrorData as McpError, ServerHandler, ServiceExt,
 };
+use std::path::PathBuf;
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 struct CheckCommandParams {
-    /// The raw shell command about to be executed
     command: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct RepoTreeParams {
+    #[serde(default = "dot")]
+    path: String,
+    #[serde(default = "depth")]
+    depth: usize,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct ReadFileParams {
+    path: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct SearchCodeParams {
+    query: String,
+    #[serde(default = "dot")]
+    path: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct GitDiffParams {
+    #[serde(default)]
+    staged: bool,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct ListProcessesParams {
+    #[serde(default = "memory")]
+    sort: String,
+    #[serde(default = "process_limit")]
+    limit: usize,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct ProcessDetailsParams {
+    pid: u32,
+}
+fn dot() -> String {
+    ".".into()
+}
+fn depth() -> usize {
+    2
+}
+fn memory() -> String {
+    "memory".into()
+}
+fn process_limit() -> usize {
+    20
 }
 
 #[derive(Clone)]
-struct YanaGuard {
-    tool_router: ToolRouter<YanaGuard>,
+struct YanaRuntime {
+    repo_root: PathBuf,
+    tool_router: ToolRouter<YanaRuntime>,
 }
 
 #[tool_router]
-impl YanaGuard {
-    fn new() -> Self {
+impl YanaRuntime {
+    fn new(repo_root: PathBuf) -> Self {
         Self {
+            repo_root,
             tool_router: Self::tool_router(),
         }
     }
 
     #[tool(
-        description = "Checks whether a shell command is destructive (rm -rf, git push --force, git reset --hard, SQL DROP/TRUNCATE, disguised inline-script bypasses, etc.) before it runs. Single source of truth: src/guard/mod.rs::check_command(), identical logic to core/hooks/guard-destructive.sh."
+        description = "Canonical destructive-command judgment using crate::guard::check_command()."
     )]
     fn check_command(
         &self,
-        Parameters(CheckCommandParams { command }): Parameters<CheckCommandParams>,
+        Parameters(p): Parameters<CheckCommandParams>,
     ) -> Result<CallToolResult, McpError> {
-        let body = match crate::guard::check_command(&command) {
-            None => serde_json::json!({ "permission": "allow" }),
-            Some(reason) => serde_json::json!({ "permission": "deny", "reason": reason }),
+        let body = match crate::guard::check_command(&p.command) {
+            None => serde_json::json!({"permission":"allow"}),
+            Some(reason) => serde_json::json!({"permission":"deny","reason":reason}),
         };
-        Ok(CallToolResult::success(vec![ContentBlock::text(
-            body.to_string(),
-        )]))
+        Ok(ok(body.to_string()))
+    }
+    #[tool(
+        description = "Bounded repository tree; ignores generated directories and denies path escape."
+    )]
+    fn repo_tree(
+        &self,
+        Parameters(p): Parameters<RepoTreeParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::repo_tree(
+            &self.repo_root,
+            &p.path,
+            p.depth,
+        ))
+    }
+    #[tool(description = "Read one bounded UTF-8 repository file; denies path and symlink escape.")]
+    fn read_file(
+        &self,
+        Parameters(p): Parameters<ReadFileParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::read_file(&self.repo_root, &p.path))
+    }
+    #[tool(description = "Literal case-insensitive search across bounded UTF-8 repository files.")]
+    fn search_code(
+        &self,
+        Parameters(p): Parameters<SearchCodeParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::search_code(
+            &self.repo_root,
+            &p.path,
+            &p.query,
+        ))
+    }
+    #[tool(description = "Read Git branch and working-tree status with fixed argv.")]
+    fn git_status(&self) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::git_status(&self.repo_root))
+    }
+    #[tool(description = "Read bounded staged or unstaged Git diff with fixed argv.")]
+    fn git_diff(
+        &self,
+        Parameters(p): Parameters<GitDiffParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::git_diff(&self.repo_root, p.staged))
+    }
+    #[tool(description = "Read local OS, CPU, memory, load and disk summary.")]
+    fn host_summary(&self) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::host_summary(&self.repo_root))
+    }
+    #[tool(description = "List bounded local processes sorted by cpu or memory; read-only.")]
+    fn list_processes(
+        &self,
+        Parameters(p): Parameters<ListProcessesParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::list_processes(&p.sort, p.limit))
+    }
+    #[tool(description = "Inspect one process by PID; read-only.")]
+    fn process_details(
+        &self,
+        Parameters(p): Parameters<ProcessDetailsParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::process_details(p.pid))
     }
 }
 
+fn ok(text: String) -> CallToolResult {
+    CallToolResult::success(vec![ContentBlock::text(text)])
+}
+fn observe(result: Result<String, String>) -> Result<CallToolResult, McpError> {
+    Ok(match result {
+        Ok(v) => ok(v),
+        Err(e) => CallToolResult::error(vec![ContentBlock::text(e)]),
+    })
+}
+
 #[tool_handler]
-impl ServerHandler for YanaGuard {
+impl ServerHandler for YanaRuntime {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::from_build_env())
             .with_instructions(
-                "Yana AI destructive-command guard (Program J Phase 9 spike). \
-                 Tool: check_command."
+                "Yana Program J fully-local read-only capability runtime plus canonical command guard."
                     .to_string(),
             )
     }
 }
 
-/// Runs the spike server over stdio until the client disconnects.
 pub async fn run_stdio() -> anyhow::Result<()> {
-    let service = YanaGuard::new().serve(stdio()).await?;
+    let requested = std::env::var_os("YANA_REPO_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or(std::env::current_dir()?);
+    let repo_root = requested.canonicalize()?;
+    anyhow::ensure!(repo_root.is_dir(), "YANA_REPO_ROOT is not a directory");
+    let service = YanaRuntime::new(repo_root).serve(stdio()).await?;
     service.waiting().await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn defaults_are_bounded() {
+        assert_eq!(depth(), 2);
+        assert_eq!(process_limit(), 20);
+    }
+    #[test]
+    fn tool_error_is_not_panic() {
+        assert!(observe(Err("denied".into()))
+            .unwrap()
+            .is_error
+            .unwrap_or(false));
+    }
 }

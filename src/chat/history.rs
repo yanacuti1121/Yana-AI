@@ -291,6 +291,9 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
     Ok(messages)
 }
 
+mod repair;
+pub use repair::repair_dangling_tool_call;
+
 // Split out — see `history/tests.rs`'s own doc comment for why (this
 // file is already at the 300-line budget from `agent-code-constraints.md`
 // without room for the round-trip test cases).
