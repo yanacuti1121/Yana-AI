@@ -9,12 +9,12 @@ $ yana-ai
 │      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
 │      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
 │                                                                                                                                            │
-│ v1.1.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
+│ v1.3.1 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
 │ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
 │ 71 rules · 62 hooks · 122 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
-│                                                 │ v1.1.0 — COMMANDS.md added, banner background fix, chat TUI colors                        │
+│                                                 │ v1.3.1 — capability runtime + TurboFieldfare CLI provider + crash-resume repair           │
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -35,7 +35,7 @@ $ yana-ai
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.1-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -240,7 +240,7 @@ Yana AI ships to three registries, each with its own version number — delibera
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.3.1** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
