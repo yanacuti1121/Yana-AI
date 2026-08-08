@@ -60,6 +60,9 @@ packages = ["src/yana_ai"]
 "gates" = "yana_ai/gates"
 "scanner" = "yana_ai/scanner"
 "policy" = "yana_ai/policy"
+"adapters" = "yana_ai/adapters"
+".codex/config.toml" = "yana_ai/.codex/config.toml"
+".codex/hooks.json" = "yana_ai/.codex/hooks.json"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -70,6 +73,9 @@ include = [
   "gates/",
   "scanner/",
   "policy/",
+  "adapters/",
+  ".codex/config.toml",
+  ".codex/hooks.json",
   "README.md",
   "CHANGELOG.md",
   "LICENSE",

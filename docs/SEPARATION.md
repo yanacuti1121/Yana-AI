@@ -95,9 +95,10 @@ docs/               ← Yana AI internal (product has its own docs/)
 The Claude release pack contains only `hooks/`, `scripts/`, `tests/`.
 No memory, no docs, no operating files.
 
-For Codex, run `bash core/scripts/switch-engine.sh codex` from the Yana AI
-source checkout or use the npm installer. Existing target `AGENTS.md` files are
-preserved; the installer creates one only when the target has none.
+For Codex, run `yana-ai install --engine codex` after installing the Python
+package, or run `bash core/scripts/switch-engine.sh codex` from a Yana AI source
+checkout. Existing target `AGENTS.md` files are preserved; the installer creates
+one only when the target has none. Node/npm is not required.
 Parity rules and engine mappings are documented in `docs/ENGINE_PARITY.md`.
 
 ---

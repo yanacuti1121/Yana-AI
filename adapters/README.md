@@ -6,7 +6,7 @@ Yana AI runs on Claude Code natively. These adapters let you apply Yana AI gover
 |---|---|---|
 | **Claude Code** | _(native — no adapter needed)_ | Drop into `.claude/` via release zip |
 | **Cursor** | `.cursorrules` (root) + `.cursor/rules/*.mdc` + real `beforeShellExecution` hook | Already at repo root — Cursor picks up automatically |
-| **OpenAI Codex CLI** | `AGENTS.md` + `.codex/` + `.agents/skills/` | `bash core/scripts/switch-engine.sh codex` — synchronizes agents, skills, commands, and hooks |
+| **OpenAI Codex CLI** | `AGENTS.md` + `.codex/` + `.agents/skills/` | `yana-ai install --engine codex` — synchronizes all canonical agents, skills, commands, and hooks without npm |
 | **Google Antigravity** | `adapters/antigravity.md` | `bash core/scripts/switch-engine.sh antigravity` — copies to `.agent/rules/yana-ai.md` |
 
 ---
@@ -44,6 +44,7 @@ bash core/scripts/switch-engine.sh status       # show which adapters are curren
 - **Claude Code**: full enforcement via hooks (runtime blocking, every tool call in the Merkle audit chain).
 - **Cursor**: real enforcement as of `.cursor/hooks.json` + `.cursor/hooks/before-shell-execution.js` — every shell command is technically screened by `core/hooks/guard-destructive.sh` before Cursor executes it (a narrower pattern set than `safe-run.sh`'s prompt-based prefix — see the `.mdc` rule's own "Why" section for exactly what's covered vs not). MCP tool calls are a separate event this hook doesn't cover.
 - **Codex**: project-scoped hooks, custom agents, and skills are synchronized from `core/`; review changed hooks before trusting them in a target project.
+- The PyPI-installed path is `yana-ai install --engine codex`; the `switch-engine.sh` form is for source checkouts and invokes the same Python synchronizer.
 - Claude `/name` commands map to Codex `$yana-command-name` skills because repository-scoped Codex custom prompts are deprecated; the workflow content remains shared and parity-tested.
 - **Antigravity**: advisory only — rules are in `.agent/rules/yana-ai.md`, not enforced at shell level. For hard runtime blocking, wrap commands with `bash core/scripts/safe-run.sh`.
 - Cursor `.mdc` rules require Cursor ≥ 0.40. Older versions use `.cursorrules` only.

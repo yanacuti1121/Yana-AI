@@ -129,7 +129,8 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 ```bash
 # Python CLI — installs the yana-ai command
 pip install yana-ai
-yana-ai install                # wires the hooks into the current project
+yana-ai install                # installs Claude + Codex capability surfaces
+yana-ai install --engine codex # install only the Codex surfaces
 
 # Rust runtime (up to ~12x faster on bounded commands — see BENCHMARK.md)
 cargo install yana-rt
@@ -139,6 +140,10 @@ cargo install yana-rt
 # Verify everything is wired
 yana-ai doctor .
 ```
+
+`yana-ai install` uses the Python package directly; Node/npm is not required.
+It preserves an existing `AGENTS.md` and synchronizes all 101 canonical agents,
+2,025 skills, 170 commands, and the project hook files from `core/`.
 
 ### Requirements
 

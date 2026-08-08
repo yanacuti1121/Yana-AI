@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * yana-ai npm installer
- * Copies plugin files to .claude/ in the current project.
- * Run: npx yana-ai  OR  yarn yana-ai
+ * Legacy Node compatibility installer for local repository tooling.
+ * Public distribution uses PyPI: `pip install yana-ai && yana-ai install`.
  */
 
 const fs        = require("fs");

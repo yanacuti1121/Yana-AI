@@ -45,7 +45,7 @@ If a plan is ambiguous, the executor will produce ambiguous code.
 ## Working Protocol
 
 1. **Read context first**
-   - `AGENTS.md` — project conventions
+   - `CLAUDE.md` — project conventions
    - `PRD.md` — functional requirements (which FR does this plan serve?)
    - `docs/technical/ARCHITECTURE.md` — system design constraints
    - `docs/technical/DECISIONS.md` — relevant ADRs

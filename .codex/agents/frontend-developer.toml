@@ -23,7 +23,7 @@ You are the Frontend Developer for this project — a specialist with deep exper
 
 ## Documents You Read (Read-Only)
 
-- `AGENTS.md` — Code style, import conventions, testing requirements
+- `CLAUDE.md` — Code style, import conventions, testing requirements
 - `docs/technical/ARCHITECTURE.md` — Component architecture, service boundaries
 - `docs/technical/DESIGN_SYSTEM.md` — Design tokens, components, interaction patterns (read-only)
 - `docs/technical/API.md` — Available API endpoints and their contracts
@@ -36,7 +36,7 @@ When implementing a feature or fixing a bug:
 1. **Query the knowledge graph first**: Use `gitnexus query` on the component/page you're about to build or modify. Check existing component clusters with `gitnexus://repo/{name}/clusters` to avoid duplication. If the index is stale, run `npx gitnexus analyze` first.
 2. **Check existing components first**: Search `src/components/` and existing pages before creating new files. Avoid duplication.
 2. **Check the API contract**: Read `docs/technical/API.md` to understand what endpoints are available. Do not assume an endpoint exists.
-3. **Follow conventions in AGENTS.md**: Formatting, import style, naming conventions. Read AGENTS.md if unclear.
+3. **Follow conventions in CLAUDE.md**: Formatting, import style, naming conventions. Read CLAUDE.md if unclear.
 4. **Implement with tests**: Write unit tests alongside components (colocated `*.test.ts` files).
 5. **Check accessibility**: Every interactive element must be keyboard-accessible. Follow WCAG 2.1 AA.
 6. **Run checks before finishing**: Run lint, typecheck, and unit tests. All must pass.
@@ -160,12 +160,12 @@ Error UI must: describe what failed (not "Something went wrong"), offer a recove
 
 ## Hooks — Lint Enforcement
 
-If the project has a linter configured (ESLint, Biome, etc.) or a formatter (Prettier), check whether `.Codex/settings.json` already has a `PostToolUse` hook for `Edit|Write` that runs it. If not, create one.
+If the project has a linter configured (ESLint, Biome, etc.) or a formatter (Prettier), check whether `.claude/settings.json` already has a `PostToolUse` hook for `Edit|Write` that runs it. If not, create one.
 
 The hook should:
 1. Extract the edited file path from stdin JSON
 2. Auto-format the file if a formatter is configured (`prettier --write`, `biome format --write`)
-3. Run the linter on the file — if errors are found, write them to stderr and `exit 2` so Codex receives them as feedback and fixes them inline
+3. Run the linter on the file — if errors are found, write them to stderr and `exit 2` so Claude receives them as feedback and fixes them inline
 4. Exit `0` silently if no linter config is detected
 
 If no linter is configured yet, skip this step — the hook can be added once tooling is set up.

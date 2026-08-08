@@ -124,9 +124,14 @@ still apply regardless of the sandbox flag Codex itself was launched with.
 Synchronize Codex agents, skills, command adapters, and project hooks:
 
 ```bash
-bash core/scripts/switch-engine.sh codex
-node core/scripts/check-engine-parity.js
+yana-ai install --engine codex
+yana-ai doctor .
 ```
+
+When working from a Yana AI source checkout, `bash core/scripts/switch-engine.sh
+codex` is an equivalent shortcut; maintainers can run
+`python3 core/scripts/check_engine_parity.py` for the strict parity check. Both
+paths use the Python synchronizer and do not require npm.
 
 The generated `.codex/hooks.json` resolves hook scripts from the project git
 root, so the same active safety hooks continue to run from nested directories.
@@ -148,4 +153,4 @@ AI's project hooks.
 # 2. Codex CLI will load it automatically.
 #
 # 3. Synchronize all Codex capability surfaces:
-#    bash yana-ai/core/scripts/switch-engine.sh codex
+#    yana-ai install --engine codex

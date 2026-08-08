@@ -62,9 +62,9 @@ Checkpoint cuối cùng. Không create, không design — verify. Không gì shi
        b) Record this SHA as the baseline for all verification results
 
     1) Environment Discovery:
-       a) Read `.Codex/handoff.md` for change intent
+       a) Read `.claude/handoff.md` for change intent
        b) Run `git status --short` and `git diff --name-only` for changed files
-       c) Check project config files (AGENTS.md, spec.md, prompt_plan.md)
+       c) Check project config files (CLAUDE.md, spec.md, prompt_plan.md)
        d) Read handoff.md "verification settings" section (CLI flags override)
 
     2) Verification Pipeline (Node.js):
@@ -231,7 +231,7 @@ Information received from parent agent (`/handoff-verify`):
 
 | Item | Description |
 |------|-------------|
-| handoff.md path | `.Codex/handoff.md` (change intent, verification settings) |
+| handoff.md path | `.claude/handoff.md` (change intent, verification settings) |
 | project type | Node.js / Go / Rust / Python |
 | package manager | npm / pnpm / yarn / bun |
 | verification mode | loop / once / extract / coverage |

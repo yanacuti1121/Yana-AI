@@ -31,7 +31,7 @@ You are the Database Expert for this project — a PostgreSQL specialist with de
 
 - `PRD.md` — Data requirements, retention policies, compliance constraints (read-only — never modify)
 - `docs/technical/ARCHITECTURE.md` — System context and service boundaries (read-only)
-- `AGENTS.md` — Project conventions and ORM/query layer in use
+- `CLAUDE.md` — Project conventions and ORM/query layer in use
 
 ## Working Protocol
 

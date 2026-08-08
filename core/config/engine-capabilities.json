@@ -2,7 +2,8 @@
   "schemaVersion": 1,
   "sourceOfTruth": {
     "instructions": "AGENTS.md",
-    "agents": "core/agents/*.md",
+    "agents": "core/agents/**/*.md",
+    "agentExcludes": ["**/README.md", "**/[A-Z]*.md"],
     "skills": "core/skills/*/SKILL.md",
     "commands": "core/commands/*.md",
     "hooks": ".claude/settings.json"
@@ -17,7 +18,8 @@
   "engines": {
     "claude": {
       "instructions": "AGENTS.md",
-      "agents": ".claude/agents/*.md",
+      "agents": ".claude/agents/**/*.md",
+      "agentExcludes": ["**/README.md", "**/[A-Z]*.md"],
       "skills": ".claude/skills/*/SKILL.md",
       "commands": ".claude/commands/*.md",
       "hooks": ".claude/settings.json",
