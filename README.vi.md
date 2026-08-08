@@ -1,24 +1,9 @@
-```
-$ yana-ai
-╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│                                                                                                                                            │
-│   ██╗   ██╗ █████╗ ███╗   ██╗ █████╗     █████╗ ██╗                                                                                       │
-│   ╚██╗ ██╔╝██╔══██╗████╗  ██║██╔══██╗   ██╔══██╗██║                                                                                       │
-│    ╚████╔╝ ███████║██╔██╗ ██║███████║   ███████║██║                                                                                       │
-│     ╚██╔╝  ██╔══██║██║╚██╗██║██╔══██║   ██╔══██║██║                                                                                       │
-│      ██║   ██║  ██║██║ ╚████║██║  ██║   ██║  ██║██║                                                                                       │
-│      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝                                                                                       │
-│                                                                                                                                            │
-│ v1.1.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
-│ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
-│ 71 rules · 62 hooks · 125 scripts               │ yana-ai init                                                                              │
-│ 170 commands                                    │                                                                                          │
-│                                                  │ Mới trong bản này                                                                        │
-│                                                  │ v1.1.0 — thêm COMMANDS.md, sửa nền banner, đổi màu viền yana chat                        │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-```
-
-<h1 align="center">Yana AI</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
+    <img src="docs/yana-banner-light.svg" alt="Yana AI">
+  </picture>
+</p>
 
 <p align="center">
   <strong>Tường lửa an toàn giữa AI coding agent và shell của bạn.</strong>
