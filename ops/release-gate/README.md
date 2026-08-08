@@ -42,5 +42,10 @@ retention. Retention policy must keep `report.json`, `report.sha256`,
 one immutable unit. Do not delete an artifact directory while it is being
 written; this repository intentionally provides no automatic pruning command.
 
+Run `core/scripts/verify-release-evidence.py` against the stored evidence and
+artifact roots before any human-approved promotion. A PASS proves the stored
+bytes still match the eligible report for the expected commit; it does not
+authenticate which runner produced those bytes.
+
 See `docs/operations/self-hosted-release-gate.md` for the release decision
 rule and required checks.
