@@ -137,7 +137,7 @@ Promote important session facts to L1 with `/session promote <id>`.
 
 ## Available slash commands
 
-164 commands in `core/commands/`. Key ones:
+170 commands in `core/commands/`. Key ones:
 
 | Command | Purpose |
 |---|---|
@@ -166,7 +166,7 @@ Full list: `core/commands/`
 
 ## Available skills
 
-1,989 skills in `core/skills/`. Key triggers:
+2,025 skills in `core/skills/`. Key triggers:
 
 | Skill | Trigger |
 |---|---|
