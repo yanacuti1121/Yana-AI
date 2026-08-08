@@ -64,6 +64,7 @@ core/memory/audit/*
 __pycache__/
 *.pyc
 reports/audit-local.*
+artifacts/release-gate/
 
 
 # Added by cargo
