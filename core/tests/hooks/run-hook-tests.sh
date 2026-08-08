@@ -1620,8 +1620,28 @@ echo '{"session_start":"seed","total_tokens_used":0,"actions":[],"loop_attempts"
 # doesn't need jq at all — masking the exact bash-fallback behavior that
 # test exists to check). Global PATH mutation in a shared test script is
 # exactly the kind of cross-test coupling this suite should not have.
+#
+# Checks BOTH target/release and target/debug, preferring release when
+# both exist. CI's "Hook Tests" job only ever runs `cargo build --release`
+# (.github/workflows/ci.yml's "Build yana-rt (release, for
+# guard-blast-radius.sh)" step) — it never produces a target/debug
+# binary. Checking only target/debug (the pre-fix state here) meant this
+# race test silently fell through to the bash/Python native fallback
+# lock on every CI run, never the canonical Rust path, on every commit
+# since ADR-008 landed — invisible on a developer machine, which usually
+# has a target/debug binary from routine `cargo build`/`cargo test` (or a
+# global `cargo install`'d yana-rt already on PATH), masking the gap.
+# That native fallback is a real, intentionally degraded implementation
+# (see core/lib/locking.sh's own header) — verified separately, see this
+# file's own fallback-specific race tests — but ADR-008's actual
+# lease-renewal/heartbeat protection against a slow-but-alive holder only
+# exists in the Rust path (src/guard/lock.rs's spawn_heartbeat), so
+# exercising ONLY the fallback in CI, unintentionally, is not equivalent
+# coverage to what this test's own comment above claims ("either is a
+# valid pass").
 RACE_ORIGINAL_PATH="$PATH"
-RACE_LOCAL_BIN_DIR="$CLAUDE_DIR/../target/debug"
+RACE_LOCAL_BIN_DIR="$CLAUDE_DIR/../target/release"
+[[ -x "$RACE_LOCAL_BIN_DIR/yana-rt" ]] || RACE_LOCAL_BIN_DIR="$CLAUDE_DIR/../target/debug"
 [[ -x "$RACE_LOCAL_BIN_DIR/yana-rt" ]] && export PATH="$RACE_LOCAL_BIN_DIR:$PATH"
 
 echo -n "race [10x risk-scorer + 10x token-budget-guard on the same file, zero lost updates]... "
@@ -1675,6 +1695,95 @@ if [[ "$_race2_json_valid" == "yes" && "$_race2_loop_count" == "10" ]]; then
     echo "PASS"
 else
     echo "FAIL (json_valid=$_race2_json_valid loop_attempts.RaceTool2=$_race2_loop_count, expected yes/10 — lost update(s) under real concurrency)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# core/lib/locking.sh's native mkdir fallback specifically (yana-rt kept
+# OFF PATH here, deliberately — this is the exact "yana-rt absent" mode
+# the two races above only exercise incidentally, depending on whichever
+# binary this checkout happens to have built).
+#
+# What this proves, precisely: a SINGLE waiter that starts polling before
+# a lock is stale, and whose target lock is then abandoned (owning process
+# gone, dir never rmdir'd) partway through that same wait, must reclaim it
+# once stale_after elapses — not sit blocked until its own unrelated
+# with_lock timeout. Found live 2026-08-06: the fallback's stale-lock
+# check ran ONCE, immediately before the poll loop started, and was never
+# re-evaluated on later iterations — a waiter already polling when the
+# lock became stale mid-wait would never notice, since its one allotted
+# check had already run (and found "not yet stale") before that. Python's
+# FileLock already re-checks inside its retry loop (see
+# core/lib/py/file_lock.py's __enter__); this proves the bash fallback
+# now does the same.
+#
+# What this deliberately does NOT claim to prove: that a brand-new,
+# late-arriving process's FIRST check can never land after stale_after on
+# a merely-slow-but-genuinely-alive holder. That's a real, separate, and
+# explicitly ADR-008-accepted limitation of this fallback specifically
+# (no lease-renewal/heartbeat — only src/guard/lock.rs's canonical Rust
+# path has that, via spawn_heartbeat) — see the "Tradeoff" paragraph in
+# core/lib/locking.sh's own header. A regression test cannot assert a
+# guarantee the code was never designed to provide; the two races above
+# are what verify that guarantee, on whichever lock path this checkout's
+# yana-rt build makes them exercise.
+echo -n "with_lock native fallback [an abandoned lock is reclaimed by an already-polling waiter, not just a fresh one]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+STALE_TMP=$(mktemp -d)
+register_temp "$STALE_TMP"
+STALE_REPO_ROOT="$(cd "$CLAUDE_DIR/.." && pwd)"
+STALE_PY_DIR="$(dirname "$(command -v python3)")"
+STALE_RESULT="$STALE_TMP/result.txt"
+: > "$STALE_RESULT"
+(
+  # CLAUDE_PROJECT_DIR must stay the real repo root, not STALE_TMP — that's
+  # what _yana_lock_name_for() puts on sys.path so `from
+  # core.lib.py.file_lock import lock_name_for` resolves; the lock name
+  # derived from the "stale-fallback-resource" resource string is what
+  # keeps this test's lock dir distinct from any real hook's, not the
+  # project dir.
+  export CLAUDE_PROJECT_DIR="$STALE_REPO_ROOT"
+  export YANA_LOCK_STALE_AFTER_SECS=1
+  export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$STALE_PY_DIR"
+  source "$CLAUDE_DIR/lib/locking.sh"
+
+  # Simulate an abandoned lock directly (mkdir it by hand, no process ever
+  # rmdir's it) — the "crashed holder" case this reclaim mechanism exists
+  # for at all, distinct from the still-alive-but-slow case the fallback
+  # doesn't try to protect against.
+  _abandoned_name=$(_yana_lock_name_for "stale-fallback-resource")
+  _abandoned_dir=".claude/state/locks/${_abandoned_name}.lock"
+  mkdir -p "$(dirname "$_abandoned_dir")"
+  mkdir "$_abandoned_dir"
+
+  # Own timeout (10s) is deliberately far longer than stale_after (1s) —
+  # if this waiter only reclaims on a fresh per-process first check
+  # (pre-fix behavior) rather than during its OWN poll loop, it blocks for
+  # the full 10s and this test would need to wait that long to see it
+  # fail; the elapsed-time assertion below is what actually distinguishes
+  # "reclaimed promptly, mid-wait" from "sat blocked until timeout".
+  _start_epoch=$(date +%s.%N)
+  if with_lock "stale-fallback-resource" 10 -- true; then
+    _end_epoch=$(date +%s.%N)
+    echo "acquired $_start_epoch $_end_epoch" > "$STALE_RESULT"
+  else
+    echo "timed_out" > "$STALE_RESULT"
+  fi
+)
+_stale_outcome=$(awk '{print $1}' "$STALE_RESULT")
+if [[ "$_stale_outcome" == "acquired" ]]; then
+    _stale_elapsed=$(awk '{print $3 - $2}' "$STALE_RESULT")
+    # Generous upper bound (4s) — real reclaim should land just after the
+    # 1s stale_after mark plus one 50ms poll tick; 4s comfortably excludes
+    # "actually just waited for its own 10s timeout" while tolerating
+    # normal CI scheduling jitter.
+    if python3 -c "import sys; sys.exit(0 if $_stale_elapsed < 4.0 else 1)"; then
+        echo "PASS"
+    else
+        echo "FAIL (acquired, but took ${_stale_elapsed}s — reclaim did not happen mid-wait, only via eventual timeout-adjacent behavior)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+else
+    echo "FAIL (never acquired the abandoned lock within its own 10s timeout)"
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
