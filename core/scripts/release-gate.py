@@ -139,6 +139,7 @@ def check_definitions(root: Path) -> dict[str, Check]:
         Check("release-gate-tests", "Self-hosted release gate report contract", ("python3", "tests/test_release_gate.py")),
         Check("release-evidence-tests", "Offline release evidence verification", ("python3", "tests/test_release_evidence.py")),
         Check("runner-preflight-tests", "Self-hosted runner preflight regression", ("python3", "tests/test_self_hosted_runner_preflight.py")),
+        Check("candidate-preparation-tests", "Self-hosted candidate preparation regression", ("python3", "tests/test_self_hosted_candidate_preparation.py")),
         Check("self-hosted-runner", "Immutable self-hosted runner contract", ("python3", "tests/test_self_hosted_release_runner.py")),
         Check("skill-triggering", "Skill trigger regression behavior", ("bash", "core/tests/skills/test-skill-triggering.sh")),
         Check("rust-build", "Release yana-rt build", ("cargo", "build", "--release", "--bin", "yana-rt")),

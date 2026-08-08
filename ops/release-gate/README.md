@@ -42,6 +42,18 @@ python3 core/scripts/check-self-hosted-runner.py \
   --artifact-root /var/lib/yana-ai/release-gate
 ```
 
+Prepare the candidate from a local mirror before each reviewed release:
+
+```bash
+bash core/scripts/prepare-self-hosted-release-candidate.sh \
+  --source-repo /srv/yana-ai-mirror \
+  --revision <full-commit> \
+  --checkout /srv/yana-ai-candidate
+```
+
+The checkout path must not exist yet. Retain any staging directory reported on
+failure for investigation rather than deleting it automatically.
+
 ## Artifact retention
 
 Copy every report directory to controlled storage before applying host-level

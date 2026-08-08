@@ -61,6 +61,20 @@ artifact-root writability, and the immutable-checkout contract. It never
 installs dependencies or changes the candidate checkout. Use `--json` for a
 machine-readable report.
 
+Prepare that detached checkout from a local Git mirror, not a moving remote:
+
+```bash
+bash core/scripts/prepare-self-hosted-release-candidate.sh \
+  --source-repo /srv/yana-ai-mirror \
+  --revision <full-commit> \
+  --checkout /srv/yana-ai-candidate
+```
+
+The preparer accepts only a local repository and a full commit ID. It creates
+a self-contained clone in a staging directory, verifies the exact detached and
+clean commit, then moves it into a previously unused checkout path. It never
+fetches from the network or overwrites an existing candidate.
+
 The gate writes `report.json`, `report.sha256`, `checksums.sha256`, plus a
 stdout/stderr log for every check. It writes SHA-256 and byte size for
 `target/release/yana-rt` only after the release build check succeeds, plus each
