@@ -18,7 +18,12 @@ $ yana-ai
 ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-<h1 align="center">Yana AI</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/yana-wordmark-dark.svg">
+    <img src="docs/yana-wordmark-light.svg" alt="Yana AI" height="56">
+  </picture>
+</p>
 
 <p align="center">
   <strong>A safety firewall between your AI coding agent and your shell.</strong>
