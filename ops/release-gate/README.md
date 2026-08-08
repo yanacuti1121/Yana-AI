@@ -75,11 +75,11 @@ artifact roots before any human-approved promotion. A PASS proves the stored
 bytes still match the eligible report for the expected commit; it does not
 authenticate which runner produced those bytes.
 
-For production promotion, configure a separate HTTPS signing gateway backed by
-HashiCorp Vault Transit and use `core/scripts/attest-release-evidence.py` to
-sign then verify the bundle. The runner must never receive the Vault token or
-private key; see `docs/operations/self-hosted-release-gate.md` for the gateway
-contract and exact commands.
+For production promotion, configure the dedicated Vault Agent API Proxy in
+`ops/release-signer/`, backed by HashiCorp Vault Transit, and use
+`core/scripts/attest-release-evidence.py` to sign then verify the bundle. The
+runner must never receive the Vault token or private key; see
+`docs/operations/self-hosted-release-gate.md` for the exact commands.
 
 See `docs/operations/self-hosted-release-gate.md` for the release decision
 rule and required checks.

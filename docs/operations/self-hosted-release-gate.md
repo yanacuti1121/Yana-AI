@@ -140,11 +140,11 @@ hardening layer.
 ## Vault Transit attestation
 
 For an approved production promotion path, attest the already verified bundle
-through an access-controlled signing gateway backed by a HashiCorp Vault Transit
-`ecdsa-p256` key. The runner sends only report-derived digests. It must never
-read a Vault token, private key, or a token file; the gateway authenticates the
-runner and is the only component allowed to call Vault's Transit sign and verify
-endpoints.
+through a dedicated local Vault Agent API Proxy backed by a HashiCorp Vault
+Transit `ecdsa-p256` key. The runner sends only report-derived digests over the
+agent's protected Unix socket. It must never read a Vault token, private key,
+or token file; Vault Agent keeps its Auto-Auth token in memory and forces that
+identity on the Transit sign and verify requests.
 
 ```bash
 python3 core/scripts/attest-release-evidence.py sign \
@@ -152,25 +152,24 @@ python3 core/scripts/attest-release-evidence.py sign \
   --expected-revision <full-commit> \
   --artifact-root /var/lib/yana-ai/release-bundles/<commit>-<run>/artifacts \
   --vault-transit-key yana-release-evidence \
-  --signing-gateway https://release-signer.internal
+  --vault-agent-socket /run/yana-release-signer/vault-proxy.sock
 
 python3 core/scripts/attest-release-evidence.py verify \
   /var/lib/yana-ai/release-bundles/<commit>-<run> \
   --expected-revision <full-commit> \
   --artifact-root /var/lib/yana-ai/release-bundles/<commit>-<run>/artifacts \
   --vault-transit-key yana-release-evidence \
-  --signing-gateway https://release-signer.internal
+  --vault-agent-socket /run/yana-release-signer/vault-proxy.sock
 ```
 
-The gateway contract is deliberately narrow: `POST /v1/release-attestations/sign`
-accepts the canonical payload and returns a Vault Transit `vault:vN:` signature
-and key version; `POST /v1/release-attestations/verify` returns `{ "valid": true }`
-only after Vault validates that same payload and signature with the named key.
-Reject any non-HTTPS endpoint, missing attestation, malformed response, changed
-bundle bytes, key mismatch, or `valid: false`. The gateway endpoint, TLS trust,
-and Vault policy are operator-managed deployment configuration, not repository
-secrets. Do not promote a bundle until both the evidence verifier and this
-attestation verifier pass.
+The client calls only `POST /v1/transit/sign/<key>/sha2-256` and
+`POST /v1/transit/verify/<key>/sha2-256` through that socket. Reject a missing
+or unsafe socket, missing attestation, malformed Transit response, changed
+bundle bytes, key mismatch, or `valid: false`. The AppRole delivery, socket
+ownership, Vault policy, and TLS connection from Agent to Vault are
+operator-managed deployment configuration, not repository secrets. Use the
+dedicated templates in `ops/release-signer/`; do not promote a bundle until both
+the evidence verifier and this attestation verifier pass.
 
 ## Independent runners
 

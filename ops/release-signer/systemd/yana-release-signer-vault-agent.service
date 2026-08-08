@@ -1,0 +1,24 @@
+[Unit]
+Description=Yana AI release signer Vault Agent API Proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=yana
+Group=yana
+UMask=0077
+RuntimeDirectory=yana-release-signer
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/vault agent -config=/etc/yana-release-signer/vault-agent.hcl
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/yana-release-signer
+ReadWritePaths=/run/yana-release-signer
+
+[Install]
+WantedBy=multi-user.target

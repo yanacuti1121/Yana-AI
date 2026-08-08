@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-08T14:47:16+00:00",
+  "generated": "2026-08-08T15:09:27+00:00",
   "count": 273,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -147,7 +147,7 @@
     "core/scripts/add-session-fact.sh": "2923306bba331c79ca86dab5c25dc40f660ab0c336f4414bcf7819c7ee0fc320",
     "core/scripts/agent-claim.sh": "2d4b7b9e7c04df6eca22944d6db95f4013345ce6e6ddf88e9ba32b50a994cb78",
     "core/scripts/apply-hook-timeouts.sh": "50abdccbfc471a469d969a78cb1217ed9c5db4e90a9da15e64cb5846751ccba0",
-    "core/scripts/attest-release-evidence.py": "0ba8e9ac4b9898c26c4b455e1661db73bc4a441ff009bc595bedcff6b6fd4bdc",
+    "core/scripts/attest-release-evidence.py": "9f000c208957fbade81274f8b20301096b3b392ea7e061fb184eb1951aae21fa",
     "core/scripts/audit_scanner.py": "8abbe946c025722e54a8041b7064f11361b69c36a5f1442edfe9ac472c0b39ea",
     "core/scripts/auto-compress.sh": "e3fb3b287d002099ad72ee9c86cfcd6f6e425b897e693aa81b5f1751af36dad9",
     "core/scripts/auto_fix.py": "7c2f9d1f7e0d87cdce083bd4f71e72ac7faff64e5afe4d512f4cd4d503ae59fb",
@@ -215,7 +215,7 @@
     "core/scripts/policy_manager.py": "108b0b805e3e558e97a23e7eac5acf4c0e1ee76d00a8383b180fc2af12e693a1",
     "core/scripts/prepare-self-hosted-release-candidate.sh": "595913eb45d8891752a73a0a7d7e98800d27934ee7b395a1af78b7fb527fa26e",
     "core/scripts/promote-session-patterns.sh": "308a3a6e6950681a1f076f9fe4a85a5dca2f95d81497863a73f710a62a1d335d",
-    "core/scripts/release-gate.py": "f93360254ff20986eb69fb8d12f8a6c4464e1485faad314b9ca0f690a4be7aa1",
+    "core/scripts/release-gate.py": "0b4f50dd58ea50faf6515a661991fb3e63e940efcb17a70cb5a627ab53bede01",
     "core/scripts/report_html.py": "6e51e893a2bf9a52631eb6798cd3c60641fd457217f6c32e1c586a2172e05a14",
     "core/scripts/report_pdf.py": "8a9ba418624f1987ab5a66c217be4f7509ea1fa2aad1dbcf919704b7cf130752",
     "core/scripts/resolve-memory-conflict.sh": "8fc3f089c03ad06d9faaf749f88166f632a8ca4b1b92c14e03cf64429f35d340",
