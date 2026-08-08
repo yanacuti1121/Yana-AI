@@ -79,6 +79,27 @@ Promote only when all of these are true:
 The gate has no deploy command. Publishing, desktop signing, GitHub release
 creation, and rollback remain separate human-approved operations.
 
+## Offline evidence verification
+
+Before promotion, copy artifacts into a controlled directory using the same
+relative paths recorded in `report.json`, then verify the complete bundle:
+
+```bash
+python3 core/scripts/verify-release-evidence.py \
+  /var/lib/yana-ai/release-gate/<commit>/<run> \
+  --expected-revision <full-commit> \
+  --artifact-root /var/lib/yana-ai/release-artifacts/<commit>
+```
+
+The verifier fails closed for diagnostic reports, revision drift, altered
+reports or logs, checksum-manifest mismatches, modified artifacts, unsafe
+paths, and missing files. It does not publish or deploy anything.
+
+Checksums prove bundle integrity, not runner identity. Treat evidence as
+promotion-authoritative only after it has entered access-controlled storage
+from an approved runner. Cryptographic runner attestation remains a separate
+hardening layer.
+
 ## Independent runners
 
 Use at least one maintained Ubuntu runner and one macOS runner. Both execute

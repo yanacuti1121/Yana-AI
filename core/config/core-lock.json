@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-08T13:46:07+00:00",
-  "count": 268,
+  "generated": "2026-08-08T14:02:02+00:00",
+  "count": 269,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -211,7 +211,7 @@
     "core/scripts/policy_check.py": "c4d6dd8e6d19be960e9583166ce4acfe157db7063429ef9701c2a90d3524e89e",
     "core/scripts/policy_manager.py": "108b0b805e3e558e97a23e7eac5acf4c0e1ee76d00a8383b180fc2af12e693a1",
     "core/scripts/promote-session-patterns.sh": "308a3a6e6950681a1f076f9fe4a85a5dca2f95d81497863a73f710a62a1d335d",
-    "core/scripts/release-gate.py": "e5cc75a136ef5dfd9c8def3cd0fd6db9abcb1cb39286ea54071d47bbe3201565",
+    "core/scripts/release-gate.py": "4cea1140542080679c8cfd02ce3557feca5c1798de929d02d1312bd90c7fc417",
     "core/scripts/report_html.py": "6e51e893a2bf9a52631eb6798cd3c60641fd457217f6c32e1c586a2172e05a14",
     "core/scripts/report_pdf.py": "8a9ba418624f1987ab5a66c217be4f7509ea1fa2aad1dbcf919704b7cf130752",
     "core/scripts/resolve-memory-conflict.sh": "8fc3f089c03ad06d9faaf749f88166f632a8ca4b1b92c14e03cf64429f35d340",
@@ -259,6 +259,7 @@
     "core/scripts/verify-claude-pack.sh": "b12f8951285db4a253cd788c8bab71a46b5e43634ce8a4f3e79436e15156f881",
     "core/scripts/verify-core-lock.sh": "99b79c0421daff0ca969f9b9e7dcbdfbfabc15b343bee4f7d4c2b458cbd059df",
     "core/scripts/verify-hook-mirrors.sh": "6a1cc4f15bf9d0011f5d408d02db3228b15d76aa3a0192679e782367ad63003d",
+    "core/scripts/verify-release-evidence.py": "51244842846bd73b6bc6c06d93421738343e71a001ea0f7db4e6e6e341796bf0",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
     "core/scripts/verify-skills-lock.sh": "ba0e7825913d32a22657b39505ae3018ddafb38934d9a168b14fa3b5091b9999",
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",

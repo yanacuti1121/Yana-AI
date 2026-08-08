@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.1.0 · Tường lửa an toàn cho AI coding agent  │ Mẹo bắt đầu                                                                               │
 │ 101 agents · 2.025 skills                       │ yana-ai doctor                                                                            │
-│ 71 rules · 62 hooks · 120 scripts               │ yana-ai init                                                                              │
+│ 71 rules · 62 hooks · 121 scripts               │ yana-ai init                                                                              │
 │ 170 commands                                    │                                                                                          │
 │                                                  │ Mới trong bản này                                                                        │
 │                                                  │ v1.1.0 — thêm COMMANDS.md, sửa nền banner, đổi màu viền yana chat                        │
