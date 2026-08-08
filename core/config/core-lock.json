@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-07-27T01:44:49+00:00",
-  "count": 261,
+  "generated": "2026-08-08T09:06:14+00:00",
+  "count": 263,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -156,6 +156,7 @@
     "core/scripts/build-release.sh": "408c252df245bd5f37437f7cdcdfc6cbffc814035eb6db51ce919749ef95afa3",
     "core/scripts/build-skill-index.js": "e6c0efe08464bedbf0e46db6a4356e4fe2a8b1461edea2f8481d874fe69cfeb7",
     "core/scripts/build-skills-snapshot.sh": "b253d13790f8ae1b93cae63305f938a9d75e3d4c0682e7e7e023a3f7d90bad3d",
+    "core/scripts/check-engine-parity.js": "d3cbc66515ac96067b724bfc089fa7340050caacd94333ff6a0a49583cff282f",
     "core/scripts/check_context_pack.py": "b5fbcdf76f8cbb6e60188f8218b8e361e7a2e561cd8c2e24ae8bae45b4281514",
     "core/scripts/check_counts.py": "1fec04263b2df325b46be2b983b181ce2c5b85a3319604adab2cd854bb5ab16a",
     "core/scripts/check_dangling_paths.py": "54cb8dafdb3759b0a4ab39a6743566c0e5235eb7466b48b0da1eb0f31dc69496",
@@ -236,7 +237,8 @@
     "core/scripts/strix-scan.sh": "227b49dc2c6524dbca8dd610f656bcca97ba2d0c3925e37dd44dc9e6667ce3e4",
     "core/scripts/swarm-orchestrator.sh": "34f826b1f1cc0e5edbb3063d5a8de71ddc0c72a85bfab3c181679e90b75a13bf",
     "core/scripts/sweep-expired-facts.sh": "184633277ca19d9eb0cb0e45d5a918c4ec6573c75551831890113987aa27399f",
-    "core/scripts/switch-engine.sh": "0a6166a670d0deacf48621b48d9521626c6f2f6fa62fda5d8fc549bacee1a79b",
+    "core/scripts/switch-engine.sh": "ce0f4c26671328a1361d0bce9face694d3acd5c21aca1e0712178817ac907e60",
+    "core/scripts/sync-codex.js": "fc0afcd0c78429ed0676b9ce67d114f8c0c8efd1cebc6ae19f971e47160d1fbe",
     "core/scripts/sync-hook-mirrors.sh": "8df8279ee3fd7bf2db3393b761173f60a504c82e573ba65d7b2f1e2c5bc01b94",
     "core/scripts/task-state.sh": "e12d2ac808d8a526bbd566c1b6eadbc340987a7e62971b52e12ca22fe2ad3810",
     "core/scripts/template_list.py": "41fe7561ec6c29ae576d6c2055a8b24a870800ab4014bc87d449e3378dfee56c",
