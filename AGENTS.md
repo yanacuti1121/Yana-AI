@@ -54,6 +54,26 @@ If you only have time for one file, read `gates/truth_gate.md`.
 
 ---
 
+## Commit attribution
+
+End every commit you author in this repo with a trailer crediting yourself,
+the same way this repo's Claude Code sessions already do:
+
+```
+Co-Authored-By: Codex <noreply@openai.com>
+```
+
+Why: commits land under anh's own GitHub identity regardless of which AI
+wrote them — git has no separate "Codex" account, so without this trailer
+there's no record in `git log`/`git blame`/a PR page of which engine did
+the work. This isn't about GitHub's Contributors graph (a trailer alone
+doesn't add an avatar there — that needs a real linked account, which
+Codex doesn't have and shouldn't fake) — it's an honest, verifiable record
+of authorship in the one place that's actually true regardless of UI:
+the commit itself.
+
+---
+
 ## What this repo is NOT
 
 - Not a product. Don't ship features here.
