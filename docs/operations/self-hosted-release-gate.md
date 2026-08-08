@@ -19,6 +19,9 @@ so a mutating or hung test cannot produce release evidence.
 
 ## Runner contract
 
+For the full Ubuntu/macOS operator sequence, see
+`docs/operations/self-hosted-release-runbook.md`.
+
 The host needs a checked-out, clean copy of the candidate commit plus Python
 3.11+, Node.js/npm, Rust/Cargo, Bash, Git, and the tools required by the
 existing test suites.

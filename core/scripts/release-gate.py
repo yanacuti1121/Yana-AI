@@ -141,6 +141,7 @@ def check_definitions(root: Path) -> dict[str, Check]:
         Check("release-attestation-tests", "Vault Transit release-attestation boundary", ("python3", "tests/test_release_attestation.py")),
         Check("release-signer-template-tests", "Vault Agent release-signer template contract", ("python3", "tests/test_release_signer_templates.py")),
         Check("release-signer-preflight-tests", "Vault Transit release-signer preflight contract", ("python3", "tests/test_release_signer_preflight.py")),
+        Check("release-runbook-tests", "Self-hosted release runbook contract", ("python3", "tests/test_self_hosted_release_runbook.py")),
         Check("runner-preflight-tests", "Self-hosted runner preflight regression", ("python3", "tests/test_self_hosted_runner_preflight.py")),
         Check("candidate-preparation-tests", "Self-hosted candidate preparation regression", ("python3", "tests/test_self_hosted_candidate_preparation.py")),
         Check("release-evidence-bundle-tests", "Portable release evidence bundle regression", ("python3", "tests/test_release_evidence_bundle.py")),
