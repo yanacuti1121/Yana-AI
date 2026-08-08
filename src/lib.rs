@@ -5,6 +5,9 @@
 //!
 //! Build: `wasm-pack build --target web --features wasm`
 
+#[cfg(feature = "flock-v1")]
+pub mod flock_v1;
+
 #[cfg(feature = "wasm")]
 mod wasm {
     use wasm_bindgen::prelude::*;

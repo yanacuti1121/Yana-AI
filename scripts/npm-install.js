@@ -18,6 +18,7 @@ const TARGET    = process.env.INIT_CWD || process.cwd();   // project root
 
 const COPY_DIRS = [
   ["core/hooks",    ".claude/hooks"],
+  ["core/lib",      ".claude/lib"],
   ["core/commands", ".claude/commands"],
   ["core/agents",   ".claude/agents"],
   ["core/skills",   ".claude/skills"],

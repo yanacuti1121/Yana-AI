@@ -37,8 +37,19 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
         return 0;
     }
 
-    let budget_path = env_str("YANA_TOKEN_BUDGET", "core/memory/L2_session/token-budget.json");
-    let circuit_path = env_str("YANA_CIRCUIT_STATE", "core/memory/L2_session/circuit-state.json");
+    let project_root = match yana_rt::flock_v1::project_root_from_env() {
+        Ok(root) => root,
+        Err(error) => {
+            eprintln!("[token-budget-guard] {error:#}");
+            return 1;
+        }
+    };
+    let default_budget = project_root.join("core/memory/L2_session/token-budget.json");
+    let default_circuit = project_root.join("core/memory/L2_session/circuit-state.json");
+    let budget_path = std::env::var("YANA_TOKEN_BUDGET")
+        .unwrap_or_else(|_| default_budget.to_string_lossy().into_owned());
+    let circuit_path = std::env::var("YANA_CIRCUIT_STATE")
+        .unwrap_or_else(|_| default_circuit.to_string_lossy().into_owned());
     let max_loop_tokens = env_u64("YANA_MAX_LOOP_TOKENS", 50_000);
     let max_attempts = env_u64("YANA_MAX_FIX_ATTEMPTS", 5);
     let cooldown_seconds = env_u64("YANA_CIRCUIT_COOLDOWN", 60);
@@ -73,14 +84,18 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
         log_file: &log_file,
         fast_tier_model: &fast_tier_model,
     };
-    let lock_name = crate::guard::lock::lock_name_for(&budget_path);
-    match crate::guard::lock::with_lock(&lock_name, std::time::Duration::from_secs(10), || {
-        run_critical_section(&params)
-    }) {
+    match yana_rt::flock_v1::with_lock(
+        "key/state/token-budget.json",
+        &project_root,
+        std::time::Duration::from_secs(10),
+        || {
+            run_critical_section(&params)
+        },
+    ) {
         Ok(code) => code,
         Err(lock_err) => {
-            eprintln!("[token-budget-guard] lock unavailable, proceeding unlocked (degraded): {lock_err:#}");
-            run_critical_section(&params)
+            eprintln!("[token-budget-guard] lock unavailable: {lock_err:#}");
+            1
         }
     }
 }

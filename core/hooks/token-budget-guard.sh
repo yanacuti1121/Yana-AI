@@ -13,6 +13,9 @@
 # Bypass: YANA_BUDGET_BYPASS=1 (sovereign only)
 set -euo pipefail
 
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+
 # ── Native Rust fast path (audit 2026-06-21) ─────────────────────────────────
 # If yana-rt is installed and on PATH, delegate to the in-process Rust port:
 # no Node.js subprocess spawn (this script previously shelled out to `node
@@ -25,8 +28,8 @@ if command -v yana-rt >/dev/null 2>&1; then
   exec yana-rt guard token-budget
 fi
 
-BUDGET_FILE="${YANA_TOKEN_BUDGET:-core/memory/L2_session/token-budget.json}"
-CIRCUIT_FILE="${YANA_CIRCUIT_STATE:-core/memory/L2_session/circuit-state.json}"
+BUDGET_FILE="${YANA_TOKEN_BUDGET:-$PROJECT_DIR/core/memory/L2_session/token-budget.json}"
+CIRCUIT_FILE="${YANA_CIRCUIT_STATE:-$PROJECT_DIR/core/memory/L2_session/circuit-state.json}"
 MAX_LOOP_TOKENS="${YANA_MAX_LOOP_TOKENS:-50000}"
 MAX_ATTEMPTS="${YANA_MAX_FIX_ATTEMPTS:-5}"
 COOLDOWN_SECONDS="${YANA_CIRCUIT_COOLDOWN:-60}"
@@ -41,19 +44,6 @@ NOW_EPOCH=$(date +%s)
 if [[ "${YANA_BUDGET_BYPASS:-0}" == "1" ]]; then
   echo "[token-budget-guard] BYPASS active"
   exit 0
-fi
-
-# ── Initialize budget file ────────────────────────────────────────────────────
-if [[ ! -f "$BUDGET_FILE" ]]; then
-  mkdir -p "$(dirname "$BUDGET_FILE")"
-  printf '{"session_start":"%s","total_tokens_used":0,"actions":[],"loop_attempts":{},"fast_tier_triggered":false}\n' \
-    "$TIMESTAMP" > "$BUDGET_FILE"
-fi
-
-# ── Initialize circuit state file ────────────────────────────────────────────
-if [[ ! -f "$CIRCUIT_FILE" ]]; then
-  mkdir -p "$(dirname "$CIRCUIT_FILE")"
-  printf '{"circuits":{}}\n' > "$CIRCUIT_FILE"
 fi
 
 # ── ADR-008: entire read(budget+circuit) -> decide -> write unit runs as ONE
@@ -83,7 +73,9 @@ fi
 # core/hooks/budget-sentinel.sh was fixed under ADR-008 while its
 # .claude/hooks/ and .codex/hooks/ copies silently stayed unpatched for a
 # full session because nothing forced them back in sync).
-source "${CLAUDE_PROJECT_DIR:-$(pwd)}/core/lib/locking.sh"
+LOCKING_LIB="$PROJECT_DIR/core/lib/locking.sh"
+[[ -f "$LOCKING_LIB" ]] || LOCKING_LIB="$PROJECT_DIR/.claude/lib/locking.sh"
+source "$LOCKING_LIB"
 
 # BSD mktemp (macOS default) does NOT support a suffix after the X's in a
 # template — "yana-token-budget-XXXXXX.js" is returned byte-for-byte
@@ -225,7 +217,7 @@ console.log(`[token-budget-guard] OK — ${toolName} (attempt ${loopCount + 1} /
 process.exit(0);
 NODEEOF
 
-with_lock "$BUDGET_FILE" 10 -- node "$TMP_SCRIPT" \
+with_lock "key:state/token-budget.json" 10 -- node "$TMP_SCRIPT" \
   "$BUDGET_FILE" "$CIRCUIT_FILE" "$TOOL_NAME" "$MAX_LOOP_TOKENS" "$MAX_ATTEMPTS" \
   "$COOLDOWN_SECONDS" "$LOG_FILE" "$FAST_TIER_MODEL" "$TIMESTAMP" "$NOW_EPOCH"
 exit $?

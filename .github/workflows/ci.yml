@@ -86,6 +86,47 @@ jobs:
       - name: Validate audit JSON MVP regression behavior
         run: python3 -m pytest tests/test_audit_json_mvp.py -q
 
+  flock-v1-linux:
+    name: Kernel flock-v1 (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build debug runtime
+        run: cargo build --bin yana-rt
+
+      - name: Run Rust and Python flock units
+        run: |
+          cargo test --features flock-v1 flock_v1::tests -- --test-threads=1
+          PYTHONPATH="$PWD" python3 -m unittest -v core.tests.locking.test_flock_v1
+
+      - name: Run cutover regression
+        run: bash core/tests/locking/test-flock-v1-cutover.sh
+
+      - name: Run cross-language matrix five times
+        run: |
+          for run in 1 2 3 4 5; do
+            echo "flock-v1 matrix run $run/5"
+            bash core/tests/locking/test-flock-v1-production.sh
+          done
+          cd /tmp
+          bash "$GITHUB_WORKSPACE/core/tests/locking/test-flock-v1-production.sh"
+
+      - name: Build desktop release runtimes
+        run: cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
+
+      - name: Verify npm, PyPI, and desktop runtime surfaces
+        run: bash core/tests/locking/test-flock-v1-packaging.sh
+
+      - name: Check patch whitespace
+        run: git diff --check
+
   rust-tests:
     name: Rust Integration Tests (yana-rt)
     runs-on: ubuntu-latest

@@ -18,6 +18,9 @@ command -v python3 >/dev/null 2>&1 || exit 0
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+export YANA_PYTHON_ROOT="$PROJECT_DIR"
+[[ -d "$PROJECT_DIR/core/lib" ]] || export YANA_PYTHON_ROOT="$PROJECT_DIR/.claude"
 STATE_DIR="$PROJECT_DIR/.claude/state"
 RISK_LOG="$STATE_DIR/risk-scores.jsonl"
 # core/memory/L2_session/, not $STATE_DIR — this must match the path
@@ -159,7 +162,7 @@ if [[ -f "$BUDGET_FILE" ]]; then
   YANA_RISK_BUDGET_FILE="$BUDGET_FILE" YANA_RISK_LOG_FILE="${YANA_LOG:-/tmp/yana-ai-audit.log}" python3 -c "
 import json, os, sys
 from datetime import datetime, timezone
-sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+sys.path.insert(0, os.environ.get('YANA_PYTHON_ROOT', os.environ['CLAUDE_PROJECT_DIR']))
 from core.lib.py.file_lock import FileLock, LockTimeoutError
 
 # core/hooks/CLAUDE.md: 'Hooks must fail loudly or warn loudly. A hook
@@ -178,7 +181,8 @@ def _warn(msg):
 
 try:
     path = os.environ['YANA_RISK_BUDGET_FILE']
-    with FileLock(path, timeout=5.0):
+    with FileLock('key:state/token-budget.json', timeout=5.0,
+                  project_root=os.environ['CLAUDE_PROJECT_DIR']):
         d = json.load(open(path))
         d['last_risk_score'] = $SCORE
         d['last_risk_band'] = '$BAND'

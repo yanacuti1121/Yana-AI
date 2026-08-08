@@ -13,6 +13,9 @@ set -uo pipefail
 command -v python3 >/dev/null 2>&1 || exit 0
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+export YANA_PYTHON_ROOT="$PROJECT_DIR"
+[[ -d "$PROJECT_DIR/core/lib" ]] || export YANA_PYTHON_ROOT="$PROJECT_DIR/.claude"
 STATE_DIR="$PROJECT_DIR/.claude/state"
 INTENT_LOG="$STATE_DIR/intent-log.jsonl"
 SEQUENCE_FILE="$STATE_DIR/tool-sequence.json"
@@ -28,7 +31,7 @@ python3 - "$TMP_INPUT" "$INTENT_LOG" "$SEQUENCE_FILE" "$TIMESTAMP" << 'PYEOF'
 import json, os, sys, re
 from pathlib import Path
 
-sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+sys.path.insert(0, os.environ.get('YANA_PYTHON_ROOT', os.environ['CLAUDE_PROJECT_DIR']))
 from core.lib.py.file_lock import FileLock, LockTimeoutError
 
 input_file, intent_log, seq_file, ts = sys.argv[1:]
@@ -54,7 +57,8 @@ seq = []
 seq_path = Path(seq_file)
 current_entry = {'tool': tool, 'cmd': cmd[:60], 'path': path[:60], 'ts': ts}
 try:
-    with FileLock(str(seq_path), timeout=5.0):
+    with FileLock('key:state/tool-sequence.json', timeout=5.0,
+                  project_root=os.environ['CLAUDE_PROJECT_DIR']):
         if seq_path.exists():
             try:
                 seq = json.loads(seq_path.read_text()).get('sequence', [])
