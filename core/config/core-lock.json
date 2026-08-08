@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-08T13:15:17+00:00",
-  "count": 267,
+  "generated": "2026-08-08T13:46:07+00:00",
+  "count": 268,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -211,7 +211,7 @@
     "core/scripts/policy_check.py": "c4d6dd8e6d19be960e9583166ce4acfe157db7063429ef9701c2a90d3524e89e",
     "core/scripts/policy_manager.py": "108b0b805e3e558e97a23e7eac5acf4c0e1ee76d00a8383b180fc2af12e693a1",
     "core/scripts/promote-session-patterns.sh": "308a3a6e6950681a1f076f9fe4a85a5dca2f95d81497863a73f710a62a1d335d",
-    "core/scripts/release-gate.py": "3f91c7eae2356474987863b46138fbde51049ef6ee45848d537418b12541218c",
+    "core/scripts/release-gate.py": "e5cc75a136ef5dfd9c8def3cd0fd6db9abcb1cb39286ea54071d47bbe3201565",
     "core/scripts/report_html.py": "6e51e893a2bf9a52631eb6798cd3c60641fd457217f6c32e1c586a2172e05a14",
     "core/scripts/report_pdf.py": "8a9ba418624f1987ab5a66c217be4f7509ea1fa2aad1dbcf919704b7cf130752",
     "core/scripts/resolve-memory-conflict.sh": "8fc3f089c03ad06d9faaf749f88166f632a8ca4b1b92c14e03cf64429f35d340",
@@ -222,6 +222,7 @@
     "core/scripts/rule_test.py": "c4fd5513fbd4d89bbc145ae566f87b26cf9d28325b96c535ae28ea9b2f03aac1",
     "core/scripts/run-e2e-tests.sh": "32671c1916aead51decdccc169c80e594eac0b3d89faa24ec13227bbf488ad6a",
     "core/scripts/run-security-tools.sh": "996beffb388975bb38ca93adbcef97f4f419bb67c3738988cd767a8ea09250e2",
+    "core/scripts/run-self-hosted-release-gate.sh": "2c0811cd12b94637844d93e564cb3f9d31fe2b5456a63dc35c84c11d8102bf18",
     "core/scripts/safe-run.sh": "c4613699a59d113bfdb5cb9dd57ed3dacf491385188839641ecba698d54ce577",
     "core/scripts/sandbox-exec.sh": "d3e9d849f4290a4ecebc7a9ef69875e1c294337fc55b49ed05b0783a5e090a26",
     "core/scripts/scan_url.py": "9be865985ad07a9a1b3fb637af30292f4d46a30a0e350815e8a3e8bf0ced8f99",

@@ -137,6 +137,7 @@ def check_definitions(root: Path) -> dict[str, Check]:
         Check("audit-json", "Audit JSON MVP regression behavior", ("python3", "-m", "pytest", "tests/test_audit_json_mvp.py", "-q")),
         Check("metadata-tests", "Canonical metadata regression behavior", ("python3", "tests/test_project_metadata.py")),
         Check("release-gate-tests", "Self-hosted release gate report contract", ("python3", "tests/test_release_gate.py")),
+        Check("self-hosted-runner", "Immutable self-hosted runner contract", ("python3", "tests/test_self_hosted_release_runner.py")),
         Check("skill-triggering", "Skill trigger regression behavior", ("bash", "core/tests/skills/test-skill-triggering.sh")),
         Check("rust-build", "Release yana-rt build", ("cargo", "build", "--release", "--bin", "yana-rt")),
         Check("rust-unit", "Rust unit tests", ("cargo", "test", "--bin", "yana-rt", "--", "--test-threads=1")),

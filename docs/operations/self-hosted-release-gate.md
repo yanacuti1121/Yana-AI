@@ -32,6 +32,22 @@ python3 core/scripts/release-gate.py \
   --output /var/lib/yana-ai/release-gate/<candidate-commit>
 ```
 
+For an operational runner, use the checked-in wrapper instead. It rejects a
+moving branch, a dirty checkout, and artifact storage inside the candidate
+checkout; it creates a unique evidence path and invokes the gate without any
+diagnostic flags:
+
+```bash
+bash core/scripts/run-self-hosted-release-gate.sh \
+  --checkout /srv/yana-ai-candidate \
+  --artifact-root /var/lib/yana-ai/release-gate
+```
+
+Portable manual-trigger templates for systemd and launchd are in
+`ops/release-gate/`. They intentionally do not fetch or switch a candidate;
+an operator must prepare a clean detached worktree for the reviewed commit
+before every release-gate run.
+
 The gate writes `report.json`, `report.sha256`, `checksums.sha256`, plus a
 stdout/stderr log for every check. It writes SHA-256 and byte size for
 `target/release/yana-rt` only after the release build check succeeds, plus each
@@ -69,29 +85,19 @@ Use at least one maintained Ubuntu runner and one macOS runner. Both execute
 the same checked-in command and store reports independently. A GitHub outage
 therefore cannot prevent validation or create a false release approval.
 
-### systemd example (Ubuntu)
+### systemd and launchd templates
 
-Install this on the self-hosted runner after replacing paths and the commit
-selection mechanism for that host:
+`ops/release-gate/systemd/yana-release-gate.service` and
+`ops/release-gate/launchd/com.yana.release-gate.plist` are hardened,
+manual-trigger templates for Ubuntu and macOS. Copy and review the companion
+instructions in `ops/release-gate/README.md` before installing either one.
+Both templates call `run-self-hosted-release-gate.sh`, rather than the Python
+gate directly, so the detached-head, clean-worktree, and outside-artifact-root
+checks cannot be skipped accidentally.
 
-```ini
-# /etc/systemd/system/yana-release-gate.service
-[Service]
-Type=oneshot
-User=yana
-WorkingDirectory=/srv/yana-ai
-ExecStart=/usr/bin/python3 core/scripts/release-gate.py
-```
-
-Use a separate scheduler or manual approval process to prepare the immutable
-checkout and copy each uniquely named report directory to durable storage. Do
-not run a moving `main` branch checkout as a release candidate.
-
-### launchd example (macOS)
-
-Use the same command in a manually-reviewed LaunchDaemon or LaunchAgent with
-an explicit `WorkingDirectory` and output path. The job must run from a
-dedicated checkout, never from a developer's active worktree.
+Use a separate approval process to prepare the immutable checkout and copy
+each uniquely named report directory to durable storage. Do not run a moving
+`main` branch checkout as a release candidate.
 
 ## Failure and rollback
 

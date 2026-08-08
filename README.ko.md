@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.1.0 · AI 코딩 에이전트를 위한 안전 방화벽         │ 시작하기 팁                                                                         │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 62 hooks · 119 scripts                │ yana-ai init                                                                           │
+│ 71 rules · 62 hooks · 120 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 새 소식                                                                              │
 │                                                   │ v1.1.0 — COMMANDS.md 추가, 배너 배경 버그 수정, chat TUI 테두리 색상                  │

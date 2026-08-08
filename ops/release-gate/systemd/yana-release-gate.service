@@ -1,0 +1,17 @@
+[Unit]
+Description=Yana AI self-hosted release verification gate
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=yana
+Group=yana
+EnvironmentFile=-/etc/yana-release-gate.env
+WorkingDirectory=/srv/yana-ai-candidate
+ExecStart=/usr/bin/env bash /srv/yana-ai-candidate/core/scripts/run-self-hosted-release-gate.sh --checkout /srv/yana-ai-candidate --artifact-root /var/lib/yana-ai/release-gate
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/yana-ai/release-gate /srv/yana-ai-candidate/target
