@@ -72,17 +72,9 @@ pub enum GuardAction {
     /// already happened by PostToolUse) — surfaces additionalContext only,
     /// same non-blocking shape as infra-review-reminder.sh.
     EntryPointCheck,
-    /// ADR-008 — run a command with a shared mkdir-based lock held for its
-    /// entire execution. Lock name is derived from `--resource` (usually the
-    /// target file path being mutated), so bash/Python/Node/Rust callers
-    /// touching the same resource contend for the same lock regardless of
-    /// which language invoked this. `--timeout` bounds only how long this
-    /// call waits for contention to clear — staleness/reclaim eligibility
-    /// for a lock another process holds is a separate, fixed threshold
-    /// (`YANA_LOCK_STALE_AFTER_SECS`, default 5s — see `src/guard/lock.rs`
-    /// module doc for why these two are deliberately not the same number).
-    /// See `docs/adr/ADR-008-shared-locking-infrastructure.md` and
-    /// `core/lib/locking.sh` (the bash call site this wraps).
+    /// Run a command with flock-v1 held for its entire lifetime. After lock
+    /// acquisition the command replaces yana-rt, preserving argv, cwd,
+    /// environment, signals, and the target's own exit behavior.
     LockWith {
         /// Resource identifier the lock name is derived from — usually the
         /// target file path the wrapped command reads/writes
@@ -93,6 +85,11 @@ pub enum GuardAction {
         timeout: u64,
         #[arg(trailing_var_arg = true, required = true)]
         command: Vec<String>,
+    },
+    /// Print the canonical flock-v1 identity and derived lock path.
+    LockIdentity {
+        #[arg(long)]
+        resource: String,
     },
 }
 
@@ -105,6 +102,7 @@ pub fn dispatch(action: GuardAction) {
         GuardAction::EntryPointCheck => entry_point_check::cmd_entry_point_check(),
         GuardAction::LockWith { resource, timeout, command } =>
             lock::cmd_lock_with(&resource, timeout, &command),
+        GuardAction::LockIdentity { resource } => lock::cmd_lock_identity(&resource),
     };
     std::process::exit(code);
 }

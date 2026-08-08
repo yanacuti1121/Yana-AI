@@ -18,10 +18,17 @@ fn tmpdir() -> tempfile::TempDir {
     tempfile::tempdir().expect("create tmpdir")
 }
 
-fn run(dir: &std::path::Path, args: &[&str]) -> (String, String, bool) {
-    let out = Command::new(bin())
-        .args(args)
+fn test_command(dir: &std::path::Path) -> Command {
+    let mut command = Command::new(bin());
+    command
         .current_dir(dir)
+        .env("YANA_LOCKING_PROTOCOL_MODE", "test");
+    command
+}
+
+fn run(dir: &std::path::Path, args: &[&str]) -> (String, String, bool) {
+    let out = test_command(dir)
+        .args(args)
         .output()
         .expect("run yana-rt");
     (
@@ -882,9 +889,8 @@ fn mission_done_survives_concurrent_completions_across_processes() {
             let mission_id = mission_id.clone();
             let evidence_str = evidence_str.clone();
             std::thread::spawn(move || {
-                let out = Command::new(bin())
+                let out = test_command(&dir_path)
                     .args(["mission", "done", &mission_id, &format!("task{i}"), "--evidence", &evidence_str])
-                    .current_dir(&dir_path)
                     // Generous wait budget (production default is 10s) —
                     // this test itself runs alongside ~60 other integration
                     // tests under `cargo test`'s default --test-threads=4,
@@ -946,9 +952,8 @@ fn mission_add_task_rejects_concurrent_duplicate_names_across_processes() {
             let dir_path = dir.path().to_path_buf();
             let mission_id = mission_id.clone();
             std::thread::spawn(move || {
-                Command::new(bin())
+                test_command(&dir_path)
                     .args(["mission", "task", &mission_id, "same-name", "--produces", "out.txt"])
-                    .current_dir(&dir_path)
                     .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
                     .output()
                     .expect("run yana-rt mission task")
@@ -1023,9 +1028,8 @@ fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes()
             let dir_path = dir.path().to_path_buf();
             let mission_id = mission_id.clone();
             std::thread::spawn(move || {
-                let out = Command::new(bin())
+                let out = test_command(&dir_path)
                     .args(["mission", "dispatch", &mission_id, "--max-parallel", &TASK_COUNT.to_string()])
-                    .current_dir(&dir_path)
                     .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
                     .output()
                     .expect("run yana-rt mission dispatch");

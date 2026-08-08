@@ -433,7 +433,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 117,
+      "count": 118,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -491,6 +491,7 @@
         "core/scripts/memory-gc.sh",
         "core/scripts/memory-provenance.sh",
         "core/scripts/migrate-agent-identity.sh",
+        "core/scripts/migrate-locking-protocol-v1.py",
         "core/scripts/model-router.sh",
         "core/scripts/monitor.py",
         "core/scripts/multi-agent-launch.sh",
@@ -547,11 +548,12 @@
       ]
     },
     "tests": {
-      "count": 13,
+      "count": 16,
       "actual_present": [
         "core/tests/adversarial",
         "core/tests/commands",
         "core/tests/hooks",
+        "core/tests/locking",
         "core/tests/red-team",
         "core/tests/scripts",
         "core/tests/skills"
@@ -2712,7 +2714,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 62,
-  "scripts_count": 117,
+  "scripts_count": 118,
   "commands_count": 170,
   "rules_count": 71
 }

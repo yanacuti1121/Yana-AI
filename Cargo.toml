@@ -42,6 +42,7 @@ cli = [
   "ratatui", "crossterm",
   "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
+  "flock-v1",
 ]
 wasm = ["wasm-bindgen", "js-sys"]
 # Program J (docs/programs/PROGRAM-J-SKELETON.md) Phase 9 Research/Prototype
@@ -58,6 +59,7 @@ mcp = ["rmcp", "tokio"]
 # `pty_bridge` binary only — isolated from `cli` the same way `mcp` is,
 # so the default `yana-rt` build never pulls in portable-pty.
 pty-bridge = ["portable-pty"]
+flock-v1 = ["anyhow", "sha2", "libc"]
 
 [dependencies]
 # Always available (WASM-safe)
@@ -78,6 +80,7 @@ liteparse  = { version = "2", default-features = false, optional = true }
 ureq       = { version = "3", features = ["json"],   optional = true }
 serde_yml  = { version = "0.0.13",                   optional = true }
 sha2       = { version = "0.10",                     optional = true }
+libc       = { version = "0.2",                      optional = true }
 # TUI for `yana chat` — synchronous poll/read API only, deliberately not
 # opting into crossterm's `event-stream` feature (would pull in async/
 # futures plumbing this crate has nowhere else).
@@ -113,4 +116,3 @@ js-sys       = { version = "0.3", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
-

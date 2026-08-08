@@ -5,7 +5,11 @@
 
 set -euo pipefail
 
-STATE_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/state"
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+export YANA_PYTHON_ROOT="$PROJECT_DIR"
+[[ -d "$PROJECT_DIR/core/lib" ]] || export YANA_PYTHON_ROOT="$PROJECT_DIR/.claude"
+STATE_DIR="$PROJECT_DIR/.claude/state"
 STATE_FILE="$STATE_DIR/sentinel.json"
 mkdir -p "$STATE_DIR"
 
@@ -72,7 +76,7 @@ python3 -c "
 import json, os, sys
 from datetime import datetime, timezone
 
-sys.path.insert(0, os.environ.get('CLAUDE_PROJECT_DIR', os.getcwd()))
+sys.path.insert(0, os.environ.get('YANA_PYTHON_ROOT', os.environ['CLAUDE_PROJECT_DIR']))
 from core.lib.py.file_lock import FileLock, LockTimeoutError
 
 # Path and token count come in via env, not string-interpolated into this
@@ -95,7 +99,8 @@ def _warn(msg):
         pass  # logging itself is best-effort — must never crash the hook
 
 try:
-    with FileLock(path, timeout=5.0):
+    with FileLock('key:state/token-budget.json', timeout=5.0,
+                  project_root=os.environ['CLAUDE_PROJECT_DIR']):
         d = {}
         if os.path.exists(path):
             try: d = json.load(open(path))

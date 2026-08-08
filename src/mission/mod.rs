@@ -254,7 +254,13 @@ fn with_mission_locked(
     mutate: impl FnOnce(&mut Mission) -> Result<(), String>,
 ) -> Result<Mission, String> {
     let id = resolve(prefix)?.id;
-    let lock_name = crate::guard::lock::lock_name_for(&mission_path(&id).to_string_lossy());
+    let project_root = std::env::current_dir()
+        .map_err(|error| format!("could not determine mission project root: {error}"))?;
+    let identity = yana_rt::flock_v1::canonical_identity(
+        &format!("key:mission/{id}"),
+        &project_root,
+    )
+    .map_err(|error| format!("flock-v1 mission identity: {error:#}"))?;
     // Configurable (default 10s) so a heavily-loaded CI runner — many
     // parallel test processes all spawning their own subprocesses — can
     // give this a larger wait budget without changing the production
@@ -269,8 +275,9 @@ fn with_mission_locked(
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(10);
-    let locked = crate::guard::lock::with_lock(
-        &lock_name,
+    let locked = yana_rt::flock_v1::with_lock(
+        &identity,
+        &project_root,
         std::time::Duration::from_secs(timeout_secs),
         || -> Result<Mission, String> {
             let mut m = load(&id)
