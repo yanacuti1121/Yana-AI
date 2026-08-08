@@ -134,11 +134,24 @@ fn run_critical_section(p: &TokenBudgetParams) -> i32 {
     let status = circuit_status_for(&circuits, &tool_name, now_epoch, cooldown_seconds);
 
     if let CircuitStatus::Open(remaining) = status {
-        print_open_box(&tool_name, remaining, &fast_tier_model);
         append_log(&log_file, &format!(
             "[{timestamp}] CIRCUIT-OPEN tool='{tool_name}' cooldown_remaining={remaining}s"
         ));
-        return 1;
+        // BUG FIX (2026-08-09): this used to print_open_box() (a
+        // human-readable ASCII box on stdout) and `return 1`. Claude Code's
+        // PreToolUse hook contract only recognizes exit 2 + a
+        // hookSpecificOutput JSON object as an actual "deny" — any other
+        // exit code is treated as a hook error and the tool call proceeds
+        // anyway (confirmed by direct reproduction: this path printed
+        // "HARD BLOCKED" while the tool call ran regardless). Switched to
+        // the same deny_json() the destructive-command guard uses, so
+        // circuit-open decisions actually block instead of just logging
+        // their own name.
+        return super::deny_json(&format!(
+            "[token-budget-guard] Circuit breaker OPEN for '{tool_name}' — too many \
+             consecutive attempts detected. Blocked for {remaining}s more (cooldown). \
+             Switch to {fast_tier_model} for faster/cheaper retries, or wait out the cooldown."
+        ));
     }
 
     let total_tokens = budget.get("total_tokens_used").and_then(Value::as_u64).unwrap_or(0);
@@ -149,8 +162,6 @@ fn run_critical_section(p: &TokenBudgetParams) -> i32 {
         .unwrap_or(0);
 
     if loop_count >= max_attempts {
-        print_trigger_box(&tool_name, loop_count, max_attempts, total_tokens, cooldown_seconds, &fast_tier_model);
-
         let prev_open_count = circuits
             .get("circuits")
             .and_then(|c| c.get(&tool_name))
@@ -181,7 +192,15 @@ fn run_critical_section(p: &TokenBudgetParams) -> i32 {
         append_log(&log_file, &format!(
             "[{timestamp}] CIRCUIT-TRIGGERED tool='{tool_name}' loop_count={loop_count} tokens={total_tokens}"
         ));
-        return 1; // HARD BLOCK
+        // Same exit-code bug as the CircuitStatus::Open branch above: this
+        // must deny with exit 2 + JSON, not `return 1` (see the 2026-08-09
+        // fix note there for why exit 1 doesn't actually block).
+        return super::deny_json(&format!(
+            "[token-budget-guard] Circuit breaker OPENED for '{tool_name}' — called \
+             {loop_count}/{max_attempts} times without success (loop detected). Blocked for \
+             {stored_cooldown}s. Switch to {fast_tier_model} for faster/cheaper retries, or \
+             stop and re-plan with a different approach."
+        ));
     }
 
     if total_tokens > max_loop_tokens {
@@ -274,34 +293,91 @@ fn append_log(log_file: &str, line: &str) {
     }
 }
 
-fn print_open_box(tool: &str, remaining: u64, fast_tier_model: &str) {
-    println!("╔══════════════════════════════════════════════════════╗");
-    println!("║  [token-budget-guard] CIRCUIT BREAKER — OPEN         ║");
-    println!("╚══════════════════════════════════════════════════════╝");
-    println!("  Tool     : {tool}");
-    println!("  State    : OPEN (cooldown: {remaining}s remaining)");
-    println!("  Action   : HARD BLOCKED — loop detected, circuit is open");
-    println!("  Fix      : Wait for cooldown, then retry with a different strategy");
-    println!("  Fast tier: Switch model to {fast_tier_model} to reduce cost");
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn print_trigger_box(tool: &str, loop_count: u64, max_attempts: u64, tokens: u64, cooldown_seconds: u64, fast_tier_model: &str) {
-    println!("╔══════════════════════════════════════════════════════╗");
-    println!("║  [token-budget-guard] CIRCUIT BREAKER TRIGGERED      ║");
-    println!("╚══════════════════════════════════════════════════════╝");
-    println!("  Tool       : {tool}");
-    println!("  Loop count : {loop_count} / {max_attempts} (threshold exceeded)");
-    println!("  Tokens used: {tokens}");
-    println!("  Action     : Circuit OPENED — tool BLOCKED for {cooldown_seconds}s");
-    println!();
-    println!("  ── Fast-Tier Recommendation ──────────────────────────");
-    println!("  Switch model to: {fast_tier_model}");
-    println!("  Reason: Sonnet costs accumulating on a stuck loop.");
-    println!("  Command: Set ANTHROPIC_MODEL={fast_tier_model} in your env");
-    println!();
-    println!("  ── Recovery Options ──────────────────────────────────");
-    println!("  1. Stop the loop — pick a completely different approach");
-    println!("  2. Use /tree-of-thoughts to re-plan from scratch");
-    println!("  3. Escalate to human: too complex for auto-fix");
-    println!();
+    /// Regression test for the 2026-08-09 fix: a circuit-OPEN decision
+    /// must return exit 2 (the only code Claude Code's PreToolUse hook
+    /// contract recognizes as "deny"), not a plain `1` that gets treated
+    /// as a hook error and lets the tool call through anyway. Exercises
+    /// `run_critical_section` directly, bypassing the flock-v1 lock
+    /// wrapper in `cmd_token_budget` (that lock's own file-based state is
+    /// environment-dependent and orthogonal to this exit-code contract).
+    #[test]
+    fn circuit_open_denies_with_exit_2() {
+        let dir = std::env::temp_dir().join(format!(
+            "yana-token-budget-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let budget_path = dir.join("budget.json");
+        let circuit_path = dir.join("circuit.json");
+
+        std::fs::write(&budget_path, r#"{"total_tokens_used":0,"loop_attempts":{}}"#).unwrap();
+        let now_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let circuit_json = json!({
+            "circuits": {
+                "Bash": { "state": "open", "opened_at_epoch": now_epoch }
+            }
+        });
+        std::fs::write(&circuit_path, circuit_json.to_string()).unwrap();
+
+        let log_path = dir.join("audit.log");
+        let params = TokenBudgetParams {
+            tool_name: "Bash",
+            budget_path: budget_path.to_str().unwrap(),
+            circuit_path: circuit_path.to_str().unwrap(),
+            max_loop_tokens: 50_000,
+            max_attempts: 5,
+            cooldown_seconds: 60,
+            log_file: log_path.to_str().unwrap(),
+            fast_tier_model: "claude-haiku-4-5-20251001",
+        };
+
+        let code = run_critical_section(&params);
+        assert_eq!(code, 2, "circuit-open must return exit 2 (deny), not {code}");
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// Same bug, other branch: a loop-count trip (circuit going from
+    /// closed to open on THIS call, not already open) also used to
+    /// `return 1` instead of denying with exit 2.
+    #[test]
+    fn circuit_trigger_denies_with_exit_2() {
+        let dir = std::env::temp_dir().join(format!(
+            "yana-token-budget-test-trigger-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let budget_path = dir.join("budget.json");
+        let circuit_path = dir.join("circuit.json");
+
+        // loop_attempts already at the max_attempts threshold -> this call
+        // is the one that trips the circuit from closed to open.
+        std::fs::write(
+            &budget_path,
+            r#"{"total_tokens_used":0,"loop_attempts":{"Bash":5}}"#,
+        )
+        .unwrap();
+        std::fs::write(&circuit_path, r#"{"circuits":{}}"#).unwrap();
+
+        let log_path = dir.join("audit.log");
+        let params = TokenBudgetParams {
+            tool_name: "Bash",
+            budget_path: budget_path.to_str().unwrap(),
+            circuit_path: circuit_path.to_str().unwrap(),
+            max_loop_tokens: 50_000,
+            max_attempts: 5,
+            cooldown_seconds: 60,
+            log_file: log_path.to_str().unwrap(),
+            fast_tier_model: "claude-haiku-4-5-20251001",
+        };
+
+        let code = run_critical_section(&params);
+        assert_eq!(code, 2, "circuit-trigger must return exit 2 (deny), not {code}");
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
 }
