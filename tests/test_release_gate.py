@@ -117,6 +117,7 @@ class ReleaseGateTests(unittest.TestCase):
             "release-evidence-tests",
             "release-attestation-tests",
             "release-signer-template-tests",
+            "release-signer-preflight-tests",
             "runner-preflight-tests",
             "candidate-preparation-tests",
             "release-evidence-bundle-tests",

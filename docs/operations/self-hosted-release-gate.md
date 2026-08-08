@@ -171,6 +171,11 @@ operator-managed deployment configuration, not repository secrets. Use the
 dedicated templates in `ops/release-signer/`; do not promote a bundle until both
 the evidence verifier and this attestation verifier pass.
 
+Before the release gate, run the separate `core/scripts/check-release-signer.py`
+preflight against the same socket and key. It signs and verifies a fixed
+non-release payload to prove the local Agent, AppRole policy, and Transit path
+are usable without emitting credentials or release artifacts.
+
 ## Independent runners
 
 Use at least one maintained Ubuntu runner and one macOS runner. Both execute

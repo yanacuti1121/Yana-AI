@@ -29,6 +29,19 @@ token, SecretID, token sink, or private key.
    --vault-transit-key yana-release-evidence
    ```
 
+Before creating a release bundle, prove that the local Agent socket and the
+restricted Transit policy can sign and verify one fixed preflight payload:
+
+```bash
+python3 core/scripts/check-release-signer.py \
+  --vault-agent-socket /run/yana-release-signer/vault-proxy.sock \
+  --vault-transit-key yana-release-evidence
+```
+
+This command does not emit a token, SecretID, signature, or evidence artifact.
+It fails closed if the socket, AppRole authentication, Transit policy, key, or
+verification path is unavailable.
+
 Vault Agent removes the SecretID file after reading it. The proxy retains the
 renewable Vault token only in memory and ignores any caller-supplied token due
 to `use_auto_auth_token = "force"`.

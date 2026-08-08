@@ -442,7 +442,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 125,
+      "count": 126,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -460,6 +460,7 @@
         "core/scripts/build-skills-snapshot.sh",
         "core/scripts/bundle-release-evidence.py",
         "core/scripts/check-engine-parity.js",
+        "core/scripts/check-release-signer.py",
         "core/scripts/check-self-hosted-runner.py",
         "core/scripts/check_context_pack.py",
         "core/scripts/check_counts.py",
@@ -2781,7 +2782,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 62,
-  "scripts_count": 125,
+  "scripts_count": 126,
   "commands_count": 170,
   "rules_count": 71
 }
