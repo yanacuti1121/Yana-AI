@@ -115,6 +115,7 @@ class ReleaseGateTests(unittest.TestCase):
             "skills-lock",
             "audit-json",
             "release-evidence-tests",
+            "runner-preflight-tests",
             "self-audit",
             "hook-tests",
             "flock-units",

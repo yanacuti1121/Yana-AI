@@ -48,6 +48,19 @@ Portable manual-trigger templates for systemd and launchd are in
 an operator must prepare a clean detached worktree for the reviewed commit
 before every release-gate run.
 
+Before enabling a runner or after changing its toolchain, run its preflight:
+
+```bash
+python3 core/scripts/check-self-hosted-runner.py \
+  --checkout /srv/yana-ai-candidate \
+  --artifact-root /var/lib/yana-ai/release-gate
+```
+
+It checks the supported platform, required toolchain, Python 3.11+, `pytest`,
+artifact-root writability, and the immutable-checkout contract. It never
+installs dependencies or changes the candidate checkout. Use `--json` for a
+machine-readable report.
+
 The gate writes `report.json`, `report.sha256`, `checksums.sha256`, plus a
 stdout/stderr log for every check. It writes SHA-256 and byte size for
 `target/release/yana-rt` only after the release build check succeeds, plus each
