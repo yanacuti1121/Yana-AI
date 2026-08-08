@@ -433,7 +433,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 115,
+      "count": 117,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -547,7 +547,7 @@
       ]
     },
     "tests": {
-      "count": 12,
+      "count": 13,
       "actual_present": [
         "core/tests/adversarial",
         "core/tests/commands",
@@ -2712,7 +2712,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 62,
-  "scripts_count": 115,
+  "scripts_count": 117,
   "commands_count": 170,
   "rules_count": 71
 }
