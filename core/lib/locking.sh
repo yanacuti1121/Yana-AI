@@ -125,11 +125,28 @@ _yana_lock_native_fallback() {
   # core/lib/py/file_lock.py's FileLock already uses correctly (its
   # _try_reclaim_stale() runs inside the retry loop, not before it) —
   # this brings the bash fallback in line with that, not a new design.
+  # GNU coreutils' `stat -f` (filesystem-status mode) is a DIFFERENT
+  # flag from BSD/macOS's `stat -f FORMAT` (custom format string) —
+  # same letter, unrelated meaning. On Linux `stat -f '%m' "$dir"`
+  # doesn't fail (so the original `||`-fallback chain never reaches
+  # `-c '%Y'`); it succeeds while printing filesystem-level output that
+  # is not a timestamp, so `mtime` silently ends up non-numeric. Under
+  # `set -u` (this script's own header), the `$(( ... - mtime ))`
+  # arithmetic below then tries to expand that non-numeric string as a
+  # bash variable NAME (arithmetic context auto-expands bare
+  # identifiers) and dies with "<value>: unbound variable" instead of
+  # quietly producing a wrong number — found live via CI (ubuntu-latest)
+  # on the very regression test this reclaim logic exists for; never
+  # surfaced locally on macOS, where the BSD form is correct on the
+  # first try. Fix: try GNU `-c` first (the common CI/Linux case) and
+  # validate the result is purely numeric before trusting either branch,
+  # rather than relying on exit-code-only fallback ordering.
   _yana_lock_reclaim_if_stale() {
     local dir="$1" mtime age
     [[ -d "$dir" ]] || return 0
-    mtime=$(stat -f '%m' "$dir" 2>/dev/null || stat -c '%Y' "$dir" 2>/dev/null || echo "")
-    [[ -n "$mtime" ]] || return 0
+    mtime=$(stat -c '%Y' "$dir" 2>/dev/null)
+    [[ "$mtime" =~ ^[0-9]+$ ]] || mtime=$(stat -f '%m' "$dir" 2>/dev/null)
+    [[ "$mtime" =~ ^[0-9]+$ ]] || return 0
     age=$(( $(date +%s) - mtime ))
     if (( age >= stale_after )); then rmdir "$dir" 2>/dev/null || true; fi
   }
