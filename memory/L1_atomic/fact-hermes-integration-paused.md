@@ -1,16 +1,17 @@
 ---
 id: fact-hermes-integration-paused
 type: decision
-statement: hermes_adapted integration is scoped to a 6-phase plan; Phase 0 (foundation fixes), Phase 1 (context_scrubber wiring into session-bootstrap.sh), and Phase 3 (tool_guardrails wiring into tool-guardrails-detector.sh) are done — Phase 2 (system_prompt) and Phases 4-5 (context_compressor, memory_manager into live hooks) are designed but not started.
+statement: hermes_adapted integration is scoped to a 6-phase plan; Phase 0 (foundation fixes), Phase 1 (context_scrubber wiring into session-bootstrap.sh), Phase 3 (tool_guardrails wiring into tool-guardrails-detector.sh), and Phase 4 (context_compressor wiring into context-compress-stop.sh, including the 2026-07-16 failure-cooldown adaptation and persistence via context_compressor_io.py) are done and LIVE — Phase 2 (system_prompt) and Phase 5 (memory_manager into a live hook) are designed but not started; memory_manager.py + memory_manager_lifecycle.py exist as code but are not registered in .claude/settings.json.
 source: file:/home/codespace/.claude/plans/squishy-stirring-cookie.md (unavailable on this machine — Phase 1 done by re-deriving from context_scrubber.py directly, plan file not found locally)
 confidence: high
 scope: Yana AI
 tags: [hermes, hooks, dormant-code, session-bootstrap, in-progress]
 forbidden_assumptions:
-  - Do not assume core/lib/hermes_adapted/{system_prompt,context_compressor,memory_manager}.py are wired into anything yet — only context_scrubber.py (via session-bootstrap.sh) and tool_guardrails.py (via tool-guardrails-detector.sh, through the new tool_guardrails_io.py adapter) are live
-  - The plan file at the source path above does not exist on this machine (checked 2026-07-02) — if picking up Phase 2/4/5, re-derive from the module docstrings/tests in core/lib/hermes_adapted/, do not assume its reasoning without re-reading what's actually there
+  - CORRECTED 2026-08-08 — this file previously said context_compressor.py was NOT wired; that was stale. It IS wired (core/hooks/context-compress-stop.sh, registered in .claude/settings.json's Stop hooks) and has been since at least 2026-07-16 per that file's own module docstring — the phase-status line above was never updated when that work landed. Do not trust a "not started" claim in this file without checking core/hooks/ + .claude/settings.json directly first — this file has already gone stale on this exact point once.
+  - Do not assume core/lib/hermes_adapted/{system_prompt,memory_manager}.py are wired into anything yet — confirmed not present in .claude/settings.json as of 2026-08-08
+  - The plan file at the source path above does not exist on this machine (checked 2026-07-02) — if picking up Phase 2/5, re-derive from the module docstrings/tests in core/lib/hermes_adapted/, do not assume its reasoning without re-reading what's actually there
   - tool-guardrails-detector.sh is warn-only (hard_stop_enabled is off in tool_guardrails_io.build_config()) — it never blocks a tool call, only prints an advisory line on PostToolUse
-evidence: core/lib/hermes_adapted/*.py, core/lib/hermes_adapted/tool_guardrails_io.py (new adapter, Phase 3, security-auditor + code-auditor reviewed), .claude/hooks/session-bootstrap.sh + core/hooks/session-bootstrap.sh (identical, both wired), core/hooks/tool-guardrails-detector.sh + .claude/hooks/ mirror (identical, both wired to PostToolUse record / Stop reset), core/tests/hooks/run-hook-tests.sh (148/148 passing as of Phase 3 post-review fixes), .claude-plugin/plugin.json hooks count 56 (was stale at 55, caught by drift-check.sh during review)
+evidence: core/lib/hermes_adapted/*.py, core/lib/hermes_adapted/tool_guardrails_io.py (Phase 3, security-auditor + code-auditor reviewed), core/lib/hermes_adapted/context_compressor_io.py (Phase 4 persistence adapter), .claude/hooks/session-bootstrap.sh + core/hooks/session-bootstrap.sh (identical, both wired), core/hooks/tool-guardrails-detector.sh + .claude/hooks/ mirror (identical, both wired to PostToolUse record / Stop reset), core/hooks/context-compress-stop.sh (Stop hook, confirmed registered in .claude/settings.json 2026-08-08), core/tests/hooks/run-hook-tests.sh (148/148 passing as of Phase 3 post-review fixes), .claude-plugin/plugin.json hooks count 56 (was stale at 55, caught by drift-check.sh during review)
 ---
 
 Phase 0 completed 2026-06-19 (commits 2a71ef8a, cb2aa8ac):
@@ -118,8 +119,39 @@ concrete, unaddressed gap instead (per-turn args-aware loop detection, which
 per-tool-circuit-breaker.sh/token-budget-guard.sh don't do), so it went
 first.
 
-Next session: Phase 2 (system_prompt tiers) still has no confirmed home —
-re-derive from core/lib/hermes_adapted/system_prompt.py's docstrings/tests
-and look for a genuine caching win before wiring it in, rather than wiring
-it in just because it's next in the original numbering. Otherwise, Phase 4
+Next session (as of the note below, superseded): Phase 2 (system_prompt
+tiers) still has no confirmed home — re-derive from
+core/lib/hermes_adapted/system_prompt.py's docstrings/tests and look for a
+genuine caching win before wiring it in, rather than wiring it in just
+because it's next in the original numbering. Otherwise, Phase 4
 (context_compressor) or Phase 5 (memory_manager).
+
+2026-08-08 — Phase 4 status correction + upstream drift port: found this
+file was stale (see forbidden_assumptions above) — Phase 4 was actually
+completed and wired at some point after the note above was written, with
+no update made here. Also re-checked `vendor/hermes-agent/UPSTREAM_DRIFT.md`
+against upstream `NousResearch/hermes-agent` (now 100+ commits and 3
+releases past the 2026-07-16 check) and ported one applicable fix:
+`context_compressor_pairs.py::sanitize_tool_pairs()` was inserting a fake
+stub tool-result for a trailing in-flight tool_call (one whose real result
+Claude Code's own transcript writer hasn't appended yet), mislabeling it as
+"[Result from earlier conversation]" — matches upstream issue #79278
+(commits 788b8ab4/03beb662). Lower stakes here than upstream's original
+report (our compress() output only ever feeds a written-once summary .md,
+never gets replayed into a live API request the way hermes' does, so this
+could never cause upstream's API-rejection failure) — but still a real
+summary-accuracy bug, fixed the same way upstream did: presume the trailing
+non-tool message's tool_calls are still pending, not orphaned. Red-Green
+verified (2 new tests fail on pre-fix code, pass post-fix); full
+tests/test_hermes_*.py suite 162/162. Three other upstream fix categories
+found in the same check (real-usage-based preflight defer, clarify-response
+handling, max-iteration-nudge anchoring) were evaluated as NOT ported this
+pass — they're either Hermes-conversation-loop-specific (no equivalent
+surface in this port, which only took 3 standalone pieces per
+`conversation_loop.py`'s own docstring) or need more investigation before
+committing to a design; not silently skipped, just out of scope for this
+pass.
+
+Phase 5 (memory_manager) has NOT been investigated for a wiring target as
+of this note — memory_manager.py + memory_manager_lifecycle.py exist as
+code (172 + 180 lines) but nothing has looked at whether/how to wire them.

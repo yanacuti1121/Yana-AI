@@ -14,7 +14,7 @@ Ported:  2026-06-19. These were judged "real algorithm, not hermes-specific"
          call them without inheriting more state.
 License: MIT (see vendor/hermes-agent/_upstream/LICENSE)
 
-Two real bugs these fix, both from production incident reports in the
+Three real bugs these fix, both from production incident reports in the
 original (kept here because they explain *why* this exists, not just *what*
 it does):
   - #10896: the token-budget tail cut could leave the user's most recent
@@ -24,6 +24,20 @@ it does):
   - #29824: same failure mode for the assistant's last visible reply — the
     user opens the session and sees "[CONTEXT COMPACTION]" where their last
     answer used to be.
+  - #79278 (ported 2026-08-08, upstream commits 788b8ab4/03beb662 — see
+    vendor/hermes-agent/UPSTREAM_DRIFT.md's 2026-08-08 update): a trailing
+    assistant tool_call whose result hasn't landed yet in the transcript
+    read by context-compress-stop.sh (Claude Code's own transcript writer
+    appends the tool_result after the tool finishes — the same
+    request/pending-result timing gap hermes hit with its own executor) was
+    being treated as "orphaned" and given a fake stub result. Lower stakes
+    here than upstream's original report — our compress() output only ever
+    feeds a written-once summary .md, never gets replayed back into a live
+    API request the way hermes' does, so this could never cause the
+    API-rejection failure upstream's issue is about — but a stub result
+    mislabeling a still-pending call as "[Result from earlier
+    conversation]" is still a real inaccuracy in that summary. See
+    `sanitize_tool_pairs`'s docstring for the mechanism.
 """
 from __future__ import annotations
 
@@ -101,14 +115,35 @@ def _tool_call_id(tc: Any) -> str:
     return getattr(tc, "call_id", "") or getattr(tc, "id", "") or ""
 
 
+def _trailing_inflight_assistant(messages: List[Dict[str, Any]]) -> Any:
+    """The last non-tool message, if it's an assistant tool_call — presumed
+    still pending a result rather than orphaned. See #79278 in this module's
+    docstring: a multi-call batch's results land one at a time, so a
+    snapshot taken mid-batch can look like `[..., assistant(c1,c2,c3),
+    tool(c1)]` — walk back past any trailing tool results first so that
+    shape is still recognized as in-flight, not just the single-message-tail
+    case."""
+    idx = len(messages) - 1
+    while idx >= 0 and messages[idx].get("role") == "tool":
+        idx -= 1
+    if idx >= 0 and messages[idx].get("role") == "assistant":
+        return messages[idx]
+    return None
+
+
 def sanitize_tool_pairs(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Fix orphaned tool_call / tool_result pairs left behind by compression.
 
-    Two failure modes, both API-rejection errors if left unfixed:
+    Two failure modes, both API-rejection errors in hermes' original (our
+    port's compress() output only ever feeds a written summary, never gets
+    replayed into a live API request — see #79278 in this module's
+    docstring for why the stakes differ here, not why the fix doesn't):
       1. A tool result whose assistant tool_call was summarized away —
          removed.
       2. An assistant tool_call whose result was dropped — a stub result is
-         inserted so every tool_call still has a matching result.
+         inserted so every tool_call still has a matching result, EXCEPT the
+         trailing in-flight call (if any): that one is presumed still
+         pending its real result rather than orphaned, and is left alone.
     """
     surviving_call_ids = {
         _tool_call_id(tc)
@@ -130,10 +165,12 @@ def sanitize_tool_pairs(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     if not missing_results:
         return messages
 
+    trailing_inflight = _trailing_inflight_assistant(messages)
+
     patched: List[Dict[str, Any]] = []
     for msg in messages:
         patched.append(msg)
-        if msg.get("role") == "assistant":
+        if msg.get("role") == "assistant" and msg is not trailing_inflight:
             for tc in msg.get("tool_calls") or []:
                 cid = _tool_call_id(tc)
                 if cid in missing_results:
