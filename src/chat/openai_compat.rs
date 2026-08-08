@@ -58,6 +58,21 @@ pub fn ollama() -> OpenAiCompatProvider {
     }
 }
 
+pub fn turbofieldfare() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "turbofieldfare",
+        // Loopback only, same reasoning as ollama() above. Port and model
+        // id match tools/yana-web/server.js's own `turbofieldfare` entry
+        // and TurboFieldfareServer's own --port/--model-id defaults (see
+        // ~/turbo-fieldfare/README.md's "Local OpenAI-compatible server"
+        // section) — one on-device Gemma-4-26B server, two clients.
+        url: "http://127.0.0.1:8091/v1/chat/completions",
+        default_model: "gemma-4-26b-a4b-it",
+        keyless: true,
+        env_var: "",
+    }
+}
+
 impl ChatProvider for OpenAiCompatProvider {
     fn name(&self) -> &str {
         self.provider_name
@@ -132,6 +147,10 @@ impl ChatProvider for OpenAiCompatProvider {
             .with_context(|| {
                 if self.provider_name == "ollama" {
                     "is the Ollama daemon running? (`ollama serve`)".to_string()
+                } else if self.provider_name == "turbofieldfare" {
+                    "is TurboFieldfareServer running? (`.build/release/TurboFieldfareServer \
+                     --model scratch/gemma4.gturbo --port 8091` from ~/turbo-fieldfare)"
+                        .to_string()
                 } else {
                     String::new()
                 }

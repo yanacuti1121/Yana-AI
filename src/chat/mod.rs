@@ -65,7 +65,10 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
         "openai" => Ok(Arc::new(openai_compat::openai())),
         "ollama" => Ok(Arc::new(openai_compat::ollama())),
         "kimi" => Ok(Arc::new(openai_compat::kimi())),
-        other => Err(format!("unknown provider '{other}' — use anthropic | openai | ollama | kimi")),
+        "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
+        other => Err(format!(
+            "unknown provider '{other}' — use anthropic | openai | ollama | kimi | turbofieldfare"
+        )),
     }
 }
 
@@ -123,7 +126,16 @@ pub fn dispatch(
     let resumed = resume.is_some();
     let (session_id, history) = match &resume {
         Some(id) => match history::load(id) {
-            Ok(msgs) => (id.clone(), msgs),
+            Ok(mut msgs) => {
+                match history::repair_dangling_tool_call(id, &mut msgs) {
+                    Ok(true) => eprintln!(
+                        "[chat] repaired a tool call left unresolved by a previous crash/force-quit"
+                    ),
+                    Ok(false) => {}
+                    Err(e) => eprintln!("[chat] warning: failed to repair dangling tool call: {e}"),
+                }
+                (id.clone(), msgs)
+            }
             Err(e) => {
                 eprintln!("[chat] {e}");
                 std::process::exit(2);

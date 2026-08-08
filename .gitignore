@@ -114,3 +114,9 @@ docs-dist/
 
 # macOS Spotlight exclusion marker (local-machine only, not project content)
 .metadata_never_index
+
+# Downloaded reference-repo zips kept locally for research — never commit
+# (avoids an accidental `git add -A` pulling in ~200MB of third-party source)
+docs/*.zip
+!docs/files.zip
+src/*.zip
