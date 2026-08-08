@@ -3,6 +3,16 @@
 **Version:** 1.4.20
 **Type:** Hook layer — not a service, not a framework.
 
+> **Known drift (flagged 2026-08-08, not fixed in this pass):** this
+> page predates `yana-rt` (the Rust runtime, chat TUI, MCP server,
+> event bus, evidence signing) and describes an earlier,
+> hooks-only version of the project. See
+> `docs/technical/ARCHITECTURE.md` for the more current (though also
+> partially stale) component layout, and
+> `docs/YANA-CONTROL-PLANES.md` for the governance/runtime design this
+> gap feeds into (Evolution Governor's job includes catching drift like
+> this automatically going forward).
+
 ---
 
 ## What Yana AI is
