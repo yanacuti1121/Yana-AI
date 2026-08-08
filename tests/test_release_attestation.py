@@ -21,7 +21,7 @@ SPEC.loader.exec_module(release_attestation)
 
 REVISION = "3" * 40
 KEY = "yana-release-evidence"
-GATEWAY = "https://release-signer.internal"
+SOCKET = Path("/run/yana-release-signer/vault-proxy.sock")
 
 
 def digest(data: bytes) -> str:
@@ -69,63 +69,64 @@ class ReleaseAttestationTests(unittest.TestCase):
         self.temporary.cleanup()
 
     @staticmethod
-    def signer(url: str, payload: dict[str, object]) -> dict[str, object]:
-        assert url == f"{GATEWAY}/v1/release-attestations/sign"
-        assert payload["provider"] == "vault-transit"
-        assert payload["key"] == KEY
-        return {"signature": "vault:v7:ZmFrZS1zaWduYXR1cmU=", "key_version": 7}
+    def signer(socket_path: Path, endpoint: str, payload: dict[str, object]) -> dict[str, object]:
+        assert socket_path == SOCKET
+        assert endpoint == f"/v1/transit/sign/{KEY}/sha2-256"
+        assert isinstance(payload["input"], str)
+        return {"data": {"signature": "vault:v7:ZmFrZS1zaWduYXR1cmU=", "key_version": 7}}
 
     @staticmethod
-    def verifier(url: str, payload: dict[str, object]) -> dict[str, object]:
-        assert url == f"{GATEWAY}/v1/release-attestations/verify"
+    def verifier(socket_path: Path, endpoint: str, payload: dict[str, object]) -> dict[str, object]:
+        assert socket_path == SOCKET
+        assert endpoint == f"/v1/transit/verify/{KEY}/sha2-256"
         assert payload["signature"] == "vault:v7:ZmFrZS1zaWduYXR1cmU="
-        return {"valid": True}
+        return {"data": {"valid": True}}
 
     def test_signs_and_verifies_only_verified_bundle_bytes(self) -> None:
         signed = release_attestation.create_attestation(
-            self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, self.signer
+            self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, self.signer
         )
         self.assertEqual(signed["key_version"], 7)
         self.assertTrue((self.bundle / "attestation.json").is_file())
         verified = release_attestation.verify_attestation(
-            self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, self.verifier
+            self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, self.verifier
         )
         self.assertEqual(verified["key"], KEY)
 
     def test_rejects_wrong_gateway_response_without_writing_attestation(self) -> None:
-        with self.assertRaisesRegex(release_attestation.AttestationError, "no Vault Transit signature"):
+        with self.assertRaisesRegex(release_attestation.AttestationError, "sign response has no signature"):
             release_attestation.create_attestation(
-                self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, lambda _url, _payload: {"signature": "bad", "key_version": 1}
+                self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, lambda _socket, _endpoint, _payload: {"data": {"signature": "bad", "key_version": 1}}
             )
         self.assertFalse((self.bundle / "attestation.json").exists())
 
     def test_rejects_tampered_bundle_before_gateway_verify(self) -> None:
         release_attestation.create_attestation(
-            self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, self.signer
+            self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, self.signer
         )
         (self.bundle / "artifacts/target/release/yana-rt").write_text("tampered\n", encoding="utf-8")
         with self.assertRaisesRegex(release_attestation.AttestationError, "release evidence is not promotable"):
             release_attestation.verify_attestation(
-                self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, self.verifier
+                self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, self.verifier
             )
 
     def test_rejects_invalid_gateway_verification(self) -> None:
         release_attestation.create_attestation(
-            self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, self.signer
+            self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, self.signer
         )
         with self.assertRaisesRegex(release_attestation.AttestationError, "did not validate"):
             release_attestation.verify_attestation(
-                self.bundle, REVISION, self.bundle / "artifacts", KEY, GATEWAY, lambda _url, _payload: {"valid": False}
+            self.bundle, REVISION, self.bundle / "artifacts", KEY, SOCKET, lambda _socket, _endpoint, _payload: {"data": {"valid": False}}
             )
 
-    def test_requires_https_gateway_and_single_segment_key(self) -> None:
-        with self.assertRaisesRegex(release_attestation.AttestationError, "absolute HTTPS"):
+    def test_requires_absolute_socket_and_single_segment_key(self) -> None:
+        with self.assertRaisesRegex(release_attestation.AttestationError, "must be absolute"):
             release_attestation.create_attestation(
-                self.bundle, REVISION, self.bundle / "artifacts", KEY, "http://localhost:8200", self.signer
+                self.bundle, REVISION, self.bundle / "artifacts", KEY, Path("vault-proxy.sock"), self.signer
             )
         with self.assertRaisesRegex(release_attestation.AttestationError, "single non-empty"):
             release_attestation.create_attestation(
-                self.bundle, REVISION, self.bundle / "artifacts", "transit/yana", GATEWAY, self.signer
+                self.bundle, REVISION, self.bundle / "artifacts", "transit/yana", SOCKET, self.signer
             )
 
 

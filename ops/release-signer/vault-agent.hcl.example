@@ -1,0 +1,30 @@
+# Dedicated Vault Agent API Proxy for the Yana AI release runner.
+#
+# The operator supplies a non-secret RoleID at the configured path and delivers
+# a response-wrapped SecretID to the runtime path. Do not add a token sink.
+
+pid_file = "/run/yana-release-signer/vault-agent.pid"
+
+vault {
+  address = "https://vault.example.internal:8200"
+}
+
+auto_auth {
+  method "approle" {
+    mount_path = "auth/approle"
+    config = {
+      role_id_file_path                    = "/etc/yana-release-signer/role-id"
+      secret_id_file_path                  = "/run/yana-release-signer/secret-id-wrapped"
+      secret_id_response_wrapping_path     = "auth/approle/role/yana-release-signer/secret-id"
+      remove_secret_id_file_after_reading  = true
+    }
+  }
+}
+
+listener "unix" {
+  address = "/run/yana-release-signer/vault-proxy.sock"
+}
+
+api_proxy {
+  use_auto_auth_token = "force"
+}
