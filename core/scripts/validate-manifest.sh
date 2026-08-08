@@ -14,6 +14,13 @@ FIX_MODE=false
 VERBOSE=false
 COMPONENT_FILTER=""
 
+# Preserve the historical --fix entrypoint while routing all writes through
+# the canonical metadata synchronizer. The legacy checks below remain as an
+# independent compatibility verifier, but no longer own metadata mutation.
+if [[ " $* " == *" --fix "* ]]; then
+  python3 "$PROJECT_ROOT/core/scripts/check_counts.py" --fix
+fi
+
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
 while [[ $# -gt 0 ]]; do

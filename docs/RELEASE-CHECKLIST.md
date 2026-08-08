@@ -51,6 +51,8 @@ bash core/scripts/drift-check.sh        # CI-wired — task drift, README
                                           # cross-count, AND marketing-copy
                                           # prose numbers (docs/*.html,
                                           # SKILL.md) as of 2026-07-23
+npm run metadata:check                 # canonical filesystem-derived counts,
+                                          # inventories, and current banners
 bash core/scripts/verify-core-lock.sh   # core/rules,gates,hooks,scripts
                                           # SHA-256 pin — must be intentional
 bash core/scripts/verify-skills-lock.sh
@@ -66,11 +68,10 @@ cargo test --bin yana-rt -- --test-threads=1
 cargo test --test integration_runtime -- --test-threads=4
 ```
 
-`validate-manifest.sh` and `validate-counts.sh` are not wired into CI
-(see their own header comments) but are safe, fast, and worth running by
-hand as a second opinion — they should already agree with
-`drift-check.sh` since all three use the same find patterns
-(reconciled 2026-07-13).
+`drift-check.sh`, `validate-counts.sh`, and `validate-manifest.sh --fix`
+all route metadata decisions through `core/scripts/check_counts.py`.
+Use `npm run metadata:sync` after adding or removing a managed component,
+then review the generated diff before updating `core-lock.json`.
 
 ## Step 3 — update CHANGELOG.md
 
@@ -125,15 +126,13 @@ job can report green without having published anything new).
 ## Anti-patterns (each of these has a real incident behind it)
 
 ```
-❌ Bumping package.json without MANIFEST.json — CI only auto-syncs the
-   former; the latter needs a manual step every single time
+❌ Editing repeated count fields by hand instead of running
+   `npm run metadata:sync` and reviewing its deterministic diff
 ❌ Tagging before running drift-check.sh — ships stale bundled counts
    under a new version number (found live 2026-07-23: hooks stale at 60
    vs actual 61 in six doc files, unrelated to the version bump itself)
-❌ Assuming validate-manifest.sh/validate-counts.sh passing means
-   drift-check.sh (the one CI actually runs) would also pass — true as
-   of 2026-07-23's reconciliation, but re-verify if any of the three
-   scripts' find patterns are ever edited independently again
+❌ Adding a new metadata counter outside `check_counts.py` — this recreates
+   independent source-of-truth logic and lets validators disagree again
 ❌ Tagging all three axes "to keep them in sync" when only one changed —
    defeats the entire point of independent axes (see VERSIONING.md)
 ❌ Treating a green publish.yml run as proof the registry updated —

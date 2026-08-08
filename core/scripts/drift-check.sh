@@ -347,6 +347,24 @@ PYEOF
   done
 fi
 
+# ── Check 6: Canonical filesystem-derived metadata ───────────────────────────
+# check_counts.py is the single writer/checker for MANIFEST count fields,
+# plugin metadata, README banners, and current marketing copy. Keep this gate
+# in drift-check.sh so local verification and GitHub CI enforce the same source
+# of truth instead of relying on a human to update repeated numbers by hand.
+METADATA_CHECKER="$PROJECT_ROOT/core/scripts/check_counts.py"
+if [[ -f "$METADATA_CHECKER" ]] && command -v python3 >/dev/null 2>&1; then
+  metadata_output=$(python3 "$METADATA_CHECKER" 2>&1)
+  metadata_status=$?
+  if [[ $metadata_status -ne 0 ]]; then
+    while IFS= read -r metadata_issue; do
+      case "$metadata_issue" in
+        "METADATA DRIFT:"*|"METADATA ERROR:"*) emit_issue "$metadata_issue" ;;
+      esac
+    done <<< "$metadata_output"
+  fi
+fi
+
 # ── Report ────────────────────────────────────────────────────────────────────
 
 if [[ $ISSUE_COUNT -eq 0 ]]; then
