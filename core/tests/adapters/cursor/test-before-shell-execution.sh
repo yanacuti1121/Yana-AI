@@ -121,7 +121,7 @@ for dir in "${_path_dirs[@]}"; do
   for bin in "$dir"/*; do
     [[ -x "$bin" && -f "$bin" ]] || continue
     name="$(basename "$bin")"
-    [[ "$name" == "jq" ]] && continue
+    [[ "$name" == "jq" || "$name" == "yana-rt" ]] && continue
     [[ -e "$JQ_LESS_BIN_DIR/$name" ]] && continue
     ln -s "$bin" "$JQ_LESS_BIN_DIR/$name" 2>/dev/null || true
   done
