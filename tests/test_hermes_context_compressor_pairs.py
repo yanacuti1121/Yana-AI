@@ -2,7 +2,7 @@
 
 Origin: core/lib/hermes_adapted/context_compressor_pairs.py
         (ported from NousResearch/hermes-agent, MIT — fixes for incidents
-        #10896 and #29824 in the original)
+        #10896, #29824, and #79278 in the original)
 """
 from core.lib.hermes_adapted.context_compressor import CompressorConfig, ContextCompressor
 from core.lib.hermes_adapted.context_compressor_pairs import (
@@ -80,10 +80,40 @@ def test_sanitize_tool_pairs_removes_orphaned_result():
 
 
 def test_sanitize_tool_pairs_stubs_missing_result():
+    # Not trailing — a later message follows it, so this call_id isn't the
+    # in-flight case #79278 protects (see the two tests below).
+    messages = [
+        _msg("user", "go"),
+        _msg("assistant", None, tool_calls=[{"id": "1"}]),
+        _msg("assistant", "done"),
+    ]
+    result = sanitize_tool_pairs(messages)
+    stubs = [m for m in result if m.get("role") == "tool" and m.get("tool_call_id") == "1"]
+    assert len(stubs) == 1
+
+
+def test_sanitize_tool_pairs_preserves_trailing_inflight_call():
+    """#79278: a trailing assistant tool_call with no result yet is presumed
+    still pending (Claude Code's own transcript writer appends the result
+    after the tool finishes) — must NOT get a fake stub result."""
     messages = [_msg("user", "go"), _msg("assistant", None, tool_calls=[{"id": "1"}])]
     result = sanitize_tool_pairs(messages)
-    assert result[-1]["role"] == "tool"
-    assert result[-1]["tool_call_id"] == "1"
+    assert result == messages  # unchanged — no stub inserted, nothing removed
+    assert not any(m.get("role") == "tool" for m in result)
+
+
+def test_sanitize_tool_pairs_preserves_trailing_inflight_multi_call_batch():
+    """A multi-call batch's results land one at a time — a snapshot mid-batch
+    (`[..., assistant(c1,c2,c3), tool(c1)]`) must still be recognized as
+    in-flight for c2/c3, not treated as orphaned just because the very last
+    message happens to be a tool result."""
+    messages = [
+        _msg("user", "go"),
+        _msg("assistant", None, tool_calls=[{"id": "c1"}, {"id": "c2"}, {"id": "c3"}]),
+        _msg("tool", "result 1", tool_call_id="c1"),
+    ]
+    result = sanitize_tool_pairs(messages)
+    assert result == messages  # c2/c3 presumed in-flight — untouched
 
 
 def test_compress_keeps_last_user_message_out_of_summary():
