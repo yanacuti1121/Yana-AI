@@ -7,6 +7,14 @@ snapshot in `_upstream/` (the GitHub compare API's per-file stats were unreliabl
 commit distance — several files it reported as "0 changes" turned out to have hundreds of
 diff lines on direct comparison; don't trust that API alone for a gap this large).
 
+**Re-checked 2026-08-08 (commit history only, not a fresh full-file diff — see "2026-08-08
+update" below):** upstream `main` is now at `52920747` (2026-08-08T08:42:34Z, i.e. as of
+today), with 3 tagged releases since the 07-16 check (`v2026.7.20`, `v2026.7.30`,
+`v2026.8.3`). `agent/context_compressor.py` — already flagged below as the largest, most
+actionable gap — has stayed the most active file by a wide margin: 20+ commits in this
+window alone, several dated today. `agent/memory_manager.py` (Phase 5 relevance) has been
+comparatively quiet — one commit right at the 07-16 boundary, nothing meaningful after.
+
 This file is a **read-only reference** — it does not change any vendored or ported code.
 Re-vendoring any of this is a deliberate decision for whoever owns that integration phase.
 
@@ -52,6 +60,36 @@ built (Phase 4, in progress as of 2026-07-16) with no cooldown/circuit-breaker c
 yet. Worth deciding — before that work is called done — whether to port the cooldown mechanism
 too, since compression repeatedly failing silently with no backoff is exactly the kind of gap
 a circuit-breaker like this exists to close.
+
+## 2026-08-08 update — `context_compressor.py` gained more than the cooldown mechanism
+
+Commit-log-only check (titles/bodies via `gh api .../commits?path=agent/context_compressor.py`,
+not a fresh line-by-line diff against `_upstream/` — do that before actually porting anything,
+per this file's own header caveat). Beyond the cooldown/circuit-breaker already documented
+above, upstream has landed a string of **compression-correctness fixes** since 07-16 that our
+ported version has no equivalent for, because they postdate what was pinned:
+
+- **In-flight tool-call preservation across compression** (`788b8ab4`, `03beb662`): if
+  compression fires mid tool-call-chain, the pending assistant(tool_calls) message was being
+  stripped as an "orphan" — losing the completed side effect once the real result landed.
+  Fixed to only strip genuinely orphaned calls, walking back through partial multi-call
+  batches correctly.
+- **Real-usage-based preflight defer** (`6d89b106`, `3737bb1a`): the old fixed-tolerance rough
+  estimate over-deferred by 2-3x on CJK-heavy or reasoning-replay-heavy sessions, compacting
+  at 35-55% of the real context window. Now paired against the provider's real `prompt_tokens`
+  per request instead of a flat margin.
+- **Clarify-response handling** (`d6511aec`, `6433d572`, `3090e9e8`, `39056e8d`, `d81f2f49`):
+  five commits hardening how "clarify" turns survive compaction — UTF-8 safety, rejecting
+  forged clarify summaries, not misattributing timeout/gateway-failure sentinel prose as a
+  real user response.
+- **Max-iteration nudge no longer hijacks compaction anchoring** (`aed114a6`): a synthetic
+  budget-nudge message could get selected as the "latest actionable user turn" and summarized
+  as if anh had asked it.
+
+None of this is the cooldown mechanism itself (still the single most-relevant gap, per the
+section above) — it's a second, independent reason to look closely before calling Phase 4
+done: the ported baseline is missing correctness fixes for failure modes upstream has since
+hit and fixed for real, not just a missing feature.
 
 ## Recommendation
 
