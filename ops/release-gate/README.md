@@ -56,16 +56,30 @@ failure for investigation rather than deleting it automatically.
 
 ## Artifact retention
 
-Copy every report directory to controlled storage before applying host-level
-retention. Retention policy must keep `report.json`, `report.sha256`,
-`checksums.sha256`, every check log, and all explicitly approved artifacts as
-one immutable unit. Do not delete an artifact directory while it is being
-written; this repository intentionally provides no automatic pruning command.
+Build a portable bundle before applying retention or promotion:
+
+```bash
+python3 core/scripts/bundle-release-evidence.py \
+  --evidence-dir /var/lib/yana-ai/release-gate/<commit>/<run> \
+  --source-root /srv/yana-ai-candidate \
+  --output /var/lib/yana-ai/release-bundles/<commit>-<run>
+```
+
+Retention policy must keep the bundle's `report.json`, `report.sha256`,
+`checksums.sha256`, every check log, and all artifacts as one immutable unit.
+Do not delete a bundle while it is being written; this repository intentionally
+provides no automatic pruning command.
 
 Run `core/scripts/verify-release-evidence.py` against the stored evidence and
 artifact roots before any human-approved promotion. A PASS proves the stored
 bytes still match the eligible report for the expected commit; it does not
 authenticate which runner produced those bytes.
+
+For production promotion, configure a separate HTTPS signing gateway backed by
+HashiCorp Vault Transit and use `core/scripts/attest-release-evidence.py` to
+sign then verify the bundle. The runner must never receive the Vault token or
+private key; see `docs/operations/self-hosted-release-gate.md` for the gateway
+contract and exact commands.
 
 See `docs/operations/self-hosted-release-gate.md` for the release decision
 rule and required checks.

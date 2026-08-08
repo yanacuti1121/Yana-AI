@@ -108,24 +108,69 @@ creation, and rollback remain separate human-approved operations.
 
 ## Offline evidence verification
 
-Before promotion, copy artifacts into a controlled directory using the same
-relative paths recorded in `report.json`, then verify the complete bundle:
+Before promotion, build one portable bundle that contains the verified report,
+check logs, and artifacts at their report-relative paths:
+
+```bash
+python3 core/scripts/bundle-release-evidence.py \
+  --evidence-dir /var/lib/yana-ai/release-gate/<commit>/<run> \
+  --source-root /srv/yana-ai-candidate \
+  --output /var/lib/yana-ai/release-bundles/<commit>-<run>
+```
+
+Then verify the copied bytes from the bundle itself:
 
 ```bash
 python3 core/scripts/verify-release-evidence.py \
-  /var/lib/yana-ai/release-gate/<commit>/<run> \
+  /var/lib/yana-ai/release-bundles/<commit>-<run> \
   --expected-revision <full-commit> \
-  --artifact-root /var/lib/yana-ai/release-artifacts/<commit>
+  --artifact-root /var/lib/yana-ai/release-bundles/<commit>-<run>/artifacts
 ```
 
-The verifier fails closed for diagnostic reports, revision drift, altered
-reports or logs, checksum-manifest mismatches, modified artifacts, unsafe
-paths, and missing files. It does not publish or deploy anything.
+The bundler and verifier fail closed for diagnostic reports, revision drift,
+altered reports or logs, checksum-manifest mismatches, modified artifacts,
+unsafe paths, existing output paths, and missing files. They do not publish or
+deploy anything.
 
 Checksums prove bundle integrity, not runner identity. Treat evidence as
 promotion-authoritative only after it has entered access-controlled storage
 from an approved runner. Cryptographic runner attestation remains a separate
 hardening layer.
+
+## Vault Transit attestation
+
+For an approved production promotion path, attest the already verified bundle
+through an access-controlled signing gateway backed by a HashiCorp Vault Transit
+`ecdsa-p256` key. The runner sends only report-derived digests. It must never
+read a Vault token, private key, or a token file; the gateway authenticates the
+runner and is the only component allowed to call Vault's Transit sign and verify
+endpoints.
+
+```bash
+python3 core/scripts/attest-release-evidence.py sign \
+  /var/lib/yana-ai/release-bundles/<commit>-<run> \
+  --expected-revision <full-commit> \
+  --artifact-root /var/lib/yana-ai/release-bundles/<commit>-<run>/artifacts \
+  --vault-transit-key yana-release-evidence \
+  --signing-gateway https://release-signer.internal
+
+python3 core/scripts/attest-release-evidence.py verify \
+  /var/lib/yana-ai/release-bundles/<commit>-<run> \
+  --expected-revision <full-commit> \
+  --artifact-root /var/lib/yana-ai/release-bundles/<commit>-<run>/artifacts \
+  --vault-transit-key yana-release-evidence \
+  --signing-gateway https://release-signer.internal
+```
+
+The gateway contract is deliberately narrow: `POST /v1/release-attestations/sign`
+accepts the canonical payload and returns a Vault Transit `vault:vN:` signature
+and key version; `POST /v1/release-attestations/verify` returns `{ "valid": true }`
+only after Vault validates that same payload and signature with the named key.
+Reject any non-HTTPS endpoint, missing attestation, malformed response, changed
+bundle bytes, key mismatch, or `valid: false`. The gateway endpoint, TLS trust,
+and Vault policy are operator-managed deployment configuration, not repository
+secrets. Do not promote a bundle until both the evidence verifier and this
+attestation verifier pass.
 
 ## Independent runners
 
