@@ -34,6 +34,14 @@ a moving `main` checkout into release evidence. If a host scheduler is later
 used, it must prepare a new clean detached worktree for a reviewed commit
 before invoking this wrapper.
 
+Run the preflight before first use and after every toolchain change:
+
+```bash
+python3 core/scripts/check-self-hosted-runner.py \
+  --checkout /srv/yana-ai-candidate \
+  --artifact-root /var/lib/yana-ai/release-gate
+```
+
 ## Artifact retention
 
 Copy every report directory to controlled storage before applying host-level

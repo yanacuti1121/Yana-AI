@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.1.0 · AI 编程代理的安全防火墙                   │ 上手小贴士                                                                            │
 │ 101 agents · 2,025 skills                        │ yana-ai doctor                                                                         │
-│ 71 rules · 62 hooks · 121 scripts                │ yana-ai init                                                                           │
+│ 71 rules · 62 hooks · 122 scripts                │ yana-ai init                                                                           │
 │ 170 commands                                     │                                                                                       │
 │                                                   │ 最新动态                                                                              │
 │                                                   │ v1.1.0 — 新增 COMMANDS.md，修复 banner 背景色，chat TUI 边框颜色                     │
