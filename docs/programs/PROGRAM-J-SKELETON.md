@@ -6,6 +6,17 @@ toàn translator-per-engine cho cả 5 client, gọi `check_command()` trực
 tiếp, giữ nguyên fail-closed + cơ chế chặn bắt buộc Claude Code. ADR:
 `docs/adr/ADR-010-...md`. L1 memory: `fact-20260724-233122`.
 
+**Cập nhật 2026-08-08 — phát hiện quan trọng, chưa xử lý:** `src/capability/`
++ `src/mcp.rs`'s 9 tool đọc-only (commit `cfdf0d4d`, "extend Program J
+spike from check_command to 9 read-only tools") **chưa merge vào
+`main`** — chỉ tồn tại ở nhánh cũ `fix/turbofieldfare-provider-entry`,
+PR #117 chỉ merge 2 commit khác. Có `src/yana-program-j-capability-runtime-rust.zip`
+untracked trong `src/`, giống bản backup thủ công của đúng phần này.
+Đây là công việc nền cho `docs/LOCAL_EMBODIMENT_RUNTIME.md`'s Eyes/Hands
+(Wave 4/5) — xem file đó + `docs/YANA-CONTROL-PLANES.md` cho bối cảnh
+đầy đủ. Quyết định cần làm trước Wave 4: hồi phục nhánh/commit cũ, hay
+xác nhận cần rebuild — chưa quyết ở đây.
+
 **2026-07-25 — spike Prototype thật đã chạy** (anh Tâm cho phép vượt
 cổng Readiness): `yana-rt mcp` sống thật qua stdio, 3 case xác nhận
 đúng (allow/deny/bypass-fix-cùng-session), latency đo thật **p50
@@ -783,3 +794,167 @@ M=5 (xem mục Scope). Câu hỏi kiến trúc gốc (MCP Server thay thế hay 
 rộng translator-per-engine) cũng đã được trả lời cùng ngày — Thay thế
 hoàn toàn (xem "Capability List" phía trên) — nên Phase 3 Architecture
 không còn bị chặn cho use case này nữa.
+
+---
+
+## Input mới — 2026-08-07 (spec giao việc trực tiếp từ anh Tâm, lưu nguyên
+văn, CHƯA qua Phase/review nào)
+
+**Trạng thái ghi chú này:** chỉ mới LƯU theo yêu cầu ("lưu cái đấy lại
+đã") — chưa đối chiếu với code thật, chưa phân Phase ADS v1, chưa đánh
+giá overlap với phần đã build. Việc đối chiếu để dành cho lượt làm việc
+kế tiếp, không tự làm ngay ở đây để tránh phân tích vội trên nội dung
+chưa xác nhận là bản cuối.
+
+**Quan sát nhanh, chỉ để đánh dấu — không phải kết luận:** phần lớn danh
+sách capability bên dưới (repo.tree, repo.read, repo.search, git.status,
+git.diff, host.summary, process.list, process.inspect) trùng tên/khớp
+gần đúng với `repo_tree`/`read_file`/`search_code`/`git_status`/
+`git_diff`/`host_summary`/`list_processes`/`process_details` đã có thật
+trong `src/capability/mod.rs` + `src/mcp.rs` (commit `cfdf0d4d`, "extend
+Program J spike from check_command to 9 read-only tools", đã merge vào
+`main` từ trước hôm nay). Cần đối chiếu kỹ transitions trước khi kết
+luận đây là việc mới hoàn toàn hay là mở rộng/wire-vào-chat cho phần đã
+có — chưa làm bước đó, chỉ ghi nhận để không bỏ sót.
+
+> TASK: Build Local Workspace Capability Runtime for Yana AI
+>
+> ## Context
+>
+> Hiện tại AI local có thể chat nhưng chưa thực sự làm việc như Claude
+> Code/Codex.
+>
+> Dấu hiệu:
+> - Model yêu cầu người dùng dán file.
+> - Không đọc được workspace.
+> - Không biết repository root.
+> - Không biết cây thư mục.
+> - Không biết Git status.
+> - Không biết process đang chạy.
+> - Không biết tool nào khả dụng.
+> - Không thể chứng minh đã đọc file thật.
+>
+> Yana cần trở thành local capability runtime, không chỉ là chat UI.
+>
+> ## Goal
+>
+> Sau khi hoàn thành, AI phải có thể:
+>
+> ```
+> Open project
+>   ↓
+> Discover repository
+>   ↓
+> Read file
+>   ↓
+> Search code
+>   ↓
+> Inspect Git
+>   ↓
+> Inspect host
+>   ↓
+> Inspect process
+>   ↓
+> Reason
+>   ↓
+> Call safe tools
+>   ↓
+> Return evidence
+> ```
+>
+> Không được yêu cầu người dùng copy file nữa.
+>
+> ## Current Problems
+>
+> **Problem 1 — Repository root.** AI không biết repository root.
+> Expected: `Repository: /Users/.../Yana-AI`. Implementation: detect cwd,
+> detect git root, fallback workspace root, expose `repo_root` capability.
+>
+> **Problem 2 — Directory tree.** Implement `repo.tree`. Output dạng cây
+> thư mục (`src/`, `Cargo.toml`, `README.md`, ...). Requirements: bounded,
+> ignore `node_modules`, ignore `target`, ignore `.git`.
+>
+> **Problem 3 — Read file.** Implement `repo.read`. Requirements: UTF-8
+> only, canonical path, reject symlink escape, max size.
+>
+> **Problem 4 — Search code.** Implement `repo.search`. Requirements:
+> literal search, bounded output, ignore binaries, ignore generated dirs.
+>
+> **Problem 5 — Git.** Implement `git.status`, `git.diff`. Requirements:
+> fixed argv, no shell.
+>
+> **Problem 6 — Host.** Implement `host.summary`. Return OS, CPU, RAM,
+> disk, uptime.
+>
+> **Problem 7 — Process.** Implement `process.list`, `process.inspect`.
+> Read only.
+>
+> **Problem 8 — Port.** Implement `port.list`. Read only.
+>
+> **Problem 9 — Tool discovery.** Implement `capabilities.list`. Return
+> id, description, risk, approval.
+>
+> **Problem 10 — Session context.** Implement `session.context`. Return
+> repo root, provider, workspace, permissions, available capabilities.
+>
+> **Problem 11 — Proof of read.** Every observation must return:
+> ```json
+> {"path":"...","sha256":"...","bytes":1234}
+> ```
+> AI phải cite bằng chứng.
+>
+> **Problem 12 — Workspace mounting.** Nếu workspace chưa mount, AI phải
+> trả `WorkspaceUnavailable`. Không được yêu cầu user paste file.
+>
+> ## MCP Integration
+>
+> Current: `check_command`.
+>
+> Target: `check_command`, `repo.tree`, `repo.read`, `repo.search`,
+> `git.status`, `git.diff`, `host.summary`, `process.list`,
+> `process.inspect`, `port.list`, `capabilities.list`, `session.context`.
+>
+> ## Safety
+>
+> Không dùng `sh -c`, `bash -c`, raw shell, `eval`. Không tự tạo
+> executor. Không bypass guard. Không mutation. Read only.
+>
+> ## Architecture
+>
+> Không implement trong chat. Implement `src/capability/`, `src/mcp/`,
+> `src/chat/`. Chat chỉ gọi runtime.
+>
+> ## Evidence Requirements
+>
+> Không được nói "I have read…" nếu chưa đọc. Muốn nói đã đọc phải chứng
+> minh: absolute path, sha256, bytes, line range, mtime.
+>
+> **Yêu cầu bổ sung quan trọng (anh Tâm nhấn mạnh riêng):** mọi capability
+> đọc project phải trả về metadata của nguồn dữ liệu (path, kích thước,
+> hash hoặc timestamp). AI chỉ được phép kết luận "đã đọc" khi dữ liệu
+> đến từ capability thật, không phải từ prompt hoặc suy luận. Đây là nền
+> tảng để sau này Yana có thể audit được AI thực sự nhìn thấy gì trước
+> khi đưa ra quyết định — khớp triết lý "Audit first. Guard always." của
+> dự án.
+>
+> ## Verification
+>
+> Demonstrate bằng output thật: `repo.tree` → `repo.read` → `repo.search`
+> → `git.status` → `process.list` → `port.list`.
+>
+> ## Tests
+>
+> `cargo fmt --check`, `cargo clippy`, `cargo test`, `cargo build`. No
+> fake output.
+>
+> ## Final Report
+>
+> Trả về: Current architecture, Files changed, Diff summary, Tests,
+> Limitations, Future work.
+>
+> ## Important Constraint
+>
+> Nếu bất kỳ capability nào không thể implement vì thiếu kiến trúc hiện
+> tại: không được tự giả định. Phải chỉ rõ nguyên nhân, chỉ file liên
+> quan, đề xuất PR nhỏ nhất để giải quyết. Không được mở rộng scope ngoài
+> yêu cầu.
