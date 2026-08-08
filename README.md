@@ -11,7 +11,7 @@ $ yana-ai
 │                                                                                                                                            │
 │ v1.1.0 · Safety firewall for AI coding agents   │ Tips for getting started                                                                   │
 │ 101 agents · 2,025 skills                      │ yana-ai doctor                                                                             │
-│ 71 rules · 62 hooks · 119 scripts              │ yana-ai init                                                                               │
+│ 71 rules · 62 hooks · 120 scripts              │ yana-ai init                                                                               │
 │ 170 commands                                   │                                                                                           │
 │                                                 │ What's new                                                                                │
 │                                                 │ v1.1.0 — COMMANDS.md added, banner background fix, chat TUI colors                        │

@@ -442,7 +442,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 119,
+      "count": 120,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -522,6 +522,7 @@
         "core/scripts/rule_test.py",
         "core/scripts/run-e2e-tests.sh",
         "core/scripts/run-security-tools.sh",
+        "core/scripts/run-self-hosted-release-gate.sh",
         "core/scripts/safe-run.sh",
         "core/scripts/sandbox-exec.sh",
         "core/scripts/scan_url.py",
@@ -2775,7 +2776,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 62,
-  "scripts_count": 119,
+  "scripts_count": 120,
   "commands_count": 170,
   "rules_count": 71
 }

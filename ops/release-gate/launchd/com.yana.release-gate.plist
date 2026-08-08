@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yana.release-gate</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/srv/yana-ai-candidate/core/scripts/run-self-hosted-release-gate.sh</string>
+    <string>--checkout</string>
+    <string>/srv/yana-ai-candidate</string>
+    <string>--artifact-root</string>
+    <string>/var/db/yana-ai/release-gate</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/srv/yana-ai-candidate</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>YANA_RELEASE_PYTHON</key>
+    <string>/usr/bin/python3</string>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/var/log/yana-ai/release-gate.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/var/log/yana-ai/release-gate.err.log</string>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>
