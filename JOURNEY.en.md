@@ -155,3 +155,8 @@ If something here helps another developer build safer software, then this journe
 Thank you for reading.
 
 See you in the next commit.
+
+Built with curiosity, patience, and countless iterations.
+
+— VU VAN TAM
+Founder of Yana AI
