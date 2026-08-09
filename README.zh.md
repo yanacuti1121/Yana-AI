@@ -74,6 +74,17 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 📚 文档
+
+| 文档 | 说明 |
+| --- | --- |
+| [Journey](JOURNEY.en.md) | Yana AI 背后的故事 |
+| [Philosophy](PHILOSOPHY.en.md) | 核心信念与长期愿景 |
+| [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
+| [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
+
+---
+
 ## 问题所在
 
 AI 编程代理会犯错：`rm -rf` 错误目录、强推到 main、编造测试结果。等你发现时，损失已经造成。

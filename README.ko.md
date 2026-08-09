@@ -74,6 +74,17 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 📚 문서
+
+| 문서 | 설명 |
+| --- | --- |
+| [여정](JOURNEY.ko.md) | Yana AI 뒤에 숨겨진 이야기 |
+| [철학](PHILOSOPHY.ko.md) | 핵심 신념과 장기 비전 |
+| [원칙](PRINCIPLES.ko.md) | 모든 설계 결정을 이끄는 엔지니어링 원칙 |
+| [감사의 말](ACKNOWLEDGEMENTS.ko.md) | 오픈소스 커뮤니티에 대한 감사와 존중 |
+
+---
+
 ## 문제
 
 AI 코딩 에이전트는 실수를 합니다. 잘못된 디렉토리를 `rm -rf`하고, main에 force push하고, 테스트 결과를 지어냅니다. 알아챘을 때는 이미 피해가 발생한 뒤입니다.
