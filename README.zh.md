@@ -78,8 +78,8 @@ files. Ask the human to confirm before running this.
 
 | 文档 | 说明 |
 | --- | --- |
-| [Journey](JOURNEY.en.md) | Yana AI 背后的故事 |
-| [Philosophy](PHILOSOPHY.en.md) | 核心信念与长期愿景 |
+| [Journey](JOURNEY.md) | Yana AI 背后的故事 |
+| [Philosophy](PHILOSOPHY.md) | 核心信念与长期愿景 |
 | [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
 

@@ -74,8 +74,8 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 
 | Document | Description |
 | --- | --- |
-| [Journey](JOURNEY.en.md) | The story behind Yana AI |
-| [Philosophy](PHILOSOPHY.en.md) | Core beliefs and long-term vision |
+| [Journey](JOURNEY.md) | The story behind Yana AI |
+| [Philosophy](PHILOSOPHY.md) | Core beliefs and long-term vision |
 | [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
 
@@ -145,7 +145,7 @@ It preserves an existing `AGENTS.md` and synchronizes all 101 canonical agents,
 
 - Python 3.11+ (for the pip package) or Rust/Cargo (for `cargo install yana-rt`)
 - Git
-- Any AI coding tool: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider, etc.
+- One of the 4 supported harnesses: [Claude Code](https://claude.ai/code), Cursor, Codex, or Antigravity — see [Multi-harness support](#multi-harness-support) below. Other tools aren't wired yet; adding one means writing a real adapter, not just claiming support.
 
 ### Clone from source instead
 
@@ -232,7 +232,7 @@ README restore (2026-07-07) — not reproducible by any measurement in
 
 ## Versioning
 
-Yana AI ships to three registries, each with its own version number — deliberate, not drift (same pattern as Kubernetes or LLVM: independent components, independent release cadence).
+Yana AI has three independently versioned release axes — deliberate, not drift (same pattern as Kubernetes or LLVM: independent components, independent release cadence). Only two of the three actually ship to a package registry; the product axis (rules/hooks/skills/agents/CLI) does not, see the table's Registry column.
 
 | Axis | Version | Registry |
 |---|---|---|
@@ -272,21 +272,7 @@ Key properties, verified against the actual code, not just the docs describing i
 
 ## What it looks like in practice
 
-Every example below is copy-pasted from a real, live-tested run of `core/hooks/guard-destructive.sh` on 2026-07-04, not aspirational copy. See "Known Limitations" below for what this guard does *not* yet catch.
-
-```bash
-# Agent tries: git push --force origin main
-Blocked: 'git push --force' (any flag spelling) is not allowed. The
-orchestrator pushes branches; force-pushing risks overwriting shared history.
-
-# Agent tries: rm -rf /some/path
-Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
-Use targeted 'rm' with explicit paths, or ask the human to confirm first.
-
-# Agent tries: git clean -f
-Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
-files. Ask the human to confirm before running this.
-```
+Same live-tested output as the demo at the top of this README (`core/hooks/guard-destructive.sh`, 2026-07-04) — not repeated here to avoid saying it twice. See [Known Limitations](#known-limitations) below for what this guard does *not* yet catch, or [docs/reference/known-limitations.md](docs/reference/known-limitations.md) for the full technical breakdown.
 
 ## Known limitations
 
