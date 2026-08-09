@@ -1,0 +1,59 @@
+# Yana Web — Fly.io deploy config (migrated off Railway, 2026-07-23 —
+# Railway free trial ran out; Fly.io has real persistent volumes at low
+# cost, unlike Cloudflare Containers which has ephemeral-only disk).
+#
+# Uses the SAME Dockerfile Railway already builds from — no code or
+# container changes, only platform config. Build context is the repo
+# root (this file's own directory), matching railway.toml's convention,
+# because the Dockerfile COPYs core/skills/, core/agents/, and
+# MANIFEST.json from repo root, not from tools/yana-web/.
+#
+# First-time setup (run these yourself — needs your Fly.io account auth,
+# not something this session can do without you at the terminal):
+#   fly auth login
+#   fly apps create <pick-a-globally-unique-name>   # then update `app` below
+#   fly volumes create yana_data --region <your-region> --size 1 -a <app-name>
+#   fly deploy
+#
+# `yana_data` size is 1GB to start — cheap ($0.15/GB/month), resize later
+# with `fly volumes extend` if auth/memory/missions data grows past that.
+
+app = "yana-web"  # placeholder — Fly app names are globally unique; anh
+                   # cần đổi tên này nếu "yana-web" đã bị người khác lấy
+primary_region = "sin"  # Singapore — gần VN nhất trong danh sách region
+                         # Fly hiện có; đổi nếu anh biết vùng gần hơn/rẻ hơn
+
+[build]
+  dockerfile = "tools/yana-web/Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "8081"
+  YANA_TRUST_PROXY = "1"   # Fly terminates TLS at its edge, same reason
+                            # this was already set for Railway — see
+                            # Dockerfile's own comment on this var
+  YANA_DATA_DIR = "/data"  # matches the volume mount below
+
+[[mounts]]
+  source      = "yana_data"
+  destination = "/data"
+
+[http_service]
+  internal_port        = 8081
+  force_https          = true
+  auto_stop_machines    = "stop"   # scale-to-zero when idle — anh nói
+                                    # "nghèo", nên tắt máy khi không dùng
+                                    # thay vì always-on
+  auto_start_machines   = true     # tự bật lại khi có request tới
+  min_machines_running  = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout  = "5s"
+    grace_period = "15s"
+    method   = "GET"
+    path     = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
