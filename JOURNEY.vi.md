@@ -159,3 +159,8 @@ Nếu hành trình này có thể giúp một ai đó xây dựng phần mềm a
 Cảm ơn bạn đã ghé thăm.
 
 Hẹn gặp ở commit tiếp theo.
+
+Được xây dựng dựa trên sự tò mò, kiên nhẫn và vô số lần thử nghiệm.
+
+— VU VAN TAM
+Founder of Yana AI
