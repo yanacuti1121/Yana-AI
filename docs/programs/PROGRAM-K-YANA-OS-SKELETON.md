@@ -75,6 +75,25 @@ refactoring should be proposed until the architecture, ADRs, and
 boundaries are approved. This applies to AI-side work in future
 sessions too, not just this one.
 
+## Management Infrastructure — three areas (explicit, 2026-08-09)
+
+Anh Tâm confirmed all three of the following are in scope for Yana OS's
+"management infrastructure" layer (asked as a follow-up to Vision, to
+sharpen what "manage agent lifecycle... policies..." concretely covers).
+Still Phase 0-level (naming the areas, not designing them — Design
+Goals/Architecture for each stays TODO until Phase 1+):
+
+1. **Agent management** — lifecycle, identity, execution sessions (the
+   "agent lifecycle, identity... execution sessions" already named in
+   Vision — this confirms it as one of the three concrete management
+   areas, not just prose).
+2. **Credential management** — API keys / OAuth per provider or
+   external service, in the spirit of `cloudflare-os`'s per-Gatekeeper
+   credential model referenced above.
+3. **Resource management** — system resources agents consume (CPU/RAM/
+   quota/cost), i.e. governing what an agent is allowed to spend, not
+   just what it's allowed to touch.
+
 ## Design Goals
 
 _(TODO — Phase 1, chưa điền)_
