@@ -70,6 +70,17 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 
 ---
 
+## 📚 Documentation
+
+| Document | Description |
+| --- | --- |
+| [Journey](JOURNEY.en.md) | The story behind Yana AI |
+| [Philosophy](PHILOSOPHY.en.md) | Core beliefs and long-term vision |
+| [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
+| [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
+
+---
+
 ## The problem
 
 AI coding agents make mistakes. They `rm -rf` the wrong directory. They push force to main. They hallucinate test results. By the time you notice, the damage is done.
