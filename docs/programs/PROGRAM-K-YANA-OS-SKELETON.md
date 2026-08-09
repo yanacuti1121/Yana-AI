@@ -1,6 +1,8 @@
 # Program K — Yana OS — Skeleton
 
-**Status:** Draft — Phase 0 (Input) complete, Phase 1 (Specification) not started
+**Status:** Draft — Phase 0 (Input) complete, Phase 1-9 explicitly skipped by
+anh Tâm's override (see Implementation section below); a first read-only
+implementation slice exists in `src/os/`
 **Created:** 2026-08-09
 **Phase 0 answered by anh Tâm:** 2026-08-09
 
@@ -93,6 +95,40 @@ Goals/Architecture for each stays TODO until Phase 1+):
 3. **Resource management** — system resources agents consume (CPU/RAM/
    quota/cost), i.e. governing what an agent is allowed to spend, not
    just what it's allowed to touch.
+
+## Implementation (started 2026-08-09 — ADS v1 Phase 1-9 explicitly skipped)
+
+This session flagged that "code now" contradicted the Scope note above (no
+implementation before architecture/ADR/boundaries are approved). Anh Tâm
+confirmed explicitly, via AskUserQuestion: "Có, anh muốn huỷ scope lock,
+code ngay" — a deliberate override, recorded here rather than silently
+acted on, per this repo's own rule that AI must not invent or quietly skip
+Program process on its own judgment.
+
+What exists as of this commit, in `src/os/` (`yana-rt os <subcommand>`):
+
+- `os agent-list` — lists known agent chat sessions from
+  `.yana-ai/chat-history/*.jsonl` (id, provider, model, turn count, last
+  activity). Read-only; reuses `chat::history::list_recent_sessions`.
+- `os credential-status` — reports which providers have an API key
+  configured via environment variable, presence only, value never printed.
+- `os resource-status` — thin wrapper over the existing `cost` ledger
+  (`yana-rt cost show`).
+
+What this is **not**: it does not constitute Phase 1 Specification, Phase 2
+Capability Inventory, Phase 3 Architecture, or any ADR for the three
+management areas. It does not add any new capability, mutation, sandboxing,
+scheduling, or policy-enforcement logic — only read-only visibility over
+state that already existed elsewhere in the crate (`chat::history`, the
+provider env-var list, `cost`). Real design for agent lifecycle
+management, a per-Gatekeeper credential model, and resource *enforcement*
+(not just reporting) is still open — see Open Questions, unchanged.
+
+Verification: `cargo build --release --features cli --bin yana-rt` (0
+errors, 0 new warnings), `cargo test --release --features cli --bin
+yana-rt -- --test-threads=1` (237/237 passed), plus a manual run of all
+three subcommands against this repo's real `.yana-ai/chat-history/` and
+cost ledger data.
 
 ## Design Goals
 

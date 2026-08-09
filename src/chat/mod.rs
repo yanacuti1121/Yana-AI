@@ -36,7 +36,10 @@
 mod anthropic;
 mod banner;
 mod circuit_breaker;
-mod history;
+// `pub(crate)`, not private: `crate::os::agent` (Program K) reads
+// `list_recent_sessions`/`SessionSummary` as the real data source for
+// `yana-rt os agent-list` — see that module's doc comment.
+pub(crate) mod history;
 mod openai_compat;
 // pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
 // `chat`, not a descendant) needs `provider::ask_once` and the

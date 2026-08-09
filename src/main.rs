@@ -28,6 +28,7 @@ mod evidence;
 mod guard;
 mod filescan;
 mod observability;
+mod os;
 mod skill_quality;
 // Program J Phase 9 spike only — gated separately from `cli` because it
 // pulls in tokio (see Cargo.toml's `mcp` feature comment). Not part of any
@@ -108,6 +109,10 @@ enum Commands {
     Graph  { #[command(subcommand)] action: graph::GraphAction },
     /// Vietnamese-first knowledge vault with multilingual translation links
     Vault  { #[command(subcommand)] action: vault::VaultAction },
+    /// Yana OS (Program K) — agent/credential/resource visibility. First
+    /// implementation slice, ADS v1 Phase 1-9 explicitly overridden by anh
+    /// Tâm 2026-08-09 — see `docs/programs/PROGRAM-K-YANA-OS-SKELETON.md`.
+    Os     { #[command(subcommand)] action: os::OsAction },
     /// Live file watcher — monitor skills/agents/rules for changes
     /// DOCTOR_DISPATCH_EXEMPT: core/scripts/watch.py is canonical for the
     /// "watch" CLI command — it watches config + re-audits with score diff,
@@ -425,6 +430,7 @@ fn main() {
         Commands::Design { action } => design::dispatch(action),
         Commands::Graph  { action } => graph::dispatch(action),
         Commands::Vault { action } => vault::dispatch(action),
+        Commands::Os { action } => os::dispatch(action),
         Commands::Watch { action } => watch::dispatch(action),
         Commands::Init  { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
