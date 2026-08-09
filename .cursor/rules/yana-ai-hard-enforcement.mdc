@@ -1,0 +1,58 @@
+---
+description: Yana AI Hard Enforcement — all bash commands must route through safe-run.sh
+alwaysApply: true
+---
+
+# Yana AI Security Gate — Cursor Hard Enforcement
+
+**MANDATORY:** Every bash/shell command you generate MUST be prefixed with the safe-run proxy:
+
+```
+bash core/scripts/safe-run.sh --engine cursor <your command here>
+```
+
+## Examples
+
+❌ FORBIDDEN:
+```bash
+rm -rf dist/
+git push --force
+```
+
+✅ REQUIRED:
+```bash
+bash core/scripts/safe-run.sh --engine cursor rm -rf dist/
+bash core/scripts/safe-run.sh --engine cursor git push --force
+```
+
+## Why
+
+Yana AI's L0–L5 gate stack screens every command for destructive patterns, LD_PRELOAD hijacks,
+pipe-to-shell exploits, and elevated-risk operations before execution.
+
+Cursor DOES have a native hook layer as of `.cursor/hooks.json` +
+`.cursor/hooks/before-shell-execution.js`: every shell command you run is now
+technically screened (not just prompt-advised) by `core/hooks/guard-destructive.sh`
+before Cursor executes it — rm -rf, force-push, reset --hard, clean -f, direct push
+to main/master, destructive SQL, and npm/yarn/pnpm publish are hard-blocked, no
+matter what you write in your command.
+
+That technical block covers a NARROWER pattern set than safe-run.sh's prefix screen —
+LD_PRELOAD/DYLD hijacks, pipe-to-shell (curl|bash), chmod 777, dd/mkfs/fdisk are NOT
+checked by the native hook. For those, the safe-run.sh prefix below remains the only
+coverage that exists today:
+
+```
+bash core/scripts/safe-run.sh --engine cursor <your command here>
+```
+
+## Violations
+
+Any command in the categories above executed without the safe-run proxy is a TIER-2
+security violation. Log: /tmp/yana-ai-audit.log
+
+Any command in guard-destructive.sh's category (rm -rf, force-push, etc.) submitted as a
+native shell command is now blocked before it runs via Cursor's beforeShellExecution hook.
+Cursor's MCP tool calls go through a separate event this hook does not cover — an MCP tool
+that runs an equivalent destructive action is not screened by it, so the safe-run.sh prefix
+above still matters for MCP-originated commands too.

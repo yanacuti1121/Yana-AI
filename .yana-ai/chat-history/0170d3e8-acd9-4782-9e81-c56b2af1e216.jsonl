@@ -1,0 +1,2 @@
+{"schema_version":"1.0","session_id":"0170d3e8-acd9-4782-9e81-c56b2af1e216","id":"52320bae-3226-4b61-ab92-b9fd757ffd90","ts":"2026-07-18T01:38:34Z","role":"user","content":"PONG two","truncated":false}
+{"schema_version":"1.0","session_id":"0170d3e8-acd9-4782-9e81-c56b2af1e216","id":"b36cbe0c-a05c-4d09-8473-118c831dfc85","ts":"2026-07-18T01:39:05Z","role":"assistant","content":"","provider":"ollama","model":"huihui_ai/qwen3.5-abliterated:9b-Qwopus","input_tokens":0,"output_tokens":0,"duration_ms":30696,"truncated":true,"error":"timeout: receive response"}

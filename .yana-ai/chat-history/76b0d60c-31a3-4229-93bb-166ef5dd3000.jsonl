@@ -1,0 +1,2 @@
+{"schema_version":"1.0","session_id":"76b0d60c-31a3-4229-93bb-166ef5dd3000","id":"0da6d3df-dc4a-49b6-8da3-aa1295228c92","ts":"2026-07-17T12:35:36Z","role":"user","content":"Say hello in exactly three words.","truncated":false}
+{"schema_version":"1.0","session_id":"76b0d60c-31a3-4229-93bb-166ef5dd3000","id":"cc711ca9-af4d-4ee8-bd68-85e394bbd232","ts":"2026-07-17T12:35:45Z","role":"assistant","content":"Hello! How can I help you today?","provider":"ollama","model":"qwen2.5:0.5b","input_tokens":36,"output_tokens":10,"duration_ms":8521,"truncated":false}

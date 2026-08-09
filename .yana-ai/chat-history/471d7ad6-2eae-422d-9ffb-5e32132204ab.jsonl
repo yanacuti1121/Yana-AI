@@ -1,0 +1,2 @@
+{"schema_version":"1.0","session_id":"471d7ad6-2eae-422d-9ffb-5e32132204ab","id":"e6a116c5-18d1-4cdf-b03a-e4d6c9443763","ts":"2026-07-18T01:38:17Z","role":"user","content":"PONG one","truncated":false}
+{"schema_version":"1.0","session_id":"471d7ad6-2eae-422d-9ffb-5e32132204ab","id":"fd236e30-8c69-40fc-992a-55faa7844540","ts":"2026-07-18T01:38:18Z","role":"assistant","content":"Hello! How may I assist you?","provider":"ollama","model":"qwen2.5:0.5b","input_tokens":32,"output_tokens":9,"duration_ms":1533,"truncated":false}

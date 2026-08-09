@@ -1,0 +1,2 @@
+{"schema_version":"1.0","session_id":"437a8ac9-3e67-4620-9d20-0a16763b255e","id":"7f0219e9-b630-4e84-aead-7e19095f59ec","ts":"2026-07-17T07:42:12Z","role":"user","content":"hi","truncated":false}
+{"schema_version":"1.0","session_id":"437a8ac9-3e67-4620-9d20-0a16763b255e","id":"4a65ff65-b718-4425-b15a-f244e51aa88a","ts":"2026-07-17T07:42:12Z","role":"assistant","content":"","provider":"ollama","model":"llama3.2","input_tokens":0,"output_tokens":0,"duration_ms":1,"truncated":true,"error":"is the Ollama daemon running? (`ollama serve`)"}
