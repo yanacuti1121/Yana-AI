@@ -8,12 +8,18 @@ mod render_tools;
 
 use super::super::banner;
 use super::super::provider::Role;
+use super::sidebar;
 use super::{App, TurnState};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, Paragraph, Wrap};
+use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::Frame;
+
+/// Below this width the sidebar has no room to be useful — same 120-col
+/// threshold the `Yana-AI-Chat_Teminal` prototype's spec settled on.
+const SIDEBAR_MIN_WIDTH: u16 = 120;
+const SIDEBAR_WIDTH: u16 = 36;
 
 // Personalized palette (requested 2026-07-31; iterated twice since — first
 // "nhạt hơn" made it too pale/washed out, then "thiếu một màu, không hài
@@ -41,16 +47,29 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     // push the history/input panes off-screen entirely.
     let header_height = (header_lines.len() as u16 + 2).clamp(4, 28);
 
-    let [header_area, history_area, input_area] = Layout::vertical([
+    let [header_area, body_area, input_area] = Layout::vertical([
         Constraint::Length(header_height),
         Constraint::Min(3),
         Constraint::Length(3),
     ])
     .areas(frame.area());
 
+    // Single-side border, not a closed box — the header is a status line,
+    // not a panel that needs visual separation on all four sides. Same
+    // reasoning applies to the transcript below (Borders::RIGHT only).
     let header_widget = Paragraph::new(header_lines)
-        .block(Block::bordered().border_style(Style::default().fg(LIGHT_PINK)));
+        .block(Block::default().borders(Borders::BOTTOM).border_style(Style::default().fg(LIGHT_PINK)));
     frame.render_widget(header_widget, header_area);
+
+    let show_sidebar = body_area.width >= SIDEBAR_MIN_WIDTH;
+    let history_area = if show_sidebar {
+        let [transcript_area, sidebar_area] =
+            Layout::horizontal([Constraint::Min(60), Constraint::Length(SIDEBAR_WIDTH)]).areas(body_area);
+        sidebar::render_sidebar(frame, sidebar_area, app);
+        transcript_area
+    } else {
+        body_area
+    };
 
     if app.show_recent_sessions && app.history.is_empty() {
         draw_recent_sessions(frame, app, history_area);
@@ -82,6 +101,7 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     };
     let input_widget = Paragraph::new(app.input.as_str()).block(
         Block::bordered()
+            .border_type(BorderType::Rounded)
             .title(input_title)
             .border_style(Style::default().fg(input_border_color)),
     );
@@ -121,15 +141,24 @@ fn draw_history(frame: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
     }
 
     let total_lines = lines.len() as u16;
-    let visible = area.height.saturating_sub(2); // minus top+bottom border
+    let visible = area.height.saturating_sub(1); // minus the top border row only (see block() below — no bottom border)
     let max_scroll = total_lines.saturating_sub(visible);
     // Pinned-to-bottom by default (App::new sets scroll = u16::MAX);
     // PageUp/PageDown move it, always re-clamped into range here so it
     // can never scroll past the actual content.
     app.scroll = app.scroll.min(max_scroll);
 
+    // Top border (for the title) + right border (divider from the
+    // sidebar, when shown) — not a closed box. The transcript is the
+    // primary reading surface; a full border on all four sides added
+    // nothing but visual weight.
     let widget = Paragraph::new(Text::from(lines))
-        .block(Block::bordered().title(" history ").border_style(Style::default().fg(LIGHT_BLUE)))
+        .block(
+            Block::default()
+                .title(" history ")
+                .borders(Borders::TOP | Borders::RIGHT)
+                .border_style(Style::default().fg(LIGHT_BLUE)),
+        )
         .wrap(Wrap { trim: false })
         .scroll((app.scroll, 0));
     frame.render_widget(widget, area);
@@ -164,7 +193,12 @@ fn draw_recent_sessions(frame: &mut Frame, app: &App, area: ratatui::layout::Rec
         }
     }
     let widget = Paragraph::new(Text::from(lines))
-        .block(Block::bordered().title(" history ").border_style(Style::default().fg(LIGHT_BLUE)))
+        .block(
+            Block::default()
+                .title(" history ")
+                .borders(Borders::TOP | Borders::RIGHT)
+                .border_style(Style::default().fg(LIGHT_BLUE)),
+        )
         .wrap(Wrap { trim: false });
     frame.render_widget(widget, area);
 }
