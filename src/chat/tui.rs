@@ -166,7 +166,7 @@ impl App {
             tool_rounds: ToolRoundGuard::new(),
             repo_root: repo_root.clone(),
             use_sandbox,
-            sidebar_tab: SidebarTab::Approval,
+            sidebar_tab: SidebarTab::default(),
             project_counts: sidebar::read_project_counts(&repo_root),
             memory_filter: String::new(),
             memory_results: Vec::new(),
