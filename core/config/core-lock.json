@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-08T15:40:47+00:00",
+  "generated": "2026-08-09T04:09:40+00:00",
   "count": 274,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
