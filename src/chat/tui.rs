@@ -17,10 +17,14 @@
 //! Ctrl-D, and both are handled here as plain "quit" key events.
 
 mod approval;
+mod commands;
 mod model_command;
 mod render;
+mod sidebar;
 mod tool_dispatch;
 mod turn;
+
+use sidebar::{ProjectCounts, SidebarTab};
 
 use super::banner::BannerInfo;
 use super::history;
@@ -112,6 +116,18 @@ pub struct App {
     /// human-invoked opt-out — never a silent runtime fallback if a
     /// sandbox mode turns out to be unavailable (see the plan).
     use_sandbox: bool,
+    /// Which sidebar panel is visible — cycled with Tab (see
+    /// `sidebar::SidebarTab::next`). The Provider box above it is always
+    /// shown regardless of this value.
+    sidebar_tab: SidebarTab,
+    /// `MANIFEST.json` counts for the Project panel, read once at startup
+    /// (see `App::new`). `None` means the read/parse failed.
+    project_counts: Option<ProjectCounts>,
+    /// Last `/memory [query]` filter and its matching L1 facts, shown in
+    /// the Memory panel. Re-fetched only when `/memory` runs, not per
+    /// frame — `sidebar::read_memory_facts` does real file I/O.
+    memory_filter: String,
+    memory_results: Vec<sidebar::MemoryFact>,
 }
 
 impl App {
@@ -127,6 +143,7 @@ impl App {
         resumed: bool,
         use_sandbox: bool,
     ) -> Self {
+        let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         Self {
             history,
             streaming_reply: String::new(),
@@ -147,8 +164,12 @@ impl App {
             recent_sessions: if resumed { Vec::new() } else { history::list_recent_sessions(RECENT_SESSIONS_LIMIT) },
             show_recent_sessions: !resumed,
             tool_rounds: ToolRoundGuard::new(),
-            repo_root: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+            repo_root: repo_root.clone(),
             use_sandbox,
+            sidebar_tab: SidebarTab::Approval,
+            project_counts: sidebar::read_project_counts(&repo_root),
+            memory_filter: String::new(),
+            memory_results: Vec::new(),
         }
     }
 
@@ -179,6 +200,7 @@ impl App {
             }
             (KeyCode::PageUp, _) => self.scroll = self.scroll.saturating_sub(SCROLL_PAGE),
             (KeyCode::PageDown, _) => self.scroll = self.scroll.saturating_add(SCROLL_PAGE),
+            (KeyCode::Tab, _) => self.sidebar_tab = self.sidebar_tab.next(),
             (KeyCode::Char(c), _) => self.input.push(c),
             _ => {}
         }
@@ -197,8 +219,7 @@ impl App {
         self.input.clear();
         self.tool_rounds.reset();
 
-        if let Some(rest) = text.strip_prefix("/model") {
-            self.handle_model_command(rest.trim());
+        if self.try_dispatch_command(&text) {
             return;
         }
 
