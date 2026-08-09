@@ -74,6 +74,17 @@ files. Ask the human to confirm before running this.
 
 ---
 
+## 📚 Tài liệu
+
+| Tài liệu | Mô tả |
+| --- | --- |
+| [Hành trình](JOURNEY.vi.md) | Câu chuyện đằng sau Yana AI |
+| [Triết lý](PHILOSOPHY.vi.md) | Niềm tin cốt lõi và tầm nhìn dài hạn |
+| [Nguyên tắc](PRINCIPLES.vi.md) | Nguyên tắc kỹ thuật định hướng mọi quyết định thiết kế |
+| [Lời tri ân](ACKNOWLEDGEMENTS.vi.md) | Ghi công và tri ân cộng đồng mã nguồn mở |
+
+---
+
 ## Vấn đề
 
 AI coding agent mắc sai lầm. Chúng `rm -rf` nhầm thư mục. Chúng push force lên main. Chúng bịa ra kết quả test. Đến lúc bạn nhận ra thì thiệt hại đã xảy ra.
