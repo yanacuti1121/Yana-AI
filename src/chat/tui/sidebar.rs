@@ -3,93 +3,121 @@
 //! `approval.rs`/`model_command.rs` (a submodule reaching `App`'s private
 //! fields via `super::App`).
 //!
-//! Design constraint carried over from `docs/UI_REWRITE_SPEC.md` (the
-//! sibling `Yana-AI-Chat_Teminal` prototype this was adapted from): every
-//! panel must show real data or not exist — no "Memory" panel with fake
+//! Panel choice and the "real data only" rule both carry over from
+//! `docs/UI_REWRITE_SPEC.md` (the sibling `Yana-AI-Chat_Teminal`
+//! prototype this was first adapted from) — no "Memory" panel with fake
 //! entries, no "Skills" count that isn't read from the actual manifest.
+//! The specific four tabs (Activity/Approval/Memory/Project) are a
+//! reconciliation of two independent redesigns that landed on the same
+//! files at the same time: the sibling `codex/redesign-chat-tui` branch
+//! built a fixed Session+Activity sidebar with a compact header and an
+//! animated input border (kept — see `render.rs`'s palette and
+//! `draw_spectrum_border`); this file's own earlier version built a
+//! Tab-switchable Approval/Memory/Project sidebar reading real session
+//! and repo state. Activity is folded in here as a fourth tab rather than
+//! dropped, since the pending-turn/keybinding summary it shows is real
+//! and useful — the Session box (fixed, not tabbed) absorbs the other
+//! branch's persistent provider/session identity display.
 
+mod data;
+
+pub(super) use data::{read_memory_facts, read_project_counts, MemoryFact, ProjectCounts};
+
+use super::render::{AMBER, JADE, SLATE, VIOLET, WATER};
 use super::{App, TurnState};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Wrap};
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
-use std::fs;
-use std::path::Path;
 
-const PANEL_BORDER: Color = Color::Rgb(90, 90, 100);
-const MUTED: Color = Color::Rgb(160, 160, 160);
-const ACCENT: Color = Color::Rgb(200, 180, 230);
-
-/// Fixed-height Provider box above the Tab-switched panel — always
-/// visible regardless of `sidebar_tab`, same as the prototype's
-/// persistent Provider box.
-pub(super) fn render_provider_box(frame: &mut Frame, area: Rect, app: &App) {
+/// Fixed-height Session box above the Tab-switched panel — always visible
+/// regardless of `sidebar_tab`. Merges what were two separate persistent
+/// boxes across the two source designs (Provider identity + Session id).
+pub(super) fn render_session_box(frame: &mut Frame, area: Rect, app: &App) {
     let locality = if app.provider.requires_key() { "REMOTE" } else { "LOCAL" };
     let lines = vec![
-        Line::from(vec![
-            Span::styled("● ", Style::default().fg(Color::Green)),
-            Span::styled(app.provider.name(), Style::default().add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(Span::styled(&app.model, Style::default().fg(MUTED))),
-        Line::from(Span::styled(locality, Style::default().fg(MUTED))),
+        Line::styled("● Local chat", Style::default().fg(JADE).add_modifier(Modifier::BOLD)),
+        Line::raw(app.provider.name().to_string()),
+        Line::styled(app.model.clone(), Style::default().fg(WATER)),
+        Line::raw(""),
+        Line::styled(format!("{locality} · {}", &app.session_id[..8.min(app.session_id.len())]), Style::default().fg(SLATE)),
     ];
     frame.render_widget(
-        Paragraph::new(lines).block(
-            Block::default()
-                .title(" Provider ")
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(Style::default().fg(PANEL_BORDER)),
-        ),
+        Paragraph::new(lines).block(Block::bordered().title(" Session ").border_style(Style::default().fg(JADE))),
         area,
     );
 }
 
-/// Splits `area` into the Provider box (fixed) and the Tab-switched panel
+/// Splits `area` into the Session box (fixed) and the Tab-switched panel
 /// (remaining height), dispatching to the panel for `app.sidebar_tab`.
 pub(super) fn render_sidebar(frame: &mut Frame, area: Rect, app: &App) {
-    let [provider_area, panel_area] =
-        Layout::vertical([Constraint::Length(5), Constraint::Min(4)]).areas(area);
-    render_provider_box(frame, provider_area, app);
+    let [session_area, panel_area] = Layout::vertical([Constraint::Length(6), Constraint::Min(4)]).areas(area);
+    render_session_box(frame, session_area, app);
     match app.sidebar_tab {
+        SidebarTab::Activity => render_activity_panel(frame, panel_area, app),
         SidebarTab::Approval => render_approval_panel(frame, panel_area, app),
         SidebarTab::Memory => render_memory_panel(frame, panel_area, app),
         SidebarTab::Project => render_project_panel(frame, panel_area, app),
     }
 }
 
-fn panel_block(title: String) -> Block<'static> {
-    Block::default()
-        .title(format!(" {title} · Tab "))
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .border_style(Style::default().fg(PANEL_BORDER))
+fn panel_block(title: String, accent: Color) -> Block<'static> {
+    Block::default().title(format!(" {title} · Tab ")).borders(Borders::ALL).border_style(Style::default().fg(accent))
+}
+
+fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
+    let (status, tone) = match &app.turn {
+        TurnState::Idle => ("Ready for your message", JADE),
+        TurnState::Streaming(_) => ("Receiving response", AMBER),
+        TurnState::AwaitingApproval(_) => ("Approval required", AMBER),
+        TurnState::ExecutingTool { .. } => ("Running approved tool", AMBER),
+    };
+    let lines = vec![
+        Line::styled(status, Style::default().fg(tone).add_modifier(Modifier::BOLD)),
+        Line::raw(""),
+        Line::styled("Controls", Style::default().add_modifier(Modifier::BOLD)),
+        Line::raw("Enter    send"),
+        Line::raw("PgUp/Dn  scroll"),
+        Line::raw("Tab      cycle sidebar"),
+        Line::raw("/model   switch model"),
+        Line::raw("/memory  search L1 facts"),
+        Line::raw("/status  project counts"),
+        Line::raw("Ctrl-C   quit"),
+    ];
+    frame.render_widget(
+        Paragraph::new(lines).wrap(Wrap { trim: true }).block(panel_block(SidebarTab::Activity.label().to_string(), tone)),
+        area,
+    );
 }
 
 fn render_approval_panel(frame: &mut Frame, area: Rect, app: &App) {
     let lines = match &app.turn {
         TurnState::AwaitingApproval(pending) => vec![
-            Line::from(Span::styled("AWAITING APPROVAL", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+            Line::from(Span::styled("AWAITING APPROVAL", Style::default().fg(AMBER).add_modifier(Modifier::BOLD))),
             Line::from(""),
             Line::from(Span::styled(&pending.command, Style::default().add_modifier(Modifier::BOLD))),
             Line::from(""),
             Line::from(Span::styled(
                 if pending.guard_verdict.is_some() { "guard denied — Enter/Esc to acknowledge" } else { "y = run · n/Esc = decline" },
-                Style::default().fg(MUTED),
+                Style::default().fg(SLATE),
             )),
         ],
-        TurnState::ExecutingTool { .. } => vec![Line::from(Span::styled("Tool executing…", Style::default().fg(Color::Cyan)))],
+        TurnState::ExecutingTool { .. } => vec![Line::from(Span::styled("Tool executing…", Style::default().fg(WATER)))],
         TurnState::Idle | TurnState::Streaming(_) => vec![
-            Line::from(Span::styled("No pending approval", Style::default().fg(MUTED))),
+            Line::from(Span::styled("No pending approval", Style::default().fg(SLATE))),
             Line::from(""),
             Line::from(Span::styled(
                 "run_command proposals appear here — y to run, n/Esc to decline",
-                Style::default().fg(MUTED),
+                Style::default().fg(SLATE),
             )),
         ],
     };
-    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }).block(panel_block(SidebarTab::Approval.label().to_string())), area);
+    let accent = if matches!(app.turn, TurnState::AwaitingApproval(_)) { AMBER } else { JADE };
+    frame.render_widget(
+        Paragraph::new(lines).wrap(Wrap { trim: false }).block(panel_block(SidebarTab::Approval.label().to_string(), accent)),
+        area,
+    );
 }
 
 fn render_memory_panel(frame: &mut Frame, area: Rect, app: &App) {
@@ -99,22 +127,19 @@ fn render_memory_panel(frame: &mut Frame, area: Rect, app: &App) {
         format!("Memory · '{}'", app.memory_filter)
     };
     let items: Vec<ListItem> = if app.memory_results.is_empty() {
-        vec![ListItem::new(Line::from(Span::styled(
-            "/memory [query] to search L1 facts",
-            Style::default().fg(MUTED),
-        )))]
+        vec![ListItem::new(Line::from(Span::styled("/memory [query] to search L1 facts", Style::default().fg(SLATE))))]
     } else {
         app.memory_results
             .iter()
             .map(|fact| {
                 ListItem::new(vec![
-                    Line::from(Span::styled(&fact.id, Style::default().fg(ACCENT).add_modifier(Modifier::BOLD))),
+                    Line::from(Span::styled(&fact.id, Style::default().fg(VIOLET).add_modifier(Modifier::BOLD))),
                     Line::from(Span::styled(&fact.statement, Style::default().fg(Color::White))),
                 ])
             })
             .collect()
     };
-    frame.render_widget(List::new(items).block(panel_block(title)), area);
+    frame.render_widget(List::new(items).block(panel_block(title, VIOLET)), area);
 }
 
 fn render_project_panel(frame: &mut Frame, area: Rect, app: &App) {
@@ -129,9 +154,9 @@ fn render_project_panel(frame: &mut Frame, area: Rect, app: &App) {
             Line::from(format!("{} scripts", c.scripts)),
             Line::from(format!("{} commands", c.commands)),
         ],
-        None => vec![Line::from(Span::styled("MANIFEST.json unavailable", Style::default().fg(MUTED)))],
+        None => vec![Line::from(Span::styled("MANIFEST.json unavailable", Style::default().fg(SLATE)))],
     };
-    frame.render_widget(Paragraph::new(lines).block(panel_block(SidebarTab::Project.label().to_string())), area);
+    frame.render_widget(Paragraph::new(lines).block(panel_block(SidebarTab::Project.label().to_string(), WATER)), area);
 }
 
 const MEMORY_RESULTS_LIMIT: usize = 12;
@@ -164,8 +189,10 @@ impl App {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(super) enum SidebarTab {
+    #[default]
+    Activity,
     Approval,
     Memory,
     Project,
@@ -174,6 +201,7 @@ pub(super) enum SidebarTab {
 impl SidebarTab {
     pub(super) fn label(self) -> &'static str {
         match self {
+            SidebarTab::Activity => "Activity",
             SidebarTab::Approval => "Approval",
             SidebarTab::Memory => "Memory",
             SidebarTab::Project => "Project",
@@ -182,115 +210,10 @@ impl SidebarTab {
 
     pub(super) fn next(self) -> Self {
         match self {
+            SidebarTab::Activity => SidebarTab::Approval,
             SidebarTab::Approval => SidebarTab::Memory,
             SidebarTab::Memory => SidebarTab::Project,
-            SidebarTab::Project => SidebarTab::Approval,
+            SidebarTab::Project => SidebarTab::Activity,
         }
     }
-}
-
-#[derive(Debug, Clone, Default)]
-pub(super) struct ProjectCounts {
-    pub agents: u64,
-    pub skills: u64,
-    pub rules: u64,
-    pub hooks: u64,
-    pub scripts: u64,
-    pub commands: u64,
-    pub version: String,
-}
-
-/// Reads `MANIFEST.json`'s canonical counts — the same file
-/// `core/scripts/check_counts.py` treats as the source of truth. Returns
-/// `None` rather than a zeroed struct on any read/parse failure, so the
-/// panel can show "unavailable" instead of a misleading "0 skills".
-pub(super) fn read_project_counts(repo_root: &Path) -> Option<ProjectCounts> {
-    let raw = fs::read_to_string(repo_root.join("MANIFEST.json")).ok()?;
-    let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let get_u64 = |key: &str| value.get(key).and_then(serde_json::Value::as_u64).unwrap_or(0);
-    Some(ProjectCounts {
-        agents: get_u64("agents_count"),
-        skills: get_u64("skills_count"),
-        rules: get_u64("rules_count"),
-        hooks: get_u64("hooks_count"),
-        scripts: get_u64("scripts_count"),
-        commands: get_u64("commands_count"),
-        version: value.get("version").and_then(serde_json::Value::as_str).unwrap_or("?").to_string(),
-    })
-}
-
-#[derive(Debug, Clone)]
-pub(super) struct MemoryFact {
-    pub id: String,
-    pub statement: String,
-}
-
-/// Reads `memory/L1_atomic/*.md` frontmatter directly (line-scan, not a
-/// full YAML parser — the frontmatter shape is small and stable, see
-/// `memory/L1_atomic/SCHEMA.md`) and returns facts whose `id` or
-/// `statement` contains `filter` (case-insensitive), most-recently-named
-/// file first, capped at `limit`. Empty `filter` matches everything.
-pub(super) fn read_memory_facts(repo_root: &Path, filter: &str, limit: usize) -> Vec<MemoryFact> {
-    let l1_dir = repo_root.join("memory/L1_atomic");
-    let Ok(entries) = fs::read_dir(&l1_dir) else { return Vec::new() };
-
-    let mut paths: Vec<_> = entries
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| {
-            p.extension().and_then(|e| e.to_str()) == Some("md")
-                && p.file_stem().and_then(|s| s.to_str()).is_some_and(|s| s.starts_with("fact-"))
-        })
-        .collect();
-    paths.sort();
-    paths.reverse(); // newest fact-<timestamp>.md filenames first
-
-    let filter_lower = filter.to_lowercase();
-    let mut out = Vec::new();
-    for path in paths {
-        let Ok(content) = fs::read_to_string(&path) else { continue };
-        let id = parse_frontmatter_field(&content, "id").unwrap_or_else(|| {
-            path.file_stem().and_then(|s| s.to_str()).unwrap_or("?").to_string()
-        });
-        let statement = parse_frontmatter_field(&content, "statement").unwrap_or_default();
-        if statement.is_empty() {
-            continue;
-        }
-        if !filter_lower.is_empty()
-            && !id.to_lowercase().contains(&filter_lower)
-            && !statement.to_lowercase().contains(&filter_lower)
-        {
-            continue;
-        }
-        out.push(MemoryFact { id, statement });
-        if out.len() >= limit {
-            break;
-        }
-    }
-    out
-}
-
-/// Extracts `key: value` from a YAML frontmatter block (between the first
-/// two `---` lines). Values are expected on a single line — every field
-/// this panel reads (`id`, `statement`) is documented as single-line in
-/// `memory/L1_atomic/SCHEMA.md`, so this deliberately doesn't handle
-/// multi-line YAML scalars.
-fn parse_frontmatter_field(content: &str, key: &str) -> Option<String> {
-    let mut in_frontmatter = false;
-    let prefix = format!("{key}:");
-    for line in content.lines() {
-        if line.trim() == "---" {
-            if in_frontmatter {
-                break;
-            }
-            in_frontmatter = true;
-            continue;
-        }
-        if in_frontmatter {
-            if let Some(rest) = line.strip_prefix(&prefix) {
-                return Some(rest.trim().to_string());
-            }
-        }
-    }
-    None
 }
