@@ -2,8 +2,9 @@
 
 ## Core principle
 
-Yana AI is a **personal agent operating system**.
-It is NOT a product. It is NOT bundled with any product repo by default.
+Yana AI is a **personal agent operating system and its canonical first-party
+product/runtime monorepo**. It is NOT bundled with an unrelated target product
+repo by default.
 
 Any product repo that uses Yana AI treats it as an **external tool**, applied
 through the target's `.claude/` directory for Claude Code and the standard
@@ -33,6 +34,9 @@ Mixing operating tooling with product code causes:
 core/hooks/         hook source
 core/scripts/       support scripts
 core/tests/         hook test suite
+core/contracts/     versioned first-party runtime/UI contracts
+src/                canonical yana-rt runtime source
+tools/yana-web/     canonical first-party web/desktop UI source
 gates/              truth gate, action gate specs
 docs/               Yana AI internal docs
 releases/           versioned packs
@@ -45,13 +49,20 @@ README.md
 ### Yana AI repo does NOT contain:
 
 ```txt
-any product application code (app/, components/, lib/, etc.)
-any product database schema or migrations
-any product UI assets (public/, static/)
+any unrelated target-product application code (app/, components/, lib/, etc.)
+any unrelated target-product database schema or migrations
+any unrelated target-product UI assets (public/, static/)
 any environment files (.env, .env.*)
 any product-specific secrets, API keys, or credentials
 any product-specific handover documents
 ```
+
+"Product" in the exclusions above means a target project using Yana AI, not
+Yana's own first-party surfaces. Per ADR-011, this repository is canonical for
+`yana-rt` and the first-party UI; the standalone `yana-web` repository is a
+one-way release mirror, while `Yana-AI-Chat_Teminal` is an incubator whose work
+must be reviewed and promoted here before release. Neither external repository
+may overwrite canonical source automatically.
 
 ### Target product repo contains (after applying Yana AI):
 

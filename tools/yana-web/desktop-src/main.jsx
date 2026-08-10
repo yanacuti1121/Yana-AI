@@ -4,8 +4,13 @@
 // App() in app.jsx owns routing/tweaks for all 14 pages.
 import ReactDOM from 'react-dom/client';
 import './themes.css';
+import './design/system.css';
 import { App } from './app.jsx';
 import { Undercurrent } from './app/undercurrent.jsx';
+import { FloralMotifs } from './design/floral-motifs.jsx';
+import { hydratePresentationPreferences } from './design/preferences.js';
+
+hydratePresentationPreferences();
 
 // Render only after the key vault has decrypted into its in-memory cache —
 // otherwise ProviderCard/Chat would see an empty vault on first paint.
@@ -13,6 +18,7 @@ window.YanaVault.ready.then(() => {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <>
       <Undercurrent />
+      <FloralMotifs />
       <App />
     </>
   );

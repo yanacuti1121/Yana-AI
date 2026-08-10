@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Electron shell for Yana AI — same UI, native window, system tray.</strong>
+  <strong>Unified Yana workspace — native shell, Cyber-Sakura UI, and a real yana-rt console.</strong>
 </p>
 
 <p align="center">
@@ -18,6 +18,14 @@ Minimal wrapper: spawns the `yana-web` Node server on an available loopback port
 waits for `/health`, then opens it in a `BrowserWindow`. No duplicated UI code —
 the web app **is** the desktop app.
 
+The Local Workspace has two persistent views:
+
+- **Yana Core** embeds the real `yana-rt chat` process through the Rust
+  `pty_bridge`. Provider calls, tools, approvals, history and cost tracking stay
+  inside `yana-rt`; the renderer only displays and forwards terminal bytes.
+- **Studio** embeds an optional loopback-only code-server at
+  `http://127.0.0.1:8092`. It loads only after the user opens the Studio tab.
+
 ## Run
 
 ```bash
@@ -25,6 +33,19 @@ cd ../yana-web && npm ci && npm run build:desktop
 cd ../.. && cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
 cd tools/yana-desktop && npm ci
 npm start
+```
+
+To use the optional Studio tab, start code-server separately and keep it bound
+to loopback only:
+
+```bash
+code-server --bind-addr 127.0.0.1:8092
+```
+
+For the terminal-only experience, no Node or Electron process is required:
+
+```bash
+cargo run --features cli --bin yana-rt -- chat
 ```
 
 ## Build
@@ -71,6 +92,10 @@ trust level any unsigned Windows/Linux binary already carries.
 ## Behavior
 
 - 🚀 Spawns `server.js` on a free loopback port → polls `/health` → opens window
+- 🧠 Embeds `yana-rt chat` through a local PTY; no mock chat engine in the UI
+- 🌸 Ships Cyber-Sakura/Lotus presentation controls without exposing safety
+  policy or runtime authority to browser storage
+- 🧰 Keeps the real local Studio available as a persistent, lazy-loaded tab
 - 🧭 System tray: Open · Open in browser · Quit
 - 🔗 External links open in the OS browser, never embedded
 - 🧹 `before-quit` kills the server child process cleanly

@@ -2,18 +2,14 @@
 //! — split out of `render.rs` (see that file's module doc) purely for
 //! line-count budget.
 
-use super::super::PendingApproval;
 use super::super::super::tool_types::{ToolCallRecord, ToolResultRecord};
+use super::super::PendingApproval;
+use super::Palette;
 use ratatui::layout::Rect;
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
-
-const TOOL_CALL_COLOR: Color = Color::Magenta;
-const TOOL_RESULT_COLOR: Color = Color::Yellow;
-const TOOL_ERROR_COLOR: Color = Color::Red;
-const TOOL_DENIED_COLOR: Color = Color::DarkGray;
 
 /// Arguments are shown as their raw JSON, truncated so a pathological
 /// huge argument payload can't blow out the history pane — the TUI view
@@ -24,25 +20,33 @@ const RESULT_PREVIEW_CHARS: usize = 500;
 
 /// One history line for a proposed tool call, e.g. `→ run_command:
 /// {"command":"npm test"}`.
-pub(super) fn tool_call_line(record: &ToolCallRecord) -> Line<'static> {
-    let style = Style::default().fg(TOOL_CALL_COLOR).add_modifier(Modifier::BOLD);
+pub(super) fn tool_call_line(record: &ToolCallRecord, palette: Palette) -> Line<'static> {
+    let style = Style::default()
+        .fg(palette.system_blue)
+        .add_modifier(Modifier::BOLD);
     let args = truncate_with_marker(&record.arguments_json, ARGS_PREVIEW_CHARS);
-    Line::from(vec![Span::styled(format!("→ {}: ", record.name), style), Span::raw(args)])
+    Line::from(vec![
+        Span::styled(format!("→ {}: ", record.name), style),
+        Span::raw(args),
+    ])
 }
 
 /// One history line for what running (or declining) a tool call
 /// produced.
-pub(super) fn tool_result_line(record: &ToolResultRecord) -> Line<'static> {
+pub(super) fn tool_result_line(record: &ToolResultRecord, palette: Palette) -> Line<'static> {
     let (color, label) = if record.denied {
-        (TOOL_DENIED_COLOR, "← declined")
+        (palette.muted, "← declined")
     } else if record.is_error {
-        (TOOL_ERROR_COLOR, "← error")
+        (palette.danger, "← error")
     } else {
-        (TOOL_RESULT_COLOR, "← result")
+        (palette.runtime_green, "← result")
     };
     let text = truncate_with_marker(&record.output, RESULT_PREVIEW_CHARS);
     Line::from(vec![
-        Span::styled(format!("{label}: "), Style::default().fg(color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("{label}: "),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
         Span::raw(text),
     ])
 }
@@ -61,14 +65,21 @@ fn truncate_with_marker(s: &str, max_chars: usize) -> String {
 /// prompt with no y-path rendered at all — the visual half of "no
 /// override on a guard denial" (`tui/approval.rs` is the enforcement
 /// half: it simply never dispatches `y`/`Y` to execution in this case).
-pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval, area: Rect) {
-    let (border_color, lines): (Color, Vec<Line>) = if let Some(reason) = pending.guard_verdict {
+pub(super) fn draw_approval_prompt(
+    frame: &mut Frame,
+    pending: &PendingApproval,
+    area: Rect,
+    palette: Palette,
+) {
+    let (border_color, lines) = if let Some(reason) = pending.guard_verdict {
         (
-            Color::Red,
+            palette.danger,
             vec![
                 Line::styled(
                     format!("BLOCKED: {reason}"),
-                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(palette.danger)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Line::raw(pending.command.clone()),
                 Line::styled(
@@ -79,18 +90,24 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
         )
     } else {
         (
-            Color::Yellow,
+            palette.warning,
             vec![
                 Line::styled(
                     "Run this command? [y]es / [N]o",
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(palette.warning)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Line::raw(pending.command.clone()),
             ],
         )
     };
     let widget = Paragraph::new(lines)
-        .block(Block::bordered().title(" approve command ").border_style(Style::default().fg(border_color)))
+        .block(
+            Block::bordered()
+                .title(" SYSTEM · approve command ")
+                .border_style(Style::default().fg(border_color)),
+        )
         .wrap(Wrap { trim: false });
     frame.render_widget(widget, area);
 }

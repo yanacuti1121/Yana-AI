@@ -1,0 +1,518 @@
+:root {
+  --yana-blue: #2563eb;
+  --yana-cyan: #38bdf8;
+  --yana-pink: #f48fb1;
+  --yana-pink-soft: #ffb7c5;
+  --yana-bamboo: #2e5a44;
+  --yana-green: #4ade80;
+  --yana-obsidian: #121417;
+  --yana-ink: #0f172a;
+  --lotus-blue: var(--yana-cyan);
+  --sakura: var(--yana-pink);
+  --matcha: var(--yana-green);
+  --obsidian: var(--yana-ink);
+  --runtime-terminal-bg: #0b1020;
+  --motif-opacity: .055;
+  --yana-blue-rgb: 37, 99, 235;
+  --yana-pink-rgb: 244, 143, 177;
+  --yana-green-rgb: 74, 222, 128;
+  --yana-brand-blend-rgb: 109, 131, 193;
+  --yana-blue-weight: 45;
+  --yana-pink-weight: 30;
+  --yana-green-weight: 25;
+  --yana-glow-strength: 0.58;
+  --yana-glow: var(--yana-glow-strength);
+  --yana-glow-alpha: 0.242;
+  --yana-glow-soft-alpha: 0.149;
+  --yana-glow-faint-alpha: 0.088;
+  --yana-blue-presence: 0.114;
+  --yana-pink-presence: 0.084;
+  --yana-green-presence: 0.074;
+  --yana-glow-chip-percent: 38%;
+  --yana-glass-blur: 15px;
+  --yana-surface-opacity: 0.84;
+  --color-state-thinking: var(--yana-cyan);
+  --color-state-focus: var(--yana-pink);
+  --color-state-success: var(--yana-green);
+  --color-focus-ring: var(--yana-pink);
+}
+
+/* Signature dark preset. The legacy 14 presets remain defined in themes.css. */
+[data-theme="cyber-sakura"] {
+  color-scheme: dark;
+  --bg-base: #0f172a;
+  --bg-scene:
+    radial-gradient(1050px 620px at 10% -8%, rgba(37, 99, 235, .34), transparent 60%),
+    radial-gradient(820px 520px at 92% 2%, rgba(244, 143, 177, .22), transparent 58%),
+    radial-gradient(1200px 720px at 52% 112%, rgba(74, 222, 128, .14), transparent 64%),
+    linear-gradient(165deg, #0f172a 0%, #121417 56%, #0b1020 100%);
+  --surface-rgb: 18, 20, 23;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #f8fafc;
+  --ink-2: #cbd5e1;
+  --ink-3: #94a3b8;
+  --primary: #38bdf8;
+  --primary-soft: rgba(56, 189, 248, .16);
+  --pink: #f48fb1;
+  --pink-soft: rgba(244, 143, 177, .15);
+  --gold: #fbbf24;
+  --gold-soft: rgba(251, 191, 36, .14);
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --border: rgba(148, 163, 184, .17);
+  --border-strong: rgba(148, 163, 184, .28);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), .72);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 84%, white);
+  --color-destructive: #fb7185;
+}
+
+[data-theme="cyber-sakura"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 52% at 16% 25%, rgba(56, 189, 248, .26), transparent 66%),
+    radial-gradient(ellipse 52% 42% at 86% 70%, rgba(244, 143, 177, .18), transparent 62%),
+    radial-gradient(ellipse 72% 54% at 48% 108%, rgba(74, 222, 128, .12), transparent 68%);
+}
+
+[data-theme="cyber-sakura"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 170px 90px at 26% 58%, rgba(56, 189, 248, .16), transparent 80%),
+    radial-gradient(ellipse 120px 70px at 70% 28%, rgba(244, 143, 177, .12), transparent 80%),
+    radial-gradient(ellipse 150px 82px at 84% 76%, rgba(74, 222, 128, .10), transparent 80%);
+}
+
+[data-theme="cyber-sakura"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 240px 130px at 20% 80%, rgba(56, 189, 248, .18), transparent 70%),
+    radial-gradient(ellipse 210px 115px at 70% 86%, rgba(244, 143, 177, .14), transparent 70%),
+    radial-gradient(ellipse 175px 96px at 46% 94%, rgba(74, 222, 128, .10), transparent 70%);
+  filter: blur(22px);
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.yana-glass,
+.yana-sidebar.glass,
+.yana-menu-btn.glass-strong {
+  background: rgba(var(--surface-rgb), var(--yana-surface-opacity));
+  -webkit-backdrop-filter: blur(var(--yana-glass-blur)) saturate(128%);
+  backdrop-filter: blur(var(--yana-glass-blur)) saturate(128%);
+  border-color: color-mix(in oklab, var(--color-border) 72%, rgba(var(--yana-brand-blend-rgb), .26));
+  box-shadow:
+    inset 0 1px 0 rgba(var(--surface-rgb), .34),
+    0 16px 48px rgba(var(--shadow-rgb), .08);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .yana-glass,
+  .yana-sidebar.glass,
+  .yana-menu-btn.glass-strong { background: rgb(var(--surface-rgb)); }
+}
+
+.yana-floral-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .045;
+  transition: opacity 220ms ease-in-out;
+}
+
+[data-yana-motif="off"] .yana-floral-layer { display: none; }
+[data-yana-motif="subtle"] .yana-floral-layer { opacity: .045; }
+[data-yana-motif="visible"] .yana-floral-layer { opacity: .095; }
+
+.yana-lotus-motif,
+.yana-sakura-motif {
+  position: absolute;
+  color: rgb(var(--yana-brand-blend-rgb));
+  filter: drop-shadow(0 0 24px rgba(var(--yana-brand-blend-rgb), var(--yana-glow-alpha)));
+}
+
+.yana-lotus-motif {
+  width: min(38vw, 520px);
+  left: -5vw;
+  bottom: -8vh;
+  stroke-width: 3;
+}
+
+.yana-sakura-motif {
+  width: min(25vw, 330px);
+  right: -4vw;
+  top: -8vh;
+}
+
+.yana-presentation-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 4px 0 18px;
+  padding: clamp(16px, 2.5vw, 24px);
+  border-radius: var(--r-lg);
+}
+
+.yana-presentation-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(var(--yana-blue-rgb), var(--yana-blue-presence)), transparent 38%),
+    radial-gradient(circle at 96% 12%, rgba(var(--yana-pink-rgb), var(--yana-pink-presence)), transparent 34%),
+    radial-gradient(circle at 80% 105%, rgba(var(--yana-green-rgb), var(--yana-green-presence)), transparent 38%);
+}
+
+.yana-presentation-panel:focus-within {
+  box-shadow:
+    inset 0 1px 0 rgba(var(--surface-rgb), .38),
+    0 0 0 1px rgba(var(--yana-pink-rgb), .24),
+    0 18px 54px rgba(var(--yana-pink-rgb), var(--yana-glow-faint-alpha));
+}
+
+.yana-presentation-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.yana-presentation-intro h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  line-height: 1.3;
+  letter-spacing: -.015em;
+}
+
+.yana-presentation-intro p {
+  max-width: 62ch;
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.yana-state-preview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.yana-state-chip {
+  --state-color: var(--color-text-muted);
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in oklab, var(--state-color) 30%, transparent);
+  border-radius: 999px;
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--state-color) 10%, transparent);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.yana-state-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--state-color);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--state-color) var(--yana-glow-chip-percent), transparent);
+}
+
+.yana-state--thinking { --state-color: var(--color-state-thinking); }
+.yana-state--focus { --state-color: var(--color-state-focus); }
+.yana-state--success { --state-color: var(--color-state-success); }
+
+.yana-balance-fieldset,
+.yana-motif-control {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.yana-balance-fieldset > legend,
+.yana-motif-control > legend {
+  margin-bottom: 8px;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.yana-balance-meter {
+  height: 8px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--yana-blue) 0 var(--balance-blue),
+    var(--yana-pink) var(--balance-blue) var(--balance-pink),
+    var(--yana-green) var(--balance-pink) 100%
+  );
+  box-shadow: 0 0 18px rgba(var(--yana-brand-blend-rgb), var(--yana-glow-faint-alpha));
+}
+
+.yana-control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.yana-control-grid + .yana-control-grid { margin-top: 20px; }
+
+.yana-slider-field { min-width: 0; }
+
+.yana-slider-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.yana-slider-heading label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.yana-slider-heading output {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.yana-slider-field input[type="range"] {
+  --range-color: rgb(var(--yana-brand-blend-rgb));
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.yana-slider-field[data-tone="blue"] input { --range-color: var(--yana-blue); }
+.yana-slider-field[data-tone="pink"] input { --range-color: var(--yana-pink); }
+.yana-slider-field[data-tone="green"] input { --range-color: var(--yana-green); }
+
+.yana-slider-field input[type="range"]::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--range-color) 32%, var(--color-border));
+}
+
+.yana-slider-field input[type="range"]::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -7.5px;
+  appearance: none;
+  border: 3px solid rgb(var(--surface-rgb));
+  border-radius: 50%;
+  background: var(--range-color);
+  box-shadow: 0 0 0 1px var(--color-border), 0 0 16px color-mix(in oklab, var(--range-color) 45%, transparent);
+}
+
+.yana-slider-field input[type="range"]::-moz-range-track {
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--range-color) 32%, var(--color-border));
+}
+
+.yana-slider-field input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgb(var(--surface-rgb));
+  border-radius: 50%;
+  background: var(--range-color);
+  box-shadow: 0 0 0 1px var(--color-border), 0 0 16px color-mix(in oklab, var(--range-color) 45%, transparent);
+}
+
+.yana-presentation-footer {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(320px, 1.2fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.yana-motif-control > div {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(var(--shadow-rgb), .07);
+}
+
+.yana-motif-control button {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.yana-motif-control button[aria-pressed="true"] {
+  color: var(--color-text);
+  background: rgba(var(--surface-rgb), .9);
+  box-shadow: 0 1px 4px rgba(var(--shadow-rgb), .14);
+}
+
+.yana-accessibility-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.yana-preference-switch {
+  position: relative;
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.yana-preference-switch > span:first-child { min-width: 0; }
+.yana-preference-switch strong,
+.yana-preference-switch small { display: block; }
+.yana-preference-switch strong { color: var(--color-text); font-size: var(--font-size-xs); }
+.yana-preference-switch small { margin-top: 2px; color: var(--color-text-muted); font-size: 11px; line-height: 1.35; }
+.yana-preference-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+.yana-preference-switch-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: rgba(var(--shadow-rgb), .12);
+  transition: background 120ms ease-out, border-color 120ms ease-out;
+}
+
+.yana-preference-switch-track i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(var(--surface-rgb));
+  box-shadow: 0 1px 3px rgba(var(--shadow-rgb), .24);
+  transition: transform 120ms ease-out;
+}
+
+.yana-preference-switch input:checked + .yana-preference-switch-track {
+  border-color: var(--color-state-success);
+  background: var(--color-state-success);
+}
+
+.yana-preference-switch input:checked + .yana-preference-switch-track i { transform: translateX(18px); }
+.yana-preference-switch input:focus-visible + .yana-preference-switch-track { outline: 2px solid var(--color-focus-ring); outline-offset: 3px; }
+
+.yana-presentation-reset {
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  background: rgba(var(--surface-rgb), .5);
+  cursor: pointer;
+}
+
+.yana-presentation-reset:hover { color: var(--color-text); border-color: var(--border-strong); }
+
+.yana-accent-swatches { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+.yana-accent-swatch {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.yana-accent-swatch > span {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgba(var(--shadow-rgb), .12);
+}
+
+.yana-accent-swatch[aria-pressed="true"] > span {
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--swatch);
+}
+
+[data-yana-contrast="boost"] {
+  --color-text-muted: var(--ink);
+  --border: color-mix(in oklab, var(--ink) 28%, transparent);
+  --border-strong: color-mix(in oklab, var(--ink) 42%, transparent);
+  --color-border: var(--border);
+}
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .yana-floral-layer { opacity: .035; }
+  [data-yana-motif="visible"] .yana-floral-layer { opacity: .07; }
+  .yana-lotus-motif { width: 76vw; left: -28vw; }
+  .yana-sakura-motif { width: 56vw; right: -24vw; }
+  .yana-presentation-intro { flex-direction: column; }
+  .yana-state-preview { justify-content: flex-start; }
+  .yana-control-grid,
+  .yana-control-grid--three,
+  .yana-presentation-footer,
+  .yana-accessibility-controls { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .yana-presentation-panel { padding: 14px; }
+  .yana-state-chip { min-height: 36px; }
+  .yana-motif-control > div { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+  .yana-motif-control button { min-width: 0; padding-inline: 7px; }
+}

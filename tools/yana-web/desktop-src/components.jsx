@@ -81,21 +81,53 @@ export async function signOut() {
 }
 
 /* ---------- Sidebar ---------- */
-export const NAV = [
-  { id: "dashboard", label: "Lake",          vi: "Mặt hồ",        ko: "호수",         zh: "湖面",     icon: "dashboard" },
-  { id: "missions",  label: "Missions",      vi: "Nhiệm vụ",      ko: "미션",         zh: "任务",     icon: "missions" },
-  { id: "chat",      label: "Conversation",  vi: "Trò chuyện",    ko: "대화",         zh: "对话",     icon: "chat" },
-  { id: "agents",    label: "Agents",        vi: "Tác nhân",      ko: "에이전트",      zh: "智能体",   icon: "agents" },
-  { id: "sessions",  label: "Sessions",      vi: "Lịch sử",       ko: "세션",         zh: "会话",     icon: "memory" },
-  { id: "analytics", label: "Analytics",     vi: "Thống kê",      ko: "분석",         zh: "分析",     icon: "dashboard" },
-  { id: "cron",      label: "Cron",          vi: "Tự động",       ko: "자동화",        zh: "自动化",   icon: "missions" },
-  { id: "memory",    label: "Memory Garden", vi: "Vườn ký ức",    ko: "메모리 가든",    zh: "记忆花园", icon: "memory" },
-  { id: "skills",    label: "Skills",        vi: "Kỹ năng",       ko: "스킬",         zh: "技能",     icon: "skills" },
-  { id: "providers",  label: "Providers",     vi: "Nhà cung cấp",  ko: "프로바이더",    zh: "提供商",   icon: "providers" },
-  { id: "html-maker", label: "HTML Maker",    vi: "Tạo HTML",      ko: "HTML 메이커",   zh: "HTML 制作", icon: "spark" },
-  { id: "codexmate",  label: "Codexmate",     vi: "Codexmate",     ko: "Codexmate",    zh: "Codexmate", icon: "code" },
-  { id: "terminal",   label: "Terminal",      vi: "Dòng lệnh",     ko: "터미널",        zh: "终端",      icon: "code" },
+export const NAV_GROUPS = [
+  {
+    id: "home",
+    label: "Home", vi: "Trang chính", ko: "홈", zh: "主页",
+    items: [
+      { id: "chat", label: "Chat", vi: "Trò chuyện", ko: "대화", zh: "对话", icon: "chat" },
+      { id: "dashboard", label: "Overview", vi: "Tổng quan", ko: "개요", zh: "概览", icon: "dashboard" },
+    ],
+  },
+  {
+    id: "workspace",
+    label: "Workspace", vi: "Không gian", ko: "워크스페이스", zh: "工作区",
+    items: [
+      { id: "missions", label: "Missions", vi: "Nhiệm vụ", ko: "미션", zh: "任务", icon: "missions" },
+      { id: "sessions", label: "Sessions", vi: "Lịch sử", ko: "세션", zh: "会话", icon: "memory" },
+      { id: "agents", label: "Agents", vi: "Tác nhân", ko: "에이전트", zh: "智能体", icon: "agents" },
+      { id: "terminal", label: "Yana Core", vi: "Lõi Yana", ko: "Yana 코어", zh: "Yana 核心", icon: "code" },
+    ],
+  },
+  {
+    id: "runtime",
+    label: "Runtime", vi: "Hệ thống", ko: "런타임", zh: "运行时",
+    items: [
+      { id: "providers", label: "Providers", vi: "Nhà cung cấp", ko: "프로바이더", zh: "提供商", icon: "providers" },
+      { id: "analytics", label: "Analytics", vi: "Thống kê", ko: "분석", zh: "分析", icon: "dashboard" },
+      { id: "cron", label: "Automation", vi: "Tự động hóa", ko: "자동화", zh: "自动化", icon: "missions" },
+    ],
+  },
+  {
+    id: "library",
+    label: "Library", vi: "Thư viện", ko: "라이브러리", zh: "资源库",
+    items: [
+      { id: "memory", label: "Memory Garden", vi: "Vườn ký ức", ko: "메모리 가든", zh: "记忆花园", icon: "memory" },
+      { id: "skills", label: "Skills", vi: "Kỹ năng", ko: "스킬", zh: "技能", icon: "skills" },
+    ],
+  },
+  {
+    id: "create",
+    label: "Create", vi: "Sáng tạo", ko: "만들기", zh: "创作",
+    items: [
+      { id: "html-maker", label: "HTML Maker", vi: "Tạo HTML", ko: "HTML 메이커", zh: "HTML 制作", icon: "spark" },
+      { id: "codexmate", label: "Codexmate", vi: "Codexmate", ko: "Codexmate", zh: "Codexmate", icon: "code" },
+    ],
+  },
 ];
+
+export const NAV = NAV_GROUPS.flatMap((group) => group.items);
 
 export function Sidebar({ page, onNav }) {
   const D = window.YANA;
@@ -161,27 +193,36 @@ export function Sidebar({ page, onNav }) {
       }}>
         <div style={{ marginBottom: "calc(14px * var(--sp))" }}><Wordmark /></div>
 
-        {NAV.map((n) => {
-          const active = page === n.id;
-          return (
-            <button key={n.id} onClick={() => nav(n.id)} style={{
-              display: "flex", alignItems: "center", gap: 11,
-              padding: "calc(8px * var(--sp)) 11px", borderRadius: "var(--r-sm)",
-              border: "none", cursor: "pointer", width: "100%", textAlign: "left",
-              fontSize: 13.5, fontWeight: active ? 500 : 400,
-              color: active ? "var(--primary)" : "var(--ink-2)",
-              background: active ? "var(--primary-soft)" : "transparent",
-              transition: "background .15s, color .15s",
-            }}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(var(--surface-rgb), .5)"; }}
-              onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-              {Icons[n.icon](17)}
-              <span>{L(n.label, n.vi, n.ko, n.zh)}</span>
-            </button>
-          );
-        })}
-
-        <div style={{ flex: 1 }}></div>
+        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", margin: "0 -4px", padding: "0 4px 8px" }}>
+          {NAV_GROUPS.map((group, groupIndex) => (
+            <section key={group.id} aria-label={L(group.label, group.vi, group.ko, group.zh)} style={{ marginTop: groupIndex ? 13 : 0 }}>
+              <div style={{
+                padding: "0 11px 5px", color: "var(--ink-3)",
+                fontSize: 9.5, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase",
+              }}>{L(group.label, group.vi, group.ko, group.zh)}</div>
+              {group.items.map((n) => {
+                const active = page === n.id;
+                return (
+                  <button key={n.id} onClick={() => nav(n.id)} aria-current={active ? "page" : undefined} style={{
+                    display: "flex", alignItems: "center", gap: 11,
+                    padding: "calc(7px * var(--sp)) 11px", borderRadius: "var(--r-sm)",
+                    border: "none", cursor: "pointer", width: "100%", textAlign: "left",
+                    fontSize: 13, fontWeight: active ? 600 : 400,
+                    color: active ? "var(--primary)" : "var(--ink-2)",
+                    background: active ? "var(--primary-soft)" : "transparent",
+                    boxShadow: active ? "inset 2px 0 0 var(--primary)" : "none",
+                    transition: "background .15s, color .15s, box-shadow .15s",
+                  }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(var(--surface-rgb), .5)"; }}
+                    onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}>
+                    {Icons[n.icon](17)}
+                    <span>{L(n.label, n.vi, n.ko, n.zh)}</span>
+                  </button>
+                );
+              })}
+            </section>
+          ))}
+        </div>
 
         {/* ── Profile footer ────────────────────────────────── */}
         <div ref={profileRef} style={{ position: "relative" }}>

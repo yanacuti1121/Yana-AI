@@ -18,9 +18,9 @@ export function SettingRow({ label, desc, value }) {
   );
 }
 
-export function YSwitch({ value, onChange }) {
+export function YSwitch({ value, onChange, label }) {
   return (
-    <button onClick={() => onChange(!value)} aria-pressed={value} style={{
+    <button type="button" role="switch" aria-label={label} aria-checked={value} onClick={() => onChange(!value)} style={{
       width: 40, height: 24, borderRadius: 99, border: "none", cursor: "pointer", flex: "none",
       background: value ? "var(--primary)" : "rgba(var(--shadow-rgb), .15)",
       position: "relative", transition: "background .18s",
@@ -33,11 +33,11 @@ export function YSwitch({ value, onChange }) {
   );
 }
 
-export function YSeg({ options, value, onChange }) {
+export function YSeg({ options, value, onChange, label }) {
   return (
-    <div style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 10, background: "rgba(var(--shadow-rgb), .07)" }}>
+    <div role="group" aria-label={label} style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 10, background: "rgba(var(--shadow-rgb), .07)" }}>
       {options.map((o) => (
-        <button key={o} onClick={() => onChange(o)} style={{
+        <button type="button" key={o} aria-pressed={value === o} onClick={() => onChange(o)} style={{
           padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12.5,
           fontWeight: value === o ? 500 : 400,
           background: value === o ? "rgba(var(--surface-rgb), .95)" : "transparent",
@@ -66,7 +66,7 @@ export function ToggleRow({ label, desc, storeKey, defaultVal }) {
         <div style={{ fontSize: 13.5, fontWeight: 500 }}>{label}</div>
         {desc && <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{desc}</div>}
       </div>
-      <YSwitch value={v} onChange={toggle} />
+      <YSwitch label={label} value={v} onChange={toggle} />
     </div>
   );
 }

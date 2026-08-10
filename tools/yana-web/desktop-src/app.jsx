@@ -9,6 +9,7 @@ import { useTweaks } from './lib/tweaks/use-tweaks.js';
 import { TweaksPanel } from './lib/tweaks/panel.jsx';
 import { TweakSection, TweakToggle, TweakRadio, TweakSelect } from './lib/tweaks/controls.jsx';
 import { TweakColor, TweakButton } from './lib/tweaks/color-control.jsx';
+import { applyPresentationPreferences, PRESENTATION_DEFAULTS } from './design/preferences.js';
 
 import { Dashboard } from './dashboard.jsx';
 import { Chat } from './pages/chat.jsx';
@@ -26,7 +27,7 @@ import { TerminalPanel } from './terminal.jsx';
 import { VTuber } from './vtuber.jsx';
 
 const TWEAK_DEFAULTS = {
-  "theme": "Jade Lake 🌿",
+  "theme": "Cyber-Sakura Lotus 🌸",
   "language": "English",
   "layout": "Regular",
   "showAgents": true,
@@ -39,10 +40,12 @@ const TWEAK_DEFAULTS = {
   "showRipple": true,
   "showWater": true,
   "chatFont": "System",
-  "reduceMotion": false,
+  ...PRESENTATION_DEFAULTS,
 };
 
 const THEME_MAP = {
+  /* ── Signature ── */
+  "Cyber-Sakura Lotus 🌸": "cyber-sakura",
   /* ── Light ── */
   "Jade Lake 🌿":    "jade",
   "Lotus Dawn 🌸":   "dawn",
@@ -78,6 +81,7 @@ function applyTweaks(t) {
   document.body.classList.toggle("no-ripple",      t.showRipple     === false);
   document.body.classList.toggle("no-water",       t.showWater      === false);
   document.body.classList.toggle("reduce-motion",  t.reduceMotion   === true);
+  applyPresentationPreferences(t);
   const FONT_MAP = {
     "System":     "ui-sans-serif, system-ui, -apple-system, sans-serif",
     "Be Vietnam": "'Be Vietnam Pro', ui-sans-serif, sans-serif",
@@ -94,20 +98,6 @@ export function App() {
 
   React.useEffect(() => applyTweaks(t), [t]);
   React.useEffect(() => localStorage.setItem("yana.page", page), [page]);
-
-  // Smooth scroll (Lenis) — desktop only, chat manages its own internal
-  // scroll so it's excluded; mobile already has native momentum scroll
-  // (-webkit-overflow-scrolling: touch in mobile.css) and doesn't need this.
-  React.useEffect(() => {
-    if (page === "chat" || !mainRef.current) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let lenis, cancelled = false;
-    import("https://unpkg.com/lenis@1.3.23/dist/lenis.mjs").then(({ default: Lenis }) => {
-      if (cancelled || !mainRef.current) return;
-      lenis = new Lenis({ wrapper: mainRef.current, content: mainRef.current.firstElementChild, autoRaf: true });
-    }).catch(() => {});
-    return () => { cancelled = true; lenis && lenis.destroy(); };
-  }, [page]);
 
   const Page = {
     dashboard: () => <Dashboard t={t} onNav={setPage} />,
@@ -174,7 +164,7 @@ export function App() {
         <TweakToggle label={L("System status", "Trạng thái hệ thống", "시스템 상태", "系统状态")} value={t.showSystem} onChange={(v) => setTweak("showSystem", v)} />
 
         <TweakSection label={L("Accent color", "Màu nhấn", "강조 색상", "强调色")} />
-        <TweakColor label="" value={t.accent || "#2f7e6e"}
+        <TweakColor label="" value={t.accent || "#38bdf8"}
           options={["#2f7e6e","#5a8a50","#1a7eb0","#7c5cbf","#b96b80","#c97c18","#3a7ca5","#c06050","#56949f","#6f8f5a"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakButton label={L("Use theme accent", "Dùng màu theo theme", "테마 색상 사용", "使用主题色")} onClick={() => setTweak("accent", "")} />

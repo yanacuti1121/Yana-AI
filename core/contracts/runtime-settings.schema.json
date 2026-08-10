@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/contracts/runtime-settings.schema.json",
+  "title": "Yana Runtime Settings",
+  "description": "Rust-owned settings for the canonical yana-rt RuntimeService. The first-party UI may read an effective snapshot through the runtime protocol, but must never write this document or interpret it as UI preferences.",
+  "$comment": "RuntimeService must load this file from dataRoot, validate it before use, write it atomically, and fail closed on invalid security-sensitive fields. Paths are canonicalized and authorized by Rust; JSON Schema cannot prove path identity or containment.",
+  "type": "object",
+  "required": ["schemaVersion", "owner", "roots", "transport", "approvals", "featureFlags", "persistence"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "owner": { "const": "yana-rt" },
+    "roots": { "$ref": "#/$defs/roots" },
+    "transport": { "$ref": "#/$defs/transport" },
+    "approvals": { "$ref": "#/$defs/approvals" },
+    "featureFlags": { "$ref": "#/$defs/featureFlags" },
+    "persistence": { "$ref": "#/$defs/persistence" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Native absolute path. RuntimeService canonicalizes it before granting access and never evaluates it as shell text."
+    },
+    "roots": {
+      "type": "object",
+      "required": ["installRoot", "workspaceRoot", "dataRoot"],
+      "properties": {
+        "installRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Installed executable, bundled assets and release metadata. Treated as read-only during normal runtime operation."
+        },
+        "workspaceRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Currently authorized project root. File and process capabilities resolve task paths against this root."
+        },
+        "dataRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Mutable application state: runtime settings, UI preferences, journals, history, logs and crash markers. It is not a source-code root."
+        }
+      },
+      "additionalProperties": false
+    },
+    "transport": {
+      "type": "object",
+      "required": [
+        "kind",
+        "protocol",
+        "protocolVersion",
+        "jsonRpcVersion",
+        "framing",
+        "encoding",
+        "maxFrameBytes",
+        "maxInFlightRequests",
+        "eventWindow",
+        "ackTimeoutMs",
+        "shutdownGraceMs"
+      ],
+      "properties": {
+        "kind": { "const": "private-supervised-stdio" },
+        "protocol": { "const": "yana.runtime" },
+        "protocolVersion": { "const": "1.0" },
+        "jsonRpcVersion": { "const": "2.0" },
+        "framing": { "const": "ndjson" },
+        "encoding": { "const": "utf-8" },
+        "maxFrameBytes": { "type": "integer", "minimum": 4096, "maximum": 16777216 },
+        "maxInFlightRequests": { "type": "integer", "minimum": 1, "maximum": 256 },
+        "eventWindow": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "ackTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 120000 },
+        "shutdownGraceMs": { "type": "integer", "minimum": 100, "maximum": 30000 }
+      },
+      "additionalProperties": false
+    },
+    "approvals": {
+      "type": "object",
+      "required": ["authority", "handleTtlMs", "maxPending", "allowedDecisions", "persistHandles", "allowSessionGrants"],
+      "properties": {
+        "authority": { "const": "yana-rt" },
+        "handleTtlMs": { "type": "integer", "minimum": 1000, "maximum": 300000 },
+        "maxPending": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "allowedDecisions": {
+          "type": "array",
+          "items": { "enum": ["approve_once", "deny"] },
+          "contains": { "const": "approve_once" },
+          "minContains": 1,
+          "maxContains": 1,
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "persistHandles": { "const": false },
+        "allowSessionGrants": { "const": false }
+      },
+      "additionalProperties": false
+    },
+    "featureFlag": {
+      "type": "object",
+      "required": ["stage", "rolloutPercent", "allowlistedInstallations", "killSwitch"],
+      "properties": {
+        "stage": { "enum": ["off", "shadow", "canary", "on"] },
+        "rolloutPercent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "allowlistedInstallations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "maxItems": 1024,
+          "uniqueItems": true
+        },
+        "killSwitch": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "stage": { "const": "off" } }, "required": ["stage"] },
+          "then": { "properties": { "rolloutPercent": { "const": 0 } } }
+        },
+        {
+          "if": { "properties": { "stage": { "const": "on" } }, "required": ["stage"] },
+          "then": { "properties": { "rolloutPercent": { "const": 100 } } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "featureFlags": {
+      "type": "object",
+      "description": "Rust evaluates rollout from a stable installation ID. The UI receives only the negotiated effective capability set and cannot override stages, cohorts or the kill switch.",
+      "required": ["unifiedExperience"],
+      "properties": {
+        "unifiedExperience": { "$ref": "#/$defs/featureFlag" }
+      },
+      "patternProperties": {
+        "^[a-z][A-Za-z0-9]{1,63}$": { "$ref": "#/$defs/featureFlag" }
+      },
+      "additionalProperties": false
+    },
+    "persistence": {
+      "type": "object",
+      "required": ["operationJournal", "operationRetentionDays", "eventRetentionDays", "crashMarkers"],
+      "properties": {
+        "operationJournal": { "const": true },
+        "operationRetentionDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+        "eventRetentionDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+        "crashMarkers": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  }
+}

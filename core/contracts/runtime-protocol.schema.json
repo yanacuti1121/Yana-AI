@@ -1,0 +1,590 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yana-ai.dev/contracts/runtime-protocol.schema.json",
+  "title": "Yana Private Runtime Protocol Frame",
+  "description": "One decoded UTF-8 NDJSON line on the supervised first-party UI <-> yana-rt RuntimeService channel. This private JSON-RPC 2.0 protocol is not MCP. Batch arrays are forbidden; one line is exactly one frame.",
+  "$comment": "Wire rules that JSON Schema cannot express: LF-delimited UTF-8 without BOM; no embedded raw newline; encoded frame length must not exceed the negotiated maxFrameBytes; request IDs are unique for the session; sequence is strictly increasing and gap-free per sender; stdout is protocol-only and stderr is diagnostics-only.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/initializeRequest" },
+    { "$ref": "#/$defs/initializeResponse" },
+    { "$ref": "#/$defs/initializedNotification" },
+    { "$ref": "#/$defs/callRequest" },
+    { "$ref": "#/$defs/callResponse" },
+    { "$ref": "#/$defs/operationGetRequest" },
+    { "$ref": "#/$defs/cancelRequest" },
+    { "$ref": "#/$defs/cancelResponse" },
+    { "$ref": "#/$defs/approvalResolveRequest" },
+    { "$ref": "#/$defs/approvalResolveResponse" },
+    { "$ref": "#/$defs/ackNotification" },
+    { "$ref": "#/$defs/eventNotification" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "description": "Opaque correlation identifier. Consumers compare it byte-for-byte and must not parse meaning from it."
+    },
+    "protocolVersion": {
+      "const": "1.0"
+    },
+    "semanticVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Native absolute path returned by RuntimeService after canonicalization. It is data, never a shell fragment."
+    },
+    "clientInitializeMeta": {
+      "type": "object",
+      "required": ["protocol", "protocolVersion", "sessionId", "sequence", "sender"],
+      "properties": {
+        "protocol": { "const": "yana.runtime" },
+        "protocolVersion": { "$ref": "#/$defs/protocolVersion" },
+        "sessionId": { "type": "null" },
+        "sequence": { "const": 1 },
+        "sender": { "const": "client" },
+        "traceId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "runtimeInitializeMeta": {
+      "type": "object",
+      "required": ["protocol", "protocolVersion", "sessionId", "sequence", "sender"],
+      "properties": {
+        "protocol": { "const": "yana.runtime" },
+        "protocolVersion": { "$ref": "#/$defs/protocolVersion" },
+        "sessionId": { "$ref": "#/$defs/opaqueId" },
+        "sequence": { "const": 1 },
+        "sender": { "const": "runtime" },
+        "traceId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "clientActiveMeta": {
+      "type": "object",
+      "required": ["protocol", "protocolVersion", "sessionId", "sequence", "sender"],
+      "properties": {
+        "protocol": { "const": "yana.runtime" },
+        "protocolVersion": { "$ref": "#/$defs/protocolVersion" },
+        "sessionId": { "$ref": "#/$defs/opaqueId" },
+        "sequence": { "type": "integer", "minimum": 2, "maximum": 9007199254740991 },
+        "sender": { "const": "client" },
+        "traceId": { "$ref": "#/$defs/opaqueId" },
+        "causationId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "runtimeActiveMeta": {
+      "type": "object",
+      "required": ["protocol", "protocolVersion", "sessionId", "sequence", "sender"],
+      "properties": {
+        "protocol": { "const": "yana.runtime" },
+        "protocolVersion": { "$ref": "#/$defs/protocolVersion" },
+        "sessionId": { "$ref": "#/$defs/opaqueId" },
+        "sequence": { "type": "integer", "minimum": 2, "maximum": 9007199254740991 },
+        "sender": { "const": "runtime" },
+        "traceId": { "$ref": "#/$defs/opaqueId" },
+        "causationId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "clientInfo": {
+      "type": "object",
+      "required": ["name", "version", "instanceId"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "version": { "$ref": "#/$defs/semanticVersion" },
+        "instanceId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "serverInfo": {
+      "type": "object",
+      "required": ["name", "version", "pid"],
+      "properties": {
+        "name": { "const": "yana-rt" },
+        "version": { "$ref": "#/$defs/semanticVersion" },
+        "pid": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "capabilityName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "capabilityList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/capabilityName" },
+      "uniqueItems": true,
+      "maxItems": 256
+    },
+    "roots": {
+      "type": "object",
+      "required": ["installRoot", "workspaceRoot", "dataRoot"],
+      "properties": {
+        "installRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Canonical read-only location of installed code and bundled assets. Runtime state must never be written here."
+        },
+        "workspaceRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Canonical user-selected project root against which scoped capabilities resolve paths."
+        },
+        "dataRoot": {
+          "$ref": "#/$defs/path",
+          "description": "Canonical mutable runtime-state root for journals, logs, history and settings; never treated as application code."
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "required": ["maxFrameBytes", "maxInFlightRequests", "eventWindow", "ackTimeoutMs", "shutdownGraceMs"],
+      "properties": {
+        "maxFrameBytes": { "type": "integer", "minimum": 4096, "maximum": 16777216 },
+        "maxInFlightRequests": { "type": "integer", "minimum": 1, "maximum": 256 },
+        "eventWindow": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "ackTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 120000 },
+        "shutdownGraceMs": { "type": "integer", "minimum": 100, "maximum": 30000 }
+      },
+      "additionalProperties": false
+    },
+    "initializeRequest": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "method": { "const": "runtime.initialize" },
+        "params": {
+          "type": "object",
+          "required": ["client", "protocolVersions", "capabilities"],
+          "properties": {
+            "client": { "$ref": "#/$defs/clientInfo" },
+            "protocolVersions": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 32 },
+              "contains": { "$ref": "#/$defs/protocolVersion" },
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true
+            },
+            "capabilities": { "$ref": "#/$defs/capabilityList" },
+            "workspaceHint": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "description": "Untrusted selection hint only. RuntimeService canonicalizes and authorizes it before returning workspaceRoot."
+            }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientInitializeMeta" }
+      },
+      "additionalProperties": false
+    },
+    "initializeResult": {
+      "type": "object",
+      "required": ["type", "protocolVersion", "server", "sessionId", "capabilities", "roots", "limits", "settingsVersions"],
+      "properties": {
+        "type": { "const": "runtime.initialize.result" },
+        "protocolVersion": { "$ref": "#/$defs/protocolVersion" },
+        "server": { "$ref": "#/$defs/serverInfo" },
+        "sessionId": { "$ref": "#/$defs/opaqueId" },
+        "capabilities": { "$ref": "#/$defs/capabilityList" },
+        "roots": { "$ref": "#/$defs/roots" },
+        "limits": { "$ref": "#/$defs/limits" },
+        "settingsVersions": {
+          "type": "object",
+          "required": ["runtime", "uiPreferences"],
+          "properties": {
+            "runtime": { "$ref": "#/$defs/protocolVersion" },
+            "uiPreferences": { "$ref": "#/$defs/protocolVersion" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "initializeResponse": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "result", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "result": { "$ref": "#/$defs/initializeResult" },
+        "yana": { "$ref": "#/$defs/runtimeInitializeMeta" }
+      },
+      "additionalProperties": false
+    },
+    "initializedNotification": {
+      "type": "object",
+      "required": ["jsonrpc", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "method": { "const": "runtime.initialized" },
+        "params": {
+          "type": "object",
+          "required": ["acceptedCapabilities"],
+          "properties": {
+            "acceptedCapabilities": { "$ref": "#/$defs/capabilityList" }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "callRequest": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "method": { "const": "runtime.call" },
+        "params": {
+          "type": "object",
+          "required": ["capability", "input"],
+          "properties": {
+            "capability": { "$ref": "#/$defs/capabilityName" },
+            "input": { "type": "object" },
+            "deadlineMs": { "type": "integer", "minimum": 100, "maximum": 300000 },
+            "idempotencyKey": {
+              "$ref": "#/$defs/opaqueId",
+              "description": "Required by RuntimeService for mutation capabilities; scoped to this runtime installation."
+            }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "ref": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "bytes": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "failure": {
+      "type": "object",
+      "required": ["kind", "message", "retryable"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "retryable": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "approvalPresentation": {
+      "type": "object",
+      "required": ["title", "summary", "risk", "scope"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "risk": { "enum": ["low", "medium", "high", "critical"] },
+        "scope": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 4096 },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "approvalChallenge": {
+      "type": "object",
+      "required": ["handle", "expiresAt", "presentation"],
+      "properties": {
+        "handle": {
+          "$ref": "#/$defs/opaqueId",
+          "description": "Rust-generated, single-use, session-bound handle. The UI must not parse, forge, persist, or replay it."
+        },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "presentation": { "$ref": "#/$defs/approvalPresentation" }
+      },
+      "additionalProperties": false
+    },
+    "callResult": {
+      "type": "object",
+      "required": ["type", "operationId", "status"],
+      "properties": {
+        "type": { "const": "runtime.call.result" },
+        "operationId": { "$ref": "#/$defs/opaqueId" },
+        "status": { "enum": ["completed", "failed", "cancelled", "approval_required", "unknown"] },
+        "output": {},
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" },
+          "maxItems": 256
+        },
+        "failure": { "$ref": "#/$defs/failure" },
+        "approval": { "$ref": "#/$defs/approvalChallenge" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "completed" } }, "required": ["status"] },
+          "then": { "required": ["output"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "failed" } }, "required": ["status"] },
+          "then": { "required": ["failure"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "approval_required" } }, "required": ["status"] },
+          "then": { "required": ["approval"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "unknown" } }, "required": ["status"] },
+          "then": { "required": ["failure"] }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "callResponse": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "result", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "result": { "$ref": "#/$defs/callResult" },
+        "yana": { "$ref": "#/$defs/runtimeActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "operationGetRequest": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "method": { "const": "runtime.operation.get" },
+        "params": {
+          "type": "object",
+          "required": ["operationId"],
+          "properties": {
+            "operationId": { "$ref": "#/$defs/opaqueId" }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "cancelRequest": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "method": { "const": "runtime.cancel" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "requestId": { "$ref": "#/$defs/opaqueId" },
+            "operationId": { "$ref": "#/$defs/opaqueId" },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 512 }
+          },
+          "oneOf": [
+            { "required": ["requestId"], "not": { "required": ["operationId"] } },
+            { "required": ["operationId"], "not": { "required": ["requestId"] } }
+          ],
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "cancelResult": {
+      "type": "object",
+      "required": ["type", "status"],
+      "properties": {
+        "type": { "const": "runtime.cancel.result" },
+        "status": { "enum": ["accepted", "already_terminal", "not_cancellable", "not_found"] },
+        "operationId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "cancelResponse": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "result", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "result": { "$ref": "#/$defs/cancelResult" },
+        "yana": { "$ref": "#/$defs/runtimeActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "approvalResolveRequest": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "method": { "const": "runtime.approval.resolve" },
+        "params": {
+          "type": "object",
+          "required": ["handle", "decision"],
+          "properties": {
+            "handle": { "$ref": "#/$defs/opaqueId" },
+            "decision": { "enum": ["approve_once", "deny"] }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "approvalResolveResult": {
+      "type": "object",
+      "required": ["type", "status"],
+      "properties": {
+        "type": { "const": "runtime.approval.resolve.result" },
+        "status": { "enum": ["accepted", "expired", "invalid", "already_resolved"] },
+        "operationId": { "$ref": "#/$defs/opaqueId" }
+      },
+      "additionalProperties": false
+    },
+    "approvalResolveResponse": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "result", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "result": { "$ref": "#/$defs/approvalResolveResult" },
+        "yana": { "$ref": "#/$defs/runtimeActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "ackNotification": {
+      "type": "object",
+      "required": ["jsonrpc", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "method": { "const": "runtime.ack" },
+        "params": {
+          "type": "object",
+          "required": ["throughSequence"],
+          "properties": {
+            "throughSequence": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 }
+          },
+          "additionalProperties": false
+        },
+        "yana": { "$ref": "#/$defs/clientActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "busEvent": {
+      "type": "object",
+      "description": "Wire-compatible with src/bus.rs BusEvent: id, ts, from, to, type, payload, reply_to.",
+      "required": ["id", "ts", "from", "to", "type", "payload", "reply_to"],
+      "properties": {
+        "id": { "$ref": "#/$defs/opaqueId" },
+        "ts": { "type": "string", "format": "date-time" },
+        "from": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "to": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "type": { "$ref": "#/$defs/capabilityName" },
+        "payload": {},
+        "reply_to": {
+          "oneOf": [
+            { "$ref": "#/$defs/opaqueId" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "eventNotification": {
+      "type": "object",
+      "required": ["jsonrpc", "method", "params", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "method": { "const": "runtime.event" },
+        "params": { "$ref": "#/$defs/busEvent" },
+        "yana": { "$ref": "#/$defs/runtimeActiveMeta" }
+      },
+      "additionalProperties": false
+    },
+    "errorData": {
+      "type": "object",
+      "required": ["kind", "retryable"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "parse_error",
+            "invalid_request",
+            "method_not_found",
+            "invalid_params",
+            "internal_error",
+            "runtime_unavailable",
+            "incompatible_version",
+            "not_initialized",
+            "busy",
+            "cancelled",
+            "deadline_exceeded",
+            "capability_unavailable",
+            "approval_invalid",
+            "denied",
+            "result_unknown"
+          ]
+        },
+        "retryable": { "type": "boolean" },
+        "operationId": { "$ref": "#/$defs/opaqueId" },
+        "retryAfterMs": { "type": "integer", "minimum": 0, "maximum": 300000 },
+        "details": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "rpcError": {
+      "type": "object",
+      "required": ["code", "message", "data"],
+      "properties": {
+        "code": {
+          "enum": [-32700, -32600, -32601, -32602, -32603, -32000, -32001, -32002, -32003, -32004, -32005, -32006, -32011, -32012, -32013]
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "data": { "$ref": "#/$defs/errorData" }
+      },
+      "additionalProperties": false
+    },
+    "errorResponse": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "error", "yana"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": {
+          "oneOf": [
+            { "$ref": "#/$defs/opaqueId" },
+            { "type": "null" }
+          ]
+        },
+        "error": { "$ref": "#/$defs/rpcError" },
+        "yana": {
+          "oneOf": [
+            { "$ref": "#/$defs/runtimeInitializeMeta" },
+            { "$ref": "#/$defs/runtimeActiveMeta" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

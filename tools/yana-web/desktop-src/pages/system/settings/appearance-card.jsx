@@ -2,8 +2,10 @@
 import React from 'react';
 import { L, Card } from '../../../components.jsx';
 import { YSwitch, YSeg } from './atoms.jsx';
+import { PresentationControls } from '../../../design/presentation-controls.jsx';
 
 const THEME_PREVIEWS = [
+  { label: "Cyber-Sakura Lotus 🌸", accent: "#38bdf8", sky: "linear-gradient(150deg, #0f172a 20%, #121417 62%, #17213b 100%)", wash: "rgba(244,143,177,.34)", dark: true },
   { label: "Lotus Dawn 🌸",      accent: "#b96b80", sky: "linear-gradient(160deg, #faf5f3 30%, #f2dfdc 100%)", wash: "rgba(236,196,134,.45)" },
   { label: "Jade Lake 🌿",       accent: "#2f7e6e", sky: "linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%)", wash: "rgba(122,184,168,.40)" },
   { label: "Morning Mist ☁️",    accent: "#4a7a6a", sky: "linear-gradient(160deg, #f8f7f4 30%, #ecebe5 100%)", wash: "rgba(214,222,214,.55)" },
@@ -24,7 +26,7 @@ function ThemeCard({ p, active, onPick }) {
   const glass = p.dark ? "rgba(255,255,255,.12)" : "rgba(255,255,255,.65)";
   const glass2 = p.dark ? "rgba(255,255,255,.09)" : "rgba(255,255,255,.6)";
   return (
-    <button onClick={onPick} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "center", color: "inherit" }}>
+    <button onClick={onPick} aria-pressed={active} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "center", color: "inherit" }}>
       <div style={{
         width: 118, height: 72, borderRadius: 12, background: p.sky, position: "relative", overflow: "hidden",
         boxShadow: active
@@ -52,7 +54,6 @@ export function AppearanceCard({ t, setTweak }) {
     [L("Show missions on Lake", "Hiện nhiệm vụ trên Mặt hồ", "호수에 미션 표시", "在湖面显示任务"), "showMissions"],
     [L("Show Memory Garden", "Hiện Vườn ký ức", "메모리 가든 표시", "显示记忆花园"), "showMemory"],
     [L("Show system status", "Hiện trạng thái hệ thống", "시스템 상태 표시", "显示系统状态"), "showSystem"],
-    [L("Reduce motion", "Giảm chuyển động", "모션 줄이기", "减少动效"), "reduceMotion"],
   ];
   return (
     <Card title={L("Appearance", "Giao diện", "외관", "外观")} style={{ gridColumn: "1 / -1" }}>
@@ -62,21 +63,27 @@ export function AppearanceCard({ t, setTweak }) {
         ))}
       </div>
 
+      <PresentationControls values={t} onChange={setTweak} />
+
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
         <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Accent colour", "Màu nhấn", "강조 색상", "强调色")}</span>
-        <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
-          <button onClick={() => setTweak("accent", "")} title={L("Theme default", "Màu mặc định theme", "테마 기본값", "主题默认色")} style={{
-            width: 22, height: 22, borderRadius: "50%", cursor: "pointer", padding: 0,
-            background: "conic-gradient(#2f7e6e, #3a7ca5, #b96b80, #b78f3d, #2f7e6e)",
-            border: "none",
-            boxShadow: !t.accent ? "0 0 0 2px var(--bg-base), 0 0 0 4px var(--ink-3)" : "inset 0 0 0 1px rgba(0,0,0,.08)",
-          }}></button>
+        <div className="yana-accent-swatches">
+          <button
+            className="yana-accent-swatch"
+            onClick={() => setTweak("accent", "")}
+            aria-label={L("Theme default", "Màu mặc định theme", "테마 기본값", "主题默认色")}
+            aria-pressed={!t.accent}
+            style={{ '--swatch': 'conic-gradient(#2f7e6e, #3a7ca5, #b96b80, #b78f3d, #2f7e6e)' }}
+          ><span /></button>
           {ACCENTS.map((c) => (
-            <button key={c} onClick={() => setTweak("accent", c)} style={{
-              width: 22, height: 22, borderRadius: "50%", cursor: "pointer", padding: 0,
-              background: c, border: "none",
-              boxShadow: t.accent === c ? "0 0 0 2px var(--bg-base), 0 0 0 4px " + c : "inset 0 0 0 1px rgba(0,0,0,.08)",
-            }}></button>
+            <button
+              className="yana-accent-swatch"
+              key={c}
+              onClick={() => setTweak("accent", c)}
+              aria-label={`${L("Accent colour", "Màu nhấn", "강조 색상", "强调色")} ${c}`}
+              aria-pressed={t.accent === c}
+              style={{ '--swatch': c }}
+            ><span /></button>
           ))}
         </div>
         <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>
@@ -86,12 +93,13 @@ export function AppearanceCard({ t, setTweak }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
         <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Density", "Mật độ", "밀도", "密度")}</span>
-        <YSeg options={["Compact", "Regular", "Spacious"]} value={t.layout} onChange={(v) => setTweak("layout", v)} />
+        <YSeg label={L("Density", "Mật độ", "밀도", "密度")} options={["Compact", "Regular", "Spacious"]} value={t.layout} onChange={(v) => setTweak("layout", v)} />
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
         <span style={{ fontSize: 13, width: 110, flex: "none" }}>{L("Chat font", "Font trò chuyện", "채팅 글꼴", "聊天字体")}</span>
         <YSeg
+          label={L("Chat font", "Font trò chuyện", "채팅 글꼴", "聊天字体")}
           options={["System", "Be Vietnam", "Mono"]}
           value={t.chatFont || "System"}
           onChange={(v) => setTweak("chatFont", v)}
@@ -107,7 +115,7 @@ export function AppearanceCard({ t, setTweak }) {
         {toggleLabels.map(([label, key]) => (
           <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "7px 0" }}>
             <span style={{ fontSize: 13 }}>{label}</span>
-            <YSwitch value={t[key]} onChange={(v) => setTweak(key, v)} />
+            <YSwitch label={label} value={t[key]} onChange={(v) => setTweak(key, v)} />
           </div>
         ))}
       </div>
