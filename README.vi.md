@@ -141,7 +141,7 @@ yana-ai doctor .
 
 - Python 3.11+ (cho package pip) hoặc Rust/Cargo (cho `cargo install yana-rt`)
 - Git
-- Bất kỳ AI coding tool nào: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider, v.v.
+- Một trong 4 harness được hỗ trợ: [Claude Code](https://claude.ai/code), Cursor, Codex, hoặc Antigravity — xem [Hỗ trợ đa harness](#hỗ-trợ-đa-harness) bên dưới. Các công cụ khác chưa được nối; muốn thêm một công cụ nghĩa là phải viết adapter thật, không chỉ tuyên bố hỗ trợ.
 
 ### Clone từ source
 
@@ -228,7 +228,7 @@ không liên quan (2026-07-07) — không thể tái hiện bằng bất kỳ ph
 
 ## Versioning
 
-Yana AI phát hành lên 3 registry riêng biệt, mỗi cái có số version riêng — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập).
+Yana AI có 3 trục version độc lập — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập). Chỉ 2 trong 3 trục thực sự phát hành lên một registry; trục Product (rules/hooks/skills/agents/CLI) thì không, xem cột Registry bên dưới.
 
 | Trục | Version | Registry |
 |---|---|---|
@@ -268,21 +268,7 @@ Các thuộc tính chính, đã xác minh trên code thật, không chỉ trên 
 
 ## Trông như thế nào trong thực tế
 
-Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông. Xem "Giới hạn thực tế" bên dưới để biết guard này *chưa* bắt được gì.
-
-```bash
-# Agent thử: git push --force origin main
-Blocked: 'git push --force' (any flag spelling) is not allowed. The
-orchestrator pushes branches; force-pushing risks overwriting shared history.
-
-# Agent thử: rm -rf /some/path
-Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
-Use targeted 'rm' with explicit paths, or ask the human to confirm first.
-
-# Agent thử: git clean -f
-Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
-files. Ask the human to confirm before running this.
-```
+Cùng một output đã chạy thật với demo ở đầu README này (`core/hooks/guard-destructive.sh`, 2026-07-04) — không lặp lại ở đây để tránh nói hai lần. Xem [Giới hạn thực tế](#giới-hạn-thực-tế) bên dưới để biết guard này *chưa* bắt được gì, hoặc [docs/reference/known-limitations.md](docs/reference/known-limitations.md) để xem chi tiết kỹ thuật đầy đủ.
 
 ## Giới hạn thực tế
 
