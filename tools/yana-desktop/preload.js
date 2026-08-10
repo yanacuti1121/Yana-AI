@@ -7,9 +7,10 @@ contextBridge.exposeInMainWorld('yana', {
   getAuthFilePath: () => ipcRenderer.invoke('yana:auth-file-path'),
   revealAuthFile:  () => ipcRenderer.invoke('yana:reveal-auth-file'),
 
-  ptyStart: (opts) => ipcRenderer.invoke('yana:pty-start', opts),
-  ptyWrite: (data) => ipcRenderer.invoke('yana:pty-write', data),
-  ptyStop:  ()     => ipcRenderer.invoke('yana:pty-stop'),
+  ptyStart:  (opts) => ipcRenderer.invoke('yana:pty-start', opts),
+  ptyWrite:  (data) => ipcRenderer.invoke('yana:pty-write', data),
+  ptyResize: (opts) => ipcRenderer.invoke('yana:pty-resize', opts),
+  ptyStop:   ()     => ipcRenderer.invoke('yana:pty-stop'),
   listDir:  (relPath) => ipcRenderer.invoke('yana:list-dir', relPath),
   // The app's first push-style (main -> renderer) listeners — every other
   // method above is request/response `invoke`, which can't fit unsolicited

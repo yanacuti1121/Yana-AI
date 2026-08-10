@@ -3,6 +3,7 @@ const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
 const { fork, spawn } = require('child_process');
+const { StringDecoder } = require('string_decoder');
 const http  = require('http');
 const { autoUpdater } = require('electron-updater');
 const {
@@ -86,10 +87,34 @@ function ptyBridgeBinary() {
   return runtimePath('pty_bridge');
 }
 
+// RACE FIX (found in review): this used to kill the process and null out
+// `ptyProcess` synchronously, before the OS had actually reaped it. A
+// caller doing stop-then-start-again (a "restart") would see the guard in
+// `yana:pty-start` ("terminal already running") pass immediately, spawn a
+// SECOND pty_bridge, and then the still-dying FIRST one's stdout listener
+// (still attached to that now-orphaned child_process object, since it was
+// only ever detached from the `ptyProcess` module variable, not actually
+// removed) could still fire and send stale output from the old session
+// into the new one's terminal view. Now waits for the real 'exit' event
+// before resolving, with a SIGKILL fallback so a hung child can't wedge
+// the next start forever.
 function stopPty() {
-  if (!ptyProcess) return;
-  ptyProcess.kill('SIGTERM');
+  if (!ptyProcess) return Promise.resolve();
+  const proc = ptyProcess;
   ptyProcess = null;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => { if (!settled) { settled = true; resolve(); } };
+    proc.once('exit', finish);
+    proc.kill('SIGTERM');
+    const killTimer = setTimeout(() => {
+      if (!settled) proc.kill('SIGKILL');
+    }, 3000);
+    proc.once('exit', () => clearTimeout(killTimer));
+    // Belt-and-suspenders: if 'exit' never fires for some reason, don't
+    // hang the caller (e.g. yana:pty-stop's IPC promise) forever either.
+    setTimeout(finish, 3500);
+  });
 }
 
 // ── File tree (Terminal page sidebar) ───────────────────────────────────────────
@@ -247,18 +272,39 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
   }
 
   const childArgv = [yanaRtBin, 'chat'];
+  // RESIZE FIX (found in review): stdin is already fully consumed as raw
+  // PTY input (real keystrokes), so a resize command can't be smuggled
+  // into that stream without risking collision with something the user
+  // actually typed. A 4th stdio pipe (fd 3), used only for resize control
+  // messages, keeps that channel separate. Unix only for now — Windows
+  // doesn't inherit raw fds the same way and pty_bridge.rs only opens fd 3
+  // under #[cfg(unix)]; on Windows this pipe still gets created here but
+  // nothing on the child side reads it, so yana:pty-resize below becomes a
+  // documented no-op rather than a silent one (see its own comment).
+  const stdio = process.platform === 'win32'
+    ? ['pipe', 'pipe', 'pipe']
+    : ['pipe', 'pipe', 'pipe', 'pipe'];
   ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
-    stdio: ['pipe', 'pipe', 'pipe'],
+    stdio,
     env: {
       ...process.env,
       YANA_RT_BIN: yanaRtBin,
     },
   });
 
+  // UTF-8 FIX (found in review): `buf.toString('utf8')` per chunk is not
+  // safe on an arbitrary byte stream — a multi-byte character (this app
+  // is Vietnamese-first, so this is not a theoretical edge case) can land
+  // split across two separate 'data' events, and decoding each chunk
+  // independently turns the split character into U+FFFD replacement
+  // characters on both sides. StringDecoder holds the trailing partial
+  // sequence across calls and only emits complete characters.
+  const stdoutDecoder = new StringDecoder('utf8');
+  const stderrDecoder = new StringDecoder('utf8');
   ptyProcess.stdout.on('data', (buf) =>
-    mainWindow?.webContents.send('yana:pty-data', buf.toString('utf8')));
+    mainWindow?.webContents.send('yana:pty-data', stdoutDecoder.write(buf)));
   ptyProcess.stderr.on('data', (buf) =>
-    console.error('[pty_bridge]', buf.toString('utf8')));
+    console.error('[pty_bridge]', stderrDecoder.write(buf)));
   ptyProcess.on('exit', (code) => {
     mainWindow?.webContents.send('yana:pty-exit', code);
     ptyProcess = null;
@@ -269,6 +315,27 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
 
 ipcMain.handle('yana:pty-write', (event, data) => {
   ptyProcess?.stdin.write(data);
+});
+
+// RESIZE FIX (found in review): previously there was no way at all to
+// tell the running pty_bridge that the terminal panel had been resized —
+// xterm.js's FitAddon re-fit the *visual* grid on the frontend, but the
+// actual pty (and anything running inside it that queries or reacts to
+// terminal size — most TUIs, `tput cols`, line-wrapping shells) kept
+// whatever size was passed at yana:pty-start and silently drifted out of
+// sync with the window. Writes a small text control message (not JSON —
+// this repo's own pty_bridge.rs is deliberately dependency-light, see its
+// header comment) to the dedicated fd-3 control pipe opened above.
+// Bounds match a normal terminal's realistic range and guard against a
+// buggy or compromised renderer sending an absurd size.
+ipcMain.handle('yana:pty-resize', (event, { cols, rows } = {}) => {
+  if (!ptyProcess || !ptyProcess.stdio[3]) return { ok: false, error: 'no active terminal (or unsupported on this platform)' };
+  const c = Number(cols), r = Number(rows);
+  if (!Number.isInteger(c) || !Number.isInteger(r) || c < 1 || r < 1 || c > 1000 || r > 1000) {
+    return { ok: false, error: 'cols/rows out of range' };
+  }
+  ptyProcess.stdio[3].write(`resize ${c} ${r}\n`);
+  return { ok: true };
 });
 
 ipcMain.handle('yana:pty-stop', () => stopPty());

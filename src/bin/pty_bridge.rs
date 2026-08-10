@@ -14,9 +14,21 @@
 //! Kept dependency-light on purpose (no clap/anyhow) — this binary is
 //! gated behind the `pty-bridge` feature specifically so it never
 //! affects the default `yana-rt` build's footprint or dependency graph.
+//!
+//! RESIZE (found in review): the caller (Electron's main process,
+//! `tools/yana-desktop/main.js`) opens a 4th stdio pipe (fd 3) purely for
+//! resize control messages — stdin (fd 0) is already fully committed as
+//! raw PTY input, so a resize command can't be smuggled into that stream
+//! without risking collision with a real keystroke the user typed. Unix
+//! only: on Unix, fd 3 is inherited as a plain OS pipe the same way fd
+//! 0/1/2 are, so `File::from_raw_fd` just works; Windows' `child_process`
+//! doesn't hand down raw fds the same way, and a real cross-platform fix
+//! needs a different transport there (named pipe / job object), out of
+//! scope for this pass — main.js already treats resize as a documented
+//! no-op on Windows rather than pretending to support it.
 
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
-use std::io::{self, Read, Write};
+use std::io::{self, BufRead, Read, Write};
 use std::process::exit;
 use std::thread;
 
@@ -100,6 +112,42 @@ fn main() {
         eprintln!("pty_bridge: failed to take pty writer: {e}");
         exit(1);
     });
+
+    // Resize control channel (fd 3, Unix only — see the module doc
+    // comment). Reads newline-delimited "resize <cols> <rows>" lines and
+    // applies each one to the real pty. A malformed line is logged and
+    // skipped, not treated as fatal — one bad control message shouldn't
+    // kill an otherwise-healthy session.
+    #[cfg(unix)]
+    {
+        use std::os::unix::io::FromRawFd;
+        // Safety: fd 3 is the resize-control pipe main.js opens as this
+        // process's 4th stdio handle before spawning it (see main.js's
+        // `stdio` array next to this binary's spawn() call) — not an
+        // arbitrary fd this process invents or guesses.
+        let ctl_file = unsafe { std::fs::File::from_raw_fd(3) };
+        let master_for_resize = pair.master;
+        thread::spawn(move || {
+            let ctl = io::BufReader::new(ctl_file);
+            for line in ctl.lines() {
+                let Ok(line) = line else { return }; // control pipe closed/error — nothing more to read
+                let mut parts = line.split_whitespace();
+                let (Some("resize"), Some(cols), Some(rows)) =
+                    (parts.next(), parts.next(), parts.next())
+                else {
+                    eprintln!("pty_bridge: ignoring malformed resize control line: {line:?}");
+                    continue;
+                };
+                let (Ok(cols), Ok(rows)) = (cols.parse::<u16>(), rows.parse::<u16>()) else {
+                    eprintln!("pty_bridge: ignoring resize with non-numeric cols/rows: {line:?}");
+                    continue;
+                };
+                if let Err(e) = master_for_resize.resize(PtySize { rows, cols, pixel_width: 0, pixel_height: 0 }) {
+                    eprintln!("pty_bridge: resize({cols}, {rows}) failed: {e}");
+                }
+            }
+        });
+    }
 
     // pty -> our stdout
     thread::spawn(move || {

@@ -100,8 +100,19 @@ function RuntimeTerminal({ onStatus }) {
     terminal.loadAddon(fitAddon);
     terminal.open(containerRef.current);
 
+    // RESIZE FIX (found in review): fitAddon.fit() only updates xterm.js's
+    // own visual grid. Without telling the backend pty_bridge the new
+    // size too, the real pty (and whatever's running inside it) silently
+    // drifts out of sync with what's actually on screen — line wrapping,
+    // curses-style redraws, and `tput cols`/`$COLUMNS` all go stale. This
+    // is a best-effort call (no-op with a caught error on a platform that
+    // doesn't support it, or before the session has actually started) —
+    // never blocks the resize from applying visually even if it fails.
     const fit = () => {
-      try { fitAddon.fit(); } catch (_) {}
+      try {
+        fitAddon.fit();
+        window.yana.ptyResize?.({ cols: terminal.cols, rows: terminal.rows }).catch(() => {});
+      } catch (_) {}
     };
     requestAnimationFrame(fit);
 
