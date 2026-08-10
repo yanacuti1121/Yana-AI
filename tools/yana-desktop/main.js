@@ -10,6 +10,7 @@ const {
   parseServerReadyPort,
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
+const { isAllowedPtyArgs } = require('./pty-args');
 
 let mainWindow    = null;
 let serverProcess = null;
@@ -210,8 +211,26 @@ ipcMain.handle('yana:reveal-auth-file', () => {
 // Single terminal session for v1 (see the plan's "explicitly out of scope"
 // list) — a second start() call while one is already running is rejected
 // rather than silently replacing it.
+//
+// SECURITY (found in review before this handler shipped): `args` used to be
+// spread straight from the renderer's IPC payload into the spawned
+// `yana-rt chat` argv with zero validation. contextIsolation/nodeIntegration
+// keep the renderer off raw Node, but that only protects the boundary this
+// handler is itself part of — an untrusted-args IPC handler is a hole in
+// that boundary, not something the sandbox settings cover. A compromised
+// renderer (XSS, a poisoned bundled dependency) could have called
+// `window.yana.ptyStart({ args: ['--no-sandbox'] })` and silently disabled
+// `run_command`'s sandbox for the whole chat session — the exact protection
+// this repo's safety model depends on. The current legitimate caller
+// (terminal.jsx) only ever sends `args: []`, so nothing real depends on
+// forwarding a non-empty array; reject rather than filter, so an attempt
+// is visible instead of silently stripped.
 ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
   if (ptyProcess) return { ok: false, error: 'terminal already running' };
+
+  if (!isAllowedPtyArgs(args)) {
+    return { ok: false, error: 'yana:pty-start does not accept extra argv from the renderer' };
+  }
 
   const bridgeBin = ptyBridgeBinary();
   if (!fs.existsSync(bridgeBin)) {
@@ -227,7 +246,7 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
     return { ok: false, error: `yana-rt binary not found at ${yanaRtBin}` };
   }
 
-  const childArgv = [yanaRtBin, 'chat', ...(args || [])];
+  const childArgv = [yanaRtBin, 'chat'];
   ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: {

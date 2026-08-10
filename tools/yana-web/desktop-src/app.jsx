@@ -128,7 +128,7 @@ export function App() {
           issue), so their own scrollbars silently stop working. */}
       <main ref={mainRef} className="yana-main" style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: (page === "chat" || page === "terminal") ? "hidden" : "auto", display: "flex", flexDirection: "column" }}>
         <div key={t.language} style={{ flex: 1, minHeight: 0, display: page === "terminal" ? "none" : "flex", flexDirection: "column" }}>
-          <PageErrorBoundary pageId={page}><Page /></PageErrorBoundary>
+          <PageErrorBoundary pageId={page}>{Page()}</PageErrorBoundary>
         </div>
         {/* Always mounted (not swapped in/out with the rest of Page above)
             so navigating away and back doesn't reload the embedded VS Code
