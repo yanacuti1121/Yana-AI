@@ -16,6 +16,18 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/precompact-priority-injection.sh bash .claude/hooks/hook-timeout-guard.sh",
+            "statusMessage": "Injecting compaction priority requirements..."
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": ".*",

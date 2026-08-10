@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-09T04:09:40+00:00",
-  "count": 274,
+  "generated": "2026-08-10T14:33:53+00:00",
+  "count": 275,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -49,6 +49,7 @@
     "core/hooks/multi-agent-lock.sh": "54a484fdbc413fdacf60af07cd62bc86e7d34dbc569ddad5ebeed0a152deddbc",
     "core/hooks/per-tool-circuit-breaker.sh": "ea8f63aed4fe61d69ca7f4f0db8e76ae3f980bf2b381676cfa401f3a68a4f783",
     "core/hooks/permission-auto-approve.sh": "681121cb024d336259111ee45c1d2916ac919d64465516c96fa6ec655b617c24",
+    "core/hooks/precompact-priority-injection.sh": "ce59072f575e403fc76efd1a797552a3fbfdfae71ecca9e73690ea02afc789b2",
     "core/hooks/prompt-injection-guard.sh": "789f73a6dbc64a276dd7a75b4a3a95ebbdcb119114e22b7f84fa26bc33fb01cd",
     "core/hooks/rbac-guard.sh": "3be44f2789a79420e905f471f01f14b714479e9c80b0022516d40cb093628058",
     "core/hooks/risk-scorer.sh": "d328ca209a91c2519f69ad896a1616d2bde35a05e2e079a240772c28194b04ac",
