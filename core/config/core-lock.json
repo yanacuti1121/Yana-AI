@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-10T14:33:53+00:00",
-  "count": 275,
+  "generated": "2026-08-10T16:00:42+00:00",
+  "count": 276,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -144,7 +144,7 @@
     "core/rules/typescript.md": "35e48d1064a6dc24d6eaa1807b3436b255544e9d897c014b3c327cfa057e3f79",
     "core/rules/typography-rules.md": "9b440b593a8c190a3992ad75ae9e375284527399264816c22ad9f2e4dfa1c375",
     "core/rules/verification.md": "568f533b4d9162146e695a9f1549c7452613bc94f51242686cfbd814cbc0c943",
-    "core/scripts/add-fact.sh": "fc3485107866fb25e1bb0050681b8869557c2df04aa15036601f3e83ed12bb7f",
+    "core/scripts/add-fact.sh": "b8da1371db16a6d80d645552c5e870bba46fc8808273f63fe106d60b0d45a979",
     "core/scripts/add-session-fact.sh": "2923306bba331c79ca86dab5c25dc40f660ab0c336f4414bcf7819c7ee0fc320",
     "core/scripts/agent-claim.sh": "2d4b7b9e7c04df6eca22944d6db95f4013345ce6e6ddf88e9ba32b50a994cb78",
     "core/scripts/apply-hook-timeouts.sh": "50abdccbfc471a469d969a78cb1217ed9c5db4e90a9da15e64cb5846751ccba0",
@@ -264,6 +264,7 @@
     "core/scripts/verify-claude-pack.js": "4f4c1d97b29d229bc8deeedc9114b7fe051f88b391ab63e439db8da5966b86a6",
     "core/scripts/verify-claude-pack.sh": "b12f8951285db4a253cd788c8bab71a46b5e43634ce8a4f3e79436e15156f881",
     "core/scripts/verify-core-lock.sh": "99b79c0421daff0ca969f9b9e7dcbdfbfabc15b343bee4f7d4c2b458cbd059df",
+    "core/scripts/verify-fact-freshness.sh": "396d8d1a375eadb43d117aa68ba77379f89dcc9d1ba37810abc1689a26f7d4d3",
     "core/scripts/verify-hook-mirrors.sh": "6a1cc4f15bf9d0011f5d408d02db3228b15d76aa3a0192679e782367ad63003d",
     "core/scripts/verify-release-evidence.py": "51244842846bd73b6bc6c06d93421738343e71a001ea0f7db4e6e6e341796bf0",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
