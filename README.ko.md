@@ -141,7 +141,7 @@ yana-ai doctor .
 
 - Python 3.11+ (pip 패키지용) 또는 Rust/Cargo (`cargo install yana-rt`용)
 - Git
-- 어떤 AI 코딩 도구든: [Claude Code](https://claude.ai/code), Cursor, Windsurf, Aider 등
+- 지원되는 4개 하니스 중 하나: [Claude Code](https://claude.ai/code), Cursor, Codex, Antigravity — 아래 [멀티 하니스 지원](#멀티-하니스-지원) 참고. 다른 도구는 아직 연결되어 있지 않습니다 — 새 도구를 추가한다는 것은 실제 어댑터를 작성하는 것이지, 단순히 지원한다고 주장하는 것이 아닙니다.
 
 ### 소스에서 클론하기
 
@@ -227,7 +227,7 @@ yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 
 ## 버전 관리
 
-Yana AI는 3개의 독립된 레지스트리에 배포되며, 각각 자체 버전 번호를 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기).
+Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기). 이 중 실제로 레지스트리에 배포되는 축은 2개뿐입니다. Product 축(rules/hooks/skills/agents/CLI)은 배포되지 않습니다 — 아래 표의 레지스트리 열 참고.
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
@@ -267,21 +267,7 @@ core/
 
 ## 실제로는 이렇게 동작합니다
 
-아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다. 이 가드가 *아직* 잡아내지 못하는 것은 아래 "알려진 한계"를 참고하세요.
-
-```bash
-# Agent tries: git push --force origin main
-Blocked: 'git push --force' (any flag spelling) is not allowed. The
-orchestrator pushes branches; force-pushing risks overwriting shared history.
-
-# Agent tries: rm -rf /some/path
-Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
-Use targeted 'rm' with explicit paths, or ask the human to confirm first.
-
-# Agent tries: git clean -f
-Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
-files. Ask the human to confirm before running this.
-```
+이 README 맨 위 데모(`core/hooks/guard-destructive.sh`, 2026-07-04)와 동일한, 실제로 실행해 검증한 출력입니다 — 두 번 말하지 않으려고 여기서는 반복하지 않습니다. 이 가드가 *아직* 잡아내지 못하는 것은 아래 [알려진 한계](#알려진-한계)를, 전체 기술 내용은 [docs/reference/known-limitations.md](docs/reference/known-limitations.md)를 참고하세요.
 
 ## 알려진 한계
 
