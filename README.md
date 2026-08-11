@@ -20,7 +20,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.3.1-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -236,11 +236,21 @@ Yana AI has three independently versioned release axes — deliberate, not drift
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.1** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
+
+### What's new in v1.3.2
+
+- **Yana OS management plane (Program K)** — an agent registry, credential/resource preflight, and an Evolution Governor (`status`/`capacity`/`roadmap`, a hard-enforced 2-item NOW cap) under `yana-rt os`.
+- **Native system health monitor** — CPU/memory/disk/GPU snapshots with explicit, per-user, opt-in-only scheduler installation (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; never root, never silent).
+- **Autonomy ladder (L0–L4)** — routine work can be automated under policy; sovereign operations (merge protected branches, publish releases, deploy, rotate secrets, delete persistent data, change security policy) are hard-blocked from ever being configured as automatic, verified to hold even when policy allows automatic work one level down. Classifies and queues action intent only — nothing in this module executes a queued command yet.
+- **`yana chat`** grew a full local AI terminal workspace redesign (tabs, streaming, cancellation, model discovery across Ollama/LM Studio/llama.cpp) plus a new `yana-ai-rt` chat-first entry point, and auto-detects an actually-pulled Ollama model instead of guessing.
+- **Security:** the WebFetch SSRF guard now does real DNS resolution + IP-range classification instead of hostname-regex matching; markdown sanitization moved from a hand-rolled regex to DOMPurify.
+
+Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.3.2" entry).
 
 ---
 
@@ -248,7 +258,7 @@ If you see three different numbers across this repo (including in `git tag`, `RO
 
 ```
 core/
-├── hooks/          # 62 PreToolUse / PostToolUse / Stop hooks
+├── hooks/          # 63 PreToolUse / PostToolUse / Stop hooks
 ├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
@@ -267,6 +277,7 @@ Key properties, verified against the actual code, not just the docs describing i
 - **Core-lock integrity** — a SHA-256 manifest (`core-lock.json`) detects drift, deletion, and unreviewed file injection in `core/rules`, `core/hooks`, `core/gates`, `core/scripts`
 - **Reviewed infrastructure writes** — before a change lands in `core/rules/**`, `core/hooks/**`, `core/gates/**`, or `core/agents/**`, two independent reviewer agents (security-auditor plus a paired reviewer) are dispatched; a Safety-severity finding from either blocks the write until a human resolves it
 - **Human gate** — irreversible actions (force-push, publish, deploy, delete) require an explicit human confirmation in the current session, not a standing approval
+- **Independent halt watcher ("giám thị")** — opt-in, offered as a one-time prompt on install. Runs on a real OS scheduler (macOS LaunchAgent / cron), entirely outside any Claude session, and checks core-lock integrity, audit-chain integrity, and recent changes to security-sensitive paths every few hours. On any finding it writes a lock file that makes every subsequent tool call in every session against that repo deny outright, with no bypass flag and no code path — in this hook or the watcher itself — that clears it. Only a human, after reading the lock's reason, deleting the file by hand, can resume. The asymmetry is deliberate: the thing that can stop a session isn't the thing that can restart it, so an agent (compromised or just wrong) can't grade its own homework and wave itself back in.
 
 ---
 

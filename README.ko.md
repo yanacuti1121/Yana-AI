@@ -24,7 +24,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -231,11 +231,21 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
-| Rust 런타임 (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 패키지 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Rust 런타임 (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 패키지 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
+
+### v1.3.2의 새로운 점
+
+- **Yana OS 관리 플레인 (Program K)** — 에이전트 레지스트리, 자격 증명/리소스 사전 점검, `yana-rt os` 아래의 Evolution Governor(`status`/`capacity`/`roadmap`, NOW 항목 2개로 하드 제한).
+- **네이티브 시스템 헬스 모니터** — CPU/메모리/디스크/GPU 스냅샷, 완전 opt-in·사용자별 스케줄러 설치(macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler — root로 실행되지 않고, 조용히 설치되지 않음).
+- **자율성 사다리 (L0–L4)** — 일상적인 작업은 정책에 따라 자동화 가능; sovereign 작업(보호된 브랜치 병합, 릴리스 게시, 배포, 시크릿 교체, 영구 데이터 삭제, 보안 정책 변경)은 자동으로 구성될 수 없도록 하드 차단됨 — 정책이 바로 아래 단계까지 자동 작업을 허용할 때도 이것이 유지되는지 검증함. 이 모듈은 action intent를 분류하고 큐에 넣기만 하며, 큐에 들어간 명령을 실행하는 부분은 아직 없음.
+- **`yana chat`** — 로컬 AI 터미널 워크스페이스 전면 재설계(탭, 스트리밍, 취소, Ollama/LM Studio/llama.cpp 전반의 모델 탐색) 및 새로운 chat-first 진입점 `yana-ai-rt` 추가, 추측 대신 실제로 pull된 Ollama 모델을 자동 감지.
+- **보안:** WebFetch SSRF 가드가 hostname 정규식 매칭 대신 실제 DNS 조회 + IP 대역 분류를 수행; 마크다운 sanitize가 자체 작성 정규식에서 DOMPurify로 이전.
+
+PR 번호가 포함된 전체 내용: [CHANGELOG.md](CHANGELOG.md) ("v1.3.2" 항목 참고).
 
 ---
 
@@ -243,12 +253,12 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 ```
 core/
-├── hooks/          # 57개 PreToolUse / PostToolUse / Stop 훅
+├── hooks/          # 63개 PreToolUse / PostToolUse / Stop 훅
 ├── rules/          # 71개 시행 규칙 (보안, 정확성, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101개 전문 에이전트 정의
-├── skills/         # 2,016개 SKILL.md 파일
+├── skills/         # 2,025개 SKILL.md 파일
 ├── config/
 │   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 240개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
@@ -262,6 +272,7 @@ core/
 - **Core-lock integrity** — SHA-256 매니페스트(`core-lock.json`)가 `core/rules`, `core/hooks`, `core/gates`, `core/scripts`의 drift, 삭제, 검토 안 된 파일 삽입을 감지
 - **인프라 변경 전 리뷰** — `core/rules/**`, `core/hooks/**`, `core/gates/**`, `core/agents/**`에 변경이 들어가기 전, 독립적인 리뷰어 에이전트 두 명(security-auditor와 짝을 이루는 리뷰어)이 디스패치됨; 둘 중 하나라도 Safety 수준의 발견 사항이 있으면 사람이 해결할 때까지 변경이 차단됨
 - **Human gate** — 되돌릴 수 없는 작업(force-push, publish, deploy, delete)은 이전 승인이 아니라 현재 세션에서의 명시적인 사람 확인이 필요함
+- **독립 정지 감시자 ("giám thị")** — opt-in, 설치 시 한 번 안내됨. Claude 세션 바깥에서 실제 OS 스케줄러(macOS LaunchAgent / cron)로 실행되며, 몇 시간마다 core-lock integrity, audit-chain integrity, 보안에 민감한 경로의 최근 변경을 점검함. 이상이 발견되면 lock 파일을 기록해 이후 그 저장소를 대상으로 하는 모든 세션의 모든 tool call을 즉시 거부함 — 우회 플래그도 없고, 이 훅이나 감시자 자신을 포함해 그 락을 해제하는 코드 경로도 없음. 락에 적힌 이유를 읽은 사람이 직접 파일을 지워야만 재개됨. 이 비대칭은 의도된 것: 세션을 멈출 수 있는 것과 다시 시작할 수 있는 것이 같지 않아야, (침해당했든 단순히 잘못됐든) 에이전트가 스스로 채점하고 스스로 락을 풀 수 없음.
 
 ---
 
@@ -419,7 +430,7 @@ yana-ai route classify "deploy to production"
 
 다섯 가지 경로:
 - **simple** → Yana가 직접 처리 (읽기 전용, 에이전트 불필요)
-- **skill** → 2,016개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
+- **skill** → 2,025개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
 - **learn** → `hoc-tap`(소크라테스식 학습 도우미)로 라우팅 (영어/베트남어로 "learn", "explain", "why" 등에서 트리거)
 - **daily** → `daily-assistant`로 라우팅, 요약 / 계획 / 초안 작성 (영어/베트남어로 "summarize", "write an email", "make a plan" 등에서 트리거)
 - **complex** → 범위가 지정된 브리프와 함께 전문 에이전트(들) 디스패치

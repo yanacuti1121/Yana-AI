@@ -24,7 +24,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -232,11 +232,21 @@ Yana AI có 3 trục version độc lập — có chủ đích, không phải l�
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.1.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
+
+### Có gì mới trong v1.3.2
+
+- **Yana OS management plane (Program K)** — agent registry, preflight credential/resource, và một Evolution Governor (`status`/`capacity`/`roadmap`, giới hạn cứng 2 mục trong NOW) dưới `yana-rt os`.
+- **Native system health monitor** — snapshot CPU/memory/disk/GPU, cài scheduler hoàn toàn opt-in, theo từng user (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; không bao giờ chạy root, không bao giờ âm thầm).
+- **Autonomy ladder (L0–L4)** — việc thường quy có thể tự động hóa theo policy; các thao tác sovereign (merge nhánh bảo vệ, publish release, deploy, xoay secret, xóa dữ liệu vĩnh viễn, đổi security policy) bị chặn cứng, không bao giờ cấu hình tự động được — đã verify điều này đúng cả khi policy cho phép tự động ở mức ngay dưới. Module này chỉ phân loại và xếp hàng action intent, chưa có gì trong đó thực thi lệnh đã xếp hàng.
+- **`yana chat`** có bản thiết kế lại workspace terminal AI local đầy đủ (tab, streaming, cancel, tự tìm model qua Ollama/LM Studio/llama.cpp) cộng entry point mới `yana-ai-rt` chat-first, và tự nhận diện model Ollama thật đã pull thay vì đoán.
+- **Bảo mật:** guard SSRF của WebFetch giờ resolve DNS thật + phân loại theo dải IP thay vì so khớp hostname bằng regex; sanitize markdown chuyển từ regex tự viết sang DOMPurify.
+
+Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.3.2").
 
 ---
 
@@ -244,12 +254,12 @@ Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`,
 
 ```
 core/
-├── hooks/          # 62 hook PreToolUse / PostToolUse / Stop
+├── hooks/          # 63 hook PreToolUse / PostToolUse / Stop
 ├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 định nghĩa agent chuyên biệt
-├── skills/         # 2.016 file SKILL.md
+├── skills/         # 2.025 file SKILL.md
 ├── config/
 │   ├── core-lock.json    # manifest SHA-256 — pin 240 file core
 │   └── skills-lock.json  # hash nội dung skill
@@ -263,6 +273,7 @@ Các thuộc tính chính, đã xác minh trên code thật, không chỉ trên 
 - **Core-lock integrity** — manifest SHA-256 (`core-lock.json`) phát hiện drift, xóa file, và file lạ chưa qua review chèn vào `core/rules`, `core/hooks`, `core/gates`, `core/scripts`
 - **Review trước khi thay đổi hạ tầng** — trước khi một thay đổi vào `core/rules/**`, `core/hooks/**`, `core/gates/**`, hay `core/agents/**`, hai agent reviewer độc lập (security-auditor cùng một reviewer đi kèm) được dispatch; một finding mức Safety từ một trong hai sẽ chặn việc ghi cho đến khi người dùng giải quyết
 - **Human gate** — hành động không thể hoàn tác (force-push, publish, deploy, xóa) cần xác nhận rõ ràng từ người trong phiên hiện tại, không phải một sự chấp thuận đứng yên từ trước
+- **Giám thị độc lập ("giám thị")** — opt-in, hỏi một lần khi cài đặt. Chạy trên OS scheduler thật (macOS LaunchAgent / cron), hoàn toàn ngoài mọi phiên Claude, kiểm tra core-lock integrity, audit-chain integrity, và các thay đổi gần đây vào path nhạy cảm mỗi vài tiếng. Phát hiện bất thường → ghi file lock khiến mọi tool call sau đó trong mọi phiên trên repo đó bị deny thẳng, không có flag bypass, không có đường code nào — kể cả trong chính hook này hay watcher — gỡ được. Chỉ con người, sau khi đọc lý do khoá, tự xóa file bằng tay, mới gỡ được. Sự bất đối xứng này là chủ ý: cái có thể dừng phiên không phải là cái có thể khởi động lại nó, để một agent (dù bị compromise hay chỉ đơn giản là sai) không thể tự chấm bài mình rồi tự mở khóa.
 
 ---
 
@@ -418,7 +429,7 @@ yana-ai route classify "deploy to production"
 
 Năm route:
 - **simple** → Yana xử lý trực tiếp (chỉ đọc, không cần agent)
-- **skill** → so khớp với index 2.016 skill, dispatch đúng agent skill
+- **skill** → so khớp với index 2.025 skill, dispatch đúng agent skill
 - **learn** → route tới `hoc-tap`, trợ lý học kiểu Socratic (kích hoạt khi gặp "học", "giải thích", "tại sao" — cả tiếng Anh và tiếng Việt)
 - **daily** → route tới `daily-assistant`, tóm tắt / lên kế hoạch / soạn thảo (kích hoạt khi gặp "tóm tắt", "viết email", "lên kế hoạch" — cả tiếng Anh và tiếng Việt)
 - **complex** → dispatch agent chuyên biệt với brief đã giới hạn phạm vi

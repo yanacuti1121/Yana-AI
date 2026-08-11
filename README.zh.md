@@ -24,7 +24,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -231,11 +231,21 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.1.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust 运行时（`yana-rt`） | **1.3.3** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 包 | **0.42.3** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.3.2** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust 运行时（`yana-rt`） | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
+
+### v1.3.2 的新内容
+
+- **Yana OS 管理平面（Program K）** — 代理注册表、凭据/资源预检，以及 `yana-rt os` 下的 Evolution Governor（`status`/`capacity`/`roadmap`，NOW 队列硬性上限 2 项）。
+- **原生系统健康监控** — CPU/内存/磁盘/GPU 快照，调度器安装完全 opt-in、按用户级别（macOS LaunchAgent、Linux systemd user timer、Windows 任务计划程序；从不以 root 运行，从不静默安装）。
+- **自主性阶梯（L0–L4）** — 常规工作可按策略自动化；sovereign 级操作（合并受保护分支、发布 release、部署、轮换密钥、删除持久化数据、更改安全策略）被硬性阻止，永远无法配置为自动执行 —— 已验证即使策略允许下一级自动执行，这一限制依然成立。该模块目前只负责对 action intent 分类并排队，尚无任何代码执行已排队的命令。
+- **`yana chat`** 新增本地 AI 终端工作区的整体重设计（标签页、流式输出、取消、跨 Ollama/LM Studio/llama.cpp 的模型发现）以及新的 chat-first 入口 `yana-ai-rt`，并会自动检测已真实拉取的 Ollama 模型，而非猜测。
+- **安全：** WebFetch 的 SSRF 防护现在做真实的 DNS 解析 + IP 段分类，而非 hostname 正则匹配；markdown 净化从自写正则改为 DOMPurify。
+
+包含 PR 编号的完整记录：[CHANGELOG.md](CHANGELOG.md)（见 "v1.3.2" 条目）。
 
 ---
 
@@ -243,12 +253,12 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 ```
 core/
-├── hooks/          # 57 个 PreToolUse / PostToolUse / Stop 钩子
+├── hooks/          # 63 个 PreToolUse / PostToolUse / Stop 钩子
 ├── rules/          # 71 条强制规则（安全、正确性、UI、git）
 ├── scripts/        # safe-run.sh、verify-core-lock.sh、secure-logger.sh
 ├── gates/          # truth_gate.md、action_gate.md
 ├── agents/         # 101 个专业代理定义
-├── skills/         # 2,016 个 SKILL.md 文件
+├── skills/         # 2,025 个 SKILL.md 文件
 ├── config/
 │   ├── core-lock.json    # SHA-256 清单 — 固定 240 个核心文件
 │   └── skills-lock.json  # 技能内容哈希
@@ -262,6 +272,7 @@ core/
 - **Core-lock 完整性** — SHA-256 清单（`core-lock.json`）检测 `core/rules`、`core/hooks`、`core/gates`、`core/scripts` 中的漂移、删除,以及未经审查插入的文件
 - **基础设施变更前的审查** — 在变更进入 `core/rules/**`、`core/hooks/**`、`core/gates/**` 或 `core/agents/**` 之前，会派发两个独立的审查代理（security-auditor 加一个配对审查者）；任何一方发现 Safety 级别的问题都会阻止写入，直到人工解决
 - **人工确认闸门** — 不可逆操作（force-push、发布、部署、删除）需要在当前会话中获得明确的人工确认，而不是依赖此前的一次性授权
+- **独立熔断监视器（"giám thị"）** — opt-in，安装时提示一次是否开启。在真实的操作系统调度器上运行（macOS LaunchAgent / cron），完全在任何 Claude 会话之外，每隔几小时检查一次 core-lock 完整性、audit-chain 完整性，以及安全敏感路径的近期变更。一旦发现异常，就会写入一个锁文件，使该仓库此后每个会话的每一次工具调用都被直接拒绝——没有绕过开关，也没有任何代码路径（包括这个 hook 自身或监视器自身）能够解除它。只有人工在读过锁文件里的原因后手动删除该文件，才能恢复。这种不对称是刻意设计的：能让会话停下来的东西，不应该是能让它重新启动的东西，这样即便代理被攻陷或只是判断错误，也无法给自己判卷后自行解锁。
 
 ---
 
@@ -429,7 +440,7 @@ yana-ai route classify "deploy to production"
 
 五种路由：
 - **simple** → Yana 直接处理（只读，不需要代理）
-- **skill** → 与 2,016 条技能索引匹配，派发到确切的技能代理
+- **skill** → 与 2,025 条技能索引匹配，派发到确切的技能代理
 - **learn** → 路由到 `hoc-tap`（苏格拉底式学习助手，遇到"learn"、"explain"、"why" 等词触发——支持英语和越南语）
 - **daily** → 路由到 `daily-assistant`，总结 / 计划 / 起草（遇到"summarize"、"write an email"、"make a plan" 等词触发——支持英语和越南语）
 - **complex** → 携带明确范围的简报派发给专业代理
