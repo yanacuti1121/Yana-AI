@@ -25,6 +25,14 @@ expires_at:            <YYYY-MM-DD — when this fact should be re-verified; omi
 tags:                  [tag1, tag2, tag3]  # short labels for tag-based search; lowercase, hyphenated
 forbidden_assumptions: <list of things that must NOT be inferred from this fact>
 evidence:              <path or quoted excerpt that backs the statement>
+evidence_file:         <repo-relative path to the ONE file this fact's evidence_hash was computed
+                        against — set only when `evidence` names a real file. Distinct from `evidence`
+                        (which stays free text/excerpt) so tooling has an unambiguous path to re-hash.>
+evidence_hash:         <SHA-256 of evidence_file's content at the moment this fact was written — lets
+                        verify-fact-freshness.sh detect when the cited file has since changed, instead
+                        of trusting a `source`/`evidence` citation forever. Set together, never by hand
+                        — add-fact.sh computes both automatically when `evidence` resolves to a real
+                        file on disk.>
 superseded_by:         <id of the fact that replaced this one>
 ```
 
@@ -37,6 +45,28 @@ Examples: `hook`, `memory`, `scope`, `ci`, `electron`, `auth`, `release`.
 - One fact can have multiple tags.
 - Tags are stored in the fact file frontmatter only — not indexed in INDEX.md.
 - Tags must not encode secrets or PII.
+
+## Evidence Freshness (evidence_file / evidence_hash)
+
+`source` and `evidence` are self-reported and never checked against anything —
+a fact can cite `guard-destructive.sh:42` for years after that line moved or
+the file changed shape, and nothing here would notice. `evidence_file` +
+`evidence_hash` close that gap for the common case where a fact's evidence
+really is "this one file, as it looked when I wrote this fact":
+
+- Set both together, only when `evidence` names a real repo-relative file.
+  `add-fact.sh` does this automatically — computes the SHA-256 at write time,
+  no manual hashing.
+- `bash core/scripts/verify-fact-freshness.sh` recomputes the hash of every
+  fact's `evidence_file` and reports `FRESH` (hash still matches — the fact's
+  cited file hasn't changed since), `STALE` (hash mismatch — the file the
+  fact cites has changed; the fact needs re-verification, not automatic
+  trust), or `SKIPPED` (no `evidence_file` set — most facts, especially
+  decisions/constraints with no single-file evidence, and this is fine).
+- This is advisory, matching `memory-provenance.sh`/`resolve-memory-conflict.sh`'s
+  existing pattern: a manually-run report, not a hook that blocks a stale
+  fact from being read. A `STALE` result is a prompt to re-verify and
+  re-promote/demote `confidence`, not an automatic deprecation.
 
 ## Confidence Levels
 
@@ -85,4 +115,22 @@ evidence: gates/action_gate.md § Scope Rules
 
 Cross-scope edits require an explicit "approved to cross scope into <path>" statement from the user
 in the current session. The approval does not persist across sessions.
+```
+
+A fact whose evidence is one specific file (not a section reference like the
+example above) gets `evidence_file`/`evidence_hash` too — set automatically
+by `add-fact.sh`, never by hand:
+
+```yaml
+---
+id: fact-002
+type: observation
+statement: token-budget-guard.sh's circuit-breaker deny path returns exit 2 with hookSpecificOutput JSON.
+source: file:core/hooks/token-budget-guard.sh
+confidence: high
+scope: Yana AI
+evidence: core/hooks/token-budget-guard.sh
+evidence_file: core/hooks/token-budget-guard.sh
+evidence_hash: 3f9a1c...   # SHA-256 at write time — verify-fact-freshness.sh re-checks this
+---
 ```
