@@ -145,3 +145,39 @@ fn hand_edited_system_role_string_is_still_rejected() {
     assert_eq!(messages.len(), 0);
     cleanup(&session_id);
 }
+
+#[test]
+fn root_aware_session_listing_does_not_use_process_cwd() {
+    let root = std::env::temp_dir().join(format!("yana-history-root-{}", Uuid::new_v4()));
+    let directory = history_dir_at(&root);
+    fs::create_dir_all(&directory).unwrap();
+    let session_id = Uuid::new_v4().to_string();
+    let line = HistoryLine {
+        schema_version: SCHEMA_VERSION.to_string(),
+        session_id: session_id.clone(),
+        id: Uuid::new_v4().to_string(),
+        ts: "2026-08-11T00:00:00Z".to_string(),
+        role: Role::User,
+        content: "External project session".to_string(),
+        provider: None,
+        model: None,
+        input_tokens: None,
+        output_tokens: None,
+        duration_ms: None,
+        truncated: false,
+        error: None,
+        tool_call: None,
+        tool_result: None,
+    };
+    fs::write(
+        directory.join(format!("{session_id}.jsonl")),
+        format!("{}\n", serde_json::to_string(&line).unwrap()),
+    )
+    .unwrap();
+
+    let sessions = list_recent_sessions_at(&root, 10);
+    assert_eq!(sessions.len(), 1);
+    assert_eq!(sessions[0].session_id, session_id);
+    assert_eq!(sessions[0].title, "External project session");
+    fs::remove_dir_all(root).unwrap();
+}

@@ -232,5 +232,7 @@ fn track_cost(provider_name: &str, model: &str, usage: ChatUsage, duration_ms: u
         "model": format!("{provider_name}/{model}"),
         "duration_ms": duration_ms,
     });
-    crate::cost::track_from_payload("chat", &payload);
+    if let Err(error) = crate::cost::track_from_payload("chat", &payload) {
+        eprintln!("[cost] chat accounting failed: {error:#}");
+    }
 }

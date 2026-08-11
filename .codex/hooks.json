@@ -1,6 +1,19 @@
 {
   "description": "Yana AI lifecycle enforcement for Codex.",
   "hooks": {
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/precompact-priority-injection.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Injecting compaction priority requirements"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|mcp__.*",

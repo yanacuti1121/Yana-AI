@@ -59,6 +59,42 @@ use provider::ChatProvider;
 use std::sync::Arc;
 use uuid::Uuid;
 
+#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
+pub(crate) struct ProviderSummary {
+    pub name: String,
+    pub runtime: String,
+    pub requires_key: bool,
+    pub env_var: Option<String>,
+}
+
+/// Canonical provider catalog shared by chat and management surfaces.
+/// Constructing providers is side-effect free; this never probes a server or
+/// reads a credential value.
+pub(crate) fn provider_catalog() -> Vec<ProviderSummary> {
+    [
+        "anthropic",
+        "openai",
+        "kimi",
+        "ollama",
+        "lmstudio",
+        "llamacpp",
+        "turbofieldfare",
+    ]
+    .into_iter()
+    .map(|name| {
+        let provider = try_select_provider(name).expect("catalog provider must be selectable");
+        ProviderSummary {
+            name: provider.name().to_string(),
+            runtime: provider.runtime_kind().label().to_string(),
+            requires_key: provider.requires_key(),
+            env_var: provider
+                .requires_key()
+                .then(|| provider.env_var().to_string()),
+        }
+    })
+    .collect()
+}
+
 /// Non-exiting core: used both by startup (which wraps it with
 /// exit-on-error, safe since it always runs before any `TerminalGuard`
 /// exists) and by the in-session `/model` command (`tui.rs`), which must
@@ -76,6 +112,31 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
         other => Err(format!(
             "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi"
         )),
+    }
+}
+
+#[cfg(test)]
+mod provider_catalog_tests {
+    use super::*;
+
+    #[test]
+    fn catalog_matches_every_selectable_provider() {
+        let names: Vec<String> = provider_catalog()
+            .into_iter()
+            .map(|item| item.name)
+            .collect();
+        assert_eq!(
+            names,
+            [
+                "anthropic",
+                "openai",
+                "kimi",
+                "ollama",
+                "lmstudio",
+                "llamacpp",
+                "turbofieldfare"
+            ]
+        );
     }
 }
 

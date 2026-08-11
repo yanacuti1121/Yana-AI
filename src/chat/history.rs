@@ -84,7 +84,11 @@ pub struct HistoryLine {
 
 fn history_dir() -> PathBuf {
     let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    base.join(".yana-ai").join("chat-history")
+    history_dir_at(&base)
+}
+
+fn history_dir_at(root: &std::path::Path) -> PathBuf {
+    root.join(".yana-ai").join("chat-history")
 }
 
 pub fn history_path(session_id: &str) -> PathBuf {
@@ -426,9 +430,11 @@ fn summarize_session(path: &std::path::Path) -> Option<SessionSummary> {
     }
 
     let session_id = session_id?;
-    let title = load_metadata(&session_id)
+    let title = fs::read_to_string(path.with_extension("meta.json"))
+        .ok()
+        .and_then(|text| serde_json::from_str::<SessionMetadata>(&text).ok())
         .map(|metadata| metadata.title)
-        .unwrap_or_else(|_| derive_title(&preview));
+        .unwrap_or_else(|| derive_title(&preview));
     Some(SessionSummary {
         session_id,
         title,
@@ -448,7 +454,14 @@ fn summarize_session(path: &std::path::Path) -> Option<SessionSummary> {
 /// per-session *content* (provider/model/preview/turn count) is only
 /// parsed for the files that actually make the cut.
 pub fn list_recent_sessions(limit: usize) -> Vec<SessionSummary> {
-    let Ok(entries) = fs::read_dir(history_dir()) else {
+    let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    list_recent_sessions_at(&base, limit)
+}
+
+/// Root-aware variant for management commands that accept `--dir` without
+/// mutating process-wide current directory.
+pub fn list_recent_sessions_at(root: &std::path::Path, limit: usize) -> Vec<SessionSummary> {
+    let Ok(entries) = fs::read_dir(history_dir_at(root)) else {
         return Vec::new();
     };
 
@@ -457,7 +470,7 @@ pub fn list_recent_sessions(limit: usize) -> Vec<SessionSummary> {
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "jsonl"))
         .filter_map(|e| Some((e.path(), e.metadata().ok()?.modified().ok()?)))
         .collect();
-    files.sort_by(|a, b| b.1.cmp(&a.1));
+    files.sort_by_key(|item| std::cmp::Reverse(item.1));
     files.truncate(limit);
 
     files

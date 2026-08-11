@@ -1,15 +1,200 @@
-//! Agent management (Program K, area 1 of 3 — see `PROGRAM-K-YANA-OS-SKELETON.md`).
-//!
-//! This is a read-only registry view, not a scheduler: it lists agent chat
-//! sessions that already exist on disk (`.yana-ai/chat-history/*.jsonl`,
-//! written by `crate::chat::history`), it does not create, kill, or
-//! supervise anything. "Lifecycle/identity/execution sessions" as a real
-//! management surface (start/stop, health, ownership) is still `_(TODO)_`
-//! per the skeleton's own Design Goals section.
+//! Cooperative agent registry for Yana OS Phase 1.
 
-/// Prints the `limit` most recently active agent sessions. Real data only —
-/// an empty history dir prints a plain "no sessions" line, not a mocked row.
-pub fn list(limit: usize) {
+use super::state::{self, AgentStatus, ManagedAgent};
+use anyhow::{bail, Result};
+use serde::Serialize;
+use std::path::Path;
+use uuid::Uuid;
+
+#[derive(Debug, Serialize)]
+pub struct AgentInventory {
+    pub managed: Vec<ManagedAgent>,
+    pub chat_sessions: Vec<ChatSessionView>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ChatSessionView {
+    pub session_id: String,
+    pub title: String,
+    pub provider: Option<String>,
+    pub model: Option<String>,
+    pub turn_count: usize,
+    pub last_activity: String,
+}
+
+pub fn inventory(root: &Path, include_chat_sessions: bool, limit: usize) -> Result<AgentInventory> {
+    let managed = state::load(root)?.agents;
+    let chat_sessions = if include_chat_sessions {
+        crate::chat::history::list_recent_sessions_at(root, limit)
+            .into_iter()
+            .map(|session| ChatSessionView {
+                session_id: session.session_id,
+                title: session.title,
+                provider: session.provider,
+                model: session.model,
+                turn_count: session.turn_count,
+                last_activity: session.last_ts,
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    Ok(AgentInventory {
+        managed,
+        chat_sessions,
+    })
+}
+
+pub fn register(
+    root: &Path,
+    name: String,
+    provider: String,
+    model: Option<String>,
+    session_id: Option<String>,
+    owner: Option<String>,
+) -> Result<ManagedAgent> {
+    let name = validated("agent name", name)?;
+    let provider = validated("provider", provider)?;
+    if crate::chat::try_select_provider(&provider).is_err() {
+        bail!("unknown provider '{provider}'");
+    }
+    state::mutate(root, |state| {
+        let now = state::now();
+        let agent = ManagedAgent {
+            id: Uuid::new_v4().to_string(),
+            name,
+            provider,
+            model,
+            session_id,
+            owner,
+            status: AgentStatus::Registered,
+            created_at: now.clone(),
+            updated_at: now,
+            last_heartbeat: None,
+        };
+        state.agents.push(agent.clone());
+        Ok(agent)
+    })
+}
+
+pub fn heartbeat(root: &Path, id: &str) -> Result<ManagedAgent> {
+    state::mutate(root, |state| {
+        let agent = find_agent(state, id)?;
+        if agent.status != AgentStatus::Running {
+            bail!(
+                "agent {id} is {}; transition it to running before heartbeat",
+                agent.status.as_str()
+            );
+        }
+        let now = state::now();
+        agent.updated_at = now.clone();
+        agent.last_heartbeat = Some(now);
+        Ok(agent.clone())
+    })
+}
+
+pub fn transition(root: &Path, id: &str, target: AgentStatus) -> Result<ManagedAgent> {
+    state::mutate(root, |state| {
+        let agent = find_agent(state, id)?;
+        if !transition_allowed(agent.status, target) {
+            bail!(
+                "invalid agent transition {} -> {} for {id}",
+                agent.status.as_str(),
+                target.as_str()
+            );
+        }
+        agent.status = target;
+        agent.updated_at = state::now();
+        if target == AgentStatus::Running {
+            agent.last_heartbeat = Some(agent.updated_at.clone());
+        }
+        Ok(agent.clone())
+    })
+}
+
+fn validated(label: &str, value: String) -> Result<String> {
+    let value = value.trim().to_string();
+    if value.is_empty() {
+        bail!("{label} must not be empty");
+    }
+    Ok(value)
+}
+
+fn find_agent<'a>(state: &'a mut state::OsState, id: &str) -> Result<&'a mut ManagedAgent> {
+    state
+        .agents
+        .iter_mut()
+        .find(|agent| agent.id == id)
+        .ok_or_else(|| anyhow::anyhow!("unknown managed agent id '{id}'"))
+}
+
+fn transition_allowed(from: AgentStatus, to: AgentStatus) -> bool {
+    from == to
+        || matches!(
+            (from, to),
+            (AgentStatus::Registered, AgentStatus::Running)
+                | (AgentStatus::Registered, AgentStatus::Stopped)
+                | (AgentStatus::Registered, AgentStatus::Failed)
+                | (AgentStatus::Running, AgentStatus::Stopped)
+                | (AgentStatus::Running, AgentStatus::Failed)
+        )
+}
+
+pub fn print_inventory(inventory: &AgentInventory, json: bool) -> Result<()> {
+    if json {
+        println!("{}", serde_json::to_string_pretty(inventory)?);
+        return Ok(());
+    }
+    if inventory.managed.is_empty() {
+        println!("No managed agents registered.");
+    } else {
+        println!("Managed agents  ({})", inventory.managed.len());
+        println!("{}", "─".repeat(82));
+        for agent in &inventory.managed {
+            println!(
+                "  {}  {:<16} {:<12} {:<10} {}",
+                agent.id.chars().take(8).collect::<String>(),
+                agent.name,
+                agent.provider,
+                agent.status.as_str(),
+                agent.last_heartbeat.as_deref().unwrap_or("—")
+            );
+        }
+    }
+    if !inventory.chat_sessions.is_empty() {
+        println!("\nChat sessions  ({})", inventory.chat_sessions.len());
+        println!("{}", "─".repeat(82));
+        for session in &inventory.chat_sessions {
+            println!(
+                "  {}  {:<22} {:<12} {:>3} turns  {}",
+                session.session_id.chars().take(8).collect::<String>(),
+                session.title.chars().take(22).collect::<String>(),
+                session.provider.as_deref().unwrap_or("?"),
+                session.turn_count,
+                session.last_activity
+            );
+        }
+    }
+    Ok(())
+}
+
+pub fn print_agent(agent: &ManagedAgent, json: bool) -> Result<()> {
+    if json {
+        println!("{}", serde_json::to_string_pretty(agent)?);
+    } else {
+        println!(
+            "{}  {}  {}  {}",
+            agent.id,
+            agent.name,
+            agent.provider,
+            agent.status.as_str()
+        );
+    }
+    Ok(())
+}
+
+/// Phase 0 compatibility view over chat history.
+pub fn legacy_list(limit: usize) {
     let sessions = crate::chat::history::list_recent_sessions(limit);
     if sessions.is_empty() {
         println!("No agent sessions found in .yana-ai/chat-history/");
@@ -17,21 +202,59 @@ pub fn list(limit: usize) {
     }
     println!("Agent sessions  ({} shown, limit {limit})", sessions.len());
     println!("{}", "─".repeat(70));
-    for s in &sessions {
-        let provider = s.provider.as_deref().unwrap_or("?");
-        let model = s.model.as_deref().unwrap_or("?");
-        let short_id = s.session_id.chars().take(8).collect::<String>();
+    for session in &sessions {
         println!(
-            "  {short_id}  {:<12} {:<20} {:>3} turns  {}",
-            provider, model, s.turn_count, s.last_ts
+            "  {}  {:<12} {:<20} {:>3} turns  {}",
+            session.session_id.chars().take(8).collect::<String>(),
+            session.provider.as_deref().unwrap_or("?"),
+            session.model.as_deref().unwrap_or("?"),
+            session.turn_count,
+            session.last_ts
         );
     }
 }
 
-// No unit test here: `list()` is a thin print wrapper over
-// `chat::history::list_recent_sessions` (already covered by
-// `chat/history.rs`'s own test module), and testing it directly would mean
-// mutating the process-wide current directory — the exact pattern that
-// already causes a known flaky parallel-test-isolation issue elsewhere in
-// this crate (`guard::blast_paths`). Verified instead via a real
-// `cargo run --features cli --bin yana-rt -- os agent-list` smoke test.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lifecycle_is_forward_only() {
+        assert!(transition_allowed(
+            AgentStatus::Registered,
+            AgentStatus::Running
+        ));
+        assert!(transition_allowed(
+            AgentStatus::Running,
+            AgentStatus::Stopped
+        ));
+        assert!(!transition_allowed(
+            AgentStatus::Stopped,
+            AgentStatus::Running
+        ));
+        assert!(!transition_allowed(
+            AgentStatus::Failed,
+            AgentStatus::Running
+        ));
+    }
+
+    #[test]
+    fn validation_rejects_blank_identity() {
+        assert!(validated("agent name", "  ".into()).is_err());
+    }
+
+    #[test]
+    fn registration_rejects_unknown_provider_before_state_access() {
+        let error = register(
+            Path::new("/definitely/missing"),
+            "test".into(),
+            "unknown-provider".into(),
+            None,
+            None,
+            None,
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("unknown provider"));
+    }
+}

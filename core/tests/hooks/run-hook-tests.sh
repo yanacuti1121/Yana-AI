@@ -1427,8 +1427,9 @@ jq -n --arg tool "circuit-test-tool" '{
 }' > "$BUDGET_FILE"
 _cb_out=$(YANA_TOKEN_BUDGET="$BUDGET_FILE" YANA_CIRCUIT_STATE="$CIRCUIT_TMP" \
    CLAUDE_TOOL_NAME="circuit-test-tool" YANA_MAX_FIX_ATTEMPTS=5 \
-   bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1 || true)
-if echo "$_cb_out" | grep -qE "CIRCUIT BREAKER|HARD BLOCK"; then
+   bash "$CLAUDE_DIR/hooks/token-budget-guard.sh" 2>&1)
+_cb_rc=$?
+if [[ "$_cb_rc" -ne 0 ]] && echo "$_cb_out" | grep -qiE "circuit breaker|hard block|permissionDecision.*deny"; then
     echo "PASS"
 else
     echo "FAIL (expected circuit breaker trigger)"
@@ -1841,6 +1842,27 @@ test_supply "Bypass suppresses block" \
 echo ""
 echo "=== tool-validator.sh (L1.5) ==="
 
+# Hermetic DNS fixture for safe-host tests. Production remains fail-closed on
+# resolver errors, but the local/CI test gate must not depend on external DNS
+# availability. Only the two known-safe fixture hosts are mapped; every other
+# hostname or literal still exercises the real resolver/classifier path.
+TOOL_VALID_DNS_FIXTURE=$(mktemp -d)
+register_temp "$TOOL_VALID_DNS_FIXTURE"
+cat > "$TOOL_VALID_DNS_FIXTURE/sitecustomize.py" << 'DNS_FIXTURE_EOF'
+import socket
+
+_real_getaddrinfo = socket.getaddrinfo
+
+def _fixture_getaddrinfo(host, port, *args, **kwargs):
+    if host in {"api.github.com", "example.com"}:
+        return _real_getaddrinfo("8.8.8.8", port, *args, **kwargs)
+    return _real_getaddrinfo(host, port, *args, **kwargs)
+
+socket.getaddrinfo = _fixture_getaddrinfo
+DNS_FIXTURE_EOF
+_TOOL_VALID_ORIGINAL_PYTHONPATH="${PYTHONPATH-}"
+export PYTHONPATH="$TOOL_VALID_DNS_FIXTURE${_TOOL_VALID_ORIGINAL_PYTHONPATH:+:$_TOOL_VALID_ORIGINAL_PYTHONPATH}"
+
 test_validator() {
     local test_name=$1
     local input_json=$2
@@ -2129,6 +2151,12 @@ if [[ -n "$TRAILER_OUT" ]] && echo "$TRAILER_OUT" | jq -e '.hookSpecificOutput.p
 else
     echo "FAIL (expected deny, got: $TRAILER_OUT)"
     FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+if [[ -n "$_TOOL_VALID_ORIGINAL_PYTHONPATH" ]]; then
+    export PYTHONPATH="$_TOOL_VALID_ORIGINAL_PYTHONPATH"
+else
+    unset PYTHONPATH
 fi
 
 # 9. guard-blast-radius.sh (Rust-only — no bash fallback; the real

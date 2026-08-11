@@ -1,8 +1,9 @@
 # Program K — Yana OS — Skeleton
 
-**Status:** Draft — Phase 0 (Input) complete, Phase 1-9 explicitly skipped by
-anh Tâm's override (see Implementation section below); a first read-only
-implementation slice exists in `src/os/`
+**Status:** ADS v1 Phases 3–15 complete for the readiness-approved accounting
+and aggregate-health hardening slice. The Phase 1 management plane remains a
+candidate; process supervision, secret storage, scheduling, kernel resource
+control and Windows mutation remain blocked below 80% readiness.
 **Created:** 2026-08-09
 **Phase 0 answered by anh Tâm:** 2026-08-09
 
@@ -82,8 +83,9 @@ sessions too, not just this one.
 Anh Tâm confirmed all three of the following are in scope for Yana OS's
 "management infrastructure" layer (asked as a follow-up to Vision, to
 sharpen what "manage agent lifecycle... policies..." concretely covers).
-Still Phase 0-level (naming the areas, not designing them — Design
-Goals/Architecture for each stays TODO until Phase 1+):
+At that time this was Phase 0-level only (naming the areas, not designing
+them). The Phase 1 management-plane boundary and Phase 2 inventory below now
+record the approved design and the remaining gaps:
 
 1. **Agent management** — lifecycle, identity, execution sessions (the
    "agent lifecycle, identity... execution sessions" already named in
@@ -96,7 +98,7 @@ Goals/Architecture for each stays TODO until Phase 1+):
    quota/cost), i.e. governing what an agent is allowed to spend, not
    just what it's allowed to touch.
 
-## Implementation (started 2026-08-09 — ADS v1 Phase 1-9 explicitly skipped)
+## Implementation
 
 This session flagged that "code now" contradicted the Scope note above (no
 implementation before architecture/ADR/boundaries are approved). Anh Tâm
@@ -105,7 +107,8 @@ code ngay" — a deliberate override, recorded here rather than silently
 acted on, per this repo's own rule that AI must not invent or quietly skip
 Program process on its own judgment.
 
-What exists as of this commit, in `src/os/` (`yana-rt os <subcommand>`):
+The original 2026-08-09 Phase 0 slice added three read-only compatibility
+commands after the explicit override above:
 
 - `os agent-list` — lists known agent chat sessions from
   `.yana-ai/chat-history/*.jsonl` (id, provider, model, turn count, last
@@ -115,48 +118,136 @@ What exists as of this commit, in `src/os/` (`yana-rt os <subcommand>`):
 - `os resource-status` — thin wrapper over the existing `cost` ledger
   (`yana-rt cost show`).
 
-What this is **not**: it does not constitute Phase 1 Specification, Phase 2
-Capability Inventory, Phase 3 Architecture, or any ADR for the three
-management areas. It does not add any new capability, mutation, sandboxing,
-scheduling, or policy-enforcement logic — only read-only visibility over
-state that already existed elsewhere in the crate (`chat::history`, the
-provider env-var list, `cost`). Real design for agent lifecycle
-management, a per-Gatekeeper credential model, and resource *enforcement*
-(not just reporting) is still open — see Open Questions, unchanged.
+The 2026-08-11 Phase 1 management-plane implementation advances that baseline:
 
-Verification: `cargo build --release --features cli --bin yana-rt` (0
-errors, 0 new warnings), `cargo test --release --features cli --bin
-yana-rt -- --test-threads=1` (237/237 passed), plus a manual run of all
-three subcommands against this repo's real `.yana-ai/chat-history/` and
-cost ledger data.
+- Versioned state in `.yana-ai/os/state.json`, protected by ADR-008
+  `flock-v1`, private permissions, symlink rejection and atomic replacement.
+- Stable managed-agent identities with provider/model/session/owner metadata,
+  validated forward-only lifecycle transitions and cooperative heartbeat
+  evidence.
+- One canonical chat-provider catalog shared with credential status, including
+  Ollama, LM Studio, llama.cpp and Turbofieldfare local runtimes.
+- Explicit concurrency, per-request token and daily-cost policy. Preflight
+  denies when policy is absent, rejects corrupt ledger data rather than
+  under-counting it, and uses only real ledger cost plus caller estimates.
+- Root-aware human and JSON CLI output. `--dir` never changes process-global
+  working directory.
+
+What this is **not**: no daemon, process start/kill, secret vault, scheduler,
+CPU/RAM enforcement or autonomous action. Heartbeats are cooperative metadata,
+not proof of process liveness. Mutating commands require the repository's
+`flock-v1` protocol marker and fail closed if the protocol is unavailable.
 
 ## Design Goals
 
-_(TODO — Phase 1, chưa điền)_
+1. One local management namespace built on `yana-rt`, not a second runtime.
+2. Persistent, versioned state under `.yana-ai/os/` with atomic writes and the
+   repository's canonical `flock-v1` protocol.
+3. Provider-neutral agent identity and lifecycle metadata.
+4. Credential visibility without storing or printing credential values.
+5. Deterministic resource preflight from explicit user policy and real ledger
+   data; missing policy fails closed.
+6. Human-readable and JSON output for automation.
+7. Backward compatibility for the three Phase 0 read-only commands.
 
 ## Non-Goals
 
-_(TODO — Phase 1, chưa điền)_
+- No general-purpose operating system.
+- No daemon, scheduler or autonomous process launcher in Phase 1.
+- No process termination or signal delivery.
+- No API-key/OAuth secret store. Environment/provider vault work requires a
+  separate security design and threat model.
+- No claimed CPU/RAM enforcement. Phase 1 enforces only declared concurrency,
+  estimated token and daily cost preflight limits.
+- No replacement for Program J capabilities, chat providers, mission dispatch,
+  hooks, or `yana-rt` guards.
 
 ## Capability List
 
-_(TODO — Phase 2, chưa điền)_
+The complete ADS v1 Phase 2 matrix is maintained in
+`PROGRAM-K-PHASE-2-CAPABILITY-INVENTORY.md`. It inventories 32 capabilities
+across the current management-plane candidate and the reusable Rust/Bash/Python
+subsystems, with Purpose, Input, Output, Dependency, Priority, Owner and Status
+for every row.
+
+Phase 2 confirms nine material gaps: authoritative supervision, scheduling,
+credential vault/OAuth lifecycle, per-agent CPU/RAM enforcement, unified typed
+accounting, managed-agent authorization, aggregate health, OS-state migration,
+and Windows mutation support. It also identifies six ownership conflicts that
+Phase 3 must resolve before any further implementation.
 
 ## Architecture
 
-_(TODO — Phase 3, chưa điền. Không đề xuất trước theo đúng Scope ở trên.)_
+```text
+yana-rt os CLI
+      │
+      ├── Agent service ───── chat history (read-only)
+      │          │
+      ├── Credential service ─ provider catalog + env presence only
+      │          │
+      └── Resource service ── cost ledger + explicit policy
+                 │
+          Versioned OS state
+                 │
+      flock-v1 + atomic file replace
+```
+
+The management plane owns metadata and policy. Existing execution paths remain
+owned by `yana-rt`; Phase 1 does not route around guards or create a parallel
+execution engine.
+
+## Interfaces
+
+- `yana-rt os init`
+- `yana-rt os status [--json]`
+- `yana-rt os doctor [--json]`
+- `yana-rt os agent list|register|heartbeat|transition`
+- `yana-rt os credential status [--json]`
+- `yana-rt os resource show|set|check`
+- Compatibility: `agent-list`, `credential-status`, `resource-status`
+
+## Data Flow
+
+Mutation: CLI input → validate → acquire `flock-v1` → read current schema →
+apply one transition → write private temporary file → atomic rename → release.
+
+Read: CLI → load state without mutation → combine only with existing canonical
+sources → render human or JSON output. Credential values never enter a result
+object.
+
+## Workflow
+
+1. `os init` creates schema v1 with no implicit spend limits.
+2. Human sets explicit resource policy.
+3. Agent is registered and receives a stable id.
+4. Agent/runtime sends heartbeats and explicit lifecycle transitions.
+5. `resource check` evaluates policy before work begins; missing policy denies.
+6. `os status` exposes evidence for humans and automation.
 
 ## ADR References
 
-_(TODO — Phase 6, chưa điền)_
+- `docs/adr/ADR-011-yana-os-phase-1-management-plane.md`
+- `docs/adr/ADR-012-yana-os-authoritative-ownership.md`
+- `docs/adr/ADR-008-shared-locking-infrastructure.md`
 
 ## Readiness Checklist
 
-- [ ] Repository Readiness
-- [ ] Memory Readiness
-- [ ] Runtime Readiness
-- [ ] Governance Readiness
-- [ ] Cost Readiness
+- [x] Repository — existing `src/os/`, CLI namespace and tests
+- [x] Knowledge — Phase 0 vision and explicit three management areas
+- [x] Notebook — this Program file records decisions and boundaries
+- [x] Memory — versioned local state location defined
+- [x] Runtime — `yana-rt` and provider/cost/session sources exist
+- [x] Governance — human-controlled mutations; no autonomous kill/start
+- [x] Security — no secret values; private state; canonical locking
+- [x] Benchmark — 60-run local status/doctor command benchmark recorded
+- [x] Cost — reuse real ledger; no new service dependency
+- [x] Context — scoped Phase 1 interfaces and non-goals are explicit
+
+**Readiness: 100% (10/10) for the strict-accounting and read-only-doctor
+slice.** Scores for the deferred daemon, scheduler, credential vault,
+authorization, migration, Windows mutation and kernel resource-control work
+remain 40–55% and therefore BLOCKED. Full scoring and Phase 3–15 evidence are
+in `PROGRAM-K-PHASES-3-15.md`.
 
 ## Open Questions
 
