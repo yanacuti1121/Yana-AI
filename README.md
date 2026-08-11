@@ -104,7 +104,7 @@ Shell sanitization     — quotes all variables, strips shell metacharacters
 Egress / SSRF policy   — blocks known metadata endpoints, private IP ranges
 Supply-chain vetting   — typosquat/CVE checklist before package installs
 Blast-radius cap       — caps how many files/what scope a destructive command can touch
-Merkle audit log       — every allowed AND blocked action logged, tamper-detected
+Tamper-evident audit log — every allowed AND blocked action logged, hash-chained
 Human gate             — irreversible actions (push, publish, delete) require explicit confirmation
          ↓
 Execute (or block + log)
@@ -204,7 +204,7 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-27 subcommands. Zero Python dependency.
+30 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
@@ -266,7 +266,7 @@ core/
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 277 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
@@ -274,7 +274,7 @@ core/
 ```
 
 Key properties, verified against the actual code, not just the docs describing it:
-- **Merkle audit chain** — every action logged as a hash-chained JSONL entry; tampering with an existing line is detectable by recomputing the chain (`verify-audit-chain.sh`)
+- **Tamper-evident hash-chain audit log** — every action logged as a hash-chained JSONL entry (each entry embeds the previous entry's hash, a linear chain — not a Merkle tree, despite what earlier versions of this README called it); tampering with an existing line is detectable by recomputing the chain (`verify-audit-chain.sh`)
 - **Core-lock integrity** — a SHA-256 manifest (`core-lock.json`) detects drift, deletion, and unreviewed file injection in `core/rules`, `core/hooks`, `core/gates`, `core/scripts`
 - **Reviewed infrastructure writes** — before a change lands in `core/rules/**`, `core/hooks/**`, `core/gates/**`, or `core/agents/**`, two independent reviewer agents (security-auditor plus a paired reviewer) are dispatched; a Safety-severity finding from either blocks the write until a human resolves it
 - **Human gate** — irreversible actions (force-push, publish, deploy, delete) require an explicit human confirmation in the current session, not a standing approval
@@ -291,7 +291,7 @@ Same live-tested output as the demo at the top of this README (`core/hooks/guard
 Honest, not aspirational: verified directly against the live hooks, not the docs describing them.
 
 - **`guard-destructive.sh` is a command-string guard, not a shell parser.** It tokenizes on whitespace and matches known-dangerous spellings (`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, direct push to main/master). As of 2026-07-05 (4 rounds of adversarial review in one day) it normalizes whole-token quoting (`"..."`, `'...'`, `$'...'`), backslash-escaping, `${IFS}`-style variable splicing, and denies outright on brace-expansion shapes adjacent to a git/rm invocation, but it does **not** handle mid-token quote-splice concatenation (quoted and unquoted fragments alternating within one word with no separating whitespace, e.g. `--forc"e"`, a real shell resolves this to `--force`, this guard does not). Closing that needs character-run quote-state parsing, not another token comparison: tracked as a longer-term design question, not silently claimed as closed. A deliberately-crafted command can still slip past this guard; an ordinary agent typing a command normally will be caught.
-- **SSRF/metadata-endpoint blocking and typosquatting/unvetted-package-install blocking are documented policy, not yet wired as live hooks.** Earlier versions of this README showed them as working examples, verified directly (2026-07-04, re-confirmed 2026-07-05) that no currently-wired hook actually intercepts `curl` to a metadata endpoint, a `Read` of a `.env` file, or an `npm install` of a typosquatted package. This is now stated plainly instead of shown as a working demo.
+- **SSRF/metadata-endpoint blocking and typosquatting/unvetted-package-install blocking have real implementations that are not connected to anything.** This is a more specific problem than "not implemented yet": `core/hooks/tool-validator.sh` has a real WebFetch SSRF guard (real DNS resolution via `socket.getaddrinfo` plus `ipaddress`-based classification, hardened over multiple adversarial review rounds — see `core/hooks/tool-validator.sh`'s own history), and `core/hooks/dependency-safety-gate.sh` / `core/hooks/supply-chain-guard.sh` have real typosquat-detection logic. None of the three appear anywhere in `.claude/settings.json`'s hook registration (verified directly against that file, not against the scripts' own "Status: active" headers, which are wrong) — so none of them actually run. A `curl` to a metadata endpoint, a `Read` of a `.env` file, or an `npm install` of a typosquatted package is not intercepted today, but the fix here is wiring three existing files into the hook chain, not writing new detection logic.
 - **`core/` and `.claude/` are two copies of the same source by design**, not an accidental duplicate. `core/` is canonical, `.claude/` is what Claude Code reads at runtime, and `core/config/core-lock.json` pins SHA-256 hashes of both. If you see them as duplicated content, that is intentional, not a bug to "clean up."
 - **macOS ships no GNU `timeout`/`gtimeout` by default.** A hook that assumed one was present silently never executed any guarded hook on affected machines until this was found and fixed (2026-07-04). Now degrades gracefully (runs without a timeout cap) instead of silently no-op'ing, but worth knowing this class of "assumed environment" bug is exactly what to watch for if you fork or extend these hooks.
 
@@ -432,7 +432,7 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-Five routes:
+Six routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
 - **skill** → matched against a 2,025-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap`, a Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
