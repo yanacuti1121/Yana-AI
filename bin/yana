@@ -81,6 +81,7 @@ CHECK_FILE_PY="$REPO_ROOT/core/scripts/check_file.py"
 TEMPLATE_PY="$REPO_ROOT/core/scripts/template_list.py"
 RULE_PY="$REPO_ROOT/core/scripts/rule_add.py"
 INSTALL_PY="$REPO_ROOT/core/scripts/install_project.py"
+GIAMTHI_SERVICE_PY="$REPO_ROOT/core/scripts/giamthi_service.py"
 BADGE_PY="$REPO_ROOT/core/scripts/badge_gen.py"
 WATCH_PY="$REPO_ROOT/core/scripts/watch.py"
 REPORT_PDF_PY="$REPO_ROOT/core/scripts/report_pdf.py"
@@ -344,6 +345,7 @@ Commands:
   diff-report <b> <a>   Compare two audit JSON runs — show what changed
   rule   <subcommand>    Custom rule management (add/list/remove)
   install [target]       One-command yana-ai setup for a project
+  giamthi <action>       OS supervisor: install/status/repair/uninstall/run
   report html [target]   Export audit report as standalone HTML
   report pdf  [target]   Export audit report as PDF
   scan-url <url>         Scan a GitHub repo URL (no permanent clone)
@@ -428,6 +430,8 @@ Examples:
   yana-ai guard list
   yana-ai guard install all
   yana-ai guard status
+  yana-ai giamthi status .
+  yana-ai giamthi repair .
   yana-ai task create "Fix auth bug" --scope "src/auth/"
   yana-ai task list
   yana-ai task done <id> --evidence "12 tests passed, build ok"
@@ -638,6 +642,9 @@ case "$COMMAND" in
     ;;
   install)
     python3 "$INSTALL_PY" "$@"
+    ;;
+  giamthi)
+    python3 "$GIAMTHI_SERVICE_PY" "$@"
     ;;
   report)
     SUBCMD="${1:-}"; shift 2>/dev/null || true

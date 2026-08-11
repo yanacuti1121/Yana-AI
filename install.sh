@@ -5,12 +5,14 @@
 # Options (env vars):
 #   YANA_DIR       — install target (default: .claude in current dir)
 #   YANA_SKIP_TEST — set to 1 to skip post-install verification
+#   YANA_SUPERVISOR — ask (default), install, or skip OS-level Giám thị
 
 set -euo pipefail
 
 REPO="yanacuti1121/yana-ai"
 INSTALL_DIR="${YANA_DIR:-.claude}"
 SKIP_TEST="${YANA_SKIP_TEST:-0}"
+SUPERVISOR_MODE="${YANA_SUPERVISOR:-ask}"
 TMP_ZIP="$(mktemp /tmp/yana-ai-XXXXXX.zip)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
@@ -145,6 +147,38 @@ verify() {
   fi
 }
 
+install_supervisor() {
+  local answer="n"
+  if [[ "$INSTALL_DIR" != ".claude" && "$INSTALL_DIR" != "$(pwd)/.claude" ]]; then
+    warn "OS supervisor requires the canonical .claude install path; current YANA_DIR is $INSTALL_DIR"
+    return
+  fi
+  case "$SUPERVISOR_MODE" in
+    install) answer="y" ;;
+    skip) return ;;
+    ask)
+      if [[ -r /dev/tty ]]; then
+        printf "  Install OS-level Giám thị supervisor for %s? (y/N) " "$(pwd)" > /dev/tty
+        IFS= read -r answer < /dev/tty || answer="n"
+      fi
+      ;;
+    *) fail "YANA_SUPERVISOR must be ask, install, or skip" ;;
+  esac
+  [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]] || {
+    warn "OS supervisor skipped. Install later: yana-ai giamthi install \"$(pwd)\""
+    return
+  }
+  if ! command -v python3 >/dev/null 2>&1; then
+    warn "Python 3 is required for supervisor setup. Install it, then run: yana-ai giamthi install \"$(pwd)\""
+    return
+  fi
+  if python3 "$INSTALL_DIR/scripts/giamthi_service.py" install "$(pwd)"; then
+    success "OS-level Giám thị supervisor installed"
+  else
+    warn "Supervisor setup failed. Retry: yana-ai giamthi repair \"$(pwd)\""
+  fi
+}
+
 print_done() {
   echo ""
   if [[ "$VI" == "vi" ]]; then
@@ -166,6 +200,7 @@ main() {
   check_deps
   download
   install_files
+  install_supervisor
   apply_claude_md
   verify
   print_done

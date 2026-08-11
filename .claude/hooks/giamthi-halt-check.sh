@@ -16,20 +16,24 @@
 # the entire point of the design: the thing that can stop the session isn't
 # the thing that can restart it.
 #
-# KNOWN LIMITATION (2026-07-13, security-auditor + code-auditor review):
-# resolves its own root via BASH_SOURCE rather than CLAUDE_PROJECT_DIR/pwd —
-# deliberately, because this is the single most safety-critical hook in the
-# array (first entry, .* matcher, sole job is enforcing the halt) and must
-# fail CLOSED (find the lock even if cwd/env is wrong), not fail open by
-# looking in the wrong place and finding nothing.
+# Resolves the repository root from BASH_SOURCE rather than trusting cwd or an
+# engine-specific environment variable. The canonical copy lives at
+# core/hooks/, while the Claude and Codex mirrors live at .claude/hooks/ and
+# .codex/hooks/; all three are exactly two levels below the repository root.
+# The shared halt authority is always .claude/state/GIAMTHI_HALT.lock. Looking
+# beside the executing mirror would make Codex silently check .codex/state and
+# miss the watcher-owned lock.
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLAUDE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-LOCK_FILE="$CLAUDE_DIR/state/GIAMTHI_HALT.lock"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+LOCK_FILE="$PROJECT_DIR/.claude/state/GIAMTHI_HALT.lock"
+QUARANTINE_FILE="$PROJECT_DIR/.claude/state/GIAMTHI_QUARANTINE.json"
 
-[[ -f "$LOCK_FILE" ]] || exit 0
+if [[ ! -f "$LOCK_FILE" && ! -f "$QUARANTINE_FILE" ]]; then
+  exit 0
+fi
 
 # ── Dependency guard ─────────────────────────────────────────────────────────
 # A lock exists — we MUST deny. Without jq we cannot safely embed the lock's
@@ -47,6 +51,21 @@ if ! command -v jq >/dev/null 2>&1; then
   }
 }
 EOF
+  exit 2
+fi
+
+if [[ ! -f "$LOCK_FILE" ]]; then
+  INPUT=$(cat)
+  MODE=$(jq -r '.mode // empty' "$QUARANTINE_FILE" 2>/dev/null)
+  TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // .toolName // .name // empty' 2>/dev/null)
+  DENY=false
+  case "$MODE:$TOOL_NAME" in
+    read-only:Write|read-only:Edit|read-only:NotebookEdit|read-only:Bash|no-shell:Bash|no-network:WebFetch|no-network:WebSearch)
+      DENY=true ;;
+  esac
+  [[ "$DENY" == true ]] || exit 0
+  REASON="Giám thị quarantine '$MODE' blocked tool '$TOOL_NAME'. A human must review and clear $QUARANTINE_FILE."
+  jq -n --arg reason "$REASON" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$reason}}'
   exit 2
 fi
 

@@ -177,20 +177,25 @@ CURSOREOF
     # doesn't check — see the corrected "Why" section in the .mdc itself).
     HOOK_SRC="core/adapters/cursor/before-shell-execution.js"
     HOOK_DEST=".cursor/hooks/before-shell-execution.js"
+    HALT_HOOK_SRC="core/adapters/cursor/giamthi-halt-check.js"
+    HALT_HOOK_DEST=".cursor/hooks/giamthi-halt-check.js"
     HOOKS_JSON=".cursor/hooks.json"
 
     _JQ_AVAILABLE=0
     command -v jq >/dev/null 2>&1 && _JQ_AVAILABLE=1
 
-    if [[ ! -f "$HOOK_SRC" ]]; then
-      echo -e "${RED}✗ $HOOK_SRC missing — cannot wire real Cursor enforcement.${NC}"
+    if [[ ! -f "$HOOK_SRC" || ! -f "$HALT_HOOK_SRC" ]]; then
+      [[ -f "$HOOK_SRC" ]] || echo -e "${RED}✗ $HOOK_SRC missing — cannot wire destructive-command enforcement.${NC}"
+      [[ -f "$HALT_HOOK_SRC" ]] || echo -e "${RED}✗ $HALT_HOOK_SRC missing — cannot wire Giám thị halt enforcement.${NC}"
     elif [[ "$DRY_RUN" -eq 1 ]]; then
       [[ -d ".cursor/hooks" ]] || echo -e "${CYAN}[dry-run] Would create .cursor/hooks/${NC}"
       [[ -f "$HOOK_DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $HOOK_DEST before overwrite${NC}"
+      [[ -f "$HALT_HOOK_DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $HALT_HOOK_DEST before overwrite${NC}"
       echo -e "${CYAN}[dry-run] Would copy $HOOK_SRC → $HOOK_DEST (chmod +x)${NC}"
+      echo -e "${CYAN}[dry-run] Would copy $HALT_HOOK_SRC → $HALT_HOOK_DEST (chmod +x)${NC}"
       if [[ "$_JQ_AVAILABLE" -eq 1 ]]; then
         [[ -f "$HOOKS_JSON" ]] \
-          && echo -e "${CYAN}[dry-run] Would merge beforeShellExecution entry into existing $HOOKS_JSON${NC}" \
+          && echo -e "${CYAN}[dry-run] Would merge shell guard plus cross-event halt entries into existing $HOOKS_JSON${NC}" \
           || echo -e "${CYAN}[dry-run] Would create $HOOKS_JSON${NC}"
       else
         echo -e "${RED}[dry-run] jq not found — $HOOKS_JSON would NOT be written; hook would not actually be wired.${NC}"
@@ -204,7 +209,14 @@ CURSOREOF
       fi
       cp "$HOOK_SRC" "$HOOK_DEST"
       chmod +x "$HOOK_DEST"
-      echo -e "${GREEN}✓ Real enforcement hook written${NC}: $HOOK_DEST"
+      if [[ -f "$HALT_HOOK_DEST" ]]; then
+        BACKUP="${HALT_HOOK_DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$HALT_HOOK_DEST" "$BACKUP"
+        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+      fi
+      cp "$HALT_HOOK_SRC" "$HALT_HOOK_DEST"
+      chmod +x "$HALT_HOOK_DEST"
+      echo -e "${GREEN}✓ Real enforcement hooks written${NC}: $HOOK_DEST, $HALT_HOOK_DEST"
       _HOOK_FILE_WIRED=1
 
       # Merge (not overwrite) — hooks.json is general-purpose Cursor config a
@@ -213,28 +225,40 @@ CURSOREOF
       # owns.
       if [[ "$_JQ_AVAILABLE" -ne 1 ]]; then
         echo -e "${RED}✗ jq not found — cannot safely merge $HOOKS_JSON.${NC}"
-        echo "  Manually add this entry under .hooks.beforeShellExecution:"
+        echo "  Manually add both entries under .hooks.beforeShellExecution:"
+        echo '  {"command":".cursor/hooks/giamthi-halt-check.js","timeout":30,"failClosed":true}'
         echo '  {"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        echo "  Also add the giamthi-halt-check.js entry under beforeMCPExecution,"
+        echo "  beforeReadFile, and beforeSubmitPrompt."
         echo -e "${YELLOW}  Until then, the hook file is on disk but Cursor has nothing telling it to run it.${NC}"
       else
         NEW_ENTRY='{"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        HALT_ENTRY='{"command":".cursor/hooks/giamthi-halt-check.js","timeout":30,"failClosed":true}'
         if [[ -f "$HOOKS_JSON" ]]; then
           BACKUP="${HOOKS_JSON}.bak.$(date +%Y%m%d_%H%M%S)"
           cp "$HOOKS_JSON" "$BACKUP"
           echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-          MERGED=$(jq --argjson entry "$NEW_ENTRY" '
+          MERGED=$(jq --argjson entry "$NEW_ENTRY" --argjson halt "$HALT_ENTRY" '
             .version //= 1
             | .hooks //= {}
-            | .hooks.beforeShellExecution //= []
+            | reduce ["beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "beforeSubmitPrompt"][] as $event (.;
+                .hooks[$event] //= []
+                | .hooks[$event] |= (map(select(.command != $halt.command)) + [$halt])
+              )
             | .hooks.beforeShellExecution
                 |= (map(select(.command != $entry.command)) + [$entry])
           ' "$HOOKS_JSON")
           printf '%s\n' "$MERGED" > "$HOOKS_JSON"
         else
-          jq -n --argjson entry "$NEW_ENTRY" \
-            '{version: 1, hooks: {beforeShellExecution: [$entry]}}' > "$HOOKS_JSON"
+          jq -n --argjson entry "$NEW_ENTRY" --argjson halt "$HALT_ENTRY" '
+            {version: 1, hooks: {}}
+            | reduce ["beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "beforeSubmitPrompt"][] as $event (.;
+                .hooks[$event] = [$halt]
+              )
+            | .hooks.beforeShellExecution += [$entry]
+          ' > "$HOOKS_JSON"
         fi
-        echo -e "${GREEN}✓ Wired${NC}: $HOOKS_JSON → beforeShellExecution"
+        echo -e "${GREEN}✓ Wired${NC}: $HOOKS_JSON → shell guard + cross-event Giám thị halt"
         _HOOKS_JSON_WIRED=1
       fi
     fi  # end real-hook dry-run guard
@@ -256,6 +280,8 @@ CURSOREOF
       echo "  core/hooks/guard-destructive.sh — rm -rf, git push --force,"
       echo "  git reset --hard, git clean -f, direct push to main/master,"
       echo "  destructive SQL (DROP/TRUNCATE), npm/yarn/pnpm publish."
+      echo "  GIAMTHI_HALT.lock blocks new shell, MCP, read-file, and prompt-submit"
+      echo "  events through the shared .claude/state authority."
       echo -e "${YELLOW}  Not covered by this hook${NC}:"
       echo "  (1) safe-run.sh's broader, prompt-only set — LD_PRELOAD/DYLD hijacks,"
       echo "      pipe-to-shell (curl|bash), chmod 777, dd/mkfs/fdisk."

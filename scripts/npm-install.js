@@ -6,8 +6,6 @@
 
 const fs        = require("fs");
 const path      = require("path");
-const os        = require("os");
-const crypto    = require("crypto");
 const readline  = require("readline");
 const { execFileSync } = require("child_process");
 const { syncCodex } = require("../core/scripts/sync-codex.js");
@@ -46,7 +44,7 @@ const COPY_FILES = [
   [".codex/hooks.json",                ".codex/hooks.json"],
 ];
 
-// ── Giám thị watcher — opt-in background LaunchAgent (macOS only) ──────────
+// ── Giám thị watcher — opt-in cross-platform OS supervisor ─────────────────
 // Not part of COPY_DIRS/COPY_FILES: this registers a persistent process
 // outside the project directory (~/Library/LaunchAgents/), so it must never
 // be silent-by-default. Ask, default No, only on macOS with an interactive
@@ -65,91 +63,31 @@ function askYesNo(question) {
   });
 }
 
-function watcherLabel(targetPath) {
-  const hash = crypto.createHash("sha256").update(targetPath).digest("hex").slice(0, 8);
-  return `com.yanaai.giamthi-watch.${hash}`;
-}
-
 function installGiamthiWatcher(targetPath) {
-  const watchScript = path.join(targetPath, ".claude", "scripts", "giamthi-watch.sh");
-  if (!fs.existsSync(watchScript)) {
-    console.log("  ✗ giamthi-watch.sh not found in .claude/scripts — skipping watcher setup.");
+  const manager = path.join(targetPath, ".claude", "scripts", "giamthi_service.py");
+  if (!fs.existsSync(manager)) {
+    console.log("  ✗ giamthi_service.py not found in .claude/scripts — skipping supervisor setup.");
     return;
   }
-
-  const label     = watcherLabel(targetPath);
-  const stateDir  = path.join(targetPath, ".claude", "state");
-  const logPath   = path.join(stateDir, "giamthi-runner.log");
-  const plistDir  = path.join(os.homedir(), "Library", "LaunchAgents");
-  const plistPath = path.join(plistDir, `${label}.plist`);
-
-  fs.mkdirSync(stateDir, { recursive: true });
-  fs.mkdirSync(plistDir, { recursive: true });
-
-  const plist = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>${label}</string>
-
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/bash</string>
-        <string>${watchScript}</string>
-    </array>
-
-    <key>RunAtLoad</key>
-    <true/>
-
-    <key>StartInterval</key>
-    <integer>21600</integer>
-
-    <key>StandardOutPath</key>
-    <string>${logPath}</string>
-
-    <key>StandardErrorPath</key>
-    <string>${logPath}</string>
-
-    <key>WorkingDirectory</key>
-    <string>${targetPath}</string>
-</dict>
-</plist>
-`;
-
-  fs.writeFileSync(plistPath, plist);
-
-  // Best-effort unload first: on a re-install (e.g. upgrading the package)
-  // the LaunchAgent from a previous run may already be loaded, and
-  // `launchctl load` on an already-loaded job can exit non-zero — tripping
-  // the catch below with a false "load failed" message even though the
-  // watcher is running fine. Unloading first makes every load a fresh one.
-  try {
-    execFileSync("launchctl", ["unload", plistPath], { stdio: "ignore" });
-  } catch {
-    // Nothing was loaded yet — expected on a first install, ignore.
+  const candidates = process.platform === "win32" ? ["python", "python3"] : ["python3", "python"];
+  for (const python of candidates) {
+    try {
+      execFileSync(python, [manager, "install", targetPath], { stdio: "inherit" });
+      return;
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      console.log(`  ✗ Giám thị supervisor setup failed: ${error.message}`);
+      console.log(`    Retry: yana-ai giamthi repair "${targetPath}"`);
+      return;
+    }
   }
-
-  try {
-    execFileSync("launchctl", ["load", plistPath], { stdio: "ignore" });
-  } catch (e) {
-    console.log(`  ✗ launchctl load failed: ${e.message}`);
-    console.log(`    Plist written to ${plistPath} — try loading it manually: launchctl load "${plistPath}"`);
-    return;
-  }
-
-  console.log(`  ✓ Giám thị watcher installed: ${plistPath}`);
-  console.log(`    Runs every 6h + on login. Logs: ${logPath}`);
-  console.log(`    To remove: launchctl unload "${plistPath}" && rm "${plistPath}"`);
-  console.log(`    Tip: brew install terminal-notifier — makes halt alerts clickable (optional).`);
+  console.log("  ✗ Python 3 not found — OS supervisor was not installed.");
+  console.log(`    After installing Python 3, run: yana-ai giamthi install "${targetPath}"`);
 }
 
 async function maybeInstallGiamthiWatcher(targetPath) {
-  if (process.platform !== "darwin") {
-    return; // launchd is macOS-only; no equivalent wired for Linux/Windows yet
-  }
   const yes = await askYesNo(
-    "  Install background watcher (scans hooks/rules for tampering every 6h)? (y/N) "
+    "  Install OS-level Giám thị supervisor (launchd/systemd/Task Scheduler)? (y/N) "
   );
   if (yes) installGiamthiWatcher(targetPath);
 }

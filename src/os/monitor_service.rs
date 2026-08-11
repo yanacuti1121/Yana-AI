@@ -1,4 +1,4 @@
-//! Explicit installation of the native per-user automatic sampler.
+//! Explicit installation of the native per-user Giám Thị supervisor.
 //!
 //! Nothing is installed during package setup. A human runs `service install`
 //! once; launchd, a systemd user timer, or Windows Task Scheduler then invokes
@@ -64,7 +64,7 @@ pub fn install(root: &Path, interval_secs: u64) -> Result<ServiceReport> {
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
-        detail: format!("automatic sampling enabled every {interval_secs}s"),
+        detail: format!("native Giám Thị supervision enabled every {interval_secs}s"),
     })
 }
 
@@ -83,9 +83,9 @@ pub fn status(root: &Path) -> Result<ServiceReport> {
             .map(|path| path.display().to_string())
             .collect(),
         detail: if installed {
-            "native sampler definition present".into()
+            "native supervisor definition present".into()
         } else {
-            "native sampler is not installed".into()
+            "native supervisor is not installed".into()
         },
     })
 }
@@ -116,7 +116,7 @@ pub fn uninstall(root: &Path) -> Result<ServiceReport> {
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
-        detail: "automatic sampling disabled and definitions removed".into(),
+        detail: "native supervision disabled and definitions removed".into(),
     })
 }
 
@@ -124,7 +124,7 @@ pub fn print(report: &ServiceReport, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(report)?);
     } else {
-        println!("Yana system monitor service");
+        println!("Yana Giám Thị native supervisor service");
         println!("  platform    {}", report.platform);
         println!("  installed   {}", report.installed);
         println!(
@@ -410,7 +410,7 @@ fn render_launchd(label: &str, binary: &Path, root: &Path, interval_secs: u64) -
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>Label</key><string>{}</string>
-<key>ProgramArguments</key><array><string>{}</string><string>os</string><string>monitor</string><string>sample</string><string>--dir</string><string>{}</string><string>--json</string></array>
+<key>ProgramArguments</key><array><string>{}</string><string>os</string><string>supervisor</string><string>tick</string><string>--dir</string><string>{}</string><string>--json</string></array>
 <key>WorkingDirectory</key><string>{}</string>
 <key>RunAtLoad</key><true/><key>StartInterval</key><integer>{interval_secs}</integer>
 <key>ProcessType</key><string>Background</string>
@@ -425,8 +425,8 @@ fn render_launchd(label: &str, binary: &Path, root: &Path, interval_secs: u64) -
 
 #[cfg(any(test, target_os = "linux"))]
 fn render_systemd(binary: &Path, root: &Path, interval_secs: u64) -> (String, String) {
-    let service = format!("[Unit]\nDescription=Yana system health snapshot ({})\n\n[Service]\nType=oneshot\nWorkingDirectory={}\nExecStart={} os monitor sample --dir {} --json\nNoNewPrivileges=true\nPrivateTmp=true\n", root.display(), systemd_escape(root), systemd_escape(binary), systemd_escape(root));
-    let timer = format!("[Unit]\nDescription=Schedule Yana system health snapshots\n\n[Timer]\nOnBootSec=10s\nOnUnitActiveSec={interval_secs}s\nAccuracySec=5s\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n");
+    let service = format!("[Unit]\nDescription=Yana Giám Thị native supervisor ({})\n\n[Service]\nType=oneshot\nWorkingDirectory={}\nExecStart={} os supervisor tick --dir {} --json\nNoNewPrivileges=true\nPrivateTmp=true\n", root.display(), systemd_escape(root), systemd_escape(binary), systemd_escape(root));
+    let timer = format!("[Unit]\nDescription=Schedule Yana Giám Thị supervisor\n\n[Timer]\nOnBootSec=10s\nOnUnitActiveSec={interval_secs}s\nAccuracySec=5s\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n");
     (service, timer)
 }
 
@@ -439,7 +439,7 @@ fn render_windows_task(binary: &Path, root: &Path, interval_secs: u64) -> String
 <Triggers><TimeTrigger><Repetition><Interval>{interval}</Interval><StopAtDurationEnd>false</StopAtDurationEnd></Repetition><StartBoundary>2020-01-01T00:00:00</StartBoundary><Enabled>true</Enabled></TimeTrigger></Triggers>
 <Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>
 <Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><StartWhenAvailable>true</StartWhenAvailable><ExecutionTimeLimit>PT1M</ExecutionTimeLimit></Settings>
-<Actions Context="Author"><Exec><Command>{}</Command><Arguments>os monitor sample --dir &quot;{}&quot; --json</Arguments><WorkingDirectory>{}</WorkingDirectory></Exec></Actions>
+<Actions Context="Author"><Exec><Command>{}</Command><Arguments>os supervisor tick --dir &quot;{}&quot; --json</Arguments><WorkingDirectory>{}</WorkingDirectory></Exec></Actions>
 </Task>
 "#,
         xml_escape(&binary.display().to_string()),
@@ -466,8 +466,10 @@ mod tests {
         assert!(launchd.contains("/Applications/Yana AI/yana-rt"));
         assert!(launchd.contains("project &amp; one"));
         assert!(!launchd.contains("/bin/sh"));
+        assert!(launchd.contains("<string>supervisor</string><string>tick</string>"));
         let (service, timer) = render_systemd(binary, root, 60);
         assert!(service.contains("ExecStart=\"/Applications/Yana AI/yana-rt\""));
+        assert!(service.contains("os supervisor tick"));
         assert!(timer.contains("OnUnitActiveSec=60s"));
         let windows = render_windows_task(
             Path::new(r"C:\Program Files\Yana\yana-rt.exe"),

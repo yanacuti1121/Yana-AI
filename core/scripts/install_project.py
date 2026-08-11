@@ -17,6 +17,7 @@ REPO_ROOT     = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 TEMPLATES_DIR = os.path.join(REPO_ROOT, "policy", "templates")
 SCANNER_PY    = os.path.join(REPO_ROOT, "core/scripts/audit_scanner.py")
 GUARD_PY      = os.path.join(REPO_ROOT, "core/scripts/guard_installer.py")
+GIAMTHI_PY    = os.path.join(REPO_ROOT, "core/scripts/giamthi_service.py")
 
 CLAUDE_COPY_DIRS = (
     ("core/hooks", ".claude/hooks"),
@@ -149,6 +150,30 @@ def run_audit(target: str) -> dict | None:
         return None
 
 
+def should_install_supervisor(mode: str) -> bool:
+    if mode == "install":
+        return True
+    if mode == "skip" or not sys.stdin.isatty():
+        return False
+    answer = input("  Install the OS-level Giám thị supervisor for this project? (y/N) ")
+    return answer.strip().lower() in {"y", "yes"}
+
+
+def install_supervisor_assets(target: Path, dry_run: bool) -> int:
+    assets = ("giamthi-watch.sh", "verify-audit-chain.sh")
+    written = 0
+    for name in assets:
+        source = Path(REPO_ROOT) / "core/scripts" / name
+        destination = target / ".claude/scripts" / name
+        if destination.exists() and destination.read_bytes() == source.read_bytes():
+            continue
+        written += 1
+        if not dry_run:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+    return written
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="yana-ai install",
@@ -168,6 +193,12 @@ def main():
         default="all",
         help="Capability surfaces to install (default: all)",
     )
+    parser.add_argument(
+        "--supervisor",
+        choices=("ask", "install", "skip"),
+        default="ask",
+        help="OS-level Giám thị setup: ask interactively, install explicitly, or skip (default: ask)",
+    )
     args = parser.parse_args()
 
     target = os.path.abspath(args.target)
@@ -175,6 +206,8 @@ def main():
     install_codex = args.engine in ("all", "codex")
     total = 4 + (2 if install_claude else 0) + (1 if install_codex else 0)
     total += 1 if args.guards else 0
+    install_supervisor = should_install_supervisor(args.supervisor)
+    total += 1 if install_supervisor else 0
     current_step = 0
 
     def next_step(label: str):
@@ -258,6 +291,27 @@ def main():
                 print(f"     {c(GREEN, '✓')} guards installed")
             else:
                 print(f"     {c(YELLOW, '!')} guard install had warnings")
+
+    if install_supervisor:
+        next_step("OS-level Giám thị supervisor")
+        assets_written = install_supervisor_assets(Path(target), args.dry_run)
+        if assets_written:
+            action = "would install" if args.dry_run else "installed"
+            print(f"     {c(YELLOW if args.dry_run else GREEN, action)} {assets_written} supervisor assets")
+        if args.dry_run:
+            print(f"     {c(YELLOW, 'would run')} yana-ai giamthi install {target}")
+        else:
+            result = subprocess.run(
+                [sys.executable, GIAMTHI_PY, "install", target],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                print(f"     {c(GREEN, '✓')} supervisor installed and initial scan requested")
+            else:
+                diagnostic = (result.stderr or result.stdout).strip()
+                print(f"     {c(YELLOW, '!')} supervisor setup failed: {diagnostic}")
+                print(f"     Retry: yana-ai giamthi repair {target}")
 
     print()
 

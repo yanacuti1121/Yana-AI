@@ -2588,26 +2588,47 @@ test_freeze_cli_existing_file_with_metachar() {
 test_freeze_cli_existing_file_with_metachar
 
 # ── giamthi-halt-check.sh ────────────────────────────────────────────────────
-# This hook takes no stdin content into account (only the lock file's
-# presence), so input_json is a trivial placeholder for every case here.
-# It has no bypass by design (see hook header) — no bypass-case test exists.
-_GIAMTHI_LOCK="$CLAUDE_DIR/state/GIAMTHI_HALT.lock"
-_GIAMTHI_LOCK_PRE_EXISTED=0
-[[ -f "$_GIAMTHI_LOCK" ]] && _GIAMTHI_LOCK_PRE_EXISTED=1
+# Exercise canonical, Claude, and Codex copies in a hermetic repository-shaped
+# fixture. The old test created and removed the live worktree lock, which could
+# accidentally clear a real watcher halt while the suite was running.
+_GIAMTHI_FIXTURE="$(mktemp -d)"
+register_temp "$_GIAMTHI_FIXTURE"
+mkdir -p "$_GIAMTHI_FIXTURE/core/hooks" "$_GIAMTHI_FIXTURE/.claude/hooks" \
+    "$_GIAMTHI_FIXTURE/.codex/hooks" "$_GIAMTHI_FIXTURE/.claude/state"
+cp "$CLAUDE_DIR/hooks/giamthi-halt-check.sh" "$_GIAMTHI_FIXTURE/core/hooks/"
+cp "$CLAUDE_DIR/../.claude/hooks/giamthi-halt-check.sh" "$_GIAMTHI_FIXTURE/.claude/hooks/"
+cp "$CLAUDE_DIR/../.codex/hooks/giamthi-halt-check.sh" "$_GIAMTHI_FIXTURE/.codex/hooks/"
 
-mkdir -p "$(dirname "$_GIAMTHI_LOCK")" 2>/dev/null || true
-rm -f "$_GIAMTHI_LOCK"
-test_hook "giamthi-halt-check.sh" "Allow when no lock exists" '{"tool_name":"Read","tool_input":{}}' "allow"
+test_giamthi_copy() {
+    local copy_path="$1" test_name="$2" expected="$3" tool_name="${4:-Read}"
+    local output exit_code=0 actual="allow"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing $copy_path [$test_name]... "
+    output=$(printf '{"tool_name":"%s","tool_input":{}}\n' "$tool_name" | bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
+    if [[ -n "$output" ]]; then
+        actual=$(printf '%s' "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"' 2>/dev/null || echo invalid)
+    fi
+    if [[ "$actual" == "$expected" && ( "$expected" == "allow" || "$exit_code" -eq 2 ) ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected=$expected actual=$actual exit=$exit_code output=$output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
 
-echo "=== GIAM THI HALT — test fixture ===" > "$_GIAMTHI_LOCK"
-echo "manufactured for run-hook-tests.sh — safe to ignore outside a test run" >> "$_GIAMTHI_LOCK"
-test_hook "giamthi-halt-check.sh" "Block every tool call while lock exists" '{"tool_name":"Read","tool_input":{}}' "deny"
-test_hook "giamthi-halt-check.sh" "Block applies regardless of tool_name (Bash)" '{"tool_name":"Bash","tool_input":{"command":"ls"}}' "deny"
-
-rm -f "$_GIAMTHI_LOCK"
-if [[ "$_GIAMTHI_LOCK_PRE_EXISTED" -eq 1 ]]; then
-    echo "WARNING: $_GIAMTHI_LOCK existed before this test run and was overwritten, then removed. If a real halt was in progress, it is now cleared — check $CLAUDE_DIR/state/giamthi-reports.log."
-fi
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    test_giamthi_copy "$_giamthi_copy" "Allow when shared lock is absent" "allow"
+done
+printf '%s\n' '{"schema_version":1,"mode":"no-shell","reason":"test","actor":"human","created_at":"2026-01-01T00:00:00Z"}' > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    test_giamthi_copy "$_giamthi_copy" "Allow reads during no-shell quarantine" "allow" "Read"
+    test_giamthi_copy "$_giamthi_copy" "Deny Bash during no-shell quarantine" "deny" "Bash"
+done
+rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
+printf '%s\n' "manufactured for run-hook-tests.sh" > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    test_giamthi_copy "$_giamthi_copy" "Deny from shared .claude/state lock" "deny"
+done
 
 # ── core/adapters/cursor/before-shell-execution.js ──────────────────────────
 # Not a core/hooks/*.sh PreToolUse/PostToolUse hook — this is the Cursor
@@ -2664,6 +2685,36 @@ else
         # relying on [[ ]]'s implicit empty-string-as-zero coercion for the
         # -eq comparison.)
         echo "WARNING: Cursor adapter suite exited $_cursor_adapter_exit but reported 0 failures — counting as 1 failure."
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
+# Cursor's cross-event Giám thị bridge has its own host-native JSON contract.
+echo ""
+echo "--- core/adapters/cursor/giamthi-halt-check.js (via its own suite) ---"
+_CURSOR_HALT_TEST="$CLAUDE_DIR/tests/adapters/cursor/test-giamthi-halt-check.sh"
+if [[ ! -f "$_CURSOR_HALT_TEST" ]]; then
+    echo "FAIL: Suite not found: $_CURSOR_HALT_TEST"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+else
+    _cursor_halt_output=$(bash "$_CURSOR_HALT_TEST" 2>&1)
+    _cursor_halt_exit=$?
+    echo "$_cursor_halt_output"
+    _cursor_halt_plain=$(printf '%s\n' "$_cursor_halt_output" | sed -E $'s/\x1b\\[[0-9;]*m//g')
+    _cursor_halt_total=$(printf '%s\n' "$_cursor_halt_plain" | grep -oE 'Total tests: [0-9]+' | grep -oE '[0-9]+' || echo "")
+    _cursor_halt_failed=$(printf '%s\n' "$_cursor_halt_plain" | grep -oE '^Failed: [0-9]+' | grep -oE '[0-9]+' || echo "")
+    if [[ -n "$_cursor_halt_total" && -n "$_cursor_halt_failed" ]]; then
+        TOTAL_COUNT=$((TOTAL_COUNT + _cursor_halt_total))
+        FAIL_COUNT=$((FAIL_COUNT + _cursor_halt_failed))
+    else
+        echo "WARNING: could not parse pass/fail counts from the Cursor halt suite — counting as 1 failure."
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    if [[ "$_cursor_halt_exit" -ne 0 && -n "$_cursor_halt_total" && "${_cursor_halt_failed:-0}" -eq 0 ]]; then
+        echo "WARNING: Cursor halt suite exited $_cursor_halt_exit but reported 0 failures — counting as 1 failure."
         TOTAL_COUNT=$((TOTAL_COUNT + 1))
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
