@@ -4,6 +4,8 @@ mod agent;
 mod credential;
 mod governor;
 mod health;
+mod monitor;
+mod monitor_service;
 mod resource;
 mod roadmap;
 mod state;
@@ -55,6 +57,11 @@ pub enum OsAction {
     Governor {
         #[command(subcommand)]
         action: GovernorAction,
+    },
+    /// Cross-platform host and Yana runtime health monitoring.
+    Monitor {
+        #[command(subcommand)]
+        action: MonitorAction,
     },
     /// Phase 0 compatibility: list chat sessions.
     AgentList {
@@ -177,6 +184,56 @@ pub enum GovernorAction {
     Roadmap {
         #[command(subcommand)]
         action: RoadmapAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum MonitorAction {
+    /// Collect and persist one CPU, memory, disk, GPU, and Yana health snapshot.
+    Sample {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show the most recently persisted snapshot without collecting again.
+    Show {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Install, inspect, or remove the per-user automatic sampler.
+    Service {
+        #[command(subcommand)]
+        action: MonitorServiceAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum MonitorServiceAction {
+    /// Explicitly install and start the native per-user scheduler.
+    Install {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show whether this project's native sampler definition is installed.
+    Status {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Stop and remove this project's native per-user scheduler.
+    Uninstall {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -358,9 +415,45 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         },
         OsAction::Resource { action } => dispatch_resource(action)?,
         OsAction::Governor { action } => dispatch_governor(action)?,
+        OsAction::Monitor { action } => dispatch_monitor(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
+    }
+    Ok(())
+}
+
+fn dispatch_monitor(action: MonitorAction) -> Result<()> {
+    match action {
+        MonitorAction::Sample { dir, json } => {
+            let root = state::project_root(&dir)?;
+            let snapshot = monitor::collect(&root);
+            monitor::persist(&root, &snapshot)?;
+            monitor::print(&snapshot, json)?;
+        }
+        MonitorAction::Show { dir, json } => {
+            let root = state::project_root(&dir)?;
+            monitor::print(&monitor::load(&root)?, json)?;
+        }
+        MonitorAction::Service { action } => match action {
+            MonitorServiceAction::Install {
+                dir,
+                interval_secs,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let report = monitor_service::install(&root, interval_secs)?;
+                monitor_service::print(&report, json)?;
+            }
+            MonitorServiceAction::Status { dir, json } => {
+                let root = state::project_root(&dir)?;
+                monitor_service::print(&monitor_service::status(&root)?, json)?;
+            }
+            MonitorServiceAction::Uninstall { dir, json } => {
+                let root = state::project_root(&dir)?;
+                monitor_service::print(&monitor_service::uninstall(&root)?, json)?;
+            }
+        },
     }
     Ok(())
 }
