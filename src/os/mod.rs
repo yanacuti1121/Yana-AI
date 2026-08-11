@@ -1,49 +1,320 @@
-//! Program K (Yana OS) — first implementation slice.
-//!
-//! Explicit note on process: `docs/programs/README.md`'s own rule is that
-//! nothing in `docs/programs/` may be implemented before ADS v1 Phase 1-9
-//! (Specification → Capability Inventory → Architecture → Workflow →
-//! Readiness → ADR → Research → Design Review → Implementation Plan). None
-//! of those phases have run for Program K. Anh Tâm explicitly overrode that
-//! gate on 2026-08-09 ("Có, anh muốn huỷ scope lock, code ngay") after this
-//! session flagged the contradiction with his own Phase 0 Scope note. See
-//! `docs/programs/PROGRAM-K-YANA-OS-SKELETON.md`'s Implementation section
-//! for the full record.
-//!
-//! Given that, this slice deliberately stays small and read-only: it does
-//! not invent architecture for the three confirmed management areas (agent/
-//! credential/resource), it surfaces state that already exists elsewhere in
-//! the crate under one `yana-rt os` namespace, matching Yana OS's stated
-//! relationship to `yana-rt` ("builds on top of it, doesn't replace it").
-//! No sandboxing, scheduling, policy enforcement, or mutation — that's real
-//! Yana OS scope for a later, properly-specified phase.
+//! Program K — Yana OS Phase 1 local management plane.
 
 mod agent;
 mod credential;
+mod health;
 mod resource;
+mod state;
 
+use anyhow::{bail, Result};
 use clap::Subcommand;
+use serde::Serialize;
+use std::path::PathBuf;
 
 #[derive(Subcommand, Debug)]
 pub enum OsAction {
-    /// Agent management — list known agent chat sessions (id, provider,
-    /// model, turn count, last activity) from `.yana-ai/chat-history/`.
+    /// Initialize versioned Yana OS state for a project.
+    Init {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show aggregate management-plane status.
+    Status {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Inspect management-plane evidence without mutating or repairing it.
+    Doctor {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Cooperative agent registry and lifecycle metadata.
+    Agent {
+        #[command(subcommand)]
+        action: AgentAction,
+    },
+    /// Credential presence (never credential values).
+    Credential {
+        #[command(subcommand)]
+        action: CredentialAction,
+    },
+    /// Explicit resource policy and preflight.
+    Resource {
+        #[command(subcommand)]
+        action: ResourceAction,
+    },
+    /// Phase 0 compatibility: list chat sessions.
     AgentList {
         #[arg(long, default_value_t = 20)]
         limit: usize,
     },
-    /// Credential management — which providers have an API key configured
-    /// via environment variable. Never prints the key value itself.
+    /// Phase 0 compatibility: provider credential presence.
     CredentialStatus,
-    /// Resource management — token/cost usage summary. Thin wrapper over
-    /// the existing `yana-rt cost show` ledger.
+    /// Phase 0 compatibility: existing token/cost ledger summary.
     ResourceStatus,
 }
 
-pub fn dispatch(action: OsAction) {
+#[derive(Subcommand, Debug)]
+pub enum AgentAction {
+    List {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+        #[arg(long)]
+        include_chat_sessions: bool,
+        #[arg(long, default_value_t = 20)]
+        limit: usize,
+    },
+    Register {
+        name: String,
+        #[arg(long)]
+        provider: String,
+        #[arg(long)]
+        model: Option<String>,
+        #[arg(long)]
+        session_id: Option<String>,
+        #[arg(long)]
+        owner: Option<String>,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Heartbeat {
+        id: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Transition {
+        id: String,
+        status: state::AgentStatus,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum CredentialAction {
+    Status {
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ResourceAction {
+    Show {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Set {
+        #[arg(long)]
+        max_active_agents: Option<usize>,
+        #[arg(long)]
+        max_tokens_per_request: Option<u64>,
+        #[arg(long)]
+        max_daily_cost_usd: Option<f64>,
+        #[arg(long, default_value_t = 300)]
+        stale_after_secs: u64,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Check {
+        #[arg(long, default_value_t = 1)]
+        requested_agents: usize,
+        #[arg(long, default_value_t = 0)]
+        estimated_tokens: u64,
+        #[arg(long, default_value_t = 0.0)]
+        estimated_cost_usd: f64,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Serialize)]
+struct OsStatus {
+    schema_version: u32,
+    state_path: String,
+    managed_agents: usize,
+    running_agents: usize,
+    resource_policy_configured: bool,
+    providers: Vec<credential::CredentialStatus>,
+}
+
+pub fn dispatch(action: OsAction) -> Result<()> {
     match action {
-        OsAction::AgentList { limit } => agent::list(limit),
-        OsAction::CredentialStatus => credential::status(),
-        OsAction::ResourceStatus => resource::status(),
+        OsAction::Init { dir, json } => {
+            let root = state::project_root(&dir)?;
+            let current = state::initialize(&root)?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&current)?);
+            } else {
+                println!(
+                    "Initialized Yana OS state at {}",
+                    state::state_path(&root).display()
+                );
+                println!(
+                    "Resource policy is unset; preflight remains fail-closed until configured."
+                );
+            }
+        }
+        OsAction::Status { dir, json } => {
+            let root = state::project_root(&dir)?;
+            let current = state::load(&root)?;
+            let report = OsStatus {
+                schema_version: current.schema_version,
+                state_path: state::state_path(&root).display().to_string(),
+                managed_agents: current.agents.len(),
+                running_agents: current
+                    .agents
+                    .iter()
+                    .filter(|agent| agent.status == state::AgentStatus::Running)
+                    .count(),
+                resource_policy_configured: current.resource_policy.is_some(),
+                providers: credential::inventory(),
+            };
+            if json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            } else {
+                println!("Yana OS management plane");
+                println!("  schema              {}", report.schema_version);
+                println!("  state               {}", report.state_path);
+                println!("  managed agents      {}", report.managed_agents);
+                println!("  running agents      {}", report.running_agents);
+                println!(
+                    "  resource policy     {}",
+                    if report.resource_policy_configured {
+                        "configured"
+                    } else {
+                        "UNSET (preflight denies)"
+                    }
+                );
+            }
+        }
+        OsAction::Doctor { dir, json } => {
+            let root = state::project_root(&dir)?;
+            let report = health::inspect(&root);
+            health::print(&report, json)?;
+            if report.failed() {
+                bail!("Yana OS doctor found blocking failures");
+            }
+        }
+        OsAction::Agent { action } => dispatch_agent(action)?,
+        OsAction::Credential { action } => match action {
+            CredentialAction::Status { json } => credential::status(json)?,
+        },
+        OsAction::Resource { action } => dispatch_resource(action)?,
+        OsAction::AgentList { limit } => agent::legacy_list(limit),
+        OsAction::CredentialStatus => credential::status(false)?,
+        OsAction::ResourceStatus => resource::legacy_status(),
     }
+    Ok(())
+}
+
+fn dispatch_agent(action: AgentAction) -> Result<()> {
+    match action {
+        AgentAction::List {
+            dir,
+            json,
+            include_chat_sessions,
+            limit,
+        } => {
+            let root = state::project_root(&dir)?;
+            let inventory = agent::inventory(&root, include_chat_sessions, limit)?;
+            agent::print_inventory(&inventory, json)?;
+        }
+        AgentAction::Register {
+            name,
+            provider,
+            model,
+            session_id,
+            owner,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            let record = agent::register(&root, name, provider, model, session_id, owner)?;
+            agent::print_agent(&record, json)?;
+        }
+        AgentAction::Heartbeat { id, dir, json } => {
+            let root = state::project_root(&dir)?;
+            agent::print_agent(&agent::heartbeat(&root, &id)?, json)?;
+        }
+        AgentAction::Transition {
+            id,
+            status,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            agent::print_agent(&agent::transition(&root, &id, status)?, json)?;
+        }
+    }
+    Ok(())
+}
+
+fn dispatch_resource(action: ResourceAction) -> Result<()> {
+    match action {
+        ResourceAction::Show { dir, json } => {
+            let root = state::project_root(&dir)?;
+            resource::print_policy(&resource::policy(&root)?, json)?;
+        }
+        ResourceAction::Set {
+            max_active_agents,
+            max_tokens_per_request,
+            max_daily_cost_usd,
+            stale_after_secs,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            let policy = resource::set_policy(
+                &root,
+                state::ResourcePolicy {
+                    max_active_agents,
+                    max_tokens_per_request,
+                    max_daily_cost_usd,
+                    stale_after_secs,
+                },
+            )?;
+            resource::print_policy(&policy, json)?;
+        }
+        ResourceAction::Check {
+            requested_agents,
+            estimated_tokens,
+            estimated_cost_usd,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            let decision = resource::check(
+                &root,
+                requested_agents,
+                estimated_tokens,
+                estimated_cost_usd,
+            )?;
+            resource::print_decision(&decision, json)?;
+            if !decision.allowed {
+                bail!("resource preflight denied");
+            }
+        }
+    }
+    Ok(())
 }

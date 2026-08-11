@@ -40,6 +40,51 @@ new conversation tab, `/models` for runtime model discovery, and `/help` for
 the complete keyboard map. Conversation data stays under `.yana-ai/` in the
 current workspace; telemetry is disabled by default.
 
+## Yana OS management plane — `yana-rt os`
+
+Phase 1 provides local metadata and policy management inside `yana-rt`; it is
+not a daemon or process supervisor. Mutations require an active ADR-008
+`flock-v1` protocol marker and fail closed when safe locking is unavailable.
+
+```bash
+yana-rt os init
+yana-rt os status --json
+yana-rt os doctor
+yana-rt os doctor --dir /path/to/project --json
+
+yana-rt os agent register reviewer --provider ollama --model qwen3:14b
+yana-rt os agent transition <agent-id> running
+yana-rt os agent heartbeat <agent-id>
+yana-rt os agent list --include-chat-sessions
+
+yana-rt os credential status
+
+yana-rt os resource set \
+  --max-active-agents 4 \
+  --max-tokens-per-request 32000 \
+  --max-daily-cost-usd 5
+yana-rt os resource check \
+  --requested-agents 1 \
+  --estimated-tokens 8000 \
+  --estimated-cost-usd 0.25
+```
+
+State is stored in `.yana-ai/os/state.json` with private permissions, atomic
+replacement and the shared kernel-flock protocol. Credential output contains
+only provider name, runtime type, environment-variable name and presence; it
+never contains credential values. Resource preflight covers declared agent
+concurrency, token estimates and daily ledger cost only — it does not claim
+CPU or RAM enforcement.
+
+`os doctor` is a read-only aggregate over the locking marker, OS state,
+resource policy, strict daily-cost ledger, token-budget/circuit JSON, audit
+evidence and provider credential presence. `PASS` means the named local
+evidence was readable, `WARN` means optional evidence or policy is absent, and
+`FAIL` means a required or present surface is unsafe/corrupt. Any `FAIL` exits
+2; pass/warning exits 0. Doctor does not initialize or repair state, verify the
+audit hash chain, contact provider endpoints, or print secret values. Provider
+availability is therefore reported as `not-probed`.
+
 ## Multi-harness support
 
 Yana AI adapts to whichever tool you use:

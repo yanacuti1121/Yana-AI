@@ -3,9 +3,10 @@
 /// Each test runs in an isolated tmpdir via the binary CLI so real file I/O
 /// is exercised end-to-end.
 
+use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 fn bin() -> PathBuf {
     let mut p = std::env::current_exe().unwrap();
@@ -224,6 +225,49 @@ fn cost_breakdown_by_model() {
     let (out, _, _) = run(dir.path(), &["cost", "breakdown", "model"]);
     assert!(out.contains("haiku"), "haiku in model breakdown");
     assert!(out.contains("sonnet"), "sonnet in model breakdown");
+}
+
+#[test]
+fn concurrent_cost_processes_preserve_every_json_line() {
+    let dir = tmpdir();
+    let mut children = Vec::new();
+    for worker in 0..50 {
+        let child = test_command(dir.path())
+            .args([
+                "cost",
+                "log",
+                &format!("worker-{worker}"),
+                "fast",
+                "mock",
+                "10",
+                "5",
+            ])
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("spawn concurrent cost writer");
+        children.push(child);
+    }
+    for child in children {
+        let output = child.wait_with_output().unwrap();
+        assert!(
+            output.status.success(),
+            "concurrent cost writer failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let ledger = fs::read_to_string(dir.path().join(".yana-ai/ledger.jsonl")).unwrap();
+    let entries: Vec<serde_json::Value> = ledger
+        .lines()
+        .map(|line| serde_json::from_str(line).expect("every ledger line is complete JSON"))
+        .collect();
+    assert_eq!(entries.len(), 50);
+    let ids: HashSet<_> = entries
+        .iter()
+        .filter_map(|entry| entry["id"].as_str())
+        .collect();
+    assert_eq!(ids.len(), 50);
 }
 
 #[test]

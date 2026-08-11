@@ -83,6 +83,7 @@ artifacts/release-gate/
 .yana-ai/chat-history/
 .yana-ai/chat-settings.json
 .yana-ai/exports/
+.yana-ai/os/
 yana-ai-*.html
 yana-ai-*.sarif
 releases/*.zip
