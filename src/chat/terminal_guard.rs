@@ -16,7 +16,9 @@
 //! this module needing to touch `main.rs` at all.
 
 use anyhow::{Context, Result};
+use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use ratatui::DefaultTerminal;
+use std::io::stdout;
 use std::ops::{Deref, DerefMut};
 
 pub struct TerminalGuard {
@@ -24,18 +26,30 @@ pub struct TerminalGuard {
 }
 
 impl TerminalGuard {
-    /// Enter raw mode + alternate screen via `ratatui::try_init()`. On
-    /// non-TTY stdout (piped/CI usage), this fails fast — surfaced here as
-    /// a clear "chat requires an interactive terminal" message rather than
-    /// a raw crossterm/ratatui error. `try_init()` itself doesn't guarantee
-    /// raw mode is disabled again if it fails partway (raw mode succeeds,
-    /// then entering the alternate screen doesn't) — a rare case, but a
-    /// defensive `ratatui::restore()` call on any `Err` closes it anyway,
-    /// since restore is idempotent and harmless even when nothing was
-    /// actually engaged.
+    /// Enter raw mode + alternate screen via `ratatui::try_init()`, then
+    /// mouse capture on top of it. On non-TTY stdout (piped/CI usage), this
+    /// fails fast — surfaced here as a clear "chat requires an interactive
+    /// terminal" message rather than a raw crossterm/ratatui error.
+    /// `try_init()` itself doesn't guarantee raw mode is disabled again if
+    /// it fails partway (raw mode succeeds, then entering the alternate
+    /// screen doesn't) — a rare case, but a defensive `ratatui::restore()`
+    /// call on any `Err` closes it anyway, since restore is idempotent and
+    /// harmless even when nothing was actually engaged. Mouse capture is
+    /// requested only after `try_init()` succeeds — enabling it first and
+    /// then failing to enter raw mode would leave a bare terminal (no
+    /// alternate screen) receiving mouse escape sequences it never asked
+    /// to see.
     pub fn new() -> Result<Self> {
         match ratatui::try_init() {
-            Ok(terminal) => Ok(Self { terminal }),
+            Ok(terminal) => {
+                // Best-effort: a terminal that can enter raw mode but
+                // rejects mouse capture (some minimal/embedded emulators)
+                // should still run the chat — keyboard-only, same as
+                // before this feature existed — not fail the whole session
+                // over an optional enhancement.
+                let _ = crossterm::execute!(stdout(), EnableMouseCapture);
+                Ok(Self { terminal })
+            }
             Err(e) => {
                 ratatui::restore();
                 Err(e).context("chat requires an interactive terminal")
@@ -59,6 +73,11 @@ impl DerefMut for TerminalGuard {
 
 impl Drop for TerminalGuard {
     fn drop(&mut self) {
+        // Disable mouse capture before restoring the screen/raw mode —
+        // same ordering as enable (reverse), and same best-effort
+        // tolerance: a `Drop` can't propagate this failure anywhere
+        // useful, and `ratatui::restore()` below must still run regardless.
+        let _ = crossterm::execute!(stdout(), DisableMouseCapture);
         ratatui::restore();
     }
 }
