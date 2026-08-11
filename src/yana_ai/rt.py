@@ -129,7 +129,7 @@ def _find_binary() -> str | None:
     return None
 
 
-def main() -> None:
+def _run(extra_args: list[str] | None = None) -> None:
     # Hard re-entry guard: if we're here twice, some candidate led back to
     # this wrapper. Abort rather than "try the next candidate" — the
     # parent process already made its choice.
@@ -159,8 +159,17 @@ def main() -> None:
     _check_version_compat(binary)
 
     env = {**os.environ, _RECURSION_GUARD: "1"}
-    result = subprocess.run([binary] + sys.argv[1:], env=env)
+    result = subprocess.run([binary] + (extra_args or []) + sys.argv[1:], env=env)
     sys.exit(result.returncode)
+
+
+def main() -> None:
+    _run()
+
+
+def chat_main() -> None:
+    """Launch the local chat workspace through the packaged Rust runtime."""
+    _run(["chat"])
 
 
 if __name__ == "__main__":

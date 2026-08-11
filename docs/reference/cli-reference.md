@@ -22,6 +22,24 @@ yana-ai mission create "add-auth"     # create parallel agent mission
 
 **Benchmark:** bounded commands ~2-12x faster than Python; full-repo scan converges to ~1.1x at 19k files — see `BENCHMARK.md` for full methodology.
 
+## Local AI terminal chat — `yana-ai-rt`
+
+`yana-ai-rt` opens the local-first terminal workspace directly. The existing
+`yana-rt chat` form remains supported for scripts and backward compatibility.
+
+```bash
+yana-ai-rt                              # auto-select configured provider, else Ollama
+yana-ai-rt --provider ollama            # Ollama on localhost:11434
+yana-ai-rt --provider lmstudio          # LM Studio on localhost:1234
+yana-ai-rt --provider llamacpp           # llama.cpp server on localhost:8080
+yana-ai-rt --provider ollama --model qwen3:14b
+```
+
+Inside the workspace, use `Ctrl+K` for the command palette, `Ctrl+T` for a
+new conversation tab, `/models` for runtime model discovery, and `/help` for
+the complete keyboard map. Conversation data stays under `.yana-ai/` in the
+current workspace; telemetry is disabled by default.
+
 ## Multi-harness support
 
 Yana AI adapts to whichever tool you use:

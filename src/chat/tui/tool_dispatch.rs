@@ -22,11 +22,15 @@ impl App {
     pub(super) fn handle_tool_calls(&mut self, calls: Vec<ToolCall>) {
         self.tool_rounds.record_round();
         if self.tool_rounds.exceeded() {
-            self.status = "tool-call limit reached for this turn — aborting to avoid a runaway loop".to_string();
+            self.status =
+                "tool-call limit reached for this turn — aborting to avoid a runaway loop"
+                    .to_string();
             return;
         }
         if calls.len() > 1 {
-            self.status = "model requested multiple simultaneous tool calls — unsupported in this MVP".to_string();
+            self.status =
+                "model requested multiple simultaneous tool calls — unsupported in this MVP"
+                    .to_string();
             return;
         }
         let Some(call) = calls.into_iter().next() else {
@@ -38,10 +42,15 @@ impl App {
         };
 
         let record: ToolCallRecord = call.clone().into();
-        if let Err(e) =
-            super::super::history::append_tool_call(&self.session_id, self.provider.name(), &self.model, &record)
-        {
-            self.status = format!("warning: failed to persist tool call: {e}");
+        if self.settings.privacy.log_messages {
+            if let Err(e) = super::super::history::append_tool_call(
+                &self.session_id,
+                self.provider.name(),
+                &self.model,
+                &record,
+            ) {
+                self.status = format!("warning: failed to persist tool call: {e}");
+            }
         }
         let mut msg = ChatMessage::text(Role::Assistant, "");
         msg.tool_call = Some(record);
@@ -70,7 +79,12 @@ impl App {
 
     fn dispatch_run_command(&mut self, call: &ToolCall) {
         let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
-            self.push_tool_result(&call.id, "missing required argument 'command'".to_string(), true, false);
+            self.push_tool_result(
+                &call.id,
+                "missing required argument 'command'".to_string(),
+                true,
+                false,
+            );
             self.spawn_turn();
             return;
         };
@@ -94,10 +108,23 @@ impl App {
     /// doc for the `role: User` / empty-`content` convention). Shared by
     /// the read_file/run_command dispatch paths above and by
     /// `approval.rs`'s post-execution/denial handling.
-    pub(super) fn push_tool_result(&mut self, call_id: &str, output: String, is_error: bool, denied: bool) {
-        let record = ToolResultRecord { call_id: call_id.to_string(), output, is_error, denied };
-        if let Err(e) = super::super::history::append_tool_result(&self.session_id, &record) {
-            self.status = format!("warning: failed to persist tool result: {e}");
+    pub(super) fn push_tool_result(
+        &mut self,
+        call_id: &str,
+        output: String,
+        is_error: bool,
+        denied: bool,
+    ) {
+        let record = ToolResultRecord {
+            call_id: call_id.to_string(),
+            output,
+            is_error,
+            denied,
+        };
+        if self.settings.privacy.log_messages {
+            if let Err(e) = super::super::history::append_tool_result(&self.session_id, &record) {
+                self.status = format!("warning: failed to persist tool result: {e}");
+            }
         }
         let mut msg = ChatMessage::text(Role::User, "");
         msg.tool_result = Some(record);

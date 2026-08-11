@@ -17,14 +17,23 @@ const MAX_READ_BYTES: u64 = 256 * 1024;
 /// canonicalize and the read — out of scope, see the plan).
 pub fn execute(repo_root: &Path, requested_path: &str) -> Result<String, String> {
     let candidate = repo_root.join(requested_path);
-    let resolved = candidate.canonicalize().map_err(|e| format!("cannot resolve path: {e}"))?;
-    let root = repo_root.canonicalize().map_err(|e| format!("cannot resolve repo root: {e}"))?;
+    let resolved = candidate
+        .canonicalize()
+        .map_err(|e| format!("cannot resolve path: {e}"))?;
+    let root = repo_root
+        .canonicalize()
+        .map_err(|e| format!("cannot resolve repo root: {e}"))?;
     if !resolved.starts_with(&root) {
-        return Err(format!("path escapes repo root (Gate L5): {requested_path}"));
+        return Err(format!(
+            "path escapes repo root (Gate L5): {requested_path}"
+        ));
     }
     let meta = std::fs::metadata(&resolved).map_err(|e| e.to_string())?;
     if meta.len() > MAX_READ_BYTES {
-        return Err(format!("file too large ({} bytes, cap is {MAX_READ_BYTES})", meta.len()));
+        return Err(format!(
+            "file too large ({} bytes, cap is {MAX_READ_BYTES})",
+            meta.len()
+        ));
     }
     std::fs::read_to_string(&resolved).map_err(|e| format!("read failed: {e}"))
 }
@@ -36,7 +45,10 @@ mod tests {
     use std::path::PathBuf;
 
     fn tmp_repo(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("yana-read-file-test-{tag}-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!(
+            "yana-read-file-test-{tag}-{}",
+            uuid::Uuid::new_v4()
+        ));
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -52,7 +64,10 @@ mod tests {
     #[test]
     fn denies_path_traversal_via_dotdot() {
         let root = tmp_repo("dotdot");
-        let outside = root.parent().unwrap().join(format!("outside-{}.txt", uuid::Uuid::new_v4()));
+        let outside = root
+            .parent()
+            .unwrap()
+            .join(format!("outside-{}.txt", uuid::Uuid::new_v4()));
         fs::write(&outside, "secret").unwrap();
         let rel = format!("../{}", outside.file_name().unwrap().to_str().unwrap());
         let result = execute(&root, &rel);
@@ -66,7 +81,10 @@ mod tests {
     #[test]
     fn denies_symlink_escaping_repo_root() {
         let root = tmp_repo("symlink");
-        let outside = root.parent().unwrap().join(format!("outside-link-target-{}.txt", uuid::Uuid::new_v4()));
+        let outside = root
+            .parent()
+            .unwrap()
+            .join(format!("outside-link-target-{}.txt", uuid::Uuid::new_v4()));
         fs::write(&outside, "secret").unwrap();
         let link = root.join("escape-link.txt");
         std::os::unix::fs::symlink(&outside, &link).unwrap();

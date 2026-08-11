@@ -51,7 +51,24 @@ fn app() -> App {
         None,
         None,
         "12345678-0000-0000-0000-000000000000".to_string(),
-        vec![ChatMessage::text(crate::chat::provider::Role::User, "Hello Yana")],
+        vec![ChatMessage::text(
+            crate::chat::provider::Role::User,
+            "Hello Yana",
+        )],
+        false,
+        true,
+        true,
+    )
+}
+
+fn empty_app() -> App {
+    App::new(
+        Arc::new(TestProvider),
+        "llama3.2".to_string(),
+        None,
+        None,
+        "12345678-0000-0000-0000-000000000000".to_string(),
+        Vec::new(),
         false,
         true,
         true,
@@ -63,7 +80,13 @@ fn snapshot(width: u16) -> String {
     let mut terminal = Terminal::new(backend).unwrap();
     let mut app = app();
     terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
-    terminal.backend().buffer().content.iter().map(|cell| cell.symbol()).collect()
+    terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect()
 }
 
 #[test]
@@ -89,12 +112,24 @@ fn tab_cycles_through_sidebar_panels() {
     let mut app = app();
 
     terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
-    let first: String = terminal.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+    let first: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|c| c.symbol())
+        .collect();
     assert!(first.contains("Activity"));
 
     app.sidebar_tab = app.sidebar_tab.next(); // Activity -> Approval
     terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
-    let second: String = terminal.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+    let second: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|c| c.symbol())
+        .collect();
     assert!(second.contains("Approval"));
 }
 
@@ -104,10 +139,64 @@ fn processing_turn_draws_the_seven_colour_input_ring() {
     let mut terminal = Terminal::new(backend).unwrap();
     let mut app = app();
     let (_sender, receiver) = std::sync::mpsc::channel::<StreamEvent>();
-    app.turn = TurnState::Streaming(receiver);
+    app.turn = TurnState::Streaming {
+        rx: receiver,
+        cancel: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+    };
 
     terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
 
-    let painted_colours: Vec<_> = terminal.backend().buffer().content.iter().map(|cell| cell.fg).collect();
-    assert!(SEND_BORDER_COLORS.iter().all(|colour| painted_colours.contains(colour)));
+    let painted_colours: Vec<_> = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.fg)
+        .collect();
+    assert!(SEND_BORDER_COLORS
+        .iter()
+        .all(|colour| painted_colours.contains(colour)));
+}
+
+#[test]
+fn empty_session_shows_the_yana_local_welcome() {
+    let backend = TestBackend::new(90, 28);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut app = empty_app();
+    terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
+
+    let output: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("YANA // LOCAL"));
+    assert!(output.contains("grounded copilot"));
+    assert!(output.contains("asks before running"));
+}
+
+#[test]
+fn very_small_terminal_renders_without_panicking() {
+    let backend = TestBackend::new(38, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut app = empty_app();
+    terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
+    assert_eq!(terminal.backend().buffer().area.width, 38);
+}
+
+#[test]
+fn terminal_theme_changes_the_active_input_border() {
+    let backend = TestBackend::new(90, 28);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut app = empty_app();
+    app.settings.theme = crate::chat::settings::ThemeName::Terminal;
+    terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();
+    assert!(terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .any(|cell| cell.fg == ratatui::style::Color::Green));
 }

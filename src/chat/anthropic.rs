@@ -4,7 +4,9 @@
 //! usage split across two SSE event types — so it gets its own
 //! implementation rather than being forced into the OpenAI-compat shape.
 
-use super::provider::{read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, Role};
+use super::provider::{
+    read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, Role,
+};
 use super::tool_types::{StreamOutcome, ToolCallAccumulator, ToolSpec};
 use anyhow::{Context, Result};
 
@@ -98,8 +100,9 @@ impl ChatProvider for AnthropicProvider {
                     if let Some(text) = event.pointer("/delta/text").and_then(|v| v.as_str()) {
                         on_chunk(text)?;
                     }
-                    if let Some(frag) =
-                        event.pointer("/delta/partial_json").and_then(|v| v.as_str())
+                    if let Some(frag) = event
+                        .pointer("/delta/partial_json")
+                        .and_then(|v| v.as_str())
                     {
                         accumulator.append_args(index, frag);
                     }
@@ -108,7 +111,9 @@ impl ChatProvider for AnthropicProvider {
                 // start of that content block — argument JSON streams in
                 // afterward via content_block_delta's partial_json above.
                 Some("content_block_start") => {
-                    if event.pointer("/content_block/type").and_then(|v| v.as_str())
+                    if event
+                        .pointer("/content_block/type")
+                        .and_then(|v| v.as_str())
                         == Some("tool_use")
                     {
                         let id = event
@@ -129,7 +134,10 @@ impl ChatProvider for AnthropicProvider {
                 Some("message_start") => {
                     if let Some(u) = event.pointer("/message/usage") {
                         usage.merge(ChatUsage {
-                            input_tokens: u.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
+                            input_tokens: u
+                                .get("input_tokens")
+                                .and_then(|v| v.as_u64())
+                                .unwrap_or(0),
                             output_tokens: 0,
                         });
                     }
@@ -143,7 +151,10 @@ impl ChatProvider for AnthropicProvider {
                     if let Some(u) = event.get("usage") {
                         usage.merge(ChatUsage {
                             input_tokens: 0,
-                            output_tokens: u.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
+                            output_tokens: u
+                                .get("output_tokens")
+                                .and_then(|v| v.as_u64())
+                                .unwrap_or(0),
                         });
                     }
                     if event.pointer("/delta/stop_reason").and_then(|v| v.as_str())

@@ -16,7 +16,9 @@ impl App {
     /// Enter/Esc acknowledge-and-abort are honored — no y-path exists at
     /// all, the literal enforcement of "no override on a guard denial."
     pub(super) fn handle_approval_key(&mut self, key: KeyEvent) {
-        let TurnState::AwaitingApproval(pending) = &self.turn else { return };
+        let TurnState::AwaitingApproval(pending) = &self.turn else {
+            return;
+        };
         if pending.guard_verdict.is_some() {
             if matches!(key.code, KeyCode::Enter | KeyCode::Esc) {
                 self.acknowledge_denied();
@@ -31,19 +33,33 @@ impl App {
     }
 
     fn acknowledge_denied(&mut self) {
-        let TurnState::AwaitingApproval(pending) = std::mem::replace(&mut self.turn, TurnState::Idle) else {
+        let TurnState::AwaitingApproval(pending) =
+            std::mem::replace(&mut self.turn, TurnState::Idle)
+        else {
             return;
         };
         let reason = pending.guard_verdict.unwrap_or("blocked");
-        self.push_tool_result(&pending.call_id, format!("blocked by guard: {reason}"), true, true);
+        self.push_tool_result(
+            &pending.call_id,
+            format!("blocked by guard: {reason}"),
+            true,
+            true,
+        );
         self.continue_after_tool_result();
     }
 
-    fn decline_tool(&mut self) {
-        let TurnState::AwaitingApproval(pending) = std::mem::replace(&mut self.turn, TurnState::Idle) else {
+    pub(super) fn decline_tool(&mut self) {
+        let TurnState::AwaitingApproval(pending) =
+            std::mem::replace(&mut self.turn, TurnState::Idle)
+        else {
             return;
         };
-        self.push_tool_result(&pending.call_id, "user declined to execute this command".to_string(), false, true);
+        self.push_tool_result(
+            &pending.call_id,
+            "user declined to execute this command".to_string(),
+            false,
+            true,
+        );
         self.continue_after_tool_result();
     }
 
@@ -54,17 +70,26 @@ impl App {
     fn continue_after_tool_result(&mut self) {
         self.tool_rounds.record_round();
         if self.tool_rounds.exceeded() {
-            self.status = "tool-call limit reached for this turn — aborting to avoid a runaway loop".to_string();
+            self.status =
+                "tool-call limit reached for this turn — aborting to avoid a runaway loop"
+                    .to_string();
             return;
         }
         self.spawn_turn();
     }
 
     fn execute_approved_tool(&mut self) {
-        let TurnState::AwaitingApproval(pending) = std::mem::replace(&mut self.turn, TurnState::Idle) else {
+        let TurnState::AwaitingApproval(pending) =
+            std::mem::replace(&mut self.turn, TurnState::Idle)
+        else {
             return;
         };
-        let PendingApproval { call_id, argv, command: _, guard_verdict: _ } = pending;
+        let PendingApproval {
+            call_id,
+            argv,
+            command: _,
+            guard_verdict: _,
+        } = pending;
         let use_sandbox = self.use_sandbox;
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
@@ -82,7 +107,9 @@ impl App {
 /// hold `&app.turn` to read the `Receiver` while also needing `&mut
 /// self` to finish up).
 pub(super) fn drain_tool_exec_events(app: &mut App) {
-    let TurnState::ExecutingTool { call_id, rx } = &app.turn else { return };
+    let TurnState::ExecutingTool { call_id, rx } = &app.turn else {
+        return;
+    };
     let ToolExecEvent::Done(result) = match rx.try_recv() {
         Ok(ev) => ev,
         Err(_) => return, // still running or disconnected — nothing to do this tick
@@ -102,7 +129,12 @@ pub(super) fn drain_tool_exec_events(app: &mut App) {
             }
             let is_error = outcome.exit_code != Some(0);
             if is_error {
-                text = format!("[exit code {}]\n{text}", outcome.exit_code.map_or("unknown".to_string(), |c| c.to_string()));
+                text = format!(
+                    "[exit code {}]\n{text}",
+                    outcome
+                        .exit_code
+                        .map_or("unknown".to_string(), |c| c.to_string())
+                );
             }
             app.push_tool_result(&call_id, text, is_error, false);
         }

@@ -35,16 +35,33 @@ use ratatui::Frame;
 /// regardless of `sidebar_tab`. Merges what were two separate persistent
 /// boxes across the two source designs (Provider identity + Session id).
 pub(super) fn render_session_box(frame: &mut Frame, area: Rect, app: &App) {
-    let locality = if app.provider.requires_key() { "REMOTE" } else { "LOCAL" };
+    let locality = if app.provider.requires_key() {
+        "REMOTE"
+    } else {
+        "LOCAL"
+    };
     let lines = vec![
-        Line::styled("● Local chat", Style::default().fg(JADE).add_modifier(Modifier::BOLD)),
+        Line::styled(
+            "● Local chat",
+            Style::default().fg(JADE).add_modifier(Modifier::BOLD),
+        ),
         Line::raw(app.provider.name().to_string()),
         Line::styled(app.model.clone(), Style::default().fg(WATER)),
         Line::raw(""),
-        Line::styled(format!("{locality} · {}", &app.session_id[..8.min(app.session_id.len())]), Style::default().fg(SLATE)),
+        Line::styled(
+            format!(
+                "{locality} · {}",
+                &app.session_id[..8.min(app.session_id.len())]
+            ),
+            Style::default().fg(SLATE),
+        ),
     ];
     frame.render_widget(
-        Paragraph::new(lines).block(Block::bordered().title(" Session ").border_style(Style::default().fg(JADE))),
+        Paragraph::new(lines).block(
+            Block::bordered()
+                .title(" Session ")
+                .border_style(Style::default().fg(JADE)),
+        ),
         area,
     );
 }
@@ -52,7 +69,8 @@ pub(super) fn render_session_box(frame: &mut Frame, area: Rect, app: &App) {
 /// Splits `area` into the Session box (fixed) and the Tab-switched panel
 /// (remaining height), dispatching to the panel for `app.sidebar_tab`.
 pub(super) fn render_sidebar(frame: &mut Frame, area: Rect, app: &App) {
-    let [session_area, panel_area] = Layout::vertical([Constraint::Length(6), Constraint::Min(4)]).areas(area);
+    let [session_area, panel_area] =
+        Layout::vertical([Constraint::Length(6), Constraint::Min(4)]).areas(area);
     render_session_box(frame, session_area, app);
     match app.sidebar_tab {
         SidebarTab::Activity => render_activity_panel(frame, panel_area, app),
@@ -63,18 +81,24 @@ pub(super) fn render_sidebar(frame: &mut Frame, area: Rect, app: &App) {
 }
 
 fn panel_block(title: String, accent: Color) -> Block<'static> {
-    Block::default().title(format!(" {title} · Tab ")).borders(Borders::ALL).border_style(Style::default().fg(accent))
+    Block::default()
+        .title(format!(" {title} · Tab "))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(accent))
 }
 
 fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
     let (status, tone) = match &app.turn {
         TurnState::Idle => ("Ready for your message", JADE),
-        TurnState::Streaming(_) => ("Receiving response", AMBER),
+        TurnState::Streaming { .. } => ("Receiving response", AMBER),
         TurnState::AwaitingApproval(_) => ("Approval required", AMBER),
         TurnState::ExecutingTool { .. } => ("Running approved tool", AMBER),
     };
     let lines = vec![
-        Line::styled(status, Style::default().fg(tone).add_modifier(Modifier::BOLD)),
+        Line::styled(
+            status,
+            Style::default().fg(tone).add_modifier(Modifier::BOLD),
+        ),
         Line::raw(""),
         Line::styled("Controls", Style::default().add_modifier(Modifier::BOLD)),
         Line::raw("Enter    send"),
@@ -86,7 +110,9 @@ fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
         Line::raw("Ctrl-C   quit"),
     ];
     frame.render_widget(
-        Paragraph::new(lines).wrap(Wrap { trim: true }).block(panel_block(SidebarTab::Activity.label().to_string(), tone)),
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .block(panel_block(SidebarTab::Activity.label().to_string(), tone)),
         area,
     );
 }
@@ -94,18 +120,34 @@ fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
 fn render_approval_panel(frame: &mut Frame, area: Rect, app: &App) {
     let lines = match &app.turn {
         TurnState::AwaitingApproval(pending) => vec![
-            Line::from(Span::styled("AWAITING APPROVAL", Style::default().fg(AMBER).add_modifier(Modifier::BOLD))),
-            Line::from(""),
-            Line::from(Span::styled(&pending.command, Style::default().add_modifier(Modifier::BOLD))),
+            Line::from(Span::styled(
+                "AWAITING APPROVAL",
+                Style::default().fg(AMBER).add_modifier(Modifier::BOLD),
+            )),
             Line::from(""),
             Line::from(Span::styled(
-                if pending.guard_verdict.is_some() { "guard denied — Enter/Esc to acknowledge" } else { "y = run · n/Esc = decline" },
+                &pending.command,
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                if pending.guard_verdict.is_some() {
+                    "guard denied — Enter/Esc to acknowledge"
+                } else {
+                    "y = run · n/Esc = decline"
+                },
                 Style::default().fg(SLATE),
             )),
         ],
-        TurnState::ExecutingTool { .. } => vec![Line::from(Span::styled("Tool executing…", Style::default().fg(WATER)))],
-        TurnState::Idle | TurnState::Streaming(_) => vec![
-            Line::from(Span::styled("No pending approval", Style::default().fg(SLATE))),
+        TurnState::ExecutingTool { .. } => vec![Line::from(Span::styled(
+            "Tool executing…",
+            Style::default().fg(WATER),
+        ))],
+        TurnState::Idle | TurnState::Streaming { .. } => vec![
+            Line::from(Span::styled(
+                "No pending approval",
+                Style::default().fg(SLATE),
+            )),
             Line::from(""),
             Line::from(Span::styled(
                 "run_command proposals appear here — y to run, n/Esc to decline",
@@ -113,9 +155,18 @@ fn render_approval_panel(frame: &mut Frame, area: Rect, app: &App) {
             )),
         ],
     };
-    let accent = if matches!(app.turn, TurnState::AwaitingApproval(_)) { AMBER } else { JADE };
+    let accent = if matches!(app.turn, TurnState::AwaitingApproval(_)) {
+        AMBER
+    } else {
+        JADE
+    };
     frame.render_widget(
-        Paragraph::new(lines).wrap(Wrap { trim: false }).block(panel_block(SidebarTab::Approval.label().to_string(), accent)),
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .block(panel_block(
+                SidebarTab::Approval.label().to_string(),
+                accent,
+            )),
         area,
     );
 }
@@ -127,14 +178,23 @@ fn render_memory_panel(frame: &mut Frame, area: Rect, app: &App) {
         format!("Memory · '{}'", app.memory_filter)
     };
     let items: Vec<ListItem> = if app.memory_results.is_empty() {
-        vec![ListItem::new(Line::from(Span::styled("/memory [query] to search L1 facts", Style::default().fg(SLATE))))]
+        vec![ListItem::new(Line::from(Span::styled(
+            "/memory [query] to search L1 facts",
+            Style::default().fg(SLATE),
+        )))]
     } else {
         app.memory_results
             .iter()
             .map(|fact| {
                 ListItem::new(vec![
-                    Line::from(Span::styled(&fact.id, Style::default().fg(VIOLET).add_modifier(Modifier::BOLD))),
-                    Line::from(Span::styled(&fact.statement, Style::default().fg(Color::White))),
+                    Line::from(Span::styled(
+                        &fact.id,
+                        Style::default().fg(VIOLET).add_modifier(Modifier::BOLD),
+                    )),
+                    Line::from(Span::styled(
+                        &fact.statement,
+                        Style::default().fg(Color::White),
+                    )),
                 ])
             })
             .collect()
@@ -145,7 +205,10 @@ fn render_memory_panel(frame: &mut Frame, area: Rect, app: &App) {
 fn render_project_panel(frame: &mut Frame, area: Rect, app: &App) {
     let lines = match &app.project_counts {
         Some(c) => vec![
-            Line::from(Span::styled(format!("v{}", c.version), Style::default().add_modifier(Modifier::BOLD))),
+            Line::from(Span::styled(
+                format!("v{}", c.version),
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
             Line::from(""),
             Line::from(format!("{} agents", c.agents)),
             Line::from(format!("{} skills", c.skills)),
@@ -154,9 +217,15 @@ fn render_project_panel(frame: &mut Frame, area: Rect, app: &App) {
             Line::from(format!("{} scripts", c.scripts)),
             Line::from(format!("{} commands", c.commands)),
         ],
-        None => vec![Line::from(Span::styled("MANIFEST.json unavailable", Style::default().fg(SLATE)))],
+        None => vec![Line::from(Span::styled(
+            "MANIFEST.json unavailable",
+            Style::default().fg(SLATE),
+        ))],
     };
-    frame.render_widget(Paragraph::new(lines).block(panel_block(SidebarTab::Project.label().to_string(), WATER)), area);
+    frame.render_widget(
+        Paragraph::new(lines).block(panel_block(SidebarTab::Project.label().to_string(), WATER)),
+        area,
+    );
 }
 
 const MEMORY_RESULTS_LIMIT: usize = 12;
@@ -172,7 +241,10 @@ impl App {
         self.status = if self.memory_results.is_empty() {
             format!("no L1 facts match '{query}'")
         } else {
-            format!("{} L1 fact(s) — Tab to cycle sidebar", self.memory_results.len())
+            format!(
+                "{} L1 fact(s) — Tab to cycle sidebar",
+                self.memory_results.len()
+            )
         };
     }
 

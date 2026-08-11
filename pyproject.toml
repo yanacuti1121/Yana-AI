@@ -44,6 +44,7 @@ Changelog   = "https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md"
 [project.scripts]
 yana-ai    = "yana_ai.cli:main"
 yana-rt = "yana_ai.rt:main"
+yana-ai-rt = "yana_ai.rt:chat_main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yana_ai"]

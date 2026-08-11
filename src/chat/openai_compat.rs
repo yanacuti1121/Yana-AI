@@ -7,7 +7,10 @@
 //! (Groq, OpenRouter, DeepSeek, ...) is then a new constructor function,
 //! not new code.
 
-use super::provider::{read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, Role};
+use super::provider::{
+    read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, ModelInfo, Role,
+    RuntimeKind,
+};
 use super::tool_types::{StreamOutcome, ToolCallAccumulator, ToolSpec};
 use anyhow::{Context, Result};
 
@@ -52,28 +55,15 @@ pub fn ollama() -> OpenAiCompatProvider {
         // (see the plan's out-of-scope table: that would reopen the SSRF
         // surface design::check_host_not_private exists to guard).
         url: "http://127.0.0.1:11434/v1/chat/completions",
-        // Only reached when detect_ollama_model() (below) found nothing —
-        // a guess, not a claim this model is actually pulled on this
-        // machine. Kept as a fallback rather than removed: detection can
-        // fail closed (daemon unreachable) for reasons unrelated to
-        // whether the user has a model at all.
         default_model: "llama3.2",
         keyless: true,
         env_var: "",
     }
 }
 
-/// Best-effort live model detection for a local Ollama daemon. Queries
-/// Ollama's native `/api/tags` (its OpenAI-compatible surface has no
-/// model-listing equivalent) for models actually pulled on this machine,
-/// and returns the first one. `None` on any failure — daemon not running,
-/// nothing pulled, unexpected response shape — this is a convenience
-/// lookup, not a requirement, and every caller already has a static
-/// fallback (`OpenAiCompatProvider::default_model`) for exactly that case.
-///
-/// Short, fixed timeouts (not `provider::build_agent()`'s 10s connect
-/// timeout) because this runs synchronously before the TUI has even
-/// started — a slow/absent daemon must not stall startup for seconds.
+/// Best-effort live model detection for a local Ollama daemon. This is a
+/// startup convenience only: callers retain the provider default as a
+/// fail-safe when the daemon is unavailable or has no pulled models.
 pub fn detect_ollama_model() -> Option<String> {
     let config = ureq::Agent::config_builder()
         .timeout_connect(Some(std::time::Duration::from_millis(1500)))
@@ -81,9 +71,9 @@ pub fn detect_ollama_model() -> Option<String> {
         .build();
     let agent = ureq::Agent::new_with_config(config);
 
-    let mut resp = agent.get("http://127.0.0.1:11434/api/tags").call().ok()?;
-    let body_text = resp.body_mut().read_to_string().ok()?;
-    let parsed: serde_json::Value = serde_json::from_str(&body_text).ok()?;
+    let mut response = agent.get("http://127.0.0.1:11434/api/tags").call().ok()?;
+    let body = response.body_mut().read_to_string().ok()?;
+    let parsed: serde_json::Value = serde_json::from_str(&body).ok()?;
 
     parsed
         .get("models")?
@@ -91,58 +81,59 @@ pub fn detect_ollama_model() -> Option<String> {
         .first()?
         .get("name")?
         .as_str()
-        .map(|s| s.to_string())
+        .map(str::to_string)
 }
 
 #[cfg(test)]
 mod detect_tests {
-    use super::*;
-
     #[test]
-    fn parses_first_model_name_from_a_real_tags_response_shape() {
-        // Real /api/tags response shape (Ollama API docs) — not
-        // reachable-daemon-dependent, since this tests the parsing logic
-        // in isolation, not detect_ollama_model() itself (which always
-        // makes a real network call and can't be unit-tested without a
-        // running daemon or a mock HTTP server neither of which this
-        // crate currently has infrastructure for).
+    fn extracts_first_model_from_ollama_tags_shape() {
         let body = serde_json::json!({
             "models": [
-                { "name": "llama3.2:latest", "size": 2019393189 },
-                { "name": "qwen2.5:7b", "size": 4683087389u64 }
+                { "name": "llama3.2:latest" },
+                { "name": "qwen2.5:7b" }
             ]
         });
         let name = body
             .get("models")
-            .and_then(|m| m.as_array())
-            .and_then(|a| a.first())
-            .and_then(|m| m.get("name"))
-            .and_then(|v| v.as_str());
+            .and_then(serde_json::Value::as_array)
+            .and_then(|models| models.first())
+            .and_then(|model| model.get("name"))
+            .and_then(serde_json::Value::as_str);
         assert_eq!(name, Some("llama3.2:latest"));
     }
 
     #[test]
-    fn empty_model_list_yields_none() {
-        let body = serde_json::json!({ "models": [] });
-        let name = body
-            .get("models")
-            .and_then(|m| m.as_array())
-            .and_then(|a| a.first())
-            .and_then(|m| m.get("name"))
-            .and_then(|v| v.as_str());
-        assert_eq!(name, None);
+    fn missing_or_empty_model_list_has_no_candidate() {
+        for body in [serde_json::json!({}), serde_json::json!({ "models": [] })] {
+            let name = body
+                .get("models")
+                .and_then(serde_json::Value::as_array)
+                .and_then(|models| models.first())
+                .and_then(|model| model.get("name"))
+                .and_then(serde_json::Value::as_str);
+            assert_eq!(name, None);
+        }
     }
+}
 
-    #[test]
-    fn missing_models_key_yields_none() {
-        let body = serde_json::json!({ "unexpected": "shape" });
-        let name = body
-            .get("models")
-            .and_then(|m| m.as_array())
-            .and_then(|a| a.first())
-            .and_then(|m| m.get("name"))
-            .and_then(|v| v.as_str());
-        assert_eq!(name, None);
+pub fn lm_studio() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "lmstudio",
+        url: "http://127.0.0.1:1234/v1/chat/completions",
+        default_model: "local-model",
+        keyless: true,
+        env_var: "",
+    }
+}
+
+pub fn llama_cpp() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "llamacpp",
+        url: "http://127.0.0.1:8080/v1/chat/completions",
+        default_model: "local-model",
+        keyless: true,
+        env_var: "",
     }
 }
 
@@ -173,6 +164,57 @@ impl ChatProvider for OpenAiCompatProvider {
     }
     fn env_var(&self) -> &str {
         self.env_var
+    }
+    fn runtime_kind(&self) -> RuntimeKind {
+        if self.url.starts_with("http://127.0.0.1") || self.url.starts_with("http://localhost") {
+            RuntimeKind::Local
+        } else {
+            RuntimeKind::Remote
+        }
+    }
+
+    fn list_models(&self, api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
+        if self.requires_key() && api_key.is_none() {
+            anyhow::bail!(
+                "{} is required to list {} models",
+                self.env_var,
+                self.provider_name
+            );
+        }
+        let models_url = self.url.strip_suffix("/chat/completions").map_or_else(
+            || format!("{}/models", self.url.trim_end_matches('/')),
+            |base| format!("{base}/models"),
+        );
+        let agent = super::provider::build_agent();
+        let mut request = agent.get(&models_url).header("accept", "application/json");
+        if let Some(key) = api_key {
+            request = request.header("Authorization", format!("Bearer {key}"));
+        }
+        let mut response = request.call().map_err(|error| {
+            anyhow::anyhow!("{} model discovery failed: {error}", self.provider_name)
+        })?;
+        if !response.status().is_success() {
+            let detail = read_error_body(&mut response);
+            anyhow::bail!(
+                "{} model discovery failed ({}): {detail}",
+                self.provider_name,
+                response.status().as_u16()
+            );
+        }
+        let payload: serde_json::Value = response.body_mut().read_json()?;
+        let mut models: Vec<ModelInfo> = payload
+            .get("data")
+            .and_then(|value| value.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|model| model.get("id").and_then(|id| id.as_str()))
+            .map(ModelInfo::named)
+            .collect();
+        models.sort_by(|left, right| left.id.cmp(&right.id));
+        if models.is_empty() {
+            anyhow::bail!("{} returned no models", self.provider_name);
+        }
+        Ok(models)
     }
 
     fn stream_chat(
@@ -225,7 +267,9 @@ impl ChatProvider for OpenAiCompatProvider {
         }
 
         let agent = super::provider::build_agent();
-        let mut req = agent.post(self.url).header("content-type", "application/json");
+        let mut req = agent
+            .post(self.url)
+            .header("content-type", "application/json");
         if let Some(key) = api_key {
             req = req.header("Authorization", format!("Bearer {key}"));
         }
@@ -246,7 +290,11 @@ impl ChatProvider for OpenAiCompatProvider {
 
         if !resp.status().is_success() {
             let detail = read_error_body(&mut resp);
-            anyhow::bail!("{} error ({}): {detail}", self.provider_name, resp.status().as_u16());
+            anyhow::bail!(
+                "{} error ({}): {detail}",
+                self.provider_name,
+                resp.status().as_u16()
+            );
         }
 
         let mut usage = ChatUsage::default();
@@ -286,7 +334,9 @@ impl ChatProvider for OpenAiCompatProvider {
                     }
                 }
             }
-            if event.pointer("/choices/0/finish_reason").and_then(|v| v.as_str())
+            if event
+                .pointer("/choices/0/finish_reason")
+                .and_then(|v| v.as_str())
                 == Some("tool_calls")
             {
                 is_tool_call = true;
@@ -294,7 +344,10 @@ impl ChatProvider for OpenAiCompatProvider {
             if let Some(u) = event.get("usage") {
                 usage.merge(ChatUsage {
                     input_tokens: u.get("prompt_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
-                    output_tokens: u.get("completion_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
+                    output_tokens: u
+                        .get("completion_tokens")
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(0),
                 });
             }
             Ok(())

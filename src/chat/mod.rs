@@ -38,9 +38,11 @@ mod banner;
 mod circuit_breaker;
 // `pub(crate)`, not private: `crate::os::agent` (Program K) reads
 // `list_recent_sessions`/`SessionSummary` as the real data source for
-// `yana-rt os agent-list` — see that module's doc comment.
+// `yana-rt os agent-list`.
 pub(crate) mod history;
+mod input;
 mod openai_compat;
+mod settings;
 // pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
 // `chat`, not a descendant) needs `provider::ask_once` and the
 // `ChatProvider` trait itself in scope to call `.requires_key()`/`.env_var()`
@@ -67,37 +69,14 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
         "anthropic" => Ok(Arc::new(AnthropicProvider)),
         "openai" => Ok(Arc::new(openai_compat::openai())),
         "ollama" => Ok(Arc::new(openai_compat::ollama())),
+        "lmstudio" => Ok(Arc::new(openai_compat::lm_studio())),
+        "llamacpp" => Ok(Arc::new(openai_compat::llama_cpp())),
         "kimi" => Ok(Arc::new(openai_compat::kimi())),
         "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
         other => Err(format!(
-            "unknown provider '{other}' — use anthropic | openai | ollama | kimi | turbofieldfare"
+            "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi"
         )),
     }
-}
-
-/// Resolves the model to use when the caller (CLI startup, or the
-/// in-session `/model` command) didn't name one explicitly. For Ollama,
-/// this queries the local daemon for what's actually pulled first
-/// (`openai_compat::detect_ollama_model`) — the provider's own
-/// `default_model()` is a static guess (`"llama3.2"`) that may not exist
-/// on this machine, since nothing before this queried Ollama live. Every
-/// other provider's default is a real, always-valid hosted model id, so
-/// this only special-cases Ollama.
-fn resolve_default_model(provider: &Arc<dyn ChatProvider>) -> String {
-    if provider.name() == "ollama" {
-        if let Some(detected) = openai_compat::detect_ollama_model() {
-            eprintln!("[chat] auto-detected Ollama model: {detected}");
-            return detected;
-        }
-        eprintln!(
-            "[chat] no Ollama model detected at 127.0.0.1:11434 (daemon not running, or nothing \
-             pulled) — falling back to '{}', which may not actually be pulled. Run `ollama pull \
-             {}`, or pass --model / use /model to name one that is.",
-            provider.default_model(),
-            provider.default_model()
-        );
-    }
-    provider.default_model().to_string()
 }
 
 fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
@@ -125,6 +104,23 @@ fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
     }
 }
 
+fn resolve_default_model(provider: &Arc<dyn ChatProvider>) -> String {
+    if provider.name() == "ollama" {
+        if let Some(detected) = openai_compat::detect_ollama_model() {
+            eprintln!("[chat] auto-detected Ollama model: {detected}");
+            return detected;
+        }
+        eprintln!(
+            "[chat] no Ollama model detected at 127.0.0.1:11434 (daemon not running, or nothing \
+             pulled) — falling back to '{}', which may not actually be pulled. Run `ollama pull \
+             {}`, or pass --model / use /model to name one that is.",
+            provider.default_model(),
+            provider.default_model()
+        );
+    }
+    provider.default_model().to_string()
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn dispatch(
     provider_name: Option<String>,
@@ -134,8 +130,18 @@ pub fn dispatch(
     verbose: bool,
     use_sandbox: bool,
 ) {
+    let repo_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let chat_settings = settings::load(&repo_root).unwrap_or_default();
+    let use_configured_model = provider_name.is_none();
+    let provider_name = provider_name.or_else(|| Some(chat_settings.default_provider.clone()));
     let provider = select_provider(provider_name.as_deref());
-    let model = model.unwrap_or_else(|| resolve_default_model(&provider));
+    let model = model
+        .or_else(|| {
+            use_configured_model
+                .then_some(chat_settings.default_model)
+                .flatten()
+        })
+        .unwrap_or_else(|| resolve_default_model(&provider));
     let api_key = if provider.requires_key() {
         match std::env::var(provider.env_var()) {
             Ok(k) if !k.is_empty() => Some(k),
@@ -184,7 +190,17 @@ pub fn dispatch(
         }
     };
 
-    let app = tui::App::new(provider, model, system, api_key, session_id, history, verbose, resumed, use_sandbox);
+    let app = tui::App::new(
+        provider,
+        model,
+        system,
+        api_key,
+        session_id,
+        history,
+        verbose,
+        resumed,
+        use_sandbox,
+    );
     if let Err(e) = tui::run(&mut guard, app) {
         drop(guard); // restore the terminal before printing, not after
         eprintln!("[chat] fatal: {e:#}");

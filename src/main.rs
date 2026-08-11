@@ -37,6 +37,7 @@ mod skill_quality;
 mod mcp;
 
 use clap::{Parser, Subcommand};
+use std::ffi::OsString;
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,18 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+fn parse_cli() -> Cli {
+    let mut args: Vec<OsString> = std::env::args_os().collect();
+    let is_chat_alias = args
+        .first()
+        .and_then(|arg| std::path::Path::new(arg).file_stem())
+        .is_some_and(|stem| stem == "yana-ai-rt");
+    if is_chat_alias {
+        args.insert(1, OsString::from("chat"));
+    }
+    Cli::parse_from(args)
 }
 
 #[derive(Subcommand)]
@@ -182,7 +195,7 @@ enum Commands {
     /// PreToolUse/PostToolUse hooks, so it builds its own gate in-process
     /// rather than relying on that hook system).
     Chat {
-        /// anthropic | openai | ollama (default: auto-detect via env, else ollama)
+        /// ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi
         #[arg(long)]
         provider: Option<String>,
         /// Model name (default: provider's own default; for ollama, first
@@ -335,7 +348,7 @@ fn main() {
         std::process::exit(1);
     }));
 
-    let cli = Cli::parse();
+    let cli = parse_cli();
     match cli.command {
         Commands::Task { action } => match action {
             TaskAction::Create { name, scope }    => task::cmd_task_create(name, scope),

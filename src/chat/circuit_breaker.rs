@@ -56,7 +56,10 @@ impl CircuitBreaker {
         match self.state {
             State::Closed => true,
             State::Open => {
-                if self.cooldown_until.is_none_or(|until| Instant::now() >= until) {
+                if self
+                    .cooldown_until
+                    .is_none_or(|until| Instant::now() >= until)
+                {
                     self.state = State::HalfOpen;
                     true
                 } else {

@@ -2,8 +2,8 @@
 //! — split out of `render.rs` (see that file's module doc) purely for
 //! line-count budget.
 
-use super::super::PendingApproval;
 use super::super::super::tool_types::{ToolCallRecord, ToolResultRecord};
+use super::super::PendingApproval;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -25,9 +25,14 @@ const RESULT_PREVIEW_CHARS: usize = 500;
 /// One history line for a proposed tool call, e.g. `→ run_command:
 /// {"command":"npm test"}`.
 pub(super) fn tool_call_line(record: &ToolCallRecord) -> Line<'static> {
-    let style = Style::default().fg(TOOL_CALL_COLOR).add_modifier(Modifier::BOLD);
+    let style = Style::default()
+        .fg(TOOL_CALL_COLOR)
+        .add_modifier(Modifier::BOLD);
     let args = truncate_with_marker(&record.arguments_json, ARGS_PREVIEW_CHARS);
-    Line::from(vec![Span::styled(format!("→ {}: ", record.name), style), Span::raw(args)])
+    Line::from(vec![
+        Span::styled(format!("→ {}: ", record.name), style),
+        Span::raw(args),
+    ])
 }
 
 /// One history line for what running (or declining) a tool call
@@ -42,7 +47,10 @@ pub(super) fn tool_result_line(record: &ToolResultRecord) -> Line<'static> {
     };
     let text = truncate_with_marker(&record.output, RESULT_PREVIEW_CHARS);
     Line::from(vec![
-        Span::styled(format!("{label}: "), Style::default().fg(color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("{label}: "),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
         Span::raw(text),
     ])
 }
@@ -83,14 +91,20 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
             vec![
                 Line::styled(
                     "Run this command? [y]es / [N]o",
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Line::raw(pending.command.clone()),
             ],
         )
     };
     let widget = Paragraph::new(lines)
-        .block(Block::bordered().title(" approve command ").border_style(Style::default().fg(border_color)))
+        .block(
+            Block::bordered()
+                .title(" approve command ")
+                .border_style(Style::default().fg(border_color)),
+        )
         .wrap(Wrap { trim: false });
     frame.render_widget(widget, area);
 }

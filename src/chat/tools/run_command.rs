@@ -27,7 +27,10 @@ pub fn validate(command: &str) -> Result<Validated, String> {
         return Err("empty command".to_string());
     }
     let guard_verdict = crate::guard::check_command(command);
-    Ok(Validated { argv, guard_verdict })
+    Ok(Validated {
+        argv,
+        guard_verdict,
+    })
 }
 
 /// Bound each stream so a runaway command can't flood the TUI/history.
@@ -67,12 +70,20 @@ pub fn execute(argv: &[String], use_sandbox: bool) -> Result<ExecOutcome, String
 fn cap_output(output: Output) -> ExecOutcome {
     let (stdout, out_trunc) = cap_bytes(&output.stdout);
     let (stderr, err_trunc) = cap_bytes(&output.stderr);
-    ExecOutcome { stdout, stderr, exit_code: output.status.code(), truncated: out_trunc || err_trunc }
+    ExecOutcome {
+        stdout,
+        stderr,
+        exit_code: output.status.code(),
+        truncated: out_trunc || err_trunc,
+    }
 }
 
 fn cap_bytes(bytes: &[u8]) -> (String, bool) {
     if bytes.len() > MAX_OUTPUT_BYTES {
-        (String::from_utf8_lossy(&bytes[..MAX_OUTPUT_BYTES]).to_string(), true)
+        (
+            String::from_utf8_lossy(&bytes[..MAX_OUTPUT_BYTES]).to_string(),
+            true,
+        )
     } else {
         (String::from_utf8_lossy(bytes).to_string(), false)
     }

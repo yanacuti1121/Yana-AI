@@ -82,7 +82,11 @@ impl ToolCallAccumulator {
         self.calls
             .into_iter()
             .filter_map(|(_, (id, name, args))| {
-                (!name.is_empty()).then_some(ToolCall { id, name, arguments_json: args })
+                (!name.is_empty()).then_some(ToolCall {
+                    id,
+                    name,
+                    arguments_json: args,
+                })
             })
             .collect()
     }
@@ -99,7 +103,11 @@ pub struct ToolCallRecord {
 
 impl From<ToolCall> for ToolCallRecord {
     fn from(c: ToolCall) -> Self {
-        Self { id: c.id, name: c.name, arguments_json: c.arguments_json }
+        Self {
+            id: c.id,
+            name: c.name,
+            arguments_json: c.arguments_json,
+        }
     }
 }
 

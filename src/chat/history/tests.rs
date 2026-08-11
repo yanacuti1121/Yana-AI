@@ -18,6 +18,26 @@ fn unique_session_id() -> String {
 
 fn cleanup(session_id: &str) {
     let _ = fs::remove_file(history_path(session_id));
+    let _ = fs::remove_file(metadata_path(session_id));
+}
+
+#[test]
+fn session_metadata_saves_restores_and_renames() {
+    let session_id = unique_session_id();
+    let mut metadata = new_metadata(&session_id, "ollama", "qwen3:14b", None);
+    save_metadata(&mut metadata).unwrap();
+    assert_eq!(load_metadata(&session_id).unwrap().model, "qwen3:14b");
+
+    let renamed = rename_session(&session_id, "Rust parser review").unwrap();
+    assert_eq!(renamed.title, "Rust parser review");
+    cleanup(&session_id);
+}
+
+#[test]
+fn title_derivation_is_bounded_and_stable() {
+    let title =
+        derive_title("  Explain   the architecture of this repository and every subsystem  ");
+    assert_eq!(title, "Explain the architecture of this repositor…");
 }
 
 #[test]
@@ -77,7 +97,15 @@ fn full_turn_sequence_round_trips_in_order() {
     };
     append_tool_result(&session_id, &result).unwrap();
     append_assistant(
-        &session_id, "anthropic", "claude-sonnet-4-6", "The file contains: hello", 10, 5, 100, false, None,
+        &session_id,
+        "anthropic",
+        "claude-sonnet-4-6",
+        "The file contains: hello",
+        10,
+        5,
+        100,
+        false,
+        None,
     )
     .unwrap();
 
