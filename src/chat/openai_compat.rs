@@ -52,9 +52,97 @@ pub fn ollama() -> OpenAiCompatProvider {
         // (see the plan's out-of-scope table: that would reopen the SSRF
         // surface design::check_host_not_private exists to guard).
         url: "http://127.0.0.1:11434/v1/chat/completions",
+        // Only reached when detect_ollama_model() (below) found nothing —
+        // a guess, not a claim this model is actually pulled on this
+        // machine. Kept as a fallback rather than removed: detection can
+        // fail closed (daemon unreachable) for reasons unrelated to
+        // whether the user has a model at all.
         default_model: "llama3.2",
         keyless: true,
         env_var: "",
+    }
+}
+
+/// Best-effort live model detection for a local Ollama daemon. Queries
+/// Ollama's native `/api/tags` (its OpenAI-compatible surface has no
+/// model-listing equivalent) for models actually pulled on this machine,
+/// and returns the first one. `None` on any failure — daemon not running,
+/// nothing pulled, unexpected response shape — this is a convenience
+/// lookup, not a requirement, and every caller already has a static
+/// fallback (`OpenAiCompatProvider::default_model`) for exactly that case.
+///
+/// Short, fixed timeouts (not `provider::build_agent()`'s 10s connect
+/// timeout) because this runs synchronously before the TUI has even
+/// started — a slow/absent daemon must not stall startup for seconds.
+pub fn detect_ollama_model() -> Option<String> {
+    let config = ureq::Agent::config_builder()
+        .timeout_connect(Some(std::time::Duration::from_millis(1500)))
+        .timeout_recv_response(Some(std::time::Duration::from_millis(1500)))
+        .build();
+    let agent = ureq::Agent::new_with_config(config);
+
+    let mut resp = agent.get("http://127.0.0.1:11434/api/tags").call().ok()?;
+    let body_text = resp.body_mut().read_to_string().ok()?;
+    let parsed: serde_json::Value = serde_json::from_str(&body_text).ok()?;
+
+    parsed
+        .get("models")?
+        .as_array()?
+        .first()?
+        .get("name")?
+        .as_str()
+        .map(|s| s.to_string())
+}
+
+#[cfg(test)]
+mod detect_tests {
+    use super::*;
+
+    #[test]
+    fn parses_first_model_name_from_a_real_tags_response_shape() {
+        // Real /api/tags response shape (Ollama API docs) — not
+        // reachable-daemon-dependent, since this tests the parsing logic
+        // in isolation, not detect_ollama_model() itself (which always
+        // makes a real network call and can't be unit-tested without a
+        // running daemon or a mock HTTP server neither of which this
+        // crate currently has infrastructure for).
+        let body = serde_json::json!({
+            "models": [
+                { "name": "llama3.2:latest", "size": 2019393189 },
+                { "name": "qwen2.5:7b", "size": 4683087389u64 }
+            ]
+        });
+        let name = body
+            .get("models")
+            .and_then(|m| m.as_array())
+            .and_then(|a| a.first())
+            .and_then(|m| m.get("name"))
+            .and_then(|v| v.as_str());
+        assert_eq!(name, Some("llama3.2:latest"));
+    }
+
+    #[test]
+    fn empty_model_list_yields_none() {
+        let body = serde_json::json!({ "models": [] });
+        let name = body
+            .get("models")
+            .and_then(|m| m.as_array())
+            .and_then(|a| a.first())
+            .and_then(|m| m.get("name"))
+            .and_then(|v| v.as_str());
+        assert_eq!(name, None);
+    }
+
+    #[test]
+    fn missing_models_key_yields_none() {
+        let body = serde_json::json!({ "unexpected": "shape" });
+        let name = body
+            .get("models")
+            .and_then(|m| m.as_array())
+            .and_then(|a| a.first())
+            .and_then(|m| m.get("name"))
+            .and_then(|v| v.as_str());
+        assert_eq!(name, None);
     }
 }
 

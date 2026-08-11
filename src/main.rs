@@ -185,7 +185,9 @@ enum Commands {
         /// anthropic | openai | ollama (default: auto-detect via env, else ollama)
         #[arg(long)]
         provider: Option<String>,
-        /// Model name (default: provider's own default)
+        /// Model name (default: provider's own default; for ollama, first
+        /// tries to auto-detect what's actually pulled via the local
+        /// daemon's /api/tags before falling back to a static guess)
         #[arg(long)]
         model: Option<String>,
         /// System prompt

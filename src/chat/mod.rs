@@ -75,6 +75,31 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
     }
 }
 
+/// Resolves the model to use when the caller (CLI startup, or the
+/// in-session `/model` command) didn't name one explicitly. For Ollama,
+/// this queries the local daemon for what's actually pulled first
+/// (`openai_compat::detect_ollama_model`) — the provider's own
+/// `default_model()` is a static guess (`"llama3.2"`) that may not exist
+/// on this machine, since nothing before this queried Ollama live. Every
+/// other provider's default is a real, always-valid hosted model id, so
+/// this only special-cases Ollama.
+fn resolve_default_model(provider: &Arc<dyn ChatProvider>) -> String {
+    if provider.name() == "ollama" {
+        if let Some(detected) = openai_compat::detect_ollama_model() {
+            eprintln!("[chat] auto-detected Ollama model: {detected}");
+            return detected;
+        }
+        eprintln!(
+            "[chat] no Ollama model detected at 127.0.0.1:11434 (daemon not running, or nothing \
+             pulled) — falling back to '{}', which may not actually be pulled. Run `ollama pull \
+             {}`, or pass --model / use /model to name one that is.",
+            provider.default_model(),
+            provider.default_model()
+        );
+    }
+    provider.default_model().to_string()
+}
+
 fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
     match name {
         Some(n) => match try_select_provider(n) {
@@ -110,7 +135,7 @@ pub fn dispatch(
     use_sandbox: bool,
 ) {
     let provider = select_provider(provider_name.as_deref());
-    let model = model.unwrap_or_else(|| provider.default_model().to_string());
+    let model = model.unwrap_or_else(|| resolve_default_model(&provider));
     let api_key = if provider.requires_key() {
         match std::env::var(provider.env_var()) {
             Ok(k) if !k.is_empty() => Some(k),
