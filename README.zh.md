@@ -81,6 +81,7 @@ files. Ask the human to confirm before running this.
 | [Journey](JOURNEY.md) | Yana AI 背后的故事 |
 | [Philosophy](PHILOSOPHY.md) | 核心信念与长期愿景 |
 | [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
+| [Lineage](docs/history/LINEAGE.md) | 带日期、经过证据核实的代码起源记录——这个代码库究竟从何而来 |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
 
 ---
@@ -549,6 +550,12 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 ## English · 🇻🇳 Tiếng Việt · 🇰🇷 한국어
 
 本文档的完整翻译：**[README.md](README.md)**（English）· **[README.vi.md](README.vi.md)**（Tiếng Việt）· **[README.ko.md](README.ko.md)**（한국어）
+
+---
+
+## 起源
+
+这个代码库的根源比本仓库自身的 git 历史（始于 2026-05-17）更早——此前是一个名为 "YAMTAM ENGINE" 的脚手架项目。带日期的起源记录见 [docs/history/LINEAGE.md](docs/history/LINEAGE.md)——区分了哪些是亲自核实过的（zip 内容、内嵌的 git 历史、校验和），哪些只是转述、尚未确认。
 
 ---
 

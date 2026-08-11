@@ -81,6 +81,7 @@ files. Ask the human to confirm before running this.
 | [Hành trình](JOURNEY.vi.md) | Câu chuyện đằng sau Yana AI |
 | [Triết lý](PHILOSOPHY.vi.md) | Niềm tin cốt lõi và tầm nhìn dài hạn |
 | [Nguyên tắc](PRINCIPLES.vi.md) | Nguyên tắc kỹ thuật định hướng mọi quyết định thiết kế |
+| [Nguồn gốc](docs/history/LINEAGE.md) | Hồ sơ khởi nguồn có ngày tháng, đã kiểm chứng bằng chứng — codebase này thực sự bắt đầu từ đâu |
 | [Lời tri ân](ACKNOWLEDGEMENTS.vi.md) | Ghi công và tri ân cộng đồng mã nguồn mở |
 
 ---
@@ -538,6 +539,12 @@ Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết
 ## English · 🇰🇷 한국어 · 🇨🇳 中文
 
 Bản dịch đầy đủ của tài liệu này: **[README.md](README.md)** (English) · **[README.ko.md](README.ko.md)** (한국어) · **[README.zh.md](README.zh.md)** (中文)
+
+---
+
+## Nguồn gốc
+
+Codebase này có gốc xa hơn lịch sử git của chính repo (bắt đầu 17/05/2026) — trước đó là một scaffold dưới tên "YAMTAM ENGINE". Xem [docs/history/LINEAGE.md](docs/history/LINEAGE.md) để biết hồ sơ khởi nguồn có ngày tháng — phần nào đã tự kiểm chứng (nội dung file zip, git history nhúng bên trong, checksum) và phần nào chỉ được báo lại, chưa xác nhận được.
 
 ---
 

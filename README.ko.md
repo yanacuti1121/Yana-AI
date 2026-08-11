@@ -81,6 +81,7 @@ files. Ask the human to confirm before running this.
 | [여정](JOURNEY.ko.md) | Yana AI 뒤에 숨겨진 이야기 |
 | [철학](PHILOSOPHY.ko.md) | 핵심 신념과 장기 비전 |
 | [원칙](PRINCIPLES.ko.md) | 모든 설계 결정을 이끄는 엔지니어링 원칙 |
+| [계보](docs/history/LINEAGE.md) | 날짜와 증거로 검증된 코드 기원 기록 — 이 코드베이스가 실제로 어디서 시작됐는지 |
 | [감사의 말](ACKNOWLEDGEMENTS.ko.md) | 오픈소스 커뮤니티에 대한 감사와 존중 |
 
 ---
@@ -539,6 +540,12 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 ## English · 🇻🇳 Tiếng Việt · 🇨🇳 中文
 
 이 문서의 전체 번역본: **[README.md](README.md)** (English) · **[README.vi.md](README.vi.md)** (Tiếng Việt) · **[README.zh.md](README.zh.md)** (中文)
+
+---
+
+## 계보
+
+이 코드베이스는 이 저장소 자체의 git 히스토리(2026-05-17 시작)보다 더 앞선 뿌리를 가지고 있습니다 — 그 이전에는 "YAMTAM ENGINE"이라는 이름의 스캐폴드였습니다. 날짜가 기록된 기원 문서는 [docs/history/LINEAGE.md](docs/history/LINEAGE.md)를 참고하세요 — 직접 검증한 부분(zip 내용물, 내장된 git 히스토리, 체크섬)과 보고만 되고 아직 확인되지 않은 부분을 구분해 두었습니다.
 
 ---
 
