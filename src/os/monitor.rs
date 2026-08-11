@@ -354,7 +354,19 @@ fn collect_disk(root: &Path, warnings: &mut Vec<String>) -> DiskSnapshot {
     }
     #[cfg(target_os = "windows")]
     {
-        let value = powershell_json("$d=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$((Get-Location).Drive.Name)'\"; @{total=[uint64]$d.Size;free=[uint64]$d.FreeSpace}|ConvertTo-Json -Compress");
+        // Resolve the drive from `root` itself, not the spawned powershell.exe
+        // process's own ambient working directory (Get-Location) -- the two
+        // can differ whenever the caller passes --dir pointing somewhere else,
+        // which silently queried the wrong volume before this fix. `root` also
+        // arrives via state::project_root()'s canonicalize(), which on Windows
+        // prepends the \\?\ extended-length prefix; GetPathRoot() on a prefixed
+        // path returns "\\?\D:\" (not "D:\"), so that prefix must be stripped
+        // before deriving the drive letter or the WMI filter never matches.
+        let root_literal = root.to_string_lossy().replace('\'', "''");
+        let script = format!(
+            r#"$p='{root_literal}'; if ($p.StartsWith('\\?\')) {{ $p = $p.Substring(4) }}; $drive=[System.IO.Path]::GetPathRoot($p).TrimEnd('\'); $d=Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$drive'"; @{{total=[uint64]$d.Size;free=[uint64]$d.FreeSpace}}|ConvertTo-Json -Compress"#
+        );
+        let value = powershell_json(&script);
         let total = value
             .as_ref()
             .and_then(|v| v.get("total"))
