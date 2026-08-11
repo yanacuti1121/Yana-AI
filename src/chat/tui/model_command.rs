@@ -47,7 +47,7 @@ impl App {
         let model = parts
             .next()
             .map(|s| s.to_string())
-            .unwrap_or_else(|| new_provider.default_model().to_string());
+            .unwrap_or_else(|| super::super::resolve_default_model(&new_provider));
 
         self.status = format!("switched to {} / {model} — new session", new_provider.name());
         self.provider = new_provider;
