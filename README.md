@@ -6,11 +6,15 @@
 </p>
 
 <p align="center">
-  <strong>A safety firewall between your AI coding agent and your shell.</strong>
+  <a href="README.md"><strong>English</strong></a> ·
+  <a href="README.vi.md">Tiếng Việt</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.zh.md">中文</a>
 </p>
 
 <p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam</em>
+  <strong>Local-first safety and runtime infrastructure for AI-assisted development.</strong><br />
+  <em>Deterministic guardrails · Yana runtime · Local AI terminal · Web and desktop interfaces</em>
 </p>
 
 <p align="center">
@@ -36,7 +40,73 @@
 
 ---
 
-Your agent tries something dangerous. Yana intercepts it, explains why, and logs it — hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity.
+Yana AI is one system with four entry points. The canonical policies, agents, skills, and adapters live in `core/`; `yana-rt` is the execution engine; harness adapters connect coding agents; terminal, web, and desktop surfaces expose the same capabilities to people.
+
+## Start here
+
+| I want to… | Use | Start with |
+| --- | --- | --- |
+| Protect an AI coding workflow | Hooks + harness adapters | `pip install yana-ai && yana-ai install` |
+| Chat with a local or configured model | Yana Local Chat | `yana-ai-rt` or `yana-ai chat` |
+| Scan, route, audit, or orchestrate | Rust runtime | `yana-rt doctor .` |
+| Use a visual interface | Web / desktop | [Run the web app locally](tools/yana-web/README.md) · [Download desktop](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+
+```text
+                    ┌──────────────────────────────┐
+                    │          Yana Core           │
+                    │ rules · agents · skills      │
+                    │ memory · evidence · adapters │
+                    └──────────────┬───────────────┘
+                                   │
+                         ┌─────────▼─────────┐
+                         │      yana-rt      │
+                         │ guard · chat · CI │
+                         │ route · missions  │
+                         └─────────┬─────────┘
+                                   │
+                 ┌─────────────────┼─────────────────┐
+                 ▼                 ▼                 ▼
+          Coding harnesses   Terminal workspace   Web / desktop
+```
+
+### Verified project snapshot
+
+Generated metadata is checked in CI by `core/scripts/check_counts.py`; these are repository surfaces, not claims about simultaneous runtime processes.
+
+| Surface | Current count |
+| --- | ---: |
+| Canonical agents | 101 |
+| Skills | 2,025 |
+| Commands | 170 |
+| Hooks | 63 |
+| Rules | 71 |
+| Core-lock entries | 276 |
+
+### Enforcement boundary
+
+| Surface | Current status |
+| --- | --- |
+| Destructive command guard on Claude Code and Cursor | **Enforced** by installed hooks |
+| Codex and Antigravity adapters | **Advisory**; their host integration does not expose the same hard-blocking contract |
+| SSRF and supply-chain guard scripts | **Implemented in source, not wired into the primary Claude hook registry** |
+| Local chat | **Available** through local endpoints such as Ollama, LM Studio, llama.cpp server, and TurboFieldfare |
+| Cloud model providers | **Optional** and require the user's own provider credentials |
+| Hosted web product | **No verified live deployment currently**; use the local web app or desktop release |
+
+## Documentation
+
+The project story and engineering values are maintained in three languages. Each row links all available editions.
+
+| Document | English | Tiếng Việt | 한국어 |
+| --- | --- | --- | --- |
+| Journey | [English](JOURNEY.md) | [Tiếng Việt](JOURNEY.vi.md) | [한국어](JOURNEY.ko.md) |
+| Philosophy | [English](PHILOSOPHY.md) | [Tiếng Việt](PHILOSOPHY.vi.md) | [한국어](PHILOSOPHY.ko.md) |
+| Engineering principles | [English](PRINCIPLES.md) | [Tiếng Việt](PRINCIPLES.vi.md) | [한국어](PRINCIPLES.ko.md) |
+| Acknowledgements | [English](ACKNOWLEDGEMENTS.md) | [Tiếng Việt](ACKNOWLEDGEMENTS.vi.md) | [한국어](ACKNOWLEDGEMENTS.ko.md) |
+
+## Safety demo
+
+When an agent tries something dangerous, Yana intercepts it, explains why, and logs it — hard-blocking on Claude Code and Cursor, with advisory guidance on Codex and Antigravity.
 
 ```bash
 pip install yana-ai && yana-ai install   # wire the hooks (60 seconds)
@@ -70,17 +140,6 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 
 ---
 
-## 📚 Documentation
-
-| Document | Description |
-| --- | --- |
-| [Journey](JOURNEY.md) | The story behind Yana AI |
-| [Philosophy](PHILOSOPHY.md) | Core beliefs and long-term vision |
-| [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
-| [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
-
----
-
 ## The problem
 
 AI coding agents make mistakes. They `rm -rf` the wrong directory. They push force to main. They hallucinate test results. By the time you notice, the damage is done.
@@ -91,22 +150,20 @@ Yana AI sits between the agent and your system: every risky tool call passes thr
 
 ## What it catches
 
-Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via agent hooks backed by a Rust runtime (`yana-rt`).
+The currently registered hook chain blocks known destructive git and shell operations, limits write scope, and records tool activity. SSRF and supply-chain guards exist in the repository but are not yet registered as primary live hooks; they are not counted as enforced coverage here.
 
 ## How it works
 
 ```
 Agent wants to run a command
          ↓
-Anti-evasion scan      — blocks base64 decode+exec, pipe-to-shell interpreters
-Shell sanitization     — quotes all variables, strips shell metacharacters
-Egress / SSRF policy   — blocks known metadata endpoints, private IP ranges
-Supply-chain vetting   — typosquat/CVE checklist before package installs
-Blast-radius cap       — caps how many files/what scope a destructive command can touch
-Merkle audit log       — every allowed AND blocked action logged, tamper-detected
-Human gate             — irreversible actions (push, publish, delete) require explicit confirmation
+Halt / circuit checks  — stop when the project or tool circuit is blocked
+Destructive guard      — reject known-dangerous git and shell forms
+Scope controls         — constrain writes and protect frozen scope
+Human gate             — irreversible external actions require confirmation
+Audit / evidence       — record outcomes and verify completion claims
          ↓
-Execute (or block + log)
+Execute, deny, or request confirmation
 ```
 
 See [Known Limitations](docs/reference/known-limitations.md) for exactly which of these are live, wired hooks today versus documented policy an agent applies by convention, verified directly against the code rather than the docs describing it.
@@ -152,9 +209,9 @@ It preserves an existing `AGENTS.md` and synchronizes all 101 canonical agents,
 ```bash
 git clone https://github.com/yanacuti1121/yana-ai.git
 cd yana-ai
-npm install
-bash install.sh                 # copies hooks + config into your project
-yana-ai doctor                  # verify
+python3 -m pip install -e .
+yana-ai install                 # copies adapters + hooks into your project
+yana-ai doctor .                # verify
 ```
 
 ---
@@ -203,7 +260,7 @@ Posts a comment on every PR:
 
 ## Rust runtime — `yana-rt`
 
-27 subcommands. Zero Python dependency.
+A typed Rust command surface with zero Python dependency at runtime.
 
 ```bash
 yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
@@ -248,14 +305,14 @@ If you see three different numbers across this repo (including in `git tag`, `RO
 
 ```
 core/
-├── hooks/          # 62 PreToolUse / PostToolUse / Stop hooks
+├── hooks/          # 63 hook scripts and helpers
 ├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 276 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
@@ -331,7 +388,7 @@ command depends on the agent's own tool-use policy, nothing forces it.
 
 ## Yana AI (the web product)
 
-**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[Run locally →](tools/yana-web/README.md)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
 
 Yana is the first interface built on Yana AI core: a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
@@ -420,7 +477,7 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-Five routes:
+Six routes:
 - **simple** → Yana handles directly (read-only, no agents needed)
 - **skill** → matched against a 2,025-entry index, dispatches exact skill agent
 - **learn** → routes to `hoc-tap`, a Socratic learning assistant (triggers on "learn", "explain", "why" — English and Vietnamese)
@@ -517,20 +574,20 @@ See the [full CLI reference](docs/reference/cli-reference.md) for sample output 
 
 ## Contact
 
-**Vũ Văn Tâm** · Vietnam · 17
+**Vũ Văn Tâm** · Vietnam
 
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Web app | [Local run guide](tools/yana-web/README.md) |
 
 ---
 
-## 🇻🇳 Tiếng Việt · 🇰🇷 한국어 · 🇨🇳 中文
+## Languages
 
-Full translations of this document: **[README.vi.md](README.vi.md)** (Tiếng Việt) · **[README.ko.md](README.ko.md)** (한국어) · **[README.zh.md](README.zh.md)** (中文)
+[English](README.md) · [Tiếng Việt](README.vi.md) · [한국어](README.ko.md) · [中文](README.zh.md)
 
 ---
 

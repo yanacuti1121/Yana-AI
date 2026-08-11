@@ -6,11 +6,12 @@
 </p>
 
 <p align="center">
-  <strong>Tường lửa an toàn giữa AI coding agent và shell của bạn.</strong>
+  <strong>Hạ tầng an toàn và runtime local-first cho phát triển phần mềm cùng AI.</strong><br />
+  <em>Guardrail tất định · Yana runtime · Terminal AI local · Giao diện web và desktop</em>
 </p>
 
 <p align="center">
-  <em>Xây dựng bởi Vũ Văn Tâm · 17 tuổi · Việt Nam</em>
+  <em>Xây dựng bởi Vũ Văn Tâm · Việt Nam</em>
 </p>
 
 <p align="center">
@@ -24,7 +25,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.1-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -76,12 +77,14 @@ files. Ask the human to confirm before running this.
 
 ## 📚 Tài liệu
 
-| Tài liệu | Mô tả |
-| --- | --- |
-| [Hành trình](JOURNEY.vi.md) | Câu chuyện đằng sau Yana AI |
-| [Triết lý](PHILOSOPHY.vi.md) | Niềm tin cốt lõi và tầm nhìn dài hạn |
-| [Nguyên tắc](PRINCIPLES.vi.md) | Nguyên tắc kỹ thuật định hướng mọi quyết định thiết kế |
-| [Lời tri ân](ACKNOWLEDGEMENTS.vi.md) | Ghi công và tri ân cộng đồng mã nguồn mở |
+Các tài liệu nền tảng được duy trì bằng ba ngôn ngữ. Mỗi dòng bên dưới chứa đủ cả ba bản.
+
+| Tài liệu | English | Tiếng Việt | 한국어 |
+| --- | --- | --- | --- |
+| Hành trình | [English](JOURNEY.md) | [Tiếng Việt](JOURNEY.vi.md) | [한국어](JOURNEY.ko.md) |
+| Triết lý | [English](PHILOSOPHY.md) | [Tiếng Việt](PHILOSOPHY.vi.md) | [한국어](PHILOSOPHY.ko.md) |
+| Nguyên tắc kỹ thuật | [English](PRINCIPLES.md) | [Tiếng Việt](PRINCIPLES.vi.md) | [한국어](PRINCIPLES.ko.md) |
+| Lời tri ân | [English](ACKNOWLEDGEMENTS.md) | [Tiếng Việt](ACKNOWLEDGEMENTS.vi.md) | [한국어](ACKNOWLEDGEMENTS.ko.md) |
 
 ---
 
@@ -95,22 +98,20 @@ Yana AI nằm giữa agent và hệ thống của bạn: mọi lệnh có rủi 
 
 ## Nó chặn gì
 
-Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua agent hooks có Rust runtime (`yana-rt`) hỗ trợ.
+Hook chain đang được đăng ký chặn các thao tác git/shell nguy hiểm đã biết, giới hạn phạm vi ghi và ghi lại hoạt động tool. Guard SSRF và supply-chain có trong source nhưng chưa được đăng ký làm hook sống chính, nên chưa được tính là phạm vi bảo vệ bắt buộc.
 
 ## Cách hoạt động
 
 ```
 Agent muốn chạy một lệnh
          ↓
-Anti-evasion scan      — chặn base64 decode+exec, pipe vào shell interpreter
-Shell sanitization     — quote mọi biến, loại bỏ ký tự đặc biệt của shell
-Egress / SSRF policy   — chặn metadata endpoint đã biết, dải IP private
-Supply-chain vetting   — checklist typosquat/CVE trước khi cài package
-Blast-radius cap       — giới hạn phạm vi/số file một lệnh phá hoại có thể chạm tới
-Merkle audit log       — mọi hành động (cho phép lẫn bị chặn) đều được log, chống giả mạo
-Human gate             — hành động không thể hoàn tác (push, publish, xóa) cần xác nhận rõ ràng từ người
+Halt / circuit checks  — dừng khi project hoặc tool circuit đang bị khóa
+Destructive guard      — từ chối dạng git/shell nguy hiểm đã biết
+Scope controls         — giới hạn vùng ghi và bảo vệ scope đóng băng
+Human gate             — hành động external không thể hoàn tác cần xác nhận
+Audit / evidence       — ghi kết quả và kiểm chứng tuyên bố hoàn thành
          ↓
-Thực thi (hoặc chặn + log)
+Thực thi, từ chối hoặc yêu cầu xác nhận
 ```
 
 Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết chính xác cái nào đang là hook sống, cái nào chỉ là chính sách agent tự áp dụng theo quy ước, đã xác minh trực tiếp trên code chứ không phải trên tài liệu mô tả nó.
@@ -148,9 +149,9 @@ yana-ai doctor .
 ```bash
 git clone https://github.com/yanacuti1121/yana-ai.git
 cd yana-ai
-npm install
-bash install.sh                 # copy hooks + config vào project của bạn
-yana-ai doctor                  # xác nhận
+python3 -m pip install -e .
+yana-ai install                 # copy adapters + hooks vào project của bạn
+yana-ai doctor .                # xác nhận
 ```
 
 ---
@@ -199,7 +200,7 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-27 subcommand. Không phụ thuộc Python.
+Bề mặt lệnh Rust có kiểu dữ liệu rõ ràng và không phụ thuộc Python khi chạy.
 
 ```bash
 yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)
@@ -244,14 +245,14 @@ Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`,
 
 ```
 core/
-├── hooks/          # 62 hook PreToolUse / PostToolUse / Stop
+├── hooks/          # 63 hook script và helper
 ├── rules/          # 71 rule được thực thi (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 định nghĩa agent chuyên biệt
-├── skills/         # 2.016 file SKILL.md
+├── skills/         # 2.025 file SKILL.md
 ├── config/
-│   ├── core-lock.json    # manifest SHA-256 — pin 240 file core
+│   ├── core-lock.json    # manifest SHA-256 — pin 276 file core
 │   └── skills-lock.json  # hash nội dung skill
 └── memory/
     ├── L1_atomic/  # fact vĩnh viễn — tồn tại qua các session
@@ -327,7 +328,7 @@ không có gì bắt buộc.
 
 ## Yana AI (sản phẩm web)
 
-**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[Chạy local →](tools/yana-web/README.md)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
 
 Yana là giao diện đầu tiên xây trên lõi Yana AI: một web UI cho phép bất kỳ ai chat với AI, đổi provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
 
@@ -416,9 +417,9 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-Năm route:
+Sáu route:
 - **simple** → Yana xử lý trực tiếp (chỉ đọc, không cần agent)
-- **skill** → so khớp với index 2.016 skill, dispatch đúng agent skill
+- **skill** → so khớp với index 2.025 skill, dispatch đúng agent skill
 - **learn** → route tới `hoc-tap`, trợ lý học kiểu Socratic (kích hoạt khi gặp "học", "giải thích", "tại sao" — cả tiếng Anh và tiếng Việt)
 - **daily** → route tới `daily-assistant`, tóm tắt / lên kế hoạch / soạn thảo (kích hoạt khi gặp "tóm tắt", "viết email", "lên kế hoạch" — cả tiếng Anh và tiếng Việt)
 - **complex** → dispatch agent chuyên biệt với brief đã giới hạn phạm vi
@@ -513,14 +514,14 @@ Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết
 
 ## Liên hệ
 
-**Vũ Văn Tâm** · Việt Nam · 17 tuổi
+**Vũ Văn Tâm** · Việt Nam
 
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Web app | [Hướng dẫn chạy local](tools/yana-web/README.md) |
 
 ---
 

@@ -6,11 +6,12 @@
 </p>
 
 <p align="center">
-  <strong>介于你的 AI 编程代理与 shell 之间的安全防火墙。</strong>
+  <strong>面向 AI 辅助开发的本地优先安全与运行时基础设施。</strong><br />
+  <em>确定性防护 · Yana 运行时 · 本地 AI 终端 · Web 与桌面界面</em>
 </p>
 
 <p align="center">
-  <em>由 Vũ Văn Tâm 打造 · 17 岁 · 越南</em>
+  <em>由 Vũ Văn Tâm 打造 · 越南</em>
 </p>
 
 <p align="center">
@@ -24,7 +25,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.1-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -76,12 +77,14 @@ files. Ask the human to confirm before running this.
 
 ## 📚 文档
 
-| 文档 | 说明 |
-| --- | --- |
-| [Journey](JOURNEY.md) | Yana AI 背后的故事 |
-| [Philosophy](PHILOSOPHY.md) | 核心信念与长期愿景 |
-| [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
-| [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
+核心文档维护三种语言版本。每一行都提供全部三个版本的链接。
+
+| 文档 | English | Tiếng Việt | 한국어 |
+| --- | --- | --- | --- |
+| Journey | [English](JOURNEY.md) | [Tiếng Việt](JOURNEY.vi.md) | [한국어](JOURNEY.ko.md) |
+| Philosophy | [English](PHILOSOPHY.md) | [Tiếng Việt](PHILOSOPHY.vi.md) | [한국어](PHILOSOPHY.ko.md) |
+| Principles | [English](PRINCIPLES.md) | [Tiếng Việt](PRINCIPLES.vi.md) | [한국어](PRINCIPLES.ko.md) |
+| Acknowledgements | [English](ACKNOWLEDGEMENTS.md) | [Tiếng Việt](ACKNOWLEDGEMENTS.vi.md) | [한국어](ACKNOWLEDGEMENTS.ko.md) |
 
 ---
 
@@ -95,22 +98,20 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
 
 ## 它能拦截什么
 
-破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。
+当前已注册的 hook 链会拦截已知的破坏性 git/shell 操作、限制写入范围并记录工具活动。SSRF 与供应链防护代码已存在于仓库，但尚未注册为主要实时 hook，因此不计入强制保护范围。
 
 ## 工作原理
 
 ```
 代理想要执行一个命令
          ↓
-Anti-evasion scan      — 拦截 base64 解码执行、管道到 shell 解释器
-Shell sanitization     — 对所有变量加引号，剥离 shell 特殊字符
-Egress / SSRF policy   — 拦截已知的元数据端点、私有 IP 段
-Supply-chain vetting   — 安装包前的仿冒名/CVE 检查清单
-Blast-radius cap       — 限制破坏性命令能触及的文件/范围
-Merkle audit log       — 记录每一次被允许和被拦截的操作，可检测篡改
-Human gate             — 不可逆操作（push、publish、delete）需要明确确认
+Halt / circuit checks  — 项目或工具回路被阻断时停止
+Destructive guard      — 拒绝已知危险的 git/shell 形式
+Scope controls         — 限制写入范围并保护冻结范围
+Human gate             — 不可逆的外部操作需要确认
+Audit / evidence       — 记录结果并验证完成声明
          ↓
-执行（或拦截 + 记录）
+执行、拒绝或请求确认
 ```
 
 关于哪些是真正接入的 hook、哪些只是代理按惯例遵循的文档化策略，请查看[已知局限](docs/reference/known-limitations.md)，其中直接对照代码本身验证，而非依据描述它的文档。
@@ -141,16 +142,16 @@ yana-ai doctor .
 
 - Python 3.11+（用于 pip 包）或 Rust/Cargo（用于 `cargo install yana-rt`）
 - Git
-- 任意 AI 编程工具：[Claude Code](https://claude.ai/code)、Cursor、Windsurf、Aider 等
+- 四个已接入的工具之一：[Claude Code](https://claude.ai/code)、Cursor、Codex 或 Antigravity。其他工具需要真实适配器，不能只靠文档声明支持。
 
 ### 从源码克隆
 
 ```bash
 git clone https://github.com/yanacuti1121/yana-ai.git
 cd yana-ai
-npm install
-bash install.sh                 # 将 hooks + 配置复制到你的项目
-yana-ai doctor                  # 确认
+python3 -m pip install -e .
+yana-ai install                 # 将适配器 + hooks 复制到你的项目
+yana-ai doctor .                # 确认
 ```
 
 ---
@@ -199,7 +200,7 @@ bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-27 个子命令，零 Python 依赖。
+类型明确的 Rust 命令接口，运行时零 Python 依赖。
 
 ```bash
 yana-ai chat                          # 交互式聊天 REPL — 云端（Anthropic/OpenAI）或本地（Ollama）
@@ -243,14 +244,14 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 ```
 core/
-├── hooks/          # 57 个 PreToolUse / PostToolUse / Stop 钩子
+├── hooks/          # 63 个 hook 脚本与辅助工具
 ├── rules/          # 71 条强制规则（安全、正确性、UI、git）
 ├── scripts/        # safe-run.sh、verify-core-lock.sh、secure-logger.sh
 ├── gates/          # truth_gate.md、action_gate.md
 ├── agents/         # 101 个专业代理定义
-├── skills/         # 2,016 个 SKILL.md 文件
+├── skills/         # 2,025 个 SKILL.md 文件
 ├── config/
-│   ├── core-lock.json    # SHA-256 清单 — 固定 240 个核心文件
+│   ├── core-lock.json    # SHA-256 清单 — 固定 276 个核心文件
 │   └── skills-lock.json  # 技能内容哈希
 └── memory/
     ├── L1_atomic/  # 永久事实 — 跨会话保留
@@ -338,7 +339,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI（网页产品）
 
-**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[本地运行 →](tools/yana-web/README.md)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
 
 Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无需了解底层基础设施、就能与 AI 聊天、切换提供商并使用技能路由的网页 UI。
 
@@ -427,9 +428,9 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-五种路由：
+六种路由：
 - **simple** → Yana 直接处理（只读，不需要代理）
-- **skill** → 与 2,016 条技能索引匹配，派发到确切的技能代理
+- **skill** → 与 2,025 条技能索引匹配，派发到确切的技能代理
 - **learn** → 路由到 `hoc-tap`（苏格拉底式学习助手，遇到"learn"、"explain"、"why" 等词触发——支持英语和越南语）
 - **daily** → 路由到 `daily-assistant`，总结 / 计划 / 起草（遇到"summarize"、"write an email"、"make a plan" 等词触发——支持英语和越南语）
 - **complex** → 携带明确范围的简报派发给专业代理
@@ -524,14 +525,14 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 ## 联系方式
 
-**Vũ Văn Tâm** · 越南 · 17 岁
+**Vũ Văn Tâm** · 越南
 
 | | |
 |---|---|
 | 邮箱 | phamlongh230@gmail.com |
 | 网站 | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Web 应用 | [本地运行指南](tools/yana-web/README.md) |
 
 ---
 

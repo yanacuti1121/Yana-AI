@@ -6,11 +6,12 @@
 </p>
 
 <p align="center">
-  <strong>AI 코딩 에이전트와 셸(shell) 사이의 안전 방화벽.</strong>
+  <strong>AI 기반 개발을 위한 로컬 우선 안전 및 런타임 인프라.</strong><br />
+  <em>결정론적 가드레일 · Yana 런타임 · 로컬 AI 터미널 · 웹 및 데스크톱 인터페이스</em>
 </p>
 
 <p align="center">
-  <em>Vũ Văn Tâm 제작 · 17세 · 베트남</em>
+  <em>Vũ Văn Tâm 제작 · 베트남</em>
 </p>
 
 <p align="center">
@@ -24,7 +25,7 @@
   <a href="COMMANDS.md">
     <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
   </a>
-  <img src="https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-v1.3.1-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
   <a href="https://crates.io/crates/yana-rt">
     <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
@@ -76,12 +77,14 @@ files. Ask the human to confirm before running this.
 
 ## 📚 문서
 
-| 문서 | 설명 |
-| --- | --- |
-| [여정](JOURNEY.ko.md) | Yana AI 뒤에 숨겨진 이야기 |
-| [철학](PHILOSOPHY.ko.md) | 핵심 신념과 장기 비전 |
-| [원칙](PRINCIPLES.ko.md) | 모든 설계 결정을 이끄는 엔지니어링 원칙 |
-| [감사의 말](ACKNOWLEDGEMENTS.ko.md) | 오픈소스 커뮤니티에 대한 감사와 존중 |
+핵심 문서는 세 언어로 유지됩니다. 각 행에서 세 버전을 모두 열 수 있습니다.
+
+| 문서 | English | Tiếng Việt | 한국어 |
+| --- | --- | --- | --- |
+| 여정 | [English](JOURNEY.md) | [Tiếng Việt](JOURNEY.vi.md) | [한국어](JOURNEY.ko.md) |
+| 철학 | [English](PHILOSOPHY.md) | [Tiếng Việt](PHILOSOPHY.vi.md) | [한국어](PHILOSOPHY.ko.md) |
+| 엔지니어링 원칙 | [English](PRINCIPLES.md) | [Tiếng Việt](PRINCIPLES.vi.md) | [한국어](PRINCIPLES.ko.md) |
+| 감사의 말 | [English](ACKNOWLEDGEMENTS.md) | [Tiếng Việt](ACKNOWLEDGEMENTS.vi.md) | [한국어](ACKNOWLEDGEMENTS.ko.md) |
 
 ---
 
@@ -95,22 +98,20 @@ Yana AI는 에이전트와 시스템 사이에 위치합니다: 위험할 수 �
 
 ## 무엇을 막는가
 
-파괴적인 git 작업, 워크스페이스 밖의 `rm`, 인터넷 콘텐츠를 bash로 파이프하는 행위, 검증되지 않은 패키지 설치를 Rust 런타임(`yana-rt`)이 뒷받침하는 에이전트 훅으로 막습니다.
+현재 등록된 훅 체인은 알려진 파괴적 git/shell 작업을 차단하고, 쓰기 범위를 제한하며, 도구 활동을 기록합니다. SSRF 및 공급망 가드 코드는 저장소에 있지만 주 실행 훅으로 등록되어 있지 않으므로 강제 보호 범위로 계산하지 않습니다.
 
 ## 작동 방식
 
 ```
 Agent가 명령을 실행하려 함
          ↓
-Anti-evasion scan      — base64 디코드+실행, 셸 인터프리터로의 파이프 차단
-Shell sanitization     — 모든 변수를 quote 처리, 셸 특수문자 제거
-Egress / SSRF policy   — 알려진 메타데이터 엔드포인트, 사설 IP 대역 차단
-Supply-chain vetting   — 패키지 설치 전 typosquat/CVE 체크리스트
-Blast-radius cap       — 파괴적 명령이 건드릴 수 있는 파일/범위 제한
-Merkle audit log       — 허용/차단된 모든 행동을 기록, 위변조 감지
-Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은 명시적 확인 필요
+Halt / circuit checks  — 프로젝트 또는 도구 회로가 차단되면 중지
+Destructive guard      — 알려진 위험한 git/shell 형태 거부
+Scope controls         — 쓰기 범위 제한 및 동결된 범위 보호
+Human gate             — 되돌릴 수 없는 외부 작업은 확인 필요
+Audit / evidence       — 결과 기록 및 완료 주장 검증
          ↓
-실행 (또는 차단 + 로그)
+실행, 거부 또는 확인 요청
 ```
 
 어떤 것이 실제로 연결된 훅이고 어떤 것이 에이전트가 관례적으로 따르는 정책 문서인지는 [알려진 한계](docs/reference/known-limitations.md)에서 코드 자체를 직접 검증한 내용으로 확인하세요.
@@ -148,9 +149,9 @@ yana-ai doctor .
 ```bash
 git clone https://github.com/yanacuti1121/yana-ai.git
 cd yana-ai
-npm install
-bash install.sh                 # 훅 + 설정을 프로젝트에 복사
-yana-ai doctor                  # 확인
+python3 -m pip install -e .
+yana-ai install                 # 어댑터 + 훅을 프로젝트에 복사
+yana-ai doctor .                # 확인
 ```
 
 ---
@@ -199,7 +200,7 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-27개 서브커맨드. Python 의존성 없음.
+타입이 명확한 Rust 명령 인터페이스이며 실행 시 Python 의존성이 없습니다.
 
 ```bash
 yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)
@@ -243,14 +244,14 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 ```
 core/
-├── hooks/          # 57개 PreToolUse / PostToolUse / Stop 훅
+├── hooks/          # 63개 훅 스크립트와 헬퍼
 ├── rules/          # 71개 시행 규칙 (보안, 정확성, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101개 전문 에이전트 정의
-├── skills/         # 2,016개 SKILL.md 파일
+├── skills/         # 2,025개 SKILL.md 파일
 ├── config/
-│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 240개 고정
+│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 276개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
 └── memory/
     ├── L1_atomic/  # 영구 사실 — 세션 간 유지
@@ -328,7 +329,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI (웹 제품)
 
-**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[로컬 실행 →](tools/yana-web/README.md)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
 
 Yana는 Yana AI 코어 위에 구축된 첫 번째 인터페이스입니다: 기반 인프라를 전혀 몰라도 누구나 AI와 채팅하고, 프로바이더를 전환하고, 스킬 라우팅을 사용할 수 있는 웹 UI입니다.
 
@@ -417,9 +418,9 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-다섯 가지 경로:
+여섯 가지 경로:
 - **simple** → Yana가 직접 처리 (읽기 전용, 에이전트 불필요)
-- **skill** → 2,016개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
+- **skill** → 2,025개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
 - **learn** → `hoc-tap`(소크라테스식 학습 도우미)로 라우팅 (영어/베트남어로 "learn", "explain", "why" 등에서 트리거)
 - **daily** → `daily-assistant`로 라우팅, 요약 / 계획 / 초안 작성 (영어/베트남어로 "summarize", "write an email", "make a plan" 등에서 트리거)
 - **complex** → 범위가 지정된 브리프와 함께 전문 에이전트(들) 디스패치
@@ -514,14 +515,14 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 ## 연락처
 
-**Vũ Văn Tâm** · 베트남 · 17세
+**Vũ Văn Tâm** · 베트남
 
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| 웹 앱 | [로컬 실행 가이드](tools/yana-web/README.md) |
 
 ---
 
