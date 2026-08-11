@@ -1904,6 +1904,210 @@ test_validator "Allow safe Write in project" \
 test_validator "Bypass suppresses block" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://localhost:9000"}}' "allow" "bypass"
 
+# Round-6 review finding (code-auditor, 2026-08-11): `command -v jq
+# >/dev/null 2>&1 || exit 0` used to be a fully silent exit on ANY
+# environment missing jq — disabling every check in this file (path
+# traversal, sensitive-path, SSRF, null-byte) with zero warning and no
+# attacker involvement, just jq's absence. Violates this file's own
+# core/hooks/CLAUDE.md rule against silent disabling. Fixed with a plain
+# stderr warning before the exit (can't use the jq-built warn() helper —
+# jq is exactly what's missing). This is that fix's regression test.
+NOJQ_BIN="$(mktemp -d)"
+register_temp "$NOJQ_BIN"
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Warn loudly (not silently) when jq is missing (regression: silent-disable fix)]... "
+NOJQ_STDERR=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
+    PATH="$NOJQ_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>&1 >/dev/null || true)
+if [[ "$NOJQ_STDERR" == *"jq not found"* ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected a 'jq not found' stderr warning, got: $NOJQ_STDERR)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Real SSRF bypasses found in review (2026-08-11) against the *previous*
+# literal-hostname-regex version of this guard — each one is confirmed to
+# have actually passed through as "allow" before the DNS-resolution-based
+# fix. Kept as permanent regression coverage, not just a one-time repro.
+test_validator "Block URL userinfo confusion (evil.com@169.254.169.254)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://evil.com@169.254.169.254/steal"}}' "deny"
+test_validator "Block hex-encoded loopback (0x7f.0.0.1)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://0x7f.0.0.1/steal"}}' "deny"
+test_validator "Block decimal-encoded loopback (2130706433)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://2130706433/steal"}}' "deny"
+test_validator "Block octal-encoded loopback (017700000001)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://017700000001/steal"}}' "deny"
+test_validator "Block bracketed IPv6 loopback ([::1])" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://[::1]/steal"}}' "deny"
+test_validator "Block bracketed IPv6 loopback with port ([::1]:8080)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://[::1]:8080/steal"}}' "deny"
+test_validator "Block Alibaba Cloud metadata CGNAT range (100.100.100.200)" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://100.100.100.200/latest/meta-data/"}}' "deny"
+test_validator "Allow safe WebFetch with explicit port" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"https://api.github.com:443/repos/test/test"}}' "allow"
+
+# Two more real bugs found in independent review (security-auditor,
+# 2026-08-11) of the DNS-resolution-based fix itself — both live-reproduced
+# against the buggy draft before being fixed. Kept as permanent regression
+# coverage, same as the bypasses above.
+test_validator "Block IPv4-mapped IPv6 CGNAT bypass ([::ffff:100.100.100.200])" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://[::ffff:100.100.100.200]/latest/meta-data/"}}' "deny"
+
+# Finding 1 needs its own PATH override (python3 excluded) since the bug
+# only reproduces when python3 is absent — test_validator's generic helper
+# doesn't support that, so this uses the same manual-PATH pattern as the
+# guard-blast-radius.sh block below.
+NOPY_BIN="$(mktemp -d)"
+register_temp "$NOPY_BIN"
+ln -sf "$(command -v jq)" "$NOPY_BIN/jq"
+ln -sf "$(command -v grep)" "$NOPY_BIN/grep"
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Block metadata URL when python3 absent from PATH (regression: warn() footgun)]... "
+NOPY_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
+    PATH="$NOPY_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -n "$NOPY_OUT" ]] && echo "$NOPY_OUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+    echo "PASS"
+else
+    echo "FAIL (expected deny, got: $NOPY_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Round-2 review finding (code-auditor, 2026-08-11): the fail-closed
+# try/except added for the finding above only catches exceptions raised
+# INSIDE classify() — it does nothing if the python3 invocation itself
+# never enters that try at all, e.g. a PATH-shadowing wrapper that prints
+# a banner before delegating, or an interpreter that dies before reaching
+# the try. Live-reproduced: both left $SSRF_VERDICT as neither "blocked:*"
+# nor "resolve-failed" nor "ok", which (with no else) fell through to a
+# fully silent allow — no deny, no warning, no trace. Fixed by denying on
+# any verdict that isn't exactly "ok". This is that fix's regression test:
+# a fake python3 that prints noise before the real interpreter's output.
+FAKEPY_BIN="$(mktemp -d)"
+register_temp "$FAKEPY_BIN"
+cat > "$FAKEPY_BIN/python3" << 'FAKEPY_EOF'
+#!/usr/bin/env bash
+echo "unexpected banner output that is not a recognized verdict"
+FAKEPY_EOF
+chmod +x "$FAKEPY_BIN/python3"
+ln -sf "$(command -v jq)" "$FAKEPY_BIN/jq"
+ln -sf "$(command -v grep)" "$FAKEPY_BIN/grep"
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Block on unrecognized SSRF verdict (regression: fail-closed default)]... "
+FAKEPY_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
+    PATH="$FAKEPY_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -n "$FAKEPY_OUT" ]] && echo "$FAKEPY_OUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+    echo "PASS"
+else
+    echo "FAIL (expected deny, got: $FAKEPY_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Round-3 review finding (security-auditor, 2026-08-11): the round-2 fix's
+# strict `== "ok"` string equality made a completely safe URL fail closed
+# if python3's stdout carried ANY extra text before the real verdict — a
+# corporate MDM/EDR wrapper, a conda/pyenv activation banner, or a stray
+# sitecustomize.py print are all ordinary and legitimate, not attacks.
+# Fixed via a `SSRF_VERDICT:` sentinel line the bash side extracts
+# (last matching line, trailing \r stripped) instead of requiring the
+# whole captured output to equal "ok" exactly. These are that fix's
+# regression tests: a fake python3 that prints noise, then genuinely
+# delegates to the real interpreter (unlike the FAKEPY_BIN case above,
+# which never produces a real verdict at all).
+REAL_PY3="$(command -v python3)"
+NOISY_BIN="$(mktemp -d)"
+register_temp "$NOISY_BIN"
+cat > "$NOISY_BIN/python3" << NOISYPY_EOF
+#!/usr/bin/env bash
+echo "Activating environment (some-corp-mdm-wrapper v2.1)"
+exec "$REAL_PY3" "\$@"
+NOISYPY_EOF
+chmod +x "$NOISY_BIN/python3"
+ln -sf "$(command -v jq)" "$NOISY_BIN/jq"
+ln -sf "$(command -v grep)" "$NOISY_BIN/grep"
+ln -sf "$(command -v tail)" "$NOISY_BIN/tail"
+
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Allow safe URL despite noisy-but-legitimate python3 wrapper (regression: sentinel-line tolerance)]... "
+NOISY_ALLOW_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"https://example.com/"}}' \
+    PATH="$NOISY_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -z "$NOISY_ALLOW_OUT" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected allow/no output, got: $NOISY_ALLOW_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Still block metadata URL despite noisy python3 wrapper]... "
+NOISY_DENY_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
+    PATH="$NOISY_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -n "$NOISY_DENY_OUT" ]] && echo "$NOISY_DENY_OUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+    echo "PASS"
+else
+    echo "FAIL (expected deny, got: $NOISY_DENY_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Same sentinel-line fix, CRLF variant: a producer emitting CRLF line
+# endings left a trailing \r on the extracted verdict, which the old
+# plain `== "ok"` comparison (and a naive sentinel-strip without an
+# explicit \r trim) would both still treat as "not ok" and deny.
+CRLF_BIN="$(mktemp -d)"
+register_temp "$CRLF_BIN"
+cat > "$CRLF_BIN/python3" << 'CRLFPY_EOF'
+#!/usr/bin/env bash
+printf 'SSRF_VERDICT:ok\r\n'
+CRLFPY_EOF
+chmod +x "$CRLF_BIN/python3"
+ln -sf "$(command -v jq)" "$CRLF_BIN/jq"
+ln -sf "$(command -v grep)" "$CRLF_BIN/grep"
+ln -sf "$(command -v tail)" "$CRLF_BIN/tail"
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Allow safe URL despite CRLF verdict line (regression: trailing \\r strip)]... "
+CRLF_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"https://example.com/"}}' \
+    PATH="$CRLF_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -z "$CRLF_OUT" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected allow/no output, got: $CRLF_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Round-4 review finding (code-auditor, 2026-08-11): picking the sentinel
+# line by POSITION (`tail -n1`, "last one wins") is itself spoofable from
+# the OTHER direction round 3 didn't consider — a python3 wrapper that
+# runs the real interpreter as a subprocess (not `exec`) and then prints
+# its OWN "SSRF_VERDICT:ok" line AFTERWARD silently overrides the real
+# verdict, since the fake line is now the last one. Live-reproduced: a
+# real `blocked:169.254.169.254` verdict, followed by a spoofed trailing
+# "SSRF_VERDICT:ok" line, made the guard silently ALLOW the exact cloud
+# metadata target it exists to block. Fixed by requiring EXACTLY ONE
+# matching sentinel line — 0 or 2+ both fail closed via the existing
+# "unrecognized verdict" branch, removing the position-dependent trust
+# entirely rather than swapping one beatable fixed position for another.
+TRAILER_BIN="$(mktemp -d)"
+register_temp "$TRAILER_BIN"
+REAL_PY3_FOR_TRAILER="$(command -v python3)"
+cat > "$TRAILER_BIN/python3" << TRAILERPY_EOF
+#!/usr/bin/env bash
+"$REAL_PY3_FOR_TRAILER" "\$@"
+echo "SSRF_VERDICT:ok"
+TRAILERPY_EOF
+chmod +x "$TRAILER_BIN/python3"
+ln -sf "$(command -v jq)" "$TRAILER_BIN/jq"
+ln -sf "$(command -v grep)" "$TRAILER_BIN/grep"
+ln -sf "$(command -v tail)" "$TRAILER_BIN/tail"
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+echo -n "Testing tool-validator.sh [Block metadata URL despite trailing spoofed sentinel line (regression: exactly-one-match)]... "
+TRAILER_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
+    PATH="$TRAILER_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+if [[ -n "$TRAILER_OUT" ]] && echo "$TRAILER_OUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+    echo "PASS"
+else
+    echo "FAIL (expected deny, got: $TRAILER_OUT)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
 # 9. guard-blast-radius.sh (Rust-only — no bash fallback; the real
 # filesystem-walk/glob logic lives in src/guard/blast_radius.rs, see that
 # file's module doc for why a bash reimplementation isn't attempted here).

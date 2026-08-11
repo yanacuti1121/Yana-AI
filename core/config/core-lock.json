@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-10T14:33:53+00:00",
+  "generated": "2026-08-11T02:44:34+00:00",
   "count": 275,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -69,7 +69,7 @@
     "core/hooks/tool-attention.js": "79939c10f7e234327245a162c60a33ed56acd2009cb2beca5e0d13034a4496d0",
     "core/hooks/tool-guardrails-detector.sh": "644866b832ffc4f5db46369ba08656377a03fd14600dec9e88423b5c8644ead1",
     "core/hooks/tool-proxy-enforcer.sh": "a7428ec2e8f868ef03fb91d9ba45627454bcfdda9c23dcd95e170874f08b1867",
-    "core/hooks/tool-validator.sh": "ccde6a9b89ef76391301badecbb43893799354fd4ac66951003b7355c260d0cc",
+    "core/hooks/tool-validator.sh": "df28c41c2e044aeff15635c9863563669b0fb2bd57384881d89381d601d5ef32",
     "core/hooks/truth-gate-guard.sh": "bae02e11eccc3281ab124a31c95f6b9bedd091cf3c1c49f927a582c8163602f5",
     "core/hooks/validate-completion.sh": "6695eab6e735227790b12d5e730cdd7ba10fbf05ea62caeba972eb32c266cd13",
     "core/hooks/verify-evidence-track.sh": "e60d2b570796f853a117d9c2bd5bffeca0b173300cba76fa93088b90c4ee9381",
