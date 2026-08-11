@@ -5,6 +5,7 @@ mod credential;
 mod governor;
 mod health;
 mod resource;
+mod roadmap;
 mod state;
 
 use anyhow::{bail, Result};
@@ -50,10 +51,7 @@ pub enum OsAction {
         #[command(subcommand)]
         action: ResourceAction,
     },
-    /// Evolution Governor — status and absorption capacity.
-    /// docs/EVOLUTION_GOVERNOR.md. The `roadmap` piece of that design is
-    /// intentionally not here — built separately to avoid two agents
-    /// editing this same enum at once.
+    /// Evolution Governor — health, capacity, and portfolio roadmap.
     Governor {
         #[command(subcommand)]
         action: GovernorAction,
@@ -175,6 +173,11 @@ pub enum GovernorAction {
         #[command(subcommand)]
         action: CapacityAction,
     },
+    /// Manage the approved NOW/NEXT/LATER roadmap.
+    Roadmap {
+        #[command(subcommand)]
+        action: RoadmapAction,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -209,6 +212,78 @@ pub enum CapacityAction {
     },
 }
 
+#[derive(Subcommand, Debug)]
+pub enum RoadmapAction {
+    /// Show every roadmap tier, ordered by priority.
+    List {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Register a complete proposal at NEXT or LATER.
+    Add(Box<RoadmapAddArgs>),
+    /// Promote NEXT to NOW with explicit human approval.
+    Promote {
+        #[arg(long)]
+        id: String,
+        #[arg(long)]
+        approve: bool,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Move an existing NOW or NEXT item to LATER.
+    Demote {
+        #[arg(long)]
+        id: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(clap::Args, Debug)]
+pub struct RoadmapAddArgs {
+    #[arg(long)]
+    tier: roadmap::ProposalTier,
+    #[arg(long)]
+    action: state::RoadmapItemAction,
+    #[arg(long)]
+    priority: state::RoadmapPriority,
+    #[arg(long)]
+    objective: String,
+    #[arg(long)]
+    evidence: String,
+    #[arg(long)]
+    scope: String,
+    #[arg(long)]
+    out_of_scope: String,
+    #[arg(long)]
+    dependencies: String,
+    #[arg(long)]
+    risks: String,
+    #[arg(long)]
+    deliverables: String,
+    #[arg(long)]
+    owner: String,
+    #[arg(long)]
+    reviewer: String,
+    #[arg(long)]
+    acceptance_criteria: String,
+    #[arg(long)]
+    exit_criteria: String,
+    #[arg(long)]
+    definition_of_done: String,
+    #[arg(long)]
+    rollback_path: String,
+    #[arg(long, default_value = ".")]
+    dir: PathBuf,
+    #[arg(long)]
+    json: bool,
+}
 #[derive(Serialize)]
 struct OsStatus {
     schema_version: u32,
@@ -286,6 +361,123 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
+    }
+    Ok(())
+}
+
+fn dispatch_governor(action: GovernorAction) -> Result<()> {
+    match action {
+        GovernorAction::Status { dir, json, deep } => {
+            let root = state::project_root(&dir)?;
+            let report = governor::status(&root, deep);
+            governor::print_status(&report, json)?;
+            if report.failed() {
+                bail!("Evolution Governor status found blocking failures");
+            }
+        }
+        GovernorAction::Capacity { action } => match action {
+            CapacityAction::Show { dir, json } => {
+                let root = state::project_root(&dir)?;
+                governor::print_capacity(&governor::load_capacity(&root)?, json)?;
+            }
+            CapacityAction::Set {
+                mode,
+                max_active_programs,
+                max_architecture_changes,
+                max_new_dependencies,
+                max_active_experiments,
+                allocation_consolidation_pct,
+                allocation_onboarding_and_packaging_pct,
+                allocation_experiments_pct,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let capacity = governor::set_capacity(
+                    &root,
+                    governor::GovernorCapacity {
+                        mode,
+                        max_active_programs,
+                        max_architecture_changes,
+                        max_new_dependencies,
+                        max_active_experiments,
+                        allocation_consolidation_pct,
+                        allocation_onboarding_and_packaging_pct,
+                        allocation_experiments_pct,
+                    },
+                )?;
+                governor::print_capacity(&capacity, json)?;
+            }
+        },
+        GovernorAction::Roadmap { action } => dispatch_roadmap(action)?,
+    }
+    Ok(())
+}
+
+fn dispatch_roadmap(action: RoadmapAction) -> Result<()> {
+    match action {
+        RoadmapAction::List { dir, json } => {
+            let root = state::project_root(&dir)?;
+            roadmap::print_view(&roadmap::list(&root)?, json)?;
+        }
+        RoadmapAction::Add(args) => {
+            let RoadmapAddArgs {
+                tier,
+                action,
+                priority,
+                objective,
+                evidence,
+                scope,
+                out_of_scope,
+                dependencies,
+                risks,
+                deliverables,
+                owner,
+                reviewer,
+                acceptance_criteria,
+                exit_criteria,
+                definition_of_done,
+                rollback_path,
+                dir,
+                json,
+            } = *args;
+            let root = state::project_root(&dir)?;
+            let item = roadmap::add(
+                &root,
+                roadmap::NewRoadmapItem {
+                    tier,
+                    action,
+                    priority,
+                    objective,
+                    evidence,
+                    scope,
+                    out_of_scope,
+                    dependencies,
+                    risks,
+                    deliverables,
+                    owner,
+                    reviewer,
+                    acceptance_criteria,
+                    exit_criteria,
+                    definition_of_done,
+                    rollback_path,
+                },
+            )?;
+            roadmap::print_item(&item, json)?;
+        }
+        RoadmapAction::Promote {
+            id,
+            approve,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            roadmap::print_item(&roadmap::promote(&root, &id, approve)?, json)?;
+        }
+        RoadmapAction::Demote { id, dir, json } => {
+            let root = state::project_root(&dir)?;
+            roadmap::print_item(&roadmap::demote(&root, &id)?, json)?;
+        }
     }
     Ok(())
 }
@@ -381,50 +573,56 @@ fn dispatch_resource(action: ResourceAction) -> Result<()> {
     Ok(())
 }
 
-fn dispatch_governor(action: GovernorAction) -> Result<()> {
-    match action {
-        GovernorAction::Status { dir, json, deep } => {
-            let root = state::project_root(&dir)?;
-            let report = governor::status(&root, deep);
-            governor::print_status(&report, json)?;
-            if report.failed() {
-                bail!("Evolution Governor status found blocking failures");
-            }
-        }
-        GovernorAction::Capacity { action } => match action {
-            CapacityAction::Show { dir, json } => {
-                let root = state::project_root(&dir)?;
-                governor::print_capacity(&governor::load_capacity(&root)?, json)?;
-            }
-            CapacityAction::Set {
-                mode,
-                max_active_programs,
-                max_architecture_changes,
-                max_new_dependencies,
-                max_active_experiments,
-                allocation_consolidation_pct,
-                allocation_onboarding_and_packaging_pct,
-                allocation_experiments_pct,
-                dir,
-                json,
-            } => {
-                let root = state::project_root(&dir)?;
-                let capacity = governor::set_capacity(
-                    &root,
-                    governor::GovernorCapacity {
-                        mode,
-                        max_active_programs,
-                        max_architecture_changes,
-                        max_new_dependencies,
-                        max_active_experiments,
-                        allocation_consolidation_pct,
-                        allocation_onboarding_and_packaging_pct,
-                        allocation_experiments_pct,
-                    },
-                )?;
-                governor::print_capacity(&capacity, json)?;
-            }
-        },
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::{error::ErrorKind, Parser};
+
+    #[derive(Debug, Parser)]
+    struct RoadmapCli {
+        #[command(subcommand)]
+        action: RoadmapAction,
     }
-    Ok(())
+
+    #[test]
+    fn add_requires_acceptance_criteria_at_the_cli_boundary() {
+        let error = RoadmapCli::try_parse_from([
+            "roadmap",
+            "add",
+            "--tier",
+            "next",
+            "--action",
+            "stabilize",
+            "--priority",
+            "p1",
+            "--objective",
+            "fix golden path",
+            "--evidence",
+            "verified failure",
+            "--scope",
+            "runtime",
+            "--out-of-scope",
+            "new providers",
+            "--dependencies",
+            "capability runtime",
+            "--risks",
+            "regression",
+            "--deliverables",
+            "passing tests",
+            "--owner",
+            "runtime maintainer",
+            "--reviewer",
+            "anh",
+            "--exit-criteria",
+            "evidence recorded",
+            "--definition-of-done",
+            "tests pass",
+            "--rollback-path",
+            "remove wiring",
+        ])
+        .unwrap_err();
+
+        assert_eq!(error.kind(), ErrorKind::MissingRequiredArgument);
+        assert!(error.to_string().contains("--acceptance-criteria"));
+    }
 }
