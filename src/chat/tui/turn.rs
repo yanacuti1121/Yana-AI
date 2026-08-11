@@ -7,6 +7,7 @@ use super::super::provider::{ChatMessage, ChatUsage, Role};
 use super::super::tool_types::StreamOutcome;
 use super::{App, StreamEvent, TurnState};
 use anyhow::Result;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;
@@ -19,10 +20,15 @@ impl App {
         let system = self.system.clone();
         let messages = self.history.clone();
         let (tx, rx) = mpsc::channel::<StreamEvent>();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let worker_cancel = Arc::clone(&cancel);
 
         let tools = super::super::tools::catalog();
         thread::spawn(move || {
             let mut on_chunk = |chunk: &str| -> Result<()> {
+                if worker_cancel.load(Ordering::Acquire) {
+                    anyhow::bail!("generation cancelled by user");
+                }
                 tx.send(StreamEvent::Chunk(chunk.to_string())).ok();
                 Ok(())
             };
@@ -34,11 +40,18 @@ impl App {
                 &tools,
                 &mut on_chunk,
             );
+            let result = if worker_cancel.load(Ordering::Acquire) {
+                Err(anyhow::anyhow!("generation cancelled by user"))
+            } else {
+                result
+            };
             tx.send(StreamEvent::Done(result)).ok();
         });
 
-        self.turn = TurnState::Streaming(rx);
+        self.turn = TurnState::Streaming { rx, cancel };
         self.turn_started_at = Some(Instant::now());
+        self.output_started_at = Some(Instant::now());
+        self.output_chunks = 0;
         self.streaming_reply.clear();
     }
 
@@ -60,15 +73,27 @@ impl App {
 
         match result {
             Ok((usage, StreamOutcome::Text)) => {
+                self.last_usage = usage;
+                self.last_duration_ms = Some(duration_ms);
                 self.breaker.record_success();
-                self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
-                self.status = match super::super::history::append_assistant(
-                    &self.session_id, self.provider.name(), &self.model, &reply,
-                    usage.input_tokens, usage.output_tokens, duration_ms, false, None,
-                ) {
-                    Ok(()) => String::new(),
-                    Err(e) => format!("warning: failed to persist assistant message: {e}"),
-                };
+                self.history
+                    .push(ChatMessage::text(Role::Assistant, reply.clone()));
+                if self.settings.privacy.log_messages {
+                    self.status = match super::super::history::append_assistant(
+                        &self.session_id,
+                        self.provider.name(),
+                        &self.model,
+                        &reply,
+                        usage.input_tokens,
+                        usage.output_tokens,
+                        duration_ms,
+                        false,
+                        None,
+                    ) {
+                        Ok(()) => String::new(),
+                        Err(e) => format!("warning: failed to persist assistant message: {e}"),
+                    };
+                }
                 track_cost(self.provider.name(), &self.model, usage, duration_ms);
             }
             // The network call itself succeeded (a valid tool-call
@@ -76,6 +101,8 @@ impl App {
             // not conversational completion, so a success is recorded
             // here too, same as the plain-text arm above.
             Ok((usage, StreamOutcome::ToolCalls(calls))) => {
+                self.last_usage = usage;
+                self.last_duration_ms = Some(duration_ms);
                 self.breaker.record_success();
                 // A model can stream preamble text ("Let me check that
                 // file...") in the same turn it proposes a tool call —
@@ -84,16 +111,47 @@ impl App {
                 // shape as the Text arm above, just conditional on there
                 // being anything to show.
                 if !reply.is_empty() {
-                    self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
-                    if let Err(e) = super::super::history::append_assistant(
-                        &self.session_id, self.provider.name(), &self.model, &reply,
-                        usage.input_tokens, usage.output_tokens, duration_ms, false, None,
-                    ) {
-                        self.status = format!("warning: failed to persist assistant preamble: {e}");
+                    self.history
+                        .push(ChatMessage::text(Role::Assistant, reply.clone()));
+                    if self.settings.privacy.log_messages {
+                        if let Err(e) = super::super::history::append_assistant(
+                            &self.session_id,
+                            self.provider.name(),
+                            &self.model,
+                            &reply,
+                            usage.input_tokens,
+                            usage.output_tokens,
+                            duration_ms,
+                            false,
+                            None,
+                        ) {
+                            self.status =
+                                format!("warning: failed to persist assistant preamble: {e}");
+                        }
                     }
                     track_cost(self.provider.name(), &self.model, usage, duration_ms);
                 }
                 self.handle_tool_calls(calls);
+            }
+            Err(error) if error.to_string().contains("generation cancelled by user") => {
+                self.status = "generation stopped".to_string();
+                if !reply.is_empty() {
+                    self.history
+                        .push(ChatMessage::text(Role::Assistant, reply.clone()));
+                    if self.settings.privacy.log_messages {
+                        let _ = super::super::history::append_assistant(
+                            &self.session_id,
+                            self.provider.name(),
+                            &self.model,
+                            &reply,
+                            0,
+                            0,
+                            duration_ms,
+                            true,
+                            Some("cancelled by user"),
+                        );
+                    }
+                }
             }
             Err(e) if reply.is_empty() => {
                 // Failed before any output — nothing conversational
@@ -106,11 +164,23 @@ impl App {
                 } else {
                     "error — request failed. Rerun with --verbose for details.".to_string()
                 };
-                if let Err(e2) = super::super::history::append_assistant(
-                    &self.session_id, self.provider.name(), &self.model, "",
-                    0, 0, duration_ms, true, Some(&e.to_string()),
-                ) {
-                    self.status = format!("{} (also failed to persist error record: {e2})", self.status);
+                if self.settings.privacy.log_messages {
+                    if let Err(e2) = super::super::history::append_assistant(
+                        &self.session_id,
+                        self.provider.name(),
+                        &self.model,
+                        "",
+                        0,
+                        0,
+                        duration_ms,
+                        true,
+                        Some(&e.to_string()),
+                    ) {
+                        self.status = format!(
+                            "{} (also failed to persist error record: {e2})",
+                            self.status
+                        );
+                    }
                 }
             }
             Err(e) => {
@@ -122,12 +192,25 @@ impl App {
                 } else {
                     "stream interrupted. Rerun with --verbose for details.".to_string()
                 };
-                self.history.push(ChatMessage::text(Role::Assistant, reply.clone()));
-                if let Err(e2) = super::super::history::append_assistant(
-                    &self.session_id, self.provider.name(), &self.model, &reply,
-                    0, 0, duration_ms, true, Some(&e.to_string()),
-                ) {
-                    self.status = format!("{} (also failed to persist partial reply: {e2})", self.status);
+                self.history
+                    .push(ChatMessage::text(Role::Assistant, reply.clone()));
+                if self.settings.privacy.log_messages {
+                    if let Err(e2) = super::super::history::append_assistant(
+                        &self.session_id,
+                        self.provider.name(),
+                        &self.model,
+                        &reply,
+                        0,
+                        0,
+                        duration_ms,
+                        true,
+                        Some(&e.to_string()),
+                    ) {
+                        self.status = format!(
+                            "{} (also failed to persist partial reply: {e2})",
+                            self.status
+                        );
+                    }
                 }
             }
         }

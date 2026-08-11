@@ -4,18 +4,24 @@
 //! `App`'s private fields the same way `render.rs` does.
 
 use super::App;
+use crate::chat::provider::ModelInfo;
+
+fn validate_model(models: &[ModelInfo], requested: &str) -> Result<(), String> {
+    if models.iter().any(|candidate| candidate.id == requested) {
+        Ok(())
+    } else {
+        Err(format!("model '{requested}' is not available"))
+    }
+}
 
 impl App {
-    /// `/model <provider> [model-name]` — switch provider/model without
-    /// leaving the TUI. Confirmed behavior: always starts a fresh session
-    /// (cleared history, new session_id, new breaker) rather than carrying
-    /// the old conversation over to the new model — avoids cross-model
-    /// context confusion at the cost of conversational continuity.
+    /// `/model <provider> [model-name]` — validate and switch the active
+    /// tab without restarting the workspace or touching other tabs.
     pub(super) fn handle_model_command(&mut self, args: &str) {
         let mut parts = args.split_whitespace();
         let Some(provider_name) = parts.next() else {
             self.status =
-                "usage: /model <anthropic|openai|ollama|kimi|turbofieldfare> [model-name]"
+                "usage: /model <ollama|lmstudio|llamacpp|turbofieldfare|anthropic|openai|kimi> [model-name]"
                     .to_string();
             return;
         };
@@ -49,15 +55,49 @@ impl App {
             .map(|s| s.to_string())
             .unwrap_or_else(|| super::super::resolve_default_model(&new_provider));
 
-        self.status = format!("switched to {} / {model} — new session", new_provider.name());
+        match new_provider.list_models(api_key.as_deref()) {
+            Ok(models) if validate_model(&models, &model).is_err() => {
+                self.status = format!(
+                    "model '{model}' is not available from {} · run /models after switching provider",
+                    new_provider.name()
+                );
+                return;
+            }
+            Err(error) => {
+                self.status = format!("cannot validate {} / {model}: {error}", new_provider.name());
+                return;
+            }
+            Ok(_) => {}
+        }
+
+        self.status = format!("switched active tab to {} / {model}", new_provider.name());
         self.provider = new_provider;
         self.model = model;
         self.api_key = api_key;
-        self.history.clear();
-        self.streaming_reply.clear();
-        self.session_id = uuid::Uuid::new_v4().to_string();
+        self.provider_health = crate::chat::provider::ProviderHealth::Checking;
+        self.health_rx = Some(Self::start_health_probe(
+            self.provider.clone(),
+            self.api_key.clone(),
+            self.model.clone(),
+        ));
         self.breaker = super::super::circuit_breaker::CircuitBreaker::new();
-        self.scroll = u16::MAX;
-        self.show_recent_sessions = false;
+        self.metadata.provider = self.provider.name().to_string();
+        self.metadata.model = self.model.clone();
+        self.persist_workspace();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn model_validation_accepts_only_reported_ids() {
+        let models = vec![ModelInfo::named("qwen3:14b"), ModelInfo::named("phi4")];
+        assert!(validate_model(&models, "qwen3:14b").is_ok());
+        assert_eq!(
+            validate_model(&models, "missing").unwrap_err(),
+            "model 'missing' is not available"
+        );
     }
 }

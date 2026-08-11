@@ -21,7 +21,10 @@ pub struct ToolRoundGuard {
 
 impl ToolRoundGuard {
     pub fn new() -> Self {
-        Self { rounds: 0, ceiling: DEFAULT_CEILING }
+        Self {
+            rounds: 0,
+            ceiling: DEFAULT_CEILING,
+        }
     }
 
     pub fn record_round(&mut self) {

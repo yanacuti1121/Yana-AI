@@ -10,6 +10,47 @@ use anyhow::Result;
 use std::io::{BufRead, BufReader, Read};
 use std::time::Duration;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RuntimeKind {
+    Local,
+    Remote,
+}
+
+impl RuntimeKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Local => "LOCAL",
+            Self::Remote => "REMOTE",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ModelInfo {
+    pub id: String,
+    pub context_length: Option<u64>,
+    pub size_bytes: Option<u64>,
+    pub quantization: Option<String>,
+}
+
+impl ModelInfo {
+    pub fn named(id: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            context_length: None,
+            size_bytes: None,
+            quantization: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProviderHealth {
+    Checking,
+    Ready,
+    Unavailable(String),
+}
+
 /// Deliberately has no `System` variant. The system prompt is its own
 /// separate parameter on `ChatProvider::stream_chat`, never part of the
 /// message array — a message loaded from a `--resume` history file
@@ -42,7 +83,12 @@ impl ChatMessage {
     /// Plain-text turn constructor — the common case at every existing
     /// call site, now that the struct has two more fields to fill in.
     pub fn text(role: Role, content: impl Into<String>) -> Self {
-        Self { role, content: content.into(), tool_call: None, tool_result: None }
+        Self {
+            role,
+            content: content.into(),
+            tool_call: None,
+            tool_result: None,
+        }
     }
 }
 
@@ -83,6 +129,18 @@ pub trait ChatProvider: Send + Sync {
     /// Env var name to read the API key from. Empty string when
     /// `requires_key()` is false.
     fn env_var(&self) -> &str;
+    fn runtime_kind(&self) -> RuntimeKind {
+        RuntimeKind::Remote
+    }
+    fn list_models(&self, _api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
+        Ok(vec![ModelInfo::named(self.default_model())])
+    }
+    fn health(&self, api_key: Option<&str>) -> ProviderHealth {
+        match self.list_models(api_key) {
+            Ok(_) => ProviderHealth::Ready,
+            Err(error) => ProviderHealth::Unavailable(error.to_string()),
+        }
+    }
 
     /// Blocking call. Streams text chunks via `on_chunk` as they arrive;
     /// returns final usage plus what the turn produced once the stream
@@ -121,10 +179,11 @@ pub fn ask_once(
 ) -> Result<String> {
     let messages = [ChatMessage::text(Role::User, user_message)];
     let mut full = String::new();
-    let (_, outcome) = provider.stream_chat(api_key, model, Some(system), &messages, &[], &mut |chunk| {
-        full.push_str(chunk);
-        Ok(())
-    })?;
+    let (_, outcome) =
+        provider.stream_chat(api_key, model, Some(system), &messages, &[], &mut |chunk| {
+            full.push_str(chunk);
+            Ok(())
+        })?;
     // `tools: &[]` above means a well-behaved provider never returns
     // `ToolCalls` — but "never silently drop a tool call" outranks "this
     // should never happen in practice" (see plan's tool-poisoning-defense
@@ -197,4 +256,48 @@ pub fn read_sse_stream<R: Read>(
         on_data(payload)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct UnavailableProvider;
+
+    impl ChatProvider for UnavailableProvider {
+        fn name(&self) -> &str {
+            "offline"
+        }
+        fn default_model(&self) -> &str {
+            "none"
+        }
+        fn requires_key(&self) -> bool {
+            false
+        }
+        fn env_var(&self) -> &str {
+            ""
+        }
+        fn list_models(&self, _api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
+            anyhow::bail!("backend unavailable")
+        }
+        fn stream_chat(
+            &self,
+            _api_key: Option<&str>,
+            _model: &str,
+            _system: Option<&str>,
+            _messages: &[ChatMessage],
+            _tools: &[ToolSpec],
+            _on_chunk: &mut dyn FnMut(&str) -> Result<()>,
+        ) -> Result<(ChatUsage, StreamOutcome)> {
+            anyhow::bail!("backend unavailable")
+        }
+    }
+
+    #[test]
+    fn unavailable_provider_health_is_actionable() {
+        assert_eq!(
+            UnavailableProvider.health(None),
+            ProviderHealth::Unavailable("backend unavailable".to_string())
+        );
+    }
 }

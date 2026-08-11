@@ -34,11 +34,13 @@
   "bin": {
     "yana-ai": "./bin/yana",
     "yana-ai-install": "./scripts/npm-install.js",
-    "yana-rt": "./scripts/yana-rt-wrapper.js"
+    "yana-rt": "./scripts/yana-rt-wrapper.js",
+    "yana-ai-rt": "./scripts/yana-ai-rt-wrapper.js"
   },
   "files": [
     "scripts/npm-install.js",
     "scripts/yana-rt-wrapper.js",
+    "scripts/yana-ai-rt-wrapper.js",
     "core/hooks/",
     "core/lib/",
     "core/commands/",

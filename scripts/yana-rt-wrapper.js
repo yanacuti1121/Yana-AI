@@ -28,7 +28,8 @@ const path = require("path");
 const fs   = require("fs");
  
 const PKG = path.join(__dirname, "..");
-const ARGS = process.argv.slice(2);
+const CHAT_ALIAS = process.env.YANA_RT_CHAT_ALIAS === "1" || path.basename(process.argv[1] || "").startsWith("yana-ai-rt");
+const ARGS = CHAT_ALIAS ? ["chat", ...process.argv.slice(2)] : process.argv.slice(2);
 const RECURSION_GUARD = "YANA_RT_WRAPPER_ACTIVE";
  
 // (a) Hard re-entry guard. If we are here twice, some candidate led back

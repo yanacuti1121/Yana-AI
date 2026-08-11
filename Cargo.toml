@@ -17,6 +17,11 @@ name = "yana-rt"
 path = "src/main.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "yana-ai-rt"
+path = "src/main.rs"
+required-features = ["cli"]
+
 # Generic PTY-over-stdio bridge for embedding `yana-rt chat` (or any
 # other program) inside Yana AI's Electron desktop app, the same way
 # VS Code/Cursor embed their own terminal — Electron's main process
