@@ -108,7 +108,7 @@ Shell sanitization     — quote mọi biến, loại bỏ ký tự đặc biệ
 Egress / SSRF policy   — chặn metadata endpoint đã biết, dải IP private
 Supply-chain vetting   — checklist typosquat/CVE trước khi cài package
 Blast-radius cap       — giới hạn phạm vi/số file một lệnh phá hoại có thể chạm tới
-Merkle audit log       — mọi hành động (cho phép lẫn bị chặn) đều được log, chống giả mạo
+Audit log chống giả mạo — mọi hành động (cho phép lẫn bị chặn) đều được log, nối hash
 Human gate             — hành động không thể hoàn tác (push, publish, xóa) cần xác nhận rõ ràng từ người
          ↓
 Thực thi (hoặc chặn + log)
@@ -200,7 +200,7 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-27 subcommand. Không phụ thuộc Python.
+30 subcommand. Không phụ thuộc Python.
 
 ```bash
 yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)
@@ -262,7 +262,7 @@ core/
 ├── agents/         # 101 định nghĩa agent chuyên biệt
 ├── skills/         # 2.025 file SKILL.md
 ├── config/
-│   ├── core-lock.json    # manifest SHA-256 — pin 240 file core
+│   ├── core-lock.json    # manifest SHA-256 — pin 277 file core
 │   └── skills-lock.json  # hash nội dung skill
 └── memory/
     ├── L1_atomic/  # fact vĩnh viễn — tồn tại qua các session
@@ -270,7 +270,7 @@ core/
 ```
 
 Các thuộc tính chính, đã xác minh trên code thật, không chỉ trên tài liệu mô tả:
-- **Merkle audit chain** — mọi hành động được log thành một entry JSONL nối hash; sửa một dòng đã ghi sẽ bị phát hiện khi tính lại chain (`verify-audit-chain.sh`)
+- **Audit log nối hash chống giả mạo** — mọi hành động được log thành một entry JSONL nối hash (mỗi entry chứa hash của entry trước — chuỗi tuyến tính, không phải Merkle tree như bản README cũ từng gọi sai); sửa một dòng đã ghi sẽ bị phát hiện khi tính lại chain (`verify-audit-chain.sh`)
 - **Core-lock integrity** — manifest SHA-256 (`core-lock.json`) phát hiện drift, xóa file, và file lạ chưa qua review chèn vào `core/rules`, `core/hooks`, `core/gates`, `core/scripts`
 - **Review trước khi thay đổi hạ tầng** — trước khi một thay đổi vào `core/rules/**`, `core/hooks/**`, `core/gates/**`, hay `core/agents/**`, hai agent reviewer độc lập (security-auditor cùng một reviewer đi kèm) được dispatch; một finding mức Safety từ một trong hai sẽ chặn việc ghi cho đến khi người dùng giải quyết
 - **Human gate** — hành động không thể hoàn tác (force-push, publish, deploy, xóa) cần xác nhận rõ ràng từ người trong phiên hiện tại, không phải một sự chấp thuận đứng yên từ trước
@@ -287,7 +287,7 @@ Cùng một output đã chạy thật với demo ở đầu README này (`core/h
 Trung thực, không quảng cáo: đã xác minh trực tiếp trên hook sống, không phải trên tài liệu mô tả chúng.
 
 - **`guard-destructive.sh` là guard trên chuỗi lệnh, không phải bộ phân tích shell thật.** Nó tách token theo khoảng trắng và so khớp các cách viết nguy hiểm đã biết (`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, push trực tiếp vào main/master). Tính đến 2026-07-05 (4 vòng review đối kháng trong một ngày) nó đã chuẩn hóa quote nguyên token (`"..."`, `'...'`, `$'...'`), escape backslash, ghép biến kiểu `${IFS}`, và từ chối thẳng các dạng brace-expansion cạnh lệnh git/rm — nhưng nó **chưa** xử lý được kiểu ghép quote giữa token (đoạn có quote và không quote xen kẽ trong cùng một từ, không có khoảng trắng ngăn cách, ví dụ `--forc"e"` — shell thật sẽ hiểu thành `--force`, guard này thì không). Để đóng lỗ hổng này cần parser theo trạng thái quote từng ký tự, không phải thêm một phép so khớp token nữa: đây là câu hỏi thiết kế dài hạn, không âm thầm coi là đã xong. Một lệnh cố tình soạn ra để lách vẫn có thể qua được guard này; một agent gõ lệnh bình thường sẽ bị bắt.
-- **Chặn SSRF/metadata-endpoint và chặn cài package chưa qua kiểm định/typosquat là chính sách đã ghi lại, chưa phải hook sống.** Các phiên bản README trước đây từng cho đây là ví dụ hoạt động thật — đã xác minh trực tiếp (2026-07-04, xác nhận lại 2026-07-05) rằng không có hook `PreToolUse` nào đang được gắn thực sự chặn `curl` đến metadata endpoint, `Read` file `.env`, hay `npm install` một package bị giả mạo tên (typosquat). Giờ nói thẳng thay vì trình bày như demo hoạt động thật.
+- **Chặn SSRF/metadata-endpoint và chặn cài package chưa qua kiểm định/typosquat có code thật nhưng không nối vào đâu cả.** Đây là vấn đề cụ thể hơn "chưa làm" — `core/hooks/tool-validator.sh` có guard SSRF cho WebFetch thật (DNS resolution qua `socket.getaddrinfo` + phân loại bằng `ipaddress`, đã qua nhiều vòng review đối kháng), và `core/hooks/dependency-safety-gate.sh` / `core/hooks/supply-chain-guard.sh` có logic detect typosquat thật. Cả 3 file đều **không xuất hiện** trong danh sách hook đăng ký ở `.claude/settings.json` (xác minh trực tiếp trên file đó, không dựa vào header "Status: active" của chính 3 file — header đó sai) — nên không cái nào thực sự chạy. `curl` đến metadata endpoint, `Read` file `.env`, hay `npm install` package giả mạo tên hiện không bị chặn — nhưng việc cần làm là nối 3 file có sẵn vào hook chain, không phải viết logic detect mới.
 - **`core/` và `.claude/` là hai bản copy cùng một nguồn theo thiết kế**, không phải trùng lặp ngoài ý muốn. `core/` là bản gốc, `.claude/` là bản Claude Code đọc lúc chạy, và `core/config/core-lock.json` pin hash SHA-256 của cả hai. Nếu thấy chúng như nội dung trùng lặp, đó là chủ ý, không phải bug cần "dọn dẹp."
 - **macOS không có sẵn `timeout`/`gtimeout` kiểu GNU.** Một hook từng giả định luôn có timeout này đã âm thầm không bao giờ chạy được hook nào trên các máy bị ảnh hưởng cho đến khi phát hiện và fix (2026-07-04). Giờ nó xuống cấp một cách nhẹ nhàng (chạy không giới hạn timeout) thay vì âm thầm không làm gì cả, nhưng đáng lưu ý loại bug "giả định môi trường" này là chính xác thứ cần để ý nếu bạn fork hoặc mở rộng các hook này.
 
@@ -428,7 +428,7 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-Năm route:
+Sáu route:
 - **simple** → Yana xử lý trực tiếp (chỉ đọc, không cần agent)
 - **skill** → so khớp với index 2.025 skill, dispatch đúng agent skill
 - **learn** → route tới `hoc-tap`, trợ lý học kiểu Socratic (kích hoạt khi gặp "học", "giải thích", "tại sao" — cả tiếng Anh và tiếng Việt)

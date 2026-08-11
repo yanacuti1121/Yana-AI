@@ -108,7 +108,7 @@ Shell sanitization     — 모든 변수를 quote 처리, 셸 특수문자 제�
 Egress / SSRF policy   — 알려진 메타데이터 엔드포인트, 사설 IP 대역 차단
 Supply-chain vetting   — 패키지 설치 전 typosquat/CVE 체크리스트
 Blast-radius cap       — 파괴적 명령이 건드릴 수 있는 파일/범위 제한
-Merkle audit log       — 허용/차단된 모든 행동을 기록, 위변조 감지
+위변조 감지 audit log  — 허용/차단된 모든 행동을 기록, 해시 체인 연결
 Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은 명시적 확인 필요
          ↓
 실행 (또는 차단 + 로그)
@@ -200,7 +200,7 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-27개 서브커맨드. Python 의존성 없음.
+30개 서브커맨드. Python 의존성 없음.
 
 ```bash
 yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)
@@ -261,7 +261,7 @@ core/
 ├── agents/         # 101개 전문 에이전트 정의
 ├── skills/         # 2,025개 SKILL.md 파일
 ├── config/
-│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 240개 고정
+│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 277개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
 └── memory/
     ├── L1_atomic/  # 영구 사실 — 세션 간 유지
@@ -269,7 +269,7 @@ core/
 ```
 
 핵심 속성, 설명 문서가 아니라 실제 코드로 검증됨:
-- **Merkle audit chain** — 모든 행동이 해시 체인 JSONL 항목으로 기록됨; 기존 라인을 변조하면 체인을 다시 계산할 때 감지됨 (`verify-audit-chain.sh`)
+- **위변조 감지 해시 체인 audit log** — 모든 행동이 해시 체인 JSONL 항목으로 기록됨(각 항목은 이전 항목의 해시를 포함하는 선형 체인 — 예전 README가 잘못 불렀던 Merkle tree가 아님); 기존 라인을 변조하면 체인을 다시 계산할 때 감지됨 (`verify-audit-chain.sh`)
 - **Core-lock integrity** — SHA-256 매니페스트(`core-lock.json`)가 `core/rules`, `core/hooks`, `core/gates`, `core/scripts`의 drift, 삭제, 검토 안 된 파일 삽입을 감지
 - **인프라 변경 전 리뷰** — `core/rules/**`, `core/hooks/**`, `core/gates/**`, `core/agents/**`에 변경이 들어가기 전, 독립적인 리뷰어 에이전트 두 명(security-auditor와 짝을 이루는 리뷰어)이 디스패치됨; 둘 중 하나라도 Safety 수준의 발견 사항이 있으면 사람이 해결할 때까지 변경이 차단됨
 - **Human gate** — 되돌릴 수 없는 작업(force-push, publish, deploy, delete)은 이전 승인이 아니라 현재 세션에서의 명시적인 사람 확인이 필요함
@@ -286,7 +286,7 @@ core/
 과장 없이 솔직하게: 훅을 설명하는 문서가 아니라 실제 살아있는 훅에 대해 직접 검증한 내용입니다.
 
 - **`guard-destructive.sh`는 셸 파서가 아니라 명령 문자열 가드입니다.** 공백 기준으로 토큰을 나누고 알려진 위험한 형태(`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, main/master로의 직접 push)를 매칭합니다. 2026-07-05 기준(하루 동안 4차례의 적대적 검토)으로 전체 토큰 quote(`"..."`, `'...'`, `$'...'`), 백슬래시 이스케이프, `${IFS}` 스타일 변수 분할을 정규화하고, git/rm 호출 옆의 brace-expansion 형태는 바로 거부합니다 — 하지만 토큰 중간의 quote 조각 연결(공백 없이 한 단어 안에서 따옴표 있는 부분과 없는 부분이 번갈아 나오는 경우, 예: `--forc"e"` — 실제 셸은 이를 `--force`로 해석하지만 이 가드는 그렇지 않음)은 **아직** 처리하지 못합니다. 이를 닫으려면 토큰 비교를 하나 더 추가하는 게 아니라 문자 단위 quote-상태 파서가 필요합니다: 이는 이미 닫혔다고 조용히 주장할 문제가 아니라 장기적인 설계 과제로 남아 있습니다. 의도적으로 만든 명령은 여전히 이 가드를 피해갈 수 있습니다; 일반적으로 명령을 입력하는 에이전트는 잡힙니다.
-- **SSRF/메타데이터 엔드포인트 차단과 typosquatting/미검증 패키지 설치 차단은 문서화된 정책일 뿐, 아직 실제 훅으로 연결되어 있지 않습니다.** 이전 버전의 README는 이를 작동하는 예시로 보여줬습니다 — 직접 검증한 결과(2026-07-04, 2026-07-05 재확인) 현재 연결된 `PreToolUse` 훅 중 어느 것도 메타데이터 엔드포인트로의 `curl`, `.env` 파일의 `Read`, typosquat된 패키지의 `npm install`을 실제로 가로채지 않습니다. 이제 작동하는 데모처럼 보여주는 대신 있는 그대로 명시합니다.
+- **SSRF/메타데이터 엔드포인트 차단과 typosquatting/미검증 패키지 설치 차단은 실제 구현은 있지만 아무것에도 연결되어 있지 않습니다.** "아직 구현 안 됨"보다 더 구체적인 문제입니다 — `core/hooks/tool-validator.sh`에는 실제 WebFetch SSRF 가드(실제 `socket.getaddrinfo` DNS 조회 + `ipaddress` 기반 분류, 여러 차례의 적대적 리뷰로 강화됨)가 있고, `core/hooks/dependency-safety-gate.sh` / `core/hooks/supply-chain-guard.sh`에는 실제 typosquat 탐지 로직이 있습니다. 이 세 파일 중 어느 것도 `.claude/settings.json`의 훅 등록 목록에 나타나지 않습니다(그 파일을 직접 확인한 결과이며, 세 파일 자체의 "Status: active" 헤더는 틀렸습니다) — 그래서 실제로는 아무것도 실행되지 않습니다. 메타데이터 엔드포인트로의 `curl`, `.env` 파일의 `Read`, typosquat된 패키지의 `npm install`은 현재 가로채지지 않지만, 필요한 작업은 새 탐지 로직을 작성하는 게 아니라 이미 존재하는 세 파일을 훅 체인에 연결하는 것입니다.
 - **`core/`와 `.claude/`는 설계상 같은 소스의 두 사본입니다**, 우발적인 중복이 아닙니다. `core/`가 정본이고 `.claude/`는 Claude Code가 런타임에 읽는 것이며, `core/config/core-lock.json`이 둘의 SHA-256 해시를 고정합니다. 중복된 콘텐츠로 보인다면 그것은 의도된 것이지 "정리해야 할" 버그가 아닙니다.
 - **macOS는 기본적으로 GNU `timeout`/`gtimeout`을 제공하지 않습니다.** 이것이 항상 존재한다고 가정했던 훅은 영향받는 기기에서 발견되어 수정될 때까지(2026-07-04) 어떤 보호된 훅도 조용히 실행하지 못했습니다. 이제는 조용히 아무것도 하지 않는 대신 타임아웃 상한 없이 실행하도록 우아하게 저하되지만, 이런 유형의 "환경을 가정한" 버그는 이 훅들을 fork하거나 확장할 때 정확히 주의해야 할 부분입니다.
 
@@ -429,7 +429,7 @@ yana-ai route classify "deploy to production"
 # → { "route": "external", "gate": "confirm", "confidence": 0.30 }
 ```
 
-다섯 가지 경로:
+여섯 가지 경로:
 - **simple** → Yana가 직접 처리 (읽기 전용, 에이전트 불필요)
 - **skill** → 2,025개 항목 인덱스와 매칭, 정확한 스킬 에이전트 디스패치
 - **learn** → `hoc-tap`(소크라테스식 학습 도우미)로 라우팅 (영어/베트남어로 "learn", "explain", "why" 등에서 트리거)
