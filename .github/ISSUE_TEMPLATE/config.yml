@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question
+    url: https://github.com/yanacuti1121/Yana-AI/issues/new?labels=question
+    about: General question — open a blank issue with the "question" label (per CONTRIBUTING.md, answered within 48h)
