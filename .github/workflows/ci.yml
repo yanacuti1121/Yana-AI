@@ -170,6 +170,80 @@ jobs:
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
 
+  system-health-monitor:
+    name: System Health Monitor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-system-health-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-system-health-
+
+      - name: Run monitor units and build runtime
+        run: |
+          cargo test --bin yana-rt os::monitor -- --test-threads=1
+          cargo build --bin yana-rt
+
+      - name: Smoke sample and show (macOS/Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          root="$(mktemp -d)"
+          ./target/debug/yana-rt os monitor sample --dir "$root" --json > "$root/sample.json"
+          ./target/debug/yana-rt os monitor show --dir "$root" --json > "$root/show.json"
+          ./target/debug/yana-rt os monitor service status --dir "$root" --json > "$root/service.json"
+          python3 - "$root" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          sample = json.loads((root / "sample.json").read_text())
+          shown = json.loads((root / "show.json").read_text())
+          service = json.loads((root / "service.json").read_text())
+          assert sample == shown
+          assert sample["platform"] in {"linux", "macos"}
+          assert sample["cpu"]["logical_cores"] > 0
+          assert sample["memory"]["total_bytes"] > 0
+          assert sample["disk"]["total_bytes"] > 0
+          assert service["installed"] is False
+          assert (root / ".yana-ai/os/system-health.json").is_file()
+          PY
+
+      - name: Smoke sample and show (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP "yana-monitor-smoke"
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          .\target\debug\yana-rt.exe os monitor sample --dir $root --json | Set-Content -Encoding utf8 "$root\sample.json"
+          .\target\debug\yana-rt.exe os monitor show --dir $root --json | Set-Content -Encoding utf8 "$root\show.json"
+          .\target\debug\yana-rt.exe os monitor service status --dir $root --json | Set-Content -Encoding utf8 "$root\service.json"
+          $sample = Get-Content -Raw "$root\sample.json" | ConvertFrom-Json
+          $shown = Get-Content -Raw "$root\show.json" | ConvertFrom-Json
+          $service = Get-Content -Raw "$root\service.json" | ConvertFrom-Json
+          if (($sample | ConvertTo-Json -Depth 8 -Compress) -ne ($shown | ConvertTo-Json -Depth 8 -Compress)) { throw "sample/show mismatch" }
+          if ($sample.platform -ne "windows") { throw "wrong platform" }
+          if ($sample.cpu.logical_cores -lt 1) { throw "missing CPU inventory" }
+          if ($sample.memory.total_bytes -lt 1) { throw "missing memory inventory" }
+          if ($sample.disk.total_bytes -lt 1) { throw "missing disk inventory" }
+          if ($service.installed) { throw "service unexpectedly installed" }
+          if (-not (Test-Path "$root\.yana-ai\os\system-health.json" -PathType Leaf)) { throw "snapshot missing" }
+
   self-audit:
     name: Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)
     # .github/workflows/yana-audit.yml is a copy-paste EXAMPLE for other
