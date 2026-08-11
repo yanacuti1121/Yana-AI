@@ -8,6 +8,69 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.3.2 — 2026-08-11
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`/`tools/yana-desktop/
+package.json`) bumped to `1.3.2`. Same release also bumps the other two
+independent axes per `VERSIONING.md`'s own design (not lockstepped, each
+landing on its own next number): the `yana-rt` crate `1.3.3` to `1.4.0`,
+a minor bump for new backward-compatible CLI surface (the `yana-ai-rt`
+binary, `os governor`, `os monitor`, `os autonomy`), and the `yana-ai`
+Python package `0.42.3` (last published) to `0.42.5`, a patch for the
+`yana-rt` binary version-compatibility check in `src/yana_ai/rt.py`.
+Confirmed live against crates.io's and PyPI's actual APIs before picking
+these numbers, so neither collides with or downgrades what's already
+published.
+
+Ten PRs (#157-#166), each independently built, tested, and
+live-verified against the real repo before merge, not taken on trust
+from either Claude or Codex's own self-reports. Several of those
+self-reports had real numeric discrepancies (file/line counts that
+didn't match GitHub's own computed diff), caught before merge:
+
+- **Security:** #157 replaced the WebFetch SSRF guard's naive
+  hostname-regex matching with real DNS resolution plus `ipaddress`
+  classification. Went through 6 rounds of adversarial review
+  (security-auditor/code-auditor alternating), each round finding a real
+  bypass in the previous round's own fix, ending in a documented,
+  accepted PATH-trust boundary rather than a false claim of complete
+  closure. #155 replaced a hand-rolled markdown-sanitization regex with
+  DOMPurify (XSS).
+- **Chat:** #158 auto-detects an actually-pulled Ollama model via
+  `/api/tags` instead of guessing a hardcoded default. #159 warns when
+  the resolved `yana-rt` binary is older than expected. #160 is a full
+  local AI terminal workspace redesign (tabs, streaming, cancellation,
+  model discovery across Ollama/LM Studio/llama.cpp/TurboFieldfare) plus
+  the new `yana-ai-rt` chat-first entry point.
+- **Yana OS management plane (Program K):** #161 the foundation (agent
+  registry, credential presence, resource policy/preflight, doctor).
+  #162/#163 the Evolution Governor's first slice: `status` (Health Map
+  from drift-check/core-lock/manifest-counts), `capacity` (absorption
+  policy), `roadmap` (NOW/NEXT/LATER with `--approve`-gated promotion
+  and a hard-enforced, non-configurable 2-item NOW cap). #165 native
+  CPU/memory/disk/GPU health snapshots plus explicit, per-user,
+  opt-in-only OS scheduler installation (macOS LaunchAgent, Linux
+  systemd user timer, Windows Task Scheduler; never root, never
+  silent). #166 the L0-L4 autonomy ladder: routine work automatable
+  under policy, sovereign operations (merge protected branches, publish
+  releases, deploy, rotate secrets, delete persistent data, change
+  security policy) hard-blocked from ever being configured as
+  automatic. Verified live that this holds even when policy allows
+  automatic work up to the next level down. This module classifies and
+  queues action intent only; nothing in it executes a queued command
+  yet.
+- **Memory/process:** #156 evidence-fingerprinted L1 facts (a cited
+  file's SHA-256 recorded at write time, so a fact goes stale
+  automatically when its evidence changes). #154 a PreCompact hook
+  injecting review-quality priorities ahead of context compaction.
+
+Per rule-54, every PR touching `core/hooks/**` got the mandatory
+security-auditor + code-auditor dispatch before merge. This changelog
+entry and the version-file edits also went through that same dispatch
+(Integrity/version files category): both clean, one non-blocking
+advisory (confirm all 5 product-axis files land together, done).
+
 ## v1.3.1 — 2026-08-02
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
