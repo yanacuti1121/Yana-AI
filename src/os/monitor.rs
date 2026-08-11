@@ -354,7 +354,15 @@ fn collect_disk(root: &Path, warnings: &mut Vec<String>) -> DiskSnapshot {
     }
     #[cfg(target_os = "windows")]
     {
-        let value = powershell_json("$d=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$((Get-Location).Drive.Name)'\"; @{total=[uint64]$d.Size;free=[uint64]$d.FreeSpace}|ConvertTo-Json -Compress");
+        // Resolve the drive from `root` itself, not the spawned powershell.exe
+        // process's own ambient working directory (Get-Location) -- the two
+        // can differ whenever the caller passes --dir pointing somewhere else,
+        // which silently queried the wrong volume before this fix.
+        let root_literal = root.to_string_lossy().replace('\'', "''");
+        let script = format!(
+            "$drive=[System.IO.Path]::GetPathRoot('{root_literal}').TrimEnd('\\'); $d=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$drive'\"; @{{total=[uint64]$d.Size;free=[uint64]$d.FreeSpace}}|ConvertTo-Json -Compress"
+        );
+        let value = powershell_json(&script);
         let total = value
             .as_ref()
             .and_then(|v| v.get("total"))
