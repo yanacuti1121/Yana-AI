@@ -443,7 +443,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 126,
+      "count": 127,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -564,6 +564,7 @@
         "core/scripts/verify-claude-pack.js",
         "core/scripts/verify-claude-pack.sh",
         "core/scripts/verify-core-lock.sh",
+        "core/scripts/verify-fact-freshness.sh",
         "core/scripts/verify-hook-mirrors.sh",
         "core/scripts/verify-release-evidence.py",
         "core/scripts/verify-rules.sh",
@@ -2783,7 +2784,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 63,
-  "scripts_count": 126,
+  "scripts_count": 127,
   "commands_count": 170,
   "rules_count": 71
 }
