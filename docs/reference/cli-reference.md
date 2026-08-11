@@ -67,6 +67,24 @@ yana-rt os resource check \
   --requested-agents 1 \
   --estimated-tokens 8000 \
   --estimated-cost-usd 0.25
+
+yana-rt os governor roadmap list
+yana-rt os governor roadmap add \
+  --tier next --action stabilize --priority p1 \
+  --objective "Restore the golden path" \
+  --evidence "Verified integration failure" \
+  --scope "Runtime integration" \
+  --out-of-scope "New providers" \
+  --dependencies "Capability runtime" \
+  --risks "Regression in local chat" \
+  --deliverables "Passing vertical slice" \
+  --owner "runtime maintainer" --reviewer "anh" \
+  --acceptance-criteria "Golden path passes" \
+  --exit-criteria "Evidence is recorded" \
+  --definition-of-done "Tests and docs pass" \
+  --rollback-path "Remove the integration wiring"
+yana-rt os governor roadmap promote --id <item-id> --approve
+yana-rt os governor roadmap demote --id <item-id>
 ```
 
 State is stored in `.yana-ai/os/state.json` with private permissions, atomic
@@ -84,6 +102,11 @@ evidence was readable, `WARN` means optional evidence or policy is absent, and
 2; pass/warning exits 0. Doctor does not initialize or repair state, verify the
 audit hash chain, contact provider endpoints, or print secret values. Provider
 availability is therefore reported as `not-probed`.
+
+Roadmap proposals may be registered directly at `NEXT` or `LATER`. Only an
+explicit `promote --approve` invocation can move `NEXT` to `NOW`, and the
+runtime rejects a promotion when `NOW` already contains two items. The
+Governor never auto-promotes work or treats persisted approval as reusable.
 
 ## Multi-harness support
 

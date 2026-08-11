@@ -3,6 +3,7 @@
 use anyhow::{bail, Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 #[cfg(unix)]
@@ -20,6 +21,8 @@ pub struct OsState {
     pub schema_version: u32,
     pub agents: Vec<ManagedAgent>,
     pub resource_policy: Option<ResourcePolicy>,
+    #[serde(default)]
+    pub roadmap: Vec<RoadmapItem>,
 }
 
 impl Default for OsState {
@@ -28,6 +31,100 @@ impl Default for OsState {
             schema_version: SCHEMA_VERSION,
             agents: Vec::new(),
             resource_policy: None,
+            roadmap: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RoadmapItem {
+    pub id: String,
+    pub tier: RoadmapTier,
+    pub action: RoadmapItemAction,
+    pub priority: RoadmapPriority,
+    pub objective: String,
+    pub evidence: String,
+    pub scope: String,
+    pub out_of_scope: String,
+    pub dependencies: String,
+    pub risks: String,
+    pub deliverables: String,
+    pub owner: String,
+    pub reviewer: String,
+    pub acceptance_criteria: String,
+    pub exit_criteria: String,
+    pub definition_of_done: String,
+    pub rollback_path: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, clap::ValueEnum)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RoadmapTier {
+    Now,
+    Next,
+    Later,
+}
+
+impl RoadmapTier {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Now => "NOW",
+            Self::Next => "NEXT",
+            Self::Later => "LATER",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, clap::ValueEnum)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RoadmapItemAction {
+    Build,
+    Extend,
+    Consolidate,
+    Remove,
+    Stabilize,
+    Verify,
+    Document,
+}
+
+impl RoadmapItemAction {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Build => "BUILD",
+            Self::Extend => "EXTEND",
+            Self::Consolidate => "CONSOLIDATE",
+            Self::Remove => "REMOVE",
+            Self::Stabilize => "STABILIZE",
+            Self::Verify => "VERIFY",
+            Self::Document => "DOCUMENT",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, clap::ValueEnum)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RoadmapPriority {
+    P0,
+    P1,
+    P2,
+    P3,
+    P4,
+    P5,
+    P6,
+}
+
+impl RoadmapPriority {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::P0 => "P0",
+            Self::P1 => "P1",
+            Self::P2 => "P2",
+            Self::P3 => "P3",
+            Self::P4 => "P4",
+            Self::P5 => "P5",
+            Self::P6 => "P6",
         }
     }
 }
@@ -102,6 +199,33 @@ fn validate_state(state: &OsState, path: &Path) -> Result<()> {
             path.display(),
             SCHEMA_VERSION
         );
+    }
+    let now_count = state
+        .roadmap
+        .iter()
+        .filter(|item| item.tier == RoadmapTier::Now)
+        .count();
+    if now_count > 2 {
+        bail!(
+            "invalid Yana OS state {}: roadmap NOW contains {now_count} items; maximum is 2",
+            path.display()
+        );
+    }
+    let mut ids = HashSet::new();
+    for item in &state.roadmap {
+        if item.id.trim().is_empty() {
+            bail!(
+                "invalid Yana OS state {}: roadmap item id must not be empty",
+                path.display()
+            );
+        }
+        if !ids.insert(&item.id) {
+            bail!(
+                "invalid Yana OS state {}: duplicate roadmap item id '{}'",
+                path.display(),
+                item.id
+            );
+        }
     }
     Ok(())
 }
@@ -260,6 +384,30 @@ mod tests {
         root
     }
 
+    fn roadmap_item(id: &str, tier: RoadmapTier) -> RoadmapItem {
+        RoadmapItem {
+            id: id.into(),
+            tier,
+            action: RoadmapItemAction::Stabilize,
+            priority: RoadmapPriority::P1,
+            objective: "objective".into(),
+            evidence: "evidence".into(),
+            scope: "scope".into(),
+            out_of_scope: "out of scope".into(),
+            dependencies: "none".into(),
+            risks: "risk".into(),
+            deliverables: "deliverable".into(),
+            owner: "owner".into(),
+            reviewer: "reviewer".into(),
+            acceptance_criteria: "accepted".into(),
+            exit_criteria: "exited".into(),
+            definition_of_done: "done".into(),
+            rollback_path: "remove".into(),
+            created_at: now(),
+            updated_at: now(),
+        }
+    }
+
     #[test]
     fn initialize_and_mutate_round_trip() {
         let root = root();
@@ -273,6 +421,53 @@ mod tests {
         let permissions = fs::metadata(state_path(&root)).unwrap().permissions();
         #[cfg(unix)]
         assert_eq!(permissions.mode() & 0o777, 0o600);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn pre_roadmap_schema_defaults_to_an_empty_roadmap() {
+        let mut value = serde_json::to_value(OsState::default()).unwrap();
+        value.as_object_mut().unwrap().remove("roadmap");
+
+        let state: OsState = serde_json::from_value(value).unwrap();
+
+        assert!(state.roadmap.is_empty());
+    }
+
+    #[test]
+    fn state_with_more_than_two_now_items_is_rejected() {
+        let root = root();
+        let path = state_path(&root);
+        let mut state = OsState::default();
+        state.roadmap = vec![
+            roadmap_item("one", RoadmapTier::Now),
+            roadmap_item("two", RoadmapTier::Now),
+            roadmap_item("three", RoadmapTier::Now),
+        ];
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, serde_json::to_string(&state).unwrap()).unwrap();
+
+        let error = load(&root).unwrap_err().to_string();
+
+        assert!(error.contains("maximum is 2"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn duplicate_roadmap_ids_are_rejected() {
+        let root = root();
+        let path = state_path(&root);
+        let mut state = OsState::default();
+        state.roadmap = vec![
+            roadmap_item("duplicate", RoadmapTier::Next),
+            roadmap_item("duplicate", RoadmapTier::Later),
+        ];
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, serde_json::to_string(&state).unwrap()).unwrap();
+
+        let error = load(&root).unwrap_err().to_string();
+
+        assert!(error.contains("duplicate roadmap item id"));
         fs::remove_dir_all(root).unwrap();
     }
 
