@@ -3,7 +3,33 @@
   "hooks": {
     "beforeShellExecution": [
       {
+        "command": ".cursor/hooks/giamthi-halt-check.js",
+        "timeout": 30,
+        "failClosed": true
+      },
+      {
         "command": ".cursor/hooks/before-shell-execution.js",
+        "timeout": 30,
+        "failClosed": true
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": ".cursor/hooks/giamthi-halt-check.js",
+        "timeout": 30,
+        "failClosed": true
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": ".cursor/hooks/giamthi-halt-check.js",
+        "timeout": 30,
+        "failClosed": true
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/giamthi-halt-check.js",
         "timeout": 30,
         "failClosed": true
       }

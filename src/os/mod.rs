@@ -10,6 +10,7 @@ mod monitor_service;
 mod resource;
 mod roadmap;
 mod state;
+mod supervisor;
 
 use anyhow::{bail, Result};
 use clap::Subcommand;
@@ -63,6 +64,11 @@ pub enum OsAction {
     Monitor {
         #[command(subcommand)]
         action: MonitorAction,
+    },
+    /// Native Giám Thị supervisor, safety modes, dashboard, and receipts.
+    Supervisor {
+        #[command(subcommand)]
+        action: SupervisorAction,
     },
     /// Automatic-operation policy and durable action intent queue.
     Autonomy {
@@ -335,6 +341,86 @@ pub enum MonitorServiceAction {
 }
 
 #[derive(Subcommand, Debug)]
+pub enum SupervisorAction {
+    /// Run one native monitoring and governance heartbeat.
+    Tick {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show the aggregate supervisor dashboard and heartbeat SLO.
+    Status {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Run safe synthetic checks without touching the production halt lock.
+    SelfTest {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Create the shared cross-engine halt lock.
+    Halt {
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+    },
+    /// Human-only unlock ceremony with an auditable reason.
+    Unlock {
+        #[arg(long)]
+        approve: bool,
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+    },
+    /// Apply or clear a reduced-capability safety mode.
+    Quarantine {
+        #[command(subcommand)]
+        action: SupervisorQuarantineAction,
+    },
+    /// Install, inspect, or remove the native per-user supervisor scheduler.
+    Service {
+        #[command(subcommand)]
+        action: MonitorServiceAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SupervisorQuarantineAction {
+    Set {
+        mode: supervisor::QuarantineMode,
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Clear {
+        #[arg(long)]
+        approve: bool,
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 pub enum CapacityAction {
     Show {
         #[arg(long, default_value = ".")]
@@ -528,10 +614,99 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         OsAction::Resource { action } => dispatch_resource(action)?,
         OsAction::Governor { action } => dispatch_governor(action)?,
         OsAction::Monitor { action } => dispatch_monitor(action)?,
+        OsAction::Supervisor { action } => dispatch_supervisor(action)?,
         OsAction::Autonomy { action } => dispatch_autonomy(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
+    }
+    Ok(())
+}
+
+fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
+    match action {
+        SupervisorAction::Tick { dir, json } => {
+            let root = state::project_root(&dir)?;
+            supervisor::print(&supervisor::tick(&root)?, json, "Yana Giám Thị tick")?;
+        }
+        SupervisorAction::Status { dir, json } => {
+            let root = state::project_root(&dir)?;
+            supervisor::print(
+                &supervisor::dashboard(&root)?,
+                json,
+                "Yana Giám Thị dashboard",
+            )?;
+        }
+        SupervisorAction::SelfTest { dir, json } => {
+            let root = state::project_root(&dir)?;
+            let report = supervisor::self_test(&root);
+            supervisor::print(&report, json, "Yana Giám Thị self-test")?;
+            if !report.passed {
+                bail!("Giám Thị self-test found blocking failures");
+            }
+        }
+        SupervisorAction::Halt { reason, actor, dir } => {
+            let root = state::project_root(&dir)?;
+            supervisor::halt(&root, &reason, &actor)?;
+            println!(
+                "Giám Thị halted all supported engines for {}",
+                root.display()
+            );
+        }
+        SupervisorAction::Unlock {
+            approve,
+            reason,
+            actor,
+            dir,
+        } => {
+            let root = state::project_root(&dir)?;
+            supervisor::unlock(&root, approve, &reason, &actor)?;
+            println!("Human unlock ceremony completed for {}", root.display());
+        }
+        SupervisorAction::Quarantine { action } => match action {
+            SupervisorQuarantineAction::Set {
+                mode,
+                reason,
+                actor,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                supervisor::print(
+                    &supervisor::set_quarantine(&root, mode, &reason, &actor)?,
+                    json,
+                    "Yana Giám Thị quarantine",
+                )?;
+            }
+            SupervisorQuarantineAction::Clear {
+                approve,
+                reason,
+                actor,
+                dir,
+            } => {
+                let root = state::project_root(&dir)?;
+                supervisor::clear_quarantine(&root, approve, &reason, &actor)?;
+                println!("Giám Thị quarantine cleared for {}", root.display());
+            }
+        },
+        SupervisorAction::Service { action } => match action {
+            MonitorServiceAction::Install {
+                dir,
+                interval_secs,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                monitor_service::print(&monitor_service::install(&root, interval_secs)?, json)?;
+            }
+            MonitorServiceAction::Status { dir, json } => {
+                let root = state::project_root(&dir)?;
+                monitor_service::print(&monitor_service::status(&root)?, json)?;
+            }
+            MonitorServiceAction::Uninstall { dir, json } => {
+                let root = state::project_root(&dir)?;
+                monitor_service::print(&monitor_service::uninstall(&root)?, json)?;
+            }
+        },
     }
     Ok(())
 }

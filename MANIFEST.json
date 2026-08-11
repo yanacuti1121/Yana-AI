@@ -443,7 +443,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 127,
+      "count": 128,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -491,6 +491,7 @@
         "core/scripts/generate-stats.py",
         "core/scripts/generate-wiki.sh",
         "core/scripts/giamthi-watch.sh",
+        "core/scripts/giamthi_service.py",
         "core/scripts/graph_builder.py",
         "core/scripts/graph_query.py",
         "core/scripts/guard_installer.py",
@@ -575,7 +576,7 @@
       ]
     },
     "tests": {
-      "count": 17,
+      "count": 18,
       "actual_present": [
         "core/tests/adapters/cursor",
         "core/tests/adversarial",
@@ -2784,7 +2785,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 63,
-  "scripts_count": 127,
+  "scripts_count": 128,
   "commands_count": 170,
   "rules_count": 71
 }
