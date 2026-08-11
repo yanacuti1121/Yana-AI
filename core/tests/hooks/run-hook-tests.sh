@@ -1916,8 +1916,16 @@ NOJQ_BIN="$(mktemp -d)"
 register_temp "$NOJQ_BIN"
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
 echo -n "Testing tool-validator.sh [Warn loudly (not silently) when jq is missing (regression: silent-disable fix)]... "
+# PATH is set to NOJQ_BIN alone (no system dir appended) — on Debian/
+# Ubuntu, /bin is a symlink to /usr/bin, where GitHub Actions' ubuntu
+# runners have jq pre-installed, so "PATH=$NOJQ_BIN:/bin" silently still
+# finds /bin/jq -> /usr/bin/jq and never exercises this code path (caught
+# by CI, not by local macOS testing, where /bin genuinely lacks jq).
+# $BASH (a bash builtin — the absolute path to the currently-running
+# interpreter) is used to invoke the hook so the PATH override doesn't
+# also break finding "bash" itself.
 NOJQ_STDERR=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
-    PATH="$NOJQ_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>&1 >/dev/null || true)
+    PATH="$NOJQ_BIN" "$BASH" "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>&1 >/dev/null || true)
 if [[ "$NOJQ_STDERR" == *"jq not found"* ]]; then
     echo "PASS"
 else
@@ -1957,6 +1965,21 @@ test_validator "Block IPv4-mapped IPv6 CGNAT bypass ([::ffff:100.100.100.200])" 
 # only reproduces when python3 is absent — test_validator's generic helper
 # doesn't support that, so this uses the same manual-PATH pattern as the
 # guard-blast-radius.sh block below.
+#
+# NOT appending a real system dir (e.g. ":/bin") to PATH here: on Debian/
+# Ubuntu, /bin is a symlink to /usr/bin, and CI runner images vary in
+# whether a given tool lands under there (the sibling jq-missing test
+# above originally appended ":/bin" too and was caught failing on GitHub
+# Actions' ubuntu runner specifically because jq turned out to be
+# reachable through that symlink there — not relying on either tool's
+# absence from a real system path is the portable fix, applied here
+# proactively even though this specific test passed on that same CI run,
+# since it depends on the identical incidental platform behavior).
+# $NOPY_BIN contains only explicit symlinks
+# to the real jq/grep this test still needs, nothing else, so python3
+# is guaranteed absent regardless of platform. $BASH (a bash builtin —
+# absolute path to the running interpreter) invokes the hook so the
+# PATH override doesn't also break finding "bash" itself.
 NOPY_BIN="$(mktemp -d)"
 register_temp "$NOPY_BIN"
 ln -sf "$(command -v jq)" "$NOPY_BIN/jq"
@@ -1964,7 +1987,7 @@ ln -sf "$(command -v grep)" "$NOPY_BIN/grep"
 TOTAL_COUNT=$((TOTAL_COUNT + 1))
 echo -n "Testing tool-validator.sh [Block metadata URL when python3 absent from PATH (regression: warn() footgun)]... "
 NOPY_OUT=$(TOOL_VALID_TEST_INPUT='{"tool_name":"WebFetch","tool_input":{"url":"http://169.254.169.254/latest/meta-data/"}}' \
-    PATH="$NOPY_BIN:/bin" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
+    PATH="$NOPY_BIN" "$BASH" "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null || true)
 if [[ -n "$NOPY_OUT" ]] && echo "$NOPY_OUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
     echo "PASS"
 else
