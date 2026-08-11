@@ -97,3 +97,34 @@ there were three real registries). Rejected because:
   silently drift apart anyway the first time a maintainer forgets one —
   which is a worse failure mode than clearly-labeled, independently-
   correct axes.
+
+## Compatibility across axes
+
+The Python package (PyPI `yana-ai`) and the Rust runtime (crates.io
+`yana-rt`) are independently versioned and independently released, but
+they are not independent at runtime: `src/yana_ai/rt.py` is a thin
+`subprocess` wrapper that resolves and forwards every command straight
+to a `yana-rt` binary (`$YANA_RT_BIN`, `$PATH`, a bundled pre-built
+binary, or a local `cargo build`, in that order — see that file's own
+module doc). A user who ends up with an old `yana-rt` binary on that
+resolution path (stale `$PATH` entry, an old `$YANA_RT_BIN` override,
+etc.) gets confusing "unrecognized subcommand" errors that have nothing
+to do with the command they actually typed — the same stale-binary
+confusion class `core/rules/71-entry-point-verify-law.md` already
+documents for a different entry point.
+
+`rt.py` checks the resolved binary's own `--version` output against
+`_MIN_YANA_RT_VERSION` (currently `1.0.0`) and prints an advisory
+warning to stderr if it's older — **advisory only, never blocking**:
+the wrapper is pure passthrough with no version-specific behavior of
+its own, so refusing to run an old-but-still-working binary would be a
+new failure mode invented ahead of any evidenced need. Any failure in
+the check itself (binary doesn't support `--version`, times out,
+unparseable output) is silently ignored — the command still runs.
+
+Bump `_MIN_YANA_RT_VERSION` when a `yana-rt` release changes CLI
+surface in a way this wrapper's users would actually notice (a
+subcommand renamed or removed) — not on every crate patch release.
+There is currently no known floor above `1.0.0`; it's set there as a
+baseline below "pre-stabilization," not because anything specific
+breaks below some higher number.
