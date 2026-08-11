@@ -14,8 +14,24 @@ the same bug class fixed in scripts/yana-rt-wrapper.js on 2026-07-08/09
 (100% CPU, 116°C incident) but never ported to this file until now. This
 mirrors that fix: a hard re-entry guard env var, plus a realpath self-check
 on every candidate (not just the $PATH one) so $YANA_RT_BIN can't re-arm it.
+
+VERSION COMPATIBILITY CHECK (2026-08-11): this wrapper is a pure passthrough
+— it forwards argv to whichever `yana-rt` binary it resolves and has no
+subcommand/flag-specific logic of its own, so a stale binary doesn't break
+THIS file. It can still confuse a user, though: a `yana-rt` older than what
+`yana-ai`'s own docs/README describe (or picked up from an unrelated older
+install on $PATH/$YANA_RT_BIN) will reject subcommands as "unrecognized" for
+reasons that have nothing to do with the actual command the user typed —
+exactly the class of stale-binary confusion already documented in this
+repo's `core/rules/71-entry-point-verify-law.md` and its
+`entry-point-verify-reminder.sh` test fixture. A version check here is
+advisory only (warn, never block): passthrough has no evidenced dependency
+on any specific `yana-rt` version today, so refusing to run an old-but-
+still-working binary would be a new failure mode invented ahead of real
+need. See VERSIONING.md's "Compatibility across axes" section.
 """
 import os
+import re
 import sys
 import platform
 import subprocess
@@ -24,6 +40,41 @@ from pathlib import Path
 _PKG_ROOT = Path(__file__).parent.parent.parent  # src/yana_ai/rt.py → repo root
 _RECURSION_GUARD = "YANA_RT_WRAPPER_ACTIVE"
 _SELF_REALPATH = str(Path(__file__).resolve())
+
+# Floor below which a resolved yana-rt binary is old enough to plausibly be
+# missing a subcommand this yana-ai release's docs describe. Bump this only
+# when a yana-rt release makes a CLI-surface change this wrapper's users
+# would actually notice — not on every crate patch release.
+_MIN_YANA_RT_VERSION = (1, 0, 0)
+_VERSION_RE = re.compile(r"(\d+)\.(\d+)\.(\d+)")
+
+
+def _check_version_compat(binary: str) -> None:
+    """Best-effort, non-blocking: warn (stderr) if the resolved binary
+    reports a version below _MIN_YANA_RT_VERSION. Any failure here (binary
+    doesn't support --version, times out, unparseable output) is silently
+    ignored — this is an advisory signal, not a requirement, and must never
+    be the reason a working setup stops working."""
+    try:
+        result = subprocess.run(
+            [binary, "--version"], capture_output=True, text=True, timeout=5
+        )
+        match = _VERSION_RE.search(result.stdout)
+        if not match:
+            return
+        found = tuple(int(part) for part in match.groups())
+        if found < _MIN_YANA_RT_VERSION:
+            min_str = ".".join(str(p) for p in _MIN_YANA_RT_VERSION)
+            found_str = ".".join(str(p) for p in found)
+            print(
+                f"yana-rt: warning — resolved binary reports version {found_str}, "
+                f"older than {min_str}. Some subcommands this yana-ai release's "
+                "docs describe may not exist in it. Run `cargo install yana-rt` "
+                "to upgrade, or set $YANA_RT_BIN to a newer build.",
+                file=sys.stderr,
+            )
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        return
 
 
 def _platform_bin() -> Path:
@@ -104,6 +155,8 @@ def main() -> None:
             file=sys.stderr,
         )
         sys.exit(1)
+
+    _check_version_compat(binary)
 
     env = {**os.environ, _RECURSION_GUARD: "1"}
     result = subprocess.run([binary] + sys.argv[1:], env=env)
