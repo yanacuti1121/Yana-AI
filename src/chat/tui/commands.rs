@@ -3,6 +3,7 @@
 //! directory.
 
 use super::{App, SidebarTab};
+use std::collections::BTreeMap;
 
 pub(super) const SLASH_COMMANDS: &[&str] = &[
     "/help",
@@ -10,6 +11,7 @@ pub(super) const SLASH_COMMANDS: &[&str] = &[
     "/models",
     "/new",
     "/clear",
+    "/undo",
     "/tab",
     "/tabs",
     "/rename",
@@ -32,6 +34,7 @@ pub(super) const PALETTE_COMMANDS: &[&str] = &[
     "Rename tab  /rename",
     "Duplicate tab  /tab duplicate",
     "Clear conversation  /clear",
+    "Undo last clear  /undo",
     "Export Markdown  /export",
     "Edit system prompt  /system",
     "Settings  /settings",
@@ -40,12 +43,19 @@ pub(super) const PALETTE_COMMANDS: &[&str] = &[
     "Quit  /quit",
 ];
 
-pub(super) fn autocomplete(prefix: &str) -> Vec<&'static str> {
-    SLASH_COMMANDS
+/// Matches against both the built-in commands and the user's
+/// `custom_commands` (settings), so `/help` and Tab-completion never go
+/// stale relative to what `try_dispatch_command` actually accepts.
+pub(super) fn autocomplete(prefix: &str, custom: &BTreeMap<String, String>) -> Vec<String> {
+    let mut matches: Vec<String> = SLASH_COMMANDS
         .iter()
-        .copied()
+        .map(|command| (*command).to_string())
+        .chain(custom.keys().map(|name| format!("/{name}")))
         .filter(|command| command.starts_with(prefix))
-        .collect()
+        .collect();
+    matches.sort();
+    matches.dedup();
+    matches
 }
 
 pub(super) fn palette_command(label: &str) -> &str {
@@ -63,6 +73,7 @@ impl App {
             "/models" => self.open_model_picker(),
             "/new" => self.new_tab(),
             "/clear" => self.clear_active_conversation(),
+            "/undo" => self.undo_clear(),
             "/tabs" => self.status = self.tab_summary(),
             "/history" if args.trim().is_empty() => self.open_history_picker(),
             "/history" if args.trim().starts_with("delete ") => {
@@ -100,8 +111,15 @@ impl App {
             "/model" if args.trim().is_empty() => self.open_model_picker(),
             "/model" => self.handle_model_command(args.trim()),
             _ => {
+                if let Some(name) = command.strip_prefix('/') {
+                    if let Some(template) = self.settings.custom_commands.get(name).cloned() {
+                        self.input.set(template.replace("{args}", args.trim()));
+                        self.status = format!("expanded /{name} · edit and press Enter to send");
+                        return true;
+                    }
+                }
                 if text.starts_with('/') {
-                    let matches = autocomplete(command);
+                    let matches = autocomplete(command, &self.settings.custom_commands);
                     self.status = if matches.is_empty() {
                         format!("unknown command '{command}' · /help lists commands")
                     } else {
@@ -113,6 +131,29 @@ impl App {
             }
         }
         true
+    }
+
+    /// `/undo` — restore the conversation as it stood before the most
+    /// recent `/clear`, if any. Single level: a second `/undo` (or another
+    /// `/clear`) has nothing further to revert to.
+    fn undo_clear(&mut self) {
+        match self.undo_buffer.take() {
+            Some(restored) => {
+                self.history = restored;
+                self.scroll = u16::MAX;
+                if let Err(error) = crate::chat::history::rewrite_session(
+                    &self.session_id,
+                    self.provider.name(),
+                    &self.model,
+                    &self.history,
+                ) {
+                    self.status = format!("restored in memory; persistence failed: {error}");
+                } else {
+                    self.status = "restored the cleared conversation".to_string();
+                }
+            }
+            None => self.status = "nothing to undo".to_string(),
+        }
     }
 
     fn handle_tab_command(&mut self, args: &str) {
@@ -134,7 +175,11 @@ impl App {
             self.status = "stop generation before clearing this conversation".to_string();
             return;
         }
-        self.history.clear();
+        if self.history.is_empty() {
+            self.status = "nothing to clear".to_string();
+            return;
+        }
+        self.undo_buffer = Some(std::mem::take(&mut self.history));
         self.streaming_reply.clear();
         self.scroll = u16::MAX;
         if let Err(error) = crate::chat::history::rewrite_session(
@@ -145,7 +190,7 @@ impl App {
         ) {
             self.status = format!("conversation cleared in memory; persistence failed: {error}");
         } else {
-            self.status = "conversation cleared".to_string();
+            self.status = "conversation cleared · /undo to restore".to_string();
         }
     }
 
@@ -188,20 +233,4 @@ impl App {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn slash_autocomplete_is_prefix_based_and_deterministic() {
-        assert_eq!(autocomplete("/mo"), vec!["/model", "/models"]);
-        assert!(autocomplete("/unknown").is_empty());
-    }
-
-    #[test]
-    fn palette_keeps_multiword_command_arguments() {
-        assert_eq!(
-            palette_command("Duplicate tab  /tab duplicate"),
-            "/tab duplicate"
-        );
-    }
-}
+mod tests;

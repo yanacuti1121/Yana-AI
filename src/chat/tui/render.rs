@@ -100,6 +100,9 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
             .border_style(Style::default().fg(colors.primary)),
     );
     frame.render_widget(header_widget, header_area);
+    // Recorded for `mouse::handle_tab_click` — the layout above is the only
+    // source of truth for where the tab bar actually lands on screen.
+    app.tabs_area = tabs_area;
     draw_tabs(frame, app, tabs_area, colors);
 
     let history_area = if content_area.width >= SIDEBAR_MIN_WIDTH {
@@ -172,24 +175,11 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
 
 fn draw_tabs(frame: &mut Frame, app: &App, area: Rect, colors: Palette) {
     let available = area.width.saturating_sub(4) as usize;
-    let mut used = 0usize;
     let mut spans = Vec::new();
-    for (index, tab) in app.tabs.iter().enumerate() {
-        let mut title: String = tab.metadata.title.chars().take(18).collect();
-        if tab.metadata.title.chars().count() > 18 {
-            title.push('…');
-        }
-        let activity = if matches!(tab.turn, TurnState::Streaming { .. }) {
-            " ◌"
-        } else if tab.has_new_output {
-            " ↓"
-        } else {
-            ""
-        };
-        let label = format!(" {} {}{} ", index + 1, title, activity);
-        if used + label.chars().count() > available {
-            break;
-        }
+    // `visible_tab_labels` also backs mouse-click hit-testing
+    // (`mouse::handle_tab_click`) — kept in one place so what's drawn here
+    // and what a click resolves to can't silently drift apart.
+    for (index, label) in super::tabs::visible_tab_labels(&app.tabs, available) {
         let style = if index == app.active_tab {
             Style::default()
                 .fg(Color::Black)
@@ -198,9 +188,8 @@ fn draw_tabs(frame: &mut Frame, app: &App, area: Rect, colors: Palette) {
         } else {
             Style::default().fg(colors.muted)
         };
-        spans.push(Span::styled(label.clone(), style));
+        spans.push(Span::styled(label, style));
         spans.push(Span::raw(" "));
-        used += label.chars().count() + 1;
     }
     spans.push(Span::styled(
         " + ",
@@ -243,14 +232,23 @@ fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect, colors: Palette) {
         }
         _ => "— tok/s".to_string(),
     };
+    // Contextual, not a single fixed "Ctrl+K commands" always — the one
+    // hint that actually applies to what's on the input line right now.
+    let hint = if app.input.as_str().starts_with('/') {
+        "Tab autocomplete · Enter run"
+    } else if app.input.is_empty() {
+        "Ctrl+K commands · Tab panel"
+    } else {
+        "Enter send · Ctrl+K commands"
+    };
     let text = if area.width >= 85 && app.settings.show_metrics {
         format!(
-            " {state} │ {} │ {} │ {usage} │ {speed} │ {runtime} │ Ctrl+K commands ",
+            " {state} │ {} │ {} │ {usage} │ {speed} │ {runtime} │ {hint} ",
             app.provider.name(),
             app.model
         )
     } else {
-        format!(" {state} │ {} │ {runtime} │ Ctrl+K ", app.model)
+        format!(" {state} │ {} │ {runtime} │ {hint} ", app.model)
     };
     frame.render_widget(
         Paragraph::new(text).style(Style::default().fg(colors.muted)),
@@ -298,7 +296,8 @@ fn input_title(app: &App) -> String {
     } else if matches!(app.turn, TurnState::ExecutingTool { .. }) {
         " Running approved tool… ".to_string()
     } else if app.input.as_str().starts_with('/') {
-        let matches = super::commands::autocomplete(app.input.as_str());
+        let matches =
+            super::commands::autocomplete(app.input.as_str(), &app.settings.custom_commands);
         if matches.is_empty() {
             " Unknown command · /help ".to_string()
         } else {

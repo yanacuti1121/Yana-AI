@@ -26,22 +26,38 @@ impl App {
     }
 
     pub(super) fn open_help(&mut self) {
+        let mut items = vec![
+            "Ctrl+K  Command palette".to_string(),
+            "Ctrl+T / Ctrl+W  New / close tab".to_string(),
+            "Ctrl+Tab / Ctrl+Shift+Tab  Change tab".to_string(),
+            "Alt+1..9  Jump to tab · click a tab label".to_string(),
+            "Enter  Send · Ctrl+J  Newline".to_string(),
+            "Esc / Ctrl+C  Cancel generation".to_string(),
+            "PageUp / PageDown / scroll wheel  Scroll".to_string(),
+            "/undo  Restore the conversation after /clear".to_string(),
+            "/model /history /settings /system /export".to_string(),
+        ];
+        if !self.settings.custom_commands.is_empty() {
+            let names = self
+                .settings
+                .custom_commands
+                .keys()
+                .map(|name| format!("/{name}"))
+                .collect::<Vec<_>>()
+                .join(" ");
+            items.push(format!("Custom: {names}"));
+        }
         self.overlay = Some(Overlay {
             kind: OverlayKind::Help,
             title: "Yana Local Chat · Help".to_string(),
             query: TextInput::default(),
-            items: vec![
-                "Ctrl+K  Command palette".to_string(),
-                "Ctrl+T / Ctrl+W  New / close tab".to_string(),
-                "Ctrl+Tab / Ctrl+Shift+Tab  Change tab".to_string(),
-                "Alt+1..9  Jump to tab".to_string(),
-                "Enter  Send · Ctrl+J  Newline".to_string(),
-                "Esc / Ctrl+C  Cancel generation".to_string(),
-                "PageUp / PageDown  Scroll".to_string(),
-                "/model /history /settings /system /export".to_string(),
-            ],
+            items,
             selected: 0,
-            detail: vec!["All features are keyboard accessible; mouse is optional.".to_string()],
+            detail: vec![
+                "Everything above is keyboard-first, but the mouse works too: scroll the \
+                 transcript, click a tab to switch."
+                    .to_string(),
+            ],
             loading: false,
         });
     }

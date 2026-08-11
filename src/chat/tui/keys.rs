@@ -57,7 +57,9 @@ impl App {
                 self.has_new_output = false;
             }
             (KeyCode::Tab, _) if self.input.as_str().starts_with('/') => {
-                if let Some(command) = commands::autocomplete(self.input.as_str()).first() {
+                let matches =
+                    commands::autocomplete(self.input.as_str(), &self.settings.custom_commands);
+                if let Some(command) = matches.first() {
                     self.input.set(format!("{command} "));
                 }
             }

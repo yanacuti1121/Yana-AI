@@ -20,6 +20,7 @@ mod approval;
 mod commands;
 mod keys;
 mod model_command;
+mod mouse;
 mod overlay;
 mod render;
 mod sidebar;
@@ -40,6 +41,7 @@ use super::tools::round_guard::ToolRoundGuard;
 use super::tools::run_command::ExecOutcome;
 use anyhow::Result;
 use crossterm::event::{self, Event};
+use ratatui::layout::Rect;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::sync::{mpsc, Arc};
@@ -132,6 +134,12 @@ pub(super) struct ChatTab {
     auto_scroll: bool,
     has_new_output: bool,
     tool_rounds: ToolRoundGuard,
+    /// Single-level undo for `/clear` — the conversation as it stood right
+    /// before the most recent clear, restorable once via `/undo`. Not a
+    /// full undo stack (lazygit-style multi-step undo is a much bigger
+    /// feature); this covers the one destructive, no-confirmation action
+    /// the TUI has today.
+    undo_buffer: Option<Vec<ChatMessage>>,
 }
 
 pub(super) struct App {
@@ -171,6 +179,12 @@ pub(super) struct App {
     settings: ChatSettings,
     overlay: Option<Overlay>,
     model_discovery: Option<mpsc::Receiver<Result<Vec<super::provider::ModelInfo>, String>>>,
+    /// Tab bar's on-screen area from the most recent draw — recorded so a
+    /// mouse click can be hit-tested against tab boundaries without
+    /// re-deriving the layout independently of `render::draw_tabs`'s own
+    /// math. `Rect::default()` (all zero) before the first frame; a click
+    /// that arrives before any draw simply hits nothing, which is correct.
+    tabs_area: Rect,
 }
 
 impl std::ops::Deref for App {
@@ -261,6 +275,7 @@ impl App {
             auto_scroll: true,
             has_new_output: false,
             tool_rounds: ToolRoundGuard::new(),
+            undo_buffer: None,
         };
         let mut app = Self {
             tabs: vec![tab],
@@ -283,6 +298,7 @@ impl App {
             settings,
             overlay: None,
             model_discovery: None,
+            tabs_area: Rect::default(),
         };
         if !resumed && app.settings.restore_session {
             if let Ok(workspace) = history::load_workspace() {
@@ -328,7 +344,8 @@ pub fn run(terminal: &mut TerminalGuard, mut app: App) -> Result<()> {
             match event::read()? {
                 Event::Key(key) => app.on_key(key),
                 Event::Paste(text) => app.input.insert_str(&text),
-                Event::Resize(_, _) | Event::FocusGained | Event::FocusLost | Event::Mouse(_) => {}
+                Event::Mouse(mouse) => app.on_mouse(mouse),
+                Event::Resize(_, _) | Event::FocusGained | Event::FocusLost => {}
             }
         }
 

@@ -2,6 +2,7 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -15,6 +16,16 @@ pub struct ChatSettings {
     pub default_provider: String,
     pub default_model: Option<String>,
     pub privacy: PrivacySettings,
+    /// User-defined slash commands: name (no leading `/`) → expansion text.
+    /// `{args}` in the expansion is replaced with whatever follows the
+    /// command name on the input line (empty string if nothing follows).
+    /// Deliberately config-file-only for now (edit `.yana-ai/chat-
+    /// settings.json` directly) rather than an in-TUI editor — that's a
+    /// separate, bigger feature if it turns out to be wanted. A matched
+    /// custom command inserts its expansion into the input box rather than
+    /// auto-sending it, so the user can review/edit before pressing Enter.
+    #[serde(default)]
+    pub custom_commands: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -43,6 +54,7 @@ impl Default for ChatSettings {
             default_provider: "ollama".to_string(),
             default_model: None,
             privacy: PrivacySettings::default(),
+            custom_commands: BTreeMap::new(),
         }
     }
 }
@@ -92,6 +104,31 @@ mod tests {
         let settings = load(temp.path()).unwrap();
         assert_eq!(settings, ChatSettings::default());
         assert!(!settings.privacy.telemetry);
+    }
+
+    #[test]
+    fn missing_custom_commands_field_defaults_to_empty_map() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = settings_path(temp.path());
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, r#"{"theme":"terminal"}"#).unwrap();
+        let settings = load(temp.path()).unwrap();
+        assert!(settings.custom_commands.is_empty());
+    }
+
+    #[test]
+    fn custom_commands_round_trip_through_disk() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut settings = ChatSettings::default();
+        settings
+            .custom_commands
+            .insert("review".to_string(), "Review this for {args}".to_string());
+        save(temp.path(), &settings).unwrap();
+        let loaded = load(temp.path()).unwrap();
+        assert_eq!(
+            loaded.custom_commands.get("review"),
+            Some(&"Review this for {args}".to_string())
+        );
     }
 
     #[test]

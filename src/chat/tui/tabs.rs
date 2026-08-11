@@ -88,6 +88,7 @@ impl App {
             auto_scroll: true,
             has_new_output: false,
             tool_rounds: ToolRoundGuard::new(),
+            undo_buffer: None,
         });
         self.active_tab = self.tabs.len() - 1;
         self.persist_workspace();
@@ -126,6 +127,7 @@ impl App {
             auto_scroll: true,
             has_new_output: false,
             tool_rounds: ToolRoundGuard::new(),
+            undo_buffer: None,
         });
         self.active_tab = self.tabs.len() - 1;
         self.show_recent_sessions = false;
@@ -279,6 +281,37 @@ impl App {
             }
         }
     }
+}
+
+/// The tab bar's label text and left-to-right truncation logic, shared
+/// between `render::draw_tabs` (what's painted) and `mouse::handle_tab_click`
+/// (what a click hit-tests against) — extracted here so the two can never
+/// silently drift out of sync with each other. Returns `(tab index, label
+/// text)` pairs in on-screen order; a tab that doesn't fit in
+/// `available_width` is omitted, matching `draw_tabs`'s own overflow cutoff.
+pub(super) fn visible_tab_labels(tabs: &[ChatTab], available_width: usize) -> Vec<(usize, String)> {
+    let mut used = 0usize;
+    let mut visible = Vec::new();
+    for (index, tab) in tabs.iter().enumerate() {
+        let mut title: String = tab.metadata.title.chars().take(18).collect();
+        if tab.metadata.title.chars().count() > 18 {
+            title.push('…');
+        }
+        let activity = if matches!(tab.turn, TurnState::Streaming { .. }) {
+            " ◌"
+        } else if tab.has_new_output {
+            " ↓"
+        } else {
+            ""
+        };
+        let label = format!(" {} {}{} ", index + 1, title, activity);
+        if used + label.chars().count() > available_width {
+            break;
+        }
+        used += label.chars().count() + 1; // +1 for the separating space
+        visible.push((index, label));
+    }
+    visible
 }
 
 #[cfg(test)]

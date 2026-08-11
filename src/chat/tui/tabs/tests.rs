@@ -102,6 +102,24 @@ fn mock_provider_streams_chunks_in_order() {
 }
 
 #[test]
+fn visible_tab_labels_matches_active_tab_index_and_stops_on_overflow() {
+    let mut app = app();
+    app.metadata.title = "first".to_string();
+    app.new_tab();
+    app.metadata.title = "second".to_string();
+    let labels = visible_tab_labels(&app.tabs, 200);
+    assert_eq!(labels.len(), 2);
+    assert_eq!(labels[0].0, 0);
+    assert!(labels[0].1.contains("first"));
+    assert_eq!(labels[1].0, 1);
+    assert!(labels[1].1.contains("second"));
+
+    // A width too small for even one label yields nothing rendered —
+    // matches draw_tabs's own overflow cutoff, no panic on tiny terminals.
+    assert!(visible_tab_labels(&app.tabs, 2).is_empty());
+}
+
+#[test]
 fn cancellation_sets_the_active_worker_token() {
     let mut app = app();
     let (_sender, receiver) = std::sync::mpsc::channel();
