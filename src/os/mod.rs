@@ -2,6 +2,7 @@
 
 mod agent;
 mod credential;
+mod governor;
 mod health;
 mod resource;
 mod state;
@@ -48,6 +49,14 @@ pub enum OsAction {
     Resource {
         #[command(subcommand)]
         action: ResourceAction,
+    },
+    /// Evolution Governor — status and absorption capacity.
+    /// docs/EVOLUTION_GOVERNOR.md. The `roadmap` piece of that design is
+    /// intentionally not here — built separately to avoid two agents
+    /// editing this same enum at once.
+    Governor {
+        #[command(subcommand)]
+        action: GovernorAction,
     },
     /// Phase 0 compatibility: list chat sessions.
     AgentList {
@@ -148,6 +157,58 @@ pub enum ResourceAction {
     },
 }
 
+#[derive(Subcommand, Debug)]
+pub enum GovernorAction {
+    /// Health Map — mechanically checkable signals only (drift-check,
+    /// core-lock, manifest counts; --deep adds cargo test + hook suite).
+    Status {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+        #[arg(long)]
+        deep: bool,
+    },
+    /// Absorption capacity policy (docs/EVOLUTION_GOVERNOR.md's YAML
+    /// example) — how much new work the project can take on right now.
+    Capacity {
+        #[command(subcommand)]
+        action: CapacityAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum CapacityAction {
+    Show {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Set {
+        #[arg(long, default_value = "convergence")]
+        mode: String,
+        #[arg(long, default_value_t = 2)]
+        max_active_programs: usize,
+        #[arg(long, default_value_t = 0)]
+        max_architecture_changes: usize,
+        #[arg(long, default_value_t = 0)]
+        max_new_dependencies: usize,
+        #[arg(long, default_value_t = 1)]
+        max_active_experiments: usize,
+        #[arg(long, default_value_t = 70)]
+        allocation_consolidation_pct: u8,
+        #[arg(long, default_value_t = 20)]
+        allocation_onboarding_and_packaging_pct: u8,
+        #[arg(long, default_value_t = 10)]
+        allocation_experiments_pct: u8,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
 #[derive(Serialize)]
 struct OsStatus {
     schema_version: u32,
@@ -221,6 +282,7 @@ pub fn dispatch(action: OsAction) -> Result<()> {
             CredentialAction::Status { json } => credential::status(json)?,
         },
         OsAction::Resource { action } => dispatch_resource(action)?,
+        OsAction::Governor { action } => dispatch_governor(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
@@ -315,6 +377,54 @@ fn dispatch_resource(action: ResourceAction) -> Result<()> {
                 bail!("resource preflight denied");
             }
         }
+    }
+    Ok(())
+}
+
+fn dispatch_governor(action: GovernorAction) -> Result<()> {
+    match action {
+        GovernorAction::Status { dir, json, deep } => {
+            let root = state::project_root(&dir)?;
+            let report = governor::status(&root, deep);
+            governor::print_status(&report, json)?;
+            if report.failed() {
+                bail!("Evolution Governor status found blocking failures");
+            }
+        }
+        GovernorAction::Capacity { action } => match action {
+            CapacityAction::Show { dir, json } => {
+                let root = state::project_root(&dir)?;
+                governor::print_capacity(&governor::load_capacity(&root)?, json)?;
+            }
+            CapacityAction::Set {
+                mode,
+                max_active_programs,
+                max_architecture_changes,
+                max_new_dependencies,
+                max_active_experiments,
+                allocation_consolidation_pct,
+                allocation_onboarding_and_packaging_pct,
+                allocation_experiments_pct,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let capacity = governor::set_capacity(
+                    &root,
+                    governor::GovernorCapacity {
+                        mode,
+                        max_active_programs,
+                        max_architecture_changes,
+                        max_new_dependencies,
+                        max_active_experiments,
+                        allocation_consolidation_pct,
+                        allocation_onboarding_and_packaging_pct,
+                        allocation_experiments_pct,
+                    },
+                )?;
+                governor::print_capacity(&capacity, json)?;
+            }
+        },
     }
     Ok(())
 }
