@@ -77,6 +77,7 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 | [Journey](JOURNEY.md) | The story behind Yana AI |
 | [Philosophy](PHILOSOPHY.md) | Core beliefs and long-term vision |
 | [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
+| [Lineage](docs/history/LINEAGE.md) | Dated, evidence-checked code-origin record — where this codebase actually came from |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
 
 ---
@@ -542,6 +543,12 @@ See the [full CLI reference](docs/reference/cli-reference.md) for sample output 
 ## 🇻🇳 Tiếng Việt · 🇰🇷 한국어 · 🇨🇳 中文
 
 Full translations of this document: **[README.vi.md](README.vi.md)** (Tiếng Việt) · **[README.ko.md](README.ko.md)** (한국어) · **[README.zh.md](README.zh.md)** (中文)
+
+---
+
+## Lineage
+
+This codebase's roots go back further than this repo's own git history (which starts 2026-05-17): an earlier scaffold built under the name "YAMTAM ENGINE". See [docs/history/LINEAGE.md](docs/history/LINEAGE.md) for the dated origin record — what's independently verified (zip contents, embedded git history, checksums) versus what's reported and still unconfirmed.
 
 ---
 
