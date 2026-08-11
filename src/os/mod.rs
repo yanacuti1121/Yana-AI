@@ -1,6 +1,7 @@
 //! Program K — Yana OS Phase 1 local management plane.
 
 mod agent;
+mod autonomy;
 mod credential;
 mod governor;
 mod health;
@@ -56,6 +57,11 @@ pub enum OsAction {
         #[command(subcommand)]
         action: GovernorAction,
     },
+    /// Automatic-operation policy and durable action intent queue.
+    Autonomy {
+        #[command(subcommand)]
+        action: AutonomyAction,
+    },
     /// Phase 0 compatibility: list chat sessions.
     AgentList {
         #[arg(long, default_value_t = 20)]
@@ -65,6 +71,97 @@ pub enum OsAction {
     CredentialStatus,
     /// Phase 0 compatibility: existing token/cost ledger summary.
     ResourceStatus,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum AutonomyAction {
+    /// Show or update the autonomy ceiling and verification policy.
+    Policy {
+        #[command(subcommand)]
+        action: AutonomyPolicyAction,
+    },
+    /// Explain how a typed operation is classified by the current policy.
+    Classify {
+        operation: autonomy::Operation,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Manage durable action intents. This layer does not execute commands.
+    Queue {
+        #[command(subcommand)]
+        action: AutonomyQueueAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum AutonomyPolicyAction {
+    Show {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Set {
+        #[arg(long, action = clap::ArgAction::Set)]
+        enabled: bool,
+        #[arg(long)]
+        max_automatic_level: autonomy::AutonomyLevel,
+        #[arg(long, default_value_t = 1)]
+        max_attempts: u32,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum AutonomyQueueAction {
+    List {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Add {
+        operation: autonomy::Operation,
+        #[arg(long)]
+        summary: String,
+        #[arg(long)]
+        program: String,
+        #[arg(long = "arg")]
+        args: Vec<String>,
+        #[arg(long)]
+        verify_program: Option<String>,
+        #[arg(long = "verify-arg")]
+        verify_args: Vec<String>,
+        #[arg(long)]
+        rollback_program: Option<String>,
+        #[arg(long = "rollback-arg")]
+        rollback_args: Vec<String>,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Approve {
+        id: String,
+        #[arg(long)]
+        approve: bool,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Cancel {
+        id: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -292,6 +389,8 @@ struct OsStatus {
     running_agents: usize,
     resource_policy_configured: bool,
     providers: Vec<credential::CredentialStatus>,
+    autonomy_ready: usize,
+    autonomy_waiting_approval: usize,
 }
 
 pub fn dispatch(action: OsAction) -> Result<()> {
@@ -314,6 +413,7 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         OsAction::Status { dir, json } => {
             let root = state::project_root(&dir)?;
             let current = state::load(&root)?;
+            let queue = autonomy::load_queue(&root)?;
             let report = OsStatus {
                 schema_version: current.schema_version,
                 state_path: state::state_path(&root).display().to_string(),
@@ -325,6 +425,16 @@ pub fn dispatch(action: OsAction) -> Result<()> {
                     .count(),
                 resource_policy_configured: current.resource_policy.is_some(),
                 providers: credential::inventory(),
+                autonomy_ready: queue
+                    .actions
+                    .iter()
+                    .filter(|action| action.status == autonomy::ActionStatus::Ready)
+                    .count(),
+                autonomy_waiting_approval: queue
+                    .actions
+                    .iter()
+                    .filter(|action| action.status == autonomy::ActionStatus::WaitingApproval)
+                    .count(),
             };
             if json {
                 println!("{}", serde_json::to_string_pretty(&report)?);
@@ -342,6 +452,8 @@ pub fn dispatch(action: OsAction) -> Result<()> {
                         "UNSET (preflight denies)"
                     }
                 );
+                println!("  autonomy ready      {}", report.autonomy_ready);
+                println!("  awaiting approval   {}", report.autonomy_waiting_approval);
             }
         }
         OsAction::Doctor { dir, json } => {
@@ -358,9 +470,103 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         },
         OsAction::Resource { action } => dispatch_resource(action)?,
         OsAction::Governor { action } => dispatch_governor(action)?,
+        OsAction::Autonomy { action } => dispatch_autonomy(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
+    }
+    Ok(())
+}
+
+fn dispatch_autonomy(action: AutonomyAction) -> Result<()> {
+    match action {
+        AutonomyAction::Policy { action } => match action {
+            AutonomyPolicyAction::Show { dir, json } => {
+                let root = state::project_root(&dir)?;
+                autonomy::print_json_or_debug(&autonomy::load_policy(&root)?, json)?;
+            }
+            AutonomyPolicyAction::Set {
+                enabled,
+                max_automatic_level,
+                max_attempts,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let policy = autonomy::AutonomyPolicy {
+                    enabled,
+                    max_automatic_level,
+                    max_attempts,
+                };
+                autonomy::save_policy(&root, &policy)?;
+                autonomy::print_json_or_debug(&policy, json)?;
+            }
+        },
+        AutonomyAction::Classify {
+            operation,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            let policy = autonomy::load_policy(&root)?;
+            autonomy::print_json_or_debug(&autonomy::evaluate(&policy, operation), json)?;
+        }
+        AutonomyAction::Queue { action } => match action {
+            AutonomyQueueAction::List { dir, json } => {
+                let root = state::project_root(&dir)?;
+                autonomy::print_json_or_debug(&autonomy::load_queue(&root)?, json)?;
+            }
+            AutonomyQueueAction::Add {
+                operation,
+                summary,
+                program,
+                args,
+                verify_program,
+                verify_args,
+                rollback_program,
+                rollback_args,
+                dir,
+                json,
+            } => {
+                if verify_program.is_none() && !verify_args.is_empty() {
+                    bail!("--verify-arg requires --verify-program");
+                }
+                if rollback_program.is_none() && !rollback_args.is_empty() {
+                    bail!("--rollback-arg requires --rollback-program");
+                }
+                let root = state::project_root(&dir)?;
+                let action = autonomy::enqueue(
+                    &root,
+                    autonomy::NewAction {
+                        operation,
+                        summary,
+                        command: autonomy::ActionCommand { program, args },
+                        verification: verify_program.map(|program| autonomy::ActionCommand {
+                            program,
+                            args: verify_args,
+                        }),
+                        rollback: rollback_program.map(|program| autonomy::ActionCommand {
+                            program,
+                            args: rollback_args,
+                        }),
+                    },
+                )?;
+                autonomy::print_json_or_debug(&action, json)?;
+            }
+            AutonomyQueueAction::Approve {
+                id,
+                approve,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                autonomy::print_json_or_debug(&autonomy::approve(&root, &id, approve)?, json)?;
+            }
+            AutonomyQueueAction::Cancel { id, dir, json } => {
+                let root = state::project_root(&dir)?;
+                autonomy::print_json_or_debug(&autonomy::cancel(&root, &id)?, json)?;
+            }
+        },
     }
     Ok(())
 }
