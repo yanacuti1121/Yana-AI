@@ -150,7 +150,13 @@ jobs:
       - name: Check whether this version is already published
         id: check_published
         run: |
-          status=$(curl -fsS -o /dev/null -w '%{http_code}' \
+          # No -f: we need the actual status code even on 4xx, not a
+          # curl exit failure. crates.io also 403s any request without a
+          # descriptive User-Agent (see https://crates.io/data-access) --
+          # the missing header, not a real access problem, caused this
+          # step to fail closed on its first real run.
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "User-Agent: yana-ai-ci (https://github.com/yanacuti1121/Yana-AI)" \
             "https://crates.io/api/v1/crates/yana-rt/$VERSION")
           if [[ "$status" == "200" ]]; then
             echo "yana-rt@$VERSION already exists on crates.io — skipping publish."
