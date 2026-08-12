@@ -41,6 +41,7 @@ jobs:
           context: core/sandbox
           file: core/sandbox/Dockerfile.sandbox
           push: false
+          load: true
           tags: yana-ai-sandbox:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
