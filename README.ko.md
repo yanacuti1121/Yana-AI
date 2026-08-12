@@ -261,7 +261,7 @@ core/
 ├── agents/         # 101개 전문 에이전트 정의
 ├── skills/         # 2,025개 SKILL.md 파일
 ├── config/
-│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 277개 고정
+│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 278개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
 └── memory/
     ├── L1_atomic/  # 영구 사실 — 세션 간 유지

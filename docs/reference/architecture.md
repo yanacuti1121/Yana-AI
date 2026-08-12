@@ -46,10 +46,10 @@ graph TB
     %% ── Core engine ──────────────────────────────────────────────────────
     subgraph CORE["⚙️ Core Engine"]
         direction TB
-        SKILLS["📚 1,989 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
+        SKILLS["📚 2,025 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 101 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 70 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
-        HOOKS["🪝 56 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
+        HOOKS["🪝 63 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 166 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         DISPATCH["🧵 Subagent dispatch\nSynchronous Task-tool calls,\nplain-text report back"]
         MEM["🧠 Memory tiers\nL1 permanent · L2 session"]
@@ -58,7 +58,7 @@ graph TB
     %% ── Rust runtime ─────────────────────────────────────────────────────
     subgraph RT["⚡ Rust Runtime — yana-rt"]
         direction LR
-        SCAN["scan · hunt · fix\nVulnerabilities, OWASP,\nsupply chain — 1256× faster"]
+        SCAN["scan · hunt · fix\nVulnerabilities, OWASP,\nsupply chain — ~2-12x faster than Python"]
         ROUTE["route · mission\nTask classifier → simple/\ncomplex/external dispatch"]
         VAULT["graph · vault · doctor\nKnowledge graph,\nskill search, health check"]
     end
@@ -111,28 +111,27 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 
 | | |
 |---|---|
-| 🧩 Skills | **1,989** workflow skill definitions |
+| 🧩 Skills | **2,025** workflow skill definitions |
 | 🤖 Agents | **101** specialist agents |
-| 📜 Safety rules | **70** enforced rules |
-| 🪝 Hooks | **56** pre/post-execution hooks |
-| ⚡ Slash commands | **166** |
-| 🔧 Scripts | **107** |
-| 🔌 Harness adapters | **12** (Claude Code, Cursor, Windsurf, Antigravity, Kiro, OpenCode, Zed, Gemini, Copilot, Aider...) |
-| 🦀 Rust subcommands | **23** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`...) |
-| ✅ Rule checks in CI | **826** |
+| 📜 Safety rules | **71** enforced rules |
+| 🪝 Hooks | **63** pre/post-execution hooks |
+| ⚡ Slash commands | **170** |
+| 🔧 Scripts | **124** |
+| 🔌 Harness adapters | **4** (Claude Code, Cursor, Codex, Antigravity — cut down from 15 in v1.0.0, see CHANGELOG.md) |
+| 🦀 Rust subcommands | **30** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `os`, `chat`...) |
 
 ## Safety architecture
 
 ```
 core/
-├── hooks/          # 56 PreToolUse / PostToolUse / Stop hooks
-├── rules/          # 70 enforced rules (security, correctness, UI, git)
+├── hooks/          # 63 PreToolUse / PostToolUse / Stop hooks
+├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md
 ├── agents/         # 101 specialist agent definitions
-├── skills/         # 1,989 SKILL.md files
+├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 240 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 278 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions

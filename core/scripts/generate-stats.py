@@ -74,6 +74,37 @@ def commands_count():
     return max(count_files("core/commands", ".md"), count_files(".claude/commands", ".md"))
 
 
+def core_lock_count():
+    """Number of files pinned in core-lock.json — the number README.md
+    quotes as "N core files pinned". Added 2026-08-12 after README said
+    240 while the actual manifest had 277 (found during a doc-accuracy
+    pass, same class of drift this whole script exists to catch)."""
+    path = os.path.join(ROOT, "core", "config", "core-lock.json")
+    if not os.path.isfile(path):
+        return 0
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return len(data.get("files", {}))
+
+
+def subcommands_count():
+    """Top-level `yana-rt` subcommands — README quotes this as "N
+    subcommands". Counts top-level variants of `enum Commands` in
+    src/main.rs (4-space-indented `Name {`/`Name(` lines only, so nested
+    fields like `action: TaskAction,` inside a variant aren't counted).
+    Added 2026-08-12 after README said 27 while the enum had 30."""
+    path = os.path.join(ROOT, "src", "main.rs")
+    if not os.path.isfile(path):
+        return 0
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    match = re.search(r"^enum Commands \{(.*?)^\}", text, re.DOTALL | re.MULTILINE)
+    if not match:
+        return 0
+    body = match.group(1)
+    return len(re.findall(r"^    [A-Z][A-Za-z]*[ (]", body, re.MULTILINE))
+
+
 def stats():
     return {
         "agents": len(unique_agents()),
@@ -81,6 +112,8 @@ def stats():
         "hooks": hooks_count(),
         "rules": rules_count(),
         "commands": commands_count(),
+        "core_lock_files": core_lock_count(),
+        "subcommands": subcommands_count(),
     }
 
 
@@ -107,13 +140,34 @@ def main():
             actual = s[key]
             if claimed != actual:
                 problems.append(f"  {key}: docs/reference/architecture.md says {claimed}, filesystem has {actual}")
+
+        # core-lock count and subcommand count live directly in the top-level
+        # README.md (not docs/reference/architecture.md) — added 2026-08-12
+        # alongside the two new stat functions, same pass that found both
+        # stale (240 vs 277, 27 vs 30).
+        readme_root_path = os.path.join(ROOT, "README.md")
+        readme_root = open(readme_root_path, encoding="utf-8").read()
+        readme_checks = [
+            ("core_lock_files", r"core-lock\.json\s+# SHA-256 manifest — (\d[\d,]*) core files pinned"),
+            ("subcommands", r"(\d[\d,]*) subcommands\. Zero Python dependency"),
+        ]
+        for key, pattern in readme_checks:
+            m = re.search(pattern, readme_root)
+            if not m:
+                problems.append(f"  {key}: pattern not found in README.md (README format changed?)")
+                continue
+            claimed = int(m.group(1).replace(",", ""))
+            actual = s[key]
+            if claimed != actual:
+                problems.append(f"  {key}: README.md says {claimed}, filesystem has {actual}")
+
         if problems:
-            print("✗ docs/reference/architecture.md is out of sync with the filesystem:")
+            print("✗ docs are out of sync with the filesystem:")
             print("\n".join(problems))
             print("\nRe-run without --check to see current real numbers, then update")
-            print("docs/reference/architecture.md, ARCHITECTURE.md, and worker.js's SYSTEM prompt to match.")
+            print("docs/reference/architecture.md, ARCHITECTURE.md, README.md, and worker.js's SYSTEM prompt to match.")
             sys.exit(1)
-        print("✓ docs/reference/architecture.md numbers match the filesystem.")
+        print("✓ docs/reference/architecture.md and README.md numbers match the filesystem.")
         return
     print(json.dumps(s, indent=2))
 
