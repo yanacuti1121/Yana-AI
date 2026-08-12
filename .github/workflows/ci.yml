@@ -47,6 +47,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-release-
 
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        run: bash core/scripts/prefetch-pdfium.sh
+
       - name: Build yana-rt (release, for guard-blast-radius.sh)
         run: cargo build --release --bin yana-rt
 
@@ -101,6 +104,9 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        run: bash core/scripts/prefetch-pdfium.sh
+
       - name: Build debug runtime
         run: cargo build --bin yana-rt
 
@@ -152,6 +158,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        run: bash core/scripts/prefetch-pdfium.sh
+
       - name: Build yana-rt
         run: cargo build --bin yana-rt
 
@@ -198,6 +207,10 @@ jobs:
           key: ${{ runner.os }}-system-health-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-system-health-
+
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        if: runner.os != 'Windows'
+        run: bash core/scripts/prefetch-pdfium.sh
 
       - name: Run monitor units and build runtime
         run: |
@@ -280,6 +293,9 @@ jobs:
           key: ${{ runner.os }}-cargo-release-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-release-
+
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        run: bash core/scripts/prefetch-pdfium.sh
 
       - name: Build yana-rt (release)
         run: cargo build --release --bin yana-rt
