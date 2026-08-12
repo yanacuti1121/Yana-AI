@@ -135,6 +135,7 @@ jobs:
           VERSION="${VERSION#rt-v}"
           VERSION="${VERSION#v}"
           sed -i "s/^version = .*/version = \"$VERSION\"/" Cargo.toml
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Cache cargo registry
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
@@ -142,7 +143,24 @@ jobs:
           path: ~/.cargo/registry
           key: cargo-publish-${{ hashFiles('Cargo.lock') }}
 
+      # crates.io versions are immutable — cargo publish has no equivalent
+      # of pypa/gh-action-pypi-publish's skip-existing flag, so a re-run
+      # against an already-published version always fails loudly. Checked
+      # here instead, mirroring the PyPI job's skip-existing behavior.
+      - name: Check whether this version is already published
+        id: check_published
+        run: |
+          status=$(curl -fsS -o /dev/null -w '%{http_code}' \
+            "https://crates.io/api/v1/crates/yana-rt/$VERSION")
+          if [[ "$status" == "200" ]]; then
+            echo "yana-rt@$VERSION already exists on crates.io — skipping publish."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to crates.io
+        if: steps.check_published.outputs.skip != 'true'
         run: cargo publish --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
