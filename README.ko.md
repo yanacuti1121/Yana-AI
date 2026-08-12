@@ -105,8 +105,8 @@ Agent가 명령을 실행하려 함
          ↓
 Anti-evasion scan      — base64 디코드+실행, 셸 인터프리터로의 파이프 차단
 Shell sanitization     — 모든 변수를 quote 처리, 셸 특수문자 제거
-Egress / SSRF policy   — 알려진 메타데이터 엔드포인트, 사설 IP 대역 차단
-Supply-chain vetting   — 패키지 설치 전 typosquat/CVE 체크리스트
+Egress / SSRF policy   — 구현은 제공되며 런타임 연결 상태는 표면별로 다름
+Supply-chain vetting   — 구현은 제공되며 런타임 연결 상태는 표면별로 다름
 Blast-radius cap       — 파괴적 명령이 건드릴 수 있는 파일/범위 제한
 위변조 감지 audit log  — 허용/차단된 모든 행동을 기록, 해시 체인 연결
 Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은 명시적 확인 필요
@@ -286,7 +286,7 @@ core/
 과장 없이 솔직하게: 훅을 설명하는 문서가 아니라 실제 살아있는 훅에 대해 직접 검증한 내용입니다.
 
 - **`guard-destructive.sh`는 셸 파서가 아니라 명령 문자열 가드입니다.** 공백 기준으로 토큰을 나누고 알려진 위험한 형태(`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, main/master로의 직접 push)를 매칭합니다. 2026-07-05 기준(하루 동안 4차례의 적대적 검토)으로 전체 토큰 quote(`"..."`, `'...'`, `$'...'`), 백슬래시 이스케이프, `${IFS}` 스타일 변수 분할을 정규화하고, git/rm 호출 옆의 brace-expansion 형태는 바로 거부합니다 — 하지만 토큰 중간의 quote 조각 연결(공백 없이 한 단어 안에서 따옴표 있는 부분과 없는 부분이 번갈아 나오는 경우, 예: `--forc"e"` — 실제 셸은 이를 `--force`로 해석하지만 이 가드는 그렇지 않음)은 **아직** 처리하지 못합니다. 이를 닫으려면 토큰 비교를 하나 더 추가하는 게 아니라 문자 단위 quote-상태 파서가 필요합니다: 이는 이미 닫혔다고 조용히 주장할 문제가 아니라 장기적인 설계 과제로 남아 있습니다. 의도적으로 만든 명령은 여전히 이 가드를 피해갈 수 있습니다; 일반적으로 명령을 입력하는 에이전트는 잡힙니다.
-- **SSRF/메타데이터 엔드포인트 차단과 typosquatting/미검증 패키지 설치 차단은 실제 구현은 있지만 아무것에도 연결되어 있지 않습니다.** "아직 구현 안 됨"보다 더 구체적인 문제입니다 — `core/hooks/tool-validator.sh`에는 실제 WebFetch SSRF 가드(실제 `socket.getaddrinfo` DNS 조회 + `ipaddress` 기반 분류, 여러 차례의 적대적 리뷰로 강화됨)가 있고, `core/hooks/dependency-safety-gate.sh` / `core/hooks/supply-chain-guard.sh`에는 실제 typosquat 탐지 로직이 있습니다. 이 세 파일 중 어느 것도 `.claude/settings.json`의 훅 등록 목록에 나타나지 않습니다(그 파일을 직접 확인한 결과이며, 세 파일 자체의 "Status: active" 헤더는 틀렸습니다) — 그래서 실제로는 아무것도 실행되지 않습니다. 메타데이터 엔드포인트로의 `curl`, `.env` 파일의 `Read`, typosquat된 패키지의 `npm install`은 현재 가로채지지 않지만, 필요한 작업은 새 탐지 로직을 작성하는 게 아니라 이미 존재하는 세 파일을 훅 체인에 연결하는 것입니다.
+- **SSRF 및 공급망 구현은 존재하지만 보호 범위는 런타임 표면에 따라 다릅니다.** 저장소 로컬 Claude/Codex 체인은 `tool-validator.sh`, `dependency-safety-gate.sh`, `supply-chain-guard.sh`를 등록하지 않습니다. Claude 플러그인 매니페스트는 두 공급망 훅을 등록하지만 `tool-validator.sh`는 등록하지 않습니다. 따라서 활성 설치 표면을 확인하기 전에는 메타데이터 엔드포인트 또는 typosquat 차단을 보장한다고 표현해서는 안 됩니다. 생성된 실행 경로 근거는 `docs/operations/hook-execution-path-audit.md`에 있습니다.
 - **`core/`와 `.claude/`는 설계상 같은 소스의 두 사본입니다**, 우발적인 중복이 아닙니다. `core/`가 정본이고 `.claude/`는 Claude Code가 런타임에 읽는 것이며, `core/config/core-lock.json`이 둘의 SHA-256 해시를 고정합니다. 중복된 콘텐츠로 보인다면 그것은 의도된 것이지 "정리해야 할" 버그가 아닙니다.
 - **macOS는 기본적으로 GNU `timeout`/`gtimeout`을 제공하지 않습니다.** 이것이 항상 존재한다고 가정했던 훅은 영향받는 기기에서 발견되어 수정될 때까지(2026-07-04) 어떤 보호된 훅도 조용히 실행하지 못했습니다. 이제는 조용히 아무것도 하지 않는 대신 타임아웃 상한 없이 실행하도록 우아하게 저하되지만, 이런 유형의 "환경을 가정한" 버그는 이 훅들을 fork하거나 확장할 때 정확히 주의해야 할 부분입니다.
 

@@ -96,16 +96,20 @@ if [[ -f "$README" ]]; then
         the|and|for|with|that|this|from|your|when|into|each|over|more|less|using|based|built|also|only|both) continue ;;
       esac
 
-      # Use -q + early exit via head -1 to avoid scanning whole tree per term.
-      # timeout 5 prevents any single grep from hanging on large repos.
-      if timeout 5 grep -rlqF --binary-files=without-match \
-          --exclude-dir=releases \
-          --exclude="*.zip" \
-          "$search_term" \
-          "$PROJECT_ROOT/core" \
-          "$PROJECT_ROOT/gates" \
-          "$PROJECT_ROOT/docs" \
-          2>/dev/null; then
+      # Use -q for early exit. GNU timeout bounds large-tree scans when present;
+      # macOS has no timeout by default, so run the same grep directly there.
+      grep_args=(
+        -rilqF
+        --binary-files=without-match
+        --exclude-dir=releases
+        --exclude="*.zip"
+        "$search_term"
+        "$PROJECT_ROOT/core"
+        "$PROJECT_ROOT/gates"
+        "$PROJECT_ROOT/docs"
+      )
+      if { command -v timeout >/dev/null 2>&1 && timeout 5 grep "${grep_args[@]}" 2>/dev/null; } ||
+          { ! command -v timeout >/dev/null 2>&1 && grep "${grep_args[@]}" 2>/dev/null; }; then
         hits=1
       elif find "$PROJECT_ROOT" -maxdepth 2 -name "*${search_term}*" 2>/dev/null | grep -q .; then
         hits=1
@@ -362,6 +366,23 @@ if [[ -f "$METADATA_CHECKER" ]] && command -v python3 >/dev/null 2>&1; then
         "METADATA DRIFT:"*|"METADATA ERROR:"*) emit_issue "$metadata_issue" ;;
       esac
     done <<< "$metadata_output"
+  fi
+fi
+
+# ── Check 7: Hook execution-path truth ───────────────────────────────────────
+# A `Status: active` header is not runtime evidence. Keep every canonical hook
+# accounted for by a known registration manifest, an executable indirect
+# caller, or an explicit DEAD disposition reviewed in config.
+HOOK_PATH_AUDITOR="$PROJECT_ROOT/core/scripts/audit_hook_execution_paths.py"
+if [[ -f "$HOOK_PATH_AUDITOR" ]] && command -v python3 >/dev/null 2>&1; then
+  hook_path_output=$(python3 "$HOOK_PATH_AUDITOR" --root "$PROJECT_ROOT" --check 2>&1)
+  hook_path_status=$?
+  if [[ $hook_path_status -ne 0 ]]; then
+    while IFS= read -r hook_path_issue; do
+      case "$hook_path_issue" in
+        "ERROR:"*) emit_issue "HOOK PATH DRIFT: ${hook_path_issue#ERROR: }" ;;
+      esac
+    done <<< "$hook_path_output"
   fi
 fi
 

@@ -191,11 +191,11 @@
           },
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/context-monitor.js\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-monitor.js\""
           },
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/tool-attention.js\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/tool-attention.js\""
           },
           {
             "type": "command",

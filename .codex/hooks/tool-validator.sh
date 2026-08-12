@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Status: active
+# Status: available-unwired
 # Description: L1.5 Tool Use Validation — schema-validate tool inputs, block path traversal and SSRF
 # Last Reviewed: 2026-05-24
 # PreToolUse hook — fires before any tool call to validate input structure and safety.

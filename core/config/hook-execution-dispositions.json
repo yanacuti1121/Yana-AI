@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "hooks": {
+    "gitnexus-hook.js": {
+      "disposition": "REFERENCE_ONLY",
+      "reason": "Optional GitNexus integration; no default runtime registration is intended."
+    },
+    "guard-blast-radius.sh": {
+      "disposition": "SHOULD_WIRE",
+      "reason": "Rust-backed blast-radius enforcement exists and has tests, but no runtime manifest invokes it."
+    },
+    "log-agent.sh": {
+      "disposition": "SHOULD_WIRE",
+      "reason": "Implements SubagentStart audit logging, but no runtime manifest invokes it; its header is marked available-unwired."
+    },
+    "multi-agent-lock.sh": {
+      "disposition": "SUPERSEDED",
+      "reason": "Legacy environment-variable lock guard; agent-arbitration and current ownership controls replaced its default role."
+    },
+    "permission-auto-approve.sh": {
+      "disposition": "REFERENCE_ONLY",
+      "reason": "Available conservative PermissionRequest policy, intentionally not enabled by default because it changes approval behavior."
+    },
+    "rtk-bridge.sh": {
+      "disposition": "REFERENCE_ONLY",
+      "reason": "Explicit opt-in bridge; its own contract forbids default registration."
+    },
+    "tool-validator.sh": {
+      "disposition": "SHOULD_WIRE",
+      "reason": "SSRF and path-validation implementation exists and is tested, but no runtime manifest invokes it; its header is marked available-unwired."
+    }
+  }
+}
