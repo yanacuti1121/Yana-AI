@@ -105,8 +105,8 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
          ↓
 Anti-evasion scan      — 拦截 base64 解码执行、管道到 shell 解释器
 Shell sanitization     — 对所有变量加引号，剥离 shell 特殊字符
-Egress / SSRF policy   — 拦截已知的元数据端点、私有 IP 段
-Supply-chain vetting   — 安装包前的仿冒名/CVE 检查清单
+Egress / SSRF policy   — 已有实现；运行时接线状态因入口而异
+Supply-chain vetting   — 已有实现；运行时接线状态因入口而异
 Blast-radius cap       — 限制破坏性命令能触及的文件/范围
 防篡改审计日志         — 记录每一次被允许和被拦截的操作，哈希链式连接
 Human gate             — 不可逆操作（push、publish、delete）需要明确确认
@@ -300,7 +300,7 @@ files. Ask the human to confirm before running this.
 诚实，不夸大：直接对照真实运行的 hooks 验证，而非依据描述它们的文档。
 
 - **`guard-destructive.sh` 是命令字符串防护，不是真正的 shell 解析器。** 它按空白分割 token，匹配已知的危险写法（`rm -rf`、`git push --force`、`git clean -f`、`git reset --hard`、直接 push 到 main/master）。截至 2026-07-05（一天内经过 4 轮对抗性审查），它已能规范化整 token 级别的引号（`"..."`、`'...'`、`$'...'`）、反斜杠转义、`${IFS}` 风格的变量拼接，并对 git/rm 调用旁的花括号展开形式直接拒绝——但它**尚未**处理 token 内部的引号拼接（同一个词内交替出现带引号和不带引号的片段、中间没有空白分隔，例如 `--forc"e"`——真实 shell 会将其解析为 `--force`，这个防护则不会）。要解决这个问题需要逐字符的引号状态解析器，而不是再加一个 token 比较：这被记录为一个长期的设计问题，而不是被悄悄宣称已经解决。精心构造的命令仍可能绕过这个防护；正常输入命令的代理会被拦下。
-- **SSRF/元数据端点拦截以及仿冒包名/未审查包安装拦截有真实实现，但没有接入任何地方。** 这比"尚未实现"更具体——`core/hooks/tool-validator.sh` 有真实的 WebFetch SSRF 防护（通过 `socket.getaddrinfo` 做真实 DNS 解析，加上基于 `ipaddress` 的分类，经过多轮对抗性审查加固），`core/hooks/dependency-safety-gate.sh` / `core/hooks/supply-chain-guard.sh` 也有真实的仿冒包检测逻辑。这三个文件都**没有出现**在 `.claude/settings.json` 的 hook 注册列表中（直接核对该文件得出的结论，而不是这三个文件自己头部写的"Status: active"——那个说法是错的）——所以没有一个真正运行。目前对元数据端点的 `curl`、对 `.env` 文件的 `Read`、对仿冒包的 `npm install` 都不会被拦截，但需要做的是把这三个已有文件接入 hook 链，而不是重写检测逻辑。
+- **SSRF 与供应链实现确实存在，但保护范围取决于运行时入口。** 仓库本地的 Claude/Codex hook 链未注册 `tool-validator.sh`、`dependency-safety-gate.sh` 或 `supply-chain-guard.sh`。Claude 插件清单注册了两个供应链 hook，但未注册 `tool-validator.sh`。因此，在确认当前安装入口前，不应宣称一定会拦截元数据端点或仿冒包名。自动生成的执行路径证据见 `docs/operations/hook-execution-path-audit.md`。
 - **`core/` 和 `.claude/` 是同一份源码按设计保留的两个副本**，不是意外的重复。`core/` 是权威版本，`.claude/` 是 Claude Code 在运行时读取的版本，`core/config/core-lock.json` 固定了两者的 SHA-256 哈希。如果你看到它们内容重复，那是有意为之，不是需要"清理"的 bug。
 - **macOS 默认不自带 GNU `timeout`/`gtimeout`。** 有个 hook 曾假定它一定存在，在受影响的机器上曾悄无声息地从未真正执行过任何受保护的 hook，直到这个问题被发现并修复（2026-07-04）。现在它会优雅降级（不设超时上限运行）而不是悄悄什么都不做，但这类"假定环境存在"的 bug 正是你 fork 或扩展这些 hooks 时需要特别留意的。
 

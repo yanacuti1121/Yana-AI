@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Yana AI Hook
-# Status: active
+# Status: available-unwired
 # Description: Log agent actions and decisions
 # Last Reviewed: 2026-05-19
 # SubagentStart hook — appends a timestamped entry to .claude/agent-log.txt

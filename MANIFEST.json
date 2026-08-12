@@ -443,13 +443,14 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 128,
+      "count": 129,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
         "core/scripts/agent-claim.sh",
         "core/scripts/apply-hook-timeouts.sh",
         "core/scripts/attest-release-evidence.py",
+        "core/scripts/audit_hook_execution_paths.py",
         "core/scripts/audit_scanner.py",
         "core/scripts/auto-compress.sh",
         "core/scripts/auto_fix.py",
@@ -2785,7 +2786,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 101,
   "hooks_count": 63,
-  "scripts_count": 128,
+  "scripts_count": 129,
   "commands_count": 170,
   "rules_count": 71
 }
