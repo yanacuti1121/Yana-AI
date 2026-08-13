@@ -90,8 +90,9 @@ def core_lock_count():
 def subcommands_count():
     """Top-level `yana-rt` subcommands — README quotes this as "N
     subcommands". Counts top-level variants of `enum Commands` in
-    src/main.rs (4-space-indented `Name {`/`Name(` lines only, so nested
-    fields like `action: TaskAction,` inside a variant aren't counted).
+    src/main.rs (4-space-indented `Name {`, `Name(`, and unit `Name,`
+    variants only, so nested fields like `action: TaskAction,` inside a
+    variant aren't counted).
     Added 2026-08-12 after README said 27 while the enum had 30."""
     path = os.path.join(ROOT, "src", "main.rs")
     if not os.path.isfile(path):
@@ -102,7 +103,7 @@ def subcommands_count():
     if not match:
         return 0
     body = match.group(1)
-    return len(re.findall(r"^    [A-Z][A-Za-z]*[ (]", body, re.MULTILINE))
+    return len(re.findall(r"^    [A-Z][A-Za-z0-9_]*\s*(?:[({]|,)", body, re.MULTILINE))
 
 
 def stats():
@@ -130,6 +131,7 @@ def main():
             ("agents", r"\*\*(\d[\d,]*)\*\*\s*specialist agents"),
             ("skills", r"\*\*(\d[\d,]*)\*\*\s*workflow skill definitions"),
             ("hooks", r"\*\*(\d[\d,]*)\*\*\s*pre/post-execution hooks"),
+            ("subcommands", r"Rust subcommands\s*\|\s*\*\*(\d[\d,]*)\*\*"),
         ]
         for key, pattern in checks:
             m = re.search(pattern, readme)
@@ -141,10 +143,9 @@ def main():
             if claimed != actual:
                 problems.append(f"  {key}: docs/reference/architecture.md says {claimed}, filesystem has {actual}")
 
-        # core-lock count and subcommand count live directly in the top-level
-        # README.md (not docs/reference/architecture.md) — added 2026-08-12
-        # alongside the two new stat functions, same pass that found both
-        # stale (240 vs 277, 27 vs 30).
+        # core-lock count and subcommand count also live directly in the
+        # top-level README.md. Keep both the architecture table and README
+        # checked because each is user-facing and can drift independently.
         readme_root_path = os.path.join(ROOT, "README.md")
         readme_root = open(readme_root_path, encoding="utf-8").read()
         readme_checks = [
@@ -165,7 +166,7 @@ def main():
             print("✗ docs are out of sync with the filesystem:")
             print("\n".join(problems))
             print("\nRe-run without --check to see current real numbers, then update")
-            print("docs/reference/architecture.md, ARCHITECTURE.md, README.md, and worker.js's SYSTEM prompt to match.")
+            print("the reported documentation surfaces to match.")
             sys.exit(1)
         print("✓ docs/reference/architecture.md and README.md numbers match the filesystem.")
         return
