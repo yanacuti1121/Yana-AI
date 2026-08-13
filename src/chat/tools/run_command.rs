@@ -10,7 +10,7 @@ pub use crate::capability::{CommandOutcome as ExecOutcome, ValidatedCommand as V
 /// `core/hooks/guard-destructive.sh`) — never a second pattern list of
 /// its own.
 pub fn validate(command: &str) -> Result<Validated, String> {
-    crate::capability::validate_command(command)
+    crate::capability::validate_command(command).map_err(Into::into)
 }
 
 /// Actually runs the command. Only ever called after (a) `validate()`
@@ -25,5 +25,5 @@ pub fn execute(
     argv: &[String],
     use_sandbox: bool,
 ) -> Result<ExecOutcome, String> {
-    crate::capability::execute_command(repo_root, argv, use_sandbox)
+    crate::capability::execute_command(repo_root, argv, use_sandbox).map_err(Into::into)
 }

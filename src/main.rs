@@ -25,6 +25,7 @@ mod provenance;
 mod route;
 pub mod scanner;
 mod score;
+mod session_context;
 mod skill_quality;
 mod spec;
 mod task;
@@ -225,6 +226,19 @@ enum Commands {
     Evidence {
         #[command(subcommand)]
         action: evidence::EvidenceAction,
+    },
+    /// Canonical capability runtime, one-shot scriptable surface — the
+    /// same `crate::capability::*` MCP's 9 tools and chat's read_file/
+    /// run_command use, callable from non-Rust clients (Desktop) via argv,
+    /// no shell string, no reimplemented sandbox logic.
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design —
+    /// called directly as `exec yana-rt capability <name>` from
+    /// tools/yana-desktop/list-dir.js (see that file), the same fast-path
+    /// pattern `Guard` above uses. `bin/yana` is an end-user CLI wrapper;
+    /// Desktop talks to the compiled yana-rt binary directly.
+    Capability {
+        #[command(subcommand)]
+        action: capability::cli::CapabilityAction,
     },
     /// Audit AI agent setup for security risks (replaces audit_scanner.py)
     Scan {
@@ -691,6 +705,7 @@ fn main() {
         Commands::Init { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
+        Commands::Capability { action } => capability::cli::dispatch(action),
         Commands::Chat {
             provider,
             model,

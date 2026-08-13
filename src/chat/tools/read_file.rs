@@ -7,4 +7,5 @@ use std::path::Path;
 pub fn execute(repo_root: &Path, requested_path: &str) -> Result<String, String> {
     crate::capability::read_file_observation(repo_root, requested_path)
         .map(|observation| observation.content)
+        .map_err(Into::into)
 }
