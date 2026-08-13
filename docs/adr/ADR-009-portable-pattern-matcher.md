@@ -33,7 +33,7 @@ reviews plus a direct `.claude/settings.json` hooks-block dump:
 |---|---|---|
 | `core/hooks/code-quality-gate.sh:54` | `grep -qP` in `check_pattern()`, used by ~15 quality checks | **No** — not wired here (only in `.claude-plugin/hooks/hooks.json`, the distributed pack) |
 | `core/hooks/dependency-safety-gate.sh:15,19` | `grep -oP` with `\K` (a PCRE-only construct — see below, wasn't in the original PCRE-gap list) | **No** — same as above |
-| `core/hooks/tool-validator.sh:75` | `grep -qP '\x00'`, but has a working non-`-P` fallback via `||` on the same line | **No** — confirmed dead code in both hook registration files |
+| `core/hooks/tool-validator.sh:75` | `grep -qP '\x00'`, but has a working non-`-P` fallback via `||` on the same line | **No** — the portable fallback remains effective on the now-wired hook path |
 
 None of these three currently fire on any tool call in this repo's own
 session. This changes the framing from "an active incident on every

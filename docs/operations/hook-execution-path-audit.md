@@ -4,9 +4,9 @@ Generated from runtime manifests by `core/scripts/audit_hook_execution_paths.py`
 A hook header such as `Status: active` is descriptive metadata, not execution evidence.
 
 - Canonical hooks: **63**
-- WIRED: **56**
+- WIRED: **59**
 - INDIRECT: **0**
-- DEAD (no path from a known runtime manifest): **7**
+- DEAD (no path from a known runtime manifest): **4**
 
 Known runtime manifests: `.claude/settings.json`, `.codex/hooks.json`, `.claude-plugin/hooks/hooks.json`, `.cursor/hooks.json`.
 
@@ -42,12 +42,12 @@ Known runtime manifests: `.claude/settings.json`, `.codex/hooks.json`, `.claude-
 | `freeze-scope.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
 | `giamthi-halt-check.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
 | `gitnexus-hook.js` | DEAD | — | REFERENCE_ONLY | Optional GitNexus integration; no default runtime registration is intended. |
-| `guard-blast-radius.sh` | DEAD | — | SHOULD_WIRE | Rust-backed blast-radius enforcement exists and has tests, but no runtime manifest invokes it. |
+| `guard-blast-radius.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `guard-destructive.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `hook-timeout-guard.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `infra-review-reminder.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
 | `intent-inference.sh` | WIRED | claude-plugin | — | Direct or reachable runtime execution path. |
-| `log-agent.sh` | DEAD | — | SHOULD_WIRE | Implements SubagentStart audit logging, but no runtime manifest invokes it; its header is marked available-unwired. |
+| `log-agent.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `multi-agent-lock.sh` | DEAD | — | SUPERSEDED | Legacy environment-variable lock guard; agent-arbitration and current ownership controls replaced its default role. |
 | `per-tool-circuit-breaker.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `permission-auto-approve.sh` | DEAD | — | REFERENCE_ONLY | Available conservative PermissionRequest policy, intentionally not enabled by default because it changes approval behavior. |
@@ -71,7 +71,7 @@ Known runtime manifests: `.claude/settings.json`, `.codex/hooks.json`, `.claude-
 | `tool-attention.js` | WIRED | claude-plugin | — | Direct or reachable runtime execution path. |
 | `tool-guardrails-detector.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
 | `tool-proxy-enforcer.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
-| `tool-validator.sh` | DEAD | — | SHOULD_WIRE | SSRF and path-validation implementation exists and is tested, but no runtime manifest invokes it; its header is marked available-unwired. |
+| `tool-validator.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `truth-gate-guard.sh` | WIRED | claude-project<br>codex<br>claude-plugin | — | Direct or reachable runtime execution path. |
 | `validate-completion.sh` | WIRED | claude-plugin | — | Direct or reachable runtime execution path. |
 | `verify-evidence-track.sh` | WIRED | claude-project<br>codex | — | Direct or reachable runtime execution path. |
@@ -82,4 +82,3 @@ Known runtime manifests: `.claude/settings.json`, `.codex/hooks.json`, `.claude-
 - `INDIRECT` means executable code in a reachable hook invokes it.
 - `DEAD` means this audit found no execution path; it does not automatically mean delete.
 - `SHOULD_WIRE` is a review queue, not authorization to register the hook without latency, overlap, and exit-contract testing.
-

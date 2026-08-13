@@ -100,16 +100,23 @@ if (exists('.claude/settings.json')) {
 } else fail('missing .claude/settings.json');
 
 // Routing map points to real agents
-if (exists('.claude/agent-routing-map.json')) {
-  const routing = JSON.parse(read('.claude/agent-routing-map.json'));
-  for (const rule of routing.rules || []) {
-    for (const key of ['primary', 'verify_with']) {
-      const val = rule[key];
-      if (val && val !== 'release' && !names.has(val)) fail(`routing map references missing agent: ${val}`);
+const routingPath = '.claude/config/agent-routing-map.json';
+if (exists(routingPath)) {
+  try {
+    const routing = JSON.parse(read(routingPath));
+    const routingEntries = [...(routing.rules || [])];
+    if (routing.fallback) routingEntries.push(routing.fallback);
+    for (const rule of routingEntries) {
+      for (const key of ['primary', 'verify_with']) {
+        const val = rule[key];
+        if (val && val !== 'release' && !names.has(val)) fail(`routing map references missing agent: ${val}`);
+      }
     }
+    ok(`${routingPath} checked`);
+  } catch (err) {
+    fail(`${routingPath} is invalid JSON: ${err.message}`);
   }
-  ok('agent-routing-map.json checked');
-} else warn('missing .claude/agent-routing-map.json');
+} else warn(`missing ${routingPath}`);
 
 // Skills lock coverage — check multiple layout conventions
 const lockCandidates = ['skills-lock.json', 'core/config/skills-lock.json', 'config/skills-lock.json'];

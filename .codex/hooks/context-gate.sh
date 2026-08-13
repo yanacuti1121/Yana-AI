@@ -26,7 +26,7 @@
 #   - docs/handoff/**  (handoff writer creates these fresh)
 #   - docs/debug/**    (debug coordinator creates these fresh)
 #   - TODO.md          (agents update this as a side-effect, not primary edit)
-#   - .claude/agent-log.txt (written by log-agent.sh hook)
+#   - .claude/state/agent-log.txt (written by log-agent.sh hook)
 
 set -euo pipefail
 
@@ -71,7 +71,7 @@ EXEMPT_PATTERNS=(
   "docs/handoff/"
   "docs/debug/"
   "TODO.md"
-  ".claude/agent-log.txt"
+  ".claude/state/agent-log.txt"
   ".claude/session-read-log.txt"
   "CHANGELOG.md"
 )

@@ -158,7 +158,7 @@ create or merge this into your target project's `.claude/settings.json`:
 | Hook | Action |
 |------|--------|
 | `audit-log.sh` | Appends tool/agent/timestamp to `.claude/state/audit.log` |
-| `log-agent.sh` | Logs agent activity to `.claude/agent-log.txt` |
+| `log-agent.sh` | Logs agent activity to gitignored `.claude/state/agent-log.txt` |
 | `telemetry-sender.sh` | Writes local telemetry to `.claude/state/telemetry.jsonl` (no network) |
 
 ### Stop — End of turn

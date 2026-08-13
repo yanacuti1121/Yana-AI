@@ -60,7 +60,7 @@ report trackable.
 | ID | Item | Status | Notes |
 |---|---|---|---|
 | AD-31 | `core/config/agent-routing-map.json` had 3 stale agent references (`copywriter-seo`, `react-native-developer`, `release` — none existed as real agents) with no check catching it | **Done** | Fixed 2026-08-13 (removed the dead `react-native-developer` rule, renamed the other two to their real agent names) and covered by `tests/test_agent_routing_map.py`, wired into `ci.yml`. |
-| AD-32 | `core/scripts/verify-claude-pack.js` checks `.claude/agent-routing-map.json` (wrong path) instead of the real mirror location `.claude/config/agent-routing-map.json` — always warns "missing", never actually validates the mirror | Open | Found 2026-08-13 while fixing AD-31, deliberately not fixed in the same change (different script, different concern, avoid scope creep in that PR). |
+| AD-32 | `core/scripts/verify-claude-pack.js` checks `.claude/agent-routing-map.json` (wrong path) instead of the real mirror location `.claude/config/agent-routing-map.json` — always warns "missing", never actually validates the mirror | **Done** | Fixed 2026-08-14 in both the canonical script and installed mirror, with a subprocess regression covering the real installed-pack layout and a missing-agent failure. |
 
 ## Related
 

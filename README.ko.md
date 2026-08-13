@@ -261,7 +261,7 @@ core/
 ├── agents/         # 101개 전문 에이전트 정의
 ├── skills/         # 2,025개 SKILL.md 파일
 ├── config/
-│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 278개 고정
+│   ├── core-lock.json    # SHA-256 매니페스트 — 핵심 파일 279개 고정
 │   └── skills-lock.json  # 스킬 콘텐츠 해시
 └── memory/
     ├── L1_atomic/  # 영구 사실 — 세션 간 유지
@@ -286,7 +286,7 @@ core/
 과장 없이 솔직하게: 훅을 설명하는 문서가 아니라 실제 살아있는 훅에 대해 직접 검증한 내용입니다.
 
 - **`guard-destructive.sh`는 셸 파서가 아니라 명령 문자열 가드입니다.** 공백 기준으로 토큰을 나누고 알려진 위험한 형태(`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, main/master로의 직접 push)를 매칭합니다. 2026-07-05 기준(하루 동안 4차례의 적대적 검토)으로 전체 토큰 quote(`"..."`, `'...'`, `$'...'`), 백슬래시 이스케이프, `${IFS}` 스타일 변수 분할을 정규화하고, git/rm 호출 옆의 brace-expansion 형태는 바로 거부합니다 — 하지만 토큰 중간의 quote 조각 연결(공백 없이 한 단어 안에서 따옴표 있는 부분과 없는 부분이 번갈아 나오는 경우, 예: `--forc"e"` — 실제 셸은 이를 `--force`로 해석하지만 이 가드는 그렇지 않음)은 **아직** 처리하지 못합니다. 이를 닫으려면 토큰 비교를 하나 더 추가하는 게 아니라 문자 단위 quote-상태 파서가 필요합니다: 이는 이미 닫혔다고 조용히 주장할 문제가 아니라 장기적인 설계 과제로 남아 있습니다. 의도적으로 만든 명령은 여전히 이 가드를 피해갈 수 있습니다; 일반적으로 명령을 입력하는 에이전트는 잡힙니다.
-- **SSRF 및 공급망 구현은 존재하지만 보호 범위는 런타임 표면에 따라 다릅니다.** 저장소 로컬 Claude/Codex 체인은 `tool-validator.sh`, `dependency-safety-gate.sh`, `supply-chain-guard.sh`를 등록하지 않습니다. Claude 플러그인 매니페스트는 두 공급망 훅을 등록하지만 `tool-validator.sh`는 등록하지 않습니다. 따라서 활성 설치 표면을 확인하기 전에는 메타데이터 엔드포인트 또는 typosquat 차단을 보장한다고 표현해서는 안 됩니다. 생성된 실행 경로 근거는 `docs/operations/hook-execution-path-audit.md`에 있습니다.
+- **SSRF 검증은 Claude, Codex 및 Claude 플러그인 매니페스트에서 활성화되었지만 공급망 보호 범위는 여전히 런타임 표면에 따라 다릅니다.** `tool-validator.sh`는 지원되는 Bash/write/WebFetch 표면을 보호합니다. `dependency-safety-gate.sh`와 `supply-chain-guard.sh`는 여전히 플러그인 전용이므로 활성 설치 표면을 확인하기 전에는 typosquat 또는 패키지 설치 차단을 보장해서는 안 됩니다. 생성된 실행 경로 근거는 `docs/operations/hook-execution-path-audit.md`에 있습니다.
 - **`core/`와 `.claude/`는 설계상 같은 소스의 두 사본입니다**, 우발적인 중복이 아닙니다. `core/`가 정본이고 `.claude/`는 Claude Code가 런타임에 읽는 것이며, `core/config/core-lock.json`이 둘의 SHA-256 해시를 고정합니다. 중복된 콘텐츠로 보인다면 그것은 의도된 것이지 "정리해야 할" 버그가 아닙니다.
 - **macOS는 기본적으로 GNU `timeout`/`gtimeout`을 제공하지 않습니다.** 이것이 항상 존재한다고 가정했던 훅은 영향받는 기기에서 발견되어 수정될 때까지(2026-07-04) 어떤 보호된 훅도 조용히 실행하지 못했습니다. 이제는 조용히 아무것도 하지 않는 대신 타임아웃 상한 없이 실행하도록 우아하게 저하되지만, 이런 유형의 "환경을 가정한" 버그는 이 훅들을 fork하거나 확장할 때 정확히 주의해야 할 부분입니다.
 

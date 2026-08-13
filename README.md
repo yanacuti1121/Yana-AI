@@ -266,7 +266,7 @@ core/
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 278 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 279 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
@@ -291,7 +291,7 @@ Same live-tested output as the demo at the top of this README (`core/hooks/guard
 Honest, not aspirational: verified directly against the live hooks, not the docs describing them.
 
 - **`guard-destructive.sh` is a command-string guard, not a shell parser.** It tokenizes on whitespace and matches known-dangerous spellings (`rm -rf`, `git push --force`, `git clean -f`, `git reset --hard`, direct push to main/master). As of 2026-07-05 (4 rounds of adversarial review in one day) it normalizes whole-token quoting (`"..."`, `'...'`, `$'...'`), backslash-escaping, `${IFS}`-style variable splicing, and denies outright on brace-expansion shapes adjacent to a git/rm invocation, but it does **not** handle mid-token quote-splice concatenation (quoted and unquoted fragments alternating within one word with no separating whitespace, e.g. `--forc"e"`, a real shell resolves this to `--force`, this guard does not). Closing that needs character-run quote-state parsing, not another token comparison: tracked as a longer-term design question, not silently claimed as closed. A deliberately-crafted command can still slip past this guard; an ordinary agent typing a command normally will be caught.
-- **SSRF and supply-chain implementations exist, but protection varies by runtime surface.** The repository-local Claude/Codex chains do not register `tool-validator.sh`, `dependency-safety-gate.sh`, or `supply-chain-guard.sh`. The Claude plugin manifest registers both supply-chain hooks, but not `tool-validator.sh`. Metadata-endpoint and typosquat blocking therefore must not be claimed without checking the active installation surface. Generated execution-path evidence is maintained in `docs/operations/hook-execution-path-audit.md`.
+- **SSRF validation is active across the Claude, Codex, and Claude-plugin manifests; supply-chain protection still varies by runtime surface.** `tool-validator.sh` now protects the supported Bash/write/WebFetch tool surfaces. `dependency-safety-gate.sh` and `supply-chain-guard.sh` remain plugin-only, so typosquat/package-install blocking must not be claimed without checking the active installation surface. Generated execution-path evidence is maintained in `docs/operations/hook-execution-path-audit.md`.
 - **`core/` and `.claude/` are two copies of the same source by design**, not an accidental duplicate. `core/` is canonical, `.claude/` is what Claude Code reads at runtime, and `core/config/core-lock.json` pins SHA-256 hashes of both. If you see them as duplicated content, that is intentional, not a bug to "clean up."
 - **macOS ships no GNU `timeout`/`gtimeout` by default.** A hook that assumed one was present silently never executed any guarded hook on affected machines until this was found and fixed (2026-07-04). Now degrades gracefully (runs without a timeout cap) instead of silently no-op'ing, but worth knowing this class of "assumed environment" bug is exactly what to watch for if you fork or extend these hooks.
 

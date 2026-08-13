@@ -86,7 +86,7 @@ Hooks in `.claude/settings.json` fire automatically and enforce conventions that
 | `guard-destructive.sh` | Before any Bash call | Blocks `rm -rf`, `git push --force`, `DROP TABLE`, `npm publish`, and direct pushes to `main` |
 | `format-on-write.sh` | After any Write or Edit | Runs prettier/eslint (JS/TS), ruff/black (Python), gofmt (Go), or rustfmt on the changed file — no-ops if tooling not installed |
 | `validate-completion.sh` | When Claude finishes a turn | Warns if implementation files changed but `docs/` was not updated, or if `TODO.md` was not updated |
-| `log-agent.sh` | When a subagent starts | Appends a timestamped line to `.claude/agent-log.txt` for an audit trail |
+| `log-agent.sh` | When a subagent starts | Appends a timestamped line to gitignored `.claude/state/agent-log.txt` for an audit trail |
 
 Hooks are non-interactive — they run silently unless they block an action or print a warning.
 
