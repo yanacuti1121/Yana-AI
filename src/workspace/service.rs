@@ -5,7 +5,10 @@ use super::domain::{
 use super::store::EventStore;
 use chrono::Utc;
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicI64, Ordering};
 use uuid::Uuid;
+
+static LAST_EVENT_NANOS: AtomicI64 = AtomicI64::new(0);
 
 pub trait ActionGovernor {
     fn initial_status(&self, risk: RiskLevel) -> ActionStatus;
@@ -273,7 +276,28 @@ impl<S: EventStore, G: ActionGovernor> WorkspaceService<S, G> {
 }
 
 fn now() -> String {
-    Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+    let observed = Utc::now()
+        .timestamp_nanos_opt()
+        .unwrap_or_else(|| Utc::now().timestamp_micros().saturating_mul(1_000));
+    let mut previous = LAST_EVENT_NANOS.load(Ordering::Relaxed);
+    let timestamp = loop {
+        let next = observed.max(previous.saturating_add(1));
+        match LAST_EVENT_NANOS.compare_exchange_weak(
+            previous,
+            next,
+            Ordering::SeqCst,
+            Ordering::Relaxed,
+        ) {
+            Ok(_) => break next,
+            Err(actual) => previous = actual,
+        }
+    };
+    chrono::DateTime::<Utc>::from_timestamp(
+        timestamp.div_euclid(1_000_000_000),
+        timestamp.rem_euclid(1_000_000_000) as u32,
+    )
+    .expect("current UTC timestamp is representable")
+    .to_rfc3339_opts(chrono::SecondsFormat::Nanos, true)
 }
 
 fn event(actor: String, kind: WorkspaceEventKind) -> WorkspaceEvent {
@@ -282,6 +306,21 @@ fn event(actor: String, kind: WorkspaceEventKind) -> WorkspaceEvent {
         occurred_at: now(),
         actor,
         kind,
+    }
+}
+
+#[cfg(test)]
+mod timestamp_tests {
+    use super::now;
+
+    #[test]
+    fn event_timestamps_are_strictly_monotonic_within_a_process() {
+        let mut previous = now();
+        for _ in 0..10_000 {
+            let current = now();
+            assert!(current > previous, "{current} must be after {previous}");
+            previous = current;
+        }
     }
 }
 
