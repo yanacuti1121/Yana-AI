@@ -231,6 +231,11 @@ enum Commands {
     /// same `crate::capability::*` MCP's 9 tools and chat's read_file/
     /// run_command use, callable from non-Rust clients (Desktop) via argv,
     /// no shell string, no reimplemented sandbox logic.
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design —
+    /// called directly as `exec yana-rt capability <name>` from
+    /// tools/yana-desktop/list-dir.js (see that file), the same fast-path
+    /// pattern `Guard` above uses. `bin/yana` is an end-user CLI wrapper;
+    /// Desktop talks to the compiled yana-rt binary directly.
     Capability {
         #[command(subcommand)]
         action: capability::cli::CapabilityAction,

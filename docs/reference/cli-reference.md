@@ -5,7 +5,7 @@ Content unchanged from the version that lived in `README.md`.
 
 ## Rust runtime — `yana-rt`
 
-32 subcommands. Zero Python dependency.
+33 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks

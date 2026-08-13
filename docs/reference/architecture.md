@@ -118,7 +118,7 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 | ⚡ Slash commands | **170** |
 | 🔧 Scripts | **124** |
 | 🔌 Harness adapters | **4** (Claude Code, Cursor, Codex, Antigravity — cut down from 15 in v1.0.0, see CHANGELOG.md) |
-| 🦀 Rust subcommands | **32** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `os`, `workspace`, `chat`...) |
+| 🦀 Rust subcommands | **33** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `os`, `workspace`, `chat`...) |
 
 ## Safety architecture
 
