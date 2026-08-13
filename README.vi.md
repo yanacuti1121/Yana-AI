@@ -200,7 +200,7 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Rust runtime — `yana-rt`
 
-30 subcommand. Không phụ thuộc Python.
+32 subcommand. Không phụ thuộc Python.
 
 ```bash
 yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)

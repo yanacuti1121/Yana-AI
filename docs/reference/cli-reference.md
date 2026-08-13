@@ -5,7 +5,7 @@ Content unchanged from the version that lived in `README.md`.
 
 ## Rust runtime — `yana-rt`
 
-23 subcommands. Zero Python dependency.
+32 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
@@ -107,6 +107,27 @@ Roadmap proposals may be registered directly at `NEXT` or `LATER`. Only an
 explicit `promote --approve` invocation can move `NEXT` to `NOW`, and the
 runtime rejects a promotion when `NOW` already contains two items. The
 Governor never auto-promotes work or treats persisted approval as reusable.
+
+## Unified workspace — `yana-rt workspace`
+
+The Rust workspace domain connects messages, tasks, documents, agent actions,
+pull requests, and transparent memory through bidirectional links. Signal and
+Review items appear in the default inbox; Noise remains stored but hidden until
+requested. Low through High actions follow the autonomy ladder automatically;
+Critical actions require an explicit `human:<name>` approval and cannot be
+approved through MCP.
+
+```bash
+yana-rt workspace create message "Release discussion" --attention signal
+yana-rt workspace create task "Prepare release" --attention review
+yana-rt workspace link <task-id> <message-id> originated_from
+yana-rt workspace inbox
+yana-rt workspace remember "Release memory" <task-id> <message-id>
+yana-rt workspace export
+```
+
+See [`docs/architecture/unified-workspace.md`](../architecture/unified-workspace.md)
+for the event model, storage contract, MCP boundary, and Markdown export format.
 
 ## Multi-harness support
 

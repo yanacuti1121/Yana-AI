@@ -200,7 +200,7 @@ bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-30 个子命令，零 Python 依赖。
+32 个子命令，零 Python 依赖。
 
 ```bash
 yana-ai chat                          # 交互式聊天 REPL — 云端（Anthropic/OpenAI）或本地（Ollama）

@@ -200,7 +200,7 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-30개 서브커맨드. Python 의존성 없음.
+32개 서브커맨드. Python 의존성 없음.
 
 ```bash
 yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)

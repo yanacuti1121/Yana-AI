@@ -30,6 +30,7 @@ mod spec;
 mod task;
 mod vault;
 mod watch;
+mod workspace;
 // Program J Phase 9 spike only — gated separately from `cli` because it
 // pulls in tokio (see Cargo.toml's `mcp` feature comment). Not part of any
 // default build.
@@ -200,6 +201,11 @@ enum Commands {
     Watch {
         #[command(subcommand)]
         action: watch::WatchAction,
+    },
+    /// Unified local workspace — linked context, memory, inbox, and governed actions
+    Workspace {
+        #[command(subcommand)]
+        action: workspace::WorkspaceAction,
     },
     /// Initialize Yana AI in a new project
     /// DOCTOR_DISPATCH_EXEMPT: core/scripts/init_wizard.py is canonical —
@@ -681,6 +687,7 @@ fn main() {
             }
         }
         Commands::Watch { action } => watch::dispatch(action),
+        Commands::Workspace { action } => workspace::dispatch(action),
         Commands::Init { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),

@@ -1,4 +1,8 @@
 //! Program J capability runtime over MCP stdio.
+//!
+//! Repository and host capabilities remain read-only. Workspace mutations use
+//! the same typed service and governor as the CLI; Critical approval is not
+//! exposed over MCP.
 
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
@@ -45,6 +49,23 @@ struct ListProcessesParams {
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 struct ProcessDetailsParams {
     pid: u32,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct WorkspaceSearchParams {
+    query: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct WorkspaceRelatedParams {
+    block_id: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct WorkspaceInboxParams {
+    #[serde(default)]
+    include_noise: bool,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct WorkspaceOperationParams {
+    operation_json: String,
 }
 fn dot() -> String {
     ".".into()
@@ -147,6 +168,67 @@ impl YanaRuntime {
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::process_details(p.pid))
     }
+    #[tool(description = "Search the local Yana workspace graph across block titles, bodies, and metadata.")]
+    fn workspace_search(
+        &self,
+        Parameters(p): Parameters<WorkspaceSearchParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(self.workspace_state().and_then(|state| {
+            serde_json::to_string(&state.search(&p.query)).map_err(|error| error.to_string())
+        }))
+    }
+    #[tool(description = "Read bidirectionally linked context for one local workspace block.")]
+    fn workspace_related(
+        &self,
+        Parameters(p): Parameters<WorkspaceRelatedParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(self.workspace_state().and_then(|state| {
+            let id = crate::workspace::resolve_block_id(&state, &p.block_id)?;
+            let related: Vec<_> = state
+                .related(&id)
+                .into_iter()
+                .map(|(block, link)| serde_json::json!({"block": block, "link": link}))
+                .collect();
+            serde_json::to_string(&related).map_err(|error| error.to_string())
+        }))
+    }
+    #[tool(description = "Read the local Signal/Review workspace inbox; Noise is opt-in.")]
+    fn workspace_inbox(
+        &self,
+        Parameters(p): Parameters<WorkspaceInboxParams>,
+    ) -> Result<CallToolResult, McpError> {
+        observe(self.workspace_state().and_then(|state| {
+            serde_json::to_string(&state.inbox(p.include_noise)).map_err(|error| error.to_string())
+        }))
+    }
+    #[tool(description = "Execute one typed local workspace operation. Critical approval is CLI-only and cannot be granted over MCP.")]
+    fn workspace_operate(
+        &self,
+        Parameters(p): Parameters<WorkspaceOperationParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let operation: crate::workspace::WorkspaceOperation = serde_json::from_str(&p.operation_json)
+            .map_err(|error| McpError::invalid_params(format!("invalid workspace operation: {error}"), None))?;
+        if matches!(operation, crate::workspace::WorkspaceOperation::ApproveAction { .. }) {
+            return Ok(CallToolResult::error(vec![ContentBlock::text(
+                "critical workspace approval is CLI-only; use yana-rt workspace action approve",
+            )]));
+        }
+        observe(
+            self.workspace_service()
+                .execute(operation)
+                .and_then(|event| serde_json::to_string(&event).map_err(|error| error.to_string())),
+        )
+    }
+}
+
+impl YanaRuntime {
+    fn workspace_service(&self) -> crate::workspace::WorkspaceService<crate::workspace::FileEventStore> {
+        crate::workspace::WorkspaceService::new(crate::workspace::FileEventStore::new(&self.repo_root))
+    }
+
+    fn workspace_state(&self) -> Result<crate::workspace::WorkspaceState, String> {
+        self.workspace_service().state()
+    }
 }
 
 fn ok(text: String) -> CallToolResult {
@@ -165,7 +247,7 @@ impl ServerHandler for YanaRuntime {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::from_build_env())
             .with_instructions(
-                "Yana Program J fully-local read-only capability runtime plus canonical command guard."
+                "Yana Program J local capability runtime: read-only repository/host tools, governed workspace operations, and the canonical command guard. Critical workspace approval is CLI-only."
                     .to_string(),
             )
     }
