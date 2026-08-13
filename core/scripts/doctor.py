@@ -265,17 +265,41 @@ def check_node() -> Check:
     return Check("OK", "node.js", result.stdout.strip())
 
 
-def check_yana_ai_version() -> Check:
+def check_yana_ai_version(repo_root: Optional[Path] = None) -> Check:
     """Check yana-ai CLI is accessible and report version."""
-    script_dir = Path(__file__).resolve().parent
-    bin_path   = script_dir.parent.parent / "bin" / "yana-ai"
-    if not bin_path.exists():
-        return Check("WARN", "yana-ai CLI", "bin/yana-ai not found",
+    if repo_root is None:
+        repo_root = Path(__file__).resolve().parents[2]
+    candidates = (repo_root / "bin" / "yana", repo_root / "bin" / "yana-ai")
+    bin_path = next((path for path in candidates if path.is_file()), None)
+    if bin_path is None:
+        return Check("WARN", "yana-ai CLI", "bin/yana not found",
                      "Ensure you are running from the yana-ai root directory")
     result = subprocess.run([str(bin_path), "version"], capture_output=True, text=True)
     if result.returncode != 0:
-        return Check("WARN", "yana-ai CLI", "bin/yana-ai found but version check failed")
+        return Check("WARN", "yana-ai CLI", f"{bin_path.name} version check failed")
     return Check("OK", "yana-ai CLI", result.stdout.strip())
+
+
+def _count_hook_commands(hooks: object) -> int:
+    if isinstance(hooks, dict):
+        event_groups = hooks.values()
+    elif isinstance(hooks, list):
+        event_groups = (hooks,)
+    else:
+        raise ValueError("hooks must be an object or array")
+
+    count = 0
+    for groups in event_groups:
+        if not isinstance(groups, list):
+            raise ValueError("each hook event must contain an array")
+        for group in groups:
+            if not isinstance(group, dict):
+                raise ValueError("each hook group must be an object")
+            commands = group.get("hooks", [])
+            if not isinstance(commands, list):
+                raise ValueError("hook group 'hooks' must be an array")
+            count += len(commands)
+    return count
 
 
 def check_yana_ai_hooks_wired(target: str) -> Check:
@@ -290,14 +314,16 @@ def check_yana_ai_hooks_wired(target: str) -> Check:
         with open(settings_path) as f:
             data = _json.load(f)
         hooks = data.get("hooks", [])
-        hook_count = sum(len(h.get("hooks",[])) for h in hooks)
+        hook_count = _count_hook_commands(hooks)
         if hook_count == 0:
             return Check("WARN", "yana-ai hooks",
                          "settings.json found but no hooks configured",
                          "Run: yana-ai guard install all --target .")
         return Check("OK", "yana-ai hooks", f"{hook_count} hook(s) configured")
-    except Exception:
+    except _json.JSONDecodeError:
         return Check("WARN", "yana-ai hooks", "Could not parse .claude/settings.json")
+    except (OSError, ValueError) as exc:
+        return Check("WARN", "yana-ai hooks", f"Invalid hooks configuration: {exc}")
 
 
 def check_yana_ai_scanners() -> Check:

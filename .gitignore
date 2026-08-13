@@ -8,6 +8,8 @@
 *.p12
 *.pfx
 *private-key*
+credentials.json
+token.json
 docs/*.pem
 docs/*private-key*
 
