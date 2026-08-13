@@ -91,9 +91,10 @@ impl App {
             guard_verdict: _,
         } = pending;
         let use_sandbox = self.use_sandbox;
+        let repo_root = self.repo_root.clone();
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
-            let result = run_command::execute(&argv, use_sandbox);
+            let result = run_command::execute(&repo_root, &argv, use_sandbox);
             tx.send(ToolExecEvent::Done(result)).ok();
         });
         self.turn = TurnState::ExecutingTool { call_id, rx };
