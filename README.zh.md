@@ -261,7 +261,7 @@ core/
 ├── agents/         # 101 个专业代理定义
 ├── skills/         # 2,025 个 SKILL.md 文件
 ├── config/
-│   ├── core-lock.json    # SHA-256 清单 — 固定 278 个核心文件
+│   ├── core-lock.json    # SHA-256 清单 — 固定 279 个核心文件
 │   └── skills-lock.json  # 技能内容哈希
 └── memory/
     ├── L1_atomic/  # 永久事实 — 跨会话保留
