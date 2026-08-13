@@ -10,12 +10,18 @@ stale the moment someone fixes one.
 from __future__ import annotations
 
 import json
+import importlib.util
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+PYTHON_DOCTOR_PATH = ROOT / "core" / "scripts" / "doctor.py"
+PYTHON_DOCTOR_SPEC = importlib.util.spec_from_file_location("yana_python_doctor", PYTHON_DOCTOR_PATH)
+python_doctor = importlib.util.module_from_spec(PYTHON_DOCTOR_SPEC)
+assert PYTHON_DOCTOR_SPEC.loader is not None
+PYTHON_DOCTOR_SPEC.loader.exec_module(python_doctor)
 
 
 def _run(cmd: list[str], cwd: Path = ROOT) -> tuple[int, str, str]:
@@ -195,9 +201,76 @@ def test_nested_case_inside_arm_does_not_break_parsing() -> None:
         _assert(payload["findings"] == [], f"expected no findings, got {payload['findings']}")
 
 
+def _write_python_doctor_settings(root: Path, hooks: object) -> None:
+    settings = root / ".claude" / "settings.json"
+    settings.parent.mkdir(parents=True, exist_ok=True)
+    settings.write_text(json.dumps({"hooks": hooks}), encoding="utf-8")
+
+
+def _write_cli(root: Path, name: str, output: str) -> None:
+    executable = root / "bin" / name
+    executable.parent.mkdir(parents=True, exist_ok=True)
+    executable.write_text(f"#!/bin/sh\necho '{output}'\n", encoding="utf-8")
+    executable.chmod(0o755)
+
+
+def test_python_doctor_prefers_canonical_yana_cli() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        _write_cli(root, "yana", "canonical")
+        _write_cli(root, "yana-ai", "legacy")
+        result = python_doctor.check_yana_ai_version(root)
+        _assert(result.status == "OK", result.detail)
+        _assert(result.detail == "canonical", result.detail)
+
+
+def test_python_doctor_supports_legacy_cli_fallback() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        _write_cli(root, "yana-ai", "legacy")
+        result = python_doctor.check_yana_ai_version(root)
+        _assert(result.status == "OK", result.detail)
+        _assert(result.detail == "legacy", result.detail)
+
+
+def test_python_doctor_counts_object_and_legacy_hook_shapes() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        _write_python_doctor_settings(
+            root,
+            {
+                "SessionStart": [{"hooks": [{"type": "command"}]}],
+                "PreToolUse": [
+                    {"matcher": ".*", "hooks": [{"type": "command"}, {"type": "command"}]}
+                ],
+            },
+        )
+        result = python_doctor.check_yana_ai_hooks_wired(str(root))
+        _assert(result.status == "OK", result.detail)
+        _assert(result.detail == "3 hook(s) configured", result.detail)
+
+        _write_python_doctor_settings(root, [{"hooks": [{"type": "command"}]}])
+        result = python_doctor.check_yana_ai_hooks_wired(str(root))
+        _assert(result.status == "OK", result.detail)
+        _assert(result.detail == "1 hook(s) configured", result.detail)
+
+
+def test_python_doctor_reports_invalid_hook_shape_separately() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        _write_python_doctor_settings(root, {"PreToolUse": {"hooks": []}})
+        result = python_doctor.check_yana_ai_hooks_wired(str(root))
+        _assert(result.status == "WARN", result.detail)
+        _assert("Invalid hooks configuration" in result.detail, result.detail)
+
+
 if __name__ == "__main__":
     test_clean_dispatch_reports_no_findings()
     test_unreachable_and_routes_to_missing_are_detected()
     test_exempt_marker_suppresses_unreachable_finding()
     test_nested_case_inside_arm_does_not_break_parsing()
+    test_python_doctor_prefers_canonical_yana_cli()
+    test_python_doctor_supports_legacy_cli_fallback()
+    test_python_doctor_counts_object_and_legacy_hook_shapes()
+    test_python_doctor_reports_invalid_hook_shape_separately()
     print("OK: doctor dispatch regression tests passed.")

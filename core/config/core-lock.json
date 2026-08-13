@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-13T15:50:19+00:00",
+  "generated": "2026-08-13T16:03:20+00:00",
   "count": 279,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -178,7 +178,7 @@
     "core/scripts/design_context.py": "e4961ac50f6f7c1a6a82d2695f3d5279cd4102c42fd1d6ea5a29124b3ef42ae1",
     "core/scripts/detect_skill_dupes.py": "1dffbe4a5171b7c5295d4c143ba0ace8fe2bdf2e0dc09b8fa14d6b6b9c01702b",
     "core/scripts/diff_report.py": "5fec2bcc09b6f4713625288e80975e67f8d36938d393c4be01439c03c9a6a5c0",
-    "core/scripts/doctor.py": "c89abd5c07a2c99361514e79b5756038d37f940f3e196f143de23129be32b4ed",
+    "core/scripts/doctor.py": "2e79faabe9a92d6cd502e5c1b3bb94e17c870b15cf1b19a766f3e0db08d3750b",
     "core/scripts/drift-check.sh": "80ae0d792975cdbe862fe040f09d340013792273fe4e94fe0431ed8214b4b9df",
     "core/scripts/explain_rule.py": "acd5f289108ac6842696ba9fe7e1aa61208589720f9c318b85493f1b37ee2db6",
     "core/scripts/export_findings.py": "960b393999c82c1cdc320cbc511162db2ba66f0e12d9b5e6a29a6738d1e8ad4c",
