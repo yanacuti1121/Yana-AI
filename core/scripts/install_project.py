@@ -56,6 +56,7 @@ GITIGNORE_ADDITIONS = """\
 
 # Yana AI
 .yana-ai/
+.claude/state/
 yana-ai-audit.sarif
 yana-ai-audit-report.md
 """

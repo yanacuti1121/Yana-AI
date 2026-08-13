@@ -47,11 +47,24 @@
           },
           {
             "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/guard-blast-radius.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-proxy-enforcer.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/sandbox-wrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-validator.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -82,6 +95,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh start"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/log-agent.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },

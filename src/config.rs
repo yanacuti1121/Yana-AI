@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct YamtamConfig {
+pub struct YanaConfig {
     pub version:           String,
     pub guards:            Vec<String>,
     pub plugins_enabled:   bool,
@@ -15,7 +15,7 @@ pub struct YamtamConfig {
     pub extra:             HashMap<String, String>,
 }
 
-impl Default for YamtamConfig {
+impl Default for YanaConfig {
     fn default() -> Self {
         Self {
             version:           "1.0".into(),
@@ -39,7 +39,7 @@ pub fn cmd_config_show(dir: String) {
         println!("No config at {}\nRun: yana-rt config init --dir {dir}", path.display());
         return;
     }
-    let cfg: YamtamConfig = serde_json::from_str(&fs::read_to_string(&path).unwrap_or_default())
+    let cfg: YanaConfig = serde_json::from_str(&fs::read_to_string(&path).unwrap_or_default())
         .unwrap_or_default();
     println!("Config: {}", path.display());
     println!("  version:            {}", cfg.version);
@@ -61,17 +61,17 @@ pub fn cmd_config_init(dir: String) {
     let path = config_path(&dir);
     if path.exists() { println!("Config already exists: {}", path.display()); return; }
     if let Some(parent) = path.parent() { fs::create_dir_all(parent).ok(); }
-    let json = serde_json::to_string_pretty(&YamtamConfig::default()).expect("serialize failed");
+    let json = serde_json::to_string_pretty(&YanaConfig::default()).expect("serialize failed");
     fs::write(&path, json).expect("write config failed");
     println!("✓ created  {}", path.display());
 }
 
 pub fn cmd_config_set(dir: String, key: String, value: String) {
     let path = config_path(&dir);
-    let mut cfg: YamtamConfig = if path.exists() {
+    let mut cfg: YanaConfig = if path.exists() {
         serde_json::from_str(&fs::read_to_string(&path).unwrap_or_default()).unwrap_or_default()
     } else {
-        YamtamConfig::default()
+        YanaConfig::default()
     };
     if let Some(parent) = path.parent() { fs::create_dir_all(parent).ok(); }
     // Try known fields first, fall through to extra

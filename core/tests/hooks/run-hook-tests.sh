@@ -1190,9 +1190,26 @@ IDENTITY_GATE="$CLAUDE_DIR/gates/identity-gate.sh"
 # file. Computed inline so name and hash can't drift apart from each other.
 _TEST_SOVEREIGN_NAME="test sovereign"
 if command -v openssl &>/dev/null; then
-  _TEST_SOVEREIGN_HASH=$(echo -n "$_TEST_SOVEREIGN_NAME" | openssl dgst -sha256 2>/dev/null | awk '{print $2}')
+  _TEST_SOVEREIGN_HASH=$(echo -n "$_TEST_SOVEREIGN_NAME" | openssl dgst -sha256 2>/dev/null | awk '{print $NF}')
 else
   _TEST_SOVEREIGN_HASH=$(echo -n "$_TEST_SOVEREIGN_NAME" | sha256sum 2>/dev/null | awk '{print $1}')
+fi
+
+echo -n "identity-gate [macOS LibreSSL bare-digest output authenticates]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_LIBRESSL_FIXTURE=$(mktemp -d)
+register_temp "$_LIBRESSL_FIXTURE"
+cat > "$_LIBRESSL_FIXTURE/openssl" <<EOF
+#!/bin/sh
+printf '%s\n' '$_TEST_SOVEREIGN_HASH'
+EOF
+chmod +x "$_LIBRESSL_FIXTURE/openssl"
+_ig_out=$(PATH="$_LIBRESSL_FIXTURE:/bin:/usr/bin" IDENTITY_GATE_TEST_SOVEREIGN_HASH="$_TEST_SOVEREIGN_HASH" YANA_SOVEREIGN_NAME="$_TEST_SOVEREIGN_NAME" bash "$IDENTITY_GATE" 2>&1)
+if echo "$_ig_out" | grep -q "SOVEREIGN"; then
+    echo "PASS"
+else
+    echo "FAIL (bare LibreSSL digest output was not parsed)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
 echo -n "identity-gate [sovereign auto-auth from env]... "

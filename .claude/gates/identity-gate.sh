@@ -42,7 +42,9 @@ fi
 
 hash_input() {
   if command -v openssl &>/dev/null; then
-    echo -n "$1" | openssl dgst -sha256 2>/dev/null | awk '{print $2}'
+    # OpenSSL 3 prints "SHA2-256(stdin)= <hash>" while macOS LibreSSL
+    # prints only "<hash>". The final field is portable across both.
+    echo -n "$1" | openssl dgst -sha256 2>/dev/null | awk '{print $NF}'
   else
     echo -n "$1" | sha256sum 2>/dev/null | awk '{print $1}'
   fi

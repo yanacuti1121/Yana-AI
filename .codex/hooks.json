@@ -26,6 +26,12 @@
           },
           {
             "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/guard-blast-radius.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Checking command blast radius"
+          },
+          {
+            "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/tool-proxy-enforcer.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
           },
@@ -33,6 +39,17 @@
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/sandbox-wrap.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
             "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/tool-validator.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Validating tool input"
           }
         ]
       },
@@ -155,6 +172,12 @@
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/agent-pixel-notify.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\" start",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/log-agent.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Recording subagent start"
           }
         ]
       }

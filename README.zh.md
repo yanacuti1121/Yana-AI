@@ -300,7 +300,7 @@ files. Ask the human to confirm before running this.
 诚实，不夸大：直接对照真实运行的 hooks 验证，而非依据描述它们的文档。
 
 - **`guard-destructive.sh` 是命令字符串防护，不是真正的 shell 解析器。** 它按空白分割 token，匹配已知的危险写法（`rm -rf`、`git push --force`、`git clean -f`、`git reset --hard`、直接 push 到 main/master）。截至 2026-07-05（一天内经过 4 轮对抗性审查），它已能规范化整 token 级别的引号（`"..."`、`'...'`、`$'...'`）、反斜杠转义、`${IFS}` 风格的变量拼接，并对 git/rm 调用旁的花括号展开形式直接拒绝——但它**尚未**处理 token 内部的引号拼接（同一个词内交替出现带引号和不带引号的片段、中间没有空白分隔，例如 `--forc"e"`——真实 shell 会将其解析为 `--force`，这个防护则不会）。要解决这个问题需要逐字符的引号状态解析器，而不是再加一个 token 比较：这被记录为一个长期的设计问题，而不是被悄悄宣称已经解决。精心构造的命令仍可能绕过这个防护；正常输入命令的代理会被拦下。
-- **SSRF 与供应链实现确实存在，但保护范围取决于运行时入口。** 仓库本地的 Claude/Codex hook 链未注册 `tool-validator.sh`、`dependency-safety-gate.sh` 或 `supply-chain-guard.sh`。Claude 插件清单注册了两个供应链 hook，但未注册 `tool-validator.sh`。因此，在确认当前安装入口前，不应宣称一定会拦截元数据端点或仿冒包名。自动生成的执行路径证据见 `docs/operations/hook-execution-path-audit.md`。
+- **SSRF 校验已在 Claude、Codex 与 Claude 插件清单中启用，但供应链保护仍取决于运行时入口。** `tool-validator.sh` 现已保护受支持的 Bash、写入与 WebFetch 入口。`dependency-safety-gate.sh` 和 `supply-chain-guard.sh` 仍仅由插件注册，因此在确认当前安装入口前，不应宣称一定会拦截仿冒包名或危险的软件包安装。自动生成的执行路径证据见 `docs/operations/hook-execution-path-audit.md`。
 - **`core/` 和 `.claude/` 是同一份源码按设计保留的两个副本**，不是意外的重复。`core/` 是权威版本，`.claude/` 是 Claude Code 在运行时读取的版本，`core/config/core-lock.json` 固定了两者的 SHA-256 哈希。如果你看到它们内容重复，那是有意为之，不是需要"清理"的 bug。
 - **macOS 默认不自带 GNU `timeout`/`gtimeout`。** 有个 hook 曾假定它一定存在，在受影响的机器上曾悄无声息地从未真正执行过任何受保护的 hook，直到这个问题被发现并修复（2026-07-04）。现在它会优雅降级（不设超时上限运行）而不是悄悄什么都不做，但这类"假定环境存在"的 bug 正是你 fork 或扩展这些 hooks 时需要特别留意的。
 

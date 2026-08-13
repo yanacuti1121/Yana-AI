@@ -22,6 +22,9 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,6 +63,84 @@ def _assert_route(config: dict, hint: str, expected_primary: str) -> None:
         )
 
 
+def _verify_pack_routing_surface() -> None:
+    node = shutil.which("node")
+    if node is None:
+        raise SystemExit("node is required to test verify-claude-pack.js")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project = Path(temp_dir)
+        for name in ("CLAUDE.md", "README.md", "MEMORY.md", "PRD.md"):
+            (project / name).write_text(f"# {name}\n", encoding="utf-8")
+
+        claude = project / ".claude"
+        (claude / "agents").mkdir(parents=True)
+        (claude / "commands").mkdir()
+        (claude / "config").mkdir()
+        (claude / "agents" / "reviewer.md").write_text(
+            "---\n"
+            "name: reviewer\n"
+            "description: Review changes\n"
+            "tools: Read\n"
+            "memory: project\n"
+            "---\n"
+            "Review changes.\n",
+            encoding="utf-8",
+        )
+        (claude / "commands" / "review.md").write_text(
+            "---\ndescription: Review changes\n---\n",
+            encoding="utf-8",
+        )
+        (claude / "settings.json").write_text('{"hooks": {}}\n', encoding="utf-8")
+        routing_path = claude / "config" / "agent-routing-map.json"
+        routing_path.write_text(
+            json.dumps({"rules": [{"primary": "reviewer"}]}),
+            encoding="utf-8",
+        )
+
+        script = ROOT / "core" / "scripts" / "verify-claude-pack.js"
+        valid = subprocess.run(
+            [node, str(script)],
+            cwd=project,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if valid.returncode != 0:
+            raise SystemExit(
+                "verify-claude-pack.js rejected the installed routing-map layout:\n"
+                f"stdout:\n{valid.stdout}\nstderr:\n{valid.stderr}"
+            )
+        expected = "OK   .claude/config/agent-routing-map.json checked"
+        if expected not in valid.stdout:
+            raise SystemExit(f"verifier did not confirm the canonical routing surface: {valid.stdout}")
+        if "missing .claude/agent-routing-map.json" in valid.stdout:
+            raise SystemExit("verifier still checks the retired routing-map path")
+
+        routing_path.write_text(
+            json.dumps(
+                {
+                    "rules": [{"primary": "reviewer"}],
+                    "fallback": {"primary": "missing-agent"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        invalid = subprocess.run(
+            [node, str(script)],
+            cwd=project,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if invalid.returncode != 1:
+            raise SystemExit(
+                "verifier must fail when the canonical routing map references a missing agent"
+            )
+        if "routing map references missing agent: missing-agent" not in invalid.stdout:
+            raise SystemExit(f"missing-agent diagnostic was not actionable: {invalid.stdout}")
+
+
 def main() -> int:
     config = _load_map()
     real_agents = _real_agent_names()
@@ -96,6 +177,8 @@ def main() -> int:
             "'specific official policy' should not match the 2-letter 'ci'/'cd' "
             "keywords as unanchored substrings"
         )
+
+    _verify_pack_routing_surface()
 
     print(f"OK: agent routing map regression checks passed ({len(config['rules'])} rules).")
     return 0

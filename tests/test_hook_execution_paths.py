@@ -1,5 +1,8 @@
 import importlib.util
 import json
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -7,6 +10,7 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).parents[1] / "core/scripts/audit_hook_execution_paths.py"
+ROOT = SCRIPT.parents[2]
 SPEC = importlib.util.spec_from_file_location("hook_execution_audit", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
@@ -71,6 +75,44 @@ class HookExecutionPathTests(unittest.TestCase):
         )
         errors = MODULE.validate(MODULE.audit(root), root)
         self.assertTrue(any("JavaScript hook registered with bash" in error for error in errors))
+
+    def test_production_security_hooks_are_runtime_reachable(self):
+        results = {item.name: item for item in MODULE.audit(ROOT)}
+        expected_surfaces = {
+            "guard-blast-radius.sh": {"claude-project", "codex", "claude-plugin"},
+            "tool-validator.sh": {"claude-project", "codex", "claude-plugin"},
+            "log-agent.sh": {"claude-project", "codex", "claude-plugin"},
+        }
+        for hook, surfaces in expected_surfaces.items():
+            self.assertEqual(results[hook].execution_status, "WIRED")
+            self.assertEqual(set(results[hook].surfaces), surfaces)
+
+    @unittest.skipUnless(shutil.which("jq"), "jq is required by log-agent.sh")
+    def test_log_agent_accepts_claude_and_codex_payload_shapes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            (project / ".claude").mkdir()
+            hook = ROOT / "core/hooks/log-agent.sh"
+            environment = {**os.environ, "CLAUDE_PROJECT_DIR": str(project)}
+            payloads = (
+                {"tool_input": {"subagent_type": "architect-reviewer"}, "session_id": "claude-1"},
+                {"agent_name": "code-auditor", "session_id": "codex-1"},
+            )
+            for payload in payloads:
+                completed = subprocess.run(
+                    ["bash", str(hook)],
+                    input=json.dumps(payload),
+                    text=True,
+                    capture_output=True,
+                    env=environment,
+                    check=False,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+            log_path = project / ".claude/state/agent-log.txt"
+            log = log_path.read_text(encoding="utf-8")
+            self.assertIn("agent=architect-reviewer  session=claude-1", log)
+            self.assertIn("agent=code-auditor  session=codex-1", log)
+            self.assertFalse((project / ".claude/agent-log.txt").exists())
 
 
 if __name__ == "__main__":

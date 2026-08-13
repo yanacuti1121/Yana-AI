@@ -28,7 +28,7 @@ compatibility: yana-ai >= 1.3.48
 ```javascript
 import Conf from 'conf'
 
-interface YamtamConfig {
+interface YanaConfig {
   version:        string
   sandboxEnabled: boolean
   defaultTier:    'fast' | 'power'
@@ -36,7 +36,7 @@ interface YamtamConfig {
   apiBaseUrl:     string
 }
 
-const config = new Conf<YamtamConfig>({
+const config = new Conf<YanaConfig>({
   projectName:   'yana-ai',
   projectVersion: '1.3.48',
   schema: {

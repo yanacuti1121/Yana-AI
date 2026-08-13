@@ -28,6 +28,12 @@ git -C "$TARGET" init -q
 printf '# Existing project guidance\n' > "$TARGET/AGENTS.md"
 $PYTHON_BIN core/scripts/install_project.py "$TARGET" --engine all --no-audit >/dev/null
 
+if ! grep -qxF '.claude/state/' "$TARGET/.gitignore"; then
+  echo "FAIL: installer did not gitignore hook runtime state"
+  exit 1
+fi
+echo "PASS: hook runtime state is gitignored"
+
 if [[ "$(cat "$TARGET/AGENTS.md")" != "# Existing project guidance" ]]; then
   echo "FAIL: installer overwrote existing AGENTS.md"
   exit 1
