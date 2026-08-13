@@ -92,6 +92,9 @@ jobs:
       - name: Validate audit JSON MVP regression behavior
         run: python3 -m pytest tests/test_audit_json_mvp.py -q
 
+      - name: Validate agent routing map regression behavior
+        run: python3 tests/test_agent_routing_map.py
+
   flock-v1-linux:
     name: Kernel flock-v1 (Ubuntu)
     runs-on: ubuntu-latest

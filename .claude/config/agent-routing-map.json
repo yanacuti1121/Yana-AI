@@ -29,16 +29,6 @@
     },
     {
       "match": [
-        "mobile",
-        "react native",
-        "ios",
-        "android"
-      ],
-      "primary": "react-native-developer",
-      "verify_with": "qa-engineer"
-    },
-    {
-      "match": [
         "database",
         "migration",
         "schema",
@@ -69,7 +59,7 @@
         "pipeline"
       ],
       "primary": "cicd-engineer",
-      "verify_with": "release"
+      "verify_with": "release-manager"
     },
     {
       "match": [
@@ -99,7 +89,7 @@
         "marketing",
         "cta"
       ],
-      "primary": "copywriter-seo",
+      "primary": "marketing-agent",
       "verify_with": "documentation-writer"
     },
     {
