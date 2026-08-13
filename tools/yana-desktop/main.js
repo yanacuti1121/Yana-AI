@@ -10,6 +10,7 @@ const {
   parseServerReadyPort,
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
+const { listDir: listDirImpl } = require('./list-dir');
 
 let mainWindow    = null;
 let serverProcess = null;
@@ -100,45 +101,13 @@ function repoRoot() {
   return app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..');
 }
 
-// Shared sandboxing for any repo-relative path operation (Gate L5, same
-// pattern `src/chat/tools/read_file.rs` uses on the Rust side): resolve,
-// realpath, reject anything that escapes the repo root.
-function resolveSandboxed(relPath) {
-  const root = fs.realpathSync(repoRoot());
-  const candidate = path.join(root, relPath || '');
-  let resolved;
-  try {
-    resolved = fs.realpathSync(candidate);
-  } catch (e) {
-    return { ok: false, error: `cannot resolve path: ${e.message}` };
-  }
-  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
-    return { ok: false, error: 'path escapes repo root' };
-  }
-  return { ok: true, resolved };
-}
-
 // Lists the immediate children of `relPath` (relative to the repo root) — one
 // directory at a time, not a recursive walk, so this stays cheap even next to
-// huge dirs like `target/`/`node_modules/`.
+// huge dirs like `target/`/`node_modules/`. Thin Electron-context wrapper
+// around `list-dir.js`'s pure implementation (real sandboxing/listing logic
+// lives there — see that file for why it's split out).
 function listDir(relPath) {
-  const sandboxed = resolveSandboxed(relPath);
-  if (!sandboxed.ok) return sandboxed;
-  let dirents;
-  try {
-    dirents = fs.readdirSync(sandboxed.resolved, { withFileTypes: true });
-  } catch (e) {
-    return { ok: false, error: `cannot read directory: ${e.message}` };
-  }
-  const entries = dirents
-    .filter((d) => d.name !== '.git')
-    .map((d) => ({
-      name: d.name,
-      isDir: d.isDirectory(),
-      relPath: path.join(relPath || '', d.name),
-    }))
-    .sort((a, b) => (a.isDir === b.isDir ? a.name.localeCompare(b.name) : a.isDir ? -1 : 1));
-  return { ok: true, entries };
+  return listDirImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), relPath });
 }
 
 function waitForServer() {

@@ -3,14 +3,28 @@
 //! line-count budget; this is the network-call lifecycle for one chat
 //! turn, still logically part of `App`.
 
-use super::super::provider::{ChatMessage, ChatUsage, Role};
-use super::super::tool_types::StreamOutcome;
+use super::super::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
+use super::super::tool_types::{StreamOutcome, ToolSpec};
 use super::{App, StreamEvent, TurnState};
+use crate::session_context::SessionContext;
 use anyhow::Result;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;
+
+/// AD-25/26: don't send a tool catalog to a provider that can't honor it.
+/// Actionable, not silent — chat-only is a deliberate degrade, not a
+/// swallowed error. Pure/testable on purpose (see tests below); every
+/// current provider's `supports_tool_calling()` defaults `true`, so this
+/// returns the identical catalog as before for all of them today.
+fn tools_for_turn(provider: &dyn ChatProvider, ctx: &SessionContext) -> Vec<ToolSpec> {
+    if provider.supports_tool_calling() {
+        super::super::tools::catalog(ctx)
+    } else {
+        Vec::new()
+    }
+}
 
 impl App {
     pub(super) fn spawn_turn(&mut self) {
@@ -23,7 +37,7 @@ impl App {
         let cancel = Arc::new(AtomicBool::new(false));
         let worker_cancel = Arc::clone(&cancel);
 
-        let tools = super::super::tools::catalog();
+        let tools = tools_for_turn(self.provider.as_ref(), &self.session_context());
         thread::spawn(move || {
             let mut on_chunk = |chunk: &str| -> Result<()> {
                 if worker_cancel.load(Ordering::Acquire) {
@@ -234,5 +248,85 @@ fn track_cost(provider_name: &str, model: &str, usage: ChatUsage, duration_ms: u
     });
     if let Err(error) = crate::cost::track_from_payload("chat", &payload) {
         eprintln!("[cost] chat accounting failed: {error:#}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    struct NoToolCallingProvider;
+
+    impl ChatProvider for NoToolCallingProvider {
+        fn name(&self) -> &str {
+            "no-tool-calling"
+        }
+        fn default_model(&self) -> &str {
+            "raw-completion"
+        }
+        fn requires_key(&self) -> bool {
+            false
+        }
+        fn env_var(&self) -> &str {
+            ""
+        }
+        fn supports_tool_calling(&self) -> bool {
+            false
+        }
+        fn stream_chat(
+            &self,
+            _api_key: Option<&str>,
+            _model: &str,
+            _system: Option<&str>,
+            _messages: &[ChatMessage],
+            _tools: &[ToolSpec],
+            _on_chunk: &mut dyn FnMut(&str) -> Result<()>,
+        ) -> Result<(ChatUsage, StreamOutcome)> {
+            anyhow::bail!("not exercised by this test")
+        }
+    }
+
+    fn ctx() -> SessionContext {
+        SessionContext::new("s", PathBuf::from("/tmp"), "no-tool-calling", "m", false)
+    }
+
+    #[test]
+    fn provider_without_tool_calling_gets_empty_catalog() {
+        let tools = tools_for_turn(&NoToolCallingProvider, &ctx());
+        assert!(tools.is_empty());
+    }
+
+    #[test]
+    fn default_supports_tool_calling_is_true_and_returns_the_real_catalog() {
+        struct DefaultProvider;
+        impl ChatProvider for DefaultProvider {
+            fn name(&self) -> &str {
+                "default"
+            }
+            fn default_model(&self) -> &str {
+                "m"
+            }
+            fn requires_key(&self) -> bool {
+                false
+            }
+            fn env_var(&self) -> &str {
+                ""
+            }
+            fn stream_chat(
+                &self,
+                _api_key: Option<&str>,
+                _model: &str,
+                _system: Option<&str>,
+                _messages: &[ChatMessage],
+                _tools: &[ToolSpec],
+                _on_chunk: &mut dyn FnMut(&str) -> Result<()>,
+            ) -> Result<(ChatUsage, StreamOutcome)> {
+                anyhow::bail!("not exercised by this test")
+            }
+        }
+        assert!(DefaultProvider.supports_tool_calling());
+        let tools = tools_for_turn(&DefaultProvider, &ctx());
+        assert_eq!(tools.len(), 2);
     }
 }

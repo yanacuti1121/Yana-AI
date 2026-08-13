@@ -115,58 +115,52 @@ impl YanaRuntime {
         &self,
         Parameters(p): Parameters<RepoTreeParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::repo_tree(
-            &self.repo_root,
-            &p.path,
-            p.depth,
-        ))
+        observe(crate::capability::repo_tree(&self.repo_root, &p.path, p.depth).map_err(Into::into))
     }
     #[tool(description = "Read one bounded UTF-8 repository file; denies path and symlink escape.")]
     fn read_file(
         &self,
         Parameters(p): Parameters<ReadFileParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::read_file(&self.repo_root, &p.path))
+        observe(crate::capability::read_file(&self.repo_root, &p.path).map_err(Into::into))
     }
     #[tool(description = "Literal case-insensitive search across bounded UTF-8 repository files.")]
     fn search_code(
         &self,
         Parameters(p): Parameters<SearchCodeParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::search_code(
-            &self.repo_root,
-            &p.path,
-            &p.query,
-        ))
+        observe(
+            crate::capability::search_code(&self.repo_root, &p.path, &p.query).map_err(Into::into),
+        )
     }
     #[tool(description = "Read Git branch and working-tree status with fixed argv.")]
     fn git_status(&self) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::git_status(&self.repo_root))
+        observe(crate::capability::git_status(&self.repo_root).map_err(Into::into))
     }
     #[tool(description = "Read bounded staged or unstaged Git diff with fixed argv.")]
     fn git_diff(
         &self,
         Parameters(p): Parameters<GitDiffParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::git_diff(&self.repo_root, p.staged))
+        observe(crate::capability::git_diff(&self.repo_root, p.staged).map_err(Into::into))
     }
     #[tool(description = "Read local OS, CPU, memory, load and disk summary.")]
     fn host_summary(&self) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::host_summary(&self.repo_root))
+        observe(crate::capability::host_summary(&self.repo_root).map_err(Into::into))
     }
     #[tool(description = "List bounded local processes sorted by cpu or memory; read-only.")]
     fn list_processes(
         &self,
         Parameters(p): Parameters<ListProcessesParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::list_processes(&p.sort, p.limit))
+        observe(crate::capability::list_processes(&p.sort, p.limit).map_err(Into::into))
     }
     #[tool(description = "Inspect one process by PID; read-only.")]
     fn process_details(
         &self,
         Parameters(p): Parameters<ProcessDetailsParams>,
     ) -> Result<CallToolResult, McpError> {
-        observe(crate::capability::process_details(p.pid))
+        observe(crate::capability::process_details(p.pid).map_err(Into::into))
     }
     #[tool(description = "Search the local Yana workspace graph across block titles, bodies, and metadata.")]
     fn workspace_search(

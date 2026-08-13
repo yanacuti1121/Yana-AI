@@ -132,6 +132,16 @@ pub trait ChatProvider: Send + Sync {
     fn runtime_kind(&self) -> RuntimeKind {
         RuntimeKind::Remote
     }
+    /// Whether this provider honors an OpenAI-style `tools:` request and
+    /// can emit `StreamOutcome::ToolCalls`. Defaults `true`, preserving
+    /// every existing provider's current behavior exactly — none of them
+    /// distinguish today (AD-25). A provider that legitimately can't do
+    /// function-calling overrides this to `false`; callers then degrade to
+    /// a chat-only turn (`tools: &[]`) instead of sending a catalog the
+    /// provider will silently ignore.
+    fn supports_tool_calling(&self) -> bool {
+        true
+    }
     fn list_models(&self, _api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
         Ok(vec![ModelInfo::named(self.default_model())])
     }

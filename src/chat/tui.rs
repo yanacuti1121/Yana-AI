@@ -18,6 +18,8 @@
 
 mod approval;
 mod commands;
+#[cfg(test)]
+mod golden_e2e_tests;
 mod keys;
 mod model_command;
 mod mouse;
@@ -320,6 +322,23 @@ impl App {
             app.persist_workspace();
         }
         app
+    }
+
+    /// The canonical `SessionContext` for the active tab (AD-17) — derived
+    /// from the existing split fields (`repo_root`/`use_sandbox` live here,
+    /// `session_id`/`provider`/`model` on the active `ChatTab`, reached via
+    /// `Deref`), not a replacement for them. Built fresh on demand, never
+    /// cached — matches `chat::tools::catalog()`'s existing "compute this
+    /// turn, don't stash it" convention, and means it can never go stale
+    /// relative to the fields it's derived from.
+    pub(super) fn session_context(&self) -> crate::session_context::SessionContext {
+        crate::session_context::SessionContext::new(
+            self.session_id.clone(),
+            self.repo_root.clone(),
+            self.provider.name().to_string(),
+            self.model.clone(),
+            self.use_sandbox,
+        )
     }
 }
 
