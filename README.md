@@ -1,40 +1,139 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
-    <img src="docs/yana-banner-light.svg" alt="Yana AI">
+    <img src="docs/yana-banner-light.svg" alt="Yana AI" width="760">
   </picture>
 </p>
 
 <p align="center">
-  <strong>A safety firewall between your AI coding agent and your shell.</strong>
+  <a href="README.md"><strong>English</strong></a> ·
+  <a href="README.vi.md">Tiếng Việt</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.zh.md">中文</a>
 </p>
 
-<p align="center">
-  <em>Built by Vũ Văn Tâm · 17 · Vietnam</em>
-</p>
+<h1 align="center">Yana AI 🐰</h1>
+
+<p align="center"><strong>One runtime. Any AI. Human-governed.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  <a href="COMMANDS.md">
-    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
-  </a>
-  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://crates.io/crates/yana-rt">
-    <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
-  </a>
-  <a href="https://pypi.org/project/yana-ai/">
-    <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
-  </a>
+  <strong>A local-first, cross-platform system for running, connecting, orchestrating, and governing AI — with deterministic control over what it can access, change, and execute.</strong>
 </p>
 
+<p align="center"><em>Your AI can act. But who decides how far it can go?</em></p>
+
 <p align="center">
-  <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
+  <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
+  <a href="https://pypi.org/project/yana-ai/"><img src="https://img.shields.io/pypi/v/yana-ai?logo=pypi&color=3775a9" alt="yana-ai on PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2563eb" alt="Apache 2.0 license"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-2e8b75" alt="Contributions welcome"></a>
 </p>
+
+<p align="center"><em>Created by Vũ Văn Tâm · Vietnam</em></p>
 
 ---
+
+## AI is gaining agency. Governance has not caught up.
+
+A model can now inspect a repository, edit files, run commands, launch agents, call tools, and prepare a release. The difficult questions are no longer only about intelligence:
+
+- Can one runtime connect local models, cloud models, and coding agents without locking the project to one vendor?
+- Can every interface share the same capability boundary instead of inventing its own safety behavior?
+- Can the system distinguish routine automation from actions that must remain human-only?
+- Can a developer inspect the evidence behind “safe,” “done,” “blocked,” or “approved”?
+- Can one independent control plane halt every agent when project integrity is uncertain?
+
+**Yana AI exists to make those questions executable.**
+
+It is not another foundation model and it does not replace Claude, Codex, Cursor, Ollama, or your preferred runtime. It connects them to a native execution layer, deterministic policy gates, project memory, orchestration primitives, and a human-governed operating plane.
+
+## Choose your first win
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### Run local AI
+
+Launch the Rust terminal workspace with a local provider.
+
+```bash
+cargo install yana-rt
+yana-ai-rt --provider ollama
+```
+
+Streaming, cancellation, tabs, sessions, model switching, and guarded tools.
+
+</td>
+<td width="33%" valign="top">
+
+### Govern a repository
+
+Apply Yana's supported adapter surfaces to an existing project.
+
+```bash
+pip install yana-ai
+cd your-project
+yana-ai install
+yana-ai doctor .
+```
+
+Rules, hooks, agents, skills, commands, and integrity checks stay project-local.
+
+</td>
+<td width="33%" valign="top">
+
+### Orchestrate work
+
+Route work and create dependency-aware missions through the native runtime.
+
+```bash
+yana-rt route classify "fix auth"
+yana-rt mission create "add-auth"
+```
+
+Use evidence, capability, memory, workspace, and OS controls from the same CLI.
+
+</td>
+</tr>
+</table>
+
+> New here? Start with [Quick install](#quick-install). Building a platform? Read the [architecture reference](docs/reference/architecture.md). Evaluating the safety boundary? Read [Known limitations](#known-limitations) before the feature list.
+
+## What Yana unifies
+
+| Layer | Developer value | Primary surfaces |
+| --- | --- | --- |
+| **Runtime** | Native chat, state, routing, health, and project operations | `yana-rt`, `yana-ai-rt` |
+| **Models** | Local-first operation without excluding cloud providers | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **Adapters** | One governed project contract across supported harnesses | Claude Code, Codex, Cursor, Antigravity |
+| **Orchestration** | Tasks, missions, memory, evidence, workspaces | router, mission dispatcher, event bus |
+| **Governance** | Deterministic checks, audit chain, quarantine, HALT, human gates | capabilities, hooks, Yana OS, Giám Thị |
+
+```text
+ Local models        Cloud models         Coding agents
+ Ollama              Anthropic            Claude Code
+ LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
+ llama.cpp                 │                       │
+        └──────────────────┴───────────────────────┘
+                               │
+                        Provider + adapters
+                               │
+                         yana-rt runtime
+                 chat · capabilities · missions · memory
+                               │
+                    deterministic policy gates
+                               │
+                       Yana OS + Giám Thị
+               HALT · quarantine · receipts · human unlock
+                               │
+                 files · Git · processes · network · tools
+```
+
+Model intelligence may propose an action. Deterministic code and human authority decide whether it may happen.
+
+## See governance act
 
 Your agent tries something dangerous. Yana intercepts it, explains why, and logs it — hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity.
 
@@ -70,18 +169,6 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 
 ---
 
-## 📚 Documentation
-
-| Document | Description |
-| --- | --- |
-| [Journey](JOURNEY.md) | The story behind Yana AI |
-| [Philosophy](PHILOSOPHY.md) | Core beliefs and long-term vision |
-| [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
-| [Lineage](docs/history/LINEAGE.md) | Dated, evidence-checked code-origin record — where this codebase actually came from |
-| [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
-
----
-
 ## The problem
 
 AI coding agents make mistakes. They `rm -rf` the wrong directory. They push force to main. They hallucinate test results. By the time you notice, the damage is done.
@@ -93,6 +180,8 @@ Yana AI sits between the agent and your system: every risky tool call passes thr
 ## What it catches
 
 Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via agent hooks backed by a Rust runtime (`yana-rt`).
+
+---
 
 ## How it works
 
@@ -173,35 +262,6 @@ bash core/scripts/switch-engine.sh status      # check all 4 adapters
 
 ---
 
-## GitHub Action
-
-Scan any repo's AI agent configuration on every PR: secrets, permissions, hook injection, MCP vulnerabilities.
-
-```yaml
-# .github/workflows/yana-ai-scan.yml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'       # fail CI on HIGH or CRITICAL findings
-    diff-only: 'true'     # scan only changed files on PRs
-    comment-on-pr: 'true' # post findings summary as PR comment
-```
-
-Posts a comment on every PR:
-
-```
-🟠 Yana AI Security Scan — HIGH
-
-| Metric  | Value  |
-|---------|--------|
-| Risk    | HIGH   |
-| Score   | 58/100 |
-| Findings| 3      |
-```
-
-→ [Full workflow template](docs/install/github-action.yml) · [full reference](docs/reference/github-action.md)
-
----
-
 ## Rust runtime — `yana-rt`
 
 33 subcommands. Zero Python dependency.
@@ -228,30 +288,6 @@ this line used to claim was already found unverified once
 (2026-05-31, commit `fb6a0cd7`) and regressed back in by an unrelated
 README restore (2026-07-07) — not reproducible by any measurement in
 `BENCHMARK.md`, then or now.
-
----
-
-## Versioning
-
-Yana AI has three independently versioned release axes — deliberate, not drift (same pattern as Kubernetes or LLVM: independent components, independent release cadence). Only two of the three actually ship to a package registry; the product axis (rules/hooks/skills/agents/CLI) does not, see the table's Registry column.
-
-| Axis | Version | Registry |
-|---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
-
-If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
-
-### What's new in v1.3.2
-
-- **Yana OS management plane (Program K)** — an agent registry, credential/resource preflight, and an Evolution Governor (`status`/`capacity`/`roadmap`, a hard-enforced 2-item NOW cap) under `yana-rt os`.
-- **Native system health monitor** — CPU/memory/disk/GPU snapshots with explicit, per-user, opt-in-only scheduler installation (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; never root, never silent).
-- **Autonomy ladder (L0–L4)** — routine work can be automated under policy; sovereign operations (merge protected branches, publish releases, deploy, rotate secrets, delete persistent data, change security policy) are hard-blocked from ever being configured as automatic, verified to hold even when policy allows automatic work one level down. Classifies and queues action intent only — nothing in this module executes a queued command yet.
-- **`yana chat`** grew a full local AI terminal workspace redesign (tabs, streaming, cancellation, model discovery across Ollama/LM Studio/llama.cpp) plus a new `yana-ai-rt` chat-first entry point, and auto-detects an actually-pulled Ollama model instead of guessing.
-- **Security:** the WebFetch SSRF guard now does real DNS resolution + IP-range classification instead of hostname-regex matching; markdown sanitization moved from a hand-rolled regex to DOMPurify.
-
-Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.3.2" entry).
 
 ---
 
@@ -286,6 +322,8 @@ Key properties, verified against the actual code, not just the docs describing i
 
 Same live-tested output as the demo at the top of this README (`core/hooks/guard-destructive.sh`, 2026-07-04) — not repeated here to avoid saying it twice. See [Known Limitations](#known-limitations) below for what this guard does *not* yet catch, or [docs/reference/known-limitations.md](docs/reference/known-limitations.md) for the full technical breakdown.
 
+---
+
 ## Known limitations
 
 Honest, not aspirational: verified directly against the live hooks, not the docs describing them.
@@ -296,123 +334,6 @@ Honest, not aspirational: verified directly against the live hooks, not the docs
 - **macOS ships no GNU `timeout`/`gtimeout` by default.** A hook that assumed one was present silently never executed any guarded hook on affected machines until this was found and fixed (2026-07-04). Now degrades gracefully (runs without a timeout cap) instead of silently no-op'ing, but worth knowing this class of "assumed environment" bug is exactly what to watch for if you fork or extend these hooks.
 
 Found a gap not listed here? [Open an issue](https://github.com/yanacuti1121/yana-ai/issues). Real-world reports are how a guard like this actually gets sharper, not by adding more documentation about what it's supposed to do.
-
----
-
-## Cutting your own token bill
-
-Yana AI enforces safety on what an agent does — it does not reduce how
-many tokens an agent burns reading command output. If that's your actual
-pain point, pair it with [`rtk`](https://github.com/rtk-ai/rtk), a
-separate Apache-2.0 tool built for exactly that (filters/compresses bash
-output before your agent reads it, up to 90% smaller on common commands).
-Not vendored, not a dependency — see
-[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
-for install + wiring into Claude Code/Cursor/Codex/Antigravity.
-
----
-
-## MCP integration — Buzz
-
-`yana-rt mcp` exposes `check_command` (the same destructive-command
-check `core/hooks/guard-destructive.sh` enforces for Claude Code) as an
-MCP tool over stdio — opt-in, gated behind the `mcp` Cargo feature, not
-part of the default binary.
-
-Its first real consumer is [Buzz](https://github.com/block/buzz), a
-self-hostable team workspace where AI agents are first-class members
-with their own keys. Buzz's `buzz-acp` spawns any ACP-compliant agent
-(goose, codex, claude-code, or `buzz-agent`) and can wire in an extra
-MCP server via `BUZZ_ACP_MCP_COMMAND` — pointed at Yana AI, every agent
-Buzz orchestrates gets the same command check, not just Claude Code.
-
-```bash
-cargo build --release --features mcp
-export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
-```
-
-The wrapper exists because `buzz-acp` invokes `BUZZ_ACP_MCP_COMMAND` with
-no arguments, but `yana-rt` needs the `mcp` subcommand — see
-[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
-for full setup (keypair generation, relay registration) and the verified
-stdio JSON-RPC transcript. Note: this makes the check *available* to the
-spawned agent — whether that agent actually calls it before running a
-command depends on the agent's own tool-use policy, nothing forces it.
-
----
-
-## Yana AI (the web product)
-
-**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
-
-Yana is the first interface built on Yana AI core: a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
-
-```
-User → Yana AI → Yana AI Core (Router · Safety · Context) → Model
-```
-
-- Zero signup: bring your own API key
-- 🔐 **Encrypted key vault** — keys stored AES-256-GCM, master key non-extractable (WebCrypto + IndexedDB), never plaintext
-- Multi-provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
-
-**Provider setup**, bring your own key, keys encrypted locally (never sent to Yana AI):
-
-| Provider | Type | Setup |
-|----------|------|-------|
-| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
-| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
-| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
-| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
-| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
-| **9Router** | Local | `npm install -g 9router` → `9router` (runs on `localhost:20128`) |
-| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
-
-- 📊 **100% real data** — live provider stats, L1 memory garden, audit-log health panel; zero demo numbers
-- Skill routing built in, type naturally and Yana AI dispatches the right agent
-- **Non-coding use cases:** learning (Socratic learning assistant), daily work (summarize / plan / draft)
-- SSE streaming, mobile-friendly · **[Electron desktop app](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
-
-If Yana AI is the power grid, Yana is the first building plugged into it.
-
----
-
-## Built by one person
-
-One person. No team. No funding.
-
-- Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
-- 4 harness adapters (Claude Code, Cursor, Codex, Antigravity)
-
-The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
-
----
-
-## Add Yana AI to your repo
-
-**Static badge**, paste into your README:
-
-```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
-```
-
-**Dynamic audit badge**, shows live security score:
-
-```bash
-yana-ai badge .           # prints badge markdown with current score
-yana-ai badge . --json    # machine-readable output
-```
-
-**GitHub Action**, scan every PR automatically:
-
-```yaml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'
-```
-
-→ [Full workflow template](docs/install/github-action.yml)
 
 ---
 
@@ -515,6 +436,188 @@ See the [full CLI reference](docs/reference/cli-reference.md) for sample output 
 
 ---
 
+## GitHub Action
+
+Scan any repo's AI agent configuration on every PR: secrets, permissions, hook injection, MCP vulnerabilities.
+
+```yaml
+# .github/workflows/yana-ai-scan.yml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'       # fail CI on HIGH or CRITICAL findings
+    diff-only: 'true'     # scan only changed files on PRs
+    comment-on-pr: 'true' # post findings summary as PR comment
+```
+
+Posts a comment on every PR:
+
+```
+🟠 Yana AI Security Scan — HIGH
+
+| Metric  | Value  |
+|---------|--------|
+| Risk    | HIGH   |
+| Score   | 58/100 |
+| Findings| 3      |
+```
+
+→ [Full workflow template](docs/install/github-action.yml) · [full reference](docs/reference/github-action.md)
+
+---
+
+## MCP integration — Buzz
+
+`yana-rt mcp` exposes `check_command` (the same destructive-command
+check `core/hooks/guard-destructive.sh` enforces for Claude Code) as an
+MCP tool over stdio — opt-in, gated behind the `mcp` Cargo feature, not
+part of the default binary.
+
+Its first real consumer is [Buzz](https://github.com/block/buzz), a
+self-hostable team workspace where AI agents are first-class members
+with their own keys. Buzz's `buzz-acp` spawns any ACP-compliant agent
+(goose, codex, claude-code, or `buzz-agent`) and can wire in an extra
+MCP server via `BUZZ_ACP_MCP_COMMAND` — pointed at Yana AI, every agent
+Buzz orchestrates gets the same command check, not just Claude Code.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+The wrapper exists because `buzz-acp` invokes `BUZZ_ACP_MCP_COMMAND` with
+no arguments, but `yana-rt` needs the `mcp` subcommand — see
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+for full setup (keypair generation, relay registration) and the verified
+stdio JSON-RPC transcript. Note: this makes the check *available* to the
+spawned agent — whether that agent actually calls it before running a
+command depends on the agent's own tool-use policy, nothing forces it.
+
+---
+
+## Yana AI (the web product)
+
+**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+
+Yana is the first interface built on Yana AI core: a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
+
+```
+User → Yana AI → Yana AI Core (Router · Safety · Context) → Model
+```
+
+- Zero signup: bring your own API key
+- 🔐 **Encrypted key vault** — keys stored AES-256-GCM, master key non-extractable (WebCrypto + IndexedDB), never plaintext
+- Multi-provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+
+**Provider setup**, bring your own key, keys encrypted locally (never sent to Yana AI):
+
+| Provider | Type | Setup |
+|----------|------|-------|
+| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
+| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
+| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
+| **9Router** | Local | `npm install -g 9router` → `9router` (runs on `localhost:20128`) |
+| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
+
+- 📊 **100% real data** — live provider stats, L1 memory garden, audit-log health panel; zero demo numbers
+- Skill routing built in, type naturally and Yana AI dispatches the right agent
+- **Non-coding use cases:** learning (Socratic learning assistant), daily work (summarize / plan / draft)
+- SSE streaming, mobile-friendly · **[Electron desktop app](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+
+If Yana AI is the power grid, Yana is the first building plugged into it.
+
+---
+
+## Cutting your own token bill
+
+Yana AI enforces safety on what an agent does — it does not reduce how
+many tokens an agent burns reading command output. If that's your actual
+pain point, pair it with [`rtk`](https://github.com/rtk-ai/rtk), a
+separate Apache-2.0 tool built for exactly that (filters/compresses bash
+output before your agent reads it, up to 90% smaller on common commands).
+Not vendored, not a dependency — see
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+for install + wiring into Claude Code/Cursor/Codex/Antigravity.
+
+---
+
+## Versioning
+
+Yana AI has three independently versioned release axes — deliberate, not drift (same pattern as Kubernetes or LLVM: independent components, independent release cadence). Only two of the three actually ship to a package registry; the product axis (rules/hooks/skills/agents/CLI) does not, see the table's Registry column.
+
+| Axis | Version | Registry |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
+
+### What's new in v1.3.2
+
+- **Yana OS management plane (Program K)** — an agent registry, credential/resource preflight, and an Evolution Governor (`status`/`capacity`/`roadmap`, a hard-enforced 2-item NOW cap) under `yana-rt os`.
+- **Native system health monitor** — CPU/memory/disk/GPU snapshots with explicit, per-user, opt-in-only scheduler installation (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; never root, never silent).
+- **Autonomy ladder (L0–L4)** — routine work can be automated under policy; sovereign operations (merge protected branches, publish releases, deploy, rotate secrets, delete persistent data, change security policy) are hard-blocked from ever being configured as automatic, verified to hold even when policy allows automatic work one level down. Classifies and queues action intent only — nothing in this module executes a queued command yet.
+- **`yana chat`** grew a full local AI terminal workspace redesign (tabs, streaming, cancellation, model discovery across Ollama/LM Studio/llama.cpp) plus a new `yana-ai-rt` chat-first entry point, and auto-detects an actually-pulled Ollama model instead of guessing.
+- **Security:** the WebFetch SSRF guard now does real DNS resolution + IP-range classification instead of hostname-regex matching; markdown sanitization moved from a hand-rolled regex to DOMPurify.
+
+Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.3.2" entry).
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+| --- | --- |
+| [Journey](JOURNEY.md) | The story behind Yana AI |
+| [Philosophy](PHILOSOPHY.md) | Core beliefs and long-term vision |
+| [Principles](PRINCIPLES.md) | Engineering principles that guide every design decision |
+| [Lineage](docs/history/LINEAGE.md) | Dated, evidence-checked code-origin record — where this codebase actually came from |
+| [Acknowledgements](ACKNOWLEDGEMENTS.md) | Credits and appreciation for the open-source community |
+
+---
+
+## Built by one person
+
+One person. No team. No funding.
+
+- Hook architecture, safety gates, Python CLI
+- Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
+- 4 harness adapters (Claude Code, Cursor, Codex, Antigravity)
+
+The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
+
+---
+
+## Add Yana AI to your repo
+
+**Static badge**, paste into your README:
+
+```markdown
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
+```
+
+**Dynamic audit badge**, shows live security score:
+
+```bash
+yana-ai badge .           # prints badge markdown with current score
+yana-ai badge . --json    # machine-readable output
+```
+
+**GitHub Action**, scan every PR automatically:
+
+```yaml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'
+```
+
+→ [Full workflow template](docs/install/github-action.yml)
+
+---
+
 ## Project links
 
 | | |
@@ -555,4 +658,3 @@ This codebase's roots go back further than this repo's own git history (which st
 ## Acknowledgements
 
 Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.
----end----
