@@ -147,6 +147,12 @@
         "hooks": [
           {
             "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/giamthi-halt-check.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Checking giam thi halt lock"
+          },
+          {
+            "type": "command",
             "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Yana AI is active. Read AGENTS.md and follow the truth and action gates before making changes. At the first prompt, invoke $yana-command-idea-loop before handling the request.\"}}'",
             "timeout": 3,
             "statusMessage": "Loading Yana AI guidance"
@@ -196,6 +202,12 @@
     "UserPromptSubmit": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/giamthi-halt-check.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
+            "timeout": 30,
+            "statusMessage": "Checking giam thi halt lock"
+          },
           {
             "type": "command",
             "command": "ROOT=$(git rev-parse --show-toplevel); CLAUDE_PROJECT_DIR=\"$ROOT\" YANA_GUARDED_HOOK=\"$ROOT/.codex/hooks/auto-decompose.sh\" bash \"$ROOT/.codex/hooks/hook-timeout-guard.sh\"",
