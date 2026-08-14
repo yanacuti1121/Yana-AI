@@ -1,44 +1,134 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
-    <img src="docs/yana-banner-light.svg" alt="Yana AI">
+    <img src="docs/yana-banner-light.svg" alt="Yana AI" width="760">
   </picture>
 </p>
 
 <p align="center">
-  <strong>介于你的 AI 编程代理与 shell 之间的安全防火墙。</strong>
+  <a href="README.md">English</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.ko.md">한국어</a> · <a href="README.zh.md"><strong>中文</strong></a>
 </p>
 
-<p align="center">
-  <em>由 Vũ Văn Tâm 打造 · 17 岁 · 越南</em>
-</p>
+<h1 align="center">Yana AI 🐰</h1>
+
+<p align="center"><strong>一个运行时。连接所有 AI。由人类治理。</strong></p>
+
+<p align="center"><strong>一个本地优先、跨平台的 AI 运行、连接、编排与治理系统 — 以确定性方式控制 AI 可以访问、修改和执行的内容。</strong></p>
+
+<p align="center"><em>你的 AI 可以行动。但由谁决定它能走多远？</em></p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <a href="README.ko.md">🇰🇷 한국어</a> · <strong>🇨🇳 中文</strong>
+  <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
+  <a href="https://pypi.org/project/yana-ai/"><img src="https://img.shields.io/pypi/v/yana-ai?logo=pypi&color=3775a9" alt="yana-ai on PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2563eb" alt="Apache 2.0 license"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-2e8b75" alt="Contributions welcome"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  <a href="COMMANDS.md">
-    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
-  </a>
-  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://crates.io/crates/yana-rt">
-    <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
-  </a>
-  <a href="https://pypi.org/project/yana-ai/">
-    <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
-  </a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
-</p>
+<p align="center"><em>由 Vũ Văn Tâm 创建 · 越南</em></p>
 
 ---
+
+## AI 的行动能力正在增长，治理却还没有跟上。
+
+如今，模型可以检查仓库、修改文件、运行命令、启动代理、调用工具并准备发布。真正困难的问题已经不只是模型有多聪明：
+
+- 一个运行时能否同时连接本地模型、云端模型和编程代理，而不把项目锁定在单一供应商上？
+- 所有界面能否共享同一条 capability 边界，而不是各自重复实现安全逻辑？
+- 系统能否区分日常自动化与必须由人类决定的主权操作？
+- 开发者能否检查“安全”“完成”“已拦截”“已批准”背后的证据？
+- 当项目完整性存在疑问时，一个独立 control plane 能否停止所有代理？
+
+**Yana AI 把这些问题变成可以执行的规则。**
+
+Yana 不是另一个 foundation model，也不会取代 Claude、Codex、Cursor、Ollama 或你偏好的运行时。它把这些系统连接到原生执行层、确定性策略门、项目记忆、编排原语以及由人类治理的操作层。
+
+## 选择你的第一个目标
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### 运行本地 AI
+
+使用本地 provider 启动 Rust 终端 workspace。
+
+```bash
+cargo install yana-rt
+yana-ai-rt --provider ollama
+```
+
+支持流式输出、取消、标签页、会话、模型切换和受保护工具。
+
+</td>
+<td width="33%" valign="top">
+
+### 治理仓库
+
+把受支持的 adapter surface 应用到现有项目。
+
+```bash
+pip install yana-ai
+cd your-project
+yana-ai install
+yana-ai doctor .
+```
+
+规则、hook、agent、skill、command 与完整性检查都留在项目中。
+
+</td>
+<td width="33%" valign="top">
+
+### 编排工作
+
+通过原生运行时路由任务并创建具备依赖关系的 mission。
+
+```bash
+yana-rt route classify "fix auth"
+yana-rt mission create "add-auth"
+```
+
+从同一个 CLI 使用 evidence、capability、memory、workspace 与 OS control。
+
+</td>
+</tr>
+</table>
+
+> 第一次使用？从[快速安装](#快速安装)开始。正在构建平台？阅读[架构参考](docs/reference/architecture.md)。正在评估安全边界？请先阅读[已知局限](#已知局限)，再看功能列表。
+
+## Yana 统一了什么
+
+| 层级 | 为开发者提供的价值 | 主要 surface |
+| --- | --- | --- |
+| **运行时** | 原生 chat、state、routing、health 与项目操作 | `yana-rt`, `yana-ai-rt` |
+| **模型** | 本地优先，同时保留云端 provider | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **适配器** | 在受支持 harness 之间共享一个受治理的项目 contract | Claude Code, Codex, Cursor, Antigravity |
+| **编排** | Task、mission、memory、evidence 与 workspace | router, mission dispatcher, event bus |
+| **治理** | 确定性检查、audit chain、quarantine、HALT 与 human gate | capability, hook, Yana OS, Giám Thị |
+
+```text
+ Local models        Cloud models         Coding agents
+ Ollama              Anthropic            Claude Code
+ LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
+ llama.cpp                 │                       │
+        └──────────────────┴───────────────────────┘
+                               │
+                        Provider + adapters
+                               │
+                         yana-rt runtime
+                 chat · capabilities · missions · memory
+                               │
+                    deterministic policy gates
+                               │
+                       Yana OS + Giám Thị
+               HALT · quarantine · receipts · human unlock
+                               │
+                 files · Git · processes · network · tools
+```
+
+模型智能可以提出行动。确定性代码与人类权限决定行动是否被允许发生。
+
+## 查看治理如何实际工作
 
 当你的代理尝试做危险操作时，Yana 会拦截它、解释原因并记录下来 —— 在 Claude Code 和 Cursor 上是强制拦截，在 Codex 和 Antigravity 上仅为建议（advisory）。
 
@@ -74,18 +164,6 @@ files. Ask the human to confirm before running this.
 
 ---
 
-## 📚 文档
-
-| 文档 | 说明 |
-| --- | --- |
-| [Journey](JOURNEY.md) | Yana AI 背后的故事 |
-| [Philosophy](PHILOSOPHY.md) | 核心信念与长期愿景 |
-| [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
-| [Lineage](docs/history/LINEAGE.md) | 带日期、经过证据核实的代码起源记录——这个代码库究竟从何而来 |
-| [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
-
----
-
 ## 问题所在
 
 AI 编程代理会犯错：`rm -rf` 错误目录、强推到 main、编造测试结果。等你发现时，损失已经造成。
@@ -97,6 +175,8 @@ Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在
 ## 它能拦截什么
 
 破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。
+
+---
 
 ## 工作原理
 
@@ -169,35 +249,6 @@ bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 
 ---
 
-## GitHub Action
-
-在每个 PR 上扫描仓库的 AI 代理配置：密钥、权限、hook 注入、MCP 漏洞。
-
-```yaml
-# .github/workflows/yana-ai-scan.yml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'       # 发现 HIGH 或 CRITICAL 时使 CI 失败
-    diff-only: 'true'     # 仅扫描 PR 中变更的文件
-    comment-on-pr: 'true' # 将结果摘要发布为 PR 评论
-```
-
-在每个 PR 上发布评论：
-
-```
-🟠 Yana AI Security Scan — HIGH
-
-| Metric  | Value  |
-|---------|--------|
-| Risk    | HIGH   |
-| Score   | 58/100 |
-| Findings| 3      |
-```
-
-→ [完整工作流模板](docs/install/github-action.yml) · [完整参考文档](docs/reference/github-action.md)
-
----
-
 ## Rust 运行时 — `yana-rt`
 
 32 个子命令，零 Python 依赖。
@@ -223,30 +274,6 @@ yana-ai mission create "add-auth"     # 创建并行代理任务
 这个数字此前已被发现一次未经验证
 （2026-05-31，提交 `fb6a0cd7`），又被一次无关的 README 恢复
 （2026-07-07）带回来——在 `BENCHMARK.md` 中的任何测量里，无论当时还是现在都无法复现。
-
----
-
-## 版本管理
-
-Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — 这是刻意设计，不是混乱（与 Kubernetes、LLVM 类似：组件独立、发布节奏独立）。
-
-| 轴 | 版本 | 注册表 |
-|---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.3.2** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust 运行时（`yana-rt`） | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
-
-如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
-
-### v1.3.2 的新内容
-
-- **Yana OS 管理平面（Program K）** — 代理注册表、凭据/资源预检，以及 `yana-rt os` 下的 Evolution Governor（`status`/`capacity`/`roadmap`，NOW 队列硬性上限 2 项）。
-- **原生系统健康监控** — CPU/内存/磁盘/GPU 快照，调度器安装完全 opt-in、按用户级别（macOS LaunchAgent、Linux systemd user timer、Windows 任务计划程序；从不以 root 运行，从不静默安装）。
-- **自主性阶梯（L0–L4）** — 常规工作可按策略自动化；sovereign 级操作（合并受保护分支、发布 release、部署、轮换密钥、删除持久化数据、更改安全策略）被硬性阻止，永远无法配置为自动执行 —— 已验证即使策略允许下一级自动执行，这一限制依然成立。该模块目前只负责对 action intent 分类并排队，尚无任何代码执行已排队的命令。
-- **`yana chat`** 新增本地 AI 终端工作区的整体重设计（标签页、流式输出、取消、跨 Ollama/LM Studio/llama.cpp 的模型发现）以及新的 chat-first 入口 `yana-ai-rt`，并会自动检测已真实拉取的 Ollama 模型，而非猜测。
-- **安全：** WebFetch 的 SSRF 防护现在做真实的 DNS 解析 + IP 段分类，而非 hostname 正则匹配；markdown 净化从自写正则改为 DOMPurify。
-
-包含 PR 编号的完整记录：[CHANGELOG.md](CHANGELOG.md)（见 "v1.3.2" 条目）。
 
 ---
 
@@ -295,6 +322,8 @@ Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
 files. Ask the human to confirm before running this.
 ```
 
+---
+
 ## 已知局限
 
 诚实，不夸大：直接对照真实运行的 hooks 验证，而非依据描述它们的文档。
@@ -305,121 +334,6 @@ files. Ask the human to confirm before running this.
 - **macOS 默认不自带 GNU `timeout`/`gtimeout`。** 有个 hook 曾假定它一定存在，在受影响的机器上曾悄无声息地从未真正执行过任何受保护的 hook，直到这个问题被发现并修复（2026-07-04）。现在它会优雅降级（不设超时上限运行）而不是悄悄什么都不做，但这类"假定环境存在"的 bug 正是你 fork 或扩展这些 hooks 时需要特别留意的。
 
 发现了这里没列出的问题？[提交 issue](https://github.com/yanacuti1121/yana-ai/issues)。真实世界的反馈才是让这样的防护真正变得更锋利的方式，而不是给它应该做什么再加一份文档。
-
----
-
-## 降低你自己的 token 账单
-
-Yana AI 对代理的行为执行安全防护——它本身并不减少代理读取命令输出时消耗
-的 token。如果这才是你真正的痛点，可以搭配使用
-[`rtk`](https://github.com/rtk-ai/rtk)，一个专为此设计的独立 Apache-2.0
-工具（在代理读取之前过滤/压缩 bash 输出，常见命令下可减少最多 90%）。
-不内嵌代码，也不作为依赖——安装方法以及如何接入 Claude Code/Cursor/
-Codex/Antigravity，见
-[docs/reference/token-optimization.md](docs/reference/token-optimization.md)。
-
----
-
-## MCP 集成 — Buzz
-
-`yana-rt mcp` 将 `check_command`（与 `core/hooks/guard-destructive.sh`
-为 Claude Code 执行的破坏性命令检查完全相同）以 MCP 工具的形式通过
-stdio 暴露出来——可选启用，位于 `mcp` Cargo feature 之后，不包含在默认
-二进制文件中。
-
-它的第一个真实使用方是 [Buzz](https://github.com/block/buzz)——一个
-自托管的团队工作区，AI 代理在其中是拥有自己密钥的正式成员。Buzz 的
-`buzz-acp` 可以启动任何支持 ACP 的代理（goose、codex、claude-code，或
-`buzz-agent`），并可以通过 `BUZZ_ACP_MCP_COMMAND` 接入额外的 MCP
-服务器——指向 Yana AI 后，Buzz 编排的每个代理都会获得同样的命令检查，
-不只是 Claude Code。
-
-```bash
-cargo build --release --features mcp
-export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
-```
-
-需要这个 wrapper 的原因是 `buzz-acp` 调用 `BUZZ_ACP_MCP_COMMAND` 时不带
-任何参数，而 `yana-rt` 需要 `mcp` 子命令——完整设置方法（生成密钥对、
-向 relay 注册）以及已验证的 stdio JSON-RPC 记录，见
-[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)。
-注意：这只是让被启动的代理*可以使用*该检查——它是否会在运行命令前真正
-调用，取决于该代理自身的工具使用策略，没有任何机制强制它这么做。
-
----
-
-## Yana AI（网页产品）
-
-**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
-
-Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无需了解底层基础设施、就能与 AI 聊天、切换提供商并使用技能路由的网页 UI。
-
-```
-用户 → Yana AI → Yana AI Core（路由 · 安全 · 上下文）→ 模型
-```
-
-- 无需注册：使用你自己的 API key
-- 🔐 **加密密钥库** — 密钥以 AES-256-GCM 存储，主密钥不可导出（WebCrypto + IndexedDB），从不以明文存在
-- 多提供商：Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
-
-**提供商设置**，使用你自己的密钥，密钥在本地加密（从不发送给 Yana AI）：
-
-| 提供商 | 类型 | 设置方式 |
-|----------|------|-------|
-| **Claude** | 云端 | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
-| **OpenAI** | 云端 | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **Gemini** | 云端 | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
-| **Groq** | 云端 | API key → [console.groq.com/keys](https://console.groq.com/keys) |
-| **DeepSeek** | 云端 | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
-| **OpenRouter** | 云端 | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
-| **9Router** | 本地 | `npm install -g 9router` → `9router`（运行于 `localhost:20128`） |
-| **Ollama** | 本地 | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
-
-- 📊 **100% 真实数据** — 实时提供商统计、L1 记忆花园、审计日志健康面板；零演示数字
-- 内置技能路由，自然输入即可由 Yana AI 分派到正确的代理
-- **非编程用例：** 学习（苏格拉底式学习助手）、日常事务（总结 / 计划 / 起草）
-- SSE 流式传输，移动端友好 · **[Electron 桌面应用](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS、Windows、Linux
-
-如果说 Yana AI 是电网，那么 Yana 就是第一座接入这张电网的建筑。
-
----
-
-## 由一个人打造
-
-一个人。没有团队。没有资金。
-
-- Hook 架构、安全网关、Python CLI
-- Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
-- 4 个适配器（Claude Code、Cursor、Codex、Antigravity）
-
-这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
-
----
-
-## 将 Yana AI 添加到你的仓库
-
-**静态徽章**，粘贴到你的 README：
-
-```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
-```
-
-**动态审计徽章**，显示实时安全评分：
-
-```bash
-yana-ai badge .           # 打印带当前评分的徽章 markdown
-yana-ai badge . --json    # 机器可读的输出
-```
-
-**GitHub Action**，自动扫描每个 PR：
-
-```yaml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'
-```
-
-→ [完整工作流模板](docs/install/github-action.yml)
 
 ---
 
@@ -519,6 +433,186 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 `status` 显示 6 种状态：`working`（存活，日志最近有更新）、`blocked`（存活，但日志已超过 `YANA_AGENT_STALE_SECONDS` 秒（默认 30）未更新，可能卡住了）、`done`（以 0 退出）、`failed`（以非 0 退出）、`unknown`（进程已消失但从未写入自己的退出码，例如被 SIGKILL 之后）、`killed`（通过 `kill` 停止）。
 
 更多示例输出和细节见[完整 CLI 参考文档](docs/reference/cli-reference.md)，或查看 **[COMMANDS.md](COMMANDS.md)** 了解所有 `yana-ai` 命令。
+
+---
+
+## GitHub Action
+
+在每个 PR 上扫描仓库的 AI 代理配置：密钥、权限、hook 注入、MCP 漏洞。
+
+```yaml
+# .github/workflows/yana-ai-scan.yml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'       # 发现 HIGH 或 CRITICAL 时使 CI 失败
+    diff-only: 'true'     # 仅扫描 PR 中变更的文件
+    comment-on-pr: 'true' # 将结果摘要发布为 PR 评论
+```
+
+在每个 PR 上发布评论：
+
+```
+🟠 Yana AI Security Scan — HIGH
+
+| Metric  | Value  |
+|---------|--------|
+| Risk    | HIGH   |
+| Score   | 58/100 |
+| Findings| 3      |
+```
+
+→ [完整工作流模板](docs/install/github-action.yml) · [完整参考文档](docs/reference/github-action.md)
+
+---
+
+## MCP 集成 — Buzz
+
+`yana-rt mcp` 将 `check_command`（与 `core/hooks/guard-destructive.sh`
+为 Claude Code 执行的破坏性命令检查完全相同）以 MCP 工具的形式通过
+stdio 暴露出来——可选启用，位于 `mcp` Cargo feature 之后，不包含在默认
+二进制文件中。
+
+它的第一个真实使用方是 [Buzz](https://github.com/block/buzz)——一个
+自托管的团队工作区，AI 代理在其中是拥有自己密钥的正式成员。Buzz 的
+`buzz-acp` 可以启动任何支持 ACP 的代理（goose、codex、claude-code，或
+`buzz-agent`），并可以通过 `BUZZ_ACP_MCP_COMMAND` 接入额外的 MCP
+服务器——指向 Yana AI 后，Buzz 编排的每个代理都会获得同样的命令检查，
+不只是 Claude Code。
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+需要这个 wrapper 的原因是 `buzz-acp` 调用 `BUZZ_ACP_MCP_COMMAND` 时不带
+任何参数，而 `yana-rt` 需要 `mcp` 子命令——完整设置方法（生成密钥对、
+向 relay 注册）以及已验证的 stdio JSON-RPC 记录，见
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)。
+注意：这只是让被启动的代理*可以使用*该检查——它是否会在运行命令前真正
+调用，取决于该代理自身的工具使用策略，没有任何机制强制它这么做。
+
+---
+
+## Yana AI（网页产品）
+
+**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+
+Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无需了解底层基础设施、就能与 AI 聊天、切换提供商并使用技能路由的网页 UI。
+
+```
+用户 → Yana AI → Yana AI Core（路由 · 安全 · 上下文）→ 模型
+```
+
+- 无需注册：使用你自己的 API key
+- 🔐 **加密密钥库** — 密钥以 AES-256-GCM 存储，主密钥不可导出（WebCrypto + IndexedDB），从不以明文存在
+- 多提供商：Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+
+**提供商设置**，使用你自己的密钥，密钥在本地加密（从不发送给 Yana AI）：
+
+| 提供商 | 类型 | 设置方式 |
+|----------|------|-------|
+| **Claude** | 云端 | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| **OpenAI** | 云端 | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Gemini** | 云端 | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **Groq** | 云端 | API key → [console.groq.com/keys](https://console.groq.com/keys) |
+| **DeepSeek** | 云端 | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
+| **OpenRouter** | 云端 | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
+| **9Router** | 本地 | `npm install -g 9router` → `9router`（运行于 `localhost:20128`） |
+| **Ollama** | 本地 | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
+
+- 📊 **100% 真实数据** — 实时提供商统计、L1 记忆花园、审计日志健康面板；零演示数字
+- 内置技能路由，自然输入即可由 Yana AI 分派到正确的代理
+- **非编程用例：** 学习（苏格拉底式学习助手）、日常事务（总结 / 计划 / 起草）
+- SSE 流式传输，移动端友好 · **[Electron 桌面应用](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS、Windows、Linux
+
+如果说 Yana AI 是电网，那么 Yana 就是第一座接入这张电网的建筑。
+
+---
+
+## 降低你自己的 token 账单
+
+Yana AI 对代理的行为执行安全防护——它本身并不减少代理读取命令输出时消耗
+的 token。如果这才是你真正的痛点，可以搭配使用
+[`rtk`](https://github.com/rtk-ai/rtk)，一个专为此设计的独立 Apache-2.0
+工具（在代理读取之前过滤/压缩 bash 输出，常见命令下可减少最多 90%）。
+不内嵌代码，也不作为依赖——安装方法以及如何接入 Claude Code/Cursor/
+Codex/Antigravity，见
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)。
+
+---
+
+## 版本管理
+
+Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — 这是刻意设计，不是混乱（与 Kubernetes、LLVM 类似：组件独立、发布节奏独立）。
+
+| 轴 | 版本 | 注册表 |
+|---|---|---|
+| 产品（rules/hooks/skills/agents/CLI） | **1.3.2** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust 运行时（`yana-rt`） | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
+
+### v1.3.2 的新内容
+
+- **Yana OS 管理平面（Program K）** — 代理注册表、凭据/资源预检，以及 `yana-rt os` 下的 Evolution Governor（`status`/`capacity`/`roadmap`，NOW 队列硬性上限 2 项）。
+- **原生系统健康监控** — CPU/内存/磁盘/GPU 快照，调度器安装完全 opt-in、按用户级别（macOS LaunchAgent、Linux systemd user timer、Windows 任务计划程序；从不以 root 运行，从不静默安装）。
+- **自主性阶梯（L0–L4）** — 常规工作可按策略自动化；sovereign 级操作（合并受保护分支、发布 release、部署、轮换密钥、删除持久化数据、更改安全策略）被硬性阻止，永远无法配置为自动执行 —— 已验证即使策略允许下一级自动执行，这一限制依然成立。该模块目前只负责对 action intent 分类并排队，尚无任何代码执行已排队的命令。
+- **`yana chat`** 新增本地 AI 终端工作区的整体重设计（标签页、流式输出、取消、跨 Ollama/LM Studio/llama.cpp 的模型发现）以及新的 chat-first 入口 `yana-ai-rt`，并会自动检测已真实拉取的 Ollama 模型，而非猜测。
+- **安全：** WebFetch 的 SSRF 防护现在做真实的 DNS 解析 + IP 段分类，而非 hostname 正则匹配；markdown 净化从自写正则改为 DOMPurify。
+
+包含 PR 编号的完整记录：[CHANGELOG.md](CHANGELOG.md)（见 "v1.3.2" 条目）。
+
+---
+
+## 📚 文档
+
+| 文档 | 说明 |
+| --- | --- |
+| [Journey](JOURNEY.md) | Yana AI 背后的故事 |
+| [Philosophy](PHILOSOPHY.md) | 核心信念与长期愿景 |
+| [Principles](PRINCIPLES.md) | 指导每个设计决策的工程原则 |
+| [Lineage](docs/history/LINEAGE.md) | 带日期、经过证据核实的代码起源记录——这个代码库究竟从何而来 |
+| [Acknowledgements](ACKNOWLEDGEMENTS.md) | 对开源社区的致谢与感激 |
+
+---
+
+## 由一个人打造
+
+一个人。没有团队。没有资金。
+
+- Hook 架构、安全网关、Python CLI
+- Rust 运行时（`yana-rt`）、101 个代理、2,025 个技能、多引擎支持
+- 4 个适配器（Claude Code、Cursor、Codex、Antigravity）
+
+这 2,025 个技能覆盖：前端、后端、AI/LLM、安全、Kubernetes、WebAssembly、DevOps、数据库、测试等。两个针对非编程场景的代理角色：学习（`hoc-tap`）与日常生产力（`daily-assistant`）。
+
+---
+
+## 将 Yana AI 添加到你的仓库
+
+**静态徽章**，粘贴到你的 README：
+
+```markdown
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
+```
+
+**动态审计徽章**，显示实时安全评分：
+
+```bash
+yana-ai badge .           # 打印带当前评分的徽章 markdown
+yana-ai badge . --json    # 机器可读的输出
+```
+
+**GitHub Action**，自动扫描每个 PR：
+
+```yaml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'
+```
+
+→ [完整工作流模板](docs/install/github-action.yml)
 
 ---
 

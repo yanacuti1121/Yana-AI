@@ -1,44 +1,134 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
-    <img src="docs/yana-banner-light.svg" alt="Yana AI">
+    <img src="docs/yana-banner-light.svg" alt="Yana AI" width="760">
   </picture>
 </p>
 
 <p align="center">
-  <strong>AI 코딩 에이전트와 셸(shell) 사이의 안전 방화벽.</strong>
+  <a href="README.md">English</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.ko.md"><strong>한국어</strong></a> · <a href="README.zh.md">中文</a>
 </p>
 
-<p align="center">
-  <em>Vũ Văn Tâm 제작 · 17세 · 베트남</em>
-</p>
+<h1 align="center">Yana AI 🐰</h1>
+
+<p align="center"><strong>하나의 런타임. 모든 AI. 인간이 통제합니다.</strong></p>
+
+<p align="center"><strong>AI를 실행하고 연결하고 오케스트레이션하고 통제하기 위한 로컬 우선 크로스 플랫폼 시스템 — AI가 무엇에 접근하고, 무엇을 바꾸고, 무엇을 실행할 수 있는지 결정론적으로 제어합니다.</strong></p>
+
+<p align="center"><em>AI는 행동할 수 있습니다. 하지만 어디까지 허용할지는 누가 결정할까요?</em></p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.vi.md">🇻🇳 Tiếng Việt</a> · <strong>🇰🇷 한국어</strong> · <a href="README.zh.md">🇨🇳 中文</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
+  <a href="https://pypi.org/project/yana-ai/"><img src="https://img.shields.io/pypi/v/yana-ai?logo=pypi&color=3775a9" alt="yana-ai on PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2563eb" alt="Apache 2.0 license"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-2e8b75" alt="Contributions welcome"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  <a href="COMMANDS.md">
-    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
-  </a>
-  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://crates.io/crates/yana-rt">
-    <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
-  </a>
-  <a href="https://pypi.org/project/yana-ai/">
-    <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
-  </a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
-</p>
+<p align="center"><em>Vũ Văn Tâm 제작 · 베트남</em></p>
 
 ---
+
+## AI의 행동 능력은 커졌지만, 거버넌스는 아직 따라오지 못했습니다.
+
+이제 모델은 리포지토리를 읽고, 파일을 수정하고, 명령을 실행하고, 에이전트를 시작하고, 도구를 호출하고, 릴리스를 준비할 수 있습니다. 어려운 질문은 더 이상 모델의 지능만이 아닙니다.
+
+- 하나의 런타임이 특정 벤더에 종속되지 않고 로컬 모델, 클라우드 모델, 코딩 에이전트를 연결할 수 있는가?
+- 모든 인터페이스가 제각각 안전 로직을 다시 만드는 대신 동일한 capability 경계를 공유할 수 있는가?
+- 일상적인 자동화와 반드시 인간의 결정으로 남아야 하는 작업을 구분할 수 있는가?
+- 개발자가 “안전”, “완료”, “차단”, “승인”이라는 주장 뒤의 근거를 직접 확인할 수 있는가?
+- 프로젝트 무결성이 불확실할 때 독립된 control plane이 모든 에이전트를 멈출 수 있는가?
+
+**Yana AI는 이 질문들을 실행 가능한 규칙으로 만듭니다.**
+
+Yana는 또 하나의 foundation model이 아니며 Claude, Codex, Cursor, Ollama 또는 기존 런타임을 대체하지 않습니다. 이들을 네이티브 실행 계층, 결정론적 정책 게이트, 프로젝트 메모리, 오케스트레이션 primitive, 인간 중심 운영 계층에 연결합니다.
+
+## 원하는 첫 번째 결과를 선택하세요
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### 로컬 AI 실행
+
+Rust 기반 터미널 workspace를 로컬 provider로 실행합니다.
+
+```bash
+cargo install yana-rt
+yana-ai-rt --provider ollama
+```
+
+스트리밍, 취소, 탭, 세션, 모델 전환, 보호된 도구를 제공합니다.
+
+</td>
+<td width="33%" valign="top">
+
+### 리포지토리 통제
+
+지원되는 adapter surface를 기존 프로젝트에 적용합니다.
+
+```bash
+pip install yana-ai
+cd your-project
+yana-ai install
+yana-ai doctor .
+```
+
+규칙, 훅, 에이전트, 스킬, 명령, 무결성 검사를 프로젝트 안에 둡니다.
+
+</td>
+<td width="33%" valign="top">
+
+### 작업 오케스트레이션
+
+네이티브 런타임으로 작업을 라우팅하고 dependency-aware mission을 만듭니다.
+
+```bash
+yana-rt route classify "fix auth"
+yana-rt mission create "add-auth"
+```
+
+하나의 CLI에서 evidence, capability, memory, workspace, OS control을 사용합니다.
+
+</td>
+</tr>
+</table>
+
+> 처음이라면 [빠른 설치](#빠른-설치)부터 시작하세요. 플랫폼을 만든다면 [아키텍처 문서](docs/reference/architecture.md)를 읽으세요. 안전 경계를 평가한다면 기능 목록보다 먼저 [알려진 한계](#알려진-한계)를 확인하세요.
+
+## Yana가 하나로 묶는 것
+
+| 계층 | 개발자 가치 | 주요 surface |
+| --- | --- | --- |
+| **런타임** | 네이티브 chat, state, routing, health, 프로젝트 작업 | `yana-rt`, `yana-ai-rt` |
+| **모델** | 클라우드를 배제하지 않는 로컬 우선 실행 | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **어댑터** | 지원되는 harness 전반의 하나의 통제된 프로젝트 contract | Claude Code, Codex, Cursor, Antigravity |
+| **오케스트레이션** | Task, mission, memory, evidence, workspace | router, mission dispatcher, event bus |
+| **거버넌스** | 결정론적 검사, audit chain, quarantine, HALT, human gate | capability, hook, Yana OS, Giám Thị |
+
+```text
+ Local models        Cloud models         Coding agents
+ Ollama              Anthropic            Claude Code
+ LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
+ llama.cpp                 │                       │
+        └──────────────────┴───────────────────────┘
+                               │
+                        Provider + adapters
+                               │
+                         yana-rt runtime
+                 chat · capabilities · missions · memory
+                               │
+                    deterministic policy gates
+                               │
+                       Yana OS + Giám Thị
+               HALT · quarantine · receipts · human unlock
+                               │
+                 files · Git · processes · network · tools
+```
+
+모델 지능은 행동을 제안할 수 있습니다. 결정론적 코드와 인간의 권한이 그 행동을 허용할지 결정합니다.
+
+## 거버넌스가 실제로 작동하는 모습
 
 에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다 — Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고(advisory) 수준입니다.
 
@@ -74,18 +164,6 @@ files. Ask the human to confirm before running this.
 
 ---
 
-## 📚 문서
-
-| 문서 | 설명 |
-| --- | --- |
-| [여정](JOURNEY.ko.md) | Yana AI 뒤에 숨겨진 이야기 |
-| [철학](PHILOSOPHY.ko.md) | 핵심 신념과 장기 비전 |
-| [원칙](PRINCIPLES.ko.md) | 모든 설계 결정을 이끄는 엔지니어링 원칙 |
-| [계보](docs/history/LINEAGE.md) | 날짜와 증거로 검증된 코드 기원 기록 — 이 코드베이스가 실제로 어디서 시작됐는지 |
-| [감사의 말](ACKNOWLEDGEMENTS.ko.md) | 오픈소스 커뮤니티에 대한 감사와 존중 |
-
----
-
 ## 문제
 
 AI 코딩 에이전트는 실수를 합니다. 잘못된 디렉토리를 `rm -rf`하고, main에 force push하고, 테스트 결과를 지어냅니다. 알아챘을 때는 이미 피해가 발생한 뒤입니다.
@@ -97,6 +175,8 @@ Yana AI는 에이전트와 시스템 사이에 위치합니다: 위험할 수 �
 ## 무엇을 막는가
 
 파괴적인 git 작업, 워크스페이스 밖의 `rm`, 인터넷 콘텐츠를 bash로 파이프하는 행위, 검증되지 않은 패키지 설치를 Rust 런타임(`yana-rt`)이 뒷받침하는 에이전트 훅으로 막습니다.
+
+---
 
 ## 작동 방식
 
@@ -169,35 +249,6 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ---
 
-## GitHub Action
-
-모든 PR에서 리포지토리의 AI 에이전트 설정을 스캔합니다: secrets, 권한, 훅 인젝션, MCP 취약점.
-
-```yaml
-# .github/workflows/yana-ai-scan.yml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'       # HIGH 또는 CRITICAL 발견 시 CI 실패
-    diff-only: 'true'     # PR에서 변경된 파일만 스캔
-    comment-on-pr: 'true' # 결과 요약을 PR 코멘트로 게시
-```
-
-모든 PR에 코멘트를 게시합니다:
-
-```
-🟠 Yana AI Security Scan — HIGH
-
-| Metric  | Value  |
-|---------|--------|
-| Risk    | HIGH   |
-| Score   | 58/100 |
-| Findings| 3      |
-```
-
-→ [전체 워크플로 템플릿](docs/install/github-action.yml) · [전체 레퍼런스](docs/reference/github-action.md)
-
----
-
 ## Rust 런타임 — `yana-rt`
 
 32개 서브커맨드. Python 의존성 없음.
@@ -223,30 +274,6 @@ yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 수치는 이미 한 번 검증되지 않은 것으로 밝혀졌고(2026-05-31, 커밋 `fb6a0cd7`)
 관련 없는 README 복원(2026-07-07)으로 다시 들어왔습니다 — 그때나 지금이나
 `BENCHMARK.md`의 어떤 측정으로도 재현되지 않습니다.
-
----
-
-## 버전 관리
-
-Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기). 이 중 실제로 레지스트리에 배포되는 축은 2개뿐입니다. Product 축(rules/hooks/skills/agents/CLI)은 배포되지 않습니다 — 아래 표의 레지스트리 열 참고.
-
-| 축 | 버전 | 레지스트리 |
-|---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
-| Rust 런타임 (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 패키지 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
-
-이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
-
-### v1.3.2의 새로운 점
-
-- **Yana OS 관리 플레인 (Program K)** — 에이전트 레지스트리, 자격 증명/리소스 사전 점검, `yana-rt os` 아래의 Evolution Governor(`status`/`capacity`/`roadmap`, NOW 항목 2개로 하드 제한).
-- **네이티브 시스템 헬스 모니터** — CPU/메모리/디스크/GPU 스냅샷, 완전 opt-in·사용자별 스케줄러 설치(macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler — root로 실행되지 않고, 조용히 설치되지 않음).
-- **자율성 사다리 (L0–L4)** — 일상적인 작업은 정책에 따라 자동화 가능; sovereign 작업(보호된 브랜치 병합, 릴리스 게시, 배포, 시크릿 교체, 영구 데이터 삭제, 보안 정책 변경)은 자동으로 구성될 수 없도록 하드 차단됨 — 정책이 바로 아래 단계까지 자동 작업을 허용할 때도 이것이 유지되는지 검증함. 이 모듈은 action intent를 분류하고 큐에 넣기만 하며, 큐에 들어간 명령을 실행하는 부분은 아직 없음.
-- **`yana chat`** — 로컬 AI 터미널 워크스페이스 전면 재설계(탭, 스트리밍, 취소, Ollama/LM Studio/llama.cpp 전반의 모델 탐색) 및 새로운 chat-first 진입점 `yana-ai-rt` 추가, 추측 대신 실제로 pull된 Ollama 모델을 자동 감지.
-- **보안:** WebFetch SSRF 가드가 hostname 정규식 매칭 대신 실제 DNS 조회 + IP 대역 분류를 수행; 마크다운 sanitize가 자체 작성 정규식에서 DOMPurify로 이전.
-
-PR 번호가 포함된 전체 내용: [CHANGELOG.md](CHANGELOG.md) ("v1.3.2" 항목 참고).
 
 ---
 
@@ -281,6 +308,8 @@ core/
 
 이 README 맨 위 데모(`core/hooks/guard-destructive.sh`, 2026-07-04)와 동일한, 실제로 실행해 검증한 출력입니다 — 두 번 말하지 않으려고 여기서는 반복하지 않습니다. 이 가드가 *아직* 잡아내지 못하는 것은 아래 [알려진 한계](#알려진-한계)를, 전체 기술 내용은 [docs/reference/known-limitations.md](docs/reference/known-limitations.md)를 참고하세요.
 
+---
+
 ## 알려진 한계
 
 과장 없이 솔직하게: 훅을 설명하는 문서가 아니라 실제 살아있는 훅에 대해 직접 검증한 내용입니다.
@@ -291,125 +320,6 @@ core/
 - **macOS는 기본적으로 GNU `timeout`/`gtimeout`을 제공하지 않습니다.** 이것이 항상 존재한다고 가정했던 훅은 영향받는 기기에서 발견되어 수정될 때까지(2026-07-04) 어떤 보호된 훅도 조용히 실행하지 못했습니다. 이제는 조용히 아무것도 하지 않는 대신 타임아웃 상한 없이 실행하도록 우아하게 저하되지만, 이런 유형의 "환경을 가정한" 버그는 이 훅들을 fork하거나 확장할 때 정확히 주의해야 할 부분입니다.
 
 여기에 없는 문제를 발견하셨나요? [이슈를 열어주세요](https://github.com/yanacuti1121/yana-ai/issues). 실제 사례 보고야말로 이런 가드가 더 날카로워지는 방법이지, 해야 할 일에 대한 문서를 더 추가하는 것이 아닙니다.
-
----
-
-## 토큰 비용 줄이기
-
-Yana AI는 에이전트가 하는 행동에 대한 안전을 실행하지만, 에이전트가 명령
-출력을 읽으며 소모하는 토큰 자체는 줄이지 않습니다. 그게 실제 고민이라면
-바로 그 목적으로 만들어진 별도의 Apache-2.0 도구인
-[`rtk`](https://github.com/rtk-ai/rtk)를 함께 쓰세요 (에이전트가 읽기 전에
-bash 출력을 필터링/압축하며, 흔한 명령에서 최대 90%까지 줄입니다). 코드를
-내장하거나 의존성으로 추가하지 않습니다 — 설치 및 Claude Code/Cursor/
-Codex/Antigravity 연결 방법은
-[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
-참고.
-
----
-
-## MCP 연동 — Buzz
-
-`yana-rt mcp`는 `check_command`(Claude Code용 `core/hooks/guard-destructive.sh`가
-실행하는 것과 동일한 파괴적 명령 검사)를 stdio를 통한 MCP 도구로
-노출합니다 — opt-in이며 `mcp` Cargo feature 뒤에 게이트되어 있어
-기본 바이너리에는 포함되지 않습니다.
-
-첫 실제 사용처는 [Buzz](https://github.com/block/buzz)입니다 — AI
-에이전트가 자신만의 키를 가진 정식 멤버로 참여하는 자체 호스팅 팀
-워크스페이스입니다. Buzz의 `buzz-acp`는 ACP를 말하는 어떤 에이전트든
-(goose, codex, claude-code, 또는 `buzz-agent`) 실행시킬 수 있고,
-`BUZZ_ACP_MCP_COMMAND`를 통해 추가 MCP 서버를 연결할 수 있습니다 —
-Yana AI를 가리키면 Buzz가 조율하는 모든 에이전트가 Claude Code뿐 아니라
-동일한 명령 검사를 받게 됩니다.
-
-```bash
-cargo build --release --features mcp
-export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
-```
-
-이 wrapper가 필요한 이유는 `buzz-acp`가 `BUZZ_ACP_MCP_COMMAND`를 인자
-없이 호출하지만 `yana-rt`는 `mcp` 서브커맨드가 필요하기 때문입니다 —
-전체 설정 방법(키페어 생성, 릴레이 등록)과 실제로 검증한 stdio JSON-RPC
-기록은 [docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
-참고. 참고: 이건 생성된 에이전트가 이 검사를 *사용할 수 있게* 만들
-뿐입니다 — 명령을 실행하기 전에 실제로 호출하는지는 그 에이전트 자체의
-도구 사용 정책에 달려 있으며, 강제되는 것은 아닙니다.
-
----
-
-## Yana AI (웹 제품)
-
-**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
-
-Yana는 Yana AI 코어 위에 구축된 첫 번째 인터페이스입니다: 기반 인프라를 전혀 몰라도 누구나 AI와 채팅하고, 프로바이더를 전환하고, 스킬 라우팅을 사용할 수 있는 웹 UI입니다.
-
-```
-사용자 → Yana AI → Yana AI Core (Router · 안전 · 컨텍스트) → 모델
-```
-
-- 가입 불필요: 자신의 API 키 사용
-- 🔐 **암호화된 키 볼트** — 키는 AES-256-GCM으로 저장, 마스터 키는 추출 불가(WebCrypto + IndexedDB), 절대 평문으로 저장되지 않음
-- 멀티 프로바이더: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
-
-**프로바이더 설정**, 자신의 키를 사용하며 키는 로컬에서 암호화됩니다(Yana AI로 전송되지 않음):
-
-| Provider | 유형 | 설정 |
-|----------|------|-------|
-| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
-| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
-| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
-| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
-| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
-| **9Router** | Local | `npm install -g 9router` → `9router` (`localhost:20128`에서 실행) |
-| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
-
-- 📊 **100% 실제 데이터** — 실시간 프로바이더 통계, L1 메모리 가든, audit-log 상태 패널; 데모 수치 없음
-- 스킬 라우팅 내장, 자연스럽게 입력하면 Yana AI가 올바른 에이전트를 디스패치
-- **코딩 외 사용 사례:** 학습(소크라테스식 학습 도우미), 일상 업무(요약 / 계획 / 초안 작성)
-- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
-
-Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입니다.
-
----
-
-## 한 사람이 만들었습니다
-
-한 사람. 팀 없음. 투자 없음.
-
-- 훅 아키텍처, 안전 게이트, Python CLI
-- Rust 런타임(`yana-rt`), 101개 에이전트, 2,025개 스킬, 멀티 하니스 지원
-- 4개 하니스 어댑터 (Claude Code, Cursor, Codex, Antigravity)
-
-2,025개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
-
----
-
-## 리포지토리에 Yana AI 추가하기
-
-**정적 배지**, README에 붙여넣기:
-
-```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
-```
-
-**동적 감사 배지**, 실시간 보안 점수 표시:
-
-```bash
-yana-ai badge .           # 현재 점수로 배지 마크다운 출력
-yana-ai badge . --json    # 기계가 읽을 수 있는 출력
-```
-
-**GitHub Action**, 모든 PR을 자동으로 스캔:
-
-```yaml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'
-```
-
-→ [전체 워크플로 템플릿](docs/install/github-action.yml)
 
 ---
 
@@ -509,6 +419,190 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 `status`는 6가지 상태를 보여줍니다: `working`(살아있고 로그가 최근에 갱신됨), `blocked`(살아있지만 로그가 `YANA_AGENT_STALE_SECONDS`초, 기본값 30초 동안 변경되지 않아 멈췄을 수 있음), `done`(0으로 종료), `failed`(0이 아닌 값으로 종료), `unknown`(프로세스는 사라졌지만 자체 종료 코드를 기록한 적이 없음, 예: SIGKILL 이후), `killed`(`kill`로 중지됨).
 
 더 자세한 내용과 출력 예시는 [전체 CLI 레퍼런스](docs/reference/cli-reference.md)를, 모든 `yana-ai` 명령을 한곳에서 보려면 **[COMMANDS.md](COMMANDS.md)**를 참고하세요.
+
+---
+
+## GitHub Action
+
+모든 PR에서 리포지토리의 AI 에이전트 설정을 스캔합니다: secrets, 권한, 훅 인젝션, MCP 취약점.
+
+```yaml
+# .github/workflows/yana-ai-scan.yml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'       # HIGH 또는 CRITICAL 발견 시 CI 실패
+    diff-only: 'true'     # PR에서 변경된 파일만 스캔
+    comment-on-pr: 'true' # 결과 요약을 PR 코멘트로 게시
+```
+
+모든 PR에 코멘트를 게시합니다:
+
+```
+🟠 Yana AI Security Scan — HIGH
+
+| Metric  | Value  |
+|---------|--------|
+| Risk    | HIGH   |
+| Score   | 58/100 |
+| Findings| 3      |
+```
+
+→ [전체 워크플로 템플릿](docs/install/github-action.yml) · [전체 레퍼런스](docs/reference/github-action.md)
+
+---
+
+## MCP 연동 — Buzz
+
+`yana-rt mcp`는 `check_command`(Claude Code용 `core/hooks/guard-destructive.sh`가
+실행하는 것과 동일한 파괴적 명령 검사)를 stdio를 통한 MCP 도구로
+노출합니다 — opt-in이며 `mcp` Cargo feature 뒤에 게이트되어 있어
+기본 바이너리에는 포함되지 않습니다.
+
+첫 실제 사용처는 [Buzz](https://github.com/block/buzz)입니다 — AI
+에이전트가 자신만의 키를 가진 정식 멤버로 참여하는 자체 호스팅 팀
+워크스페이스입니다. Buzz의 `buzz-acp`는 ACP를 말하는 어떤 에이전트든
+(goose, codex, claude-code, 또는 `buzz-agent`) 실행시킬 수 있고,
+`BUZZ_ACP_MCP_COMMAND`를 통해 추가 MCP 서버를 연결할 수 있습니다 —
+Yana AI를 가리키면 Buzz가 조율하는 모든 에이전트가 Claude Code뿐 아니라
+동일한 명령 검사를 받게 됩니다.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+이 wrapper가 필요한 이유는 `buzz-acp`가 `BUZZ_ACP_MCP_COMMAND`를 인자
+없이 호출하지만 `yana-rt`는 `mcp` 서브커맨드가 필요하기 때문입니다 —
+전체 설정 방법(키페어 생성, 릴레이 등록)과 실제로 검증한 stdio JSON-RPC
+기록은 [docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+참고. 참고: 이건 생성된 에이전트가 이 검사를 *사용할 수 있게* 만들
+뿐입니다 — 명령을 실행하기 전에 실제로 호출하는지는 그 에이전트 자체의
+도구 사용 정책에 달려 있으며, 강제되는 것은 아닙니다.
+
+---
+
+## Yana AI (웹 제품)
+
+**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+
+Yana는 Yana AI 코어 위에 구축된 첫 번째 인터페이스입니다: 기반 인프라를 전혀 몰라도 누구나 AI와 채팅하고, 프로바이더를 전환하고, 스킬 라우팅을 사용할 수 있는 웹 UI입니다.
+
+```
+사용자 → Yana AI → Yana AI Core (Router · 안전 · 컨텍스트) → 모델
+```
+
+- 가입 불필요: 자신의 API 키 사용
+- 🔐 **암호화된 키 볼트** — 키는 AES-256-GCM으로 저장, 마스터 키는 추출 불가(WebCrypto + IndexedDB), 절대 평문으로 저장되지 않음
+- 멀티 프로바이더: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+
+**프로바이더 설정**, 자신의 키를 사용하며 키는 로컬에서 암호화됩니다(Yana AI로 전송되지 않음):
+
+| Provider | 유형 | 설정 |
+|----------|------|-------|
+| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
+| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
+| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
+| **9Router** | Local | `npm install -g 9router` → `9router` (`localhost:20128`에서 실행) |
+| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
+
+- 📊 **100% 실제 데이터** — 실시간 프로바이더 통계, L1 메모리 가든, audit-log 상태 패널; 데모 수치 없음
+- 스킬 라우팅 내장, 자연스럽게 입력하면 Yana AI가 올바른 에이전트를 디스패치
+- **코딩 외 사용 사례:** 학습(소크라테스식 학습 도우미), 일상 업무(요약 / 계획 / 초안 작성)
+- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+
+Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입니다.
+
+---
+
+## 토큰 비용 줄이기
+
+Yana AI는 에이전트가 하는 행동에 대한 안전을 실행하지만, 에이전트가 명령
+출력을 읽으며 소모하는 토큰 자체는 줄이지 않습니다. 그게 실제 고민이라면
+바로 그 목적으로 만들어진 별도의 Apache-2.0 도구인
+[`rtk`](https://github.com/rtk-ai/rtk)를 함께 쓰세요 (에이전트가 읽기 전에
+bash 출력을 필터링/압축하며, 흔한 명령에서 최대 90%까지 줄입니다). 코드를
+내장하거나 의존성으로 추가하지 않습니다 — 설치 및 Claude Code/Cursor/
+Codex/Antigravity 연결 방법은
+[docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+참고.
+
+---
+
+## 버전 관리
+
+Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가집니다 — 의도된 설계이지 혼란이 아닙니다 (Kubernetes나 LLVM처럼: 독립된 컴포넌트, 독립된 릴리스 주기). 이 중 실제로 레지스트리에 배포되는 축은 2개뿐입니다. Product 축(rules/hooks/skills/agents/CLI)은 배포되지 않습니다 — 아래 표의 레지스트리 열 참고.
+
+| 축 | 버전 | 레지스트리 |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Rust 런타임 (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 패키지 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
+
+### v1.3.2의 새로운 점
+
+- **Yana OS 관리 플레인 (Program K)** — 에이전트 레지스트리, 자격 증명/리소스 사전 점검, `yana-rt os` 아래의 Evolution Governor(`status`/`capacity`/`roadmap`, NOW 항목 2개로 하드 제한).
+- **네이티브 시스템 헬스 모니터** — CPU/메모리/디스크/GPU 스냅샷, 완전 opt-in·사용자별 스케줄러 설치(macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler — root로 실행되지 않고, 조용히 설치되지 않음).
+- **자율성 사다리 (L0–L4)** — 일상적인 작업은 정책에 따라 자동화 가능; sovereign 작업(보호된 브랜치 병합, 릴리스 게시, 배포, 시크릿 교체, 영구 데이터 삭제, 보안 정책 변경)은 자동으로 구성될 수 없도록 하드 차단됨 — 정책이 바로 아래 단계까지 자동 작업을 허용할 때도 이것이 유지되는지 검증함. 이 모듈은 action intent를 분류하고 큐에 넣기만 하며, 큐에 들어간 명령을 실행하는 부분은 아직 없음.
+- **`yana chat`** — 로컬 AI 터미널 워크스페이스 전면 재설계(탭, 스트리밍, 취소, Ollama/LM Studio/llama.cpp 전반의 모델 탐색) 및 새로운 chat-first 진입점 `yana-ai-rt` 추가, 추측 대신 실제로 pull된 Ollama 모델을 자동 감지.
+- **보안:** WebFetch SSRF 가드가 hostname 정규식 매칭 대신 실제 DNS 조회 + IP 대역 분류를 수행; 마크다운 sanitize가 자체 작성 정규식에서 DOMPurify로 이전.
+
+PR 번호가 포함된 전체 내용: [CHANGELOG.md](CHANGELOG.md) ("v1.3.2" 항목 참고).
+
+---
+
+## 📚 문서
+
+| 문서 | 설명 |
+| --- | --- |
+| [여정](JOURNEY.ko.md) | Yana AI 뒤에 숨겨진 이야기 |
+| [철학](PHILOSOPHY.ko.md) | 핵심 신념과 장기 비전 |
+| [원칙](PRINCIPLES.ko.md) | 모든 설계 결정을 이끄는 엔지니어링 원칙 |
+| [계보](docs/history/LINEAGE.md) | 날짜와 증거로 검증된 코드 기원 기록 — 이 코드베이스가 실제로 어디서 시작됐는지 |
+| [감사의 말](ACKNOWLEDGEMENTS.ko.md) | 오픈소스 커뮤니티에 대한 감사와 존중 |
+
+---
+
+## 한 사람이 만들었습니다
+
+한 사람. 팀 없음. 투자 없음.
+
+- 훅 아키텍처, 안전 게이트, Python CLI
+- Rust 런타임(`yana-rt`), 101개 에이전트, 2,025개 스킬, 멀티 하니스 지원
+- 4개 하니스 어댑터 (Claude Code, Cursor, Codex, Antigravity)
+
+2,025개의 스킬은 프론트엔드, 백엔드, AI/LLM, 보안, Kubernetes, WebAssembly, DevOps, 데이터베이스, 테스팅 등을 다룹니다. 코딩 외 사용 사례를 위한 두 개의 에이전트 페르소나: 학습(`hoc-tap`)과 일상 생산성(`daily-assistant`).
+
+---
+
+## 리포지토리에 Yana AI 추가하기
+
+**정적 배지**, README에 붙여넣기:
+
+```markdown
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
+```
+
+**동적 감사 배지**, 실시간 보안 점수 표시:
+
+```bash
+yana-ai badge .           # 현재 점수로 배지 마크다운 출력
+yana-ai badge . --json    # 기계가 읽을 수 있는 출력
+```
+
+**GitHub Action**, 모든 PR을 자동으로 스캔:
+
+```yaml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'
+```
+
+→ [전체 워크플로 템플릿](docs/install/github-action.yml)
 
 ---
 

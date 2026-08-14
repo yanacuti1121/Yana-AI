@@ -1,44 +1,134 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
-    <img src="docs/yana-banner-light.svg" alt="Yana AI">
+    <img src="docs/yana-banner-light.svg" alt="Yana AI" width="760">
   </picture>
 </p>
 
 <p align="center">
-  <strong>Tường lửa an toàn giữa AI coding agent và shell của bạn.</strong>
+  <a href="README.md">English</a> · <a href="README.vi.md"><strong>Tiếng Việt</strong></a> · <a href="README.ko.md">한국어</a> · <a href="README.zh.md">中文</a>
 </p>
 
-<p align="center">
-  <em>Xây dựng bởi Vũ Văn Tâm · 17 tuổi · Việt Nam</em>
-</p>
+<h1 align="center">Yana AI 🐰</h1>
+
+<p align="center"><strong>Một runtime. Mọi AI. Con người nắm quyền.</strong></p>
+
+<p align="center"><strong>Một hệ thống local-first, đa nền tảng để chạy, kết nối, điều phối và quản trị AI — với quyền kiểm soát tất định đối với những gì AI được phép truy cập, thay đổi và thực thi.</strong></p>
+
+<p align="center"><em>AI của bạn có thể hành động. Nhưng ai quyết định nó được đi xa đến đâu?</em></p>
 
 <p align="center">
-  <a href="README.md">English</a> · <strong>🇻🇳 Tiếng Việt</strong> · <a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.zh.md">🇨🇳 中文</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
+  <a href="https://pypi.org/project/yana-ai/"><img src="https://img.shields.io/pypi/v/yana-ai?logo=pypi&color=3775a9" alt="yana-ai on PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2563eb" alt="Apache 2.0 license"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-2e8b75" alt="Contributions welcome"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml">
-    <img src="https://github.com/yanacuti1121/yana-ai/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  <a href="COMMANDS.md">
-    <img src="https://img.shields.io/badge/commands-reference-2ea44f?style=for-the-badge" alt="Command reference" />
-  </a>
-  <img src="https://img.shields.io/badge/version-v1.3.2-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" />
-  <a href="https://crates.io/crates/yana-rt">
-    <img src="https://img.shields.io/crates/v/yana-rt?style=for-the-badge&logo=rust&color=ce422b" />
-  </a>
-  <a href="https://pypi.org/project/yana-ai/">
-    <img src="https://img.shields.io/pypi/v/yana-ai?style=for-the-badge&logo=pypi&color=3775a9" />
-  </a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/🇻🇳_made_in-Vietnam-da251d?style=flat-square" />
-</p>
+<p align="center"><em>Sáng lập bởi Vũ Văn Tâm · Việt Nam</em></p>
 
 ---
+
+## AI ngày càng có khả năng hành động. Hệ thống quản trị chưa theo kịp.
+
+Một model giờ có thể đọc repository, sửa file, chạy lệnh, khởi động agent, gọi tool và chuẩn bị release. Câu hỏi khó không còn chỉ là model thông minh đến đâu:
+
+- Một runtime có thể kết nối model local, model cloud và coding agent mà không khóa dự án vào một nhà cung cấp không?
+- Mọi giao diện có thể dùng chung một ranh giới capability thay vì tự viết lại cơ chế an toàn không?
+- Hệ thống có phân biệt được tự động hóa thường quy với những hành động bắt buộc phải do con người quyết định không?
+- Developer có thể kiểm tra bằng chứng phía sau các tuyên bố “an toàn”, “hoàn tất”, “đã chặn” hay “đã duyệt” không?
+- Một control plane độc lập có thể dừng toàn bộ agent khi tính toàn vẹn của dự án chưa chắc chắn không?
+
+**Yana AI biến những câu hỏi đó thành luật có thể thực thi.**
+
+Yana không phải một foundation model khác và không thay thế Claude, Codex, Cursor, Ollama hay runtime bạn đang dùng. Nó kết nối chúng với runtime native, policy gate tất định, bộ nhớ dự án, primitive điều phối và một tầng vận hành do con người quản trị.
+
+## Chọn kết quả đầu tiên bạn muốn
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### Chạy AI local
+
+Mở terminal workspace viết bằng Rust với provider local.
+
+```bash
+cargo install yana-rt
+yana-ai-rt --provider ollama
+```
+
+Streaming, hủy generation, tab, session, đổi model và tool có guard.
+
+</td>
+<td width="33%" valign="top">
+
+### Quản trị repository
+
+Áp dụng các adapter surface được hỗ trợ vào dự án hiện có.
+
+```bash
+pip install yana-ai
+cd your-project
+yana-ai install
+yana-ai doctor .
+```
+
+Rule, hook, agent, skill, command và integrity check nằm cùng dự án.
+
+</td>
+<td width="33%" valign="top">
+
+### Điều phối công việc
+
+Route task và tạo mission có dependency bằng runtime native.
+
+```bash
+yana-rt route classify "fix auth"
+yana-rt mission create "add-auth"
+```
+
+Dùng evidence, capability, memory, workspace và OS control từ cùng một CLI.
+
+</td>
+</tr>
+</table>
+
+> Mới bắt đầu? Đi từ [Cài đặt nhanh](#cài-đặt-nhanh). Đang xây platform? Đọc [kiến trúc](docs/reference/architecture.md). Đang đánh giá an toàn? Hãy đọc [Giới hạn thực tế](#giới-hạn-thực-tế) trước danh sách tính năng.
+
+## Yana hợp nhất những gì
+
+| Tầng | Giá trị cho developer | Bề mặt chính |
+| --- | --- | --- |
+| **Runtime** | Chat native, state, routing, health và thao tác dự án | `yana-rt`, `yana-ai-rt` |
+| **Model** | Ưu tiên local nhưng không loại bỏ cloud provider | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **Adapter** | Một contract dự án được quản trị trên các harness hỗ trợ | Claude Code, Codex, Cursor, Antigravity |
+| **Điều phối** | Task, mission, memory, evidence và workspace | router, mission dispatcher, event bus |
+| **Quản trị** | Check tất định, audit chain, quarantine, HALT và human gate | capability, hook, Yana OS, Giám Thị |
+
+```text
+ Local models        Cloud models         Coding agents
+ Ollama              Anthropic            Claude Code
+ LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
+ llama.cpp                 │                       │
+        └──────────────────┴───────────────────────┘
+                               │
+                        Provider + adapters
+                               │
+                         yana-rt runtime
+                 chat · capabilities · missions · memory
+                               │
+                    deterministic policy gates
+                               │
+                       Yana OS + Giám Thị
+               HALT · quarantine · receipts · human unlock
+                               │
+                 files · Git · processes · network · tools
+```
+
+Trí tuệ model có thể đề xuất hành động. Code tất định và thẩm quyền con người quyết định hành động đó có được phép xảy ra hay không.
+
+## Xem cơ chế quản trị hoạt động
 
 Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log — chặn cứng trên Claude Code và Cursor, tư vấn (advisory) trên Codex và Antigravity.
 
@@ -74,18 +164,6 @@ files. Ask the human to confirm before running this.
 
 ---
 
-## 📚 Tài liệu
-
-| Tài liệu | Mô tả |
-| --- | --- |
-| [Hành trình](JOURNEY.vi.md) | Câu chuyện đằng sau Yana AI |
-| [Triết lý](PHILOSOPHY.vi.md) | Niềm tin cốt lõi và tầm nhìn dài hạn |
-| [Nguyên tắc](PRINCIPLES.vi.md) | Nguyên tắc kỹ thuật định hướng mọi quyết định thiết kế |
-| [Nguồn gốc](docs/history/LINEAGE.md) | Hồ sơ khởi nguồn có ngày tháng, đã kiểm chứng bằng chứng — codebase này thực sự bắt đầu từ đâu |
-| [Lời tri ân](ACKNOWLEDGEMENTS.vi.md) | Ghi công và tri ân cộng đồng mã nguồn mở |
-
----
-
 ## Vấn đề
 
 AI coding agent mắc sai lầm. Chúng `rm -rf` nhầm thư mục. Chúng push force lên main. Chúng bịa ra kết quả test. Đến lúc bạn nhận ra thì thiệt hại đã xảy ra.
@@ -97,6 +175,8 @@ Yana AI nằm giữa agent và hệ thống của bạn: mọi lệnh có rủi 
 ## Nó chặn gì
 
 Các thao tác git phá hoại, `rm` ngoài phạm vi workspace, pipe nội dung từ internet vào bash, và cài package chưa qua kiểm định, qua agent hooks có Rust runtime (`yana-rt`) hỗ trợ.
+
+---
 
 ## Cách hoạt động
 
@@ -169,35 +249,6 @@ bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 
 ---
 
-## GitHub Action
-
-Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, permissions, hook injection, lỗ hổng MCP.
-
-```yaml
-# .github/workflows/yana-ai-scan.yml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'       # fail CI khi có finding HIGH hoặc CRITICAL
-    diff-only: 'true'     # chỉ quét file thay đổi trên PR
-    comment-on-pr: 'true' # đăng tóm tắt finding dưới dạng comment PR
-```
-
-Đăng comment trên mỗi PR:
-
-```
-🟠 Yana AI Security Scan — HIGH
-
-| Metric  | Value  |
-|---------|--------|
-| Risk    | HIGH   |
-| Score   | 58/100 |
-| Findings| 3      |
-```
-
-→ [Template workflow đầy đủ](docs/install/github-action.yml) · [tài liệu tham khảo đầy đủ](docs/reference/github-action.md)
-
----
-
 ## Rust runtime — `yana-rt`
 
 33 subcommand. Không phụ thuộc Python.
@@ -224,30 +275,6 @@ mà dòng này từng tuyên bố đã từng bị phát hiện là chưa đư�
 (2026-05-31, commit `fb6a0cd7`) và bị đưa trở lại qua một lần khôi phục README
 không liên quan (2026-07-07) — không thể tái hiện bằng bất kỳ phép đo nào trong
 `BENCHMARK.md`, cả trước lẫn giờ.
-
----
-
-## Versioning
-
-Yana AI có 3 trục version độc lập — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập). Chỉ 2 trong 3 trục thực sự phát hành lên một registry; trục Product (rules/hooks/skills/agents/CLI) thì không, xem cột Registry bên dưới.
-
-| Trục | Version | Registry |
-|---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
-
-Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
-
-### Có gì mới trong v1.3.2
-
-- **Yana OS management plane (Program K)** — agent registry, preflight credential/resource, và một Evolution Governor (`status`/`capacity`/`roadmap`, giới hạn cứng 2 mục trong NOW) dưới `yana-rt os`.
-- **Native system health monitor** — snapshot CPU/memory/disk/GPU, cài scheduler hoàn toàn opt-in, theo từng user (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; không bao giờ chạy root, không bao giờ âm thầm).
-- **Autonomy ladder (L0–L4)** — việc thường quy có thể tự động hóa theo policy; các thao tác sovereign (merge nhánh bảo vệ, publish release, deploy, xoay secret, xóa dữ liệu vĩnh viễn, đổi security policy) bị chặn cứng, không bao giờ cấu hình tự động được — đã verify điều này đúng cả khi policy cho phép tự động ở mức ngay dưới. Module này chỉ phân loại và xếp hàng action intent, chưa có gì trong đó thực thi lệnh đã xếp hàng.
-- **`yana chat`** có bản thiết kế lại workspace terminal AI local đầy đủ (tab, streaming, cancel, tự tìm model qua Ollama/LM Studio/llama.cpp) cộng entry point mới `yana-ai-rt` chat-first, và tự nhận diện model Ollama thật đã pull thay vì đoán.
-- **Bảo mật:** guard SSRF của WebFetch giờ resolve DNS thật + phân loại theo dải IP thay vì so khớp hostname bằng regex; sanitize markdown chuyển từ regex tự viết sang DOMPurify.
-
-Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.3.2").
 
 ---
 
@@ -282,6 +309,8 @@ Các thuộc tính chính, đã xác minh trên code thật, không chỉ trên 
 
 Cùng một output đã chạy thật với demo ở đầu README này (`core/hooks/guard-destructive.sh`, 2026-07-04) — không lặp lại ở đây để tránh nói hai lần. Xem [Giới hạn thực tế](#giới-hạn-thực-tế) bên dưới để biết guard này *chưa* bắt được gì, hoặc [docs/reference/known-limitations.md](docs/reference/known-limitations.md) để xem chi tiết kỹ thuật đầy đủ.
 
+---
+
 ## Giới hạn thực tế
 
 Trung thực, không quảng cáo: đã xác minh trực tiếp trên hook sống, không phải trên tài liệu mô tả chúng.
@@ -292,123 +321,6 @@ Trung thực, không quảng cáo: đã xác minh trực tiếp trên hook sốn
 - **macOS không có sẵn `timeout`/`gtimeout` kiểu GNU.** Một hook từng giả định luôn có timeout này đã âm thầm không bao giờ chạy được hook nào trên các máy bị ảnh hưởng cho đến khi phát hiện và fix (2026-07-04). Giờ nó xuống cấp một cách nhẹ nhàng (chạy không giới hạn timeout) thay vì âm thầm không làm gì cả, nhưng đáng lưu ý loại bug "giả định môi trường" này là chính xác thứ cần để ý nếu bạn fork hoặc mở rộng các hook này.
 
 Tìm thấy lỗ hổng chưa liệt kê ở đây? [Mở issue](https://github.com/yanacuti1121/yana-ai/issues). Báo cáo thực tế là cách một guard như thế này thực sự trở nên sắc bén hơn, không phải bằng cách viết thêm tài liệu mô tả nó nên làm gì.
-
----
-
-## Cắt giảm chi phí token của chính bạn
-
-Yana AI thực thi an toàn cho những gì agent làm — nó không giảm số token
-agent đốt khi đọc output lệnh. Nếu đó mới là vấn đề thật của bạn, dùng kèm
-[`rtk`](https://github.com/rtk-ai/rtk), một công cụ Apache-2.0 riêng biệt
-được viết cho đúng việc đó (lọc/nén output bash trước khi agent đọc, giảm
-tới 90% trên các lệnh thông dụng). Không nhúng code, không phải dependency
-— xem [docs/reference/token-optimization.md](docs/reference/token-optimization.md)
-để cài đặt + nối vào Claude Code/Cursor/Codex/Antigravity.
-
----
-
-## Tích hợp MCP — Buzz
-
-`yana-rt mcp` lộ ra `check_command` (đúng kiểm tra lệnh phá hoại mà
-`core/hooks/guard-destructive.sh` đang thực thi cho Claude Code) như một
-MCP tool qua stdio — opt-in, gated sau Cargo feature `mcp`, không nằm
-trong binary mặc định.
-
-Đối tượng dùng thật đầu tiên là [Buzz](https://github.com/block/buzz),
-một workspace nhóm tự host nơi AI agent là thành viên chính thức với key
-riêng. `buzz-acp` của Buzz sinh ra bất kỳ agent nào nói ACP (goose,
-codex, claude-code, hoặc `buzz-agent`) và có thể gắn thêm 1 MCP server
-qua `BUZZ_ACP_MCP_COMMAND` — trỏ vào Yana AI thì mọi agent Buzz điều
-phối đều có cùng kiểm tra lệnh, không chỉ riêng Claude Code.
-
-```bash
-cargo build --release --features mcp
-export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
-```
-
-Cần wrapper vì `buzz-acp` gọi `BUZZ_ACP_MCP_COMMAND` không kèm tham số
-nào, mà `yana-rt` cần subcommand `mcp` — xem
-[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
-để biết cách setup đầy đủ (sinh keypair, đăng ký với relay) và bản ghi
-JSON-RPC qua stdio đã verify thật. Lưu ý: đây chỉ làm cho công cụ kiểm
-tra *có sẵn* cho agent được sinh ra — agent đó có thực sự gọi nó trước
-khi chạy lệnh hay không phụ thuộc vào chính sách dùng tool của agent đó,
-không có gì bắt buộc.
-
----
-
-## Yana AI (sản phẩm web)
-
-**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
-
-Yana là giao diện đầu tiên xây trên lõi Yana AI: một web UI cho phép bất kỳ ai chat với AI, đổi provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
-
-```
-Người dùng → Yana AI → Yana AI Core (Router · An toàn · Ngữ cảnh) → Model
-```
-
-- Không cần đăng ký: dùng API key của riêng bạn
-- 🔐 **Key vault mã hóa** — key lưu bằng AES-256-GCM, master key không thể export (WebCrypto + IndexedDB), không bao giờ ở dạng plaintext
-- Đa provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
-
-**Thiết lập provider**, dùng key của bạn, key được mã hóa cục bộ (không bao giờ gửi về Yana AI):
-
-| Provider | Loại | Thiết lập |
-|----------|------|-------|
-| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
-| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
-| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
-| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
-| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
-| **9Router** | Local | `npm install -g 9router` → `9router` (chạy tại `localhost:20128`) |
-| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
-
-- 📊 **100% dữ liệu thật** — thống kê provider trực tiếp, khu vườn L1 memory, panel sức khỏe audit-log; không số liệu demo
-- Có sẵn skill routing, gõ tự nhiên và Yana AI tự dispatch đúng agent
-- **Cả cho việc không phải code:** học tập (trợ lý học kiểu Socratic), việc hàng ngày (tóm tắt / lên kế hoạch / soạn thảo)
-- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
-
-Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm vào lưới điện đó.
-
----
-
-## Xây dựng bởi một người
-
-Một người. Không team. Không tài trợ.
-
-- Kiến trúc hook, safety gate, Python CLI
-- Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
-- 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
-
-2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
-
----
-
-## Thêm Yana AI vào repo của bạn
-
-**Badge tĩnh**, dán vào README của bạn:
-
-```markdown
-[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
-```
-
-**Badge audit động**, hiện điểm bảo mật trực tiếp:
-
-```bash
-yana-ai badge .           # in badge markdown với điểm hiện tại
-yana-ai badge . --json    # output dạng máy đọc được
-```
-
-**GitHub Action**, tự động quét mọi PR:
-
-```yaml
-- uses: yanacuti1121/yana-ai/.github/actions/scan@main
-  with:
-    fail-on: 'high'
-```
-
-→ [Template workflow đầy đủ](docs/install/github-action.yml)
 
 ---
 
@@ -508,6 +420,188 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 `status` hiện 6 trạng thái: `working` (còn sống, log vừa cập nhật), `blocked` (còn sống nhưng log không đổi quá `YANA_AGENT_STALE_SECONDS` giây, mặc định 30, có thể đang kẹt), `done` (thoát với mã 0), `failed` (thoát với mã khác 0), `unknown` (process đã mất nhưng chưa từng ghi mã thoát riêng, ví dụ sau khi bị SIGKILL), `killed` (đã dừng bằng `kill`).
 
 Xem [tài liệu CLI đầy đủ](docs/reference/cli-reference.md) để biết ví dụ output và chi tiết hơn, hoặc **[COMMANDS.md](COMMANDS.md)** để xem toàn bộ lệnh `yana-ai` ở một chỗ.
+
+---
+
+## GitHub Action
+
+Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, permissions, hook injection, lỗ hổng MCP.
+
+```yaml
+# .github/workflows/yana-ai-scan.yml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'       # fail CI khi có finding HIGH hoặc CRITICAL
+    diff-only: 'true'     # chỉ quét file thay đổi trên PR
+    comment-on-pr: 'true' # đăng tóm tắt finding dưới dạng comment PR
+```
+
+Đăng comment trên mỗi PR:
+
+```
+🟠 Yana AI Security Scan — HIGH
+
+| Metric  | Value  |
+|---------|--------|
+| Risk    | HIGH   |
+| Score   | 58/100 |
+| Findings| 3      |
+```
+
+→ [Template workflow đầy đủ](docs/install/github-action.yml) · [tài liệu tham khảo đầy đủ](docs/reference/github-action.md)
+
+---
+
+## Tích hợp MCP — Buzz
+
+`yana-rt mcp` lộ ra `check_command` (đúng kiểm tra lệnh phá hoại mà
+`core/hooks/guard-destructive.sh` đang thực thi cho Claude Code) như một
+MCP tool qua stdio — opt-in, gated sau Cargo feature `mcp`, không nằm
+trong binary mặc định.
+
+Đối tượng dùng thật đầu tiên là [Buzz](https://github.com/block/buzz),
+một workspace nhóm tự host nơi AI agent là thành viên chính thức với key
+riêng. `buzz-acp` của Buzz sinh ra bất kỳ agent nào nói ACP (goose,
+codex, claude-code, hoặc `buzz-agent`) và có thể gắn thêm 1 MCP server
+qua `BUZZ_ACP_MCP_COMMAND` — trỏ vào Yana AI thì mọi agent Buzz điều
+phối đều có cùng kiểm tra lệnh, không chỉ riêng Claude Code.
+
+```bash
+cargo build --release --features mcp
+export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
+```
+
+Cần wrapper vì `buzz-acp` gọi `BUZZ_ACP_MCP_COMMAND` không kèm tham số
+nào, mà `yana-rt` cần subcommand `mcp` — xem
+[docs/programs/buzz-mcp-integration.md](docs/programs/buzz-mcp-integration.md)
+để biết cách setup đầy đủ (sinh keypair, đăng ký với relay) và bản ghi
+JSON-RPC qua stdio đã verify thật. Lưu ý: đây chỉ làm cho công cụ kiểm
+tra *có sẵn* cho agent được sinh ra — agent đó có thực sự gọi nó trước
+khi chạy lệnh hay không phụ thuộc vào chính sách dùng tool của agent đó,
+không có gì bắt buộc.
+
+---
+
+## Yana AI (sản phẩm web)
+
+**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+
+Yana là giao diện đầu tiên xây trên lõi Yana AI: một web UI cho phép bất kỳ ai chat với AI, đổi provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
+
+```
+Người dùng → Yana AI → Yana AI Core (Router · An toàn · Ngữ cảnh) → Model
+```
+
+- Không cần đăng ký: dùng API key của riêng bạn
+- 🔐 **Key vault mã hóa** — key lưu bằng AES-256-GCM, master key không thể export (WebCrypto + IndexedDB), không bao giờ ở dạng plaintext
+- Đa provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+
+**Thiết lập provider**, dùng key của bạn, key được mã hóa cục bộ (không bao giờ gửi về Yana AI):
+
+| Provider | Loại | Thiết lập |
+|----------|------|-------|
+| **Claude** | Cloud | API key → [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| **OpenAI** | Cloud | API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Gemini** | Cloud | API key → [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **Groq** | Cloud | API key → [console.groq.com/keys](https://console.groq.com/keys) |
+| **DeepSeek** | Cloud | API key → [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
+| **OpenRouter** | Cloud | API key → [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
+| **9Router** | Local | `npm install -g 9router` → `9router` (chạy tại `localhost:20128`) |
+| **Ollama** | Local | [ollama.com/download](https://ollama.com/download) → `ollama serve` → `ollama pull llama3.2` |
+
+- 📊 **100% dữ liệu thật** — thống kê provider trực tiếp, khu vườn L1 memory, panel sức khỏe audit-log; không số liệu demo
+- Có sẵn skill routing, gõ tự nhiên và Yana AI tự dispatch đúng agent
+- **Cả cho việc không phải code:** học tập (trợ lý học kiểu Socratic), việc hàng ngày (tóm tắt / lên kế hoạch / soạn thảo)
+- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+
+Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm vào lưới điện đó.
+
+---
+
+## Cắt giảm chi phí token của chính bạn
+
+Yana AI thực thi an toàn cho những gì agent làm — nó không giảm số token
+agent đốt khi đọc output lệnh. Nếu đó mới là vấn đề thật của bạn, dùng kèm
+[`rtk`](https://github.com/rtk-ai/rtk), một công cụ Apache-2.0 riêng biệt
+được viết cho đúng việc đó (lọc/nén output bash trước khi agent đọc, giảm
+tới 90% trên các lệnh thông dụng). Không nhúng code, không phải dependency
+— xem [docs/reference/token-optimization.md](docs/reference/token-optimization.md)
+để cài đặt + nối vào Claude Code/Cursor/Codex/Antigravity.
+
+---
+
+## Versioning
+
+Yana AI có 3 trục version độc lập — có chủ đích, không phải lộn xộn (giống Kubernetes hay LLVM: các thành phần độc lập, chu kỳ release độc lập). Chỉ 2 trong 3 trục thực sự phát hành lên một registry; trục Product (rules/hooks/skills/agents/CLI) thì không, xem cột Registry bên dưới.
+
+| Trục | Version | Registry |
+|---|---|---|
+| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+
+Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
+
+### Có gì mới trong v1.3.2
+
+- **Yana OS management plane (Program K)** — agent registry, preflight credential/resource, và một Evolution Governor (`status`/`capacity`/`roadmap`, giới hạn cứng 2 mục trong NOW) dưới `yana-rt os`.
+- **Native system health monitor** — snapshot CPU/memory/disk/GPU, cài scheduler hoàn toàn opt-in, theo từng user (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; không bao giờ chạy root, không bao giờ âm thầm).
+- **Autonomy ladder (L0–L4)** — việc thường quy có thể tự động hóa theo policy; các thao tác sovereign (merge nhánh bảo vệ, publish release, deploy, xoay secret, xóa dữ liệu vĩnh viễn, đổi security policy) bị chặn cứng, không bao giờ cấu hình tự động được — đã verify điều này đúng cả khi policy cho phép tự động ở mức ngay dưới. Module này chỉ phân loại và xếp hàng action intent, chưa có gì trong đó thực thi lệnh đã xếp hàng.
+- **`yana chat`** có bản thiết kế lại workspace terminal AI local đầy đủ (tab, streaming, cancel, tự tìm model qua Ollama/LM Studio/llama.cpp) cộng entry point mới `yana-ai-rt` chat-first, và tự nhận diện model Ollama thật đã pull thay vì đoán.
+- **Bảo mật:** guard SSRF của WebFetch giờ resolve DNS thật + phân loại theo dải IP thay vì so khớp hostname bằng regex; sanitize markdown chuyển từ regex tự viết sang DOMPurify.
+
+Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.3.2").
+
+---
+
+## 📚 Tài liệu
+
+| Tài liệu | Mô tả |
+| --- | --- |
+| [Hành trình](JOURNEY.vi.md) | Câu chuyện đằng sau Yana AI |
+| [Triết lý](PHILOSOPHY.vi.md) | Niềm tin cốt lõi và tầm nhìn dài hạn |
+| [Nguyên tắc](PRINCIPLES.vi.md) | Nguyên tắc kỹ thuật định hướng mọi quyết định thiết kế |
+| [Nguồn gốc](docs/history/LINEAGE.md) | Hồ sơ khởi nguồn có ngày tháng, đã kiểm chứng bằng chứng — codebase này thực sự bắt đầu từ đâu |
+| [Lời tri ân](ACKNOWLEDGEMENTS.vi.md) | Ghi công và tri ân cộng đồng mã nguồn mở |
+
+---
+
+## Xây dựng bởi một người
+
+Một người. Không team. Không tài trợ.
+
+- Kiến trúc hook, safety gate, Python CLI
+- Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
+- 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
+
+2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
+
+---
+
+## Thêm Yana AI vào repo của bạn
+
+**Badge tĩnh**, dán vào README của bạn:
+
+```markdown
+[![Protected by Yana AI](https://img.shields.io/badge/protected%20by-Yana AI%20ENGINE-ff6b35?style=for-the-badge)](https://github.com/yanacuti1121/yana-ai)
+```
+
+**Badge audit động**, hiện điểm bảo mật trực tiếp:
+
+```bash
+yana-ai badge .           # in badge markdown với điểm hiện tại
+yana-ai badge . --json    # output dạng máy đọc được
+```
+
+**GitHub Action**, tự động quét mọi PR:
+
+```yaml
+- uses: yanacuti1121/yana-ai/.github/actions/scan@main
+  with:
+    fail-on: 'high'
+```
+
+→ [Template workflow đầy đủ](docs/install/github-action.yml)
 
 ---
 
