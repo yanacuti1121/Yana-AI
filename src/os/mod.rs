@@ -366,6 +366,19 @@ pub enum SupervisorAction {
         #[arg(long)]
         json: bool,
     },
+    /// Native hook-event policy check — reads a hook JSON payload from
+    /// stdin, checks the shared GIAMTHI_HALT.lock/quarantine state, and
+    /// prints the response shape the current hook event requires
+    /// (PreToolUse deny-JSON+exit 2, SessionStart continue:false+exit 0,
+    /// UserPromptSubmit decision:block+exit 0). This is the canonical
+    /// implementation core/hooks/giamthi-halt-check.sh calls first,
+    /// falling back to its own jq-based logic only when yana-rt isn't on
+    /// PATH — no jq dependency, no degraded path, for any of the three
+    /// event shapes.
+    HookCheck {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+    },
     /// Create the shared cross-engine halt lock.
     Halt {
         #[arg(long)]
@@ -391,7 +404,29 @@ pub enum SupervisorAction {
         #[command(subcommand)]
         action: SupervisorQuarantineAction,
     },
+    /// Working-tree content-hash drift on security-sensitive paths outside
+    /// core-lock's LOCKED_DIRS (.claude/settings.json, .claude/hooks/,
+    /// .codex/hooks/, .github/workflows/) — closes the acknowledged
+    /// commit-SHA-only blind spot in core/scripts/giamthi-watch.sh's own
+    /// scope-drift check (an uncommitted, or committed-then-reverted,
+    /// edit was previously invisible between ticks).
+    Baseline {
+        #[command(subcommand)]
+        action: SupervisorBaselineAction,
+    },
     /// Install, inspect, or remove the native per-user supervisor scheduler.
+    ///
+    /// This installs a PERIODIC scheduled tick (launchd StartInterval /
+    /// systemd timer / Task Scheduler, invoking `yana-rt os supervisor
+    /// tick` on an interval) — dispatches to `monitor_service`, the exact
+    /// same installer `yana-rt os monitor service` uses. It does not start
+    /// a resident, continuously-running process. `src/os/service/` (a
+    /// separate, currently-unwired module — see
+    /// docs/operations/always-on-service.md) is where that KeepAlive/
+    /// Restart=always resident daemon foundation lives; when it gets a CLI
+    /// surface, it will not reuse this `Service` name, specifically so the
+    /// two are never confusable at the command line the way they
+    /// previously were only distinguishable by reading the source.
     Service {
         #[command(subcommand)]
         action: MonitorServiceAction,
@@ -420,6 +455,34 @@ pub enum SupervisorQuarantineAction {
         actor: String,
         #[arg(long, default_value = ".")]
         dir: PathBuf,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SupervisorBaselineAction {
+    /// Compare the working tree against the approved baseline. Never
+    /// writes anything. Exits non-zero if drift is found (or bail!s), so
+    /// giamthi-watch.sh's capture-exit-code convention works unchanged.
+    Check {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Human-only ceremony to set or advance the approved baseline to the
+    /// current working tree. A Giám Thị process must never call this on
+    /// its own — see supervisor::approve_sensitive_baseline's doc comment.
+    Approve {
+        #[arg(long)]
+        approve: bool,
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -648,6 +711,20 @@ fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
                 bail!("Giám Thị self-test found blocking failures");
             }
         }
+        SupervisorAction::HookCheck { dir } => {
+            let root = state::project_root(&dir)?;
+            // Exits directly with the hook-contract-specific code (0 or 2)
+            // rather than returning through this function's Result<()> —
+            // the caller (core/hooks/giamthi-halt-check.sh) depends on the
+            // exact exit code, same as guard::dispatch()'s std::process::exit
+            // pattern for the other hot-path hook subcommands. A stdin-read/
+            // parse failure still propagates as Err here, which main.rs's
+            // existing Commands::Os handler turns into exit 2 — fail closed,
+            // not silently allowed, when the input can't be interpreted at
+            // all.
+            let code = supervisor::cmd_hook_check(&root)?;
+            std::process::exit(code);
+        }
         SupervisorAction::Halt { reason, actor, dir } => {
             let root = state::project_root(&dir)?;
             supervisor::halt(&root, &reason, &actor)?;
@@ -690,6 +767,32 @@ fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
                 let root = state::project_root(&dir)?;
                 supervisor::clear_quarantine(&root, approve, &reason, &actor)?;
                 println!("Giám Thị quarantine cleared for {}", root.display());
+            }
+        },
+        SupervisorAction::Baseline { action } => match action {
+            SupervisorBaselineAction::Check { dir, json } => {
+                let root = state::project_root(&dir)?;
+                let report = supervisor::sensitive_drift(&root)?;
+                supervisor::print(&report, json, "Yana Giám Thị sensitive-path baseline")?;
+                if !report.clean {
+                    bail!("sensitive-path drift detected outside the approved baseline");
+                }
+            }
+            SupervisorBaselineAction::Approve {
+                approve,
+                reason,
+                actor,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let baseline =
+                    supervisor::approve_sensitive_baseline(&root, approve, &reason, &actor)?;
+                supervisor::print(
+                    &baseline,
+                    json,
+                    "Yana Giám Thị sensitive-path baseline approved",
+                )?;
             }
         },
         SupervisorAction::Service { action } => match action {

@@ -55,6 +55,37 @@ fi
 # stdin can only be read once.
 INPUT=$(cat)
 
+# ── Native Rust fast path (2026-08-14) ──────────────────────────────────────
+# `yana-rt os supervisor hook-check` is the canonical implementation of
+# everything below this point — no jq dependency, and it produces the
+# correct SessionStart/UserPromptSubmit shapes unconditionally (the
+# jq-missing degraded path below cannot, by its own admission).
+#
+# Deliberately captures output rather than `exec`-ing into it the way
+# guard-destructive.sh's native fast path does: that command's risk was an
+# EXISTING behavior silently changing underneath a stale binary, which
+# needed a version gate before an irreversible exec. This subcommand is
+# brand new — a binary that predates it simply doesn't have it, and clap
+# reports that as a usage error (non-zero exit, nothing useful on stdout),
+# which the checks below already fall through on safely. Capturing first
+# means there is no irreversible step to gate before, and the same $INPUT
+# already read above is reused for the jq fallback without re-reading
+# stdin.
+if command -v yana-rt >/dev/null 2>&1; then
+  NATIVE_OUT=$(printf '%s' "$INPUT" | yana-rt os supervisor hook-check --dir "$PROJECT_DIR" 2>/dev/null)
+  NATIVE_EXIT=$?
+  if [[ $NATIVE_EXIT -eq 0 ]]; then
+    [[ -n "$NATIVE_OUT" ]] && echo "$NATIVE_OUT"
+    exit 0
+  elif [[ $NATIVE_EXIT -eq 2 && -n "$NATIVE_OUT" ]]; then
+    echo "$NATIVE_OUT"
+    exit 2
+  fi
+  # Any other outcome (missing subcommand on a stale binary, unexpected
+  # crash) falls through to the jq-based logic below rather than trusting
+  # an exit code this hook doesn't recognize.
+fi
+
 # ── Dependency guard ─────────────────────────────────────────────────────────
 # A lock exists — we MUST deny. Without jq we cannot safely embed the lock's
 # arbitrary multi-line content into a JSON string (naive escaping breaks on

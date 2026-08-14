@@ -5,6 +5,15 @@
 //!
 //! Build: `wasm-pack build --target web --features wasm`
 
+// Always compiled, no feature gate: pure command-string judgment, the
+// single source of truth for `check_command`. Depends only on `regex`
+// and `std::sync::LazyLock`, both WASM-safe — see the module's own doc
+// comment. `main.rs`'s binary crate reaches this same file via
+// `yana_rt::command_safety::check_command` (the same cross-crate pattern
+// `flock_v1` below already established), so there is exactly one copy of
+// this logic, not one per build target.
+pub mod command_safety;
+
 #[cfg(feature = "flock-v1")]
 pub mod flock_v1;
 
@@ -12,55 +21,17 @@ pub mod flock_v1;
 mod wasm {
     use wasm_bindgen::prelude::*;
 
-    // ── Destructive command patterns (mirrors guard/mod.rs) ──────────────────
-
-    struct Pattern {
-        re: regex::Regex,
-        reason: &'static str,
-    }
-
-    fn destructive_patterns() -> Vec<Pattern> {
-        let rules: &[(&str, &str)] = &[
-            (
-                r"(?i)(^|[;&|])\s*rm\s+-[a-zA-Z]*r[a-zA-Z]*f|rm\s+-[a-zA-Z]*f[a-zA-Z]*r",
-                "Blocked: 'rm -rf' is irreversible. Use targeted 'rm' with explicit paths.",
-            ),
-            (
-                r"(?i)git\s+push\s+.*--force|git\s+push\s+.*-f\b",
-                "Blocked: force-push can destroy shared history. Requires explicit approval.",
-            ),
-            (
-                r"(?i)git\s+reset\s+--hard",
-                "Blocked: 'git reset --hard' discards all uncommitted changes permanently.",
-            ),
-            (
-                r"(?i)(curl|wget)\s+.*\|\s*(ba)?sh",
-                "Blocked: pipe-to-shell is a supply chain attack vector.",
-            ),
-            (
-                r"(?i)DROP\s+(TABLE|DATABASE|SCHEMA)\s+",
-                "Blocked: DDL DROP is irreversible without a prior backup.",
-            ),
-            (
-                r"(?i)npm\s+publish\b",
-                "Blocked: 'npm publish' requires explicit human gate approval.",
-            ),
-            (
-                r"(?i)git\s+push\s+.*origin\s+main|git\s+push\s+.*origin\s+master",
-                "Blocked: push to main/master requires explicit authorization.",
-            ),
-        ];
-        rules
-            .iter()
-            .filter_map(|(pat, reason)| {
-                regex::Regex::new(pat).ok().map(|re| Pattern { re, reason })
-            })
-            .collect()
-    }
-
     // ── Exported functions ────────────────────────────────────────────────────
 
     /// Check whether a shell command is safe to execute.
+    ///
+    /// Thin wrapper over `crate::command_safety::check_command` — the same
+    /// function the native CLI guard, `capability::command`, and MCP call.
+    /// This file used to hand-maintain a separate 7-pattern regex list here
+    /// that had already drifted from native guard (missing `git clean -f`,
+    /// `TRUNCATE TABLE`, and inline-script-eval detection); there is now
+    /// nothing left to drift, since both build targets call this one
+    /// function.
     ///
     /// Input:  raw command string
     /// Output: JSON `{"allowed": bool, "reason": string | null}`
@@ -73,16 +44,10 @@ mod wasm {
     /// ```
     #[wasm_bindgen]
     pub fn check_command(cmd: &str) -> String {
-        for p in &destructive_patterns() {
-            if p.re.is_match(cmd) {
-                return serde_json::json!({
-                    "allowed": false,
-                    "reason": p.reason
-                })
-                .to_string();
-            }
+        match crate::command_safety::check_command(cmd) {
+            Some(reason) => serde_json::json!({ "allowed": false, "reason": reason }).to_string(),
+            None => serde_json::json!({ "allowed": true, "reason": null }).to_string(),
         }
-        serde_json::json!({ "allowed": true, "reason": null }).to_string()
     }
 
     /// Batch-check a JSON array of command strings.
@@ -106,17 +71,11 @@ mod wasm {
         };
         let results: Vec<serde_json::Value> = cmds
             .iter()
-            .map(|cmd| {
-                for p in &destructive_patterns() {
-                    if p.re.is_match(cmd) {
-                        return serde_json::json!({
-                            "cmd": cmd,
-                            "allowed": false,
-                            "reason": p.reason
-                        });
-                    }
+            .map(|cmd| match crate::command_safety::check_command(cmd) {
+                Some(reason) => {
+                    serde_json::json!({ "cmd": cmd, "allowed": false, "reason": reason })
                 }
-                serde_json::json!({ "cmd": cmd, "allowed": true, "reason": null })
+                None => serde_json::json!({ "cmd": cmd, "allowed": true, "reason": null }),
             })
             .collect();
         serde_json::to_string(&results).unwrap_or_default()

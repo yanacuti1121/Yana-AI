@@ -2699,6 +2699,58 @@ for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt
 done
 rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
 
+# ── giamthi-halt-check.sh native fast path (yana-rt os supervisor
+# hook-check) ─────────────────────────────────────────────────────────────
+# Everything above already exercises the jq-based logic (and, if yana-rt
+# happens to already be on the ambient PATH, may have silently exercised
+# the native path too — this block makes that deliberate instead of
+# incidental, matching guard-blast-radius.sh's own PATH-override
+# convention below). Re-runs the same three response-shape assertions
+# already proven above, this time with the native binary forced first, so
+# a regression in cmd_hook_check specifically (not just the shell
+# fallback) fails this suite.
+_GIAMTHI_REPO_ROOT="$(cd "$CLAUDE_DIR/.." && pwd)"
+_GIAMTHI_RT_BIN="$_GIAMTHI_REPO_ROOT/target/release/yana-rt"
+if [[ -x "$_GIAMTHI_RT_BIN" ]]; then
+    printf '%s\n' "manufactured for run-hook-tests.sh (native path)" > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+
+    test_giamthi_native() {
+        local copy_path="$1" test_name="$2" event_name="$3" expect_field="$4" expect_value="$5" expect_exit="$6"
+        local output exit_code=0 actual
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        echo -n "Testing $copy_path [native: $test_name]... "
+        output=$(printf '{"hook_event_name":"%s","tool_name":"Bash"}\n' "$event_name" \
+            | PATH="$_GIAMTHI_REPO_ROOT/target/release:$PATH" bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
+        actual=$(printf '%s' "$output" | jq -r ".$expect_field" 2>/dev/null || echo invalid)
+        if [[ "$actual" == "$expect_value" && "$exit_code" -eq "$expect_exit" ]]; then
+            echo "PASS"
+        else
+            echo "FAIL (expected $expect_field=$expect_value exit=$expect_exit, got $expect_field=$actual exit=$exit_code output=$output)"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+    }
+    for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+        test_giamthi_native "$_giamthi_copy" "PreToolUse halted -> deny" "PreToolUse" "hookSpecificOutput.permissionDecision" "deny" 2
+        test_giamthi_native "$_giamthi_copy" "SessionStart halted -> continue:false" "SessionStart" "continue" "false" 0
+        test_giamthi_native "$_giamthi_copy" "UserPromptSubmit halted -> decision:block" "UserPromptSubmit" "decision" "block" 0
+    done
+    rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing core/hooks/giamthi-halt-check.sh [native: allow when lock absent]... "
+    _native_allow_out=$(printf '{"hook_event_name":"PreToolUse","tool_name":"Bash"}\n' \
+        | PATH="$_GIAMTHI_REPO_ROOT/target/release:$PATH" bash "$_GIAMTHI_FIXTURE/core/hooks/giamthi-halt-check.sh" 2>/dev/null)
+    _native_allow_exit=$?
+    if [[ -z "$_native_allow_out" && "$_native_allow_exit" -eq 0 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected empty output, exit=0, got exit=$_native_allow_exit output=$_native_allow_out)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+else
+    echo "SKIP: giamthi-halt-check.sh native fast-path tests (target/release/yana-rt not built)"
+fi
+
 # ── core/adapters/cursor/before-shell-execution.js ──────────────────────────
 # Not a core/hooks/*.sh PreToolUse/PostToolUse hook — this is the Cursor
 # beforeShellExecution translator (a Node script speaking Cursor's own

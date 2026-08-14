@@ -32,6 +32,15 @@ def service_id(target: Path) -> str:
 
 
 def watch_script(target: Path) -> Path:
+    # .claude/scripts/ is the correct, intentional location: applied/
+    # downstream projects don't retain Yana's own core/ source tree as
+    # their permanent operative structure, so install_project.py's
+    # install_supervisor_assets() copies core/scripts/giamthi-watch.sh
+    # here at install time (target / ".claude/scripts" / name). This is
+    # not a stray duplicate to eliminate. See core/scripts/giamthi-watch.sh's
+    # own SOURCE_CHECKOUT-gated self-check for what keeps this copy from
+    # silently drifting in Yana-AI's own source checkout, where both
+    # copies exist side by side.
     return target / ".claude" / "scripts" / "giamthi-watch.sh"
 
 
