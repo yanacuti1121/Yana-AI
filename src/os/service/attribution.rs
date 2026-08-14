@@ -29,6 +29,17 @@ const SENSITIVE_PREFIXES: &[&str] = &[
     "--secret=",
     "--auth=",
 ];
+/// Same set as `SENSITIVE_PREFIXES`, without the trailing `=` — covers the
+/// two-token `--flag value` CLI form, where the flag name and its value
+/// are separate argv elements rather than one `--flag=value` token.
+const SENSITIVE_FLAG_NAMES: &[&str] = &[
+    "--token",
+    "--key",
+    "--api-key",
+    "--password",
+    "--secret",
+    "--auth",
+];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessAttribution {
@@ -55,6 +66,10 @@ struct SpawnReceipt<'a> {
 
 /// Spawn `argv[0]` with `argv[1..]` as arguments (never through a shell)
 /// and record a redacted receipt of the spawn before returning the child.
+///
+/// If the receipt cannot be recorded, the child is killed and reaped
+/// before this function returns — an unattributed process is never left
+/// running just because its receipt write failed.
 pub fn spawn(root: &Path, argv: &[String], owner: ProcessAttribution) -> Result<GovernedChild> {
     let (program, args) = argv.split_first().context("argv must not be empty")?;
     let child = Command::new(program)
@@ -63,13 +78,42 @@ pub fn spawn(root: &Path, argv: &[String], owner: ProcessAttribution) -> Result<
         .with_context(|| format!("spawning {program}"))?;
     let pid = child.id();
     let started_at_unix_secs = now_unix();
-    record_spawn(root, pid, &owner, argv, started_at_unix_secs)?;
+    let record_result = record_spawn(root, pid, &owner, argv, started_at_unix_secs);
+    finish_spawn(child, pid, owner, started_at_unix_secs, record_result)
+}
+
+/// Decides what to do with an already-spawned child based on whether its
+/// attribution receipt was recorded. Split out from `spawn` specifically
+/// so this policy — kill on failure, never leak an unattributed process —
+/// can be unit tested deterministically against a synthetic
+/// `record_result`, instead of racing a real filesystem failure against
+/// how quickly the child gets scheduled to run.
+fn finish_spawn(
+    mut child: Child,
+    pid: u32,
+    owner: ProcessAttribution,
+    started_at_unix_secs: u64,
+    record_result: Result<()>,
+) -> Result<GovernedChild> {
+    if let Err(error) = record_result {
+        kill_and_reap(&mut child);
+        return Err(error);
+    }
     Ok(GovernedChild {
         child,
         pid,
         owner,
         started_at_unix_secs,
     })
+}
+
+/// Best-effort kill and reap. Both steps are best-effort: the child may
+/// have already exited on its own between the two calls, which is not an
+/// error condition here — the goal is simply that nothing is left running
+/// unattributed, not that this reports success/failure of the kill.
+fn kill_and_reap(child: &mut Child) {
+    let _ = child.kill();
+    let _ = child.wait();
 }
 
 fn record_spawn(
@@ -108,21 +152,28 @@ fn record_spawn(
     Ok(())
 }
 
+/// Redacts both the `--flag=value` single-token form (via
+/// `SENSITIVE_PREFIXES`) and the `--flag value` two-token form: a bare
+/// sensitive flag name is left visible (it carries no secret on its own),
+/// but the argv element immediately following it is always redacted,
+/// regardless of what it looks like.
 fn redact_argv(argv: &[String]) -> Vec<String> {
-    argv.iter()
-        .map(|token| {
-            let lower = token.to_ascii_lowercase();
-            if SENSITIVE_PREFIXES
-                .iter()
-                .any(|prefix| lower.starts_with(prefix))
-                || looks_like_secret_literal(token)
-            {
-                REDACTED_PLACEHOLDER.to_string()
-            } else {
-                token.clone()
-            }
-        })
-        .collect()
+    let mut redacted = Vec::with_capacity(argv.len());
+    let mut redact_next = false;
+    for token in argv {
+        let lower = token.to_ascii_lowercase();
+        let is_sensitive_assignment = SENSITIVE_PREFIXES
+            .iter()
+            .any(|prefix| lower.starts_with(prefix));
+        let is_sensitive_flag_name = SENSITIVE_FLAG_NAMES.iter().any(|name| lower == *name);
+        if redact_next || is_sensitive_assignment || looks_like_secret_literal(token) {
+            redacted.push(REDACTED_PLACEHOLDER.to_string());
+        } else {
+            redacted.push(token.clone());
+        }
+        redact_next = is_sensitive_flag_name;
+    }
+    redacted
 }
 
 /// Deliberately conservative: a long, no-whitespace, mixed alphanumeric
@@ -190,6 +241,27 @@ mod tests {
         assert_eq!(redact_argv(&argv), argv);
     }
 
+    #[test]
+    fn redacts_space_separated_flag_and_value_pairs() {
+        let argv = vec![
+            "yana-rt".to_string(),
+            "--token".to_string(),
+            "abc123".to_string(),
+            "--password".to_string(),
+            "hunter2".to_string(),
+            "--dir".to_string(),
+            ".".to_string(),
+        ];
+        let redacted = redact_argv(&argv);
+        assert_eq!(redacted[0], "yana-rt");
+        assert_eq!(redacted[1], "--token");
+        assert_eq!(redacted[2], REDACTED_PLACEHOLDER);
+        assert_eq!(redacted[3], "--password");
+        assert_eq!(redacted[4], REDACTED_PLACEHOLDER);
+        assert_eq!(redacted[5], "--dir");
+        assert_eq!(redacted[6], ".");
+    }
+
     #[cfg(unix)]
     #[test]
     fn spawn_records_a_receipt_with_pid_and_owner_but_no_env() {
@@ -222,6 +294,93 @@ mod tests {
         let root = temp_root();
         fs::create_dir_all(&root).unwrap();
         assert!(spawn(&root, &[], owner()).is_err());
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kill_and_reap_terminates_a_running_child() {
+        let mut child = Command::new("/bin/sh")
+            .args(["-c", "sleep 30"])
+            .spawn()
+            .unwrap();
+        kill_and_reap(&mut child);
+        // kill_and_reap already calls wait() synchronously, so by the time
+        // it returns the process has been reaped: try_wait must report it
+        // as exited, not still running.
+        assert!(child.try_wait().unwrap().is_some());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn finish_spawn_kills_and_reaps_the_child_when_recording_failed() {
+        use std::time::Duration;
+
+        // Spawned directly (not through `spawn()`) so its pid is known
+        // immediately and deterministically, with no race against
+        // `record_spawn`'s own timing — see `finish_spawn`'s doc comment.
+        let child = Command::new("/bin/sh")
+            .args(["-c", "sleep 30"])
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let result = finish_spawn(
+            child,
+            pid,
+            owner(),
+            0,
+            Err(anyhow::anyhow!("simulated receipt failure")),
+        );
+        assert!(result.is_err());
+
+        // Poll briefly for the process to actually disappear after being
+        // killed — libc::kill(pid, 0) is the standard liveness probe (no
+        // signal sent, just an existence/permission check).
+        let mut still_alive = true;
+        for _ in 0..100 {
+            if unsafe { libc::kill(pid as i32, 0) } != 0 {
+                still_alive = false;
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        assert!(
+            !still_alive,
+            "child process {pid} was not killed after a simulated receipt failure"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn finish_spawn_returns_the_child_when_recording_succeeded() {
+        let child = Command::new("/bin/sh")
+            .args(["-c", "exit 0"])
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let mut governed = finish_spawn(child, pid, owner(), 0, Ok(())).unwrap();
+        assert_eq!(governed.pid, pid);
+        assert!(governed.child.wait().unwrap().success());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn spawn_returns_err_when_the_receipt_cannot_be_written() {
+        let root = temp_root();
+        fs::create_dir_all(&root).unwrap();
+        // Force record_spawn to fail: pre-create the receipts path itself
+        // as a directory, so opening it as a file for append fails.
+        fs::create_dir_all(root.join(RECEIPTS_RELATIVE_PATH)).unwrap();
+        let result = spawn(
+            &root,
+            &[
+                "/bin/sh".to_string(),
+                "-c".to_string(),
+                "exit 0".to_string(),
+            ],
+            owner(),
+        );
+        assert!(result.is_err());
         fs::remove_dir_all(&root).unwrap();
     }
 }
