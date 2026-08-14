@@ -2647,6 +2647,58 @@ for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt
     test_giamthi_copy "$_giamthi_copy" "Deny from shared .claude/state lock" "deny"
 done
 
+# Codex's own PreToolUse hook only ever fires for the Bash tool (a documented
+# Codex limitation, not a wiring gap in this repo) — SessionStart and
+# UserPromptSubmit are registered as compensating coverage in
+# .codex/hooks.json so a halt still stops non-Bash tool use (Edit/apply_patch/
+# MCP). Each event needs a different response shape and exit code than
+# PreToolUse's permissionDecision:"deny"/exit 2 (learn.chatgpt.com/docs/hooks):
+# SessionStart -> continue:false, exit 0. UserPromptSubmit -> decision:"block",
+# exit 0. The lock fixture from the block above is still in place.
+test_giamthi_event() {
+    local copy_path="$1" test_name="$2" event_name="$3" expect_field="$4" expect_value="$5"
+    local output exit_code=0 actual
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing $copy_path [$test_name]... "
+    output=$(printf '{"hook_event_name":"%s"}\n' "$event_name" | bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
+    # No `// empty` fallback here on purpose: jq's `//` treats a JSON `false`
+    # value (continue:false is exactly that) as falsy too, not just null/
+    # missing — it would silently collapse the real `false` we're asserting
+    # on into empty and mask this field as absent. A genuinely missing field
+    # still safely fails to match expect_value via plain `null`/empty output.
+    actual=$(printf '%s' "$output" | jq -r ".$expect_field" 2>/dev/null || echo invalid)
+    if [[ "$actual" == "$expect_value" && "$exit_code" -eq 0 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected $expect_field=$expect_value exit=0, got $expect_field=$actual exit=$exit_code output=$output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    test_giamthi_event "$_giamthi_copy" "SessionStart halted -> continue:false" "SessionStart" "continue" "false"
+    test_giamthi_event "$_giamthi_copy" "UserPromptSubmit halted -> decision:block" "UserPromptSubmit" "decision" "block"
+done
+rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+
+# Quarantine denial only ever matches a non-empty tool_name (read-only/
+# no-shell/no-network + a specific tool) — SessionStart/UserPromptSubmit carry
+# no tool_name, so quarantine alone must never block either event, only a
+# full halt lock does. Regression guard for the empty-TOOL_NAME fallthrough.
+printf '%s\n' '{"schema_version":1,"mode":"no-shell","reason":"test","actor":"human","created_at":"2026-01-01T00:00:00Z"}' > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing $_giamthi_copy [Quarantine alone does not block SessionStart (no tool_name)]... "
+    _qs_output=$(printf '{"hook_event_name":"SessionStart"}\n' | bash "$_GIAMTHI_FIXTURE/$_giamthi_copy" 2>/dev/null)
+    _qs_exit=$?
+    if [[ -z "$_qs_output" && "$_qs_exit" -eq 0 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected empty output, exit=0, got exit=$_qs_exit output=$_qs_output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+done
+rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
+
 # ── core/adapters/cursor/before-shell-execution.js ──────────────────────────
 # Not a core/hooks/*.sh PreToolUse/PostToolUse hook — this is the Cursor
 # beforeShellExecution translator (a Node script speaking Cursor's own

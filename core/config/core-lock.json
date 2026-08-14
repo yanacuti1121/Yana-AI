@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-13T16:03:20+00:00",
+  "generated": "2026-08-14T05:13:17+00:00",
   "count": 279,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -38,7 +38,7 @@
     "core/hooks/entry-point-verify-reminder.sh": "7cd6d27564e3094d6a97998aead139cd9499c869e7f87bb7c0b26840e9addd9e",
     "core/hooks/format-on-write.sh": "a93eebe1486662dcc436bcb878f8d8e6208bc7b5ab12aadd27ec584352428dff",
     "core/hooks/freeze-scope.sh": "5da6b607f24d008814be419106d64b2362c62c97c7164e91d76b878d8c2400ef",
-    "core/hooks/giamthi-halt-check.sh": "e071c8930358cf15b2a640776a710cae15450258b9b42c192f3eb34275595569",
+    "core/hooks/giamthi-halt-check.sh": "78d12abf6ef8f08d9b16a0161767f747889144bec053254fd92633ffa7ec53f5",
     "core/hooks/gitnexus-hook.js": "3b48d43eb5b5416a4b4d0dfbbd1d9ab5ac9960b9f0944269417800e098b489e3",
     "core/hooks/guard-blast-radius.sh": "e472183789d76c51187ded28782cb7413030696e4a56b1e22c7282d83efe27b1",
     "core/hooks/guard-destructive.sh": "c98894844e48b94636d2bd13fd4d97c16eee0468bbde4bfe84dde5037c158907",
