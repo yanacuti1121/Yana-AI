@@ -9,6 +9,9 @@ mod monitor;
 mod monitor_service;
 mod resource;
 mod roadmap;
+// Not wired into any OsAction/CLI command yet — see src/os/service/mod.rs.
+#[allow(dead_code)]
+mod service;
 mod state;
 mod supervisor;
 
