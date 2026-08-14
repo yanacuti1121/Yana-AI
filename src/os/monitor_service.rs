@@ -25,6 +25,7 @@ pub struct ServiceReport {
     pub active: Option<bool>,
     pub project_root: String,
     pub definition_paths: Vec<String>,
+    pub interval_secs: Option<u64>,
     pub detail: String,
 }
 
@@ -64,6 +65,7 @@ pub fn install(root: &Path, interval_secs: u64) -> Result<ServiceReport> {
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
+        interval_secs: Some(interval_secs),
         detail: format!("native Giám Thị supervision enabled every {interval_secs}s"),
     })
 }
@@ -82,6 +84,7 @@ pub fn status(root: &Path) -> Result<ServiceReport> {
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
+        interval_secs: None,
         detail: if installed {
             "native supervisor definition present".into()
         } else {
@@ -116,6 +119,7 @@ pub fn uninstall(root: &Path) -> Result<ServiceReport> {
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
+        interval_secs: None,
         detail: "native supervision disabled and definitions removed".into(),
     })
 }

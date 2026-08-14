@@ -5,7 +5,7 @@
 //! periodic-tick sampler; this one is meant to stay running.
 
 #[cfg(target_os = "linux")]
-use super::manager::{home, identity, Invocation, PlatformPlan};
+use super::manager::{home, identity, Invocation, PlatformPlan, RuntimeInspection};
 #[cfg(any(test, target_os = "linux"))]
 use super::manager::{systemd_escape, ServiceDefinition};
 #[cfg(target_os = "linux")]
@@ -44,6 +44,11 @@ pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
         ],
         stop: vec![Invocation {
             program: "systemctl".into(),
+            args: vec!["--user".into(), "stop".into(), unit_name.clone()],
+            tolerate_failure: true,
+        }],
+        remove: vec![Invocation {
+            program: "systemctl".into(),
             args: vec!["--user".into(), "disable".into(), "--now".into(), unit_name],
             tolerate_failure: true,
         }],
@@ -59,13 +64,33 @@ fn user_unit_dir() -> Result<PathBuf> {
 }
 
 #[cfg(target_os = "linux")]
-pub(crate) fn is_active(label: &str) -> Option<bool> {
+pub(crate) fn inspect(label: &str) -> RuntimeInspection {
     let unit_name = format!("yana-service-{label}.service");
-    Command::new("systemctl")
+    let registered = Command::new("systemctl")
+        .args(["--user", "is-enabled", "--quiet", &unit_name])
+        .output();
+    let running = Command::new("systemctl")
         .args(["--user", "is-active", "--quiet", &unit_name])
-        .output()
-        .ok()
-        .map(|output| output.status.success())
+        .output();
+    match (registered, running) {
+        (Ok(registered), Ok(running)) => {
+            let registered = registered.status.success();
+            let running = running.status.success();
+            RuntimeInspection {
+                registered: Some(registered),
+                running: Some(running),
+                detail: format!(
+                    "systemd user unit registered={} running={}",
+                    registered, running
+                ),
+            }
+        }
+        (registered, running) => RuntimeInspection {
+            registered: registered.ok().map(|output| output.status.success()),
+            running: running.ok().map(|output| output.status.success()),
+            detail: "systemctl --user status is partially or fully unavailable".into(),
+        },
+    }
 }
 
 #[cfg(any(test, target_os = "linux"))]
@@ -76,9 +101,11 @@ pub(crate) fn render_unit(def: &ServiceDefinition) -> String {
         command.push_str(&systemd_escape(&PathBuf::from(arg)));
     }
     format!(
-        "[Unit]\nDescription={}\n\n[Service]\nType=simple\nWorkingDirectory={}\nExecStart={command}\nRestart=always\nRestartSec=1\nNoNewPrivileges=true\nPrivateTmp=true\n\n[Install]\nWantedBy=default.target\n",
+        "[Unit]\nDescription={}\n\n[Service]\nType=simple\nWorkingDirectory={}\nExecStart={command}\nRestart=always\nRestartSec=5\nNoNewPrivileges=true\nPrivateTmp=true\nProtectSystem=strict\nProtectHome=read-only\nReadWritePaths={} {}\n\n[Install]\nWantedBy=default.target\n",
         def.description,
         systemd_escape(&def.working_directory),
+        systemd_escape(&def.working_directory.join(".yana-ai/os")),
+        systemd_escape(&def.working_directory.join(".claude/state")),
     )
 }
 
@@ -100,6 +127,8 @@ mod tests {
     fn renders_a_restart_always_unit_without_a_shell() {
         let unit = render_unit(&definition());
         assert!(unit.contains("Restart=always"));
+        assert!(unit.contains("ProtectSystem=strict"));
+        assert!(unit.contains("ReadWritePaths="));
         assert!(unit.contains("ExecStart=\"/usr/local/bin/yana-rt\" \"os\" \"service\" \"run\""));
         assert!(unit.contains("WantedBy=default.target"));
         assert!(!unit.contains("/bin/sh"));

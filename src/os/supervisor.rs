@@ -1,10 +1,11 @@
 //! Native Giám Thị supervisor state, receipts, and human safety controls.
 
-use super::{agent, health, monitor, monitor_service, state};
+use super::{agent, health, monitor, monitor_service, service, state};
 use anyhow::{bail, Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 #[cfg(unix)]
@@ -18,6 +19,7 @@ const RECEIPTS_PATH: &str = ".yana-ai/os/supervisor-receipts.jsonl";
 const HALT_PATH: &str = ".claude/state/GIAMTHI_HALT.lock";
 const QUARANTINE_PATH: &str = ".claude/state/GIAMTHI_QUARANTINE.json";
 const HEARTBEAT_SLO_SECS: i64 = 180;
+const MAX_SERVICE_DEFINITION_BYTES: u64 = 256 * 1024;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, clap::ValueEnum)]
 #[serde(rename_all = "kebab-case")]
@@ -40,6 +42,12 @@ impl QuarantineMode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SupervisorState {
     pub schema_version: u32,
+    #[serde(default = "default_component")]
+    pub component: String,
+    #[serde(default)]
+    pub process_started_at: Option<String>,
+    #[serde(default = "runtime_version")]
+    pub runtime_version: String,
     pub last_heartbeat: String,
     pub last_tick_id: String,
     pub pid: u32,
@@ -86,7 +94,14 @@ pub struct SupervisorDashboard {
     pub heartbeat_age_secs: Option<i64>,
     pub heartbeat_slo_secs: i64,
     pub heartbeat_healthy: bool,
+    /// Deprecated JSON compatibility field. This is the periodic scheduler,
+    /// not the resident service; new consumers should use
+    /// `periodic_scheduler`.
     pub service: monitor_service::ServiceReport,
+    pub periodic_scheduler: monitor_service::ServiceReport,
+    pub resident_service: service::manager::ServiceStatus,
+    pub compatibility_watcher: CompatibilityWatcherStatus,
+    pub service_definition_drift: ServiceDefinitionDriftStatus,
     pub latest_health: Option<monitor::SystemHealthSnapshot>,
     pub health_checks: health::HealthReport,
     pub receipt_chain_valid: bool,
@@ -99,9 +114,34 @@ pub struct SupervisorDashboard {
 #[derive(Debug, Serialize)]
 pub struct NativeHelperStatus {
     pub binary: String,
+    pub runtime_version: String,
     pub native_scheduler: bool,
     pub signature_status: String,
     pub detail: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CompatibilityWatcherStatus {
+    pub script_present: bool,
+    pub heartbeat_present: bool,
+    pub heartbeat_age_secs: Option<u64>,
+    pub state: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ServiceDefinitionDriftStatus {
+    pub state: String,
+    pub findings: Vec<ServiceDefinitionFinding>,
+    pub detail: String,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub struct ServiceDefinitionFinding {
+    pub component: String,
+    pub path: String,
+    pub target: Option<String>,
+    pub reason: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -117,7 +157,172 @@ pub struct SelfTestCheck {
     pub detail: String,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct HookCheckResult {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+}
+
+enum SafetyFile {
+    Missing,
+    Present(String),
+    Unreadable,
+}
+
+pub fn hook_check(root: &Path, input: &str) -> HookCheckResult {
+    let halt = safety_file(&root.join(HALT_PATH));
+    let quarantine = safety_file(&root.join(QUARANTINE_PATH));
+    if matches!(halt, SafetyFile::Missing) && matches!(quarantine, SafetyFile::Missing) {
+        return hook_allow();
+    }
+
+    let event: serde_json::Value = match serde_json::from_str(input) {
+        Ok(value) => value,
+        Err(_) => {
+            return hook_deny(
+                "PreToolUse",
+                "Giám thị could not interpret the hook payload while a safety state is active. Failing closed.",
+            )
+        }
+    };
+    let event_name = event
+        .get("hook_event_name")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("PreToolUse");
+
+    match halt {
+        SafetyFile::Present(body) => {
+            let body: String = body.chars().take(1500).collect();
+            let body = if body.trim().is_empty() {
+                "(the halt lock exists but contains no readable reason)"
+            } else {
+                body.as_str()
+            };
+            return hook_deny(
+                event_name,
+                &format!(
+                    "Giám thị has halted this project. Only a human may unlock it after review. Halt record: {body}"
+                ),
+            );
+        }
+        SafetyFile::Unreadable => {
+            return hook_deny(
+                event_name,
+                "Giám thị halt state exists but cannot be read safely. Failing closed; human review is required.",
+            )
+        }
+        SafetyFile::Missing => {}
+    }
+
+    let record = match quarantine {
+        SafetyFile::Present(text) => match serde_json::from_str::<QuarantineRecord>(&text) {
+            Ok(record) => record,
+            Err(_) => {
+                return hook_deny(
+                    event_name,
+                    "Giám thị quarantine state is malformed. Failing closed; human review is required.",
+                )
+            }
+        },
+        SafetyFile::Unreadable => {
+            return hook_deny(
+                event_name,
+                "Giám thị quarantine state cannot be read safely. Failing closed; human review is required.",
+            )
+        }
+        SafetyFile::Missing => return hook_allow(),
+    };
+    let tool_name = ["tool_name", "toolName", "name"]
+        .iter()
+        .find_map(|key| event.get(key).and_then(serde_json::Value::as_str))
+        .unwrap_or("");
+    let denied = matches!(
+        (record.mode, tool_name),
+        (
+            QuarantineMode::ReadOnly,
+            "Write" | "Edit" | "NotebookEdit" | "Bash"
+        ) | (QuarantineMode::NoShell, "Bash")
+            | (QuarantineMode::NoNetwork, "WebFetch" | "WebSearch")
+    );
+    if !denied {
+        return hook_allow();
+    }
+    hook_deny(
+        event_name,
+        &format!(
+            "Giám thị quarantine '{}' blocked tool '{}'. A human must review and clear quarantine.",
+            record.mode.as_str(),
+            tool_name
+        ),
+    )
+}
+
+fn safety_file(path: &Path) -> SafetyFile {
+    match read_regular_text(path) {
+        Ok(Some(text)) => SafetyFile::Present(text),
+        Ok(None) => SafetyFile::Missing,
+        Err(_) => SafetyFile::Unreadable,
+    }
+}
+
+fn hook_allow() -> HookCheckResult {
+    HookCheckResult {
+        stdout: String::new(),
+        stderr: String::new(),
+        exit_code: 0,
+    }
+}
+
+fn hook_deny(event_name: &str, reason: &str) -> HookCheckResult {
+    let (value, exit_code) = match event_name {
+        "SessionStart" => (
+            serde_json::json!({"continue": false, "stopReason": reason}),
+            0,
+        ),
+        "UserPromptSubmit" => (
+            serde_json::json!({"decision": "block", "reason": reason}),
+            0,
+        ),
+        _ => (
+            serde_json::json!({
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason
+                }
+            }),
+            2,
+        ),
+    };
+    HookCheckResult {
+        stdout: format!("{}\n", value),
+        stderr: if exit_code == 2 {
+            format!("{reason}\n")
+        } else {
+            String::new()
+        },
+        exit_code,
+    }
+}
+
 pub fn tick(root: &Path) -> Result<SupervisorState> {
+    tick_for_component(root, "supervisor-tick", None)
+}
+
+pub fn tick_resident(root: &Path, process_started_at: &str) -> Result<SupervisorState> {
+    tick_for_component(
+        root,
+        "giamthi-resident",
+        Some(process_started_at.to_string()),
+    )
+}
+
+fn tick_for_component(
+    root: &Path,
+    component: &str,
+    process_started_at: Option<String>,
+) -> Result<SupervisorState> {
     let snapshot = monitor::collect(root);
     monitor::persist(root, &snapshot)?;
     let inventory =
@@ -129,6 +334,9 @@ pub fn tick(root: &Path) -> Result<SupervisorState> {
     let tick_id = Uuid::new_v4().to_string();
     let current = SupervisorState {
         schema_version: 1,
+        component: component.into(),
+        process_started_at,
+        runtime_version: runtime_version(),
         last_heartbeat: state::now(),
         last_tick_id: tick_id.clone(),
         pid: std::process::id(),
@@ -148,6 +356,14 @@ pub fn tick(root: &Path) -> Result<SupervisorState> {
         ),
     )?;
     Ok(current)
+}
+
+fn default_component() -> String {
+    "supervisor-tick".into()
+}
+
+fn runtime_version() -> String {
+    env!("CARGO_PKG_VERSION").into()
 }
 
 pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
@@ -171,6 +387,8 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
     } else {
         "normal".to_string()
     };
+    let periodic_scheduler = monitor_service::status(root)?;
+    let resident_service = service::runtime::manager(root, 60)?.status()?;
     Ok(SupervisorDashboard {
         project_root: root.display().to_string(),
         mode,
@@ -180,7 +398,11 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
         heartbeat_age_secs,
         heartbeat_slo_secs: HEARTBEAT_SLO_SECS,
         heartbeat_healthy,
-        service: monitor_service::status(root)?,
+        service: periodic_scheduler.clone(),
+        periodic_scheduler,
+        resident_service,
+        compatibility_watcher: compatibility_watcher_status(root),
+        service_definition_drift: service_definition_drift_status(root),
         latest_health: monitor::load(root).ok(),
         health_checks: health::inspect(root),
         receipt_chain_valid,
@@ -356,9 +578,277 @@ fn native_helper_status() -> NativeHelperStatus {
     );
     NativeHelperStatus {
         binary: binary.display().to_string(),
+        runtime_version: env!("CARGO_PKG_VERSION").into(),
         native_scheduler: true,
         signature_status,
         detail,
+    }
+}
+
+fn compatibility_watcher_status(root: &Path) -> CompatibilityWatcherStatus {
+    let script_present = root.join(".claude/scripts/giamthi-watch.sh").is_file();
+    let heartbeat = root.join(".claude/state/giamthi-heartbeat.log");
+    let heartbeat_age_secs = fs::metadata(&heartbeat)
+        .and_then(|metadata| metadata.modified())
+        .ok()
+        .and_then(|modified| SystemTime::now().duration_since(modified).ok())
+        .map(|age| age.as_secs());
+    let heartbeat_present = heartbeat_age_secs.is_some();
+    let (state, detail) = match (script_present, heartbeat_age_secs) {
+        (false, _) => ("not-installed", "compatibility watcher script is absent"),
+        (true, None) => (
+            "unknown",
+            "watcher script exists but no heartbeat evidence is available",
+        ),
+        (true, Some(age)) if age <= 86_400 => (
+            "observed",
+            "compatibility watcher heartbeat was observed within 24 hours",
+        ),
+        (true, Some(_)) => (
+            "stale",
+            "compatibility watcher heartbeat is older than 24 hours",
+        ),
+    };
+    CompatibilityWatcherStatus {
+        script_present,
+        heartbeat_present,
+        heartbeat_age_secs,
+        state: state.into(),
+        detail: detail.into(),
+    }
+}
+
+fn service_definition_drift_status(root: &Path) -> ServiceDefinitionDriftStatus {
+    let home = match service::manager::home() {
+        Ok(home) => home,
+        Err(error) => {
+            return ServiceDefinitionDriftStatus {
+                state: "unknown".into(),
+                findings: Vec::new(),
+                detail: format!("service definition discovery unavailable: {error}"),
+            }
+        }
+    };
+    match service_definition_findings_at(root, &home, env::consts::OS) {
+        Ok(findings) if findings.is_empty() => ServiceDefinitionDriftStatus {
+            state: "clear".into(),
+            findings,
+            detail: "no service definitions for another checkout were discovered".into(),
+        },
+        Ok(findings) => ServiceDefinitionDriftStatus {
+            state: "detected".into(),
+            detail: format!(
+                "{} service definition(s) point at another checkout or could not be inspected; no definition was modified",
+                findings.len()
+            ),
+            findings,
+        },
+        Err(error) => ServiceDefinitionDriftStatus {
+            state: "unknown".into(),
+            findings: Vec::new(),
+            detail: format!("service definition discovery failed: {error}"),
+        },
+    }
+}
+
+fn service_definition_findings_at(
+    root: &Path,
+    home: &Path,
+    platform: &str,
+) -> Result<Vec<ServiceDefinitionFinding>> {
+    let mut directories = Vec::new();
+    match platform {
+        "macos" => directories.push(home.join("Library/LaunchAgents")),
+        "linux" => {
+            if let Some(config) = env::var_os("XDG_CONFIG_HOME") {
+                directories.push(PathBuf::from(config).join("systemd/user"));
+            }
+            let fallback = home.join(".config/systemd/user");
+            if !directories.contains(&fallback) {
+                directories.push(fallback);
+            }
+        }
+        "windows" => {
+            let base = env::var_os("LOCALAPPDATA")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| home.join("AppData/Local"));
+            directories.push(base.join("YanaAI/Service"));
+            directories.push(base.join("YanaAI/Monitor"));
+            directories.push(home.join(".yana-ai/giamthi"));
+        }
+        _ => return Ok(Vec::new()),
+    }
+
+    let mut paths = Vec::new();
+    for directory in directories {
+        let entries = match fs::read_dir(&directory) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(error)
+                    .with_context(|| format!("reading service directory {}", directory.display()))
+            }
+        };
+        for entry in entries {
+            paths.push(entry?.path());
+        }
+    }
+    paths.sort();
+    paths.dedup();
+
+    let mut findings = Vec::new();
+    for path in paths {
+        let Some(component) = definition_component(&path, platform) else {
+            continue;
+        };
+        match definition_target(&path, component) {
+            Ok(Some(target)) if !same_checkout(root, &target) => {
+                findings.push(ServiceDefinitionFinding {
+                    component: component.into(),
+                    path: path.display().to_string(),
+                    target: Some(target.display().to_string()),
+                    reason: "definition points at another checkout".into(),
+                });
+            }
+            Ok(Some(_)) => {}
+            Ok(None) => findings.push(ServiceDefinitionFinding {
+                component: component.into(),
+                path: path.display().to_string(),
+                target: None,
+                reason: "definition target is missing or unparseable".into(),
+            }),
+            Err(error) => findings.push(ServiceDefinitionFinding {
+                component: component.into(),
+                path: path.display().to_string(),
+                target: None,
+                reason: format!("definition cannot be inspected: {error}"),
+            }),
+        }
+    }
+    Ok(findings)
+}
+
+fn definition_component(path: &Path, platform: &str) -> Option<&'static str> {
+    let name = path.file_name()?.to_str()?;
+    match platform {
+        "macos" if name.starts_with("com.yana.service.") && name.ends_with(".plist") => {
+            Some("resident-service")
+        }
+        "macos" if name.starts_with("com.yana.system-health.") && name.ends_with(".plist") => {
+            Some("periodic-scheduler")
+        }
+        "macos" if name.starts_with("com.yanaai.giamthi-watch") && name.ends_with(".plist") => {
+            Some("compatibility-watcher")
+        }
+        "linux" if name.starts_with("yana-service-") && name.ends_with(".service") => {
+            Some("resident-service")
+        }
+        "linux" if name.starts_with("yana-system-health-") && name.ends_with(".service") => {
+            Some("periodic-scheduler")
+        }
+        "linux" if name.starts_with("yana-giamthi-") && name.ends_with(".service") => {
+            Some("compatibility-watcher")
+        }
+        "windows" if name.starts_with("YanaService-") && name.ends_with(".xml") => {
+            Some("resident-service")
+        }
+        "windows" if name.starts_with("YanaSystemHealth-") && name.ends_with(".xml") => {
+            Some("periodic-scheduler")
+        }
+        "windows"
+            if name.ends_with(".json")
+                && path
+                    .parent()
+                    .and_then(Path::file_name)
+                    .and_then(|value| value.to_str())
+                    == Some("giamthi") =>
+        {
+            Some("compatibility-watcher")
+        }
+        _ => None,
+    }
+}
+
+fn definition_target(path: &Path, component: &str) -> Result<Option<PathBuf>> {
+    let metadata =
+        fs::symlink_metadata(path).with_context(|| format!("inspecting {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("not a regular file");
+    }
+    if metadata.len() > MAX_SERVICE_DEFINITION_BYTES {
+        bail!("definition exceeds {MAX_SERVICE_DEFINITION_BYTES} bytes");
+    }
+    let text = fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+    if path.extension().and_then(|value| value.to_str()) == Some("json") {
+        let value: serde_json::Value =
+            serde_json::from_str(&text).with_context(|| format!("parsing {}", path.display()))?;
+        return Ok(value
+            .get("target")
+            .and_then(|value| value.as_str())
+            .map(PathBuf::from));
+    }
+    if path.extension().and_then(|value| value.to_str()) == Some("service") {
+        return Ok(text.lines().find_map(|line| {
+            let value = line.trim().strip_prefix("WorkingDirectory=")?;
+            Some(PathBuf::from(unquote_service_value(value)))
+        }));
+    }
+    if component == "compatibility-watcher" {
+        return Ok(xml_strings(&text)
+            .into_iter()
+            .find(|value| value.ends_with("/.claude/scripts/giamthi-watch.sh"))
+            .and_then(|script| {
+                PathBuf::from(script)
+                    .parent()
+                    .and_then(Path::parent)
+                    .and_then(Path::parent)
+                    .map(Path::to_path_buf)
+            }));
+    }
+    Ok(xml_value_after_key(&text, "WorkingDirectory").map(PathBuf::from))
+}
+
+fn xml_strings(text: &str) -> Vec<String> {
+    let mut values = Vec::new();
+    let mut remaining = text;
+    while let Some(start) = remaining.find("<string>") {
+        let value = &remaining[start + "<string>".len()..];
+        let Some(end) = value.find("</string>") else {
+            break;
+        };
+        values.push(xml_unescape(&value[..end]));
+        remaining = &value[end + "</string>".len()..];
+    }
+    values
+}
+
+fn xml_value_after_key(text: &str, key: &str) -> Option<String> {
+    let marker = format!("<key>{key}</key>");
+    let remainder = text.split_once(&marker)?.1;
+    xml_strings(remainder).into_iter().next()
+}
+
+fn xml_unescape(value: &str) -> String {
+    value
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&")
+}
+
+fn unquote_service_value(value: &str) -> String {
+    let value = value
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+        .unwrap_or(value);
+    value.replace("\\\"", "\"").replace("\\\\", "\\")
+}
+
+fn same_checkout(current: &Path, candidate: &Path) -> bool {
+    match (current.canonicalize(), candidate.canonicalize()) {
+        (Ok(current), Ok(candidate)) => current == candidate,
+        _ => current == candidate,
     }
 }
 
@@ -621,6 +1111,208 @@ mod tests {
         }
         assert!(self_test(&root).passed);
         assert!(!root.join(HALT_PATH).exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn dashboard_distinguishes_scheduler_resident_and_compatibility_watcher() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        let report = dashboard(&root).unwrap();
+        assert_eq!(
+            report.service.installed,
+            report.periodic_scheduler.installed
+        );
+        assert!(!report.resident_service.installed);
+        assert_eq!(report.resident_service.registered, Some(false));
+        assert_eq!(report.compatibility_watcher.state, "not-installed");
+        assert_eq!(
+            report.native_helper.runtime_version,
+            env!("CARGO_PKG_VERSION")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn dashboard_discovery_reports_other_checkout_definitions_without_deleting_them() {
+        let sandbox = root();
+        let current = sandbox.join("current checkout");
+        let old = sandbox.join("old checkout");
+        let home = sandbox.join("home");
+        let definitions = home.join("Library/LaunchAgents");
+        fs::create_dir_all(&current).unwrap();
+        fs::create_dir_all(&old).unwrap();
+        fs::create_dir_all(&definitions).unwrap();
+
+        let current_definition = definitions.join("com.yana.service.current.plist");
+        fs::write(
+            &current_definition,
+            format!(
+                "<plist><dict><key>WorkingDirectory</key><string>{}</string></dict></plist>",
+                current.display()
+            ),
+        )
+        .unwrap();
+        let old_definition = definitions.join("com.yana.system-health.old.plist");
+        fs::write(
+            &old_definition,
+            format!(
+                "<plist><dict><key>WorkingDirectory</key><string>{}</string></dict></plist>",
+                old.display()
+            ),
+        )
+        .unwrap();
+        let watcher_definition = definitions.join("com.yanaai.giamthi-watch.old.plist");
+        fs::write(
+            &watcher_definition,
+            format!(
+                "<plist><dict><key>ProgramArguments</key><array><string>/bin/bash</string><string>{}/.claude/scripts/giamthi-watch.sh</string></array></dict></plist>",
+                old.display()
+            ),
+        )
+        .unwrap();
+
+        let findings = service_definition_findings_at(&current, &home, "macos").unwrap();
+        assert_eq!(findings.len(), 2);
+        assert!(findings
+            .iter()
+            .all(|finding| finding.target.as_deref() == Some(old.to_string_lossy().as_ref())));
+        assert!(findings
+            .iter()
+            .any(|finding| finding.component == "periodic-scheduler"));
+        assert!(findings
+            .iter()
+            .any(|finding| finding.component == "compatibility-watcher"));
+        assert!(current_definition.is_file());
+        assert!(old_definition.is_file());
+        assert!(watcher_definition.is_file());
+
+        fs::remove_dir_all(sandbox).unwrap();
+    }
+
+    #[test]
+    fn compatibility_definition_targets_parse_on_linux_and_windows() {
+        let sandbox = root();
+        let target = sandbox.join("checkout with spaces");
+        fs::create_dir_all(&target).unwrap();
+
+        let linux = sandbox.join("yana-giamthi-old.service");
+        fs::write(
+            &linux,
+            format!("[Service]\nWorkingDirectory=\"{}\"\n", target.display()),
+        )
+        .unwrap();
+        assert_eq!(
+            definition_component(&linux, "linux"),
+            Some("compatibility-watcher")
+        );
+        assert_eq!(
+            definition_target(&linux, "compatibility-watcher").unwrap(),
+            Some(target.clone())
+        );
+
+        let windows_dir = sandbox.join(".yana-ai/giamthi");
+        fs::create_dir_all(&windows_dir).unwrap();
+        let windows = windows_dir.join("old.json");
+        fs::write(&windows, serde_json::json!({"target": target}).to_string()).unwrap();
+        assert_eq!(
+            definition_component(&windows, "windows"),
+            Some("compatibility-watcher")
+        );
+        assert_eq!(
+            definition_target(&windows, "compatibility-watcher").unwrap(),
+            Some(target)
+        );
+
+        fs::remove_dir_all(sandbox).unwrap();
+    }
+
+    #[test]
+    fn hook_check_uses_event_specific_halt_shapes_without_jq() {
+        let root = root();
+        fs::create_dir_all(root.join(".claude/state")).unwrap();
+        fs::write(root.join(HALT_PATH), "line one\nline two\\quoted\n").unwrap();
+
+        let pre = hook_check(&root, r#"{"hook_event_name":"PreToolUse"}"#);
+        assert_eq!(pre.exit_code, 2);
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&pre.stdout).unwrap()["hookSpecificOutput"]
+                ["permissionDecision"],
+            "deny"
+        );
+        let session = hook_check(&root, r#"{"hook_event_name":"SessionStart"}"#);
+        assert_eq!(session.exit_code, 0);
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&session.stdout).unwrap()["continue"],
+            false
+        );
+        let prompt = hook_check(&root, r#"{"hook_event_name":"UserPromptSubmit"}"#);
+        assert_eq!(prompt.exit_code, 0);
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&prompt.stdout).unwrap()["decision"],
+            "block"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn hook_check_preserves_tool_scoped_quarantine() {
+        let root = root();
+        fs::create_dir_all(root.join(".claude/state")).unwrap();
+        set_quarantine(&root, QuarantineMode::NoShell, "investigating", "human").unwrap();
+        assert_eq!(
+            hook_check(
+                &root,
+                r#"{"hook_event_name":"PreToolUse","tool_name":"Read"}"#
+            ),
+            hook_allow()
+        );
+        assert_eq!(
+            hook_check(
+                &root,
+                r#"{"hook_event_name":"PreToolUse","tool_name":"Bash"}"#
+            )
+            .exit_code,
+            2
+        );
+        assert_eq!(
+            hook_check(&root, r#"{"hook_event_name":"SessionStart"}"#),
+            hook_allow()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn hook_check_fails_closed_on_active_malformed_state_or_input() {
+        let root = root();
+        fs::create_dir_all(root.join(".claude/state")).unwrap();
+        fs::write(root.join(QUARANTINE_PATH), "not-json").unwrap();
+        assert_eq!(
+            hook_check(&root, r#"{"hook_event_name":"PreToolUse"}"#).exit_code,
+            2
+        );
+        assert_eq!(hook_check(&root, "not-json").exit_code, 2);
+        fs::remove_file(root.join(QUARANTINE_PATH)).unwrap();
+        fs::create_dir(root.join(HALT_PATH)).unwrap();
+        assert_eq!(
+            hook_check(&root, r#"{"hook_event_name":"SessionStart"}"#).exit_code,
+            0
+        );
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(
+                &hook_check(&root, r#"{"hook_event_name":"SessionStart"}"#).stdout
+            )
+            .unwrap()["continue"],
+            false
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn hook_check_allows_when_no_safety_state_exists() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        assert_eq!(hook_check(&root, "not-json"), hook_allow());
         fs::remove_dir_all(root).unwrap();
     }
 }

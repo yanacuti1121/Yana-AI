@@ -17,6 +17,7 @@ use super::attribution::{self, ProcessAttribution};
 use super::monitor::{BoundedBackoff, HealthRegistry, HealthState};
 
 const HALT_RELATIVE_PATH: &str = ".claude/state/GIAMTHI_HALT.lock";
+const CHILD_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 #[derive(Debug, Clone)]
 pub struct WatchdogConfig {
@@ -69,7 +70,10 @@ impl<'a> Watchdog<'a> {
     }
 
     fn is_halted(&self) -> bool {
-        self.root.join(HALT_RELATIVE_PATH).is_file()
+        match std::fs::symlink_metadata(self.root.join(HALT_RELATIVE_PATH)) {
+            Ok(_) => true,
+            Err(error) => error.kind() != std::io::ErrorKind::NotFound,
+        }
     }
 
     /// Run one supervised child to completion (spawn, wait for exit) and
@@ -96,7 +100,18 @@ impl<'a> Watchdog<'a> {
         let mut governed =
             attribution::spawn(&self.root, &self.config.argv, self.config.owner.clone())?;
         let started = Instant::now();
-        let status = governed.child.wait()?;
+        let status = loop {
+            if self.is_halted() {
+                governed.terminate_and_reap();
+                self.health
+                    .set_state(&self.config.component, HealthState::Halted);
+                return Ok(RunOutcome::Stopped(WatchdogOutcome::Halted));
+            }
+            if let Some(status) = governed.child.try_wait()? {
+                break status;
+            }
+            std::thread::sleep(CHILD_POLL_INTERVAL);
+        };
         let ran_for = started.elapsed();
         // Invoked on every exit, success or failure: the reset-vs-double
         // decision is duration-based, matching the adopted ZeroClaw
@@ -193,6 +208,32 @@ mod tests {
         std::fs::remove_dir_all(&root).unwrap();
     }
 
+    #[test]
+    fn non_regular_halt_state_also_stops_fail_closed() {
+        let root = temp_root();
+        std::fs::create_dir_all(root.join(HALT_RELATIVE_PATH)).unwrap();
+        let health = HealthRegistry::new();
+        let cfg = WatchdogConfig {
+            component: "svc".into(),
+            argv: vec!["/definitely/not/a/real/binary-xyz".into()],
+            owner: ProcessAttribution {
+                agent_id: "test".into(),
+                session_id: None,
+                mission_id: None,
+            },
+            initial_backoff: Duration::from_millis(1),
+            max_backoff: Duration::from_millis(10),
+            stable_run_threshold: Duration::from_secs(60),
+            max_restarts: None,
+        };
+        let mut watchdog = Watchdog::new(&root, cfg, &health);
+        assert!(matches!(
+            watchdog.run_once(0).unwrap(),
+            RunOutcome::Stopped(WatchdogOutcome::Halted)
+        ));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[cfg(unix)]
     #[test]
     fn max_restarts_is_respected_and_flags_human_required() {
@@ -250,5 +291,56 @@ mod tests {
             .unwrap_or_default()
             .contains('7'));
         std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn halt_created_while_child_runs_stops_child_and_prevents_restart() {
+        let root = temp_root();
+        std::fs::create_dir_all(root.join(".claude/state")).unwrap();
+        let marker = root.join("running.pid");
+        let cfg = config(
+            vec![
+                "/bin/sh".into(),
+                "-c".into(),
+                format!("echo $$ > '{}'; sleep 30", marker.display()),
+            ],
+            None,
+        );
+        let halt = root.join(HALT_RELATIVE_PATH);
+        let marker_for_thread = marker.clone();
+        let writer = std::thread::spawn(move || {
+            for _ in 0..100 {
+                if marker_for_thread.is_file() {
+                    std::fs::write(halt, "halt during child run").unwrap();
+                    return;
+                }
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            panic!("child never wrote its running marker");
+        });
+        let health = HealthRegistry::new();
+        let mut watchdog = Watchdog::new(&root, cfg, &health);
+        let outcome = watchdog.run_once(0).unwrap();
+        writer.join().unwrap();
+        assert!(matches!(
+            outcome,
+            RunOutcome::Stopped(WatchdogOutcome::Halted)
+        ));
+        assert_eq!(
+            health.component("test-component").unwrap().state,
+            HealthState::Halted
+        );
+        let pid: i32 = std::fs::read_to_string(marker)
+            .unwrap()
+            .trim()
+            .parse()
+            .unwrap();
+        assert_ne!(
+            unsafe { libc::kill(pid, 0) },
+            0,
+            "halted child {pid} survived"
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

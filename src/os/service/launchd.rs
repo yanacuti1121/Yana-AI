@@ -6,7 +6,9 @@
 //! module exists for.
 
 #[cfg(any(test, target_os = "macos"))]
-use super::manager::{home, identity, xml_escape, Invocation, PlatformPlan, ServiceDefinition};
+use super::manager::{
+    home, identity, xml_escape, Invocation, PlatformPlan, RuntimeInspection, ServiceDefinition,
+};
 #[cfg(any(test, target_os = "macos"))]
 use anyhow::Result;
 #[cfg(target_os = "macos")]
@@ -15,6 +17,7 @@ use std::process::Command;
 #[cfg(target_os = "macos")]
 pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
     let label = format!("com.yana.service.{}", identity(def));
+    let domain = format!("gui/{}", unsafe { libc::getuid() });
     let path = home()?
         .join("Library/LaunchAgents")
         .join(format!("{label}.plist"));
@@ -25,31 +28,70 @@ pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
         start: vec![
             Invocation {
                 program: "launchctl".into(),
-                args: vec!["unload".into(), path.display().to_string()],
+                args: vec!["bootout".into(), domain.clone(), path.display().to_string()],
                 tolerate_failure: true,
             },
             Invocation {
                 program: "launchctl".into(),
-                args: vec!["load".into(), path.display().to_string()],
+                args: vec![
+                    "bootstrap".into(),
+                    domain.clone(),
+                    path.display().to_string(),
+                ],
+                tolerate_failure: false,
+            },
+            Invocation {
+                program: "launchctl".into(),
+                args: vec!["kickstart".into(), "-k".into(), format!("{domain}/{label}")],
                 tolerate_failure: false,
             },
         ],
         stop: vec![Invocation {
             program: "launchctl".into(),
-            args: vec!["unload".into(), path.display().to_string()],
+            args: vec!["bootout".into(), domain.clone(), path.display().to_string()],
+            tolerate_failure: true,
+        }],
+        remove: vec![Invocation {
+            program: "launchctl".into(),
+            args: vec!["bootout".into(), domain, path.display().to_string()],
             tolerate_failure: true,
         }],
     })
 }
 
 #[cfg(target_os = "macos")]
-pub(crate) fn is_active(label: &str) -> Option<bool> {
+pub(crate) fn inspect(label: &str) -> RuntimeInspection {
     let full_label = format!("com.yana.service.{label}");
-    Command::new("launchctl")
-        .args(["list", &full_label])
+    let domain = format!("gui/{}", unsafe { libc::getuid() });
+    match Command::new("launchctl")
+        .args(["print", &format!("{domain}/{full_label}")])
         .output()
-        .ok()
-        .map(|output| output.status.success())
+    {
+        Ok(output) if output.status.success() => {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let running = text.lines().any(|line| line.trim() == "state = running");
+            RuntimeInspection {
+                registered: Some(true),
+                running: Some(running),
+                detail: if running {
+                    "launchd job is registered and running"
+                } else {
+                    "launchd job is registered but not running"
+                }
+                .into(),
+            }
+        }
+        Ok(_) => RuntimeInspection {
+            registered: Some(false),
+            running: Some(false),
+            detail: "launchd job is not registered".into(),
+        },
+        Err(error) => RuntimeInspection {
+            registered: None,
+            running: None,
+            detail: format!("launchctl status unavailable: {error}"),
+        },
+    }
 }
 
 #[cfg(any(test, target_os = "macos"))]

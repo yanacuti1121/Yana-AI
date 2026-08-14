@@ -9,8 +9,6 @@ mod monitor;
 mod monitor_service;
 mod resource;
 mod roadmap;
-// Not wired into any OsAction/CLI command yet — see src/os/service/mod.rs.
-#[allow(dead_code)]
 mod service;
 mod state;
 mod supervisor;
@@ -72,6 +70,11 @@ pub enum OsAction {
     Supervisor {
         #[command(subcommand)]
         action: SupervisorAction,
+    },
+    /// Resident Giám Thị service lifecycle (continuous process, not scheduler).
+    Service {
+        #[command(subcommand)]
+        action: ResidentServiceAction,
     },
     /// Automatic-operation policy and durable action intent queue.
     Autonomy {
@@ -344,7 +347,84 @@ pub enum MonitorServiceAction {
 }
 
 #[derive(Subcommand, Debug)]
+pub enum ResidentServiceAction {
+    /// Install, register, start, and verify the resident service.
+    Install {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        allow_protected_path: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Start an installed resident service.
+    Start {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        allow_protected_path: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Stop the resident process but preserve its installed definition.
+    Stop {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Stop and start the installed resident service.
+    Restart {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        allow_protected_path: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Report definition, registration, and live running state separately.
+    Status {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Deregister and remove the resident service definition.
+    Uninstall {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Internal long-running payload used by launchd/systemd/Task Scheduler.
+    Run {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 60)]
+        interval_secs: u64,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 pub enum SupervisorAction {
+    /// Internal hook bridge for shared HALT/quarantine enforcement.
+    #[command(hide = true)]
+    HookCheck {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+    },
     /// Run one native monitoring and governance heartbeat.
     Tick {
         #[arg(long, default_value = ".")]
@@ -391,8 +471,9 @@ pub enum SupervisorAction {
         #[command(subcommand)]
         action: SupervisorQuarantineAction,
     },
-    /// Install, inspect, or remove the native per-user supervisor scheduler.
-    Service {
+    /// Install, inspect, or remove the periodic one-shot supervisor scheduler.
+    #[command(alias = "service")]
+    Scheduler {
         #[command(subcommand)]
         action: MonitorServiceAction,
     },
@@ -618,6 +699,7 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         OsAction::Governor { action } => dispatch_governor(action)?,
         OsAction::Monitor { action } => dispatch_monitor(action)?,
         OsAction::Supervisor { action } => dispatch_supervisor(action)?,
+        OsAction::Service { action } => dispatch_resident_service(action)?,
         OsAction::Autonomy { action } => dispatch_autonomy(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
@@ -628,6 +710,23 @@ pub fn dispatch(action: OsAction) -> Result<()> {
 
 fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
     match action {
+        SupervisorAction::HookCheck { dir } => {
+            use std::io::Read;
+
+            let root = state::project_root(&dir)?;
+            let mut input = String::new();
+            std::io::stdin().read_to_string(&mut input)?;
+            let result = supervisor::hook_check(&root, &input);
+            if !result.stdout.is_empty() {
+                print!("{}", result.stdout);
+            }
+            if !result.stderr.is_empty() {
+                eprint!("{}", result.stderr);
+            }
+            if result.exit_code != 0 {
+                std::process::exit(result.exit_code);
+            }
+        }
         SupervisorAction::Tick { dir, json } => {
             let root = state::project_root(&dir)?;
             supervisor::print(&supervisor::tick(&root)?, json, "Yana Giám Thị tick")?;
@@ -692,7 +791,7 @@ fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
                 println!("Giám Thị quarantine cleared for {}", root.display());
             }
         },
-        SupervisorAction::Service { action } => match action {
+        SupervisorAction::Scheduler { action } => match action {
             MonitorServiceAction::Install {
                 dir,
                 interval_secs,
@@ -710,6 +809,88 @@ fn dispatch_supervisor(action: SupervisorAction) -> Result<()> {
                 monitor_service::print(&monitor_service::uninstall(&root)?, json)?;
             }
         },
+    }
+    Ok(())
+}
+
+fn dispatch_resident_service(action: ResidentServiceAction) -> Result<()> {
+    match action {
+        ResidentServiceAction::Install {
+            dir,
+            interval_secs,
+            allow_protected_path,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::runtime::preflight(&root, allow_protected_path)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.install()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Start {
+            dir,
+            interval_secs,
+            allow_protected_path,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::runtime::preflight(&root, allow_protected_path)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.start()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Stop {
+            dir,
+            interval_secs,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.stop()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Restart {
+            dir,
+            interval_secs,
+            allow_protected_path,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::runtime::preflight(&root, allow_protected_path)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.restart()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Status {
+            dir,
+            interval_secs,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.status()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Uninstall {
+            dir,
+            interval_secs,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            service::manager::print(
+                &service::runtime::manager(&root, interval_secs)?.uninstall()?,
+                json,
+            )?;
+        }
+        ResidentServiceAction::Run { dir, interval_secs } => {
+            let root = state::project_root(&dir)?;
+            service::runtime::run(&root, interval_secs)?;
+        }
     }
     Ok(())
 }

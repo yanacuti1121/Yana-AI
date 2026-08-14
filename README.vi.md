@@ -262,7 +262,7 @@ core/
 ├── agents/         # 101 định nghĩa agent chuyên biệt
 ├── skills/         # 2.025 file SKILL.md
 ├── config/
-│   ├── core-lock.json    # manifest SHA-256 — pin 279 file core
+│   ├── core-lock.json    # manifest SHA-256 — pin 280 file core
 │   └── skills-lock.json  # hash nội dung skill
 └── memory/
     ├── L1_atomic/  # fact vĩnh viễn — tồn tại qua các session

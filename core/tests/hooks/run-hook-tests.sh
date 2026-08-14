@@ -2621,7 +2621,7 @@ test_giamthi_copy() {
     local output exit_code=0 actual="allow"
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
     echo -n "Testing $copy_path [$test_name]... "
-    output=$(printf '{"tool_name":"%s","tool_input":{}}\n' "$tool_name" | bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
+    output=$(printf '{"tool_name":"%s","tool_input":{}}\n' "$tool_name" | env PATH="/usr/bin:/bin" bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
     if [[ -n "$output" ]]; then
         actual=$(printf '%s' "$output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"' 2>/dev/null || echo invalid)
     fi
@@ -2640,9 +2640,20 @@ printf '%s\n' '{"schema_version":1,"mode":"no-shell","reason":"test","actor":"hu
 for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
     test_giamthi_copy "$_giamthi_copy" "Allow reads during no-shell quarantine" "allow" "Read"
     test_giamthi_copy "$_giamthi_copy" "Deny Bash during no-shell quarantine" "deny" "Bash"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing $_giamthi_copy [Malformed payload fails closed during quarantine]... "
+    _malformed_exit=0
+    _malformed_output=$(printf 'not-json\n' | env PATH="/usr/bin:/bin" bash "$_GIAMTHI_FIXTURE/$_giamthi_copy" 2>/dev/null) || _malformed_exit=$?
+    _malformed_decision=$(printf '%s' "$_malformed_output" | jq -r '.hookSpecificOutput.permissionDecision // "allow"' 2>/dev/null || echo invalid)
+    if [[ "$_malformed_decision" == "deny" && "$_malformed_exit" -eq 2 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected deny/2, got $_malformed_decision/$_malformed_exit output=$_malformed_output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
 done
 rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_QUARANTINE.json"
-printf '%s\n' "manufactured for run-hook-tests.sh" > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+printf '%s\n' "manufactured for run-hook-tests.sh" 'second line with \ backslash and "quotes"' > "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
 for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
     test_giamthi_copy "$_giamthi_copy" "Deny from shared .claude/state lock" "deny"
 done
@@ -2660,7 +2671,7 @@ test_giamthi_event() {
     local output exit_code=0 actual
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
     echo -n "Testing $copy_path [$test_name]... "
-    output=$(printf '{"hook_event_name":"%s"}\n' "$event_name" | bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
+    output=$(printf '{"hook_event_name":"%s"}\n' "$event_name" | env PATH="/usr/bin:/bin" bash "$_GIAMTHI_FIXTURE/$copy_path" 2>/dev/null) || exit_code=$?
     # No `// empty` fallback here on purpose: jq's `//` treats a JSON `false`
     # value (continue:false is exactly that) as falsy too, not just null/
     # missing — it would silently collapse the real `false` we're asserting
@@ -2680,6 +2691,12 @@ for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt
 done
 rm -f "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
 
+mkdir "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
+    test_giamthi_copy "$_giamthi_copy" "Non-regular HALT state fails closed" "deny"
+done
+rmdir "$_GIAMTHI_FIXTURE/.claude/state/GIAMTHI_HALT.lock"
+
 # Quarantine denial only ever matches a non-empty tool_name (read-only/
 # no-shell/no-network + a specific tool) — SessionStart/UserPromptSubmit carry
 # no tool_name, so quarantine alone must never block either event, only a
@@ -2688,7 +2705,7 @@ printf '%s\n' '{"schema_version":1,"mode":"no-shell","reason":"test","actor":"hu
 for _giamthi_copy in core/hooks/giamthi-halt-check.sh .claude/hooks/giamthi-halt-check.sh .codex/hooks/giamthi-halt-check.sh; do
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
     echo -n "Testing $_giamthi_copy [Quarantine alone does not block SessionStart (no tool_name)]... "
-    _qs_output=$(printf '{"hook_event_name":"SessionStart"}\n' | bash "$_GIAMTHI_FIXTURE/$_giamthi_copy" 2>/dev/null)
+    _qs_output=$(printf '{"hook_event_name":"SessionStart"}\n' | env PATH="/usr/bin:/bin" bash "$_GIAMTHI_FIXTURE/$_giamthi_copy" 2>/dev/null)
     _qs_exit=$?
     if [[ -z "$_qs_output" && "$_qs_exit" -eq 0 ]]; then
         echo "PASS"

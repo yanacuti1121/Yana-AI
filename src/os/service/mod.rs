@@ -8,9 +8,8 @@
 //! resident daemon by that module's own design) and from `os::monitor`
 //! (host CPU/memory/disk/GPU snapshots).
 //!
-//! Nothing in this module is wired into the CLI yet — no `OsAction`
-//! variant references it, and no code outside this directory calls it.
-//! See `docs/operations/always-on-service.md`.
+//! The public CLI surface is `yana-rt os service ...`; its `run` action is
+//! the resident payload installed by the platform-specific definitions.
 
 // `src/monitor/**` is declared from here (not from `src/os/mod.rs`, and
 // never from `src/main.rs`) specifically to avoid a name collision with
@@ -25,6 +24,7 @@ pub mod monitor;
 pub mod attribution;
 pub mod launchd;
 pub mod manager;
+pub mod runtime;
 pub mod systemd;
 pub mod watchdog;
 pub mod windows;

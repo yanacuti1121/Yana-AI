@@ -53,6 +53,23 @@ pub struct GovernedChild {
     pub pid: u32,
     pub owner: ProcessAttribution,
     pub started_at_unix_secs: u64,
+    process_group_isolated: bool,
+}
+
+impl GovernedChild {
+    pub fn terminate_and_reap(&mut self) {
+        kill_and_reap(&mut self.child, self.process_group_isolated);
+    }
+}
+
+impl Drop for GovernedChild {
+    fn drop(&mut self) {
+        // The spawned process owns an isolated process group on Unix. Always
+        // tear that group down, even if the direct child already exited, so
+        // it cannot leave untracked descendants behind while the watchdog
+        // restarts another copy.
+        kill_and_reap(&mut self.child, self.process_group_isolated);
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -72,14 +89,27 @@ struct SpawnReceipt<'a> {
 /// running just because its receipt write failed.
 pub fn spawn(root: &Path, argv: &[String], owner: ProcessAttribution) -> Result<GovernedChild> {
     let (program, args) = argv.split_first().context("argv must not be empty")?;
-    let child = Command::new(program)
-        .args(args)
+    let mut command = Command::new(program);
+    command.args(args);
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    let child = command
         .spawn()
         .with_context(|| format!("spawning {program}"))?;
     let pid = child.id();
     let started_at_unix_secs = now_unix();
     let record_result = record_spawn(root, pid, &owner, argv, started_at_unix_secs);
-    finish_spawn(child, pid, owner, started_at_unix_secs, record_result)
+    finish_spawn(
+        child,
+        pid,
+        owner,
+        started_at_unix_secs,
+        cfg!(unix),
+        record_result,
+    )
 }
 
 /// Decides what to do with an already-spawned child based on whether its
@@ -93,10 +123,11 @@ fn finish_spawn(
     pid: u32,
     owner: ProcessAttribution,
     started_at_unix_secs: u64,
+    process_group_isolated: bool,
     record_result: Result<()>,
 ) -> Result<GovernedChild> {
     if let Err(error) = record_result {
-        kill_and_reap(&mut child);
+        kill_and_reap(&mut child, process_group_isolated);
         return Err(error);
     }
     Ok(GovernedChild {
@@ -104,6 +135,7 @@ fn finish_spawn(
         pid,
         owner,
         started_at_unix_secs,
+        process_group_isolated,
     })
 }
 
@@ -111,7 +143,18 @@ fn finish_spawn(
 /// have already exited on its own between the two calls, which is not an
 /// error condition here — the goal is simply that nothing is left running
 /// unattributed, not that this reports success/failure of the kill.
-fn kill_and_reap(child: &mut Child) {
+fn kill_and_reap(child: &mut Child, process_group_isolated: bool) {
+    #[cfg(unix)]
+    if process_group_isolated {
+        // `spawn` puts the child in a process group whose id is the child's
+        // pid. A negative pid targets the whole group, including descendants.
+        unsafe {
+            let _ = libc::kill(-(child.id() as i32), libc::SIGKILL);
+        }
+    }
+    // Also target the direct child. This is redundant for children spawned
+    // through `spawn`, but keeps cleanup correct if process-group setup was
+    // unavailable or a test exercises `finish_spawn` with a raw Child.
     let _ = child.kill();
     let _ = child.wait();
 }
@@ -304,7 +347,7 @@ mod tests {
             .args(["-c", "sleep 30"])
             .spawn()
             .unwrap();
-        kill_and_reap(&mut child);
+        kill_and_reap(&mut child, false);
         // kill_and_reap already calls wait() synchronously, so by the time
         // it returns the process has been reaped: try_wait must report it
         // as exited, not still running.
@@ -329,6 +372,7 @@ mod tests {
             pid,
             owner(),
             0,
+            false,
             Err(anyhow::anyhow!("simulated receipt failure")),
         );
         assert!(result.is_err());
@@ -358,9 +402,53 @@ mod tests {
             .spawn()
             .unwrap();
         let pid = child.id();
-        let mut governed = finish_spawn(child, pid, owner(), 0, Ok(())).unwrap();
+        let mut governed = finish_spawn(child, pid, owner(), 0, false, Ok(())).unwrap();
         assert_eq!(governed.pid, pid);
         assert!(governed.child.wait().unwrap().success());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dropping_governed_child_terminates_its_process_group() {
+        use std::time::Duration;
+
+        let root = temp_root();
+        fs::create_dir_all(&root).unwrap();
+        let marker = root.join("descendant.pid");
+        let script = "sleep 30 & tmp=\"$1.tmp.$$\"; printf '%s\\n' \"$!\" > \"$tmp\"; mv \"$tmp\" \"$1\"; wait";
+        let governed = spawn(
+            &root,
+            &[
+                "/bin/sh".into(),
+                "-c".into(),
+                script.into(),
+                "yana-attribution-test".into(),
+                marker.to_string_lossy().into_owned(),
+            ],
+            owner(),
+        )
+        .unwrap();
+        for _ in 0..100 {
+            if marker.is_file() {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let descendant: i32 = fs::read_to_string(&marker).unwrap().trim().parse().unwrap();
+        drop(governed);
+        let mut alive = true;
+        for _ in 0..100 {
+            if unsafe { libc::kill(descendant, 0) } != 0 {
+                alive = false;
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            !alive,
+            "descendant {descendant} survived governed-child drop"
+        );
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[cfg(unix)]

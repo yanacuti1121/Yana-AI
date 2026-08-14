@@ -1,21 +1,16 @@
 [Unit]
 Description=Yana AI always-on service (example)
-After=network-online.target
-Wants=network-online.target
-
 [Service]
 Type=simple
-User=yana
-Group=yana
 WorkingDirectory=/srv/yana-ai-project
-ExecStart=/usr/local/bin/yana-rt os service run --dir /srv/yana-ai-project
+ExecStart=/usr/local/bin/yana-rt os service run --dir /srv/yana-ai-project --interval-secs 60
 Restart=always
-RestartSec=1
+RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectHome=true
+ProtectHome=read-only
 ProtectSystem=strict
-ReadWritePaths=/srv/yana-ai-project
+ReadWritePaths=/srv/yana-ai-project/.yana-ai/os /srv/yana-ai-project/.claude/state
 
 [Install]
 WantedBy=default.target
