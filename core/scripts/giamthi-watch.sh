@@ -37,14 +37,76 @@ LOCK_FILE="$STATE_DIR/GIAMTHI_HALT.lock"
 REPORT_LOG="$STATE_DIR/giamthi-reports.log"
 HEARTBEAT_LOG="$STATE_DIR/giamthi-heartbeat.log"
 LAST_SHA_FILE="$STATE_DIR/giamthi-last-commit"
+BASELINE_RECEIPTS="$STATE_DIR/giamthi-baseline-receipts.log"
+SENSITIVE_PATHS=(
+  ".claude/settings.json"
+  ".claude/hooks"
+  ".codex/hooks"
+  ".cursor/hooks.json"
+  ".cursor/hooks"
+  ".github/workflows"
+)
 SOURCE_CHECKOUT=0
 [[ -f "$REPO_DIR/core/config/core-lock.json" ]] && SOURCE_CHECKOUT=1
 
 mkdir -p "$STATE_DIR" 2>/dev/null || true
 
+approve_baseline() {
+  local actor="" reason="" approved=false current dirty ts
+  shift
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --actor) actor="${2:-}"; shift 2 ;;
+      --reason) reason="${2:-}"; shift 2 ;;
+      --approve) approved=true; shift ;;
+      *) echo "Unknown baseline approval argument: $1" >&2; return 2 ;;
+    esac
+  done
+  if [[ "$approved" != true || -z "$actor" || -z "$reason" ]]; then
+    echo "Baseline approval requires --approve, --actor, and --reason." >&2
+    return 2
+  fi
+  current=$(git rev-parse HEAD 2>/dev/null || true)
+  [[ -n "$current" ]] || { echo "Cannot approve baseline without a readable git HEAD." >&2; return 2; }
+  dirty=$(git status --porcelain=v1 --untracked-files=all -- "${SENSITIVE_PATHS[@]}" 2>/dev/null)
+  [[ -z "$dirty" ]] || {
+    echo "Refusing baseline approval while security-sensitive paths are uncommitted:" >&2
+    printf '%s\n' "$dirty" >&2
+    return 2
+  }
+  for path in "$BASELINE_RECEIPTS"; do
+    if [[ -L "$path" || ( -e "$path" && ! -f "$path" ) ]]; then
+      echo "Refusing non-regular baseline evidence: $path" >&2
+      return 2
+    fi
+  done
+  write_baseline_sha "$current" || return 2
+  ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  actor=${actor//$'\n'/ }
+  reason=${reason//$'\n'/ }
+  printf '%s\tsha=%s\tactor=%s\treason=%s\n' "$ts" "$current" "$actor" "$reason" >> "$BASELINE_RECEIPTS"
+  echo "Approved Giám Thị security baseline $current. HALT, if present, was not cleared."
+}
+
+write_baseline_sha() {
+  local sha="$1" temporary="$LAST_SHA_FILE.tmp.$$"
+  if [[ -L "$LAST_SHA_FILE" || ( -e "$LAST_SHA_FILE" && ! -f "$LAST_SHA_FILE" ) ]]; then
+    echo "Refusing non-regular baseline evidence: $LAST_SHA_FILE" >&2
+    return 2
+  fi
+  umask 077
+  printf '%s\n' "$sha" > "$temporary" || return 2
+  mv "$temporary" "$LAST_SHA_FILE" || return 2
+}
+
+if [[ "${1:-}" == "--approve-baseline" ]]; then
+  approve_baseline "$@"
+  exit $?
+fi
+
 # Already halted — a human hasn't cleared it yet. Don't pile on more checks
 # or move the comparison baseline forward while the lock is unresolved.
-if [[ -f "$LOCK_FILE" ]]; then
+if [[ -e "$LOCK_FILE" || -L "$LOCK_FILE" ]]; then
   exit 0
 fi
 
@@ -100,32 +162,47 @@ fi
 # (.claude/settings.json, .claude/hooks/, .github/workflows/ live outside
 # core-lock's LOCKED_DIRS, so drift there is otherwise invisible.)
 #
-# KNOWN LIMITATION (2026-07-13, code-auditor review): this diffs commit SHAs,
-# not the working tree. An edit to a watched path made and never committed
-# (or committed and reverted before the next cron tick) is invisible for the
-# gap between ticks. core-lock's own content-hash approach doesn't have this
-# gap for LOCKED_DIRS — this check exists only for the paths outside that.
-#
 # Any failure to actually RUN this check (git missing from cron's PATH, the
 # recorded baseline commit no longer reachable after a rebase/prune) must be
 # treated as an issue, not silently treated as "clean" — a check that didn't
 # run is not the same as a check that passed.
-LAST_SHA=$(cat "$LAST_SHA_FILE" 2>/dev/null || echo "")
+if [[ -L "$LAST_SHA_FILE" || ( -e "$LAST_SHA_FILE" && ! -f "$LAST_SHA_FILE" ) ]]; then
+  ISSUES+=("Giám Thị baseline evidence is non-regular or symlinked: $LAST_SHA_FILE")
+  LAST_SHA=""
+else
+  LAST_SHA=$(cat "$LAST_SHA_FILE" 2>/dev/null || echo "")
+fi
 CURRENT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
 
 if [[ -z "$CURRENT_SHA" ]]; then
   ISSUES+=("Không lấy được git HEAD hiện tại (git không có trên PATH của cron, hoặc $REPO_DIR không phải git repo) — scope-drift check KHÔNG chạy được, không được coi là sạch.")
-elif [[ -n "$LAST_SHA" && "$LAST_SHA" != "$CURRENT_SHA" ]]; then
+else
+  WORKTREE_STATE=$(git status --porcelain=v1 --untracked-files=all -- "${SENSITIVE_PATHS[@]}" 2>&1)
+  WORKTREE_EXIT=$?
+  if [[ $WORKTREE_EXIT -ne 0 ]]; then
+    ISSUES+=("git status cho vùng nhạy cảm thất bại (exit $WORKTREE_EXIT) — working-tree drift check KHÔNG chạy được: ${WORKTREE_STATE:0:500}")
+  elif [[ -n "$WORKTREE_STATE" ]]; then
+    ISSUES+=("Có thay đổi CHƯA COMMIT trong vùng nhạy cảm (modified/added/deleted/type-changed): ${WORKTREE_STATE:0:1000}")
+  fi
+fi
+
+if [[ -n "$CURRENT_SHA" && -n "$LAST_SHA" && "$LAST_SHA" != "$CURRENT_SHA" ]]; then
   CHANGED=$(git diff --name-only "$LAST_SHA" "$CURRENT_SHA" 2>/dev/null)
   DIFF_EXIT=$?
   if [[ $DIFF_EXIT -ne 0 ]]; then
     ISSUES+=("git diff giữa baseline cũ ($LAST_SHA) và hiện tại ($CURRENT_SHA) thất bại (exit $DIFF_EXIT) — baseline có thể đã bị rebase/prune khỏi history. Không coi là sạch.")
   else
-    RISKY=$(printf '%s\n' "$CHANGED" | grep -E '^(\.claude/settings\.json|\.claude/hooks/|\.codex/hooks|\.cursor/hooks|\.github/workflows/)' || true)
+    RISKY=$(printf '%s\n' "$CHANGED" | grep -E '^(\.claude/settings\.json|\.claude/hooks/|\.codex/hooks/|\.cursor/hooks\.json|\.cursor/hooks/|\.github/workflows/)' || true)
     if [[ -n "$RISKY" ]]; then
-      ISSUES+=("Thay đổi ở vùng nhạy cảm ngoài phạm vi core-lock, từ $LAST_SHA đến $CURRENT_SHA: $(printf '%s' "$RISKY" | tr '\n' ' ')")
+      ISSUES+=("Thay đổi đã commit ở vùng nhạy cảm từ $LAST_SHA đến $CURRENT_SHA chưa được con người duyệt: $(printf '%s' "$RISKY" | tr '\n' ' '). Sau khi review, chạy: bash .claude/scripts/giamthi-watch.sh --approve-baseline --approve --actor <name> --reason <reason>; lệnh này KHÔNG gỡ HALT.")
     fi
   fi
+fi
+
+# Bootstrap once for a newly installed watcher. This is initialization, not
+# advancement: every later SHA change requires the explicit approval ceremony.
+if [[ ${#ISSUES[@]} -eq 0 && -n "$CURRENT_SHA" && -z "$LAST_SHA" ]]; then
+  write_baseline_sha "$CURRENT_SHA" || ISSUES+=("Không thể khởi tạo Giám Thị security baseline an toàn.")
 fi
 
 # ── Report + halt, or clean heartbeat ──────────────────────────────────────
@@ -157,11 +234,6 @@ if [[ ${#ISSUES[@]} -gt 0 ]]; then
     osascript -e "display notification \"${FIRST_ISSUE}\" with title \"Giám thị Yana AI — HALT\"" >/dev/null 2>&1 || true
   fi
 else
-  # Only ever persist a non-empty baseline — writing "" here would silently
-  # disable this check on every future run until someone notices by hand.
-  if [[ -n "$CURRENT_SHA" ]]; then
-    echo "$CURRENT_SHA" > "$LAST_SHA_FILE" 2>/dev/null || true
-  fi
   echo "[$TS] OK — core-lock, audit-chain, scope đều sạch" >> "$HEARTBEAT_LOG"
 fi
 

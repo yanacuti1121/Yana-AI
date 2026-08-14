@@ -46,78 +46,75 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOCK_FILE="$PROJECT_DIR/.claude/state/GIAMTHI_HALT.lock"
 QUARANTINE_FILE="$PROJECT_DIR/.claude/state/GIAMTHI_QUARANTINE.json"
 
-if [[ ! -f "$LOCK_FILE" && ! -f "$QUARANTINE_FILE" ]]; then
+if [[ ! -e "$LOCK_FILE" && ! -L "$LOCK_FILE" && ! -e "$QUARANTINE_FILE" && ! -L "$QUARANTINE_FILE" ]]; then
   exit 0
 fi
 
-# Read stdin once, up front — every path below now needs to know which hook
-# event invoked us (see "Why SessionStart/UserPromptSubmit too" above), and
-# stdin can only be read once.
+# Read stdin once. The native runtime is the canonical policy interpreter;
+# the shell below is a deliberately small fail-closed compatibility path.
 INPUT=$(cat)
 
-# ── Dependency guard ─────────────────────────────────────────────────────────
-# A lock exists — we MUST deny. Without jq we cannot safely embed the lock's
-# arbitrary multi-line content into a JSON string (naive escaping breaks on
-# raw newlines/backslashes — reproduced and confirmed during review), and we
-# also cannot reliably read hook_event_name to pick the right response shape.
-# Fail closed with a static message: PreToolUse-shaped JSON on stdout (safe/
-# ignored by other event types) plus a plain stderr message and exit 2, which
-# Codex also honors as a UserPromptSubmit block (learn.chatgpt.com/docs/hooks
-# documents exit 2 + stderr as the alternate UserPromptSubmit-block form).
-# SessionStart specifically wants exit 0 + continue:false, which this
-# degraded path does not produce — that one case stays open until jq is
-# installed; every other path is unaffected.
-if ! command -v jq >/dev/null 2>&1; then
-  MSG="Blocked: giam thi (independent watcher) has halted this session, and jq is not installed so the lock reason cannot be safely embedded here. Run: cat $LOCK_FILE — then install jq and clear the lock only after a human has reviewed it."
-  echo "$MSG" >&2
-  cat <<EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny",
-    "permissionDecisionReason": "$MSG"
-  }
-}
-EOF
-  exit 2
+if command -v yana-rt >/dev/null 2>&1; then
+  NATIVE_OUTPUT=$(printf '%s' "$INPUT" | yana-rt os supervisor hook-check --dir "$PROJECT_DIR" 2>/dev/null)
+  NATIVE_STATUS=$?
+  if [[ "$NATIVE_STATUS" -eq 2 && -n "$NATIVE_OUTPUT" ]]; then
+    printf '%s\n' "$NATIVE_OUTPUT"
+    exit 2
+  fi
+  if [[ "$NATIVE_STATUS" -eq 0 ]]; then
+    if [[ -n "$NATIVE_OUTPUT" ]]; then
+      printf '%s\n' "$NATIVE_OUTPUT"
+      exit 0
+    fi
+    # Empty output is a valid allow only for tool-scoped quarantine. A HALT
+    # must always produce a denial, so never let a stale/fake binary bypass it.
+    [[ ! -f "$LOCK_FILE" ]] && exit 0
+  fi
 fi
 
-EVENT_NAME=$(printf '%s' "$INPUT" | jq -r '.hook_event_name // empty' 2>/dev/null)
+# Compatibility fallback: extract only fixed event/tool identifiers. No lock
+# or quarantine content is interpolated into JSON, so arbitrary state-file
+# bytes cannot break the denial response and jq is not required.
+json_string_field() {
+  local field="$1"
+  printf '%s' "$INPUT" | tr '\n' ' ' | sed -nE "s/.*\"${field}\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\\1/p"
+}
+
+EVENT_NAME=$(json_string_field hook_event_name)
+TOOL_NAME=$(json_string_field tool_name)
+[[ -n "$TOOL_NAME" ]] || TOOL_NAME=$(json_string_field toolName)
+[[ -n "$TOOL_NAME" ]] || TOOL_NAME=$(json_string_field name)
 
 # Emits a denial in the shape the current hook event actually requires, then
 # exits with that shape's matching exit code. PreToolUse (and any event this
 # repo hasn't special-cased) keeps the original permissionDecision:"deny" +
 # exit 2 contract unchanged.
 emit_denial() {
-  local reason="$1"
+  local kind="$1"
   case "$EVENT_NAME" in
     SessionStart)
-      # learn.chatgpt.com/docs/hooks: SessionStart has no direct "block" —
-      # stop further processing via continue:false, exit 0.
-      jq -n --arg reason "$reason" '{continue: false, stopReason: $reason}'
+      printf '{"continue":false,"stopReason":"Giám thị %s is active; human review is required."}\n' "$kind"
       exit 0
       ;;
     UserPromptSubmit)
-      # learn.chatgpt.com/docs/hooks: block this turn via decision:"block".
-      jq -n --arg reason "$reason" '{decision: "block", reason: $reason}'
+      printf '{"decision":"block","reason":"Giám thị %s is active; human review is required."}\n' "$kind"
       exit 0
       ;;
     *)
-      jq -n --arg reason "$reason" '{
-        hookSpecificOutput: {
-          hookEventName: "PreToolUse",
-          permissionDecision: "deny",
-          permissionDecisionReason: $reason
-        }
-      }'
+      printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Giám thị %s is active; human review is required."}}\n' "$kind"
+      printf 'Giám thị %s is active; human review is required.\n' "$kind" >&2
       exit 2
       ;;
   esac
 }
 
+if [[ -z "$EVENT_NAME" && -z "$TOOL_NAME" ]]; then
+  emit_denial "unreadable safety payload"
+fi
+
 if [[ ! -f "$LOCK_FILE" ]]; then
-  MODE=$(jq -r '.mode // empty' "$QUARANTINE_FILE" 2>/dev/null)
-  TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // .toolName // .name // empty' 2>/dev/null)
+  MODE=$(sed -nE 's/.*"mode"[[:space:]]*:[[:space:]]*"([^" ]+)".*/\1/p' "$QUARANTINE_FILE" 2>/dev/null)
+  [[ -n "$MODE" ]] || emit_denial "quarantine state"
   DENY=false
   case "$MODE:$TOOL_NAME" in
     read-only:Write|read-only:Edit|read-only:NotebookEdit|read-only:Bash|no-shell:Bash|no-network:WebFetch|no-network:WebSearch)
@@ -128,12 +125,7 @@ if [[ ! -f "$LOCK_FILE" ]]; then
   # own, so TOOL_NAME is empty there and this case never matches, same as
   # before this change: quarantine stays PreToolUse-only by design.
   [[ "$DENY" == true ]] || exit 0
-  REASON="Giám thị quarantine '$MODE' blocked tool '$TOOL_NAME'. A human must review and clear $QUARANTINE_FILE."
-  emit_denial "$REASON"
+  emit_denial "quarantine"
 fi
 
-LOCK_BODY=$(head -c 1500 "$LOCK_FILE" 2>/dev/null)
-[[ -z "$LOCK_BODY" ]] && LOCK_BODY="(khoá tồn tại nhưng không đọc được nội dung)"
-
-REASON="Giám thị đã khoá phiên này — chỉ con người mới gỡ được (xoá $LOCK_FILE sau khi đã kiểm tra). Nội dung: $LOCK_BODY"
-emit_denial "$REASON"
+emit_denial "HALT"

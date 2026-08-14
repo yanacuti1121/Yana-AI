@@ -129,6 +129,43 @@ class GiamthiServiceTests(unittest.TestCase):
         self.assertTrue(stopped)
         self.assertEqual(exit_code, 126)
 
+    def test_source_checkout_watcher_bridge_delegates_to_canonical_core(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            bridge = target / ".claude/scripts/giamthi-watch.sh"
+            canonical = target / "core/scripts/giamthi-watch.sh"
+            bridge.parent.mkdir(parents=True)
+            canonical.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / ".claude/scripts/giamthi-watch.sh", bridge)
+            canonical.write_text("#!/usr/bin/env bash\nprintf 'canonical:%s\\n' \"$1\"\n", encoding="utf-8")
+            completed = subprocess.run(
+                ["bash", str(bridge), "evidence"],
+                cwd=target,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertEqual(completed.stdout, "canonical:evidence\n")
+
+    def test_source_checkout_watcher_bridge_fails_closed_without_canonical(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            bridge = target / ".claude/scripts/giamthi-watch.sh"
+            bridge.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / ".claude/scripts/giamthi-watch.sh", bridge)
+            completed = subprocess.run(
+                ["bash", str(bridge)],
+                cwd=target,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            lock = target / ".claude/state/GIAMTHI_HALT.lock"
+            self.assertEqual(completed.returncode, 2)
+            self.assertTrue(lock.is_file())
+            self.assertIn("canonical watcher is missing", lock.read_text(encoding="utf-8"))
+
     def _installed_target(self, root: Path, *, include_verifier: bool) -> Path:
         target = root / "installed-target"
         scripts = target / ".claude/scripts"
@@ -174,6 +211,83 @@ class GiamthiServiceTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertTrue(lock.is_file())
             self.assertIn("verify-audit-chain.sh is missing", lock.read_text(encoding="utf-8"))
+
+    def test_non_regular_halt_state_stops_watcher_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = self._installed_target(Path(temporary), include_verifier=True)
+            lock = target / ".claude/state/GIAMTHI_HALT.lock"
+            lock.mkdir(parents=True)
+
+            completed = self._run_watcher(target)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(lock.is_dir())
+            self.assertFalse((target / ".claude/state/giamthi-heartbeat.log").exists())
+
+    def _run_watcher(self, target: Path, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["bash", str(target / ".claude/scripts/giamthi-watch.sh"), *args],
+            cwd=target,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_uncommitted_sensitive_changes_halt_before_commit(self) -> None:
+        for relative, setup in (
+            (Path(".claude/settings.json"), "modify"),
+            (Path(".codex/hooks/new.sh"), "add"),
+            (Path(".claude/hooks/tracked.sh"), "delete"),
+        ):
+            with self.subTest(relative=relative, setup=setup), tempfile.TemporaryDirectory() as temporary:
+                target = self._installed_target(Path(temporary), include_verifier=True)
+                tracked = target / relative
+                if setup in {"modify", "delete"}:
+                    tracked.parent.mkdir(parents=True, exist_ok=True)
+                    tracked.write_text("tracked\n", encoding="utf-8")
+                    subprocess.run(["git", "-C", str(target), "add", str(relative)], check=True)
+                    subprocess.run(["git", "-C", str(target), "commit", "-qm", "sensitive fixture"], check=True)
+                self.assertEqual(self._run_watcher(target).returncode, 0)
+                if setup == "modify":
+                    tracked.write_text("changed\n", encoding="utf-8")
+                elif setup == "add":
+                    tracked.parent.mkdir(parents=True, exist_ok=True)
+                    tracked.write_text("new\n", encoding="utf-8")
+                else:
+                    tracked.unlink()
+                self.assertEqual(self._run_watcher(target).returncode, 0)
+                lock = target / ".claude/state/GIAMTHI_HALT.lock"
+                self.assertIn("CHƯA COMMIT", lock.read_text(encoding="utf-8"))
+
+    def test_committed_sensitive_change_requires_audited_human_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = self._installed_target(Path(temporary), include_verifier=True)
+            self.assertEqual(self._run_watcher(target).returncode, 0)
+            settings = target / ".claude/settings.json"
+            settings.parent.mkdir(parents=True, exist_ok=True)
+            settings.write_text("{}\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(target), "add", str(settings.relative_to(target))], check=True)
+            subprocess.run(["git", "-C", str(target), "commit", "-qm", "reviewed settings"], check=True)
+            self.assertEqual(self._run_watcher(target).returncode, 0)
+            lock = target / ".claude/state/GIAMTHI_HALT.lock"
+            self.assertTrue(lock.is_file())
+
+            approved = self._run_watcher(
+                target,
+                "--approve-baseline",
+                "--approve",
+                "--actor",
+                "human-test",
+                "--reason",
+                "reviewed settings change",
+            )
+            self.assertEqual(approved.returncode, 0, approved.stderr)
+            self.assertTrue(lock.is_file(), "baseline approval must never clear HALT")
+            receipt = target / ".claude/state/giamthi-baseline-receipts.log"
+            self.assertIn("actor=human-test", receipt.read_text(encoding="utf-8"))
+            lock.unlink()
+            self.assertEqual(self._run_watcher(target).returncode, 0)
+            self.assertFalse(lock.exists())
 
 
 if __name__ == "__main__":

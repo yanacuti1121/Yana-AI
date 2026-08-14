@@ -32,10 +32,21 @@ pub struct ServiceDefinition {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceStatus {
+    pub schema_version: u32,
+    pub runtime_version: String,
+    pub service_id: String,
     pub platform: String,
     pub installed: bool,
+    pub registered: Option<bool>,
     pub running: Option<bool>,
     pub definition_paths: Vec<String>,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct RuntimeInspection {
+    pub registered: Option<bool>,
+    pub running: Option<bool>,
     pub detail: String,
 }
 
@@ -47,6 +58,7 @@ pub(crate) struct PlatformPlan {
     pub contents: Vec<String>,
     pub start: Vec<Invocation>,
     pub stop: Vec<Invocation>,
+    pub remove: Vec<Invocation>,
 }
 
 pub(crate) struct Invocation {
@@ -66,13 +78,34 @@ impl ServiceManager {
 
     pub fn install(&self) -> Result<ServiceStatus> {
         let plan = platform_plan(&self.definition)?;
-        for (path, content) in plan.paths.iter().zip(&plan.contents) {
-            write_definition(path, content)?;
+        let previous = plan
+            .paths
+            .iter()
+            .map(read_definition)
+            .collect::<Result<Vec<_>>>()?;
+        let installation = (|| -> Result<()> {
+            for (path, content) in plan.paths.iter().zip(&plan.contents) {
+                write_definition(path, content)?;
+            }
+            invoke_all(&plan.start)
+        })();
+        if let Err(error) = installation {
+            let _ = invoke_all(&plan.remove);
+            restore_definitions(&plan.paths, &previous);
+            let _ = refresh_after_remove();
+            return Err(error).context("activating resident service; installation rolled back");
         }
-        for invocation in &plan.start {
-            invoke(invocation)?;
+        let status = self.status()?;
+        if !activation_verified(&status, env::consts::OS) {
+            let _ = invoke_all(&plan.remove);
+            restore_definitions(&plan.paths, &previous);
+            let _ = refresh_after_remove();
+            bail!(
+                "resident service activation could not be verified; installation rolled back: {}",
+                status.detail
+            );
         }
-        self.status()
+        Ok(status)
     }
 
     pub fn start(&self) -> Result<ServiceStatus> {
@@ -80,17 +113,13 @@ impl ServiceManager {
         if !plan.paths.iter().all(|path| path.is_file()) {
             bail!("service is not installed; run install first");
         }
-        for invocation in &plan.start {
-            invoke(invocation)?;
-        }
+        invoke_all(&plan.start)?;
         self.status()
     }
 
     pub fn stop(&self) -> Result<ServiceStatus> {
         let plan = platform_plan(&self.definition)?;
-        for invocation in &plan.stop {
-            invoke(invocation)?;
-        }
+        invoke_all(&plan.stop)?;
         self.status()
     }
 
@@ -102,28 +131,35 @@ impl ServiceManager {
     pub fn status(&self) -> Result<ServiceStatus> {
         let plan = platform_plan(&self.definition)?;
         let installed = plan.paths.iter().all(|path| path.is_file());
+        let runtime = if installed {
+            inspect_runtime(&self.definition)
+        } else {
+            RuntimeInspection {
+                registered: Some(false),
+                running: Some(false),
+                detail: "service definition is absent".into(),
+            }
+        };
         Ok(ServiceStatus {
+            schema_version: 1,
+            runtime_version: env!("CARGO_PKG_VERSION").into(),
+            service_id: identity(&self.definition),
             platform: env::consts::OS.into(),
             installed,
-            running: installed.then(|| is_active(&self.definition)).flatten(),
+            registered: runtime.registered,
+            running: runtime.running,
             definition_paths: plan
                 .paths
                 .iter()
                 .map(|path| path.display().to_string())
                 .collect(),
-            detail: if installed {
-                "service definition present".into()
-            } else {
-                "service is not installed".into()
-            },
+            detail: runtime.detail,
         })
     }
 
     pub fn uninstall(&self) -> Result<ServiceStatus> {
         let plan = platform_plan(&self.definition)?;
-        for invocation in &plan.stop {
-            invoke(invocation)?;
-        }
+        invoke_all(&plan.remove)?;
         for path in &plan.paths {
             match fs::remove_file(path) {
                 Ok(()) => {}
@@ -135,8 +171,12 @@ impl ServiceManager {
         }
         refresh_after_remove()?;
         Ok(ServiceStatus {
+            schema_version: 1,
+            runtime_version: env!("CARGO_PKG_VERSION").into(),
+            service_id: identity(&self.definition),
             platform: env::consts::OS.into(),
             installed: false,
+            registered: Some(false),
             running: Some(false),
             definition_paths: plan
                 .paths
@@ -148,13 +188,28 @@ impl ServiceManager {
     }
 }
 
+fn activation_verified(status: &ServiceStatus, platform: &str) -> bool {
+    status.installed
+        && status.registered == Some(true)
+        && (platform == "windows" || status.running == Some(true))
+}
+
 pub fn print(status: &ServiceStatus, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(status)?);
     } else {
         println!("Yana always-on service");
+        println!("  schema      {}", status.schema_version);
+        println!("  runtime     {}", status.runtime_version);
+        println!("  identity    {}", status.service_id);
         println!("  platform    {}", status.platform);
         println!("  installed   {}", status.installed);
+        println!(
+            "  registered  {}",
+            status
+                .registered
+                .map_or("—", |value| if value { "yes" } else { "no" })
+        );
         println!(
             "  running     {}",
             status
@@ -233,23 +288,27 @@ fn platform_plan(_def: &ServiceDefinition) -> Result<PlatformPlan> {
 }
 
 #[cfg(target_os = "macos")]
-fn is_active(def: &ServiceDefinition) -> Option<bool> {
-    launchd::is_active(&identity(def))
+fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
+    launchd::inspect(&identity(def))
 }
 
 #[cfg(target_os = "linux")]
-fn is_active(def: &ServiceDefinition) -> Option<bool> {
-    systemd::is_active(&identity(def))
+fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
+    systemd::inspect(&identity(def))
 }
 
 #[cfg(target_os = "windows")]
-fn is_active(def: &ServiceDefinition) -> Option<bool> {
-    windows::is_active(&identity(def))
+fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
+    windows::inspect(&identity(def))
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-fn is_active(_def: &ServiceDefinition) -> Option<bool> {
-    None
+fn inspect_runtime(_def: &ServiceDefinition) -> RuntimeInspection {
+    RuntimeInspection {
+        registered: None,
+        running: None,
+        detail: "service-manager status is unavailable on this platform".into(),
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -279,6 +338,40 @@ pub(crate) fn invoke(invocation: &Invocation) -> Result<()> {
         ),
         Err(_) if invocation.tolerate_failure => Ok(()),
         Err(error) => Err(error).with_context(|| format!("starting {}", invocation.program)),
+    }
+}
+
+fn invoke_all(invocations: &[Invocation]) -> Result<()> {
+    for invocation in invocations {
+        invoke(invocation)?;
+    }
+    Ok(())
+}
+
+fn read_definition(path: &PathBuf) -> Result<Option<Vec<u8>>> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => bail!(
+            "refusing non-regular service definition: {}",
+            path.display()
+        ),
+        Ok(_) => fs::read(path)
+            .map(Some)
+            .with_context(|| format!("reading {}", path.display())),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(error).with_context(|| format!("inspecting {}", path.display())),
+    }
+}
+
+fn restore_definitions(paths: &[PathBuf], previous: &[Option<Vec<u8>>]) {
+    for (path, content) in paths.iter().zip(previous) {
+        match content {
+            Some(bytes) => {
+                let _ = write_definition(path, &String::from_utf8_lossy(bytes));
+            }
+            None => {
+                let _ = fs::remove_file(path);
+            }
+        }
     }
 }
 
@@ -324,6 +417,7 @@ fn write_definition(path: &Path, content: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use uuid::Uuid;
 
     fn definition() -> ServiceDefinition {
         ServiceDefinition {
@@ -348,5 +442,59 @@ mod tests {
     #[test]
     fn xml_escape_neutralizes_metacharacters() {
         assert_eq!(xml_escape("a & b < c"), "a &amp; b &lt; c");
+    }
+
+    #[test]
+    fn definition_write_is_atomic_and_replaces_regular_content() {
+        let root = std::env::temp_dir().join(format!("yana-service-write-{}", Uuid::new_v4()));
+        let path = root.join("service definition.conf");
+        write_definition(&path, "first").unwrap();
+        write_definition(&path, "second").unwrap();
+        assert_eq!(fs::read_to_string(&path).unwrap(), "second");
+        assert_eq!(
+            fs::read_dir(&root).unwrap().count(),
+            1,
+            "temporary definition must not remain"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn definition_write_refuses_symlink_replacement() {
+        use std::os::unix::fs::symlink;
+
+        let root = std::env::temp_dir().join(format!("yana-service-link-{}", Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let target = root.join("target");
+        let path = root.join("service.conf");
+        fs::write(&target, "do not touch").unwrap();
+        symlink(&target, &path).unwrap();
+        assert!(write_definition(&path, "replacement").is_err());
+        assert_eq!(fs::read_to_string(target).unwrap(), "do not touch");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn activation_never_treats_definition_only_or_unknown_as_healthy() {
+        let mut status = ServiceStatus {
+            schema_version: 1,
+            runtime_version: "test".into(),
+            service_id: "test".into(),
+            platform: "linux".into(),
+            installed: true,
+            registered: Some(false),
+            running: Some(false),
+            definition_paths: vec![],
+            detail: "definition only".into(),
+        };
+        assert!(!activation_verified(&status, "linux"));
+        status.registered = Some(true);
+        status.running = None;
+        assert!(!activation_verified(&status, "linux"));
+        status.running = Some(true);
+        assert!(activation_verified(&status, "linux"));
+        status.running = None;
+        assert!(activation_verified(&status, "windows"));
     }
 }

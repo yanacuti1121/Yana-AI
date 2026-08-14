@@ -1,140 +1,113 @@
-# Always-On yana-rt Service (foundation)
+# Always-On Giám Thị Resident Service
 
-**Status:** Foundation only. `src/os/service/` and `src/monitor/` exist
-and are unit-tested, but nothing in this repository calls them yet — no
-`OsAction` CLI variant, no `main.rs` wiring, no scheduled install. This
-document describes what exists today and what a future integration PR
-would need to add to actually run it in production.
+**Status:** Wired to the native CLI. `yana-rt os service run` is a real
+long-running process. It stays alive between supervisor ticks and is distinct
+from the periodic scheduler.
 
-## What this is, and what it is not
+## Control-plane map
 
-Three things in `src/os/` sound similar. They are not the same layer:
+| Component | Purpose | Resident? | Authority? | Live today? |
+|---|---|---:|---:|---:|
+| Cross-engine hooks | Enforce HALT/quarantine before supported host events | No | No; reads shared safety state | Yes |
+| `os::supervisor` | Own HALT, quarantine, receipts, heartbeat, dashboard and human unlock ceremony | No | **Yes** | Yes |
+| `os::monitor_service` | Schedule one-shot `supervisor tick` calls | No | No | Yes |
+| `giamthi-watch.sh` + Python installer | Compatibility integrity watcher and cross-package installer | No | May create HALT; never clears it | Yes |
+| `os::service::runtime` | Stay alive and call native supervisor ticks | **Yes** | No; obeys shared HALT | Yes |
+| `os::service::watchdog` | Reusable governed-child restart/backoff primitive | Only when embedded by a caller | No | Library primitive |
 
-| Module | What it does | Resident process? |
-|---|---|---|
-| `os::monitor` | Collects one CPU/memory/disk/GPU/host snapshot and persists it to `.yana-ai/os/system-health.json`. | No — a single sample per invocation. |
-| `os::monitor_service` | Installs a **periodic** launchd/systemd-timer/Task-Scheduler definition that invokes `yana-rt os supervisor tick` on a fixed interval. Its own doc comment states this "avoids a custom always-resident daemon." | No — periodic tick, by explicit design. |
-| `os::supervisor` | Halt/unlock/quarantine authority: owns `.claude/state/GIAMTHI_HALT.lock`, hash-chained receipts, the human-only-clearable safety gate every engine (Claude Code, Codex) already respects. | No — it is authority, not a process. |
-| `os::service` (this document) | Installs an OS service definition that keeps a program **continuously running** (`KeepAlive`/`Restart=always`), plus a watchdog loop that restarts it with bounded backoff on exit. | **Yes** — this is the resident-process layer. |
+## CLI
 
-`os::service` sits above the other three and reuses their conventions
-rather than duplicating them:
+```bash
+# Resident process lifecycle
+yana-rt os service install --dir . --interval-secs 60
+yana-rt os service status --dir . --json
+yana-rt os service stop --dir .
+yana-rt os service start --dir .
+yana-rt os service restart --dir .
+yana-rt os service uninstall --dir .
 
-- Halt-lock path (`.claude/state/GIAMTHI_HALT.lock`) and the "only a human
-  clears it" asymmetry: reused verbatim from `os::supervisor`.
-- Atomic, no-symlink-follow, `0600`-permission file writes and
-  `std::process::Command`-only (never a shell string) service-definition
-  installation: the same pattern `os::monitor_service` already
-  established and proved across macOS/Linux/Windows.
-- Project-specific naming derived from a SHA-256 of the working
-  directory: the same `project_id` idea `os::monitor_service` uses,
-  renamed `identity()` here since it now covers a service *name* too, not
-  only a project path.
+# Internal payload installed by the manager; normally do not run manually
+yana-rt os service run --dir . --interval-secs 60
 
-## What exists today
-
-```
-src/monitor/
-  backoff.rs   BoundedBackoff — exponential doubling capped at max,
-               resets to initial after a stable run (ZeroClaw's
-               validated algorithm, adopted as-is; read-only reference,
-               never forked/embedded)
-  health.rs    HealthState (Healthy/Degraded/Restarting/Backoff/Halted/
-               HumanRequired), ComponentHealth, in-memory HealthRegistry,
-               ServiceHealthSnapshot
-
-src/os/service/
-  manager.rs      ServiceDefinition, ServiceStatus, ServiceManager
-                  (install/start/stop/restart/status/uninstall), shared
-                  atomic-write + Command-invoke plumbing
-  launchd.rs      macOS: renders a KeepAlive=true plist, launchctl
-                  load/unload
-  systemd.rs      Linux (per-user): renders a Restart=always .service
-                  unit, systemctl --user enable/disable --now
-  windows.rs      Windows: renders a Task Scheduler XML definition with
-                  a logon trigger + RestartOnFailure — Task Scheduler,
-                  not a real Windows Service (SCM); the same disclosed
-                  ceiling as os::monitor_service and the ZeroClaw
-                  reference this design drew from, since a real Windows
-                  Service needs the `windows-service` crate and adding a
-                  new dependency was out of scope for this change
-                  (Cargo.toml was frozen for this PR)
-  attribution.rs  Governed spawn: argv array only (never a shell
-                  string), PID + owner + redacted argv recorded to an
-                  append-only JSONL receipt at
-                  .yana-ai/os/service-spawn-receipts.jsonl. Plain JSONL,
-                  not hash-chained like os::supervisor's safety receipts
-                  — this is operational attribution, not a tamper-
-                  evidence chain. A deliberate scope boundary, not an
-                  oversight.
-  watchdog.rs     Watchdog::run_once/supervise — spawns via
-                  attribution::spawn, waits for exit, checks
-                  GIAMTHI_HALT.lock fail-closed before every restart
-                  decision, computes the next backoff via
-                  monitor::BoundedBackoff, updates monitor::HealthRegistry
+# Periodic scheduler: explicitly different
+yana-rt os supervisor scheduler status --dir .
 ```
 
-`src/monitor/` is declared from `src/os/service/mod.rs` (not from
-`src/os/mod.rs`, and never from `src/main.rs`) via
-`#[path = "../../monitor/mod.rs"] pub mod monitor;`, specifically to
-avoid colliding with the pre-existing `os::monitor` module name while
-still placing the physical directory at the top level, as the owning
-task's brief asked for. The directory lives at `src/monitor/`; it is
-reachable in code as `crate::os::service::monitor`.
+The former `yana-rt os supervisor service ...` spelling remains a compatibility
+alias for `supervisor scheduler`; it does **not** manage the resident process.
 
-## Halt-lock fail-closed behavior
+## Runtime behavior
 
-Before every restart decision, `Watchdog::run_once` checks whether
-`<project_root>/.claude/state/GIAMTHI_HALT.lock` exists. If it does, the
-watchdog transitions the component to `HealthState::Halted` and stops —
-it does not spawn anything, and there is no bypass path. This is the same
-lock `core/hooks/giamthi-halt-check.sh` and `os::supervisor::halt()`/
-`unlock()` already use; a halt raised through any of those surfaces stops
-this watchdog too, without this module needing to know anything about how
-the halt was raised.
+The resident payload:
 
-## Governed spawn attribution
+1. acquires one project-specific single-instance lock;
+2. calls `os::supervisor::tick()` at a bounded interval (minimum five seconds);
+3. uses bounded exponential backoff after tick errors;
+4. keeps the process alive but performs no ticks while
+   `.claude/state/GIAMTHI_HALT.lock` exists;
+5. never deletes HALT or quarantine state.
 
-Every process the watchdog starts goes through `attribution::spawn`,
-which:
+Remaining alive during HALT is intentional. Exiting would make launchd
+`KeepAlive` or systemd `Restart=always` repeatedly respawn prohibited work.
+After a human clears HALT through the existing ceremony, the resident loop
+resumes on its next interval.
 
-- Spawns via `std::process::Command::new(program).args(args)` — never a
-  shell string, per `shell-sanitize-law.md`.
-- Records `{pid, owner: {agent_id, session_id, mission_id}, argv_redacted,
-  timestamp}` to `.yana-ai/os/service-spawn-receipts.jsonl`.
-- Redacts argv tokens matching `--token=`, `--key=`, `--api-key=`,
-  `--password=`, `--secret=`, `--auth=`, or that look like a bearer/API-key
-  literal (long, no-whitespace, mixed-alphanumeric). This is a
-  conservative audit-log hygiene heuristic, not the security boundary
-  itself — see `52-secrets-vault-law.md` for that.
-- Never records environment variables at all.
+On macOS and Linux, single-instance ownership uses the canonical `flock-v1`
+regular-file protocol and therefore requires the repository's protocol marker.
+On Windows, Task Scheduler prevents duplicate scheduled instances and the
+payload also uses fail-closed instance evidence. An unclean Windows crash can
+leave that evidence behind; human review is required rather than automatic
+stale-lock deletion.
 
-## What a future integration PR would need to add
+## Installation semantics
 
-This PR deliberately stops short of production wiring:
+The manager writes definitions atomically, refuses symlink/non-regular
+replacement and executes argv arrays directly—never shell strings. Installation
+then verifies registration and live state. If writing, activation or verification
+fails, it deregisters the attempted service and restores prior definitions.
 
-1. An `OsAction::Service` (or similarly named) CLI variant in
-   `src/main.rs`/`src/os/mod.rs` that constructs a `ServiceDefinition`
-   pointing at a real long-running subcommand (e.g. a future
-   `yana-rt os service run` that itself drives a `Watchdog` in a loop).
-2. A decision on what the *supervised program* actually is — this PR
-   builds the supervisor, not a new resident payload to supervise. The
-   most natural first target is a thin wrapper around
-   `os::supervisor::tick()`'s existing responsibilities, but that is an
-   explicit design choice for the integration PR, not assumed here.
-3. Updating `ops/service/`'s example templates from "example" naming to
-   whatever the real installed command line ends up being once (1) is
-   decided.
-4. Deciding whether `attribution.rs`'s spawn receipts should be promoted
-   to `os::supervisor`'s hash-chained format, if the operational log
-   above is ever asked to serve as safety evidence rather than
-   operational attribution.
+- **macOS:** per-user LaunchAgent, `KeepAlive=true`, managed through
+  `launchctl bootout/bootstrap/kickstart`. Desktop, Documents and Downloads are
+  rejected by default because TCC can deny background access. Move the checkout
+  under `~/Projects`, or grant Full Disk Access and explicitly pass
+  `--allow-protected-path`.
+- **Linux:** per-user systemd service, `Restart=always`, `ProtectSystem=strict`,
+  `ProtectHome=read-only`, with write access limited to `.yana-ai/os` and
+  `.claude/state`.
+- **Windows:** Task Scheduler with a logon trigger, immediate `/Run` and
+  restart-on-failure. This is **not** a Windows SCM Service. Registration is
+  verified; running state remains `UNKNOWN` because localized `schtasks` output
+  is not parsed as an English-only contract.
 
-## Testing
+`stop` preserves the definition/registration where the platform permits;
+`uninstall` deregisters and removes it. HALT, quarantine, receipts and health
+evidence are never removed by service uninstall.
 
-All new code is hermetic: `src/monitor/**`'s tests are pure `Duration`
-arithmetic and in-memory state, no I/O. `src/os/service/**`'s tests use
-real temporary directories and, where a real child process is needed
-(`attribution.rs`, `watchdog.rs`), real short-lived `/bin/sh -c 'exit N'`
-processes — never a real `launchctl`/`systemctl`/`schtasks` install, and
-never a real halt lock outside a temp directory made for that one test.
+## Status and recovery
+
+`os service status` distinguishes:
+
+- definition present (`installed`);
+- OS registration (`registered`: true/false/unknown);
+- live execution (`running`: true/false/unknown);
+- stable project service identity;
+- definition paths and runtime version.
+
+A definition file is never reported as proof that the process is healthy.
+Use `yana-rt os supervisor status --json` for the combined scheduler, resident,
+compatibility-watcher, host-health and safety dashboard. Its
+`service_definition_drift` section reports definitions that point at another
+checkout (or cannot be inspected) without deleting them; `unknown` remains
+distinct from a confirmed empty result.
+
+Do not manually delete a live service definition. Stop/uninstall through the CLI
+so OS registration and disk state remain coordinated. Never remove a flock file;
+kernel ownership is the lock, and the canonical inode is intentionally stable.
+
+## Governed child primitive
+
+`src/os/service/watchdog.rs` remains available for components that genuinely
+need a supervised child. It uses argv-only spawn attribution, bounded backoff,
+process-group cleanup on Unix, and checks HALT both before spawn and while the
+child runs. The resident Giám Thị payload does not wrap its own tick in this
+watchdog because a one-shot tick is not a resident child workload.

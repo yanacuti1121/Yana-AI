@@ -9,54 +9,13 @@
 pub mod flock_v1;
 
 #[cfg(feature = "wasm")]
+#[path = "guard/portable.rs"]
+mod portable_guard;
+
+#[cfg(feature = "wasm")]
 mod wasm {
+    use super::portable_guard;
     use wasm_bindgen::prelude::*;
-
-    // ── Destructive command patterns (mirrors guard/mod.rs) ──────────────────
-
-    struct Pattern {
-        re: regex::Regex,
-        reason: &'static str,
-    }
-
-    fn destructive_patterns() -> Vec<Pattern> {
-        let rules: &[(&str, &str)] = &[
-            (
-                r"(?i)(^|[;&|])\s*rm\s+-[a-zA-Z]*r[a-zA-Z]*f|rm\s+-[a-zA-Z]*f[a-zA-Z]*r",
-                "Blocked: 'rm -rf' is irreversible. Use targeted 'rm' with explicit paths.",
-            ),
-            (
-                r"(?i)git\s+push\s+.*--force|git\s+push\s+.*-f\b",
-                "Blocked: force-push can destroy shared history. Requires explicit approval.",
-            ),
-            (
-                r"(?i)git\s+reset\s+--hard",
-                "Blocked: 'git reset --hard' discards all uncommitted changes permanently.",
-            ),
-            (
-                r"(?i)(curl|wget)\s+.*\|\s*(ba)?sh",
-                "Blocked: pipe-to-shell is a supply chain attack vector.",
-            ),
-            (
-                r"(?i)DROP\s+(TABLE|DATABASE|SCHEMA)\s+",
-                "Blocked: DDL DROP is irreversible without a prior backup.",
-            ),
-            (
-                r"(?i)npm\s+publish\b",
-                "Blocked: 'npm publish' requires explicit human gate approval.",
-            ),
-            (
-                r"(?i)git\s+push\s+.*origin\s+main|git\s+push\s+.*origin\s+master",
-                "Blocked: push to main/master requires explicit authorization.",
-            ),
-        ];
-        rules
-            .iter()
-            .filter_map(|(pat, reason)| {
-                regex::Regex::new(pat).ok().map(|re| Pattern { re, reason })
-            })
-            .collect()
-    }
 
     // ── Exported functions ────────────────────────────────────────────────────
 
@@ -73,16 +32,8 @@ mod wasm {
     /// ```
     #[wasm_bindgen]
     pub fn check_command(cmd: &str) -> String {
-        for p in &destructive_patterns() {
-            if p.re.is_match(cmd) {
-                return serde_json::json!({
-                    "allowed": false,
-                    "reason": p.reason
-                })
-                .to_string();
-            }
-        }
-        serde_json::json!({ "allowed": true, "reason": null }).to_string()
+        let reason = portable_guard::check_command(cmd);
+        serde_json::json!({ "allowed": reason.is_none(), "reason": reason }).to_string()
     }
 
     /// Batch-check a JSON array of command strings.
@@ -107,16 +58,8 @@ mod wasm {
         let results: Vec<serde_json::Value> = cmds
             .iter()
             .map(|cmd| {
-                for p in &destructive_patterns() {
-                    if p.re.is_match(cmd) {
-                        return serde_json::json!({
-                            "cmd": cmd,
-                            "allowed": false,
-                            "reason": p.reason
-                        });
-                    }
-                }
-                serde_json::json!({ "cmd": cmd, "allowed": true, "reason": null })
+                let reason = portable_guard::check_command(cmd);
+                serde_json::json!({ "cmd": cmd, "allowed": reason.is_none(), "reason": reason })
             })
             .collect();
         serde_json::to_string(&results).unwrap_or_default()
@@ -126,5 +69,29 @@ mod wasm {
     #[wasm_bindgen]
     pub fn version() -> String {
         env!("CARGO_PKG_VERSION").to_string()
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn wasm_json_surface_matches_portable_guard_source() {
+            for command in [
+                "ls -la",
+                "rm --recursive --force /tmp/x",
+                "git -C /tmp push --force origin topic",
+                "git reset --hard",
+                "DROP TABLE users",
+                "bash -c 'rm -rf /tmp/x'",
+                "echo tiếng Việt",
+            ] {
+                let value: serde_json::Value =
+                    serde_json::from_str(&check_command(command)).unwrap();
+                let reason = portable_guard::check_command(command);
+                assert_eq!(value["allowed"], reason.is_none());
+                assert_eq!(value["reason"].as_str(), reason);
+            }
+        }
     }
 }

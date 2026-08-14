@@ -12,6 +12,8 @@
     <string>run</string>
     <string>--dir</string>
     <string>/srv/yana-ai-project</string>
+    <string>--interval-secs</string>
+    <string>60</string>
   </array>
   <key>WorkingDirectory</key>
   <string>/srv/yana-ai-project</string>
@@ -23,9 +25,5 @@
   <integer>10</integer>
   <key>ProcessType</key>
   <string>Background</string>
-  <key>StandardOutPath</key>
-  <string>/var/log/yana-ai/service.out.log</string>
-  <key>StandardErrorPath</key>
-  <string>/var/log/yana-ai/service.err.log</string>
 </dict>
 </plist>

@@ -7,7 +7,9 @@
 //! dependency is out of scope while `Cargo.toml` is frozen for this PR.
 
 #[cfg(any(test, target_os = "windows"))]
-use super::manager::{home, identity, xml_escape, Invocation, PlatformPlan, ServiceDefinition};
+use super::manager::{
+    home, identity, xml_escape, Invocation, PlatformPlan, RuntimeInspection, ServiceDefinition,
+};
 #[cfg(any(test, target_os = "windows"))]
 use anyhow::Result;
 #[cfg(any(test, target_os = "windows"))]
@@ -61,7 +63,12 @@ pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
                 tolerate_failure: false,
             },
         ],
-        stop: vec![
+        stop: vec![Invocation {
+            program: "schtasks.exe".into(),
+            args: vec!["/End".into(), "/TN".into(), task_name.clone()],
+            tolerate_failure: true,
+        }],
+        remove: vec![
             Invocation {
                 program: "schtasks.exe".into(),
                 args: vec!["/End".into(), "/TN".into(), task_name.clone()],
@@ -85,13 +92,28 @@ pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
 }
 
 #[cfg(target_os = "windows")]
-pub(crate) fn is_active(label: &str) -> Option<bool> {
+pub(crate) fn inspect(label: &str) -> RuntimeInspection {
     let task_name = format!("YanaService-{label}");
-    Command::new("schtasks.exe")
+    match Command::new("schtasks.exe")
         .args(["/Query", "/TN", &task_name])
         .output()
-        .ok()
-        .map(|output| output.status.success())
+    {
+        Ok(output) if output.status.success() => RuntimeInspection {
+            registered: Some(true),
+            running: None,
+            detail: "Task Scheduler task is registered; running state is UNKNOWN because localized schtasks output is not parsed".into(),
+        },
+        Ok(_) => RuntimeInspection {
+            registered: Some(false),
+            running: Some(false),
+            detail: "Task Scheduler task is not registered".into(),
+        },
+        Err(error) => RuntimeInspection {
+            registered: None,
+            running: None,
+            detail: format!("Task Scheduler status unavailable: {error}"),
+        },
+    }
 }
 
 #[cfg(any(test, target_os = "windows"))]
@@ -160,21 +182,21 @@ mod tests {
     }
 
     #[test]
-    fn stop_actually_deregisters_the_task_not_just_ends_the_running_instance() {
+    fn stop_preserves_registration_while_remove_deregisters_the_task() {
         let plan = plan(&definition()).unwrap();
-        // /End alone only kills a currently-running instance; without
-        // /Delete /F the LogonTrigger survives and fires again next
-        // login. uninstall() reuses this same stop list, so this also
-        // covers uninstall leaving the task registered.
         assert!(plan
             .stop
             .iter()
             .any(|invocation| invocation.args.first().map(String::as_str) == Some("/End")));
-        let delete = plan
+        assert!(!plan
             .stop
             .iter()
+            .any(|invocation| invocation.args.first().map(String::as_str) == Some("/Delete")));
+        let delete = plan
+            .remove
+            .iter()
             .find(|invocation| invocation.args.first().map(String::as_str) == Some("/Delete"))
-            .expect("stop must include a /Delete invocation");
+            .expect("uninstall must include a /Delete invocation");
         assert!(delete.args.iter().any(|arg| arg == "/F"));
     }
 
@@ -186,7 +208,12 @@ mod tests {
             .unwrap()
             .to_string_lossy()
             .into_owned();
-        for invocation in plan.start.iter().chain(plan.stop.iter()) {
+        for invocation in plan
+            .start
+            .iter()
+            .chain(plan.stop.iter())
+            .chain(plan.remove.iter())
+        {
             assert!(
                 invocation.args.iter().any(|arg| arg == &task_name),
                 "invocation {:?} does not reference task name {task_name}",
