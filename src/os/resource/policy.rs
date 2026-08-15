@@ -1,6 +1,15 @@
-//! Explicit resource policy and deterministic preflight checks.
+//! Explicit resource policy and deterministic preflight checks —
+//! unchanged from the pre-Phase-5 `os::resource` module (moved here
+//! verbatim; Phase 5 of the host-native-os program only reorganizes this
+//! file into `resource::policy`, it does not change its behavior).
+//!
+//! This is capacity/limit POLICY: how many agents/tokens/dollars are
+//! allowed. It is intentionally kept separate from `pressure` (current
+//! host load), `reservation` (bounded compute grants), and `placement`
+//! (where a workload should run) — mixing those concepts was explicitly
+//! ruled out for this phase.
 
-use super::state::{self, AgentStatus, ResourcePolicy};
+use super::super::state::{self, AgentStatus, ResourcePolicy};
 use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 use serde::Serialize;

@@ -1,13 +1,15 @@
-//! Windows Task Scheduler definition for a resident always-on service.
-//!
-//! Same disclosed ceiling as `os::monitor_service` and the ZeroClaw
-//! reference this design drew from: this is a Task Scheduler task with a
-//! logon trigger and failure-restart settings, not a real Windows Service
-//! (SCM) — that would need the `windows-service` crate, and adding a new
-//! dependency is out of scope while `Cargo.toml` is frozen for this PR.
+//! Windows Task Scheduler definition for a resident always-on service —
+//! extracted from `os::service::windows` (Phase 4 of the host-native-os
+//! program) with zero behavior change. Same disclosed ceiling as
+//! `os::monitor_service` and the ZeroClaw reference this design drew
+//! from: this is a Task Scheduler task with a logon trigger and
+//! failure-restart settings, not a real Windows Service (SCM) — that
+//! would need the `windows-service` crate, and adding a new dependency
+//! stays out of scope (this program's own brief: no new dependencies
+//! unless absolutely necessary).
 
 #[cfg(any(test, target_os = "windows"))]
-use super::manager::{
+use crate::os::service::manager::{
     home, identity, xml_escape, Invocation, PlatformPlan, RuntimeInspection, ServiceDefinition,
 };
 #[cfg(any(test, target_os = "windows"))]
@@ -25,7 +27,7 @@ use std::process::Command;
 /// runner — the two bugs this plan's `start`/`stop` lists were fixed for
 /// (task never actually starts until next logon; task never actually
 /// gets deregistered on stop/uninstall) were both in code that had no
-/// test coverage at all before this fix, only the pure `render_task_xml`
+/// test coverage at all before that fix, only the pure `render_task_xml`
 /// renderer did.
 #[cfg(any(test, target_os = "windows"))]
 pub(crate) fn plan(def: &ServiceDefinition) -> Result<PlatformPlan> {

@@ -22,12 +22,9 @@
 pub mod monitor;
 
 pub mod attribution;
-pub mod launchd;
 pub mod manager;
 pub mod runtime;
-pub mod systemd;
 pub mod watchdog;
-pub mod windows;
 
 pub use attribution::{spawn, GovernedChild, ProcessAttribution};
 pub use manager::{ServiceDefinition, ServiceManager, ServiceStatus};

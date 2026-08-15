@@ -7,7 +7,8 @@ mod governor;
 mod health;
 mod monitor;
 mod monitor_service;
-mod resource;
+pub mod platform;
+pub(crate) mod resource;
 mod roadmap;
 mod service;
 mod state;
@@ -1186,7 +1187,7 @@ fn dispatch_resource(action: ResourceAction) -> Result<()> {
     match action {
         ResourceAction::Show { dir, json } => {
             let root = state::project_root(&dir)?;
-            resource::print_policy(&resource::policy(&root)?, json)?;
+            resource::print_policy(&resource::get_policy(&root)?, json)?;
         }
         ResourceAction::Set {
             max_active_agents,
