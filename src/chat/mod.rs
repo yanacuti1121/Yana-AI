@@ -45,6 +45,7 @@ mod circuit_breaker;
 // `yana-rt os agent-list`.
 pub(crate) mod history;
 mod input;
+mod ollama_native;
 pub(crate) mod openai_compat;
 mod settings;
 // pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
