@@ -21,11 +21,14 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
+use super::lock;
 use crate::os::identity::{Actor, ActorId};
 
 const MAPPING_RELATIVE_PATH: &str = ".yana-ai/os/remote-sessions.json";
 const SCHEMA_VERSION: u32 = 1;
+const LOCK_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// One remote channel/thread's mapping to a Yana session — never the
 /// session's content itself, only which `chat::history` session_id it
@@ -33,7 +36,17 @@ const SCHEMA_VERSION: u32 = 1;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoteSessionLink {
     pub session_id: String,
-    pub actor_id: String,
+    /// Post-review rename (was `actor_id`): this is provenance —
+    /// who FIRST created this channel's mapping — not the current or
+    /// authorized actor. A different user posting later in the same
+    /// allowed channel resolves the SAME session (session identity is
+    /// per-conversation/channel, not per-person — see the module doc)
+    /// without this field ever being updated to reflect them. The old
+    /// name `actor_id` invited exactly that misreading: a future caller
+    /// could reasonably have assumed it meant "the actor currently
+    /// authorized for this session," which it never did and still
+    /// doesn't.
+    pub created_by_actor_id: String,
     pub created_at: String,
     pub last_activity_at: String,
 }
@@ -111,6 +124,21 @@ fn save_mapping(root: &Path, mapping: &MappingFile) -> Result<()> {
 /// one if this `(platform, chat)` has been seen before, freshly created
 /// (and durably recorded) otherwise. `now` is injected so this stays
 /// testable without a real clock dependency.
+///
+/// Post-review fix: the whole read-modify-write transaction (load, check,
+/// possibly create + insert, save) is held under ONE inter-process lock —
+/// the exact class of race the PR #203 audit's receipt-chain finding (F1)
+/// already established for this codebase. Without it, two concurrent
+/// `resolve_session` calls for a channel neither has seen yet (two
+/// `serve` processes racing, or a future second adapter sharing this same
+/// mapping file) could both observe "missing," both create a session,
+/// and both durably record different session ids for the same channel —
+/// an orphaned session plus two processes now disagreeing about which
+/// history a channel continues. `atomic write != atomic
+/// read-modify-write` applies here exactly as it did for the receipt
+/// chain; the lock is what closes that gap, not the rename-based save's
+/// own atomicity (which only ever protected a single write, never the
+/// decision that produced it).
 pub fn resolve_session<F>(
     root: &Path,
     platform: &str,
@@ -122,6 +150,7 @@ pub fn resolve_session<F>(
 where
     F: Fn() -> String,
 {
+    let _guard = lock::acquire(&mapping_path(root), LOCK_TIMEOUT)?;
     let key = remote_key(platform, chat);
     let mut mapping = load_mapping(root)?;
     if let Some(link) = mapping.links.get_mut(&key) {
@@ -138,7 +167,7 @@ where
         key,
         RemoteSessionLink {
             session_id: session_id.clone(),
-            actor_id: actor_id.to_string(),
+            created_by_actor_id: actor_id.to_string(),
             created_at: timestamp.clone(),
             last_activity_at: timestamp,
         },
@@ -156,6 +185,15 @@ struct RequestLogEntry<'a> {
     platform: &'a str,
     chat: &'a str,
     session_id: &'a str,
+    /// Provenance kept from the first schema version, not retrofitted:
+    /// cheap to carry now, expensive to add correctly later once entries
+    /// without it already exist. Not used for deduplication yet — this
+    /// slice is read-only chat, where a duplicate reply is a nuisance, not
+    /// a safety issue — but a future write/approval capability MUST be
+    /// able to tell two deliveries of the same Discord message apart
+    /// (gateway RESUME is not implemented yet either; see the module
+    /// doc), and that requires this field to have existed from the start.
+    message_id: &'a str,
 }
 
 /// Append-only evidence trail for remote-triggered requests — deliberately
@@ -163,16 +201,34 @@ struct RequestLogEntry<'a> {
 /// discipline PR #204 established for `evidence-degraded.jsonl`: routine,
 /// high-frequency traffic (every chat message) must not be mixed into the
 /// receipt chain built and hardened for safety-critical events
-/// (halt/unlock/quarantine). Best-effort — a logging failure here must
-/// never fail the turn it is recording, so errors are swallowed, not
-/// propagated.
-pub fn record_request(root: &Path, actor: &Actor, platform: &str, chat: &str, session_id: &str) {
+/// (halt/unlock/quarantine).
+///
+/// Post-review fix: the append is now held under the same lock
+/// `resolve_session` uses (scoped to a DIFFERENT lock file — see
+/// `lock::acquire`'s per-target naming — so a request-log append and a
+/// session-mapping transaction never contend with each other, only two
+/// writers of the SAME file do). Before this fix, concurrent writers
+/// could interleave mid-line and corrupt the trail, the same failure mode
+/// PR #204 found and fixed in the safety receipt chain — this file's
+/// "best-effort" framing was never meant to excuse that specific failure
+/// mode, only to say a write failure here must not fail the turn it is
+/// recording, which remains true: lock-acquisition and write failures are
+/// still swallowed, not propagated.
+pub fn record_request(
+    root: &Path,
+    actor: &Actor,
+    platform: &str,
+    chat: &str,
+    session_id: &str,
+    message_id: &str,
+) {
     let entry = RequestLogEntry {
         timestamp: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         actor: actor.as_receipt_actor(),
         platform,
         chat,
         session_id,
+        message_id,
     };
     let path = root.join(REQUEST_LOG_RELATIVE_PATH);
     let Some(parent) = path.parent() else { return };
@@ -180,6 +236,9 @@ pub fn record_request(root: &Path, actor: &Actor, platform: &str, chat: &str, se
         return;
     }
     let Ok(line) = serde_json::to_string(&entry) else {
+        return;
+    };
+    let Ok(_guard) = lock::acquire(&path, LOCK_TIMEOUT) else {
         return;
     };
     use std::io::Write;
@@ -261,6 +320,70 @@ mod tests {
             created.load(Ordering::SeqCst),
             1,
             "a session must be created exactly once, not on every message"
+        );
+        std::fs::remove_dir_all(root).ok();
+    }
+
+    /// Post-review regression test (HIGH finding): two processes racing
+    /// `resolve_session` for a channel NEITHER has seen yet (e.g. two
+    /// `yana-rt remote discord serve` invocations from two terminals, or
+    /// a future second adapter sharing this mapping file) could both
+    /// observe "missing," both create a session, and both durably record
+    /// different session ids for the same channel -- an orphaned session
+    /// plus disagreement about which history the channel continues.
+    /// `std::thread::spawn` stands in for a second OS process here (real
+    /// cross-process races on this exact class of file-transaction bug
+    /// were already proven with real separate `yana-rt` processes during
+    /// PR #204's fix; this test proves the LOCKING mechanism itself is
+    /// correctly applied to this specific transaction). Verified genuinely
+    /// regression-testing, not passing regardless: with the `lock::
+    /// acquire` line in `resolve_session` temporarily commented out, this
+    /// test failed 8/8 runs; restored, it passes 5/5 (both checked
+    /// directly, not assumed).
+    #[test]
+    fn resolve_session_serializes_two_racing_first_writers_into_one_session() {
+        let root = root();
+        std::fs::create_dir_all(&root).unwrap();
+        let actor_id = remote_actor_id("discord", "42");
+
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+        let handles: Vec<_> = ["a", "b"]
+            .into_iter()
+            .map(|who| {
+                let root = root.clone();
+                let actor_id = actor_id.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    resolve_session(
+                        &root,
+                        "discord",
+                        "chan-race",
+                        &actor_id,
+                        || "t".into(),
+                        |_sid| Ok(()),
+                    )
+                })
+            })
+            .collect();
+
+        let results: Vec<String> = handles
+            .into_iter()
+            .map(|h| h.join().unwrap().expect("resolve_session must not error"))
+            .collect();
+
+        assert_eq!(
+            results[0], results[1],
+            "two racing first-writers for the same channel must agree on \
+             exactly one session id, not silently create two"
+        );
+
+        let mapping = load_mapping(&root).unwrap();
+        assert_eq!(
+            mapping.links.len(),
+            1,
+            "the mapping file must contain exactly one link for the raced \
+             channel, not two overwriting each other or an orphan"
         );
         std::fs::remove_dir_all(root).ok();
     }

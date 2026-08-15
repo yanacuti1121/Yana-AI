@@ -42,6 +42,7 @@
 
 #[cfg(feature = "discord")]
 pub mod discord;
+mod lock;
 pub mod session;
 
 #[cfg(feature = "discord")]
@@ -80,7 +81,14 @@ mod dispatch {
         )?;
 
         let actor = session::remote_actor(PLATFORM, &incoming.user_id, &session_id);
-        session::record_request(root, &actor, PLATFORM, &incoming.channel_id, &session_id);
+        session::record_request(
+            root,
+            &actor,
+            PLATFORM,
+            &incoming.channel_id,
+            &session_id,
+            &incoming.message_id,
+        );
 
         crate::chat::history::append_user(&session_id, &incoming.content)
             .context("recording the incoming Discord message")?;

@@ -1,18 +1,22 @@
 //! Discord adapter — minimum safe vertical slice (Host-Native OS Program,
-//! Discord Phase). Read-only chat ONLY: an authenticated, allowlisted
-//! Discord message becomes one turn of plain conversation with the
-//! configured model. No tool/capability access of any kind is wired into
-//! this path — `stream_chat` below is called with `tools: &[]`, so there
-//! is no code path from a Discord message to any shell/file/git
-//! capability. That is a structural property of this file, not a runtime
-//! check: extending Discord to touch capabilities is future, explicitly
-//! out-of-scope work (see the module doc in `remote/mod.rs`), gated on
-//! designing an approval boundary that does NOT simply inherit whatever
-//! local CLI approval/autonomy setting happens to be configured — see the
-//! Aizen research finding this design deliberately avoids repeating
-//! (Aizen's own `ApprovalMode` is one knob shared by local CLI and every
-//! remote surface; a user's own `Yolo` convenience setting silently
-//! extends to their bot too).
+//! Discord Phase). No host/tool capabilities, not "read-only" in the
+//! filesystem sense (post-review wording fix: this slice DOES write —
+//! session mapping, chat history, an evidence trail — "read-only" as the
+//! original description could be misread as implying no writes happen at
+//! all, which was never true): an authenticated, allowlisted Discord
+//! message becomes one turn of plain conversation with the configured
+//! model. No tool/capability access of any kind is wired into this path
+//! — `stream_chat` below is called with `tools: &[]`, so there is no code
+//! path from a Discord message to any shell/file/git capability. That is
+//! a structural property of this file, not a runtime check: extending
+//! Discord to touch capabilities is future, explicitly out-of-scope work
+//! (see the module doc in `remote/mod.rs`), gated on designing an
+//! approval boundary that does NOT simply inherit whatever local CLI
+//! approval/autonomy setting happens to be configured — see the Aizen
+//! research finding this design deliberately avoids repeating (Aizen's
+//! own `ApprovalMode` is one knob shared by local CLI and every remote
+//! surface; a user's own `Yolo` convenience setting silently extends to
+//! their bot too).
 //!
 //! Protocol shape (gateway v10 handshake, opcodes, heartbeat/zombie
 //! detection, reconnect backoff) is adapted from aizen-stack/aizen's own
@@ -94,10 +98,22 @@ pub fn load_config(root: &Path) -> Result<DiscordConfig> {
 
 /// The bot token, read the SAME way every other provider credential in
 /// this crate is actually retrieved for use (`std::env::var`, matching
-/// `task.rs`/`chat/mod.rs` — see the Discord Phase design note on why
-/// `os::platform::secret_backend()` is presence-only and cannot supply
-/// this value). Never logged, never included in any receipt/evidence
-/// detail string below.
+/// `task.rs`/`chat/mod.rs`). Never logged, never included in any
+/// receipt/evidence detail string below.
+///
+/// TRANSITIONAL, not the target architecture (flagged explicitly per
+/// review, so this does not quietly become "canonical because it already
+/// works"): `os::platform::secret_backend()` — the host-native Keychain/
+/// Secret Service/DPAPI backend this program already built — is
+/// presence-only (`has_entry`, never a value) by design, so it genuinely
+/// cannot supply this token; every OTHER credential in this crate has the
+/// exact same env-var-only retrieval gap, this is not a new shortcut
+/// specific to Discord. `os::credential`'s existing `has_entry` check
+/// already reports "configured" for a Keychain-only secret that
+/// `std::env::var` would then fail to find — a real, pre-existing
+/// mismatch this PR did not introduce and does not fix. A genuine
+/// secret-provider API (not just presence) is the real fix, scoped
+/// outside this PR.
 pub fn bot_token() -> Option<String> {
     std::env::var(BOT_TOKEN_ENV_VAR)
         .ok()
@@ -192,16 +208,12 @@ impl Client {
 // ── gateway (receive) — sync tungstenite ───────────────────────────────
 
 pub struct Incoming {
+    pub message_id: String,
     pub channel_id: String,
     pub user_id: String,
     pub content: String,
 }
 
-/// Connect once and run the gateway receive loop until it drops, calling
-/// `on_message` for every allowed inbound message. Blocking, single
-/// thread — this minimum slice processes one message at a time by
-/// design (see `remote/mod.rs`'s module doc on why concurrency isolation
-/// is explicitly deferred, not merely unimplemented by oversight).
 /// Found by live-testing this file against Discord's real gateway with a
 /// throwaway token (see the Discord Phase report): `tungstenite`'s
 /// `connect()` panics on the first `wss://` connection with "Could not
@@ -220,12 +232,60 @@ fn ensure_crypto_provider_installed() {
     });
 }
 
-pub fn run_gateway(token: &str, cfg: &DiscordConfig, mut on_message: impl FnMut(Incoming)) {
+/// Connect and run the gateway receive loop until it drops, reconnecting
+/// with backoff (see `gateway_once`'s own doc for the handshake and
+/// heartbeat details). Runs in the caller's thread; internally spawns one
+/// worker thread for turn processing — see below.
+///
+/// Post-review fix (was a HIGH finding): `on_message` used to be called
+/// directly, inline, in the SAME loop iteration that also sends/checks
+/// heartbeats (confirmed by direct inspection of the pre-fix code: the
+/// dispatch site called `on_message(inc)` with no thread/channel
+/// involved, in the exact function that owns the heartbeat timer below)
+/// — meaning a slow model turn (30-90s is an ordinary, not pathological,
+/// latency for some providers) blocked heartbeat delivery for that
+/// entire duration. Discord's own gateway spec treats a missed heartbeat
+/// as a dead link and closes the connection; this was a
+/// protocol-correctness bug, not a "future concurrency optimization." A
+/// live end-to-end reproduction against Discord's real gateway is not
+/// practical to keep as an automated test (needs a real bot token and a
+/// deliberately slow provider); `dispatch_never_blocks_while_the_worker_
+/// is_mid_turn` below instead proves the specific concurrency mechanism
+/// this fix relies on: sends into the new dispatch channel never block
+/// on a slow worker, and every operation the real gateway loop performs
+/// (heartbeat send, heartbeat-ACK check, next-message dispatch) is
+/// exactly that kind of non-blocking send.
+///
+/// The fix: the gateway thread (this function, running in the caller's
+/// own thread) NEVER calls `on_message` itself. It only ever pushes an
+/// `Incoming` onto an unbounded `mpsc` channel — a non-blocking,
+/// effectively-instant operation — and a single separate worker thread
+/// drains that channel and calls `on_message` there, sequentially, one
+/// message at a time (still deliberately NOT Aizen's full per-conversation
+/// `LaneRegistry` concurrency — that remains an ADAPT-later item per the
+/// Aizen research pass, not a prerequisite for keeping the gateway alive).
+/// Message replies go over REST independently of the gateway connection
+/// either way (matches Aizen's own `discord.rs` design note), so the
+/// worker thread never needs to reach back into the gateway thread at
+/// all.
+pub fn run_gateway(
+    token: &str,
+    cfg: &DiscordConfig,
+    on_message: impl FnMut(Incoming) + Send + 'static,
+) {
     ensure_crypto_provider_installed();
+    let (tx, rx) = std::sync::mpsc::channel::<Incoming>();
+    std::thread::spawn(move || {
+        let mut on_message = on_message;
+        while let Ok(incoming) = rx.recv() {
+            on_message(incoming);
+        }
+    });
+
     let mut backoff = Duration::from_secs(1);
     loop {
         let start = Instant::now();
-        match gateway_once(token, cfg, &mut on_message) {
+        match gateway_once(token, cfg, &tx) {
             Ok(()) => backoff = Duration::from_secs(1),
             Err(error) => {
                 if error.downcast_ref::<FatalCloseError>().is_some() {
@@ -249,7 +309,7 @@ pub fn run_gateway(token: &str, cfg: &DiscordConfig, mut on_message: impl FnMut(
 fn gateway_once(
     token: &str,
     cfg: &DiscordConfig,
-    on_message: &mut impl FnMut(Incoming),
+    tx: &std::sync::mpsc::Sender<Incoming>,
 ) -> Result<()> {
     let (mut ws, _) = connect(GATEWAY_URL).context("connecting to discord gateway")?;
     set_read_timeout(&ws, Some(Duration::from_secs(20)));
@@ -331,7 +391,10 @@ fn gateway_once(
             Some(OP_DISPATCH) if v.get("t").and_then(Value::as_str) == Some("MESSAGE_CREATE") => {
                 if let Some(inc) = parse_message_create(v.get("d")) {
                     if is_allowed(cfg, &inc.channel_id, &inc.user_id) {
-                        on_message(inc);
+                        // Non-blocking hand-off to the worker thread — see
+                        // `run_gateway`'s doc comment on why this loop must
+                        // never itself call `on_message`.
+                        let _ = tx.send(inc);
                     }
                 }
             }
@@ -406,6 +469,7 @@ fn parse_message_create(d: Option<&Value>) -> Option<Incoming> {
     {
         return None;
     }
+    let message_id = d.get("id")?.as_str()?.to_string();
     let channel_id = d.get("channel_id")?.as_str()?.to_string();
     let user_id = d.get("author")?.get("id")?.as_str()?.to_string();
     let content = d.get("content")?.as_str()?.trim().to_string();
@@ -413,6 +477,7 @@ fn parse_message_create(d: Option<&Value>) -> Option<Incoming> {
         return None;
     }
     Some(Incoming {
+        message_id,
         channel_id,
         user_id,
         content,
@@ -445,6 +510,71 @@ pub fn chunk_reply(s: &str, max: usize) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Arc, Condvar, Mutex};
+
+    /// Post-review regression test (HIGH finding): before the worker-thread
+    /// fix, `run_gateway` called `on_message` directly inline in the SAME
+    /// loop iteration that also sends/checks heartbeats, so a slow model
+    /// turn blocked heartbeat delivery for its entire duration. This test
+    /// cannot drive a real Discord gateway connection (no network in this
+    /// environment), so it reproduces `run_gateway`'s exact spawn+`mpsc`
+    /// decoupling mechanism standalone and proves the property that
+    /// mechanism exists to guarantee: dispatching a new message (what the
+    /// gateway thread does, alongside heartbeat sends, on every loop
+    /// iteration) must return near-instantly even while the worker thread
+    /// is still deep inside a slow "model turn" — never blocking on it.
+    /// Every operation the real gateway loop performs (heartbeat send,
+    /// heartbeat-ACK check, next-message dispatch) is exactly this kind of
+    /// non-blocking send; if sends never block here, heartbeats never
+    /// block in the real loop either, by the same mechanism, not by
+    /// coincidence.
+    #[test]
+    fn dispatch_never_blocks_while_the_worker_is_mid_turn() {
+        let (tx, rx) = std::sync::mpsc::channel::<Incoming>();
+        let processing_started = Arc::new((Mutex::new(false), Condvar::new()));
+        let ps = processing_started.clone();
+        std::thread::spawn(move || {
+            while let Ok(_incoming) = rx.recv() {
+                {
+                    let (lock, cvar) = &*ps;
+                    *lock.lock().unwrap() = true;
+                    cvar.notify_all();
+                }
+                // Stands in for a slow model turn (30-90s was the real
+                // finding's example range; a few hundred ms is enough to
+                // prove the property deterministically in a test).
+                std::thread::sleep(Duration::from_millis(300));
+            }
+        });
+
+        let dummy = |id: &str| Incoming {
+            message_id: id.to_string(),
+            channel_id: "1".into(),
+            user_id: "1".into(),
+            content: "hi".into(),
+        };
+        tx.send(dummy("1")).unwrap();
+
+        // Wait until the worker is provably INSIDE its slow turn before
+        // measuring the next send — otherwise this test could pass
+        // trivially by racing ahead of the worker rather than proving
+        // anything about concurrent behavior.
+        let (lock, cvar) = &*processing_started;
+        let (_guard, timed_out) = cvar
+            .wait_timeout_while(lock.lock().unwrap(), Duration::from_secs(2), |started| {
+                !*started
+            })
+            .unwrap();
+        assert!(!timed_out.timed_out(), "worker never started processing");
+
+        let second_send_started = Instant::now();
+        tx.send(dummy("2")).unwrap();
+        let elapsed = second_send_started.elapsed();
+        assert!(
+            elapsed < Duration::from_millis(100),
+            "dispatching a new message must not block on a slow in-progress turn, took {elapsed:?}"
+        );
+    }
 
     #[test]
     fn intents_include_message_content_and_guild_messages() {
@@ -492,25 +622,31 @@ mod tests {
 
     #[test]
     fn parse_skips_bots_and_empty_parses_ids() {
-        let bot = json!({"channel_id":"1","author":{"id":"2","bot":true},"content":"hi"});
+        let bot = json!({"id":"9","channel_id":"1","author":{"id":"2","bot":true},"content":"hi"});
         assert!(
             parse_message_create(Some(&bot)).is_none(),
             "bot author skipped"
         );
-        let empty = json!({"channel_id":"1","author":{"id":"2"},"content":"   "});
+        let empty = json!({"id":"9","channel_id":"1","author":{"id":"2"},"content":"   "});
         assert!(
             parse_message_create(Some(&empty)).is_none(),
             "empty content skipped"
         );
-        let ok = json!({"channel_id":"123","author":{"id":"456"},"content":"hello"});
+        let missing_id = json!({"channel_id":"1","author":{"id":"2"},"content":"hi"});
+        assert!(
+            parse_message_create(Some(&missing_id)).is_none(),
+            "a payload missing the message id must not parse"
+        );
+        let ok = json!({"id":"789","channel_id":"123","author":{"id":"456"},"content":"hello"});
         let inc = parse_message_create(Some(&ok)).expect("valid message parses");
         assert_eq!(
             (
+                inc.message_id.as_str(),
                 inc.channel_id.as_str(),
                 inc.user_id.as_str(),
                 inc.content.as_str()
             ),
-            ("123", "456", "hello")
+            ("789", "123", "456", "hello")
         );
     }
 

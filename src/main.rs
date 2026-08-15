@@ -336,8 +336,12 @@ enum Commands {
     #[cfg(feature = "mcp")]
     Mcp,
     /// Remote interfaces (Host-Native OS Program, Discord Phase). Minimum
-    /// slice: authenticated, allowlisted, read-only chat only — no
-    /// capability/tool access from any remote surface yet.
+    /// slice: authenticated, allowlisted plain chat — no host/tool
+    /// capabilities from any remote surface yet ("no capability access,"
+    /// not "no writes": this slice does write chat-state to disk —
+    /// session metadata, chat history, an evidence trail — it just never
+    /// touches `capability::`/`os::service`/any file/git/process
+    /// mutation outside that chat-state bookkeeping).
     #[cfg(feature = "discord")]
     Remote {
         #[command(subcommand)]
@@ -350,7 +354,8 @@ enum Commands {
 #[cfg(feature = "discord")]
 #[derive(Subcommand)]
 enum RemoteAction {
-    /// Discord adapter — minimum vertical slice (read-only chat only)
+    /// Discord adapter — minimum vertical slice (no host/tool
+    /// capabilities; chat-state writes only — see `RemoteAction`'s doc)
     Discord {
         #[command(subcommand)]
         action: DiscordAction,
