@@ -12,6 +12,15 @@
 //! would reopen the SSRF surface `design::check_host_not_private` exists
 //! to guard"): every request below targets a hardcoded
 //! `127.0.0.1:11434`, never a caller-supplied host.
+//!
+//! Verification note: the parsing/formatting logic here is fixture-tested
+//! (`#[cfg(test)] mod tests` below), not live-tested against a real
+//! Ollama daemon — this environment has none reachable at startup. The
+//! `Overlay`'s `item.split_whitespace().next()` id-recovery convention
+//! (`tui/overlay.rs`) also assumes an Ollama tag never contains a space;
+//! Ollama's own `namespace/name:tag` convention makes that safe in
+//! practice, but nothing here enforces it against a daemon that returned
+//! something unexpected.
 
 use anyhow::{Context, Result};
 use std::io::{BufRead, BufReader};
