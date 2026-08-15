@@ -94,7 +94,7 @@ fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
         TurnState::AwaitingApproval(_) => ("Approval required", AMBER),
         TurnState::ExecutingTool { .. } => ("Running approved tool", AMBER),
     };
-    let lines = vec![
+    let mut lines = vec![
         Line::styled(
             status,
             Style::default().fg(tone).add_modifier(Modifier::BOLD),
@@ -109,6 +109,9 @@ fn render_activity_panel(frame: &mut Frame, area: Rect, app: &App) {
         Line::raw("/status  project counts"),
         Line::raw("Ctrl-C   quit"),
     ];
+    if app.provider.name() == "ollama" {
+        lines.push(Line::raw("/models  pull · Delete removes"));
+    }
     frame.render_widget(
         Paragraph::new(lines)
             .wrap(Wrap { trim: true })

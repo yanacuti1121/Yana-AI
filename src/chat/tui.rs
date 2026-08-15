@@ -181,6 +181,14 @@ pub(super) struct App {
     settings: ChatSettings,
     overlay: Option<Overlay>,
     model_discovery: Option<mpsc::Receiver<Result<Vec<super::provider::ModelInfo>, String>>>,
+    /// Ollama-only: live progress from an in-flight `/api/pull`, drained
+    /// by `poll_model_pull` into `overlay.detail`. `None` when no pull is
+    /// running (the common case for every other provider, always).
+    model_pull: Option<mpsc::Receiver<overlay::PullUpdate>>,
+    /// Ollama-only: result of an in-flight `/api/delete`. `Ok(name)`
+    /// carries which model to drop from the visible list without a full
+    /// re-fetch; `Err` carries a message for the status bar.
+    model_delete: Option<mpsc::Receiver<Result<String, String>>>,
     /// Tab bar's on-screen area from the most recent draw — recorded so a
     /// mouse click can be hit-tested against tab boundaries without
     /// re-deriving the layout independently of `render::draw_tabs`'s own
@@ -300,6 +308,8 @@ impl App {
             settings,
             overlay: None,
             model_discovery: None,
+            model_pull: None,
+            model_delete: None,
             tabs_area: Rect::default(),
         };
         if !resumed && app.settings.restore_session {
@@ -349,6 +359,8 @@ pub fn run(terminal: &mut TerminalGuard, mut app: App) -> Result<()> {
         drain_stream_events(&mut app);
         approval::drain_tool_exec_events(&mut app);
         app.poll_model_discovery();
+        app.poll_model_pull();
+        app.poll_model_delete();
         app.poll_health_checks();
 
         let timeout = if matches!(
