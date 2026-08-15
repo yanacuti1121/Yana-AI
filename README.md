@@ -264,7 +264,7 @@ bash core/scripts/switch-engine.sh status      # check all 4 adapters
 
 ## Rust runtime — `yana-rt`
 
-33 subcommands. Zero Python dependency.
+34 subcommands. Zero Python dependency.
 
 ```bash
 yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
