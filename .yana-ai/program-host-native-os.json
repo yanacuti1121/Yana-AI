@@ -1,0 +1,122 @@
+{
+  "program": "host-native-os",
+  "branch": "claude/host-native-os-program",
+  "worktree": "/private/tmp/yana-claude-host-native-os",
+  "current_phase": null,
+  "program_status": "COMPLETE — Phase 0 through Phase 20 (21 phases total). Reconciliation: within the strict Phase 1-20 table (20 rows, Phase 0 listed separately), 17 IMPLEMENTED + 1 DEFERRED (14) + 2 AUDIT-ONLY (19, 20; both phases whose own spec text is a process/verification mandate, not a code-writing one) = 20. Phase 0 (Platform Contract) is also IMPLEMENTED, bringing the total implemented count to 18 when counted alongside Phases 1-20 -- this is the source of the earlier '18/20' report, now made exact. Full per-phase table with evidence paths is in program-host-native-os-checkpoint.md's 'Phase-count reconciliation' section (top of file) -- authoritative, do not re-derive from conversation context. Nothing committed to git; everything is uncommitted working-tree changes in this worktree.",
+  "phase_table": [
+    {"phase": 0, "name": "Platform Contract", "status": "IMPLEMENTED", "evidence": "src/os/platform/contract.rs"},
+    {"phase": 1, "name": "Telemetry Extraction", "status": "IMPLEMENTED", "evidence": "src/os/platform/{macos,linux,windows}/telemetry.rs"},
+    {"phase": 2, "name": "Host Profile", "status": "IMPLEMENTED", "evidence": "src/os/platform/profile.rs"},
+    {"phase": 3, "name": "Capability Discovery", "status": "IMPLEMENTED", "evidence": "src/os/platform/capabilities.rs"},
+    {"phase": 4, "name": "Service Backend", "status": "IMPLEMENTED", "evidence": "src/os/service/{mod,manager}.rs (original); superseded/reorganized during Phase 9"},
+    {"phase": 5, "name": "Resource Management", "status": "IMPLEMENTED", "evidence": "src/os/resource/{policy,topology,pressure,reservation,placement}.rs"},
+    {"phase": 6, "name": "Model Plane", "status": "IMPLEMENTED", "evidence": "src/model/{mod,provider,catalog,requirements,runtime}.rs"},
+    {"phase": 7, "name": "Model Placement", "status": "IMPLEMENTED", "evidence": "src/model/placement.rs"},
+    {"phase": 8, "name": "Host Event Model", "status": "IMPLEMENTED", "evidence": "src/os/platform/events.rs"},
+    {"phase": 9, "name": "Giam Thi Host-Native Integration", "status": "IMPLEMENTED", "evidence": "src/os/supervisor.rs (dashboard, reconcile_events)"},
+    {"phase": 10, "name": "Process + Isolation Backends", "status": "IMPLEMENTED", "evidence": "src/os/platform/process.rs, macos/isolation.rs"},
+    {"phase": 11, "name": "Secure Secret Backend", "status": "IMPLEMENTED", "evidence": "src/os/platform/{macos,linux,windows}/secrets.rs, os::credential.rs"},
+    {"phase": 12, "name": "Actor Identity", "status": "IMPLEMENTED", "evidence": "src/os/identity/{mod,actor}.rs"},
+    {"phase": 13, "name": "Capability Leases", "status": "IMPLEMENTED", "evidence": "src/os/identity/{lease,lease_store}.rs, os::autonomy::evaluate_for_actor"},
+    {"phase": 14, "name": "Trust / Evidence Aggregation", "status": "DEFERRED", "evidence": "deferred_phases entry, this file"},
+    {"phase": 15, "name": "Unified OS Status", "status": "IMPLEMENTED", "evidence": "src/os/status.rs"},
+    {"phase": 16, "name": "Client Boundary", "status": "IMPLEMENTED", "evidence": "src/capability/system.rs (host_summary rewrite)"},
+    {"phase": 17, "name": "Storage Semantics", "status": "IMPLEMENTED", "evidence": "src/os/supervisor.rs (maybe_rotate_receipts)"},
+    {"phase": 18, "name": "Cross-Platform Test Matrix", "status": "IMPLEMENTED", "evidence": "src/os/platform/{linux/secrets,mod}.rs cfg widening"},
+    {"phase": 19, "name": "Continuity Hardening", "status": "AUDIT-ONLY", "evidence": "checkpoint markdown consolidation, zero src/ changes by the phase's own process-only mandate"},
+    {"phase": 20, "name": "Final Architectural Consolidation", "status": "AUDIT-ONLY", "evidence": "docs/programs/PROGRAM-K-YANA-OS-SKELETON.md addendum, zero src/ changes by the phase's own audit-checklist mandate"}
+  ],
+  "completed_phases": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "deferred_phases": [
+    {
+      "phase": 14,
+      "name": "Trust/Evidence Aggregation",
+      "reason": "Explicitly deferred per the spec's own conditional clause ('only if identity and evidence foundations are now strong enough... if implementation would be speculative or weak, explicitly defer this phase rather than creating fake trust infrastructure'). Investigated src/os/health.rs (stateless, point-in-time only, nothing accumulates) and os::supervisor's hash-chained receipt chain (halt()/unlock()/set_quarantine()/clear_quarantine() DO take a real, human-supplied actor parameter and hash-chain it -- genuine per-actor evidence exists). But that evidence is narrow: only 4 supervisor-safety-event categories, nothing about routine task outcomes. os::autonomy::QueuedAction (the one place with real Succeeded/Failed/RolledBack outcomes) has no actor field at all. Aggregating only halt/unlock/quarantine counts into a 'trust score' would produce a number that looks meaningful but reflects almost nothing about an actor's ordinary behavior -- an actor who never triggers a safety event would be indistinguishable from a perfectly-behaved one, exactly the vanity-metric failure this codebase's own 69-cognitive-reliability-law.md (L6.4/L6.5) warns against, and exactly what this phase's own text calls 'fake trust infrastructure.'",
+      "prerequisite_work_not_yet_done": "Actor attribution threaded into os::autonomy::QueuedAction (so routine automated-action outcomes become actor-attributed and aggregable) and lease-usage receipts logging each evaluate_for_actor decision per actor -- either would give a real, non-speculative behavioral trail beyond safety incidents. Neither exists today; inventing either just to unblock Phase 14 would itself be undeclared scope expansion into Phase 13's territory after the fact, not this phase's job."
+    }
+  ],
+  "changed_files_note": "Full per-phase file lists for Phases 1-6 are preserved in program-host-native-os-checkpoint.md's per-phase 'Changed files' sections (not pruned there). This array is trimmed to the current/most-recent phase only, to keep this JSON from growing unbounded across 20 phases.",
+  "unresolved_findings": [],
+  "test_results": [
+    {
+      "phase": 20,
+      "command": "cargo build --features mcp (full cli+mcp build, first time this session)",
+      "result": "succeeds, 0 errors -- confirms capability::system::host_summary (Phase 16's rewrite) and every other capability::* function compile and link correctly under the real MCP client path, not just the cli-only build they were edited/tested under"
+    },
+    {
+      "phase": 20,
+      "command": "cargo test --features mcp -- --test-threads=1 (full suite, all test binaries)",
+      "result": "531 passed in the main binary (2 more than the cli-only 529 -- mcp.rs's own tests now included), 64/65 in integration_runtime.rs (1 pre-existing ignored test, not a failure), 3/3 in integration_workspace.rs, 6/6 doc-adjacent -- 0 failures anywhere"
+    },
+    {
+      "phase": 20,
+      "command": "cargo clippy --features mcp (whole workspace, both feature sets)",
+      "result": "0 errors, 148 warnings -- consistent with the accumulated, individually-triaged pre-existing warning set from every prior phase; no new unexplained warning"
+    },
+    {
+      "phase": 20,
+      "command": "cargo check --no-default-features --features wasm",
+      "result": "succeeds on the native target -- the wasm feature's code (src/lib.rs, src/guard/{command_safety,portable}.rs) still type-checks after all 20 phases. Actual wasm32-unknown-unknown cross-compile was attempted and blocked by a missing local rustup target (environment gap, not a code regression) -- not installed, since adding a new toolchain target is outside this program's scope"
+    },
+    {
+      "phase": 20,
+      "command": "grep audit: who reads/writes .claude/state/GIAMTHI_HALT.lock across the whole crate",
+      "result": "only 3 files reference it: os::supervisor.rs (the sole writer -- halt()/unlock()), and os::service::{watchdog,runtime}.rs (read-only existence checks, e.g. is_halted(), never write it) -- confirmed no duplicate HALT authority even inside the dead os::service::* tree"
+    },
+    {
+      "phase": 20,
+      "command": "grep audit: network client usage (ureq/reqwest/TcpStream/http(s)://) inside src/os/",
+      "result": "only 4 matches, all inside static XML template strings (plist/Task Scheduler XML namespace/doctype declarations) in os::monitor_service.rs and platform::{macos,windows}::service.rs -- zero actual network calls anywhere in os::, local-first behavior confirmed"
+    }
+  ],
+  "architectural_decisions": [
+    {
+      "decision": "Found (via grep, then confirmed via `cargo build --features mcp`) that Cargo.toml's own `mcp` feature is a documented, intentional prototype-spike separate from `cli` ('Program J ... Research/Prototype spike ONLY -- not wired into any live client path, not part of default cli'). This single root cause explains the entire capability::{system,git,repo}/evidence::ToolEvidence dead-code cluster flagged throughout Phases 16-18 -- confirming, with the authoritative source, what those phases' own checkpoints had already (correctly, but only inferentially) concluded.",
+      "why": "Phase 20 step 1 ('trace the full live execution path') and step 9 ('run complete project gates') both call for exactly this: not trusting a cli-only cargo test run as 'the' gate when a second, real client feature (mcp) exists. Running the mcp build confirmed Phase 16's capability::system::host_summary rewrite is correct under its REAL reachable path, not only under the build where it happened to be unreachable."
+    },
+    {
+      "decision": "Confirmed via grep that src/monitor/health.rs (HealthRegistry/ComponentHealth/HealthState/ServiceHealthSnapshot) exists solely to serve os::service::watchdog.rs -- extending the already-known 'os::service::* is dead code' finding to a second, separate top-level module. Both were investigated, named, and explicitly NOT deleted.",
+      "why": "Phase 20 step 2 says 'remove dead abstractions and remove ONLY those proven unnecessary' -- 'not currently wired to a CLI command by this specific 20-phase spec' is a narrower claim than 'proven unnecessary.' os::service::* represents substantial, tested, safety-conscious infrastructure (governed argv-array spawn, secret-redacted attribution receipts, a real supervised-restart loop) that a separate, prior investigation this session found (in a since-discarded plan-mode artifact) explicitly intended to wire up later. Deleting several hundred lines of tested code is consequential and hard to reverse in spirit -- named for anh Tâm's explicit decision (wire it up or remove it) in the architecture doc update, not deleted unilaterally mid-autonomous-run."
+    },
+    {
+      "decision": "Confirmed clean, no fix needed: HALT authority (only os::supervisor writes GIAMTHI_HALT.lock; os::service::watchdog/runtime only read its existence, even though that code is otherwise dead), local-first behavior (zero real network calls in os::), and resource/model placement explainability (both PlacementDecision and ModelPlacementDecision carry a reasons: Vec<String> field, confirmed by reading the structs directly, with PlacementDecision's own doc comment stating it is 'the explainable half of deterministic explainable placement decision').",
+      "why": "Phase 20 steps 3, 6, 7, 8 all ask for exactly this kind of verification. Reporting 'confirmed clean' with the grep/read evidence that produced that conclusion is itself the deliverable for a consolidation phase -- not everything a final review checks turns out to need a code change, and that is a legitimate, evidence-based outcome, not a shortcut."
+    },
+    {
+      "decision": "Discovered docs/programs/PROGRAM-K-YANA-OS-SKELETON.md and PROGRAM-K-PHASES-3-15.md -- pre-existing, human-approved (anh Tâm, 2026-08-09/11) architecture docs for what this session now recognizes as the SAME underlying system ('Program K -- Yana OS'), using an unrelated ADS v1 phase-numbering scheme. Their Status/Non-Goals/readiness table (Phase 5 of ADS v1) were stale relative to this session's actual Phases 0-20: e.g. 'Credential vault/OAuth: 0% Runtime, BLOCKED' when Phase 11 built real, live-verified macOS Keychain presence detection; 'Managed-agent authorization: BLOCKED' when Phases 12-13 built a tested, live-verified non-escalation-enforced actor/lease system. Updated PROGRAM-K-YANA-OS-SKELETON.md with a clearly-delineated, dated addendum section stating what is now real vs. still genuinely blocked, explicitly disambiguating the two unrelated Phase-numbering schemes, and explicitly NOT claiming ADS v1 phase scores this session's work never went through.",
+      "why": "Phase 20 step 10 ('update architecture docs to describe reality, not intent') applies directly, and this document was previously unknown to this session until Phase 20's own audit found it -- exactly the kind of thing 'trace the full live execution path' work surfaces that a narrower, code-only review would miss. The addendum was appended, not a rewrite of the original human-approved content, out of respect for the fact that Phase 0's vision/scope/non-goals section records real prior human decisions this session has no standing to overwrite."
+    }
+  ],
+  "next_phase_entry_points": [
+    "PROGRAM COMPLETE. All 20 phases resolved: 18 implemented and checkpointed, Phase 14 explicitly deferred with a documented, evidence-based reason. Nothing committed to git -- every phase exists only as uncommitted working-tree changes on the claude/host-native-os-program branch in this worktree.",
+    "Immediate next step is a HUMAN decision, not further autonomous work: review the diff (19 modified/deleted tracked files, ~1077 insertions/1796 deletions net on those; 39 new files across src/model, src/os/identity, src/os/platform, src/os/resource, src/os/status.rs), decide on commit/PR strategy, and decide os::service::*'s fate (wire it up or remove it -- see architectural_decisions above and the PROGRAM-K-YANA-OS-SKELETON.md addendum).",
+    "Phase 14 (Trust/Evidence Aggregation) remains explicitly deferred -- re-check its prerequisites (actor-attributed QueuedAction, lease-usage receipts) before ever re-attempting it; deferred_phases above has the full reasoning.",
+    "docs/programs/PROGRAM-K-YANA-OS-SKELETON.md now has a Phase-20 addendum reconciling this session's work with that pre-existing, human-approved architecture doc -- read it before starting any future session on this system, alongside this file and the checkpoint markdown.",
+    "The packaging phase anh Tâm separately noted mid-session ('native installer, service lifecycle, signing, based on platform architecture, after core stabilizes') was acknowledged but deliberately not started -- core has now completed all 20 phases of its own spec, making this the natural point to revisit that note, not before."
+  ],
+  "changed_files_phase_20": [
+    "docs/programs/PROGRAM-K-YANA-OS-SKELETON.md (architecture doc reconciliation addendum -- see architectural_decisions above; the only src/doc change this phase made)"
+  ]
+}
