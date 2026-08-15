@@ -1,5 +1,5 @@
-use crate::chat::provider::ask_once;
-use crate::chat::try_select_provider;
+use crate::model::catalog::try_select_provider;
+use crate::model::provider::ask_once;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

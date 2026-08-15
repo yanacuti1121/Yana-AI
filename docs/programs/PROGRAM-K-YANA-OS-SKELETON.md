@@ -4,6 +4,10 @@
 and aggregate-health hardening slice. The Phase 1 management plane remains a
 candidate; process supervision, secret storage, scheduling, kernel resource
 control and Windows mutation remain blocked below 80% readiness.
+**⚠ Read the "Update — Host-Native OS Program" section near the end of this
+file before trusting the paragraph above as current** — several of the
+items named "blocked" here now have real, tested code in an uncommitted
+worktree, outside this file's own ADS v1 process.
 **Created:** 2026-08-09
 **Phase 0 answered by anh Tâm:** 2026-08-09
 
@@ -267,3 +271,101 @@ in `PROGRAM-K-PHASES-3-15.md`.
   trong `src/chat/tui.rs`, audit log hash-chain, circuit breaker) và có
   thể tái dùng trực tiếp, phần nào cần xây mới hoàn toàn? (Câu hỏi cho
   Phase 2 Capability Inventory, không cần trả lời ngay ở Phase 0.)
+
+## Update — "Host-Native OS Program" (2026-08-14/15, uncommitted worktree)
+
+**Read this before trusting the Status line or Non-Goals above as current.**
+Everything in this section describes real, tested, in-part-live-verified code
+that now exists in a separate git worktree (`claude/host-native-os-program`
+branch, based on `origin/main` at `92678c0c`) — **nothing described here has
+been committed or merged to `main`.** It was built against a 20-phase spec
+given directly by anh Tâm in a chat session, independent of this file's own
+ADS v1 process — it does not carry ADS v1 phase scores or ADR numbers, and
+none of the readiness percentages in `PROGRAM-K-PHASES-3-15.md` have been
+formally re-run against it.
+
+**Phase-numbering collision, read carefully:** this file and
+`PROGRAM-K-PHASES-3-15.md` use ADS v1's own Phase 3/4/5/etc. (Architecture/
+Workflow/Readiness/...). The 20-phase host-native-os spec below uses an
+unrelated Phase 0–20 numbering of its own (Phase 3 = "Host Profile" there,
+not "Architecture"). Every "Phase N" below refers to the host-native-os
+spec's own numbering, never ADS v1's, and should not be cross-referenced
+against the table in `PROGRAM-K-PHASES-3-15.md` by number.
+
+**What `PROGRAM-K-PHASES-3-15.md`'s Phase 5 readiness table calls BLOCKED
+that now has real, working code** (not re-scored, not claimed READY —
+stated plainly so this file stops silently contradicting the codebase):
+
+- **Process supervisor / resident service** — `os::supervisor` (HALT/
+  quarantine/hash-chained receipts/dashboard) is real, live-tested, and
+  rotates its own evidence log (Phase 9 + 17). **Correction to an earlier
+  version of this section:** `os::service::manager`/`os::service::runtime`
+  (cross-platform install/start/stop/restart/status/uninstall of a real
+  resident service, `yana-rt os service ...`) are real and **already
+  wired to the CLI** — `os::mod::dispatch_resident_service` calls them for
+  real; a closure pass confirmed this via `git grep` and a live run of
+  `os service run`/`status` against this machine (stays alive, ticks
+  `os::supervisor::tick_resident` in-process, terminates cleanly on
+  `SIGTERM`; no crash, no error). What genuinely was dead code (confirmed,
+  then removed, in the same closure pass): `os::service::watchdog` — an
+  abandoned alternate design that restarted a separate governed child
+  process, superseded by `runtime::run()`'s simpler in-process-loop design
+  before this session ever touched it. Governed argv-array spawning with
+  secret-redacted attribution (`os::service::attribution::spawn`) is kept
+  — still not called by any live CLI path, but legitimately depended on by
+  Phase 10's own, separately disclosed `os::platform::process::spawn_plan`
+  groundwork, not obsolete.
+- **Credential vault/OAuth** — still not a vault (no write/store/list/delete
+  surface exists, deliberately, per Phase 11's own scope). But real,
+  live-verified macOS Keychain PRESENCE detection exists
+  (`os::platform::macos::secrets`), plus pure-logic-tested (not live-verified
+  — no Linux/Windows machine available) Secret Service/Credential Manager
+  backends. This is real movement, not the "0% Runtime" the table records —
+  still not a vault, and this file should not claim otherwise either.
+- **Managed-agent authorization** — `os::identity` (`Actor`/`ActorId`,
+  Phase 12) + `os::identity::lease` (scoped, TTL-bounded capability leases
+  with a structurally-enforced non-escalation invariant, Phase 13) +
+  `os::autonomy::evaluate_for_actor` (an actor without a covering lease
+  cannot execute automatically) are real, tested, and live-verified
+  end-to-end including the Sovereign-operation non-escalation case.
+- **Production scheduler** — still not a general scheduler, but a real
+  native host-event model (`os::platform::events`, Phase 8) plus periodic
+  reconciliation wired into the supervisor tick (Phase 9) exist and are
+  tested.
+
+**What is still genuinely blocked, unchanged from the table:** kernel-level
+per-agent CPU/RAM enforcement (`os::resource` tracks reservations/pressure/
+placement — cooperative accounting, not cgroups-style enforcement), OS
+schema migration/rollback, and full Windows mutation support (Windows code
+exists throughout but remains honestly unverified against real hardware —
+disclosed in every relevant file's own doc comment, not silently assumed).
+
+**Dead code: found, corrected, and resolved in a closure pass (superseding
+what an earlier version of this section said).** The original Phase 20 pass
+over-generalized from `os::service::watchdog.rs`'s genuine dead code to the
+whole `os::service` tree, without checking `manager.rs`/`runtime.rs`
+individually — those two are real and CLI-wired (see the corrected bullet
+above). Once that was known, anh Tâm's explicit instruction was: keep and
+wire the resident-service capability, but do not preserve redundant
+abstractions just because they have tests. Resolution:
+- `os::service::watchdog` (`Watchdog`/`WatchdogConfig`, restart-a-child-
+  process design) — confirmed genuinely obsolete (the live `runtime::run()`
+  design never uses it) — **removed**, along with `src/monitor/health.rs`'s
+  `HealthRegistry`/`ComponentHealth`/`HealthState`/`ServiceHealthSnapshot`
+  (used only by the removed watchdog). 10 tests removed with them — real,
+  well-written tests, but of a design that was never actually running.
+  `BoundedBackoff` (same `src/monitor/` tree, different file) is live
+  (used by `runtime::run()`'s own error backoff) and was kept untouched.
+- `os::service::attribution`'s governed-spawn machinery — kept. Still not
+  called by any live CLI path itself, but depended on by Phase 10's own,
+  separately disclosed `os::platform::process::spawn_plan` groundwork —
+  a different, legitimate, already-documented deferral, not obsolete.
+
+Full suite after removal: 519 passed, 0 failed (529 − 10 removed, exactly
+accounted for). See `.yana-ai/program-host-native-os-checkpoint.md`'s
+"Closure pass" section for the complete evidence trail.
+
+See `.yana-ai/program-host-native-os.json` and
+`.yana-ai/program-host-native-os-checkpoint.md` in that worktree for the
+complete phase-by-phase record (changed files, test results, self-review,
+live verification evidence) this summary is drawn from.

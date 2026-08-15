@@ -19,8 +19,6 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::{launchd, systemd, windows};
-
 #[derive(Debug, Clone)]
 pub struct ServiceDefinition {
     pub name: String,
@@ -267,20 +265,12 @@ pub(crate) fn systemd_escape(value: &Path) -> String {
     )
 }
 
-#[cfg(target_os = "macos")]
-fn platform_plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
-    launchd::plan(def)
-}
-
 #[cfg(target_os = "linux")]
-fn platform_plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
-    systemd::plan(def)
-}
-
+use crate::os::platform::linux::service::plan as platform_plan;
+#[cfg(target_os = "macos")]
+use crate::os::platform::macos::service::plan as platform_plan;
 #[cfg(target_os = "windows")]
-fn platform_plan(def: &ServiceDefinition) -> Result<PlatformPlan> {
-    windows::plan(def)
-}
+use crate::os::platform::windows::service::plan as platform_plan;
 
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 fn platform_plan(_def: &ServiceDefinition) -> Result<PlatformPlan> {
@@ -289,17 +279,17 @@ fn platform_plan(_def: &ServiceDefinition) -> Result<PlatformPlan> {
 
 #[cfg(target_os = "macos")]
 fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
-    launchd::inspect(&identity(def))
+    crate::os::platform::macos::service::inspect(&identity(def))
 }
 
 #[cfg(target_os = "linux")]
 fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
-    systemd::inspect(&identity(def))
+    crate::os::platform::linux::service::inspect(&identity(def))
 }
 
 #[cfg(target_os = "windows")]
 fn inspect_runtime(def: &ServiceDefinition) -> RuntimeInspection {
-    windows::inspect(&identity(def))
+    crate::os::platform::windows::service::inspect(&identity(def))
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]

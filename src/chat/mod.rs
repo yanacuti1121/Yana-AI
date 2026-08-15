@@ -33,7 +33,11 @@
 //! `HONEY_*` vars, not a block on the env var *name* — confirmed by
 //! reading `core/gates/sovereign-interceptor.js` directly).
 
-mod anthropic;
+// pub(crate), not private (Phase 6, host-native-os program): `model::catalog`
+// (a sibling of `chat` under the crate root, not a descendant) constructs
+// these provider implementations directly — see that module's doc comment
+// for why catalog/selection moved out of `chat` instead of staying here.
+pub(crate) mod anthropic;
 mod banner;
 mod circuit_breaker;
 // `pub(crate)`, not private: `crate::os::agent` (Program K) reads
@@ -41,16 +45,26 @@ mod circuit_breaker;
 // `yana-rt os agent-list`.
 pub(crate) mod history;
 mod input;
-mod openai_compat;
+pub(crate) mod openai_compat;
 mod settings;
 // pub(crate), not private: `task.rs`'s `cmd_eval_judge` (a sibling module of
 // `chat`, not a descendant) needs `provider::ask_once` and the
 // `ChatProvider` trait itself in scope to call `.requires_key()`/`.env_var()`
 // — private-to-`chat` visibility only reaches `chat`'s own descendants
 // (anthropic.rs, tui/, etc.), not siblings under the crate root.
+//
+// As of Phase 6 (host-native-os program), this module's real content lives
+// in `model::provider` — see that module's doc comment. This declaration
+// stays so `chat::provider::ask_once` etc. keep resolving unchanged for
+// every existing internal caller (`chat/mod.rs` itself does not use this
+// re-export path; `task.rs` and `chat/tui/*` do).
 pub(crate) mod provider;
 mod terminal_guard;
-mod tool_types;
+// pub(crate), not private (Phase 6, host-native-os program): the
+// `ChatProvider` trait's own method signature (`stream_chat`) references
+// `ToolSpec`/`StreamOutcome`, and that trait now lives in `model::provider`
+// — a sibling of `chat` under the crate root, not a descendant.
+pub(crate) mod tool_types;
 mod tools;
 mod tui;
 
@@ -59,86 +73,18 @@ use provider::ChatProvider;
 use std::sync::Arc;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
-pub(crate) struct ProviderSummary {
-    pub name: String,
-    pub runtime: String,
-    pub requires_key: bool,
-    pub env_var: Option<String>,
-}
-
-/// Canonical provider catalog shared by chat and management surfaces.
-/// Constructing providers is side-effect free; this never probes a server or
-/// reads a credential value.
-pub(crate) fn provider_catalog() -> Vec<ProviderSummary> {
-    [
-        "anthropic",
-        "openai",
-        "kimi",
-        "ollama",
-        "lmstudio",
-        "llamacpp",
-        "turbofieldfare",
-    ]
-    .into_iter()
-    .map(|name| {
-        let provider = try_select_provider(name).expect("catalog provider must be selectable");
-        ProviderSummary {
-            name: provider.name().to_string(),
-            runtime: provider.runtime_kind().label().to_string(),
-            requires_key: provider.requires_key(),
-            env_var: provider
-                .requires_key()
-                .then(|| provider.env_var().to_string()),
-        }
-    })
-    .collect()
-}
-
-/// Non-exiting core: used both by startup (which wraps it with
-/// exit-on-error, safe since it always runs before any `TerminalGuard`
-/// exists) and by the in-session `/model` command (`tui.rs`), which must
-/// NEVER call `std::process::exit()` — that would skip the render loop's
-/// Drop-based terminal cleanup on the way out.
-pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, String> {
-    match name {
-        "anthropic" => Ok(Arc::new(AnthropicProvider)),
-        "openai" => Ok(Arc::new(openai_compat::openai())),
-        "ollama" => Ok(Arc::new(openai_compat::ollama())),
-        "lmstudio" => Ok(Arc::new(openai_compat::lm_studio())),
-        "llamacpp" => Ok(Arc::new(openai_compat::llama_cpp())),
-        "kimi" => Ok(Arc::new(openai_compat::kimi())),
-        "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
-        other => Err(format!(
-            "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi"
-        )),
-    }
-}
-
-#[cfg(test)]
-mod provider_catalog_tests {
-    use super::*;
-
-    #[test]
-    fn catalog_matches_every_selectable_provider() {
-        let names: Vec<String> = provider_catalog()
-            .into_iter()
-            .map(|item| item.name)
-            .collect();
-        assert_eq!(
-            names,
-            [
-                "anthropic",
-                "openai",
-                "kimi",
-                "ollama",
-                "lmstudio",
-                "llamacpp",
-                "turbofieldfare"
-            ]
-        );
-    }
-}
+// Phase 6 (host-native-os program): ProviderSummary/provider_catalog/
+// try_select_provider moved to `model::catalog` — see that module's doc
+// comment for why (a pre-existing architectural inversion: os::credential
+// and os::agent, both outside `chat::`, depended on these). Only
+// try_select_provider is re-exported: `chat/tui/tabs.rs`'s
+// `crate::chat::try_select_provider` and `chat/tui/model_command.rs`'s
+// `super::super::try_select_provider` are chat's only remaining internal
+// callers. `os::credential`/`os::agent` now call `model::catalog` directly
+// (the actual architectural fix), so provider_catalog/ProviderSummary have
+// no caller left under the `chat::` path — reach them via
+// `crate::model::catalog` instead.
+pub(crate) use crate::model::catalog::try_select_provider;
 
 fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
     match name {

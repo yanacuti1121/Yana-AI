@@ -82,6 +82,30 @@ impl Operation {
             | Self::ChangeSecurityPolicy => AutonomyLevel::Sovereign,
         }
     }
+
+    /// The `os::identity::LeaseScope` namespace `evaluate_for_actor` checks
+    /// an actor's leases against for this operation (Phase 13, host-
+    /// native-os program). Grounded in this enum's own 14 existing
+    /// variants — "define the real scope taxonomy" per the program spec,
+    /// not an invented namespace.
+    pub fn lease_scope_name(self) -> &'static str {
+        match self {
+            Self::ObserveSystem => "autonomy.observe_system",
+            Self::DiagnoseFailure => "autonomy.diagnose_failure",
+            Self::RunVerification => "autonomy.run_verification",
+            Self::ApplyReversibleFix => "autonomy.apply_reversible_fix",
+            Self::CreateWorktree => "autonomy.create_worktree",
+            Self::CreateBranch => "autonomy.create_branch",
+            Self::LocalCommit => "autonomy.local_commit",
+            Self::OpenDraftPullRequest => "autonomy.open_draft_pull_request",
+            Self::MergeProtectedBranch => "autonomy.merge_protected_branch",
+            Self::PublishRelease => "autonomy.publish_release",
+            Self::DeployProduction => "autonomy.deploy_production",
+            Self::RotateSecret => "autonomy.rotate_secret",
+            Self::DeletePersistentData => "autonomy.delete_persistent_data",
+            Self::ChangeSecurityPolicy => "autonomy.change_security_policy",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -220,6 +244,65 @@ pub fn evaluate(policy: &AutonomyPolicy, operation: Operation) -> PolicyDecision
         required_level,
         decision,
         reason,
+    }
+}
+
+/// Options struct per this repo's 5-parameter hard limit
+/// (`agent-code-constraints.md`) — `evaluate_for_actor` needs exactly 5
+/// independent values, so a bare parameter list would already be at the
+/// ceiling; matches `ReserveRequest`/`identity::lease::GrantRequest`'s own
+/// precedent rather than being the one place in this program that lets a
+/// param list creep to the hard limit instead of using an options object.
+pub struct ActorEvaluationRequest<'a> {
+    pub policy: &'a AutonomyPolicy,
+    pub operation: Operation,
+    pub actor: &'a super::identity::ActorId,
+    pub actor_leases: &'a [super::identity::ActorLease],
+    pub now_unix_secs: u64,
+}
+
+/// Actor-aware wrapper around `evaluate` (Phase 13, host-native-os
+/// program — `os::identity`'s Capability Leases phase). Adds one
+/// restriction on top of `evaluate`'s existing decision; it never removes
+/// or loosens one:
+///
+/// - If `evaluate` did not already decide `Automatic` (Sovereign,
+///   Disabled, or over-ceiling), that decision is returned completely
+///   unchanged — a Sovereign-required operation is untouched by this
+///   function's logic entirely, so "a lease can never grant Sovereign
+///   authority" holds structurally, not just by convention.
+/// - If `evaluate` decided `Automatic`, that decision is downgraded to
+///   `HumanApprovalRequired` UNLESS `actor` holds an active lease (in
+///   `actor_leases`, filtered to `actor` by this function itself — a
+///   caller is not trusted to have pre-filtered correctly, since a filter
+///   bug here would be a real self-escalation path) whose scope covers
+///   `operation.lease_scope_name()` at `now_unix_secs`.
+///
+/// A lease can only narrow what policy already allowed; it can never
+/// widen it. That is "no actor may self-escalate," enforced by this
+/// function's own control flow rather than left as a comment.
+pub fn evaluate_for_actor(request: ActorEvaluationRequest) -> PolicyDecision {
+    let baseline = evaluate(request.policy, request.operation);
+    if baseline.decision != DecisionKind::Automatic {
+        return baseline;
+    }
+    let scope = request.operation.lease_scope_name();
+    let has_covering_lease = request
+        .actor_leases
+        .iter()
+        .any(|lease| lease.actor() == request.actor && lease.covers(scope, request.now_unix_secs));
+    if has_covering_lease {
+        return baseline;
+    }
+    PolicyDecision {
+        operation: request.operation,
+        required_level: baseline.required_level,
+        decision: DecisionKind::HumanApprovalRequired,
+        reason: format!(
+            "{} would be automatic under policy, but actor {} holds no active lease covering '{scope}'",
+            baseline.required_level.as_str(),
+            request.actor
+        ),
     }
 }
 
@@ -561,5 +644,138 @@ mod tests {
         )
         .unwrap();
         assert_eq!(action.status, ActionStatus::WaitingApproval);
+    }
+
+    fn actor(id: &str) -> super::super::identity::ActorId {
+        super::super::identity::ActorId(id.into())
+    }
+
+    fn lease_covering(
+        actor: &super::super::identity::ActorId,
+        scope: &str,
+    ) -> super::super::identity::ActorLease {
+        super::super::identity::grant_lease(super::super::identity::lease::GrantRequest {
+            actor: actor.clone(),
+            scope: super::super::identity::LeaseScope(scope.into()),
+            issued_by: actor.clone(),
+            issued_at_unix_secs: 1_000,
+            ttl_secs: 60,
+            reason: "test".into(),
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn evaluate_for_actor_requires_a_covering_lease_before_treating_an_automatic_operation_as_automatic(
+    ) {
+        let policy = AutonomyPolicy::default(); // ceiling: Bounded
+        let alice = actor("alice");
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::OpenDraftPullRequest, // Bounded, within ceiling
+            actor: &alice,
+            actor_leases: &[],
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::HumanApprovalRequired);
+        assert!(decision.reason.contains("no active lease"));
+    }
+
+    #[test]
+    fn evaluate_for_actor_allows_automatic_when_a_covering_lease_is_active() {
+        let policy = AutonomyPolicy::default();
+        let alice = actor("alice");
+        let lease = lease_covering(&alice, Operation::OpenDraftPullRequest.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::OpenDraftPullRequest,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&lease),
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::Automatic);
+    }
+
+    #[test]
+    fn evaluate_for_actor_never_upgrades_a_sovereign_operation_regardless_of_leases() {
+        let policy = AutonomyPolicy::default();
+        let alice = actor("alice");
+        // A lease covering the exact scope name -- proves the Sovereign
+        // short-circuit happens before any lease is even consulted, not
+        // merely that no matching lease happened to exist in this test.
+        let lease = lease_covering(&alice, Operation::MergeProtectedBranch.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::MergeProtectedBranch,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&lease),
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::HumanApprovalRequired);
+        assert_eq!(decision.required_level, AutonomyLevel::Sovereign);
+    }
+
+    #[test]
+    fn evaluate_for_actor_leaves_a_disabled_policy_decision_untouched() {
+        let policy = AutonomyPolicy {
+            enabled: false,
+            ..AutonomyPolicy::default()
+        };
+        let alice = actor("alice");
+        let lease = lease_covering(&alice, Operation::ObserveSystem.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::ObserveSystem,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&lease),
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::Disabled);
+    }
+
+    #[test]
+    fn evaluate_for_actor_ignores_an_expired_lease() {
+        let policy = AutonomyPolicy::default();
+        let alice = actor("alice");
+        let lease = lease_covering(&alice, Operation::OpenDraftPullRequest.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::OpenDraftPullRequest,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&lease),
+            now_unix_secs: 1_100, // lease issued at 1_000, ttl 60 -> expired by 1_060
+        });
+        assert_eq!(decision.decision, DecisionKind::HumanApprovalRequired);
+    }
+
+    #[test]
+    fn evaluate_for_actor_ignores_a_lease_belonging_to_a_different_actor() {
+        let policy = AutonomyPolicy::default();
+        let alice = actor("alice");
+        let bob = actor("bob");
+        let bobs_lease = lease_covering(&bob, Operation::OpenDraftPullRequest.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::OpenDraftPullRequest,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&bobs_lease),
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::HumanApprovalRequired);
+    }
+
+    #[test]
+    fn evaluate_for_actor_ignores_a_lease_covering_a_different_operations_scope() {
+        let policy = AutonomyPolicy::default();
+        let alice = actor("alice");
+        let lease = lease_covering(&alice, Operation::LocalCommit.lease_scope_name());
+        let decision = evaluate_for_actor(ActorEvaluationRequest {
+            policy: &policy,
+            operation: Operation::OpenDraftPullRequest,
+            actor: &alice,
+            actor_leases: std::slice::from_ref(&lease),
+            now_unix_secs: 1_000,
+        });
+        assert_eq!(decision.decision, DecisionKind::HumanApprovalRequired);
     }
 }

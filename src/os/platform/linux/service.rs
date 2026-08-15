@@ -1,13 +1,18 @@
-//! Linux systemd (per-user) definition for a resident always-on service.
+//! Linux systemd (per-user) definition for a resident always-on service —
+//! extracted from `os::service::systemd` (Phase 4 of the host-native-os
+//! program) with zero behavior change. A plain `.service` unit with
+//! `Restart=always`, enabled and started immediately — no `.timer` unit,
+//! unlike `os::monitor_service`'s periodic-tick sampler; this one is meant
+//! to stay running.
 //!
-//! A plain `.service` unit with `Restart=always`, enabled and started
-//! immediately — no `.timer` unit, unlike `os::monitor_service`'s
-//! periodic-tick sampler; this one is meant to stay running.
+//! `service::manager::ServiceManager` keeps owning atomic writes, symlink
+//! refusal, and cross-platform orchestration; this file only builds the
+//! plan and inspects live systemd state.
 
 #[cfg(target_os = "linux")]
-use super::manager::{home, identity, Invocation, PlatformPlan, RuntimeInspection};
+use crate::os::service::manager::{home, identity, Invocation, PlatformPlan, RuntimeInspection};
 #[cfg(any(test, target_os = "linux"))]
-use super::manager::{systemd_escape, ServiceDefinition};
+use crate::os::service::manager::{systemd_escape, ServiceDefinition};
 #[cfg(target_os = "linux")]
 use anyhow::Result;
 #[cfg(target_os = "linux")]

@@ -1,5 +1,6 @@
 //! Cooperative agent registry for Yana OS Phase 1.
 
+use super::identity::Actor;
 use super::state::{self, AgentStatus, ManagedAgent};
 use anyhow::{bail, Result};
 use serde::Serialize;
@@ -10,6 +11,14 @@ use uuid::Uuid;
 pub struct AgentInventory {
     pub managed: Vec<ManagedAgent>,
     pub chat_sessions: Vec<ChatSessionView>,
+    /// Normalized actor view over `managed` and `chat_sessions` (Phase 12,
+    /// host-native-os program — see `os::identity`'s module doc). Purely
+    /// additive and derived: `managed`/`chat_sessions` keep their exact
+    /// existing shape, this is computed from them each call, not a new
+    /// persisted store. A chat session missing a provider or model is
+    /// omitted here rather than represented with a placeholder — an
+    /// honest gap, not a fabricated actor.
+    pub actors: Vec<Actor>,
 }
 
 #[derive(Debug, Serialize)]
@@ -39,9 +48,21 @@ pub fn inventory(root: &Path, include_chat_sessions: bool, limit: usize) -> Resu
     } else {
         Vec::new()
     };
+    let actors = managed
+        .iter()
+        .map(Actor::from_managed_agent)
+        .chain(chat_sessions.iter().filter_map(|session| {
+            Some(Actor::from_chat_session(
+                &session.session_id,
+                session.provider.as_deref()?,
+                session.model.as_deref()?,
+            ))
+        }))
+        .collect();
     Ok(AgentInventory {
         managed,
         chat_sessions,
+        actors,
     })
 }
 
@@ -55,7 +76,7 @@ pub fn register(
 ) -> Result<ManagedAgent> {
     let name = validated("agent name", name)?;
     let provider = validated("provider", provider)?;
-    if crate::chat::try_select_provider(&provider).is_err() {
+    if crate::model::catalog::try_select_provider(&provider).is_err() {
         bail!("unknown provider '{provider}'");
     }
     state::mutate(root, |state| {
@@ -256,5 +277,32 @@ mod tests {
         .unwrap_err()
         .to_string();
         assert!(error.contains("unknown provider"));
+    }
+
+    #[test]
+    fn inventory_normalizes_a_registered_agent_into_an_agent_actor() {
+        let root = tempfile::tempdir().unwrap();
+        let marker = root.path().join(yana_rt::flock_v1::PROTOCOL_FILE);
+        std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+        std::fs::write(marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
+        state::initialize(root.path()).unwrap();
+        let registered = register(
+            root.path(),
+            "reviewer".into(),
+            "ollama".into(),
+            Some("llama3".into()),
+            Some("sess-1".into()),
+            None,
+        )
+        .unwrap();
+        let inventory = inventory(root.path(), false, 10).unwrap();
+        let actor = inventory
+            .actors
+            .iter()
+            .find(|actor| actor.id.0 == registered.id)
+            .expect("registered agent must appear as a normalized actor");
+        assert_eq!(actor.kind, super::super::identity::ActorKind::Agent);
+        assert_eq!(actor.provider.as_deref(), Some("ollama"));
+        assert_eq!(actor.session_id.as_deref(), Some("sess-1"));
     }
 }

@@ -1,12 +1,18 @@
-//! macOS launchd definition for a resident (KeepAlive) always-on service.
+//! macOS launchd definition for a resident (KeepAlive) always-on service —
+//! extracted from `os::service::launchd` (Phase 4 of the host-native-os
+//! program) with zero behavior change. Unlike `os::monitor_service`'s
+//! `StartInterval`-based periodic tick, this plist asks launchd to keep
+//! the program continuously running and to restart it if it exits — the
+//! actual "always-on" behavior this module exists for.
 //!
-//! Unlike `os::monitor_service`'s `StartInterval`-based periodic tick,
-//! this plist asks launchd to keep the program continuously running and
-//! to restart it if it exits — the actual "always-on" behavior this
-//! module exists for.
+//! `service::manager::ServiceManager` keeps owning atomic writes, symlink
+//! refusal, and cross-platform orchestration; this file only builds the
+//! plan (definition path/content, start/stop/remove `Invocation`s) and
+//! inspects live launchd state — it does not decide whether installing a
+//! service was authorized.
 
 #[cfg(any(test, target_os = "macos"))]
-use super::manager::{
+use crate::os::service::manager::{
     home, identity, xml_escape, Invocation, PlatformPlan, RuntimeInspection, ServiceDefinition,
 };
 #[cfg(any(test, target_os = "macos"))]

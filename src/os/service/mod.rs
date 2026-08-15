@@ -1,5 +1,5 @@
 //! Supervised always-on yana-rt service: OS-level install/start/stop and
-//! the watchdog loop that keeps a component's process alive.
+//! the resident runtime loop that performs supervised work while alive.
 //!
 //! This is the resident-process layer. It sits above `os::supervisor`
 //! (halt/quarantine authority) and reuses `os::supervisor`'s halt-lock
@@ -8,28 +8,26 @@
 //! resident daemon by that module's own design) and from `os::monitor`
 //! (host CPU/memory/disk/GPU snapshots).
 //!
-//! The public CLI surface is `yana-rt os service ...`; its `run` action is
-//! the resident payload installed by the platform-specific definitions.
+//! The public CLI surface is `yana-rt os service ...` (`install`/`start`/
+//! `stop`/`restart`/`status`/`uninstall`/`run`, dispatched from
+//! `os::mod::dispatch_resident_service`). `run` is the resident payload:
+//! it does NOT spawn and supervise a separate governed child process —
+//! `runtime::run()` performs the supervised work (`os::supervisor::
+//! tick_resident`) directly, in its own process, in a loop, relying on
+//! the OS's own service-manager restart policy (`launchd`/`systemd`/
+//! Windows Task Scheduler, via `manager::ServiceManager`) if the resident
+//! process itself exits. A separate "watchdog that restarts an inner
+//! child process" design existed in this tree but was never the one
+//! wired to the CLI — removed as genuinely dead code during this
+//! program's closure pass, not merely unwired groundwork (see
+//! `crate::monitor`'s own module doc for the fuller account).
 
-// `src/monitor/**` is declared from here (not from `src/os/mod.rs`, and
-// never from `src/main.rs`) specifically to avoid a name collision with
-// the existing `mod monitor;` in `src/os/mod.rs` (that one is
-// `os::monitor`, the unrelated host-metrics snapshot module). Declaring
-// it here makes the physical top-level `src/monitor/` directory reachable
-// as `crate::os::service::monitor`, with zero bytes of `src/main.rs` or
-// `src/os/mod.rs`'s existing `mod monitor;` touched.
 #[path = "../../monitor/mod.rs"]
 pub mod monitor;
 
 pub mod attribution;
-pub mod launchd;
 pub mod manager;
 pub mod runtime;
-pub mod systemd;
-pub mod watchdog;
-pub mod windows;
 
 pub use attribution::{spawn, GovernedChild, ProcessAttribution};
 pub use manager::{ServiceDefinition, ServiceManager, ServiceStatus};
-pub use monitor::{ComponentHealth, HealthRegistry, HealthState, ServiceHealthSnapshot};
-pub use watchdog::{Watchdog, WatchdogConfig, WatchdogOutcome};

@@ -18,6 +18,7 @@ mod init;
 mod map;
 mod memory;
 mod mission;
+mod model;
 mod observability;
 mod os;
 mod plugin;
