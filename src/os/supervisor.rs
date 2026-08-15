@@ -24,18 +24,25 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::env;
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 #[cfg(unix)]
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 const STATE_PATH: &str = ".yana-ai/os/supervisor-state.json";
 const RECEIPTS_PATH: &str = ".yana-ai/os/supervisor-receipts.jsonl";
 const HALT_PATH: &str = ".claude/state/GIAMTHI_HALT.lock";
 const QUARANTINE_PATH: &str = ".claude/state/GIAMTHI_QUARANTINE.json";
+/// Append-only, best-effort trail of safety events whose receipt could
+/// not be recorded (PR #203 audit F1 follow-up). Deliberately NOT part
+/// of the hash chain -- it exists specifically for the case where the
+/// chain itself is unavailable, so it cannot depend on the chain being
+/// healthy. `dashboard()` surfaces its presence so a degraded-evidence
+/// state is visible, never silent.
+const EVIDENCE_DEGRADED_PATH: &str = ".yana-ai/os/evidence-degraded.jsonl";
 const HEARTBEAT_SLO_SECS: i64 = 180;
 const MAX_SERVICE_DEFINITION_BYTES: u64 = 256 * 1024;
 /// Phase 8's `HostEvent` reconciliation state — an OBSERVATION snapshot
@@ -129,6 +136,14 @@ pub struct SupervisorDashboard {
     pub health_checks: health::HealthReport,
     pub receipt_chain_valid: bool,
     pub receipt_count: usize,
+    /// PR #203 audit F1 follow-up: count of safety events whose state
+    /// transition succeeded but whose receipt did not (see
+    /// `EVIDENCE_DEGRADED_PATH`). Zero in the healthy case; any nonzero
+    /// value means evidence is incomplete even though `mode`/`halt_reason`
+    /// above are still trustworthy (they read directly from the halt/
+    /// quarantine files, not from the receipt chain).
+    pub evidence_degraded_count: usize,
+    pub last_evidence_degradation: Option<String>,
     pub managed_agents: usize,
     pub chat_sessions: usize,
     pub native_helper: NativeHelperStatus,
@@ -440,6 +455,13 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
         .and_then(|item| age_seconds(&item.last_heartbeat));
     let heartbeat_healthy = heartbeat_age_secs.is_some_and(|age| age <= HEARTBEAT_SLO_SECS);
     let (receipt_chain_valid, receipt_count) = verify_receipts(root)?;
+    let (evidence_degraded_count, last_evidence_degradation) = evidence_degradation_summary(root);
+    let last_evidence_degradation = last_evidence_degradation.map(|record| {
+        format!(
+            "{} event='{}' actor='{}' error={}",
+            record.timestamp, record.event, record.actor, record.error
+        )
+    });
     let inventory =
         agent::inventory(root, true, usize::MAX).unwrap_or_else(|_| agent::AgentInventory {
             managed: Vec::new(),
@@ -473,6 +495,8 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
         health_checks: health::inspect(root),
         receipt_chain_valid,
         receipt_count,
+        evidence_degraded_count,
+        last_evidence_degradation,
         managed_agents: inventory.managed.len(),
         chat_sessions: inventory.chat_sessions.len(),
         native_helper: native_helper_status(),
@@ -497,7 +521,16 @@ pub fn halt(root: &Path, reason: &str, actor: &str) -> Result<()> {
     if path.exists() {
         bail!("Giám Thị halt already exists at {}", path.display());
     }
-    append_receipt(root, "supervisor.halt", actor, reason)?;
+    // Post-merge audit hotfix (PR #203, F1 follow-up): the safety-state
+    // transition is established FIRST and is what this function's
+    // Result actually reports on. A receipt-chain failure (corruption,
+    // lock timeout, disk full) must never have veto power over HALT
+    // engaging -- that would let an evidence-subsystem failure silently
+    // disable the highest fail-safe authority this program has. The
+    // receipt is recorded best-effort immediately after; if it fails,
+    // the failure is captured to a separate degraded-evidence trail
+    // (`record_evidence_degradation`) rather than either silently
+    // dropped or allowed to unwind the HALT that already took effect.
     write_private_new(
         &path,
         format!(
@@ -505,9 +538,20 @@ pub fn halt(root: &Path, reason: &str, actor: &str) -> Result<()> {
             state::now()
         )
         .as_bytes(),
-    )
+    )?;
+    if let Err(error) = append_receipt(root, "supervisor.halt", actor, reason) {
+        record_evidence_degradation(root, "supervisor.halt", actor, reason, &error);
+    }
+    Ok(())
 }
 
+/// Deliberately NOT given the same reordering as `halt`/`set_quarantine`
+/// (PR #203 audit F1 follow-up): those enter a safer state and must
+/// never be blocked by evidence unavailability. `unlock` LEAVES a safer
+/// state, so the existing receipt-before-removal order already fails in
+/// the safety-preserving direction -- if the receipt can't be recorded,
+/// the halt file is never removed and the project stays halted, which is
+/// the correct conservative default when evidence can't be trusted.
 pub fn unlock(root: &Path, approve: bool, reason: &str, actor: &str) -> Result<()> {
     if !approve {
         bail!("human unlock requires --approve");
@@ -539,16 +583,25 @@ pub fn set_quarantine(
         actor: required("actor", actor)?.to_string(),
         created_at: state::now(),
     };
-    append_receipt(
-        root,
-        "supervisor.quarantine.set",
-        &record.actor,
-        &format!("mode={} reason={}", record.mode.as_str(), record.reason),
-    )?;
+    // Same ordering fix as `halt` (PR #203 audit F1 follow-up): entering
+    // quarantine is a safety-state transition and must not be gated
+    // behind receipt-chain availability.
     write_json_atomic(&root.join(QUARANTINE_PATH), &record)?;
+    let detail = format!("mode={} reason={}", record.mode.as_str(), record.reason);
+    if let Err(error) = append_receipt(root, "supervisor.quarantine.set", &record.actor, &detail) {
+        record_evidence_degradation(
+            root,
+            "supervisor.quarantine.set",
+            &record.actor,
+            &detail,
+            &error,
+        );
+    }
     Ok(record)
 }
 
+/// Same reasoning as `unlock`'s doc comment: leaving quarantine keeps the
+/// existing receipt-before-removal order on purpose.
 pub fn clear_quarantine(root: &Path, approve: bool, reason: &str, actor: &str) -> Result<()> {
     if !approve {
         bail!("clearing quarantine requires --approve");
@@ -970,6 +1023,77 @@ fn append_receipt(root: &Path, event: &str, actor: &str, detail: &str) -> Result
     append_receipt_at(&root.join(RECEIPTS_PATH), event, actor, detail)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct EvidenceDegradationRecord {
+    timestamp: String,
+    event: String,
+    actor: String,
+    detail: String,
+    error: String,
+}
+
+/// Records that a safety-critical state transition succeeded but its
+/// receipt did not (PR #203 audit F1 follow-up). Deliberately best-effort
+/// and non-propagating -- called from `halt`/`set_quarantine` only after
+/// the actual state transition already succeeded, so a failure here must
+/// never become the caller's `Err`. Logs to stderr unconditionally (so a
+/// human watching the resident service's output sees it immediately) in
+/// addition to the durable trail, since the trail write itself could in
+/// principle also fail (e.g. disk full) and this must not be the one
+/// place information silently vanishes.
+fn record_evidence_degradation(
+    root: &Path,
+    event: &str,
+    actor: &str,
+    detail: &str,
+    error: &anyhow::Error,
+) {
+    eprintln!(
+        "Yana Giám Thị: safety event '{event}' by '{actor}' succeeded but its receipt could \
+         not be recorded: {error:#}. This event is logged to {EVIDENCE_DEGRADED_PATH} instead \
+         of the hash chain; review it manually."
+    );
+    let record = EvidenceDegradationRecord {
+        timestamp: state::now(),
+        event: event.to_string(),
+        actor: actor.to_string(),
+        detail: detail.to_string(),
+        error: format!("{error:#}"),
+    };
+    let path = root.join(EVIDENCE_DEGRADED_PATH);
+    if ensure_parent(&path).is_err() {
+        return;
+    }
+    let mut options = OpenOptions::new();
+    options.append(true).create(true);
+    #[cfg(unix)]
+    options.mode(0o600).custom_flags(libc::O_NOFOLLOW);
+    let Ok(mut file) = options.open(&path) else {
+        return;
+    };
+    if let Ok(line) = serde_json::to_string(&record) {
+        let _ = writeln!(file, "{line}");
+        let _ = file.sync_all();
+    }
+}
+
+/// Whether any safety event has ever had a degraded (unrecorded) receipt,
+/// and if so, the most recent one -- what `dashboard()` reports so this
+/// state is visible rather than only discoverable by reading the raw
+/// trail file directly.
+fn evidence_degradation_summary(root: &Path) -> (usize, Option<EvidenceDegradationRecord>) {
+    let Ok(Some(text)) = read_regular_text(&root.join(EVIDENCE_DEGRADED_PATH)) else {
+        return (0, None);
+    };
+    let records: Vec<EvidenceDegradationRecord> = text
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .filter_map(|line| serde_json::from_str(line).ok())
+        .collect();
+    let count = records.len();
+    (count, records.into_iter().next_back())
+}
+
 /// Phase 17 (host-native-os program, Storage Semantics) built rotation;
 /// this anchor mechanism was added in a later closure pass specifically
 /// because Phase 17's first version, despite its own doc comment's
@@ -990,6 +1114,133 @@ fn append_receipt(root: &Path, event: &str, actor: &str, detail: &str) -> Result
 /// worst cause a future append to be later flagged invalid, never a
 /// silently-accepted forged chain.
 const RECEIPTS_ROTATION_THRESHOLD_BYTES: u64 = 5 * 1024 * 1024;
+
+/// Post-merge audit hotfix (PR #203, F1): `append_receipt_at` used to read
+/// the current chain tail, then separately open-and-append with no lock
+/// held across that window. Two callers racing it (the resident tick and
+/// a human `halt`/`unlock`/`quarantine` command are ordinary, expected
+/// concurrent writers of this same file, not a contrived scenario) could
+/// both read the same `(previous_hash, sequence)` and both append,
+/// producing either a torn/malformed JSON line or two entries claiming
+/// the same sequence -- reproduced 3/3 runs with a two-thread test before
+/// this fix. This is a real inter-process lock (`flock(2)` / Windows
+/// exclusive share mode), not a `std::sync::Mutex` -- the resident
+/// service and a one-shot `yana-rt os supervisor halt` invocation are
+/// different OS processes, so in-process synchronization would not help.
+///
+/// Deliberately NOT `yana_rt::flock_v1::acquire`: that primitive requires
+/// `protocol_is_active` (a `.claude/state/locking-protocol-version`
+/// marker file used to gate Claude Code hook execution) to succeed at
+/// all, which has nothing to do with an ordinary `yana-rt` project's
+/// receipt chain -- using it here would make every `halt`/`unlock`/tick
+/// call fail outright on any project that never set up that hook-specific
+/// marker. This lock is self-contained and unconditional instead.
+struct ReceiptsLock {
+    #[cfg(unix)]
+    file: File,
+    #[cfg(windows)]
+    file: File,
+}
+
+impl Drop for ReceiptsLock {
+    fn drop(&mut self) {
+        #[cfg(unix)]
+        unsafe {
+            libc::flock(
+                std::os::unix::io::AsRawFd::as_raw_fd(&self.file),
+                libc::LOCK_UN,
+            );
+        }
+        // Windows: releasing the exclusive share-mode handle on drop is
+        // sufficient; there is no separate unlock call.
+    }
+}
+
+fn receipts_lock_path(receipts_path: &Path) -> PathBuf {
+    let file_name = receipts_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("supervisor-receipts.jsonl");
+    receipts_path.with_file_name(format!("{file_name}.chainlock"))
+}
+
+const RECEIPTS_LOCK_TIMEOUT: Duration = Duration::from_secs(10);
+const RECEIPTS_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(25);
+
+#[cfg(unix)]
+fn acquire_receipts_lock(receipts_path: &Path) -> Result<ReceiptsLock> {
+    let lock_path = receipts_lock_path(receipts_path);
+    ensure_parent(&lock_path)?;
+    let file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .write(true)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW)
+        .open(&lock_path)
+        .with_context(|| format!("opening receipts lock {}", lock_path.display()))?;
+    let deadline = std::time::Instant::now() + RECEIPTS_LOCK_TIMEOUT;
+    loop {
+        let result = unsafe {
+            libc::flock(
+                std::os::unix::io::AsRawFd::as_raw_fd(&file),
+                libc::LOCK_EX | libc::LOCK_NB,
+            )
+        };
+        if result == 0 {
+            return Ok(ReceiptsLock { file });
+        }
+        let error = std::io::Error::last_os_error();
+        let errno = error.raw_os_error();
+        if errno != Some(libc::EWOULDBLOCK) && errno != Some(libc::EAGAIN) {
+            return Err(error).context("acquiring receipts chain lock");
+        }
+        if std::time::Instant::now() >= deadline {
+            bail!(
+                "timed out acquiring receipts chain lock at {} after {:?}",
+                lock_path.display(),
+                RECEIPTS_LOCK_TIMEOUT
+            );
+        }
+        std::thread::sleep(RECEIPTS_LOCK_POLL_INTERVAL);
+    }
+}
+
+#[cfg(windows)]
+fn acquire_receipts_lock(receipts_path: &Path) -> Result<ReceiptsLock> {
+    use std::os::windows::fs::OpenOptionsExt;
+    let lock_path = receipts_lock_path(receipts_path);
+    ensure_parent(&lock_path)?;
+    let deadline = std::time::Instant::now() + RECEIPTS_LOCK_TIMEOUT;
+    loop {
+        let mut options = OpenOptions::new();
+        options.create(true).read(true).write(true).share_mode(0);
+        match options.open(&lock_path) {
+            Ok(file) => return Ok(ReceiptsLock { file }),
+            Err(error) => {
+                // ERROR_SHARING_VIOLATION == 32: another process holds the
+                // exclusive handle; anything else is a real error.
+                if error.raw_os_error() != Some(32) {
+                    return Err(error)
+                        .with_context(|| format!("opening receipts lock {}", lock_path.display()));
+                }
+            }
+        }
+        if std::time::Instant::now() >= deadline {
+            bail!(
+                "timed out acquiring receipts chain lock at {} after {:?}",
+                lock_path.display(),
+                RECEIPTS_LOCK_TIMEOUT
+            );
+        }
+        std::thread::sleep(RECEIPTS_LOCK_POLL_INTERVAL);
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
+fn acquire_receipts_lock(_receipts_path: &Path) -> Result<ReceiptsLock> {
+    bail!("receipts chain locking is only implemented for unix and windows")
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct RotationAnchor {
@@ -1076,6 +1327,12 @@ fn last_receipt_seed(path: &Path) -> Result<Option<(String, u64)>> {
 }
 
 fn append_receipt_at(path: &Path, event: &str, actor: &str, detail: &str) -> Result<()> {
+    // The lock is held across the ENTIRE read-verify-derive-append
+    // sequence, not just the final write -- narrower locking (e.g. only
+    // around `writeln!`) would still let two callers both pass the
+    // pre-write verification before either had appended, recreating the
+    // exact race this lock exists to close. See `ReceiptsLock`'s doc.
+    let _lock = acquire_receipts_lock(path)?;
     maybe_rotate_receipts(path)?;
     let (valid, _, previous_hash, sequence) = verify_active_segment(path)?;
     if !valid {
@@ -1347,6 +1604,88 @@ mod tests {
             .replace("first", "forged");
         fs::write(&path, text).unwrap();
         assert_eq!(verify_receipts(&root).unwrap().0, false);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    /// PR #203 post-merge audit (F1): before the `ReceiptsLock` fix, this
+    /// exact test corrupted the chain 3/3 runs -- either a torn/malformed
+    /// JSON line (two writes interleaving mid-line) or two entries both
+    /// claiming the same sequence number, and in every case both
+    /// `append_receipt` calls still reported `Ok(())` to their callers.
+    /// Regression test for the fix: two real OS threads (standing in for
+    /// two real OS processes -- the resident tick and a human `halt`/
+    /// `unlock`/`quarantine` invocation are the realistic pairing) racing
+    /// `append_receipt` on the same root must not corrupt the chain.
+    #[test]
+    fn concurrent_appenders_do_not_corrupt_the_chain() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "seed", "test", "seed").unwrap();
+
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+        let handles: Vec<_> = ["race-a", "race-b"]
+            .into_iter()
+            .map(|event| {
+                let root = root.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    append_receipt(&root, event, "racer", "concurrent")
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().unwrap().expect("append must not error");
+        }
+
+        let (valid, count) = verify_receipts(&root).unwrap();
+        assert!(valid, "concurrent appends must not corrupt the chain");
+        assert_eq!(
+            count, 3,
+            "both concurrent entries must be present, serialized"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    /// PR #203 post-merge audit (F1 follow-up): HALT is this program's
+    /// highest fail-safe authority and must not be silently disabled by
+    /// an unrelated evidence-subsystem failure. Simulates a
+    /// pre-corrupted receipt chain (the state F1's race could leave
+    /// behind, or any other cause of chain damage) and asserts `halt()`
+    /// still establishes the lock file, while surfacing the evidence gap
+    /// separately rather than either succeeding silently or failing the
+    /// safety transition.
+    #[test]
+    fn halt_still_engages_when_the_receipt_chain_is_already_corrupted() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "one", "test", "first").unwrap();
+        let receipts_path = root.join(RECEIPTS_PATH);
+        let corrupted = fs::read_to_string(&receipts_path)
+            .unwrap()
+            .replace("first", "forged");
+        fs::write(&receipts_path, corrupted).unwrap();
+        assert_eq!(
+            verify_receipts(&root).unwrap().0,
+            false,
+            "precondition: chain must actually be corrupted before this test means anything"
+        );
+
+        let result = halt(&root, "adversarial test", "auditor");
+        assert!(
+            result.is_ok(),
+            "HALT must engage even when the receipt chain is corrupted, got: {result:?}"
+        );
+        assert!(
+            root.join(HALT_PATH).is_file(),
+            "the HALT lock file itself must exist"
+        );
+        let (degraded_count, last) = evidence_degradation_summary(&root);
+        assert_eq!(
+            degraded_count, 1,
+            "the failed receipt must be recorded in the degraded-evidence trail"
+        );
+        assert_eq!(last.unwrap().event, "supervisor.halt");
         fs::remove_dir_all(root).unwrap();
     }
 
