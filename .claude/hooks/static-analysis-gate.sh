@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 # PostToolUse: Write|Edit|MultiEdit
 # Runs static type analysis after code changes. Blocks on type errors.
+#
+# BUG FIX (found live-testing before wiring, 2026-08-15): same class of bug
+# as the other hooks fixed in this batch — read invented env vars instead
+# of the real stdin JSON payload. Fixed to match the proven
+# `INPUT=$(cat)` + jq pattern; old code always exited 0 without ever
+# running any analysis.
 set -euo pipefail
 
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
-FILE_PATH="${CLAUDE_TOOL_INPUT_FILE_PATH:-${CLAUDE_TOOL_INPUT_PATH:-}}"
+command -v jq >/dev/null 2>&1 || exit 0
+
+INPUT=$(cat)
+TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null || true)
+FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null || true)
 
 [[ "$TOOL_NAME" =~ ^(Write|Edit|MultiEdit)$ ]] || exit 0
 [[ -n "$FILE_PATH" && -f "$FILE_PATH" ]] || exit 0
