@@ -5,7 +5,11 @@ mod autonomy;
 mod credential;
 mod governor;
 mod health;
-mod identity;
+// pub(crate), not private (Discord Phase, host-native-os program): `remote`
+// (a crate-root sibling of `os`, not a descendant) reuses `Actor`/`ActorId`/
+// `ActorKind` directly for remote-request identity — same reasoning as
+// `resource`'s pub(crate) below, not a new precedent.
+pub(crate) mod identity;
 mod monitor;
 mod monitor_service;
 pub mod platform;

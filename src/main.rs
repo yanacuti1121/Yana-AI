@@ -38,6 +38,14 @@ mod workspace;
 // default build.
 #[cfg(feature = "mcp")]
 mod mcp;
+// Discord Phase (Host-Native OS Program) — gated separately from `cli`,
+// see Cargo.toml's `discord` feature comment. Not part of any default
+// build; `mod remote;` (session.rs, the id-mapping logic) stays available
+// even without the feature so its pure-logic tests still run under plain
+// `cargo test --features cli`, matching how `os::platform`'s per-OS
+// backends stay compiled everywhere via `cfg(target_os)` rather than a
+// separate feature gate.
+mod remote;
 
 use clap::{Parser, Subcommand};
 use std::ffi::OsString;
@@ -327,9 +335,50 @@ enum Commands {
     /// not call this yet). See docs/programs/PROGRAM-J-SKELETON.md.
     #[cfg(feature = "mcp")]
     Mcp,
+    /// Remote interfaces (Host-Native OS Program, Discord Phase). Minimum
+    /// slice: authenticated, allowlisted, read-only chat only — no
+    /// capability/tool access from any remote surface yet.
+    #[cfg(feature = "discord")]
+    Remote {
+        #[command(subcommand)]
+        action: RemoteAction,
+    },
 }
 
 // ── Subcommand enums ──────────────────────────────────────────────────────────
+
+#[cfg(feature = "discord")]
+#[derive(Subcommand)]
+enum RemoteAction {
+    /// Discord adapter — minimum vertical slice (read-only chat only)
+    Discord {
+        #[command(subcommand)]
+        action: DiscordAction,
+    },
+}
+
+#[cfg(feature = "discord")]
+#[derive(Subcommand)]
+enum DiscordAction {
+    /// Print the one-time setup steps (Developer Portal, token, allowlist)
+    Setup,
+    /// Validate DISCORD_BOT_TOKEN against the real API (GET /users/@me).
+    /// The live-verification step this program's evidence discipline
+    /// requires before the adapter is LIVE VERIFIED rather than LOGIC
+    /// TESTED — run this yourself; it needs a real bot token this
+    /// development environment does not have.
+    Test,
+    /// Run the bot (blocking) — connects the gateway and answers allowed
+    /// channels with plain chat. No tool/capability access.
+    Serve {
+        #[arg(long, default_value = ".")]
+        dir: String,
+        #[arg(long, default_value = "anthropic")]
+        provider: String,
+        #[arg(long)]
+        model: Option<String>,
+    },
+}
 
 #[derive(Subcommand)]
 enum TaskAction {
@@ -715,6 +764,40 @@ fn main() {
             verbose,
             no_sandbox,
         } => chat::dispatch(provider, model, system, resume, verbose, !no_sandbox),
+        #[cfg(feature = "discord")]
+        Commands::Remote { action } => match action {
+            RemoteAction::Discord { action } => match action {
+                DiscordAction::Setup => println!("{}", remote::setup_instructions()),
+                DiscordAction::Test => {
+                    if let Err(error) = remote::test_connection() {
+                        eprintln!("[discord] {error:#}");
+                        std::process::exit(2);
+                    }
+                }
+                DiscordAction::Serve {
+                    dir,
+                    provider,
+                    model,
+                } => {
+                    let root = match std::path::Path::new(&dir).canonicalize() {
+                        Ok(root) => root,
+                        Err(error) => {
+                            eprintln!("[discord] cannot resolve --dir {dir}: {error:#}");
+                            std::process::exit(2);
+                        }
+                    };
+                    let model = model.unwrap_or_else(|| {
+                        crate::model::catalog::try_select_provider(&provider)
+                            .map(|p| p.default_model().to_string())
+                            .unwrap_or_else(|_| "default".to_string())
+                    });
+                    if let Err(error) = remote::serve(&root, &provider, &model) {
+                        eprintln!("[discord] {error:#}");
+                        std::process::exit(2);
+                    }
+                }
+            },
+        },
         Commands::Cost { action } => match action {
             CostAction::Show => cost::cmd_cost_show(),
             CostAction::Log {
