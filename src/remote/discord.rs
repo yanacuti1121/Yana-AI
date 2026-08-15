@@ -276,9 +276,34 @@ pub fn run_gateway(
     ensure_crypto_provider_installed();
     let (tx, rx) = std::sync::mpsc::channel::<Incoming>();
     std::thread::spawn(move || {
+        // Found during a final fresh re-read after the heartbeat fix: with
+        // no panic isolation here, one turn panicking (an unexpected error
+        // deep in a provider call, say) would kill this worker thread
+        // permanently. The gateway thread's own dispatch is `let _ =
+        // tx.send(inc)` -- deliberately non-blocking, so it would keep
+        // running, heartbeats and all, silently sending into a channel
+        // nothing drains anymore. The bot would look alive (still
+        // connected, still heartbeating) while never answering another
+        // message again, with no error printed anywhere. `catch_unwind`
+        // keeps the worker loop itself alive across a single bad turn;
+        // `AssertUnwindSafe` is safe here because `on_message` closing
+        // over `Client`/owned `String`/`PathBuf` values has no interior
+        // mutability for a panic to leave in an inconsistent state.
         let mut on_message = on_message;
         while let Ok(incoming) = rx.recv() {
-            on_message(incoming);
+            let result =
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| on_message(incoming)));
+            if let Err(panic) = result {
+                let message = panic
+                    .downcast_ref::<&str>()
+                    .map(|s| s.to_string())
+                    .or_else(|| panic.downcast_ref::<String>().cloned())
+                    .unwrap_or_else(|| "(non-string panic payload)".to_string());
+                eprintln!(
+                    "[discord worker] a turn panicked and was recovered, the worker keeps \
+                     running: {message}"
+                );
+            }
         }
     });
 
@@ -573,6 +598,74 @@ mod tests {
         assert!(
             elapsed < Duration::from_millis(100),
             "dispatching a new message must not block on a slow in-progress turn, took {elapsed:?}"
+        );
+    }
+
+    /// Found during a final fresh re-read (not from anh's review directly,
+    /// but the same discipline applied one more pass): the worker thread
+    /// `run_gateway` spawns had no panic isolation. One turn panicking
+    /// would silently kill the worker forever -- the gateway thread's own
+    /// dispatch (`let _ = tx.send(inc)`) would keep running, heartbeats
+    /// and all, into a channel nothing drains anymore: a bot that looks
+    /// alive but never answers again, with nothing printed anywhere.
+    /// Reproduces the exact worker-loop structure (spawn + `catch_unwind`
+    /// around `on_message`) standalone, the same way the heartbeat fix's
+    /// own regression test does, and proves both properties `run_gateway`
+    /// now relies on: a panicking turn does not kill the loop, and the
+    /// NEXT message is still processed afterward.
+    #[test]
+    fn worker_survives_a_panicking_turn_and_keeps_processing() {
+        let (tx, rx) = std::sync::mpsc::channel::<Incoming>();
+        let processed = Arc::new(Mutex::new(Vec::<String>::new()));
+        let processed_worker = processed.clone();
+        let handle = std::thread::spawn(move || {
+            while let Ok(incoming) = rx.recv() {
+                let id = incoming.message_id.clone();
+                let processed = processed_worker.clone();
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    if incoming.content == "boom" {
+                        panic!("simulated turn failure");
+                    }
+                    processed.lock().unwrap().push(id.clone());
+                }));
+                if result.is_err() {
+                    // Matches run_gateway's own real handling: recover and
+                    // keep the loop alive rather than propagate.
+                }
+            }
+        });
+
+        tx.send(Incoming {
+            message_id: "1".into(),
+            channel_id: "1".into(),
+            user_id: "1".into(),
+            content: "hello".into(),
+        })
+        .unwrap();
+        tx.send(Incoming {
+            message_id: "2".into(),
+            channel_id: "1".into(),
+            user_id: "1".into(),
+            content: "boom".into(),
+        })
+        .unwrap();
+        tx.send(Incoming {
+            message_id: "3".into(),
+            channel_id: "1".into(),
+            user_id: "1".into(),
+            content: "hello again".into(),
+        })
+        .unwrap();
+        drop(tx);
+        handle
+            .join()
+            .expect("the worker thread itself must not panic even though a turn inside it did");
+
+        assert_eq!(
+            *processed.lock().unwrap(),
+            vec!["1".to_string(), "3".to_string()],
+            "message 2 panicked and is correctly absent, but 1 and 3 must both \
+             still have been processed -- the panic must not have killed the loop"
         );
     }
 

@@ -239,6 +239,50 @@ review classified these as real but not blocking this slice):
 - Guild-level allowlisting was considered and not added — channel IDs are
   already a sufficiently narrow scope for this slice.
 
+## CI fixes (after the HIGH/MEDIUM round above)
+
+The push that carried the fixes above failed two real CI gates, both
+legitimate findings from checks this branch hadn't run locally before
+pushing:
+
+- `yana-rt doctor dispatch . --json` flagged the new `Remote` `Commands`
+  enum variant in `src/main.rs` as unreachable from the CLI — it existed
+  in the Rust binary but `bin/yana`'s dispatch case statement never routed
+  to it. **Fixed:** added `remote` to the same feature-gated-subcommand
+  pipe-list `mcp` already uses, plus a matching help-text line.
+- `core/scripts/generate-stats.py --check` flagged README.md and
+  `docs/reference/architecture.md`'s subcommand counts (33) as stale
+  against the real filesystem count (34, the new `remote` subcommand).
+  **Fixed:** updated both to 34, verified against the script's own
+  `--check` exit code (0 after the fix).
+
+## Final review pass — one additional finding (not in anh's original review)
+
+Per anh's explicit request to check everything thoroughly one more time
+before merge, a completely fresh, independent worktree (detached HEAD,
+no prior context carried over) was used to re-read all four core files
+end to end. This surfaced one new issue anh's own review had not
+flagged, in the worker-thread design introduced by fix #1 above:
+
+- **The worker thread spawned by `run_gateway` had no panic isolation.**
+  If `on_message` (which calls into `handle_turn`/`provider.stream_chat`)
+  ever panicked, the worker thread would die permanently, while the
+  gateway thread's `let _ = tx.send(inc);` would keep silently accepting
+  and dropping every future message — a bot that looks alive (heartbeats
+  keep flowing, so nothing external signals a problem) but never answers
+  again, with zero error output anywhere. **Fixed:** the `on_message` call
+  inside the worker loop is now wrapped in
+  `std::panic::catch_unwind(std::panic::AssertUnwindSafe(...))`, logging
+  a recovered panic to stderr and continuing to drain the channel.
+  Regression test `worker_survives_a_panicking_turn_and_keeps_processing`
+  reproduces the worker-loop pattern standalone with a deliberately
+  panicking message sandwiched between two normal ones, asserting both
+  that the worker thread itself never panics (`handle.join()` succeeds)
+  and that the two normal messages are processed while the panicking one
+  is correctly absent from the output — verified passing, full suite
+  re-run clean at 540/540 across both binaries, `cargo clippy` zero
+  warnings on `remote/`, `rustfmt --check` clean.
+
 ## Rollback
 
 Single feature-gated addition; disabling is `git revert` of this branch's
