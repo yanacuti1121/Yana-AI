@@ -8,6 +8,18 @@
 //! like `os::supervisor`'s halt/unlock/quarantine receipts. If this log
 //! ever needs the same tamper-evidence guarantee, that is a deliberate
 //! follow-up, not an oversight here.
+//!
+//! Phase 17 (host-native-os program, Storage Semantics) note: this JSONL
+//! log has no retention/rotation, unlike `os::supervisor`'s receipt chain
+//! (rotated in that same phase). Left unfixed here deliberately, not
+//! silently: `spawn()` has no live, reachable caller anywhere in this
+//! program today (`os::service::*` is written but not yet wired into a
+//! real CLI command — a pre-existing, already-known gap), so this file
+//! never actually grows in production yet. Building rotation for a path
+//! nothing calls would be exactly the "only create persistent files
+//! actually needed" over-scoping this phase's own instruction warns
+//! against. Whichever phase wires a real caller to `spawn()` must add
+//! rotation before that caller runs unattended for any length of time.
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};

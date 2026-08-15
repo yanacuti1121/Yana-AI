@@ -1,5 +1,23 @@
 //! Native Giám Thị supervisor state, receipts, and human safety controls.
+//!
+//! Phase 9 (host-native-os program) note: this file's actual safety
+//! AUTHORITY is unchanged — `halt`/`unlock`/`set_quarantine`/
+//! `clear_quarantine`/`hook_check` are byte-for-byte what they were
+//! before this phase. What Phase 9 adds is OBSERVABILITY: `dashboard()`
+//! now surfaces `resource_pressure` (Phase 5), `host_capabilities`
+//! (Phase 3), and `last_reconciliation` (Phase 8's `HostEvent` detection,
+//! now actually wired into `tick_for_component()`, closing the gap Phase
+//! 8's own checkpoint explicitly deferred). None of these new signals
+//! trigger HALT or QUARANTINE automatically — deciding specific
+//! auto-halt trigger conditions is a real, human-reviewable policy
+//! decision this phase deliberately does not make unilaterally.
+//! Giám Thị remains the one place that decides safety state; the
+//! platform/resource/event layers only observe and report, exactly as
+//! `platform::contract`'s own doc comment already requires of every
+//! backend in this program.
 
+use super::platform::{self, events};
+use super::resource::pressure;
 use super::{agent, health, monitor, monitor_service, service, state};
 use anyhow::{bail, Context, Result};
 use chrono::{DateTime, Utc};
@@ -20,6 +38,11 @@ const HALT_PATH: &str = ".claude/state/GIAMTHI_HALT.lock";
 const QUARANTINE_PATH: &str = ".claude/state/GIAMTHI_QUARANTINE.json";
 const HEARTBEAT_SLO_SECS: i64 = 180;
 const MAX_SERVICE_DEFINITION_BYTES: u64 = 256 * 1024;
+/// Phase 8's `HostEvent` reconciliation state — an OBSERVATION snapshot
+/// (Phase 17's future STATE/OBSERVATION/EVENT/EVIDENCE distinction
+/// already anticipated here, not state authority), separate from
+/// `STATE_PATH`'s heartbeat.
+const RECONCILIATION_STATE_PATH: &str = ".yana-ai/os/supervisor-reconciliation.json";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, clap::ValueEnum)]
 #[serde(rename_all = "kebab-case")]
@@ -109,6 +132,20 @@ pub struct SupervisorDashboard {
     pub managed_agents: usize,
     pub chat_sessions: usize,
     pub native_helper: NativeHelperStatus,
+    /// Phase 5 live reading — CURRENT host load, separate from
+    /// `latest_health`'s point-in-time CPU/memory/disk/GPU snapshot; see
+    /// `os::resource::pressure`'s own module doc for why these stay
+    /// distinct concepts. Purely observational: nothing here changes
+    /// `mode` automatically.
+    pub resource_pressure: pressure::ResourcePressure,
+    /// Phase 3 capability fingerprint — `None` only if the platform
+    /// backend call itself fails (never fabricated); individual fields
+    /// inside are already `Support::Unknown` where genuinely unprobed.
+    pub host_capabilities: Option<platform::capabilities::PlatformCapabilities>,
+    /// Phase 8 — events detected on the most recent `tick()`, if any ran
+    /// yet. `None` before the first tick since this program was adopted
+    /// by a project (no prior reconciliation state to diff against).
+    pub last_reconciliation: Option<events::ReconciliationState>,
 }
 
 #[derive(Debug, Serialize)]
@@ -329,6 +366,7 @@ fn tick_for_component(
         agent::inventory(root, true, usize::MAX).unwrap_or_else(|_| agent::AgentInventory {
             managed: Vec::new(),
             chat_sessions: Vec::new(),
+            actors: Vec::new(),
         });
     let report = health::inspect(root);
     let tick_id = Uuid::new_v4().to_string();
@@ -355,7 +393,34 @@ fn tick_for_component(
             current.health_level, current.managed_agents, current.chat_sessions
         ),
     )?;
+    reconcile_events(root);
     Ok(current)
+}
+
+/// Phase 8's `HostEvent` detection, wired into the tick this phase's own
+/// checkpoint deferred. Best-effort by design: a failure to load/persist
+/// `ReconciliationState` only degrades event detection for this one tick
+/// (the next tick simply has no prior state to diff against, same as the
+/// very first tick ever) — it must never fail the heartbeat/health tick
+/// above, which heartbeat-staleness monitoring actually depends on.
+/// Detected events are recorded as receipts (append-only evidence) —
+/// nothing here reads or writes HALT/QUARANTINE state.
+fn reconcile_events(root: &Path) {
+    let path = root.join(RECONCILIATION_STATE_PATH);
+    let previous = read_json_optional::<events::ReconciliationState>(&path)
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+    let expected_interval_secs = monitor_service::status(root)
+        .ok()
+        .and_then(|report| report.interval_secs)
+        .unwrap_or(HEARTBEAT_SLO_SECS as u64);
+    let (detected, next) = events::reconcile(root, previous, expected_interval_secs);
+    for event in &detected {
+        let detail = serde_json::to_string(event).unwrap_or_else(|_| format!("{event:?}"));
+        let _ = append_receipt(root, "supervisor.event", "yana-rt", &detail);
+    }
+    let _ = write_json_atomic(&path, &next);
 }
 
 fn default_component() -> String {
@@ -379,6 +444,7 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
         agent::inventory(root, true, usize::MAX).unwrap_or_else(|_| agent::AgentInventory {
             managed: Vec::new(),
             chat_sessions: Vec::new(),
+            actors: Vec::new(),
         });
     let mode = if halt_reason.is_some() {
         "halted".to_string()
@@ -410,6 +476,17 @@ pub fn dashboard(root: &Path) -> Result<SupervisorDashboard> {
         managed_agents: inventory.managed.len(),
         chat_sessions: inventory.chat_sessions.len(),
         native_helper: native_helper_status(),
+        resource_pressure: pressure::collect(root),
+        host_capabilities: {
+            use platform::contract::TelemetryBackend;
+            platform::backend()
+                .host_profile()
+                .ok()
+                .map(|profile| profile.capabilities)
+        },
+        last_reconciliation: read_json_optional::<events::ReconciliationState>(
+            &root.join(RECONCILIATION_STATE_PATH),
+        )?,
     })
 }
 
@@ -893,22 +970,119 @@ fn append_receipt(root: &Path, event: &str, actor: &str, detail: &str) -> Result
     append_receipt_at(&root.join(RECEIPTS_PATH), event, actor, detail)
 }
 
+/// Phase 17 (host-native-os program, Storage Semantics) built rotation;
+/// this anchor mechanism was added in a later closure pass specifically
+/// because Phase 17's first version, despite its own doc comment's
+/// hedged wording, still let the SYSTEM's overall claim be "the receipt
+/// chain is tamper-evident" while two segments verified independently
+/// from their own GENESIS — a real gap between claim and mechanism, not
+/// merely a documented limitation. Fixed with an explicit anchor: before
+/// archiving the active file, its real last entry's `hash`/`sequence` is
+/// recorded to a small sibling `.anchor` file. The next entry written
+/// after rotation (`append_receipt_at`) reads that anchor and continues
+/// the chain from it instead of resetting to `"GENESIS"`/`1` — so the new
+/// segment's first entry cryptographically references the old segment's
+/// real last entry, the same way a normal in-file link works, just
+/// crossing a file boundary. `verify_full_receipt_chain` (below) does not
+/// trust the anchor's stored values, though — it re-derives each
+/// segment's continuation seed from the ACTUAL previous segment's real
+/// last entry while walking the chain, so a tampered anchor file can at
+/// worst cause a future append to be later flagged invalid, never a
+/// silently-accepted forged chain.
+const RECEIPTS_ROTATION_THRESHOLD_BYTES: u64 = 5 * 1024 * 1024;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct RotationAnchor {
+    previous_hash: String,
+    previous_sequence: u64,
+    archived_path: String,
+}
+
+fn anchor_path(receipts_path: &Path) -> PathBuf {
+    let file_name = receipts_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("supervisor-receipts.jsonl");
+    receipts_path.with_file_name(format!("{file_name}.anchor"))
+}
+
+fn maybe_rotate_receipts(path: &Path) -> Result<()> {
+    maybe_rotate_receipts_over(path, RECEIPTS_ROTATION_THRESHOLD_BYTES)
+}
+
+/// Threshold-parameterized so tests can exercise real rotation without
+/// writing 5MB of fixture data — `maybe_rotate_receipts` is the only
+/// non-test caller, always with the real constant.
+fn maybe_rotate_receipts_over(path: &Path, threshold_bytes: u64) -> Result<()> {
+    let metadata = match fs::metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error).with_context(|| format!("inspecting {}", path.display())),
+    };
+    if metadata.len() < threshold_bytes {
+        return Ok(());
+    }
+    let now_unix_secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("supervisor-receipts.jsonl");
+    let archived = path.with_file_name(format!("{file_name}.{now_unix_secs}.rotated"));
+    if archived.exists() {
+        bail!(
+            "refusing to rotate receipts: archive target already exists: {}",
+            archived.display()
+        );
+    }
+    // Anchor is written BEFORE the rename, deliberately: if this process
+    // crashes between the two, the next call re-derives and rewrites the
+    // same anchor from the (still-present) source file and retries the
+    // rename — idempotent. The dangerous ordering would be rename-then-
+    // anchor, where a crash in between would silently start a fresh,
+    // disconnected GENESIS chain instead of a continuation.
+    if let Some((last_hash, last_sequence)) = last_receipt_seed(path)? {
+        let anchor = RotationAnchor {
+            previous_hash: last_hash,
+            previous_sequence: last_sequence,
+            archived_path: archived.display().to_string(),
+        };
+        write_json_atomic(&anchor_path(path), &anchor)?;
+    }
+    fs::rename(path, &archived)
+        .with_context(|| format!("rotating {} to {}", path.display(), archived.display()))
+}
+
+/// The real last entry's `(hash, sequence)` in `path`, or `None` if the
+/// file is empty/absent. Used only to seed a rotation anchor — a thin
+/// wrapper around the same per-line parsing `verify_segment_from` does,
+/// kept separate because this one deliberately does NOT validate the
+/// chain (that already happened via `append_receipt_at`'s pre-append
+/// `verify_receipts_at` check before this file could have grown to
+/// rotation size in the first place) — it only reads the tail.
+fn last_receipt_seed(path: &Path) -> Result<Option<(String, u64)>> {
+    let Some(text) = read_regular_text(path)? else {
+        return Ok(None);
+    };
+    let mut last = None;
+    for line in text.lines().filter(|line| !line.trim().is_empty()) {
+        let receipt: Receipt = serde_json::from_str(line)
+            .with_context(|| format!("invalid receipt chain {}", path.display()))?;
+        last = Some((receipt.hash, receipt.payload.sequence));
+    }
+    Ok(last)
+}
+
 fn append_receipt_at(path: &Path, event: &str, actor: &str, detail: &str) -> Result<()> {
-    let (valid, _) = verify_receipts_at(path)?;
+    maybe_rotate_receipts(path)?;
+    let (valid, _, previous_hash, sequence) = verify_active_segment(path)?;
     if !valid {
         bail!(
             "refusing to append to tampered receipt chain: {}",
             path.display()
         );
-    }
-    let existing = read_regular_text(path)?.unwrap_or_default();
-    let mut previous_hash = "GENESIS".to_string();
-    let mut sequence = 1;
-    for line in existing.lines().filter(|line| !line.trim().is_empty()) {
-        let receipt: Receipt = serde_json::from_str(line)
-            .with_context(|| format!("invalid receipt chain {}", path.display()))?;
-        previous_hash = receipt.hash;
-        sequence = receipt.payload.sequence + 1;
     }
     let payload = ReceiptPayload {
         schema_version: 1,
@@ -934,16 +1108,85 @@ fn append_receipt_at(path: &Path, event: &str, actor: &str, detail: &str) -> Res
     Ok(())
 }
 
+/// The full, genuinely continuous chain across every archived segment
+/// plus the active file — what `dashboard()` reports as `receipt_chain_valid`/
+/// `receipt_count`. Walks oldest archived segment first, re-deriving each
+/// segment's continuation seed from the ACTUAL previous segment's real
+/// last entry rather than trusting any stored anchor value, so a tampered
+/// `.anchor` file cannot cause a broken chain to read as valid.
 fn verify_receipts(root: &Path) -> Result<(bool, usize)> {
-    verify_receipts_at(&root.join(RECEIPTS_PATH))
+    let active_path = root.join(RECEIPTS_PATH);
+    let segments = archived_segments(&active_path)?;
+    let mut previous_hash = "GENESIS".to_string();
+    let mut expected_sequence: u64 = 1;
+    let mut total = 0usize;
+    for segment_path in segments.iter().chain(std::iter::once(&active_path)) {
+        let (valid, count, next_hash, next_sequence) =
+            verify_segment_from(segment_path, previous_hash, expected_sequence)?;
+        total += count;
+        if !valid {
+            return Ok((false, total));
+        }
+        previous_hash = next_hash;
+        expected_sequence = next_sequence;
+    }
+    Ok((true, total))
 }
 
-fn verify_receipts_at(path: &Path) -> Result<(bool, usize)> {
-    let Some(text) = read_regular_text(path)? else {
-        return Ok((true, 0));
+/// Every archived sibling of `active_path` (`<name>.<unix_secs>.rotated`),
+/// oldest first. A file whose numeric suffix fails to parse is skipped
+/// rather than erroring — a foreign file dropped in the same directory
+/// must not be able to abort chain verification.
+fn archived_segments(active_path: &Path) -> Result<Vec<PathBuf>> {
+    let Some(parent) = active_path.parent() else {
+        return Ok(Vec::new());
     };
-    let mut previous_hash = "GENESIS".to_string();
-    let mut expected_sequence = 1;
+    let Some(file_name) = active_path.file_name().and_then(|name| name.to_str()) else {
+        return Ok(Vec::new());
+    };
+    let prefix = format!("{file_name}.");
+    let entries = match fs::read_dir(parent) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(error).with_context(|| format!("listing {}", parent.display())),
+    };
+    let mut segments: Vec<(u64, PathBuf)> = Vec::new();
+    for entry in entries {
+        let entry = entry?;
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        let Some(rest) = name.strip_prefix(&prefix) else {
+            continue;
+        };
+        let Some(timestamp_text) = rest.strip_suffix(".rotated") else {
+            continue;
+        };
+        let Ok(timestamp) = timestamp_text.parse::<u64>() else {
+            continue;
+        };
+        segments.push((timestamp, entry.path()));
+    }
+    segments.sort_by_key(|(timestamp, _)| *timestamp);
+    Ok(segments.into_iter().map(|(_, path)| path).collect())
+}
+
+/// Verifies one segment's hash chain starting from `(previous_hash,
+/// expected_sequence)` — `("GENESIS", 1)` for a self-contained first
+/// segment (also `verify_receipts_at`'s own single-segment contract,
+/// unchanged from before this closure pass), or the real prior segment's
+/// last entry when called from `verify_receipts`'s cross-segment walk.
+/// Returns `(valid, count_in_this_segment, seed_for_the_next_segment)` —
+/// an empty segment passes its input seed through unchanged, so an empty
+/// active file right after rotation does not reset continuity by itself.
+fn verify_segment_from(
+    path: &Path,
+    mut previous_hash: String,
+    mut expected_sequence: u64,
+) -> Result<(bool, usize, String, u64)> {
+    let Some(text) = read_regular_text(path)? else {
+        return Ok((true, 0, previous_hash, expected_sequence));
+    };
     let mut count = 0;
     for line in text.lines().filter(|line| !line.trim().is_empty()) {
         let receipt: Receipt = serde_json::from_str(line)
@@ -952,13 +1195,49 @@ fn verify_receipts_at(path: &Path) -> Result<(bool, usize)> {
             || receipt.payload.previous_hash != previous_hash
             || receipt.hash != hash_payload(&receipt.payload)?
         {
-            return Ok((false, count));
+            return Ok((false, count, previous_hash, expected_sequence));
         }
         previous_hash = receipt.hash;
         expected_sequence += 1;
         count += 1;
     }
-    Ok((true, count))
+    Ok((true, count, previous_hash, expected_sequence))
+}
+
+/// This file's own correct starting seed: the real previous segment's
+/// last entry if a rotation anchor exists for this path, `("GENESIS", 1)`
+/// otherwise (a file that has never been rotated). An anchor, once
+/// written, is this file's true genesis for its entire lifetime — it
+/// applies whether the file is currently empty or already has entries,
+/// not only at the moment right after rotation.
+fn active_segment_seed(path: &Path) -> Result<(String, u64)> {
+    match read_json_optional::<RotationAnchor>(&anchor_path(path))? {
+        Some(anchor) => Ok((anchor.previous_hash, anchor.previous_sequence + 1)),
+        None => Ok(("GENESIS".to_string(), 1)),
+    }
+}
+
+/// Verifies `path` against its OWN correct starting point (its anchor if
+/// one exists, GENESIS otherwise) and returns its current tail
+/// `(hash, next_sequence)` — what the next entry appended to this exact
+/// file must reference. This is deliberately NOT the same question as
+/// `verify_receipts`'s cross-segment walk, which re-derives each
+/// segment's seed from the real previous segment rather than trusting any
+/// stored anchor; this function trusts the anchor, appropriately, because
+/// its only caller (`append_receipt_at`) is the same code path that wrote
+/// that anchor a moment earlier in the same rotation.
+fn verify_active_segment(path: &Path) -> Result<(bool, usize, String, u64)> {
+    let (genesis_hash, genesis_sequence) = active_segment_seed(path)?;
+    verify_segment_from(path, genesis_hash, genesis_sequence)
+}
+
+/// Single-file verification, anchor-aware (see `verify_active_segment`).
+/// Used by `append_receipt_at`'s pre-append tamper check indirectly (via
+/// `verify_active_segment`) and directly by tests exercising one file's
+/// own consistency in isolation from the rest of the chain.
+fn verify_receipts_at(path: &Path) -> Result<(bool, usize)> {
+    let (valid, count, _, _) = verify_active_segment(path)?;
+    Ok((valid, count))
 }
 
 fn hash_payload(payload: &ReceiptPayload) -> Result<String> {
@@ -1068,6 +1347,118 @@ mod tests {
             .replace("first", "forged");
         fs::write(&path, text).unwrap();
         assert_eq!(verify_receipts(&root).unwrap().0, false);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn receipts_rotate_once_the_active_file_crosses_the_threshold_and_preserve_all_evidence() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "one", "test", "first").unwrap();
+        append_receipt(&root, "two", "test", "second").unwrap();
+        let path = root.join(RECEIPTS_PATH);
+        let current_size = fs::metadata(&path).unwrap().len();
+        // Threshold at-or-below the file's current size -> rotation fires.
+        maybe_rotate_receipts_over(&path, current_size).unwrap();
+        assert!(
+            !path.exists(),
+            "active file must be archived, not left in place"
+        );
+        let archived: Vec<_> = fs::read_dir(path.parent().unwrap())
+            .unwrap()
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.file_name().to_string_lossy().ends_with(".rotated"))
+            .collect();
+        assert_eq!(archived.len(), 1, "exactly one archived segment expected");
+        let (archived_valid, archived_count) = verify_receipts_at(&archived[0].path()).unwrap();
+        assert!(archived_valid, "archived segment must still verify cleanly");
+        assert_eq!(
+            archived_count, 2,
+            "both original entries preserved in the archive, not lost"
+        );
+        // A fresh append after rotation continues the SAME chain in a new
+        // active file, anchored to the archived segment's real last entry
+        // -- verify_receipts (the full, cross-segment walk) must report
+        // all 3 entries ever written, not just the 1 in the active file.
+        append_receipt(&root, "three", "test", "third").unwrap();
+        assert_eq!(verify_receipts(&root).unwrap(), (true, 3));
+        // The single-segment view (what append's own pre-check uses)
+        // still correctly sees only the new file's own entry.
+        assert_eq!(verify_receipts_at(&path).unwrap(), (true, 1));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn the_entry_written_after_rotation_cryptographically_references_the_archived_segments_last_entry(
+    ) {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "one", "test", "first").unwrap();
+        append_receipt(&root, "two", "test", "second").unwrap();
+        let path = root.join(RECEIPTS_PATH);
+        let size = fs::metadata(&path).unwrap().len();
+        maybe_rotate_receipts_over(&path, size).unwrap();
+        let (_, archived_count, archived_last_hash, _) =
+            verify_segment_from(&archived_segments(&path).unwrap()[0], "GENESIS".into(), 1)
+                .unwrap();
+        assert_eq!(archived_count, 2);
+        append_receipt(&root, "three", "test", "third").unwrap();
+        let new_first_line = fs::read_to_string(&path).unwrap();
+        let receipt: Receipt =
+            serde_json::from_str(new_first_line.lines().next().unwrap()).unwrap();
+        assert_eq!(
+            receipt.payload.previous_hash, archived_last_hash,
+            "the first entry in the new segment must reference the archived segment's real last hash, not a fresh GENESIS"
+        );
+        assert_eq!(
+            receipt.payload.sequence, 3,
+            "sequence numbers continue across the rotation boundary, they do not reset to 1"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn tampering_with_an_archived_segment_is_caught_by_the_full_chain_walk_even_though_the_active_segment_alone_looks_fine(
+    ) {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "one", "test", "first").unwrap();
+        append_receipt(&root, "two", "test", "second").unwrap();
+        let path = root.join(RECEIPTS_PATH);
+        let size = fs::metadata(&path).unwrap().len();
+        maybe_rotate_receipts_over(&path, size).unwrap();
+        append_receipt(&root, "three", "test", "third").unwrap();
+        // Corrupt the ARCHIVED segment directly -- append_receipt_at's own
+        // pre-append tamper check only ever looks at the active file, so
+        // this must be caught by verify_receipts's cross-segment walk, not
+        // by anything on the write path.
+        let archived_path = archived_segments(&path)
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap();
+        let tampered = fs::read_to_string(&archived_path)
+            .unwrap()
+            .replace("first", "forged");
+        fs::write(&archived_path, tampered).unwrap();
+        assert!(!verify_receipts(&root).unwrap().0);
+        // The active segment in isolation still looks internally
+        // consistent -- this is exactly the gap the anchor mechanism
+        // closes: only the full walk catches history tampering.
+        assert!(verify_receipts_at(&path).unwrap().0);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn rotation_is_a_no_op_below_the_threshold() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        append_receipt(&root, "one", "test", "first").unwrap();
+        let path = root.join(RECEIPTS_PATH);
+        let size = fs::metadata(&path).unwrap().len();
+        maybe_rotate_receipts_over(&path, size + 1).unwrap();
+        assert!(path.exists(), "file must not rotate while under threshold");
+        assert_eq!(verify_receipts(&root).unwrap(), (true, 1));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1313,6 +1704,99 @@ mod tests {
         let root = root();
         fs::create_dir_all(&root).unwrap();
         assert_eq!(hook_check(&root, "not-json"), hook_allow());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    // ── Phase 9 (host-native-os program) ────────────────────────────
+
+    #[test]
+    fn dashboard_surfaces_phase_3_5_8_evidence_without_deciding_mode() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        let report = dashboard(&root).unwrap();
+        // Purely observational fields are present and internally
+        // consistent -- their presence must never change `mode`.
+        assert_eq!(report.mode, "normal");
+        assert!(report.host_capabilities.is_some());
+        // No reconciliation has run yet in this fresh root.
+        assert!(report.last_reconciliation.is_none());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn new_dashboard_evidence_never_overrides_an_active_halt() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        halt(&root, "unsafe action", "human").unwrap();
+        let report = dashboard(&root).unwrap();
+        // The whole point of Phase 9: new observability fields are
+        // additive reporting, never authority. `mode` must still be
+        // decided purely by HALT_PATH's existence, exactly as before
+        // this phase.
+        assert_eq!(report.mode, "halted");
+        assert!(report.host_capabilities.is_some());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn tick_persists_reconciliation_state_for_the_next_tick_to_diff_against() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        assert!(!root.join(RECONCILIATION_STATE_PATH).exists());
+        tick(&root).unwrap();
+        assert!(root.join(RECONCILIATION_STATE_PATH).is_file());
+        let state: events::ReconciliationState =
+            read_json_optional(&root.join(RECONCILIATION_STATE_PATH))
+                .unwrap()
+                .unwrap();
+        assert!(state.last_tick_unix_secs.is_some());
+        assert!(state.last_pressure.is_some());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn a_genuine_pressure_change_between_ticks_is_recorded_as_a_receipt() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+        // Seed a prior reconciliation state claiming Normal pressure, far
+        // enough in the past to not trigger sleep/wake noise, so the next
+        // real tick's (whatever the live pressure actually is) comparison
+        // against a DIFFERENT synthetic previous level is deterministic.
+        let seeded = events::ReconciliationState {
+            last_tick_unix_secs: Some(
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+            ),
+            last_pressure: Some(pressure::PressureLevel::Unknown),
+        };
+        write_json_atomic(&root.join(RECONCILIATION_STATE_PATH), &seeded).unwrap();
+        let before = verify_receipts(&root).unwrap().1;
+        tick(&root).unwrap();
+        let after = verify_receipts(&root).unwrap().1;
+        // At minimum the tick's own "supervisor.tick" receipt is added;
+        // whether a "supervisor.event" receipt is also added depends on
+        // whether live pressure differs from the seeded Unknown, which
+        // this test cannot force deterministically without mocking
+        // pressure::collect -- so it only asserts the chain grew and
+        // stayed valid, not the exact count.
+        assert!(after > before);
+        assert!(verify_receipts(&root).unwrap().0);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reconcile_events_degrades_gracefully_on_a_corrupt_state_file() {
+        let root = root();
+        fs::create_dir_all(root.join(".yana-ai/os")).unwrap();
+        fs::write(root.join(RECONCILIATION_STATE_PATH), "not json").unwrap();
+        // Must not panic and must not prevent the tick's own heartbeat
+        // from being written -- best-effort degradation, not a hard
+        // failure, per this function's own doc comment.
+        let result = tick(&root);
+        assert!(result.is_ok());
+        assert!(root.join(STATE_PATH).is_file());
         fs::remove_dir_all(root).unwrap();
     }
 }

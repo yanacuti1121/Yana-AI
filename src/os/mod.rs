@@ -5,18 +5,24 @@ mod autonomy;
 mod credential;
 mod governor;
 mod health;
+mod identity;
 mod monitor;
 mod monitor_service;
 pub mod platform;
+// pub(crate), not private (Phase 7, host-native-os program): `model::placement`
+// (a crate-root sibling of `os`, not a descendant) reuses
+// `resource::placement`/`pressure`/`reservation`/`topology`'s types
+// directly rather than redefining parallel ones — see that module's own
+// doc comment.
 pub(crate) mod resource;
 mod roadmap;
 mod service;
 mod state;
+mod status;
 mod supervisor;
 
 use anyhow::{bail, Result};
 use clap::Subcommand;
-use serde::Serialize;
 use std::path::PathBuf;
 
 #[derive(Subcommand, Debug)]
@@ -67,6 +73,11 @@ pub enum OsAction {
         #[command(subcommand)]
         action: MonitorAction,
     },
+    /// Normalized host profile and platform capability fingerprint.
+    Host {
+        #[command(subcommand)]
+        action: HostAction,
+    },
     /// Native Giám Thị supervisor, safety modes, dashboard, and receipts.
     Supervisor {
         #[command(subcommand)]
@@ -81,6 +92,11 @@ pub enum OsAction {
     Autonomy {
         #[command(subcommand)]
         action: AutonomyAction,
+    },
+    /// Normalized actor identity and scoped capability leases.
+    Identity {
+        #[command(subcommand)]
+        action: IdentityAction,
     },
     /// Phase 0 compatibility: list chat sessions.
     AgentList {
@@ -101,8 +117,14 @@ pub enum AutonomyAction {
         action: AutonomyPolicyAction,
     },
     /// Explain how a typed operation is classified by the current policy.
+    /// Without --actor, behaves exactly as before Phase 13 (policy/
+    /// operation only). With --actor, an Automatic decision additionally
+    /// requires that actor to hold an active lease covering the
+    /// operation's lease scope -- see `autonomy::evaluate_for_actor`.
     Classify {
         operation: autonomy::Operation,
+        #[arg(long)]
+        actor: Option<String>,
         #[arg(long, default_value = ".")]
         dir: PathBuf,
         #[arg(long)]
@@ -176,6 +198,52 @@ pub enum AutonomyQueueAction {
         json: bool,
     },
     Cancel {
+        id: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum IdentityAction {
+    /// Scoped, TTL-bounded capability leases (Phase 13). See
+    /// `autonomy classify --actor` for the guard a lease actually feeds.
+    Lease {
+        #[command(subcommand)]
+        action: LeaseAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum LeaseAction {
+    /// Grant an actor a scoped, TTL-bounded lease. Fails if `scope` is
+    /// (case-insensitively) "sovereign" -- a lease can never grant
+    /// Sovereign authority.
+    Issue {
+        actor: String,
+        #[arg(long)]
+        scope: String,
+        #[arg(long)]
+        issued_by: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_secs: u64,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List active (unexpired) leases.
+    List {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Revoke {
         id: String,
         #[arg(long, default_value = ".")]
         dir: PathBuf,
@@ -270,6 +338,61 @@ pub enum ResourceAction {
         #[arg(long)]
         json: bool,
     },
+    /// Normalized CPU/memory/accelerator shape of this host (Phase 5).
+    Topology {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Current CPU/memory/accelerator utilization — separate from
+    /// topology (what the host has) and policy (what limits apply).
+    Pressure {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Bounded resource reservations for agent/model workloads.
+    Reservation {
+        #[command(subcommand)]
+        action: ReservationAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ReservationAction {
+    List {
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Reserve {
+        #[arg(long)]
+        actor: String,
+        #[arg(long)]
+        cpu_cores: Option<usize>,
+        #[arg(long)]
+        memory_bytes: Option<u64>,
+        #[arg(long)]
+        accelerator_name: Option<String>,
+        #[arg(long)]
+        ttl_secs: Option<i64>,
+        #[arg(long)]
+        reason: String,
+        #[arg(long)]
+        allow_overcommit: bool,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
+    Release {
+        id: String,
+        #[arg(long, default_value = ".")]
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -294,6 +417,21 @@ pub enum GovernorAction {
     Roadmap {
         #[command(subcommand)]
         action: RoadmapAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum HostAction {
+    /// Full normalized host profile: CPU/memory/accelerator description
+    /// and platform capability fingerprint.
+    Status {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Platform capability fingerprint only (subset of `status`).
+    Capabilities {
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -609,18 +747,6 @@ pub struct RoadmapAddArgs {
     #[arg(long)]
     json: bool,
 }
-#[derive(Serialize)]
-struct OsStatus {
-    schema_version: u32,
-    state_path: String,
-    managed_agents: usize,
-    running_agents: usize,
-    resource_policy_configured: bool,
-    providers: Vec<credential::CredentialStatus>,
-    autonomy_ready: usize,
-    autonomy_waiting_approval: usize,
-}
-
 pub fn dispatch(action: OsAction) -> Result<()> {
     match action {
         OsAction::Init { dir, json } => {
@@ -640,49 +766,8 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         }
         OsAction::Status { dir, json } => {
             let root = state::project_root(&dir)?;
-            let current = state::load(&root)?;
-            let queue = autonomy::load_queue(&root)?;
-            let report = OsStatus {
-                schema_version: current.schema_version,
-                state_path: state::state_path(&root).display().to_string(),
-                managed_agents: current.agents.len(),
-                running_agents: current
-                    .agents
-                    .iter()
-                    .filter(|agent| agent.status == state::AgentStatus::Running)
-                    .count(),
-                resource_policy_configured: current.resource_policy.is_some(),
-                providers: credential::inventory(),
-                autonomy_ready: queue
-                    .actions
-                    .iter()
-                    .filter(|action| action.status == autonomy::ActionStatus::Ready)
-                    .count(),
-                autonomy_waiting_approval: queue
-                    .actions
-                    .iter()
-                    .filter(|action| action.status == autonomy::ActionStatus::WaitingApproval)
-                    .count(),
-            };
-            if json {
-                println!("{}", serde_json::to_string_pretty(&report)?);
-            } else {
-                println!("Yana OS management plane");
-                println!("  schema              {}", report.schema_version);
-                println!("  state               {}", report.state_path);
-                println!("  managed agents      {}", report.managed_agents);
-                println!("  running agents      {}", report.running_agents);
-                println!(
-                    "  resource policy     {}",
-                    if report.resource_policy_configured {
-                        "configured"
-                    } else {
-                        "UNSET (preflight denies)"
-                    }
-                );
-                println!("  autonomy ready      {}", report.autonomy_ready);
-                println!("  awaiting approval   {}", report.autonomy_waiting_approval);
-            }
+            let unified = status::aggregate(&root)?;
+            status::print(&unified, json)?;
         }
         OsAction::Doctor { dir, json } => {
             let root = state::project_root(&dir)?;
@@ -699,9 +784,11 @@ pub fn dispatch(action: OsAction) -> Result<()> {
         OsAction::Resource { action } => dispatch_resource(action)?,
         OsAction::Governor { action } => dispatch_governor(action)?,
         OsAction::Monitor { action } => dispatch_monitor(action)?,
+        OsAction::Host { action } => dispatch_host(action)?,
         OsAction::Supervisor { action } => dispatch_supervisor(action)?,
         OsAction::Service { action } => dispatch_resident_service(action)?,
         OsAction::Autonomy { action } => dispatch_autonomy(action)?,
+        OsAction::Identity { action } => dispatch_identity(action)?,
         OsAction::AgentList { limit } => agent::legacy_list(limit),
         OsAction::CredentialStatus => credential::status(false)?,
         OsAction::ResourceStatus => resource::legacy_status(),
@@ -896,6 +983,22 @@ fn dispatch_resident_service(action: ResidentServiceAction) -> Result<()> {
     Ok(())
 }
 
+fn dispatch_host(action: HostAction) -> Result<()> {
+    use platform::contract::TelemetryBackend;
+
+    match action {
+        HostAction::Status { json } => {
+            let profile = platform::backend().host_profile()?;
+            platform::profile::print(&profile, json)?;
+        }
+        HostAction::Capabilities { json } => {
+            let profile = platform::backend().host_profile()?;
+            platform::profile::print_capabilities(&profile.capabilities, json)?;
+        }
+    }
+    Ok(())
+}
+
 fn dispatch_monitor(action: MonitorAction) -> Result<()> {
     match action {
         MonitorAction::Sample { dir, json } => {
@@ -957,12 +1060,27 @@ fn dispatch_autonomy(action: AutonomyAction) -> Result<()> {
         },
         AutonomyAction::Classify {
             operation,
+            actor,
             dir,
             json,
         } => {
             let root = state::project_root(&dir)?;
             let policy = autonomy::load_policy(&root)?;
-            autonomy::print_json_or_debug(&autonomy::evaluate(&policy, operation), json)?;
+            let decision = match actor {
+                None => autonomy::evaluate(&policy, operation),
+                Some(actor) => {
+                    let actor = identity::ActorId(actor);
+                    let leases = identity::active_leases_for_actor(&root, &actor)?;
+                    autonomy::evaluate_for_actor(autonomy::ActorEvaluationRequest {
+                        policy: &policy,
+                        operation,
+                        actor: &actor,
+                        actor_leases: &leases,
+                        now_unix_secs: identity::lease_store::now_unix_secs(),
+                    })
+                }
+            };
+            autonomy::print_json_or_debug(&decision, json)?;
         }
         AutonomyAction::Queue { action } => match action {
             AutonomyQueueAction::List { dir, json } => {
@@ -1018,6 +1136,54 @@ fn dispatch_autonomy(action: AutonomyAction) -> Result<()> {
             AutonomyQueueAction::Cancel { id, dir, json } => {
                 let root = state::project_root(&dir)?;
                 autonomy::print_json_or_debug(&autonomy::cancel(&root, &id)?, json)?;
+            }
+        },
+    }
+    Ok(())
+}
+
+fn dispatch_identity(action: IdentityAction) -> Result<()> {
+    match action {
+        IdentityAction::Lease { action } => match action {
+            LeaseAction::Issue {
+                actor,
+                scope,
+                issued_by,
+                ttl_secs,
+                reason,
+                dir,
+                json,
+            } => {
+                let root = state::project_root(&dir)?;
+                let issued = identity::issue_lease(
+                    &root,
+                    identity::lease::GrantRequest {
+                        actor: identity::ActorId(actor),
+                        scope: identity::LeaseScope(scope),
+                        issued_by: identity::ActorId(issued_by),
+                        issued_at_unix_secs: identity::lease_store::now_unix_secs(),
+                        ttl_secs,
+                        reason,
+                    },
+                )?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&issued)?);
+                } else {
+                    identity::lease_store::print_list(std::slice::from_ref(&issued), false)?;
+                }
+            }
+            LeaseAction::List { dir, json } => {
+                let root = state::project_root(&dir)?;
+                identity::lease_store::print_list(&identity::list_leases(&root)?, json)?;
+            }
+            LeaseAction::Revoke { id, dir, json } => {
+                let root = state::project_root(&dir)?;
+                identity::revoke_lease(&root, &id)?;
+                if json {
+                    println!("{}", serde_json::json!({ "revoked": id }));
+                } else {
+                    println!("Revoked lease {id}");
+                }
             }
         },
     }
@@ -1226,6 +1392,59 @@ fn dispatch_resource(action: ResourceAction) -> Result<()> {
             resource::print_decision(&decision, json)?;
             if !decision.allowed {
                 bail!("resource preflight denied");
+            }
+        }
+        ResourceAction::Topology { json } => {
+            resource::topology::print(&resource::topology::collect()?, json)?;
+        }
+        ResourceAction::Pressure { dir, json } => {
+            let root = state::project_root(&dir)?;
+            resource::pressure::print(&resource::pressure::collect(&root), json)?;
+        }
+        ResourceAction::Reservation { action } => dispatch_reservation(action)?,
+    }
+    Ok(())
+}
+
+fn dispatch_reservation(action: ReservationAction) -> Result<()> {
+    match action {
+        ReservationAction::List { dir, json } => {
+            let root = state::project_root(&dir)?;
+            resource::reservation::print_list(&resource::reservation::list(&root)?, json)?;
+        }
+        ReservationAction::Reserve {
+            actor,
+            cpu_cores,
+            memory_bytes,
+            accelerator_name,
+            ttl_secs,
+            reason,
+            allow_overcommit,
+            dir,
+            json,
+        } => {
+            let root = state::project_root(&dir)?;
+            let reservation = resource::reservation::reserve(
+                &root,
+                resource::reservation::ReserveRequest {
+                    actor,
+                    cpu_cores,
+                    memory_bytes,
+                    accelerator_name,
+                    ttl_secs,
+                    reason,
+                    allow_overcommit,
+                },
+            )?;
+            resource::reservation::print_list(&[reservation], json)?;
+        }
+        ReservationAction::Release { id, dir, json } => {
+            let root = state::project_root(&dir)?;
+            resource::reservation::release(&root, &id)?;
+            if json {
+                println!("{}", serde_json::json!({ "released": id }));
+            } else {
+                println!("Released reservation {id}");
             }
         }
     }
