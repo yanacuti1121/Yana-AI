@@ -18,6 +18,7 @@ pub enum LocalRuntimeKind {
     LmStudio,
     LlamaCpp,
     TurboFieldfare,
+    AirLlm,
 }
 
 /// `None` for any remote provider name, or an unrecognized one — never a
@@ -28,6 +29,7 @@ pub fn local_runtime_kind(provider_name: &str) -> Option<LocalRuntimeKind> {
         "lmstudio" => Some(LocalRuntimeKind::LmStudio),
         "llamacpp" => Some(LocalRuntimeKind::LlamaCpp),
         "turbofieldfare" => Some(LocalRuntimeKind::TurboFieldfare),
+        "airllm" => Some(LocalRuntimeKind::AirLlm),
         _ => None,
     }
 }
@@ -141,6 +143,7 @@ mod tests {
             local_runtime_kind("turbofieldfare"),
             Some(LocalRuntimeKind::TurboFieldfare)
         );
+        assert_eq!(local_runtime_kind("airllm"), Some(LocalRuntimeKind::AirLlm));
     }
 
     #[test]

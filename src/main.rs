@@ -306,7 +306,7 @@ enum Commands {
     /// PreToolUse/PostToolUse hooks, so it builds its own gate in-process
     /// rather than relying on that hook system).
     Chat {
-        /// ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi
+        /// ollama | lmstudio | llamacpp | turbofieldfare | airllm | anthropic | openai | kimi
         #[arg(long)]
         provider: Option<String>,
         /// Model name (default: provider's own default; for ollama, first
