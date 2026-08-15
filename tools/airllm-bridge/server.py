@@ -29,12 +29,28 @@ loopback-only design in src/chat/openai_compat.rs).
 import argparse
 import json
 import sys
+import threading
 import time
+import traceback
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 MODEL = None
 MODEL_ID = None
+
+# A generous bound on a chat request body (long conversation history is
+# legitimate; an attacker-controlled or garbled Content-Length is not) —
+# see do_POST's validation below.
+MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024
+
+# AirLLM/transformers model objects are not documented as safe for
+# concurrent .generate() calls from multiple threads — ThreadingHTTPServer
+# hands each request its own thread, so without this lock two simultaneous
+# requests (two open chat tabs, a client retry racing the first attempt)
+# could corrupt shared model/cache state instead of just running slower.
+# Serializing here trades concurrency for correctness, matching the
+# already-blocking, one-request-at-a-time nature of AirLLM's own API.
+GENERATE_LOCK = threading.Lock()
 
 
 def load_model(model_id: str) -> None:
@@ -48,7 +64,13 @@ def load_model(model_id: str) -> None:
             "https://github.com/lyogavin/airllm for details)"
         )
     print(f"[airllm-bridge] loading {model_id} — this can take a while...")
-    MODEL = AutoModel.from_pretrained(model_id)
+    try:
+        MODEL = AutoModel.from_pretrained(model_id)
+    except Exception as error:
+        sys.exit(
+            f"[airllm-bridge] failed to load {model_id}: {error}\n"
+            "Check the model id, disk space, and your torch/CUDA setup."
+        )
     MODEL_ID = model_id
     print(f"[airllm-bridge] {model_id} ready")
 
@@ -64,22 +86,25 @@ def build_prompt(messages: list) -> str:
 
 def generate(messages: list) -> tuple:
     """Returns (text, prompt_tokens, completion_tokens). Blocking — AirLLM
-    has no streaming generation hook to report progress mid-call."""
-    prompt = build_prompt(messages)
-    input_tokens = MODEL.tokenizer(
-        prompt, return_tensors="pt", return_attention_mask=False
-    )
-    prompt_token_count = input_tokens["input_ids"].shape[-1]
-    output = MODEL.generate(
-        input_tokens["input_ids"].cuda(),
-        max_new_tokens=1024,
-        use_cache=True,
-        return_dict_in_generate=True,
-    )
-    full_ids = output.sequences[0]
-    completion_ids = full_ids[prompt_token_count:]
-    text = MODEL.tokenizer.decode(completion_ids, skip_special_tokens=True)
-    return text, prompt_token_count, int(completion_ids.shape[-1])
+    has no streaming generation hook to report progress mid-call. Holds
+    GENERATE_LOCK for the whole call — see that lock's own comment for why
+    concurrent .generate() calls are not safe to allow."""
+    with GENERATE_LOCK:
+        prompt = build_prompt(messages)
+        input_tokens = MODEL.tokenizer(
+            prompt, return_tensors="pt", return_attention_mask=False
+        )
+        prompt_token_count = input_tokens["input_ids"].shape[-1]
+        output = MODEL.generate(
+            input_tokens["input_ids"].cuda(),
+            max_new_tokens=1024,
+            use_cache=True,
+            return_dict_in_generate=True,
+        )
+        full_ids = output.sequences[0]
+        completion_ids = full_ids[prompt_token_count:]
+        text = MODEL.tokenizer.decode(completion_ids, skip_special_tokens=True)
+        return text, prompt_token_count, int(completion_ids.shape[-1])
 
 
 def sse_event(payload: dict) -> bytes:
@@ -111,7 +136,14 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "not found"})
             return
 
-        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self._json(400, {"error": "invalid Content-Length header"})
+            return
+        if length < 0 or length > MAX_REQUEST_BODY_BYTES:
+            self._json(413, {"error": "request body too large or malformed"})
+            return
         raw = self.rfile.read(length) if length else b"{}"
         try:
             request = json.loads(raw)
@@ -127,6 +159,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             text, prompt_tokens, completion_tokens = generate(messages)
         except Exception as error:  # noqa: BLE001 - report to the caller, don't crash the server
+            # Full traceback goes to the server's own log, not the HTTP
+            # response — an internal generation failure (bad tensor shape,
+            # CUDA OOM, tokenizer template error) shouldn't leak stack
+            # frames to whatever is talking to this loopback-only server,
+            # but should be diagnosable from the terminal running it.
+            print(f"[airllm-bridge] generation error:\n{traceback.format_exc()}")
             self._json(500, {"error": f"generation failed: {error}"})
             return
 
