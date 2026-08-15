@@ -152,6 +152,27 @@ pub fn turbofieldfare() -> OpenAiCompatProvider {
     }
 }
 
+pub fn airllm() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "airllm",
+        // Loopback only, same reasoning as ollama() above. AirLLM
+        // (github.com/lyogavin/airllm) is a Python library with no HTTP
+        // server of its own, unlike every other local provider here —
+        // `tools/airllm-bridge/server.py` is Yana's own thin OpenAI-
+        // compatible wrapper around it, matching TurboFieldfareServer's
+        // role for `turbofieldfare()` above: an external process this
+        // crate never launches or manages, just points at.
+        url: "http://127.0.0.1:8100/v1/chat/completions",
+        // Placeholder only — AirLLM's entire value proposition is running
+        // whatever huge model the user actually wants (70B+ on a 4GB
+        // GPU), so the real model choice always comes from how the user
+        // launched the bridge (`--model <hf-id>`), not this default.
+        default_model: "meta-llama/Llama-3.2-3B-Instruct",
+        keyless: true,
+        env_var: "",
+    }
+}
+
 impl ChatProvider for OpenAiCompatProvider {
     fn name(&self) -> &str {
         self.provider_name
@@ -282,6 +303,10 @@ impl ChatProvider for OpenAiCompatProvider {
                 } else if self.provider_name == "turbofieldfare" {
                     "is TurboFieldfareServer running? (`.build/release/TurboFieldfareServer \
                      --model scratch/gemma4.gturbo --port 8091` from ~/turbo-fieldfare)"
+                        .to_string()
+                } else if self.provider_name == "airllm" {
+                    "is the AirLLM bridge running? (`python tools/airllm-bridge/server.py \
+                     --model <hf-id>` — see tools/airllm-bridge/README.md)"
                         .to_string()
                 } else {
                     String::new()

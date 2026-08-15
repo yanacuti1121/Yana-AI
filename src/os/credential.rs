@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn inventory_includes_every_local_provider_without_secret_values() {
         let items = inventory();
-        for expected in ["ollama", "lmstudio", "llamacpp", "turbofieldfare"] {
+        for expected in ["ollama", "lmstudio", "llamacpp", "turbofieldfare", "airllm"] {
             let item = items.iter().find(|item| item.provider == expected).unwrap();
             assert_eq!(item.runtime, "LOCAL");
             assert!(!item.credential_required);

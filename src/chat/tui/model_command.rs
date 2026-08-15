@@ -21,7 +21,7 @@ impl App {
         let mut parts = args.split_whitespace();
         let Some(provider_name) = parts.next() else {
             self.status =
-                "usage: /model <ollama|lmstudio|llamacpp|turbofieldfare|anthropic|openai|kimi> [model-name]"
+                "usage: /model <ollama|lmstudio|llamacpp|turbofieldfare|airllm|anthropic|openai|kimi> [model-name]"
                     .to_string();
             return;
         };

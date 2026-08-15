@@ -43,6 +43,7 @@ pub(crate) fn provider_catalog() -> Vec<ProviderSummary> {
         "lmstudio",
         "llamacpp",
         "turbofieldfare",
+        "airllm",
     ]
     .into_iter()
     .map(|name| {
@@ -73,8 +74,9 @@ pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, S
         "llamacpp" => Ok(Arc::new(openai_compat::llama_cpp())),
         "kimi" => Ok(Arc::new(openai_compat::kimi())),
         "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
+        "airllm" => Ok(Arc::new(openai_compat::airllm())),
         other => Err(format!(
-            "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | anthropic | openai | kimi"
+            "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | airllm | anthropic | openai | kimi"
         )),
     }
 }
@@ -98,7 +100,8 @@ mod tests {
                 "ollama",
                 "lmstudio",
                 "llamacpp",
-                "turbofieldfare"
+                "turbofieldfare",
+                "airllm"
             ]
         );
     }
