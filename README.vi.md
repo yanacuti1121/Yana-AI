@@ -536,21 +536,23 @@ Yana AI có 3 trục version độc lập — có chủ đích, không phải l�
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
 
-### Có gì mới trong v1.3.2
+### Có gì mới trong v1.4.0
 
-- **Yana OS management plane (Program K)** — agent registry, preflight credential/resource, và một Evolution Governor (`status`/`capacity`/`roadmap`, giới hạn cứng 2 mục trong NOW) dưới `yana-rt os`.
-- **Native system health monitor** — snapshot CPU/memory/disk/GPU, cài scheduler hoàn toàn opt-in, theo từng user (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; không bao giờ chạy root, không bao giờ âm thầm).
-- **Autonomy ladder (L0–L4)** — việc thường quy có thể tự động hóa theo policy; các thao tác sovereign (merge nhánh bảo vệ, publish release, deploy, xoay secret, xóa dữ liệu vĩnh viễn, đổi security policy) bị chặn cứng, không bao giờ cấu hình tự động được — đã verify điều này đúng cả khi policy cho phép tự động ở mức ngay dưới. Module này chỉ phân loại và xếp hàng action intent, chưa có gì trong đó thực thi lệnh đã xếp hàng.
-- **`yana chat`** có bản thiết kế lại workspace terminal AI local đầy đủ (tab, streaming, cancel, tự tìm model qua Ollama/LM Studio/llama.cpp) cộng entry point mới `yana-ai-rt` chat-first, và tự nhận diện model Ollama thật đã pull thay vì đoán.
-- **Bảo mật:** guard SSRF của WebFetch giờ resolve DNS thật + phân loại theo dải IP thay vì so khớp hostname bằng regex; sanitize markdown chuyển từ regex tự viết sang DOMPurify.
+Ba provider local-first mới, một lần hợp nhất kiến trúc runtime, và một lỗ hổng wiring hook an toàn đã nằm im không ai để ý suốt nhiều tháng, nay đã đóng:
 
-Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.3.2").
+- **Provider mới:** adapter Discord (chat read-only, worker thread riêng cách ly khỏi panic của từng turn, hàng đợi dispatch giờ có giới hạn chống flood tin nhắn); provider local AirLLM qua một bridge OpenAI-compatible mỏng, có admission control giới hạn (request đồng thời thứ 2 nhận `503` rõ ràng, không xếp hàng vô hạn), read timeout, và giới hạn độ dài context được check trước khi gọi generate tốn kém; quản lý model Ollama ngay trong terminal chat (pull/delete/status), giờ phân biệt đúng lỗi backend thật với danh sách cài đặt trống thật.
+- **Kiến trúc runtime:** phần chat chuyển sang Capability Runtime chuẩn (typed error, `SessionContext`, golden end-to-end test) trên một Rust workspace vừa được hợp nhất; một Host-Native OS Program (platform contract, resource/model plane, actor identity, resident service) và nền tảng OS Service Supervisor luôn chạy.
+- **An toàn, fix nổi bật nhất:** check null-byte của `tool-validator.sh` đã âm thầm collapse thành pattern rỗng luôn khớp — một lỗi bash quoting (`$'\x00'` không thể biểu diễn byte NUL thật) khiến gần như mọi lệnh Bash bị chặn. Ngoài ra: 16 hook an toàn (`deploy-gate`, `db-protect`, `api-destruct-guard`, `supply-chain-guard`, `prompt-injection-guard`, `token-scope-guard`, `code-freeze`, `code-quality-gate`, `coverage-gate`, `dependency-safety-gate`, `static-analysis-gate`, `test-runner-gate`, `multi-agent-lock`, `confidence-scorer`, `risk-scorer`, `canary-token-guard`) đã tồn tại trong `core/hooks/` nhưng chưa từng được tham chiếu trong `.claude/settings.json` — chưa cái nào từng chạy — nay đã wire, cộng 2 cái được fix vì tự tắt hết check khi thiếu `jq`. Một Giám Thị control plane hợp nhất, chính là halt watcher trong mục Safety Architecture của README này, thay thế bản triển khai tách rời trước đó.
+- **Chat UX:** hỗ trợ chuột thật, gợi ý trạng thái theo ngữ cảnh, `/undo`, và custom slash command trong `yana chat`.
+- **Vận hành:** image sandbox Docker giờ publish lên GHCR mỗi lần push; siết CI từ con số 0 — mọi tham chiếu GitHub Action đều pin SHA, `cargo audit`/`pip-audit`/`npm audit` wire thành required check, một bước release-manifest ghi lại commit SHA/toolchain/artifact SHA256 cho mỗi binary phát hành, bật branch protection trên `main` lần đầu tiên; đóng các CVE thật (`quinn-proto` RUSTSEC-2026-0185, lỗ hổng SSRF cho dải CGNAT và IPv4-mapped-IPv6).
+
+Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.4.0").
 
 ---
 

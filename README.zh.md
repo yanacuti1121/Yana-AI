@@ -547,21 +547,23 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.3.2** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.4.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
 
-### v1.3.2 的新内容
+### v1.4.0 的新内容
 
-- **Yana OS 管理平面（Program K）** — 代理注册表、凭据/资源预检，以及 `yana-rt os` 下的 Evolution Governor（`status`/`capacity`/`roadmap`，NOW 队列硬性上限 2 项）。
-- **原生系统健康监控** — CPU/内存/磁盘/GPU 快照，调度器安装完全 opt-in、按用户级别（macOS LaunchAgent、Linux systemd user timer、Windows 任务计划程序；从不以 root 运行，从不静默安装）。
-- **自主性阶梯（L0–L4）** — 常规工作可按策略自动化；sovereign 级操作（合并受保护分支、发布 release、部署、轮换密钥、删除持久化数据、更改安全策略）被硬性阻止，永远无法配置为自动执行 —— 已验证即使策略允许下一级自动执行，这一限制依然成立。该模块目前只负责对 action intent 分类并排队，尚无任何代码执行已排队的命令。
-- **`yana chat`** 新增本地 AI 终端工作区的整体重设计（标签页、流式输出、取消、跨 Ollama/LM Studio/llama.cpp 的模型发现）以及新的 chat-first 入口 `yana-ai-rt`，并会自动检测已真实拉取的 Ollama 模型，而非猜测。
-- **安全：** WebFetch 的 SSRF 防护现在做真实的 DNS 解析 + IP 段分类，而非 hostname 正则匹配；markdown 净化从自写正则改为 DOMPurify。
+三个新的本地优先 provider、一次运行时架构统一，以及一个被忽视了数月之久的安全钩子接线缺口——这次全部补上：
 
-包含 PR 编号的完整记录：[CHANGELOG.md](CHANGELOG.md)（见 "v1.3.2" 条目）。
+- **新 provider：** Discord 适配器（只读聊天，独立 worker 线程与单轮 panic 隔离，dispatch 队列现已加上上限以应对消息洪泛）；通过轻量 OpenAI 兼容桥接实现的本地 AirLLM provider，带有限流准入（第二个并发请求会收到明确的 `503`，而不是无限排队）、读超时，以及在昂贵的 generate 调用前检查的上下文长度上限；内置在终端聊天里的 Ollama 模型管理（pull/delete/status），现在能正确区分真实的后端失败与确实为空的安装列表。
+- **运行时架构：** 聊天层迁移到统一 Rust workspace 之上的标准 Capability Runtime（类型化错误、`SessionContext`、golden 端到端测试）；新增 Host-Native OS Program（平台契约、资源/模型 plane、actor identity、常驻服务）与常驻运行的 OS Service Supervisor 基础设施。
+- **最值得关注的安全修复：** `tool-validator.sh` 的 null-byte 检查已悄悄坍缩成一个永远匹配的空 pattern —— 一个 bash 引号陷阱（`$'\x00'` 无法表示真正的 NUL 字节），导致几乎所有 Bash 工具调用都被拒绝。另外：16 个安全钩子（`deploy-gate`、`db-protect`、`api-destruct-guard`、`supply-chain-guard`、`prompt-injection-guard`、`token-scope-guard`、`code-freeze`、`code-quality-gate`、`coverage-gate`、`dependency-safety-gate`、`static-analysis-gate`、`test-runner-gate`、`multi-agent-lock`、`confidence-scorer`、`risk-scorer`、`canary-token-guard`）此前存在于 `core/hooks/` 中，却从未在 `.claude/settings.json` 中被引用过——从未真正执行过——现已接好线，其中 2 个还修复了在缺少 `jq` 时悄悄关闭自身全部检查的问题。本 README「安全架构」一节所述的 halt watcher——统一后的 Giám Thị 控制平面，取代了此前分离的实现。
+- **聊天体验：** `yana chat` 新增真实鼠标支持、情境状态提示、`/undo`，以及自定义斜杠命令。
+- **运维：** 沙箱 Docker 镜像现在每次 push 都会发布到 GHCR；从零开始加固的 CI —— 所有 GitHub Action 引用均已固定到 commit SHA，`cargo audit`/`pip-audit`/`npm audit` 已接入为必需检查，新增 release-manifest 步骤为每个发布的二进制记录 commit SHA/工具链/artifact SHA256，`main` 分支首次启用 branch protection；修复真实 CVE（`quinn-proto` RUSTSEC-2026-0185、CGNAT 与 IPv4-mapped-IPv6 网段的 SSRF 缺口）。
+
+包含 PR 编号的完整记录：[CHANGELOG.md](CHANGELOG.md)（见 "v1.4.0" 条目）。
 
 ---
 

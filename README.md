@@ -549,21 +549,59 @@ Yana AI has three independently versioned release axes — deliberate, not drift
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.0** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
 
-### What's new in v1.3.2
+### What's new in v1.4.0
 
-- **Yana OS management plane (Program K)** — an agent registry, credential/resource preflight, and an Evolution Governor (`status`/`capacity`/`roadmap`, a hard-enforced 2-item NOW cap) under `yana-rt os`.
-- **Native system health monitor** — CPU/memory/disk/GPU snapshots with explicit, per-user, opt-in-only scheduler installation (macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler; never root, never silent).
-- **Autonomy ladder (L0–L4)** — routine work can be automated under policy; sovereign operations (merge protected branches, publish releases, deploy, rotate secrets, delete persistent data, change security policy) are hard-blocked from ever being configured as automatic, verified to hold even when policy allows automatic work one level down. Classifies and queues action intent only — nothing in this module executes a queued command yet.
-- **`yana chat`** grew a full local AI terminal workspace redesign (tabs, streaming, cancellation, model discovery across Ollama/LM Studio/llama.cpp) plus a new `yana-ai-rt` chat-first entry point, and auto-detects an actually-pulled Ollama model instead of guessing.
-- **Security:** the WebFetch SSRF guard now does real DNS resolution + IP-range classification instead of hostname-regex matching; markdown sanitization moved from a hand-rolled regex to DOMPurify.
+Three new local-first providers, a runtime architecture unification, and
+a safety-hook wiring gap that had sat unnoticed for months, closed:
 
-Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.3.2" entry).
+- **New providers:** a Discord adapter (read-only chat, its own worker
+  thread isolated from turn panics, dispatch queue now bounded against
+  a message flood); an AirLLM local-model provider via a thin
+  OpenAI-compatible bridge, with bounded admission (a second concurrent
+  request gets an explicit `503`, not an unbounded wait), a read
+  timeout, and a context-length ceiling checked before the expensive
+  generation call; Ollama model management built into the terminal
+  chat (pull/delete/status), now correctly distinguishing a genuine
+  backend failure from an honestly-empty install list.
+- **Runtime architecture:** the chat surface moved onto a canonical
+  Capability Runtime (typed errors, `SessionContext`, golden
+  end-to-end tests) on top of a newly unified Rust workspace; a
+  Host-Native OS Program (platform contract, resource/model planes,
+  actor identity, a resident service) and an always-on OS Service
+  Supervisor foundation.
+- **Safety, the headline fix:** `tool-validator.sh`'s null-byte check
+  had silently collapsed to an always-matching empty pattern — a bash
+  quoting gotcha (`$'\x00'` cannot represent a real NUL byte) that
+  denied essentially every Bash tool call. Also: 16 safety hooks
+  (`deploy-gate`, `db-protect`, `api-destruct-guard`,
+  `supply-chain-guard`, `prompt-injection-guard`, `token-scope-guard`,
+  `code-freeze`, `code-quality-gate`, `coverage-gate`,
+  `dependency-safety-gate`, `static-analysis-gate`,
+  `test-runner-gate`, `multi-agent-lock`, `confidence-scorer`,
+  `risk-scorer`, `canary-token-guard`) existed in `core/hooks/` but
+  were never referenced in `.claude/settings.json` — none had ever
+  executed — now wired, plus 2 of them fixed for silently disabling
+  their own checks when `jq` is missing. A unified Giám Thị control
+  plane, this README's Safety Architecture halt watcher, replaces
+  the earlier split implementation.
+- **Chat UX:** real mouse support, contextual status hints, `/undo`,
+  and custom slash commands in `yana chat`.
+- **Ops:** the sandbox Docker image now publishes to GHCR on every
+  push; CI hardening from a standing start — every GitHub Action
+  reference SHA-pinned, `cargo audit`/`pip-audit`/`npm audit` wired
+  as a required check, a release-manifest step recording commit
+  SHA/toolchain/artifact SHA256 for every published binary, branch
+  protection enabled on `main` for the first time; real CVEs closed
+  (`quinn-proto` RUSTSEC-2026-0185, an SSRF gap for CGNAT and
+  IPv4-mapped-IPv6 ranges).
+
+Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.4.0" entry).
 
 ---
 
