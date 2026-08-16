@@ -354,7 +354,7 @@ jobs:
     # action rather than shelling out to a locally-installed `cargo-audit`
     # binary (not installed in this repo's CI images, and the action
     # bundles its own).
-    name: Dependency Vulnerability Audit (cargo audit + pip-audit)
+    name: Dependency Vulnerability Audit (cargo audit + pip-audit + npm audit)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
