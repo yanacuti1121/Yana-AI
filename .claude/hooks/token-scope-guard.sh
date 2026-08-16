@@ -25,7 +25,21 @@
 # Fails open on parse errors.
 
 set -uo pipefail
-command -v jq >/dev/null 2>&1 || exit 0
+
+# BUG FIX (2026-08-16, found while wiring this dormant hook): this was a
+# bare `command -v jq >/dev/null 2>&1 || exit 0` — a completely silent
+# exit on any environment missing jq. This hook's own header already
+# documents that it's advisory-only and "fails open on parse errors" by
+# design, so the fail-open behavior itself is correct and unchanged here
+# — but doing so with zero output still violates this directory's own
+# CLAUDE.md rule ("A hook that does nothing without explanation is worse
+# than no hook"): an operator has no way to know this advisory layer is
+# silently degraded. Loud stderr warning added; the actual pass-through
+# behavior is identical to before.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "⚠️  Token Scope Guard: jq not found — advisory secret-scope warnings disabled (fails open by design, see this file's header). Install jq to restore." >&2
+  exit 0
+fi
 
 [[ "${YANA_TOKEN_SCOPE_OK:-}" == "1" ]] && exit 0
 

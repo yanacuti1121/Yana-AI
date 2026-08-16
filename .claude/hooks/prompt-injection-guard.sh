@@ -24,7 +24,23 @@ set -uo pipefail
 
 [[ "${YANA_PROMPT_INJECT_BYPASS:-}" == "1" ]] && exit 0
 
-command -v jq >/dev/null 2>&1 || exit 0
+# BUG FIX (2026-08-16, found while wiring this dormant hook): this was a
+# bare `command -v jq >/dev/null 2>&1 || exit 0` — a completely silent
+# exit on any environment missing jq, disabling every injection check in
+# this file (identity override, system-prompt extraction, jailbreak
+# triggers, embedded-base64, multi-turn manipulation) with no warning at
+# all. Violates this directory's own CLAUDE.md rule ("Hooks must never
+# silently allow a risky action... A hook that does nothing without
+# explanation is worse than no hook") — the same class of bug already
+# found and fixed in tool-validator.sh's jq-missing path. Loud stderr
+# warning added; behavior (allow through) is unchanged, since failing
+# closed here would block every Bash/Write/Edit/WebFetch call on any
+# jq-less machine for a soft-injection heuristic, not a hard security
+# boundary — the fix is visibility, not a stricter default.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "⚠️  Prompt Injection Guard [L3.5]: jq not found — ALL injection detection disabled (identity override, system-prompt extraction, jailbreak triggers, base64/multi-turn heuristics skipped). Install jq to restore protection." >&2
+  exit 0
+fi
 
 # ── Read input ────────────────────────────────────────────────────────────────
 
