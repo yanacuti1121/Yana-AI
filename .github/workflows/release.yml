@@ -53,6 +53,30 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
+      # Workstream B / B1 (Release artifact assurance): before this,
+      # nothing verified the binary this job is about to publish to a
+      # GitHub Release actually RUNS -- confirmed by reading this file
+      # before adding anything: build then upload, no step in between.
+      # A binary that compiles but crashes on startup (missing dynamic
+      # library, wrong target linking, a panic in early init) would have
+      # shipped to every user downloading that release with nobody
+      # having executed it even once. Minimal, not a full test suite:
+      # `--version` exercises argument parsing and the whole startup
+      # path far enough to prove the binary isn't dead on arrival, same
+      # bar sandbox.yml's own smoke tests already use for the sandbox
+      # Docker image ("build -> smoke that exact artifact -> publish").
+      # Skipped for the macos-latest x86_64-apple-darwin leg specifically:
+      # that's a cross-compile on GitHub's arm64 macOS runners, and
+      # whether Rosetta 2 transparently executes it there wasn't
+      # something I could verify from outside GitHub's own runner
+      # environment -- documented here rather than silently wrapped in
+      # continue-on-error, which would hide a REAL failure on the three
+      # native-arch legs just as easily as a false one on this leg.
+      - name: Smoke test the built binary
+        if: matrix.target != 'x86_64-apple-darwin'
+        shell: bash
+        run: target/${{ matrix.target }}/release/${{ matrix.binary }} --version
+
       - name: Upload binary to Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:

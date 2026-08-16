@@ -92,6 +92,27 @@ jobs:
       - name: Build bundled runtime
         run: cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
 
+      # Workstream B / B1 (Release artifact assurance) -- same gap as
+      # release.yml: this job stages these two binaries straight into
+      # the Electron app bundle with nothing verifying either one
+      # actually runs first. yana-rt's --version path is already
+      # proven in release.yml; pty_bridge has no CLI flags to probe
+      # startup with, so this checks the one thing every executable
+      # supports -- that the OS loader accepts it (dynamic libs
+      # resolve, correct architecture) -- via `file`, not an execution
+      # that would hang waiting on a pty. Windows skipped: no `file`
+      # command there, and its behavior needs its own investigation
+      # rather than a guessed equivalent.
+      - name: Smoke test bundled runtime binaries
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          target/release/yana-rt --version
+          file target/release/pty_bridge | grep -qi "executable" || {
+            echo "pty_bridge does not look like a valid executable" >&2
+            exit 1
+          }
+
       - name: Install yana-desktop dependencies
         working-directory: tools/yana-desktop
         run: npm ci
