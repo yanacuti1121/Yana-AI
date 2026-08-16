@@ -157,10 +157,6 @@
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/multi-agent-lock.sh bash .claude/hooks/hook-timeout-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/confidence-scorer.sh bash .claude/hooks/hook-timeout-guard.sh"
           },
           {
