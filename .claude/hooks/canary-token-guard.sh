@@ -3,13 +3,59 @@
 # Hook: Stop (fires after every agent response)
 # Purpose: Detect prompt extraction attempts via canary token echoing
 # Date: 2026-05-23
+#
+# BUG FIX (found live-testing before wiring, 2026-08-15): this file never
+# received real data. Three separate contract bugs, all from the same
+# root cause — invented env vars / a CLI arg Claude Code never sets,
+# instead of the real stdin-JSON contract every other proven-working Stop
+# hook in this directory uses (see truth-gate-guard.sh, the reference
+# implementation this file's fix is modeled on):
+#   1. `main "${TRANSCRIPT_PATH:-$1}"` at the old end of this file — with
+#      `set -u` active and Claude Code never passing a CLI arg to a hook,
+#      referencing bare `$1` with zero positional params set is a hard
+#      "unbound variable" error. Reproduced live: this crashed with exit 1
+#      on every invocation, before `main()`'s body ever ran — not a
+#      degraded fallback, a total failure every single time.
+#   2. `SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"` — `CLAUDE_SESSION_ID`
+#      is not a real Claude Code hook env var (grepped every hook file
+#      already wired and proven working in this directory: none reference
+#      it). The real session id is `.session_id` inside the stdin JSON
+#      payload — confirmed via truth-gate-guard.sh's
+#      `jq -r '.session_id // "default"'`.
+#   3. `CLAUDE_STATE_DIR` (same reasoning) — grepped this directory: only
+#      appears in files that were never wired (this one, sbom-generator.sh,
+#      validate-completion.sh). Every wired hook instead derives state
+#      paths from `CLAUDE_PROJECT_DIR` (which IS real and used pervasively)
+#      joined with `.claude/state` — that pattern is used below instead.
+# Fixed by reading stdin once (`INPUT=$(cat)`) and extracting
+# `transcript_path` / `session_id` via jq, matching truth-gate-guard.sh.
+#
+# SEPARATE, UNFIXED GAP (flagging, not fixing — out of scope for a data-
+# contract fix): even with the plumbing corrected, this hook's detection
+# can structurally never fire on a genuine extraction attempt. The canary
+# tokens `generate_canaries()` writes are never read by any other hook —
+# grepped this entire directory for `canary-tokens.txt`/`CANARY_FILE`
+# outside this file: zero results. Nothing plants these tokens into the
+# model's actual system prompt or context, so the model can never echo
+# one back; this hook checks the transcript for a marker the model was
+# never given. A real canary-token defense needs a companion
+# SessionStart/UserPromptSubmit hook that injects the generated tokens
+# into context — that hook does not exist. Wiring this wired-but-inert
+# hook is harmless (it will simply never trigger), not a regression, but
+# it should not be reported as working extraction detection until that
+# missing half is built.
 
 set -euo pipefail
 
-# Configuration
-CANARY_FILE="${CLAUDE_STATE_DIR:-.claude/state}/canary-tokens.txt"
-AUDIT_LOG="${CLAUDE_STATE_DIR:-.claude/state}/audit.log"
-SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+command -v jq >/dev/null 2>&1 || exit 0
+
+INPUT=$(cat)
+TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | jq -r '.transcript_path // ""' 2>/dev/null || true)
+SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
+
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+CANARY_FILE="$PROJECT_DIR/.claude/state/canary-tokens.txt"
+AUDIT_LOG="$PROJECT_DIR/.claude/state/audit.log"
 
 # Bypass for testing
 if [[ "${YANA_CANARY_BYPASS:-0}" == "1" ]]; then
@@ -34,13 +80,16 @@ detect_canary_echo() {
   local transcript_path="$1"
   local last_message
 
-  # Extract last assistant message from transcript
-  if [[ -f "$transcript_path" ]]; then
+  # Extract last assistant message from transcript. No stdin fallback here
+  # (BUG FIX, 2026-08-15): stdin was already fully consumed by `INPUT=$(cat)`
+  # above to get transcript_path/session_id in the first place — a second
+  # `cat` on an already-drained pipe reads nothing, not "the same data
+  # again". If the transcript is missing, there is nothing left to check.
+  if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
     # Simple extraction - get last assistant message
     last_message=$(grep -A 100 '"role": "assistant"' "$transcript_path" | tail -100 || echo "")
   else
-    # Fallback: check stdin if transcript not available
-    last_message=$(cat)
+    return 1  # no transcript available — nothing to check, no detection
   fi
 
   # Check each canary token
@@ -67,7 +116,7 @@ log_incident() {
 
 # Main execution
 main() {
-  local transcript_path="${1:-}"
+  local transcript_path="$1"
 
   # Initialize canary tokens if not exist
   if [[ ! -f "$CANARY_FILE" ]]; then
@@ -109,5 +158,5 @@ EOF
   exit 0
 }
 
-# Run main with transcript path from environment or argument
-main "${TRANSCRIPT_PATH:-$1}"
+# Run main with the transcript path read from the Stop hook's stdin JSON
+main "$TRANSCRIPT_PATH"

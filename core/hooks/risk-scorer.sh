@@ -37,11 +37,20 @@ TMP_INPUT=$(mktemp)
 cat > "$TMP_INPUT"
 trap 'rm -f "$TMP_INPUT"' EXIT
 
-# Parse + score via python3 (reads from file, not stdin)
-RESULT=$(python3 - "$TMP_INPUT" << 'PYEOF'
+# Parse + score via python3 (reads from file, not stdin). TIMESTAMP and
+# RISK_LOG are script-controlled (never attacker-influenced), so passing
+# them as argv is fine — cmd/path/tool (attacker-influenced via
+# tool_input) never leave this Python process as bash string
+# interpolation targets; the JSONL write below happens entirely inside
+# Python via json.dumps(), closing a real code-injection path a prior
+# version of this script had (a later `python3 -c "...'$CMD'..."` call —
+# found + fixed by independent code review, 2026-08-15: a crafted
+# tool_input.command containing an unescaped `'` could close that string
+# literal early and inject arbitrary Python, confirmed by execution).
+RESULT=$(python3 - "$TMP_INPUT" "$RISK_LOG" "$TIMESTAMP" << 'PYEOF'
 import json, sys, re
 
-input_file = sys.argv[1] if len(sys.argv) > 1 else None
+input_file, risk_log, ts = sys.argv[1], sys.argv[2], sys.argv[3]
 try:
     with open(input_file) as f:
         data = json.load(f)
@@ -52,7 +61,7 @@ try:
     url     = str(ti.get('url', ''))
     content = str(ti.get('content', ''))[:300]
 except Exception:
-    print("unknown||none|0|LOW")
+    print("unknown|0|LOW|none")
     sys.exit(0)
 
 all_text = (tool + ' ' + cmd + ' ' + path + ' ' + content + ' ' + url).lower()
@@ -61,9 +70,11 @@ path_l   = path.lower()
 
 score = 0; reasons = []
 
-# +40 destructive verbs
-if re.search(r'\b(rm|remove|delete|drop|truncate|destroy|purge|wipe|nuke)\b', cmd_l) or \
-   re.search(r'(--force|-f\b|force-delete|force-push)', cmd_l):
+# +40 destructive verbs. Deliberately does NOT also match a bare
+# --force/-f flag on its own (e.g. `kubectl apply --force`, a normal
+# idiom for resolving immutable-field conflicts, is not destructive) --
+# force-push is already scored separately under deploy_operation below.
+if re.search(r'\b(rm|remove|delete|drop|truncate|destroy|purge|wipe|nuke)\b', cmd_l):
     score += 40; reasons.append("destructive_verb:+40")
 
 # +30 production target
@@ -117,31 +128,51 @@ elif score < 85: band = "HIGH"
 else:            band = "CRITICAL"
 
 reasons_str = ','.join(reasons) if reasons else 'none'
-# Escape pipes in fields
 tool_safe = tool.replace('|','_')
-cmd_safe  = cmd[:80].replace('|','_')
-path_safe = path[:100].replace('|','_')
-print(f"{tool_safe}|{cmd_safe}|{path_safe}|{score}|{band}|{reasons_str}")
+
+# Secret redaction before persisting cmd/path to disk — matches
+# audit-log.sh's own pattern (52-secrets-vault-law.md): a secret-shaped
+# path suffix or a secret-keyword match in the (truncated) content
+# replaces the whole field, it is not partially masked. score/band/
+# reasons never carry raw command content (only fixed-vocabulary tags),
+# so nothing else here needs redaction.
+_SECRET_KW = re.compile(r'(SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|BEARER)', re.IGNORECASE)
+# Unanchored (no trailing $) to match audit-log.sh's own pattern exactly
+# — a `$`-anchored version would miss e.g. "secrets/staging.pem.backup",
+# which audit-log.sh's substring match still catches (found by independent
+# review, 2026-08-15: this file's anchored version was narrower than the
+# "same as audit-log.sh" claim in its original comment).
+_SECRET_PATH = re.compile(r'\.(env|pem|key|secret|cred)', re.IGNORECASE)
+
+def _redacted(text, is_path=False):
+    if _SECRET_KW.search(text) or (is_path and _SECRET_PATH.search(text)):
+        return '[REDACTED]'
+    return text
+
+log_cmd = _redacted(cmd[:80])
+log_path = _redacted(path[:100], is_path=True)
+
+# JSON-encoded via json.dumps — no bash string interpolation of
+# attacker-influenced content anywhere in this write.
+entry = {
+    'ts': ts, 'tool': tool_safe, 'score': score, 'band': band,
+    'reasons': reasons_str, 'cmd': log_cmd, 'file': log_path,
+}
+try:
+    with open(risk_log, 'a') as f:
+        f.write(json.dumps(entry) + '\n')
+except Exception:
+    pass
+
+# Only fixed-vocabulary/numeric fields cross back into bash below.
+print(f"{tool_safe}|{score}|{band}|{reasons_str}")
 PYEOF
 )
 
 TOOL_NAME=$(echo "$RESULT" | cut -d'|' -f1)
-CMD=$(echo "$RESULT"       | cut -d'|' -f2)
-FILE_PATH=$(echo "$RESULT" | cut -d'|' -f3)
-SCORE=$(echo "$RESULT"     | cut -d'|' -f4)
-BAND=$(echo "$RESULT"      | cut -d'|' -f5)
-REASONS=$(echo "$RESULT"   | cut -d'|' -f6)
-
-# -- Log to JSONL
-python3 -c "
-import json
-entry = {
-  'ts':'$TIMESTAMP','tool':'$TOOL_NAME','score':$SCORE,
-  'band':'$BAND','reasons':'$REASONS',
-  'cmd':'${CMD:0:80}','file':'${FILE_PATH:0:100}'
-}
-open('$RISK_LOG','a').write(json.dumps(entry)+'\n')
-" 2>/dev/null || true
+SCORE=$(echo "$RESULT"     | cut -d'|' -f2)
+BAND=$(echo "$RESULT"      | cut -d'|' -f3)
+REASONS=$(echo "$RESULT"   | cut -d'|' -f4)
 
 # -- Inject into token-budget file
 # BUDGET_FILE (derived from the externally-settable YANA_TOKEN_BUDGET env
@@ -216,12 +247,22 @@ case "$BAND" in
     echo "  State which files will change and why. Consider --dry-run first."
     exit 0 ;;
   CRITICAL)
-    python3 -c "
-import json,sys
+    # TOOL_NAME/REASONS pass via os.environ, not bash string interpolation
+    # into the Python source — tool_safe's own sanitization (line ~131)
+    # only strips '|', not "'", so an interpolated $TOOL_NAME could in
+    # principle still break out of a Python string literal if a tool name
+    # ever contained one (e.g. a poisoned/malicious MCP tool registration
+    # — see agent-tool-poisoning-guard.md). REASONS is already
+    # fixed-vocabulary-only (every reasons.append() call above uses a
+    # hardcoded "label:+N" string, never raw input), but routed the same
+    # way here for consistency and to close the class entirely, not just
+    # the cmd/path instance of it (found by independent review, 2026-08-15).
+    YANA_RISK_TOOL_NAME="$TOOL_NAME" YANA_RISK_REASONS="$REASONS" python3 -c "
+import json, os, sys
 d={
   'decision':'block',
-  'reason':'[risk-scorer] CRITICAL risk: ${SCORE}/100 for tool: $TOOL_NAME',
-  'score':$SCORE,'band':'CRITICAL','factors':'$REASONS',
+  'reason':f'[risk-scorer] CRITICAL risk: $SCORE/100 for tool: {os.environ[\"YANA_RISK_TOOL_NAME\"]}',
+  'score':$SCORE,'band':'CRITICAL','factors':os.environ['YANA_RISK_REASONS'],
   'required_action':'State (1) what you will do (2) files affected (3) rollback plan. Sovereign sets YANA_RISK_BYPASS=1 to override.'
 }
 print(json.dumps(d))

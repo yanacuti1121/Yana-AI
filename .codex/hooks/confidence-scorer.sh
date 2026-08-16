@@ -73,11 +73,25 @@ if re.search(r'(\s-i\b|\s--interactive\b)', cmd):
 score = max(0, min(100, score))
 band = 'HIGH' if score >= 80 else 'MEDIUM' if score >= 50 else 'LOW'
 
+# Secret redaction before persisting cmd/path to disk — matches
+# audit-log.sh's own pattern (52-secrets-vault-law.md), same fix applied
+# to risk-scorer.sh's equivalent log (independent review, 2026-08-15).
+_secret_kw = re.compile(r'(SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|BEARER)', re.IGNORECASE)
+# Unanchored (no trailing $) to match audit-log.sh's own pattern exactly
+# — see risk-scorer.sh's identical fix + comment (independent review,
+# 2026-08-15).
+_secret_path = re.compile(r'\.(env|pem|key|secret|cred)', re.IGNORECASE)
+
+def _redacted(text, is_path=False):
+    if _secret_kw.search(text) or (is_path and _secret_path.search(text)):
+        return '[REDACTED]'
+    return text
+
 # Log entry
 entry = {
     'ts': ts, 'tool': tool, 'confidence': score,
     'band': band, 'notes': ','.join(notes) or 'none',
-    'cmd': cmd[:80], 'file': path[:100]
+    'cmd': _redacted(cmd[:80]), 'file': _redacted(path[:100], is_path=True)
 }
 with open(conf_log, 'a') as f:
     f.write(json.dumps(entry) + '\n')
