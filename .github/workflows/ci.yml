@@ -34,7 +34,7 @@ jobs:
       # in src/guard/blast_paths.rs went undetected until it was caught by
       # chance during a manual local run (see the 2026-07-03 fix commit).
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
 
       - name: Cache cargo
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
@@ -95,6 +95,15 @@ jobs:
       - name: Validate agent routing map regression behavior
         run: python3 tests/test_agent_routing_map.py
 
+      # BUG FIX (found by independent fresh-context review, 2026-08-16):
+      # this self-test script existed (added earlier this workstream) but
+      # was never actually wired into CI -- it caught nothing, it only
+      # documented the SHA-pinning convention by example. Adding it here
+      # closes that gap: any future PR that re-introduces a floating
+      # action ref now fails this required job instead of merging silently.
+      - name: Check all GitHub Actions references are SHA-pinned
+        run: bash core/ci/check-pinned-actions.sh
+
   flock-v1-linux:
     name: Kernel flock-v1 (Ubuntu)
     runs-on: ubuntu-latest
@@ -105,7 +114,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
 
       - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
         run: bash core/scripts/prefetch-pdfium.sh
@@ -148,7 +157,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
 
       - name: Cache cargo
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
@@ -185,6 +194,25 @@ jobs:
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
 
+      # Workstream B / B1 (Feature matrix): the `discord` feature (Cargo.
+      # toml) — the Discord remote adapter shipped in PR #205/#206, ~2200
+      # lines, with real regression tests protecting a panic-isolation fix
+      # and a session-resolve race fix that were each found and fixed once
+      # already — was never built or tested anywhere in this repo's CI.
+      # Confirmed by grepping every workflow file for `--features` before
+      # adding this: zero matches for `discord`. That meant those
+      # regression tests, despite existing in the source tree, never
+      # actually ran in CI and could not have caught a future regression
+      # in this feature. Verified locally before wiring this in (not
+      # assumed): `cargo build --features discord` compiles clean, and all
+      # 17 tests under `remote::` (discord.rs + lock.rs + session.rs,
+      # including both named regression tests above) pass.
+      - name: Build with discord feature
+        run: cargo build --features discord --bin yana-rt
+
+      - name: Run discord feature tests
+        run: "cargo test --features discord --bin yana-rt remote:: -- --test-threads=1"
+
   system-health-monitor:
     name: System Health Monitor (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -198,7 +226,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
 
       - name: Cache cargo
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
@@ -284,7 +312,7 @@ jobs:
           fetch-depth: 0   # needed for --diff origin/<base> on pull_request
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
 
       - name: Cache cargo
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
@@ -328,7 +356,7 @@ jobs:
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: yana-ai-self-audit.sarif
           category: yana-ai-self-audit
@@ -342,3 +370,99 @@ jobs:
             yana-ai-self-audit-report.md
             yana-ai-self-audit.sarif
           retention-days: 30
+
+  dependency-audit:
+    # Workstream B / B1 (Dependency & supply chain): before this job,
+    # NOTHING in this repo's CI checked Cargo.lock's pinned crate versions
+    # against RustSec's known-vulnerability advisory database — confirmed
+    # by grepping every workflow file for cargo audit/cargo-audit/cargo
+    # deny/pip-audit/npm audit before adding this (zero matches). A
+    # dependency with a disclosed CVE could sit in Cargo.lock indefinitely
+    # with nothing surfacing it. Uses the official RustSec-maintained
+    # action rather than shelling out to a locally-installed `cargo-audit`
+    # binary (not installed in this repo's CI images, and the action
+    # bundles its own).
+    name: Dependency Vulnerability Audit (cargo audit + pip-audit + npm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Run cargo audit
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same coverage gap as cargo audit above, for the Python side: this
+      # repo publishes a PyPI package (pyproject.toml) whose own
+      # dependencies (PyYAML, jsonschema) and this repo's own dev/test
+      # tooling (requirements-dev.txt) were never checked against a known-
+      # vulnerability database either. pip-audit itself found a real,
+      # disclosed CVE in this repo's dev tooling while wiring this check
+      # (PYSEC-2026-1845, pytest 8.3.5, local /tmp race — see requirements-
+      # dev.txt's own pin comment history) — low real-world risk on an
+      # ephemeral single-tenant GitHub-hosted runner, but real and now
+      # tracked instead of invisible.
+      #
+      # CORRECTION (Workstream B, 2026-08-16): the first version of this
+      # step left PYSEC-2026-1845 as a prose-only exception -- documented
+      # in core/ci/B5-governance-registry.md's exceptions registry, but
+      # pip-audit itself still failed on every run, since a written
+      # exception doesn't change what the tool checks. That's the actual
+      # bug: a real advisory-database policy needs the tool to enforce
+      # it, not a comment next to a still-failing command. Fixed with
+      # --ignore-vuln, scoped to this exact advisory ID only (verified
+      # locally: pip-audit still reports and fails on any *other*
+      # vulnerability in this file -- this flag does not create a
+      # blanket bypass). The registry entry in B5-governance-registry.md
+      # is this allowlist's actual owner/reason/created/review-by record;
+      # this flag is just where that decision gets enforced. Left
+      # unfixed (the version pin itself, not the audit gate) deliberately:
+      # a pytest 8->9 major-version bump needs its own compatibility
+      # verification pass across this repo's full test suite, out of
+      # scope for a CI-policy fix.
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install -r requirements-dev.txt
+
+      - name: Run pip-audit (dev/test tooling)
+        run: pip-audit --requirement requirements-dev.txt --ignore-vuln PYSEC-2026-1845
+
+      - name: Run pip-audit (published package runtime dependencies)
+        run: |
+          python3 - <<'PY' > /tmp/runtime-requirements.txt
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+          for dep in data["project"]["dependencies"]:
+              print(dep)
+          PY
+          pip-audit --requirement /tmp/runtime-requirements.txt
+
+      # Same coverage gap, for the two npm projects this repo actually
+      # ships to end users (desktop.yml builds and releases both): none
+      # of the 6 package-lock.json files in this repo were ever checked
+      # via `npm audit`. `--omit=dev` matches what ships in the built
+      # app/web bundle; devDependencies (build tooling) are a separate,
+      # lower-priority exposure not covered by this specific check.
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+
+      # --package-lock-only: audits the lockfile directly without an
+      # npm ci/install step first (verified locally — works and is
+      # faster; a full install isn't needed just to read the dependency
+      # tree already recorded in package-lock.json).
+      - name: Run npm audit (yana-web production dependencies)
+        working-directory: tools/yana-web
+        run: npm audit --omit=dev --package-lock-only
+
+      - name: Run npm audit (yana-desktop production dependencies)
+        working-directory: tools/yana-desktop
+        run: npm audit --omit=dev --package-lock-only
