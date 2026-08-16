@@ -13,10 +13,13 @@
 //! to guard"): every request below targets a hardcoded
 //! `127.0.0.1:11434`, never a caller-supplied host.
 //!
-//! Verification note: the parsing/formatting logic here is fixture-tested
-//! (`#[cfg(test)] mod tests` below), not live-tested against a real
-//! Ollama daemon — this environment has none reachable at startup. The
-//! `Overlay`'s `item.split_whitespace().next()` id-recovery convention
+//! Verification note: the parsing/formatting logic, and `list_installed`/
+//! `running_models`'s HTTP-status handling (Section 8 fix below), are
+//! tested against a real `std::net::TcpListener` on `127.0.0.1` speaking
+//! hand-crafted HTTP/1.1 responses — not against a live Ollama daemon
+//! itself, which this environment has none of reachable at startup, and
+//! not a claim that Ollama's real wire behavior matches these fixtures in
+//! every detail. The `Overlay`'s `item.split_whitespace().next()` id-recovery convention
 //! (`tui/overlay.rs`) also assumes an Ollama tag never contains a space;
 //! Ollama's own `namespace/name:tag` convention makes that safe in
 //! practice, but nothing here enforces it against a daemon that returned
@@ -77,14 +80,28 @@ fn format_size(bytes: u64) -> String {
     }
 }
 
+/// BUG FIX (Workstream A correction pass, follow-up to the Section 8 fix
+/// above): `.get("models").and_then(as_array).unwrap_or_default()` could
+/// not distinguish a genuinely empty install (`{"models": []}`) from a
+/// malformed 200 response — a body with no "models" key at all, or with
+/// "models" present but the wrong JSON type (e.g. `{"models": {}}`) —
+/// both silently became the same `Ok(vec![])` the empty case produces.
+/// The earlier fix only closed the HTTP-status half of this ambiguity
+/// (4xx/5xx vs 200); this closes the remaining 200-with-a-malformed-body
+/// half. A missing or wrong-type "models" field is now a distinct Err,
+/// not silently reinterpreted as zero installed models.
 fn parse_tags_response(body: &str) -> Result<Vec<OllamaModel>> {
     let parsed: serde_json::Value =
         serde_json::from_str(body).context("parsing /api/tags response as JSON")?;
-    let models = parsed
+    let models_value = parsed
         .get("models")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow::anyhow!("malformed /api/tags response: missing \"models\" field"))?;
+    let models = models_value.as_array().ok_or_else(|| {
+        anyhow::anyhow!(
+            "malformed /api/tags response: \"models\" is not an array (got {})",
+            models_value
+        )
+    })?;
     Ok(models
         .iter()
         .filter_map(|entry| {
@@ -110,11 +127,37 @@ fn parse_tags_response(body: &str) -> Result<Vec<OllamaModel>> {
 }
 
 /// `GET /api/tags` — every model currently pulled to disk.
+///
+/// BUG FIX (Workstream A stabilization doc, Section 8, found + reproduced
+/// live via `error_body_without_models_key_is_indistinguishable_from_genuine_empty`):
+/// `agent()` sets `.http_status_as_error(false)`, so `.call()` succeeds and
+/// returns normally even on a 404/500 — this function used to hand that
+/// response straight to `parse_tags_response` without ever checking
+/// `response.status()`. A real Ollama error body (`{"error": "..."}"`, no
+/// "models" key) then silently became `Ok(vec![])` via
+/// `unwrap_or_default()`, identical to a genuinely empty install. Fixed to
+/// check status first and surface a real error with the response body,
+/// matching `delete()`'s existing correct pattern below.
 pub fn list_installed() -> Result<Vec<OllamaModel>> {
+    list_installed_from(BASE_URL)
+}
+
+/// Split out from `list_installed()` so tests can point it at a real fake
+/// HTTP server (`127.0.0.1:<ephemeral port>`) instead of the hardcoded
+/// Ollama daemon address — the same test-seam shape `golden_e2e_tests.rs`
+/// already established for `OpenAiCompatProvider`.
+fn list_installed_from(base_url: &str) -> Result<Vec<OllamaModel>> {
     let mut response = agent()
-        .get(format!("{BASE_URL}/api/tags"))
+        .get(format!("{base_url}/api/tags"))
         .call()
         .context("is the Ollama daemon running? (`ollama serve`)")?;
+    if !response.status().is_success() {
+        let detail = super::provider::read_error_body(&mut response);
+        anyhow::bail!(
+            "GET /api/tags failed ({}): {detail}",
+            response.status().as_u16()
+        );
+    }
     let body = response
         .body_mut()
         .read_to_string()
@@ -122,14 +165,20 @@ pub fn list_installed() -> Result<Vec<OllamaModel>> {
     parse_tags_response(&body)
 }
 
+/// Same MALFORMED-vs-EMPTY fix as `parse_tags_response` above, and for
+/// the identical reason.
 fn parse_ps_response(body: &str) -> Result<Vec<String>> {
     let parsed: serde_json::Value =
         serde_json::from_str(body).context("parsing /api/ps response as JSON")?;
-    let models = parsed
+    let models_value = parsed
         .get("models")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow::anyhow!("malformed /api/ps response: missing \"models\" field"))?;
+    let models = models_value.as_array().ok_or_else(|| {
+        anyhow::anyhow!(
+            "malformed /api/ps response: \"models\" is not an array (got {})",
+            models_value
+        )
+    })?;
     Ok(models
         .iter()
         .filter_map(|entry| entry.get("name")?.as_str().map(str::to_string))
@@ -138,11 +187,28 @@ fn parse_ps_response(body: &str) -> Result<Vec<String>> {
 
 /// `GET /api/ps` — models currently loaded into memory (i.e. actively
 /// serving), a subset of `list_installed`'s result.
+///
+/// Same status-check fix as `list_installed()` above, and for the
+/// identical reason: `parse_ps_response` has the same
+/// `unwrap_or_default()` shape and would swallow a real error body the
+/// same way.
 pub fn running_models() -> Result<Vec<String>> {
+    running_models_from(BASE_URL)
+}
+
+/// Same test-seam split as `list_installed_from()`.
+fn running_models_from(base_url: &str) -> Result<Vec<String>> {
     let mut response = agent()
-        .get(format!("{BASE_URL}/api/ps"))
+        .get(format!("{base_url}/api/ps"))
         .call()
         .context("is the Ollama daemon running? (`ollama serve`)")?;
+    if !response.status().is_success() {
+        let detail = super::provider::read_error_body(&mut response);
+        anyhow::bail!(
+            "GET /api/ps failed ({}): {detail}",
+            response.status().as_u16()
+        );
+    }
     let body = response
         .body_mut()
         .read_to_string()
@@ -280,6 +346,56 @@ mod tests {
         assert_eq!(parse_tags_response(&body).unwrap(), vec![]);
     }
 
+    /// REGRESSION (Workstream A correction pass, follow-up to the Section 8
+    /// fix): a genuine Ollama error body — the real shape the daemon sends
+    /// on a 404/500, e.g. for `/api/tags` failing — has no "models" key at
+    /// all. Before this follow-up fix, `parse_tags_response` defaulted
+    /// that to an empty Vec via `unwrap_or_default()`, identical to a real
+    /// empty install and indistinguishable from it at the parser level
+    /// (the HTTP-status-level fix in `list_installed_from` doesn't help a
+    /// caller of this lower-level parser directly). Now a missing
+    /// "models" field is its own Err, regardless of what HTTP status
+    /// carried it.
+    #[test]
+    fn missing_models_key_is_malformed_not_empty() {
+        let error_body = serde_json::json!({
+            "error": "model \"ghost\" not found, try pulling it first"
+        })
+        .to_string();
+        let error = parse_tags_response(&error_body)
+            .expect_err("a body with no \"models\" key must be Err, not Ok(vec![])");
+        assert!(error.to_string().contains("missing"));
+    }
+
+    /// REPRODUCTION + regression: a 200 response with "models" present but
+    /// the wrong JSON type (an object instead of an array) is a different
+    /// malformed shape than a missing key, and must be caught too — not
+    /// silently treated as empty via the same `unwrap_or_default()` this
+    /// whole fix removes.
+    #[test]
+    fn wrong_type_models_field_is_malformed_not_empty() {
+        let body = serde_json::json!({ "models": {} }).to_string();
+        let error = parse_tags_response(&body)
+            .expect_err("\"models\": {} must be Err (wrong type), not Ok(vec![])");
+        assert!(error.to_string().contains("not an array"));
+    }
+
+    #[test]
+    fn wrong_type_models_field_is_malformed_not_empty_ps() {
+        let body = serde_json::json!({ "models": "not-an-array" }).to_string();
+        let error = parse_ps_response(&body)
+            .expect_err("\"models\": \"...\" must be Err (wrong type), not Ok(vec![])");
+        assert!(error.to_string().contains("not an array"));
+    }
+
+    #[test]
+    fn missing_models_key_is_malformed_not_empty_ps() {
+        let body = serde_json::json!({ "unexpected": [] }).to_string();
+        let error = parse_ps_response(&body)
+            .expect_err("a body with no \"models\" key must be Err, not Ok(vec![])");
+        assert!(error.to_string().contains("missing"));
+    }
+
     #[test]
     fn display_row_omits_missing_fields_without_stray_whitespace() {
         let full = OllamaModel {
@@ -352,5 +468,112 @@ mod tests {
             parse_pull_line(r#"{"status":"verifying digest","completed":0,"total":0}"#),
             Some(PullEvent::Status(s)) if s == "verifying digest"
         ));
+    }
+
+    // ── Live status-check regression tests (Workstream A, Section 8) ──────
+    // Real HTTP/1.1 responses on a bound `127.0.0.1:0` listener, same
+    // pattern `chat::tui::golden_e2e_tests` already established for
+    // `OpenAiCompatProvider` — not a stub, an actual socket round-trip
+    // through `list_installed_from`/`running_models_from`'s real ureq
+    // agent.
+
+    use std::io::{BufRead, BufReader, Write};
+    use std::net::TcpListener;
+
+    /// Serves exactly one request with the given raw status line and body,
+    /// then stops listening. Returns the bound base URL
+    /// (`http://127.0.0.1:<port>`) and a `JoinHandle` the caller joins so a
+    /// server-side panic (e.g. the connection never arrived) fails the test
+    /// instead of being silently swallowed.
+    fn spawn_one_shot_response(
+        status_line: &'static str,
+        body: String,
+    ) -> (String, std::thread::JoinHandle<()>) {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind mock ollama listener");
+        let port = listener.local_addr().expect("local addr").port();
+        let handle = std::thread::spawn(move || {
+            let (stream, _) = listener.accept().expect("accept connection");
+            // Drain the request line + headers so the client's write
+            // doesn't block on an unread socket before it reads our
+            // response — mirrors golden_e2e_tests::read_request_method's
+            // reasoning, simplified since no test here needs the method.
+            let mut reader = BufReader::new(&stream);
+            loop {
+                let mut line = String::new();
+                reader.read_line(&mut line).expect("read header line");
+                if line == "\r\n" || line.is_empty() {
+                    break;
+                }
+            }
+            let mut writer = &stream;
+            write!(
+                writer,
+                "{status_line}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
+            )
+            .expect("write mock response");
+            writer.flush().ok();
+        });
+        (format!("http://127.0.0.1:{port}"), handle)
+    }
+
+    #[test]
+    fn list_installed_from_surfaces_a_real_500_as_an_error_not_empty_ok() {
+        let error_body = serde_json::json!({
+            "error": "model \"ghost\" not found, try pulling it first"
+        })
+        .to_string();
+        let (base_url, handle) =
+            spawn_one_shot_response("HTTP/1.1 500 Internal Server Error", error_body);
+        let result = list_installed_from(&base_url);
+        handle.join().expect("mock server thread panicked");
+        let error = result.expect_err(
+            "a live 500 with a real Ollama error body must surface as Err, \
+             not silently become Ok(vec![]) as it did before the Section 8 fix",
+        );
+        let message = error.to_string();
+        assert!(
+            message.contains("500"),
+            "error should mention the real HTTP status: {message}"
+        );
+    }
+
+    #[test]
+    fn list_installed_from_returns_models_on_a_real_200() {
+        let body = serde_json::json!({
+            "models": [{"name": "llama3.2:latest"}]
+        })
+        .to_string();
+        let (base_url, handle) = spawn_one_shot_response("HTTP/1.1 200 OK", body);
+        let models = list_installed_from(&base_url).expect("200 with valid body must succeed");
+        handle.join().expect("mock server thread panicked");
+        assert_eq!(models.len(), 1);
+        assert_eq!(models[0].name, "llama3.2:latest");
+    }
+
+    /// End-to-end version of `missing_models_key_is_malformed_not_empty`,
+    /// over a real socket: a genuine 200 status (so the HTTP-status-level
+    /// fix in `list_installed_from` correctly lets it through to the
+    /// parser) with a malformed body must still surface as Err, not the
+    /// misleading "200 OK, so it must be fine, 0 models" outcome the
+    /// pre-follow-up parser produced.
+    #[test]
+    fn list_installed_from_surfaces_a_real_200_with_malformed_body_as_an_error() {
+        let body = serde_json::json!({ "unexpected_shape": true }).to_string();
+        let (base_url, handle) = spawn_one_shot_response("HTTP/1.1 200 OK", body);
+        let error = list_installed_from(&base_url)
+            .expect_err("a 200 with no \"models\" key must be Err, not Ok(vec![])");
+        handle.join().expect("mock server thread panicked");
+        assert!(error.to_string().contains("missing"));
+    }
+
+    #[test]
+    fn running_models_from_surfaces_a_real_404_as_an_error_not_empty_ok() {
+        let error_body = serde_json::json!({ "error": "not found" }).to_string();
+        let (base_url, handle) = spawn_one_shot_response("HTTP/1.1 404 Not Found", error_body);
+        let result = running_models_from(&base_url);
+        handle.join().expect("mock server thread panicked");
+        let error = result.expect_err("a live 404 must surface as Err, not Ok(vec![])");
+        assert!(error.to_string().contains("404"));
     }
 }
