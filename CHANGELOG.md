@@ -8,6 +8,106 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.0 — 2026-08-16
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`/`tools/yana-desktop/
+package.json`) bumped from `1.3.2` to `1.4.0` — a minor bump, not a
+patch, reflecting three new provider integrations, a runtime
+architecture unification, and a safety-hook wiring gap closed after
+sitting unnoticed for months. The `yana-rt` crate stays at `1.4.0`
+(no crate-facing API change this round); the Python package stays at
+`0.42.5`.
+
+**Merged, on `origin/main`** — PRs #167 through #210, 44 PRs since
+v1.3.2:
+
+- **New providers, all local-first:** Discord adapter (#205) — a
+  read-only chat vertical slice with its own worker thread isolated
+  from turn panics (#206); an AirLLM local-model provider via a thin
+  OpenAI-compatible bridge (#208, review fixes #209); Ollama model
+  management built into the terminal chat — pull/delete/status
+  (#207).
+- **Runtime architecture:** a unified Rust workspace (#190); the
+  chat surface moved onto a canonical Capability Runtime with typed
+  errors, `SessionContext`, and golden end-to-end tests (#192, #195);
+  a Host-Native OS Program — platform contract, resource/model
+  planes, actor identity, a resident service (#203); an always-on OS
+  Service Supervisor foundation (#197, review-finding fixes #198).
+- **Safety / governance:** a unified Giám Thị control plane (#199),
+  the independent halt watcher this README's Safety Architecture
+  section describes; cross-engine HALT coverage fixes (#196, #176).
+- **Chat UX:** real mouse support, contextual status hints, `/undo`,
+  and custom slash commands in `yana chat` (#177).
+- **Ops:** the sandbox Docker image now publishes to GHCR on every
+  push (#186).
+
+**Ready to merge** — PRs #211 through #220, a CI/CD-assurance and
+runtime-defect pass run in parallel across two coordinating sessions,
+each independently built, reviewed (`security-auditor` +
+`code-auditor` per `54-bft-consensus-law.md`), and CI-verified before
+being marked ready. Listed here because this release is intended to
+include them; **merge them before treating this changelog entry as
+describing `origin/main`'s actual state** — see "Release readiness"
+below for exactly what to check.
+
+- **Critical fix, previously invisible:** `tool-validator.sh`'s
+  null-byte check had collapsed to an always-matching empty pattern
+  (`grep -q $'\x00'`, a bash quoting gotcha — `$'\x00'` cannot
+  represent a real NUL byte, so it silently became `grep -q ''`),
+  denying essentially every Bash tool call. #211 removes the broken
+  check.
+- **16 dormant safety hooks wired for the first time:**
+  `deploy-gate`, `db-protect`, `api-destruct-guard`,
+  `supply-chain-guard`, `prompt-injection-guard`, `token-scope-guard`,
+  `code-freeze`, `code-quality-gate`, `coverage-gate`,
+  `dependency-safety-gate`, `static-analysis-gate`,
+  `test-runner-gate`, `multi-agent-lock`, `confidence-scorer`,
+  `risk-scorer`, and `canary-token-guard` existed in `core/hooks/`
+  but were never referenced in `.claude/settings.json` — none had
+  ever executed (#213). A follow-up (#220) fixes 2 of those hooks
+  silently disabling all of their own checks when `jq` is missing,
+  with zero warning.
+- **Real CVEs closed:** `quinn-proto` RUSTSEC-2026-0185, a remote
+  memory-exhaustion advisory (#214); an SSRF gap in the egress guard
+  for CGNAT and IPv4-mapped-IPv6 ranges (#219); a reconciliation
+  evidence-loss bug where a lost event degraded silently instead of
+  being recorded (#216).
+- **Runtime hardening:** Ollama's chat integration now distinguishes
+  a genuine backend failure from an honestly-empty install list
+  instead of defaulting both to the same misleading state (#215);
+  the AirLLM bridge gained bounded admission (a second concurrent
+  request gets an explicit 503, not an unbounded wait queue), a read
+  timeout, and a context-length ceiling checked before the expensive
+  generation call (#217); Discord's gateway-to-worker dispatch queue
+  is now bounded instead of growing without limit under a flood
+  (#218).
+- **CI/CD assurance, from a standing start:** every GitHub Action
+  reference across all workflow files SHA-pinned; `cargo audit` +
+  `pip-audit` + `npm audit` wired as a required check (currently RED
+  on 2 known, tracked, deliberately-deferred CVEs — see the PR for
+  why); a release-manifest step recording commit SHA, toolchain,
+  Cargo.lock digest, and artifact SHA256 for every published binary;
+  branch protection enabled on `main` for the first time (#212).
+
+### Release readiness
+
+Before this entry describes `origin/main`'s real state:
+1. Merge #211–#220 in a order that keeps `core-lock.json` regenerated
+   after each core/hooks/rules change — several were reviewed against
+   slightly different base commits and will need a final rebase/regen
+   pass, not a blind sequential merge.
+2. #212 and #217 both modify `.github/workflows/ci.yml` at the same
+   insertion point — a real merge conflict, not a false alarm; keep
+   both added steps, do not resolve it as ours/theirs on the whole
+   file.
+3. Re-run `bash core/tests/hooks/run-hook-tests.sh`,
+   `bash core/scripts/verify-core-lock.sh`, and
+   `bash core/scripts/verify-hook-mirrors.sh` on the post-merge tree
+   before tagging `v1.4.0`.
+
+---
+
 ## v1.3.2 — 2026-08-11
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
