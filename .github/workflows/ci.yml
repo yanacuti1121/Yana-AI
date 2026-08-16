@@ -403,10 +403,25 @@ jobs:
       # (PYSEC-2026-1845, pytest 8.3.5, local /tmp race — see requirements-
       # dev.txt's own pin comment history) — low real-world risk on an
       # ephemeral single-tenant GitHub-hosted runner, but real and now
-      # tracked instead of invisible. Left unfixed here deliberately: a
-      # pytest 8->9 major-version bump needs its own compatibility
-      # verification pass across this repo's full test suite, which is out
-      # of scope for "add the check that surfaces this."
+      # tracked instead of invisible.
+      #
+      # CORRECTION (Workstream B, 2026-08-16): the first version of this
+      # step left PYSEC-2026-1845 as a prose-only exception -- documented
+      # in core/ci/B5-governance-registry.md's exceptions registry, but
+      # pip-audit itself still failed on every run, since a written
+      # exception doesn't change what the tool checks. That's the actual
+      # bug: a real advisory-database policy needs the tool to enforce
+      # it, not a comment next to a still-failing command. Fixed with
+      # --ignore-vuln, scoped to this exact advisory ID only (verified
+      # locally: pip-audit still reports and fails on any *other*
+      # vulnerability in this file -- this flag does not create a
+      # blanket bypass). The registry entry in B5-governance-registry.md
+      # is this allowlist's actual owner/reason/created/review-by record;
+      # this flag is just where that decision gets enforced. Left
+      # unfixed (the version pin itself, not the audit gate) deliberately:
+      # a pytest 8->9 major-version bump needs its own compatibility
+      # verification pass across this repo's full test suite, out of
+      # scope for a CI-policy fix.
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
         with:
@@ -416,7 +431,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Run pip-audit (dev/test tooling)
-        run: pip-audit --requirement requirements-dev.txt
+        run: pip-audit --requirement requirements-dev.txt --ignore-vuln PYSEC-2026-1845
 
       - name: Run pip-audit (published package runtime dependencies)
         run: |
