@@ -1940,6 +1940,17 @@ test_validator "Allow safe WebFetch" \
     '{"tool_name":"WebFetch","tool_input":{"url":"https://api.github.com/repos/test/test"}}' "allow"
 test_validator "Allow safe Write in project" \
     '{"tool_name":"Write","tool_input":{"file_path":"core/hooks/new-hook.sh","content":"#!/bin/bash"}}' "allow"
+# Regression test (found + fixed 2026-08-15/16, reproduced live against a
+# clean origin/main checkout, not just read): the null-byte check's
+# `LC_ALL=C grep -q $'\x00'` fallback silently collapsed to `grep -q ''`
+# (bash's ANSI-C quoting cannot represent a NUL byte), which matches any
+# non-empty input -- combined with `||`, this denied every Bash command
+# with "Null byte detected", including this one. Before the fix, this
+# exact case failed (denied); after, it passes. Ordinary git/echo/ls
+# commands with zero null bytes are the entire population this hook is
+# supposed to let through -- this had been silently denying all of them.
+test_validator "Allow ordinary Bash command with no null byte (regression: ANSI-C-quoting false-positive fix)" \
+    '{"tool_name":"Bash","tool_input":{"command":"echo hi"}}' "allow"
 test_validator "Bypass suppresses block" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://localhost:9000"}}' "allow" "bypass"
 
