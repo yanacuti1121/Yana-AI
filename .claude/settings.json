@@ -56,6 +56,26 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/sandbox-wrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/deploy-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/supply-chain-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/db-protect.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/api-destruct-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_HOOK_TIMEOUT=150 YANA_GUARDED_HOOK=.claude/hooks/coverage-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -65,6 +85,19 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-validator.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/prompt-injection-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/token-scope-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       },
@@ -114,6 +147,27 @@
             "command": "YANA_GUARDED_HOOK=.claude/hooks/per-tool-circuit-breaker.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/code-freeze.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/multi-agent-lock.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/confidence-scorer.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/risk-scorer.sh bash .claude/hooks/hook-timeout-guard.sh"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -145,6 +199,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/context-compress-stop.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/canary-token-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }
@@ -191,6 +249,22 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/entry-point-verify-reminder.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/code-quality-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/dependency-safety-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/static-analysis-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_HOOK_TIMEOUT=90 YANA_GUARDED_HOOK=.claude/hooks/test-runner-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }

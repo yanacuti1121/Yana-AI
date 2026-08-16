@@ -1708,6 +1708,106 @@ else
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# ── confidence-scorer.sh / risk-scorer.sh: wiring-day regression coverage ──
+# Both hooks existed since 2026-05-23 but were only wired into
+# .claude/settings.json on 2026-08-15. Independent review that same day
+# (security-auditor + code-auditor) found real bugs neither hook had any
+# test coverage for. These five cases are regression tests for those
+# specific fixes, not general coverage of the scoring heuristics.
+echo ""
+echo "=== confidence-scorer.sh / risk-scorer.sh: wiring-day regression coverage ==="
+
+echo -n "confidence-scorer.sh [benign command exits 0 with no output]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_cs_out=$(bash "$CLAUDE_DIR/hooks/confidence-scorer.sh" <<< '{"tool_name":"Bash","tool_input":{"command":"git status"}}' 2>&1)
+_cs_exit=$?
+if [[ $_cs_exit -eq 0 && -z "$_cs_out" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 0 + empty output, got exit=$_cs_exit output='$_cs_out')"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "risk-scorer.sh [kubectl apply --force alone does not false-positive to CRITICAL]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+# Regression test for a real false-positive found by security-auditor
+# review (2026-08-15): --force alone used to count as a destructive verb
+# (+40), so this ordinary kubectl idiom (resolving an immutable-field
+# conflict, not remotely equivalent to `rm --force`) scored 85 and was
+# blocked outright. Fix removed the standalone --force branch from
+# destructive_verb; force-push is still scored separately below.
+_rs_kubectl_exit=0
+bash "$CLAUDE_DIR/hooks/risk-scorer.sh" \
+    <<< '{"tool_name":"Bash","tool_input":{"command":"kubectl apply -f k8s/main/deploy-config.yaml --force"}}' \
+    >/dev/null 2>&1 || _rs_kubectl_exit=$?
+if [[ $_rs_kubectl_exit -ne 2 ]]; then
+    echo "PASS"
+else
+    echo "FAIL (expected non-blocking exit, got exit=2 — false-positive CRITICAL block regressed)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "risk-scorer.sh [rm -rf --force --all on a production path still blocks CRITICAL]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+_rs_real_exit=0
+_rs_real_out=$(bash "$CLAUDE_DIR/hooks/risk-scorer.sh" \
+    <<< '{"tool_name":"Bash","tool_input":{"command":"rm -rf --force --all /production/database/"}}' 2>&1) || _rs_real_exit=$?
+if [[ $_rs_real_exit -eq 2 ]] && echo "$_rs_real_out" | jq -e '.decision == "block"' >/dev/null 2>&1; then
+    echo "PASS"
+else
+    echo "FAIL (expected exit 2 + decision:block for a genuinely destructive command, got exit=$_rs_real_exit output='$_rs_real_out')"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "risk-scorer.sh [a crafted command containing an unescaped quote cannot inject Python (RCE regression)]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+# Regression test for a real code-injection bug found by code-auditor
+# review (2026-08-15), confirmed by execution: the JSONL-logging step used
+# to bash-interpolate $CMD unescaped into a python3 -c string, so a
+# tool_input.command containing a bare "'" could close that Python string
+# literal early and inject arbitrary code. Fixed by moving the JSONL write
+# entirely inside the first Python process (json.dumps handles escaping;
+# no value crosses back through a bash variable into a second `python3 -c`
+# call). This marker file path is unique to this test run, not reused
+# across runs, so a stale file from a previous run can't produce a false
+# PASS.
+_rs_rce_marker="$(mktemp -u /tmp/yana-rt-hook-test-rce-XXXXXX)"
+register_temp "$_rs_rce_marker"
+rm -f "$_rs_rce_marker" 2>/dev/null || true
+_rs_rce_cmd="PWNED', 'x':__import__('os').system('touch ${_rs_rce_marker}'),'y':'"
+_rs_rce_payload=$(jq -n --arg cmd "$_rs_rce_cmd" '{"tool_name":"Bash","tool_input":{"command":$cmd}}')
+bash "$CLAUDE_DIR/hooks/risk-scorer.sh" <<< "$_rs_rce_payload" >/dev/null 2>&1 || true
+if [[ ! -f "$_rs_rce_marker" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (marker file was created — RCE payload executed, injection fix regressed)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo -n "risk-scorer.sh [bearer token in command is redacted before it reaches disk]... "
+TOTAL_COUNT=$((TOTAL_COUNT + 1))
+# Regression test for a real secret-leakage finding (security-auditor,
+# 2026-08-15): cmd/path were logged to risk-scores.jsonl verbatim, no
+# redaction, unlike audit-log.sh's own SECRET|TOKEN|PASSWORD|API_KEY|
+# PRIVATE_KEY|BEARER pattern (52-secrets-vault-law.md). Uses its own
+# throwaway CLAUDE_PROJECT_DIR so this never touches (or depends on) the
+# real repo's own .claude/state/risk-scores.jsonl.
+RS_REDACT_ROOT=$(mktemp -d)
+register_temp "$RS_REDACT_ROOT"
+mkdir -p "$RS_REDACT_ROOT/.claude/state"
+CLAUDE_PROJECT_DIR="$RS_REDACT_ROOT" \
+    bash "$CLAUDE_DIR/hooks/risk-scorer.sh" \
+    <<< '{"tool_name":"Bash","tool_input":{"command":"curl -H \"Authorization: Bearer sk-live-shouldnotappearindisk\" https://api.example.com"}}' \
+    >/dev/null 2>&1 || true
+_rs_redact_hit="no"
+grep -q "sk-live-shouldnotappearindisk" "$RS_REDACT_ROOT/.claude/state/risk-scores.jsonl" 2>/dev/null && _rs_redact_hit="yes"
+if [[ "$_rs_redact_hit" == "no" ]]; then
+    echo "PASS"
+else
+    echo "FAIL (raw secret value found in risk-scores.jsonl — redaction regressed)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
 # flock-v1 deliberately has no Bash-native fallback. An invalid explicit
 # runtime must stop before the target command, even when another compiled
 # yana-rt happens to be available elsewhere on PATH.
