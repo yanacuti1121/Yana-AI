@@ -420,6 +420,19 @@ fn tick_for_component(
 /// above, which heartbeat-staleness monitoring actually depends on.
 /// Detected events are recorded as receipts (append-only evidence) —
 /// nothing here reads or writes HALT/QUARANTINE state.
+///
+/// BUG FIX (Workstream A stabilization doc, Section 6, reproduced live via
+/// `reconcile_events_records_degradation_instead_of_silently_losing_a_detected_event`):
+/// the receipt append below used to be `let _ = append_receipt(...)`,
+/// discarding the failure entirely. `ReconciliationState` still advances
+/// past the detected event regardless (correct — see this function's own
+/// "best-effort" note above), which means a failed append didn't just
+/// lose one receipt, it lost the event's existence forever: the next
+/// tick's diff has already moved on and will never detect the same
+/// transition again. Fixed to route a failed append through
+/// `record_evidence_degradation`, the same fallback `halt()`/
+/// `set_quarantine()` already use for the identical class of failure —
+/// visible evidence degradation while state advances, not silent loss.
 fn reconcile_events(root: &Path) {
     let path = root.join(RECONCILIATION_STATE_PATH);
     let previous = read_json_optional::<events::ReconciliationState>(&path)
@@ -433,7 +446,9 @@ fn reconcile_events(root: &Path) {
     let (detected, next) = events::reconcile(root, previous, expected_interval_secs);
     for event in &detected {
         let detail = serde_json::to_string(event).unwrap_or_else(|_| format!("{event:?}"));
-        let _ = append_receipt(root, "supervisor.event", "yana-rt", &detail);
+        if let Err(error) = append_receipt(root, "supervisor.event", "yana-rt", &detail) {
+            record_evidence_degradation(root, "supervisor.event", "yana-rt", &detail, &error);
+        }
     }
     let _ = write_json_atomic(&path, &next);
 }
@@ -2122,6 +2137,105 @@ mod tests {
         // stayed valid, not the exact count.
         assert!(after > before);
         assert!(verify_receipts(&root).unwrap().0);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    /// REPRODUCTION (Workstream A stabilization doc, Section 6): "Failure
+    /// to append a receipt must not silently consume a detected
+    /// reconciliation event." Calls `reconcile_events` directly (private
+    /// fn, same-module access — this file's own established convention,
+    /// e.g. `halt`/`set_quarantine` above) rather than through `tick()`,
+    /// because `tick_for_component`'s own earlier `append_receipt(...)?`
+    /// would already fail and return before ever reaching
+    /// `reconcile_events` if the chain were tampered from the start — the
+    /// real bug only shows up when the chain is fine for other receipts
+    /// but this specific append fails, which direct invocation lets this
+    /// test isolate precisely.
+    ///
+    /// Seeds a `ReconciliationState` with a huge gap so
+    /// `detect_sleep_wake` deterministically fires (no dependency on live
+    /// host pressure, unlike the existing
+    /// `tick_bumps_receipt_count_and_keeps_chain_valid`-style tests'
+    /// documented limitation), then tampers the receipt chain so the
+    /// in-loop `append_receipt` call fails. Before the fix: the detected
+    /// Sleep/Wake event leaves no trace anywhere — not in the receipt
+    /// chain (append failed) and not in the evidence-degradation trail
+    /// (the failure was silently discarded via `let _ =`) — while
+    /// `ReconciliationState` still advances past it, so it can never be
+    /// detected again on a later tick either. That combination is exactly
+    /// "silently consumed."
+    #[test]
+    fn reconcile_events_records_degradation_instead_of_silently_losing_a_detected_event() {
+        let root = root();
+        fs::create_dir_all(&root).unwrap();
+
+        // Seed a state guaranteed to produce Sleep/Wake regardless of
+        // whatever `expected_interval_secs` this empty root's
+        // `monitor_service::status` resolves to — a multi-year gap
+        // exceeds any plausible real interval.
+        let seeded = events::ReconciliationState {
+            last_tick_unix_secs: Some(1),
+            last_pressure: None,
+        };
+        write_json_atomic(&root.join(RECONCILIATION_STATE_PATH), &seeded).unwrap();
+
+        // Establish a valid chain, then tamper it (same technique as
+        // `receipt_chain_detects_tampering` above) so the in-loop
+        // `append_receipt` call inside `reconcile_events` fails closed.
+        append_receipt(&root, "seed", "test", "seed").unwrap();
+        let receipts_path = root.join(RECEIPTS_PATH);
+        let tampered = fs::read_to_string(&receipts_path)
+            .unwrap()
+            .replace("seed", "forged");
+        fs::write(&receipts_path, tampered).unwrap();
+        assert!(!verify_receipts(&root).unwrap().0, "chain must be tampered before this test's real assertion — otherwise it isn't testing the failure path");
+
+        reconcile_events(&root);
+
+        // State must still have advanced (best-effort design, matches the
+        // function's own doc comment) -- this half was already correct.
+        let advanced: events::ReconciliationState =
+            read_json_optional(&root.join(RECONCILIATION_STATE_PATH))
+                .unwrap()
+                .unwrap();
+        assert_ne!(
+            advanced.last_tick_unix_secs, seeded.last_tick_unix_secs,
+            "reconciliation state should still advance even when the receipt \
+             append for a detected event fails -- this is the correct half \
+             of the existing behavior"
+        );
+
+        // The actual bug: was the detected event's existence recorded
+        // ANYWHERE -- either as a receipt (it can't be, the chain is
+        // tampered) or, after this fix, in the evidence-degradation
+        // trail? Before the fix this is (0, None): the event vanished
+        // without a trace.
+        let (degraded_count, last) = evidence_degradation_summary(&root);
+        assert!(
+            degraded_count > 0,
+            "a detected reconciliation event whose receipt failed to append \
+             must be recorded to the evidence-degradation trail, not \
+             silently dropped -- see record_evidence_degradation, already \
+             used by halt()/set_quarantine() for the identical class of \
+             failure"
+        );
+        // Both Sleep and Wake are detected together (see
+        // `detect_sleep_wake`'s doc comment) and each is looped over
+        // individually, so a fully-tampered chain degrades both.
+        assert_eq!(
+            degraded_count, 2,
+            "expected both the Sleep and Wake events to be individually \
+             recorded to the degradation trail"
+        );
+        let last = last.expect("degraded_count > 0 implies a record exists");
+        assert_eq!(last.event, "supervisor.event");
+        assert!(
+            last.detail.contains("sleep") || last.detail.contains("wake"),
+            "degraded record should describe the actual lost event, not a \
+             generic message: {}",
+            last.detail
+        );
+
         fs::remove_dir_all(root).unwrap();
     }
 
