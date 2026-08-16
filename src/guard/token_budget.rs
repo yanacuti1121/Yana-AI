@@ -85,7 +85,15 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
         fast_tier_model: &fast_tier_model,
     };
     match yana_rt::flock_v1::with_lock(
-        "key/state/token-budget.json",
+        // "key:" prefix required — without it, canonical_identity() falls
+        // into the path-resolution branch instead of the key-special-case
+        // branch, producing a DIFFERENT lock identity than risk-scorer.sh's
+        // Python side (`FileLock('key:state/token-budget.json', ...)`),
+        // so the two writers of this same file never actually contended
+        // for the same lock. Found by independent code review (2026-08-15):
+        // confirmed empirically via 30 concurrent runs, 1/3 showing a lost
+        // update to last_risk_score/last_risk_band.
+        "key:state/token-budget.json",
         &project_root,
         std::time::Duration::from_secs(10),
         || {

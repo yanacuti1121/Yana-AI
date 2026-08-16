@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-15T14:47:21+00:00",
+  "generated": "2026-08-15T15:17:51+00:00",
   "count": 278,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -24,7 +24,7 @@
     "core/hooks/code-freeze.sh": "6ef743f19ea2390e90bd0a2dd3615fa94ea53cdf7b550924492708a44c2ce04f",
     "core/hooks/code-quality-gate.sh": "7f623a0f23437f3746b945552c73cca7324dba20eff30cf9b75c1a9b7864035d",
     "core/hooks/commit-gate.sh": "492ca012ad2195a14bc5949d4a796fbcc69bc6305cc3d01cab34333626fef295",
-    "core/hooks/confidence-scorer.sh": "03eb779363f74e172f50eec1cb18ba867d02aa564ac82abb9239d145b7ec5a33",
+    "core/hooks/confidence-scorer.sh": "cec71accc16516366d8e16e85a65f5a33cb2c42aaf7ebea9b9a9c2582c371397",
     "core/hooks/context-compress-stop.sh": "03a66298f3ceb580c436019e1849348768e8232cd453ef9f3d40b5b0377e1c15",
     "core/hooks/context-compress-trigger.sh": "cd66cf55ae27293eac1d7bbb99d57f0da0a34ec70e902cbec804d88c5845ce93",
     "core/hooks/context-gate-log.sh": "746629a2b523886e998256602f74da0802fd02f4179cb7bae47bf0a113bbead4",
@@ -52,7 +52,7 @@
     "core/hooks/precompact-priority-injection.sh": "ce59072f575e403fc76efd1a797552a3fbfdfae71ecca9e73690ea02afc789b2",
     "core/hooks/prompt-injection-guard.sh": "789f73a6dbc64a276dd7a75b4a3a95ebbdcb119114e22b7f84fa26bc33fb01cd",
     "core/hooks/rbac-guard.sh": "3be44f2789a79420e905f471f01f14b714479e9c80b0022516d40cb093628058",
-    "core/hooks/risk-scorer.sh": "d328ca209a91c2519f69ad896a1616d2bde35a05e2e079a240772c28194b04ac",
+    "core/hooks/risk-scorer.sh": "d6f8c1b9eb0cdbd767907516e96c67a3bcd99ab6e6fc3b51723332ea8c7ecce0",
     "core/hooks/rtk-bridge.sh": "9649d2872be1690e803441967b9c89c2619f55ea5ddf566b90f75a3a4aa30454",
     "core/hooks/sandbox-wrap.sh": "b5e2e88234ff03397ab9458846b7ca55c699c6ed5ac463d94a4f328f8425b6b7",
     "core/hooks/sbom-generator.sh": "2d7c96ef5a7df0b32dd3953330863ab72fb55d1374a586e4838b83815e945268",
@@ -280,6 +280,6 @@
     "src/guard/lock.rs": "991a285a179f96b35d133b4db9723ba9d4941ac03f92ad758b81a928438e1702",
     "src/guard/mod.rs": "0ff59503c1b5b4cf13068f2e39b47b3d1b829b22a6acb87b4a78b624b1016a34",
     "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
-    "src/guard/token_budget.rs": "0e1cef8a2310df1f467b2def47bc38a901a96a4b9a6428e05324168567dcb415"
+    "src/guard/token_budget.rs": "fa6ff44fd783c8f5be7e7cbbfa3d405d0bfe16386680643a2755d334d9867afc"
   }
 }
