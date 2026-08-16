@@ -18,7 +18,7 @@ everything B can state without guessing at runtime truth A owns.
 | # | Step | Status | Evidence |
 |---|---|---|---|
 | 1 | Current CI assurance inventory | **DONE** | This document + B0-B8 |
-| 2 | Invariant registry | **DONE** | `B5-invariant-registry.md` — 5 confirmed invariants, 4 gap invariants, all with Failure Policy classification |
+| 2 | Invariant registry | **DONE** | `B5-invariant-registry.md` — 5 originally-confirmed + 3 closed 2026-08-16 (Workstream A PRs #215/#217/#218, pending merge) = 8 confirmed, 1 gap invariant remaining, all with Failure Policy classification |
 | 3 | 8-domain mapping | **DONE** | `B2-assurance-domain-taxonomy.md` — 7/8 domains covered, A7 confirmed greenfield |
 | 4 | Impact → required-test map | **NOT DONE** | Confirmed absent in B4/B5/B7/B8 — all required checks run unconditionally on every push; no path-based classifier exists |
 | 5 | Silent-skip / continue-on-error cleanup | **DONE, verified clean** | `B8-target-architecture-hardening-audit.md` — zero real `\|\| true` or `continue-on-error` hits |
@@ -53,7 +53,7 @@ asks for, marking each as **B-OWNED** (stated here, with evidence) or
 | Findings: fixed/disproved/already-resolved/deferred | **PARTIAL — B's own findings only** | Every B0-B8 document above states its findings in exactly this vocabulary (COVERED/GAP, fixed-this-pass/deferred, etc.); Workstream A's own runtime findings from #201-#210 are BLOCKED |
 | 8 Assurance Domains status | **B-OWNED** | `B2-assurance-domain-taxonomy.md` — A1/A2/A3/A5/A6/A8 present (with caveats), A4 partial, A7 confirmed absent |
 | 5 Execution Tiers status | **B-OWNED** | `B4-execution-tier-matrix.md` — T1/T2/T3 present (T3 partial for flock), T4/T5 absent |
-| Invariant registry summary | **B-OWNED** | `B5-invariant-registry.md` — 5 confirmed / 4 gap, all with failure-policy classification |
+| Invariant registry summary | **B-OWNED** | `B5-invariant-registry.md` — 8 confirmed (5 original + 3 closed 2026-08-16, pending merge) / 1 gap remaining, all with failure-policy classification |
 | Required-check recommendations | **B-OWNED, and implemented** | All 6 `ci.yml` jobs required; `publish-crates` permissions fixed; `.github/workflows/` core-lock coverage recommended but not implemented (B8) |
 | Resource envelopes | **NOT ASSESSED** | Not measured in this pass (B5's CI-cost section: no historical duration/resource data source wired up) |
 | Resource-runaway regression status | **NOT ASSESSED** | Same as execution-order step 7 above |
