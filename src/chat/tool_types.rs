@@ -11,34 +11,10 @@
 //! "start(index,id,name)" + "append_args(index,str)" shape — implemented
 //! once here instead of duplicated per provider.
 
+pub(crate) use crate::runtime::tool_types::{
+    StreamOutcome, ToolCall, ToolCallRecord, ToolResultRecord, ToolSpec,
+};
 use std::collections::BTreeMap;
-
-/// A tool definition sent to the provider in the request's `tools:` array.
-#[derive(Debug, Clone)]
-pub struct ToolSpec {
-    pub name: &'static str,
-    pub description: &'static str,
-    pub parameters_schema: serde_json::Value,
-}
-
-/// A fully-accumulated tool call the model proposed, once its streamed
-/// fragments (id/name/args) are complete.
-#[derive(Debug, Clone)]
-pub struct ToolCall {
-    pub id: String,
-    pub name: String,
-    pub arguments_json: String,
-}
-
-/// What a completed turn produced: plain text, or one or more proposed
-/// tool calls. Both providers can technically emit more than one call per
-/// turn — this type doesn't collapse that decision away; the turn loop
-/// decides what "more than one" means for the MVP.
-#[derive(Debug, Clone)]
-pub enum StreamOutcome {
-    Text,
-    ToolCalls(Vec<ToolCall>),
-}
 
 /// Accumulates streamed tool-call fragments keyed by provider index.
 #[derive(Debug, Default)]
@@ -90,37 +66,6 @@ impl ToolCallAccumulator {
             })
             .collect()
     }
-}
-
-/// Serializable record of a tool call the model proposed, carried on
-/// `ChatMessage`/`HistoryLine` for an assistant-role turn.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ToolCallRecord {
-    pub id: String,
-    pub name: String,
-    pub arguments_json: String,
-}
-
-impl From<ToolCall> for ToolCallRecord {
-    fn from(c: ToolCall) -> Self {
-        Self {
-            id: c.id,
-            name: c.name,
-            arguments_json: c.arguments_json,
-        }
-    }
-}
-
-/// Serializable record of what running (or declining to run) a tool call
-/// produced, carried on `ChatMessage`/`HistoryLine` for a user-role turn
-/// (see `history.rs`'s module doc for why tool results are attributed to
-/// `Role::User`, matching both providers' own wire conventions).
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ToolResultRecord {
-    pub call_id: String,
-    pub output: String,
-    pub is_error: bool,
-    pub denied: bool,
 }
 
 #[cfg(test)]

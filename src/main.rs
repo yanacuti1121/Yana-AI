@@ -23,6 +23,9 @@ mod os;
 mod plugin;
 mod provenance;
 mod route;
+// Foundation only: clients are migrated in a later, separately reviewed PR.
+#[allow(dead_code, unused_imports)]
+mod runtime;
 pub mod scanner;
 mod score;
 mod session_context;
