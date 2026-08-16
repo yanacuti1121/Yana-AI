@@ -354,7 +354,7 @@ jobs:
     # action rather than shelling out to a locally-installed `cargo-audit`
     # binary (not installed in this repo's CI images, and the action
     # bundles its own).
-    name: Dependency Vulnerability Audit (cargo audit)
+    name: Dependency Vulnerability Audit (cargo audit + pip-audit)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -365,3 +365,38 @@ jobs:
         uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same coverage gap as cargo audit above, for the Python side: this
+      # repo publishes a PyPI package (pyproject.toml) whose own
+      # dependencies (PyYAML, jsonschema) and this repo's own dev/test
+      # tooling (requirements-dev.txt) were never checked against a known-
+      # vulnerability database either. pip-audit itself found a real,
+      # disclosed CVE in this repo's dev tooling while wiring this check
+      # (PYSEC-2026-1845, pytest 8.3.5, local /tmp race — see requirements-
+      # dev.txt's own pin comment history) — low real-world risk on an
+      # ephemeral single-tenant GitHub-hosted runner, but real and now
+      # tracked instead of invisible. Left unfixed here deliberately: a
+      # pytest 8->9 major-version bump needs its own compatibility
+      # verification pass across this repo's full test suite, which is out
+      # of scope for "add the check that surfaces this."
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install -r requirements-dev.txt
+
+      - name: Run pip-audit (dev/test tooling)
+        run: pip-audit --requirement requirements-dev.txt
+
+      - name: Run pip-audit (published package runtime dependencies)
+        run: |
+          python3 - <<'PY' > /tmp/runtime-requirements.txt
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+          for dep in data["project"]["dependencies"]:
+              print(dep)
+          PY
+          pip-audit --requirement /tmp/runtime-requirements.txt
