@@ -109,7 +109,20 @@ jobs:
           else
             sha256() { shasum -a 256 "$1" | awk '{print $1}'; }
           fi
-          PRODUCT_VERSION=$(python3 -c "import json; print(json.load(open('MANIFEST.json'))['version'])")
+          # BUG FIX (found by independent fresh-context review, 2026-08-16):
+          # this originally called `python3` unconditionally on all 4
+          # matrix legs including windows-latest. Stock Windows runner
+          # images expose `python`, not `python3` -- there's no
+          # actions/setup-python step in this workflow that would create
+          # a python3 shim, and this repo already knows the same gap
+          # exists elsewhere (ci.yml's own only other python3-on-a-
+          # Windows-capable-matrix call is explicitly gated `if:
+          # runner.os != 'Windows'`). Same command-v fallback style as
+          # the sha256 helper immediately above, so the release would
+          # have failed outright on the Windows leg with no binary
+          # published for it, not silently produced a wrong manifest.
+          PYTHON_BIN="$(command -v python3 || command -v python)"
+          PRODUCT_VERSION=$("$PYTHON_BIN" -c "import json; print(json.load(open('MANIFEST.json'))['version'])")
           YANA_RT_VERSION=$(grep -m1 '^version' Cargo.toml | sed -E 's/version *= *"(.*)"/\1/')
           CARGO_LOCK_SHA256=$(sha256 Cargo.lock)
           ARTIFACT_PATH="target/${{ matrix.target }}/release/${{ matrix.binary }}"

@@ -121,7 +121,7 @@ runs:
 
     - name: Upload SARIF to GitHub Code Scanning
       if: ${{ inputs.sarif == 'true' && always() }}
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
       with:
         sarif_file: yana-ai-scan.sarif
         category: yana-ai-security-scan
@@ -129,7 +129,7 @@ runs:
 
     - name: Comment on PR
       if: ${{ inputs.comment-on-pr == 'true' && github.event_name == 'pull_request' && always() }}
-      uses: actions/github-script@v7
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
       with:
         script: |
           const fs = require('fs');

@@ -95,6 +95,15 @@ jobs:
       - name: Validate agent routing map regression behavior
         run: python3 tests/test_agent_routing_map.py
 
+      # BUG FIX (found by independent fresh-context review, 2026-08-16):
+      # this self-test script existed (added earlier this workstream) but
+      # was never actually wired into CI -- it caught nothing, it only
+      # documented the SHA-pinning convention by example. Adding it here
+      # closes that gap: any future PR that re-introduces a floating
+      # action ref now fails this required job instead of merging silently.
+      - name: Check all GitHub Actions references are SHA-pinned
+        run: bash core/ci/check-pinned-actions.sh
+
   flock-v1-linux:
     name: Kernel flock-v1 (Ubuntu)
     runs-on: ubuntu-latest

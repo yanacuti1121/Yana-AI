@@ -7,9 +7,13 @@ inspecting conventions" and offers `.github/workflows/ci-fast.yml` /
 `ci-full.yml` / etc. + `core/ci/impact-map.*` only as a "possible
 direction." This workstream has not restructured the existing single
 `ci.yml` into split fast/full/platform/adversarial/nightly files, and
-has kept every new audit document inside the pre-existing `core/ci/`
-directory (which already held `check-pinned-actions.sh` before this
-workstream started) rather than inventing a new top-level location.
+has kept every new audit document inside `core/ci/` — the one location
+this workstream itself created earlier in B0-B1 (`check-pinned-
+actions.sh` was this workstream's own first file there, not a
+pre-existing convention; corrected here after an earlier draft of this
+sentence claimed the directory pre-dated this workstream, which
+`git ls-tree origin/main core/ci/` disproves — the directory does not
+exist on `main`) — rather than inventing a second, competing location.
 Recorded as a deliberate non-action, not an oversight — B4 already
 established there's no T4/T5 tier to split workflows around yet, so
 splitting `ci.yml` now would be organizing around tiers that don't
@@ -17,13 +21,28 @@ exist.
 
 ## `|| true` and `continue-on-error: true` audit
 
-**Clean.** `grep -n "|| true" .github/workflows/*.yml` returns zero
-hits. `grep -n "continue-on-error" .github/workflows/*.yml` returns
-exactly one hit, and it's this workstream's own comment in
-`release.yml` explaining why `continue-on-error` was deliberately
-*not* used for the `x86_64-apple-darwin` smoke-test exclusion — not an
-actual failure-suppression mechanism. No workflow in this repo silently
-swallows a command failure via either pattern.
+**Corrected after independent review — the original claim of "clean"
+only checked `.github/workflows/*.yml`, missing `.github/actions/*/
+action.yml` entirely** (the same directory gap `check-pinned-actions.sh`
+had — see the composite-action fix note added to that script). Redone
+with the correct scope:
+
+- `.github/workflows/*.yml`: zero `\|\| true` hits; the one
+  `continue-on-error` hit is this workstream's own comment in
+  `release.yml` explaining why it was deliberately *not* used, not an
+  actual failure-suppression mechanism. Clean, as originally stated.
+- `.github/actions/scan/action.yml:128` (real hit, missed by the
+  original pass): `continue-on-error: true` on the "Upload SARIF to
+  GitHub Code Scanning" step. Reviewed rather than left as a silent
+  correction-of-a-correction: this is a defensible use, not a bug — a
+  transient SARIF-upload failure (e.g. GitHub's code-scanning API
+  briefly unavailable) shouldn't fail the whole security-scan job when
+  the scan itself already completed and its findings were already
+  captured in `$GITHUB_OUTPUT` by the preceding step; the alternative
+  (no `continue-on-error`) would make an unrelated GitHub-side hiccup
+  block on a scan that otherwise ran and reported successfully. Not
+  changed — recorded as reviewed-and-intentional, not silently
+  overlooked a second time.
 
 ## Adversarial review of this workstream's own CI changes
 
