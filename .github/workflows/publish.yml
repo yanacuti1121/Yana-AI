@@ -70,8 +70,57 @@ on:
           default: '1.3.3'
 
 jobs:
+  # Workstream B / B7 follow-up (2026-08-16): same "release gate weaker
+  # than PR gate" fix as release.yml/desktop.yml -- see release.yml's
+  # comment on its own verify-provenance job for the full rationale.
+  # Runs unconditionally (no per-target `if:`) since either publish job
+  # below can depend on it via `needs:` regardless of which target this
+  # run is actually publishing to -- simpler than duplicating the
+  # publish-pypi/publish-crates `if:` conditions here. Consequences of
+  # skipping this on a genuinely broken commit are higher here than for
+  # release.yml/desktop.yml: crates.io and PyPI don't allow re-uploading
+  # a version number once yanked, unlike a GitHub Release asset.
+  verify-provenance:
+    name: Verify commit passed required CI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Verify required checks succeeded for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHA="${{ github.sha }}"
+          REQUIRED=(
+            "Hook Tests"
+            "Kernel flock-v1 (Ubuntu)"
+            "Rust Integration Tests (yana-rt)"
+            "System Health Monitor (ubuntu-latest)"
+            "System Health Monitor (macos-latest)"
+            "System Health Monitor (windows-latest)"
+            "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)"
+          )
+          FAILED=0
+          for name in "${REQUIRED[@]}"; do
+            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            if [[ "$conclusion" != "success" ]]; then
+              echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
+              FAILED=1
+            fi
+          done
+          if [[ "$FAILED" -eq 1 ]]; then
+            echo ""
+            echo "This commit did not pass all of main's required checks."
+            echo "Refusing to publish from unverified code."
+            exit 1
+          fi
+          echo "All required checks succeeded for $SHA — proceeding with publish."
+
   publish-pypi:
     name: PyPI — yana-ai
+    needs: verify-provenance
     if: >-
       (github.event_name == 'push' && startsWith(github.ref_name, 'py-v')) ||
       (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'py-v')) ||
@@ -114,6 +163,7 @@ jobs:
 
   publish-crates:
     name: crates.io — yana-rt
+    needs: verify-provenance
     if: >-
       (github.event_name == 'push' && startsWith(github.ref_name, 'rt-v')) ||
       (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'rt-v')) ||

@@ -9,7 +9,71 @@ permissions:
   contents: write
 
 jobs:
+  # Workstream B / B7 follow-up (2026-08-16): closes the "release gate is
+  # weaker than PR gate" finding from B7-documentation-claims-self-
+  # governance-audit.md. This workflow only triggers on tag push, and
+  # ci.yml never triggers on tag push either -- so before this job, NO
+  # release build ever re-ran or re-verified the PR-gate required checks
+  # against the exact commit being tagged. A tag pushed against any
+  # commit/branch (not necessarily one that ever passed CI on main) would
+  # build and publish regardless. This job verifies -- via GitHub's own
+  # recorded check-run results for the tagged commit, not by re-running
+  # the whole suite a second time (expensive, and also wouldn't prove the
+  # commit was ever actually reviewed/merged through main's required-
+  # checks gate the way the recorded check-runs do) -- that every check
+  # main's branch protection currently requires actually succeeded for
+  # this exact commit SHA before any binary gets built from it.
+  #
+  # Known limits, not solved here: (1) this list is a manual copy of
+  # main's required_status_checks.contexts -- reading branch protection
+  # settings via the API requires repo-admin scope, which a standard
+  # GITHUB_TOKEN in this workflow does not have, so it can't be fetched
+  # dynamically; if the required-check set changes, this list needs a
+  # matching edit. (2) GitHub does not guarantee check-run history is
+  # retained indefinitely, so a tag pushed against a very old commit
+  # could fail this step even if that commit genuinely passed CI at the
+  # time -- an edge case, not exercised by this repo's actual release
+  # cadence, and not something this step attempts to work around.
+  verify-provenance:
+    name: Verify tagged commit passed required CI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Verify required checks succeeded for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHA="${{ github.sha }}"
+          REQUIRED=(
+            "Hook Tests"
+            "Kernel flock-v1 (Ubuntu)"
+            "Rust Integration Tests (yana-rt)"
+            "System Health Monitor (ubuntu-latest)"
+            "System Health Monitor (macos-latest)"
+            "System Health Monitor (windows-latest)"
+            "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)"
+          )
+          FAILED=0
+          for name in "${REQUIRED[@]}"; do
+            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            if [[ "$conclusion" != "success" ]]; then
+              echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
+              FAILED=1
+            fi
+          done
+          if [[ "$FAILED" -eq 1 ]]; then
+            echo ""
+            echo "This tag's commit did not pass all of main's required checks."
+            echo "Refusing to build/publish a release from unverified code."
+            exit 1
+          fi
+          echo "All required checks succeeded for $SHA — proceeding with release build."
+
   build:
+    needs: verify-provenance
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
