@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-16T03:07:22+00:00",
+  "generated": "2026-08-16T08:33:43+00:00",
   "count": 280,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -61,7 +61,7 @@
     "core/hooks/session-bootstrap.sh": "bcad9750e95645bae7a918f8fbdad9edc9408b4410b75cc7fbed9ebe1ee513c1",
     "core/hooks/session-checkpoint-hook.sh": "357cf29cf7f4ab105fa9085bf935924dccb8e63bf9f07312b00954fd202538c1",
     "core/hooks/static-analysis-gate.sh": "fa4cf700a14458c9b7cfbda393e987eb72395a318a6bb5abe2e3cbe8d00e2f2c",
-    "core/hooks/supply-chain-guard.sh": "25dbf8fa05534ded3e197c45053605c7ac283e8c45321af4d86d7fb5c508c34c",
+    "core/hooks/supply-chain-guard.sh": "6f382c78ed8fc3b009edfb4c76b522962e55b63333fef14fb065ad0c9107b07e",
     "core/hooks/telemetry-sender.sh": "c4efa82dece6ff3aee792b6ece5ee9220fef428126a638ae3f580e3fc12dd969",
     "core/hooks/test-runner-gate.sh": "5f6b7c61549518dfa9e90badb996d87a06e37c5072cd180628d1288ec2b4549d",
     "core/hooks/token-budget-guard.sh": "d9940919675daa0cdf07283176af9c2fe9f83edac3192a596bc10de2949f2884",

@@ -24,7 +24,22 @@ set -uo pipefail
 
 [[ "${YANA_SUPPLY_OK:-}" == "1" ]] && exit 0
 
-command -v jq >/dev/null 2>&1 || exit 0
+# BUG FIX (Workstream A stabilization doc, Section 15-21 — jq fail-open
+# inventory): this used to be `command -v jq >/dev/null 2>&1 || exit 0`,
+# silently disabling every check in this file (typosquatting, pipe-to-
+# shell, unsigned-source installs) on any machine missing jq, with no
+# warning. db-protect.sh/api-destruct-guard.sh/deploy-gate.sh right next
+# to this file in the same directory already fail CLOSED for the same
+# reason ("failing closed because X is irreversible") — this hook exists
+# specifically to block irreversible supply-chain compromise, so silently
+# allowing everything through when its own dependency is missing was the
+# wrong default. Matches their exact deny-JSON shape.
+if ! command -v jq >/dev/null 2>&1; then
+  cat <<'JSON'
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: supply-chain-guard requires jq. Failing closed because supply-chain compromise (typosquatting, pipe-to-shell, unsigned installs) is often irreversible. Install jq and retry, or set YANA_SUPPLY_OK=1 after human review."}}
+JSON
+  exit 2
+fi
 
 # ── Read input ────────────────────────────────────────────────────────────────
 
