@@ -2011,6 +2011,42 @@ test_validator "Allow safe WebFetch with explicit port" \
 test_validator "Block IPv4-mapped IPv6 CGNAT bypass ([::ffff:100.100.100.200])" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://[::ffff:100.100.100.200]/latest/meta-data/"}}' "deny"
 
+# Unicode/multi-byte boundary coverage (Workstream A stabilization doc,
+# Section 2 — "reproduce byte/prefix boundary defects using Vietnamese,
+# Korean, emoji, mixed ASCII+UTF-8, Unicode near matcher boundary").
+# Investigated live against both a clean origin/main checkout and this
+# patched branch: no defect found in either. Kept as permanent regression
+# coverage rather than a one-off manual result, matching every other
+# finding in this file. The path-traversal/sensitive-path checks match
+# literal ASCII byte sequences (`(^|/)\.\.(/|$)`), so a real ".." is
+# caught regardless of adjacent multi-byte characters, and Unicode
+# characters that only visually resemble two dots (U+2025 TWO DOT LEADER,
+# U+FF0E FULLWIDTH FULL STOP) are correctly NOT treated as traversal —
+# they are not the literal bytes 0x2E 0x2E the regex matches, and no
+# filesystem this hook protects normalizes them into ASCII dots either.
+test_validator "Allow Vietnamese filename, no traversal" \
+    '{"tool_name":"Write","tool_input":{"file_path":"docs/Ảnh màn hình 2026-08-12 lúc 15.34.27.png"}}' "allow"
+test_validator "Block real traversal with Vietnamese path segment" \
+    '{"tool_name":"Write","tool_input":{"file_path":"tài liệu/../../etc/passwd"}}' "deny"
+test_validator "Allow Korean filename, no traversal" \
+    '{"tool_name":"Write","tool_input":{"file_path":"문서/파일.txt"}}' "allow"
+test_validator "Allow emoji filename, no traversal" \
+    '{"tool_name":"Write","tool_input":{"file_path":"notes/🔥fire📝.md"}}' "allow"
+test_validator "Block traversal immediately adjacent to a multi-byte character" \
+    '{"tool_name":"Write","tool_input":{"file_path":"café/../secret.txt"}}' "deny"
+test_validator "Allow Unicode two-dot-leader lookalike (U+2025, not literal ..)" \
+    '{"tool_name":"Write","tool_input":{"file_path":"notes/‥/file.txt"}}' "allow"
+test_validator "Allow fullwidth-dot lookalike (U+FF0E U+FF0E, not literal ..)" \
+    '{"tool_name":"Write","tool_input":{"file_path":"docs/．．/secret"}}' "allow"
+test_validator "Allow literal .. not bounded by / or string end (regex anchor correctness)" \
+    '{"tool_name":"Write","tool_input":{"file_path":"café..secret"}}' "allow"
+test_validator "Block traversal hidden behind an RTL override character" \
+    '{"tool_name":"Write","tool_input":{"file_path":"docs/‮gnp.exe/../../secret"}}' "deny"
+test_validator "Allow Vietnamese Bash command content (no content-based check left post null-byte removal)" \
+    '{"tool_name":"Bash","tool_input":{"command":"echo '"'"'xin chào 你好 🎉'"'"'"}}' "allow"
+test_validator "Fail closed (deny, not crash) on unresolvable raw-UTF-8 IDN WebFetch host" \
+    '{"tool_name":"WebFetch","tool_input":{"url":"http://例え.jp/"}}' "deny"
+
 # Finding 1 needs its own PATH override (python3 excluded) since the bug
 # only reproduces when python3 is absent — test_validator's generic helper
 # doesn't support that, so this uses the same manual-PATH pattern as the
