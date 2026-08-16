@@ -55,6 +55,13 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg/?v=10&encoding=json";
 /// Discord's hard per-message limit is 2000 UTF-16 code units; replies are
 /// chunked to just under it.
 pub const MESSAGE_MAX: usize = 1900;
+/// Bound on pending `Incoming` messages waiting for the single worker
+/// thread to drain them (see `run_gateway`'s doc comment, Section 5 bug
+/// fix). Generous enough for an ordinary burst — several people replying
+/// in the same minute — while still bounding memory and making "the
+/// worker is falling behind" externally visible (a dropped-message log
+/// line) well before a real flood could grow the queue without limit.
+const DISPATCH_QUEUE_CAPACITY: usize = 32;
 /// GUILDS (1<<0) | GUILD_MESSAGES (1<<9) | DIRECT_MESSAGES (1<<12) |
 /// MESSAGE_CONTENT (1<<15). MESSAGE_CONTENT is privileged — must be
 /// enabled in the bot's Developer Portal settings, else `content` arrives
@@ -258,33 +265,45 @@ fn ensure_crypto_provider_installed() {
 ///
 /// The fix: the gateway thread (this function, running in the caller's
 /// own thread) NEVER calls `on_message` itself. It only ever pushes an
-/// `Incoming` onto an unbounded `mpsc` channel — a non-blocking,
-/// effectively-instant operation — and a single separate worker thread
-/// drains that channel and calls `on_message` there, sequentially, one
-/// message at a time (still deliberately NOT Aizen's full per-conversation
-/// `LaneRegistry` concurrency — that remains an ADAPT-later item per the
-/// Aizen research pass, not a prerequisite for keeping the gateway alive).
-/// Message replies go over REST independently of the gateway connection
-/// either way (matches Aizen's own `discord.rs` design note), so the
-/// worker thread never needs to reach back into the gateway thread at
-/// all.
+/// `Incoming` onto a bounded `mpsc` channel via a non-blocking `try_send`
+/// — never `send`, which would block once the bound is reached and
+/// reintroduce exactly the "gateway thread blocks" bug this fix exists to
+/// prevent — and a single separate worker thread drains that channel and
+/// calls `on_message` there, sequentially, one message at a time (still
+/// deliberately NOT Aizen's full per-conversation `LaneRegistry`
+/// concurrency — that remains an ADAPT-later item per the Aizen research
+/// pass, not a prerequisite for keeping the gateway alive). Message
+/// replies go over REST independently of the gateway connection either
+/// way (matches Aizen's own `discord.rs` design note), so the worker
+/// thread never needs to reach back into the gateway thread at all.
+///
+/// BUG FIX (Workstream A stabilization doc, Section 5): the channel used
+/// to be genuinely unbounded (`std::sync::mpsc::channel`), explicitly
+/// documented as such. A flood of messages arriving faster than the
+/// worker drains them (each turn can legitimately take 30-90s, per the
+/// heartbeat fix's own comment below) had no ceiling, no back-pressure
+/// signal, and no diagnostic — the queue would just grow for as long as
+/// the flood lasted, invisibly. Bounded to `DISPATCH_QUEUE_CAPACITY` via
+/// `sync_channel` + `try_send`: once full, a message is dropped with an
+/// explicit log line rather than queued forever, and the gateway thread
+/// still never blocks (`try_send` returns immediately either way).
 pub fn run_gateway(
     token: &str,
     cfg: &DiscordConfig,
     on_message: impl FnMut(Incoming) + Send + 'static,
 ) {
     ensure_crypto_provider_installed();
-    let (tx, rx) = std::sync::mpsc::channel::<Incoming>();
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Incoming>(DISPATCH_QUEUE_CAPACITY);
     std::thread::spawn(move || {
         // Found during a final fresh re-read after the heartbeat fix: with
         // no panic isolation here, one turn panicking (an unexpected error
         // deep in a provider call, say) would kill this worker thread
-        // permanently. The gateway thread's own dispatch is `let _ =
-        // tx.send(inc)` -- deliberately non-blocking, so it would keep
-        // running, heartbeats and all, silently sending into a channel
-        // nothing drains anymore. The bot would look alive (still
-        // connected, still heartbeating) while never answering another
-        // message again, with no error printed anywhere. `catch_unwind`
+        // permanently. The gateway thread's own dispatch is a non-blocking
+        // `try_send`, so it would keep running, heartbeats and all,
+        // silently sending into a channel nothing drains anymore. The bot
+        // would look alive (still connected, still heartbeating) while
+        // never answering another message again, with no error printed
+        // anywhere. `catch_unwind`
         // keeps the worker loop itself alive across a single bad turn;
         // `AssertUnwindSafe` is safe here because `on_message` closing
         // over `Client`/owned `String`/`PathBuf` values has no interior
@@ -334,7 +353,7 @@ pub fn run_gateway(
 fn gateway_once(
     token: &str,
     cfg: &DiscordConfig,
-    tx: &std::sync::mpsc::Sender<Incoming>,
+    tx: &std::sync::mpsc::SyncSender<Incoming>,
 ) -> Result<()> {
     let (mut ws, _) = connect(GATEWAY_URL).context("connecting to discord gateway")?;
     set_read_timeout(&ws, Some(Duration::from_secs(20)));
@@ -418,8 +437,19 @@ fn gateway_once(
                     if is_allowed(cfg, &inc.channel_id, &inc.user_id) {
                         // Non-blocking hand-off to the worker thread — see
                         // `run_gateway`'s doc comment on why this loop must
-                        // never itself call `on_message`.
-                        let _ = tx.send(inc);
+                        // never itself call `on_message`. `try_send`
+                        // (never `send`) so a full queue drops this
+                        // message with a diagnostic instead of blocking
+                        // the gateway thread waiting for room.
+                        if let Err(std::sync::mpsc::TrySendError::Full(dropped)) = tx.try_send(inc)
+                        {
+                            eprintln!(
+                                "[discord gateway] dispatch queue full ({DISPATCH_QUEUE_CAPACITY} \
+                                 pending) — dropping message from channel {} (worker is behind, \
+                                 likely mid-turn on a slow provider)",
+                                dropped.channel_id
+                            );
+                        }
                     }
                 }
             }
@@ -605,7 +635,7 @@ mod tests {
     /// but the same discipline applied one more pass): the worker thread
     /// `run_gateway` spawns had no panic isolation. One turn panicking
     /// would silently kill the worker forever -- the gateway thread's own
-    /// dispatch (`let _ = tx.send(inc)`) would keep running, heartbeats
+    /// dispatch (`tx.try_send(inc)`) would keep running, heartbeats
     /// and all, into a channel nothing drains anymore: a bot that looks
     /// alive but never answers again, with nothing printed anywhere.
     /// Reproduces the exact worker-loop structure (spawn + `catch_unwind`
@@ -780,5 +810,50 @@ mod tests {
             !is_allowed(&cfg, "1", "1"),
             "no config file must still deny everyone"
         );
+    }
+
+    /// REPRODUCTION + regression (Workstream A stabilization doc, Section
+    /// 5): before this fix the dispatch channel was genuinely unbounded —
+    /// a flood arriving faster than the worker drains it had no ceiling,
+    /// no back-pressure signal, no diagnostic. This test drives the real
+    /// `DISPATCH_QUEUE_CAPACITY`-bounded `sync_channel` + `try_send` combo
+    /// `run_gateway` now uses (not a standalone reproduction like the two
+    /// tests above, which test the worker-drain side and don't touch
+    /// channel capacity at all): fills the queue to capacity with no
+    /// worker draining it, confirms `try_send` reports `Full` rather than
+    /// blocking once capacity is reached, and confirms filling it stays
+    /// fast (proving the gateway thread would never stall on a flood,
+    /// the same non-blocking invariant `dispatch_never_blocks_while_the_
+    /// worker_is_mid_turn` above proves for the unbounded case).
+    #[test]
+    fn dispatch_queue_rejects_over_capacity_sends_without_blocking() {
+        let (tx, _rx) = std::sync::mpsc::sync_channel::<Incoming>(DISPATCH_QUEUE_CAPACITY);
+        let dummy = |id: &str| Incoming {
+            message_id: id.to_string(),
+            channel_id: "1".into(),
+            user_id: "1".into(),
+            content: "hi".into(),
+        };
+
+        let fill_started = Instant::now();
+        for i in 0..DISPATCH_QUEUE_CAPACITY {
+            tx.try_send(dummy(&i.to_string()))
+                .expect("queue must accept sends up to its own declared capacity");
+        }
+        assert!(
+            fill_started.elapsed() < Duration::from_millis(100),
+            "filling the queue to capacity must be fast — nothing is \
+             draining it, so any blocking here would hang the test"
+        );
+
+        match tx.try_send(dummy("overflow")) {
+            Err(std::sync::mpsc::TrySendError::Full(rejected)) => {
+                assert_eq!(rejected.message_id, "overflow");
+            }
+            Ok(()) => panic!("expected TrySendError::Full once the queue is at capacity, got Ok"),
+            Err(std::sync::mpsc::TrySendError::Disconnected(_)) => {
+                panic!("expected TrySendError::Full, got Disconnected — receiver was dropped?")
+            }
+        }
     }
 }
