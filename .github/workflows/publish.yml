@@ -119,6 +119,19 @@ jobs:
       (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'rt-v')) ||
       (github.event_name == 'workflow_dispatch' && inputs.target == 'crates')
     runs-on: ubuntu-latest
+    # Workstream B / B5 (workflow permissions, least privilege): this
+    # job only checks out code and publishes to crates.io via
+    # CARGO_REGISTRY_TOKEN -- it never writes back to the repo, unlike
+    # publish-pypi it lacked an explicit permissions block, silently
+    # inheriting the repo's default GITHUB_TOKEN permission instead of
+    # declaring what it actually needs. Confirmed via `gh api
+    # repos/.../actions/permissions/workflow` that the current default
+    # is already "read", so this closes a defense-in-depth gap rather
+    # than a live over-grant -- but that default is repo-level config,
+    # not something this workflow file controls, so it shouldn't be
+    # the only thing standing between this job and write access.
+    permissions:
+      contents: read
     environment:
       name: crates-io
       url: https://crates.io/crates/yana-rt
