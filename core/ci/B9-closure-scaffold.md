@@ -13,6 +13,27 @@ own step 1 ("current CI assurance inventory") and step 15 ("closed-loop
 gap report") produce **within Workstream B's independent scope** —
 everything B can state without guessing at runtime truth A owns.
 
+## Known merge collision: `.github/workflows/ci.yml` (tracked, not resolved)
+
+**Confirmed 2026-08-16** by diffing both branches against the same base
+line, not guessed: this branch's "Check all GitHub Actions references
+are SHA-pinned" step and Workstream A PR #217's "Validate AirLLM bridge
+admission/timeout/context-ceiling regression behavior" step both insert
+at the **identical location** in `ci.yml` — immediately after the
+"Validate agent routing map regression behavior" step, immediately
+before the `flock-v1-linux:` job header. Whichever of this branch or
+#217 merges to `main` second will hit a real textual merge conflict at
+that exact hunk, not a clean auto-merge.
+
+**Not resolved here** — neither branch is merged yet, so there is
+nothing to reconcile against yet; attempting to pre-resolve a conflict
+against an unmerged branch would mean guessing at code that could still
+change. Recorded so whoever merges second does it deliberately: keep
+BOTH steps (this branch's SHA-pin check and #217's AirLLM regression
+step), in either order — a mechanical "ours" or "theirs" resolution on
+the whole file would silently drop one of the two. Flagged directly to
+the Workstream A peer session at the time this was found.
+
 ## 15-step execution order — status
 
 | # | Step | Status | Evidence |
