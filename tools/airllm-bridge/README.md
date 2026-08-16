@@ -31,6 +31,25 @@ If you use a non-default port, tell Yana with `/model airllm <model-id>`
 after adjusting `openai_compat::airllm()`'s URL, or point `yana-rt chat`
 at it via the usual provider-config path.
 
+### Concurrency and context limits
+
+Only one request generates at a time — AirLLM's own API is blocking and
+not documented as safe for concurrent calls. A request that arrives
+while another is still generating gets an immediate `503` (not queued),
+since AirLLM has no way to run two generations in parallel anyway.
+
+`--max-context-tokens` is the model's context window (default `4096`, a
+conservative guess — AirLLM doesn't expose a model's real context window
+through a stable API), not just a prompt-length cap: a request is
+rejected with `400` before generation if `prompt_tokens + 1024`
+(the fixed generation reservation) would exceed it, since the model has
+to fit both the prompt and the response in that same window. Raise it if
+your model is rated for more:
+
+```bash
+python3 tools/airllm-bridge/server.py --model Qwen/Qwen3-32B --max-context-tokens 8192
+```
+
 ## Known limitations
 
 - **No real token streaming.** AirLLM's `generate()` call is blocking and
