@@ -185,6 +185,25 @@ jobs:
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
 
+      # Workstream B / B1 (Feature matrix): the `discord` feature (Cargo.
+      # toml) — the Discord remote adapter shipped in PR #205/#206, ~2200
+      # lines, with real regression tests protecting a panic-isolation fix
+      # and a session-resolve race fix that were each found and fixed once
+      # already — was never built or tested anywhere in this repo's CI.
+      # Confirmed by grepping every workflow file for `--features` before
+      # adding this: zero matches for `discord`. That meant those
+      # regression tests, despite existing in the source tree, never
+      # actually ran in CI and could not have caught a future regression
+      # in this feature. Verified locally before wiring this in (not
+      # assumed): `cargo build --features discord` compiles clean, and all
+      # 17 tests under `remote::` (discord.rs + lock.rs + session.rs,
+      # including both named regression tests above) pass.
+      - name: Build with discord feature
+        run: cargo build --features discord --bin yana-rt
+
+      - name: Run discord feature tests
+        run: "cargo test --features discord --bin yana-rt remote:: -- --test-threads=1"
+
   system-health-monitor:
     name: System Health Monitor (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
