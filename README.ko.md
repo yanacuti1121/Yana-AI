@@ -537,21 +537,23 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.3.2** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.0** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
 | Rust 런타임 (`yana-rt`) | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 패키지 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
 
-### v1.3.2의 새로운 점
+### v1.4.0의 새로운 점
 
-- **Yana OS 관리 플레인 (Program K)** — 에이전트 레지스트리, 자격 증명/리소스 사전 점검, `yana-rt os` 아래의 Evolution Governor(`status`/`capacity`/`roadmap`, NOW 항목 2개로 하드 제한).
-- **네이티브 시스템 헬스 모니터** — CPU/메모리/디스크/GPU 스냅샷, 완전 opt-in·사용자별 스케줄러 설치(macOS LaunchAgent, Linux systemd user timer, Windows Task Scheduler — root로 실행되지 않고, 조용히 설치되지 않음).
-- **자율성 사다리 (L0–L4)** — 일상적인 작업은 정책에 따라 자동화 가능; sovereign 작업(보호된 브랜치 병합, 릴리스 게시, 배포, 시크릿 교체, 영구 데이터 삭제, 보안 정책 변경)은 자동으로 구성될 수 없도록 하드 차단됨 — 정책이 바로 아래 단계까지 자동 작업을 허용할 때도 이것이 유지되는지 검증함. 이 모듈은 action intent를 분류하고 큐에 넣기만 하며, 큐에 들어간 명령을 실행하는 부분은 아직 없음.
-- **`yana chat`** — 로컬 AI 터미널 워크스페이스 전면 재설계(탭, 스트리밍, 취소, Ollama/LM Studio/llama.cpp 전반의 모델 탐색) 및 새로운 chat-first 진입점 `yana-ai-rt` 추가, 추측 대신 실제로 pull된 Ollama 모델을 자동 감지.
-- **보안:** WebFetch SSRF 가드가 hostname 정규식 매칭 대신 실제 DNS 조회 + IP 대역 분류를 수행; 마크다운 sanitize가 자체 작성 정규식에서 DOMPurify로 이전.
+로컬 우선 신규 provider 3개, 런타임 아키텍처 통합, 그리고 몇 달째 아무도 눈치채지 못한 채 방치되어 있던 안전 훅 배선 공백 — 이번에 모두 닫았습니다:
 
-PR 번호가 포함된 전체 내용: [CHANGELOG.md](CHANGELOG.md) ("v1.3.2" 항목 참고).
+- **신규 provider:** Discord 어댑터(읽기 전용 채팅, 턴 패닉으로부터 격리된 전용 워커 스레드, 메시지 폭주에 대비해 이제 제한된 dispatch 큐); 얇은 OpenAI 호환 브리지를 통한 로컬 AirLLM provider — 동시 요청 제한(두 번째 동시 요청은 무한 대기열이 아니라 명시적인 `503`을 받음), read timeout, 비용이 큰 generate 호출 전에 확인하는 context 길이 상한 포함; 터미널 채팅에 내장된 Ollama 모델 관리(pull/delete/status) — 이제 진짜 백엔드 실패와 실제로 비어 있는 설치 목록을 정확히 구분함.
+- **런타임 아키텍처:** 채팅 표면이 새로 통합된 Rust 워크스페이스 위의 표준 Capability Runtime(타입 오류, `SessionContext`, golden end-to-end 테스트)으로 이전; Host-Native OS Program(플랫폼 계약, 리소스/모델 plane, actor identity, 상주 서비스)과 상시 동작 OS Service Supervisor 기반 추가.
+- **가장 눈에 띄는 안전 수정:** `tool-validator.sh`의 null-byte 체크가 조용히 항상 매칭되는 빈 패턴으로 collapse되어 있었음 — bash 인용 관련 함정(`$'\x00'`는 실제 NUL 바이트를 표현할 수 없음)으로 인해 사실상 모든 Bash 도구 호출이 차단되고 있었음. 추가로: 16개 안전 훅(`deploy-gate`, `db-protect`, `api-destruct-guard`, `supply-chain-guard`, `prompt-injection-guard`, `token-scope-guard`, `code-freeze`, `code-quality-gate`, `coverage-gate`, `dependency-safety-gate`, `static-analysis-gate`, `test-runner-gate`, `multi-agent-lock`, `confidence-scorer`, `risk-scorer`, `canary-token-guard`)가 `core/hooks/`에 존재했지만 `.claude/settings.json`에 한 번도 참조된 적이 없어 — 한 번도 실행된 적 없었음 — 이제 배선 완료, 그중 2개는 `jq`가 없을 때 자체 체크를 조용히 비활성화하던 문제도 수정. 이 README의 Safety Architecture 섹션에 있는 halt watcher인 통합 Giám Thị 제어 plane이 이전에 분리되어 있던 구현을 대체함.
+- **채팅 UX:** 실제 마우스 지원, 상황별 상태 힌트, `/undo`, `yana chat` 내 커스텀 슬래시 커맨드.
+- **운영:** 샌드박스 Docker 이미지가 이제 push할 때마다 GHCR에 게시됨; 처음부터 다시 다진 CI — 모든 GitHub Action 참조를 SHA로 고정, `cargo audit`/`pip-audit`/`npm audit`을 required check로 배선, 게시되는 모든 바이너리에 대해 commit SHA/toolchain/artifact SHA256을 기록하는 release-manifest 단계, `main`에 branch protection 최초 적용; 실제 CVE 해결(`quinn-proto` RUSTSEC-2026-0185, CGNAT 및 IPv4-mapped-IPv6 대역에 대한 SSRF 공백).
+
+PR 번호가 포함된 전체 내용: [CHANGELOG.md](CHANGELOG.md) ("v1.4.0" 항목 참고).
 
 ---
 
