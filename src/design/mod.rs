@@ -116,13 +116,64 @@ fn extract_url_host(url: &str) -> Option<&str> {
     Some(host_port.split(':').next()?)
 }
 
+/// BUG FIX (Workstream A stabilization doc, Section 15-21 — SSRF network
+/// caller inventory): this is a second, independent SSRF guard from
+/// `core/hooks/tool-validator.sh`'s WebFetch guard (that one gates Claude
+/// Code's own WebFetch tool; this one gates `yana-rt design extract
+/// <url>`, a real, separately-reachable user-controlled-URL fetch this
+/// crate makes on its own). It had the exact same CGNAT gap
+/// tool-validator.sh's own audit trail already found and fixed in the
+/// OTHER guard, never ported here: `Ipv4Addr::is_private()` covers
+/// RFC1918 (10/8, 172.16/12, 192.168/16) but NOT RFC6598 Carrier-Grade
+/// NAT / Shared Address Space (100.64.0.0/10) -- where Alibaba Cloud's
+/// metadata endpoint (100.100.100.200) lives. Reproduced live before
+/// fixing: `is_private_ip("100.100.100.200".parse().unwrap())` returned
+/// `false` on the pre-fix code. The IPv6 side was thinner still -- only
+/// loopback/unspecified, no unique-local (fc00::/7) or link-local
+/// (fe80::/10) equivalent, and no IPv4-mapped-address unwrapping (an
+/// attacker-supplied `::ffff:100.100.100.200` would resolve, classify as
+/// "not loopback, not unspecified", and pass straight through).
 fn is_private_ip(ip: std::net::IpAddr) -> bool {
     match ip {
-        std::net::IpAddr::V4(v4) => {
-            v4.is_loopback() || v4.is_private() || v4.is_link_local() || v4.is_unspecified()
+        std::net::IpAddr::V4(v4) => is_private_ipv4(v4),
+        std::net::IpAddr::V6(v6) => {
+            if let Some(mapped) = v6.to_ipv4_mapped() {
+                return is_private_ipv4(mapped);
+            }
+            v6.is_loopback()
+                || v6.is_unspecified()
+                || v6.is_multicast()
+                || is_unique_local_v6(v6)
+                || is_link_local_v6(v6)
         }
-        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified(),
     }
+}
+
+fn is_private_ipv4(v4: std::net::Ipv4Addr) -> bool {
+    v4.is_loopback()
+        || v4.is_private()
+        || v4.is_link_local()
+        || v4.is_unspecified()
+        || is_cgnat_v4(v4)
+}
+
+/// 100.64.0.0/10 (RFC 6598) -- checked via raw octets rather than a
+/// stdlib helper: `Ipv4Addr` has no built-in CGNAT classification, and a
+/// manual bitmask keeps this independent of any particular Rust stdlib
+/// version.
+fn is_cgnat_v4(v4: std::net::Ipv4Addr) -> bool {
+    let octets = v4.octets();
+    octets[0] == 100 && (octets[1] & 0b1100_0000) == 0b0100_0000
+}
+
+/// fc00::/7 (RFC 4193 Unique Local Address).
+fn is_unique_local_v6(v6: std::net::Ipv6Addr) -> bool {
+    (v6.segments()[0] & 0xfe00) == 0xfc00
+}
+
+/// fe80::/10 (link-local).
+fn is_link_local_v6(v6: std::net::Ipv6Addr) -> bool {
+    (v6.segments()[0] & 0xffc0) == 0xfe80
 }
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
@@ -319,4 +370,63 @@ fn tokens_to_markdown(t: &DesignTokens) -> String {
         md.push_str("}\n```\n");
     }
     md
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cgnat_range_is_blocked_alibaba_cloud_metadata_included() {
+        // REPRODUCTION: before this fix, is_private_ip returned false for
+        // this exact address -- confirmed live against the pre-fix code.
+        assert!(is_private_ip("100.100.100.200".parse().unwrap()));
+        // Boundary check: the whole /10 block, not just the one known IP.
+        assert!(is_private_ip("100.64.0.0".parse().unwrap()));
+        assert!(is_private_ip("100.127.255.255".parse().unwrap()));
+        // Just outside the block on both sides must NOT be flagged.
+        assert!(!is_private_ip("100.63.255.255".parse().unwrap()));
+        assert!(!is_private_ip("100.128.0.0".parse().unwrap()));
+    }
+
+    #[test]
+    fn rfc1918_loopback_and_link_local_ipv4_still_blocked() {
+        assert!(is_private_ip("127.0.0.1".parse().unwrap()));
+        assert!(is_private_ip("10.0.0.1".parse().unwrap()));
+        assert!(is_private_ip("172.16.0.1".parse().unwrap()));
+        assert!(is_private_ip("192.168.1.1".parse().unwrap()));
+        assert!(is_private_ip("169.254.1.1".parse().unwrap()));
+        assert!(is_private_ip("0.0.0.0".parse().unwrap()));
+    }
+
+    #[test]
+    fn genuinely_public_ipv4_is_not_blocked() {
+        assert!(!is_private_ip("8.8.8.8".parse().unwrap()));
+        assert!(!is_private_ip("1.1.1.1".parse().unwrap()));
+    }
+
+    #[test]
+    fn ipv6_loopback_unique_local_and_link_local_are_blocked() {
+        assert!(is_private_ip("::1".parse().unwrap()));
+        assert!(is_private_ip("fc00::1".parse().unwrap()));
+        assert!(is_private_ip("fd12:3456::1".parse().unwrap()));
+        assert!(is_private_ip("fe80::1".parse().unwrap()));
+    }
+
+    #[test]
+    fn ipv4_mapped_ipv6_cgnat_bypass_is_blocked() {
+        // REPRODUCTION: before this fix, an IPv4-mapped IPv6 literal
+        // wasn't unwrapped at all -- ::ffff:100.100.100.200 classified as
+        // "not loopback, not unspecified" and passed straight through,
+        // even after the plain-IPv4 CGNAT fix, since the V6 match arm
+        // never looked at the embedded V4 address.
+        assert!(is_private_ip("::ffff:100.100.100.200".parse().unwrap()));
+        assert!(is_private_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(!is_private_ip("::ffff:8.8.8.8".parse().unwrap()));
+    }
+
+    #[test]
+    fn genuinely_public_ipv6_is_not_blocked() {
+        assert!(!is_private_ip("2606:4700:4700::1111".parse().unwrap())); // Cloudflare DNS
+    }
 }
