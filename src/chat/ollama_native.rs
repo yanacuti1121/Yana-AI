@@ -80,14 +80,28 @@ fn format_size(bytes: u64) -> String {
     }
 }
 
+/// BUG FIX (Workstream A correction pass, follow-up to the Section 8 fix
+/// above): `.get("models").and_then(as_array).unwrap_or_default()` could
+/// not distinguish a genuinely empty install (`{"models": []}`) from a
+/// malformed 200 response — a body with no "models" key at all, or with
+/// "models" present but the wrong JSON type (e.g. `{"models": {}}`) —
+/// both silently became the same `Ok(vec![])` the empty case produces.
+/// The earlier fix only closed the HTTP-status half of this ambiguity
+/// (4xx/5xx vs 200); this closes the remaining 200-with-a-malformed-body
+/// half. A missing or wrong-type "models" field is now a distinct Err,
+/// not silently reinterpreted as zero installed models.
 fn parse_tags_response(body: &str) -> Result<Vec<OllamaModel>> {
     let parsed: serde_json::Value =
         serde_json::from_str(body).context("parsing /api/tags response as JSON")?;
-    let models = parsed
+    let models_value = parsed
         .get("models")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow::anyhow!("malformed /api/tags response: missing \"models\" field"))?;
+    let models = models_value.as_array().ok_or_else(|| {
+        anyhow::anyhow!(
+            "malformed /api/tags response: \"models\" is not an array (got {})",
+            models_value
+        )
+    })?;
     Ok(models
         .iter()
         .filter_map(|entry| {
@@ -151,14 +165,20 @@ fn list_installed_from(base_url: &str) -> Result<Vec<OllamaModel>> {
     parse_tags_response(&body)
 }
 
+/// Same MALFORMED-vs-EMPTY fix as `parse_tags_response` above, and for
+/// the identical reason.
 fn parse_ps_response(body: &str) -> Result<Vec<String>> {
     let parsed: serde_json::Value =
         serde_json::from_str(body).context("parsing /api/ps response as JSON")?;
-    let models = parsed
+    let models_value = parsed
         .get("models")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow::anyhow!("malformed /api/ps response: missing \"models\" field"))?;
+    let models = models_value.as_array().ok_or_else(|| {
+        anyhow::anyhow!(
+            "malformed /api/ps response: \"models\" is not an array (got {})",
+            models_value
+        )
+    })?;
     Ok(models
         .iter()
         .filter_map(|entry| entry.get("name")?.as_str().map(str::to_string))
@@ -326,31 +346,54 @@ mod tests {
         assert_eq!(parse_tags_response(&body).unwrap(), vec![]);
     }
 
-    /// REPRODUCTION (Workstream A stabilization doc, Section 8): a genuine
-    /// Ollama error body — the real shape the daemon sends on a 404/500,
-    /// e.g. for `/api/tags` failing — has no "models" key at all.
-    /// `parse_tags_response` currently defaults that to an empty Vec via
-    /// `unwrap_or_default()`, identical to a real empty install. This test
-    /// demonstrates the parser-level ambiguity `list_installed()` inherits:
-    /// it never checks `response.status()` before calling this function,
-    /// so a live 500 with this exact body is silently reported to the
-    /// caller as "0 models installed", not as a backend failure.
+    /// REGRESSION (Workstream A correction pass, follow-up to the Section 8
+    /// fix): a genuine Ollama error body — the real shape the daemon sends
+    /// on a 404/500, e.g. for `/api/tags` failing — has no "models" key at
+    /// all. Before this follow-up fix, `parse_tags_response` defaulted
+    /// that to an empty Vec via `unwrap_or_default()`, identical to a real
+    /// empty install and indistinguishable from it at the parser level
+    /// (the HTTP-status-level fix in `list_installed_from` doesn't help a
+    /// caller of this lower-level parser directly). Now a missing
+    /// "models" field is its own Err, regardless of what HTTP status
+    /// carried it.
     #[test]
-    fn error_body_without_models_key_is_indistinguishable_from_genuine_empty() {
+    fn missing_models_key_is_malformed_not_empty() {
         let error_body = serde_json::json!({
             "error": "model \"ghost\" not found, try pulling it first"
         })
         .to_string();
-        let parsed = parse_tags_response(&error_body).unwrap();
-        assert_eq!(
-            parsed,
-            vec![],
-            "parse_tags_response silently swallows a genuine Ollama error body \
-             into an empty list, identical to a real empty /api/tags response — \
-             this is the exact ambiguity list_installed() must resolve by \
-             checking response.status() before parsing, not something this \
-             lower-level parser can fix on its own"
-        );
+        let error = parse_tags_response(&error_body)
+            .expect_err("a body with no \"models\" key must be Err, not Ok(vec![])");
+        assert!(error.to_string().contains("missing"));
+    }
+
+    /// REPRODUCTION + regression: a 200 response with "models" present but
+    /// the wrong JSON type (an object instead of an array) is a different
+    /// malformed shape than a missing key, and must be caught too — not
+    /// silently treated as empty via the same `unwrap_or_default()` this
+    /// whole fix removes.
+    #[test]
+    fn wrong_type_models_field_is_malformed_not_empty() {
+        let body = serde_json::json!({ "models": {} }).to_string();
+        let error = parse_tags_response(&body)
+            .expect_err("\"models\": {} must be Err (wrong type), not Ok(vec![])");
+        assert!(error.to_string().contains("not an array"));
+    }
+
+    #[test]
+    fn wrong_type_models_field_is_malformed_not_empty_ps() {
+        let body = serde_json::json!({ "models": "not-an-array" }).to_string();
+        let error = parse_ps_response(&body)
+            .expect_err("\"models\": \"...\" must be Err (wrong type), not Ok(vec![])");
+        assert!(error.to_string().contains("not an array"));
+    }
+
+    #[test]
+    fn missing_models_key_is_malformed_not_empty_ps() {
+        let body = serde_json::json!({ "unexpected": [] }).to_string();
+        let error = parse_ps_response(&body)
+            .expect_err("a body with no \"models\" key must be Err, not Ok(vec![])");
+        assert!(error.to_string().contains("missing"));
     }
 
     #[test]
@@ -506,6 +549,22 @@ mod tests {
         handle.join().expect("mock server thread panicked");
         assert_eq!(models.len(), 1);
         assert_eq!(models[0].name, "llama3.2:latest");
+    }
+
+    /// End-to-end version of `missing_models_key_is_malformed_not_empty`,
+    /// over a real socket: a genuine 200 status (so the HTTP-status-level
+    /// fix in `list_installed_from` correctly lets it through to the
+    /// parser) with a malformed body must still surface as Err, not the
+    /// misleading "200 OK, so it must be fine, 0 models" outcome the
+    /// pre-follow-up parser produced.
+    #[test]
+    fn list_installed_from_surfaces_a_real_200_with_malformed_body_as_an_error() {
+        let body = serde_json::json!({ "unexpected_shape": true }).to_string();
+        let (base_url, handle) = spawn_one_shot_response("HTTP/1.1 200 OK", body);
+        let error = list_installed_from(&base_url)
+            .expect_err("a 200 with no \"models\" key must be Err, not Ok(vec![])");
+        handle.join().expect("mock server thread panicked");
+        assert!(error.to_string().contains("missing"));
     }
 
     #[test]
