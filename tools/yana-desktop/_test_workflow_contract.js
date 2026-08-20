@@ -4,7 +4,9 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'desktop.yml'), 'utf8');
+const workflow = fs
+  .readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'desktop.yml'), 'utf8')
+  .replace(/\r\n?/g, '\n');
 assert.match(workflow, /^permissions:\n  contents: read$/m);
 assert.strictEqual((workflow.match(/tools\/yana-desktop\/dist\/\*\.deb/g) || []).length, 2);
 assert.strictEqual((workflow.match(/tools\/yana-desktop\/dist\/latest-mac\.yml/g) || []).length, 2);
