@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 const { assembleRelease, parseUpdateMetadata } = require('./scripts/assemble-release');
 
-const version = '1.4.0';
+const { version } = require('./package.json');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-desktop-release-'));
 const input = path.join(root, 'input');
 const output = path.join(root, 'output');
