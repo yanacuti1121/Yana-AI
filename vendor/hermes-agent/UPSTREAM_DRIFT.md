@@ -106,3 +106,45 @@ provider-specific code that likely doesn't apply here). Worth a deliberate look 
 Raw upstream file contents used for this comparison are not committed here (fetched via `gh api`
 against `main`, not persisted) — re-run against current `main` before acting on this if much time
 has passed, since this repo's pace means it will drift further within days.
+
+## 2026-08-20 correction — three of the items above are stale or inapplicable
+
+Direct verification against the current state of `core/lib/hermes_adapted/*.py` (an Explore
+agent read every relevant file; a human followed up with manual greps against the vendored
+`_upstream/context_compressor.py` snapshot) found this doc had drifted from the code in three
+places:
+
+1. **The `context_compressor.py` cooldown/circuit-breaker gap (recommendation #1 above) is
+   closed.** It was built at some point after the 07-16/08-08 write-ups above and this doc was
+   never updated to reflect it: `context_compressor.py:24-36` and `context_compressor_io.py`'s
+   `_COMPRESSOR_ATTRS`/`load_compressor`/`dump_state` fully implement streak tracking and a
+   persisted wall-clock cooldown deadline, with dedicated tests in
+   `tests/test_hermes_context_compressor.py` and `tests/test_hermes_context_compressor_io.py`.
+2. **In-flight tool-call preservation (upstream #79278, described in the "what's new" section
+   above) is also already ported** — `context_compressor_pairs.py`'s `_trailing_inflight_assistant`,
+   dated 2026-08-08 in its own docstring.
+3. **Clarify-response handling and max-iteration-nudge anchoring (both mentioned in the
+   2026-08-08 update section above) do not apply to this port at all**, checked directly rather
+   than assumed: `clarify` is a hermes-product-specific tool (the agent asks the user a
+   question) that Claude Code has no equivalent of, so there is no clarify-turn for a
+   compaction step to mishandle. The max-iteration-nudge fix belongs to hermes's own
+   `conversation_loop.py`'s agent loop, which this port never took (only three standalone
+   pieces — `IterationBudget`, `jittered_backoff`, `classify_api_error` — see that file's own
+   docstring for why); Yana has no code path that ever injects a synthetic "max-iteration
+   nudge" message into a transcript, so there's nothing to anchor incorrectly during
+   compaction.
+
+**The one gap from this doc that was real and has now been closed:** `should_compress()` was
+gating on `estimate_prompt_tokens()`, a flat `total_chars // 4` guess — the same problem
+upstream's real-usage-based preflight defer (`should_defer_preflight_to_real_usage`/
+`update_from_response`, mentioned above) fixes, just reached by a different route since Yana's
+compressor runs from a Stop hook reading a finished transcript rather than a live per-request
+hook. Claude Code transcripts already carry a real `usage` block (`input_tokens` +
+`cache_creation_input_tokens` + `cache_read_input_tokens`) on every assistant entry, so no
+live-feedback mechanism needed building — `context_compressor_io.py`'s new
+`extract_real_prompt_tokens()` reads it directly, with `context-compress-stop.sh` preferring it
+over the old estimate. Checked against a real session transcript during this fix: the old
+heuristic estimated ~81K tokens where the real usage was ~414K — off by roughly 5x, not the
+2-3x figure upstream's own commit messages cite for CJK-heavy sessions, because the heuristic
+only ever counted parsed-message content length and had no visibility into system-prompt/
+tool-schema/cache overhead that the real usage figure includes.
