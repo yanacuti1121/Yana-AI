@@ -106,14 +106,21 @@ import fcntl, json, os
 
 from core.lib.hermes_adapted.context_compressor_io import (
     build_ollama_summarize_fn, dump_state, estimate_prompt_tokens,
-    load_compressor, parse_transcript_to_messages, prune_stale_sessions,
+    extract_real_prompt_tokens, load_compressor, parse_transcript_to_messages,
+    prune_stale_sessions,
 )
 
 messages = parse_transcript_to_messages(os.environ["TRANSCRIPT_PATH"])
 if not messages:
     raise SystemExit(0)
 
-prompt_tokens = estimate_prompt_tokens(messages)
+# Prefer the real per-turn usage from the transcript over the chars/4 guess
+# (never use an apostrophe here -- this whole block is a single-quoted bash
+# string; one would close it early and the rest would run as bash) --
+# falls back to the estimate only when no assistant usage block exists yet.
+prompt_tokens = extract_real_prompt_tokens(os.environ["TRANSCRIPT_PATH"])
+if prompt_tokens is None:
+    prompt_tokens = estimate_prompt_tokens(messages)
 session_id = os.environ["SESSION_ID"]
 state_path = os.environ["STATE_FILE"]
 summarize_fn = build_ollama_summarize_fn(os.environ["OLLAMA_MODEL"], os.environ["OLLAMA_HOST"])
