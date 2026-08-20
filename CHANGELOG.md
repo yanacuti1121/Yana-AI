@@ -8,6 +8,32 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.1 — 2026-08-20
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`/`tools/yana-desktop/
+package.json`) bumped from `1.4.0` to `1.4.1` — a patch, reflecting two
+merged fixes. The `yana-rt` crate stays at `1.4.0` (no crate-facing
+change this round); the Python package stays at `0.42.5`.
+
+**Merged, on `origin/main`:**
+
+- **#223** — restored a broken `softprops/action-gh-release` pin in
+  `desktop.yml` (an earlier PR had silently reverted it to a SHA GitHub
+  can no longer resolve), which had been failing all five Desktop Build
+  platform jobs since the `v1.4.0` tag push.
+- **#224** — `context_compressor`'s compression threshold now reads the
+  real per-turn token usage Claude Code already records in the
+  transcript, instead of a `chars // 4` estimate that measured roughly
+  5x low on a real session (missed system-prompt/tool-schema/cache
+  overhead entirely) — compaction was firing far later than intended.
+
+**Open, not yet merged as of this version bump** — hermes_adapted
+memory-capture + recall (#225), desktop runtime/release-pipeline
+hardening (#226), and a new brand logo across docs/web/desktop (#227).
+
+---
+
 ## v1.4.0 — 2026-08-16
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
