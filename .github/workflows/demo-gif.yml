@@ -11,6 +11,7 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     container:
       image: ghcr.io/charmbracelet/vhs:latest
     steps:

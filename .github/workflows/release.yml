@@ -37,6 +37,7 @@ jobs:
   verify-provenance:
     name: Verify tagged commit passed required CI
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       checks: read
@@ -76,6 +77,7 @@ jobs:
     needs: verify-provenance
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       matrix:
         include:

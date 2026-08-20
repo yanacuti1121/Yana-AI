@@ -83,6 +83,7 @@ jobs:
   verify-provenance:
     name: Verify commit passed required CI
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       checks: read
@@ -126,6 +127,7 @@ jobs:
       (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'py-v')) ||
       (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: pypi
       url: https://pypi.org/project/yana-ai/
@@ -169,6 +171,7 @@ jobs:
       (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'rt-v')) ||
       (github.event_name == 'workflow_dispatch' && inputs.target == 'crates')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Workstream B / B5 (workflow permissions, least privilege): this
     # job only checks out code and publishes to crates.io via
     # CARGO_REGISTRY_TOKEN -- it never writes back to the repo, unlike

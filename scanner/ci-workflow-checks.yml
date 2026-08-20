@@ -82,14 +82,28 @@ checks:
   - id: CI007
     severity: MEDIUM
     description: "permissions block missing — workflow inherits maximum token permissions"
+    # Anchored on "jobs:" only, not "on:" — "on:" almost always precedes
+    # "permissions:" by GitHub Actions convention (name -> on -> permissions
+    # -> jobs), so a "not_preceded_by" check anchored there fired on every
+    # well-formed workflow regardless of whether permissions were actually
+    # declared (found 2026-08-21 self-scanning this repo: 6/7 flagged files
+    # already had a correct top-level permissions block). not_accompanied_by
+    # checks both sides of "jobs:", so a permissions block declared shortly
+    # after jobs: (scoped per-job instead of once at the top, e.g.
+    # publish.yml) also satisfies the check — a job-level permissions block
+    # is exactly as effective as a top-level one per GitHub's own docs.
+    # lines: 15 covers the widest real gap seen in this repo's own
+    # workflows (top-level permissions up to 10 lines before jobs: in
+    # sandbox.yml; first job-level permissions 14 lines after jobs: in
+    # publish.yml).
     match:
       type: regex
-      pattern: "^(on:|jobs:)"
-      condition: not_preceded_by
-      not_preceded_by_pattern: "permissions:"
-      lines: 10
-    reason: "Workflows without explicit permissions inherit write access to contents, PRs, and packages."
-    fix: "Add 'permissions: read-all' at the top level and grant specific write permissions only where needed."
+      pattern: "^jobs:"
+      condition: not_accompanied_by
+      not_accompanied_by_pattern: "permissions:"
+      lines: 15
+    reason: "Workflows without explicit permissions (top-level or per-job) inherit write access to contents, PRs, and packages."
+    fix: "Add 'permissions: read-all' at the top level, or scope 'permissions:' inside each job, granting write only where needed."
 
   - id: CI008
     severity: HIGH
