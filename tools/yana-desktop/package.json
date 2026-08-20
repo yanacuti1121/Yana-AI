@@ -12,20 +12,25 @@
     "type": "git",
     "url": "https://github.com/yanacuti1121/Yana-AI"
   },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "electron .",
     "stage:runtime": "node scripts/stage-runtime.js",
-    "test": "node _test_runtime_paths.js",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "node _test_runtime_paths.js && node _test_security.js && node _test_process_lifecycle.js && node _test_list_dir_unit.js && node _test_assemble_release.js && node _test_workflow_contract.js && node _test_package_contract.js",
+    "test:integration": "node _test_list_dir.js",
     "build:linux": "electron-builder --linux",
-    "build:mac":   "electron-builder --mac",
-    "build:win":   "electron-builder --win"
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
   },
   "dependencies": {
     "electron-updater": "6.8.9"
   },
   "devDependencies": {
-    "electron":         "31.3.0",
-    "electron-builder": "24.13.3"
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3"
   },
   "build": {
     "publish": [
@@ -45,8 +50,11 @@
     },
     "files": [
       "main.js",
+      "list-dir.js",
       "preload.js",
+      "process-lifecycle.js",
       "runtime-paths.js",
+      "security.js",
       "package.json",
       "node_modules/**/*"
     ],
@@ -112,6 +120,6 @@
     }
   },
   "allowScripts": {
-    "electron@31.3.0": true
+    "electron@43.4.1": true
   }
 }
