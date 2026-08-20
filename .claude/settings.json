@@ -199,6 +199,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/canary-token-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/memory-turn-sync-stop.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }

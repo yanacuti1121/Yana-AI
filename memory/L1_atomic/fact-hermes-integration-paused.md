@@ -1,14 +1,14 @@
 ---
 id: fact-hermes-integration-paused
 type: decision
-statement: hermes_adapted integration is scoped to a 6-phase plan; Phase 0 (foundation fixes), Phase 1 (context_scrubber wiring into session-bootstrap.sh), Phase 3 (tool_guardrails wiring into tool-guardrails-detector.sh), and Phase 4 (context_compressor wiring into context-compress-stop.sh, including the 2026-07-16 failure-cooldown adaptation and persistence via context_compressor_io.py) are done and LIVE — Phase 2 (system_prompt) and Phase 5 (memory_manager into a live hook) are designed but not started; memory_manager.py + memory_manager_lifecycle.py exist as code but are not registered in .claude/settings.json.
+statement: hermes_adapted integration is scoped to a 6-phase plan; Phase 0 (foundation fixes), Phase 1 (context_scrubber wiring into session-bootstrap.sh), Phase 3 (tool_guardrails wiring into tool-guardrails-detector.sh), and Phase 4 (context_compressor wiring into context-compress-stop.sh, including the 2026-07-16 failure-cooldown adaptation and persistence via context_compressor_io.py) are done and LIVE — Phase 2 (system_prompt) stays not started (investigated 2026-07-06, no compelling wiring target found). Phase 5 (memory_manager) is now split: Phase 5a (auto turn-capture, write path only, via the new memory_manager_io.py + core/hooks/memory-turn-sync-stop.sh) landed 2026-08-20 and is LIVE — prefetch/recall and any change to session-bootstrap.sh remain a separate, later decision.
 source: file:/home/codespace/.claude/plans/squishy-stirring-cookie.md (unavailable on this machine — Phase 1 done by re-deriving from context_scrubber.py directly, plan file not found locally)
 confidence: high
 scope: Yana AI
 tags: [hermes, hooks, dormant-code, session-bootstrap, in-progress]
 forbidden_assumptions:
   - CORRECTED 2026-08-08 — this file previously said context_compressor.py was NOT wired; that was stale. It IS wired (core/hooks/context-compress-stop.sh, registered in .claude/settings.json's Stop hooks) and has been since at least 2026-07-16 per that file's own module docstring — the phase-status line above was never updated when that work landed. Do not trust a "not started" claim in this file without checking core/hooks/ + .claude/settings.json directly first — this file has already gone stale on this exact point once.
-  - Do not assume core/lib/hermes_adapted/{system_prompt,memory_manager}.py are wired into anything yet — confirmed not present in .claude/settings.json as of 2026-08-08
+  - system_prompt.py is still not wired into anything (confirmed not present in .claude/settings.json as of 2026-08-20 too). memory_manager.py IS now wired as of 2026-08-20, but only for sync_turn (write path) via memory_manager_io.py — do not assume prefetch/recall works or that session-bootstrap.sh's fact-matching changed; it did not.
   - The plan file at the source path above does not exist on this machine (checked 2026-07-02) — if picking up Phase 2/5, re-derive from the module docstrings/tests in core/lib/hermes_adapted/, do not assume its reasoning without re-reading what's actually there
   - tool-guardrails-detector.sh is warn-only (hard_stop_enabled is off in tool_guardrails_io.build_config()) — it never blocks a tool call, only prints an advisory line on PostToolUse
 evidence: core/lib/hermes_adapted/*.py, core/lib/hermes_adapted/tool_guardrails_io.py (Phase 3, security-auditor + code-auditor reviewed), core/lib/hermes_adapted/context_compressor_io.py (Phase 4 persistence adapter), .claude/hooks/session-bootstrap.sh + core/hooks/session-bootstrap.sh (identical, both wired), core/hooks/tool-guardrails-detector.sh + .claude/hooks/ mirror (identical, both wired to PostToolUse record / Stop reset), core/hooks/context-compress-stop.sh (Stop hook, confirmed registered in .claude/settings.json 2026-08-08), core/tests/hooks/run-hook-tests.sh (148/148 passing as of Phase 3 post-review fixes), .claude-plugin/plugin.json hooks count 56 (was stale at 55, caught by drift-check.sh during review)
@@ -155,3 +155,65 @@ pass.
 Phase 5 (memory_manager) has NOT been investigated for a wiring target as
 of this note — memory_manager.py + memory_manager_lifecycle.py exist as
 code (172 + 180 lines) but nothing has looked at whether/how to wire them.
+
+Phase 5a completed 2026-08-20 (write path only): investigated the
+MemoryProvider Protocol (10 methods) against Yana's actual hook-based
+architecture and found most of it has no viable wiring point —
+get_tool_schemas()/handle_tool_call() in particular assume a live,
+persistent agent loop that can accept a dynamically-registered tool
+mid-conversation, which Yana does not have. Only sync_turn (write) maps to
+a real gap: session-bootstrap.sh (Phase 1) already does recall (crude
+keyword-substring match against memory/L1_atomic/), but nothing captures
+what happens in a session automatically — add-fact.sh/add-session-fact.sh
+are both manual-invocation-only. New file
+core/lib/hermes_adapted/memory_manager_io.py (not a port — same category as
+context_compressor_io.py) implements LocalTurnLogProvider, a MemoryProvider
+whose sync_turn() is real and appends the last user/assistant turn pair
+(found by reusing context_compressor_pairs.py's
+find_last_user_message_idx/find_last_assistant_message_idx rather than
+re-parsing) to a new append-only log, .claude/state/memory-turn-log.jsonl —
+deliberately NOT the curated memory/L2_session/*.md fact format, since
+auto-writing every turn as a "fact" would misuse that schema. All other
+Protocol methods are stubbed with a docstring explaining why. No embedding
+computation yet — deferred to whichever future phase implements prefetch
+(the search side), since embeddings have no consumer until then. Wired via
+new hook core/hooks/memory-turn-sync-stop.sh (Stop event, alongside not
+replacing context-compress-stop.sh), registered in .claude/settings.json,
+mirrored to .claude/hooks/ and .codex/hooks/. Explicitly did NOT touch
+session-bootstrap.sh or add recall/prefetch — that stays a separate,
+later decision. 14 tests (tests/test_hermes_memory_manager_io.py), plus 4
+hook-level tests in core/tests/hooks/run-hook-tests.sh; full hook suite
+281/281 green (3 consecutive runs, no flakiness).
+
+Reviewed per 54-bft-consensus-law.md (security-auditor + code-auditor,
+new core/hooks/ file) — two real findings from the first pass, both fixed
+before commit:
+1. Safety (security-auditor): sync_turn() wrote raw conversation text
+   unfiltered, no secret/credential redaction, conflicting with
+   52-secrets-vault-law.md and 68-principal-confidentiality-law.md. Fixed
+   by adding the same secret-pattern check this repo already uses in
+   add-fact.sh/audit-log.sh (whole-text redaction on
+   SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|BEARER|CREDENTIAL match).
+2. Correctness (code-auditor): find_last_assistant_message_idx was called
+   with head_end=0 (search the whole transcript) instead of
+   head_end=user_idx (search only from the current turn onward) — could
+   silently pair the current, unanswered question with a stale reply from
+   an earlier, unrelated turn when the current turn's own assistant
+   message was tool_use-only. Fixed + regression test added.
+
+security-auditor's finding 1 also raised at-rest encryption:
+52-secrets-vault-law.md's literal text says "all persistent memory (L1/L2
+store)" must be AES-256-GCM encrypted. Surfaced to the principal rather
+than decided unilaterally (68-principal-confidentiality-law.md: "agent
+deciding on its own that something isn't that sensitive" is prohibited)
+— the repo has no Python crypto dependency at all yet
+(no `cryptography`/pycryptodome in requirements-dev.txt or pyproject.toml,
+not in core/config/package-whitelist.json either), so doing this properly
+meant a new supply-chain dependency, not just a code change. Principal's
+explicit decision: do not add the dependency, keep the log plaintext at
+this tier (same as its siblings context-compressor-state.json/
+tool-guardrail-state.json/audit-chain.log — none of which are encrypted
+either), rely on the secret-pattern filter above plus the existing
+mitigations (git-ignored, 6h/2000-entry pruning, local-machine-only). Not
+an oversight — an explicit, recorded principal decision if this comes up
+again.

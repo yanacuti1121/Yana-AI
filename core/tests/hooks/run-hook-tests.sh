@@ -956,6 +956,105 @@ test_compress_stop_end_to_end() {
 }
 test_compress_stop_end_to_end
 
+# 5f. memory-turn-sync-stop.sh -- Stop event auto turn-capture
+# (hermes_adapted Phase 5a, write path only). Pure local file I/O, no
+# Ollama/network dependency, so no static-fallback-summary tolerance is
+# needed the way context-compress-stop.sh's end-to-end test requires.
+echo ""
+echo "--- memory-turn-sync-stop.sh ---"
+
+test_memory_sync_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}   # e.g. "YANA_MEMORY_SYNC_BYPASS=1"
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-turn-sync-stop.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/memory-turn-sync-stop.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/memory-turn-sync-stop.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/memory-turn-sync-stop.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_memory_sync_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"ms1","transcript_path":"/nonexistent.jsonl"}' \
+    "YANA_MEMORY_SYNC_BYPASS=1"
+
+test_memory_sync_silent "Missing transcript_path is silent (fails open)" \
+    '{"session_id":"ms2"}'
+
+test_memory_sync_silent "Nonexistent transcript_path is silent (fails open)" \
+    '{"session_id":"ms3","transcript_path":"/nonexistent.jsonl"}'
+
+test_memory_sync_end_to_end() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-turn-sync-stop.sh [real transcript captures last turn into the log]... "
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "SKIP (python3 not available)"
+        return 0
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local transcript_file
+    transcript_file=$(mktemp)
+    register_temp "$transcript_file"
+    {
+        echo '{"type":"user","message":{"role":"user","content":"how do I fix this bug"}}'
+        echo '{"type":"assistant","message":{"role":"assistant","content":"here is the fix"}}'
+    } > "$transcript_file"
+
+    local payload
+    payload=$(jq -n --arg tp "$transcript_file" '{"session_id":"ms4","transcript_path":$tp}')
+
+    echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/memory-turn-sync-stop.sh" >/dev/null 2>&1
+
+    local log_file="$tmp_project/.claude/state/memory-turn-log.jsonl"
+    local waited=0
+    while [[ $waited -lt 5 ]]; do
+        [[ -s "$log_file" ]] && break
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    local found=""
+    if [[ -f "$log_file" ]]; then
+        found=$(grep -c "how do I fix this bug" "$log_file" 2>/dev/null || echo 0)
+    fi
+
+    rm -rf "$tmp_project"
+
+    if [[ "$found" -ge 1 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (no matching entry written to $log_file within ${waited}s)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_memory_sync_end_to_end
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"
