@@ -32,4 +32,17 @@ assert.deepStrictEqual(invalidEnvelope, {
   error: 'capability tree returned an invalid response envelope',
 });
 
-console.log('list-dir unit tests passed: 3');
+const windowsPaths = listDir({
+  ...base,
+  exec: () => JSON.stringify({ data: { entries: [
+    { path: 'src\\main.rs', kind: 'file' },
+  ] } }),
+});
+assert.deepStrictEqual(windowsPaths, {
+  ok: true,
+  entries: [
+    { name: 'main.rs', isDir: false, relPath: 'src/main.rs' },
+  ],
+});
+
+console.log('list-dir unit tests passed: 4');
