@@ -14,6 +14,7 @@ import time
 from core.lib.hermes_adapted.context_compressor_io import (
     dump_state,
     estimate_prompt_tokens,
+    extract_real_prompt_tokens,
     load_compressor,
     parse_transcript_to_messages,
     prune_stale_sessions,
@@ -122,6 +123,72 @@ def test_estimate_prompt_tokens_counts_content_and_tool_call_arguments():
     ]
     # 400 + 40 = 440 chars, // 4 = 110
     assert estimate_prompt_tokens(messages) == 110
+
+
+def test_extract_real_prompt_tokens_sums_usage_fields_of_last_assistant_entry():
+    path = _write_transcript([
+        {"type": "assistant", "message": {"role": "assistant", "content": "first", "usage": {
+            "input_tokens": 999, "cache_creation_input_tokens": 999, "cache_read_input_tokens": 999,
+        }}},
+        {"type": "user", "message": {"role": "user", "content": "more"}},
+        {"type": "assistant", "message": {"role": "assistant", "content": "second", "usage": {
+            "input_tokens": 10, "cache_creation_input_tokens": 200, "cache_read_input_tokens": 3000,
+        }}},
+    ])
+    # Must use the LAST assistant usage block (3210), not the first (2997) —
+    # picking the wrong one silently mis-estimates by the conversation's growth.
+    assert extract_real_prompt_tokens(path) == 3210
+
+
+def test_extract_real_prompt_tokens_returns_none_when_no_usage_block():
+    path = _write_transcript([
+        {"type": "assistant", "message": {"role": "assistant", "content": "no usage field here"}},
+    ])
+    assert extract_real_prompt_tokens(path) is None
+
+
+def test_extract_real_prompt_tokens_returns_none_on_missing_file():
+    assert extract_real_prompt_tokens("/nonexistent/path/does-not-exist.jsonl") is None
+
+
+def test_extract_real_prompt_tokens_ignores_malformed_lines_and_non_assistant_entries():
+    f = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False)
+    f.write("{not valid json\n")
+    f.write(json.dumps({"type": "user", "message": {"role": "user", "content": "hi", "usage": {
+        "input_tokens": 5000, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0,
+    }}}) + "\n")
+    f.write(json.dumps({"type": "assistant", "message": {"role": "assistant", "content": "ok", "usage": {
+        "input_tokens": 1, "cache_creation_input_tokens": 2, "cache_read_input_tokens": 3,
+    }}}) + "\n")
+    f.close()
+    # The user-role usage block (5000) must be ignored — only assistant
+    # entries carry the model's real prompt-token accounting.
+    assert extract_real_prompt_tokens(f.name) == 6
+
+
+def test_extract_real_prompt_tokens_handles_partial_usage_dict():
+    path = _write_transcript([
+        {"type": "assistant", "message": {"role": "assistant", "content": "ok", "usage": {
+            "input_tokens": 42,
+            # cache_creation_input_tokens / cache_read_input_tokens absent —
+            # must default to 0 via `.get(field) or 0`, not raise.
+        }}},
+    ])
+    assert extract_real_prompt_tokens(path) == 42
+
+
+def test_extract_real_prompt_tokens_does_not_raise_on_overflowing_usage_value():
+    f = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False)
+    # A bare "Infinity" is Python's json module's own non-standard extension
+    # (accepted by json.loads by default) — parses to float("inf"), and
+    # int(float("inf")) raises OverflowError, not TypeError/ValueError.
+    f.write('{"type":"assistant","message":{"role":"assistant","content":"x",'
+            '"usage":{"input_tokens":Infinity,"cache_creation_input_tokens":0,'
+            '"cache_read_input_tokens":0}}}\n')
+    f.close()
+    # Must not raise — the docstring promises never to. The malformed entry
+    # is simply skipped, leaving no usable usage block, hence None.
+    assert extract_real_prompt_tokens(f.name) is None
 
 
 def test_load_dump_round_trip_preserves_state():

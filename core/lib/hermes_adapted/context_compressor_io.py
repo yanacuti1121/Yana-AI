@@ -14,6 +14,10 @@ new code, not part of the port, that bridges both gaps for
     `content` is either a plain string or a list of content blocks
     (`text`/`tool_use`/`tool_result`)) into the OpenAI-tool-calling shape
     `ContextCompressor.compress()` expects
+  - reading the transcript's real per-turn `usage` blocks
+    (`extract_real_prompt_tokens()`) so should_compress()'s threshold check
+    runs against the provider's actual token count instead of always falling
+    back to estimate_prompt_tokens()'s chars/4 guess
   - a `summarize_fn` implementation that calls a local Ollama model over
     HTTP (stdlib `urllib`, no new dependency — matches this module family's
     existing "no external deps" convention)
@@ -183,7 +187,11 @@ def parse_transcript_to_messages(transcript_path: str) -> list[dict[str, Any]]:
 def estimate_prompt_tokens(messages: list[dict[str, Any]]) -> int:
     """Rough token estimate — same chars/4 heuristic context_compressor.py
     uses internally, so should_compress()'s percentage check is measuring
-    against a consistent yardstick rather than two different guesses."""
+    against a consistent yardstick rather than two different guesses.
+
+    Fallback only — prefer extract_real_prompt_tokens() when the transcript
+    has a usage block, since this heuristic over/under-estimates by a wide
+    margin on CJK-heavy or reasoning-heavy sessions."""
     total_chars = 0
     for m in messages:
         content = m.get("content")
@@ -193,6 +201,63 @@ def estimate_prompt_tokens(messages: list[dict[str, Any]]) -> int:
             fn = tc.get("function", {}) if isinstance(tc, dict) else {}
             total_chars += len(str(fn.get("arguments", "")))
     return total_chars // _CHARS_PER_TOKEN
+
+
+def extract_real_prompt_tokens(transcript_path: str) -> Optional[int]:
+    """Real prompt-token count from the transcript's last assistant `usage`
+    block, instead of estimate_prompt_tokens()'s chars/4 guess.
+
+    Claude Code records real usage on every assistant entry
+    (`entry["message"]["usage"]`). Under prompt caching, `input_tokens` alone
+    is only the new/uncached delta for that turn — the total context size the
+    model actually processed is `input_tokens + cache_creation_input_tokens +
+    cache_read_input_tokens`, matching Anthropic's usage-accounting split
+    between newly-cached and already-cached tokens.
+
+    Returns None (never raises) when no assistant entry has a usage block, or
+    the file is missing/malformed, so callers fall back to
+    estimate_prompt_tokens() unchanged — same fail-open posture as
+    parse_transcript_to_messages()."""
+    real_tokens: Optional[int] = None
+    try:
+        with open(transcript_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return None
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if entry.get("type") != "assistant":
+            continue
+        msg = entry.get("message")
+        if not isinstance(msg, dict):
+            continue
+        usage = msg.get("usage")
+        if not isinstance(usage, dict):
+            continue
+
+        try:
+            total = (
+                int(usage.get("input_tokens") or 0)
+                + int(usage.get("cache_creation_input_tokens") or 0)
+                + int(usage.get("cache_read_input_tokens") or 0)
+            )
+        except (TypeError, ValueError, OverflowError):
+            # OverflowError: int() on a float that overflowed to inf/-inf
+            # (e.g. a JSON "Infinity"/1e400 value) — TypeError/ValueError
+            # alone don't cover that case, and this function's docstring
+            # promises never to raise.
+            continue
+        real_tokens = total  # last assistant usage block wins
+
+    return real_tokens
 
 
 # ---------------------------------------------------------------------------
