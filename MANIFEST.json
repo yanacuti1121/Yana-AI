@@ -374,7 +374,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 63,
+      "count": 65,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -412,6 +412,8 @@
         "core/hooks/infra-review-reminder.sh",
         "core/hooks/intent-inference.sh",
         "core/hooks/log-agent.sh",
+        "core/hooks/memory-recall-prompt.sh",
+        "core/hooks/memory-turn-sync-stop.sh",
         "core/hooks/multi-agent-lock.sh",
         "core/hooks/per-tool-circuit-breaker.sh",
         "core/hooks/permission-auto-approve.sh",
@@ -2786,7 +2788,7 @@
   "skills_count": 2025,
   "skills_stubs_archived": 88,
   "agents_count": 101,
-  "hooks_count": 63,
+  "hooks_count": 65,
   "scripts_count": 130,
   "commands_count": 170,
   "rules_count": 71
