@@ -24,10 +24,10 @@ function metadata(url) {
 }
 
 bundle('yana-desktop-linux-x64', {
-  [`Yana-AI-${version}-x64.AppImage`]: 'linux-x64',
-  [`Yana-AI-${version}-x64.AppImage.blockmap`]: 'blockmap',
-  [`Yana-AI-${version}-x64.deb`]: 'deb-x64',
-  'latest-linux.yml': metadata(`Yana-AI-${version}-x64.AppImage`),
+  [`Yana-AI-${version}-x86_64.AppImage`]: 'linux-x64',
+  [`Yana-AI-${version}-x86_64.AppImage.blockmap`]: 'blockmap',
+  [`Yana-AI-${version}-amd64.deb`]: 'deb-x64',
+  'latest-linux.yml': metadata(`Yana-AI-${version}-x86_64.AppImage`),
 });
 bundle('yana-desktop-linux-arm64', {
   [`Yana-AI-${version}-arm64.AppImage`]: 'linux-arm64',
