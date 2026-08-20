@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yana AI — Command Reference</title>
+<meta name="description" content="Every command Yana AI ships — the real yana-ai / yana-rt CLI (59 + 34 top-level commands) and the 170 Claude Code slash commands, verified against source and searchable." />
+<link rel="canonical" href="https://yanacuti1121.github.io/Yana-AI/commands.html" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Yana AI — Command Reference" />
+<meta property="og:description" content="The real CLI (yana-ai / yana-rt) and the 170 Claude Code slash commands, verified against source and searchable." />
+<meta property="og:image" content="https://yanacuti1121.github.io/Yana-AI/yana-logo.png" />
+<meta property="og:url" content="https://yanacuti1121.github.io/Yana-AI/commands.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Yana AI — Command Reference" />
+<meta name="twitter:image" content="https://yanacuti1121.github.io/Yana-AI/yana-logo.png" />
+
+<link rel="icon" type="image/png" href="yana-logo.png" />
+<link rel="apple-touch-icon" href="yana-logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Same blue as the current brand logo + index.html's own --accent —
+     this page is a reference/tool, not marketing, so it borrows the
+     site's existing accent rather than inventing a new one. */
+  --bg:        #f5f8fc;
+  --bg-card:   #ffffff;
+  --bg-card-2: #eef3fa;
+  --primary:   #0f62c9;
+  --primary-h: #0b4fa8;
+  --fg:        #10203a;
+  --fg-muted:  #55698a;
+  --fg-faint:  #8b9ab8;
+  --border:    rgba(16, 32, 58, 0.10);
+  --border-strong: rgba(16, 32, 58, 0.18);
+  --good:      #0f9d6b;
+  --good-soft: #e3f8ef;
+  --warn:      #b45309;
+  --warn-soft: #fef3e2;
+  --radius:    14px;
+  --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.dark {
+  --bg:        #0a1526;
+  --bg-card:   #101f36;
+  --bg-card-2: #14294a;
+  --primary:   #5aa3ff;
+  --primary-h: #7fb8ff;
+  --fg:        #e7eefc;
+  --fg-muted:  #9ab0d6;
+  --fg-faint:  #64789e;
+  --border:    rgba(230, 240, 255, 0.10);
+  --border-strong: rgba(230, 240, 255, 0.18);
+  --good:      #34d399;
+  --good-soft: rgba(52,211,153,.14);
+  --warn:      #fbbf24;
+  --warn-soft: rgba(251,191,36,.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --bg:        #0a1526;
+    --bg-card:   #101f36;
+    --bg-card-2: #14294a;
+    --primary:   #5aa3ff;
+    --primary-h: #7fb8ff;
+    --fg:        #e7eefc;
+    --fg-muted:  #9ab0d6;
+    --fg-faint:  #64789e;
+    --border:    rgba(230, 240, 255, 0.10);
+    --border-strong: rgba(230, 240, 255, 0.18);
+    --good:      #34d399;
+    --good-soft: rgba(52,211,153,.14);
+    --warn:      #fbbf24;
+    --warn-soft: rgba(251,191,36,.14);
+  }
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+code, .mono { font-family: var(--mono); }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* ── nav (matches desktop.html's site-wide pattern) ─────────────── */
+nav {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; }
+.nav-brand img { width: 28px; height: 28px; border-radius: 7px; }
+.nav-links { display: flex; align-items: center; gap: 1.4rem; font-size: .875rem; color: var(--fg-muted); }
+.nav-links a:hover { color: var(--fg); }
+.nav-cta {
+  background: var(--primary); color: #fff;
+  padding: .45rem 1.1rem; border-radius: 8px;
+  font-size: .875rem; font-weight: 600; transition: background .15s;
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary-h); }
+
+/* ── header block ───────────────────────────────────────────────── */
+.page-head { max-width: 1180px; margin: 0 auto; padding: 2.4rem 1.5rem 1.2rem; }
+.eyebrow { font-family: var(--mono); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); font-weight: 600; }
+h1 { margin: .3rem 0 0; font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 68ch; color: var(--fg-muted); font-size: .95rem; margin-top: .5rem; }
+
+.stat-strip { max-width: 1180px; margin: 1rem auto 0; padding: 0 1.5rem; display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: .65rem .85rem; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); }
+.stat span { font-size: .7rem; color: var(--fg-muted); }
+
+.tabs { max-width: 1180px; margin: 1.1rem auto 0; padding: 0 1.5rem; }
+.tabs-inner { display: flex; gap: 4px; background: var(--bg-card-2); padding: 4px; border-radius: 11px; width: fit-content; }
+.tab-btn { font-family: var(--mono); font-size: .8125rem; font-weight: 600; border: none; background: transparent; color: var(--fg-muted); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; }
+.tab-btn[aria-selected="true"] { background: var(--bg-card); color: var(--primary); box-shadow: 0 1px 2px rgba(16,32,58,.06), 0 6px 16px -10px rgba(16,32,58,.2); }
+.tab-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 1.4rem 1.5rem 5rem; }
+.panel[hidden] { display: none; }
+
+.callout { border: 1px solid var(--border); border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 10px; padding: .9rem 1rem; margin: 0 0 1.3rem; font-size: .83rem; }
+.callout code { background: rgba(0,0,0,.06); padding: 1px 5px; border-radius: 4px; font-size: .78rem; }
+.dark .callout code, :root:not(.light):not(.dark) .callout code { background: rgba(255,255,255,.1); }
+
+h2.sec { font-family: var(--mono); font-size: .82rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-muted); margin: 2rem 0 .7rem; padding-top: .3rem; border-top: 1px solid var(--border); }
+main > h2.sec:first-of-type { border-top: none; margin-top: 0; }
+.sec-note { margin: -.5rem 0 .85rem; font-size: .8rem; color: var(--fg-muted); max-width: 70ch; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+th { text-align: left; font-family: var(--mono); font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-muted); font-weight: 600; padding: .6rem .85rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: .6rem .85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+td.cmd { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+
+.cli-group { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); margin-bottom: .7rem; overflow: hidden; }
+.cli-group summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: .8rem 1rem; gap: .6rem; }
+.cli-group summary::-webkit-details-marker { display: none; }
+.cli-group summary .ttl { font-family: var(--mono); font-weight: 600; font-size: .82rem; display: flex; align-items: center; gap: .6rem; }
+.count-pill { font-family: var(--mono); font-size: .7rem; font-weight: 600; color: var(--primary); background: var(--bg-card-2); border-radius: 20px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
+.chev { color: var(--fg-muted); font-size: .72rem; transition: transform .15s ease; }
+.cli-group[open] .chev { transform: rotate(90deg); }
+.cli-rows { border-top: 1px solid var(--border); }
+.cli-row { display: grid; grid-template-columns: 170px 1fr; gap: 2px 1rem; padding: .55rem 1rem; border-bottom: 1px solid var(--border); font-size: .8rem; }
+.cli-row:last-child { border-bottom: none; }
+.cli-row .nm { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+.cli-row .ds { color: var(--fg-muted); }
+@media (max-width: 560px) { .cli-row { grid-template-columns: 1fr; } }
+
+.tree-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.tree-card { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); padding: .8rem .9rem; }
+.tree-card .root { font-family: var(--mono); font-weight: 700; font-size: .8rem; color: var(--primary); margin: 0 0 .3rem; }
+.tree-card .subs { font-size: .76rem; color: var(--fg-muted); line-height: 1.55; }
+
+.filter-bar { position: sticky; top: 56px; z-index: 5; background: var(--bg); padding: .2rem 0 .85rem; display: flex; flex-direction: column; gap: .6rem; }
+.search-input { width: 100%; padding: .68rem .85rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--fg); font-family: var(--sans); font-size: .9rem; }
+.search-input:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.search-input::placeholder { color: var(--fg-faint); }
+.chip-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip { font-family: var(--mono); font-size: .7rem; font-weight: 600; border: 1px solid var(--border); background: var(--bg-card); color: var(--fg-muted); padding: .38rem .68rem; border-radius: 20px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--bg-card-2); border-color: var(--primary); color: var(--primary); }
+.chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.result-count { font-size: .76rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+
+.cmd-list { display: flex; flex-direction: column; gap: 1.2rem; margin-top: .3rem; }
+.cmd-cat h3 { font-family: var(--mono); font-size: .8rem; font-weight: 600; margin: 0 0 .5rem; display: flex; align-items: center; gap: .5rem; }
+.cmd-cat-rows { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-card); }
+.cmd-row { display: grid; grid-template-columns: 185px 1fr; gap: 1px .95rem; padding: .55rem .85rem; border-bottom: 1px solid var(--border); font-size: .8rem; }
+.cmd-row:last-child { border-bottom: none; }
+.cmd-row .nm { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+.cmd-row .nm::before { content: "/"; color: var(--fg-faint); font-weight: 400; }
+.cmd-row .ds { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+@media (max-width: 560px) { .cmd-row { grid-template-columns: 1fr; } }
+.empty-state { padding: 2.4rem 1rem; text-align: center; color: var(--fg-muted); font-size: .82rem; }
+
+footer { display: flex; flex-wrap: wrap; gap: 1rem 1.4rem; align-items: center; justify-content: center; max-width: 1180px; margin: 0 auto; padding: 1.6rem 1.5rem 2.5rem; color: var(--fg-muted); font-size: .8rem; border-top: 1px solid var(--border); }
+footer a:hover { color: var(--fg); }
+</style>
+</head>
+<body>
+
+<header>
+<nav aria-label="Primary">
+  <a href="/Yana-AI/" class="nav-brand">
+    <img src="yana-logo.png" alt="Yana AI" />
+    Yana AI
+  </a>
+  <div class="nav-links">
+    <a href="/Yana-AI/">Home</a>
+    <a href="/Yana-AI/desktop.html">Desktop</a>
+    <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank">GitHub</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank">Latest release</a>
+</nav>
+</header>
+
+<div class="page-head">
+  <div class="eyebrow">Yana AI · tra cứu lệnh</div>
+  <h1>Bản Đồ Lệnh Yana AI</h1>
+  <p class="lede">Hai bề mặt lệnh khác nhau, dễ nhầm với nhau: lệnh CLI thật gõ ở terminal (<code>yana-ai</code> / <code>yana-rt</code>) và slash command chỉ dùng bên trong một phiên Claude Code.</p>
+</div>
+<div class="stat-strip">
+  <div class="stat"><b>59</b><span>lệnh cấp đầu — yana-ai CLI</span></div>
+  <div class="stat"><b>34</b><span>lệnh cấp đầu — yana-rt (Rust)</span></div>
+  <div class="stat"><b>170</b><span>slash command — Claude Code</span></div>
+  <div class="stat"><b>5</b><span>entrypoint nhị phân</span></div>
+</div>
+<div class="tabs">
+  <div class="tabs-inner" role="tablist" aria-label="Chọn bề mặt lệnh">
+    <button class="tab-btn" id="tab-cli" role="tab" aria-selected="true" aria-controls="panel-cli">CLI thật (yana-ai / yana-rt)</button>
+    <button class="tab-btn" id="tab-slash" role="tab" aria-selected="false" aria-controls="panel-slash">Slash commands (Claude Code)</button>
+  </div>
+</div>
+
+<main>
+  <!-- ══════════════════════ CLI PANEL ══════════════════════ -->
+  <section class="panel" id="panel-cli" role="tabpanel" aria-labelledby="tab-cli">
+
+    <div class="callout">
+      <b>Phát hiện đáng chú ý (chưa sửa, để anh quyết):</b> binary <code>target/release/yana-rt</code> trên máy có thể cũ hơn source HEAD.
+      <code>bin/yana</code> luôn ưu tiên binary <code>release</code> trước <code>debug</code> (xác nhận tại <code>bin/yana:30</code>) —
+      nên sau <code>cargo build</code> (build debug), lệnh <code>yana-ai os status</code> hay các lệnh Rust mới vẫn có thể gọi
+      nhầm vào binary release cũ và báo "không nhận lệnh". Cách né tạm: <code>cargo build --release</code> trước khi test lệnh mới,
+      hoặc xoá <code>target/release/yana-rt</code> để buộc fallback sang debug.
+    </div>
+
+    <h2 class="sec" id="cli">5 entrypoint</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lệnh gõ ở terminal</th><th>Vai trò</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd">yana-ai</td><td>CLI công khai, thân thiện — 59 lệnh cấp đầu, phần lớn chuyển tiếp vào yana-rt</td></tr>
+          <tr><td class="cmd">yana-rt</td><td>Runtime Rust trực tiếp — 34 lệnh cấp đầu (32 mặc định + 2 feature-gated: mcp, remote)</td></tr>
+          <tr><td class="cmd">yana-ai-rt</td><td>Alias mở thẳng <code>yana-rt chat</code> khi cài qua npm/PyPI</td></tr>
+          <tr><td class="cmd">yana-ai-install</td><td>Installer nội bộ</td></tr>
+          <tr><td class="cmd">pty_bridge</td><td>Cầu PTY cho Electron desktop — không phải CLI công khai</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-note">59 và 34 không cộng được với nhau — phần lớn lệnh <code>yana-ai</code> chỉ là lớp gõ thân thiện chuyển tiếp thẳng vào <code>yana-rt</code> (ví dụ <code>yana-ai task</code> → <code>rt task</code>).</p>
+
+    <h2 class="sec">59 lệnh yana-ai — theo nhóm</h2>
+    <div id="cli-groups"></div>
+
+    <h2 class="sec">Cây lệnh lớn đáng chú ý</h2>
+    <p class="sec-note">Một số lệnh không dừng ở 1 cấp — mở ra cả cây lệnh con. <code>yana-ai os</code> là cây lớn nhất (Program K — quản lý agent/credential/resource cục bộ), với 9 nhóm con lớn đã xác nhận trong source (<code>src/os/mod.rs</code>).</p>
+    <div class="tree-grid" id="tree-grid"></div>
+  </section>
+
+  <!-- ══════════════════════ SLASH PANEL ══════════════════════ -->
+  <section class="panel" id="panel-slash" role="tabpanel" aria-labelledby="tab-slash" hidden>
+    <p class="sec-note" style="margin-top:0">170 file trong <code>core/commands/</code> — gõ <code>/&lt;tên&gt;</code> trong một phiên Claude Code để kích hoạt. Đây KHÔNG phải lệnh terminal.</p>
+
+    <div class="filter-bar">
+      <input class="search-input" id="search" type="text" placeholder="Tìm theo tên hoặc mô tả — ví dụ: debug, test, release, memory…" autocomplete="off">
+      <div class="chip-row" id="chips"></div>
+      <div class="result-count" id="result-count"></div>
+    </div>
+
+    <div class="cmd-list" id="cmd-list"></div>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 Yana AI · Apache 2.0</span>
+  <a href="/Yana-AI/">Home</a>
+  <a href="/Yana-AI/desktop.html">Desktop</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/releases">Releases</a>
+  <span class="mono" style="color:var(--fg-faint)">Dựng từ core/commands/*.md + bin/yana + src/main.rs — đối chiếu trực tiếp với source. v1.4.1 · 2026-08-20.</span>
+</footer>
+
+<script>
+// ── tab switching ──────────────────────────────────────────────────
+const tabCli = document.getElementById('tab-cli');
+const tabSlash = document.getElementById('tab-slash');
+const panelCli = document.getElementById('panel-cli');
+const panelSlash = document.getElementById('panel-slash');
+function selectTab(which){
+  const cli = which === 'cli';
+  tabCli.setAttribute('aria-selected', cli);
+  tabSlash.setAttribute('aria-selected', !cli);
+  panelCli.hidden = !cli;
+  panelSlash.hidden = cli;
+}
+tabCli.addEventListener('click', () => selectTab('cli'));
+tabSlash.addEventListener('click', () => selectTab('slash'));
+if (location.hash === '#slash') selectTab('slash');
+
+// ── CLI data (verified against bin/yana + src/main.rs, 2026-08-20) ──
+const CLI_GROUPS = [
+  { name: "Chat & giao diện", items: [
+    ["chat","REPL trò chuyện — cloud (Anthropic/OpenAI) hoặc local (Ollama/LM Studio/llama.cpp)"],
+    ["mcp","MCP Server qua stdio — feature-gated, spike, chưa client nào gọi thật"],
+    ["remote","Giao diện remote (Discord phase) — chat allowlist, chưa có quyền truy cập host/tool"],
+  ]},
+  { name: "An toàn & kiểm chứng", items: [
+    ["doctor","Kiểm tra sức khỏe môi trường + dependency toàn diện"],
+    ["audit","Quét bảo mật — secrets, CVE, rủi ro chuỗi cung ứng"],
+    ["guard","Cài đặt/quản lý guard hook cho project mới (khác với yana-rt guard nội bộ)"],
+    ["hunt","Quét chủ động pattern bảo mật — OWASP, injection, SSRF"],
+    ["filescan","Kiểm tra malware theo yêu cầu cho 1 file tải về (tra hash qua VirusTotal)"],
+    ["verify","Kiểm tra toàn vẹn hệ thống — git state, hook, drift report"],
+    ["check","Kiểm tra nhanh 1 file"],
+    ["check-context","Kiểm tra context trước khi chạy task"],
+    ["ci-check","Chạy toàn bộ gate check dùng trong CI"],
+    ["map","Bản đồ blast radius — AI có thể chạm tới đâu (settings, MCP, workflow)"],
+    ["score","Điểm audit, có thể xem breakdown từng khoản trừ"],
+    ["fix","Tự động áp fix an toàn cho các finding ID đã biết"],
+    ["explain","Giải thích một quyết định hoặc kết quả cụ thể của hệ thống"],
+    ["provenance","Xác minh code được port (core/lib/*_adapted) có nguồn vendor + attribution"],
+    ["evidence","Sinh biên nhận đã ký cho Truth Gate, hoặc xác minh evidence dán vào không phải do model bịa"],
+  ]},
+  { name: "Runtime & tự động hóa", items: [
+    ["task","Vòng đời task — tạo, theo dõi, hoàn tất kèm evidence"],
+    ["eval","Chấm evidence của task theo schema"],
+    ["bus","Message bus giữa các agent — emit, read, reply, inbox"],
+    ["memory","Bộ nhớ chia sẻ L3 — fact ở cấp workspace, xuyên phiên"],
+    ["mission","Điều phối mission song song — tạo, dispatch, theo dõi agent"],
+    ["route","Phân loại 1 task → simple / complex / external"],
+    ["workspace","Workspace cục bộ hợp nhất — context, memory, inbox, action có kiểm soát"],
+    ["os","Program K — quản lý agent/credential/resource cục bộ (cây lệnh lớn nhất)"],
+    ["giamthi","Dịch vụ giám sát độc lập ('giám thị') — cài đặt, trạng thái, sửa, gỡ"],
+    ["observability","Dashboard hoạt động — tóm tắt read-only từ audit-chain.log"],
+    ["skill-quality","Sổ chất lượng từng skill — dựa trên verdict PASS/FAIL thật"],
+    ["cost","Dashboard chi phí — token usage và chi tiêu"],
+    ["plugin","Hook plugin — đăng ký guard tuỳ biến mà không cần fork"],
+  ]},
+  { name: "Tri thức & thiết kế", items: [
+    ["graph","Knowledge graph — build/show/search/onboard/diff"],
+    ["vault","Kho tri thức ưu tiên tiếng Việt, có link dịch đa ngôn ngữ"],
+    ["design","Trích xuất design token — URL/file → màu, font, spacing, CSS var"],
+    ["spec","Kiểm tra file spec task theo schema của yana-ai"],
+    ["validate-spec","Kiểm tra 1 file spec cụ thể có hợp lệ không"],
+  ]},
+  { name: "Policy & cấu hình", items: [
+    ["policy","Quản lý policy tuân thủ"],
+    ["init-policy","Khởi tạo bộ policy cho project"],
+    ["config","Xem/đặt cấu hình yana-ai cho project"],
+    ["rule","Quản lý custom rule — thêm, liệt kê, xoá, import, test"],
+    ["template","Quản lý template dự án"],
+    ["lint","Lint cấu hình/rule"],
+    ["router","Định tuyến task tới agent phù hợp (nội bộ CLI)"],
+  ]},
+  { name: "Vận hành & báo cáo", items: [
+    ["install","Cài đặt guard/hook cho project mới"],
+    ["init","Khởi tạo Yana AI cho project mới (wizard tương tác)"],
+    ["upgrade","Nâng cấp Yana AI lên phiên bản mới"],
+    ["watch","Theo dõi live thay đổi cấu hình, tự re-audit kèm score diff"],
+    ["monitor","Theo dõi hệ thống theo thời gian thực"],
+    ["stats","Thống kê hoạt động phiên/agent"],
+    ["snapshot","Lưu/xem/so sánh/xoá snapshot trạng thái"],
+    ["export","Xuất dữ liệu hoặc báo cáo"],
+    ["report","Xuất báo cáo audit dạng HTML hoặc PDF"],
+    ["diff-report","Tạo báo cáo so sánh diff"],
+    ["scan-url","Quét 1 URL để tìm rủi ro"],
+    ["harness","Test harness tổng hợp"],
+  ]},
+  { name: "Tiện ích", items: [
+    ["badge","Tạo badge trạng thái dự án"],
+    ["version","In phiên bản CLI hiện tại"],
+    ["banner","In banner giới thiệu Yana AI"],
+    ["help","Hiển thị hướng dẫn sử dụng"],
+  ]},
+];
+
+const cliGroupsEl = document.getElementById('cli-groups');
+CLI_GROUPS.forEach((g, i) => {
+  const det = document.createElement('details');
+  det.className = 'cli-group';
+  if (i === 0) det.open = true;
+  const rowsHtml = g.items.map(([n,d]) =>
+    `<div class="cli-row"><div class="nm">yana-ai ${n}</div><div class="ds">${d}</div></div>`
+  ).join('');
+  det.innerHTML = `<summary><span class="ttl"><span class="chev">›</span>${g.name}</span><span class="count-pill">${g.items.length}</span></summary>
+    <div class="cli-rows">${rowsHtml}</div>`;
+  cliGroupsEl.appendChild(det);
+});
+
+// ── notable command trees ────────────────────────────────────────
+const TREES = [
+  ["yana-ai doctor","mặc định run, thêm dispatch"],
+  ["yana-ai task","create, list, done, status, drop"],
+  ["yana-ai eval","run, judge, schema"],
+  ["yana-ai bus","emit, read, reply, inbox"],
+  ["yana-ai memory","store, get, list, promote, import"],
+  ["yana-ai cost","show, log, breakdown"],
+  ["yana-ai plugin","list, add, remove, enable, disable, run"],
+  ["yana-ai mission","create, task, dispatch, done, fail, cancel, retry, status, report, list"],
+  ["yana-ai workspace","create, update, link, show, search, inbox, remember, action request/approve, export, status"],
+  ["yana-ai graph","build, show, search, onboard, diff"],
+  ["yana-ai vault","init, new, list, search, show, stats, import, link"],
+  ["yana-ai policy","list, show, apply, fixes, check"],
+  ["yana-ai guard","list, status, install, remove"],
+  ["yana-ai rule","add, list, remove, import, test"],
+  ["yana-ai config","list, get, set, reset, show"],
+  ["yana-ai snapshot","save, list, show, diff, delete"],
+  ["yana-ai report","html, pdf"],
+  ["yana-ai template","list, show"],
+  ["yana-ai giamthi","install, status, repair, uninstall, run"],
+  ["yana-ai evidence","run, verify"],
+  ["yana-ai observability","show, breakdown"],
+  ["yana-ai skill-quality","show, promote"],
+  ["yana-ai os","agent · credential · resource · governor · monitor · host · supervisor · autonomy · identity (9 nhóm con, xem nhánh source src/os/mod.rs)"],
+];
+const treeGrid = document.getElementById('tree-grid');
+TREES.forEach(([root, subs]) => {
+  const card = document.createElement('div');
+  card.className = 'tree-card';
+  card.innerHTML = `<p class="root">${root}</p><p class="subs">${subs}</p>`;
+  treeGrid.appendChild(card);
+});
+
+// ── slash command data (170, from core/commands/*.md frontmatter) ──
+const SLASH_DATA = {"cats": {"A": "Git & Phát hành", "B": "Kiến trúc & Lập kế hoạch", "C": "Review & Audit chất lượng", "D": "Debug & Sửa lỗi", "E": "Refactor & Dọn code", "F": "Testing & TDD", "G": "Xây dựng tính năng", "H": "Triển khai & Hạ tầng", "I": "Chi phí & Ngân sách phiên", "J": "Dữ liệu & ML", "K": "Tài liệu", "L": "Phiên làm việc & Bộ nhớ", "M": "Quản trị & An toàn hệ thống", "N": "Điều phối multi-agent", "O": "Quản lý dự án", "P": "Tiện ích & Khởi tạo"}, "cmds": [{"n": "accessibility-audit", "d": "Accessibility Audit and Testing", "c": "C"}, {"n": "add-authentication-system", "d": "Add Authentication System", "c": "P"}, {"n": "add-package", "d": "Add Package to Workspace", "c": "P"}, {"n": "agent-map", "d": "Print a readable map of all 19 agents — what each does, when to use it, and which agents should NOT be combined. Reads from agent-routing-map.json and core/agen", "c": "N"}, {"n": "ai-assistant", "d": "AI Assistant Development", "c": "J"}, {"n": "ai-review", "d": "AI/ML Code Review", "c": "C"}, {"n": "api-mock", "d": "API Mocking Framework", "c": "P"}, {"n": "api-scaffold", "d": "API Scaffold Generator", "c": "P"}, {"n": "arch-adr", "d": "Write an Architecture Decision Record documenting a significant technical decision.", "c": "B"}, {"n": "arch-design-review", "d": "Conduct a structured design review of a module, feature, or system component.", "c": "B"}, {"n": "arch-diagram", "d": "Generate Mermaid diagrams from codebase analysis or description.", "c": "B"}, {"n": "arch-plan", "d": "Create a structured implementation plan for the requested feature or change.", "c": "B"}, {"n": "architecture-review", "d": "Architecture Review Command", "c": "B"}, {"n": "architecture-scenario-explorer", "d": "Architecture Scenario Explorer", "c": "B"}, {"n": "audit", "d": "Lightweight system audit using 5 quality-control agents (gardener, firewall, token-guard, doctor, router). Reports issues without making changes. Run before /fi", "c": "M"}, {"n": "autoplan", "d": "Run the full plan-review pipeline against one plan or feature idea — technical red-team, business/PMF review, and structural design review, in sequence — then m", "c": "B"}, {"n": "budget-mode", "d": "Toggle Budget Mode for the current project. Budget Mode tightens cost-guard rules — see CLAUDE.md for the full rule set. Usage — /budget-mode [on|off|status]", "c": "I"}, {"n": "challenge", "d": "Red-team a feature idea before it enters PRD.md. Opus plays devil's advocate — attacks the proposal on four fronts (logic, security, UX, scalability) to surface", "c": "B"}, {"n": "checkpoint", "d": "Save-and-commit checkpoint — verifies docs are updated, runs available linting/tests, then creates a WIP commit so no work is lost before pausing. Usage: /check", "c": "L"}, {"n": "ci-setup", "d": "CI/CD Setup Command", "c": "H"}, {"n": "clean-branches", "d": "Clean Branches Command", "c": "A"}, {"n": "code-migrate", "d": "Code Migration Assistant", "c": "E"}, {"n": "code-review", "d": "Comprehensive Code Quality Review", "c": "C"}, {"n": "code-simplify", "d": "Reduce code complexity without changing behaviour. Finds dead code, over-abstraction, redundant logic, and unnecessary indirection. Usage: /code-simplify [file ", "c": "E"}, {"n": "commit-push-pr", "d": "검증 완료 후 커밋 & PR & 머지 + MCP 알림 (v6)", "c": "A"}, {"n": "compliance-check", "d": "Regulatory Compliance Check", "c": "C"}, {"n": "config-validate", "d": "Configuration Validation", "c": "M"}, {"n": "containerize-application", "d": "Containerize Application", "c": "H"}, {"n": "context-restore", "d": "Restore saved project context for agent coordination:", "c": "L"}, {"n": "context-save", "d": "Save current project context for future agent coordination:", "c": "L"}, {"n": "cost-forecast", "d": "Estimate token cost before starting a large task — analyze scope, estimate tool calls, project token usage and USD cost. Usage: /cost-forecast [task description", "c": "I"}, {"n": "cost-optimize", "d": "Cloud Cost Optimization", "c": "H"}, {"n": "cost-report", "d": "Real-time token cost dashboard from token-budget.json + session JSONL. Shows per-tool call counts, circuit breaker state, loop attempts, and fast-tier activatio", "c": "I"}, {"n": "create-architecture-documentation", "d": "Create Architecture Documentation", "c": "B"}, {"n": "create-feature", "d": "Create Feature Command", "c": "G"}, {"n": "create-onboarding-guide", "d": "Create Onboarding Guide", "c": "K"}, {"n": "csp", "d": "Generate Content Security Policy headers for a web application.", "c": "M"}, {"n": "data-driven-feature", "d": "Build data-driven features with integrated pipelines and ML capabilities using specialized agents:", "c": "G"}, {"n": "data-pipeline", "d": "Data Pipeline Architecture", "c": "J"}, {"n": "data-validation", "d": "Data Validation Pipeline", "c": "J"}, {"n": "db-migrate", "d": "Database Migration Strategy and Implementation", "c": "J"}, {"n": "debug-error", "d": "Systematically Debug and Fix Errors", "c": "D"}, {"n": "debug-trace", "d": "Debug and Trace Configuration", "c": "D"}, {"n": "debug", "d": "Structured debugging — forces systematic root-cause analysis before attempting any fix. Prevents random trial-and-error that wastes tokens and time. Usage: /deb", "c": "D"}, {"n": "dependency-audit", "d": "Dependency Audit Command", "c": "C"}, {"n": "deploy-checklist", "d": "Deployment Checklist and Configuration", "c": "H"}, {"n": "deps-upgrade", "d": "Dependency Upgrade Strategy", "c": "P"}, {"n": "diff-review", "d": "Quick safety review of current git diff before commit — checks for bugs, security risks, scope violations, and rogue files. Usage: /diff-review", "c": "A"}, {"n": "doc-api", "d": "API Documentation Generator Command", "c": "K"}, {"n": "docker-optimize", "d": "Docker Optimization", "c": "H"}, {"n": "dockerfile", "d": "Generate an optimized Dockerfile for the current project.", "c": "H"}, {"n": "env-check", "d": "Compare .env vs .env.example to find missing keys, extra keys, and empty values", "c": "M"}, {"n": "error-analysis", "d": "Error Analysis and Resolution", "c": "D"}, {"n": "error-trace", "d": "Error Tracking and Monitoring", "c": "D"}, {"n": "estimate-assistant", "d": "estimate-assistant", "c": "O"}, {"n": "eval", "d": "Manage eval-driven development workflow (define, check, report, list)", "c": "F"}, {"n": "explain-code", "d": "Analyze and Explain Code Functionality", "c": "K"}, {"n": "fact-check", "d": "Proactively verify a claim before stating it. Shows evidence inline and rates confidence. Distinct from Truth Gate (reactive) — /fact-check is proactive, invoke", "c": "M"}, {"n": "fix-issue", "d": "Fix Issue Command", "c": "D"}, {"n": "fix", "d": "Apply minimal patches based on the latest /audit report. Requires explicit human approval before each change.", "c": "D"}, {"n": "freeze", "d": "Restrict all file edits (Write/Edit/MultiEdit) to one or more directories/files/regex patterns for the rest of this session — a hard, hook-enforced boundary, no", "c": "M"}, {"n": "full-review", "d": "Perform a comprehensive review using multiple specialized agents with explicit Task tool invocations:", "c": "C"}, {"n": "full-stack-feature", "d": "Implement a full-stack feature across multiple platforms with coordinated agent orchestration:", "c": "G"}, {"n": "generate-api-documentation", "d": "Generate API Documentation", "c": "K"}, {"n": "generate-coverage", "d": "Run the real project coverage script if configured. Fake coverage reports are forbidden.", "c": "F"}, {"n": "generate-test-cases", "d": "Generate Test Cases", "c": "F"}, {"n": "git-changelog", "d": "Generate a changelog from git history since the last tag or a specified reference point.", "c": "A"}, {"n": "git-commit", "d": "Analyze the currently staged changes (`git diff --cached`) and generate a conventional commit message.", "c": "A"}, {"n": "git-pr-create", "d": "Create a pull request with a structured description based on the current branch's changes.", "c": "A"}, {"n": "git-pr-review", "d": "Review a pull request by number: fetch the diff, analyze changes, and post review comments.", "c": "A"}, {"n": "git-worktree", "d": "Set up git worktrees for parallel development on multiple branches simultaneously.", "c": "A"}, {"n": "handoff-verify", "d": "빌드/테스트/린트를 한 번에 자동 검증합니다.", "c": "L"}, {"n": "handoff", "d": "Create a handoff document — capturing current state, open tasks, and root-cause context so work can be resumed by another agent, another Claude session, or a hu", "c": "L"}, {"n": "hook-review", "d": "Hook lifecycle review — kiểm tra toàn bộ hook còn hiệu quả, có test, đúng version. Chạy định kỳ 3-6 tháng hoặc sau major Claude Code release. Usage: /hook-revie", "c": "M"}, {"n": "idea-loop", "d": "Trợ lý điều hành cá nhân của anh Tâm — briefing, bộ nhớ riêng, ưu tiên ngày, risk radar. Tự chạy khi mở session. Usage: /idea-loop", "c": "L"}, {"n": "improve-agent", "d": "Improve an existing agent based on recent performance:", "c": "N"}, {"n": "improve-skill", "d": "Human-gated skill self-improvement loop. Runs a skill against test scenarios, diagnoses failures, proposes ONE change at a time, and waits for human approval be", "c": "N"}, {"n": "incident-response", "d": "Respond to production incidents with coordinated agent expertise for rapid resolution:", "c": "H"}, {"n": "incremental-feature-build", "d": "Incremental Feature Build Command", "c": "G"}, {"n": "init-claude", "d": "Generate a detailed, project-specific CLAUDE.md by interviewing you about your stack, architecture, and conventions. Run once after /start to replace the generi", "c": "P"}, {"n": "integration-test", "d": "Generate integration tests for a module, testing real interactions between components.", "c": "F"}, {"n": "issue-triage", "d": "issue-triage", "c": "D"}, {"n": "issue", "d": "Please analyze and fix the GitHub issue: $ARGUMENTS.", "c": "D"}, {"n": "k8s-manifest", "d": "Generate Kubernetes manifests for deploying the current application.", "c": "H"}, {"n": "langchain-agent", "d": "LangChain/LangGraph Agent Scaffold", "c": "J"}, {"n": "learn", "d": "교훈 기록 + 자동화 제안 (v6 - suggest-automation 통합)", "c": "M"}, {"n": "legacy-modernize", "d": "Modernize legacy code using expert agents:", "c": "E"}, {"n": "mcp-audit", "d": "Audit MCP server usage and recommend tier classification to reduce MCP Tax (per arXiv 2604.21816). Reads tool-attention session log, computes per-server utiliza", "c": "M"}, {"n": "memory", "d": "Search L1 and L2 memory. Usage: /memory [keyword] [--type TYPE] [--scope SCOPE] [--confidence LEVEL] [--tag TAG] [--expired] [--all] [--l2] [--l2-only] [--seman", "c": "L"}, {"n": "ml-pipeline", "d": "Machine Learning Pipeline", "c": "J"}, {"n": "monitor-setup", "d": "Monitoring and Observability Setup", "c": "H"}, {"n": "monitor", "d": "Set up monitoring, alerting, and observability for the application.", "c": "H"}, {"n": "multi-agent-optimize", "d": "Optimize application stack using specialized optimization agents:", "c": "N"}, {"n": "multi-agent-review", "d": "Perform comprehensive multi-agent code review with specialized reviewers:", "c": "C"}, {"n": "multi-platform", "d": "Build the same feature across multiple platforms:", "c": "G"}, {"n": "multi-run", "d": "Chạy nhiều agents song song cho các task độc lập. Luật chặt hơn single-agent mode. Usage: /multi-run <task1> | <task2> | <task3>", "c": "N"}, {"n": "next-task", "d": "다음 작업 추천 (v6)", "c": "L"}, {"n": "optimize-build", "d": "Optimize Build Command", "c": "H"}, {"n": "optimize-bundle-size", "d": "Optimize Bundle Size", "c": "H"}, {"n": "optimize-database-performance", "d": "Optimize Database Performance", "c": "H"}, {"n": "optimize-prompt", "d": "Optimize Prompt for Token Efficiency", "c": "P"}, {"n": "orchestrate", "d": "Orchestrate a multi-agent task — analyzes dependencies, builds a wave execution plan, coordinates with the project manager, creates a feature branch, and runs s", "c": "G"}, {"n": "output-budget", "d": "Hiển thị proxy report về output volume của session — tool calls, files đọc/ghi, budget mode status. Không đo token thật từ API. Usage — /output-budget [report|w", "c": "I"}, {"n": "output-raw", "d": "Lấy lại full output của command vừa chạy, không qua filter. Dùng khi terminal-output-filter bỏ sót thông tin cần thiết. Usage — /output-raw [last|<mô tả command", "c": "I"}, {"n": "performance-audit", "d": "Performance Audit Command", "c": "C"}, {"n": "plan-ceo-review", "d": "Review a plan or feature idea through a business/PMF lens — is this worth building right now, not just is it technically sound. Complements /challenge, which de", "c": "B"}, {"n": "pr-enhance", "d": "Pull Request Enhancement", "c": "A"}, {"n": "prepare-release", "d": "Prepare Release Command", "c": "A"}, {"n": "prime", "d": "Enhanced AI Mode for Complex Tasks", "c": "L"}, {"n": "project-health-check", "d": "Project Health Check", "c": "O"}, {"n": "prompt-optimize", "d": "AI Prompt Optimization", "c": "P"}, {"n": "quick-commit", "d": "간단한 수정용 빠른 커밋 (v6)", "c": "A"}, {"n": "refactor-clean", "d": "Safely identify and remove dead code with test verification", "c": "E"}, {"n": "refactor-cleanup", "d": "Find and remove dead code, unused imports, and unreachable branches.", "c": "E"}, {"n": "refactor-code", "d": "Intelligently Refactor and Improve Code Quality", "c": "E"}, {"n": "refactor-extract", "d": "Extract a function, component, or module from existing code into its own unit.", "c": "E"}, {"n": "refactor-rename", "d": "Rename a symbol (variable, function, class, file) across the entire codebase.", "c": "E"}, {"n": "refactor-simplify", "d": "Simplify code to improve readability and maintainability.", "c": "E"}, {"n": "release", "d": "Pre-release quality pass — checks backlog readiness, runs QA, updates docs, and verifies the CI/CD pipeline before shipping. Usage: /release [optional: version ", "c": "A"}, {"n": "remove-dead-code", "d": "Safely scan, remove, and validate dead code with multi-agent analysis and automatic backup branches", "c": "E"}, {"n": "resume", "d": "Rebuild working context after token/session exhaustion using local checkpoint, memory index, brain dump, git state, and recent handoffs. Usage: /resume [optiona", "c": "L"}, {"n": "retrospective-analyzer", "d": "Retrospective Analyzer", "c": "O"}, {"n": "review", "d": "Multi-agent code review — architectural drift check, test coverage audit, and implementation quality review scoped to recently changed files. Usage: /review [op", "c": "C"}, {"n": "risk-scan", "d": "Scan current session plan for high-risk actions before executing — score each planned action and flag anything CRITICAL or HIGH before it runs. Usage: /risk-sca", "c": "M"}, {"n": "rollback", "d": "Rollback working tree to a saved checkpoint — list available checkpoints, preview diff, apply rollback with confirmation. Usage: /rollback [--list | --id cp-XYZ", "c": "L"}, {"n": "route", "d": "Choose the right specialist agent using the v10 routing map. Usage: /route <task description>", "c": "N"}, {"n": "run-e2e", "d": "Run real Playwright E2E commands through the safe Yana AI wrapper. Defaults to list-only to avoid accidental full-suite burns.", "c": "F"}, {"n": "scope-declare", "d": "Declare exactly which files will be touched before starting any write operation — required before any task that modifies 3+ files. Usage: /scope-declare [task d", "c": "M"}, {"n": "secrets-scan", "d": "Scan the codebase for leaked secrets, API keys, tokens, and credentials.", "c": "M"}, {"n": "security-audit", "d": "Security Audit Command", "c": "C"}, {"n": "security-hardening", "d": "Security Hardening", "c": "C"}, {"n": "security-scan", "d": "Run a security scan on the current codebase using the Red/Blue/Purple Team skill pack. Requires ownership confirmation.", "c": "C"}, {"n": "session-cost", "d": "Báo cáo token thật và ước tính chi phí từ JSONL session logs của Claude Code. Không gọi API — đọc file local. Usage — /session-cost [last|all|session <id>]", "c": "I"}, {"n": "session-stats", "d": "Show hook fires, blocks, risk score history, and trust score for this session", "c": "L"}, {"n": "session-trace", "d": "Render an ASCII timeline of the current session — shows every tool call, hook decision, risk score, and block event in chronological order. Usage: /session-trac", "c": "L"}, {"n": "session", "d": "Manage Yana AI L2 Session Memory — add, search, and clear session-scoped facts. Usage: /session [keyword] | /session --add | /session --clear | /session --all", "c": "L"}, {"n": "setup-comprehensive-testing", "d": "Setup Comprehensive Testing", "c": "F"}, {"n": "slo-implement", "d": "SLO Implementation Guide", "c": "H"}, {"n": "smart-debug", "d": "Debug complex issues using specialized debugging agents:", "c": "D"}, {"n": "smart-fix", "d": "Intelligently fix the issue using automatic agent selection with explicit Task tool invocations:", "c": "D"}, {"n": "snapshot-test", "d": "Generate snapshot tests for UI components or serializable outputs.", "c": "F"}, {"n": "spec", "d": "Spec-driven workflow — plan, execute, and verify a feature with three separate agents to prevent silent failures and scope creep. Use for features with 3+ subta", "c": "B"}, {"n": "sprint-planning", "d": "Sprint Planning", "c": "O"}, {"n": "standup-report", "d": "Standup Report", "c": "O"}, {"n": "start", "d": "Start onboarding by reading START_HERE.md and executing the setup protocol. Usage: /start", "c": "P"}, {"n": "status", "d": "Project health overview — renders a structured status card from TODO.md, recent git history, open PRs, and PRD open questions. Usage: /status", "c": "O"}, {"n": "suggest-automation", "d": "반복 패턴 분석하여 자동화 기회 제안 (주기적 실행 권장)", "c": "M"}, {"n": "sync-docs", "d": "prompt_plan.md, spec.md, CLAUDE.md + rules/ 문서 동기화 (v7)", "c": "K"}, {"n": "sync-template", "d": "Sync the .claude template from upstream while preserving local-only project customizations. Usage: /sync-template", "c": "P"}, {"n": "tdd-cycle", "d": "Execute a comprehensive Test-Driven Development (TDD) workflow with strict red-green-refactor discipline:", "c": "F"}, {"n": "tdd-green", "d": "Implement minimal code to make failing tests pass in TDD green phase:", "c": "F"}, {"n": "tdd-red", "d": "Write comprehensive failing tests following TDD red phase principles:", "c": "F"}, {"n": "tdd-refactor", "d": "Refactor code with confidence using comprehensive test safety net:", "c": "F"}, {"n": "tech-debt", "d": "Scan codebase for TODO, FIXME, HACK, XXX markers and output a prioritized debt report", "c": "E"}, {"n": "test-coverage", "d": "Test Coverage Command", "c": "F"}, {"n": "test-fix", "d": "Diagnose and fix failing tests in the project.", "c": "D"}, {"n": "test-harness", "d": "Comprehensive Test Harness Generator", "c": "F"}, {"n": "troubleshooting-guide", "d": "Troubleshooting Guide Generator Command", "c": "D"}, {"n": "ultra-think", "d": "Deep Analysis and Problem Solving Mode", "c": "P"}, {"n": "unfreeze", "d": "Clear the directory restriction set by /freeze, allowing edits everywhere again for this session.", "c": "M"}, {"n": "v10-audit", "d": "Run the v10 reliability audit: verify pack, hook health, routing, memory retrieval, and fake-claim protection. Usage: /v10-audit [optional topic]", "c": "M"}, {"n": "v10-fix", "d": "Apply minimal fixes found by /v10-audit. Reliability only: no new agents, no fake kernels, no feature bloat. Usage: /v10-fix", "c": "M"}, {"n": "verify-pack", "d": "Verify the Claude Code template pack integrity: agents, commands, hooks, routing map, lock files, and hook health. Usage: /verify-pack", "c": "M"}, {"n": "verify", "d": "Full system health check — git state, hook syntax, hook tests, drift report. Shows actual command output. Usage: /verify", "c": "M"}, {"n": "wiki", "d": "Generate or refresh static wiki docs from the gitnexus knowledge graph and commit to docs/wiki/. Agents read docs/wiki/ instead of scanning code — saves tokens ", "c": "K"}, {"n": "workflow-automate", "d": "Workflow Automation", "c": "H"}, {"n": "worktree-cleanup", "d": "PR 완료 후 Git Worktree 정리 (v6)", "c": "A"}, {"n": "worktree-start", "d": "병렬 개발용 Git Worktree 생성 + 도메인 템플릿 (v6)", "c": "A"}, {"n": "wrap-up", "d": "End the current session with a structured summary and memory update.", "c": "L"}, {"n": "write-tests", "d": "Write Tests Command", "c": "F"}]};
+
+// ── slash panel: chips + search + render ─────────────────────────
+const chipsEl = document.getElementById('chips');
+const listEl = document.getElementById('cmd-list');
+const searchEl = document.getElementById('search');
+const countEl = document.getElementById('result-count');
+const activeCats = new Set();
+
+Object.entries(SLASH_DATA.cats).forEach(([code, label]) => {
+  const n = SLASH_DATA.cmds.filter(c => c.c === code).length;
+  const chip = document.createElement('button');
+  chip.className = 'chip';
+  chip.type = 'button';
+  chip.setAttribute('aria-pressed', 'false');
+  chip.dataset.cat = code;
+  chip.textContent = `${label} (${n})`;
+  chip.addEventListener('click', () => {
+    if (activeCats.has(code)) { activeCats.delete(code); chip.setAttribute('aria-pressed','false'); }
+    else { activeCats.add(code); chip.setAttribute('aria-pressed','true'); }
+    render();
+  });
+  chipsEl.appendChild(chip);
+});
+
+function render(){
+  const q = searchEl.value.trim().toLowerCase();
+  const filtered = SLASH_DATA.cmds.filter(c => {
+    if (activeCats.size && !activeCats.has(c.c)) return false;
+    if (!q) return true;
+    return c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q);
+  });
+  countEl.textContent = `Hiển thị ${filtered.length} / ${SLASH_DATA.cmds.length} lệnh`;
+
+  listEl.innerHTML = '';
+  if (!filtered.length){
+    listEl.innerHTML = '<div class="empty-state">Không tìm thấy lệnh nào khớp — thử từ khoá khác.</div>';
+    return;
+  }
+  const byCat = {};
+  filtered.forEach(c => { (byCat[c.c] ||= []).push(c); });
+  Object.keys(SLASH_DATA.cats).forEach(code => {
+    if (!byCat[code]) return;
+    const group = document.createElement('div');
+    group.className = 'cmd-cat';
+    const rows = byCat[code].map(c =>
+      `<div class="cmd-row"><div class="nm">${c.n}</div><div class="ds" title="${c.d.replace(/"/g,'&quot;')}">${c.d}</div></div>`
+    ).join('');
+    group.innerHTML = `<h3>${SLASH_DATA.cats[code]}<span class="count-pill">${byCat[code].length}</span></h3><div class="cmd-cat-rows">${rows}</div>`;
+    listEl.appendChild(group);
+  });
+}
+searchEl.addEventListener('input', render);
+render();
+
+// respect explicit theme choice if the site ever wires one in localStorage,
+// mirroring desktop.html / index.html's own convention
+try {
+  const saved = localStorage.getItem('yana-theme');
+  if (saved === 'dark') document.documentElement.classList.add('dark');
+  if (saved === 'light') document.documentElement.classList.add('light');
+} catch (e) {}
+</script>
+</body>
+</html>
