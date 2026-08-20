@@ -496,7 +496,7 @@ command depends on the agent's own tool-use policy, nothing forces it.
 
 ## Yana AI (the web product)
 
-**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Latest release →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana is the first interface built on Yana AI core: a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
 
