@@ -49,11 +49,14 @@ function listDir({ repoRoot, yanaRtBin, relPath, exec = execFileSync, existsSync
   // (shared with MCP/chat, not UI-specific), so this UI-facing ordering is
   // applied here, not pushed into the shared Rust sort.
   const entries = envelope.data.entries
-    .map((e) => ({
-      name: path.basename(e.path),
-      isDir: e.kind === 'directory',
-      relPath: e.path,
-    }))
+    .map((e) => {
+      const relPath = e.path.replace(/\\/g, '/');
+      return {
+        name: path.posix.basename(relPath),
+        isDir: e.kind === 'directory',
+        relPath,
+      };
+    })
     .sort((a, b) => (a.isDir === b.isDir ? a.name.localeCompare(b.name) : a.isDir ? -1 : 1));
   return { ok: true, entries };
 }
