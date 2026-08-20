@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { listDir } = require('./list-dir');
+const { binaryName } = require('./runtime-paths');
 
 // Locates a real compiled yana-rt binary — same dev-mode search
 // `runtime-paths.js` uses (target/{debug,release}/yana-rt under the repo
@@ -14,7 +15,7 @@ const { listDir } = require('./list-dir');
 function findYanaRtBin() {
   const repoRoot = path.join(__dirname, '..', '..');
   for (const profile of ['debug', 'release']) {
-    const candidate = path.join(repoRoot, 'target', profile, 'yana-rt');
+    const candidate = path.join(repoRoot, 'target', profile, binaryName('yana-rt'));
     if (fs.existsSync(candidate)) return candidate;
   }
   return null;
@@ -22,6 +23,10 @@ function findYanaRtBin() {
 
 const yanaRtBin = findYanaRtBin();
 if (!yanaRtBin) {
+  if (process.env.YANA_REQUIRE_RUNTIME_TEST === '1') {
+    console.error('FAIL: no compiled yana-rt binary found');
+    process.exit(1);
+  }
   console.log('SKIP: no compiled yana-rt binary found (run `cargo build --features cli` first)');
   process.exit(0);
 }
