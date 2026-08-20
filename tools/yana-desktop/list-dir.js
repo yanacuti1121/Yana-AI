@@ -41,6 +41,9 @@ function listDir({ repoRoot, yanaRtBin, relPath, exec = execFileSync, existsSync
   } catch (e) {
     return { ok: false, error: `capability tree returned invalid JSON: ${e.message}` };
   }
+  if (!envelope?.data || !Array.isArray(envelope.data.entries)) {
+    return { ok: false, error: 'capability tree returned an invalid response envelope' };
+  }
   // Same directories-first, then alphabetical ordering the old native
   // implementation used — `repo_tree`'s own sort is plain alphabetical
   // (shared with MCP/chat, not UI-specific), so this UI-facing ordering is

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Electron shell for Yana AI — same UI, native window, system tray.</strong>
+  <strong>Electron shell for Yana AI — same UI, native window, bundled yana-rt.</strong>
 </p>
 
 <p align="center">
@@ -21,6 +21,7 @@ the web app **is** the desktop app.
 ## Run
 
 ```bash
+node --version            # Node.js 24+
 cd ../yana-web && npm ci && npm run build:desktop
 cd ../.. && cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
 cd tools/yana-desktop && npm ci
@@ -39,6 +40,11 @@ npm run build:win      # nsis installer
 The release workflow builds the web UI and both Rust binaries before packaging.
 Each architecture runs on a matching GitHub-hosted runner, so the Electron shell,
 `yana-rt`, and `pty_bridge` always have the same architecture.
+Build jobs have read-only repository permissions. They upload isolated CI
+artifacts, then one final job verifies all five platform/architecture bundles,
+merges the two macOS updater manifests, generates `SHA256SUMS`, and publishes the
+complete desktop asset set. A failed matrix leg cannot publish a partial desktop
+release.
 
 **Known gap — not code-signed.** `package.json`'s `build` config has no
 `mac.hardenedRuntime`/notarization or `win.certificateFile` set, since
@@ -55,10 +61,12 @@ Wired via `electron-updater`, checking GitHub Releases (this repo,
 `build.publish` in `package.json`) on launch and every 4 hours after.
 Ask-before-download and ask-before-install — never silent.
 
-CI (`.github/workflows/desktop.yml`) builds with
-`electron-builder --publish never`, then explicitly uploads installers, update
-archives, blockmaps, and the `latest.yml`/`latest-mac.yml`/`latest-linux*.yml`
-feed files electron-updater reads to know a newer version exists.
+CI (`.github/workflows/desktop.yml`) builds with `electron-builder --publish
+never`, then explicitly uploads installers, update archives, blockmaps, and the
+`latest.yml`/`latest-mac.yml`/`latest-linux*.yml` feed files electron-updater
+reads to know a newer version exists. The final publish job refuses a tag that
+does not match this package's version or metadata that references a missing
+artifact.
 
 Because of the code-signing gap above: on macOS, electron-updater verifies
 a downloaded update's signature before installing it, so today the app
@@ -71,11 +79,24 @@ trust level any unsigned Windows/Linux binary already carries.
 ## Behavior
 
 - 🚀 Spawns `server.js` on a free loopback port → polls `/health` → opens window
-- 🧭 System tray: Open · Open in browser · Quit
 - 🔗 External links open in the OS browser, never embedded
-- 🧹 `before-quit` kills the server child process cleanly
+- 🧱 Navigation and privileged IPC are restricted to the exact loopback origin
+- 1️⃣ A single-instance lock prevents concurrent desktop processes sharing state
+- 🧹 Shutdown waits for server/PTY children and force-stops a stuck child
 - 🔐 Server stays loopback-only (`127.0.0.1`) — nothing exposed to the network
 - 🔄 Checks for updates on launch + every 4h — see **Auto-update** above
+
+## Test
+
+```bash
+npm test
+```
+
+The unit suite covers runtime paths, URL/IPC trust boundaries, PTY input
+validation, child shutdown, capability response handling, release assembly, and
+the desktop workflow contract. The capability integration test uses a real
+compiled `yana-rt`; CI sets `YANA_REQUIRE_RUNTIME_TEST=1` so a missing binary is
+a failure rather than a silent skip.
 
 ---
 

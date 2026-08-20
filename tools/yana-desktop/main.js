@@ -11,11 +11,24 @@ const {
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
 const { listDir: listDirImpl } = require('./list-dir');
+const { terminateChild } = require('./process-lifecycle');
+const {
+  isSafeExternalUrl,
+  isTrustedIpcSender,
+  isTrustedUrl,
+  normalizePtyInput,
+  normalizePtyStartOptions,
+} = require('./security');
 
 let mainWindow    = null;
 let serverProcess = null;
 let ptyProcess     = null;
 let serverUrl      = null;
+let shuttingDown   = false;
+let shutdownTask   = null;
+let ptyStopTask    = null;
+let allowImmediateQuit = false;
+let quitAfterShutdownScheduled = false;
 
 // Same layout auth.js uses under the hood — kept in one place so the reveal-
 // in-Finder button and the server's YANA_DATA_DIR can never drift apart.
@@ -65,14 +78,24 @@ function startServer() {
     const port = parseServerReadyPort(message);
     if (port) serverUrl = buildServerUrl(port);
   });
-  serverProcess.on('exit', (code) =>
-    console.log('[server] exited', code));
+  const child = serverProcess;
+  child.on('exit', (code, signal) => {
+    if (serverProcess === child) serverProcess = null;
+    console.log('[server] exited', code, signal || '');
+    if (!shuttingDown && serverUrl && app.isReady()) {
+      dialog.showErrorBox(
+        'Yana AI — server stopped',
+        'The local Yana server exited unexpectedly. The app will close to avoid leaving a broken window open.',
+      );
+      app.quit();
+    }
+  });
 }
 
-function stopServer() {
-  if (!serverProcess) return;
-  serverProcess.kill('SIGTERM');
+async function stopServer() {
+  const child = serverProcess;
   serverProcess = null;
+  await terminateChild(child);
 }
 
 // ── Embedded terminal (yana-rt chat via a PTY) ──────────────────────────────────
@@ -87,9 +110,11 @@ function ptyBridgeBinary() {
 }
 
 function stopPty() {
-  if (!ptyProcess) return;
-  ptyProcess.kill('SIGTERM');
+  if (ptyStopTask) return ptyStopTask;
+  const child = ptyProcess;
   ptyProcess = null;
+  ptyStopTask = terminateChild(child).finally(() => { ptyStopTask = null; });
+  return ptyStopTask;
 }
 
 // ── File tree (Terminal page sidebar) ───────────────────────────────────────────
@@ -147,15 +172,30 @@ function createWindow() {
       preload:          path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration:  false,
+      sandbox:          true,
     },
   });
 
   mainWindow.once('ready-to-show', () => mainWindow.show());
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!serverUrl || !url.startsWith(serverUrl)) shell.openExternal(url);
+    if (!isTrustedUrl(url, serverUrl) && isSafeExternalUrl(url)) {
+      shell.openExternal(url).catch((error) =>
+        console.error('[external-link] failed:', error.message));
+    }
     return { action: 'deny' };
   });
+
+  const guardNavigation = (event, url) => {
+    if (isTrustedUrl(url, serverUrl)) return;
+    event.preventDefault();
+    if (isSafeExternalUrl(url)) {
+      shell.openExternal(url).catch((error) =>
+        console.error('[external-link] failed:', error.message));
+    }
+  };
+  mainWindow.webContents.on('will-navigate', guardNavigation);
+  mainWindow.webContents.on('will-redirect', guardNavigation);
 
   mainWindow.loadURL(serverUrl);
   mainWindow.on('closed', () => { mainWindow = null; });
@@ -163,14 +203,23 @@ function createWindow() {
 
 // ── IPC ───────────────────────────────────────────────────────────────────────
 
-ipcMain.handle('yana:version',    () => app.getVersion());
-ipcMain.handle('yana:server-url', () => serverUrl);
+function handleTrusted(channel, handler) {
+  ipcMain.handle(channel, (event, ...args) => {
+    if (!isTrustedIpcSender(event, serverUrl)) {
+      throw new Error(`Rejected untrusted IPC sender for ${channel}`);
+    }
+    return handler(event, ...args);
+  });
+}
+
+handleTrusted('yana:version',    () => app.getVersion());
+handleTrusted('yana:server-url', () => serverUrl);
 
 // Locked-out recovery: the login screen's "forgot password" panel offers a
 // button that reveals this file in Finder/Explorer instead of asking the
 // user to type a hidden per-OS path (userData) they have no reason to know.
-ipcMain.handle('yana:auth-file-path', () => authFilePath());
-ipcMain.handle('yana:reveal-auth-file', () => {
+handleTrusted('yana:auth-file-path', () => authFilePath());
+handleTrusted('yana:reveal-auth-file', () => {
   const target = authFilePath();
   if (fs.existsSync(target)) shell.showItemInFolder(target);
   else shell.openPath(path.dirname(target));
@@ -179,8 +228,16 @@ ipcMain.handle('yana:reveal-auth-file', () => {
 // Single terminal session for v1 (see the plan's "explicitly out of scope"
 // list) — a second start() call while one is already running is rejected
 // rather than silently replacing it.
-ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
-  if (ptyProcess) return { ok: false, error: 'terminal already running' };
+handleTrusted('yana:pty-start', (event, options) => {
+  if (ptyProcess || ptyStopTask) return { ok: false, error: 'terminal already running or stopping' };
+
+  let normalized;
+  try {
+    normalized = normalizePtyStartOptions(options);
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+  const { cols, rows, args } = normalized;
 
   const bridgeBin = ptyBridgeBinary();
   if (!fs.existsSync(bridgeBin)) {
@@ -197,33 +254,39 @@ ipcMain.handle('yana:pty-start', (event, { cols, rows, args } = {}) => {
   }
 
   const childArgv = [yanaRtBin, 'chat', ...(args || [])];
-  ptyProcess = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
+  const child = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: {
       ...process.env,
       YANA_RT_BIN: yanaRtBin,
     },
   });
+  ptyProcess = child;
 
-  ptyProcess.stdout.on('data', (buf) =>
+  child.stdout.on('data', (buf) =>
     mainWindow?.webContents.send('yana:pty-data', buf.toString('utf8')));
-  ptyProcess.stderr.on('data', (buf) =>
+  child.stderr.on('data', (buf) =>
     console.error('[pty_bridge]', buf.toString('utf8')));
-  ptyProcess.on('exit', (code) => {
+  child.on('exit', (code) => {
     mainWindow?.webContents.send('yana:pty-exit', code);
-    ptyProcess = null;
+    if (ptyProcess === child) ptyProcess = null;
   });
 
   return { ok: true };
 });
 
-ipcMain.handle('yana:pty-write', (event, data) => {
-  ptyProcess?.stdin.write(data);
+handleTrusted('yana:pty-write', (event, data) => {
+  ptyProcess?.stdin.write(normalizePtyInput(data));
 });
 
-ipcMain.handle('yana:pty-stop', () => stopPty());
+handleTrusted('yana:pty-stop', () => stopPty());
 
-ipcMain.handle('yana:list-dir',   (event, relPath) => listDir(relPath));
+handleTrusted('yana:list-dir', (event, relPath) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return listDir(relPath);
+});
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged
@@ -243,6 +306,8 @@ ipcMain.handle('yana:list-dir',   (event, relPath) => listDir(relPath));
 function setupAutoUpdater() {
   if (!app.isPackaged) return; // dev runs have no publish feed to check
 
+  let userRequestedDownload = false;
+
   autoUpdater.autoDownload         = false; // ask first
   autoUpdater.autoInstallOnAppQuit = false; // ask first
 
@@ -257,6 +322,7 @@ function setupAutoUpdater() {
       cancelId: 1,
     }).then(({ response }) => {
       if (response === 0) {
+        userRequestedDownload = true;
         autoUpdater.downloadUpdate().catch(err =>
           console.error('[autoUpdater] download failed:', err.message));
       }
@@ -264,6 +330,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', () => {
+    userRequestedDownload = false;
     dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update ready',
@@ -273,14 +340,31 @@ function setupAutoUpdater() {
       defaultId: 0,
       cancelId: 1,
     }).then(({ response }) => {
-      if (response === 0) autoUpdater.quitAndInstall();
+      if (response === 0) {
+        shutdownChildren().then(() => {
+          allowImmediateQuit = true;
+          autoUpdater.quitAndInstall();
+        }).catch((error) => {
+          console.error('[autoUpdater] install preparation failed:', error.message);
+          dialog.showErrorBox('Yana AI — update failed', error.message);
+        });
+      }
     });
   });
 
-  // Errors (offline, unsigned-build signature check on mac, no release yet)
-  // are logged, never surfaced as a dialog — a failed background version
-  // check must not interrupt someone who is just trying to use the app.
-  autoUpdater.on('error', (err) => console.error('[autoUpdater]', err.message));
+  // Background errors (offline, no release yet) stay in logs so an automatic
+  // check never interrupts normal work. Once a user explicitly chooses
+  // Download, failures are surfaced because silence would look like a hung UI.
+  autoUpdater.on('error', (err) => {
+    console.error('[autoUpdater]', err.message);
+    if (userRequestedDownload) {
+      userRequestedDownload = false;
+      dialog.showErrorBox(
+        'Yana AI — update failed',
+        `The requested update could not be downloaded or verified:\n${err.message}`,
+      );
+    }
+  });
 
   const checkForUpdates = () => {
     autoUpdater.checkForUpdates().catch(err =>
@@ -294,7 +378,17 @@ function setupAutoUpdater() {
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
-app.whenReady().then(async () => {
+const hasInstanceLock = app.requestSingleInstanceLock();
+if (!hasInstanceLock) app.quit();
+
+app.on('second-instance', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
+
+if (hasInstanceLock) app.whenReady().then(async () => {
   startServer();
 
   try {
@@ -313,9 +407,8 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  stopPty(); // never let a live terminal session survive as an orphan
+  void stopPty(); // never let a live terminal session survive as an orphan
   if (process.platform !== 'darwin') {
-    stopServer();
     app.quit();
   }
 });
@@ -324,4 +417,23 @@ app.on('activate', () => {
   if (!mainWindow) createWindow();
 });
 
-app.on('before-quit', () => { stopServer(); stopPty(); });
+function shutdownChildren() {
+  if (!shutdownTask) {
+    shuttingDown = true;
+    shutdownTask = Promise.all([stopServer(), stopPty()]);
+  }
+  return shutdownTask;
+}
+
+app.on('before-quit', (event) => {
+  if (allowImmediateQuit) return;
+  event.preventDefault();
+  if (quitAfterShutdownScheduled) return;
+  quitAfterShutdownScheduled = true;
+  shutdownChildren()
+    .catch((error) => console.error('[shutdown]', error.message))
+    .finally(() => {
+      allowImmediateQuit = true;
+      app.quit();
+    });
+});
