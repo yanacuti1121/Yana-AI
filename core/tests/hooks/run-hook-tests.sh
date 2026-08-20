@@ -1115,6 +1115,91 @@ test_memory_recall_silent "Ollama unreachable is silent, does not hang" \
     '{"session_id":"mr4","prompt":"anything"}' \
     "OLLAMA_HOST=http://127.0.0.1:1" "yes"
 
+test_memory_recall_success_with_local_embedding_server() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-recall-prompt.sh [Local embedding server returns wrapped recall]... "
+
+    local tmp_project server_script port_file server_pid port output
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+
+    cat > "$tmp_project/.claude/state/memory-turn-log.jsonl" <<'JSON'
+{"session_id":"mr-live","timestamp":1700000000,"user_text":"Remember the jade release checklist","assistant_text":"Verify artifacts before publishing."}
+JSON
+
+    server_script="$tmp_project/embedding_server.py"
+    port_file="$tmp_project/embedding-server.port"
+    cat > "$server_script" <<'PY'
+import http.server
+import json
+import socketserver
+import sys
+
+
+class EmbeddingHandler(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != "/api/embeddings":
+            self.send_error(404)
+            return
+        length = int(self.headers.get("Content-Length", "0"))
+        self.rfile.read(length)
+        body = json.dumps({"embedding": [1.0, 0.0, 0.0]}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, _format, *_args):
+        pass
+
+
+class LocalServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+
+with LocalServer(("127.0.0.1", 0), EmbeddingHandler) as server:
+    with open(sys.argv[1], "w", encoding="utf-8") as port_handle:
+        port_handle.write(str(server.server_address[1]))
+        port_handle.flush()
+    server.serve_forever()
+PY
+
+    python3 "$server_script" "$port_file" >/dev/null 2>&1 &
+    server_pid=$!
+
+    local attempt=0
+    while [[ ! -s "$port_file" && $attempt -lt 100 ]]; do
+        sleep 0.01
+        attempt=$((attempt + 1))
+    done
+    if [[ ! -s "$port_file" ]]; then
+        kill "$server_pid" 2>/dev/null || true
+        wait "$server_pid" 2>/dev/null || true
+        echo "FAIL (local embedding server did not publish its port)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return
+    fi
+
+    port=$(cat "$port_file")
+    output=$(printf '%s' '{"session_id":"mr-live","prompt":"jade release"}' | \
+        CLAUDE_PROJECT_DIR="$tmp_project" OLLAMA_HOST="http://127.0.0.1:$port" \
+        bash "$HOOKS_DIR/memory-recall-prompt.sh" 2>/dev/null)
+
+    kill "$server_pid" 2>/dev/null || true
+    wait "$server_pid" 2>/dev/null || true
+
+    if [[ "$output" == *"<memory-context>"* ]] && \
+       [[ "$output" == *"Remember the jade release checklist"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected wrapped recalled turn, got: '${output:0:240}')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_memory_recall_success_with_local_embedding_server
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"
