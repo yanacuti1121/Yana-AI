@@ -49,7 +49,7 @@ graph TB
         SKILLS["📚 2,025 skills\nSKILL.md workflow defs\n(frontend, backend, AI, K8s, sec...)"]
         AGENTS["🤖 101 specialist agents\n(planner, security-auditor,\nhoc-tap, daily-assistant...)"]
         RULES["📜 70 enforced rules\n(security, git, UI, TypeScript,\nAPI security, core-lock...)"]
-        HOOKS["🪝 63 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
+        HOOKS["🪝 65 hooks\nPreToolUse · PostToolUse · Stop\n(guard-destructive, truth-gate...)"]
         CMDS["⚡ 166 slash commands\n/audit · /scan · /route\n/tdd-cycle · /simplify..."]
         DISPATCH["🧵 Subagent dispatch\nSynchronous Task-tool calls,\nplain-text report back"]
         MEM["🧠 Memory tiers\nL1 permanent · L2 session"]
@@ -114,7 +114,7 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 | 🧩 Skills | **2,025** workflow skill definitions |
 | 🤖 Agents | **101** specialist agents |
 | 📜 Safety rules | **71** enforced rules |
-| 🪝 Hooks | **63** pre/post-execution hooks |
+| 🪝 Hooks | **65** pre/post-execution hooks |
 | ⚡ Slash commands | **170** |
 | 🔧 Scripts | **124** |
 | 🔌 Harness adapters | **4** (Claude Code, Cursor, Codex, Antigravity — cut down from 15 in v1.0.0, see CHANGELOG.md) |
@@ -124,7 +124,7 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 
 ```
 core/
-├── hooks/          # 63 PreToolUse / PostToolUse / Stop hooks
+├── hooks/          # 65 PreToolUse / PostToolUse / Stop hooks
 ├── rules/          # 71 enforced rules (security, correctness, UI, git)
 ├── scripts/        # safe-run.sh, verify-core-lock.sh, secure-logger.sh
 ├── gates/          # truth_gate.md, action_gate.md

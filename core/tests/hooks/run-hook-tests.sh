@@ -956,6 +956,250 @@ test_compress_stop_end_to_end() {
 }
 test_compress_stop_end_to_end
 
+# 5f. memory-turn-sync-stop.sh -- Stop event auto turn-capture
+# (hermes_adapted Phase 5a, write path only). Pure local file I/O, no
+# Ollama/network dependency, so no static-fallback-summary tolerance is
+# needed the way context-compress-stop.sh's end-to-end test requires.
+echo ""
+echo "--- memory-turn-sync-stop.sh ---"
+
+test_memory_sync_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}   # e.g. "YANA_MEMORY_SYNC_BYPASS=1"
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-turn-sync-stop.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/memory-turn-sync-stop.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/memory-turn-sync-stop.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/memory-turn-sync-stop.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_memory_sync_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"ms1","transcript_path":"/nonexistent.jsonl"}' \
+    "YANA_MEMORY_SYNC_BYPASS=1"
+
+test_memory_sync_silent "Missing transcript_path is silent (fails open)" \
+    '{"session_id":"ms2"}'
+
+test_memory_sync_silent "Nonexistent transcript_path is silent (fails open)" \
+    '{"session_id":"ms3","transcript_path":"/nonexistent.jsonl"}'
+
+test_memory_sync_end_to_end() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-turn-sync-stop.sh [real transcript captures last turn into the log]... "
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "SKIP (python3 not available)"
+        return 0
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+
+    local transcript_file
+    transcript_file=$(mktemp)
+    register_temp "$transcript_file"
+    {
+        echo '{"type":"user","message":{"role":"user","content":"how do I fix this bug"}}'
+        echo '{"type":"assistant","message":{"role":"assistant","content":"here is the fix"}}'
+    } > "$transcript_file"
+
+    local payload
+    payload=$(jq -n --arg tp "$transcript_file" '{"session_id":"ms4","transcript_path":$tp}')
+
+    echo "$payload" | CLAUDE_PROJECT_DIR="$tmp_project" \
+        bash "$HOOKS_DIR/memory-turn-sync-stop.sh" >/dev/null 2>&1
+
+    local log_file="$tmp_project/.claude/state/memory-turn-log.jsonl"
+    local waited=0
+    while [[ $waited -lt 5 ]]; do
+        [[ -s "$log_file" ]] && break
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    local found=""
+    if [[ -f "$log_file" ]]; then
+        found=$(grep -c "how do I fix this bug" "$log_file" 2>/dev/null || echo 0)
+    fi
+
+    rm -rf "$tmp_project"
+
+    if [[ "$found" -ge 1 ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (no matching entry written to $log_file within ${waited}s)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_memory_sync_end_to_end
+
+# 5g. memory-recall-prompt.sh -- UserPromptSubmit embedding recall
+# (hermes_adapted Phase 5b, read path). No Ollama server is assumed to be
+# running in CI, so these tests cover the deterministic foreground paths
+# (bypass, missing prompt, no log yet, Ollama unreachable) -- all of which
+# must resolve near-instantly and silently, never hang or error.
+echo ""
+echo "--- memory-recall-prompt.sh ---"
+
+test_memory_recall_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}
+    local seed_log=${4:-""}   # "yes" to seed one log entry first
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-recall-prompt.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/memory-recall-prompt.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/memory-recall-prompt.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+
+    if [[ "$seed_log" == "yes" ]]; then
+        echo '{"session_id":"mr-seed","timestamp":1700000000,"user_text":"seed turn","assistant_text":"seed reply"}' \
+            > "$tmp_project/.claude/state/memory-turn-log.jsonl"
+    fi
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/memory-recall-prompt.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_memory_recall_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"mr1","prompt":"anything"}' \
+    "YANA_MEMORY_RECALL_BYPASS=1"
+
+test_memory_recall_silent "Missing prompt is silent (fails open)" \
+    '{"session_id":"mr2"}'
+
+test_memory_recall_silent "No log file yet is silent (nothing to search)" \
+    '{"session_id":"mr3","prompt":"anything"}'
+
+test_memory_recall_silent "Ollama unreachable is silent, does not hang" \
+    '{"session_id":"mr4","prompt":"anything"}' \
+    "OLLAMA_HOST=http://127.0.0.1:1" "yes"
+
+test_memory_recall_success_with_local_embedding_server() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-recall-prompt.sh [Local embedding server returns wrapped recall]... "
+
+    local tmp_project server_script port_file server_pid port output
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+
+    cat > "$tmp_project/.claude/state/memory-turn-log.jsonl" <<'JSON'
+{"session_id":"mr-live","timestamp":1700000000,"user_text":"Remember the jade release checklist","assistant_text":"Verify artifacts before publishing."}
+JSON
+
+    server_script="$tmp_project/embedding_server.py"
+    port_file="$tmp_project/embedding-server.port"
+    cat > "$server_script" <<'PY'
+import http.server
+import json
+import socketserver
+import sys
+
+
+class EmbeddingHandler(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != "/api/embeddings":
+            self.send_error(404)
+            return
+        length = int(self.headers.get("Content-Length", "0"))
+        self.rfile.read(length)
+        body = json.dumps({"embedding": [1.0, 0.0, 0.0]}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, _format, *_args):
+        pass
+
+
+class LocalServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+
+with LocalServer(("127.0.0.1", 0), EmbeddingHandler) as server:
+    with open(sys.argv[1], "w", encoding="utf-8") as port_handle:
+        port_handle.write(str(server.server_address[1]))
+        port_handle.flush()
+    server.serve_forever()
+PY
+
+    python3 "$server_script" "$port_file" >/dev/null 2>&1 &
+    server_pid=$!
+
+    local attempt=0
+    while [[ ! -s "$port_file" && $attempt -lt 100 ]]; do
+        sleep 0.01
+        attempt=$((attempt + 1))
+    done
+    if [[ ! -s "$port_file" ]]; then
+        kill "$server_pid" 2>/dev/null || true
+        wait "$server_pid" 2>/dev/null || true
+        echo "FAIL (local embedding server did not publish its port)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return
+    fi
+
+    port=$(cat "$port_file")
+    output=$(printf '%s' '{"session_id":"mr-live","prompt":"jade release"}' | \
+        CLAUDE_PROJECT_DIR="$tmp_project" OLLAMA_HOST="http://127.0.0.1:$port" \
+        bash "$HOOKS_DIR/memory-recall-prompt.sh" 2>/dev/null)
+
+    kill "$server_pid" 2>/dev/null || true
+    wait "$server_pid" 2>/dev/null || true
+
+    if [[ "$output" == *"<memory-context>"* ]] && \
+       [[ "$output" == *"Remember the jade release checklist"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected wrapped recalled turn, got: '${output:0:240}')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_memory_recall_success_with_local_embedding_server
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"
