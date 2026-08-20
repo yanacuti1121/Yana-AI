@@ -186,7 +186,7 @@ jobs:
           # have failed outright on the Windows leg with no binary
           # published for it, not silently produced a wrong manifest.
           PYTHON_BIN="$(command -v python3 || command -v python)"
-          PRODUCT_VERSION=$("$PYTHON_BIN" -c "import json; print(json.load(open('MANIFEST.json'))['version'])")
+          PRODUCT_VERSION=$("$PYTHON_BIN" -c "import json; print(json.load(open('MANIFEST.json', encoding='utf-8'))['version'])")
           YANA_RT_VERSION=$(grep -m1 '^version' Cargo.toml | sed -E 's/version *= *"(.*)"/\1/')
           CARGO_LOCK_SHA256=$(sha256 Cargo.lock)
           ARTIFACT_PATH="target/${{ matrix.target }}/release/${{ matrix.binary }}"
