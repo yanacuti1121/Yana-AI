@@ -176,6 +176,10 @@
           {
             "type": "command",
             "command": "YANA_GUARDED_HOOK=.claude/hooks/session-bootstrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=.claude/hooks/memory-recall-prompt.sh bash .claude/hooks/hook-timeout-guard.sh"
           }
         ]
       }

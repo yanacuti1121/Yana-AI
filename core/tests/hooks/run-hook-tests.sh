@@ -1055,6 +1055,66 @@ test_memory_sync_end_to_end() {
 }
 test_memory_sync_end_to_end
 
+# 5g. memory-recall-prompt.sh -- UserPromptSubmit embedding recall
+# (hermes_adapted Phase 5b, read path). No Ollama server is assumed to be
+# running in CI, so these tests cover the deterministic foreground paths
+# (bypass, missing prompt, no log yet, Ollama unreachable) -- all of which
+# must resolve near-instantly and silently, never hang or error.
+echo ""
+echo "--- memory-recall-prompt.sh ---"
+
+test_memory_recall_silent() {
+    local test_name=$1
+    local input_json=$2
+    local extra_env=${3:-""}
+    local seed_log=${4:-""}   # "yes" to seed one log entry first
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing memory-recall-prompt.sh [$test_name]... "
+
+    if [[ ! -f "$HOOKS_DIR/memory-recall-prompt.sh" ]]; then
+        echo "FAIL: Hook file not found: $HOOKS_DIR/memory-recall-prompt.sh"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+
+    local tmp_project
+    tmp_project=$(mktemp -d)
+    register_temp "$tmp_project"
+    mkdir -p "$tmp_project/.claude/state"
+
+    if [[ "$seed_log" == "yes" ]]; then
+        echo '{"session_id":"mr-seed","timestamp":1700000000,"user_text":"seed turn","assistant_text":"seed reply"}' \
+            > "$tmp_project/.claude/state/memory-turn-log.jsonl"
+    fi
+
+    local output
+    output=$(echo "$input_json" | CLAUDE_PROJECT_DIR="$tmp_project" env $extra_env \
+        bash "$HOOKS_DIR/memory-recall-prompt.sh" 2>/dev/null)
+    rm -rf "$tmp_project"
+
+    if [[ -z "$output" ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected silent exit, got: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
+test_memory_recall_silent "Bypass env var short-circuits before any work" \
+    '{"session_id":"mr1","prompt":"anything"}' \
+    "YANA_MEMORY_RECALL_BYPASS=1"
+
+test_memory_recall_silent "Missing prompt is silent (fails open)" \
+    '{"session_id":"mr2"}'
+
+test_memory_recall_silent "No log file yet is silent (nothing to search)" \
+    '{"session_id":"mr3","prompt":"anything"}'
+
+test_memory_recall_silent "Ollama unreachable is silent, does not hang" \
+    '{"session_id":"mr4","prompt":"anything"}' \
+    "OLLAMA_HOST=http://127.0.0.1:1" "yes"
+
 # 6. cost-guard.sh
 echo ""
 echo "--- cost-guard.sh ---"
