@@ -46,8 +46,53 @@ MARKETING_FILES = (
     "skills/yana-ai/SKILL.md",
     "docs/index.html",
     "docs/desktop.html",
+    "docs/commands.html",
     ".claude/docs/index.html",
     ".claude/docs/desktop.html",
+)
+# Files whose Product-version display (MANIFEST.json's top-level "version")
+# gets checked/fixed in addition to component counts. Deliberately narrower
+# than MARKETING_FILES: docs/desktop.html's version badge and download URLs
+# track the Desktop app's own most-recently-*published* release (same v*
+# tag namespace, but only true once that tag's desktop build/publish job
+# actually succeeds) rather than "whatever MANIFEST.json currently says" --
+# auto-rewriting it here could advertise a download that doesn't exist yet
+# if a tag's desktop build failed. Left out of this list deliberately, not
+# an oversight -- see docs/RELEASE-CHECKLIST.md's Sứ Giả section.
+VERSION_FILES = ("docs/index.html", "docs/commands.html", *README_FILES)
+# Each entry is (pattern, replacement-template); the template embeds the
+# literal "v" prefix itself where the surrounding markup uses one, rather
+# than leaving it dangling outside both capture groups (a bare 'v' outside
+# \g<1>/\g<2> is part of the matched text but not the replacement, so it
+# would silently be dropped -- caught by the local --fix verification test
+# this same change was built against, see docs/RELEASE-CHECKLIST.md).
+# Curated per exact surrounding context (not a blanket vX.Y.Z regex)
+# because at least one deliberate historical marker exists in the wild that
+# must never be touched -- docs/index.html has "new in v0.40.0 / v1.2.0"
+# describing when a past feature shipped, not the current release.
+_VERSION_ANCHORS: dict[str, list[tuple[re.Pattern[str], str]]] = {
+    "docs/index.html": [
+        (re.compile(r'(<span class="dot"></span> )v\d+\.\d+\.\d+(\s*&nbsp;)'), r"\g<1>v{version}\g<2>"),
+        (
+            re.compile(
+                r'(color:var\(--blue\);padding:\.1rem \.4rem;border-radius:4px">)'
+                r'v\d+\.\d+\.\d+(</span>)'
+            ),
+            r"\g<1>v{version}\g<2>",
+        ),
+        (re.compile(r'(<strong>Yana AI</strong> — Apache 2\.0 · )v\d+\.\d+\.\d+(<br>)'), r"\g<1>v{version}\g<2>"),
+    ],
+    "docs/commands.html": [
+        (
+            re.compile(
+                r'(— đối chiếu trực tiếp với source\. )v\d+\.\d+\.\d+( · \d{4}-\d{2}-\d{2}\.)'
+            ),
+            r"\g<1>v{version}\g<2>",
+        ),
+    ],
+}
+_PRODUCT_TABLE_ROW = re.compile(
+    r'(\| Product \(rules/hooks/skills/agents/CLI\) \| \*\*)\d+\.\d+\.\d+(\*\* \|)'
 )
 JSON_FILES = (
     "MANIFEST.json",
@@ -83,6 +128,30 @@ def real_counts(repo: Path = REPO) -> dict[str, int]:
         "tests": len(list((repo / "core/tests").rglob("*.sh"))),
         "rules": len(list((repo / "core/rules").rglob("*.md"))),
     }
+
+
+def canonical_version(repo: Path = REPO) -> str:
+    """Return MANIFEST.json's Product-version axis only.
+
+    Never reads Cargo.toml or pyproject.toml here -- VERSIONING.md documents
+    three deliberately independent version axes (Product, yana-rt crate,
+    Python package); conflating them would recreate the exact bug a 2026-07-05
+    review already fixed once in the publish workflows.
+    """
+    manifest, _ = _read_json(repo / "MANIFEST.json")
+    version = manifest.get("version")
+    if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise MetadataError(f"MANIFEST.json 'version' is missing or not X.Y.Z: {version!r}")
+    return version
+
+
+def _apply_version_anchors(text: str, relative: str, version: str) -> str:
+    updated = text
+    for pattern, template in _VERSION_ANCHORS.get(relative, ()):
+        updated = pattern.sub(template.format(version=version), updated)
+    if relative in README_FILES:
+        updated = _PRODUCT_TABLE_ROW.sub(rf"\g<1>{version}\g<2>", updated)
+    return updated
 
 
 def actual_present(repo: Path, component: str) -> list[str]:
@@ -217,7 +286,7 @@ def _expected_json(repo: Path, relative: str, counts: dict[str, int]) -> tuple[d
     return expected, raw
 
 
-def _expected_text(repo: Path, relative: str, counts: dict[str, int]) -> tuple[str, str]:
+def _expected_text(repo: Path, relative: str, counts: dict[str, int], version: str) -> tuple[str, str]:
     path = repo / relative
     try:
         raw = path.read_text(encoding="utf-8")
@@ -228,7 +297,8 @@ def _expected_text(repo: Path, relative: str, counts: dict[str, int]) -> tuple[s
         lines[:30] = [
             _replace_claims(line, counts, PLUGIN_COUNT_FIELDS + ("scripts",)) for line in lines[:30]
         ]
-        return "".join(lines), raw
+        updated = "".join(lines)
+        return _apply_version_anchors(updated, relative, version), raw
     if relative == "AGENTS.md":
         updated = re.sub(
             r"(?m)^\d[\d,]* commands in `core/commands/`\.",
@@ -241,7 +311,18 @@ def _expected_text(repo: Path, relative: str, counts: dict[str, int]) -> tuple[s
             updated,
         )
         return updated, raw
-    return _replace_claims(raw, counts, PLUGIN_COUNT_FIELDS), raw
+    if relative == "docs/commands.html":
+        # Skip _replace_claims entirely here: this page embeds a large JS
+        # data blob of the 170 slash commands' own free-text descriptions
+        # (e.g. "...map of all 19 agents...", "...5 quality-control
+        # agents...") -- the generic label-word regex would "helpfully"
+        # rewrite those unrelated numbers to match this repo's own
+        # component counts, corrupting the descriptions. Confirmed by
+        # running this exact check locally before landing it. Version
+        # anchoring only; no count-claims on this file.
+        return _apply_version_anchors(raw, relative, version), raw
+    updated = _replace_claims(raw, counts, PLUGIN_COUNT_FIELDS)
+    return _apply_version_anchors(updated, relative, version), raw
 
 
 def managed_files(repo: Path = REPO) -> list[str]:
@@ -270,6 +351,7 @@ def _manifest_ghosts(repo: Path) -> list[str]:
 
 def drift(repo: Path = REPO) -> list[str]:
     counts = real_counts(repo)
+    version = canonical_version(repo)
     problems: list[str] = []
     for relative in managed_files(repo):
         if relative in JSON_FILES:
@@ -278,9 +360,10 @@ def drift(repo: Path = REPO) -> list[str]:
             if current != expected:
                 problems.append(f"{relative} differs from filesystem-derived metadata")
         else:
-            expected, current = _expected_text(repo, relative, counts)
+            expected, current = _expected_text(repo, relative, counts, version)
             if current != expected:
-                problems.append(f"{relative} contains stale current-state counts")
+                what = "version and/or count" if relative in VERSION_FILES else "count"
+                problems.append(f"{relative} contains stale current-state {what} claims")
     problems.extend(f"MANIFEST.json references missing path: {path}" for path in _manifest_ghosts(repo))
     return problems
 
@@ -294,6 +377,7 @@ def _write_json(path: Path, data: dict[str, Any], ensure_ascii: bool) -> None:
 
 def fix(repo: Path = REPO) -> list[str]:
     counts = real_counts(repo)
+    version = canonical_version(repo)
     changed: list[str] = []
     for relative in managed_files(repo):
         path = repo / relative
@@ -307,7 +391,7 @@ def fix(repo: Path = REPO) -> list[str]:
                 path.write_text(raw + "\n", encoding="utf-8")
                 changed.append(relative)
         else:
-            expected, current = _expected_text(repo, relative, counts)
+            expected, current = _expected_text(repo, relative, counts, version)
             if current != expected:
                 path.write_text(expected, encoding="utf-8")
                 changed.append(relative)
@@ -340,7 +424,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
         counts = real_counts(REPO)
+        version = canonical_version(REPO)
         print("Real counts: " + ", ".join(f"{name}={counts[name]}" for name in COMPONENTS))
+        print(f"Canonical Product version: {version}")
         if args.fix:
             changed = fix(REPO)
             for relative in changed:

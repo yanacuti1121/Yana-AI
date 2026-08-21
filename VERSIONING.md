@@ -83,6 +83,20 @@ different numbers for itself (e.g. `Cargo.toml` says one thing and
 axis drift). `yana-rt --version` reads `CARGO_PKG_VERSION` directly from
 `Cargo.toml` at compile time for exactly this reason.
 
+**Product-axis freshness (added 2026-08-21):** the Product axis's own
+version number reporting stale in a *display surface* (not the axis
+itself disagreeing with itself, the bug above — a doc page simply not
+having been updated when `MANIFEST.json`'s `version` moved) is a
+different, real failure mode that happened in practice (`docs/index.html`
+stuck at `v1.1.0` for three product releases). `core/scripts/
+check_counts.py` (`bin/yana su-gia`) now checks and fixes this across
+`docs/index.html`, `docs/commands.html`, and each `README*.md`'s
+Versioning table, and `.github/workflows/herald.yml` re-runs it on every
+`v*` tag push as defense-in-depth. See `docs/RELEASE-CHECKLIST.md`'s
+Step 6 for the full mechanism, including the deliberate gap
+(`docs/desktop.html` is not covered — different release cadence, see
+that section).
+
 ## Why not one version number for everything
 
 Considered and rejected: a single version bumped on every release,
