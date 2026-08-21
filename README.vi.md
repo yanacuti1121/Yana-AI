@@ -484,7 +484,7 @@ không có gì bắt buộc.
 
 ## Yana AI (sản phẩm web)
 
-**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Toàn bộ lệnh →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana là giao diện đầu tiên xây trên lõi Yana AI: một web UI cho phép bất kỳ ai chat với AI, đổi provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
 
@@ -612,6 +612,7 @@ yana-ai badge . --json    # output dạng máy đọc được
 | | |
 |---|---|
 | Toàn bộ lệnh CLI | [COMMANDS.md](COMMANDS.md) |
+| Toàn bộ lệnh (CLI + slash command, web) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
 | Đóng góp | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Quy tắc ứng xử | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | Chính sách bảo mật | [SECURITY.md](SECURITY.md) |
@@ -628,7 +629,7 @@ yana-ai badge . --json    # output dạng máy đọc được
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
 ---
 
