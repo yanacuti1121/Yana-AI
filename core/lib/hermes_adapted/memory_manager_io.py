@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import fcntl
 import json
+import math
 import re
 import time
 import urllib.error
@@ -47,9 +48,11 @@ from core.lib.hermes_adapted.memory_manager import MemoryManager
 from core.lib.hermes_adapted.mojo_vector_recall import (
     cosine_similarity as _cosine_similarity,
     cosine_scores,
+    vector_norm,
 )
 
 CacheKey = Tuple[str, float]
+CacheValue = Tuple[List[float], float]
 
 # Per-side cap on captured turn text -- generous enough to keep a real turn's
 # substance, bounded so one huge turn can't blow up the log file. No existing
@@ -188,7 +191,7 @@ def _read_jsonl(path: str) -> List[Dict[str, Any]]:
 
 
 def _sync_embedding_cache(cache_path: str, log_entries: List[Dict[str, Any]],
-                           embed_fn, max_backfill: int) -> Dict[CacheKey, List[float]]:
+                           embed_fn, max_backfill: int) -> Dict[CacheKey, CacheValue]:
     """Read the embedding cache, drop entries whose source log entry no
     longer exists (the source log is pruned independently by
     _prune_entries/_append_and_prune -- without this the cache would grow
@@ -200,7 +203,7 @@ def _sync_embedding_cache(cache_path: str, log_entries: List[Dict[str, Any]],
     with open(cache_path, "a+", encoding="utf-8") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         f.seek(0)
-        cache: Dict[CacheKey, List[float]] = {}
+        cache: Dict[CacheKey, CacheValue] = {}
         for line in f.readlines():
             line = line.strip()
             if not line:
@@ -220,7 +223,17 @@ def _sync_embedding_cache(cache_path: str, log_entries: List[Dict[str, Any]],
             if isinstance(embedding, list) and embedding and all(
                 isinstance(x, (int, float)) for x in embedding
             ):
-                cache[_entry_key(entry)] = embedding
+                stored_norm = entry.get("norm")
+                norm = vector_norm(embedding)
+                if isinstance(stored_norm, (int, float)):
+                    try:
+                        cached_norm = float(stored_norm)
+                    except (OverflowError, ValueError):
+                        pass
+                    else:
+                        if math.isfinite(cached_norm) and cached_norm >= 0.0:
+                            norm = cached_norm
+                cache[_entry_key(entry)] = (embedding, norm)
 
         valid_keys = {_entry_key(e) for e in log_entries}
         cache = {k: v for k, v in cache.items() if k in valid_keys}
@@ -239,13 +252,16 @@ def _sync_embedding_cache(cache_path: str, log_entries: List[Dict[str, Any]],
             text = f"{entry.get('user_text', '')}\n{entry.get('assistant_text', '')}"
             vec = embed_fn(text)
             if vec is not None:
-                cache[key] = vec
+                cache[key] = (vec, vector_norm(vec))
 
         f.seek(0)
         f.truncate()
-        for (session_id, timestamp), embedding in cache.items():
+        for (session_id, timestamp), (embedding, norm) in cache.items():
             f.write(json.dumps({
-                "session_id": session_id, "timestamp": timestamp, "embedding": embedding,
+                "session_id": session_id,
+                "timestamp": timestamp,
+                "embedding": embedding,
+                "norm": norm,
             }, ensure_ascii=False) + "\n")
 
     return cache
@@ -317,16 +333,19 @@ class LocalTurnLogProvider:
 
         score_entries: List[Dict[str, Any]] = []
         score_vectors: List[List[float]] = []
+        score_norms: List[float] = []
         for entry in log_entries:
-            vec = cache.get(_entry_key(entry))
-            if vec is None:
+            cached = cache.get(_entry_key(entry))
+            if cached is None:
                 continue  # not yet backfilled -- see MAX_EMBEDDINGS_PER_PREFETCH
+            vec, norm = cached
             score_entries.append(entry)
             score_vectors.append(vec)
+            score_norms.append(norm)
 
         scored: List[Tuple[float, Dict[str, Any]]] = []
         for score, entry in zip(
-            cosine_scores(query_vec, score_vectors), score_entries
+            cosine_scores(query_vec, score_vectors, score_norms), score_entries
         ):
             if score >= self._min_similarity:
                 scored.append((score, entry))
