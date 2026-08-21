@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates football-data parameters
 COMMAND="${1:-}"
 
