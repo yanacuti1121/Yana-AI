@@ -23,9 +23,6 @@
   <link rel="icon" type="image/png" href="yana-logo.png" />
   <link rel="apple-touch-icon" href="yana-logo.png" />
   <link rel="preload" as="image" href="yana-logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -290,19 +287,23 @@
       .screenshot-inner { min-height: 260px; }
     }
   </style>
+  <link rel="stylesheet" href="desktop-redesign.css" />
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Skip to content</a>
+
 <header>
 <nav aria-label="Primary">
-  <a href="/" class="nav-brand">
+  <a href="/Yana-AI/" class="nav-brand">
     <img src="yana-logo.png" alt="Yana AI" />
-    Yana AI
+    <span>Yana AI</span>
+    <span class="nav-product">Desktop</span>
   </a>
   <div class="nav-links">
-    <a href="/" data-i18n="nav_home">Home</a>
-    <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank">GitHub</a>
-    <a href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank">Releases</a>
+    <a href="/Yana-AI/" data-i18n="nav_home">Home</a>
+    <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank" rel="noreferrer">Releases</a>
     <div class="lang-switcher">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('vi')">VI</button>
@@ -314,11 +315,14 @@
 </nav>
 </header>
 
-<main>
+<main id="main-content">
 <!-- Hero -->
-<section class="hero">
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-grid">
+  <div class="hero-copy">
   <div class="hero-badge"><span class="dot"></span> v1.4.1 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span> <time datetime="2026-08-20">(Aug 20, 2026)</time></div>
-  <h1 data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
+  <p class="hero-eyebrow" data-i18n="hero_eyebrow">LOCAL AI · HUMAN-GOVERNED</p>
+  <h1 id="hero-title" data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
     Yana AI Desktop brings the same governed runtime to your machine: bring your own API key,
     or run fully offline with Ollama. No Yana AI server ever sits between you and your data,
@@ -326,69 +330,116 @@
   </p>
 
   <div class="gh-stats" id="ghStats" hidden>
-    <a href="https://github.com/yanacuti1121/Yana-AI/stargazers" target="_blank">
+    <a href="https://github.com/yanacuti1121/Yana-AI/stargazers" target="_blank" rel="noreferrer">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
       <strong id="ghStars">–</strong> <span data-i18n="gh_stars">stars on GitHub</span>
     </a>
-    <a href="https://github.com/yanacuti1121/Yana-AI/network/members" target="_blank">
+    <a href="https://github.com/yanacuti1121/Yana-AI/network/members" target="_blank" rel="noreferrer">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"/></svg>
       <strong id="ghForks">–</strong> <span data-i18n="gh_forks">forks</span>
     </a>
   </div>
 
   <div class="dl-grid" id="download">
-    <a class="dl-btn primary" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-arm64.dmg">
+    <a class="dl-btn primary" data-platform="mac" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-arm64.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
       <div>macOS Apple Silicon<span class="dl-btn-sub">arm64 · .dmg</span></div>
     </a>
-    <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x64.dmg">
+    <a class="dl-btn" data-platform="mac" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x64.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
       <div>macOS Intel<span class="dl-btn-sub">x64 · .dmg</span></div>
     </a>
-    <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x64.exe">
+    <a class="dl-btn" data-platform="windows" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x64.exe">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.557L10.333 4.5v7.22H3V5.557zM11.167 4.38L21 3v8.72h-9.833V4.38zM3 12.5h7.333V19.5L3 18.44V12.5zM11.167 12.5H21v8.72l-9.833-1.38V12.5z"/></svg>
       <div>Windows<span class="dl-btn-sub">x64 · .exe</span></div>
     </a>
-    <a class="dl-btn" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x86_64.AppImage">
+    <a class="dl-btn" data-platform="linux" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.1/Yana-AI-1.4.1-x86_64.AppImage">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.581 19.049L16.54 8.02C15.951 6.37 15.2 5.27 13.45 5.25h-.06c-1.7.02-2.49 1.02-3.08 2.77L6.27 19.05a1 1 0 0 0 1.88.68l1.57-4.35h4.57l1.53 4.36a1 1 0 1 0 1.88-.7zm-9.95-5.83l1.68-4.65c.28-.78.51-1.27.94-1.27s.67.5.94 1.27l1.64 4.65h-5.2z"/></svg>
       <div>Linux<span class="dl-btn-sub">x64 · AppImage</span></div>
     </a>
   </div>
-  <p class="hero-note"><span data-i18n="hero_note_free">Free · Open source (Apache 2.0)</span> · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v1.4.1" style="color:var(--primary)" data-i18n="hero_note_all">All releases →</a></p>
-</section>
+  <p class="hero-note"><span data-i18n="hero_note_free">Free · Open source (Apache 2.0)</span> · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v1.4.1" data-i18n="hero_note_all">All releases →</a></p>
+  </div>
 
 <!-- App mockup -->
-<div class="screenshot-outer" id="screenshotOuter">
+<div class="screenshot-outer" id="screenshotOuter" aria-label="Yana AI Desktop interface preview">
+<div class="stage-glow stage-glow-pink" aria-hidden="true"></div>
+<div class="stage-glow stage-glow-jade" aria-hidden="true"></div>
 <div class="screenshot-wrap" id="screenshotWrap">
   <div class="screenshot-bar">
-    <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
-    <div style="flex:1;text-align:center;font-size:.75rem;color:#999">Yana AI</div>
+    <div class="window-dots" aria-hidden="true"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+    <div class="window-title">Yana AI · Workspace</div>
+    <div class="window-health"><span></span> Local runtime</div>
   </div>
   <div class="screenshot-inner">
-    <div class="app-sidebar">
+    <aside class="app-sidebar" aria-hidden="true">
       <div class="app-logo">
         <div class="app-logo-mark"><img src="yana-logo.png" alt="" /></div>
         <span class="app-logo-name">Yana</span>
       </div>
-      <div class="nav-item active"><span class="nav-icon">💬</span> Chat</div>
-      <div class="nav-item"><span class="nav-icon">🌊</span> <span data-i18n="sidebar_dashboard">Dashboard</span></div>
-      <div class="nav-item"><span class="nav-icon">🎯</span> <span data-i18n="sidebar_missions">Missions</span></div>
-      <div class="nav-item"><span class="nav-icon">🧠</span> <span data-i18n="sidebar_memory">Memory</span></div>
-      <div class="nav-item"><span class="nav-icon">📊</span> <span data-i18n="sidebar_analytics">Analytics</span></div>
-      <div class="nav-item" style="margin-top:auto"><span class="nav-icon">⚙️</span> <span data-i18n="sidebar_settings">Settings</span></div>
-    </div>
-    <div class="app-main">
-      <div class="chat-bubble ai" data-i18n="chat_ai1">Hi! How can I help you today? 🌿</div>
-      <div class="chat-bubble user" data-i18n="chat_user1">Explain what RAG is</div>
-      <div class="chat-bubble ai" data-i18n="chat_ai2">RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on training data, RAG fetches relevant documents before answering — more accurate, more up-to-date…</div>
-      <div class="chat-input">
-        <span style="font-size:.8125rem" data-i18n="chat_placeholder">Message Yana…</span>
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item active"><span class="nav-icon">⌁</span> Chat</div>
+      <div class="nav-item"><span class="nav-icon">◌</span> <span data-i18n="sidebar_dashboard">Dashboard</span></div>
+      <div class="nav-item"><span class="nav-icon">◇</span> <span data-i18n="sidebar_missions">Missions</span></div>
+      <div class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="sidebar_memory">Memory</span></div>
+      <div class="nav-item"><span class="nav-icon">⌁</span> <span data-i18n="sidebar_analytics">Analytics</span></div>
+      <div class="runtime-mini"><span class="runtime-mini-dot"></span><div><strong>yana-rt</strong><small>Ready · local</small></div></div>
+      <div class="nav-item"><span class="nav-icon">⚙</span> <span data-i18n="sidebar_settings">Settings</span></div>
+    </aside>
+    <section class="app-main" aria-hidden="true">
+      <div class="app-chat-head">
+        <div><strong>Conversation</strong><span>Yana routes each request safely.</span></div>
+        <button type="button" tabindex="-1">＋ New</button>
+      </div>
+      <div class="model-strip">
+        <span class="model-avatar">Y</span>
+        <span><strong>qwen3:14b</strong><small>Ollama · local</small></span>
+        <span class="sentinel-chip">✓ Sentinel on</span>
+      </div>
+      <div class="message-row ai-row">
+        <div class="message-avatar yana">Y</div>
+        <div class="chat-bubble ai" data-i18n="chat_ai1">Hi! How can I help you today? 🌿</div>
+      </div>
+      <div class="message-row user-row">
+        <div class="chat-bubble user" data-i18n="chat_user1">Explain what RAG is</div>
+        <div class="message-avatar user">YOU</div>
+      </div>
+      <div class="message-row ai-row">
+        <div class="message-avatar yana">Y</div>
+        <div class="chat-bubble ai rich"><span class="answer-label">Answer · local context</span><span data-i18n="chat_ai2">RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on training data, RAG fetches relevant documents before answering — more accurate, more up-to-date…</span></div>
+      </div>
+      <div class="chat-composer">
+        <span class="composer-plus">＋</span>
+        <span class="composer-placeholder" data-i18n="chat_placeholder">Message Yana…</span>
+        <span class="composer-model">qwen3:14b</span>
         <div class="chat-send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
       </div>
-    </div>
+      <div class="context-line"><span>Vision ✓</span><span>Reasoning</span><span>~1,240 tok</span></div>
+    </section>
+    <aside class="context-panel" aria-hidden="true">
+      <div class="context-title">Runtime</div>
+      <div class="runtime-orbit"><span class="orbit-core">rt</span><i></i><b></b></div>
+      <dl>
+        <div><dt>Engine</dt><dd>yana-rt</dd></div>
+        <div><dt>Provider</dt><dd>Ollama</dd></div>
+        <div><dt>Mode</dt><dd class="good">● LOCAL</dd></div>
+        <div><dt>Context</dt><dd>12.4k / 32k</dd></div>
+      </dl>
+      <div class="context-meter"><span style="width:39%"></span></div>
+      <div class="policy-card"><span>Policy gate</span><strong>Human governed</strong><small>Destructive actions require approval.</small></div>
+    </aside>
   </div>
 </div>
 </div>
+
+  </div>
+  <ul class="trust-rail" aria-label="Product principles">
+    <li><span class="trust-icon">●</span><strong data-i18n="f4_title">Works offline</strong><small data-i18n="trust_offline">Ollama · local models</small></li>
+    <li><span class="trust-icon">◇</span><strong data-i18n="f2_title">Multi-layer security</strong><small data-i18n="trust_policy">Deterministic policy gates</small></li>
+    <li><span class="trust-icon">◎</span><strong data-i18n="f6_title">Fully private</strong><small data-i18n="trust_private">No telemetry</small></li>
+    <li><span class="trust-icon">↗</span><strong data-i18n="f1_title">Bring your own API key</strong><small data-i18n="trust_provider">Direct to provider</small></li>
+  </ul>
+</section>
 
 <!-- Features -->
 <section class="features">
@@ -399,11 +450,11 @@
       <div class="feat-icon" aria-hidden="true">🛡️</div>
       <div>
         <h3 class="feat-title" data-i18n="f2_title">Multi-layer security</h3>
-        <p class="feat-desc" data-i18n="f2_desc">62 security hooks block prompt injection, command injection, and data leaks at runtime.</p>
+        <p class="feat-desc" data-i18n="f2_desc">Runtime hooks enforce policy before and after sensitive AI actions.</p>
       </div>
       <div class="feat-stat">
-        <div class="feat-stat-num">62</div>
-        <div class="feat-stat-label" data-i18n="f2_stat_label">Active hooks</div>
+        <div class="feat-stat-num">L0–L5</div>
+        <div class="feat-stat-label" data-i18n="f2_stat_label">Policy layers</div>
       </div>
     </li>
     <li class="feat-card">
@@ -453,7 +504,7 @@
   </details>
   <details class="faq-item">
     <summary data-i18n="faq_q4">What does "multi-layer security" actually block?</summary>
-    <p class="faq-answer" data-i18n="faq_a4">62 runtime hooks check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
+    <p class="faq-answer" data-i18n="faq_a4">Runtime hooks check sensitive actions before and after execution — including prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
   </details>
 </section>
 
@@ -518,7 +569,7 @@
 <!-- Footer -->
 <footer>
   <span>© 2026 Yana AI · Apache 2.0</span>
-  <a href="/" data-i18n="nav_home">Home</a>
+  <a href="/Yana-AI/" data-i18n="nav_home">Home</a>
   <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
   <a href="https://github.com/yanacuti1121/Yana-AI/releases">Releases</a>
   <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/LICENSE">License</a>
@@ -529,6 +580,7 @@ const LANGS = {
   en: {
     nav_home: "Home", nav_cta: "Download",
     badge_new: "Latest release",
+    hero_eyebrow: "LOCAL AI · HUMAN-GOVERNED",
     hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
     hero_sub: "Yana AI Desktop brings the same governed runtime to your machine: bring your own API key, or run fully offline with Ollama. No Yana AI server ever sits between you and your data, and every safety hook still runs locally, under your control. <strong>2,025 skills</strong>, <strong>101 agents</strong>, deterministic policy gates.",
     gh_stars: "stars on GitHub",
@@ -536,6 +588,10 @@ const LANGS = {
     gh_forks: "forks",
     hero_note_free: "Free · Open source (Apache 2.0)",
     hero_note_all: "All releases →",
+    trust_offline: "Ollama · local models",
+    trust_policy: "Deterministic policy gates",
+    trust_private: "No telemetry",
+    trust_provider: "Direct to provider",
     sidebar_dashboard: "Dashboard", sidebar_missions: "Missions",
     sidebar_memory: "Memory", sidebar_analytics: "Analytics", sidebar_settings: "Settings",
     chat_ai1: "Hi! How can I help you today? 🌿",
@@ -547,8 +603,8 @@ const LANGS = {
     f1_title: "Bring your own API key",
     f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
     f2_title: "Multi-layer security",
-    f2_desc: "62 security hooks block prompt injection, command injection, and data leaks at runtime.",
-    f2_stat_label: "Active hooks",
+    f2_desc: "Runtime hooks enforce policy before and after sensitive AI actions.",
+    f2_stat_label: "Policy layers",
     f3_title: "2025 built-in skills",
     f3_desc: "An extensive skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
     f4_title: "Works offline",
@@ -566,7 +622,7 @@ const LANGS = {
     faq_q3: "I don't have an API key — can I still use it?",
     faq_a3: "Yes. Connect Ollama and run an open-weight model (Llama, Qwen, Mistral) fully offline, with no key and no cost. Cloud providers are optional, not required.",
     faq_q4: "What does \"multi-layer security\" actually block?",
-    faq_a4: "62 runtime hooks check every action before and after it runs — things like prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
+    faq_a4: "Runtime hooks check sensitive actions before and after execution — including prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
     plat_title: "Available on every platform",
     plat_sub: "v1.4.1 for every platform — download and run instantly, no extra setup needed.",
     mac_step1: "Open the .dmg, drag \"Yana AI\" into Applications.",
@@ -588,6 +644,7 @@ const LANGS = {
   vi: {
     nav_home: "Trang chủ", nav_cta: "Tải về",
     badge_new: "Mới nhất",
+    hero_eyebrow: "AI LOCAL · CON NGƯỜI QUẢN TRỊ",
     hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
     hero_sub: "Yana AI Desktop mang cùng một runtime có quản trị lên máy của bạn: dùng API key riêng, hoặc chạy hoàn toàn offline với Ollama. Không có server nào của Yana AI đứng giữa bạn và dữ liệu, mọi hook an toàn vẫn chạy ngay trên máy, do chính bạn kiểm soát. <strong>2,025 skills</strong>, <strong>101 agents</strong>, policy gate tất định.",
     gh_stars: "lượt sao trên GitHub",
@@ -595,6 +652,10 @@ const LANGS = {
     gh_forks: "lượt fork",
     hero_note_free: "Miễn phí · Mã nguồn mở (Apache 2.0)",
     hero_note_all: "Xem tất cả phiên bản →",
+    trust_offline: "Ollama · model local",
+    trust_policy: "Policy gate tất định",
+    trust_private: "Không telemetry",
+    trust_provider: "Kết nối thẳng provider",
     sidebar_dashboard: "Mặt hồ", sidebar_missions: "Nhiệm vụ",
     sidebar_memory: "Bộ nhớ", sidebar_analytics: "Thống kê", sidebar_settings: "Cài đặt",
     chat_ai1: "Xin chào! Em có thể giúp gì cho anh hôm nay? 🌿",
@@ -606,8 +667,8 @@ const LANGS = {
     f1_title: "API key của bạn",
     f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
     f2_title: "Bảo mật đa lớp",
-    f2_desc: "65 hooks bảo mật chặn prompt injection, command injection và rò rỉ dữ liệu ngay từ runtime.",
-    f2_stat_label: "Hooks hoạt động",
+    f2_desc: "Hook runtime thực thi policy trước và sau các hành động AI nhạy cảm.",
+    f2_stat_label: "Tầng chính sách",
     f3_title: "2,025 skills tích hợp",
     f3_desc: "Thư viện skill đa dạng — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
     f4_title: "Chạy offline",
@@ -625,7 +686,7 @@ const LANGS = {
     faq_q3: "Tôi không có API key — vẫn dùng được không?",
     faq_a3: "Được. Kết nối Ollama để chạy model mã nguồn mở (Llama, Qwen, Mistral) hoàn toàn offline, không cần key, không tốn phí. Provider cloud là tùy chọn, không bắt buộc.",
     faq_q4: "\"Bảo mật đa lớp\" thực sự chặn những gì?",
-    faq_a4: "65 hooks runtime kiểm tra mọi hành động trước và sau khi thực thi — như phát hiện prompt injection, lệnh shell phá hoại, và rò rỉ secret ra output. Đây là code thực thi, không phải tài liệu chính sách.",
+    faq_a4: "Hook runtime kiểm tra các hành động nhạy cảm trước và sau khi thực thi — gồm prompt injection, lệnh shell phá hoại và secret vô tình rò rỉ ra output. Đây là code thực thi, không phải tài liệu chính sách.",
     plat_title: "Hỗ trợ mọi nền tảng",
     plat_sub: "v1.4.1 cho mọi nền tảng — tải về và dùng ngay, không cần cài thêm gì.",
     mac_step1: "Mở file .dmg, kéo \"Yana AI\" vào Applications.",
@@ -647,6 +708,7 @@ const LANGS = {
   ko: {
     nav_home: "홈", nav_cta: "다운로드",
     badge_new: "최신 릴리즈",
+    hero_eyebrow: "로컬 AI · 인간 거버넌스",
     hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
     hero_sub: "Yana AI Desktop는 동일하게 거버넌스된 런타임을 당신의 기기로 가져옵니다: 본인의 API 키를 사용하거나, Ollama로 완전 오프라인 실행하세요. Yana AI 서버가 당신과 데이터 사이에 끼어드는 일은 없으며, 모든 안전 훅은 로컬에서 당신의 통제 아래 실행됩니다. <strong>2025개 스킬</strong>, <strong>101개 에이전트</strong>, 결정론적 정책 게이트.",
     gh_stars: "GitHub 스타",
@@ -654,6 +716,10 @@ const LANGS = {
     gh_forks: "포크",
     hero_note_free: "무료 · 오픈소스 (Apache 2.0)",
     hero_note_all: "모든 릴리즈 →",
+    trust_offline: "Ollama · 로컬 모델",
+    trust_policy: "결정론적 정책 게이트",
+    trust_private: "텔레메트리 없음",
+    trust_provider: "공급자에 직접 연결",
     sidebar_dashboard: "대시보드", sidebar_missions: "미션",
     sidebar_memory: "메모리", sidebar_analytics: "통계", sidebar_settings: "설정",
     chat_ai1: "안녕하세요! 오늘 무엇을 도와드릴까요? 🌿",
@@ -665,8 +731,8 @@ const LANGS = {
     f1_title: "나만의 API 키",
     f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
     f2_title: "다층 보안",
-    f2_desc: "62개 보안 훅으로 프롬프트 인젝션, 명령어 인젝션, 데이터 유출을 런타임에 차단.",
-    f2_stat_label: "활성 훅",
+    f2_desc: "런타임 훅이 민감한 AI 작업 전후에 정책을 강제합니다.",
+    f2_stat_label: "정책 계층",
     f3_title: "2025개 내장 스킬",
     f3_desc: "다양한 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
     f4_title: "오프라인 작동",
@@ -684,7 +750,7 @@ const LANGS = {
     faq_q3: "API 키가 없어도 사용할 수 있나요?",
     faq_a3: "네. Ollama를 연결해 오픈 웨이트 모델(Llama, Qwen, Mistral)을 완전히 오프라인으로 실행할 수 있으며, 키도 비용도 필요 없습니다. 클라우드 공급자는 선택 사항일 뿐 필수가 아닙니다.",
     faq_q4: "\"다층 보안\"이 실제로 무엇을 차단하나요?",
-    faq_a4: "62개의 런타임 훅이 모든 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
+    faq_a4: "런타임 훅이 민감한 작업의 실행 전후를 검사합니다 — 프롬프트 인젝션 시도, 파괴적인 셸 명령어, 출력으로의 실수로 인한 시크릿 유출 등을 막습니다. 정책 문서가 아니라 실제로 작동하는 코드입니다.",
     plat_title: "모든 플랫폼 지원",
     plat_sub: "모든 플랫폼 v1.4.1 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
     mac_step1: ".dmg 파일을 열고 \"Yana AI\"를 Applications로 드래그하세요.",
@@ -706,6 +772,7 @@ const LANGS = {
   zh: {
     nav_home: "首页", nav_cta: "下载",
     badge_new: "最新版本",
+    hero_eyebrow: "本地 AI · 人类治理",
     hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
     hero_sub: "Yana AI Desktop 将同样受治理的运行时带到您的设备：使用您自己的 API 密钥，或通过 Ollama 完全离线运行。Yana AI 服务器绝不会介于您和您的数据之间，所有安全 hook 仍在本地运行，由您掌控。<strong>2025 个技能</strong>，<strong>101 个智能体</strong>，确定性策略门。",
     gh_stars: "GitHub 星标",
@@ -713,6 +780,10 @@ const LANGS = {
     gh_forks: "分支数",
     hero_note_free: "免费 · 开源 (Apache 2.0)",
     hero_note_all: "所有版本 →",
+    trust_offline: "Ollama · 本地模型",
+    trust_policy: "确定性策略门",
+    trust_private: "无遥测",
+    trust_provider: "直连提供商",
     sidebar_dashboard: "仪表盘", sidebar_missions: "任务",
     sidebar_memory: "记忆", sidebar_analytics: "统计", sidebar_settings: "设置",
     chat_ai1: "你好！今天有什么可以帮助您的？ 🌿",
@@ -724,8 +795,8 @@ const LANGS = {
     f1_title: "使用您自己的 API 密钥",
     f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
     f2_title: "多层安全防护",
-    f2_desc: "62 个安全钩子在运行时阻止提示词注入、命令注入和数据泄露。",
-    f2_stat_label: "活跃钩子",
+    f2_desc: "运行时钩子会在敏感 AI 操作前后执行策略。",
+    f2_stat_label: "策略层级",
     f3_title: "2025 个内置技能",
     f3_desc: "丰富的技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
     f4_title: "离线使用",
@@ -743,7 +814,7 @@ const LANGS = {
     faq_q3: "我没有 API 密钥，还能使用吗？",
     faq_a3: "可以。连接 Ollama 即可完全离线运行开放权重模型（Llama、Qwen、Mistral），无需密钥，也无需付费。云端提供商是可选项，并非必需。",
     faq_q4: "\"多层安全防护\"具体阻止了什么？",
-    faq_a4: "62 个运行时钩子会在每个操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
+    faq_a4: "运行时钩子会在敏感操作执行前后进行检查——例如提示词注入尝试、破坏性 shell 命令，以及意外泄露到输出中的密钥。这是真正生效的代码，而不是一份政策文档。",
     plat_title: "支持所有平台",
     plat_sub: "所有平台均为 v1.4.1 — 下载即用，无需额外配置。",
     mac_step1: "打开 .dmg，将 \"Yana AI\" 拖到 Applications 中。",
@@ -824,6 +895,19 @@ function setLang(lang) {
   setLang(saved || map[browser] || 'en');
 })();
 
+// Highlight the most relevant download without hiding any architecture or
+// platform. macOS keeps Apple Silicon as the conservative default because a
+// browser cannot reliably distinguish Apple Silicon from Intel under Rosetta.
+(function() {
+  const platform = String(navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
+  const target = platform.includes('win') ? 'windows' : platform.includes('linux') ? 'linux' : 'mac';
+  const buttons = Array.from(document.querySelectorAll('#download [data-platform]'));
+  if (!buttons.length) return;
+  buttons.forEach(button => button.classList.remove('primary'));
+  const recommended = buttons.find(button => button.dataset.platform === target) || buttons[0];
+  recommended.classList.add('primary');
+})();
+
 // 3D mouse-tracked tilt on the app screenshot mockup. Pure enhancement —
 // the card is a static flat card without JS (--rx/--ry default to 0deg
 // in CSS). Skipped entirely for prefers-reduced-motion.
@@ -833,7 +917,7 @@ function setLang(lang) {
   if (!outer || !wrap) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  const MAX_TILT = 13; // degrees
+  const MAX_TILT = 4.5; // degrees — enough depth without hurting readability
 
   outer.addEventListener('mousemove', (e) => {
     const rect = outer.getBoundingClientRect();
