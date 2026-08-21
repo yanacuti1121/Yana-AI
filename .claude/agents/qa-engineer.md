@@ -5,7 +5,9 @@ description: >
   for new or modified features, investigating failing tests, assessing test
   coverage gaps, designing a test strategy for a feature, setting up or
   configuring test infrastructure, and verifying that implemented behavior
-  matches PRD functional requirements.
+  matches PRD functional requirements. Do NOT use for general unit/integration
+  test generation (test-engineer) or CI/CD test-pipeline automation setup
+  (test-automator) — this agent owns E2E/PRD-verification specifically.
 model: opus
 tools: Read, Write, Edit, Glob, Grep, Bash, mcp__gitnexus
 memory: user

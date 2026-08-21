@@ -622,7 +622,7 @@ Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.4.0" ent
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
+- Rust runtime (`yana-rt`), 100 agents, 2,025 skills, multi-harness support
 - 4 harness adapters (Claude Code, Cursor, Codex, Antigravity)
 
 The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
@@ -660,7 +660,8 @@ yana-ai badge . --json    # machine-readable output
 
 | | |
 |---|---|
-| Full command reference | [COMMANDS.md](COMMANDS.md) |
+| Full command reference (CLI) | [COMMANDS.md](COMMANDS.md) |
+| Full command reference (CLI + slash commands, web) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | Security policy | [SECURITY.md](SECURITY.md) |
@@ -677,7 +678,7 @@ yana-ai badge . --json    # machine-readable output
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
 ---
 
