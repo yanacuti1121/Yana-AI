@@ -110,12 +110,22 @@ checks:
   - id: SH008
     severity: MEDIUM
     description: "set -e missing in script — errors may be silently ignored"
+    # lines: 5 produced a real false positive (found 2026-08-21):
+    # tools/yana-web/docker-entrypoint.sh has a 9-line header comment
+    # explaining why it drops root privileges (container-hardening-law
+    # context) before its `set -eu` on line 11 -- a real, already-correct
+    # guard the 5-line window couldn't see. Widened to 15, which still
+    # requires set -e to appear before any of these scripts' actual
+    # executable lines in every case checked. This is a line-count
+    # heuristic, not a parser -- a script with real commands between the
+    # shebang and a late-placed set -e could still slip through; that
+    # tradeoff was accepted deliberately here, not missed.
     match:
       type: regex
       pattern: "^#!/(usr/)?bin/(ba)?sh"
       condition: not_followed_by
       not_followed_by_pattern: "set\\s+-[eEuo]*e"
-      lines: 5
+      lines: 15
     reason: "Without set -e, a failed command does not stop the script."
     fix: "Add 'set -euo pipefail' after the shebang line."
 

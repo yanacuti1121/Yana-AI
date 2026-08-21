@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates sports-reporter parameters
 # This skill orchestrates other skills — validate that sports-skills is installed
 
