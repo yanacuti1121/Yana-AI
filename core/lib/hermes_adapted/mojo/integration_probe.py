@@ -53,7 +53,7 @@ def _run_child(case: str) -> int:
 
     if case == "valid":
         scores = extension.cosine_scores(
-            [1.0, 0.0], [[1.0, 0.0], [0.0, 1.0]]
+            [1.0, 0.0], [[1.0, 0.0], [0.0, 1.0]], [1.0, 1.0]
         )
         if list(scores) != [1.0, 0.0]:
             _emit("wrong-result", scores=list(scores))
@@ -63,21 +63,26 @@ def _run_child(case: str) -> int:
 
     if case == "invalid-type":
         return _expect_python_exception(
-            lambda: extension.cosine_scores(["not-a-number"], [[1.0]])
+            lambda: extension.cosine_scores(["not-a-number"], [[1.0]], [1.0])
         )
 
     if case == "invalid-shape":
         return _expect_python_exception(
-            lambda: extension.cosine_scores([1.0], [42])
+            lambda: extension.cosine_scores([1.0], [42], [1.0])
         )
 
     if case == "dimension-mismatch":
-        scores = extension.cosine_scores([1.0, 0.0], [[1.0]])
+        scores = extension.cosine_scores([1.0, 0.0], [[1.0]], [1.0])
         if list(scores) != [0.0]:
             _emit("wrong-result", scores=list(scores))
             return 1
         _emit("controlled-mismatch", scores=list(scores))
         return 0
+
+    if case == "norm-count-mismatch":
+        return _expect_python_exception(
+            lambda: extension.cosine_scores([1.0], [[1.0]], [])
+        )
 
     raise ValueError(f"unknown child case: {case}")
 
@@ -94,6 +99,7 @@ def _run_parent() -> int:
         "invalid-type",
         "invalid-shape",
         "dimension-mismatch",
+        "norm-count-mismatch",
     )
     passed = 0
 
@@ -129,6 +135,7 @@ def main() -> int:
         "invalid-type",
         "invalid-shape",
         "dimension-mismatch",
+        "norm-count-mismatch",
     ))
     args = parser.parse_args()
     return _run_child(args.child) if args.child else _run_parent()

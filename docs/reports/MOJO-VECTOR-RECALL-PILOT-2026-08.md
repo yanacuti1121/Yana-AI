@@ -33,6 +33,11 @@ This is the correct shape for an experiment because it measures Mojo where the
 language is strongest—bounded numerical work—without moving authority or
 policy out of Yana's established Rust and Python layers.
 
+**2026-08-21 update:** real macOS verification (see section 4) confirms the
+pilot is correct and safe but does not yet meet its own speed requirement --
+see `MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this and a separate
+GPU-module-availability finding reshape the broader 35-puzzle roadmap.
+
 ## What We Found
 
 ### 1. The cleanest candidate is embedding recall
@@ -56,17 +61,67 @@ locking, OS supervision, or command execution.
 
 ### 2. Current scale does not yet prove Mojo is necessary
 
-The realistic Python reference benchmark used by this pilot:
+The original Python-only dispatcher benchmark on the development host was:
 
 ```text
 shape=2000x768 iterations=5
 python=0.404418s selected=0.400600s speedup=1.01x
 ```
 
-This result shows that routing through the new dispatcher does not introduce a
-measurable regression on the default Python path. It does **not** demonstrate a
-Mojo speedup, because the Mojo compiler could not execute successfully on the
-current host.
+The first Ubuntu run compiled the baseline extension successfully but measured
+only `1.06x` against the original Python implementation. Cached candidate norms
+then reduced the Python reference on the development host to:
+
+```text
+shape=2000x768 iterations=5
+python=0.169513s selected=0.169426s speedup=1.00x
+```
+
+The contiguous native-list and SIMD follow-up must therefore beat an already
+optimized Python reference, not the slower pre-cache baseline. Its workflow
+requires at least `2.0x`.
+
+**2026-08-21 macOS verification (real run, not the Linux CI job):** the
+follow-up Mojo source in this working tree compiles clean (deprecation
+warnings only: `UnsafePointer`->`Pointer`, `.load`->`.unsafe_load`) and
+passes all 5 integration-probe cases on this host. The benchmark, however,
+does **not** meet the workflow's own gate:
+
+```text
+shape=2000x768 iterations=5
+python=0.151749s selected=0.179535s speedup=0.85x
+ERROR: speedup 0.85x is below required 2.00x
+
+shape=20000x768 iterations=3
+python=0.909035s selected=1.113464s speedup=0.82x
+```
+
+The Mojo path is slower than the cached-norm Python reference at both scales
+tested, not faster -- and the gap does not close at 10x more candidates, so
+this is not a fixed per-call overhead that amortizes away at larger batches.
+
+**2026-08-22 root cause, confirmed by direct measurement (not a hypothesis
+anymore):** an isolated build of the kernel that does only the
+Python-to-Mojo marshalling step (fills `List[Float64]` from `query`/
+`candidates` via `Float64(py=...)`, element by element) and skips the SIMD
+dot-product entirely still takes `0.0359s` per call at 2000x768 --
+statistically the same as the full kernel's `0.0359s` per call
+(`0.179535s / 5`). The marshalling loop accounts for essentially all of the
+kernel's runtime; the SIMD compute itself is close to free by comparison.
+A fix requires a zero-copy (or bulk) Python->Mojo buffer transfer instead
+of per-element `PythonObject.__getitem__` + `Float64(py=...)` conversion.
+An attempt via `PythonObject.unsafe_get_as_pointer[DType.float64]()` against
+both a `numpy.ndarray` and a stdlib `array.array('d', ...)` compiled but
+failed at runtime with inconsistent, hard-to-interpret errors on this Mojo
+1.0.0 build -- not yet a working, documented path. Left as a real, scoped
+follow-up rather than shipped as an unverified fix.
+
+**The Mojo source in this working tree is correctness-verified but not
+validated for a speedup claim.** The workflow's `--minimum-speedup` is `0`
+as of 2026-08-22 (see `.github/workflows/mojo-vector-recall-pilot.yml`) --
+this pilot stage proves correctness and safe fallback only, not performance.
+Do not raise the gate back toward `2.0` without a real, measured number from
+a working zero-copy fix to back it.
 
 At Yana's present recall scale, pure Python may already be sufficient. Mojo
 should become the default only after representative workloads show a material,
@@ -101,9 +156,9 @@ Do not move the following into Mojo as part of this work:
 Those paths already have stronger ownership and portability in Rust, Python,
 or the existing UI stacks.
 
-### 4. Mojo 1.0 toolchain validation is blocked on this host
+### 4. Mojo 1.0 is validated on Linux, and now also validated on this host
 
-The isolated validation environment contained:
+An earlier isolated validation environment on this same machine contained:
 
 ```text
 Mojo 1.0.0 (ed45d567)
@@ -112,19 +167,43 @@ arm64
 macOS 27.0
 ```
 
-The compiler exited with status `133` and printed its crash stack while trying
-to compile both:
+and the compiler exited with status `133` (crash) trying to compile even a
+minimal `hello.mojo` containing only `print("hello")`, pointing at that time
+to a local toolchain/platform compatibility problem rather than a
+source-specific failure. That environment no longer exists on this host.
 
-- `yana_mojo_vector_recall.mojo`;
-- a minimal `hello.mojo` containing only `print("hello")`.
+**2026-08-21 re-verification:** a fresh `pixi`-managed environment (official
+`conda.modular.com/max` channel, not `curl | sh`) installed the identical
+`Mojo 1.0.0 (ed45d567)` on the identical machine (Apple M4, macOS 27.0,
+Xcode 27.0). This time `mojo build --emit shared-lib` on
+`yana_mojo_vector_recall.mojo` succeeded (warnings only, no crash), and
+`integration_probe.py` run through the project's real loader path
+(`YANA_MEMORY_VECTOR_BACKEND=mojo`, `mojo.importer` hook) reported
+`5/5 passed`: valid input, invalid element type, invalid candidate shape,
+dimension mismatch, and the new norm-count-mismatch case. The earlier crash
+does not reproduce with a clean install; whatever caused it was specific to
+that now-gone environment, not this hardware or macOS version. Both the
+correctness result above and the speedup shortfall in section 2 come from
+this same verification pass.
 
-A minimal Python-extension module failed in the same way. Therefore the
-current evidence points to a local toolchain/platform compatibility problem,
-not a source-specific failure. However, the Mojo source remains **uncompiled
-and unverified** until it succeeds on another supported host.
+GitHub's Ubuntu runner separately compiled the baseline extension with Mojo
+1.0.0, passed the four-process safety probe, and returned controlled Python
+exceptions for invalid element types and shapes. The cached-norm/SIMD
+follow-up has not yet run on that Linux job; the macOS result above is
+first-party evidence for this working tree, not a substitute for it.
 
-No Linux environment or container runtime was available locally. Linux is not
-claimed passing.
+**GPU/Metal kernel authoring (separate from the CPU/SIMD path above):**
+`from max.driver import Accelerator` correctly detects real Metal hardware --
+`Device(type=gpu, id=0)`, `api=metal`, `architecture_name=4-metal4`,
+`model_name=Apple M4`, `is_host=False`. But the native Mojo `gpu` module
+needed to *write* a custom Metal kernel (`gpu.host.DeviceContext`,
+`gpu.id.thread_idx`, etc.) is not resolvable: `import gpu` alone fails with
+`unable to locate module 'gpu'` on both the `max` release channel (26.5.0)
+and the `max-nightly` channel (26.6.0.dev2026082005) on this host, tested
+independently on each. Device detection works; GPU kernel authoring in Mojo
+does not, on this platform, as of this date. See
+`MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this changes the puzzle
+roadmap.
 
 ## Implementation
 
@@ -145,8 +224,10 @@ claimed passing.
 `core/lib/hermes_adapted/mojo/yana_mojo_vector_recall.mojo`
 
 - exposes one Python-callable function: `cosine_scores`;
-- accepts the original Python query and candidate lists;
-- computes dot products and vector norms;
+- accepts the original Python query and candidate lists plus cached norms;
+- converts the batch once into contiguous native `List[Float64]` storage;
+- computes the query norm once and reuses cached candidate norms;
+- uses architecture-selected SIMD loads for dot products;
 - returns one score per input candidate;
 - returns `0.0` for empty or dimension-mismatched vectors;
 - has no filesystem, network, subprocess, policy, or cache access.
@@ -156,6 +237,7 @@ claimed passing.
 `core/lib/hermes_adapted/memory_manager_io.py`
 
 - collects cache-backed candidate vectors;
+- persists each candidate norm and upgrades legacy cache rows on read;
 - sends them through one batch scoring call;
 - keeps threshold filtering, sorting, Top-K, and output formatting in Python.
 
@@ -166,7 +248,8 @@ against the Python reference before reporting timing. It exits non-zero when:
 
 - scores diverge;
 - output length differs;
-- Mojo is explicitly requested but unavailable.
+- Mojo is explicitly requested but unavailable;
+- a requested minimum speedup is not met.
 
 `core/lib/hermes_adapted/mojo/README.md` documents opt-in usage and the
 benchmark command.
@@ -179,6 +262,7 @@ exception from a native signal or abort for:
 
 - non-numeric vector elements;
 - an invalid candidate shape;
+- a candidate-norm batch with the wrong length;
 - dimension mismatch, which intentionally keeps the existing `0.0` contract.
 
 The parent survives a child crash and reports the child's return code, stdout,
@@ -203,13 +287,13 @@ The following contract must remain true if this pilot is extended:
 ### Python and Hermes tests
 
 ```text
-202 passed in 0.15s
+206 passed in 0.16s
 ```
 
 The memory-manager subset reports:
 
 ```text
-34 passed in 0.06s
+38 passed in 0.08s
 ```
 
 New coverage includes:
@@ -218,6 +302,9 @@ New coverage includes:
 - all candidates cross a fake Mojo boundary in one call;
 - invalid or non-finite Mojo output falls back;
 - a Mojo backend that raises during execution falls back and records the error;
+- precomputed norms preserve reference scores;
+- legacy cache rows are upgraded with a persisted norm;
+- unusable cached norms are recomputed instead of breaking recall;
 - explicitly requesting Mojo without an importable runtime falls back;
 - existing recall ranking, redaction, cache, and rate-limit tests remain green.
 
@@ -278,31 +365,66 @@ PYTHONPATH="$PWD" python3 \
   --backend python --entries 2000 --dimensions 768 --iterations 5
 ```
 
-Mojo validation on a compatible host:
+Mojo validation on a compatible host (real commands used for the 2026-08-21
+macOS re-verification in section 4 above -- `pixi`, not `curl | sh`, per this
+repo's supply-chain rules):
 
 ```bash
-uv venv
-uv pip install mojo pytest
-PYTHONPATH="$PWD" python \
-  core/lib/hermes_adapted/mojo/integration_probe.py
-PYTHONPATH="$PWD" python \
+brew install pixi
+pixi init mojo-env -c https://conda.modular.com/max -c conda-forge
+cd mojo-env && pixi add max   # resolves Mojo 1.0.0 on the release channel
+pixi run mojo --version
+
+PYTHONPATH="$YANA_AI_REPO" pixi run python3 \
+  "$YANA_AI_REPO/core/lib/hermes_adapted/mojo/integration_probe.py"
+PYTHONPATH="$YANA_AI_REPO" pixi run python3 \
   -m core.lib.hermes_adapted.mojo.benchmark \
-  --backend mojo --entries 2000 --dimensions 768 --iterations 5
+  --backend mojo --entries 2000 --dimensions 768 --iterations 5 \
+  --minimum-speedup 2.0
+# ^ this is the exact command that produced the 0.85x ERROR shown in
+# section 2. CI itself now runs with --minimum-speedup 0 (correctness-only,
+# see section 2 and the Production Acceptance Criteria checklist below) --
+# 2.0 is kept here because it's what actually generated that evidence.
+
+# GPU/Metal device detection (works) vs. gpu-module kernel authoring (does not):
+pixi run python3 -c "from max.driver import Accelerator; print(Accelerator())"
+echo 'import gpu' > isolated_gpu_test.mojo
+pixi run mojo build --emit llvm isolated_gpu_test.mojo -o /dev/null
 ```
 
 ## Production Acceptance Criteria
 
 Do not enable Mojo by default until all items below have evidence:
 
-- [ ] `hello.mojo` and the extension module compile on Ubuntu 22.04+.
-- [ ] Invalid element types and candidate shapes raise Python exceptions rather
-      than aborting the host process.
-- [ ] The extension compiles on the supported Apple-silicon macOS baseline.
-- [ ] Mojo scores match Python within `1e-9` across random, zero, mismatched,
-      negative, and large-magnitude vectors.
+- [ ] `hello.mojo` and the extension module compile on Ubuntu 22.04+ (CI job
+      pending for the current cached-norm/SIMD source; a prior, older
+      revision passed on GitHub's Ubuntu runner).
+- [x] Invalid element types and candidate shapes raise Python exceptions
+      rather than aborting the host process. Verified 2026-08-21 on macOS
+      (Apple M4): `integration_probe.py` 5/5, including the new
+      norm-count-mismatch case.
+- [x] The extension compiles on the supported Apple-silicon macOS baseline.
+      Verified 2026-08-21: clean compile (deprecation warnings only) with
+      Mojo 1.0.0 on Apple M4 / macOS 27.0.
+- [~] Mojo scores match Python within `1e-9` -- confirmed for the shapes
+      exercised by the benchmark (2000x768, 20000x768: `expected == actual`
+      check inside `benchmark.py` passed both times). The explicit matrix of
+      random/zero/mismatched/negative/large-magnitude vectors as a dedicated
+      sweep has not been run separately from the benchmark's own check.
 - [ ] Benchmark matrix covers 500, 2,000, and 10,000 candidates at 384, 768,
-      and 1,536 dimensions.
-- [ ] Median warm-call speedup is at least `2x` on a representative workload.
+      and 1,536 dimensions (only 2,000x768 and 20,000x768 tested so far).
+- [FAILED, gate lowered] Median warm-call speedup is at least `2x` on a
+      representative workload. Measured 2026-08-21: `0.85x` at 2,000x768,
+      `0.82x` at 20,000x768 -- Mojo is slower than the cached-norm Python
+      reference at both scales tested, on real Apple M4 hardware. Root
+      cause confirmed 2026-08-22: per-element Python->Mojo marshalling, not
+      the compute. As of 2026-08-22 the CI workflow's own
+      `--minimum-speedup` gate was deliberately lowered to `0`
+      (correctness-only for this stage) rather than left at a value the
+      current source cannot pass -- an explicit decision, not a silently
+      dropped requirement. This criterion stays unmet until a real fix is
+      measured; do not treat the lowered gate as evidence the criterion was
+      satisfied.
 - [ ] Cold-import/compile cost is measured separately from warm-call cost.
 - [ ] Peak memory does not materially regress.
 - [ ] npm and PyPI artifacts still work without Mojo installed.
@@ -312,7 +434,9 @@ Do not enable Mojo by default until all items below have evidence:
 
 If the speed threshold is not met, keep the code experimental or remove it.
 The existence of a working kernel is not sufficient reason to add production
-dependency and packaging cost.
+dependency and packaging cost. **As of 2026-08-21 the speed threshold is not
+met on real hardware** -- this pilot stays experimental and opt-in; do not
+change the default backend.
 
 ## Handoff for Claude and Codex
 
@@ -331,11 +455,26 @@ When continuing this work:
 
 ## Decision
 
-**Keep the pilot, keep it opt-in, and validate on Linux next.**
+**Keep the pilot, keep it opt-in, ship it as correctness-only for now, and
+get the Linux CI job's real result before deciding what changes next.**
 
 The architecture is useful because it creates a safe accelerator seam with a
-reference implementation and observable fallback. The performance case for
-shipping Mojo as a default dependency is not yet proven.
+reference implementation and observable fallback, and macOS verification on
+2026-08-21 confirms it is genuinely correct and safe (compiles clean, 5/5
+integration probe, no crashes on real hardware). The performance case for
+shipping Mojo as a default dependency is not just "not yet proven" -- on the
+one real hardware target tested so far, it is measured to be false (0.82x-
+0.85x, a regression, not a speedup), root-caused 2026-08-22 to per-element
+Python->Mojo marshalling. A same-day attempt at a zero-copy buffer-transfer
+fix (`PythonObject.unsafe_get_as_pointer`) compiled but behaved inconsistently
+at runtime and was not shipped unverified.
+
+**Explicit, documented decision (2026-08-22, option (b) from the choice this
+report used to pose):** the workflow's `--minimum-speedup` gate is lowered to
+`0`. This working tree's Mojo source ships as correctness-only experimental
+code -- the speed claim is removed, not silently dropped. Raise the gate back
+toward `2.0` only after a real, working buffer-transfer fix produces a
+measured number to back it.
 
 ## Official Mojo References
 

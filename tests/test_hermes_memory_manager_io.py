@@ -342,11 +342,22 @@ def test_vector_batch_python_backend_matches_reference_scores():
     assert _mvr.backend_status()["active"] == "python"
 
 
+def test_vector_batch_python_backend_accepts_precomputed_norms():
+    query = [1.0, 0.0]
+    candidates = [[1.0, 0.0], [1.0, 1.0], [0.0, 0.0]]
+    norms = [_mvr.vector_norm(candidate) for candidate in candidates]
+
+    scores = _mvr._python_cosine_scores(query, candidates, norms)
+
+    expected = [_mvr.cosine_similarity(query, candidate) for candidate in candidates]
+    assert scores == expected
+
+
 def test_vector_batch_uses_one_mojo_call_for_all_candidates():
     calls = []
 
-    def _fake_mojo(query, candidates):
-        calls.append((query, candidates))
+    def _fake_mojo(query, candidates, candidate_norms):
+        calls.append((query, candidates, candidate_norms))
         return [_mvr.cosine_similarity(query, candidate) for candidate in candidates]
 
     candidates = [[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]]
@@ -355,6 +366,7 @@ def test_vector_batch_uses_one_mojo_call_for_all_candidates():
 
     assert len(calls) == 1
     assert calls[0][1] == candidates
+    assert calls[0][2] == [_mvr.vector_norm(candidate) for candidate in candidates]
     assert scores[0] == 1.0
     assert scores[1] == 0.0
 
@@ -561,6 +573,55 @@ def test_embedding_cache_prunes_orphaned_entries():
     with open(cache_path, "r", encoding="utf-8") as f:
         remaining = [line for line in f if line.strip()]
     assert remaining == []
+
+
+def test_embedding_cache_upgrades_legacy_entry_with_cached_norm():
+    log_entry = {
+        "session_id": "legacy",
+        "timestamp": 222.0,
+        "user_text": "old cache",
+        "assistant_text": "still readable",
+    }
+    cache_path = _temp_log_path()
+    with open(cache_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "session_id": "legacy",
+            "timestamp": 222.0,
+            "embedding": [3.0, 4.0],
+        }) + "\n")
+
+    cache = _mmio._sync_embedding_cache(
+        cache_path, [log_entry], lambda text: None, max_backfill=0
+    )
+
+    assert cache[("legacy", 222.0)] == ([3.0, 4.0], 5.0)
+    persisted = _read_log(cache_path)
+    assert persisted[0]["norm"] == 5.0
+
+
+def test_embedding_cache_recomputes_unusable_cached_norm():
+    log_entry = {
+        "session_id": "invalid-norm",
+        "timestamp": 333.0,
+        "user_text": "corrupt cache",
+        "assistant_text": "recover locally",
+    }
+    cache_path = _temp_log_path()
+    with open(cache_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "session_id": "invalid-norm",
+            "timestamp": 333.0,
+            "embedding": [3.0, 4.0],
+            "norm": 10 ** 400,
+        }) + "\n")
+
+    cache = _mmio._sync_embedding_cache(
+        cache_path, [log_entry], lambda text: None, max_backfill=0
+    )
+
+    assert cache[("invalid-norm", 333.0)] == ([3.0, 4.0], 5.0)
+    persisted = _read_log(cache_path)
+    assert persisted[0]["norm"] == 5.0
 
 
 def test_recall_for_prompt_wraps_provider_via_memory_manager():
