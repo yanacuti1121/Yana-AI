@@ -8,6 +8,8 @@ Also pytest-discoverable if pytest is installed, matching the naming
 convention of test_hermes_context_compressor_io.py / test_hermes_tool_guardrails_io.py.
 """
 import json
+import os
+import sys
 import tempfile
 import time
 import urllib.error
@@ -25,6 +27,7 @@ from core.lib.hermes_adapted.memory_manager_io import (
     sync_last_turn,
 )
 from core.lib.hermes_adapted import memory_manager_io as _mmio
+from core.lib.hermes_adapted import mojo_vector_recall as _mvr
 
 
 def _temp_log_path():
@@ -320,6 +323,80 @@ def test_cosine_similarity_mismatched_length_returns_zero():
 
 def test_cosine_similarity_zero_vector_returns_zero_not_nan():
     assert _mmio._cosine_similarity([0.0, 0.0], [1.0, 1.0]) == 0.0
+
+
+def test_vector_batch_python_backend_matches_reference_scores():
+    query = [1.0, 0.0, 0.0]
+    candidates = [
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [1.0, 1.0, 0.0],
+        [1.0, 0.0],
+    ]
+    with mock.patch.dict(os.environ, {_mvr._BACKEND_ENV: "python"}):
+        _mvr._loaded_mode = None
+        scores = _mvr.cosine_scores(query, candidates)
+
+    expected = [_mvr.cosine_similarity(query, candidate) for candidate in candidates]
+    assert scores == expected
+    assert _mvr.backend_status()["active"] == "python"
+
+
+def test_vector_batch_uses_one_mojo_call_for_all_candidates():
+    calls = []
+
+    def _fake_mojo(query, candidates):
+        calls.append((query, candidates))
+        return [_mvr.cosine_similarity(query, candidate) for candidate in candidates]
+
+    candidates = [[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]]
+    with mock.patch.object(_mvr, "_load_mojo_backend", return_value=_fake_mojo):
+        scores = _mvr.cosine_scores([1.0, 0.0], candidates)
+
+    assert len(calls) == 1
+    assert calls[0][1] == candidates
+    assert scores[0] == 1.0
+    assert scores[1] == 0.0
+
+
+def test_vector_batch_falls_back_when_mojo_output_is_invalid():
+    candidates = [[1.0, 0.0], [0.0, 1.0]]
+    with mock.patch.object(
+        _mvr, "_load_mojo_backend", return_value=lambda *args: [float("nan")]
+    ):
+        scores = _mvr.cosine_scores([1.0, 0.0], candidates)
+
+    assert scores == [1.0, 0.0]
+    assert _mvr.backend_status()["active"] == "python"
+
+
+def test_vector_batch_falls_back_when_mojo_backend_raises():
+    candidates = [[1.0, 0.0], [0.0, 1.0]]
+
+    def _raising_mojo(*args):
+        raise RuntimeError("simulated Mojo execution failure")
+
+    with mock.patch.object(
+        _mvr, "_load_mojo_backend", return_value=_raising_mojo
+    ):
+        scores = _mvr.cosine_scores([1.0, 0.0], candidates)
+
+    status = _mvr.backend_status()
+    assert scores == [1.0, 0.0]
+    assert status["active"] == "python"
+    assert "RuntimeError: simulated Mojo execution failure" in status["detail"]
+
+
+def test_vector_batch_requested_mojo_falls_back_when_import_is_unavailable():
+    with mock.patch.dict(os.environ, {_mvr._BACKEND_ENV: "mojo"}), mock.patch.dict(
+        sys.modules, {"mojo": None}
+    ):
+        _mvr._loaded_mode = None
+        scores = _mvr.cosine_scores([1.0, 0.0], [[1.0, 0.0]])
+
+    assert scores == [1.0]
+    assert _mvr.backend_status()["active"] == "python"
+    assert "Mojo unavailable" in _mvr.backend_status()["detail"]
 
 
 def _embed_side_effect(vectors_by_text):

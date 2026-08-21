@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import fcntl
 import json
-import math
 import re
 import time
 import urllib.error
@@ -45,6 +44,10 @@ from core.lib.hermes_adapted.context_compressor_pairs import (
     find_last_user_message_idx,
 )
 from core.lib.hermes_adapted.memory_manager import MemoryManager
+from core.lib.hermes_adapted.mojo_vector_recall import (
+    cosine_similarity as _cosine_similarity,
+    cosine_scores,
+)
 
 CacheKey = Tuple[str, float]
 
@@ -145,20 +148,6 @@ def embed_text(text: str, model: str, host: str,
     return None
 
 
-def _cosine_similarity(a: List[float], b: List[float]) -> float:
-    """Pure Python -- no numpy dependency anywhere in this repo, and at
-    MAX_LOG_ENTRIES scale (~1.5M multiply-adds per prefetch call at 768
-    dimensions) this is trivial without one."""
-    if not a or not b or len(a) != len(b):
-        return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
-    norm_a = math.sqrt(sum(x * x for x in a))
-    norm_b = math.sqrt(sum(y * y for y in b))
-    if norm_a == 0.0 or norm_b == 0.0:
-        return 0.0
-    return dot / (norm_a * norm_b)
-
-
 def _entry_key(entry: Dict[str, Any]) -> CacheKey:
     """memory-turn-log.jsonl entries have no stable id -- (session_id,
     timestamp) is unique enough in practice to key the embedding cache
@@ -224,7 +213,7 @@ def _sync_embedding_cache(cache_path: str, log_entries: List[Dict[str, Any]],
             # Validate numeric elements the same way embed_text() does for
             # a freshly-fetched vector, not just "is a list" -- a corrupted
             # cache file could otherwise carry a non-numeric value all the
-            # way into _cosine_similarity()'s arithmetic. The only real
+            # way into cosine_scores()'s Python or Mojo arithmetic. The real
             # caller (recall_for_prompt -> MemoryManager.prefetch_all)
             # already wraps this in a try/except, but LocalTurnLogProvider
             # should not rely entirely on being called through that wrapper.
@@ -326,12 +315,19 @@ class LocalTurnLogProvider:
             self._embedding_cache_path, log_entries, _embed, self._max_backfill,
         )
 
-        scored: List[Tuple[float, Dict[str, Any]]] = []
+        score_entries: List[Dict[str, Any]] = []
+        score_vectors: List[List[float]] = []
         for entry in log_entries:
             vec = cache.get(_entry_key(entry))
             if vec is None:
                 continue  # not yet backfilled -- see MAX_EMBEDDINGS_PER_PREFETCH
-            score = _cosine_similarity(query_vec, vec)
+            score_entries.append(entry)
+            score_vectors.append(vec)
+
+        scored: List[Tuple[float, Dict[str, Any]]] = []
+        for score, entry in zip(
+            cosine_scores(query_vec, score_vectors), score_entries
+        ):
             if score >= self._min_similarity:
                 scored.append((score, entry))
 
