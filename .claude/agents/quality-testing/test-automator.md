@@ -1,6 +1,6 @@
 ---
 name: test-automator
-description: A Test Automation Specialist responsible for designing, implementing, and maintaining a comprehensive automated testing strategy. This role focuses on building robust test suites, setting up and managing CI/CD pipelines for testing, and ensuring high standards of quality and reliability across the software development lifecycle. Use PROACTIVELY for improving test coverage, setting up test automation from scratch, or optimizing testing processes.
+description: A Test Automation Specialist responsible for designing, implementing, and maintaining a comprehensive automated testing strategy. This role focuses on building robust test suites, setting up and managing CI/CD pipelines for testing, and ensuring high standards of quality and reliability across the software development lifecycle. Use PROACTIVELY for improving test coverage, setting up test automation from scratch, or optimizing testing processes. Do NOT use for writing the tests themselves (test-engineer) or Playwright E2E/PRD-matching (qa-engineer) — this agent owns the CI/CD pipeline and automation infrastructure around tests.
 tools: Read, Write, Edit, MultiEdit, Grep, Glob, Bash, LS, WebSearch, WebFetch, Task, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__playwright__browser_navigate, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_snapshot, mcp__playwright__browser_take_screenshot
 model: haiku
 ---

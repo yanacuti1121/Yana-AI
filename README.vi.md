@@ -573,7 +573,7 @@ Bản đầy đủ kèm số PR: [CHANGELOG.md](CHANGELOG.md) (xem mục "v1.4.0
 Một người. Không team. Không tài trợ.
 
 - Kiến trúc hook, safety gate, Python CLI
-- Rust runtime (`yana-rt`), 101 agent, 2.025 skill, hỗ trợ đa harness
+- Rust runtime (`yana-rt`), 100 agent, 2.025 skill, hỗ trợ đa harness
 - 4 harness adapter (Claude Code, Cursor, Codex, Antigravity)
 
 2.025 skill bao phủ: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, database, testing, và nhiều hơn nữa. Hai agent persona phục vụ việc không phải code: học tập (`hoc-tap`) và trợ lý hàng ngày (`daily-assistant`).
