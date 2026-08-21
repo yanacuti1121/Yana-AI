@@ -483,7 +483,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI (웹 제품)
 
-**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[명령어 레퍼런스 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana는 Yana AI 코어 위에 구축된 첫 번째 인터페이스입니다: 기반 인프라를 전혀 몰라도 누구나 AI와 채팅하고, 프로바이더를 전환하고, 스킬 라우팅을 사용할 수 있는 웹 UI입니다.
 
@@ -613,6 +613,7 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 | | |
 |---|---|
 | 전체 명령어 목록 | [COMMANDS.md](COMMANDS.md) |
+| 전체 명령어 목록 (CLI + 슬래시 명령어, 웹) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
 | 기여 안내 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 행동 강령 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | 보안 정책 | [SECURITY.md](SECURITY.md) |
@@ -629,7 +630,7 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
 ---
 
