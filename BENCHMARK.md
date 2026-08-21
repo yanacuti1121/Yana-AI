@@ -11,7 +11,7 @@ cloud CI runner. Absolute numbers will differ on other hardware; the
 *ratios* between Rust and Python for the same operation are the more
 portable finding.
 
-**Repo state:** 2,025 skills, 101 agents, 61 hooks, 113 scripts (see
+**Repo state:** 2,025 skills, 100 agents, 61 hooks, 113 scripts (see
 `MANIFEST.json`), 19,023 total tracked files.
 
 **Build:** `cargo build --release --bin yana-rt` (release, optimized —

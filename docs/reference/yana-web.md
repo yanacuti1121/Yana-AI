@@ -40,7 +40,7 @@ If Yana AI is the power grid, Yana is the first building plugged into it.
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 1,989 skills, multi-harness support
+- Rust runtime (`yana-rt`), 100 agents, 1,989 skills, multi-harness support
 - 15 harness adapters (Claude Code, Cursor, Windsurf, Antigravity, Kiro, Zed, Gemini, Copilot, Aider...)
 
 The 1,989 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two new agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).

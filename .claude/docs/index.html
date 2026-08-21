@@ -431,9 +431,9 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <!-- Hero -->
 <div class="hero">
   <div>
-    <div class="hero-badge"><span class="dot"></span> v1.1.0 &nbsp;·&nbsp; yana-rt 1.3.3 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
+    <div class="hero-badge"><span class="dot"></span> v1.4.1 &nbsp;·&nbsp; yana-rt 1.4.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
     <h1 data-i18n="hero.title">The stronger your agent gets,<br><em>the more you need this.</em></h1>
-    <p class="hero-sub" data-i18n="hero.sub">Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 9-layer gate system — built and verified for Claude Code.</p>
+    <p class="hero-sub" data-i18n="hero.sub">Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 6-layer gate system — built and verified for Claude Code.</p>
     <div class="hero-ctas">
       <a href="#install" class="btn-primary">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
@@ -477,8 +477,8 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div style="margin-top:1rem;color:var(--fg-muted)">──────────────────────</div>
       <div class="t-prompt" style="margin-top:.75rem">yana-rt scan .</div>
       <div style="margin-top:.5rem">
-        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">60 active</span></div>
-        <div><span class="t-grn">✓</span>  rules &nbsp;<span class="t-dim">826 checks pass</span></div>
+        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">65 active</span></div>
+        <div><span class="t-grn">✓</span>  rules &nbsp;<span class="t-dim">71 enforced</span></div>
         <div><span class="t-grn">✓</span>  permissions &nbsp;<span class="t-dim">scoped</span></div>
       </div>
       <div style="margin-top:.75rem">
@@ -497,16 +497,16 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div class="stat-label" data-i18n="stat.skills">Workflow Skills</div>
     </div>
     <div>
-      <div class="stat-num" style="color:hsl(221 83% 63%)">17</div>
+      <div class="stat-num" style="color:hsl(221 83% 63%)">34</div>
       <div class="stat-label">Rust Subcommands</div>
     </div>
     <div>
-      <div class="stat-num" style="color:var(--orange)">60</div>
+      <div class="stat-num" style="color:var(--orange)">65</div>
       <div class="stat-label">Safety Hooks</div>
     </div>
     <div>
-      <div class="stat-num" style="color:hsl(280 70% 65%)">826</div>
-      <div class="stat-label">Rule Checks</div>
+      <div class="stat-num" style="color:hsl(280 70% 65%)">71</div>
+      <div class="stat-label">Enforced Rules</div>
     </div>
     <div>
       <div class="stat-num" style="color:var(--red)">101</div>
@@ -641,11 +641,11 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <section id="runtime">
   <div class="section-inner">
     <div class="section-label" data-i18n="section.runtime">Rust Runtime</div>
-    <h2 data-i18n="h2.runtime">yana-rt v1.3.3</h2>
+    <h2 data-i18n="h2.runtime">yana-rt v1.4.0</h2>
     <p class="section-sub" data-i18n="sub.runtime">Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.</p>
     <div class="rt-grid">
       <div>
-        <p style="font-size:.875rem;color:var(--fg-muted);margin-bottom:1rem">All 17 subcommands:</p>
+        <p style="font-size:.875rem;color:var(--fg-muted);margin-bottom:1rem">34 subcommands — <a href="commands.html#cli" style="color:var(--accent)">full reference →</a></p>
         <div class="cmd-list">
           <span class="cmd-chip">task</span>
           <span class="cmd-chip">eval</span>
@@ -764,7 +764,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <div class="install-section" id="install">
   <div class="install-inner">
     <h2 data-i18n="h2.install">Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
-    <p class="install-sub" data-i18n="install.sub">One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.</p>
+    <p class="install-sub" data-i18n="install.sub">One command. Installs hooks, downloads the latest release, wires 65 hooks + 71 rules active.</p>
 
     <!-- GitHub App 1-click -->
     <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--bg-card);border:1px solid hsla(221,75%,48%,.35);border-radius:12px;text-align:left">
@@ -861,7 +861,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 
     <!-- Gate system -->
     <div style="margin-bottom:2.5rem">
-      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">9 lớp bảo vệ (L0–L5)</h3>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">6 lớp bảo vệ (L0–L5)</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L0</span><span style="font-weight:600;font-size:.82rem">Audit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Log mọi tool call — Merkle hash-chain</div></div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1</span><span style="font-weight:600;font-size:.82rem">Scope</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Cảnh báo truy cập secret/env</div></div>
@@ -881,7 +881,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
       <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.78rem;line-height:1.85;color:#ccc;overflow-x:auto">
         <div style="color:#69ff47">yana-ai/</div>
         <div style="color:#888">├── <span style="color:#40c4ff">core/</span>         agents · commands · hooks · skills · rules · gates · memory</div>
-        <div style="color:#888">├── <span style="color:#40c4ff">scanner/</span>      7 YAML rule sets — 61 checks</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">scanner/</span>      7 YAML rule sets — 69 checks</div>
         <div style="color:#888">├── <span style="color:#40c4ff">src/</span>          Rust runtime (yana-rt) — ~4ms startup</div>
         <div style="color:#888">├── <span style="color:#40c4ff">tools/</span>        codexmate · moss-tts-nano · finetune-vi</div>
         <div style="color:#888">├── <span style="color:#40c4ff">adapters/</span>     Claude · Cursor · Gemini · Continue · OpenRouter</div>
@@ -1048,7 +1048,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
         <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
           <span>🛡️</span>
           <span style="font-weight:700;font-size:.92rem">Yana AI</span>
-          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v1.1.0</span>
+          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v1.4.1</span>
         </div>
         <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yana-ai.short">Personal agent OS — 65 hooks, 2,025 skills, Rust runtime. Safe for every AI agent.</p>
         <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
@@ -1115,7 +1115,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(142,55%,36%,.1);display:flex;align-items:center;justify-content:center">🔀</span>
-            <span data-i18n="yana.f2">Điều phối 101 agents — route task đúng chuyên gia</span>
+            <span data-i18n="yana.f2">Điều phối 100 agents — route task đúng chuyên gia</span>
           </div>
           <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
             <span style="width:32px;height:32px;border-radius:8px;background:hsla(155,52%,32%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
@@ -1376,7 +1376,7 @@ footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
 <footer>
   <div class="footer-inner">
     <div class="footer-left">
-      <strong>Yana AI</strong> — Apache 2.0 · v1.1.0<br>
+      <strong>Yana AI</strong> — Apache 2.0 · v1.4.1<br>
       <span data-i18n="footer.built">Built by Vũ Văn Tâm · Vietnam</span><br>
       <span style="opacity:.65;font-size:.8rem" data-i18n="footer.skills">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
     </div>
@@ -1418,7 +1418,7 @@ const T = {
     'section.codexmate':'Bundled Tool','section.contact':'Contact',
     'section.yana':'Personal AI Assistant',
     'h2.why':'AI agents cause real damage.<br>Yana AI stops it before it happens.',
-    'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.3.3',
+    'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.4.0',
     'h2.compat':'Works with every major AI coding tool',
     'h2.docs':'Full documentation',
     'h2.contact':'Get in touch','h2.install':'Install in seconds',
@@ -1441,7 +1441,7 @@ const T = {
     'gate.l2.n':'Shell sanitize + env integrity','gate.l3.n':'Sandbox isolation',
     'gate.l4.n':'Supply chain vetting','gate.l5.n':'UI quality + scope drift',
     'hero.title':'The stronger your agent gets,<br><em>the more you need this.</em>',
-    'hero.sub':'Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 9-layer gate system for Claude Code, Cursor, and Codex.',
+    'hero.sub':'Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 6-layer gate system for Claude Code, Cursor, and Codex.',
     'hero.cta1':'Install free',
     'codexmate.desc':'AI coding agents control panel — switch provider, manage sessions, orchestrate tasks for',
     'codexmate.desc2':'Local-first, no cloud.',
@@ -1453,7 +1453,7 @@ const T = {
     'codexmate.tip':'If port is busy:','codexmate.tip2':'then run again',
     'yana.greeting':'Hello, I am',
     'yana.f1':'Daily briefing — repo status, CI, task priorities',
-    'yana.f2':'Coordinate 101 agents — route tasks to the right specialist',
+    'yana.f2':'Coordinate 100 agents — route tasks to the right specialist',
     'yana.f3':'L1/L2 memory — remembers decisions across sessions',
     'yana.f4':'Guarded by the full Yana AI safety layer',
     'yana.cta':'Learn more about Yana AI',
@@ -1463,7 +1463,7 @@ const T = {
     'docs.h3.what':'What is Yana AI?',
     'docs.h3.install':'Install',
     'docs.h3.cmds':'Basic commands',
-    'docs.h3.gates':'9-layer protection (L0–L5)',
+    'docs.h3.gates':'6-layer protection (L0–L5)',
     'docs.h3.struct':'Repo structure',
     'docs.what':'Yana AI is an <strong style="color:var(--fg)">agent operating system</strong> that runs outside your codebase — intercepting every tool call from Claude Code, Cursor, Aider before it executes. No config, no product code changes. Install once, protect everything.',
     'docs.py':'Python CLI',
@@ -1475,7 +1475,7 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# Local → open http://localhost:8080',
     'yana.desc':'Personal executive assistant for <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — manages repo, monitors CI, suggests tasks, and coordinates agents in Yana AI daily.',
-    'install.sub':'One command. Installs hooks, downloads the latest release, verifies all 826 checks pass.',
+    'install.sub':'One command. Installs hooks, downloads the latest release, wires 65 hooks + 71 rules active.',
     'install.app.title':'Fastest: GitHub App',
     'install.app.desc':'Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.',
     'install.app.btn':'Install GitHub App',
@@ -1501,7 +1501,7 @@ const T = {
     'section.codexmate':'Công cụ đi kèm','section.contact':'Liên hệ',
     'section.yana':'Trợ lý AI cá nhân',
     'h2.why':'AI agent gây thiệt hại thật.<br>Yana AI ngăn chặn trước khi xảy ra.',
-    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.3.3',
+    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.4.0',
     'h2.compat':'Hoạt động với mọi AI coding tool',
     'h2.docs':'Giới thiệu đầy đủ',
     'h2.contact':'Liên hệ','h2.install':'Cài đặt trong vài giây',
@@ -1524,7 +1524,7 @@ const T = {
     'gate.l2.n':'Shell sanitize + bảo vệ env','gate.l3.n':'Sandbox isolation',
     'gate.l4.n':'Kiểm duyệt supply chain','gate.l5.n':'Chất lượng UI + scope drift',
     'hero.title':'Agent càng mạnh,<br><em>bạn càng cần lớp này.</em>',
-    'hero.sub':'AI coding agent càng mạnh thì càng khó kiểm soát. Yana AI giữ mức kiểm soát không đổi — hook chặn cứng, không phải lời hứa từ model. 2,025 skills, Rust runtime, và 9 lớp gate cho Claude Code, Cursor, Codex.',
+    'hero.sub':'AI coding agent càng mạnh thì càng khó kiểm soát. Yana AI giữ mức kiểm soát không đổi — hook chặn cứng, không phải lời hứa từ model. 2,025 skills, Rust runtime, và 6 lớp gate cho Claude Code, Cursor, Codex.',
     'hero.cta1':'Cài đặt miễn phí',
     'codexmate.desc':'Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho',
     'codexmate.desc2':'Local-first, không cloud.',
@@ -1536,7 +1536,7 @@ const T = {
     'codexmate.tip':'Nếu port bận:','codexmate.tip2':'rồi chạy lại',
     'yana.greeting':'Xin chào, tôi là',
     'yana.f1':'Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc',
-    'yana.f2':'Điều phối 101 agents — route task đúng chuyên gia',
+    'yana.f2':'Điều phối 100 agents — route task đúng chuyên gia',
     'yana.f3':'Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session',
     'yana.f4':'Canh gác bởi toàn bộ Yana AI safety layer',
     'yana.cta':'Tìm hiểu thêm về Yana AI',
@@ -1546,7 +1546,7 @@ const T = {
     'docs.h3.what':'Yana AI là gì?',
     'docs.h3.install':'Cài đặt',
     'docs.h3.cmds':'Lệnh cơ bản',
-    'docs.h3.gates':'9 lớp bảo vệ (L0–L5)',
+    'docs.h3.gates':'6 lớp bảo vệ (L0–L5)',
     'docs.h3.struct':'Cấu trúc repo',
     'docs.what':'Yana AI là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.',
     'docs.py':'Python CLI',
@@ -1558,7 +1558,7 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# Local → mở http://localhost:8080',
     'yana.desc':'Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong Yana AI mỗi ngày.',
-    'install.sub':'Một lệnh. Cài hooks, tải release mới nhất, xác minh 826 checks pass.',
+    'install.sub':'Một lệnh. Cài hooks, tải release mới nhất, kích hoạt 65 hooks + 71 rules.',
     'install.app.title':'Nhanh nhất: GitHub App',
     'install.app.desc':'Cài → tự tạo PR với CLAUDE.md + hooks → merge → xong. Không cần CLI.',
     'install.app.btn':'Cài GitHub App',
@@ -1584,7 +1584,7 @@ const T = {
     'section.codexmate':'번들 도구','section.contact':'연락처',
     'section.yana':'개인 AI 어시스턴트',
     'h2.why':'AI 에이전트는 실제 피해를 줍니다.<br>Yana AI이 사전에 막습니다.',
-    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.3.3',
+    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.4.0',
     'h2.compat':'모든 주요 AI 코딩 도구와 호환',
     'h2.docs':'전체 문서',
     'h2.contact':'연락하기','h2.install':'몇 초 만에 설치',
@@ -1607,7 +1607,7 @@ const T = {
     'gate.l2.n':'셸 정제 + 환경 무결성','gate.l3.n':'샌드박스 격리',
     'gate.l4.n':'공급망 검증','gate.l5.n':'UI 품질 + 범위 이탈',
     'hero.title':'에이전트가 강력해질수록,<br><em>더 필요해지는 것.</em>',
-    'hero.sub':'AI 코딩 에이전트는 강력해질수록 통제하기 어려워집니다. Yana AI는 그 통제력을 일정하게 유지합니다 — 모델의 약속이 아닌, 강제 차단 훅으로. 2,025개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 9단계 게이트 시스템.',
+    'hero.sub':'AI 코딩 에이전트는 강력해질수록 통제하기 어려워집니다. Yana AI는 그 통제력을 일정하게 유지합니다 — 모델의 약속이 아닌, 강제 차단 훅으로. 2,025개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 6단계 게이트 시스템.',
     'hero.cta1':'무료 설치',
     'codexmate.desc':'AI 코딩 에이전트 대시보드 — 프로바이더 전환, 세션 관리, 작업 조율',
     'codexmate.desc2':'로컬 퍼스트, 클라우드 없음.',
@@ -1629,7 +1629,7 @@ const T = {
     'docs.h3.what':'Yana AI이란?',
     'docs.h3.install':'설치',
     'docs.h3.cmds':'기본 명령어',
-    'docs.h3.gates':'9단계 보호 (L0–L5)',
+    'docs.h3.gates':'6단계 보호 (L0–L5)',
     'docs.h3.struct':'저장소 구조',
     'docs.what':'Yana AI은 코드베이스 외부에서 실행되는 <strong style="color:var(--fg)">에이전트 운영 체제</strong>입니다 — Claude Code, Cursor, Aider의 모든 도구 호출을 실행 전에 차단합니다. 설정 불필요, 제품 코드 변경 없음. 한 번 설치로 전체 보호.',
     'docs.py':'Python CLI',
@@ -1641,7 +1641,7 @@ const T = {
     'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
     'codexmate.c4':'# 로컬 → http://localhost:8080 열기',
     'yana.desc':'<strong style="color:var(--fg)">Vũ Văn Tâm</strong>의 개인 AI 어시스턴트 — 저장소 관리, CI 모니터링, 작업 제안, Yana AI 에이전트 조율.',
-    'install.sub':'하나의 명령. 훅 설치, 최신 릴리스 다운로드, 826개 검사 통과 확인.',
+    'install.sub':'하나의 명령. 훅 설치, 최신 릴리스 다운로드, 65개 훅 + 71개 규칙 활성화.',
     'install.app.title':'가장 빠름: GitHub App',
     'install.app.desc':'설치 → CLAUDE.md + 훅이 포함된 PR 자동 생성 → 머지 → 완료. CLI 불필요.',
     'install.app.btn':'GitHub App 설치',

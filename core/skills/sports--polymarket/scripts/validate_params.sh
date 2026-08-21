@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates polymarket parameters
 COMMAND="${1:-}"
 
