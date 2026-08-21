@@ -495,7 +495,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI（网页产品）
 
-**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)**
+**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[命令参考 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[最新版本 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无需了解底层基础设施、就能与 AI 聊天、切换提供商并使用技能路由的网页 UI。
 
@@ -623,6 +623,7 @@ yana-ai badge . --json    # 机器可读的输出
 | | |
 |---|---|
 | 完整命令参考 | [COMMANDS.md](COMMANDS.md) |
+| 完整命令参考（CLI + 斜杠命令，网页版） | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
 | 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 行为准则 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | 安全政策 | [SECURITY.md](SECURITY.md) |
@@ -639,7 +640,7 @@ yana-ai badge . --json    # 机器可读的输出
 | 邮箱 | phamlongh230@gmail.com |
 | 网站 | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
 ---
 
