@@ -80,16 +80,16 @@
     },
     {
       "description": "permissions block missing \u2014 workflow inherits maximum token permissions",
-      "fix": "Add 'permissions: read-all' at the top level and grant specific write permissions only where needed.",
+      "fix": "Add 'permissions: read-all' at the top level, or scope 'permissions:' inside each job, granting write only where needed.",
       "id": "CI007",
       "match": {
-        "condition": "not_preceded_by",
-        "lines": 10,
-        "not_preceded_by_pattern": "permissions:",
-        "pattern": "^(on:|jobs:)",
+        "condition": "not_accompanied_by",
+        "lines": 15,
+        "not_accompanied_by_pattern": "permissions:",
+        "pattern": "^jobs:",
         "type": "regex"
       },
-      "reason": "Workflows without explicit permissions inherit write access to contents, PRs, and packages.",
+      "reason": "Workflows without explicit permissions (top-level or per-job) inherit write access to contents, PRs, and packages.",
       "severity": "MEDIUM"
     },
     {
