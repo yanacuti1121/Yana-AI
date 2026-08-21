@@ -215,16 +215,35 @@ constructs a working GPU device context on this Apple M4 host (`with
 DeviceContext() as ctx: print(...)` ran and printed successfully).
 
 **What remains unresolved is kernel-launch correctness, not package
-availability.** A minimal kernel (allocate a device buffer, launch a
-function to double each value, copy back) compiled and ran without error
-using `ctx.enqueue_function[...]` with a nested closure over the device
-pointer, but the host-visible buffer was unchanged after the round trip --
-the values written matched the *input*, not the expected doubled output.
-The compiler warned the outer `dev_ptr` binding was "never used," which
-points at the closure's capture convention rather than a platform or
-package limitation. Not debugged further this session; a real, scoped
-follow-up. See `MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this changes
-the puzzle roadmap.
+availability -- and after three independent attempts, this looks like a
+real platform gap, not an unfound syntax fix.** A minimal kernel (allocate
+a device buffer, launch a function to double each value, copy back) was
+tried three ways:
+
+1. A nested closure over the device pointer (`dev_ptr`) -- compiled and ran
+   without error, but the host-visible buffer was unchanged after the round
+   trip (values matched the *input*, not the expected doubled output). The
+   compiler warned the outer `dev_ptr` binding was "never used."
+2. A top-level function taking a typed pointer parameter
+   (`UnsafePointer[Float32, ...]`) -- rejected by every `enqueue_function`
+   overload with a `capturing` trait mismatch, even though the function was
+   plain/non-capturing by construction.
+3. A top-level function taking the `DeviceBuffer` itself as a `mut`
+   parameter -- rejected the same way, same `capturing` trait mismatch,
+   regardless of how the argument or function was declared.
+
+All three attempts hit the same class of `enqueue_function` type-check
+failure. Modular's own tracking issue
+(github.com/modular/modular#5468, "[Epic] Expanding support for Apple
+silicon GPUs," open as of this check, a maintainer comment noting some
+related work "cannot easily be done by external contributors")
+corroborates that Apple Silicon Metal kernel support is still actively
+evolving. Not confirmed as a Modular-side bug -- but no longer treated as
+"just a syntax gap still to be found" either. Re-attempt only with new
+information (a Modular release note, forum answer, or different MAX
+version), not by guessing further. See
+`MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this changes the puzzle
+roadmap.
 
 ## Implementation
 

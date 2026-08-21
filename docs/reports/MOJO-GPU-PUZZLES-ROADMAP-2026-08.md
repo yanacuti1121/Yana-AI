@@ -62,9 +62,21 @@ Two real findings from today's verification change the picture:
    `from max.gpu.host import DeviceContext; DeviceContext()` genuinely
    constructs a working GPU context (see the correction above). What is
    **not yet demonstrated** is a compute kernel that correctly mutates
-   GPU-resident memory end to end -- a same-day attempt compiled and ran
-   without error but left the buffer unchanged, an unresolved closure/
-   capture-convention bug, not a platform limitation.
+   GPU-resident memory end to end. Three independent attempts on
+   2026-08-22 -- a nested closure over a raw pointer, a top-level function
+   taking a typed pointer parameter, and a top-level function taking the
+   `DeviceBuffer` directly with `mut` -- all failed the same way:
+   `enqueue_function`'s type-checker rejects the kernel function against
+   every overload it tries, consistently citing a `capturing` trait
+   mismatch regardless of how the kernel function or its arguments were
+   declared. Modular's own tracking issue
+   (github.com/modular/modular#5468, "[Epic] Expanding support for Apple
+   silicon GPUs," open, with a maintainer noting some of this work "cannot
+   easily be done by external contributors") corroborates that Apple
+   Silicon Metal kernel support is still actively evolving. Treated as a
+   likely genuine platform rough edge rather than a syntax gap still to be
+   found -- not confirmed as a Modular-side bug, but no longer assumed to
+   be "just missing syntax" either.
 2. **The CPU/SIMD pilot itself does not yet clear its own bar.** The current
    uncommitted `yana_mojo_vector_recall.mojo` (SIMD dot product, cached
    norms) compiles clean and passes all 5 integration-probe cases on this
@@ -140,10 +152,17 @@ async pipelines) until:
 
 1. A minimal GPU kernel actually mutates GPU-resident memory correctly and
    the result is copied back and verified on the host. Device-context
-   creation already works (`from max.gpu.host import DeviceContext`); the
-   remaining gap is a closure/capture-convention bug in kernel launch, not
-   package availability -- see section 4 of
-   `MOJO-VECTOR-RECALL-PILOT-2026-08.md` for the exact reproduction.
+   creation already works (`from max.gpu.host import DeviceContext`);
+   package availability is not the blocker. Three independent kernel-launch
+   attempts (nested closure, typed-pointer parameter, `DeviceBuffer`
+   parameter with `mut`) all failed the same `enqueue_function` type-check
+   error -- treated as a likely real gap in current Apple Silicon Metal
+   kernel support (corroborated by Modular's own open tracking issue,
+   github.com/modular/modular#5468), not an unfound syntax fix. Re-attempt
+   only with new information -- a Modular release note, a forum answer, or
+   a different MAX version -- not by guessing further. See section 4 of
+   `MOJO-VECTOR-RECALL-PILOT-2026-08.md` for the exact reproduction and all
+   three attempts.
 2. The existing CPU/SIMD pilot (puzzle 12/15/23, already implemented)
    either clears its own `--minimum-speedup 2.0` gate with evidence, or the
    gate itself is revisited with a documented reason (e.g. correctness and
