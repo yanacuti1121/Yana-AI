@@ -87,7 +87,7 @@
       "id": "SH008",
       "match": {
         "condition": "not_followed_by",
-        "lines": 5,
+        "lines": 15,
         "not_followed_by_pattern": "set\\s+-[eEuo]*e",
         "pattern": "^#!/(usr/)?bin/(ba)?sh",
         "type": "regex"

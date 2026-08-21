@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates fastf1 parameters
 MONTH=$(date +%m)
 YEAR=$(date +%Y)
