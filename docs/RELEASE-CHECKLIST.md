@@ -123,6 +123,38 @@ succeeding in CI's UI is not the same as the registry actually showing
 the new version (skip-existing/idempotency logic in these jobs means a
 job can report green without having published anything new).
 
+## Step 6 — Sứ Giả re-verifies the docs/README surfaces automatically
+
+Added 2026-08-21, after the exact class of incident Step 2's own
+2026-07-23 note describes recurred once more — `docs/index.html` stuck
+at `v1.1.0` while `MANIFEST.json` said `1.4.1`, caught only by chance
+during unrelated work, not by any gate. `core/scripts/check_counts.py`
+now also owns the Product-version display (in addition to the component
+counts it already owned) across `docs/index.html`, `docs/commands.html`,
+and each `README*.md`'s Versioning table — exposed as `bin/yana su-gia`
+(check mode) / `bin/yana su-gia --fix`, callable identically local or in
+CI, by a human or by any AI agent.
+
+This closes most of the gap already at Step 2 time (a version bump
+without a matching docs update now fails "Hook Tests" — via
+`drift-check.sh`'s existing Check 6 — on the push that introduces the
+drift, before any tag exists). `.github/workflows/herald.yml` is
+defense-in-depth on top of that: it re-runs `bin/yana su-gia` on every
+`v*` tag push, and if anything still drifted (a tag pushed against a
+stale/unreviewed commit, a manual force-tag), it opens a PR with the
+mechanical fixes and fails its own check so the drift is visible on the
+tag itself, not just buried in a prior CI run. It does not auto-fix
+narrative prose (e.g. a "### What's new in vX.Y.Z" section) — that stays
+a human call.
+
+**Known, deliberate gap:** `docs/desktop.html`'s version badge and
+download links are *not* covered by `su-gia` — they track the Desktop
+app's own most-recently-*published* release, which is only equal to the
+Product version once that specific tag's desktop build/publish job has
+actually succeeded (not simply "whenever a `v*` tag exists"). Auto-
+syncing it the same way risks advertising a download that doesn't exist
+yet. Needs its own investigation before automating.
+
 ## Anti-patterns (each of these has a real incident behind it)
 
 ```
@@ -137,6 +169,8 @@ job can report green without having published anything new).
    defeats the entire point of independent axes (see VERSIONING.md)
 ❌ Treating a green publish.yml run as proof the registry updated —
    verify Step 5 for real
+❌ Ignoring a herald.yml failure because the release already published —
+   the fix PR it opened is the whole point; merge it, don't dismiss it
 ```
 
 ## References
@@ -146,3 +180,6 @@ job can report green without having published anything new).
 - `.github/workflows/publish.yml` — the three per-axis publish jobs
 - `.github/workflows/release.yml` — yana-rt binary build (the known gap)
 - `core/scripts/drift-check.sh` — the CI-wired drift/count/overclaim gate
+- `core/scripts/check_counts.py` (`bin/yana su-gia`) — Sứ Giả's underlying
+  check/fix logic, version-anchor + component-count sync
+- `.github/workflows/herald.yml` — tag-triggered re-verification + auto-PR

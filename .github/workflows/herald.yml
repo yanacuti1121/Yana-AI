@@ -1,0 +1,156 @@
+name: Herald (Sứ Giả)
+
+# Standalone, not a job appended to release.yml/desktop.yml/publish.yml --
+# their build/publish jobs each ship artifacts per-leg, so a job hanging
+# off `needs: build` there would run after assets are already shipped and
+# would couple this check's runtime to unrelated Rust/Electron toolchain
+# flakiness. Fires on the same `push: tags: v*` event those workflows
+# already use independently -- see docs/RELEASE-CHECKLIST.md Step 6 for
+# the full mechanism and what this deliberately does NOT cover
+# (docs/desktop.html, narrative prose).
+#
+# The actual check/fix logic lives in core/scripts/check_counts.py, exposed
+# as `bin/yana su-gia` -- this workflow is one caller of that command among
+# several (a human running it locally, any AI agent shelling out to it),
+# not where the logic lives.
+#
+# Two jobs, deliberately split (reviewed by security-auditor 2026-08-21,
+# see docs/RELEASE-CHECKLIST.md Step 6):
+#   - `check` never needs write access -- contents: read only, and fails
+#     itself (its own last step) whenever drift is found, so the tag's
+#     check-run goes red on BOTH a real tag push and a workflow_dispatch
+#     dry run. workflow_dispatch never reaches the second job, so it's a
+#     genuine read-only dry run, not just a comment claiming it is.
+#   - `open-fix-pr` is the only job holding contents:write +
+#     pull-requests:write, only runs on a real `push` event (never on
+#     workflow_dispatch -- a maliciously-named branch picked in the
+#     dispatch UI can't reach this job at all), and only when `check`
+#     found drift.
+#
+# `github.ref_name` (a git ref name, not restricted to safe shell
+# characters -- confirmed via `git check-ref-format`: `$()`, backticks,
+# `;`, `|`, `&` are all accepted) is read via `env:` and never
+# interpolated with `${{ }}` directly into a `run:` script body --
+# reproducing that exact injection class here was flagged in review; see
+# .github/workflows/publish.yml's "Set version from tag" step and its
+# header comment for the original 2026-07-05 incident this mirrors the
+# fix for.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:   # read-only dry run: reports drift, never branches/commits/opens a PR
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check release-surface freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      exit_code: ${{ steps.check.outputs.exit_code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Check release surfaces
+        id: check
+        run: |
+          set +e
+          ./bin/yana su-gia
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Fail if drift was found
+        if: steps.check.outputs.exit_code != '0'
+        env:
+          REF: ${{ github.ref_name }}
+        run: |
+          echo "::error::Sứ Giả found release-surface drift for ${REF}."
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "::error::A fix PR is being opened in the open-fix-pr job — see this run's other job for the link once it lands."
+          else
+            echo "::notice::workflow_dispatch dry run — no branch, commit, or PR was created."
+          fi
+          exit 1
+
+  open-fix-pr:
+    name: Open fix PR for the drifted surfaces
+    needs: check
+    if: always() && needs.check.outputs.exit_code != '0' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REF: ${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Open fix PR
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="herald/sync-${REF}-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+
+          FIX_OUTPUT="$(./bin/yana su-gia --fix)"
+          echo "$FIX_OUTPUT"
+
+          mapfile -t CHANGED_FILES < <(printf '%s\n' "$FIX_OUTPUT" | grep '^UPDATED ' | awk '{print $2}')
+          if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
+            echo "::error::su-gia --fix reported no changed files despite a prior drift detection"
+            exit 1
+          fi
+
+          git add "${CHANGED_FILES[@]}"
+          git commit -m "docs: sync release surfaces to ${REF} [herald]"
+          git push -u origin "$BRANCH"
+
+          # Anything still reported after --fix is a judgment call left to
+          # a human (e.g. narrative prose) -- surfaced in the PR body, not
+          # auto-rewritten. See _apply_version_anchors's docstring in
+          # check_counts.py for why some claims are deliberately curated,
+          # not blanket-matched.
+          REMAINING="$(./bin/yana su-gia 2>&1 | grep '^METADATA DRIFT:' || true)"
+
+          {
+            echo "Sứ Giả found the release surfaces below out of sync with \`MANIFEST.json\`'s Product version (\`${REF}\`) and/or filesystem-derived component counts, and auto-fixed the mechanical parts:"
+            echo
+            printf -- '- `%s`\n' "${CHANGED_FILES[@]}"
+            if [[ -n "$REMAINING" ]]; then
+              echo
+              echo "**Needs human review** (not auto-fixed):"
+              echo '```'
+              echo "$REMAINING"
+              echo '```'
+            fi
+            echo
+            echo "Not covered by this check (see docs/RELEASE-CHECKLIST.md Step 6): \`docs/desktop.html\`'s version badge and download links, narrative prose (e.g. a \"What's new\" section heading)."
+          } > /tmp/herald-pr-body.md
+
+          gh pr create \
+            --title "docs: sync release surfaces to ${REF} [herald]" \
+            --body-file /tmp/herald-pr-body.md \
+            --base main \
+            --head "$BRANCH"
