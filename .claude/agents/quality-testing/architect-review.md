@@ -1,6 +1,6 @@
 ---
 name: architect-reviewer
-description: Proactively reviews code for architectural consistency, adherence to patterns, and maintainability. Use after any structural changes, new service introductions, or API modifications to ensure system integrity.
+description: Proactively reviews code for architectural consistency, adherence to patterns, and maintainability. Use after any structural changes, new service introductions, or API modifications to ensure system integrity — a lighter, per-diff pattern-consistency check. For a thorough, scored, whole-system architecture audit, use architecture-auditor instead.
 tools: Read, Grep, Glob, LS, WebFetch, WebSearch, Task, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: haiku
 ---

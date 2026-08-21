@@ -69,7 +69,7 @@
   "contents": {
     "hooks": 65,
     "commands": 170,
-    "agents": 101,
+    "agents": 100,
     "scripts": 130,
     "skills": 2025,
     "rules": 71,

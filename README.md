@@ -622,7 +622,7 @@ Full writeup with PR numbers: [CHANGELOG.md](CHANGELOG.md) (see the "v1.4.0" ent
 One person. No team. No funding.
 
 - Hook architecture, safety gates, Python CLI
-- Rust runtime (`yana-rt`), 101 agents, 2,025 skills, multi-harness support
+- Rust runtime (`yana-rt`), 100 agents, 2,025 skills, multi-harness support
 - 4 harness adapters (Claude Code, Cursor, Codex, Antigravity)
 
 The 2,025 skills cover: frontend, backend, AI/LLM, security, Kubernetes, WebAssembly, DevOps, databases, testing, and more. Two agent personas cover non-coding use cases: learning (`hoc-tap`) and daily productivity (`daily-assistant`).
