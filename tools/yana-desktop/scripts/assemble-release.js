@@ -127,9 +127,9 @@ function assembleRelease(inputRoot, outputRoot, expectedVersion) {
 
   const escapedVersion = expectedVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const required = [
-    ['Linux x64 AppImage', new RegExp(`^Yana-AI-${escapedVersion}-x64\\.AppImage$`)],
+    ['Linux x64 AppImage', new RegExp(`^Yana-AI-${escapedVersion}-(?:x64|x86_64)\\.AppImage$`)],
     ['Linux arm64 AppImage', new RegExp(`^Yana-AI-${escapedVersion}-arm64\\.AppImage$`)],
-    ['Linux x64 deb', new RegExp(`^Yana-AI-${escapedVersion}-x64\\.deb$`)],
+    ['Linux x64 deb', new RegExp(`^Yana-AI-${escapedVersion}-(?:x64|amd64)\\.deb$`)],
     ['Linux arm64 deb', new RegExp(`^Yana-AI-${escapedVersion}-arm64\\.deb$`)],
     ['macOS x64 dmg', new RegExp(`^Yana-AI-${escapedVersion}-x64\\.dmg$`)],
     ['macOS arm64 dmg', new RegExp(`^Yana-AI-${escapedVersion}-arm64\\.dmg$`)],
