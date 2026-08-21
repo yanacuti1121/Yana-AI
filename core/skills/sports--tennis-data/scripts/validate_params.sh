@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates tennis-data parameters
 if [[ "$*" == *"--tour="* ]]; then
   TOUR=$(echo "$*" | grep -o '\-\-tour=[^ ]*' | cut -d= -f2)

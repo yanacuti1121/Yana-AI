@@ -1,0 +1,56 @@
+name: Mojo Vector Recall Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/mojo-vector-recall-pilot.yml"
+      - "core/lib/hermes_adapted/memory_manager_io.py"
+      - "core/lib/hermes_adapted/mojo/**"
+      - "core/lib/hermes_adapted/mojo_vector_recall.py"
+      - "tests/test_hermes_memory_manager_io.py"
+
+permissions:
+  contents: read
+
+jobs:
+  linux-extension:
+    name: Mojo extension safety (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: "3.12"
+
+      - name: Install stable Mojo and test dependencies
+        run: python -m pip install "mojo==1.0.0" pytest
+
+      - name: Record toolchain
+        run: |
+          python --version
+          mojo --version
+          uname -a
+
+      - name: Run Python fallback regressions
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest -q tests/test_hermes_memory_manager_io.py
+
+      - name: Compile and probe the real Mojo extension
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python core/lib/hermes_adapted/mojo/integration_probe.py
+
+      - name: Validate Mojo scores and benchmark path
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python -m core.lib.hermes_adapted.mojo.benchmark \
+            --backend mojo --entries 2000 --dimensions 768 --iterations 5

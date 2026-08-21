@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Usage: scripts/validate_params.sh [command] [options]
 # Validates parameters before executing sports-skills commands
 
