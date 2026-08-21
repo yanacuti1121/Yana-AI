@@ -677,7 +677,7 @@ yana-ai badge . --json    # machine-readable output
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana | [yanai-production.up.railway.app](https://yanai-production.up.railway.app) |
+| Yana-destop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
 ---
 
