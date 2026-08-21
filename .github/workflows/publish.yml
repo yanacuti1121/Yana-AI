@@ -152,7 +152,13 @@ jobs:
           sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" src/yana_ai/__init__.py
 
       - name: Install build tools
-        run: pip install hatchling build
+        # hatchling pinned: 1.32.0 emits Metadata-Version: 2.5, which the
+        # pinned pypa/gh-action-pypi-publish SHA below does not yet
+        # recognize (InvalidDistribution, confirmed by reproducing the
+        # build locally on 2026-08-21 -- py-v0.42.5's publish run failed
+        # on this exact error). 1.31.0 emits the still-current 2.4.
+        # Bump this pin only after confirming the publish step accepts 2.5.
+        run: pip install "hatchling==1.31.0" build
 
       - name: Build sdist + wheel
         run: python -m build
