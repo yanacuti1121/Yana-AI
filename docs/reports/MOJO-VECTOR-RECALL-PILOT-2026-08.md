@@ -192,18 +192,39 @@ exceptions for invalid element types and shapes. The cached-norm/SIMD
 follow-up has not yet run on that Linux job; the macOS result above is
 first-party evidence for this working tree, not a substitute for it.
 
-**GPU/Metal kernel authoring (separate from the CPU/SIMD path above):**
-`from max.driver import Accelerator` correctly detects real Metal hardware --
-`Device(type=gpu, id=0)`, `api=metal`, `architecture_name=4-metal4`,
-`model_name=Apple M4`, `is_host=False`. But the native Mojo `gpu` module
-needed to *write* a custom Metal kernel (`gpu.host.DeviceContext`,
-`gpu.id.thread_idx`, etc.) is not resolvable: `import gpu` alone fails with
-`unable to locate module 'gpu'` on both the `max` release channel (26.5.0)
-and the `max-nightly` channel (26.6.0.dev2026082005) on this host, tested
-independently on each. Device detection works; GPU kernel authoring in Mojo
-does not, on this platform, as of this date. See
-`MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this changes the puzzle
-roadmap.
+**GPU/Metal kernel authoring (separate from the CPU/SIMD path above), first
+attempt and correction, both 2026-08-22:**
+
+First attempt: `import gpu` (bare) failed with `unable to locate module
+'gpu'` on both the `max` release channel (26.5.0) and the `max-nightly`
+channel (26.6.0.dev2026082005). Concluded from this that GPU kernel
+authoring was unavailable on this platform -- **that conclusion was wrong.**
+The bare `import gpu` was missing the `std.` prefix every other stdlib
+import in this codebase already uses; `from std.gpu import thread_idx`
+compiles cleanly. Confirmed against the open-source `modular/modular` repo:
+`mojo/stdlib/std/gpu/` exists in source, and `DeviceContext` specifically
+lives under the `max` package namespace (`max.gpu.host`, part of MAX's
+custom-ops framework), not `std.gpu.host` as first guessed --
+`gpu/host/__init__.mojo` in `std` exports only `get_gpu_target`.
+
+With the corrected imports: `from max.driver import Accelerator` correctly
+detects real Metal hardware -- `Device(type=gpu, id=0)`, `api=metal`,
+`architecture_name=4-metal4`, `model_name=Apple M4`, `is_host=False` -- and
+`from max.gpu.host import DeviceContext; DeviceContext()` genuinely
+constructs a working GPU device context on this Apple M4 host (`with
+DeviceContext() as ctx: print(...)` ran and printed successfully).
+
+**What remains unresolved is kernel-launch correctness, not package
+availability.** A minimal kernel (allocate a device buffer, launch a
+function to double each value, copy back) compiled and ran without error
+using `ctx.enqueue_function[...]` with a nested closure over the device
+pointer, but the host-visible buffer was unchanged after the round trip --
+the values written matched the *input*, not the expected doubled output.
+The compiler warned the outer `dev_ptr` binding was "never used," which
+points at the closure's capture convention rather than a platform or
+package limitation. Not debugged further this session; a real, scoped
+follow-up. See `MOJO-GPU-PUZZLES-ROADMAP-2026-08.md` for how this changes
+the puzzle roadmap.
 
 ## Implementation
 

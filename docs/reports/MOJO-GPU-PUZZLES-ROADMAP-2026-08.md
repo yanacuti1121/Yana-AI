@@ -34,21 +34,37 @@ Each puzzle is scored against four categories:
 
 ## What changed since the earlier puzzle-mapping document
 
+**Correction (2026-08-22):** an earlier version of this document claimed
+`gpu` was not importable on this platform (`unable to locate module 'gpu'`
+on both the `max` release and `max-nightly` channels). That finding was
+wrong -- caused by testing `import gpu` (bare) instead of `from std.gpu
+import ...`, missing the `std.` prefix every other stdlib import in this
+codebase already uses (`from std.python import PythonObject`, etc.), and by
+guessing `gpu.host.DeviceContext` instead of the correct
+`max.gpu.host.DeviceContext` (`DeviceContext` lives under the `max` package
+namespace -- it's part of MAX's custom-ops framework, not raw Mojo `std`).
+Confirmed via the open-source `modular/modular` repo
+(`mojo/stdlib/std/gpu/` exists; `gpu/host/__init__.mojo` exports only
+`get_gpu_target`, not `DeviceContext`) and by testing the corrected imports
+directly: `from std.gpu import thread_idx` compiles, and
+`from max.gpu.host import DeviceContext; DeviceContext()` genuinely
+constructs a GPU device context on this Apple M4 host. See section 4 of
+`MOJO-VECTOR-RECALL-PILOT-2026-08.md` for the exact commands and current
+status (device context creation works; a correctly-mutating compute kernel
+is not yet demonstrated -- a real remaining bug, not a missing package).
+
 Two real findings from today's verification change the picture:
 
-1. **GPU device detection works; GPU kernel authoring does not (yet).**
-   `from max.driver import Accelerator` correctly reports
+1. **GPU device detection and device-context creation both work on this
+   host.** `from max.driver import Accelerator` correctly reports
    `Device(type=gpu, id=0)`, `api=metal`, `architecture_name=4-metal4`,
-   `model_name=Apple M4`, `is_host=False` -- real, working Metal device
-   detection. But `import gpu` (the native Mojo module needed to *write* a
-   custom Metal kernel, e.g. `gpu.host.DeviceContext`,
-   `gpu.id.thread_idx`) fails with `unable to locate module 'gpu'` on
-   **both** the `max` release channel (26.5.0) and the `max-nightly`
-   channel (26.6.0.dev2026082005) on this host. Confirmed twice
-   independently, not a typo or a stale cache. This is a real
-   toolchain/package-availability gap, not a source or environment problem
-   on this machine -- classified precisely so the earlier vaguer "blocked on
-   this host" note can be retired.
+   `model_name=Apple M4`, `is_host=False`, and
+   `from max.gpu.host import DeviceContext; DeviceContext()` genuinely
+   constructs a working GPU context (see the correction above). What is
+   **not yet demonstrated** is a compute kernel that correctly mutates
+   GPU-resident memory end to end -- a same-day attempt compiled and ran
+   without error but left the buffer unchanged, an unresolved closure/
+   capture-convention bug, not a platform limitation.
 2. **The CPU/SIMD pilot itself does not yet clear its own bar.** The current
    uncommitted `yana_mojo_vector_recall.mojo` (SIMD dot product, cached
    norms) compiles clean and passes all 5 integration-probe cases on this
@@ -80,9 +96,9 @@ proving a real speedup**, not NOW.
 | 19 | Attention | Context compressor or local inference experiment | LATER |
 | 20-22 | PyTorch ops, embedding, fusion, backward | Fine-tuning/training research | NOT APPLICABLE -- training is not a Yana priority; explicitly out of scope per the architecture boundary below |
 | 23 | Functional GPU patterns, benchmark | General accelerator API, performance gating | **NOW (implemented)** -- `benchmark.py --minimum-speedup` is exactly this pattern, already in the pilot's CI workflow |
-| 24-27 | Warp/block reduction, broadcast, scan | Top-K retrieval, normalization, histogram telemetry | NEXT -- same GPU-availability blocker as 16 |
-| 28 | Async memory/copy overlap | Overlap embedding copy with next-batch processing | NEXT -- blocked on `gpu` module availability |
-| 29 | Synchronization/pipeline | Safe embed -> score -> Top-K pipeline | NEXT -- blocked on `gpu` module availability |
+| 24-27 | Warp/block reduction, broadcast, scan | Top-K retrieval, normalization, histogram telemetry | NEXT -- blocked on a working GPU kernel first (device context works, kernel-launch correctness does not yet) |
+| 28 | Async memory/copy overlap | Overlap embedding copy with next-batch processing | NEXT -- same working-kernel blocker as 24-27 |
+| 29 | Synchronization/pipeline | Safe embed -> score -> Top-K pipeline | NEXT -- same working-kernel blocker as 24-27 |
 | 30-32 | Profiling, occupancy, bank conflicts | Post-correctness optimization | LATER -- premature before any GPU kernel exists and is proven correct |
 | 33 | Tensor cores | Large matmul/embedding, local model kernels | NOT APPLICABLE on this hardware -- tensor cores are an NVIDIA-specific term; Apple GPUs have no direct equivalent exposed at this level |
 | 34 | GPU clusters SM90+ | -- | **NOT APPLICABLE** -- explicitly NVIDIA-specific (Hopper SM90), no Apple Silicon path |
@@ -112,18 +128,22 @@ work with no current driving need (LATER), and the remainder (training ops,
 SM90+, tensor cores, MAX Graph integration) are NOT APPLICABLE to Yana's
 current architecture or hardware target. This is a narrower NOW/NEXT count
 than the earlier "25-30 of 35" framing -- the difference is today's real
-verification (GPU module unavailable, CPU/SIMD path not yet faster than
-Python), not a change in the underlying algorithmic mapping, which remains
-substantially accurate.
+verification (device context works, but a correctly-mutating GPU kernel is
+not yet demonstrated; CPU/SIMD path not yet faster than Python), not a
+change in the underlying algorithmic mapping, which remains substantially
+accurate.
 
 ## Immediate recommendation
 
 Do not start any NEXT-tier work (GPU kernels, warp/block reduction,
 async pipelines) until:
 
-1. The `gpu` Mojo module's availability on macOS/Metal is either resolved
-   (a different package, a future release, or confirmation from Modular
-   that it requires a non-macOS target) or explicitly deprioritized.
+1. A minimal GPU kernel actually mutates GPU-resident memory correctly and
+   the result is copied back and verified on the host. Device-context
+   creation already works (`from max.gpu.host import DeviceContext`); the
+   remaining gap is a closure/capture-convention bug in kernel launch, not
+   package availability -- see section 4 of
+   `MOJO-VECTOR-RECALL-PILOT-2026-08.md` for the exact reproduction.
 2. The existing CPU/SIMD pilot (puzzle 12/15/23, already implemented)
    either clears its own `--minimum-speedup 2.0` gate with evidence, or the
    gate itself is revisited with a documented reason (e.g. correctness and
