@@ -64,7 +64,7 @@ Input: "review code của tôi"
 
 **File quan trọng:**
 - `core/config/skills-lock.json` — registry 1,989 skills
-- `core/agents/*.md` — 101 agent personas
+- `core/agents/*.md` — 100 agent personas
 - `core/scripts/model-router.sh` — provider selection logic
 
 ---
@@ -147,7 +147,7 @@ Luồng đơn giản nhất — Phase 2:
 6. Claude trả lời → Yana hiển thị
 ```
 
-Không cần 101 agents. Không cần 1,989 skills.  
+Không cần 100 agents. Không cần 1,989 skills.  
 Chỉ cần: UI → Router → Claude.
 
 ---
