@@ -1,0 +1,370 @@
+'use strict';
+
+// Robot voice/MCP bridge — lets an ESP32 yana-wheelbot device (or any
+// XiaoZhi-protocol-compatible board) use this server as its voice AI
+// backend instead of xiaozhi.me or a self-hosted XiaoZhi server.
+//
+// Speaks the exact protocol documented in the yana-robot firmware repo's
+// docs/websocket.md + docs/mcp-protocol.md: this module is the WebSocket
+// server the device connects to, and it acts as the MCP *client* (the
+// device is the MCP *server* — it owns the tools; see mcp-protocol.md).
+// No firmware changes are required — only the device's `ota_url`/server
+// setting needs to point here instead of the default backend.
+//
+// Kept in its own file (this module, not mixed into server.js's chat/
+// agent code) per the memory.js/missions.js/auth.js pattern already used
+// in this file — see server.js's own top-of-file requires.
+
+const http = require('http');
+const crypto = require('crypto');
+const { WebSocketServer } = require('ws');
+const { PROVIDERS, connectToProvider } = require('./lib/providers');
+const opus = require('./lib/opus-codec');
+
+const ROBOT_WS_PATH = process.env.YANA_ROBOT_WS_PATH || '/robot/ws';
+const ROBOT_DEVICE_TOKEN = process.env.YANA_ROBOT_DEVICE_TOKEN || '';
+const ROBOT_LLM_API_KEY = process.env.YANA_ROBOT_LLM_API_KEY || '';
+const ROBOT_LLM_PROVIDER = process.env.YANA_ROBOT_LLM_PROVIDER || 'groq';
+const ROBOT_LLM_MODEL =
+  process.env.YANA_ROBOT_LLM_MODEL || PROVIDERS[ROBOT_LLM_PROVIDER]?.defaultModel;
+
+// Groq's OpenAI-compatible ASR endpoint (confirmed against Groq's own docs
+// at design time: https://api.groq.com/openai/v1/audio/transcriptions,
+// accepts wav, model whisper-large-v3-turbo). Uses the SAME
+// YANA_ROBOT_LLM_API_KEY as chat when ROBOT_LLM_PROVIDER is "groq" — one
+// key covers both, no second provider needed.
+const ASR_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+const ASR_MODEL = process.env.YANA_ROBOT_ASR_MODEL || 'whisper-large-v3-turbo';
+
+// Same sidecar server.js's handleTts() already proxies to
+// (tools/yana-web/tts-sidecar/, VieNeu-TTS). Duplicated here (not shared)
+// because handleTts() is wired directly to an HTTP req/res pair for
+// browser proxying, and this needs a plain WAV Buffer instead — same
+// sidecar process, same wire format, just a different caller shape.
+const TTS_SIDECAR_PORT = Number(process.env.VIENEU_SIDECAR_PORT) || 7861;
+const TTS_SAMPLE_RATE = 24000; // matches docs/websocket.md's note that the
+const TTS_CHANNELS = 1; // server may use 24kHz on the downlink
+const TTS_FRAME_MS = 60;
+
+const MCP_TIMEOUT_MS = 8000;
+
+function attach(server) {
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on('upgrade', (req, socket, head) => {
+    let pathname;
+    try {
+      pathname = new URL(req.url, 'http://localhost').pathname;
+    } catch (_) {
+      socket.destroy();
+      return;
+    }
+    if (pathname !== ROBOT_WS_PATH) {
+      return; // not ours; no other upgrade handler exists today, so this is safe to ignore
+    }
+
+    if (ROBOT_DEVICE_TOKEN) {
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      if (token !== ROBOT_DEVICE_TOKEN) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+    }
+
+    wss.handleUpgrade(req, socket, head, ws => {
+      wss.emit('connection', ws, req);
+    });
+  });
+
+  wss.on('connection', ws => new RobotSession(ws));
+
+  console.log(`[robot] WebSocket bridge attached at ${ROBOT_WS_PATH}`);
+}
+
+class RobotSession {
+  constructor(ws) {
+    this.ws = ws;
+    this.sessionId = crypto.randomUUID();
+    this.decoder = null;
+    this.deviceSampleRate = 16000;
+    this.deviceChannels = 1;
+    this.listening = false;
+    this.audioFrames = [];
+    this.mcpNextId = 1;
+    this.mcpTools = [];
+    this.pendingMcp = new Map();
+
+    ws.on('message', (data, isBinary) => this.onMessage(data, isBinary));
+    ws.on('close', () => this.onClose());
+    ws.on('error', () => {});
+  }
+
+  send(obj) {
+    this.ws.send(JSON.stringify({ session_id: this.sessionId, ...obj }));
+  }
+
+  onMessage(data, isBinary) {
+    if (isBinary) {
+      if (this.listening) this.audioFrames.push(data);
+      return;
+    }
+    let msg;
+    try {
+      msg = JSON.parse(data.toString('utf8'));
+    } catch (_) {
+      return;
+    }
+    switch (msg.type) {
+      case 'hello':
+        this.onHello(msg);
+        break;
+      case 'listen':
+        this.onListen(msg);
+        break;
+      case 'abort':
+        this.onAbort();
+        break;
+      case 'mcp':
+        this.onMcpMessage(msg);
+        break;
+      default:
+        break; // stt/llm/tts/system/alert are server->device only in this design
+    }
+  }
+
+  onHello(msg) {
+    const params = msg.audio_params || {};
+    this.deviceSampleRate = params.sample_rate || 16000;
+    this.deviceChannels = params.channels || 1;
+    if (this.decoder) this.decoder.dispose();
+    this.decoder = opus.createDecoder(this.deviceSampleRate, this.deviceChannels);
+
+    this.send({
+      type: 'hello',
+      transport: 'websocket',
+      audio_params: {
+        format: 'opus',
+        sample_rate: this.deviceSampleRate,
+        channels: this.deviceChannels,
+        frame_duration: 60,
+      },
+    });
+
+    if (msg.features && msg.features.mcp) {
+      // Best-effort: a failed tool discovery just means no tool-calling
+      // this session, not a fatal error for the whole connection.
+      this.initMcp().catch(err => console.error('[robot] MCP init failed:', err.message));
+    }
+  }
+
+  async initMcp() {
+    await this.mcpRequest('initialize', { capabilities: {} });
+    let cursor = '';
+    for (;;) {
+      const result = await this.mcpRequest('tools/list', { cursor, withUserTools: false });
+      this.mcpTools = this.mcpTools.concat(result.tools || []);
+      cursor = result.nextCursor || '';
+      if (!cursor) break;
+    }
+  }
+
+  mcpRequest(method, params) {
+    const id = this.mcpNextId++;
+    return new Promise((resolve, reject) => {
+      this.pendingMcp.set(id, { resolve, reject });
+      this.send({ type: 'mcp', payload: { jsonrpc: '2.0', method, params, id } });
+      setTimeout(() => {
+        if (this.pendingMcp.has(id)) {
+          this.pendingMcp.delete(id);
+          reject(new Error(`MCP request "${method}" timed out`));
+        }
+      }, MCP_TIMEOUT_MS);
+    });
+  }
+
+  onMcpMessage(msg) {
+    const payload = msg.payload || {};
+    if (payload.id != null && this.pendingMcp.has(payload.id)) {
+      const { resolve, reject } = this.pendingMcp.get(payload.id);
+      this.pendingMcp.delete(payload.id);
+      if (payload.error) reject(new Error(payload.error.message || 'MCP error'));
+      else resolve(payload.result);
+    }
+    // Device-initiated notifications (no id) are not acted on in v1.
+  }
+
+  onListen(msg) {
+    if (msg.state === 'start' || msg.state === 'detect') {
+      this.listening = true;
+      this.audioFrames = [];
+    } else if (msg.state === 'stop') {
+      this.listening = false;
+      this.processUtterance().catch(err => {
+        console.error('[robot] utterance processing failed:', err.message);
+      });
+    }
+  }
+
+  onAbort() {
+    this.listening = false;
+    this.audioFrames = [];
+  }
+
+  onClose() {
+    if (this.decoder) this.decoder.dispose();
+    this.pendingMcp.forEach(({ reject }) => reject(new Error('session closed')));
+    this.pendingMcp.clear();
+  }
+
+  async processUtterance() {
+    if (!this.audioFrames.length) return;
+
+    const pcm = Buffer.concat(this.audioFrames.map(frame => this.decoder.decodeFrame(frame)));
+    const wav = opus.pcmToWav(pcm, this.deviceSampleRate, this.deviceChannels);
+
+    const text = await this.transcribe(wav);
+    if (!text) return;
+    this.send({ type: 'stt', text });
+
+    const reply = await this.chat(text);
+    if (reply.toolCall) {
+      await this.callDeviceTool(reply.toolCall);
+      await this.speak(reply.ackText || 'Đã thực hiện.');
+    } else if (reply.text) {
+      await this.speak(reply.text);
+    }
+  }
+
+  async transcribe(wav) {
+    if (!ROBOT_LLM_API_KEY) throw new Error('YANA_ROBOT_LLM_API_KEY not configured');
+    const form = new FormData();
+    form.append('file', new Blob([wav], { type: 'audio/wav' }), 'utterance.wav');
+    form.append('model', ASR_MODEL);
+    const res = await fetch(ASR_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ROBOT_LLM_API_KEY}` },
+      body: form,
+    });
+    if (!res.ok) throw new Error(`ASR HTTP ${res.status}`);
+    const data = await res.json();
+    return (data.text || '').trim();
+  }
+
+  async chat(userText) {
+    const providerEntry = PROVIDERS[ROBOT_LLM_PROVIDER];
+    if (!providerEntry) throw new Error(`Unknown provider "${ROBOT_LLM_PROVIDER}"`);
+
+    // NOTE: PROVIDERS[...].body() (used by /api/chat) has no `tools`
+    // parameter — the browser chat UI doesn't need function-calling.
+    // Building the request body directly here for the robot path instead
+    // of forcing that shape onto the shared helper every other caller uses.
+    const tools = this.mcpTools.map(t => ({
+      type: 'function',
+      function: { name: t.name, description: t.description, parameters: t.inputSchema },
+    }));
+    const reqBody = JSON.stringify({
+      model: ROBOT_LLM_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Bạn là trợ lý điều khiển robot. Trả lời ngắn gọn bằng tiếng Việt. ' +
+            'Nếu người dùng muốn robot di chuyển hoặc thực hiện hành động, hãy gọi đúng 1 tool phù hợp.',
+        },
+        { role: 'user', content: userText },
+      ],
+      tools: tools.length ? tools : undefined,
+    });
+
+    const upstream = await connectToProvider(
+      providerEntry,
+      ROBOT_LLM_API_KEY,
+      reqBody,
+      providerEntry.path,
+    );
+    const data = await readJsonStream(upstream);
+    const message = data.choices && data.choices[0] && data.choices[0].message;
+    if (message && message.tool_calls && message.tool_calls.length) {
+      const call = message.tool_calls[0];
+      let args = {};
+      try {
+        args = JSON.parse(call.function.arguments || '{}');
+      } catch (_) {
+        args = {};
+      }
+      return { toolCall: { name: call.function.name, arguments: args } };
+    }
+    return { text: (message && message.content) || '' };
+  }
+
+  async callDeviceTool(toolCall) {
+    await this.mcpRequest('tools/call', { name: toolCall.name, arguments: toolCall.arguments });
+  }
+
+  async speak(text) {
+    const wav = await this.synthesize(text);
+    const pcm = wav.subarray(44); // strip the 44-byte WAV header the sidecar returns
+    const encoder = opus.createEncoder(TTS_SAMPLE_RATE, TTS_CHANNELS, TTS_FRAME_MS);
+    const frames = encoder.encodePcm(pcm);
+    encoder.dispose();
+
+    this.send({ type: 'tts', state: 'start' });
+    this.send({ type: 'tts', state: 'sentence_start', text });
+    for (const frame of frames) this.ws.send(frame, { binary: true });
+    this.send({ type: 'tts', state: 'stop' });
+  }
+
+  synthesize(text) {
+    return new Promise((resolve, reject) => {
+      const body = JSON.stringify({ text });
+      const req = http.request(
+        {
+          hostname: '127.0.0.1',
+          port: TTS_SIDECAR_PORT,
+          path: '/tts',
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) },
+          timeout: 30000,
+        },
+        res => {
+          if (res.statusCode !== 200) {
+            reject(new Error(`TTS sidecar HTTP ${res.statusCode}`));
+            return;
+          }
+          const chunks = [];
+          res.on('data', c => chunks.push(c));
+          res.on('end', () => resolve(Buffer.concat(chunks)));
+        },
+      );
+      req.on('error', reject);
+      req.on('timeout', () => {
+        req.destroy();
+        reject(new Error('TTS synthesis timed out'));
+      });
+      req.write(body);
+      req.end();
+    });
+  }
+}
+
+function readJsonStream(stream) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    stream.on('data', c => {
+      raw += c;
+    });
+    stream.on('end', () => {
+      try {
+        resolve(JSON.parse(raw));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    stream.on('error', reject);
+  });
+}
+
+module.exports = { attach };

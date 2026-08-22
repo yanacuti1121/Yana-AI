@@ -63,6 +63,43 @@ POST /api/index          GET  /api/auth/status   POST /api/auth/setup
 POST /api/auth/login     POST /api/auth/logout
 ```
 
+## Robot bridge
+
+`robot.js` lets an ESP32 device speaking the XiaoZhi/yana-robot WebSocket
+protocol (`docs/websocket.md`, `docs/mcp-protocol.md` in the `yana-robot`
+firmware repo) use this server as its voice AI backend, instead of
+`xiaozhi.me` or a self-hosted XiaoZhi server. No firmware changes needed —
+point the device's server URL at `wss://<this-host>/robot/ws`.
+
+- Device connects, sends `hello`; this server replies `hello` and (if the
+  device advertises `features.mcp`) opens an MCP session as the **client**
+  (the device is the MCP **server** — it owns the tools).
+- Voice pipeline: ASR + chat both use `YANA_ROBOT_LLM_PROVIDER` (default
+  `groq`) via the same `PROVIDERS`/`connectToProvider` table `/api/chat`
+  uses (now in `lib/providers.js`). Groq's ASR endpoint
+  (`/openai/v1/audio/transcriptions`) reuses the same key as chat — no
+  second provider needed.
+- TTS reuses the existing VieNeu-TTS sidecar (`tts-sidecar/`, same as
+  `/api/tts`), Opus-encoded before being streamed back to the device.
+- Tool calls the model decides to make are translated into real MCP
+  `tools/call` requests sent to the device (e.g. `self.wheelbot.move_forward`)
+  — see the `yana-robot` repo's board `README.md` for the full tool list.
+
+Env vars (Railway/production):
+
+| Var | Purpose |
+|---|---|
+| `YANA_ROBOT_DEVICE_TOKEN` | Bearer token the device must send (`Authorization` header) to connect. Leave unset only for local testing. |
+| `YANA_ROBOT_LLM_API_KEY` | API key for `YANA_ROBOT_LLM_PROVIDER`, used for both chat and ASR. |
+| `YANA_ROBOT_LLM_PROVIDER` | Key into `PROVIDERS` (default `groq`). |
+| `YANA_ROBOT_LLM_MODEL` | Overrides the provider's default chat model. |
+| `YANA_ROBOT_ASR_MODEL` | Groq transcription model (default `whisper-large-v3-turbo`). |
+| `YANA_ROBOT_WS_PATH` | WebSocket path (default `/robot/ws`). |
+
+Not yet verified on real hardware — see `_test_robot.js` for what's covered
+(WebSocket handshake + MCP `initialize`/`tools/list` handshake only; the
+ASR/chat/TTS pipeline needs a real device + real API calls to test).
+
 ## Providers
 
 Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter — vision support where the provider allows it, live model lists for Groq/OpenRouter.
