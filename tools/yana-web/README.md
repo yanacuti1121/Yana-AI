@@ -79,8 +79,12 @@ point the device's server URL at `wss://<this-host>/robot/ws`.
   uses (now in `lib/providers.js`). Groq's ASR endpoint
   (`/openai/v1/audio/transcriptions`) reuses the same key as chat — no
   second provider needed.
-- TTS reuses the existing VieNeu-TTS sidecar (`tts-sidecar/`, same as
+- TTS defaults to the existing VieNeu-TTS sidecar (`tts-sidecar/`, same as
   `/api/tts`), Opus-encoded before being streamed back to the device.
+  VieNeu only produces Vietnamese/English — set `YANA_ROBOT_TTS_PROVIDER=openai`
+  to speak other languages instead (e.g. Korean), via OpenAI's
+  `/v1/audio/speech` endpoint (requires its own API key; voices are
+  English-optimized but multilingual, following Whisper's language list).
 - Tool calls the model decides to make are translated into real MCP
   `tools/call` requests sent to the device (e.g. `self.wheelbot.move_forward`)
   — see the `yana-robot` repo's board `README.md` for the full tool list.
@@ -95,6 +99,10 @@ Env vars (Railway/production):
 | `YANA_ROBOT_LLM_MODEL` | Overrides the provider's default chat model. |
 | `YANA_ROBOT_ASR_MODEL` | Groq transcription model (default `whisper-large-v3-turbo`). |
 | `YANA_ROBOT_WS_PATH` | WebSocket path (default `/robot/ws`). |
+| `YANA_ROBOT_TTS_PROVIDER` | `vieneu` (default, local, free, Vietnamese/English) or `openai` (cloud, multilingual — use this for Korean). |
+| `YANA_ROBOT_TTS_API_KEY` | API key for OpenAI TTS. Falls back to `YANA_ROBOT_LLM_API_KEY` if unset. |
+| `YANA_ROBOT_TTS_OPENAI_MODEL` | OpenAI TTS model (default `gpt-4o-mini-tts`). |
+| `YANA_ROBOT_TTS_OPENAI_VOICE` | OpenAI TTS voice (default `alloy`). |
 
 Not yet verified on real hardware — see `_test_robot.js` for what's covered
 (WebSocket handshake + MCP `initialize`/`tools/list` handshake only; the

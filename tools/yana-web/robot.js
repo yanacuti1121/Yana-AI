@@ -36,6 +36,17 @@ const ROBOT_LLM_MODEL =
 const ASR_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const ASR_MODEL = process.env.YANA_ROBOT_ASR_MODEL || 'whisper-large-v3-turbo';
 
+// TTS provider: "vieneu" (default, local, free, Vietnamese/English only) or
+// "openai" (cloud, needs YANA_ROBOT_TTS_API_KEY, multilingual -- confirmed
+// against OpenAI's own docs at design time: Whisper-language-list coverage
+// including Korean, though voices are English-optimized so quality varies
+// by language). Pick "openai" for languages VieNeu-TTS can't produce.
+const TTS_PROVIDER = process.env.YANA_ROBOT_TTS_PROVIDER || 'vieneu';
+const TTS_API_KEY = process.env.YANA_ROBOT_TTS_API_KEY || ROBOT_LLM_API_KEY;
+const TTS_OPENAI_MODEL = process.env.YANA_ROBOT_TTS_OPENAI_MODEL || 'gpt-4o-mini-tts';
+const TTS_OPENAI_VOICE = process.env.YANA_ROBOT_TTS_OPENAI_VOICE || 'alloy';
+const TTS_OPENAI_URL = 'https://api.openai.com/v1/audio/speech';
+
 // Same sidecar server.js's handleTts() already proxies to
 // (tools/yana-web/tts-sidecar/, VieNeu-TTS). Duplicated here (not shared)
 // because handleTts() is wired directly to an HTTP req/res pair for
@@ -318,6 +329,35 @@ class RobotSession {
   }
 
   synthesize(text) {
+    if (TTS_PROVIDER === 'openai') {
+      return this.synthesizeOpenAi(text);
+    }
+    return this.synthesizeVieneu(text);
+  }
+
+  // Cloud fallback for languages VieNeu-TTS doesn't cover (e.g. Korean).
+  // Requests WAV explicitly so the rest of the pipeline (44-byte header
+  // strip + Opus encode) doesn't need to branch on format.
+  async synthesizeOpenAi(text) {
+    if (!TTS_API_KEY) throw new Error('YANA_ROBOT_TTS_API_KEY (or YANA_ROBOT_LLM_API_KEY) not configured');
+    const res = await fetch(TTS_OPENAI_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${TTS_API_KEY}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: TTS_OPENAI_MODEL,
+        voice: TTS_OPENAI_VOICE,
+        input: text,
+        response_format: 'wav',
+      }),
+    });
+    if (!res.ok) throw new Error(`OpenAI TTS HTTP ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+
+  synthesizeVieneu(text) {
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({ text });
       const req = http.request(
