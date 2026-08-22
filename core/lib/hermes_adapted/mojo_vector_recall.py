@@ -24,7 +24,10 @@ _BACKEND_ENV = "YANA_MEMORY_VECTOR_BACKEND"
 _MOJO_MODES = {"auto", "mojo"}
 _MOJO_MODULE = "yana_mojo_vector_recall"
 
-ScoreBackend = Callable[[Sequence[float], Sequence[Sequence[float]]], Sequence[float]]
+ScoreBackend = Callable[
+    [Sequence[float], Sequence[Sequence[float]], Sequence[float]],
+    Sequence[float],
+]
 
 _loaded_mode: Optional[str] = None
 _mojo_backend: Optional[ScoreBackend] = None
@@ -43,10 +46,47 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-def _python_cosine_scores(
-    query: Sequence[float], candidates: Sequence[Sequence[float]]
+def vector_norm(vector: Sequence[float]) -> float:
+    """Return the Euclidean norm used by both cached and live vectors."""
+    return math.sqrt(sum(value * value for value in vector))
+
+
+def _validated_candidate_norms(
+    candidates: Sequence[Sequence[float]],
+    candidate_norms: Optional[Sequence[float]],
 ) -> List[float]:
-    return [cosine_similarity(query, candidate) for candidate in candidates]
+    if candidate_norms is not None:
+        try:
+            norms = [float(value) for value in candidate_norms]
+        except (TypeError, ValueError):
+            norms = []
+        if len(norms) == len(candidates) and all(
+            math.isfinite(norm) and norm >= 0.0 for norm in norms
+        ):
+            return norms
+    return [vector_norm(candidate) for candidate in candidates]
+
+
+def _python_cosine_scores(
+    query: Sequence[float],
+    candidates: Sequence[Sequence[float]],
+    candidate_norms: Optional[Sequence[float]] = None,
+) -> List[float]:
+    query_norm = vector_norm(query)
+    norms = _validated_candidate_norms(candidates, candidate_norms)
+    scores: List[float] = []
+    for candidate, candidate_norm in zip(candidates, norms):
+        if (
+            not query
+            or len(candidate) != len(query)
+            or query_norm == 0.0
+            or candidate_norm == 0.0
+        ):
+            scores.append(0.0)
+            continue
+        dot = sum(left * right for left, right in zip(query, candidate))
+        scores.append(dot / (query_norm * candidate_norm))
+    return scores
 
 
 def _requested_mode() -> str:
@@ -96,17 +136,20 @@ def _load_mojo_backend() -> Optional[ScoreBackend]:
 
 
 def cosine_scores(
-    query: Sequence[float], candidates: Sequence[Sequence[float]]
+    query: Sequence[float],
+    candidates: Sequence[Sequence[float]],
+    candidate_norms: Optional[Sequence[float]] = None,
 ) -> List[float]:
     """Return one cosine score per candidate with a fail-safe fallback."""
     global _backend_detail, _mojo_backend
 
+    norms = _validated_candidate_norms(candidates, candidate_norms)
     backend = _load_mojo_backend()
     if backend is None:
-        return _python_cosine_scores(query, candidates)
+        return _python_cosine_scores(query, candidates, norms)
 
     try:
-        scores = [float(value) for value in backend(query, candidates)]
+        scores = [float(value) for value in backend(query, candidates, norms)]
         if len(scores) != len(candidates) or not all(
             math.isfinite(score) for score in scores
         ):
@@ -115,7 +158,7 @@ def cosine_scores(
     except Exception as exc:
         _mojo_backend = None
         _backend_detail = f"Mojo failed; using Python ({type(exc).__name__}: {exc})"
-        return _python_cosine_scores(query, candidates)
+        return _python_cosine_scores(query, candidates, norms)
 
 
 def backend_status() -> dict[str, str]:

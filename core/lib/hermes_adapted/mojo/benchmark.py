@@ -30,10 +30,13 @@ def main() -> int:
     parser.add_argument("--entries", type=int, default=2_000)
     parser.add_argument("--dimensions", type=int, default=768)
     parser.add_argument("--iterations", type=int, default=5)
+    parser.add_argument("--minimum-speedup", type=float, default=0.0)
     args = parser.parse_args()
 
     if args.entries <= 0 or args.dimensions <= 0 or args.iterations <= 0:
         parser.error("entries, dimensions, and iterations must be positive")
+    if args.minimum_speedup < 0.0:
+        parser.error("minimum speedup must be non-negative")
 
     random_source = random.Random(7)
     query = [random_source.uniform(-1.0, 1.0) for _ in range(args.dimensions)]
@@ -41,14 +44,17 @@ def main() -> int:
         [random_source.uniform(-1.0, 1.0) for _ in range(args.dimensions)]
         for _ in range(args.entries)
     ]
+    candidate_norms = [vector_recall.vector_norm(candidate) for candidate in candidates]
 
-    reference = lambda: vector_recall._python_cosine_scores(query, candidates)
+    reference = lambda: vector_recall._python_cosine_scores(
+        query, candidates, candidate_norms
+    )
     expected = reference()
     python_seconds = _elapsed_seconds(reference, args.iterations)
 
     os.environ[vector_recall._BACKEND_ENV] = args.backend
     vector_recall._loaded_mode = None
-    actual = vector_recall.cosine_scores(query, candidates)
+    actual = vector_recall.cosine_scores(query, candidates, candidate_norms)
     status = vector_recall.backend_status()
     if len(actual) != len(expected) or any(
         abs(left - right) > 1e-9 for left, right in zip(actual, expected)
@@ -60,14 +66,22 @@ def main() -> int:
         return 2
 
     accelerated_seconds = _elapsed_seconds(
-        lambda: vector_recall.cosine_scores(query, candidates), args.iterations
+        lambda: vector_recall.cosine_scores(query, candidates, candidate_norms),
+        args.iterations,
     )
     print(f"backend={status['active']} detail={status['detail']}")
+    speedup = python_seconds / accelerated_seconds
     print(
         f"shape={args.entries}x{args.dimensions} iterations={args.iterations} "
         f"python={python_seconds:.6f}s selected={accelerated_seconds:.6f}s "
-        f"speedup={python_seconds / accelerated_seconds:.2f}x"
+        f"speedup={speedup:.2f}x"
     )
+    if speedup < args.minimum_speedup:
+        print(
+            f"ERROR: speedup {speedup:.2f}x is below required "
+            f"{args.minimum_speedup:.2f}x"
+        )
+        return 3
     return 0
 
 

@@ -52,5 +52,16 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
+          # --minimum-speedup 0 (2026-08-22): real Apple M4 measurement shows
+          # this stage of the pilot is 0.82x-0.85x, slower than the Python
+          # reference, not faster. Root-caused to per-element Python->Mojo
+          # marshalling dominating the SIMD compute; fixing it needs a
+          # zero-copy buffer transfer, attempted and not yet working
+          # (PythonObject.unsafe_get_as_pointer behaved inconsistently across
+          # numpy/array.array in real testing -- not a documented, verified
+          # API path yet). This stage proves correctness and safe fallback
+          # only; do not raise this back to 2.0 without a real speedup number
+          # to back it. See MOJO-VECTOR-RECALL-PILOT-2026-08.md section 2.
           python -m core.lib.hermes_adapted.mojo.benchmark \
-            --backend mojo --entries 2000 --dimensions 768 --iterations 5
+            --backend mojo --entries 2000 --dimensions 768 --iterations 5 \
+            --minimum-speedup 0
