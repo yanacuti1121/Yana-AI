@@ -97,6 +97,16 @@ Step 6 for the full mechanism, including the deliberate gap
 (`docs/desktop.html` is not covered — different release cadence, see
 that section).
 
+**Scheduled re-verification, and publish parity (added 2026-08-23):**
+`herald.yml` no longer only fires on a tag push -- it also runs daily, so
+drift introduced between tags (not just at tag time) still gets caught
+and auto-fixed. Separately, a new independent job checks that PyPI's
+`yana-ai` and crates.io's `yana-rt` actually match their latest
+`py-v*`/`rt-v*` tags (`core/scripts/check_publish_parity.py`) -- each
+axis checked against its own tag prefix only, never cross-referenced
+against the other axes, consistent with this document's core rule above.
+See `docs/RELEASE-CHECKLIST.md` Step 6.
+
 ## Why not one version number for everything
 
 Considered and rejected: a single version bumped on every release,
