@@ -100,6 +100,50 @@ JSON_FILES = (
     ".claude-plugin/marketplace.json",
     "package.json",
 )
+ARCHITECTURE_FILE = "docs/reference/architecture.md"
+
+# Mirror pairs that must be byte-identical -- .claude/docs/* is the runtime
+# copy Claude Code actually reads; docs/* is canonical. Divergence here is
+# invisible to every count/version check above: both files can independently
+# report "correct" counts while looking nothing alike. This is exactly how
+# .claude/docs/desktop.html was found frozen on an entire prior visual
+# redesign, undetected by any check, until a manual fix in PR #241.
+MIRROR_PAIRS: tuple[tuple[str, str], ...] = (
+    ("docs/index.html", ".claude/docs/index.html"),
+    ("docs/desktop.html", ".claude/docs/desktop.html"),
+)
+
+# Anchors for count claims _replace_claims()'s generic "<number> <label>"
+# regex can't reach -- either other words sit between the number and the
+# label word (architecture.md's "**101** specialist agents"), or the label
+# isn't one of PLUGIN_COUNT_FIELDS ("core files pinned", "subcommands").
+# Folded in from the former core/scripts/generate-stats.py (retired
+# 2026-08-23 -- it and this file could independently disagree on a count
+# since it used a different aggregation, max(core, .claude) / basename
+# union, instead of this file's core/-only real_counts()). See
+# docs/RELEASE-CHECKLIST.md.
+_COUNT_ANCHORS: dict[str, list[tuple[str, re.Pattern[str], str]]] = {
+    ARCHITECTURE_FILE: [
+        ("agents", re.compile(r"(\*\*)\d[\d,]*(\*\*\s*specialist agents)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"(\*\*)\d[\d,]*(\*\*\s*workflow skill definitions)"), r"\g<1>{value}\g<2>"),
+        ("hooks", re.compile(r"(\*\*)\d[\d,]*(\*\*\s*pre/post-execution hooks)"), r"\g<1>{value}\g<2>"),
+        ("subcommands", re.compile(r"(Rust subcommands\s*\|\s*\*\*)\d[\d,]*(\*\*)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(🤖 )\d[\d,]*( specialist agents)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(# )\d[\d,]*( specialist agent definitions)"), r"\g<1>{value}\g<2>"),
+    ],
+    "README.md": [
+        (
+            "core_lock_files",
+            re.compile(r"(core-lock\.json\s+# SHA-256 manifest — )\d[\d,]*( core files pinned)"),
+            r"\g<1>{value}\g<2>",
+        ),
+        (
+            "subcommands",
+            re.compile(r"(\b)\d[\d,]*( subcommands\. Zero Python dependency)"),
+            r"\g<1>{value}\g<2>",
+        ),
+    ],
+}
 
 
 class MetadataError(RuntimeError):
@@ -151,6 +195,60 @@ def _apply_version_anchors(text: str, relative: str, version: str) -> str:
         updated = pattern.sub(template.format(version=version), updated)
     if relative in README_FILES:
         updated = _PRODUCT_TABLE_ROW.sub(rf"\g<1>{version}\g<2>", updated)
+    return updated
+
+
+def core_lock_files_count(repo: Path = REPO) -> int:
+    """Number of files pinned in core-lock.json (folded from generate-stats.py)."""
+    path = repo / "core/config/core-lock.json"
+    if not path.is_file():
+        return 0
+    data, _ = _read_json(path)
+    files = data.get("files", {})
+    return len(files) if isinstance(files, dict) else 0
+
+
+def subcommands_count(repo: Path = REPO) -> int:
+    """Top-level yana-rt subcommands, parsed from src/main.rs's enum Commands
+    (folded from generate-stats.py, unchanged logic)."""
+    path = repo / "src/main.rs"
+    if not path.is_file():
+        return 0
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r"^enum Commands \{(.*?)^\}", text, re.DOTALL | re.MULTILINE)
+    if not match:
+        return 0
+    body = match.group(1)
+    return len(re.findall(r"^    [A-Z][A-Za-z0-9_]*\s*(?:[({]|,)", body, re.MULTILINE))
+
+
+def extended_counts(repo: Path = REPO) -> dict[str, int]:
+    """real_counts() plus the two non-component counters folded in from
+    generate-stats.py. Kept separate from real_counts() itself so the
+    MANIFEST/plugin JSON updates below (which iterate COMPONENTS /
+    PLUGIN_COUNT_FIELDS by name) are unaffected by the extra keys."""
+    counts = dict(real_counts(repo))
+    counts["core_lock_files"] = core_lock_files_count(repo)
+    counts["subcommands"] = subcommands_count(repo)
+    return counts
+
+
+def _apply_count_anchors(text: str, relative: str, counts: dict[str, int]) -> str:
+    updated = text
+    for label, pattern, template in _COUNT_ANCHORS.get(relative, ()):
+        if label not in counts:
+            raise MetadataError(f"{relative}: count anchor references unknown counter '{label}'")
+        if not pattern.search(updated):
+            # A silent zero-match no-op is exactly how the pattern this
+            # replaced (the former generate-stats.py) went dark once before:
+            # it explicitly reported "pattern not found ... (format changed?)"
+            # for this same reason. Fail loud instead of reporting CLEAN
+            # while actually checking nothing.
+            raise MetadataError(
+                f"{relative}: count anchor for '{label}' matched nothing -- "
+                "surrounding text changed? (see _COUNT_ANCHORS)"
+            )
+        updated = pattern.sub(template.format(value=f"{counts[label]:,}"), updated)
     return updated
 
 
@@ -292,13 +390,17 @@ def _expected_text(repo: Path, relative: str, counts: dict[str, int], version: s
         raw = path.read_text(encoding="utf-8")
     except OSError as error:
         raise MetadataError(f"cannot read {path}: {error}") from error
+    if relative == ARCHITECTURE_FILE:
+        return _apply_count_anchors(raw, relative, counts), raw
     if relative in README_FILES:
         lines = raw.splitlines(keepends=True)
         lines[:30] = [
             _replace_claims(line, counts, PLUGIN_COUNT_FIELDS + ("scripts",)) for line in lines[:30]
         ]
         updated = "".join(lines)
-        return _apply_version_anchors(updated, relative, version), raw
+        updated = _apply_version_anchors(updated, relative, version)
+        updated = _apply_count_anchors(updated, relative, counts)
+        return updated, raw
     if relative == "AGENTS.md":
         updated = re.sub(
             r"(?m)^\d[\d,]* commands in `core/commands/`\.",
@@ -328,7 +430,19 @@ def _expected_text(repo: Path, relative: str, counts: dict[str, int], version: s
 def managed_files(repo: Path = REPO) -> list[str]:
     files = [*JSON_FILES, *README_FILES, "AGENTS.md"]
     files.extend(relative for relative in MARKETING_FILES if (repo / relative).is_file())
+    if (repo / ARCHITECTURE_FILE).is_file():
+        files.append(ARCHITECTURE_FILE)
     return files
+
+
+def mirror_drift(repo: Path = REPO) -> list[tuple[str, str]]:
+    """Return (source, mirror) pairs whose contents differ byte-for-byte."""
+    diverged = []
+    for source, mirror in MIRROR_PAIRS:
+        source_path, mirror_path = repo / source, repo / mirror
+        if source_path.is_file() and mirror_path.is_file() and source_path.read_bytes() != mirror_path.read_bytes():
+            diverged.append((source, mirror))
+    return diverged
 
 
 def _manifest_ghosts(repo: Path) -> list[str]:
@@ -350,7 +464,7 @@ def _manifest_ghosts(repo: Path) -> list[str]:
 
 
 def drift(repo: Path = REPO) -> list[str]:
-    counts = real_counts(repo)
+    counts = extended_counts(repo)
     version = canonical_version(repo)
     problems: list[str] = []
     for relative in managed_files(repo):
@@ -365,6 +479,9 @@ def drift(repo: Path = REPO) -> list[str]:
                 what = "version and/or count" if relative in VERSION_FILES else "count"
                 problems.append(f"{relative} contains stale current-state {what} claims")
     problems.extend(f"MANIFEST.json references missing path: {path}" for path in _manifest_ghosts(repo))
+    problems.extend(
+        f"{mirror} is not a byte-identical mirror of {source}" for source, mirror in mirror_drift(repo)
+    )
     return problems
 
 
@@ -376,7 +493,7 @@ def _write_json(path: Path, data: dict[str, Any], ensure_ascii: bool) -> None:
 
 
 def fix(repo: Path = REPO) -> list[str]:
-    counts = real_counts(repo)
+    counts = extended_counts(repo)
     version = canonical_version(repo)
     changed: list[str] = []
     for relative in managed_files(repo):
@@ -395,6 +512,9 @@ def fix(repo: Path = REPO) -> list[str]:
             if current != expected:
                 path.write_text(expected, encoding="utf-8")
                 changed.append(relative)
+    for source, mirror in mirror_drift(repo):
+        (repo / mirror).write_bytes((repo / source).read_bytes())
+        changed.append(mirror)
     return changed
 
 

@@ -109,6 +109,52 @@ class ProjectMetadataTests(unittest.TestCase):
             "src/main.rs — đối chiếu trực tiếp với source. v0.9.0 · 2026-01-01.</span>\n",
             encoding="utf-8",
         )
+        (self.root / "docs/desktop.html").write_text("desktop v0.9.0\n", encoding="utf-8")
+        (self.root / ".claude/docs").mkdir(parents=True, exist_ok=True)
+        (self.root / ".claude/docs/index.html").write_text(
+            "stale mirror, not the same content as docs/index.html\n", encoding="utf-8"
+        )
+        (self.root / ".claude/docs/desktop.html").write_text("desktop v0.9.0\n", encoding="utf-8")
+
+        (self.root / "docs/reference").mkdir(parents=True, exist_ok=True)
+        (self.root / "docs/reference/architecture.md").write_text(
+            "```\n"
+            'AGENTS["🤖 9 specialist agents\\n(planner...)"]\n'
+            "```\n"
+            "\n"
+            "| 🧩 Skills | **9** workflow skill definitions |\n"
+            "| 🤖 Agents | **9** specialist agents |\n"
+            "| 🪝 Hooks | **9** pre/post-execution hooks |\n"
+            "| 🦀 Rust subcommands | **9** (`scan`, `graph`...) |\n"
+            "\n"
+            "```\n"
+            "├── agents/         # 9 specialist agent definitions\n"
+            "│   ├── core-lock.json    # SHA-256 manifest — 9 core files pinned\n"
+            "```\n",
+            encoding="utf-8",
+        )
+        (self.root / "core/config").mkdir(parents=True, exist_ok=True)
+        self._write_json(
+            "core/config/core-lock.json",
+            {"files": {"core/rules/one.md": "sha256:abc", "core/hooks/one.sh": "sha256:def"}},
+        )
+        (self.root / "src").mkdir(parents=True, exist_ok=True)
+        (self.root / "src/main.rs").write_text(
+            "enum Commands {\n"
+            "    Doctor {\n"
+            "        target: String,\n"
+            "    },\n"
+            "    Scan(ScanArgs),\n"
+            "    Chat,\n"
+            "}\n",
+            encoding="utf-8",
+        )
+        for readme_relative in project_metadata.README_FILES:
+            with (self.root / readme_relative).open("a", encoding="utf-8") as handle:
+                handle.write(
+                    "core-lock.json    # SHA-256 manifest — 9 core files pinned\n"
+                    "9 subcommands. Zero Python dependency\n"
+                )
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -213,6 +259,79 @@ class ProjectMetadataTests(unittest.TestCase):
         # component count is a different number) that _replace_claims'
         # label-word regex would otherwise "fix" and corrupt.
         self.assertIn('"map of all 19 agents"', html)
+
+    def test_mirror_drift_detects_and_fixes_diverged_claude_docs(self) -> None:
+        # docs/index.html and .claude/docs/index.html start deliberately
+        # different in the fixture (see setUp) -- this is exactly how
+        # .claude/docs/desktop.html was found frozen on an entire prior
+        # visual redesign, undetected by every count/version check, since
+        # none of them ever compared the two files to each other.
+        problems = project_metadata.drift(self.root)
+        self.assertTrue(
+            any(".claude/docs/index.html" in problem and "mirror" in problem for problem in problems)
+        )
+
+        changed = project_metadata.fix(self.root)
+        self.assertIn(".claude/docs/index.html", changed)
+        source = (self.root / "docs/index.html").read_bytes()
+        mirror = (self.root / ".claude/docs/index.html").read_bytes()
+        self.assertEqual(source, mirror)
+        self.assertEqual(project_metadata.mirror_drift(self.root), [])
+
+    def test_mirror_drift_is_silent_when_already_identical(self) -> None:
+        # docs/desktop.html and .claude/docs/desktop.html start identical in
+        # the fixture (unlike the index.html pair, deliberately diverged
+        # above) -- confirms the byte-diff check doesn't false-fire on a
+        # genuinely synced pair, even while another pair is drifted.
+        diverged = project_metadata.mirror_drift(self.root)
+        self.assertNotIn(("docs/desktop.html", ".claude/docs/desktop.html"), diverged)
+        self.assertIn(("docs/index.html", ".claude/docs/index.html"), diverged)
+
+    def test_architecture_md_count_anchors_check_and_fix(self) -> None:
+        # The fixture's architecture.md claims 9 for everything; the real
+        # fixture filesystem has exactly 1 of each component (see setUp),
+        # plus core_lock_files=2 and subcommands=3 (Doctor/Scan/Chat in the
+        # fixture's src/main.rs). Folded in from the former
+        # generate-stats.py, which had no --fix at all -- this is the exact
+        # drift class that required a manual fix during today's session.
+        problems = project_metadata.drift(self.root)
+        self.assertTrue(
+            any("docs/reference/architecture.md" in problem for problem in problems)
+        )
+
+        changed = project_metadata.fix(self.root)
+        self.assertIn("docs/reference/architecture.md", changed)
+        architecture = (self.root / "docs/reference/architecture.md").read_text(encoding="utf-8")
+        self.assertIn("**1** workflow skill definitions", architecture)
+        self.assertIn("**1** specialist agents", architecture)
+        self.assertIn("**1** pre/post-execution hooks", architecture)
+        self.assertIn("Rust subcommands", architecture)
+        self.assertIn("🤖 1 specialist agents", architecture)
+        self.assertIn("# 1 specialist agent definitions", architecture)
+
+        self.assertEqual(project_metadata.drift(self.root), [])
+
+    def test_count_anchor_with_zero_matches_fails_loud_not_silent(self) -> None:
+        # The script this replaced (generate-stats.py) explicitly reported
+        # "pattern not found (format changed?)" when its anchor text no
+        # longer matched -- a silent no-op here would go dark exactly the
+        # same way and report CLEAN while actually checking nothing.
+        architecture_path = self.root / "docs/reference/architecture.md"
+        rewritten = architecture_path.read_text(encoding="utf-8").replace(
+            "specialist agents", "totally different wording"
+        )
+        architecture_path.write_text(rewritten, encoding="utf-8")
+        with self.assertRaises(project_metadata.MetadataError):
+            project_metadata.drift(self.root)
+
+    def test_core_lock_files_and_subcommands_counted_and_fixed_in_readme(self) -> None:
+        self.assertEqual(project_metadata.core_lock_files_count(self.root), 2)
+        self.assertEqual(project_metadata.subcommands_count(self.root), 3)
+
+        project_metadata.fix(self.root)
+        readme = (self.root / "README.md").read_text(encoding="utf-8")
+        self.assertIn("core-lock.json    # SHA-256 manifest — 2 core files pinned", readme)
+        self.assertIn("3 subcommands. Zero Python dependency", readme)
 
 
 if __name__ == "__main__":

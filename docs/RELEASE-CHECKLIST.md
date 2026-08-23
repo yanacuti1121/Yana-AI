@@ -155,6 +155,40 @@ actually succeeded (not simply "whenever a `v*` tag exists"). Auto-
 syncing it the same way risks advertising a download that doesn't exist
 yet. Needs its own investigation before automating.
 
+**2026-08-23 update — closing the "found by chance" gap directly.** Every
+drift incident above (this section's own opening example, plus PyPI's
+`yana-ai` 0.42.5 publish silently failing the same day) was found
+reactively, by a human asking a direct question, because nothing in this
+repo ever ran on its own schedule — confirmed by grep: zero
+`schedule:`-triggered workflows existed anywhere before this date.
+`herald.yml` now also runs on a daily `schedule:` cron (in addition to the
+existing tag-push trigger), and `open-fix-pr` fires on drift found by
+either trigger, not just a tag push — so drift introduced between tags
+(a doc hand-edited, a mirror never resynced) gets the same auto-fix-PR
+treatment. `su-gia` itself gained two checks it didn't have before:
+- **Byte-identical mirror check** between `docs/{index,desktop}.html` and
+  their `.claude/docs/` runtime copies — the two previously could (and
+  did) diverge invisibly, since every existing check greeps each file's
+  counts independently and never compared the files to each other. This
+  is exactly how `.claude/docs/desktop.html` was found frozen on an
+  entire prior visual redesign.
+- `core/scripts/generate-stats.py` (a second, independent counter that
+  used a different aggregation method — `max(core/*, .claude/*)` instead
+  of this file's `core/*`-only counting — and could legitimately disagree
+  with `check_counts.py` on the same number) is retired; its three unique
+  checks (`core-lock.json` file count, `yana-rt` subcommand count,
+  `docs/reference/architecture.md`'s specific count patterns) are folded
+  into `check_counts.py`/`su-gia`, which now also gives `architecture.md`
+  real `--fix` support for the first time.
+
+A new, separate job `publish-parity` in the same workflow checks that
+PyPI's `yana-ai` and crates.io's `yana-rt` actually match their latest
+`py-v*`/`rt-v*` git tags (`core/scripts/check_publish_parity.py`) — this
+would have caught the hatchling/PyPI incident the same day it happened,
+not hours later when a human happened to ask. It has no `--fix`: a broken
+publish needs a human to investigate and re-run, not an auto-generated
+commit.
+
 ## Anti-patterns (each of these has a real incident behind it)
 
 ```
@@ -181,5 +215,9 @@ yet. Needs its own investigation before automating.
 - `.github/workflows/release.yml` — yana-rt binary build (the known gap)
 - `core/scripts/drift-check.sh` — the CI-wired drift/count/overclaim gate
 - `core/scripts/check_counts.py` (`bin/yana su-gia`) — Sứ Giả's underlying
-  check/fix logic, version-anchor + component-count sync
-- `.github/workflows/herald.yml` — tag-triggered re-verification + auto-PR
+  check/fix logic, version-anchor + component-count sync + docs mirror
+  byte-diff
+- `core/scripts/check_publish_parity.py` — PyPI/crates.io vs. latest tag,
+  read-only, no `--fix`
+- `.github/workflows/herald.yml` — tag- and schedule-triggered
+  re-verification + auto-PR, plus the independent `publish-parity` job
