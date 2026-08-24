@@ -94,7 +94,7 @@ yana-rt mission create "add-auth"
 </tr>
 </table>
 
-> 第一次使用？从[快速安装](#快速安装)开始。正在构建平台？阅读[架构参考](docs/reference/architecture.md)。正在评估安全边界？请先阅读[已知局限](#已知局限)，再看功能列表。
+> 第一次使用？从[快速安装](#快速安装)开始。正在构建平台？阅读[架构参考](docs/reference/architecture.md)。正在评估安全边界？请先阅读[已知局限](#已知局限)，再看功能列表。好奇这个项目是怎么走到今天的？阅读[项目历史](docs/reference/history.zh.md)。
 
 ## Yana 统一了什么
 
