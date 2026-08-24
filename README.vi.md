@@ -94,7 +94,7 @@ Dùng evidence, capability, memory, workspace và OS control từ cùng một CL
 </tr>
 </table>
 
-> Mới bắt đầu? Đi từ [Cài đặt nhanh](#cài-đặt-nhanh). Đang xây platform? Đọc [kiến trúc](docs/reference/architecture.md). Đang đánh giá an toàn? Hãy đọc [Giới hạn thực tế](#giới-hạn-thực-tế) trước danh sách tính năng.
+> Mới bắt đầu? Đi từ [Cài đặt nhanh](#cài-đặt-nhanh). Đang xây platform? Đọc [kiến trúc](docs/reference/architecture.md). Đang đánh giá an toàn? Hãy đọc [Giới hạn thực tế](#giới-hạn-thực-tế) trước danh sách tính năng. Tò mò dự án đi từ đâu tới đây? Đọc [lịch sử dự án](docs/reference/history.vi.md).
 
 ## Yana hợp nhất những gì
 
