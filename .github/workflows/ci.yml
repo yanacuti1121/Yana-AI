@@ -59,9 +59,6 @@ jobs:
       - name: Drift check
         run: bash core/scripts/drift-check.sh
 
-      - name: Check README/architecture.md counts against the filesystem
-        run: python3 core/scripts/generate-stats.py --check
-
       - name: Check for dangling paths (package.json cd targets, files[], within-axis versions)
         run: python3 core/scripts/check_dangling_paths.py
 

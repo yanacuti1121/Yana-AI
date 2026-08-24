@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-20T15:57:54+00:00",
+  "generated": "2026-08-23T03:37:30+00:00",
   "count": 282,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -166,10 +166,11 @@
     "core/scripts/check-release-signer.py": "5e10a2ac4d7d56c1758eaf9b848ce36869617e9ac9ac6f21a8e3323654c8e146",
     "core/scripts/check-self-hosted-runner.py": "d89746247568a1b219fa0e3ce8f6918e1ac09fc95385a6b9379c752f6eff09af",
     "core/scripts/check_context_pack.py": "b5fbcdf76f8cbb6e60188f8218b8e361e7a2e561cd8c2e24ae8bae45b4281514",
-    "core/scripts/check_counts.py": "47a4326ec1f2b51e58842f326b8301da6b67d1be390b748b655cece782a83b3d",
+    "core/scripts/check_counts.py": "52eea4ced4da994afa6f6b9b26c65912a2d31c8e4b594fd87c484f5c4a41e3da",
     "core/scripts/check_dangling_paths.py": "54cb8dafdb3759b0a4ab39a6743566c0e5235eb7466b48b0da1eb0f31dc69496",
     "core/scripts/check_engine_parity.py": "c03aa6f485e241e78353c7776db1e5931f71297ee8bc92f628897d8e8449c5fb",
     "core/scripts/check_file.py": "28ca7df9048a8d0497fae7d7152874bfa0e954321032e3434472161d3e5234f0",
+    "core/scripts/check_publish_parity.py": "b8044577516d2c1bb067b9b908e895baafe9980396cd347181bd4584a498cbf4",
     "core/scripts/ci_check.py": "5d54936c9fecf8998c757f758da2ee62ea00829baf0a9c81e0b2888134d66dbf",
     "core/scripts/clear-session.sh": "030d780ec625a9c52bd7cf7f285d27c34b28dff9e9183df88658eaab6dd11922",
     "core/scripts/code-freeze.sh": "b72ccd8bc9ecefd78eda65221bfe958efbe4434a1303ede3ca06d252fb05792e",
@@ -190,7 +191,6 @@
     "core/scripts/gen_skills_page.py": "b80f9461200b6875af08928970695b3fb5597e4b841990b97bd66115267134d4",
     "core/scripts/generate-agents-data.py": "6614fe5aeaa3bf6e51ff9ae1be610db66d5a1af0e7b23a59099b4553a3cff2b3",
     "core/scripts/generate-coverage-report.sh": "5ee3927b99709adb6b239cd85a719673e2f649c7d3d043fbdc25e07a96ca7e88",
-    "core/scripts/generate-stats.py": "c550fb46670d7374636f693e7d6ba975fd87d0d01c7f344060b8af3f68fb3adc",
     "core/scripts/generate-wiki.sh": "ea8067fc3faa71398d7c7966f1a8b4cc2cf9337ebfdd30327a94dd17ad42a078",
     "core/scripts/giamthi-watch.sh": "62b4e8813e783f4ab92dc44213c7a44635cd2e0f2995b3c30d6237d1a4c7dd28",
     "core/scripts/giamthi_service.py": "1388a0f8adb37925d7fb0a8ea8e4f08a1e7d82e6527d4cd1ab20b330b4e890b4",

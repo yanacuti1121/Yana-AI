@@ -99,7 +99,7 @@ Use evidence, capability, memory, workspace, and OS controls from the same CLI.
 </tr>
 </table>
 
-> New here? Start with [Quick install](#quick-install). Building a platform? Read the [architecture reference](docs/reference/architecture.md). Evaluating the safety boundary? Read [Known limitations](#known-limitations) before the feature list.
+> New here? Start with [Quick install](#quick-install). Building a platform? Read the [architecture reference](docs/reference/architecture.md). Evaluating the safety boundary? Read [Known limitations](#known-limitations) before the feature list. Curious how this project got here? Read the [project history](docs/reference/history.md).
 
 ## What Yana unifies
 

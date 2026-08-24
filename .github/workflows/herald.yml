@@ -35,11 +35,22 @@ name: Herald (Sứ Giả)
 # .github/workflows/publish.yml's "Set version from tag" step and its
 # header comment for the original 2026-07-05 incident this mirrors the
 # fix for.
+#
+# `schedule:` added 2026-08-23: every prior instance of drift this repo has
+# found (the .claude/docs mirrors frozen on an old visual design, PyPI's
+# 0.42.5 publish silently failing) was found reactively, by a human asking
+# a direct question, not by any check running on its own timer -- confirmed
+# by grep that this was the only repo with zero `schedule:`-triggered
+# workflows anywhere. A tag push is still the fast path; the daily run is
+# the backstop for drift that happens between tags (a doc edited directly,
+# a mirror never resynced) or a publish nobody double-checked that day.
 
 on:
   push:
     tags:
       - 'v*'
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC daily -- backstop, not the fast path
   workflow_dispatch:   # read-only dry run: reports drift, never branches/commits/opens a PR
 
 permissions:
@@ -77,7 +88,7 @@ jobs:
           REF: ${{ github.ref_name }}
         run: |
           echo "::error::Sứ Giả found release-surface drift for ${REF}."
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "schedule" ]]; then
             echo "::error::A fix PR is being opened in the open-fix-pr job — see this run's other job for the link once it lands."
           else
             echo "::notice::workflow_dispatch dry run — no branch, commit, or PR was created."
@@ -87,7 +98,12 @@ jobs:
   open-fix-pr:
     name: Open fix PR for the drifted surfaces
     needs: check
-    if: always() && needs.check.outputs.exit_code != '0' && github.event_name == 'push'
+    # 2026-08-23: widened from push-only to also cover schedule -- drift
+    # found on the daily backstop run deserves the same auto-fix-PR
+    # treatment a tag-push run gets, not just a red check nobody re-runs
+    # su-gia --fix locally to resolve. workflow_dispatch still excluded
+    # (dry run only, matches the `check` job's own contract above).
+    if: always() && needs.check.outputs.exit_code != '0' && (github.event_name == 'push' || github.event_name == 'schedule')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -105,7 +121,18 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Skip if a herald fix PR is already open
+        id: existing
+        run: |
+          set -euo pipefail
+          EXISTING="$(gh pr list --state open --search 'in:title "[herald]"' --json number --jq 'length')"
+          echo "count=$EXISTING" >> "$GITHUB_OUTPUT"
+          if [[ "$EXISTING" != "0" ]]; then
+            echo "::notice::An open [herald] fix PR already exists -- skipping, to avoid daily-cron PR spam. Merge or close the existing one first."
+          fi
+
       - name: Open fix PR
+        if: steps.existing.outputs.count == '0'
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
@@ -154,3 +181,23 @@ jobs:
             --body-file /tmp/herald-pr-body.md \
             --base main \
             --head "$BRANCH"
+
+  publish-parity:
+    name: Verify published packages match their latest tags
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+        with:
+          fetch-depth: 0   # need full tag history, not just the pushed ref
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Check PyPI/crates.io against the latest py-v*/rt-v* tags
+        run: python3 core/scripts/check_publish_parity.py
