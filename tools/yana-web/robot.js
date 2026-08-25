@@ -242,6 +242,9 @@ class RobotSession {
     const reply = await this.chat(text);
     if (reply.toolCall) {
       await this.callDeviceTool(reply.toolCall);
+      // ackText comes from the model's own message.content alongside the tool
+      // call (see chat()'s system prompt), already in the user's language.
+      // The Vietnamese fallback only fires if the model omitted content.
       await this.speak(reply.ackText || 'Đã thực hiện.');
     } else if (reply.text) {
       await this.speak(reply.text);
@@ -282,8 +285,12 @@ class RobotSession {
         {
           role: 'system',
           content:
-            'Bạn là trợ lý điều khiển robot. Trả lời ngắn gọn bằng tiếng Việt. ' +
-            'Nếu người dùng muốn robot di chuyển hoặc thực hiện hành động, hãy gọi đúng 1 tool phù hợp.',
+            'Bạn là trợ lý điều khiển robot. Luôn trả lời ngắn gọn bằng ĐÚNG ngôn ngữ mà ' +
+            'người dùng vừa nói (ví dụ: họ nói tiếng Hàn thì trả lời tiếng Hàn, tiếng Việt ' +
+            'thì trả lời tiếng Việt, tiếng Anh thì trả lời tiếng Anh) -- không mặc định về ' +
+            'một ngôn ngữ cố định. Nếu người dùng muốn robot di chuyển hoặc thực hiện hành ' +
+            'động, hãy gọi đúng 1 tool phù hợp, và LUÔN kèm theo một câu ngắn xác nhận trong ' +
+            'nội dung trả lời (content), bằng chính ngôn ngữ người dùng vừa dùng.',
         },
         { role: 'user', content: userText },
       ],
@@ -306,7 +313,7 @@ class RobotSession {
       } catch (_) {
         args = {};
       }
-      return { toolCall: { name: call.function.name, arguments: args } };
+      return { toolCall: { name: call.function.name, arguments: args }, ackText: message.content || '' };
     }
     return { text: (message && message.content) || '' };
   }
