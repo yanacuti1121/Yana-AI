@@ -107,6 +107,21 @@ axis checked against its own tag prefix only, never cross-referenced
 against the other axes, consistent with this document's core rule above.
 See `docs/RELEASE-CHECKLIST.md` Step 6.
 
+**Python-axis one-time catch-up (2026-08-26):** the Python package had
+drifted onto a pre-1.0-looking number (`0.42.5`) while the product and
+crate axes were both in the `1.4.x` generation, which read as "the
+Python package is far less mature" rather than "an independently
+numbered axis that happens to use different digits" — confusing enough
+in practice that it was worth a one-time correction. `pyproject.toml`
+and `src/yana_ai/__init__.py` were bumped straight to `1.4.2` with no
+Python-specific code change behind that jump; it is a display/branding
+correction, not a claim that the Python package changed. **This is not
+a policy change.** The rejection below still holds: axes are not
+lockstepped going forward, and the crate axis (`1.4.1`, one behind
+product's `1.4.2` at time of writing) was deliberately left alone here
+because it was already in the same generation and not the source of
+confusion.
+
 ## Why not one version number for everything
 
 Considered and rejected: a single version bumped on every release,
