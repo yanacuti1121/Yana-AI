@@ -1,17 +1,15 @@
 # Yana AI — Architecture
 
-**Version:** 1.4.20
-**Type:** Hook layer — not a service, not a framework.
+**Version:** Legacy hook-layer reference
+**Type:** Historical subsystem document — not the whole current architecture.
 
-> **Known drift (flagged 2026-08-08, not fixed in this pass):** this
-> page predates `yana-rt` (the Rust runtime, chat TUI, MCP server,
-> event bus, evidence signing) and describes an earlier,
-> hooks-only version of the project. See
-> `docs/technical/ARCHITECTURE.md` for the more current (though also
-> partially stale) component layout, and
-> `docs/YANA-CONTROL-PLANES.md` for the governance/runtime design this
-> gap feeds into (Evolution Governor's job includes catching drift like
-> this automatically going forward).
+> **Do not use this page as the whole-system source of truth.** It predates the
+> unified Rust runtime and is retained to explain the hook subsystem. Current
+> execution and authority architecture lives in
+> [`ADR-014`](adr/ADR-014-unified-runtime-authority-hierarchy.md); the concise
+> cross-system view is in [`docs/reference/architecture.md`](reference/architecture.md).
+> Historical statements below such as “no server” describe the old hook pack,
+> not current Yana AI.
 
 ---
 

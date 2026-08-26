@@ -22,7 +22,12 @@ pub(in crate::chat::tui) struct ProjectCounts {
 pub(in crate::chat::tui) fn read_project_counts(repo_root: &Path) -> Option<ProjectCounts> {
     let raw = fs::read_to_string(repo_root.join("MANIFEST.json")).ok()?;
     let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let get_u64 = |key: &str| value.get(key).and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let get_u64 = |key: &str| {
+        value
+            .get(key)
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0)
+    };
     Some(ProjectCounts {
         agents: get_u64("agents_count"),
         skills: get_u64("skills_count"),
@@ -30,7 +35,11 @@ pub(in crate::chat::tui) fn read_project_counts(repo_root: &Path) -> Option<Proj
         hooks: get_u64("hooks_count"),
         scripts: get_u64("scripts_count"),
         commands: get_u64("commands_count"),
-        version: value.get("version").and_then(serde_json::Value::as_str).unwrap_or("?").to_string(),
+        version: value
+            .get("version")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("?")
+            .to_string(),
     })
 }
 
@@ -45,16 +54,24 @@ pub(in crate::chat::tui) struct MemoryFact {
 /// `memory/L1_atomic/SCHEMA.md`) and returns facts whose `id` or
 /// `statement` contains `filter` (case-insensitive), most-recently-named
 /// file first, capped at `limit`. Empty `filter` matches everything.
-pub(in crate::chat::tui) fn read_memory_facts(repo_root: &Path, filter: &str, limit: usize) -> Vec<MemoryFact> {
+pub(in crate::chat::tui) fn read_memory_facts(
+    repo_root: &Path,
+    filter: &str,
+    limit: usize,
+) -> Vec<MemoryFact> {
     let l1_dir = repo_root.join("memory/L1_atomic");
-    let Ok(entries) = fs::read_dir(&l1_dir) else { return Vec::new() };
+    let Ok(entries) = fs::read_dir(&l1_dir) else {
+        return Vec::new();
+    };
 
     let mut paths: Vec<_> = entries
         .filter_map(Result::ok)
         .map(|e| e.path())
         .filter(|p| {
             p.extension().and_then(|e| e.to_str()) == Some("md")
-                && p.file_stem().and_then(|s| s.to_str()).is_some_and(|s| s.starts_with("fact-"))
+                && p.file_stem()
+                    .and_then(|s| s.to_str())
+                    .is_some_and(|s| s.starts_with("fact-"))
         })
         .collect();
     paths.sort();
@@ -63,14 +80,23 @@ pub(in crate::chat::tui) fn read_memory_facts(repo_root: &Path, filter: &str, li
     let filter_lower = filter.to_lowercase();
     let mut out = Vec::new();
     for path in paths {
-        let Ok(content) = fs::read_to_string(&path) else { continue };
-        let id = parse_frontmatter_field(&content, "id")
-            .unwrap_or_else(|| path.file_stem().and_then(|s| s.to_str()).unwrap_or("?").to_string());
+        let Ok(content) = fs::read_to_string(&path) else {
+            continue;
+        };
+        let id = parse_frontmatter_field(&content, "id").unwrap_or_else(|| {
+            path.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("?")
+                .to_string()
+        });
         let statement = parse_frontmatter_field(&content, "statement").unwrap_or_default();
         if statement.is_empty() {
             continue;
         }
-        if !filter_lower.is_empty() && !id.to_lowercase().contains(&filter_lower) && !statement.to_lowercase().contains(&filter_lower) {
+        if !filter_lower.is_empty()
+            && !id.to_lowercase().contains(&filter_lower)
+            && !statement.to_lowercase().contains(&filter_lower)
+        {
             continue;
         }
         out.push(MemoryFact { id, statement });

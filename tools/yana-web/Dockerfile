@@ -18,6 +18,14 @@
 #     -v $(pwd)/core/agents:/app/core/agents:ro \
 #     yana-web
 
+FROM rust:1-alpine AS yana-runtime-builder
+
+RUN apk add --no-cache build-base cmake perl
+WORKDIR /src
+COPY Cargo.toml Cargo.lock rust-toolchain.toml README.md LICENSE ./
+COPY src/ ./src/
+RUN cargo build --locked --release --bin yana-rt
+
 FROM node:20-alpine
 
 # ── System hardening ───────────────────────────────────────────────────────
@@ -47,12 +55,15 @@ COPY MANIFEST.json ./MANIFEST.json
 
 # 6. Server source — thay đổi thường xuyên nhất, để cuối cùng
 COPY tools/yana-web/ ./tools/yana-web/
+COPY --from=yana-runtime-builder /src/target/release/yana-rt /usr/local/bin/yana-rt
 
 # ── Runtime config ─────────────────────────────────────────────────────────
 ENV PORT=8081
 # Server defaults to loopback; inside a container we must bind all interfaces
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
+ENV YANA_RT_BIN=/usr/local/bin/yana-rt
+ENV YANA_RUNTIME_MODE=required
 # Railway/fly.io terminate TLS at their proxy — read the client IP from
 # X-Forwarded-For and detect HTTPS via X-Forwarded-Proto (see server.js)
 ENV YANA_TRUST_PROXY=1

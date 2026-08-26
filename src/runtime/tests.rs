@@ -194,6 +194,57 @@ fn read_only_capability_executes_under_yana_control_plane() {
     ));
 }
 
+/// Delegates every decision to the real chain, but cancels the shared
+/// token first — simulates a user cancelling in the instant between a
+/// tool call being proposed and the authority decision coming back, the
+/// exact race window `run()`'s `AuthorityDecision::Allow` arm now closes.
+struct CancelOnAuthorize {
+    cancel: CancellationToken,
+}
+
+impl RuntimeAuthority for CancelOnAuthorize {
+    fn preflight_turn(&self, context: &TurnContext) -> AuthorityDecision {
+        YanaAuthorityChain.preflight_turn(context)
+    }
+    fn authorize_tool(&self, context: &TurnContext, call: &ToolCall) -> AuthorityDecision {
+        self.cancel.cancel();
+        YanaAuthorityChain.authorize_tool(context, call)
+    }
+    fn authorize_approved_tool(&self, context: &TurnContext, call: &ToolCall) -> AuthorityDecision {
+        YanaAuthorityChain.authorize_approved_tool(context, call)
+    }
+}
+
+#[test]
+fn cancellation_between_authority_allow_and_execution_stops_the_tool() {
+    let root = tempfile::tempdir().unwrap();
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let cancel = CancellationToken::default();
+    let turn = TurnEngine::new(
+        Arc::new(MockProvider::new(
+            [MockResponse::Tool(call("read_file"))],
+            Arc::new(AtomicUsize::new(0)),
+        )),
+        Arc::new(CancelOnAuthorize {
+            cancel: cancel.clone(),
+        }),
+        Arc::new(RecordingExecutor {
+            calls: Arc::clone(&executor_calls),
+        }),
+    );
+
+    let outcome = turn
+        .run(request(root.path()), &cancel, &mut |_| {})
+        .unwrap();
+
+    assert_eq!(
+        executor_calls.load(Ordering::SeqCst),
+        0,
+        "the capability must not run once cancellation arrived before execution"
+    );
+    assert!(matches!(outcome, TurnOutcome::Cancelled { .. }));
+}
+
 #[test]
 fn mutating_capability_stops_for_human_approval_without_execution() {
     let root = tempfile::tempdir().unwrap();
@@ -222,6 +273,21 @@ fn mutating_capability_stops_for_human_approval_without_execution() {
             ..
         } if call.name == "run_command"
             && continuation_messages.last().unwrap().tool_call.is_some()
+    ));
+}
+
+#[test]
+fn subagent_origin_cannot_turn_human_approval_into_mutation_authority() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path()).context.for_subagent("worker-1");
+    let command = call("run_command");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Deny {
+            authority: AuthorityLayer::YanaControlPlane,
+            reason,
+        } if reason.contains("non-human-initiated")
     ));
 }
 

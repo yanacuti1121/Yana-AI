@@ -28,6 +28,36 @@ impl CancellationToken {
 
 pub(crate) trait ToolExecutor: Send + Sync {
     fn execute(&self, context: &TurnContext, call: &ToolCall) -> ToolResultRecord;
+
+    fn execute_approved(&self, approved: ApprovedTool<'_>) -> ToolResultRecord {
+        ToolResultRecord {
+            call_id: approved.call().id.clone(),
+            output: format!(
+                "executor has no approved implementation for '{}'",
+                approved.call().name
+            ),
+            is_error: true,
+            denied: true,
+        }
+    }
+}
+
+/// Opaque proof that the canonical authority chain approved one mutating
+/// capability. Only this module can construct it, so adapters cannot call an
+/// approved executor path without first crossing `execute_approved_tool()`.
+pub(crate) struct ApprovedTool<'a> {
+    context: &'a TurnContext,
+    call: &'a ToolCall,
+}
+
+impl<'a> ApprovedTool<'a> {
+    pub(crate) fn context(&self) -> &'a TurnContext {
+        self.context
+    }
+
+    pub(crate) fn call(&self) -> &'a ToolCall {
+        self.call
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -66,6 +96,44 @@ impl fmt::Display for TurnError {
 }
 
 impl std::error::Error for TurnError {}
+
+pub(crate) fn execute_approved_tool(
+    authority: &dyn RuntimeAuthority,
+    executor: &dyn ToolExecutor,
+    context: &TurnContext,
+    call: &ToolCall,
+    cancellation: &CancellationToken,
+    emit: &mut dyn FnMut(RuntimeEvent),
+) -> Result<ToolResultRecord, TurnError> {
+    match authority.authorize_approved_tool(context, call) {
+        AuthorityDecision::Allow => {}
+        AuthorityDecision::Deny { authority, reason }
+        | AuthorityDecision::HumanApprovalRequired { authority, reason } => {
+            emit(RuntimeEvent::AuthorityDenied {
+                authority,
+                reason: reason.clone(),
+            });
+            return Err(TurnError::AuthorityDenied { authority, reason });
+        }
+    }
+    if cancellation.is_cancelled() {
+        return Ok(ToolResultRecord {
+            call_id: call.id.clone(),
+            output: CANCELLED_MESSAGE.to_string(),
+            is_error: true,
+            denied: true,
+        });
+    }
+    emit(RuntimeEvent::ToolApproved {
+        call_id: call.id.clone(),
+    });
+    emit(RuntimeEvent::ToolStarted {
+        call_id: call.id.clone(),
+    });
+    let result = executor.execute_approved(ApprovedTool { context, call });
+    emit(RuntimeEvent::ToolCompleted(result.clone()));
+    Ok(result)
+}
 
 pub(crate) struct TurnEngine {
     provider: Arc<dyn ChatProvider>,
@@ -175,6 +243,14 @@ impl TurnEngine {
 
                     match self.authority.authorize_tool(&request.context, &call) {
                         AuthorityDecision::Allow => {
+                            // Cancellation may have arrived while the provider was
+                            // streaming the tool-call proposal or while authority
+                            // was deciding — checked here, not just at the top of
+                            // the loop, so a cancel can't race a capability into
+                            // starting after the user already asked to stop.
+                            if cancellation.is_cancelled() {
+                                return Ok(cancelled(String::new(), emit));
+                            }
                             emit(RuntimeEvent::ToolApproved {
                                 call_id: call.id.clone(),
                             });

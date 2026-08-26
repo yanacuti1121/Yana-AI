@@ -14,7 +14,9 @@ mod request;
 pub(crate) use authority::{
     AuthorityDecision, AuthorityLayer, RuntimeAuthority, YanaAuthorityChain,
 };
-pub(crate) use controller::{CancellationToken, ToolExecutor, TurnEngine, TurnError};
+pub(crate) use controller::{
+    execute_approved_tool, ApprovedTool, CancellationToken, ToolExecutor, TurnEngine, TurnError,
+};
 pub(crate) use events::RuntimeEvent;
 pub(crate) use origin::{TurnContext, TurnOrigin};
 pub(crate) use outcome::TurnOutcome;

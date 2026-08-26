@@ -101,30 +101,42 @@ yana-rt mission create "add-auth"
 | 层级 | 为开发者提供的价值 | 主要 surface |
 | --- | --- | --- |
 | **运行时** | 原生 chat、state、routing、health 与项目操作 | `yana-rt`, `yana-ai-rt` |
-| **模型** | 本地优先，同时保留云端 provider | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **模型** | 本地优先，同时保留云端 provider | Rust catalog 共 19 个 provider：5 个本地 runtime + 14 个云端/API adapter |
 | **适配器** | 在受支持 harness 之间共享一个受治理的项目 contract | Claude Code, Codex, Cursor, Antigravity |
 | **编排** | Task、mission、memory、evidence 与 workspace | router, mission dispatcher, event bus |
 | **治理** | 确定性检查、audit chain、quarantine、HALT 与 human gate | capability, hook, Yana OS, Giám Thị |
 
 ```text
- Local models        Cloud models         Coding agents
- Ollama              Anthropic            Claude Code
- LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
- llama.cpp                 │                       │
-        └──────────────────┴───────────────────────┘
-                               │
-                        Provider + adapters
-                               │
-                         yana-rt runtime
-                 chat · capabilities · missions · memory
-                               │
-                    deterministic policy gates
-                               │
-                       Yana OS + Giám Thị
-               HALT · quarantine · receipts · human unlock
-                               │
-                 files · Git · processes · network · tools
+ Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
+                    │                                           │
+                    └──────────── 受治理的入口路径 ──────────────┘
+                                         │
+                              Giám Thị 根权限
+                         HALT · quarantine · human unlock
+                                         │
+                               Yana control plane
+                    policy · identity · evidence · capability
+                              ┌──────────┴──────────┐
+                              │                     │
+                    Rust TurnEngine          项目 adapter
+              stream · cancel · tool loop    hook · rule · gate
+                     ┌────────┴────────┐
+                provider plane    capability plane
+                local + cloud      file · Git · process
 ```
+
+系统只有一套权限层级，但不会假装所有集成都使用同一种机制。终端聊天、Discord 与 Electron Desktop 把类型明确的 turn 提交给 Rust `TurnEngine`。Claude Code、Codex、Cursor 与 Antigravity 仍是原生 harness，通过项目本地的 adapter、hook、rule 与 gate 接受治理。未配置 Rust runtime 的纯浏览器 Yana 部署仍使用旧 JavaScript gateway；README 将它明确记录为兼容性 boundary，而不是夸大为完整受治理路径。
+
+### 一个运行时，多种接口
+
+| 接口 | 连接对象 | 治理边界 |
+| --- | --- | --- |
+| **终端 + Desktop + 打包 Web** | 标准 Rust catalog 中全部本地与云端 provider | 一个 `TurnEngine`、一条 capability 权限路径、一个 Giám Thị HALT 边界 |
+| **Discord** | 经过认证并按频道/用户 allowlist 限制的远程聊天 | 使用同一 provider catalog 与 `TurnEngine`；有意不开放 host 或 tool capability |
+| **MCP（opt-in）** | 用于命令检查及受治理 repo、Git、host、process、workspace 操作的 stdio 工具 | 通过 Cargo feature `mcp` 构建；需要人工批准的 workspace 操作仍会被 MCP 拒绝 |
+| **Claude Code、Codex、Cursor、Antigravity** | 原生 coding-agent harness | 通过生成的 adapter、hook、rule 与 gate 治理，不假装它们运行在 Yana 进程内部 |
+
+因此，本地 AI 与云端 AI 共用同一运行时契约，但不会被混成同一个信任域。Provider 选择只改变 inference 发生的位置，不会绕过 Yana 的 typed turn、capability、evidence 或人工审批边界。
 
 模型智能可以提出行动。确定性代码与人类权限决定行动是否被允许发生。
 
@@ -251,10 +263,10 @@ bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 
 ## Rust 运行时 — `yana-rt`
 
-32 个子命令，零 Python 依赖。
+所有 feature build 的 source 共定义 34 个子命令，零 Python 依赖。默认 build 暴露 32 个 runtime 命令，Clap 另加可见的 `help` 项；`mcp` 与 `remote` 受 feature gate 控制。
 
 ```bash
-yana-ai chat                          # 交互式聊天 REPL — 云端（Anthropic/OpenAI）或本地（Ollama）
+yana-ai chat                          # 在标准 provider catalog 上运行的受治理流式聊天
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、导入解析
 yana-ai vault search Q                # 按关键词搜索 2,025 个技能
@@ -467,10 +479,11 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 ## MCP 集成 — Buzz
 
-`yana-rt mcp` 将 `check_command`（与 `core/hooks/guard-destructive.sh`
-为 Claude Code 执行的破坏性命令检查完全相同）以 MCP 工具的形式通过
-stdio 暴露出来——可选启用，位于 `mcp` Cargo feature 之后，不包含在默认
-二进制文件中。
+`yana-rt mcp` 通过 stdio MCP 工具暴露标准破坏性命令检查，以及受治理的
+repo、Git、host、process 与 workspace 操作。它是可选功能，位于 `mcp`
+Cargo feature 之后，不包含在默认二进制文件中。该 transport 无法凭空
+产生人工批准；仅允许在人工批准后执行的 workspace 操作仍会被 MCP
+server 拒绝。
 
 它的第一个真实使用方是 [Buzz](https://github.com/block/buzz)——一个
 自托管的团队工作区，AI 代理在其中是拥有自己密钥的正式成员。Buzz 的
@@ -497,17 +510,24 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 **[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[命令参考 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[最新版本 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
-Yana 是构建在 Yana AI 核心之上的第一个界面：一个让任何人无需了解底层基础设施、就能与 AI 聊天、切换提供商并使用技能路由的网页 UI。
+Yana 是构建在 Yana AI core 之上的第一个终端用户界面。Electron Desktop 应用使用本地 Rust runtime 处理受治理的 turn；纯浏览器部署在连接可信本地 runtime 之前仍是兼容性 surface。
 
-```
-用户 → Yana AI → Yana AI Core（路由 · 安全 · 上下文）→ 模型
+```text
+Electron Desktop → local NDJSON adapter → yana-rt headless
+                                      → Giám Thị + Yana 权限检查
+                                      → TurnEngine
+                                      → provider 或获批 capability
+
+纯浏览器 web → 旧 JavaScript gateway → provider
+               （明确的兼容性 boundary，不是标准受治理路径）
 ```
 
 - 无需注册：使用你自己的 API key
 - 🔐 **加密密钥库** — 密钥以 AES-256-GCM 存储，主密钥不可导出（WebCrypto + IndexedDB），从不以明文存在
-- 多提供商：Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+- **标准 Rust catalog：**19 个 provider — Anthropic、OpenAI、Gemini、Groq、DeepSeek、OpenRouter、xAI、Novita、NVIDIA、MiniMax、GLM、Hugging Face、9Router、Kimi、Ollama、LM Studio、llama.cpp、TurboFieldfare、AirLLM
+- **Electron Desktop：**17 个已配置 provider 使用 Rust headless 路径；llama.cpp 与 AirLLM 当前属于 runtime/terminal 集成，并非 Desktop Settings 项
 
-**提供商设置**，使用你自己的密钥，密钥在本地加密（从不发送给 Yana AI）：
+**常用 provider 设置示例**，使用你自己的密钥，密钥在本地加密（从不发送给 Yana AI）：
 
 | 提供商 | 类型 | 设置方式 |
 |----------|------|-------|
@@ -547,7 +567,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.4.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.4.1** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.4.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -653,6 +673,22 @@ yana-ai badge . --json    # 机器可读的输出
 ## 起源
 
 这个代码库的根源比本仓库自身的 git 历史（始于 2026-05-17）更早——此前是一个名为 "YAMTAM ENGINE" 的脚手架项目。带日期的起源记录见 [docs/history/LINEAGE.md](docs/history/LINEAGE.md)——区分了哪些是亲自核实过的（zip 内容、内嵌的 git 历史、校验和），哪些只是转述、尚未确认。
+
+---
+
+## 设计影响与来源
+
+Yana AI 采用独立实现。项目研究公开的架构 pattern，并依据官方互操作 contract 实现功能；不会给其他项目换牌，也不会把他人的工作描述成 Yana 自己的成果。
+
+| 来源 | Yana 学习或依据实现的内容 | 来源边界 |
+|---|---|---|
+| [AAIF Goose](https://github.com/aaif-goose/goose) | provider 无关的 agent runtime，以及 Rust、CLI、Desktop、API surface 的协同 | 在架构 pattern 层面研究的 Apache-2.0 项目；本次 runtime 统一没有复制或 vendor Goose source |
+| [Model Context Protocol 规范](https://modelcontextprotocol.io/specification/latest) | 标准 tool/resource 互操作与 protocol boundary | 官方公开规范；Yana 的权限层级、capability policy 与 runtime 为独立设计 |
+| [Anthropic streaming 文档](https://platform.claude.com/docs/en/build-with-claude/streaming) | Messages streaming 与 event semantics | 仅作为 provider wire contract；未复用 UI 或 product code |
+| [Google Gemini generate-content API](https://ai.google.dev/api/generate-content) | Gemini streaming、content part 与 inline image request semantics | 仅作为 provider wire contract；实现在 Yana provider abstraction 内独立编写 |
+| [OpenAI Chat API reference](https://platform.openai.com/docs/api-reference/chat) | OpenAI 兼容 chat、SSE、usage 与 tool-call 字段 | 用于兼容 endpoint 的互操作 contract，并非 UI/branding 来源 |
+
+本次 runtime 统一没有复制 Goose 或表中项目的 source。未来如直接复用代码，必须保留原始 URL、许可证、版权声明与文件级 attribution。
 
 ---
 

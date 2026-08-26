@@ -92,6 +92,18 @@ impl YanaAuthorityChain {
             };
         }
 
+        if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall
+            && !context.human_initiated
+        {
+            return AuthorityDecision::Deny {
+                authority: AuthorityLayer::YanaControlPlane,
+                reason: format!(
+                    "non-human-initiated {:?} turn cannot execute capability '{}'",
+                    context.origin, descriptor.name
+                ),
+            };
+        }
+
         match descriptor.approval {
             ApprovalRequirement::None => AuthorityDecision::Allow,
             ApprovalRequirement::HumanApprovalPerCall if human_approved => AuthorityDecision::Allow,

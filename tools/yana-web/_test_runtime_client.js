@@ -1,9 +1,14 @@
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { EventEmitter } = require('events');
 const { PassThrough, Writable } = require('stream');
 const {
+  parseRuntimeMode,
+  resolveGovernedRuntime,
   supportsGovernedProvider,
   streamGovernedTurn,
 } = require('./lib/runtime-client');
@@ -100,9 +105,52 @@ function testDesktopProviderCoverage() {
   }
 }
 
+function testRuntimeDiscovery() {
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-runtime-client-'));
+  const releaseDir = path.join(rootDir, 'target', 'release');
+  fs.mkdirSync(releaseDir, { recursive: true });
+  const binaryPath = path.join(releaseDir, 'yana-rt');
+  fs.writeFileSync(binaryPath, '#!/bin/sh\nexit 0\n');
+  fs.chmodSync(binaryPath, 0o755);
+  assert.strictEqual(
+    resolveGovernedRuntime({ rootDir, env: { PATH: '' } }),
+    fs.realpathSync(binaryPath),
+  );
+
+  const explicitPath = path.join(rootDir, 'custom yana-rt');
+  fs.writeFileSync(explicitPath, '#!/bin/sh\nexit 0\n');
+  fs.chmodSync(explicitPath, 0o755);
+  assert.strictEqual(
+    resolveGovernedRuntime({ explicitPath, rootDir, env: { PATH: '' } }),
+    fs.realpathSync(explicitPath),
+  );
+  assert.strictEqual(
+    resolveGovernedRuntime({ explicitPath: 'missing-yana-rt', rootDir, env: { PATH: '' } }),
+    '',
+    'an explicit but invalid runtime path must fail instead of silently falling back',
+  );
+}
+
+function testRuntimeMode() {
+  assert.strictEqual(parseRuntimeMode(undefined), 'prefer');
+  assert.strictEqual(parseRuntimeMode('required'), 'required');
+  assert.strictEqual(parseRuntimeMode('legacy'), 'legacy');
+  assert.throws(() => parseRuntimeMode('require'), /invalid YANA_RUNTIME_MODE/);
+}
+
+function testProductionImageRequiresGovernedRuntime() {
+  const dockerfile = fs.readFileSync(path.join(__dirname, 'Dockerfile'), 'utf8');
+  assert.match(dockerfile, /COPY --from=yana-runtime-builder .*yana-rt \/usr\/local\/bin\/yana-rt/);
+  assert.match(dockerfile, /ENV YANA_RT_BIN=\/usr\/local\/bin\/yana-rt/);
+  assert.match(dockerfile, /ENV YANA_RUNTIME_MODE=required/);
+}
+
 Promise.resolve()
   .then(testArgvAndStreaming)
   .then(testFailureAndProviderGate)
   .then(testDesktopProviderCoverage)
-  .then(() => console.log('runtime-client: 3/3 PASS'))
+  .then(testRuntimeDiscovery)
+  .then(testRuntimeMode)
+  .then(testProductionImageRequiresGovernedRuntime)
+  .then(() => console.log('runtime-client: 6/6 PASS'))
   .catch(error => { console.error(error); process.exit(1); });

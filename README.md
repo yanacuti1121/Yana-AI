@@ -106,30 +106,42 @@ Use evidence, capability, memory, workspace, and OS controls from the same CLI.
 | Layer | Developer value | Primary surfaces |
 | --- | --- | --- |
 | **Runtime** | Native chat, state, routing, health, and project operations | `yana-rt`, `yana-ai-rt` |
-| **Models** | Local-first operation without excluding cloud providers | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **Models** | Local-first operation without excluding cloud providers | 19-provider Rust catalog: 5 local runtimes + 14 cloud/API adapters |
 | **Adapters** | One governed project contract across supported harnesses | Claude Code, Codex, Cursor, Antigravity |
 | **Orchestration** | Tasks, missions, memory, evidence, workspaces | router, mission dispatcher, event bus |
 | **Governance** | Deterministic checks, audit chain, quarantine, HALT, human gates | capabilities, hooks, Yana OS, Giám Thị |
 
 ```text
- Local models        Cloud models         Coding agents
- Ollama              Anthropic            Claude Code
- LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
- llama.cpp                 │                       │
-        └──────────────────┴───────────────────────┘
-                               │
-                        Provider + adapters
-                               │
-                         yana-rt runtime
-                 chat · capabilities · missions · memory
-                               │
-                    deterministic policy gates
-                               │
-                       Yana OS + Giám Thị
-               HALT · quarantine · receipts · human unlock
-                               │
-                 files · Git · processes · network · tools
+ Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
+                    │                                           │
+                    └──────────── governed entry paths ──────────┘
+                                         │
+                              Giám Thị root authority
+                         HALT · quarantine · human unlock
+                                         │
+                               Yana control plane
+                    policy · identity · evidence · capability
+                              ┌──────────┴──────────┐
+                              │                     │
+                    Rust TurnEngine          project adapters
+              stream · cancel · tool loop    hooks · rules · gates
+                     ┌────────┴────────┐
+                provider plane    capability plane
+                local + cloud      files · Git · processes
 ```
+
+There is one authority hierarchy, but not one fake integration mechanism. Terminal chat, Discord, and Electron Desktop submit typed turns to the Rust `TurnEngine`. Claude Code, Codex, Cursor, and Antigravity remain native harnesses governed through project-local adapters, hooks, rules, and gates. Browser-only Yana deployments without a configured Rust runtime still use the legacy JavaScript gateway; that boundary is documented rather than described as fully governed.
+
+### One runtime, several interfaces
+
+| Interface | What it connects | Governance boundary |
+| --- | --- | --- |
+| **Terminal + Desktop + packaged Web** | All local and cloud providers in the canonical Rust catalog | One `TurnEngine`, one capability authority path, one Giám Thị HALT boundary |
+| **Discord** | Authenticated, channel/user-allowlisted remote chat | Uses the same provider catalog and `TurnEngine`; deliberately exposes no host or tool capabilities |
+| **MCP (opt-in)** | Stdio tools for command checks plus governed repo, Git, host, process, and workspace operations | Built with Cargo feature `mcp`; approval-only workspace actions remain denied from MCP |
+| **Claude Code, Codex, Cursor, Antigravity** | Native coding-agent harnesses | Governed through generated adapters, hooks, rules, and gates rather than pretending they run inside Yana's process |
+
+Local and cloud intelligence therefore share a runtime contract without becoming one trust domain. Provider choice changes where inference happens; it does not bypass Yana's typed turn, capability, evidence, or human-approval boundaries.
 
 Model intelligence may propose an action. Deterministic code and human authority decide whether it may happen.
 
@@ -264,10 +276,10 @@ bash core/scripts/switch-engine.sh status      # check all 4 adapters
 
 ## Rust runtime — `yana-rt`
 
-34 subcommands. Zero Python dependency.
+34 subcommands. Zero Python dependency. This is the source-defined count across feature builds: a default build exposes 32 runtime commands, Clap adds the visible `help` entry, and `mcp` plus `remote` are feature-gated.
 
 ```bash
-yana-ai chat                          # interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
+yana-ai chat                          # governed streaming chat across the canonical provider catalog
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
 yana-ai vault search Q                # search 2,025 skills by keyword
@@ -467,10 +479,11 @@ Posts a comment on every PR:
 
 ## MCP integration — Buzz
 
-`yana-rt mcp` exposes `check_command` (the same destructive-command
-check `core/hooks/guard-destructive.sh` enforces for Claude Code) as an
-MCP tool over stdio — opt-in, gated behind the `mcp` Cargo feature, not
-part of the default binary.
+`yana-rt mcp` exposes the canonical destructive-command check plus governed
+repo, Git, host, process, and workspace operations as MCP tools over stdio.
+It is opt-in, gated behind the `mcp` Cargo feature, and not part of the
+default binary. Human approval cannot be manufactured over this transport:
+approval-only workspace operations are rejected by the MCP server.
 
 Its first real consumer is [Buzz](https://github.com/block/buzz), a
 self-hostable team workspace where AI agents are first-class members
@@ -498,17 +511,24 @@ command depends on the agent's own tool-use policy, nothing forces it.
 
 **[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Command Reference →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Latest release →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
-Yana is the first interface built on Yana AI core: a web UI that lets anyone chat with AI, switch providers, and use skill routing without knowing anything about the infrastructure underneath.
+Yana is the first end-user interface built on Yana AI core. The Electron Desktop app uses the local Rust runtime for governed turns; the browser-only deployment remains a compatibility surface until it is connected to a trusted local runtime.
 
-```
-User → Yana AI → Yana AI Core (Router · Safety · Context) → Model
+```text
+Electron Desktop → local NDJSON adapter → yana-rt headless
+                                      → Giám Thị + Yana authority checks
+                                      → TurnEngine
+                                      → provider or approved capability
+
+Browser-only web → legacy JavaScript gateway → provider
+                   (explicit compatibility boundary, not the canonical governed path)
 ```
 
 - Zero signup: bring your own API key
 - 🔐 **Encrypted key vault** — keys stored AES-256-GCM, master key non-extractable (WebCrypto + IndexedDB), never plaintext
-- Multi-provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+- **Canonical Rust catalog:** 19 providers — Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Novita, NVIDIA, MiniMax, GLM, Hugging Face, 9Router, Kimi, Ollama, LM Studio, llama.cpp, TurboFieldfare, and AirLLM
+- **Electron Desktop:** 17 configured providers use the Rust headless path; llama.cpp and AirLLM remain runtime/terminal integrations rather than Desktop settings entries
 
-**Provider setup**, bring your own key, keys encrypted locally (never sent to Yana AI):
+**Common provider setup examples**, bring your own key, keys encrypted locally (never sent to Yana AI):
 
 | Provider | Type | Setup |
 |----------|------|-------|
@@ -691,6 +711,22 @@ Full translations of this document: **[README.vi.md](README.vi.md)** (Tiếng Vi
 ## Lineage
 
 This codebase's roots go back further than this repo's own git history (which starts 2026-05-17): an earlier scaffold built under the name "YAMTAM ENGINE". See [docs/history/LINEAGE.md](docs/history/LINEAGE.md) for the dated origin record — what's independently verified (zip contents, embedded git history, checksums) versus what's reported and still unconfirmed.
+
+---
+
+## Design influences and provenance
+
+Yana AI is independently implemented. It studies public architecture patterns and official interoperability contracts; it does not rebrand those projects or present their work as Yana's own.
+
+| Source | What Yana learned or implemented against | Provenance boundary |
+|---|---|---|
+| [AAIF Goose](https://github.com/aaif-goose/goose) | Provider-agnostic agent runtime and the cohesion of Rust, CLI, Desktop, and API surfaces | Apache-2.0 project studied at the architecture-pattern level; no Goose source is copied or vendored in this runtime-unification work |
+| [Model Context Protocol specification](https://modelcontextprotocol.io/specification/latest) | Standard tool/resource interoperability and protocol boundaries | Official public specification; Yana's authority hierarchy, capability policy, and runtime are independently designed |
+| [Anthropic streaming documentation](https://platform.claude.com/docs/en/build-with-claude/streaming) | Messages streaming and event semantics | Provider wire contract only; no UI or product code reused |
+| [Google Gemini generate-content API](https://ai.google.dev/api/generate-content) | Gemini streaming, content parts, and inline-image request semantics | Provider wire contract only; implementation written inside Yana's provider abstraction |
+| [OpenAI Chat API reference](https://platform.openai.com/docs/api-reference/chat) | OpenAI-compatible chat, SSE, usage, and tool-call fields | Provider wire contract used for interoperability across compatible endpoints |
+
+No source from Goose or the listed projects was copied into Yana by this runtime-unification work. Any future direct code reuse must preserve the original source URL, license, copyright notices, and file-level attribution.
 
 ---
 

@@ -101,30 +101,42 @@ Dùng evidence, capability, memory, workspace và OS control từ cùng một CL
 | Tầng | Giá trị cho developer | Bề mặt chính |
 | --- | --- | --- |
 | **Runtime** | Chat native, state, routing, health và thao tác dự án | `yana-rt`, `yana-ai-rt` |
-| **Model** | Ưu tiên local nhưng không loại bỏ cloud provider | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **Model** | Ưu tiên local nhưng không loại bỏ cloud provider | Rust catalog gồm 19 provider: 5 local runtime + 14 adapter cloud/API |
 | **Adapter** | Một contract dự án được quản trị trên các harness hỗ trợ | Claude Code, Codex, Cursor, Antigravity |
 | **Điều phối** | Task, mission, memory, evidence và workspace | router, mission dispatcher, event bus |
 | **Quản trị** | Check tất định, audit chain, quarantine, HALT và human gate | capability, hook, Yana OS, Giám Thị |
 
 ```text
- Local models        Cloud models         Coding agents
- Ollama              Anthropic            Claude Code
- LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
- llama.cpp                 │                       │
-        └──────────────────┴───────────────────────┘
-                               │
-                        Provider + adapters
-                               │
-                         yana-rt runtime
-                 chat · capabilities · missions · memory
-                               │
-                    deterministic policy gates
-                               │
-                       Yana OS + Giám Thị
-               HALT · quarantine · receipts · human unlock
-                               │
-                 files · Git · processes · network · tools
+ Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
+                    │                                           │
+                    └──────────── các lối vào được quản trị ─────┘
+                                         │
+                              Giám Thị — thẩm quyền gốc
+                         HALT · quarantine · human unlock
+                                         │
+                               Yana control plane
+                    policy · identity · evidence · capability
+                              ┌──────────┴──────────┐
+                              │                     │
+                    Rust TurnEngine          adapter dự án
+              stream · cancel · tool loop    hook · rule · gate
+                     ┌────────┴────────┐
+                provider plane    capability plane
+                local + cloud      file · Git · process
 ```
+
+Chỉ có một thứ bậc thẩm quyền, nhưng không giả vờ mọi tích hợp đều dùng cùng một cơ chế. Terminal chat, Discord và Electron Desktop gửi turn có kiểu dữ liệu rõ ràng vào Rust `TurnEngine`. Claude Code, Codex, Cursor và Antigravity vẫn là các harness native, được quản trị qua adapter, hook, rule và gate nằm trong dự án. Bản Yana chỉ chạy trên trình duyệt, khi chưa cấu hình Rust runtime, vẫn dùng JavaScript gateway cũ; README ghi rõ boundary này thay vì gọi nó là đường chạy được quản trị đầy đủ.
+
+### Một runtime, nhiều giao diện
+
+| Giao diện | Kết nối gì | Ranh giới quản trị |
+| --- | --- | --- |
+| **Terminal + Desktop + Web đóng gói** | Toàn bộ provider local và cloud trong catalog Rust chuẩn | Một `TurnEngine`, một đường thẩm quyền capability, một ranh giới HALT của Giám Thị |
+| **Discord** | Chat từ xa có xác thực và allowlist theo kênh/người dùng | Dùng cùng provider catalog và `TurnEngine`; chủ ý không mở capability host hay tool |
+| **MCP (opt-in)** | Tool stdio cho kiểm tra lệnh cùng thao tác repo, Git, host, process và workspace được quản trị | Build với Cargo feature `mcp`; thao tác workspace cần duyệt vẫn bị từ chối qua MCP |
+| **Claude Code, Codex, Cursor, Antigravity** | Harness coding-agent native | Được quản trị qua adapter, hook, rule và gate sinh theo từng engine, không giả vờ chúng chạy trong process của Yana |
+
+Vì vậy AI local và cloud dùng chung một runtime contract nhưng không bị nhập thành một trust domain. Đổi provider chỉ thay nơi inference diễn ra; nó không bỏ qua typed turn, capability, evidence hay ranh giới duyệt của con người trong Yana.
 
 Trí tuệ model có thể đề xuất hành động. Code tất định và thẩm quyền con người quyết định hành động đó có được phép xảy ra hay không.
 
@@ -251,10 +263,10 @@ bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 
 ## Rust runtime — `yana-rt`
 
-33 subcommand. Không phụ thuộc Python.
+34 subcommand được định nghĩa trong source trên toàn bộ feature build. Không phụ thuộc Python. Bản build mặc định mở 32 lệnh runtime; Clap thêm mục `help` hiển thị, còn `mcp` và `remote` bị khóa theo feature.
 
 ```bash
-yana-ai chat                          # REPL chat tương tác — cloud (Anthropic/OpenAI) hoặc local (Ollama)
+yana-ai chat                          # chat streaming được quản trị trên provider catalog chuẩn
 yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro supply chain
 yana-ai graph .                       # knowledge graph — dependency file, resolve import
 yana-ai vault search Q                # tìm trong 2.025 skills theo từ khóa
@@ -454,10 +466,11 @@ Quét cấu hình AI agent của bất kỳ repo nào trên mỗi PR: secrets, p
 
 ## Tích hợp MCP — Buzz
 
-`yana-rt mcp` lộ ra `check_command` (đúng kiểm tra lệnh phá hoại mà
-`core/hooks/guard-destructive.sh` đang thực thi cho Claude Code) như một
-MCP tool qua stdio — opt-in, gated sau Cargo feature `mcp`, không nằm
-trong binary mặc định.
+`yana-rt mcp` lộ ra kiểm tra lệnh phá hoại chuẩn cùng các thao tác repo,
+Git, host, process và workspace được quản trị dưới dạng MCP tool qua stdio.
+Nó là opt-in, gated sau Cargo feature `mcp`, không nằm trong binary mặc
+định. Transport này không thể tự tạo quyền duyệt của con người: thao tác
+workspace chỉ được phép sau approval vẫn bị MCP server từ chối.
 
 Đối tượng dùng thật đầu tiên là [Buzz](https://github.com/block/buzz),
 một workspace nhóm tự host nơi AI agent là thành viên chính thức với key
@@ -486,17 +499,24 @@ không có gì bắt buộc.
 
 **[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Toàn bộ lệnh →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
-Yana là giao diện đầu tiên xây trên lõi Yana AI: một web UI cho phép bất kỳ ai chat với AI, đổi provider, và dùng skill routing mà không cần biết gì về hạ tầng bên dưới.
+Yana là giao diện end-user đầu tiên được xây trên Yana AI core. Ứng dụng Electron Desktop dùng Rust runtime cục bộ cho các turn được quản trị; bản chỉ chạy trên trình duyệt vẫn là bề mặt tương thích cho tới khi được nối với một local runtime đáng tin cậy.
 
-```
-Người dùng → Yana AI → Yana AI Core (Router · An toàn · Ngữ cảnh) → Model
+```text
+Electron Desktop → local NDJSON adapter → yana-rt headless
+                                      → Giám Thị + kiểm tra thẩm quyền Yana
+                                      → TurnEngine
+                                      → provider hoặc capability đã được duyệt
+
+Web chỉ chạy trình duyệt → JavaScript gateway cũ → provider
+                           (boundary tương thích rõ ràng, không phải đường chuẩn được quản trị)
 ```
 
 - Không cần đăng ký: dùng API key của riêng bạn
 - 🔐 **Key vault mã hóa** — key lưu bằng AES-256-GCM, master key không thể export (WebCrypto + IndexedDB), không bao giờ ở dạng plaintext
-- Đa provider: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+- **Rust catalog chuẩn:** 19 provider — Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Novita, NVIDIA, MiniMax, GLM, Hugging Face, 9Router, Kimi, Ollama, LM Studio, llama.cpp, TurboFieldfare và AirLLM
+- **Electron Desktop:** 17 provider đã cấu hình đi qua Rust headless; llama.cpp và AirLLM hiện là tích hợp runtime/terminal, chưa phải mục Settings của Desktop
 
-**Thiết lập provider**, dùng key của bạn, key được mã hóa cục bộ (không bao giờ gửi về Yana AI):
+**Một số ví dụ thiết lập provider phổ biến**, dùng key của bạn, key được mã hóa cục bộ (không bao giờ gửi về Yana AI):
 
 | Provider | Loại | Thiết lập |
 |----------|------|-------|
@@ -642,6 +662,22 @@ Bản dịch đầy đủ của tài liệu này: **[README.md](README.md)** (En
 ## Nguồn gốc
 
 Codebase này có gốc xa hơn lịch sử git của chính repo (bắt đầu 17/05/2026) — trước đó là một scaffold dưới tên "YAMTAM ENGINE". Xem [docs/history/LINEAGE.md](docs/history/LINEAGE.md) để biết hồ sơ khởi nguồn có ngày tháng — phần nào đã tự kiểm chứng (nội dung file zip, git history nhúng bên trong, checksum) và phần nào chỉ được báo lại, chưa xác nhận được.
+
+---
+
+## Nguồn ảnh hưởng và xuất xứ thiết kế
+
+Yana AI được tự triển khai độc lập. Dự án nghiên cứu các pattern kiến trúc công khai và hiện thực theo contract tương tác chính thức; không đổi nhãn dự án khác hay nhận công trình của họ là của Yana.
+
+| Nguồn | Yana học hoặc hiện thực theo điều gì | Ranh giới xuất xứ |
+|---|---|---|
+| [AAIF Goose](https://github.com/aaif-goose/goose) | Agent runtime không khóa provider và cách gắn kết Rust, CLI, Desktop, API | Dự án Apache-2.0 được nghiên cứu ở mức pattern kiến trúc; không sao chép hoặc vendor source Goose trong phần hợp nhất runtime này |
+| [Đặc tả Model Context Protocol](https://modelcontextprotocol.io/specification/latest) | Khả năng tương tác chuẩn cho tool/resource và boundary giao thức | Đặc tả công khai chính thức; thứ bậc thẩm quyền, capability policy và runtime của Yana được thiết kế độc lập |
+| [Tài liệu streaming của Anthropic](https://platform.claude.com/docs/en/build-with-claude/streaming) | Semantics của Messages streaming và event | Chỉ dùng contract đường truyền provider; không tái sử dụng UI hay product code |
+| [Gemini generate-content API](https://ai.google.dev/api/generate-content) | Streaming, content part và request ảnh inline của Gemini | Chỉ dùng contract đường truyền provider; implementation được viết trong abstraction của Yana |
+| [OpenAI Chat API reference](https://platform.openai.com/docs/api-reference/chat) | Chat tương thích OpenAI, SSE, usage và trường tool-call | Contract để tương tác với các endpoint tương thích, không phải nguồn UI/branding |
+
+Phần hợp nhất runtime này không sao chép source từ Goose hoặc các dự án trong bảng. Nếu sau này tái sử dụng code trực tiếp, Yana bắt buộc phải giữ URL nguồn, giấy phép, copyright notice và attribution ở cấp file.
 
 ---
 

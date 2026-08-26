@@ -1,5 +1,14 @@
 # Yana AI Architecture Health Report (2026-08)
 
+> **Resolution note (2026-08-26):** this report is a dated diagnosis, not the
+> current architecture contract. Its top capability/runtime duplication items
+> led to `src/capability/`, the unified `src/runtime/` turn loop, canonical chat
+> tool delegation, governed Desktop/packaged-Web adapters, Discord plain chat,
+> and expanded MCP adapters. See
+> [`ADR-014`](adr/ADR-014-unified-runtime-authority-hierarchy.md) for the current
+> authority and interface boundaries. Remaining findings below should be read as
+> historical evidence unless a current code audit confirms them again.
+
 **Nguồn:** anh Tâm, 2026-08-07 — báo cáo tự đánh giá sức khỏe kiến trúc
 toàn dự án, lưu nguyên văn theo yêu cầu. Chưa qua Phase/review nào,
 chưa đối chiếu với code thật — đây là bản LƯU, không phải bản đã xác

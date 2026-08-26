@@ -38,8 +38,8 @@ use super::input::TextInput;
 use super::provider::{ChatMessage, ChatProvider, ChatUsage, ProviderHealth};
 use super::settings::ChatSettings;
 use super::terminal_guard::TerminalGuard;
+use super::tool_types::ToolResultRecord;
 use super::tools::round_guard::ToolRoundGuard;
-use super::tools::run_command::ExecOutcome;
 use crate::runtime::{CancellationToken, RuntimeEvent, TurnError, TurnOutcome};
 use anyhow::Result;
 use crossterm::event::{self, Event};
@@ -71,7 +71,7 @@ struct PendingApproval {
 }
 
 enum ToolExecEvent {
-    Done(Result<ExecOutcome, String>),
+    Done(Result<ToolResultRecord, TurnError>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

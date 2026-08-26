@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { spawn } = require('child_process');
 
 const MAX_PROTOCOL_LINE = 1024 * 1024;
@@ -15,6 +17,62 @@ const GOVERNED_PROVIDERS = new Set([
 
 function supportsGovernedProvider(provider) {
   return GOVERNED_PROVIDERS.has(provider);
+}
+
+function parseRuntimeMode(value) {
+  if (!value) return 'prefer';
+  if (['required', 'prefer', 'legacy'].includes(value)) return value;
+  throw new Error(`invalid YANA_RUNTIME_MODE '${value}'; expected required, prefer, or legacy`);
+}
+
+function executableCandidates(name, platform, env) {
+  if (platform !== 'win32') return [name];
+  const extensions = (env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';').filter(Boolean);
+  return path.extname(name) ? [name] : extensions.map(extension => `${name}${extension.toLowerCase()}`);
+}
+
+function resolveGovernedRuntime({
+  explicitPath = process.env.YANA_RT_BIN || '',
+  rootDir,
+  platform = process.platform,
+  arch = process.arch,
+  env = process.env,
+  accessSync = fs.accessSync,
+  realpathSync = fs.realpathSync,
+} = {}) {
+  if (!rootDir) throw new Error('rootDir is required to resolve yana-rt');
+  const wrapperPath = path.join(rootDir, 'scripts', 'yana-rt-wrapper.js');
+  let wrapperRealPath = '';
+  try { wrapperRealPath = realpathSync(wrapperPath); } catch (_) {}
+
+  const explicitCandidate = explicitPath && (path.isAbsolute(explicitPath)
+    ? explicitPath
+    : path.join(rootDir, explicitPath));
+  const candidates = explicitCandidate ? [explicitCandidate] : [
+    path.join(rootDir, 'target', 'release', platform === 'win32' ? 'yana-rt.exe' : 'yana-rt'),
+    path.join(rootDir, 'target', 'debug', platform === 'win32' ? 'yana-rt.exe' : 'yana-rt'),
+    path.join(rootDir, 'bin', `yana-rt-${platform}-${arch}${platform === 'win32' ? '.exe' : ''}`),
+  ];
+
+  if (!explicitCandidate) {
+    const pathEntries = (env.PATH || '').split(path.delimiter).filter(Boolean);
+    for (const entry of pathEntries) {
+      for (const executable of executableCandidates('yana-rt', platform, env)) {
+        candidates.push(path.join(entry, executable));
+      }
+    }
+  }
+
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    try {
+      accessSync(resolved, platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK);
+      const realPath = realpathSync(resolved);
+      if (wrapperRealPath && realPath === wrapperRealPath) continue;
+      return realPath;
+    } catch (_) {}
+  }
+  return '';
 }
 
 function streamGovernedTurn({
@@ -128,4 +186,10 @@ function streamGovernedTurn({
   });
 }
 
-module.exports = { GOVERNED_PROVIDERS, supportsGovernedProvider, streamGovernedTurn };
+module.exports = {
+  GOVERNED_PROVIDERS,
+  parseRuntimeMode,
+  resolveGovernedRuntime,
+  supportsGovernedProvider,
+  streamGovernedTurn,
+};

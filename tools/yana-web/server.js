@@ -10,9 +10,18 @@ const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
 const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
-const { supportsGovernedProvider, streamGovernedTurn } = require('./lib/runtime-client');
+const {
+  parseRuntimeMode,
+  resolveGovernedRuntime,
+  supportsGovernedProvider,
+  streamGovernedTurn,
+} = require('./lib/runtime-client');
+const giamThiHalt = require('./lib/giam-thi-halt');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
-const YANA_RT_BIN = process.env.YANA_RT_BIN || '';
+const YANA_RUNTIME_MODE = parseRuntimeMode(process.env.YANA_RUNTIME_MODE);
+const YANA_RT_BIN = YANA_RUNTIME_MODE === 'legacy'
+  ? ''
+  : resolveGovernedRuntime({ rootDir: REPO_ROOT });
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
   rootDir: REPO_ROOT,
   binaryPath: YANA_RT_BIN,
@@ -1442,13 +1451,28 @@ async function handleApiChat(req, res) {
     chain[0].apiKey = getNineRouterKey();
   }
 
-  // Electron supplies YANA_RT_BIN. Every Desktop provider turn, including
-  // Gemini and vision input, crosses TurnEngine (and therefore the Giám Thị/
-  // Yana authority chain) instead of calling providers from JavaScript.
-  // Browser-only deployments have no bundled binary and retain the existing
-  // server-side gateway until they install/configure a yana-rt runtime.
+  // Desktop supplies YANA_RT_BIN; packaged web deployments discover or bundle
+  // the same binary. Every supported turn crosses TurnEngine (and therefore
+  // the Giám Thị/Yana authority chain) instead of calling providers from JS.
   if (YANA_RT_BIN && chain.every(candidate => supportsGovernedProvider(candidate.providerKey))) {
     await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images);
+    return;
+  }
+
+  if (YANA_RUNTIME_MODE === 'required') {
+    const detail = YANA_RT_BIN
+      ? 'One or more configured providers are unavailable in the governed runtime.'
+      : 'The governed yana-rt runtime is unavailable.';
+    jsonError(res, 503, `${detail} Legacy provider execution is disabled.`);
+    return;
+  }
+
+  // This is the one chat path Giám Thị's Rust-side HALT check never
+  // reaches (no yana-rt binary configured) — replicate it here, fail
+  // closed, so an emergency HALT stops every chat surface, not just the
+  // governed one.
+  if (giamThiHalt.haltActive(REPO_ROOT)) {
+    jsonError(res, 503, 'Giám Thị HALT is active — chat is stopped pending human review.');
     return;
   }
 

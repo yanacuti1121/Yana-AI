@@ -2,8 +2,17 @@
 
 **Version:** v1.7.3  
 **Release date:** 2026-05-25  
-**Status:** Current architecture — documents what exists, not what is planned  
+**Status:** Legacy component inventory — counts and hook details are historical
 **Maintained by:** Vũ Văn Tâm
+
+> This document is retained for detailed hook-pack lineage, but its counts and
+> hooks-only system overview are no longer the whole architecture. Use
+> [`ADR-014`](../adr/ADR-014-unified-runtime-authority-hierarchy.md) for the
+> canonical runtime/authority design and
+> [`docs/reference/architecture.md`](../reference/architecture.md) for the
+> current cross-surface overview. Do not infer that local/cloud chat, Desktop,
+> packaged Web, Discord, or MCP bypass `yana-rt` from the historical diagram
+> below.
 
 ---
 

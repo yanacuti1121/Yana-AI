@@ -4,9 +4,10 @@
 //! for line-count budget.
 
 use super::super::tools::run_command;
+use super::tool_dispatch::ChatCapabilityExecutor;
 use super::{App, PendingApproval, ToolExecEvent, TurnState};
 use crate::runtime::{
-    AuthorityDecision, RuntimeAuthority, TurnContext, TurnOrigin, YanaAuthorityChain,
+    execute_approved_tool, CancellationToken, TurnContext, TurnOrigin, YanaAuthorityChain,
 };
 use crossterm::event::{KeyCode, KeyEvent};
 use std::sync::mpsc;
@@ -97,9 +98,12 @@ impl App {
             command,
             guard_verdict: _,
         } = pending;
-        let validated = match run_command::validate(&command) {
+        match run_command::validate(&command) {
             Ok(validated) if validated.guard_verdict.is_none() && validated.argv == argv => {
-                validated
+                // Exact argv revalidation passed. The canonical approved-tool
+                // runtime repeats validation inside its opaque approval path
+                // before executing, so this check only protects the TUI's
+                // displayed proposal from changing between prompt and y.
             }
             Ok(validated) => {
                 let reason = validated
@@ -124,33 +128,23 @@ impl App {
                 self.continue_after_tool_result();
                 return;
             }
-        };
-        let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
-        match YanaAuthorityChain.authorize_approved_tool(&context, &call) {
-            AuthorityDecision::Allow => {}
-            AuthorityDecision::Deny { reason, .. }
-            | AuthorityDecision::HumanApprovalRequired { reason, .. } => {
-                self.push_tool_result(
-                    &call.id,
-                    format!("execution denied after approval: {reason}"),
-                    true,
-                    true,
-                );
-                self.continue_after_tool_result();
-                return;
-            }
         }
-        let use_sandbox = self.use_sandbox;
-        let repo_root = self.repo_root.clone();
+        let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
+        let call_id = call.id.clone();
+        let executor = ChatCapabilityExecutor::new(self.use_sandbox);
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
-            let result = run_command::execute(&repo_root, &validated.argv, use_sandbox);
+            let result = execute_approved_tool(
+                &YanaAuthorityChain,
+                &executor,
+                &context,
+                &call,
+                &CancellationToken::default(),
+                &mut |_| {},
+            );
             tx.send(ToolExecEvent::Done(result)).ok();
         });
-        self.turn = TurnState::ExecutingTool {
-            call_id: call.id,
-            rx,
-        };
+        self.turn = TurnState::ExecutingTool { call_id, rx };
         self.turn_started_at = Some(Instant::now());
     }
 }
@@ -172,27 +166,13 @@ pub(super) fn drain_tool_exec_events(app: &mut App) {
     app.turn_started_at = None;
     app.turn = TurnState::Idle;
     match result {
-        Ok(outcome) => {
-            let mut text = outcome.stdout;
-            if !outcome.stderr.is_empty() {
-                text.push_str("\n[stderr]\n");
-                text.push_str(&outcome.stderr);
-            }
-            if outcome.truncated {
-                text.push_str("\n[output truncated]");
-            }
-            let is_error = outcome.exit_code != Some(0);
-            if is_error {
-                text = format!(
-                    "[exit code {}]\n{text}",
-                    outcome
-                        .exit_code
-                        .map_or("unknown".to_string(), |c| c.to_string())
-                );
-            }
-            app.push_tool_result(&call_id, text, is_error, false);
-        }
-        Err(e) => app.push_tool_result(&call_id, format!("execution failed: {e}"), true, false),
+        Ok(record) => app.push_tool_result(&call_id, record.output, record.is_error, record.denied),
+        Err(error) => app.push_tool_result(
+            &call_id,
+            format!("execution denied after approval: {error}"),
+            true,
+            true,
+        ),
     }
     // Same private method the y/N-decline paths above use — both are
     // "a tool round just concluded, count it and re-invoke if under the

@@ -1,16 +1,24 @@
 //! Terminal adapter for the canonical capability runtime.
 //!
 //! `TurnEngine` owns provider/tool looping. This module only supplies the
-//! terminal's read-only executor, reconciles runtime-created conversation
+//! terminal's capability executor, reconciles runtime-created conversation
 //! records into the tab, and prepares the existing y/N command approval UI.
 
 use super::super::provider::{ChatMessage, Role};
 use super::super::tool_types::{ToolCall, ToolResultRecord};
 use super::super::tools;
 use super::{App, PendingApproval, TurnState};
-use crate::runtime::{ToolExecutor, TurnContext};
+use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 
-pub(super) struct ChatCapabilityExecutor;
+pub(super) struct ChatCapabilityExecutor {
+    use_sandbox: bool,
+}
+
+impl ChatCapabilityExecutor {
+    pub(super) fn new(use_sandbox: bool) -> Self {
+        Self { use_sandbox }
+    }
+}
 
 impl ToolExecutor for ChatCapabilityExecutor {
     fn execute(&self, context: &TurnContext, call: &ToolCall) -> ToolResultRecord {
@@ -30,6 +38,51 @@ impl ToolExecutor for ChatCapabilityExecutor {
             other => tool_result(
                 call,
                 format!("terminal executor has no implementation for '{other}'"),
+                true,
+                true,
+            ),
+        }
+    }
+
+    fn execute_approved(&self, approved: ApprovedTool<'_>) -> ToolResultRecord {
+        let call = approved.call();
+        if call.name != "run_command" {
+            return tool_result(
+                call,
+                format!("approved executor does not support '{}'", call.name),
+                true,
+                true,
+            );
+        }
+        let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
+            return tool_result(
+                call,
+                "missing required argument 'command'".to_string(),
+                true,
+                false,
+            );
+        };
+        match tools::run_command::validate(&command) {
+            Ok(validated) if validated.guard_verdict.is_none() => command_result(
+                call,
+                tools::run_command::execute(
+                    &approved.context().session.repo_root,
+                    &validated.argv,
+                    self.use_sandbox,
+                ),
+            ),
+            Ok(validated) => tool_result(
+                call,
+                format!(
+                    "blocked by guard: {}",
+                    validated.guard_verdict.unwrap_or("blocked")
+                ),
+                true,
+                true,
+            ),
+            Err(error) => tool_result(
+                call,
+                format!("cannot validate command: {error}"),
                 true,
                 true,
             ),
@@ -168,12 +221,43 @@ fn tool_result(call: &ToolCall, output: String, is_error: bool, denied: bool) ->
     }
 }
 
+fn command_result(
+    call: &ToolCall,
+    result: Result<tools::run_command::ExecOutcome, String>,
+) -> ToolResultRecord {
+    match result {
+        Ok(outcome) => {
+            let mut output = outcome.stdout;
+            if !outcome.stderr.is_empty() {
+                output.push_str("\n[stderr]\n");
+                output.push_str(&outcome.stderr);
+            }
+            if outcome.truncated {
+                output.push_str("\n[output truncated]");
+            }
+            let is_error = outcome.exit_code != Some(0);
+            if is_error {
+                output = format!(
+                    "[exit code {}]\n{output}",
+                    outcome
+                        .exit_code
+                        .map_or("unknown".to_string(), |code| code.to_string())
+                );
+            }
+            tool_result(call, output, is_error, false)
+        }
+        Err(error) => tool_result(call, format!("execution failed: {error}"), true, false),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::chat::provider::{ChatProvider, ChatUsage};
     use crate::chat::tool_types::{StreamOutcome, ToolSpec};
-    use crate::runtime::TurnOrigin;
+    use crate::runtime::{
+        execute_approved_tool, CancellationToken, TurnOrigin, YanaAuthorityChain,
+    };
     use anyhow::Result;
     use std::sync::Arc;
     use uuid::Uuid;
@@ -270,7 +354,7 @@ mod tests {
     fn terminal_executor_reads_through_the_canonical_capability() {
         let root = tempfile::tempdir().unwrap();
         std::fs::write(root.path().join("note.txt"), "hello").unwrap();
-        let executor = ChatCapabilityExecutor;
+        let executor = ChatCapabilityExecutor::new(false);
         let result = executor.execute(
             &context(root.path()),
             &ToolCall {
@@ -286,7 +370,7 @@ mod tests {
     #[test]
     fn terminal_executor_never_executes_mutating_tools() {
         let root = tempfile::tempdir().unwrap();
-        let executor = ChatCapabilityExecutor;
+        let executor = ChatCapabilityExecutor::new(false);
         let result = executor.execute(
             &context(root.path()),
             &ToolCall {
@@ -297,5 +381,30 @@ mod tests {
         );
         assert!(result.denied);
         assert!(!root.path().join("should-not-exist").exists());
+    }
+
+    #[test]
+    fn canonical_approved_path_executes_mutating_tools_once() {
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "run_command".into(),
+            arguments_json: r#"{"command":"touch approved-command"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(!result.denied);
+        assert!(!result.is_error);
+        assert!(root.path().join("approved-command").exists());
     }
 }
