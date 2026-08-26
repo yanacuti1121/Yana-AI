@@ -261,6 +261,88 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ---
 
+## 저장소 구조
+
+위 표는 런타임 아키텍처를 설명합니다. 아래는 그것이 실제로 위치한
+디렉터리 트리이며, 알파벳순이 아니라 각 경로가 하는 일에 따라
+묶었습니다. 이름이 비슷한 두 쌍의 디렉터리는 실제로는 서로 다른
+것이며, 구분이 중요한 곳에 아래에서 표시했습니다:
+
+| 경로 | 내용 |
+| --- | --- |
+| `src/` | `yana-rt` Rust 바이너리. 아래 [`src/` 내부](#src-내부-yana-os와-다른-plane들) 참고. |
+| `core/` | rule/hook/skill/agent 콘텐츠, 이를 강제하는 JS/shell 코드, audit + trust 상태(`core/memory/`). [안전 아키텍처](#안전-아키텍처) 참고. |
+| `gates/` | Markdown으로 작성된 gate **정책 명세**(`action_gate.md`, `truth_gate.md` 등) — 이를 구현하는 JS/shell 코드인 `core/gates/`와는 다릅니다. |
+| `scripts/` | `yana-rt` 바이너리를 빌드/래핑하는 데 특화된 소수의 스크립트 — `core/scripts/`의 일반 hook/안전 스크립트 130개 이상과는 다릅니다. |
+| `memory/` | 최상위 L1 atomic fact와 L2 session 상태 — `core/memory/`의 audit 로그 및 trust ledger와는 다릅니다. |
+| `scanner/` | `src/scanner/`가 컴파일하고 실행하는 YAML 위험 검사 규칙 정의(`shell-risk-checks.yml`, `auth-credential-checks.yml` 등). |
+| `policy/`, `guards/`, `router/`, `prompts/` | 그 외 선언형 설정: 정책 템플릿, guard 인덱스, `route.rs` 뒤에 있는 모델 라우팅 정책, system prompt. |
+| `tools/yana-web/` | 브라우저 대시보드(Node 서버 + 클라이언트). |
+| `tools/yana-desktop/` | Electron 데스크톱 셸. |
+| `tools/` (그 외) | 독립 유틸리티: `airllm-bridge`, `codexmate`, `moss-tts-nano`, `yana-pixel-bridge`, 그리고 몇 개의 일회성 스크립트. |
+| `bin/yana` | 설치된 CLI 진입점. |
+| `adapters/` | harness별 adapter 문서(Claude Code, Codex, Cursor, Antigravity). |
+| `docs/` | 아키텍처 노트, ADR, 인시던트 기록, docs 사이트 콘텐츠. |
+| `site/` | Astro로 빌드한 마케팅/docs 웹사이트. |
+| `examples/` | spec 예제, context-pack, 그리고 scanner 자체 테스트가 스캔 대상으로 쓰는 의도적으로 취약한 테스트 저장소. |
+| `demo/` | 이 README 상단의 터미널 데모를 녹화하는 스크립트. |
+| `tests/` | Python 테스트 스위트. |
+| `ops/` | 릴리스 서명 및 release-gate 서비스 스크립트. |
+| `releases/`, `artifacts/` | 릴리스 로그와 빌드 아티팩트. |
+| `reports/`, `ledger/` | 스캔 리포트 스키마/템플릿과 토큰 사용량 추적 스키마. |
+| `github-app/` | GitHub App 통합. |
+| `vendor/` | Yana AI가 적용하는 외부 프로젝트의 vendored 참조 사본, `hermes-agent`, `openclaw`, `penpot` 포함. |
+
+다섯 번째, 독립적으로 버전이 매겨지는 축인 PyPI 배포 Python 패키지는
+별도의 최상위 디렉터리가 아니라 `src/yana_ai/`에 있습니다.
+
+### `src/` 내부: Yana OS와 다른 plane들
+
+`yana-rt`는 하나의 바이너리이지만 하나의 모듈은 아닙니다. 위에서 설명한
+turn runtime(`runtime/`, `model/`, `capability/`, `chat/`, `remote/`,
+`mcp.rs`) 외에도 `src/` 안에는 네 개의 plane이 더 있습니다:
+
+**Yana OS**(`src/os/`, 내부적으로 "Program K")는 turn 루프와 분리된
+로컬 관리 plane입니다:
+
+- `identity/` — guest / operator / sovereign 인증 tier
+- `autonomy.rs` — 자율성 사다리(감독 없이 agent가 할 수 있는 범위)
+- `governor.rs` — 그 사다리 위에 있는 행동 제한
+- `credential.rs` — credential 처리
+- `resource/` — CPU/RAM/PID quota
+- `supervisor.rs` — HALT 락 파일을 읽고 씀; 이것이 런타임의 authority
+  chain이 매 turn마다 호출하는 함수이며, 아래에서 설명하는 독립
+  watcher가 쓰는 것과 같은 파일입니다
+- `service/`(`manager.rs`, `runtime.rs`, `attribution.rs`) — 데몬
+  생명주기 관리
+- `agent.rs`, `health.rs`, `monitor.rs`, `monitor_service.rs`,
+  `state.rs`, `status.rs`, `roadmap.rs`, `platform/`
+
+**보안 및 audit**(`guard/`, `scanner/`, `score/`, `evidence/`,
+`provenance/`, `filescan/`)는 `yana-rt audit`, `yana-rt hunt`, 커밋
+전 rule 스캔을 지원하는 도구입니다: 가장 빈번한 PreToolUse hook을
+네이티브 Rust로 포팅한 것, rule 매칭 엔진, CRITICAL/HIGH/MEDIUM/LOW
+심각도 채점기, Truth Gate provenance, 그리고 `core/lib/*_adapted/`로
+포팅된 코드가 vendor한 원본과 여전히 일치하는지 확인하는 검사입니다.
+
+**Workspace 및 memory**(`workspace/`, `memory.rs`, `vault/`,
+`session_context.rs`)는 통합된 로컬 이벤트 저장소, L1/L2 fact 시스템,
+자체 검색 인덱스를 가진 secret vault, 그리고 모든 클라이언트(chat,
+MCP, Desktop)가 turn을 구성할 때 쓰는 단일 `SessionContext` 타입입니다.
+
+**운영 도구**는 나머지 CLI 표면입니다: `init`, `doctor`, `fix`,
+`watch`, `monitor`, `observability`, `config`, `cost`, `route`,
+`plugin`, `task`, `skill_quality`, `spec`, `graph`, `hunt`, `ci`,
+`design`, `mission`, `bus`, 그리고 `flock_v1`(이 목록의 나머지가 동시
+writer 아래에서 상태를 손상시키지 않도록 의존하는 프로세스 간 파일
+락).
+
+다섯 번째, 독립적인 축인 `src/yana_ai/`(`rt.py`, `cli.py`)는 PyPI로
+배포되는 Python CLI입니다. Rust 바이너리와 별도로 패키징되고
+버전이 매겨집니다; `VERSIONING.md` 참고.
+
+---
+
 ## Rust 런타임 — `yana-rt`
 
 전체 feature build의 source에는 34개 서브커맨드가 정의되어 있습니다. Python 의존성 없음. 기본 build는 runtime 명령 32개를 노출하고 Clap이 보이는 `help` 항목을 추가하며, `mcp`와 `remote`는 feature-gated입니다.

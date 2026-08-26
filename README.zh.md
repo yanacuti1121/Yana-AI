@@ -261,6 +261,84 @@ bash core/scripts/switch-engine.sh status      # 检查全部 4 个适配器
 
 ---
 
+## 仓库结构
+
+上面的表格描述了运行时架构。这里是它实际所在的目录树，按每个路径
+的作用分组，而不是按字母顺序。有两对名称相似的目录其实完全不同，
+在需要区分的地方已在下面注明：
+
+| 路径 | 内容 |
+| --- | --- |
+| `src/` | `yana-rt` Rust 二进制文件。见下方[`src/` 内部](#src-内部yana-os-和其他平面)。 |
+| `core/` | rule/hook/skill/agent 内容、执行它们的 JS/shell 代码，以及 audit + trust 状态（`core/memory/`）。见[安全架构](#安全架构)。 |
+| `gates/` | Markdown 格式的 gate **策略规范**（`action_gate.md`、`truth_gate.md` 等）——不同于实现它们的 JS/shell 代码 `core/gates/`。 |
+| `scripts/` | 专门用于构建/包装 `yana-rt` 二进制文件的少量脚本——不同于 `core/scripts/` 中 130 多个通用 hook 与安全脚本。 |
+| `memory/` | 顶层 L1 atomic fact 与 L2 session 状态——不同于 `core/memory/` 中的 audit 日志与 trust ledger。 |
+| `scanner/` | `src/scanner/` 编译并运行的 YAML 风险检查规则定义（`shell-risk-checks.yml`、`auth-credential-checks.yml` 等）。 |
+| `policy/`、`guards/`、`router/`、`prompts/` | 其他声明式配置：策略模板、guard 索引、`route.rs` 背后的模型路由策略，以及 system prompt。 |
+| `tools/yana-web/` | 浏览器仪表盘（Node 服务端 + 客户端）。 |
+| `tools/yana-desktop/` | Electron 桌面壳。 |
+| `tools/`（其他） | 独立工具：`airllm-bridge`、`codexmate`、`moss-tts-nano`、`yana-pixel-bridge`，以及少量一次性脚本。 |
+| `bin/yana` | 已安装的 CLI 入口。 |
+| `adapters/` | 各 harness 的适配器文档（Claude Code、Codex、Cursor、Antigravity）。 |
+| `docs/` | 架构说明、ADR、事故记录、docs 站点内容。 |
+| `site/` | 用 Astro 构建的营销/文档网站。 |
+| `examples/` | spec 示例、context-pack，以及 scanner 自身测试用来扫描的一个故意存在漏洞的测试仓库。 |
+| `demo/` | 录制本 README 顶部终端演示的脚本。 |
+| `tests/` | Python 测试套件。 |
+| `ops/` | 发布签名与 release-gate 服务脚本。 |
+| `releases/`、`artifacts/` | 发布日志与构建产物。 |
+| `reports/`、`ledger/` | 扫描报告的 schema/模板，以及 token 用量追踪 schema。 |
+| `github-app/` | GitHub App 集成。 |
+| `vendor/` | Yana AI 借鉴/集成的外部项目的 vendored 参考副本，包括 `hermes-agent`、`openclaw` 和 `penpot`。 |
+
+第五条独立版本化的轴线，即 PyPI 分发的 Python 包，位于 `src/yana_ai/`，
+而不是一个独立的顶层目录。
+
+### `src/` 内部：Yana OS 和其他平面
+
+`yana-rt` 是一个二进制文件，但不是一个模块。除了上面描述的 turn
+runtime（`runtime/`、`model/`、`capability/`、`chat/`、`remote/`、
+`mcp.rs`）之外，`src/` 下还有四个平面：
+
+**Yana OS**（`src/os/`，内部代号 "Program K"）是与 turn 循环分离的
+本地管理平面：
+
+- `identity/` — guest / operator / sovereign 认证等级
+- `autonomy.rs` — 自主性阶梯（agent 在无人监督下可以做多少）
+- `governor.rs` — 在该阶梯之上的行为限制
+- `credential.rs` — 凭证处理
+- `resource/` — CPU/RAM/PID 配额
+- `supervisor.rs` — 读写 HALT 锁文件；这是运行时的 authority chain
+  每个 turn 都会调用的函数，也是下文所述独立 watcher 写入的同一个文件
+- `service/`（`manager.rs`、`runtime.rs`、`attribution.rs`） — 守护
+  进程生命周期管理
+- `agent.rs`、`health.rs`、`monitor.rs`、`monitor_service.rs`、
+  `state.rs`、`status.rs`、`roadmap.rs`、`platform/`
+
+**安全与 audit**（`guard/`、`scanner/`、`score/`、`evidence/`、
+`provenance/`、`filescan/`）是 `yana-rt audit`、`yana-rt hunt` 以及
+提交前 rule 扫描背后的工具：高频 PreToolUse hook 的原生 Rust 移植版、
+rule 匹配引擎、CRITICAL/HIGH/MEDIUM/LOW 严重程度评分器、Truth Gate
+的 provenance，以及一项检查——确认移植到 `core/lib/*_adapted/` 中的
+代码仍与其 vendor 来源一致。
+
+**Workspace 与 memory**（`workspace/`、`memory.rs`、`vault/`、
+`session_context.rs`）是统一的本地事件存储、L1/L2 fact 系统、带有自身
+搜索索引的密钥 vault，以及每个客户端（chat、MCP、Desktop）用来构造
+turn 的单一 `SessionContext` 类型。
+
+**运维工具**是 CLI 界面的其余部分：`init`、`doctor`、`fix`、`watch`、
+`monitor`、`observability`、`config`、`cost`、`route`、`plugin`、
+`task`、`skill_quality`、`spec`、`graph`、`hunt`、`ci`、`design`、
+`mission`、`bus`，以及 `flock_v1`（该列表中其余部分都依赖它，以防止
+并发写入者破坏状态的跨进程文件锁）。
+
+第五条独立轴线 `src/yana_ai/`（`rt.py`、`cli.py`）是 PyPI 分发的
+Python CLI。它与 Rust 二进制文件分开打包和版本化；见 `VERSIONING.md`。
+
+---
+
 ## Rust 运行时 — `yana-rt`
 
 所有 feature build 的 source 共定义 34 个子命令，零 Python 依赖。默认 build 暴露 32 个 runtime 命令，Clap 另加可见的 `help` 项；`mcp` 与 `remote` 受 feature gate 控制。
