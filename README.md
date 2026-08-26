@@ -325,6 +325,7 @@ lives at `src/yana_ai/` rather than as a top-level directory of its own.
 
 ```bash
 yana-ai chat                          # governed streaming chat across the canonical provider catalog
+yana-ai presentation                  # ask → preview → confirm → download an editable PPTX
 yana-ai audit .                       # security scan — secrets, CVEs, supply chain risks
 yana-ai graph .                       # knowledge graph — file deps, import resolution
 yana-ai vault search Q                # search 2,025 skills by keyword
@@ -336,6 +337,12 @@ yana-ai ci                            # run all gate checks (used in CI)
 yana-ai route classify "fix auth bug" # classify task → simple/complex/external
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
+
+`yana-ai presentation` uses the same provider catalog and `yana-rt` turn
+runtime as chat, including fully local Ollama models. It accepts text,
+Markdown, HTML, DOCX, PPTX, and PDF sources, requires an outline confirmation
+before writing, and saves a non-overwriting bundle under Downloads. See the
+[Presentation Studio guide](docs/operations/presentation-studio.md).
 
 **Benchmark** (measured 2026-07-23, full methodology in `BENCHMARK.md`):
 bounded commands like `doctor`/`ci` are ~2–12x faster than Python
@@ -406,7 +413,7 @@ core/
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 282 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 283 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions

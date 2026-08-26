@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-26T06:29:03+00:00",
-  "count": 282,
+  "generated": "2026-08-26T10:56:59+00:00",
+  "count": 283,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -221,6 +221,7 @@
     "core/scripts/policy_manager.py": "108b0b805e3e558e97a23e7eac5acf4c0e1ee76d00a8383b180fc2af12e693a1",
     "core/scripts/prefetch-pdfium.sh": "00c2488316f086f6d282321d66a07eb86263cf9bae8544aae950d51062c67433",
     "core/scripts/prepare-self-hosted-release-candidate.sh": "595913eb45d8891752a73a0a7d7e98800d27934ee7b395a1af78b7fb527fa26e",
+    "core/scripts/presentation_studio.py": "23bafabd9fe5c23b021a2ddaffdc1ea0e13a7faac81fe550972a98af2b493bde",
     "core/scripts/promote-session-patterns.sh": "308a3a6e6950681a1f076f9fe4a85a5dca2f95d81497863a73f710a62a1d335d",
     "core/scripts/release-gate.py": "80e2d9e1a6e4fd9fb95cbb3738a25120d7942b980e18ac6113e8c181dfd065a7",
     "core/scripts/report_html.py": "6e51e893a2bf9a52631eb6798cd3c60641fd457217f6c32e1c586a2172e05a14",

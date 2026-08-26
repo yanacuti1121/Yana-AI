@@ -444,7 +444,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 130,
+      "count": 131,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -520,6 +520,7 @@
         "core/scripts/policy_manager.py",
         "core/scripts/prefetch-pdfium.sh",
         "core/scripts/prepare-self-hosted-release-candidate.sh",
+        "core/scripts/presentation_studio.py",
         "core/scripts/promote-session-patterns.sh",
         "core/scripts/release-gate.py",
         "core/scripts/report_html.py",
@@ -2788,7 +2789,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 100,
   "hooks_count": 65,
-  "scripts_count": 130,
+  "scripts_count": 131,
   "commands_count": 170,
   "rules_count": 71
 }
