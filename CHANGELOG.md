@@ -8,6 +8,20 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## Python package v1.4.2 (one-time catch-up) — 2026-08-26
+
+`pyproject.toml` and `src/yana_ai/__init__.py` move from `0.42.5` to
+`1.4.2`. This is a display/branding correction, not a release: no
+Python-specific code changed. The Python package version had drifted
+onto a pre-1.0-looking number while the product and crate axes were
+both `1.4.x`, which read as the Python package being far less mature
+than it actually is rather than an independently-numbered axis. See
+[VERSIONING.md](VERSIONING.md#why-not-one-version-number-for-everything)
+— axes remain independently versioned going forward; this is a one-time
+realignment, not a change to that policy.
+
+---
+
 ## v1.4.2 — 2026-08-26
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/

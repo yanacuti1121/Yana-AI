@@ -107,6 +107,28 @@ axis checked against its own tag prefix only, never cross-referenced
 against the other axes, consistent with this document's core rule above.
 See `docs/RELEASE-CHECKLIST.md` Step 6.
 
+**Python-axis one-time catch-up (2026-08-26):** the Python package had
+drifted onto a pre-1.0-looking number (`0.42.5`) while the product and
+crate axes were both in the `1.4.x` generation, which read as "the
+Python package is far less mature" rather than "an independently
+numbered axis that happens to use different digits" — confusing enough
+in practice that it was worth a one-time correction. `pyproject.toml`
+and `src/yana_ai/__init__.py` were bumped straight to `1.4.2` with no
+Python-specific code change behind that jump; it is a display/branding
+correction, not a claim that the Python package changed. **This is not
+a policy change.** The rejection below still holds: axes are not
+lockstepped going forward.
+
+**Crate-axis catch-up publish (2026-08-26):** separately, `Cargo.toml`
+had already moved to `1.4.1` as part of the v1.4.2 product release, but
+nobody had tagged and pushed `rt-v1.4.1` — crates.io was still serving
+`1.4.0`, a real publish gap rather than intentional axis drift (see
+"publish parity" above). Fixed by publishing straight to `1.4.2` to
+match the product axis's current number at the time, not by catching up
+to the skipped `1.4.1`. Also a one-time realignment, not a policy
+change — the next crate-only change still bumps only the crate axis,
+independent of product and Python.
+
 ## Why not one version number for everything
 
 Considered and rejected: a single version bumped on every release,

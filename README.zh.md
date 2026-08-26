@@ -647,7 +647,7 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 |---|---|---|
 | 产品（rules/hooks/skills/agents/CLI） | **1.4.2** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust 运行时（`yana-rt`） | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 包 | **0.42.5** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Python 包 | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
 
