@@ -338,11 +338,60 @@ yana-ai route classify "fix auth bug" # classify task → simple/complex/externa
 yana-ai mission create "add-auth"     # create parallel agent mission
 ```
 
-`yana-ai presentation` uses the same provider catalog and `yana-rt` turn
-runtime as chat, including fully local Ollama models. It accepts text,
-Markdown, HTML, DOCX, PPTX, and PDF sources, requires an outline confirmation
-before writing, and saves a non-overwriting bundle under Downloads. See the
-[Presentation Studio guide](docs/operations/presentation-studio.md).
+### Presentation Studio — from source material to an editable deck
+
+`yana-ai presentation` is not a one-shot “write some slides” prompt. It is a
+human-gated presentation workflow designed for students, teachers, technical
+briefings, and anyone who wants to review the plan before AI creates files.
+
+```text
+Ask clear questions
+        ↓
+Read TXT / Markdown / HTML / DOCX / PPTX / PDF sources
+        ↓
+Generate and show the complete slide outline
+        ↓
+Confirm · Edit · Quit
+        ↓
+Write an editable PPTX bundle under Downloads
+```
+
+Before generation, Yana asks for the topic, audience, language, slide count,
+visual style, learning goal, source documents, citation preference, and speaker
+notes. It writes nothing until the user confirms the displayed outline.
+
+```bash
+# Install the optional PowerPoint renderer
+pip install 'yana-ai[presentation]'
+
+# Fully local: the brief and source text stay on your machine
+yana-ai presentation --provider ollama --model qwen3:14b
+
+# Preview without writing files
+yana-ai presentation --no-ai --dry-run
+
+# Also create PDF when LibreOffice is installed
+yana-ai presentation --pdf
+```
+
+Presentation intelligence goes through the same canonical `yana-rt` provider
+catalog and turn runtime as chat. Ollama is the default local provider; cloud
+providers remain available when explicitly selected. API keys are passed to
+the runtime through stdin rather than process arguments, and source documents
+are marked as untrusted reference context instead of executable instructions.
+
+Each confirmed run creates a new, non-overwriting directory under
+`~/Downloads/Yana-Presentations/` containing:
+
+- an editable `.pptx` deck;
+- `presentation.json` with the reviewed brief, slide content, notes, provider,
+  model, and generation mode;
+- an optional `.pdf` export through local LibreOffice.
+
+Model failures are fail-closed by default. Deterministic output is used only
+when the user selects `--no-ai` or explicitly permits `--fallback`. See the
+[full Presentation Studio guide](docs/operations/presentation-studio.md) for
+format requirements, automation, privacy boundaries, and PDF support.
 
 **Benchmark** (measured 2026-07-23, full methodology in `BENCHMARK.md`):
 bounded commands like `doctor`/`ci` are ~2–12x faster than Python
