@@ -117,10 +117,17 @@ and `src/yana_ai/__init__.py` were bumped straight to `1.4.2` with no
 Python-specific code change behind that jump; it is a display/branding
 correction, not a claim that the Python package changed. **This is not
 a policy change.** The rejection below still holds: axes are not
-lockstepped going forward, and the crate axis (`1.4.1`, one behind
-product's `1.4.2` at time of writing) was deliberately left alone here
-because it was already in the same generation and not the source of
-confusion.
+lockstepped going forward.
+
+**Crate-axis catch-up publish (2026-08-26):** separately, `Cargo.toml`
+had already moved to `1.4.1` as part of the v1.4.2 product release, but
+nobody had tagged and pushed `rt-v1.4.1` — crates.io was still serving
+`1.4.0`, a real publish gap rather than intentional axis drift (see
+"publish parity" above). Fixed by publishing straight to `1.4.2` to
+match the product axis's current number at the time, not by catching up
+to the skipped `1.4.1`. Also a one-time realignment, not a policy
+change — the next crate-only change still bumps only the crate axis,
+independent of product and Python.
 
 ## Why not one version number for everything
 
