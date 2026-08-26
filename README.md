@@ -393,14 +393,30 @@ when the user selects `--no-ai` or explicitly permits `--fallback`. See the
 [full Presentation Studio guide](docs/operations/presentation-studio.md) for
 format requirements, automation, privacy boundaries, and PDF support.
 
-**Benchmark** (measured 2026-07-23, full methodology in `BENCHMARK.md`):
-bounded commands like `doctor`/`ci` are ~2–12x faster than Python
-(startup-dominated); a full-repo `scan` converges to ~1.1x at 19k files
-(work-dominated, not startup-dominated at that scale). The `1256x` figure
-this line used to claim was already found unverified once
-(2026-05-31, commit `fb6a0cd7`) and regressed back in by an unrelated
-README restore (2026-07-07) — not reproducible by any measurement in
-`BENCHMARK.md`, then or now.
+**Current performance snapshot** (measured 2026-08-26 on an Apple M4 MacBook
+Air, 16 GB RAM, macOS 27 beta; release build; historical methodology and
+baseline in `BENCHMARK.md`):
+
+| Path | `yana-rt` | Python reference | Current reading |
+|---|---:|---:|---|
+| Process startup | **4.21 ms** | — | Effectively unchanged from the 4.15 ms July baseline |
+| `doctor` | **255 ms** | 365 ms | Rust is 1.43x faster, but currently runs 10 checks versus Python's 16 |
+| `ci check` | 414 ms | **40 ms** | Rust is 10.34x slower and returned 0 findings where Python returned 3 warnings |
+| `scan core/skills` | **4.45 s** | 8.89 s | Rust is 2.00x faster |
+| Default full-repo `scan` | 14.61 s | **7.90 s** | Python is currently 1.85x faster |
+| Clear-state HALT hook | **3.80 ms** | — | Faster than the 4.97 ms July baseline |
+| Token-budget guard | **3.48 ms** | — | Down from 65 ms after the native fast path |
+
+The release binary is about 14 MiB. Peak RSS was 15.3 MiB for the Rust skill
+scan versus 25.3 MiB for Python, and 23.0 MiB versus 34.1 MiB for the default
+full scan. These are local measurements, not cross-platform claims; Linux and
+Windows numbers remain unmeasured.
+
+**Performance work queued from this measurement:** restore `ci check` finding
+parity before optimizing it; reconcile the six checks present in Python
+`doctor` but absent from the Rust path; profile the Rust full-repo scanner; and
+reduce the current release build's 140 warning lines. Startup, HALT enforcement,
+and token-budget enforcement do not currently need optimization.
 
 ### Inside `src/`: Yana OS and the other planes
 

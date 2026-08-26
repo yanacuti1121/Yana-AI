@@ -405,13 +405,29 @@ deterministic 결과를 허용합니다.
 형식 요구 사항, 자동화, 개인정보 경계, PDF 지원은
 [Presentation Studio 전체 가이드](docs/operations/presentation-studio.md)를 참고하세요.
 
-**벤치마크** (2026-07-23 측정, 전체 방법론은 `BENCHMARK.md` 참고):
-`doctor`/`ci` 같이 범위가 제한된 명령은 Python보다 약 ~2–12배 빠릅니다
-(시작 시간이 지배적); 전체 리포지토리 `scan`은 19,000개 파일 규모에서 ~1.1배로 수렴합니다
-(그 규모에서는 시작 시간이 아니라 작업량이 지배적). 이 줄이 예전에 주장했던 `1256배`라는
-수치는 이미 한 번 검증되지 않은 것으로 밝혀졌고(2026-05-31, 커밋 `fb6a0cd7`)
-관련 없는 README 복원(2026-07-07)으로 다시 들어왔습니다 — 그때나 지금이나
-`BENCHMARK.md`의 어떤 측정으로도 재현되지 않습니다.
+**현재 성능 스냅샷** (2026-08-26, Apple M4 MacBook Air, 16 GB RAM,
+macOS 27 beta, release build에서 측정; 과거 방법론과 baseline은
+`BENCHMARK.md` 참고):
+
+| 실행 경로 | `yana-rt` | Python 기준 구현 | 현재 결과 |
+|---|---:|---:|---|
+| 프로세스 시작 | **4.21 ms** | — | 7월 baseline 4.15 ms와 사실상 동일 |
+| `doctor` | **255 ms** | 365 ms | Rust가 1.43배 빠르지만 현재 check 수는 10개, Python은 16개 |
+| `ci check` | 414 ms | **40 ms** | Rust가 10.34배 느리고, Python이 warning 3개를 반환할 때 finding 0개를 반환 |
+| `scan core/skills` | **4.45초** | 8.89초 | Rust가 2.00배 빠름 |
+| 기본 전체 저장소 `scan` | 14.61초 | **7.90초** | 현재 Python이 1.85배 빠름 |
+| lock이 없는 HALT hook | **3.80 ms** | — | 7월 baseline 4.97 ms보다 빠름 |
+| Token-budget guard | **3.48 ms** | — | native fast path 적용 후 65 ms에서 감소 |
+
+Release binary는 약 14 MiB입니다. Skills scan의 peak RSS는 Rust 15.3 MiB,
+Python 25.3 MiB이고, 기본 전체 scan은 각각 23.0 MiB와 34.1 MiB였습니다.
+이는 로컬 측정값이며 크로스 플랫폼 성능 주장으로 사용하지 않습니다. Linux와
+Windows 수치는 아직 측정하지 않았습니다.
+
+**이 측정에서 준비된 개선 작업:** 최적화 전에 `ci check` finding parity 복구,
+Python `doctor`에는 있지만 Rust 경로에는 없는 6개 check 정합화, Rust 전체 저장소
+scanner profiling, 현재 release build의 warning 140줄 감소입니다. 프로세스 시작,
+HALT enforcement, token-budget enforcement는 현재 추가 최적화가 필요하지 않습니다.
 
 ---
 
