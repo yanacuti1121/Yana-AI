@@ -349,6 +349,7 @@ writer 아래에서 상태를 손상시키지 않도록 의존하는 프로세�
 
 ```bash
 yana-ai chat                          # 표준 provider catalog를 사용하는 통제된 streaming chat
+yana-ai presentation                  # 질문 → 미리보기 → 확인 → 편집 가능한 PPTX 다운로드
 yana-ai audit .                       # 보안 스캔 — secrets, CVE, 공급망 위험
 yana-ai graph .                       # 지식 그래프 — 파일 의존성, import 해석
 yana-ai vault search Q                # 2,025개 스킬을 키워드로 검색
@@ -360,6 +361,49 @@ yana-ai ci                            # 모든 게이트 검사 실행 (CI에서
 yana-ai route classify "fix auth bug" # 작업 분류 → simple/complex/external
 yana-ai mission create "add-auth"     # 병렬 에이전트 미션 생성
 ```
+
+### Presentation Studio — 원본 자료에서 편집 가능한 슬라이드까지
+
+`yana-ai presentation`은 단순히 “슬라이드 몇 장을 작성해 줘”라고 한 번
+요청하는 기능이 아닙니다. 학생, 교사, 기술 브리핑 사용자처럼 AI가 파일을
+만들기 전에 전체 계획을 검토하려는 사람을 위한 human-gated workflow입니다.
+
+```text
+명확한 질문
+        ↓
+TXT / Markdown / HTML / DOCX / PPTX / PDF 원본 읽기
+        ↓
+전체 슬라이드 개요 생성 및 표시
+        ↓
+확인 · 수정 · 취소
+        ↓
+편집 가능한 PPTX bundle을 Downloads에 저장
+```
+
+Yana는 주제, 청중, 언어, 슬라이드 수, 시각 스타일, 학습 목표, 원본 문서,
+인용 여부, 발표자 노트를 먼저 묻습니다. 사용자가 표시된 개요를 확인하기
+전에는 어떤 프레젠테이션 파일도 작성하지 않습니다.
+
+```bash
+pip install 'yana-ai[presentation]'
+yana-ai presentation --provider ollama --model qwen3:14b  # 완전한 로컬 실행
+yana-ai presentation --no-ai --dry-run                    # 개요만 미리보기
+yana-ai presentation --pdf                                # LibreOffice로 PDF 추가
+```
+
+Presentation Studio는 chat과 동일한 표준 provider catalog 및 `yana-rt` turn
+runtime을 사용합니다. Ollama가 기본 로컬 provider이며 cloud provider는 사용자가
+명시적으로 선택할 때만 사용됩니다. API key는 argv가 아니라 stdin으로 runtime에
+전달되고, 원본 문서는 실행 명령이 아닌 신뢰할 수 없는 참고 자료로 표시됩니다.
+
+확인된 실행은 `~/Downloads/Yana-Presentations/` 아래에 덮어쓰지 않는 새
+디렉터리를 만들며, 편집 가능한 `.pptx`, brief/slide/note/provider/model/생성
+모드를 보존하는 `presentation.json`, 선택적 `.pdf`를 저장합니다. 모델 오류는
+기본적으로 fail-closed이며, `--no-ai` 또는 명시적인 `--fallback`에서만
+deterministic 결과를 허용합니다.
+
+형식 요구 사항, 자동화, 개인정보 경계, PDF 지원은
+[Presentation Studio 전체 가이드](docs/operations/presentation-studio.md)를 참고하세요.
 
 **벤치마크** (2026-07-23 측정, 전체 방법론은 `BENCHMARK.md` 참고):
 `doctor`/`ci` 같이 범위가 제한된 명령은 Python보다 약 ~2–12배 빠릅니다

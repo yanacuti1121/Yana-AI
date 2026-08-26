@@ -345,6 +345,7 @@ Python CLI。它与 Rust 二进制文件分开打包和版本化；见 `VERSIONI
 
 ```bash
 yana-ai chat                          # 在标准 provider catalog 上运行的受治理流式聊天
+yana-ai presentation                  # 提问 → 预览 → 确认 → 下载可编辑 PPTX
 yana-ai audit .                       # 安全扫描 — 密钥、CVE、供应链风险
 yana-ai graph .                       # 知识图谱 — 文件依赖、导入解析
 yana-ai vault search Q                # 按关键词搜索 2,025 个技能
@@ -356,6 +357,47 @@ yana-ai ci                            # 运行全部 gate 检查（CI 中使用�
 yana-ai route classify "fix auth bug" # 任务分类 → simple/complex/external
 yana-ai mission create "add-auth"     # 创建并行代理任务
 ```
+
+### Presentation Studio — 从源材料到可编辑幻灯片
+
+`yana-ai presentation` 并不是一次性的“帮我写几页幻灯片”提示词。它是一个由
+人类把关的演示文稿工作流，适合学生、教师、技术汇报，以及所有希望在 AI 创建
+文件前先审阅完整计划的用户。
+
+```text
+提出明确问题
+        ↓
+读取 TXT / Markdown / HTML / DOCX / PPTX / PDF 来源
+        ↓
+生成并显示完整幻灯片大纲
+        ↓
+确认 · 编辑 · 取消
+        ↓
+将可编辑 PPTX bundle 写入 Downloads
+```
+
+生成之前，Yana 会询问主题、受众、语言、页数、视觉风格、学习目标、源文档、
+引用偏好和演讲者备注。在用户确认屏幕上的大纲之前，Yana 不会写入任何演示文件。
+
+```bash
+pip install 'yana-ai[presentation]'
+yana-ai presentation --provider ollama --model qwen3:14b  # 完全本地运行
+yana-ai presentation --no-ai --dry-run                    # 仅预览大纲
+yana-ai presentation --pdf                                # 通过 LibreOffice 添加 PDF
+```
+
+Presentation Studio 与 chat 使用同一套标准 provider catalog 和 `yana-rt` turn
+runtime。Ollama 是默认本地 provider；只有用户明确选择时才使用云端 provider。
+API key 通过 stdin 而不是 argv 传给 runtime；源文档被标记为不受信任的参考数据，
+而不是可执行指令。
+
+每次确认都会在 `~/Downloads/Yana-Presentations/` 下创建一个不覆盖已有内容的
+新目录，其中包括可编辑 `.pptx`、保存 brief/slide/note/provider/model/生成模式
+的 `presentation.json`，以及可选 `.pdf`。模型失败默认 fail-closed；只有选择
+`--no-ai` 或明确允许 `--fallback` 时才使用 deterministic 输出。
+
+格式要求、自动化、隐私边界与 PDF 支持请参阅
+[完整 Presentation Studio 指南](docs/operations/presentation-studio.md)。
 
 **性能基准**（2026-07-23 测得，完整方法见 `BENCHMARK.md`）：
 `doctor`/`ci` 这类范围有限的命令比 Python 快约 ~2–12 倍

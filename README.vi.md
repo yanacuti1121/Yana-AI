@@ -350,6 +350,7 @@ khỏi binary Rust; xem `VERSIONING.md`.
 
 ```bash
 yana-ai chat                          # chat streaming được quản trị trên provider catalog chuẩn
+yana-ai presentation                  # hỏi → xem trước → xác nhận → tải PPTX có thể chỉnh sửa
 yana-ai audit .                       # quét bảo mật — secrets, CVE, rủi ro supply chain
 yana-ai graph .                       # knowledge graph — dependency file, resolve import
 yana-ai vault search Q                # tìm trong 2.025 skills theo từ khóa
@@ -361,6 +362,49 @@ yana-ai ci                            # chạy toàn bộ gate check (dùng tron
 yana-ai route classify "fix auth bug" # phân loại task → simple/complex/external
 yana-ai mission create "add-auth"     # tạo mission agent song song
 ```
+
+### Presentation Studio — từ tài liệu nguồn đến bộ slide có thể chỉnh sửa
+
+`yana-ai presentation` không phải là một prompt “viết vài slide” chạy một lần.
+Đây là workflow có con người kiểm soát dành cho học sinh, giáo viên, bài thuyết
+trình kỹ thuật và bất kỳ ai muốn duyệt kế hoạch trước khi AI tạo file.
+
+```text
+Đặt các câu hỏi rõ ràng
+        ↓
+Đọc nguồn TXT / Markdown / HTML / DOCX / PPTX / PDF
+        ↓
+Tạo và hiển thị toàn bộ dàn ý slide
+        ↓
+Xác nhận · Chỉnh sửa · Hủy
+        ↓
+Ghi bộ PPTX có thể chỉnh sửa vào Downloads
+```
+
+Trước khi tạo, Yana hỏi chủ đề, người nghe, ngôn ngữ, số slide, phong cách hình
+ảnh, mục tiêu, tài liệu nguồn, yêu cầu trích dẫn và speaker notes. Yana không
+ghi file nào cho tới khi người dùng xác nhận dàn ý đang hiển thị.
+
+```bash
+pip install 'yana-ai[presentation]'
+yana-ai presentation --provider ollama --model qwen3:14b  # chạy local hoàn toàn
+yana-ai presentation --no-ai --dry-run                    # chỉ xem trước
+yana-ai presentation --pdf                                # thêm PDF qua LibreOffice
+```
+
+Presentation Studio dùng cùng provider catalog và `yana-rt` turn runtime chuẩn
+với chat. Ollama là provider local mặc định; cloud provider chỉ được dùng khi
+người dùng chọn rõ. API key đi qua stdin thay vì argv, còn tài liệu nguồn được
+đánh dấu là dữ liệu tham khảo không đáng tin cậy chứ không phải lệnh thực thi.
+
+Mỗi lần xác nhận tạo một thư mục mới, không ghi đè, dưới
+`~/Downloads/Yana-Presentations/`, gồm file `.pptx` chỉnh sửa được,
+`presentation.json` lưu brief/slide/note/provider/model/chế độ sinh, và file
+`.pdf` tùy chọn. Lỗi model mặc định sẽ dừng an toàn; chỉ dùng kết quả
+deterministic khi chọn `--no-ai` hoặc cho phép rõ bằng `--fallback`.
+
+Xem [hướng dẫn Presentation Studio đầy đủ](docs/operations/presentation-studio.md)
+để biết yêu cầu định dạng, automation, quyền riêng tư và hỗ trợ PDF.
 
 **Benchmark** (đo ngày 2026-07-23, phương pháp đầy đủ trong `BENCHMARK.md`):
 các lệnh giới hạn phạm vi như `doctor`/`ci` nhanh hơn Python khoảng ~2–12 lần
