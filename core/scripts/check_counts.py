@@ -92,7 +92,8 @@ _VERSION_ANCHORS: dict[str, list[tuple[re.Pattern[str], str]]] = {
     ],
 }
 _PRODUCT_TABLE_ROW = re.compile(
-    r'(\| Product \(rules/hooks/skills/agents/CLI\) \| \*\*)\d+\.\d+\.\d+(\*\* \|)'
+    r'(\| [^\n|]*[（(]rules/hooks/skills/agents/CLI[）)] \| \*\*)'
+    r'\d+\.\d+\.\d+(\*\* \|)'
 )
 JSON_FILES = (
     "MANIFEST.json",
