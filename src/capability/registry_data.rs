@@ -18,6 +18,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
     vec![
         CapabilityDescriptor {
             name: "repo.tree",
+            tool_name: "repo_tree",
             description: "Bounded repository tree; ignores generated directories and denies path escape.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -46,6 +47,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "repo.read",
+            tool_name: "read_file",
             description: "Read one bounded UTF-8 repository file; denies path and symlink escape.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -71,6 +73,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "repo.search",
+            tool_name: "search_code",
             description: "Literal case-insensitive search across bounded UTF-8 repository files.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -99,6 +102,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "git.status",
+            tool_name: "git_status",
             description: "Read Git branch and working-tree status with fixed argv.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -115,6 +119,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "git.diff",
+            tool_name: "git_diff",
             description: "Read bounded staged or unstaged Git diff with fixed argv.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -138,6 +143,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "host.summary",
+            tool_name: "host_summary",
             description: "Read local OS, CPU, memory, load and disk summary.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -154,6 +160,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "process.list",
+            tool_name: "list_processes",
             description: "List bounded local processes sorted by cpu or memory; read-only.",
             access_mode: AccessMode::ReadOnly,
             // Can reveal other users'/system processes — Medium, not Low.
@@ -184,6 +191,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "process.inspect",
+            tool_name: "process_details",
             description: "Inspect one process by PID; read-only.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Medium,
@@ -207,6 +215,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "command.validate",
+            tool_name: "validate_command",
             description: "Parse a shell command into argv and judge it via crate::guard::check_command(); dry-run, no execution.",
             access_mode: AccessMode::ReadOnly,
             risk_tier: RiskTier::Low,
@@ -227,6 +236,7 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
         },
         CapabilityDescriptor {
             name: "command.execute",
+            tool_name: "run_command",
             description: "Execute a validated, guard-approved command's argv directly (or sandboxed). Requires explicit human approval in the terminal before it executes.",
             access_mode: AccessMode::Mutating,
             risk_tier: RiskTier::High,

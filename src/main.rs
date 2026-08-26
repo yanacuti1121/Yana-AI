@@ -46,6 +46,7 @@ mod mcp;
 // backends stay compiled everywhere via `cfg(target_os)` rather than a
 // separate feature gate.
 mod remote;
+mod runtime;
 
 use clap::{Parser, Subcommand};
 use std::ffi::OsString;
@@ -306,7 +307,7 @@ enum Commands {
     /// PreToolUse/PostToolUse hooks, so it builds its own gate in-process
     /// rather than relying on that hook system).
     Chat {
-        /// ollama | lmstudio | llamacpp | turbofieldfare | airllm | anthropic | openai | kimi
+        /// Provider ID from the canonical runtime catalog (`yana-rt models`).
         #[arg(long)]
         provider: Option<String>,
         /// Model name (default: provider's own default; for ollama, first
@@ -329,6 +330,9 @@ enum Commands {
         /// explicit human opt-out, never a silent fallback.
         #[arg(long)]
         no_sandbox: bool,
+        /// Machine-readable stdin/NDJSON adapter used by the Desktop GUI.
+        #[arg(long, hide = true)]
+        headless: bool,
     },
     /// Program J Phase 9 spike — MCP Server exposing `check_command` over
     /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
@@ -768,7 +772,27 @@ fn main() {
             resume,
             verbose,
             no_sandbox,
-        } => chat::dispatch(provider, model, system, resume, verbose, !no_sandbox),
+            headless,
+        } => {
+            if headless {
+                let provider = provider.unwrap_or_else(|| "ollama".to_string());
+                if system.is_some() || resume.is_some() || verbose || no_sandbox {
+                    eprintln!(
+                        "[chat/headless] pass turn data as stdin JSON; interactive-only flags are not accepted"
+                    );
+                    std::process::exit(2);
+                }
+                if let Err(error) = chat::dispatch_headless(provider, model) {
+                    println!(
+                        "{}",
+                        serde_json::json!({ "type": "error", "message": error.to_string() })
+                    );
+                    std::process::exit(2);
+                }
+            } else {
+                chat::dispatch(provider, model, system, resume, verbose, !no_sandbox)
+            }
+        }
         #[cfg(feature = "discord")]
         Commands::Remote { action } => match action {
             RemoteAction::Discord { action } => match action {

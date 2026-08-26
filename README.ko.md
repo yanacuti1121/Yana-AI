@@ -101,30 +101,42 @@ yana-rt mission create "add-auth"
 | 계층 | 개발자 가치 | 주요 surface |
 | --- | --- | --- |
 | **런타임** | 네이티브 chat, state, routing, health, 프로젝트 작업 | `yana-rt`, `yana-ai-rt` |
-| **모델** | 클라우드를 배제하지 않는 로컬 우선 실행 | Ollama, LM Studio, llama.cpp, Anthropic, OpenAI, Kimi |
+| **모델** | 클라우드를 배제하지 않는 로컬 우선 실행 | 19개 provider의 Rust catalog: 로컬 runtime 5개 + cloud/API adapter 14개 |
 | **어댑터** | 지원되는 harness 전반의 하나의 통제된 프로젝트 contract | Claude Code, Codex, Cursor, Antigravity |
 | **오케스트레이션** | Task, mission, memory, evidence, workspace | router, mission dispatcher, event bus |
 | **거버넌스** | 결정론적 검사, audit chain, quarantine, HALT, human gate | capability, hook, Yana OS, Giám Thị |
 
 ```text
- Local models        Cloud models         Coding agents
- Ollama              Anthropic            Claude Code
- LM Studio           OpenAI / Kimi        Codex / Cursor / Antigravity
- llama.cpp                 │                       │
-        └──────────────────┴───────────────────────┘
-                               │
-                        Provider + adapters
-                               │
-                         yana-rt runtime
-                 chat · capabilities · missions · memory
-                               │
-                    deterministic policy gates
-                               │
-                       Yana OS + Giám Thị
-               HALT · quarantine · receipts · human unlock
-                               │
-                 files · Git · processes · network · tools
+ Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
+                    │                                           │
+                    └──────────── 통제된 진입 경로 ──────────────┘
+                                         │
+                              Giám Thị 최상위 권한
+                         HALT · quarantine · human unlock
+                                         │
+                               Yana control plane
+                    policy · identity · evidence · capability
+                              ┌──────────┴──────────┐
+                              │                     │
+                    Rust TurnEngine          프로젝트 adapter
+              stream · cancel · tool loop    hook · rule · gate
+                     ┌────────┴────────┐
+                provider plane    capability plane
+                local + cloud      file · Git · process
 ```
+
+권한 체계는 하나지만 모든 통합이 같은 메커니즘을 쓴다고 가장하지 않습니다. 터미널 채팅, Discord, Electron Desktop은 타입이 지정된 turn을 Rust `TurnEngine`으로 보냅니다. Claude Code, Codex, Cursor, Antigravity는 프로젝트 로컬 adapter, hook, rule, gate를 통해 통제되는 네이티브 harness로 남습니다. Rust runtime이 설정되지 않은 브라우저 전용 Yana 배포는 기존 JavaScript gateway를 계속 사용하며, README는 이를 완전히 통제된 경로라고 과장하지 않고 명시적인 boundary로 기록합니다.
+
+### 하나의 런타임, 여러 인터페이스
+
+| 인터페이스 | 연결 대상 | 거버넌스 경계 |
+| --- | --- | --- |
+| **터미널 + Desktop + 패키지 Web** | 표준 Rust catalog의 모든 로컬·클라우드 provider | 하나의 `TurnEngine`, 하나의 capability 권한 경로, 하나의 Giám Thị HALT 경계 |
+| **Discord** | 인증 및 채널/사용자 allowlist가 적용된 원격 채팅 | 동일한 provider catalog와 `TurnEngine`을 사용하며 host/tool capability는 의도적으로 노출하지 않음 |
+| **MCP (opt-in)** | 명령 검사와 통제된 repo, Git, host, process, workspace 작업을 위한 stdio tool | Cargo feature `mcp`로 빌드하며, 사람 승인이 필요한 workspace 작업은 MCP에서 거부됨 |
+| **Claude Code, Codex, Cursor, Antigravity** | 네이티브 coding-agent harness | Yana 프로세스 내부에서 실행된다고 가장하지 않고 생성된 adapter, hook, rule, gate를 통해 통제 |
+
+따라서 로컬 AI와 클라우드 AI는 하나의 런타임 계약을 공유하지만 하나의 신뢰 영역으로 합쳐지지는 않습니다. Provider 선택은 inference 위치만 바꾸며 Yana의 typed turn, capability, evidence, 사람 승인 경계를 우회하지 않습니다.
 
 모델 지능은 행동을 제안할 수 있습니다. 결정론적 코드와 인간의 권한이 그 행동을 허용할지 결정합니다.
 
@@ -251,10 +263,10 @@ bash core/scripts/switch-engine.sh status      # 4개 어댑터 전체 확인
 
 ## Rust 런타임 — `yana-rt`
 
-32개 서브커맨드. Python 의존성 없음.
+전체 feature build의 source에는 34개 서브커맨드가 정의되어 있습니다. Python 의존성 없음. 기본 build는 runtime 명령 32개를 노출하고 Clap이 보이는 `help` 항목을 추가하며, `mcp`와 `remote`는 feature-gated입니다.
 
 ```bash
-yana-ai chat                          # 대화형 채팅 REPL — 클라우드(Anthropic/OpenAI) 또는 로컬(Ollama)
+yana-ai chat                          # 표준 provider catalog를 사용하는 통제된 streaming chat
 yana-ai audit .                       # 보안 스캔 — secrets, CVE, 공급망 위험
 yana-ai graph .                       # 지식 그래프 — 파일 의존성, import 해석
 yana-ai vault search Q                # 2,025개 스킬을 키워드로 검색
@@ -453,10 +465,11 @@ bash core/scripts/multi-agent-launch.sh start --tasks-file tasks.txt --concurren
 
 ## MCP 연동 — Buzz
 
-`yana-rt mcp`는 `check_command`(Claude Code용 `core/hooks/guard-destructive.sh`가
-실행하는 것과 동일한 파괴적 명령 검사)를 stdio를 통한 MCP 도구로
-노출합니다 — opt-in이며 `mcp` Cargo feature 뒤에 게이트되어 있어
-기본 바이너리에는 포함되지 않습니다.
+`yana-rt mcp`는 표준 파괴적 명령 검사와 통제된 repo, Git, host,
+process, workspace 작업을 stdio MCP 도구로 노출합니다. Opt-in이며
+`mcp` Cargo feature 뒤에 게이트되어 기본 바이너리에는 포함되지
+않습니다. 이 transport가 사람 승인을 만들어낼 수는 없으므로 승인
+전용 workspace 작업은 MCP server에서 계속 거부됩니다.
 
 첫 실제 사용처는 [Buzz](https://github.com/block/buzz)입니다 — AI
 에이전트가 자신만의 키를 가진 정식 멤버로 참여하는 자체 호스팅 팀
@@ -485,17 +498,24 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 **[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[명령어 레퍼런스 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
-Yana는 Yana AI 코어 위에 구축된 첫 번째 인터페이스입니다: 기반 인프라를 전혀 몰라도 누구나 AI와 채팅하고, 프로바이더를 전환하고, 스킬 라우팅을 사용할 수 있는 웹 UI입니다.
+Yana는 Yana AI core 위에 구축된 첫 번째 end-user 인터페이스입니다. Electron Desktop 앱은 통제된 turn에 로컬 Rust runtime을 사용하며, 브라우저 전용 배포는 신뢰할 수 있는 local runtime에 연결되기 전까지 호환성 surface로 남습니다.
 
-```
-사용자 → Yana AI → Yana AI Core (Router · 안전 · 컨텍스트) → 모델
+```text
+Electron Desktop → local NDJSON adapter → yana-rt headless
+                                      → Giám Thị + Yana 권한 검사
+                                      → TurnEngine
+                                      → provider 또는 승인된 capability
+
+브라우저 전용 web → 기존 JavaScript gateway → provider
+                    (명시적 호환성 boundary, 표준 통제 경로가 아님)
 ```
 
 - 가입 불필요: 자신의 API 키 사용
 - 🔐 **암호화된 키 볼트** — 키는 AES-256-GCM으로 저장, 마스터 키는 추출 불가(WebCrypto + IndexedDB), 절대 평문으로 저장되지 않음
-- 멀티 프로바이더: Anthropic · Groq · Gemini · OpenAI · DeepSeek · OpenRouter · 9Router · Ollama
+- **표준 Rust catalog:** 19개 provider — Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Novita, NVIDIA, MiniMax, GLM, Hugging Face, 9Router, Kimi, Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM
+- **Electron Desktop:** 설정된 17개 provider가 Rust headless 경로를 사용합니다. llama.cpp와 AirLLM은 현재 runtime/terminal 통합이며 Desktop Settings 항목은 아닙니다
 
-**프로바이더 설정**, 자신의 키를 사용하며 키는 로컬에서 암호화됩니다(Yana AI로 전송되지 않음):
+**일반적인 provider 설정 예시**, 자신의 키를 사용하며 키는 로컬에서 암호화됩니다(Yana AI로 전송되지 않음):
 
 | Provider | 유형 | 설정 |
 |----------|------|-------|
@@ -643,6 +663,22 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 ## 계보
 
 이 코드베이스는 이 저장소 자체의 git 히스토리(2026-05-17 시작)보다 더 앞선 뿌리를 가지고 있습니다 — 그 이전에는 "YAMTAM ENGINE"이라는 이름의 스캐폴드였습니다. 날짜가 기록된 기원 문서는 [docs/history/LINEAGE.md](docs/history/LINEAGE.md)를 참고하세요 — 직접 검증한 부분(zip 내용물, 내장된 git 히스토리, 체크섬)과 보고만 되고 아직 확인되지 않은 부분을 구분해 두었습니다.
+
+---
+
+## 설계 영향과 출처
+
+Yana AI는 독립적으로 구현됩니다. 공개된 아키텍처 pattern과 공식 상호운용 contract를 연구하지만, 다른 프로젝트를 다시 브랜딩하거나 그들의 작업을 Yana의 작업으로 표시하지 않습니다.
+
+| 출처 | Yana가 학습하거나 구현 기준으로 삼은 부분 | 출처 경계 |
+|---|---|---|
+| [AAIF Goose](https://github.com/aaif-goose/goose) | provider 독립적인 agent runtime과 Rust, CLI, Desktop, API surface의 결합 | Apache-2.0 프로젝트를 아키텍처 pattern 수준에서 연구했습니다. 이번 runtime 통합에는 Goose source를 복사하거나 vendor하지 않았습니다 |
+| [Model Context Protocol 명세](https://modelcontextprotocol.io/specification/latest) | 표준 tool/resource 상호운용성과 protocol boundary | 공식 공개 명세입니다. Yana의 권한 계층, capability policy, runtime은 독립 설계입니다 |
+| [Anthropic streaming 문서](https://platform.claude.com/docs/en/build-with-claude/streaming) | Messages streaming과 event semantics | provider wire contract만 사용하며 UI나 product code는 재사용하지 않습니다 |
+| [Google Gemini generate-content API](https://ai.google.dev/api/generate-content) | Gemini streaming, content part, inline image request semantics | provider wire contract만 사용하며 구현은 Yana provider abstraction 내부에서 작성했습니다 |
+| [OpenAI Chat API reference](https://platform.openai.com/docs/api-reference/chat) | OpenAI 호환 chat, SSE, usage, tool-call field | 호환 endpoint를 위한 상호운용 contract이며 UI/branding 출처가 아닙니다 |
+
+이번 runtime 통합은 Goose 또는 표에 있는 프로젝트의 source를 복사하지 않았습니다. 향후 코드를 직접 재사용한다면 원본 URL, license, copyright notice, file-level attribution을 반드시 보존해야 합니다.
 
 ---
 

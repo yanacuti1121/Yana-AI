@@ -531,4 +531,8 @@ function connectToProvider(providerEntry, apiKey, reqBody, reqPath) {
   });
 }
 
-module.exports = { PROVIDERS, connectToProvider };
+function getNineRouterKey() {
+  return NINE_ROUTER_KEY;
+}
+
+module.exports = { PROVIDERS, connectToProvider, getNineRouterKey };

@@ -115,10 +115,7 @@ fn normalized_interval(interval_secs: u64) -> u64 {
 }
 
 fn halt_is_present(root: &Path) -> bool {
-    match std::fs::symlink_metadata(root.join(HALT_RELATIVE_PATH)) {
-        Ok(_) => true,
-        Err(error) => error.kind() != std::io::ErrorKind::NotFound,
-    }
+    supervisor::halt_is_active(root)
 }
 
 fn ensure_real_directory(root: &Path, components: &[&str]) -> Result<()> {

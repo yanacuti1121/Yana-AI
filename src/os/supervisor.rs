@@ -560,6 +560,17 @@ pub fn halt(root: &Path, reason: &str, actor: &str) -> Result<()> {
     Ok(())
 }
 
+/// Canonical fail-closed Giám Thị HALT check shared by resident services and
+/// the unified runtime. Any filesystem entry means halted; an I/O error other
+/// than a definite `NotFound` also means halted because safety state could not
+/// be proven absent.
+pub fn halt_is_active(root: &Path) -> bool {
+    match fs::symlink_metadata(root.join(HALT_PATH)) {
+        Ok(_) => true,
+        Err(error) => error.kind() != std::io::ErrorKind::NotFound,
+    }
+}
+
 /// Deliberately NOT given the same reordering as `halt`/`set_quarantine`
 /// (PR #203 audit F1 follow-up): those enter a safer state and must
 /// never be blocked by evidence unavailability. `unlock` LEAVES a safer

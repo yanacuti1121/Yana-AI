@@ -80,6 +80,7 @@ pub struct HistoryLine {
     pub tool_call: Option<ToolCallRecord>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tool_result: Option<ToolResultRecord>,
+    // No `images` field: nothing writes one today (see `load()` below).
 }
 
 fn history_dir() -> PathBuf {
@@ -509,6 +510,9 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
                 messages.push(ChatMessage {
                     role: entry.role,
                     content: entry.content,
+                    // TODO: `HistoryLine` has no `images` field — a future
+                    // image-bearing write path must add one here too.
+                    images: Vec::new(),
                     tool_call: entry.tool_call,
                     tool_result: entry.tool_result,
                 });

@@ -4,7 +4,11 @@
 //! for line-count budget.
 
 use super::super::tools::run_command;
+use super::tool_dispatch::ChatCapabilityExecutor;
 use super::{App, PendingApproval, ToolExecEvent, TurnState};
+use crate::runtime::{
+    execute_approved_tool, CancellationToken, TurnContext, TurnOrigin, YanaAuthorityChain,
+};
 use crossterm::event::{KeyCode, KeyEvent};
 use std::sync::mpsc;
 use std::thread;
@@ -40,7 +44,7 @@ impl App {
         };
         let reason = pending.guard_verdict.unwrap_or("blocked");
         self.push_tool_result(
-            &pending.call_id,
+            &pending.call.id,
             format!("blocked by guard: {reason}"),
             true,
             true,
@@ -55,7 +59,7 @@ impl App {
             return;
         };
         self.push_tool_result(
-            &pending.call_id,
+            &pending.call.id,
             "user declined to execute this command".to_string(),
             false,
             true,
@@ -63,12 +67,16 @@ impl App {
         self.continue_after_tool_result();
     }
 
-    /// Re-invokes the model after a denial/decline so it can adapt — a
-    /// denied/declined round still counts toward `tool_rounds`' ceiling,
-    /// same as an executed one, so repeatedly proposing (and getting
-    /// declined) can't loop forever either.
-    fn continue_after_tool_result(&mut self) {
-        self.tool_rounds.record_round();
+    /// Re-invokes the canonical runtime after a denial/decline so the model
+    /// can adapt. The runtime counted the proposed call before returning
+    /// `AwaitingApproval`, so this continuation must not count it twice.
+    ///
+    /// `pub(super)`: also used by `tool_dispatch.rs`'s `prepare_pending_approval`
+    /// error branches (unsupported tool / missing argument / unparseable
+    /// command), which must not re-invoke the turn loop via a bare
+    /// `spawn_turn()` that skips the round-limit check — see that module's
+    /// doc comment.
+    pub(super) fn continue_after_tool_result(&mut self) {
         if self.tool_rounds.exceeded() {
             self.status =
                 "tool-call limit reached for this turn — aborting to avoid a runaway loop"
@@ -85,16 +93,55 @@ impl App {
             return;
         };
         let PendingApproval {
-            call_id,
+            call,
             argv,
-            command: _,
+            command,
             guard_verdict: _,
         } = pending;
-        let use_sandbox = self.use_sandbox;
-        let repo_root = self.repo_root.clone();
+        match run_command::validate(&command) {
+            Ok(validated) if validated.guard_verdict.is_none() && validated.argv == argv => {
+                // Exact argv revalidation passed. The canonical approved-tool
+                // runtime repeats validation inside its opaque approval path
+                // before executing, so this check only protects the TUI's
+                // displayed proposal from changing between prompt and y.
+            }
+            Ok(validated) => {
+                let reason = validated
+                    .guard_verdict
+                    .unwrap_or("command changed after approval validation");
+                self.push_tool_result(
+                    &call.id,
+                    format!("blocked during execution revalidation: {reason}"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+                return;
+            }
+            Err(error) => {
+                self.push_tool_result(
+                    &call.id,
+                    format!("execution revalidation failed: {error}"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+                return;
+            }
+        }
+        let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
+        let call_id = call.id.clone();
+        let executor = ChatCapabilityExecutor::new(self.use_sandbox);
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
-            let result = run_command::execute(&repo_root, &argv, use_sandbox);
+            let result = execute_approved_tool(
+                &YanaAuthorityChain,
+                &executor,
+                &context,
+                &call,
+                &CancellationToken::default(),
+                &mut |_| {},
+            );
             tx.send(ToolExecEvent::Done(result)).ok();
         });
         self.turn = TurnState::ExecutingTool { call_id, rx };
@@ -119,27 +166,13 @@ pub(super) fn drain_tool_exec_events(app: &mut App) {
     app.turn_started_at = None;
     app.turn = TurnState::Idle;
     match result {
-        Ok(outcome) => {
-            let mut text = outcome.stdout;
-            if !outcome.stderr.is_empty() {
-                text.push_str("\n[stderr]\n");
-                text.push_str(&outcome.stderr);
-            }
-            if outcome.truncated {
-                text.push_str("\n[output truncated]");
-            }
-            let is_error = outcome.exit_code != Some(0);
-            if is_error {
-                text = format!(
-                    "[exit code {}]\n{text}",
-                    outcome
-                        .exit_code
-                        .map_or("unknown".to_string(), |c| c.to_string())
-                );
-            }
-            app.push_tool_result(&call_id, text, is_error, false);
-        }
-        Err(e) => app.push_tool_result(&call_id, format!("execution failed: {e}"), true, false),
+        Ok(record) => app.push_tool_result(&call_id, record.output, record.is_error, record.denied),
+        Err(error) => app.push_tool_result(
+            &call_id,
+            format!("execution denied after approval: {error}"),
+            true,
+            true,
+        ),
     }
     // Same private method the y/N-decline paths above use — both are
     // "a tool round just concluded, count it and re-invoke if under the

@@ -1,5 +1,15 @@
 # Yana Control Planes — Challenger, Governor, Local Embodiment Runtime
 
+> **Implementation update (2026-08-26):** this document preserves the original
+> control-plane design and gap analysis. Several “not implemented” statements
+> below are now historical: the canonical capability runtime, Yana OS state and
+> governor foundations, resident supervision, unified turn runtime, local/cloud
+> provider plane, Desktop/packaged-Web adapter, Discord plain-chat adapter, and
+> MCP capability/workspace adapters now exist. Current execution authority and
+> interface boundaries are defined by
+> [`ADR-014`](adr/ADR-014-unified-runtime-authority-hierarchy.md). Keep reading
+> this document for design intent, not current implementation status.
+
 **Status:** Draft — preserved 2026-08-08 per anh's explicit mandate
 (saved verbatim in the assistant's persistent memory,
 `feedback_control_planes_preservation_mandate_2026_08`). This document

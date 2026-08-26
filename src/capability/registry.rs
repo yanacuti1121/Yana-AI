@@ -41,6 +41,10 @@ pub enum ApprovalRequirement {
 #[derive(Debug, Clone)]
 pub struct CapabilityDescriptor {
     pub name: &'static str,
+    /// Provider-facing function name. Kept separate from the canonical
+    /// dotted capability identity because common model APIs restrict tool
+    /// names to identifier-like strings.
+    pub tool_name: &'static str,
     pub description: &'static str,
     pub access_mode: AccessMode,
     pub risk_tier: RiskTier,
@@ -65,6 +69,12 @@ impl Manifest {
 
     pub fn get(&self, name: &str) -> Option<&CapabilityDescriptor> {
         self.descriptors.iter().find(|d| d.name == name)
+    }
+
+    pub fn get_by_tool_name(&self, tool_name: &str) -> Option<&CapabilityDescriptor> {
+        self.descriptors
+            .iter()
+            .find(|descriptor| descriptor.tool_name == tool_name)
     }
 
     /// Descriptors whose `availability` fn returns true for `ctx`.
@@ -95,6 +105,29 @@ mod tests {
         let manifest = Manifest::all();
         assert_eq!(manifest.get("repo.read").unwrap().risk_tier, RiskTier::Low);
         assert!(manifest.get("does.not.exist").is_none());
+    }
+
+    #[test]
+    fn provider_tool_names_resolve_to_canonical_capabilities() {
+        let manifest = Manifest::all();
+        assert_eq!(
+            manifest.get_by_tool_name("read_file").unwrap().name,
+            "repo.read"
+        );
+        assert_eq!(
+            manifest.get_by_tool_name("run_command").unwrap().name,
+            "command.execute"
+        );
+        assert!(manifest.get_by_tool_name("unknown_tool").is_none());
+    }
+
+    #[test]
+    fn provider_tool_names_are_unique() {
+        let manifest = Manifest::all();
+        let mut names = std::collections::BTreeSet::new();
+        for descriptor in manifest.descriptors {
+            assert!(names.insert(descriptor.tool_name), "duplicate tool name");
+        }
     }
 
     #[test]

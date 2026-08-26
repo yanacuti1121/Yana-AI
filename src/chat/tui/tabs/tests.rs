@@ -1,6 +1,7 @@
 use super::*;
 use crate::chat::provider::{ChatMessage, ChatProvider, ModelInfo};
 use crate::chat::tool_types::{StreamOutcome, ToolSpec};
+use crate::runtime::CancellationToken;
 use anyhow::Result;
 use std::sync::Arc;
 
@@ -123,12 +124,12 @@ fn visible_tab_labels_matches_active_tab_index_and_stops_on_overflow() {
 fn cancellation_sets_the_active_worker_token() {
     let mut app = app();
     let (_sender, receiver) = std::sync::mpsc::channel();
-    let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let cancel = CancellationToken::default();
     app.turn = TurnState::Streaming {
         rx: receiver,
         cancel: cancel.clone(),
     };
     app.cancel_generation();
-    assert!(cancel.load(std::sync::atomic::Ordering::Acquire));
+    assert!(cancel.is_cancelled());
     assert_eq!(app.status, "cancelling generation…");
 }

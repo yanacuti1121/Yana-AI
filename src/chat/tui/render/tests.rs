@@ -11,6 +11,7 @@ use super::{draw_ui, SEND_BORDER_COLORS};
 use crate::chat::provider::{ChatMessage, ChatProvider, ChatUsage};
 use crate::chat::tool_types::{StreamOutcome, ToolSpec};
 use crate::chat::tui::{App, StreamEvent, TurnState};
+use crate::runtime::CancellationToken;
 use anyhow::Result;
 use ratatui::backend::TestBackend;
 use ratatui::Terminal;
@@ -141,7 +142,7 @@ fn processing_turn_draws_the_seven_colour_input_ring() {
     let (_sender, receiver) = std::sync::mpsc::channel::<StreamEvent>();
     app.turn = TurnState::Streaming {
         rx: receiver,
-        cancel: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+        cancel: CancellationToken::default(),
     };
 
     terminal.draw(|frame| draw_ui(frame, &mut app)).unwrap();

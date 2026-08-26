@@ -1,5 +1,34 @@
 # Architecture reference
 
+> **Current runtime source of truth:** [ADR-014 — Unified Runtime and Authority
+> Hierarchy](../adr/ADR-014-unified-runtime-authority-hierarchy.md). It defines
+> the live Giám Thị → Yana control plane → `TurnEngine` order, local/cloud
+> provider unification, terminal/Desktop/Web/Discord boundaries, MCP behavior,
+> and headless no-capability contract. The older diagrams below remain useful
+> for the project-hook layer but do not describe the whole system by themselves.
+
+## Current execution architecture
+
+```text
+Terminal ───────────────┐
+Desktop / packaged Web ─┼─ typed turn ─► Giám Thị ─► Yana control plane
+Discord ────────────────┘                              │
+                                                      ▼
+                                                Rust TurnEngine
+                                          ┌───────────┴───────────┐
+                                      local + cloud          capabilities
+                                        providers          read / approve
+
+MCP ─► canonical capability/workspace adapters (opt-in; cannot mint approval)
+Claude/Codex/Cursor/Antigravity ─► native adapters + project hooks/rules/gates
+```
+
+Packaged Web runs with a bundled `yana-rt` and fail-closed `required` mode.
+Desktop uses the same local stdin/NDJSON headless contract. Headless surfaces
+expose no mutation capabilities because they do not yet have a trusted approval
+continuation protocol. Interactive terminal approval remains the only chat path
+that may continue an approved mutating tool request.
+
 Moved from the main README (2026-07-05) so the top-level pitch stays short.
 Updated 2026-07-07 to drop mermaid diagram nodes and bullets that described
 mechanisms since confirmed fictional (BFT vote counting, a message bus with

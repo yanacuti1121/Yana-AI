@@ -33,6 +33,9 @@ impl ChatProvider for AnthropicProvider {
     fn env_var(&self) -> &str {
         "ANTHROPIC_API_KEY"
     }
+    fn supports_vision(&self) -> bool {
+        true
+    }
 
     fn stream_chat(
         &self,
@@ -216,7 +219,26 @@ fn build_anthropic_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> 
                     }],
                 })
             } else {
-                serde_json::json!({ "role": role, "content": m.content })
+                if m.images.is_empty() {
+                    serde_json::json!({ "role": role, "content": m.content })
+                } else {
+                    let mut content = m
+                        .images
+                        .iter()
+                        .map(|image| {
+                            serde_json::json!({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": image.mime_type,
+                                    "data": image.data,
+                                }
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    content.push(serde_json::json!({ "type": "text", "text": m.content }));
+                    serde_json::json!({ "role": role, "content": content })
+                }
             }
         })
         .collect()
@@ -233,6 +255,20 @@ mod tests {
         let built = build_anthropic_messages(&msgs);
         assert_eq!(built[0]["role"], "user");
         assert_eq!(built[0]["content"], "hi");
+    }
+
+    #[test]
+    fn image_message_uses_anthropic_content_blocks() {
+        let message = ChatMessage::text(Role::User, "describe").with_images(vec![
+            crate::model::provider::ImageAttachment {
+                mime_type: "image/jpeg".to_string(),
+                data: "aGVsbG8=".to_string(),
+            },
+        ]);
+        let built = build_anthropic_messages(&[message]);
+        assert_eq!(built[0]["content"][0]["type"], "image");
+        assert_eq!(built[0]["content"][0]["source"]["media_type"], "image/jpeg");
+        assert_eq!(built[0]["content"][1]["text"], "describe");
     }
 
     #[test]

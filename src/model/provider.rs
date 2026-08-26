@@ -18,7 +18,7 @@
 //! an intrinsic "what is this model" fact, so that ownership does not
 //! flip.
 
-use crate::chat::tool_types::{StreamOutcome, ToolSpec};
+use super::tool::{StreamOutcome, ToolCallRecord, ToolResultRecord, ToolSpec};
 use anyhow::Result;
 use std::io::{BufRead, BufReader, Read};
 use std::time::Duration;
@@ -118,19 +118,29 @@ pub enum Role {
     Assistant,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageAttachment {
+    pub mime_type: String,
+    pub data: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChatMessage {
     pub role: Role,
     pub content: String,
+    /// Base64 image payloads attached to this turn. Kept on the canonical
+    /// message type so every provider receives the same multimodal input;
+    /// wire-format conversion remains provider-owned.
+    pub images: Vec<ImageAttachment>,
     /// Set when this turn is the model proposing a tool call (always
     /// paired with `role: Assistant`). Additive field, not a new `Role`
     /// variant — see `Role`'s own doc comment for why.
-    pub tool_call: Option<crate::chat::tool_types::ToolCallRecord>,
+    pub tool_call: Option<ToolCallRecord>,
     /// Set when this turn is a tool-execution result being reported back
     /// (always paired with `role: User` — matches both providers' own
     /// wire convention of addressing tool results back as a user-facing
     /// turn). See `history.rs`'s module doc for the full reasoning.
-    pub tool_result: Option<crate::chat::tool_types::ToolResultRecord>,
+    pub tool_result: Option<ToolResultRecord>,
 }
 
 impl ChatMessage {
@@ -140,9 +150,15 @@ impl ChatMessage {
         Self {
             role,
             content: content.into(),
+            images: Vec::new(),
             tool_call: None,
             tool_result: None,
         }
+    }
+
+    pub fn with_images(mut self, images: Vec<ImageAttachment>) -> Self {
+        self.images = images;
+        self
     }
 }
 
@@ -195,6 +211,9 @@ pub trait ChatProvider: Send + Sync {
     /// provider will silently ignore.
     fn supports_tool_calling(&self) -> bool {
         true
+    }
+    fn supports_vision(&self) -> bool {
+        false
     }
     fn list_models(&self, _api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
         Ok(vec![ModelInfo::named(self.default_model())])

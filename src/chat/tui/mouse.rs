@@ -138,7 +138,10 @@ mod tests {
         app.new_tab();
         assert_eq!(app.active_tab, 1);
         app.on_mouse(click(1, 5)); // row 5 is well below tabs_area (y=1..3)
-        assert_eq!(app.active_tab, 1, "click outside the tab row must be a no-op");
+        assert_eq!(
+            app.active_tab, 1,
+            "click outside the tab row must be a no-op"
+        );
     }
 
     #[test]
