@@ -6,7 +6,6 @@ use crate::chat::history::{self, WorkspaceState};
 use crate::chat::input::TextInput;
 use crate::chat::provider::{ChatUsage, ProviderHealth};
 use crate::chat::tools::round_guard::ToolRoundGuard;
-use std::sync::atomic::Ordering;
 use uuid::Uuid;
 
 impl App {
@@ -230,7 +229,7 @@ impl App {
     pub(super) fn shutdown(&mut self) {
         for tab in &self.tabs {
             if let TurnState::Streaming { cancel, .. } = &tab.turn {
-                cancel.store(true, Ordering::Release);
+                cancel.cancel();
             }
         }
         self.persist_workspace();
@@ -239,7 +238,7 @@ impl App {
     pub(super) fn cancel_generation(&mut self) {
         match &self.turn {
             TurnState::Streaming { cancel, .. } => {
-                cancel.store(true, Ordering::Release);
+                cancel.cancel();
                 self.status = "cancelling generation…".to_string();
             }
             TurnState::ExecutingTool { .. } => {

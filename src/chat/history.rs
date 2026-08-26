@@ -509,6 +509,7 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
                 messages.push(ChatMessage {
                     role: entry.role,
                     content: entry.content,
+                    images: Vec::new(),
                     tool_call: entry.tool_call,
                     tool_result: entry.tool_result,
                 });

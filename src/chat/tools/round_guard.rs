@@ -38,6 +38,14 @@ impl ToolRoundGuard {
     pub fn reset(&mut self) {
         self.rounds = 0;
     }
+
+    pub fn rounds(&self) -> u32 {
+        self.rounds
+    }
+
+    pub fn set_rounds(&mut self, rounds: usize) {
+        self.rounds = u32::try_from(rounds).unwrap_or(u32::MAX);
+    }
 }
 
 impl Default for ToolRoundGuard {

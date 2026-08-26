@@ -34,6 +34,111 @@ pub fn openai() -> OpenAiCompatProvider {
     }
 }
 
+fn remote(
+    provider_name: &'static str,
+    url: &'static str,
+    default_model: &'static str,
+    env_var: &'static str,
+) -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name,
+        url,
+        default_model,
+        keyless: false,
+        env_var,
+    }
+}
+
+pub fn groq() -> OpenAiCompatProvider {
+    remote(
+        "groq",
+        "https://api.groq.com/openai/v1/chat/completions",
+        "llama-3.3-70b-versatile",
+        "GROQ_API_KEY",
+    )
+}
+
+pub fn deepseek() -> OpenAiCompatProvider {
+    remote(
+        "deepseek",
+        "https://api.deepseek.com/v1/chat/completions",
+        "deepseek-chat",
+        "DEEPSEEK_API_KEY",
+    )
+}
+
+pub fn openrouter() -> OpenAiCompatProvider {
+    remote(
+        "openrouter",
+        "https://openrouter.ai/api/v1/chat/completions",
+        "google/gemma-3-27b-it",
+        "OPENROUTER_API_KEY",
+    )
+}
+
+pub fn xai() -> OpenAiCompatProvider {
+    remote(
+        "xai",
+        "https://api.x.ai/v1/chat/completions",
+        "grok-3-mini",
+        "XAI_API_KEY",
+    )
+}
+
+pub fn novita() -> OpenAiCompatProvider {
+    remote(
+        "novita",
+        "https://api.novita.ai/v3/openai/chat/completions",
+        "meta-llama/llama-3.1-70b-instruct",
+        "NOVITA_API_KEY",
+    )
+}
+
+pub fn nvidia() -> OpenAiCompatProvider {
+    remote(
+        "nvidia",
+        "https://integrate.api.nvidia.com/v1/chat/completions",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "NVIDIA_API_KEY",
+    )
+}
+
+pub fn minimax() -> OpenAiCompatProvider {
+    remote(
+        "minimax",
+        "https://api.minimax.chat/v1/chat/completions",
+        "abab6.5s-chat",
+        "MINIMAX_API_KEY",
+    )
+}
+
+pub fn glm() -> OpenAiCompatProvider {
+    remote(
+        "glm",
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        "glm-4-flash",
+        "GLM_API_KEY",
+    )
+}
+
+pub fn huggingface() -> OpenAiCompatProvider {
+    remote(
+        "huggingface",
+        "https://router.huggingface.co/v1/chat/completions",
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "HUGGINGFACE_API_KEY",
+    )
+}
+
+pub fn nine_router() -> OpenAiCompatProvider {
+    remote(
+        "9router",
+        "http://127.0.0.1:20128/v1/chat/completions",
+        "kr/claude-sonnet-4.5",
+        "NINE_ROUTER_API_KEY",
+    )
+}
+
 pub fn kimi() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
         provider_name: "kimi",
@@ -192,6 +297,12 @@ impl ChatProvider for OpenAiCompatProvider {
         } else {
             RuntimeKind::Remote
         }
+    }
+    fn supports_vision(&self) -> bool {
+        matches!(
+            self.provider_name,
+            "openai" | "groq" | "openrouter" | "xai" | "glm"
+        )
     }
 
     fn list_models(&self, api_key: Option<&str>) -> Result<Vec<ModelInfo>> {
@@ -420,7 +531,27 @@ fn build_openai_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> {
                     Role::User => "user",
                     Role::Assistant => "assistant",
                 };
-                serde_json::json!({ "role": role, "content": m.content })
+                if m.images.is_empty() {
+                    serde_json::json!({ "role": role, "content": m.content })
+                } else {
+                    let mut content = m
+                        .images
+                        .iter()
+                        .map(|image| {
+                            serde_json::json!({
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": format!(
+                                        "data:{};base64,{}",
+                                        image.mime_type, image.data
+                                    )
+                                }
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    content.push(serde_json::json!({ "type": "text", "text": m.content }));
+                    serde_json::json!({ "role": role, "content": content })
+                }
             }
         })
         .collect()
@@ -437,6 +568,23 @@ mod tests {
         let built = build_openai_messages(&msgs);
         assert_eq!(built[0]["role"], "user");
         assert_eq!(built[0]["content"], "hi");
+    }
+
+    #[test]
+    fn image_message_uses_openai_multimodal_content() {
+        let message = ChatMessage::text(Role::User, "describe").with_images(vec![
+            crate::model::provider::ImageAttachment {
+                mime_type: "image/png".to_string(),
+                data: "aGVsbG8=".to_string(),
+            },
+        ]);
+        let built = build_openai_messages(&[message]);
+        assert_eq!(built[0]["content"][0]["type"], "image_url");
+        assert_eq!(
+            built[0]["content"][0]["image_url"]["url"],
+            "data:image/png;base64,aGVsbG8="
+        );
+        assert_eq!(built[0]["content"][1]["text"], "describe");
     }
 
     #[test]

@@ -23,3 +23,4 @@ pub(crate) mod placement;
 pub(crate) mod provider;
 pub(crate) mod requirements;
 pub(crate) mod runtime;
+pub(crate) mod tool;

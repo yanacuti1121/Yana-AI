@@ -1,83 +1,54 @@
-//! `App::handle_tool_calls` and its per-tool dispatch — the turn-loop
-//! side of a completed `StreamOutcome::ToolCalls`. Split out of
-//! `turn.rs` (see that file's module doc) purely for line-count budget.
+//! Terminal adapter for the canonical capability runtime.
 //!
-//! `read_file` runs synchronously right here and immediately re-invokes
-//! the model (no approval needed — read-only, per anh's explicit
-//! decision that only `run_command` needs a human gate). `run_command`
-//! instead parks the turn in `TurnState::AwaitingApproval` and returns —
-//! `approval.rs` picks up from there once a key arrives.
+//! `TurnEngine` owns provider/tool looping. This module only supplies the
+//! terminal's read-only executor, reconciles runtime-created conversation
+//! records into the tab, and prepares the existing y/N command approval UI.
 
 use super::super::provider::{ChatMessage, Role};
-use super::super::tool_types::{ToolCall, ToolCallRecord, ToolResultRecord};
+use super::super::tool_types::{ToolCall, ToolResultRecord};
 use super::super::tools;
 use super::{App, PendingApproval, TurnState};
+use crate::runtime::{ToolExecutor, TurnContext};
+
+pub(super) struct ChatCapabilityExecutor;
+
+impl ToolExecutor for ChatCapabilityExecutor {
+    fn execute(&self, context: &TurnContext, call: &ToolCall) -> ToolResultRecord {
+        match call.name.as_str() {
+            "read_file" => match parse_string_arg(&call.arguments_json, "path") {
+                Some(path) => match tools::read_file::execute(&context.session.repo_root, &path) {
+                    Ok(content) => tool_result(call, content, false, false),
+                    Err(error) => tool_result(call, error, true, false),
+                },
+                None => tool_result(
+                    call,
+                    "missing required argument 'path'".to_string(),
+                    true,
+                    false,
+                ),
+            },
+            other => tool_result(
+                call,
+                format!("terminal executor has no implementation for '{other}'"),
+                true,
+                true,
+            ),
+        }
+    }
+}
 
 impl App {
-    /// Records a round against `self.tool_rounds` (aborting the turn if
-    /// the ceiling is hit), rejects more than one simultaneous call as an
-    /// explicit MVP limitation (never a silent drop — the model would
-    /// otherwise believe calls happened that never did), persists +
-    /// pushes the tool_call turn itself, then dispatches by name.
-    pub(super) fn handle_tool_calls(&mut self, calls: Vec<ToolCall>) {
-        self.tool_rounds.record_round();
-        if self.tool_rounds.exceeded() {
-            self.status =
-                "tool-call limit reached for this turn — aborting to avoid a runaway loop"
-                    .to_string();
+    pub(super) fn prepare_pending_approval(&mut self, call: ToolCall) {
+        if call.name != "run_command" {
+            self.push_tool_result(
+                &call.id,
+                format!("unsupported approval request for '{}'", call.name),
+                true,
+                true,
+            );
+            self.spawn_turn();
             return;
         }
-        if calls.len() > 1 {
-            self.status =
-                "model requested multiple simultaneous tool calls — unsupported in this MVP"
-                    .to_string();
-            return;
-        }
-        let Some(call) = calls.into_iter().next() else {
-            // The accumulator can legitimately produce zero calls (every
-            // fragment was nameless — a malformed-stream signal, not a
-            // real call, see `tool_types::ToolCallAccumulator::finish`).
-            self.status = "model's tool-call stream produced no usable call — ignoring".to_string();
-            return;
-        };
-
-        let record: ToolCallRecord = call.clone().into();
-        if self.settings.privacy.log_messages {
-            if let Err(e) = super::super::history::append_tool_call(
-                &self.session_id,
-                self.provider.name(),
-                &self.model,
-                &record,
-            ) {
-                self.status = format!("warning: failed to persist tool call: {e}");
-            }
-        }
-        let mut msg = ChatMessage::text(Role::Assistant, "");
-        msg.tool_call = Some(record);
-        self.history.push(msg);
-
-        match call.name.as_str() {
-            "read_file" => self.dispatch_read_file(&call),
-            "run_command" => self.dispatch_run_command(&call),
-            other => {
-                self.status = format!("model requested unknown tool '{other}' — aborting turn");
-            }
-        }
-    }
-
-    fn dispatch_read_file(&mut self, call: &ToolCall) {
-        let (output, is_error) = match parse_string_arg(&call.arguments_json, "path") {
-            Some(path) => match tools::read_file::execute(&self.repo_root, &path) {
-                Ok(content) => (content, false),
-                Err(e) => (e, true),
-            },
-            None => ("missing required argument 'path'".to_string(), true),
-        };
-        self.push_tool_result(&call.id, output, is_error, false);
-        self.spawn_turn();
-    }
-
-    fn dispatch_run_command(&mut self, call: &ToolCall) {
         let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
             self.push_tool_result(
                 &call.id,
@@ -89,19 +60,67 @@ impl App {
             return;
         };
         match tools::run_command::validate(&command) {
-            Ok(v) => {
+            Ok(validated) => {
                 self.turn = TurnState::AwaitingApproval(PendingApproval {
-                    call_id: call.id.clone(),
+                    call,
                     command,
-                    argv: v.argv,
-                    guard_verdict: v.guard_verdict,
+                    argv: validated.argv,
+                    guard_verdict: validated.guard_verdict,
                 });
             }
-            Err(e) => {
-                self.push_tool_result(&call.id, format!("cannot parse command: {e}"), true, false);
+            Err(error) => {
+                self.push_tool_result(
+                    &call.id,
+                    format!("cannot parse command: {error}"),
+                    true,
+                    false,
+                );
                 self.spawn_turn();
             }
         }
+    }
+
+    pub(super) fn adopt_runtime_messages(&mut self, messages: Vec<ChatMessage>) -> bool {
+        let existing_len = self.history.len();
+        if messages.len() < existing_len || messages[..existing_len] != self.history[..] {
+            self.status =
+                "runtime returned a non-contiguous conversation; refusing to replace history"
+                    .to_string();
+            return false;
+        }
+        if self.settings.privacy.log_messages {
+            for message in messages.iter().skip(existing_len) {
+                let result = if let Some(record) = &message.tool_call {
+                    super::super::history::append_tool_call(
+                        &self.session_id,
+                        self.provider.name(),
+                        &self.model,
+                        record,
+                    )
+                } else if let Some(record) = &message.tool_result {
+                    super::super::history::append_tool_result(&self.session_id, record)
+                } else if message.role == Role::Assistant && !message.content.is_empty() {
+                    super::super::history::append_assistant(
+                        &self.session_id,
+                        self.provider.name(),
+                        &self.model,
+                        &message.content,
+                        0,
+                        0,
+                        0,
+                        false,
+                        None,
+                    )
+                } else {
+                    Ok(())
+                };
+                if let Err(error) = result {
+                    self.status = format!("warning: failed to persist runtime message: {error}");
+                }
+            }
+        }
+        self.history = messages;
+        true
     }
 
     /// Persists + pushes a tool-result turn (see `history.rs`'s module
@@ -138,4 +157,66 @@ impl App {
 fn parse_string_arg(arguments_json: &str, key: &str) -> Option<String> {
     let v: serde_json::Value = serde_json::from_str(arguments_json).ok()?;
     v.get(key)?.as_str().map(|s| s.to_string())
+}
+
+fn tool_result(call: &ToolCall, output: String, is_error: bool, denied: bool) -> ToolResultRecord {
+    ToolResultRecord {
+        call_id: call.id.clone(),
+        output,
+        is_error,
+        denied,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::runtime::TurnOrigin;
+
+    fn context(root: &std::path::Path) -> TurnContext {
+        TurnContext::new(
+            crate::session_context::SessionContext::new(
+                "s",
+                root.to_path_buf(),
+                "mock",
+                "mock",
+                true,
+            ),
+            TurnOrigin::Terminal,
+            true,
+        )
+    }
+
+    #[test]
+    fn terminal_executor_reads_through_the_canonical_capability() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("note.txt"), "hello").unwrap();
+        let executor = ChatCapabilityExecutor;
+        let result = executor.execute(
+            &context(root.path()),
+            &ToolCall {
+                id: "call-1".into(),
+                name: "read_file".into(),
+                arguments_json: r#"{"path":"note.txt"}"#.into(),
+            },
+        );
+        assert_eq!(result.output, "hello");
+        assert!(!result.is_error);
+    }
+
+    #[test]
+    fn terminal_executor_never_executes_mutating_tools() {
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor;
+        let result = executor.execute(
+            &context(root.path()),
+            &ToolCall {
+                id: "call-1".into(),
+                name: "run_command".into(),
+                arguments_json: r#"{"command":"touch should-not-exist"}"#.into(),
+            },
+        );
+        assert!(result.denied);
+        assert!(!root.path().join("should-not-exist").exists());
+    }
 }

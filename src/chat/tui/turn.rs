@@ -4,11 +4,15 @@
 //! turn, still logically part of `App`.
 
 use super::super::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
-use super::super::tool_types::{StreamOutcome, ToolSpec};
+use super::super::tool_types::ToolSpec;
+use super::tool_dispatch::ChatCapabilityExecutor;
 use super::{App, StreamEvent, TurnState};
+use crate::runtime::{
+    CancellationToken, TurnContext, TurnEngine, TurnOrigin, TurnOutcome, TurnRequest,
+    YanaAuthorityChain,
+};
 use crate::session_context::SessionContext;
 use anyhow::Result;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;
@@ -33,32 +37,32 @@ impl App {
         let model = self.model.clone();
         let system = self.system.clone();
         let messages = self.history.clone();
+        let session = self.session_context();
+        let tool_rounds = self.tool_rounds.rounds() as usize;
         let (tx, rx) = mpsc::channel::<StreamEvent>();
-        let cancel = Arc::new(AtomicBool::new(false));
-        let worker_cancel = Arc::clone(&cancel);
+        let cancel = CancellationToken::default();
+        let worker_cancel = cancel.clone();
 
-        let tools = tools_for_turn(self.provider.as_ref(), &self.session_context());
+        let tools = tools_for_turn(self.provider.as_ref(), &session);
         thread::spawn(move || {
-            let mut on_chunk = |chunk: &str| -> Result<()> {
-                if worker_cancel.load(Ordering::Acquire) {
-                    anyhow::bail!("generation cancelled by user");
-                }
-                tx.send(StreamEvent::Chunk(chunk.to_string())).ok();
-                Ok(())
-            };
-            let result = provider.stream_chat(
-                api_key.as_deref(),
-                &model,
-                system.as_deref(),
-                &messages,
-                &tools,
-                &mut on_chunk,
+            let context = TurnContext::new(session, TurnOrigin::Terminal, true);
+            let mut request = TurnRequest::new(context, model, messages)
+                .with_tools(tools)
+                .with_tool_rounds_completed(tool_rounds);
+            if let Some(system) = system {
+                request = request.with_system(system);
+            }
+            if let Some(api_key) = api_key {
+                request = request.with_api_key(api_key);
+            }
+            let runtime = TurnEngine::new(
+                provider,
+                Arc::new(YanaAuthorityChain),
+                Arc::new(ChatCapabilityExecutor),
             );
-            let result = if worker_cancel.load(Ordering::Acquire) {
-                Err(anyhow::anyhow!("generation cancelled by user"))
-            } else {
-                result
-            };
+            let result = runtime.run(request, &worker_cancel, &mut |event| {
+                tx.send(StreamEvent::Runtime(event)).ok();
+            });
             tx.send(StreamEvent::Done(result)).ok();
         });
 
@@ -69,35 +73,45 @@ impl App {
         self.streaming_reply.clear();
     }
 
-    /// Near-verbatim port of the old single-threaded `run_turn`'s three
-    /// Ok/Err match arms, plus a new `Ok` sub-branch for
-    /// `StreamOutcome::ToolCalls` (delegated to
-    /// `tool_dispatch::handle_tool_calls` — see that file). Same
-    /// conditions, same `history::append_assistant`/`track_cost`/
-    /// `breaker.record_*` calls for the plain-text path, writing to
-    /// `self.status` instead of `println!`/`eprintln!`.
-    pub(super) fn finish_turn(&mut self, result: Result<(ChatUsage, StreamOutcome)>) {
+    /// Reconciles one canonical runtime outcome back into the active tab.
+    /// Provider/tool looping belongs to `TurnEngine`; this method owns
+    /// terminal presentation and persistence only.
+    pub(super) fn finish_turn(
+        &mut self,
+        result: std::result::Result<TurnOutcome, crate::runtime::TurnError>,
+    ) {
         let duration_ms = self
             .turn_started_at
             .take()
             .map(|t| t.elapsed().as_millis() as u64)
             .unwrap_or(0);
-        let reply = std::mem::take(&mut self.streaming_reply);
+        let streamed_reply = std::mem::take(&mut self.streaming_reply);
         self.turn = TurnState::Idle;
 
         match result {
-            Ok((usage, StreamOutcome::Text)) => {
+            Ok(TurnOutcome::Completed {
+                message,
+                usage,
+                continuation_messages,
+                tool_rounds,
+                ..
+            }) => {
+                self.tool_rounds.set_rounds(tool_rounds);
+                if !self.adopt_runtime_messages(continuation_messages) {
+                    self.breaker.record_failure();
+                    return;
+                }
                 self.last_usage = usage;
                 self.last_duration_ms = Some(duration_ms);
                 self.breaker.record_success();
                 self.history
-                    .push(ChatMessage::text(Role::Assistant, reply.clone()));
+                    .push(ChatMessage::text(Role::Assistant, message.clone()));
                 if self.settings.privacy.log_messages {
                     self.status = match super::super::history::append_assistant(
                         &self.session_id,
                         self.provider.name(),
                         &self.model,
-                        &reply,
+                        &message,
                         usage.input_tokens,
                         usage.output_tokens,
                         duration_ms,
@@ -110,45 +124,30 @@ impl App {
                 }
                 track_cost(self.provider.name(), &self.model, usage, duration_ms);
             }
-            // The network call itself succeeded (a valid tool-call
-            // response came back) — `breaker` tracks connection health,
-            // not conversational completion, so a success is recorded
-            // here too, same as the plain-text arm above.
-            Ok((usage, StreamOutcome::ToolCalls(calls))) => {
+            Ok(TurnOutcome::AwaitingApproval {
+                call,
+                continuation_messages,
+                usage,
+                tool_rounds,
+            }) => {
+                self.tool_rounds.set_rounds(tool_rounds);
+                if !self.adopt_runtime_messages(continuation_messages) {
+                    self.breaker.record_failure();
+                    return;
+                }
                 self.last_usage = usage;
                 self.last_duration_ms = Some(duration_ms);
                 self.breaker.record_success();
-                // A model can stream preamble text ("Let me check that
-                // file...") in the same turn it proposes a tool call —
-                // `reply` must not be silently dropped just because this
-                // turn didn't end in plain `Text`. Same push/persist/cost
-                // shape as the Text arm above, just conditional on there
-                // being anything to show.
-                if !reply.is_empty() {
-                    self.history
-                        .push(ChatMessage::text(Role::Assistant, reply.clone()));
-                    if self.settings.privacy.log_messages {
-                        if let Err(e) = super::super::history::append_assistant(
-                            &self.session_id,
-                            self.provider.name(),
-                            &self.model,
-                            &reply,
-                            usage.input_tokens,
-                            usage.output_tokens,
-                            duration_ms,
-                            false,
-                            None,
-                        ) {
-                            self.status =
-                                format!("warning: failed to persist assistant preamble: {e}");
-                        }
-                    }
-                    track_cost(self.provider.name(), &self.model, usage, duration_ms);
-                }
-                self.handle_tool_calls(calls);
+                track_cost(self.provider.name(), &self.model, usage, duration_ms);
+                self.prepare_pending_approval(call);
             }
-            Err(error) if error.to_string().contains("generation cancelled by user") => {
+            Ok(TurnOutcome::Cancelled { partial }) => {
                 self.status = "generation stopped".to_string();
+                let reply = if partial.is_empty() {
+                    streamed_reply
+                } else {
+                    partial
+                };
                 if !reply.is_empty() {
                     self.history
                         .push(ChatMessage::text(Role::Assistant, reply.clone()));
@@ -167,7 +166,7 @@ impl App {
                     }
                 }
             }
-            Err(e) if reply.is_empty() => {
+            Err(e) if streamed_reply.is_empty() => {
                 // Failed before any output — nothing conversational
                 // happened, so no phantom empty assistant turn is pushed
                 // into history. Never dump the raw upstream error to the
@@ -200,6 +199,7 @@ impl App {
             Err(e) => {
                 // Died mid-stream — keep the partial reply as context for
                 // the next turn instead of silently losing it.
+                let reply = streamed_reply;
                 self.breaker.record_failure();
                 self.status = if self.verbose {
                     format!("stream interrupted: {e:#}")
@@ -254,6 +254,7 @@ fn track_cost(provider_name: &str, model: &str, usage: ChatUsage, duration_ms: u
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::tool::StreamOutcome;
     use std::path::PathBuf;
 
     struct NoToolCallingProvider;

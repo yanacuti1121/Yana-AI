@@ -25,6 +25,8 @@ mod state;
 mod status;
 mod supervisor;
 
+pub(crate) use supervisor::halt_is_active;
+
 use anyhow::{bail, Result};
 use clap::Subcommand;
 use std::path::PathBuf;

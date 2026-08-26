@@ -19,9 +19,170 @@
 //! specifically so this file (a sibling of `chat` under the crate root)
 //! can still construct them.
 
-use crate::chat::{anthropic::AnthropicProvider, openai_compat};
+use crate::chat::{anthropic::AnthropicProvider, gemini::GeminiProvider, openai_compat};
 use crate::model::provider::ChatProvider;
 use std::sync::Arc;
+
+type ProviderFactory = fn() -> Arc<dyn ChatProvider>;
+
+struct ProviderRegistration {
+    name: &'static str,
+    aliases: &'static [&'static str],
+    factory: ProviderFactory,
+}
+
+fn anthropic() -> Arc<dyn ChatProvider> {
+    Arc::new(AnthropicProvider)
+}
+
+fn openai() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::openai())
+}
+
+fn gemini() -> Arc<dyn ChatProvider> {
+    Arc::new(GeminiProvider)
+}
+
+macro_rules! openai_compat_factory {
+    ($name:ident) => {
+        fn $name() -> Arc<dyn ChatProvider> {
+            Arc::new(openai_compat::$name())
+        }
+    };
+}
+
+openai_compat_factory!(groq);
+openai_compat_factory!(deepseek);
+openai_compat_factory!(openrouter);
+openai_compat_factory!(xai);
+openai_compat_factory!(novita);
+openai_compat_factory!(nvidia);
+openai_compat_factory!(minimax);
+openai_compat_factory!(glm);
+openai_compat_factory!(huggingface);
+openai_compat_factory!(nine_router);
+
+fn kimi() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::kimi())
+}
+
+fn ollama() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::ollama())
+}
+
+fn lmstudio() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::lm_studio())
+}
+
+fn llamacpp() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::llama_cpp())
+}
+
+fn turbofieldfare() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::turbofieldfare())
+}
+
+fn airllm() -> Arc<dyn ChatProvider> {
+    Arc::new(openai_compat::airllm())
+}
+
+const PROVIDERS: &[ProviderRegistration] = &[
+    ProviderRegistration {
+        name: "anthropic",
+        aliases: &["claude"],
+        factory: anthropic,
+    },
+    ProviderRegistration {
+        name: "openai",
+        aliases: &[],
+        factory: openai,
+    },
+    ProviderRegistration {
+        name: "gemini",
+        aliases: &["google"],
+        factory: gemini,
+    },
+    ProviderRegistration {
+        name: "groq",
+        aliases: &[],
+        factory: groq,
+    },
+    ProviderRegistration {
+        name: "deepseek",
+        aliases: &[],
+        factory: deepseek,
+    },
+    ProviderRegistration {
+        name: "openrouter",
+        aliases: &[],
+        factory: openrouter,
+    },
+    ProviderRegistration {
+        name: "xai",
+        aliases: &["grok"],
+        factory: xai,
+    },
+    ProviderRegistration {
+        name: "novita",
+        aliases: &[],
+        factory: novita,
+    },
+    ProviderRegistration {
+        name: "nvidia",
+        aliases: &[],
+        factory: nvidia,
+    },
+    ProviderRegistration {
+        name: "minimax",
+        aliases: &[],
+        factory: minimax,
+    },
+    ProviderRegistration {
+        name: "glm",
+        aliases: &["zhipu"],
+        factory: glm,
+    },
+    ProviderRegistration {
+        name: "huggingface",
+        aliases: &["hf"],
+        factory: huggingface,
+    },
+    ProviderRegistration {
+        name: "9router",
+        aliases: &["nine-router"],
+        factory: nine_router,
+    },
+    ProviderRegistration {
+        name: "kimi",
+        aliases: &["moonshot"],
+        factory: kimi,
+    },
+    ProviderRegistration {
+        name: "ollama",
+        aliases: &[],
+        factory: ollama,
+    },
+    ProviderRegistration {
+        name: "lmstudio",
+        aliases: &["lm-studio"],
+        factory: lmstudio,
+    },
+    ProviderRegistration {
+        name: "llamacpp",
+        aliases: &["llama.cpp", "llama-cpp"],
+        factory: llamacpp,
+    },
+    ProviderRegistration {
+        name: "turbofieldfare",
+        aliases: &[],
+        factory: turbofieldfare,
+    },
+    ProviderRegistration {
+        name: "airllm",
+        aliases: &[],
+        factory: airllm,
+    },
+];
 
 #[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
 pub(crate) struct ProviderSummary {
@@ -35,29 +196,20 @@ pub(crate) struct ProviderSummary {
 /// Constructing providers is side-effect free; this never probes a server
 /// or reads a credential value.
 pub(crate) fn provider_catalog() -> Vec<ProviderSummary> {
-    [
-        "anthropic",
-        "openai",
-        "kimi",
-        "ollama",
-        "lmstudio",
-        "llamacpp",
-        "turbofieldfare",
-        "airllm",
-    ]
-    .into_iter()
-    .map(|name| {
-        let provider = try_select_provider(name).expect("catalog provider must be selectable");
-        ProviderSummary {
-            name: provider.name().to_string(),
-            runtime: provider.runtime_kind().label().to_string(),
-            requires_key: provider.requires_key(),
-            env_var: provider
-                .requires_key()
-                .then(|| provider.env_var().to_string()),
-        }
-    })
-    .collect()
+    PROVIDERS
+        .iter()
+        .map(|registration| {
+            let provider = (registration.factory)();
+            ProviderSummary {
+                name: provider.name().to_string(),
+                runtime: provider.runtime_kind().label().to_string(),
+                requires_key: provider.requires_key(),
+                env_var: provider
+                    .requires_key()
+                    .then(|| provider.env_var().to_string()),
+            }
+        })
+        .collect()
 }
 
 /// Non-exiting core: used both by startup (which wraps it with
@@ -66,19 +218,25 @@ pub(crate) fn provider_catalog() -> Vec<ProviderSummary> {
 /// must NEVER call `std::process::exit()` — that would skip the render
 /// loop's Drop-based terminal cleanup on the way out.
 pub(crate) fn try_select_provider(name: &str) -> Result<Arc<dyn ChatProvider>, String> {
-    match name {
-        "anthropic" => Ok(Arc::new(AnthropicProvider)),
-        "openai" => Ok(Arc::new(openai_compat::openai())),
-        "ollama" => Ok(Arc::new(openai_compat::ollama())),
-        "lmstudio" => Ok(Arc::new(openai_compat::lm_studio())),
-        "llamacpp" => Ok(Arc::new(openai_compat::llama_cpp())),
-        "kimi" => Ok(Arc::new(openai_compat::kimi())),
-        "turbofieldfare" => Ok(Arc::new(openai_compat::turbofieldfare())),
-        "airllm" => Ok(Arc::new(openai_compat::airllm())),
-        other => Err(format!(
-            "unknown provider '{other}' — use ollama | lmstudio | llamacpp | turbofieldfare | airllm | anthropic | openai | kimi"
-        )),
-    }
+    let normalized = name.trim().to_ascii_lowercase();
+    PROVIDERS
+        .iter()
+        .find(|registration| {
+            registration.name == normalized
+                || registration
+                    .aliases
+                    .iter()
+                    .any(|alias| *alias == normalized)
+        })
+        .map(|registration| (registration.factory)())
+        .ok_or_else(|| {
+            let known = PROVIDERS
+                .iter()
+                .map(|registration| registration.name)
+                .collect::<Vec<_>>()
+                .join(" | ");
+            format!("unknown provider '{name}' — use {known}")
+        })
 }
 
 #[cfg(test)]
@@ -96,6 +254,17 @@ mod tests {
             [
                 "anthropic",
                 "openai",
+                "gemini",
+                "groq",
+                "deepseek",
+                "openrouter",
+                "xai",
+                "novita",
+                "nvidia",
+                "minimax",
+                "glm",
+                "huggingface",
+                "9router",
                 "kimi",
                 "ollama",
                 "lmstudio",
@@ -109,5 +278,19 @@ mod tests {
     #[test]
     fn unknown_provider_name_is_a_named_error_not_a_panic() {
         assert!(try_select_provider("nonexistent").is_err());
+    }
+
+    #[test]
+    fn aliases_select_the_canonical_provider() {
+        assert_eq!(try_select_provider("claude").unwrap().name(), "anthropic");
+        assert_eq!(try_select_provider("LM-STUDIO").unwrap().name(), "lmstudio");
+        assert_eq!(try_select_provider("llama.cpp").unwrap().name(), "llamacpp");
+    }
+
+    #[test]
+    fn registration_name_matches_factory_identity() {
+        for registration in PROVIDERS {
+            assert_eq!(registration.name, (registration.factory)().name());
+        }
     }
 }

@@ -10,6 +10,7 @@ const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
 const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
+const { supportsGovernedProvider, streamGovernedTurn } = require('./lib/runtime-client');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
 const YANA_RT_BIN = process.env.YANA_RT_BIN || '';
 const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = createCore({
@@ -61,7 +62,7 @@ const MIME = {
 // PROVIDERS table + NINE_ROUTER_KEY moved to ./lib/providers.js so robot.js
 // (the robot voice/MCP bridge) can require the same table + connectToProvider
 // without an HTTP round-trip to this process's own /api/chat.
-const { PROVIDERS, connectToProvider } = require('./lib/providers');
+const { PROVIDERS, connectToProvider, getNineRouterKey } = require('./lib/providers');
 
 
 // ── Codebase BM25 index (in-memory, server-scoped) ────────────────────────────
@@ -1236,6 +1237,113 @@ const providerCircuitBreaker = new CircuitBreaker();
 // connectToProvider() moved to ./lib/providers.js (required at the top of
 // this file alongside PROVIDERS) so robot.js can reuse it in-process.
 
+async function streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images) {
+  res.writeHead(200, {
+    'Content-Type':  'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection':    'keep-alive',
+  });
+  const abortController = new AbortController();
+  res.on('close', () => {
+    if (!res.writableEnded) abortController.abort();
+  });
+
+  let lastError = null;
+  for (const candidate of chain) {
+    if (!providerCircuitBreaker.canAttempt(candidate.providerKey)) {
+      lastError = new Error(`circuit open for ${candidate.providerKey}`);
+      continue;
+    }
+    const provider = PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic;
+    const model = explicitModelId || provider.defaultModel;
+    const scrubber = new OutputScrubber();
+    const startedAt = Date.now();
+    let emittedChars = 0;
+    let announcedProvider = false;
+    let usage = null;
+    let runtimeError = null;
+
+    try {
+      await streamGovernedTurn({
+        binaryPath: YANA_RT_BIN,
+        rootDir: REPO_ROOT,
+        provider: candidate.providerKey,
+        model,
+        input: {
+          task,
+          system: systemPrompt,
+          api_key: candidate.apiKey || undefined,
+          images: Array.isArray(images) ? images : [],
+        },
+        signal: abortController.signal,
+        onEvent(event) {
+          if (event.type === 'metrics') {
+            usage = {
+              input_tokens: Number(event.input_tokens) || 0,
+              output_tokens: Number(event.output_tokens) || 0,
+            };
+            return;
+          }
+          if (event.type === 'error' || event.type === 'authority_denied') {
+            runtimeError = event.message || event.reason || 'governed runtime denied the turn';
+            return;
+          }
+          if (event.type !== 'text_delta' || typeof event.text !== 'string') return;
+          const safe = scrubber.feed(event.text);
+          if (safe.blocked) {
+            res.write(`data: ${JSON.stringify({ text: '[response blocked — potential secret detected]' })}\n\n`);
+            res.write('data: [DONE]\n\n');
+            res.end();
+            throw new Error('response blocked by output scrubber');
+          }
+          if (!safe.text) return;
+          if (!announcedProvider && candidate.providerKey !== chain[0].providerKey) {
+            res.write(`data: ${JSON.stringify({ provider: candidate.providerKey })}\n\n`);
+            announcedProvider = true;
+          }
+          emittedChars += safe.text.length;
+          res.write(`data: ${JSON.stringify({ text: safe.text })}\n\n`);
+        },
+      });
+
+      const tail = scrubber.flush();
+      if (tail.blocked) {
+        res.write(`data: ${JSON.stringify({ text: '[response blocked — potential secret detected]' })}\n\n`);
+      } else if (tail.text) {
+        if (!announcedProvider && candidate.providerKey !== chain[0].providerKey) {
+          res.write(`data: ${JSON.stringify({ provider: candidate.providerKey })}\n\n`);
+        }
+        emittedChars += tail.text.length;
+        res.write(`data: ${JSON.stringify({ text: tail.text })}\n\n`);
+      }
+      providerCircuitBreaker.recordSuccess(candidate.providerKey);
+      const durationMs = Date.now() - startedAt;
+      recordUsage(candidate.providerKey, emittedChars, durationMs);
+      if (usage) {
+        logRealUsageToLedger({
+          task: 'desktop-chat', model,
+          inputTokens: usage.input_tokens,
+          outputTokens: usage.output_tokens,
+          durationMs,
+        });
+      }
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    } catch (error) {
+      providerCircuitBreaker.recordFailure(candidate.providerKey);
+      lastError = new Error(runtimeError || error.message);
+      if (res.writableEnded || emittedChars > 0 || abortController.signal.aborted) break;
+    }
+  }
+
+  if (!res.writableEnded) {
+    res.write(`data: ${JSON.stringify({ error: lastError ? lastError.message : 'All providers unavailable' })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+}
+
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 async function handleApiChat(req, res) {
   let body;
@@ -1330,6 +1438,19 @@ async function handleApiChat(req, res) {
   const primaryProviderKey = (typeof providerKey === 'string' && providerKey) ? providerKey : 'anthropic';
   const primaryUsageId     = (typeof providerKey === 'string' && providerKey) ? providerKey : 'claude';
   const chain = buildFallbackChain(primaryProviderKey, apiKey, fallbackApiKeys);
+  if (chain[0].providerKey === '9router' && !chain[0].apiKey) {
+    chain[0].apiKey = getNineRouterKey();
+  }
+
+  // Electron supplies YANA_RT_BIN. Every Desktop provider turn, including
+  // Gemini and vision input, crosses TurnEngine (and therefore the Giám Thị/
+  // Yana authority chain) instead of calling providers from JavaScript.
+  // Browser-only deployments have no bundled binary and retain the existing
+  // server-side gateway until they install/configure a yana-rt runtime.
+  if (YANA_RT_BIN && chain.every(candidate => supportsGovernedProvider(candidate.providerKey))) {
+    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images);
+    return;
+  }
 
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',

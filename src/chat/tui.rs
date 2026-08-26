@@ -38,14 +38,13 @@ use super::input::TextInput;
 use super::provider::{ChatMessage, ChatProvider, ChatUsage, ProviderHealth};
 use super::settings::ChatSettings;
 use super::terminal_guard::TerminalGuard;
-use super::tool_types::StreamOutcome;
 use super::tools::round_guard::ToolRoundGuard;
 use super::tools::run_command::ExecOutcome;
+use crate::runtime::{CancellationToken, RuntimeEvent, TurnError, TurnOutcome};
 use anyhow::Result;
 use crossterm::event::{self, Event};
 use ratatui::layout::Rect;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
@@ -55,8 +54,8 @@ const IDLE_POLL: Duration = Duration::from_millis(250);
 const RECENT_SESSIONS_LIMIT: usize = 5;
 
 enum StreamEvent {
-    Chunk(String),
-    Done(Result<(ChatUsage, StreamOutcome)>),
+    Runtime(RuntimeEvent),
+    Done(Result<TurnOutcome, TurnError>),
 }
 
 /// A `run_command` tool call waiting on a human y/N in the TUI before
@@ -65,7 +64,7 @@ enum StreamEvent {
 /// approval UI offers acknowledge-only, no y-path at all (see
 /// `approval.rs`).
 struct PendingApproval {
-    call_id: String,
+    call: crate::model::tool::ToolCall,
     command: String,
     argv: Vec<String>,
     guard_verdict: Option<&'static str>,
@@ -99,7 +98,7 @@ enum TurnState {
     Idle,
     Streaming {
         rx: mpsc::Receiver<StreamEvent>,
-        cancel: Arc<AtomicBool>,
+        cancel: CancellationToken,
     },
     AwaitingApproval(PendingApproval),
     /// `call_id` rides alongside the receiver so the eventual
@@ -407,7 +406,7 @@ fn drain_stream_events(app: &mut App) {
             }
         };
         match event {
-            StreamEvent::Chunk(s) => {
+            StreamEvent::Runtime(RuntimeEvent::TextDelta(s)) => {
                 app.streaming_reply.push_str(&s);
                 app.output_chunks += 1;
                 if app.auto_scroll {
@@ -416,6 +415,7 @@ fn drain_stream_events(app: &mut App) {
                     app.has_new_output = true;
                 }
             }
+            StreamEvent::Runtime(_) => {}
             StreamEvent::Done(result) => {
                 app.finish_turn(result);
                 return;

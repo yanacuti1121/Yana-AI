@@ -40,9 +40,11 @@
 pub(crate) mod anthropic;
 mod banner;
 mod circuit_breaker;
+pub(crate) mod gemini;
 // `pub(crate)`, not private: `crate::os::agent` (Program K) reads
 // `list_recent_sessions`/`SessionSummary` as the real data source for
 // `yana-rt os agent-list`.
+mod headless;
 pub(crate) mod history;
 mod input;
 mod ollama_native;
@@ -214,4 +216,8 @@ pub fn dispatch(
         eprintln!("[chat] fatal: {e:#}");
         std::process::exit(1);
     }
+}
+
+pub(crate) fn dispatch_headless(provider: String, model: Option<String>) -> anyhow::Result<()> {
+    headless::dispatch(provider, model)
 }

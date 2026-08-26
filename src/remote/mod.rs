@@ -7,9 +7,9 @@
 //! # What this phase deliberately does NOT build yet
 //!
 //! Per the Aizen research pass (`.yana-ai/program-discord-adapter-checkpoint.md`),
-//! Discord messages in this slice reach the model plane directly for plain
+//! Discord messages in this slice reach the canonical turn runtime for plain
 //! chat and NOTHING else: `discord::run_gateway`'s callback in `dispatch`
-//! below calls `model::provider::stream_chat` with `tools: &[]`. There is
+//! below submits a `TurnRequest` with `tools: &[]`. There is
 //! no code path from a Discord message to `capability::`, `os::service`,
 //! or any file/git/process mutation. This is intentional and structural,
 //! not a missing feature: `os::identity`'s own lease system has zero
@@ -50,10 +50,30 @@ mod dispatch {
     use super::discord::{self, Incoming};
     use super::session;
     use crate::model::catalog::try_select_provider;
+    use crate::model::tool::{ToolCall, ToolResultRecord};
+    use crate::runtime::{
+        CancellationToken, ToolExecutor, TurnContext, TurnEngine, TurnOrigin, TurnOutcome,
+        TurnRequest, YanaAuthorityChain,
+    };
+    use crate::session_context::SessionContext;
     use anyhow::{Context, Result};
     use std::path::Path;
+    use std::sync::Arc;
 
     const PLATFORM: &str = "discord";
+
+    struct NoRemoteCapabilities;
+
+    impl ToolExecutor for NoRemoteCapabilities {
+        fn execute(&self, _context: &TurnContext, call: &ToolCall) -> ToolResultRecord {
+            ToolResultRecord {
+                call_id: call.id.clone(),
+                output: "remote chat has no capability execution surface".into(),
+                is_error: true,
+                denied: true,
+            }
+        }
+    }
 
     /// One Discord message, start to finish: allowlist already checked by
     /// `discord::run_gateway` before this is called. Resolves/creates the
@@ -106,35 +126,50 @@ mod dispatch {
         let system = "You are Yana, responding over Discord. Keep replies concise and \
             plain-text friendly for a chat client: short paragraphs, minimal markdown, \
             no wide tables or diagrams.";
-        let start = std::time::Instant::now();
-        let mut reply = String::new();
-        let outcome = provider.stream_chat(
-            api_key.as_deref(),
-            model_name,
-            Some(system),
-            &history,
-            &[], // no tools: this slice never grants capability access from Discord
-            &mut |chunk| {
-                reply.push_str(chunk);
-                Ok(())
-            },
+        let context = TurnContext::new(
+            SessionContext::new(
+                &session_id,
+                root.to_path_buf(),
+                provider_name,
+                model_name,
+                false,
+            ),
+            TurnOrigin::Remote,
+            true,
         );
+        let mut request = TurnRequest::new(context, model_name, history).with_system(system);
+        if let Some(key) = api_key {
+            request = request.with_api_key(key);
+        }
+        let runtime = TurnEngine::new(
+            provider,
+            Arc::new(YanaAuthorityChain),
+            Arc::new(NoRemoteCapabilities),
+        );
+        let start = std::time::Instant::now();
+        let outcome = runtime.run(request, &CancellationToken::default(), &mut |_| {});
         let duration_ms = start.elapsed().as_millis() as u64;
 
         match outcome {
-            Ok((usage, _stream_outcome)) => {
+            Ok(TurnOutcome::Completed { message, usage, .. }) => {
                 crate::chat::history::append_assistant(
                     &session_id,
                     provider_name,
                     model_name,
-                    &reply,
+                    &message,
                     usage.input_tokens,
                     usage.output_tokens,
                     duration_ms,
                     false,
                     None,
                 )?;
-                Ok(reply)
+                Ok(message)
+            }
+            Ok(TurnOutcome::Cancelled { .. }) => {
+                anyhow::bail!("remote turn cancelled before completion")
+            }
+            Ok(TurnOutcome::AwaitingApproval { .. }) => {
+                anyhow::bail!("remote plain-chat turn unexpectedly requested capability approval")
             }
             Err(error) => {
                 let message = format!("{error:#}");
@@ -149,7 +184,7 @@ mod dispatch {
                     false,
                     Some(&message),
                 );
-                Err(error)
+                Err(error.into())
             }
         }
     }

@@ -5,6 +5,9 @@
 
 use super::super::tools::run_command;
 use super::{App, PendingApproval, ToolExecEvent, TurnState};
+use crate::runtime::{
+    AuthorityDecision, RuntimeAuthority, TurnContext, TurnOrigin, YanaAuthorityChain,
+};
 use crossterm::event::{KeyCode, KeyEvent};
 use std::sync::mpsc;
 use std::thread;
@@ -40,7 +43,7 @@ impl App {
         };
         let reason = pending.guard_verdict.unwrap_or("blocked");
         self.push_tool_result(
-            &pending.call_id,
+            &pending.call.id,
             format!("blocked by guard: {reason}"),
             true,
             true,
@@ -55,7 +58,7 @@ impl App {
             return;
         };
         self.push_tool_result(
-            &pending.call_id,
+            &pending.call.id,
             "user declined to execute this command".to_string(),
             false,
             true,
@@ -63,12 +66,10 @@ impl App {
         self.continue_after_tool_result();
     }
 
-    /// Re-invokes the model after a denial/decline so it can adapt — a
-    /// denied/declined round still counts toward `tool_rounds`' ceiling,
-    /// same as an executed one, so repeatedly proposing (and getting
-    /// declined) can't loop forever either.
+    /// Re-invokes the canonical runtime after a denial/decline so the model
+    /// can adapt. The runtime counted the proposed call before returning
+    /// `AwaitingApproval`, so this continuation must not count it twice.
     fn continue_after_tool_result(&mut self) {
-        self.tool_rounds.record_round();
         if self.tool_rounds.exceeded() {
             self.status =
                 "tool-call limit reached for this turn — aborting to avoid a runaway loop"
@@ -85,19 +86,65 @@ impl App {
             return;
         };
         let PendingApproval {
-            call_id,
+            call,
             argv,
-            command: _,
+            command,
             guard_verdict: _,
         } = pending;
+        let validated = match run_command::validate(&command) {
+            Ok(validated) if validated.guard_verdict.is_none() && validated.argv == argv => {
+                validated
+            }
+            Ok(validated) => {
+                let reason = validated
+                    .guard_verdict
+                    .unwrap_or("command changed after approval validation");
+                self.push_tool_result(
+                    &call.id,
+                    format!("blocked during execution revalidation: {reason}"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+                return;
+            }
+            Err(error) => {
+                self.push_tool_result(
+                    &call.id,
+                    format!("execution revalidation failed: {error}"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+                return;
+            }
+        };
+        let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
+        match YanaAuthorityChain.authorize_approved_tool(&context, &call) {
+            AuthorityDecision::Allow => {}
+            AuthorityDecision::Deny { reason, .. }
+            | AuthorityDecision::HumanApprovalRequired { reason, .. } => {
+                self.push_tool_result(
+                    &call.id,
+                    format!("execution denied after approval: {reason}"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+                return;
+            }
+        }
         let use_sandbox = self.use_sandbox;
         let repo_root = self.repo_root.clone();
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
-            let result = run_command::execute(&repo_root, &argv, use_sandbox);
+            let result = run_command::execute(&repo_root, &validated.argv, use_sandbox);
             tx.send(ToolExecEvent::Done(result)).ok();
         });
-        self.turn = TurnState::ExecutingTool { call_id, rx };
+        self.turn = TurnState::ExecutingTool {
+            call_id: call.id,
+            rx,
+        };
         self.turn_started_at = Some(Instant::now());
     }
 }
