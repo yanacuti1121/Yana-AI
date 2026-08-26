@@ -29,22 +29,39 @@ function createEncoder(sampleRate, channels, frameDurationMs) {
   const codec = new OpusScript(sampleRate, channels, OpusScript.Application.AUDIO);
   const frameSize = (sampleRate * frameDurationMs) / 1000;
   const frameBytes = frameSize * channels * BYTES_PER_SAMPLE;
+  let pending = Buffer.alloc(0);
+
+  function pushPcm(pcm, final = false) {
+    if (!Buffer.isBuffer(pcm)) pcm = Buffer.from(pcm);
+    if (pcm.length) pending = pending.length ? Buffer.concat([pending, pcm]) : pcm;
+
+    const frames = [];
+    while (pending.length >= frameBytes) {
+      frames.push(codec.encode(pending.subarray(0, frameBytes), frameSize));
+      pending = pending.subarray(frameBytes);
+    }
+    if (final && pending.length) {
+      const padded = Buffer.alloc(frameBytes);
+      pending.copy(padded);
+      frames.push(codec.encode(padded, frameSize));
+      pending = Buffer.alloc(0);
+    }
+    return frames;
+  }
+
   return {
     // pcm: Buffer of interleaved 16-bit PCM samples, any length. Returns
     // an array of Opus packet Buffers, one per frameDurationMs chunk
     // (the last chunk is zero-padded if shorter than a full frame).
     encodePcm(pcm) {
-      const frames = [];
-      for (let offset = 0; offset < pcm.length; offset += frameBytes) {
-        let chunk = pcm.subarray(offset, offset + frameBytes);
-        if (chunk.length < frameBytes) {
-          const padded = Buffer.alloc(frameBytes);
-          chunk.copy(padded);
-          chunk = padded;
-        }
-        frames.push(codec.encode(chunk, frameSize));
-      }
-      return frames;
+      return pushPcm(pcm, true);
+    },
+    // Incremental form for a streaming PCM response. Incomplete samples stay
+    // buffered until a complete Opus frame is available; pass final=true once
+    // to zero-pad only the final frame.
+    pushPcm,
+    finish() {
+      return pushPcm(Buffer.alloc(0), true);
     },
     dispose() {
       codec.delete();

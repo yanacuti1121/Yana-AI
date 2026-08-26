@@ -83,8 +83,9 @@ point the device's server URL at `wss://<this-host>/robot/ws`.
   uses (now in `lib/providers.js`). Groq's ASR endpoint
   (`/openai/v1/audio/transcriptions`) reuses the same key as chat — no
   second provider needed.
-- TTS defaults to the existing VieNeu-TTS sidecar (`tts-sidecar/`, same as
-  `/api/tts`), Opus-encoded before being streamed back to the device.
+- TTS defaults to the VieNeu-TTS v3 Turbo sidecar (`tts-sidecar/`, same as
+  `/api/tts`). Its ONNX stream is converted from 48 kHz float audio to 24 kHz
+  mono PCM16, then Opus-encoded and paced in 60 ms packets for the device.
   VieNeu only produces Vietnamese/English — set `YANA_ROBOT_TTS_PROVIDER=openai`
   to speak other languages instead (e.g. Korean), via OpenAI's
   `/v1/audio/speech` endpoint (requires its own API key; voices are
@@ -107,6 +108,34 @@ Env vars (Railway/production):
 | `YANA_ROBOT_TTS_API_KEY` | API key for OpenAI TTS. Falls back to `YANA_ROBOT_LLM_API_KEY` if unset. |
 | `YANA_ROBOT_TTS_OPENAI_MODEL` | OpenAI TTS model (default `gpt-4o-mini-tts`). |
 | `YANA_ROBOT_TTS_OPENAI_VOICE` | OpenAI TTS voice (default `alloy`). |
+| `YANA_ROBOT_TTS_PACKET_INTERVAL_MS` | Delay between 60 ms Opus packets (default `55`) to avoid overflowing the firmware's 1.2 s decode queue. |
+
+### Local VieNeu-TTS v3 setup
+
+VieNeu v3 requires Python 3.10–3.13. On macOS and CPU servers, use its
+torch-free ONNX backend:
+
+```sh
+cd tools/yana-web/tts-sidecar
+python3.13 -m venv .venv  # or any Python 3.10–3.13
+.venv/bin/python -m pip install -r requirements.txt
+./run.sh
+```
+
+The first synthesis downloads the VieNeu model; `GET http://127.0.0.1:7861/health`
+stays lightweight and reports whether it has been loaded. Useful sidecar settings:
+
+| Var | Default | Purpose |
+|---|---|---|
+| `VIENEU_SIDECAR_PORT` | `7861` | Local sidecar port. |
+| `VIENEU_VOICE` | `Phạm Tuyên` | Preset voice used when a request omits `voice`. |
+| `VIENEU_BACKEND` | `onnx` | Low-latency CPU streaming backend. |
+| `VIENEU_PRECISION` | `int8` | Fast ONNX precision; use `fp32` for maximum quality. |
+| `VIENEU_THREADS` | `0` | ONNX worker threads (`0` lets VieNeu choose). |
+
+Compatibility endpoints: `POST /tts` returns a 24 kHz WAV for desktop/mobile;
+`POST /tts/stream` returns 24 kHz mono PCM16 for the robot bridge. VieNeu v3
+ignores the old `style` field; choose a preset voice to change character.
 
 Not yet verified on real hardware — see `_test_robot.js` for what's covered
 (WebSocket handshake + MCP `initialize`/`tools/list` handshake only; the
