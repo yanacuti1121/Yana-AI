@@ -2,7 +2,6 @@
 ///
 /// Each test runs in an isolated tmpdir via the binary CLI so real file I/O
 /// is exercised end-to-end.
-
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
@@ -10,7 +9,8 @@ use std::process::{Command, Stdio};
 
 fn bin() -> PathBuf {
     let mut p = std::env::current_exe().unwrap();
-    p.pop(); p.pop(); // target/debug/deps → target
+    p.pop();
+    p.pop(); // target/debug/deps → target
     p.push("yana-rt");
     p
 }
@@ -28,10 +28,7 @@ fn test_command(dir: &std::path::Path) -> Command {
 }
 
 fn run(dir: &std::path::Path, args: &[&str]) -> (String, String, bool) {
-    let out = test_command(dir)
-        .args(args)
-        .output()
-        .expect("run yana-rt");
+    let out = test_command(dir).args(args).output().expect("run yana-rt");
     (
         String::from_utf8_lossy(&out.stdout).to_string(),
         String::from_utf8_lossy(&out.stderr).to_string(),
@@ -44,9 +41,17 @@ fn run(dir: &std::path::Path, args: &[&str]) -> (String, String, bool) {
 #[test]
 fn bus_emit_creates_jsonl() {
     let dir = tmpdir();
-    let (stdout, _, ok) = run(dir.path(), &[
-        "bus", "emit", "planner", "executor", "task.assign", r#"{"task":"test"}"#,
-    ]);
+    let (stdout, _, ok) = run(
+        dir.path(),
+        &[
+            "bus",
+            "emit",
+            "planner",
+            "executor",
+            "task.assign",
+            r#"{"task":"test"}"#,
+        ],
+    );
     assert!(ok, "emit should succeed");
     assert!(stdout.contains("emitted"), "should print emitted");
 
@@ -60,9 +65,17 @@ fn bus_emit_creates_jsonl() {
 #[test]
 fn bus_emit_auto_logs_to_l3() {
     let dir = tmpdir();
-    run(dir.path(), &[
-        "bus", "emit", "agent-a", "*", "broadcast", r#"{"msg":"hello"}"#,
-    ]);
+    run(
+        dir.path(),
+        &[
+            "bus",
+            "emit",
+            "agent-a",
+            "*",
+            "broadcast",
+            r#"{"msg":"hello"}"#,
+        ],
+    );
     let l3_file = dir.path().join(".yana-ai").join("l3.jsonl");
     assert!(l3_file.exists(), "L3 auto-log should be created on emit");
     let content = fs::read_to_string(&l3_file).unwrap();
@@ -82,11 +95,21 @@ fn bus_read_filters_by_agent() {
 #[test]
 fn bus_reply_links_to_original() {
     let dir = tmpdir();
-    run(dir.path(), &["bus", "emit", "a", "b", "req", r#"{"q":"?"}"#]);
+    run(
+        dir.path(),
+        &["bus", "emit", "a", "b", "req", r#"{"q":"?"}"#],
+    );
     let (read_out, _, _) = run(dir.path(), &["bus", "read"]);
     // Extract 8-char ID from first line of table
-    let id = read_out.lines()
-        .find(|l| l.len() > 10 && l.chars().next().map(|c| c.is_ascii_hexdigit()).unwrap_or(false))
+    let id = read_out
+        .lines()
+        .find(|l| {
+            l.len() > 10
+                && l.chars()
+                    .next()
+                    .map(|c| c.is_ascii_hexdigit())
+                    .unwrap_or(false)
+        })
         .and_then(|l| l.split_whitespace().next())
         .unwrap_or("00000000");
     let (_, _, ok) = run(dir.path(), &["bus", "reply", id, "b", r#"{"a":"!"}"#]);
@@ -98,7 +121,10 @@ fn bus_reply_links_to_original() {
 #[test]
 fn bus_inbox_shows_addressed_messages() {
     let dir = tmpdir();
-    run(dir.path(), &["bus", "emit", "x", "myagent", "ping", r#"{}"#]);
+    run(
+        dir.path(),
+        &["bus", "emit", "x", "myagent", "ping", r#"{}"#],
+    );
     run(dir.path(), &["bus", "emit", "x", "*", "broadcast", r#"{}"#]);
     run(dir.path(), &["bus", "emit", "x", "other", "nope", r#"{}"#]);
     let (inbox, _, _) = run(dir.path(), &["bus", "inbox", "myagent"]);
@@ -112,10 +138,19 @@ fn bus_inbox_shows_addressed_messages() {
 #[test]
 fn memory_store_and_get() {
     let dir = tmpdir();
-    let (_, _, ok) = run(dir.path(), &[
-        "memory", "store", "test.key", "hello world",
-        "--tag", "test", "--confidence", "high",
-    ]);
+    let (_, _, ok) = run(
+        dir.path(),
+        &[
+            "memory",
+            "store",
+            "test.key",
+            "hello world",
+            "--tag",
+            "test",
+            "--confidence",
+            "high",
+        ],
+    );
     assert!(ok, "store should succeed");
     let (get_out, _, ok2) = run(dir.path(), &["memory", "get", "test.key"]);
     assert!(ok2);
@@ -132,14 +167,24 @@ fn memory_upsert_updates_existing() {
     assert!(out.contains("v2"), "value should be updated");
     assert!(!out.contains("v1"), "old value should be gone");
     let l3 = fs::read_to_string(dir.path().join(".yana-ai").join("l3.jsonl")).unwrap();
-    assert_eq!(l3.lines().filter(|l| l.contains("\"key\":\"k\"")).count(), 1, "only 1 entry after upsert");
+    assert_eq!(
+        l3.lines().filter(|l| l.contains("\"key\":\"k\"")).count(),
+        1,
+        "only 1 entry after upsert"
+    );
 }
 
 #[test]
 fn memory_list_filters_by_tag() {
     let dir = tmpdir();
-    run(dir.path(), &["memory", "store", "a", "val-a", "--tag", "foo"]);
-    run(dir.path(), &["memory", "store", "b", "val-b", "--tag", "bar"]);
+    run(
+        dir.path(),
+        &["memory", "store", "a", "val-a", "--tag", "foo"],
+    );
+    run(
+        dir.path(),
+        &["memory", "store", "b", "val-b", "--tag", "bar"],
+    );
     let (out, _, _) = run(dir.path(), &["memory", "list", "--tag", "foo"]);
     assert!(out.contains("val-a"), "tagged fact shown");
     assert!(!out.contains("val-b"), "other tag not shown");
@@ -149,18 +194,41 @@ fn memory_list_filters_by_tag() {
 fn memory_promote_writes_l1_file() {
     let dir = tmpdir();
     fs::create_dir_all(dir.path().join("memory").join("L1_atomic")).unwrap();
-    run(dir.path(), &["memory", "store", "my.fact", "important decision", "--confidence", "high"]);
-    let (out, _, ok) = run(dir.path(), &[
-        "memory", "promote", "my.fact",
-        "--l1-dir", "memory/L1_atomic",
-    ]);
+    run(
+        dir.path(),
+        &[
+            "memory",
+            "store",
+            "my.fact",
+            "important decision",
+            "--confidence",
+            "high",
+        ],
+    );
+    let (out, _, ok) = run(
+        dir.path(),
+        &[
+            "memory",
+            "promote",
+            "my.fact",
+            "--l1-dir",
+            "memory/L1_atomic",
+        ],
+    );
     assert!(ok, "promote should succeed");
     assert!(out.contains("promoted"), "promoted message");
-    let l1_file = dir.path().join("memory").join("L1_atomic").join("my-fact.md");
+    let l1_file = dir
+        .path()
+        .join("memory")
+        .join("L1_atomic")
+        .join("my-fact.md");
     assert!(l1_file.exists(), "L1 .md file created");
     let content = fs::read_to_string(&l1_file).unwrap();
     assert!(content.contains("important decision"), "value in L1 file");
-    assert!(content.contains("confidence: high"), "confidence in L1 frontmatter");
+    assert!(
+        content.contains("confidence: high"),
+        "confidence in L1 frontmatter"
+    );
 }
 
 // ── Plugin shell parsing ──────────────────────────────────────────────────────
@@ -168,10 +236,17 @@ fn memory_promote_writes_l1_file() {
 #[test]
 fn plugin_add_and_list() {
     let dir = tmpdir();
-    let (_, _, ok) = run(dir.path(), &[
-        "plugin", "add", "my-guard", "bash -c 'echo ok'",
-        "--description", "test guard",
-    ]);
+    let (_, _, ok) = run(
+        dir.path(),
+        &[
+            "plugin",
+            "add",
+            "my-guard",
+            "bash -c 'echo ok'",
+            "--description",
+            "test guard",
+        ],
+    );
     assert!(ok, "add should succeed");
     let (list_out, _, _) = run(dir.path(), &["plugin", "list"]);
     assert!(list_out.contains("my-guard"), "plugin in list");
@@ -186,11 +261,20 @@ fn plugin_disable_and_enable() {
     let (out, _, _) = run(dir.path(), &["plugin", "list"]);
     // disabled plugin has no ✓
     let plugin_line = out.lines().find(|l| l.contains("p")).unwrap_or("");
-    assert!(!plugin_line.contains("✓"), "disabled plugin has no checkmark");
+    assert!(
+        !plugin_line.contains("✓"),
+        "disabled plugin has no checkmark"
+    );
     run(dir.path(), &["plugin", "enable", "p"]);
     let (out2, _, _) = run(dir.path(), &["plugin", "list"]);
-    let line2 = out2.lines().find(|l| l.contains("  p  ") || l.contains("  p\t")).unwrap_or("");
-    assert!(line2.contains("✓") || out2.contains("✓"), "re-enabled has checkmark");
+    let line2 = out2
+        .lines()
+        .find(|l| l.contains("  p  ") || l.contains("  p\t"))
+        .unwrap_or("");
+    assert!(
+        line2.contains("✓") || out2.contains("✓"),
+        "re-enabled has checkmark"
+    );
 }
 
 #[test]
@@ -208,8 +292,30 @@ fn plugin_remove() {
 #[test]
 fn cost_log_and_show() {
     let dir = tmpdir();
-    run(dir.path(), &["cost", "log", "pr_review", "fast", "claude-haiku-4-5", "1000", "300"]);
-    run(dir.path(), &["cost", "log", "audit", "standard", "claude-sonnet-4-6", "5000", "1000"]);
+    run(
+        dir.path(),
+        &[
+            "cost",
+            "log",
+            "pr_review",
+            "fast",
+            "claude-haiku-4-5",
+            "1000",
+            "300",
+        ],
+    );
+    run(
+        dir.path(),
+        &[
+            "cost",
+            "log",
+            "audit",
+            "standard",
+            "claude-sonnet-4-6",
+            "5000",
+            "1000",
+        ],
+    );
     let (out, _, ok) = run(dir.path(), &["cost", "show"]);
     assert!(ok);
     assert!(out.contains("fast"), "fast tier in summary");
@@ -220,8 +326,14 @@ fn cost_log_and_show() {
 #[test]
 fn cost_breakdown_by_model() {
     let dir = tmpdir();
-    run(dir.path(), &["cost", "log", "t1", "fast", "haiku", "100", "50"]);
-    run(dir.path(), &["cost", "log", "t2", "standard", "sonnet", "200", "100"]);
+    run(
+        dir.path(),
+        &["cost", "log", "t1", "fast", "haiku", "100", "50"],
+    );
+    run(
+        dir.path(),
+        &["cost", "log", "t2", "standard", "sonnet", "200", "100"],
+    );
     let (out, _, _) = run(dir.path(), &["cost", "breakdown", "model"]);
     assert!(out.contains("haiku"), "haiku in model breakdown");
     assert!(out.contains("sonnet"), "sonnet in model breakdown");
@@ -275,9 +387,15 @@ fn bus_emit_auto_tracks_cost_when_payload_has_tokens() {
     let dir = tmpdir();
     // Emit event with token info in payload → should auto-log to ledger
     let payload = r#"{"input_tokens":2000,"output_tokens":500,"tier":"standard","model":"claude-sonnet-4-6","task":"pr_review"}"#;
-    let (stdout, _, ok) = run(dir.path(), &["bus", "emit", "agent", "*", "task.done", payload]);
+    let (stdout, _, ok) = run(
+        dir.path(),
+        &["bus", "emit", "agent", "*", "task.done", payload],
+    );
     assert!(ok);
-    assert!(stdout.contains("cost tracked automatically"), "auto-track message shown");
+    assert!(
+        stdout.contains("cost tracked automatically"),
+        "auto-track message shown"
+    );
 
     // Verify ledger entry was created
     let (cost_out, _, _) = run(dir.path(), &["cost", "show"]);
@@ -289,7 +407,10 @@ fn bus_emit_auto_tracks_cost_when_payload_has_tokens() {
 fn bus_emit_no_cost_when_payload_missing_tokens() {
     let dir = tmpdir();
     // Emit without token fields → no cost entry
-    run(dir.path(), &["bus", "emit", "a", "b", "ping", r#"{"msg":"hello"}"#]);
+    run(
+        dir.path(),
+        &["bus", "emit", "a", "b", "ping", r#"{"msg":"hello"}"#],
+    );
     let ledger = dir.path().join(".yana-ai").join("ledger.jsonl");
     assert!(!ledger.exists(), "no ledger when tokens absent");
 }
@@ -300,19 +421,51 @@ fn bus_emit_no_cost_when_payload_missing_tokens() {
 fn doctor_run_exits_ok() {
     let dir = tmpdir();
     // init git repo so git checks pass
-    Command::new("git").args(["init"]).current_dir(dir.path()).output().ok();
+    Command::new("git")
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .ok();
     let (stdout, _, _) = run(dir.path(), &["doctor", "run", "."]);
-    assert!(stdout.contains("git installed") || stdout.contains("yana-ai doctor"),
-        "doctor output shown");
+    assert!(
+        stdout.contains("git installed") || stdout.contains("yana-ai doctor"),
+        "doctor output shown"
+    );
 }
 
 #[test]
 fn doctor_run_json() {
     let dir = tmpdir();
-    let (stdout, _, ok) = run(dir.path(), &["doctor", "run", ".", "--json"]);
-    assert!(ok);
+    Command::new("git")
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .ok();
+    let (stdout, _, _) = run(dir.path(), &["doctor", "run", ".", "--json"]);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    assert!(v.is_array(), "JSON output is array");
+    assert!(v.is_object(), "JSON output is a report object");
+    assert_eq!(v["checks"].as_array().map(Vec::len), Some(16));
+    let labels: HashSet<_> = v["checks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|check| check["label"].as_str())
+        .collect();
+    for label in [
+        "git branch",
+        "GitHub token",
+        "CI environment",
+        "yana-ai scanners",
+        "yana-ai CLI",
+        "yana-ai hooks",
+    ] {
+        assert!(labels.contains(label), "doctor report includes {label}");
+    }
+    let counted = v["counts"]["OK"].as_u64().unwrap_or(0)
+        + v["counts"]["WARN"].as_u64().unwrap_or(0)
+        + v["counts"]["FAIL"].as_u64().unwrap_or(0)
+        + v["counts"]["INFO"].as_u64().unwrap_or(0);
+    assert_eq!(counted, 16, "doctor counts cover every check");
 }
 
 // ── spec ──────────────────────────────────────────────────────────────────────
@@ -351,7 +504,10 @@ fn ci_check_no_workflows() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["ci", "check", "."]);
     assert!(ok);
-    assert!(stdout.contains("No workflows"), "reports no workflows");
+    assert!(
+        stdout.contains("CI-SETUP-001"),
+        "reports missing workflow setup"
+    );
 }
 
 #[test]
@@ -359,9 +515,60 @@ fn ci_check_detects_missing_timeout() {
     let dir = tmpdir();
     let wf_dir = dir.path().join(".github/workflows");
     std::fs::create_dir_all(&wf_dir).unwrap();
-    std::fs::write(wf_dir.join("ci.yml"), "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n").unwrap();
+    std::fs::write(
+        wf_dir.join("ci.yml"),
+        "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n",
+    )
+    .unwrap();
     let (stdout, _, _) = run(dir.path(), &["ci", "check", "."]);
-    assert!(stdout.contains("CI004") || stdout.contains("timeout"), "detects missing timeout");
+    assert!(
+        stdout.contains("CI004") || stdout.contains("timeout"),
+        "detects missing timeout"
+    );
+}
+
+#[test]
+fn ci_check_json_matches_canonical_python_contract() {
+    let dir = tmpdir();
+    let wf_dir = dir.path().join(".github/workflows");
+    std::fs::create_dir_all(&wf_dir).unwrap();
+    std::fs::write(
+        wf_dir.join("ci.yml"),
+        "permissions:\n  contents: read\njobs:\n  build:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@0123456789012345678901234567890123456789\n      - env:\n          TOKEN: ${{ secrets.TOKEN }}\n        run: yana-ai audit .\n",
+    )
+    .unwrap();
+
+    let (stdout, _, ok) = run(dir.path(), &["ci", "check", ".", "--json"]);
+    assert!(ok, "WARN findings stay below the default FAIL threshold");
+    let report: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert_eq!(report["status"], "WARN");
+    let ids: HashSet<_> = report["checks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|finding| finding["id"].as_str())
+        .collect();
+    assert_eq!(
+        ids,
+        HashSet::from(["CI-SECRET-001", "CI-AUDIT-001", "CI-BRANCH-001"]),
+    );
+}
+
+#[test]
+fn ci_check_fail_threshold_propagates_exit_status() {
+    let dir = tmpdir();
+    let wf_dir = dir.path().join(".github/workflows");
+    std::fs::create_dir_all(&wf_dir).unwrap();
+    std::fs::write(
+        wf_dir.join("ci.yml"),
+        "permissions:\n  contents: read\njobs:\n  automerge:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - run: echo automerge\n",
+    )
+    .unwrap();
+
+    let (stdout, _, ok) = run(dir.path(), &["ci", "check", ".", "--json"]);
+    assert!(!ok, "FAIL findings must propagate a non-zero exit status");
+    let report: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert_eq!(report["status"], "FAIL");
 }
 
 // ── hunt ──────────────────────────────────────────────────────────────────────
@@ -371,18 +578,28 @@ fn hunt_clean_repo_no_findings() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["hunt", "run", ".", "secrets"]);
     assert!(ok);
-    assert!(stdout.contains("No findings") || stdout.contains("clean") || stdout.is_empty()
-        || stdout.contains("finding"),
-        "hunt output shown: {stdout}");
+    assert!(
+        stdout.contains("No findings")
+            || stdout.contains("clean")
+            || stdout.is_empty()
+            || stdout.contains("finding"),
+        "hunt output shown: {stdout}"
+    );
 }
 
 #[test]
 fn hunt_detects_fake_secret() {
     let dir = tmpdir();
-    std::fs::write(dir.path().join("config.py"), "api_key = 'sk-abcdefghijklmnopqrstuvwxyz123456'\n").unwrap();
+    std::fs::write(
+        dir.path().join("config.py"),
+        "api_key = 'sk-abcdefghijklmnopqrstuvwxyz123456'\n",
+    )
+    .unwrap();
     let (stdout, _, _) = run(dir.path(), &["hunt", "run", ".", "secrets"]);
-    assert!(stdout.contains("HIGH") || stdout.contains("finding") || stdout.contains("API"),
-        "detects fake API key: {stdout}");
+    assert!(
+        stdout.contains("HIGH") || stdout.contains("finding") || stdout.contains("API"),
+        "detects fake API key: {stdout}"
+    );
 }
 
 // ── vault ─────────────────────────────────────────────────────────────────────
@@ -392,33 +609,67 @@ fn vault_init_and_new_note() {
     let dir = tmpdir();
     let (_, _, ok) = run(dir.path(), &["vault", "init", ".", "--name", "Test"]);
     assert!(ok, "vault init ok");
-    assert!(dir.path().join(".vault.yaml").exists(), ".vault.yaml created");
+    assert!(
+        dir.path().join(".vault.yaml").exists(),
+        ".vault.yaml created"
+    );
 
     let (stdout, _, ok2) = run(dir.path(), &["vault", "new", "Hello World", "--lang", "vi"]);
     assert!(ok2, "vault new ok");
     assert!(stdout.contains("hello-world"), "slug in output");
-    assert!(dir.path().join("notes/hello-world.md").exists(), "note file created");
+    assert!(
+        dir.path().join("notes/hello-world.md").exists(),
+        "note file created"
+    );
 }
 
 #[test]
 fn vault_list_and_search() {
     let dir = tmpdir();
     run(dir.path(), &["vault", "init", ".", "--name", "T"]);
-    run(dir.path(), &["vault", "new", "Rust Programming", "--lang", "en", "--vault", "."]);
-    run(dir.path(), &["vault", "new", "Lập trình Rust", "--lang", "vi", "--vault", "."]);
+    run(
+        dir.path(),
+        &[
+            "vault",
+            "new",
+            "Rust Programming",
+            "--lang",
+            "en",
+            "--vault",
+            ".",
+        ],
+    );
+    run(
+        dir.path(),
+        &[
+            "vault",
+            "new",
+            "Lập trình Rust",
+            "--lang",
+            "vi",
+            "--vault",
+            ".",
+        ],
+    );
 
     let (list, _, _) = run(dir.path(), &["vault", "list", "--vault", "."]);
     assert!(list.contains("rust-programming"), "en note listed");
 
     let (search, _, _) = run(dir.path(), &["vault", "search", "rust", "--vault", "."]);
-    assert!(search.contains("note(s)") || search.contains("matching"), "search finds notes");
+    assert!(
+        search.contains("note(s)") || search.contains("matching"),
+        "search finds notes"
+    );
 }
 
 #[test]
 fn vault_stats() {
     let dir = tmpdir();
     run(dir.path(), &["vault", "init", ".", "--name", "S"]);
-    run(dir.path(), &["vault", "new", "Note One", "--lang", "vi", "--vault", "."]);
+    run(
+        dir.path(),
+        &["vault", "new", "Note One", "--lang", "vi", "--vault", "."],
+    );
     let (stats, _, ok) = run(dir.path(), &["vault", "stats", "--vault", "."]);
     assert!(ok);
     assert!(stats.contains("Notes"), "stats shows note count");
@@ -435,12 +686,19 @@ fn graph_build_and_show() {
 
     let (_, _, ok) = run(dir.path(), &["graph", "build", ".", "--quiet"]);
     assert!(ok, "graph build ok");
-    assert!(dir.path().join(".yana-ai/graph/knowledge-graph.json").exists(),
-        "graph JSON created");
+    assert!(
+        dir.path()
+            .join(".yana-ai/graph/knowledge-graph.json")
+            .exists(),
+        "graph JSON created"
+    );
 
     let (show, _, ok2) = run(dir.path(), &["graph", "show", "."]);
     assert!(ok2);
-    assert!(show.contains("Files") || show.contains("Analysed"), "show output");
+    assert!(
+        show.contains("Files") || show.contains("Analysed"),
+        "show output"
+    );
 }
 
 #[test]
@@ -470,7 +728,10 @@ fn fix_ac002_dry_run() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["fix", "apply", "AC002", ".", "--dry-run"]);
     assert!(ok);
-    assert!(stdout.contains("dry-run") || stdout.contains(".env"), "dry run output");
+    assert!(
+        stdout.contains("dry-run") || stdout.contains(".env"),
+        "dry run output"
+    );
 }
 
 #[test]
@@ -491,8 +752,10 @@ fn map_show_no_config() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["map", "show", "."]);
     assert!(ok);
-    assert!(stdout.contains("Blast") || stdout.contains("risk") || stdout.contains("Claude"),
-        "map output shown: {stdout}");
+    assert!(
+        stdout.contains("Blast") || stdout.contains("risk") || stdout.contains("Claude"),
+        "map output shown: {stdout}"
+    );
 }
 
 #[test]
@@ -548,7 +811,17 @@ fn scan_markdown_writes_file() {
     let dir = tmpdir();
     let sd = scanner_dir();
     let report_path = dir.path().join("report.md");
-    run(dir.path(), &["scan", ".", "--markdown", report_path.to_str().unwrap(), "--scanner-dir", &sd]);
+    run(
+        dir.path(),
+        &[
+            "scan",
+            ".",
+            "--markdown",
+            report_path.to_str().unwrap(),
+            "--scanner-dir",
+            &sd,
+        ],
+    );
     assert!(report_path.exists(), "markdown report file created");
     let content = std::fs::read_to_string(&report_path).unwrap();
     assert!(content.contains('#'), "markdown has headers");
@@ -571,7 +844,10 @@ fn config_show_after_init() {
     run(dir.path(), &["config", "init", "--dir", "."]);
     let (stdout, _, ok) = run(dir.path(), &["config", "show", "--dir", "."]);
     assert!(ok, "config show should succeed after init");
-    assert!(stdout.contains("version") || stdout.contains("guards"), "show has config fields");
+    assert!(
+        stdout.contains("version") || stdout.contains("guards"),
+        "show has config fields"
+    );
 }
 
 #[test]
@@ -588,11 +864,17 @@ fn config_show_no_config_prints_hint() {
 fn config_set_updates_value() {
     let dir = tmpdir();
     run(dir.path(), &["config", "init", "--dir", "."]);
-    let (_, _, ok) = run(dir.path(), &["config", "set", "cost_tracking", "false", "--dir", "."]);
+    let (_, _, ok) = run(
+        dir.path(),
+        &["config", "set", "cost_tracking", "false", "--dir", "."],
+    );
     assert!(ok, "config set should succeed");
     let settings = dir.path().join(".yana-ai").join("settings.json");
     let content = std::fs::read_to_string(settings).unwrap();
-    assert!(content.contains("false") || content.contains("cost_tracking"), "value updated");
+    assert!(
+        content.contains("false") || content.contains("cost_tracking"),
+        "value updated"
+    );
 }
 
 // ── task ──────────────────────────────────────────────────────────────────────
@@ -600,9 +882,15 @@ fn config_set_updates_value() {
 #[test]
 fn task_create_and_list() {
     let dir = tmpdir();
-    let (stdout, _, ok) = run(dir.path(), &["task", "create", "fix-auth-bug", "--scope", "auth/"]);
+    let (stdout, _, ok) = run(
+        dir.path(),
+        &["task", "create", "fix-auth-bug", "--scope", "auth/"],
+    );
     assert!(ok, "task create should succeed");
-    assert!(stdout.contains("created") || stdout.contains("fix-auth-bug"), "create prints task");
+    assert!(
+        stdout.contains("created") || stdout.contains("fix-auth-bug"),
+        "create prints task"
+    );
 
     let (list_out, _, ok2) = run(dir.path(), &["task", "list"]);
     assert!(ok2, "task list should succeed");
@@ -653,7 +941,10 @@ fn eval_run_unknown_task_errors_gracefully() {
 fn eval_judge_unknown_task_errors_gracefully() {
     let dir = tmpdir();
     let (_, _, ok) = run(dir.path(), &["eval", "judge", "nonexistent-task-id"]);
-    assert!(!ok, "unknown task id should fail before any provider/network call");
+    assert!(
+        !ok,
+        "unknown task id should fail before any provider/network call"
+    );
 }
 
 #[test]
@@ -661,10 +952,22 @@ fn eval_judge_no_evidence_errors_gracefully() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["task", "create", "no-evidence-task"]);
     assert!(ok, "task create should succeed");
-    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
+    let id = stdout
+        .lines()
+        .next()
+        .unwrap()
+        .split_whitespace()
+        .nth(2)
+        .unwrap();
     let (_, stderr, ok2) = run(dir.path(), &["eval", "judge", id]);
-    assert!(!ok2, "judge without evidence should fail before any network call");
-    assert!(stderr.contains("no evidence"), "error names the real cause: {stderr}");
+    assert!(
+        !ok2,
+        "judge without evidence should fail before any network call"
+    );
+    assert!(
+        stderr.contains("no evidence"),
+        "error names the real cause: {stderr}"
+    );
 }
 
 /// Breaker-open check happens before provider selection/the network call —
@@ -675,8 +978,17 @@ fn eval_judge_breaker_blocks_when_open_no_network_needed() {
     let dir = tmpdir();
     let (stdout, _, ok) = run(dir.path(), &["task", "create", "breaker-primed-task"]);
     assert!(ok);
-    let id = stdout.lines().next().unwrap().split_whitespace().nth(2).unwrap();
-    run(dir.path(), &["task", "done", id, "--evidence", "irrelevant"]);
+    let id = stdout
+        .lines()
+        .next()
+        .unwrap()
+        .split_whitespace()
+        .nth(2)
+        .unwrap();
+    run(
+        dir.path(),
+        &["task", "done", id, "--evidence", "irrelevant"],
+    );
 
     // Prime the breaker open by writing a future eval_judge_breaker_until
     // directly into tasks.json — same file the CLI itself reads/writes,
@@ -693,14 +1005,26 @@ fn eval_judge_breaker_blocks_when_open_no_network_needed() {
     // feature, so this matches production formatting exactly rather than
     // approximating it via a shelled-out `date` call.
     let future_ts = (chrono::Utc::now() + chrono::Duration::seconds(120))
-        .format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        .format("%Y-%m-%dT%H:%M:%SZ")
+        .to_string();
     task["eval_judge_breaker_until"] = serde_json::json!(future_ts);
     fs::write(&store_path, serde_json::to_string_pretty(&store).unwrap()).unwrap();
 
-    let out = Command::new(bin()).args(["eval", "judge", id]).current_dir(dir.path()).output().unwrap();
-    assert_eq!(out.status.code(), Some(2), "breaker-open must exit 2, distinct from a real FAIL's exit 1");
+    let out = Command::new(bin())
+        .args(["eval", "judge", id])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "breaker-open must exit 2, distinct from a real FAIL's exit 1"
+    );
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.to_lowercase().contains("breaker"), "names the reason: {stderr}");
+    assert!(
+        stderr.to_lowercase().contains("breaker"),
+        "names the reason: {stderr}"
+    );
 }
 
 /// A `tasks.json` written before `eval_judge_attempts`/`eval_judge_breaker_until`
@@ -723,11 +1047,18 @@ fn task_store_without_judge_fields_still_loads() {
             }
         }
     });
-    fs::write(store_dir.join("tasks.json"), serde_json::to_string_pretty(&old_format).unwrap()).unwrap();
+    fs::write(
+        store_dir.join("tasks.json"),
+        serde_json::to_string_pretty(&old_format).unwrap(),
+    )
+    .unwrap();
 
     let (stdout, _, ok) = run(dir.path(), &["task", "list"]);
     assert!(ok, "old-format store must still load, not crash");
-    assert!(stdout.contains("pre-existing task"), "old task is visible: {stdout}");
+    assert!(
+        stdout.contains("pre-existing task"),
+        "old task is visible: {stdout}"
+    );
 }
 
 // ── init ──────────────────────────────────────────────────────────────────────
@@ -741,7 +1072,10 @@ fn init_dry_run_prints_plan_no_files() {
         stdout.contains("would") || stdout.contains("create") || stdout.contains(".yana-ai"),
         "dry run shows plan: {stdout}"
     );
-    assert!(!dir.path().join(".yana-ai").exists(), ".yana-ai not created in dry mode");
+    assert!(
+        !dir.path().join(".yana-ai").exists(),
+        ".yana-ai not created in dry mode"
+    );
 }
 
 #[test]
@@ -802,8 +1136,14 @@ fn score_show_clean_repo() {
     let sd = scanner_dir();
     let (stdout, _, ok) = run(dir.path(), &["score", "show", ".", "--scanner-dir", &sd]);
     assert!(ok, "score show should succeed on empty repo");
-    assert!(stdout.contains("Score") || stdout.contains("score"), "output has score label");
-    assert!(stdout.contains("100") || stdout.contains("LOW"), "clean repo should score 100 / LOW risk");
+    assert!(
+        stdout.contains("Score") || stdout.contains("score"),
+        "output has score label"
+    );
+    assert!(
+        stdout.contains("100") || stdout.contains("LOW"),
+        "clean repo should score 100 / LOW risk"
+    );
 }
 
 // ── observability ────────────────────────────────────────────────────────────
@@ -828,16 +1168,22 @@ fn observability_show_no_data_is_graceful() {
 #[test]
 fn observability_show_summarizes_real_entries() {
     let dir = tmpdir();
-    seed_audit_log(dir.path(), &[
-        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
-        r#"{"ts":"2026-01-01T00:00:01Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"b","hash":"c"}"#,
-        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
-        r#"{"ts":"2026-01-01T00:00:03Z","hook":"audit-log","tool":"Read","agent":"manual","input":"{}","decision":"allow","prev_hash":"d","hash":"e"}"#,
-    ]);
+    seed_audit_log(
+        dir.path(),
+        &[
+            r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+            r#"{"ts":"2026-01-01T00:00:01Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"b","hash":"c"}"#,
+            r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+            r#"{"ts":"2026-01-01T00:00:03Z","hook":"audit-log","tool":"Read","agent":"manual","input":"{}","decision":"allow","prev_hash":"d","hash":"e"}"#,
+        ],
+    );
 
     let (stdout, _, ok) = run(dir.path(), &["observability", "show"]);
     assert!(ok);
-    assert!(stdout.contains("last 4 calls"), "counted all 4 seeded lines: {stdout}");
+    assert!(
+        stdout.contains("last 4 calls"),
+        "counted all 4 seeded lines: {stdout}"
+    );
     assert!(stdout.contains("audit.decision.allow"), "{stdout}");
     assert!(stdout.contains("audit.tool.Bash"), "{stdout}");
 
@@ -861,20 +1207,29 @@ fn observability_show_respects_last_n() {
     let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
     seed_audit_log(dir.path(), &refs);
 
-    let (json_out, _, ok) = run(dir.path(), &["observability", "show", "--last", "3", "--json"]);
+    let (json_out, _, ok) = run(
+        dir.path(),
+        &["observability", "show", "--last", "3", "--json"],
+    );
     assert!(ok);
     let parsed: serde_json::Value = serde_json::from_str(&json_out).expect("valid JSON");
-    assert_eq!(parsed["total"], 3, "must only summarize the last 3, not all 10");
+    assert_eq!(
+        parsed["total"], 3,
+        "must only summarize the last 3, not all 10"
+    );
 }
 
 #[test]
 fn observability_breakdown_by_hook() {
     let dir = tmpdir();
-    seed_audit_log(dir.path(), &[
-        r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
-        r#"{"ts":"2026-01-01T00:00:01Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"b","hash":"c"}"#,
-        r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Write","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
-    ]);
+    seed_audit_log(
+        dir.path(),
+        &[
+            r#"{"ts":"2026-01-01T00:00:00Z","hook":"audit-log","tool":"Bash","agent":"manual","input":"{}","decision":"allow","prev_hash":"a","hash":"b"}"#,
+            r#"{"ts":"2026-01-01T00:00:01Z","hook":"guard-destructive","tool":"Bash","agent":"manual","input":"{}","decision":"deny","prev_hash":"b","hash":"c"}"#,
+            r#"{"ts":"2026-01-01T00:00:02Z","hook":"guard-destructive","tool":"Write","agent":"manual","input":"{}","decision":"deny","prev_hash":"c","hash":"d"}"#,
+        ],
+    );
 
     let (stdout, _, ok) = run(dir.path(), &["observability", "breakdown", "hook"]);
     assert!(ok);
@@ -913,10 +1268,17 @@ fn mission_done_survives_concurrent_completions_across_processes() {
 
     const TASK_COUNT: usize = 8;
     for i in 0..TASK_COUNT {
-        let (_, stderr, ok) = run(dir.path(), &[
-            "mission", "task", &mission_id, &format!("task{i}"),
-            "--produces", &format!("out{i}.txt"),
-        ]);
+        let (_, stderr, ok) = run(
+            dir.path(),
+            &[
+                "mission",
+                "task",
+                &mission_id,
+                &format!("task{i}"),
+                "--produces",
+                &format!("out{i}.txt"),
+            ],
+        );
         assert!(ok, "adding task{i} should succeed: {stderr}");
     }
 
@@ -934,7 +1296,14 @@ fn mission_done_survives_concurrent_completions_across_processes() {
             let evidence_str = evidence_str.clone();
             std::thread::spawn(move || {
                 let out = test_command(&dir_path)
-                    .args(["mission", "done", &mission_id, &format!("task{i}"), "--evidence", &evidence_str])
+                    .args([
+                        "mission",
+                        "done",
+                        &mission_id,
+                        &format!("task{i}"),
+                        "--evidence",
+                        &evidence_str,
+                    ])
                     // Generous wait budget (production default is 10s) —
                     // this test itself runs alongside ~60 other integration
                     // tests under `cargo test`'s default --test-threads=4,
@@ -952,7 +1321,10 @@ fn mission_done_survives_concurrent_completions_across_processes() {
         .collect();
 
     let results: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
-    assert!(results.iter().all(|ok| *ok), "every concurrent `mission done` call should exit successfully: {results:?}");
+    assert!(
+        results.iter().all(|ok| *ok),
+        "every concurrent `mission done` call should exit successfully: {results:?}"
+    );
 
     let (report_out, _, ok) = run(dir.path(), &["mission", "report", &mission_id]);
     assert!(ok, "mission report should succeed");
@@ -960,8 +1332,14 @@ fn mission_done_survives_concurrent_completions_across_processes() {
     let tasks = parsed["tasks"].as_array().expect("tasks array");
     assert_eq!(tasks.len(), TASK_COUNT, "no tasks should have vanished");
 
-    let done_count = tasks.iter()
-        .filter(|t| t["status"].as_str().map(|s| s.eq_ignore_ascii_case("done")).unwrap_or(false))
+    let done_count = tasks
+        .iter()
+        .filter(|t| {
+            t["status"]
+                .as_str()
+                .map(|s| s.eq_ignore_ascii_case("done"))
+                .unwrap_or(false)
+        })
         .count();
     assert_eq!(
         done_count, TASK_COUNT,
@@ -997,7 +1375,14 @@ fn mission_add_task_rejects_concurrent_duplicate_names_across_processes() {
             let mission_id = mission_id.clone();
             std::thread::spawn(move || {
                 test_command(&dir_path)
-                    .args(["mission", "task", &mission_id, "same-name", "--produces", "out.txt"])
+                    .args([
+                        "mission",
+                        "task",
+                        &mission_id,
+                        "same-name",
+                        "--produces",
+                        "out.txt",
+                    ])
                     .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
                     .output()
                     .expect("run yana-rt mission task")
@@ -1021,7 +1406,8 @@ fn mission_add_task_rejects_concurrent_duplicate_names_across_processes() {
     assert!(ok, "mission report should succeed");
     let parsed: serde_json::Value = serde_json::from_str(&report_out).expect("valid JSON report");
     let tasks = parsed["tasks"].as_array().expect("tasks array");
-    let same_name_count = tasks.iter()
+    let same_name_count = tasks
+        .iter()
         .filter(|t| t["name"].as_str() == Some("same-name"))
         .count();
     assert_eq!(
@@ -1055,11 +1441,19 @@ fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes()
         // Distinct `owns` per task so none of them are excluded from a wave
         // by the (unrelated) owns-conflict check — this test is about the
         // readiness/Running-flip race, not owns-conflict deferral.
-        let (_, stderr, ok) = run(dir.path(), &[
-            "mission", "task", &mission_id, &format!("task{i}"),
-            "--owns", &format!("file{i}.txt"),
-            "--produces", &format!("out{i}.txt"),
-        ]);
+        let (_, stderr, ok) = run(
+            dir.path(),
+            &[
+                "mission",
+                "task",
+                &mission_id,
+                &format!("task{i}"),
+                "--owns",
+                &format!("file{i}.txt"),
+                "--produces",
+                &format!("out{i}.txt"),
+            ],
+        );
         assert!(ok, "adding task{i} should succeed: {stderr}");
     }
 
@@ -1073,11 +1467,20 @@ fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes()
             let mission_id = mission_id.clone();
             std::thread::spawn(move || {
                 let out = test_command(&dir_path)
-                    .args(["mission", "dispatch", &mission_id, "--max-parallel", &TASK_COUNT.to_string()])
+                    .args([
+                        "mission",
+                        "dispatch",
+                        &mission_id,
+                        "--max-parallel",
+                        &TASK_COUNT.to_string(),
+                    ])
                     .env("YANA_MISSION_LOCK_TIMEOUT_SECS", "30")
                     .output()
                     .expect("run yana-rt mission dispatch");
-                (out.status.success(), String::from_utf8_lossy(&out.stdout).to_string())
+                (
+                    out.status.success(),
+                    String::from_utf8_lossy(&out.stdout).to_string(),
+                )
             })
         })
         .collect();
@@ -1092,11 +1495,17 @@ fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes()
         if !ok || stdout.trim().is_empty() {
             continue; // "no slots"/"none ready" callers print to stderr, empty stdout
         }
-        let briefs: serde_json::Value = serde_json::from_str(stdout)
-            .unwrap_or_else(|e| panic!("dispatch stdout must be valid JSON when non-empty: {e}\nstdout: {stdout}"));
-        let briefs = briefs.as_array().expect("dispatch output must be a JSON array of briefs");
+        let briefs: serde_json::Value = serde_json::from_str(stdout).unwrap_or_else(|e| {
+            panic!("dispatch stdout must be valid JSON when non-empty: {e}\nstdout: {stdout}")
+        });
+        let briefs = briefs
+            .as_array()
+            .expect("dispatch output must be a JSON array of briefs");
         for brief in briefs {
-            let task_id = brief["task_id"].as_str().expect("brief must have task_id").to_string();
+            let task_id = brief["task_id"]
+                .as_str()
+                .expect("brief must have task_id")
+                .to_string();
             dispatched_ids.push(task_id);
         }
     }
@@ -1105,12 +1514,14 @@ fn mission_dispatch_never_double_dispatches_a_task_across_concurrent_processes()
     unique_ids.sort();
     unique_ids.dedup();
     assert_eq!(
-        dispatched_ids.len(), unique_ids.len(),
+        dispatched_ids.len(),
+        unique_ids.len(),
         "every task must be dispatched to exactly one caller, but {} total dispatches collapsed \
          to {} unique task_ids — a duplicate means the same task was handed to two concurrent \
          `mission dispatch` callers, exactly the race ADR-008's follow-up fix closes. \
          all results: {results:?}",
-        dispatched_ids.len(), unique_ids.len()
+        dispatched_ids.len(),
+        unique_ids.len()
     );
     assert_eq!(
         unique_ids.len(), TASK_COUNT,
