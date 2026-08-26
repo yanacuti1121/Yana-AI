@@ -217,12 +217,20 @@ See [Known Limitations](docs/reference/known-limitations.md) for exactly which o
 
 ## Quick install
 
+Two independent install paths. Neither is the "real" one — pick based on
+what you're doing:
+
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
+installs the project hooks/rules/agents into an existing repo (`yana-ai install`).
+
+**→ [cargo install](https://crates.io/crates/yana-rt)** — `cargo install yana-rt`
+builds the native Rust runtime: the fast, zero-Python-dependency `yana-rt`
+terminal, up to ~12x faster on bounded commands (see BENCHMARK.md).
 
 > **Note (2026-07-30): not distributed via npm.** Yana AI is not, and is
 > no longer planned to be, published to the npm registry — see
 > [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) for the
-> full history. Use `pip` or `cargo` below.
+> full history. Use `pip` or `cargo` above.
 
 ```bash
 # Python CLI — installs the yana-ai command
