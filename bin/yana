@@ -88,6 +88,7 @@ REPORT_PDF_PY="$REPO_ROOT/core/scripts/report_pdf.py"
 CONFIG_PY="$REPO_ROOT/core/scripts/config_manager.py"
 RULE_TEST_PY="$REPO_ROOT/core/scripts/rule_test.py"
 CHECK_COUNTS_PY="$REPO_ROOT/core/scripts/check_counts.py"
+PRESENTATION_PY="$REPO_ROOT/core/scripts/presentation_studio.py"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -349,6 +350,7 @@ Commands:
   giamthi <action>       OS supervisor: install/status/repair/uninstall/run
   report html [target]   Export audit report as standalone HTML
   report pdf  [target]   Export audit report as PDF
+  presentation           Guided AI presentation: ask → preview → confirm → download PPTX
   scan-url <url>         Scan a GitHub repo URL (no permanent clone)
   rule import <src>      Import rule pack from URL or file
   upgrade                Self-update yana-ai to latest release
@@ -723,6 +725,9 @@ case "$COMMAND" in
     ;;
   su-gia)
     python3 "$CHECK_COUNTS_PY" "$@"
+    ;;
+  presentation|present)
+    python3 "$PRESENTATION_PY" "$@"
     ;;
   version|--version|-v)
     cmd_version
