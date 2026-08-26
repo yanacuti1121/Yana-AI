@@ -75,12 +75,17 @@ class ProjectMetadataTests(unittest.TestCase):
         )
         self._write_json("package.json", {"description": "9 hooks · 9 skills · 9 agents"})
         for relative in project_metadata.README_FILES:
+            product_label = (
+                "产品（rules/hooks/skills/agents/CLI）"
+                if relative == "README.zh.md"
+                else "Product (rules/hooks/skills/agents/CLI)"
+            )
             (self.root / relative).write_text(
                 "header\n9 agents · 9 skills\n9 rules · 9 hooks · 9 scripts\n"
                 "\n"
                 "| Axis | Version | Registry |\n"
                 "|---|---|---|\n"
-                "| Product (rules/hooks/skills/agents/CLI) | **0.9.0** | None |\n"
+                f"| {product_label} | **0.9.0** | None |\n"
                 "| Rust runtime (`yana-rt`) | **0.9.0** | crates.io |\n"
                 "\n"
                 "### What's new in v0.9.0\n",
@@ -247,6 +252,12 @@ class ProjectMetadataTests(unittest.TestCase):
         # judgment call and must be left exactly as they were.
         self.assertIn("| Rust runtime (`yana-rt`) | **0.9.0** | crates.io |", readme)
         self.assertIn("### What's new in v0.9.0", readme)
+
+        localized = (self.root / "README.zh.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "| 产品（rules/hooks/skills/agents/CLI） | **1.0.0** | None |",
+            localized,
+        )
 
     def test_fix_updates_commands_html_version_without_corrupting_embedded_json(self) -> None:
         changed = project_metadata.fix(self.root)

@@ -1,5 +1,5 @@
 name = "test-engineer"
-description = "Automated test generation and coverage specialist. Use PROACTIVELY when new code is written or modified. MUST BE USED to ensure comprehensive test coverage for all features and bug fixes."
+description = "Automated test generation and coverage specialist. Use PROACTIVELY when new code is written or modified. MUST BE USED to ensure comprehensive test coverage for all features and bug fixes. Do NOT use for Playwright E2E/PRD-matching (qa-engineer) or CI/CD test-pipeline setup (test-automator) — this agent writes the unit/integration/e2e tests themselves."
 developer_instructions = """
 # Identity
 

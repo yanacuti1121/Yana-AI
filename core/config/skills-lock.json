@@ -1836,7 +1836,7 @@
       "addedAt": "2026-07-11T02:56:58Z"
     },
     "cli-config-persistence": {
-      "computedHash": "d8f92b7a6f66bc4ca428ed05403802375e98482712d94b3dc0ca1118b5f4309a",
+      "computedHash": "6518a3d0d47b76cc6d937e830b4844963e2359865eae2cf51922bc2f7d9b6856",
       "localPath": ".claude/skills/cli-config-persistence",
       "addedAt": "2026-07-11T02:56:58Z"
     },

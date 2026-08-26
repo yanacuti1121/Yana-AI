@@ -8,6 +8,54 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.2 — 2026-08-26
+
+Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/
+plugin.json`/`.claude-plugin/marketplace.json`/`tools/yana-desktop/
+package.json`) moves from `1.4.1` to `1.4.2`. The `yana-rt` crate axis moves
+independently from `1.4.0` to `1.4.1` because the canonical turn runtime,
+authority path, provider execution, and workspace/MCP surfaces changed. The
+Python package remains `0.42.5` because its distributed CLI surface did not
+change in this release.
+
+**Merged after tag `v1.4.1`, on `origin/main`:**
+
+- **#251 — one governed local/cloud runtime:** terminal mutation now crosses
+  the canonical opaque approval path; Desktop and packaged Web use
+  `yana-rt chat --headless`; production Web bundles the Rust runtime and
+  disables legacy provider fallback; subagent-origin turns cannot manufacture
+  human mutation authority. README and ADR-014 now document the real Discord,
+  MCP, native-harness, and compatibility boundaries.
+- **#246 and #250 — robot voice/MCP bridge:** added the ESP32 robot bridge,
+  corrected response-language behavior, documented local operation, and kept
+  device communication behind the existing Yana web/runtime boundary.
+- **#238 and #245 — local memory acceleration:** added the opt-in Mojo vector
+  recall pilot, SIMD/cached-norm backend, deterministic Python fallback, and
+  correctness tests without making Mojo a required runtime dependency.
+- **#235 and #247 — release and stability sentinels:** added Sứ Giả release
+  surface checks, scheduled drift detection, publish parity checks, docs mirror
+  verification, and CI hardening so stale release metadata is detected without
+  relying only on GitHub-hosted CI.
+- **#240–#242, #248–#249 — maintainability and documentation:** pruned
+  overlapping agent definitions, synchronized generated docs mirrors,
+  redesigned the Desktop download page, and added the four-language project
+  history/genealogy.
+- **#237, #243, and #244 — shell and packaging fixes:** hardened vendored skill
+  scripts and repaired PyPI build metadata compatibility. These fixes are part
+  of the product history; this release does not republish the unchanged Python
+  `0.42.5` package.
+- **Release-preflight parity repairs:** regenerated eight stale Codex agent
+  adapters, brought Codex lifecycle wiring to the same 43 active hooks as
+  Claude, repaired one pre-existing skill-lock hash drift, and taught metadata
+  synchronization to update the localized Product row in `README.zh.md`.
+
+**Release tags after this commit reaches `main`:** `v1.4.2` for the Product /
+GitHub + Desktop release and `rt-v1.4.1` for crates.io. They remain separate
+tags because the repository intentionally versions each distribution axis
+independently.
+
+---
+
 ## v1.4.1 — 2026-08-20
 
 Product version axis (`package.json`/`MANIFEST.json`/`.claude-plugin/

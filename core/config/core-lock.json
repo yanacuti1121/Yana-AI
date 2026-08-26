@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-23T03:37:30+00:00",
+  "generated": "2026-08-26T06:29:03+00:00",
   "count": 282,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -166,7 +166,7 @@
     "core/scripts/check-release-signer.py": "5e10a2ac4d7d56c1758eaf9b848ce36869617e9ac9ac6f21a8e3323654c8e146",
     "core/scripts/check-self-hosted-runner.py": "d89746247568a1b219fa0e3ce8f6918e1ac09fc95385a6b9379c752f6eff09af",
     "core/scripts/check_context_pack.py": "b5fbcdf76f8cbb6e60188f8218b8e361e7a2e561cd8c2e24ae8bae45b4281514",
-    "core/scripts/check_counts.py": "52eea4ced4da994afa6f6b9b26c65912a2d31c8e4b594fd87c484f5c4a41e3da",
+    "core/scripts/check_counts.py": "cfa7c761272c44071d10a167321fbfb2d0015d65b552390139d059770c4c1fc8",
     "core/scripts/check_dangling_paths.py": "54cb8dafdb3759b0a4ab39a6743566c0e5235eb7466b48b0da1eb0f31dc69496",
     "core/scripts/check_engine_parity.py": "c03aa6f485e241e78353c7776db1e5931f71297ee8bc92f628897d8e8449c5fb",
     "core/scripts/check_file.py": "28ca7df9048a8d0497fae7d7152874bfa0e954321032e3434472161d3e5234f0",
