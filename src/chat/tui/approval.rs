@@ -69,7 +69,13 @@ impl App {
     /// Re-invokes the canonical runtime after a denial/decline so the model
     /// can adapt. The runtime counted the proposed call before returning
     /// `AwaitingApproval`, so this continuation must not count it twice.
-    fn continue_after_tool_result(&mut self) {
+    ///
+    /// `pub(super)`: also used by `tool_dispatch.rs`'s `prepare_pending_approval`
+    /// error branches (unsupported tool / missing argument / unparseable
+    /// command), which must not re-invoke the turn loop via a bare
+    /// `spawn_turn()` that skips the round-limit check — see that module's
+    /// doc comment.
+    pub(super) fn continue_after_tool_result(&mut self) {
         if self.tool_rounds.exceeded() {
             self.status =
                 "tool-call limit reached for this turn — aborting to avoid a runaway loop"

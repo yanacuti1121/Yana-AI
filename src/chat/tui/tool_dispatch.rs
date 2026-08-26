@@ -46,7 +46,7 @@ impl App {
                 true,
                 true,
             );
-            self.spawn_turn();
+            self.continue_after_tool_result();
             return;
         }
         let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
@@ -56,7 +56,7 @@ impl App {
                 true,
                 false,
             );
-            self.spawn_turn();
+            self.continue_after_tool_result();
             return;
         };
         match tools::run_command::validate(&command) {
@@ -75,7 +75,7 @@ impl App {
                     true,
                     false,
                 );
-                self.spawn_turn();
+                self.continue_after_tool_result();
             }
         }
     }
@@ -171,7 +171,86 @@ fn tool_result(call: &ToolCall, output: String, is_error: bool, denied: bool) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chat::provider::{ChatProvider, ChatUsage};
+    use crate::chat::tool_types::{StreamOutcome, ToolSpec};
     use crate::runtime::TurnOrigin;
+    use anyhow::Result;
+    use std::sync::Arc;
+    use uuid::Uuid;
+
+    struct FakeProvider;
+
+    impl ChatProvider for FakeProvider {
+        fn name(&self) -> &str {
+            "fake"
+        }
+        fn default_model(&self) -> &str {
+            "local-test"
+        }
+        fn requires_key(&self) -> bool {
+            false
+        }
+        fn env_var(&self) -> &str {
+            ""
+        }
+        fn stream_chat(
+            &self,
+            _api_key: Option<&str>,
+            _model: &str,
+            _system: Option<&str>,
+            _messages: &[ChatMessage],
+            _tools: &[ToolSpec],
+            _on_chunk: &mut dyn FnMut(&str) -> Result<()>,
+        ) -> Result<(ChatUsage, StreamOutcome)> {
+            Ok((ChatUsage::default(), StreamOutcome::Text))
+        }
+    }
+
+    fn app() -> App {
+        let mut app = App::new(
+            Arc::new(FakeProvider),
+            "local-test".to_string(),
+            None,
+            None,
+            Uuid::new_v4().to_string(),
+            Vec::new(),
+            false,
+            true,
+            true,
+        );
+        app.settings.autosave = false;
+        app
+    }
+
+    /// Regression test for the round-guard bypass found in review: each of
+    /// `prepare_pending_approval`'s three error branches (unsupported tool
+    /// name, missing `command` argument, unparseable command) used to call
+    /// `self.spawn_turn()` directly, skipping `tool_rounds.exceeded()`
+    /// entirely — a model that kept proposing a malformed/unsupported tool
+    /// call could re-enter the turn loop forever through this path, with
+    /// no backstop from the TUI-local guard (only the separate runtime-side
+    /// round counter would eventually apply). This exercises the
+    /// unsupported-tool-name branch; the other two branches are the same
+    /// one-line `continue_after_tool_result()` call.
+    #[test]
+    fn prepare_pending_approval_respects_the_round_guard_on_error_paths() {
+        let mut app = app();
+        app.tool_rounds.set_rounds(9); // one past the default ceiling of 8
+        app.prepare_pending_approval(ToolCall {
+            id: "call-1".into(),
+            name: "not_a_real_tool".into(),
+            arguments_json: "{}".into(),
+        });
+        assert!(
+            app.status.contains("tool-call limit reached"),
+            "expected the round-limit message, got: {}",
+            app.status
+        );
+        assert!(
+            matches!(app.turn, TurnState::Idle),
+            "spawn_turn must not run once the round guard is exceeded"
+        );
+    }
 
     fn context(root: &std::path::Path) -> TurnContext {
         TurnContext::new(

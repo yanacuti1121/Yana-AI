@@ -27,10 +27,6 @@ impl ToolRoundGuard {
         }
     }
 
-    pub fn record_round(&mut self) {
-        self.rounds += 1;
-    }
-
     pub fn exceeded(&self) -> bool {
         self.rounds > self.ceiling
     }
@@ -61,8 +57,8 @@ mod tests {
     #[test]
     fn does_not_exceed_before_ceiling() {
         let mut g = ToolRoundGuard::new();
-        for _ in 0..DEFAULT_CEILING {
-            g.record_round();
+        for rounds in 0..DEFAULT_CEILING {
+            g.set_rounds(rounds as usize);
             assert!(!g.exceeded());
         }
     }
@@ -70,20 +66,25 @@ mod tests {
     #[test]
     fn exceeds_after_ceiling() {
         let mut g = ToolRoundGuard::new();
-        for _ in 0..=DEFAULT_CEILING {
-            g.record_round();
-        }
+        g.set_rounds(DEFAULT_CEILING as usize + 1);
         assert!(g.exceeded());
     }
 
     #[test]
     fn reset_clears_count() {
         let mut g = ToolRoundGuard::new();
-        for _ in 0..=DEFAULT_CEILING {
-            g.record_round();
-        }
+        g.set_rounds(DEFAULT_CEILING as usize + 1);
         assert!(g.exceeded());
         g.reset();
         assert!(!g.exceeded());
+    }
+
+    #[test]
+    fn set_rounds_saturates_on_overflow_instead_of_failing_open() {
+        // `usize -> u32` overflow must saturate to u32::MAX (still
+        // > ceiling), never silently wrap to a small in-range value.
+        let mut g = ToolRoundGuard::new();
+        g.set_rounds(u32::MAX as usize + 1);
+        assert!(g.exceeded());
     }
 }
