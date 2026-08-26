@@ -399,13 +399,28 @@ API key 通过 stdin 而不是 argv 传给 runtime；源文档被标记为不受
 格式要求、自动化、隐私边界与 PDF 支持请参阅
 [完整 Presentation Studio 指南](docs/operations/presentation-studio.md)。
 
-**性能基准**（2026-07-23 测得，完整方法见 `BENCHMARK.md`）：
-`doctor`/`ci` 这类范围有限的命令比 Python 快约 ~2–12 倍
-（主要受启动时间影响）；对整个仓库的 `scan` 在 1.9 万文件规模下收敛到约 1.1 倍
-（在这个规模下主要受工作量影响，而非启动时间）。这一行曾经宣称的 `1256 倍`
-这个数字此前已被发现一次未经验证
-（2026-05-31，提交 `fb6a0cd7`），又被一次无关的 README 恢复
-（2026-07-07）带回来——在 `BENCHMARK.md` 中的任何测量里，无论当时还是现在都无法复现。
+**当前性能快照**（2026-08-26 在 Apple M4 MacBook Air、16 GB RAM、
+macOS 27 beta 上使用 release build 测得；历史方法与 baseline 见
+`BENCHMARK.md`）：
+
+| 执行路径 | `yana-rt` | Python 参考实现 | 当前结果 |
+|---|---:|---:|---|
+| 进程启动 | **4.21 ms** | — | 与 7 月的 4.15 ms baseline 基本一致 |
+| `doctor` | **255 ms** | 365 ms | Rust 快 1.43 倍，但目前执行 10 项检查，Python 执行 16 项 |
+| `ci check` | 414 ms | **40 ms** | Rust 慢 10.34 倍；Python 返回 3 条警告时，Rust 返回 0 个 finding |
+| `scan core/skills` | **4.45 秒** | 8.89 秒 | Rust 快 2.00 倍 |
+| 默认全仓库 `scan` | 14.61 秒 | **7.90 秒** | Python 当前快 1.85 倍 |
+| 无锁状态 HALT hook | **3.80 ms** | — | 快于 7 月的 4.97 ms baseline |
+| Token-budget guard | **3.48 ms** | — | native fast path 将其从 65 ms 降低至此 |
+
+Release binary 约为 14 MiB。Skills scan 的 peak RSS 为 Rust 15.3 MiB、
+Python 25.3 MiB；默认全仓库 scan 分别为 23.0 MiB 和 34.1 MiB。
+这些是本地测量，不代表跨平台结果；Linux 和 Windows 尚未测量。
+
+**根据本次测量准备的改进工作：**先恢复 `ci check` 的 finding parity，再进行
+性能优化；对齐 Python `doctor` 中存在但 Rust 路径缺失的 6 项检查；profile Rust
+全仓库 scanner；并减少当前 release build 的 140 行 warning。进程启动、HALT
+enforcement 和 token-budget enforcement 目前不需要进一步优化。
 
 ---
 

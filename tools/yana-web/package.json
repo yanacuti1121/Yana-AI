@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "npm run build:desktop && node server.js",
-    "build:desktop": "vite build --config desktop-src/vite.config.mjs"
+    "build:desktop": "vite build --config desktop-src/vite.config.mjs",
+    "test:robot": "node _test_robot.js && node _test_opus_codec.js"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "1.18.0",

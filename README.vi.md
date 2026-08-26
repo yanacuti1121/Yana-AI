@@ -406,14 +406,29 @@ deterministic khi chọn `--no-ai` hoặc cho phép rõ bằng `--fallback`.
 Xem [hướng dẫn Presentation Studio đầy đủ](docs/operations/presentation-studio.md)
 để biết yêu cầu định dạng, automation, quyền riêng tư và hỗ trợ PDF.
 
-**Benchmark** (đo ngày 2026-07-23, phương pháp đầy đủ trong `BENCHMARK.md`):
-các lệnh giới hạn phạm vi như `doctor`/`ci` nhanh hơn Python khoảng ~2–12 lần
-(chủ yếu do thời gian khởi động); `scan` toàn repo hội tụ về ~1.1 lần ở quy mô 19k file
-(chủ yếu do khối lượng công việc, không còn bị chi phối bởi khởi động ở quy mô đó). Con số `1256 lần`
-mà dòng này từng tuyên bố đã từng bị phát hiện là chưa được xác minh một lần
-(2026-05-31, commit `fb6a0cd7`) và bị đưa trở lại qua một lần khôi phục README
-không liên quan (2026-07-07) — không thể tái hiện bằng bất kỳ phép đo nào trong
-`BENCHMARK.md`, cả trước lẫn giờ.
+**Ảnh chụp hiệu năng hiện tại** (đo ngày 2026-08-26 trên MacBook Air Apple M4,
+RAM 16 GB, macOS 27 beta; bản release; phương pháp và baseline lịch sử nằm trong
+`BENCHMARK.md`):
+
+| Đường chạy | `yana-rt` | Bản Python tham chiếu | Kết quả hiện tại |
+|---|---:|---:|---|
+| Khởi động process | **4,21 ms** | — | Gần như không đổi so với baseline tháng 7 là 4,15 ms |
+| `doctor` | **255 ms** | 365 ms | Rust nhanh hơn 1,43 lần, nhưng hiện chỉ chạy 10 check so với 16 của Python |
+| `ci check` | 414 ms | **40 ms** | Rust chậm hơn 10,34 lần và trả 0 finding trong khi Python trả 3 warning |
+| `scan core/skills` | **4,45 giây** | 8,89 giây | Rust nhanh hơn 2,00 lần |
+| `scan` toàn repo mặc định | 14,61 giây | **7,90 giây** | Python hiện nhanh hơn 1,85 lần |
+| HALT hook khi không có lock | **3,80 ms** | — | Nhanh hơn baseline tháng 7 là 4,97 ms |
+| Token-budget guard | **3,48 ms** | — | Giảm từ 65 ms nhờ native fast path |
+
+Binary release khoảng 14 MiB. Peak RSS của scan skills là 15,3 MiB với Rust so
+với 25,3 MiB của Python; scan toàn repo mặc định là 23,0 MiB so với 34,1 MiB.
+Đây là số đo local, không phải tuyên bố đa nền tảng; Linux và Windows chưa được đo.
+
+**Phần chuẩn bị sửa từ kết quả này:** khôi phục parity finding của `ci check`
+trước khi tối ưu; đối chiếu 6 check có trong Python `doctor` nhưng chưa có ở đường
+Rust; profile full-repo scanner của Rust; và giảm 140 dòng warning của release
+build hiện tại. Startup, HALT enforcement và token-budget enforcement hiện chưa
+cần tối ưu thêm.
 
 ---
 

@@ -49,13 +49,20 @@ const TTS_OPENAI_URL = 'https://api.openai.com/v1/audio/speech';
 
 // Same sidecar server.js's handleTts() already proxies to
 // (tools/yana-web/tts-sidecar/, VieNeu-TTS). Duplicated here (not shared)
-// because handleTts() is wired directly to an HTTP req/res pair for
-// browser proxying, and this needs a plain WAV Buffer instead — same
-// sidecar process, same wire format, just a different caller shape.
+// because handleTts() is wired directly to an HTTP req/res pair for browser
+// WAV playback, while the robot consumes the sidecar's raw 24 kHz PCM stream.
 const TTS_SIDECAR_PORT = Number(process.env.VIENEU_SIDECAR_PORT) || 7861;
 const TTS_SAMPLE_RATE = 24000; // matches docs/websocket.md's note that the
 const TTS_CHANNELS = 1; // server may use 24kHz on the downlink
 const TTS_FRAME_MS = 60;
+// Firmware accepts about 1.2 seconds of queued Opus. Pace packets close to
+// real time so fast ONNX generation cannot overflow that queue and drop audio.
+const configuredTtsPacketInterval = Number(process.env.YANA_ROBOT_TTS_PACKET_INTERVAL_MS);
+const TTS_PACKET_INTERVAL_MS =
+  process.env.YANA_ROBOT_TTS_PACKET_INTERVAL_MS == null || !Number.isFinite(configuredTtsPacketInterval)
+    ? 55
+    : Math.max(0, configuredTtsPacketInterval);
+const TTS_START_DELAY_MS = 60;
 
 const MCP_TIMEOUT_MS = 8000;
 
@@ -323,28 +330,48 @@ class RobotSession {
   }
 
   async speak(text) {
-    const wav = await this.synthesize(text);
-    const pcm = wav.subarray(44); // strip the 44-byte WAV header the sidecar returns
     const encoder = opus.createEncoder(TTS_SAMPLE_RATE, TTS_CHANNELS, TTS_FRAME_MS);
-    const frames = encoder.encodePcm(pcm);
-    encoder.dispose();
+    let started = false;
 
-    this.send({ type: 'tts', state: 'start' });
-    this.send({ type: 'tts', state: 'sentence_start', text });
-    for (const frame of frames) this.ws.send(frame, { binary: true });
-    this.send({ type: 'tts', state: 'stop' });
-  }
+    const startPlayback = async () => {
+      this.send({ type: 'tts', state: 'start' });
+      this.send({ type: 'tts', state: 'sentence_start', text });
+      started = true;
+      // The firmware schedules its speaking-state transition on the main task.
+      // Give it one frame before the first binary packet arrives.
+      await delay(TTS_START_DELAY_MS);
+    };
+    const sendPcm = async (pcm, final = false) => {
+      const frames = final ? encoder.pushPcm(pcm, true) : encoder.pushPcm(pcm);
+      for (const frame of frames) {
+        if (this.ws.readyState !== 1) throw new Error('robot WebSocket closed during TTS');
+        this.ws.send(frame, { binary: true });
+        if (TTS_PACKET_INTERVAL_MS) await delay(TTS_PACKET_INTERVAL_MS);
+      }
+    };
 
-  synthesize(text) {
-    if (TTS_PROVIDER === 'openai') {
-      return this.synthesizeOpenAi(text);
+    try {
+      if (TTS_PROVIDER === 'vieneu') {
+        const stream = await this.openVieneuStream(text);
+        await startPlayback();
+        for await (const chunk of stream) await sendPcm(chunk);
+        await sendPcm(Buffer.alloc(0), true);
+      } else if (TTS_PROVIDER === 'openai') {
+        const wav = await this.synthesizeOpenAi(text);
+        const pcm = extractPcm16Wav(wav, TTS_SAMPLE_RATE, TTS_CHANNELS);
+        await startPlayback();
+        await sendPcm(pcm, true);
+      } else {
+        throw new Error(`Unknown TTS provider "${TTS_PROVIDER}"`);
+      }
+    } finally {
+      encoder.dispose();
+      if (started && this.ws.readyState === 1) this.send({ type: 'tts', state: 'stop' });
     }
-    return this.synthesizeVieneu(text);
   }
 
   // Cloud fallback for languages VieNeu-TTS doesn't cover (e.g. Korean).
-  // Requests WAV explicitly so the rest of the pipeline (44-byte header
-  // strip + Opus encode) doesn't need to branch on format.
+  // Requests WAV explicitly and validates its chunks before Opus encoding.
   async synthesizeOpenAi(text) {
     if (!TTS_API_KEY) throw new Error('YANA_ROBOT_TTS_API_KEY (or YANA_ROBOT_LLM_API_KEY) not configured');
     const res = await fetch(TTS_OPENAI_URL, {
@@ -364,26 +391,40 @@ class RobotSession {
     return Buffer.from(await res.arrayBuffer());
   }
 
-  synthesizeVieneu(text) {
+  openVieneuStream(text) {
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({ text });
       const req = http.request(
         {
           hostname: '127.0.0.1',
           port: TTS_SIDECAR_PORT,
-          path: '/tts',
+          path: '/tts/stream',
           method: 'POST',
           headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) },
           timeout: 30000,
         },
         res => {
           if (res.statusCode !== 200) {
-            reject(new Error(`TTS sidecar HTTP ${res.statusCode}`));
+            let raw = '';
+            res.on('data', chunk => {
+              if (raw.length < 1000) raw += chunk.toString('utf8');
+            });
+            res.on('end', () => reject(new Error(`TTS sidecar HTTP ${res.statusCode}: ${raw.slice(0, 300)}`)));
             return;
           }
-          const chunks = [];
-          res.on('data', c => chunks.push(c));
-          res.on('end', () => resolve(Buffer.concat(chunks)));
+          const sampleRate = Number(res.headers['x-audio-sample-rate']);
+          const channels = Number(res.headers['x-audio-channels']);
+          const format = res.headers['x-audio-sample-format'];
+          if (sampleRate !== TTS_SAMPLE_RATE || channels !== TTS_CHANNELS || format !== 's16le') {
+            res.destroy();
+            reject(
+              new Error(
+                `Unsupported TTS stream format: ${sampleRate}Hz, ${channels} channel(s), ${format}`,
+              ),
+            );
+            return;
+          }
+          resolve(res);
         },
       );
       req.on('error', reject);
@@ -395,6 +436,51 @@ class RobotSession {
       req.end();
     });
   }
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function extractPcm16Wav(wav, expectedSampleRate, expectedChannels) {
+  if (wav.length < 12 || wav.toString('ascii', 0, 4) !== 'RIFF' || wav.toString('ascii', 8, 12) !== 'WAVE') {
+    throw new Error('TTS provider returned an invalid WAV file');
+  }
+
+  let format = null;
+  let pcm = null;
+  for (let offset = 12; offset + 8 <= wav.length;) {
+    const id = wav.toString('ascii', offset, offset + 4);
+    const size = wav.readUInt32LE(offset + 4);
+    const start = offset + 8;
+    const end = start + size;
+    if (end > wav.length) throw new Error('TTS provider returned a truncated WAV file');
+    if (id === 'fmt ' && size >= 16) {
+      format = {
+        encoding: wav.readUInt16LE(start),
+        channels: wav.readUInt16LE(start + 2),
+        sampleRate: wav.readUInt32LE(start + 4),
+        bitsPerSample: wav.readUInt16LE(start + 14),
+      };
+    } else if (id === 'data') {
+      pcm = wav.subarray(start, end);
+    }
+    offset = end + (size % 2);
+  }
+
+  if (!format || !pcm) throw new Error('TTS WAV is missing fmt or data');
+  if (
+    format.encoding !== 1 ||
+    format.bitsPerSample !== 16 ||
+    format.sampleRate !== expectedSampleRate ||
+    format.channels !== expectedChannels
+  ) {
+    throw new Error(
+      `Unsupported TTS WAV format: PCM=${format.encoding}, ${format.sampleRate}Hz, ` +
+        `${format.channels} channel(s), ${format.bitsPerSample}-bit`,
+    );
+  }
+  return pcm;
 }
 
 function readJsonStream(stream) {

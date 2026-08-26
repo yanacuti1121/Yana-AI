@@ -1,0 +1,5 @@
+fastapi>=0.115,<1
+numpy>=1.26,<3
+soxr>=0.5,<2
+uvicorn[standard]>=0.34,<1
+vieneu>=3.2.12,<4
