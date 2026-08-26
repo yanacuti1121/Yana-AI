@@ -274,6 +274,43 @@ bash core/scripts/switch-engine.sh status      # check all 4 adapters
 
 ---
 
+## Repository layout
+
+The tables above describe the runtime architecture. This is the actual
+directory tree it lives in, grouped by what each path does rather than
+alphabetically. Two pairs of similarly-named directories are genuinely
+different things, noted below where that matters:
+
+| Path | What's there |
+| --- | --- |
+| `src/` | The `yana-rt` Rust binary. See [Inside `src/`](#inside-src-yana-os-and-the-other-planes) below. |
+| `core/` | Rule/hook/skill/agent content, the JS/shell code that enforces it, and audit + trust state (`core/memory/`). See [Safety architecture](#safety-architecture). |
+| `gates/` | Gate **policy specs** in Markdown (`action_gate.md`, `truth_gate.md`, ...) — distinct from `core/gates/`, which is the JS/shell code implementing them. |
+| `scripts/` | A handful of scripts specific to building/wrapping the `yana-rt` binary — distinct from `core/scripts/`'s 130+ general hook and safety scripts. |
+| `memory/` | Top-level L1 atomic facts and L2 session state — distinct from `core/memory/`'s audit log and trust ledger. |
+| `scanner/` | YAML risk-check rule definitions (`shell-risk-checks.yml`, `auth-credential-checks.yml`, ...) that `src/scanner/` compiles and runs. |
+| `policy/`, `guards/`, `router/`, `prompts/` | More declarative config: policy templates, a guard index, the model-routing policy behind `route.rs`, and the system prompt. |
+| `tools/yana-web/` | The browser dashboard (Node server + client). |
+| `tools/yana-desktop/` | The Electron desktop shell. |
+| `tools/` (other) | Standalone utilities: `airllm-bridge`, `codexmate`, `moss-tts-nano`, `yana-pixel-bridge`, and a few one-off scripts. |
+| `bin/yana` | The installed CLI entrypoint. |
+| `adapters/` | Per-harness adapter docs (Claude Code, Codex, Cursor, Antigravity). |
+| `docs/` | Architecture notes, ADRs, incident writeups, docs-site content. |
+| `site/` | The Astro-built marketing/docs website. |
+| `examples/` | Spec examples, context-packs, and a deliberately vulnerable test repo the scanner's own tests scan against. |
+| `demo/` | The script that records the terminal demo at the top of this README. |
+| `tests/` | The Python test suite. |
+| `ops/` | Release signing and release-gate service scripts. |
+| `releases/`, `artifacts/` | Release logs and build artifacts. |
+| `reports/`, `ledger/` | Scan-report schema/templates and the token-usage tracking schema. |
+| `github-app/` | A GitHub App integration. |
+| `vendor/` | Vendored reference copies of external projects Yana AI adapts from, including `hermes-agent`, `openclaw`, and `penpot`. |
+
+A fifth, independently-versioned axis, the PyPI-distributed Python package,
+lives at `src/yana_ai/` rather than as a top-level directory of its own.
+
+---
+
 ## Rust runtime — `yana-rt`
 
 34 subcommands. Zero Python dependency. This is the source-defined count across feature builds: a default build exposes 32 runtime commands, Clap adds the visible `help` entry, and `mcp` plus `remote` are feature-gated.
@@ -300,6 +337,53 @@ this line used to claim was already found unverified once
 (2026-05-31, commit `fb6a0cd7`) and regressed back in by an unrelated
 README restore (2026-07-07) — not reproducible by any measurement in
 `BENCHMARK.md`, then or now.
+
+### Inside `src/`: Yana OS and the other planes
+
+`yana-rt` is one binary, but it is not one module. Beyond the turn runtime
+described above (`runtime/`, `model/`, `capability/`, `chat/`, `remote/`,
+`mcp.rs`), four more planes live under `src/`:
+
+**Yana OS** (`src/os/`, internally "Program K") is the local management
+plane, separate from the turn loop:
+
+- `identity/` — guest / operator / sovereign authentication tiers
+- `autonomy.rs` — the autonomy ladder (how much an agent may do unattended)
+- `governor.rs` — behavior limits on top of that ladder
+- `credential.rs` — credential handling
+- `resource/` — CPU/RAM/PID quotas
+- `supervisor.rs` — reads and writes the HALT lock file; this is the
+  function the runtime's authority chain calls into on every turn, and
+  the same file the independent watcher described below writes to
+- `service/` (`manager.rs`, `runtime.rs`, `attribution.rs`) — daemon
+  lifecycle management
+- `agent.rs`, `health.rs`, `monitor.rs`, `monitor_service.rs`,
+  `state.rs`, `status.rs`, `roadmap.rs`, `platform/`
+
+**Security and audit** (`guard/`, `scanner/`, `score/`, `evidence/`,
+`provenance/`, `filescan/`) is the tooling behind `yana-rt audit`,
+`yana-rt hunt`, and the pre-commit rule scan: a native-Rust port of the
+highest-frequency PreToolUse hooks, the rule-matching engine, a
+CRITICAL/HIGH/MEDIUM/LOW severity scorer, Truth Gate provenance, and a
+check that code ported into `core/lib/*_adapted/` still matches what it
+was vendored from.
+
+**Workspace and memory** (`workspace/`, `memory.rs`, `vault/`,
+`session_context.rs`) is the unified local event store, the L1/L2 fact
+system, the secrets vault with its own search index, and the single
+`SessionContext` type every client (chat, MCP, Desktop) constructs a
+turn from.
+
+**Operational tooling** is the rest of the CLI surface: `init`, `doctor`,
+`fix`, `watch`, `monitor`, `observability`, `config`, `cost`, `route`,
+`plugin`, `task`, `skill_quality`, `spec`, `graph`, `hunt`, `ci`,
+`design`, `mission`, `bus`, and `flock_v1` (the cross-process file lock
+everything else in this list relies on not to corrupt state under
+concurrent writers).
+
+A fifth, independent axis, `src/yana_ai/` (`rt.py`, `cli.py`), is the
+PyPI-distributed Python CLI. It ships and versions separately from the
+Rust binary; see `VERSIONING.md`.
 
 ---
 
