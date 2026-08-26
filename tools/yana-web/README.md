@@ -26,10 +26,14 @@ No build step. No signup. Bring your own API key.
 ## Run
 
 ```bash
-node server.js                 # → http://127.0.0.1:8081
-PORT=3000 node server.js       # custom port
-HOST=0.0.0.0 node server.js    # expose beyond loopback (containers only)
+npm start                      # build:desktop, then node server.js → http://127.0.0.1:8081
+PORT=3000 npm start            # custom port
+HOST=0.0.0.0 npm start         # expose beyond loopback (containers only)
 ```
+
+`npm start` runs `build:desktop` first — the UI is served from `desktop/`
+(Vite build output), so a plain `node server.js` only works if that build
+already exists from a previous run.
 
 ## Screens — all real data
 
@@ -107,6 +111,11 @@ Env vars (Railway/production):
 Not yet verified on real hardware — see `_test_robot.js` for what's covered
 (WebSocket handshake + MCP `initialize`/`tools/list` handshake only; the
 ASR/chat/TTS pipeline needs a real device + real API calls to test).
+
+**Local testing:** run this server locally (`npm start`, see Run above),
+then point the device's server URL at `ws://<your-machine's-LAN-IP>:8081/robot/ws`
+instead of the Railway `wss://` URL — same protocol either way, just plain
+`ws://` since there's no TLS on localhost.
 
 ## Providers
 
