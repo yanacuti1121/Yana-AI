@@ -261,6 +261,89 @@ bash core/scripts/switch-engine.sh status      # kiểm tra cả 4 adapter
 
 ---
 
+## Cấu trúc repository
+
+Các bảng ở trên mô tả kiến trúc runtime. Đây là cây thư mục thật nơi nó
+sống, nhóm theo chức năng từng đường dẫn thay vì theo thứ tự chữ cái.
+Hai cặp thư mục trùng tên nhưng khác nhau hoàn toàn, được ghi chú bên
+dưới ở chỗ cần phân biệt:
+
+| Đường dẫn | Nội dung |
+| --- | --- |
+| `src/` | Binary Rust `yana-rt`. Xem [Bên trong `src/`](#bên-trong-src-yana-os-và-các-mặt-phẳng-khác) bên dưới. |
+| `core/` | Nội dung rule/hook/skill/agent, code JS/shell thực thi chúng, và trạng thái audit + trust (`core/memory/`). Xem [Kiến trúc an toàn](#kiến-trúc-an-toàn). |
+| `gates/` | **Đặc tả chính sách** gate dạng Markdown (`action_gate.md`, `truth_gate.md`, ...) — khác với `core/gates/`, nơi chứa code JS/shell thực thi chúng. |
+| `scripts/` | Một số ít script riêng cho việc build/bọc binary `yana-rt` — khác với 130+ script hook/an toàn tổng quát trong `core/scripts/`. |
+| `memory/` | L1 atomic fact và L2 session state ở cấp top-level — khác với audit log và trust ledger trong `core/memory/`. |
+| `scanner/` | Định nghĩa rule quét rủi ro dạng YAML (`shell-risk-checks.yml`, `auth-credential-checks.yml`, ...) mà `src/scanner/` biên dịch và chạy. |
+| `policy/`, `guards/`, `router/`, `prompts/` | Cấu hình khai báo khác: template chính sách, chỉ mục guard, chính sách định tuyến model đứng sau `route.rs`, và system prompt. |
+| `tools/yana-web/` | Dashboard trình duyệt (Node server + client). |
+| `tools/yana-desktop/` | Vỏ ứng dụng desktop Electron. |
+| `tools/` (còn lại) | Tiện ích độc lập: `airllm-bridge`, `codexmate`, `moss-tts-nano`, `yana-pixel-bridge`, và vài script lẻ. |
+| `bin/yana` | Điểm vào CLI đã cài đặt. |
+| `adapters/` | Tài liệu adapter theo từng harness (Claude Code, Codex, Cursor, Antigravity). |
+| `docs/` | Ghi chú kiến trúc, ADR, bài viết sự cố, nội dung docs-site. |
+| `site/` | Website marketing/docs dựng bằng Astro. |
+| `examples/` | Ví dụ spec, context-pack, và một repo test cố tình có lỗ hổng để chính test của scanner quét vào. |
+| `demo/` | Script ghi lại đoạn demo terminal ở đầu README này. |
+| `tests/` | Bộ test Python. |
+| `ops/` | Script ký release và dịch vụ release-gate. |
+| `releases/`, `artifacts/` | Log release và artifact build. |
+| `reports/`, `ledger/` | Schema/template báo cáo quét và schema theo dõi token usage. |
+| `github-app/` | Tích hợp GitHub App. |
+| `vendor/` | Bản tham khảo vendored của các dự án bên ngoài Yana AI học hỏi/tích hợp, gồm `hermes-agent`, `openclaw`, và `penpot`. |
+
+Một trục thứ năm, tách version độc lập, là gói Python phân phối qua PyPI,
+nằm ở `src/yana_ai/` chứ không phải một thư mục top-level riêng.
+
+### Bên trong `src/`: Yana OS và các mặt phẳng khác
+
+`yana-rt` là một binary, nhưng không phải một module. Ngoài turn runtime
+đã mô tả ở trên (`runtime/`, `model/`, `capability/`, `chat/`, `remote/`,
+`mcp.rs`), còn bốn mặt phẳng khác nằm trong `src/`:
+
+**Yana OS** (`src/os/`, nội bộ gọi là "Program K") là mặt phẳng quản lý
+cục bộ, tách biệt khỏi vòng lặp turn:
+
+- `identity/` — các tier xác thực guest / operator / sovereign
+- `autonomy.rs` — nấc thang tự chủ (agent được làm gì mà không cần giám sát)
+- `governor.rs` — giới hạn hành vi trên nền nấc thang đó
+- `credential.rs` — xử lý credential
+- `resource/` — quota CPU/RAM/PID
+- `supervisor.rs` — đọc và ghi file khóa HALT; đây là hàm mà authority
+  chain của runtime gọi vào ở mỗi turn, và cũng là file mà watcher độc
+  lập mô tả bên dưới ghi vào
+- `service/` (`manager.rs`, `runtime.rs`, `attribution.rs`) — quản lý
+  vòng đời daemon
+- `agent.rs`, `health.rs`, `monitor.rs`, `monitor_service.rs`,
+  `state.rs`, `status.rs`, `roadmap.rs`, `platform/`
+
+**Bảo mật và audit** (`guard/`, `scanner/`, `score/`, `evidence/`,
+`provenance/`, `filescan/`) là công cụ đứng sau `yana-rt audit`,
+`yana-rt hunt`, và quét rule trước khi commit: bản port Rust gốc của
+các PreToolUse hook tần suất cao nhất, engine so khớp rule, bộ chấm
+điểm mức độ nghiêm trọng CRITICAL/HIGH/MEDIUM/LOW, provenance cho
+Truth Gate, và một kiểm tra xem code được port vào `core/lib/*_adapted/`
+có còn khớp với bản gốc đã vendor hay không.
+
+**Workspace và bộ nhớ** (`workspace/`, `memory.rs`, `vault/`,
+`session_context.rs`) là event store cục bộ hợp nhất, hệ thống fact
+L1/L2, secret vault có chỉ mục tìm kiếm riêng, và kiểu `SessionContext`
+duy nhất mà mọi client (chat, MCP, Desktop) dùng để dựng một turn.
+
+**Công cụ vận hành** là phần còn lại của bề mặt CLI: `init`, `doctor`,
+`fix`, `watch`, `monitor`, `observability`, `config`, `cost`, `route`,
+`plugin`, `task`, `skill_quality`, `spec`, `graph`, `hunt`, `ci`,
+`design`, `mission`, `bus`, và `flock_v1` (khóa file liên-process mà
+mọi thứ còn lại trong danh sách này dựa vào để không làm hỏng state
+khi có nhiều writer chạy đồng thời).
+
+Một trục thứ năm, độc lập, là `src/yana_ai/` (`rt.py`, `cli.py`) — CLI
+Python phân phối qua PyPI. Nó được đóng gói và đánh version tách biệt
+khỏi binary Rust; xem `VERSIONING.md`.
+
+---
+
 ## Rust runtime — `yana-rt`
 
 34 subcommand được định nghĩa trong source trên toàn bộ feature build. Không phụ thuộc Python. Bản build mặc định mở 32 lệnh runtime; Clap thêm mục `help` hiển thị, còn `mcp` và `remote` bị khóa theo feature.
