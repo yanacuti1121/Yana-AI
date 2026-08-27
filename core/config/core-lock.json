@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-26T10:56:59+00:00",
+  "generated": "2026-08-27T06:44:28+00:00",
   "count": 283,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -56,7 +56,7 @@
     "core/hooks/rbac-guard.sh": "3be44f2789a79420e905f471f01f14b714479e9c80b0022516d40cb093628058",
     "core/hooks/risk-scorer.sh": "d6f8c1b9eb0cdbd767907516e96c67a3bcd99ab6e6fc3b51723332ea8c7ecce0",
     "core/hooks/rtk-bridge.sh": "9649d2872be1690e803441967b9c89c2619f55ea5ddf566b90f75a3a4aa30454",
-    "core/hooks/sandbox-wrap.sh": "b5e2e88234ff03397ab9458846b7ca55c699c6ed5ac463d94a4f328f8425b6b7",
+    "core/hooks/sandbox-wrap.sh": "d2cff9d08d6052fe548c38f8375070ddec723798a48ffd23b4719dac268a5473",
     "core/hooks/sbom-generator.sh": "2d7c96ef5a7df0b32dd3953330863ab72fb55d1374a586e4838b83815e945268",
     "core/hooks/scope-guard.sh": "280334d332bd484e2f88b0fbcbd0c3ecac349afac267f8fa388dfb15ce26921e",
     "core/hooks/self-healing-hooks.sh": "4e37871104a31be5c0f2122f25018c0bfc1413b63b2ae9a21f2a29f1806453f8",

@@ -36,11 +36,19 @@ pub struct CommandOutcome {
     pub truncated: bool,
 }
 
-pub fn execute_command(
+/// Spawns `argv` (optionally wrapped through `sandbox-exec.sh`) and returns
+/// the FULL, uncapped process output. Extracted out of `execute_command` so
+/// a caller that must compute an exact statistic from output (a commit
+/// count, a pass/fail count) before any byte truncation — see
+/// `crate::compact` — doesn't inherit `execute_command`'s own 32KB cap.
+/// Reusing `execute_command` for that purpose would reproduce the exact
+/// class of bug `compact` exists to prevent: a count computed from output
+/// that was already silently cut.
+pub fn spawn_command(
     root: &Path,
     argv: &[String],
     use_sandbox: bool,
-) -> Result<CommandOutcome, CapabilityError> {
+) -> Result<Output, CapabilityError> {
     if argv.is_empty() {
         return Err(CapabilityError::EmptyCommand);
     }
@@ -63,14 +71,20 @@ pub fn execute_command(
         command.args(&argv[1..]);
         command
     };
-    let output =
-        command
-            .current_dir(root)
-            .output()
-            .map_err(|error| CapabilityError::SpawnFailed {
-                detail: error.to_string(),
-            })?;
-    Ok(cap_command_output(output))
+    command
+        .current_dir(root)
+        .output()
+        .map_err(|error| CapabilityError::SpawnFailed {
+            detail: error.to_string(),
+        })
+}
+
+pub fn execute_command(
+    root: &Path,
+    argv: &[String],
+    use_sandbox: bool,
+) -> Result<CommandOutcome, CapabilityError> {
+    Ok(cap_command_output(spawn_command(root, argv, use_sandbox)?))
 }
 
 fn cap_command_output(output: Output) -> CommandOutcome {
