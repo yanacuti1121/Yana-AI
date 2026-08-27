@@ -6,7 +6,7 @@
 # PreToolUse hook — fires before any tool call to validate input structure and safety.
 #
 # Validates:
-#   Bash       — control-field validation (e.g. timeout must be numeric)
+#   Bash       — null byte injection, control-field validation (e.g. timeout must be numeric)
 #   Write/Edit — path traversal prevention (../../), absolute paths outside project
 #   WebFetch   — URL format validation, SSRF guard (private IP ranges blocked)
 #   All tools  — tool name allowlist check (blocks unknown/phantom tools)
@@ -26,8 +26,9 @@ set -uo pipefail
 # BUG FIX (found in independent review, round 6): this used to be a bare
 # `command -v jq >/dev/null 2>&1 || exit 0` — a completely silent exit,
 # zero output, on ANY environment missing jq. That disables every check
-# in this file (path traversal, sensitive-path blocking, the SSRF guard)
-# with no warning and no attacker involvement whatsoever — a container
+# in this file (path traversal, sensitive-path blocking, the null byte
+# guard, the SSRF guard) with no warning and no attacker involvement
+# whatsoever — a container
 # or fresh dev machine without jq installed hits
 # this with nothing more than its own absence. Violates this file's own
 # CLAUDE.md rule ("Hooks must never silently allow a risky action... A
@@ -36,7 +37,7 @@ set -uo pipefail
 # below) because jq itself is what's missing — the helpers that build
 # hookSpecificOutput JSON aren't usable yet at this point.
 if ! command -v jq >/dev/null 2>&1; then
-  echo "⚠️  Tool Validator [L1.5]: jq not found — ALL validation disabled (path traversal, sensitive-path, SSRF checks skipped). Install jq to restore protection." >&2
+  echo "⚠️  Tool Validator [L1.5]: jq not found — ALL validation disabled (path traversal, sensitive-path, null byte, SSRF checks skipped). Install jq to restore protection." >&2
   exit 0
 fi
 
@@ -82,28 +83,45 @@ if ! printf '%s' "$TOOL_NAME" | grep -qE "^($KNOWN_TOOLS)$"; then
   warn "⚠️  Tool Validator [L1.5]: Unknown tool '${TOOL_NAME}' requested. This tool is not in the Yana AI known-tools allowlist. Verify this tool exists and is expected before allowing. Reference: core/hooks/tool-validator.sh"
 fi
 
-# ── Bash: control field validation ─────────────────────────────────────────────
-# BUG FIX (found live-testing, 2026-08-15/16 — reproduced directly against a
-# clean origin/main checkout, not assumed): this block used to also check
-# $CMD for an embedded NUL byte. Confirmed by direct reproduction that check
-# was unconditionally broken, not just a weak fallback: `grep -q $'\x00'` —
-# bash's ANSI-C quoting can't represent a NUL inside `$'...'`, so it silently
-# collapses to an empty pattern, and `grep -q ''` matches any non-empty
-# input. Combined with `||`, that made the whole check true for every Bash
-# command regardless of the (correct) first `grep -qP '\x00'` result, denying
-# 100% of Bash calls — reproduced live with a plain `echo hi` on this exact
-# file at HEAD. Separately confirmed the check was also structurally unable
-# to ever catch a real null byte even if the fallback were removed: bash's
-# own `$(...)` command substitution strips embedded NULs before `CMD` is
-# populated (verified: `echo a<NUL>b` through the exact `jq -r` + `$(...)`
-# pipeline this file uses comes out as `echo ab`, no 0x00 byte, nothing
-# truncated), so `$CMD` can never contain one to detect by the time this code
-# runs. Removed rather than repaired — the CLAUDE.md rule in this directory
-# ("must never silently allow a risky action") does not apply here, since
-# this check could not detect a real null byte in the first place; there is
-# nothing to preserve.
+# ── Bash: null byte injection + control field validation ───────────────────────
+# SECURITY FIX (2026-08-27): a prior revision of this block tried to detect
+# a NUL byte by capturing `CMD=$(printf '%s' "$INPUT" | jq -r
+# '.tool_input.command // ""')` and grepping $CMD for it. That is
+# structurally incapable of ever matching: bash command substitution
+# silently strips an embedded 0x00 byte when capturing into a variable
+# (bash strings are NUL-terminated C buffers), so by the time $CMD existed
+# the byte was already gone. A second, independent bug compounded this: the
+# fallback branch used `grep -q $'\x00'`, and `$'\x00'` itself collapses to
+# an empty string in bash for the same C-string reason — `grep -q ""`
+# matches any non-empty input, so this denied ~100% of Bash calls
+# (reproduced live: even a bare `echo hi` was blocked). Faced with "can this
+# be detected at all", the check was removed entirely on 2026-08-16 (git
+# history, commit 88783d32) rather than repaired, reasoning that nothing
+# downstream of `$(...)` could ever see the byte.
+#
+# That reasoning missed one option: test jq's raw-decoded stdout DIRECTLY
+# through a pipe, before any bash variable ever captures it. grep reads a
+# pipe as a byte stream, not a C string, so the byte — which arrives on the
+# wire as a `\x00` JSON escape, the only JSON-legal way it can appear
+# (RFC 8259 forbids a literal raw NUL in a JSON string) — is still
+# observable here, decoded by `jq -r` but not yet destroyed by `$(...)`.
+# ($CMD itself was unused elsewhere in this file — dropped, not renamed.)
+#
+# PORTABILITY FIX (verified live before shipping): the natural
+# implementation is `grep -qP '\x00'` (Perl-regex null-byte match on jq's
+# raw pipe). Confirmed live that `-P` does not exist on BSD grep (macOS) at
+# all — that exact command exits 2 ("invalid option"), which a naive `if`
+# treats identically to "no match", reproducing the exact same silent-gap
+# failure class this fix exists to close (the same `grep -P` portability
+# bug already found and fixed in tool-proxy-enforcer.sh, 2026-07-19 — see
+# that file's header). Portable substitute: dump the decoded bytes as hex
+# text (`od` never treats its input as a NUL-terminated C string) and look
+# for an exact "00" byte token — works on both GNU and BSD grep/od, no -P
+# needed.
 if [[ "$TOOL_NAME" == "Bash" ]]; then
-  CMD=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || true)
+  if printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null | od -An -tx1 2>/dev/null | grep -qw '00'; then
+    deny "Blocked [L1.5 Tool Validator]: Null byte (\\x00) detected in Bash command. Null byte injection is a known attack vector for bypassing string-based filters. Bypass: YANA_TOOL_VALID_BYPASS=1"
+  fi
 
   # Command timeout field validation — must be a number if present
   TIMEOUT_VAL=$(printf '%s' "$INPUT" | jq -r '.tool_input.timeout // ""' 2>/dev/null || true)

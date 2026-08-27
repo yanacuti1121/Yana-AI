@@ -2323,6 +2323,44 @@ test_validator "Allow safe Write in project" \
 # supposed to let through -- this had been silently denying all of them.
 test_validator "Allow ordinary Bash command with no null byte (regression: ANSI-C-quoting false-positive fix)" \
     '{"tool_name":"Bash","tool_input":{"command":"echo hi"}}' "allow"
+
+# Regression test for the actual detection fix (2026-08-27): the test
+# above only proves the false-positive bug is gone -- it says nothing
+# about whether a REAL null byte is caught. This is the exact case the
+# prior revision's check could never have caught even before its own
+# false-positive bug: bash command substitution strips an embedded NUL
+# before a variable can ever hold it, so the fix pipes jq's raw decoded
+# stdout directly into `od -An -tx1 | grep -qw '00'` before any bash
+# variable captures it.
+test_tool_validator_null_byte_injection() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-validator.sh [Deny genuine null-byte injection in Bash command (regression: real null byte, not the removed no-op check)]... "
+
+    # Built via a runtime octal-printf escape rather than typed literally in
+    # this file's source: a real JSON null-byte escape (backslash + "u0000")
+    # is legal, valid JSON (RFC 8259 requires a raw NUL byte to be escaped
+    # this way) -- but typing that 6-character escape sequence directly
+    # into this file's source risks an authoring/editing tool silently
+    # materializing it as an actual embedded NUL byte, which would make the
+    # fixture itself invalid JSON and silently short-circuit the hook via
+    # its TOOL_NAME extraction failing, masking a real regression as a
+    # false PASS (this happened once while writing this exact test).
+    local esc payload output exit_code
+    esc=$(printf '\134u0000')
+    payload='{"tool_name":"Bash","tool_input":{"command":"ls'"${esc}"'; rm -rf /"}}'
+
+    output=$(TOOL_VALID_TEST_INPUT="$payload" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null)
+    exit_code=$?
+
+    if [[ "$exit_code" == "2" ]] && echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, output: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_tool_validator_null_byte_injection
+
 test_validator "Bypass suppresses block" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://localhost:9000"}}' "allow" "bypass"
 
@@ -2414,7 +2452,7 @@ test_validator "Allow literal .. not bounded by / or string end (regex anchor co
     '{"tool_name":"Write","tool_input":{"file_path":"café..secret"}}' "allow"
 test_validator "Block traversal hidden behind an RTL override character" \
     '{"tool_name":"Write","tool_input":{"file_path":"docs/‮gnp.exe/../../secret"}}' "deny"
-test_validator "Allow Vietnamese Bash command content (no content-based check left post null-byte removal)" \
+test_validator "Allow Vietnamese Bash command content (multi-byte UTF-8 must not false-positive the null-byte check)" \
     '{"tool_name":"Bash","tool_input":{"command":"echo '"'"'xin chào 你好 🎉'"'"'"}}' "allow"
 test_validator "Fail closed (deny, not crash) on unresolvable raw-UTF-8 IDN WebFetch host" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://例え.jp/"}}' "deny"
