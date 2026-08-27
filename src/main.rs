@@ -246,6 +246,12 @@ enum Commands {
     /// computed from the FULL, untruncated output before any compaction —
     /// see src/compact/mod.rs's module doc for why, including the specific
     /// rtk incident (2026-07-26) this exists to not repeat.
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design — called
+    /// directly as `yana-rt compact -- <command>` from `sandbox-wrap.sh`'s
+    /// own rewrite (see that hook) and by hand for manual testing, the same
+    /// fast-path pattern `Guard` above uses. There is no end-user-facing
+    /// `yana-ai compact` command to add — this is invoked by the hook chain
+    /// and by a human running `yana-rt` directly, not through `bin/yana`.
     Compact {
         /// Classify only — does this command match a known pattern? Never
         /// executes `command`. Exit 0 = matches, exit 1 = no known pattern.
