@@ -4,6 +4,7 @@ mod bus;
 mod capability;
 mod chat;
 mod ci;
+mod compact;
 mod config;
 mod cost;
 mod design;
@@ -236,6 +237,33 @@ enum Commands {
     Evidence {
         #[command(subcommand)]
         action: evidence::EvidenceAction,
+    },
+    /// Native Bash-output compaction — replaces the dead, external
+    /// `rtk-bridge.sh` bridge with a first-class Yana AI subsystem. Opt-in
+    /// (YANA_COMPACT=1), wired through core/hooks/sandbox-wrap.sh (the one
+    /// hook in this repo allowed to rewrite Bash commands). Every exact
+    /// statistic a matcher reports (commit count, pass/fail count) is
+    /// computed from the FULL, untruncated output before any compaction —
+    /// see src/compact/mod.rs's module doc for why, including the specific
+    /// rtk incident (2026-07-26) this exists to not repeat.
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design — called
+    /// directly as `yana-rt compact -- <command>` from `sandbox-wrap.sh`'s
+    /// own rewrite (see that hook) and by hand for manual testing, the same
+    /// fast-path pattern `Guard` above uses. There is no end-user-facing
+    /// `yana-ai compact` command to add — this is invoked by the hook chain
+    /// and by a human running `yana-rt` directly, not through `bin/yana`.
+    Compact {
+        /// Classify only — does this command match a known pattern? Never
+        /// executes `command`. Exit 0 = matches, exit 1 = no known pattern.
+        #[arg(long)]
+        detect: bool,
+        #[arg(long)]
+        json: bool,
+        /// Force raw passthrough for this one call (mirrors YANA_COMPACT_BYPASS=1)
+        #[arg(long)]
+        raw: bool,
+        #[arg(trailing_var_arg = true, required = true)]
+        command: Vec<String>,
     },
     /// Canonical capability runtime, one-shot scriptable surface — the
     /// same `crate::capability::*` MCP's 9 tools and chat's read_file/
@@ -764,6 +792,9 @@ fn main() {
         Commands::Init { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
+        Commands::Compact { detect, json, raw, command } => {
+            compact::dispatch(detect, json, raw, command)
+        }
         Commands::Capability { action } => capability::cli::dispatch(action),
         Commands::Chat {
             provider,

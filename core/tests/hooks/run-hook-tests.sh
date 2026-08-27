@@ -3394,6 +3394,102 @@ test_sandbox_wrap_pipe_preserved() {
 }
 test_sandbox_wrap_pipe_preserved
 
+# ── sandbox-wrap.sh — YANA_COMPACT native compaction addition ───────────────
+# Uses the real built yana-rt binary (target/debug/yana-rt) when present —
+# skips gracefully if this checkout hasn't been built yet, matching this
+# repo's own "degrade, don't crash" convention for missing optional deps.
+YANA_RT_BIN_DIR="$REPO_ROOT/target/debug"
+
+test_sandbox_wrap_compact() {
+    local test_name=$1 input_json=$2 compact_env=$3 mode_env=$4 expect=$5
+    # expect: "compacted" | "sandboxed" | "unchanged"
+    local extra_env_var=${6:-""} extra_env_val=${7:-""}
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing sandbox-wrap.sh [$test_name]... "
+
+    local -a env_args=(
+        "YANA_COMPACT=$compact_env"
+        "YANA_SANDBOX_MODE=$mode_env"
+        "PATH=$YANA_RT_BIN_DIR:$PATH"
+    )
+    if [[ -n "$extra_env_var" ]]; then
+        env_args+=("$extra_env_var=$extra_env_val")
+    fi
+
+    local output
+    output=$(echo "$input_json" | env "${env_args[@]}" bash "$HOOKS_DIR/sandbox-wrap.sh" 2>/dev/null)
+
+    case "$expect" in
+        unchanged)
+            if [[ -z "$output" ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected silent passthrough, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+        compacted)
+            local wrapped
+            wrapped=$(echo "$output" | jq -r '.hookSpecificOutput.updatedInput.command // ""' 2>/dev/null)
+            if [[ "$wrapped" == *"yana-rt compact"* ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected updatedInput.command to route through yana-rt compact, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+        sandboxed)
+            local wrapped
+            wrapped=$(echo "$output" | jq -r '.hookSpecificOutput.updatedInput.command // ""' 2>/dev/null)
+            if [[ "$wrapped" == *"sandbox-exec.sh"* && "$wrapped" != *"yana-rt compact"* ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected sandbox-exec.sh wrap WITHOUT yana-rt compact, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+    esac
+}
+
+if [[ -x "$YANA_RT_BIN_DIR/yana-rt" ]]; then
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + recognized pattern -> routes through yana-rt compact" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "" "compacted"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + unrecognized command -> silent passthrough" \
+        '{"tool_name":"Bash","tool_input":{"command":"curl http://example.com"}}' \
+        "1" "" "unchanged"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + YANA_COMPACT_BYPASS=1 -> silent passthrough" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "" "unchanged" "YANA_COMPACT_BYPASS" "1"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + already-wrapped command -> re-entrancy guard, unchanged" \
+        '{"tool_name":"Bash","tool_input":{"command":"yana-rt compact -- bash -c ls"}}' \
+        "1" "" "unchanged"
+
+    # KNOWN LIMITATION test: both opted in simultaneously -> sandbox wins,
+    # compact is skipped for that call (documented in the hook's own header,
+    # not a silent gap). This is the regression test for the composition bug
+    # found and fixed during implementation: compact must never see an
+    # already-sandbox-wrapped command string as its "original" command.
+    test_sandbox_wrap_compact \
+        "Both YANA_COMPACT=1 and YANA_SANDBOX_MODE set -> sandbox wins, compact skipped this call" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "ulimit" "sandboxed"
+else
+    echo "(skipping YANA_COMPACT sandbox-wrap.sh tests — $YANA_RT_BIN_DIR/yana-rt not built; run 'cargo build --features cli' first)"
+fi
+
+# Compaction is unaffected by sandbox-off default: with neither env var set,
+# the earlier "Off by default" test above already covers this — no new case
+# needed for YANA_COMPACT unset.
+
 # ── verify-hook-mirrors.sh — ADR-008 "Still open" follow-up ──────────────────
 # core/scripts/verify-hook-mirrors.sh (2026-07-23) closes the exact gap that
 # let ADR-008's own hook fixes silently stay unpatched in .claude/hooks/ and
