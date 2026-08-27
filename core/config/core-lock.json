@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-27T06:44:28+00:00",
+  "generated": "2026-08-27T07:05:55+00:00",
   "count": 283,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -60,7 +60,7 @@
     "core/hooks/sbom-generator.sh": "2d7c96ef5a7df0b32dd3953330863ab72fb55d1374a586e4838b83815e945268",
     "core/hooks/scope-guard.sh": "280334d332bd484e2f88b0fbcbd0c3ecac349afac267f8fa388dfb15ce26921e",
     "core/hooks/self-healing-hooks.sh": "4e37871104a31be5c0f2122f25018c0bfc1413b63b2ae9a21f2a29f1806453f8",
-    "core/hooks/session-bootstrap.sh": "bcad9750e95645bae7a918f8fbdad9edc9408b4410b75cc7fbed9ebe1ee513c1",
+    "core/hooks/session-bootstrap.sh": "76be952210c09586255d960454cd921e0e14d2d86f41e6d0abfea49492cef67e",
     "core/hooks/session-checkpoint-hook.sh": "357cf29cf7f4ab105fa9085bf935924dccb8e63bf9f07312b00954fd202538c1",
     "core/hooks/static-analysis-gate.sh": "fa4cf700a14458c9b7cfbda393e987eb72395a318a6bb5abe2e3cbe8d00e2f2c",
     "core/hooks/supply-chain-guard.sh": "6f382c78ed8fc3b009edfb4c76b522962e55b63333fef14fb065ad0c9107b07e",

@@ -392,6 +392,8 @@ Commands:
   skill-quality <subcommand> Per-skill outcome ledger from real task verdicts (human-gated)
   mcp                     Program J MCP server over stdio (opt-in build, not wired into any client)
   remote <subcommand>     Remote interfaces (Discord adapter — opt-in build; setup/test/serve)
+  research <subcommand>   Local research ledger — source-backed claims (add/list/show/brief)
+  connector <subcommand>  Connector permission registry — local allowlist, no token storage (list/enable/disable/status/sync)
   version                 Print version
   banner                  Print the welcome banner only (no command list)
   help                    Show this help
@@ -611,7 +613,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|vault|os|workspace|spec|provenance|mission|route|evidence|chat|observability|skill-quality|mcp|remote)
+  task|eval|bus|memory|plugin|cost|vault|os|workspace|spec|provenance|mission|route|evidence|chat|observability|skill-quality|mcp|remote|research|connector)
     rt "$COMMAND" "$@"
     ;;
   explain)

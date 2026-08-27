@@ -5,6 +5,7 @@ mod capability;
 mod chat;
 mod ci;
 mod compact;
+mod connector;
 mod config;
 mod cost;
 mod design;
@@ -24,6 +25,7 @@ mod observability;
 mod os;
 mod plugin;
 mod provenance;
+mod research;
 mod route;
 pub mod scanner;
 mod score;
@@ -94,6 +96,16 @@ enum Commands {
     Memory {
         #[command(subcommand)]
         action: MemoryAction,
+    },
+    /// Research claims with source, observation date, and confidence
+    Research {
+        #[command(subcommand)]
+        action: research::ResearchAction,
+    },
+    /// Connector registry — explicit, local permissions before an integration may run
+    Connector {
+        #[command(subcommand)]
+        action: connector::ConnectorAction,
     },
     /// Configuration — init/read yana-ai settings for any repo
     /// DOCTOR_DISPATCH_EXEMPT: core/scripts/config_manager.py is canonical —
@@ -506,6 +518,33 @@ enum MemoryAction {
     },
     /// Get a fact by key
     Get { key: String },
+    /// Recall L3 facts relevant to a task, with transparent lexical scoring
+    Recall {
+        query: String,
+        #[arg(long, default_value_t = 8)]
+        limit: usize,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Build a bounded, provenance-preserving context fragment from L3 memory
+    Pack {
+        query: String,
+        #[arg(long, default_value_t = 8)]
+        limit: usize,
+        #[arg(long, default_value_t = 6000)]
+        max_chars: usize,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Store a session handoff with a summary and explicit next steps
+    Checkpoint {
+        task: String,
+        summary: String,
+        #[arg(long = "next")]
+        next: Vec<String>,
+        #[arg(long)]
+        tag: Vec<String>,
+    },
     /// List facts
     List {
         #[arg(long)]
@@ -573,7 +612,54 @@ enum PluginAction {
 
 #[derive(Subcommand)]
 enum CostAction {
+    /// Cost summary — also prints the currently persisted daily/monthly policy
     Show,
+    /// Recommend a model lane using task complexity, sensitivity, and today's spend
+    Recommend {
+        task: String,
+        /// Override the persisted daily budget for this call only; omit to
+        /// use the saved policy (see `cost set-policy`), default $5/day if
+        /// none was ever saved.
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Recommend a concrete configured provider for the chosen cost lane; never invokes it
+    Plan {
+        task: String,
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Gate a proposed model call against today's AND this month's tracked
+    /// spend; exits 3 when either ceiling would be exceeded
+    Guard {
+        task: String,
+        /// Override the persisted daily budget for this call only (monthly
+        /// always comes from the saved policy — set it via `cost set-policy`)
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        /// Caller-supplied upper estimate for this proposed call
+        #[arg(long)]
+        estimated_cost_usd: f64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Persist daily/monthly spend ceilings for this project
+    /// (.yana-ai/cost-policy.json). Only supplied fields change.
+    SetPolicy {
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        monthly_budget_usd: Option<f64>,
+        /// Remove any configured monthly ceiling (monthly becomes unenforced)
+        #[arg(long)]
+        clear_monthly_budget: bool,
+        #[arg(long)]
+        json: bool,
+    },
     Log {
         task: String,
         tier: String,
@@ -656,6 +742,14 @@ fn main() {
                 scope,
             } => memory::cmd_memory_store(key, value, tag, agent, confidence, scope),
             MemoryAction::Get { key } => memory::cmd_memory_get(key),
+            MemoryAction::Recall { query, limit, json } => memory::cmd_memory_recall(query, limit, json),
+            MemoryAction::Pack { query, limit, max_chars, json } => memory::cmd_memory_pack(query, limit, max_chars, json),
+            MemoryAction::Checkpoint { task, summary, next, tag } => {
+                if let Err(error) = memory::cmd_memory_checkpoint(task, summary, next, tag) {
+                    eprintln!("[memory] {error}");
+                    std::process::exit(2);
+                }
+            }
             MemoryAction::List { tag, agent, last } => memory::cmd_memory_list(tag, agent, last),
             MemoryAction::Promote { key, l1_dir } => memory::cmd_memory_promote(key, l1_dir),
             MemoryAction::Import { l2_dir } => memory::cmd_memory_import(l2_dir),
@@ -768,6 +862,8 @@ fn main() {
             std::process::exit(exit_code);
         }
         Commands::Mission { action } => mission::dispatch(action),
+        Commands::Research { action } => research::dispatch(action),
+        Commands::Connector { action } => connector::dispatch(action),
         Commands::Route { action } => route::dispatch(action),
         Commands::Hunt { action } => hunt::dispatch(action),
         Commands::Ci { action } => ci::dispatch(action),
@@ -859,7 +955,42 @@ fn main() {
             },
         },
         Commands::Cost { action } => match action {
-            CostAction::Show => cost::cmd_cost_show(),
+            CostAction::Show => {
+                if let Err(error) = cost::cmd_cost_show() {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Recommend { task, daily_budget_usd, json } => {
+                if let Err(error) = cost::cmd_cost_recommend(task, daily_budget_usd, json) {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Plan { task, daily_budget_usd, json } => {
+                if let Err(error) = cost::cmd_cost_plan(task, daily_budget_usd, json) {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Guard { task, daily_budget_usd, estimated_cost_usd, json } => {
+                match cost::cmd_cost_guard(task, daily_budget_usd, estimated_cost_usd, json) {
+                    Ok(true) => {}
+                    Ok(false) => std::process::exit(3),
+                    Err(error) => {
+                        eprintln!("[cost] {error:#}");
+                        std::process::exit(2);
+                    }
+                }
+            }
+            CostAction::SetPolicy { daily_budget_usd, monthly_budget_usd, clear_monthly_budget, json } => {
+                if let Err(error) =
+                    cost::cmd_cost_set_policy(daily_budget_usd, monthly_budget_usd, clear_monthly_budget, json)
+                {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
             CostAction::Log {
                 task,
                 tier,

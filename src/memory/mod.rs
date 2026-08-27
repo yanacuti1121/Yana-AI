@@ -5,6 +5,9 @@ use std::io::Write;
 use std::path::PathBuf;
 use uuid::Uuid;
 
+mod pack;
+pub use pack::{build_memory_pack, rank_facts, MemoryPack, RankedFact};
+
 pub fn now() -> String { Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string() }
 
 // ── Data model ────────────────────────────────────────────────────────────────
@@ -97,6 +100,63 @@ pub fn cmd_memory_get(key: String) {
     }
 }
 
+pub fn cmd_memory_recall(query: String, limit: usize, json: bool) {
+    let ranked = rank_facts(&l3_read_all(), &query, limit);
+    if json {
+        println!("{}", serde_json::to_string_pretty(&ranked).expect("serialize recall"));
+        return;
+    }
+    if ranked.is_empty() { println!("No L3 facts match: '{query}'"); return; }
+    for item in ranked {
+        println!("L3:{}  score:{}  matched:{}\n  {}", &item.fact.id[..8], item.score,
+            item.matched_terms.join(", "), item.fact.value);
+    }
+}
+
+pub fn cmd_memory_pack(query: String, limit: usize, max_chars: usize, json: bool) {
+    let pack = build_memory_pack(&l3_read_all(), &query, limit, max_chars);
+    if json {
+        println!("{}", serde_json::to_string_pretty(&pack).expect("serialize memory pack"));
+        return;
+    }
+    print!("{}", pack.text);
+    if pack.omitted_sensitive > 0 { println!("[{} sensitive fact(s) omitted from this pack]", pack.omitted_sensitive); }
+}
+
+/// Persist an explicit, human/agent-authored session handoff.  Summarisation
+/// itself belongs to the calling model; this layer owns validation, provenance,
+/// and the local storage contract only.
+pub fn checkpoint_fact(task: String, summary: String, next: Vec<String>, tags: Vec<String>) -> Result<L3Fact, String> {
+    let combined = format!("{task}\n{summary}\n{}", next.join("\n"));
+    let (sensitivity, signals) = crate::route::classify_sensitivity(&combined);
+    if !matches!(sensitivity, crate::route::Sensitivity::Public | crate::route::Sensitivity::Internal) {
+        return Err(format!("checkpoint not persisted: {:?} context ({})", sensitivity, signals.join(", ")));
+    }
+    if task.trim().is_empty() || summary.trim().is_empty() {
+        return Err("checkpoint requires a non-empty task and summary".into());
+    }
+    let mut all_tags = vec!["checkpoint".into()];
+    for tag in tags { if !tag.trim().is_empty() && !all_tags.contains(&tag) { all_tags.push(tag); } }
+    let next_text = if next.is_empty() { "- none recorded".to_string() }
+        else { next.iter().map(|item| format!("- {item}")).collect::<Vec<_>>().join("\n") };
+    let timestamp = now();
+    let id = Uuid::new_v4().to_string();
+    Ok(L3Fact {
+        key: format!("checkpoint-{}", &id[..8]),
+        id,
+        value: format!("Task: {task}\nSummary: {summary}\nNext:\n{next_text}"),
+        tags: all_tags, agent: Some("session-checkpoint".into()), confidence: "medium".into(), scope: "both".into(),
+        created_at: timestamp.clone(), updated_at: timestamp, promoted: false,
+    })
+}
+
+pub fn cmd_memory_checkpoint(task: String, summary: String, next: Vec<String>, tags: Vec<String>) -> Result<(), String> {
+    let fact = checkpoint_fact(task, summary, next, tags)?;
+    l3_append(&fact);
+    println!("✓ checkpoint stored  L3:{}\n  key: {}", &fact.id[..8], fact.key);
+    Ok(())
+}
+
 pub fn cmd_memory_list(tag: Option<String>, agent: Option<String>, last: usize) {
     let facts = l3_read_all();
     let filtered: Vec<&L3Fact> = facts.iter()
@@ -174,4 +234,31 @@ pub fn cmd_memory_import(l2_dir: String) {
         imported += 1;
     }
     println!("✓ imported {imported} facts L2 → L3");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn checkpoint_keeps_next_steps_in_a_recallable_fact() {
+        let checkpoint = checkpoint_fact("memory MVP".into(), "added context pack".into(), vec!["wire it to startup".into()], vec!["rust".into()]).unwrap();
+        assert!(checkpoint.tags.contains(&"checkpoint".into()));
+        assert!(checkpoint.value.contains("wire it to startup"));
+    }
+
+    #[test]
+    fn checkpoint_refuses_confidential_context() {
+        let error = checkpoint_fact("M&A negotiation".into(), "private terms".into(), vec![], vec![]).unwrap_err();
+        assert!(error.contains("checkpoint not persisted"));
+    }
+
+    #[test]
+    fn checkpoint_key_suffix_is_derived_from_the_fact_id() {
+        // Regression: the key suffix used to be a second, unrelated random
+        // UUID's first 8 chars instead of the fact's own id — two different
+        // hex strings for the same object, confusing for anyone debugging it.
+        let checkpoint = checkpoint_fact("t".into(), "s".into(), vec![], vec![]).unwrap();
+        assert_eq!(checkpoint.key, format!("checkpoint-{}", &checkpoint.id[..8]));
+    }
 }
