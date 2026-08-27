@@ -1,4 +1,5 @@
 use super::domain::{ActionStatus, AttentionClass, BlockKind, RiskLevel, WorkspaceEventKind};
+use super::triage;
 use super::markdown::{MarkdownExporter, WorkspaceExporter};
 use super::service::{WorkspaceOperation, WorkspaceService};
 use super::store::{EventStore, FileEventStore};
@@ -28,6 +29,13 @@ fn create(
         WorkspaceEventKind::BlockCreated { block } => block.id,
         _ => panic!("unexpected event"),
     }
+}
+
+#[test]
+fn triage_is_conservative_and_explainable() {
+    assert_eq!(triage("Production incident: deploy is blocked").attention, AttentionClass::Signal);
+    assert_eq!(triage("Weekly newsletter — unsubscribe anytime").attention, AttentionClass::Noise);
+    assert_eq!(triage("Notes from the project sync").attention, AttentionClass::Review);
 }
 
 #[test]

@@ -91,6 +91,11 @@ pub enum MissionAction {
         /// Mission ID (or prefix)
         mission: String,
     },
+    /// Save a resumable mission handoff into bounded L3 memory
+    Checkpoint {
+        /// Mission ID (or prefix)
+        mission: String,
+    },
     /// List all missions
     List,
 }
@@ -107,6 +112,7 @@ pub fn dispatch(action: MissionAction) {
         MissionAction::Retry  { mission, task }          => cmd_retry(mission, task),
         MissionAction::Status { mission }               => cmd_status(mission),
         MissionAction::Report { mission }               => cmd_report(mission),
+        MissionAction::Checkpoint { mission }           => cmd_checkpoint(mission),
         MissionAction::List                             => cmd_list(),
     }
 }
@@ -635,6 +641,47 @@ fn cmd_report(prefix: String) {
     println!("{}", serde_json::to_string_pretty(&m).unwrap());
 }
 
+fn checkpoint_parts(mission: &Mission) -> (String, Vec<String>) {
+    let done = mission.tasks.iter().filter(|task| task.status == TaskStatus::Done).count();
+    let running: Vec<_> = mission.tasks.iter().filter(|task| task.status == TaskStatus::Running).collect();
+    let pending: Vec<_> = mission.tasks.iter().filter(|task| task.status == TaskStatus::Pending).collect();
+    let failed: Vec<_> = mission.tasks.iter().filter(|task| task.status == TaskStatus::Failed).collect();
+    let summary = format!(
+        "Mission '{}' is {:?}: {done}/{} tasks done, {} running, {} pending, {} failed.",
+        mission.name, mission.status, mission.tasks.len(), running.len(), pending.len(), failed.len()
+    );
+    let mut next = Vec::new();
+    next.extend(running.into_iter().map(|task| format!("Collect evidence or status from running task '{}'.", task.name)));
+    next.extend(failed.into_iter().map(|task| format!("Resolve failure for task '{}': {}", task.name, task.fail_reason.as_deref().unwrap_or("no reason recorded"))));
+    if !pending.is_empty() {
+        next.push(format!("Dispatch {} pending ready task(s) when dependencies are satisfied.", pending.len()));
+    }
+    if next.is_empty() && mission.status == MissionStatus::Done {
+        next.push("Review mission evidence before archiving the mission.".into());
+    }
+    (summary, next)
+}
+
+fn cmd_checkpoint(prefix: String) {
+    let mission = match resolve(&prefix) {
+        Ok(mission) => mission,
+        Err(error) => { eprintln!("error: {error}"); std::process::exit(1); }
+    };
+    let (summary, next) = checkpoint_parts(&mission);
+    let task = format!("Mission {} ({})", mission.name, &mission.id[..8]);
+    let status_tag = match mission.status {
+        MissionStatus::Active => "active",
+        MissionStatus::Done => "done",
+        MissionStatus::Blocked => "blocked",
+    };
+    let checkpoint = match crate::memory::checkpoint_fact(task, summary, next, vec!["mission".into(), status_tag.into()]) {
+        Ok(checkpoint) => checkpoint,
+        Err(error) => { eprintln!("error: mission checkpoint refused: {error}"); std::process::exit(2); }
+    };
+    crate::memory::l3_append(&checkpoint);
+    println!("mission checkpoint saved: L3:{}", &checkpoint.id[..8]);
+}
+
 fn cmd_list() {
     ensure_dir();
     let mut missions: Vec<Mission> = std::fs::read_dir(missions_dir())
@@ -835,6 +882,23 @@ mod tests {
         let mut t = make_task("t1", vec![], vec![]);
         t.status = TaskStatus::Done;
         assert_eq!(compute_mission_status(&[t]), MissionStatus::Done);
+    }
+
+    #[test]
+    fn checkpoint_includes_resumable_running_and_failed_work() {
+        let mut running = make_task("implement router", vec![], vec![]);
+        running.status = TaskStatus::Running;
+        let mut failed = make_task("run tests", vec![], vec![]);
+        failed.status = TaskStatus::Failed;
+        failed.fail_reason = Some("test environment unavailable".into());
+        let mission = Mission {
+            id: new_id(), name: "runtime foundation".into(), status: MissionStatus::Blocked,
+            harness_path: None, tasks: vec![running, failed], created_at: now(), updated_at: now(),
+        };
+        let (summary, next) = checkpoint_parts(&mission);
+        assert!(summary.contains("0/2 tasks done"));
+        assert!(next.iter().any(|item| item.contains("implement router")));
+        assert!(next.iter().any(|item| item.contains("test environment unavailable")));
     }
 
     // ── owns_conflict — 2026-07-08 audit fix ─────────────────────────────────
