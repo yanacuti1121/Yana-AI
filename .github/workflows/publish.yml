@@ -88,21 +88,22 @@ jobs:
       contents: read
       checks: read
     steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
       - name: Verify required checks succeeded for this commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           SHA="${{ github.sha }}"
-          REQUIRED=(
-            "Hook Tests"
-            "Kernel flock-v1 (Ubuntu)"
-            "Rust Integration Tests (yana-rt)"
-            "System Health Monitor (ubuntu-latest)"
-            "System Health Monitor (macos-latest)"
-            "System Health Monitor (windows-latest)"
-            "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)"
-          )
+          # Single source of truth (Authority Hardening item #10):
+          # .github/required-checks.json, also read by release.yml, so the
+          # two workflows can no longer drift into two different copies of
+          # this list the way they used to (byte-for-byte-identical
+          # hardcoded arrays, confirmed via diff before this change).
+          REQUIRED=()
+          while IFS= read -r name; do
+            REQUIRED+=("$name")
+          done < <(python3 -c "import json; print('\n'.join(json.load(open('.github/required-checks.json'))['required_checks']))")
           FAILED=0
           for name in "${REQUIRED[@]}"; do
             conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
