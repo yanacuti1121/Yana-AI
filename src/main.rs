@@ -712,6 +712,12 @@ enum LeaseAction {
         expires_in_minutes: u64,
         #[arg(long)]
         invocation_budget: Option<u32>,
+        /// Delegate from an existing lease (Authority Hardening item #6):
+        /// this new lease can never exceed what the named parent lease
+        /// itself still permits — enforced at every consume, not just
+        /// checked here.
+        #[arg(long)]
+        parent_lease_id: Option<String>,
         #[arg(long)]
         json: bool,
     },
@@ -1086,6 +1092,7 @@ fn main() {
                 deny,
                 expires_in_minutes,
                 invocation_budget,
+                parent_lease_id,
                 json,
             } => {
                 if let Err(error) = capability::lease::cmd_lease_grant(
@@ -1095,6 +1102,7 @@ fn main() {
                     deny,
                     expires_in_minutes,
                     invocation_budget,
+                    parent_lease_id,
                     json,
                 ) {
                     eprintln!("[lease] {error:#}");

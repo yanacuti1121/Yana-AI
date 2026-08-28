@@ -430,6 +430,7 @@ fn subagent_with_a_valid_matching_lease_gets_mutation_authority() {
             "human".into(),
             20,
             Some(5),
+            None,
         )
         .unwrap();
     let command = call_with_command("run_command", "cargo test --release");
@@ -459,6 +460,7 @@ fn subagent_with_an_expired_lease_is_still_denied() {
         invocation_budget: None,
         remaining: None,
         revoked: false,
+        parent_lease_id: None,
     };
     std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
     std::fs::write(
@@ -491,6 +493,7 @@ fn subagent_with_a_lease_for_a_different_command_is_still_denied() {
             "human".into(),
             20,
             None,
+            None,
         )
         .unwrap();
     let command = call_with_command("run_command", "git push --force origin main");
@@ -519,6 +522,7 @@ fn halt_active_denies_a_leased_subagent_call_too() {
             vec![],
             "human".into(),
             20,
+            None,
             None,
         )
         .unwrap();
