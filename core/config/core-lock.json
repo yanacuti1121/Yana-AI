@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-27T14:42:45+00:00",
-  "count": 283,
+  "generated": "2026-08-28T05:05:49+00:00",
+  "count": 284,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -273,6 +273,7 @@
     "core/scripts/verify-fact-freshness.sh": "396d8d1a375eadb43d117aa68ba77379f89dcc9d1ba37810abc1689a26f7d4d3",
     "core/scripts/verify-hook-mirrors.sh": "6a1cc4f15bf9d0011f5d408d02db3228b15d76aa3a0192679e782367ad63003d",
     "core/scripts/verify-release-evidence.py": "51244842846bd73b6bc6c06d93421738343e71a001ea0f7db4e6e6e341796bf0",
+    "core/scripts/verify-required-checks-drift.sh": "037fde4c02d5837428c54a84d78a471609d28ad68295a50cf8d63674befd9bff",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
     "core/scripts/verify-skills-lock.sh": "ba0e7825913d32a22657b39505ae3018ddafb38934d9a168b14fa3b5091b9999",
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",

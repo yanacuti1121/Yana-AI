@@ -582,7 +582,7 @@ core/
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 283 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 284 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions

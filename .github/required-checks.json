@@ -1,0 +1,13 @@
+{
+  "_comment": "Single source of truth for the check-run names release.yml and publish.yml both verify succeeded on main before building/publishing from a tagged commit. Read by both workflows via jq, not copy-pasted. Every name here must exactly match a job's `name:` field in ci.yml (after matrix expansion, e.g. 'System Health Monitor (${{ matrix.os }})' expands to one entry per matrix.os value). core/scripts/verify-required-checks-drift.sh checks that this stays true; it CANNOT verify this list matches GitHub's actual branch-protection required_status_checks.contexts setting -- reading that requires repo-admin scope a standard GITHUB_TOKEN does not have (see release.yml's verify-provenance job comment). If the required-check set changes in GitHub's branch protection settings, a human must update this file to match -- the drift check only catches this file drifting from ci.yml's real job names, not from GitHub's settings.",
+  "required_checks": [
+    "Hook Tests",
+    "Kernel flock-v1 (Ubuntu)",
+    "Rust Integration Tests (yana-rt)",
+    "System Health Monitor (ubuntu-latest)",
+    "System Health Monitor (macos-latest)",
+    "System Health Monitor (windows-latest)",
+    "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)",
+    "Dependency Vulnerability Audit (cargo audit + pip-audit + npm audit)"
+  ]
+}
