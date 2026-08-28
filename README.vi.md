@@ -316,6 +316,8 @@ Yana có điểm gần và điểm khác với từng dự án dưới đây —
 | [Goose](https://github.com/block/goose) | Provider-agnostic, đa provider, đa extension (MCP) — gần nhất với provider plane của Yana | Trước hết là một agent runtime mạnh; approval thực thi và scoping capability không phải nguyên tắc tổ chức của họ như thẩm quyền là của Yana |
 | [AutoGen](https://github.com/microsoft/autogen) — **hiện đang maintenance mode**, được kế nhiệm bởi [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Pattern điều phối multi-agent | Delegation ở đó là mối quan tâm workflow/routing, không phải authority calculus — một agent giao việc cho agent khác không giống tuyên bố "thẩm quyền của agent là tập con bị giới hạn của thẩm quyền đã giao nó" |
 
+Mỗi dự án trong 4 cái trên đều làm tốt một tầng — execution boundary, memory continuity, runtime cohesion, pattern điều phối. **Yana ghép continuity, orchestration, execution và governance vào chung một hệ thống, lấy authority boundary làm xương sống — không phải thêm một tầng nữa cạnh các tầng kia, mà là thứ mà các tầng kia gắn vào.**
+
 ## Cài đặt nhanh
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`

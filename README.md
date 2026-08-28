@@ -319,6 +319,8 @@ Yana overlaps with each of these at one layer and diverges at another — none a
 | [Goose](https://github.com/block/goose) | Provider-agnostic, multi-provider, multi-extension (MCP) agent runtime cohesion — closest to Yana's provider plane | A capable agent runtime first; execution approval and capability scoping are not its organizing principle the way authority is Yana's |
 | [AutoGen](https://github.com/microsoft/autogen) — **now in maintenance mode**, succeeded by [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Multi-agent orchestration patterns | Delegation there is a workflow/routing concern; it is not an authority calculus — one agent handing work to another isn't the same claim as one agent's authority being a bounded subset of what delegated it |
 
+Each of the four covers one layer well — execution boundary, memory continuity, runtime cohesion, orchestration patterns. **Yana combines continuity, orchestration, execution, and governance into one system, with the authority boundary as its spine — not one more layer alongside the others, but the thing the others attach to.**
+
 ## Quick install
 
 Two independent install paths. Neither is the "real" one — pick based on

@@ -316,6 +316,8 @@ Yana 在某一层与下面每个项目接近，又在另一层与它们分开—
 | [Goose](https://github.com/block/goose) | Provider 无关、多 provider、多扩展（MCP）——与 Yana 的 provider plane 最接近 | 首先是一个强大的 agent runtime；执行审批与 capability 范围划定并不是它的组织原则，不像权限之于 Yana |
 | [AutoGen](https://github.com/microsoft/autogen) —— **目前处于 maintenance mode**，后续由 [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) 接替 | 多代理编排模式 | 这里的 delegation 是 workflow/routing 层面的问题，而不是权限演算——一个代理把工作交给另一个代理，并不等同于"被委托代理的权限是委托方权限的有界子集"这个主张 |
 
+上面四个项目各自把一层做得很好——execution boundary、memory continuity、runtime cohesion、编排模式。**Yana 把 continuity、orchestration、execution、governance 合并到同一个系统中，以 authority boundary 作为脊柱——不是与其他层并列的又一层，而是其他层依附其上的那个东西。**
+
 ## 快速安装
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`

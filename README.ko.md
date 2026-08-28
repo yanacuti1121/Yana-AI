@@ -316,6 +316,8 @@ Yana는 아래 각 프로젝트와 어떤 층에서는 겹치고 어떤 층에�
 | [Goose](https://github.com/block/goose) | 프로바이더 무관, 다중 프로바이더, 다중 확장(MCP) — Yana의 provider plane과 가장 가까움 | 우선은 강력한 에이전트 런타임 — 실행 승인과 capability scoping이 Yana의 권한처럼 조직 원리는 아님 |
 | [AutoGen](https://github.com/microsoft/autogen) — **현재 maintenance mode**, [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)가 후속작 | 멀티 에이전트 오케스트레이션 패턴 | 여기서 delegation은 workflow/routing 문제이지 authority calculus가 아님 — 한 에이전트가 다른 에이전트에게 일을 넘기는 것은 "위임받은 권한의 부분집합만큼만 권한을 갖는다"는 주장과 다름 |
 
+위 네 프로젝트는 각각 한 층을 잘 다룹니다 — execution boundary, memory continuity, runtime cohesion, 오케스트레이션 패턴. **Yana는 continuity, orchestration, execution, governance를 하나의 시스템으로 결합하며, authority boundary를 그 척추로 삼습니다 — 다른 층들 옆에 나란히 놓인 또 하나의 층이 아니라, 다른 층들이 붙는 대상입니다.**
+
 ## 빠른 설치
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
