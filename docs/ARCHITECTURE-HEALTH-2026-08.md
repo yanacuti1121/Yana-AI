@@ -8,6 +8,13 @@
 > [`ADR-014`](adr/ADR-014-unified-runtime-authority-hierarchy.md) for the current
 > authority and interface boundaries. Remaining findings below should be read as
 > historical evidence unless a current code audit confirms them again.
+>
+> **Closure note (2026-08-28):** this report's 5 named priorities are tracked
+> live in [`CURRENT-MILESTONE.md`](../CURRENT-MILESTONE.md), not here. This
+> file itself gets marked CLOSED/SUPERSEDED once that file's exit gate is
+> fully checked — at which point
+> [`docs/MILESTONE-AUTHORITY-DEPTH.md`](MILESTONE-AUTHORITY-DEPTH.md) becomes
+> the current milestone. It is not there yet as of this note.
 
 **Nguồn:** anh Tâm, 2026-08-07 — báo cáo tự đánh giá sức khỏe kiến trúc
 toàn dự án, lưu nguyên văn theo yêu cầu. Chưa qua Phase/review nào,

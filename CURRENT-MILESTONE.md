@@ -46,13 +46,46 @@ If a new idea comes up mid-cycle:
 3. If it doesn't, name it explicitly, add it to `ARCHITECTURE-DEBT.md` or
    a backlog note, and defer. Don't silently start it.
 
+## Exit gate (decided 2026-08-28)
+
+This milestone does not end by starting a new roadmap alongside it, and
+is not overridden by a good new idea arriving mid-cycle — it ends when
+all 5 of the following are true, verified with evidence, not declared
+because the underlying modules now exist in the codebase:
+
+- [ ] **Golden E2E proven**: local model → tool selection → canonical
+  capability → execution/result → final model answer, working end to
+  end with a deterministic test, not just each piece existing in
+  isolation (closes priority #2 above).
+- [ ] **Mutation uniqueness**: no production client (Chat, Desktop, MCP)
+  has its own separate mutation executor — all go through the one
+  canonical pipeline (closes priority #3).
+- [ ] **Authority proof**: every production mutation path actually runs
+  through `RuntimeAuthority` with canonical approval semantics, verified
+  as wired, not just present as a type (extends priority #1).
+- [ ] **Source-of-truth check**: generated/runtime/provider/version
+  manifests have zero drift (closes priority #4).
+- [ ] `docs/ARCHITECTURE-HEALTH-2026-08.md` is marked CLOSED/SUPERSEDED
+  and this file points to the next milestone as current (priority #5 —
+  the milestone-discipline habit itself is permanent and carries
+  forward unchanged into whatever comes next).
+
+Once all 5 are checked, this milestone closes and
+**`docs/MILESTONE-AUTHORITY-DEPTH.md`** becomes the current milestone.
+That successor is scoped now — deepen the authority primitives that
+already exist (capability lease, delegation, intent contract, causal
+evidence) rather than add new subsystems — so it does not need to be
+re-derived from scratch when this one closes. It does not start early;
+starting it before this gate closes is exactly the failure pattern this
+file exists to prevent.
+
 ## Updating this file
 
 Update the Status/Evidence columns as work lands — this is a living
-document, not a snapshot. When all 5 rows are ✅, that's the signal this
-milestone is complete and a new one should be declared (per
-`docs/YANA-CONTROL-PLANES.md`'s Evolution Governor concept — NOW/NEXT/
-LATER capacity tracking, not yet built as running code).
+document, not a snapshot. Use the exit-gate checklist above, not "all 5
+priority rows say ✅," as the actual completion signal — a priority row
+can look done because the module exists while the corresponding E2E/
+uniqueness/proof gate item above is still unverified.
 
 ## Related
 
