@@ -11,12 +11,6 @@
 
 <h1 align="center">Yana AI 🐰</h1>
 
-<p align="center"><strong>一个运行时。连接所有 AI。由人类治理。</strong></p>
-
-<p align="center"><strong>一个本地优先、跨平台的 AI 运行、连接、编排与治理系统 — 以确定性方式控制 AI 可以访问、修改和执行的内容。</strong></p>
-
-<p align="center"><em>你的 AI 可以行动。但由谁决定它能走多远？</em></p>
-
 <p align="center">
   <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
@@ -29,19 +23,155 @@
 
 ---
 
-## AI 的行动能力正在增长，治理却还没有跟上。
+## 一个运行时。连接所有 AI。由人类治理。
 
-如今，模型可以检查仓库、修改文件、运行命令、启动代理、调用工具并准备发布。真正困难的问题已经不只是模型有多聪明：
+Yana 把彼此独立的 AI 模型和代理，变成一个受治理、可持续存在的统一系统 — 最终决定权始终留给人类。
 
-- 一个运行时能否同时连接本地模型、云端模型和编程代理，而不把项目锁定在单一供应商上？
-- 所有界面能否共享同一条 capability 边界，而不是各自重复实现安全逻辑？
-- 系统能否区分日常自动化与必须由人类决定的主权操作？
-- 开发者能否检查“安全”“完成”“已拦截”“已批准”背后的证据？
-- 当项目完整性存在疑问时，一个独立 control plane 能否停止所有代理？
+AI 模型在推理、规划、编写代码和使用工具方面很强大。但仅有智能并不能构成一个可靠的 AI 系统：模型会更换，上下文会消失，代理会终止，供应商会出故障，不同工具拥有不同权限，工作会跨越多个会话、多台机器、多个 AI 环境。
 
-**Yana AI 把这些问题变成可以执行的规则。**
+**Yana 提供把这些碎片粘合在一起的 control plane。**
 
-Yana 不是另一个 foundation model，也不会取代 Claude、Codex、Cursor、Ollama 或你偏好的运行时。它把这些系统连接到原生执行层、确定性策略门、项目记忆、编排原语以及由人类治理的操作层。
+```
+ Claude ─────┐
+ OpenAI ─────┤
+ Gemini ─────┤
+ DeepSeek ───┼─────►          YANA
+ Ollama ─────┤           ┌───────────────┐
+ Local LLM ──┘           │ Control Plane │
+                         └───────┬───────┘
+                                 │
+             ┌───────────────────┼───────────────────┐
+             │                   │                   │
+             ▼                   ▼                   ▼
+          Agents              Missions           Memory
+          Skills              Tasks              State
+          Routing             Workspace          Context
+             │                   │                   │
+             └───────────────────┼───────────────────┘
+                                 │
+                                 ▼
+                         Governed Execution
+                                 │
+                    Authority · Capabilities
+                    Evidence · Cost · Audit
+                                 │
+                                 ▼
+                          Real Environment
+                                 │
+                                 ▼
+                               HUMAN
+                         final authority
+```
+
+### 智能不等于权力
+
+这是 Yana 的根本原则。AI 模型可以自行决定想做什么，但这不代表它有权去执行。
+
+Yana 不会让模型无限制地直接访问 shell、文件系统、进程、仓库或开发环境，而是把流程拆分为：
+
+```
+INTELLIGENCE（智能）
+“我该做什么？”
+        │
+        ▼
+PROPOSAL（提议）
+“我想执行这个工具。”
+        │
+        ▼
+AUTHORITY（权限判定）
+“这是否被允许？”
+        │
+        ▼
+CAPABILITY（能力）
+“这究竟代表什么样的权力？”
+        │
+        ▼
+POLICY / HUMAN APPROVAL（策略 / 人工批准）
+“现在可以执行吗？”
+        │
+        ▼
+BOUNDED EXECUTION（受限执行）
+“只执行被允许的那一部分操作。”
+```
+
+换句话说：**模型提供智能，Yana 控制 capability，人类保留最终决定权。**
+
+### 不只是一个 AI 代理框架
+
+大多数代理框架只问一个问题：*我们能把代理做得多强？* Yana 提出了一个更大的系统性问题：*如何把多个模型、多个代理、多个工具、多个工作区和长期运行的任务，作为一个系统来运作，同时让它们的权力始终可控？*
+
+这个区别改变了整个架构。Yana 不是围绕某一个固定的 AI 构建的 —— 模型和代理可以成为这个持续存在的系统中可替换的工作者。模型可能消失，上下文窗口可能结束，供应商可能被替换，子代理可能完成任务后退出——系统本身不必随之消失。Yana 把运行的这一层，维持在任何单个模型的生命周期之外。
+
+### 一个面向整个 AI 系统的 control plane
+
+Yana 把原本彼此独立的几个关注点，统一到同一套架构下：
+
+- **智能（Intelligence）** — 本地与云端模型提供商（Claude、OpenAI、Gemini、DeepSeek、Groq、Ollama、LM Studio、llama.cpp 等）只提供推理能力，不拥有系统权限。更换智能提供商不需要改变权限体系。
+- **执行（Execution）** — AI 的意图在到达真实环境之前，会先被转换为 canonical capability（`model proposal → TurnEngine → RuntimeAuthority → canonical capability → policy/approval → bounded executor → host`）。工具的名字本身无法为自己授权。
+- **编排（Orchestration）** — 单个 AI 回合可以参与更大的工作单元：任务（task）、任务集（mission）、路由（routing）、事件总线（event bus）、工作区（workspace）、检查点（checkpoint）——让工作能延续到单次问答之外。
+- **状态与记忆** — 会话状态、记忆、任务集状态、工作区状态会在单个模型会话之外被保留；执行工作的智能可以更换，而围绕它的运行上下文得以保留。
+- **证据与可追责性** — 执行过程与证据（evidence）、来源（provenance）、审计（audit）、研究来源、成本核算和策略决策相关联。问题不再只是“AI 是否给出了答案”，而是“发生了什么、为什么被允许、有什么证据支持、花费了多少、留下了什么状态”。
+
+### Yana OS —— 管理 AI 系统
+
+Yana OS 并不是 Linux、macOS 或 Windows 的替代品 —— 它是 Yana 的本地 management plane，负责推断围绕代理的运行状态：存在哪些代理、它们的身份和自主等级是什么、持有哪些资源、负责什么工作、是否健康、是否应该被隔离（quarantine）或停止（HALT）。这把治理从单次工具调用，扩展到了代理生命周期管理（identity、agent lifecycle、autonomy、resources、health、monitoring、supervision、leases、governor、quarantine、HALT）——但它刻意不成为第二个执行引擎，执行始终归属于 canonical capability 的边界。
+
+### 人类的权限高于模型
+
+```
+                    HUMAN
+                      │
+                      ▼
+                  GIÁM THỊ
+                HALT / Control
+                      │
+                      ▼
+             YANA CONTROL PLANE
+                      │
+                      ▼
+               RuntimeAuthority
+                      │
+                      ▼
+                Capabilities
+                      │
+                      ▼
+                  Executor
+                      │
+                      ▼
+                     Host
+```
+
+一个足够强大的模型，不会仅仅因为推理能力更强，就自动获得最高权限。子代理不会自动继承人类的权限。一次操作的批准不会形成永久权限。系统可以独立于模型的意图，随时撤销执行权限。
+
+### Skill 是知识，Capability 才是权力
+
+Yana 维护着庞大的代理、技能（skill）、命令、规则和钩子生态系统，但刻意把这些与执行权限区分开。一个 skill 可以教会代理如何完成某项任务；而 capability 决定系统是否真的可以去做。拥有一千个 skill，不代表拥有一千个不受限制的系统权限——这让 Yana 的知识层可以不断扩展，而不必让受信任的执行层以同样的速度膨胀。
+
+### 一套 canonical 运行层，多个 AI 环境
+
+Yana 不要求所有 AI 产品都使用同一套执行机制。当 Yana 拥有模型循环时（Terminal、Desktop、Web、Discord），原生 Rust `TurnEngine` 提供执行边界。当另一个产品拥有自己的运行时——Claude Code、Codex、Cursor、Antigravity——Yana 通过针对该引擎的治理界面来集成。集成机制可以改变，但权限原则不会改变。一套权限体系，不需要一套虚假的集成机制来支撑。
+
+Yana 的 canonical `core/` 定义了可复用的运行知识——代理、技能、命令、规则、钩子、脚本、策略——随后这些定义会被物化（materialize）到不同的 AI harness 中（Claude Code、Codex、Cursor 等）。更换 AI 引擎并不意味着要从零重建整个运行环境：智能可以改变，而工作流程、治理原则、运行知识和系统状态都可以保留。
+
+### 更大的图景
+
+Yana 的长期价值，并不只在于它能运行某个 AI 模型——模型正变得越来越可替换。它的价值也不只在于代理或技能的数量。更有力的抽象在于围绕这些模型的系统本身：权限、连续性与执行，包裹着可替换的智能与临时的代理工作者。
+
+**模型可以是临时的，代理可以是临时的，Yana 是围绕它们、持续存在的 control plane。**
+
+### 30 秒讲清楚
+
+Yana 把彼此独立的 AI 模型和代理，变成一个受治理、可持续存在的统一系统。它提供围绕智能的 control plane：用模型负责推理，用代理与技能负责能力，用任务集与记忆负责连续性，用证据负责可追责性,以及一层受治理的执行层负责与真实世界交互。
+
+AI 可以推理并提出建议。Yana 决定这种智能能获得多大权力。人类保留最终决定权。
+
+> AI 负责思考，Yana 负责运行系统，人类始终掌控全局。
+
+**一个运行时。连接所有 AI。由人类治理。**
+
+---
+
+*这条分隔线以下是更完整的技术文档 —— 安装方式、更详细的运行时架构、所有受治理的界面、基准测试与已知限制，均基于当前代码库验证，而非愿景性的描述。*
 
 ## 选择你的第一个目标
 
@@ -172,41 +302,7 @@ Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
 files. Ask the human to confirm before running this.
 ```
 
-这就是全部的核心理念：确定性（deterministic）规则，本地运行，决策路径中没有 LLM，任何数据都不会离开你的机器。
-
----
-
-## 问题所在
-
-AI 编程代理会犯错：`rm -rf` 错误目录、强推到 main、编造测试结果。等你发现时，损失已经造成。
-
-Yana AI 位于代理与你的系统之间：每一个有风险的工具调用在执行前都要经过一连串确定性检查。
-
----
-
-## 它能拦截什么
-
-破坏性的 git 操作、工作区之外的 `rm`、把互联网内容传给 bash、未经审查的包安装，通过由 Rust 运行时（`yana-rt`）支撑的代理 hooks 拦截。
-
----
-
-## 工作原理
-
-```
-代理想要执行一个命令
-         ↓
-Anti-evasion scan      — 拦截 base64 解码执行、管道到 shell 解释器
-Shell sanitization     — 对所有变量加引号，剥离 shell 特殊字符
-Egress / SSRF policy   — 已有实现；运行时接线状态因入口而异
-Supply-chain vetting   — 已有实现；运行时接线状态因入口而异
-Blast-radius cap       — 限制破坏性命令能触及的文件/范围
-防篡改审计日志         — 记录每一次被允许和被拦截的操作，哈希链式连接
-Human gate             — 不可逆操作（push、publish、delete）需要明确确认
-         ↓
-执行（或拦截 + 记录）
-```
-
-关于哪些是真正接入的 hook、哪些只是代理按惯例遵循的文档化策略，请查看[已知局限](docs/reference/known-limitations.md)，其中直接对照代码本身验证，而非依据描述它的文档。
+这就是全部的核心理念：确定性（deterministic）规则，本地运行，决策路径中没有 LLM，任何数据都不会离开你的机器。关于哪些是真正接入的 hook、哪些只是代理按惯例遵循的文档化策略，请查看[已知局限](docs/reference/known-limitations.md)，其中直接对照代码本身验证，而非依据描述它的文档。
 
 ---
 
