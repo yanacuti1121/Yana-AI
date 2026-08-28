@@ -123,15 +123,19 @@ impl YanaAuthorityChain {
         if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall {
             if let Some(subject) = context.agent_id.as_deref().filter(|s| !s.is_empty()) {
                 let command_text = command_text_for_lease(call);
-                let matched = LeaseStore::for_root(&context.session.repo_root)
+                let matched_lease_id = LeaseStore::for_root(&context.session.repo_root)
                     .try_consume_matching(
                         subject,
                         descriptor.name,
                         &context.session.repo_root,
                         command_text.as_deref(),
                     )
-                    .unwrap_or(false);
-                if matched {
+                    .unwrap_or(None);
+                // `lease_id` is threaded through (not yet consumed further)
+                // for the upcoming AuthorityDecisionReceipt, so the receipt
+                // can record *which* lease is the evidence behind this
+                // Allow rather than only that a lease existed.
+                if let Some(_lease_id) = matched_lease_id {
                     return AuthorityDecision::Allow;
                 }
             }

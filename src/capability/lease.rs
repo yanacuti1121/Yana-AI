@@ -225,13 +225,19 @@ impl LeaseStore {
     /// against what is on disk right now, inside the lock, so a lease
     /// issued before a HALT or policy change does not survive it and a
     /// budget of 1 can never be consumed by two concurrent callers.
+    /// Returns `Ok(Some(lease_id))` on a matched, consumed lease —
+    /// `lease_id` lets the caller (authority.rs) record which specific
+    /// lease is the evidence behind an `Allow`, per the authority-decision
+    /// receipt's requirement to reconstruct *why* an invocation was
+    /// permitted, not just that it was. `Ok(None)` means no matching lease
+    /// (the caller falls through to the existing human-approval path).
     pub fn try_consume_matching(
         &self,
         subject: &str,
         capability: &str,
         repo_root: &Path,
         command_text: Option<&str>,
-    ) -> Result<bool> {
+    ) -> Result<Option<String>> {
         self.with_locked(|| {
             let mut leases = read_leases(&self.root)?;
             let now = Utc::now();
@@ -250,13 +256,14 @@ impl LeaseStore {
                         None => true,
                     }
             }) else {
-                return Ok(false);
+                return Ok(None);
             };
             if let Some(remaining) = lease.remaining.as_mut() {
                 *remaining -= 1;
             }
+            let id = lease.id.clone();
             write_leases(&self.root, &leases)?;
-            Ok(true)
+            Ok(Some(id))
         })
     }
 }
@@ -396,7 +403,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test --release"))
             .unwrap();
-        assert!(ok);
+        assert!(ok.is_some());
         assert_eq!(store.list().unwrap()[0].remaining, Some(1));
         fs::remove_dir_all(&root).ok();
     }
@@ -410,7 +417,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:someone-else", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -423,7 +430,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "repo.search", &root, None)
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -437,7 +444,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &other_root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
         fs::remove_dir_all(&other_root).ok();
     }
@@ -465,7 +472,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -476,10 +483,12 @@ mod tests {
         let granted = grant_test_lease(&store, Some(1));
         assert!(store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
-            .unwrap());
-        assert!(!store
+            .unwrap()
+            .is_some());
+        assert!(store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
-            .unwrap());
+            .unwrap()
+            .is_none());
         assert_eq!(store.list().unwrap()[0].id, granted.id);
         fs::remove_dir_all(&root).ok();
     }
@@ -494,7 +503,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -507,7 +516,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("rm -rf /"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -531,7 +540,7 @@ mod tests {
             )
             .unwrap();
         assert!(
-            !ok,
+            ok.is_none(),
             "'cargo test' must not match 'cargo testing-tool ...' just because it's a string prefix"
         );
         fs::remove_dir_all(&root).ok();
@@ -564,7 +573,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo publish --dry-run"))
             .unwrap();
-        assert!(!ok, "deny entry must win even though 'cargo' in allow also matches");
+        assert!(ok.is_none(), "deny entry must win even though 'cargo' in allow also matches");
         fs::remove_dir_all(&root).ok();
     }
 
@@ -617,7 +626,7 @@ mod tests {
         let successes = handles
             .into_iter()
             .map(|handle| handle.join().unwrap())
-            .filter(|allowed| *allowed)
+            .filter(|result| result.is_some())
             .count();
 
         assert_eq!(
