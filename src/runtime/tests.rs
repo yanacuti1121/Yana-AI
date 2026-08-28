@@ -405,9 +405,21 @@ fn cancellation_preserves_partial_output() {
 // invariant — the no-lease case above must still pass unmodified, and it
 // does (untouched by this change).
 
+/// Every lease mutation now runs inside a `flock-v1` critical section
+/// (hardening pass), which requires the real protocol marker to be
+/// present — matches the exact pattern every other flock-v1 caller's own
+/// tests already use (e.g. `os::health`'s tests), rather than relying on
+/// `YANA_LOCKING_PROTOCOL_MODE=test`.
+fn write_flock_marker(root: &std::path::Path) {
+    let marker = root.join(yana_rt::flock_v1::PROTOCOL_FILE);
+    std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+    std::fs::write(marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
+}
+
 #[test]
 fn subagent_with_a_valid_matching_lease_gets_mutation_authority() {
     let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
     let context = request(root.path()).context.for_subagent("worker-1");
     crate::capability::lease::LeaseStore::for_root(root.path())
         .grant(
@@ -431,6 +443,7 @@ fn subagent_with_a_valid_matching_lease_gets_mutation_authority() {
 #[test]
 fn subagent_with_an_expired_lease_is_still_denied() {
     let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
     let context = request(root.path()).context.for_subagent("worker-1");
     let now = chrono::Utc::now();
     let expired = crate::capability::lease::Lease {
@@ -467,6 +480,7 @@ fn subagent_with_an_expired_lease_is_still_denied() {
 #[test]
 fn subagent_with_a_lease_for_a_different_command_is_still_denied() {
     let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
     let context = request(root.path()).context.for_subagent("worker-1");
     crate::capability::lease::LeaseStore::for_root(root.path())
         .grant(
@@ -493,6 +507,7 @@ fn subagent_with_a_lease_for_a_different_command_is_still_denied() {
 #[test]
 fn halt_active_denies_a_leased_subagent_call_too() {
     let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
     std::fs::create_dir_all(root.path().join(".claude/state")).unwrap();
     std::fs::write(root.path().join(".claude/state/GIAMTHI_HALT.lock"), "halt").unwrap();
     let context = request(root.path()).context.for_subagent("worker-1");

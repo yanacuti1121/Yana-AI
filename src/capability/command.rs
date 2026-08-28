@@ -15,13 +15,25 @@ pub struct ValidatedCommand {
     pub guard_verdict: Option<&'static str>,
 }
 
-pub fn validate_command(command: &str) -> Result<ValidatedCommand, CapabilityError> {
+/// The canonical command tokenizer — the one place `shell_words::split` is
+/// called for a command about to be validated or matched against a lease
+/// scope. `validate_command` uses it for real execution;
+/// `capability::lease::command_matches` uses the exact same function so a
+/// lease's `allow`/`deny` entries are compared against the same token
+/// boundaries the command will actually be split on, not a second,
+/// independently-written parser that could disagree with this one.
+pub fn tokenize_command(command: &str) -> Result<Vec<String>, CapabilityError> {
     let argv = shell_words::split(command).map_err(|e| CapabilityError::CommandParseError {
         detail: e.to_string(),
     })?;
     if argv.is_empty() {
         return Err(CapabilityError::EmptyCommand);
     }
+    Ok(argv)
+}
+
+pub fn validate_command(command: &str) -> Result<ValidatedCommand, CapabilityError> {
+    let argv = tokenize_command(command)?;
     Ok(ValidatedCommand {
         argv,
         guard_verdict: crate::guard::check_command(command),
