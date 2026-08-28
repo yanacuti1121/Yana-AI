@@ -221,3 +221,7 @@ pub fn dispatch(
 pub(crate) fn dispatch_headless(provider: String, model: Option<String>) -> anyhow::Result<()> {
     headless::dispatch(provider, model)
 }
+
+pub(crate) fn dispatch_headless_resume(provider: String) -> anyhow::Result<()> {
+    headless::dispatch_resume(provider)
+}

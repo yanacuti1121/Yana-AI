@@ -387,6 +387,13 @@ enum Commands {
         /// Machine-readable stdin/NDJSON adapter used by the Desktop GUI.
         #[arg(long, hide = true)]
         headless: bool,
+        /// Completes a paused turn from a prior `--headless` call that
+        /// returned `{"type":"awaiting_approval",...}` (Authority
+        /// Hardening item #5). Reads `{"approval_id","decision",
+        /// "decided_by",["api_key"]}` from stdin. Mutually exclusive with
+        /// every other flag except `--provider`.
+        #[arg(long, hide = true)]
+        resume_approval: bool,
     },
     /// Program J Phase 9 spike — MCP Server exposing `check_command` over
     /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
@@ -759,6 +766,16 @@ enum AuthorityAction {
         #[arg(long)]
         json: bool,
     },
+    /// List durable pending approvals (Authority Hardening item #5) — a
+    /// remote-client turn paused awaiting a human decision, and every
+    /// decision already recorded against it.
+    PendingApprovals {
+        /// Show only this one approval id
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 // ── main ─────────────────────────────────────────────────────────────────────
@@ -986,8 +1003,24 @@ fn main() {
             verbose,
             no_sandbox,
             headless,
+            resume_approval,
         } => {
-            if headless {
+            if resume_approval {
+                let provider = provider.unwrap_or_else(|| "ollama".to_string());
+                if model.is_some() || system.is_some() || resume.is_some() || verbose || no_sandbox || headless {
+                    eprintln!(
+                        "[chat/headless] --resume-approval accepts only --provider and stdin JSON"
+                    );
+                    std::process::exit(2);
+                }
+                if let Err(error) = chat::dispatch_headless_resume(provider) {
+                    println!(
+                        "{}",
+                        serde_json::json!({ "type": "error", "message": error.to_string() })
+                    );
+                    std::process::exit(2);
+                }
+            } else if headless {
                 let provider = provider.unwrap_or_else(|| "ollama".to_string());
                 if system.is_some() || resume.is_some() || verbose || no_sandbox {
                     eprintln!(
@@ -1141,6 +1174,12 @@ fn main() {
             }
             AuthorityAction::Executions { last, json } => {
                 if let Err(error) = runtime::cmd_authority_executions(last, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            AuthorityAction::PendingApprovals { id, json } => {
+                if let Err(error) = runtime::cmd_pending_approvals(id, json) {
                     eprintln!("[authority] {error:#}");
                     std::process::exit(2);
                 }

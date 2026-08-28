@@ -16,7 +16,7 @@
 
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SessionContext {
     pub session_id: String,
     pub repo_root: PathBuf,
