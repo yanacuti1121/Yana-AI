@@ -130,6 +130,14 @@ enum Commands {
         #[command(subcommand)]
         action: LeaseAction,
     },
+    /// Authority decision receipts — evidence for why each capability
+    /// invocation was allowed, denied, or required approval (Authority
+    /// Hardening, item #3). Read-only; a lease is evidence supplied to
+    /// authority, and a receipt is evidence *about* an authority decision.
+    Authority {
+        #[command(subcommand)]
+        action: AuthorityAction,
+    },
     /// Audit activity dashboard — read-only summary over audit-chain.log
     /// (tool-call volume, allow/deny/warn rate, busiest tools/hooks). No
     /// new data collection, no new hook — summarizes what audit-log.sh
@@ -722,6 +730,21 @@ enum LeaseAction {
     },
 }
 
+#[derive(Subcommand)]
+enum AuthorityAction {
+    /// List authority decision receipts recorded for this project, oldest
+    /// first. Each receipt traces one capability decision: allow, deny,
+    /// or human-approval-required, with the reason and (if a lease was
+    /// the evidence) which lease.
+    Receipts {
+        /// Show only the last N receipts (default: all)
+        #[arg(long)]
+        last: Option<usize>,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
 // ── main ─────────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1087,6 +1110,14 @@ fn main() {
             LeaseAction::Revoke { id, json } => {
                 if let Err(error) = capability::lease::cmd_lease_revoke(id, json) {
                     eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+        },
+        Commands::Authority { action } => match action {
+            AuthorityAction::Receipts { last, json } => {
+                if let Err(error) = runtime::cmd_authority_receipts(last, json) {
+                    eprintln!("[authority] {error:#}");
                     std::process::exit(2);
                 }
             }

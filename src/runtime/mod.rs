@@ -9,6 +9,7 @@ mod controller;
 mod events;
 mod origin;
 mod outcome;
+mod receipt;
 mod request;
 
 pub(crate) use authority::{
@@ -20,6 +21,8 @@ pub(crate) use controller::{
 pub(crate) use events::RuntimeEvent;
 pub(crate) use origin::{TurnContext, TurnOrigin};
 pub(crate) use outcome::TurnOutcome;
+pub(crate) use receipt::cmd_authority_receipts;
+pub(crate) use receipt::record as record_authority_decision;
 pub(crate) use request::TurnRequest;
 
 #[cfg(test)]
