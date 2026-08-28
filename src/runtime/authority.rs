@@ -88,24 +88,29 @@ impl YanaAuthorityChain {
         human_approved: bool,
     ) -> AuthorityDecision {
         if let decision @ AuthorityDecision::Deny { .. } = self.preflight_turn(context) {
+            super::receipt::record(context, &call.name, &decision, None);
             return decision;
         }
 
         let registry = manifest();
         let Some(descriptor) = registry.get_by_tool_name(&call.name) else {
-            return AuthorityDecision::Deny {
+            let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!("tool '{}' has no canonical Yana capability", call.name),
             };
+            super::receipt::record(context, &call.name, &decision, None);
+            return decision;
         };
         if !(descriptor.availability)(&context.session) {
-            return AuthorityDecision::Deny {
+            let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!(
                     "capability '{}' is unavailable in this session",
                     descriptor.name
                 ),
             };
+            super::receipt::record(context, descriptor.name, &decision, None);
+            return decision;
         }
 
         // Capability Lease (Milestone "Authority Depth", P0): a lease is
@@ -123,16 +128,18 @@ impl YanaAuthorityChain {
         if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall {
             if let Some(subject) = context.agent_id.as_deref().filter(|s| !s.is_empty()) {
                 let command_text = command_text_for_lease(call);
-                let matched = LeaseStore::for_root(&context.session.repo_root)
+                let matched_lease_id = LeaseStore::for_root(&context.session.repo_root)
                     .try_consume_matching(
                         subject,
                         descriptor.name,
                         &context.session.repo_root,
                         command_text.as_deref(),
                     )
-                    .unwrap_or(false);
-                if matched {
-                    return AuthorityDecision::Allow;
+                    .unwrap_or(None);
+                if let Some(lease_id) = matched_lease_id {
+                    let decision = AuthorityDecision::Allow;
+                    super::receipt::record(context, descriptor.name, &decision, Some(lease_id));
+                    return decision;
                 }
             }
         }
@@ -140,16 +147,18 @@ impl YanaAuthorityChain {
         if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall
             && !context.human_initiated
         {
-            return AuthorityDecision::Deny {
+            let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!(
                     "non-human-initiated {:?} turn cannot execute capability '{}'",
                     context.origin, descriptor.name
                 ),
             };
+            super::receipt::record(context, descriptor.name, &decision, None);
+            return decision;
         }
 
-        match descriptor.approval {
+        let decision = match descriptor.approval {
             ApprovalRequirement::None => AuthorityDecision::Allow,
             ApprovalRequirement::HumanApprovalPerCall if human_approved => AuthorityDecision::Allow,
             ApprovalRequirement::HumanApprovalPerCall => AuthorityDecision::HumanApprovalRequired {
@@ -159,6 +168,8 @@ impl YanaAuthorityChain {
                     descriptor.name
                 ),
             },
-        }
+        };
+        super::receipt::record(context, descriptor.name, &decision, None);
+        decision
     }
 }

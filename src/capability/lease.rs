@@ -10,13 +10,39 @@
 //! does not survive it, because the caller (`capability_decision`) always
 //! runs its own HALT/registry/availability checks first, unconditionally,
 //! regardless of what this module returns.
+//!
+//! Atomicity (hardening pass, post-P0): every mutating operation
+//! (`grant`/`revoke`/`try_consume_matching`) runs its entire
+//! read-modify-write cycle inside one `flock-v1` critical section via
+//! [`LeaseStore::with_locked`] — re-reading fresh state *inside* the lock,
+//! never reusing a pre-lock snapshot, which is what actually closes the
+//! lost-update race (atomic rename alone does not: two concurrent
+//! `try_consume_matching` calls against `remaining: Some(1)` can each read
+//! 1, each decide to allow, each decrement their own copy to 0, and each
+//! write — one write clobbers the other, but *both* callers already
+//! returned `Ok(true)`, over-spending the budget, with no lock in the
+//! critical section). Matches `mission::with_mission_locked`'s exact
+//! pattern for the same class of bug on the same kind of JSON-file store.
 
 use anyhow::{bail, Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use uuid::Uuid;
+
+/// Configurable the same way `YANA_MISSION_LOCK_TIMEOUT_SECS` is (see
+/// `mission::with_mission_locked`): a heavily-loaded CI runner with many
+/// concurrent test processes needs more wait budget than the production
+/// default without changing that default.
+fn lease_lock_timeout() -> Duration {
+    let secs = std::env::var("YANA_LEASE_LOCK_TIMEOUT_SECS")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(10);
+    Duration::from_secs(secs)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Lease {
@@ -75,12 +101,32 @@ fn write_leases(root: &Path, leases: &[Lease]) -> Result<()> {
         .with_context(|| format!("cannot replace lease store {}", path.display()))
 }
 
-/// Prefix match on the trimmed command text, matching the milestone doc's
-/// own example (`cargo test | cargo fmt | cargo clippy` as prefixes, not a
-/// full command grammar): `"cargo test"` in `allow` matches `cargo test
-/// --release`, not only the exact string.
+/// Token-aware prefix match, matching the milestone doc's own example
+/// (`cargo test | cargo fmt | cargo clippy` as prefixes, not a full command
+/// grammar): `"cargo test"` in `allow` matches `cargo test --release`.
+///
+/// Hardening pass: this used to be a raw string prefix
+/// (`command_text.starts_with(entry)`), which let `allow: ["cargo test"]`
+/// wrongly match `cargo testing-tool --wipe-everything` — same string
+/// prefix, a completely different command. Tokenizes both sides with
+/// `capability::command::tokenize_command`, the exact same `shell_words`
+/// parser real command execution validates against (not a second,
+/// independently-written parser that could disagree with it), and requires
+/// `entry`'s tokens to be a whole-token prefix of `command_text`'s tokens.
+/// Fails closed (no match) if either side fails to tokenize — an
+/// unparseable lease scope entry or an unparseable proposed command is
+/// never treated as a match.
 fn command_matches(entry: &str, command_text: &str) -> bool {
-    command_text.trim().starts_with(entry.trim())
+    let (Ok(entry_tokens), Ok(command_tokens)) = (
+        super::command::tokenize_command(entry),
+        super::command::tokenize_command(command_text),
+    ) else {
+        return false;
+    };
+    if entry_tokens.is_empty() || command_tokens.len() < entry_tokens.len() {
+        return false;
+    }
+    command_tokens[..entry_tokens.len()] == entry_tokens[..]
 }
 
 pub struct LeaseStore {
@@ -90,6 +136,25 @@ pub struct LeaseStore {
 impl LeaseStore {
     pub fn for_root(root: &Path) -> Self {
         Self { root: root.to_path_buf() }
+    }
+
+    /// Runs `action` as one `flock-v1` critical section scoped to this
+    /// store's `repo_root` — every caller of this function must do its
+    /// *entire* read-modify-write cycle (read, decide, mutate, write)
+    /// inside the closure, not before calling it. A read taken before the
+    /// lock is exactly the stale snapshot that reopens the race this
+    /// exists to close.
+    fn with_locked<T>(&self, action: impl FnOnce() -> Result<T>) -> Result<T> {
+        let locked = yana_rt::flock_v1::with_lock(
+            "key:lease-store",
+            &self.root,
+            lease_lock_timeout(),
+            action,
+        );
+        match locked {
+            Ok(inner) => inner,
+            Err(lock_error) => Err(lock_error.context("could not acquire lease store lock")),
+        }
     }
 
     pub fn grant(
@@ -108,37 +173,46 @@ impl LeaseStore {
         if capability.trim().is_empty() {
             bail!("lease capability must not be empty");
         }
-        let now = Utc::now();
-        let lease = Lease {
-            id: Uuid::new_v4().simple().to_string()[..8].to_string(),
-            subject,
-            capability,
-            repo_root: self.root.clone(),
-            allow,
-            deny,
-            issued_by,
-            issued_at: now,
-            expires_at: now + chrono::Duration::minutes(expires_in_minutes as i64),
-            invocation_budget,
-            remaining: invocation_budget,
-            revoked: false,
-        };
-        let mut leases = read_leases(&self.root)?;
-        leases.push(lease.clone());
-        write_leases(&self.root, &leases)?;
-        Ok(lease)
+        self.with_locked(|| {
+            let now = Utc::now();
+            let lease = Lease {
+                id: Uuid::new_v4().simple().to_string()[..8].to_string(),
+                subject,
+                capability,
+                repo_root: self.root.clone(),
+                allow,
+                deny,
+                issued_by,
+                issued_at: now,
+                expires_at: now + chrono::Duration::minutes(expires_in_minutes as i64),
+                invocation_budget,
+                remaining: invocation_budget,
+                revoked: false,
+            };
+            let mut leases = read_leases(&self.root)?;
+            leases.push(lease.clone());
+            write_leases(&self.root, &leases)?;
+            Ok(lease)
+        })
     }
 
     pub fn revoke(&self, id: &str) -> Result<()> {
-        let mut leases = read_leases(&self.root)?;
-        let Some(lease) = leases.iter_mut().find(|lease| lease.id == id) else {
-            bail!("no lease with id '{id}'");
-        };
-        lease.revoked = true;
-        write_leases(&self.root, &leases)
+        let id = id.to_string();
+        self.with_locked(|| {
+            let mut leases = read_leases(&self.root)?;
+            let Some(lease) = leases.iter_mut().find(|lease| lease.id == id) else {
+                bail!("no lease with id '{id}'");
+            };
+            lease.revoked = true;
+            write_leases(&self.root, &leases)
+        })
     }
 
     pub fn list(&self) -> Result<Vec<Lease>> {
+        // Read-only: no lock needed. `write_leases` always replaces the
+        // file via a same-directory temp-file + rename, so a concurrent
+        // reader only ever observes a complete old or complete new file,
+        // never a torn write.
         read_leases(&self.root)
     }
 
@@ -148,38 +222,49 @@ impl LeaseStore {
     /// matching lease — the caller falls through to the existing
     /// human-approval path unchanged). Never trusts a caller-held `Lease`
     /// value — always re-reads and re-validates expiry/revocation/budget
-    /// against what is on disk right now.
+    /// against what is on disk right now, inside the lock, so a lease
+    /// issued before a HALT or policy change does not survive it and a
+    /// budget of 1 can never be consumed by two concurrent callers.
+    /// Returns `Ok(Some(lease_id))` on a matched, consumed lease —
+    /// `lease_id` lets the caller (authority.rs) record which specific
+    /// lease is the evidence behind an `Allow`, per the authority-decision
+    /// receipt's requirement to reconstruct *why* an invocation was
+    /// permitted, not just that it was. `Ok(None)` means no matching lease
+    /// (the caller falls through to the existing human-approval path).
     pub fn try_consume_matching(
         &self,
         subject: &str,
         capability: &str,
         repo_root: &Path,
         command_text: Option<&str>,
-    ) -> Result<bool> {
-        let mut leases = read_leases(&self.root)?;
-        let now = Utc::now();
-        let Some(lease) = leases.iter_mut().find(|lease| {
-            !lease.revoked
-                && lease.subject == subject
-                && lease.capability == capability
-                && lease.repo_root == repo_root
-                && lease.expires_at > now
-                && lease.remaining.is_none_or(|remaining| remaining > 0)
-                && match command_text {
-                    Some(text) => {
-                        !lease.deny.iter().any(|entry| command_matches(entry, text))
-                            && lease.allow.iter().any(|entry| command_matches(entry, text))
+    ) -> Result<Option<String>> {
+        self.with_locked(|| {
+            let mut leases = read_leases(&self.root)?;
+            let now = Utc::now();
+            let Some(lease) = leases.iter_mut().find(|lease| {
+                !lease.revoked
+                    && lease.subject == subject
+                    && lease.capability == capability
+                    && lease.repo_root == repo_root
+                    && lease.expires_at > now
+                    && lease.remaining.is_none_or(|remaining| remaining > 0)
+                    && match command_text {
+                        Some(text) => {
+                            !lease.deny.iter().any(|entry| command_matches(entry, text))
+                                && lease.allow.iter().any(|entry| command_matches(entry, text))
+                        }
+                        None => true,
                     }
-                    None => true,
-                }
-        }) else {
-            return Ok(false);
-        };
-        if let Some(remaining) = lease.remaining.as_mut() {
-            *remaining -= 1;
-        }
-        write_leases(&self.root, &leases)?;
-        Ok(true)
+            }) else {
+                return Ok(None);
+            };
+            if let Some(remaining) = lease.remaining.as_mut() {
+                *remaining -= 1;
+            }
+            let id = lease.id.clone();
+            write_leases(&self.root, &leases)?;
+            Ok(Some(id))
+        })
     }
 }
 
@@ -270,9 +355,16 @@ pub fn cmd_lease_revoke(id: String, json: bool) -> Result<()> {
 mod tests {
     use super::*;
 
+    /// Matches `os::health`'s (and every other flock-v1 caller's) own test
+    /// pattern exactly: write the real protocol marker rather than relying
+    /// on `YANA_LOCKING_PROTOCOL_MODE=test`, so these tests exercise the
+    /// same `protocol_is_active` path production does.
     fn temp_root() -> PathBuf {
         let dir = std::env::temp_dir().join(format!("yana-lease-test-{}", Uuid::new_v4()));
         fs::create_dir_all(&dir).unwrap();
+        let marker = dir.join(yana_rt::flock_v1::PROTOCOL_FILE);
+        fs::create_dir_all(marker.parent().unwrap()).unwrap();
+        fs::write(&marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
         dir
     }
 
@@ -311,7 +403,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test --release"))
             .unwrap();
-        assert!(ok);
+        assert!(ok.is_some());
         assert_eq!(store.list().unwrap()[0].remaining, Some(1));
         fs::remove_dir_all(&root).ok();
     }
@@ -325,7 +417,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:someone-else", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -338,7 +430,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "repo.search", &root, None)
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -352,7 +444,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &other_root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
         fs::remove_dir_all(&other_root).ok();
     }
@@ -380,7 +472,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -391,10 +483,12 @@ mod tests {
         let granted = grant_test_lease(&store, Some(1));
         assert!(store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
-            .unwrap());
-        assert!(!store
+            .unwrap()
+            .is_some());
+        assert!(store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
-            .unwrap());
+            .unwrap()
+            .is_none());
         assert_eq!(store.list().unwrap()[0].id, granted.id);
         fs::remove_dir_all(&root).ok();
     }
@@ -409,7 +503,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -422,8 +516,42 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("rm -rf /"))
             .unwrap();
-        assert!(!ok);
+        assert!(ok.is_none());
         fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn allow_entry_does_not_match_a_command_that_only_shares_a_string_prefix() {
+        // Regression test for the exact false-positive the raw-string
+        // `starts_with` implementation had: "cargo test" as a string
+        // prefix also matches "cargo testing-tool ...", a completely
+        // different, unrelated command. Token-aware matching must reject
+        // this even though the character-level prefix is identical.
+        let root = temp_root();
+        let store = LeaseStore::for_root(&root);
+        grant_test_lease(&store, None);
+
+        let ok = store
+            .try_consume_matching(
+                "agent:test-fixer",
+                "command.execute",
+                &root,
+                Some("cargo testing-tool --wipe-everything"),
+            )
+            .unwrap();
+        assert!(
+            ok.is_none(),
+            "'cargo test' must not match 'cargo testing-tool ...' just because it's a string prefix"
+        );
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn command_matches_is_fail_closed_on_unparseable_input() {
+        // An unmatched quote makes shell_words::split fail — the match
+        // must be `false`, not a panic or a silent `true`.
+        assert!(!command_matches("cargo test", "cargo test \"unterminated"));
+        assert!(!command_matches("cargo \"unterminated", "cargo test"));
     }
 
     #[test]
@@ -445,7 +573,7 @@ mod tests {
         let ok = store
             .try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo publish --dry-run"))
             .unwrap();
-        assert!(!ok, "deny entry must win even though 'cargo' in allow also matches");
+        assert!(ok.is_none(), "deny entry must win even though 'cargo' in allow also matches");
         fs::remove_dir_all(&root).ok();
     }
 
@@ -458,5 +586,175 @@ mod tests {
         let result = LeaseStore::for_root(&root).list();
         assert!(result.is_err());
         fs::remove_dir_all(&root).ok();
+    }
+
+    // Authority Hardening item #8: a symlinked lease store is exactly the
+    // attack cost.rs's own `strict_reader_rejects_symlink` test already
+    // covers for the cost ledger -- an attacker (or a misconfigured
+    // deployment) replacing .yana-ai/leases.json with a symlink pointing
+    // outside the project could otherwise make a read follow it to an
+    // arbitrary file. read_leases already guards this (symlink_metadata +
+    // is_symlink() check, mirroring cost.rs's read_cost_policy exactly);
+    // this test proves the guard is real, not just present in the code.
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_lease_store_is_rejected_not_followed() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_root();
+        let path = leases_path(&root);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let target = root.join("outside-lease-store");
+        fs::write(&target, "[]").unwrap();
+        symlink(&target, &path).unwrap();
+
+        let error = LeaseStore::for_root(&root).list().unwrap_err().to_string();
+        assert!(
+            error.contains("must be a regular file") || error.to_lowercase().contains("symlink"),
+            "expected a symlink-rejection error, got: {error}"
+        );
+        fs::remove_dir_all(&root).ok();
+    }
+
+    // ── Real concurrency (hardening pass) ────────────────────────────────
+    //
+    // Each test below spawns genuine `std::thread` threads, each doing its
+    // own independent `LeaseStore::for_root(root)` and its own independent
+    // `open()` of the lock file inside `flock_v1::acquire` — a fresh
+    // open-file-description per thread, so `flock()` actually serializes
+    // them the same way it would separate OS processes. This is not two
+    // sequential calls relabeled as a concurrency test.
+
+    #[test]
+    fn budget_of_one_survives_true_concurrent_consumers() {
+        let root = temp_root();
+        let store = LeaseStore::for_root(&root);
+        grant_test_lease(&store, Some(1));
+
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(8));
+        let root = std::sync::Arc::new(root);
+        let handles: Vec<_> = (0..8)
+            .map(|_| {
+                let barrier = std::sync::Arc::clone(&barrier);
+                let root = std::sync::Arc::clone(&root);
+                std::thread::spawn(move || {
+                    barrier.wait(); // maximize actual overlap at the flock() call
+                    LeaseStore::for_root(&root)
+                        .try_consume_matching(
+                            "agent:test-fixer",
+                            "command.execute",
+                            &root,
+                            Some("cargo test"),
+                        )
+                        .unwrap()
+                })
+            })
+            .collect();
+
+        let successes = handles
+            .into_iter()
+            .map(|handle| handle.join().unwrap())
+            .filter(|result| result.is_some())
+            .count();
+
+        assert_eq!(
+            successes, 1,
+            "budget=1 must allow exactly one of 8 truly concurrent consumers"
+        );
+        let final_leases = LeaseStore::for_root(&root).list().unwrap();
+        assert_eq!(final_leases.len(), 1, "lease store must not be corrupted");
+        assert_eq!(
+            final_leases[0].remaining,
+            Some(0),
+            "remaining must land on exactly 0, not go negative or stay at 1"
+        );
+        fs::remove_dir_all(root.as_path()).ok();
+    }
+
+    #[test]
+    fn concurrent_grants_lose_none_of_them() {
+        let root = std::sync::Arc::new(temp_root());
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(6));
+        let handles: Vec<_> = (0..6)
+            .map(|index| {
+                let barrier = std::sync::Arc::clone(&barrier);
+                let root = std::sync::Arc::clone(&root);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    LeaseStore::for_root(&root)
+                        .grant(
+                            format!("agent:worker-{index}"),
+                            "command.execute".into(),
+                            vec!["cargo test".into()],
+                            vec![],
+                            "human".into(),
+                            20,
+                            Some(1),
+                        )
+                        .unwrap()
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        let leases = LeaseStore::for_root(&root).list().unwrap();
+        assert_eq!(
+            leases.len(),
+            6,
+            "a read-modify-write race on grant must not silently drop concurrent grants"
+        );
+        let mut subjects: Vec<_> = leases.iter().map(|lease| lease.subject.clone()).collect();
+        subjects.sort();
+        subjects.dedup();
+        assert_eq!(subjects.len(), 6, "every subject must be distinct, none overwritten");
+        fs::remove_dir_all(root.as_path()).ok();
+    }
+
+    #[test]
+    fn revoke_racing_consume_never_lets_a_consume_win_after_its_revoke_is_durable() {
+        // Not a race on the *outcome* being deterministic (either order is a
+        // legitimate lock-serialized outcome) — the invariant under test is
+        // that the store never corrupts and the two operations never
+        // interleave (e.g. a revoke and a consume both reading the same
+        // pre-image and each writing their own partial update, silently
+        // dropping the other's effect).
+        let root = std::sync::Arc::new(temp_root());
+        let store = LeaseStore::for_root(&root);
+        let granted = grant_test_lease(&store, Some(5));
+
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+        let revoke_root = std::sync::Arc::clone(&root);
+        let revoke_barrier = std::sync::Arc::clone(&barrier);
+        let lease_id = granted.id.clone();
+        let revoke_handle = std::thread::spawn(move || {
+            revoke_barrier.wait();
+            LeaseStore::for_root(&revoke_root).revoke(&lease_id)
+        });
+
+        let consume_root = std::sync::Arc::clone(&root);
+        let consume_barrier = std::sync::Arc::clone(&barrier);
+        let consume_handle = std::thread::spawn(move || {
+            consume_barrier.wait();
+            LeaseStore::for_root(&consume_root).try_consume_matching(
+                "agent:test-fixer",
+                "command.execute",
+                &consume_root,
+                Some("cargo test"),
+            )
+        });
+
+        revoke_handle.join().unwrap().unwrap();
+        consume_handle.join().unwrap().unwrap();
+
+        let leases = LeaseStore::for_root(&root).list().unwrap();
+        assert_eq!(leases.len(), 1, "lease store must not be corrupted");
+        assert!(leases[0].revoked, "the revoke must always be durable");
+        // If the consume observed the lease before the revoke committed, it
+        // may have decremented `remaining` — that's a legitimate
+        // lock-serialized ordering, not a bug. What must never happen is
+        // the revoke being silently lost.
+        fs::remove_dir_all(root.as_path()).ok();
     }
 }
