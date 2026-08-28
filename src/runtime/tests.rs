@@ -202,6 +202,49 @@ fn read_only_capability_executes_under_yana_control_plane() {
     ));
 }
 
+/// Authority Hardening item #4: a real, end-to-end `TurnEngine::run()`
+/// invocation must produce both an `AuthorityDecisionReceipt` (item #3)
+/// and an `ExecutionReceipt` (item #4) for the one tool call it makes,
+/// and the two must correlate — the whole point of threading
+/// `decision_id` through `AuthorityDecision::Allow` in the first place.
+#[test]
+fn execution_receipt_is_recorded_and_correlates_with_the_authority_decision() {
+    let root = tempfile::tempdir().unwrap();
+    let turn = engine(
+        [
+            MockResponse::Tool(call("read_file")),
+            MockResponse::Text(vec!["done"]),
+        ],
+        Arc::new(AtomicUsize::new(0)),
+        Arc::new(AtomicUsize::new(0)),
+    );
+
+    turn.run(
+        request(root.path()),
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+
+    let authority_receipts = crate::runtime::receipt::read_receipts(root.path());
+    let execution_receipts = crate::runtime::receipt::read_execution_receipts(root.path());
+    assert_eq!(authority_receipts.len(), 1, "one capability decision was made");
+    assert_eq!(execution_receipts.len(), 1, "one capability was actually invoked");
+
+    let authority_decision_id = &authority_receipts[0].decision_id;
+    let execution = &execution_receipts[0];
+    assert_eq!(
+        execution.authority_decision_id.as_ref(),
+        Some(authority_decision_id),
+        "ExecutionReceipt must reference the exact AuthorityDecisionReceipt that permitted it"
+    );
+    assert_eq!(execution.turn_id, authority_receipts[0].turn_id);
+    assert_eq!(execution.capability_id, "read_file");
+    assert_eq!(execution.outcome, crate::runtime::receipt::ExecutionOutcome::Success);
+    assert!(execution.output_hash.is_some(), "RecordingExecutor returns non-empty output");
+    assert!(execution.completed_at >= execution.started_at);
+}
+
 /// Delegates every decision to the real chain, but cancels the shared
 /// token first — simulates a user cancelling in the instant between a
 /// tool call being proposed and the authority decision coming back, the
@@ -430,13 +473,14 @@ fn subagent_with_a_valid_matching_lease_gets_mutation_authority() {
             "human".into(),
             20,
             Some(5),
+            None,
         )
         .unwrap();
     let command = call_with_command("run_command", "cargo test --release");
 
     assert!(matches!(
         YanaAuthorityChain.authorize_approved_tool(&context, &command),
-        AuthorityDecision::Allow
+        AuthorityDecision::Allow { .. }
     ));
 }
 
@@ -459,6 +503,7 @@ fn subagent_with_an_expired_lease_is_still_denied() {
         invocation_budget: None,
         remaining: None,
         revoked: false,
+        parent_lease_id: None,
     };
     std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
     std::fs::write(
@@ -491,6 +536,7 @@ fn subagent_with_a_lease_for_a_different_command_is_still_denied() {
             "human".into(),
             20,
             None,
+            None,
         )
         .unwrap();
     let command = call_with_command("run_command", "git push --force origin main");
@@ -519,6 +565,7 @@ fn halt_active_denies_a_leased_subagent_call_too() {
             vec![],
             "human".into(),
             20,
+            None,
             None,
         )
         .unwrap();
