@@ -712,6 +712,12 @@ enum LeaseAction {
         expires_in_minutes: u64,
         #[arg(long)]
         invocation_budget: Option<u32>,
+        /// Delegate from an existing lease (Authority Hardening item #6):
+        /// this new lease can never exceed what the named parent lease
+        /// itself still permits — enforced at every consume, not just
+        /// checked here.
+        #[arg(long)]
+        parent_lease_id: Option<String>,
         #[arg(long)]
         json: bool,
     },
@@ -737,6 +743,16 @@ enum AuthorityAction {
     /// or human-approval-required, with the reason and (if a lease was
     /// the evidence) which lease.
     Receipts {
+        /// Show only the last N receipts (default: all)
+        #[arg(long)]
+        last: Option<usize>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List execution receipts (Authority Hardening item #4) recorded for
+    /// this project, oldest first. Each traces one capability invocation
+    /// back to the authority decision that permitted it.
+    Executions {
         /// Show only the last N receipts (default: all)
         #[arg(long)]
         last: Option<usize>,
@@ -1086,6 +1102,7 @@ fn main() {
                 deny,
                 expires_in_minutes,
                 invocation_budget,
+                parent_lease_id,
                 json,
             } => {
                 if let Err(error) = capability::lease::cmd_lease_grant(
@@ -1095,6 +1112,7 @@ fn main() {
                     deny,
                     expires_in_minutes,
                     invocation_budget,
+                    parent_lease_id,
                     json,
                 ) {
                     eprintln!("[lease] {error:#}");
@@ -1117,6 +1135,12 @@ fn main() {
         Commands::Authority { action } => match action {
             AuthorityAction::Receipts { last, json } => {
                 if let Err(error) = runtime::cmd_authority_receipts(last, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            AuthorityAction::Executions { last, json } => {
+                if let Err(error) = runtime::cmd_authority_executions(last, json) {
                     eprintln!("[authority] {error:#}");
                     std::process::exit(2);
                 }

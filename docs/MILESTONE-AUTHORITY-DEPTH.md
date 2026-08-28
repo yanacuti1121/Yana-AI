@@ -1,9 +1,29 @@
 # Milestone: Authority Depth
 
-**Status:** Not yet active — blocked on `CURRENT-MILESTONE.md`'s exit gate.
-Do not start this work until that gate is fully checked. Starting it
-early is exactly the failure pattern the current milestone's scope
-discipline exists to prevent.
+**Status:** Work started ahead of `CURRENT-MILESTONE.md`'s exit gate —
+an explicit, conscious deviation, not an accident. The project owner
+directed starting Capability Lease early ("bắt đầu luôn Capability
+Lease"); the "Authority Hardening" workstream below is a direct,
+requested continuation of that same started work, auditing and
+deepening it rather than opening new scope. `CURRENT-MILESTONE.md`'s
+gate is still the formal transition point; this file's `Priority order`
+table tracks real progress against it regardless of which file is
+"current."
+
+**Authority Hardening workstream (2026-08-28):** an audit-and-harden
+pass across everything below, on branches `hardening/authority-lease-
+atomicity` (PR #277) and `hardening/ci-authority-coverage` (PR #278,
+stacked). Shipped: Capability Lease atomicity (flock-v1 locking, closing
+a real lost-update race reproduced live) and token-aware scope matching
+(closing a real string-prefix false-positive), `AuthorityDecisionReceipt`,
+`ExecutionReceipt`, delegated leases (`Lease.parent_lease_id`,
+AND-composition invariant enforcement), a CI feature-matrix gap (`mcp`
+never built), a release/publish required-checks single source of truth,
+and a golden offline release-artifact smoke test. Designed but not
+implemented: the Remote Approval Continuation Protocol and Intent
+Contract foundation — see `docs/adr/ADR-015-remote-approval-
+continuation-and-intent-contract.md` for why those two specifically
+needed a design pass first rather than code.
 
 **Decided:** 2026-08-28, as the explicit successor to the 2026-08-07
 architecture-health freeze.
@@ -31,15 +51,18 @@ registry) — none of them add a new kind of thing that can execute.
 
 ## Priority order
 
-| Priority | Work | Why this order |
-|---|---|---|
-| P0 | Capability Lease | most natural next step of authority that already exists |
-| P0 | Approval continuation protocol (a Yana Runtime Protocol) | opens tools safely for Desktop/Web without inventing a new authority mechanism |
-| P1 | Canonical `ExecutionReceipt` | foundation every later evidence feature needs |
-| P1 | Delegation graph/rules | multi-agent gets real authority semantics before Intent Contract needs it |
-| P2 | Intent Contract | bounded plan execution, but only after delegation/lease exist to intersect against |
-| P3 | Causal Evidence Graph | built on real receipts, not built first as an empty graph |
-| Optional | World State read-model projection | only if UI/ops actually needs it — do not build for elegance alone |
+| Priority | Work | Status | Why this order |
+|---|---|---|---|
+| P0 | Capability Lease | ✅ Done + hardened (2026-08-28: atomicity, token-aware scope matching) | most natural next step of authority that already exists |
+| P0 | Approval continuation protocol (a Yana Runtime Protocol) | 🟡 Designed, not implemented — `ADR-015` | opens tools safely for Desktop/Web without inventing a new authority mechanism |
+| P1 | Canonical `AuthorityDecisionReceipt` | ✅ Done (2026-08-28) | evidence for *why* a decision was made — item #3 of the audit, done first since `ExecutionReceipt` correlates to it |
+| P1 | Canonical `ExecutionReceipt` | ✅ Done (2026-08-28) | foundation every later evidence feature needs |
+| P1 | Delegation graph/rules | ✅ Done (2026-08-28: `Lease.parent_lease_id`, AND-composition invariant) | multi-agent gets real authority semantics before Intent Contract needs it |
+| P2 | Intent Contract | 🟡 Designed, not implemented — `ADR-015` | bounded plan execution, but only after delegation/lease exist to intersect against |
+| P3 | Causal Evidence Graph | ⚪ Not started (correctly — the receipts feeding it now exist, per the phasing to its right) | built on real receipts, not built first as an empty graph |
+| Optional | World State read-model projection | ⚪ Not started | only if UI/ops actually needs it — do not build for elegance alone |
+
+Status legend: ⚪ not started · 🟡 designed, not implemented · ✅ done
 
 Delegation is placed before Intent Contract on purpose: answering "what
 does this agent want to do" is meaningless before answering "who
@@ -283,3 +306,5 @@ backlog note, not into this milestone.
 - `docs/adr/ADR-014-unified-runtime-authority-hierarchy.md` —
   `TurnEngine`/`RuntimeAuthority`/capability chain this milestone
   extends rather than replaces.
+- `docs/adr/ADR-015-remote-approval-continuation-and-intent-contract.md`
+  — the design (not yet implemented) for the two 🟡 rows above.
