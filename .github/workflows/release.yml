@@ -127,11 +127,23 @@ jobs:
       # A binary that compiles but crashes on startup (missing dynamic
       # library, wrong target linking, a panic in early init) would have
       # shipped to every user downloading that release with nobody
-      # having executed it even once. Minimal, not a full test suite:
-      # `--version` exercises argument parsing and the whole startup
-      # path far enough to prove the binary isn't dead on arrival, same
-      # bar sandbox.yml's own smoke tests already use for the sandbox
-      # Docker image ("build -> smoke that exact artifact -> publish").
+      # having executed it even once.
+      #
+      # Authority Hardening item #11 (2026-08-28): `--version` alone
+      # proves argument parsing and startup far enough to rule out "dead
+      # on arrival," and nothing more -- a binary that answers --version
+      # but panics on its first real subcommand would still have shipped.
+      # Replaced with core/scripts/release-smoke-test.sh, a golden smoke
+      # test that execs THIS EXACT built binary (never a separately built
+      # copy) through 11 real, offline checks: startup, CLI dispatch,
+      # the capability sandbox read path, the Giam Thi HALT lock
+      # (create/status/unlock), a full Capability Lease grant/list/
+      # revoke round-trip, and the authority-receipts reader. No network
+      # call, no model provider credential -- see that script's own
+      # header for the one thing it honestly cannot exercise offline
+      # (RuntimeAuthority::capability_decision itself, which needs a
+      # live TurnEngine/chat session).
+      #
       # Skipped for the macos-latest x86_64-apple-darwin leg specifically:
       # that's a cross-compile on GitHub's arm64 macOS runners, and
       # whether Rosetta 2 transparently executes it there wasn't
@@ -142,7 +154,7 @@ jobs:
       - name: Smoke test the built binary
         if: matrix.target != 'x86_64-apple-darwin'
         shell: bash
-        run: target/${{ matrix.target }}/release/${{ matrix.binary }} --version
+        run: bash core/scripts/release-smoke-test.sh target/${{ matrix.target }}/release/${{ matrix.binary }}
 
       # Workstream B / B3 (A8 Release & Supply Chain): the program
       # document requires a release manifest ("commit SHA, product

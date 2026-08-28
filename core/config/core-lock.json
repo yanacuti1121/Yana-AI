@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-08-28T05:05:49+00:00",
-  "count": 284,
+  "generated": "2026-08-28T05:13:06+00:00",
+  "count": 285,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -224,6 +224,7 @@
     "core/scripts/presentation_studio.py": "23bafabd9fe5c23b021a2ddaffdc1ea0e13a7faac81fe550972a98af2b493bde",
     "core/scripts/promote-session-patterns.sh": "308a3a6e6950681a1f076f9fe4a85a5dca2f95d81497863a73f710a62a1d335d",
     "core/scripts/release-gate.py": "80e2d9e1a6e4fd9fb95cbb3738a25120d7942b980e18ac6113e8c181dfd065a7",
+    "core/scripts/release-smoke-test.sh": "8bf158e69d0ca86626dfa455d839ea64e5f8507fbb97681b90c3e0ba78b904d6",
     "core/scripts/report_html.py": "6e51e893a2bf9a52631eb6798cd3c60641fd457217f6c32e1c586a2172e05a14",
     "core/scripts/report_pdf.py": "8a9ba418624f1987ab5a66c217be4f7509ea1fa2aad1dbcf919704b7cf130752",
     "core/scripts/resolve-memory-conflict.sh": "8fc3f089c03ad06d9faaf749f88166f632a8ca4b1b92c14e03cf64429f35d340",
