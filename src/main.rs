@@ -124,6 +124,12 @@ enum Commands {
         #[command(subcommand)]
         action: CostAction,
     },
+    /// Capability Lease — time-boxed, scope-boxed delegated authority for
+    /// a subagent, without a human approving every individual call
+    Lease {
+        #[command(subcommand)]
+        action: LeaseAction,
+    },
     /// Audit activity dashboard — read-only summary over audit-chain.log
     /// (tool-call volume, allow/deny/warn rate, busiest tools/hooks). No
     /// new data collection, no new hook — summarizes what audit-log.sh
@@ -675,6 +681,47 @@ enum CostAction {
     },
 }
 
+#[derive(Subcommand)]
+enum LeaseAction {
+    /// Grant a lease — a subject (typically `agent:<name>`) may execute a
+    /// capability, within an allow/deny command list, until it expires or
+    /// its invocation budget runs out. Persisted to `.yana-ai/leases.json`.
+    Grant {
+        #[arg(long)]
+        subject: String,
+        #[arg(long)]
+        capability: String,
+        /// Repeatable. Prefix-matched against the command text (for
+        /// `command.execute`); ignored for capabilities with no command
+        /// argument.
+        #[arg(long = "allow")]
+        allow: Vec<String>,
+        /// Repeatable. Checked before `--allow`; any match here always
+        /// denies, even if the same command also matches an allow entry.
+        #[arg(long = "deny")]
+        deny: Vec<String>,
+        #[arg(long)]
+        expires_in_minutes: u64,
+        #[arg(long)]
+        invocation_budget: Option<u32>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List every lease recorded for this project, with a computed status
+    /// (active / expired / budget exhausted / revoked)
+    List {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Revoke a lease immediately by id — it stops matching on the very
+    /// next authority check, no grace period
+    Revoke {
+        id: String,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
 // ── main ─────────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1007,6 +1054,42 @@ fn main() {
                 }
             }
             CostAction::Breakdown { by } => cost::cmd_cost_breakdown(by),
+        },
+        Commands::Lease { action } => match action {
+            LeaseAction::Grant {
+                subject,
+                capability,
+                allow,
+                deny,
+                expires_in_minutes,
+                invocation_budget,
+                json,
+            } => {
+                if let Err(error) = capability::lease::cmd_lease_grant(
+                    subject,
+                    capability,
+                    allow,
+                    deny,
+                    expires_in_minutes,
+                    invocation_budget,
+                    json,
+                ) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            LeaseAction::List { json } => {
+                if let Err(error) = capability::lease::cmd_lease_list(json) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            LeaseAction::Revoke { id, json } => {
+                if let Err(error) = capability::lease::cmd_lease_revoke(id, json) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
         },
         Commands::Observability { action } => match action {
             observability::ObservabilityAction::Show { last, json } => {
