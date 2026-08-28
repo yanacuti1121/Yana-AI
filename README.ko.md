@@ -313,7 +313,7 @@ Yana는 아래 각 프로젝트와 어떤 층에서는 겹치고 어떤 층에�
 | --- | --- | --- |
 | [OpenHands](https://github.com/All-Hands-AI/OpenHands) (현재 "Agent Canvas") | 여러 coding-agent 백엔드(Claude Code, Codex, Gemini, 모든 ACP 에이전트)를 오케스트레이션하는 셀프호스팅 컨트롤 센터 | 에이전트 오케스트레이션 중심 — 에이전트를 실행하는 컨트롤 센터이지, 어떤 에이전트가 무엇을 실행해도 되는지에 대한 authority calculus가 아님 |
 | [Letta](https://github.com/letta-ai/letta-code) (구 MemGPT; `letta-ai/letta` 저장소는 이제 보관된 랜딩 페이지일 뿐이라 실제 활성 프로젝트로 연결) | 모델과 무관하게 지속되는 에이전트 상태와 identity | 메모리·identity 중심 — 이들의 연속성 이야기는 세션 간에 에이전트가 무엇을 기억하는가이지, 무엇을 실행해도 되는가가 아님 |
-| [Goose](https://github.com/block/goose) | 프로바이더 무관, 다중 프로바이더, 다중 확장(MCP) — Yana의 provider plane과 가장 가까움 | 우선은 강력한 에이전트 런타임 — 실행 승인과 capability scoping이 Yana의 권한처럼 조직 원리는 아님 |
+| [Goose](https://github.com/aaif-goose/goose) | 프로바이더 무관, 다중 프로바이더, 다중 확장(MCP) — Yana의 provider plane과 가장 가까움 | 우선은 강력한 에이전트 런타임 — 실행 승인과 capability scoping이 Yana의 권한처럼 조직 원리는 아님 |
 | [AutoGen](https://github.com/microsoft/autogen) — **현재 maintenance mode**, [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)가 후속작 | 멀티 에이전트 오케스트레이션 패턴 | 여기서 delegation은 workflow/routing 문제이지 authority calculus가 아님 — 한 에이전트가 다른 에이전트에게 일을 넘기는 것은 "위임받은 권한의 부분집합만큼만 권한을 갖는다"는 주장과 다름 |
 
 위 네 프로젝트는 각각 한 층을 잘 다룹니다 — execution boundary, memory continuity, runtime cohesion, 오케스트레이션 패턴. **Yana는 continuity, orchestration, execution, governance를 하나의 시스템으로 결합하며, authority boundary를 그 척추로 삼습니다 — 다른 층들 옆에 나란히 놓인 또 하나의 층이 아니라, 다른 층들이 붙는 대상입니다.**
