@@ -14,14 +14,6 @@
 
 <h1 align="center">Yana AI 🐰</h1>
 
-<p align="center"><strong>One runtime. Any AI. Human-governed.</strong></p>
-
-<p align="center">
-  <strong>A local-first, cross-platform system for running, connecting, orchestrating, and governing AI — with deterministic control over what it can access, change, and execute.</strong>
-</p>
-
-<p align="center"><em>Your AI can act. But who decides how far it can go?</em></p>
-
 <p align="center">
   <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
@@ -34,19 +26,155 @@
 
 ---
 
-## AI is gaining agency. Governance has not caught up.
+## One Runtime. Any AI. Human-Governed.
 
-A model can now inspect a repository, edit files, run commands, launch agents, call tools, and prepare a release. The difficult questions are no longer only about intelligence:
+Yana turns independent AI models and agents into one governed, persistent system — while humans retain final authority.
 
-- Can one runtime connect local models, cloud models, and coding agents without locking the project to one vendor?
-- Can every interface share the same capability boundary instead of inventing its own safety behavior?
-- Can the system distinguish routine automation from actions that must remain human-only?
-- Can a developer inspect the evidence behind “safe,” “done,” “blocked,” or “approved”?
-- Can one independent control plane halt every agent when project integrity is uncertain?
+AI models are powerful at reasoning, planning, coding, and using tools. But intelligence alone does not create a reliable AI system. Models change. Context disappears. Agents terminate. Providers fail. Tools have different permissions. Work spans multiple sessions, machines, and AI environments.
 
-**Yana AI exists to make those questions executable.**
+**Yana provides the control plane that holds those pieces together.**
 
-It is not another foundation model and it does not replace Claude, Codex, Cursor, Ollama, or your preferred runtime. It connects them to a native execution layer, deterministic policy gates, project memory, orchestration primitives, and a human-governed operating plane.
+```
+ Claude ─────┐
+ OpenAI ─────┤
+ Gemini ─────┤
+ DeepSeek ───┼─────►          YANA
+ Ollama ─────┤           ┌───────────────┐
+ Local LLM ──┘           │ Control Plane │
+                         └───────┬───────┘
+                                 │
+             ┌───────────────────┼───────────────────┐
+             │                   │                   │
+             ▼                   ▼                   ▼
+          Agents              Missions           Memory
+          Skills              Tasks              State
+          Routing             Workspace          Context
+             │                   │                   │
+             └───────────────────┼───────────────────┘
+                                 │
+                                 ▼
+                         Governed Execution
+                                 │
+                    Authority · Capabilities
+                    Evidence · Cost · Audit
+                                 │
+                                 ▼
+                          Real Environment
+                                 │
+                                 ▼
+                               HUMAN
+                         final authority
+```
+
+### Intelligence is not authority
+
+This is the foundation of Yana. An AI model may decide what it wants to do. That does not mean it is allowed to do it.
+
+Instead of giving models unrestricted access to the shell, filesystem, processes, repositories, or development environment, Yana separates:
+
+```
+INTELLIGENCE
+"What should I do?"
+        │
+        ▼
+PROPOSAL
+"I want to execute this tool."
+        │
+        ▼
+AUTHORITY
+"Is this allowed?"
+        │
+        ▼
+CAPABILITY
+"What exact power does this represent?"
+        │
+        ▼
+POLICY / HUMAN APPROVAL
+"May it happen now?"
+        │
+        ▼
+BOUNDED EXECUTION
+"Perform only the permitted operation."
+```
+
+In other words: **the model provides intelligence, Yana controls capabilities, and humans retain final authority.**
+
+### More than an AI agent framework
+
+Most agent frameworks primarily ask *how capable can we make the agent?* Yana asks a larger systems question: *how do we operate many models, agents, tools, workspaces, and long-running tasks as one system — while keeping their power governable?*
+
+That distinction changes the architecture. Yana is not built around one permanent AI — models and agents can become replaceable workers inside a persistent system. A model can disappear, a context window can end, a provider can be replaced, a subagent can finish its task — the system does not have to disappear with it. Yana keeps the operational layer outside the lifetime of any individual model.
+
+### One control plane for the AI system
+
+Yana brings several normally separate concerns under one architecture:
+
+- **Intelligence** — local and cloud model providers (Claude, OpenAI, Gemini, DeepSeek, Groq, Ollama, LM Studio, llama.cpp, ...) provide reasoning without owning system authority. Changing the intelligence provider does not require changing the authority hierarchy.
+- **Execution** — AI intentions are translated into canonical capabilities before reaching the real environment (`model proposal → TurnEngine → RuntimeAuthority → canonical capability → policy/approval → bounded executor → host`). A tool name cannot grant itself permission.
+- **Orchestration** — individual AI turns participate in larger units of work: tasks, missions, routing, an event bus, workspaces, checkpoints — so work survives beyond a single prompt-response cycle.
+- **State and memory** — session state, memory, mission state, and workspace state are preserved outside an individual model session; the intelligence performing the work can change while the surrounding operational context remains.
+- **Evidence and accountability** — execution connects to evidence, provenance, audit, research sources, cost accounting, and policy decisions. The question is not just "did the AI produce an answer?" but "what happened, why was it allowed, what evidence supports it, what did it cost, and what state did it leave behind?"
+
+### Yana OS — managing the AI system
+
+Yana OS is not a replacement for Linux, macOS, or Windows — it is Yana's local management plane, reasoning about the operational state surrounding agents: which agent exists, what identity and autonomy level it has, what resources it holds, what work it is responsible for, whether it is healthy, and whether it should be quarantined or halted. This moves governance beyond individual tool calls toward agent lifecycle management (identity, agent lifecycle, autonomy, resources, health, monitoring, supervision, leases, governor, quarantine, HALT) — but it deliberately does not become a second execution engine. Execution remains owned by canonical capability boundaries.
+
+### Human authority is above the model
+
+```
+                    HUMAN
+                      │
+                      ▼
+                  GIÁM THỊ
+                HALT / Control
+                      │
+                      ▼
+             YANA CONTROL PLANE
+                      │
+                      ▼
+               RuntimeAuthority
+                      │
+                      ▼
+                Capabilities
+                      │
+                      ▼
+                  Executor
+                      │
+                      ▼
+                     Host
+```
+
+A sufficiently capable model does not become sovereign merely because it can reason better. Subagents do not automatically inherit human authority. Approval for one operation does not create permanent permission. The system can revoke execution independently of model intent.
+
+### Skills are knowledge. Capabilities are power.
+
+Yana maintains a large ecosystem of agents, skills, commands, rules, and hooks — but deliberately distinguishes these from execution authority. A skill can teach an agent how to perform a task; a capability determines whether the system may actually do it. A thousand skills do not imply a thousand unrestricted system permissions — this lets Yana's knowledge surface grow without requiring its trusted execution surface to grow at the same rate.
+
+### One canonical operating layer, multiple AI environments
+
+Yana does not require every AI product to use the same execution mechanism. When Yana owns the model loop (Terminal, Desktop, Web, Discord), the native Rust `TurnEngine` provides the execution boundary. When another AI environment owns its own runtime — Claude Code, Codex, Cursor, Antigravity — Yana integrates through engine-specific governance surfaces instead. The integration mechanism can change; the authority principle does not. One authority hierarchy does not require one fake integration mechanism.
+
+Yana's canonical `core/` defines reusable operating knowledge — agents, skills, commands, rules, hooks, scripts, policies — which is then materialized for different AI harnesses (Claude Code, Codex, Cursor, ...). Switching AI engines does not mean rebuilding the surrounding operating environment from zero: the intelligence may change, while the workflows, governance principles, operational knowledge, and system state remain.
+
+### The larger idea
+
+Yana's long-term value is not simply that it can run an AI model — models are increasingly interchangeable. Nor is its value simply the number of agents or skills it contains. The stronger abstraction is the system surrounding those models: authority, continuity, and execution, wrapped around interchangeable intelligence and temporary agent workers.
+
+**Models can be temporary. Agents can be temporary. Yana is the persistent control plane around them.**
+
+### The idea in 30 seconds
+
+Yana turns independent AI models and agents into one governed, persistent system. It provides the control plane around intelligence: models for reasoning, agents and skills for capability, missions and memory for continuity, evidence for accountability, and a governed execution layer for interacting with the real world.
+
+AI can reason and propose. Yana determines what power that intelligence receives. Humans retain final authority.
+
+> AI thinks. Yana operates the system. Humans remain in control.
+
+**One Runtime. Any AI. Human-Governed.**
+
+---
+
+*Everything below this line is the fuller technical documentation — install paths, the runtime architecture in more detail, every governed surface, benchmarks, and known limitations, verified against the current codebase rather than aspirational copy.*
 
 ## Choose your first win
 
@@ -177,41 +305,7 @@ Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
 files. Ask the human to confirm before running this.
 ```
 
-That is the whole pitch: deterministic rules, runs locally, no LLM in the decision path, nothing leaves your machine.
-
----
-
-## The problem
-
-AI coding agents make mistakes. They `rm -rf` the wrong directory. They push force to main. They hallucinate test results. By the time you notice, the damage is done.
-
-Yana AI sits between the agent and your system: every risky tool call passes through a chain of deterministic checks before execution.
-
----
-
-## What it catches
-
-Destructive git operations, `rm` outside the workspace, piping the internet into bash, and unvetted package installs, via agent hooks backed by a Rust runtime (`yana-rt`).
-
----
-
-## How it works
-
-```
-Agent wants to run a command
-         ↓
-Anti-evasion scan      — blocks base64 decode+exec, pipe-to-shell interpreters
-Shell sanitization     — quotes all variables, strips shell metacharacters
-Egress / SSRF policy   — implementation available; runtime wiring varies
-Supply-chain vetting   — implementation available; runtime wiring varies
-Blast-radius cap       — caps how many files/what scope a destructive command can touch
-Tamper-evident audit log — every allowed AND blocked action logged, hash-chained
-Human gate             — irreversible actions (push, publish, delete) require explicit confirmation
-         ↓
-Execute (or block + log)
-```
-
-See [Known Limitations](docs/reference/known-limitations.md) for exactly which of these are live, wired hooks today versus documented policy an agent applies by convention, verified directly against the code rather than the docs describing it.
+That is the whole pitch: deterministic rules, runs locally, no LLM in the decision path, nothing leaves your machine. See [Known Limitations](docs/reference/known-limitations.md) for exactly which checks are live, wired hooks today versus documented policy an agent applies by convention, verified directly against the code rather than the docs describing it.
 
 ---
 
