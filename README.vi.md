@@ -32,35 +32,30 @@ Các model AI rất mạnh trong việc suy luận, lập kế hoạch, viết c
 **Yana cung cấp control plane giữ tất cả những mảnh đó lại với nhau.**
 
 ```
- Claude ─────┐
- OpenAI ─────┤
- Gemini ─────┤
- DeepSeek ───┼─────►          YANA
- Ollama ─────┤           ┌───────────────┐
- Local LLM ──┘           │ Control Plane │
-                         └───────┬───────┘
-                                 │
-             ┌───────────────────┼───────────────────┐
-             │                   │                   │
-             ▼                   ▼                   ▼
-          Agents              Missions           Memory
-          Skills              Tasks              State
-          Routing             Workspace          Context
-             │                   │                   │
-             └───────────────────┼───────────────────┘
-                                 │
-                                 ▼
-                         Governed Execution
-                                 │
-                    Authority · Capabilities
-                    Evidence · Cost · Audit
-                                 │
-                                 ▼
-                          Real Environment
-                                 │
-                                 ▼
-                               HUMAN
-                         final authority
+                         HUMAN
+                    final authority
+                          │
+                          ▼
+                    ┌───────────┐
+                    │   YANA    │
+                    │ControlPlane│
+                    └─────┬─────┘
+                          │
+      ┌───────────────────┼───────────────────┐
+      │                   │                   │
+      ▼                   ▼                   ▼
+ Intelligence        Continuity          Governance
+ models/providers   missions/memory    authority/policy
+      │                   │                   │
+      └───────────────────┼───────────────────┘
+                          ▼
+                 Canonical Capabilities
+                          │
+                          ▼
+                  Bounded Execution
+                          │
+                          ▼
+                    Real Environment
 ```
 
 ### Trí tuệ không phải là quyền lực
@@ -100,78 +95,15 @@ Nói cách khác: **model cung cấp trí tuệ, Yana kiểm soát capability, v
 
 Hầu hết agent framework chỉ hỏi *làm sao để agent mạnh hơn?* Yana đặt một câu hỏi hệ thống lớn hơn: *làm sao vận hành nhiều model, nhiều agent, nhiều tool, nhiều workspace và các task chạy dài như một hệ thống duy nhất — trong khi vẫn kiểm soát được sức mạnh của chúng?*
 
-Sự khác biệt đó thay đổi cả kiến trúc. Yana không được xây quanh một AI cố định — model và agent có thể trở thành những "công nhân" có thể thay thế bên trong một hệ thống tồn tại lâu dài. Một model có thể biến mất, một context window có thể kết thúc, một provider có thể bị thay thế, một subagent có thể hoàn thành nhiệm vụ rồi dừng — hệ thống không nhất thiết phải biến mất theo. Yana giữ tầng vận hành tồn tại ngoài vòng đời của bất kỳ model đơn lẻ nào.
+Sự khác biệt đó thay đổi cả kiến trúc. Yana không được xây quanh một AI cố định — model và agent có thể trở thành những "công nhân" có thể thay thế bên trong một hệ thống tồn tại lâu dài. **Model có thể tạm thời. Agent có thể tạm thời. Yana là control plane tồn tại lâu dài bao quanh chúng.**
 
-### Một control plane cho toàn hệ thống AI
+Phía dưới đó: một management plane cục bộ (Yana OS) quản lý vòng đời agent thay vì từng lệnh gọi tool riêng lẻ, một ranh giới rõ ràng giữa skill (agent biết gì) và capability (agent thực sự được làm gì), và một tầng `core/` chuẩn hoá duy nhất được materialize xuyên suốt mọi harness được hỗ trợ — Claude Code, Codex, Cursor, Antigravity — để đổi engine AI không có nghĩa là phải xây lại toàn bộ governance từ đầu. Chi tiết đầy đủ ở [Kiến trúc chuyên sâu](#kiến-trúc-chuyên-sâu) bên dưới.
 
-Yana gom nhiều mối quan tâm vốn tách biệt vào chung một kiến trúc:
-
-- **Trí tuệ (Intelligence)** — các provider model local và cloud (Claude, OpenAI, Gemini, DeepSeek, Groq, Ollama, LM Studio, llama.cpp, ...) cung cấp khả năng suy luận mà không nắm quyền hệ thống. Đổi provider trí tuệ không đòi hỏi đổi cả hệ thống thẩm quyền.
-- **Thực thi (Execution)** — ý định của AI được dịch thành capability chuẩn hoá trước khi chạm tới môi trường thật (`model proposal → TurnEngine → RuntimeAuthority → canonical capability → policy/approval → bounded executor → host`). Một cái tên tool không thể tự cấp quyền cho chính nó.
-- **Điều phối (Orchestration)** — mỗi turn AI riêng lẻ tham gia vào những đơn vị công việc lớn hơn: task, mission, routing, event bus, workspace, checkpoint — để công việc tồn tại lâu hơn một vòng hỏi-đáp đơn lẻ.
-- **State và bộ nhớ** — session state, memory, mission state, workspace state được giữ lại ngoài phạm vi một phiên model đơn lẻ; trí tuệ thực hiện công việc có thể thay đổi trong khi bối cảnh vận hành xung quanh vẫn còn nguyên.
-- **Bằng chứng và trách nhiệm giải trình** — việc thực thi được kết nối với evidence, provenance, audit, nguồn nghiên cứu, kế toán chi phí và quyết định chính sách. Câu hỏi không chỉ còn là "AI có tạo ra câu trả lời không?" mà là "chuyện gì đã xảy ra, tại sao nó được phép, bằng chứng nào chứng minh, chi phí bao nhiêu, và nó để lại trạng thái gì?"
-
-### Yana OS — quản lý hệ thống AI
-
-Yana OS không phải bản thay thế cho Linux, macOS hay Windows — nó là management plane cục bộ của Yana, suy luận về trạng thái vận hành xung quanh các agent: agent nào tồn tại, nó có identity và mức autonomy gì, nó đang giữ tài nguyên gì, nó chịu trách nhiệm cho công việc gì, nó có khoẻ mạnh không, và có nên bị cách ly (quarantine) hay dừng (HALT) không. Điều này đưa việc quản trị vượt ra ngoài từng lệnh gọi tool riêng lẻ, tiến tới quản lý vòng đời agent (identity, agent lifecycle, autonomy, resources, health, monitoring, supervision, leases, governor, quarantine, HALT) — nhưng nó cố tình không trở thành một execution engine thứ hai. Việc thực thi vẫn thuộc về ranh giới capability chuẩn hoá.
-
-### Thẩm quyền con người nằm trên model
-
-```
-                    HUMAN
-                      │
-                      ▼
-                  GIÁM THỊ
-                HALT / Control
-                      │
-                      ▼
-             YANA CONTROL PLANE
-                      │
-                      ▼
-               RuntimeAuthority
-                      │
-                      ▼
-                Capabilities
-                      │
-                      ▼
-                  Executor
-                      │
-                      ▼
-                     Host
-```
-
-Một model đủ mạnh không tự nhiên trở thành tối cao chỉ vì nó suy luận giỏi hơn. Subagent không tự động thừa hưởng thẩm quyền của con người. Việc duyệt cho một thao tác không tạo ra quyền vĩnh viễn. Và hệ thống có thể thu hồi quyền thực thi độc lập với ý định của model.
-
-### Skill là kiến thức. Capability là quyền lực.
-
-Yana duy trì một hệ sinh thái lớn gồm agent, skill, command, rule và hook — nhưng cố tình tách bạch những thứ này khỏi thẩm quyền thực thi. Một skill có thể dạy agent cách làm một việc; một capability quyết định liệu hệ thống có thực sự được làm việc đó không. Một nghìn skill không đồng nghĩa với một nghìn quyền hệ thống không giới hạn — điều này cho phép bề mặt kiến thức của Yana phát triển mà không buộc bề mặt thực thi đáng tin cậy phải phát triển cùng tốc độ.
-
-### Một tầng vận hành chuẩn hoá, nhiều môi trường AI
-
-Yana không đòi hỏi mọi sản phẩm AI phải dùng chung một cơ chế thực thi. Khi Yana sở hữu vòng lặp model (Terminal, Desktop, Web, Discord), `TurnEngine` Rust native cung cấp ranh giới thực thi. Khi một môi trường AI khác sở hữu runtime riêng của nó — Claude Code, Codex, Cursor, Antigravity — Yana tích hợp qua các bề mặt quản trị riêng cho từng engine. Cơ chế tích hợp có thể thay đổi; nguyên tắc thẩm quyền thì không. Một hệ thống thẩm quyền không đòi hỏi một cơ chế tích hợp giả.
-
-`core/` chuẩn hoá của Yana định nghĩa kiến thức vận hành có thể tái sử dụng — agent, skill, command, rule, hook, script, policy — sau đó được materialize cho từng AI harness khác nhau (Claude Code, Codex, Cursor, ...). Đổi engine AI không có nghĩa là phải xây lại toàn bộ môi trường vận hành từ đầu: trí tuệ có thể thay đổi, còn workflow, nguyên tắc quản trị, kiến thức vận hành và trạng thái hệ thống vẫn giữ nguyên.
-
-### Ý tưởng lớn hơn
-
-Giá trị dài hạn của Yana không đơn thuần nằm ở việc nó chạy được một model AI — model ngày càng dễ thay thế lẫn nhau. Giá trị của nó cũng không đơn thuần nằm ở số lượng agent hay skill. Sự trừu tượng hoá mạnh hơn là hệ thống bao quanh những model đó: thẩm quyền, tính liên tục, và thực thi, bao bọc quanh trí tuệ có thể thay thế và các "công nhân" agent tạm thời.
-
-**Model có thể tạm thời. Agent có thể tạm thời. Yana là control plane tồn tại lâu dài bao quanh chúng.**
-
-### Ý tưởng trong 30 giây
-
-Yana biến các model và agent AI độc lập thành một hệ thống thống nhất, có quản trị, tồn tại lâu dài. Nó cung cấp control plane bao quanh trí tuệ: model để suy luận, agent và skill để có năng lực, mission và memory để duy trì tính liên tục, evidence để có trách nhiệm giải trình, và một tầng thực thi có quản trị để tương tác với thế giới thật.
-
-AI có thể suy luận và đề xuất. Yana quyết định trí tuệ đó nhận được quyền lực gì. Con người giữ quyền quyết định cuối cùng.
-
-> AI suy nghĩ. Yana vận hành hệ thống. Con người vẫn nắm quyền kiểm soát.
-
-**Một Runtime. Mọi AI. Con Người Nắm Quyền.**
+> Model có thể đổi. Thẩm quyền thì không.
 
 ---
 
-*Mọi nội dung phía dưới đường kẻ này là tài liệu kỹ thuật chi tiết hơn — đường dẫn cài đặt, kiến trúc runtime chi tiết, mọi bề mặt được quản trị, benchmark và giới hạn đã biết, được xác minh dựa trên codebase hiện tại chứ không phải mô tả mang tính kỳ vọng.*
+*Mọi nội dung phía dưới đường kẻ này đi sâu hơn — cài đặt, xem nó chặn một lệnh nguy hiểm trực tiếp, kiến trúc runtime đầy đủ, và giới hạn đã biết, được xác minh dựa trên codebase hiện tại chứ không phải mô tả mang tính kỳ vọng.*
 
 ## Chọn kết quả đầu tiên bạn muốn
 
@@ -226,6 +158,42 @@ Dùng evidence, capability, memory, workspace và OS control từ cùng một CL
 
 > Mới bắt đầu? Đi từ [Cài đặt nhanh](#cài-đặt-nhanh). Đang xây platform? Đọc [kiến trúc](docs/reference/architecture.md). Đang đánh giá an toàn? Hãy đọc [Giới hạn thực tế](#giới-hạn-thực-tế) trước danh sách tính năng. Tò mò dự án đi từ đâu tới đây? Đọc [lịch sử dự án](docs/reference/history.vi.md).
 
+## Xem cơ chế quản trị hoạt động
+
+Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log — chặn cứng trên Claude Code và Cursor, tư vấn (advisory) trên Codex và Antigravity.
+
+```bash
+pip install yana-ai && yana-ai install   # gắn hooks (60 giây)
+```
+
+> **Lỗi đã biết, đã fix từ 2026-07-25:** bản PyPI cũ của `yana-rt` có thể tự đệ quy và chiếm 100% CPU — xem [CHANGELOG.md](CHANGELOG.md) để biết chi tiết sự cố. `pip install -U yana-ai` (hoặc `cargo install yana-rt`, chưa từng bị ảnh hưởng) là hết.
+
+Sau đó thử bảo agent làm bậy, và xem.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
+
+```bash
+# Agent thử: git push --force origin main
+Blocked: 'git push --force' (any flag spelling) is not allowed. The
+orchestrator pushes branches; force-pushing risks overwriting shared history.
+
+# Agent thử: rm -rf /some/path
+Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
+Use targeted 'rm' with explicit paths, or ask the human to confirm first.
+
+# Agent thử: git clean -f
+Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
+files. Ask the human to confirm before running this.
+```
+
+Đó là toàn bộ ý tưởng: quy tắc tất định (deterministic), chạy local, không có LLM trong đường ra quyết định, không dữ liệu nào rời khỏi máy bạn. Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết chính xác cái nào đang là hook sống, cái nào chỉ là chính sách agent tự áp dụng theo quy ước, đã xác minh trực tiếp trên code chứ không phải trên tài liệu mô tả nó.
+
+---
+
 ## Yana hợp nhất những gì
 
 | Tầng | Giá trị cho developer | Bề mặt chính |
@@ -266,45 +234,87 @@ Chỉ có một thứ bậc thẩm quyền, nhưng không giả vờ mọi tích
 | **MCP (opt-in)** | Tool stdio cho kiểm tra lệnh cùng thao tác repo, Git, host, process và workspace được quản trị | Build với Cargo feature `mcp`; thao tác workspace cần duyệt vẫn bị từ chối qua MCP |
 | **Claude Code, Codex, Cursor, Antigravity** | Harness coding-agent native | Được quản trị qua adapter, hook, rule và gate sinh theo từng engine, không giả vờ chúng chạy trong process của Yana |
 
-Vì vậy AI local và cloud dùng chung một runtime contract nhưng không bị nhập thành một trust domain. Đổi provider chỉ thay nơi inference diễn ra; nó không bỏ qua typed turn, capability, evidence hay ranh giới duyệt của con người trong Yana.
+Vì vậy AI local và cloud dùng chung một runtime contract nhưng không bị nhập thành một trust domain. Đổi provider chỉ thay nơi inference diễn ra; nó không thay đổi runtime authority hay ranh giới capability chuẩn hoá của Yana.
 
 Trí tuệ model có thể đề xuất hành động. Code tất định và thẩm quyền con người quyết định hành động đó có được phép xảy ra hay không.
 
-## Xem cơ chế quản trị hoạt động
+## Kiến trúc chuyên sâu
 
-Agent của bạn thử làm gì đó nguy hiểm. Yana chặn lại, giải thích lý do, và ghi log — chặn cứng trên Claude Code và Cursor, tư vấn (advisory) trên Codex và Antigravity.
+Phần hero ở trên nói nguyên tắc; phần này là bức tranh đầy đủ mà nó dẫn tới.
 
-```bash
-pip install yana-ai && yana-ai install   # gắn hooks (60 giây)
+### Một control plane cho toàn hệ thống AI
+
+Yana gom nhiều mối quan tâm vốn tách biệt vào chung một kiến trúc:
+
+- **Trí tuệ (Intelligence)** — các provider model local và cloud (Claude, OpenAI, Gemini, DeepSeek, Groq, Ollama, LM Studio, llama.cpp, ...) cung cấp khả năng suy luận mà không nắm quyền hệ thống. Đổi provider trí tuệ không đòi hỏi đổi cả hệ thống thẩm quyền.
+- **Thực thi (Execution)** — ý định của AI được dịch thành capability chuẩn hoá trước khi chạm tới môi trường thật (`model proposal → TurnEngine → RuntimeAuthority → canonical capability → policy/approval → bounded executor → host`). Một cái tên tool không thể tự cấp quyền cho chính nó.
+- **Điều phối (Orchestration)** — mỗi turn AI riêng lẻ tham gia vào những đơn vị công việc lớn hơn: task, mission, routing, event bus, workspace, checkpoint — để công việc tồn tại lâu hơn một vòng hỏi-đáp đơn lẻ.
+- **State và bộ nhớ** — session state, memory, mission state, workspace state được giữ lại ngoài phạm vi một phiên model đơn lẻ; trí tuệ thực hiện công việc có thể thay đổi trong khi bối cảnh vận hành xung quanh vẫn còn nguyên.
+- **Bằng chứng và trách nhiệm giải trình** — việc thực thi được kết nối với evidence, provenance, audit, nguồn nghiên cứu, kế toán chi phí và quyết định chính sách. Câu hỏi không chỉ còn là "AI có tạo ra câu trả lời không?" mà là "chuyện gì đã xảy ra, tại sao nó được phép, bằng chứng nào chứng minh, chi phí bao nhiêu, và nó để lại trạng thái gì?"
+
+### Yana OS — quản lý hệ thống AI
+
+Yana OS không phải bản thay thế cho Linux, macOS hay Windows — nó là management plane cục bộ của Yana, suy luận về trạng thái vận hành xung quanh các agent: agent nào tồn tại, nó có identity và mức autonomy gì, nó đang giữ tài nguyên gì, nó chịu trách nhiệm cho công việc gì, nó có khoẻ mạnh không, và có nên bị cách ly (quarantine) hay dừng (HALT) không. Điều này đưa việc quản trị vượt ra ngoài từng lệnh gọi tool riêng lẻ, tiến tới quản lý vòng đời agent (identity, agent lifecycle, autonomy, resources, health, monitoring, supervision, leases, governor, quarantine, HALT) — nhưng nó cố tình không trở thành một execution engine thứ hai. Việc thực thi vẫn thuộc về ranh giới capability chuẩn hoá.
+
+### Thẩm quyền con người nằm trên model
+
+```
+                    HUMAN
+                      │
+                      ▼
+                  GIÁM THỊ
+                HALT / Control
+                      │
+                      ▼
+             YANA CONTROL PLANE
+                      │
+                      ▼
+               RuntimeAuthority
+                      │
+                      ▼
+                Capabilities
+                      │
+                      ▼
+                  Executor
+                      │
+                      ▼
+                     Host
 ```
 
-> **Lỗi đã biết, đã fix từ 2026-07-25:** bản PyPI cũ của `yana-rt` có thể tự đệ quy và chiếm 100% CPU — xem [CHANGELOG.md](CHANGELOG.md) để biết chi tiết sự cố. `pip install -U yana-ai` (hoặc `cargo install yana-rt`, chưa từng bị ảnh hưởng) là hết.
+Một model đủ mạnh không tự nhiên trở thành tối cao chỉ vì nó suy luận giỏi hơn. Subagent không tự động thừa hưởng thẩm quyền của con người. Việc duyệt cho một thao tác không tạo ra quyền vĩnh viễn. Và hệ thống có thể thu hồi quyền thực thi độc lập với ý định của model.
 
-Sau đó thử bảo agent làm bậy, và xem.
+### Skill là kiến thức. Capability là quyền lực.
 
-<p align="center">
-  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
-</p>
+Yana duy trì một hệ sinh thái lớn gồm agent, skill, command, rule và hook — nhưng cố tình tách bạch những thứ này khỏi thẩm quyền thực thi. Một skill có thể dạy agent cách làm một việc; một capability quyết định liệu hệ thống có thực sự được làm việc đó không. Một nghìn skill không đồng nghĩa với một nghìn quyền hệ thống không giới hạn — điều này cho phép bề mặt kiến thức của Yana phát triển mà không buộc bề mặt thực thi đáng tin cậy phải phát triển cùng tốc độ.
 
-Mọi ví dụ dưới đây đều copy trực tiếp từ một lần chạy thật `core/hooks/guard-destructive.sh` ngày 2026-07-04, không phải quảng cáo suông (xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết guard này chưa bắt được gì):
+### Một tầng vận hành chuẩn hoá, nhiều môi trường AI
 
-```bash
-# Agent thử: git push --force origin main
-Blocked: 'git push --force' (any flag spelling) is not allowed. The
-orchestrator pushes branches; force-pushing risks overwriting shared history.
+Yana không đòi hỏi mọi sản phẩm AI phải dùng chung một cơ chế thực thi. Terminal, Electron Desktop, packaged Web và Discord dùng đường runtime Rust của Yana; Web dạng browser-only vẫn chỉ là bề mặt tương thích trừ khi được nối vào một runtime đáng tin cậy. Khi một môi trường AI khác sở hữu runtime riêng của nó — Claude Code, Codex, Cursor, Antigravity — Yana tích hợp qua các bề mặt quản trị riêng cho từng engine. Cơ chế tích hợp có thể thay đổi; nguyên tắc thẩm quyền thì không. Một hệ thống thẩm quyền không đòi hỏi một cơ chế tích hợp giả.
 
-# Agent thử: rm -rf /some/path
-Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
-Use targeted 'rm' with explicit paths, or ask the human to confirm first.
+`core/` chuẩn hoá của Yana định nghĩa kiến thức vận hành có thể tái sử dụng — agent, skill, command, rule, hook, script, policy — sau đó được materialize cho từng AI harness khác nhau (Claude Code, Codex, Cursor, ...). Đổi engine AI không có nghĩa là phải xây lại toàn bộ môi trường vận hành từ đầu: trí tuệ có thể thay đổi, còn workflow, nguyên tắc quản trị, kiến thức vận hành và trạng thái hệ thống vẫn giữ nguyên.
 
-# Agent thử: git clean -f
-Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
-files. Ask the human to confirm before running this.
-```
+### Ý tưởng lớn hơn
 
-Đó là toàn bộ ý tưởng: quy tắc tất định (deterministic), chạy local, không có LLM trong đường ra quyết định, không dữ liệu nào rời khỏi máy bạn. Xem [Giới hạn thực tế](docs/reference/known-limitations.md) để biết chính xác cái nào đang là hook sống, cái nào chỉ là chính sách agent tự áp dụng theo quy ước, đã xác minh trực tiếp trên code chứ không phải trên tài liệu mô tả nó.
+Giá trị dài hạn của Yana không đơn thuần nằm ở việc nó chạy được một model AI — model ngày càng dễ thay thế lẫn nhau. Giá trị của nó cũng không đơn thuần nằm ở số lượng agent hay skill. Sự trừu tượng hoá mạnh hơn là hệ thống bao quanh những model đó: thẩm quyền, tính liên tục, và thực thi, bao bọc quanh trí tuệ có thể thay thế và các "công nhân" agent tạm thời.
 
----
+### Ý tưởng trong 30 giây
+
+Yana biến các model và agent AI độc lập thành một hệ thống thống nhất, có quản trị, tồn tại lâu dài. Nó cung cấp control plane bao quanh trí tuệ: model để suy luận, agent và skill để có kiến thức và workflow, mission và memory để duy trì tính liên tục, và capability chuẩn hoá để thực thi có quản trị.
+
+AI có thể suy luận và đề xuất. Yana quyết định trí tuệ đó nhận được quyền lực gì. Con người giữ quyền quyết định cuối cùng.
+
+> AI suy nghĩ. Yana vận hành hệ thống. Con người vẫn nắm quyền kiểm soát.
+
+### Các dự án liên quan
+
+Yana có điểm gần và điểm khác với từng dự án dưới đây — không dự án nào là đối thủ cần hạ thấp, mỗi cái đều đáng đọc nếu đúng tầng bạn đang cần:
+
+| Dự án | Gần Yana ở đâu | Khác Yana ở đâu |
+| --- | --- | --- |
+| [OpenHands](https://github.com/All-Hands-AI/OpenHands) (nay là "Agent Canvas") | Control center self-hosted điều phối nhiều backend coding-agent (Claude Code, Codex, Gemini, mọi agent ACP) | Thiên về agent-orchestration — một control center để chạy agent, không phải một authority calculus quyết định agent nào được thực thi gì |
+| [Letta](https://github.com/letta-ai/letta-code) (tiền thân là MemGPT; repo `letta-ai/letta` giờ chỉ còn là landing page đã archive — link này trỏ đúng dự án đang hoạt động) | State và identity của agent tồn tại lâu dài, độc lập với model | Thiên về memory-và-identity — câu chuyện continuity của họ là agent nhớ gì qua các phiên, không phải agent được phép thực thi gì |
+| [Goose](https://github.com/block/goose) | Provider-agnostic, đa provider, đa extension (MCP) — gần nhất với provider plane của Yana | Trước hết là một agent runtime mạnh; approval thực thi và scoping capability không phải nguyên tắc tổ chức của họ như thẩm quyền là của Yana |
+| [AutoGen](https://github.com/microsoft/autogen) — **hiện đang maintenance mode**, được kế nhiệm bởi [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Pattern điều phối multi-agent | Delegation ở đó là mối quan tâm workflow/routing, không phải authority calculus — một agent giao việc cho agent khác không giống tuyên bố "thẩm quyền của agent là tập con bị giới hạn của thẩm quyền đã giao nó" |
 
 ## Cài đặt nhanh
 
