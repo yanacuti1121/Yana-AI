@@ -305,17 +305,6 @@ AI는 추론하고 제안할 수 있습니다. Yana는 그 지능이 어떤 권�
 
 > AI는 생각합니다. Yana는 시스템을 운영합니다. 인간은 계속 통제권을 갖습니다.
 
-### 관련 프로젝트
-
-Yana는 아래 각 프로젝트와 어떤 층에서는 겹치고 어떤 층에서는 갈라집니다 — 어느 쪽도 깎아내릴 경쟁자가 아니며, 지금 필요한 층이 무엇인지에 따라 각각 읽어볼 가치가 있습니다:
-
-| 프로젝트 | Yana와 가까운 점 | Yana와 다른 점 |
-| --- | --- | --- |
-| [OpenHands](https://github.com/All-Hands-AI/OpenHands) (현재 "Agent Canvas") | 여러 coding-agent 백엔드(Claude Code, Codex, Gemini, 모든 ACP 에이전트)를 오케스트레이션하는 셀프호스팅 컨트롤 센터 | 에이전트 오케스트레이션 중심 — 에이전트를 실행하는 컨트롤 센터이지, 어떤 에이전트가 무엇을 실행해도 되는지에 대한 authority calculus가 아님 |
-| [Letta](https://github.com/letta-ai/letta-code) (구 MemGPT; `letta-ai/letta` 저장소는 이제 보관된 랜딩 페이지일 뿐이라 실제 활성 프로젝트로 연결) | 모델과 무관하게 지속되는 에이전트 상태와 identity | 메모리·identity 중심 — 이들의 연속성 이야기는 세션 간에 에이전트가 무엇을 기억하는가이지, 무엇을 실행해도 되는가가 아님 |
-| [Goose](https://github.com/block/goose) | 프로바이더 무관, 다중 프로바이더, 다중 확장(MCP) — Yana의 provider plane과 가장 가까움 | 우선은 강력한 에이전트 런타임 — 실행 승인과 capability scoping이 Yana의 권한처럼 조직 원리는 아님 |
-| [AutoGen](https://github.com/microsoft/autogen) — **현재 maintenance mode**, [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)가 후속작 | 멀티 에이전트 오케스트레이션 패턴 | 여기서 delegation은 workflow/routing 문제이지 authority calculus가 아님 — 한 에이전트가 다른 에이전트에게 일을 넘기는 것은 "위임받은 권한의 부분집합만큼만 권한을 갖는다"는 주장과 다름 |
-
 ## 빠른 설치
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`

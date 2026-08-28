@@ -305,17 +305,6 @@ AI có thể suy luận và đề xuất. Yana quyết định trí tuệ đó n
 
 > AI suy nghĩ. Yana vận hành hệ thống. Con người vẫn nắm quyền kiểm soát.
 
-### Các dự án liên quan
-
-Yana có điểm gần và điểm khác với từng dự án dưới đây — không dự án nào là đối thủ cần hạ thấp, mỗi cái đều đáng đọc nếu đúng tầng bạn đang cần:
-
-| Dự án | Gần Yana ở đâu | Khác Yana ở đâu |
-| --- | --- | --- |
-| [OpenHands](https://github.com/All-Hands-AI/OpenHands) (nay là "Agent Canvas") | Control center self-hosted điều phối nhiều backend coding-agent (Claude Code, Codex, Gemini, mọi agent ACP) | Thiên về agent-orchestration — một control center để chạy agent, không phải một authority calculus quyết định agent nào được thực thi gì |
-| [Letta](https://github.com/letta-ai/letta-code) (tiền thân là MemGPT; repo `letta-ai/letta` giờ chỉ còn là landing page đã archive — link này trỏ đúng dự án đang hoạt động) | State và identity của agent tồn tại lâu dài, độc lập với model | Thiên về memory-và-identity — câu chuyện continuity của họ là agent nhớ gì qua các phiên, không phải agent được phép thực thi gì |
-| [Goose](https://github.com/block/goose) | Provider-agnostic, đa provider, đa extension (MCP) — gần nhất với provider plane của Yana | Trước hết là một agent runtime mạnh; approval thực thi và scoping capability không phải nguyên tắc tổ chức của họ như thẩm quyền là của Yana |
-| [AutoGen](https://github.com/microsoft/autogen) — **hiện đang maintenance mode**, được kế nhiệm bởi [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Pattern điều phối multi-agent | Delegation ở đó là mối quan tâm workflow/routing, không phải authority calculus — một agent giao việc cho agent khác không giống tuyên bố "thẩm quyền của agent là tập con bị giới hạn của thẩm quyền đã giao nó" |
-
 ## Cài đặt nhanh
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`

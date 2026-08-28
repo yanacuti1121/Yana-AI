@@ -305,17 +305,6 @@ AI 可以推理并提出建议。Yana 决定这种智能能获得多大权力。
 
 > AI 负责思考，Yana 负责运行系统，人类始终掌控全局。
 
-### 相关项目
-
-Yana 在某一层与下面每个项目接近，又在另一层与它们分开——没有哪个是需要贬低的竞争对手，如果你正好需要下面某一层的能力，每个都值得一读：
-
-| 项目 | 与 Yana 接近之处 | 与 Yana 不同之处 |
-| --- | --- | --- |
-| [OpenHands](https://github.com/All-Hands-AI/OpenHands)（现已更名为 "Agent Canvas"） | 一个自托管的控制中心，编排多个 coding-agent 后端（Claude Code、Codex、Gemini、任何 ACP agent） | 以代理编排为中心 —— 是一个运行代理的控制中心，而不是决定某个代理能执行什么的权限演算 |
-| [Letta](https://github.com/letta-ai/letta-code)（前身 MemGPT；`letta-ai/letta` 仓库现已存档、仅作为落地页，这里链接到实际在维护的项目） | 独立于模型、可持续存在的代理状态与身份 | 以记忆与身份为中心——它们的连续性故事是代理跨会话记住了什么，而不是代理被允许执行什么 |
-| [Goose](https://github.com/block/goose) | Provider 无关、多 provider、多扩展（MCP）——与 Yana 的 provider plane 最接近 | 首先是一个强大的 agent runtime；执行审批与 capability 范围划定并不是它的组织原则，不像权限之于 Yana |
-| [AutoGen](https://github.com/microsoft/autogen) —— **目前处于 maintenance mode**，后续由 [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) 接替 | 多代理编排模式 | 这里的 delegation 是 workflow/routing 层面的问题，而不是权限演算——一个代理把工作交给另一个代理，并不等同于"被委托代理的权限是委托方权限的有界子集"这个主张 |
-
 ## 快速安装
 
 **→ [pip install](https://pypi.org/project/yana-ai/)** — `pip install yana-ai`
