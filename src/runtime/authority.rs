@@ -1,6 +1,22 @@
 use super::TurnContext;
+use crate::capability::lease::LeaseStore;
 use crate::capability::{manifest, ApprovalRequirement};
 use crate::model::tool::ToolCall;
+
+/// `command.execute`'s only argument today (`{"command": "..."}`) — the one
+/// capability whose invocation a lease can currently be scoped by content,
+/// not just by capability name. Returns `None` for every other capability,
+/// which makes a lease for them subject/capability/scope-only (no command
+/// text to match against).
+fn command_text_for_lease(call: &ToolCall) -> Option<String> {
+    #[derive(serde::Deserialize)]
+    struct Args {
+        command: Option<String>,
+    }
+    serde_json::from_str::<Args>(&call.arguments_json)
+        .ok()
+        .and_then(|args| args.command)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum AuthorityLayer {
@@ -90,6 +106,35 @@ impl YanaAuthorityChain {
                     descriptor.name
                 ),
             };
+        }
+
+        // Capability Lease (Milestone "Authority Depth", P0): a lease is
+        // evidence supplied to authority, never a cached authority
+        // decision — `try_consume_matching` re-checks subject, capability,
+        // scope, expiry, revocation, and budget against what's on disk
+        // right now, every single call. It runs after the HALT check above
+        // (via `preflight_turn`, already evaluated at the top of this
+        // function) and the availability check above it, so a lease can
+        // never bypass either. A matching lease *does* satisfy the
+        // human_initiated gate below — that's the actual point of a lease:
+        // letting a delegated subagent run within a human-granted,
+        // time-boxed, budget-boxed scope without a live human clicking
+        // every call.
+        if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall {
+            if let Some(subject) = context.agent_id.as_deref().filter(|s| !s.is_empty()) {
+                let command_text = command_text_for_lease(call);
+                let matched = LeaseStore::for_root(&context.session.repo_root)
+                    .try_consume_matching(
+                        subject,
+                        descriptor.name,
+                        &context.session.repo_root,
+                        command_text.as_deref(),
+                    )
+                    .unwrap_or(false);
+                if matched {
+                    return AuthorityDecision::Allow;
+                }
+            }
         }
 
         if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall

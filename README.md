@@ -414,7 +414,7 @@ lives at `src/yana_ai/` rather than as a top-level directory of its own.
 
 ## Rust runtime — `yana-rt`
 
-37 subcommands. Zero Python dependency. This is the source-defined count across feature builds: a default build exposes 32 runtime commands, Clap adds the visible `help` entry, and `mcp` plus `remote` are feature-gated.
+38 subcommands. Zero Python dependency. This is the source-defined count across feature builds: a default build exposes 32 runtime commands, Clap adds the visible `help` entry, and `mcp` plus `remote` are feature-gated.
 
 ```bash
 yana-ai chat                          # governed streaming chat across the canonical provider catalog

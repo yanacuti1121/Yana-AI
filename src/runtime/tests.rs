@@ -128,6 +128,14 @@ fn call(name: &str) -> ToolCall {
     }
 }
 
+fn call_with_command(name: &str, command: &str) -> ToolCall {
+    ToolCall {
+        id: "call-1".into(),
+        name: name.into(),
+        arguments_json: serde_json::json!({ "command": command }).to_string(),
+    }
+}
+
 #[test]
 fn giam_thi_halt_blocks_before_the_provider_runs() {
     let root = tempfile::tempdir().unwrap();
@@ -385,5 +393,127 @@ fn cancellation_preserves_partial_output() {
     assert!(matches!(
         outcome,
         TurnOutcome::Cancelled { ref partial } if partial == "partial"
+    ));
+}
+
+// ── Capability Lease (Milestone "Authority Depth", P0) ──────────────────────
+//
+// A lease is the one deliberate way a subagent turn *can* satisfy the
+// `HumanApprovalPerCall` gate that `subagent_origin_cannot_turn_human_
+// approval_into_mutation_authority` above proves is otherwise closed. These
+// tests prove the lease path is real without weakening that existing
+// invariant — the no-lease case above must still pass unmodified, and it
+// does (untouched by this change).
+
+#[test]
+fn subagent_with_a_valid_matching_lease_gets_mutation_authority() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path()).context.for_subagent("worker-1");
+    crate::capability::lease::LeaseStore::for_root(root.path())
+        .grant(
+            "worker-1".into(),
+            "command.execute".into(),
+            vec!["cargo test".into()],
+            vec![],
+            "human".into(),
+            20,
+            Some(5),
+        )
+        .unwrap();
+    let command = call_with_command("run_command", "cargo test --release");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Allow
+    ));
+}
+
+#[test]
+fn subagent_with_an_expired_lease_is_still_denied() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path()).context.for_subagent("worker-1");
+    let now = chrono::Utc::now();
+    let expired = crate::capability::lease::Lease {
+        id: "expired1".into(),
+        subject: "worker-1".into(),
+        capability: "command.execute".into(),
+        repo_root: root.path().to_path_buf(),
+        allow: vec!["cargo test".into()],
+        deny: vec![],
+        issued_by: "human".into(),
+        issued_at: now - chrono::Duration::minutes(30),
+        expires_at: now - chrono::Duration::minutes(10),
+        invocation_budget: None,
+        remaining: None,
+        revoked: false,
+    };
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    std::fs::write(
+        root.path().join(".yana-ai").join("leases.json"),
+        serde_json::to_vec(&vec![expired]).unwrap(),
+    )
+    .unwrap();
+    let command = call_with_command("run_command", "cargo test");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Deny {
+            authority: AuthorityLayer::YanaControlPlane,
+            reason,
+        } if reason.contains("non-human-initiated")
+    ));
+}
+
+#[test]
+fn subagent_with_a_lease_for_a_different_command_is_still_denied() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path()).context.for_subagent("worker-1");
+    crate::capability::lease::LeaseStore::for_root(root.path())
+        .grant(
+            "worker-1".into(),
+            "command.execute".into(),
+            vec!["cargo test".into()],
+            vec![],
+            "human".into(),
+            20,
+            None,
+        )
+        .unwrap();
+    let command = call_with_command("run_command", "git push --force origin main");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Deny {
+            authority: AuthorityLayer::YanaControlPlane,
+            reason,
+        } if reason.contains("non-human-initiated")
+    ));
+}
+
+#[test]
+fn halt_active_denies_a_leased_subagent_call_too() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(root.path().join(".claude/state")).unwrap();
+    std::fs::write(root.path().join(".claude/state/GIAMTHI_HALT.lock"), "halt").unwrap();
+    let context = request(root.path()).context.for_subagent("worker-1");
+    crate::capability::lease::LeaseStore::for_root(root.path())
+        .grant(
+            "worker-1".into(),
+            "command.execute".into(),
+            vec!["cargo test".into()],
+            vec![],
+            "human".into(),
+            20,
+            None,
+        )
+        .unwrap();
+    let command = call_with_command("run_command", "cargo test");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Deny {
+            authority: AuthorityLayer::GiamThi,
+            ..
+        }
     ));
 }
