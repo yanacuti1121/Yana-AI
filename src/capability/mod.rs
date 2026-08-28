@@ -12,6 +12,7 @@ pub mod command;
 pub mod error;
 pub mod evidence;
 pub mod git;
+pub mod lease;
 pub mod registry;
 mod registry_data;
 pub mod repo;
