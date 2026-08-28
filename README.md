@@ -308,17 +308,6 @@ AI can reason and propose. Yana determines what power that intelligence receives
 
 > AI thinks. Yana operates the system. Humans remain in control.
 
-### Related projects
-
-Yana overlaps with each of these at one layer and diverges at another — none are competitors to dismiss, and each is worth reading if a specific layer below is what you actually need:
-
-| Project | Where it's close to Yana | Where it differs |
-| --- | --- | --- |
-| [OpenHands](https://github.com/All-Hands-AI/OpenHands) (now "Agent Canvas") | A self-hosted control center orchestrating multiple coding-agent backends (Claude Code, Codex, Gemini, any ACP agent) | Agent-orchestration-centric — a control center for running agents, not an authority calculus for what any one of them may execute |
-| [Letta](https://github.com/letta-ai/letta-code) (f.k.a. MemGPT; the `letta-ai/letta` repo is now an archived landing page — this links the active project) | Persistent, model-independent agent state and identity | Memory-and-identity-centric; its continuity story is about what an agent remembers across sessions, not what it's permitted to execute |
-| [Goose](https://github.com/block/goose) | Provider-agnostic, multi-provider, multi-extension (MCP) agent runtime cohesion — closest to Yana's provider plane | A capable agent runtime first; execution approval and capability scoping are not its organizing principle the way authority is Yana's |
-| [AutoGen](https://github.com/microsoft/autogen) — **now in maintenance mode**, succeeded by [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Multi-agent orchestration patterns | Delegation there is a workflow/routing concern; it is not an authority calculus — one agent handing work to another isn't the same claim as one agent's authority being a bounded subset of what delegated it |
-
 ## Quick install
 
 Two independent install paths. Neither is the "real" one — pick based on
