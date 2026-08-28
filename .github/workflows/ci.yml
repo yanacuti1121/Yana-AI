@@ -213,6 +213,24 @@ jobs:
       - name: Run discord feature tests
         run: "cargo test --features discord --bin yana-rt remote:: -- --test-threads=1"
 
+      # Authority Hardening item #9 (CI feature matrix): the `mcp` feature
+      # (Cargo.toml, Program J Phase 9 spike) was never built anywhere in
+      # this repo's CI either -- same gap as `discord` above, confirmed
+      # the same way: grepping every workflow file for `mcp`/`all-
+      # features` before adding this returned zero matches. Unlike
+      # `discord`, there are no `#[cfg(feature = "mcp")]`-gated tests to
+      # run (confirmed via grep across src/ -- only two files gate code
+      # behind this feature, main.rs's Mcp command dispatch and a handful
+      # of workspace re-exports, neither with its own test module), so
+      # this is compile coverage only: it exists so `mcp` pulling in
+      # tokio (this crate's only async dependency) can't silently rot
+      # between a real Rust compiler version bump and someone actually
+      # building the feature by hand. Verified locally before wiring
+      # this in: `cargo check --features mcp` and `cargo check --all-
+      # features` both compile clean.
+      - name: Check mcp feature compiles
+        run: cargo check --features mcp --bin yana-rt
+
   system-health-monitor:
     name: System Health Monitor (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
