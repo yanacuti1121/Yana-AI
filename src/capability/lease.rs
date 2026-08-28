@@ -588,6 +588,34 @@ mod tests {
         fs::remove_dir_all(&root).ok();
     }
 
+    // Authority Hardening item #8: a symlinked lease store is exactly the
+    // attack cost.rs's own `strict_reader_rejects_symlink` test already
+    // covers for the cost ledger -- an attacker (or a misconfigured
+    // deployment) replacing .yana-ai/leases.json with a symlink pointing
+    // outside the project could otherwise make a read follow it to an
+    // arbitrary file. read_leases already guards this (symlink_metadata +
+    // is_symlink() check, mirroring cost.rs's read_cost_policy exactly);
+    // this test proves the guard is real, not just present in the code.
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_lease_store_is_rejected_not_followed() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_root();
+        let path = leases_path(&root);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let target = root.join("outside-lease-store");
+        fs::write(&target, "[]").unwrap();
+        symlink(&target, &path).unwrap();
+
+        let error = LeaseStore::for_root(&root).list().unwrap_err().to_string();
+        assert!(
+            error.contains("must be a regular file") || error.to_lowercase().contains("symlink"),
+            "expected a symlink-rejection error, got: {error}"
+        );
+        fs::remove_dir_all(&root).ok();
+    }
+
     // ── Real concurrency (hardening pass) ────────────────────────────────
     //
     // Each test below spawns genuine `std::thread` threads, each doing its
