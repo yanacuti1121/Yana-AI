@@ -337,6 +337,7 @@ Commands:
   bus    <subcommand>     Agent message bus — emit/read/reply/inbox
   cost   <subcommand>     Cost dashboard — token usage and spend tracking
   lease  <subcommand>     Capability Lease — time-boxed delegated authority for a subagent
+  authority <subcommand>  Authority decision receipts — evidence for allow/deny/approval decisions
   explain <rule-id>       Explain a finding — what it means, why it's risky, how to fix
   map    [target]         Agent Blast Radius Map — what your agent can reach
   init-policy <tool>      Generate safe config template (claude/mcp/github-actions/gitignore/env)
@@ -614,7 +615,7 @@ case "$COMMAND" in
   guard)
     cmd_guard "$@"
     ;;
-  task|eval|bus|memory|plugin|cost|lease|vault|os|workspace|spec|provenance|mission|route|evidence|chat|observability|skill-quality|mcp|remote|research|connector)
+  task|eval|bus|memory|plugin|cost|lease|authority|vault|os|workspace|spec|provenance|mission|route|evidence|chat|observability|skill-quality|mcp|remote|research|connector)
     rt "$COMMAND" "$@"
     ;;
   explain)
