@@ -4,6 +4,7 @@ use super::{
 };
 use crate::model::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
 use crate::model::tool::{StreamOutcome, ToolCall, ToolCallRecord, ToolResultRecord};
+use chrono::Utc;
 use std::fmt;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -105,8 +106,8 @@ pub(crate) fn execute_approved_tool(
     cancellation: &CancellationToken,
     emit: &mut dyn FnMut(RuntimeEvent),
 ) -> Result<ToolResultRecord, TurnError> {
-    match authority.authorize_approved_tool(context, call) {
-        AuthorityDecision::Allow => {}
+    let authority_decision_id = match authority.authorize_approved_tool(context, call) {
+        AuthorityDecision::Allow { decision_id } => decision_id,
         AuthorityDecision::Deny { authority, reason }
         | AuthorityDecision::HumanApprovalRequired { authority, reason } => {
             emit(RuntimeEvent::AuthorityDenied {
@@ -115,7 +116,7 @@ pub(crate) fn execute_approved_tool(
             });
             return Err(TurnError::AuthorityDenied { authority, reason });
         }
-    }
+    };
     if cancellation.is_cancelled() {
         return Ok(ToolResultRecord {
             call_id: call.id.clone(),
@@ -130,7 +131,23 @@ pub(crate) fn execute_approved_tool(
     emit(RuntimeEvent::ToolStarted {
         call_id: call.id.clone(),
     });
+    let started_at = Utc::now();
     let result = executor.execute_approved(ApprovedTool { context, call });
+    let completed_at = Utc::now();
+    // Authority Hardening item #4: the invocation actually happened (past
+    // the cancellation check above), so it gets an ExecutionReceipt
+    // regardless of outcome — closing the causal chain item #3's
+    // AuthorityDecision started.
+    super::receipt::record_execution(
+        context,
+        authority_decision_id,
+        &call.name,
+        &call.arguments_json,
+        &result.output,
+        result.is_error,
+        started_at,
+        completed_at,
+    );
     emit(RuntimeEvent::ToolCompleted(result.clone()));
     Ok(result)
 }
@@ -242,7 +259,7 @@ impl TurnEngine {
                     emit(RuntimeEvent::ToolRequested(call.clone()));
 
                     match self.authority.authorize_tool(&request.context, &call) {
-                        AuthorityDecision::Allow => {
+                        AuthorityDecision::Allow { decision_id } => {
                             // Cancellation may have arrived while the provider was
                             // streaming the tool-call proposal or while authority
                             // was deciding — checked here, not just at the top of
@@ -257,7 +274,19 @@ impl TurnEngine {
                             emit(RuntimeEvent::ToolStarted {
                                 call_id: call.id.clone(),
                             });
+                            let started_at = Utc::now();
                             let result = self.executor.execute(&request.context, &call);
+                            let completed_at = Utc::now();
+                            super::receipt::record_execution(
+                                &request.context,
+                                decision_id,
+                                &call.name,
+                                &call.arguments_json,
+                                &result.output,
+                                result.is_error,
+                                started_at,
+                                completed_at,
+                            );
                             emit(RuntimeEvent::ToolCompleted(result.clone()));
                             push_tool_result(&mut request.messages, &result);
                             tool_results.push(result);

@@ -35,7 +35,15 @@ impl AuthorityLayer {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum AuthorityDecision {
-    Allow,
+    /// `decision_id` correlates this Allow to the `AuthorityDecisionReceipt`
+    /// recorded for it (item #3) and, in turn, to the `ExecutionReceipt`
+    /// (item #4) an actual capability invocation emits — the
+    /// `AuthorityDecision → Invocation → ExecutionReceipt` link in the
+    /// causal chain `Turn → Proposal → AuthorityDecision → Invocation →
+    /// ExecutionReceipt → Result`. `None` only for `preflight_turn`'s own
+    /// turn-level HALT-gate Allow (not a per-capability decision, so
+    /// nothing is recorded for it — see that function).
+    Allow { decision_id: Option<String> },
     HumanApprovalRequired {
         authority: AuthorityLayer,
         reason: String,
@@ -67,7 +75,10 @@ impl RuntimeAuthority for YanaAuthorityChain {
                 ),
             }
         } else {
-            AuthorityDecision::Allow
+            // No decision_id: this is a turn-level gate check, not a
+            // per-capability decision, so nothing is recorded for it — see
+            // `AuthorityDecision::Allow`'s own doc comment.
+            AuthorityDecision::Allow { decision_id: None }
         }
     }
 
@@ -88,20 +99,23 @@ impl YanaAuthorityChain {
         human_approved: bool,
     ) -> AuthorityDecision {
         if let decision @ AuthorityDecision::Deny { .. } = self.preflight_turn(context) {
-            super::receipt::record(context, &call.name, &decision, None);
+            let decision_id = uuid::Uuid::new_v4().to_string();
+            super::receipt::record(&decision_id, context, &call.name, &decision, None);
             return decision;
         }
 
         let registry = manifest();
         let Some(descriptor) = registry.get_by_tool_name(&call.name) else {
+            let decision_id = uuid::Uuid::new_v4().to_string();
             let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!("tool '{}' has no canonical Yana capability", call.name),
             };
-            super::receipt::record(context, &call.name, &decision, None);
+            super::receipt::record(&decision_id, context, &call.name, &decision, None);
             return decision;
         };
         if !(descriptor.availability)(&context.session) {
+            let decision_id = uuid::Uuid::new_v4().to_string();
             let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!(
@@ -109,7 +123,7 @@ impl YanaAuthorityChain {
                     descriptor.name
                 ),
             };
-            super::receipt::record(context, descriptor.name, &decision, None);
+            super::receipt::record(&decision_id, context, descriptor.name, &decision, None);
             return decision;
         }
 
@@ -137,8 +151,17 @@ impl YanaAuthorityChain {
                     )
                     .unwrap_or(None);
                 if let Some(lease_id) = matched_lease_id {
-                    let decision = AuthorityDecision::Allow;
-                    super::receipt::record(context, descriptor.name, &decision, Some(lease_id));
+                    let decision_id = uuid::Uuid::new_v4().to_string();
+                    let decision = AuthorityDecision::Allow {
+                        decision_id: Some(decision_id.clone()),
+                    };
+                    super::receipt::record(
+                        &decision_id,
+                        context,
+                        descriptor.name,
+                        &decision,
+                        Some(lease_id),
+                    );
                     return decision;
                 }
             }
@@ -147,6 +170,7 @@ impl YanaAuthorityChain {
         if descriptor.approval == ApprovalRequirement::HumanApprovalPerCall
             && !context.human_initiated
         {
+            let decision_id = uuid::Uuid::new_v4().to_string();
             let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!(
@@ -154,13 +178,20 @@ impl YanaAuthorityChain {
                     context.origin, descriptor.name
                 ),
             };
-            super::receipt::record(context, descriptor.name, &decision, None);
+            super::receipt::record(&decision_id, context, descriptor.name, &decision, None);
             return decision;
         }
 
+        let decision_id = uuid::Uuid::new_v4().to_string();
         let decision = match descriptor.approval {
-            ApprovalRequirement::None => AuthorityDecision::Allow,
-            ApprovalRequirement::HumanApprovalPerCall if human_approved => AuthorityDecision::Allow,
+            ApprovalRequirement::None => AuthorityDecision::Allow {
+                decision_id: Some(decision_id.clone()),
+            },
+            ApprovalRequirement::HumanApprovalPerCall if human_approved => {
+                AuthorityDecision::Allow {
+                    decision_id: Some(decision_id.clone()),
+                }
+            }
             ApprovalRequirement::HumanApprovalPerCall => AuthorityDecision::HumanApprovalRequired {
                 authority: AuthorityLayer::YanaControlPlane,
                 reason: format!(
@@ -169,7 +200,7 @@ impl YanaAuthorityChain {
                 ),
             },
         };
-        super::receipt::record(context, descriptor.name, &decision, None);
+        super::receipt::record(&decision_id, context, descriptor.name, &decision, None);
         decision
     }
 }

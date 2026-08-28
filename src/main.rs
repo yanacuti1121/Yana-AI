@@ -749,6 +749,16 @@ enum AuthorityAction {
         #[arg(long)]
         json: bool,
     },
+    /// List execution receipts (Authority Hardening item #4) recorded for
+    /// this project, oldest first. Each traces one capability invocation
+    /// back to the authority decision that permitted it.
+    Executions {
+        /// Show only the last N receipts (default: all)
+        #[arg(long)]
+        last: Option<usize>,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 // ── main ─────────────────────────────────────────────────────────────────────
@@ -1125,6 +1135,12 @@ fn main() {
         Commands::Authority { action } => match action {
             AuthorityAction::Receipts { last, json } => {
                 if let Err(error) = runtime::cmd_authority_receipts(last, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            AuthorityAction::Executions { last, json } => {
+                if let Err(error) = runtime::cmd_authority_executions(last, json) {
                     eprintln!("[authority] {error:#}");
                     std::process::exit(2);
                 }
