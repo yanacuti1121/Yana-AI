@@ -1,41 +1,49 @@
-# ADR-015 — Remote Approval Continuation Protocol and Intent Contract Foundation (design, not implemented)
+# ADR-015 — Remote Approval Continuation Protocol and Intent Contract Foundation
 
-**Status:** Proposed — design only. No code in this ADR has shipped. Written
-as part of the Authority Hardening workstream (items #5 and #7) per that
-workstream's own explicit instruction for these two items: "design/document
-it first rather than pretending it is complete" if the primitive cannot yet
-be deterministically enforced in the runtime.
+**Status:** Part 1 (Remote Approval Continuation Protocol) implemented and
+shipped 2026-08-28 — see `src/runtime/pending_approval.rs`. Part 2 (Intent
+Contract) has its *enforcement half* implemented and shipped the same day
+(`IntentDeclaration` + `narrow_by_intent` in `src/runtime/authority.rs`) —
+the *declaration half* (a model-facing surface to actually submit one)
+remains deliberately undesigned, per this document's own Part 2 scoping
+below. Originally written 2026-08-28 as design-only for both parts; Part 1
+and Part 2's enforcement half were promoted from design to code the same
+day once the workstream continued.
 **Date:** 2026-08-28
-**Decision owner:** Human project owner (not yet decided — this ADR proposes,
-it does not accept)
+**Decision owner:** Human project owner
 
-## Why this is design-only, not code
+## Why this was design-only at first, and what changed
 
 Items #1–#4, #6, #8–#11 of the same workstream (Capability Lease atomicity,
 token-aware scope matching, `AuthorityDecisionReceipt`, `ExecutionReceipt`,
 delegated leases, CI hardening) were implementable within the existing
 `RuntimeAuthority`/`capability::lease` primitives without changing any
-client-facing contract. Items #5 and #7 are different in kind:
+client-facing contract. Items #5 and #7 were different in kind, and this
+document was originally written design-only for both:
 
-- Item #5 needs a durable, cross-process resumption mechanism.
+- Item #5 needed a durable, cross-process resumption mechanism.
   `TurnRequest`/`TurnContext` (`src/runtime/request.rs`,
-  `src/runtime/origin.rs`) do not derive `Serialize`/`Deserialize` today —
-  confirmed by reading both files directly. A real remote-approval
-  continuation needs to persist and later reconstruct a `TurnRequest`
-  across a process boundary (a human approves from Desktop or a CLI
-  command in a different invocation than the one that paused), which is
-  a real serialization/versioning design question, not a pure
-  authority-logic one.
-- Item #7 needs a new, currently-nonexistent primitive: a way for a model
-  to *declare* the capability envelope it intends to use for a bounded
-  plan, checked against `HumanGranted ∩ PolicyAllowed ∩ DelegatedAuthority`
-  before any of it executes. No code in this repo does this today.
+  `src/runtime/origin.rs`) did not derive `Serialize`/`Deserialize` —
+  confirmed by reading both files directly at the time. **Resolved**:
+  both now derive it (along with every type reachable from them --
+  `SessionContext`, `TurnOrigin`, `ChatMessage`, `ImageAttachment`,
+  `ToolCall`), and `src/runtime/pending_approval.rs` implements the full
+  continuation. See Part 1 below for the shipped design.
+- Item #7 needed a new, currently-nonexistent primitive: a way for a
+  model to *declare* the capability envelope it intends to use for a
+  bounded plan, checked against `HumanGranted ∩ PolicyAllowed ∩
+  DelegatedAuthority` before any of it executes. **Partially resolved**:
+  the enforcement primitive (`IntentDeclaration` + `narrow_by_intent`) is
+  implemented and wired into `capability_decision` -- see Part 2 below.
+  The model-facing *declaration* surface (how a model or a coordinator
+  actually submits one) remains undesigned; Part 2 explains why that
+  half is still deliberately out of scope.
 
 Building either without confirming the shape of the API a real client
 needs is exactly the failure mode `CURRENT-MILESTONE.md`'s scope
 discipline exists to catch: a subsystem built for elegance instead of a
-confirmed need. This ADR names the confirmed need (real code, real
-`bail!()`s, cited below), proposes a design, and stops there.
+confirmed need. This document named the confirmed need (real code, real
+`bail!()`s, cited below) before either part became code.
 
 ---
 
@@ -166,21 +174,32 @@ existing convention (one more line-delimited JSON event type,
 specifically. A future WebSocket or IPC transport can carry the same
 typed events; this ADR does not lock the design to either.
 
-### What is explicitly deferred by this ADR
+### Implementation status (2026-08-28)
 
-- The actual `Serialize`/`Deserialize` derives on `TurnContext`/
-  `TurnRequest` and everything reachable from them (`ChatMessage`,
-  `ToolCallRecord`, etc.) — real work, not a design question, left for
-  the implementation PR.
+Shipped: `src/runtime/pending_approval.rs` (`PendingApprovalStore` +
+`resume_turn`), the `Serialize`/`Deserialize` derives, `chat/headless.rs`
+wired end to end (real capabilities via `chat::tools::catalog`, real
+`ChatCapabilityExecutor`, `AwaitingApproval` persists instead of
+crashing, `--resume-approval` CLI flag), `RuntimeEvent::TurnResumed`,
+`yana-rt authority pending-approvals`. Verified end-to-end against a
+real local model (Ollama) across two separate process invocations, not
+just unit tests — see the shipping PR's test plan for the full receipt
+trail proving the causal chain held.
+
+### What is still deferred (out of scope for this pass, not silently dropped)
+
 - The Desktop-side UI for showing a pending approval and collecting a
-  decision — a product/UX task, not an authority-primitive one.
+  decision — a product/UX task, not an authority-primitive one. Today a
+  human (or a script acting on their behalf) constructs the
+  `--resume-approval` stdin JSON directly.
 - Discord's specific approval UX (a slash command? a reaction? DM the
-  requester?) — needs a product decision this ADR does not make.
-- Multi-approval races (two humans resolving the same `approval_id`) —
-  the durable record needs the same lock-and-re-validate discipline
-  `lease.rs`'s hardening pass already established; the exact mechanism
-  (flock-v1, most likely, matching every other `.yana-ai/*` mutable
-  store) is an implementation detail for that PR, not decided here.
+  requester?) — needs a product decision this document does not make.
+  Discord's own `remote/mod.rs` still `bail!()`s on `AwaitingApproval`;
+  only `chat/headless.rs` (Desktop/packaged Web) was wired.
+- A second mutating call proposed mid-resume re-pauses correctly (handled
+  in `dispatch_resume`), but there is no tested upper bound on how many
+  times one logical task can pause/resume — not a known problem, just
+  not exercised past one round-trip.
 
 ---
 
@@ -243,20 +262,46 @@ allowed anyway. This mirrors `try_consume_matching`'s own AND-composition
 design (item #6): safety by intersection, not by trusting a
 self-reported list.
 
-### Why this is not implemented in the current workstream
+### Implementation status (2026-08-28): enforcement shipped, declaration surface still deferred
 
-1. No CLI or provider-tool-call surface exists today for a model to
-   submit an `IntentDeclaration` — this is new protocol surface on the
-   model-facing side (a new tool, or a new field on existing tool calls),
-   a product/API design decision this ADR does not make unilaterally.
-2. It only becomes useful once Part 1 exists: a bounded multi-step plan
-   that needs an `IntentDeclaration` is exactly the kind of long-running,
-   multiple-approval-point task that also needs the Remote Approval
-   Continuation Protocol — building Intent Contract first, without
-   continuation, would produce a feature that only works for a single
-   uninterrupted Terminal session, not the cross-client case the
-   milestone doc's own priority order (P0 continuation before P2 Intent
-   Contract) already anticipated.
+The enforcement half is real, not a placeholder: `IntentDeclaration`
+(`src/runtime/authority.rs`) plus `narrow_by_intent`, which
+`capability_decision` now calls at every point it would otherwise return
+`Allow`. `TurnContext::with_intent` sets a declaration (additive,
+chainable, does not auto-inherit into `for_subagent` the way `turn_id`
+does — a coordinator's own intent and a delegated subagent's task are
+not the same claim). Five tests prove the exact three properties this
+section promised: a declared capability+scope is allowed; an undeclared
+capability downgrades to `HumanApprovalRequired` (never a silent
+`Deny`); an out-of-scope command under an otherwise-declared capability
+is caught too; a declaration can never widen a HALT `Deny`; and with no
+declaration at all, existing behavior is provably unchanged (all five
+Red-Green verified against a temporarily-bypassed `narrow_by_intent`).
+
+**Still deferred, and still correctly so:**
+
+1. No CLI or provider-tool-call surface exists yet for a model (or a
+   coordinator dispatching a subagent) to actually *set*
+   `context.intent` outside a test. This is new protocol surface on the
+   model-facing side (a new tool, or a new field on existing tool
+   calls) — a product/API design decision this document still does not
+   make unilaterally, and confirmed to genuinely have no real caller
+   yet: `for_subagent` itself (the natural place a coordinator would
+   also call `with_intent`) has zero production call sites in this
+   repo today — this codebase's multi-agent dispatcher does not exist
+   yet either, so there is no real orchestration layer to wire this
+   into, the same honest gap `for_subagent` itself already had before
+   this ADR.
+2. Given (1), `IntentDeclaration` today is a real, tested, correctly-
+   enforced primitive waiting for that future dispatcher — the same
+   position `Lease.parent_lease_id` (item #6) was in until this
+   workstream's own manual CLI smoke test (`lease grant
+   --parent-lease-id`) proved it end to end. `IntentDeclaration` has no
+   CLI equivalent yet because, unlike a lease (human-issued, so a human
+   CLI command is a natural fit), an intent declaration is specifically
+   supposed to originate from the *model or agent itself* — a human
+   typing one in by hand on the model's behalf would not exercise the
+   real trust boundary this primitive exists to guard.
 
 ---
 
@@ -271,14 +316,22 @@ self-reported list.
   protocol) and P2 (Intent Contract) sections this ADR refines against
   the primitives item #6 actually shipped.
 
-## Next steps if accepted
+## Remaining next steps
 
-1. Add `Serialize`/`Deserialize` to `TurnContext`/`TurnRequest` and their
-   transitive dependencies — a scoped, mechanical PR, testable in
-   isolation (round-trip serialize/deserialize, no behavior change).
-2. Design and implement the durable `PendingApproval` store, following
-   `lease.rs`'s locked-JSON-file precedent.
-3. Wire `chat/headless.rs`'s `AwaitingApproval` arm to persist instead of
-   `bail!()`, and add the `resume` entry point.
-4. Only after 1–3 are real: design the `IntentDeclaration` surface and
-   its narrowing-intersection enforcement in `capability_decision`.
+Steps 1–4 as originally proposed here (serde derives, `PendingApproval`
+store, `chat/headless.rs` wiring, `IntentDeclaration` enforcement) are
+all done. What is left, in the order it makes sense to pick up:
+
+1. Design the actual model-facing (or coordinator-facing)
+   `IntentDeclaration` submission surface — the one piece Part 2 still
+   does not resolve. Likely candidates: a new tool exposed alongside
+   `read_file`/`run_command`, or a field a coordinator sets when it
+   eventually dispatches a real subagent — but that dispatcher does not
+   exist in this codebase yet either, so this step may naturally land
+   together with building it, not before.
+2. Wire Discord's `remote/mod.rs` onto the same `PendingApprovalStore`/
+   `resume_turn` Desktop now uses, once Discord's own approval UX
+   (slash command / reaction / DM) is decided — a product question, not
+   an authority one.
+3. A Desktop-side UI for reviewing and resolving a pending approval
+   (today: hand-constructed stdin JSON only).

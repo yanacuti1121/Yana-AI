@@ -14,7 +14,7 @@ mod receipt;
 mod request;
 
 pub(crate) use authority::{
-    AuthorityDecision, AuthorityLayer, RuntimeAuthority, YanaAuthorityChain,
+    AuthorityDecision, AuthorityLayer, IntentDeclaration, RuntimeAuthority, YanaAuthorityChain,
 };
 pub(crate) use controller::{
     execute_approved_tool, push_tool_result, ApprovedTool, CancellationToken, ToolExecutor,

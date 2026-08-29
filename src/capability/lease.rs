@@ -127,7 +127,14 @@ fn write_leases(root: &Path, leases: &[Lease]) -> Result<()> {
 /// Fails closed (no match) if either side fails to tokenize — an
 /// unparseable lease scope entry or an unparseable proposed command is
 /// never treated as a match.
-fn command_matches(entry: &str, command_text: &str) -> bool {
+///
+/// `pub(crate)` (not private): reused as-is by
+/// `runtime::authority::narrow_by_intent` (Authority Hardening item #7)
+/// so a declared intent's scope entries are matched with the exact same
+/// token-boundary semantics a lease's own `allow` list already uses —
+/// not a second, independently-written matcher that could disagree
+/// with this one.
+pub(crate) fn command_matches(entry: &str, command_text: &str) -> bool {
     let (Ok(entry_tokens), Ok(command_tokens)) = (
         super::command::tokenize_command(entry),
         super::command::tokenize_command(command_text),
