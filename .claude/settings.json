@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/precompact-priority-injection.sh bash .claude/hooks/hook-timeout-guard.sh",
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/precompact-priority-injection.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\"",
             "statusMessage": "Injecting compaction priority requirements..."
           }
         ]
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/giamthi-halt-check.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/giamthi-halt-check.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -43,39 +43,39 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/guard-destructive.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-destructive.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/guard-blast-radius.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-blast-radius.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-proxy-enforcer.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/tool-proxy-enforcer.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/sandbox-wrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/sandbox-wrap.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/deploy-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/deploy-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/supply-chain-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/supply-chain-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/db-protect.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/db-protect.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/api-destruct-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/api-destruct-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_HOOK_TIMEOUT=150 YANA_GUARDED_HOOK=.claude/hooks/coverage-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_HOOK_TIMEOUT=150 YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/coverage-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -84,11 +84,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-validator.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/tool-validator.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/prompt-injection-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/prompt-injection-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -97,7 +97,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/token-scope-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/token-scope-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -106,15 +106,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/scope-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/scope-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/freeze-scope.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/freeze-scope.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/infra-review-reminder.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/infra-review-reminder.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -123,15 +123,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-budget-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/agent-budget-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh start"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/agent-pixel-notify.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\" start"
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/log-agent.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/log-agent.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -140,11 +140,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/token-budget-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/token-budget-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/per-tool-circuit-breaker.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/per-tool-circuit-breaker.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
@@ -153,15 +153,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/code-freeze.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/code-freeze.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/confidence-scorer.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/confidence-scorer.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/risk-scorer.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/risk-scorer.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       }
@@ -171,15 +171,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/auto-decompose.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/auto-decompose.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/session-bootstrap.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-bootstrap.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/memory-recall-prompt.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-recall-prompt.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       }
@@ -190,23 +190,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/truth-gate-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/truth-gate-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash .claude/hooks/hook-timeout-guard.sh reset"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/tool-guardrails-detector.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\" reset"
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/context-compress-stop.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/context-compress-stop.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/canary-token-guard.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/canary-token-guard.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/memory-turn-sync-stop.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-turn-sync-stop.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       }
@@ -217,19 +217,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/audit-log.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-log.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/budget-sentinel.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/budget-sentinel.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/verify-evidence-track.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-evidence-track.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/tool-guardrails-detector.sh bash .claude/hooks/hook-timeout-guard.sh record"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/tool-guardrails-detector.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\" record"
           },
           {
             "type": "command",
@@ -243,7 +243,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/agent-pixel-notify.sh bash .claude/hooks/hook-timeout-guard.sh stop"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/agent-pixel-notify.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\" stop"
           }
         ]
       },
@@ -252,23 +252,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/entry-point-verify-reminder.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/entry-point-verify-reminder.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/code-quality-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/code-quality-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/dependency-safety-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/dependency-safety-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_GUARDED_HOOK=.claude/hooks/static-analysis-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/static-analysis-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           },
           {
             "type": "command",
-            "command": "YANA_HOOK_TIMEOUT=90 YANA_GUARDED_HOOK=.claude/hooks/test-runner-gate.sh bash .claude/hooks/hook-timeout-guard.sh"
+            "command": "YANA_HOOK_TIMEOUT=90 YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/test-runner-gate.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       }
