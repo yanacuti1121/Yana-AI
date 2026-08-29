@@ -54,11 +54,11 @@ registry) — none of them add a new kind of thing that can execute.
 | Priority | Work | Status | Why this order |
 |---|---|---|---|
 | P0 | Capability Lease | ✅ Done + hardened (2026-08-28: atomicity, token-aware scope matching) | most natural next step of authority that already exists |
-| P0 | Approval continuation protocol (a Yana Runtime Protocol) | 🟡 Designed, not implemented — `ADR-015` | opens tools safely for Desktop/Web without inventing a new authority mechanism |
+| P0 | Approval continuation protocol (a Yana Runtime Protocol) | ✅ Done (2026-08-28: `PendingApprovalStore` + `resume_turn`, wired into `chat/headless.rs`, verified end-to-end against a real local model across two process invocations — `ADR-015` Part 1) | opens tools safely for Desktop/Web without inventing a new authority mechanism |
 | P1 | Canonical `AuthorityDecisionReceipt` | ✅ Done (2026-08-28) | evidence for *why* a decision was made — item #3 of the audit, done first since `ExecutionReceipt` correlates to it |
 | P1 | Canonical `ExecutionReceipt` | ✅ Done (2026-08-28) | foundation every later evidence feature needs |
 | P1 | Delegation graph/rules | ✅ Done (2026-08-28: `Lease.parent_lease_id`, AND-composition invariant) | multi-agent gets real authority semantics before Intent Contract needs it |
-| P2 | Intent Contract | 🟡 Designed, not implemented — `ADR-015` | bounded plan execution, but only after delegation/lease exist to intersect against |
+| P2 | Intent Contract | 🟡 Enforcement done, declaration surface not — `narrow_by_intent` is real and tested (2026-08-28), but no client sets `TurnContext.intent` yet: this repo's multi-agent dispatcher does not exist, so there is no real caller for it, same honest gap `for_subagent` itself already had — `ADR-015` Part 2 | bounded plan execution, but only after delegation/lease exist to intersect against |
 | P3 | Causal Evidence Graph | ⚪ Not started (correctly — the receipts feeding it now exist, per the phasing to its right) | built on real receipts, not built first as an empty graph |
 | Optional | World State read-model projection | ⚪ Not started | only if UI/ops actually needs it — do not build for elegance alone |
 

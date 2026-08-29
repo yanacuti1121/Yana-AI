@@ -745,3 +745,103 @@ fn halt_active_denies_a_leased_subagent_call_too() {
         }
     ));
 }
+
+// ── Intent Contract foundation (Authority Hardening item #7) ────────────
+// EffectiveExecutionEnvelope = ModelRequested ∩ HumanGranted ∩
+// DelegatedAuthority ∩ PolicyAllowed ∩ RuntimeCapabilityAvailability.
+// `narrow_by_intent` is the ModelRequested term -- these tests prove it
+// only ever narrows an Allow the other four terms already produced,
+// never widens a Deny/HumanApprovalRequired, and leaves every existing
+// behavior unchanged when no declaration is present at all.
+
+fn intent(capabilities: &[&str], scope: &[&str]) -> crate::runtime::IntentDeclaration {
+    crate::runtime::IntentDeclaration {
+        declared_capabilities: capabilities.iter().map(|c| c.to_string()).collect(),
+        declared_scope: scope.iter().map(|s| s.to_string()).collect(),
+        declared_reason: "test-declared plan".into(),
+    }
+}
+
+#[test]
+fn declared_capability_and_in_scope_command_is_allowed() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path())
+        .context
+        .with_intent(intent(&["command.execute"], &["cargo test"]));
+    let command = call_with_command("run_command", "cargo test --release");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Allow { .. }
+    ));
+}
+
+#[test]
+fn undeclared_capability_is_downgraded_to_human_approval_required_not_denied() {
+    let root = tempfile::tempdir().unwrap();
+    // Declares only read_file -- run_command was never claimed.
+    let context = request(root.path())
+        .context
+        .with_intent(intent(&["read_file"], &[]));
+    let command = call_with_command("run_command", "cargo test");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::HumanApprovalRequired {
+            authority: AuthorityLayer::YanaControlPlane,
+            ..
+        }
+    ), "an undeclared capability must pause for a new human decision, not silently deny");
+}
+
+#[test]
+fn out_of_declared_scope_command_is_downgraded_even_though_capability_matches() {
+    let root = tempfile::tempdir().unwrap();
+    // command.execute is declared, but only for "cargo test" -- a force
+    // push under the same declared capability must still be caught.
+    let context = request(root.path())
+        .context
+        .with_intent(intent(&["command.execute"], &["cargo test"]));
+    let command = call_with_command("run_command", "git push --force origin main");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::HumanApprovalRequired {
+            authority: AuthorityLayer::YanaControlPlane,
+            ..
+        }
+    ));
+}
+
+#[test]
+fn declared_intent_can_never_widen_a_halt_deny() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(root.path().join(".claude/state")).unwrap();
+    std::fs::write(root.path().join(".claude/state/GIAMTHI_HALT.lock"), "halt").unwrap();
+    // Declares everything -- must not matter, HALT is checked first and
+    // narrow_by_intent never runs on a Deny.
+    let context = request(root.path())
+        .context
+        .with_intent(intent(&["command.execute"], &[]));
+    let command = call_with_command("run_command", "cargo test");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Deny {
+            authority: AuthorityLayer::GiamThi,
+            ..
+        }
+    ));
+}
+
+#[test]
+fn no_intent_declared_leaves_existing_approval_behavior_unchanged() {
+    let root = tempfile::tempdir().unwrap();
+    let context = request(root.path()).context; // intent: None, the default
+    let command = call_with_command("run_command", "anything at all, undeclared or not");
+
+    assert!(matches!(
+        YanaAuthorityChain.authorize_approved_tool(&context, &command),
+        AuthorityDecision::Allow { .. }
+    ), "with no declaration at all, the four pre-existing terms alone must still govern, unchanged");
+}
