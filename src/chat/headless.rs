@@ -3,12 +3,24 @@
 //! This module owns only stdin/stdout framing. Inference and authority stay
 //! inside the canonical [`crate::runtime::TurnEngine`]. API keys travel in
 //! stdin JSON, never argv, so process listings cannot expose them.
+//!
+//! Authority Hardening item #5 (`ADR-015`): before this, `AwaitingApproval`
+//! was an unreachable `bail!()` here (confirmed by reading this file
+//! directly before this change — `TurnRequest` also never called
+//! `.with_tools(...)`, so headless turns had zero capabilities and could
+//! never actually reach this branch in practice). Both are fixed: real
+//! tools now come from `crate::chat::tools::catalog` (the same catalog
+//! Terminal uses, not a second one), the same `ChatCapabilityExecutor`
+//! Terminal uses replaces the always-denying `NoTools`, and a mutating
+//! capability's approval pause is persisted via
+//! `runtime::PendingApprovalStore` instead of crashing the turn. See
+//! `dispatch_resume` below for how a later process invocation completes
+//! the pause.
 
 use crate::model::provider::{ChatMessage, ImageAttachment, Role};
-use crate::model::tool::{ToolCall, ToolResultRecord};
 use crate::runtime::{
-    CancellationToken, RuntimeEvent, ToolExecutor, TurnContext, TurnEngine, TurnOrigin,
-    TurnOutcome, TurnRequest, YanaAuthorityChain,
+    resume_turn, CancellationToken, PendingApprovalStore, RuntimeEvent, TurnContext, TurnEngine,
+    TurnOrigin, TurnOutcome, TurnRequest, YanaAuthorityChain,
 };
 use crate::session_context::SessionContext;
 use anyhow::{Context, Result};
@@ -42,19 +54,6 @@ struct HeadlessImageInput {
     data: String,
 }
 
-struct NoTools;
-
-impl ToolExecutor for NoTools {
-    fn execute(&self, _context: &TurnContext, call: &ToolCall) -> ToolResultRecord {
-        ToolResultRecord {
-            call_id: call.id.clone(),
-            output: "headless desktop turns do not expose capabilities".to_string(),
-            is_error: true,
-            denied: true,
-        }
-    }
-}
-
 pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<()> {
     let provider =
         crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
@@ -75,23 +74,34 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
         model.clone(),
         true,
     );
-    let context = TurnContext::new(session, TurnOrigin::Desktop, true);
+    let context = TurnContext::new(session.clone(), TurnOrigin::Desktop, true);
+    let tools = crate::chat::tools::catalog(&session);
+    let system = input.system.filter(|value| !value.is_empty());
+    let api_key = input.api_key.filter(|value| !value.is_empty());
     let mut request = TurnRequest::new(
-        context,
-        model,
+        context.clone(),
+        model.clone(),
         vec![ChatMessage::text(Role::User, input.task).with_images(images)],
-    );
-    if let Some(system) = input.system.filter(|value| !value.is_empty()) {
+    )
+    .with_tools(tools);
+    if let Some(system) = system.clone() {
         request = request.with_system(system);
     }
-    if let Some(api_key) = input.api_key.filter(|value| !value.is_empty()) {
+    if let Some(api_key) = api_key.clone() {
         request = request.with_api_key(api_key);
     }
 
-    let engine = TurnEngine::new(provider, Arc::new(YanaAuthorityChain), Arc::new(NoTools));
+    let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
+        session.sandboxed,
+    ));
+    let engine = TurnEngine::new(provider, Arc::new(YanaAuthorityChain), executor);
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
+    let mut approval_reason: Option<String> = None;
     let outcome = engine.run(request, &cancellation, &mut |event| {
+        if let RuntimeEvent::HumanApprovalRequired { authority, reason, .. } = &event {
+            approval_reason = Some(format!("{}: {reason}", authority.label()));
+        }
         if let Err(error) = write_event(&mut output, event) {
             eprintln!("[chat/headless] stdout protocol write failed: {error}");
         }
@@ -109,11 +119,165 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
                 &json!({ "type": "cancelled", "partial": partial }),
             )?;
         }
-        TurnOutcome::AwaitingApproval { .. } => {
-            anyhow::bail!("headless desktop turn unexpectedly requested human approval")
+        TurnOutcome::AwaitingApproval {
+            call,
+            continuation_messages,
+            tool_rounds,
+            ..
+        } => {
+            let store = PendingApprovalStore::for_root(&context.session.repo_root);
+            let pending = store
+                .create(
+                    context,
+                    model,
+                    system,
+                    continuation_messages,
+                    tool_rounds,
+                    call,
+                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    30,
+                )
+                .context("cannot persist pending approval")?;
+            write_json_line(
+                &mut output,
+                &json!({
+                    "type": "awaiting_approval",
+                    "approval_id": pending.approval_id,
+                    "capability": pending.pending_call.name,
+                    "reason": pending.authority_reason,
+                    "expires_at": pending.expires_at.to_rfc3339(),
+                }),
+            )?;
         }
     }
     Ok(())
+}
+
+/// Completes a paused turn from a LATER process invocation — the actual
+/// continuation half of item #5 for Desktop/packaged Web. Reads a
+/// `HeadlessResumeInput` from stdin (mirrors `dispatch`'s own stdin/NDJSON
+/// convention), resolves the recorded decision, and streams the rest of
+/// the turn the same way `dispatch` does.
+pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
+    let provider =
+        crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
+    let input = read_resume_input()?;
+    let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let store = PendingApprovalStore::for_root(&repo_root);
+    let resolved = store
+        .resolve(&input.approval_id, input.decision, input.decided_by)
+        .context("cannot resolve pending approval")?;
+
+    let session = SessionContext::new(
+        resolved.context.session.session_id.clone(),
+        repo_root,
+        provider.name(),
+        resolved.model.clone(),
+        resolved.context.session.sandboxed,
+    );
+    let tools = crate::chat::tools::catalog(&session);
+    let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
+        session.sandboxed,
+    ));
+    let cancellation = CancellationToken::default();
+    let mut output = io::BufWriter::new(io::stdout().lock());
+    let mut approval_reason: Option<String> = None;
+    let outcome = resume_turn(
+        &resolved,
+        provider,
+        executor,
+        tools,
+        input.api_key.filter(|value| !value.is_empty()),
+        &cancellation,
+        &mut |event| {
+            if let RuntimeEvent::HumanApprovalRequired { authority, reason, .. } = &event {
+                approval_reason = Some(format!("{}: {reason}", authority.label()));
+            }
+            if let Err(error) = write_event(&mut output, event) {
+                eprintln!("[chat/headless] stdout protocol write failed: {error}");
+            }
+        },
+    )?;
+    match outcome {
+        TurnOutcome::Completed { message, .. } => {
+            write_json_line(
+                &mut output,
+                &json!({ "type": "completed", "message": message }),
+            )?;
+        }
+        TurnOutcome::Cancelled { partial } => {
+            write_json_line(
+                &mut output,
+                &json!({ "type": "cancelled", "partial": partial }),
+            )?;
+        }
+        TurnOutcome::AwaitingApproval {
+            call,
+            continuation_messages,
+            tool_rounds,
+            ..
+        } => {
+            // A second mutating call proposed within the same resumed
+            // turn (e.g. the model asks for another approval-gated
+            // capability right after the first) — pause again, the exact
+            // same way the original dispatch does, rather than crash.
+            let store = PendingApprovalStore::for_root(&resolved.context.session.repo_root);
+            let pending = store
+                .create(
+                    resolved.context.clone(),
+                    resolved.model.clone(),
+                    resolved.system.clone(),
+                    continuation_messages,
+                    tool_rounds,
+                    call,
+                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    30,
+                )
+                .context("cannot persist pending approval")?;
+            write_json_line(
+                &mut output,
+                &json!({
+                    "type": "awaiting_approval",
+                    "approval_id": pending.approval_id,
+                    "capability": pending.pending_call.name,
+                    "reason": pending.authority_reason,
+                    "expires_at": pending.expires_at.to_rfc3339(),
+                }),
+            )?;
+        }
+    }
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HeadlessResumeInput {
+    approval_id: String,
+    decision: bool,
+    decided_by: String,
+    #[serde(default)]
+    api_key: Option<String>,
+}
+
+fn read_resume_input() -> Result<HeadlessResumeInput> {
+    let mut bytes = Vec::new();
+    io::stdin()
+        .lock()
+        .take(MAX_INPUT_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .context("cannot read headless resume JSON from stdin")?;
+    if bytes.len() as u64 > MAX_INPUT_BYTES {
+        anyhow::bail!("headless resume input exceeds 10 MiB")
+    }
+    let input: HeadlessResumeInput =
+        serde_json::from_slice(&bytes).context("invalid headless resume JSON")?;
+    if input.approval_id.trim().is_empty() {
+        anyhow::bail!("headless resume approval_id must not be empty")
+    }
+    if input.decided_by.trim().is_empty() {
+        anyhow::bail!("headless resume decided_by must not be empty")
+    }
+    Ok(input)
 }
 
 fn read_input() -> Result<HeadlessTurnInput> {

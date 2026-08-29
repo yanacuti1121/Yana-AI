@@ -327,6 +327,172 @@ fn mutating_capability_stops_for_human_approval_without_execution() {
     ));
 }
 
+/// Authority Hardening item #5: `pending_approval::resume_turn` must
+/// actually complete the exact continuation Terminal's own in-process
+/// `chat/tui/approval.rs` performs (execute the approved call, append the
+/// result, start a fresh turn) — just via a durable
+/// `PendingApprovalStore` record instead of in-memory `App` state, so a
+/// resume that arrives in a LATER process invocation still works.
+struct ApprovingExecutor {
+    calls: Arc<AtomicUsize>,
+}
+
+impl ToolExecutor for ApprovingExecutor {
+    fn execute(&self, _context: &TurnContext, call: &ToolCall) -> ToolResultRecord {
+        ToolResultRecord {
+            call_id: call.id.clone(),
+            output: "executed".into(),
+            is_error: false,
+            denied: false,
+        }
+    }
+    fn execute_approved(&self, approved: crate::runtime::ApprovedTool<'_>) -> ToolResultRecord {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        ToolResultRecord {
+            call_id: approved.call().id.clone(),
+            output: "approved and executed".into(),
+            is_error: false,
+            denied: false,
+        }
+    }
+}
+
+#[test]
+fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new(
+        [
+            MockResponse::Tool(call("run_command")),
+            MockResponse::Text(vec!["done after resume"]),
+        ],
+        Arc::clone(&provider_calls),
+    ));
+    let executor = Arc::new(ApprovingExecutor {
+        calls: Arc::clone(&executor_calls),
+    });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+
+    let paused = engine
+        .run(request(root.path()), &CancellationToken::default(), &mut |_| {})
+        .unwrap();
+    let TurnOutcome::AwaitingApproval {
+        call,
+        continuation_messages,
+        tool_rounds,
+        ..
+    } = paused
+    else {
+        panic!("expected AwaitingApproval");
+    };
+    assert_eq!(executor_calls.load(Ordering::SeqCst), 0, "must not execute before a human decides");
+
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store
+        .create(
+            request(root.path()).context,
+            "mock-model".into(),
+            None,
+            continuation_messages,
+            tool_rounds,
+            call,
+            "requires explicit human approval".into(),
+            20,
+        )
+        .unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+
+    assert_eq!(executor_calls.load(Ordering::SeqCst), 1, "resume must execute the approved call exactly once");
+    assert!(matches!(
+        outcome,
+        TurnOutcome::Completed { ref message, .. } if message == "done after resume"
+    ));
+}
+
+#[test]
+fn resume_turn_on_a_denied_decision_reports_the_decline_and_continues() {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new(
+        [
+            MockResponse::Tool(call("run_command")),
+            MockResponse::Text(vec!["okay, skipping that"]),
+        ],
+        Arc::clone(&provider_calls),
+    ));
+    let executor = Arc::new(ApprovingExecutor {
+        calls: Arc::clone(&executor_calls),
+    });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let paused = engine
+        .run(request(root.path()), &CancellationToken::default(), &mut |_| {})
+        .unwrap();
+    let TurnOutcome::AwaitingApproval {
+        call,
+        continuation_messages,
+        tool_rounds,
+        ..
+    } = paused
+    else {
+        panic!("expected AwaitingApproval");
+    };
+
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store
+        .create(
+            request(root.path()).context,
+            "mock-model".into(),
+            None,
+            continuation_messages,
+            tool_rounds,
+            call,
+            "requires explicit human approval".into(),
+            20,
+        )
+        .unwrap();
+    let resolved = store.resolve(&created.approval_id, false, "human:test".into()).unwrap();
+
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+
+    assert_eq!(executor_calls.load(Ordering::SeqCst), 0, "a denied decision must never execute the call");
+    assert!(matches!(
+        outcome,
+        TurnOutcome::Completed { ref message, .. } if message == "okay, skipping that"
+    ));
+}
+
 #[test]
 fn subagent_origin_cannot_turn_human_approval_into_mutation_authority() {
     let root = tempfile::tempdir().unwrap();

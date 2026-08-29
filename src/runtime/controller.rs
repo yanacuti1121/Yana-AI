@@ -373,7 +373,7 @@ impl TurnEngine {
     }
 }
 
-fn push_tool_result(messages: &mut Vec<ChatMessage>, result: &ToolResultRecord) {
+pub(crate) fn push_tool_result(messages: &mut Vec<ChatMessage>, result: &ToolResultRecord) {
     let mut message = ChatMessage::text(Role::User, "");
     message.tool_result = Some(result.clone());
     messages.push(message);

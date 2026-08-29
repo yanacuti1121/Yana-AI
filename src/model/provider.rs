@@ -118,13 +118,13 @@ pub enum Role {
     Assistant,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ImageAttachment {
     pub mime_type: String,
     pub data: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ChatMessage {
     pub role: Role,
     pub content: String,

@@ -10,12 +10,16 @@ use super::super::tools;
 use super::{App, PendingApproval, TurnState};
 use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 
-pub(super) struct ChatCapabilityExecutor {
+/// `pub(crate)` (not `pub(super)`): reused by `chat::headless`'s remote
+/// approval continuation (Authority Hardening item #5) so Desktop/packaged
+/// Web get the exact same capability dispatch Terminal already has,
+/// rather than a second, independently-written executor.
+pub(crate) struct ChatCapabilityExecutor {
     use_sandbox: bool,
 }
 
 impl ChatCapabilityExecutor {
-    pub(super) fn new(use_sandbox: bool) -> Self {
+    pub(crate) fn new(use_sandbox: bool) -> Self {
         Self { use_sandbox }
     }
 }

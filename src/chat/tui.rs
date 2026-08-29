@@ -27,7 +27,7 @@ mod overlay;
 mod render;
 mod sidebar;
 mod tabs;
-mod tool_dispatch;
+pub(crate) mod tool_dispatch;
 mod turn;
 
 use sidebar::{ProjectCounts, SidebarTab};

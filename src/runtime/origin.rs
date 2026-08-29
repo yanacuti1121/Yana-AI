@@ -1,7 +1,7 @@
 use crate::session_context::SessionContext;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) enum TurnOrigin {
     Terminal,
     Desktop,
@@ -15,7 +15,7 @@ pub(crate) enum TurnOrigin {
     Api,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) struct TurnContext {
     pub session: SessionContext,
     pub origin: TurnOrigin,

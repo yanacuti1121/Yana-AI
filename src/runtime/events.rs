@@ -32,6 +32,16 @@ pub(crate) enum RuntimeEvent {
         call_id: String,
     },
     ToolCompleted(ToolResultRecord),
+    /// Authority Hardening item #5: emitted by
+    /// `pending_approval::resume_turn` right after the paused call's
+    /// decision has been acted on (executed or declined), before the
+    /// fresh `TurnEngine::run()` for the continuation starts. Distinct
+    /// from `ToolApproved`/`ToolDenied` — those fire for a live,
+    /// in-process decision; this fires for a decision that arrived from
+    /// a durable, out-of-process pause.
+    TurnResumed {
+        approval_id: String,
+    },
     Metrics(ChatUsage),
     MessageCompleted(String),
     TurnCompleted {
