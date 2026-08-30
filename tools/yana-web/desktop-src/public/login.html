@@ -23,9 +23,19 @@
       color: var(--ink);
     }
 
-    /* ── Aurora backdrop — slow drifting blobs ── */
-    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); }
-    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+    /* ── Aurora backdrop — slow drifting blobs ──
+       filter: blur() forces a recompute of everything under it on every
+       animation frame; at 70px radius, running forever (infinite), this
+       pegged a whole CPU core continuously just sitting on this screen
+       (confirmed: ~100% sustained on the Electron renderer process,
+       reproduced fresh right after launch, unrelated to any new-app
+       code). will-change promotes .aurora/.blob to their own compositor
+       layer so the blur runs on the GPU instead of CPU raster; the
+       radius is also cut from 70px to 32px — still reads as a soft glow,
+       but a much cheaper kernel per frame regardless of which path
+       renders it. */
+    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(32px); will-change: filter; transform: translateZ(0); }
+    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; will-change: transform; }
     .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
     .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
     .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }

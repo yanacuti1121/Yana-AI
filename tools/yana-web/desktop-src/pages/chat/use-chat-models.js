@@ -3,12 +3,22 @@ import React from 'react';
 import { providerAvailable, getProviderConfig } from '../../lib/provider-config.js';
 import { CHAT_MODELS, MODEL_CHOICES, CHAT_LIVE_MODELS, MODEL_STORE, loadModelChoices } from './model-select.js';
 
+// Stable fallback reference — new-app's chat-workspace.jsx depends on
+// `modelOptions` (below) in a useEffect. A `[]` literal in that fallback
+// position would otherwise construct a brand-new array every render
+// whenever a provider has neither live nor static model data, making the
+// effect see a "changed" dependency on every single render — an
+// unconditional infinite render loop (confirmed: pegged a CPU core
+// continuously, reproduced fresh on every launch, unrelated to any CSS or
+// GPU work — see chat-workspace.jsx's own comment on that effect).
+const EMPTY_MODEL_OPTIONS = [];
+
 export function useChatModels(providerSel) {
   const [modelSel, setModelSel] = React.useState(loadModelChoices);
   const [liveModels, setLiveModels] = React.useState({}); // providerId -> [ids]
 
   const activeProvider = providerSel || getProviderConfig().provider;
-  const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || [];
+  const modelOptions = liveModels[activeProvider] || MODEL_CHOICES[activeProvider] || EMPTY_MODEL_OPTIONS;
   // Prefer the live-fetched first model over the static default when no
   // explicit user pick exists yet — the static CHAT_MODELS default (e.g.
   // "llama3.2" for Ollama) may not actually be installed, which caused a
@@ -17,13 +27,16 @@ export function useChatModels(providerSel) {
 
   const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(activeProvider);
 
-  function pickModel(v) {
+  // Same instability class as modelOptions above, for the same reason: a
+  // plain function declaration is a new reference every render, and this
+  // one is directly in chat-workspace.jsx's effect dependency array.
+  const pickModel = React.useCallback((v) => {
     setModelSel((prev) => {
       const next = { ...prev, [activeProvider]: v };
       try { localStorage.setItem(MODEL_STORE, JSON.stringify(next)); } catch (_) {}
       return next;
     });
-  }
+  }, [activeProvider]);
 
   // Fetch the real model list when the provider supports it and is usable
   React.useEffect(() => {
