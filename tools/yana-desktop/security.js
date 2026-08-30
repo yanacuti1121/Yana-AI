@@ -25,11 +25,14 @@ function isTrustedIpcSender(event, trustedOrigin) {
   return isTrustedUrl(event?.senderFrame?.url, trustedOrigin);
 }
 
-function normalizePtyStartOptions(value = {}) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError('terminal options must be an object');
-  }
+// Renderer-selectable session kinds — a closed, fixed enum. The renderer
+// requests a KIND of session; it never supplies a program or argv. Electron
+// main (main.js) is the only place that maps a sessionType to an actual
+// executable + args, so a compromised or malicious renderer can never smuggle
+// an arbitrary command into the pty bridge through this option object.
+const PTY_SESSION_TYPES = new Set(['user-shell', 'yana-chat']);
 
+function normalizeDims(value = {}) {
   const cols = value.cols ?? 80;
   const rows = value.rows ?? 24;
   if (!Number.isInteger(cols) || cols < 20 || cols > 500) {
@@ -38,18 +41,29 @@ function normalizePtyStartOptions(value = {}) {
   if (!Number.isInteger(rows) || rows < 5 || rows > 300) {
     throw new TypeError('terminal rows must be an integer between 5 and 300');
   }
+  return { cols, rows };
+}
 
-  const args = value.args ?? [];
-  if (!Array.isArray(args) || args.length > 64) {
-    throw new TypeError('terminal args must be an array with at most 64 entries');
-  }
-  for (const arg of args) {
-    if (typeof arg !== 'string' || arg.length > 8192 || arg.includes('\0')) {
-      throw new TypeError('terminal args must be NUL-free strings up to 8192 characters');
-    }
+function normalizePtyStartOptions(value = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('terminal options must be an object');
   }
 
-  return { cols, rows, args: [...args] };
+  const { cols, rows } = normalizeDims(value);
+
+  const sessionType = value.sessionType ?? 'user-shell';
+  if (typeof sessionType !== 'string' || !PTY_SESSION_TYPES.has(sessionType)) {
+    throw new TypeError(`terminal sessionType must be one of: ${[...PTY_SESSION_TYPES].join(', ')}`);
+  }
+
+  return { cols, rows, sessionType };
+}
+
+function normalizePtyResizeOptions(value = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('terminal resize options must be an object');
+  }
+  return normalizeDims(value);
 }
 
 function normalizePtyInput(value) {
@@ -65,5 +79,7 @@ module.exports = {
   isTrustedIpcSender,
   isTrustedUrl,
   normalizePtyInput,
+  normalizePtyResizeOptions,
   normalizePtyStartOptions,
+  PTY_SESSION_TYPES,
 };

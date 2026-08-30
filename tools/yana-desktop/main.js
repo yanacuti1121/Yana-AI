@@ -11,17 +11,20 @@ const {
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
 const { listDir: listDirImpl } = require('./list-dir');
+const { gitStatus: gitStatusImpl } = require('./git-status');
 const { terminateChild } = require('./process-lifecycle');
 const {
   isSafeExternalUrl,
   isTrustedIpcSender,
   isTrustedUrl,
   normalizePtyInput,
+  normalizePtyResizeOptions,
   normalizePtyStartOptions,
 } = require('./security');
 
 let mainWindow    = null;
 let serverProcess = null;
+let codeServerProcess = null;
 let ptyProcess     = null;
 let serverUrl      = null;
 let shuttingDown   = false;
@@ -98,15 +101,100 @@ async function stopServer() {
   await terminateChild(child);
 }
 
-// ── Embedded terminal (yana-rt chat via a PTY) ──────────────────────────────────
+// ── IDE (code-server) ────────────────────────────────────────────────────────
+// The IDE tab (tools/yana-web/desktop-src/terminal.jsx's IdePanel) has
+// always iframed http://127.0.0.1:8092 (see server.js's own CSP
+// frame-src), but nothing ever started a code-server there — the tab was
+// real, tested, and permanently blank. code-server is a real, already-
+// working "a real VS Code" (per that file's own header comment); this
+// just gives it something to connect to.
+//
+// A system-installed tool (Homebrew, `/opt/homebrew/bin/code-server` on
+// this machine — path varies by OS/install method), NOT bundled with the
+// app (matches the roadmap's own "Desktop must run on its bundled
+// runtime even if the system CLI is broken" — this is optional, best-
+// effort, never something Yana Desktop's own startup depends on).
+// Resolved via bare command name + PATH lookup (spawn() with an argv
+// array, no shell) rather than a hardcoded absolute path, since the
+// install location isn't portable across machines/OSes.
+//
+// --bind-addr / --auth explicitly override the user's own personal
+// code-server config (`~/.config/code-server/config.yaml`, which on this
+// machine binds :8080 with a password) — this instance is a SEPARATE,
+// loopback-only, unauthenticated one on :8092, isolated from whatever the
+// user runs code-server for on their own. Unauthenticated is safe here
+// specifically because it's loopback-only (127.0.0.1), the exact same
+// trust model this app's own local server.js already uses.
+const CODE_SERVER_PORT = 8092;
+
+function startCodeServer() {
+  const child = spawn('code-server', [
+    '--bind-addr', `127.0.0.1:${CODE_SERVER_PORT}`,
+    '--auth', 'none',
+    repoRoot(),
+  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+  child.on('error', (error) => {
+    // ENOENT (not installed) is expected on most machines — the IDE tab
+    // simply stays unavailable, same as before this function existed.
+    // Never crashes the app over an optional, best-effort tool.
+    console.log('[code-server] not started:', error.message);
+    if (codeServerProcess === child) codeServerProcess = null;
+  });
+  child.stdout?.on('data', (d) => console.log('[code-server]', d.toString().trimEnd()));
+  child.stderr?.on('data', (d) => console.error('[code-server]', d.toString().trimEnd()));
+  child.on('exit', () => { if (codeServerProcess === child) codeServerProcess = null; });
+  codeServerProcess = child;
+}
+
+async function stopCodeServer() {
+  const child = codeServerProcess;
+  codeServerProcess = null;
+  await terminateChild(child);
+}
+
+// ── Embedded terminal (user shell or yana-rt chat, via a PTY) ──────────────────
 // `pty_bridge` (this repo's Cargo project, `pty-bridge` feature) is a small,
 // generic Rust binary — opens a real pseudo-terminal, spawns whatever argv
 // it's given inside it, then shuttles raw bytes over its own stdin/stdout.
 // No native Node module (node-pty) needed: this is a plain child process,
 // same integration shape `startServer()` already uses for `server.js`.
+//
+// Security boundary (Phase A of the Desktop Terminal vertical slice): the
+// renderer never supplies a program or argv, only a closed `sessionType`
+// enum (validated by `normalizePtyStartOptions`). Only this function, in
+// the main process, decides what executable actually runs — a compromised
+// or malicious renderer cannot smuggle an arbitrary command through
+// `yana:pty-start`.
 
 function ptyBridgeBinary() {
   return runtimePath('pty_bridge');
+}
+
+// Default interactive shell per platform when $SHELL isn't set (headless
+// launch, or a platform where that env var isn't conventional).
+function defaultShell() {
+  if (process.platform === 'win32') return process.env.COMSPEC || 'cmd.exe';
+  return '/bin/zsh';
+}
+
+// Resolves what `yana:pty-start` actually spawns for a given (validated)
+// sessionType. Returns { program, args, cwd } — never renderer-controlled
+// beyond the enum value itself.
+function resolvePtySession(sessionType) {
+  if (sessionType === 'user-shell') {
+    return {
+      program: process.env.SHELL || defaultShell(),
+      // '-i': interactive login-shell behavior (aliases, prompt, rc files)
+      // matching what a user expects from "their real shell" — on Windows
+      // shells this flag doesn't apply, so it's Unix-only.
+      args: process.platform === 'win32' ? [] : ['-i'],
+      cwd: repoRoot(),
+    };
+  }
+  // 'yana-chat' — unchanged from the pre-Phase-A behavior: the embedded
+  // chat pty always runs `yana-rt chat`, never renderer-influenced argv.
+  return { program: runtimePath('yana-rt'), args: ['chat'], cwd: repoRoot() };
 }
 
 function stopPty() {
@@ -133,6 +221,14 @@ function repoRoot() {
 // lives there — see that file for why it's split out).
 function listDir(relPath) {
   return listDirImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), relPath });
+}
+
+// Thin Electron-context wrapper around git-status.js's pure implementation,
+// same shape as listDir() above — see that file's own doc comment for why
+// this is a temporary, single-purpose transport adapter rather than a
+// pattern to repeat per Context Panel field.
+function gitStatus() {
+  return gitStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
 }
 
 function waitForServer() {
@@ -237,7 +333,7 @@ handleTrusted('yana:pty-start', (event, options) => {
   } catch (error) {
     return { ok: false, error: error.message };
   }
-  const { cols, rows, args } = normalized;
+  const { cols, rows, sessionType } = normalized;
 
   const bridgeBin = ptyBridgeBinary();
   if (!fs.existsSync(bridgeBin)) {
@@ -248,17 +344,24 @@ handleTrusted('yana:pty-start', (event, options) => {
     };
   }
 
-  const yanaRtBin = runtimePath('yana-rt');
-  if (!fs.existsSync(yanaRtBin)) {
-    return { ok: false, error: `yana-rt binary not found at ${yanaRtBin}` };
+  // Program/args/cwd are resolved HERE, in main, from the closed
+  // sessionType enum only — see resolvePtySession()'s doc comment.
+  const { program, args, cwd } = resolvePtySession(sessionType);
+  if (!fs.existsSync(program)) {
+    return { ok: false, error: `${sessionType} executable not found at ${program}` };
   }
 
-  const childArgv = [yanaRtBin, 'chat', ...(args || [])];
+  const childArgv = [program, ...args];
+  // 4th stdio pipe: the resize control channel pty_bridge reads as fd 3
+  // (see src/bin/pty_bridge.rs's doc comment). Absent on non-Unix bridges
+  // today, but always opened here — a bridge build with no resize
+  // listener simply never reads it, per that file's own fallback.
   const child = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
-    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd,
+    stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
     env: {
       ...process.env,
-      YANA_RT_BIN: yanaRtBin,
+      YANA_RT_BIN: runtimePath('yana-rt'),
     },
   });
   ptyProcess = child;
@@ -272,11 +375,37 @@ handleTrusted('yana:pty-start', (event, options) => {
     if (ptyProcess === child) ptyProcess = null;
   });
 
-  return { ok: true };
+  // Echoed back so the renderer's bounded terminal-context snapshot
+  // (Phase C) can report it without needing a second IPC round-trip or
+  // its own (necessarily less trustworthy) guess at the repo root.
+  // Named `initialCwd`, not `cwd`: this is the directory the PTY was
+  // SPAWNED in, a one-time snapshot — nothing observes a `cd` the user
+  // types afterward, so calling it "cwd" would falsely imply live
+  // tracking. See terminal-context.mjs's header comment for the same
+  // point and the TODO for real (OSC-based) live-cwd tracking.
+  return { ok: true, initialCwd: cwd };
 });
 
 handleTrusted('yana:pty-write', (event, data) => {
   ptyProcess?.stdin.write(normalizePtyInput(data));
+});
+
+handleTrusted('yana:pty-resize', (event, options) => {
+  let normalized;
+  try {
+    normalized = normalizePtyResizeOptions(options);
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+  // stdio[3] is the 4th pipe opened above — undefined/closed on a bridge
+  // build without resize support, in which case this is a silent no-op
+  // rather than a thrown error (matches pty_bridge.rs's own fallback).
+  const controlPipe = ptyProcess?.stdio?.[3];
+  if (!controlPipe || controlPipe.destroyed) {
+    return { ok: false, error: 'no active terminal session' };
+  }
+  controlPipe.write(`RESIZE ${normalized.cols} ${normalized.rows}\n`);
+  return { ok: true };
 });
 
 handleTrusted('yana:pty-stop', () => stopPty());
@@ -287,6 +416,8 @@ handleTrusted('yana:list-dir', (event, relPath) => {
   }
   return listDir(relPath);
 });
+
+handleTrusted('yana:git-status', () => gitStatus());
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged
@@ -390,6 +521,7 @@ app.on('second-instance', () => {
 
 if (hasInstanceLock) app.whenReady().then(async () => {
   startServer();
+  startCodeServer(); // best-effort, optional — see that function's own doc comment
 
   try {
     await waitForServer();
@@ -408,6 +540,7 @@ if (hasInstanceLock) app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   void stopPty(); // never let a live terminal session survive as an orphan
+  void stopCodeServer();
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -420,7 +553,7 @@ app.on('activate', () => {
 function shutdownChildren() {
   if (!shutdownTask) {
     shuttingDown = true;
-    shutdownTask = Promise.all([stopServer(), stopPty()]);
+    shutdownTask = Promise.all([stopServer(), stopPty(), stopCodeServer()]);
   }
   return shutdownTask;
 }

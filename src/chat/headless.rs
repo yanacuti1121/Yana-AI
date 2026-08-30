@@ -359,6 +359,79 @@ fn has_valid_base64_padding(value: &str) -> bool {
     }
 }
 
+/// Bounded, best-effort summary of a tool call for the `runtime_event`
+/// Activity channel (STEP 3, canonical event propagation) — never the
+/// full `arguments_json`. Only the two chat tools that exist today
+/// (`read_file`'s `path`, `run_command`'s `command` — see
+/// `chat/tui/tool_dispatch.rs`'s own arg-key usage, the single source
+/// of truth for these key names) are given a readable form; anything
+/// else falls back to the bare tool name.
+const MAX_TOOL_SUMMARY_CHARS: usize = 160;
+
+fn summarize_tool_call(call: &crate::model::tool::ToolCall) -> String {
+    #[derive(Deserialize, Default)]
+    struct Args {
+        command: Option<String>,
+        path: Option<String>,
+    }
+    let args: Args = serde_json::from_str(&call.arguments_json).unwrap_or_default();
+    let raw = match call.name.as_str() {
+        "run_command" => args.command.map(|c| format!("Running: {c}")),
+        "read_file" => args.path.map(|p| format!("Reading: {p}")),
+        _ => None,
+    }
+    .unwrap_or_else(|| call.name.clone());
+    truncate_summary(&redact_secret_like(&raw))
+}
+
+/// Coarse, whole-string redaction: if the raw text looks like it might
+/// reference a secret, hide the WHOLE string rather than attempt partial
+/// masking that could miss a shape nobody anticipated (a command's
+/// argument structure is arbitrary shell text, not a known schema).
+/// Mirrors `audit-log.sh`'s own secret-masking keyword list
+/// (`55-observability-telemetry-law.md`) for consistency with this
+/// repo's one other real redaction mechanism, rather than inventing a
+/// second, different keyword set.
+const SECRET_LIKE_MARKERS: &[&str] = &[
+    "SECRET", "TOKEN", "PASSWORD", "API_KEY", "APIKEY", "PRIVATE_KEY", "BEARER",
+];
+
+fn redact_secret_like(text: &str) -> String {
+    let upper = text.to_uppercase();
+    if SECRET_LIKE_MARKERS.iter().any(|marker| upper.contains(marker)) {
+        "[redacted — may reference a secret]".to_string()
+    } else {
+        text.to_string()
+    }
+}
+
+fn truncate_summary(text: &str) -> String {
+    if text.chars().count() <= MAX_TOOL_SUMMARY_CHARS {
+        return text.to_string();
+    }
+    let truncated: String = text.chars().take(MAX_TOOL_SUMMARY_CHARS).collect();
+    format!("{truncated}…")
+}
+
+/// STEP 3 (canonical RuntimeEvent propagation): every `runtime_event`
+/// payload below is intentionally a PROJECTION, not a raw dump —
+/// `ToolCompleted` in particular never includes `ToolResultRecord::output`
+/// (arbitrary command stdout/stderr or full file contents), only the
+/// pass/fail outcome. The bounded terminal-context channel
+/// (tools/yana-web/desktop-src/lib/terminal-context.mjs) is the one place
+/// raw output travels; Activity events must not become a second,
+/// unbounded copy of it. `call_id`/`result.call_id` is the SAME stable
+/// identifier across the requested -> approved/denied -> started ->
+/// completed lifecycle (`ToolCall.id` / `ToolResultRecord.call_id`,
+/// `src/model/tool.rs`) — no synthetic correlation id needed.
+///
+/// Classified as NOT exposed here, deliberately (see STEP 3's own
+/// classification table): `TurnStarted` (carries a full `TurnContext`,
+/// redundant with the user's own message already visible), `MessageStarted`
+/// (no activity value), `TurnResumed` (developer-only correlation detail),
+/// `MessageCompleted` (would duplicate the full assistant reply through a
+/// second channel — the existing `text_delta` stream is already the one
+/// place that text travels).
 fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
     let payload = match event {
         RuntimeEvent::TextDelta(text) => Some(json!({ "type": "text_delta", "text": text })),
@@ -376,6 +449,50 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             Some(json!({ "type": "cancelled", "partial": partial }))
         }
         RuntimeEvent::Error { message } => Some(json!({ "type": "error", "message": message })),
+        RuntimeEvent::ToolRequested(call) => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_requested",
+            "call_id": call.id,
+            "tool": call.name,
+            "summary": summarize_tool_call(&call),
+        })),
+        RuntimeEvent::ToolApproved { call_id } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_approved",
+            "call_id": call_id,
+        })),
+        RuntimeEvent::ToolDenied { call_id, reason } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_denied",
+            "call_id": call_id,
+            "reason": reason,
+        })),
+        RuntimeEvent::HumanApprovalRequired { call, authority, reason } => Some(json!({
+            "type": "runtime_event",
+            "kind": "human_approval_required",
+            "call_id": call.id,
+            "tool": call.name.clone(),
+            "summary": summarize_tool_call(&call),
+            "authority": authority.label(),
+            "reason": reason,
+        })),
+        RuntimeEvent::ToolStarted { call_id } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_started",
+            "call_id": call_id,
+        })),
+        RuntimeEvent::ToolCompleted(result) => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_completed",
+            "call_id": result.call_id,
+            "ok": !result.is_error,
+            "denied": result.denied,
+        })),
+        RuntimeEvent::TurnCompleted { tool_rounds } => Some(json!({
+            "type": "runtime_event",
+            "kind": "turn_completed",
+            "tool_rounds": tool_rounds,
+        })),
         _ => None,
     };
     if let Some(payload) = payload {
@@ -429,6 +546,174 @@ mod tests {
         );
         assert_eq!(parsed[1]["input_tokens"], 4);
         assert_eq!(parsed[1]["output_tokens"], 7);
+    }
+
+    #[test]
+    fn tool_requested_started_completed_are_serialized_with_shared_call_id() {
+        use crate::model::tool::{ToolCall, ToolResultRecord};
+        let call = ToolCall {
+            id: "call-1".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: r#"{"command":"cargo test"}"#.to_string(),
+        };
+        let mut output = Vec::new();
+        write_event(&mut output, RuntimeEvent::ToolRequested(call.clone())).unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolStarted { call_id: call.id.clone() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolCompleted(ToolResultRecord {
+                call_id: call.id.clone(),
+                output: "277 passed".to_string(),
+                is_error: false,
+                denied: false,
+            }),
+        )
+        .unwrap();
+
+        let lines: Vec<serde_json::Value> = String::from_utf8(output)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+
+        assert_eq!(lines[0]["type"], "runtime_event");
+        assert_eq!(lines[0]["kind"], "tool_requested");
+        assert_eq!(lines[0]["call_id"], "call-1");
+        assert_eq!(lines[0]["tool"], "run_command");
+        assert_eq!(lines[0]["summary"], "Running: cargo test");
+
+        assert_eq!(lines[1]["kind"], "tool_started");
+        assert_eq!(lines[1]["call_id"], "call-1");
+
+        assert_eq!(lines[2]["kind"], "tool_completed");
+        assert_eq!(lines[2]["call_id"], "call-1");
+        assert_eq!(lines[2]["ok"], true);
+        assert_eq!(lines[2]["denied"], false);
+        // The one property this event type must never regress: raw tool
+        // output never travels through the Activity channel.
+        assert!(lines[2].get("output").is_none());
+
+        // Same call_id across all three — the correlation strategy this
+        // step relies on (ToolCall.id / ToolResultRecord.call_id), not a
+        // synthetic id invented here.
+        assert_eq!(lines[0]["call_id"], lines[1]["call_id"]);
+        assert_eq!(lines[1]["call_id"], lines[2]["call_id"]);
+    }
+
+    #[test]
+    fn tool_approved_denied_and_human_approval_required_are_serialized() {
+        use crate::model::tool::ToolCall;
+        use crate::runtime::AuthorityLayer;
+
+        let mut output = Vec::new();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolApproved { call_id: "call-2".to_string() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolDenied {
+                call_id: "call-3".to_string(),
+                reason: "non-human-initiated turn cannot execute this capability".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::HumanApprovalRequired {
+                call: ToolCall {
+                    id: "call-4".to_string(),
+                    name: "run_command".to_string(),
+                    arguments_json: r#"{"command":"rm -rf /tmp/x"}"#.to_string(),
+                },
+                authority: AuthorityLayer::YanaControlPlane,
+                reason: "capability 'command.execute' requires explicit human approval".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(&mut output, RuntimeEvent::TurnCompleted { tool_rounds: 3 }).unwrap();
+
+        let lines: Vec<serde_json::Value> = String::from_utf8(output)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+
+        assert_eq!(lines[0]["kind"], "tool_approved");
+        assert_eq!(lines[0]["call_id"], "call-2");
+        assert_eq!(lines[1]["kind"], "tool_denied");
+        assert_eq!(lines[1]["reason"], "non-human-initiated turn cannot execute this capability");
+        assert_eq!(lines[2]["kind"], "human_approval_required");
+        assert_eq!(lines[2]["call_id"], "call-4");
+        assert_eq!(lines[2]["authority"], "yana_control_plane");
+        assert_eq!(lines[3]["kind"], "turn_completed");
+        assert_eq!(lines[3]["tool_rounds"], 3);
+    }
+
+    #[test]
+    fn internal_events_are_dropped_without_panicking() {
+        use crate::runtime::{TurnContext, TurnOrigin};
+        use crate::session_context::SessionContext;
+        use std::path::PathBuf;
+
+        let session = SessionContext::new("s1", PathBuf::from("/tmp/repo"), "anthropic", "m", true);
+        let mut output = Vec::new();
+        // TurnStarted, MessageStarted, TurnResumed, MessageCompleted: none
+        // of these are classified as Activity-relevant (see write_event's
+        // own doc comment) — must not panic, must not emit anything.
+        write_event(
+            &mut output,
+            RuntimeEvent::TurnStarted {
+                context: TurnContext::new(session, TurnOrigin::Desktop, true),
+                provider: "anthropic".to_string(),
+                model: "claude".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(&mut output, RuntimeEvent::MessageStarted).unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::TurnResumed { approval_id: "a1".to_string() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::MessageCompleted("full assistant reply text".to_string()),
+        )
+        .unwrap();
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn tool_call_summary_redacts_secret_like_text_and_bounds_length() {
+        use crate::model::tool::ToolCall;
+        let with_secret = ToolCall {
+            id: "c".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: r#"{"command":"curl -H 'Authorization: Bearer sk-abc' https://x"}"#.to_string(),
+        };
+        let summary = summarize_tool_call(&with_secret);
+        assert_eq!(summary, "[redacted — may reference a secret]");
+        assert!(!summary.to_uppercase().contains("BEARER"));
+
+        let long = ToolCall {
+            id: "c2".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: format!(r#"{{"command":"{}"}}"#, "x".repeat(500)),
+        };
+        assert!(summarize_tool_call(&long).chars().count() <= MAX_TOOL_SUMMARY_CHARS + 1);
+
+        let normal = ToolCall {
+            id: "c3".to_string(),
+            name: "read_file".to_string(),
+            arguments_json: r#"{"path":"src/main.rs"}"#.to_string(),
+        };
+        assert_eq!(summarize_tool_call(&normal), "Reading: src/main.rs");
     }
 
     #[test]

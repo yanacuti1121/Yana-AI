@@ -43,6 +43,16 @@ export const Icons = {
   menu:      (s) => <Ic size={s} d={<path d="M3.5 6h13M3.5 10h13M3.5 14h13"/>} />,
   attach:    (s) => <Ic size={s} d={<path d="M17.8 9.2l-7.6 7.6a5 5 0 0 1-7.08-7.08l7.65-7.65a3.3 3.3 0 0 1 4.7 4.7L7.8 13.9a1.65 1.65 0 0 1-2.35-2.35l7.07-7.07"/>} />,
   pencil:    (s) => <Ic size={s} d={<><path d="M14 3.5a1.9 1.9 0 0 1 2.5 2.5L6 17H3v-3L14 3.5Z"/><path d="m12.5 5 2.5 2.5"/></>} />,
+  // Added for the new app shell's sidebar (Yana Desktop visual parity
+  // pass) — no folder/file/git-branch/monitor glyph existed yet.
+  folder:    (s) => <Ic size={s} d={<path d="M3 6a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 2H16A1.5 1.5 0 0 1 17.5 8v7A1.5 1.5 0 0 1 16 16.5H4.5A1.5 1.5 0 0 1 3 15V6Z"/>} />,
+  file:      (s) => <Ic size={s} d={<><path d="M6.5 2.5h5l3 3v10.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M11.5 2.5v3h3"/></>} />,
+  gitBranch: (s) => <Ic size={s} d={<><circle cx="6" cy="4.5" r="1.8"/><circle cx="6" cy="15.5" r="1.8"/><circle cx="14" cy="8.5" r="1.8"/><path d="M6 6.3v7.4"/><path d="M6 9c0 2.5 2.5 2.7 5.3 3 1 .1 1.9-.6 1.9-1.7"/></>} />,
+  monitor:   (s) => <Ic size={s} d={<><rect x="3" y="4" width="14" height="9.5" rx="1.2"/><path d="M7.5 17h5M10 13.5V17"/></>} />,
+  // Generic code-repository mark for the Context Panel's Repository
+  // section — deliberately NOT a reproduction of any specific hosting
+  // provider's trademarked logo, just a neutral "this is a repo" glyph.
+  repo:      (s) => <Ic size={s} d={<><rect x="4" y="3" width="12" height="14" rx="1.4"/><path d="M7 3v14M7 6.5h6M7 10h6"/></>} />,
 };
 
 /* ---------- Wordmark: lotus in bloom on the water (matches login.html) ---------- */

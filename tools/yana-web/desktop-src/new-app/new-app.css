@@ -1,0 +1,35 @@
+/* New Yana Desktop app shell — scoped overrides, not a new design system.
+   Inherits the "navy" theme's already-designed dark palette (background
+   gradients, borders, ink) wholesale; only the accent color is overridden
+   to a restrained purple, per the product direction. Layout itself is
+   inline (see index.jsx) since panel sizes are dynamic (resizable). */
+.new-app-shell {
+  --primary: #7c5cff;
+  --color-primary: var(--primary);
+  --primary-soft: rgba(124, 92, 255, 0.16);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--ink);
+}
+
+.new-app-shell .na-resize-handle-x {
+  cursor: col-resize;
+  width: 5px;
+  flex-shrink: 0;
+  background: transparent;
+}
+.new-app-shell .na-resize-handle-x:hover {
+  background: var(--primary-soft);
+}
+.new-app-shell .na-resize-handle-y {
+  cursor: row-resize;
+  height: 5px;
+  flex-shrink: 0;
+  background: transparent;
+}
+.new-app-shell .na-resize-handle-y:hover {
+  background: var(--primary-soft);
+}

@@ -50,6 +50,7 @@
     },
     "files": [
       "main.js",
+      "git-status.js",
       "list-dir.js",
       "preload.js",
       "process-lifecycle.js",

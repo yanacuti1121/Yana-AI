@@ -15,6 +15,7 @@ const packagedFiles = new Set(packageJson.build.files);
 assert.strictEqual(packageJson.version, packageLock.version);
 assert.strictEqual(packageJson.version, packageLock.packages[''].version);
 assert.deepStrictEqual(localRequires, [
+  'git-status.js',
   'list-dir.js',
   'process-lifecycle.js',
   'runtime-paths.js',

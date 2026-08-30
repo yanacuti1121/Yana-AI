@@ -11,6 +11,23 @@ import { L } from '../../components.jsx';
 import { KEYLESS_PROVIDERS, getProviderConfig } from '../../lib/provider-config.js';
 import { detectSensitivity, smartPickProvider } from './routing.js';
 import { CHAT_MODELS } from './model-select.js';
+import { getSnapshot as getTerminalContextSnapshot } from '../../lib/terminal-context.mjs';
+import { buildProgressSteps, buildTurnResult } from '../../lib/runtime-progress.mjs';
+
+// Desktop Terminal vertical slice, Phase D: the bounded terminal snapshot
+// (Phase C) becomes the one populated source of a generic WorkspaceContext
+// envelope — `{ terminal, repository?, git?, files?, tasks? }` per the
+// architecture correction. Only `terminal` is wired today; the other
+// sources join this same envelope in later phases rather than each
+// growing its own top-level chat-protocol field. Returns null (never an
+// empty/meaningless object) when no terminal session has started this
+// app run — same "electron only" gate IS_ELECTRON already governs the
+// terminal feature itself with.
+function workspaceContext() {
+  const terminal = getTerminalContextSnapshot();
+  if (!terminal) return null;
+  return { terminal };
+}
 
 // "About you" + Profile (Settings) — sent with every chat so Yana knows the
 // user. Profile's role/instructions live under a separate "yana.profile.*"
@@ -64,6 +81,18 @@ export function useChatSend({
 }) {
   const [thinking, setThinking] = React.useState(false);
   const [streaming, setStreaming] = React.useState(false);
+  // Real token usage from the last completed turn — server.js forwards
+  // the governed runtime's own `metrics` event as `{usage}` SSE frames.
+  // null until the first turn completes; never fabricated in between.
+  const [lastUsage, setLastUsage] = React.useState(null);
+  // STEP 3 — canonical RuntimeEvent propagation: bounded, ever-growing
+  // list of the real runtime events (tool_requested/started/completed/
+  // approved/denied, turn_completed) server.js forwarded this session,
+  // via yana-rt's own write_event() -> `{runtimeEvent}` SSE frames. This
+  // hook only COLLECTS them (Category A: data, not presentation) — the
+  // new app shell's chat-workspace.jsx is what translates them into
+  // Activity rows; this file has no CustomEvent/UI dependency on new-app.
+  const [runtimeEvents, setRuntimeEvents] = React.useState([]);
   const readerRef = React.useRef(null);
 
   // Cancel any in-flight stream on unmount
@@ -85,7 +114,7 @@ export function useChatSend({
                : (detected || confMode)   ? "confidential"
                : null;
 
-    setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier }]);
+    setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier, _id: Date.now() }]);
     setDraft("");
     if (inputRef.current) { inputRef.current.style.height = "auto"; }
     setVisionImage(null);
@@ -145,6 +174,7 @@ export function useChatSend({
         body: JSON.stringify(tier
           ? { task: text, apiKey, provider, model, sensitivity: tier }
           : { task: text, apiKey, provider, model, skill, about: aboutContext(),
+              workspaceContext: workspaceContext(),
               images: visionImage ? [visionImage] : undefined }),
       });
 
@@ -176,7 +206,23 @@ export function useChatSend({
       }]);
       setThinking(false);
 
+      // Roadmap Phase 4 items 14-15 (Structured Result Blocks / Canonical
+      // Progress): `turnEvents` is scoped to THIS turn only, unlike the
+      // cross-turn `runtimeEvents` state above (which chat-workspace.jsx's
+      // Activity wiring depends on staying cumulative — see its own
+      // `seenRuntimeEventCount` ref). Steps/result attach to this turn's
+      // own message by `msgId`, never mixed with other turns.
+      const turnEvents = [];
+
       await consumeChatStream(reader, (obj) => {
+        if (obj.usage) { setLastUsage(obj.usage); return; }
+        if (obj.runtimeEvent) {
+          setRuntimeEvents((prev) => [...prev, obj.runtimeEvent]);
+          turnEvents.push(obj.runtimeEvent);
+          const steps = buildProgressSteps(turnEvents);
+          setMsgs((m) => m.map((msg) => msg._id === msgId ? { ...msg, steps } : msg));
+          return;
+        }
         if (obj.error) accumulated += "\n[Error: " + obj.error + "]";
         else if (obj.text) accumulated += obj.text;
         const snap = accumulated;
@@ -186,6 +232,15 @@ export function useChatSend({
       });
 
       setStreaming(false);
+
+      // Only ever attaches when the turn actually ran a command — a
+      // plain text-only reply gets no ResultCard (buildTurnResult
+      // returns null for that case, and ResultCard already renders
+      // nothing for a null result).
+      const turnResult = buildTurnResult(turnEvents);
+      if (turnResult) {
+        setMsgs((m) => m.map((msg) => msg._id === msgId ? { ...msg, result: turnResult } : msg));
+      }
 
       // Attach timing + cost metadata so RouteChip can display speed/cost badge
       const streamDone = { secs: (Date.now() - streamStart) / 1000, chars: accumulated.length };
@@ -281,5 +336,5 @@ export function useChatSend({
     setTimeout(() => sendText(text), 0);
   }
 
-  return { thinking, streaming, sendText, send, stopStream, regenerate, editAndResend };
+  return { thinking, streaming, lastUsage, runtimeEvents, sendText, send, stopStream, regenerate, editAndResend };
 }

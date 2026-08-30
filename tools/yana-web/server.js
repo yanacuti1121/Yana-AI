@@ -10,6 +10,7 @@ const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
 const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
+const { appendWorkspaceContext } = require('./lib/workspace-context');
 const {
   parseRuntimeMode,
   resolveGovernedRuntime,
@@ -1291,6 +1292,19 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
               input_tokens: Number(event.input_tokens) || 0,
               output_tokens: Number(event.output_tokens) || 0,
             };
+            // Forwarded to the client so a real Context Panel can show
+            // actual token usage — previously captured here for
+            // cost-ledger logging only and never sent to the renderer.
+            res.write(`data: ${JSON.stringify({ usage })}\n\n`);
+            return;
+          }
+          // STEP 3 (canonical RuntimeEvent propagation): forwarded as its
+          // own SSE frame, never mixed into the assistant text stream —
+          // yana-rt's write_event() already reduced this to a bounded,
+          // redacted projection (see that function's own doc comment);
+          // this hop only relays it, no further processing needed.
+          if (event.type === 'runtime_event') {
+            res.write(`data: ${JSON.stringify({ runtimeEvent: event })}\n\n`);
             return;
           }
           if (event.type === 'error' || event.type === 'authority_denied') {
@@ -1362,7 +1376,7 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys } = parsed;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys, workspaceContext } = parsed;
   const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
   if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
@@ -1451,11 +1465,17 @@ async function handleApiChat(req, res) {
     chain[0].apiKey = getNineRouterKey();
   }
 
+  // Rule 68 need-to-know, same as MEMORY/CODEBASE CONTEXT/ABOUT above —
+  // never attached to confidential/sovereign turns. See
+  // appendWorkspaceContext's own doc comment for the trust-boundary
+  // rationale (this is TURN content, never system instructions).
+  const taskWithWorkspaceContext = tier ? task : appendWorkspaceContext(task, workspaceContext);
+
   // Desktop supplies YANA_RT_BIN; packaged web deployments discover or bundle
   // the same binary. Every supported turn crosses TurnEngine (and therefore
   // the Giám Thị/Yana authority chain) instead of calling providers from JS.
   if (YANA_RT_BIN && chain.every(candidate => supportsGovernedProvider(candidate.providerKey))) {
-    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images);
+    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, taskWithWorkspaceContext, images);
     return;
   }
 
@@ -1500,7 +1520,7 @@ async function handleApiChat(req, res) {
     // provider itself is healthy.
     const candidateModelId = explicitModelId || cp.defaultModel;
     const candidateImgs    = (cp.vision && Array.isArray(images) && images.length) ? images : null;
-    const candidateReqBody = cp.body(candidateModelId, systemPrompt, task, candidateImgs);
+    const candidateReqBody = cp.body(candidateModelId, systemPrompt, taskWithWorkspaceContext, candidateImgs);
     // Gemini builds its path from the model id; the key always travels in
     // the x-goog-api-key header, never the URL (rule 66 / API2)
     const candidateReqPath = cp.buildPath ? cp.buildPath(candidateModelId, candidate.apiKey) : cp.path;

@@ -2,6 +2,7 @@
 import React from 'react';
 import { L, PageHeader, Card } from '../../components.jsx';
 import { providerAvailable } from '../../lib/provider-config.js';
+import { switchToNewShell } from '../../shell-selector.js';
 import { SettingRow, EditableRow, ToggleRow, detectTimezone } from './settings/atoms.jsx';
 import { AppearanceCard } from './settings/appearance-card.jsx';
 import { AboutYouCard } from './settings/about-you-card.jsx';
@@ -45,6 +46,24 @@ export function Settings({ t, setTweak }) {
         sub={L("Quiet defaults. Everything supervised by Yana AI Core.", "Cài đặt mặc định. Mọi thứ được Yana AI Core giám sát.", "조용한 기본값. 모든 것이 Yana AI Core의 감독 아래 있습니다.", "低调的默认设置。一切均由 Yana AI Core 监督。")} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: GAP, maxWidth: 900 }}>
+
+        {/* Interface — the only way back to new-app once switched to this
+            legacy shell (shell-selector.js's flag persists across every
+            relaunch; new-app's own Header has "Legacy UI" but this shell
+            had no reciprocal control until now). */}
+        <Card title={L("Interface", "Giao diện", "인터페이스", "界面")}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "calc(11px * var(--sp)) 0" }}>
+            <div style={{ lineHeight: 1.35 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>{L("You're using the legacy interface", "Anh đang dùng giao diện cũ", "이전 인터페이스를 사용 중입니다", "您正在使用旧版界面")}</div>
+              <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{L("The new workspace shell replaces this over time", "Giao diện workspace mới sẽ thay thế dần cái này", "새 워크스페이스 셸이 점차 이를 대체합니다", "新工作区外壳将逐步取代此界面")}</div>
+            </div>
+            <button onClick={switchToNewShell} style={{
+              background: "none", border: "1px solid var(--border)", padding: "4px 12px",
+              borderRadius: 99, cursor: "pointer", fontSize: 12, color: "var(--primary)",
+              fontWeight: 500, fontFamily: "inherit",
+            }}>{L("Switch to new UI", "Dùng giao diện mới", "새 UI로 전환", "切换到新界面")}</button>
+          </div>
+        </Card>
 
         {/* Profile hero */}
         <ProfileHero t={t} setTweak={setTweak} dash={dash} />
