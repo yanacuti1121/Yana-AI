@@ -81,14 +81,17 @@ function EmptyState({ localStatus }) {
   );
 }
 
-export function MessageLog({ logRef, msgs, thinking, streaming, localStatus, msgSearch, regenerate, onEdit }) {
+// `emptyState` is optional: a caller-supplied replacement for the default
+// legacy EmptyState above (added for the new app shell's own empty-state
+// design — pages/chat.jsx doesn't pass it, so its behavior is unchanged).
+export function MessageLog({ logRef, msgs, thinking, streaming, localStatus, msgSearch, regenerate, onEdit, emptyState }) {
   const visible = msgSearch
     ? msgs.filter(m => m.text && m.text.toLowerCase().includes(msgSearch.toLowerCase()))
     : msgs;
 
   return (
     <div ref={logRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "calc(16px * var(--sp))", padding: "4px 4px 16px", minHeight: 0 }}>
-      {msgs.length === 0 && !thinking && <EmptyState localStatus={localStatus} />}
+      {msgs.length === 0 && !thinking && (emptyState ?? <EmptyState localStatus={localStatus} />)}
 
       {visible.map((m, i, arr) => (
         <Message key={m._id || i} msg={m}

@@ -46,6 +46,12 @@ dist/
 electron/node_modules/
 .next/
 .claude/state/
+# Same rule, but matched at any depth: a bare ".claude/state/" pattern is
+# anchored to this file's own directory (root) per git's gitignore
+# semantics for patterns containing a mid-string slash, so it never
+# caught tools/*/.claude/state/ or a feature dir's own .claude/state/ —
+# all of which the per-tool-circuit-breaker hook creates wherever it runs.
+**/.claude/state/
 releases/logs/
 .mcp.json
 .codegraph/

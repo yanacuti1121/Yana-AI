@@ -7,6 +7,7 @@
 //! was added on top of the original single-file implementation — pure
 //! move of existing function bodies, no behavior change.
 
+pub mod archive;
 pub mod cli;
 pub mod command;
 pub mod error;
@@ -18,10 +19,11 @@ mod registry_data;
 pub mod repo;
 pub mod system;
 
+pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
 pub use error::CapabilityError;
 pub use evidence::ToolEvidence;
-pub use git::{git_diff, git_status};
+pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
 pub use registry::{AccessMode, ApprovalRequirement, CapabilityDescriptor, Manifest, RiskTier};
 pub use repo::{
     read_file, read_file_observation, repo_tree, resolve_existing, search_code, FileReadObservation,

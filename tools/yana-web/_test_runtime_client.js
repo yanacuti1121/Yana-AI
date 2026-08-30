@@ -44,6 +44,7 @@ async function testArgvAndStreaming() {
   const result = await streamGovernedTurn({
     binaryPath: '/safe/yana-rt',
     rootDir: '/repo with spaces',
+    cwd: '/selected workspace',
     provider: 'ollama',
     model: 'qwen 3:14b',
     input: {
@@ -66,7 +67,7 @@ async function testArgvAndStreaming() {
   assert.strictEqual(capture.command, '/safe/yana-rt');
   assert.deepStrictEqual(capture.args, ['chat', '--headless', '--provider', 'ollama', '--model', 'qwen 3:14b']);
   assert.strictEqual(capture.options.shell, undefined);
-  assert.strictEqual(capture.options.cwd, '/repo with spaces');
+  assert.strictEqual(capture.options.cwd, '/selected workspace');
   assert.ok(!capture.args.join(' ').includes('secret only on stdin'));
   const stdin = JSON.parse(capture.stdin);
   assert.strictEqual(stdin.api_key, 'secret only on stdin');
@@ -103,6 +104,23 @@ function testDesktopProviderCoverage() {
       `${provider} governed-runtime coverage drifted`,
     );
   }
+}
+
+function testAirLlmProviderContract() {
+  const provider = PROVIDERS.airllm;
+  assert.ok(provider, 'AirLLM must be registered with the desktop gateway');
+  assert.strictEqual(provider.protocol, 'http');
+  assert.strictEqual(provider.hostname, '127.0.0.1');
+  assert.strictEqual(provider.port, 8100);
+  assert.strictEqual(provider.keyless, true);
+  assert.strictEqual(provider.local, true);
+  const body = JSON.parse(provider.body('Qwen/Qwen3-32B', 'system', 'task'));
+  assert.strictEqual(body.model, 'Qwen/Qwen3-32B');
+  assert.strictEqual(body.stream, true);
+  assert.deepStrictEqual(body.messages, [
+    { role: 'system', content: 'system' },
+    { role: 'user', content: 'task' },
+  ]);
 }
 
 function testRuntimeDiscovery() {
@@ -149,8 +167,9 @@ Promise.resolve()
   .then(testArgvAndStreaming)
   .then(testFailureAndProviderGate)
   .then(testDesktopProviderCoverage)
+  .then(testAirLlmProviderContract)
   .then(testRuntimeDiscovery)
   .then(testRuntimeMode)
   .then(testProductionImageRequiresGovernedRuntime)
-  .then(() => console.log('runtime-client: 6/6 PASS'))
+  .then(() => console.log('runtime-client: 7/7 PASS'))
   .catch(error => { console.error(error); process.exit(1); });

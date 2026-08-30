@@ -11,6 +11,26 @@ import { L } from '../../components.jsx';
 import { KEYLESS_PROVIDERS, getProviderConfig } from '../../lib/provider-config.js';
 import { detectSensitivity, smartPickProvider } from './routing.js';
 import { CHAT_MODELS } from './model-select.js';
+import { getSnapshot as getTerminalContextSnapshot } from '../../lib/terminal-context.mjs';
+import { buildProgressSteps, buildTurnResult } from '../../lib/runtime-progress.mjs';
+import { getWorkspaceContextFiles } from '../../lib/file-attachments.mjs';
+
+// Desktop Terminal vertical slice, Phase D (extended by roadmap Phase 5,
+// Attachment Manager): a generic WorkspaceContext envelope —
+// `{ terminal?, repository?, git?, files?, tasks? }` per the architecture
+// correction. Each source is independently optional; the whole envelope
+// is null (never an empty/meaningless object) only when EVERY source is
+// absent, so attaching files with no terminal session running still
+// reaches the model, and vice versa.
+function workspaceContext() {
+  const terminal = getTerminalContextSnapshot();
+  const files = getWorkspaceContextFiles();
+  if (!terminal && !files) return null;
+  const ctx = {};
+  if (terminal) ctx.terminal = terminal;
+  if (files) ctx.files = files;
+  return ctx;
+}
 
 // "About you" + Profile (Settings) — sent with every chat so Yana knows the
 // user. Profile's role/instructions live under a separate "yana.profile.*"
@@ -27,6 +47,23 @@ function aboutContext() {
   const instructions = localStorage.getItem("yana.profile.instructions");
   if (instructions && instructions.trim()) parts.push("Instructions: " + instructions.trim());
   return parts.join("\n");
+}
+
+// Prior turns from THIS client-side conversation, oldest first. Before
+// this, /api/chat only ever received the current message (`task`) — no
+// provider, local or cloud, ever saw earlier turns, which is what
+// produced a "nothing to analyze" reply to a bare follow-up question
+// like "phân tích cái này" with no antecedent in the request itself.
+// `tier` travels per-entry so the server can strip confidential/sovereign
+// history before it reaches a non-local destination (rule 68) — the
+// server re-derives that filter itself (server.js's own sanitizedHistory),
+// it does not trust this client-side value as the actual boundary.
+const CHAT_HISTORY_LIMIT = 20;
+function chatHistory(msgs) {
+  return msgs
+    .filter((m) => (m.who === "user" || m.who === "yana") && m.text && m.text.trim())
+    .slice(-CHAT_HISTORY_LIMIT)
+    .map((m) => ({ role: m.who === "user" ? "user" : "assistant", content: m.text, tier: m.tier || null }));
 }
 
 // Reads one SSE `data: ...` stream to completion, calling onChunk(parsed)
@@ -64,6 +101,18 @@ export function useChatSend({
 }) {
   const [thinking, setThinking] = React.useState(false);
   const [streaming, setStreaming] = React.useState(false);
+  // Real token usage from the last completed turn — server.js forwards
+  // the governed runtime's own `metrics` event as `{usage}` SSE frames.
+  // null until the first turn completes; never fabricated in between.
+  const [lastUsage, setLastUsage] = React.useState(null);
+  // STEP 3 — canonical RuntimeEvent propagation: bounded, ever-growing
+  // list of the real runtime events (tool_requested/started/completed/
+  // approved/denied, turn_completed) server.js forwarded this session,
+  // via yana-rt's own write_event() -> `{runtimeEvent}` SSE frames. This
+  // hook only COLLECTS them (Category A: data, not presentation) — the
+  // new app shell's chat-workspace.jsx is what translates them into
+  // Activity rows; this file has no CustomEvent/UI dependency on new-app.
+  const [runtimeEvents, setRuntimeEvents] = React.useState([]);
   const readerRef = React.useRef(null);
 
   // Cancel any in-flight stream on unmount
@@ -85,7 +134,7 @@ export function useChatSend({
                : (detected || confMode)   ? "confidential"
                : null;
 
-    setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier }]);
+    setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier, _id: Date.now() }]);
     setDraft("");
     if (inputRef.current) { inputRef.current.style.height = "auto"; }
     setVisionImage(null);
@@ -143,8 +192,9 @@ export function useChatSend({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tier
-          ? { task: text, apiKey, provider, model, sensitivity: tier }
+          ? { task: text, apiKey, provider, model, sensitivity: tier, history: chatHistory(msgs) }
           : { task: text, apiKey, provider, model, skill, about: aboutContext(),
+              workspaceContext: workspaceContext(), history: chatHistory(msgs),
               images: visionImage ? [visionImage] : undefined }),
       });
 
@@ -176,7 +226,23 @@ export function useChatSend({
       }]);
       setThinking(false);
 
+      // Roadmap Phase 4 items 14-15 (Structured Result Blocks / Canonical
+      // Progress): `turnEvents` is scoped to THIS turn only, unlike the
+      // cross-turn `runtimeEvents` state above (which chat-workspace.jsx's
+      // Activity wiring depends on staying cumulative — see its own
+      // `seenRuntimeEventCount` ref). Steps/result attach to this turn's
+      // own message by `msgId`, never mixed with other turns.
+      const turnEvents = [];
+
       await consumeChatStream(reader, (obj) => {
+        if (obj.usage) { setLastUsage(obj.usage); return; }
+        if (obj.runtimeEvent) {
+          setRuntimeEvents((prev) => [...prev, obj.runtimeEvent]);
+          turnEvents.push(obj.runtimeEvent);
+          const steps = buildProgressSteps(turnEvents);
+          setMsgs((m) => m.map((msg) => msg._id === msgId ? { ...msg, steps } : msg));
+          return;
+        }
         if (obj.error) accumulated += "\n[Error: " + obj.error + "]";
         else if (obj.text) accumulated += obj.text;
         const snap = accumulated;
@@ -186,6 +252,15 @@ export function useChatSend({
       });
 
       setStreaming(false);
+
+      // Only ever attaches when the turn actually ran a command — a
+      // plain text-only reply gets no ResultCard (buildTurnResult
+      // returns null for that case, and ResultCard already renders
+      // nothing for a null result).
+      const turnResult = buildTurnResult(turnEvents);
+      if (turnResult) {
+        setMsgs((m) => m.map((msg) => msg._id === msgId ? { ...msg, result: turnResult } : msg));
+      }
 
       // Attach timing + cost metadata so RouteChip can display speed/cost badge
       const streamDone = { secs: (Date.now() - streamStart) / 1000, chars: accumulated.length };
@@ -281,5 +356,5 @@ export function useChatSend({
     setTimeout(() => sendText(text), 0);
   }
 
-  return { thinking, streaming, sendText, send, stopStream, regenerate, editAndResend };
+  return { thinking, streaming, lastUsage, runtimeEvents, sendText, send, stopStream, regenerate, editAndResend };
 }

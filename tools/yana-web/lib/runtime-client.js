@@ -13,6 +13,13 @@ const GOVERNED_PROVIDERS = new Set([
   'anthropic', 'groq', 'openai', 'gemini', '9router', 'ollama', 'lmstudio',
   'turbofieldfare', 'deepseek', 'openrouter', 'xai', 'novita', 'nvidia',
   'kimi', 'minimax', 'glm', 'huggingface', 'llamacpp', 'airllm',
+  // Roadmap Phase 14 — Custom Provider: not a `src/model/catalog.rs`
+  // registry entry (no compile-time URL exists for it), but still
+  // dispatched through the SAME governed `yana-rt chat --headless`
+  // path — `openai_compat::custom()` is constructed at request time from
+  // stdin's `base_url` instead of a static factory (see
+  // `src/chat/headless.rs::resolve_provider`).
+  'custom',
 ]);
 
 function supportsGovernedProvider(provider) {
@@ -78,6 +85,7 @@ function resolveGovernedRuntime({
 function streamGovernedTurn({
   binaryPath,
   rootDir,
+  cwd = rootDir,
   provider,
   model,
   input,
@@ -90,11 +98,12 @@ function streamGovernedTurn({
     return Promise.reject(new Error(`provider '${provider}' is not available in the governed runtime`));
   }
 
+  const workingDirectory = typeof cwd === 'string' && path.isAbsolute(cwd) ? cwd : rootDir;
   return new Promise((resolve, reject) => {
     const args = ['chat', '--headless', '--provider', provider];
     if (model) args.push('--model', model);
     const child = spawnImpl(binaryPath, args, {
-      cwd: rootDir,
+      cwd: workingDirectory,
       env: process.env,
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,

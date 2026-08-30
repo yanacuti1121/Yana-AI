@@ -155,23 +155,40 @@ pub fn eval_evidence(ev: &Evidence) -> (bool, String, &'static str) {
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
-pub fn cmd_task_create(name: String, scope: Option<String>) {
+pub fn cmd_task_create(name: String, scope: Option<String>, json: bool) {
     let mut store = load_store();
     let id = Uuid::new_v4().to_string();
     let ts = now();
-    store.tasks.insert(id.clone(), Task {
+    let task = Task {
         id: id.clone(), name: name.clone(), status: TaskStatus::Open,
         scope: scope.clone(), created_at: ts.clone(), updated_at: ts, evidence: None,
         eval_judge_attempts: 0, eval_judge_breaker_until: None,
-    });
+    };
+    store.tasks.insert(id.clone(), task.clone());
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&task).unwrap_or_default());
+        return;
+    }
     println!("✓ created  {}", &id[..8]);
     println!("  name:  {name}");
     if let Some(s) = scope { println!("  scope: {s}"); }
 }
 
-pub fn cmd_task_list() {
+// Roadmap Phase 8 — Tasks. `json: true` is Desktop's own read path (the
+// SAME TaskStore this terminal command already reads/writes — no second,
+// frontend-only todo system, per the Desktop handoff's rule 4). Sorted
+// newest-first for the UI's own convention (matches Activity History's
+// reverse-chron ordering) — the terminal table above stays oldest-first,
+// unchanged, since existing scripts/docs may depend on that order.
+pub fn cmd_task_list(json: bool) {
     let store = load_store();
+    if json {
+        let mut tasks: Vec<&Task> = store.tasks.values().collect();
+        tasks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        println!("{}", serde_json::to_string(&serde_json::json!({ "tasks": tasks })).unwrap_or_default());
+        return;
+    }
     if store.tasks.is_empty() { println!("No tasks. yana-rt task create \"description\""); return; }
     let mut tasks: Vec<&Task> = store.tasks.values().collect();
     tasks.sort_by(|a, b| a.created_at.cmp(&b.created_at));
@@ -186,7 +203,7 @@ pub fn cmd_task_list() {
     }
 }
 
-pub fn cmd_task_done(id: String, evidence: String) {
+pub fn cmd_task_done(id: String, evidence: String, json: bool) {
     let mut store = load_store();
     let key = match resolve_id_key(&store, &id) {
         Some(k) => k,
@@ -197,7 +214,12 @@ pub fn cmd_task_done(id: String, evidence: String) {
     task.status = TaskStatus::Done;
     task.evidence = Some(Evidence { raw: evidence.clone(), signals });
     task.updated_at = now();
+    let updated = task.clone();
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&updated).unwrap_or_default());
+        return;
+    }
     println!("✓ done  {}\n  evidence: {evidence}\n  run: yana-rt eval run {}", &key[..8], &key[..8]);
 }
 
@@ -213,7 +235,7 @@ pub fn cmd_task_status(id: String) {
     if let Some(ev) = &task.evidence { println!("  evidence: {}", ev.raw); }
 }
 
-pub fn cmd_task_drop(id: String) {
+pub fn cmd_task_drop(id: String, json: bool) {
     let mut store = load_store();
     let key = match resolve_id_key(&store, &id) {
         Some(k) => k,
@@ -221,6 +243,10 @@ pub fn cmd_task_drop(id: String) {
     };
     store.tasks.remove(&key);
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&serde_json::json!({ "ok": true, "id": key })).unwrap_or_default());
+        return;
+    }
     println!("✓ dropped {}", &key[..8]);
 }
 

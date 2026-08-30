@@ -1,3 +1,4 @@
+use super::authority::IntentDeclaration;
 use crate::session_context::SessionContext;
 use uuid::Uuid;
 
@@ -31,6 +32,14 @@ pub(crate) struct TurnContext {
     /// that spawned them — the whole point of an
     /// `AuthorityDecisionReceipt` correlation id.
     pub turn_id: String,
+    /// Authority Hardening item #7: this task's own declared intent, if
+    /// any. `None` (the default) means no declaration was made — the
+    /// existing four-term envelope (HALT/registry/lease-or-approval/
+    /// policy) governs unchanged, exactly as it did before this field
+    /// existed. See `authority::IntentDeclaration`'s own doc comment for
+    /// why this can only narrow, never widen, what those four checks
+    /// already decided.
+    pub intent: Option<IntentDeclaration>,
 }
 
 impl TurnContext {
@@ -42,6 +51,7 @@ impl TurnContext {
             agent_id: None,
             human_initiated,
             turn_id: Uuid::new_v4().to_string(),
+            intent: None,
         }
     }
 
@@ -52,5 +62,16 @@ impl TurnContext {
         child.agent_id = Some(agent_id.into());
         child.human_initiated = false;
         child
+    }
+
+    /// Declares this task's intent — additive, chainable after `new()` or
+    /// `for_subagent()`. A coordinator dispatching a subagent calls this
+    /// on the child context it hands off, not on its own; there is
+    /// deliberately no automatic inheritance of a parent's declaration
+    /// (unlike `turn_id`), since a coordinator's own intent and a
+    /// subagent's delegated task are not the same claim.
+    pub(crate) fn with_intent(mut self, intent: IntentDeclaration) -> Self {
+        self.intent = Some(intent);
+        self
     }
 }

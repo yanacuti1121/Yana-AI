@@ -45,6 +45,40 @@ struct HeadlessTurnInput {
     session_id: Option<String>,
     #[serde(default)]
     images: Vec<HeadlessImageInput>,
+    /// Roadmap Phase 14 — Custom Provider. Only meaningful (and required)
+    /// when `--provider custom`; travels via stdin JSON like `api_key`
+    /// above, never argv, for the same reason this file's header comment
+    /// already gives for `api_key` (process listings). Not a secret
+    /// itself, but keeping it on the same channel as `api_key` avoids a
+    /// second, inconsistent way of passing per-call provider config.
+    #[serde(default)]
+    base_url: Option<String>,
+    /// Whether the custom endpoint needs an Authorization header at all.
+    /// Only meaningful for `--provider custom`; defaults to `false`
+    /// (requires a key) so a caller that omits this on a real custom
+    /// provider gets a clear "missing key" error rather than silently
+    /// skipping auth it actually needed.
+    #[serde(default)]
+    custom_keyless: bool,
+    /// Prior turns from the same client-side conversation, oldest first.
+    /// Before this field existed, every headless dispatch sent exactly one
+    /// message (`task`) regardless of what the UI displayed — no provider,
+    /// local or cloud, ever saw earlier turns, which is what produced a
+    /// "nothing to analyze" style reply to a follow-up question like "phân
+    /// tích cái này" with no antecedent in the request itself. The caller
+    /// (Desktop gateway) is trusted to have already applied rule 68
+    /// confidentiality filtering before including a turn here — this layer
+    /// only bounds count/size (`validate_history`), it does not re-derive
+    /// trust.
+    #[serde(default)]
+    history: Vec<HeadlessHistoryInput>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HeadlessHistoryInput {
+    role: Role,
+    content: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -54,11 +88,50 @@ struct HeadlessImageInput {
     data: String,
 }
 
+/// Pure provider resolution — split out from `dispatch()` specifically so
+/// the "custom" branch (roadmap Phase 14) is unit-testable without stdin
+/// I/O or a real TurnEngine run. `model`/`base_url`/`custom_keyless` come
+/// from argv and stdin respectively (see `dispatch()` and
+/// `HeadlessTurnInput`'s own doc comments for why each lives where it does).
+fn resolve_provider(
+    provider_name: &str,
+    model: Option<&str>,
+    base_url: Option<&str>,
+    custom_keyless: bool,
+) -> Result<std::sync::Arc<dyn crate::model::provider::ChatProvider>> {
+    if provider_name == "custom" {
+        let base_url = base_url
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("provider 'custom' requires base_url"))?;
+        let custom_model = model
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("provider 'custom' requires --model"))?;
+        return Ok(std::sync::Arc::new(crate::chat::openai_compat::custom(
+            base_url,
+            custom_model,
+            custom_keyless,
+        )));
+    }
+    crate::model::catalog::try_select_provider(provider_name).map_err(anyhow::Error::msg)
+}
+
 pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<()> {
-    let provider =
-        crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
-    let model = model.unwrap_or_else(|| provider.default_model().to_string());
+    // `input` must be read before provider resolution now: a "custom"
+    // provider's URL travels in stdin JSON, not argv (see
+    // HeadlessTurnInput's own doc comment on `base_url`), so there is no
+    // provider to resolve until stdin has been read. Every other
+    // provider name is unaffected by this reordering — `read_input()` has
+    // no side effect on provider selection for them.
     let input = read_input()?;
+    let provider = resolve_provider(
+        &provider_name,
+        model.as_deref(),
+        input.base_url.as_deref(),
+        input.custom_keyless,
+    )?;
+    let model = model.unwrap_or_else(|| provider.default_model().to_string());
     let images = validate_images(input.images)?;
     if !images.is_empty() && !provider.supports_vision() {
         anyhow::bail!(
@@ -66,6 +139,7 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
             provider.name()
         )
     }
+    let history_messages = validate_history(input.history)?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let session = SessionContext::new(
         validate_session_id(input.session_id.as_deref())?,
@@ -78,12 +152,9 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
     let tools = crate::chat::tools::catalog(&session);
     let system = input.system.filter(|value| !value.is_empty());
     let api_key = input.api_key.filter(|value| !value.is_empty());
-    let mut request = TurnRequest::new(
-        context.clone(),
-        model.clone(),
-        vec![ChatMessage::text(Role::User, input.task).with_images(images)],
-    )
-    .with_tools(tools);
+    let mut messages = history_messages;
+    messages.push(ChatMessage::text(Role::User, input.task).with_images(images));
+    let mut request = TurnRequest::new(context.clone(), model.clone(), messages).with_tools(tools);
     if let Some(system) = system.clone() {
         request = request.with_system(system);
     }
@@ -313,6 +384,43 @@ fn validate_session_id(value: Option<&str>) -> Result<String> {
     }
 }
 
+const MAX_HISTORY_TURNS: usize = 40;
+const MAX_HISTORY_CHARS: usize = 8_000;
+
+/// Truncates at the nearest UTF-8 char boundary at or before `max_bytes` —
+/// plain `String::truncate` panics if `max_bytes` lands mid-codepoint,
+/// which arbitrary user-authored chat text (multi-byte scripts, emoji)
+/// hits routinely.
+fn truncate_at_char_boundary(mut value: String, max_bytes: usize) -> String {
+    if value.len() <= max_bytes {
+        return value;
+    }
+    let mut boundary = max_bytes;
+    while boundary > 0 && !value.is_char_boundary(boundary) {
+        boundary -= 1;
+    }
+    value.truncate(boundary);
+    value
+}
+
+/// Bounds count/size only. The caller (Desktop gateway) already applied
+/// rule 68 confidentiality filtering before a turn reaches this stdin
+/// payload — this layer does not re-derive trust, it only prevents an
+/// oversized or malformed history from ballooning the outgoing request.
+fn validate_history(history: Vec<HeadlessHistoryInput>) -> Result<Vec<ChatMessage>> {
+    if history.len() > MAX_HISTORY_TURNS {
+        anyhow::bail!("headless turn accepts at most {MAX_HISTORY_TURNS} history turns")
+    }
+    Ok(history
+        .into_iter()
+        .filter(|turn| !turn.content.trim().is_empty())
+        .map(|turn| {
+            let content = truncate_at_char_boundary(turn.content, MAX_HISTORY_CHARS);
+            ChatMessage::text(turn.role, content)
+        })
+        .collect())
+}
+
 fn validate_images(images: Vec<HeadlessImageInput>) -> Result<Vec<ImageAttachment>> {
     if images.len() > 8 {
         anyhow::bail!("headless turn accepts at most 8 images")
@@ -359,6 +467,79 @@ fn has_valid_base64_padding(value: &str) -> bool {
     }
 }
 
+/// Bounded, best-effort summary of a tool call for the `runtime_event`
+/// Activity channel (STEP 3, canonical event propagation) — never the
+/// full `arguments_json`. Only the two chat tools that exist today
+/// (`read_file`'s `path`, `run_command`'s `command` — see
+/// `chat/tui/tool_dispatch.rs`'s own arg-key usage, the single source
+/// of truth for these key names) are given a readable form; anything
+/// else falls back to the bare tool name.
+const MAX_TOOL_SUMMARY_CHARS: usize = 160;
+
+fn summarize_tool_call(call: &crate::model::tool::ToolCall) -> String {
+    #[derive(Deserialize, Default)]
+    struct Args {
+        command: Option<String>,
+        path: Option<String>,
+    }
+    let args: Args = serde_json::from_str(&call.arguments_json).unwrap_or_default();
+    let raw = match call.name.as_str() {
+        "run_command" => args.command.map(|c| format!("Running: {c}")),
+        "read_file" => args.path.map(|p| format!("Reading: {p}")),
+        _ => None,
+    }
+    .unwrap_or_else(|| call.name.clone());
+    truncate_summary(&redact_secret_like(&raw))
+}
+
+/// Coarse, whole-string redaction: if the raw text looks like it might
+/// reference a secret, hide the WHOLE string rather than attempt partial
+/// masking that could miss a shape nobody anticipated (a command's
+/// argument structure is arbitrary shell text, not a known schema).
+/// Mirrors `audit-log.sh`'s own secret-masking keyword list
+/// (`55-observability-telemetry-law.md`) for consistency with this
+/// repo's one other real redaction mechanism, rather than inventing a
+/// second, different keyword set.
+const SECRET_LIKE_MARKERS: &[&str] = &[
+    "SECRET", "TOKEN", "PASSWORD", "API_KEY", "APIKEY", "PRIVATE_KEY", "BEARER",
+];
+
+fn redact_secret_like(text: &str) -> String {
+    let upper = text.to_uppercase();
+    if SECRET_LIKE_MARKERS.iter().any(|marker| upper.contains(marker)) {
+        "[redacted — may reference a secret]".to_string()
+    } else {
+        text.to_string()
+    }
+}
+
+fn truncate_summary(text: &str) -> String {
+    if text.chars().count() <= MAX_TOOL_SUMMARY_CHARS {
+        return text.to_string();
+    }
+    let truncated: String = text.chars().take(MAX_TOOL_SUMMARY_CHARS).collect();
+    format!("{truncated}…")
+}
+
+/// STEP 3 (canonical RuntimeEvent propagation): every `runtime_event`
+/// payload below is intentionally a PROJECTION, not a raw dump —
+/// `ToolCompleted` in particular never includes `ToolResultRecord::output`
+/// (arbitrary command stdout/stderr or full file contents), only the
+/// pass/fail outcome. The bounded terminal-context channel
+/// (tools/yana-web/desktop-src/lib/terminal-context.mjs) is the one place
+/// raw output travels; Activity events must not become a second,
+/// unbounded copy of it. `call_id`/`result.call_id` is the SAME stable
+/// identifier across the requested -> approved/denied -> started ->
+/// completed lifecycle (`ToolCall.id` / `ToolResultRecord.call_id`,
+/// `src/model/tool.rs`) — no synthetic correlation id needed.
+///
+/// Classified as NOT exposed here, deliberately (see STEP 3's own
+/// classification table): `TurnStarted` (carries a full `TurnContext`,
+/// redundant with the user's own message already visible), `MessageStarted`
+/// (no activity value), `TurnResumed` (developer-only correlation detail),
+/// `MessageCompleted` (would duplicate the full assistant reply through a
+/// second channel — the existing `text_delta` stream is already the one
+/// place that text travels).
 fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
     let payload = match event {
         RuntimeEvent::TextDelta(text) => Some(json!({ "type": "text_delta", "text": text })),
@@ -376,6 +557,50 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             Some(json!({ "type": "cancelled", "partial": partial }))
         }
         RuntimeEvent::Error { message } => Some(json!({ "type": "error", "message": message })),
+        RuntimeEvent::ToolRequested(call) => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_requested",
+            "call_id": call.id,
+            "tool": call.name,
+            "summary": summarize_tool_call(&call),
+        })),
+        RuntimeEvent::ToolApproved { call_id } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_approved",
+            "call_id": call_id,
+        })),
+        RuntimeEvent::ToolDenied { call_id, reason } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_denied",
+            "call_id": call_id,
+            "reason": reason,
+        })),
+        RuntimeEvent::HumanApprovalRequired { call, authority, reason } => Some(json!({
+            "type": "runtime_event",
+            "kind": "human_approval_required",
+            "call_id": call.id,
+            "tool": call.name.clone(),
+            "summary": summarize_tool_call(&call),
+            "authority": authority.label(),
+            "reason": reason,
+        })),
+        RuntimeEvent::ToolStarted { call_id } => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_started",
+            "call_id": call_id,
+        })),
+        RuntimeEvent::ToolCompleted(result) => Some(json!({
+            "type": "runtime_event",
+            "kind": "tool_completed",
+            "call_id": result.call_id,
+            "ok": !result.is_error,
+            "denied": result.denied,
+        })),
+        RuntimeEvent::TurnCompleted { tool_rounds } => Some(json!({
+            "type": "runtime_event",
+            "kind": "turn_completed",
+            "tool_rounds": tool_rounds,
+        })),
         _ => None,
     };
     if let Some(payload) = payload {
@@ -395,6 +620,82 @@ fn write_json_line(output: &mut impl Write, value: &serde_json::Value) -> Result
 mod tests {
     use super::*;
 
+    // `Arc<dyn ChatProvider>` isn't `Debug`, so `.unwrap_err()` (which
+    // requires the Ok-type to be Debug, for its own panic message) can't
+    // be used on a `Result<Arc<dyn ChatProvider>, _>` here — match
+    // manually instead.
+    fn expect_err(result: Result<std::sync::Arc<dyn crate::model::provider::ChatProvider>>) -> anyhow::Error {
+        match result {
+            Err(error) => error,
+            Ok(_) => panic!("expected an error, got Ok"),
+        }
+    }
+
+    #[test]
+    fn resolve_provider_custom_requires_base_url() {
+        let error = expect_err(resolve_provider("custom", Some("some-model"), None, false));
+        assert!(error.to_string().contains("requires base_url"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_rejects_whitespace_only_base_url() {
+        let error = expect_err(resolve_provider("custom", Some("some-model"), Some("   "), false));
+        assert!(error.to_string().contains("requires base_url"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_requires_model() {
+        let error = expect_err(resolve_provider(
+            "custom",
+            None,
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            false,
+        ));
+        assert!(error.to_string().contains("requires --model"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_builds_a_real_provider_with_given_url_and_model() {
+        let provider = resolve_provider(
+            "custom",
+            Some("my-local-model"),
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            true,
+        )
+        .unwrap();
+        assert_eq!(provider.name(), "custom");
+        assert_eq!(provider.default_model(), "my-local-model");
+        assert!(!provider.requires_key(), "custom_keyless=true must make requires_key() false");
+    }
+
+    #[test]
+    fn resolve_provider_custom_keyless_false_requires_a_key() {
+        let provider = resolve_provider(
+            "custom",
+            Some("my-local-model"),
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            false,
+        )
+        .unwrap();
+        assert!(provider.requires_key(), "custom_keyless=false must make requires_key() true");
+    }
+
+    #[test]
+    fn resolve_provider_non_custom_names_use_the_static_catalog_unchanged() {
+        let provider = resolve_provider("ollama", None, None, false).unwrap();
+        assert_eq!(provider.name(), "ollama");
+        // base_url/custom_keyless are silently ignored for a real catalog
+        // provider — they only ever apply to "custom".
+        let provider_with_ignored_fields =
+            resolve_provider("ollama", None, Some("http://example.com"), true).unwrap();
+        assert_eq!(provider_with_ignored_fields.name(), "ollama");
+    }
+
+    #[test]
+    fn resolve_provider_unknown_name_is_a_named_error_not_a_panic() {
+        assert!(resolve_provider("nonexistent", None, None, false).is_err());
+    }
+
     #[test]
     fn session_ids_are_bounded_and_path_neutral() {
         assert_eq!(
@@ -404,6 +705,51 @@ mod tests {
         assert!(validate_session_id(Some("../escape")).is_err());
         assert!(validate_session_id(Some("contains space")).is_err());
         assert!(validate_session_id(Some(&"x".repeat(129))).is_err());
+    }
+
+    #[test]
+    fn validate_history_converts_roles_and_drops_blank_turns() {
+        let messages = validate_history(vec![
+            HeadlessHistoryInput { role: Role::User, content: "phân tích đoạn code này".into() },
+            HeadlessHistoryInput { role: Role::Assistant, content: "  ".into() },
+            HeadlessHistoryInput { role: Role::Assistant, content: "Đây là phân tích...".into() },
+        ])
+        .unwrap();
+        assert_eq!(messages.len(), 2, "the whitespace-only turn must be dropped");
+        assert_eq!(messages[0].role, Role::User);
+        assert_eq!(messages[0].content, "phân tích đoạn code này");
+        assert_eq!(messages[1].role, Role::Assistant);
+    }
+
+    #[test]
+    fn validate_history_rejects_more_than_the_turn_cap() {
+        let history: Vec<_> = (0..(MAX_HISTORY_TURNS + 1))
+            .map(|i| HeadlessHistoryInput { role: Role::User, content: format!("turn {i}") })
+            .collect();
+        let error = validate_history(history).unwrap_err();
+        assert!(error.to_string().contains("at most"));
+    }
+
+    #[test]
+    fn validate_history_truncates_an_oversized_turn_without_panicking_on_multibyte_text() {
+        // Repeats a 3-byte UTF-8 character so the naive byte-offset cap
+        // (MAX_HISTORY_CHARS) almost certainly lands mid-codepoint —
+        // exercising truncate_at_char_boundary's backward scan.
+        let oversized = "phân".repeat(3000);
+        assert!(oversized.len() > MAX_HISTORY_CHARS);
+        let messages = validate_history(vec![HeadlessHistoryInput {
+            role: Role::User,
+            content: oversized,
+        }])
+        .unwrap();
+        assert_eq!(messages.len(), 1);
+        assert!(messages[0].content.len() <= MAX_HISTORY_CHARS);
+        assert!(messages[0].content.is_char_boundary(messages[0].content.len()));
+    }
+
+    #[test]
+    fn validate_history_empty_input_is_fine() {
+        assert!(validate_history(Vec::new()).unwrap().is_empty());
     }
 
     #[test]
@@ -429,6 +775,174 @@ mod tests {
         );
         assert_eq!(parsed[1]["input_tokens"], 4);
         assert_eq!(parsed[1]["output_tokens"], 7);
+    }
+
+    #[test]
+    fn tool_requested_started_completed_are_serialized_with_shared_call_id() {
+        use crate::model::tool::{ToolCall, ToolResultRecord};
+        let call = ToolCall {
+            id: "call-1".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: r#"{"command":"cargo test"}"#.to_string(),
+        };
+        let mut output = Vec::new();
+        write_event(&mut output, RuntimeEvent::ToolRequested(call.clone())).unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolStarted { call_id: call.id.clone() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolCompleted(ToolResultRecord {
+                call_id: call.id.clone(),
+                output: "277 passed".to_string(),
+                is_error: false,
+                denied: false,
+            }),
+        )
+        .unwrap();
+
+        let lines: Vec<serde_json::Value> = String::from_utf8(output)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+
+        assert_eq!(lines[0]["type"], "runtime_event");
+        assert_eq!(lines[0]["kind"], "tool_requested");
+        assert_eq!(lines[0]["call_id"], "call-1");
+        assert_eq!(lines[0]["tool"], "run_command");
+        assert_eq!(lines[0]["summary"], "Running: cargo test");
+
+        assert_eq!(lines[1]["kind"], "tool_started");
+        assert_eq!(lines[1]["call_id"], "call-1");
+
+        assert_eq!(lines[2]["kind"], "tool_completed");
+        assert_eq!(lines[2]["call_id"], "call-1");
+        assert_eq!(lines[2]["ok"], true);
+        assert_eq!(lines[2]["denied"], false);
+        // The one property this event type must never regress: raw tool
+        // output never travels through the Activity channel.
+        assert!(lines[2].get("output").is_none());
+
+        // Same call_id across all three — the correlation strategy this
+        // step relies on (ToolCall.id / ToolResultRecord.call_id), not a
+        // synthetic id invented here.
+        assert_eq!(lines[0]["call_id"], lines[1]["call_id"]);
+        assert_eq!(lines[1]["call_id"], lines[2]["call_id"]);
+    }
+
+    #[test]
+    fn tool_approved_denied_and_human_approval_required_are_serialized() {
+        use crate::model::tool::ToolCall;
+        use crate::runtime::AuthorityLayer;
+
+        let mut output = Vec::new();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolApproved { call_id: "call-2".to_string() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::ToolDenied {
+                call_id: "call-3".to_string(),
+                reason: "non-human-initiated turn cannot execute this capability".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::HumanApprovalRequired {
+                call: ToolCall {
+                    id: "call-4".to_string(),
+                    name: "run_command".to_string(),
+                    arguments_json: r#"{"command":"rm -rf /tmp/x"}"#.to_string(),
+                },
+                authority: AuthorityLayer::YanaControlPlane,
+                reason: "capability 'command.execute' requires explicit human approval".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(&mut output, RuntimeEvent::TurnCompleted { tool_rounds: 3 }).unwrap();
+
+        let lines: Vec<serde_json::Value> = String::from_utf8(output)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+
+        assert_eq!(lines[0]["kind"], "tool_approved");
+        assert_eq!(lines[0]["call_id"], "call-2");
+        assert_eq!(lines[1]["kind"], "tool_denied");
+        assert_eq!(lines[1]["reason"], "non-human-initiated turn cannot execute this capability");
+        assert_eq!(lines[2]["kind"], "human_approval_required");
+        assert_eq!(lines[2]["call_id"], "call-4");
+        assert_eq!(lines[2]["authority"], "yana_control_plane");
+        assert_eq!(lines[3]["kind"], "turn_completed");
+        assert_eq!(lines[3]["tool_rounds"], 3);
+    }
+
+    #[test]
+    fn internal_events_are_dropped_without_panicking() {
+        use crate::runtime::{TurnContext, TurnOrigin};
+        use crate::session_context::SessionContext;
+        use std::path::PathBuf;
+
+        let session = SessionContext::new("s1", PathBuf::from("/tmp/repo"), "anthropic", "m", true);
+        let mut output = Vec::new();
+        // TurnStarted, MessageStarted, TurnResumed, MessageCompleted: none
+        // of these are classified as Activity-relevant (see write_event's
+        // own doc comment) — must not panic, must not emit anything.
+        write_event(
+            &mut output,
+            RuntimeEvent::TurnStarted {
+                context: TurnContext::new(session, TurnOrigin::Desktop, true),
+                provider: "anthropic".to_string(),
+                model: "claude".to_string(),
+            },
+        )
+        .unwrap();
+        write_event(&mut output, RuntimeEvent::MessageStarted).unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::TurnResumed { approval_id: "a1".to_string() },
+        )
+        .unwrap();
+        write_event(
+            &mut output,
+            RuntimeEvent::MessageCompleted("full assistant reply text".to_string()),
+        )
+        .unwrap();
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn tool_call_summary_redacts_secret_like_text_and_bounds_length() {
+        use crate::model::tool::ToolCall;
+        let with_secret = ToolCall {
+            id: "c".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: r#"{"command":"curl -H 'Authorization: Bearer sk-abc' https://x"}"#.to_string(),
+        };
+        let summary = summarize_tool_call(&with_secret);
+        assert_eq!(summary, "[redacted — may reference a secret]");
+        assert!(!summary.to_uppercase().contains("BEARER"));
+
+        let long = ToolCall {
+            id: "c2".to_string(),
+            name: "run_command".to_string(),
+            arguments_json: format!(r#"{{"command":"{}"}}"#, "x".repeat(500)),
+        };
+        assert!(summarize_tool_call(&long).chars().count() <= MAX_TOOL_SUMMARY_CHARS + 1);
+
+        let normal = ToolCall {
+            id: "c3".to_string(),
+            name: "read_file".to_string(),
+            arguments_json: r#"{"path":"src/main.rs"}"#.to_string(),
+        };
+        assert_eq!(summarize_tool_call(&normal), "Reading: src/main.rs");
     }
 
     #[test]

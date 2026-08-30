@@ -457,19 +457,31 @@ enum TaskAction {
         name: String,
         #[arg(long)]
         scope: Option<String>,
+        /// Roadmap Phase 8 (Desktop Tasks view) — machine-readable output.
+        #[arg(long)]
+        json: bool,
     },
     /// List all tasks
-    List,
+    List {
+        #[arg(long)]
+        json: bool,
+    },
     /// Mark a task done with evidence
     Done {
         id: String,
         #[arg(long)]
         evidence: String,
+        #[arg(long)]
+        json: bool,
     },
     /// Show task details
     Status { id: String },
     /// Remove a task
-    Drop { id: String },
+    Drop {
+        id: String,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -800,11 +812,11 @@ fn main() {
     let cli = parse_cli();
     match cli.command {
         Commands::Task { action } => match action {
-            TaskAction::Create { name, scope } => task::cmd_task_create(name, scope),
-            TaskAction::List => task::cmd_task_list(),
-            TaskAction::Done { id, evidence } => task::cmd_task_done(id, evidence),
+            TaskAction::Create { name, scope, json } => task::cmd_task_create(name, scope, json),
+            TaskAction::List { json } => task::cmd_task_list(json),
+            TaskAction::Done { id, evidence, json } => task::cmd_task_done(id, evidence, json),
             TaskAction::Status { id } => task::cmd_task_status(id),
-            TaskAction::Drop { id } => task::cmd_task_drop(id),
+            TaskAction::Drop { id, json } => task::cmd_task_drop(id, json),
         },
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => task::cmd_eval_run(id),

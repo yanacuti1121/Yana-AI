@@ -10,6 +10,7 @@
 const fs   = require('fs');
 const path = require('path');
 const { classifySensitivity } = require('./lib/core');
+const { writeJsonAtomic } = require('./lib/atomic-json');
 
 // Same persistent data dir as auth.js — YANA_DATA_DIR points at a mounted
 // volume (e.g. /data on Railway) so missions survive redeploys.
@@ -23,8 +24,7 @@ function load() {
 }
 
 function save(missions) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(FILE, JSON.stringify(missions, null, 2));
+  writeJsonAtomic(FILE, missions);
 }
 
 function json(res, status, obj) {

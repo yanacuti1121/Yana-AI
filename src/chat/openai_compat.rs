@@ -15,37 +15,66 @@ use super::tool_types::{StreamOutcome, ToolCallAccumulator, ToolSpec};
 use anyhow::{Context, Result};
 
 pub struct OpenAiCompatProvider {
-    pub provider_name: &'static str,
+    pub provider_name: String,
     /// Full request URL, e.g. "https://api.openai.com/v1/chat/completions"
-    /// or "http://127.0.0.1:11434/v1/chat/completions".
-    pub url: &'static str,
-    pub default_model: &'static str,
+    /// or "http://127.0.0.1:11434/v1/chat/completions". Owned (not
+    /// `&'static str`) specifically so `custom()` below can hold a
+    /// runtime, human-supplied URL (roadmap Phase 14 — Custom Provider)
+    /// — every OTHER constructor here still only ever receives a
+    /// compile-time literal, this type just no longer forces that.
+    pub url: String,
+    pub default_model: String,
     pub keyless: bool,
-    pub env_var: &'static str,
+    pub env_var: String,
 }
 
 pub fn openai() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "openai",
-        url: "https://api.openai.com/v1/chat/completions",
-        default_model: "gpt-4o-mini",
+        provider_name: "openai".into(),
+        url: "https://api.openai.com/v1/chat/completions".into(),
+        default_model: "gpt-4o-mini".into(),
         keyless: false,
-        env_var: "OPENAI_API_KEY",
+        env_var: "OPENAI_API_KEY".into(),
     }
 }
 
 fn remote(
-    provider_name: &'static str,
-    url: &'static str,
-    default_model: &'static str,
-    env_var: &'static str,
+    provider_name: impl Into<String>,
+    url: impl Into<String>,
+    default_model: impl Into<String>,
+    env_var: impl Into<String>,
 ) -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name,
-        url,
-        default_model,
+        provider_name: provider_name.into(),
+        url: url.into(),
+        default_model: default_model.into(),
         keyless: false,
-        env_var,
+        env_var: env_var.into(),
+    }
+}
+
+/// Roadmap Phase 14 — Custom Provider. The one constructor whose values
+/// come from runtime, human-supplied Settings configuration rather than
+/// a compile-time literal. `url`/`default_model` are NOT re-validated
+/// here — the one call site that receives this untrusted-shaped input
+/// (`headless::dispatch`) validates before ever calling this, matching
+/// the "validate at the boundary, trust internal code" rule; duplicating
+/// that check here would just be a second place for it to drift out of
+/// sync. `keyless` is caller-supplied (not hardcoded `false` like
+/// `remote()`) because a user's own local server may or may not require
+/// a key — unlike every hardcoded provider above, this constructor can't
+/// know that in advance.
+pub fn custom(
+    url: impl Into<String>,
+    default_model: impl Into<String>,
+    keyless: bool,
+) -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "custom".into(),
+        url: url.into(),
+        default_model: default_model.into(),
+        keyless,
+        env_var: String::new(),
     }
 }
 
@@ -141,28 +170,33 @@ pub fn nine_router() -> OpenAiCompatProvider {
 
 pub fn kimi() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "kimi",
+        provider_name: "kimi".into(),
         // Moonshot AI's Kimi K3 (2.8T params, launched 2026-07-16) — OpenAI-
         // compatible Chat Completions endpoint, confirmed against official
         // docs (platform.kimi.ai/docs/api/overview): base_url
         // https://api.moonshot.ai/v1, model id "kimi-k3".
-        url: "https://api.moonshot.ai/v1/chat/completions",
-        default_model: "kimi-k3",
+        url: "https://api.moonshot.ai/v1/chat/completions".into(),
+        default_model: "kimi-k3".into(),
         keyless: false,
-        env_var: "MOONSHOT_API_KEY",
+        env_var: "MOONSHOT_API_KEY".into(),
     }
 }
 
 pub fn ollama() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "ollama",
-        // Loopback only — MVP does not accept a custom base-URL override
-        // (see the plan's out-of-scope table: that would reopen the SSRF
-        // surface design::check_host_not_private exists to guard).
-        url: "http://127.0.0.1:11434/v1/chat/completions",
-        default_model: "llama3.2",
+        provider_name: "ollama".into(),
+        // Loopback, hardcoded default port — this specific entry is not
+        // where a user overrides the URL; that's what custom() (above) is
+        // for, kept as a deliberately separate provider rather than
+        // letting every existing entry's URL become overridable (would
+        // reopen the SSRF surface design::check_host_not_private guards
+        // against for AI-agent-initiated fetches; custom() is human-
+        // Settings-configured only, a different trust tier — see its own
+        // doc comment).
+        url: "http://127.0.0.1:11434/v1/chat/completions".into(),
+        default_model: "llama3.2".into(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 
@@ -224,42 +258,42 @@ mod detect_tests {
 
 pub fn lm_studio() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "lmstudio",
-        url: "http://127.0.0.1:1234/v1/chat/completions",
-        default_model: "local-model",
+        provider_name: "lmstudio".into(),
+        url: "http://127.0.0.1:1234/v1/chat/completions".into(),
+        default_model: "local-model".into(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 
 pub fn llama_cpp() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "llamacpp",
-        url: "http://127.0.0.1:8080/v1/chat/completions",
-        default_model: "local-model",
+        provider_name: "llamacpp".into(),
+        url: "http://127.0.0.1:8080/v1/chat/completions".into(),
+        default_model: "local-model".into(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 
 pub fn turbofieldfare() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "turbofieldfare",
+        provider_name: "turbofieldfare".into(),
         // Loopback only, same reasoning as ollama() above. Port and model
         // id match tools/yana-web/server.js's own `turbofieldfare` entry
         // and TurboFieldfareServer's own --port/--model-id defaults (see
         // ~/turbo-fieldfare/README.md's "Local OpenAI-compatible server"
         // section) — one on-device Gemma-4-26B server, two clients.
-        url: "http://127.0.0.1:8091/v1/chat/completions",
-        default_model: "gemma-4-26b-a4b-it",
+        url: "http://127.0.0.1:8091/v1/chat/completions".into(),
+        default_model: "gemma-4-26b-a4b-it".into(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 
 pub fn airllm() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
-        provider_name: "airllm",
+        provider_name: "airllm".into(),
         // Loopback only, same reasoning as ollama() above. AirLLM
         // (github.com/lyogavin/airllm) is a Python library with no HTTP
         // server of its own, unlike every other local provider here —
@@ -267,29 +301,29 @@ pub fn airllm() -> OpenAiCompatProvider {
         // compatible wrapper around it, matching TurboFieldfareServer's
         // role for `turbofieldfare()` above: an external process this
         // crate never launches or manages, just points at.
-        url: "http://127.0.0.1:8100/v1/chat/completions",
+        url: "http://127.0.0.1:8100/v1/chat/completions".into(),
         // Placeholder only — AirLLM's entire value proposition is running
         // whatever huge model the user actually wants (70B+ on a 4GB
         // GPU), so the real model choice always comes from how the user
         // launched the bridge (`--model <hf-id>`), not this default.
-        default_model: "meta-llama/Llama-3.2-3B-Instruct",
+        default_model: "meta-llama/Llama-3.2-3B-Instruct".into(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 
 impl ChatProvider for OpenAiCompatProvider {
     fn name(&self) -> &str {
-        self.provider_name
+        &self.provider_name
     }
     fn default_model(&self) -> &str {
-        self.default_model
+        &self.default_model
     }
     fn requires_key(&self) -> bool {
         !self.keyless
     }
     fn env_var(&self) -> &str {
-        self.env_var
+        &self.env_var
     }
     fn runtime_kind(&self) -> RuntimeKind {
         if self.url.starts_with("http://127.0.0.1") || self.url.starts_with("http://localhost") {
@@ -300,7 +334,7 @@ impl ChatProvider for OpenAiCompatProvider {
     }
     fn supports_vision(&self) -> bool {
         matches!(
-            self.provider_name,
+            self.provider_name.as_str(),
             "openai" | "groq" | "openrouter" | "xai" | "glm"
         )
     }
@@ -400,7 +434,7 @@ impl ChatProvider for OpenAiCompatProvider {
 
         let agent = super::provider::build_agent();
         let mut req = agent
-            .post(self.url)
+            .post(self.url.as_str())
             .header("content-type", "application/json");
         if let Some(key) = api_key {
             req = req.header("Authorization", format!("Bearer {key}"));
