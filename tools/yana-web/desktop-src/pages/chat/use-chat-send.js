@@ -13,20 +13,23 @@ import { detectSensitivity, smartPickProvider } from './routing.js';
 import { CHAT_MODELS } from './model-select.js';
 import { getSnapshot as getTerminalContextSnapshot } from '../../lib/terminal-context.mjs';
 import { buildProgressSteps, buildTurnResult } from '../../lib/runtime-progress.mjs';
+import { getWorkspaceContextFiles } from '../../lib/file-attachments.mjs';
 
-// Desktop Terminal vertical slice, Phase D: the bounded terminal snapshot
-// (Phase C) becomes the one populated source of a generic WorkspaceContext
-// envelope — `{ terminal, repository?, git?, files?, tasks? }` per the
-// architecture correction. Only `terminal` is wired today; the other
-// sources join this same envelope in later phases rather than each
-// growing its own top-level chat-protocol field. Returns null (never an
-// empty/meaningless object) when no terminal session has started this
-// app run — same "electron only" gate IS_ELECTRON already governs the
-// terminal feature itself with.
+// Desktop Terminal vertical slice, Phase D (extended by roadmap Phase 5,
+// Attachment Manager): a generic WorkspaceContext envelope —
+// `{ terminal?, repository?, git?, files?, tasks? }` per the architecture
+// correction. Each source is independently optional; the whole envelope
+// is null (never an empty/meaningless object) only when EVERY source is
+// absent, so attaching files with no terminal session running still
+// reaches the model, and vice versa.
 function workspaceContext() {
   const terminal = getTerminalContextSnapshot();
-  if (!terminal) return null;
-  return { terminal };
+  const files = getWorkspaceContextFiles();
+  if (!terminal && !files) return null;
+  const ctx = {};
+  if (terminal) ctx.terminal = terminal;
+  if (files) ctx.files = files;
+  return ctx;
 }
 
 // "About you" + Profile (Settings) — sent with every chat so Yana knows the

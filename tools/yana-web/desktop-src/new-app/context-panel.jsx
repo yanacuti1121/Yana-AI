@@ -1,6 +1,7 @@
 import React from 'react';
 import { L, Icons } from '../components.jsx';
 import { providerAvailable } from '../lib/provider-config.js';
+import { ChangesView } from './changes-view.jsx';
 
 // Twin of header.jsx's own shortModelName() — small enough (one line) to
 // duplicate rather than add a shared-util import graph for.
@@ -116,7 +117,7 @@ function NotYetAvailable({ label }) {
 }
 
 export function ContextPanel({
-  projectName, repoRoot, branch, modifiedCount, untrackedCount,
+  projectName, repoRoot, branch, modifiedCount, untrackedCount, changedFiles, onRefreshGit,
   provider, model, lastUsage, providerSel, setProviderSel, pickModel, modelOptions, providers,
   selection,
 }) {
@@ -157,7 +158,11 @@ export function ContextPanel({
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {tab === 'files' && <NotYetAvailable label="Files" />}
-        {tab === 'changes' && <NotYetAvailable label="Changes" />}
+        {tab === 'changes' && (
+          <div style={{ padding: '10px 14px' }}>
+            <ChangesView repoRoot={repoRoot} files={changedFiles} onRefreshGit={onRefreshGit} />
+          </div>
+        )}
         {tab === 'info' && (
           selection ? (
             <Section title={L('Selection', 'Đã chọn', '선택 항목', '所选内容')}>

@@ -5,6 +5,26 @@
 // single compact input row.
 import React from 'react';
 import { L, Icons } from '../../components.jsx';
+import { IS_ELECTRON } from '../../lib/is-electron.js';
+import { subscribe, getSnapshot, toggleAttachment } from '../../lib/file-attachments.mjs';
+
+// Roadmap Phase 5 item 18 — Drag & Drop. Electron-only: window.yana's
+// path-resolution helpers (getPathForFile/toRepoRelativePath) only exist
+// in the desktop preload context. A dropped file OUTSIDE the current
+// project (toRepoRelativePath returns ok:false) is rejected with a
+// visible reason, not silently ignored — same "no silent no-op on a
+// limit" rule file-attachments.mjs's own toggleAttachment follows.
+async function attachDroppedFiles(fileList, setDropMsg) {
+  for (const file of Array.from(fileList)) {
+    const absolutePath = window.yana.getPathForFile(file);
+    const resolved = await window.yana.toRepoRelativePath(absolutePath);
+    if (!resolved.ok) { setDropMsg(resolved.error); continue; }
+    const read = await window.yana.readFile(resolved.relPath);
+    if (!read.ok) { setDropMsg(read.error); continue; }
+    const result = toggleAttachment(resolved.relPath, read.content, read.sizeBytes);
+    if (result === 'file-limit' || result === 'size-limit') setDropMsg(result);
+  }
+}
 
 function QuickAction({ icon, label, onClick, disabled, title }) {
   return (
@@ -27,12 +47,50 @@ function QuickAction({ icon, label, onClick, disabled, title }) {
 }
 
 export function Composer({ draft, setDraft, autoResize, send, stopStream, streaming, thinking, inputRef, activeModel, hasWorkspaceContext, onFocusTerminal, activeStep }) {
+  const attachedFiles = React.useSyncExternalStore(subscribe, getSnapshot);
+  const [dragOver, setDragOver] = React.useState(false);
+  const [dropMsg, setDropMsg] = React.useState(null);
+
+  function onDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    if (!IS_ELECTRON || !e.dataTransfer.files?.length) return;
+    setDropMsg(null);
+    attachDroppedFiles(e.dataTransfer.files, setDropMsg);
+  }
+
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: 8,
-      border: '1px solid var(--border)', borderRadius: 'var(--r-lg)',
-      padding: '14px 16px 10px', background: 'var(--color-bg-subtle)',
-    }}>
+    <div
+      onDragOver={(e) => { if (IS_ELECTRON) { e.preventDefault(); setDragOver(true); } }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={onDrop}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 8,
+        border: dragOver ? '1px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-lg)',
+        padding: '14px 16px 10px', background: 'var(--color-bg-subtle)',
+      }}
+    >
+      {attachedFiles.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {attachedFiles.map((f) => (
+            <span key={f.path} style={{
+              display: 'flex', alignItems: 'center', gap: 5, fontSize: 'var(--font-size-xs)',
+              border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '2px 8px', color: 'var(--ink)',
+            }}>
+              {Icons.file(11)}
+              {f.path}
+              <button
+                onClick={() => toggleAttachment(f.path, '', 0)}
+                aria-label={L('Remove attachment', 'Gỡ đính kèm', '첨부 제거', '移除附件')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', display: 'flex', padding: 0 }}
+              >×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      {dropMsg && (
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--warn)' }}>{dropMsg}</div>
+      )}
       {/* Roadmap Phase 4 item 16 — Context-aware Composer: reflects the
           SAME real per-turn step data ProgressCard renders in the
           conversation above, just surfaced here too while it's running.

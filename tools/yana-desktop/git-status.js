@@ -47,21 +47,46 @@ function gitStatus({ repoRoot, yanaRtBin, exec = execFileSync, existsSync = fs.e
 // commit hash, not a message/date, and getting those needs a second `git
 // log` call this capability doesn't make; omitted rather than fabricated
 // (see the new-app Context Panel's own doc comment).
+//
+// Roadmap Phase 7 item 26 (Changes View) added the `files` array: each
+// entry's own index/worktree status letters (X/Y — e.g. 'M.' = staged
+// modify, '.M' = unstaged modify, 'A.' = staged add), not a single
+// collapsed "modified" bucket, since Changes View needs to show staged
+// vs unstaged distinctly, matching what `git status` itself distinguishes.
 function parsePorcelainV2(raw) {
   let branch = null;
   let modifiedCount = 0;
   let untrackedCount = 0;
+  const files = [];
   for (const line of raw.split('\n')) {
     if (!line) continue;
     if (line.startsWith('# branch.head ')) {
       branch = line.slice('# branch.head '.length).trim();
-    } else if (line.startsWith('1 ') || line.startsWith('2 ') || line.startsWith('u ')) {
+    } else if (line.startsWith('1 ')) {
       modifiedCount += 1;
+      const xy = line.slice(2, 4);
+      const path = line.split(' ').slice(8).join(' ');
+      files.push({ path, indexStatus: xy[0], worktreeStatus: xy[1], kind: 'ordinary' });
+    } else if (line.startsWith('u ')) {
+      // Unmerged lines carry 3 stage-mode fields (m1/m2/m3) instead of
+      // ordinary's single mW, so the path lands one field further right.
+      modifiedCount += 1;
+      const xy = line.slice(2, 4);
+      const path = line.split(' ').slice(10).join(' ');
+      files.push({ path, indexStatus: xy[0], worktreeStatus: xy[1], kind: 'unmerged' });
+    } else if (line.startsWith('2 ')) {
+      modifiedCount += 1;
+      const xy = line.slice(2, 4);
+      // Rename/copy lines carry "<newPath>\t<origPath>" as the final field.
+      const rest = line.split(' ').slice(9).join(' ');
+      const path = rest.split('\t')[0];
+      files.push({ path, indexStatus: xy[0], worktreeStatus: xy[1], kind: 'renamed' });
     } else if (line.startsWith('? ')) {
       untrackedCount += 1;
+      files.push({ path: line.slice(2), indexStatus: '?', worktreeStatus: '?', kind: 'untracked' });
     }
   }
-  return { branch, modifiedCount, untrackedCount };
+  return { branch, modifiedCount, untrackedCount, files };
 }
 
 module.exports = { gitStatus, parsePorcelainV2 };

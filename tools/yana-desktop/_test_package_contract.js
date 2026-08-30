@@ -15,11 +15,15 @@ const packagedFiles = new Set(packageJson.build.files);
 assert.strictEqual(packageJson.version, packageLock.version);
 assert.strictEqual(packageJson.version, packageLock.packages[''].version);
 assert.deepStrictEqual(localRequires, [
+  'git-actions.js',
   'git-status.js',
   'list-dir.js',
   'process-lifecycle.js',
+  'read-file.js',
   'runtime-paths.js',
   'security.js',
+  'task-actions.js',
+  'zip-archive.js',
 ]);
 for (const requiredFile of localRequires) {
   assert.ok(packagedFiles.has(requiredFile), `${requiredFile} must be included in build.files`);

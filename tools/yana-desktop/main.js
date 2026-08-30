@@ -12,6 +12,14 @@ const {
 } = require('./runtime-paths');
 const { listDir: listDirImpl } = require('./list-dir');
 const { gitStatus: gitStatusImpl } = require('./git-status');
+const { readFile: readFileImpl } = require('./read-file');
+const { inspectZip: inspectZipImpl, extractZip: extractZipImpl } = require('./zip-archive');
+const {
+  gitDiffPath: gitDiffPathImpl, gitStage: gitStageImpl, gitUnstage: gitUnstageImpl, gitCommit: gitCommitImpl,
+} = require('./git-actions');
+const {
+  listTasks: listTasksImpl, createTask: createTaskImpl, completeTask: completeTaskImpl, dropTask: dropTaskImpl,
+} = require('./task-actions');
 const { terminateChild } = require('./process-lifecycle');
 const {
   isSafeExternalUrl,
@@ -231,6 +239,118 @@ function gitStatus() {
   return gitStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
 }
 
+// Thin Electron-context wrapper around read-file.js's pure implementation,
+// same shape as listDir()/gitStatus() above (roadmap Phase 5 — File
+// Workspace's file preview + Attachment Manager's real file content).
+function readFile(relPath) {
+  return readFileImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), relPath });
+}
+
+// Roadmap Phase 5 item 18 — Drag & Drop. The renderer only ever learns a
+// dropped file's ABSOLUTE path (via preload's webUtils.getPathForFile —
+// modern Electron removed the old File.path for security reasons); every
+// capability call (read-file, tree) takes a root-relative path instead.
+// This is the one place that translation happens, and it's a real
+// boundary check, not just string math: a dropped file from OUTSIDE the
+// repo resolves to a relative path starting with ".." and is rejected
+// here, before it ever reaches the sandboxed Rust read (defense in depth
+// alongside capability::repo::resolve_existing's own check).
+function toRepoRelativePath(absolutePath) {
+  if (typeof absolutePath !== 'string' || !absolutePath) return { ok: false, error: 'no path given' };
+  const root = repoRoot();
+  const rel = path.relative(root, absolutePath);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    return { ok: false, error: 'file is outside the current project' };
+  }
+  return { ok: true, relPath: rel.split(path.sep).join('/') };
+}
+
+// Same containment check as toRepoRelativePath, opposite direction:
+// project-relative -> absolute, used by the ZIP capability CLI actions
+// below, which (unlike tree/read-file/git-status) take a bare path with
+// no --root sandboxing of their own — this is the one place that check
+// happens instead.
+function resolveInRepo(relPath) {
+  if (typeof relPath !== 'string' || !relPath) return null;
+  const root = repoRoot();
+  const resolved = path.join(root, relPath);
+  const rel = path.relative(root, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return resolved;
+}
+
+// Roadmap Phase 6 item 21 — ZIP Inspector.
+function inspectZip(relPath) {
+  const absPath = resolveInRepo(relPath);
+  if (!absPath) return { ok: false, error: 'path is outside the current project' };
+  return inspectZipImpl({ zipPath: absPath, yanaRtBin: runtimePath('yana-rt') });
+}
+
+// Roadmap Phase 6 item 22 — Safe Extraction. Extracts into a NEW sibling
+// folder named after the archive (never into an existing directory —
+// refuses rather than silently merging/overwriting), so a user's own
+// project files are never touched by this without them creating the
+// destination themselves first via a rename/move afterward.
+function extractZip(relPath) {
+  const absZipPath = resolveInRepo(relPath);
+  if (!absZipPath) return { ok: false, error: 'path is outside the current project' };
+  const destName = path.basename(relPath, path.extname(relPath));
+  const destDir = path.join(path.dirname(absZipPath), destName);
+  if (fs.existsSync(destDir)) {
+    return { ok: false, error: `a file or folder named "${destName}" already exists next to this archive` };
+  }
+  fs.mkdirSync(destDir, { recursive: true });
+  const result = extractZipImpl({ zipPath: absZipPath, dest: destDir, yanaRtBin: runtimePath('yana-rt') });
+  if (!result.ok) {
+    try { fs.rmSync(destDir, { recursive: true, force: true }); } catch (_) {}
+    return result;
+  }
+  return { ...result, destRelPath: path.relative(repoRoot(), destDir).split(path.sep).join('/') };
+}
+
+// Roadmap Phase 7 items 27-28 — Git Inspector + Git Actions. Every path
+// argument goes through resolveInRepo() first — none of these trust a
+// renderer-supplied relPath as pre-sanitized, same discipline as
+// inspectZip()/extractZip() above.
+function gitDiffPath(relPath, staged) {
+  const abs = resolveInRepo(relPath);
+  if (!abs) return { ok: false, error: 'path is outside the current project' };
+  return gitDiffPathImpl({ repoRoot: repoRoot(), relPath, staged: !!staged, yanaRtBin: runtimePath('yana-rt') });
+}
+
+function gitStage(relPaths) {
+  for (const p of relPaths) { if (!resolveInRepo(p)) return { ok: false, error: `path is outside the current project: ${p}` }; }
+  return gitStageImpl({ repoRoot: repoRoot(), relPaths, yanaRtBin: runtimePath('yana-rt') });
+}
+
+function gitUnstage(relPaths) {
+  for (const p of relPaths) { if (!resolveInRepo(p)) return { ok: false, error: `path is outside the current project: ${p}` }; }
+  return gitUnstageImpl({ repoRoot: repoRoot(), relPaths, yanaRtBin: runtimePath('yana-rt') });
+}
+
+function gitCommit(message) {
+  return gitCommitImpl({ repoRoot: repoRoot(), message, yanaRtBin: runtimePath('yana-rt') });
+}
+
+// Roadmap Phase 8 — Tasks. Same TaskStore any terminal `yana-rt task`
+// invocation already reads/writes (see task-actions.js's own doc
+// comment) — no second, frontend-only todo system.
+function listTasks() {
+  return listTasksImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function createTask(name, scope) {
+  return createTaskImpl({ repoRoot: repoRoot(), name, scope, yanaRtBin: runtimePath('yana-rt') });
+}
+
+function completeTask(id, evidence) {
+  return completeTaskImpl({ repoRoot: repoRoot(), id, evidence, yanaRtBin: runtimePath('yana-rt') });
+}
+
+function dropTask(id) {
+  return dropTaskImpl({ repoRoot: repoRoot(), id, yanaRtBin: runtimePath('yana-rt') });
+}
+
 function waitForServer() {
   return new Promise((resolve, reject) => {
     let tries = 0;
@@ -418,6 +538,92 @@ handleTrusted('yana:list-dir', (event, relPath) => {
 });
 
 handleTrusted('yana:git-status', () => gitStatus());
+
+handleTrusted('yana:read-file', (event, relPath) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return readFile(relPath);
+});
+
+handleTrusted('yana:to-repo-relative-path', (event, absolutePath) => {
+  if (typeof absolutePath !== 'string' || absolutePath.length > 4096 || absolutePath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return toRepoRelativePath(absolutePath);
+});
+
+handleTrusted('yana:zip-inspect', (event, relPath) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return inspectZip(relPath);
+});
+
+handleTrusted('yana:zip-extract', (event, relPath) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return extractZip(relPath);
+});
+
+function validPathList(paths) {
+  return Array.isArray(paths) && paths.length > 0 && paths.length <= 200
+    && paths.every((p) => typeof p === 'string' && p.length <= 4096 && !p.includes('\0'));
+}
+
+handleTrusted('yana:git-diff-path', (event, relPath, staged) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return gitDiffPath(relPath, staged);
+});
+
+handleTrusted('yana:git-stage', (event, relPaths) => {
+  if (!validPathList(relPaths)) return { ok: false, error: 'paths must be a non-empty array of up to 200 NUL-free strings' };
+  return gitStage(relPaths);
+});
+
+handleTrusted('yana:git-unstage', (event, relPaths) => {
+  if (!validPathList(relPaths)) return { ok: false, error: 'paths must be a non-empty array of up to 200 NUL-free strings' };
+  return gitUnstage(relPaths);
+});
+
+handleTrusted('yana:git-commit', (event, message) => {
+  if (typeof message !== 'string' || !message.trim() || message.length > 8192) {
+    return { ok: false, error: 'message must be a non-empty string up to 8192 characters' };
+  }
+  return gitCommit(message);
+});
+
+handleTrusted('yana:task-list', () => listTasks());
+
+handleTrusted('yana:task-create', (event, name, scope) => {
+  if (typeof name !== 'string' || !name.trim() || name.length > 2048) {
+    return { ok: false, error: 'name must be a non-empty string up to 2048 characters' };
+  }
+  if (scope != null && (typeof scope !== 'string' || scope.length > 512)) {
+    return { ok: false, error: 'scope must be a string up to 512 characters' };
+  }
+  return createTask(name, scope || undefined);
+});
+
+handleTrusted('yana:task-complete', (event, id, evidence) => {
+  if (typeof id !== 'string' || !id.trim() || id.length > 128) {
+    return { ok: false, error: 'id must be a non-empty string up to 128 characters' };
+  }
+  if (typeof evidence !== 'string' || !evidence.trim() || evidence.length > 4096) {
+    return { ok: false, error: 'evidence must be a non-empty string up to 4096 characters' };
+  }
+  return completeTask(id, evidence);
+});
+
+handleTrusted('yana:task-drop', (event, id) => {
+  if (typeof id !== 'string' || !id.trim() || id.length > 128) {
+    return { ok: false, error: 'id must be a non-empty string up to 128 characters' };
+  }
+  return dropTask(id);
+});
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged

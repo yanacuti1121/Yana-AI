@@ -1,5 +1,5 @@
 'use strict';
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('yana', {
   getVersion:      () => ipcRenderer.invoke('yana:version'),
@@ -17,6 +17,23 @@ contextBridge.exposeInMainWorld('yana', {
   ptyStop:   ()     => ipcRenderer.invoke('yana:pty-stop'),
   listDir:  (relPath) => ipcRenderer.invoke('yana:list-dir', relPath),
   gitStatus: () => ipcRenderer.invoke('yana:git-status'),
+  readFile: (relPath) => ipcRenderer.invoke('yana:read-file', relPath),
+  // Roadmap Phase 5 item 18 — Drag & Drop. `file` is a real DOM File from
+  // a renderer drop event; webUtils.getPathForFile is the modern
+  // replacement for the removed File.path, and is only callable from a
+  // preload/main context, never directly from the sandboxed renderer.
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+  toRepoRelativePath: (absolutePath) => ipcRenderer.invoke('yana:to-repo-relative-path', absolutePath),
+  zipInspect: (relPath) => ipcRenderer.invoke('yana:zip-inspect', relPath),
+  zipExtract: (relPath) => ipcRenderer.invoke('yana:zip-extract', relPath),
+  gitDiffPath: (relPath, staged) => ipcRenderer.invoke('yana:git-diff-path', relPath, staged),
+  gitStage: (relPaths) => ipcRenderer.invoke('yana:git-stage', relPaths),
+  gitUnstage: (relPaths) => ipcRenderer.invoke('yana:git-unstage', relPaths),
+  gitCommit: (message) => ipcRenderer.invoke('yana:git-commit', message),
+  taskList: () => ipcRenderer.invoke('yana:task-list'),
+  taskCreate: (name, scope) => ipcRenderer.invoke('yana:task-create', name, scope),
+  taskComplete: (id, evidence) => ipcRenderer.invoke('yana:task-complete', id, evidence),
+  taskDrop: (id) => ipcRenderer.invoke('yana:task-drop', id),
   // The app's first push-style (main -> renderer) listeners — every other
   // method above is request/response `invoke`, which can't fit unsolicited
   // streaming PTY output. Both return an unsubscribe function so a React

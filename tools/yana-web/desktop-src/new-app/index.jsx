@@ -20,6 +20,8 @@ import { ContextPanel } from './context-panel.jsx';
 import { TerminalDock } from './terminal-dock.jsx';
 import { ActivityPanel } from './activity-panel.jsx';
 import { ActivityHistoryView } from './activity-history-view.jsx';
+import { FilesView } from './files-view.jsx';
+import { TasksView } from './tasks-view.jsx';
 import { ComingSoon } from './coming-soon.jsx';
 // Real, already-working API-key management (YanaVault, AES-256-GCM per
 // rule 66) — reused as-is, not rebuilt. Takes no props (reads
@@ -76,17 +78,24 @@ export function NewAppShell({ onSwitchToLegacy }) {
   const isNarrow = viewportWidth < NARROW;
   const isVeryNarrow = viewportWidth < VERY_NARROW;
 
-  // Fetched once — real repo/branch state via the temporary git-status
+  // Real repo/branch/changed-files state via the temporary git-status
   // adapter (main.js -> git-status.js -> `yana-rt capability git-status`
   // -> capability::git::git_status). Electron-only; no fallback fake data
   // when unavailable (web-only deployments, or the call failing).
-  React.useEffect(() => {
+  // `refreshGitStatus` is re-callable (not just a mount-time effect) so
+  // roadmap Phase 7's stage/unstage/commit actions can pull a fresh
+  // status right after mutating, instead of showing stale counts/files.
+  const refreshGitStatus = React.useCallback(() => {
     if (!IS_ELECTRON) return;
     window.yana?.gitStatus?.().then((result) => { if (result?.ok) setGitInfo(result); });
+  }, []);
+
+  React.useEffect(() => {
+    refreshGitStatus();
     // Already-existing IPC (yana:version) — real Electron app version,
     // not a fabricated runtime version string.
     window.yana?.getVersion?.().then((v) => setRuntimeVersion(v));
-  }, []);
+  }, [refreshGitStatus]);
 
   // Proportions target the mockup's approximate desktop layout: sidebar
   // ~14%, main workspace ~55%, context panel ~31% of a normal-width
@@ -136,6 +145,8 @@ export function NewAppShell({ onSwitchToLegacy }) {
       branch={gitInfo?.branch}
       modifiedCount={gitInfo?.modifiedCount}
       untrackedCount={gitInfo?.untrackedCount}
+      changedFiles={gitInfo?.files}
+      onRefreshGit={refreshGitStatus}
       provider={chatContext.provider}
       model={chatContext.model}
       lastUsage={chatContext.lastUsage}
@@ -177,6 +188,10 @@ export function NewAppShell({ onSwitchToLegacy }) {
                   </div>
                 ) : view === 'activity' ? (
                   <ActivityHistoryView onSelect={onSelectActivityEvent} selectedId={selection?.id} />
+                ) : view === 'files' ? (
+                  <FilesView />
+                ) : view === 'tasks' ? (
+                  <TasksView />
                 ) : (
                   <ComingSoon label={view} />
                 )}
