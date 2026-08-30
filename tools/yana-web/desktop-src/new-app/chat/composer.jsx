@@ -46,7 +46,7 @@ function QuickAction({ icon, label, onClick, disabled, title }) {
   );
 }
 
-export function Composer({ draft, setDraft, autoResize, send, stopStream, streaming, thinking, inputRef, activeModel, hasWorkspaceContext, onFocusTerminal, activeStep }) {
+export function Composer({ draft, setDraft, autoResize, send, stopStream, streaming, thinking, inputRef, activeModel, hasTerminalSession, terminalAttached, onToggleTerminalContext, activeStep }) {
   const attachedFiles = React.useSyncExternalStore(subscribe, getSnapshot);
   const [dragOver, setDragOver] = React.useState(false);
   const [dropMsg, setDropMsg] = React.useState(null);
@@ -120,11 +120,13 @@ export function Composer({ draft, setDraft, autoResize, send, stopStream, stream
         <QuickAction icon={Icons.file(14)} label="Files" disabled title={L('Not available yet', 'Chưa có sẵn', '아직 사용 불가', '暂不可用')} />
         <QuickAction icon={Icons.code(14)} label="Code" disabled title={L('Not available yet', 'Chưa có sẵn', '아직 사용 불가', '暂不可用')} />
         <QuickAction
-          icon={Icons.code(14)} label={hasWorkspaceContext ? 'Terminal ✓' : 'Terminal'}
-          onClick={onFocusTerminal}
-          title={hasWorkspaceContext
-            ? L('Terminal context will be attached to your next message — click to view', 'Ngữ cảnh terminal sẽ được đính kèm — bấm để xem', '터미널 컨텍스트가 첨부됩니다 — 클릭하여 보기', '将附带终端上下文 — 点击查看')
-            : L('No terminal session yet — click to open', 'Chưa có phiên terminal — bấm để mở', '아직 터미널 세션 없음 — 클릭하여 열기', '尚无终端会话 — 点击打开')}
+          icon={Icons.code(14)} label={terminalAttached ? 'Terminal ✓' : 'Terminal'}
+          onClick={onToggleTerminalContext}
+          title={terminalAttached
+            ? L('Terminal context is attached to your next message — click to remove', 'Ngữ cảnh terminal sẽ được đính kèm — bấm để gỡ', '터미널 컨텍스트가 다음 메시지에 첨부됩니다 — 클릭하여 제거', '终端上下文将附加到下一条消息 — 点击移除')
+            : hasTerminalSession
+              ? L('Attach bounded terminal context to your next message', 'Đính kèm ngữ cảnh terminal có giới hạn vào tin nhắn tiếp theo', '다음 메시지에 제한된 터미널 컨텍스트 첨부', '将受限终端上下文附加到下一条消息')
+              : L('No terminal session yet — click to open', 'Chưa có phiên terminal — bấm để mở', '아직 터미널 세션 없음 — 클릭하여 열기', '尚无终端会话 — 点击打开')}
         />
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           {activeModel && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>{activeModel}</span>}

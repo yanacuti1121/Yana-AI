@@ -15,6 +15,7 @@ const path = require('path');
 
 const qdrant = require('./qdrant-client');
 const { embed } = require('./embeddings');
+const { writeJsonAtomic } = require('./lib/atomic-json');
 
 // Same persistent data dir as auth.js/missions.js — survives redeploys.
 const DATA_DIR = process.env.YANA_DATA_DIR || path.join(__dirname, '.yana');
@@ -57,8 +58,7 @@ function load() {
 }
 
 function save(memories) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(FILE, JSON.stringify(memories, null, 2));
+  writeJsonAtomic(FILE, memories);
 }
 
 // Returns the stored entry, or null with a reason when the text is rejected.

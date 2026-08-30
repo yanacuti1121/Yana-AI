@@ -255,6 +255,26 @@ const PROVIDERS = {
       : null,
   },
 
+  airllm: {
+    protocol:     'http',
+    hostname:     '127.0.0.1',
+    port:         8100,
+    path:         '/v1/chat/completions',
+    vision:       false,
+    keyless:      true,
+    local:        true,
+    defaultModel: 'local-model',
+    headers: _key => ({ 'content-type': 'application/json' }),
+    body: (model, system, task) => JSON.stringify({
+      model, max_tokens: 2048, stream: true, stream_options: { include_usage: true },
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+    }),
+    extractText: evt => evt?.choices?.[0]?.delta?.content || null,
+    extractUsage: evt => evt?.usage
+      ? { input_tokens: evt.usage.prompt_tokens || 0, output_tokens: evt.usage.completion_tokens || 0 }
+      : null,
+  },
+
   gemini: {
     hostname:     'generativelanguage.googleapis.com',
     vision:       true,

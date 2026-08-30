@@ -7,6 +7,7 @@ const {
   isTrustedUrl,
   normalizePtyInput,
   normalizePtyResizeOptions,
+  normalizePtySessionId,
   normalizePtyStartOptions,
 } = require('./security');
 
@@ -47,5 +48,10 @@ assert.deepStrictEqual(normalizePtyResizeOptions(), { cols: 80, rows: 24 });
 assert.deepStrictEqual(normalizePtyResizeOptions({ cols: 200, rows: 60 }), { cols: 200, rows: 60 });
 assert.throws(() => normalizePtyResizeOptions({ cols: 19 }), /cols/);
 assert.throws(() => normalizePtyResizeOptions({ rows: 301 }), /rows/);
+
+const sessionId = '34cbebd7-24b6-4e82-9c1b-b765ea13a98d';
+assert.strictEqual(normalizePtySessionId(sessionId), sessionId);
+assert.throws(() => normalizePtySessionId('renderer-chosen-command'), /session id/);
+assert.throws(() => normalizePtySessionId(null), /session id/);
 
 console.log('Desktop security tests passed: 23');

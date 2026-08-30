@@ -16,16 +16,21 @@
 // params; confMode is a real, honest `false` (no toggle exists yet, so it
 // truthfully never activates) rather than removed from the call.
 import React from 'react';
-import { useChatModels } from '../pages/chat/use-chat-models.js';
 import { useChatHistory } from '../pages/chat/use-chat-history.js';
-import { useLocalStatus } from '../pages/chat/use-local-status.js';
 import { useVisionAttach } from '../pages/chat/use-vision-attach.js';
 import { useChatSend } from '../pages/chat/use-chat-send.js';
 import { Conversation, ScrollToBottomButton } from './chat/conversation.jsx';
 import { Composer } from './chat/composer.jsx';
 import { EmptyState } from './chat/empty-state.jsx';
 import { emitChatCompleted, emitChatError, emitCanonicalRuntimeEvent } from './activity-source.mjs';
-import { getSnapshot as getTerminalSnapshot } from '../lib/terminal-context.mjs';
+import { useNewAppChatModels } from './use-chat-models.jsx';
+import { useNewAppLocalStatus } from './use-local-status.jsx';
+import {
+  getActiveSessionSnapshot,
+  isAttachmentEnabled,
+  setAttachmentEnabled,
+  subscribe as subscribeTerminalContext,
+} from '../lib/terminal-context.mjs';
 
 const CONF_MODE = false; // no toggle in the new composer yet — real, not faked
 
@@ -33,13 +38,16 @@ export function ChatWorkspace({ onContextChange, onFocusTerminal }) {
   const [draft, setDraft] = React.useState('');
   const [providerSel, setProviderSel] = React.useState(() => localStorage.getItem('yana.chat.provider') || '');
   const [atBottom, setAtBottom] = React.useState(true);
-  const [hasWorkspaceContext, setHasWorkspaceContext] = React.useState(false);
+  const [terminalContextState, setTerminalContextState] = React.useState(() => ({
+    hasTerminalSession: getActiveSessionSnapshot() !== null,
+    terminalAttached: isAttachmentEnabled(),
+  }));
   const logRef = React.useRef(null);
   const inputRef = React.useRef(null);
 
   const { msgs, setMsgs } = useChatHistory();
-  const localStatus = useLocalStatus(setProviderSel);
-  const { modelSel, liveModels, activeProvider, modelOptions, activeModel, pickModel } = useChatModels(providerSel);
+  const localStatus = useNewAppLocalStatus(setProviderSel);
+  const { modelSel, liveModels, activeProvider, modelOptions, activeModel, pickModel } = useNewAppChatModels(providerSel);
   const { visionImage, setVisionImage } = useVisionAttach();
   const { thinking, streaming, lastUsage, runtimeEvents, sendText, send, stopStream } = useChatSend({
     msgs, setMsgs, draft, setDraft, providerSel, confMode: CONF_MODE, modelSel, liveModels,
@@ -58,12 +66,22 @@ export function ChatWorkspace({ onContextChange, onFocusTerminal }) {
     if (el && atBottom) el.scrollTop = el.scrollHeight;
   }, [msgs, thinking, atBottom]);
 
-  // Real (not polled-and-faked) check of the terminal-context module's own
-  // state — cheap, and this is display-only, not a source of truth itself.
+  // The terminal module owns this state. Subscribe to its real session events
+  // rather than polling or assuming a displayed Terminal panel is running.
   React.useEffect(() => {
-    const id = setInterval(() => setHasWorkspaceContext(getTerminalSnapshot() !== null), 2000);
-    return () => clearInterval(id);
+    return subscribeTerminalContext(() => setTerminalContextState({
+      hasTerminalSession: getActiveSessionSnapshot() !== null,
+      terminalAttached: isAttachmentEnabled(),
+    }));
   }, []);
+
+  function toggleTerminalAttachment() {
+    if (!terminalContextState.hasTerminalSession) {
+      onFocusTerminal?.();
+      return;
+    }
+    setAttachmentEnabled(!terminalContextState.terminalAttached);
+  }
 
   // Reports real, current model/usage/selector state up to the shell so
   // the Context Panel (a sibling, not a child, of this workspace) can
@@ -132,7 +150,10 @@ export function ChatWorkspace({ onContextChange, onFocusTerminal }) {
       <Composer
         draft={draft} setDraft={setDraft} autoResize={autoResize} send={send} stopStream={stopStream}
         streaming={streaming} thinking={thinking} inputRef={inputRef} activeModel={activeModel}
-        hasWorkspaceContext={hasWorkspaceContext} onFocusTerminal={onFocusTerminal} activeStep={activeStep}
+        hasTerminalSession={terminalContextState.hasTerminalSession}
+        terminalAttached={terminalContextState.terminalAttached}
+        onToggleTerminalContext={toggleTerminalAttachment}
+        activeStep={activeStep}
       />
     </div>
   );

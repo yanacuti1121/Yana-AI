@@ -22,7 +22,11 @@ import { ActivityPanel } from './activity-panel.jsx';
 import { ActivityHistoryView } from './activity-history-view.jsx';
 import { FilesView } from './files-view.jsx';
 import { TasksView } from './tasks-view.jsx';
+import { ProjectsView } from './projects-view.jsx';
+import { SettingsView } from './settings-view.jsx';
 import { ComingSoon } from './coming-soon.jsx';
+import { readUiPreferences, writeUiPreferences } from './ui-preferences.mjs';
+import { setLang } from '../lib/i18n-lang.js';
 // Real, already-working API-key management (YanaVault, AES-256-GCM per
 // rule 66) — reused as-is, not rebuilt. Takes no props (reads
 // window.YANA/YanaVault globals directly, same as every other legacy
@@ -59,7 +63,10 @@ const SIDEBAR_LABELS = { chat: 'Chat', projects: 'Projects', files: 'Files', tas
 export function NewAppShell({ onSwitchToLegacy }) {
   const [view, setView] = React.useState('chat');
   const [gitInfo, setGitInfo] = React.useState(null); // null until fetched — never fabricated
+  const [projectInfo, setProjectInfo] = React.useState(null);
+  const [uiPreferences, setUiPreferences] = React.useState(readUiPreferences);
   const [runtimeVersion, setRuntimeVersion] = React.useState(null);
+  const [governance, setGovernance] = React.useState(null);
   const [chatContext, setChatContext] = React.useState({
     provider: null, model: null, lastUsage: null,
     providerSel: null, setProviderSel: null, pickModel: null, modelOptions: [], providers: [],
@@ -89,13 +96,28 @@ export function NewAppShell({ onSwitchToLegacy }) {
     if (!IS_ELECTRON) return;
     window.yana?.gitStatus?.().then((result) => { if (result?.ok) setGitInfo(result); });
   }, []);
+  const refreshProject = React.useCallback(() => {
+    if (!IS_ELECTRON) return Promise.resolve(null);
+    return window.yana?.projectInfo?.().then((result) => {
+      if (result?.ok) setProjectInfo(result);
+      return result;
+    });
+  }, []);
+  const refreshGovernance = React.useCallback(() => {
+    if (!IS_ELECTRON) return;
+    window.yana?.governanceStatus?.().then((result) => {
+      if (result?.ok) setGovernance(result);
+    });
+  }, []);
 
   React.useEffect(() => {
+    refreshProject();
     refreshGitStatus();
+    refreshGovernance();
     // Already-existing IPC (yana:version) — real Electron app version,
     // not a fabricated runtime version string.
     window.yana?.getVersion?.().then((v) => setRuntimeVersion(v));
-  }, [refreshGitStatus]);
+  }, [refreshGitStatus, refreshGovernance, refreshProject]);
 
   // Proportions target the mockup's approximate desktop layout: sidebar
   // ~14%, main workspace ~55%, context panel ~31% of a normal-width
@@ -114,13 +136,42 @@ export function NewAppShell({ onSwitchToLegacy }) {
   const onViewActivity = React.useCallback(() => setView('activity'), []);
   const onSelectActivityEvent = React.useCallback((ev) => setSelection(ev), []);
   const onToggleInspector = React.useCallback(() => setInspectorOpen((v) => !v), []);
+  const onOpenProject = React.useCallback(async () => {
+    if (!IS_ELECTRON) return { ok: false, error: 'desktop app required' };
+    const result = await window.yana?.projectOpen?.();
+    if (result?.ok) {
+      setProjectInfo(result);
+      refreshGitStatus();
+      refreshGovernance();
+    }
+    return result;
+  }, [refreshGitStatus, refreshGovernance]);
+  const onSwitchProject = React.useCallback(async (root) => {
+    if (!IS_ELECTRON) return { ok: false, error: 'desktop app required' };
+    const result = await window.yana?.projectSwitch?.(root);
+    if (result?.ok) {
+      setProjectInfo(result);
+      refreshGitStatus();
+      refreshGovernance();
+    }
+    return result;
+  }, [refreshGitStatus, refreshGovernance]);
+  const onUiPreferencesChange = React.useCallback((patch) => {
+    setUiPreferences((current) => writeUiPreferences({ ...current, ...patch }));
+  }, []);
+
+  React.useEffect(() => {
+    setLang({ en: 'English', vi: 'Tiếng Việt', ko: '한국어', zh: '中文' }[uiPreferences.language]);
+    document.documentElement.lang = uiPreferences.language;
+  }, [uiPreferences.language]);
 
   // Auto-close the drawer when resizing back to the wide layout — a
   // drawer left "open" from narrow mode would otherwise render as an
   // orphaned floating panel once the permanent column returns.
   React.useEffect(() => { if (!isNarrow) setInspectorOpen(false); }, [isNarrow]);
 
-  const projectName = basename(gitInfo?.repoRoot) || document.title || null;
+  const workspaceRoot = projectInfo?.root || gitInfo?.repoRoot || null;
+  const projectName = projectInfo?.name || basename(workspaceRoot) || document.title || null;
 
   // Roadmap Phase 2 item 8 — Command Palette registry. Real commands
   // only: every entry here actually does something (navigate/focus) —
@@ -129,19 +180,23 @@ export function NewAppShell({ onSwitchToLegacy }) {
     ...Object.entries(SIDEBAR_LABELS).map(([id, label]) => ({
       id: `nav-${id}`, label: `Go to ${label}`, run: () => setView(id),
     })),
+    { id: 'open-project', label: 'Open or create project', run: () => { void onOpenProject(); } },
+    ...(projectInfo?.recent || []).map((project) => ({
+      id: `project-${project.root}`, label: `Switch to ${project.name}`, run: () => { void onSwitchProject(project.root); },
+    })),
     { id: 'focus-terminal', label: 'Open Terminal', run: onFocusTerminal },
     ...(onSwitchToLegacy ? [{ id: 'legacy-ui', label: 'Switch to Legacy UI', run: onSwitchToLegacy }] : []),
-  ]), [onFocusTerminal, onSwitchToLegacy]);
+  ]), [onFocusTerminal, onOpenProject, onSwitchToLegacy, onSwitchProject, projectInfo?.recent]);
 
   const projectValue = React.useMemo(() => ({
-    projectName, repoRoot: gitInfo?.repoRoot ?? null, branch: gitInfo?.branch ?? null,
+    projectName, repoRoot: workspaceRoot, branch: gitInfo?.branch ?? null,
     modifiedCount: gitInfo?.modifiedCount, untrackedCount: gitInfo?.untrackedCount,
-  }), [projectName, gitInfo]);
+  }), [projectName, workspaceRoot, gitInfo]);
 
   const contextPanelNode = (
     <ContextPanel
       projectName={projectName}
-      repoRoot={gitInfo?.repoRoot}
+      repoRoot={workspaceRoot}
       branch={gitInfo?.branch}
       modifiedCount={gitInfo?.modifiedCount}
       untrackedCount={gitInfo?.untrackedCount}
@@ -155,6 +210,7 @@ export function NewAppShell({ onSwitchToLegacy }) {
       pickModel={chatContext.pickModel}
       modelOptions={chatContext.modelOptions}
       providers={chatContext.providers}
+      governance={governance}
       selection={selection}
     />
   );
@@ -165,9 +221,10 @@ export function NewAppShell({ onSwitchToLegacy }) {
 
   return (
     <ProjectProvider value={projectValue}>
-      <div className="new-app-shell" data-theme="navy" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="new-app-shell" data-theme={uiPreferences.theme} style={{ display: 'flex', flexDirection: 'column' }}>
         <Header
           projectName={projectName} branch={gitInfo?.branch} model={chatContext.model}
+          safety={governance?.safety}
           onFocusTerminal={onFocusTerminal} onOpenPalette={() => palette.setOpen(true)} onSwitchToLegacy={onSwitchToLegacy}
           onToggleInspector={isNarrow ? onToggleInspector : undefined}
         />
@@ -188,10 +245,14 @@ export function NewAppShell({ onSwitchToLegacy }) {
                   </div>
                 ) : view === 'activity' ? (
                   <ActivityHistoryView onSelect={onSelectActivityEvent} selectedId={selection?.id} />
+                ) : view === 'projects' ? (
+                  <ProjectsView projectInfo={projectInfo} onOpen={onOpenProject} onSwitch={onSwitchProject} language={uiPreferences.language} />
+                ) : view === 'settings' ? (
+                  <SettingsView preferences={uiPreferences} onChange={onUiPreferencesChange} onNavigate={setView} onFocusTerminal={onFocusTerminal} />
                 ) : view === 'files' ? (
-                  <FilesView />
+                  <FilesView key={workspaceRoot || 'no-project'} />
                 ) : view === 'tasks' ? (
-                  <TasksView />
+                  <TasksView key={workspaceRoot || 'no-project'} />
                 ) : (
                   <ComingSoon label={view} />
                 )}
@@ -203,7 +264,7 @@ export function NewAppShell({ onSwitchToLegacy }) {
               <div style={{ flex: isVeryNarrow ? '1 1 100%' : '0 0 65%', minWidth: 0, overflow: 'hidden' }}>
                 <TerminalDock
                   ref={terminalDockRef}
-                  cwdLabel={projectName ? `~/${projectName}` : null}
+                  cwdLabel={workspaceRoot}
                   activityPane={isVeryNarrow ? activityPanelNode : null}
                 />
               </div>

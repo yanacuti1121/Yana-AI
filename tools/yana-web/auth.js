@@ -10,6 +10,7 @@
 const crypto = require('crypto');
 const fs     = require('fs');
 const path   = require('path');
+const { writeJsonAtomic } = require('./lib/atomic-json');
 
 // Persistent data dir. Default: dot-dir next to the server (static server never
 // serves it). Override with YANA_DATA_DIR to point at a mounted volume
@@ -31,8 +32,7 @@ function loadJson(file) {
 }
 
 function saveJson(file, data) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data), { mode: 0o600 });
+  writeJsonAtomic(file, data);
 }
 
 // Atomic create-only write — throws EEXIST instead of overwriting. Used for

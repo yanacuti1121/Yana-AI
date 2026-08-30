@@ -17,9 +17,39 @@ function shortModelName(model) {
 // must stay decoupled from that mechanism). The "YANA" wordmark lives in
 // the sidebar (mockup's header has no product wordmark, only project/
 // status/controls).
-export function Header({ projectName, branch, model, onFocusTerminal, onOpenPalette, onSwitchToLegacy }) {
+function safetyPresentation(safety) {
+  if (!safety?.mode) {
+    return {
+      color: 'var(--color-text-muted)',
+      label: L('Safety unavailable', 'Không có trạng thái an toàn', '안전 상태를 확인할 수 없음', '安全状态不可用'),
+      title: L('The runtime did not return a safety state.', 'Runtime không trả về trạng thái an toàn.', '런타임이 안전 상태를 반환하지 않았습니다.', '运行时未返回安全状态。'),
+    };
+  }
+  if (safety.mode === 'normal') {
+    return {
+      color: 'var(--good)',
+      label: L('Safety normal', 'An toàn bình thường', '안전 상태 정상', '安全状态正常'),
+      title: L('Reported by yana-rt.', 'Do yana-rt báo cáo.', 'yana-rt가 보고했습니다.', '由 yana-rt 报告。'),
+    };
+  }
+  if (safety.mode === 'halted') {
+    return {
+      color: 'var(--warn)',
+      label: L('Safety halted', 'An toàn đã dừng', '안전 상태 중지됨', '安全状态已停止'),
+      title: safety.halt_reason || L('Reported by yana-rt.', 'Do yana-rt báo cáo.', 'yana-rt가 보고했습니다.', '由 yana-rt 报告。'),
+    };
+  }
+  return {
+    color: 'var(--warn)',
+    label: L('Safety quarantined', 'An toàn bị cách ly', '안전 상태 격리됨', '安全状态已隔离'),
+    title: safety.quarantine?.reason || safety.mode,
+  };
+}
+
+export function Header({ projectName, branch, model, safety, onFocusTerminal, onOpenPalette, onSwitchToLegacy }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const short = shortModelName(model);
+  const safetyState = safetyPresentation(safety);
 
   return (
     <header style={{
@@ -45,15 +75,10 @@ export function Header({ projectName, branch, model, onFocusTerminal, onOpenPale
       </div>
 
       <span style={{
-        fontSize: 'var(--font-size-xs)', color: 'var(--good)',
+        fontSize: 'var(--font-size-xs)', color: safetyState.color,
         border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '3px 8px', flexShrink: 0,
-      }} title={L(
-        'Commands require explicit human approval before running.',
-        'Lệnh cần con người phê duyệt trước khi chạy.',
-        '명령은 실행 전 사람의 명시적 승인이 필요합니다.',
-        '命令在运行前需要人工明确批准。',
-      )}>
-        {L('Safe Mode', 'Chế độ an toàn', '안전 모드', '安全模式')}
+      }} title={safetyState.title}>
+        {safetyState.label}
       </span>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, position: 'relative' }}>

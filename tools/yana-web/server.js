@@ -19,6 +19,28 @@ const {
 } = require('./lib/runtime-client');
 const giamThiHalt = require('./lib/giam-thi-halt');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
+// `REPO_ROOT` is the bundled Yana core/runtime tree and must stay stable.
+// `WORKSPACE_ROOT` is the selected user project where governed turns execute;
+// Electron main is the sole writer, over the private child-process IPC channel.
+function trustedWorkspaceRoot(candidate) {
+  if (typeof candidate !== 'string' || !path.isAbsolute(candidate) || candidate.includes('\0')) return null;
+  try {
+    const resolved = fs.realpathSync(candidate);
+    return fs.statSync(resolved).isDirectory() ? resolved : null;
+  } catch (_) {
+    return null;
+  }
+}
+let WORKSPACE_ROOT = trustedWorkspaceRoot(process.env.YANA_WORKSPACE_DIR) || REPO_ROOT;
+process.on('message', (message) => {
+  if (!message || message.type !== 'yana:workspace-root') return;
+  const nextRoot = trustedWorkspaceRoot(message.root);
+  if (!nextRoot) {
+    console.warn('[workspace] ignored invalid workspace update from desktop main process');
+    return;
+  }
+  WORKSPACE_ROOT = nextRoot;
+});
 const YANA_RUNTIME_MODE = parseRuntimeMode(process.env.YANA_RUNTIME_MODE);
 const YANA_RT_BIN = YANA_RUNTIME_MODE === 'legacy'
   ? ''
@@ -35,6 +57,7 @@ const auth     = require('./auth');
 const missions = require('./missions');
 const memory   = require('./memory');
 const robot    = require('./robot');
+const { writeJsonAtomic } = require('./lib/atomic-json');
 
 // YANA_RESET_AUTH=1 — wipe auth.json so the setup screen appears on next load.
 // Set in Railway env vars, redeploy once, then remove the variable.
@@ -352,13 +375,14 @@ function handleApiStatus(req, res) {
   });
 }
 
-// ── GET /api/local-status — probe on-device AI providers (Ollama, 9router, LM Studio) ──
+// ── GET /api/local-status — probe on-device AI providers ───────────────────
 function handleApiLocalStatus(req, res) {
   const LOCAL_PROBES = [
     { id: 'ollama',         protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
     { id: '9router',        protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
     { id: 'lmstudio',       protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
     { id: 'turbofieldfare', protocol: 'http', hostname: '127.0.0.1', port: 8091,  path: '/v1/models' },
+    { id: 'airllm',         protocol: 'http', hostname: '127.0.0.1', port: 8100,  path: '/v1/models' },
   ];
 
   let pending = LOCAL_PROBES.length;
@@ -696,6 +720,18 @@ async function handleApiModels(req, res) {
         .map(m => ({ id: m.id, name: m.id }))
         .sort((a, b) => a.id.localeCompare(b.id)),
     },
+    airllm: {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     8100,
+      path:     '/v1/models',
+      keyless:  true,
+      headers:  _k => ({}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
   };
 
   const prov = LIVE_PROVIDERS[provider];
@@ -781,8 +817,7 @@ function loadSessions() {
   try { return JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')); } catch (_) { return []; }
 }
 function saveSessions(list) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(SESSIONS_FILE, JSON.stringify(list, null, 2));
+  writeJsonAtomic(SESSIONS_FILE, list);
 }
 
 function handleApiSessionsList(req, res) {
@@ -833,8 +868,7 @@ function _loadAnalytics() {
   try { return JSON.parse(fs.readFileSync(ANALYTICS_FILE, 'utf8')); } catch (_) { return {}; }
 }
 function _saveAnalytics(data) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(data));
+  writeJsonAtomic(ANALYTICS_FILE, data, { space: 0 });
 }
 function _todayKey() { return new Date().toISOString().slice(0, 10); }
 function _persistDailyUsage(provider, chars) {
@@ -893,8 +927,7 @@ function loadCron() {
   try { return JSON.parse(fs.readFileSync(CRON_FILE, 'utf8')); } catch (_) { return []; }
 }
 function saveCron(list) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(CRON_FILE, JSON.stringify(list, null, 2));
+  writeJsonAtomic(CRON_FILE, list);
 }
 
 function handleApiCronList(req, res) {
@@ -1277,6 +1310,7 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
       await streamGovernedTurn({
         binaryPath: YANA_RT_BIN,
         rootDir: REPO_ROOT,
+        cwd: WORKSPACE_ROOT,
         provider: candidate.providerKey,
         model,
         input: {

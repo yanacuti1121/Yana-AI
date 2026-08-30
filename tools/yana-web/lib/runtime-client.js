@@ -78,6 +78,7 @@ function resolveGovernedRuntime({
 function streamGovernedTurn({
   binaryPath,
   rootDir,
+  cwd = rootDir,
   provider,
   model,
   input,
@@ -90,11 +91,12 @@ function streamGovernedTurn({
     return Promise.reject(new Error(`provider '${provider}' is not available in the governed runtime`));
   }
 
+  const workingDirectory = typeof cwd === 'string' && path.isAbsolute(cwd) ? cwd : rootDir;
   return new Promise((resolve, reject) => {
     const args = ['chat', '--headless', '--provider', provider];
     if (model) args.push('--model', model);
     const child = spawnImpl(binaryPath, args, {
-      cwd: rootDir,
+      cwd: workingDirectory,
       env: process.env,
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,

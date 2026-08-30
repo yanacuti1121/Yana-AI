@@ -108,6 +108,20 @@ const REAL_PERMISSIONS = [
 
 const TABS = ['context', 'files', 'changes', 'info'];
 
+function safetyTone(mode) {
+  if (mode === 'normal') return 'good';
+  if (mode === 'halted') return 'warn';
+  if (typeof mode === 'string' && mode.startsWith('quarantine:')) return 'warn';
+  return 'neutral';
+}
+
+function safetyLabel(mode) {
+  if (mode === 'normal') return L('Normal', 'Bình thường', '정상', '正常');
+  if (mode === 'halted') return L('Halted', 'Đã dừng', '중지됨', '已停止');
+  if (typeof mode === 'string' && mode.startsWith('quarantine:')) return L('Quarantined', 'Cách ly', '격리됨', '已隔离');
+  return mode || '—';
+}
+
 function NotYetAvailable({ label }) {
   return (
     <div style={{ padding: '20px 14px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
@@ -119,7 +133,7 @@ function NotYetAvailable({ label }) {
 export function ContextPanel({
   projectName, repoRoot, branch, modifiedCount, untrackedCount, changedFiles, onRefreshGit,
   provider, model, lastUsage, providerSel, setProviderSel, pickModel, modelOptions, providers,
-  selection,
+  governance, selection,
 }) {
   const [tab, setTab] = React.useState('context');
   const changesCount = (modifiedCount ?? 0) + (untrackedCount ?? 0);
@@ -199,9 +213,18 @@ export function ContextPanel({
 
             <Section title={L('Authority', 'Quyền hạn', '권한', '权限')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>{L('Safe Mode', 'Chế độ an toàn', '안전 모드', '安全模式')}</span>
-                <Pill tone="good">ON</Pill>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>{L('Safety state', 'Trạng thái an toàn', '안전 상태', '安全状态')}</span>
+                <Pill tone={safetyTone(governance?.safety?.mode)}>{safetyLabel(governance?.safety?.mode)}</Pill>
               </div>
+              {governance?.autonomy ? (
+                <>
+                  <Row label={L('Automatic actions', 'Hành động tự động', '자동 작업', '自动操作')} value={governance.autonomy.enabled ? L('Enabled', 'Đã bật', '활성화됨', '已启用') : L('Disabled', 'Đã tắt', '비활성화됨', '已禁用')} />
+                  <Row label={L('Autonomy ceiling', 'Mức tự chủ tối đa', '자율성 상한', '自主性上限')} value={governance.autonomy.max_automatic_level} />
+                  <Row label={L('Max attempts', 'Số lần thử tối đa', '최대 시도 횟수', '最大尝试次数')} value={governance.autonomy.max_attempts} />
+                </>
+              ) : (
+                <Row label={L('Autonomy policy', 'Chính sách tự chủ', '자율성 정책', '自主性策略')} value="—" />
+              )}
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0' }}>
                 {L('Permissions', 'Quyền', '권한', '权限')}
               </div>

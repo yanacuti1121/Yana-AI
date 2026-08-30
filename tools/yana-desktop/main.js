@@ -2,6 +2,7 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
+const { randomUUID } = require('crypto');
 const { fork, spawn } = require('child_process');
 const http  = require('http');
 const { autoUpdater } = require('electron-updater');
@@ -20,6 +21,8 @@ const {
 const {
   listTasks: listTasksImpl, createTask: createTaskImpl, completeTask: completeTaskImpl, dropTask: dropTaskImpl,
 } = require('./task-actions');
+const { readGovernanceStatus: readGovernanceStatusImpl } = require('./governance-status');
+const { normalizeStore, recordProject } = require('./project-store');
 const { terminateChild } = require('./process-lifecycle');
 const {
   isSafeExternalUrl,
@@ -27,24 +30,115 @@ const {
   isTrustedUrl,
   normalizePtyInput,
   normalizePtyResizeOptions,
+  normalizePtySessionId,
   normalizePtyStartOptions,
 } = require('./security');
 
 let mainWindow    = null;
 let serverProcess = null;
 let codeServerProcess = null;
-let ptyProcess     = null;
+const ptySessions  = new Map();
 let serverUrl      = null;
 let shuttingDown   = false;
 let shutdownTask   = null;
-let ptyStopTask    = null;
+const ptyStopTasks = new Map();
 let allowImmediateQuit = false;
 let quitAfterShutdownScheduled = false;
+let activeProjectRoot = null;
+
+const MAX_PTY_SESSIONS = 8;
 
 // Same layout auth.js uses under the hood — kept in one place so the reveal-
 // in-Finder button and the server's YANA_DATA_DIR can never drift apart.
 function dataDir()      { return path.join(app.getPath('userData'), '.yana'); }
 function authFilePath() { return path.join(dataDir(), 'auth.json'); }
+
+// Project references live in the application's data directory, while each
+// project stays in the user-selected location. The store intentionally holds
+// only canonical paths and display metadata — never a copy of project files.
+function projectStorePath() { return path.join(dataDir(), 'projects.json'); }
+
+function readProjectStore() {
+  try {
+    return normalizeStore(JSON.parse(fs.readFileSync(projectStorePath(), 'utf8')));
+  } catch (_) {
+    return normalizeStore({});
+  }
+}
+
+function writeProjectStore(store) {
+  const normalized = normalizeStore(store);
+  fs.mkdirSync(dataDir(), { recursive: true });
+  const temporary = path.join(dataDir(), `projects.${process.pid}.${randomUUID()}.tmp`);
+  fs.writeFileSync(temporary, `${JSON.stringify(normalized, null, 2)}\n`, { mode: 0o600 });
+  fs.renameSync(temporary, projectStorePath());
+  return normalized;
+}
+
+function defaultProjectRoot() {
+  return app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..');
+}
+
+function resolveProjectRoot(candidate) {
+  if (typeof candidate !== 'string' || !candidate || candidate.length > 4096 || candidate.includes('\0') || !path.isAbsolute(candidate)) {
+    throw new Error('project path must be an absolute, NUL-free directory path');
+  }
+  const root = fs.realpathSync(candidate);
+  if (!fs.statSync(root).isDirectory()) throw new Error('project path is not a directory');
+  return root;
+}
+
+function projectInfo() {
+  const root = repoRoot();
+  return {
+    ok: true,
+    root,
+    name: path.basename(root) || root,
+    recent: readProjectStore().recent,
+  };
+}
+
+function restoreProjectRoot() {
+  for (const entry of readProjectStore().recent) {
+    try {
+      activeProjectRoot = resolveProjectRoot(entry.root);
+      return;
+    } catch (_) {
+      // A recent project may have moved or an external drive may be absent.
+      // Keep its reference for the user to see, but never select it blindly.
+    }
+  }
+  activeProjectRoot = defaultProjectRoot();
+}
+
+function sendWorkspaceRoot(root) {
+  const child = serverProcess;
+  if (!child) return Promise.resolve();
+  if (!child.connected) return Promise.reject(new Error('the local Yana runtime is not connected'));
+  return new Promise((resolve, reject) => {
+    child.send({ type: 'yana:workspace-root', root }, (error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+async function activateProject(root) {
+  // Tell the governed server first. If its IPC channel is gone, keep the
+  // currently active project instead of letting chat and workspace views drift.
+  await sendWorkspaceRoot(root);
+  activeProjectRoot = root;
+  writeProjectStore(recordProject(readProjectStore(), root));
+
+  // Existing human terminals deliberately keep their own live CWD. Only the
+  // optional IDE process restarts so a newly opened IDE targets the selected
+  // project; no human shell or user-owned process is terminated here.
+  if (codeServerProcess) {
+    await stopCodeServer();
+    startCodeServer();
+  }
+  return projectInfo();
+}
 
 // ── Server ────────────────────────────────────────────────────────────────────
 
@@ -77,6 +171,10 @@ function startServer() {
       YANA_ROOT_DIR: app.isPackaged
         ? process.resourcesPath
         : path.join(__dirname, '..'),
+      // The runtime/core root above stays fixed. This separate, trusted
+      // workspace directory is the CWD for governed turns and changes only
+      // through main-process project selection.
+      YANA_WORKSPACE_DIR: repoRoot(),
     },
     silent: true,
   });
@@ -205,21 +303,29 @@ function resolvePtySession(sessionType) {
   return { program: runtimePath('yana-rt'), args: ['chat'], cwd: repoRoot() };
 }
 
-function stopPty() {
-  if (ptyStopTask) return ptyStopTask;
-  const child = ptyProcess;
-  ptyProcess = null;
-  ptyStopTask = terminateChild(child).finally(() => { ptyStopTask = null; });
-  return ptyStopTask;
+function stopPty(sessionId) {
+  const existingTask = ptyStopTasks.get(sessionId);
+  if (existingTask) return existingTask;
+
+  const child = ptySessions.get(sessionId);
+  if (!child) return Promise.resolve();
+  ptySessions.delete(sessionId);
+
+  const task = terminateChild(child).finally(() => { ptyStopTasks.delete(sessionId); });
+  ptyStopTasks.set(sessionId, task);
+  return task;
+}
+
+function stopAllPtys() {
+  return Promise.all([...ptySessions.keys()].map((sessionId) => stopPty(sessionId)));
 }
 
 // ── File tree (Terminal page sidebar) ───────────────────────────────────────────
-// Same repo-root resolution `wrapperScript()`/`ptyBridgeBinary()` already use —
-// primarily meaningful in dev mode (a packaged build's `resourcesPath` only
-// ships a partial tree — core/, memory/, the server — not full source), but
-// harmless either way since this just lists whatever directory actually exists.
+// Current user workspace root. Runtime binaries and core resources continue to
+// resolve from the bundled app tree; this value changes only after trusted
+// main-process project selection and powers project-scoped capabilities.
 function repoRoot() {
-  return app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..');
+  return activeProjectRoot || defaultProjectRoot();
 }
 
 // Lists the immediate children of `relPath` (relative to the repo root) — one
@@ -351,6 +457,10 @@ function dropTask(id) {
   return dropTaskImpl({ repoRoot: repoRoot(), id, yanaRtBin: runtimePath('yana-rt') });
 }
 
+function governanceStatus() {
+  return readGovernanceStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
 function waitForServer() {
   return new Promise((resolve, reject) => {
     let tries = 0;
@@ -430,6 +540,31 @@ function handleTrusted(channel, handler) {
 
 handleTrusted('yana:version',    () => app.getVersion());
 handleTrusted('yana:server-url', () => serverUrl);
+handleTrusted('yana:project-info', () => projectInfo());
+handleTrusted('yana:project-open', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Open or create a project',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (result.canceled || result.filePaths.length !== 1) return { ok: false, cancelled: true };
+  try {
+    return await activateProject(resolveProjectRoot(result.filePaths[0]));
+  } catch (error) {
+    return { ok: false, error: `could not open project: ${error.message}` };
+  }
+});
+handleTrusted('yana:project-switch', async (event, requestedRoot) => {
+  if (typeof requestedRoot !== 'string' || requestedRoot.length > 4096 || requestedRoot.includes('\0')) {
+    return { ok: false, error: 'project path is invalid' };
+  }
+  const stored = readProjectStore().recent.some((entry) => entry.root === requestedRoot);
+  if (!stored) return { ok: false, error: 'project is not in recent projects' };
+  try {
+    return await activateProject(resolveProjectRoot(requestedRoot));
+  } catch (error) {
+    return { ok: false, error: `could not switch project: ${error.message}` };
+  }
+});
 
 // Locked-out recovery: the login screen's "forgot password" panel offers a
 // button that reveals this file in Finder/Explorer instead of asking the
@@ -441,11 +576,10 @@ handleTrusted('yana:reveal-auth-file', () => {
   else shell.openPath(path.dirname(target));
 });
 
-// Single terminal session for v1 (see the plan's "explicitly out of scope"
-// list) — a second start() call while one is already running is rejected
-// rather than silently replacing it.
 handleTrusted('yana:pty-start', (event, options) => {
-  if (ptyProcess || ptyStopTask) return { ok: false, error: 'terminal already running or stopping' };
+  if (ptySessions.size + ptyStopTasks.size >= MAX_PTY_SESSIONS) {
+    return { ok: false, error: `terminal session limit reached (${MAX_PTY_SESSIONS})` };
+  }
 
   let normalized;
   try {
@@ -484,35 +618,45 @@ handleTrusted('yana:pty-start', (event, options) => {
       YANA_RT_BIN: runtimePath('yana-rt'),
     },
   });
-  ptyProcess = child;
+  const sessionId = randomUUID();
+  ptySessions.set(sessionId, child);
 
   child.stdout.on('data', (buf) =>
-    mainWindow?.webContents.send('yana:pty-data', buf.toString('utf8')));
+    mainWindow?.webContents.send('yana:pty-data', { sessionId, chunk: buf.toString('utf8') }));
   child.stderr.on('data', (buf) =>
     console.error('[pty_bridge]', buf.toString('utf8')));
   child.on('exit', (code) => {
-    mainWindow?.webContents.send('yana:pty-exit', code);
-    if (ptyProcess === child) ptyProcess = null;
+    mainWindow?.webContents.send('yana:pty-exit', { sessionId, code });
+    if (ptySessions.get(sessionId) === child) ptySessions.delete(sessionId);
   });
 
-  // Echoed back so the renderer's bounded terminal-context snapshot
-  // (Phase C) can report it without needing a second IPC round-trip or
-  // its own (necessarily less trustworthy) guess at the repo root.
-  // Named `initialCwd`, not `cwd`: this is the directory the PTY was
-  // SPAWNED in, a one-time snapshot — nothing observes a `cd` the user
-  // types afterward, so calling it "cwd" would falsely imply live
-  // tracking. See terminal-context.mjs's header comment for the same
-  // point and the TODO for real (OSC-based) live-cwd tracking.
-  return { ok: true, initialCwd: cwd };
+  // Echo the spawn directory so the renderer can label the fresh terminal
+  // without guessing. It remains an initial snapshot only; later CWD updates
+  // are accepted solely from OSC 7 shell-integration markers in untrusted PTY
+  // output, never inferred from a prompt or used as a privileged path.
+  return { ok: true, sessionId, initialCwd: cwd, sessionType, shell: path.basename(program) };
 });
 
-handleTrusted('yana:pty-write', (event, data) => {
-  ptyProcess?.stdin.write(normalizePtyInput(data));
+handleTrusted('yana:pty-write', (event, sessionId, data) => {
+  let normalizedId;
+  let normalizedData;
+  try {
+    normalizedId = normalizePtySessionId(sessionId);
+    normalizedData = normalizePtyInput(data);
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+  const child = ptySessions.get(normalizedId);
+  if (!child || child.stdin.destroyed) return { ok: false, error: 'no active terminal session' };
+  child.stdin.write(normalizedData);
+  return { ok: true };
 });
 
-handleTrusted('yana:pty-resize', (event, options) => {
+handleTrusted('yana:pty-resize', (event, sessionId, options) => {
+  let normalizedId;
   let normalized;
   try {
+    normalizedId = normalizePtySessionId(sessionId);
     normalized = normalizePtyResizeOptions(options);
   } catch (error) {
     return { ok: false, error: error.message };
@@ -520,7 +664,7 @@ handleTrusted('yana:pty-resize', (event, options) => {
   // stdio[3] is the 4th pipe opened above — undefined/closed on a bridge
   // build without resize support, in which case this is a silent no-op
   // rather than a thrown error (matches pty_bridge.rs's own fallback).
-  const controlPipe = ptyProcess?.stdio?.[3];
+  const controlPipe = ptySessions.get(normalizedId)?.stdio?.[3];
   if (!controlPipe || controlPipe.destroyed) {
     return { ok: false, error: 'no active terminal session' };
   }
@@ -528,7 +672,16 @@ handleTrusted('yana:pty-resize', (event, options) => {
   return { ok: true };
 });
 
-handleTrusted('yana:pty-stop', () => stopPty());
+handleTrusted('yana:pty-stop', (event, sessionId) => {
+  let normalizedId;
+  try {
+    normalizedId = normalizePtySessionId(sessionId);
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+  if (!ptySessions.has(normalizedId)) return { ok: false, error: 'no active terminal session' };
+  return stopPty(normalizedId).then(() => ({ ok: true }));
+});
 
 handleTrusted('yana:list-dir', (event, relPath) => {
   if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
@@ -624,6 +777,8 @@ handleTrusted('yana:task-drop', (event, id) => {
   }
   return dropTask(id);
 });
+
+handleTrusted('yana:governance-status', () => governanceStatus());
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged
@@ -726,6 +881,7 @@ app.on('second-instance', () => {
 });
 
 if (hasInstanceLock) app.whenReady().then(async () => {
+  restoreProjectRoot();
   startServer();
   startCodeServer(); // best-effort, optional — see that function's own doc comment
 
@@ -745,7 +901,7 @@ if (hasInstanceLock) app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  void stopPty(); // never let a live terminal session survive as an orphan
+  void stopAllPtys(); // never let a live terminal session survive as an orphan
   void stopCodeServer();
   if (process.platform !== 'darwin') {
     app.quit();
@@ -759,7 +915,7 @@ app.on('activate', () => {
 function shutdownChildren() {
   if (!shutdownTask) {
     shuttingDown = true;
-    shutdownTask = Promise.all([stopServer(), stopPty(), stopCodeServer()]);
+    shutdownTask = Promise.all([stopServer(), stopAllPtys(), stopCodeServer()]);
   }
   return shutdownTask;
 }

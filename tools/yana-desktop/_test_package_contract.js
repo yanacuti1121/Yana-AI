@@ -17,8 +17,10 @@ assert.strictEqual(packageJson.version, packageLock.packages[''].version);
 assert.deepStrictEqual(localRequires, [
   'git-actions.js',
   'git-status.js',
+  'governance-status.js',
   'list-dir.js',
   'process-lifecycle.js',
+  'project-store.js',
   'read-file.js',
   'runtime-paths.js',
   'security.js',
@@ -32,4 +34,4 @@ assert.strictEqual(packageJson.engines.node, '>=24');
 assert.strictEqual(packageJson.devDependencies.electron, '43.4.1');
 assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
 
-console.log('Desktop package contract tests passed: 10');
+console.log('Desktop package contract tests passed: 12');

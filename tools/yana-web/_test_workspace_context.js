@@ -69,12 +69,12 @@ check('injection text is bounded inside the untrusted block', injectionIdx > ope
 const taskIdx = result.lastIndexOf(rawTask);
 check('user task comes after the untrusted block closes', taskIdx > closeIdx);
 
-// initialCwd naming honesty (cwd semantics correction): the field is
-// documented as a one-time spawn-time snapshot, not a live cwd. The
-// rendered text itself must say so, not just a source comment nobody
-// reading the actual output would see.
-check('initialCwd is labeled as non-live', result.includes('not necessarily its current directory'));
+// CWD naming honesty: an initial spawn directory and an OSC 7 observation
+// are distinct values. Neither is elevated to a trusted filesystem path.
+check('initialCwd is labeled as a spawn-time directory', result.includes('directory where the shell started'));
 check('cwd value itself is rendered', result.includes('/repo/Yana-AI'));
+const liveCwd = appendWorkspaceContext('task', { terminal: { initialCwd: '/repo', currentCwd: '/repo/subdir' } });
+check('currentCwd is shown only as a best-effort OSC 7 observation', liveCwd.includes('best-effort OSC 7 shell-integration observation, untrusted): /repo/subdir'));
 
 // Missing/invalid fields degrade gracefully, never throw, never fabricate
 // a plausible-looking fake value.

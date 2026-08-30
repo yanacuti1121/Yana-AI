@@ -37,6 +37,7 @@ window.YANA = {
     { id: "deepseek",   name: "DeepSeek",   company: "DeepSeek",   models: ["V3", "R1"],                            role: "Deep reasoning — cost-efficient" },
     { id: "openrouter", name: "OpenRouter", company: "OpenRouter", models: ["Fallback pool · 40+ models"],          role: "Overflow & fallback routing" },
     { id: "turbofieldfare", name: "TurboFieldfare", company: "On-device", models: ["Gemma 4 26B-A4B"],              role: "Sovereign tier — strongest on-device model, localhost:8091, text never leaves the machine", desktopOnly: true },
+    { id: "airllm",     name: "AirLLM",     company: "On-device",  models: ["Bridge-selected model"],                role: "Local bridge for memory-efficient large-model inference, localhost:8100", desktopOnly: true },
     { id: "9router",    name: "9Router",    company: "Local gateway", models: ["40+ providers · auto-fallback"],    role: "Quota armor — localhost:20128, never hit limits", desktopOnly: true },
     { id: "ollama",     name: "Ollama",     company: "On-device",  models: ["llama3.2", "qwen3", "gemma3"],         role: "Sovereign tier — rule 68, text never leaves the machine", desktopOnly: true },
     { id: "lmstudio",   name: "LM Studio",  company: "On-device",  models: ["local-model"],                         role: "Local server — port 1234, load any model in the app", desktopOnly: true },

@@ -7,7 +7,7 @@
 // YanaVault stays a Tier-B ambient global (see components.jsx) — referenced
 // bare here, exactly like the original chat.jsx did, not imported.
 
-export const KEYLESS_PROVIDERS = new Set(["ollama", "lmstudio", "9router", "turbofieldfare"]);
+export const KEYLESS_PROVIDERS = new Set(["ollama", "lmstudio", "9router", "turbofieldfare", "airllm"]);
 
 export function providerAvailable(id) {
   if (id === "auto") return true;

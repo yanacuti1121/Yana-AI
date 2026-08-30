@@ -4,6 +4,9 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('yana', {
   getVersion:      () => ipcRenderer.invoke('yana:version'),
   getServerUrl:    () => ipcRenderer.invoke('yana:server-url'),
+  projectInfo:     () => ipcRenderer.invoke('yana:project-info'),
+  projectOpen:     () => ipcRenderer.invoke('yana:project-open'),
+  projectSwitch:   (root) => ipcRenderer.invoke('yana:project-switch', root),
   getAuthFilePath: () => ipcRenderer.invoke('yana:auth-file-path'),
   revealAuthFile:  () => ipcRenderer.invoke('yana:reveal-auth-file'),
 
@@ -12,9 +15,9 @@ contextBridge.exposeInMainWorld('yana', {
   // the actual executable (security.js's normalizePtyStartOptions enforces
   // the enum on the way in).
   ptyStart:  (opts) => ipcRenderer.invoke('yana:pty-start', opts),
-  ptyWrite:  (data) => ipcRenderer.invoke('yana:pty-write', data),
-  ptyResize: (dims) => ipcRenderer.invoke('yana:pty-resize', dims),
-  ptyStop:   ()     => ipcRenderer.invoke('yana:pty-stop'),
+  ptyWrite:  (sessionId, data) => ipcRenderer.invoke('yana:pty-write', sessionId, data),
+  ptyResize: (sessionId, dims) => ipcRenderer.invoke('yana:pty-resize', sessionId, dims),
+  ptyStop:   (sessionId) => ipcRenderer.invoke('yana:pty-stop', sessionId),
   listDir:  (relPath) => ipcRenderer.invoke('yana:list-dir', relPath),
   gitStatus: () => ipcRenderer.invoke('yana:git-status'),
   readFile: (relPath) => ipcRenderer.invoke('yana:read-file', relPath),
@@ -34,18 +37,19 @@ contextBridge.exposeInMainWorld('yana', {
   taskCreate: (name, scope) => ipcRenderer.invoke('yana:task-create', name, scope),
   taskComplete: (id, evidence) => ipcRenderer.invoke('yana:task-complete', id, evidence),
   taskDrop: (id) => ipcRenderer.invoke('yana:task-drop', id),
+  governanceStatus: () => ipcRenderer.invoke('yana:governance-status'),
   // The app's first push-style (main -> renderer) listeners — every other
   // method above is request/response `invoke`, which can't fit unsolicited
   // streaming PTY output. Both return an unsubscribe function so a React
   // component can clean up in a `useEffect` return; without it, listeners
   // would accumulate across every visit to the Terminal page.
   onPtyData: (cb) => {
-    const handler = (_event, chunk) => cb(chunk);
+    const handler = (_event, payload) => cb(payload);
     ipcRenderer.on('yana:pty-data', handler);
     return () => ipcRenderer.removeListener('yana:pty-data', handler);
   },
   onPtyExit: (cb) => {
-    const handler = (_event, code) => cb(code);
+    const handler = (_event, payload) => cb(payload);
     ipcRenderer.on('yana:pty-exit', handler);
     return () => ipcRenderer.removeListener('yana:pty-exit', handler);
   },

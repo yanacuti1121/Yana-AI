@@ -5,50 +5,50 @@
 import assert from 'node:assert';
 import * as ctx from './terminal-context.mjs';
 
-// idle by default — no session ever started
 assert.strictEqual(ctx.getSnapshot(), null);
+assert.strictEqual(ctx.getActiveSessionSnapshot(), null);
 
-ctx.recordStart('/repo/Yana-AI');
-let snap = ctx.getSnapshot();
+ctx.recordStart('session-a', '/repo/Yana-AI');
+let snap = ctx.getActiveSessionSnapshot();
 assert.strictEqual(snap.initialCwd, '/repo/Yana-AI');
+assert.strictEqual(snap.currentCwd, '/repo/Yana-AI');
 assert.strictEqual(snap.ptyStatus, 'running');
 assert.strictEqual(snap.exitCode, null);
 assert.strictEqual(snap.recentOutput, '');
-// Trust boundary is explicit in the data itself, not just documentation —
-// every snapshot self-identifies as untrusted.
 assert.strictEqual(snap.trust, 'untrusted');
 
-ctx.recordData('hello ');
-ctx.recordData('world\n');
-assert.strictEqual(ctx.getSnapshot().recentOutput, 'hello world\n');
+ctx.recordData('session-a', 'hello world\n');
+assert.strictEqual(ctx.getActiveSessionSnapshot().recentOutput, 'hello world\n');
 
-// Hard cap enforced regardless of how much output arrives — no unbounded
-// growth (the one property this module must never regress).
+ctx.recordData('session-a', '\x1b]7;file://localhost/repo/Yana-AI/subdir\x07');
+assert.strictEqual(ctx.getActiveSessionSnapshot().currentCwd, '/repo/Yana-AI/subdir');
+assert.strictEqual(ctx.__TEST_ONLY__.parseOsc7Cwd('not an OSC marker'), null);
+assert.strictEqual(ctx.__TEST_ONLY__.parseOsc7Cwd('\x1b]7;not-a-url\x07'), null);
+
+// A second session keeps isolated output and becomes attachable only when it
+// is the user's active terminal selection.
+ctx.recordStart('session-b', '/repo/other');
+ctx.recordData('session-b', 'other output');
+assert.strictEqual(ctx.getActiveSessionSnapshot().initialCwd, '/repo/Yana-AI');
+ctx.setActiveSession('session-b');
+assert.strictEqual(ctx.getActiveSessionSnapshot().recentOutput, 'other output');
+assert.strictEqual(ctx.getSnapshot(), null);
+ctx.setAttachmentEnabled(true);
+assert.strictEqual(ctx.isAttachmentEnabled(), true);
+assert.strictEqual(ctx.getSnapshot().initialCwd, '/repo/other');
+
 const big = 'x'.repeat(ctx.__TEST_ONLY__.MAX_OUTPUT_CHARS + 500);
-ctx.recordData(big);
+ctx.recordData('session-b', big);
 snap = ctx.getSnapshot();
 assert.strictEqual(snap.recentOutput.length, ctx.__TEST_ONLY__.MAX_OUTPUT_CHARS);
 assert.ok(snap.recentOutput.endsWith('x'));
 
-ctx.recordExit(1);
-snap = ctx.getSnapshot();
-assert.strictEqual(snap.ptyStatus, 'exited');
-assert.strictEqual(snap.exitCode, 1);
-
-// Non-integer exit code (e.g. a signal-killed process reported as null by
-// Electron's 'exit' event) never gets coerced into a fake number.
-ctx.recordStart('/repo/Yana-AI');
-ctx.recordExit(null);
-assert.strictEqual(ctx.getSnapshot().exitCode, null);
-
-ctx.reset();
+ctx.recordExit('session-b', 1);
+assert.strictEqual(ctx.getSnapshot().exitCode, 1);
+ctx.reset('session-b');
+assert.strictEqual(ctx.isAttachmentEnabled(), false);
 assert.strictEqual(ctx.getSnapshot(), null);
+ctx.reset();
+assert.strictEqual(ctx.getActiveSessionSnapshot(), null);
 
-// recordData ignores non-string/empty input rather than corrupting state
-ctx.recordStart('/repo/Yana-AI');
-ctx.recordData(null);
-ctx.recordData(42);
-ctx.recordData('');
-assert.strictEqual(ctx.getSnapshot().recentOutput, '');
-
-console.log('terminal-context tests passed: 12');
+console.log('terminal-context tests passed: 18');

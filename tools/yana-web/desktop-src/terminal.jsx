@@ -21,6 +21,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { L, PageHeader } from './components.jsx';
 import * as terminalContext from './lib/terminal-context.mjs';
+import { DEFAULT_TERMINAL_PREFERENCES } from './lib/terminal-preferences.mjs';
 
 function TabButton({ active, onClick, children }) {
   return (
@@ -47,11 +48,12 @@ function TabButton({ active, onClick, children }) {
 // instead of duplicating it — same component, different presentational
 // wrapper (this file's own PageHeader-based full page vs. the new
 // shell's compact tab bar).
-export function XTermPanel({ active, onSessionStart, onSessionExit }) {
+export function XTermPanel({ active, onSessionStart, onSessionExit, preferences = DEFAULT_TERMINAL_PREFERENCES }) {
   const containerRef = React.useRef(null);
   const termRef = React.useRef(null);
   const fitRef = React.useRef(null);
   const startedRef = React.useRef(false);
+  const sessionIdRef = React.useRef(null);
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -59,9 +61,10 @@ export function XTermPanel({ active, onSessionStart, onSessionExit }) {
 
     const term = new XTerm({
       convertEol: true,
-      cursorBlink: true,
       fontFamily: "var(--font-mono)",
-      fontSize: 13,
+      fontSize: preferences.fontSize,
+      lineHeight: preferences.lineHeight,
+      cursorBlink: preferences.cursorBlink,
       // Dark navy, not pure black — sits on the app's own dark surface
       // instead of reading as an unrelated terminal window dropped into
       // the workspace. ANSI colors (theme.red/green/... left unset) keep
@@ -78,6 +81,8 @@ export function XTermPanel({ active, onSessionStart, onSessionExit }) {
     let unsubData = () => {};
     let unsubExit = () => {};
 
+    let disposed = false;
+
     async function start() {
       if (startedRef.current) return;
       startedRef.current = true;
@@ -88,42 +93,56 @@ export function XTermPanel({ active, onSessionStart, onSessionExit }) {
       });
       if (!result || !result.ok) {
         term.writeln(`\r\n[yana] failed to start terminal: ${result && result.error}\r\n`);
+        startedRef.current = false;
         return;
       }
-      terminalContext.recordStart(result.initialCwd);
-      onSessionStart?.();
-      unsubData = window.yana.onPtyData((chunk) => {
-        term.write(chunk);
-        terminalContext.recordData(chunk);
+      if (disposed) {
+        window.yana.ptyStop(result.sessionId);
+        return;
+      }
+      const sessionId = result.sessionId;
+      sessionIdRef.current = sessionId;
+      terminalContext.recordStart(sessionId, result.initialCwd);
+      onSessionStart?.(result);
+      unsubData = window.yana.onPtyData((payload) => {
+        if (payload?.sessionId !== sessionId || typeof payload.chunk !== 'string') return;
+        term.write(payload.chunk);
+        terminalContext.recordData(sessionId, payload.chunk);
       });
-      unsubExit = window.yana.onPtyExit((code) => {
-        term.writeln(`\r\n[process exited with code ${code}]\r\n`);
-        terminalContext.recordExit(code);
-        onSessionExit?.(code);
+      unsubExit = window.yana.onPtyExit((payload) => {
+        if (payload?.sessionId !== sessionId) return;
+        term.writeln(`\r\n[process exited with code ${payload.code}]\r\n`);
+        terminalContext.recordExit(sessionId, payload.code);
+        onSessionExit?.(payload.code);
         startedRef.current = false;
       });
     }
     start();
 
     const dataDisposable = term.onData((data) => {
-      window.yana.ptyWrite(data);
+      if (sessionIdRef.current) window.yana.ptyWrite(sessionIdRef.current, data);
     });
 
     const resizeObserver = new ResizeObserver(() => {
       fit.fit();
-      window.yana.ptyResize({ cols: term.cols, rows: term.rows });
+      if (sessionIdRef.current) window.yana.ptyResize(sessionIdRef.current, { cols: term.cols, rows: term.rows });
     });
     resizeObserver.observe(container);
 
     return () => {
+      disposed = true;
       resizeObserver.disconnect();
       dataDisposable.dispose();
       unsubData();
       unsubExit();
       term.dispose();
       startedRef.current = false;
-      window.yana.ptyStop();
-      terminalContext.reset();
+      const sessionId = sessionIdRef.current;
+      sessionIdRef.current = null;
+      if (sessionId) {
+        window.yana.ptyStop(sessionId);
+        terminalContext.reset(sessionId);
+      }
     };
     // Mount once for the lifetime of the Terminal tab — same
     // "don't tear down on navigation" contract terminal.jsx has always had
@@ -131,6 +150,15 @@ export function XTermPanel({ active, onSessionStart, onSessionExit }) {
     // of an iframe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+    term.options.fontSize = preferences.fontSize;
+    term.options.lineHeight = preferences.lineHeight;
+    term.options.cursorBlink = preferences.cursorBlink;
+    fitRef.current?.fit();
+  }, [preferences.fontSize, preferences.lineHeight, preferences.cursorBlink]);
 
   return (
     <div
