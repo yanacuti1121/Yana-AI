@@ -27,6 +27,7 @@ import { SettingsView } from './settings-view.jsx';
 import { ComingSoon } from './coming-soon.jsx';
 import { readUiPreferences, writeUiPreferences } from './ui-preferences.mjs';
 import { setLang } from '../lib/i18n-lang.js';
+import { Undercurrent } from '../app/undercurrent.jsx';
 // Real, already-working API-key management (YanaVault, AES-256-GCM per
 // rule 66) — reused as-is, not rebuilt. Takes no props (reads
 // window.YANA/YanaVault globals directly, same as every other legacy
@@ -221,10 +222,33 @@ export function NewAppShell({ onSwitchToLegacy }) {
 
   return (
     <ProjectProvider value={projectValue}>
-      <div className="new-app-shell" data-theme={uiPreferences.theme} style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* `key` forces a full remount on language change. `L(en,vi,ko,zh)`
+          reads `currentLang` from lib/i18n-lang.js — a plain mutable
+          module variable, not React state — so calling setLang() in the
+          effect above mutates it but does NOT itself trigger a re-render
+          anywhere. Without this key, already-mounted components kept
+          showing stale text until something else (e.g. navigating to a
+          different sidebar view) happened to remount them, which read as
+          "changing the language doesn't work" even though the value was
+          actually updated. Remounting on every language change is a
+          deliberate, minimal fix — not a performance concern, since a
+          user changing language is a rare, explicit action, not a
+          per-render event. */}
+      <div key={uiPreferences.language} className="new-app-shell" data-theme={uiPreferences.theme} style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* The theme's real background (radial-gradient glow layers +
+            drifting motes, themes.css's "living lake" system) — previously
+            missing here, so new-app only ever painted new-app.css's flat
+            var(--color-bg) fill with no gradient depth, which combined with
+            the flat purple accent override below is what read as "AI-hóa,
+            tối tối pha xám" (anh's words). `.scene` is position:fixed so it
+            doesn't participate in this flex layout — same reason the
+            legacy app.jsx can drop it in as a plain first child. */}
+        <Undercurrent />
         <Header
           projectName={projectName} branch={gitInfo?.branch} model={chatContext.model}
           safety={governance?.safety}
+          recentProjects={projectInfo?.recent} currentProjectRoot={projectInfo?.root}
+          onOpenProject={onOpenProject} onSwitchProject={onSwitchProject}
           onFocusTerminal={onFocusTerminal} onOpenPalette={() => palette.setOpen(true)} onSwitchToLegacy={onSwitchToLegacy}
           onToggleInspector={isNarrow ? onToggleInspector : undefined}
         />

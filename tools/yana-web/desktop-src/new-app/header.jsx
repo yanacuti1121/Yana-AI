@@ -46,10 +46,38 @@ function safetyPresentation(safety) {
   };
 }
 
-export function Header({ projectName, branch, model, safety, onFocusTerminal, onOpenPalette, onSwitchToLegacy }) {
+export function Header({
+  projectName, branch, model, safety, recentProjects, currentProjectRoot,
+  onOpenProject, onSwitchProject, onFocusTerminal, onOpenPalette, onSwitchToLegacy,
+}) {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  // Previously this project name + chevron was inert decoration — it
+  // looked like a dropdown (the chevron is the universal "click me"
+  // signal) but did nothing, so switching projects always meant going to
+  // the Projects page and running the native folder picker again, even
+  // for a project already in Recent. This menu reuses the same
+  // onOpenProject/onSwitchProject callbacks projects-view.jsx already
+  // has — just a second, faster entry point to them.
+  const [projectMenuOpen, setProjectMenuOpen] = React.useState(false);
+  const [switching, setSwitching] = React.useState(false);
   const short = shortModelName(model);
   const safetyState = safetyPresentation(safety);
+  const recent = Array.isArray(recentProjects) ? recentProjects : [];
+
+  async function handleSwitch(root) {
+    if (switching || root === currentProjectRoot) return;
+    setSwitching(true);
+    const result = await onSwitchProject?.(root);
+    setSwitching(false);
+    if (result?.ok) setProjectMenuOpen(false);
+    else if (result?.error) console.error('[project-switch]', result.error);
+  }
+
+  async function handleOpen() {
+    setProjectMenuOpen(false);
+    const result = await onOpenProject?.();
+    if (result && !result.ok && !result.cancelled) console.error('[project-open]', result.error);
+  }
 
   return (
     <header style={{
@@ -57,10 +85,66 @@ export function Header({ projectName, branch, model, safety, onFocusTerminal, on
       padding: '10px 16px', borderBottom: '1px solid var(--border)',
       background: 'var(--color-bg)', position: 'relative',
     }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-base)', color: 'var(--ink)', fontWeight: 600, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, position: 'relative' }}>
+        <button
+          onClick={() => setProjectMenuOpen((v) => !v)}
+          title={L('Switch project', 'Đổi dự án', '프로젝트 전환', '切换项目')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-base)', color: 'var(--ink)',
+            fontWeight: 600, flexShrink: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit',
+          }}
+        >
           {projectName || '—'} <span style={{ color: 'var(--color-text-muted)' }}>{Icons.chevron(11)}</span>
-        </span>
+        </button>
+        {projectMenuOpen && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, marginTop: 8,
+            background: 'var(--color-bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)', zIndex: 10, minWidth: 240, maxWidth: 340,
+            overflow: 'hidden',
+          }}>
+            {recent.length > 0 ? (
+              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+                {recent.map((project) => (
+                  <button
+                    key={project.root}
+                    onClick={() => handleSwitch(project.root)}
+                    disabled={switching || project.root === currentProjectRoot}
+                    title={project.root}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                      background: project.root === currentProjectRoot ? 'var(--primary-soft)' : 'none', border: 'none',
+                      color: 'var(--ink)', fontSize: 'var(--font-size-sm)',
+                      cursor: switching || project.root === currentProjectRoot ? 'default' : 'pointer',
+                      opacity: switching && project.root !== currentProjectRoot ? 0.6 : 1,
+                    }}
+                  >
+                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: project.root === currentProjectRoot ? 600 : 400 }}>
+                      {project.name}
+                    </span>
+                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: 1 }}>
+                      {project.root}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: '10px 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+                {L('No recent projects yet.', 'Chưa có dự án gần đây.', '최근 프로젝트가 없습니다.', '暂无最近项目。')}
+              </div>
+            )}
+            <button
+              onClick={handleOpen}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                background: 'none', border: 'none', borderTop: '1px solid var(--border)',
+                color: 'var(--primary)', fontSize: 'var(--font-size-sm)', fontWeight: 500, cursor: 'pointer',
+              }}
+            >
+              {L('Open project…', 'Mở dự án…', '프로젝트 열기…', '打开项目…')}
+            </button>
+          </div>
+        )}
         {branch && (
           <span
             title={branch}

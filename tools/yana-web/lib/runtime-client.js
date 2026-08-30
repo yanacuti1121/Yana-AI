@@ -13,6 +13,13 @@ const GOVERNED_PROVIDERS = new Set([
   'anthropic', 'groq', 'openai', 'gemini', '9router', 'ollama', 'lmstudio',
   'turbofieldfare', 'deepseek', 'openrouter', 'xai', 'novita', 'nvidia',
   'kimi', 'minimax', 'glm', 'huggingface', 'llamacpp', 'airllm',
+  // Roadmap Phase 14 — Custom Provider: not a `src/model/catalog.rs`
+  // registry entry (no compile-time URL exists for it), but still
+  // dispatched through the SAME governed `yana-rt chat --headless`
+  // path — `openai_compat::custom()` is constructed at request time from
+  // stdin's `base_url` instead of a static factory (see
+  // `src/chat/headless.rs::resolve_provider`).
+  'custom',
 ]);
 
 function supportsGovernedProvider(provider) {

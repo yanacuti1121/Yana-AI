@@ -2,7 +2,15 @@
 // policy and provider credentials. They contain presentation-only values and
 // can be safely stored in browser localStorage.
 export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
-export const THEMES = ['navy', 'ocean', 'obsidian', 'jade'];
+// Full catalog — matches desktop-src/app.jsx's THEME_MAP and
+// appearance-card.jsx's THEME_PREVIEWS. Every id here has a real
+// [data-theme="..."] block in themes.css (loaded globally by main.jsx),
+// so this list only needs to stay in sync with THEME_MAP, not add CSS.
+export const THEMES = [
+  'navy', 'ocean', 'obsidian', 'jade',
+  'dawn', 'mist', 'silver', 'sage', 'amber', 'arctic', 'lavender',
+  'ios-rose', 'ios-night', 'liquid',
+];
 export const LANGUAGES = ['en', 'vi', 'ko', 'zh'];
 
 const DEFAULTS = Object.freeze({ version: 1, theme: 'navy', language: 'en' });

@@ -1,13 +1,14 @@
 /* New Yana Desktop app shell — scoped overrides, not a new design system.
-   Inherits the "navy" theme's already-designed dark palette (background
-   gradients, borders, ink) wholesale; only the accent color is overridden
-   to a restrained purple, per the product direction. Layout itself is
-   inline (see index.jsx) since panel sizes are dynamic (resizable). */
+   Inherits the active theme's already-designed palette (background
+   gradients, borders, ink, accent) wholesale — no per-shell accent
+   override. A flat purple (#7c5cff) used to be forced here regardless of
+   the selected theme, with no gradient background layer under it (see
+   index.jsx's <Undercurrent/> addition); an unexamined single accent
+   color floating over flat --color-bg with no depth is exactly what read
+   as "AI-hóa" (anh's feedback) rather than as any of the actual themes.
+   Layout itself is inline (see index.jsx) since panel sizes are dynamic
+   (resizable). */
 .new-app-shell {
-  --primary: #7c5cff;
-  --color-primary: var(--primary);
-  --primary-soft: rgba(124, 92, 255, 0.16);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
   height: 100vh;
   width: 100vw;
   overflow: hidden;

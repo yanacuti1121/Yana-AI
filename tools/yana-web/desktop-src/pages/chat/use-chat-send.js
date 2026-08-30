@@ -49,6 +49,23 @@ function aboutContext() {
   return parts.join("\n");
 }
 
+// Prior turns from THIS client-side conversation, oldest first. Before
+// this, /api/chat only ever received the current message (`task`) — no
+// provider, local or cloud, ever saw earlier turns, which is what
+// produced a "nothing to analyze" reply to a bare follow-up question
+// like "phân tích cái này" with no antecedent in the request itself.
+// `tier` travels per-entry so the server can strip confidential/sovereign
+// history before it reaches a non-local destination (rule 68) — the
+// server re-derives that filter itself (server.js's own sanitizedHistory),
+// it does not trust this client-side value as the actual boundary.
+const CHAT_HISTORY_LIMIT = 20;
+function chatHistory(msgs) {
+  return msgs
+    .filter((m) => (m.who === "user" || m.who === "yana") && m.text && m.text.trim())
+    .slice(-CHAT_HISTORY_LIMIT)
+    .map((m) => ({ role: m.who === "user" ? "user" : "assistant", content: m.text, tier: m.tier || null }));
+}
+
 // Reads one SSE `data: ...` stream to completion, calling onChunk(parsed)
 // for every JSON payload line. Pure aside from the reader itself — all
 // accumulation/state lives in the caller's onChunk closure.
@@ -175,9 +192,9 @@ export function useChatSend({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tier
-          ? { task: text, apiKey, provider, model, sensitivity: tier }
+          ? { task: text, apiKey, provider, model, sensitivity: tier, history: chatHistory(msgs) }
           : { task: text, apiKey, provider, model, skill, about: aboutContext(),
-              workspaceContext: workspaceContext(),
+              workspaceContext: workspaceContext(), history: chatHistory(msgs),
               images: visionImage ? [visionImage] : undefined }),
       });
 

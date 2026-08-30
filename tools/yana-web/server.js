@@ -583,8 +583,38 @@ async function handleApiModels(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { provider, key } = parsed;
+  const { provider, key, baseUrl, customKeyless } = parsed;
   if (!provider) { jsonError(res, 400, 'Missing provider'); return; }
+  const isCustomProvider = provider === 'custom';
+
+  let customProv = null;
+  if (isCustomProvider) {
+    if (typeof baseUrl !== 'string' || !baseUrl.trim()) { jsonError(res, 400, 'Missing baseUrl for custom provider'); return; }
+    let parsedBase;
+    try { parsedBase = new URL(baseUrl.trim()); } catch (_) { jsonError(res, 400, 'Invalid baseUrl'); return; }
+    if (parsedBase.protocol !== 'http:' && parsedBase.protocol !== 'https:') {
+      jsonError(res, 400, 'baseUrl must use http or https'); return;
+    }
+    // Mirror src/chat/openai_compat.rs's models_url derivation: the
+    // configured URL is the full chat-completions endpoint (same value
+    // sent to the Rust governed path), not a bare prefix — strip
+    // "/chat/completions" if present, otherwise just append "/models".
+    const chatPath = parsedBase.pathname.endsWith('/chat/completions')
+      ? parsedBase.pathname.slice(0, -'/chat/completions'.length)
+      : parsedBase.pathname.replace(/\/+$/, '');
+    customProv = {
+      protocol: parsedBase.protocol === 'http:' ? 'http' : 'https',
+      hostname: parsedBase.hostname,
+      port: parsedBase.port ? Number(parsedBase.port) : undefined,
+      path: `${chatPath}/models`,
+      keyless: !!customKeyless,
+      headers: k => (k ? { 'Authorization': `Bearer ${k}` } : {}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    };
+  }
 
   const LIVE_PROVIDERS = {
     openrouter: {
@@ -734,13 +764,17 @@ async function handleApiModels(req, res) {
     },
   };
 
-  const prov = LIVE_PROVIDERS[provider];
+  const prov = isCustomProvider ? customProv : LIVE_PROVIDERS[provider];
   if (!prov) { jsonError(res, 400, `Provider "${provider}" has no live model API`); return; }
   if (!key && !prov.keyless) { jsonError(res, 400, 'Missing key'); return; }
 
   const options = { hostname: prov.hostname, port: prov.port, path: prov.path,
                     method: 'GET', headers: prov.headers(key) };
-  const liveTransport = (prov.protocol === 'http' && prov.hostname === '127.0.0.1') ? http : https;
+  // Custom Provider URLs are human-Settings-configured (same trust tier as
+  // an API key), not AI-agent-initiated fetches — no loopback-only
+  // restriction here, unlike the built-in local entries above which are
+  // all hardcoded to 127.0.0.1 anyway.
+  const liveTransport = prov.protocol === 'http' ? http : https;
 
   liveTransport.get(options, upRes => {
     let raw = '';
@@ -1280,7 +1314,7 @@ const providerCircuitBreaker = new CircuitBreaker();
 // connectToProvider() moved to ./lib/providers.js (required at the top of
 // this file alongside PROVIDERS) so robot.js can reuse it in-process.
 
-async function streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images) {
+async function streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images, history) {
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -1297,8 +1331,15 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
       lastError = new Error(`circuit open for ${candidate.providerKey}`);
       continue;
     }
-    const provider = PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic;
-    const model = explicitModelId || provider.defaultModel;
+    // A custom candidate has no PROVIDERS[...] row and no sensible
+    // JS-side default model (its model IDs only exist on the user's own
+    // endpoint) — falling back to PROVIDERS.anthropic.defaultModel here
+    // would silently send a Claude model id to a custom server. Leaving
+    // `model` undefined instead lets the Rust side's own "provider
+    // 'custom' requires --model" error (src/chat/headless.rs) surface
+    // cleanly if the client ever forgets to send one.
+    const provider = candidate.providerKey === 'custom' ? null : (PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic);
+    const model = explicitModelId || provider?.defaultModel;
     const scrubber = new OutputScrubber();
     const startedAt = Date.now();
     let emittedChars = 0;
@@ -1318,6 +1359,12 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
           system: systemPrompt,
           api_key: candidate.apiKey || undefined,
           images: Array.isArray(images) ? images : [],
+          // snake_case to match HeadlessTurnInput's exact field names
+          // (src/chat/headless.rs) — stdin JSON, not argv, same channel
+          // api_key already uses (see that struct's own doc comment).
+          base_url: candidate.baseUrl || undefined,
+          custom_keyless: !!candidate.customKeyless,
+          history: Array.isArray(history) ? history : [],
         },
         signal: abortController.signal,
         onEvent(event) {
@@ -1401,6 +1448,14 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
   }
 }
 
+// Roadmap Phase 14 — Custom Provider. Same "loopback = local, everything
+// else = remote" rule the Rust side's OpenAiCompatProvider::runtime_kind()
+// already uses (src/chat/openai_compat.rs) — kept consistent so rule 68's
+// sovereign-tier gate in handleApiChat means the same thing on both sides.
+function isLoopbackUrl(url) {
+  return typeof url === 'string' && /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/i.test(url);
+}
+
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 async function handleApiChat(req, res) {
   let body;
@@ -1410,8 +1465,21 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys, workspaceContext } = parsed;
-  const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys, workspaceContext, baseUrl: customBaseUrl, customKeyless } = parsed;
+  // Roadmap Phase 14 — Custom Provider: not a row in the static PROVIDERS
+  // table (that table only ever holds compile-time-known providers), so
+  // it needs its own synthetic entry here instead of the
+  // `PROVIDERS[key] || PROVIDERS.anthropic` fallback every other provider
+  // uses — that fallback would otherwise silently treat a custom request
+  // as anthropic, the exact kind of silent-wrong-provider bug this rule
+  // set warns against.
+  const isCustomProvider = providerKey === 'custom';
+  if (isCustomProvider && (typeof customBaseUrl !== 'string' || !customBaseUrl.trim())) {
+    jsonError(res, 400, 'Missing baseUrl for custom provider'); return;
+  }
+  const p = isCustomProvider
+    ? { keyless: !!customKeyless, local: isLoopbackUrl(customBaseUrl) }
+    : (PROVIDERS[providerKey] || PROVIDERS.anthropic);
   if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
 
@@ -1423,6 +1491,20 @@ async function handleApiChat(req, res) {
     jsonError(res, 403, 'SOVEREIGN content may only go to a local model (rule 68). Select Ollama or remove the marker.');
     return;
   }
+
+  // Prior turns from the same client-side conversation. Before this, every
+  // headless dispatch received only the current `task` — no provider,
+  // local or cloud, ever saw earlier turns, which is what produced a
+  // "nothing to analyze" reply to a bare follow-up question with no
+  // antecedent in the request itself. Confidential/sovereign-tagged turns
+  // are stripped here whenever the CURRENT request's destination is not
+  // local — same "never leaves the machine" rule already enforced above
+  // for the current turn's own content (rule 68).
+  const rawHistory = Array.isArray(parsed.history) ? parsed.history.slice(-40) : [];
+  const sanitizedHistory = rawHistory
+    .filter(h => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string' && h.content.trim())
+    .filter(h => p.local || !(h.tier === 'confidential' || h.tier === 'sovereign'))
+    .map(h => ({ role: h.role, content: h.content.slice(0, 8000) }));
 
   // System prompt: skill → agent → generic fallback
   let systemPrompt = null;
@@ -1498,6 +1580,14 @@ async function handleApiChat(req, res) {
   if (chain[0].providerKey === '9router' && !chain[0].apiKey) {
     chain[0].apiKey = getNineRouterKey();
   }
+  // Custom providers never participate in cross-provider fallback (their
+  // model IDs are meaningless on any other endpoint) — buildFallbackChain
+  // already returns a single-candidate chain for a primary outside
+  // OPENAI_SHAPE_PROVIDERS, so this only ever needs to annotate chain[0].
+  if (isCustomProvider) {
+    chain[0].baseUrl = customBaseUrl;
+    chain[0].customKeyless = !!customKeyless;
+  }
 
   // Rule 68 need-to-know, same as MEMORY/CODEBASE CONTEXT/ABOUT above —
   // never attached to confidential/sovereign turns. See
@@ -1509,7 +1599,7 @@ async function handleApiChat(req, res) {
   // the same binary. Every supported turn crosses TurnEngine (and therefore
   // the Giám Thị/Yana authority chain) instead of calling providers from JS.
   if (YANA_RT_BIN && chain.every(candidate => supportsGovernedProvider(candidate.providerKey))) {
-    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, taskWithWorkspaceContext, images);
+    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, taskWithWorkspaceContext, images, sanitizedHistory);
     return;
   }
 

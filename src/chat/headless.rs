@@ -45,6 +45,40 @@ struct HeadlessTurnInput {
     session_id: Option<String>,
     #[serde(default)]
     images: Vec<HeadlessImageInput>,
+    /// Roadmap Phase 14 — Custom Provider. Only meaningful (and required)
+    /// when `--provider custom`; travels via stdin JSON like `api_key`
+    /// above, never argv, for the same reason this file's header comment
+    /// already gives for `api_key` (process listings). Not a secret
+    /// itself, but keeping it on the same channel as `api_key` avoids a
+    /// second, inconsistent way of passing per-call provider config.
+    #[serde(default)]
+    base_url: Option<String>,
+    /// Whether the custom endpoint needs an Authorization header at all.
+    /// Only meaningful for `--provider custom`; defaults to `false`
+    /// (requires a key) so a caller that omits this on a real custom
+    /// provider gets a clear "missing key" error rather than silently
+    /// skipping auth it actually needed.
+    #[serde(default)]
+    custom_keyless: bool,
+    /// Prior turns from the same client-side conversation, oldest first.
+    /// Before this field existed, every headless dispatch sent exactly one
+    /// message (`task`) regardless of what the UI displayed — no provider,
+    /// local or cloud, ever saw earlier turns, which is what produced a
+    /// "nothing to analyze" style reply to a follow-up question like "phân
+    /// tích cái này" with no antecedent in the request itself. The caller
+    /// (Desktop gateway) is trusted to have already applied rule 68
+    /// confidentiality filtering before including a turn here — this layer
+    /// only bounds count/size (`validate_history`), it does not re-derive
+    /// trust.
+    #[serde(default)]
+    history: Vec<HeadlessHistoryInput>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HeadlessHistoryInput {
+    role: Role,
+    content: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -54,11 +88,50 @@ struct HeadlessImageInput {
     data: String,
 }
 
+/// Pure provider resolution — split out from `dispatch()` specifically so
+/// the "custom" branch (roadmap Phase 14) is unit-testable without stdin
+/// I/O or a real TurnEngine run. `model`/`base_url`/`custom_keyless` come
+/// from argv and stdin respectively (see `dispatch()` and
+/// `HeadlessTurnInput`'s own doc comments for why each lives where it does).
+fn resolve_provider(
+    provider_name: &str,
+    model: Option<&str>,
+    base_url: Option<&str>,
+    custom_keyless: bool,
+) -> Result<std::sync::Arc<dyn crate::model::provider::ChatProvider>> {
+    if provider_name == "custom" {
+        let base_url = base_url
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("provider 'custom' requires base_url"))?;
+        let custom_model = model
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("provider 'custom' requires --model"))?;
+        return Ok(std::sync::Arc::new(crate::chat::openai_compat::custom(
+            base_url,
+            custom_model,
+            custom_keyless,
+        )));
+    }
+    crate::model::catalog::try_select_provider(provider_name).map_err(anyhow::Error::msg)
+}
+
 pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<()> {
-    let provider =
-        crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
-    let model = model.unwrap_or_else(|| provider.default_model().to_string());
+    // `input` must be read before provider resolution now: a "custom"
+    // provider's URL travels in stdin JSON, not argv (see
+    // HeadlessTurnInput's own doc comment on `base_url`), so there is no
+    // provider to resolve until stdin has been read. Every other
+    // provider name is unaffected by this reordering — `read_input()` has
+    // no side effect on provider selection for them.
     let input = read_input()?;
+    let provider = resolve_provider(
+        &provider_name,
+        model.as_deref(),
+        input.base_url.as_deref(),
+        input.custom_keyless,
+    )?;
+    let model = model.unwrap_or_else(|| provider.default_model().to_string());
     let images = validate_images(input.images)?;
     if !images.is_empty() && !provider.supports_vision() {
         anyhow::bail!(
@@ -66,6 +139,7 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
             provider.name()
         )
     }
+    let history_messages = validate_history(input.history)?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let session = SessionContext::new(
         validate_session_id(input.session_id.as_deref())?,
@@ -78,12 +152,9 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
     let tools = crate::chat::tools::catalog(&session);
     let system = input.system.filter(|value| !value.is_empty());
     let api_key = input.api_key.filter(|value| !value.is_empty());
-    let mut request = TurnRequest::new(
-        context.clone(),
-        model.clone(),
-        vec![ChatMessage::text(Role::User, input.task).with_images(images)],
-    )
-    .with_tools(tools);
+    let mut messages = history_messages;
+    messages.push(ChatMessage::text(Role::User, input.task).with_images(images));
+    let mut request = TurnRequest::new(context.clone(), model.clone(), messages).with_tools(tools);
     if let Some(system) = system.clone() {
         request = request.with_system(system);
     }
@@ -313,6 +384,43 @@ fn validate_session_id(value: Option<&str>) -> Result<String> {
     }
 }
 
+const MAX_HISTORY_TURNS: usize = 40;
+const MAX_HISTORY_CHARS: usize = 8_000;
+
+/// Truncates at the nearest UTF-8 char boundary at or before `max_bytes` —
+/// plain `String::truncate` panics if `max_bytes` lands mid-codepoint,
+/// which arbitrary user-authored chat text (multi-byte scripts, emoji)
+/// hits routinely.
+fn truncate_at_char_boundary(mut value: String, max_bytes: usize) -> String {
+    if value.len() <= max_bytes {
+        return value;
+    }
+    let mut boundary = max_bytes;
+    while boundary > 0 && !value.is_char_boundary(boundary) {
+        boundary -= 1;
+    }
+    value.truncate(boundary);
+    value
+}
+
+/// Bounds count/size only. The caller (Desktop gateway) already applied
+/// rule 68 confidentiality filtering before a turn reaches this stdin
+/// payload — this layer does not re-derive trust, it only prevents an
+/// oversized or malformed history from ballooning the outgoing request.
+fn validate_history(history: Vec<HeadlessHistoryInput>) -> Result<Vec<ChatMessage>> {
+    if history.len() > MAX_HISTORY_TURNS {
+        anyhow::bail!("headless turn accepts at most {MAX_HISTORY_TURNS} history turns")
+    }
+    Ok(history
+        .into_iter()
+        .filter(|turn| !turn.content.trim().is_empty())
+        .map(|turn| {
+            let content = truncate_at_char_boundary(turn.content, MAX_HISTORY_CHARS);
+            ChatMessage::text(turn.role, content)
+        })
+        .collect())
+}
+
 fn validate_images(images: Vec<HeadlessImageInput>) -> Result<Vec<ImageAttachment>> {
     if images.len() > 8 {
         anyhow::bail!("headless turn accepts at most 8 images")
@@ -512,6 +620,82 @@ fn write_json_line(output: &mut impl Write, value: &serde_json::Value) -> Result
 mod tests {
     use super::*;
 
+    // `Arc<dyn ChatProvider>` isn't `Debug`, so `.unwrap_err()` (which
+    // requires the Ok-type to be Debug, for its own panic message) can't
+    // be used on a `Result<Arc<dyn ChatProvider>, _>` here — match
+    // manually instead.
+    fn expect_err(result: Result<std::sync::Arc<dyn crate::model::provider::ChatProvider>>) -> anyhow::Error {
+        match result {
+            Err(error) => error,
+            Ok(_) => panic!("expected an error, got Ok"),
+        }
+    }
+
+    #[test]
+    fn resolve_provider_custom_requires_base_url() {
+        let error = expect_err(resolve_provider("custom", Some("some-model"), None, false));
+        assert!(error.to_string().contains("requires base_url"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_rejects_whitespace_only_base_url() {
+        let error = expect_err(resolve_provider("custom", Some("some-model"), Some("   "), false));
+        assert!(error.to_string().contains("requires base_url"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_requires_model() {
+        let error = expect_err(resolve_provider(
+            "custom",
+            None,
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            false,
+        ));
+        assert!(error.to_string().contains("requires --model"));
+    }
+
+    #[test]
+    fn resolve_provider_custom_builds_a_real_provider_with_given_url_and_model() {
+        let provider = resolve_provider(
+            "custom",
+            Some("my-local-model"),
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            true,
+        )
+        .unwrap();
+        assert_eq!(provider.name(), "custom");
+        assert_eq!(provider.default_model(), "my-local-model");
+        assert!(!provider.requires_key(), "custom_keyless=true must make requires_key() false");
+    }
+
+    #[test]
+    fn resolve_provider_custom_keyless_false_requires_a_key() {
+        let provider = resolve_provider(
+            "custom",
+            Some("my-local-model"),
+            Some("http://127.0.0.1:9999/v1/chat/completions"),
+            false,
+        )
+        .unwrap();
+        assert!(provider.requires_key(), "custom_keyless=false must make requires_key() true");
+    }
+
+    #[test]
+    fn resolve_provider_non_custom_names_use_the_static_catalog_unchanged() {
+        let provider = resolve_provider("ollama", None, None, false).unwrap();
+        assert_eq!(provider.name(), "ollama");
+        // base_url/custom_keyless are silently ignored for a real catalog
+        // provider — they only ever apply to "custom".
+        let provider_with_ignored_fields =
+            resolve_provider("ollama", None, Some("http://example.com"), true).unwrap();
+        assert_eq!(provider_with_ignored_fields.name(), "ollama");
+    }
+
+    #[test]
+    fn resolve_provider_unknown_name_is_a_named_error_not_a_panic() {
+        assert!(resolve_provider("nonexistent", None, None, false).is_err());
+    }
+
     #[test]
     fn session_ids_are_bounded_and_path_neutral() {
         assert_eq!(
@@ -521,6 +705,51 @@ mod tests {
         assert!(validate_session_id(Some("../escape")).is_err());
         assert!(validate_session_id(Some("contains space")).is_err());
         assert!(validate_session_id(Some(&"x".repeat(129))).is_err());
+    }
+
+    #[test]
+    fn validate_history_converts_roles_and_drops_blank_turns() {
+        let messages = validate_history(vec![
+            HeadlessHistoryInput { role: Role::User, content: "phân tích đoạn code này".into() },
+            HeadlessHistoryInput { role: Role::Assistant, content: "  ".into() },
+            HeadlessHistoryInput { role: Role::Assistant, content: "Đây là phân tích...".into() },
+        ])
+        .unwrap();
+        assert_eq!(messages.len(), 2, "the whitespace-only turn must be dropped");
+        assert_eq!(messages[0].role, Role::User);
+        assert_eq!(messages[0].content, "phân tích đoạn code này");
+        assert_eq!(messages[1].role, Role::Assistant);
+    }
+
+    #[test]
+    fn validate_history_rejects_more_than_the_turn_cap() {
+        let history: Vec<_> = (0..(MAX_HISTORY_TURNS + 1))
+            .map(|i| HeadlessHistoryInput { role: Role::User, content: format!("turn {i}") })
+            .collect();
+        let error = validate_history(history).unwrap_err();
+        assert!(error.to_string().contains("at most"));
+    }
+
+    #[test]
+    fn validate_history_truncates_an_oversized_turn_without_panicking_on_multibyte_text() {
+        // Repeats a 3-byte UTF-8 character so the naive byte-offset cap
+        // (MAX_HISTORY_CHARS) almost certainly lands mid-codepoint —
+        // exercising truncate_at_char_boundary's backward scan.
+        let oversized = "phân".repeat(3000);
+        assert!(oversized.len() > MAX_HISTORY_CHARS);
+        let messages = validate_history(vec![HeadlessHistoryInput {
+            role: Role::User,
+            content: oversized,
+        }])
+        .unwrap();
+        assert_eq!(messages.len(), 1);
+        assert!(messages[0].content.len() <= MAX_HISTORY_CHARS);
+        assert!(messages[0].content.is_char_boundary(messages[0].content.len()));
+    }
+
+    #[test]
+    fn validate_history_empty_input_is_fine() {
+        assert!(validate_history(Vec::new()).unwrap().is_empty());
     }
 
     #[test]
