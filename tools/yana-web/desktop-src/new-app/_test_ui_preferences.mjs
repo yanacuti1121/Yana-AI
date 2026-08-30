@@ -13,9 +13,12 @@ assert.deepEqual(normalizeUiPreferences({ theme: 'unknown', language: 'xx' }), {
 assert.deepEqual(normalizeUiPreferences({ theme: 'ios-night', language: 'en' }), { version: 1, theme: 'ios-night', language: 'en' });
 assert.deepEqual(normalizeUiPreferences({ theme: 'ios-rose', language: 'en' }), { version: 1, theme: 'ios-rose', language: 'en' });
 assert.deepEqual(normalizeUiPreferences({ theme: 'liquid', language: 'en' }), { version: 1, theme: 'liquid', language: 'en' });
+// True Black — anh specifically asked for a genuine black theme (all 14
+// pre-existing themes are tinted darks, not neutral black).
+assert.deepEqual(normalizeUiPreferences({ theme: 'black', language: 'en' }), { version: 1, theme: 'black', language: 'en' });
 assert.deepEqual(readUiPreferences(storage), { version: 1, theme: 'navy', language: 'en' });
 assert.deepEqual(writeUiPreferences({ theme: 'obsidian', language: 'ko' }, storage), { version: 1, theme: 'obsidian', language: 'ko' });
 assert.deepEqual(JSON.parse(values.get(UI_PREFERENCES_KEY)), { version: 1, theme: 'obsidian', language: 'ko' });
 values.set(UI_PREFERENCES_KEY, '{broken');
 assert.deepEqual(readUiPreferences(storage), { version: 1, theme: 'navy', language: 'en' });
-console.log('ui-preferences tests passed: 10');
+console.log('ui-preferences tests passed: 11');

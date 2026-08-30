@@ -137,6 +137,7 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
                 ['obsidian', 'Obsidian 🌑'],
                 ['ocean', 'Deep Ocean 🌊'],
                 ['navy', 'Midnight Navy 🌌'],
+                ['black', 'True Black 🖤'],
               ].map(([id, label]) => <button key={id} onClick={() => onChange({ theme: id })} aria-pressed={preferences.theme === id} style={{ border: preferences.theme === id ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '7px 10px', background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>{label}</button>)}
             </div>
           </Section>}

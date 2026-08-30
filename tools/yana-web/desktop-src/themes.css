@@ -300,6 +300,50 @@
   --color-destructive: #f87171;
 }
 
+/* ---------- True Black (genuine neutral black, not a tinted dark) ----------
+   Every other dark theme here (navy, obsidian, ocean, ios-night...) is a
+   tinted dark — a deep blue/purple/teal standing in for "black". Anh
+   asked for an actual black option among the 14, so this one is
+   deliberately monochrome: near-white primary/ink on true #000, with
+   --good/--warn kept as real green/amber (semantic state shouldn't
+   disappear even in a neutral theme) and --pink/--gold muted rather than
+   vivid (still distinct hues for code-highlight/badge differentiation,
+   just restrained so they don't fight the monochrome background). No
+   .scene-swell/-caustics/-lotus override is given on purpose — those
+   colorful glow layers are what make the OTHER themes feel alive; a true
+   black theme reads as stark/minimal specifically because it has none. */
+[data-theme="black"] {
+  color-scheme: dark;
+  --bg-base: #000000;
+  --bg-scene:
+    radial-gradient(1100px 580px at 22% -12%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(1300px 780px at 50% 118%, rgba(255, 255, 255, 0.03), transparent 65%),
+    linear-gradient(180deg, #000000 0%, #000000 100%);
+  --surface-rgb: 18, 18, 18;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #f5f5f5;
+  --ink-2: #a3a3a3;
+  --ink-3: #666666;
+  --primary: #d4d4d4;
+  --primary-soft: rgba(212, 212, 212, 0.14);
+  --pink: #c99bb0;
+  --pink-soft: rgba(201, 155, 176, 0.14);
+  --gold: #c9a86a;
+  --gold-soft: rgba(201, 168, 106, 0.14);
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  --color-destructive: #f87171;
+}
+
 /* ============ base ============ */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }

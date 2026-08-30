@@ -9,7 +9,7 @@ export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
 export const THEMES = [
   'navy', 'ocean', 'obsidian', 'jade',
   'dawn', 'mist', 'silver', 'sage', 'amber', 'arctic', 'lavender',
-  'ios-rose', 'ios-night', 'liquid',
+  'ios-rose', 'ios-night', 'liquid', 'black',
 ];
 export const LANGUAGES = ['en', 'vi', 'ko', 'zh'];
 
