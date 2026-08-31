@@ -1,6 +1,7 @@
 import React from 'react';
 import { L } from '../components.jsx';
 import { useGoogleConnector } from './use-google-connector.js';
+import { useGithubConnector, getGithubAccessToken } from './use-github-connector.js';
 
 const GOOGLE_OAUTH_CONNECTORS = new Set(['gmail', 'google-calendar']);
 
@@ -48,6 +49,38 @@ function GooglePreviewList({ connectorName, items }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// GitHub's card badge above (Ready/Credential required) stays driven by
+// connector.rs's own connector-list check, which has no visibility into
+// a token this panel stores in YanaVault — that badge and this panel can
+// legitimately disagree (badge: "Credential required", panel: "Connected")
+// until src/connector.rs's own connection_state logic is extended to be
+// aware of an OAuth-sourced token rather than only an inherited env var.
+// This panel — not the badge — is the real, current-session truth for
+// whether Sync will work; see connector-registry.js's SYNC_ENV_VAR_BY_CONNECTOR.
+function GithubConnectorPanel() {
+  const { status, identity, busy, error, connect, disconnect } = useGithubConnector();
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('GitHub account', 'Tài khoản GitHub', 'GitHub 계정', 'GitHub 账号')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+          {identity && <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{identity}</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status !== 'connected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{busy ? L('Disconnecting…', 'Đang ngắt kết nối…', '연결 해제 중…', '断开中…') : L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens GitHub’s consent screen in your browser (notifications scope only). The token is encrypted and stored on this device only.', 'Mở màn hình cấp quyền của GitHub trong trình duyệt (chỉ scope notifications). Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 GitHub 동의 화면이 열립니다(notifications 범위만). 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 GitHub 授权页面（仅 notifications 权限）。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+    </div>
   );
 }
 
@@ -231,12 +264,13 @@ export function IntegrationsSettings() {
               </p>
             )}
             {GOOGLE_OAUTH_CONNECTORS.has(connector.name) && <GoogleConnectorPanel connectorName={connector.name} />}
+            {connector.name === 'github' && <GithubConnectorPanel />}
 
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
               <button type="button" disabled={!selectedScopes.length || !!busy} onClick={() => mutate(`${connector.name}:configure`, () => window.yana.connectorConfigure(connector.name, selectedScopes), L('Local connector permissions saved. Authentication remains separate.', 'Đã lưu quyền connector cục bộ. Xác thực vẫn là bước riêng.', '로컬 커넥터 권한이 저장되었습니다. 인증은 별도 단계입니다.', '本地连接器权限已保存。认证仍是独立步骤。'))} style={buttonStyle(true)}>{L('Save local permissions', 'Lưu quyền cục bộ', '로컬 권한 저장', '保存本地权限')}</button>
               {isEnabled && <button type="button" disabled={!!busy} onClick={() => mutate(`${connector.name}:disconnect`, () => window.yana.connectorDisconnect(connector.name), L('Local connector access disabled. Provider credentials were not deleted.', 'Đã tắt quyền connector cục bộ. Credential phía provider không bị xóa.', '로컬 커넥터 접근이 비활성화되었습니다. 공급자 자격 증명은 삭제되지 않았습니다.', '已禁用本地连接器访问。服务商凭据未被删除。'))} style={buttonStyle()}>{L('Disable local access', 'Tắt quyền cục bộ', '로컬 접근 비활성화', '禁用本地访问')}</button>}
-              {canSync && <button type="button" disabled={!!busy} onClick={() => mutate(`${connector.name}:preview`, () => window.yana.connectorSync(connector.name, { limit: 20, dryRun: true }))} style={buttonStyle()}>{L('Preview sync', 'Xem trước sync', '동기화 미리보기', '预览同步')}</button>}
-              {canSync && <button type="button" disabled={!!busy} onClick={() => mutate(`${connector.name}:sync`, () => window.yana.connectorSync(connector.name, { limit: 20, dryRun: false }), undefined, true)} style={buttonStyle()}>{L('Sync to workspace', 'Sync vào workspace', '작업 공간에 동기화', '同步到工作区')}</button>}
+              {canSync && <button type="button" disabled={!!busy} onClick={() => mutate(`${connector.name}:preview`, () => window.yana.connectorSync(connector.name, { limit: 20, dryRun: true, accessToken: connector.name === 'github' ? getGithubAccessToken() : undefined }))} style={buttonStyle()}>{L('Preview sync', 'Xem trước sync', '동기화 미리보기', '预览同步')}</button>}
+              {canSync && <button type="button" disabled={!!busy} onClick={() => mutate(`${connector.name}:sync`, () => window.yana.connectorSync(connector.name, { limit: 20, dryRun: false, accessToken: connector.name === 'github' ? getGithubAccessToken() : undefined }), undefined, true)} style={buttonStyle()}>{L('Sync to workspace', 'Sync vào workspace', '작업 공간에 동기화', '同步到工作区')}</button>}
               {busy.startsWith(`${connector.name}:`) && <span style={{ alignSelf: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Working…', 'Đang xử lý…', '처리 중…', '处理中…')}</span>}
             </div>
 

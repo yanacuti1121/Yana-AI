@@ -1211,7 +1211,15 @@ handleTrusted('yana:connector-sync', (event, name, options = {}) => {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50 || typeof dryRun !== 'boolean') {
     return { ok: false, error: 'connector sync options are invalid' };
   }
-  return syncConnector(name, { limit, dryRun });
+  // Only threaded through for connectors whose Rust-side sync needs a
+  // credential via environment variable (github today — see
+  // connector-registry.js's SYNC_ENV_VAR_BY_CONNECTOR); ignored for every
+  // other connector, never logged, never written to disk.
+  if (options.accessToken !== undefined
+      && (typeof options.accessToken !== 'string' || options.accessToken.length === 0 || options.accessToken.length > 4096)) {
+    return { ok: false, error: 'connector sync options are invalid' };
+  }
+  return syncConnector(name, { limit, dryRun, accessToken: options.accessToken });
 });
 
 handleTrusted('yana:workspace-resources', (event, connector) => {

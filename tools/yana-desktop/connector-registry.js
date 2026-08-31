@@ -7,7 +7,7 @@ const CONNECTOR_NAME = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SCOPE_NAME = /^[a-z][a-z0-9.-]{0,63}$/;
 const CONNECTION_STATES = new Set(['disabled', 'adapter-unavailable', 'credential-required', 'ready']);
 
-function run(yanaRtBin, repoRoot, args, { exec, existsSync, timeout = 10_000 }) {
+function run(yanaRtBin, repoRoot, args, { exec, existsSync, timeout = 10_000, env }) {
   if (!existsSync(yanaRtBin)) {
     return Promise.resolve({ ok: false, error: `yana-rt binary not found at ${yanaRtBin}` });
   }
@@ -18,6 +18,10 @@ function run(yanaRtBin, repoRoot, args, { exec, existsSync, timeout = 10_000 }) 
       timeout,
       maxBuffer: 512 * 1024,
       windowsHide: true,
+      // Only set when a caller passes one (e.g. syncConnector's accessToken
+      // for github) — omitting `env` here lets execFile default to
+      // inheriting process.env, unchanged for every other connector.
+      ...(env ? { env } : {}),
     }, (error, stdout, stderr) => {
       if (error) {
         const detail = String(stderr || error.message || '').trim();
@@ -117,11 +121,21 @@ async function disconnectConnector({
   return listConnectors({ repoRoot, yanaRtBin, exec, existsSync });
 }
 
+// Connectors whose Rust-side sync reads its credential from an
+// environment variable (src/connector.rs's sync_github reads
+// YANA_GITHUB_ACCESS_TOKEN) rather than YanaVault-in-the-renderer +
+// per-request token (Gmail/Calendar's path — see connector-oauth.js).
+// Adding a connector here means syncConnector's accessToken param gets
+// threaded into the subprocess's environment for exactly that one call,
+// never written to disk or logged.
+const SYNC_ENV_VAR_BY_CONNECTOR = { github: 'YANA_GITHUB_ACCESS_TOKEN' };
+
 async function syncConnector({
   repoRoot,
   name,
   limit = 20,
   dryRun = false,
+  accessToken,
   yanaRtBin,
   exec = execFile,
   existsSync = fs.existsSync,
@@ -130,7 +144,11 @@ async function syncConnector({
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) return { ok: false, error: 'connector sync limit must be 1..50' };
   const args = ['connector', 'sync', name, '--limit', String(limit)];
   if (dryRun) args.push('--dry-run');
-  const result = await run(yanaRtBin, repoRoot, args, { exec, existsSync, timeout: 30_000 });
+  const envVarName = SYNC_ENV_VAR_BY_CONNECTOR[name];
+  const env = envVarName && typeof accessToken === 'string' && accessToken
+    ? { ...process.env, [envVarName]: accessToken }
+    : undefined;
+  const result = await run(yanaRtBin, repoRoot, args, { exec, existsSync, timeout: 30_000, env });
   if (!result.ok) return result;
   return { ok: true, message: result.stdout.trim() };
 }

@@ -75,6 +75,7 @@ const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js
 const auth     = require('./auth');
 const connectorOAuth = require('./connector-oauth');
 const connectorGoogleAdapters = require('./connector-google-adapters');
+const githubOAuth = require('./github-oauth');
 const missions = require('./missions');
 const memory   = require('./memory');
 const robot    = require('./robot');
@@ -2161,6 +2162,7 @@ async function handleAuthRoutes(req, res, pathname, method) {
   // See connector-oauth.js's own header comment for why this is a wholly
   // separate flow from the login OAuth right above it.
   if (method === 'GET'  && pathname === '/api/connectors/google/callback') { await connectorOAuth.handleConnectorGoogleCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/github/callback') { await githubOAuth.handleGithubCallback(req, res); return true; }
   return false;
 }
 
@@ -2248,6 +2250,16 @@ const server = http.createServer(async (req, res) => {
   }
   if (method === 'POST' && pathname === '/api/connectors/calendar/events') {
     const body = await readJsonBody(req, res); if (body) await handleConnectorCalendarEvents(req, res, body); return;
+  }
+  // Connector OAuth (GitHub) — see github-oauth.js's header comment for
+  // why this has no /refresh route (classic OAuth App tokens don't expire).
+  if (method === 'GET'  && pathname === '/api/connectors/github/start') { githubOAuth.handleGithubStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/github/pending/')) {
+    githubOAuth.handleGithubPending(req, res, pathname.slice('/api/connectors/github/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/github/revoke') {
+    const body = await readJsonBody(req, res); if (body) await githubOAuth.handleGithubRevoke(req, res, body); return;
   }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
