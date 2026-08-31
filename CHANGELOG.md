@@ -8,6 +8,40 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## macOS packaging fix + notarization status — 2026-08-31
+
+**Yana Desktop's macOS build is not notarized by Apple.** The project does
+not yet have a paid Apple Developer Program membership, which notarization
+requires. Builds are ad-hoc signed (a real, Apple-documented signing
+mechanism, distinct from being fully unsigned) so the app can launch at
+all on Apple Silicon, but Gatekeeper still shows a first-launch warning.
+See [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) for the two official
+Apple-provided ways to open it — no Gatekeeper system setting needs to
+change.
+
+Also fixed in this pass, both real packaging bugs (not notarization-
+related): `tools/yana-desktop/package.json`'s `extraFiles` copy of
+`tools/yana-web/` was pulling in a 427MB local Python virtualenv
+(`tts-sidecar/.venv`) — a machine-specific dev artifact never meant to
+ship, and the cause of a `codesign --verify --deep` failure ("invalid
+destination for symbolic link in bundle"); and the same copy step had no
+`.env*` exclusion, so a real local secret (`GOOGLE_OAUTH_CLIENT_SECRET`)
+would have shipped inside the app bundle. Both are now excluded via the
+`extraFiles` filter.
+
+Added `tools/yana-desktop/scripts/after-sign-mac.js` (an electron-builder
+`afterSign` hook) to properly deep-re-sign the fully-assembled bundle —
+without it, electron-builder skipped signing the added `extraFiles`
+entirely, leaving Electron's own prebuilt ad-hoc signature (which only
+ever covered the bare Electron.app skeleton) mismatched against the
+actual Resources tree — exactly Apple's "code has no resources but
+signature indicates they must be present" error. The hook, and the new
+`build/entitlements.mac.plist` it references, are structured so adding a
+real Developer ID + notarization later is a config change, not a rewrite
+— see the comments at the top of `after-sign-mac.js`.
+
+---
+
 ## Python package v1.4.2 (one-time catch-up) — 2026-08-26
 
 `pyproject.toml` and `src/yana_ai/__init__.py` move from `0.42.5` to

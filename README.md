@@ -957,6 +957,15 @@ yana-ai badge . --json    # machine-readable output
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
+> **macOS note:** the Yana Desktop `.dmg`/`.zip` is currently **ad-hoc
+> signed but not notarized by Apple** — this project doesn't have an Apple
+> Developer Program membership yet. Gatekeeper will warn on first launch;
+> see [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) for the two official
+> Apple-provided ways to open it (no need to disable Gatekeeper). For
+> everything else — the app's sections, switching between the new
+> workspace and the legacy interface, chat features — see
+> [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+
 ---
 
 ## 🇻🇳 Tiếng Việt · 🇰🇷 한국어 · 🇨🇳 中文

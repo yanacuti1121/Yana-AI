@@ -81,7 +81,7 @@
       {
         "from": "../yana-web",
         "to": "Resources/server",
-        "filter": ["**/*", "!node_modules/**", "!dist/**", "!.yana/**", "!desktop-old/**", "!desktop-src/**"]
+        "filter": ["**/*", "!node_modules/**", "!dist/**", "!.yana/**", "!desktop-old/**", "!desktop-src/**", "!.env*", "!**/.venv/**", "!**/__pycache__/**", "!**/*.pyc"]
       },
       {
         "from": "../../MANIFEST.json",
@@ -124,8 +124,14 @@
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
+    "afterSign": "scripts/after-sign-mac.js",
     "win": {
       "target": ["nsis"]
     },

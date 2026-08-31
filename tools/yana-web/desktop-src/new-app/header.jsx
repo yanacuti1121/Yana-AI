@@ -1,5 +1,5 @@
 import React from 'react';
-import { L, Icons } from '../components.jsx';
+import { L, Icons, signOut } from '../components.jsx';
 import { summarizeConnections } from './connector-summary.mjs';
 import { NotificationCenter } from './notification-center.jsx';
 
@@ -291,6 +291,17 @@ export function Header({
                 {L('Legacy UI', 'Giao diện cũ', '이전 UI', '旧版界面')}
               </button>
             )}
+            {/* new-app had no sign-out path at all — the only way out was
+                switching to the legacy UI first to use its Sign out button. */}
+            <button
+              onClick={() => { setMenuOpen(false); signOut(); }}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                background: 'none', border: 'none', color: 'var(--warn)', fontSize: 'var(--font-size-sm)', cursor: 'pointer',
+              }}
+            >
+              {L('Sign out', 'Đăng xuất', '로그아웃', '退出登录')}
+            </button>
           </div>
         )}
       </div>

@@ -6,6 +6,25 @@ const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
 const url   = require('url');
+
+// Minimal .env.local loader — local-only secrets (currently: Google OAuth
+// client id/secret, see auth.js), never committed (see .gitignore). A tiny
+// hand-rolled parser instead of the `dotenv` package: one file, no new
+// dependency to vet. Real environment variables already set always win.
+(function loadEnvLocal() {
+  const envPath = path.join(__dirname, '.env.local');
+  let raw;
+  try { raw = fs.readFileSync(envPath, 'utf8'); } catch (_) { return; }
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim();
+    if (key && !(key in process.env)) process.env[key] = value;
+  }
+})();
 const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
@@ -2072,6 +2091,8 @@ async function handleAuthRoutes(req, res, pathname, method) {
     const body = await readJsonBody(req, res); if (body) auth.handleLogin(req, res, body); return true;
   }
   if (method === 'POST' && pathname === '/api/auth/logout') { auth.handleLogout(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/start')    { auth.handleGoogleStart(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/callback') { await auth.handleGoogleCallback(req, res); return true; }
   return false;
 }
 

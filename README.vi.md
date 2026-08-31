@@ -888,6 +888,14 @@ yana-ai badge . --json    # output dạng máy đọc được
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
 
+> **Lưu ý macOS:** bản `.dmg`/`.zip` của Yana Desktop hiện **chỉ ký ad-hoc,
+> chưa được Apple notarize** — dự án chưa có Apple Developer Program (gói
+> trả phí). Gatekeeper sẽ cảnh báo ở lần mở đầu tiên; xem
+> [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) để biết 2 cách mở chính
+> thức từ Apple (không cần tắt Gatekeeper). Còn cách dùng app (các mục
+> trong sidebar, cách chuyển đổi giữa giao diện mới/cũ, tính năng chat...)
+> thì xem [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+
 ---
 
 ## English · 🇰🇷 한국어 · 🇨🇳 中文
