@@ -1,4 +1,5 @@
 import React from 'react';
+import { L } from '../../components.jsx';
 
 function timeLabel(ts) {
   return new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -14,7 +15,7 @@ export function UserMessage({ msg }) {
       padding: '10px 14px', background: 'var(--color-bg-subtle)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--primary)' }}>You</span>
+        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--primary)' }}>{L('You', 'Bạn', '나', '你')}</span>
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>{timeLabel(msg._id)}</span>
       </div>
       <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>
