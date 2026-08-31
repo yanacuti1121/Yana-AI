@@ -1,5 +1,84 @@
 import React from 'react';
 import { L } from '../components.jsx';
+import { useGoogleConnector } from './use-google-connector.js';
+
+const GOOGLE_OAUTH_CONNECTORS = new Set(['gmail', 'google-calendar']);
+
+function googleStatusPresentation(status) {
+  if (status === 'connected') return { label: L('Connected', 'Đã kết nối', '연결됨', '已连接'), color: 'var(--good)' };
+  if (status === 'expired') return { label: L('Expired — reconnect needed', 'Hết hạn — cần kết nối lại', '만료됨 — 재연결 필요', '已过期 — 需要重新连接'), color: 'var(--warn)' };
+  return { label: L('Not connected', 'Chưa kết nối', '미연결', '未连接'), color: 'var(--color-text-muted)' };
+}
+
+// Real provider-authorization lifecycle (Connect → OAuth → token stored)
+// for the two connectors with a live adapter today. Deliberately separate
+// from the "Explicit permissions" checkboxes below: those record what
+// Yana itself is allowed to DO with a connector once it has access; this
+// panel is whether Yana HAS access to the Google account at all. Saving
+// a permission checkbox must never be read as "Gmail is connected."
+function formatEventTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value; // all-day events are a bare "YYYY-MM-DD" — not a crash, just shown as-is
+  return date.toLocaleString();
+}
+
+function GooglePreviewList({ connectorName, items }) {
+  if (connectorName === 'gmail') {
+    return (
+      <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map((m) => (
+          <li key={m.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+              {m.unread && <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }} />}
+              <strong style={{ fontSize: 'var(--font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject}</strong>
+            </div>
+            <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.from}{m.date ? ` · ${m.date}` : ''}</div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((e) => (
+        <li key={e.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+          <strong style={{ fontSize: 'var(--font-size-xs)' }}>{e.summary}</strong>
+          <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px' }}>{formatEventTime(e.start)}{e.location ? ` · ${e.location}` : ''}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function GoogleConnectorPanel({ connectorName }) {
+  const { status, email, busy, error, connect, reconnect, disconnect, preview, fetchPreview } = useGoogleConnector(connectorName);
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('Google account', 'Tài khoản Google', 'Google 계정', 'Google 账号')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+          {email && <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status === 'disconnected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'expired' && <button type="button" disabled={busy} onClick={reconnect} style={buttonStyle(true)}>{busy ? L('Reconnecting…', 'Đang kết nối lại…', '재연결 중…', '重新连接中…') : L('Reconnect', 'Kết nối lại', '재연결', '重新连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy || preview.loading} onClick={fetchPreview} style={buttonStyle()}>{preview.loading ? L('Loading…', 'Đang tải…', '로드 중…', '加载中…') : L('Preview', 'Xem trước', '미리보기', '预览')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{busy ? L('Disconnecting…', 'Đang ngắt kết nối…', '연결 해제 중…', '断开中…') : L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens Google’s consent screen in your browser. The token is encrypted and stored on this device only.', 'Mở màn hình cấp quyền của Google trong trình duyệt. Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 Google 동의 화면이 열립니다. 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 Google 授权页面。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+      {preview.error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{preview.error}</p>}
+      {preview.items && preview.items.length === 0 && <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Nothing recent.', 'Không có gì gần đây.', '최근 항목이 없습니다.', '暂无最近项目。')}</p>}
+      {preview.items && preview.items.length > 0 && <GooglePreviewList connectorName={connectorName} items={preview.items} />}
+    </div>
+  );
+}
 
 function statePresentation(state) {
   if (state === 'ready') return { label: L('Ready', 'Sẵn sàng', '준비됨', '就绪'), color: 'var(--good)' };
@@ -151,6 +230,7 @@ export function IntegrationsSettings() {
                 {L('The local permission can be recorded now, but this connector has no runtime adapter yet and cannot access a provider.', 'Có thể lưu quyền cục bộ ngay, nhưng connector này chưa có runtime adapter nên chưa thể truy cập provider.', '로컬 권한은 지금 기록할 수 있지만 이 커넥터에는 아직 런타임 어댑터가 없어 공급자에 접근할 수 없습니다.', '现在可以记录本地权限，但此连接器尚无运行时适配器，无法访问服务商。')}
               </p>
             )}
+            {GOOGLE_OAUTH_CONNECTORS.has(connector.name) && <GoogleConnectorPanel connectorName={connector.name} />}
 
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
               <button type="button" disabled={!selectedScopes.length || !!busy} onClick={() => mutate(`${connector.name}:configure`, () => window.yana.connectorConfigure(connector.name, selectedScopes), L('Local connector permissions saved. Authentication remains separate.', 'Đã lưu quyền connector cục bộ. Xác thực vẫn là bước riêng.', '로컬 커넥터 권한이 저장되었습니다. 인증은 별도 단계입니다.', '本地连接器权限已保存。认证仍是独立步骤。'))} style={buttonStyle(true)}>{L('Save local permissions', 'Lưu quyền cục bộ', '로컬 권한 저장', '保存本地权限')}</button>
