@@ -41,6 +41,8 @@ const IntegrationsSettings = React.lazy(() => import('./integrations-settings.js
 const CommandsReferenceView = React.lazy(() => import('./commands-reference-view.jsx').then((module) => ({ default: module.CommandsReferenceView })));
 const PermissionsView = React.lazy(() => import('./permissions-view.jsx').then((module) => ({ default: module.PermissionsView })));
 const AgentsView = React.lazy(() => import('./agents-view.jsx').then((module) => ({ default: module.AgentsView })));
+const DevicesView = React.lazy(() => import('./devices-view.jsx').then((module) => ({ default: module.DevicesView })));
+const RemoteToolsView = React.lazy(() => import('./remote-tools-view.jsx').then((module) => ({ default: module.RemoteToolsView })));
 const ComingSoon = React.lazy(() => import('./coming-soon.jsx').then((module) => ({ default: module.ComingSoon })));
 const ModelManager = React.lazy(() => import('./model-manager.jsx').then((module) => ({ default: module.ModelManager })));
 
@@ -85,7 +87,7 @@ function useViewport() {
   return viewport;
 }
 
-const SIDEBAR_LABELS = { chat: 'Chat', projects: 'Projects', files: 'Files', tasks: 'Tasks', git: 'Git', activity: 'Activity', models: 'Models', agents: 'Agents', settings: 'Settings', integrations: 'Integrations', commands: 'Commands', permissions: 'Permissions' };
+const SIDEBAR_LABELS = { chat: 'Chat', projects: 'Projects', files: 'Files', tasks: 'Tasks', git: 'Git', activity: 'Activity', devices: 'Devices', models: 'Models', agents: 'Agents', settings: 'Settings', integrations: 'Integrations', remoteTools: 'Remote & Tools', commands: 'Commands', permissions: 'Permissions' };
 
 export function NewAppShell({ onSwitchToLegacy }) {
   const [view, setView] = React.useState('chat');
@@ -118,7 +120,7 @@ export function NewAppShell({ onSwitchToLegacy }) {
   // and a human terminal visible while editing privacy/provider settings is
   // context collision, not useful information density. Those utilities stay
   // available from the Header as opt-in drawers instead of disappearing.
-  const focusSurface = ['settings', 'integrations', 'models', 'agents'].includes(view);
+  const focusSurface = ['settings', 'integrations', 'models', 'agents', 'remote-tools'].includes(view);
   const inspectorDrawer = viewportWidth < INSPECTOR_DRAWER_WIDTH || focusSurface;
   const showBottomDock = !focusSurface || utilityDockOpen;
   const sidebarCompact = viewportWidth < SIDEBAR_RAIL_WIDTH || sidebarCollapsed;
@@ -372,6 +374,10 @@ export function NewAppShell({ onSwitchToLegacy }) {
                     <CommandsReferenceView onFocusTerminal={onFocusTerminal} />
                   ) : view === 'agents' ? (
                     <AgentsView />
+                  ) : view === 'devices' ? (
+                    <DevicesView />
+                  ) : view === 'remote-tools' ? (
+                    <RemoteToolsView onFocusTerminal={onFocusTerminal} />
                   ) : view === 'permissions' ? (
                     <PermissionsView key={workspaceRoot || 'no-project'} />
                   ) : (

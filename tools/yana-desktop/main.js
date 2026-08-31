@@ -29,6 +29,8 @@ const {
   listLeases: listLeasesImpl, revokeLease: revokeLeaseImpl,
 } = require('./permission-actions');
 const { readGovernanceStatus: readGovernanceStatusImpl } = require('./governance-status');
+const { readHostStatus: readHostStatusImpl } = require('./host-status');
+const { readRemoteToolsStatus: readRemoteToolsStatusImpl } = require('./remote-tools-status');
 const { prepareCodeServerLaunch } = require('./code-server-launch');
 const {
   configureConnector: configureConnectorImpl,
@@ -601,6 +603,14 @@ function governanceStatus() {
   return readGovernanceStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
 }
 
+function hostStatus() {
+  return readHostStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function remoteToolsStatus() {
+  return readRemoteToolsStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
 function connectorRuntimeOptions() {
   return { repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') };
 }
@@ -1167,6 +1177,10 @@ handleTrusted('yana:permission-revoke-lease', (event, id) => {
 });
 
 handleTrusted('yana:governance-status', () => governanceStatus());
+
+handleTrusted('yana:host-status', () => hostStatus());
+
+handleTrusted('yana:remote-tools-status', () => remoteToolsStatus());
 
 handleTrusted('yana:connector-list', () => listConnectors());
 
