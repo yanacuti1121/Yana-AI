@@ -1,7 +1,9 @@
 import assert from 'node:assert';
 import {
-  toggleAttachment, isAttached, clearAttachments, getWorkspaceContextFiles, __TEST_ONLY__,
+  attachExternalFile, toggleAttachment, isAttached, clearAttachments, getWorkspaceContextFiles,
+  beginAttachmentOperation, isAttachmentOperationCurrent, invalidateAttachmentOperations, __TEST_ONLY__,
 } from './file-attachments.mjs';
+import { resolveAttachmentSendPolicy } from './chat-attachment-policy.mjs';
 
 // Nothing attached yet -> context omits the field entirely.
 assert.strictEqual(getWorkspaceContextFiles(), null);
@@ -31,6 +33,25 @@ assert.strictEqual(toggleAttachment('huge.txt', huge, huge.length), 'size-limit'
 assert.strictEqual(isAttached('huge.txt'), false);
 
 clearAttachments();
+const external = attachExternalFile('/Users/tam/notes.txt', 'private note', 12);
+assert.strictEqual(external.result, 'attached');
+assert.strictEqual(isAttached(external.path), true);
+assert.deepStrictEqual(getWorkspaceContextFiles(), [{ path: 'External: _Users_tam_notes.txt', content: 'private note' }]);
+clearAttachments();
 assert.strictEqual(getWorkspaceContextFiles(), null);
 
-console.log('file-attachments tests passed: 10');
+// File/image preparation is asynchronous. A tab or project switch invalidates
+// the old operation so its late completion cannot attach stale context.
+const oldOperation = beginAttachmentOperation();
+assert.strictEqual(isAttachmentOperationCurrent(oldOperation), true);
+invalidateAttachmentOperations();
+assert.strictEqual(isAttachmentOperationCurrent(oldOperation), false);
+assert.strictEqual(isAttachmentOperationCurrent(beginAttachmentOperation()), true);
+
+const policyFile = [{ path: 'External: notes.txt', content: 'private note' }];
+assert.deepStrictEqual(resolveAttachmentSendPolicy({ tier: null, files: policyFile, image: null }), { allowed: true, hasExplicitAttachments: true });
+assert.deepStrictEqual(resolveAttachmentSendPolicy({ tier: 'sovereign', files: policyFile, image: { data: 'x' } }), { allowed: false, hasExplicitAttachments: true });
+assert.deepStrictEqual(resolveAttachmentSendPolicy({ tier: 'confidential', files: policyFile, image: null }), { allowed: false, hasExplicitAttachments: true });
+assert.deepStrictEqual(resolveAttachmentSendPolicy({ tier: 'confidential', files: null, image: { data: 'x' } }), { allowed: true, hasExplicitAttachments: true });
+
+console.log('file attachment context tests passed');
