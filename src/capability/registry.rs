@@ -71,6 +71,13 @@ impl Manifest {
         self.descriptors.iter().find(|d| d.name == name)
     }
 
+    /// Every descriptor, regardless of `availability` — unlike `available(ctx)`,
+    /// which filters. The Permission Inspector UI needs to show capabilities the
+    /// current session can't use right now too, not just the active subset.
+    pub fn descriptors(&self) -> &[CapabilityDescriptor] {
+        &self.descriptors
+    }
+
     pub fn get_by_tool_name(&self, tool_name: &str) -> Option<&CapabilityDescriptor> {
         self.descriptors
             .iter()
@@ -98,6 +105,49 @@ mod tests {
     #[test]
     fn all_ten_descriptors_present() {
         assert_eq!(Manifest::all().descriptors.len(), 10);
+    }
+
+    #[test]
+    fn descriptors_accessor_returns_every_descriptor_unfiltered() {
+        // Unlike available(ctx), which filters — the Permission Inspector
+        // needs the full list including currently-unavailable capabilities.
+        assert_eq!(Manifest::all().descriptors().len(), 10);
+    }
+
+    #[test]
+    fn descriptors_are_json_serializable_for_the_permission_inspector() {
+        // CapabilityDescriptor itself can't derive Serialize (availability
+        // is a fn pointer) — cli.rs's cmd_list hand-builds a serde_json::Value
+        // per descriptor instead. This confirms that mapping is sound for a
+        // known descriptor, matching cmd_list's field set exactly.
+        let manifest = Manifest::all();
+        let descriptor = manifest.get("repo.read").expect("repo.read exists");
+        let value = serde_json::json!({
+            "name": descriptor.name,
+            "toolName": descriptor.tool_name,
+            "description": descriptor.description,
+            "accessMode": match descriptor.access_mode {
+                AccessMode::ReadOnly => "read_only",
+                AccessMode::Mutating => "mutating",
+            },
+            "riskTier": match descriptor.risk_tier {
+                RiskTier::Low => "low",
+                RiskTier::Medium => "medium",
+                RiskTier::High => "high",
+            },
+            "approval": match descriptor.approval {
+                ApprovalRequirement::None => "none",
+                ApprovalRequirement::HumanApprovalPerCall => "human_approval_per_call",
+            },
+            "available": (descriptor.availability)(&ctx()),
+        });
+        assert_eq!(value["name"], "repo.read");
+        assert_eq!(value["accessMode"], "read_only");
+        assert_eq!(value["riskTier"], "low");
+        assert_eq!(value["approval"], "none");
+        assert_eq!(value["available"], true);
+        let serialized = serde_json::to_string(&value).expect("serializes to valid JSON");
+        assert!(serialized.contains("\"name\":\"repo.read\""));
     }
 
     #[test]

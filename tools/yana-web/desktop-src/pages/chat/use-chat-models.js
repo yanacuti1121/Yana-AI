@@ -13,7 +13,34 @@ import { CHAT_MODELS, MODEL_CHOICES, CHAT_LIVE_MODELS, MODEL_STORE, loadModelCho
 // GPU work — see chat-workspace.jsx's own comment on that effect).
 const EMPTY_MODEL_OPTIONS = [];
 
-export function useChatModels(providerSel) {
+// Providers whose whole catalog is vision-first (every current model reads
+// images) — safe to trust at the provider level without inspecting the
+// model id.
+const ALWAYS_VISION_PROVIDERS = new Set(["claude", "gemini"]);
+// Anh hit this live: groq's own DEFAULT model (llama-3.3-70b-versatile) is
+// text-only, but the old check only looked at the provider, not the model
+// — so attaching an image with that model selected reached Groq's API and
+// came back "messages[3].content must be a string" (Groq rejecting the
+// multimodal content-block shape a text-only model doesn't accept). Groq,
+// OpenRouter, xAI and GLM each mix vision and text-only models under one
+// provider, and OpenAI now does too since live model discovery can surface
+// non-4o models — so those five need the model id itself inspected, not
+// just the provider name. This is a real but inherently incomplete
+// heuristic (provider catalogs change and this file has no live "is this
+// specific id multimodal" source) — it defaults to false (no attach
+// allowed) for anything it doesn't recognize, since a wrong "no" just
+// blocks an attach a capable model could have taken, while a wrong "yes"
+// reproduces the exact confusing upstream-rejection bug this exists to
+// prevent.
+const VISION_MODEL_PATTERN = /vision|llama-4|gpt-4o|gpt-4-turbo|glm-4v|-vl-/i;
+
+function isVisionCapable(provider, model) {
+  if (ALWAYS_VISION_PROVIDERS.has(provider)) return true;
+  if (!["openai", "groq", "openrouter", "xai", "glm"].includes(provider)) return false;
+  return VISION_MODEL_PATTERN.test(String(model || ""));
+}
+
+export function useChatModels(providerSel, tabModel = '') {
   const [modelSel, setModelSel] = React.useState(loadModelChoices);
   const [liveModels, setLiveModels] = React.useState({}); // providerId -> [ids]
 
@@ -23,9 +50,9 @@ export function useChatModels(providerSel) {
   // explicit user pick exists yet — the static CHAT_MODELS default (e.g.
   // "llama3.2" for Ollama) may not actually be installed, which caused a
   // 404 even though the dropdown showed the real installed models.
-  const activeModel = modelSel[activeProvider] || (liveModels[activeProvider] && liveModels[activeProvider][0]) || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
+  const activeModel = tabModel || modelSel[activeProvider] || (liveModels[activeProvider] && liveModels[activeProvider][0]) || CHAT_MODELS[activeProvider] || (modelOptions[0] || "");
 
-  const isVisionModel = (_model) => ["claude", "openai", "gemini", "groq", "openrouter", "xai", "glm"].includes(activeProvider);
+  const isVisionModel = (model) => isVisionCapable(activeProvider, model);
 
   // Same instability class as modelOptions above, for the same reason: a
   // plain function declaration is a new reference every render, and this

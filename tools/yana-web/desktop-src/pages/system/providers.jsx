@@ -2,14 +2,18 @@
 import React from 'react';
 import { L, PageHeader, Icons } from '../../components.jsx';
 import { KEYLESS_PROVIDERS, providerAvailable } from '../../lib/provider-config.js';
+// Was a second, hand-typed copy of this same Set — the two drifted apart in
+// practice (kimi/glm went live in chat but stayed on the static fallback
+// here; anh caught that gap live). Importing the one export instead of
+// re-declaring it makes that class of drift structurally impossible for
+// these two call sites, rather than relying on remembering to edit both.
+import { CHAT_LIVE_MODELS as LIVE_MODEL_PROVIDERS } from '../chat/model-select.js';
 
 function fmtTokens(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
   if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
   return String(n);
 }
-
-const LIVE_MODEL_PROVIDERS = new Set(["openrouter", "groq", "9router", "ollama", "lmstudio"]);
 
 const PROVIDER_SETUP = {
   claude:     { url: "https://console.anthropic.com/settings/keys",   label: "Get key → console.anthropic.com" },

@@ -15,16 +15,28 @@ const packagedFiles = new Set(packageJson.build.files);
 assert.strictEqual(packageJson.version, packageLock.version);
 assert.strictEqual(packageJson.version, packageLock.packages[''].version);
 assert.deepStrictEqual(localRequires, [
+  'code-server-launch.js',
+  'connector-registry.js',
+  'data-overview.js',
+  'desktop-data.js',
   'git-actions.js',
   'git-status.js',
   'governance-status.js',
   'list-dir.js',
+  'memory-backup-policy.js',
+  'memory-backup.js',
+  'memory-reset.js',
+  'memory-restore.js',
+  'permission-actions.js',
   'process-lifecycle.js',
   'project-store.js',
   'read-file.js',
   'runtime-paths.js',
+  'search-code.js',
   'security.js',
   'task-actions.js',
+  'trash-file.js',
+  'workspace-resources.js',
   'zip-archive.js',
 ]);
 for (const requiredFile of localRequires) {
@@ -34,4 +46,4 @@ assert.strictEqual(packageJson.engines.node, '>=24');
 assert.strictEqual(packageJson.devDependencies.electron, '43.4.1');
 assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
 
-console.log('Desktop package contract tests passed: 12');
+console.log('Desktop package contract tests passed: 20');

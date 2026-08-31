@@ -59,6 +59,7 @@ const THEME_MAP = {
   "Obsidian 🌑":     "obsidian",
   "Deep Ocean 🌊":   "ocean",
   "Midnight Navy 🌌":"navy",
+  "Violet Workspace ✦": "violet-workspace",
   "True Black 🖤":   "black",
 };
 const DENSITY = { "Compact": 0.85, "Regular": 1, "Spacious": 1.18 };

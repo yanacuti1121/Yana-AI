@@ -1542,6 +1542,64 @@ button:not([disabled]) {
   background: rgba(80, 120, 220, 0.08);
 }
 
+/* ---------- Violet Workspace ✦ (dark) ---------- */
+[data-theme="violet-workspace"] {
+  color-scheme: dark;
+  --bg-base: #0e111a;
+  --bg-scene:
+    radial-gradient(1100px 620px at 20% -14%, rgba(155, 108, 255, 0.24), transparent 62%),
+    radial-gradient(900px 560px at 92% 4%, rgba(89, 73, 184, 0.18), transparent 60%),
+    radial-gradient(1000px 680px at 48% 108%, rgba(49, 208, 152, 0.07), transparent 68%),
+    linear-gradient(180deg, #121624 0%, #0e111a 100%);
+  --surface-rgb: 23, 27, 40;
+  --surface-raised: #202536;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #f3f5fb;
+  --ink-2: #9ea7bd;
+  --ink-3: #69738a;
+  --primary: #9b6cff;
+  --primary-soft: rgba(155, 108, 255, 0.18);
+  --pink: #c8aeff;
+  --pink-soft: rgba(200, 174, 255, 0.16);
+  --gold: #e7b36d;
+  --gold-soft: rgba(231, 179, 109, 0.15);
+  --good: #31d098;
+  --warn: #e7b36d;
+  --border: rgba(243, 245, 251, 0.08);
+  --border-strong: rgba(243, 245, 251, 0.15);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), 0.72);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  --color-destructive: #fb7185;
+}
+[data-theme="violet-workspace"] .scene-swell {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(155, 108, 255, 0.22) 0%, transparent 66%),
+    radial-gradient(ellipse 55% 42% at 82% 70%, rgba(101, 77, 208, 0.17) 0%, transparent 62%),
+    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(49, 208, 152, 0.06) 0%, transparent 70%);
+}
+[data-theme="violet-workspace"] .scene-caustics {
+  background:
+    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(190, 166, 255, 0.12) 0%, transparent 80%),
+    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(155, 108, 255, 0.10) 0%, transparent 80%),
+    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(49, 208, 152, 0.06) 0%, transparent 80%);
+}
+[data-theme="violet-workspace"] .scene-lotus {
+  background:
+    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(155, 108, 255, 0.19) 0%, transparent 70%),
+    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(96, 74, 200, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(49, 208, 152, 0.06) 0%, transparent 70%);
+  filter: blur(22px);
+}
+[data-theme="violet-workspace"] .ripple-ring {
+  border-color: rgba(155, 108, 255, 0.5);
+  background: rgba(155, 108, 255, 0.08);
+}
+
 /* Effects kill-switches (toggled via body class from Tweaks panel) */
 .no-motes .mote, .no-motes .mote-lg, .no-motes .mote-sm, .no-motes .mote-pink,
 .no-motes .scene-swell, .no-motes .scene-caustics, .no-motes .scene-shimmer,

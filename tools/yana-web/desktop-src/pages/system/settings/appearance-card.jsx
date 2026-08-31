@@ -18,6 +18,7 @@ const THEME_PREVIEWS = [
   { label: "Obsidian 🌑",        accent: "#8080ff", sky: "linear-gradient(160deg, #1a1a2e 30%, #0c0c1a 100%)", wash: "rgba(128,128,255,.22)", dark: true },
   { label: "Deep Ocean 🌊",      accent: "#00c4a7", sky: "linear-gradient(160deg, #0d2030 30%, #071820 100%)", wash: "rgba(0,196,167,.28)", dark: true },
   { label: "Midnight Navy 🌌",   accent: "#6080e0", sky: "linear-gradient(160deg, #121828 30%, #090e1a 100%)", wash: "rgba(60,80,200,.28)", dark: true },
+  { label: "Violet Workspace ✦", accent: "#9b6cff", sky: "linear-gradient(160deg, #202536 30%, #0e111a 100%)", wash: "rgba(155,108,255,.25)", dark: true },
   { label: "True Black 🖤",      accent: "#d4d4d4", sky: "linear-gradient(160deg, #1a1a1a 30%, #000000 100%)", wash: "rgba(212,212,212,.16)", dark: true },
 ];
 

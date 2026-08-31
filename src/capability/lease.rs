@@ -190,6 +190,9 @@ impl LeaseStore {
         if subject.trim().is_empty() {
             bail!("lease subject must not be empty");
         }
+        if subject.trim() == "*" {
+            bail!("lease subject must name one agent; wildcard '*' is not allowed");
+        }
         if capability.trim().is_empty() {
             bail!("lease capability must not be empty");
         }
@@ -506,6 +509,28 @@ mod tests {
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].id, granted.id);
         assert_eq!(listed[0].remaining, Some(10));
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn grant_rejects_a_wildcard_subject() {
+        let root = temp_root();
+        let store = LeaseStore::for_root(&root);
+
+        let error = store
+            .grant(
+                "*".into(),
+                "command.execute".into(),
+                vec!["cargo test".into()],
+                vec![],
+                "human".into(),
+                20,
+                Some(1),
+                None,
+            )
+            .unwrap_err();
+
+        assert!(error.to_string().contains("wildcard '*' is not allowed"));
         fs::remove_dir_all(&root).ok();
     }
 

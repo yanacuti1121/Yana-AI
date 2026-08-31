@@ -617,6 +617,56 @@ async function handleApiModels(req, res) {
   }
 
   const LIVE_PROVIDERS = {
+    // Anh's call (2026-08-31): these 4 previously fell back to a short,
+    // hand-curated static list (model-select.js's MODEL_CHOICES) even
+    // though a real API key isn't restricted to those few models — every
+    // one of these providers has its own real /v1/models-shaped list
+    // endpoint. Wiring them in here is what actually makes that fallback
+    // unnecessary; CHAT_LIVE_MODELS (model-select.js) is what tells the
+    // chat UI to prefer this live fetch over the static list.
+    claude: {
+      hostname: 'api.anthropic.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'x-api-key': k, 'anthropic-version': '2023-06-01' }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.display_name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    openai: {
+      hostname: 'api.openai.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        // OpenAI's /v1/models lists every model the key can reach, not just
+        // chat models — whisper/tts/dall-e/embedding/moderation/legacy
+        // completions models would otherwise show up as "chat" choices.
+        .filter(m => m.id && !/^(whisper|tts|dall-e|text-embedding|text-moderation|omni-moderation|davinci|babbage)/.test(m.id))
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    // x-goog-api-key header, never a ?key= query string (rule 66 / API2 —
+    // same reason the chat-completions path for Gemini already avoids
+    // putting the key in the URL).
+    gemini: {
+      hostname: 'generativelanguage.googleapis.com',
+      path:     '/v1beta/models',
+      headers:  k => ({ 'x-goog-api-key': k }),
+      transform: data => (data.models || [])
+        .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => ({ id: String(m.name || '').replace(/^models\//, ''), name: m.displayName || String(m.name || '').replace(/^models\//, '') }))
+        .filter(m => m.id)
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    deepseek: {
+      hostname: 'api.deepseek.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
     openrouter: {
       hostname: 'openrouter.ai',
       path:     '/api/v1/models',

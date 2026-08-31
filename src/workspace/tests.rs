@@ -1,8 +1,8 @@
 use super::domain::{ActionStatus, AttentionClass, BlockKind, RiskLevel, WorkspaceEventKind};
-use super::triage;
 use super::markdown::{MarkdownExporter, WorkspaceExporter};
 use super::service::{WorkspaceOperation, WorkspaceService};
 use super::store::{EventStore, FileEventStore};
+use super::triage;
 use tempfile::TempDir;
 
 fn fixture() -> (TempDir, WorkspaceService<FileEventStore>) {
@@ -23,6 +23,7 @@ fn create(
             body: format!("body for {title}"),
             attention,
             actor: "human:test".into(),
+            metadata: Default::default(),
         })
         .unwrap();
     match event.kind {
@@ -33,9 +34,18 @@ fn create(
 
 #[test]
 fn triage_is_conservative_and_explainable() {
-    assert_eq!(triage("Production incident: deploy is blocked").attention, AttentionClass::Signal);
-    assert_eq!(triage("Weekly newsletter — unsubscribe anytime").attention, AttentionClass::Noise);
-    assert_eq!(triage("Notes from the project sync").attention, AttentionClass::Review);
+    assert_eq!(
+        triage("Production incident: deploy is blocked").attention,
+        AttentionClass::Signal
+    );
+    assert_eq!(
+        triage("Weekly newsletter — unsubscribe anytime").attention,
+        AttentionClass::Noise
+    );
+    assert_eq!(
+        triage("Notes from the project sync").attention,
+        AttentionClass::Review
+    );
 }
 
 #[test]
@@ -48,6 +58,30 @@ fn blocks_round_trip_through_atomic_event_store() {
     assert_eq!(files.len(), 1);
     let state = service.state().unwrap();
     assert_eq!(state.blocks[&id].title, "first");
+}
+
+#[test]
+fn connector_metadata_round_trips_without_title_heuristics() {
+    let (_temp, service) = fixture();
+    let metadata = std::collections::BTreeMap::from([
+        ("connector".into(), "github".into()),
+        ("external_id".into(), "notification-42".into()),
+    ]);
+    let event = service
+        .execute(WorkspaceOperation::CreateBlock {
+            kind: BlockKind::PullRequest,
+            title: "Review policy".into(),
+            body: "Imported from GitHub".into(),
+            attention: AttentionClass::Review,
+            actor: "connector:github".into(),
+            metadata: metadata.clone(),
+        })
+        .unwrap();
+    let id = match event.kind {
+        WorkspaceEventKind::BlockCreated { block } => block.id,
+        _ => panic!("unexpected event"),
+    };
+    assert_eq!(service.state().unwrap().blocks[&id].metadata, metadata);
 }
 
 #[test]
@@ -199,6 +233,7 @@ fn operation_is_serializable_for_cli_and_mcp_adapters() {
         body: "ports and adapters".into(),
         attention: AttentionClass::Signal,
         actor: "agent:architect".into(),
+        metadata: Default::default(),
     };
     let json = serde_json::to_string(&operation).unwrap();
     let decoded: WorkspaceOperation = serde_json::from_str(&json).unwrap();
@@ -279,6 +314,7 @@ fn concurrent_process_style_writers_do_not_lose_events() {
                         body: String::new(),
                         attention: AttentionClass::Review,
                         actor: format!("agent:{index}"),
+                        metadata: Default::default(),
                     })
                     .unwrap();
             })

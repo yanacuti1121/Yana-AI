@@ -139,6 +139,7 @@ fn run(action: WorkspaceAction) -> Result<(), String> {
             body,
             attention,
             actor,
+            metadata: Default::default(),
         })?),
         WorkspaceAction::Update {
             id,
@@ -197,7 +198,12 @@ fn run(action: WorkspaceAction) -> Result<(), String> {
             let id = resolve_block_id(&state, &id)?;
             let block = state.blocks.get(&id).expect("resolved block");
             let decision = triage(&format!("{}\n{}", block.title, block.body));
-            println!("{}  {:?}\n  reason: {}", short(&id), decision.attention, decision.reason);
+            println!(
+                "{}  {:?}\n  reason: {}",
+                short(&id),
+                decision.attention,
+                decision.reason
+            );
             if apply && decision.attention != block.attention {
                 print_event(service.execute(WorkspaceOperation::UpdateBlock {
                     block_id: id,
@@ -318,14 +324,43 @@ pub struct TriageDecision {
 
 pub fn triage(text: &str) -> TriageDecision {
     let value = text.to_lowercase();
-    const SIGNAL: &[&str] = &["urgent", "asap", "blocked", "blocker", "incident", "outage", "deadline", "hôm nay", "khẩn", "gấp", "sự cố"];
-    const NOISE: &[&str] = &["unsubscribe", "newsletter", "weekly digest", "marketing", "promotion", "khuyến mãi", "bản tin"];
+    const SIGNAL: &[&str] = &[
+        "urgent",
+        "asap",
+        "blocked",
+        "blocker",
+        "incident",
+        "outage",
+        "deadline",
+        "hôm nay",
+        "khẩn",
+        "gấp",
+        "sự cố",
+    ];
+    const NOISE: &[&str] = &[
+        "unsubscribe",
+        "newsletter",
+        "weekly digest",
+        "marketing",
+        "promotion",
+        "khuyến mãi",
+        "bản tin",
+    ];
     if SIGNAL.iter().any(|term| value.contains(term)) {
-        TriageDecision { attention: AttentionClass::Signal, reason: "explicit urgency or blocker signal" }
+        TriageDecision {
+            attention: AttentionClass::Signal,
+            reason: "explicit urgency or blocker signal",
+        }
     } else if NOISE.iter().any(|term| value.contains(term)) {
-        TriageDecision { attention: AttentionClass::Noise, reason: "newsletter or promotional signal" }
+        TriageDecision {
+            attention: AttentionClass::Noise,
+            reason: "newsletter or promotional signal",
+        }
     } else {
-        TriageDecision { attention: AttentionClass::Review, reason: "no explicit urgency or noise signal" }
+        TriageDecision {
+            attention: AttentionClass::Review,
+            reason: "no explicit urgency or noise signal",
+        }
     }
 }
 

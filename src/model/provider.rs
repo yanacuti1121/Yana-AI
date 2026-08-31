@@ -287,6 +287,16 @@ pub fn ask_once(
 /// `timeout_connect`/`timeout_recv_response` are the real fast-fail path
 /// for a dead endpoint or an unreachable local Ollama daemon.
 ///
+/// `timeout_recv_response` was 30s until a real report (anh testing chat
+/// after the conversation-history feature landed — a bigger prompt to
+/// process before any token comes back) hit it as a live "provider
+/// failed: timeout: receive response" error, not a dead-endpoint case at
+/// all. 30s is tight for time-to-first-token on a large local MoE model
+/// (e.g. TurboFieldfare's 26B model) once real context is attached, and
+/// only gets tighter as history grows. Raised to 90s — still a real
+/// backstop for a genuinely dead endpoint, just not one so aggressive it
+/// fires on a live model that's simply thinking.
+///
 /// `http_status_as_error(false)` so 4xx/5xx responses come back as `Ok`
 /// instead of losing the error body inside an opaque `Err` (matches the
 /// "never dump raw upstream error bodies straight to the user, but do
@@ -295,7 +305,7 @@ pub fn ask_once(
 pub fn build_agent() -> ureq::Agent {
     let config = ureq::Agent::config_builder()
         .timeout_connect(Some(Duration::from_secs(10)))
-        .timeout_recv_response(Some(Duration::from_secs(30)))
+        .timeout_recv_response(Some(Duration::from_secs(90)))
         .timeout_recv_body(Some(Duration::from_secs(300)))
         .http_status_as_error(false)
         .build();

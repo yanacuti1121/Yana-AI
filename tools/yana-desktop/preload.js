@@ -9,6 +9,13 @@ contextBridge.exposeInMainWorld('yana', {
   projectSwitch:   (root) => ipcRenderer.invoke('yana:project-switch', root),
   getAuthFilePath: () => ipcRenderer.invoke('yana:auth-file-path'),
   revealAuthFile:  () => ipcRenderer.invoke('yana:reveal-auth-file'),
+  dataOverview: () => ipcRenderer.invoke('yana:data-overview'),
+  exportMemoryBackup: () => ipcRenderer.invoke('yana:memory-backup-export'),
+  restoreMemoryBackup: () => ipcRenderer.invoke('yana:memory-backup-restore'),
+  memoryBackupSettings: () => ipcRenderer.invoke('yana:memory-backup-settings'),
+  selectMemoryBackupDirectory: () => ipcRenderer.invoke('yana:memory-backup-select-directory'),
+  setAutomaticMemoryBackupEnabled: (enabled) => ipcRenderer.invoke('yana:memory-backup-set-enabled', enabled),
+  resetMemory: () => ipcRenderer.invoke('yana:memory-reset'),
 
   // opts: { sessionType: 'user-shell' | 'yana-chat', cols?, rows? } — the
   // renderer requests a KIND of session, never a program; main.js resolves
@@ -21,6 +28,8 @@ contextBridge.exposeInMainWorld('yana', {
   listDir:  (relPath) => ipcRenderer.invoke('yana:list-dir', relPath),
   gitStatus: () => ipcRenderer.invoke('yana:git-status'),
   readFile: (relPath) => ipcRenderer.invoke('yana:read-file', relPath),
+  searchCode: (query) => ipcRenderer.invoke('yana:search-code', query),
+  trashFile: (relPath) => ipcRenderer.invoke('yana:trash-file', relPath),
   // Roadmap Phase 5 item 18 — Drag & Drop. `file` is a real DOM File from
   // a renderer drop event; webUtils.getPathForFile is the modern
   // replacement for the removed File.path, and is only callable from a
@@ -37,7 +46,17 @@ contextBridge.exposeInMainWorld('yana', {
   taskCreate: (name, scope) => ipcRenderer.invoke('yana:task-create', name, scope),
   taskComplete: (id, evidence) => ipcRenderer.invoke('yana:task-complete', id, evidence),
   taskDrop: (id) => ipcRenderer.invoke('yana:task-drop', id),
+  listCapabilities: () => ipcRenderer.invoke('yana:permission-list-capabilities'),
+  listPendingApprovals: () => ipcRenderer.invoke('yana:permission-pending-approvals'),
+  listLeases: () => ipcRenderer.invoke('yana:permission-list-leases'),
+  revokeLease: (id) => ipcRenderer.invoke('yana:permission-revoke-lease', id),
   governanceStatus: () => ipcRenderer.invoke('yana:governance-status'),
+  connectorList: () => ipcRenderer.invoke('yana:connector-list'),
+  connectorConfigure: (name, scopes) => ipcRenderer.invoke('yana:connector-configure', name, scopes),
+  connectorDisconnect: (name) => ipcRenderer.invoke('yana:connector-disconnect', name),
+  connectorSync: (name, options) => ipcRenderer.invoke('yana:connector-sync', name, options),
+  workspaceResources: (connector) => ipcRenderer.invoke('yana:workspace-resources', connector),
+  ideOpen: () => ipcRenderer.invoke('yana:ide-open'),
   // The app's first push-style (main -> renderer) listeners — every other
   // method above is request/response `invoke`, which can't fit unsolicited
   // streaming PTY output. Both return an unsubscribe function so a React
