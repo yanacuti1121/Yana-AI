@@ -4,6 +4,7 @@ import { XTermPanel, IdePanel } from '../terminal.jsx';
 import { emitTerminalStarted, emitTerminalExited } from './activity-source.mjs';
 import * as terminalContext from '../lib/terminal-context.mjs';
 import { readTerminalPreferences, writeTerminalPreferences } from '../lib/terminal-preferences.mjs';
+import { activateTerminalSession } from './terminal-layout.mjs';
 
 const LAYOUT_KEY = 'yana.terminal.layout.v1';
 const MAX_TERMINALS = 8;
@@ -47,12 +48,12 @@ function saveLayout(sessions, activeKey) {
 
 function Tab({ label, active, onClick, onClose, title }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent' }}>
+    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent' }}>
       <button
         onClick={onClick}
         title={title}
         style={{
-          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 2px',
+          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 2px', whiteSpace: 'nowrap',
           fontSize: 'var(--font-size-sm)', fontWeight: active ? 600 : 400,
           color: active ? 'var(--ink)' : 'var(--color-text-muted)',
         }}
@@ -150,9 +151,9 @@ export const TerminalDock = React.forwardRef(function TerminalDock({ cwdLabel, a
 
   return (
     <div ref={ref} style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 14px', borderBottom: '1px solid var(--border)' }}>
+      <div className="na-terminal-tabs" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 14px', borderBottom: '1px solid var(--border)', overflowX: 'auto', flexWrap: 'nowrap' }}>
         {sessions.map((session) => (
-          <Tab key={session.key} label={session.title} active={tab === 'shell' && activeKey === session.key} onClick={() => { setActiveSession(session.key); setTab('shell'); }} onClose={sessions.length > 1 ? () => closeTerminal(session.key) : undefined} />
+          <Tab key={session.key} label={session.title} active={tab === 'shell' && activeKey === session.key} onClick={() => { setLayout((current) => activateTerminalSession(current, session.key)); setTab('shell'); }} onClose={sessions.length > 1 ? () => closeTerminal(session.key) : undefined} />
         ))}
         <button onClick={addTerminal} disabled={sessions.length >= MAX_TERMINALS} title={L('New terminal', 'Terminal mới', '새 터미널', '新建终端')} aria-label={L('New terminal', 'Terminal mới', '새 터미널', '新建终端')} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: sessions.length >= MAX_TERMINALS ? 'default' : 'pointer', opacity: sessions.length >= MAX_TERMINALS ? 0.5 : 1, display: 'flex' }}>{Icons.plus(15)}</button>
         <Tab label="IDE" active={tab === 'ide'} onClick={() => setTab('ide')} />

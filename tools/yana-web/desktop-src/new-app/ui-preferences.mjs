@@ -7,13 +7,15 @@ export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
 // [data-theme="..."] block in themes.css (loaded globally by main.jsx),
 // so this list only needs to stay in sync with THEME_MAP, not add CSS.
 export const THEMES = [
-  'navy', 'ocean', 'obsidian', 'jade',
+  'violet-workspace', 'navy', 'ocean', 'obsidian', 'jade',
   'dawn', 'mist', 'silver', 'sage', 'amber', 'arctic', 'lavender',
   'ios-rose', 'ios-night', 'liquid', 'black',
 ];
 export const LANGUAGES = ['en', 'vi', 'ko', 'zh'];
 
-const DEFAULTS = Object.freeze({ version: 1, theme: 'navy', language: 'en' });
+// Only applies when this separate new-app preference key does not exist.
+// Stored choices remain untouched, including the previous `navy` default.
+const DEFAULTS = Object.freeze({ version: 1, theme: 'violet-workspace', language: 'en' });
 
 export function normalizeUiPreferences(value) {
   return {

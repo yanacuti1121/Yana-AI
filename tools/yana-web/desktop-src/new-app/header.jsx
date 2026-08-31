@@ -1,5 +1,7 @@
 import React from 'react';
 import { L, Icons } from '../components.jsx';
+import { summarizeConnections } from './connector-summary.mjs';
+import { NotificationCenter } from './notification-center.jsx';
 
 // Real, minimal derivation of a short display name from a full model id
 // like "huihui_ai/qwen3.5-abliterated:9b-Qwopus" -> "qwen3.5-abliterated".
@@ -46,9 +48,33 @@ function safetyPresentation(safety) {
   };
 }
 
+function connectionPresentation(connectors) {
+  const summary = summarizeConnections(connectors);
+  if (summary.ready > 0) {
+    return {
+      color: 'var(--good)',
+      label: L(`${summary.ready} ready`, `${summary.ready} sẵn sàng`, `${summary.ready}개 준비됨`, `${summary.ready} 个就绪`),
+      title: L('Open Connections', 'Mở Kết nối', '연결 열기', '打开连接'),
+    };
+  }
+  if (summary.attention > 0) {
+    return {
+      color: 'var(--warn)',
+      label: L('Needs setup', 'Cần thiết lập', '설정 필요', '需要设置'),
+      title: L('Open Connections', 'Mở Kết nối', '연결 열기', '打开连接'),
+    };
+  }
+  return {
+    color: 'var(--color-text-muted)',
+    label: L('Connections', 'Kết nối', '연결', '连接'),
+    title: L('Open Connections', 'Mở Kết nối', '연결 열기', '打开连接'),
+  };
+}
+
 export function Header({
   projectName, branch, model, safety, recentProjects, currentProjectRoot,
   onOpenProject, onSwitchProject, onFocusTerminal, onOpenPalette, onSwitchToLegacy,
+  onToggleInspector, onOpenSettings, onOpenModels, connectors, onOpenIntegrations,
 }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   // Previously this project name + chevron was inert decoration — it
@@ -62,6 +88,7 @@ export function Header({
   const [switching, setSwitching] = React.useState(false);
   const short = shortModelName(model);
   const safetyState = safetyPresentation(safety);
+  const connections = connectionPresentation(connectors);
   const recent = Array.isArray(recentProjects) ? recentProjects : [];
 
   async function handleSwitch(root) {
@@ -80,7 +107,7 @@ export function Header({
   }
 
   return (
-    <header style={{
+    <header className="na-topbar" style={{
       display: 'flex', alignItems: 'center', gap: 16,
       padding: '10px 16px', borderBottom: '1px solid var(--border)',
       background: 'var(--color-bg)', position: 'relative',
@@ -165,47 +192,76 @@ export function Header({
         {safetyState.label}
       </span>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, position: 'relative' }}>
+      {onOpenPalette && (
+        <button
+          className="na-global-search"
+          onClick={onOpenPalette}
+          title={L('Search commands and workspace', 'Tìm lệnh và workspace', '명령과 작업공간 검색', '搜索命令和工作区')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, width: 'min(30vw, 310px)',
+            margin: '0 auto', padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-md)',
+            background: 'var(--color-bg-subtle)', color: 'var(--color-text-muted)', cursor: 'pointer', font: 'inherit',
+          }}
+        >
+          {Icons.search(15)}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, textAlign: 'left', fontSize: 'var(--font-size-sm)' }}>
+            {L('Search workspace', 'Tìm workspace', '작업공간 검색', '搜索工作区')}
+          </span>
+          <kbd style={{ fontFamily: 'inherit', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 4px' }}>⌘K</kbd>
+        </button>
+      )}
+
+      <div style={{ marginLeft: onOpenPalette ? 0 : 'auto', display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
         {short && (
           <span title={model} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {short}
           </span>
         )}
-        {onOpenPalette && (
-          <button onClick={onOpenPalette} title="⌘K" style={{
-            fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', background: 'none',
-            border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '2px 7px', cursor: 'pointer',
-          }}>
-            ⌘K
+        {onOpenModels && (
+          <button
+            onClick={onOpenModels}
+            title={L('Add or manage models', 'Thêm hoặc quản lý model', '모델 추가 또는 관리', '添加或管理模型')}
+            aria-label={L('Add or manage models', 'Thêm hoặc quản lý model', '모델 추가 또는 관리', '添加或管理模型')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 8px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--color-bg-subtle)', color: 'var(--primary)', cursor: 'pointer', font: 'inherit', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap' }}
+          >
+            {Icons.plus(14)} <span>{L('Add model', 'Thêm model', '모델 추가', '添加模型')}</span>
           </button>
         )}
+        {onOpenIntegrations && (
+          <button
+            onClick={onOpenIntegrations}
+            title={connections.title}
+            aria-label={connections.title}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 8px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--color-bg-subtle)', color: connections.color, cursor: 'pointer', font: 'inherit', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap' }}
+          >
+            {Icons.providers(14)} <span>{connections.label}</span>
+          </button>
+        )}
+        <NotificationCenter />
         {onFocusTerminal && (
           <button onClick={onFocusTerminal} aria-label="Terminal" title={L('Focus terminal', 'Đưa focus tới terminal', '터미널로 포커스 이동', '聚焦终端')}
             style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex' }}>
             {Icons.code(16)}
           </button>
         )}
-        {/* No real notification data exists yet — shown as a static,
-            disabled control rather than a fake unread badge. */}
-        <span title={L('No notifications yet', 'Chưa có thông báo', '아직 알림 없음', '暂无通知')} style={{ color: 'var(--color-text-muted)', opacity: 0.5, display: 'flex' }}>
-          {Icons.pin(16)}
-        </span>
+        {onToggleInspector && (
+          <button
+            onClick={onToggleInspector}
+            aria-label={L('Open inspector', 'Mở Inspector', '인스펙터 열기', '打开检查器')}
+            title={L('Open inspector', 'Mở Inspector', '인스펙터 열기', '打开检查器')}
+            style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex' }}
+          >
+            {Icons.repo(16)}
+          </button>
+        )}
         <button
           onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Settings"
+          aria-label={L('More actions', 'Thao tác khác', '추가 작업', '更多操作')}
+          title={L('More actions', 'Thao tác khác', '추가 작업', '更多操作')}
           style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex' }}
         >
           {Icons.settings(16)}
         </button>
-        {/* No account/profile system exists yet — a plain placeholder
-            mark, not a fake avatar photo or the outdated mascot. */}
-        <span style={{
-          width: 22, height: 22, borderRadius: '50%', background: 'var(--color-bg-subtle)',
-          border: '1px solid var(--border)', display: 'grid', placeItems: 'center',
-          fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', flexShrink: 0,
-        }}>
-          Y
-        </span>
 
         {menuOpen && (
           <div style={{
@@ -213,6 +269,17 @@ export function Header({
             background: 'var(--color-bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)',
             boxShadow: '0 4px 16px rgba(0,0,0,0.3)', zIndex: 10, minWidth: 140,
           }}>
+            {onOpenSettings && (
+              <button
+                onClick={() => { setMenuOpen(false); onOpenSettings(); }}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                  background: 'none', border: 'none', color: 'var(--ink)', fontSize: 'var(--font-size-sm)', cursor: 'pointer',
+                }}
+              >
+                {L('Settings', 'Cài đặt', '설정', '设置')}
+              </button>
+            )}
             {onSwitchToLegacy && (
               <button
                 onClick={() => { setMenuOpen(false); onSwitchToLegacy(); }}

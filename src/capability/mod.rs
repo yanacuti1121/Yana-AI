@@ -8,6 +8,7 @@
 //! move of existing function bodies, no behavior change.
 
 pub mod archive;
+pub mod archive_create;
 pub mod cli;
 pub mod command;
 pub mod error;
@@ -20,6 +21,7 @@ pub mod repo;
 pub mod system;
 
 pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
+pub use archive_create::create_zip;
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
 pub use error::CapabilityError;
 pub use evidence::ToolEvidence;

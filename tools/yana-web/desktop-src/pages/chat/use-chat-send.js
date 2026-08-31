@@ -13,7 +13,8 @@ import { detectSensitivity, smartPickProvider } from './routing.js';
 import { CHAT_MODELS } from './model-select.js';
 import { getSnapshot as getTerminalContextSnapshot } from '../../lib/terminal-context.mjs';
 import { buildProgressSteps, buildTurnResult } from '../../lib/runtime-progress.mjs';
-import { getWorkspaceContextFiles } from '../../lib/file-attachments.mjs';
+import { clearAttachments, getWorkspaceContextFiles } from '../../lib/file-attachments.mjs';
+import { resolveAttachmentSendPolicy } from '../../lib/chat-attachment-policy.mjs';
 
 // Desktop Terminal vertical slice, Phase D (extended by roadmap Phase 5,
 // Attachment Manager): a generic WorkspaceContext envelope —
@@ -97,10 +98,11 @@ function extractMemoryMarker(accumulated) {
 
 export function useChatSend({
   msgs, setMsgs, draft, setDraft, providerSel, confMode, modelSel, liveModels,
-  visionImage, setVisionImage, localStatus, inputRef, setAtBottom, setArtifact,
+  visionImage, setVisionImage, localStatus, inputRef, setAtBottom, setArtifact, customLocalModel,
 }) {
   const [thinking, setThinking] = React.useState(false);
   const [streaming, setStreaming] = React.useState(false);
+  const [sendError, setSendError] = React.useState(null);
   // Real token usage from the last completed turn — server.js forwards
   // the governed runtime's own `metrics` event as `{usage}` SSE frames.
   // null until the first turn completes; never fabricated in between.
@@ -114,15 +116,31 @@ export function useChatSend({
   // Activity rows; this file has no CustomEvent/UI dependency on new-app.
   const [runtimeEvents, setRuntimeEvents] = React.useState([]);
   const readerRef = React.useRef(null);
+  const abortRef = React.useRef(null);
 
   // Cancel any in-flight stream on unmount
   React.useEffect(() => {
-    return () => { if (readerRef.current) readerRef.current.cancel(); };
+    return () => {
+      if (readerRef.current) readerRef.current.cancel();
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, []);
 
   React.useEffect(() => { localStorage.setItem("yana.chat.provider", providerSel); }, [providerSel]);
 
   async function sendText(text) {
+    // An image with no typed caption is a legitimate message ("what do you
+    // see?") — filling a default caption here, once, lets every line below
+    // keep treating `text` as the single source of truth (displayed
+    // message, task sent to the backend, sensitivity check) with no
+    // further branching needed for the image-only case.
+    const turnWorkspaceContext = workspaceContext();
+    if (!text && turnWorkspaceContext?.files?.length) {
+      text = L('Please review the attached file(s).', 'Hãy xem các tệp đính kèm.', '첨부된 파일을 검토해 주세요.', '请查看附加的文件。');
+    }
+    if (!text && visionImage) {
+      text = L('What do you see in this image?', 'Bạn thấy gì trong ảnh này?', '이 이미지에서 무엇이 보이나요?', '你在这张图片中看到了什么？');
+    }
     if (!text || thinking || streaming) return;
 
     // Ensure vault has finished decrypting keys from IndexedDB before reading
@@ -134,10 +152,25 @@ export function useChatSend({
                : (detected || confMode)   ? "confidential"
                : null;
 
+    const attachmentPolicy = resolveAttachmentSendPolicy({
+      tier,
+      files: turnWorkspaceContext?.files,
+      image: visionImage,
+    });
+    if (!attachmentPolicy.allowed) {
+      setSendError(L(
+        'Secure turns cannot send text-file attachments because the runtime omits workspace context. Remove the file or send its needed text explicitly.',
+        'Lượt chat bảo mật chưa thể gửi tệp văn bản vì runtime loại bỏ workspace context. Hãy gỡ tệp hoặc dán phần văn bản cần thiết vào tin nhắn.',
+        '보안 대화는 런타임이 작업 공간 컨텍스트를 제외하므로 텍스트 파일 첨부를 전송할 수 없습니다. 파일을 제거하거나 필요한 텍스트를 메시지에 직접 붙여 넣으세요.',
+        '安全对话无法发送文本文件附件，因为运行时会省略工作区上下文。请移除文件，或将所需文本直接粘贴到消息中。',
+      ));
+      return;
+    }
+    setSendError(null);
+
     setMsgs((m) => [...m, { who: "user", text, confidential: !!tier, tier, _id: Date.now() }]);
     setDraft("");
     if (inputRef.current) { inputRef.current.style.height = "auto"; }
-    setVisionImage(null);
     setThinking(true);
     setAtBottom(true);
 
@@ -149,10 +182,25 @@ export function useChatSend({
     // so either satisfies the "never leaves the machine" guarantee; prefer
     // turbofieldfare when it's actually running since it's the stronger model.
     let { provider, apiKey } = getProviderConfig(providerSel);
+    let baseUrl;
+    let customKeyless = false;
+    if (providerSel === 'custom' && customLocalModel?.baseUrl) {
+      provider = 'custom';
+      apiKey = '';
+      baseUrl = customLocalModel.baseUrl;
+      customKeyless = true;
+    }
     if (tier === "sovereign") {
-      provider = (localStatus && localStatus.turbofieldfare && localStatus.turbofieldfare.running)
-        ? "turbofieldfare" : "ollama";
-      apiKey = "";
+      if (providerSel === 'custom' && customLocalModel?.baseUrl) {
+        provider = 'custom';
+        apiKey = '';
+        baseUrl = customLocalModel.baseUrl;
+        customKeyless = true;
+      } else {
+        provider = (localStatus && localStatus.turbofieldfare && localStatus.turbofieldfare.running)
+          ? "turbofieldfare" : "ollama";
+        apiKey = "";
+      }
     }
 
     // Real routing: classify the task so complex requests pick up a skill.
@@ -185,22 +233,46 @@ export function useChatSend({
     // Same fallback fix as activeModel in use-chat-models.js: prefer the
     // live-fetched model list over the static default, which may not
     // actually be installed.
-    const model = modelSel[provider] || (liveModels[provider] && liveModels[provider][0]) || CHAT_MODELS[provider] || "";
+    const model = modelSel[provider]
+      || (provider === 'custom' ? customLocalModel?.model : '')
+      || (liveModels[provider] && liveModels[provider][0])
+      || CHAT_MODELS[provider]
+      || "";
+
+    // HeadlessImageInput (src/chat/headless.rs) is #[serde(deny_unknown_fields)]
+    // and only declares mimeType/data — visionImage also carries `name` for
+    // this file's own UI (attachment chip label), so sending visionImage
+    // as-is fails Rust-side deserialization with "invalid headless turn
+    // JSON" on every image attach. Strip it down to exactly the two fields
+    // the schema allows.
+    const imagePayload = visionImage ? [{ data: visionImage.data, mimeType: visionImage.mimeType }] : undefined;
+
+    const requestAbort = new AbortController();
+    abortRef.current = requestAbort;
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tier
-          ? { task: text, apiKey, provider, model, sensitivity: tier, history: chatHistory(msgs) }
-          : { task: text, apiKey, provider, model, skill, about: aboutContext(),
-              workspaceContext: workspaceContext(), history: chatHistory(msgs),
-              images: visionImage ? [visionImage] : undefined }),
+        signal: requestAbort.signal,
+        body: JSON.stringify({
+          ...(tier
+            ? { task: text, apiKey, provider, model, sensitivity: tier,
+                workspaceContext: turnWorkspaceContext, history: chatHistory(msgs), images: imagePayload }
+            : { task: text, apiKey, provider, model, skill, about: aboutContext(),
+                workspaceContext: turnWorkspaceContext, history: chatHistory(msgs), images: imagePayload }),
+          ...(provider === 'custom' ? { baseUrl, customKeyless } : {}),
+        }),
       });
 
       if (!res.ok || !res.body) {
         throw new Error("HTTP " + res.status);
       }
+
+      // A request accepted by the runtime owns the selected context. Preserve
+      // it if the request cannot be started so the user can inspect or retry.
+      clearAttachments();
+      setVisionImage(null);
 
       const reader = res.body.getReader();
       readerRef.current = reader;
@@ -252,6 +324,8 @@ export function useChatSend({
       });
 
       setStreaming(false);
+      if (readerRef.current === reader) readerRef.current = null;
+      if (abortRef.current === requestAbort) abortRef.current = null;
 
       // Only ever attaches when the turn actually ran a command — a
       // plain text-only reply gets no ResultCard (buildTurnResult
@@ -304,7 +378,19 @@ export function useChatSend({
         }).catch(() => {});
       }
     } catch (err) {
+      if (requestAbort.signal.aborted) {
+        setStreaming(false);
+        setThinking(false);
+        if (abortRef.current === requestAbort) abortRef.current = null;
+        return;
+      }
       setThinking(false);
+      // The user's text is still visible as their own message bubble above,
+      // but the composer itself was already cleared before the request
+      // (optimistic send) — without this, a failed send silently throws away
+      // the draft with no way to just hit retry after fixing the provider/
+      // network issue; the user has to scroll up and retype it by hand.
+      setDraft(text);
       setMsgs((m) => [...m, {
         who: "yana",
         route: { agent: provider, model: model || provider },
@@ -321,16 +407,21 @@ export function useChatSend({
               "无法连接服务器（" + err.message + "）。请检查 Yana 是否正在运行，以及是否已设置提供商密钥。"),
       }]);
       setStreaming(false);
+      if (abortRef.current === requestAbort) abortRef.current = null;
     }
   }
 
   function send() {
     const text = draft.trim();
-    if (text) sendText(text);
+    // An attached image is a valid message on its own — anh reported
+    // Enter doing nothing with an image attached and no caption typed;
+    // sendText's own guard below now accepts that case too.
+    if (text || visionImage || getWorkspaceContextFiles()?.length) sendText(text);
   }
 
   function stopStream() {
     if (readerRef.current) { readerRef.current.cancel(); readerRef.current = null; }
+    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
     setStreaming(false);
     setThinking(false);
   }
@@ -356,5 +447,5 @@ export function useChatSend({
     setTimeout(() => sendText(text), 0);
   }
 
-  return { thinking, streaming, lastUsage, runtimeEvents, sendText, send, stopStream, regenerate, editAndResend };
+  return { thinking, streaming, sendError, lastUsage, runtimeEvents, sendText, send, stopStream, regenerate, editAndResend };
 }

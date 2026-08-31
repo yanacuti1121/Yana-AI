@@ -29,21 +29,76 @@ function LinkRow({ title, description, action, actionLabel }) {
   );
 }
 
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function dataGroupLabel(id) {
+  const labels = {
+    memory: L('Memory & conversations', 'Memory & hội thoại', '메모리 및 대화', '记忆与对话'),
+    workspace: L('Workspace metadata', 'Metadata workspace', '작업 공간 메타데이터', '工作区元数据'),
+    settings: L('Yana settings', 'Cài đặt Yana', 'Yana 설정', 'Yana 设置'),
+    credentials: L('Credentials & sessions', 'Credential & phiên', '자격 증명 및 세션', '凭据与会话'),
+  };
+  return labels[id] || id;
+}
+
+function DataOverview({ overview, loading, onRefresh }) {
+  return (
+    <div style={{ padding: '11px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--color-bg-subtle)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+        <div>
+          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>{L('Local data overview', 'Tổng quan dữ liệu cục bộ', '로컬 데이터 개요', '本地数据概览')}</div>
+          <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('File counts and sizes only — Yana does not read or reveal file contents here.', 'Chỉ số tệp và dung lượng — Yana không đọc hoặc hiện nội dung tệp ở đây.', '파일 수와 크기만 표시합니다. Yana는 여기서 파일 내용을 읽거나 공개하지 않습니다.', '仅显示文件数量和大小；Yana 不会在此读取或显示文件内容。')}</div>
+        </div>
+        <button type="button" onClick={onRefresh} disabled={loading} style={{ flexShrink: 0, border: '1px solid var(--border)', background: 'transparent', color: 'var(--primary)', borderRadius: 'var(--r-sm)', padding: '5px 9px', cursor: loading ? 'default' : 'pointer', font: 'inherit', fontSize: 'var(--font-size-xs)', opacity: loading ? 0.6 : 1 }}>{L('Refresh', 'Làm mới', '새로고침', '刷新')}</button>
+      </div>
+      {loading && <p role="status" style={{ margin: '8px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Reading local data summary…', 'Đang đọc tóm tắt dữ liệu cục bộ…', '로컬 데이터 요약을 읽는 중…', '正在读取本地数据摘要…')}</p>}
+      {overview && <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, margin: '8px 0', color: 'var(--ink)', fontSize: 'var(--font-size-sm)' }}><strong>{L('Managed locally', 'Được quản lý cục bộ', '로컬 관리', '本地管理')}</strong><span>{formatBytes(overview.totalBytes)}</span></div>
+        <div style={{ display: 'grid', gap: 5 }}>
+          {overview.groups.map((group) => (
+            <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>
+              <span>{dataGroupLabel(group.id)}{group.sensitive ? ` · ${L('not exported', 'không xuất', '내보내지 않음', '不导出')}` : ''}</span>
+              <span>{group.fileCount} · {formatBytes(group.bytes)}</span>
+            </div>
+          ))}
+        </div>
+      </>}
+      {!loading && !overview && <p style={{ margin: '8px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{L('The local data summary is unavailable.', 'Không tải được tóm tắt dữ liệu cục bộ.', '로컬 데이터 요약을 사용할 수 없습니다.', '本地数据摘要不可用。')}</p>}
+    </div>
+  );
+}
+
 export function SettingsView({ preferences, onChange, onNavigate, onFocusTerminal }) {
   const [query, setQuery] = React.useState('');
+  const [section, setSection] = React.useState('general');
   const [backupStatus, setBackupStatus] = React.useState(null);
   const [restoreStatus, setRestoreStatus] = React.useState(null);
   const [automaticBackup, setAutomaticBackup] = React.useState(null);
   const [resetStatus, setResetStatus] = React.useState(null);
+  const [dataOverview, setDataOverview] = React.useState(null);
+  const [dataOverviewLoading, setDataOverviewLoading] = React.useState(true);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const matches = (keywords) => !normalizedQuery || keywords.toLocaleLowerCase().includes(normalizedQuery);
   const visible = {
-    appearance: matches('appearance theme navy ocean obsidian jade ios night rose prism glass dawn mist silver sage amber arctic lavender'),
+    appearance: matches('appearance theme violet workspace navy ocean obsidian jade ios night rose prism glass dawn mist silver sage amber arctic lavender'),
     language: matches('language locale region vietnamese korean chinese english'),
     workspace: matches('projects workspace folders terminal providers models privacy permissions'),
     integrations: matches('integrations connectors github gmail google drive calendar notion permissions scopes oauth'),
     privacy: matches('privacy data memory backup export restore'),
   };
+  const showSection = (id) => !normalizedQuery || section === id;
+  const hasSettingsResult = visible.appearance || visible.language || visible.workspace || visible.integrations || visible.privacy;
+  const sections = [
+    { id: 'general', label: L('General', 'Chung', '일반', '通用'), matches: visible.appearance || visible.language },
+    { id: 'workspace', label: L('Workspace', 'Không gian làm việc', '작업 공간', '工作区'), matches: visible.workspace },
+    { id: 'connections', label: L('Connections', 'Kết nối', '연결', '连接'), matches: visible.integrations },
+    { id: 'data', label: L('Data & memory', 'Dữ liệu & memory', '데이터 및 메모리', '数据与记忆'), matches: visible.privacy },
+  ];
 
   const exportMemory = React.useCallback(async () => {
     setBackupStatus({ loading: true });
@@ -68,6 +123,15 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
     });
     return () => { active = false; };
   }, []);
+
+  const refreshDataOverview = React.useCallback(async () => {
+    setDataOverviewLoading(true);
+    const result = await window.yana?.dataOverview?.();
+    setDataOverview(result?.ok ? result.overview : null);
+    setDataOverviewLoading(false);
+  }, []);
+
+  React.useEffect(() => { void refreshDataOverview(); }, [refreshDataOverview]);
 
   const chooseAutomaticBackupFolder = React.useCallback(async () => {
     const result = await window.yana?.selectMemoryBackupDirectory?.();
@@ -109,8 +173,32 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
           {Icons.search(15)}
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={L('Search settings', 'Tìm cài đặt', '설정 검색', '搜索设置')} aria-label={L('Search settings', 'Tìm cài đặt', '설정 검색', '搜索设置')} style={{ border: 'none', outline: 'none', minWidth: 0, flex: 1, background: 'transparent', color: 'var(--ink)', font: 'inherit', fontSize: 'var(--font-size-sm)' }} />
         </label>
-        <div style={{ display: 'grid', gap: 14 }}>
-          {visible.appearance && <Section title={L('Appearance', 'Giao diện', '모양', '外观')} description={L('Theme changes apply to this new workspace immediately.', 'Đổi theme áp dụng ngay cho workspace mới này.', '테마 변경은 이 새 작업 공간에 즉시 적용됩니다.', '主题更改会立即应用到此新工作区。')}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: 22 }}>
+          <nav aria-label={L('Settings sections', 'Nhóm cài đặt', '설정 섹션', '设置部分')} style={{ flex: '0 0 176px', display: 'grid', gap: 4, padding: 8, border: '1px solid var(--border)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>
+            {sections.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSection(item.id)}
+                aria-current={!normalizedQuery && section === item.id ? 'page' : undefined}
+                style={{
+                  border: 0, borderRadius: 'var(--r-sm)', padding: '8px 9px', textAlign: 'left', cursor: 'pointer',
+                  background: !normalizedQuery && section === item.id ? 'var(--primary-soft)' : 'transparent',
+                  color: !normalizedQuery && section === item.id ? 'var(--primary)' : 'var(--ink)',
+                  fontSize: 'var(--font-size-sm)', fontWeight: !normalizedQuery && section === item.id ? 600 : 450,
+                  opacity: normalizedQuery && !item.matches ? 0.55 : 1,
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+            <div style={{ height: 1, background: 'var(--border)', margin: '5px 2px' }} />
+            <button type="button" onClick={() => onNavigate('models')} style={{ border: 0, borderRadius: 'var(--r-sm)', padding: '8px 9px', background: 'transparent', color: 'var(--ink)', cursor: 'pointer', textAlign: 'left', fontSize: 'var(--font-size-sm)' }}>
+              {L('Models & providers ↗', 'Model & provider ↗', '모델 및 프로바이더 ↗', '模型与提供商 ↗')}
+            </button>
+          </nav>
+          <div style={{ minWidth: 0, flex: '1 1 520px', display: 'grid', gap: 14 }}>
+          {showSection('general') && visible.appearance && <Section title={L('Appearance', 'Giao diện', '모양', '外观')} description={L('Theme changes apply to this new workspace immediately.', 'Đổi theme áp dụng ngay cho workspace mới này.', '테마 변경은 이 새 작업 공간에 즉시 적용됩니다.', '主题更改会立即应用到此新工作区。')}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {/* Full catalog, matching app.jsx's THEME_MAP (desktop-src/app.jsx)
                   and appearance-card.jsx's THEME_PREVIEWS — every id below has
@@ -123,6 +211,7 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
                   (proper-noun style) — same precedent as THEME_PREVIEWS, which
                   never wraps these labels in L(...) either. */}
               {[
+                ['violet-workspace', 'Violet Workspace ✦'],
                 ['dawn', 'Lotus Dawn 🌸'],
                 ['jade', 'Jade Lake 🌿'],
                 ['mist', 'Morning Mist ☁️'],
@@ -141,7 +230,7 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
               ].map(([id, label]) => <button key={id} onClick={() => onChange({ theme: id })} aria-pressed={preferences.theme === id} style={{ border: preferences.theme === id ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '7px 10px', background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>{label}</button>)}
             </div>
           </Section>}
-          {visible.language && <Section title={L('Language & region', 'Ngôn ngữ & khu vực', '언어 및 지역', '语言与地区')} description={L('Interface language changes immediately; new workspace dates use the selected locale.', 'Ngôn ngữ giao diện đổi ngay; ngày trong workspace mới dùng locale đã chọn.', '인터페이스 언어는 즉시 변경되며 새 작업 공간의 날짜는 선택한 로캘을 사용합니다.', '界面语言会立即更改；新工作区中的日期使用所选区域设置。')}>
+          {showSection('general') && visible.language && <Section title={L('Language & region', 'Ngôn ngữ & khu vực', '언어 및 지역', '语言与地区')} description={L('Interface language changes immediately; new workspace dates use the selected locale.', 'Ngôn ngữ giao diện đổi ngay; ngày trong workspace mới dùng locale đã chọn.', '인터페이스 언어는 즉시 변경되며 새 작업 공간의 날짜는 선택한 로캘을 사용합니다.', '界面语言会立即更改；新工作区中的日期使用所选区域设置。')}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 'var(--font-size-sm)' }}>
               {L('Language', 'Ngôn ngữ', '언어', '语言')}
               <select value={preferences.language} onChange={(event) => onChange({ language: event.target.value })} style={{ background: 'var(--color-bg)', color: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '5px 8px', font: 'inherit' }}>
@@ -149,14 +238,16 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
               </select>
             </label>
           </Section>}
-          {visible.workspace && <Section title={L('Workspace', 'Không gian làm việc', '작업 공간', '工作区')} description={L('Open live surfaces instead of duplicating their state in Settings.', 'Mở các surface thật thay vì sao chép state vào Settings.', '설정에 상태를 복제하지 않고 실제 화면을 엽니다.', '打开真实界面，而不在设置中复制状态。')}>
+          {showSection('workspace') && visible.workspace && <Section title={L('Workspace', 'Không gian làm việc', '작업 공간', '工作区')} description={L('Open live surfaces instead of duplicating their state in Settings.', 'Mở các surface thật thay vì sao chép state vào Settings.', '설정에 상태를 복제하지 않고 실제 화면을 엽니다.', '打开真实界面，而不在设置中复制状态。')}>
             <LinkRow title={L('Projects', 'Dự án', '프로젝트', '项目')} description={L('Choose the folder shared by chat, files, Git, new terminals, and the IDE.', 'Chọn thư mục dùng chung cho chat, tệp, Git, terminal mới và IDE.', '채팅, 파일, Git, 새 터미널 및 IDE가 공유할 폴더를 선택합니다.', '选择聊天、文件、Git、新终端和 IDE 共享的文件夹。')} action={() => onNavigate('projects')} />
             <LinkRow title={L('Terminal', 'Terminal', '터미널', '终端')} description={L('Adjust shell presentation in the terminal dock. Human shells remain separate from governed AI execution.', 'Chỉnh hiển thị shell trong terminal dock. Shell người dùng vẫn tách biệt khỏi thực thi AI có governance.', '터미널 도크에서 셸 표시를 조정합니다. 사람 셸은 거버넌스가 적용된 AI 실행과 분리됩니다.', '在终端停靠栏中调整 shell 显示。人类 shell 与受治理的 AI 执行保持分离。')} action={onFocusTerminal} />
             <LinkRow title={L('Providers & models', 'Provider & model', '프로바이더 및 모델', '提供商与模型')} description={L('Configure API credentials through the encrypted YanaVault surface; discover models from supported providers.', 'Cấu hình credential API qua YanaVault mã hóa; khám phá model từ provider hỗ trợ.', '암호화된 YanaVault 화면에서 API 자격 증명을 구성하고 지원되는 프로바이더의 모델을 검색합니다.', '通过加密的 YanaVault 界面配置 API 凭据，并从受支持的提供商发现模型。')} action={() => onNavigate('models')} />
             <LinkRow title={L('Permissions & autonomy', 'Quyền & tự chủ', '권한 및 자율성', '权限与自主性')} description={L('Current approval rules are shown in the Context panel. An editable autonomy level will appear only when the runtime provides one.', 'Rule approval hiện hiển thị ở Context. Mức tự chủ chỉnh được chỉ xuất hiện khi runtime cung cấp.', '현재 승인 규칙은 Context 패널에 표시됩니다. 런타임이 제공할 때만 편집 가능한 자율성 수준이 나타납니다.', '当前审批规则显示在 Context 面板中。只有运行时提供后才会显示可编辑的自主级别。')} />
           </Section>}
-          {visible.integrations && <IntegrationsSettings />}
-          {visible.privacy && <Section title={L('Privacy & data', 'Quyền riêng tư & dữ liệu', '개인정보 및 데이터', '隐私与数据')} description={L('Export portable memory without credentials or login sessions.', 'Xuất memory di động mà không kèm credential hoặc phiên đăng nhập.', '자격 증명이나 로그인 세션 없이 이식 가능한 메모리를 내보냅니다.', '导出不含凭据或登录会话的可移植记忆。')}>
+          {showSection('connections') && visible.integrations && <IntegrationsSettings />}
+          {showSection('data') && visible.privacy && <Section title={L('Privacy & data', 'Quyền riêng tư & dữ liệu', '개인정보 및 데이터', '隐私与数据')} description={L('Export portable memory without credentials or login sessions.', 'Xuất memory di động mà không kèm credential hoặc phiên đăng nhập.', '자격 증명이나 로그인 세션 없이 이식 가능한 메모리를 내보냅니다.', '导出不含凭据或登录会话的可移植记忆。')}>
+            <DataOverview overview={dataOverview} loading={dataOverviewLoading} onRefresh={refreshDataOverview} />
+            <p style={{ margin: '10px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)', lineHeight: 1.45 }}>{L('No standalone cache-clearing control is shown because the desktop runtime has no separate canonical cache store yet. This prevents a “clear cache” action from deleting persistent data by mistake.', 'Chưa hiển thị nút xóa cache riêng vì runtime Desktop chưa có kho cache chuẩn tách biệt. Điều này tránh thao tác “xóa cache” xóa nhầm dữ liệu lưu trữ.', '데스크톱 런타임에 별도의 표준 캐시 저장소가 아직 없으므로 독립적인 캐시 지우기 제어는 표시되지 않습니다. 이는 “캐시 지우기”가 영구 데이터를 실수로 삭제하는 일을 방지합니다.', '由于桌面运行时尚无独立的规范缓存存储，因此未显示单独的清除缓存控件。这可以避免“清除缓存”错误删除持久数据。')}</p>
             <LinkRow title={L('Export Yana memory', 'Xuất memory Yana', 'Yana 메모리 내보내기', '导出 Yana 记忆')} description={L('Includes data schema, memory, conversations, and missions. API keys, password hashes, and session tokens are excluded.', 'Gồm schema dữ liệu, memory, hội thoại và mission. API key, hash mật khẩu và session token đều bị loại.', '데이터 스키마, 메모리, 대화 및 미션을 포함합니다. API 키, 비밀번호 해시 및 세션 토큰은 제외됩니다.', '包含数据架构、记忆、对话和任务。排除 API 密钥、密码哈希和会话令牌。')} action={backupStatus?.loading ? null : exportMemory} actionLabel={L('Export', 'Xuất', '내보내기', '导出')} />
             {backupStatus?.loading && <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Creating backup…', 'Đang tạo bản sao lưu…', '백업 생성 중…', '正在创建备份…')}</p>}
             {backupStatus?.message && <p style={{ color: backupStatus.ok ? 'var(--good)' : 'var(--warn)', fontSize: 'var(--font-size-xs)', overflowWrap: 'anywhere' }}>{backupStatus.message}</p>}
@@ -172,7 +263,8 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
             {resetStatus?.loading && <p style={{ color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{L('Waiting for confirmation…', 'Đang chờ xác nhận…', '확인을 기다리는 중…', '等待确认…')}</p>}
             {resetStatus?.message && <p style={{ color: resetStatus.ok ? 'var(--good)' : 'var(--warn)', fontSize: 'var(--font-size-xs)', overflowWrap: 'anywhere' }}>{resetStatus.message}</p>}
           </Section>}
-          {!visible.appearance && !visible.language && !visible.workspace && !visible.integrations && !visible.privacy && <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>{L('No matching settings.', 'Không có cài đặt phù hợp.', '일치하는 설정이 없습니다.', '没有匹配的设置。')}</p>}
+          {!hasSettingsResult && <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>{L('No matching settings.', 'Không có cài đặt phù hợp.', '일치하는 설정이 없습니다.', '没有匹配的设置。')}</p>}
+          </div>
         </div>
       </div>
     </div>

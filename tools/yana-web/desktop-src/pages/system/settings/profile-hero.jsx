@@ -10,7 +10,7 @@ import React from 'react';
 import { L } from '../../../components.jsx';
 import { providerAvailable } from '../../../lib/provider-config.js';
 
-const DARK_THEMES = new Set(["iOS Night 🌙", "Obsidian 🌑", "True Black 🖤"]);
+const DARK_THEMES = new Set(["iOS Night 🌙", "Obsidian 🌑", "Violet Workspace ✦", "True Black 🖤"]);
 
 function useDisplayName(account) {
   const [dispName, setDispName] = React.useState(() =>

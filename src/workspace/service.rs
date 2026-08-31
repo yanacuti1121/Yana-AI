@@ -48,6 +48,8 @@ pub enum WorkspaceOperation {
         body: String,
         attention: AttentionClass,
         actor: String,
+        #[serde(default)]
+        metadata: BTreeMap<String, String>,
     },
     UpdateBlock {
         block_id: String,
@@ -108,6 +110,7 @@ impl<S: EventStore, G: ActionGovernor> WorkspaceService<S, G> {
                 body,
                 attention,
                 actor,
+                metadata,
             } => {
                 require_text("title", &title)?;
                 let now = now();
@@ -122,7 +125,7 @@ impl<S: EventStore, G: ActionGovernor> WorkspaceService<S, G> {
                             attention,
                             created_at: now.clone(),
                             updated_at: now,
-                            metadata: BTreeMap::new(),
+                            metadata,
                         },
                     },
                 )

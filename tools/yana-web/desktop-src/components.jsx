@@ -53,6 +53,9 @@ export const Icons = {
   // section — deliberately NOT a reproduction of any specific hosting
   // provider's trademarked logo, just a neutral "this is a repo" glyph.
   repo:      (s) => <Ic size={s} d={<><rect x="4" y="3" width="12" height="14" rx="1.4"/><path d="M7 3v14M7 6.5h6M7 10h6"/></>} />,
+  // Command reference view's sidebar entry — a terminal prompt glyph
+  // (">_"), distinct from the existing `code` icon already used for Terminal.
+  commandRef: (s) => <Ic size={s} d={<><path d="m4 6 4 4-4 4"/><path d="M11 15h5"/></>} />,
 };
 
 /* ---------- Wordmark: lotus in bloom on the water (matches login.html) ---------- */

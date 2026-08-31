@@ -1,19 +1,12 @@
 import React from 'react';
-import { MarkdownBubble } from '../../pages/chat/message.jsx';
 import { ProgressCard } from './progress-card.jsx';
 import { ResultCard } from './result-card.jsx';
+import { MarkdownBody } from './markdown-body.jsx';
 
 function timeLabel(ts) {
   return new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Full-width structured workspace card — replaces the legacy chat bubble.
-// Reuses MarkdownBubble (pure markdown+DOMPurify+syntax-highlight
-// rendering, Category B) for the actual text body rather than
-// reimplementing markdown sanitization by hand. `steps`/`result` are
-// undefined for every real message today (see progress-card.jsx/
-// result-card.jsx's own doc comments) — both slots render nothing until
-// real data exists.
 export function YanaMessage({ msg }) {
   return (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -31,7 +24,7 @@ export function YanaMessage({ msg }) {
           <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--ink)' }}>Yana</span>
           <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>{timeLabel(msg._id)}</span>
         </div>
-        <MarkdownBubble text={msg.text} />
+        <MarkdownBody text={msg.text} />
         <ProgressCard steps={msg.steps} />
         <ResultCard result={msg.result} />
       </div>

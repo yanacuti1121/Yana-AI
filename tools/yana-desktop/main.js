@@ -2,6 +2,7 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
+const os    = require('os');
 const { randomUUID } = require('crypto');
 const { fork, spawn } = require('child_process');
 const http  = require('http');
@@ -14,6 +15,8 @@ const {
 const { listDir: listDirImpl } = require('./list-dir');
 const { gitStatus: gitStatusImpl } = require('./git-status');
 const { readFile: readFileImpl } = require('./read-file');
+const { searchCode: searchCodeImpl } = require('./search-code');
+const { trashFile: trashFileImpl } = require('./trash-file');
 const { inspectZip: inspectZipImpl, extractZip: extractZipImpl } = require('./zip-archive');
 const {
   gitDiffPath: gitDiffPathImpl, gitStage: gitStageImpl, gitUnstage: gitUnstageImpl, gitCommit: gitCommitImpl,
@@ -21,7 +24,44 @@ const {
 const {
   listTasks: listTasksImpl, createTask: createTaskImpl, completeTask: completeTaskImpl, dropTask: dropTaskImpl,
 } = require('./task-actions');
+const {
+  listCapabilities: listCapabilitiesImpl, listPendingApprovals: listPendingApprovalsImpl,
+  listLeases: listLeasesImpl, revokeLease: revokeLeaseImpl,
+} = require('./permission-actions');
 const { readGovernanceStatus: readGovernanceStatusImpl } = require('./governance-status');
+const { prepareCodeServerLaunch } = require('./code-server-launch');
+const {
+  configureConnector: configureConnectorImpl,
+  disconnectConnector: disconnectConnectorImpl,
+  listConnectors: listConnectorsImpl,
+  syncConnector: syncConnectorImpl,
+} = require('./connector-registry');
+const { listWorkspaceResources: listWorkspaceResourcesImpl } = require('./workspace-resources');
+const { summarizeDesktopData } = require('./data-overview');
+const { exportPortableBackup } = require('./memory-backup');
+const {
+  readBackupSettings,
+  runAutomaticBackup,
+  setBackupDirectory,
+  setBackupEnabled,
+} = require('./memory-backup-policy');
+const {
+  applyPreparedRestore,
+  cleanupPreparedRestore,
+  discardRestoreRollback,
+  preparePortableRestore,
+  rollbackPortableRestore,
+} = require('./memory-restore');
+const {
+  beginMemoryReset,
+  discardMemoryResetRollback,
+  rollbackMemoryReset,
+} = require('./memory-reset');
+const {
+  ensureDesktopDataStore,
+  resolveDesktopDataDir,
+  writeJsonAtomic,
+} = require('./desktop-data');
 const { normalizeStore, recordProject } = require('./project-store');
 const { terminateChild } = require('./process-lifecycle');
 const {
@@ -45,13 +85,36 @@ const ptyStopTasks = new Map();
 let allowImmediateQuit = false;
 let quitAfterShutdownScheduled = false;
 let activeProjectRoot = null;
+let serverMaintenance = false;
+let automaticBackupTimer = null;
+let codeServerStartTask = null;
 
 const MAX_PTY_SESSIONS = 8;
+let initializedDataDir = null;
 
-// Same layout auth.js uses under the hood — kept in one place so the reveal-
-// in-Finder button and the server's YANA_DATA_DIR can never drift apart.
-function dataDir()      { return path.join(app.getPath('userData'), '.yana'); }
+function dataDir() {
+  return initializedDataDir || resolveDesktopDataDir({
+    platform: process.platform,
+    homeDir: os.homedir(),
+    appDataDir: app.getPath('appData'),
+    xdgDataHome: process.env.XDG_DATA_HOME,
+  });
+}
 function authFilePath() { return path.join(dataDir(), 'auth.json'); }
+
+function initializeDataStore() {
+  const targetDir = dataDir();
+  const legacyDir = path.join(app.getPath('userData'), '.yana');
+  const result = ensureDesktopDataStore({
+    targetDir,
+    legacyDir,
+    applicationVersion: app.getVersion(),
+  });
+  initializedDataDir = result.directory;
+  if (result.migratedFiles.length) {
+    console.log(`[data] migrated ${result.migratedFiles.length} legacy files; rollback copy retained at ${legacyDir}`);
+  }
+}
 
 // Project references live in the application's data directory, while each
 // project stays in the user-selected location. The store intentionally holds
@@ -68,10 +131,7 @@ function readProjectStore() {
 
 function writeProjectStore(store) {
   const normalized = normalizeStore(store);
-  fs.mkdirSync(dataDir(), { recursive: true });
-  const temporary = path.join(dataDir(), `projects.${process.pid}.${randomUUID()}.tmp`);
-  fs.writeFileSync(temporary, `${JSON.stringify(normalized, null, 2)}\n`, { mode: 0o600 });
-  fs.renameSync(temporary, projectStorePath());
+  writeJsonAtomic(projectStorePath(), normalized);
   return normalized;
 }
 
@@ -135,7 +195,7 @@ async function activateProject(root) {
   // project; no human shell or user-owned process is terminated here.
   if (codeServerProcess) {
     await stopCodeServer();
-    startCodeServer();
+    await startCodeServer();
   }
   return projectInfo();
 }
@@ -191,7 +251,7 @@ function startServer() {
   child.on('exit', (code, signal) => {
     if (serverProcess === child) serverProcess = null;
     console.log('[server] exited', code, signal || '');
-    if (!shuttingDown && serverUrl && app.isReady()) {
+    if (!shuttingDown && !serverMaintenance && serverUrl && app.isReady()) {
       dialog.showErrorBox(
         'Yana AI — server stopped',
         'The local Yana server exited unexpectedly. The app will close to avoid leaving a broken window open.',
@@ -234,11 +294,22 @@ async function stopServer() {
 const CODE_SERVER_PORT = 8092;
 
 function startCodeServer() {
-  const child = spawn('code-server', [
-    '--bind-addr', `127.0.0.1:${CODE_SERVER_PORT}`,
-    '--auth', 'none',
-    repoRoot(),
-  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  if (codeServerProcess && !codeServerProcess.killed) {
+    return Promise.resolve({ ok: true, url: `http://127.0.0.1:${CODE_SERVER_PORT}` });
+  }
+  if (codeServerStartTask) return codeServerStartTask;
+
+  const launch = prepareCodeServerLaunch({ dataDir: dataDir(), repoRoot: repoRoot(), port: CODE_SERVER_PORT });
+  fs.mkdirSync(path.dirname(launch.configPath), { recursive: true });
+  fs.writeFileSync(launch.configPath, launch.config, { encoding: 'utf8', mode: 0o600 });
+
+  const child = spawn('code-server', launch.args, {
+    cwd: repoRoot(),
+    env: process.env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,
+  });
+  codeServerProcess = child;
 
   child.on('error', (error) => {
     // ENOENT (not installed) is expected on most machines — the IDE tab
@@ -250,7 +321,41 @@ function startCodeServer() {
   child.stdout?.on('data', (d) => console.log('[code-server]', d.toString().trimEnd()));
   child.stderr?.on('data', (d) => console.error('[code-server]', d.toString().trimEnd()));
   child.on('exit', () => { if (codeServerProcess === child) codeServerProcess = null; });
-  codeServerProcess = child;
+
+  codeServerStartTask = new Promise((resolve) => {
+    let attempts = 0;
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      if (!result.ok && codeServerProcess === child) {
+        codeServerProcess = null;
+        void terminateChild(child);
+      }
+      resolve(result);
+    };
+    const probe = () => {
+      if (settled) return;
+      if (!codeServerProcess || codeServerProcess !== child) {
+        finish({ ok: false, error: 'IDE process stopped before it became ready' });
+        return;
+      }
+      const request = http.get(launch.url, (response) => {
+        response.resume();
+        finish({ ok: true, url: launch.url });
+      });
+      request.setTimeout(500, () => request.destroy());
+      request.on('error', () => {
+        attempts += 1;
+        if (attempts >= 40) finish({ ok: false, error: 'IDE did not become ready within 10 seconds' });
+        else setTimeout(probe, 250);
+      });
+    };
+    child.once('error', (error) => finish({ ok: false, error: `code-server could not start: ${error.message}` }));
+    child.once('exit', (code) => finish({ ok: false, error: `code-server exited before ready (code ${code ?? 'unknown'})` }));
+    probe();
+  }).finally(() => { codeServerStartTask = null; });
+  return codeServerStartTask;
 }
 
 async function stopCodeServer() {
@@ -350,6 +455,21 @@ function gitStatus() {
 // Workspace's file preview + Attachment Manager's real file content).
 function readFile(relPath) {
   return readFileImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), relPath });
+}
+
+// Read-only, bounded code search. The Rust capability owns scope checks,
+// generated-directory skips, file-size limits, and result caps; Electron only
+// transports the query through a trusted renderer IPC channel.
+function searchCode(query) {
+  return searchCodeImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), query });
+}
+
+function trashFile(relPath) {
+  return trashFileImpl({
+    repoRoot: repoRoot(),
+    relPath,
+    trashItem: (target) => shell.trashItem(target),
+  });
 }
 
 // Roadmap Phase 5 item 18 — Drag & Drop. The renderer only ever learns a
@@ -457,8 +577,52 @@ function dropTask(id) {
   return dropTaskImpl({ repoRoot: repoRoot(), id, yanaRtBin: runtimePath('yana-rt') });
 }
 
+// Roadmap Phase 16 — Permissions & Autonomy (Permission Inspector /
+// Approval UI / Autonomy Controls). Same real backend the terminal `yana-rt
+// capability|authority|lease` subcommands already read/write — no
+// separate frontend-only permission model.
+function listCapabilities() {
+  return listCapabilitiesImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function listPendingApprovals() {
+  return listPendingApprovalsImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function listLeases() {
+  return listLeasesImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function revokeLease(id) {
+  return revokeLeaseImpl({ repoRoot: repoRoot(), id, yanaRtBin: runtimePath('yana-rt') });
+}
+
 function governanceStatus() {
   return readGovernanceStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function connectorRuntimeOptions() {
+  return { repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') };
+}
+
+function listConnectors() {
+  return listConnectorsImpl(connectorRuntimeOptions());
+}
+
+function configureConnector(name, scopes) {
+  return configureConnectorImpl({ ...connectorRuntimeOptions(), name, scopes });
+}
+
+function disconnectConnector(name) {
+  return disconnectConnectorImpl({ ...connectorRuntimeOptions(), name });
+}
+
+function syncConnector(name, options) {
+  return syncConnectorImpl({ ...connectorRuntimeOptions(), name, ...options });
+}
+
+function listWorkspaceResources(connector) {
+  return listWorkspaceResourcesImpl({ ...connectorRuntimeOptions(), connector });
 }
 
 function waitForServer() {
@@ -574,6 +738,203 @@ handleTrusted('yana:reveal-auth-file', () => {
   const target = authFilePath();
   if (fs.existsSync(target)) shell.showItemInFolder(target);
   else shell.openPath(path.dirname(target));
+});
+
+async function exportMemoryBackupWithDialog() {
+  const date = new Date().toISOString().slice(0, 10);
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Yana memory backup',
+    defaultPath: path.join(app.getPath('documents'), `Yana-memory-${date}.zip`),
+    filters: [{ name: 'Yana memory backup', extensions: ['zip'] }],
+    properties: ['showOverwriteConfirmation'],
+  });
+  if (result.canceled || !result.filePath) return { ok: false, cancelled: true };
+  return exportPortableBackup({
+    dataDir: dataDir(),
+    outputPath: result.filePath,
+    applicationVersion: app.getVersion(),
+    yanaRtBin: runtimePath('yana-rt'),
+  });
+}
+
+handleTrusted('yana:memory-backup-export', () => exportMemoryBackupWithDialog());
+
+handleTrusted('yana:data-overview', () => {
+  try {
+    return { ok: true, overview: summarizeDesktopData(dataDir()) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+handleTrusted('yana:memory-backup-settings', () => {
+  try {
+    return { ok: true, ...readBackupSettings(dataDir()) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+handleTrusted('yana:memory-backup-select-directory', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Choose automatic memory backup folder',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (result.canceled || result.filePaths.length !== 1) return { ok: false, cancelled: true };
+  try {
+    return { ok: true, ...setBackupDirectory(dataDir(), result.filePaths[0]) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+handleTrusted('yana:memory-backup-set-enabled', (event, enabled) => {
+  if (typeof enabled !== 'boolean') return { ok: false, error: 'enabled must be a boolean' };
+  try {
+    return { ok: true, ...setBackupEnabled(dataDir(), enabled) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+
+async function startServerAfterDataChange() {
+  startServer();
+  await waitForServer();
+  return serverUrl;
+}
+
+function scheduleWindowReload(url) {
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.loadURL(url).catch((error) => console.error('[restore] window reload failed:', error.message));
+    }
+  }, 100);
+}
+
+handleTrusted('yana:memory-backup-restore', async () => {
+  const selected = await dialog.showOpenDialog(mainWindow, {
+    title: 'Restore Yana memory backup',
+    filters: [{ name: 'Yana memory backup', extensions: ['zip'] }],
+    properties: ['openFile'],
+  });
+  if (selected.canceled || selected.filePaths.length !== 1) return { ok: false, cancelled: true };
+
+  const prepared = preparePortableRestore({
+    archivePath: selected.filePaths[0],
+    yanaRtBin: runtimePath('yana-rt'),
+  });
+  if (!prepared.ok) return prepared;
+
+  try {
+    const confirmation = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      title: 'Restore Yana memory?',
+      message: `Restore ${prepared.includedFiles.length} portable data file${prepared.includedFiles.length === 1 ? '' : 's'}?`,
+      detail: `${prepared.includedFiles.join('\n')}\n\nCredentials and login sessions will not be changed. The local Yana service will restart briefly.`,
+      buttons: ['Restore', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    if (confirmation.response !== 0) return { ok: false, cancelled: true };
+
+    serverMaintenance = true;
+    let transaction = null;
+    try {
+      await stopServer();
+      transaction = applyPreparedRestore({ prepared, dataDir: dataDir() });
+      const restoredServerUrl = await startServerAfterDataChange();
+      discardRestoreRollback(transaction);
+      scheduleWindowReload(restoredServerUrl);
+      return { ok: true, includedFiles: prepared.includedFiles };
+    } catch (error) {
+      try { await stopServer(); } catch (_) {}
+      let recoveryError = null;
+      let rollbackFailed = false;
+      if (transaction) {
+        try { rollbackPortableRestore(transaction); }
+        catch (rollbackError) { recoveryError = rollbackError; rollbackFailed = true; }
+        finally { if (!rollbackFailed) discardRestoreRollback(transaction); }
+      }
+      if (!recoveryError) {
+        try {
+          const recoveredServerUrl = await startServerAfterDataChange();
+          scheduleWindowReload(recoveredServerUrl);
+        }
+        catch (restartError) { recoveryError = restartError; }
+      }
+      const recoveryDetail = recoveryError
+        ? ` Original data recovery also failed: ${recoveryError.message}${rollbackFailed ? `; rollback retained at ${transaction.rollbackDir}` : ''}`
+        : ' Original data was restored.';
+      return { ok: false, error: `Memory restore failed: ${error.message}.${recoveryDetail}` };
+    } finally {
+      serverMaintenance = false;
+    }
+  } finally {
+    cleanupPreparedRestore(prepared);
+  }
+});
+
+handleTrusted('yana:memory-reset', async () => {
+  const firstChoice = await dialog.showMessageBox(mainWindow, {
+    type: 'warning',
+    title: 'Reset portable Yana memory?',
+    message: 'This removes memory, conversations, and missions from this device.',
+    detail: 'Credentials, login sessions, projects, and the data schema stay unchanged. You can export a portable backup first.',
+    buttons: ['Export first', 'Continue', 'Cancel'],
+    defaultId: 0,
+    cancelId: 2,
+    noLink: true,
+  });
+  if (firstChoice.response === 2) return { ok: false, cancelled: true };
+  if (firstChoice.response === 0) {
+    const exported = await exportMemoryBackupWithDialog();
+    if (!exported.ok) return exported;
+  }
+
+  const finalChoice = await dialog.showMessageBox(mainWindow, {
+    type: 'warning',
+    title: 'Confirm memory reset',
+    message: 'Reset portable memory now?',
+    detail: 'This action restarts the local Yana service. If the restart fails, the current data will be restored automatically.',
+    buttons: ['Reset memory', 'Cancel'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+  });
+  if (finalChoice.response !== 0) return { ok: false, cancelled: true };
+
+  serverMaintenance = true;
+  let transaction = null;
+  try {
+    await stopServer();
+    transaction = beginMemoryReset({ dataDir: dataDir() });
+    const resetServerUrl = await startServerAfterDataChange();
+    discardMemoryResetRollback(transaction);
+    scheduleWindowReload(resetServerUrl);
+    return { ok: true, removedFiles: transaction.movedFiles };
+  } catch (error) {
+    try { await stopServer(); } catch (_) {}
+    let recoveryError = null;
+    let rollbackFailed = false;
+    if (transaction) {
+      try { rollbackMemoryReset(transaction); }
+      catch (rollbackError) { recoveryError = rollbackError; rollbackFailed = true; }
+      finally { if (!rollbackFailed) discardMemoryResetRollback(transaction); }
+    }
+    if (!recoveryError) {
+      try {
+        const recoveredServerUrl = await startServerAfterDataChange();
+        scheduleWindowReload(recoveredServerUrl);
+      } catch (restartError) { recoveryError = restartError; }
+    }
+    const recoveryDetail = recoveryError
+      ? ` Recovery also failed: ${recoveryError.message}${rollbackFailed ? `; rollback retained at ${transaction.rollbackDir}` : ''}`
+      : ' Current data was restored.';
+    return { ok: false, error: `Memory reset failed: ${error.message}.${recoveryDetail}` };
+  } finally {
+    serverMaintenance = false;
+  }
 });
 
 handleTrusted('yana:pty-start', (event, options) => {
@@ -699,6 +1060,20 @@ handleTrusted('yana:read-file', (event, relPath) => {
   return readFile(relPath);
 });
 
+handleTrusted('yana:search-code', (event, query) => {
+  if (typeof query !== 'string' || query.length > 512 || query.includes('\0')) {
+    return { ok: false, error: 'query must be a NUL-free string up to 512 characters' };
+  }
+  return searchCode(query);
+});
+
+handleTrusted('yana:trash-file', (event, relPath) => {
+  if (typeof relPath !== 'string' || relPath.length > 4096 || relPath.includes('\0')) {
+    return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
+  }
+  return trashFile(relPath);
+});
+
 handleTrusted('yana:to-repo-relative-path', (event, absolutePath) => {
   if (typeof absolutePath !== 'string' || absolutePath.length > 4096 || absolutePath.includes('\0')) {
     return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
@@ -778,7 +1153,70 @@ handleTrusted('yana:task-drop', (event, id) => {
   return dropTask(id);
 });
 
+handleTrusted('yana:permission-list-capabilities', () => listCapabilities());
+
+handleTrusted('yana:permission-pending-approvals', () => listPendingApprovals());
+
+handleTrusted('yana:permission-list-leases', () => listLeases());
+
+handleTrusted('yana:permission-revoke-lease', (event, id) => {
+  if (typeof id !== 'string' || !id.trim() || id.length > 128) {
+    return { ok: false, error: 'id must be a non-empty string up to 128 characters' };
+  }
+  return revokeLease(id);
+});
+
 handleTrusted('yana:governance-status', () => governanceStatus());
+
+handleTrusted('yana:connector-list', () => listConnectors());
+
+handleTrusted('yana:connector-configure', (event, name, scopes) => {
+  if (typeof name !== 'string' || name.length > 64) {
+    return { ok: false, error: 'connector name is invalid' };
+  }
+  if (!Array.isArray(scopes) || scopes.length === 0 || scopes.length > 32
+      || scopes.some((scope) => typeof scope !== 'string' || scope.length > 64)) {
+    return { ok: false, error: 'connector scopes are invalid' };
+  }
+  return configureConnector(name, scopes);
+});
+
+handleTrusted('yana:connector-disconnect', (event, name) => {
+  if (typeof name !== 'string' || name.length > 64) {
+    return { ok: false, error: 'connector name is invalid' };
+  }
+  return disconnectConnector(name);
+});
+
+handleTrusted('yana:connector-sync', (event, name, options = {}) => {
+  if (typeof name !== 'string' || name.length > 64 || !options || typeof options !== 'object' || Array.isArray(options)) {
+    return { ok: false, error: 'connector sync request is invalid' };
+  }
+  const limit = options.limit === undefined ? 20 : options.limit;
+  const dryRun = options.dryRun === undefined ? false : options.dryRun;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50 || typeof dryRun !== 'boolean') {
+    return { ok: false, error: 'connector sync options are invalid' };
+  }
+  return syncConnector(name, { limit, dryRun });
+});
+
+handleTrusted('yana:workspace-resources', (event, connector) => {
+  if (connector != null && (typeof connector !== 'string' || connector.length > 64)) {
+    return { ok: false, error: 'connector name is invalid' };
+  }
+  return listWorkspaceResources(connector);
+});
+
+handleTrusted('yana:ide-open', async () => {
+  const result = await startCodeServer();
+  if (!result.ok) return result;
+  try {
+    await shell.openExternal(result.url);
+    return result;
+  } catch (error) {
+    return { ok: false, error: `could not open IDE in the default browser: ${error.message}` };
+  }
+});
 
 // ── Auto-update ───────────────────────────────────────────────────────────────
 // Checks GitHub Releases (build.publish in package.json) for a newer tagged
@@ -868,6 +1306,20 @@ function setupAutoUpdater() {
   setInterval(checkForUpdates, 4 * 3600_000);
 }
 
+function setupAutomaticMemoryBackup() {
+  const check = () => {
+    const result = runAutomaticBackup({
+      dataDir: dataDir(),
+      applicationVersion: app.getVersion(),
+      yanaRtBin: runtimePath('yana-rt'),
+    });
+    if (result.ok && !result.skipped) console.log('[backup] automatic memory backup created:', result.outputPath);
+    if (!result.ok) console.error('[backup] automatic memory backup failed:', result.error);
+  };
+  setTimeout(check, 15_000);
+  automaticBackupTimer = setInterval(check, 60 * 60 * 1000);
+}
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 const hasInstanceLock = app.requestSingleInstanceLock();
@@ -881,9 +1333,15 @@ app.on('second-instance', () => {
 });
 
 if (hasInstanceLock) app.whenReady().then(async () => {
+  try {
+    initializeDataStore();
+  } catch (error) {
+    dialog.showErrorBox('Yana AI — data migration error', error.message);
+    app.quit();
+    return;
+  }
   restoreProjectRoot();
   startServer();
-  startCodeServer(); // best-effort, optional — see that function's own doc comment
 
   try {
     await waitForServer();
@@ -898,6 +1356,7 @@ if (hasInstanceLock) app.whenReady().then(async () => {
 
   createWindow();
   setupAutoUpdater();
+  setupAutomaticMemoryBackup();
 });
 
 app.on('window-all-closed', () => {
@@ -915,6 +1374,10 @@ app.on('activate', () => {
 function shutdownChildren() {
   if (!shutdownTask) {
     shuttingDown = true;
+    if (automaticBackupTimer) {
+      clearInterval(automaticBackupTimer);
+      automaticBackupTimer = null;
+    }
     shutdownTask = Promise.all([stopServer(), stopAllPtys(), stopCodeServer()]);
   }
   return shutdownTask;

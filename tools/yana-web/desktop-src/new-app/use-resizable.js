@@ -4,12 +4,18 @@
 // height (Phase 1's three resizable panels).
 import React from 'react';
 
-const MIN = 120;
+const DEFAULT_MIN = 120;
 
-export function useResizable({ storageKey, initial, max, axis = 'x' }) {
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function useResizable({ storageKey, initial, min = DEFAULT_MIN, max, axis = 'x', direction = 1 }) {
   const [size, setSize] = React.useState(() => {
     const stored = Number(localStorage.getItem(storageKey));
-    return Number.isFinite(stored) && stored > 0 ? stored : initial;
+    return Number.isFinite(stored) && stored > 0
+      ? clamp(stored, min, max)
+      : clamp(initial, min, max);
   });
   const draggingRef = React.useRef(false);
 
@@ -22,12 +28,12 @@ export function useResizable({ storageKey, initial, max, axis = 'x' }) {
     function onMove(moveEvent) {
       if (!draggingRef.current) return;
       const pos = axis === 'x' ? moveEvent.clientX : moveEvent.clientY;
-      // Sidebar/context panel grow as the mouse moves away from the
-      // workspace center — direction depends on which edge the handle
-      // sits on, so callers pass a signed initial/max instead of this
-      // hook guessing left vs right edges.
+      // A handle on the left edge of a right-hand panel grows when dragged
+      // left, while a handle on the right edge of a left-hand panel grows
+      // when dragged right. `direction` expresses that physical relation
+      // explicitly instead of relying on callers to encode it in a size.
       const delta = pos - startPos;
-      const next = Math.min(max, Math.max(MIN, startSize + delta));
+      const next = clamp(startSize + (direction * delta), min, max);
       setSize(next);
     }
     function onUp() {
@@ -41,7 +47,7 @@ export function useResizable({ storageKey, initial, max, axis = 'x' }) {
     }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-  }, [axis, max, size, storageKey]);
+  }, [axis, direction, max, min, size, storageKey]);
 
   return { size, onDragStart };
 }

@@ -9,11 +9,130 @@
    Layout itself is inline (see index.jsx) since panel sizes are dynamic
    (resizable). */
 .new-app-shell {
+  --na-canvas: var(--color-bg);
+  --na-surface: rgba(var(--surface-rgb, 18, 22, 34), 0.74);
+  --na-raised: rgba(var(--surface-rgb, 18, 22, 34), 0.9);
+  --na-elevated: rgba(var(--surface-rgb, 18, 22, 34), 0.96);
+  --na-terminal: color-mix(in srgb, var(--color-bg) 82%, #000 18%);
+  --na-accent: var(--primary);
+  --na-accent-soft: var(--primary-soft);
+  --na-focus: color-mix(in srgb, var(--primary) 82%, white 18%);
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--bg-scene, var(--color-bg));
   color: var(--ink);
+  font-synthesis: none;
+  letter-spacing: -0.008em;
+}
+
+.new-app-shell button,
+.new-app-shell input,
+.new-app-shell textarea,
+.new-app-shell select {
+  font: inherit;
+}
+
+.new-app-shell button:not([disabled]) {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.new-app-shell button:focus-visible,
+.new-app-shell input:focus-visible,
+.new-app-shell textarea:focus-visible,
+.new-app-shell select:focus-visible {
+  outline: 2px solid var(--na-focus);
+  outline-offset: 2px;
+}
+
+.new-app-shell .na-workspace {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.28);
+  isolation: isolate;
+}
+
+.new-app-shell .na-topbar {
+  min-height: 52px;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.7) !important;
+  border-bottom-color: var(--border) !important;
+  backdrop-filter: blur(18px);
+  z-index: 4;
+}
+
+.new-app-shell .na-global-search {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.68) !important;
+  border-color: color-mix(in srgb, var(--border) 72%, var(--na-accent) 28%) !important;
+}
+
+.new-app-shell .na-global-search:hover {
+  border-color: color-mix(in srgb, var(--na-accent) 52%, var(--border)) !important;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.94) !important;
+}
+
+.new-app-shell .na-sidebar-frame {
+  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.9), rgba(var(--surface-rgb, 18, 22, 34), 0.66));
+  border-right: 1px solid var(--border);
+  box-shadow: 12px 0 30px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+.new-app-shell .na-sidebar-brand > span:first-child {
+  box-shadow: 0 0 0 4px var(--na-accent-soft), 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.new-app-shell .na-sidebar-project {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.68) !important;
+}
+
+.new-app-shell .na-sidebar-project:hover,
+.new-app-shell .na-sidebar-recent-project:hover {
+  background: var(--na-accent-soft) !important;
+  color: var(--ink) !important;
+}
+
+.new-app-shell .na-sidebar-collapse:hover,
+.new-app-shell .na-sidebar-collapse:focus-visible {
+  background: var(--na-accent-soft) !important;
+  color: var(--ink) !important;
+  outline: none;
+}
+
+.new-app-shell .na-sidebar-system-status {
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--na-accent) 18%);
+}
+
+.new-app-shell .na-sidebar-nav-item:not(.is-active):hover {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.8) !important;
+  color: var(--ink) !important;
+}
+
+.new-app-shell .na-sidebar-nav-item.is-active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--na-accent) 72%, transparent), 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.new-app-shell .na-main-column {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.14);
+}
+
+.new-app-shell .na-main-region,
+.new-app-shell .na-primary-surface {
+  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.2), transparent 42%);
+}
+
+.new-app-shell .na-inspector-frame {
+  background: linear-gradient(180deg, var(--na-raised), var(--na-surface));
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+.new-app-shell .na-bottom-dock {
+  background: var(--na-terminal);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.new-app-shell .na-terminal-pane {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .new-app-shell .na-resize-handle-x {
@@ -21,6 +140,8 @@
   width: 5px;
   flex-shrink: 0;
   background: transparent;
+  position: relative;
+  z-index: 3;
 }
 .new-app-shell .na-resize-handle-x:hover {
   background: var(--primary-soft);
@@ -30,7 +151,431 @@
   height: 5px;
   flex-shrink: 0;
   background: transparent;
+  position: relative;
+  z-index: 3;
 }
 .new-app-shell .na-resize-handle-y:hover {
   background: var(--primary-soft);
+}
+
+.new-app-shell .na-chat-workspace {
+  padding: clamp(12px, 2vw, 26px) clamp(14px, 3vw, 38px) 14px;
+}
+
+.new-app-shell .na-conversation-tabs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+}
+
+.new-app-shell .na-conversation-tab-list {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.new-app-shell .na-conversation-tab {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 240px;
+  flex-shrink: 0;
+  border-bottom: 2px solid transparent;
+}
+
+.new-app-shell .na-conversation-tab.is-active {
+  border-bottom-color: var(--na-accent);
+}
+
+.new-app-shell .na-conversation-tab > button:first-child {
+  overflow: hidden;
+  max-width: 190px;
+  padding: 8px 7px 8px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-app-shell .na-conversation-tab.is-active > button:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.new-app-shell .na-conversation-tab:hover > button:first-child {
+  color: var(--ink);
+}
+
+.new-app-shell .na-conversation-tab-close,
+.new-app-shell .na-conversation-tab-new,
+.new-app-shell .na-conversation-tab-menu-button {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.new-app-shell .na-conversation-tab-close:hover,
+.new-app-shell .na-conversation-tab-new:hover,
+.new-app-shell .na-conversation-tab-menu-button:hover {
+  background: var(--na-accent-soft);
+  color: var(--ink);
+}
+
+.new-app-shell .na-conversation-tab-new {
+  flex-shrink: 0;
+}
+
+.new-app-shell .na-conversation-tab-menu-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.new-app-shell .na-conversation-tab-menu-button {
+  width: 21px;
+  color: var(--ink-3);
+  font-size: 10px;
+  letter-spacing: -1px;
+}
+
+.new-app-shell .na-conversation-tab-menu {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 132px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--na-elevated);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+}
+
+.new-app-shell .na-conversation-tab-menu button {
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+}
+
+.new-app-shell .na-conversation-tab-menu button:hover:not(:disabled) {
+  background: var(--na-accent-soft);
+}
+
+.new-app-shell .na-conversation-tab-menu button:disabled {
+  color: var(--ink-3);
+  cursor: default;
+}
+
+.new-app-shell .na-conversation-tab-menu input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 5px;
+  padding: 6px 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  outline: none;
+  background: var(--na-raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--font-size-xs);
+}
+
+.new-app-shell .na-conversation-tab-menu input:focus {
+  border-color: var(--na-accent);
+}
+
+.new-app-shell .na-conversation-tab-menu-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.new-app-shell .na-conversation-tab-menu-actions button {
+  width: auto;
+}
+
+.new-app-shell .na-empty-state {
+  width: min(100%, 680px);
+  padding: clamp(24px, 5vh, 72px) 10px;
+}
+
+.new-app-shell .na-empty-heading {
+  margin: 0 0 20px;
+  color: var(--ink);
+  font-size: clamp(23px, 2.3vw, 32px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.new-app-shell .na-mode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.new-app-shell .na-mode-action {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 13px;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.7);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 550;
+}
+
+.new-app-shell .na-mode-action:hover {
+  border-color: color-mix(in srgb, var(--na-accent) 52%, var(--border));
+  background: var(--na-accent-soft);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.new-app-shell .na-suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  text-align: left;
+}
+
+.new-app-shell .na-suggestion-card {
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(var(--surface-rgb, 18, 22, 34), 0.86), rgba(var(--surface-rgb, 18, 22, 34), 0.52));
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-align: left;
+}
+
+.new-app-shell .na-suggestion-card:hover {
+  border-color: color-mix(in srgb, var(--na-accent) 44%, var(--border));
+  color: var(--ink);
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.96);
+}
+
+.new-app-shell .na-composer {
+  border-color: color-mix(in srgb, var(--border) 80%, var(--na-accent) 20%) !important;
+  background: linear-gradient(150deg, rgba(var(--surface-rgb, 18, 22, 34), 0.92), rgba(var(--surface-rgb, 18, 22, 34), 0.68)) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.new-app-shell .na-composer:focus-within {
+  border-color: color-mix(in srgb, var(--na-accent) 68%, var(--border)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--na-accent-soft) 72%, transparent), 0 14px 38px rgba(0, 0, 0, 0.16);
+}
+
+.new-app-shell .na-composer-input::placeholder {
+  color: var(--ink-3);
+}
+
+.new-app-shell .na-composer-actions {
+  padding-top: 3px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.new-app-shell .na-terminal-tabs {
+  scrollbar-width: thin;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.26);
+}
+
+.new-app-shell .na-terminal-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.new-app-shell .na-terminal-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+.new-app-shell .na-inspector-panel {
+  background: transparent;
+}
+
+.new-app-shell .na-inspector-tabs {
+  padding: 0 10px;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.48);
+}
+
+.new-app-shell .na-inspector-tab {
+  position: relative;
+  border-radius: 8px 8px 0 0;
+}
+
+.new-app-shell .na-inspector-tab:hover:not(.is-active) {
+  color: var(--ink) !important;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.66) !important;
+}
+
+.new-app-shell .na-inspector-tab.is-active {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--na-accent-soft) 68%, transparent), transparent) !important;
+}
+
+.new-app-shell .na-inspector-content {
+  scrollbar-width: thin;
+}
+
+.new-app-shell .na-inspector-section {
+  border-bottom-color: color-mix(in srgb, var(--border) 84%, transparent) !important;
+}
+
+.new-app-shell .na-inspector-section-title {
+  color: var(--ink-3) !important;
+}
+
+.new-app-shell .na-inspector-project {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--na-accent) 18%);
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgba(var(--surface-rgb, 18, 22, 34), 0.83), rgba(var(--surface-rgb, 18, 22, 34), 0.5));
+}
+
+.new-app-shell .na-inspector-metrics {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.42);
+}
+
+.new-app-shell .na-inspector-metric + .na-inspector-metric {
+  border-left: 1px solid var(--border);
+}
+
+.new-app-shell .na-inline-action:hover {
+  color: var(--na-focus) !important;
+}
+
+.new-app-shell .na-activity-panel {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.12);
+}
+
+.new-app-shell .na-inspector-activity-section {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  min-height: 0;
+}
+
+.new-app-shell .na-inspector-activity-section .na-activity-panel {
+  height: auto !important;
+}
+
+.new-app-shell .na-inspector-activity-section .na-activity-feed {
+  max-height: 214px;
+}
+
+.new-app-shell .na-inspector-tasks-section {
+  position: relative;
+}
+
+.new-app-shell .na-inspector-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.new-app-shell .na-inspector-task {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+}
+
+.new-app-shell .na-inspector-task-status {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.new-app-shell .na-inspector-task-status.is-in_progress {
+  color: var(--primary);
+}
+
+.new-app-shell .na-inspector-task-status.is-blocked,
+.new-app-shell .na-inspector-error {
+  color: var(--warn);
+}
+
+.new-app-shell .na-inspector-task-name {
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-app-shell .na-inspector-empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.new-app-shell .na-inspector-section-action {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  margin-top: 9px;
+  padding: 0;
+}
+
+.new-app-shell .na-activity-header {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.34);
+}
+
+.new-app-shell .na-activity-row:hover,
+.new-app-shell .na-activity-row:focus-visible {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.72) !important;
+  outline: none;
+}
+
+.new-app-shell .na-activity-row.is-selected {
+  background: var(--na-accent-soft) !important;
+}
+
+.new-app-shell .na-activity-trust {
+  background: rgba(var(--surface-rgb, 18, 22, 34), 0.46);
+}
+
+.new-app-shell .na-activity-trust-verified {
+  border-color: color-mix(in srgb, var(--good) 32%, var(--border));
+}
+
+.new-app-shell .na-activity-trust-live {
+  border-color: color-mix(in srgb, var(--border) 86%, transparent);
+}
+
+@media (max-width: 820px) {
+  .new-app-shell .na-suggestion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .new-app-shell .na-empty-state {
+    padding-top: 26px;
+  }
 }
