@@ -1,13 +1,18 @@
 'use strict';
 
 const assert = require('assert');
+const path = require('path');
 const { summarizeDesktopData } = require('./data-overview');
 
+// Keys built via the real path.join, not hardcoded forward-slash literals:
+// data-overview.js's inspectRegularFile call does the same, and path.join
+// emits backslashes on Windows -- a hardcoded '/data/...' literal would
+// never match there (real bug, found live on windows-latest CI).
 const fileSizes = new Map([
-  ['/data/memory.json', 12],
-  ['/data/conversations.json', 8],
-  ['/data/auth.json', 24],
-  ['/data/sessions.json', 4],
+  [path.join('/data', 'memory.json'), 12],
+  [path.join('/data', 'conversations.json'), 8],
+  [path.join('/data', 'auth.json'), 24],
+  [path.join('/data', 'sessions.json'), 4],
 ]);
 const result = summarizeDesktopData('/data', {
   lstatSync(filePath) {
