@@ -1390,7 +1390,14 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (!mainWindow) createWindow();
+  // On macOS, 'activate' can fire during the app's own startup race, before
+  // whenReady()'s waitForServer() has resolved and serverUrl is set. Calling
+  // createWindow() at that point crashes on loadURL(null) (real bug, seen
+  // live: "TypeError: ... conversion failure from null" at createWindow's
+  // loadURL call). The whenReady() flow already creates the window once the
+  // server is actually ready, so this only needs to handle the legitimate
+  // case: no window, and a server already up (e.g. dock-click reopen).
+  if (!mainWindow && serverUrl) createWindow();
 });
 
 function shutdownChildren() {
