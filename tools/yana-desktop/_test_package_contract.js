@@ -59,4 +59,15 @@ assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
 assert.strictEqual(extraFiles.get('../../target/desktop-runtime/bin'), 'Resources/bin');
 assert.strictEqual(extraFiles.get('../../target/desktop-runtime/pty-bridge'), 'Resources/pty-bridge');
 
-console.log('Desktop package contract tests passed: 25');
+// Real bug, found live on a packaged v1.4.4 install: this filter excluded
+// node_modules, so server.js/robot.js's runtime deps (e.g. ws) were never
+// copied into Resources/server -- the local server crashed with
+// MODULE_NOT_FOUND on every launch, and the app hung with zero windows.
+const serverEntry = packageJson.build.extraFiles.find((entry) => entry.to === 'Resources/server');
+assert.ok(serverEntry, 'extraFiles must stage the server into Resources/server');
+assert.ok(
+  !serverEntry.filter.includes('!node_modules/**'),
+  'Resources/server copy must not exclude node_modules -- the server needs its own runtime dependencies to actually start',
+);
+
+console.log('Desktop package contract tests passed: 27');
