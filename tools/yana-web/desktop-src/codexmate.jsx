@@ -7,8 +7,19 @@ import { IS_ELECTRON } from './lib/is-electron.js';
 
 const { useState, useEffect, useRef } = React;
 
+// Strict numeric port only — port is concatenated straight into the URL used
+// for fetch()/iframe src/anchor href below, so anything else (e.g. a stray
+// "@evil.com") would let it splice in an arbitrary host via URL authority
+// parsing instead of actually reaching 127.0.0.1.
+function isValidPort(v) {
+  return /^\d{1,5}$/.test(v) && Number(v) >= 1 && Number(v) <= 65535;
+}
+
 export function CodemateTool() {
-  const [port, setPort]        = useState(() => localStorage.getItem("yana.codexmate.port") || "8080");
+  const [port, setPort]        = useState(() => {
+    const stored = localStorage.getItem("yana.codexmate.port");
+    return isValidPort(stored) ? stored : "8080";
+  });
   const [status, setStatus]    = useState(null); // null | "checking" | "up" | "down"
   const [copiedIdx, setCopied] = useState(null);
   const inputRef = useRef(null);
@@ -20,7 +31,7 @@ export function CodemateTool() {
   }
 
   function check(p) {
-    const target = p || port;
+    const target = isValidPort(p) ? p : port;
     setStatus("checking");
     fetch("http://127.0.0.1:" + target + "/", { mode: "no-cors", signal: AbortSignal.timeout(2000) })
       .then(() => setStatus("up"))
@@ -31,7 +42,7 @@ export function CodemateTool() {
 
   function savePort(v) {
     const safe = v.trim();
-    if (!safe) return;
+    if (!isValidPort(safe)) return;
     localStorage.setItem("yana.codexmate.port", safe);
     setPort(safe);
     check(safe);
