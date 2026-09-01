@@ -47,7 +47,17 @@ assert.deepStrictEqual(first.migratedFiles.sort(), ['memory.json', 'sessions.jso
 assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(targetDir, 'memory.json'), 'utf8')), [{ text: 'keep me' }]);
 assert.ok(fs.existsSync(path.join(legacyDir, 'memory.json')), 'legacy rollback copy must remain');
 assert.ok(!fs.existsSync(path.join(targetDir, 'unknown.json')), 'unknown files must not migrate implicitly');
-assert.strictEqual(fs.statSync(path.join(targetDir, 'memory.json')).mode & 0o777, 0o600);
+// POSIX-only: Windows has no owner/group/other permission bits (NTFS ACLs
+// are a different mechanism chmod doesn't touch), so fs.chmodSync(path,
+// 0o600) there is a best-effort no-op and statSync reports back something
+// else entirely (0o666 seen live on windows-latest CI) -- not a bug, the
+// same platform limitation stage-runtime.js's own
+// `if (process.platform !== 'win32') fs.chmodSync(...)` already works
+// around. copyFileAtomic's chmod call itself is unchanged and still
+// correct on the platforms where it means anything.
+if (process.platform !== 'win32') {
+  assert.strictEqual(fs.statSync(path.join(targetDir, 'memory.json')).mode & 0o777, 0o600);
+}
 
 fs.writeFileSync(path.join(legacyDir, 'memory.json'), '[{"text":"new legacy value"}]');
 const second = ensureDesktopDataStore({ targetDir, legacyDir, applicationVersion: '1.4.3' });

@@ -26,7 +26,17 @@ writeJsonAtomic(file, { next: true, values: [1, 2, 3] });
 
 test('replaces a complete prior document',
   JSON.stringify(JSON.parse(fs.readFileSync(file, 'utf8'))) === JSON.stringify({ next: true, values: [1, 2, 3] }));
-test('creates private metadata with mode 0600', (fs.statSync(file).mode & 0o777) === 0o600);
+// POSIX-only: Windows has no owner/group/other permission bits (NTFS ACLs
+// are a different mechanism chmod doesn't touch), so writeJsonAtomic's
+// mode option is a best-effort no-op there and statSync reports back
+// something else entirely -- not a bug, the same platform limitation
+// tools/yana-desktop/scripts/stage-runtime.js's own
+// `if (process.platform !== 'win32') fs.chmodSync(...)` already works
+// around. writeJsonAtomic's mode option itself is unchanged and still
+// correct on the platforms where it means anything.
+if (process.platform !== 'win32') {
+  test('creates private metadata with mode 0600', (fs.statSync(file).mode & 0o777) === 0o600);
+}
 test('leaves no temporary sibling after success',
   fs.readdirSync(DATA_DIR).every((entry) => !entry.endsWith('.tmp')));
 
