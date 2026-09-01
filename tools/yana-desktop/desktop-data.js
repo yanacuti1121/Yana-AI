@@ -63,7 +63,12 @@ function copyFileAtomic(sourcePath, targetPath) {
   try {
     fs.copyFileSync(sourcePath, temporaryPath, fs.constants.COPYFILE_EXCL);
     fs.chmodSync(temporaryPath, 0o600);
-    const fileDescriptor = fs.openSync(temporaryPath, 'r');
+    // 'r+' (read-write), not 'r' (read-only): Windows' FlushFileBuffers
+    // (what fsyncSync maps to there) requires a write-capable handle and
+    // fails EPERM on a read-only one -- real bug, found live on
+    // windows-latest CI, not flakiness. POSIX allows fsync on a read-only
+    // fd, which is why this passed on Linux/macOS every prior run.
+    const fileDescriptor = fs.openSync(temporaryPath, 'r+');
     try { fs.fsyncSync(fileDescriptor); } finally { fs.closeSync(fileDescriptor); }
     fs.renameSync(temporaryPath, targetPath);
     return true;
