@@ -8,6 +8,30 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.4 — Fix launch crash from a startup race — 2026-09-01
+
+Fixes a real crash reported live on a v1.4.3 install: `TypeError:
+... conversion failure from null` at `createWindow`'s
+`mainWindow.loadURL(serverUrl)`, thrown from Electron's `activate`
+event handler.
+
+Root cause: `app.on('activate', ...)` called `createWindow()` whenever
+no window existed, without checking whether the local server had
+actually started. `serverUrl` is set asynchronously once the forked
+server process reports its listening port; on macOS, `activate` can
+fire during the app's own startup, before `whenReady()`'s
+`waitForServer()` resolves. When that race lands, `mainWindow` is
+correctly still null but so is `serverUrl`, and the unconditional
+`loadURL(serverUrl)` call crashes on `null`. Not reproducible every
+launch — a genuine race, not a deterministic failure, which is why it
+wasn't caught before an install actually hit it.
+
+Fixed by also requiring `serverUrl` before creating a window from the
+`activate` handler; the `whenReady()` flow already creates the window
+once the server is confirmed ready via a real `/health` check.
+
+---
+
 ## v1.4.3 — Real Google + GitHub connector OAuth — 2026-09-01
 
 Yana Desktop's Connections screen previously only had local permission
