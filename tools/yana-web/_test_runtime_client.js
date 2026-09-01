@@ -127,7 +127,11 @@ function testRuntimeDiscovery() {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-runtime-client-'));
   const releaseDir = path.join(rootDir, 'target', 'release');
   fs.mkdirSync(releaseDir, { recursive: true });
-  const binaryPath = path.join(releaseDir, 'yana-rt');
+  // resolveGovernedRuntime's own no-explicit-path lookup (runtime-client.js)
+  // hardcodes 'yana-rt.exe' on win32 -- this fixture must match, or the
+  // lookup below can never find it there (real bug, found live on
+  // windows-latest CI: the fixture was always named plain 'yana-rt').
+  const binaryPath = path.join(releaseDir, process.platform === 'win32' ? 'yana-rt.exe' : 'yana-rt');
   fs.writeFileSync(binaryPath, '#!/bin/sh\nexit 0\n');
   fs.chmodSync(binaryPath, 0o755);
   assert.strictEqual(
