@@ -32,6 +32,27 @@ function stop(child) {
   });
 }
 
+// http.Server#close() stops accepting new connections but its callback
+// only fires once every EXISTING connection ends on its own -- a lingering
+// keep-alive socket (fetch's default) can leave it waiting forever. Real
+// bug, found live: every prior npm run test:unit invocation this session
+// left an orphaned node process behind, because this exact wait had no
+// timeout fallback (unlike stop()'s child-process teardown above, which
+// already SIGKILLs after 1.5s for the same reason). closeAllConnections
+// (Node 18.2+) forcibly ends any still-open sockets so close()'s callback
+// can actually fire; the timeout is a second-layer guard in case even
+// that doesn't unblock a listener fast enough.
+function closeServer(server) {
+  if (!server) return Promise.resolve();
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
+    server.close(done);
+    if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
+    setTimeout(done, 1500).unref();
+  });
+}
+
 async function main() {
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-custom-models-'));
   let mockServer;
@@ -128,7 +149,7 @@ process.stdin.on('end', () => {
     console.log('custom local model integration: discovery + governed chat PASS');
   } finally {
     await stop(yanaServer);
-    if (mockServer) await new Promise((resolve) => mockServer.close(resolve));
+    await closeServer(mockServer);
     fs.rmSync(temporaryRoot, { recursive: true, force: true });
   }
 }
