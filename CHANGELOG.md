@@ -8,6 +8,36 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.6 — v1.4.5's fix was incomplete: still no server node_modules — 2026-09-01
+
+**Critical, same-day follow-up.** v1.4.5's fix (below) removed the
+`"!node_modules/**"` filter entry, but that alone was not enough:
+electron-builder's `extraFiles` matching *also* respects the repo's own
+`.gitignore` (which lists `node_modules/`), so the server's dependencies
+were **still** silently dropped from the real v1.4.5 release. Confirmed
+live: downloaded the actual v1.4.5 macOS asset, manually staged
+`node_modules` into it to test the fix mechanism in isolation, launched
+it, and got a real window — proving the diagnosis — but the unmodified
+v1.4.5 build itself still has zero `node_modules` in `Resources/server`
+and is just as broken as v1.4.4.
+
+Fixed for real this time by bypassing electron-builder's file-matching
+entirely: a new `afterPack` hook
+(`tools/yana-desktop/scripts/after-pack-copy-server-deps.js`) does a
+plain `fs.cpSync` of `tools/yana-web/node_modules` into the packaged
+app's `Resources/server/node_modules` (or `resources/server/node_modules`
+on Windows/Linux) after packing but before code signing or building the
+distributable — a raw filesystem copy that no gitignore-aware or
+filter-based matching can silently skip.
+
+Added regression assertions to `_test_package_contract.js` for the
+`afterPack` hook being wired and its script existing.
+
+node tools/yana-desktop/_test_package_contract.js: 29 assertions pass.
+npm run test:unit (tools/yana-desktop, full suite): 0 fail.
+
+---
+
 ## v1.4.5 — Fix broken packaged app: local server never started — 2026-09-01
 
 **Critical.** Every packaged desktop build (confirmed on v1.4.4, and this

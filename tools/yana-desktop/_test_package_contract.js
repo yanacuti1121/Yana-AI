@@ -70,4 +70,17 @@ assert.ok(
   'Resources/server copy must not exclude node_modules -- the server needs its own runtime dependencies to actually start',
 );
 
-console.log('Desktop package contract tests passed: 27');
+// Removing the filter entry above was NOT enough on its own: electron-builder's
+// extraFiles matching also respects the repo's own .gitignore (which lists
+// "node_modules/"), so node_modules was still silently dropped from the real
+// v1.4.5 release despite the filter fix -- confirmed live by downloading that
+// exact asset. The afterPack hook bypasses electron-builder's file-matching
+// entirely with a plain filesystem copy, run after packing but before signing
+// or building the distributable.
+assert.strictEqual(packageJson.build.afterPack, 'scripts/after-pack-copy-server-deps.js');
+assert.ok(
+  fs.existsSync(path.join(__dirname, packageJson.build.afterPack)),
+  'the afterPack hook script referenced in package.json must actually exist',
+);
+
+console.log('Desktop package contract tests passed: 29');

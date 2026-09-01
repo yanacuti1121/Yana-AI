@@ -794,7 +794,7 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.5** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.6** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
 | Rust 런타임 (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 패키지 | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 

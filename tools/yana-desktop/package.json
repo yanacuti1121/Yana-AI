@@ -1,6 +1,6 @@
 {
   "name": "yana-desktop",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Yana AI — desktop shell",
   "main": "main.js",
   "private": true,
@@ -135,6 +135,7 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
+    "afterPack": "scripts/after-pack-copy-server-deps.js",
     "afterSign": "scripts/after-sign-mac.js",
     "win": {
       "target": ["nsis"]
