@@ -60,7 +60,10 @@ jobs:
           done < <(python3 -c "import json; print('\n'.join(json.load(open('.github/required-checks.json'))['required_checks']))")
           FAILED=0
           for name in "${REQUIRED[@]}"; do
-            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            # --paginate: see desktop.yml's verify-provenance job for why
+            # this is required, not optional, once a commit accumulates
+            # more than gh api's default 30-item page of check-runs.
+            conclusion=$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
             if [[ "$conclusion" != "success" ]]; then
               echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
               FAILED=1
