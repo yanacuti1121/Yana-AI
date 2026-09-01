@@ -232,8 +232,7 @@ def check_python() -> Check:
 def check_github_token() -> Check:
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:
-        masked = token[:4] + "****"
-        return Check("OK", "GitHub token", f"set ({masked}...)")
+        return Check("OK", "GitHub token", "set")
     return Check("INFO", "GitHub token",
                  "GITHUB_TOKEN not set — PR scan and CI checks unavailable",
                  "Set: export GITHUB_TOKEN=ghp_...")
@@ -242,8 +241,7 @@ def check_github_token() -> Check:
 def check_anthropic_key() -> Check:
     key = os.environ.get("ANTHROPIC_API_KEY")
     if key:
-        masked = key[:8] + "****"
-        return Check("OK", "Anthropic key", f"set ({masked}...)")
+        return Check("OK", "Anthropic key", "set")
     return Check("INFO", "Anthropic key",
                  "ANTHROPIC_API_KEY not set — LLM-assisted features unavailable")
 
