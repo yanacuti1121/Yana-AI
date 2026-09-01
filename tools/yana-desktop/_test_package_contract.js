@@ -18,6 +18,7 @@ const bridgeRequires = ['governance-status.js', 'host-status.js']
   })
   .sort();
 const packagedFiles = new Set(packageJson.build.files);
+const extraFiles = new Map(packageJson.build.extraFiles.map((entry) => [entry.from, entry.to]));
 
 assert.strictEqual(packageJson.version, packageLock.version);
 assert.strictEqual(packageJson.version, packageLock.packages[''].version);
@@ -55,5 +56,7 @@ for (const requiredFile of new Set([...localRequires, ...bridgeRequires])) {
 assert.strictEqual(packageJson.engines.node, '>=24');
 assert.strictEqual(packageJson.devDependencies.electron, '43.4.1');
 assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
+assert.strictEqual(extraFiles.get('../../target/desktop-runtime/bin'), 'Resources/bin');
+assert.strictEqual(extraFiles.get('../../target/desktop-runtime/pty-bridge'), 'Resources/pty-bridge');
 
-console.log('Desktop package contract tests passed: 23');
+console.log('Desktop package contract tests passed: 25');

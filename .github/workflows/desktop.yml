@@ -176,6 +176,10 @@ jobs:
         working-directory: tools/yana-desktop
         run: npm run stage:runtime
 
+      - name: Verify staged runtime feature contract
+        working-directory: tools/yana-desktop
+        run: npm run verify:runtime
+
       - name: Test desktop shell
         working-directory: tools/yana-desktop
         run: npm test
