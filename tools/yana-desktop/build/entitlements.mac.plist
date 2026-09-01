@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Standard Electron entitlements for macOS Hardened Runtime — required
+    once a real "Developer ID Application" identity + notarization are
+    added (see MACOS_SIGNING_TODO.md). Harmless and inert today: with
+    hardenedRuntime=false (current, ad-hoc-signed build) these entitlements
+    have no effect at all — codesign only reads this file when
+    hardenedRuntime is true. Present now purely so the switch to Developer
+    ID signing later is a config flip, not a rewrite.
+
+    - allow-jit / allow-unsigned-executable-memory: V8 (Chromium's JS
+      engine) needs to JIT-compile and write executable memory pages,
+      which Hardened Runtime blocks by default.
+    - allow-dyld-environment-variables: Electron's own child-process
+      helpers (renderer/GPU/utility processes) rely on DYLD_* env vars
+      Electron sets internally at launch.
+    - disable-library-validation: this app loads yana-rt / pty_bridge /
+      code-server as separate native binaries (see main.js), not
+      Apple-signed frameworks — Hardened Runtime's default library
+      validation would refuse to load them.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+  <true/>
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+</dict>
+</plist>
