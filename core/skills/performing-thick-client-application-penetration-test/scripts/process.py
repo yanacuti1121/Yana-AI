@@ -126,9 +126,8 @@ def generate_report(app_dir: str, string_findings: list[dict],
         f.write("## Binary String Analysis\n\n")
         if string_findings:
             f.write(f"Found **{len(string_findings)}** potentially sensitive strings:\n\n")
-            f.write("| Type | Match | Severity |\n|------|-------|----------|\n")
-            for finding in string_findings[:50]:
-                f.write(f"| {finding['type']} | `[REDACTED]` | {finding['severity']} |\n")
+            f.write("Individual finding details are omitted from this report to prevent"
+                    " sensitive binary content from being persisted.\n")
         else:
             f.write("No sensitive strings detected in binaries.\n")
         f.write("\n")
@@ -136,8 +135,8 @@ def generate_report(app_dir: str, string_findings: list[dict],
         f.write("## Configuration File Analysis\n\n")
         if config_findings:
             f.write(f"Found **{len(config_findings)}** sensitive entries in configs:\n\n")
-            for finding in config_findings[:20]:
-                f.write(f"- **{finding['type']}** in `{finding['file']}`: `[REDACTED]`\n")
+            f.write("Individual finding details are omitted from this report to prevent"
+                    " sensitive configuration content from being persisted.\n")
         else:
             f.write("No sensitive data found in configuration files.\n")
         f.write("\n")
