@@ -42,7 +42,14 @@ jobs:
           )
           FAILED=0
           for name in "${REQUIRED[@]}"; do
-            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            # --paginate: gh api's default page size is 30. This commit's
+            # check-runs count has grown past that (CodeQL alone adds 4
+            # more), so an unpaginated call silently drops required
+            # checks that land on page 2+ and reports "none found" for
+            # them even though they succeeded -- real bug, found live
+            # after 7 failed desktop.yml dispatches this release that
+            # were misdiagnosed as a timing race, not a pagination gap.
+            conclusion=$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
             if [[ "$conclusion" != "success" ]]; then
               echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
               FAILED=1
