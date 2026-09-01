@@ -12,7 +12,11 @@ const launch = prepareCodeServerLaunch({
 });
 
 assert.deepStrictEqual(launch.args, ['--config', launch.configPath, '/Users/test/Projects/Yana AI']);
-assert.ok(launch.configPath.endsWith('/cache/code-server-desktop.yaml'));
+// Built via path.join, not a hardcoded forward-slash literal -- code-server-launch.js's
+// own configPath is built the same way, and path.join emits backslashes on
+// Windows (real bug, found live on windows-latest CI: this exact hardcoded
+// literal never matched there).
+assert.ok(launch.configPath.endsWith(path.join('cache', 'code-server-desktop.yaml')));
 assert.match(launch.config, /^bind-addr: 127\.0\.0\.1:8092$/m);
 assert.match(launch.config, /^auth: none$/m);
 assert.doesNotMatch(launch.config, /^open:/m);
