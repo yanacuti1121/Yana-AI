@@ -102,7 +102,19 @@ function streamGovernedTurn({
   return new Promise((resolve, reject) => {
     const args = ['chat', '--headless', '--provider', provider];
     if (model) args.push('--model', model);
-    const child = spawnImpl(binaryPath, args, {
+    // The real yana-rt/yana-rt.exe binaryPath resolves to is a native
+    // executable everywhere, spawnable directly on any platform. A .js
+    // YANA_RT_BIN (e.g. scripts/yana-rt-wrapper.js, or a test double
+    // standing in for the real binary) relies on a POSIX shebang + exec
+    // bit to be directly spawnable -- Windows has no shebang mechanism at
+    // the spawn() level at all, so spawning a .js path there fails with
+    // EFTYPE regardless of file mode. Route .js targets through node
+    // explicitly instead, which is unambiguously a real executable on
+    // every platform. Real bug, found live on windows-latest CI.
+    const isJsTarget = path.extname(binaryPath).toLowerCase() === '.js';
+    const spawnTarget = isJsTarget ? process.execPath : binaryPath;
+    const spawnArgs = isJsTarget ? [binaryPath, ...args] : args;
+    const child = spawnImpl(spawnTarget, spawnArgs, {
       cwd: workingDirectory,
       env: process.env,
       stdio: ['pipe', 'pipe', 'pipe'],

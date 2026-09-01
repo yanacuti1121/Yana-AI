@@ -77,6 +77,28 @@ async function testArgvAndStreaming() {
   assert.strictEqual(result.message, 'xin chào');
 }
 
+// A .js YANA_RT_BIN (e.g. scripts/yana-rt-wrapper.js, or a test double
+// standing in for the real binary) can't be spawned directly on Windows --
+// no shebang mechanism at the spawn() level there, regardless of file mode
+// (real bug, found live on windows-latest CI: EFTYPE). streamGovernedTurn
+// must route any .js target through node explicitly instead of spawning
+// it as if it were itself a native executable.
+async function testJsBinaryPathSpawnsViaNode() {
+  const capture = {};
+  await streamGovernedTurn({
+    binaryPath: '/repo/scripts/yana-rt-wrapper.js',
+    rootDir: '/repo',
+    provider: 'ollama',
+    input: { task: 'hello' },
+    onEvent() {},
+    spawnImpl: fakeSpawn({ capture, stdout: [JSON.stringify({ type: 'completed', message: 'hi' }), ''].join('\n') }),
+  });
+  assert.strictEqual(capture.command, process.execPath);
+  assert.deepStrictEqual(capture.args, [
+    '/repo/scripts/yana-rt-wrapper.js', 'chat', '--headless', '--provider', 'ollama',
+  ]);
+}
+
 async function testFailureAndProviderGate() {
   assert.strictEqual(supportsGovernedProvider('anthropic'), true);
   assert.strictEqual(supportsGovernedProvider('groq'), true);
@@ -169,11 +191,12 @@ function testProductionImageRequiresGovernedRuntime() {
 
 Promise.resolve()
   .then(testArgvAndStreaming)
+  .then(testJsBinaryPathSpawnsViaNode)
   .then(testFailureAndProviderGate)
   .then(testDesktopProviderCoverage)
   .then(testAirLlmProviderContract)
   .then(testRuntimeDiscovery)
   .then(testRuntimeMode)
   .then(testProductionImageRequiresGovernedRuntime)
-  .then(() => console.log('runtime-client: 7/7 PASS'))
+  .then(() => console.log('runtime-client: 8/8 PASS'))
   .catch(error => { console.error(error); process.exit(1); });
