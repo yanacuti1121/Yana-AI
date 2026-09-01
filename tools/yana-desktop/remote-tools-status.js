@@ -4,7 +4,15 @@ const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const DISCORD_CONFIG_PATH = path.join('.yana-ai', 'os', 'discord-config.json');
+// Plain forward-slash literal, NOT path.join('.yana-ai', 'os', ...): that
+// would bake in a platform-native separator (backslash on Windows) into
+// this module-level constant at require() time, before readDiscordConfiguration's
+// injectable `join` param ever runs -- so a test-level join override could
+// never make this deterministic across platforms (the real bug this fixes;
+// see readDiscordConfiguration's own test for the CI failure this caused).
+// Node's path.join happily accepts forward slashes as input on every OS
+// and still normalizes the result correctly, so this is safe in production too.
+const DISCORD_CONFIG_PATH = '.yana-ai/os/discord-config.json';
 const EXTERNAL_TOOLS = [
   { id: 'claude-code', name: 'Claude Code', command: 'claude' },
   { id: 'codex', name: 'Codex', command: 'codex' },
