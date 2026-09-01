@@ -18,6 +18,11 @@ async function main() {
   const config = readDiscordConfiguration('/project', {
     existsSync: (candidate) => candidate === '/project/.yana-ai/os/discord-config.json',
     readFileSync: () => JSON.stringify({ allowed_channel_ids: ['100', '200'], allowed_user_ids: ['300'] }),
+    // Real path.join emits backslashes on Windows, which would never match
+    // the POSIX-style literal above -- inject a portable join so this test
+    // exercises the same fake path on every platform (real bug: this was
+    // missing here, so this exact assertion failed on windows-latest CI).
+    join: (...segments) => segments.join('/'),
   });
   assert.deepEqual(config, { present: true, valid: true, allowedChannels: 2, allowedUsers: 1 });
 
