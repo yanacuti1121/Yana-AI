@@ -149,7 +149,8 @@ def deploy_config_ssh(host, config_content, remote_path, username="root", key_fi
     """Deploy rsyslog configuration to a remote host via SSH."""
     import paramiko
     client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.RejectPolicy())
     connect_kwargs = {"hostname": host, "username": username}
     if key_file:
         connect_kwargs["key_filename"] = key_file
