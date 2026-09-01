@@ -8,61 +8,55 @@
   <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
   <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
   <style>
+    /* Matches new-app's flat, no-glass/no-blur design language (themes.css:
+       "Surfaces are flat ... as of the 2026-08 redesign") using its default
+       Violet Workspace palette — this page loads before any app JS runs
+       (it IS the pre-auth entry point), so it can't import the live,
+       hashed-filename themes.css bundle chunk; these are that theme's
+       token VALUES ported statically rather than a shared stylesheet link.
+       If violet-workspace's palette changes, update here too. */
     :root {
-      --primary: #2f7e6e;
-      --ink: #1d3530; --ink-2: #44615a; --ink-3: #7a948d;
-      --border: rgba(31, 70, 60, .14);
-      --danger: #b3503e;
+      --ink: #f3f5fb; --ink-2: #9ea7bd; --ink-3: #69738a;
+      --primary: #9b6cff;
+      --surface-rgb: 23, 27, 40;
+      --color-bg-subtle: rgba(var(--surface-rgb), 0.72);
+      --border: rgba(243, 245, 251, 0.08);
+      --danger: #fb7185;
+      --good: #31d098;
+      --r-lg: 20px; --r-md: 14px; --r-sm: 9px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
-      margin: 0; display: grid; place-items: center; overflow: hidden;
+      margin: 0; display: grid; place-items: center;
       font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%);
       color: var(--ink);
+      /* Static — no animation, no filter:blur() — same scene gradient
+         violet-workspace itself uses, just not re-rasterized every frame. */
+      background:
+        radial-gradient(1100px 620px at 20% -14%, rgba(155, 108, 255, 0.24), transparent 62%),
+        radial-gradient(900px 560px at 92% 4%, rgba(89, 73, 184, 0.18), transparent 60%),
+        radial-gradient(1000px 680px at 48% 108%, rgba(49, 208, 152, 0.07), transparent 68%),
+        linear-gradient(180deg, #121624 0%, #0e111a 100%);
     }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
 
-    /* ── Aurora backdrop — slow drifting blobs ──
-       filter: blur() forces a recompute of everything under it on every
-       animation frame; at 70px radius, running forever (infinite), this
-       pegged a whole CPU core continuously just sitting on this screen
-       (confirmed: ~100% sustained on the Electron renderer process,
-       reproduced fresh right after launch, unrelated to any new-app
-       code). will-change promotes .aurora/.blob to their own compositor
-       layer so the blur runs on the GPU instead of CPU raster; the
-       radius is also cut from 70px to 32px — still reads as a soft glow,
-       but a much cheaper kernel per frame regardless of which path
-       renders it. */
-    .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(32px); will-change: filter; transform: translateZ(0); }
-    .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; will-change: transform; }
-    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
-    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
-    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }
-    @keyframes drift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(5vw, 6vh) scale(1.12); }
-    }
-    @media (prefers-reduced-motion: reduce) { .blob, .mark-ring::before { animation: none !important; } }
-
-    /* ── Card ── */
+    /* ── Card — flat surface, no backdrop-filter ── */
     .card {
       position: relative; width: min(92vw, 400px); padding: 40px 36px 28px;
-      border-radius: 26px; text-align: center;
-      background: rgba(255,255,255,.58);
-      backdrop-filter: blur(22px) saturate(1.3);
-      -webkit-backdrop-filter: blur(22px) saturate(1.3);
-      border: 1px solid rgba(255,255,255,.7);
-      box-shadow: 0 24px 70px rgba(31,70,60,.16), inset 0 1px 0 rgba(255,255,255,.75);
-      animation: rise .55s cubic-bezier(.21,.8,.32,1) both;
+      border-radius: var(--r-lg); text-align: center;
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+      animation: rise .4s cubic-bezier(.21,.8,.32,1) both;
     }
-    @keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
 
     /* Language toggle — top-right of the card */
     .lang {
       position: absolute; top: 14px; right: 14px;
       display: flex; gap: 2px; padding: 3px;
-      background: rgba(31,70,60,.06); border-radius: 99px;
+      background: rgba(255,255,255,.05); border-radius: 99px;
     }
     .lang button {
       border: none; cursor: pointer; font-family: inherit;
@@ -70,28 +64,15 @@
       padding: 3px 9px; border-radius: 99px; color: var(--ink-3);
       background: transparent; transition: background .15s, color .15s;
     }
-    .lang button.on { background: rgba(255,255,255,.9); color: var(--ink); box-shadow: 0 1px 3px rgba(31,70,60,.12); }
+    .lang button.on { background: rgba(255,255,255,.1); color: var(--ink); }
 
     .mark-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 18px; }
-    .mark-ring {
-      position: relative; width: 72px; height: 72px;
-      display: grid; place-items: center;
-    }
-    .mark-ring::before {
-      content: ''; position: absolute; inset: -3px; border-radius: 24px;
-      background: conic-gradient(from 0deg, color-mix(in oklab, var(--primary) 80%, transparent), transparent 60%, color-mix(in oklab, var(--primary) 80%, transparent));
-      animation: spin-ring 4s linear infinite; opacity: .7;
-    }
-    @keyframes spin-ring { to { transform: rotate(360deg); } }
+    .mark-ring { position: relative; width: 64px; height: 64px; display: grid; place-items: center; }
     .mark {
-      width: 64px; height: 64px; border-radius: 21px;
-      display: grid; place-items: center; position: relative; z-index: 1;
-      background: linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 8px 24px color-mix(in oklab, var(--primary) 30%, transparent);
-    }
-    .mark-label {
-      font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
-      color: var(--ink-3); display: none;
+      width: 64px; height: 64px; border-radius: var(--r-md);
+      display: grid; place-items: center; position: relative;
+      background: var(--primary);
+      box-shadow: 0 8px 24px color-mix(in oklab, var(--primary) 35%, transparent);
     }
 
     h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
@@ -101,13 +82,13 @@
     .field { position: relative; }
     .field input[type="password"], .field input[type="text"] {
       width: 100%; padding: 13px 46px 13px 16px; font-size: 14.5px; font-family: inherit;
-      border-radius: 14px; border: 1px solid var(--border); outline: none;
-      background: rgba(255,255,255,.75); color: var(--ink);
+      border-radius: var(--r-md); border: 1px solid var(--border); outline: none;
+      background: rgba(255,255,255,.04); color: var(--ink);
       transition: border-color .15s, box-shadow .15s;
     }
     .field input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 25%, transparent);
     }
     .field input.bad  { border-color: var(--danger); }
     .field input.good { border-color: var(--primary); }
@@ -117,7 +98,7 @@
     .eye {
       position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
       width: 34px; height: 34px; display: grid; place-items: center;
-      background: none; border: none; cursor: pointer; color: var(--ink-3); border-radius: 10px;
+      background: none; border: none; cursor: pointer; color: var(--ink-3); border-radius: var(--r-sm);
     }
     .eye:hover { color: var(--ink-2); }
     .match {
@@ -130,7 +111,7 @@
     /* Password strength (setup mode) */
     .strength { display: none; margin-top: -4px; }
     .strength.show { display: block; }
-    .strength .track { height: 4px; border-radius: 99px; background: rgba(31,70,60,.1); overflow: hidden; }
+    .strength .track { height: 4px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
     .strength .fill  { height: 100%; width: 0; border-radius: 99px; transition: width .25s, background .25s; }
     .strength .label { font-size: 11px; color: var(--ink-3); margin-top: 4px; min-height: 1.2em; }
 
@@ -146,25 +127,24 @@
     .link:hover { text-decoration: underline; }
 
     .help {
-      display: none; margin-top: 2px; padding: 10px 13px; border-radius: 12px; text-align: left;
-      background: rgba(31,70,60,.05); border: 1px solid var(--border);
+      display: none; margin-top: 2px; padding: 10px 13px; border-radius: var(--r-sm); text-align: left;
+      background: rgba(255,255,255,.03); border: 1px solid var(--border);
       font-size: 12px; color: var(--ink-2); line-height: 1.6;
     }
     .help.show { display: block; }
-    .help code { font-size: 11px; background: rgba(255,255,255,.8); padding: 1px 5px; border-radius: 5px; }
+    .help code { font-size: 11px; background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
 
     button.cta {
       width: 100%; padding: 13px; margin-top: 2px;
       font-size: 14.5px; font-weight: 500; font-family: inherit;
-      border: none; border-radius: 14px; cursor: pointer; color: white;
+      border: none; border-radius: var(--r-md); cursor: pointer; color: white;
       background: var(--primary);
-      box-shadow: 0 8px 22px color-mix(in oklab, var(--primary) 35%, transparent);
-      transition: transform .12s, opacity .15s, box-shadow .2s;
+      transition: opacity .15s;
       display: flex; align-items: center; justify-content: center; gap: 9px;
     }
-    button.cta:hover { box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 45%, transparent); }
+    button.cta:hover { opacity: .92; }
     button.cta:active { transform: translateY(1px); }
-    button.cta:disabled { opacity: .6; cursor: progress; }
+    button.cta:disabled { opacity: .5; cursor: progress; }
 
     .spinner {
       width: 15px; height: 15px; border-radius: 50%; display: none;
@@ -176,7 +156,7 @@
 
     .msg { min-height: 1.35em; margin: 14px 0 0; font-size: 12.5px; }
     .msg.err { color: var(--danger); animation: shake .3s; }
-    .msg.ok  { color: var(--primary); }
+    .msg.ok  { color: var(--good); }
     @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
     .foot {
@@ -184,12 +164,10 @@
       display: flex; align-items: center; justify-content: center; gap: 7px;
       font-size: 11px; color: var(--ink-3); letter-spacing: .05em;
     }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
   </style>
 </head>
 <body>
-  <div class="aurora"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
-
   <main class="card">
     <div class="lang" role="group" aria-label="Language">
       <button type="button" id="lang-vi" class="on">VI</button>
@@ -261,6 +239,18 @@
       </button>
     </form>
 
+    <div class="oauth-divider" id="google-wrap" style="display:none;margin-top:14px">
+      <div class="oauth-sep" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--muted,#8a8a99);font-size:12px">
+        <span style="flex:1;height:1px;background:var(--border,#2a2a35)"></span>
+        <span id="google-or">hoặc</span>
+        <span style="flex:1;height:1px;background:var(--border,#2a2a35)"></span>
+      </div>
+      <button type="button" class="cta" id="google-btn" style="background:#fff;color:#1f1f1f;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3c-7.5 0-13.9 4.3-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 36 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-8l-6.6 5.1C9.9 40.6 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C41.4 36.2 45 30.6 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
+        <span id="google-btn-text">Đăng nhập bằng Google</span>
+      </button>
+    </div>
+
     <p class="msg" id="msg" role="alert"></p>
 
     <div class="foot">
@@ -303,6 +293,10 @@
         sWeak: 'Yếu — thêm ký tự nữa', sFair: 'Tạm ổn', sGood: 'Tốt', sStrong: 'Rất mạnh',
         about: 'Giới thiệu Yana',
         back: 'Quay lại',
+        googleBtn: 'Đăng nhập bằng Google', googleOr: 'hoặc',
+        googleErr: 'Đăng nhập Google thất bại. Thử lại nhé.',
+        googleNotLinked: 'Tài khoản này chưa liên kết Google — đăng nhập bằng mật khẩu trước, rồi vào Settings để liên kết.',
+        googleLinked: 'Đã liên kết tài khoản Google.',
       },
       en: {
         titleLogin: 'Welcome back',   subLogin: 'Sign in to continue with Yana.',
@@ -326,6 +320,10 @@
         sWeak: 'Weak — add more characters', sFair: 'Fair', sGood: 'Good', sStrong: 'Very strong',
         about: 'About Yana',
         back: 'Back',
+        googleBtn: 'Sign in with Google', googleOr: 'or',
+        googleErr: 'Google sign-in failed. Please try again.',
+        googleNotLinked: 'This account is not linked to Google yet — sign in with your password first, then link it from Settings.',
+        googleLinked: 'Google account linked.',
       },
     };
     function t(k) { return T[lang][k]; }
@@ -361,6 +359,8 @@
       $('caps-text').textContent = t('caps');
       $('about-link').textContent = t('about');
       $('back-btn').textContent = '← ' + t('back');
+      $('google-or').textContent = t('googleOr');
+      $('google-btn-text').textContent = t('googleBtn');
       applyMode();
     }
 
@@ -499,11 +499,29 @@
         mode = d.setup ? 'login' : 'setup';
         storedUsername = d.username || null;
         $('submit').disabled = false;
+        $('google-wrap').style.display = d.googleAvailable ? '' : 'none';
         applyLang();
         if (mode === 'login' && storedUsername) $('password').focus();
         else $('username').focus();
       })
       .catch(function () { $('submit').disabled = false; setMsg(t('serverErr')); });
+
+    // Google OAuth round-trip lands back here via a plain redirect (see
+    // auth.js's redirectToLogin/handleGoogleCallback) — read the outcome
+    // from the URL once, then strip it so a reload doesn't re-show it.
+    (function handleGoogleRedirectResult() {
+      var params = new URLSearchParams(location.search);
+      var err = params.get('google_error');
+      var linked = params.get('google');
+      if (err === 'not_linked') setMsg(t('googleNotLinked'));
+      else if (err) setMsg(t('googleErr'));
+      else if (linked === 'linked') setMsg(t('googleLinked'), true);
+      if (err || linked) history.replaceState(null, '', location.pathname);
+    })();
+
+    $('google-btn').addEventListener('click', function () {
+      location.href = '/api/auth/google/start?intent=login';
+    });
 
     function apiError(msg) {
       if (/wrong username/i.test(msg)) return t('wrongCred');

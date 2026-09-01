@@ -12,8 +12,9 @@ const CORE = [
 ];
 
 const SECONDARY = [
-  { id: 'devices', icon: Icons.monitor, label: () => L('Devices', 'Thiết bị', '기기', '设备'), unavailable: true },
+  { id: 'devices', icon: Icons.monitor, label: () => L('Devices', 'Thiết bị', '기기', '设备') },
   { id: 'models', icon: Icons.providers, label: () => L('Models', 'Model', '모델', '模型') },
+  { id: 'remote-tools', icon: Icons.commandRef, label: () => L('Remote & Tools', 'Công cụ từ xa', '원격 도구', '远程工具') },
   { id: 'agents', icon: Icons.agents, label: () => L('Agents', 'Agent', '에이전트', '智能体') },
   { id: 'commands', icon: Icons.commandRef, label: () => L('Commands', 'Lệnh', '명령어', '命令') },
   { id: 'permissions', icon: Icons.safety, label: () => L('Permissions', 'Quyền hạn', '권한', '权限') },

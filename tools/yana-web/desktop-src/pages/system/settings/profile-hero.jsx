@@ -64,6 +64,20 @@ function useAvatar() {
   return { avatarUrl, avatarInputRef, onAvatarChange };
 }
 
+// Reads /api/auth/status once — the same endpoint login.html already uses
+// to decide whether to show its "Sign in with Google" button — so this
+// stays in sync with auth.js without a second source of truth.
+function useGoogleLink() {
+  const [state, setState] = React.useState({ available: false, linked: false });
+  React.useEffect(() => {
+    fetch('/api/auth/status')
+      .then((r) => r.json())
+      .then((d) => setState({ available: !!d.googleAvailable, linked: !!d.googleLinked }))
+      .catch(() => {});
+  }, []);
+  return state;
+}
+
 function useColorMode(t, setTweak) {
   const [colorMode, setColorMode] = React.useState(() => {
     const stored = localStorage.getItem("yana.color-mode");
@@ -110,6 +124,7 @@ export function ProfileHero({ t, setTweak, dash }) {
   const name = useDisplayName(account);
   const avatar = useAvatar();
   const mode = useColorMode(t, setTweak);
+  const google = useGoogleLink();
 
   const memberSince = React.useMemo(() => {
     const key = "yana.member-since";
@@ -213,6 +228,20 @@ export function ProfileHero({ t, setTweak, dash }) {
           <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2 }}>
             {L("Member since", "Thành viên từ", "가입일", "加入于")} {memberSince}
           </div>
+          {google.available && (
+            google.linked ? (
+              <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 4 }}>
+                ✓ {L("Google account linked", "Đã liên kết Google", "Google 계정 연결됨", "已关联 Google 账号")}
+              </div>
+            ) : (
+              <a href="/api/auth/google/start?intent=link" style={{
+                display: "inline-block", marginTop: 4, fontSize: 11.5,
+                color: "var(--primary)", textDecoration: "none", cursor: "pointer",
+              }}>
+                {L("Link Google account", "Liên kết tài khoản Google", "Google 계정 연결", "关联 Google 账号")}
+              </a>
+            )
+          )}
         </div>
 
         <span style={{

@@ -8,6 +8,77 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.3 — Real Google + GitHub connector OAuth — 2026-09-01
+
+Yana Desktop's Connections screen previously only had local permission
+checkboxes for Gmail, Google Calendar, and GitHub — no actual Connect
+button, no OAuth, no way to grant Yana provider access at all. This
+release adds the real lifecycle for all three:
+
+- **Gmail + Google Calendar**: Connect / Reconnect / Disconnect, plus a
+  live Preview that lists real recent messages/events through
+  read-only (`gmail.readonly`, `calendar.readonly`) scopes. Tokens are
+  encrypted and stored on-device only (YanaVault), never on this app's
+  server.
+- **GitHub**: Connect / Disconnect with the least-privilege
+  `notifications` scope, replacing the old `YANA_GITHUB_ACCESS_TOKEN`-
+  from-shell-environment-only path.
+- Fixed a real packaging bug found while verifying this release: the
+  runtime binary staged into prior builds predated the `os host status`
+  CLI subcommand entirely, so the Devices page could never show more
+  than chip name + RAM in a packaged app. Rebuilt and re-staged.
+
+Known limitation: the GitHub connector card's top status badge is still
+driven by the Rust runtime's own credential check, which has no
+visibility into an OAuth token stored client-side — it can say
+"Credential required" even once Connect has succeeded. The new panel on
+that card, not the badge, is the accurate signal. Fixing that fully
+would mean extending Rust's `SecretBackend` to actually store secret
+values, which today is deliberately presence-only by design (see
+`52-secrets-vault-law.md`) — left as a separate, later decision rather
+than folded into this release.
+
+Neither OAuth flow has been exercised against a real, live account yet
+in this repo's own test suite (unit/integration tests only, ~102 new
+assertions) — provider App registration and a real consent-screen
+click-through are required before first use.
+
+---
+
+## macOS packaging fix + notarization status — 2026-08-31
+
+**Yana Desktop's macOS build is not notarized by Apple.** The project does
+not yet have a paid Apple Developer Program membership, which notarization
+requires. Builds are ad-hoc signed (a real, Apple-documented signing
+mechanism, distinct from being fully unsigned) so the app can launch at
+all on Apple Silicon, but Gatekeeper still shows a first-launch warning.
+See [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) for the two official
+Apple-provided ways to open it — no Gatekeeper system setting needs to
+change.
+
+Also fixed in this pass, both real packaging bugs (not notarization-
+related): `tools/yana-desktop/package.json`'s `extraFiles` copy of
+`tools/yana-web/` was pulling in a 427MB local Python virtualenv
+(`tts-sidecar/.venv`) — a machine-specific dev artifact never meant to
+ship, and the cause of a `codesign --verify --deep` failure ("invalid
+destination for symbolic link in bundle"); and the same copy step had no
+`.env*` exclusion, so a real local secret (`GOOGLE_OAUTH_CLIENT_SECRET`)
+would have shipped inside the app bundle. Both are now excluded via the
+`extraFiles` filter.
+
+Added `tools/yana-desktop/scripts/after-sign-mac.js` (an electron-builder
+`afterSign` hook) to properly deep-re-sign the fully-assembled bundle —
+without it, electron-builder skipped signing the added `extraFiles`
+entirely, leaving Electron's own prebuilt ad-hoc signature (which only
+ever covered the bare Electron.app skeleton) mismatched against the
+actual Resources tree — exactly Apple's "code has no resources but
+signature indicates they must be present" error. The hook, and the new
+`build/entitlements.mac.plist` it references, are structured so adding a
+real Developer ID + notarization later is a config change, not a rewrite
+— see the comments at the top of `after-sign-mac.js`.
+
+---
+
 ## Python package v1.4.2 (one-time catch-up) — 2026-08-26
 
 `pyproject.toml` and `src/yana_ai/__init__.py` move from `0.42.5` to

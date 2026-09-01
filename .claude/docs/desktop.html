@@ -506,6 +506,10 @@
     <summary data-i18n="faq_q4">What does "multi-layer security" actually block?</summary>
     <p class="faq-answer" data-i18n="faq_a4">Runtime hooks check sensitive actions before and after execution — including prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.</p>
   </details>
+  <details class="faq-item">
+    <summary data-i18n="faq_q5">I see both an old and a new interface — which one am I in, and how do I switch?</summary>
+    <p class="faq-answer" data-i18n="faq_a5">The new workspace shell is the default and where active development happens. If you land in the legacy interface, open its Settings page → "Interface" card → the button there switches you back to the new workspace. From the new workspace, use the "•••" menu in the top-right header → "Legacy UI" to go the other way. Either choice is remembered the next time you launch the app, so you won't need to switch again until you choose to.</p>
+  </details>
 </section>
 
 <!-- Platforms -->
@@ -522,8 +526,9 @@
       <ol class="install-steps">
         <li data-i18n="mac_step1">Open the .dmg, drag "Yana AI" into Applications.</li>
         <li data-i18n="mac_step2">Open the app from Applications (not from inside the .dmg).</li>
-        <li data-i18n="mac_step3">Not code-signed yet, so macOS will warn "unidentified developer" — right-click the app → Open → Open again.</li>
-        <li data-i18n="mac_step4">If it instead says the app "is damaged" (newer macOS — same warning, just stricter, right-click won't work): open Terminal and run <code>xattr -cr "/Applications/Yana AI.app"</code></li>
+        <li data-i18n="mac_step3">Ad-hoc signed, not notarized by Apple yet, so macOS will warn "unidentified developer" — right-click (Control-click) the app → Open → Open again in the dialog.</li>
+        <li data-i18n="mac_step4">If macOS already refused to open it: go to System Settings → Privacy &amp; Security → scroll to Security → click "Open Anyway" next to Yana AI, then open it again.</li>
+        <li data-i18n="mac_step5">Full walkthrough (and why it's not notarized yet): <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md">docs/MACOS_INSTALL.md</a></li>
       </ol>
     </li>
     <li class="platform-card">
@@ -573,12 +578,15 @@
   <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
   <a href="https://github.com/yanacuti1121/Yana-AI/releases">Releases</a>
   <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/LICENSE">License</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/USER_GUIDE.md" data-i18n="footer_guide">User Guide</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md" data-i18n="footer_macinstall">macOS Install Guide</a>
 </footer>
 
 <script>
 const LANGS = {
   en: {
     nav_home: "Home", nav_cta: "Download",
+    footer_guide: "User Guide", footer_macinstall: "macOS Install Guide",
     badge_new: "Latest release",
     hero_eyebrow: "LOCAL AI · HUMAN-GOVERNED",
     hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
@@ -623,12 +631,15 @@ const LANGS = {
     faq_a3: "Yes. Connect Ollama and run an open-weight model (Llama, Qwen, Mistral) fully offline, with no key and no cost. Cloud providers are optional, not required.",
     faq_q4: "What does \"multi-layer security\" actually block?",
     faq_a4: "Runtime hooks check sensitive actions before and after execution — including prompt injection attempts, destructive shell commands, and secrets accidentally leaking into output. It's enforced code, not a policy document.",
+    faq_q5: "I see both an old and a new interface — which one am I in, and how do I switch?",
+    faq_a5: "The new workspace shell is the default and where active development happens. If you land in the legacy interface, open its Settings page → \"Interface\" card → the button there switches you back to the new workspace. From the new workspace, use the \"•••\" menu in the top-right header → \"Legacy UI\" to go the other way. Either choice is remembered the next time you launch the app, so you won't need to switch again until you choose to.",
     plat_title: "Available on every platform",
     plat_sub: "v1.4.1 for every platform — download and run instantly, no extra setup needed.",
     mac_step1: "Open the .dmg, drag \"Yana AI\" into Applications.",
     mac_step2: "Open the app from Applications (not from inside the .dmg).",
-    mac_step3: "Not code-signed yet, so macOS will warn \"unidentified developer\" — right-click the app → Open → Open again.",
-    mac_step4: "If it instead says the app \"is damaged\" (newer macOS — same warning, just stricter, right-click won't work): open Terminal and run <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    mac_step3: "Ad-hoc signed, not notarized by Apple yet, so macOS will warn \"unidentified developer\" — right-click (Control-click) the app → Open → Open again in the dialog.",
+    mac_step4: "If macOS already refused to open it: go to System Settings → Privacy &amp; Security → scroll to Security → click \"Open Anyway\" next to Yana AI, then open it again.",
+    mac_step5: "Full walkthrough (and why it's not notarized yet): <a href=\"https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md\">docs/MACOS_INSTALL.md</a>",
     win_step1: "Run the downloaded .exe.",
     win_step2: "Not code-signed yet, so Windows SmartScreen will warn — click \"More info\" → \"Run anyway\".",
     win_step3: "Follow the installer, then launch Yana AI from the Start menu.",
@@ -643,6 +654,7 @@ const LANGS = {
   },
   vi: {
     nav_home: "Trang chủ", nav_cta: "Tải về",
+    footer_guide: "Hướng dẫn sử dụng", footer_macinstall: "Hướng dẫn cài macOS",
     badge_new: "Mới nhất",
     hero_eyebrow: "AI LOCAL · CON NGƯỜI QUẢN TRỊ",
     hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
@@ -691,8 +703,11 @@ const LANGS = {
     plat_sub: "v1.4.1 cho mọi nền tảng — tải về và dùng ngay, không cần cài thêm gì.",
     mac_step1: "Mở file .dmg, kéo \"Yana AI\" vào Applications.",
     mac_step2: "Mở app từ Applications (không mở thẳng từ trong .dmg).",
-    mac_step3: "Chưa ký code nên macOS sẽ báo \"nhà phát triển chưa xác định\" — chuột phải vào app → Open → Open lần nữa.",
-    mac_step4: "Nếu báo app \"bị hỏng\" (macOS mới — vẫn là cảnh báo trên, chỉ chặt hơn, chuột phải không ăn thua): mở Terminal, chạy <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    faq_q5: "Em thấy vừa có giao diện cũ vừa có giao diện mới — làm sao biết đang ở đâu, và đổi qua lại thế nào?",
+    faq_a5: "Giao diện mới (new workspace) là mặc định, nơi tính năng mới được phát triển. Nếu đang ở giao diện cũ: vào Settings → thẻ \"Giao diện\" → bấm nút ở đó để quay lại giao diện mới. Từ giao diện mới muốn quay lại giao diện cũ: bấm menu \"•••\" ở góc trên phải header → \"Giao diện cũ\". Lựa chọn được ghi nhớ cho lần mở app tiếp theo, không cần đổi lại mỗi lần.",
+    mac_step3: "Chỉ ký ad-hoc, chưa được Apple notarize, nên macOS sẽ báo \"nhà phát triển chưa xác định\" — chuột phải (Control-click) vào app → Open → bấm Open lần nữa trong hộp thoại.",
+    mac_step4: "Nếu macOS đã từ chối mở: vào System Settings → Privacy &amp; Security → cuộn xuống mục Security → bấm \"Open Anyway\" cạnh Yana AI, rồi mở lại app.",
+    mac_step5: "Hướng dẫn đầy đủ (và lý do chưa notarize): <a href=\"https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md\">docs/MACOS_INSTALL.md</a>",
     win_step1: "Chạy file .exe vừa tải.",
     win_step2: "Chưa ký code nên Windows SmartScreen sẽ cảnh báo — bấm \"More info\" → \"Run anyway\".",
     win_step3: "Làm theo trình cài đặt, xong mở Yana AI từ Start menu.",
@@ -707,6 +722,7 @@ const LANGS = {
   },
   ko: {
     nav_home: "홈", nav_cta: "다운로드",
+    footer_guide: "사용 가이드", footer_macinstall: "macOS 설치 가이드",
     badge_new: "최신 릴리즈",
     hero_eyebrow: "로컬 AI · 인간 거버넌스",
     hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
@@ -755,8 +771,11 @@ const LANGS = {
     plat_sub: "모든 플랫폼 v1.4.1 — 다운로드 후 즉시 실행, 추가 설정 불필요.",
     mac_step1: ".dmg 파일을 열고 \"Yana AI\"를 Applications로 드래그하세요.",
     mac_step2: "Applications에서 앱을 여세요 (.dmg 안에서 바로 열지 마세요).",
-    mac_step3: "아직 코드 서명이 되어 있지 않아 macOS가 \"확인되지 않은 개발자\" 경고를 표시합니다 — 앱을 마우스 오른쪽 버튼으로 클릭 → 열기 → 다시 열기.",
-    mac_step4: "대신 앱이 \"손상되었습니다\"라고 표시되면(최신 macOS — 같은 경고가 더 엄격해진 것, 마우스 오른쪽 클릭은 소용없음): 터미널을 열고 실행하세요 <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    faq_q5: "예전 화면과 새 화면이 둘 다 보이는데, 지금 어디에 있는 건가요? 어떻게 전환하나요?",
+    faq_a5: "새 워크스페이스가 기본값이며 실제 개발이 이루어지는 곳입니다. 예전(레거시) 화면에 있다면: Settings → \"인터페이스\" 카드 → 버튼을 눌러 새 워크스페이스로 돌아가세요. 새 워크스페이스에서 예전 화면으로 가려면: 오른쪽 상단 헤더의 \"•••\" 메뉴 → \"이전 UI\"를 누르세요. 선택은 다음 실행 시에도 기억되므로 매번 다시 전환할 필요는 없습니다.",
+    mac_step3: "Ad-hoc 서명만 되어 있고 아직 Apple 공증(notarize)을 받지 않아 macOS가 \"확인되지 않은 개발자\" 경고를 표시합니다 — 앱을 마우스 오른쪽 버튼(Control-클릭)으로 클릭 → 열기 → 대화상자에서 다시 열기.",
+    mac_step4: "macOS가 이미 실행을 거부했다면: 시스템 설정 → 개인정보 보호 및 보안 → Security 섹션으로 스크롤 → Yana AI 옆의 \"그래도 열기\" 클릭 후 다시 열기.",
+    mac_step5: "전체 가이드(아직 공증되지 않은 이유 포함): <a href=\"https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md\">docs/MACOS_INSTALL.md</a>",
     win_step1: "다운로드한 .exe를 실행하세요.",
     win_step2: "아직 코드 서명이 되어 있지 않아 Windows SmartScreen이 경고를 표시합니다 — \"추가 정보\" → \"실행\"을 클릭하세요.",
     win_step3: "설치 마법사를 따라간 뒤 시작 메뉴에서 Yana AI를 실행하세요.",
@@ -771,6 +790,7 @@ const LANGS = {
   },
   zh: {
     nav_home: "首页", nav_cta: "下载",
+    footer_guide: "使用指南", footer_macinstall: "macOS 安装指南",
     badge_new: "最新版本",
     hero_eyebrow: "本地 AI · 人类治理",
     hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
@@ -819,8 +839,11 @@ const LANGS = {
     plat_sub: "所有平台均为 v1.4.1 — 下载即用，无需额外配置。",
     mac_step1: "打开 .dmg，将 \"Yana AI\" 拖到 Applications 中。",
     mac_step2: "从 Applications 打开应用（不要直接从 .dmg 内打开）。",
-    mac_step3: "尚未进行代码签名，macOS 会提示“无法验证开发者” — 右键点击该应用 → 打开 → 再次点击打开。",
-    mac_step4: "如果提示应用“已损坏”（较新版本 macOS — 同样的警告，只是更严格，右键无效）：打开终端并运行 <code>xattr -cr \"/Applications/Yana AI.app\"</code>",
+    faq_q5: "我同时看到新旧两种界面，我现在在哪一个里？怎么切换？",
+    faq_a5: "新版工作区是默认界面，也是当前功能开发的重点。如果你停留在旧版界面：打开 Settings → “Interface” 卡片 → 点击其中的按钮即可切回新版工作区。若要从新版工作区切回旧版：点击右上角 header 的 “•••” 菜单 → “Legacy UI”。你的选择会被记住，下次启动无需重复切换。",
+    mac_step3: "目前仅为 ad-hoc 签名，尚未通过 Apple 公证（notarize），macOS 会提示“无法验证开发者” — 右键（或 Control-点击）该应用 → 打开 → 在弹窗中再次点击打开。",
+    mac_step4: "如果 macOS 已经拒绝打开：前往系统设置 → 隐私与安全性 → 滚动到“安全性”部分 → 点击 Yana AI 旁边的“仍要打开”，然后再次打开应用。",
+    mac_step5: "完整说明（以及尚未公证的原因）：<a href=\"https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md\">docs/MACOS_INSTALL.md</a>",
     win_step1: "运行下载的 .exe 文件。",
     win_step2: "尚未进行代码签名，Windows SmartScreen 会发出警告 — 点击“更多信息” → “仍要运行”。",
     win_step3: "按照安装向导完成安装，然后从开始菜单启动 Yana AI。",

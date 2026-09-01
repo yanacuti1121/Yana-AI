@@ -9,6 +9,7 @@
 
 const crypto = require('crypto');
 const fs     = require('fs');
+const https  = require('https');
 const path   = require('path');
 const { writeJsonAtomic } = require('./lib/atomic-json');
 
@@ -58,7 +59,7 @@ function verifyPassword(password, rec) {
 
 function isSetUp() {
   const rec = loadJson(AUTH_FILE);
-  return !!(rec && rec.salt && rec.hash);
+  return !!(rec && ((rec.salt && rec.hash) || rec.google));
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
@@ -159,6 +160,8 @@ function handleStatus(req, res) {
     // Account name is shown on the login screen (single-user local app) —
     // it is display data, not a secret.
     username: (rec && rec.username) || null,
+    googleAvailable: googleConfigured(),
+    googleLinked: !!(rec && rec.google),
   });
 }
 
@@ -212,6 +215,11 @@ function handleLogin(req, res, body) {
   }
   const rec = loadJson(AUTH_FILE);
   if (!rec) { json(res, 409, { error: 'Not set up yet' }); return; }
+  // An account created via "Sign in with Google" (see below) has no
+  // salt/hash — verifyPassword would throw on it, not just fail cleanly.
+  if (!rec.salt || !rec.hash) {
+    json(res, 401, { error: 'This account has no password set — use Sign in with Google' }); return;
+  }
   const password = body && body.password;
   // Accounts created before usernames existed have no rec.username — skip the
   // name check for them so the owner is never locked out by this upgrade.
@@ -239,4 +247,206 @@ function handleLogout(req, res) {
   json(res, 200, { ok: true });
 }
 
-module.exports = { isAuthed, isSetUp, handleStatus, handleSetup, handleLogin, handleLogout };
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+// A second, optional way to sign in to the SAME single local account — this
+// is still a single-user app, not multi-tenant. GOOGLE_OAUTH_CLIENT_ID/
+// GOOGLE_OAUTH_CLIENT_SECRET come from tools/yana-web/.env.local (gitignored,
+// never committed — rule 66/52). Neither configured -> googleConfigured() is
+// false, the frontend simply never shows the button, every path above this
+// comment is unaffected.
+const GOOGLE_CLIENT_ID     = process.env.GOOGLE_OAUTH_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET || '';
+const OAUTH_STATE_TTL_MS   = 5 * 60_000; // long enough for the Google redirect round-trip, no longer
+
+function googleConfigured() {
+  return !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+}
+
+// State is tracked server-side (nonce -> {intent, expiresAt}), NOT in a
+// cookie. Reason: main.js's guardNavigation/setWindowOpenHandler sends
+// external URLs (accounts.google.com included) to the user's SYSTEM
+// browser via shell.openExternal, not Electron's own webContents — by the
+// time Google redirects back to our /callback, the request can land in a
+// different browser/process than the one that hit /start, with a
+// completely separate cookie jar (confirmed: cookie=null in production use,
+// see the console.warn below). The nonce's own unguessability + one-time
+// consumption is the actual CSRF protection; nothing about it depends on
+// which browser makes either request.
+const pendingOAuthStates = new Map();
+
+function pruneOAuthStates() {
+  const now = Date.now();
+  for (const [nonce, rec] of pendingOAuthStates) {
+    if (now > rec.expiresAt) pendingOAuthStates.delete(nonce);
+  }
+}
+
+// "Desktop app" OAuth client type (NOT "Web application") accepts any
+// loopback port per Google's own RFC 8252 support — required here because
+// this server picks a fresh port on every launch (see server.js's PORT
+// resolution); a fixed pre-registered redirect_uri would break on restart.
+function googleRedirectUri(req) {
+  const host = req.headers.host || '127.0.0.1';
+  return `http://${host}/api/auth/google/callback`;
+}
+
+function redirectToLogin(res, reason) {
+  res.writeHead(302, { Location: `/login.html?google_error=${encodeURIComponent(reason)}` });
+  res.end();
+}
+
+function httpsJson(options, body) {
+  return new Promise((resolve, reject) => {
+    const upReq = https.request(options, (upRes) => {
+      let data = '';
+      upRes.on('data', (c) => { data += c; });
+      upRes.on('end', () => {
+        try { resolve({ status: upRes.statusCode, body: JSON.parse(data) }); }
+        catch (err) { reject(err); }
+      });
+    });
+    upReq.on('error', reject);
+    if (body) upReq.write(body);
+    upReq.end();
+  });
+}
+
+async function exchangeGoogleCode(code, redirectUri) {
+  const body = new URLSearchParams({
+    code, client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET,
+    redirect_uri: redirectUri, grant_type: 'authorization_code',
+  }).toString();
+  const { status, body: tokenRes } = await httpsJson({
+    hostname: 'oauth2.googleapis.com', path: '/token', method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded', 'content-length': Buffer.byteLength(body) },
+  }, body);
+  if (status !== 200 || !tokenRes.access_token) {
+    // tokenRes.error / error_description are Google's own diagnostic text
+    // (e.g. "redirect_uri_mismatch", "invalid_client") — never the secret,
+    // safe to log and surface in the thrown message for the callback's
+    // catch block to print.
+    throw new Error(`token_exchange_failed status=${status} error=${tokenRes.error || '?'} desc=${tokenRes.error_description || '?'}`);
+  }
+  return tokenRes.access_token;
+}
+
+async function fetchGoogleProfile(accessToken) {
+  const { status, body: profile } = await httpsJson({
+    hostname: 'www.googleapis.com', path: '/oauth2/v3/userinfo', method: 'GET',
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  if (status !== 200 || !profile.sub) throw new Error(`userinfo_failed status=${status} error=${profile.error || '?'}`);
+  if (!profile.email_verified) throw new Error('email_not_verified');
+  return { sub: profile.sub, email: profile.email };
+}
+
+// GET /api/auth/google/start?intent=login|link
+function handleGoogleStart(req, res) {
+  if (!googleConfigured()) { json(res, 404, { error: 'Google sign-in is not configured' }); return; }
+  let intent = 'login';
+  try {
+    const q = new URL(req.url, 'http://internal').searchParams;
+    if (q.get('intent') === 'link') intent = 'link';
+  } catch (_) {}
+  // Linking an existing account to a Google identity must only ever start
+  // from an already-authenticated request — checked here, at /start, since
+  // /callback has no reliable way to know which browser/session initiated
+  // this (see pendingOAuthStates' comment above).
+  if (intent === 'link' && !isAuthed(req)) {
+    json(res, 401, { error: 'Sign in first to link a Google account' }); return;
+  }
+
+  pruneOAuthStates();
+  const state = crypto.randomBytes(24).toString('hex');
+  pendingOAuthStates.set(state, { intent, expiresAt: Date.now() + OAUTH_STATE_TTL_MS });
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: googleRedirectUri(req),
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    prompt: 'select_account',
+  });
+  res.writeHead(302, { Location: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` });
+  res.end();
+}
+
+// GET /api/auth/google/callback
+async function handleGoogleCallback(req, res) {
+  if (!googleConfigured()) { redirectToLogin(res, 'unavailable'); return; }
+
+  let query;
+  try { query = new URL(req.url, 'http://internal').searchParams; }
+  catch (_) { redirectToLogin(res, 'bad_request'); return; }
+
+  pruneOAuthStates();
+  const stateParam = query.get('state');
+  const pending = stateParam && pendingOAuthStates.get(stateParam);
+  if (!pending) {
+    console.warn('[auth/google] unknown or expired state param=%s', stateParam);
+    redirectToLogin(res, 'state_mismatch'); return;
+  }
+  pendingOAuthStates.delete(stateParam); // one-time use
+  const intent = pending.intent;
+  const code = query.get('code');
+  if (!code) { redirectToLogin(res, 'denied'); return; }
+
+  let profile;
+  try {
+    const accessToken = await exchangeGoogleCode(code, googleRedirectUri(req));
+    profile = await fetchGoogleProfile(accessToken);
+  } catch (err) {
+    console.error('[auth/google] callback failed:', err.message);
+    redirectToLogin(res, 'google_failed'); return;
+  }
+
+  const rec = loadJson(AUTH_FILE);
+  const googleField = { sub: profile.sub, email: profile.email, linkedAt: new Date().toISOString() };
+
+  if (intent === 'link') {
+    if (!rec) { redirectToLogin(res, 'not_set_up'); return; }
+    saveJson(AUTH_FILE, { ...rec, google: googleField });
+    res.writeHead(302, { Location: '/?google=linked' }); res.end();
+    return;
+  }
+
+  // intent === 'login'
+  let finalRec = rec;
+  if (!rec) {
+    // First run via Google — provision the single local account with no
+    // password. Same EEXIST race guard as handleSetup: if another request
+    // (password setup, or a second concurrent Google login) won the race,
+    // fall through to the "does the saved record match" check below instead
+    // of overwriting whatever they just created.
+    try {
+      saveJsonExclusive(AUTH_FILE, {
+        username: profile.email,
+        google: googleField,
+        created: new Date().toISOString(),
+      });
+    } catch (err) {
+      if (err.code !== 'EEXIST') throw err;
+    }
+    finalRec = loadJson(AUTH_FILE);
+  } else if (!rec.google && rec.username &&
+             normalizeUsername(rec.username).toLowerCase() === normalizeUsername(profile.email).toLowerCase()) {
+    // Auto-link on first Google sign-in when the verified Google email
+    // matches the account's own username — anh explicitly chose this
+    // trade-off (single-user local app; the manual "link from Settings"
+    // step below is still required for a username that does NOT match).
+    finalRec = { ...rec, google: googleField };
+    saveJson(AUTH_FILE, finalRec);
+  }
+
+  if (!finalRec || !finalRec.google || finalRec.google.sub !== profile.sub) {
+    console.warn('[auth/google] login rejected: existing account not linked to this Google identity (email=%s)', profile.email);
+    redirectToLogin(res, rec ? 'not_linked' : 'setup_race'); return;
+  }
+  setCookie(req, res, createSession(false));
+  res.writeHead(302, { Location: '/' }); res.end();
+}
+
+module.exports = {
+  isAuthed, isSetUp, handleStatus, handleSetup, handleLogin, handleLogout,
+  googleConfigured, handleGoogleStart, handleGoogleCallback,
+};

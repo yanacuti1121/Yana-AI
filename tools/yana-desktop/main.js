@@ -29,6 +29,8 @@ const {
   listLeases: listLeasesImpl, revokeLease: revokeLeaseImpl,
 } = require('./permission-actions');
 const { readGovernanceStatus: readGovernanceStatusImpl } = require('./governance-status');
+const { readHostStatus: readHostStatusImpl } = require('./host-status');
+const { readRemoteToolsStatus: readRemoteToolsStatusImpl } = require('./remote-tools-status');
 const { prepareCodeServerLaunch } = require('./code-server-launch');
 const {
   configureConnector: configureConnectorImpl,
@@ -601,6 +603,14 @@ function governanceStatus() {
   return readGovernanceStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
 }
 
+function hostStatus() {
+  return readHostStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
+function remoteToolsStatus() {
+  return readRemoteToolsStatusImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+}
+
 function connectorRuntimeOptions() {
   return { repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') };
 }
@@ -1168,6 +1178,10 @@ handleTrusted('yana:permission-revoke-lease', (event, id) => {
 
 handleTrusted('yana:governance-status', () => governanceStatus());
 
+handleTrusted('yana:host-status', () => hostStatus());
+
+handleTrusted('yana:remote-tools-status', () => remoteToolsStatus());
+
 handleTrusted('yana:connector-list', () => listConnectors());
 
 handleTrusted('yana:connector-configure', (event, name, scopes) => {
@@ -1197,7 +1211,15 @@ handleTrusted('yana:connector-sync', (event, name, options = {}) => {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50 || typeof dryRun !== 'boolean') {
     return { ok: false, error: 'connector sync options are invalid' };
   }
-  return syncConnector(name, { limit, dryRun });
+  // Only threaded through for connectors whose Rust-side sync needs a
+  // credential via environment variable (github today — see
+  // connector-registry.js's SYNC_ENV_VAR_BY_CONNECTOR); ignored for every
+  // other connector, never logged, never written to disk.
+  if (options.accessToken !== undefined
+      && (typeof options.accessToken !== 'string' || options.accessToken.length === 0 || options.accessToken.length > 4096)) {
+    return { ok: false, error: 'connector sync options are invalid' };
+  }
+  return syncConnector(name, { limit, dryRun, accessToken: options.accessToken });
 });
 
 handleTrusted('yana:workspace-resources', (event, connector) => {

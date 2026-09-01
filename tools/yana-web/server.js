@@ -6,6 +6,25 @@ const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
 const url   = require('url');
+
+// Minimal .env.local loader — local-only secrets (currently: Google OAuth
+// client id/secret, see auth.js), never committed (see .gitignore). A tiny
+// hand-rolled parser instead of the `dotenv` package: one file, no new
+// dependency to vet. Real environment variables already set always win.
+(function loadEnvLocal() {
+  const envPath = path.join(__dirname, '.env.local');
+  let raw;
+  try { raw = fs.readFileSync(envPath, 'utf8'); } catch (_) { return; }
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim();
+    if (key && !(key in process.env)) process.env[key] = value;
+  }
+})();
 const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
@@ -54,6 +73,9 @@ const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = 
 // cost log`). See logRealUsageToLedger() near handleApiChat.
 const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js');
 const auth     = require('./auth');
+const connectorOAuth = require('./connector-oauth');
+const connectorGoogleAdapters = require('./connector-google-adapters');
+const githubOAuth = require('./github-oauth');
 const missions = require('./missions');
 const memory   = require('./memory');
 const robot    = require('./robot');
@@ -876,6 +898,66 @@ function recordUsage(provider, chars, ms) {
   u.totalMs += ms;
   u.lastTs   = Date.now();
   try { _persistDailyUsage(provider, chars); } catch (_) {}
+}
+
+// POST /api/connectors/gmail/messages  { accessToken, refreshToken?, limit? }
+// POST /api/connectors/calendar/events { accessToken, refreshToken?, limit? }
+//
+// The renderer sends the token per-request (decrypted from YanaVault just
+// before the call, same pattern /api/chat already uses for a provider
+// apiKey) — this server never stores it. On a 401 (expired access token),
+// if a refreshToken was also sent, this transparently refreshes once and
+// retries; the response's `refreshedToken` field tells the renderer to
+// fold the new access token back into YanaVault. If refresh itself fails
+// (revoked/expired refresh token), the real error is returned rather than
+// silently reporting empty results — the UI must show "Expired —
+// reconnect", never a fake empty-but-successful state.
+async function connectorFetchWithRefresh(fetchFn, body) {
+  const accessToken = typeof body.accessToken === 'string' ? body.accessToken : '';
+  const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : '';
+  const limit = Number.isInteger(body.limit) ? body.limit : undefined;
+  if (!accessToken) return { httpStatus: 400, payload: { ok: false, error: 'Missing accessToken' } };
+
+  let result = await fetchFn({ accessToken, limit });
+  if (result.ok) return { httpStatus: 200, payload: result };
+  if (!result.expired) return { httpStatus: 200, payload: result };
+  if (!refreshToken) return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+
+  let refreshed;
+  try {
+    refreshed = await connectorOAuth.refreshAccessToken(refreshToken);
+  } catch (err) {
+    console.error('[connector-adapter] refresh failed:', err.message);
+    return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+  }
+  result = await fetchFn({ accessToken: refreshed.access_token, limit });
+  if (!result.ok) return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+  return {
+    httpStatus: 200,
+    payload: {
+      ...result,
+      refreshedToken: {
+        accessToken: refreshed.access_token,
+        expiresAt: Date.now() + (Number(refreshed.expires_in) || 3600) * 1000,
+      },
+    },
+  };
+}
+
+async function handleConnectorGmailMessages(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchGmailMessages(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorCalendarEvents(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchCalendarEvents(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
 }
 
 // GET /api/usage — per-provider session stats (tokens are a chars/4 estimate)
@@ -2072,6 +2154,15 @@ async function handleAuthRoutes(req, res, pathname, method) {
     const body = await readJsonBody(req, res); if (body) auth.handleLogin(req, res, body); return true;
   }
   if (method === 'POST' && pathname === '/api/auth/logout') { auth.handleLogout(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/start')    { auth.handleGoogleStart(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/callback') { await auth.handleGoogleCallback(req, res); return true; }
+  // Connector OAuth (Gmail/Calendar) callback — same reasoning as the login
+  // callback above: it lands in the user's system browser, not necessarily
+  // an authenticated request, so it cannot live behind the isAuthed gate.
+  // See connector-oauth.js's own header comment for why this is a wholly
+  // separate flow from the login OAuth right above it.
+  if (method === 'GET'  && pathname === '/api/connectors/google/callback') { await connectorOAuth.handleConnectorGoogleCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/github/callback') { await githubOAuth.handleGithubCallback(req, res); return true; }
   return false;
 }
 
@@ -2139,6 +2230,37 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/tts/status')     { handleTtsStatus(req, res);       return; }
   if (method === 'POST' && pathname === '/api/tts')             { await handleTts(req, res);       return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
+  // Connector OAuth (Gmail/Calendar) — same-origin renderer calls, already
+  // covered by this section's auth.isAuthed(req) gate above; see
+  // connector-oauth.js's own comments for why the callback route is
+  // instead wired as public, above with the login routes.
+  if (method === 'GET'  && pathname === '/api/connectors/google/start') { connectorOAuth.handleConnectorGoogleStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/google/pending/')) {
+    connectorOAuth.handleConnectorGooglePending(req, res, pathname.slice('/api/connectors/google/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/google/refresh') {
+    const body = await readJsonBody(req, res); if (body) await connectorOAuth.handleConnectorGoogleRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/google/revoke') {
+    const body = await readJsonBody(req, res); if (body) await connectorOAuth.handleConnectorGoogleRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/gmail/messages') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorGmailMessages(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/calendar/events') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorCalendarEvents(req, res, body); return;
+  }
+  // Connector OAuth (GitHub) — see github-oauth.js's header comment for
+  // why this has no /refresh route (classic OAuth App tokens don't expire).
+  if (method === 'GET'  && pathname === '/api/connectors/github/start') { githubOAuth.handleGithubStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/github/pending/')) {
+    githubOAuth.handleGithubPending(req, res, pathname.slice('/api/connectors/github/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/github/revoke') {
+    const body = await readJsonBody(req, res); if (body) await githubOAuth.handleGithubRevoke(req, res, body); return;
+  }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
   if (method === 'GET'  && pathname === '/api/memories')  { handleApiMemories(req, res);  return; }

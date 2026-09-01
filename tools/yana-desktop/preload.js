@@ -51,6 +51,8 @@ contextBridge.exposeInMainWorld('yana', {
   listLeases: () => ipcRenderer.invoke('yana:permission-list-leases'),
   revokeLease: (id) => ipcRenderer.invoke('yana:permission-revoke-lease', id),
   governanceStatus: () => ipcRenderer.invoke('yana:governance-status'),
+  hostStatus: () => ipcRenderer.invoke('yana:host-status'),
+  remoteToolsStatus: () => ipcRenderer.invoke('yana:remote-tools-status'),
   connectorList: () => ipcRenderer.invoke('yana:connector-list'),
   connectorConfigure: (name, scopes) => ipcRenderer.invoke('yana:connector-configure', name, scopes),
   connectorDisconnect: (name) => ipcRenderer.invoke('yana:connector-disconnect', name),

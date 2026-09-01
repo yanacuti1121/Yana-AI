@@ -793,7 +793,7 @@ Yana AI có 3 trục version độc lập — có chủ đích, không phải l�
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.2** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.3** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -887,6 +887,14 @@ yana-ai badge . --json    # output dạng máy đọc được
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+
+> **Lưu ý macOS:** bản `.dmg`/`.zip` của Yana Desktop hiện **chỉ ký ad-hoc,
+> chưa được Apple notarize** — dự án chưa có Apple Developer Program (gói
+> trả phí). Gatekeeper sẽ cảnh báo ở lần mở đầu tiên; xem
+> [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) để biết 2 cách mở chính
+> thức từ Apple (không cần tắt Gatekeeper). Còn cách dùng app (các mục
+> trong sidebar, cách chuyển đổi giữa giao diện mới/cũ, tính năng chat...)
+> thì xem [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ---
 

@@ -826,7 +826,7 @@ Yana AI has three independently versioned release axes — deliberate, not drift
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.2** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.3** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -956,6 +956,15 @@ yana-ai badge . --json    # machine-readable output
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
 | Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+
+> **macOS note:** the Yana Desktop `.dmg`/`.zip` is currently **ad-hoc
+> signed but not notarized by Apple** — this project doesn't have an Apple
+> Developer Program membership yet. Gatekeeper will warn on first launch;
+> see [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) for the two official
+> Apple-provided ways to open it (no need to disable Gatekeeper). For
+> everything else — the app's sections, switching between the new
+> workspace and the legacy interface, chat features — see
+> [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ---
 
