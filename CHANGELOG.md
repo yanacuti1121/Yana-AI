@@ -8,6 +8,45 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.5 — Fix broken packaged app: local server never started — 2026-09-01
+
+**Critical.** Every packaged desktop build (confirmed on v1.4.4, and this
+bug predates today so v1.4.3 and earlier are very likely affected too)
+was completely non-functional: the app opened with zero windows and no
+error dialog, running indefinitely with the local server dead.
+
+Root cause, found live: `tools/yana-desktop/package.json`'s `extraFiles`
+entry that stages the server (`../yana-web`) into
+`Resources/server` had `"!node_modules/**"` in its filter, excluding the
+server's own runtime dependencies from every packaged build. Launching
+the packaged app directly from a terminal showed the real error:
+
+```
+Error: Cannot find module 'ws'
+Require stack:
+- .../Resources/server/robot.js
+- .../Resources/server/server.js
+```
+
+`main.js`'s `waitForServer()` has no visibility into *why* the server
+never reports ready — it just polls for up to 30s, then gives up. That
+30s-then-nothing-visible behavior is what a live user report described
+as the app going blank and closing.
+
+Fixed by removing the `node_modules` exclusion so the server's actual
+runtime dependencies (`ws`, etc. — already installed by CI's own `npm ci`
+in `tools/yana-web` before packaging) ship with the app. Added a
+regression test (`_test_package_contract.js`) asserting this filter never
+excludes `node_modules` again.
+
+Verified live on this exact machine: launched the previously-broken
+v1.4.4 packaged app directly from a terminal to capture the real
+`MODULE_NOT_FOUND` error (not visible from a normal double-click launch),
+confirmed the root cause, applied the fix, and re-ran the full
+`npm run test:unit` suite (all passing) before this release.
+
+---
+
 ## v1.4.4 — Fix launch crash from a startup race — 2026-09-01
 
 Fixes a real crash reported live on a v1.4.3 install: `TypeError:
