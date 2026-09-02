@@ -17,6 +17,7 @@ const { httpsJson } = require('./lib/https-json');
 
 const GMAIL_MESSAGE_LIMIT_MAX = 25;
 const CALENDAR_EVENT_LIMIT_MAX = 25;
+const DRIVE_FILE_LIMIT_MAX = 25;
 
 function authedGet(hostname, path, accessToken, requestJson) {
   return requestJson({
@@ -89,4 +90,34 @@ async function fetchCalendarEvents({ accessToken, limit = 10, requestJson = http
   return { ok: true, events };
 }
 
-module.exports = { fetchGmailMessages, fetchCalendarEvents };
+// Drive file discovery only — read-only listing (drive.readonly scope,
+// see connector-oauth.js's CONNECTOR_SCOPES), matching connector.rs's
+// own "Drive document discovery" description for this connector. Trashed
+// items are excluded server-side by the query itself, not filtered
+// client-side, so a bounded maxResults page can't come back empty just
+// because every result on that page happened to be trashed.
+async function fetchDriveFiles({ accessToken, limit = 10, requestJson = httpsJson }) {
+  const boundedLimit = Math.max(1, Math.min(Number(limit) || 10, DRIVE_FILE_LIMIT_MAX));
+  const params = new URLSearchParams({
+    pageSize: String(boundedLimit),
+    orderBy: 'modifiedTime desc',
+    q: 'trashed = false',
+    fields: 'files(id,name,mimeType,modifiedTime,webViewLink,iconLink)',
+  });
+  const result = await authedGet('www.googleapis.com', `/drive/v3/files?${params.toString()}`, accessToken, requestJson);
+  if (result.status === 401) return { ok: false, expired: true };
+  if (result.status !== 200) return { ok: false, error: `drive_list_failed status=${result.status}` };
+
+  const files = Array.isArray(result.body.files) ? result.body.files.map((item) => ({
+    id: item.id,
+    name: item.name || '(untitled)',
+    mimeType: item.mimeType || '',
+    modifiedTime: item.modifiedTime || null,
+    webViewLink: item.webViewLink || '',
+    iconLink: item.iconLink || '',
+  })) : [];
+
+  return { ok: true, files };
+}
+
+module.exports = { fetchGmailMessages, fetchCalendarEvents, fetchDriveFiles };

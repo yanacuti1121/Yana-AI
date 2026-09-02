@@ -7,7 +7,7 @@
 // assume — that only a live, logged-in run can confirm.
 // Run: node _test_connector_google_adapters.js   (exit 0 = pass, 1 = fail)
 
-const { fetchGmailMessages, fetchCalendarEvents } = require('./connector-google-adapters');
+const { fetchGmailMessages, fetchCalendarEvents, fetchDriveFiles } = require('./connector-google-adapters');
 
 let pass = 0, fail = 0;
 function t(name, cond) {
@@ -85,6 +85,42 @@ async function run() {
     t('calendar: 401 reports expired', result.ok === false && result.expired === true);
   }
 
+  // ── Drive: happy path ───────────────────────────────────────────────────
+  {
+    let seenPath = '';
+    const fakeRequest = async (options) => {
+      seenPath = options.path;
+      return {
+        status: 200,
+        body: { files: [
+          { id: 'f1', name: 'Q3 plan.docx', mimeType: 'application/vnd.google-apps.document', modifiedTime: '2026-09-01T09:00:00Z', webViewLink: 'https://drive/f1', iconLink: 'https://icon/f1' },
+          { id: 'f2', mimeType: 'application/pdf' }, // missing name/modifiedTime/links
+        ] },
+      };
+    };
+    const result = await fetchDriveFiles({ accessToken: 'tok', limit: 5, requestJson: fakeRequest });
+    t('drive: ok=true on 200', result.ok === true);
+    t('drive: returns both files', result.files.length === 2);
+    t('drive: name/link fields carried through', result.files[0].name === 'Q3 plan.docx' && result.files[0].webViewLink === 'https://drive/f1');
+    t('drive: missing name does not crash, gets a placeholder', result.files[1].name === '(untitled)');
+    t('drive: excludes trashed items server-side via q= param', seenPath.includes('trashed'));
+    t('drive: limit is capped into the list request', seenPath.includes('pageSize=5'));
+  }
+
+  // ── Drive: expired token ────────────────────────────────────────────────
+  {
+    const result = await fetchDriveFiles({ accessToken: 'stale', requestJson: async () => ({ status: 401, body: {} }) });
+    t('drive: 401 reports expired', result.ok === false && result.expired === true);
+  }
+
+  // ── Drive: limit is bounded, never trusts caller's raw number ──────────
+  {
+    let seenPath = '';
+    const fakeRequest = async (options) => { seenPath = options.path; return { status: 200, body: { files: [] } }; };
+    await fetchDriveFiles({ accessToken: 'tok', limit: 9999, requestJson: fakeRequest });
+    t('drive: absurd limit is clamped to the max, not passed through', seenPath.includes('pageSize=25'));
+  }
+
   // ── Neither adapter ever throws on a malformed upstream body ────────────
   {
     const gmailResult = await fetchGmailMessages({ accessToken: 'tok', requestJson: async () => ({ status: 200, body: {} }) });
@@ -92,6 +128,9 @@ async function run() {
 
     const calResult = await fetchCalendarEvents({ accessToken: 'tok', requestJson: async () => ({ status: 200, body: {} }) });
     t('calendar: missing "items" key returns empty list, not a crash', calResult.ok === true && calResult.events.length === 0);
+
+    const driveResult = await fetchDriveFiles({ accessToken: 'tok', requestJson: async () => ({ status: 200, body: {} }) });
+    t('drive: missing "files" key returns empty list, not a crash', driveResult.ok === true && driveResult.files.length === 0);
   }
 
   console.log('\nResult: ' + pass + ' pass, ' + fail + ' fail');

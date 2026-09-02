@@ -2,8 +2,30 @@ import React from 'react';
 import { L } from '../components.jsx';
 import { useGoogleConnector } from './use-google-connector.js';
 import { useGithubConnector, getGithubAccessToken } from './use-github-connector.js';
+import { useNotionConnector } from './use-notion-connector.js';
+import { useSlackConnector } from './use-slack-connector.js';
+import { useFigmaConnector } from './use-figma-connector.js';
+import { useCanvaConnector } from './use-canva-connector.js';
+import { connectorCredentialStatus } from '../lib/connector-credentials.mjs';
 
-const GOOGLE_OAUTH_CONNECTORS = new Set(['gmail', 'google-calendar']);
+const GOOGLE_OAUTH_CONNECTORS = new Set(['gmail', 'google-calendar', 'google-drive']);
+const OAUTH_MANAGED_CONNECTORS = new Set(['github', 'gmail', 'google-calendar', 'google-drive', 'notion', 'slack', 'figma', 'canva']);
+
+// connector.rs's own connection_state only ever checks the legacy
+// credential_key env var (see its own doc comment: "intentionally not an
+// OAuth client") — it has no visibility into a token these three
+// connectors instead store in YanaVault (connector-oauth.js /
+// github-oauth.js). Reconcile with the renderer's own real signal before
+// deciding what badge to show or whether Sync should be enabled — Rust
+// can legitimately keep saying "Credential required" right after a
+// successful OAuth Connect (see GithubConnectorPanel's own comment above)
+// until connector.rs's state logic is made aware of this path itself.
+function effectiveConnectionState(connector) {
+  if (OAUTH_MANAGED_CONNECTORS.has(connector.name) && connector.connectionState === 'credential-required') {
+    if (connectorCredentialStatus(connector.name) === 'connected') return 'ready';
+  }
+  return connector.connectionState;
+}
 
 function googleStatusPresentation(status) {
   if (status === 'connected') return { label: L('Connected', 'Đã kết nối', '연결됨', '已连接'), color: 'var(--good)' };
@@ -40,6 +62,23 @@ function GooglePreviewList({ connectorName, items }) {
       </ul>
     );
   }
+  if (connectorName === 'google-drive') {
+    return (
+      <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map((f) => (
+          <li key={f.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+              {f.iconLink && <img src={f.iconLink} alt="" width={14} height={14} style={{ flexShrink: 0 }} />}
+              {f.webViewLink
+                ? <a href={f.webViewLink} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</a>
+                : <strong style={{ fontSize: 'var(--font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</strong>}
+            </div>
+            <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px' }}>{formatEventTime(f.modifiedTime)}</div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
       {items.map((e) => (
@@ -52,14 +91,14 @@ function GooglePreviewList({ connectorName, items }) {
   );
 }
 
-// GitHub's card badge above (Ready/Credential required) stays driven by
-// connector.rs's own connector-list check, which has no visibility into
-// a token this panel stores in YanaVault — that badge and this panel can
-// legitimately disagree (badge: "Credential required", panel: "Connected")
-// until src/connector.rs's own connection_state logic is extended to be
-// aware of an OAuth-sourced token rather than only an inherited env var.
-// This panel — not the badge — is the real, current-session truth for
-// whether Sync will work; see connector-registry.js's SYNC_ENV_VAR_BY_CONNECTOR.
+// GitHub's card badge above (Ready/Credential required) is now
+// reconciled with this panel's own real YanaVault status via
+// effectiveConnectionState() above — connector.rs's own connector-list
+// check still has no visibility into a token this panel stores (it only
+// knows the legacy credential_key env var), but the badge no longer
+// takes that at face value once this panel independently confirms a
+// real OAuth connection. See connector-registry.js's
+// SYNC_ENV_VAR_BY_CONNECTOR for how Sync itself gets the token.
 function GithubConnectorPanel() {
   const { status, identity, busy, error, connect, disconnect } = useGithubConnector();
   const presentation = googleStatusPresentation(status);
@@ -109,6 +148,169 @@ function GoogleConnectorPanel({ connectorName }) {
       {preview.error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{preview.error}</p>}
       {preview.items && preview.items.length === 0 && <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Nothing recent.', 'Không có gì gần đây.', '최근 항목이 없습니다.', '暂无最近项目。')}</p>}
       {preview.items && preview.items.length > 0 && <GooglePreviewList connectorName={connectorName} items={preview.items} />}
+    </div>
+  );
+}
+
+function NotionPreviewList({ items }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((p) => (
+        <li key={p.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+          {p.url
+            ? <a href={p.url} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</a>
+            : <strong style={{ fontSize: 'var(--font-size-xs)' }}>{p.name}</strong>}
+          <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px' }}>{p.object}{p.lastEditedTime ? ` · ${formatEventTime(p.lastEditedTime)}` : ''}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Notion issues no `email`-shaped identity — workspaceName (see
+// notion-oauth.js's callback) is the only real identity signal Notion's
+// token response returns, so it fills the same UI slot the other panels
+// use for the connected account's email.
+function NotionConnectorPanel() {
+  const { status, identity, busy, error, connect, disconnect, preview, fetchPreview } = useNotionConnector();
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('Notion workspace', 'Workspace Notion', 'Notion 워크스페이스', 'Notion 工作区')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+          {identity && <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{identity}</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status !== 'connected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy || preview.loading} onClick={fetchPreview} style={buttonStyle()}>{preview.loading ? L('Loading…', 'Đang tải…', '로드 중…', '加载中…') : L('Preview', 'Xem trước', '미리보기', '预览')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens Notion’s page picker in your browser — only the pages/databases you select there become visible to Yana. The token is encrypted and stored on this device only.', 'Mở màn hình chọn trang của Notion trong trình duyệt — chỉ trang/database anh chọn ở đó mới hiện với Yana. Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 Notion 페이지 선택 화면이 열립니다 — 그곳에서 선택한 페이지/데이터베이스만 Yana에 표시됩니다. 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 Notion 页面选择器 — 只有您在那里选择的页面/数据库才会对 Yana 可见。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+      {preview.error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{preview.error}</p>}
+      {preview.items && preview.items.length === 0 && <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Nothing recent.', 'Không có gì gần đây.', '최근 항목이 없습니다.', '暂无最近项目。')}</p>}
+      {preview.items && preview.items.length > 0 && <NotionPreviewList items={preview.items} />}
+    </div>
+  );
+}
+
+function SlackPreviewList({ items }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((c) => (
+        <li key={c.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+          <strong style={{ fontSize: 'var(--font-size-xs)' }}>{c.name}</strong>
+          <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px' }}>
+            {c.numMembers != null ? `${c.numMembers} ${L('members', 'thành viên', '멤버', '成员')}` : ''}{c.topic ? ` · ${c.topic}` : ''}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SlackConnectorPanel() {
+  const { status, identity, busy, error, connect, disconnect, preview, fetchPreview } = useSlackConnector();
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('Slack workspace', 'Workspace Slack', 'Slack 워크스페이스', 'Slack 工作区')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+          {identity && <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{identity}</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status !== 'connected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy || preview.loading} onClick={fetchPreview} style={buttonStyle()}>{preview.loading ? L('Loading…', 'Đang tải…', '로드 중…', '加载中…') : L('Preview', 'Xem trước', '미리보기', '预览')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{busy ? L('Disconnecting…', 'Đang ngắt kết nối…', '연결 해제 중…', '断开中…') : L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens Slack’s consent screen in your browser (public channel list only). The token is encrypted and stored on this device only.', 'Mở màn hình cấp quyền của Slack trong trình duyệt (chỉ danh sách kênh công khai). Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 Slack 동의 화면이 열립니다(공개 채널 목록만). 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 Slack 授权页面（仅公开频道列表）。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+      {preview.error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{preview.error}</p>}
+      {preview.items && preview.items.length === 0 && <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Nothing recent.', 'Không có gì gần đây.', '최근 항목이 없습니다.', '暂无最近项目。')}</p>}
+      {preview.items && preview.items.length > 0 && <SlackPreviewList items={preview.items} />}
+    </div>
+  );
+}
+
+// No Preview button here — see use-figma-connector.js's header comment:
+// Figma's REST API has no generic "list my recent files" endpoint
+// without a pre-known team_id, so this panel's shape matches
+// GithubConnectorPanel (identity + Connect/Disconnect only) rather than
+// the preview-capable panels above.
+function FigmaConnectorPanel() {
+  const { status, identity, busy, error, connect, reconnect, disconnect } = useFigmaConnector();
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('Figma account', 'Tài khoản Figma', 'Figma 계정', 'Figma 账号')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+          {identity && <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{identity}</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status === 'disconnected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'expired' && <button type="button" disabled={busy} onClick={reconnect} style={buttonStyle(true)}>{busy ? L('Reconnecting…', 'Đang kết nối lại…', '재연결 중…', '重新连接中…') : L('Reconnect', 'Kết nối lại', '재연결', '重新连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{busy ? L('Disconnecting…', 'Đang ngắt kết nối…', '연결 해제 중…', '断开中…') : L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens Figma’s consent screen in your browser. The token is encrypted and stored on this device only.', 'Mở màn hình cấp quyền của Figma trong trình duyệt. Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 Figma 동의 화면이 열립니다. 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 Figma 授权页面。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+    </div>
+  );
+}
+
+function CanvaPreviewList({ items }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: '7px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((d) => (
+        <li key={d.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+          {d.urls?.view_url
+            ? <a href={d.urls.view_url} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</a>
+            : <strong style={{ fontSize: 'var(--font-size-xs)' }}>{d.title}</strong>}
+          <div style={{ marginTop: 2, color: 'var(--color-text-muted)', fontSize: '11px' }}>{formatEventTime(d.updatedAt)}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CanvaConnectorPanel() {
+  const { status, busy, error, connect, reconnect, disconnect, preview, fetchPreview } = useCanvaConnector();
+  const presentation = googleStatusPresentation(status);
+  return (
+    <div style={{ marginTop: 11, padding: '9px 10px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--color-text-muted)' }}>{L('Canva account', 'Tài khoản Canva', 'Canva 계정', 'Canva 账号')}</strong>
+          <span style={{ color: presentation.color, fontSize: 'var(--font-size-xs)' }}>● {presentation.label}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {status === 'disconnected' && <button type="button" disabled={busy} onClick={connect} style={buttonStyle(true)}>{busy ? L('Connecting…', 'Đang kết nối…', '연결 중…', '连接中…') : L('Connect', 'Kết nối', '연결', '连接')}</button>}
+          {status === 'expired' && <button type="button" disabled={busy} onClick={reconnect} style={buttonStyle(true)}>{busy ? L('Reconnecting…', 'Đang kết nối lại…', '재연결 중…', '重新连接中…') : L('Reconnect', 'Kết nối lại', '재연결', '重新连接')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy || preview.loading} onClick={fetchPreview} style={buttonStyle()}>{preview.loading ? L('Loading…', 'Đang tải…', '로드 중…', '加载中…') : L('Preview', 'Xem trước', '미리보기', '预览')}</button>}
+          {status === 'connected' && <button type="button" disabled={busy} onClick={disconnect} style={buttonStyle()}>{busy ? L('Disconnecting…', 'Đang ngắt kết nối…', '연결 해제 중…', '断开中…') : L('Disconnect', 'Ngắt kết nối', '연결 해제', '断开连接')}</button>}
+        </div>
+      </div>
+      <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {L('Opens Canva’s consent screen in your browser. The token is encrypted and stored on this device only.', 'Mở màn hình cấp quyền của Canva trong trình duyệt. Token được mã hóa và chỉ lưu trên máy này.', '브라우저에서 Canva 동의 화면이 열립니다. 토큰은 암호화되어 이 기기에만 저장됩니다.', '将在浏览器中打开 Canva 授权页面。令牌经过加密，仅保存在本设备上。')}
+      </p>
+      {error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{error}</p>}
+      {preview.error && <p role="status" style={{ margin: '6px 0 0', color: 'var(--warn)', fontSize: 'var(--font-size-xs)' }}>{preview.error}</p>}
+      {preview.items && preview.items.length === 0 && <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Nothing recent.', 'Không có gì gần đây.', '최근 항목이 없습니다.', '暂无最近项目。')}</p>}
+      {preview.items && preview.items.length > 0 && <CanvaPreviewList items={preview.items} />}
     </div>
   );
 }
@@ -215,12 +417,13 @@ export function IntegrationsSettings() {
 
       {loading && <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>{L('Loading connector registry…', 'Đang tải registry connector…', '커넥터 레지스트리 로드 중…', '正在加载连接器注册表…')}</p>}
       {!loading && connectors.map((connector) => {
-        const state = statePresentation(connector.connectionState);
+        const connectionState = effectiveConnectionState(connector);
+        const state = statePresentation(connectionState);
         const selectedScopes = draftScopes[connector.name] || [];
         const isEnabled = connector.enabledScopes.length > 0;
-        const needsRuntimeCredential = connector.connectionState === 'credential-required';
-        const adapterUnavailable = connector.connectionState === 'adapter-unavailable';
-        const canSync = connector.name === 'github' && connector.connectionState === 'ready' && connector.enabledScopes.includes('repo.read');
+        const needsRuntimeCredential = connectionState === 'credential-required';
+        const adapterUnavailable = connectionState === 'adapter-unavailable';
+        const canSync = connector.name === 'github' && connectionState === 'ready' && connector.enabledScopes.includes('repo.read');
         const syncedResources = resources.filter((resource) => resource.metadata.connector === connector.name);
         return (
           <article key={connector.name} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '14px 15px', background: 'color-mix(in srgb, var(--surface) 76%, transparent)' }}>
@@ -265,6 +468,10 @@ export function IntegrationsSettings() {
             )}
             {GOOGLE_OAUTH_CONNECTORS.has(connector.name) && <GoogleConnectorPanel connectorName={connector.name} />}
             {connector.name === 'github' && <GithubConnectorPanel />}
+            {connector.name === 'notion' && <NotionConnectorPanel />}
+            {connector.name === 'slack' && <SlackConnectorPanel />}
+            {connector.name === 'figma' && <FigmaConnectorPanel />}
+            {connector.name === 'canva' && <CanvaConnectorPanel />}
 
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
               <button type="button" disabled={!selectedScopes.length || !!busy} onClick={() => mutate(`${connector.name}:configure`, () => window.yana.connectorConfigure(connector.name, selectedScopes), L('Local connector permissions saved. Authentication remains separate.', 'Đã lưu quyền connector cục bộ. Xác thực vẫn là bước riêng.', '로컬 커넥터 권한이 저장되었습니다. 인증은 별도 단계입니다.', '本地连接器权限已保存。认证仍是独立步骤。'))} style={buttonStyle(true)}>{L('Save local permissions', 'Lưu quyền cục bộ', '로컬 권한 저장', '保存本地权限')}</button>

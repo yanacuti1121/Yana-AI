@@ -59,7 +59,12 @@ const DEFINITIONS: &[Definition] = &[
         allowed_scopes: &["mail.read", "mail.draft"],
         resource_kinds: &["message", "thread", "attachment"],
         credential_key: "YANA_GMAIL_ACCESS_TOKEN",
-        adapter_installed: false,
+        // Real adapter: tools/yana-web/connector-google-adapters.js's
+        // fetchGmailMessages() calls gmail.googleapis.com for real — this
+        // flag was stale from before that adapter existed, which made the
+        // "Adapter unavailable" badge lie about a connector that actually
+        // works once OAuth is configured (see integrations-settings.jsx).
+        adapter_installed: true,
     },
     Definition {
         name: "google-calendar",
@@ -67,7 +72,10 @@ const DEFINITIONS: &[Definition] = &[
         allowed_scopes: &["calendar.read", "calendar.write"],
         resource_kinds: &["calendar", "event"],
         credential_key: "YANA_GOOGLE_CALENDAR_ACCESS_TOKEN",
-        adapter_installed: false,
+        // Real adapter: connector-google-adapters.js's fetchCalendarEvents()
+        // calls www.googleapis.com/calendar/v3 for real — same stale-flag
+        // fix as gmail above.
+        adapter_installed: true,
     },
     Definition {
         name: "github",
@@ -83,7 +91,11 @@ const DEFINITIONS: &[Definition] = &[
         allowed_scopes: &["page.read", "page.write"],
         resource_kinds: &["page", "database"],
         credential_key: "YANA_NOTION_ACCESS_TOKEN",
-        adapter_installed: false,
+        // Real adapter: tools/yana-web/connector-notion-adapter.js's
+        // fetchNotionPages() calls Notion's /v1/search for real (read
+        // only — page.write above is declared but not yet implemented,
+        // same precedent as gmail's mail.draft).
+        adapter_installed: true,
     },
     Definition {
         name: "google-drive",
@@ -91,7 +103,48 @@ const DEFINITIONS: &[Definition] = &[
         allowed_scopes: &["drive.read"],
         resource_kinds: &["file", "folder"],
         credential_key: "YANA_GOOGLE_DRIVE_ACCESS_TOKEN",
+        // Real adapter added alongside this connector's OAuth wiring:
+        // connector-google-adapters.js's fetchDriveFiles() calls
+        // drive.readonly's files.list for real, same pattern as gmail/
+        // google-calendar above.
+        adapter_installed: true,
+    },
+    Definition {
+        name: "slack",
+        description: "Workspace channel discovery",
+        allowed_scopes: &["channel.read"],
+        resource_kinds: &["channel"],
+        credential_key: "YANA_SLACK_ACCESS_TOKEN",
+        // Real adapter: tools/yana-web/connector-slack-adapter.js's
+        // fetchSlackChannels() calls conversations.list for real. Added
+        // together with its Definition entry — unlike gmail/notion/
+        // google-drive above, slack never had a stale pre-OAuth stub
+        // here; this is its first appearance in the registry at all.
+        adapter_installed: true,
+    },
+    Definition {
+        name: "figma",
+        description: "Design file identity — no generic file listing exists",
+        allowed_scopes: &["file.read"],
+        resource_kinds: &["file"],
+        credential_key: "YANA_FIGMA_ACCESS_TOKEN",
+        // Honestly false, not stale: OAuth Connect/Disconnect is real
+        // (tools/yana-web/figma-oauth.js), but there is deliberately no
+        // connector-figma-adapter.js — Figma's REST API has no generic
+        // "list my recent files" endpoint without a pre-known team_id
+        // (see figma-oauth.js's header comment). Flip this to true only
+        // once a real adapter exists, same as every other connector here.
         adapter_installed: false,
+    },
+    Definition {
+        name: "canva",
+        description: "Design discovery",
+        allowed_scopes: &["design.read"],
+        resource_kinds: &["design"],
+        credential_key: "YANA_CANVA_ACCESS_TOKEN",
+        // Real adapter: tools/yana-web/connector-canva-adapter.js's
+        // fetchCanvaDesigns() calls /rest/v1/designs for real.
+        adapter_installed: true,
     },
 ];
 
@@ -542,14 +595,30 @@ mod tests {
 
     #[test]
     fn connector_state_never_claims_an_uninstalled_adapter_is_ready() {
-        let gmail = definition("gmail").unwrap();
+        // A synthetic Definition, not a real one looked up from
+        // DEFINITIONS: every real connector's adapter_installed has been
+        // true since the google-drive/notion adapters landed (gmail and
+        // google-calendar flipped first, when this test's fixture was
+        // "gmail" and broke for the same reason), so pinning this test to
+        // whichever real connector is currently uninstalled is fragile —
+        // it broke twice in one session. This tests connection_state()'s
+        // own logic in isolation instead, independent of the real
+        // registry's current adapter-rollout state.
+        let uninstalled = Definition {
+            name: "synthetic-uninstalled",
+            description: "test fixture only",
+            allowed_scopes: &["x.read"],
+            resource_kinds: &["thing"],
+            credential_key: "YANA_SYNTHETIC_ACCESS_TOKEN",
+            adapter_installed: false,
+        };
         let enabled = EnabledConnector {
-            name: "gmail".into(),
-            scopes: vec!["mail.read".into()],
+            name: "synthetic-uninstalled".into(),
+            scopes: vec!["x.read".into()],
             enabled_at: "now".into(),
         };
         assert_eq!(
-            connection_state(gmail, Some(&enabled), true),
+            connection_state(&uninstalled, Some(&enabled), true),
             "adapter-unavailable"
         );
     }

@@ -42,6 +42,7 @@ const PENDING_TTL_MS       = 5 * 60_000; // long enough for the user to complete
 const CONNECTOR_SCOPES = {
   gmail: 'https://www.googleapis.com/auth/gmail.readonly',
   'google-calendar': 'https://www.googleapis.com/auth/calendar.readonly',
+  'google-drive': 'https://www.googleapis.com/auth/drive.readonly',
 };
 
 const pending = createPendingStore(PENDING_TTL_MS);

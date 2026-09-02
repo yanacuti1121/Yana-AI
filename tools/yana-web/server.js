@@ -75,6 +75,13 @@ const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js
 const auth     = require('./auth');
 const connectorOAuth = require('./connector-oauth');
 const connectorGoogleAdapters = require('./connector-google-adapters');
+const notionOAuth = require('./notion-oauth');
+const connectorNotionAdapter = require('./connector-notion-adapter');
+const slackOAuth = require('./slack-oauth');
+const connectorSlackAdapter = require('./connector-slack-adapter');
+const figmaOAuth = require('./figma-oauth');
+const canvaOAuth = require('./canva-oauth');
+const connectorCanvaAdapter = require('./connector-canva-adapter');
 const githubOAuth = require('./github-oauth');
 const missions = require('./missions');
 const memory   = require('./memory');
@@ -912,7 +919,13 @@ function recordUsage(provider, chars, ms) {
 // (revoked/expired refresh token), the real error is returned rather than
 // silently reporting empty results — the UI must show "Expired —
 // reconnect", never a fake empty-but-successful state.
-async function connectorFetchWithRefresh(fetchFn, body) {
+// refreshFn defaults to the Google connector-oauth refresh (Gmail/
+// Calendar/Drive's original, only caller until Notion's own
+// notionOAuth.refreshAccessToken needed a different one — Notion's token
+// endpoint can also rotate the refresh_token itself, which Google's
+// never does, so refreshedToken.refreshToken is only ever set when the
+// refresh call actually returned one).
+async function connectorFetchWithRefresh(fetchFn, body, refreshFn = connectorOAuth.refreshAccessToken) {
   const accessToken = typeof body.accessToken === 'string' ? body.accessToken : '';
   const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : '';
   const limit = Number.isInteger(body.limit) ? body.limit : undefined;
@@ -925,7 +938,7 @@ async function connectorFetchWithRefresh(fetchFn, body) {
 
   let refreshed;
   try {
-    refreshed = await connectorOAuth.refreshAccessToken(refreshToken);
+    refreshed = await refreshFn(refreshToken);
   } catch (err) {
     console.error('[connector-adapter] refresh failed:', err.message);
     return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
@@ -938,7 +951,8 @@ async function connectorFetchWithRefresh(fetchFn, body) {
       ...result,
       refreshedToken: {
         accessToken: refreshed.access_token,
-        expiresAt: Date.now() + (Number(refreshed.expires_in) || 3600) * 1000,
+        expiresAt: refreshed.expires_in != null ? Date.now() + Number(refreshed.expires_in) * 1000 : null,
+        ...(refreshed.refresh_token ? { refreshToken: refreshed.refresh_token } : {}),
       },
     },
   };
@@ -955,6 +969,44 @@ async function handleConnectorGmailMessages(req, res, body) {
 async function handleConnectorCalendarEvents(req, res, body) {
   const { httpStatus, payload } = await connectorFetchWithRefresh(
     (args) => connectorGoogleAdapters.fetchCalendarEvents(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorDriveFiles(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchDriveFiles(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorNotionPages(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorNotionAdapter.fetchNotionPages(args), body,
+    notionOAuth.refreshAccessToken,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorCanvaDesigns(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorCanvaAdapter.fetchCanvaDesigns(args), body,
+    canvaOAuth.refreshAccessToken,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorSlackChannels(req, res, body) {
+  // Stored refreshToken is always null for Slack (see slack-oauth.js's
+  // header comment — no refresh flow), so connectorFetchWithRefresh's
+  // "no refreshToken → reconnectRequired" branch handles an expired/
+  // revoked token correctly without a Slack-specific refreshFn here.
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorSlackAdapter.fetchSlackChannels(args), body,
   );
   res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(payload));
@@ -2163,6 +2215,10 @@ async function handleAuthRoutes(req, res, pathname, method) {
   // separate flow from the login OAuth right above it.
   if (method === 'GET'  && pathname === '/api/connectors/google/callback') { await connectorOAuth.handleConnectorGoogleCallback(req, res); return true; }
   if (method === 'GET'  && pathname === '/api/connectors/github/callback') { await githubOAuth.handleGithubCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/notion/callback') { await notionOAuth.handleNotionCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/slack/callback') { await slackOAuth.handleSlackCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/figma/callback') { await figmaOAuth.handleFigmaCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/canva/callback') { await canvaOAuth.handleCanvaCallback(req, res); return true; }
   return false;
 }
 
@@ -2251,6 +2307,9 @@ const server = http.createServer(async (req, res) => {
   if (method === 'POST' && pathname === '/api/connectors/calendar/events') {
     const body = await readJsonBody(req, res); if (body) await handleConnectorCalendarEvents(req, res, body); return;
   }
+  if (method === 'POST' && pathname === '/api/connectors/drive/files') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorDriveFiles(req, res, body); return;
+  }
   // Connector OAuth (GitHub) — see github-oauth.js's header comment for
   // why this has no /refresh route (classic OAuth App tokens don't expire).
   if (method === 'GET'  && pathname === '/api/connectors/github/start') { githubOAuth.handleGithubStart(req, res); return; }
@@ -2260,6 +2319,59 @@ const server = http.createServer(async (req, res) => {
   }
   if (method === 'POST' && pathname === '/api/connectors/github/revoke') {
     const body = await readJsonBody(req, res); if (body) await githubOAuth.handleGithubRevoke(req, res, body); return;
+  }
+  // Connector OAuth (Notion) — see notion-oauth.js's header comment for
+  // why there is no /revoke route (Notion documents no such endpoint).
+  if (method === 'GET'  && pathname === '/api/connectors/notion/start') { notionOAuth.handleNotionStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/notion/pending/')) {
+    notionOAuth.handleNotionPending(req, res, pathname.slice('/api/connectors/notion/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/notion/refresh') {
+    const body = await readJsonBody(req, res); if (body) await notionOAuth.handleNotionRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/notion/pages') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorNotionPages(req, res, body); return;
+  }
+  // Connector OAuth (Slack) — see slack-oauth.js's header comment for
+  // why there is no /refresh route (bot tokens don't expire by default).
+  if (method === 'GET'  && pathname === '/api/connectors/slack/start') { slackOAuth.handleSlackStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/slack/pending/')) {
+    slackOAuth.handleSlackPending(req, res, pathname.slice('/api/connectors/slack/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/slack/revoke') {
+    const body = await readJsonBody(req, res); if (body) await slackOAuth.handleSlackRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/slack/channels') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorSlackChannels(req, res, body); return;
+  }
+  // Connector OAuth (Figma) — see figma-oauth.js's header comment for
+  // why there is no /revoke route (no documented Figma API for it) and
+  // no /files preview route (no generic list-my-files endpoint exists).
+  if (method === 'GET'  && pathname === '/api/connectors/figma/start') { figmaOAuth.handleFigmaStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/figma/pending/')) {
+    figmaOAuth.handleFigmaPending(req, res, pathname.slice('/api/connectors/figma/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/figma/refresh') {
+    const body = await readJsonBody(req, res); if (body) await figmaOAuth.handleFigmaRefresh(req, res, body); return;
+  }
+  // Connector OAuth (Canva) — see canva-oauth.js's header comment for
+  // the PKCE flow this one alone requires among the six connectors.
+  if (method === 'GET'  && pathname === '/api/connectors/canva/start') { canvaOAuth.handleCanvaStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/canva/pending/')) {
+    canvaOAuth.handleCanvaPending(req, res, pathname.slice('/api/connectors/canva/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/refresh') {
+    const body = await readJsonBody(req, res); if (body) await canvaOAuth.handleCanvaRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/revoke') {
+    const body = await readJsonBody(req, res); if (body) await canvaOAuth.handleCanvaRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/designs') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorCanvaDesigns(req, res, body); return;
   }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }

@@ -17,6 +17,7 @@ const POLL_TIMEOUT_MS = 5 * 60_000;
 const PREVIEW_ROUTES = {
   gmail: { path: '/api/connectors/gmail/messages', itemsKey: 'messages' },
   'google-calendar': { path: '/api/connectors/calendar/events', itemsKey: 'events' },
+  'google-drive': { path: '/api/connectors/drive/files', itemsKey: 'files' },
 };
 
 export function useGoogleConnector(connectorName) {
