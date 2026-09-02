@@ -826,7 +826,7 @@ Yana AI has three independently versioned release axes — deliberate, not drift
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.6** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.7** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
 | Rust runtime (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python package | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 

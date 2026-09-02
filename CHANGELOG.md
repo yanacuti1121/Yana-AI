@@ -8,6 +8,45 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.7 — monochrome redesign, six new connectors, legacy shell removed — 2026-09-03
+
+**Redesign.** All 14 color themes replaced with two true-grayscale
+themes (black/white), real `backdrop-filter` glass surfaces across the
+shell (documented exception to `anti-ai-slop-design-law.md`'s
+glassmorphism ban), hand-drawn SVG icons replaced with real Lucide/
+Codicon path data, and the app font switched from Be Vietnam Pro to
+self-hosted Geist (v1.6.0+, real Vietnamese diacritic coverage).
+Verifying this in a real running app (not just the diff) surfaced and
+fixed three more bugs: the self-hosted font's URL needed the
+`/desktop/` prefix Vite's `base` config implies, the CSP's `font-src`
+still only allowed `fonts.bunny.net`, and `--ink-3`'s contrast (3.26:1,
+only clearing WCAG's large-text tier at a token used at 11-13px
+everywhere) is now 4.5:1+ in both themes.
+
+**Connectors.** OAuth added for Notion, Slack, Figma, and Canva (PKCE),
+and the existing Google Drive adapter flipped on — six real connectors
+now, up from two.
+
+**Cleanup.** The legacy page-router shell (`app.jsx`, `desktop-old/`,
+`pages/`, the vtuber assistant) is deleted now that `new-app/` has
+parity, not kept behind a flag.
+
+**Bug fixes found during this pass:** the terminal PTY was missing
+`TERM`/`LANG`, breaking arrow keys and raw control bytes; navigating to
+Settings unmounted the terminal dock entirely instead of hiding it,
+killing the live shell session; the IDE button shelled out to a bare
+`code-server` on PATH with a raw ENOENT if it wasn't installed — now
+bundled; and resetting the local account (single-slot, per `auth.js`)
+left the previous owner's chat history and profile text in
+localStorage, since that cache is keyed by browser origin, not
+account — now cleared on both the password-setup and first-run-Google
+paths, device preferences (theme, terminal layout) left alone.
+
+tools/yana-desktop's full unit suite: 192/192 pass.
+core/tests/skills/test-skill-triggering.sh: 698/698 pass.
+
+---
+
 ## v1.4.6 — v1.4.5's fix was incomplete: still no server node_modules — 2026-09-01
 
 **Critical, same-day follow-up.** v1.4.5's fix (below) removed the
