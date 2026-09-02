@@ -9,6 +9,7 @@ const http  = require('http');
 const { autoUpdater } = require('electron-updater');
 const {
   runtimeBinaryPath,
+  codeServerPath,
   parseServerReadyPort,
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
@@ -301,11 +302,29 @@ function startCodeServer() {
   }
   if (codeServerStartTask) return codeServerStartTask;
 
+  // Bundled, not system-installed: resolved via codeServerPath() the same
+  // way runtimePath() resolves yana-rt/pty_bridge (process.resourcesPath
+  // when packaged, target/desktop-runtime/ in dev — see
+  // scripts/stage-code-server.js). code-server has no native Windows
+  // build (project policy: WSL2 only), and a from-scratch checkout
+  // before `npm run stage:code-server` has run also won't have it staged
+  // yet — both are named explicitly here instead of surfacing whatever
+  // raw spawn() error each would otherwise produce (previously a bare
+  // `spawn('code-server', ...)` PATH lookup, ENOENT on every machine
+  // without it manually installed system-wide).
+  if (process.platform === 'win32') {
+    return Promise.resolve({ ok: false, error: 'IDE is not available on Windows yet (code-server has no native Windows build).' });
+  }
+  const codeServerBin = codeServerPath({ packaged: app.isPackaged, resourcesPath: process.resourcesPath, repoRoot: path.join(__dirname, '..', '..') });
+  if (!fs.existsSync(codeServerBin)) {
+    return Promise.resolve({ ok: false, error: 'IDE component is missing from this build. Run: npm run stage:code-server' });
+  }
+
   const launch = prepareCodeServerLaunch({ dataDir: dataDir(), repoRoot: repoRoot(), port: CODE_SERVER_PORT });
   fs.mkdirSync(path.dirname(launch.configPath), { recursive: true });
   fs.writeFileSync(launch.configPath, launch.config, { encoding: 'utf8', mode: 0o600 });
 
-  const child = spawn('code-server', launch.args, {
+  const child = spawn(codeServerBin, launch.args, {
     cwd: repoRoot(),
     env: process.env,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -314,10 +333,10 @@ function startCodeServer() {
   codeServerProcess = child;
 
   child.on('error', (error) => {
-    // ENOENT (not installed) is expected on most machines — the IDE tab
-    // simply stays unavailable, same as before this function existed.
-    // Never crashes the app over an optional, best-effort tool.
-    console.log('[code-server] not started:', error.message);
+    // Now genuinely unexpected (e.g. permission denied) — the ENOENT
+    // case is already ruled out by the existsSync check above, so this
+    // stays a diagnostic log rather than a silently-expected outcome.
+    console.log('[code-server] failed to start:', error.message);
     if (codeServerProcess === child) codeServerProcess = null;
   });
   child.stdout?.on('data', (d) => console.log('[code-server]', d.toString().trimEnd()));
@@ -981,11 +1000,27 @@ handleTrusted('yana:pty-start', (event, options) => {
   // (see src/bin/pty_bridge.rs's doc comment). Absent on non-Unix bridges
   // today, but always opened here — a bridge build with no resize
   // listener simply never reads it, per that file's own fallback.
+  // TERM/LANG: an Electron app launched from Finder/Dock (not from an
+  // existing terminal) inherits neither. Without TERM, a themed shell
+  // prompt (oh-my-zsh, powerlevel10k, starship) can't find its terminfo
+  // entry and prints raw escape sequences instead of interpreting them,
+  // and readline's key bindings (arrows, Home/End) stop resolving —
+  // exactly xterm.js's own identity, so pty_bridge's child (via
+  // portable_pty::CommandBuilder, which inherits this process's env by
+  // default) needs it set explicitly here. LANG/LC_ALL only fall back
+  // when truly unset, so a real user locale (set when launched from an
+  // actual terminal) is never overridden — the fallback exists only to
+  // make multi-byte input (Vietnamese diacritics) round-trip through the
+  // shell's own line editor on a Dock launch, where xterm.js already
+  // handles UTF-8 correctly on the client side but the shell wouldn't.
   const child = spawn(bridgeBin, [String(cols), String(rows), '--', ...childArgv], {
     cwd,
     stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
     env: {
+      LANG: 'en_US.UTF-8',
+      LC_ALL: 'en_US.UTF-8',
       ...process.env,
+      TERM: 'xterm-256color',
       YANA_RT_BIN: runtimePath('yana-rt'),
     },
   });

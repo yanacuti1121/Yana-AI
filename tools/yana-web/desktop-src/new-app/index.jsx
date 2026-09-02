@@ -89,7 +89,7 @@ function useViewport() {
 
 const SIDEBAR_LABELS = { chat: 'Chat', projects: 'Projects', files: 'Files', tasks: 'Tasks', git: 'Git', activity: 'Activity', devices: 'Devices', models: 'Models', agents: 'Agents', settings: 'Settings', integrations: 'Integrations', remoteTools: 'Remote & Tools', commands: 'Commands', permissions: 'Permissions' };
 
-export function NewAppShell({ onSwitchToLegacy }) {
+export function NewAppShell() {
   const [view, setView] = React.useState('chat');
   const [gitInfo, setGitInfo] = React.useState(null); // null until fetched — never fabricated
   const [projectInfo, setProjectInfo] = React.useState(null);
@@ -254,8 +254,7 @@ export function NewAppShell({ onSwitchToLegacy }) {
     })),
     { id: 'focus-terminal', label: 'Open Terminal', run: onFocusTerminal },
     { id: 'open-integrations', label: 'Open Integrations', run: () => setView('integrations') },
-    ...(onSwitchToLegacy ? [{ id: 'legacy-ui', label: 'Switch to Legacy UI', run: onSwitchToLegacy }] : []),
-  ]), [onFocusTerminal, onOpenProject, onSwitchToLegacy, onSwitchProject, projectInfo?.recent]);
+  ]), [onFocusTerminal, onOpenProject, onSwitchProject, projectInfo?.recent]);
 
   const projectValue = React.useMemo(() => ({
     projectName, repoRoot: workspaceRoot, branch: gitInfo?.branch ?? null,
@@ -317,7 +316,7 @@ export function NewAppShell({ onSwitchToLegacy }) {
           safety={governance?.safety}
           recentProjects={projectInfo?.recent} currentProjectRoot={projectInfo?.root}
           onOpenProject={onOpenProject} onSwitchProject={onSwitchProject}
-          onFocusTerminal={onFocusTerminal} onOpenPalette={() => palette.setOpen(true)} onSwitchToLegacy={onSwitchToLegacy}
+          onFocusTerminal={onFocusTerminal} onOpenPalette={() => palette.setOpen(true)}
           onOpenSettings={() => setView('settings')}
           onOpenModels={() => setView('models')}
           connectors={connectors}
@@ -387,21 +386,33 @@ export function NewAppShell({ onSwitchToLegacy }) {
               </div>
             </div>
 
-            {showBottomDock && (
-              <>
-                <div className="na-resize-handle-y" onMouseDown={dockResize.onDragStart} />
-                <div className="na-bottom-dock" style={{ height: shortViewport ? Math.min(dockResize.size, 200) : dockResize.size, minHeight: shortViewport ? 180 : 220, flexShrink: 0, display: 'flex' }}>
-                  <div className="na-terminal-pane" style={{ flex: '1 1 100%', minWidth: 0, overflow: 'hidden' }}>
-                    <React.Suspense fallback={<TerminalLoading />}>
-                      <TerminalDock
-                        ref={terminalDockRef}
-                        cwdLabel={workspaceRoot}
-                      />
-                    </React.Suspense>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* showBottomDock only toggles CSS visibility here, never
+                unmounts TerminalDock — unmounting would run XTermPanel's
+                cleanup and kill the real PTY child process (yana:pty-stop),
+                not just hide it. Focus-surface views (Settings etc., see
+                `focusSurface` above) are meant to collapse this dock "not
+                useful information density... instead of disappearing" per
+                the comment on `focusSurface` itself — a live shell session
+                dying on a Settings visit contradicted that stated intent. */}
+            {showBottomDock && <div className="na-resize-handle-y" onMouseDown={dockResize.onDragStart} />}
+            <div
+              className="na-bottom-dock"
+              style={{
+                height: showBottomDock ? (shortViewport ? Math.min(dockResize.size, 200) : dockResize.size) : 0,
+                minHeight: showBottomDock ? (shortViewport ? 180 : 220) : 0,
+                flexShrink: 0,
+                display: showBottomDock ? 'flex' : 'none',
+              }}
+            >
+              <div className="na-terminal-pane" style={{ flex: '1 1 100%', minWidth: 0, overflow: 'hidden' }}>
+                <React.Suspense fallback={<TerminalLoading />}>
+                  <TerminalDock
+                    ref={terminalDockRef}
+                    cwdLabel={workspaceRoot}
+                  />
+                </React.Suspense>
+              </div>
+            </div>
           </div>
 
           {!inspectorDrawer && (

@@ -13,12 +13,8 @@ function shortModelName(model) {
   return afterSlash.split(':')[0];
 }
 
-// `onSwitchToLegacy` is a callback the entrypoint (main.jsx) supplies —
-// this component has no knowledge of localStorage or how the legacy/new
-// switch is actually implemented (architecture correction: the new shell
-// must stay decoupled from that mechanism). The "YANA" wordmark lives in
-// the sidebar (mockup's header has no product wordmark, only project/
-// status/controls).
+// The "YANA" wordmark lives in the sidebar (mockup's header has no
+// product wordmark, only project/status/controls).
 function safetyPresentation(safety) {
   if (!safety?.mode) {
     return {
@@ -73,7 +69,7 @@ function connectionPresentation(connectors) {
 
 export function Header({
   projectName, branch, model, safety, recentProjects, currentProjectRoot,
-  onOpenProject, onSwitchProject, onFocusTerminal, onOpenPalette, onSwitchToLegacy,
+  onOpenProject, onSwitchProject, onFocusTerminal, onOpenPalette,
   onToggleInspector, onOpenSettings, onOpenModels, connectors, onOpenIntegrations,
 }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -280,19 +276,6 @@ export function Header({
                 {L('Settings', 'Cài đặt', '설정', '设置')}
               </button>
             )}
-            {onSwitchToLegacy && (
-              <button
-                onClick={() => { setMenuOpen(false); onSwitchToLegacy(); }}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
-                  background: 'none', border: 'none', color: 'var(--ink)', fontSize: 'var(--font-size-sm)', cursor: 'pointer',
-                }}
-              >
-                {L('Legacy UI', 'Giao diện cũ', '이전 UI', '旧版界面')}
-              </button>
-            )}
-            {/* new-app had no sign-out path at all — the only way out was
-                switching to the legacy UI first to use its Sign out button. */}
             <button
               onClick={() => { setMenuOpen(false); signOut(); }}
               style={{
