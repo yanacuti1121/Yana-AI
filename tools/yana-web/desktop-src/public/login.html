@@ -553,6 +553,29 @@
       return msg || t('genericErr');
     }
 
+    // auth.js is a single-account gate (its own header comment: "single-user
+    // password gate") — "Tạo tài khoản mới?" deletes auth.json and creates a
+    // fresh one in the same slot, it does not add a second, isolated account.
+    // /api/auth/setup and conversations.json (server-side chat store) are
+    // already correctly scoped per account via YANA_DATA_DIR, but the chat
+    // UI also caches a client-side copy in localStorage for fast reads, and
+    // that cache is keyed by browser origin, not by account — so a fresh
+    // setup silently inherited the previous owner's chat history, open
+    // conversation tabs, and "About you"/profile text. Clear that cache only
+    // on setup (a genuinely new sign-in must never touch the current
+    // owner's own data — only reset/recreate does). First-run Google
+    // sign-in hits the same bug via a different path (auth.js redirects
+    // straight into the app, not back here) — see main.jsx's copy of this
+    // same key list for that counterpart. Keep both in sync.
+    function clearPreviousOwnerData() {
+      [
+        'yana.chat', 'yana.new-app.conversation-tabs.v1',
+        'yana.about.who', 'yana.about.strengths', 'yana.about.weaknesses', 'yana.about.style',
+        'yana.profile.role', 'yana.profile.instructions',
+        'yana.avatar-url', 'yana.member-since', 'yana.onboarded',
+      ].forEach(function (k) { try { localStorage.removeItem(k); } catch (_) {} });
+    }
+
     $('form').addEventListener('submit', function (e) {
       e.preventDefault();
       var username = $('username').value.normalize('NFC').trim();
@@ -573,7 +596,10 @@
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (out) {
-          if (out.ok) { setMsg(t('entering'), true); location.replace('/'); }
+          if (out.ok) {
+            if (mode === 'setup') clearPreviousOwnerData();
+            setMsg(t('entering'), true); location.replace('/');
+          }
           else { setMsg(apiError(out.d.error)); setLoading(false); }
         })
         .catch(function () { setMsg(t('connErr')); setLoading(false); });

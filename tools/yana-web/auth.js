@@ -411,6 +411,10 @@ async function handleGoogleCallback(req, res) {
   }
 
   // intent === 'login'
+  const wasFirstRun = !rec; // used below to tell the client a fresh account
+                            // was just provisioned, not a normal sign-in —
+                            // see the redirect below and login.html's
+                            // clearPreviousOwnerData() for why this matters.
   let finalRec = rec;
   if (!rec) {
     // First run via Google — provision the single local account with no
@@ -443,7 +447,11 @@ async function handleGoogleCallback(req, res) {
     redirectToLogin(res, rec ? 'not_linked' : 'setup_race'); return;
   }
   setCookie(req, res, createSession(false));
-  res.writeHead(302, { Location: '/' }); res.end();
+  // ?google=first-run (only on a just-provisioned account, never a normal
+  // returning-user login) tells the client to clear its stale localStorage
+  // chat/profile cache from whatever account used this browser before —
+  // see login.html's clearPreviousOwnerData() and its own comment.
+  res.writeHead(302, { Location: wasFirstRun ? '/?google=first-run' : '/' }); res.end();
 }
 
 module.exports = {
