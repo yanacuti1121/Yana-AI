@@ -5,47 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <link rel="icon" type="image/png" href="/logo.png" />
   <title>Yana — Đăng nhập</title>
-  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
-  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
   <style>
-    /* Matches new-app's flat, no-glass/no-blur design language (themes.css:
-       "Surfaces are flat ... as of the 2026-08 redesign") using its default
-       Violet Workspace palette — this page loads before any app JS runs
-       (it IS the pre-auth entry point), so it can't import the live,
-       hashed-filename themes.css bundle chunk; these are that theme's
-       token VALUES ported statically rather than a shared stylesheet link.
-       If violet-workspace's palette changes, update here too. */
+    /* Self-hosted Geist (not an external Bunny/Google Fonts request) —
+       see themes.css's own @font-face block for the full rationale.
+       This page loads before any app JS runs (it IS the pre-auth entry
+       point), so it can't import the live, hashed-filename themes.css
+       bundle chunk — these @font-face rules and the :root values below
+       are that file's monochrome "black" theme ported statically. If
+       "black"'s values change, update here too. */
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-Regular.woff2") format("woff2");
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-Medium.woff2") format("woff2");
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-SemiBold.woff2") format("woff2");
+      font-weight: 600; font-style: normal; font-display: swap;
+    }
+    /* Matches new-app's monochrome + liquid-glass design language
+       (themes.css's [data-theme="black"], 2026-09-02 redesign) — true
+       black, near-white ink, no hue in --primary. */
     :root {
-      --ink: #f3f5fb; --ink-2: #9ea7bd; --ink-3: #69738a;
-      --primary: #9b6cff;
-      --surface-rgb: 23, 27, 40;
-      --color-bg-subtle: rgba(var(--surface-rgb), 0.72);
-      --border: rgba(243, 245, 251, 0.08);
-      --danger: #fb7185;
-      --good: #31d098;
+      --ink: #f5f5f5; --ink-2: #a3a3a3; --ink-3: #808080; /* 4.74:1 AA — see themes.css's own note on this value */
+      --primary: #d4d4d4;
+      --surface-rgb: 18, 18, 18;
+      --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+      --border: rgba(255, 255, 255, 0.10);
+      --danger: #fbbf24;
+      --good: #4ade80;
       --r-lg: 20px; --r-md: 14px; --r-sm: 9px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0; display: grid; place-items: center;
-      font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-family: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       color: var(--ink);
-      /* Static — no animation, no filter:blur() — same scene gradient
-         violet-workspace itself uses, just not re-rasterized every frame. */
+      /* Static — no animation — same minimal scene gradient the "black"
+         theme itself uses, just not re-rasterized every frame. */
       background:
-        radial-gradient(1100px 620px at 20% -14%, rgba(155, 108, 255, 0.24), transparent 62%),
-        radial-gradient(900px 560px at 92% 4%, rgba(89, 73, 184, 0.18), transparent 60%),
-        radial-gradient(1000px 680px at 48% 108%, rgba(49, 208, 152, 0.07), transparent 68%),
-        linear-gradient(180deg, #121624 0%, #0e111a 100%);
+        radial-gradient(1100px 580px at 22% -12%, rgba(255, 255, 255, 0.05), transparent 60%),
+        radial-gradient(1300px 780px at 50% 118%, rgba(255, 255, 255, 0.03), transparent 65%),
+        linear-gradient(180deg, #000000 0%, #000000 100%);
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
 
-    /* ── Card — flat surface, no backdrop-filter ── */
+    /* ── Card — real liquid glass, matches themes.css's .glass-strong ── */
     .card {
       position: relative; width: min(92vw, 400px); padding: 40px 36px 28px;
       border-radius: var(--r-lg); text-align: center;
       background: var(--color-bg-subtle);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
       border: 1px solid var(--border);
       box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
       animation: rise .4s cubic-bezier(.21,.8,.32,1) both;
@@ -137,7 +154,11 @@
     button.cta {
       width: 100%; padding: 13px; margin-top: 2px;
       font-size: 14.5px; font-weight: 500; font-family: inherit;
-      border: none; border-radius: var(--r-md); cursor: pointer; color: white;
+      border: none; border-radius: var(--r-md); cursor: pointer;
+      /* --primary is light (#d4d4d4, near-white) in the monochrome
+         theme — dark text on it, not the old white-on-purple pairing,
+         or this button fails WCAG contrast entirely. */
+      color: #0a0a0a;
       background: var(--primary);
       transition: opacity .15s;
       display: flex; align-items: center; justify-content: center; gap: 9px;

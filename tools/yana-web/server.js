@@ -226,7 +226,10 @@ const SEC_HEADERS = {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; " + // Babel standalone needs eval + inline
     "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; " +
-    "font-src https://fonts.bunny.net; " +
+    // 'self' — desktop's self-hosted Geist (themes.css / login.html /
+    // welcome.html @font-face). fonts.bunny.net stays: mobile/index.html
+    // still loads Be Vietnam Pro from Bunny, out of this pass's scope.
+    "font-src 'self' https://fonts.bunny.net; " +
     "img-src 'self' data: blob:; " +
     // open-meteo: keyless weather for the dashboard — fetched from the
     // browser so the server's own egress surface stays 'self'-only
@@ -2275,6 +2278,11 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET' && pathname === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (await handleAuthRoutes(req, res, pathname, method)) return;
   if (method === 'GET' && (pathname === '/login.html' || pathname === '/welcome.html' || pathname === '/logo.png')) { serveStatic(res, pathname === '/logo.png' ? pathname : '/desktop' + pathname); return; }
+  // Self-hosted Geist fonts referenced by login.html/welcome.html's own
+  // @font-face rules (themes.css's copy is loaded post-auth, already
+  // covered once auth.isAuthed(req) passes below) — without this, the
+  // pre-auth pages above 404/redirect-loop trying to load their own font.
+  if (method === 'GET' && pathname.startsWith('/desktop/fonts/')) { serveStatic(res, pathname); return; }
 
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 

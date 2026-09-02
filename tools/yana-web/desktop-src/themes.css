@@ -1,17 +1,27 @@
 /* ============================================================
    Yana AI — theme tokens
-   14 themes (10 light, 4 dark), one architecture — each [data-theme=x]
-   block sets the same set of base + semantic-role custom properties.
-   Surfaces are flat (see "surfaces" below) — no glass/blur/backdrop
-   treatment as of the 2026-08 redesign; the decorative --bg-scene
-   gradient + water-ripple/motes/VTuber layers are a separate, still-
-   optional system (Tweaks panel toggles), untouched by that change.
+   Monochrome only (anh's explicit call, 2026-09-02): the previous 16
+   color themes (Jade, Ocean, Sunset Amber, Violet Workspace, etc.) are
+   removed entirely, not just hidden — see git history for their values
+   if a future session ever needs to reference them. Two themes remain:
+   "black" (dark) and "white" (light), both true grayscale — no hue in
+   --primary/--ink, matching the same reasoning "black" already
+   documented before this rewrite (see its own comment below).
+   Surfaces are liquid glass (native CSS backdrop-filter) as of this
+   redesign — this REVERSES the flat-surface, no-glass rule the 2026-08
+   redesign set, deliberately: anh's explicit choice, not a regression.
+   See .claude/rules/anti-ai-slop-design-law.md's own updated note on
+   this exception.
    Density: --sp (0.85 compact / 1 regular / 1.18 spacious)
    ============================================================ */
 
 :root {
-  --font-ui: "Be Vietnam Pro", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  /* Geist, self-hosted (not a Bunny/Google Fonts external request) —
+     see the @font-face block below. Pinned to Geist v1.6.0+, the first
+     version with real Vietnamese diacritic coverage (verified against
+     vercel/geist-font's own issue tracker, not assumed). */
+  --font-ui: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   --sp: 1;
 
@@ -33,285 +43,73 @@
   --font-size-3xl:  3rem;      /* 48px — hero */
 }
 
-/* ---------- Jade Lake (default) ---------- */
-[data-theme="jade"] {
-  --bg-base: #f2f7f4;
-  --bg-scene:
-    radial-gradient(1100px 520px at 12% -8%, rgba(233, 201, 138, 0.14), transparent 60%),
-    radial-gradient(900px 600px at 88% 4%, rgba(232, 180, 192, 0.15), transparent 58%),
-    radial-gradient(1300px 800px at 50% 110%, rgba(122, 184, 168, 0.20), transparent 62%),
-    linear-gradient(180deg, #f6faf7 0%, #eef5f1 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 20, 40, 36;
-  --ink: #21403a;
-  --ink-2: #51695f;
-  --ink-3: #84988f;
-  --primary: #2f7e6e;
-  --primary-soft: rgba(47, 126, 110, 0.10);
-  --pink: #c77b92;
-  --pink-soft: rgba(199, 123, 146, 0.12);
-  --gold: #b78f3d;
-  --gold-soft: rgba(183, 143, 61, 0.13);
-  --good: #3d8b6e;
-  --warn: #b78f3d;
-  --border: rgba(31, 56, 51, 0.10);
-  --border-strong: rgba(31, 56, 51, 0.16);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
+/* Self-hosted Geist — downloaded once from vercel/geist-font's official
+   release (MIT), served locally under /desktop/fonts/ (Vite's base:
+   '/desktop/' means the built app is served from that prefix — see
+   server.js's serveStatic(), which resolves request paths straight
+   against tools/yana-web/ as STATIC_DIR, so an unprefixed /fonts/ URL
+   would 404 against tools/yana-web/desktop/fonts/, where the Vite build
+   actually places these files). Not fetched from an external CDN at
+   runtime. Keeps
+   this app's "local & private" property (login.html's own footer) and
+   avoids a new network-egress allowlist entry. woff2-only: every
+   Electron/Chromium target this app ships to supports it, no legacy
+   format fallback needed. */
+@font-face {
+  font-family: "Geist";
+  src: url("/desktop/fonts/Geist-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/desktop/fonts/Geist-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/desktop/fonts/Geist-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/desktop/fonts/Geist-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/desktop/fonts/GeistMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/desktop/fonts/GeistMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* ---------- Lotus Dawn ---------- */
-[data-theme="dawn"] {
-  --bg-base: #f9f4f2;
-  --bg-scene:
-    radial-gradient(1100px 540px at 16% -10%, rgba(236, 196, 134, 0.26), transparent 60%),
-    radial-gradient(1000px 620px at 86% 2%, rgba(231, 168, 185, 0.28), transparent 58%),
-    radial-gradient(1300px 760px at 50% 112%, rgba(168, 196, 186, 0.18), transparent 64%),
-    linear-gradient(180deg, #faf5f3 0%, #f4ece9 100%);
-  --surface-rgb: 255, 253, 252;
-  --shadow-rgb: 54, 36, 38;
-  --ink: #3c2e33;
-  --ink-2: #6f5d62;
-  --ink-3: #a08e92;
-  --primary: #b96b80;
-  --primary-soft: rgba(185, 107, 128, 0.11);
-  --pink: #b96b80;
-  --pink-soft: rgba(185, 107, 128, 0.11);
-  --gold: #b78a3f;
-  --gold-soft: rgba(183, 138, 63, 0.14);
-  --good: #4f8b6e;
-  --warn: #b78a3f;
-  --border: rgba(60, 46, 51, 0.10);
-  --border-strong: rgba(60, 46, 51, 0.16);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-
-/* ---------- Morning Mist ---------- */
-[data-theme="mist"] {
-  --bg-base: #f7f6f3;
-  --bg-scene:
-    radial-gradient(1200px 600px at 50% -12%, rgba(214, 222, 214, 0.35), transparent 62%),
-    linear-gradient(180deg, #f8f7f4 0%, #f3f2ee 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 30, 38, 34;
-  --ink: #26302c;
-  --ink-2: #5b6661;
-  --ink-3: #939c96;
-  --primary: #4a7a6a;
-  --primary-soft: rgba(74, 122, 106, 0.09);
-  --pink: #ab7e8d;
-  --pink-soft: rgba(171, 126, 141, 0.10);
-  --gold: #a3884e;
-  --gold-soft: rgba(163, 136, 78, 0.11);
-  --good: #4a7a6a;
-  --warn: #a3884e;
-  --border: rgba(38, 48, 44, 0.09);
-  --border-strong: rgba(38, 48, 44, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-
-/* ---------- Glass Silver ---------- */
-[data-theme="silver"] {
-  --bg-base: #eef2f6;
-  --bg-scene:
-    radial-gradient(1100px 560px at 18% -10%, rgba(168, 199, 224, 0.30), transparent 60%),
-    radial-gradient(1000px 620px at 85% 0%, rgba(199, 214, 229, 0.32), transparent 58%),
-    radial-gradient(1300px 760px at 50% 112%, rgba(122, 158, 186, 0.22), transparent 64%),
-    linear-gradient(180deg, #f3f6fa 0%, #e9eef4 100%);
-  --surface-rgb: 252, 254, 255;
-  --shadow-rgb: 18, 34, 46;
-  --ink: #1c2f3a;
-  --ink-2: #4c6271;
-  --ink-3: #8194a1;
-  --primary: #3a7ca5;
-  --primary-soft: rgba(58, 124, 165, 0.10);
-  --pink: #b585a4;
-  --pink-soft: rgba(181, 133, 164, 0.12);
-  --gold: #a98e4b;
-  --gold-soft: rgba(169, 142, 75, 0.13);
-  --good: #44897c;
-  --warn: #a98e4b;
-  --border: rgba(28, 43, 51, 0.11);
-  --border-strong: rgba(28, 43, 51, 0.18);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-
-/* ---------- iOS Rose (ported from jnmt-hub light) ---------- */
-[data-theme="ios-rose"] {
-  --bg-base: #fdf0f6;
-  --bg-scene:
-    radial-gradient(1100px 560px at 16% -10%, rgba(250, 210, 230, 0.52), transparent 60%),
-    radial-gradient(900px 500px at 88% 0%,   rgba(252, 220, 200, 0.40), transparent 58%),
-    radial-gradient(1300px 760px at 50% 115%,rgba(232, 200, 240, 0.35), transparent 64%),
-    linear-gradient(180deg, #fef5fa 0%, #f9e8f2 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 80, 10, 50;
-  --ink: #1a0a12;
-  --ink-2: #6b4057;
-  --ink-3: #b080a0;
-  --primary: #e879a0;
-  --primary-soft: rgba(232, 121, 160, 0.12);
-  --pink: #e879a0;
-  --pink-soft: rgba(232, 121, 160, 0.12);
-  --gold: #f59e0b;
-  --gold-soft: rgba(245, 158, 11, 0.14);
-  --good: #10b981;
-  --warn: #f59e0b;
-  --border: rgba(240, 200, 220, 0.80);
-  --border-strong: rgba(220, 150, 185, 0.90);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-
-/* ---------- iOS Night (ported from jnmt-hub dark) ---------- */
-[data-theme="ios-night"] {
-  color-scheme: dark;
-  --bg-base: #14020a;
-  --bg-scene:
-    radial-gradient(1100px 560px at 18% -10%, rgba(200, 20, 90, 0.28), transparent 60%),
-    radial-gradient(900px 500px at 86%  0%,  rgba(180, 10, 70, 0.22), transparent 58%),
-    radial-gradient(800px 450px at 50%  55%, rgba(140, 10, 80, 0.16), transparent 60%),
-    radial-gradient(1300px 760px at 50% 118%,rgba(60, 200, 150, 0.14), transparent 65%),
-    linear-gradient(180deg, #180308 0%, #100206 100%);
-  --surface-rgb: 40, 10, 25;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #ffeef6;
-  --ink-2: #c088a0;
-  --ink-3: #804060;
-  --primary: #e879a0;
-  --primary-soft: rgba(232, 121, 160, 0.18);
-  --pink: #f472b6;
-  --pink-soft: rgba(244, 114, 182, 0.16);
-  --gold: #fbbf24;
-  --gold-soft: rgba(251, 191, 36, 0.15);
-  --good: #34d399;
-  --warn: #fbbf24;
-  --border: rgba(255, 255, 255, 0.13);
-  --border-strong: rgba(255, 255, 255, 0.22);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.5);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #f87171;
-}
-
-/* ---------- Prism Glass (light liquid glass) ---------- */
-[data-theme="liquid"] {
-  --bg-base: #f5f5fc;
-  --bg-scene:
-    radial-gradient(1200px 600px at 20% -14%, rgba(200, 180, 255, 0.28), transparent 60%),
-    radial-gradient(1000px 540px at 86% -6%,  rgba(160, 210, 255, 0.30), transparent 58%),
-    radial-gradient(900px 500px at 50% 56%,   rgba(255, 200, 240, 0.14), transparent 60%),
-    radial-gradient(1400px 800px at 50% 118%, rgba(160, 240, 220, 0.22), transparent 65%),
-    linear-gradient(180deg, #f8f8ff 0%, #f0f0fa 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 10, 10, 40;
-  --ink: #18183c;
-  --ink-2: #484878;
-  --ink-3: #8888b0;
-  --primary: #6060ff;
-  --primary-soft: rgba(96, 96, 255, 0.09);
-  --pink: #d060c8;
-  --pink-soft: rgba(208, 96, 200, 0.10);
-  --gold: #9a70ff;
-  --gold-soft: rgba(154, 112, 255, 0.12);
-  --good: #28c0a8;
-  --warn: #c868a8;
-  --border: rgba(10, 10, 60, 0.07);
-  --border-strong: rgba(10, 10, 60, 0.13);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-
-/* ---------- Obsidian (dark liquid glass) ---------- */
-[data-theme="obsidian"] {
-  color-scheme: dark;
-  --bg-base: #0c0c1a;
-  --bg-scene:
-    radial-gradient(1100px 580px at 22% -12%, rgba(80, 50, 200, 0.38), transparent 60%),
-    radial-gradient(900px 500px at 84% -4%,   rgba(40, 80, 200, 0.32), transparent 58%),
-    radial-gradient(700px 400px at 50% 55%,   rgba(140, 40, 180, 0.18), transparent 60%),
-    radial-gradient(1300px 780px at 50% 118%, rgba(40, 160, 140, 0.20), transparent 65%),
-    linear-gradient(180deg, #0e0e1e 0%, #080810 100%);
-  --surface-rgb: 30, 28, 60;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #eeeeff;
-  --ink-2: #9898cc;
-  --ink-3: #5858a8;
-  --primary: #8080ff;
-  --primary-soft: rgba(128, 128, 255, 0.16);
-  --pink: #e060c0;
-  --pink-soft: rgba(224, 96, 192, 0.14);
-  --gold: #a880ff;
-  --gold-soft: rgba(168, 128, 255, 0.15);
-  --good: #40d8c0;
-  --warn: #e08090;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.5);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #f87171;
-}
-
-/* ---------- True Black (genuine neutral black, not a tinted dark) ----------
-   Every other dark theme here (navy, obsidian, ocean, ios-night...) is a
-   tinted dark — a deep blue/purple/teal standing in for "black". Anh
-   asked for an actual black option among the 14, so this one is
-   deliberately monochrome: near-white primary/ink on true #000, with
+/* ---------- Black (dark) ----------
+   True neutral black — not a tinted dark (the old navy/obsidian/ocean
+   themes this rewrite removed were each a deep blue/purple/teal
+   standing in for "black"). Near-white primary/ink on true #000, with
    --good/--warn kept as real green/amber (semantic state shouldn't
-   disappear even in a neutral theme) and --pink/--gold muted rather than
-   vivid (still distinct hues for code-highlight/badge differentiation,
-   just restrained so they don't fight the monochrome background). No
-   .scene-swell/-caustics/-lotus override is given on purpose — those
-   colorful glow layers are what make the OTHER themes feel alive; a true
-   black theme reads as stark/minimal specifically because it has none. */
+   disappear even in a neutral theme) and --pink/--gold muted rather
+   than vivid (still distinct enough for code-highlight/badge
+   differentiation, restrained so they don't fight the monochrome
+   background). No .scene-swell/-caustics/-lotus override on purpose —
+   those colorful glow layers belonged to the old per-theme "living
+   water" identity; a monochrome theme reads as stark/minimal
+   specifically because it has none. */
 [data-theme="black"] {
   color-scheme: dark;
   --bg-base: #000000;
@@ -323,7 +121,12 @@
   --shadow-rgb: 0, 0, 0;
   --ink: #f5f5f5;
   --ink-2: #a3a3a3;
-  --ink-3: #666666;
+  /* #808080, not the #666666 an earlier pass used — measured at 4.74:1
+     against the glass surface (rgb(18,18,18) blended into near-black),
+     color-rules.md's 4.5:1 AA floor for normal-size text; #666666 only
+     cleared 3.26:1 (large-text tier), and --ink-3 is used at 11-13px
+     (captions, footers) throughout, not just large text. */
+  --ink-3: #808080;
   --primary: #d4d4d4;
   --primary-soft: rgba(212, 212, 212, 0.14);
   --pink: #c99bb0;
@@ -342,6 +145,41 @@
   --color-primary: var(--primary);
   --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
   --color-destructive: #f87171;
+}
+
+/* ---------- White (light) ----------
+   Direct light mirror of "black" above — same structure, same
+   restrained-accent reasoning, inverted luminance. */
+[data-theme="white"] {
+  color-scheme: light;
+  --bg-base: #ffffff;
+  --bg-scene:
+    radial-gradient(1100px 580px at 22% -12%, rgba(0, 0, 0, 0.04), transparent 60%),
+    radial-gradient(1300px 780px at 50% 118%, rgba(0, 0, 0, 0.025), transparent 65%),
+    linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --surface-rgb: 246, 246, 246;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #111111;
+  --ink-2: #5c5c5c;
+  --ink-3: #6e6e6e;
+  --primary: #1a1a1a;
+  --primary-soft: rgba(26, 26, 26, 0.08);
+  --pink: #9c6b7a;
+  --pink-soft: rgba(156, 107, 122, 0.10);
+  --gold: #8a7440;
+  --gold-soft: rgba(138, 116, 64, 0.10);
+  --good: #1f9d55;
+  --warn: #b8860b;
+  --border: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  --color-destructive: #dc2626;
 }
 
 /* ============ base ============ */
@@ -371,19 +209,30 @@ body {
   pointer-events: none;
 }
 
-/* ============ flat surfaces ============ */
-/* Claude-style flat cards: 1px border, solid/near-solid fill, no blur, no
-   noise texture, no animated shine. .glass-strong keeps a slightly more
-   opaque fill than .glass for surfaces that sit above other surfaces
-   (e.g. a popover over a card) — same distinction the old glass system
-   made, kept for that one reason, not for any transparency effect. */
+/* ============ liquid glass surfaces ============ */
+/* Real backdrop-filter blur — this is the "liquid glass" anh asked for,
+   native CSS (Electron's Chromium has full support), not a ported
+   library. .glass-strong keeps a more opaque, more blurred fill than
+   .glass for surfaces that sit above other surfaces (e.g. a popover
+   over a card) — same distinction this file's flat-surface era made,
+   kept for that reason, now genuinely translucent again. Contrast was
+   re-verified against color-rules.md's 4.5:1 AA minimum for both
+   themes above after adding blur — translucency lets the busy
+   background show through, which measurably reduces effective contrast
+   versus a flat fill. */
 .glass, .glass-strong {
   position: relative;
   border: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   box-shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.04);
 }
-.glass-strong { background: var(--color-bg); }
+.glass-strong {
+  background: var(--color-bg);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+}
 
 /* ============ shared atoms ============ */
 .h-display { font-weight: 300; letter-spacing: -0.02em; }
@@ -547,7 +396,7 @@ body { overflow-x: hidden; }
    (none was ever wired into the Vite build — this is the first styling
    these elements have had since the desktop-src migration). Token colors
    (--primary/--good/--gold/--pink/--ink-3) are already per-theme, so
-   syntax highlighting adapts across all 14 themes without new tokens. */
+   syntax highlighting adapts across both themes without new tokens. */
 .yana-md pre {
   position: relative;
   margin: 10px 0;
@@ -684,377 +533,6 @@ button:not([disabled]) {
   .yana-sidebar, .yana-backdrop { transition: none; }
 }
 
-/* ============ living water — animated background layers ============ */
-
-/* Layer 1: slow swell — light shifting like sun refracted through deep water */
-.scene-swell {
-  position: absolute; inset: -18% -18%;
-  pointer-events: none;
-  will-change: transform, opacity;
-  border-radius: 40%;
-}
-
-[data-theme="jade"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(122, 184, 168, 0.28) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(233, 201, 138, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(47, 126, 110, 0.18) 0%, transparent 68%);
-}
-[data-theme="dawn"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(236, 196, 134, 0.30) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(231, 168, 185, 0.26) 0%, transparent 60%),
-    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(185, 107, 128, 0.18) 0%, transparent 68%);
-}
-[data-theme="mist"] .scene-swell {
-  background:
-    radial-gradient(ellipse 70% 55% at 30% 35%, rgba(180, 192, 180, 0.24) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 65% 85%, rgba(210, 220, 210, 0.18) 0%, transparent 68%);
-}
-[data-theme="silver"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(168, 199, 224, 0.32) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(199, 214, 229, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(58, 124, 165, 0.18) 0%, transparent 68%);
-}
-[data-theme="ios-rose"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(240, 180, 210, 0.38) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 68%, rgba(252, 210, 170, 0.32) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 50% 85%, rgba(232, 121, 160, 0.22) 0%, transparent 68%);
-}
-[data-theme="ios-night"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(200, 20, 90, 0.38) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(180, 10, 70, 0.30) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(232, 121, 160, 0.22) 0%, transparent 68%);
-}
-[data-theme="liquid"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(160, 140, 255, 0.30) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 68%, rgba(120, 200, 255, 0.26) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 52% 80%, rgba(255, 170, 240, 0.20) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(96, 200, 180, 0.18) 0%, transparent 68%);
-}
-[data-theme="obsidian"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(100, 60, 220, 0.42) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(60, 100, 220, 0.36) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 50% 75%, rgba(160, 50, 200, 0.22) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(40, 180, 160, 0.20) 0%, transparent 68%);
-}
-
-/* Layer 2: light caustics — small bright shimmer patches, like sun through water */
-.scene-caustics {
-  position: absolute; inset: 0;
-  pointer-events: none;
-}
-
-[data-theme="jade"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 255, 255, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 255, 255, 0.11) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 255, 255, 0.09) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(255, 255, 255, 0.10) 0%, transparent 80%);
-}
-[data-theme="dawn"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 240, 220, 0.16) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 220, 230, 0.13) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 240, 220, 0.10) 0%, transparent 80%);
-}
-[data-theme="mist"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 255, 255, 0.09) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 255, 255, 0.07) 0%, transparent 80%);
-}
-[data-theme="silver"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(220, 235, 255, 0.16) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(220, 235, 255, 0.13) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(220, 235, 255, 0.10) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(220, 235, 255, 0.11) 0%, transparent 80%);
-}
-[data-theme="ios-rose"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(255, 220, 235, 0.22) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(255, 200, 220, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 235, 210, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(255, 210, 230, 0.16) 0%, transparent 80%);
-}
-[data-theme="ios-night"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(232, 80, 140, 0.24) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(200, 40, 100, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 100, 160, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(52, 211, 153, 0.12) 0%, transparent 80%);
-}
-[data-theme="liquid"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(200, 170, 255, 0.20) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(160, 210, 255, 0.17) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(255, 180, 240, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(180, 240, 220, 0.15) 0%, transparent 80%),
-    radial-gradient(ellipse 120px 70px  at 14% 44%, rgba(220, 160, 255, 0.12) 0%, transparent 80%);
-}
-[data-theme="obsidian"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px  at 27% 58%, rgba(120, 80, 255, 0.22) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px  at 67% 32%, rgba(60, 120, 255, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px  at 83% 74%, rgba(200, 60, 240, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse  90px 50px  at 44% 18%, rgba(40, 200, 180, 0.16) 0%, transparent 80%),
-    radial-gradient(ellipse 120px 70px  at 14% 44%, rgba(160, 80, 255, 0.12) 0%, transparent 80%);
-}
-
-/* Canvas ripple overlay — interactive + ambient */
-#yana-ripple-canvas {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 1;
-  mix-blend-mode: screen;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .scene-swell    { animation: yana-swell    26s ease-in-out infinite; }
-  .scene-caustics { animation: yana-caustics  9s ease-in-out infinite; }
-}
-
-@keyframes yana-swell {
-  0%   { transform: translate(  0%,   0%) scale(1.00); opacity: 0.65; }
-  18%  { transform: translate(  2.5%, 1.5%) scale(1.03); opacity: 0.88; }
-  36%  { transform: translate( -1.5%, 4.0%) scale(0.97); opacity: 0.72; }
-  54%  { transform: translate(  3.5%,-2.0%) scale(1.02); opacity: 0.82; }
-  72%  { transform: translate( -2.5%, 2.5%) scale(0.99); opacity: 0.78; }
-  100% { transform: translate(  0%,   0%) scale(1.00); opacity: 0.65; }
-}
-
-@keyframes yana-caustics {
-  0%, 100% { opacity: 0; }
-  22%      { opacity: 1;   transform: translate( 2%, -1%); }
-  48%      { opacity: 0.55; transform: translate(-1%,  2%); }
-  74%      { opacity: 0.85; transform: translate( 3%,  1%); }
-}
-
-/* ============ life beneath the surface ============ */
-.pulse { animation: none; }
-
-/* Primary mote — primary color, medium */
-.mote {
-  position: absolute;
-  width: 5px; height: 5px; border-radius: 50%;
-  background: color-mix(in oklab, var(--primary) 60%, white);
-  opacity: 0; filter: blur(1.2px);
-  pointer-events: none;
-}
-
-/* Larger mote — warmer, slower */
-.mote-lg {
-  position: absolute;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: color-mix(in oklab, var(--primary) 35%, white);
-  opacity: 0; filter: blur(2.5px);
-  pointer-events: none;
-}
-
-/* Small gold mote — pollen / lotus dust */
-.mote-sm {
-  position: absolute;
-  width: 3px; height: 3px; border-radius: 50%;
-  background: color-mix(in oklab, var(--gold) 55%, white);
-  opacity: 0; filter: blur(0.7px);
-  pointer-events: none;
-}
-
-/* Pink mote — lotus petal blush */
-.mote-pink {
-  position: absolute;
-  width: 5px; height: 5px; border-radius: 50%;
-  background: color-mix(in oklab, var(--pink) 50%, white);
-  opacity: 0; filter: blur(1.8px);
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .pulse { animation: yana-pulse 3.2s ease-in-out infinite; }
-  .mote      { animation: yana-drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); }
-  .mote-lg   { animation: yana-drift var(--dur, 90s) linear infinite; animation-delay: var(--delay, 0s); }
-  .mote-sm   { animation: yana-drift var(--dur, 52s) linear infinite; animation-delay: var(--delay, 0s); }
-  .mote-pink { animation: yana-drift var(--dur, 78s) linear infinite; animation-delay: var(--delay, 0s); }
-}
-
-@keyframes yana-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 18%, transparent); }
-  50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--good) 8%, transparent); }
-}
-@keyframes yana-drift {
-  0%   { transform: translate(0, 0); opacity: 0; }
-  10%  { opacity: var(--peak, 0.22); }
-  90%  { opacity: var(--peak, 0.22); }
-  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)); opacity: 0; }
-}
-
-/* ============ extra water-surface layers ============ */
-
-/* Layer 3: horizontal shimmer — a thin band of light sliding across, like sun glinting on moving water */
-.scene-shimmer {
-  position: absolute;
-  left: -30%; right: -30%;
-  height: 40%;
-  top: 55%;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      105deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0) 38%,
-      rgba(255, 255, 255, 0.13) 48%,
-      rgba(255, 255, 255, 0.07) 52%,
-      transparent 62%,
-      transparent 100%
-    );
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.7) 40%, rgba(0,0,0,.7) 70%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.7) 40%, rgba(0,0,0,.7) 70%, transparent 100%);
-  opacity: 0.8;
-}
-
-[data-theme="mist"] .scene-shimmer { opacity: 0.45; }
-[data-theme="ios-rose"] .scene-shimmer {
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(255,220,235,0) 34%,
-    rgba(255,230,240,0.26) 46%,
-    rgba(255,210,230,0.20) 52%,
-    rgba(255,200,220,0.14) 58%,
-    transparent 70%,
-    transparent 100%
-  );
-  opacity: 0.95;
-}
-[data-theme="ios-night"] .scene-shimmer {
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(232,80,140,0) 32%,
-    rgba(232,100,150,0.30) 44%,
-    rgba(255,120,170,0.22) 50%,
-    rgba(232,80,140,0.16) 58%,
-    transparent 70%,
-    transparent 100%
-  );
-  opacity: 0.80;
-}
-[data-theme="liquid"] .scene-shimmer {
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(200, 180, 255, 0) 30%,
-    rgba(220, 200, 255, 0.22) 44%,
-    rgba(180, 220, 255, 0.18) 50%,
-    rgba(255, 200, 240, 0.14) 56%,
-    transparent 68%,
-    transparent 100%
-  );
-  opacity: 0.90;
-}
-[data-theme="obsidian"] .scene-shimmer {
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(100, 60, 255, 0) 34%,
-    rgba(120, 80, 255, 0.28) 46%,
-    rgba(60, 160, 255, 0.20) 52%,
-    rgba(200, 60, 240, 0.16) 58%,
-    transparent 70%,
-    transparent 100%
-  );
-  opacity: 0.75;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .scene-shimmer { animation: yana-shimmer 14s cubic-bezier(.45, 0, .55, 1) infinite; }
-}
-@keyframes yana-shimmer {
-  0%   { transform: translateX(-60%) skewX(-6deg); }
-  100% { transform: translateX(160%) skewX(-6deg); }
-}
-
-/* Layer 4: large blurred lotus blobs — lily pad / petal silhouettes deep in the water */
-.scene-lotus {
-  position: absolute; inset: 0;
-  pointer-events: none;
-}
-
-[data-theme="jade"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(47, 126, 110, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(183, 143, 61, 0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 48% 92%, rgba(199, 123, 146, 0.08) 0%, transparent 70%);
-  filter: blur(18px);
-}
-[data-theme="dawn"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(185, 107, 128, 0.14) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(183, 138, 63, 0.10) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 48% 92%, rgba(168, 196, 186, 0.09) 0%, transparent 70%);
-  filter: blur(18px);
-}
-[data-theme="mist"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(74, 122, 106, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(163, 136, 78, 0.06) 0%, transparent 70%);
-  filter: blur(22px);
-}
-[data-theme="ios-rose"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(232, 121, 160, 0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(245, 158, 11, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(250, 200, 225, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 82% 74%, rgba(232, 180, 200, 0.10) 0%, transparent 70%);
-  filter: blur(18px);
-}
-[data-theme="ios-night"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(232, 80, 130, 0.30) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(200, 30, 90, 0.24) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(244, 114, 182, 0.20) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 82% 74%, rgba(52, 211, 153, 0.14) 0%, transparent 70%);
-  filter: blur(22px);
-}
-[data-theme="liquid"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(140, 100, 255, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(80, 180, 255, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(255, 130, 220, 0.11) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 82% 74%, rgba(100, 230, 200, 0.10) 0%, transparent 70%);
-  filter: blur(20px);
-}
-[data-theme="obsidian"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(100, 60, 255, 0.28) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(40, 120, 255, 0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(200, 40, 220, 0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 82% 74%, rgba(30, 200, 180, 0.16) 0%, transparent 70%);
-  filter: blur(24px);
-}
-[data-theme="silver"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(58, 124, 165, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(169, 142, 75, 0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 160px  90px at 48% 92%, rgba(181, 133, 164, 0.08) 0%, transparent 70%);
-  filter: blur(18px);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .scene-lotus { animation: yana-lotus 34s ease-in-out infinite; }
-}
-@keyframes yana-lotus {
-  0%   { transform: translate(  0%,  0%) scale(1.00); opacity: 0.70; }
-  28%  { transform: translate( 2.5%, 1.2%) scale(1.04); opacity: 0.90; }
-  55%  { transform: translate(-1.5%, 3.0%) scale(0.96); opacity: 0.75; }
-  80%  { transform: translate( 3.0%,-1.5%) scale(1.02); opacity: 0.85; }
-  100% { transform: translate(  0%,  0%) scale(1.00); opacity: 0.70; }
-}
-
 /* ── Global click ripple ring (iOS-style expanding ring) ─────────────────── */
 @keyframes ripple-expand {
   0%   { transform: scale(0);  opacity: 0.70; }
@@ -1071,15 +549,6 @@ button:not([disabled]) {
   animation: ripple-expand 0.55s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-}
-[data-theme="obsidian"] .ripple-ring,
-[data-theme="ios-night"] .ripple-ring {
-  border-color: rgba(200, 160, 255, 0.50);
-  background: rgba(140, 100, 255, 0.08);
-}
-[data-theme="ios-rose"] .ripple-ring {
-  border-color: rgba(232, 121, 160, 0.55);
-  background: rgba(232, 121, 160, 0.08);
 }
 
 /* ── Profile footer row + popup menu ─────────────────────────────────────── */
@@ -1201,403 +670,61 @@ button:not([disabled]) {
   transform: scale(1.05);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   NEW THEMES — added 2026-06-16
-   sage · amber · arctic · ocean · lavender · navy
-   ═══════════════════════════════════════════════════════════════ */
+/* ============ life beneath the surface ============
+   Undercurrent (app/undercurrent.jsx) unconditionally renders these
+   mote/pulse elements regardless of theme — kept from the pre-rewrite
+   file so they don't silently become unstyled/invisible spans. Colors
+   already resolve through --primary/--gold/--pink, which now read as
+   muted monochrome accents rather than colorful pollen, fitting the
+   glass-minimal direction without needing new rules here. */
+.pulse { animation: none; }
 
-/* ---------- Sage Forest 🌲 ---------- */
-[data-theme="sage"] {
-  color-scheme: light;
-  --bg-base: #f1f4ef;
-  --bg-scene:
-    radial-gradient(1100px 520px at 10% -6%, rgba(164, 196, 140, 0.20), transparent 60%),
-    radial-gradient(900px 600px at 88% 4%, rgba(200, 220, 160, 0.18), transparent 58%),
-    radial-gradient(1300px 800px at 50% 110%, rgba(90, 148, 90, 0.22), transparent 62%),
-    linear-gradient(180deg, #f4f7f1 0%, #ebf0e7 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 18, 36, 18;
-  --ink: #1e3320;
-  --ink-2: #4e6950;
-  --ink-3: #829c82;
-  --primary: #5a8a50;
-  --primary-soft: rgba(90, 138, 80, 0.10);
-  --pink: #c47b7b;
-  --pink-soft: rgba(196, 123, 123, 0.11);
-  --gold: #a08c3a;
-  --gold-soft: rgba(160, 140, 58, 0.12);
-  --good: #5a8a50;
-  --warn: #a08c3a;
-  --border: rgba(28, 50, 28, 0.09);
-  --border-strong: rgba(28, 50, 28, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
+.mote {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 60%, white);
+  opacity: 0; filter: blur(1.2px);
+  pointer-events: none;
 }
-[data-theme="sage"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(120, 180, 100, 0.26) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(180, 220, 130, 0.20) 0%, transparent 60%),
-    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(80, 140, 80, 0.16) 0%, transparent 68%);
+.mote-lg {
+  position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 35%, white);
+  opacity: 0; filter: blur(2.5px);
+  pointer-events: none;
 }
-[data-theme="sage"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(180, 240, 160, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(160, 220, 140, 0.11) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(200, 240, 180, 0.09) 0%, transparent 80%);
+.mote-sm {
+  position: absolute;
+  width: 3px; height: 3px; border-radius: 50%;
+  background: color-mix(in oklab, var(--gold) 55%, white);
+  opacity: 0; filter: blur(0.7px);
+  pointer-events: none;
 }
-[data-theme="sage"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(80, 140, 80, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(160, 140, 60, 0.08) 0%, transparent 70%);
-  filter: blur(18px);
+.mote-pink {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: color-mix(in oklab, var(--pink) 50%, white);
+  opacity: 0; filter: blur(1.8px);
+  pointer-events: none;
 }
 
-/* ---------- Sunset Amber 🌅 ---------- */
-[data-theme="amber"] {
-  color-scheme: light;
-  --bg-base: #f9f2e8;
-  --bg-scene:
-    radial-gradient(1100px 540px at 14% -8%, rgba(248, 200, 100, 0.32), transparent 58%),
-    radial-gradient(950px 580px at 88% 2%, rgba(240, 150, 80, 0.28), transparent 55%),
-    radial-gradient(1200px 700px at 50% 115%, rgba(210, 120, 60, 0.22), transparent 64%),
-    linear-gradient(180deg, #faf4e8 0%, #f5e9d4 100%);
-  --surface-rgb: 255, 252, 248;
-  --shadow-rgb: 50, 28, 8;
-  --ink: #2e1c06;
-  --ink-2: #6e4a20;
-  --ink-3: #a88050;
-  --primary: #c97c18;
-  --primary-soft: rgba(201, 124, 24, 0.11);
-  --pink: #c06050;
-  --pink-soft: rgba(192, 96, 80, 0.11);
-  --gold: #c97c18;
-  --gold-soft: rgba(201, 124, 24, 0.13);
-  --good: #5a8a50;
-  --warn: #c97c18;
-  --border: rgba(80, 48, 12, 0.10);
-  --border-strong: rgba(80, 48, 12, 0.17);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-[data-theme="amber"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 16% 30%, rgba(248, 200, 100, 0.34) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 65%, rgba(240, 150, 80, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(210, 100, 50, 0.20) 0%, transparent 68%);
-}
-[data-theme="amber"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(255, 220, 140, 0.22) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(255, 180, 100, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(255, 200, 120, 0.14) 0%, transparent 80%);
-}
-[data-theme="amber"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(210, 120, 50, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(240, 180, 80, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 160px 90px at 48% 92%, rgba(192, 96, 80, 0.10) 0%, transparent 70%);
-  filter: blur(18px);
+@media (prefers-reduced-motion: no-preference) {
+  .pulse { animation: yana-pulse 3.2s ease-in-out infinite; }
+  .mote      { animation: yana-drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-lg   { animation: yana-drift var(--dur, 90s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-sm   { animation: yana-drift var(--dur, 52s) linear infinite; animation-delay: var(--delay, 0s); }
+  .mote-pink { animation: yana-drift var(--dur, 78s) linear infinite; animation-delay: var(--delay, 0s); }
 }
 
-/* ---------- Arctic Blue ❄️ ---------- */
-[data-theme="arctic"] {
-  color-scheme: light;
-  --bg-base: #eef5fb;
-  --bg-scene:
-    radial-gradient(1100px 520px at 10% -6%, rgba(160, 210, 240, 0.30), transparent 60%),
-    radial-gradient(900px 600px at 88% 4%, rgba(180, 220, 250, 0.26), transparent 58%),
-    radial-gradient(1300px 800px at 50% 110%, rgba(90, 160, 200, 0.20), transparent 62%),
-    linear-gradient(180deg, #f3f8fc 0%, #e8f2fa 100%);
-  --surface-rgb: 252, 255, 255;
-  --shadow-rgb: 10, 28, 50;
-  --ink: #0f2034;
-  --ink-2: #3a5872;
-  --ink-3: #7298b4;
-  --primary: #1a7eb0;
-  --primary-soft: rgba(26, 126, 176, 0.10);
-  --pink: #8080c8;
-  --pink-soft: rgba(128, 128, 200, 0.11);
-  --gold: #6898c4;
-  --gold-soft: rgba(104, 152, 196, 0.13);
-  --good: #1a7eb0;
-  --warn: #9870a0;
-  --border: rgba(16, 40, 60, 0.09);
-  --border-strong: rgba(16, 40, 60, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
+@keyframes yana-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 18%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--good) 8%, transparent); }
 }
-[data-theme="arctic"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(160, 210, 248, 0.36) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(200, 230, 255, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 75% 55% at 48% 105%, rgba(80, 160, 210, 0.18) 0%, transparent 68%);
-}
-[data-theme="arctic"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(200, 230, 255, 0.20) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(180, 215, 250, 0.16) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(220, 240, 255, 0.12) 0%, transparent 80%),
-    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(190, 220, 248, 0.14) 0%, transparent 80%);
-}
-[data-theme="arctic"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 220px 120px at 22% 78%, rgba(60, 140, 200, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 73% 85%, rgba(120, 160, 220, 0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 160px 90px at 48% 92%, rgba(160, 200, 240, 0.08) 0%, transparent 70%);
-  filter: blur(20px);
-}
-
-/* ---------- Deep Ocean 🌊 (dark) ---------- */
-[data-theme="ocean"] {
-  color-scheme: dark;
-  --bg-base: #071820;
-  --bg-scene:
-    radial-gradient(1100px 560px at 18% -10%, rgba(20, 100, 140, 0.42), transparent 60%),
-    radial-gradient(900px 500px at 84% -4%, rgba(10, 80, 120, 0.34), transparent 58%),
-    radial-gradient(700px 400px at 50% 55%, rgba(0, 160, 130, 0.18), transparent 60%),
-    radial-gradient(1300px 780px at 50% 118%, rgba(0, 180, 160, 0.22), transparent 65%),
-    linear-gradient(180deg, #091c24 0%, #051218 100%);
-  --surface-rgb: 10, 36, 50;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #d0f0f4;
-  --ink-2: #80bcc8;
-  --ink-3: #408090;
-  --primary: #00c4a7;
-  --primary-soft: rgba(0, 196, 167, 0.18);
-  --pink: #60d0e8;
-  --pink-soft: rgba(96, 208, 232, 0.15);
-  --gold: #40d8b0;
-  --gold-soft: rgba(64, 216, 176, 0.14);
-  --good: #00c4a7;
-  --warn: #f0b040;
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.5);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #f87171;
-}
-[data-theme="ocean"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(20, 120, 160, 0.48) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(10, 90, 140, 0.38) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 50% 78%, rgba(0, 180, 150, 0.24) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(0, 200, 170, 0.22) 0%, transparent 68%);
-}
-[data-theme="ocean"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(0, 200, 180, 0.28) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(20, 160, 200, 0.22) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(0, 220, 180, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(40, 180, 220, 0.20) 0%, transparent 80%);
-}
-[data-theme="ocean"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(0, 160, 140, 0.32) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(0, 120, 160, 0.26) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(0, 200, 160, 0.20) 0%, transparent 70%),
-    radial-gradient(ellipse 160px 90px at 82% 74%, rgba(40, 220, 200, 0.16) 0%, transparent 70%);
-  filter: blur(22px);
-}
-[data-theme="ocean"] .ripple-ring {
-  border-color: rgba(0, 220, 200, 0.50);
-  background: rgba(0, 180, 160, 0.08);
-}
-
-/* ---------- Lavender Dream 💜 ---------- */
-[data-theme="lavender"] {
-  color-scheme: light;
-  --bg-base: #f4f0fb;
-  --bg-scene:
-    radial-gradient(1100px 540px at 12% -8%, rgba(200, 180, 255, 0.30), transparent 58%),
-    radial-gradient(950px 580px at 88% 2%, rgba(180, 160, 255, 0.26), transparent 55%),
-    radial-gradient(1200px 700px at 50% 115%, rgba(150, 120, 220, 0.22), transparent 64%),
-    linear-gradient(180deg, #f7f4fd 0%, #ede8f8 100%);
-  --surface-rgb: 255, 255, 255;
-  --shadow-rgb: 28, 16, 50;
-  --ink: #22124a;
-  --ink-2: #5c4880;
-  --ink-3: #9c88c0;
-  --primary: #7c5cbf;
-  --primary-soft: rgba(124, 92, 191, 0.11);
-  --pink: #c070b0;
-  --pink-soft: rgba(192, 112, 176, 0.11);
-  --gold: #9880d0;
-  --gold-soft: rgba(152, 128, 208, 0.13);
-  --good: #5a8a9c;
-  --warn: #c07830;
-  --border: rgba(40, 20, 70, 0.09);
-  --border-strong: rgba(40, 20, 70, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.7);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
-}
-[data-theme="lavender"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(180, 160, 255, 0.34) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 68%, rgba(200, 180, 255, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 52% 80%, rgba(230, 200, 255, 0.22) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(160, 120, 220, 0.18) 0%, transparent 68%);
-}
-[data-theme="lavender"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(200, 180, 255, 0.20) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(180, 160, 255, 0.17) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(220, 200, 255, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(240, 210, 255, 0.15) 0%, transparent 80%);
-}
-[data-theme="lavender"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(140, 100, 220, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(190, 140, 255, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(220, 180, 255, 0.11) 0%, transparent 70%);
-  filter: blur(20px);
-}
-
-/* ---------- Midnight Navy 🌌 (dark) ---------- */
-[data-theme="navy"] {
-  color-scheme: dark;
-  --bg-base: #090e1a;
-  --bg-scene:
-    radial-gradient(1100px 580px at 22% -12%, rgba(40, 60, 160, 0.40), transparent 60%),
-    radial-gradient(900px 500px at 84% -4%, rgba(20, 40, 140, 0.32), transparent 58%),
-    radial-gradient(700px 400px at 50% 55%, rgba(60, 80, 180, 0.18), transparent 60%),
-    radial-gradient(1300px 780px at 50% 118%, rgba(80, 140, 200, 0.18), transparent 65%),
-    linear-gradient(180deg, #0c1220 0%, #070a14 100%);
-  --surface-rgb: 24, 32, 56;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #e0e8ff;
-  --ink-2: #8898d0;
-  --ink-3: #4860a0;
-  --primary: #6080e8;
-  --primary-soft: rgba(96, 128, 232, 0.18);
-  --pink: #80a0f0;
-  --pink-soft: rgba(128, 160, 240, 0.16);
-  --gold: #7090ff;
-  --gold-soft: rgba(112, 144, 255, 0.15);
-  --good: #60d0b0;
-  --warn: #d0a050;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.5);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #f87171;
-}
-[data-theme="navy"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(60, 80, 200, 0.46) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 82% 72%, rgba(30, 60, 180, 0.36) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 50% 75%, rgba(80, 120, 220, 0.22) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(100, 160, 240, 0.18) 0%, transparent 68%);
-}
-[data-theme="navy"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(80, 120, 255, 0.24) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(60, 100, 240, 0.18) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(100, 140, 255, 0.14) 0%, transparent 80%),
-    radial-gradient(ellipse 90px 50px at 44% 18%, rgba(120, 160, 255, 0.16) 0%, transparent 80%);
-}
-[data-theme="navy"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(60, 100, 200, 0.30) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(40, 80, 180, 0.24) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(80, 140, 220, 0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 160px 90px at 82% 74%, rgba(100, 160, 255, 0.14) 0%, transparent 70%);
-  filter: blur(24px);
-}
-[data-theme="navy"] .ripple-ring {
-  border-color: rgba(120, 160, 255, 0.50);
-  background: rgba(80, 120, 220, 0.08);
-}
-
-/* ---------- Violet Workspace ✦ (dark) ---------- */
-[data-theme="violet-workspace"] {
-  color-scheme: dark;
-  --bg-base: #0e111a;
-  --bg-scene:
-    radial-gradient(1100px 620px at 20% -14%, rgba(155, 108, 255, 0.24), transparent 62%),
-    radial-gradient(900px 560px at 92% 4%, rgba(89, 73, 184, 0.18), transparent 60%),
-    radial-gradient(1000px 680px at 48% 108%, rgba(49, 208, 152, 0.07), transparent 68%),
-    linear-gradient(180deg, #121624 0%, #0e111a 100%);
-  --surface-rgb: 23, 27, 40;
-  --surface-raised: #202536;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #f3f5fb;
-  --ink-2: #9ea7bd;
-  --ink-3: #69738a;
-  --primary: #9b6cff;
-  --primary-soft: rgba(155, 108, 255, 0.18);
-  --pink: #c8aeff;
-  --pink-soft: rgba(200, 174, 255, 0.16);
-  --gold: #e7b36d;
-  --gold-soft: rgba(231, 179, 109, 0.15);
-  --good: #31d098;
-  --warn: #e7b36d;
-  --border: rgba(243, 245, 251, 0.08);
-  --border-strong: rgba(243, 245, 251, 0.15);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.72);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #fb7185;
-}
-[data-theme="violet-workspace"] .scene-swell {
-  background:
-    radial-gradient(ellipse 65% 50% at 18% 28%, rgba(155, 108, 255, 0.22) 0%, transparent 66%),
-    radial-gradient(ellipse 55% 42% at 82% 70%, rgba(101, 77, 208, 0.17) 0%, transparent 62%),
-    radial-gradient(ellipse 75% 55% at 48% 108%, rgba(49, 208, 152, 0.06) 0%, transparent 70%);
-}
-[data-theme="violet-workspace"] .scene-caustics {
-  background:
-    radial-gradient(ellipse 160px 90px at 27% 58%, rgba(190, 166, 255, 0.12) 0%, transparent 80%),
-    radial-gradient(ellipse 110px 65px at 67% 32%, rgba(155, 108, 255, 0.10) 0%, transparent 80%),
-    radial-gradient(ellipse 140px 80px at 83% 74%, rgba(49, 208, 152, 0.06) 0%, transparent 80%);
-}
-[data-theme="violet-workspace"] .scene-lotus {
-  background:
-    radial-gradient(ellipse 240px 130px at 20% 78%, rgba(155, 108, 255, 0.19) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 110px at 68% 86%, rgba(96, 74, 200, 0.14) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 100px at 44% 92%, rgba(49, 208, 152, 0.06) 0%, transparent 70%);
-  filter: blur(22px);
-}
-[data-theme="violet-workspace"] .ripple-ring {
-  border-color: rgba(155, 108, 255, 0.5);
-  background: rgba(155, 108, 255, 0.08);
+@keyframes yana-drift {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  10%  { opacity: var(--peak, 0.22); }
+  90%  { opacity: var(--peak, 0.22); }
+  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)); opacity: 0; }
 }
 
 /* Effects kill-switches (toggled via body class from Tweaks panel) */

@@ -82,19 +82,21 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
   const [resetStatus, setResetStatus] = React.useState(null);
   const [dataOverview, setDataOverview] = React.useState(null);
   const [dataOverviewLoading, setDataOverviewLoading] = React.useState(true);
+  const [authStatus, setAuthStatus] = React.useState(null);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const matches = (keywords) => !normalizedQuery || keywords.toLocaleLowerCase().includes(normalizedQuery);
   const visible = {
-    appearance: matches('appearance theme violet workspace navy ocean obsidian jade ios night rose prism glass dawn mist silver sage amber arctic lavender'),
+    account: matches('account google link sign in login'),
+    appearance: matches('appearance theme black white light dark monochrome glass font'),
     language: matches('language locale region vietnamese korean chinese english'),
     workspace: matches('projects workspace folders terminal providers models privacy permissions'),
     integrations: matches('integrations connectors github gmail google drive calendar notion permissions scopes oauth'),
     privacy: matches('privacy data memory backup export restore'),
   };
   const showSection = (id) => !normalizedQuery || section === id;
-  const hasSettingsResult = visible.appearance || visible.language || visible.workspace || visible.integrations || visible.privacy;
+  const hasSettingsResult = visible.account || visible.appearance || visible.language || visible.workspace || visible.integrations || visible.privacy;
   const sections = [
-    { id: 'general', label: L('General', 'Chung', '일반', '通用'), matches: visible.appearance || visible.language },
+    { id: 'general', label: L('General', 'Chung', '일반', '通用'), matches: visible.account || visible.appearance || visible.language },
     { id: 'workspace', label: L('Workspace', 'Không gian làm việc', '작업 공간', '工作区'), matches: visible.workspace },
     { id: 'connections', label: L('Connections', 'Kết nối', '연결', '连接'), matches: visible.integrations },
     { id: 'data', label: L('Data & memory', 'Dữ liệu & memory', '데이터 및 메모리', '数据与记忆'), matches: visible.privacy },
@@ -132,6 +134,16 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
   }, []);
 
   React.useEffect(() => { void refreshDataOverview(); }, [refreshDataOverview]);
+
+  // Powers the "Link Google Account" row below. Same /api/auth/status
+  // endpoint login.html already calls before its own googleAvailable
+  // check — googleLinked is a real field on that response (auth.js:164),
+  // not something new-app previously read anywhere.
+  React.useEffect(() => {
+    let active = true;
+    fetch('/api/auth/status').then((r) => r.json()).then((d) => { if (active) setAuthStatus(d); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   const chooseAutomaticBackupFolder = React.useCallback(async () => {
     const result = await window.yana?.selectMemoryBackupDirectory?.();
@@ -198,35 +210,31 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
             </button>
           </nav>
           <div style={{ minWidth: 0, flex: '1 1 520px', display: 'grid', gap: 14 }}>
+          {showSection('general') && visible.account && <Section title={L('Account', 'Tài khoản', '계정', '账号')} description={L('Link Google to sign in without your password. This is separate from the per-connector Gmail/Calendar access under Connections.', 'Liên kết Google để đăng nhập không cần mật khẩu. Việc này tách biệt với quyền truy cập Gmail/Calendar theo từng connector ở mục Kết nối.', '비밀번호 없이 로그인하려면 Google을 연결하세요. 이는 연결 메뉴의 커넥터별 Gmail/Calendar 액세스와 별개입니다.', '关联 Google 即可免密码登录。这与"连接"下按连接器授予的 Gmail/Calendar 访问权限是分开的。')}>
+            {authStatus?.googleAvailable === false && (
+              <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{L('Google sign-in is not configured on this installation yet.', 'Đăng nhập Google chưa được cấu hình trên máy này.', '이 설치본에는 아직 Google 로그인이 구성되어 있지 않습니다.', '此安装尚未配置 Google 登录。')}</p>
+            )}
+            {authStatus?.googleAvailable && (
+              <LinkRow
+                title={L('Google account', 'Tài khoản Google', 'Google 계정', 'Google 账号')}
+                description={authStatus.googleLinked
+                  ? L('Linked — you can sign in with Google.', 'Đã liên kết — anh có thể đăng nhập bằng Google.', '연결됨 — Google로 로그인할 수 있습니다.', '已关联 — 您可以使用 Google 登录。')
+                  : L('Not linked. Link it to sign in without typing your password.', 'Chưa liên kết. Liên kết để đăng nhập không cần gõ mật khẩu.', '연결되지 않음. 비밀번호 입력 없이 로그인하려면 연결하세요.', '尚未关联。关联后即可免输入密码登录。')}
+                action={authStatus.googleLinked ? null : () => { window.location.href = '/api/auth/google/start?intent=link'; }}
+                actionLabel={L('Link Google', 'Liên kết Google', 'Google 연결', '关联 Google')}
+              />
+            )}
+          </Section>}
           {showSection('general') && visible.appearance && <Section title={L('Appearance', 'Giao diện', '모양', '外观')} description={L('Theme changes apply to this new workspace immediately.', 'Đổi theme áp dụng ngay cho workspace mới này.', '테마 변경은 이 새 작업 공간에 즉시 적용됩니다.', '主题更改会立即应用到此新工作区。')}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {/* Full catalog, matching app.jsx's THEME_MAP (desktop-src/app.jsx)
-                  and appearance-card.jsx's THEME_PREVIEWS — every id below has
-                  a real [data-theme="..."] block in themes.css (loaded globally
-                  by main.jsx, not a new-app-local stylesheet), so nothing here
-                  needed new CSS. This picker previously exposed only 4 of the
-                  14 existing themes; anh specifically asked for iOS Night/iOS
-                  Rose/Prism Glass back, so the fix restores the whole catalog
-                  rather than cherry-picking three. Names stay untranslated
-                  (proper-noun style) — same precedent as THEME_PREVIEWS, which
-                  never wraps these labels in L(...) either. */}
+              {/* Monochrome only (2026-09-02 redesign, anh's explicit call) —
+                  the previous 16-entry color catalog is gone from both
+                  themes.css and ui-preferences.mjs's THEMES allowlist, not
+                  just trimmed here. Names stay untranslated (proper-noun
+                  style), same precedent the old catalog used. */}
               {[
-                ['violet-workspace', 'Violet Workspace ✦'],
-                ['dawn', 'Lotus Dawn 🌸'],
-                ['jade', 'Jade Lake 🌿'],
-                ['mist', 'Morning Mist ☁️'],
-                ['silver', 'Glass Silver ✨'],
-                ['sage', 'Sage Forest 🌲'],
-                ['amber', 'Sunset Amber 🌅'],
-                ['arctic', 'Arctic Blue ❄️'],
-                ['lavender', 'Lavender Dream 💜'],
-                ['ios-rose', 'iOS Rose 🌷'],
-                ['ios-night', 'iOS Night 🌙'],
-                ['liquid', 'Prism Glass 🔮'],
-                ['obsidian', 'Obsidian 🌑'],
-                ['ocean', 'Deep Ocean 🌊'],
-                ['navy', 'Midnight Navy 🌌'],
-                ['black', 'True Black 🖤'],
+                ['black', 'Black 🖤'],
+                ['white', 'White 🤍'],
               ].map(([id, label]) => <button key={id} onClick={() => onChange({ theme: id })} aria-pressed={preferences.theme === id} style={{ border: preferences.theme === id ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '7px 10px', background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>{label}</button>)}
             </div>
           </Section>}

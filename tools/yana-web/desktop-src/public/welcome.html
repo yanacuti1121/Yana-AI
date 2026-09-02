@@ -5,30 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <link rel="icon" type="image/png" href="/logo.png" />
   <title>Yana — Trợ lý AI của bạn</title>
-  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
-  <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:300,400,500,600&display=swap" rel="stylesheet" />
   <style>
+    /* Self-hosted Geist — see themes.css's @font-face block / login.html
+       for the same change and its rationale. This page's aurora blobs
+       are recolored to the same monochrome glass language as login.html
+       (real backdrop-filter, no hue) — animation is kept (not flattened
+       to login.html's static scene) since this is a first-run/marketing
+       surface, not a form; frontend-production-checklist.md's motion
+       section treats that distinction as the deciding factor, and the
+       existing prefers-reduced-motion fallback below still applies. */
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-Regular.woff2") format("woff2");
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-Medium.woff2") format("woff2");
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: "Geist";
+      src: url("/desktop/fonts/Geist-SemiBold.woff2") format("woff2");
+      font-weight: 600; font-style: normal; font-display: swap;
+    }
+    /* Matches login.html's monochrome "black" theme tokens exactly — see
+       that file's own header comment for why these are ported statically
+       rather than importing themes.css's live bundle chunk. */
     :root {
-      --primary: #2f7e6e;
-      --ink: #1d3530; --ink-2: #44615a; --ink-3: #7a948d;
-      --border: rgba(31, 70, 60, .14);
+      --ink: #f5f5f5; --ink-2: #a3a3a3; --ink-3: #808080; /* 4.74:1 AA — see themes.css's own note on this value */
+      --primary: #d4d4d4;
+      --surface-rgb: 18, 18, 18;
+      --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+      --border: rgba(255, 255, 255, 0.10);
+      --good: #4ade80;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0; overflow-x: hidden;
-      font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(160deg, #f6faf7 30%, #ddeee7 100%);
+      font-family: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(1100px 580px at 22% -12%, rgba(255, 255, 255, 0.05), transparent 60%),
+        radial-gradient(1300px 780px at 50% 118%, rgba(255, 255, 255, 0.03), transparent 65%),
+        linear-gradient(180deg, #000000 0%, #000000 100%);
       color: var(--ink);
       display: grid; place-items: center; min-height: 100vh;
     }
 
-    /* ── Aurora backdrop ── */
+    /* ── Aurora backdrop — monochrome glow, no hue ── */
     .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); z-index: 0; }
     .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
-    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(122,184,168,.8), transparent 65%); }
-    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(86,148,159,.7), transparent 65%); animation-delay: -9s; }
-    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(236,196,134,.55), transparent 65%); animation-delay: -17s; }
+    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(255,255,255,.16), transparent 65%); }
+    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(255,255,255,.12), transparent 65%); animation-delay: -9s; }
+    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(255,255,255,.09), transparent 65%); animation-delay: -17s; }
     @keyframes drift {
       from { transform: translate(0, 0) scale(1); }
       to   { transform: translate(5vw, 6vh) scale(1.12); }
@@ -45,7 +75,7 @@
     .lang {
       position: fixed; top: 18px; right: 18px; z-index: 2;
       display: flex; gap: 2px; padding: 3px;
-      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.7);
+      background: rgba(255,255,255,.05); border: 1px solid var(--border);
       border-radius: 99px; backdrop-filter: blur(12px);
     }
     .lang button {
@@ -54,13 +84,13 @@
       padding: 4px 10px; border-radius: 99px; color: var(--ink-3);
       background: transparent; transition: background .15s, color .15s;
     }
-    .lang button.on { background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 3px rgba(31,70,60,.12); }
+    .lang button.on { background: rgba(255,255,255,.1); color: var(--ink); }
 
     .mark {
       width: 84px; height: 84px; margin: 0 auto 24px; border-radius: 27px;
       display: grid; place-items: center;
-      background: linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 14px 36px color-mix(in oklab, var(--primary) 32%, transparent);
+      background: var(--primary);
+      box-shadow: 0 14px 36px color-mix(in oklab, var(--primary) 32%, transparent);
       animation: rise .6s cubic-bezier(.21,.8,.32,1) both, breathe 5s ease-in-out 1s infinite;
     }
     @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
@@ -84,20 +114,20 @@
     }
     .feat {
       padding: 18px 14px 16px; border-radius: 18px; text-align: center;
-      background: rgba(255,255,255,.5);
+      background: var(--color-bg-subtle);
       backdrop-filter: blur(16px) saturate(1.2);
       -webkit-backdrop-filter: blur(16px) saturate(1.2);
-      border: 1px solid rgba(255,255,255,.65);
-      box-shadow: 0 8px 26px rgba(31,70,60,.07), inset 0 1px 0 rgba(255,255,255,.7);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 26px rgba(0,0,0,.35);
       transition: transform .2s ease, box-shadow .2s ease;
     }
-    .feat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(31,70,60,.11), inset 0 1px 0 rgba(255,255,255,.7); }
+    .feat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.45); }
     .feat .ico {
       width: 38px; height: 38px; margin: 0 auto 10px; border-radius: 12px;
       display: grid; place-items: center; color: var(--primary);
-      background: color-mix(in oklab, var(--primary) 10%, transparent);
+      background: color-mix(in oklab, var(--primary) 14%, transparent);
     }
-    .feat .t { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .feat .t { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--ink); }
     .feat .d { font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
 
     /* CTA */
@@ -105,7 +135,11 @@
     a.cta {
       display: inline-flex; align-items: center; gap: 9px;
       padding: 14px 30px; border-radius: 16px; text-decoration: none;
-      font-size: 15px; font-weight: 500; color: white;
+      font-size: 15px; font-weight: 500;
+      /* --primary is light (near-white) in the monochrome theme — dark
+         text needed, same WCAG-contrast reasoning as login.html's
+         button.cta (see that file's own comment on this exact fix). */
+      color: #0a0a0a;
       background: var(--primary);
       box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 38%, transparent);
       transition: transform .12s, box-shadow .2s;
@@ -118,7 +152,7 @@
       margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 7px;
       font-size: 11px; color: var(--ink-3); letter-spacing: .05em; animation-delay: .36s;
     }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); box-shadow: 0 0 6px var(--good); }
 
     @media (max-width: 540px) {
       .feats { grid-template-columns: 1fr 1fr; }
@@ -148,28 +182,28 @@
     <div class="feats">
       <div class="feat">
         <div class="ico">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 9.5c0 3.3-3.1 6-7 6-.9 0-1.8-.14-2.6-.4L3 16.5l1.2-3.1C3.4 12.3 3 11 3 9.5c0-3.3 3.1-6 7-6s7 2.7 7 6Z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
         </div>
         <div class="t" id="f1t">Chat đa mô hình</div>
         <div class="d" id="f1d">Claude, GPT, Gemini, Groq… — một khung chat, tự chọn đúng mô hình</div>
       </div>
       <div class="feat">
         <div class="ico">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r="0.4" fill="currentColor"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
         </div>
         <div class="t" id="f2t">Nhiệm vụ</div>
         <div class="d" id="f2d">Giao mục tiêu, Yana lập kế hoạch và theo dõi đến khi xong</div>
       </div>
       <div class="feat">
         <div class="ico">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 17c4-1.6 6.2-4.4 6.2-8.1C16.2 6 14.5 4 12.3 4 11.3 4 10.4 4.5 10 5.3 9.6 4.5 8.7 4 7.7 4 5.5 4 3.8 6 3.8 8.9 3.8 12.6 6 15.4 10 17Z"/><path d="M10 17V9.5"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
         </div>
         <div class="t" id="f3t">Vườn ký ức</div>
         <div class="d" id="f3d">Ghi nhớ điều quan trọng về bạn — lưu cục bộ, có mã hóa</div>
       </div>
       <div class="feat">
         <div class="ico">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8 16 5v4.7c0 3.6-2.4 6.4-6 7.8-3.6-1.4-6-4.2-6-7.8V5l6-2.2Z"/><path d="m7.4 9.8 1.8 1.8 3.4-3.6"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
         </div>
         <div class="t" id="f4t">An toàn Yana AI</div>
         <div class="d" id="f4d">Mọi lệnh gọi đi qua lớp giám sát — chặn trước khi gây hại</div>

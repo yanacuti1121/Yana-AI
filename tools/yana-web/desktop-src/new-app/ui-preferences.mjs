@@ -2,20 +2,19 @@
 // policy and provider credentials. They contain presentation-only values and
 // can be safely stored in browser localStorage.
 export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
-// Full catalog — matches desktop-src/app.jsx's THEME_MAP and
-// appearance-card.jsx's THEME_PREVIEWS. Every id here has a real
-// [data-theme="..."] block in themes.css (loaded globally by main.jsx),
-// so this list only needs to stay in sync with THEME_MAP, not add CSS.
-export const THEMES = [
-  'violet-workspace', 'navy', 'ocean', 'obsidian', 'jade',
-  'dawn', 'mist', 'silver', 'sage', 'amber', 'arctic', 'lavender',
-  'ios-rose', 'ios-night', 'liquid', 'black',
-];
+// Monochrome only (2026-09-02 redesign) — matches themes.css's own
+// rewrite, which removed the previous 14-theme catalog entirely. A
+// stored preference from before this change (e.g. 'violet-workspace')
+// falls through normalizeUiPreferences's THEMES.includes() check below
+// and resets to DEFAULTS.theme, same as any other unrecognized value —
+// no separate migration needed.
+export const THEMES = ['black', 'white'];
 export const LANGUAGES = ['en', 'vi', 'ko', 'zh'];
 
-// Only applies when this separate new-app preference key does not exist.
-// Stored choices remain untouched, including the previous `navy` default.
-const DEFAULTS = Object.freeze({ version: 1, theme: 'violet-workspace', language: 'en' });
+// Only applies when this separate new-app preference key does not exist,
+// OR when a stored value fails the THEMES.includes() check above (e.g. a
+// pre-redesign theme id).
+const DEFAULTS = Object.freeze({ version: 1, theme: 'black', language: 'en' });
 
 export function normalizeUiPreferences(value) {
   return {

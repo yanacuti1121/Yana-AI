@@ -69,7 +69,9 @@
 }
 
 .new-app-shell .na-sidebar-frame {
-  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.9), rgba(var(--surface-rgb, 18, 22, 34), 0.66));
+  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.72), rgba(var(--surface-rgb, 18, 22, 34), 0.52));
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
   border-right: 1px solid var(--border);
   box-shadow: 12px 0 30px rgba(0, 0, 0, 0.08);
   z-index: 1;
@@ -120,6 +122,8 @@
 
 .new-app-shell .na-inspector-frame {
   background: linear-gradient(180deg, var(--na-raised), var(--na-surface));
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
   border-left: 1px solid var(--border);
   box-shadow: -12px 0 32px rgba(0, 0, 0, 0.08);
   z-index: 1;
@@ -127,6 +131,8 @@
 
 .new-app-shell .na-bottom-dock {
   background: var(--na-terminal);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   border-top: 1px solid var(--border);
   box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
 }
@@ -264,6 +270,8 @@
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--na-elevated);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
 }
 
