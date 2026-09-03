@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  # Added alongside the flock-v1 Windows support fix: release.yml had no
+  # non-tag trigger, so the only way to get real CI evidence for a
+  # platform-specific fix (the Windows smoke-test leg specifically) was to
+  # push a throwaway version tag -- misusing the tag namespace just to run
+  # CI. workflow_dispatch lets a fix branch be run through the exact same
+  # build+smoke-test matrix pre-merge. Purely additive: verify-provenance
+  # keys off `github.sha` (works identically for a dispatched branch ref),
+  # and the release-upload step below is gated to the tag-push event only,
+  # so a manual dispatch run builds and smoke-tests but never attempts to
+  # create/attach to a GitHub Release.
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -229,6 +240,9 @@ jobs:
           cat "${{ matrix.asset }}.manifest.json"
 
       - name: Upload binary to Release
+        # Only on the real tag-push trigger -- a workflow_dispatch run (see
+        # the `on:` block's comment) has no tag to attach a release to.
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: |

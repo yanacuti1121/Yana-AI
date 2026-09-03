@@ -8,6 +8,31 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## yana-rt: Windows support for flock-v1 locking — 2026-09-04
+
+Fixes a real bug, not just a CI annoyance: Yana Desktop's Autonomy/Approval
+UI wires "revoke lease" to `yana-rt lease revoke`, which needs a real
+exclusive lock — on Windows this has unconditionally failed with
+`"flock-v1 is supported only on macOS and Linux"` since the primitive was
+introduced. `lease list` was already lock-free and unaffected. Every
+"Release" GitHub Actions run since v1.4.3 also failed for the same reason,
+on the release smoke test's `lease grant`/`lease list` steps — that gate is
+now green on Windows.
+
+The fix ports the exact pattern already shipped and proven in this codebase
+for `os::supervisor`'s audit-receipts-chain lock and `remote::lock`:
+`std::os::windows::fs::OpenOptionsExt::share_mode(0)`, real kernel-exclusive
+locking (not best-effort), zero new crate dependencies. `guard lock-with`
+(holds the lock across `Command::exec()`, a Unix-only primitive) and the
+Bash/Python locking bridges remain Unix-only by design — see
+`docs/adr/ADR-008-shared-locking-infrastructure.md` and
+`docs/locking-protocol-flock-v1.md` for the updated platform matrix.
+
+Does not retroactively fix already-failed Release runs for v1.4.3–v1.4.8 —
+only future tags benefit.
+
+---
+
 ## v1.4.8 — warm jade redesign (reverses v1.4.7's monochrome), terminal fixes — 2026-09-03
 
 **Reverses v1.4.7's monochrome black/white redesign**, same day: the app

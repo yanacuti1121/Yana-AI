@@ -46,6 +46,16 @@ lock fallback. Resolution accepts `YANA_RT_BIN`, a packaged platform binary,
 the source checkout's release/debug binary, or a real compiled binary on
 `PATH`. Script shims are rejected by executable magic and failure is closed.
 
-`flock-v1` is production-supported on macOS and Linux. Windows builds retain a
-clear unsupported-path error rather than silently selecting another locking
-protocol.
+`flock-v1`'s Rust lock-acquisition primitive (`flock_v1::acquire`/`with_lock`,
+used by the Capability Lease store, mission store, pending-approval store,
+and the token-budget/autonomy state guards) is production-supported on
+macOS, Linux, and Windows -- Windows uses
+`std::os::windows::fs::OpenOptionsExt::share_mode(0)` (real kernel-exclusive
+locking, the same mutual-exclusion property Unix's `flock(2)` gives, not a
+best-effort fallback).
+
+The `guard lock-with` CLI subcommand (which holds the lock across
+`Command::exec()`, a Unix process-image-replacement primitive) and the
+Bash/Python runtime bridges (`core/lib/locking.sh`, `flock_test_helper.py`)
+remain Unix-only and retain a clear unsupported-path error rather than
+silently selecting another locking protocol.
