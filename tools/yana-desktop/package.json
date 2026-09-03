@@ -1,6 +1,6 @@
 {
   "name": "yana-desktop",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "description": "Yana AI — desktop shell",
   "main": "main.js",
   "private": true,
