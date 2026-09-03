@@ -8,6 +8,52 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.4.8 — warm jade redesign (reverses v1.4.7's monochrome), terminal fixes — 2026-09-03
+
+**Reverses v1.4.7's monochrome black/white redesign**, same day: the app
+now matches the real, already-live marketing page's own palette
+(`docs/desktop-redesign.css`) — jade/pink/blue/gold accents on a warm
+ivory base, glass restrained to the marketing page's own `blur(18px)
+saturate(145%)` recipe. Theme is `system` by default (follows the OS via
+`prefers-color-scheme`, no manual picker needed for that) with a
+Settings override for System/Light/Dark added back after "auto only"
+turned out to mean no way to preview Light without changing the OS
+setting.
+
+Two real bugs found and fixed during this pass, not assumed away:
+- Settings' theme buttons initially did nothing — `data-theme` was set
+  on a nested div, but the CSS override rules were written as
+  `:root[data-theme]`, which only ever matches `<html>`. Fixed by
+  setting the attribute on `document.documentElement` instead.
+- The sidebar's active nav item used a full-opacity solid `--primary`
+  fill, fine when that token was near-white/black, too visually loud
+  ("xanh lè") once it's a saturated jade — switched to the same
+  low-opacity `--primary-soft` pattern Settings' own tabs already used.
+
+**Terminal**, two real bugs traced to file:line (both a consequence of
+the same-day earlier fix that keeps `TerminalDock` always mounted
+interacting with pre-existing per-tab mount logic): a background/
+restored tab's `display:none` container made `FitAddon` propose a
+`cols:2/rows:1` PTY size that always failed validation with no retry —
+fixed by deferring the actual PTY start until a tab is genuinely
+active; and an ordinary resize could propose PTY dimensions outside the
+valid 20-500/5-300 range, silently rejected, leaving the real PTY size
+drifted from xterm's own visual size (wrapped/garbled shell output) —
+fixed by clamping both the outbound resize call and xterm's own buffer
+to the same range so they can never diverge. Verified live: a real
+Electron dev run (isolated profile) showed a working shell prompt on
+first mount and the theme toggle actually re-skinning the running app.
+
+`--ink-3` (light and dark) and `--bg-base`/`--bg-card-2` were tuned
+past the marketing page's own literal values — real WCAG contrast
+computed for each candidate before picking it, not assumed, and the
+background brightened after live "hơi tối, thêm trắng" feedback once
+the redesign was actually visible.
+
+tools/yana-desktop's full unit suite: 192/192 pass.
+
+---
+
 ## v1.4.7 — monochrome redesign, six new connectors, legacy shell removed — 2026-09-03
 
 **Redesign.** All 14 color themes replaced with two true-grayscale
