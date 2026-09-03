@@ -87,7 +87,7 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
   const matches = (keywords) => !normalizedQuery || keywords.toLocaleLowerCase().includes(normalizedQuery);
   const visible = {
     account: matches('account google link sign in login'),
-    appearance: matches('appearance theme black white light dark monochrome glass font'),
+    appearance: matches('appearance theme system light dark mode'),
     language: matches('language locale region vietnamese korean chinese english'),
     workspace: matches('projects workspace folders terminal providers models privacy permissions'),
     integrations: matches('integrations connectors github gmail google drive calendar notion permissions scopes oauth'),
@@ -225,17 +225,20 @@ export function SettingsView({ preferences, onChange, onNavigate, onFocusTermina
               />
             )}
           </Section>}
-          {showSection('general') && visible.appearance && <Section title={L('Appearance', 'Giao diện', '모양', '外观')} description={L('Theme changes apply to this new workspace immediately.', 'Đổi theme áp dụng ngay cho workspace mới này.', '테마 변경은 이 새 작업 공간에 즉시 적용됩니다.', '主题更改会立即应用到此新工作区。')}>
+          {showSection('general') && visible.appearance && <Section title={L('Appearance', 'Giao diện', '모양', '外观')} description={L('System follows your OS setting automatically; Light/Dark override it.', 'System tự theo cài đặt hệ điều hành; Light/Dark ghi đè lên nó.', 'System은 OS 설정을 자동으로 따릅니다. Light/Dark는 이를 재정의합니다.', 'System 会自动跟随操作系统设置；Light/Dark 会覆盖它。')}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {/* Monochrome only (2026-09-02 redesign, anh's explicit call) —
-                  the previous 16-entry color catalog is gone from both
-                  themes.css and ui-preferences.mjs's THEMES allowlist, not
-                  just trimmed here. Names stay untranslated (proper-noun
-                  style), same precedent the old catalog used. */}
+              {/* Manual override restored on top of the automatic default
+                  (2026-09-03, anh's call) — 'system' (default) follows the
+                  OS via prefers-color-scheme with no data-theme attribute
+                  set at all; 'light'/'dark' set it explicitly. See
+                  ui-preferences.mjs's own note and themes.css's
+                  :root[data-theme] blocks for how the override applies in
+                  both directions regardless of the OS's own setting. */}
               {[
-                ['black', 'Black 🖤'],
-                ['white', 'White 🤍'],
-              ].map(([id, label]) => <button key={id} onClick={() => onChange({ theme: id })} aria-pressed={preferences.theme === id} style={{ border: preferences.theme === id ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '7px 10px', background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>{label}</button>)}
+                ['system', L('System', 'Hệ thống', '시스템', '系统')],
+                ['light', L('Light', 'Sáng', '라이트', '浅色')],
+                ['dark', L('Dark', 'Tối', '다크', '深色')],
+              ].map(([id, label]) => <button key={id} onClick={() => onChange({ theme: id })} aria-pressed={preferences.theme === id} style={{ border: preferences.theme === id ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '7px 10px', background: preferences.theme === id ? 'var(--primary-soft)' : 'transparent', color: preferences.theme === id ? 'var(--primary)' : 'var(--ink)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>{label}</button>)}
             </div>
           </Section>}
           {showSection('general') && visible.language && <Section title={L('Language & region', 'Ngôn ngữ & khu vực', '언어 및 지역', '语言与地区')} description={L('Interface language changes immediately; new workspace dates use the selected locale.', 'Ngôn ngữ giao diện đổi ngay; ngày trong workspace mới dùng locale đã chọn.', '인터페이스 언어는 즉시 변경되며 새 작업 공간의 날짜는 선택한 로캘을 사용합니다.', '界面语言会立即更改；新工作区中的日期使用所选区域设置。')}>

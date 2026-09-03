@@ -7,10 +7,13 @@
   <title>Yana — Trợ lý AI của bạn</title>
   <style>
     /* Self-hosted Geist — see themes.css's @font-face block / login.html
-       for the same change and its rationale. This page's aurora blobs
-       are recolored to the same monochrome glass language as login.html
-       (real backdrop-filter, no hue) — animation is kept (not flattened
-       to login.html's static scene) since this is a first-run/marketing
+       for the same change and its rationale. Tokens are login.html's own
+       light-jade port (docs/desktop-redesign.css's :root) — see that
+       file's header comment for the full rationale. This page's aurora
+       blobs are recolored to the marketing page's own stage-glow colors
+       (jade/blue/pink, matching its ::before glow-orb treatment behind
+       the hero screenshot) — animation is kept (not flattened to
+       login.html's static scene) since this is a first-run/marketing
        surface, not a form; frontend-production-checklist.md's motion
        section treats that distinction as the deciding factor, and the
        existing prefers-reduced-motion fallback below still applies. */
@@ -29,16 +32,14 @@
       src: url("/desktop/fonts/Geist-SemiBold.woff2") format("woff2");
       font-weight: 600; font-style: normal; font-display: swap;
     }
-    /* Matches login.html's monochrome "black" theme tokens exactly — see
-       that file's own header comment for why these are ported statically
-       rather than importing themes.css's live bundle chunk. */
     :root {
-      --ink: #f5f5f5; --ink-2: #a3a3a3; --ink-3: #808080; /* 4.74:1 AA — see themes.css's own note on this value */
-      --primary: #d4d4d4;
-      --surface-rgb: 18, 18, 18;
-      --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
-      --border: rgba(255, 255, 255, 0.10);
-      --good: #4ade80;
+      --ink: #173d35; --ink-2: #526b64; --ink-3: #5f6d68; /* 5.02:1 AA — see themes.css's own note on this value */
+      --primary: #257967;
+      --surface-rgb: 255, 255, 255;
+      --shadow-rgb: 18, 48, 42;
+      --color-bg-subtle: rgba(var(--surface-rgb), 0.88);
+      --border: rgba(23, 61, 53, 0.11);
+      --good: #3d9c74;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -46,19 +47,20 @@
       margin: 0; overflow-x: hidden;
       font-family: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       background:
-        radial-gradient(1100px 580px at 22% -12%, rgba(255, 255, 255, 0.05), transparent 60%),
-        radial-gradient(1300px 780px at 50% 118%, rgba(255, 255, 255, 0.03), transparent 65%),
-        linear-gradient(180deg, #000000 0%, #000000 100%);
+        radial-gradient(900px 520px at 4% -5%, rgba(71, 127, 209, 0.12), transparent 64%),
+        radial-gradient(800px 500px at 96% 5%, rgba(212, 125, 154, 0.13), transparent 62%),
+        linear-gradient(180deg, #f7faf8 0%, #f3f7f5 38%, #eef4f1 100%);
       color: var(--ink);
       display: grid; place-items: center; min-height: 100vh;
     }
 
-    /* ── Aurora backdrop — monochrome glow, no hue ── */
+    /* ── Aurora backdrop — jade/blue/pink glow, matching the marketing
+       page's own .stage-glow-pink/.stage-glow-jade orbs ── */
     .aurora { position: fixed; inset: 0; pointer-events: none; filter: blur(70px); z-index: 0; }
     .blob { position: absolute; border-radius: 50%; opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
-    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(255,255,255,.16), transparent 65%); }
-    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(255,255,255,.12), transparent 65%); animation-delay: -9s; }
-    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(255,255,255,.09), transparent 65%); animation-delay: -17s; }
+    .b1 { width: 46vw; height: 46vw; left: -10vw; top: -16vh; background: radial-gradient(circle, rgba(37,121,103,.18), transparent 65%); }
+    .b2 { width: 38vw; height: 38vw; right: -8vw; bottom: -14vh; background: radial-gradient(circle, rgba(71,127,209,.16), transparent 65%); animation-delay: -9s; }
+    .b3 { width: 30vw; height: 30vw; right: 16vw; top: -10vh; background: radial-gradient(circle, rgba(212,125,154,.16), transparent 65%); animation-delay: -17s; }
     @keyframes drift {
       from { transform: translate(0, 0) scale(1); }
       to   { transform: translate(5vw, 6vh) scale(1.12); }
@@ -75,7 +77,7 @@
     .lang {
       position: fixed; top: 18px; right: 18px; z-index: 2;
       display: flex; gap: 2px; padding: 3px;
-      background: rgba(255,255,255,.05); border: 1px solid var(--border);
+      background: rgba(255,255,255,.6); border: 1px solid var(--border);
       border-radius: 99px; backdrop-filter: blur(12px);
     }
     .lang button {
@@ -84,7 +86,7 @@
       padding: 4px 10px; border-radius: 99px; color: var(--ink-3);
       background: transparent; transition: background .15s, color .15s;
     }
-    .lang button.on { background: rgba(255,255,255,.1); color: var(--ink); }
+    .lang button.on { background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(var(--shadow-rgb), .08); }
 
     .mark {
       width: 84px; height: 84px; margin: 0 auto 24px; border-radius: 27px;
@@ -118,10 +120,10 @@
       backdrop-filter: blur(16px) saturate(1.2);
       -webkit-backdrop-filter: blur(16px) saturate(1.2);
       border: 1px solid var(--border);
-      box-shadow: 0 8px 26px rgba(0,0,0,.35);
+      box-shadow: 0 8px 26px rgba(var(--shadow-rgb),.08);
       transition: transform .2s ease, box-shadow .2s ease;
     }
-    .feat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+    .feat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(var(--shadow-rgb),.12); }
     .feat .ico {
       width: 38px; height: 38px; margin: 0 auto 10px; border-radius: 12px;
       display: grid; place-items: center; color: var(--primary);
@@ -136,10 +138,9 @@
       display: inline-flex; align-items: center; gap: 9px;
       padding: 14px 30px; border-radius: 16px; text-decoration: none;
       font-size: 15px; font-weight: 500;
-      /* --primary is light (near-white) in the monochrome theme — dark
-         text needed, same WCAG-contrast reasoning as login.html's
-         button.cta (see that file's own comment on this exact fix). */
-      color: #0a0a0a;
+      /* White text on --primary (#257967) — 5.24:1, real computed check,
+         same as login.html's button.cta (see that file's own comment). */
+      color: #fff;
       background: var(--primary);
       box-shadow: 0 10px 28px color-mix(in oklab, var(--primary) 38%, transparent);
       transition: transform .12s, box-shadow .2s;

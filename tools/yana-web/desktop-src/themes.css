@@ -1,25 +1,35 @@
 /* ============================================================
    Yana AI — theme tokens
-   Monochrome only (anh's explicit call, 2026-09-02): the previous 16
-   color themes (Jade, Ocean, Sunset Amber, Violet Workspace, etc.) are
-   removed entirely, not just hidden — see git history for their values
-   if a future session ever needs to reference them. Two themes remain:
-   "black" (dark) and "white" (light), both true grayscale — no hue in
-   --primary/--ink, matching the same reasoning "black" already
-   documented before this rewrite (see its own comment below).
-   Surfaces are liquid glass (native CSS backdrop-filter) as of this
-   redesign — this REVERSES the flat-surface, no-glass rule the 2026-08
-   redesign set, deliberately: anh's explicit choice, not a regression.
-   See .claude/rules/anti-ai-slop-design-law.md's own updated note on
-   this exception.
+   Warm jade palette (anh's explicit call, 2026-09-03): reverses the
+   2026-09-02 monochrome black/white rewrite. Tokens are ported from the
+   real, already-live marketing page's own design system —
+   docs/desktop-redesign.css's :root + its @media(prefers-color-scheme:
+   dark) block — not invented here. That file is the source of truth;
+   if its values ever change, update here too (no shared stylesheet
+   between the marketing site and the app, same manual-sync situation
+   login.html/welcome.html already have with this file).
+   No more manual light/dark picker — anh's call: follow the OS via
+   prefers-color-scheme only, matching the marketing page's own actual
+   behavior exactly (it also has no manual toggle). See
+   new-app/settings-view.jsx's Appearance section (removed) and
+   ui-preferences.mjs (THEMES array removed) for the UI-side change.
+   Surfaces are liquid glass (native CSS backdrop-filter), restrained to
+   the marketing page's actual usage (nav/card/dock chrome) — the
+   decorative glow-orb/grid-texture/gradient-text hero flourishes are
+   marketing-page-only, not ported onto working app surfaces.
    Density: --sp (0.85 compact / 1 regular / 1.18 spacious)
    ============================================================ */
 
 :root {
+  color-scheme: light;
+
   /* Geist, self-hosted (not a Bunny/Google Fonts external request) —
      see the @font-face block below. Pinned to Geist v1.6.0+, the first
      version with real Vietnamese diacritic coverage (verified against
-     vercel/geist-font's own issue tracker, not assumed). */
+     vercel/geist-font's own issue tracker, not assumed). Kept
+     deliberately over the marketing page's plain system-sans stack —
+     anh's redesign brief didn't ask to change the font again, and
+     Geist already satisfies "modern, premium, Apple-inspired". */
   --font-ui: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
@@ -28,7 +38,7 @@
   --pad-card: calc(18px * var(--sp));
   --gap: calc(14px * var(--sp));
 
-  --r-lg: 20px;
+  --r-lg: 18px; /* matches docs/desktop-redesign.css's --radius */
   --r-md: 14px;
   --r-sm: 9px;
 
@@ -41,6 +51,169 @@
   --font-size-xl:   1.5rem;    /* 24px — page section titles */
   --font-size-2xl:  2rem;      /* 32px — page headings */
   --font-size-3xl:  3rem;      /* 48px — hero */
+
+  /* ---------- Light (default) — docs/desktop-redesign.css :root, brightened
+     (anh's live feedback, 2026-09-03: the marketing page's own #f3f7f5/
+     #edf5f1 read as "hơi tối" (a bit dim) on the app's flat single-color
+     body — the marketing page only ever shows those tones at the *bottom*
+     of a multi-stop gradient a viewport rarely scrolls to; the app has no
+     such gradient falloff on body itself, so it read consistently dimmer
+     than intended. Same jade-tinted-white family, just lighter). ---------- */
+  --bg-base: #f6faf8;
+  --bg-scene:
+    radial-gradient(900px 520px at 4% -5%, rgba(71, 127, 209, 0.12), transparent 64%),
+    radial-gradient(800px 500px at 96% 5%, rgba(212, 125, 154, 0.13), transparent 62%),
+    linear-gradient(180deg, #fbfdfc 0%, #f6faf8 38%, #f2f7f4 100%);
+  --surface-rgb: 255, 255, 255;
+  --shadow-rgb: 18, 48, 42;
+  --ink: #173d35;
+  --ink-2: #526b64;
+  /* #5f6d68, not the marketing page's own #84958f — that value measured
+     2.91:1 against the card surface, real computed check, not assumed.
+     --ink-3 is used at 11-13px (captions, footers) throughout the app,
+     needing color-rules.md's 4.5:1 normal-text floor, not the 3:1
+     large-text tier the marketing page itself can get away with at the
+     sizes it uses --fg-faint. #5f6d68 measures 5.02:1. */
+  --ink-3: #5f6d68;
+  --primary: #257967;
+  --primary-h: #1d6657;
+  --primary-soft: rgba(37, 121, 103, 0.11);
+  --pink: #d47d9a;
+  --pink-soft: rgba(212, 125, 154, 0.14);
+  --blue: #477fd1;
+  --blue-soft: rgba(71, 127, 209, 0.12);
+  --gold: #b68b42;
+  --gold-soft: rgba(182, 139, 66, 0.12);
+  /* --good/--warn have no marketing-page equivalent (it's a static site,
+     not an app with live status) — --good matches the jade-adjacent
+     status-dot green the marketing page itself uses for its "healthy
+     runtime" indicators (desktop-redesign.css's --primary is #257967;
+     #3d9c74 is that file's own literal dot color, kept here for exact
+     fidelity rather than reusing --primary and losing the distinction). */
+  --good: #3d9c74;
+  --warn: #b8860b;
+  --border: rgba(23, 61, 53, 0.11);
+  --border-strong: rgba(23, 61, 53, 0.18);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  --color-destructive: #dc2626;
+  /* Aliases fixing two real pre-existing bugs (referenced across
+     settings-view.jsx/permissions-view.jsx/files-view.jsx/
+     model-manager.jsx but never defined anywhere — those call sites
+     were silently falling through to their own hardcoded fallback
+     hex). Not new design decisions, just giving the already-referenced
+     names a real value. */
+  --surface-1: var(--bg-card-2);
+  --bad: var(--color-destructive);
+  --bg-card: #ffffff;
+  --bg-card-2: #f2f8f5;
+}
+
+/* ---------- Dark — docs/desktop-redesign.css's own
+   @media(prefers-color-scheme:dark) block, same source of truth.
+   Not a black inversion of light — a distinct jade-tinted dark
+   palette (lighter/more saturated jade, same pink/blue relationships,
+   dark warm-neutral surfaces instead of true black). --gold/--good/
+   --warn are intentionally NOT redefined here: the marketing page's
+   own dark block doesn't override --gold either (falls through to the
+   light value), and --good/--warn are app-only tokens with no
+   marketing equivalent — kept at values already verified to read
+   clearly against a dark surface.
+
+   Manual override restored (anh's call, 2026-09-03, after "auto only"
+   turned out to mean no way to preview Light without changing the OS
+   setting): System stays the default (this @media block, gated by
+   :not([data-theme="light"]) so an explicit Light choice can still
+   override an OS already in Dark), and :root[data-theme="dark"] below
+   repeats the same values so an explicit Dark choice works even when
+   the OS itself is Light. See new-app/settings-view.jsx's Appearance
+   section for the picker and ui-preferences.mjs for the stored value. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-base: #0b1515;
+    --bg-scene:
+      radial-gradient(900px 520px at 4% -5%, rgba(71, 127, 209, 0.12), transparent 64%),
+      radial-gradient(800px 500px at 96% 5%, rgba(212, 125, 154, 0.12), transparent 62%),
+      linear-gradient(180deg, #0d1818 0%, #091210 100%);
+    --surface-rgb: 17, 32, 30;
+    --shadow-rgb: 0, 0, 0;
+    --ink: #e7f1ee;
+    --ink-2: #a4b9b3;
+    /* #738d86, not the marketing page's own #6f8881 — measured 4.41:1
+       against --bg-card, just under the 4.5:1 floor at the small sizes
+       this token is used at here. #738d86 measures 4.71:1. */
+    --ink-3: #738d86;
+    --primary: #69c4ad;
+    --primary-h: #82d6c0;
+    --primary-soft: rgba(105, 196, 173, 0.13);
+    --pink: #e39ab2;
+    --pink-soft: rgba(227, 154, 178, 0.13);
+    --blue: #7da7e6;
+    --blue-soft: rgba(125, 167, 230, 0.13);
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --border: rgba(226, 244, 238, 0.1);
+    --border-strong: rgba(226, 244, 238, 0.17);
+    --color-bg: var(--bg-base);
+    --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+    --color-border: var(--border);
+    --color-text: var(--ink);
+    --color-text-muted: var(--ink-2);
+    --color-primary: var(--primary);
+    --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+    --color-destructive: #f87171;
+    --bad: var(--color-destructive);
+    --bg-card: #11201e;
+    --bg-card-2: #162825;
+    --surface-1: var(--bg-card-2);
+  }
+}
+
+/* Explicit Dark override — identical values to the @media block above,
+   repeated so choosing "Dark" in Settings works even when the OS itself
+   reports Light (a plain :root[data-theme] rule isn't inside a media
+   query, so it applies unconditionally once the attribute is set). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-base: #0b1515;
+  --bg-scene:
+    radial-gradient(900px 520px at 4% -5%, rgba(71, 127, 209, 0.12), transparent 64%),
+    radial-gradient(800px 500px at 96% 5%, rgba(212, 125, 154, 0.12), transparent 62%),
+    linear-gradient(180deg, #0d1818 0%, #091210 100%);
+  --surface-rgb: 17, 32, 30;
+  --shadow-rgb: 0, 0, 0;
+  --ink: #e7f1ee;
+  --ink-2: #a4b9b3;
+  --ink-3: #738d86;
+  --primary: #69c4ad;
+  --primary-h: #82d6c0;
+  --primary-soft: rgba(105, 196, 173, 0.13);
+  --pink: #e39ab2;
+  --pink-soft: rgba(227, 154, 178, 0.13);
+  --blue: #7da7e6;
+  --blue-soft: rgba(125, 167, 230, 0.13);
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --border: rgba(226, 244, 238, 0.1);
+  --border-strong: rgba(226, 244, 238, 0.17);
+  --color-bg: var(--bg-base);
+  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
+  --color-destructive: #f87171;
+  --bad: var(--color-destructive);
+  --bg-card: #11201e;
+  --bg-card-2: #162825;
+  --surface-1: var(--bg-card-2);
 }
 
 /* Self-hosted Geist — downloaded once from vercel/geist-font's official
@@ -96,90 +269,6 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-}
-
-/* ---------- Black (dark) ----------
-   True neutral black — not a tinted dark (the old navy/obsidian/ocean
-   themes this rewrite removed were each a deep blue/purple/teal
-   standing in for "black"). Near-white primary/ink on true #000, with
-   --good/--warn kept as real green/amber (semantic state shouldn't
-   disappear even in a neutral theme) and --pink/--gold muted rather
-   than vivid (still distinct enough for code-highlight/badge
-   differentiation, restrained so they don't fight the monochrome
-   background). No .scene-swell/-caustics/-lotus override on purpose —
-   those colorful glow layers belonged to the old per-theme "living
-   water" identity; a monochrome theme reads as stark/minimal
-   specifically because it has none. */
-[data-theme="black"] {
-  color-scheme: dark;
-  --bg-base: #000000;
-  --bg-scene:
-    radial-gradient(1100px 580px at 22% -12%, rgba(255, 255, 255, 0.05), transparent 60%),
-    radial-gradient(1300px 780px at 50% 118%, rgba(255, 255, 255, 0.03), transparent 65%),
-    linear-gradient(180deg, #000000 0%, #000000 100%);
-  --surface-rgb: 18, 18, 18;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #f5f5f5;
-  --ink-2: #a3a3a3;
-  /* #808080, not the #666666 an earlier pass used — measured at 4.74:1
-     against the glass surface (rgb(18,18,18) blended into near-black),
-     color-rules.md's 4.5:1 AA floor for normal-size text; #666666 only
-     cleared 3.26:1 (large-text tier), and --ink-3 is used at 11-13px
-     (captions, footers) throughout, not just large text. */
-  --ink-3: #808080;
-  --primary: #d4d4d4;
-  --primary-soft: rgba(212, 212, 212, 0.14);
-  --pink: #c99bb0;
-  --pink-soft: rgba(201, 155, 176, 0.14);
-  --gold: #c9a86a;
-  --gold-soft: rgba(201, 168, 106, 0.14);
-  --good: #4ade80;
-  --warn: #fbbf24;
-  --border: rgba(255, 255, 255, 0.10);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #f87171;
-}
-
-/* ---------- White (light) ----------
-   Direct light mirror of "black" above — same structure, same
-   restrained-accent reasoning, inverted luminance. */
-[data-theme="white"] {
-  color-scheme: light;
-  --bg-base: #ffffff;
-  --bg-scene:
-    radial-gradient(1100px 580px at 22% -12%, rgba(0, 0, 0, 0.04), transparent 60%),
-    radial-gradient(1300px 780px at 50% 118%, rgba(0, 0, 0, 0.025), transparent 65%),
-    linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
-  --surface-rgb: 246, 246, 246;
-  --shadow-rgb: 0, 0, 0;
-  --ink: #111111;
-  --ink-2: #5c5c5c;
-  --ink-3: #6e6e6e;
-  --primary: #1a1a1a;
-  --primary-soft: rgba(26, 26, 26, 0.08);
-  --pink: #9c6b7a;
-  --pink-soft: rgba(156, 107, 122, 0.10);
-  --gold: #8a7440;
-  --gold-soft: rgba(138, 116, 64, 0.10);
-  --good: #1f9d55;
-  --warn: #b8860b;
-  --border: rgba(0, 0, 0, 0.10);
-  --border-strong: rgba(0, 0, 0, 0.18);
-  --color-bg: var(--bg-base);
-  --color-bg-subtle: rgba(var(--surface-rgb), 0.6);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-text-muted: var(--ink-2);
-  --color-primary: var(--primary);
-  --color-primary-hover: color-mix(in oklab, var(--primary) 88%, var(--ink));
-  --color-destructive: #dc2626;
 }
 
 /* ============ base ============ */
@@ -544,8 +633,8 @@ button:not([disabled]) {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  border: 1.5px solid rgba(255, 255, 255, 0.68);
-  background: rgba(255, 255, 255, 0.10);
+  border: 1.5px solid color-mix(in oklab, var(--primary) 55%, white 45%);
+  background: var(--primary-soft);
   animation: ripple-expand 0.55s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
@@ -580,7 +669,7 @@ button:not([disabled]) {
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(255,255,255,0.5) inset;
+  box-shadow: 0 8px 32px rgba(var(--shadow-rgb), 0.18), 0 1px 0 rgba(255,255,255,0.5) inset;
   padding: 4px;
   display: flex;
   flex-direction: column;
@@ -663,7 +752,7 @@ button:not([disabled]) {
   display: grid;
   place-items: center;
   transition: transform .15s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(var(--shadow-rgb), 0.2);
 }
 
 .sidebar-avatar-wrap:hover .sidebar-avatar {

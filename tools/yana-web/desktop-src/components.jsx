@@ -76,7 +76,7 @@ export function YanaMark({ size = 30 }) {
   return (
     <div aria-label="Yana" style={{
       width: size, height: size, borderRadius: size * 0.32, flex: "none",
-      background: "linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, #1d3530))",
+      background: "linear-gradient(150deg, color-mix(in oklab, var(--primary) 92%, white), color-mix(in oklab, var(--primary) 72%, var(--ink)))",
       boxShadow: "inset 0 1px 0 rgba(255,255,255,.4), 0 4px 12px color-mix(in oklab, var(--primary) 28%, transparent)",
       display: "grid", placeItems: "center", overflow: "hidden",
     }}>

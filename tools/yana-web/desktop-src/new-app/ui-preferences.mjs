@@ -2,19 +2,20 @@
 // policy and provider credentials. They contain presentation-only values and
 // can be safely stored in browser localStorage.
 export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
-// Monochrome only (2026-09-02 redesign) — matches themes.css's own
-// rewrite, which removed the previous 14-theme catalog entirely. A
-// stored preference from before this change (e.g. 'violet-workspace')
-// falls through normalizeUiPreferences's THEMES.includes() check below
-// and resets to DEFAULTS.theme, same as any other unrecognized value —
-// no separate migration needed.
-export const THEMES = ['black', 'white'];
+// Manual override restored on top of the automatic default (anh's call,
+// 2026-09-03): 'system' (default) follows the OS light/dark setting via
+// prefers-color-scheme — same as docs/desktop.html's own actual behavior —
+// with no data-theme attribute set at all. 'light'/'dark' set data-theme
+// explicitly, which themes.css's :root[data-theme="light"/"dark"] rules
+// override the OS setting with (see that file's own comment on the
+// :not([data-theme="light"]) guard this depends on). A stored theme id from
+// before this option existed (or the brief monochrome-only 'black'/'white'
+// era) just isn't in THEMES, so it falls through to DEFAULTS.theme like any
+// other unrecognized value — no separate migration needed.
+export const THEMES = ['system', 'light', 'dark'];
 export const LANGUAGES = ['en', 'vi', 'ko', 'zh'];
 
-// Only applies when this separate new-app preference key does not exist,
-// OR when a stored value fails the THEMES.includes() check above (e.g. a
-// pre-redesign theme id).
-const DEFAULTS = Object.freeze({ version: 1, theme: 'black', language: 'en' });
+const DEFAULTS = Object.freeze({ version: 1, theme: 'system', language: 'en' });
 
 export function normalizeUiPreferences(value) {
   return {

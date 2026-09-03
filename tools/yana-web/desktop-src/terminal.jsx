@@ -23,6 +23,51 @@ import { L, PageHeader } from './components.jsx';
 import * as terminalContext from './lib/terminal-context.mjs';
 import { DEFAULT_TERMINAL_PREFERENCES } from './lib/terminal-preferences.mjs';
 
+// xterm.js's `theme` option needs resolved color strings, not var(...)
+// references (it paints to a canvas, outside the DOM cascade). Reads the
+// live computed --bg-card/--ink from the document root so the embedded
+// terminal matches whichever theme (light/dark, via prefers-color-scheme)
+// is currently active — falls back to themes.css's own dark values if
+// the properties aren't resolvable yet (e.g. stylesheet not loaded).
+function readTerminalTheme() {
+  const style = getComputedStyle(document.documentElement);
+  const bg = style.getPropertyValue('--bg-card').trim() || '#11201e';
+  const fg = style.getPropertyValue('--ink').trim() || '#e7f1ee';
+  return { background: bg, foreground: fg };
+}
+
+// Real bugs found 2026-09-03, both a consequence of TerminalDock always
+// keeping every tab's XTermPanel mounted (fixed earlier the same day so
+// switching tabs never kills the live shell) combined with pre-existing
+// per-tab logic that assumed only the visible tab's panel existed:
+//
+// Bug A — a tab that's inactive at mount (a restored background tab from
+// a saved layout) has a display:none container, so FitAddon.fit() sees
+// zero size and proposes cols:2/rows:1. security.js's normalizeDims
+// below rejects that, ptyStart fails, and nothing ever retried — that
+// tab showed the raw validation error forever, even after switching to
+// it, because switching only flips CSS visibility, it never remounts.
+// Fixed by deferring the actual PTY start until the tab is genuinely
+// visible (see the second useEffect below), not at raw mount.
+//
+// Bug B — ordinary panel resizing (dragging the dock handle, a narrow
+// window, a large terminal-font preference) can transiently propose
+// dimensions outside the valid range too. The old code sent whatever
+// FitAddon proposed straight to ptyResize with no validation; a
+// rejected call was silently dropped, so the real PTY size drifted away
+// from xterm's own visual size — wrapped/misaligned text, corrupted TUI
+// apps (vim/htop). Fixed by clamping to the exact same range
+// security.js's normalizeDims enforces, and forcing xterm's own buffer
+// to that same clamped size with term.resize() so the visual terminal
+// and the real PTY can never diverge.
+const PTY_MIN_COLS = 20, PTY_MAX_COLS = 500, PTY_MIN_ROWS = 5, PTY_MAX_ROWS = 300;
+function clampPtyDims(cols, rows) {
+  return {
+    cols: Math.max(PTY_MIN_COLS, Math.min(PTY_MAX_COLS, cols)),
+    rows: Math.max(PTY_MIN_ROWS, Math.min(PTY_MAX_ROWS, rows)),
+  };
+}
+
 function TabButton({ active, onClick, children }) {
   return (
     <button
@@ -54,6 +99,7 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
   const fitRef = React.useRef(null);
   const startedRef = React.useRef(false);
   const sessionIdRef = React.useRef(null);
+  const startRef = React.useRef(null);
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -65,11 +111,15 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
       fontSize: preferences.fontSize,
       lineHeight: preferences.lineHeight,
       cursorBlink: preferences.cursorBlink,
-      // Dark navy, not pure black — sits on the app's own dark surface
-      // instead of reading as an unrelated terminal window dropped into
-      // the workspace. ANSI colors (theme.red/green/... left unset) keep
-      // xterm's own defaults, so readability/contrast is unaffected.
-      theme: { background: "#0a0e18", foreground: "#d8dee9" },
+      // xterm.js's theme option takes resolved color strings, not CSS
+      // var(...) references — it renders to a canvas, outside the DOM
+      // cascade. Read the app's actual current --bg-card/--ink values so
+      // the terminal matches the app shell instead of carrying its own
+      // fixed dark navy regardless of theme (that was the pre-2026-09-03
+      // behavior). Since the app now follows the OS light/dark setting
+      // automatically (no manual toggle), re-read on every OS scheme
+      // change too, not just once at mount.
+      theme: readTerminalTheme(),
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -78,6 +128,10 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
     termRef.current = term;
     fitRef.current = fit;
 
+    const schemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const applyTheme = () => { term.options.theme = readTerminalTheme(); };
+    schemeQuery.addEventListener('change', applyTheme);
+
     let unsubData = () => {};
     let unsubExit = () => {};
 
@@ -85,11 +139,19 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
 
     async function start() {
       if (startedRef.current) return;
+      // Fit right before starting, using the container's real current
+      // size — deferred to here (not raw mount) so an inactive tab
+      // (display:none, zero size) never computes the PTY size from a
+      // bogus 2x1 proposal. See this file's readTerminalTheme() block
+      // comment above for the full bug writeup.
+      fit.fit();
+      const dims = clampPtyDims(term.cols, term.rows);
+      if (dims.cols !== term.cols || dims.rows !== term.rows) term.resize(dims.cols, dims.rows);
       startedRef.current = true;
       const result = await window.yana.ptyStart({
         sessionType: 'user-shell',
-        cols: term.cols,
-        rows: term.rows,
+        cols: dims.cols,
+        rows: dims.rows,
       });
       if (!result || !result.ok) {
         term.writeln(`\r\n[yana] failed to start terminal: ${result && result.error}\r\n`);
@@ -117,7 +179,11 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
         startedRef.current = false;
       });
     }
-    start();
+    startRef.current = start;
+    // Only start immediately if this tab is the one actually visible at
+    // mount — an inactive tab's start is deferred to the useEffect below,
+    // triggered once it actually becomes active.
+    if (active) start();
 
     const dataDisposable = term.onData((data) => {
       if (sessionIdRef.current) window.yana.ptyWrite(sessionIdRef.current, data);
@@ -125,13 +191,16 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
 
     const resizeObserver = new ResizeObserver(() => {
       fit.fit();
-      if (sessionIdRef.current) window.yana.ptyResize(sessionIdRef.current, { cols: term.cols, rows: term.rows });
+      const dims = clampPtyDims(term.cols, term.rows);
+      if (dims.cols !== term.cols || dims.rows !== term.rows) term.resize(dims.cols, dims.rows);
+      if (sessionIdRef.current) window.yana.ptyResize(sessionIdRef.current, dims);
     });
     resizeObserver.observe(container);
 
     return () => {
       disposed = true;
       resizeObserver.disconnect();
+      schemeQuery.removeEventListener('change', applyTheme);
       dataDisposable.dispose();
       unsubData();
       unsubExit();
@@ -150,6 +219,17 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
     // of an iframe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Deferred start for a tab that was inactive at mount (e.g. a restored
+  // background terminal tab from a saved layout) — Bug A, see this
+  // file's readTerminalTheme() block comment for the full writeup.
+  // startRef.current is set once by the mount effect above; start()'s own
+  // startedRef.current guard makes this a no-op for a tab that was
+  // already started (either at mount, because it was active then, or by
+  // an earlier activation).
+  React.useEffect(() => {
+    if (active) startRef.current?.();
+  }, [active]);
 
   React.useEffect(() => {
     const term = termRef.current;

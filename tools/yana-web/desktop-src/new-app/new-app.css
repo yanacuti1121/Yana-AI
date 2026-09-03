@@ -10,9 +10,9 @@
    (resizable). */
 .new-app-shell {
   --na-canvas: var(--color-bg);
-  --na-surface: rgba(var(--surface-rgb, 18, 22, 34), 0.74);
-  --na-raised: rgba(var(--surface-rgb, 18, 22, 34), 0.9);
-  --na-elevated: rgba(var(--surface-rgb, 18, 22, 34), 0.96);
+  --na-surface: rgba(var(--surface-rgb, 255, 255, 255), 0.74);
+  --na-raised: rgba(var(--surface-rgb, 255, 255, 255), 0.9);
+  --na-elevated: rgba(var(--surface-rgb, 255, 255, 255), 0.96);
   --na-terminal: color-mix(in srgb, var(--color-bg) 82%, #000 18%);
   --na-accent: var(--primary);
   --na-accent-soft: var(--primary-soft);
@@ -46,43 +46,43 @@
 }
 
 .new-app-shell .na-workspace {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.28);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.28);
   isolation: isolate;
 }
 
 .new-app-shell .na-topbar {
   min-height: 52px;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.7) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.7) !important;
   border-bottom-color: var(--border) !important;
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px) saturate(145%);
   z-index: 4;
 }
 
 .new-app-shell .na-global-search {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.68) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.68) !important;
   border-color: color-mix(in srgb, var(--border) 72%, var(--na-accent) 28%) !important;
 }
 
 .new-app-shell .na-global-search:hover {
   border-color: color-mix(in srgb, var(--na-accent) 52%, var(--border)) !important;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.94) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.94) !important;
 }
 
 .new-app-shell .na-sidebar-frame {
-  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.72), rgba(var(--surface-rgb, 18, 22, 34), 0.52));
-  backdrop-filter: blur(22px) saturate(150%);
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  background: linear-gradient(180deg, rgba(var(--surface-rgb, 255, 255, 255), 0.72), rgba(var(--surface-rgb, 255, 255, 255), 0.52));
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
   border-right: 1px solid var(--border);
-  box-shadow: 12px 0 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 12px 0 30px rgba(var(--shadow-rgb), 0.08);
   z-index: 1;
 }
 
 .new-app-shell .na-sidebar-brand > span:first-child {
-  box-shadow: 0 0 0 4px var(--na-accent-soft), 0 8px 18px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 4px var(--na-accent-soft), 0 8px 18px rgba(var(--shadow-rgb), 0.2);
 }
 
 .new-app-shell .na-sidebar-project {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.68) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.68) !important;
 }
 
 .new-app-shell .na-sidebar-project:hover,
@@ -103,42 +103,42 @@
 }
 
 .new-app-shell .na-sidebar-nav-item:not(.is-active):hover {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.8) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.8) !important;
   color: var(--ink) !important;
 }
 
 .new-app-shell .na-sidebar-nav-item.is-active {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--na-accent) 72%, transparent), 0 6px 16px rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--na-accent) 72%, transparent), 0 6px 16px rgba(var(--shadow-rgb), 0.16);
 }
 
 .new-app-shell .na-main-column {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.14);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.14);
 }
 
 .new-app-shell .na-main-region,
 .new-app-shell .na-primary-surface {
-  background: linear-gradient(180deg, rgba(var(--surface-rgb, 18, 22, 34), 0.2), transparent 42%);
+  background: linear-gradient(180deg, rgba(var(--surface-rgb, 255, 255, 255), 0.2), transparent 42%);
 }
 
 .new-app-shell .na-inspector-frame {
   background: linear-gradient(180deg, var(--na-raised), var(--na-surface));
-  backdrop-filter: blur(22px) saturate(150%);
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
   border-left: 1px solid var(--border);
-  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.08);
+  box-shadow: -12px 0 32px rgba(var(--shadow-rgb), 0.08);
   z-index: 1;
 }
 
 .new-app-shell .na-bottom-dock {
   background: var(--na-terminal);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -12px 32px rgba(var(--shadow-rgb), 0.08);
 }
 
 .new-app-shell .na-terminal-pane {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(var(--shadow-rgb), 0.06);
 }
 
 .new-app-shell .na-resize-handle-x {
@@ -272,7 +272,7 @@
   background: var(--na-elevated);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 12px 28px rgba(var(--shadow-rgb), 0.26);
 }
 
 .new-app-shell .na-conversation-tab-menu button {
@@ -350,7 +350,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 13px;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.7);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.7);
   color: var(--ink-2);
   cursor: pointer;
   font-size: var(--font-size-sm);
@@ -376,7 +376,7 @@
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(var(--surface-rgb, 18, 22, 34), 0.86), rgba(var(--surface-rgb, 18, 22, 34), 0.52));
+  background: linear-gradient(145deg, rgba(var(--surface-rgb, 255, 255, 255), 0.86), rgba(var(--surface-rgb, 255, 255, 255), 0.52));
   color: var(--ink-2);
   cursor: pointer;
   font-size: var(--font-size-sm);
@@ -386,18 +386,18 @@
 .new-app-shell .na-suggestion-card:hover {
   border-color: color-mix(in srgb, var(--na-accent) 44%, var(--border));
   color: var(--ink);
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.96);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.96);
 }
 
 .new-app-shell .na-composer {
   border-color: color-mix(in srgb, var(--border) 80%, var(--na-accent) 20%) !important;
-  background: linear-gradient(150deg, rgba(var(--surface-rgb, 18, 22, 34), 0.92), rgba(var(--surface-rgb, 18, 22, 34), 0.68)) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(150deg, rgba(var(--surface-rgb, 255, 255, 255), 0.92), rgba(var(--surface-rgb, 255, 255, 255), 0.68)) !important;
+  box-shadow: 0 12px 32px rgba(var(--shadow-rgb), 0.12);
 }
 
 .new-app-shell .na-composer:focus-within {
   border-color: color-mix(in srgb, var(--na-accent) 68%, var(--border)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--na-accent-soft) 72%, transparent), 0 14px 38px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--na-accent-soft) 72%, transparent), 0 14px 38px rgba(var(--shadow-rgb), 0.16);
 }
 
 .new-app-shell .na-composer-input::placeholder {
@@ -411,7 +411,7 @@
 
 .new-app-shell .na-terminal-tabs {
   scrollbar-width: thin;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.26);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.26);
 }
 
 .new-app-shell .na-terminal-tabs::-webkit-scrollbar {
@@ -429,7 +429,7 @@
 
 .new-app-shell .na-inspector-tabs {
   padding: 0 10px;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.48);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.48);
 }
 
 .new-app-shell .na-inspector-tab {
@@ -439,7 +439,7 @@
 
 .new-app-shell .na-inspector-tab:hover:not(.is-active) {
   color: var(--ink) !important;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.66) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.66) !important;
 }
 
 .new-app-shell .na-inspector-tab.is-active {
@@ -462,14 +462,14 @@
   padding: 10px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, var(--na-accent) 18%);
   border-radius: 11px;
-  background: linear-gradient(145deg, rgba(var(--surface-rgb, 18, 22, 34), 0.83), rgba(var(--surface-rgb, 18, 22, 34), 0.5));
+  background: linear-gradient(145deg, rgba(var(--surface-rgb, 255, 255, 255), 0.83), rgba(var(--surface-rgb, 255, 255, 255), 0.5));
 }
 
 .new-app-shell .na-inspector-metrics {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.42);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.42);
 }
 
 .new-app-shell .na-inspector-metric + .na-inspector-metric {
@@ -481,7 +481,7 @@
 }
 
 .new-app-shell .na-activity-panel {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.12);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.12);
 }
 
 .new-app-shell .na-inspector-activity-section {
@@ -553,12 +553,12 @@
 }
 
 .new-app-shell .na-activity-header {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.34);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.34);
 }
 
 .new-app-shell .na-activity-row:hover,
 .new-app-shell .na-activity-row:focus-visible {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.72) !important;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.72) !important;
   outline: none;
 }
 
@@ -567,7 +567,7 @@
 }
 
 .new-app-shell .na-activity-trust {
-  background: rgba(var(--surface-rgb, 18, 22, 34), 0.46);
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.46);
 }
 
 .new-app-shell .na-activity-trust-verified {

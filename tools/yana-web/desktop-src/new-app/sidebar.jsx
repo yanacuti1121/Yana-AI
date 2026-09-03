@@ -37,8 +37,15 @@ function NavItem({ item, active, onClick, compact }) {
         display: 'flex', alignItems: 'center', gap: compact ? 0 : 12, width: '100%',
         justifyContent: compact ? 'center' : 'flex-start', textAlign: 'left',
         padding: compact ? '11px 0' : '11px 14px', borderRadius: 'var(--r-md)', border: 'none',
-        background: active ? 'var(--primary)' : 'transparent',
-        color: active ? '#fff' : 'var(--color-text-muted)',
+        // Solid var(--primary) fill (real bug, 2026-09-03): appropriate when
+        // --primary was near-white/near-black (the monochrome era), but a
+        // full-opacity saturated jade fill this large reads as "xanh lè"
+        // (garish) — anh's own words. --primary-soft is the restrained
+        // low-opacity tint the marketing page and this same file's Settings
+        // page tab already use for exactly this kind of active-state
+        // highlight; --primary stays as the (much less area) text color.
+        background: active ? 'var(--primary-soft)' : 'transparent',
+        color: active ? 'var(--primary)' : 'var(--color-text-muted)',
         fontWeight: active ? 600 : 500,
         fontSize: 'var(--font-size-base)',
         cursor: unavailable ? 'not-allowed' : 'pointer', opacity: unavailable ? 0.55 : 1,

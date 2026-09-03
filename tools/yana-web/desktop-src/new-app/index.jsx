@@ -224,6 +224,18 @@ export function NewAppShell() {
     document.documentElement.lang = uiPreferences.language;
   }, [uiPreferences.language]);
 
+  // Real bug, 2026-09-03: this used to set data-theme on the .new-app-shell
+  // div below (JSX prop), but themes.css's override rules are written as
+  // :root[data-theme="..."] — :root only ever matches the <html> element,
+  // never a nested div, so that selector could never match no matter what
+  // the div's own attribute was, and Settings' Light/Dark buttons silently
+  // did nothing. Setting it on document.documentElement (the actual <html>
+  // element, i.e. the real :root) is what themes.css's selectors need.
+  React.useEffect(() => {
+    if (uiPreferences.theme === 'system') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = uiPreferences.theme;
+  }, [uiPreferences.theme]);
+
   // Auto-close the drawer when resizing back to the wide layout — a
   // drawer left "open" from narrow mode would otherwise render as an
   // orphaned floating panel once the permanent column returns.
@@ -301,7 +313,7 @@ export function NewAppShell() {
           deliberate, minimal fix — not a performance concern, since a
           user changing language is a rare, explicit action, not a
           per-render event. */}
-      <div key={uiPreferences.language} className="new-app-shell" data-theme={uiPreferences.theme} style={{ display: 'flex', flexDirection: 'column' }}>
+      <div key={uiPreferences.language} className="new-app-shell" style={{ display: 'flex', flexDirection: 'column' }}>
         {/* The theme's real background (radial-gradient glow layers +
             drifting motes, themes.css's "living lake" system) — previously
             missing here, so new-app only ever painted new-app.css's flat
