@@ -209,7 +209,7 @@ export function ChatWorkspace({ onContextChange, onFocusTerminal }) {
     if (prevThinkingRef.current && !thinking && !streaming) {
       if (!hadCanonicalThisTurnRef.current) {
         const last = msgs[msgs.length - 1];
-        if (last?.who === 'yana' && last?.text?.startsWith('[Error:')) emitChatError(last.text);
+        if (last?.who === 'yana' && last?.text?.includes('\n[Error:')) emitChatError(last.text);
         else if (last?.who === 'yana') emitChatCompleted();
       }
     }

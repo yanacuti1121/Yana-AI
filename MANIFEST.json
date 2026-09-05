@@ -373,7 +373,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 65,
+      "count": 66,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -432,6 +432,7 @@
         "core/hooks/telemetry-sender.sh",
         "core/hooks/test-runner-gate.sh",
         "core/hooks/token-budget-guard.sh",
+        "core/hooks/token-budget-reset.sh",
         "core/hooks/token-scope-guard.sh",
         "core/hooks/tool-attention.js",
         "core/hooks/tool-guardrails-detector.sh",
@@ -582,7 +583,7 @@
       ]
     },
     "tests": {
-      "count": 18,
+      "count": 19,
       "actual_present": [
         "core/tests/adapters/cursor",
         "core/tests/adversarial",
@@ -2790,7 +2791,7 @@
   "skills_count": 2025,
   "skills_stubs_archived": 88,
   "agents_count": 100,
-  "hooks_count": 65,
+  "hooks_count": 66,
   "scripts_count": 133,
   "commands_count": 170,
   "rules_count": 71

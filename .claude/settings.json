@@ -211,7 +211,7 @@
         ]
       }
     ],
-    "PostToolUse": [
+ "PostToolUse": [
       {
         "matcher": ".*",
         "hooks": [
@@ -235,6 +235,10 @@
             "type": "command",
             "command": "bash core/hooks/context-compress-trigger.sh",
             "statusMessage": "Context compression check..."
+          },
+          {
+            "type": "command",
+            "command": "YANA_GUARDED_HOOK=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/token-budget-reset.sh\" bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/hook-timeout-guard.sh\""
           }
         ]
       },
