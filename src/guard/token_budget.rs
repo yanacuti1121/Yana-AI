@@ -14,11 +14,33 @@
 use chrono::Utc;
 use serde_json::{json, Value};
 use std::fs;
+use std::io::Read;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn env_str(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_string())
+}
+
+// BUG FIX (2026-09-05): `tool` here only ever came from the `--tool` CLI
+// flag (never passed by the real call site — core/hooks/token-budget-guard.sh
+// execs straight into `yana-rt guard token-budget` with no arguments) or the
+// `CLAUDE_TOOL_NAME` env var (never set by Claude Code's PreToolUse hook
+// contract, which passes tool_name on stdin as JSON instead). Both were
+// reliably absent, so every invocation resolved to "unknown" — the exact
+// same false-positive-lockout bug fixed in the bash/node fallback earlier
+// today, just reintroduced on the Rust fast path that actually executes
+// whenever `yana-rt` is on PATH (confirmed live: it is, and this path is
+// what ran). Mirrors `cmd_destructive`'s stdin-JSON parsing above.
+fn read_tool_name_from_stdin() -> Option<String> {
+    let mut buf = String::new();
+    std::io::stdin().read_to_string(&mut buf).ok()?;
+    let event: super::HookEvent = serde_json::from_str(&buf).ok()?;
+    if event.tool_name.is_empty() {
+        None
+    } else {
+        Some(event.tool_name)
+    }
 }
 
 fn env_u64(key: &str, default: u64) -> u64 {
@@ -57,6 +79,7 @@ pub fn cmd_token_budget(tool: Option<String>) -> i32 {
     let fast_tier_model = env_str("YANA_FAST_TIER_MODEL", "claude-haiku-4-5-20251001");
 
     let tool_name = tool
+        .or_else(read_tool_name_from_stdin)
         .or_else(|| std::env::var("CLAUDE_TOOL_NAME").ok())
         .unwrap_or_else(|| "unknown".to_string());
 
