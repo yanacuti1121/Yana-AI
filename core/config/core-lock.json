@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-09-03T13:03:22+00:00",
-  "count": 285,
+  "generated": "2026-09-05T02:57:55+00:00",
+  "count": 286,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -66,7 +66,8 @@
     "core/hooks/supply-chain-guard.sh": "6f382c78ed8fc3b009edfb4c76b522962e55b63333fef14fb065ad0c9107b07e",
     "core/hooks/telemetry-sender.sh": "c4efa82dece6ff3aee792b6ece5ee9220fef428126a638ae3f580e3fc12dd969",
     "core/hooks/test-runner-gate.sh": "5f6b7c61549518dfa9e90badb996d87a06e37c5072cd180628d1288ec2b4549d",
-    "core/hooks/token-budget-guard.sh": "d9940919675daa0cdf07283176af9c2fe9f83edac3192a596bc10de2949f2884",
+    "core/hooks/token-budget-guard.sh": "cbe06def10eb30e94865ea83dcebe6c836dd506faf10e68f27feb03287c3e449",
+    "core/hooks/token-budget-reset.sh": "d7c68a6141f7ab4d4f0e054d35736a1a49a63f57ec1fb74028ed61d74ee4898b",
     "core/hooks/token-scope-guard.sh": "7654fd7480cd885ecff80eb60c51f96b1c522ea5ff72afab918f8824567f7d87",
     "core/hooks/tool-attention.js": "79939c10f7e234327245a162c60a33ed56acd2009cb2beca5e0d13034a4496d0",
     "core/hooks/tool-guardrails-detector.sh": "644866b832ffc4f5db46369ba08656377a03fd14600dec9e88423b5c8644ead1",
@@ -287,6 +288,6 @@
     "src/guard/mod.rs": "58ddf56d9eb013532e8718089513f2f829837b0c769a0ce76b4c88efa0889bae",
     "src/guard/portable.rs": "8c22eacf5f28e600d6c5e05a4647322932701f93598a948c880e5dfebba3703b",
     "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
-    "src/guard/token_budget.rs": "0e1cef8a2310df1f467b2def47bc38a901a96a4b9a6428e05324168567dcb415"
+    "src/guard/token_budget.rs": "d5171a5410d1127525e37f92b75a6c377dfebf8e8539ba320d5710b5db370977"
   }
 }
