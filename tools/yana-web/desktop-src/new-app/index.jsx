@@ -31,7 +31,7 @@ import { L } from '../components.jsx';
 // provider surface cannot delay the initial local workspace. Each component
 // still uses the same existing runtime/IPC path after it loads.
 const ActivityHistoryView = React.lazy(() => import('./activity-history-view.jsx').then((module) => ({ default: module.ActivityHistoryView })));
-const TerminalDock = React.lazy(() => import('./terminal-dock.jsx').then((module) => ({ default: module.TerminalDock })));
+const TerminalDock = React.lazy(() => import('./terminal/terminal-dock.jsx').then((module) => ({ default: module.TerminalDock })));
 const FilesView = React.lazy(() => import('./files-view.jsx').then((module) => ({ default: module.FilesView })));
 const TasksView = React.lazy(() => import('./tasks-view.jsx').then((module) => ({ default: module.TasksView })));
 const ProjectsView = React.lazy(() => import('./projects-view.jsx').then((module) => ({ default: module.ProjectsView })));

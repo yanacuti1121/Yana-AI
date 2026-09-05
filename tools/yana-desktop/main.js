@@ -1416,12 +1416,22 @@ if (hasInstanceLock) app.whenReady().then(async () => {
   setupAutomaticMemoryBackup();
 });
 
+// Quit fully on every platform, including macOS. The previous "stay
+// running in the Dock" convention had no menu bar or tray affordance to
+// make that state visible, so a user who closed the window, then
+// installed a newer .dmg over the old one, would relaunch straight into
+// requestSingleInstanceLock() finding the OLD process still alive and
+// holding the lock (main.js:1382) — the new process quit immediately and
+// macOS just refocused the old, already-running window. That looked
+// exactly like "reinstalling didn't update the app" even though the new
+// build was correctly installed. This handler already tears down PTYs
+// and code-server on window close (the intent was already "closing the
+// window ends the session") — quitting the app process too closes that
+// same gap instead of leaving a headless survivor behind it.
 app.on('window-all-closed', () => {
   void stopAllPtys(); // never let a live terminal session survive as an orphan
   void stopCodeServer();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('activate', () => {
