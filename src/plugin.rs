@@ -4,7 +4,6 @@ use std::process::Command;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use chrono::Utc;
-use shell_words;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Plugin {
@@ -90,12 +89,33 @@ pub fn cmd_plugin_run(name: String, input: Option<String>) {
         None    => { eprintln!("error: plugin '{name}' not found"); std::process::exit(1); }
     };
     if !plugin.enabled { eprintln!("error: plugin '{name}' is disabled"); std::process::exit(1); }
-    println!("→ running '{name}': {}", plugin.script);
-    let parts = match shell_words::split(&plugin.script) {
-        Ok(p) if !p.is_empty() => p,
-        Ok(_) => { eprintln!("error: empty script"); std::process::exit(1); }
+
+    // SECURITY FIX (2026-09-06): this used to tokenize with a bare
+    // `shell_words::split` and spawn immediately — no capability check, no
+    // sandbox, no HALT check. A registered plugin script ran with none of
+    // the safety checks the equivalent `run_command` capability applies
+    // (see `capability::validate_command` / `chat/tools/run_command.rs`).
+    // Route through the same canonical validator so a destructive plugin
+    // script (rm -rf, force-push, etc.) is judged by the one source of
+    // truth (`guard::check_command`, identical logic to
+    // `core/hooks/guard-destructive.sh`) instead of running unchecked.
+    let root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    if crate::os::halt_is_active(&root) {
+        eprintln!("error: Giam Thi HALT is active — plugin execution blocked pending human review");
+        std::process::exit(1);
+    }
+    let validated = match crate::capability::validate_command(&plugin.script) {
+        Ok(v) => v,
         Err(e) => { eprintln!("error: invalid script: {e}"); std::process::exit(1); }
     };
+    if let Some(reason) = validated.guard_verdict {
+        eprintln!("error: plugin '{name}' blocked by safety guard: {reason}");
+        eprintln!("       script: {}", plugin.script);
+        std::process::exit(1);
+    }
+    let parts = validated.argv;
+
+    println!("→ running '{name}': {}", plugin.script);
     let mut proc = Command::new(&parts[0]);
     proc.args(&parts[1..]);
     if let Some(ref inp) = input { proc.env("YANA_PLUGIN_INPUT", inp); }
