@@ -583,7 +583,7 @@
       ]
     },
     "tests": {
-      "count": 19,
+      "count": 20,
       "actual_present": [
         "core/tests/adapters/cursor",
         "core/tests/adversarial",
