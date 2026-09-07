@@ -118,6 +118,14 @@ export function XTermPanel({ active, onSessionStart, onSessionExit, preferences 
       lineHeight: preferences.lineHeight,
       cursorBlink: preferences.cursorBlink,
       theme: readTerminalTheme(),
+      // Required for term.unicode.activeVersion below — xterm.js gates
+      // its Unicode API behind this flag because the API shape isn't
+      // finalized yet. Without it, setting activeVersion throws
+      // "You must set the allowProposedApi option to true to use
+      // proposed API" — uncaught, which crashed the whole React tree to
+      // a black screen (no error boundary above it), confirmed live via
+      // ELECTRON_ENABLE_LOGGING before this fix.
+      allowProposedApi: true,
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
