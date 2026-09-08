@@ -355,6 +355,20 @@ try {
   await expect(
     page.getByRole("button", { name: "Hiện Terminal" }),
   ).toBeVisible();
+  await expect(page.locator(".terminal-dock")).toHaveClass(/ambient/);
+  await page.getByRole("button", { name: "Có kiểm soát" }).click();
+  const governance = page.getByRole("dialog", { name: "Quyền của phiên" });
+  await expect(governance).toBeVisible();
+  await expect(governance).toContainText("repo.read");
+  await expect(governance).toContainText("command.execute");
+  await expect(governance).toContainText("Hỏi mỗi lần");
+  await governance
+    .getByRole("button", { name: "Đóng quyền của phiên" })
+    .click();
+  await page.getByRole("button", { name: "Có kiểm soát" }).click();
+  await governance.getByRole("button", { name: "Quản lý quyền" }).click();
+  await expect(page.getByText("PENDING APPROVALS")).toBeVisible();
+  await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   const separator = page.getByRole("separator", {
     name: "Resize terminal dock",
   });
@@ -417,6 +431,11 @@ try {
   await expect(
     page.getByRole("button", { name: "Dừng", exact: true }),
   ).toHaveCount(0, { timeout: 15000 });
+  await page.getByRole("tab", { name: "Inspector" }).click();
+  await expect(page.getByText("PHIÊN HIỆN TẠI")).toBeVisible();
+  await expect(page.locator(".session-summary-grid")).toContainText(
+    "studio-test",
+  );
   expect(failures).toEqual([]);
   fs.mkdirSync(path.join(appRoot, "artifacts"), { recursive: true });
   await page.screenshot({

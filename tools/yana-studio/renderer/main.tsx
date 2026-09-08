@@ -53,6 +53,7 @@ import "./style.css";
 import "./light-theme.css";
 import { translate } from "./i18n";
 import { AccountUnlock } from "./AccountSettings";
+import { GovernancePopover } from "./GovernancePopover";
 
 const Terminal = lazy(() =>
   import("./Terminal").then((module) => ({ default: module.Terminal })),
@@ -116,6 +117,7 @@ function App() {
   const [maximize, setMaximize] = useState(false);
   const [split, setSplit] = useState(false);
   const [grid, setGrid] = useState(false);
+  const [terminalEngaged, setTerminalEngaged] = useState(false);
   const [palette, setPalette] = useState(false);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
@@ -149,6 +151,10 @@ function App() {
     } catch (error) {
       setNotice(String(error));
     }
+  };
+  const openChat = () => {
+    setTerminalEngaged(false);
+    setSurface("chat");
   };
   useEffect(() => {
     void window.studio
@@ -213,6 +219,9 @@ function App() {
     followOutput.current = true;
     bottom.current?.scrollIntoView({ block: "end" });
   }, [chatId]);
+  useEffect(() => {
+    if (surface !== "terminal") setTerminalEngaged(false);
+  }, [surface]);
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -319,7 +328,7 @@ function App() {
       const created = await window.studio.newChat(project.root);
       setChats((previous) => [...previous, created]);
       setChatId(created.id);
-      setSurface("chat");
+      openChat();
     });
   const addTerminal = () =>
     run(async () => {
@@ -330,6 +339,7 @@ function App() {
         setTerminals((previous) => [...previous, created]);
         setTerminalId(created.id);
         setDock(true);
+        setTerminalEngaged(true);
       } finally {
         setBusy(false);
       }
@@ -348,6 +358,7 @@ function App() {
         setTerminals((previous) => [...previous, created]);
         setTerminalId(created.id);
         setDock(true);
+        setTerminalEngaged(true);
         await window.studio.terminalWrite(created.id, `${entry.command}\n`);
       } finally {
         setBusy(false);
@@ -718,7 +729,7 @@ function App() {
           <nav>
             <button
               className={surface === "chat" ? "selected" : ""}
-              onClick={() => setSurface("chat")}
+              onClick={openChat}
             >
               <MessageSquare size={17} />
               <span>{t("chat")}</span>
@@ -844,7 +855,7 @@ function App() {
             <Settings
               state={state}
               onState={setState}
-              onClose={() => setSurface("chat")}
+              onClose={openChat}
               onError={setNotice}
               projectRoot={project?.root || ""}
               onOpenTerminal={(command) => {
@@ -870,7 +881,7 @@ function App() {
               <div className="tabs">
                 <button
                   className={surface === "chat" ? "active" : ""}
-                  onClick={() => setSurface("chat")}
+                  onClick={openChat}
                 >
                   <MessageSquare size={14} /> Workspace
                 </button>
@@ -883,7 +894,7 @@ function App() {
                     title={item.title}
                     onClick={() => {
                       setChatId(item.id);
-                      setSurface("chat");
+                      openChat();
                     }}
                   >
                     {item.running && <span className="dot blue" />}
@@ -1101,6 +1112,7 @@ function App() {
                 <>
                   <div
                     className="conversation"
+                    onPointerDown={() => setTerminalEngaged(false)}
                     onScroll={(event) => {
                       const element = event.currentTarget;
                       followOutput.current =
@@ -1268,7 +1280,10 @@ function App() {
                     )}
                     <div ref={bottom} />
                   </div>
-                  <div className="composer">
+                  <div
+                    className="composer"
+                    onPointerDown={() => setTerminalEngaged(false)}
+                  >
                     {(attachments[draftKey] || []).length > 0 && (
                       <div className="composer-attachments">
                         {(attachments[draftKey] || []).map((file) => (
@@ -1351,6 +1366,7 @@ function App() {
                           title="Hiện Terminal"
                           disabled={!project || busy}
                           onClick={() => {
+                            setTerminalEngaged(true);
                             if (localTerminals.length) {
                               setDock(true);
                               setTerminalId(
@@ -1364,12 +1380,11 @@ function App() {
                           <TerminalSquare size={14} /> Terminal
                         </button>
                       </div>
-                      <span
-                        className="composer-governance"
-                        title="Mọi thao tác vẫn tuân theo quyền hạn của Yana"
-                      >
-                        <Shield size={13} /> Có kiểm soát
-                      </span>
+                      <GovernancePopover
+                        root={project?.root || ""}
+                        onError={setNotice}
+                        onOpenPermissions={() => setSurface("permissions")}
+                      />
                       <div className="model-pill-anchor" ref={modelPopoverRef}>
                         <button
                           className="composer-model-button"
@@ -1429,7 +1444,11 @@ function App() {
               aria-label="Resize terminal dock"
               onPointerDown={(event) => resize("dock", event)}
             />
-            <section className="terminal-dock" hidden={!dock}>
+            <section
+              className={`terminal-dock ${terminalEngaged ? "engaged" : "ambient"}`}
+              hidden={!dock}
+              onPointerDown={() => setTerminalEngaged(true)}
+            >
               <div className="terminal-tabs">
                 <TerminalSquare size={14} />
                 {localTerminals.map((item) => (
@@ -1437,7 +1456,12 @@ function App() {
                     className={`terminal-tab ${terminal?.id === item.id ? "active" : ""}`}
                     key={item.id}
                   >
-                    <button onClick={() => setTerminalId(item.id)}>
+                    <button
+                      onClick={() => {
+                        setTerminalEngaged(true);
+                        setTerminalId(item.id);
+                      }}
+                    >
                       {item.label}
                     </button>
                     <button
@@ -1483,7 +1507,7 @@ function App() {
                   title="Maximize terminal"
                   onClick={() => {
                     if (terminalWorkspace) {
-                      setSurface("chat");
+                      openChat();
                       setMaximize(false);
                     } else setMaximize((value) => !value);
                   }}
@@ -1495,7 +1519,7 @@ function App() {
                   onClick={() => {
                     setDock(false);
                     setMaximize(false);
-                    if (terminalWorkspace) setSurface("chat");
+                    if (terminalWorkspace) openChat();
                   }}
                 >
                   <ChevronDown size={15} />
@@ -1601,8 +1625,11 @@ function App() {
                           item.id === terminal?.id ||
                           item.id === secondary?.id)
                       }
-                      active={item.id === terminal?.id}
-                      onActivate={() => setTerminalId(item.id)}
+                      active={item.id === terminal?.id && terminalEngaged}
+                      onActivate={() => {
+                        setTerminalEngaged(true);
+                        setTerminalId(item.id);
+                      }}
                       onError={setNotice}
                       onOpenFile={(root, path) =>
                         void openTerminalFileLink(root, path)
@@ -1738,6 +1765,8 @@ function App() {
             project={project}
             git={git}
             chat={chat}
+            attachmentCount={(attachments[draftKey] || []).length}
+            terminalCount={localTerminals.length}
             onState={setState}
             onError={setNotice}
             onRefresh={() => {

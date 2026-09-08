@@ -24,6 +24,15 @@ import type { Chat, GitState, Project, State } from "./types";
 // otherwise inspired by (see the Studio feature-gap report).
 function telemetryFor(chat: Chat | undefined, state: State) {
   const events = chat?.events || [];
+  const usage = chat?.usageHistory?.length
+    ? chat.usageHistory.reduce(
+        (total, record) => ({
+          input: total.input + record.input,
+          output: total.output + record.output,
+        }),
+        { input: 0, output: 0 },
+      )
+    : (chat?.usage ?? { input: 0, output: 0 });
   const model = chat?.profile?.model || state.profile.model;
   const provider = state.providerCatalog.find(
     (entry) => entry.id === (chat?.profile?.provider || state.profile.provider),
@@ -35,7 +44,33 @@ function telemetryFor(chat: Chat | undefined, state: State) {
     context:
       provider?.modelCatalog.find((entry) => entry.id === model)?.context ||
       "—",
+    input: usage.input,
+    output: usage.output,
+    total: usage.input + usage.output,
   };
+}
+
+function activityPresentation(event: Chat["events"][number]) {
+  switch (event.kind) {
+    case "tool_requested":
+      return { label: "Đề xuất công cụ", status: "requested", Icon: Wrench };
+    case "tool_approved":
+      return { label: "Đã phê duyệt", status: "approved", Icon: Check };
+    case "tool_denied":
+      return { label: "Đã từ chối", status: "denied", Icon: Ban };
+    case "tool_started":
+      return { label: "Đang thực thi", status: "running", Icon: Circle };
+    case "tool_completed":
+      return { label: "Bằng chứng đã ghi", status: "completed", Icon: Check };
+    case "turn_completed":
+      return { label: "Lượt đã hoàn tất", status: "completed", Icon: Check };
+    default:
+      return {
+        label: event.kind?.replaceAll("_", " ") || "Sự kiện runtime",
+        status: "event",
+        Icon: Circle,
+      };
+  }
 }
 
 export function WorkspaceInspector({
@@ -43,6 +78,8 @@ export function WorkspaceInspector({
   project,
   git,
   chat,
+  attachmentCount,
+  terminalCount,
   onState,
   onError,
   onRefresh,
@@ -53,6 +90,8 @@ export function WorkspaceInspector({
   project: Project | null;
   git: GitState;
   chat?: Chat;
+  attachmentCount: number;
+  terminalCount: number;
   onState: (state: State) => void;
   onError: (message: string) => void;
   onRefresh: () => void;
@@ -195,8 +234,8 @@ export function WorkspaceInspector({
                 {telemetry.context} context
               </span>
               <span className="telemetry-item">
-                <b>{chat?.usage?.input?.toLocaleString() ?? 0}</b> in ·{" "}
-                <b>{chat?.usage?.output?.toLocaleString() ?? 0}</b> out
+                <b>{telemetry.input.toLocaleString()}</b> in ·{" "}
+                <b>{telemetry.output.toLocaleString()}</b> out
               </span>
               <span className="telemetry-item">
                 <Wrench size={12} /> {telemetry.toolCalls} tool call
@@ -226,6 +265,45 @@ export function WorkspaceInspector({
               <RefreshCw size={14} />
             </button>
           </div>
+          <section className="inspector-session-summary">
+            <div className="section-label">PHIÊN HIỆN TẠI</div>
+            <div className="session-summary-grid">
+              <div className="session-summary-primary">
+                <small>ACTIVE MODEL</small>
+                <strong>
+                  {chat?.profile?.model || state.profile.model || "Chưa chọn"}
+                </strong>
+                <span>
+                  {chat?.profile?.provider || state.profile.provider || "—"}
+                </span>
+              </div>
+              <div>
+                <small>CONTEXT</small>
+                <strong>
+                  {telemetry.total.toLocaleString()} / {telemetry.context}
+                </strong>
+                <span>
+                  {attachmentCount} tệp · {terminalCount} terminal
+                </span>
+              </div>
+              <div>
+                <small>SESSION</small>
+                <strong>{chat?.events.length || 0} sự kiện</strong>
+                <span>
+                  {telemetry.toolCalls} công cụ · {chat?.approval ? 1 : 0} chờ
+                  duyệt
+                </span>
+              </div>
+              <div>
+                <small>USAGE</small>
+                <strong>{telemetry.total.toLocaleString()} tokens</strong>
+                <span>
+                  ↓ {telemetry.input.toLocaleString()} · ↑{" "}
+                  {telemetry.output.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </section>
           <section>
             <div className="section-label">PROJECT</div>
             <div className="card project-card">
@@ -277,31 +355,26 @@ export function WorkspaceInspector({
             </div>
             {chat?.events.length ? (
               <div className="activity-list">
-                {[...chat.events].reverse().map((event, index) => (
-                  <div
-                    key={index}
-                    className={
-                      event.kind === "tool_denied"
-                        ? "denied"
-                        : event.kind === "tool_approved"
-                          ? "approved"
-                          : ""
-                    }
-                  >
-                    <time>
-                      {event.time
-                        ? new Date(event.time).toLocaleTimeString("vi", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : ""}
-                    </time>
-                    <span>
-                      {event.kind?.replaceAll("_", " ")}
-                      <small>{event.tool || event.summary || ""}</small>
-                    </span>
-                  </div>
-                ))}
+                {[...chat.events].reverse().map((event, index) => {
+                  const activity = activityPresentation(event);
+                  return (
+                    <div key={index} className={activity.status}>
+                      <activity.Icon size={13} />
+                      <span>
+                        <b>{activity.label}</b>
+                        <small>{event.tool || event.summary || ""}</small>
+                      </span>
+                      <time>
+                        {event.time
+                          ? new Date(event.time).toLocaleTimeString("vi", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : ""}
+                      </time>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="empty-small">

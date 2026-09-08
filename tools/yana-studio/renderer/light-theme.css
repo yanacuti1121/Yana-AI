@@ -240,6 +240,22 @@ small,
   box-shadow: inset 0 2px 0 #c9859c;
 }
 
+.terminal-dock {
+  border-color: transparent;
+}
+
+.terminal-dock.ambient {
+  opacity: 0.78;
+  filter: saturate(0.7) contrast(0.97);
+  box-shadow: inset 0 1px 0 #ffffffb8;
+}
+
+.terminal-dock.engaged {
+  box-shadow:
+    0 3px 14px #5d4a3c0c,
+    inset 0 1px 0 #ffffffd9;
+}
+
 .resize-handle:hover,
 .resize-handle:active {
   background: #c77b94;
@@ -429,6 +445,82 @@ small,
   color: #756d66;
   background: #f8f4efb8;
   border-color: #e5ddd4;
+}
+
+.governance-popover {
+  color: #3d3834;
+  background: #fffdf9ed;
+  border-color: #ddd4cb;
+  box-shadow: 0 22px 60px #5d493524;
+}
+
+.governance-heading small,
+.governance-session {
+  color: #817970;
+}
+
+.governance-capabilities > div:nth-child(odd) {
+  background: #eee8e171;
+}
+
+.governance-capabilities .allowed {
+  color: #3f7c61;
+}
+
+.governance-capabilities .ask {
+  color: #9a6a32;
+}
+
+.governance-capabilities .unavailable {
+  color: #8d857d;
+}
+
+.governance-session {
+  border-top-color: #e4dcd3;
+}
+
+.governance-actions button {
+  color: #5d554e;
+  background: #f5efe9;
+  border-color: #ddd4cb;
+}
+
+.message {
+  border-top-color: transparent;
+}
+
+.message + .message {
+  border-top-color: #e7dfd7;
+}
+
+.runtime-events {
+  border-color: transparent;
+  background: #f0ebe5;
+  box-shadow: inset 2px 0 #d7a0b3;
+}
+
+.inspector-session-summary {
+  background: #f4efe9a8;
+}
+
+.session-summary-grid > div {
+  color: #403b37;
+  background: #faf6f0;
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 #ffffffd6;
+}
+
+.session-summary-grid .session-summary-primary {
+  background: linear-gradient(135deg, #fffdf9, #f4e9ed);
+}
+
+.session-summary-grid strong {
+  color: #4a403a;
+}
+
+.session-summary-grid small,
+.session-summary-grid span {
+  color: #817970;
 }
 
 .composer-model-button {
