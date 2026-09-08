@@ -69,24 +69,37 @@ fn truncate_with_marker(s: &str, max_chars: usize) -> String {
 /// prompt with no y-path rendered at all — the visual half of "no
 /// override on a guard denial" (`tui/approval.rs` is the enforcement
 /// half: it simply never dispatches `y`/`Y` to execution in this case).
+/// Diff lines shown in the approval prompt are capped — a file-write
+/// proposal on a large file must never make the approval box itself
+/// unreadable or push the actual y/N prompt off-screen. The full diff
+/// still exists on `FileMutationDiff::unified_diff`; this is a display
+/// bound only, not a size limit `capability::file_mutation` itself
+/// enforces (that's `MAX_MUTATION_BYTES`, a separate, earlier check).
+const MAX_APPROVAL_DIFF_LINES: usize = 20;
+
 pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval, area: Rect) {
-    let (border_color, lines): (Color, Vec<Line>) = if let Some(reason) = pending.guard_verdict {
-        (
+    let (title, border_color, lines): (&str, Color, Vec<Line>) = match pending {
+        PendingApproval::Command {
+            command,
+            guard_verdict: Some(reason),
+            ..
+        } => (
+            " approve command ",
             Color::Red,
             vec![
                 Line::styled(
                     format!("BLOCKED: {reason}"),
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
                 ),
-                Line::raw(pending.command.clone()),
+                Line::raw(command.clone()),
                 Line::styled(
                     "Press Enter to acknowledge — this command will not run.",
                     Style::default().add_modifier(Modifier::ITALIC),
                 ),
             ],
-        )
-    } else {
-        (
+        ),
+        PendingApproval::Command { command, .. } => (
+            " approve command ",
             Color::Yellow,
             vec![
                 Line::styled(
@@ -95,14 +108,49 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Line::raw(pending.command.clone()),
+                Line::raw(command.clone()),
             ],
-        )
+        ),
+        PendingApproval::FileWrite { path, diff, .. } => {
+            let mut lines = vec![
+                Line::styled(
+                    format!("{} {path}? [y]es / [N]o", diff.kind_label),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Line::raw(format!(
+                    "{} -> {} bytes",
+                    diff.before_bytes.map(|b| b.to_string()).unwrap_or_else(|| "new file".to_string()),
+                    diff.after_bytes
+                )),
+                Line::raw(""),
+            ];
+            let diff_lines: Vec<&str> = diff.unified_diff.lines().collect();
+            let shown = diff_lines.len().min(MAX_APPROVAL_DIFF_LINES);
+            for raw in &diff_lines[..shown] {
+                let color = if raw.starts_with('+') {
+                    Color::Green
+                } else if raw.starts_with('-') {
+                    Color::Red
+                } else {
+                    Color::Gray
+                };
+                lines.push(Line::styled((*raw).to_string(), Style::default().fg(color)));
+            }
+            if diff_lines.len() > shown {
+                lines.push(Line::styled(
+                    format!("… {} more line(s) not shown", diff_lines.len() - shown),
+                    Style::default().add_modifier(Modifier::ITALIC),
+                ));
+            }
+            (" approve file write ", Color::Yellow, lines)
+        }
     };
     let widget = Paragraph::new(lines)
         .block(
             Block::bordered()
-                .title(" approve command ")
+                .title(title)
                 .border_style(Style::default().fg(border_color)),
         )
         .wrap(Wrap { trim: false });

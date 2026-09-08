@@ -50,43 +50,53 @@ impl ToolExecutor for ChatCapabilityExecutor {
 
     fn execute_approved(&self, approved: ApprovedTool<'_>) -> ToolResultRecord {
         let call = approved.call();
-        if call.name != "run_command" {
-            return tool_result(
+        match call.name.as_str() {
+            "run_command" => {
+                let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
+                    return tool_result(
+                        call,
+                        "missing required argument 'command'".to_string(),
+                        true,
+                        false,
+                    );
+                };
+                match tools::run_command::validate(&command) {
+                    Ok(validated) if validated.guard_verdict.is_none() => command_result(
+                        call,
+                        tools::run_command::execute(
+                            &approved.context().session.repo_root,
+                            &validated.argv,
+                            self.use_sandbox,
+                        ),
+                    ),
+                    Ok(validated) => tool_result(
+                        call,
+                        format!(
+                            "blocked by guard: {}",
+                            validated.guard_verdict.unwrap_or("blocked")
+                        ),
+                        true,
+                        true,
+                    ),
+                    Err(error) => tool_result(
+                        call,
+                        format!("cannot validate command: {error}"),
+                        true,
+                        true,
+                    ),
+                }
+            }
+            "write_file" => {
+                let session_id = approved.context().session.session_id.clone();
+                file_write_result(call, approved.context(), session_id, false)
+            }
+            "write_config" => {
+                let session_id = approved.context().session.session_id.clone();
+                file_write_result(call, approved.context(), session_id, true)
+            }
+            other => tool_result(
                 call,
-                format!("approved executor does not support '{}'", call.name),
-                true,
-                true,
-            );
-        }
-        let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
-            return tool_result(
-                call,
-                "missing required argument 'command'".to_string(),
-                true,
-                false,
-            );
-        };
-        match tools::run_command::validate(&command) {
-            Ok(validated) if validated.guard_verdict.is_none() => command_result(
-                call,
-                tools::run_command::execute(
-                    &approved.context().session.repo_root,
-                    &validated.argv,
-                    self.use_sandbox,
-                ),
-            ),
-            Ok(validated) => tool_result(
-                call,
-                format!(
-                    "blocked by guard: {}",
-                    validated.guard_verdict.unwrap_or("blocked")
-                ),
-                true,
-                true,
-            ),
-            Err(error) => tool_result(
-                call,
-                format!("cannot validate command: {error}"),
+                format!("approved executor does not support '{other}'"),
                 true,
                 true,
             ),
@@ -94,18 +104,104 @@ impl ToolExecutor for ChatCapabilityExecutor {
     }
 }
 
+/// Deserialized shape of `write_file`'s `arguments_json` — mirrors the
+/// `file.write` capability's `input_schema` in `registry_data.rs` exactly
+/// (path/content/kind, all required); a model call missing or
+/// mis-shaping one of these fails to parse here rather than reaching
+/// `apply_file_write` with a guessed default.
+#[derive(serde::Deserialize)]
+struct WriteFileArgs {
+    path: String,
+    content: String,
+    kind: String,
+}
+
+fn parse_mutation_kind(raw: &str) -> Option<crate::capability::FileMutationKind> {
+    match raw {
+        "create" => Some(crate::capability::FileMutationKind::Create),
+        "overwrite" => Some(crate::capability::FileMutationKind::Overwrite),
+        _ => None,
+    }
+}
+
+/// Executes an already-approved `write_file`/`write_config` call for real
+/// (`crate::capability::apply_file_write`/`apply_config_write`: backup ->
+/// atomic write -> verify -> evidence). Called only from
+/// `execute_approved`, which the runtime authority chain only invokes
+/// after `HumanApprovalPerCall` has been satisfied — this function has no
+/// approval logic of its own. `is_config` picks which of the two apply
+/// functions runs; both take identical arguments and return the same
+/// `FileMutationOutcome` shape, so the result formatting below is shared.
+fn file_write_result(
+    call: &ToolCall,
+    context: &TurnContext,
+    session_id: String,
+    is_config: bool,
+) -> ToolResultRecord {
+    let Ok(args) = serde_json::from_str::<WriteFileArgs>(&call.arguments_json) else {
+        return tool_result(
+            call,
+            format!(
+                "missing or invalid arguments for {} (need path, content, kind)",
+                call.name
+            ),
+            true,
+            false,
+        );
+    };
+    let Some(kind) = parse_mutation_kind(&args.kind) else {
+        return tool_result(
+            call,
+            format!("unknown kind '{}' — expected create or overwrite", args.kind),
+            true,
+            false,
+        );
+    };
+    let root = &context.session.repo_root;
+    let outcome = if is_config {
+        crate::capability::apply_config_write(root, &args.path, kind, &args.content, Some(session_id))
+    } else {
+        crate::capability::apply_file_write(root, &args.path, kind, &args.content, Some(session_id))
+    };
+    match outcome {
+        Ok(outcome) => tool_result(
+            call,
+            format!(
+                "wrote {} ({} bytes, sha256 {}){}",
+                args.path,
+                outcome.evidence.byte_count.unwrap_or(0),
+                outcome.evidence.sha256.as_deref().unwrap_or("unknown"),
+                outcome
+                    .backup_path
+                    .map(|p| format!(", backup at {p}"))
+                    .unwrap_or_default(),
+            ),
+            false,
+            false,
+        ),
+        Err(error) => tool_result(call, format!("write failed: {error}"), true, true),
+    }
+}
+
 impl App {
     pub(super) fn prepare_pending_approval(&mut self, call: ToolCall) {
-        if call.name != "run_command" {
-            self.push_tool_result(
-                &call.id,
-                format!("unsupported approval request for '{}'", call.name),
-                true,
-                true,
-            );
-            self.continue_after_tool_result();
-            return;
+        match call.name.as_str() {
+            "run_command" => self.prepare_command_approval(call),
+            "write_file" => self.prepare_write_file_approval(call, false),
+            "write_config" => self.prepare_write_file_approval(call, true),
+            other => {
+                self.push_tool_result(
+                    &call.id,
+                    format!("unsupported approval request for '{other}'"),
+                    true,
+                    true,
+                );
+                self.continue_after_tool_result();
+            }
         }
+    }
+
+    fn prepare_command_approval(&mut self, call: ToolCall) {
         let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
             self.push_tool_result(
                 &call.id,
@@ -118,7 +214,7 @@ impl App {
         };
         match tools::run_command::validate(&command) {
             Ok(validated) => {
-                self.turn = TurnState::AwaitingApproval(PendingApproval {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::Command {
                     call,
                     command,
                     argv: validated.argv,
@@ -132,6 +228,61 @@ impl App {
                     true,
                     false,
                 );
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// Computes the diff (read-only — neither `propose_*` function
+    /// touches the filesystem) up front so the approval prompt itself can
+    /// show it, rather than the human approving a path/kind pair blind
+    /// and finding out what changed only after the fact. Shared by
+    /// `write_file` (`is_config: false`) and `write_config`
+    /// (`is_config: true`, Phase 4) — the two differ only in which
+    /// `propose_*` function validates the request.
+    fn prepare_write_file_approval(&mut self, call: ToolCall, is_config: bool) {
+        let Ok(args) = serde_json::from_str::<WriteFileArgs>(&call.arguments_json) else {
+            self.push_tool_result(
+                &call.id,
+                format!(
+                    "missing or invalid arguments for {} (need path, content, kind)",
+                    call.name
+                ),
+                true,
+                false,
+            );
+            self.continue_after_tool_result();
+            return;
+        };
+        let Some(kind) = parse_mutation_kind(&args.kind) else {
+            self.push_tool_result(
+                &call.id,
+                format!("unknown kind '{}' — expected create or overwrite", args.kind),
+                true,
+                false,
+            );
+            self.continue_after_tool_result();
+            return;
+        };
+        let root = self.session_context().repo_root;
+        let proposal = if is_config {
+            crate::capability::propose_config_write(&root, &args.path, kind, &args.content)
+        } else {
+            crate::capability::propose_file_write(&root, &args.path, kind, &args.content)
+        };
+        match proposal {
+            Ok(diff) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::FileWrite {
+                    call,
+                    path: args.path,
+                    kind,
+                    content: args.content,
+                    is_config,
+                    diff,
+                });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot propose write: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }
@@ -340,6 +491,51 @@ mod tests {
         );
     }
 
+    #[test]
+    fn prepare_pending_approval_computes_a_diff_for_write_file() {
+        let mut app = app();
+        // propose_file_write is read-only (no fs::write), so this is safe
+        // to run against the real process cwd — it must produce
+        // AwaitingApproval(FileWrite) with the diff computed up front,
+        // never touching the filesystem itself.
+        app.prepare_pending_approval(ToolCall {
+            id: "call-1".into(),
+            name: "write_file".into(),
+            arguments_json: r#"{"path":"whatever-relative-name.txt","content":"hi","kind":"create"}"#
+                .into(),
+        });
+        match &app.turn {
+            TurnState::AwaitingApproval(PendingApproval::FileWrite { path, diff, .. }) => {
+                assert_eq!(path, "whatever-relative-name.txt");
+                assert_eq!(diff.kind_label, "create");
+            }
+            TurnState::Idle => panic!("expected AwaitingApproval(FileWrite), got Idle — status: {}", app.status),
+            _ => panic!("expected AwaitingApproval(FileWrite), got a different turn state"),
+        }
+    }
+
+    #[test]
+    fn prepare_pending_approval_rejects_write_file_with_bad_kind_without_entering_approval() {
+        let mut app = app();
+        // Past the round ceiling so `continue_after_tool_result()` stops at
+        // the guard instead of spawning a new turn against `FakeProvider`
+        // — same technique `prepare_pending_approval_respects_the_round_guard_on_error_paths`
+        // above already uses to keep `app.turn` observable as `Idle`.
+        app.tool_rounds.set_rounds(9);
+        app.prepare_pending_approval(ToolCall {
+            id: "call-1".into(),
+            name: "write_file".into(),
+            arguments_json: r#"{"path":"x.txt","content":"y","kind":"rename"}"#.into(),
+        });
+        assert!(matches!(app.turn, TurnState::Idle));
+        assert!(app
+            .history
+            .last()
+            .and_then(|m| m.tool_result.as_ref())
+            .map(|r| r.is_error)
+            .unwrap_or(false));
+    }
+
     fn context(root: &std::path::Path) -> TurnContext {
         TurnContext::new(
             crate::session_context::SessionContext::new(
@@ -410,5 +606,139 @@ mod tests {
         assert!(!result.denied);
         assert!(!result.is_error);
         assert!(root.path().join("approved-command").exists());
+    }
+
+    #[test]
+    fn terminal_executor_never_writes_files_without_approval() {
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = executor.execute(
+            &context(root.path()),
+            &ToolCall {
+                id: "call-1".into(),
+                name: "write_file".into(),
+                arguments_json: r#"{"path":"new.txt","content":"hi","kind":"create"}"#.into(),
+            },
+        );
+        assert!(result.denied);
+        assert!(!root.path().join("new.txt").exists());
+    }
+
+    /// Same shape as `canonical_approved_path_executes_mutating_tools_once`,
+    /// for `write_file` — proves the capability works end to end through
+    /// the real `YanaAuthorityChain` (HALT check, registry lookup,
+    /// `HumanApprovalPerCall` gate honored via `human_approved: true` on
+    /// `context`), not just through `file_mutation`'s own unit tests.
+    #[test]
+    fn canonical_approved_path_writes_a_file_once() {
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_file".into(),
+            arguments_json: r#"{"path":"created.txt","content":"hello from an approved call\n","kind":"create"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(!result.denied);
+        assert!(!result.is_error);
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("created.txt")).unwrap(),
+            "hello from an approved call\n"
+        );
+    }
+
+    #[test]
+    fn canonical_approved_path_rejects_an_unknown_write_kind() {
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_file".into(),
+            arguments_json: r#"{"path":"x.txt","content":"y","kind":"delete"}"#.into(),
+        };
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(result.is_error);
+        assert!(!root.path().join("x.txt").exists());
+    }
+
+    /// `write_config` end to end (Phase 4) — same shape as
+    /// `canonical_approved_path_writes_a_file_once`, proving the config
+    /// specialization also works through the real authority chain, not
+    /// just `config_write`'s own unit tests.
+    #[test]
+    fn canonical_approved_path_writes_a_config_file_once() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join("core/config")).unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_config".into(),
+            arguments_json: r#"{"path":"new-setting.json","content":"{\"enabled\":true}","kind":"create"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(!result.denied);
+        assert!(!result.is_error);
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("core/config/new-setting.json")).unwrap(),
+            "{\"enabled\":true}"
+        );
+    }
+
+    #[test]
+    fn canonical_approved_path_rejects_write_config_targeting_core_lock_json() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join("core/config")).unwrap();
+        std::fs::write(root.path().join("core/config/core-lock.json"), "{}").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_config".into(),
+            arguments_json: r#"{"path":"core-lock.json","content":"{\"tampered\":true}","kind":"overwrite"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(result.is_error);
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("core/config/core-lock.json")).unwrap(),
+            "{}",
+            "core-lock.json must be untouched"
+        );
     }
 }
