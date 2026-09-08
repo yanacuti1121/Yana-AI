@@ -90,7 +90,18 @@ export type Chat = {
   id: string;
   root: string;
   title: string;
-  messages: { role: "user" | "assistant"; content: string }[];
+  messages: {
+    role: "user" | "assistant";
+    content: string;
+    // Set instead of a synthetic "no content" placeholder when this turn
+    // ended in a real runtime/provider error before any content streamed.
+    errorDetail?: {
+      provider: string;
+      model: string;
+      reason: string;
+      exitCode: number | null;
+    };
+  }[];
   events: RuntimeEvent[];
   running: boolean;
   error: string;

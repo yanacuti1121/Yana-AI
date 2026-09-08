@@ -1270,10 +1270,29 @@ function App() {
                             </span>
                           </div>
                           <div className="message-body">
-                            {message.content ||
-                              (chat.running
-                                ? "Đang chờ runtime…"
-                                : "Chưa có nội dung trả về.")}
+                            {message.content ? (
+                              message.content
+                            ) : message.errorDetail ? (
+                              <div className="message-error-card">
+                                <strong>Provider request failed</strong>
+                                <span>
+                                  Provider: {message.errorDetail.provider}
+                                </span>
+                                <span>Model: {message.errorDetail.model}</span>
+                                <span>
+                                  Reason: {message.errorDetail.reason}
+                                </span>
+                                {message.errorDetail.exitCode !== null && (
+                                  <span>
+                                    Runtime exit: {message.errorDetail.exitCode}
+                                  </span>
+                                )}
+                              </div>
+                            ) : chat.running ? (
+                              "Đang chờ runtime…"
+                            ) : (
+                              "Chưa có nội dung trả về."
+                            )}
                           </div>
                         </div>
                       </article>

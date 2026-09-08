@@ -219,6 +219,10 @@ function launchTurn(chat, profile, input, resume = false) {
   const currentUsage = [];
   updateChat(chat);
   let delivery;
+  // Set only by a real `type: "error"` event (a provider/runtime failure),
+  // not by cancellation or authority denial — those already have their own
+  // clear chat.error text and aren't "the provider returned nothing".
+  let runtimeErrorMessage = "";
   const flush = () => {
     clearTimeout(delivery);
     delivery = undefined;
@@ -237,7 +241,10 @@ function launchTurn(chat, profile, input, resume = false) {
         reply.content = (event.message || reply.content).slice(0, 500000);
         chat.approval = null;
       }
-      if (event.type === "error") chat.error = event.message;
+      if (event.type === "error") {
+        chat.error = event.message;
+        runtimeErrorMessage = event.message;
+      }
       if (event.type === "cancelled")
         chat.error = "Đã dừng theo yêu cầu. Nội dung nhận được được giữ lại.";
       if (event.type === "authority_denied")
@@ -259,8 +266,26 @@ function launchTurn(chat, profile, input, resume = false) {
         ].slice(-200);
       if (!delivery) delivery = setTimeout(flush, 40);
     },
-    () => {
+    (exitCode) => {
       chat.running = false;
+      // A failed turn that never streamed any content otherwise renders as
+      // an empty assistant bubble captioned "Chưa có nội dung trả về." —
+      // indistinguishable from "the model genuinely said nothing" even
+      // though a real, specific reason (bad key, rate limit, malformed
+      // response, ...) is sitting right there in runtimeErrorMessage. Only
+      // fires when reply.content is still empty: a turn that streamed
+      // partial content before failing keeps that content, and relies on
+      // the existing chat.error banner to flag the failure — an error
+      // card here would silently discard real output.
+      const reply = chat.messages.at(-1);
+      if (runtimeErrorMessage && reply && !reply.content) {
+        reply.errorDetail = {
+          provider: profile.provider,
+          model: profile.model,
+          reason: runtimeErrorMessage,
+          exitCode: typeof exitCode === "number" ? exitCode : null,
+        };
+      }
       if (currentUsage.length)
         chat.usageHistory = appendUsageRecords(previousUsage, currentUsage);
       runs.delete(chat.id);

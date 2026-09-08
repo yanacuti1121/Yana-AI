@@ -13,7 +13,18 @@ process.stdin.on("end", () => {
       JSON.stringify({ type: "error", message: `bad ${input.api_key}` }) + "\n",
     );
   else if (input.task === "sleep") setTimeout(() => {}, 30000);
-  else {
+  else if (input.task === "provider_error") {
+    // Mirrors yana-rt's actual headless failure path exactly (src/main.rs's
+    // Commands::Chat headless arm): print a real `{"type":"error",...}`
+    // line to stdout, then exit non-zero — not the other way around.
+    process.stdout.write(
+      JSON.stringify({
+        type: "error",
+        message: "groq error (401): invalid api key",
+      }) + "\n",
+    );
+    process.exitCode = 2;
+  } else {
     const body = Buffer.from(
       JSON.stringify({ type: "text_delta", text: "Xin chào 🐰" }) +
         "\n" +

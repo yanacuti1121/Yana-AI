@@ -167,14 +167,27 @@ function startRuntime(
       }
     }
     if (stopped) publish({ type: "cancelled", partial: "" });
-    else if (failure || !terminalEvent || code !== 0)
+    // Only synthesize a fallback error when the runtime never told us how
+    // this turn ended (crash, malformed output, or a JS-side failure
+    // above). A real terminal event — most commonly `{"type":"error",...}`
+    // printed to stdout right before yana-rt's headless chat path calls
+    // std::process::exit(2) (src/main.rs's Commands::Chat headless arm) —
+    // is always trusted over the exit code alone: that exact combination
+    // (valid error event + non-zero exit) is the *expected* shape of a
+    // reported provider failure, not evidence of a second, unreported one.
+    // Treating `code !== 0` as independent grounds for a second synthetic
+    // "error" event used to overwrite that real, specific reason (e.g. a
+    // Groq 401) with the generic "Runtime exited without completion (2)"
+    // — see protocol.test.cjs's "a real terminal event... is trusted"
+    // test for the regression this guards.
+    else if (failure || !terminalEvent)
       publish({
         type: "error",
         message: redact(
           failure || stderr || `Runtime exited without completion (${code})`,
         ).slice(0, 1500),
       });
-    onFinish();
+    onFinish(code);
   });
   child.stdin.end(JSON.stringify(input));
   return {
