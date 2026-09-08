@@ -336,9 +336,17 @@ const PROVIDERS = Object.freeze([
     defaultModel: "meta-llama/Llama-3.2-3B-Instruct",
     baseUrl: "http://127.0.0.1:8100/v1",
     discoverable: true,
+    // The id here must stay literally in sync with the Rust default_model
+    // (src/chat/openai_compat.rs::airllm()) per this file's own top-of-file
+    // constraint — but that value is a placeholder on the Rust side too:
+    // AirLLM's whole point is running whatever huge model the user actually
+    // launched the bridge with (`--model <hf-id>`), not a fixed 3B model.
+    // The label says so, same convention as LM Studio/llama.cpp below
+    // ("Loaded in LM Studio" / "Loaded GGUF") instead of implying this is
+    // really what's running.
     baseModels: models([
       "meta-llama/Llama-3.2-3B-Instruct",
-      "Llama 3.2 3B",
+      "Đặt qua --model khi chạy bridge",
       "—",
       ["local"],
     ]),
