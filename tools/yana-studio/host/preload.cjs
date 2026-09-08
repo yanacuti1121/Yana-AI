@@ -9,6 +9,7 @@ const methods = [
   "accountUseGoogle",
   "accountUnlock",
   "accountLock",
+  "accountLogout",
   "integrationList",
   "integrationConfigureGithub",
   "integrationConnect",
@@ -60,6 +61,15 @@ const bridge = Object.fromEntries(
 bridge.importPortableData = (file) =>
   ipcRenderer.invoke(
     "studio:importPortableData",
+    webUtils.getPathForFile(file),
+  );
+// webUtils.getPathForFile only resolves a real path for a File that came
+// from an actual OS drag (Finder/Explorer) — must run here in preload, on
+// the original File, before it crosses the IPC boundary.
+bridge.openDroppedPath = (currentRoot, file) =>
+  ipcRenderer.invoke(
+    "studio:openDroppedPath",
+    currentRoot,
     webUtils.getPathForFile(file),
   );
 bridge.on = (channel, callback) => {

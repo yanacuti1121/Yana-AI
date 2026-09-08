@@ -113,6 +113,22 @@ test("local account stores a verifier and locks after reopening", (context) => {
   assert.throws(() => reopened.unlock("wrong password"), /Incorrect password/);
   assert.equal(reopened.unlock("correct horse battery staple").locked, false);
 });
+test("account logout clears the local profile and deletes its file", (context) => {
+  const root = fixture(context);
+  const account = new AccountStore(root);
+  account.createLocal({
+    email: "anh@example.com",
+    displayName: "Local User",
+    password: "correct horse battery staple",
+  });
+  const file = path.join(root, "account-v1.json");
+  assert.ok(fs.existsSync(file));
+  const status = account.logout();
+  assert.equal(status.configured, false);
+  assert.equal(status.locked, false);
+  assert.ok(!fs.existsSync(file));
+  assert.throws(() => account.logout(), /No account configured/);
+});
 test("portable backup contains only allowlisted local state", (context) => {
   const root = fixture(context);
   const file = path.join(root, "backup.json");

@@ -5,11 +5,13 @@ import {
   Cpu,
   KeyRound,
   RefreshCw,
+  Search,
   Settings2,
   Trash2,
 } from "lucide-react";
 import type {
   LocalModelRuntime,
+  ModelCatalogEntry,
   Profile,
   ProviderCatalogEntry,
   State,
@@ -27,6 +29,88 @@ function kindLabel(provider: ProviderCatalogEntry) {
   if (provider.kind === "cloud") return "Cloud";
   if (provider.kind === "local") return "Local";
   return "Custom";
+}
+
+// Deterministic per-provider accent hue so the picker reads like a real
+// multi-provider platform (OpenRouter/Cursor style) without shipping
+// external brand logos — the artifact/app CSP only allows a small script
+// CDN allowlist, no arbitrary image hosts, so a generated color is the
+// honest way to give each provider a distinct identity.
+function providerHue(id: string) {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1)
+    hash = (hash * 31 + id.charCodeAt(index)) % 360;
+  return hash;
+}
+
+function ModelRow({
+  model,
+  active,
+  onSelect,
+}: {
+  model: ModelCatalogEntry;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`model-row ${active ? "active" : ""}`}
+      onClick={onSelect}
+    >
+      <span className="model-row-main">
+        <strong>{model.label}</strong>
+        <code>{model.id}</code>
+      </span>
+      <span className="model-row-meta">
+        {model.context !== "—" && (
+          <span className="model-context">{model.context}</span>
+        )}
+        {model.tags.slice(0, 3).map((tag) => (
+          <span key={tag} className="model-tag">
+            {tag}
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+function ModelSearchResult({
+  provider,
+  model,
+  onSelect,
+}: {
+  provider: ProviderCatalogEntry;
+  model: ModelCatalogEntry;
+  onSelect: () => void;
+}) {
+  return (
+    <button type="button" className="model-search-result" onClick={onSelect}>
+      <span
+        className="provider-monogram small"
+        style={{
+          background: `hsl(${providerHue(provider.id)} 45% 20%)`,
+          color: `hsl(${providerHue(provider.id)} 85% 75%)`,
+        }}
+      >
+        {provider.label[0]}
+      </span>
+      <span className="model-row-main">
+        <strong>{model.label}</strong>
+        <small>
+          {provider.label} · <code>{model.id}</code>
+        </small>
+      </span>
+      <span className="model-row-meta">
+        {model.tags.slice(0, 2).map((tag) => (
+          <span key={tag} className="model-tag">
+            {tag}
+          </span>
+        ))}
+      </span>
+    </button>
+  );
 }
 
 export function ModelManager({
@@ -47,6 +131,7 @@ export function ModelManager({
   const [models, setModels] = useState<string[]>([]);
   const [localRuntimes, setLocalRuntimes] = useState<LocalModelRuntime[]>([]);
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
   const provider = useMemo(
     () =>
       state.providerCatalog.find((entry) => entry.id === profile.provider) ||
@@ -57,6 +142,21 @@ export function ModelManager({
   const availableModels = Array.from(
     new Set([...provider.models, ...models].filter(Boolean)),
   );
+  const searchResults = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return [];
+    return state.providerCatalog.flatMap((entry) =>
+      entry.modelCatalog
+        .filter(
+          (model) =>
+            model.id.toLowerCase().includes(needle) ||
+            model.label.toLowerCase().includes(needle) ||
+            entry.label.toLowerCase().includes(needle) ||
+            model.tags.some((tag) => tag.includes(needle)),
+        )
+        .map((model) => ({ provider: entry, model })),
+    );
+  }, [query, state.providerCatalog]);
 
   useEffect(() => setProfile(state.profile), [state.profile]);
 
@@ -76,6 +176,12 @@ export function ModelManager({
     setProfile(providerProfile(next));
     setModels(next.models);
     setSecret("");
+  };
+  const pickModel = (target: ProviderCatalogEntry, modelId: string) => {
+    setProfile({ ...providerProfile(target), model: modelId });
+    setModels(target.models);
+    setSecret("");
+    setQuery("");
   };
   const save = () =>
     run(async () => {
@@ -164,6 +270,18 @@ export function ModelManager({
             ))}
           </datalist>
         </label>
+        {provider.modelCatalog.length > 0 && (
+          <div className="model-pick-list compact">
+            {provider.modelCatalog.map((model) => (
+              <ModelRow
+                key={model.id}
+                model={model}
+                active={model.id === profile.model}
+                onSelect={() => pickModel(provider, model.id)}
+              />
+            ))}
+          </div>
+        )}
         <div className="button-row">
           <button
             className="primary"
@@ -188,6 +306,26 @@ export function ModelManager({
 
   return (
     <div className="model-manager">
+      <label className="model-search">
+        <Search size={14} />
+        <input
+          value={query}
+          placeholder="Tìm model theo tên, provider hoặc khả năng (vision, reasoning, cheap...)"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </label>
+      {searchResults.length > 0 && (
+        <div className="model-search-results">
+          {searchResults.slice(0, 8).map(({ provider: entry, model }) => (
+            <ModelSearchResult
+              key={`${entry.id}:${model.id}`}
+              provider={entry}
+              model={model}
+              onSelect={() => pickModel(entry, model.id)}
+            />
+          ))}
+        </div>
+      )}
       <div className="settings-grid model-settings-grid">
         <div className="card settings-card">
           <div className="settings-heading-row">
@@ -270,6 +408,23 @@ export function ModelManager({
               ))}
             </datalist>
           </label>
+          {provider.modelCatalog.length > 0 && (
+            <div className="model-pick-list">
+              {provider.modelCatalog.map((model) => (
+                <ModelRow
+                  key={model.id}
+                  model={model}
+                  active={model.id === profile.model}
+                  onSelect={() => pickModel(provider, model.id)}
+                />
+              ))}
+              <p className="model-pick-hint">
+                Gợi ý model phổ biến — không phải danh sách trực tiếp từ
+                provider. Bấm &quot;Dò model&quot; hoặc nhập ID chính xác nếu
+                khác.
+              </p>
+            </div>
+          )}
           <div className="button-row">
             {provider.discoverable && (
               <button
@@ -392,13 +547,20 @@ export function ModelManager({
       <div className="provider-library">
         {state.providerCatalog.map((entry) => {
           const hasCredential = state.configuredProviders.includes(entry.id);
+          const hue = providerHue(entry.id);
           return (
             <button
               key={entry.id}
               className={`provider-card ${state.profile.provider === entry.id ? "active" : ""}`}
               onClick={() => selectProvider(entry.id)}
             >
-              <span className="provider-monogram">
+              <span
+                className="provider-monogram"
+                style={{
+                  background: `hsl(${hue} 45% 18%)`,
+                  color: `hsl(${hue} 85% 72%)`,
+                }}
+              >
                 {entry.kind === "cloud" ? (
                   <Cloud size={18} />
                 ) : (
@@ -408,7 +570,20 @@ export function ModelManager({
               <span className="provider-card-body">
                 <strong>{entry.label}</strong>
                 <small>{entry.company}</small>
-                <code>{entry.defaultModel || "User-defined model"}</code>
+                {entry.modelCatalog.length > 1 ? (
+                  <span className="provider-model-tags">
+                    {entry.modelCatalog[0].tags.slice(0, 2).map((tag) => (
+                      <span key={tag} className="model-tag">
+                        {tag}
+                      </span>
+                    ))}
+                    <span className="model-count">
+                      {entry.modelCatalog.length} models
+                    </span>
+                  </span>
+                ) : (
+                  <code>{entry.defaultModel || "User-defined model"}</code>
+                )}
               </span>
               <span
                 className={

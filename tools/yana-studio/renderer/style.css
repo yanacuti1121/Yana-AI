@@ -619,6 +619,51 @@ svg {
 .stop-button {
   color: #f7bfa9;
 }
+.composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 14px 0;
+}
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #182233;
+  color: #b9d1ff;
+  font-size: 10.5px;
+  max-width: 220px;
+}
+.attachment-chip span,
+.attachment-chip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attachment-chip button {
+  flex-shrink: 0;
+  color: #7185a4;
+}
+.model-pill-anchor {
+  position: relative;
+}
+.model-popover {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  max-height: 60vh;
+  overflow: auto;
+  background: #121b2a;
+  border: 1px solid #3e5476;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px #0008;
+  padding: 12px;
+}
 .runtime-events {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1073,9 +1118,31 @@ svg {
   border-radius: 2px;
 }
 .files-workspace {
+  position: relative;
   flex: 1;
   display: flex;
   min-height: 0;
+}
+.files-workspace.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+.files-dropzone-overlay {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #b9d1ff;
+  background: #05070ecc;
+  pointer-events: none;
+}
+.files-dropzone-overlay span {
+  color: var(--muted);
+  font-size: 11px;
 }
 .file-tree {
   width: 205px;
@@ -1312,6 +1379,129 @@ svg {
 }
 .provider-state.needs-key {
   color: #d6a45e;
+}
+.model-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #7185a4;
+  background: #0d1524;
+}
+.model-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+}
+.model-search-results {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.model-search-result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #10151e;
+  text-align: left;
+}
+.model-search-result:hover {
+  border-color: #527ac7;
+}
+.model-pick-list {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+.model-pick-list.compact {
+  margin: 4px 0 10px;
+}
+.model-pick-hint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+.model-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #10151e;
+  text-align: left;
+}
+.model-row:hover {
+  border-color: #3b4a63;
+}
+.model-row.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.model-row-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.model-row-main strong {
+  font-size: 11px;
+}
+.model-row-main code,
+.model-row-main small {
+  overflow: hidden;
+  color: #8da0bc;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.model-row-meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+}
+.model-context {
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #9baac1;
+  font-size: 9px;
+  background: #1b2331;
+}
+.model-tag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #b9d1ff;
+  font-size: 9px;
+  background: #18233a;
+  white-space: nowrap;
+}
+.provider-monogram.small {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 650;
+}
+.provider-model-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.model-count {
+  color: #8da0bc;
+  font-size: 9px;
 }
 .runtime-settings-card {
   margin-top: 24px;
@@ -1776,6 +1966,67 @@ svg {
 }
 .palette > button svg:last-child {
   margin-left: auto;
+}
+.file-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0009;
+  backdrop-filter: blur(5px);
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 30px 30px;
+}
+.file-picker {
+  width: 560px;
+  max-height: 60vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #121b2a;
+  border: 1px solid #3e5476;
+  border-radius: 12px;
+  box-shadow: 0 25px 100px #0008;
+}
+.file-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.file-picker-header input {
+  flex: 1;
+  background: none;
+  border: 0;
+  font-size: 13px;
+}
+.file-picker-list {
+  overflow: auto;
+  padding: 8px;
+}
+.file-picker-list button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #b9c4d9;
+  text-align: left;
+}
+.file-picker-list button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-picker-list button.active {
+  background: var(--accent-soft);
+  color: #dce6f7;
 }
 .diff-modal {
   width: 1000px;

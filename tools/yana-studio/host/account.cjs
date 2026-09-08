@@ -120,6 +120,13 @@ class AccountStore {
     if (this.value?.mode === "local") this.locked = true;
     return this.status();
   }
+  logout() {
+    if (!this.value) throw new Error("No account configured");
+    this.value = null;
+    this.locked = false;
+    if (fs.existsSync(this.file)) fs.unlinkSync(this.file);
+    return this.status();
+  }
 }
 
 module.exports = { AccountStore };

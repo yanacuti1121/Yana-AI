@@ -1,4 +1,8 @@
 export type Project = { root: string; name: string };
+export type DroppedPathResult =
+  | { kind: "project"; project: Project }
+  | { kind: "file"; relative: string; project?: Project };
+export type AttachedFile = { path: string; text: string; bytes: number };
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
@@ -29,6 +33,12 @@ export type LocalModelRuntime = {
   status: "ready" | "offline";
   error: string;
 };
+export type ModelCatalogEntry = {
+  id: string;
+  label: string;
+  context: string;
+  tags: string[];
+};
 export type ProviderCatalogEntry = {
   id: string;
   label: string;
@@ -41,6 +51,7 @@ export type ProviderCatalogEntry = {
   discoverable?: boolean;
   canonical: boolean;
   models: string[];
+  modelCatalog: ModelCatalogEntry[];
 };
 export type TerminalSession = { id: string; root: string; label: string };
 export type RuntimeEvent = {
@@ -260,6 +271,7 @@ declare global {
       accountUseGoogle(): Promise<State>;
       accountUnlock(password: string): Promise<State>;
       accountLock(): Promise<State>;
+      accountLogout(): Promise<State>;
       systemOverview(projectRoot: string): Promise<SystemOverview>;
       integrationList(): Promise<IntegrationConnection[]>;
       integrationConfigureGithub(
@@ -271,6 +283,10 @@ declare global {
       integrationRevoke(key: string): Promise<IntegrationConnection[]>;
       openProject(): Promise<Project | null>;
       recentProject(root: string): Promise<Project>;
+      openDroppedPath(
+        currentRoot: string,
+        file: File,
+      ): Promise<DroppedPathResult>;
       listFiles(
         root: string,
         relative: string,

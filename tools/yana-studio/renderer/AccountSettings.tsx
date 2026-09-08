@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lock, UserRound } from "lucide-react";
+import { Lock, LogOut, UserRound } from "lucide-react";
 import type { IntegrationConnection, State } from "./types";
 
 export function AccountSettings({
@@ -36,18 +36,37 @@ export function AccountSettings({
             · dữ liệu vẫn chỉ nằm trên máy này
           </small>
         </div>
-        {state.account.mode === "local" && (
+        <div className="button-row">
+          {state.account.mode === "local" && (
+            <button
+              onClick={() =>
+                void window.studio
+                  .accountLock()
+                  .then(onState)
+                  .catch((error) => onError(String(error)))
+              }
+            >
+              <Lock size={15} /> Khóa Studio
+            </button>
+          )}
           <button
-            onClick={() =>
+            className="danger-button"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  "Đăng xuất khỏi hồ sơ này? Project, chat và credential provider vẫn giữ nguyên trên máy — chỉ hồ sơ tài khoản bị xóa, anh có thể tạo hồ sơ khác hoặc đăng nhập lại.",
+                )
+              )
+                return;
               void window.studio
-                .accountLock()
+                .accountLogout()
                 .then(onState)
-                .catch((error) => onError(String(error)))
-            }
+                .catch((error) => onError(String(error)));
+            }}
           >
-            <Lock size={15} /> Khóa Studio
+            <LogOut size={15} /> Đăng xuất
           </button>
-        )}
+        </div>
       </section>
     );
   return (

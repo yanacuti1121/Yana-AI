@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Minimize2,
   MonitorSmartphone,
+  Paperclip,
   PanelBottom,
   PanelLeft,
   Plus,
@@ -31,7 +32,10 @@ import {
 } from "lucide-react";
 import { Settings } from "./Settings";
 import { WorkspaceInspector } from "./WorkspaceInspector";
+import { FilePicker } from "./FilePicker";
+import { ModelManager } from "./ModelManager";
 import type {
+  AttachedFile,
   Chat,
   FileDocument,
   FileEntry,
@@ -62,20 +66,22 @@ const emptyGit: GitState = {
   worktrees: [],
   error: "",
 };
+type Surface =
+  | "chat"
+  | "files"
+  | "settings"
+  | "terminal"
+  | "tasks"
+  | "devices"
+  | "permissions";
+const MAX_ATTACH_FILES = 6;
+const MAX_ATTACH_BYTES = 256 * 1024;
 function App() {
   const [state, setState] = useState<State | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState("");
-  const [surface, setSurface] = useState<
-    | "chat"
-    | "files"
-    | "settings"
-    | "terminal"
-    | "tasks"
-    | "devices"
-    | "permissions"
-  >("terminal");
+  const [surface, setSurface] = useState<Surface>("terminal");
   const [git, setGit] = useState<GitState>(emptyGit);
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [filePage, setFilePage] = useState<FilePage | null>(null);
@@ -86,11 +92,22 @@ function App() {
     document: FileDocument;
   } | null>(null);
   const [draftFile, setDraftFile] = useState("");
+  const [filesDragOver, setFilesDragOver] = useState(false);
   const [diff, setDiff] = useState<{ path: string; text: string } | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<
+    Record<string, AttachedFile[]>
+  >({});
+  const [attachPickerOpen, setAttachPickerOpen] = useState(false);
+  const [modelPopoverOpen, setModelPopoverOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [terminals, setTerminals] = useState<TerminalSession[]>([]);
   const [terminalId, setTerminalId] = useState("");
-  const [dock, setDock] = useState(true);
+  // Starts closed: every addTerminal() callsite already does setDock(true),
+  // so the dock only appears once there's an actual terminal to show. A
+  // default of true left an empty panel + a resize handle with nothing to
+  // resize sitting on screen on first launch, before any terminal exists.
+  const [dock, setDock] = useState(false);
   const [maximize, setMaximize] = useState(false);
   const [split, setSplit] = useState(false);
   const [grid, setGrid] = useState(false);
@@ -105,6 +122,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
+  const modelPopoverRef = useRef<HTMLDivElement>(null);
   const chat = chats.find(
     (item) => item.id === chatId && item.root === project?.root,
   );
@@ -200,9 +218,20 @@ function App() {
         event.preventDefault();
         setDock((value) => !value);
       }
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "p" &&
+        project
+      ) {
+        event.preventDefault();
+        setQuickOpen((value) => !value);
+      }
       if (event.key === "Escape") {
         setPalette(false);
         setDiff(null);
+        setQuickOpen(false);
+        setAttachPickerOpen(false);
+        setModelPopoverOpen(false);
       }
       if (
         (event.metaKey || event.ctrlKey) &&
@@ -216,15 +245,24 @@ function App() {
     };
     document.addEventListener("keydown", listener);
     return () => document.removeEventListener("keydown", listener);
-  }, [surface, opened, draftFile]);
-  const switchProject = (next: Project) => {
+  }, [surface, opened, draftFile, project]);
+  useEffect(() => {
+    if (!modelPopoverOpen) return;
+    const onClick = (event: MouseEvent) => {
+      if (!modelPopoverRef.current?.contains(event.target as Node))
+        setModelPopoverOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [modelPopoverOpen]);
+  const switchProject = (next: Project, landing: Surface = "chat") => {
     if (
       dirty &&
       !window.confirm("File có thay đổi chưa lưu. Bỏ bản nháp và đổi project?")
     )
       return;
     setProject(next);
-    setSurface("chat");
+    setSurface(landing);
     setState(
       (previous) =>
         previous && {
@@ -351,12 +389,59 @@ function App() {
       setDraftFile(document.text);
       setSurface("files");
     });
+  const closeFile = () => {
+    if (dirty && !window.confirm("Bỏ bản nháp chưa lưu và đóng file?")) return;
+    setOpened(null);
+    setDraftFile("");
+  };
+  const openDroppedFile = async (root: string, relative: string) => {
+    const document = await window.studio.readFile(root, relative);
+    setOpened({ path: relative, document });
+    setDraftFile(document.text);
+    setSurface("files");
+  };
+  const handleFilesDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setFilesDragOver(false);
+    const file = event.dataTransfer.files[0];
+    if (!file) return;
+    void run(async () => {
+      const result = await window.studio.openDroppedPath(
+        project?.root || "",
+        file,
+      );
+      if (result.kind === "project") {
+        // The [project?.root] effect below already lists the new root's
+        // files and resets stale editor/git state — no manual reload here.
+        switchProject(result.project, "files");
+        return;
+      }
+      if (result.project) switchProject(result.project, "files");
+      await openDroppedFile(
+        result.project?.root || project!.root,
+        result.relative,
+      );
+    });
+  };
   const send = () =>
     run(async () => {
       if (!project) return;
       const draftKey = chat?.id || project.root;
-      const task = drafts[draftKey] || "";
-      if (!task.trim()) return;
+      const message = drafts[draftKey] || "";
+      if (!message.trim()) return;
+      const files = attachments[draftKey] || [];
+      // yana-rt's chat protocol takes a single text task, no separate
+      // attachments channel — explicit context is folded in as fenced
+      // blocks ahead of the user's own message, same as pasting file
+      // content into the prompt by hand.
+      const task = files.length
+        ? files
+            .map(
+              (file) =>
+                `[Attached: ${file.path}]\n\`\`\`\n${file.text}\n\`\`\``,
+            )
+            .join("\n\n") + `\n\n${message}`
+        : message;
       let target = chat;
       if (!target) {
         target = await window.studio.newChat(project.root);
@@ -365,7 +450,41 @@ function App() {
       }
       await window.studio.sendChat(target.id, task);
       setDrafts((previous) => ({ ...previous, [draftKey]: "" }));
+      setAttachments((previous) => ({ ...previous, [draftKey]: [] }));
     });
+  const attachFile = (entry: FileEntry) =>
+    run(async () => {
+      if (!project) return;
+      const draftKey = chat?.id || project.root;
+      const current = attachments[draftKey] || [];
+      if (current.some((file) => file.path === entry.path)) return;
+      if (current.length >= MAX_ATTACH_FILES) {
+        setNotice(`Tối đa ${MAX_ATTACH_FILES} file đính kèm mỗi tin nhắn.`);
+        return;
+      }
+      const document = await window.studio.readFile(project.root, entry.path);
+      const used = current.reduce((sum, file) => sum + file.bytes, 0);
+      if (used + document.bytes > MAX_ATTACH_BYTES) {
+        setNotice("Tổng dung lượng file đính kèm vượt quá 256 KiB.");
+        return;
+      }
+      setAttachments({
+        ...attachments,
+        [draftKey]: [
+          ...current,
+          { path: entry.path, text: document.text, bytes: document.bytes },
+        ],
+      });
+    });
+  const removeAttachment = (path: string) => {
+    const draftKey = chat?.id || project?.root || "";
+    setAttachments({
+      ...attachments,
+      [draftKey]: (attachments[draftKey] || []).filter(
+        (file) => file.path !== path,
+      ),
+    });
+  };
   const resize = (
     name: keyof Layout,
     event: React.PointerEvent<HTMLDivElement>,
@@ -692,7 +811,30 @@ function App() {
               ) : surface === "permissions" ? (
                 <Permissions root={project?.root || ""} onError={setNotice} />
               ) : surface === "files" ? (
-                <div className="files-workspace">
+                <div
+                  className={`files-workspace ${filesDragOver ? "drag-over" : ""}`}
+                  onDragOver={(event) => {
+                    if (!event.dataTransfer.types.includes("Files")) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "copy";
+                    setFilesDragOver(true);
+                  }}
+                  onDragLeave={(event) => {
+                    if (
+                      event.currentTarget.contains(event.relatedTarget as Node)
+                    )
+                      return;
+                    setFilesDragOver(false);
+                  }}
+                  onDrop={handleFilesDrop}
+                >
+                  {filesDragOver && (
+                    <div className="files-dropzone-overlay">
+                      <FileCode2 size={28} />
+                      <strong>Thả để mở file hoặc project</strong>
+                      <span>Thả folder để mở làm project mới</span>
+                    </div>
+                  )}
                   <div className="file-tree">
                     <div className="section-label">
                       FILES{" "}
@@ -823,6 +965,13 @@ function App() {
                               onClick={saveFile}
                             >
                               <Check size={14} /> Lưu <kbd>⌘S</kbd>
+                            </button>
+                            <button
+                              aria-label="Đóng file, quay lại danh sách"
+                              title="Đóng file"
+                              onClick={closeFile}
+                            >
+                              <X size={14} />
                             </button>
                           </div>
                         </div>
@@ -1026,6 +1175,22 @@ function App() {
                     <div ref={bottom} />
                   </div>
                   <div className="composer">
+                    {(attachments[draftKey] || []).length > 0 && (
+                      <div className="composer-attachments">
+                        {(attachments[draftKey] || []).map((file) => (
+                          <span className="attachment-chip" key={file.path}>
+                            <FileCode2 size={12} />
+                            {file.path}
+                            <button
+                              aria-label={`Remove ${file.path}`}
+                              onClick={() => removeAttachment(file.path)}
+                            >
+                              <X size={11} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <textarea
                       aria-label="Message to Yana"
                       placeholder={
@@ -1057,11 +1222,35 @@ function App() {
                         <Shield size={13} /> Runtime-governed
                       </span>
                       <button
-                        onClick={() => setSurface("settings")}
-                        title="Choose model"
+                        title="Đính kèm file làm context"
+                        disabled={!project}
+                        onClick={() => setAttachPickerOpen(true)}
                       >
-                        {state.profile.provider} <ChevronDown size={13} />
+                        <Paperclip size={13} />
                       </button>
+                      <div className="model-pill-anchor" ref={modelPopoverRef}>
+                        <button
+                          onClick={() => setModelPopoverOpen((value) => !value)}
+                          title="Chọn model"
+                        >
+                          {state.profile.model || state.profile.provider}{" "}
+                          <ChevronDown size={13} />
+                        </button>
+                        {modelPopoverOpen && (
+                          <div className="model-popover">
+                            <ModelManager
+                              compact
+                              state={state}
+                              onState={setState}
+                              onError={setNotice}
+                              onManage={() => {
+                                setModelPopoverOpen(false);
+                                setSurface("settings");
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                       {chat?.running ? (
                         <button
                           className="stop-button"
@@ -1449,6 +1638,28 @@ function App() {
             </pre>
           </div>
         </div>
+      )}
+      {attachPickerOpen && project && (
+        <FilePicker
+          root={project.root}
+          title="Đính kèm file làm context…"
+          onClose={() => setAttachPickerOpen(false)}
+          onPick={(entry) => {
+            setAttachPickerOpen(false);
+            void attachFile(entry);
+          }}
+        />
+      )}
+      {quickOpen && project && (
+        <FilePicker
+          root={project.root}
+          title="Mở file nhanh (⌘P)…"
+          onClose={() => setQuickOpen(false)}
+          onPick={(entry) => {
+            setQuickOpen(false);
+            void enterFile(entry);
+          }}
+        />
       )}
     </div>
   );

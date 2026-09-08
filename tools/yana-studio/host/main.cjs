@@ -142,6 +142,45 @@ function remember(root) {
   });
   return project;
 }
+// A path dropped from the OS (Finder/Explorer) via webUtils.getPathForFile —
+// exactly as trustworthy as openProject()'s dialog result, since only a real
+// native drag can populate that path, not renderer script. A dropped folder
+// is opened as a project (same remember() openProject already uses); a
+// dropped file that's inside the currently open project is returned as a
+// relative path to open in the editor; a dropped file elsewhere opens its
+// containing folder as a new project.
+function openDroppedPath(currentRoot, candidate) {
+  if (typeof candidate !== "string" || !candidate.trim())
+    throw new Error("Invalid dropped path");
+  const resolved = fs.realpathSync(candidate);
+  if (fs.statSync(resolved).isDirectory())
+    return { kind: "project", project: remember(resolved) };
+  if (currentRoot) {
+    const relative = path.relative(currentRoot, resolved);
+    const inside =
+      relative &&
+      relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative);
+    if (inside) {
+      try {
+        return {
+          kind: "file",
+          relative: projects.resolve(currentRoot, relative) && relative,
+        };
+      } catch {
+        // Falls through to opening the file's own directory as a project —
+        // e.g. it's inside a credential/internal path resolve() excludes.
+      }
+    }
+  }
+  const project = remember(path.dirname(resolved));
+  return {
+    kind: "file",
+    relative: path.relative(project.root, resolved),
+    project,
+  };
+}
 function chatById(id) {
   const chat = store.value.chats.find((item) => item.id === id);
   if (!chat) throw new Error("Unknown conversation");
@@ -332,6 +371,10 @@ app.whenReady().then(() => {
     accounts.lock();
     return publicState();
   });
+  register("accountLogout", () => {
+    accounts.logout();
+    return publicState();
+  });
   register("dataOverview", () => dataOverview.inspect());
   register("exportPortableData", async () => {
     const result = await dialog.showSaveDialog(window, {
@@ -388,6 +431,9 @@ app.whenReady().then(() => {
     });
     return result.canceled ? null : remember(result.filePaths[0]);
   });
+  register("openDroppedPath", (currentRoot, candidate) =>
+    openDroppedPath(currentRoot, candidate),
+  );
   register("recentProject", (root) => {
     if (!store.value.projects.some((item) => item.root === root))
       throw new Error("Use Open project to authorize a new folder");
