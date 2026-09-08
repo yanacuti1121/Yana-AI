@@ -953,6 +953,32 @@ svg {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.telemetry-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.telemetry-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #131b28;
+  color: #9baac1;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.telemetry-item b {
+  color: #d6dfed;
+}
+.telemetry-item.ok {
+  color: var(--green);
+}
+.telemetry-item.denied {
+  color: #e08b7a;
+  background: #2a1a17;
+}
 .inspector section {
   padding: 18px 13px;
   border-bottom: 1px solid #222c3a;
@@ -1054,12 +1080,26 @@ svg {
   fill: #85a1ce;
   color: #85a1ce;
 }
+.activity-list {
+  max-height: 340px;
+  overflow: auto;
+}
 .activity-list > div {
   display: flex;
   gap: 10px;
   padding: 9px 2px;
   font-size: 11px;
   color: #bdc9dc;
+  border-bottom: 1px solid #1c2330;
+}
+.activity-list > div:last-child {
+  border-bottom: 0;
+}
+.activity-list > div.denied {
+  color: #e08b7a;
+}
+.activity-list > div.approved span {
+  color: var(--green);
 }
 .activity-list time {
   font-size: 10px;

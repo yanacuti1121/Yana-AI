@@ -1,14 +1,41 @@
 import { useState } from "react";
 import {
+  Ban,
+  Check,
   Circle,
   FileCode2,
   Folder,
   GitBranch,
   RefreshCw,
   Shield,
+  Wrench,
 } from "lucide-react";
 import { ModelManager } from "./ModelManager";
 import type { Chat, GitState, Project, State } from "./types";
+
+// Derived purely from data Studio already tracks (chat.usage, chat.events)
+// — no fabricated cost/duration numbers. Runtime events are stamped with
+// real kinds from src/chat/headless.rs::write_runtime_event: tool_requested/
+// tool_approved/tool_denied/tool_started/tool_completed/turn_completed.
+// This turns that existing evidence trail into governance telemetry
+// (tool calls, approvals, denials) rather than only a cost/token strip —
+// the distinguishing angle over kangentic's Context Bar, which this is
+// otherwise inspired by (see the Studio feature-gap report).
+function telemetryFor(chat: Chat | undefined, state: State) {
+  const events = chat?.events || [];
+  const model = chat?.profile?.model || state.profile.model;
+  const provider = state.providerCatalog.find(
+    (entry) => entry.id === (chat?.profile?.provider || state.profile.provider),
+  );
+  return {
+    toolCalls: events.filter((event) => event.kind === "tool_completed").length,
+    approved: events.filter((event) => event.kind === "tool_approved").length,
+    denied: events.filter((event) => event.kind === "tool_denied").length,
+    context:
+      provider?.modelCatalog.find((entry) => entry.id === model)?.context ||
+      "—",
+  };
+}
 
 export function WorkspaceInspector({
   state,
@@ -34,6 +61,7 @@ export function WorkspaceInspector({
   const [tab, setTab] = useState<"inspector" | "context" | "models">(
     "inspector",
   );
+  const telemetry = telemetryFor(chat, state);
   return (
     <aside className="inspector">
       <div className="inspector-tabs" role="tablist">
@@ -90,6 +118,38 @@ export function WorkspaceInspector({
             <p className="empty-small">
               Chỉ context đã chọn hoặc runtime đã xác nhận mới được đưa vào AI.
               Terminal output không tự trở thành evidence.
+            </p>
+          </section>
+          <section>
+            <div className="section-label">GOVERNANCE TELEMETRY</div>
+            <div className="telemetry-strip">
+              <span
+                className="telemetry-item"
+                title="Context window ước lượng của model đang chọn"
+              >
+                {telemetry.context} context
+              </span>
+              <span className="telemetry-item">
+                <b>{chat?.usage?.input?.toLocaleString() ?? 0}</b> in ·{" "}
+                <b>{chat?.usage?.output?.toLocaleString() ?? 0}</b> out
+              </span>
+              <span className="telemetry-item">
+                <Wrench size={12} /> {telemetry.toolCalls} tool call
+                {telemetry.toolCalls === 1 ? "" : "s"}
+              </span>
+              <span className="telemetry-item ok">
+                <Check size={12} /> {telemetry.approved} approved
+              </span>
+              <span
+                className={`telemetry-item ${telemetry.denied ? "denied" : ""}`}
+              >
+                <Ban size={12} /> {telemetry.denied} denied
+              </span>
+            </div>
+            <p className="empty-small">
+              Suy ra từ chat.usage + chat.events thật (tool_approved/
+              tool_denied/tool_completed) — không phải số ước tính. Chưa có cost
+              hay thời lượng vì yana-rt chưa phát dữ liệu đó.
             </p>
           </section>
         </>
@@ -152,25 +212,31 @@ export function WorkspaceInspector({
             </div>
             {chat?.events.length ? (
               <div className="activity-list">
-                {chat.events
-                  .slice(-8)
-                  .reverse()
-                  .map((event, index) => (
-                    <div key={index}>
-                      <time>
-                        {event.time
-                          ? new Date(event.time).toLocaleTimeString("vi", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : ""}
-                      </time>
-                      <span>
-                        {event.kind?.replaceAll("_", " ")}
-                        <small>{event.tool || event.summary || ""}</small>
-                      </span>
-                    </div>
-                  ))}
+                {[...chat.events].reverse().map((event, index) => (
+                  <div
+                    key={index}
+                    className={
+                      event.kind === "tool_denied"
+                        ? "denied"
+                        : event.kind === "tool_approved"
+                          ? "approved"
+                          : ""
+                    }
+                  >
+                    <time>
+                      {event.time
+                        ? new Date(event.time).toLocaleTimeString("vi", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </time>
+                    <span>
+                      {event.kind?.replaceAll("_", " ")}
+                      <small>{event.tool || event.summary || ""}</small>
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="empty-small">
