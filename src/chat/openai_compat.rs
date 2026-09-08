@@ -53,7 +53,13 @@ pub fn groq() -> OpenAiCompatProvider {
     remote(
         "groq",
         "https://api.groq.com/openai/v1/chat/completions",
-        "llama-3.3-70b-versatile",
+        // Groq deprecated llama-3.3-70b-versatile 2026-06-17 (free/dev
+        // tier) — confirmed live (2026-09-09): a real request against it
+        // now returns 404 model_not_found, not just a docs-page notice.
+        // openai/gpt-oss-120b is Groq's own named replacement
+        // (console.groq.com/docs/deprecations) and remains a current
+        // production model with the same 131,072-token context window.
+        "openai/gpt-oss-120b",
         "GROQ_API_KEY",
     )
 }

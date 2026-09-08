@@ -99,16 +99,18 @@ const PROVIDERS = Object.freeze([
     kind: "cloud",
     requiresKey: true,
     envVar: "GROQ_API_KEY",
-    defaultModel: "llama-3.3-70b-versatile",
+    // Groq deprecated llama-3.3-70b-versatile, llama-3.1-8b-instant, and
+    // mixtral-8x7b-32768 (2026-06-17 for free/dev tier) — confirmed live
+    // 2026-09-09 against a real account: llama-3.3-70b-versatile now
+    // 404s as model_not_found, not just a docs-page notice. Replaced with
+    // Groq's own named replacements (console.groq.com/docs/deprecations),
+    // which src/chat/openai_compat.rs::groq()'s default_model mirrors —
+    // see that file's comment before changing either independently.
+    defaultModel: "openai/gpt-oss-120b",
     baseModels: models(
-      [
-        "llama-3.3-70b-versatile",
-        "Llama 3.3 70B",
-        "128K",
-        ["balanced", "tools"],
-      ],
-      ["llama-3.1-8b-instant", "Llama 3.1 8B", "128K", ["fastest", "cheap"]],
-      ["mixtral-8x7b-32768", "Mixtral 8x7B", "32K", ["tools"]],
+      ["openai/gpt-oss-120b", "GPT-OSS 120B", "128K", ["balanced", "tools"]],
+      ["openai/gpt-oss-20b", "GPT-OSS 20B", "128K", ["fastest", "cheap"]],
+      ["qwen/qwen3.6-27b", "Qwen 3.6 27B", "128K", ["tools"]],
     ),
   },
   {
