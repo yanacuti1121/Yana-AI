@@ -733,7 +733,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI (웹 제품)
 
-**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[명령어 레퍼런스 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yana.vutam.link/desktop.html)** · **[명령어 레퍼런스 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana는 Yana AI core 위에 구축된 첫 번째 end-user 인터페이스입니다. Electron Desktop 앱은 통제된 turn에 로컬 Rust runtime을 사용하며, 브라우저 전용 배포는 신뢰할 수 있는 local runtime에 연결되기 전까지 호환성 surface로 남습니다.
 
@@ -768,7 +768,7 @@ Electron Desktop → local NDJSON adapter → yana-rt headless
 - 📊 **100% 실제 데이터** — 실시간 프로바이더 통계, L1 메모리 가든, audit-log 상태 패널; 데모 수치 없음
 - 스킬 라우팅 내장, 자연스럽게 입력하면 Yana AI가 올바른 에이전트를 디스패치
 - **코딩 외 사용 사례:** 학습(소크라테스식 학습 도우미), 일상 업무(요약 / 계획 / 초안 작성)
-- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yana.vutam.link/desktop.html)** — macOS, Windows, Linux
 
 Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입니다.
 
@@ -887,7 +887,7 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+| Yana Desktop | [yana.vutam.link/desktop.html](https://yana.vutam.link/desktop.html) |
 
 ---
 

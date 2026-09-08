@@ -734,7 +734,7 @@ không có gì bắt buộc.
 
 ## Yana AI (sản phẩm web)
 
-**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Toàn bộ lệnh →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yana.vutam.link/desktop.html)** · **[Toàn bộ lệnh →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana là giao diện end-user đầu tiên được xây trên Yana AI core. Ứng dụng Electron Desktop dùng Rust runtime cục bộ cho các turn được quản trị; bản chỉ chạy trên trình duyệt vẫn là bề mặt tương thích cho tới khi được nối với một local runtime đáng tin cậy.
 
@@ -769,7 +769,7 @@ Web chỉ chạy trình duyệt → JavaScript gateway cũ → provider
 - 📊 **100% dữ liệu thật** — thống kê provider trực tiếp, khu vườn L1 memory, panel sức khỏe audit-log; không số liệu demo
 - Có sẵn skill routing, gõ tự nhiên và Yana AI tự dispatch đúng agent
 - **Cả cho việc không phải code:** học tập (trợ lý học kiểu Socratic), việc hàng ngày (tóm tắt / lên kế hoạch / soạn thảo)
-- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yana.vutam.link/desktop.html)** — macOS, Windows, Linux
 
 Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm vào lưới điện đó.
 
@@ -886,7 +886,7 @@ yana-ai badge . --json    # output dạng máy đọc được
 | Email | phamlongh230@gmail.com |
 | Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+| Yana Desktop | [yana.vutam.link/desktop.html](https://yana.vutam.link/desktop.html) |
 
 > **Lưu ý macOS:** bản `.dmg`/`.zip` của Yana Desktop hiện **chỉ ký ad-hoc,
 > chưa được Apple notarize** — dự án chưa có Apple Developer Program (gói
