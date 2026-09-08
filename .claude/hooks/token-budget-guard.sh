@@ -2,7 +2,7 @@
 # Status: active
 # Description: Token Budget Guard — Circuit Breaker + fast-tier auto-routing
 # Hook type: PreToolUse (runs before each tool call)
-# Last Reviewed: 2026-05-23
+# Last Reviewed: 2026-09-05
 # Install: add to settings.json hooks.PreToolUse
 #
 # Circuit Breaker states:
@@ -17,13 +17,8 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 
 # ── Native Rust fast path (audit 2026-06-21) ─────────────────────────────────
-# If yana-rt is installed and on PATH, delegate to the in-process Rust port:
-# no Node.js subprocess spawn (this script previously shelled out to `node
-# -e` up to 5 times per call just to read/write the two JSON state files
-# below). Same file paths, same field names, same circuit-breaker thresholds
-# — tested cross-compatible: a session can call this bash hook on some tool
-# calls and the Rust one on others without the state ever diverging (see
-# src/guard/token_budget.rs). Falls through unchanged if yana-rt isn't found.
+# If yana-rt is installed and on PATH, delegate to the in-process Rust port.
+# Stdin has not been touched yet at this point, so exec inherits it intact.
 if command -v yana-rt >/dev/null 2>&1; then
   exec yana-rt guard token-budget
 fi
@@ -36,7 +31,10 @@ COOLDOWN_SECONDS="${YANA_CIRCUIT_COOLDOWN:-60}"
 LOG_FILE="${YANA_LOG:-/tmp/yana-ai-audit.log}"
 FAST_TIER_MODEL="${YANA_FAST_TIER_MODEL:-claude-haiku-4-5-20251001}"
 
-TOOL_NAME="${CLAUDE_TOOL_NAME:-unknown}"
+# Env-var fallback only — real source of truth is stdin JSON below.
+# Some non-Claude-Code adapters (Cursor/Codex translators) may still set
+# this instead of a stdin payload.
+TOOL_NAME_ENV_FALLBACK="${CLAUDE_TOOL_NAME:-}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 NOW_EPOCH=$(date +%s)
 
@@ -46,55 +44,38 @@ if [[ "${YANA_BUDGET_BYPASS:-0}" == "1" ]]; then
   exit 0
 fi
 
-# ── ADR-008: entire read(budget+circuit) -> decide -> write unit runs as ONE
-# Node process under ONE lock, keyed on BUDGET_FILE (the file
-# core/hooks/risk-scorer.sh's Python side also writes on the same
-# PreToolUse event). Previously this ran the same 5 decisions as 5 separate
-# `node -e` subprocesses interleaved with bash control flow — each its own
-# unlocked read-modify-write, and locking only the write half of any one of
-# them would still have left the read-then-decide window open. Consolidating
-# into a single script is what makes "hold one lock for the whole thing"
-# possible at all. See src/guard/token_budget.rs::run_critical_section for
-# the same logic in Rust (that path is preferred whenever yana-rt is on
-# PATH — see the `exec` above — so this bash/Node path is the fallback,
-# used only when it isn't).
-#
-# Absolute, project-root-relative path — NOT BASH_SOURCE-relative. This
-# script is deployed as three mirror copies (core/hooks/, .claude/hooks/,
-# .codex/hooks/), each in a sibling directory tree with no core/lib/ next
-# to it; a BASH_SOURCE-relative "../lib/locking.sh" resolves to a
-# different, nonexistent path from each copy (e.g. .claude/lib/locking.sh,
-# which was never created) and crashes this script outright under
-# `set -e` the moment yana-rt is absent and this fallback path is actually
-# reached. core/lib/ is intentionally NOT mirrored to .claude/lib.codex/lib
-# — every hook sources the one canonical copy by project-root path instead,
-# so a future new core/lib/*.sh file needs zero mirror-sync steps, unlike
-# core/hooks/*.sh itself (see the incident this comment exists to prevent:
-# core/hooks/budget-sentinel.sh was fixed under ADR-008 while its
-# .claude/hooks/ and .codex/hooks/ copies silently stayed unpatched for a
-# full session because nothing forced them back in sync).
 LOCKING_LIB="$PROJECT_DIR/core/lib/locking.sh"
 [[ -f "$LOCKING_LIB" ]] || LOCKING_LIB="$PROJECT_DIR/.claude/lib/locking.sh"
 source "$LOCKING_LIB"
 
-# BSD mktemp (macOS default) does NOT support a suffix after the X's in a
-# template — "yana-token-budget-XXXXXX.js" is returned byte-for-byte
-# unmodified instead of randomized (confirmed live on this exact host: the
-# trailing 'X's must be the literal end of the template — see `man
-# mktemp`). GNU mktemp's --suffix flag isn't a portable fix either (BSD
-# mktemp has no --suffix). mktemp -d has no such restriction on either
-# platform, so create a unique directory and put the fixed-name script
-# inside it instead of relying on suffix-preserving randomization.
 TMP_DIR=$(mktemp -d /tmp/yana-token-budget-XXXXXX)
 TMP_SCRIPT="$TMP_DIR/run.js"
-trap 'rm -f "$TMP_SCRIPT"; rmdir "$TMP_DIR" 2>/dev/null || true' EXIT
+HOOK_PAYLOAD_FILE="$TMP_DIR/payload.json"
+trap 'rm -f "$TMP_SCRIPT" "$HOOK_PAYLOAD_FILE"; rmdir "$TMP_DIR" 2>/dev/null || true' EXIT
+
+# BUG FIX (2026-09-05): Claude Code's PreToolUse hook contract passes the
+# tool_name on stdin as JSON — {"tool_name": "...", "tool_input": {...}, ...}
+# — not via an env var. CLAUDE_TOOL_NAME was never set by the harness, so
+# every call fell through to the 'unknown' bucket, meaning every tool
+# (Bash, Read, Skill, ...) shared ONE circuit-breaker counter instead of
+# one each. That collapsed "5 consecutive failures of the same tool" into
+# "any 5 tool calls total in the session" — a false-positive lockout that
+# blocked the whole session, confirmed live: Bash and Read both tripped
+# the same 'unknown' circuit after a single Skill call.
+#
+# Capture stdin to a file (not a pipe into node) so the big Node script
+# below can read it directly, keeping ADR-008's "one process, one lock"
+# property intact instead of spawning a second interpreter just to parse
+# the payload.
+cat > "$HOOK_PAYLOAD_FILE"
 
 cat > "$TMP_SCRIPT" << 'NODEEOF'
 const fs = require('fs');
 const path = require('path');
 
-const [, , budgetPath, circuitPath, toolName, maxLoopTokensStr, maxAttemptsStr,
-       cooldownSecondsStr, logFile, fastTierModel, timestamp, nowEpochStr] = process.argv;
+const [, , budgetPath, circuitPath, hookPayloadPath, toolNameEnvFallback,
+       maxLoopTokensStr, maxAttemptsStr, cooldownSecondsStr, logFile,
+       fastTierModel, timestamp, nowEpochStr] = process.argv;
 const maxLoopTokens = parseInt(maxLoopTokensStr, 10);
 const maxAttempts = parseInt(maxAttemptsStr, 10);
 const cooldownSeconds = parseInt(cooldownSecondsStr, 10);
@@ -103,13 +84,6 @@ const nowEpoch = parseInt(nowEpochStr, 10);
 function readJson(p, fallback) {
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
 }
-// Atomic write (temp file + rename), not a direct writeFileSync — same
-// fix as src/mission/mod.rs::save() / src/guard/token_budget.rs::write_json,
-// for the same reason: writeFileSync truncates before writing, so an
-// UNLOCKED reader of this file (core/scripts/session-checkpoint.sh reads
-// token-budget.json this way on purpose) can occasionally see a
-// torn/partial write. The lock this runs under only serializes against
-// other locked writers, not an unlocked reader that was never part of it.
 function writeJson(p, d) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   const tmpPath = `${p}.tmp.${process.pid}`;
@@ -118,6 +92,21 @@ function writeJson(p, d) {
 }
 function appendLog(line) {
   try { fs.appendFileSync(logFile, line + '\n'); } catch {}
+}
+
+// Resolve real tool name: stdin JSON payload first, env var fallback second.
+let toolName = 'unknown';
+try {
+  const raw = fs.readFileSync(hookPayloadPath, 'utf8').trim();
+  if (raw) {
+    const payload = JSON.parse(raw);
+    if (payload && typeof payload.tool_name === 'string' && payload.tool_name) {
+      toolName = payload.tool_name;
+    }
+  }
+} catch {}
+if (toolName === 'unknown' && toolNameEnvFallback) {
+  toolName = toolNameEnvFallback;
 }
 
 let budget = readJson(budgetPath, {
@@ -218,6 +207,7 @@ process.exit(0);
 NODEEOF
 
 with_lock "key:state/token-budget.json" 10 -- node "$TMP_SCRIPT" \
-  "$BUDGET_FILE" "$CIRCUIT_FILE" "$TOOL_NAME" "$MAX_LOOP_TOKENS" "$MAX_ATTEMPTS" \
-  "$COOLDOWN_SECONDS" "$LOG_FILE" "$FAST_TIER_MODEL" "$TIMESTAMP" "$NOW_EPOCH"
+  "$BUDGET_FILE" "$CIRCUIT_FILE" "$HOOK_PAYLOAD_FILE" "$TOOL_NAME_ENV_FALLBACK" \
+  "$MAX_LOOP_TOKENS" "$MAX_ATTEMPTS" "$COOLDOWN_SECONDS" "$LOG_FILE" \
+  "$FAST_TIER_MODEL" "$TIMESTAMP" "$NOW_EPOCH"
 exit $?

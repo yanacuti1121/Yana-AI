@@ -143,11 +143,11 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 | 🧩 Skills | **2,025** workflow skill definitions |
 | 🤖 Agents | **100** specialist agents |
 | 📜 Safety rules | **71** enforced rules |
-| 🪝 Hooks | **65** pre/post-execution hooks |
+| 🪝 Hooks | **66** pre/post-execution hooks |
 | ⚡ Slash commands | **170** |
 | 🔧 Scripts | **124** |
 | 🔌 Harness adapters | **4** (Claude Code, Cursor, Codex, Antigravity — cut down from 15 in v1.0.0, see CHANGELOG.md) |
-| 🦀 Rust subcommands | **34** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `os`, `workspace`, `chat`...) |
+| 🦀 Rust subcommands | **39** (`scan`, `graph`, `vault`, `route`, `mission`, `hunt`, `fix`, `doctor`, `os`, `workspace`, `chat`...) |
 
 ## Safety architecture
 

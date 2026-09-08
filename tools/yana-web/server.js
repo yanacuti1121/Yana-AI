@@ -6,10 +6,30 @@ const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
 const url   = require('url');
+
+// Minimal .env.local loader — local-only secrets (currently: Google OAuth
+// client id/secret, see auth.js), never committed (see .gitignore). A tiny
+// hand-rolled parser instead of the `dotenv` package: one file, no new
+// dependency to vet. Real environment variables already set always win.
+(function loadEnvLocal() {
+  const envPath = path.join(__dirname, '.env.local');
+  let raw;
+  try { raw = fs.readFileSync(envPath, 'utf8'); } catch (_) { return; }
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim();
+    if (key && !(key in process.env)) process.env[key] = value;
+  }
+})();
 const { execFileSync, execFile } = require('child_process');
 const { createCore } = require('./lib/core');
 const { OutputScrubber } = require('./lib/output-scrubber');
 const { CircuitBreaker, buildFallbackChain } = require('./lib/provider-failover');
+const { appendWorkspaceContext } = require('./lib/workspace-context');
 const {
   parseRuntimeMode,
   resolveGovernedRuntime,
@@ -18,6 +38,28 @@ const {
 } = require('./lib/runtime-client');
 const giamThiHalt = require('./lib/giam-thi-halt');
 const REPO_ROOT = process.env.YANA_ROOT_DIR || path.join(__dirname, '..', '..');
+// `REPO_ROOT` is the bundled Yana core/runtime tree and must stay stable.
+// `WORKSPACE_ROOT` is the selected user project where governed turns execute;
+// Electron main is the sole writer, over the private child-process IPC channel.
+function trustedWorkspaceRoot(candidate) {
+  if (typeof candidate !== 'string' || !path.isAbsolute(candidate) || candidate.includes('\0')) return null;
+  try {
+    const resolved = fs.realpathSync(candidate);
+    return fs.statSync(resolved).isDirectory() ? resolved : null;
+  } catch (_) {
+    return null;
+  }
+}
+let WORKSPACE_ROOT = trustedWorkspaceRoot(process.env.YANA_WORKSPACE_DIR) || REPO_ROOT;
+process.on('message', (message) => {
+  if (!message || message.type !== 'yana:workspace-root') return;
+  const nextRoot = trustedWorkspaceRoot(message.root);
+  if (!nextRoot) {
+    console.warn('[workspace] ignored invalid workspace update from desktop main process');
+    return;
+  }
+  WORKSPACE_ROOT = nextRoot;
+});
 const YANA_RUNTIME_MODE = parseRuntimeMode(process.env.YANA_RUNTIME_MODE);
 const YANA_RT_BIN = YANA_RUNTIME_MODE === 'legacy'
   ? ''
@@ -31,9 +73,20 @@ const { route, loadSystemPrompt, findBestSkill, loadSkillPrompt, skillCount } = 
 // cost log`). See logRealUsageToLedger() near handleApiChat.
 const YANA_RT_WRAPPER_PATH = path.join(REPO_ROOT, 'scripts', 'yana-rt-wrapper.js');
 const auth     = require('./auth');
+const connectorOAuth = require('./connector-oauth');
+const connectorGoogleAdapters = require('./connector-google-adapters');
+const notionOAuth = require('./notion-oauth');
+const connectorNotionAdapter = require('./connector-notion-adapter');
+const slackOAuth = require('./slack-oauth');
+const connectorSlackAdapter = require('./connector-slack-adapter');
+const figmaOAuth = require('./figma-oauth');
+const canvaOAuth = require('./canva-oauth');
+const connectorCanvaAdapter = require('./connector-canva-adapter');
+const githubOAuth = require('./github-oauth');
 const missions = require('./missions');
 const memory   = require('./memory');
 const robot    = require('./robot');
+const { writeJsonAtomic } = require('./lib/atomic-json');
 
 // YANA_RESET_AUTH=1 — wipe auth.json so the setup screen appears on next load.
 // Set in Railway env vars, redeploy once, then remove the variable.
@@ -173,7 +226,10 @@ const SEC_HEADERS = {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; " + // Babel standalone needs eval + inline
     "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; " +
-    "font-src https://fonts.bunny.net; " +
+    // 'self' — desktop's self-hosted Geist (themes.css / login.html /
+    // welcome.html @font-face). fonts.bunny.net stays: mobile/index.html
+    // still loads Be Vietnam Pro from Bunny, out of this pass's scope.
+    "font-src 'self' https://fonts.bunny.net; " +
     "img-src 'self' data: blob:; " +
     // open-meteo: keyless weather for the dashboard — fetched from the
     // browser so the server's own egress surface stays 'self'-only
@@ -351,13 +407,14 @@ function handleApiStatus(req, res) {
   });
 }
 
-// ── GET /api/local-status — probe on-device AI providers (Ollama, 9router, LM Studio) ──
+// ── GET /api/local-status — probe on-device AI providers ───────────────────
 function handleApiLocalStatus(req, res) {
   const LOCAL_PROBES = [
     { id: 'ollama',         protocol: 'http', hostname: '127.0.0.1', port: 11434, path: '/api/tags' },
     { id: '9router',        protocol: 'http', hostname: '127.0.0.1', port: 20128, path: '/v1/models' },
     { id: 'lmstudio',       protocol: 'http', hostname: '127.0.0.1', port: 1234,  path: '/v1/models' },
     { id: 'turbofieldfare', protocol: 'http', hostname: '127.0.0.1', port: 8091,  path: '/v1/models' },
+    { id: 'airllm',         protocol: 'http', hostname: '127.0.0.1', port: 8100,  path: '/v1/models' },
   ];
 
   let pending = LOCAL_PROBES.length;
@@ -558,10 +615,90 @@ async function handleApiModels(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { provider, key } = parsed;
+  const { provider, key, baseUrl, customKeyless } = parsed;
   if (!provider) { jsonError(res, 400, 'Missing provider'); return; }
+  const isCustomProvider = provider === 'custom';
+
+  let customProv = null;
+  if (isCustomProvider) {
+    if (typeof baseUrl !== 'string' || !baseUrl.trim()) { jsonError(res, 400, 'Missing baseUrl for custom provider'); return; }
+    let parsedBase;
+    try { parsedBase = new URL(baseUrl.trim()); } catch (_) { jsonError(res, 400, 'Invalid baseUrl'); return; }
+    if (parsedBase.protocol !== 'http:' && parsedBase.protocol !== 'https:') {
+      jsonError(res, 400, 'baseUrl must use http or https'); return;
+    }
+    // Mirror src/chat/openai_compat.rs's models_url derivation: the
+    // configured URL is the full chat-completions endpoint (same value
+    // sent to the Rust governed path), not a bare prefix — strip
+    // "/chat/completions" if present, otherwise just append "/models".
+    const chatPath = parsedBase.pathname.endsWith('/chat/completions')
+      ? parsedBase.pathname.slice(0, -'/chat/completions'.length)
+      : parsedBase.pathname.replace(/\/+$/, '');
+    customProv = {
+      protocol: parsedBase.protocol === 'http:' ? 'http' : 'https',
+      hostname: parsedBase.hostname,
+      port: parsedBase.port ? Number(parsedBase.port) : undefined,
+      path: `${chatPath}/models`,
+      keyless: !!customKeyless,
+      headers: k => (k ? { 'Authorization': `Bearer ${k}` } : {}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    };
+  }
 
   const LIVE_PROVIDERS = {
+    // Anh's call (2026-08-31): these 4 previously fell back to a short,
+    // hand-curated static list (model-select.js's MODEL_CHOICES) even
+    // though a real API key isn't restricted to those few models — every
+    // one of these providers has its own real /v1/models-shaped list
+    // endpoint. Wiring them in here is what actually makes that fallback
+    // unnecessary; CHAT_LIVE_MODELS (model-select.js) is what tells the
+    // chat UI to prefer this live fetch over the static list.
+    claude: {
+      hostname: 'api.anthropic.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'x-api-key': k, 'anthropic-version': '2023-06-01' }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.display_name || m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    openai: {
+      hostname: 'api.openai.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        // OpenAI's /v1/models lists every model the key can reach, not just
+        // chat models — whisper/tts/dall-e/embedding/moderation/legacy
+        // completions models would otherwise show up as "chat" choices.
+        .filter(m => m.id && !/^(whisper|tts|dall-e|text-embedding|text-moderation|omni-moderation|davinci|babbage)/.test(m.id))
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    // x-goog-api-key header, never a ?key= query string (rule 66 / API2 —
+    // same reason the chat-completions path for Gemini already avoids
+    // putting the key in the URL).
+    gemini: {
+      hostname: 'generativelanguage.googleapis.com',
+      path:     '/v1beta/models',
+      headers:  k => ({ 'x-goog-api-key': k }),
+      transform: data => (data.models || [])
+        .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => ({ id: String(m.name || '').replace(/^models\//, ''), name: m.displayName || String(m.name || '').replace(/^models\//, '') }))
+        .filter(m => m.id)
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
+    deepseek: {
+      hostname: 'api.deepseek.com',
+      path:     '/v1/models',
+      headers:  k => ({ 'Authorization': `Bearer ${k}` }),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
     openrouter: {
       hostname: 'openrouter.ai',
       path:     '/api/v1/models',
@@ -695,15 +832,31 @@ async function handleApiModels(req, res) {
         .map(m => ({ id: m.id, name: m.id }))
         .sort((a, b) => a.id.localeCompare(b.id)),
     },
+    airllm: {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port:     8100,
+      path:     '/v1/models',
+      keyless:  true,
+      headers:  _k => ({}),
+      transform: data => (data.data || [])
+        .filter(m => m.id)
+        .map(m => ({ id: m.id, name: m.id }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    },
   };
 
-  const prov = LIVE_PROVIDERS[provider];
+  const prov = isCustomProvider ? customProv : LIVE_PROVIDERS[provider];
   if (!prov) { jsonError(res, 400, `Provider "${provider}" has no live model API`); return; }
   if (!key && !prov.keyless) { jsonError(res, 400, 'Missing key'); return; }
 
   const options = { hostname: prov.hostname, port: prov.port, path: prov.path,
                     method: 'GET', headers: prov.headers(key) };
-  const liveTransport = (prov.protocol === 'http' && prov.hostname === '127.0.0.1') ? http : https;
+  // Custom Provider URLs are human-Settings-configured (same trust tier as
+  // an API key), not AI-agent-initiated fetches — no loopback-only
+  // restriction here, unlike the built-in local entries above which are
+  // all hardcoded to 127.0.0.1 anyway.
+  const liveTransport = prov.protocol === 'http' ? http : https;
 
   liveTransport.get(options, upRes => {
     let raw = '';
@@ -757,6 +910,111 @@ function recordUsage(provider, chars, ms) {
   try { _persistDailyUsage(provider, chars); } catch (_) {}
 }
 
+// POST /api/connectors/gmail/messages  { accessToken, refreshToken?, limit? }
+// POST /api/connectors/calendar/events { accessToken, refreshToken?, limit? }
+//
+// The renderer sends the token per-request (decrypted from YanaVault just
+// before the call, same pattern /api/chat already uses for a provider
+// apiKey) — this server never stores it. On a 401 (expired access token),
+// if a refreshToken was also sent, this transparently refreshes once and
+// retries; the response's `refreshedToken` field tells the renderer to
+// fold the new access token back into YanaVault. If refresh itself fails
+// (revoked/expired refresh token), the real error is returned rather than
+// silently reporting empty results — the UI must show "Expired —
+// reconnect", never a fake empty-but-successful state.
+// refreshFn defaults to the Google connector-oauth refresh (Gmail/
+// Calendar/Drive's original, only caller until Notion's own
+// notionOAuth.refreshAccessToken needed a different one — Notion's token
+// endpoint can also rotate the refresh_token itself, which Google's
+// never does, so refreshedToken.refreshToken is only ever set when the
+// refresh call actually returned one).
+async function connectorFetchWithRefresh(fetchFn, body, refreshFn = connectorOAuth.refreshAccessToken) {
+  const accessToken = typeof body.accessToken === 'string' ? body.accessToken : '';
+  const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : '';
+  const limit = Number.isInteger(body.limit) ? body.limit : undefined;
+  if (!accessToken) return { httpStatus: 400, payload: { ok: false, error: 'Missing accessToken' } };
+
+  let result = await fetchFn({ accessToken, limit });
+  if (result.ok) return { httpStatus: 200, payload: result };
+  if (!result.expired) return { httpStatus: 200, payload: result };
+  if (!refreshToken) return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+
+  let refreshed;
+  try {
+    refreshed = await refreshFn(refreshToken);
+  } catch (err) {
+    console.error('[connector-adapter] refresh failed:', err.message);
+    return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+  }
+  result = await fetchFn({ accessToken: refreshed.access_token, limit });
+  if (!result.ok) return { httpStatus: 200, payload: { ok: false, error: 'expired', reconnectRequired: true } };
+  return {
+    httpStatus: 200,
+    payload: {
+      ...result,
+      refreshedToken: {
+        accessToken: refreshed.access_token,
+        expiresAt: refreshed.expires_in != null ? Date.now() + Number(refreshed.expires_in) * 1000 : null,
+        ...(refreshed.refresh_token ? { refreshToken: refreshed.refresh_token } : {}),
+      },
+    },
+  };
+}
+
+async function handleConnectorGmailMessages(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchGmailMessages(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorCalendarEvents(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchCalendarEvents(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorDriveFiles(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorGoogleAdapters.fetchDriveFiles(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorNotionPages(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorNotionAdapter.fetchNotionPages(args), body,
+    notionOAuth.refreshAccessToken,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorCanvaDesigns(req, res, body) {
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorCanvaAdapter.fetchCanvaDesigns(args), body,
+    canvaOAuth.refreshAccessToken,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+async function handleConnectorSlackChannels(req, res, body) {
+  // Stored refreshToken is always null for Slack (see slack-oauth.js's
+  // header comment — no refresh flow), so connectorFetchWithRefresh's
+  // "no refreshToken → reconnectRequired" branch handles an expired/
+  // revoked token correctly without a Slack-specific refreshFn here.
+  const { httpStatus, payload } = await connectorFetchWithRefresh(
+    (args) => connectorSlackAdapter.fetchSlackChannels(args), body,
+  );
+  res.writeHead(httpStatus, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
 // GET /api/usage — per-provider session stats (tokens are a chars/4 estimate)
 function handleApiUsage(req, res) {
   const out = {};
@@ -780,8 +1038,7 @@ function loadSessions() {
   try { return JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')); } catch (_) { return []; }
 }
 function saveSessions(list) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(SESSIONS_FILE, JSON.stringify(list, null, 2));
+  writeJsonAtomic(SESSIONS_FILE, list);
 }
 
 function handleApiSessionsList(req, res) {
@@ -832,8 +1089,7 @@ function _loadAnalytics() {
   try { return JSON.parse(fs.readFileSync(ANALYTICS_FILE, 'utf8')); } catch (_) { return {}; }
 }
 function _saveAnalytics(data) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(data));
+  writeJsonAtomic(ANALYTICS_FILE, data, { space: 0 });
 }
 function _todayKey() { return new Date().toISOString().slice(0, 10); }
 function _persistDailyUsage(provider, chars) {
@@ -892,8 +1148,7 @@ function loadCron() {
   try { return JSON.parse(fs.readFileSync(CRON_FILE, 'utf8')); } catch (_) { return []; }
 }
 function saveCron(list) {
-  fs.mkdirSync(YANA_DATA_DIR, { recursive: true });
-  fs.writeFileSync(CRON_FILE, JSON.stringify(list, null, 2));
+  writeJsonAtomic(CRON_FILE, list);
 }
 
 function handleApiCronList(req, res) {
@@ -1246,7 +1501,7 @@ const providerCircuitBreaker = new CircuitBreaker();
 // connectToProvider() moved to ./lib/providers.js (required at the top of
 // this file alongside PROVIDERS) so robot.js can reuse it in-process.
 
-async function streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images) {
+async function streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images, history) {
   res.writeHead(200, {
     'Content-Type':  'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -1263,8 +1518,15 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
       lastError = new Error(`circuit open for ${candidate.providerKey}`);
       continue;
     }
-    const provider = PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic;
-    const model = explicitModelId || provider.defaultModel;
+    // A custom candidate has no PROVIDERS[...] row and no sensible
+    // JS-side default model (its model IDs only exist on the user's own
+    // endpoint) — falling back to PROVIDERS.anthropic.defaultModel here
+    // would silently send a Claude model id to a custom server. Leaving
+    // `model` undefined instead lets the Rust side's own "provider
+    // 'custom' requires --model" error (src/chat/headless.rs) surface
+    // cleanly if the client ever forgets to send one.
+    const provider = candidate.providerKey === 'custom' ? null : (PROVIDERS[candidate.providerKey] || PROVIDERS.anthropic);
+    const model = explicitModelId || provider?.defaultModel;
     const scrubber = new OutputScrubber();
     const startedAt = Date.now();
     let emittedChars = 0;
@@ -1276,6 +1538,7 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
       await streamGovernedTurn({
         binaryPath: YANA_RT_BIN,
         rootDir: REPO_ROOT,
+        cwd: WORKSPACE_ROOT,
         provider: candidate.providerKey,
         model,
         input: {
@@ -1283,6 +1546,12 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
           system: systemPrompt,
           api_key: candidate.apiKey || undefined,
           images: Array.isArray(images) ? images : [],
+          // snake_case to match HeadlessTurnInput's exact field names
+          // (src/chat/headless.rs) — stdin JSON, not argv, same channel
+          // api_key already uses (see that struct's own doc comment).
+          base_url: candidate.baseUrl || undefined,
+          custom_keyless: !!candidate.customKeyless,
+          history: Array.isArray(history) ? history : [],
         },
         signal: abortController.signal,
         onEvent(event) {
@@ -1291,6 +1560,19 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
               input_tokens: Number(event.input_tokens) || 0,
               output_tokens: Number(event.output_tokens) || 0,
             };
+            // Forwarded to the client so a real Context Panel can show
+            // actual token usage — previously captured here for
+            // cost-ledger logging only and never sent to the renderer.
+            res.write(`data: ${JSON.stringify({ usage })}\n\n`);
+            return;
+          }
+          // STEP 3 (canonical RuntimeEvent propagation): forwarded as its
+          // own SSE frame, never mixed into the assistant text stream —
+          // yana-rt's write_event() already reduced this to a bounded,
+          // redacted projection (see that function's own doc comment);
+          // this hop only relays it, no further processing needed.
+          if (event.type === 'runtime_event') {
+            res.write(`data: ${JSON.stringify({ runtimeEvent: event })}\n\n`);
             return;
           }
           if (event.type === 'error' || event.type === 'authority_denied') {
@@ -1353,6 +1635,14 @@ async function streamGovernedDesktopChat(res, chain, explicitModelId, systemProm
   }
 }
 
+// Roadmap Phase 14 — Custom Provider. Same "loopback = local, everything
+// else = remote" rule the Rust side's OpenAiCompatProvider::runtime_kind()
+// already uses (src/chat/openai_compat.rs) — kept consistent so rule 68's
+// sovereign-tier gate in handleApiChat means the same thing on both sides.
+function isLoopbackUrl(url) {
+  return typeof url === 'string' && /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/i.test(url);
+}
+
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 async function handleApiChat(req, res) {
   let body;
@@ -1362,8 +1652,21 @@ async function handleApiChat(req, res) {
   let parsed;
   try { parsed = JSON.parse(body); } catch (_) { jsonError(res, 400, 'Invalid JSON'); return; }
 
-  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys } = parsed;
-  const p = PROVIDERS[providerKey] || PROVIDERS.anthropic;
+  const { task, apiKey, suggestedAgents, model, provider: providerKey, skill, images, useIndex, about, sensitivity, fallbackApiKeys, workspaceContext, baseUrl: customBaseUrl, customKeyless } = parsed;
+  // Roadmap Phase 14 — Custom Provider: not a row in the static PROVIDERS
+  // table (that table only ever holds compile-time-known providers), so
+  // it needs its own synthetic entry here instead of the
+  // `PROVIDERS[key] || PROVIDERS.anthropic` fallback every other provider
+  // uses — that fallback would otherwise silently treat a custom request
+  // as anthropic, the exact kind of silent-wrong-provider bug this rule
+  // set warns against.
+  const isCustomProvider = providerKey === 'custom';
+  if (isCustomProvider && (typeof customBaseUrl !== 'string' || !customBaseUrl.trim())) {
+    jsonError(res, 400, 'Missing baseUrl for custom provider'); return;
+  }
+  const p = isCustomProvider
+    ? { keyless: !!customKeyless, local: isLoopbackUrl(customBaseUrl) }
+    : (PROVIDERS[providerKey] || PROVIDERS.anthropic);
   if (!p.keyless && (!apiKey || typeof apiKey !== 'string')) { jsonError(res, 400, 'Missing apiKey'); return; }
   if (!task || typeof task !== 'string' || !task.trim()) { jsonError(res, 400, 'Missing task'); return; }
 
@@ -1375,6 +1678,20 @@ async function handleApiChat(req, res) {
     jsonError(res, 403, 'SOVEREIGN content may only go to a local model (rule 68). Select Ollama or remove the marker.');
     return;
   }
+
+  // Prior turns from the same client-side conversation. Before this, every
+  // headless dispatch received only the current `task` — no provider,
+  // local or cloud, ever saw earlier turns, which is what produced a
+  // "nothing to analyze" reply to a bare follow-up question with no
+  // antecedent in the request itself. Confidential/sovereign-tagged turns
+  // are stripped here whenever the CURRENT request's destination is not
+  // local — same "never leaves the machine" rule already enforced above
+  // for the current turn's own content (rule 68).
+  const rawHistory = Array.isArray(parsed.history) ? parsed.history.slice(-40) : [];
+  const sanitizedHistory = rawHistory
+    .filter(h => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string' && h.content.trim())
+    .filter(h => p.local || !(h.tier === 'confidential' || h.tier === 'sovereign'))
+    .map(h => ({ role: h.role, content: h.content.slice(0, 8000) }));
 
   // System prompt: skill → agent → generic fallback
   let systemPrompt = null;
@@ -1450,12 +1767,26 @@ async function handleApiChat(req, res) {
   if (chain[0].providerKey === '9router' && !chain[0].apiKey) {
     chain[0].apiKey = getNineRouterKey();
   }
+  // Custom providers never participate in cross-provider fallback (their
+  // model IDs are meaningless on any other endpoint) — buildFallbackChain
+  // already returns a single-candidate chain for a primary outside
+  // OPENAI_SHAPE_PROVIDERS, so this only ever needs to annotate chain[0].
+  if (isCustomProvider) {
+    chain[0].baseUrl = customBaseUrl;
+    chain[0].customKeyless = !!customKeyless;
+  }
+
+  // Rule 68 need-to-know, same as MEMORY/CODEBASE CONTEXT/ABOUT above —
+  // never attached to confidential/sovereign turns. See
+  // appendWorkspaceContext's own doc comment for the trust-boundary
+  // rationale (this is TURN content, never system instructions).
+  const taskWithWorkspaceContext = tier ? task : appendWorkspaceContext(task, workspaceContext);
 
   // Desktop supplies YANA_RT_BIN; packaged web deployments discover or bundle
   // the same binary. Every supported turn crosses TurnEngine (and therefore
   // the Giám Thị/Yana authority chain) instead of calling providers from JS.
   if (YANA_RT_BIN && chain.every(candidate => supportsGovernedProvider(candidate.providerKey))) {
-    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, task, images);
+    await streamGovernedDesktopChat(res, chain, explicitModelId, systemPrompt, taskWithWorkspaceContext, images, sanitizedHistory);
     return;
   }
 
@@ -1500,7 +1831,7 @@ async function handleApiChat(req, res) {
     // provider itself is healthy.
     const candidateModelId = explicitModelId || cp.defaultModel;
     const candidateImgs    = (cp.vision && Array.isArray(images) && images.length) ? images : null;
-    const candidateReqBody = cp.body(candidateModelId, systemPrompt, task, candidateImgs);
+    const candidateReqBody = cp.body(candidateModelId, systemPrompt, taskWithWorkspaceContext, candidateImgs);
     // Gemini builds its path from the model id; the key always travels in
     // the x-goog-api-key header, never the URL (rule 66 / API2)
     const candidateReqPath = cp.buildPath ? cp.buildPath(candidateModelId, candidate.apiKey) : cp.path;
@@ -1878,6 +2209,19 @@ async function handleAuthRoutes(req, res, pathname, method) {
     const body = await readJsonBody(req, res); if (body) auth.handleLogin(req, res, body); return true;
   }
   if (method === 'POST' && pathname === '/api/auth/logout') { auth.handleLogout(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/start')    { auth.handleGoogleStart(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/auth/google/callback') { await auth.handleGoogleCallback(req, res); return true; }
+  // Connector OAuth (Gmail/Calendar) callback — same reasoning as the login
+  // callback above: it lands in the user's system browser, not necessarily
+  // an authenticated request, so it cannot live behind the isAuthed gate.
+  // See connector-oauth.js's own header comment for why this is a wholly
+  // separate flow from the login OAuth right above it.
+  if (method === 'GET'  && pathname === '/api/connectors/google/callback') { await connectorOAuth.handleConnectorGoogleCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/github/callback') { await githubOAuth.handleGithubCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/notion/callback') { await notionOAuth.handleNotionCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/slack/callback') { await slackOAuth.handleSlackCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/figma/callback') { await figmaOAuth.handleFigmaCallback(req, res); return true; }
+  if (method === 'GET'  && pathname === '/api/connectors/canva/callback') { await canvaOAuth.handleCanvaCallback(req, res); return true; }
   return false;
 }
 
@@ -1934,6 +2278,11 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET' && pathname === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, skills: skillCount() })); return; }
   if (await handleAuthRoutes(req, res, pathname, method)) return;
   if (method === 'GET' && (pathname === '/login.html' || pathname === '/welcome.html' || pathname === '/logo.png')) { serveStatic(res, pathname === '/logo.png' ? pathname : '/desktop' + pathname); return; }
+  // Self-hosted Geist fonts referenced by login.html/welcome.html's own
+  // @font-face rules (themes.css's copy is loaded post-auth, already
+  // covered once auth.isAuthed(req) passes below) — without this, the
+  // pre-auth pages above 404/redirect-loop trying to load their own font.
+  if (method === 'GET' && pathname.startsWith('/desktop/fonts/')) { serveStatic(res, pathname); return; }
 
   if (!auth.isAuthed(req)) { rejectUnauthed(res, pathname, method); return; }
 
@@ -1945,6 +2294,93 @@ const server = http.createServer(async (req, res) => {
   if (method === 'GET'  && pathname === '/api/tts/status')     { handleTtsStatus(req, res);       return; }
   if (method === 'POST' && pathname === '/api/tts')             { await handleTts(req, res);       return; }
   if (method === 'GET'  && pathname === '/api/usage')   { handleApiUsage(req, res);   return; }
+  // Connector OAuth (Gmail/Calendar) — same-origin renderer calls, already
+  // covered by this section's auth.isAuthed(req) gate above; see
+  // connector-oauth.js's own comments for why the callback route is
+  // instead wired as public, above with the login routes.
+  if (method === 'GET'  && pathname === '/api/connectors/google/start') { connectorOAuth.handleConnectorGoogleStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/google/pending/')) {
+    connectorOAuth.handleConnectorGooglePending(req, res, pathname.slice('/api/connectors/google/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/google/refresh') {
+    const body = await readJsonBody(req, res); if (body) await connectorOAuth.handleConnectorGoogleRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/google/revoke') {
+    const body = await readJsonBody(req, res); if (body) await connectorOAuth.handleConnectorGoogleRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/gmail/messages') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorGmailMessages(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/calendar/events') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorCalendarEvents(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/drive/files') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorDriveFiles(req, res, body); return;
+  }
+  // Connector OAuth (GitHub) — see github-oauth.js's header comment for
+  // why this has no /refresh route (classic OAuth App tokens don't expire).
+  if (method === 'GET'  && pathname === '/api/connectors/github/start') { githubOAuth.handleGithubStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/github/pending/')) {
+    githubOAuth.handleGithubPending(req, res, pathname.slice('/api/connectors/github/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/github/revoke') {
+    const body = await readJsonBody(req, res); if (body) await githubOAuth.handleGithubRevoke(req, res, body); return;
+  }
+  // Connector OAuth (Notion) — see notion-oauth.js's header comment for
+  // why there is no /revoke route (Notion documents no such endpoint).
+  if (method === 'GET'  && pathname === '/api/connectors/notion/start') { notionOAuth.handleNotionStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/notion/pending/')) {
+    notionOAuth.handleNotionPending(req, res, pathname.slice('/api/connectors/notion/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/notion/refresh') {
+    const body = await readJsonBody(req, res); if (body) await notionOAuth.handleNotionRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/notion/pages') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorNotionPages(req, res, body); return;
+  }
+  // Connector OAuth (Slack) — see slack-oauth.js's header comment for
+  // why there is no /refresh route (bot tokens don't expire by default).
+  if (method === 'GET'  && pathname === '/api/connectors/slack/start') { slackOAuth.handleSlackStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/slack/pending/')) {
+    slackOAuth.handleSlackPending(req, res, pathname.slice('/api/connectors/slack/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/slack/revoke') {
+    const body = await readJsonBody(req, res); if (body) await slackOAuth.handleSlackRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/slack/channels') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorSlackChannels(req, res, body); return;
+  }
+  // Connector OAuth (Figma) — see figma-oauth.js's header comment for
+  // why there is no /revoke route (no documented Figma API for it) and
+  // no /files preview route (no generic list-my-files endpoint exists).
+  if (method === 'GET'  && pathname === '/api/connectors/figma/start') { figmaOAuth.handleFigmaStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/figma/pending/')) {
+    figmaOAuth.handleFigmaPending(req, res, pathname.slice('/api/connectors/figma/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/figma/refresh') {
+    const body = await readJsonBody(req, res); if (body) await figmaOAuth.handleFigmaRefresh(req, res, body); return;
+  }
+  // Connector OAuth (Canva) — see canva-oauth.js's header comment for
+  // the PKCE flow this one alone requires among the six connectors.
+  if (method === 'GET'  && pathname === '/api/connectors/canva/start') { canvaOAuth.handleCanvaStart(req, res); return; }
+  if (method === 'GET'  && pathname.startsWith('/api/connectors/canva/pending/')) {
+    canvaOAuth.handleCanvaPending(req, res, pathname.slice('/api/connectors/canva/pending/'.length));
+    return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/refresh') {
+    const body = await readJsonBody(req, res); if (body) await canvaOAuth.handleCanvaRefresh(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/revoke') {
+    const body = await readJsonBody(req, res); if (body) await canvaOAuth.handleCanvaRevoke(req, res, body); return;
+  }
+  if (method === 'POST' && pathname === '/api/connectors/canva/designs') {
+    const body = await readJsonBody(req, res); if (body) await handleConnectorCanvaDesigns(req, res, body); return;
+  }
   if (method === 'GET'  && pathname === '/api/dashboard') { handleApiDashboard(req, res); return; }
   if (method === 'GET'  && pathname === '/api/agents')    { handleApiAgents(req, res);    return; }
   if (method === 'GET'  && pathname === '/api/memories')  { handleApiMemories(req, res);  return; }

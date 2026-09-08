@@ -129,12 +129,12 @@ fn render_approval_panel(frame: &mut Frame, area: Rect, app: &App) {
             )),
             Line::from(""),
             Line::from(Span::styled(
-                &pending.command,
+                pending.summary_line(),
                 Style::default().add_modifier(Modifier::BOLD),
             )),
             Line::from(""),
             Line::from(Span::styled(
-                if pending.guard_verdict.is_some() {
+                if pending.is_guard_denied() {
                     "guard denied — Enter/Esc to acknowledge"
                 } else {
                     "y = run · n/Esc = decline"

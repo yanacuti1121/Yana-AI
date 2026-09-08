@@ -13,6 +13,19 @@ function runtimeBinaryPath({ name, packaged, resourcesPath, repoRoot, platform =
   return path.join(resourcesPath, directory, filename);
 }
 
+// code-server's own layout, not yana-rt/pty_bridge's — a bundled
+// bin/code-server launcher script (self-contained, bundles its own Node
+// runtime under lib/node) rather than a single binary. Same packaged-vs-
+// dev split as runtimeBinaryPath: dev mode reads the staging root
+// scripts/stage-code-server.js writes to; packaged mode reads
+// Resources/code-server, matching package.json's extraResources entry.
+function codeServerPath({ packaged, resourcesPath, repoRoot }) {
+  const root = packaged
+    ? path.join(resourcesPath, 'code-server')
+    : path.join(repoRoot, 'target', 'desktop-runtime', 'code-server');
+  return path.join(root, 'bin', 'code-server');
+}
+
 function parseServerReadyPort(message) {
   if (!message || message.type !== 'yana-server-ready') return null;
   const port = Number(message.port);
@@ -25,4 +38,4 @@ function serverUrl(port) {
   return `http://127.0.0.1:${validPort}`;
 }
 
-module.exports = { binaryName, runtimeBinaryPath, parseServerReadyPort, serverUrl };
+module.exports = { binaryName, runtimeBinaryPath, codeServerPath, parseServerReadyPort, serverUrl };

@@ -11,12 +11,6 @@
 
 <h1 align="center">Yana AI 🐰</h1>
 
-<p align="center"><strong>하나의 런타임. 모든 AI. 인간이 통제합니다.</strong></p>
-
-<p align="center"><strong>AI를 실행하고 연결하고 오케스트레이션하고 통제하기 위한 로컬 우선 크로스 플랫폼 시스템 — AI가 무엇에 접근하고, 무엇을 바꾸고, 무엇을 실행할 수 있는지 결정론적으로 제어합니다.</strong></p>
-
-<p align="center"><em>AI는 행동할 수 있습니다. 하지만 어디까지 허용할지는 누가 결정할까요?</em></p>
-
 <p align="center">
   <a href="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml"><img src="https://github.com/yanacuti1121/Yana-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://crates.io/crates/yana-rt"><img src="https://img.shields.io/crates/v/yana-rt?logo=rust&color=ce422b" alt="yana-rt on crates.io"></a>
@@ -29,19 +23,87 @@
 
 ---
 
-## AI의 행동 능력은 커졌지만, 거버넌스는 아직 따라오지 못했습니다.
+## 하나의 런타임. 모든 AI. 인간이 통제합니다.
 
-이제 모델은 리포지토리를 읽고, 파일을 수정하고, 명령을 실행하고, 에이전트를 시작하고, 도구를 호출하고, 릴리스를 준비할 수 있습니다. 어려운 질문은 더 이상 모델의 지능만이 아닙니다.
+Yana는 서로 독립적인 AI 모델과 에이전트를 하나의 거버넌스가 적용된, 지속되는 시스템으로 통합합니다 — 최종 권한은 언제나 인간에게 있습니다.
 
-- 하나의 런타임이 특정 벤더에 종속되지 않고 로컬 모델, 클라우드 모델, 코딩 에이전트를 연결할 수 있는가?
-- 모든 인터페이스가 제각각 안전 로직을 다시 만드는 대신 동일한 capability 경계를 공유할 수 있는가?
-- 일상적인 자동화와 반드시 인간의 결정으로 남아야 하는 작업을 구분할 수 있는가?
-- 개발자가 “안전”, “완료”, “차단”, “승인”이라는 주장 뒤의 근거를 직접 확인할 수 있는가?
-- 프로젝트 무결성이 불확실할 때 독립된 control plane이 모든 에이전트를 멈출 수 있는가?
+AI 모델은 추론, 계획, 코딩, 도구 사용에 강력합니다. 하지만 지능만으로는 신뢰할 수 있는 AI 시스템이 만들어지지 않습니다. 모델은 바뀌고, 컨텍스트는 사라지고, 에이전트는 종료되고, 프로바이더는 장애를 일으키고, 도구마다 권한이 다르며, 작업은 여러 세션·머신·AI 환경에 걸쳐 이어집니다.
 
-**Yana AI는 이 질문들을 실행 가능한 규칙으로 만듭니다.**
+**Yana는 이 조각들을 하나로 묶어주는 control plane을 제공합니다.**
 
-Yana는 또 하나의 foundation model이 아니며 Claude, Codex, Cursor, Ollama 또는 기존 런타임을 대체하지 않습니다. 이들을 네이티브 실행 계층, 결정론적 정책 게이트, 프로젝트 메모리, 오케스트레이션 primitive, 인간 중심 운영 계층에 연결합니다.
+```
+                         HUMAN
+                    final authority
+                          │
+                          ▼
+                    ┌───────────┐
+                    │   YANA    │
+                    │ControlPlane│
+                    └─────┬─────┘
+                          │
+      ┌───────────────────┼───────────────────┐
+      │                   │                   │
+      ▼                   ▼                   ▼
+ Intelligence        Continuity          Governance
+ models/providers   missions/memory    authority/policy
+      │                   │                   │
+      └───────────────────┼───────────────────┘
+                          ▼
+                 Canonical Capabilities
+                          │
+                          ▼
+                  Bounded Execution
+                          │
+                          ▼
+                    Real Environment
+```
+
+### 지능은 권한이 아닙니다
+
+이것이 Yana의 근본 원칙입니다. AI 모델은 무엇을 하고 싶은지 스스로 결정할 수 있습니다. 그렇다고 해서 그것을 실행할 권한이 있다는 뜻은 아닙니다.
+
+모델에게 셸, 파일시스템, 프로세스, 리포지토리, 개발 환경에 대한 무제한 접근을 허용하는 대신, Yana는 다음을 분리합니다:
+
+```
+INTELLIGENCE (지능)
+"나는 무엇을 해야 하는가?"
+        │
+        ▼
+PROPOSAL (제안)
+"이 도구를 실행하고 싶다."
+        │
+        ▼
+AUTHORITY (권한)
+"이것이 허용되는가?"
+        │
+        ▼
+CAPABILITY (능력)
+"이것은 정확히 어떤 권한을 의미하는가?"
+        │
+        ▼
+POLICY / HUMAN APPROVAL (정책 / 인간 승인)
+"지금 실행해도 되는가?"
+        │
+        ▼
+BOUNDED EXECUTION (제한된 실행)
+"허용된 작업만 정확히 수행한다."
+```
+
+다시 말해: **모델은 지능을 제공하고, Yana는 capability를 통제하며, 인간이 최종 권한을 갖습니다.**
+
+### 단순한 에이전트 프레임워크 그 이상
+
+대부분의 에이전트 프레임워크는 *에이전트를 얼마나 강력하게 만들 수 있는가?* 라는 질문만 던집니다. Yana는 더 큰 시스템 차원의 질문을 던집니다: *여러 모델, 여러 에이전트, 여러 도구, 여러 워크스페이스, 장기 실행 작업을 하나의 시스템으로 운영하면서도 그 권한을 통제 가능하게 유지하려면 어떻게 해야 하는가?*
+
+이 차이가 아키텍처 자체를 바꿉니다. Yana는 하나의 고정된 AI를 중심으로 만들어지지 않았습니다 — 모델과 에이전트는 지속되는 시스템 안에서 언제든 교체 가능한 작업자가 될 수 있습니다. **모델은 일시적일 수 있습니다. 에이전트도 일시적일 수 있습니다. Yana는 이들을 둘러싼 지속적인 control plane입니다.**
+
+그 아래에는: 개별 도구 호출이 아니라 에이전트 생명주기를 관리하는 로컬 management plane(Yana OS), 스킬(에이전트가 무엇을 아는지)과 capability(에이전트가 실제로 무엇을 실행해도 되는지)를 명확히 구분하는 경계, 그리고 지원되는 모든 harness — Claude Code, Codex, Cursor, Antigravity — 에 걸쳐 하나로 materialize되는 canonical `core/` 계층이 있습니다. 그래서 AI 엔진을 바꿔도 거버넌스를 처음부터 다시 만들 필요가 없습니다. 전체 내용은 아래 [심층 아키텍처](#심층-아키텍처)에서 확인하세요.
+
+> 모델은 바뀔 수 있습니다. 권한은 바뀌지 않습니다.
+
+---
+
+*이 구분선 아래는 더 깊이 들어갑니다 — 설치, 위험한 명령을 실시간으로 막는 모습, 전체 런타임 아키텍처, 알려진 한계까지 — 현재 코드베이스를 기준으로 검증된 내용이며 희망 사항이 아닙니다.*
 
 ## 원하는 첫 번째 결과를 선택하세요
 
@@ -96,6 +158,42 @@ yana-rt mission create "add-auth"
 
 > 처음이라면 [빠른 설치](#빠른-설치)부터 시작하세요. 플랫폼을 만든다면 [아키텍처 문서](docs/reference/architecture.md)를 읽으세요. 안전 경계를 평가한다면 기능 목록보다 먼저 [알려진 한계](#알려진-한계)를 확인하세요. 이 프로젝트가 어떻게 여기까지 왔는지 궁금하다면 [프로젝트 히스토리](docs/reference/history.ko.md)를 읽어보세요.
 
+## 거버넌스가 실제로 작동하는 모습
+
+에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다 — Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고(advisory) 수준입니다.
+
+```bash
+pip install yana-ai && yana-ai install   # 훅 연결 (60초)
+```
+
+> **알려진 문제, 2026-07-25에 수정됨:** 오래된 PyPI 설치본의 `yana-rt`가 자기 재귀로 CPU 100%를 유발할 수 있었습니다 — 사건 경위는 [CHANGELOG.md](CHANGELOG.md) 참고. `pip install -U yana-ai` (또는 처음부터 영향받지 않은 `cargo install yana-rt`)로 해결됩니다.
+
+이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
+</p>
+
+아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
+
+```bash
+# Agent tries: git push --force origin main
+Blocked: 'git push --force' (any flag spelling) is not allowed. The
+orchestrator pushes branches; force-pushing risks overwriting shared history.
+
+# Agent tries: rm -rf /some/path
+Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
+Use targeted 'rm' with explicit paths, or ask the human to confirm first.
+
+# Agent tries: git clean -f
+Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
+files. Ask the human to confirm before running this.
+```
+
+이것이 전체 핵심입니다: 결정론적(deterministic) 규칙, 로컬 실행, 판단 경로에 LLM 없음, 어떤 데이터도 당신의 컴퓨터를 벗어나지 않습니다. 어떤 것이 실제로 연결된 훅이고 어떤 것이 에이전트가 관례적으로 따르는 정책 문서인지는 [알려진 한계](docs/reference/known-limitations.md)에서 코드 자체를 직접 검증한 내용으로 확인하세요.
+
+---
+
 ## Yana가 하나로 묶는 것
 
 | 계층 | 개발자 가치 | 주요 surface |
@@ -136,79 +234,76 @@ yana-rt mission create "add-auth"
 | **MCP (opt-in)** | 명령 검사와 통제된 repo, Git, host, process, workspace 작업을 위한 stdio tool | Cargo feature `mcp`로 빌드하며, 사람 승인이 필요한 workspace 작업은 MCP에서 거부됨 |
 | **Claude Code, Codex, Cursor, Antigravity** | 네이티브 coding-agent harness | Yana 프로세스 내부에서 실행된다고 가장하지 않고 생성된 adapter, hook, rule, gate를 통해 통제 |
 
-따라서 로컬 AI와 클라우드 AI는 하나의 런타임 계약을 공유하지만 하나의 신뢰 영역으로 합쳐지지는 않습니다. Provider 선택은 inference 위치만 바꾸며 Yana의 typed turn, capability, evidence, 사람 승인 경계를 우회하지 않습니다.
+따라서 로컬 AI와 클라우드 AI는 하나의 런타임 계약을 공유하지만 하나의 신뢰 영역으로 합쳐지지는 않습니다. Provider 선택은 inference 위치만 바꾸며 Yana의 runtime authority나 canonical capability 경계를 바꾸지 않습니다.
 
 모델 지능은 행동을 제안할 수 있습니다. 결정론적 코드와 인간의 권한이 그 행동을 허용할지 결정합니다.
 
-## 거버넌스가 실제로 작동하는 모습
+## 심층 아키텍처
 
-에이전트가 위험한 작업을 시도하면 Yana가 가로채고, 이유를 설명하고, 기록합니다 — Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고(advisory) 수준입니다.
+위의 hero는 원칙을 말하고, 이 섹션은 그것이 가리키는 더 자세한 그림입니다.
 
-```bash
-pip install yana-ai && yana-ai install   # 훅 연결 (60초)
-```
+### AI 시스템을 위한 하나의 control plane
 
-> **알려진 문제, 2026-07-25에 수정됨:** 오래된 PyPI 설치본의 `yana-rt`가 자기 재귀로 CPU 100%를 유발할 수 있었습니다 — 사건 경위는 [CHANGELOG.md](CHANGELOG.md) 참고. `pip install -U yana-ai` (또는 처음부터 영향받지 않은 `cargo install yana-rt`)로 해결됩니다.
+Yana는 보통 분리되어 있던 여러 관심사를 하나의 아키텍처 아래로 가져옵니다.
 
-이제 에이전트에게 나쁜 짓을 시켜보고 지켜보세요.
+- **지능(Intelligence)** — 로컬 및 클라우드 모델 프로바이더(Claude, OpenAI, Gemini, DeepSeek, Groq, Ollama, LM Studio, llama.cpp 등)는 시스템 권한을 갖지 않은 채 추론만 제공합니다. 지능 프로바이더를 바꿔도 권한 체계는 바뀌지 않습니다.
+- **실행(Execution)** — AI의 의도는 실제 환경에 닿기 전에 canonical capability로 변환됩니다(`model proposal → TurnEngine → RuntimeAuthority → canonical capability → policy/approval → bounded executor → host`). 도구 이름 자체가 스스로에게 권한을 부여할 수는 없습니다.
+- **오케스트레이션(Orchestration)** — 개별 AI 턴은 task, mission, routing, event bus, workspace, checkpoint 같은 더 큰 작업 단위에 참여합니다 — 그래서 작업이 하나의 프롬프트-응답 사이클을 넘어 이어질 수 있습니다.
+- **상태와 메모리** — session state, memory, mission state, workspace state는 개별 모델 세션 밖에서 보존됩니다. 작업을 수행하는 지능은 바뀔 수 있지만 그 주변의 운영 컨텍스트는 유지됩니다.
+- **근거와 책임 추적성** — 실행은 evidence, provenance, audit, 연구 출처, 비용 집계, 정책 결정과 연결됩니다. 질문은 더 이상 "AI가 답을 냈는가?"에 그치지 않고 "무슨 일이 일어났는가, 왜 허용되었는가, 어떤 근거가 뒷받침하는가, 비용은 얼마였는가, 어떤 상태를 남겼는가?"로 확장됩니다.
 
-<p align="center">
-  <img src="docs/assets/demo.gif" alt="Yana AI blocking a force-push, an rm -rf, and a disguised python3 -c inline-script destructive command in real time, entirely locally with no LLM call" width="700" />
-</p>
+### Yana OS — AI 시스템 관리
 
-아래 모든 예시는 2026-07-04에 `core/hooks/guard-destructive.sh`를 실제로 실행한 결과를 그대로 붙여넣은 것이며, 홍보용 문구가 아닙니다 (이 가드가 아직 잡아내지 못하는 것은 [알려진 한계](docs/reference/known-limitations.md) 참고):
+Yana OS는 Linux, macOS, Windows를 대체하지 않습니다 — Yana의 로컬 management plane으로서, 에이전트를 둘러싼 운영 상태를 추론합니다: 어떤 에이전트가 존재하는지, 어떤 identity와 autonomy 수준을 갖는지, 어떤 리소스를 보유하는지, 어떤 작업을 책임지는지, 정상 작동 중인지, 격리(quarantine)되거나 정지(HALT)되어야 하는지. 이는 거버넌스를 개별 도구 호출 단위를 넘어 에이전트 생명주기 관리(identity, agent lifecycle, autonomy, resources, health, monitoring, supervision, leases, governor, quarantine, HALT)로 확장합니다 — 다만 의도적으로 두 번째 실행 엔진이 되지는 않습니다. 실행은 여전히 canonical capability 경계에 속합니다.
 
-```bash
-# Agent tries: git push --force origin main
-Blocked: 'git push --force' (any flag spelling) is not allowed. The
-orchestrator pushes branches; force-pushing risks overwriting shared history.
-
-# Agent tries: rm -rf /some/path
-Blocked: 'rm -rf' (recursive + force, any flag spelling) is irreversible.
-Use targeted 'rm' with explicit paths, or ask the human to confirm first.
-
-# Agent tries: git clean -f
-Blocked: 'git clean -f' (any flag spelling) permanently deletes untracked
-files. Ask the human to confirm before running this.
-```
-
-이것이 전체 핵심입니다: 결정론적(deterministic) 규칙, 로컬 실행, 판단 경로에 LLM 없음, 어떤 데이터도 당신의 컴퓨터를 벗어나지 않습니다.
-
----
-
-## 문제
-
-AI 코딩 에이전트는 실수를 합니다. 잘못된 디렉토리를 `rm -rf`하고, main에 force push하고, 테스트 결과를 지어냅니다. 알아챘을 때는 이미 피해가 발생한 뒤입니다.
-
-Yana AI는 에이전트와 시스템 사이에 위치합니다: 위험할 수 있는 모든 명령은 실행 전에 결정론적 검사 체인을 거칩니다.
-
----
-
-## 무엇을 막는가
-
-파괴적인 git 작업, 워크스페이스 밖의 `rm`, 인터넷 콘텐츠를 bash로 파이프하는 행위, 검증되지 않은 패키지 설치를 Rust 런타임(`yana-rt`)이 뒷받침하는 에이전트 훅으로 막습니다.
-
----
-
-## 작동 방식
+### 인간의 권한은 모델보다 상위에 있습니다
 
 ```
-Agent가 명령을 실행하려 함
-         ↓
-Anti-evasion scan      — base64 디코드+실행, 셸 인터프리터로의 파이프 차단
-Shell sanitization     — 모든 변수를 quote 처리, 셸 특수문자 제거
-Egress / SSRF policy   — 구현은 제공되며 런타임 연결 상태는 표면별로 다름
-Supply-chain vetting   — 구현은 제공되며 런타임 연결 상태는 표면별로 다름
-Blast-radius cap       — 파괴적 명령이 건드릴 수 있는 파일/범위 제한
-위변조 감지 audit log  — 허용/차단된 모든 행동을 기록, 해시 체인 연결
-Human gate             — 되돌릴 수 없는 작업(push, publish, delete)은 명시적 확인 필요
-         ↓
-실행 (또는 차단 + 로그)
+                    HUMAN
+                      │
+                      ▼
+                  GIÁM THỊ
+                HALT / Control
+                      │
+                      ▼
+             YANA CONTROL PLANE
+                      │
+                      ▼
+               RuntimeAuthority
+                      │
+                      ▼
+                Capabilities
+                      │
+                      ▼
+                  Executor
+                      │
+                      ▼
+                     Host
 ```
 
-어떤 것이 실제로 연결된 훅이고 어떤 것이 에이전트가 관례적으로 따르는 정책 문서인지는 [알려진 한계](docs/reference/known-limitations.md)에서 코드 자체를 직접 검증한 내용으로 확인하세요.
+아무리 뛰어난 모델이라도 추론을 잘한다는 이유만으로 스스로 최고 권한이 되지는 않습니다. 서브에이전트는 인간의 권한을 자동으로 물려받지 않습니다. 한 번의 승인이 영구적인 권한을 만들지 않습니다. 그리고 시스템은 모델의 의도와 무관하게 실행 권한을 회수할 수 있습니다.
 
----
+### Skill은 지식입니다. Capability는 권한입니다.
+
+Yana는 방대한 에이전트, 스킬, 커맨드, 룰, 훅 생태계를 유지하지만, 이것들을 실행 권한과는 의도적으로 구분합니다. 스킬은 에이전트에게 작업 수행 방법을 가르칠 수 있지만, capability는 시스템이 실제로 그 작업을 해도 되는지를 결정합니다. 스킬이 천 개 있다고 해서 시스템 권한이 천 개 늘어나는 것은 아닙니다 — 덕분에 Yana의 지식 표면은 신뢰된 실행 표면과 같은 속도로 커질 필요 없이 성장할 수 있습니다.
+
+### 하나의 canonical 운영 계층, 여러 AI 환경
+
+Yana는 모든 AI 제품이 동일한 실행 메커니즘을 쓰도록 강요하지 않습니다. Terminal, Electron Desktop, packaged Web, Discord는 Yana의 Rust 런타임 경로를 사용합니다. 브라우저 전용 Web은 신뢰할 수 있는 런타임에 연결되지 않는 한 호환성 표면으로 남습니다. 다른 제품이 자체 런타임을 소유하는 경우 — Claude Code, Codex, Cursor, Antigravity — Yana는 엔진별 거버넌스 표면을 통해 통합됩니다. 통합 메커니즘은 바뀔 수 있지만 권한 원칙은 바뀌지 않습니다. 하나의 권한 체계가 하나의 가짜 통합 메커니즘을 요구하지는 않습니다.
+
+Yana의 canonical `core/`는 재사용 가능한 운영 지식 — 에이전트, 스킬, 커맨드, 룰, 훅, 스크립트, 정책 — 을 정의하고, 이것이 서로 다른 AI harness(Claude Code, Codex, Cursor 등)로 materialize됩니다. AI 엔진을 바꾼다고 해서 주변 운영 환경을 처음부터 다시 만들 필요는 없습니다. 지능은 바뀔 수 있지만, 워크플로우·거버넌스 원칙·운영 지식·시스템 상태는 그대로 남습니다.
+
+### 더 큰 그림
+
+Yana의 장기적 가치는 단순히 AI 모델을 실행할 수 있다는 데 있지 않습니다 — 모델은 점점 더 교체 가능해지고 있습니다. 에이전트나 스킬의 개수에 있는 것도 아닙니다. 더 강력한 추상화는 그 모델들을 둘러싼 시스템 자체입니다: 교체 가능한 지능과 일시적인 에이전트 작업자를 감싸는 권한, 지속성, 실행.
+
+### 30초 요약
+
+Yana는 서로 독립적인 AI 모델과 에이전트를 하나의 거버넌스가 적용된, 지속되는 시스템으로 통합합니다. 지능을 둘러싼 control plane을 제공합니다: 추론을 위한 모델, 지식과 워크플로우를 위한 에이전트와 스킬, 지속성을 위한 미션과 메모리, 거버넌스가 적용된 실행을 위한 canonical capability.
+
+AI는 추론하고 제안할 수 있습니다. Yana는 그 지능이 어떤 권한을 받을지 결정합니다. 인간이 최종 권한을 갖습니다.
+
+> AI는 생각합니다. Yana는 시스템을 운영합니다. 인간은 계속 통제권을 갖습니다.
 
 ## 빠른 설치
 
@@ -405,13 +500,29 @@ deterministic 결과를 허용합니다.
 형식 요구 사항, 자동화, 개인정보 경계, PDF 지원은
 [Presentation Studio 전체 가이드](docs/operations/presentation-studio.md)를 참고하세요.
 
-**벤치마크** (2026-07-23 측정, 전체 방법론은 `BENCHMARK.md` 참고):
-`doctor`/`ci` 같이 범위가 제한된 명령은 Python보다 약 ~2–12배 빠릅니다
-(시작 시간이 지배적); 전체 리포지토리 `scan`은 19,000개 파일 규모에서 ~1.1배로 수렴합니다
-(그 규모에서는 시작 시간이 아니라 작업량이 지배적). 이 줄이 예전에 주장했던 `1256배`라는
-수치는 이미 한 번 검증되지 않은 것으로 밝혀졌고(2026-05-31, 커밋 `fb6a0cd7`)
-관련 없는 README 복원(2026-07-07)으로 다시 들어왔습니다 — 그때나 지금이나
-`BENCHMARK.md`의 어떤 측정으로도 재현되지 않습니다.
+**현재 성능 스냅샷** (2026-08-26, Apple M4 MacBook Air, 16 GB RAM,
+macOS 27 beta, release build에서 측정; 과거 방법론과 baseline은
+`BENCHMARK.md` 참고):
+
+| 실행 경로 | `yana-rt` | Python 기준 구현 | 현재 결과 |
+|---|---:|---:|---|
+| 프로세스 시작 | **4.21 ms** | — | 7월 baseline 4.15 ms와 사실상 동일 |
+| `doctor` | **255 ms** | 365 ms | Rust가 1.43배 빠르지만 현재 check 수는 10개, Python은 16개 |
+| `ci check` | 414 ms | **40 ms** | Rust가 10.34배 느리고, Python이 warning 3개를 반환할 때 finding 0개를 반환 |
+| `scan core/skills` | **4.45초** | 8.89초 | Rust가 2.00배 빠름 |
+| 기본 전체 저장소 `scan` | 14.61초 | **7.90초** | 현재 Python이 1.85배 빠름 |
+| lock이 없는 HALT hook | **3.80 ms** | — | 7월 baseline 4.97 ms보다 빠름 |
+| Token-budget guard | **3.48 ms** | — | native fast path 적용 후 65 ms에서 감소 |
+
+Release binary는 약 14 MiB입니다. Skills scan의 peak RSS는 Rust 15.3 MiB,
+Python 25.3 MiB이고, 기본 전체 scan은 각각 23.0 MiB와 34.1 MiB였습니다.
+이는 로컬 측정값이며 크로스 플랫폼 성능 주장으로 사용하지 않습니다. Linux와
+Windows 수치는 아직 측정하지 않았습니다.
+
+**이 측정에서 준비된 개선 작업:** 최적화 전에 `ci check` finding parity 복구,
+Python `doctor`에는 있지만 Rust 경로에는 없는 6개 check 정합화, Rust 전체 저장소
+scanner profiling, 현재 release build의 warning 140줄 감소입니다. 프로세스 시작,
+HALT enforcement, token-budget enforcement는 현재 추가 최적화가 필요하지 않습니다.
 
 ---
 
@@ -622,7 +733,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI (웹 제품)
 
-**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[명령어 레퍼런스 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[라이브 →](https://yanai-production.up.railway.app)** · **[데스크톱 다운로드 →](https://yana.vutam.link)** · **[명령어 레퍼런스 →](https://yana.vutam.link/commands.html)** · **[최신 릴리스 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana는 Yana AI core 위에 구축된 첫 번째 end-user 인터페이스입니다. Electron Desktop 앱은 통제된 turn에 로컬 Rust runtime을 사용하며, 브라우저 전용 배포는 신뢰할 수 있는 local runtime에 연결되기 전까지 호환성 surface로 남습니다.
 
@@ -657,7 +768,7 @@ Electron Desktop → local NDJSON adapter → yana-rt headless
 - 📊 **100% 실제 데이터** — 실시간 프로바이더 통계, L1 메모리 가든, audit-log 상태 패널; 데모 수치 없음
 - 스킬 라우팅 내장, 자연스럽게 입력하면 Yana AI가 올바른 에이전트를 디스패치
 - **코딩 외 사용 사례:** 학습(소크라테스식 학습 도우미), 일상 업무(요약 / 계획 / 초안 작성)
-- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+- SSE 스트리밍, 모바일 친화적 · **[Electron 데스크톱 앱](https://yana.vutam.link)** — macOS, Windows, Linux
 
 Yana AI가 전력망이라면, Yana는 거기에 연결된 첫 번째 건물입니다.
 
@@ -683,7 +794,7 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.2** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Product (rules/hooks/skills/agents/CLI) | **1.4.8** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
 | Rust 런타임 (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
 | Python 패키지 | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
@@ -759,7 +870,7 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 | | |
 |---|---|
 | 전체 명령어 목록 | [COMMANDS.md](COMMANDS.md) |
-| 전체 명령어 목록 (CLI + 슬래시 명령어, 웹) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
+| 전체 명령어 목록 (CLI + 슬래시 명령어, 웹) | [yana.vutam.link/commands.html](https://yana.vutam.link/commands.html) |
 | 기여 안내 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 행동 강령 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | 보안 정책 | [SECURITY.md](SECURITY.md) |
@@ -774,9 +885,9 @@ yana-ai badge . --json    # 기계가 읽을 수 있는 출력
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
+| Website | [yana.vutam.link](https://yana.vutam.link/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+| Yana Desktop | [yana.vutam.link](https://yana.vutam.link) |
 
 ---
 

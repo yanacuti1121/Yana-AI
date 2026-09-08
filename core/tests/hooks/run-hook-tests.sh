@@ -2323,6 +2323,44 @@ test_validator "Allow safe Write in project" \
 # supposed to let through -- this had been silently denying all of them.
 test_validator "Allow ordinary Bash command with no null byte (regression: ANSI-C-quoting false-positive fix)" \
     '{"tool_name":"Bash","tool_input":{"command":"echo hi"}}' "allow"
+
+# Regression test for the actual detection fix (2026-08-27): the test
+# above only proves the false-positive bug is gone -- it says nothing
+# about whether a REAL null byte is caught. This is the exact case the
+# prior revision's check could never have caught even before its own
+# false-positive bug: bash command substitution strips an embedded NUL
+# before a variable can ever hold it, so the fix pipes jq's raw decoded
+# stdout directly into `od -An -tx1 | grep -qw '00'` before any bash
+# variable captures it.
+test_tool_validator_null_byte_injection() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-validator.sh [Deny genuine null-byte injection in Bash command (regression: real null byte, not the removed no-op check)]... "
+
+    # Built via a runtime octal-printf escape rather than typed literally in
+    # this file's source: a real JSON null-byte escape (backslash + "u0000")
+    # is legal, valid JSON (RFC 8259 requires a raw NUL byte to be escaped
+    # this way) -- but typing that 6-character escape sequence directly
+    # into this file's source risks an authoring/editing tool silently
+    # materializing it as an actual embedded NUL byte, which would make the
+    # fixture itself invalid JSON and silently short-circuit the hook via
+    # its TOOL_NAME extraction failing, masking a real regression as a
+    # false PASS (this happened once while writing this exact test).
+    local esc payload output exit_code
+    esc=$(printf '\134u0000')
+    payload='{"tool_name":"Bash","tool_input":{"command":"ls'"${esc}"'; rm -rf /"}}'
+
+    output=$(TOOL_VALID_TEST_INPUT="$payload" bash "$HOOKS_DIR/tool-validator.sh" <<< '{}' 2>/dev/null)
+    exit_code=$?
+
+    if [[ "$exit_code" == "2" ]] && echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+        echo "PASS"
+    else
+        echo "FAIL (exit=$exit_code, output: '$output')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_tool_validator_null_byte_injection
+
 test_validator "Bypass suppresses block" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://localhost:9000"}}' "allow" "bypass"
 
@@ -2414,7 +2452,7 @@ test_validator "Allow literal .. not bounded by / or string end (regex anchor co
     '{"tool_name":"Write","tool_input":{"file_path":"café..secret"}}' "allow"
 test_validator "Block traversal hidden behind an RTL override character" \
     '{"tool_name":"Write","tool_input":{"file_path":"docs/‮gnp.exe/../../secret"}}' "deny"
-test_validator "Allow Vietnamese Bash command content (no content-based check left post null-byte removal)" \
+test_validator "Allow Vietnamese Bash command content (multi-byte UTF-8 must not false-positive the null-byte check)" \
     '{"tool_name":"Bash","tool_input":{"command":"echo '"'"'xin chào 你好 🎉'"'"'"}}' "allow"
 test_validator "Fail closed (deny, not crash) on unresolvable raw-UTF-8 IDN WebFetch host" \
     '{"tool_name":"WebFetch","tool_input":{"url":"http://例え.jp/"}}' "deny"
@@ -3393,6 +3431,102 @@ test_sandbox_wrap_pipe_preserved() {
     fi
 }
 test_sandbox_wrap_pipe_preserved
+
+# ── sandbox-wrap.sh — YANA_COMPACT native compaction addition ───────────────
+# Uses the real built yana-rt binary (target/debug/yana-rt) when present —
+# skips gracefully if this checkout hasn't been built yet, matching this
+# repo's own "degrade, don't crash" convention for missing optional deps.
+YANA_RT_BIN_DIR="$REPO_ROOT/target/debug"
+
+test_sandbox_wrap_compact() {
+    local test_name=$1 input_json=$2 compact_env=$3 mode_env=$4 expect=$5
+    # expect: "compacted" | "sandboxed" | "unchanged"
+    local extra_env_var=${6:-""} extra_env_val=${7:-""}
+
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing sandbox-wrap.sh [$test_name]... "
+
+    local -a env_args=(
+        "YANA_COMPACT=$compact_env"
+        "YANA_SANDBOX_MODE=$mode_env"
+        "PATH=$YANA_RT_BIN_DIR:$PATH"
+    )
+    if [[ -n "$extra_env_var" ]]; then
+        env_args+=("$extra_env_var=$extra_env_val")
+    fi
+
+    local output
+    output=$(echo "$input_json" | env "${env_args[@]}" bash "$HOOKS_DIR/sandbox-wrap.sh" 2>/dev/null)
+
+    case "$expect" in
+        unchanged)
+            if [[ -z "$output" ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected silent passthrough, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+        compacted)
+            local wrapped
+            wrapped=$(echo "$output" | jq -r '.hookSpecificOutput.updatedInput.command // ""' 2>/dev/null)
+            if [[ "$wrapped" == *"yana-rt compact"* ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected updatedInput.command to route through yana-rt compact, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+        sandboxed)
+            local wrapped
+            wrapped=$(echo "$output" | jq -r '.hookSpecificOutput.updatedInput.command // ""' 2>/dev/null)
+            if [[ "$wrapped" == *"sandbox-exec.sh"* && "$wrapped" != *"yana-rt compact"* ]]; then
+                echo "PASS"
+            else
+                echo "FAIL (expected sandbox-exec.sh wrap WITHOUT yana-rt compact, got: ${output:0:200})"
+                FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+            ;;
+    esac
+}
+
+if [[ -x "$YANA_RT_BIN_DIR/yana-rt" ]]; then
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + recognized pattern -> routes through yana-rt compact" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "" "compacted"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + unrecognized command -> silent passthrough" \
+        '{"tool_name":"Bash","tool_input":{"command":"curl http://example.com"}}' \
+        "1" "" "unchanged"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + YANA_COMPACT_BYPASS=1 -> silent passthrough" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "" "unchanged" "YANA_COMPACT_BYPASS" "1"
+
+    test_sandbox_wrap_compact \
+        "YANA_COMPACT=1 + already-wrapped command -> re-entrancy guard, unchanged" \
+        '{"tool_name":"Bash","tool_input":{"command":"yana-rt compact -- bash -c ls"}}' \
+        "1" "" "unchanged"
+
+    # KNOWN LIMITATION test: both opted in simultaneously -> sandbox wins,
+    # compact is skipped for that call (documented in the hook's own header,
+    # not a silent gap). This is the regression test for the composition bug
+    # found and fixed during implementation: compact must never see an
+    # already-sandbox-wrapped command string as its "original" command.
+    test_sandbox_wrap_compact \
+        "Both YANA_COMPACT=1 and YANA_SANDBOX_MODE set -> sandbox wins, compact skipped this call" \
+        '{"tool_name":"Bash","tool_input":{"command":"git status --porcelain"}}' \
+        "1" "ulimit" "sandboxed"
+else
+    echo "(skipping YANA_COMPACT sandbox-wrap.sh tests — $YANA_RT_BIN_DIR/yana-rt not built; run 'cargo build --features cli' first)"
+fi
+
+# Compaction is unaffected by sandbox-off default: with neither env var set,
+# the earlier "Off by default" test above already covers this — no new case
+# needed for YANA_COMPACT unset.
 
 # ── verify-hook-mirrors.sh — ADR-008 "Still open" follow-up ──────────────────
 # core/scripts/verify-hook-mirrors.sh (2026-07-23) closes the exact gap that

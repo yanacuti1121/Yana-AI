@@ -1,20 +1,27 @@
-//! Production `flock-v1` locking primitive for Unix platforms.
+//! Production `flock-v1` locking primitive for Unix and Windows.
 //!
 //! The canonical lock is a stable regular file. It is never truncated,
 //! renamed, reclaimed, or unlinked. Kernel ownership is tied to the acquired
-//! file descriptor and is released on close or process death.
+//! file descriptor (Unix `flock(2)`) or exclusive share-mode handle (Windows
+//! `share_mode(0)`) and is released on close or process death.
+//!
+//! `FlockGuard::clear_cloexec_for_exec` and the `guard lock-with` CLI
+//! subcommand that uses it remain Unix-only: they hold the lock across
+//! `Command::exec()`, a process-image-replacement primitive Windows has no
+//! equivalent for.
 
 use anyhow::{bail, Context, Result};
 use sha2::{Digest, Sha256};
-#[cfg(unix)]
-use std::fs::{File, OpenOptions};
+use std::fs::File;
+#[cfg(any(unix, windows))]
+use std::fs::OpenOptions;
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
 #[cfg(unix)]
 use std::os::unix::{fs::OpenOptionsExt, io::AsRawFd};
 use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 use std::time::Instant;
 
 pub const LOCK_ROOT: &str = ".claude/state/locks";
@@ -22,7 +29,7 @@ pub const PROTOCOL_FILE: &str = ".claude/state/locking-protocol-version";
 pub const MAINTENANCE_FILE: &str = ".claude/state/locking-maintenance";
 pub const PROTOCOL_VERSION: &str = "flock-v1";
 pub const TEST_MODE_ENV: &str = "YANA_LOCKING_PROTOCOL_MODE";
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 const POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 pub fn protocol_is_active(project_root: &Path) -> Result<()> {
@@ -148,7 +155,7 @@ pub fn lock_path(project_root: &Path, identity: &str) -> PathBuf {
         .join(format!("{}.lock", lock_name(identity)))
 }
 
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 fn ensure_lock_root(project_root: &Path) -> Result<PathBuf> {
     let mut current = project_root.to_path_buf();
     for component in [".claude", "state", "locks"] {
@@ -172,8 +179,18 @@ fn ensure_lock_root(project_root: &Path) -> Result<PathBuf> {
     Ok(current)
 }
 
+#[cfg(any(unix, windows))]
+fn reject_non_regular_lock_path(path: &Path) -> Result<()> {
+    if path.exists() && !path.symlink_metadata()?.file_type().is_file() {
+        bail!(
+            "flock-v1 lock path must be a regular file: {}",
+            path.display()
+        );
+    }
+    Ok(())
+}
+
 pub struct FlockGuard {
-    #[cfg(unix)]
     file: File,
 }
 
@@ -193,7 +210,7 @@ impl FlockGuard {
 
     #[cfg(not(unix))]
     pub fn clear_cloexec_for_exec(&self) -> Result<()> {
-        bail!("flock-v1 is supported only on macOS and Linux")
+        bail!("flock-v1's exec-replacement lock ('guard lock-with') is supported only on macOS and Linux")
     }
 }
 
@@ -210,12 +227,7 @@ impl Drop for FlockGuard {
 pub fn acquire(identity: &str, project_root: &Path, timeout: Duration) -> Result<FlockGuard> {
     protocol_is_active(project_root)?;
     let path = ensure_lock_root(project_root)?.join(format!("{}.lock", lock_name(identity)));
-    if path.exists() && !path.symlink_metadata()?.file_type().is_file() {
-        bail!(
-            "flock-v1 lock path must be a regular file: {}",
-            path.display()
-        );
-    }
+    reject_non_regular_lock_path(&path)?;
     let file = OpenOptions::new()
         .create(true)
         .read(true)
@@ -255,9 +267,53 @@ pub fn acquire(identity: &str, project_root: &Path, timeout: Duration) -> Result
     }
 }
 
-#[cfg(not(unix))]
+// Same technique as `os::supervisor::acquire_receipts_lock` /
+// `remote::lock::FileLock`'s Windows arm: `share_mode(0)` gives real
+// kernel-exclusive mutual exclusion (not best-effort/advisory), the same
+// safety property `flock(2)` gives on Unix -- which is what
+// `capability::lease::LeaseStore` actually needs (its own doc comments:
+// the lock exists to stop two concurrent budget-consuming callers from
+// both reading the same remaining balance and both spending it).
+//
+// Deliberately does NOT port the Unix arm's dev()/ino() TOCTOU/symlink-swap
+// check (`std::os::unix::fs::MetadataExt`-specific, no port here) --
+// matches the already-shipped precedent in `ReceiptsLock`, which has no
+// equivalent check either. The safety property that matters is preserved
+// by `share_mode(0)` regardless.
+#[cfg(windows)]
+pub fn acquire(identity: &str, project_root: &Path, timeout: Duration) -> Result<FlockGuard> {
+    use std::os::windows::fs::OpenOptionsExt;
+
+    protocol_is_active(project_root)?;
+    let path = ensure_lock_root(project_root)?.join(format!("{}.lock", lock_name(identity)));
+    reject_non_regular_lock_path(&path)?;
+    let deadline = Instant::now()
+        .checked_add(timeout)
+        .ok_or_else(|| anyhow::anyhow!("flock-v1 timeout is too large"))?;
+    loop {
+        let mut options = OpenOptions::new();
+        options.create(true).read(true).write(true).share_mode(0);
+        match options.open(&path) {
+            Ok(file) => return Ok(FlockGuard { file }),
+            Err(error) => {
+                // ERROR_SHARING_VIOLATION == 32: another process holds the
+                // exclusive handle; anything else is a real error.
+                if error.raw_os_error() != Some(32) {
+                    return Err(error)
+                        .with_context(|| format!("opening flock-v1 lock file {}", path.display()));
+                }
+            }
+        }
+        if Instant::now() >= deadline {
+            bail!("flock-v1 timed out acquiring '{identity}' after {timeout:?}");
+        }
+        std::thread::sleep(POLL_INTERVAL);
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
 pub fn acquire(_identity: &str, _project_root: &Path, _timeout: Duration) -> Result<FlockGuard> {
-    bail!("flock-v1 is supported only on macOS and Linux")
+    bail!("flock-v1 is supported only on macOS, Linux, and Windows")
 }
 
 pub fn with_lock<T>(
@@ -348,5 +404,80 @@ mod tests {
         let identity = canonical_identity("key:state/symlink.json", root.path()).unwrap();
         assert!(acquire(&identity, root.path(), Duration::ZERO).is_err());
         assert!(std::fs::read_dir(outside.path()).unwrap().next().is_none());
+    }
+}
+
+// Windows coverage is intentionally a narrower subset of the Unix module
+// above, not a full port:
+//   - `lock_file_inode_is_stable` relies on `std::os::unix::fs::MetadataExt`
+//     (`.ino()`), which has no Windows equivalent exercised here (see the
+//     `acquire()` Windows arm's doc comment: the dev()/ino() TOCTOU check
+//     is deliberately not ported, matching the `ReceiptsLock` precedent).
+//   - `symlinked_lock_root_fails_loud` relies on
+//     `std::os::unix::fs::symlink`, which requires an account privilege most
+//     CI runners don't grant by default on Windows, making the test
+//     environment-fragile rather than reliably reproducible there.
+// What IS covered: the same directory-residue rejection Unix gets, plus a
+// concurrent-acquire test that proves the actual safety property
+// `capability::lease::LeaseStore` depends on -- real mutual exclusion, not
+// merely "the API returns Ok" -- matching the proof pattern
+// `remote::lock::FileLock`'s own
+// `concurrent_lockers_serialize_instead_of_both_succeeding_at_once` test uses.
+#[cfg(all(test, windows))]
+mod windows_tests {
+    use super::*;
+
+    fn active_root() -> tempfile::TempDir {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join(".claude/state")).unwrap();
+        std::fs::write(root.path().join(PROTOCOL_FILE), PROTOCOL_VERSION).unwrap();
+        root
+    }
+
+    #[test]
+    fn directory_lock_path_fails_loud() {
+        let root = active_root();
+        let identity = canonical_identity("key:state/directory.json", root.path()).unwrap();
+        std::fs::create_dir_all(lock_path(root.path(), &identity)).unwrap();
+        assert!(acquire(&identity, root.path(), Duration::ZERO).is_err());
+    }
+
+    #[test]
+    fn concurrent_acquire_serializes() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::sync::Arc;
+
+        let root = active_root();
+        let identity = canonical_identity("key:state/concurrent.json", root.path()).unwrap();
+        let overlap_count = Arc::new(AtomicUsize::new(0));
+        let inside_critical_section = Arc::new(AtomicUsize::new(0));
+
+        let handles: Vec<_> = (0..4)
+            .map(|_| {
+                let root = root.path().to_path_buf();
+                let identity = identity.clone();
+                let overlap_count = Arc::clone(&overlap_count);
+                let inside_critical_section = Arc::clone(&inside_critical_section);
+                std::thread::spawn(move || {
+                    with_lock(&identity, &root, Duration::from_secs(5), || {
+                        if inside_critical_section.fetch_add(1, Ordering::SeqCst) != 0 {
+                            overlap_count.fetch_add(1, Ordering::SeqCst);
+                        }
+                        std::thread::sleep(Duration::from_millis(20));
+                        inside_critical_section.fetch_sub(1, Ordering::SeqCst);
+                    })
+                    .unwrap();
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().unwrap();
+        }
+        assert_eq!(
+            overlap_count.load(Ordering::SeqCst),
+            0,
+            "two threads observed the critical section held concurrently -- \
+             flock-v1's Windows lock did not actually exclude"
+        );
     }
 }

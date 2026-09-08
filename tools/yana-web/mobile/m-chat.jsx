@@ -96,9 +96,14 @@ function mDetectSensitivity(text) {
 }
 
 
-// ── Markdown (shared logic with desktop/chat.jsx) ─────────────────────────────
+// ── Markdown (shared logic with desktop/new-app/chat/markdown-body.jsx) ───────
 function mSafeHtml(html) {
-  return html.replace(/<script[\s\S]*?<\/script>/gi,"").replace(/ on\w+\s*=\s*["'][^"']*["']/gi,"").replace(/ on\w+\s*=\s*[^\s>]*/gi,"");
+  if (typeof DOMPurify === "undefined") {
+    // No client-side fallback beyond escaping — DOMPurify not loaded is a
+    // build/CDN problem, not something a regex blocklist can safely patch.
+    return html.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  }
+  return DOMPurify.sanitize(html);
 }
 function mRenderMd(text) {
   if (!text) return "";

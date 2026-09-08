@@ -30,6 +30,19 @@ TOOL_NAME=$(python3 -c "import json,sys; d=json.load(open('$TMP_INPUT')); print(
 if [[ -n "${YANA_GUARDED_HOOK:-}" ]]; then
   HOOK_SCRIPT="$YANA_GUARDED_HOOK"
   if [[ ! -r "$HOOK_SCRIPT" ]]; then
+    # SECURITY FIX (2026-09-06): this used to be a bare `exit 0` — a guarded
+    # hook silently never running (wrong path, deleted file, mirror drift
+    # between core/.claude/.codex) produced no log line and no stderr output
+    # anywhere. Since every deny-capable hook in .claude/settings.json
+    # (guard-destructive.sh, tool-proxy-enforcer.sh, giamthi-halt-check.sh,
+    # per-tool-circuit-breaker.sh, etc.) is wrapped by this script, a single
+    # broken path silently disabled that entire guard with no trace. This is
+    # a fail-loud fix only — it does NOT change the fail-open pass-through
+    # behavior itself. Fail-closed for deny-capable hooks is deferred:
+    # it requires classifying which of the ~39 guarded hooks are actually
+    # deny-capable vs. advisory-only, which is a separate, reviewed change.
+    echo "{\"ts\":\"$TIMESTAMP\",\"hook\":\"$HOOK_SCRIPT\",\"tool\":\"$TOOL_NAME\",\"action\":\"hook-missing\"}" >> "$LOG" 2>/dev/null || true
+    echo "[hook-timeout-guard] WARNING: guarded hook not found or unreadable, guard did NOT run: $HOOK_SCRIPT (tool=$TOOL_NAME)" >&2
     exit 0
   fi
 

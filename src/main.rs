@@ -4,6 +4,8 @@ mod bus;
 mod capability;
 mod chat;
 mod ci;
+mod compact;
+mod connector;
 mod config;
 mod cost;
 mod design;
@@ -22,7 +24,9 @@ mod model;
 mod observability;
 mod os;
 mod plugin;
+mod project_workspace;
 mod provenance;
+mod research;
 mod route;
 pub mod scanner;
 mod score;
@@ -94,6 +98,16 @@ enum Commands {
         #[command(subcommand)]
         action: MemoryAction,
     },
+    /// Research claims with source, observation date, and confidence
+    Research {
+        #[command(subcommand)]
+        action: research::ResearchAction,
+    },
+    /// Connector registry — explicit, local permissions before an integration may run
+    Connector {
+        #[command(subcommand)]
+        action: connector::ConnectorAction,
+    },
     /// Configuration — init/read yana-ai settings for any repo
     /// DOCTOR_DISPATCH_EXEMPT: core/scripts/config_manager.py is canonical —
     /// it has get/reset subcommands this Rust port doesn't (2026-06-21).
@@ -110,6 +124,20 @@ enum Commands {
     Cost {
         #[command(subcommand)]
         action: CostAction,
+    },
+    /// Capability Lease — time-boxed, scope-boxed delegated authority for
+    /// a subagent, without a human approving every individual call
+    Lease {
+        #[command(subcommand)]
+        action: LeaseAction,
+    },
+    /// Authority decision receipts — evidence for why each capability
+    /// invocation was allowed, denied, or required approval (Authority
+    /// Hardening, item #3). Read-only; a lease is evidence supplied to
+    /// authority, and a receipt is evidence *about* an authority decision.
+    Authority {
+        #[command(subcommand)]
+        action: AuthorityAction,
     },
     /// Audit activity dashboard — read-only summary over audit-chain.log
     /// (tool-call volume, allow/deny/warn rate, busiest tools/hooks). No
@@ -237,6 +265,33 @@ enum Commands {
         #[command(subcommand)]
         action: evidence::EvidenceAction,
     },
+    /// Native Bash-output compaction — replaces the dead, external
+    /// `rtk-bridge.sh` bridge with a first-class Yana AI subsystem. Opt-in
+    /// (YANA_COMPACT=1), wired through core/hooks/sandbox-wrap.sh (the one
+    /// hook in this repo allowed to rewrite Bash commands). Every exact
+    /// statistic a matcher reports (commit count, pass/fail count) is
+    /// computed from the FULL, untruncated output before any compaction —
+    /// see src/compact/mod.rs's module doc for why, including the specific
+    /// rtk incident (2026-07-26) this exists to not repeat.
+    /// DOCTOR_DISPATCH_EXEMPT: not routed through bin/yana by design — called
+    /// directly as `yana-rt compact -- <command>` from `sandbox-wrap.sh`'s
+    /// own rewrite (see that hook) and by hand for manual testing, the same
+    /// fast-path pattern `Guard` above uses. There is no end-user-facing
+    /// `yana-ai compact` command to add — this is invoked by the hook chain
+    /// and by a human running `yana-rt` directly, not through `bin/yana`.
+    Compact {
+        /// Classify only — does this command match a known pattern? Never
+        /// executes `command`. Exit 0 = matches, exit 1 = no known pattern.
+        #[arg(long)]
+        detect: bool,
+        #[arg(long)]
+        json: bool,
+        /// Force raw passthrough for this one call (mirrors YANA_COMPACT_BYPASS=1)
+        #[arg(long)]
+        raw: bool,
+        #[arg(trailing_var_arg = true, required = true)]
+        command: Vec<String>,
+    },
     /// Canonical capability runtime, one-shot scriptable surface — the
     /// same `crate::capability::*` MCP's 9 tools and chat's read_file/
     /// run_command use, callable from non-Rust clients (Desktop) via argv,
@@ -333,6 +388,13 @@ enum Commands {
         /// Machine-readable stdin/NDJSON adapter used by the Desktop GUI.
         #[arg(long, hide = true)]
         headless: bool,
+        /// Completes a paused turn from a prior `--headless` call that
+        /// returned `{"type":"awaiting_approval",...}` (Authority
+        /// Hardening item #5). Reads `{"approval_id","decision",
+        /// "decided_by",["api_key"]}` from stdin. Mutually exclusive with
+        /// every other flag except `--provider`.
+        #[arg(long, hide = true)]
+        resume_approval: bool,
     },
     /// Program J Phase 9 spike — MCP Server exposing `check_command` over
     /// stdio. NOT wired into any live client (Cursor/Claude Code/etc. do
@@ -396,19 +458,44 @@ enum TaskAction {
         name: String,
         #[arg(long)]
         scope: Option<String>,
+        /// Roadmap Phase 8 (Desktop Tasks view) — machine-readable output.
+        #[arg(long)]
+        json: bool,
     },
     /// List all tasks
-    List,
+    List {
+        #[arg(long)]
+        json: bool,
+    },
     /// Mark a task done with evidence
     Done {
         id: String,
         #[arg(long)]
         evidence: String,
+        #[arg(long)]
+        json: bool,
     },
     /// Show task details
     Status { id: String },
     /// Remove a task
-    Drop { id: String },
+    Drop {
+        id: String,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Add a typed dependency edge (Yana Studio architecture audit, Phase 1
+    /// — only `blocks` affects readiness; the others are informational)
+    Depend {
+        id: String,
+        /// Target task this one depends on
+        #[arg(long)]
+        on: String,
+        /// blocks | related | parent-child | discovered-from
+        #[arg(long = "type", default_value = "blocks")]
+        dep_type: String,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -478,6 +565,33 @@ enum MemoryAction {
     },
     /// Get a fact by key
     Get { key: String },
+    /// Recall L3 facts relevant to a task, with transparent lexical scoring
+    Recall {
+        query: String,
+        #[arg(long, default_value_t = 8)]
+        limit: usize,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Build a bounded, provenance-preserving context fragment from L3 memory
+    Pack {
+        query: String,
+        #[arg(long, default_value_t = 8)]
+        limit: usize,
+        #[arg(long, default_value_t = 6000)]
+        max_chars: usize,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Store a session handoff with a summary and explicit next steps
+    Checkpoint {
+        task: String,
+        summary: String,
+        #[arg(long = "next")]
+        next: Vec<String>,
+        #[arg(long)]
+        tag: Vec<String>,
+    },
     /// List facts
     List {
         #[arg(long)]
@@ -545,7 +659,54 @@ enum PluginAction {
 
 #[derive(Subcommand)]
 enum CostAction {
+    /// Cost summary — also prints the currently persisted daily/monthly policy
     Show,
+    /// Recommend a model lane using task complexity, sensitivity, and today's spend
+    Recommend {
+        task: String,
+        /// Override the persisted daily budget for this call only; omit to
+        /// use the saved policy (see `cost set-policy`), default $5/day if
+        /// none was ever saved.
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Recommend a concrete configured provider for the chosen cost lane; never invokes it
+    Plan {
+        task: String,
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Gate a proposed model call against today's AND this month's tracked
+    /// spend; exits 3 when either ceiling would be exceeded
+    Guard {
+        task: String,
+        /// Override the persisted daily budget for this call only (monthly
+        /// always comes from the saved policy — set it via `cost set-policy`)
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        /// Caller-supplied upper estimate for this proposed call
+        #[arg(long)]
+        estimated_cost_usd: f64,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Persist daily/monthly spend ceilings for this project
+    /// (.yana-ai/cost-policy.json). Only supplied fields change.
+    SetPolicy {
+        #[arg(long)]
+        daily_budget_usd: Option<f64>,
+        #[arg(long)]
+        monthly_budget_usd: Option<f64>,
+        /// Remove any configured monthly ceiling (monthly becomes unenforced)
+        #[arg(long)]
+        clear_monthly_budget: bool,
+        #[arg(long)]
+        json: bool,
+    },
     Log {
         task: String,
         tier: String,
@@ -558,6 +719,88 @@ enum CostAction {
     Breakdown {
         #[arg(default_value = "tier")]
         by: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum LeaseAction {
+    /// Grant a lease — a subject (typically `agent:<name>`) may execute a
+    /// capability, within an allow/deny command list, until it expires or
+    /// its invocation budget runs out. Persisted to `.yana-ai/leases.json`.
+    Grant {
+        #[arg(long)]
+        subject: String,
+        #[arg(long)]
+        capability: String,
+        /// Repeatable. Prefix-matched against the command text (for
+        /// `command.execute`); ignored for capabilities with no command
+        /// argument.
+        #[arg(long = "allow")]
+        allow: Vec<String>,
+        /// Repeatable. Checked before `--allow`; any match here always
+        /// denies, even if the same command also matches an allow entry.
+        #[arg(long = "deny")]
+        deny: Vec<String>,
+        #[arg(long)]
+        expires_in_minutes: u64,
+        #[arg(long)]
+        invocation_budget: Option<u32>,
+        /// Delegate from an existing lease (Authority Hardening item #6):
+        /// this new lease can never exceed what the named parent lease
+        /// itself still permits — enforced at every consume, not just
+        /// checked here.
+        #[arg(long)]
+        parent_lease_id: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List every lease recorded for this project, with a computed status
+    /// (active / expired / budget exhausted / revoked)
+    List {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Revoke a lease immediately by id — it stops matching on the very
+    /// next authority check, no grace period
+    Revoke {
+        id: String,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand)]
+enum AuthorityAction {
+    /// List authority decision receipts recorded for this project, oldest
+    /// first. Each receipt traces one capability decision: allow, deny,
+    /// or human-approval-required, with the reason and (if a lease was
+    /// the evidence) which lease.
+    Receipts {
+        /// Show only the last N receipts (default: all)
+        #[arg(long)]
+        last: Option<usize>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List execution receipts (Authority Hardening item #4) recorded for
+    /// this project, oldest first. Each traces one capability invocation
+    /// back to the authority decision that permitted it.
+    Executions {
+        /// Show only the last N receipts (default: all)
+        #[arg(long)]
+        last: Option<usize>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List durable pending approvals (Authority Hardening item #5) — a
+    /// remote-client turn paused awaiting a human decision, and every
+    /// decision already recorded against it.
+    PendingApprovals {
+        /// Show only this one approval id
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -583,11 +826,12 @@ fn main() {
     let cli = parse_cli();
     match cli.command {
         Commands::Task { action } => match action {
-            TaskAction::Create { name, scope } => task::cmd_task_create(name, scope),
-            TaskAction::List => task::cmd_task_list(),
-            TaskAction::Done { id, evidence } => task::cmd_task_done(id, evidence),
+            TaskAction::Create { name, scope, json } => task::cmd_task_create(name, scope, json),
+            TaskAction::List { json } => task::cmd_task_list(json),
+            TaskAction::Done { id, evidence, json } => task::cmd_task_done(id, evidence, json),
             TaskAction::Status { id } => task::cmd_task_status(id),
-            TaskAction::Drop { id } => task::cmd_task_drop(id),
+            TaskAction::Drop { id, json } => task::cmd_task_drop(id, json),
+            TaskAction::Depend { id, on, dep_type, json } => task::cmd_task_depend(id, on, dep_type, json),
         },
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => task::cmd_eval_run(id),
@@ -628,6 +872,14 @@ fn main() {
                 scope,
             } => memory::cmd_memory_store(key, value, tag, agent, confidence, scope),
             MemoryAction::Get { key } => memory::cmd_memory_get(key),
+            MemoryAction::Recall { query, limit, json } => memory::cmd_memory_recall(query, limit, json),
+            MemoryAction::Pack { query, limit, max_chars, json } => memory::cmd_memory_pack(query, limit, max_chars, json),
+            MemoryAction::Checkpoint { task, summary, next, tag } => {
+                if let Err(error) = memory::cmd_memory_checkpoint(task, summary, next, tag) {
+                    eprintln!("[memory] {error}");
+                    std::process::exit(2);
+                }
+            }
             MemoryAction::List { tag, agent, last } => memory::cmd_memory_list(tag, agent, last),
             MemoryAction::Promote { key, l1_dir } => memory::cmd_memory_promote(key, l1_dir),
             MemoryAction::Import { l2_dir } => memory::cmd_memory_import(l2_dir),
@@ -740,6 +992,8 @@ fn main() {
             std::process::exit(exit_code);
         }
         Commands::Mission { action } => mission::dispatch(action),
+        Commands::Research { action } => research::dispatch(action),
+        Commands::Connector { action } => connector::dispatch(action),
         Commands::Route { action } => route::dispatch(action),
         Commands::Hunt { action } => hunt::dispatch(action),
         Commands::Ci { action } => ci::dispatch(action),
@@ -764,6 +1018,9 @@ fn main() {
         Commands::Init { action } => init::dispatch(action),
         Commands::Provenance { action } => provenance::dispatch(action),
         Commands::Evidence { action } => evidence::dispatch(action),
+        Commands::Compact { detect, json, raw, command } => {
+            compact::dispatch(detect, json, raw, command)
+        }
         Commands::Capability { action } => capability::cli::dispatch(action),
         Commands::Chat {
             provider,
@@ -773,8 +1030,24 @@ fn main() {
             verbose,
             no_sandbox,
             headless,
+            resume_approval,
         } => {
-            if headless {
+            if resume_approval {
+                let provider = provider.unwrap_or_else(|| "ollama".to_string());
+                if model.is_some() || system.is_some() || resume.is_some() || verbose || no_sandbox || headless {
+                    eprintln!(
+                        "[chat/headless] --resume-approval accepts only --provider and stdin JSON"
+                    );
+                    std::process::exit(2);
+                }
+                if let Err(error) = chat::dispatch_headless_resume(provider) {
+                    println!(
+                        "{}",
+                        serde_json::json!({ "type": "error", "message": error.to_string() })
+                    );
+                    std::process::exit(2);
+                }
+            } else if headless {
                 let provider = provider.unwrap_or_else(|| "ollama".to_string());
                 if system.is_some() || resume.is_some() || verbose || no_sandbox {
                     eprintln!(
@@ -828,7 +1101,42 @@ fn main() {
             },
         },
         Commands::Cost { action } => match action {
-            CostAction::Show => cost::cmd_cost_show(),
+            CostAction::Show => {
+                if let Err(error) = cost::cmd_cost_show() {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Recommend { task, daily_budget_usd, json } => {
+                if let Err(error) = cost::cmd_cost_recommend(task, daily_budget_usd, json) {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Plan { task, daily_budget_usd, json } => {
+                if let Err(error) = cost::cmd_cost_plan(task, daily_budget_usd, json) {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            CostAction::Guard { task, daily_budget_usd, estimated_cost_usd, json } => {
+                match cost::cmd_cost_guard(task, daily_budget_usd, estimated_cost_usd, json) {
+                    Ok(true) => {}
+                    Ok(false) => std::process::exit(3),
+                    Err(error) => {
+                        eprintln!("[cost] {error:#}");
+                        std::process::exit(2);
+                    }
+                }
+            }
+            CostAction::SetPolicy { daily_budget_usd, monthly_budget_usd, clear_monthly_budget, json } => {
+                if let Err(error) =
+                    cost::cmd_cost_set_policy(daily_budget_usd, monthly_budget_usd, clear_monthly_budget, json)
+                {
+                    eprintln!("[cost] {error:#}");
+                    std::process::exit(2);
+                }
+            }
             CostAction::Log {
                 task,
                 tier,
@@ -845,6 +1153,64 @@ fn main() {
                 }
             }
             CostAction::Breakdown { by } => cost::cmd_cost_breakdown(by),
+        },
+        Commands::Lease { action } => match action {
+            LeaseAction::Grant {
+                subject,
+                capability,
+                allow,
+                deny,
+                expires_in_minutes,
+                invocation_budget,
+                parent_lease_id,
+                json,
+            } => {
+                if let Err(error) = capability::lease::cmd_lease_grant(
+                    subject,
+                    capability,
+                    allow,
+                    deny,
+                    expires_in_minutes,
+                    invocation_budget,
+                    parent_lease_id,
+                    json,
+                ) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            LeaseAction::List { json } => {
+                if let Err(error) = capability::lease::cmd_lease_list(json) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            LeaseAction::Revoke { id, json } => {
+                if let Err(error) = capability::lease::cmd_lease_revoke(id, json) {
+                    eprintln!("[lease] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+        },
+        Commands::Authority { action } => match action {
+            AuthorityAction::Receipts { last, json } => {
+                if let Err(error) = runtime::cmd_authority_receipts(last, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            AuthorityAction::Executions { last, json } => {
+                if let Err(error) = runtime::cmd_authority_executions(last, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
+            AuthorityAction::PendingApprovals { id, json } => {
+                if let Err(error) = runtime::cmd_pending_approvals(id, json) {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(2);
+                }
+            }
         },
         Commands::Observability { action } => match action {
             observability::ObservabilityAction::Show { last, json } => {

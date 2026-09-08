@@ -110,7 +110,7 @@ fn validate_relative_path(path: &str, label: &str) -> Result<()> {
     Ok(())
 }
 
-fn extract_url_host(url: &str) -> Option<&str> {
+pub(crate) fn extract_url_host(url: &str) -> Option<&str> {
     let without_scheme = url.split("://").nth(1)?;
     let host_port = without_scheme.split('/').next()?;
     Some(host_port.split(':').next()?)
@@ -133,7 +133,7 @@ fn extract_url_host(url: &str) -> Option<&str> {
 /// (fe80::/10) equivalent, and no IPv4-mapped-address unwrapping (an
 /// attacker-supplied `::ffff:100.100.100.200` would resolve, classify as
 /// "not loopback, not unspecified", and pass straight through).
-fn is_private_ip(ip: std::net::IpAddr) -> bool {
+pub(crate) fn is_private_ip(ip: std::net::IpAddr) -> bool {
     match ip {
         std::net::IpAddr::V4(v4) => is_private_ipv4(v4),
         std::net::IpAddr::V6(v6) => {

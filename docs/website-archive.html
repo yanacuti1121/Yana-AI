@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yana AI — Personal Agent OS for Claude Code</title>
+<meta name="description" content="Safety hooks, 2,025 skills, and a Rust runtime that block AI agents from breaking production. For Claude Code, Cursor, Codex.">
+<link rel="canonical" href="https://yana-ai.pages.dev/">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+<meta property="og:title" content="Yana AI">
+<meta property="og:description" content="The hook layer that stops AI agents before they cause real damage.">
+<meta property="og:image" content="https://yanacuti1121.github.io/yana-ai/yana-ai-overview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+<!-- Three.js / GSAP / Lottie loaded lazily on demand — not on page load -->
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:            hsl(38 30% 97%);
+  --bg-subtle:     hsl(38 20% 93%);
+  --bg-card:       hsl(0 0% 100%);
+  --border:        hsl(38 15% 84%);
+  --border-strong: hsl(38 12% 72%);
+  --fg:            hsl(24 25% 12%);
+  --fg-muted:      hsl(24 10% 45%);
+  --accent:        hsl(221 75% 48%);
+  --accent-hover:  hsl(221 75% 40%);
+  --green:         hsl(142 55% 36%);
+  --orange:        hsl(155 52% 32%);
+  --red:           hsl(0 70% 52%);
+  --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
+  --sans: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --hand: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --script: "Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+
+.dark {
+  --bg:            hsl(24 15% 8%);
+  --bg-subtle:     hsl(24 12% 12%);
+  --bg-card:       hsl(24 10% 10%);
+  --border:        hsl(24 10% 18%);
+  --border-strong: hsl(24 10% 28%);
+  --fg:            hsl(38 20% 92%);
+  --fg-muted:      hsl(38 8% 55%);
+  --accent:        hsl(221 75% 62%);
+  --accent-hover:  hsl(221 75% 70%);
+  --green:         hsl(142 55% 48%);
+  --orange:        hsl(155 52% 42%);
+  --red:           hsl(0 70% 60%);
+}
+html { scroll-behavior: smooth; }
+html.theme-transitioning * { transition: background-color .25s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* Nav — liquid glass pill */
+nav {
+  position: sticky; top: 12px; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 12px 20px 0;
+  padding: 0 1.5rem; height: 52px;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(40px) saturate(240%);
+  -webkit-backdrop-filter: blur(40px) saturate(240%);
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(59,130,246,.08), 0 2px 8px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.85);
+  gap: 1rem;
+}
+.dark nav {
+  background: rgba(12,18,38,.88) !important;
+  border-color: rgba(255,255,255,.1) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+.nav-logo { font-family: var(--script); font-size: 1.15rem; font-weight: 700; text-decoration: none; letter-spacing: .02em; background: linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e676,#00b0ff,#a259ff,#ff0080); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: rainbow 10s linear infinite; white-space: nowrap; flex-shrink: 0; }
+.nav-logo span { -webkit-text-fill-color: transparent; }
+@keyframes rainbow { 0% { background-position: 0% } 100% { background-position: 200% } }
+@media (prefers-reduced-motion: reduce) { .nav-logo { animation: none; } }
+
+/* Centre links — hidden on mobile */
+.nav-links { display: flex; gap: 1.25rem; align-items: center; flex: 1; justify-content: center; overflow: hidden; }
+.nav-links a { color: var(--fg-muted); text-decoration: none; font-size: .84rem; font-weight: 500; transition: color .15s, background .15s; white-space: nowrap; padding: .2rem .5rem; border-radius: 8px; }
+.nav-links a:hover { color: var(--fg); background: rgba(59,130,246,.07); }
+
+/* Right cluster — ALWAYS visible */
+.nav-right { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.nav-cta { background: var(--accent) !important; color: #fff !important; padding: .3rem .8rem; border-radius: 6px; font-size: .8rem !important; font-weight: 600; transition: background .15s !important; text-decoration: none; white-space: nowrap; }
+.nav-cta:hover { background: var(--accent-hover) !important; }
+
+/* Language switcher */
+.lang-switcher { display:flex; gap:.2rem; align-items:center; background:var(--bg-subtle); border:1px solid var(--border); border-radius:20px; padding:.12rem .28rem; }
+.lang-btn { border:none; background:transparent; cursor:pointer; font-size:.7rem; font-weight:600; padding:.18rem .45rem; border-radius:14px; color:var(--fg-muted); transition:all .15s; letter-spacing:.02em; }
+.lang-btn.active { background:var(--bg-card); color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+.lang-btn:hover:not(.active) { color:var(--fg); }
+
+
+/* Liquid Glass */
+.glass {
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 8px 32px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.8);
+}
+.glass-dark {
+  background: rgba(15,10,5,.45);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.glass-blue {
+  background: hsla(221,75%,48%,.08);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid hsla(221,75%,60%,.2);
+  box-shadow: 0 4px 20px hsla(221,75%,48%,.1), inset 0 1px 0 hsla(221,75%,80%,.2);
+}
+
+/* Hero decorative */
+.hero { position:relative; overflow:hidden; }
+.hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 40%, hsla(221,75%,65%,.08), transparent),
+    radial-gradient(ellipse 40% 60% at 20% 70%, hsla(38,90%,65%,.07), transparent);
+}
+
+/* Section h2 accent underline */
+.section-inner h2::after {
+  content:''; display:block; width:2.5rem; height:3px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+  border-radius:2px; margin-top:.5rem;
+}
+
+/* Card hover lift */
+.feat-card, .gate-row, .compat-card {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+}
+.feat-card:hover { transform:translateY(-3px); border-color:hsla(221,75%,55%,.35) !important; box-shadow:0 10px 28px rgba(0,0,0,.09), 0 2px 8px hsla(221,75%,48%,.06) !important; }
+.compat-card:hover { transform:translateY(-2px); border-color:hsla(221,75%,55%,.3) !important; box-shadow:0 6px 16px rgba(0,0,0,.08) !important; }
+.gate-row:hover { border-color: var(--border-strong); }
+
+/* Keyboard focus — visible ring on interactive elements */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px;
+}
+
+/* Hero */
+.hero {
+  max-width: 1100px; margin: 0 auto;
+  padding: 7rem 2rem 5rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .75rem; color: var(--fg-muted);
+  border: 1px solid var(--border); border-radius: 100px;
+  padding: .25rem .75rem; margin-bottom: 1.5rem;
+}
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
+h1 { font-family: var(--hand); font-size: clamp(2.1rem, 4.2vw, 3.2rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 1.25rem; }
+h1 em { font-style: normal; color: var(--accent); }
+.hero-sub { color: var(--fg-muted); font-size: 1.0625rem; line-height: 1.7; max-width: 46ch; margin-bottom: 2rem; }
+.hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: .9375rem;
+  padding: .625rem 1.25rem; border-radius: 8px; text-decoration: none;
+  transition: background .15s, box-shadow .15s;
+}
+.btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 0 3px hsla(221,83%,53%,.25); }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: transparent; color: var(--fg); font-weight: 500; font-size: .9375rem;
+  padding: .625rem 1.25rem; border-radius: 8px; text-decoration: none;
+  border: 1px solid var(--border); transition: border-color .15s, background .15s;
+}
+.btn-ghost:hover { border-color: var(--border-strong); background: var(--bg-card); }
+.hero-note { margin-top: 1rem; font-size: .8125rem; color: var(--fg-muted); }
+.weather-pill {
+  display: inline-flex; align-items: center; gap: .45rem;
+  margin-top: .75rem;
+  padding: .3rem .75rem .3rem .55rem;
+  background: var(--bg-card, var(--bg-subtle));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: .8rem; color: var(--fg-muted);
+  cursor: default; transition: border-color .2s, color .2s;
+  text-decoration: none;
+}
+.weather-pill:hover { border-color: var(--accent); color: var(--fg); }
+.w-icon { font-size: .95rem; line-height: 1; }
+.w-temp { font-family: var(--mono); font-weight: 700; color: var(--fg); font-size: .8rem; }
+.w-sep  { opacity: .35; }
+.w-city { font-size: .72rem; opacity: .65; }
+
+/* Terminal */
+.hero-terminal {
+  background: rgba(255,255,255,.6); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.75); border-radius: 12px;
+  overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.terminal-bar {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .75rem 1rem; border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.dot-r{width:10px;height:10px;border-radius:50%;background:var(--red);}
+.dot-y{width:10px;height:10px;border-radius:50%;background:var(--orange);}
+.dot-g{width:10px;height:10px;border-radius:50%;background:var(--green);}
+.terminal-title { font-family: var(--mono); font-size: .75rem; color: var(--fg-muted); margin: 0 auto; }
+.terminal-body { padding: 1.25rem 1.5rem; font-family: var(--mono); font-size: .8125rem; line-height: 1.8; }
+.t-dim  { color: var(--fg-muted); }
+.t-grn  { color: var(--green); }
+.t-org  { color: var(--orange); }
+.t-prompt::before { content: "$ "; color: var(--fg-muted); }
+
+/* Stats bar */
+.stats-bar { border-top: 1px solid rgba(255,255,255,.6); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.4); backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); }
+.stats-inner {
+  max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; text-align: center;
+}
+.stat-num { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: .25rem; }
+.stat-label { font-size: .8125rem; color: var(--fg-muted); }
+
+/* Sections */
+section { padding: 5rem 2rem; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+.section-label { font-family: var(--script); font-size: .8rem; color: var(--accent); letter-spacing: .09em; text-transform: uppercase; margin-bottom: .75rem; font-weight: 600; }
+h2 { font-family: var(--hand); font-size: clamp(1.5rem, 2.8vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.18; margin-bottom: 1rem; }
+.section-sub { color: var(--fg-muted); font-size: 1.0625rem; max-width: 52ch; line-height: 1.65; margin-bottom: 3rem; }
+
+/* Feature grid */
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.feat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1.5rem; transition: border-color .2s;
+}
+.feat-card:hover { border-color: var(--border-strong); }
+.feat-icon { font-size: 1.375rem; margin-bottom: .875rem; }
+.feat-title { font-weight: 600; font-size: 1rem; margin-bottom: .5rem; }
+.feat-desc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; }
+.feat-code { font-family: var(--mono); font-size: .8125rem; }
+
+/* Gates */
+.gates { display: flex; flex-direction: column; gap: .75rem; }
+.gate-row {
+  display: grid; grid-template-columns: 48px 1fr auto;
+  align-items: center; gap: 1rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: .875rem 1.25rem;
+}
+.gate-num { font-family: var(--mono); font-size: .75rem; color: var(--fg-muted); text-align: center; }
+.gate-name { font-size: .9375rem; font-weight: 500; }
+.gate-desc { font-size: .8125rem; color: var(--fg-muted); margin-top: .125rem; }
+.gate-badge { font-family: var(--mono); font-size: .6875rem; font-weight: 600; padding: .2rem .6rem; border-radius: 4px; white-space: nowrap; }
+.badge-block { background: hsla(0,84%,60%,.12);   color: hsl(0,84%,65%); }
+.badge-warn  { background: hsla(155,52%,32%,.1);  color: hsl(155,52%,32%); }
+.badge-audit { background: hsla(221,83%,53%,.12); color: hsl(221,83%,70%); }
+
+/* Runtime */
+.rt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.cmd-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.cmd-chip {
+  font-family: var(--mono); font-size: .75rem;
+  background: var(--bg-subtle); border: 1px solid var(--border);
+  border-radius: 6px; padding: .25rem .625rem; color: var(--fg-muted);
+}
+.cmd-chip.new { border-color: hsla(221,83%,53%,.4); color: hsl(221,83%,70%); }
+.rt-stats { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2rem; }
+.rt-stat { display: flex; align-items: baseline; gap: .75rem; }
+.rt-stat-num { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+.rt-stat-label { color: var(--fg-muted); font-size: .875rem; }
+.code-block {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem; font-family: var(--mono); font-size: .8125rem; line-height: 1.8;
+  margin-top: 2rem;
+}
+
+/* Compat */
+.compat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.compat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; text-align: center; transition: border-color .15s;
+}
+.compat-card:hover { border-color: var(--border-strong); }
+.compat-name { font-weight: 600; font-size: .9375rem; margin-bottom: .25rem; }
+.compat-note { font-size: .8125rem; color: var(--fg-muted); }
+
+/* Install */
+.install-section { background: var(--bg-subtle); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.install-inner { max-width: 680px; margin: 0 auto; text-align: center; padding: 5rem 2rem; }
+.install-inner h2 { margin-bottom: .75rem; }
+.install-sub { color: var(--fg-muted); margin-bottom: 2.5rem; }
+.install-tabs { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1rem; }
+.tab {
+  font-family: var(--mono); font-size: .75rem; padding: .375rem .875rem;
+  border-radius: 6px; border: 1px solid var(--border); background: transparent;
+  color: var(--fg-muted); cursor: pointer; transition: all .15s;
+}
+.tab.active { background: var(--bg-card); border-color: var(--border-strong); color: var(--fg); }
+.cmd-box {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.25rem; margin-bottom: .75rem; gap: 1rem;
+}
+.cmd-box code { font-family: var(--mono); font-size: .9rem; color: var(--fg); text-align: left; word-break: break-all; }
+.copy-btn {
+  font-family: var(--mono); font-size: .75rem; color: var(--fg-muted);
+  background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 5px;
+  padding: .25rem .625rem; cursor: pointer; transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.install-alts { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+.install-alts a { font-family: var(--mono); font-size: .8125rem; color: var(--fg-muted); text-decoration: none; }
+.install-alts a:hover { color: var(--fg); }
+
+@keyframes gradShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.footer-left { font-size: .875rem; color: var(--fg-muted); }
+.footer-left strong { color: var(--fg); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: .875rem; color: var(--fg-muted); text-decoration: none; }
+.footer-links a:hover { color: var(--fg); }
+
+/* Responsive */
+/* Hamburger button — mobile only (shown in the 768px media query) */
+.hamburger {
+  display: none;
+  flex-direction: column; gap: 5px; cursor: pointer;
+  background: transparent; border: none; padding: .4rem;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--fg); border-radius: 2px;
+  transition: all .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile drawer */
+.mobile-menu {
+  display: none;
+  position: fixed; top: 76px; left: 0; right: 0; bottom: 0;
+  background: var(--bg); z-index: 99;
+  flex-direction: column; padding: 1.5rem;
+  gap: .25rem; overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  color: var(--fg); text-decoration: none; font-size: 1rem;
+  padding: .75rem .5rem; border-bottom: 1px solid var(--border);
+  transition: color .15s;
+}
+.mobile-menu a:hover { color: var(--accent); }
+.mobile-menu .mobile-cta {
+  margin-top: 1rem; background: var(--accent); color: #fff !important;
+  text-align: center; border-radius: 8px; padding: .875rem;
+  font-weight: 600; border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; gap: 2.5rem; padding: 4rem 1.25rem 3rem; }
+  .hero-terminal { display: none; }
+  .stats-inner { grid-template-columns: repeat(3, 1fr); }
+  .feat-grid { grid-template-columns: 1fr; }
+  .rt-grid { grid-template-columns: 1fr; }
+  .compat-grid { grid-template-columns: repeat(2, 1fr); }
+  nav { padding: 0 1rem; gap: .5rem; }
+  .nav-links { display: none; }
+  .nav-right { gap: .35rem; }
+  .nav-cta { display: none !important; }
+  #nav-io-btn { display: none; }
+  .hamburger { display: flex; }
+  .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; }
+}
+@keyframes _pg{from{opacity:0}to{opacity:1}}body{animation:_pg .32s ease-out both}
+</style>
+
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="#"><span>⚡</span> Yana AI</a>
+
+  <!-- Centre links (desktop only) -->
+  <div class="nav-links">
+    <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
+  </div>
+
+  <!-- Right cluster — always visible -->
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VI</button>
+      <button class="lang-btn" onclick="setLang('ko')">KO</button>
+    </div>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:background .15s" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">🌙</button>
+    <a href="#install" class="nav-cta" data-i18n="nav.cta" style="display:none" id="nav-cta-desktop">Get started</a>
+  </div>
+
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile drawer -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features" onclick="closeMenu()">Features</a>
+  <a href="#runtime" onclick="closeMenu()">Runtime</a>
+  <a href="#docs" onclick="closeMenu()">Docs</a>
+  <a href="#yana" onclick="closeMenu()">Yana</a>
+  <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
+  <a href="#install" class="mobile-cta" onclick="closeMenu()">Get started — free</a>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div>
+    <div class="hero-badge"><span class="dot"></span> v1.4.8 &nbsp;·&nbsp; yana-rt 1.4.0 &nbsp;·&nbsp; <span id="live-dl">…</span></div>
+    <h1 data-i18n="hero.title">The stronger your agent gets,<br><em>the more you need this.</em></h1>
+    <p class="hero-sub" data-i18n="hero.sub">Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 6-layer gate system — built and verified for Claude Code.</p>
+    <div class="hero-ctas">
+      <a href="#install" class="btn-primary">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.5 4.5a.5.5 0 00-1 0v5.793L5.354 8.146a.5.5 0 10-.708.708l3 3a.5.5 0 00.708 0l3-3a.5.5 0 00-.708-.708L8.5 10.293V4.5z"/></svg>
+        <span data-i18n="hero.cta1">Install free</span>
+      </a>
+      <a href="https://github.com/marketplace/yana-ai" target="_blank" class="btn-ghost" style="border-color:hsla(221,75%,55%,.45);color:var(--accent)">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l2.09 4.26L14.8 5l-3.4 3.32.8 4.68L8 10.77 3.8 13l.8-4.68L1.2 5l4.71-.74L8 0z"/></svg>
+        <span data-i18n="hero.cta.mp">Marketplace</span>
+      </a>
+      <a href="https://github.com/yanacuti1121/yana-ai" target="_blank" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <p class="hero-note" style="margin-top:1rem;font-size:.8125rem;color:var(--fg-muted)">Apache 2.0 · Built by <strong style="color:var(--fg)">Vũ Văn Tâm</strong> · Vietnam</p>
+    <div id="weather-pill" class="weather-pill" style="display:none">
+      <span class="w-icon" id="w-icon">🌤️</span>
+      <span class="w-temp" id="w-temp">—</span>
+      <span class="w-sep">·</span>
+      <span id="w-humid"></span>
+      <span class="w-sep">·</span>
+      <span class="w-city" id="w-city">—</span>
+    </div>
+  </div>
+
+  <!-- Terminal mockup -->
+  <div class="hero-terminal">
+    <div class="terminal-bar">
+      <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+      <span class="terminal-title">yana-rt</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-prompt">yana-rt doctor run .</div>
+      <div style="margin-top:.5rem">
+        <div><span class="t-grn">✓</span>  git repository</div>
+        <div><span class="t-grn">✓</span>  .claude/settings.json</div>
+        <div><span class="t-grn">✓</span>  env secrets &nbsp;<span class="t-dim">clean</span></div>
+        <div><span class="t-org">⚠</span>  ANTHROPIC_API_KEY &nbsp;<span class="t-dim">not set</span></div>
+        <div><span class="t-grn">✓</span>  python 3.12.3</div>
+      </div>
+      <div style="margin-top:1rem;color:var(--fg-muted)">──────────────────────</div>
+      <div class="t-prompt" style="margin-top:.75rem">yana-rt scan .</div>
+      <div style="margin-top:.5rem">
+        <div><span class="t-grn">✓</span>  hooks &nbsp;<span class="t-dim">65 active</span></div>
+        <div><span class="t-grn">✓</span>  rules &nbsp;<span class="t-dim">71 enforced</span></div>
+        <div><span class="t-grn">✓</span>  permissions &nbsp;<span class="t-dim">scoped</span></div>
+      </div>
+      <div style="margin-top:.75rem">
+        <span style="color:var(--green);font-weight:600">Score: 94/100</span>
+        <span class="t-dim"> — LOW risk</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-num" style="color:var(--green)">2,025</div>
+      <div class="stat-label" data-i18n="stat.skills">Workflow Skills</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:hsl(221 83% 63%)">34</div>
+      <div class="stat-label">Rust Subcommands</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:var(--orange)">65</div>
+      <div class="stat-label">Safety Hooks</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:hsl(280 70% 65%)">71</div>
+      <div class="stat-label">Enforced Rules</div>
+    </div>
+    <div>
+      <div class="stat-num" style="color:var(--red)">101</div>
+      <div class="stat-label">Specialist Agents</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Agents -->
+<section id="agents" style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Agent Teams</div>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">101 specialized agents — <em style="font-style:normal;color:var(--accent)">auto-routed</em></h2>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.agents">Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Development</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">planner</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">code-reviewer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">tdd-guide</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">build-error-resolver</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(221,75%,48%,.1);color:var(--accent);border:1px solid hsla(221,75%,48%,.2)">refactor-cleaner</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Security & QA</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">security-reviewer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">verify-agent</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">e2e-runner</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(0,70%,52%,.1);color:hsl(0,70%,58%);border:1px solid hsla(0,70%,52%,.2)">database-reviewer</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:.95rem">Architecture</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">architect</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">systems-designer</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">doc-updater</span>
+          <span style="font-size:.75rem;padding:.2rem .55rem;border-radius:4px;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.2)">product-strategist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.why">Why Yana AI</div>
+    <h2><span data-i18n="h2.why">AI agents cause real damage.<br>Yana AI stops it before it happens.</span></h2>
+    <p class="section-sub" data-i18n="sub.why">Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.</p>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🛡️</div>
+        <div class="feat-title" data-i18n="feat.hook.t">Pre-execution hooks</div>
+        <div class="feat-desc">66 hooks fire before any tool call. Block <code class="feat-code">rm -rf</code>, prompt injection, pipe-to-shell, and force-push — before damage happens.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title" data-i18n="feat.rust.t">Rust runtime</div>
+        <div class="feat-desc">yana-rt — 17 Rust subcommands replacing the Python CLI. scan, graph, vault, hunt, ci, map, fix, doctor, design. Zero Python dependency.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📚</div>
+        <div class="feat-title" data-i18n="feat.skills.t">2,025 skills</div>
+        <div class="feat-desc">The largest open-source skill library for Claude Code. Imported from ECC, taste-skill, stop-slop, and more — all MIT-licensed and anti-fake-pass verified.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔍</div>
+        <div class="feat-title" data-i18n="feat.graph.t">Knowledge graph</div>
+        <div class="feat-desc"><code class="feat-code">yana-rt graph build</code> traverses any codebase, extracts imports, detects architecture layers, and generates an onboarding guide.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🗄️</div>
+        <div class="feat-title" data-i18n="feat.vault.t">Vietnamese vault</div>
+        <div class="feat-desc">Markdown knowledge vault with Unicode-aware Vietnamese search, accent-insensitive mode, multilingual translation links, and PDF/DOCX import.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-title" data-i18n="feat.design.t">Design token extractor</div>
+        <div class="feat-desc"><code class="feat-code">yana-rt design extract &lt;url&gt;</code> pulls colors, fonts, spacing, and CSS variables from any site and writes DESIGN.md.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gates -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.arch">Architecture</div>
+    <h2 data-i18n="h2.arch">6-layer gate system</h2>
+    <p class="section-sub" data-i18n="sub.arch">Each layer is independent. A bypassed outer layer doesn't break the inner ones.</p>
+    <div class="gates">
+      <div class="gate-row">
+        <div class="gate-num">L0</div>
+        <div><div class="gate-name" data-i18n="gate.l0.n">Audit chain</div><div class="gate-desc">Append-only Merkle log — every action is tamper-evident</div></div>
+        <div class="gate-badge badge-audit">AUDIT</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L1</div>
+        <div><div class="gate-name" data-i18n="gate.l1.n">Anti-evasion</div><div class="gate-desc">Blocks base64 decode pipes, curl|bash, eval with subshell</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L2</div>
+        <div><div class="gate-name" data-i18n="gate.l2.n">Shell sanitize + env integrity</div><div class="gate-desc">Quoting enforcement, LD_PRELOAD guard, privilege isolation</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L3</div>
+        <div><div class="gate-name" data-i18n="gate.l3.n">Sandbox isolation</div><div class="gate-desc">Every tool call runs in a resource-capped sandbox</div></div>
+        <div class="gate-badge badge-block">BLOCK</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L4</div>
+        <div><div class="gate-name" data-i18n="gate.l4.n">Supply chain vetting</div><div class="gate-desc">Package installs blocked without passing 4/8 ossf/scorecard criteria</div></div>
+        <div class="gate-badge badge-warn">GATE</div>
+      </div>
+      <div class="gate-row">
+        <div class="gate-num">L5</div>
+        <div><div class="gate-name" data-i18n="gate.l5.n">UI quality + scope drift</div><div class="gate-desc">Color rules, typography, WCAG AA, scope boundary enforcement</div></div>
+        <div class="gate-badge badge-warn">GATE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Runtime -->
+<section id="runtime">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.runtime">Rust Runtime</div>
+    <h2 data-i18n="h2.runtime">yana-rt v1.4.0</h2>
+    <p class="section-sub" data-i18n="sub.runtime">Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.</p>
+    <div class="rt-grid">
+      <div>
+        <p style="font-size:.875rem;color:var(--fg-muted);margin-bottom:1rem">34 subcommands — <a href="commands.html#cli" style="color:var(--accent)">full reference →</a></p>
+        <div class="cmd-list">
+          <span class="cmd-chip">task</span>
+          <span class="cmd-chip">eval</span>
+          <span class="cmd-chip">bus</span>
+          <span class="cmd-chip">memory</span>
+          <span class="cmd-chip">config</span>
+          <span class="cmd-chip">plugin</span>
+          <span class="cmd-chip">cost</span>
+          <span class="cmd-chip">scan</span>
+          <span class="cmd-chip new">hunt</span>
+          <span class="cmd-chip new">ci</span>
+          <span class="cmd-chip new">map</span>
+          <span class="cmd-chip new">fix</span>
+          <span class="cmd-chip new">doctor</span>
+          <span class="cmd-chip new">spec</span>
+          <span class="cmd-chip new">graph</span>
+          <span class="cmd-chip new">vault</span>
+          <span class="cmd-chip new">design</span>
+          <span class="cmd-chip new">watch</span>
+        </div>
+        <p style="font-size:.75rem;color:var(--fg-muted);margin-top:.75rem"><span style="color:hsl(221 83% 70%)">■</span> new in v0.40.0 / v1.2.0</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:1.25rem;font-size:.8rem">
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">scan</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Security audit — secrets, SSRF, injection, supply chain</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">hunt</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Active scanner — deeper code vulns + dependency audit</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">ci</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">CI/CD health — unpinned actions, missing permissions</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">map</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Agent blast radius — what the AI can read/write/exec</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">fix</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Auto-apply safe fixes for known finding IDs</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">score</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Audit score with deduction breakdown</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">doctor</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Environment and dependency health check</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">watch</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Live monitor — print changes to skills/agents/rules</td></tr>
+          <tr><td style="padding:.4rem .5rem;font-family:var(--mono);color:var(--accent)">init</td><td style="padding:.4rem .5rem;color:var(--fg-muted)">Auto-setup Yana AI in any project — hooks, config, settings</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="rt-stats">
+          <div class="rt-stat"><span class="rt-stat-num">~12x</span><span class="rt-stat-label">faster than Python (bounded commands)</span></div>
+          <div class="rt-stat"><span class="rt-stat-num">9</span><span class="rt-stat-label">Python scripts replaced</span></div>
+          <div class="rt-stat"><span class="rt-stat-num">0</span><span class="rt-stat-label">Python deps for core CLI</span></div>
+        </div>
+        <div class="code-block">
+          <div class="t-dim"># install the binary</div>
+          <div><span style="color:var(--green)">cargo</span> install yana-rt</div>
+          <div style="margin-top:.5rem" class="t-dim"># or the full CLI via pip</div>
+          <div><span style="color:var(--green)">pip</span> install yana-ai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sandbox -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label">Docker Sandbox</div>
+    <h2 style="font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem">Gate L3 — <em style="font-style:normal;color:var(--accent)">runtime isolation</em></h2>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.sandbox">Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:800px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Sandbox properties</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.825rem">
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--network none</code> — no outbound calls</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--read-only</code> — immutable filesystem</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--cap-drop ALL</code> — no Linux capabilities</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--user nobody</code> — uid 65534</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)"><code style="font-size:.8em">--pids-limit 64</code> — no fork bomb</span></div>
+          <div style="display:flex;gap:.5rem;align-items:center"><span style="color:var(--green)">✓</span><span style="color:var(--fg-muted)">Auto-cleanup — <code style="font-size:.8em">--rm</code> on exit</span></div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Usage</div>
+        <div style="font-family:var(--mono);font-size:.775rem;line-height:1.7;color:var(--fg-muted)">
+          <div><span style="color:var(--green)">#</span> docker mode (full isolation)</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--accent)">YANA_SANDBOX_MODE</span>=docker \</div>
+          <div style="margin-bottom:.75rem;padding-left:1rem">bash tool-proxy.sh &lt;cmd&gt;</div>
+          <div><span style="color:var(--green)">#</span> auto-detect best available</div>
+          <div><span style="color:var(--accent)">YANA_SANDBOX_MODE</span>=auto \</div>
+          <div style="padding-left:1rem">bash tool-proxy.sh &lt;cmd&gt;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Compat -->
+<section style="background:var(--bg-subtle);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.compat">Compatibility</div>
+    <h2 data-i18n="h2.compat">Built for Claude Code</h2>
+    <p class="section-sub" data-i18n="sub.compat">Yana AI is verified and maintained for Claude Code. Support for other AI tools is planned — contributions welcome.</p>
+    <div class="compat-grid">
+      <div class="compat-card" style="border-color:hsla(221,75%,48%,.4);background:hsla(221,75%,48%,.04)">
+        <div style="font-size:.75rem;font-weight:700;color:var(--green);margin-bottom:.4rem;letter-spacing:.04em">✓ VERIFIED</div>
+        <div class="compat-name">Claude Code</div>
+        <div class="compat-note">Full support · Hooks + rules + skills</div>
+      </div>
+      <div class="compat-card" style="opacity:.6">
+        <div style="font-size:.75rem;font-weight:700;color:var(--fg-muted);margin-bottom:.4rem;letter-spacing:.04em">PLANNED</div>
+        <div class="compat-name">Cursor</div>
+        <div class="compat-note">Not yet verified</div>
+      </div>
+      <div class="compat-card" style="opacity:.6">
+        <div style="font-size:.75rem;font-weight:700;color:var(--fg-muted);margin-bottom:.4rem;letter-spacing:.04em">PLANNED</div>
+        <div class="compat-name">GitHub Copilot</div>
+        <div class="compat-note">Not yet verified</div>
+      </div>
+      <div class="compat-card" style="opacity:.6">
+        <div style="font-size:.75rem;font-weight:700;color:var(--fg-muted);margin-bottom:.4rem;letter-spacing:.04em">PLANNED</div>
+        <div class="compat-name">Codex CLI</div>
+        <div class="compat-note">Not yet verified</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<div class="install-section" id="install">
+  <div class="install-inner">
+    <h2 data-i18n="h2.install">Up and running in <span style="color:var(--accent)">10 seconds</span></h2>
+    <p class="install-sub" data-i18n="install.sub">One command. Installs hooks, downloads the latest release, wires 66 hooks + 71 rules active.</p>
+
+    <!-- GitHub App 1-click -->
+    <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--bg-card);border:1px solid hsla(221,75%,48%,.35);border-radius:12px;text-align:left">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+        <span style="font-size:1.4rem">⚡</span>
+        <div>
+          <div style="font-weight:700;font-size:.9375rem" data-i18n="install.app.title">Fastest: GitHub App</div>
+          <div style="font-size:.8125rem;color:var(--fg-muted)" data-i18n="install.app.desc">Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <a href="https://github.com/apps/yana-ai" target="_blank"
+           style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;font-weight:600;font-size:.875rem;padding:.5rem 1.1rem;border-radius:7px;text-decoration:none;transition:background .15s"
+           onmouseover="this.style.background='var(--accent-hover)'"
+           onmouseout="this.style.background='var(--accent)'">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span data-i18n="install.app.btn">Install GitHub App</span>
+        </a>
+        <span style="font-size:.8rem;color:var(--fg-muted)" data-i18n="install.app.note">Works on any public or private repo</span>
+      </div>
+    </div>
+
+    <div style="font-size:.8125rem;color:var(--fg-muted);margin-bottom:.75rem" data-i18n="install.manual">or install manually:</div>
+    <div class="install-tabs">
+      <button class="tab active" onclick="setTab(this,'curl')">curl</button>
+      <button class="tab" onclick="setTab(this,'pip')">pip</button>
+      <button class="tab" onclick="setTab(this,'cargo')">cargo</button>
+    </div>
+    <div class="cmd-box">
+      <code id="install-cmd">curl -sSL https://yanacuti1121.github.io/yana-ai/install.sh | bash</code>
+      <button class="copy-btn" onclick="copyCmd()">copy</button>
+    </div>
+    <div class="install-alts">
+      <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">★ Star on GitHub</a>
+      <a href="https://pypi.org/project/yana-ai/" target="_blank">pip</a>
+      <a href="https://crates.io/crates/yana-rt" target="_blank">crates.io</a>
+      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/docs/reference/history.md" target="_blank">History</a>
+    </div>
+  </div>
+</div>
+
+<!-- Full Docs -->
+<section id="docs" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.docs">Tài liệu</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.docs">Giới thiệu đầy đủ</h2>
+    <p class="section-sub" data-i18n="sub.docs">Tất cả những gì cần biết để chạy và dùng Yana AI.</p>
+
+    <!-- What is -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.what">Yana AI là gì?</h3>
+      <p style="color:var(--fg-muted);line-height:1.75;max-width:68ch"><span data-i18n="docs.what">Yana AI là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.</span></p>
+      <div style="margin-top:1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8rem;line-height:1.8;color:var(--fg-muted)">
+        You → Claude Code → <span style="color:var(--accent);font-weight:600">[Yana AI HOOKS]</span> → blocked hoặc allowed
+      </div>
+    </div>
+
+    <!-- Install -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.install">Cài đặt</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.py">Python CLI</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">pip install yana-ai</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">yana-ai audit · doctor · scan · fix</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.npm">Wire hooks</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">pip install yana-ai && yana-ai install</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">hooks · agents · commands → .claude/</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.5rem;font-family:var(--mono)" data-i18n="docs.rust">Rust runtime (~29× faster)</div>
+          <code style="font-family:var(--mono);font-size:.82rem;color:var(--accent)">cargo install yana-rt</code>
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.4rem">scan · doctor · ci · bus · memory</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick commands -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.cmds">Lệnh cơ bản</h3>
+      <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.8rem;line-height:2;color:#ccc;overflow-x:auto">
+        <div><span style="color:#555"># Quét repo tìm lỗi cấu hình AI agent</span></div>
+        <div><span style="color:#69ff47">yana-ai</span> audit .</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Kiểm tra sức khoẻ trước session</span></div>
+        <div><span style="color:#69ff47">yana-ai</span> doctor .</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Xuất báo cáo HTML</span></div>
+        <div><span style="color:#69ff47">yana-ai</span> report html . --open</div>
+        <div style="margin-top:.5rem"><span style="color:#555"># Rust runtime — nhanh hơn 29×</span></div>
+        <div><span style="color:#40c4ff">yana-rt</span> scan .</div>
+      </div>
+    </div>
+
+    <!-- Gate system -->
+    <div style="margin-bottom:2.5rem">
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.gates">6 lớp bảo vệ (L0–L5)</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L0</span><span style="font-weight:600;font-size:.82rem">Audit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Log mọi tool call — Merkle hash-chain</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1</span><span style="font-weight:600;font-size:.82rem">Scope</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Cảnh báo truy cập secret/env</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L1.5</span><span style="font-weight:600;font-size:.82rem">Validate</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn SSRF, path traversal</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L2</span><span style="font-weight:600;font-size:.82rem">Commit</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Warn cross-scope commits</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L3</span><span style="font-weight:600;font-size:.82rem">Truth Gate</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Yêu cầu evidence trước khi claim</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L3.5</span><span style="font-weight:600;font-size:.82rem">Inject</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn prompt injection, jailbreak</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L4</span><span style="font-weight:600;font-size:.82rem">Deploy</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn gh / kubectl / docker</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L4.5</span><span style="font-weight:600;font-size:.82rem">Supply</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn pipe-to-shell, typosquatting</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.75rem"><div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem"><span style="font-family:var(--mono);font-size:.68rem;background:hsla(221,75%,48%,.1);color:var(--accent);padding:.1rem .4rem;border-radius:3px">L5</span><span style="font-weight:600;font-size:.82rem">Destructive</span></div><div style="font-size:.75rem;color:var(--fg-muted)">Chặn rm -rf, DROP TABLE</div></div>
+      </div>
+    </div>
+
+    <!-- Structure -->
+    <div>
+      <h3 style="font-family:var(--hand);font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:var(--fg)" data-i18n="docs.h3.struct">Cấu trúc repo</h3>
+      <div style="background:hsl(24,10%,10%);border-radius:10px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:.78rem;line-height:1.85;color:#ccc;overflow-x:auto">
+        <div style="color:#69ff47">yana-ai/</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">core/</span>         agents · commands · hooks · skills · rules · gates · memory</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">scanner/</span>      7 YAML rule sets — 69 checks</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">src/</span>          Rust runtime (yana-rt) — ~4ms startup</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">tools/</span>        codexmate · moss-tts-nano · finetune-vi</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">adapters/</span>     Claude · Cursor · Gemini · Continue · OpenRouter</div>
+        <div style="color:#888">├── <span style="color:#40c4ff">docs/</span>         trang web này</div>
+        <div style="color:#888">└── <span style="color:#40c4ff">.claude/</span>      applied pack — được load bởi Claude Code lúc runtime</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Codexmate -->
+<section id="codexmate" style="border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.codexmate">Bundled Tool</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+
+      <div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,hsl(261,65%,55%),hsl(221,75%,48%));display:flex;align-items:center;justify-content:center;font-size:1.3rem">🎛️</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <h2 style="margin-bottom:0">Codexmate</h2>
+              <span style="font-family:var(--mono);font-size:.7rem;background:hsla(261,65%,55%,.12);color:hsl(261,65%,55%);border:1px solid hsla(261,65%,55%,.25);padding:.15rem .5rem;border-radius:5px;font-weight:600">v0.0.38-vi</span>
+              <span style="font-size:.7rem;color:var(--fg-muted);font-style:italic">Vietnamese fork</span>
+            </div>
+          </div>
+        </div>
+        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.25rem">
+          <span data-i18n="codexmate.desc">Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho</span> <strong style="color:var(--fg)">Codex, Claude Code, OpenClaw</strong>. <span data-i18n="codexmate.desc2">Local-first, không cloud.</span>
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f1">Marketplace skills + MCP bridge</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f2">Vietnamese UI (992 strings đã patch)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f3">Zero telemetry — config lưu local</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.65rem;font-size:.875rem">
+            <span style="color:var(--green)">✓</span> <span data-i18n="codexmate.f4">Bảo vệ bởi Yana AI safety layer</span>
+          </div>
+        </div>
+
+        <a href="https://github.com/SakuraByteCore/codexmate"
+           target="_blank"
+           style="display:inline-flex;align-items:center;gap:.45rem;background:var(--bg-subtle);border:1px solid var(--border);color:var(--fg);padding:.5rem 1rem;border-radius:8px;font-size:.875rem;font-weight:500;text-decoration:none;transition:all .15s"
+           onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span data-i18n="codexmate.src">Xem source</span> ↗
+        </a>
+      </div>
+
+      <!-- How to run -->
+      <div style="display:flex;flex-direction:column;gap:.85rem">
+        <div style="font-size:.8rem;color:var(--fg-muted);font-weight:600;font-family:var(--mono)" data-i18n="codexmate.how">Cách bật</div>
+
+        <!-- Step 1 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">1</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s1">Clone yana-ai (nếu chưa có)</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc">
+              <span style="color:#69ff47">git</span> clone https://github.com/yanacuti1121/yana-ai
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">2</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s2">Cài dependencies</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc;line-height:1.8">
+              <div><span style="color:#69ff47">cd</span> yana-ai/tools/codexmate</div>
+              <div><span style="color:#69ff47">npm</span> install</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">3</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s3">Bật server</div>
+            <div style="background:hsl(24,10%,10%);border-radius:8px;padding:.6rem .9rem;font-family:var(--mono);font-size:.75rem;color:#ccc">
+              <span style="color:#ffd740">CODEXMATE_PORT</span>=8080 <span style="color:#69ff47">codexmate</span> run
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">✓</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem" data-i18n="codexmate.s4">Mở trình duyệt</div>
+            <div style="display:flex;flex-direction:column;gap:.3rem;font-size:.78rem;color:var(--fg-muted)">
+              <div>☁️ <strong data-i18n="codexmate.cloud">Cloud Shell:</strong> <span data-i18n="codexmate.cloud2">Web Preview → Port 8080</span></div>
+              <div>💻 <strong data-i18n="codexmate.local">Local:</strong> <code style="font-family:var(--mono);color:var(--accent)">http://localhost:8080</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:hsla(221,75%,48%,.06);border:1px solid hsla(221,75%,48%,.15);border-radius:8px;padding:.65rem .9rem;font-size:.78rem;color:var(--fg-muted);line-height:1.55">
+          💡 <span data-i18n="codexmate.tip">Nếu port bận:</span> <code style="font-family:var(--mono);color:var(--accent)">fuser -k 8080/tcp</code> <span data-i18n="codexmate.tip2">rồi chạy lại</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label">Projects</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.projects">Những thứ đã xây</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.projects">Dự án cá nhân và hợp tác — từ trường học đến AI tooling.</p>
+
+    <!-- JNMT featured -->
+    <div style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));border-radius:16px;padding:2rem;margin-bottom:1.25rem;position:relative;overflow:hidden;box-shadow:0 8px 32px hsla(221,75%,48%,.2)">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.07),transparent);pointer-events:none"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem;flex-wrap:wrap">
+            <span style="font-size:1.5rem">🏫</span>
+            <span style="font-family:var(--hand);font-size:1.6rem;font-weight:700;color:#fff">JNMT</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.2);color:#fff;padding:.2rem .55rem;border-radius:5px;font-weight:600">v10</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);padding:.2rem .55rem;border-radius:5px">Next.js 14 · TypeScript</span>
+          </div>
+          <p style="color:rgba(255,255,255,.85);font-size:.9rem;line-height:1.65;max-width:54ch;margin-bottom:1rem" data-i18n="jnmt.desc">
+            Nền tảng hỗ trợ học sinh quốc tế tại <strong style="color:#fff">THPT Quốc tế Tương lai Jeonnam</strong> — AI chatbot, thời khoá biểu, thành tích, đặt phòng, cổng phụ huynh. Co-dev với <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.25rem">
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">6 core languages</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">GCP Cloud Run</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">Liquid Glass UI</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">Gemini AI</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">Electron</span>
+            <span style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;padding:.2rem .5rem;border-radius:4px">620k dòng</span>
+          </div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <a href="https://github.com/yanacuti1121/jnmt-agents21" target="_blank"
+               style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.18);color:#fff;padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.25);transition:background .15s"
+               onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">GitHub ↗</a>
+          </div>
+        </div>
+        <div style="text-align:right;color:rgba(255,255,255,.75);font-size:.78rem;flex-shrink:0">
+          <div style="font-size:2.2rem;font-weight:700;color:#fff;font-family:var(--mono);line-height:1">6</div>
+          <div style="margin-bottom:.75rem">languages</div>
+          <div style="font-size:2.2rem;font-weight:700;color:#fff;font-family:var(--mono);line-height:1">55</div>
+          <div>deployments</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem">
+
+      <!-- Yana AI -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.05)">
+        <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
+          <span>🛡️</span>
+          <span style="font-weight:700;font-size:.92rem">Yana AI</span>
+          <span style="font-size:.67rem;background:hsla(221,75%,48%,.1);color:var(--blue);padding:.1rem .4rem;border-radius:4px">v1.4.8</span>
+        </div>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.yana-ai.short">Personal agent OS — 66 hooks, 2,025 skills, Rust runtime. Safe for every AI agent.</p>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Python</span>
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Rust</span>
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Bash</span>
+        </div>
+        <a href="https://github.com/yanacuti1121/yana-ai" target="_blank" style="font-size:.78rem;color:var(--blue)">GitHub ↗</a>
+      </div>
+
+      <!-- jnmt.vn -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.05)">
+        <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
+          <span>🌐</span>
+          <span style="font-weight:700;font-size:.92rem">jnmt.vn</span>
+          <span style="font-size:.67rem;background:hsla(142,55%,36%,.1);color:var(--green);padding:.1rem .4rem;border-radius:4px">Tự xây</span>
+        </div>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem" data-i18n="sub.jnmt">JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.</p>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">Next.js</span>
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">TypeScript</span>
+        </div>
+        <a href="https://github.com/yanacuti1121/jnmt-agents21" target="_blank" style="font-size:.78rem;color:var(--blue)">GitHub ↗</a>
+      </div>
+
+      <!-- itro -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.05)">
+        <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.6rem">
+          <span>🌅</span>
+          <span style="font-weight:700;font-size:.92rem">itro</span>
+          <span style="font-size:.67rem;background:hsla(155,52%,32%,.1);color:var(--orange);padding:.1rem .4rem;border-radius:4px">HTML</span>
+        </div>
+        <p style="color:var(--fg-muted);font-size:.8rem;line-height:1.55;margin-bottom:.8rem">Personal intro — sunset gradient, ember particles, nhạc nền. Aesthetic portfolio page.</p>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">HTML</span>
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">CSS</span>
+          <span style="font-size:.67rem;background:var(--bg-subtle);padding:.12rem .4rem;border-radius:4px;color:var(--fg-muted)">JS</span>
+        </div>
+        <a href="https://yanacuti1121.github.io/itro/" target="_blank" style="font-size:.78rem;color:var(--blue)">Demo ↗</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/yanacuti1121/itro" target="_blank" style="font-size:.78rem;color:var(--blue)">GitHub ↗</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Yana -->
+<section id="yana" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label" style="font-family:var(--script)" data-i18n="section.yana">Trợ lý AI cá nhân</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+      <div>
+        <h2 style="font-family:var(--hand);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;margin-bottom:1rem;letter-spacing:-0.02em">
+          <span data-i18n="yana.greeting">Xin chào, tôi là</span> <em style="font-style:italic;color:var(--accent)">Yana</em>
+        </h2>
+        <p style="color:var(--fg-muted);font-size:1rem;line-height:1.75;max-width:44ch;margin-bottom:1.5rem" data-i18n="yana.desc">
+          Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong Yana AI mỗi ngày.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(221,75%,48%,.1);display:flex;align-items:center;justify-content:center">📋</span>
+            <span data-i18n="yana.f1">Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(142,55%,36%,.1);display:flex;align-items:center;justify-content:center">🔀</span>
+            <span data-i18n="yana.f2">Điều phối 100 agents — route task đúng chuyên gia</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(155,52%,32%,.1);display:flex;align-items:center;justify-content:center">🧠</span>
+            <span data-i18n="yana.f3">Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.9rem">
+            <span style="width:32px;height:32px;border-radius:8px;background:hsla(250,65%,55%,.1);display:flex;align-items:center;justify-content:center">🛡️</span>
+            <span data-i18n="yana.f4">Canh gác bởi toàn bộ Yana AI safety layer</span>
+          </div>
+        </div>
+        <a href="https://github.com/yanacuti1121/yana-ai" target="_blank"
+           style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;padding:.55rem 1.15rem;border-radius:8px;font-weight:600;font-size:.875rem;text-decoration:none;transition:background .15s"
+           onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
+          <span data-i18n="yana.cta">Tìm hiểu thêm về Yana AI</span> ↗
+        </a>
+      </div>
+
+      <!-- Yana chat preview -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.08)">
+        <div style="background:var(--bg-subtle);padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple,hsl(250,65%,55%)));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;font-weight:700">Y</div>
+          <div>
+            <div style="font-weight:600;font-size:.875rem">Yana</div>
+            <div style="font-size:.72rem;color:var(--green)">● online</div>
+          </div>
+        </div>
+        <div style="padding:1.1rem;display:flex;flex-direction:column;gap:.85rem;font-size:.85rem">
+          <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
+            <span data-i18n="yana.msg1">Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.</span>
+          </div>
+          <div style="background:hsla(221,75%,48%,.08);border-radius:10px 0 10px 10px;padding:.7rem .9rem;max-width:88%;margin-left:auto;line-height:1.55">
+            <span data-i18n="yana.msg2">lm đi em</span>
+          </div>
+          <div style="background:var(--bg-subtle);border-radius:0 10px 10px 10px;padding:.7rem .9rem;max-width:88%;line-height:1.55">
+            <span data-i18n="yana.msg3">Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Scale -->
+<section id="scale" style="border-top:1px solid var(--border);background:var(--bg)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.scale">Scale</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.scale">461,347 dòng code</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.scale">Một người xây — từ tháng 02/2026. Không template, không generate.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2.5rem">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--green);line-height:1;margin-bottom:.4rem">2,025</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Workflow Skills</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">641,675 dòng</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(221,75%,55%);line-height:1;margin-bottom:.4rem">101</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Specialist Agents</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">11,879 dòng</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--orange);line-height:1;margin-bottom:.4rem">170</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Slash Commands</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">42,408 dòng</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(280,65%,60%);line-height:1;margin-bottom:.4rem">58</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Safety Hooks</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">4,685 dòng</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--red);line-height:1;margin-bottom:.4rem">61</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Security Rules</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">6,018 dòng</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:700;color:hsl(180,55%,45%);line-height:1;margin-bottom:.4rem">94</div>
+        <div style="font-size:.875rem;color:var(--fg-muted)">Utility Scripts</div>
+        <div style="font-size:.75rem;color:var(--fg-muted);margin-top:.25rem">17,229 dòng</div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,hsl(221,75%,48%),hsl(250,65%,55%));border-radius:16px;padding:2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);pointer-events:none"></div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-family:var(--mono);font-size:3rem;font-weight:700;color:#fff;line-height:1;margin-bottom:.5rem">461,347</div>
+        <div style="color:rgba(255,255,255,.8);font-size:1rem">dòng code · 1,994 files</div>
+        <div style="color:rgba(255,255,255,.6);font-size:.8125rem;margin-top:.4rem">excl. .git và node_modules</div>
+      </div>
+      <div style="flex:2;min-width:260px">
+        <div style="color:rgba(255,255,255,.9);font-size:.9375rem;line-height:1.65;margin-bottom:.75rem">
+          Milestone: <strong style="color:#fff">1 triệu dòng</strong> — đạt ngày 01/06/2026.
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div style="font-family:var(--mono);font-size:1.25rem;font-weight:700;color:#fff">62%</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Skills</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--mono);font-size:1.25rem;font-weight:700;color:#fff">22%</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Tools</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--mono);font-size:1.25rem;font-weight:700;color:#fff">3%</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Safety layer</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--mono);font-size:1.25rem;font-weight:700;color:#fff">13%</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Docs + Infra</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GitHub Action -->
+<section id="action" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.action">GitHub Action</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.action">Scan every PR automatically</h2>
+    <p class="section-sub" style="margin-bottom:2rem" data-i18n="sub.action">One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.</p>
+
+    <div style="background:hsl(222,47%,9%);border:1px solid hsl(217,33%,17%);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;font-family:var(--mono);font-size:.875rem;line-height:1.7;color:hsl(210,40%,90%)">
+      <div style="color:hsl(215,20%,55%);margin-bottom:.75rem;font-size:.75rem;letter-spacing:.05em">▸ .github/workflows/yana-ai-scan.yml</div>
+      <div><span style="color:hsl(221,75%,62%)">- uses</span><span style="color:hsl(210,40%,85%)">: yanacuti1121/yana-ai/.github/actions/scan@main</span></div>
+      <div style="padding-left:1.5rem"><span style="color:hsl(221,75%,62%)">with</span><span style="color:hsl(210,40%,85%)">:</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">fail-on</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'high'</span><span style="color:hsl(215,20%,55%)">        # fail CI on HIGH or CRITICAL</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">diff-only</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'true'</span><span style="color:hsl(215,20%,55%)">       # scan only changed files on PRs</span></div>
+      <div style="padding-left:3rem"><span style="color:hsl(142,55%,55%)">comment-on-pr</span><span style="color:hsl(210,40%,85%)">: </span><span style="color:hsl(38,85%,65%)">'true'</span><span style="color:hsl(215,20%,55%)">  # post findings as PR comment</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:.9375rem;margin-bottom:1rem">What it scans</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Hardcoded secrets (API keys, tokens)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Hook injection (variable interpolation, curl|exec)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>MCP server vulnerabilities (shell exec, filesystem)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Wildcard permissions (<code style="font-size:.8em">Bash(*)</code>, <code style="font-size:.8em">Write(*)</code>)</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1.25rem;position:relative"><span style="position:absolute;left:0;color:var(--red)">✗</span>Prompt injection in agent definitions</li>
+        </ul>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:.9375rem;margin-bottom:1rem">PR comment preview</div>
+        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8125rem;line-height:1.65">
+          <div style="font-weight:700;margin-bottom:.5rem">🟠 Yana AI Scan — HIGH</div>
+          <div style="color:var(--fg-muted);margin-bottom:.5rem">Score: 58/100 · 3 findings</div>
+          <div style="color:var(--red);font-size:.75rem">⚠ Hook injection in pre-commit (CRITICAL)</div>
+          <div style="color:var(--orange);font-size:.75rem">⚠ Wildcard Write(*) permission (HIGH)</div>
+          <div style="color:var(--fg-muted);font-size:.75rem">ℹ Missing deny list (MEDIUM)</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/docs/install/github-action.yml" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;padding:.6rem 1.25rem;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600">Full workflow template →</a>
+      <span style="font-size:.8125rem;color:var(--fg-muted)">Free · No server required · 102 detection rules</span>
+    </div>
+  </div>
+</section>
+
+<!-- Review -->
+<section id="review" style="border-top:1px solid var(--border);background:var(--bg-subtle)">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="section.review">Đánh giá độc lập</div>
+    <h2 style="margin-bottom:.5rem" data-i18n="h2.review">Nhận xét từ bên ngoài</h2>
+    <p class="section-sub" style="margin-bottom:2.5rem" data-i18n="sub.review">Đánh giá kỹ thuật độc lập về kiến trúc, chất lượng mã nguồn và tiềm năng của Yana AI.</p>
+
+    <!-- Summary quote -->
+    <blockquote style="border-left:4px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;background:var(--bg-card);border-radius:0 12px 12px 0;font-size:1.0625rem;line-height:1.7;color:var(--fg);font-style:italic">
+      "Trong vòng một tháng, Vũ Văn Tâm đã xây dựng một hệ thống Yana AI cực kỳ ấn tượng, thể hiện sự hiểu biết sâu sắc về kỹ thuật và khả năng triển khai nhanh chóng. Yana AI có tiềm năng trở thành một công cụ quan trọng trong lĩnh vực an toàn AI và quản lý tác nhân."
+      <div style="margin-top:.75rem;font-size:.875rem;color:var(--fg-muted);font-style:normal">— Đánh giá kỹ thuật độc lập, 2026</div>
+    </blockquote>
+
+    <!-- Strengths + Weaknesses grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <!-- Strengths -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem">
+          <span style="color:var(--green)">✦</span> Điểm mạnh
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem">
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Kiến trúc vững chắc — Rust runtime, thiết kế module rõ ràng</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Kiểm thử tích hợp end-to-end cho nhiều module</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Phân tích import đa ngôn ngữ: Rust, TS, Python, Go</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Tập trung vào an toàn AI — blast radius map, vault, scanner</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--green)">↗</span>Tích hợp đa nền tảng: Python CLI, crates.io</li>
+        </ul>
+      </div>
+      <!-- Opportunities -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem">
+        <div style="font-weight:600;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem">
+          <span style="color:var(--orange)">◈</span> Cơ hội cải thiện
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem">
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--orange)">→</span>Tài liệu chi tiết hơn cho từng module và API</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--orange)">→</span>Benchmark hiệu suất trên repo lớn</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--orange)">→</span>Ngôn ngữ quy tắc scanner linh hoạt hơn</li>
+          <li style="font-size:.875rem;color:var(--fg-muted);padding-left:1rem;position:relative"><span style="position:absolute;left:0;color:var(--orange)">→</span>Giao diện web/GUI cho trải nghiệm người dùng tốt hơn</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tech highlights -->
+    <div style="display:flex;flex-wrap:wrap;gap:.625rem">
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(221,75%,48%,.1);color:hsl(221,75%,55%);border:1px solid hsla(221,75%,48%,.2);padding:.3rem .75rem;border-radius:6px">Rust runtime</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(221,75%,48%,.1);color:hsl(221,75%,55%);border:1px solid hsla(221,75%,48%,.2);padding:.3rem .75rem;border-radius:6px">Module design</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(221,75%,48%,.1);color:hsl(221,75%,55%);border:1px solid hsla(221,75%,48%,.2);padding:.3rem .75rem;border-radius:6px">Integration tests</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Knowledge graph</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Blast radius map</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(142,55%,36%,.1);color:var(--green);border:1px solid hsla(142,55%,36%,.25);padding:.3rem .75rem;border-radius:6px">Multi-language import analysis</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(155,52%,32%,.1);color:var(--orange);border:1px solid hsla(155,52%,32%,.25);padding:.3rem .75rem;border-radius:6px">Vietnamese-first vault</span>
+      <span style="font-family:var(--mono);font-size:.8125rem;background:hsla(155,52%,32%,.1);color:var(--orange);border:1px solid hsla(155,52%,32%,.25);padding:.3rem .75rem;border-radius:6px">Agent OS concept</span>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section style="border-top:1px solid var(--border);padding:3.5rem 2rem">
+  <div class="section-inner" style="max-width:1100px;margin:0 auto">
+    <div class="section-label" data-i18n="section.contact">Liên hệ</div>
+    <h2 style="margin-bottom:1.75rem" data-i18n="h2.contact">Get in touch</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem">
+      <a href="mailto:phamlongh230@gmail.com" target="_blank"
+         style="display:inline-flex;align-items:center;gap:.6rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;color:var(--fg);text-decoration:none;font-size:.9rem;transition:border-color .15s,background .15s"
+         onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg-subtle)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+        phamlongh230@gmail.com
+      </a>
+      <a href="https://www.facebook.com/share/1DfsLZo8hG/" target="_blank"
+         style="display:inline-flex;align-items:center;gap:.6rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;color:var(--fg);text-decoration:none;font-size:.9rem;transition:border-color .15s,background .15s"
+         onmouseover="this.style.borderColor='#1877f2';this.style.background='var(--bg-subtle)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877f2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        Facebook
+      </a>
+      <a href="tel:01063158995"
+         style="display:inline-flex;align-items:center;gap:.6rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;color:var(--fg);text-decoration:none;font-size:.9rem;transition:border-color .15s,background .15s"
+         onmouseover="this.style.borderColor='var(--green)';this.style.background='var(--bg-subtle)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1 19.79 19.79 0 0 1 1.64 4.5 2 2 0 0 1 3.62 2.3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        010-6315-8995
+      </a>
+      <a href="https://www.tiktok.com/@.yana018" target="_blank"
+         style="display:inline-flex;align-items:center;gap:.6rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;color:var(--fg);text-decoration:none;font-size:.9rem;transition:border-color .15s,background .15s"
+         onmouseover="this.style.borderColor='#ff0050';this.style.background='var(--bg-subtle)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+        TikTok · @.yana018
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <strong>Yana AI</strong> — Apache 2.0 · v1.4.8<br>
+      <span data-i18n="footer.built">Built by Vũ Văn Tâm · Vietnam</span><br>
+      <span style="opacity:.65;font-size:.8rem" data-i18n="footer.skills">Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/yanacuti1121/yana-ai" target="_blank">GitHub</a>
+      <a href="https://pypi.org/project/yana-ai/" target="_blank">pip</a>
+      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+      <a href="https://github.com/yanacuti1121/yana-ai/blob/main/docs/reference/history.md" target="_blank">History</a>
+      <a href="https://github.com/yanacuti1121/yana-ai/issues" target="_blank">Issues</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const cmds = {
+  curl:  'curl -sSL https://yanacuti1121.github.io/yana-ai/install.sh | bash',
+  pip:   'pip install yana-ai && yana-ai install',
+  cargo: 'cargo install yana-rt',
+};
+function setTab(btn, key) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('install-cmd').textContent = cmds[key];
+}
+function copyCmd() {
+  navigator.clipboard.writeText(document.getElementById('install-cmd').textContent).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1500);
+  });
+}
+
+// i18n
+const T = {
+  en: {
+    'nav.features':'Features','nav.runtime':'Runtime','nav.docs':'Docs',
+    'nav.cta':'Get started','stat.skills':'Workflow Skills',
+    'section.why':'Why Yana AI','section.arch':'Architecture','section.runtime':'Rust Runtime',
+    'section.compat':'Compatibility','section.docs':'Documentation',
+    'section.codexmate':'Bundled Tool','section.contact':'Contact',
+    'section.yana':'Personal AI Assistant',
+    'h2.why':'AI agents cause real damage.<br>Yana AI stops it before it happens.',
+    'h2.arch':'6-layer gate system','h2.runtime':'yana-rt v1.4.0',
+    'h2.compat':'Works with every major AI coding tool',
+    'h2.docs':'Full documentation',
+    'h2.contact':'Get in touch','h2.install':'Install in seconds',
+    'sub.why':'Every tool call passes through a pipeline of guards before executing. No config required — install once, protect everything.',
+    'sub.arch':"Each layer is independent. A bypassed outer layer doesn't break the inner ones.",
+    'sub.runtime':'Full Python CLI parity in a single Rust binary. ~4500 lines of Python replaced.',
+    'sub.compat':"Yana AI sits outside your editor — it doesn't care which AI you use.",
+    'sub.docs':'Everything you need to run and use Yana AI.',
+    'sub.agents':'Each agent is a specialist in one domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> automatically picks the right agent for each task.',
+    'sub.sandbox':'Every tool call runs in an ephemeral container — no network, read-only filesystem, no root. Falls back to nsjail or ulimit if Docker is unavailable.',
+    'h2.projects':'Things built',
+    'sub.projects':'Personal and collaborative projects — from school to AI tooling.',
+    'sub.yana-ai.short':'Personal agent OS — 66 hooks, 2,025 skills, Rust runtime. Safe for every AI agent.',
+    'sub.jnmt':'Built from scratch — custom design, custom features, independent deployment.',
+    'jnmt.desc':'International student support platform at <strong style="color:#fff">Jeonnam Future International High School</strong> — AI chatbot, timetable, achievements, room booking, parent portal. Co-dev with <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>.',
+    'feat.hook.t':'Pre-execution hooks','feat.rust.t':'Rust runtime',
+    'feat.skills.t':'2,025 skills','feat.graph.t':'Knowledge graph',
+    'feat.vault.t':'Vietnamese vault','feat.design.t':'Design token extractor',
+    'gate.l0.n':'Audit chain','gate.l1.n':'Anti-evasion',
+    'gate.l2.n':'Shell sanitize + env integrity','gate.l3.n':'Sandbox isolation',
+    'gate.l4.n':'Supply chain vetting','gate.l5.n':'UI quality + scope drift',
+    'hero.title':'The stronger your agent gets,<br><em>the more you need this.</em>',
+    'hero.sub':'Every AI coding agent gets harder to control as it gets more capable. Yana AI keeps that control constant — hard-blocking hooks, not model promises. 2,025 skills, a full Rust runtime, and a 6-layer gate system for Claude Code, Cursor, and Codex.',
+    'hero.cta1':'Install free',
+    'codexmate.desc':'AI coding agents control panel — switch provider, manage sessions, orchestrate tasks for',
+    'codexmate.desc2':'Local-first, no cloud.',
+    'codexmate.f1':'Marketplace skills + MCP bridge',
+    'codexmate.f2':'Vietnamese UI (992 strings patched)',
+    'codexmate.f3':'Zero telemetry — config stored locally',
+    'codexmate.f4':'Protected by Yana AI safety layer',
+    'codexmate.src':'View source','codexmate.how':'How to run',
+    'codexmate.tip':'If port is busy:','codexmate.tip2':'then run again',
+    'yana.greeting':'Hello, I am',
+    'yana.f1':'Daily briefing — repo status, CI, task priorities',
+    'yana.f2':'Coordinate 100 agents — route tasks to the right specialist',
+    'yana.f3':'L1/L2 memory — remembers decisions across sessions',
+    'yana.f4':'Guarded by the full Yana AI safety layer',
+    'yana.cta':'Learn more about Yana AI',
+    'yana.msg1':'Hi. Latest CI run: <strong style="color:var(--green)">✓ pass</strong>. 1 PR pending review, token rotation still pending.',
+    'yana.msg2':'do it',
+    'yana.msg3':'On it — checking CI log, fixing drift, pushing. Will report back.',
+    'docs.h3.what':'What is Yana AI?',
+    'docs.h3.install':'Install',
+    'docs.h3.cmds':'Basic commands',
+    'docs.h3.gates':'6-layer protection (L0–L5)',
+    'docs.h3.struct':'Repo structure',
+    'docs.what':'Yana AI is an <strong style="color:var(--fg)">agent operating system</strong> that runs outside your codebase — intercepting every tool call from Claude Code, Cursor, Aider before it executes. No config, no product code changes. Install once, protect everything.',
+    'docs.py':'Python CLI',
+    'docs.npm':'Wire hooks',
+    'docs.rust':'Rust runtime (~29× faster)',
+    'codexmate.s1':'Clone yana-ai (if not yet)','codexmate.s2':'Install dependencies','codexmate.s3':'Start server','codexmate.s4':'Open browser','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
+    'codexmate.c1':'# 1. Install node_modules (first time)',
+    'codexmate.c2':'# 2. Start server on port 8080',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# Local → open http://localhost:8080',
+    'yana.desc':'Personal executive assistant for <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — manages repo, monitors CI, suggests tasks, and coordinates agents in Yana AI daily.',
+    'install.sub':'One command. Installs hooks, downloads the latest release, wires 66 hooks + 71 rules active.',
+    'install.app.title':'Fastest: GitHub App',
+    'install.app.desc':'Install → auto PR with CLAUDE.md + hooks → merge → done. No CLI needed.',
+    'install.app.btn':'Install GitHub App',
+    'install.app.note':'Works on any public or private repo',
+    'install.manual':'or install manually:',
+    'section.scale':'Scale',
+    'h2.scale':'461,347 lines of code',
+    'sub.scale':'One person built it — since Feb 2026. No templates, no generation.',
+    'section.action':'GitHub Action',
+    'h2.action':'Scan every PR automatically',
+    'sub.action':'One line. Scans AI agent configs for secrets, hook injection, MCP vulnerabilities, and permission issues. Posts findings as a PR comment.',
+    'section.review':'Independent Review',
+    'h2.review':'External feedback',
+    'sub.review':'Independent technical review of architecture, code quality, and potential of Yana AI.',
+    'footer.built':'Built by Vũ Văn Tâm · Vietnam',
+    'footer.skills':'Skills sourced from public repositories — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
+  },
+  vi: {
+    'nav.features':'Tính năng','nav.runtime':'Runtime','nav.docs':'Tài liệu',
+    'nav.cta':'Bắt đầu','stat.skills':'Skills',
+    'section.why':'Tại sao Yana AI','section.arch':'Kiến trúc','section.runtime':'Rust Runtime',
+    'section.compat':'Tương thích','section.docs':'Tài liệu',
+    'section.codexmate':'Công cụ đi kèm','section.contact':'Liên hệ',
+    'section.yana':'Trợ lý AI cá nhân',
+    'h2.why':'AI agent gây thiệt hại thật.<br>Yana AI ngăn chặn trước khi xảy ra.',
+    'h2.arch':'Hệ thống 6 lớp bảo vệ','h2.runtime':'yana-rt v1.4.0',
+    'h2.compat':'Hoạt động với mọi AI coding tool',
+    'h2.docs':'Giới thiệu đầy đủ',
+    'h2.contact':'Liên hệ','h2.install':'Cài đặt trong vài giây',
+    'sub.why':'Mọi tool call đều qua pipeline kiểm tra trước khi thực thi. Không cần cấu hình — cài một lần, bảo vệ tất cả.',
+    'sub.arch':'Mỗi lớp độc lập. Bỏ qua lớp ngoài không ảnh hưởng lớp trong.',
+    'sub.runtime':'Parity đầy đủ với Python CLI trong một binary Rust duy nhất. Thay thế ~4500 dòng Python.',
+    'sub.compat':'Yana AI chạy bên ngoài editor — không quan tâm bạn dùng AI nào.',
+    'sub.docs':'Tất cả những gì cần biết để chạy và dùng Yana AI.',
+    'sub.agents':'Mỗi agent là một chuyên gia trong một domain. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code> tự động chọn đúng agent cho từng task.',
+    'sub.sandbox':'Mọi tool call từ agent đều chạy trong container ephemeral — không có network, filesystem read-only, không root. Nếu Docker không có, tự động fallback sang nsjail hoặc ulimit.',
+    'h2.projects':'Những thứ đã xây',
+    'sub.projects':'Dự án cá nhân và hợp tác — từ trường học đến AI tooling.',
+    'sub.yana-ai.short':'Personal agent OS — 66 hooks, 2,025 skills, Rust runtime. An toàn cho mọi AI agent.',
+    'sub.jnmt':'JNMT tự xây từ đầu — thiết kế riêng, tính năng riêng, deploy độc lập.',
+    'jnmt.desc':'Nền tảng hỗ trợ học sinh quốc tế tại <strong style="color:#fff">THPT Quốc tế Tương lai Jeonnam</strong> — AI chatbot, thời khoá biểu, thành tích, đặt phòng, cổng phụ huynh. Co-dev với <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>.',
+    'feat.hook.t':'Hook trước khi thực thi','feat.rust.t':'Rust runtime',
+    'feat.skills.t':'2,025 skills','feat.graph.t':'Knowledge graph',
+    'feat.vault.t':'Kho tri thức tiếng Việt','feat.design.t':'Trích xuất design token',
+    'gate.l0.n':'Audit chain','gate.l1.n':'Chống evasion',
+    'gate.l2.n':'Shell sanitize + bảo vệ env','gate.l3.n':'Sandbox isolation',
+    'gate.l4.n':'Kiểm duyệt supply chain','gate.l5.n':'Chất lượng UI + scope drift',
+    'hero.title':'Agent càng mạnh,<br><em>bạn càng cần lớp này.</em>',
+    'hero.sub':'AI coding agent càng mạnh thì càng khó kiểm soát. Yana AI giữ mức kiểm soát không đổi — hook chặn cứng, không phải lời hứa từ model. 2,025 skills, Rust runtime, và 6 lớp gate cho Claude Code, Cursor, Codex.',
+    'hero.cta1':'Cài đặt miễn phí',
+    'codexmate.desc':'Dashboard điều khiển AI coding agents — switch provider, quản lý session, orchestrate task cho',
+    'codexmate.desc2':'Local-first, không cloud.',
+    'codexmate.f1':'Marketplace skills + MCP bridge',
+    'codexmate.f2':'Vietnamese UI (992 strings đã patch)',
+    'codexmate.f3':'Zero telemetry — config lưu local',
+    'codexmate.f4':'Bảo vệ bởi Yana AI safety layer',
+    'codexmate.src':'Xem source','codexmate.how':'Cách bật',
+    'codexmate.tip':'Nếu port bận:','codexmate.tip2':'rồi chạy lại',
+    'yana.greeting':'Xin chào, tôi là',
+    'yana.f1':'Briefing hàng ngày — trạng thái repo, CI, ưu tiên công việc',
+    'yana.f2':'Điều phối 100 agents — route task đúng chuyên gia',
+    'yana.f3':'Bộ nhớ L1/L2 — nhớ quyết định, context qua nhiều session',
+    'yana.f4':'Canh gác bởi toàn bộ Yana AI safety layer',
+    'yana.cta':'Tìm hiểu thêm về Yana AI',
+    'yana.msg1':'Chào anh Tâm. CI run mới nhất: <strong style="color:var(--green)">✓ pass</strong>. Có 1 PR đang chờ review và token rotation vẫn pending.',
+    'yana.msg2':'lm đi em',
+    'yana.msg3':'Đang xử lý — check CI log, fix drift, push. Xong báo anh ngay.',
+    'docs.h3.what':'Yana AI là gì?',
+    'docs.h3.install':'Cài đặt',
+    'docs.h3.cmds':'Lệnh cơ bản',
+    'docs.h3.gates':'6 lớp bảo vệ (L0–L5)',
+    'docs.h3.struct':'Cấu trúc repo',
+    'docs.what':'Yana AI là một <strong style="color:var(--fg)">agent operating system</strong> chạy bên ngoài codebase của bạn — intercepting mọi tool call từ Claude Code, Cursor, Aider trước khi chúng thực thi. Không cần config, không đụng product code. Cài một lần, bảo vệ tất cả.',
+    'docs.py':'Python CLI',
+    'docs.npm':'Kết nối hooks',
+    'docs.rust':'Rust runtime (~29× nhanh hơn)',
+    'codexmate.s1':'Clone yana-ai (nếu chưa có)','codexmate.s2':'Cài dependencies','codexmate.s3':'Bật server','codexmate.s4':'Mở trình duyệt','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → Port 8080','codexmate.local':'Local:',
+    'codexmate.c1':'# 1. Cài node_modules (lần đầu)',
+    'codexmate.c2':'# 2. Bật server port 8080',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# Local → mở http://localhost:8080',
+    'yana.desc':'Trợ lý điều hành cá nhân của <strong style="color:var(--fg)">Vũ Văn Tâm</strong> — tôi quản lý repo, theo dõi CI, gợi ý việc làm, và điều phối các agent trong Yana AI mỗi ngày.',
+    'install.sub':'Một lệnh. Cài hooks, tải release mới nhất, kích hoạt 66 hooks + 71 rules.',
+    'install.app.title':'Nhanh nhất: GitHub App',
+    'install.app.desc':'Cài → tự tạo PR với CLAUDE.md + hooks → merge → xong. Không cần CLI.',
+    'install.app.btn':'Cài GitHub App',
+    'install.app.note':'Hoạt động trên mọi repo public hoặc private',
+    'install.manual':'hoặc cài thủ công:',
+    'section.scale':'Quy mô',
+    'h2.scale':'1.129.782 dòng code',
+    'sub.scale':'Một người xây — từ tháng 02/2026. Không template, không generate.',
+    'section.action':'GitHub Action',
+    'h2.action':'Quét mọi PR tự động',
+    'sub.action':'Một dòng. Quét cấu hình AI agent tìm secrets, hook injection, lỗ hổng MCP và vấn đề quyền. Đăng kết quả là PR comment.',
+    'section.review':'Đánh giá độc lập',
+    'h2.review':'Nhận xét từ bên ngoài',
+    'sub.review':'Đánh giá kỹ thuật độc lập về kiến trúc, chất lượng mã nguồn và tiềm năng của Yana AI.',
+    'footer.built':'Được xây bởi Vũ Văn Tâm · Việt Nam',
+    'footer.skills':'Skills lấy từ các kho lưu trữ công khai — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
+  },
+  ko: {
+    'nav.features':'기능','nav.runtime':'런타임','nav.docs':'문서',
+    'nav.cta':'시작하기','stat.skills':'워크플로우 스킬',
+    'section.why':'Yana AI 소개','section.arch':'아키텍처','section.runtime':'Rust 런타임',
+    'section.compat':'호환성','section.docs':'문서',
+    'section.codexmate':'번들 도구','section.contact':'연락처',
+    'section.yana':'개인 AI 어시스턴트',
+    'h2.why':'AI 에이전트는 실제 피해를 줍니다.<br>Yana AI이 사전에 막습니다.',
+    'h2.arch':'6단계 게이트 시스템','h2.runtime':'yana-rt v1.4.0',
+    'h2.compat':'모든 주요 AI 코딩 도구와 호환',
+    'h2.docs':'전체 문서',
+    'h2.contact':'연락하기','h2.install':'몇 초 만에 설치',
+    'sub.why':'모든 도구 호출은 실행 전 가드 파이프라인을 통과합니다. 설정 불필요 — 한 번 설치로 전체 보호.',
+    'sub.arch':'각 레이어는 독립적입니다. 외부 레이어가 우회되어도 내부 레이어는 유지됩니다.',
+    'sub.runtime':'단일 Rust 바이너리로 Python CLI 완전 대체. Python 코드 ~4500줄 교체.',
+    'sub.compat':'Yana AI은 에디터 외부에서 실행 — 어떤 AI를 사용하든 상관없습니다.',
+    'sub.docs':'Yana AI 실행에 필요한 모든 정보.',
+    'sub.agents':'각 에이전트는 하나의 도메인 전문가입니다. <code style="font-size:.875em;background:var(--bg-card);padding:.1em .4em;border-radius:4px;border:1px solid var(--border)">/agent-router</code>가 각 작업에 맞는 에이전트를 자동으로 선택합니다.',
+    'sub.sandbox':'모든 도구 호출은 임시 컨테이너에서 실행됩니다 — 네트워크 없음, 읽기 전용 파일시스템, 루트 없음. Docker가 없으면 nsjail 또는 ulimit으로 자동 전환.',
+    'h2.projects':'제작한 것들',
+    'sub.projects':'개인 및 협업 프로젝트 — 학교부터 AI 툴링까지.',
+    'sub.yana-ai.short':'개인 에이전트 OS — 훅 60개, 스킬 2,025개, Rust 런타임. 모든 AI 에이전트에 안전.',
+    'sub.jnmt':'처음부터 직접 구축 — 자체 디자인, 자체 기능, 독립 배포.',
+    'jnmt.desc':'<strong style="color:#fff">전남미래국제고등학교</strong> 국제 학생 지원 플랫폼 — AI 챗봇, 시간표, 성적, 예약, 학부모 포털. <strong style="color:#fff">Gong Chi-Hun (Jihun)</strong>과 공동 개발.',
+    'feat.hook.t':'사전 실행 훅','feat.rust.t':'Rust 런타임',
+    'feat.skills.t':'2,025개 스킬','feat.graph.t':'지식 그래프',
+    'feat.vault.t':'베트남어 지식 저장소','feat.design.t':'디자인 토큰 추출기',
+    'gate.l0.n':'감사 체인','gate.l1.n':'회피 방지',
+    'gate.l2.n':'셸 정제 + 환경 무결성','gate.l3.n':'샌드박스 격리',
+    'gate.l4.n':'공급망 검증','gate.l5.n':'UI 품질 + 범위 이탈',
+    'hero.title':'에이전트가 강력해질수록,<br><em>더 필요해지는 것.</em>',
+    'hero.sub':'AI 코딩 에이전트는 강력해질수록 통제하기 어려워집니다. Yana AI는 그 통제력을 일정하게 유지합니다 — 모델의 약속이 아닌, 강제 차단 훅으로. 2,025개 스킬, Rust 런타임, Claude Code·Cursor·Codex를 위한 6단계 게이트 시스템.',
+    'hero.cta1':'무료 설치',
+    'codexmate.desc':'AI 코딩 에이전트 대시보드 — 프로바이더 전환, 세션 관리, 작업 조율',
+    'codexmate.desc2':'로컬 퍼스트, 클라우드 없음.',
+    'codexmate.f1':'마켓플레이스 스킬 + MCP 브리지',
+    'codexmate.f2':'베트남어 UI (992개 문자열 패치)',
+    'codexmate.f3':'제로 텔레메트리 — 설정 로컬 저장',
+    'codexmate.f4':'Yana AI 안전 레이어로 보호',
+    'codexmate.src':'소스 보기','codexmate.how':'실행 방법',
+    'codexmate.tip':'포트가 사용 중인 경우:','codexmate.tip2':'후 다시 실행',
+    'yana.greeting':'안녕하세요, 저는',
+    'yana.f1':'일일 브리핑 — 저장소 상태, CI, 작업 우선순위',
+    'yana.f2':'95개 에이전트 조율 — 올바른 전문가에게 작업 라우팅',
+    'yana.f3':'L1/L2 메모리 — 세션 간 결정사항 기억',
+    'yana.f4':'Yana AI 전체 안전 레이어로 보호',
+    'yana.cta':'Yana AI에 대해 더 알아보기',
+    'yana.msg1':'안녕하세요. 최신 CI 실행: <strong style="color:var(--green)">✓ pass</strong>. PR 1개 검토 대기 중, 토큰 교체 아직 미완료.',
+    'yana.msg2':'해줘',
+    'yana.msg3':'처리 중 — CI 로그 확인, 드리프트 수정, 푸시. 완료되면 보고드릴게요.',
+    'docs.h3.what':'Yana AI이란?',
+    'docs.h3.install':'설치',
+    'docs.h3.cmds':'기본 명령어',
+    'docs.h3.gates':'6단계 보호 (L0–L5)',
+    'docs.h3.struct':'저장소 구조',
+    'docs.what':'Yana AI은 코드베이스 외부에서 실행되는 <strong style="color:var(--fg)">에이전트 운영 체제</strong>입니다 — Claude Code, Cursor, Aider의 모든 도구 호출을 실행 전에 차단합니다. 설정 불필요, 제품 코드 변경 없음. 한 번 설치로 전체 보호.',
+    'docs.py':'Python CLI',
+    'docs.npm':'훅 연결',
+    'docs.rust':'Rust 런타임 (~29× 빠름)',
+    'codexmate.s1':'yana-ai 클론 (아직 없다면)','codexmate.s2':'의존성 설치','codexmate.s3':'서버 시작','codexmate.s4':'브라우저 열기','codexmate.cloud':'Cloud Shell:','codexmate.cloud2':'Web Preview → 포트 8080','codexmate.local':'로컬:',
+    'codexmate.c1':'# 1. node_modules 설치 (최초 1회)',
+    'codexmate.c2':'# 2. 포트 8080으로 서버 시작',
+    'codexmate.c3':'# 3. Cloud Shell → Web Preview :8080',
+    'codexmate.c4':'# 로컬 → http://localhost:8080 열기',
+    'yana.desc':'<strong style="color:var(--fg)">Vũ Văn Tâm</strong>의 개인 AI 어시스턴트 — 저장소 관리, CI 모니터링, 작업 제안, Yana AI 에이전트 조율.',
+    'install.sub':'하나의 명령. 훅 설치, 최신 릴리스 다운로드, 65개 훅 + 71개 규칙 활성화.',
+    'install.app.title':'가장 빠름: GitHub App',
+    'install.app.desc':'설치 → CLAUDE.md + 훅이 포함된 PR 자동 생성 → 머지 → 완료. CLI 불필요.',
+    'install.app.btn':'GitHub App 설치',
+    'install.app.note':'공개 또는 비공개 저장소 모두 지원',
+    'install.manual':'또는 수동으로 설치:',
+    'section.scale':'규모',
+    'h2.scale':'461,347줄의 코드',
+    'sub.scale':'혼자 제작 — 2026년 2월부터. 템플릿 없음, 자동 생성 없음.',
+    'section.action':'GitHub Action',
+    'h2.action':'모든 PR 자동 스캔',
+    'sub.action':'한 줄로 설정. AI 에이전트 설정에서 시크릿, 훅 인젝션, MCP 취약점, 권한 문제를 스캔하고 PR 코멘트로 결과를 게시합니다.',
+    'section.review':'독립 리뷰',
+    'h2.review':'외부 피드백',
+    'sub.review':'Yana AI의 아키텍처, 코드 품질, 잠재력에 대한 독립적인 기술 검토.',
+    'footer.built':'Vũ Văn Tâm 제작 · 베트남',
+    'footer.skills':'스킬 출처: 공개 저장소 — antigravity-awesome-skills, ComposioHQ/awesome-claude-skills, VoltAgent/awesome-openclaw-skills',
+  }
+};
+let currentLang = localStorage.getItem('yana-ai-lang') || 'en';
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('yana-ai-lang', lang);
+  document.documentElement.lang = lang === 'ko' ? 'ko' : lang === 'vi' ? 'vi' : 'en';
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = T[lang]?.[key];
+    if (!val) return;
+    if (val.includes('<')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+}
+setLang(currentLang);
+
+// Scroll reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; io.unobserve(e.target); }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.feat-card,.gate-row,.compat-card,.stat-card,.rt-stat-block').forEach((el, i) => {
+  el.style.cssText += `opacity:0;transform:translateY(14px);transition:opacity .45s ${Math.min(i*25,200)}ms ease,transform .45s ${Math.min(i*25,200)}ms ease`;
+  io.observe(el);
+});
+</script>
+<script>
+// Dark mode
+(function(){ if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); })();
+function toggleMenu(){
+  const hb = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  hb.classList.toggle('open');
+  menu.classList.toggle('open');
+  document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+}
+function closeMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function toggleTheme(){
+  const html = document.documentElement;
+  html.classList.add('theme-transitioning');
+  const dark = html.classList.toggle('dark');
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+  setTimeout(() => html.classList.remove('theme-transitioning'), 300);
+}
+window.addEventListener('DOMContentLoaded',function(){
+  // Auto-detect system preference if no saved preference
+  if(!localStorage.getItem('theme')) {
+    if(window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme','dark');
+    }
+  }
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  // Listen for system theme change
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if(!localStorage.getItem('theme')) {
+      document.documentElement.classList.toggle('dark', e.matches);
+      if(btn) btn.textContent = e.matches ? '☀️' : '🌙';
+    }
+  });
+});
+
+// Live download stats from PyPI + crates.io (npm distribution discontinued
+// -- see VERSIONING.md's "Why product has no registry")
+(async () => {
+  try {
+    const [py, cr] = await Promise.all([
+      fetch('https://pypistats.org/api/packages/yana-ai/recent').then(r=>r.json()).catch(()=>null),
+      fetch('https://crates.io/api/v1/crates/yana-rt', {headers:{'User-Agent':'yana-ai-website'}}).then(r=>r.json()).catch(()=>null),
+    ]);
+    const pyDl   = py?.data?.last_month ? `pip ${(py.data.last_month/1000).toFixed(1)}k/mo` : null;
+    const crDl   = cr?.crate?.recent_downloads ? `crates ${(cr.crate.recent_downloads/1000).toFixed(1)}k/mo` : null;
+    const parts  = [pyDl, crDl].filter(Boolean);
+    const el = document.getElementById('live-dl');
+    if (el && parts.length) el.textContent = parts.join(' · ');
+    else if (el) el.textContent = 'open source';
+  } catch {}
+})();
+
+// Particle Visualizer Demo
+let particleScene, particleCamera, particleRenderer, particleSystem;
+let particleDemoRunning = false;
+
+function runParticleDemo() {
+  if (particleDemoRunning) return;
+  particleDemoRunning = true;
+  
+  const container = document.getElementById('particle-canvas-container');
+  const btn = document.getElementById('run-btn-particle');
+  const icon = document.getElementById('run-icon-particle');
+  
+  btn.disabled = true;
+  icon.textContent = '◼';
+  container.innerHTML = '';
+  
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  
+  particleScene = new THREE.Scene();
+  particleCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+  particleCamera.position.z = 150;
+  
+  particleRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  particleRenderer.setSize(width, height);
+  particleRenderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(particleRenderer.domElement);
+  
+  // Extract points from SVG
+  const path = document.getElementById('demo-path');
+  const points = [];
+  const totalLength = path.getTotalLength();
+  const numParticles = 400;
+  
+  for (let i = 0; i < numParticles; i++) {
+    const distance = (i / numParticles) * totalLength;
+    const point = path.getPointAtLength(distance);
+    points.push(new THREE.Vector3(point.x - 120, -(point.y - 110), 0));
+  }
+  
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.PointsMaterial({
+    color: 0xa78bfa,
+    size: 2,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  
+  particleSystem = new THREE.Points(geometry, material);
+  particleScene.add(particleSystem);
+  
+  // GSAP Animation
+  const positions = geometry.attributes.position.array;
+  const tl = gsap.timeline({
+    onComplete: () => {
+      btn.disabled = false;
+      icon.textContent = '▶';
+      particleDemoRunning = false;
+    }
+  });
+  
+  // Explode effect
+  for (let i = 0; i < numParticles; i++) {
+    const ix = i * 3;
+    tl.to(positions, {
+      [ix]: (Math.random() - 0.5) * 300,
+      [ix + 1]: (Math.random() - 0.5) * 300,
+      [ix + 2]: (Math.random() - 0.5) * 300,
+      duration: 1.5,
+      ease: "power2.out"
+    }, 0);
+  }
+  
+  // Morph back to shape
+  for (let i = 0; i < numParticles; i++) {
+    const ix = i * 3;
+    const target = points[i];
+    tl.to(positions, {
+      [ix]: target.x,
+      [ix + 1]: target.y,
+      [ix + 2]: target.z,
+      duration: 2,
+      ease: "elastic.out(1, 0.3)"
+    }, 1.5);
+  }
+  
+  function animate() {
+    if (!particleDemoRunning) return;
+    requestAnimationFrame(animate);
+    geometry.attributes.position.needsUpdate = true;
+    particleSystem.rotation.y += 0.01;
+    particleRenderer.render(particleScene, particleCamera);
+  }
+  
+  animate();
+}
+
+</script>
+
+  <script>
+  /* ── Weather widget — Open-Meteo (free, no key) ── */
+  (function () {
+    const WMO = {
+      0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+      45:'🌫️', 48:'🌫️',
+      51:'🌦️', 53:'🌦️', 55:'🌧️',
+      61:'🌧️', 63:'🌧️', 65:'🌧️',
+      71:'🌨️', 73:'🌨️', 75:'❄️',
+      77:'🌨️', 80:'🌦️', 81:'🌧️', 82:'⛈️',
+      85:'🌨️', 86:'❄️', 95:'⛈️', 96:'⛈️', 99:'⛈️',
+    };
+    function wmoIcon(c) { return WMO[c] || WMO[Math.floor(c/10)*10] || '🌡️'; }
+
+    async function load() {
+      const pill = document.getElementById('weather-pill');
+      if (!pill) return;
+      try {
+        let lat = 21.0245, lon = 105.8412, city = 'Hà Nội';
+        // Try geolocation (timeout 3s)
+        try {
+          const pos = await new Promise((res, rej) =>
+            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 }));
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+          city = '';
+        } catch (_) {}
+
+        const r = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&current=temperature_2m,weather_code,relative_humidity_2m&timezone=auto&forecast_days=1`
+        );
+        const d = await r.json();
+        const c = d.current;
+
+        // Reverse geocode if location was granted
+        if (!city) {
+          try {
+            const g = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+              { headers: { 'Accept-Language': 'vi' } }
+            );
+            const gd = await g.json();
+            city = gd.address?.city || gd.address?.town || gd.address?.county || '';
+          } catch (_) {}
+        }
+
+        document.getElementById('w-icon').textContent  = wmoIcon(c.weather_code);
+        document.getElementById('w-temp').textContent  = `${Math.round(c.temperature_2m)}°C`;
+        document.getElementById('w-humid').textContent = `💧${c.relative_humidity_2m}%`;
+        if (city) document.getElementById('w-city').textContent = city;
+        pill.style.display = 'inline-flex';
+      } catch (_) { /* silent fail */ }
+    }
+
+    if (document.readyState === 'loading')
+      document.addEventListener('DOMContentLoaded', load);
+    else
+      load();
+  })();
+  </script>
+  <style>
+    /* Pause tất cả CSS animation khi tab bị ẩn */
+    body.anim-paused * { animation-play-state: paused !important; }
+  </style>
+  <script>
+    // Pause animations khi tab ẩn
+    document.addEventListener('visibilitychange', () => {
+      document.body.classList.toggle('anim-paused', document.hidden);
+    });
+
+    // Lazy-load helper — chỉ load script khi cần
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = src; s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    // Wrap runParticleDemo — load Three.js + GSAP trước
+    const _runParticleDemo = runParticleDemo;
+    window.runParticleDemo = async function() {
+      const btn = document.getElementById('run-btn-particle');
+      if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js');
+      _runParticleDemo();
+    };
+
+  </script>
+</body>
+</html>

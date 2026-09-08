@@ -44,6 +44,7 @@ async function testArgvAndStreaming() {
   const result = await streamGovernedTurn({
     binaryPath: '/safe/yana-rt',
     rootDir: '/repo with spaces',
+    cwd: '/selected workspace',
     provider: 'ollama',
     model: 'qwen 3:14b',
     input: {
@@ -66,7 +67,7 @@ async function testArgvAndStreaming() {
   assert.strictEqual(capture.command, '/safe/yana-rt');
   assert.deepStrictEqual(capture.args, ['chat', '--headless', '--provider', 'ollama', '--model', 'qwen 3:14b']);
   assert.strictEqual(capture.options.shell, undefined);
-  assert.strictEqual(capture.options.cwd, '/repo with spaces');
+  assert.strictEqual(capture.options.cwd, '/selected workspace');
   assert.ok(!capture.args.join(' ').includes('secret only on stdin'));
   const stdin = JSON.parse(capture.stdin);
   assert.strictEqual(stdin.api_key, 'secret only on stdin');
@@ -74,6 +75,28 @@ async function testArgvAndStreaming() {
   assert.deepStrictEqual(events.slice(0, 2).map(event => event.text), ['xin ', 'chào']);
   assert.deepStrictEqual(result.usage, { input_tokens: 2, output_tokens: 3 });
   assert.strictEqual(result.message, 'xin chào');
+}
+
+// A .js YANA_RT_BIN (e.g. scripts/yana-rt-wrapper.js, or a test double
+// standing in for the real binary) can't be spawned directly on Windows --
+// no shebang mechanism at the spawn() level there, regardless of file mode
+// (real bug, found live on windows-latest CI: EFTYPE). streamGovernedTurn
+// must route any .js target through node explicitly instead of spawning
+// it as if it were itself a native executable.
+async function testJsBinaryPathSpawnsViaNode() {
+  const capture = {};
+  await streamGovernedTurn({
+    binaryPath: '/repo/scripts/yana-rt-wrapper.js',
+    rootDir: '/repo',
+    provider: 'ollama',
+    input: { task: 'hello' },
+    onEvent() {},
+    spawnImpl: fakeSpawn({ capture, stdout: [JSON.stringify({ type: 'completed', message: 'hi' }), ''].join('\n') }),
+  });
+  assert.strictEqual(capture.command, process.execPath);
+  assert.deepStrictEqual(capture.args, [
+    '/repo/scripts/yana-rt-wrapper.js', 'chat', '--headless', '--provider', 'ollama',
+  ]);
 }
 
 async function testFailureAndProviderGate() {
@@ -105,11 +128,32 @@ function testDesktopProviderCoverage() {
   }
 }
 
+function testAirLlmProviderContract() {
+  const provider = PROVIDERS.airllm;
+  assert.ok(provider, 'AirLLM must be registered with the desktop gateway');
+  assert.strictEqual(provider.protocol, 'http');
+  assert.strictEqual(provider.hostname, '127.0.0.1');
+  assert.strictEqual(provider.port, 8100);
+  assert.strictEqual(provider.keyless, true);
+  assert.strictEqual(provider.local, true);
+  const body = JSON.parse(provider.body('Qwen/Qwen3-32B', 'system', 'task'));
+  assert.strictEqual(body.model, 'Qwen/Qwen3-32B');
+  assert.strictEqual(body.stream, true);
+  assert.deepStrictEqual(body.messages, [
+    { role: 'system', content: 'system' },
+    { role: 'user', content: 'task' },
+  ]);
+}
+
 function testRuntimeDiscovery() {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-runtime-client-'));
   const releaseDir = path.join(rootDir, 'target', 'release');
   fs.mkdirSync(releaseDir, { recursive: true });
-  const binaryPath = path.join(releaseDir, 'yana-rt');
+  // resolveGovernedRuntime's own no-explicit-path lookup (runtime-client.js)
+  // hardcodes 'yana-rt.exe' on win32 -- this fixture must match, or the
+  // lookup below can never find it there (real bug, found live on
+  // windows-latest CI: the fixture was always named plain 'yana-rt').
+  const binaryPath = path.join(releaseDir, process.platform === 'win32' ? 'yana-rt.exe' : 'yana-rt');
   fs.writeFileSync(binaryPath, '#!/bin/sh\nexit 0\n');
   fs.chmodSync(binaryPath, 0o755);
   assert.strictEqual(
@@ -147,10 +191,12 @@ function testProductionImageRequiresGovernedRuntime() {
 
 Promise.resolve()
   .then(testArgvAndStreaming)
+  .then(testJsBinaryPathSpawnsViaNode)
   .then(testFailureAndProviderGate)
   .then(testDesktopProviderCoverage)
+  .then(testAirLlmProviderContract)
   .then(testRuntimeDiscovery)
   .then(testRuntimeMode)
   .then(testProductionImageRequiresGovernedRuntime)
-  .then(() => console.log('runtime-client: 6/6 PASS'))
+  .then(() => console.log('runtime-client: 8/8 PASS'))
   .catch(error => { console.error(error); process.exit(1); });

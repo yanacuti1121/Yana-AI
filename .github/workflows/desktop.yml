@@ -42,7 +42,14 @@ jobs:
           )
           FAILED=0
           for name in "${REQUIRED[@]}"; do
-            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            # --paginate: gh api's default page size is 30. This commit's
+            # check-runs count has grown past that (CodeQL alone adds 4
+            # more), so an unpaginated call silently drops required
+            # checks that land on page 2+ and reports "none found" for
+            # them even though they succeeded -- real bug, found live
+            # after 7 failed desktop.yml dispatches this release that
+            # were misdiagnosed as a timing race, not a pagination gap.
+            conclusion=$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
             if [[ "$conclusion" != "success" ]]; then
               echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
               FAILED=1
@@ -148,19 +155,21 @@ jobs:
       # Workstream B / B1 (Release artifact assurance) -- same gap as
       # release.yml: this job stages these two binaries straight into
       # the Electron app bundle with nothing verifying either one
-      # actually runs first. yana-rt's --version path is already
-      # proven in release.yml; pty_bridge has no CLI flags to probe
-      # startup with, so this checks the one thing every executable
-      # supports -- that the OS loader accepts it (dynamic libs
-      # resolve, correct architecture) -- via `file`, not an execution
-      # that would hang waiting on a pty. Windows skipped: no `file`
-      # command there, and its behavior needs its own investigation
-      # rather than a guessed equivalent.
+      # actually runs first. yana-rt's own startup/dispatch/authority
+      # surface is proven the same way release.yml proves it (Authority
+      # Hardening item #11, 2026-08-28): core/scripts/release-smoke-
+      # test.sh, execing this exact bundled binary, not --version alone.
+      # pty_bridge has no CLI flags to probe startup with, so this checks
+      # the one thing every executable supports -- that the OS loader
+      # accepts it (dynamic libs resolve, correct architecture) -- via
+      # `file`, not an execution that would hang waiting on a pty.
+      # Windows skipped: no `file` command there, and its behavior needs
+      # its own investigation rather than a guessed equivalent.
       - name: Smoke test bundled runtime binaries
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          target/release/yana-rt --version
+          bash core/scripts/release-smoke-test.sh target/release/yana-rt
           file target/release/pty_bridge | grep -qi "executable" || {
             echo "pty_bridge does not look like a valid executable" >&2
             exit 1
@@ -173,6 +182,14 @@ jobs:
       - name: Stage bundled runtime
         working-directory: tools/yana-desktop
         run: npm run stage:runtime
+
+      - name: Stage bundled code-server
+        working-directory: tools/yana-desktop
+        run: npm run stage:code-server
+
+      - name: Verify staged runtime feature contract
+        working-directory: tools/yana-desktop
+        run: npm run verify:runtime
 
       - name: Test desktop shell
         working-directory: tools/yana-desktop

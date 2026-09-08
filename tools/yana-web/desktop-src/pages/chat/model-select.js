@@ -42,7 +42,14 @@ export const MODEL_CHOICES = {
   lmstudio:   ["local-model"],
   turbofieldfare: ["gemma-4-26b-a4b-it"],
 };
-export const CHAT_LIVE_MODELS = new Set(["groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio", "turbofieldfare"]);
+// The one place this Set is hand-typed on the frontend — providers.jsx
+// imports it from here instead of keeping its own copy (see that file's
+// import comment). server.js's LIVE_PROVIDERS is a separate, still
+// independently-maintained list (it lives in Node/CJS code and carries the
+// actual per-provider fetch/transform logic, not just an id) — a provider
+// added to one and not the other is a real, still-open gap this change
+// doesn't close, just narrowed from three copies to two.
+export const CHAT_LIVE_MODELS = new Set(["claude", "openai", "gemini", "deepseek", "groq", "openrouter", "xai", "novita", "nvidia", "kimi", "minimax", "glm", "huggingface", "9router", "ollama", "lmstudio", "turbofieldfare"]);
 
 // Capability flags per model (or substring match for dynamic model lists).
 // v = vision  r = reasoning  t = text-only (explicit no-vision)

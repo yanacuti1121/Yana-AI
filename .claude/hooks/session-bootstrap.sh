@@ -14,9 +14,11 @@
 #      (NousResearch/hermes-agent, MIT) so the model can't mistake injected
 #      memory for new user instructions. Falls back to a plain line if
 #      python3/the module is unavailable.
-#   2. Session trust score (if below 80)
-#   3. Budget Mode status (if ON)
-#   4. Active L2 session facts count (reminder to use /memory --l2)
+#   2. Relevant L3 facts through the optional local Rust runtime (max 3,
+#      bounded and anti-injection framed)
+#   3. Session trust score (if below 80)
+#   4. Budget Mode status (if ON)
+#   5. Active L2 session facts count (reminder to use /memory --l2)
 #
 # Hook event:   UserPromptSubmit
 # Blocking:     yes (stdout goes into Claude context — keep under 500 chars)
@@ -95,6 +97,34 @@ except Exception:
     else
       OUTPUT_PARTS+=("L1 facts: ${RAW_FACTS}")
     fi
+  fi
+fi
+
+# ── 1b. L3 memory pack (optional local runtime) ──────────────────────────────
+# `yana-rt` is not bundled in a release pack, so this fails open when the
+# runtime is absent. Prompt data is passed as one argv value, never a shell string.
+YANA_RT_BIN="${YANA_RT_BIN:-}"
+if [[ -z "$YANA_RT_BIN" ]]; then
+  if command -v yana-rt >/dev/null 2>&1; then
+    YANA_RT_BIN="yana-rt"
+  elif command -v yana-ai-rt >/dev/null 2>&1; then
+    YANA_RT_BIN="yana-ai-rt"
+  fi
+fi
+
+if [[ -n "$YANA_RT_BIN" ]]; then
+  L3_PACK=$(cd "$PROJECT_DIR" && "$YANA_RT_BIN" memory pack "$PROMPT" --limit 3 --max-chars 320 2>/dev/null || true)
+  # Header-only output means there are no recalled facts.
+  if [[ "$L3_PACK" == *"- ["* ]]; then
+    WRAPPED=$(cd "$PROJECT_DIR" && printf '%s' "$L3_PACK" | python3 -c '
+import sys
+try:
+    from core.lib.hermes_adapted.context_scrubber import build_memory_context_block
+    sys.stdout.write(build_memory_context_block(sys.stdin.read()))
+except Exception:
+    sys.exit(1)
+' 2>/dev/null)
+    [[ -n "$WRAPPED" ]] && OUTPUT_PARTS+=("$WRAPPED")
   fi
 fi
 

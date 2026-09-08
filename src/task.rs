@@ -11,6 +11,12 @@ fn now() -> String { Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string() }
 
 // ── Data model ────────────────────────────────────────────────────────────────
 
+/// `Blocked` is kept only so a `tasks.json` written before dependency edges
+/// existed still deserializes — no code path writes it anymore. Whether a
+/// task is actually blocked is now derived from `dependencies` (see
+/// `is_blocked`), not stored here. Architecture audit 2026-09-08 (Yana
+/// Studio report, Phase 1): a stored `Blocked` status can silently drift
+/// from reality; a graph query cannot.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum TaskStatus { Open, InProgress, Done, Blocked }
@@ -24,6 +30,38 @@ impl std::fmt::Display for TaskStatus {
             TaskStatus::Blocked    => write!(f, "blocked"),
         }
     }
+}
+
+/// Typed dependency edge kinds. Only `Blocks` affects readiness (see
+/// `is_blocked`) — the other three are structural/informational, same split
+/// as Conductor-Beads' four edge types (blocks/related/parent-child/
+/// discovered-from) reviewed in the Yana Studio architecture audit.
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DependencyType { Blocks, Related, ParentChild, DiscoveredFrom }
+
+impl std::str::FromStr for DependencyType {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().replace(['-', '_'], "").as_str() {
+            "blocks" => Ok(DependencyType::Blocks),
+            "related" => Ok(DependencyType::Related),
+            "parentchild" => Ok(DependencyType::ParentChild),
+            "discoveredfrom" => Ok(DependencyType::DiscoveredFrom),
+            other => Err(format!(
+                "unknown dependency type '{other}' — expected blocks, related, parent-child, or discovered-from"
+            )),
+        }
+    }
+}
+
+/// A dependency edge stored on the *dependent* task: `target_task_id` is the
+/// task this one points at. For `dep_type: Blocks`, that means "this task is
+/// blocked by `target_task_id` until the target is Done" — see `is_blocked`.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TaskDependency {
+    pub dep_type: DependencyType,
+    pub target_task_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -53,6 +91,11 @@ pub struct Task {
     /// for the same backward-compat reason as above (missing field -> None).
     #[serde(default)]
     pub eval_judge_breaker_until: Option<String>,
+    /// Typed dependency edges (see `DependencyType`). `#[serde(default)]` so
+    /// pre-Phase-1 `tasks.json` files still deserialize (missing field ->
+    /// empty vec, i.e. "no known dependencies" — the safe default).
+    #[serde(default)]
+    pub dependencies: Vec<TaskDependency>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -86,6 +129,90 @@ pub fn resolve_id<'a>(store: &'a TaskStore, prefix: &str) -> Option<&'a Task> {
 fn resolve_id_key(store: &TaskStore, prefix: &str) -> Option<String> {
     let m: Vec<_> = store.tasks.keys().filter(|k| k.starts_with(prefix)).cloned().collect();
     if m.len() == 1 { Some(m[0].clone()) } else { None }
+}
+
+// ── Dependencies ──────────────────────────────────────────────────────────────
+//
+// Pure functions over `&Task`/`&TaskStore` only — no filesystem I/O — so they
+// can be unit-tested directly without touching `.yana-ai/tasks.json`. This is
+// deliberate: readiness must be a query over the graph, never a value that
+// can be hand-set and drift from it (the exact failure mode the Yana Studio
+// architecture audit flagged in the old, storage-only `TaskStatus::Blocked`).
+
+/// True if `task` has at least one unresolved `Blocks` dependency. A `Blocks`
+/// edge is unresolved when its target still exists and is not `Done`. A
+/// dangling edge (target task no longer in the store, e.g. dropped) does not
+/// block — there is nothing left to verify as incomplete.
+pub fn is_blocked(task: &Task, store: &TaskStore) -> bool {
+    task.dependencies.iter().any(|dep| {
+        dep.dep_type == DependencyType::Blocks
+            && store.tasks.get(&dep.target_task_id)
+                .map(|target| target.status != TaskStatus::Done)
+                .unwrap_or(false)
+    })
+}
+
+/// The task ids currently blocking `task` (empty if not blocked). For
+/// display/diagnostics — `is_blocked` is the one to branch on.
+pub fn blocking_task_ids(task: &Task, store: &TaskStore) -> Vec<String> {
+    task.dependencies.iter()
+        .filter(|dep| dep.dep_type == DependencyType::Blocks)
+        .filter(|dep| store.tasks.get(&dep.target_task_id)
+            .map(|target| target.status != TaskStatus::Done)
+            .unwrap_or(false))
+        .map(|dep| dep.target_task_id.clone())
+        .collect()
+}
+
+/// Derived readiness: not done, and not blocked. This is the query that
+/// replaces a hand-set `TaskStatus::Blocked` — see the type's doc comment.
+pub fn is_ready(task: &Task, store: &TaskStore) -> bool {
+    task.status != TaskStatus::Done && !is_blocked(task, store)
+}
+
+pub fn cmd_task_depend(id: String, on: String, dep_type: String, json: bool) {
+    let dep_type = match dep_type.parse::<DependencyType>() {
+        Ok(t) => t,
+        Err(msg) => { eprintln!("error: {msg}"); std::process::exit(1); }
+    };
+    let mut store = load_store();
+    let key = match resolve_id_key(&store, &id) {
+        Some(k) => k,
+        None => { eprintln!("error: no task matches '{id}'"); std::process::exit(1); }
+    };
+    let target_key = match resolve_id_key(&store, &on) {
+        Some(k) => k,
+        None => { eprintln!("error: no task matches '{on}' (--on target)"); std::process::exit(1); }
+    };
+    if key == target_key {
+        eprintln!("error: a task cannot depend on itself");
+        std::process::exit(1);
+    }
+    let task = store.tasks.get_mut(&key).unwrap();
+    if task.dependencies.iter().any(|d| d.dep_type == dep_type && d.target_task_id == target_key) {
+        eprintln!("error: dependency already exists");
+        std::process::exit(1);
+    }
+    task.dependencies.push(TaskDependency { dep_type, target_task_id: target_key.clone() });
+    task.updated_at = now();
+    let updated = task.clone();
+    save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&updated).unwrap_or_default());
+        return;
+    }
+    println!("✓ {} now depends on {} ({})", &key[..8], &target_key[..8], updated.dependencies.last().unwrap().dep_type_label());
+}
+
+impl TaskDependency {
+    fn dep_type_label(&self) -> &'static str {
+        match self.dep_type {
+            DependencyType::Blocks => "blocks",
+            DependencyType::Related => "related",
+            DependencyType::ParentChild => "parent-child",
+            DependencyType::DiscoveredFrom => "discovered-from",
+        }
+    }
 }
 
 // ── Evidence ──────────────────────────────────────────────────────────────────
@@ -155,38 +282,71 @@ pub fn eval_evidence(ev: &Evidence) -> (bool, String, &'static str) {
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
-pub fn cmd_task_create(name: String, scope: Option<String>) {
+pub fn cmd_task_create(name: String, scope: Option<String>, json: bool) {
     let mut store = load_store();
     let id = Uuid::new_v4().to_string();
     let ts = now();
-    store.tasks.insert(id.clone(), Task {
+    let task = Task {
         id: id.clone(), name: name.clone(), status: TaskStatus::Open,
         scope: scope.clone(), created_at: ts.clone(), updated_at: ts, evidence: None,
-        eval_judge_attempts: 0, eval_judge_breaker_until: None,
-    });
+        eval_judge_attempts: 0, eval_judge_breaker_until: None, dependencies: Vec::new(),
+    };
+    store.tasks.insert(id.clone(), task.clone());
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&task).unwrap_or_default());
+        return;
+    }
     println!("✓ created  {}", &id[..8]);
     println!("  name:  {name}");
     if let Some(s) = scope { println!("  scope: {s}"); }
 }
 
-pub fn cmd_task_list() {
+// Roadmap Phase 8 — Tasks. `json: true` is Desktop's own read path (the
+// SAME TaskStore this terminal command already reads/writes — no second,
+// frontend-only todo system, per the Desktop handoff's rule 4). Sorted
+// newest-first for the UI's own convention (matches Activity History's
+// reverse-chron ordering) — the terminal table above stays oldest-first,
+// unchanged, since existing scripts/docs may depend on that order.
+pub fn cmd_task_list(json: bool) {
     let store = load_store();
+    if json {
+        let mut tasks: Vec<&Task> = store.tasks.values().collect();
+        tasks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        // `blocked` is additive, computed at serialization time — the
+        // stored `status` field itself never becomes "blocked" anymore
+        // (see TaskStatus's doc comment), so an existing consumer reading
+        // only `status` keeps working unchanged; a consumer that wants the
+        // derived signal reads the new `blocked` key.
+        let out: Vec<serde_json::Value> = tasks.iter().map(|t| {
+            let mut v = serde_json::to_value(t).unwrap_or_default();
+            if let Some(obj) = v.as_object_mut() {
+                obj.insert("blocked".into(), serde_json::json!(is_blocked(t, &store)));
+                obj.insert("blocked_by".into(), serde_json::json!(blocking_task_ids(t, &store)));
+            }
+            v
+        }).collect();
+        println!("{}", serde_json::to_string(&serde_json::json!({ "tasks": out })).unwrap_or_default());
+        return;
+    }
     if store.tasks.is_empty() { println!("No tasks. yana-rt task create \"description\""); return; }
     let mut tasks: Vec<&Task> = store.tasks.values().collect();
     tasks.sort_by(|a, b| a.created_at.cmp(&b.created_at));
     println!("{:<10} {:<12} {}", "ID", "STATUS", "NAME");
     println!("{}", "─".repeat(55));
     for t in tasks {
-        let icon = match t.status {
-            TaskStatus::Open => "○", TaskStatus::InProgress => "◉",
-            TaskStatus::Done => "✓", TaskStatus::Blocked => "✗",
+        let blocked = is_blocked(t, &store);
+        let (icon, label) = match (&t.status, blocked) {
+            (TaskStatus::Done, _)   => ("✓", "done".to_string()),
+            (_, true)               => ("✗", "blocked".to_string()),
+            (TaskStatus::InProgress, false) => ("◉", "in_progress".to_string()),
+            (_, false)              => ("○", "open".to_string()),
         };
-        println!("{:<10} {icon} {:<10} {}", &t.id[..8], t.status.to_string(), t.name);
+        println!("{:<10} {icon} {:<10} {}", &t.id[..8], label, t.name);
     }
 }
 
-pub fn cmd_task_done(id: String, evidence: String) {
+pub fn cmd_task_done(id: String, evidence: String, json: bool) {
     let mut store = load_store();
     let key = match resolve_id_key(&store, &id) {
         Some(k) => k,
@@ -197,7 +357,12 @@ pub fn cmd_task_done(id: String, evidence: String) {
     task.status = TaskStatus::Done;
     task.evidence = Some(Evidence { raw: evidence.clone(), signals });
     task.updated_at = now();
+    let updated = task.clone();
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&updated).unwrap_or_default());
+        return;
+    }
     println!("✓ done  {}\n  evidence: {evidence}\n  run: yana-rt eval run {}", &key[..8], &key[..8]);
 }
 
@@ -211,9 +376,25 @@ pub fn cmd_task_status(id: String) {
         &task.id[..8], task.name, task.status, task.created_at);
     if let Some(s) = &task.scope { println!("  scope:   {s}"); }
     if let Some(ev) = &task.evidence { println!("  evidence: {}", ev.raw); }
+    let blockers = blocking_task_ids(task, &store);
+    if !blockers.is_empty() {
+        let names: Vec<String> = blockers.iter()
+            .map(|id| store.tasks.get(id).map(|t| t.name.clone()).unwrap_or_else(|| id[..8.min(id.len())].to_string()))
+            .collect();
+        println!("  blocked by: {}", names.join(", "));
+    }
+    if !task.dependencies.is_empty() {
+        println!("  dependencies:");
+        for dep in &task.dependencies {
+            let target_name = store.tasks.get(&dep.target_task_id)
+                .map(|t| t.name.clone())
+                .unwrap_or_else(|| format!("{} (not found)", &dep.target_task_id[..8.min(dep.target_task_id.len())]));
+            println!("    {} -> {}", dep.dep_type_label(), target_name);
+        }
+    }
 }
 
-pub fn cmd_task_drop(id: String) {
+pub fn cmd_task_drop(id: String, json: bool) {
     let mut store = load_store();
     let key = match resolve_id_key(&store, &id) {
         Some(k) => k,
@@ -221,6 +402,10 @@ pub fn cmd_task_drop(id: String) {
     };
     store.tasks.remove(&key);
     save_store(&store);
+    if json {
+        println!("{}", serde_json::to_string(&serde_json::json!({ "ok": true, "id": key })).unwrap_or_default());
+        return;
+    }
     println!("✓ dropped {}", &key[..8]);
 }
 
@@ -432,6 +617,7 @@ mod judge_breaker_tests {
             id: "test-id".into(), name: "test".into(), status: TaskStatus::Open,
             scope: None, created_at: now(), updated_at: now(), evidence: None,
             eval_judge_attempts: attempts, eval_judge_breaker_until: breaker_until,
+            dependencies: Vec::new(),
         }
     }
 
@@ -463,5 +649,102 @@ mod judge_breaker_tests {
     fn breaker_closed_when_no_timestamp_recorded() {
         let t = task_with(5, None);
         assert!(matches!(judge_breaker_state(&t), BreakerState::Closed));
+    }
+}
+
+#[cfg(test)]
+mod dependency_tests {
+    use super::*;
+
+    fn bare_task(id: &str, status: TaskStatus) -> Task {
+        Task {
+            id: id.into(), name: format!("task {id}"), status,
+            scope: None, created_at: now(), updated_at: now(), evidence: None,
+            eval_judge_attempts: 0, eval_judge_breaker_until: None,
+            dependencies: Vec::new(),
+        }
+    }
+
+    fn store_of(tasks: Vec<Task>) -> TaskStore {
+        TaskStore { tasks: tasks.into_iter().map(|t| (t.id.clone(), t)).collect() }
+    }
+
+    #[test]
+    fn old_tasks_json_without_dependencies_field_still_deserializes() {
+        // Exact shape of a pre-Phase-1 tasks.json entry — no `dependencies`
+        // key at all. Must load with an empty vec, not fail.
+        let legacy = r#"{
+            "id": "abc", "name": "old task", "status": "open",
+            "scope": null, "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z", "evidence": null,
+            "eval_judge_attempts": 0, "eval_judge_breaker_until": null
+        }"#;
+        let task: Task = serde_json::from_str(legacy).expect("legacy task must still deserialize");
+        assert!(task.dependencies.is_empty());
+    }
+
+    #[test]
+    fn not_blocked_with_no_dependencies() {
+        let t = bare_task("a", TaskStatus::Open);
+        let store = store_of(vec![t.clone()]);
+        assert!(!is_blocked(&t, &store));
+        assert!(is_ready(&t, &store));
+    }
+
+    #[test]
+    fn blocked_when_blocks_target_is_not_done() {
+        let target = bare_task("b", TaskStatus::InProgress);
+        let mut dependent = bare_task("a", TaskStatus::Open);
+        dependent.dependencies.push(TaskDependency { dep_type: DependencyType::Blocks, target_task_id: "b".into() });
+        let store = store_of(vec![dependent.clone(), target]);
+        assert!(is_blocked(&dependent, &store));
+        assert!(!is_ready(&dependent, &store));
+        assert_eq!(blocking_task_ids(&dependent, &store), vec!["b".to_string()]);
+    }
+
+    #[test]
+    fn not_blocked_once_target_is_done() {
+        let target = bare_task("b", TaskStatus::Done);
+        let mut dependent = bare_task("a", TaskStatus::Open);
+        dependent.dependencies.push(TaskDependency { dep_type: DependencyType::Blocks, target_task_id: "b".into() });
+        let store = store_of(vec![dependent.clone(), target]);
+        assert!(!is_blocked(&dependent, &store));
+        assert!(is_ready(&dependent, &store));
+    }
+
+    #[test]
+    fn non_blocks_edge_types_never_affect_readiness() {
+        for dep_type in [DependencyType::Related, DependencyType::ParentChild, DependencyType::DiscoveredFrom] {
+            let target = bare_task("b", TaskStatus::Open); // not done, would block if this were Blocks
+            let mut dependent = bare_task("a", TaskStatus::Open);
+            dependent.dependencies.push(TaskDependency { dep_type, target_task_id: "b".into() });
+            let store = store_of(vec![dependent.clone(), target]);
+            assert!(!is_blocked(&dependent, &store), "{dep_type:?} must not affect readiness");
+        }
+    }
+
+    #[test]
+    fn dangling_blocks_edge_does_not_block() {
+        // Target was dropped/removed from the store entirely.
+        let mut dependent = bare_task("a", TaskStatus::Open);
+        dependent.dependencies.push(TaskDependency { dep_type: DependencyType::Blocks, target_task_id: "gone".into() });
+        let store = store_of(vec![dependent.clone()]);
+        assert!(!is_blocked(&dependent, &store));
+    }
+
+    #[test]
+    fn done_task_is_never_ready_regardless_of_dependencies() {
+        let t = bare_task("a", TaskStatus::Done);
+        let store = store_of(vec![t.clone()]);
+        assert!(!is_ready(&t, &store));
+    }
+
+    #[test]
+    fn dependency_type_parses_common_spellings() {
+        assert_eq!("blocks".parse::<DependencyType>().unwrap(), DependencyType::Blocks);
+        assert_eq!("parent-child".parse::<DependencyType>().unwrap(), DependencyType::ParentChild);
+        assert_eq!("parent_child".parse::<DependencyType>().unwrap(), DependencyType::ParentChild);
+        assert_eq!("discovered-from".parse::<DependencyType>().unwrap(), DependencyType::DiscoveredFrom);
+        assert!("nonsense".parse::<DependencyType>().is_err());
     }
 }

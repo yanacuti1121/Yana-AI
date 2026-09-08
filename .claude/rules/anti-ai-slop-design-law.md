@@ -8,7 +8,12 @@ paths: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css", "**/*.scs
 # "anti-slop frontend" agent skills (2026) — rewritten in Yana AI's own
 # voice and checklist format, not reproduced verbatim from any source.
 
-**Status:** Active
+**Status:** REVIEWED (exception added 2026-09-02, reviewed 2026-09-03 per
+54-bft-consensus-law.md's "Rule changes" category — security-auditor +
+architecture-auditor dispatch, no Safety-severity findings; two
+Correctness-level suggestions from that review are applied below: this
+Status line, and closing/reopening the code fence around the exception
+note so it actually renders as prose instead of literal asterisks)
 **Enforced by:** UI Quality Gate L5, frontend agents
 **Companion rules:** `color-rules.md`, `typography-rules.md`,
 `frontend-production-checklist.md` — interaction states, forms, a11y,
@@ -73,7 +78,22 @@ If about to write any of these, stop and restructure the element instead:
 ❌ Side-stripe accent border (border-left/right > 1px as decoration) on
    cards, list items, callouts
 ❌ Glassmorphism as the default surface treatment — rare and purposeful,
-   or not at all
+   or not at all.
+```
+
+**Documented exception (2026-09-02):** Yana Desktop's monochrome
+black/white redesign (`tools/yana-web/desktop-src/`) uses real
+`backdrop-filter` glass as its deliberate, explicit surface treatment
+across the whole shell (sidebar, dock, popovers, login/welcome cards)
+— anh's own informed choice, not an unexamined default this rule would
+otherwise catch. Reviewed under `54-bft-consensus-law.md`'s "Rule
+changes" category (security-auditor + architecture-auditor dispatch,
+2026-09-03, no Safety-severity findings) — that dispatch covers this
+rule-file edit itself, not only the underlying product decision. This
+exception is scoped to that one product's own files; it is not a
+blanket lift of the ban elsewhere.
+
+```
 ❌ The hero-metric template: big number, small label, gradient accent
 ❌ Identical card grids — same-sized cards with icon+heading+text, repeated
 ❌ Tiny uppercase tracked "eyebrow" label above every section
