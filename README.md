@@ -766,7 +766,7 @@ command depends on the agent's own tool-use policy, nothing forces it.
 
 ## Yana AI (the web product)
 
-**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yana.vutam.link/desktop.html)** · **[Command Reference →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Latest release →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[Live →](https://yanai-production.up.railway.app)** · **[Download Desktop →](https://yana.vutam.link)** · **[Command Reference →](https://yana.vutam.link/commands.html)** · **[Latest release →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana is the first end-user interface built on Yana AI core. The Electron Desktop app uses the local Rust runtime for governed turns; the browser-only deployment remains a compatibility surface until it is connected to a trusted local runtime.
 
@@ -801,7 +801,7 @@ Browser-only web → legacy JavaScript gateway → provider
 - 📊 **100% real data** — live provider stats, L1 memory garden, audit-log health panel; zero demo numbers
 - Skill routing built in, type naturally and Yana AI dispatches the right agent
 - **Non-coding use cases:** learning (Socratic learning assistant), daily work (summarize / plan / draft)
-- SSE streaming, mobile-friendly · **[Electron desktop app](https://yana.vutam.link/desktop.html)** — macOS, Windows, Linux
+- SSE streaming, mobile-friendly · **[Electron desktop app](https://yana.vutam.link)** — macOS, Windows, Linux
 
 If Yana AI is the power grid, Yana is the first building plugged into it.
 
@@ -938,7 +938,7 @@ yana-ai badge . --json    # machine-readable output
 | | |
 |---|---|
 | Full command reference (CLI) | [COMMANDS.md](COMMANDS.md) |
-| Full command reference (CLI + slash commands, web) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
+| Full command reference (CLI + slash commands, web) | [yana.vutam.link/commands.html](https://yana.vutam.link/commands.html) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | Security policy | [SECURITY.md](SECURITY.md) |
@@ -953,9 +953,9 @@ yana-ai badge . --json    # machine-readable output
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
+| Website | [yana.vutam.link](https://yana.vutam.link/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yana.vutam.link/desktop.html](https://yana.vutam.link/desktop.html) |
+| Yana Desktop | [yana.vutam.link](https://yana.vutam.link) |
 
 > **macOS note:** the Yana Desktop `.dmg`/`.zip` is currently **ad-hoc
 > signed but not notarized by Apple** — this project doesn't have an Apple
