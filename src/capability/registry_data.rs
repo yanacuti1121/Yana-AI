@@ -257,5 +257,32 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
             }),
             availability: always_available,
         },
+        CapabilityDescriptor {
+            name: "file.write",
+            tool_name: "write_file",
+            description: "Propose writing (create) or replacing (overwrite) the full content of one bounded UTF-8 repository file. Requires explicit human approval — the terminal shows a real diff of what would change before the write happens. Backed up automatically before an overwrite; verified by re-reading and hashing the file after writing. Yana Studio architecture audit, Phase 3 (crate::capability::file_mutation).",
+            access_mode: AccessMode::Mutating,
+            risk_tier: RiskTier::High,
+            approval: ApprovalRequirement::HumanApprovalPerCall,
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "content": {"type": "string"},
+                    "kind": {"type": "string", "enum": ["create", "overwrite"]}
+                },
+                "required": ["path", "content", "kind"]
+            }),
+            output_schema: json!({
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "byte_count": {"type": "integer"},
+                    "sha256": {"type": "string"},
+                    "backup_path": {"type": ["string", "null"]}
+                }
+            }),
+            availability: always_available,
+        },
     ]
 }

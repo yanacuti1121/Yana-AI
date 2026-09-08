@@ -13,6 +13,7 @@ pub mod cli;
 pub mod command;
 pub mod error;
 pub mod evidence;
+pub mod file_mutation;
 pub mod git;
 pub mod lease;
 pub mod registry;
@@ -25,6 +26,7 @@ pub use archive_create::create_zip;
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
 pub use error::CapabilityError;
 pub use evidence::ToolEvidence;
+pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind, FileMutationOutcome};
 pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
 pub use registry::{AccessMode, ApprovalRequirement, CapabilityDescriptor, Manifest, RiskTier};
 pub use repo::{

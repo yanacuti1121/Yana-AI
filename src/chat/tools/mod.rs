@@ -51,6 +51,18 @@ pub fn catalog(ctx: &SessionContext) -> Vec<ToolSpec> {
             parameters_schema: descriptor.input_schema.clone(),
         });
     }
+    if let Some(descriptor) = available.iter().find(|d| d.name == "file.write") {
+        tools.push(ToolSpec {
+            name: "write_file",
+            description: "Propose creating a new file or overwriting an \
+                existing one with the given full content. Requires \
+                explicit human approval in the terminal, which shows a \
+                real diff of what would change before anything is \
+                written. kind must be 'create' for a path that does not \
+                exist yet, or 'overwrite' for one that does.",
+            parameters_schema: descriptor.input_schema.clone(),
+        });
+    }
     tools
 }
 
@@ -64,11 +76,12 @@ mod tests {
     }
 
     #[test]
-    fn catalog_has_exactly_two_tools() {
+    fn catalog_has_exactly_three_tools() {
         let tools = catalog(&ctx());
-        assert_eq!(tools.len(), 2);
+        assert_eq!(tools.len(), 3);
         assert_eq!(tools[0].name, "read_file");
         assert_eq!(tools[1].name, "run_command");
+        assert_eq!(tools[2].name, "write_file");
     }
 
     #[test]
@@ -88,6 +101,18 @@ mod tests {
                 "type": "object",
                 "properties": { "command": { "type": "string" } },
                 "required": ["command"],
+            })
+        );
+        assert_eq!(
+            tools[2].parameters_schema,
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "content": {"type": "string"},
+                    "kind": {"type": "string", "enum": ["create", "overwrite"]}
+                },
+                "required": ["path", "content", "kind"],
             })
         );
     }

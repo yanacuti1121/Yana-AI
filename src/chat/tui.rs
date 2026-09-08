@@ -58,16 +58,75 @@ enum StreamEvent {
     Done(Result<TurnOutcome, TurnError>),
 }
 
-/// A `run_command` tool call waiting on a human y/N in the TUI before
-/// (or instead of) executing. `guard_verdict.is_some()` means
-/// `crate::guard::check_command()` already denied it — in that case the
-/// approval UI offers acknowledge-only, no y-path at all (see
-/// `approval.rs`).
-struct PendingApproval {
-    call: crate::model::tool::ToolCall,
-    command: String,
-    argv: Vec<String>,
-    guard_verdict: Option<&'static str>,
+/// A Mutating, `HumanApprovalPerCall` tool call waiting on a human y/N in
+/// the TUI before (or instead of) executing. Two shapes exist because the
+/// two capabilities that currently require approval show fundamentally
+/// different things to a human: a command shows the argv it would run
+/// (and may be guard-blocked outright, in which case the UI offers
+/// acknowledge-only — see `approval.rs`); a file write shows a diff, and
+/// `crate::capability::file_mutation`'s own safety checks (path escape,
+/// symlink, size cap) already ran *before* this variant is ever
+/// constructed — an invalid proposal never reaches `AwaitingApproval` at
+/// all, so `FileWrite` carries no `guard_verdict`-equivalent field.
+enum PendingApproval {
+    Command {
+        call: crate::model::tool::ToolCall,
+        command: String,
+        argv: Vec<String>,
+        guard_verdict: Option<&'static str>,
+    },
+    FileWrite {
+        call: crate::model::tool::ToolCall,
+        path: String,
+        kind: crate::capability::FileMutationKind,
+        content: String,
+        /// Computed once at proposal time by `prepare_pending_approval`
+        /// and shown as-is by `render_tools::draw_approval_prompt` —
+        /// `approval.rs::execute_approved_tool` recomputes it fresh right
+        /// before executing and compares, so a file that changed on disk
+        /// between the prompt and the human's 'y' is caught, not executed
+        /// against a stale diff.
+        diff: crate::capability::FileMutationDiff,
+    },
+}
+
+impl PendingApproval {
+    fn call(&self) -> &crate::model::tool::ToolCall {
+        match self {
+            PendingApproval::Command { call, .. } => call,
+            PendingApproval::FileWrite { call, .. } => call,
+        }
+    }
+
+    /// One-line summary for compact display (the sidebar's Activity
+    /// panel) — the full detail (argv, or a diff) belongs to
+    /// `render_tools::draw_approval_prompt`'s larger prompt area instead.
+    pub(super) fn summary_line(&self) -> String {
+        match self {
+            PendingApproval::Command { command, .. } => command.clone(),
+            PendingApproval::FileWrite { path, kind, .. } => {
+                let verb = match kind {
+                    crate::capability::FileMutationKind::Create => "create",
+                    crate::capability::FileMutationKind::Overwrite => "overwrite",
+                };
+                format!("{verb} {path}")
+            }
+        }
+    }
+
+    /// True only for a `Command` already denied by
+    /// `guard::check_command()` — the one case with no y/N choice at all,
+    /// acknowledge-only. `FileWrite` never reaches this state (see the
+    /// variant's own doc comment).
+    pub(super) fn is_guard_denied(&self) -> bool {
+        matches!(
+            self,
+            PendingApproval::Command {
+                guard_verdict: Some(_),
+                ..
+            }
+        )
+    }
 }
 
 enum ToolExecEvent {
