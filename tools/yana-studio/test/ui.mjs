@@ -367,7 +367,9 @@ try {
     .click();
   await page.getByRole("button", { name: "Có kiểm soát" }).click();
   await governance.getByRole("button", { name: "Quản lý quyền" }).click();
-  await expect(page.getByText("PENDING APPROVALS")).toBeVisible();
+  await expect(
+    page.getByText("PENDING APPROVALS", { exact: true }),
+  ).toBeVisible();
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   const separator = page.getByRole("separator", {
     name: "Resize terminal dock",

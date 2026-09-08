@@ -2512,6 +2512,80 @@ svg {
   color: #82aaff;
   margin-top: 10px;
 }
+.diff-line-group {
+  position: relative;
+}
+.diff-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.diff-line span {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.diff-comment-add {
+  flex-shrink: 0;
+  padding: 1px;
+  margin-top: 2px;
+  color: #5c6a80;
+  opacity: 0;
+}
+.diff-line:hover .diff-comment-add {
+  opacity: 1;
+}
+.diff-comment-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 3px 0 3px 17px;
+  padding: 6px 9px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--accent-soft);
+  font-family:
+    Inter,
+    -apple-system,
+    sans-serif;
+}
+.diff-comment-card p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: #d6dfed;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.diff-comment-card button {
+  flex-shrink: 0;
+  padding: 2px;
+  color: #7185a4;
+}
+.diff-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 3px 0 3px 17px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #0d1524;
+  font-family:
+    Inter,
+    -apple-system,
+    sans-serif;
+}
+.diff-comment-form textarea {
+  min-height: 50px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+.diff-comment-form .button-row {
+  justify-content: flex-end;
+}
 .boot {
   display: grid;
   place-content: center;

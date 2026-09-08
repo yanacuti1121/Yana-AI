@@ -21,6 +21,7 @@ const { hostStatus } = require("./devices.cjs");
 const { Permissions } = require("./permissions.cjs");
 const { ProjectMemory } = require("./project-memory.cjs");
 const { RunCommands } = require("./run-commands.cjs");
+const { DiffComments } = require("./diff-comments.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -63,6 +64,7 @@ const tasks = new Tasks(() => store.value.runtime);
 const permissions = new Permissions(() => store.value.runtime);
 const projectMemory = new ProjectMemory();
 const runCommands = new RunCommands();
+const diffComments = new DiffComments();
 const entry = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 const emit = (channel, value) => {
   if (window && !window.isDestroyed()) window.webContents.send(channel, value);
@@ -534,6 +536,18 @@ app.whenReady().then(() => {
   register("runCommandRemove", (root, id) => {
     projects.resolve(root);
     return runCommands.remove(root, id);
+  });
+  register("diffCommentList", (root, file) => {
+    projects.resolve(root);
+    return diffComments.list(root, file);
+  });
+  register("diffCommentCreate", (root, file, entry) => {
+    projects.resolve(root);
+    return diffComments.create(root, file, entry);
+  });
+  register("diffCommentRemove", (root, file, id) => {
+    projects.resolve(root);
+    return diffComments.remove(root, file, id);
   });
   register("terminalCreate", (root) => {
     projects.resolve(root);

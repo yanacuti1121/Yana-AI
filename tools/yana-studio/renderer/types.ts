@@ -11,6 +11,13 @@ export type RunCommand = {
   shortcut: number;
   createdAt: number;
 };
+export type DiffComment = {
+  id: string;
+  lineIndex: number;
+  lineText: string;
+  text: string;
+  createdAt: number;
+};
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
@@ -400,6 +407,17 @@ declare global {
         entry: { name: string; command: string },
       ): Promise<RunCommand[]>;
       runCommandRemove(root: string, id: string): Promise<RunCommand[]>;
+      diffCommentList(root: string, file: string): Promise<DiffComment[]>;
+      diffCommentCreate(
+        root: string,
+        file: string,
+        entry: { lineIndex: number; lineText: string; text: string },
+      ): Promise<DiffComment[]>;
+      diffCommentRemove(
+        root: string,
+        file: string,
+        id: string,
+      ): Promise<DiffComment[]>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,

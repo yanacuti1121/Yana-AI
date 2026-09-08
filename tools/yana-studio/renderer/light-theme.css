@@ -285,7 +285,9 @@ small,
 .diff-view,
 .message-body pre,
 .runtime-events,
-.activity-list {
+.activity-list,
+.diff-comment-form,
+.diff-comment-form textarea {
   color: #3d3834;
   background: #f5f3ef;
 }

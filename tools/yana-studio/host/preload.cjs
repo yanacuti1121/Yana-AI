@@ -58,6 +58,9 @@ const methods = [
   "runCommandList",
   "runCommandCreate",
   "runCommandRemove",
+  "diffCommentList",
+  "diffCommentCreate",
+  "diffCommentRemove",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

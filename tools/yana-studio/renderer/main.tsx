@@ -36,6 +36,7 @@ import { ModelManager } from "./ModelManager";
 import type {
   AttachedFile,
   Chat,
+  DiffComment,
   FileDocument,
   FileEntry,
   FilePage,
@@ -96,6 +97,9 @@ function App() {
   const [draftFile, setDraftFile] = useState("");
   const [filesDragOver, setFilesDragOver] = useState(false);
   const [diff, setDiff] = useState<{ path: string; text: string } | null>(null);
+  const [diffComments, setDiffComments] = useState<DiffComment[]>([]);
+  const [diffCommentLine, setDiffCommentLine] = useState<number | null>(null);
+  const [diffCommentText, setDiffCommentText] = useState("");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [attachments, setAttachments] = useState<
     Record<string, AttachedFile[]>
@@ -625,11 +629,34 @@ function App() {
   };
   const showDiff = (file: string) =>
     run(async () => {
-      if (project)
-        setDiff({
-          path: file,
-          text: await window.studio.gitDiff(project.root, file),
-        });
+      if (!project) return;
+      setDiff({
+        path: file,
+        text: await window.studio.gitDiff(project.root, file),
+      });
+      setDiffComments(await window.studio.diffCommentList(project.root, file));
+      setDiffCommentLine(null);
+      setDiffCommentText("");
+    });
+  const addDiffComment = (lineIndex: number, lineText: string) =>
+    run(async () => {
+      if (!project || !diff) return;
+      setDiffComments(
+        await window.studio.diffCommentCreate(project.root, diff.path, {
+          lineIndex,
+          lineText,
+          text: diffCommentText,
+        }),
+      );
+      setDiffCommentLine(null);
+      setDiffCommentText("");
+    });
+  const removeDiffComment = (id: string) =>
+    run(async () => {
+      if (!project || !diff) return;
+      setDiffComments(
+        await window.studio.diffCommentRemove(project.root, diff.path, id),
+      );
     });
   if (!state)
     return (
@@ -1841,7 +1868,13 @@ function App() {
         </div>
       )}
       {diff && (
-        <div className="modal-backdrop" onClick={() => setDiff(null)}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setDiff(null);
+            setDiffCommentLine(null);
+          }}
+        >
           <div
             className="diff-modal"
             role="dialog"
@@ -1852,27 +1885,90 @@ function App() {
             <header>
               <GitCompareArrows size={16} />
               <strong>{diff.path}</strong>
-              <button aria-label="Close diff" onClick={() => setDiff(null)}>
+              <button
+                aria-label="Close diff"
+                onClick={() => {
+                  setDiff(null);
+                  setDiffCommentLine(null);
+                }}
+              >
                 <X size={17} />
               </button>
             </header>
             <pre>
-              {diff.text.split("\n").map((line, index) => (
-                <div
-                  key={index}
-                  className={
-                    line.startsWith("+")
-                      ? "added"
-                      : line.startsWith("-")
-                        ? "removed"
-                        : line.startsWith("@@")
-                          ? "diff-hunk"
-                          : ""
-                  }
-                >
-                  {line || " "}
-                </div>
-              ))}
+              {diff.text.split("\n").map((line, index) => {
+                const lineComments = diffComments.filter(
+                  (comment) => comment.lineIndex === index,
+                );
+                return (
+                  <div className="diff-line-group" key={index}>
+                    <div
+                      className={
+                        "diff-line " +
+                        (line.startsWith("+")
+                          ? "added"
+                          : line.startsWith("-")
+                            ? "removed"
+                            : line.startsWith("@@")
+                              ? "diff-hunk"
+                              : "")
+                      }
+                    >
+                      <button
+                        className="diff-comment-add"
+                        title="Thêm comment vào dòng này"
+                        disabled={!line.trim()}
+                        onClick={() => {
+                          setDiffCommentLine(index);
+                          setDiffCommentText("");
+                        }}
+                      >
+                        <Plus size={11} />
+                      </button>
+                      <span>{line || " "}</span>
+                    </div>
+                    {lineComments.map((comment) => (
+                      <div className="diff-comment-card" key={comment.id}>
+                        <p>{comment.text}</p>
+                        <button
+                          aria-label="Xóa comment"
+                          onClick={() => void removeDiffComment(comment.id)}
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    ))}
+                    {diffCommentLine === index && (
+                      <div className="diff-comment-form">
+                        <textarea
+                          autoFocus
+                          value={diffCommentText}
+                          placeholder="Ghi chú review cho dòng này…"
+                          onChange={(event) =>
+                            setDiffCommentText(event.target.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape")
+                              setDiffCommentLine(null);
+                          }}
+                        />
+                        <div className="button-row">
+                          <button
+                            className="primary"
+                            disabled={!diffCommentText.trim()}
+                            onClick={() => void addDiffComment(index, line)}
+                          >
+                            <Check size={12} />
+                          </button>
+                          <button onClick={() => setDiffCommentLine(null)}>
+                            <X size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </pre>
           </div>
         </div>

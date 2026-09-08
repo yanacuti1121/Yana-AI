@@ -27,6 +27,7 @@ const {
 const { ModelCredentialStore } = require("../host/model-credentials.cjs");
 const { AccountStore } = require("../host/account.cjs");
 const { ProjectMemory } = require("../host/project-memory.cjs");
+const { DiffComments } = require("../host/diff-comments.cjs");
 const {
   createBackup,
   readBackup,
@@ -195,6 +196,41 @@ test("project memory reads empty before first write, persists after, and caps si
   assert.throws(
     () => memory.write(root, "x".repeat(64 * 1024 + 1)),
     /limited to 64 KiB/,
+  );
+});
+test("diff comments are scoped per file, keep their line anchor, and are removable", (context) => {
+  const root = fixture(context);
+  const comments = new DiffComments();
+  assert.deepEqual(comments.list(root, "src/a.ts"), []);
+  const afterCreate = comments.create(root, "src/a.ts", {
+    lineIndex: 12,
+    lineText: "+  const x = 1;",
+    text: "Should this be const or let?",
+  });
+  assert.equal(afterCreate.length, 1);
+  assert.equal(afterCreate[0].lineIndex, 12);
+  assert.equal(afterCreate[0].text, "Should this be const or let?");
+  assert.ok(afterCreate[0].id);
+  // A comment on a different file must not leak into src/a.ts's list.
+  comments.create(root, "src/b.ts", {
+    lineIndex: 0,
+    lineText: "+import x",
+    text: "unrelated",
+  });
+  assert.equal(comments.list(root, "src/a.ts").length, 1);
+  assert.equal(comments.list(root, "src/b.ts").length, 1);
+  const id = afterCreate[0].id;
+  const afterRemove = comments.remove(root, "src/a.ts", id);
+  assert.equal(afterRemove.length, 0);
+  assert.equal(comments.list(root, "src/b.ts").length, 1);
+  assert.throws(
+    () =>
+      comments.create(root, "src/a.ts", { lineIndex: -1, text: "bad line" }),
+    /Invalid line index/,
+  );
+  assert.throws(
+    () => comments.create(root, "src/a.ts", { lineIndex: 0, text: "" }),
+    /Comment must be/,
   );
 });
 test("portable backup contains only allowlisted local state", (context) => {
