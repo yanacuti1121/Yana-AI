@@ -46,6 +46,7 @@ const methods = [
   "taskDone",
   "taskDrop",
   "taskDepend",
+  "hostStatus",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

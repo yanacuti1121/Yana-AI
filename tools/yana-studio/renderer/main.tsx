@@ -17,6 +17,7 @@ import {
   Maximize2,
   MessageSquare,
   Minimize2,
+  MonitorSmartphone,
   PanelBottom,
   PanelLeft,
   Plus,
@@ -42,6 +43,7 @@ import type {
   TerminalSession,
 } from "./types";
 import { Tasks } from "./Tasks";
+import { Devices } from "./Devices";
 import "./style.css";
 import { translate } from "./i18n";
 import { AccountUnlock } from "./AccountSettings";
@@ -65,7 +67,7 @@ function App() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState("");
   const [surface, setSurface] = useState<
-    "chat" | "files" | "settings" | "terminal" | "tasks"
+    "chat" | "files" | "settings" | "terminal" | "tasks" | "devices"
   >("terminal");
   const [git, setGit] = useState<GitState>(emptyGit);
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -422,6 +424,11 @@ function App() {
     { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
     { label: "Tasks", icon: ListTodo, action: () => setSurface("tasks") },
     {
+      label: "Devices",
+      icon: MonitorSmartphone,
+      action: () => setSurface("devices"),
+    },
+    {
       label: "Cài đặt — model, runtime và kết nối",
       icon: Settings2,
       action: () => setSurface("settings"),
@@ -505,6 +512,13 @@ function App() {
             >
               <ListTodo size={17} />
               <span>Tasks</span>
+            </button>
+            <button
+              className={surface === "devices" ? "selected" : ""}
+              onClick={() => setSurface("devices")}
+            >
+              <MonitorSmartphone size={17} />
+              <span>Devices</span>
             </button>
             <button
               onClick={() => {
@@ -654,6 +668,8 @@ function App() {
               </div>
               {surface === "tasks" ? (
                 <Tasks root={project?.root || ""} onError={setNotice} />
+              ) : surface === "devices" ? (
+                <Devices onError={setNotice} />
               ) : surface === "files" ? (
                 <div className="files-workspace">
                   <div className="file-tree">

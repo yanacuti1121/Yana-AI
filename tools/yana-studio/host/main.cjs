@@ -17,6 +17,7 @@ const { Store } = require("./store.cjs");
 const { DataOverview } = require("./data-overview.cjs");
 const { Terminals } = require("./terminals.cjs");
 const { Tasks } = require("./tasks.cjs");
+const { hostStatus } = require("./devices.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -425,6 +426,7 @@ app.whenReady().then(() => {
     projects.resolve(root);
     return tasks.depend(root, id, on, type);
   });
+  register("hostStatus", () => hostStatus(store.value.runtime));
   register("terminalCreate", (root) => {
     projects.resolve(root);
     return terminals.create(root);

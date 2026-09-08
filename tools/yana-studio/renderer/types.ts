@@ -104,6 +104,40 @@ export type Task = {
   blocked: boolean;
   blocked_by: string[];
 };
+// Mirrors src/os/platform/profile.rs's HostProfile exactly (Screen 3
+// "Devices"). Every field this could not reliably determine comes back
+// null/"unknown" from the runtime — never fabricate a replacement here.
+export type Support = "supported" | "unsupported" | "unknown";
+export type MemoryModelKind = "unified" | "dedicated" | "shared" | "unknown";
+export type AcceleratorInfo = {
+  kind: "gpu" | "npu" | "unknown";
+  vendor: string | null;
+  name: string;
+  backend: string | null;
+  memory_model: MemoryModelKind;
+  dedicated_memory_bytes: number | null;
+  telemetry: Support;
+};
+export type HostProfile = {
+  schema_version: number;
+  os: string;
+  arch: string;
+  cpu: {
+    logical_cores: number;
+    physical_cores: number | null;
+    vendor: string | null;
+  };
+  memory: { total_bytes: number | null; model: MemoryModelKind };
+  accelerators: AcceleratorInfo[];
+  capabilities: {
+    native_service_manager: Support;
+    filesystem_events: Support;
+    secure_secret_storage: Support;
+    process_containment: Support;
+    native_notifications: Support;
+    accelerator_telemetry: Support;
+  };
+};
 export type GitState = {
   branch: string;
   changes: { status: string; path: string }[];
@@ -259,6 +293,7 @@ declare global {
         on: string,
         type: TaskDependencyType,
       ): Promise<Task>;
+      hostStatus(): Promise<HostProfile>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,
