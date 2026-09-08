@@ -595,16 +595,52 @@ svg {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
+  min-height: 45px;
+  padding: 7px 9px;
   border-top: 1px solid #26304366;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.composer-toolbar > span {
+.composer-toolbar::-webkit-scrollbar {
+  display: none;
+}
+.composer-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.composer-shortcuts button {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 0;
+}
+.composer-shortcuts .composer-add {
+  width: 28px;
+  padding: 4px;
+}
+.composer-governance {
   display: flex;
   gap: 6px;
   align-items: center;
   color: #74829c;
   font-size: 10px;
   margin-right: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.composer-model-button {
+  min-height: 34px;
+  max-width: 190px;
+  padding: 5px 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .composer-toolbar > button:not(.send-button) {
   font-size: 11px;
@@ -612,9 +648,11 @@ svg {
 .send-button {
   background: #4c7cff;
   color: white;
-  padding: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   border: 1px solid #7599ff;
-  border-radius: 7px;
+  border-radius: 10px;
 }
 .stop-button {
   color: #f7bfa9;
@@ -728,6 +766,47 @@ svg {
 }
 .terminal-tabs > svg {
   color: #70829d;
+}
+.pinned-commands {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  background: #0d1219;
+}
+.pinned-command {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.pinned-command button:first-child {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #16202f;
+  color: #b9c4d9;
+  font-size: 11px;
+}
+.pinned-command button:first-child kbd {
+  border: 0;
+  padding: 0;
+  color: #7185a4;
+}
+.pinned-command button:last-child {
+  padding: 3px;
+  color: #5c6a80;
+}
+.pinned-command-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pinned-command-form input {
+  width: 140px;
+  padding: 5px 8px;
+  font-size: 11px;
 }
 .terminal-tab {
   display: flex;

@@ -20,6 +20,7 @@ const { Tasks } = require("./tasks.cjs");
 const { hostStatus } = require("./devices.cjs");
 const { Permissions } = require("./permissions.cjs");
 const { ProjectMemory } = require("./project-memory.cjs");
+const { RunCommands } = require("./run-commands.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -61,6 +62,7 @@ const runs = new Map();
 const tasks = new Tasks(() => store.value.runtime);
 const permissions = new Permissions(() => store.value.runtime);
 const projectMemory = new ProjectMemory();
+const runCommands = new RunCommands();
 const entry = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 const emit = (channel, value) => {
   if (window && !window.isDestroyed()) window.webContents.send(channel, value);
@@ -520,6 +522,18 @@ app.whenReady().then(() => {
   register("projectMemoryWrite", (root, text) => {
     projects.resolve(root);
     return projectMemory.write(root, text);
+  });
+  register("runCommandList", (root) => {
+    projects.resolve(root);
+    return runCommands.list(root);
+  });
+  register("runCommandCreate", (root, entry) => {
+    projects.resolve(root);
+    return runCommands.create(root, entry);
+  });
+  register("runCommandRemove", (root, id) => {
+    projects.resolve(root);
+    return runCommands.remove(root, id);
   });
   register("terminalCreate", (root) => {
     projects.resolve(root);

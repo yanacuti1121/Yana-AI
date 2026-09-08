@@ -55,6 +55,9 @@ const methods = [
   "pendingApprovals",
   "projectMemoryRead",
   "projectMemoryWrite",
+  "runCommandList",
+  "runCommandCreate",
+  "runCommandRemove",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

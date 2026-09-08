@@ -346,6 +346,15 @@ try {
   );
   await page.getByRole("button", { name: "Tile all terminals" }).click();
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
+  await expect(
+    page.getByRole("button", { name: "Thêm file làm ngữ cảnh" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Mở Tệp và Trình sửa" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Hiện Terminal" }),
+  ).toBeVisible();
   const separator = page.getByRole("separator", {
     name: "Resize terminal dock",
   });
@@ -377,6 +386,10 @@ try {
     "Studio editor works",
   );
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
+  await page
+    .getByRole("button", { name: "Đính kèm file code đang mở" })
+    .click();
+  await expect(page.locator(".attachment-chip")).toContainText("hello.js");
   const composer = page.getByRole("textbox", { name: "Message to Yana" });
   await composer.fill("Xin chào. Đây là integration test.");
   await composer.press("Enter");

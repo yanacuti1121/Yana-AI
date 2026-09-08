@@ -18,7 +18,6 @@ import {
   MessageSquare,
   Minimize2,
   MonitorSmartphone,
-  Paperclip,
   PanelBottom,
   PanelLeft,
   Plus,
@@ -43,6 +42,7 @@ import type {
   GitState,
   Layout,
   Project,
+  RunCommand,
   State,
   TerminalSession,
 } from "./types";
@@ -102,6 +102,10 @@ function App() {
   const [attachPickerOpen, setAttachPickerOpen] = useState(false);
   const [modelPopoverOpen, setModelPopoverOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [runCommands, setRunCommands] = useState<RunCommand[]>([]);
+  const [runCommandFormOpen, setRunCommandFormOpen] = useState(false);
+  const [runCommandName, setRunCommandName] = useState("");
+  const [runCommandText, setRunCommandText] = useState("");
   const [terminals, setTerminals] = useState<TerminalSession[]>([]);
   const [terminalId, setTerminalId] = useState("");
   // Starts closed: every addTerminal() callsite already does setDock(true),
@@ -227,6 +231,19 @@ function App() {
         event.preventDefault();
         setQuickOpen((value) => !value);
       }
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        /^[1-9]$/.test(event.key) &&
+        project
+      ) {
+        const target = runCommands.find(
+          (entry) => entry.shortcut === Number(event.key),
+        );
+        if (target) {
+          event.preventDefault();
+          void runPinnedCommand(target);
+        }
+      }
       if (event.key === "Escape") {
         setPalette(false);
         setDiff(null);
@@ -246,7 +263,7 @@ function App() {
     };
     document.addEventListener("keydown", listener);
     return () => document.removeEventListener("keydown", listener);
-  }, [surface, opened, draftFile, project]);
+  }, [surface, opened, draftFile, project, runCommands]);
   useEffect(() => {
     if (!modelPopoverOpen) return;
     const onClick = (event: MouseEvent) => {
@@ -256,6 +273,22 @@ function App() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [modelPopoverOpen]);
+  useEffect(() => {
+    if (!project) {
+      setRunCommands([]);
+      return;
+    }
+    let active = true;
+    void window.studio
+      .runCommandList(project.root)
+      .then((value) => {
+        if (active) setRunCommands(value);
+      })
+      .catch((error) => setNotice(String(error)));
+    return () => {
+      active = false;
+    };
+  }, [project?.root]);
   const switchProject = (next: Project, landing: Surface = "chat") => {
     if (
       dirty &&
@@ -305,6 +338,37 @@ function App() {
     run(async () => {
       if (await window.studio.terminalClose(id))
         setTerminals((previous) => previous.filter((item) => item.id !== id));
+    });
+  const runPinnedCommand = (entry: RunCommand) =>
+    run(async () => {
+      if (!project || busy) return;
+      setBusy(true);
+      try {
+        const created = await window.studio.terminalCreate(project.root);
+        setTerminals((previous) => [...previous, created]);
+        setTerminalId(created.id);
+        setDock(true);
+        await window.studio.terminalWrite(created.id, `${entry.command}\n`);
+      } finally {
+        setBusy(false);
+      }
+    });
+  const createRunCommand = () =>
+    run(async () => {
+      if (!project) return;
+      const next = await window.studio.runCommandCreate(project.root, {
+        name: runCommandName,
+        command: runCommandText,
+      });
+      setRunCommands(next);
+      setRunCommandName("");
+      setRunCommandText("");
+      setRunCommandFormOpen(false);
+    });
+  const removeRunCommand = (id: string) =>
+    run(async () => {
+      if (!project) return;
+      setRunCommands(await window.studio.runCommandRemove(project.root, id));
     });
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -453,17 +517,17 @@ function App() {
       setDrafts((previous) => ({ ...previous, [draftKey]: "" }));
       setAttachments((previous) => ({ ...previous, [draftKey]: [] }));
     });
-  const attachFile = (entry: FileEntry) =>
+  const attachPath = (path: string) =>
     run(async () => {
       if (!project) return;
       const draftKey = chat?.id || project.root;
       const current = attachments[draftKey] || [];
-      if (current.some((file) => file.path === entry.path)) return;
+      if (current.some((file) => file.path === path)) return;
       if (current.length >= MAX_ATTACH_FILES) {
         setNotice(`Tối đa ${MAX_ATTACH_FILES} file đính kèm mỗi tin nhắn.`);
         return;
       }
-      const document = await window.studio.readFile(project.root, entry.path);
+      const document = await window.studio.readFile(project.root, path);
       const used = current.reduce((sum, file) => sum + file.bytes, 0);
       if (used + document.bytes > MAX_ATTACH_BYTES) {
         setNotice("Tổng dung lượng file đính kèm vượt quá 256 KiB.");
@@ -473,10 +537,11 @@ function App() {
         ...attachments,
         [draftKey]: [
           ...current,
-          { path: entry.path, text: document.text, bytes: document.bytes },
+          { path, text: document.text, bytes: document.bytes },
         ],
       });
     });
+  const attachFile = (entry: FileEntry) => attachPath(entry.path);
   const removeAttachment = (path: string) => {
     const draftKey = chat?.id || project?.root || "";
     setAttachments({
@@ -580,6 +645,10 @@ function App() {
     },
   ];
   const draftKey = chat?.id || project?.root || "none";
+  const openedAttached = Boolean(
+    opened &&
+    (attachments[draftKey] || []).some((file) => file.path === opened.path),
+  );
   return (
     <div
       className="app"
@@ -1227,18 +1296,67 @@ function App() {
                       }}
                     />
                     <div className="composer-toolbar">
-                      <span>
-                        <Shield size={13} /> Runtime-governed
-                      </span>
-                      <button
-                        title="Đính kèm file làm context"
-                        disabled={!project}
-                        onClick={() => setAttachPickerOpen(true)}
+                      <div className="composer-shortcuts">
+                        <button
+                          className="composer-add"
+                          aria-label="Thêm file làm ngữ cảnh"
+                          title="Thêm file làm ngữ cảnh"
+                          disabled={!project}
+                          onClick={() => setAttachPickerOpen(true)}
+                        >
+                          <Plus size={16} />
+                        </button>
+                        <button
+                          aria-label="Mở Tệp và Trình sửa"
+                          title="Mở Tệp và Trình sửa"
+                          disabled={!project}
+                          onClick={() => setSurface("files")}
+                        >
+                          <Files size={14} /> Tệp
+                        </button>
+                        <button
+                          className={openedAttached ? "context-active" : ""}
+                          aria-label="Đính kèm file code đang mở"
+                          aria-pressed={openedAttached}
+                          title={
+                            openedAttached
+                              ? `${opened?.path} đã có trong ngữ cảnh`
+                              : opened
+                                ? `Đính kèm ${opened.path}`
+                                : "Mở một file trước để đính kèm nhanh"
+                          }
+                          disabled={!opened}
+                          onClick={() => opened && attachPath(opened.path)}
+                        >
+                          <Code2 size={14} /> Code
+                        </button>
+                        <button
+                          aria-label="Hiện Terminal"
+                          title="Hiện Terminal"
+                          disabled={!project || busy}
+                          onClick={() => {
+                            if (localTerminals.length) {
+                              setDock(true);
+                              setTerminalId(
+                                terminal?.id || localTerminals[0].id,
+                              );
+                            } else {
+                              void addTerminal();
+                            }
+                          }}
+                        >
+                          <TerminalSquare size={14} /> Terminal
+                        </button>
+                      </div>
+                      <span
+                        className="composer-governance"
+                        title="Mọi thao tác vẫn tuân theo quyền hạn của Yana"
                       >
-                        <Paperclip size={13} />
-                      </button>
+                        <Shield size={13} /> Có kiểm soát
+                      </span>
                       <div className="model-pill-anchor" ref={modelPopoverRef}>
                         <button
+                          className="composer-model-button"
                           onClick={() => setModelPopoverOpen((value) => !value)}
                           title="Chọn model"
                         >
@@ -1367,6 +1485,69 @@ function App() {
                   <ChevronDown size={15} />
                 </button>
               </div>
+              {dock && (
+                <div className="pinned-commands">
+                  {runCommands.map((entry) => (
+                    <div className="pinned-command" key={entry.id}>
+                      <button
+                        title={entry.command}
+                        disabled={!project || busy}
+                        onClick={() => void runPinnedCommand(entry)}
+                      >
+                        <kbd>⌘{entry.shortcut}</kbd> {entry.name}
+                      </button>
+                      <button
+                        aria-label={`Remove ${entry.name}`}
+                        onClick={() => void removeRunCommand(entry.id)}
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  ))}
+                  {runCommandFormOpen ? (
+                    <div className="pinned-command-form">
+                      <input
+                        autoFocus
+                        placeholder="Tên (Dev)"
+                        value={runCommandName}
+                        onChange={(event) =>
+                          setRunCommandName(event.target.value)
+                        }
+                      />
+                      <input
+                        placeholder="Lệnh shell (npm run dev)"
+                        value={runCommandText}
+                        onChange={(event) =>
+                          setRunCommandText(event.target.value)
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") void createRunCommand();
+                          if (event.key === "Escape")
+                            setRunCommandFormOpen(false);
+                        }}
+                      />
+                      <button
+                        disabled={
+                          !runCommandName.trim() || !runCommandText.trim()
+                        }
+                        onClick={() => void createRunCommand()}
+                      >
+                        <Check size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    runCommands.length < 9 && (
+                      <button
+                        title="Ghim lệnh mới"
+                        disabled={!project}
+                        onClick={() => setRunCommandFormOpen(true)}
+                      >
+                        <Plus size={13} />
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
               <div
                 className={`terminal-content ${grid ? "tiled" : secondary ? "split" : ""}`}
                 style={

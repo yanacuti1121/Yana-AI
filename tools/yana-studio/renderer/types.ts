@@ -4,6 +4,13 @@ export type DroppedPathResult =
   | { kind: "file"; relative: string; project?: Project };
 export type AttachedFile = { path: string; text: string; bytes: number };
 export type ProjectMemoryState = { text: string; updatedAt: number };
+export type RunCommand = {
+  id: string;
+  name: string;
+  command: string;
+  shortcut: number;
+  createdAt: number;
+};
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
@@ -383,6 +390,12 @@ declare global {
         root: string,
         text: string,
       ): Promise<ProjectMemoryState>;
+      runCommandList(root: string): Promise<RunCommand[]>;
+      runCommandCreate(
+        root: string,
+        entry: { name: string; command: string },
+      ): Promise<RunCommand[]>;
+      runCommandRemove(root: string, id: string): Promise<RunCommand[]>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,
