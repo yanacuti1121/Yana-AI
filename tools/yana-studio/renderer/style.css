@@ -979,6 +979,20 @@ svg {
   color: #e08b7a;
   background: #2a1a17;
 }
+.project-memory-editor {
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  margin: 8px 0 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0d1524;
+  color: #d6dfed;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
 .inspector section {
   padding: 18px 13px;
   border-bottom: 1px solid #222c3a;

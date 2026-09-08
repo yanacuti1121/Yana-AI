@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Ban,
   Check,
@@ -6,6 +6,7 @@ import {
   FileCode2,
   Folder,
   GitBranch,
+  NotebookText,
   RefreshCw,
   Shield,
   Wrench,
@@ -62,6 +63,41 @@ export function WorkspaceInspector({
     "inspector",
   );
   const telemetry = telemetryFor(chat, state);
+  const [memoryText, setMemoryText] = useState("");
+  const [memoryDraft, setMemoryDraft] = useState("");
+  const [memoryBusy, setMemoryBusy] = useState(false);
+  useEffect(() => {
+    if (!project) {
+      setMemoryText("");
+      setMemoryDraft("");
+      return;
+    }
+    let active = true;
+    void window.studio
+      .projectMemoryRead(project.root)
+      .then((value) => {
+        if (active) {
+          setMemoryText(value.text);
+          setMemoryDraft(value.text);
+        }
+      })
+      .catch((error) => onError(String(error)));
+    return () => {
+      active = false;
+    };
+  }, [project?.root]);
+  const saveMemory = () => {
+    if (!project) return;
+    setMemoryBusy(true);
+    void window.studio
+      .projectMemoryWrite(project.root, memoryDraft)
+      .then((value) => {
+        setMemoryText(value.text);
+        setMemoryDraft(value.text);
+      })
+      .catch((error) => onError(String(error)))
+      .finally(() => setMemoryBusy(false));
+  };
   return (
     <aside className="inspector">
       <div className="inspector-tabs" role="tablist">
@@ -119,6 +155,35 @@ export function WorkspaceInspector({
               Chỉ context đã chọn hoặc runtime đã xác nhận mới được đưa vào AI.
               Terminal output không tự trở thành evidence.
             </p>
+          </section>
+          <section>
+            <div className="section-label">
+              <NotebookText size={13} /> PROJECT MEMORY
+            </div>
+            <p className="empty-small">
+              Ghi chú bền vững cho project này — mọi chat/session sau đều đọc
+              được, khác với 1 cuộc trò chuyện ghim cố định.
+            </p>
+            <textarea
+              className="project-memory-editor"
+              disabled={!project}
+              placeholder={
+                project
+                  ? "Quy ước, quyết định, ràng buộc cần agent nhớ…"
+                  : "Mở project để ghi memory"
+              }
+              value={memoryDraft}
+              onChange={(event) => setMemoryDraft(event.target.value)}
+            />
+            <div className="button-row">
+              <button
+                className="primary"
+                disabled={!project || memoryBusy || memoryDraft === memoryText}
+                onClick={saveMemory}
+              >
+                <Check size={14} /> Lưu memory
+              </button>
+            </div>
           </section>
           <section>
             <div className="section-label">GOVERNANCE TELEMETRY</div>

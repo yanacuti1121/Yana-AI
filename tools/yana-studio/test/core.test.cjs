@@ -26,6 +26,7 @@ const {
 } = require("../host/model-catalog.cjs");
 const { ModelCredentialStore } = require("../host/model-credentials.cjs");
 const { AccountStore } = require("../host/account.cjs");
+const { ProjectMemory } = require("../host/project-memory.cjs");
 const {
   createBackup,
   readBackup,
@@ -128,6 +129,22 @@ test("account logout clears the local profile and deletes its file", (context) =
   assert.equal(status.locked, false);
   assert.ok(!fs.existsSync(file));
   assert.throws(() => account.logout(), /No account configured/);
+});
+test("project memory reads empty before first write, persists after, and caps size", (context) => {
+  const root = fixture(context);
+  const memory = new ProjectMemory();
+  const empty = memory.read(root);
+  assert.equal(empty.text, "");
+  assert.equal(empty.updatedAt, 0);
+  const saved = memory.write(root, "# Notes\nAlways use pnpm here.");
+  assert.equal(saved.text, "# Notes\nAlways use pnpm here.");
+  assert.ok(saved.updatedAt > 0);
+  const reread = memory.read(root);
+  assert.equal(reread.text, saved.text);
+  assert.throws(
+    () => memory.write(root, "x".repeat(64 * 1024 + 1)),
+    /limited to 64 KiB/,
+  );
 });
 test("portable backup contains only allowlisted local state", (context) => {
   const root = fixture(context);

@@ -51,6 +51,8 @@ const methods = [
   "leaseList",
   "leaseRevoke",
   "pendingApprovals",
+  "projectMemoryRead",
+  "projectMemoryWrite",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

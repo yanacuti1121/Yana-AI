@@ -3,6 +3,7 @@ export type DroppedPathResult =
   | { kind: "project"; project: Project }
   | { kind: "file"; relative: string; project?: Project };
 export type AttachedFile = { path: string; text: string; bytes: number };
+export type ProjectMemoryState = { text: string; updatedAt: number };
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
@@ -342,6 +343,11 @@ declare global {
       leaseList(root: string): Promise<Lease[]>;
       leaseRevoke(root: string, id: string): Promise<{ revoked: string }>;
       pendingApprovals(root: string): Promise<PendingApprovalSummary[]>;
+      projectMemoryRead(root: string): Promise<ProjectMemoryState>;
+      projectMemoryWrite(
+        root: string,
+        text: string,
+      ): Promise<ProjectMemoryState>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,
