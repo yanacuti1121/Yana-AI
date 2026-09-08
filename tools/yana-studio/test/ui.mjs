@@ -274,7 +274,9 @@ try {
   await expect(
     page.getByText("command.execute", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("Needs approval", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Needs approval", { exact: true }).first(),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Công cụ ngoài", exact: true })
     .click();
@@ -417,6 +419,11 @@ try {
     page.getByRole("button", { name: "Dừng", exact: true }),
   ).toHaveCount(0, { timeout: 15000 });
   expect(requests.length).toBe(1);
+  const firstUserMessage = page.locator(".message.user").first();
+  await firstUserMessage
+    .getByRole("button", { name: "Dùng lại nội dung trong ô nhập" })
+    .click();
+  await expect(composer).toHaveValue("Xin chào. Đây là integration test.");
   await composer.fill("Còn nhớ câu trước không?");
   await composer.press("Enter");
   await expect(page.locator(".message.assistant")).toHaveCount(2);
@@ -478,7 +485,7 @@ try {
   await expect(page.locator(".app")).toBeVisible();
   await expect(page.locator(".recent")).toContainText("Workspace");
   console.log(
-    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, file edit/save, streaming, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
+    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
   );
 } catch (error) {
   if (application) {

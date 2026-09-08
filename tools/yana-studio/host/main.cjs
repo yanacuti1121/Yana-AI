@@ -617,12 +617,21 @@ app.whenReady().then(() => {
     store.save({ preferences: { locale: preferences.locale } });
     return publicState();
   });
-  register("saveProfile", (value, apiKey) => {
+  register("saveProfile", async (value, apiKey) => {
     if (runs.size)
       throw new Error("Stop running chats before changing provider");
     const profile = profileInput(value);
     if (typeof apiKey !== "string" || apiKey.length > 16000)
       throw new Error("Invalid API key");
+    const provider = providerById(profile.provider);
+    const credential = apiKey || key(profile.provider);
+    if (provider.kind === "cloud") {
+      const available = await discover(profile, credential);
+      if (!available.includes(profile.model))
+        throw new Error(
+          `Model '${profile.model}' is not available for this key. Sync models and choose an available model.`,
+        );
+    }
     if (apiKey) modelCredentials.write(profile.provider, apiKey);
     store.save({ profile, encryptedKey: "" });
     return publicState();
@@ -674,12 +683,19 @@ app.whenReady().then(() => {
     store.save({ chats: [...store.value.chats, chat] });
     return chat;
   });
-  register("sendChat", (id, task) => {
+  register("sendChat", (id, task, userInput) => {
     const chat = chatById(id);
     if (runs.has(id) || chat.approval)
       throw new Error("Finish or resolve the current turn first");
     if (typeof task !== "string" || !task.trim() || task.length > 40000)
       throw new Error("Enter a message up to 40,000 characters");
+    if (
+      userInput !== undefined &&
+      (typeof userInput !== "string" ||
+        !userInput.trim() ||
+        userInput.length > 40000)
+    )
+      throw new Error("Invalid visible message");
     if (!store.value.runtime)
       throw new Error("Configure the Yana runtime first");
     if (!store.value.profile.model)
@@ -688,10 +704,13 @@ app.whenReady().then(() => {
       .slice(-40)
       .map(({ role, content }) => ({ role, content }));
     chat.messages.push(
-      { role: "user", content: task },
+      { role: "user", content: task, ...(userInput ? { userInput } : {}) },
       { role: "assistant", content: "" },
     );
-    chat.title = chat.messages[0].content.slice(0, 45);
+    chat.title = (chat.messages[0].userInput || chat.messages[0].content).slice(
+      0,
+      45,
+    );
     const profile = store.value.profile;
     // Studio's own durable Project Memory, threaded into every turn via
     // yana-rt's `system` input field — a real top-level parameter kept

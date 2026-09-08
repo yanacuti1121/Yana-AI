@@ -75,6 +75,20 @@ const CAPABILITIES = Object.freeze([
     "High",
     "HumanApprovalPerCall",
   ],
+  [
+    "file.write",
+    "Create or overwrite one bounded UTF-8 repository file; diff shown, backed up, verified after write. Human approval required per call.",
+    "Mutating",
+    "High",
+    "HumanApprovalPerCall",
+  ],
+  [
+    "config.write",
+    "Create or overwrite one core/config/*.json file; confined to that directory, JSON-validated, core-lock.json excluded. Human approval required per call.",
+    "Mutating",
+    "High",
+    "HumanApprovalPerCall",
+  ],
 ]);
 
 const EXTERNAL_TOOLS = Object.freeze([

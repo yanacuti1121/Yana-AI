@@ -359,6 +359,53 @@ small,
   color: #5f5953;
 }
 
+.message-body {
+  color: #403a35;
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.message-label {
+  color: #312c28;
+}
+
+.message-label span {
+  color: #746b64;
+}
+
+.conversation-heading {
+  border-bottom-color: #e7dfd7;
+}
+
+.conversation-title strong {
+  color: #332f2c;
+}
+
+.conversation-heading-actions button {
+  color: #675f58;
+  background: #f8f4ef;
+  border-color: #dfd7ce;
+}
+
+.message-actions button {
+  color: #776e67;
+}
+
+.message-error-card,
+.inline-error {
+  color: #78352d;
+  background: #fff1ec;
+  border-color: #e3b2a5;
+}
+
+.message-error-card strong {
+  color: #922f27;
+}
+
+.message-error-card span {
+  color: #714139;
+}
+
 .terminal-tab.active button,
 .tree-item.current,
 .file-tree .current,
@@ -503,6 +550,52 @@ small,
   border-color: transparent;
   background: #f0ebe5;
   box-shadow: inset 2px 0 #d7a0b3;
+}
+
+.runtime-events > div {
+  border-top-color: #ded6cd;
+}
+
+.turn-status {
+  color: #766e67;
+  background: #f3eee8b8;
+  box-shadow: inset 2px 0 #d7a0b3;
+}
+
+.turn-status > span:not(:first-child) {
+  border-left-color: #ddd5cc;
+}
+
+.turn-status-primary {
+  color: #514a44;
+}
+
+.turn-status.completed .turn-status-primary {
+  color: #47785f;
+}
+
+.turn-status.failed .turn-status-primary {
+  color: #91483b;
+}
+
+.turn-status.stopped .turn-status-primary {
+  color: #706961;
+}
+
+.inline-error.inline-info {
+  color: #5e574f;
+  background: #f2ede7;
+  border-color: #d9d0c7;
+}
+
+.model-error-action {
+  border-top-color: #e2b8ad;
+}
+
+.model-error-action button {
+  color: #76392f;
+  background: #fffaf7;
+  border-color: #d69f91;
 }
 
 .inspector-session-summary {

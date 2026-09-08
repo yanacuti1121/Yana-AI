@@ -20,6 +20,12 @@ const {
   inspectLocalModels,
 } = require("../host/local-models.cjs");
 const {
+  CLOUD_ADAPTERS,
+  cleanModels,
+  discoverCloudModels,
+  discoverModels,
+} = require("../host/model-discovery.cjs");
+const {
   PROVIDERS,
   publicCatalog,
   providerById,
@@ -104,7 +110,7 @@ test("Studio capability surface stays aligned with Rust registry", () => {
     CAPABILITIES.map(([name]) => name),
     names,
   );
-  assert.equal(names.length, 10);
+  assert.equal(names.length, 12);
 });
 
 test("command reference parser reads real CLI tables", () => {
@@ -547,6 +553,81 @@ test("local model inspection isolates offline adapters", async () => {
   assert.equal(
     inspected.find((item) => item.provider === "lmstudio").status,
     "offline",
+  );
+});
+test("every cloud provider discovers the account-visible model list", async () => {
+  const cloudProviders = PROVIDERS.filter(
+    (provider) => provider.kind === "cloud",
+  );
+  assert.deepEqual(
+    Object.keys(CLOUD_ADAPTERS).sort(),
+    cloudProviders.map((provider) => provider.id).sort(),
+  );
+  for (const provider of cloudProviders) {
+    const models = await discoverCloudModels(
+      provider.id,
+      "PRIVATE_KEY",
+      async (_url, options) => {
+        const keyWasSent =
+          options.headers.Authorization === "Bearer PRIVATE_KEY" ||
+          options.headers["x-api-key"] === "PRIVATE_KEY" ||
+          options.headers["x-goog-api-key"] === "PRIVATE_KEY";
+        assert.equal(keyWasSent, true);
+        if (provider.id === "gemini")
+          return new Response(
+            JSON.stringify({
+              models: [
+                {
+                  name: "models/gemini-chat",
+                  supportedGenerationMethods: ["generateContent"],
+                },
+                {
+                  name: "models/embedding-only",
+                  supportedGenerationMethods: ["embedContent"],
+                },
+              ],
+            }),
+          );
+        if (provider.id === "xai")
+          return new Response(JSON.stringify({ models: [{ id: "xai-chat" }] }));
+        return new Response(
+          JSON.stringify({ data: [{ id: `${provider.id}-chat` }] }),
+        );
+      },
+    );
+    assert.deepEqual(models, [
+      provider.id === "gemini" ? "gemini-chat" : `${provider.id}-chat`,
+    ]);
+  }
+});
+test("shared discovery keeps the complete deduplicated model list", async () => {
+  const models = await discoverModels(
+    "openai",
+    "",
+    "PRIVATE_KEY",
+    async () =>
+      new Response(
+        JSON.stringify({
+          data: Array.from({ length: 450 }, (_, index) => ({
+            id: `chat-model-${index}`,
+          })),
+        }),
+      ),
+  );
+  assert.equal(models.length, 450);
+  assert.equal(new Set(models).size, 450);
+});
+test("cloud discovery excludes non-chat model families", () => {
+  assert.deepEqual(
+    cleanModels([
+      "gpt-5",
+      "text-embedding-3-large",
+      "whisper-large-v3",
+      "dall-e-3",
+      "rerank-v3",
+      "gpt-5",
+    ]),
+    ["gpt-5"],
   );
 });
 test("Studio provider catalog stays aligned with the canonical Rust catalog", () => {

@@ -93,6 +93,7 @@ export type Chat = {
   messages: {
     role: "user" | "assistant";
     content: string;
+    userInput?: string;
     // Set instead of a synthetic "no content" placeholder when this turn
     // ended in a real runtime/provider error before any content streamed.
     errorDetail?: {
@@ -389,7 +390,7 @@ declare global {
       inspectLocalModels(): Promise<LocalModelRuntime[]>;
       chooseRuntime(): Promise<string | null>;
       newChat(root: string): Promise<Chat>;
-      sendChat(id: string, task: string): Promise<boolean>;
+      sendChat(id: string, task: string, userInput?: string): Promise<boolean>;
       stopChat(id: string): Promise<boolean>;
       decideApproval(id: string, decision: boolean): Promise<boolean>;
       taskList(root: string): Promise<Task[]>;

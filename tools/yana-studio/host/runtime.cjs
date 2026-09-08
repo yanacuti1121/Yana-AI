@@ -1,9 +1,6 @@
 const { spawn } = require("node:child_process");
-const {
-  endpoint,
-  adapterFor,
-  discoverLocalModels,
-} = require("./local-models.cjs");
+const { endpoint, adapterFor } = require("./local-models.cjs");
+const { discoverModels } = require("./model-discovery.cjs");
 const { providerById } = require("./model-catalog.cjs");
 
 function profileInput(input) {
@@ -35,13 +32,7 @@ function profileInput(input) {
 }
 async function discover(profile, key = "") {
   const parsed = profileInput(profile);
-  const provider = providerById(parsed.provider);
-  if (!provider.discoverable)
-    throw new Error(
-      "Enter the model ID for this provider; automatic discovery is available for local runtimes",
-    );
-  return (await discoverLocalModels(parsed.provider, parsed.baseUrl, key))
-    .models;
+  return discoverModels(parsed.provider, parsed.baseUrl, key);
 }
 
 function startRuntime(

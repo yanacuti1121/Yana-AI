@@ -129,6 +129,7 @@ export function ModelManager({
   const [profile, setProfile] = useState<Profile>(state.profile);
   const [secret, setSecret] = useState("");
   const [models, setModels] = useState<string[]>([]);
+  const [modelsSynced, setModelsSynced] = useState(false);
   const [localRuntimes, setLocalRuntimes] = useState<LocalModelRuntime[]>([]);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
@@ -175,11 +176,13 @@ export function ModelManager({
     if (!next) return;
     setProfile(providerProfile(next));
     setModels(next.models);
+    setModelsSynced(false);
     setSecret("");
   };
   const pickModel = (target: ProviderCatalogEntry, modelId: string) => {
     setProfile({ ...providerProfile(target), model: modelId });
     setModels(target.models);
+    setModelsSynced(false);
     setSecret("");
     setQuery("");
   };
@@ -192,7 +195,8 @@ export function ModelManager({
     run(async () => {
       const discovered = await window.studio.discoverModels(profile, secret);
       setModels(discovered);
-      if (!profile.model && discovered[0])
+      setModelsSynced(true);
+      if (discovered[0] && !discovered.includes(profile.model))
         setProfile((current) => ({ ...current, model: discovered[0] }));
     });
 
@@ -270,6 +274,16 @@ export function ModelManager({
             ))}
           </datalist>
         </label>
+        <div className="compact-model-sync">
+          <button disabled={busy} onClick={() => void discover()}>
+            <RefreshCw size={14} /> Đồng bộ model
+          </button>
+          <small>
+            {modelsSynced
+              ? `${models.length} model dùng được với key này`
+              : "Lấy danh sách thật từ provider"}
+          </small>
+        </div>
         {provider.modelCatalog.length > 0 && (
           <div className="model-pick-list compact">
             {provider.modelCatalog.map((model) => (
@@ -423,6 +437,27 @@ export function ModelManager({
                 provider. Bấm &quot;Dò model&quot; hoặc nhập ID chính xác nếu
                 khác.
               </p>
+            </div>
+          )}
+          {modelsSynced && (
+            <div className="live-model-list" aria-label="Model đã đồng bộ">
+              <div className="live-model-list-heading">
+                <strong>{models.length} model dùng được</strong>
+                <span>Danh sách trực tiếp từ provider</span>
+              </div>
+              {models.map((model) => (
+                <button
+                  type="button"
+                  className={model === profile.model ? "active" : ""}
+                  key={model}
+                  onClick={() =>
+                    setProfile((current) => ({ ...current, model }))
+                  }
+                >
+                  <code>{model}</code>
+                  {model === profile.model && <Check size={13} />}
+                </button>
+              ))}
             </div>
           )}
           <div className="button-row">

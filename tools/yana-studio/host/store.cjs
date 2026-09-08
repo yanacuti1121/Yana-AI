@@ -51,7 +51,8 @@ function validateState(value) {
         chat.messages.every(
           (message) =>
             ["user", "assistant"].includes(message?.role) &&
-            text(message.content),
+            text(message.content) &&
+            (message.userInput === undefined || text(message.userInput)),
         ) &&
         Array.isArray(chat.events) &&
         chat.events.every((event) => event && text(event.type)) &&

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Circle,
   Code2,
+  Copy,
   FileCode2,
   Files,
   Folder,
@@ -22,6 +23,7 @@ import {
   PanelLeft,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
   Settings2,
   Shield,
@@ -135,8 +137,12 @@ function App() {
   const bottom = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
   const modelPopoverRef = useRef<HTMLDivElement>(null);
+  const composerInput = useRef<HTMLTextAreaElement>(null);
   const chat = chats.find(
     (item) => item.id === chatId && item.root === project?.root,
+  );
+  const chatStopped = Boolean(
+    chat?.error && /^Đã dừng theo yêu cầu/.test(chat.error),
   );
   const localChats = chats.filter((item) => item.root === project?.root);
   const localTerminals = terminals.filter(
@@ -586,7 +592,7 @@ function App() {
         setChats((previous) => [...previous, target!]);
         setChatId(target.id);
       }
-      await window.studio.sendChat(target.id, task);
+      await window.studio.sendChat(target.id, task, message);
       setDrafts((previous) => ({ ...previous, [draftKey]: "" }));
       setAttachments((previous) => ({ ...previous, [draftKey]: [] }));
     });
@@ -741,6 +747,22 @@ function App() {
     },
   ];
   const draftKey = chat?.id || project?.root || "none";
+  const copyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setNotice("Đã sao chép nội dung.");
+    } catch {
+      setNotice("Không thể sao chép nội dung trên thiết bị này.");
+    }
+  };
+  const reuseMessage = (content: string) => {
+    setDrafts((previous) => ({ ...previous, [draftKey]: content }));
+    requestAnimationFrame(() => composerInput.current?.focus());
+  };
+  const visibleMessageContent = (message: Chat["messages"][number]) =>
+    message.role === "user"
+      ? message.userInput || message.content
+      : message.content;
   const openedAttached = Boolean(
     opened &&
     (attachments[draftKey] || []).some((file) => file.path === opened.path),
@@ -959,7 +981,8 @@ function App() {
                   className={surface === "chat" ? "active" : ""}
                   onClick={openChat}
                 >
-                  <MessageSquare size={14} /> Workspace
+                  <MessageSquare size={14} />
+                  <span className="tab-label">Workspace</span>
                 </button>
                 {localChats.slice(-8).map((item) => (
                   <button
@@ -974,10 +997,11 @@ function App() {
                     }}
                   >
                     {item.running && <span className="dot blue" />}
-                    {item.title}
+                    <span className="tab-label">{item.title}</span>
                   </button>
                 ))}
                 <button
+                  className="tab-new"
                   title="New conversation"
                   onClick={newChat}
                   disabled={!project}
@@ -1199,10 +1223,27 @@ function App() {
                     }}
                   >
                     <div className="conversation-heading">
-                      <span className="eyebrow">YOUR LOCAL WORKSPACE</span>
-                      <span className="model-pill" title={state.profile.model}>
-                        {state.profile.model || "Chưa chọn model"}
-                      </span>
+                      <div className="conversation-title">
+                        <span className="eyebrow">PHIÊN LÀM VIỆC</span>
+                        <strong>
+                          {chat?.title || project?.name || "Workspace"}
+                        </strong>
+                        <small>
+                          {git.branch || "Local"} · {chat?.messages.length || 0}{" "}
+                          tin nhắn
+                        </small>
+                      </div>
+                      <div className="conversation-heading-actions">
+                        <span
+                          className="model-pill"
+                          title={state.profile.model}
+                        >
+                          {state.profile.model || "Chưa chọn model"}
+                        </span>
+                        <button onClick={newChat} disabled={!project}>
+                          <Plus size={13} /> Phiên mới
+                        </button>
+                      </div>
                     </div>
                     {!chat?.messages.length && (
                       <div className="welcome">
@@ -1260,18 +1301,49 @@ function App() {
                         <div className="message-avatar">
                           {message.role === "user" ? "A" : "Y"}
                         </div>
-                        <div>
+                        <div className="message-content">
                           <div className="message-label">
-                            {message.role === "user" ? "Anh" : "Yana"}
+                            <strong>
+                              {message.role === "user" ? "Anh" : "Yana"}
+                            </strong>
                             <span>
                               {message.role === "assistant"
                                 ? "Governed runtime"
                                 : "Human"}
                             </span>
+                            <div className="message-actions">
+                              {visibleMessageContent(message) && (
+                                <button
+                                  aria-label="Sao chép tin nhắn"
+                                  title="Sao chép"
+                                  onClick={() =>
+                                    void copyMessage(
+                                      visibleMessageContent(message),
+                                    )
+                                  }
+                                >
+                                  <Copy size={12} />
+                                </button>
+                              )}
+                              {message.role === "user" &&
+                                visibleMessageContent(message) && (
+                                  <button
+                                    aria-label="Dùng lại nội dung trong ô nhập"
+                                    title="Dùng lại trong ô nhập"
+                                    onClick={() =>
+                                      reuseMessage(
+                                        visibleMessageContent(message),
+                                      )
+                                    }
+                                  >
+                                    <RotateCcw size={12} />
+                                  </button>
+                                )}
+                            </div>
                           </div>
                           <div className="message-body">
-                            {message.content ? (
-                              message.content
+                            {visibleMessageContent(message) ? (
+                              visibleMessageContent(message)
                             ) : message.errorDetail ? (
                               <div className="message-error-card">
                                 <strong>Provider request failed</strong>
@@ -1282,6 +1354,22 @@ function App() {
                                 <span>
                                   Reason: {message.errorDetail.reason}
                                 </span>
+                                {/model_not_found|does not exist|not available/i.test(
+                                  message.errorDetail.reason,
+                                ) && (
+                                  <div className="model-error-action">
+                                    <span>
+                                      Model này không còn dùng được với key hiện
+                                      tại. Đồng bộ để lấy danh sách thật của tài
+                                      khoản này.
+                                    </span>
+                                    <button
+                                      onClick={() => setSurface("settings")}
+                                    >
+                                      Mở AI Models
+                                    </button>
+                                  </div>
+                                )}
                                 {message.errorDetail.exitCode !== null && (
                                   <span>
                                     Runtime exit: {message.errorDetail.exitCode}
@@ -1297,6 +1385,38 @@ function App() {
                         </div>
                       </article>
                     ))}
+                    {chat?.messages.length ? (
+                      <div
+                        className={`turn-status ${chat.running ? "running" : chatStopped ? "stopped" : chat.error ? "failed" : "completed"}`}
+                        role="status"
+                      >
+                        <span className="turn-status-primary">
+                          {chat.running ? (
+                            <RefreshCw size={13} />
+                          ) : chat.error ? (
+                            <Circle size={13} />
+                          ) : (
+                            <Check size={13} />
+                          )}
+                          {chat.running
+                            ? "Yana đang xử lý"
+                            : chatStopped
+                              ? "Lượt chạy đã dừng"
+                              : chat.error
+                                ? "Lượt chạy cần xử lý"
+                                : "Lượt chạy hoàn tất"}
+                        </span>
+                        <span>
+                          {chat.profile?.provider || state.profile.provider} ·{" "}
+                          {chat.profile?.model || state.profile.model}
+                        </span>
+                        <span>
+                          {chat.usage
+                            ? `${chat.usage.input + chat.usage.output} tokens`
+                            : `${chat.events.length} sự kiện runtime`}
+                        </span>
+                      </div>
+                    ) : null}
                     {chat?.events.length ? (
                       <details className="runtime-events">
                         <summary>
@@ -1371,7 +1491,10 @@ function App() {
                     {chat?.error &&
                       chat.messages.at(-1)?.errorDetail?.reason !==
                         chat.error && (
-                        <div className="inline-error" role="alert">
+                        <div
+                          className={`inline-error ${chatStopped ? "inline-info" : ""}`}
+                          role={chatStopped ? "status" : "alert"}
+                        >
                           {chat.error}
                         </div>
                       )}
@@ -1398,6 +1521,7 @@ function App() {
                       </div>
                     )}
                     <textarea
+                      ref={composerInput}
                       aria-label="Message to Yana"
                       placeholder={
                         project
