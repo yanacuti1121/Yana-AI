@@ -61,7 +61,22 @@ export function SystemSurfaces({
       .then(setOverview)
       .catch((error) => onError(String(error)));
   useEffect(() => {
-    refresh();
+    // Same active-flag guard main.tsx's own project-switch effect already
+    // uses: without it, switching projects twice in quick succession could
+    // let the first (now-stale) response land after the second, showing
+    // the wrong project's capabilities/Discord/commands overview.
+    let active = true;
+    window.studio
+      .systemOverview(projectRoot)
+      .then((value) => {
+        if (active) setOverview(value);
+      })
+      .catch((error) => {
+        if (active) onError(String(error));
+      });
+    return () => {
+      active = false;
+    };
   }, [projectRoot]);
   const commands = useMemo(() => {
     const value = query.trim().toLowerCase();

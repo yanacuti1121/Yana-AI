@@ -1,7 +1,8 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const { promisify } = require("node:util");
+const execFile = promisify(require("node:child_process").execFile);
 
 const CAPABILITIES = Object.freeze([
   [
@@ -125,7 +126,13 @@ function executable(command, env = process.env, platform = process.platform) {
   return "";
 }
 
-function runtimeFeatures(runtime) {
+// Async on purpose — every other subprocess call in this codebase (git in
+// projects.cjs, `yana-rt task` in tasks.cjs, model discovery) is async;
+// this was the one exception, and being synchronous meant a slow or
+// unresponsive runtime binary blocked the *entire* Electron main process
+// (all IPC, including live terminal PTY data) for up to the 3s timeout,
+// every time Settings/Permissions opened or the project changed.
+async function runtimeFeatures(runtime) {
   if (!runtime)
     return {
       available: false,
@@ -134,7 +141,7 @@ function runtimeFeatures(runtime) {
       error: "Runtime not configured",
     };
   try {
-    const output = execFileSync(runtime, ["--help"], {
+    const { stdout } = await execFile(runtime, ["--help"], {
       encoding: "utf8",
       timeout: 3000,
       maxBuffer: 128 * 1024,
@@ -143,8 +150,8 @@ function runtimeFeatures(runtime) {
     });
     return {
       available: true,
-      mcp: /^\s*mcp\b/im.test(output),
-      discord: /^\s*remote\b/im.test(output),
+      mcp: /^\s*mcp\b/im.test(stdout),
+      discord: /^\s*remote\b/im.test(stdout),
       error: "",
     };
   } catch {
@@ -243,13 +250,13 @@ function commandReference(resourcesPath = "") {
   return { source: "", commands: [], error: "COMMANDS.md is not packaged" };
 }
 
-function systemOverview({
+async function systemOverview({
   runtime = "",
   projectRoot = "",
   resourcesPath = "",
   env = process.env,
 } = {}) {
-  const runtimeState = runtimeFeatures(runtime);
+  const runtimeState = await runtimeFeatures(runtime);
   return {
     capabilities: CAPABILITIES.map(
       ([name, description, accessMode, riskTier, approval]) => ({
