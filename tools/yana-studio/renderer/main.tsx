@@ -1368,11 +1368,13 @@ function App() {
                         )}
                       </div>
                     )}
-                    {chat?.error && (
-                      <div className="inline-error" role="alert">
-                        {chat.error}
-                      </div>
-                    )}
+                    {chat?.error &&
+                      chat.messages.at(-1)?.errorDetail?.reason !==
+                        chat.error && (
+                        <div className="inline-error" role="alert">
+                          {chat.error}
+                        </div>
+                      )}
                     <div ref={bottom} />
                   </div>
                   <div
