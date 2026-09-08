@@ -738,7 +738,7 @@ export BUZZ_ACP_MCP_COMMAND=/path/to/Yana-AI/scripts/yana-rt-mcp-wrapper.sh
 
 ## Yana AI（网页产品）
 
-**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[命令参考 →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[最新版本 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[在线体验 →](https://yanai-production.up.railway.app)** · **[下载桌面版 →](https://yana.vutam.link)** · **[命令参考 →](https://yana.vutam.link/commands.html)** · **[最新版本 →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana 是构建在 Yana AI core 之上的第一个终端用户界面。Electron Desktop 应用使用本地 Rust runtime 处理受治理的 turn；纯浏览器部署在连接可信本地 runtime 之前仍是兼容性 surface。
 
@@ -773,7 +773,7 @@ Electron Desktop → local NDJSON adapter → yana-rt headless
 - 📊 **100% 真实数据** — 实时提供商统计、L1 记忆花园、审计日志健康面板；零演示数字
 - 内置技能路由，自然输入即可由 Yana AI 分派到正确的代理
 - **非编程用例：** 学习（苏格拉底式学习助手）、日常事务（总结 / 计划 / 起草）
-- SSE 流式传输，移动端友好 · **[Electron 桌面应用](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS、Windows、Linux
+- SSE 流式传输，移动端友好 · **[Electron 桌面应用](https://yana.vutam.link)** — macOS、Windows、Linux
 
 如果说 Yana AI 是电网，那么 Yana 就是第一座接入这张电网的建筑。
 
@@ -873,7 +873,7 @@ yana-ai badge . --json    # 机器可读的输出
 | | |
 |---|---|
 | 完整命令参考 | [COMMANDS.md](COMMANDS.md) |
-| 完整命令参考（CLI + 斜杠命令，网页版） | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
+| 完整命令参考（CLI + 斜杠命令，网页版） | [yana.vutam.link/commands.html](https://yana.vutam.link/commands.html) |
 | 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 行为准则 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | 安全政策 | [SECURITY.md](SECURITY.md) |
@@ -888,9 +888,9 @@ yana-ai badge . --json    # 机器可读的输出
 | | |
 |---|---|
 | 邮箱 | phamlongh230@gmail.com |
-| 网站 | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
+| 网站 | [yana.vutam.link](https://yana.vutam.link/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+| Yana Desktop | [yana.vutam.link](https://yana.vutam.link) |
 
 ---
 

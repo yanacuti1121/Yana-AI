@@ -734,7 +734,7 @@ không có gì bắt buộc.
 
 ## Yana AI (sản phẩm web)
 
-**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yanacuti1121.github.io/Yana-AI/desktop.html)** · **[Toàn bộ lệnh →](https://yanacuti1121.github.io/Yana-AI/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
+**[Trải nghiệm trực tiếp →](https://yanai-production.up.railway.app)** · **[Tải Desktop →](https://yana.vutam.link)** · **[Toàn bộ lệnh →](https://yana.vutam.link/commands.html)** · **[Bản mới nhất →](https://github.com/yanacuti1121/Yana-AI/releases/latest)**
 
 Yana là giao diện end-user đầu tiên được xây trên Yana AI core. Ứng dụng Electron Desktop dùng Rust runtime cục bộ cho các turn được quản trị; bản chỉ chạy trên trình duyệt vẫn là bề mặt tương thích cho tới khi được nối với một local runtime đáng tin cậy.
 
@@ -769,7 +769,7 @@ Web chỉ chạy trình duyệt → JavaScript gateway cũ → provider
 - 📊 **100% dữ liệu thật** — thống kê provider trực tiếp, khu vườn L1 memory, panel sức khỏe audit-log; không số liệu demo
 - Có sẵn skill routing, gõ tự nhiên và Yana AI tự dispatch đúng agent
 - **Cả cho việc không phải code:** học tập (trợ lý học kiểu Socratic), việc hàng ngày (tóm tắt / lên kế hoạch / soạn thảo)
-- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yanacuti1121.github.io/Yana-AI/desktop.html)** — macOS, Windows, Linux
+- SSE streaming, thân thiện mobile · **[Ứng dụng desktop Electron](https://yana.vutam.link)** — macOS, Windows, Linux
 
 Nếu Yana AI là lưới điện, thì Yana là tòa nhà đầu tiên cắm vào lưới điện đó.
 
@@ -869,7 +869,7 @@ yana-ai badge . --json    # output dạng máy đọc được
 | | |
 |---|---|
 | Toàn bộ lệnh CLI | [COMMANDS.md](COMMANDS.md) |
-| Toàn bộ lệnh (CLI + slash command, web) | [yanacuti1121.github.io/Yana-AI/commands.html](https://yanacuti1121.github.io/Yana-AI/commands.html) |
+| Toàn bộ lệnh (CLI + slash command, web) | [yana.vutam.link/commands.html](https://yana.vutam.link/commands.html) |
 | Đóng góp | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Quy tắc ứng xử | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 | Chính sách bảo mật | [SECURITY.md](SECURITY.md) |
@@ -884,9 +884,9 @@ yana-ai badge . --json    # output dạng máy đọc được
 | | |
 |---|---|
 | Email | phamlongh230@gmail.com |
-| Website | [yanacuti1121.github.io/Yana-AI](https://yanacuti1121.github.io/Yana-AI/) |
+| Website | [yana.vutam.link](https://yana.vutam.link/) |
 | GitHub | [yanacuti1121/Yana-AI](https://github.com/yanacuti1121/Yana-AI) |
-| Yana Desktop | [yanacuti1121.github.io/Yana-AI/desktop.html](https://yanacuti1121.github.io/Yana-AI/desktop.html) |
+| Yana Desktop | [yana.vutam.link](https://yana.vutam.link) |
 
 > **Lưu ý macOS:** bản `.dmg`/`.zip` của Yana Desktop hiện **chỉ ký ad-hoc,
 > chưa được Apple notarize** — dự án chưa có Apple Developer Program (gói
