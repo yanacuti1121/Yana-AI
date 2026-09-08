@@ -615,11 +615,21 @@ app.whenReady().then(() => {
     );
     chat.title = chat.messages[0].content.slice(0, 45);
     const profile = store.value.profile;
+    // Studio's own durable Project Memory, threaded into every turn via
+    // yana-rt's `system` input field — a real top-level parameter kept
+    // separate from the message array on purpose (see Role's doc comment
+    // in src/model/provider.rs: no System role exists, a stored/imported
+    // message can never masquerade as one). Applies uniformly to every
+    // provider (local and cloud) since sendChat is the one send path both
+    // go through — this is what anh asked for: local AI shouldn't be the
+    // one surface without persistent memory.
+    const memory = projectMemory.read(chat.root).text.trim();
     launchTurn(chat, profile, {
       task,
       history,
       session_id: chat.id,
       api_key: key(profile.provider),
+      ...(memory ? { system: memory.slice(0, 64 * 1024) } : {}),
       ...(profile.provider === "custom"
         ? {
             base_url: profile.baseUrl,
