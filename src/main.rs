@@ -483,6 +483,19 @@ enum TaskAction {
         #[arg(long)]
         json: bool,
     },
+    /// Add a typed dependency edge (Yana Studio architecture audit, Phase 1
+    /// — only `blocks` affects readiness; the others are informational)
+    Depend {
+        id: String,
+        /// Target task this one depends on
+        #[arg(long)]
+        on: String,
+        /// blocks | related | parent-child | discovered-from
+        #[arg(long = "type", default_value = "blocks")]
+        dep_type: String,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -818,6 +831,7 @@ fn main() {
             TaskAction::Done { id, evidence, json } => task::cmd_task_done(id, evidence, json),
             TaskAction::Status { id } => task::cmd_task_status(id),
             TaskAction::Drop { id, json } => task::cmd_task_drop(id, json),
+            TaskAction::Depend { id, on, dep_type, json } => task::cmd_task_depend(id, on, dep_type, json),
         },
         Commands::Eval { action } => match action {
             EvalAction::Run { id } => task::cmd_eval_run(id),
