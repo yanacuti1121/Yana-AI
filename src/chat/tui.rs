@@ -80,6 +80,14 @@ enum PendingApproval {
         path: String,
         kind: crate::capability::FileMutationKind,
         content: String,
+        /// `true` for a `write_config` call (Phase 4: Config Governance —
+        /// `crate::capability::config_write`), `false` for a generic
+        /// `write_file` call (Phase 3). Both share this one UI shape
+        /// (same diff rendering, same y/N flow) since config-write is a
+        /// scoped, JSON-validated specialization of the same mechanics —
+        /// this flag only decides which `propose_*`/`apply_*` pair
+        /// `approval.rs` re-invokes for revalidation and execution.
+        is_config: bool,
         /// Computed once at proposal time by `prepare_pending_approval`
         /// and shown as-is by `render_tools::draw_approval_prompt` —
         /// `approval.rs::execute_approved_tool` recomputes it fresh right

@@ -142,7 +142,7 @@ impl App {
                 call
             }
             PendingApproval::FileWrite {
-                path, kind, content, diff, ..
+                path, kind, content, is_config, diff, ..
             } => {
                 // Same "protects the displayed proposal, not a second
                 // approval gate" reasoning as the command branch above:
@@ -150,8 +150,15 @@ impl App {
                 // the human actually saw, so a file edited on disk between
                 // the prompt and 'y' is caught here, not silently
                 // overwritten with a proposal that's gone stale.
+                // `is_config` picks the same propose_* function
+                // `prepare_write_file_approval` used originally.
                 let root = self.session_context().repo_root;
-                match crate::capability::propose_file_write(&root, path, *kind, content) {
+                let fresh = if *is_config {
+                    crate::capability::propose_config_write(&root, path, *kind, content)
+                } else {
+                    crate::capability::propose_file_write(&root, path, *kind, content)
+                };
+                match fresh {
                     Ok(fresh) if fresh.before_sha256 == diff.before_sha256 => {}
                     Ok(_) => {
                         self.push_tool_result(

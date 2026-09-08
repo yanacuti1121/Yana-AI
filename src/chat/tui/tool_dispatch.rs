@@ -88,7 +88,11 @@ impl ToolExecutor for ChatCapabilityExecutor {
             }
             "write_file" => {
                 let session_id = approved.context().session.session_id.clone();
-                file_write_result(call, approved.context(), session_id)
+                file_write_result(call, approved.context(), session_id, false)
+            }
+            "write_config" => {
+                let session_id = approved.context().session.session_id.clone();
+                file_write_result(call, approved.context(), session_id, true)
             }
             other => tool_result(
                 call,
@@ -120,20 +124,27 @@ fn parse_mutation_kind(raw: &str) -> Option<crate::capability::FileMutationKind>
     }
 }
 
-/// Executes an already-approved `write_file` call for real
-/// (`crate::capability::apply_file_write`: backup -> atomic write ->
-/// verify -> evidence). Called only from `execute_approved`, which the
-/// runtime authority chain only invokes after `HumanApprovalPerCall` has
-/// been satisfied — this function has no approval logic of its own.
+/// Executes an already-approved `write_file`/`write_config` call for real
+/// (`crate::capability::apply_file_write`/`apply_config_write`: backup ->
+/// atomic write -> verify -> evidence). Called only from
+/// `execute_approved`, which the runtime authority chain only invokes
+/// after `HumanApprovalPerCall` has been satisfied — this function has no
+/// approval logic of its own. `is_config` picks which of the two apply
+/// functions runs; both take identical arguments and return the same
+/// `FileMutationOutcome` shape, so the result formatting below is shared.
 fn file_write_result(
     call: &ToolCall,
     context: &TurnContext,
     session_id: String,
+    is_config: bool,
 ) -> ToolResultRecord {
     let Ok(args) = serde_json::from_str::<WriteFileArgs>(&call.arguments_json) else {
         return tool_result(
             call,
-            "missing or invalid arguments for write_file (need path, content, kind)".to_string(),
+            format!(
+                "missing or invalid arguments for {} (need path, content, kind)",
+                call.name
+            ),
             true,
             false,
         );
@@ -146,13 +157,13 @@ fn file_write_result(
             false,
         );
     };
-    match crate::capability::apply_file_write(
-        &context.session.repo_root,
-        &args.path,
-        kind,
-        &args.content,
-        Some(session_id),
-    ) {
+    let root = &context.session.repo_root;
+    let outcome = if is_config {
+        crate::capability::apply_config_write(root, &args.path, kind, &args.content, Some(session_id))
+    } else {
+        crate::capability::apply_file_write(root, &args.path, kind, &args.content, Some(session_id))
+    };
+    match outcome {
         Ok(outcome) => tool_result(
             call,
             format!(
@@ -176,7 +187,8 @@ impl App {
     pub(super) fn prepare_pending_approval(&mut self, call: ToolCall) {
         match call.name.as_str() {
             "run_command" => self.prepare_command_approval(call),
-            "write_file" => self.prepare_write_file_approval(call),
+            "write_file" => self.prepare_write_file_approval(call, false),
+            "write_config" => self.prepare_write_file_approval(call, true),
             other => {
                 self.push_tool_result(
                     &call.id,
@@ -221,15 +233,21 @@ impl App {
         }
     }
 
-    /// Computes the diff (read-only — `propose_file_write` never touches
-    /// the filesystem) up front so the approval prompt itself can show it,
-    /// rather than the human approving a path/kind pair blind and finding
-    /// out what changed only after the fact.
-    fn prepare_write_file_approval(&mut self, call: ToolCall) {
+    /// Computes the diff (read-only — neither `propose_*` function
+    /// touches the filesystem) up front so the approval prompt itself can
+    /// show it, rather than the human approving a path/kind pair blind
+    /// and finding out what changed only after the fact. Shared by
+    /// `write_file` (`is_config: false`) and `write_config`
+    /// (`is_config: true`, Phase 4) — the two differ only in which
+    /// `propose_*` function validates the request.
+    fn prepare_write_file_approval(&mut self, call: ToolCall, is_config: bool) {
         let Ok(args) = serde_json::from_str::<WriteFileArgs>(&call.arguments_json) else {
             self.push_tool_result(
                 &call.id,
-                "missing or invalid arguments for write_file (need path, content, kind)".to_string(),
+                format!(
+                    "missing or invalid arguments for {} (need path, content, kind)",
+                    call.name
+                ),
                 true,
                 false,
             );
@@ -247,13 +265,19 @@ impl App {
             return;
         };
         let root = self.session_context().repo_root;
-        match crate::capability::propose_file_write(&root, &args.path, kind, &args.content) {
+        let proposal = if is_config {
+            crate::capability::propose_config_write(&root, &args.path, kind, &args.content)
+        } else {
+            crate::capability::propose_file_write(&root, &args.path, kind, &args.content)
+        };
+        match proposal {
             Ok(diff) => {
                 self.turn = TurnState::AwaitingApproval(PendingApproval::FileWrite {
                     call,
                     path: args.path,
                     kind,
                     content: args.content,
+                    is_config,
                     diff,
                 });
             }
@@ -653,5 +677,68 @@ mod tests {
         .unwrap();
         assert!(result.is_error);
         assert!(!root.path().join("x.txt").exists());
+    }
+
+    /// `write_config` end to end (Phase 4) — same shape as
+    /// `canonical_approved_path_writes_a_file_once`, proving the config
+    /// specialization also works through the real authority chain, not
+    /// just `config_write`'s own unit tests.
+    #[test]
+    fn canonical_approved_path_writes_a_config_file_once() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join("core/config")).unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_config".into(),
+            arguments_json: r#"{"path":"new-setting.json","content":"{\"enabled\":true}","kind":"create"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(!result.denied);
+        assert!(!result.is_error);
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("core/config/new-setting.json")).unwrap(),
+            "{\"enabled\":true}"
+        );
+    }
+
+    #[test]
+    fn canonical_approved_path_rejects_write_config_targeting_core_lock_json() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join("core/config")).unwrap();
+        std::fs::write(root.path().join("core/config/core-lock.json"), "{}").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let call = ToolCall {
+            id: "call-1".into(),
+            name: "write_config".into(),
+            arguments_json: r#"{"path":"core-lock.json","content":"{\"tampered\":true}","kind":"overwrite"}"#.into(),
+        };
+
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &call,
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+
+        assert!(result.is_error);
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("core/config/core-lock.json")).unwrap(),
+            "{}",
+            "core-lock.json must be untouched"
+        );
     }
 }

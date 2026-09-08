@@ -63,6 +63,17 @@ pub fn catalog(ctx: &SessionContext) -> Vec<ToolSpec> {
             parameters_schema: descriptor.input_schema.clone(),
         });
     }
+    if let Some(descriptor) = available.iter().find(|d| d.name == "config.write") {
+        tools.push(ToolSpec {
+            name: "write_config",
+            description: "Propose creating or overwriting one Yana \
+                config file under core/config/ (pass just the file name, \
+                e.g. 'budget.json' — not the full path). content must be \
+                valid JSON. Requires explicit human approval showing a \
+                real diff. core-lock.json can never be targeted this way.",
+            parameters_schema: descriptor.input_schema.clone(),
+        });
+    }
     tools
 }
 
@@ -76,12 +87,13 @@ mod tests {
     }
 
     #[test]
-    fn catalog_has_exactly_three_tools() {
+    fn catalog_has_exactly_four_tools() {
         let tools = catalog(&ctx());
-        assert_eq!(tools.len(), 3);
+        assert_eq!(tools.len(), 4);
         assert_eq!(tools[0].name, "read_file");
         assert_eq!(tools[1].name, "run_command");
         assert_eq!(tools[2].name, "write_file");
+        assert_eq!(tools[3].name, "write_config");
     }
 
     #[test]
@@ -105,6 +117,18 @@ mod tests {
         );
         assert_eq!(
             tools[2].parameters_schema,
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "content": {"type": "string"},
+                    "kind": {"type": "string", "enum": ["create", "overwrite"]}
+                },
+                "required": ["path", "content", "kind"],
+            })
+        );
+        assert_eq!(
+            tools[3].parameters_schema,
             serde_json::json!({
                 "type": "object",
                 "properties": {

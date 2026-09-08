@@ -329,6 +329,6 @@ mod tests {
         }
         assert!(DefaultProvider.supports_tool_calling());
         let tools = tools_for_turn(&DefaultProvider, &ctx());
-        assert_eq!(tools.len(), 3);
+        assert_eq!(tools.len(), 4);
     }
 }
