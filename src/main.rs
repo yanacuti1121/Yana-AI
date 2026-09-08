@@ -24,6 +24,7 @@ mod model;
 mod observability;
 mod os;
 mod plugin;
+mod project_workspace;
 mod provenance;
 mod research;
 mod route;
