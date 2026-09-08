@@ -41,6 +41,11 @@ const methods = [
   "sendChat",
   "stopChat",
   "decideApproval",
+  "taskList",
+  "taskCreate",
+  "taskDone",
+  "taskDrop",
+  "taskDepend",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

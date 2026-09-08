@@ -72,6 +72,38 @@ export type Chat = {
   profile?: Profile;
   usage?: { input: number; output: number };
 };
+// Mirrors src/task.rs's Task + the additive blocked/blocked_by fields
+// cmd_task_list --json emits (Yana Studio architecture audit, Phase 1 —
+// PR #318). status never comes back as "blocked" — that state is always
+// derived and carried in the `blocked`/`blocked_by` fields instead.
+export type TaskDependencyType =
+  "blocks" | "related" | "parent_child" | "discovered_from";
+export type TaskDependency = {
+  dep_type: TaskDependencyType;
+  target_task_id: string;
+};
+export type TaskEvidence = {
+  raw: string;
+  signals: {
+    tests_passed?: number;
+    tests_failed?: number;
+    build_ok: boolean;
+    coverage_pct?: number;
+    manual_note?: string;
+  };
+};
+export type Task = {
+  id: string;
+  name: string;
+  status: "open" | "in_progress" | "done" | "blocked";
+  scope?: string | null;
+  created_at: string;
+  updated_at: string;
+  evidence?: TaskEvidence | null;
+  dependencies: TaskDependency[];
+  blocked: boolean;
+  blocked_by: string[];
+};
 export type GitState = {
   branch: string;
   changes: { status: string; path: string }[];
@@ -217,6 +249,16 @@ declare global {
       sendChat(id: string, task: string): Promise<boolean>;
       stopChat(id: string): Promise<boolean>;
       decideApproval(id: string, decision: boolean): Promise<boolean>;
+      taskList(root: string): Promise<Task[]>;
+      taskCreate(root: string, name: string, scope?: string): Promise<Task>;
+      taskDone(root: string, id: string, evidence: string): Promise<Task>;
+      taskDrop(root: string, id: string): Promise<{ ok: boolean; id: string }>;
+      taskDepend(
+        root: string,
+        id: string,
+        on: string,
+        type: TaskDependencyType,
+      ): Promise<Task>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,

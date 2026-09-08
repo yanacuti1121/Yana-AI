@@ -16,6 +16,7 @@ const { Projects } = require("./projects.cjs");
 const { Store } = require("./store.cjs");
 const { DataOverview } = require("./data-overview.cjs");
 const { Terminals } = require("./terminals.cjs");
+const { Tasks } = require("./tasks.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -49,6 +50,7 @@ app.on("second-instance", () => {
 });
 const projects = new Projects();
 const runs = new Map();
+const tasks = new Tasks(() => store.value.runtime);
 const entry = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 const emit = (channel, value) => {
   if (window && !window.isDestroyed()) window.webContents.send(channel, value);
@@ -403,6 +405,26 @@ app.whenReady().then(() => {
   );
   register("gitStatus", (root) => projects.status(root));
   register("gitDiff", (root, relative) => projects.diff(root, relative));
+  register("taskList", (root) => {
+    projects.resolve(root);
+    return tasks.list(root);
+  });
+  register("taskCreate", (root, name, scope) => {
+    projects.resolve(root);
+    return tasks.create(root, name, scope);
+  });
+  register("taskDone", (root, id, evidence) => {
+    projects.resolve(root);
+    return tasks.done(root, id, evidence);
+  });
+  register("taskDrop", (root, id) => {
+    projects.resolve(root);
+    return tasks.drop(root, id);
+  });
+  register("taskDepend", (root, id, on, type) => {
+    projects.resolve(root);
+    return tasks.depend(root, id, on, type);
+  });
   register("terminalCreate", (root) => {
     projects.resolve(root);
     return terminals.create(root);

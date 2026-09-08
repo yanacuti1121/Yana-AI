@@ -13,6 +13,7 @@ import {
   FolderOpen,
   GitBranch,
   GitCompareArrows,
+  ListTodo,
   Maximize2,
   MessageSquare,
   Minimize2,
@@ -40,6 +41,7 @@ import type {
   State,
   TerminalSession,
 } from "./types";
+import { Tasks } from "./Tasks";
 import "./style.css";
 import { translate } from "./i18n";
 import { AccountUnlock } from "./AccountSettings";
@@ -63,7 +65,7 @@ function App() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState("");
   const [surface, setSurface] = useState<
-    "chat" | "files" | "settings" | "terminal"
+    "chat" | "files" | "settings" | "terminal" | "tasks"
   >("terminal");
   const [git, setGit] = useState<GitState>(emptyGit);
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -418,6 +420,7 @@ function App() {
     { label: "Cuộc trò chuyện mới", icon: MessageSquare, action: newChat },
     { label: "Tạo terminal", icon: TerminalSquare, action: addTerminal },
     { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
+    { label: "Tasks", icon: ListTodo, action: () => setSurface("tasks") },
     {
       label: "Cài đặt — model, runtime và kết nối",
       icon: Settings2,
@@ -495,6 +498,13 @@ function App() {
             >
               <Files size={17} />
               <span>{t("files")}</span>
+            </button>
+            <button
+              className={surface === "tasks" ? "selected" : ""}
+              onClick={() => setSurface("tasks")}
+            >
+              <ListTodo size={17} />
+              <span>Tasks</span>
             </button>
             <button
               onClick={() => {
@@ -642,7 +652,9 @@ function App() {
                   <Plus size={15} />
                 </button>
               </div>
-              {surface === "files" ? (
+              {surface === "tasks" ? (
+                <Tasks root={project?.root || ""} onError={setNotice} />
+              ) : surface === "files" ? (
                 <div className="files-workspace">
                   <div className="file-tree">
                     <div className="section-label">
