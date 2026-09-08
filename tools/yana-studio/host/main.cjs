@@ -18,6 +18,7 @@ const { DataOverview } = require("./data-overview.cjs");
 const { Terminals } = require("./terminals.cjs");
 const { Tasks } = require("./tasks.cjs");
 const { hostStatus } = require("./devices.cjs");
+const { Permissions } = require("./permissions.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -52,6 +53,7 @@ app.on("second-instance", () => {
 const projects = new Projects();
 const runs = new Map();
 const tasks = new Tasks(() => store.value.runtime);
+const permissions = new Permissions(() => store.value.runtime);
 const entry = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 const emit = (channel, value) => {
   if (window && !window.isDestroyed()) window.webContents.send(channel, value);
@@ -427,6 +429,18 @@ app.whenReady().then(() => {
     return tasks.depend(root, id, on, type);
   });
   register("hostStatus", () => hostStatus(store.value.runtime));
+  register("leaseList", (root) => {
+    projects.resolve(root);
+    return permissions.leaseList(root);
+  });
+  register("leaseRevoke", (root, id) => {
+    projects.resolve(root);
+    return permissions.leaseRevoke(root, id);
+  });
+  register("pendingApprovals", (root) => {
+    projects.resolve(root);
+    return permissions.pendingApprovals(root);
+  });
   register("terminalCreate", (root) => {
     projects.resolve(root);
     return terminals.create(root);

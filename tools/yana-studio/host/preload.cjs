@@ -47,6 +47,9 @@ const methods = [
   "taskDrop",
   "taskDepend",
   "hostStatus",
+  "leaseList",
+  "leaseRevoke",
+  "pendingApprovals",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

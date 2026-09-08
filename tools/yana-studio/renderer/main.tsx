@@ -44,6 +44,7 @@ import type {
 } from "./types";
 import { Tasks } from "./Tasks";
 import { Devices } from "./Devices";
+import { Permissions } from "./Permissions";
 import "./style.css";
 import { translate } from "./i18n";
 import { AccountUnlock } from "./AccountSettings";
@@ -67,7 +68,13 @@ function App() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState("");
   const [surface, setSurface] = useState<
-    "chat" | "files" | "settings" | "terminal" | "tasks" | "devices"
+    | "chat"
+    | "files"
+    | "settings"
+    | "terminal"
+    | "tasks"
+    | "devices"
+    | "permissions"
   >("terminal");
   const [git, setGit] = useState<GitState>(emptyGit);
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -429,6 +436,11 @@ function App() {
       action: () => setSurface("devices"),
     },
     {
+      label: "Permissions",
+      icon: Shield,
+      action: () => setSurface("permissions"),
+    },
+    {
       label: "Cài đặt — model, runtime và kết nối",
       icon: Settings2,
       action: () => setSurface("settings"),
@@ -519,6 +531,13 @@ function App() {
             >
               <MonitorSmartphone size={17} />
               <span>Devices</span>
+            </button>
+            <button
+              className={surface === "permissions" ? "selected" : ""}
+              onClick={() => setSurface("permissions")}
+            >
+              <Shield size={17} />
+              <span>Permissions</span>
             </button>
             <button
               onClick={() => {
@@ -670,6 +689,8 @@ function App() {
                 <Tasks root={project?.root || ""} onError={setNotice} />
               ) : surface === "devices" ? (
                 <Devices onError={setNotice} />
+              ) : surface === "permissions" ? (
+                <Permissions root={project?.root || ""} onError={setNotice} />
               ) : surface === "files" ? (
                 <div className="files-workspace">
                   <div className="file-tree">

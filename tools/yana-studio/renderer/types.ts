@@ -138,6 +138,35 @@ export type HostProfile = {
     accelerator_telemetry: Support;
   };
 };
+// Mirrors src/capability/lease.rs::Lease exactly (Screen 4 "Permissions").
+export type Lease = {
+  id: string;
+  subject: string;
+  capability: string;
+  repo_root: string;
+  allow: string[];
+  deny: string[];
+  issued_by: string;
+  issued_at: string;
+  expires_at: string;
+  invocation_budget: number | null;
+  remaining: number | null;
+  revoked: boolean;
+  parent_lease_id?: string | null;
+};
+// Only the fields this screen renders — src/runtime/pending_approval.rs's
+// real PendingApproval also carries full conversation `messages` and
+// `context`, deliberately not surfaced here (see host/permissions.cjs).
+export type PendingApprovalSummary = {
+  approval_id: string;
+  pending_call: { id: string; name: string; arguments_json: string };
+  authority_reason: string;
+  created_at: string;
+  expires_at: string;
+  resolved: boolean;
+  decision: boolean | null;
+  decided_by: string | null;
+};
 export type GitState = {
   branch: string;
   changes: { status: string; path: string }[];
@@ -294,6 +323,9 @@ declare global {
         type: TaskDependencyType,
       ): Promise<Task>;
       hostStatus(): Promise<HostProfile>;
+      leaseList(root: string): Promise<Lease[]>;
+      leaseRevoke(root: string, id: string): Promise<{ revoked: string }>;
+      pendingApprovals(root: string): Promise<PendingApprovalSummary[]>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,
