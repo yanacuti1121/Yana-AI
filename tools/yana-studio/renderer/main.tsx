@@ -1948,8 +1948,10 @@ function App() {
                             setDiffCommentText(event.target.value)
                           }
                           onKeyDown={(event) => {
-                            if (event.key === "Escape")
+                            if (event.key === "Escape") {
+                              event.stopPropagation();
                               setDiffCommentLine(null);
+                            }
                           }}
                         />
                         <div className="button-row">
