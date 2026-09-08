@@ -1,24 +1,32 @@
-use super::mod_types::{ScanReport, Finding};
+use super::mod_types::{Finding, ScanReport};
 use std::collections::HashMap;
 
 // ── ANSI helpers ──────────────────────────────────────────────────────────────
 
 fn ansi(code: &str, text: &str, no_color: bool) -> String {
-    if no_color { text.to_string() } else { format!("\x1b[{code}m{text}\x1b[0m") }
+    if no_color {
+        text.to_string()
+    } else {
+        format!("\x1b[{code}m{text}\x1b[0m")
+    }
 }
 
 fn severity_code(sev: &str) -> &'static str {
     match sev {
-        "CRITICAL" => "1;31", "HIGH" => "31",
-        "MEDIUM"   => "33",   "LOW"  | "INFO" => "2",
-        _          => "",
+        "CRITICAL" => "1;31",
+        "HIGH" => "31",
+        "MEDIUM" => "33",
+        "LOW" | "INFO" => "2",
+        _ => "",
     }
 }
 
 fn risk_code(risk: &str) -> &'static str {
     match risk {
-        "LOW"  => "32", "MEDIUM" => "33",
-        "HIGH" | "CRITICAL" => "1;31", _ => "",
+        "LOW" => "32",
+        "MEDIUM" => "33",
+        "HIGH" | "CRITICAL" => "1;31",
+        _ => "",
     }
 }
 
@@ -26,7 +34,7 @@ fn risk_code(risk: &str) -> &'static str {
 
 pub fn render_console(report: &ScanReport, no_color: bool, quiet: bool) -> String {
     let s = &report.summary;
-    let risk  = &report.risk_level;
+    let risk = &report.risk_level;
     let score = report.score;
     let stats = &report.scan_stats;
     let mut lines = Vec::new();
@@ -39,24 +47,45 @@ pub fn render_console(report: &ScanReport, no_color: bool, quiet: bool) -> Strin
         return lines.join("\n");
     }
 
-    let c  = |code: &str, t: &str| ansi(code, t, no_color);
+    let c = |code: &str, t: &str| ansi(code, t, no_color);
     let dim = "2";
 
     lines.push(String::new());
-    lines.push(c("1;36", "┌─────────────────────────────────────────────────────┐"));
-    lines.push(c("1;36", "│  Yana AI Agent Audit Report                          │"));
+    lines.push(c(
+        "1;36",
+        "┌─────────────────────────────────────────────────────┐",
+    ));
+    lines.push(c(
+        "1;36",
+        "│  Yana AI Agent Audit Report                          │",
+    ));
     lines.push(c("1;36", "│  github.com/yanacuti1121/yana-ai          │"));
-    lines.push(c("1;36", "└─────────────────────────────────────────────────────┘"));
+    lines.push(c(
+        "1;36",
+        "└─────────────────────────────────────────────────────┘",
+    ));
     lines.push(String::new());
     lines.push(format!("  Target:   {}", report.target));
-    lines.push(format!("  Scanned:  {} files  ·  {} scanners  ·  {} checks",
-        stats.files_scanned, stats.scanners_run, stats.checks_applied));
+    lines.push(format!(
+        "  Scanned:  {} files  ·  {} scanners  ·  {} checks",
+        stats.files_scanned, stats.scanners_run, stats.checks_applied
+    ));
     lines.push(String::new());
-    lines.push(format!("  Score:    {}", c(&format!("1;{}", risk_code(risk)), &score.to_string())));
-    lines.push(format!("  Risk:     {}", c(&format!("1;{}", risk_code(risk)), risk)));
+    lines.push(format!(
+        "  Score:    {}",
+        c(&format!("1;{}", risk_code(risk)), &score.to_string())
+    ));
+    lines.push(format!(
+        "  Risk:     {}",
+        c(&format!("1;{}", risk_code(risk)), risk)
+    ));
     lines.push(String::new());
 
-    let non_info: Vec<&Finding> = report.findings.iter().filter(|f| f.severity != "INFO").collect();
+    let non_info: Vec<&Finding> = report
+        .findings
+        .iter()
+        .filter(|f| f.severity != "INFO")
+        .collect();
     if non_info.is_empty() {
         lines.push(c("32", "  ✓  No significant findings."));
     } else {
@@ -65,24 +94,57 @@ pub fn render_console(report: &ScanReport, no_color: bool, quiet: bool) -> Strin
             let sev_label = format!("[{:<8}]", f.severity);
             let file_loc = if let Some(ln) = f.line {
                 format!("{}:{ln}", f.file)
-            } else { f.file.clone() };
-            let desc = if f.description.is_empty() { &f.reason } else { &f.description };
-            lines.push(format!("  {} {}  {}",
+            } else {
+                f.file.clone()
+            };
+            let desc = if f.description.is_empty() {
+                &f.reason
+            } else {
+                &f.description
+            };
+            lines.push(format!(
+                "  {} {}  {}",
                 c(severity_code(&f.severity), &sev_label),
-                c("1", &f.id), file_loc));
-            lines.push(format!("             {}", &desc.chars().take(80).collect::<String>()));
+                c("1", &f.id),
+                file_loc
+            ));
+            lines.push(format!(
+                "             {}",
+                &desc.chars().take(80).collect::<String>()
+            ));
             if !f.fix.is_empty() {
-                lines.push(c(dim, &format!("             Fix: {}", &f.fix.chars().take(100).collect::<String>())));
+                lines.push(c(
+                    dim,
+                    &format!(
+                        "             Fix: {}",
+                        &f.fix.chars().take(100).collect::<String>()
+                    ),
+                ));
             }
             lines.push(String::new());
         }
         lines.push(c(dim, &format!("  {}", "─".repeat(54))));
         let mut parts = Vec::new();
-        if s.critical > 0 { parts.push(c("1;31", &format!("{} critical", s.critical))); }
-        if s.high     > 0 { parts.push(c("31",   &format!("{} high", s.high))); }
-        if s.medium   > 0 { parts.push(c("33",   &format!("{} medium", s.medium))); }
-        if s.low      > 0 { parts.push(c(dim,    &format!("{} low", s.low))); }
-        lines.push(format!("  Summary:  {}", if parts.is_empty() { "none".to_string() } else { parts.join(" · ") }));
+        if s.critical > 0 {
+            parts.push(c("1;31", &format!("{} critical", s.critical)));
+        }
+        if s.high > 0 {
+            parts.push(c("31", &format!("{} high", s.high)));
+        }
+        if s.medium > 0 {
+            parts.push(c("33", &format!("{} medium", s.medium)));
+        }
+        if s.low > 0 {
+            parts.push(c(dim, &format!("{} low", s.low)));
+        }
+        lines.push(format!(
+            "  Summary:  {}",
+            if parts.is_empty() {
+                "none".to_string()
+            } else {
+                parts.join(" · ")
+            }
+        ));
         lines.push(String::new());
         lines.push(c(dim, "  Run with --markdown report.md to export."));
         lines.push(c(dim, "  Run with --fail-on high for CI use."));
@@ -90,8 +152,14 @@ pub fn render_console(report: &ScanReport, no_color: bool, quiet: bool) -> Strin
     }
     if let Some(top) = report.analytics.top_rules.first() {
         if top.count > 1 {
-            lines.push(ansi(dim, &format!("  Top finding: {} × {} ({}) — run --json for full breakdown.",
-                top.id, top.count, top.severity), no_color));
+            lines.push(ansi(
+                dim,
+                &format!(
+                    "  Top finding: {} × {} ({}) — run --json for full breakdown.",
+                    top.id, top.count, top.severity
+                ),
+                no_color,
+            ));
         }
     }
     lines.push(String::new());
@@ -103,30 +171,53 @@ pub fn render_console(report: &ScanReport, no_color: bool, quiet: bool) -> Strin
 pub fn render_markdown(report: &ScanReport) -> String {
     let s = &report.summary;
     let stats = &report.scan_stats;
-    let findings: Vec<&Finding> = report.findings.iter().filter(|f| f.severity != "INFO").collect();
+    let findings: Vec<&Finding> = report
+        .findings
+        .iter()
+        .filter(|f| f.severity != "INFO")
+        .collect();
 
     let risk_note = match report.risk_level.as_str() {
-        "CRITICAL" => "> **CRITICAL** — Severe agent safety risks. Address CRITICAL findings immediately.",
-        "HIGH"     => "> **HIGH** — Significant risks that could allow an AI agent to cause serious damage.",
-        "MEDIUM"   => "> **MEDIUM** — Some risks detected. Review findings and apply recommended fixes.",
-        _          => "> **LOW** — Setup looks solid. A few minor improvements are available.",
+        "CRITICAL" => {
+            "> **CRITICAL** — Severe agent safety risks. Address CRITICAL findings immediately."
+        }
+        "HIGH" => {
+            "> **HIGH** — Significant risks that could allow an AI agent to cause serious damage."
+        }
+        "MEDIUM" => {
+            "> **MEDIUM** — Some risks detected. Review findings and apply recommended fixes."
+        }
+        _ => "> **LOW** — Setup looks solid. A few minor improvements are available.",
     };
 
     let mut lines = vec![
         "# Yana AI Agent Audit Report".to_string(),
         String::new(),
-        format!("> Generated by Yana AI v{}  ·  {}", report.yana_ai_version, report.generated_at),
-        String::new(), "---".to_string(), String::new(),
-        "## Score".to_string(), String::new(),
-        "| | |".to_string(), "|---|---|".to_string(),
+        format!(
+            "> Generated by Yana AI v{}  ·  {}",
+            report.yana_ai_version, report.generated_at
+        ),
+        String::new(),
+        "---".to_string(),
+        String::new(),
+        "## Score".to_string(),
+        String::new(),
+        "| | |".to_string(),
+        "|---|---|".to_string(),
         format!("| **Score** | {} / 100 |", report.score),
         format!("| **Risk** | {} |", report.risk_level),
         format!("| **Files scanned** | {} |", stats.files_scanned),
-        format!("| **Findings** | {} critical · {} high · {} medium · {} low |",
-            s.critical, s.high, s.medium, s.low),
+        format!(
+            "| **Findings** | {} critical · {} high · {} medium · {} low |",
+            s.critical, s.high, s.medium, s.low
+        ),
         String::new(),
-        risk_note.to_string(), String::new(), "---".to_string(), String::new(),
-        "## Findings".to_string(), String::new(),
+        risk_note.to_string(),
+        String::new(),
+        "---".to_string(),
+        String::new(),
+        "## Findings".to_string(),
+        String::new(),
     ];
 
     if findings.is_empty() {
@@ -134,54 +225,85 @@ pub fn render_markdown(report: &ScanReport) -> String {
     } else {
         for sev in ["CRITICAL", "HIGH", "MEDIUM", "LOW"] {
             let sev_f: Vec<&&Finding> = findings.iter().filter(|f| f.severity == sev).collect();
-            if sev_f.is_empty() { continue; }
+            if sev_f.is_empty() {
+                continue;
+            }
             lines.push(format!("### {}", capitalize(sev)));
             lines.push(String::new());
             for f in sev_f {
                 let file_loc = if let Some(ln) = f.line {
                     format!("`{}`:{ln}", f.file)
-                } else { format!("`{}`", f.file) };
-                let desc = if f.description.is_empty() { &f.reason } else { &f.description };
+                } else {
+                    format!("`{}`", f.file)
+                };
+                let desc = if f.description.is_empty() {
+                    &f.reason
+                } else {
+                    &f.description
+                };
                 lines.extend([
                     format!("#### {} — {}", f.id, desc),
-                    String::new(), "| | |".to_string(), "|---|---|".to_string(),
+                    String::new(),
+                    "| | |".to_string(),
+                    "|---|---|".to_string(),
                     format!("| **File** | {file_loc} |"),
                     format!("| **Rule** | `{}` |", f.rule),
                     format!("| **Confidence** | {} |", f.confidence),
                     String::new(),
-                    "**Why this is a risk:**  ".to_string(), f.reason.clone(),
+                    "**Why this is a risk:**  ".to_string(),
+                    f.reason.clone(),
                     String::new(),
-                    "**How to fix:**  ".to_string(), f.fix.clone(),
-                    String::new(), "---".to_string(), String::new(),
+                    "**How to fix:**  ".to_string(),
+                    f.fix.clone(),
+                    String::new(),
+                    "---".to_string(),
+                    String::new(),
                 ]);
             }
         }
     }
     lines.extend(["## Next Steps".to_string(), String::new()]);
     if matches!(report.risk_level.as_str(), "CRITICAL" | "HIGH") {
-        lines.extend(["1. Fix all CRITICAL and HIGH findings before using AI agents".to_string(),
+        lines.extend([
+            "1. Fix all CRITICAL and HIGH findings before using AI agents".to_string(),
             "2. Re-run `yana-ai audit .` to verify fixes".to_string(),
-            "3. Add `yana-ai audit . --fail-on high` to your CI pipeline".to_string()]);
+            "3. Add `yana-ai audit . --fail-on high` to your CI pipeline".to_string(),
+        ]);
     } else {
-        lines.extend(["1. Review MEDIUM findings and apply where practical".to_string(),
-            "2. Add `yana-ai audit . --fail-on high` to your CI pipeline".to_string()]);
+        lines.extend([
+            "1. Review MEDIUM findings and apply where practical".to_string(),
+            "2. Add `yana-ai audit . --fail-on high` to your CI pipeline".to_string(),
+        ]);
     }
-    lines.extend([String::new(), "---".to_string(), String::new(),
-        "*Report generated by [Yana AI](https://github.com/yanacuti1121/yana-ai)*".to_string()]);
+    lines.extend([
+        String::new(),
+        "---".to_string(),
+        String::new(),
+        "*Report generated by [Yana AI](https://github.com/yanacuti1121/yana-ai)*".to_string(),
+    ]);
     lines.join("\n")
 }
 
 fn capitalize(s: &str) -> String {
     let mut c = s.chars();
-    match c.next() { None => String::new(), Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str() }
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+    }
 }
 
 // ── SARIF renderer ────────────────────────────────────────────────────────────
 
 pub fn render_sarif(report: &ScanReport) -> String {
     let level_map: HashMap<&str, &str> = [
-        ("CRITICAL", "error"), ("HIGH", "error"), ("MEDIUM", "warning"), ("LOW", "note"), ("INFO", "none"),
-    ].into_iter().collect();
+        ("CRITICAL", "error"),
+        ("HIGH", "error"),
+        ("MEDIUM", "warning"),
+        ("LOW", "note"),
+        ("INFO", "none"),
+    ]
+    .into_iter()
+    .collect();
 
     let mut rules_seen: HashMap<String, serde_json::Value> = HashMap::new();
     for f in &report.findings {
@@ -195,7 +317,11 @@ pub fn render_sarif(report: &ScanReport) -> String {
         }));
     }
     let rules_list: Vec<serde_json::Value> = rules_seen.values().cloned().collect();
-    let rule_index: HashMap<String, usize> = rules_seen.keys().enumerate().map(|(i, k)| (k.clone(), i)).collect();
+    let rule_index: HashMap<String, usize> = rules_seen
+        .keys()
+        .enumerate()
+        .map(|(i, k)| (k.clone(), i))
+        .collect();
 
     let results: Vec<serde_json::Value> = report.findings.iter().map(|f| {
         let mut loc = serde_json::json!({
@@ -233,7 +359,12 @@ pub fn render_sarif(report: &ScanReport) -> String {
 
 // ── JSON output ───────────────────────────────────────────────────────────────
 
-pub fn build_json_output(report: &ScanReport, target: &str, exit_code: i32, status: &str) -> serde_json::Value {
+pub fn build_json_output(
+    report: &ScanReport,
+    target: &str,
+    exit_code: i32,
+    status: &str,
+) -> serde_json::Value {
     let findings: Vec<serde_json::Value> = report.findings.iter().map(|f| {
         let mut item = serde_json::json!({
             "id": f.id,

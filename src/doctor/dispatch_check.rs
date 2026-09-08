@@ -87,10 +87,14 @@ fn extract_rust_commands(main_rs: &str) -> Vec<(String, Option<String>)> {
         // At depth 1 we're directly inside the enum body — a line starting
         // with an identifier followed by '{' or ',' is a variant.
         if depth == 1 {
-            if let Some(first_word) = line.split(|c: char| c == '{' || c == ',' || c.is_whitespace())
+            if let Some(first_word) = line
+                .split(|c: char| c == '{' || c == ',' || c.is_whitespace())
                 .find(|s| !s.is_empty())
             {
-                let is_variant_start = first_word.chars().next().is_some_and(|c| c.is_ascii_uppercase())
+                let is_variant_start = first_word
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_ascii_uppercase())
                     && first_word.chars().all(|c| c.is_ascii_alphanumeric())
                     && (line[first_word.len()..].trim_start().starts_with('{')
                         || line[first_word.len()..].trim_start().starts_with(','));
@@ -133,7 +137,11 @@ fn extract_rust_commands(main_rs: &str) -> Vec<(String, Option<String>)> {
 fn literal_rt_word(line: &str) -> Option<String> {
     let idx = line.find("rt ")?;
     let prefix = line[..idx].trim_end();
-    if !(prefix.is_empty() || prefix.ends_with('{') || prefix.ends_with(';') || prefix.ends_with(')')) {
+    if !(prefix.is_empty()
+        || prefix.ends_with('{')
+        || prefix.ends_with(';')
+        || prefix.ends_with(')'))
+    {
         return None;
     }
     let rest = &line[idx + 3..];
@@ -186,7 +194,9 @@ fn find_passthrough_labels(bin_yana: &str) -> Vec<String> {
         // Case label line, e.g. `task|eval|bus|memory|plugin|cost|vault|spec|provenance)`
         if line.ends_with(')') && !line.contains('(') {
             let label_part = line.trim_end_matches(')');
-            current_labels = label_part.split('|').map(|s| s.trim().to_string())
+            current_labels = label_part
+                .split('|')
+                .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty() && *s != "*" && !s.starts_with('"'))
                 .collect();
             continue;
@@ -200,7 +210,8 @@ fn find_passthrough_labels(bin_yana: &str) -> Vec<String> {
 }
 
 fn extract_bin_yana_routes(bin_yana: &str) -> Vec<String> {
-    let mut routed: Vec<String> = bin_yana.lines()
+    let mut routed: Vec<String> = bin_yana
+        .lines()
         .map(str::trim)
         .filter(|l| !l.starts_with('#'))
         .filter_map(literal_rt_word)
@@ -237,8 +248,10 @@ pub fn check(repo_root: &Path) -> DispatchReport {
         findings.push(DispatchFinding {
             rust_unreachable: true,
             name: name.clone(),
-            detail: "Rust subcommand exists in src/main.rs but bin/yana never calls `rt ".to_string()
-                + name + " ...` — unreachable from the CLI.",
+            detail: "Rust subcommand exists in src/main.rs but bin/yana never calls `rt "
+                .to_string()
+                + name
+                + " ...` — unreachable from the CLI.",
         });
     }
     for name in &routed {
@@ -251,7 +264,11 @@ pub fn check(repo_root: &Path) -> DispatchReport {
         }
     }
 
-    DispatchReport { rust_subcommands, exempt, findings }
+    DispatchReport {
+        rust_subcommands,
+        exempt,
+        findings,
+    }
 }
 
 pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
@@ -275,7 +292,10 @@ pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
     }
 
     println!("\n  yana doctor dispatch\n");
-    println!("  {} Rust subcommand(s) in src/main.rs\n", report.rust_subcommands.len());
+    println!(
+        "  {} Rust subcommand(s) in src/main.rs\n",
+        report.rust_subcommands.len()
+    );
 
     if !report.exempt.is_empty() {
         for (name, reason) in &report.exempt {
