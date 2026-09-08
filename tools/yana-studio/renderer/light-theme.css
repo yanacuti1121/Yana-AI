@@ -292,6 +292,10 @@ small,
   background: #f5f3ef;
 }
 
+.close-confirm-modal code {
+  color: #3d3834;
+}
+
 .inspector-tabs button {
   color: #746d66;
 }

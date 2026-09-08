@@ -97,6 +97,7 @@ function App() {
   const [draftFile, setDraftFile] = useState("");
   const [filesDragOver, setFilesDragOver] = useState(false);
   const [diff, setDiff] = useState<{ path: string; text: string } | null>(null);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [diffComments, setDiffComments] = useState<DiffComment[]>([]);
   const [diffCommentLine, setDiffCommentLine] = useState<number | null>(null);
   const [diffCommentText, setDiffCommentText] = useState("");
@@ -263,6 +264,10 @@ function App() {
         setQuickOpen(false);
         setAttachPickerOpen(false);
         setModelPopoverOpen(false);
+        // Cancel semantics only — dismisses the "save before closing?"
+        // modal without discarding or closing the file, so this doesn't
+        // conflict with Esc never being allowed to close a file on its own.
+        setCloseConfirmOpen(false);
       }
       if (
         (event.metaKey || event.ctrlKey) &&
@@ -272,6 +277,15 @@ function App() {
       ) {
         event.preventDefault();
         void saveFile();
+      }
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "w" &&
+        surface === "files" &&
+        opened
+      ) {
+        event.preventDefault();
+        closeFile();
       }
     };
     document.addEventListener("keydown", listener);
@@ -470,7 +484,35 @@ function App() {
       setSurface("files");
     });
   const closeFile = () => {
-    if (dirty && !window.confirm("Bỏ bản nháp chưa lưu và đóng file?")) return;
+    if (dirty) {
+      setCloseConfirmOpen(true);
+      return;
+    }
+    setOpened(null);
+    setDraftFile("");
+  };
+  // Duplicates saveFile()'s IPC call instead of calling saveFile() itself:
+  // saveFile() is wrapped in run(), which swallows its own errors, so a
+  // failed save (e.g. a revision conflict) would still fall through to
+  // closing the file below. Awaiting window.studio.saveFile directly here
+  // means a failure throws into this function's own run() and stops before
+  // the file closes — the modal stays open so the user can retry or cancel.
+  const saveAndCloseFile = () =>
+    run(async () => {
+      if (!project || !opened) return;
+      await window.studio.saveFile(
+        project.root,
+        opened.path,
+        draftFile,
+        opened.document.revision,
+      );
+      setGit(await window.studio.gitStatus(project.root));
+      setCloseConfirmOpen(false);
+      setOpened(null);
+      setDraftFile("");
+    });
+  const discardAndCloseFile = () => {
+    setCloseConfirmOpen(false);
     setOpened(null);
     setDraftFile("");
   };
@@ -764,7 +806,14 @@ function App() {
             </button>
             <button
               className={surface === "files" ? "selected" : ""}
-              onClick={() => setSurface("files")}
+              onClick={() => {
+                // Re-clicking "Files & Editor" while already there and a
+                // file is open reads as "take me back to the browser", not
+                // a no-op — closeFile() itself pops the save-confirm modal
+                // first if the file is dirty, same as the X button.
+                if (surface === "files" && opened) closeFile();
+                setSurface("files");
+              }}
             >
               <Files size={17} />
               <span>{t("files")}</span>
@@ -1972,6 +2021,37 @@ function App() {
                 );
               })}
             </pre>
+          </div>
+        </div>
+      )}
+      {closeConfirmOpen && opened && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setCloseConfirmOpen(false)}
+        >
+          <div
+            className="card close-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>Lưu thay đổi trước khi đóng?</h3>
+            <p>
+              <code>{opened.path}</code> có thay đổi chưa lưu. Thay đổi sẽ mất
+              nếu chọn “Không lưu”.
+            </p>
+            <div className="button-row">
+              <button
+                className="primary"
+                onClick={() => void saveAndCloseFile()}
+              >
+                <Check size={14} /> Lưu
+              </button>
+              <button className="danger-button" onClick={discardAndCloseFile}>
+                Không lưu
+              </button>
+              <button onClick={() => setCloseConfirmOpen(false)}>Hủy</button>
+            </div>
           </div>
         </div>
       )}

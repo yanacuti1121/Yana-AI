@@ -2467,6 +2467,27 @@ svg {
   background: var(--accent-soft);
   color: #dce6f7;
 }
+.close-confirm-modal {
+  width: 380px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.close-confirm-modal h3 {
+  font-size: 14px;
+}
+.close-confirm-modal p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.close-confirm-modal code {
+  color: #d7e2f5;
+}
+.close-confirm-modal .button-row {
+  justify-content: flex-end;
+}
 .diff-modal {
   width: 1000px;
   max-width: 90vw;
