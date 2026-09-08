@@ -65,6 +65,13 @@ export type RuntimeEvent = {
   call_id?: string;
   ok?: boolean;
 };
+export type TokenUsageRecord = {
+  input: number;
+  output: number;
+  provider: string;
+  model: string;
+  recordedAt: string;
+};
 export type Chat = {
   id: string;
   root: string;
@@ -83,6 +90,7 @@ export type Chat = {
   };
   profile?: Profile;
   usage?: { input: number; output: number };
+  usageHistory?: TokenUsageRecord[];
 };
 // Mirrors src/task.rs's Task + the additive blocked/blocked_by fields
 // cmd_task_list --json emits (Yana Studio architecture audit, Phase 1 —
@@ -166,6 +174,14 @@ export type Lease = {
   revoked: boolean;
   parent_lease_id?: string | null;
 };
+export type LeaseGrantOptions = {
+  subject: string;
+  capability: string;
+  allow?: string[];
+  deny?: string[];
+  expiresInMinutes: number;
+  invocationBudget?: number;
+};
 // Only the fields this screen renders — src/runtime/pending_approval.rs's
 // real PendingApproval also carries full conversation `messages` and
 // `context`, deliberately not surfaced here (see host/permissions.cjs).
@@ -214,6 +230,23 @@ export type DataOverview = {
   memory: { status: string; files: number; bytes: number };
   cache: { status: string; files: number; bytes: number };
 };
+export type TokenUsageTotals = {
+  input: number;
+  output: number;
+  total: number;
+  rounds: number;
+};
+export type TokenUsageSummary = {
+  all: TokenUsageTotals;
+  workspace: TokenUsageTotals;
+  models: Array<
+    TokenUsageTotals & {
+      provider: string;
+      model: string;
+    }
+  >;
+  lastRecordedAt: string;
+};
 export type SystemOverview = {
   capabilities: {
     name: string;
@@ -261,6 +294,7 @@ declare global {
     studio: {
       bootstrap(): Promise<State>;
       dataOverview(): Promise<DataOverview>;
+      tokenUsage(projectRoot?: string): Promise<TokenUsageSummary>;
       exportPortableData(): Promise<string | null>;
       choosePortableData(): Promise<State>;
       importPortableData(file: File): Promise<State>;
@@ -342,6 +376,7 @@ declare global {
       hostStatus(): Promise<HostProfile>;
       leaseList(root: string): Promise<Lease[]>;
       leaseRevoke(root: string, id: string): Promise<{ revoked: string }>;
+      leaseGrant(root: string, options: LeaseGrantOptions): Promise<Lease>;
       pendingApprovals(root: string): Promise<PendingApprovalSummary[]>;
       projectMemoryRead(root: string): Promise<ProjectMemoryState>;
       projectMemoryWrite(

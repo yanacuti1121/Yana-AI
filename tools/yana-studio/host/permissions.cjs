@@ -61,5 +61,44 @@ class Permissions {
     );
     return Array.isArray(parsed) ? parsed : [];
   }
+  // The scoped-lease alternative to a bare "auto-accept" toggle: grants
+  // real, time-boxed, budget-capped authority via yana-rt's own lease
+  // mechanism (src/capability/lease.rs::cmd_lease_grant) — the runtime's
+  // authority chain (src/runtime/authority.rs) consumes a matching lease
+  // before ever reaching human-approval-required, so this doesn't bypass
+  // governance, it *is* governance, the same path a delegated subagent
+  // lease already goes through.
+  async leaseGrant(root, options) {
+    const subject =
+      typeof options?.subject === "string" ? options.subject.trim() : "";
+    const capability =
+      typeof options?.capability === "string" ? options.capability.trim() : "";
+    if (!subject) throw new Error("Enter a subject (e.g. agent:studio)");
+    if (!capability) throw new Error("Enter a capability name");
+    const expiresInMinutes = Math.max(
+      1,
+      Math.min(1440, Number(options?.expiresInMinutes) || 30),
+    );
+    const args = [
+      "lease",
+      "grant",
+      "--subject",
+      subject,
+      "--capability",
+      capability,
+      "--expires-in-minutes",
+      String(expiresInMinutes),
+      "--json",
+    ];
+    for (const entry of Array.isArray(options?.allow) ? options.allow : [])
+      if (typeof entry === "string" && entry.trim())
+        args.push("--allow", entry.trim());
+    for (const entry of Array.isArray(options?.deny) ? options.deny : [])
+      if (typeof entry === "string" && entry.trim())
+        args.push("--deny", entry.trim());
+    if (Number.isInteger(options?.invocationBudget))
+      args.push("--invocation-budget", String(options.invocationBudget));
+    return JSON.parse(await this.run(root, args));
+  }
 }
 module.exports = { Permissions };

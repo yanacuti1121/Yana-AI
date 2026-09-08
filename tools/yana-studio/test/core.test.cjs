@@ -39,6 +39,57 @@ const {
   executable,
   discordStatus,
 } = require("../host/system-surfaces.cjs");
+const {
+  appendUsageRecords,
+  summarizeTokenUsage,
+} = require("../host/token-usage.cjs");
+
+test("token usage keeps provider-reported rounds and honest totals", () => {
+  const existing = [
+    {
+      input: 100,
+      output: 20,
+      provider: "openai",
+      model: "gpt-test",
+      recordedAt: "2026-09-08T10:00:00.000Z",
+    },
+  ];
+  const history = appendUsageRecords(existing, [
+    {
+      input: 50,
+      output: 10,
+      provider: "openai",
+      model: "gpt-test",
+      recordedAt: "2026-09-08T11:00:00.000Z",
+    },
+  ]);
+  const summary = summarizeTokenUsage(
+    [
+      { root: "/project-a", usageHistory: history },
+      {
+        root: "/project-b",
+        profile: { provider: "ollama", model: "llama3.2" },
+        usage: { input: 30, output: 5 },
+      },
+    ],
+    "/project-a",
+  );
+  assert.deepEqual(summary.workspace, {
+    input: 150,
+    output: 30,
+    total: 180,
+    rounds: 2,
+  });
+  assert.deepEqual(summary.all, {
+    input: 180,
+    output: 35,
+    total: 215,
+    rounds: 3,
+  });
+  assert.equal(summary.models[0].model, "gpt-test");
+  assert.equal(summary.models[1].provider, "ollama");
+  assert.equal(summary.lastRecordedAt, "2026-09-08T11:00:00.000Z");
+});
 
 test("Studio capability surface stays aligned with Rust registry", () => {
   const source = fs.readFileSync(

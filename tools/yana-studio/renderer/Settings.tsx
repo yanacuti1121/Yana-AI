@@ -7,6 +7,7 @@ import { PrivacyData } from "./PrivacyData";
 import { translate } from "./i18n";
 import { SystemSurfaces } from "./SystemSurfaces";
 import { AccountSettings } from "./AccountSettings";
+import { TokenUsage } from "./TokenUsage";
 
 export function Settings({
   state,
@@ -49,6 +50,7 @@ export function Settings({
           ["account", t("account")],
           ["appearance", t("language")],
           ["models", t("modelRuntime")],
+          ["usage", t("usage")],
           ["connections", t("connections")],
           ["permissions", t("permissions")],
           ["tools", t("tools")],
@@ -94,6 +96,12 @@ export function Settings({
         <PrivacyData onState={onState} onError={onError} />
       ) : section === "connections" ? (
         <Connections />
+      ) : section === "usage" ? (
+        <TokenUsage
+          locale={state.preferences.locale}
+          projectRoot={projectRoot}
+          onError={onError}
+        />
       ) : ["permissions", "tools", "commands"].includes(section) ? (
         <SystemSurfaces
           mode={section as "permissions" | "tools" | "commands"}

@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer, webUtils } = require("electron");
 const methods = [
   "bootstrap",
   "dataOverview",
+  "tokenUsage",
   "exportPortableData",
   "choosePortableData",
   "systemOverview",
@@ -50,6 +51,7 @@ const methods = [
   "hostStatus",
   "leaseList",
   "leaseRevoke",
+  "leaseGrant",
   "pendingApprovals",
   "projectMemoryRead",
   "projectMemoryWrite",

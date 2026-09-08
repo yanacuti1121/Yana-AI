@@ -5,6 +5,23 @@ const { profileInput } = require("./runtime.cjs");
 
 function validateState(value) {
   const text = (input) => typeof input === "string";
+  const tokenCount = (input) => Number.isSafeInteger(input) && input >= 0;
+  const usage = (input) =>
+    input === undefined ||
+    (input && tokenCount(input.input) && tokenCount(input.output));
+  const usageHistory = (input) =>
+    input === undefined ||
+    (Array.isArray(input) &&
+      input.length <= 2000 &&
+      input.every(
+        (record) =>
+          record &&
+          tokenCount(record.input) &&
+          tokenCount(record.output) &&
+          text(record.provider) &&
+          text(record.model) &&
+          text(record.recordedAt),
+      ));
   if (
     value?.schema !== 1 ||
     !Array.isArray(value.projects) ||
@@ -38,7 +55,9 @@ function validateState(value) {
         ) &&
         Array.isArray(chat.events) &&
         chat.events.every((event) => event && text(event.type)) &&
-        typeof chat.running === "boolean",
+        typeof chat.running === "boolean" &&
+        usage(chat.usage) &&
+        usageHistory(chat.usageHistory),
     )
   )
     throw new Error("Invalid saved conversation");

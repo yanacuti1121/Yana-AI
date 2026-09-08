@@ -61,7 +61,32 @@ fs.writeFileSync(
   JSON.stringify({
     schema: 1,
     projects: [{ name: "Workspace", root }],
-    chats: [],
+    chats: [
+      {
+        id: "usage-fixture",
+        root,
+        title: "New conversation",
+        messages: [],
+        events: [],
+        running: false,
+        error: "",
+        approval: null,
+        profile: {
+          provider: "custom",
+          model: "studio-test",
+          baseUrl: `http://127.0.0.1:${server.address().port}/v1`,
+        },
+        usageHistory: [
+          {
+            input: 100,
+            output: 25,
+            provider: "custom",
+            model: "studio-test",
+            recordedAt: "2026-09-08T12:00:00.000Z",
+          },
+        ],
+      },
+    ],
     profile: {
       provider: "custom",
       model: "studio-test",
@@ -104,6 +129,8 @@ try {
   });
   page.on("pageerror", (error) => failures.push(error.message));
   await expect(page.locator(".title-brand")).toContainText("Yana Studio");
+  const showTerminal = page.getByRole("button", { name: "Hiện terminal" });
+  if (await showTerminal.isVisible()) await showTerminal.click();
   await page.getByRole("button", { name: "New terminal", exact: true }).click();
   await expect(page.locator(".terminal-pane:visible")).toHaveCount(1);
   const first = await page
@@ -225,6 +252,14 @@ try {
     expect(fs.readFileSync(file).toString()).not.toContain(
       "UI_TEST_SECRET_NEVER_PLAINTEXT",
     );
+  await page.getByRole("button", { name: "Sử dụng", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Sử dụng token" }),
+  ).toBeVisible();
+  await expect(page.getByText("125", { exact: true })).toHaveCount(3);
+  await expect(
+    page.locator(".usage-model-row").getByText("studio-test", { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Tài khoản & Kết nối", exact: true })
     .click();

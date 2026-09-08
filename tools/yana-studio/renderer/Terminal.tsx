@@ -92,13 +92,25 @@ export function Terminal({
     const unsubExit = window.studio.on("terminal:exit", (event) => {
       if (event.id === session.id) setExit(event.exitCode);
     });
+    let fitFrame = 0;
+    let lastWidth = 0;
+    let lastHeight = 0;
     const observer = new ResizeObserver(() => {
-      if (
-        element.current &&
-        element.current.clientWidth > 0 &&
-        element.current.clientHeight > 0
-      )
+      if (fitFrame) return;
+      fitFrame = requestAnimationFrame(() => {
+        fitFrame = 0;
+        const target = element.current;
+        if (!target || target.clientWidth <= 0 || target.clientHeight <= 0)
+          return;
+        if (
+          target.clientWidth === lastWidth &&
+          target.clientHeight === lastHeight
+        )
+          return;
+        lastWidth = target.clientWidth;
+        lastHeight = target.clientHeight;
         fit.fit();
+      });
     });
     observer.observe(element.current);
     void import("@xterm/addon-webgl")
@@ -114,6 +126,7 @@ export function Terminal({
     void window.studio.terminalSubscribe(session.id).catch(fail);
     return () => {
       disposed = true;
+      if (fitFrame) cancelAnimationFrame(fitFrame);
       observer.disconnect();
       unsubscribe();
       unsubExit();

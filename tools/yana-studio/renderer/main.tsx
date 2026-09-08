@@ -50,6 +50,7 @@ import { Tasks } from "./Tasks";
 import { Devices } from "./Devices";
 import { Permissions } from "./Permissions";
 import "./style.css";
+import "./light-theme.css";
 import { translate } from "./i18n";
 import { AccountUnlock } from "./AccountSettings";
 
@@ -494,6 +495,13 @@ function App() {
     const value = layout[name];
     let next = layout;
     const target = event.currentTarget;
+    const app = target.closest<HTMLElement>(".app");
+    let frame = 0;
+    let pending = value;
+    const render = () => {
+      frame = 0;
+      app?.style.setProperty(`--${name}`, `${pending}px`);
+    };
     const move = (pointer: PointerEvent) => {
       const delta =
         (name === "dock" ? pointer.clientY : pointer.clientX) - start;
@@ -503,24 +511,25 @@ function App() {
           : name === "inspector"
             ? [260, 480]
             : [150, Math.min(700, window.innerHeight - 260)];
-      next = {
-        ...layout,
-        [name]: Math.max(
-          limits[0],
-          Math.min(limits[1], value + delta * (name === "sidebar" ? 1 : -1)),
-        ),
-      };
-      setLayout(next);
+      pending = Math.max(
+        limits[0],
+        Math.min(limits[1], value + delta * (name === "sidebar" ? 1 : -1)),
+      );
+      next = { ...layout, [name]: pending };
+      if (!frame) frame = requestAnimationFrame(render);
     };
     const finish = () => {
-      target.removeEventListener("pointermove", move);
-      target.removeEventListener("pointerup", finish);
-      target.removeEventListener("pointercancel", finish);
+      if (frame) cancelAnimationFrame(frame);
+      render();
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+      setLayout(next);
       void run(() => window.studio.saveLayout(next));
     };
-    target.addEventListener("pointermove", move);
-    target.addEventListener("pointerup", finish);
-    target.addEventListener("pointercancel", finish);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
   };
   const showDiff = (file: string) =>
     run(async () => {

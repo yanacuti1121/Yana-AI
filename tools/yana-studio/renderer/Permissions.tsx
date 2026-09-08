@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Clock3, RefreshCw, Shield, ShieldOff, XCircle } from "lucide-react";
+import {
+  Clock3,
+  KeyRound,
+  RefreshCw,
+  Shield,
+  ShieldOff,
+  XCircle,
+} from "lucide-react";
 import type { Lease, PendingApprovalSummary } from "./types";
 
 // Screen 4 "Permissions" — was chat-approval presentation only. Two real,
@@ -17,6 +24,12 @@ export function Permissions({
   const [leases, setLeases] = useState<Lease[]>([]);
   const [approvals, setApprovals] = useState<PendingApprovalSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [grantOpen, setGrantOpen] = useState(false);
+  const [subject, setSubject] = useState("agent:studio");
+  const [capability, setCapability] = useState("");
+  const [allow, setAllow] = useState("");
+  const [expiresInMinutes, setExpiresInMinutes] = useState(30);
+  const [invocationBudget, setInvocationBudget] = useState("");
 
   const run = async (operation: () => Promise<unknown>) => {
     try {
@@ -43,6 +56,26 @@ export function Permissions({
   const revoke = (lease: Lease) =>
     run(async () => {
       await window.studio.leaseRevoke(root, lease.id);
+      await refresh();
+    });
+  const grant = () =>
+    run(async () => {
+      await window.studio.leaseGrant(root, {
+        subject,
+        capability,
+        allow: allow
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean),
+        expiresInMinutes,
+        ...(invocationBudget.trim()
+          ? { invocationBudget: Number(invocationBudget) }
+          : {}),
+      });
+      setCapability("");
+      setAllow("");
+      setInvocationBudget("");
+      setGrantOpen(false);
       await refresh();
     });
 
@@ -115,7 +148,80 @@ export function Permissions({
           )}
           <div className="section-label" style={{ marginTop: 10 }}>
             <ShieldOff size={13} /> LEASES
+            <button
+              title="Grant a scoped lease"
+              onClick={() => setGrantOpen((value) => !value)}
+            >
+              <KeyRound size={13} /> Grant
+            </button>
           </div>
+          {grantOpen && (
+            <div className="lease-grant-form">
+              <p className="empty-small">
+                Cấp quyền có phạm vi và hạn dùng thật — không phải công tắc "tự
+                động duyệt". Runtime vẫn kiểm tra lease này qua đúng cơ chế
+                authority chain, không phải bỏ qua nó.
+              </p>
+              <label>
+                Subject
+                <input
+                  value={subject}
+                  placeholder="agent:studio"
+                  onChange={(event) => setSubject(event.target.value)}
+                />
+              </label>
+              <label>
+                Capability
+                <input
+                  value={capability}
+                  placeholder="file.write"
+                  onChange={(event) => setCapability(event.target.value)}
+                />
+              </label>
+              <label>
+                Allow (phân cách bởi dấu phẩy)
+                <input
+                  value={allow}
+                  placeholder="src/, docs/"
+                  onChange={(event) => setAllow(event.target.value)}
+                />
+              </label>
+              <div className="lease-grant-row">
+                <label>
+                  Hết hạn sau (phút)
+                  <input
+                    type="number"
+                    min={1}
+                    max={1440}
+                    value={expiresInMinutes}
+                    onChange={(event) =>
+                      setExpiresInMinutes(Number(event.target.value) || 30)
+                    }
+                  />
+                </label>
+                <label>
+                  Số lần gọi tối đa (bỏ trống = không giới hạn)
+                  <input
+                    type="number"
+                    min={1}
+                    value={invocationBudget}
+                    onChange={(event) =>
+                      setInvocationBudget(event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+              <div className="button-row">
+                <button
+                  className="primary"
+                  disabled={!capability.trim()}
+                  onClick={() => void grant()}
+                >
+                  <KeyRound size={14} /> Cấp lease
+                </button>
+              </div>
+            </div>
+          )}
           {!leases.length ? (
             <p className="empty-small">
               No capability leases for this project.

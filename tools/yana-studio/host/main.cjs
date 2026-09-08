@@ -29,6 +29,11 @@ const { IntegrationManager } = require("./integrations/manager.cjs");
 const { systemOverview } = require("./system-surfaces.cjs");
 const { AccountStore } = require("./account.cjs");
 const { readBackup, writeBackup } = require("./portable-data.cjs");
+const {
+  appendUsageRecords,
+  recordsForChat,
+  summarizeTokenUsage,
+} = require("./token-usage.cjs");
 
 app.setName("Yana Studio");
 app.setPath(
@@ -206,6 +211,8 @@ function launchTurn(chat, profile, input, resume = false) {
   chat.running = true;
   chat.error = "";
   chat.profile = profile;
+  const previousUsage = recordsForChat(chat);
+  const currentUsage = [];
   updateChat(chat);
   let delivery;
   const flush = () => {
@@ -232,8 +239,15 @@ function launchTurn(chat, profile, input, resume = false) {
       if (event.type === "authority_denied")
         chat.error = `${event.authority}: ${event.reason}`;
       if (event.type === "awaiting_approval") chat.approval = event;
-      if (event.type === "metrics")
+      if (event.type === "metrics") {
         chat.usage = { input: event.input_tokens, output: event.output_tokens };
+        currentUsage.push({
+          ...chat.usage,
+          provider: profile.provider,
+          model: profile.model,
+          recordedAt: new Date().toISOString(),
+        });
+      }
       if (event.type === "runtime_event")
         chat.events = [
           ...chat.events,
@@ -243,6 +257,8 @@ function launchTurn(chat, profile, input, resume = false) {
     },
     () => {
       chat.running = false;
+      if (currentUsage.length)
+        chat.usageHistory = appendUsageRecords(previousUsage, currentUsage);
       runs.delete(chat.id);
       flush();
       updateChat(chat);
@@ -378,6 +394,10 @@ app.whenReady().then(() => {
     return publicState();
   });
   register("dataOverview", () => dataOverview.inspect());
+  register("tokenUsage", (projectRoot = "") => {
+    if (projectRoot) projects.resolve(projectRoot);
+    return summarizeTokenUsage(store.value.chats, projectRoot);
+  });
   register("exportPortableData", async () => {
     const result = await dialog.showSaveDialog(window, {
       title: "Export Yana Studio data",
@@ -484,6 +504,10 @@ app.whenReady().then(() => {
   register("leaseRevoke", (root, id) => {
     projects.resolve(root);
     return permissions.leaseRevoke(root, id);
+  });
+  register("leaseGrant", (root, options) => {
+    projects.resolve(root);
+    return permissions.leaseGrant(root, options);
   });
   register("pendingApprovals", (root) => {
     projects.resolve(root);
@@ -592,6 +616,7 @@ app.whenReady().then(() => {
       running: false,
       error: "",
       approval: null,
+      usageHistory: [],
     };
     store.save({ chats: [...store.value.chats, chat] });
     return chat;
