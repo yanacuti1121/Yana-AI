@@ -488,6 +488,22 @@ function App() {
       );
     });
   };
+  // band-app's clickable terminal file links (MIT — pattern reused,
+  // not the code): a regex in Terminal.tsx finds path-shaped tokens in
+  // PTY output, this resolves them the same safe way a drag-drop does —
+  // openFilePath shares openDroppedPath's host-side realpath/containment
+  // checks, just skipping the webUtils.getPathForFile step since a
+  // terminal-parsed path is already a plain string.
+  const openTerminalFileLink = (root: string, path: string) =>
+    run(async () => {
+      const result = await window.studio.openFilePath(root, path);
+      if (result.kind === "project") {
+        switchProject(result.project, "files");
+        return;
+      }
+      if (result.project) switchProject(result.project, "files");
+      await openDroppedFile(result.project?.root || root, result.relative);
+    });
   const send = () =>
     run(async () => {
       if (!project) return;
@@ -1588,6 +1604,9 @@ function App() {
                       active={item.id === terminal?.id}
                       onActivate={() => setTerminalId(item.id)}
                       onError={setNotice}
+                      onOpenFile={(root, path) =>
+                        void openTerminalFileLink(root, path)
+                      }
                       locale={state.preferences.locale}
                     />
                   </Suspense>

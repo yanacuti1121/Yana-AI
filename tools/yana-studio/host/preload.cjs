@@ -79,6 +79,11 @@ bridge.openDroppedPath = (currentRoot, file) =>
     currentRoot,
     webUtils.getPathForFile(file),
   );
+// Same studio:openDroppedPath host handler as above — this caller already
+// has a plain path string (parsed from terminal output text), not a
+// dragged File, so there's nothing for webUtils to extract.
+bridge.openFilePath = (currentRoot, path) =>
+  ipcRenderer.invoke("studio:openDroppedPath", currentRoot, path);
 bridge.on = (channel, callback) => {
   if (
     ![

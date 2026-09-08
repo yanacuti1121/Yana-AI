@@ -329,6 +329,10 @@ declare global {
         currentRoot: string,
         file: File,
       ): Promise<DroppedPathResult>;
+      openFilePath(
+        currentRoot: string,
+        path: string,
+      ): Promise<DroppedPathResult>;
       listFiles(
         root: string,
         relative: string,

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Terminal as Xterm } from "@xterm/xterm";
+import type { ILink, ILinkProvider } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import "@xterm/xterm/css/xterm.css";
@@ -7,12 +8,49 @@ import type { TerminalSession } from "./types";
 import { studioTerminalTheme } from "./terminal-theme";
 import { translate, type Locale } from "./i18n";
 
+// Matches path-shaped tokens with an optional :line or :line:col suffix —
+// band-app's terminal-file-links pattern (MIT, see feature-gap report),
+// reimplemented as a plain xterm ILinkProvider instead of adding the
+// @xterm/addon-web-links dependency (avoids a new-package vetting pass for
+// one small, well-documented xterm API). Simple ASCII column math — no
+// wide-character/tab adjustment, same simplification most small link
+// providers make.
+const FILE_LINK =
+  /(?:\.{0,2}\/)?(?:[\w.-]+\/)*[\w-]+\.[a-zA-Z]{1,10}(?::\d+(?::\d+)?)?/g;
+function fileLinkProvider(
+  terminal: Xterm,
+  onOpenFile: (path: string) => void,
+): ILinkProvider {
+  return {
+    provideLinks(bufferLineNumber, callback) {
+      const line = terminal.buffer.active.getLine(bufferLineNumber - 1);
+      const text = line?.translateToString(true) || "";
+      const links: ILink[] = [];
+      for (const match of text.matchAll(FILE_LINK)) {
+        if (match.index === undefined || !match[0].includes(".")) continue;
+        const start = match.index;
+        const end = start + match[0].length;
+        links.push({
+          text: match[0],
+          range: {
+            start: { x: start + 1, y: bufferLineNumber },
+            end: { x: end + 1, y: bufferLineNumber },
+          },
+          activate: () => onOpenFile(match[0]),
+        });
+      }
+      callback(links.length ? links : undefined);
+    },
+  };
+}
+
 export function Terminal({
   session,
   visible,
   active,
   onActivate,
   onError,
+  onOpenFile,
   locale,
 }: {
   session: TerminalSession;
@@ -20,6 +58,7 @@ export function Terminal({
   active: boolean;
   onActivate: () => void;
   onError: (message: string) => void;
+  onOpenFile: (root: string, path: string) => void;
   locale: Locale;
 }) {
   const t = translate(locale);
@@ -32,6 +71,8 @@ export function Terminal({
   const [exit, setExit] = useState<number | null>(null);
   const errorRef = useRef(onError);
   errorRef.current = onError;
+  const openFileRef = useRef(onOpenFile);
+  openFileRef.current = onOpenFile;
   useEffect(() => {
     if (!element.current) return;
     let disposed = false;
@@ -56,6 +97,11 @@ export function Terminal({
     terminal.current = instance;
     fitter.current = fit;
     searcher.current = find;
+    const links = instance.registerLinkProvider(
+      fileLinkProvider(instance, (path) =>
+        openFileRef.current(session.root, path),
+      ),
+    );
     const fail = (error: unknown) => {
       if (!disposed) errorRef.current(String(error));
     };
@@ -132,6 +178,7 @@ export function Terminal({
       unsubExit();
       input.dispose();
       resize.dispose();
+      links.dispose();
       instance.dispose();
     };
   }, [session.id]);
