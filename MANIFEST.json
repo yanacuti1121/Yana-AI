@@ -1,6 +1,6 @@
 {
   "name": "yana-ai",
-  "version": "1.4.2",
+  "version": "1.4.8",
   "scaffold_version": "1.0",
   "release_date": "2026-07-05",
   "manifest_updated": "2026-08-16T00:00:00Z",
@@ -373,7 +373,7 @@
     },
     "hooks": {
       "status": "imported",
-      "count": 65,
+      "count": 66,
       "actual_present": [
         "core/hooks/agent-arbitration.sh",
         "core/hooks/agent-budget-gate.sh",
@@ -432,6 +432,7 @@
         "core/hooks/telemetry-sender.sh",
         "core/hooks/test-runner-gate.sh",
         "core/hooks/token-budget-guard.sh",
+        "core/hooks/token-budget-reset.sh",
         "core/hooks/token-scope-guard.sh",
         "core/hooks/tool-attention.js",
         "core/hooks/tool-guardrails-detector.sh",
@@ -444,7 +445,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 131,
+      "count": 133,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -523,6 +524,7 @@
         "core/scripts/presentation_studio.py",
         "core/scripts/promote-session-patterns.sh",
         "core/scripts/release-gate.py",
+        "core/scripts/release-smoke-test.sh",
         "core/scripts/report_html.py",
         "core/scripts/report_pdf.py",
         "core/scripts/resolve-memory-conflict.sh",
@@ -572,6 +574,7 @@
         "core/scripts/verify-fact-freshness.sh",
         "core/scripts/verify-hook-mirrors.sh",
         "core/scripts/verify-release-evidence.py",
+        "core/scripts/verify-required-checks-drift.sh",
         "core/scripts/verify-rules.sh",
         "core/scripts/verify-skills-lock.sh",
         "core/scripts/verify_hooks.py",
@@ -580,7 +583,7 @@
       ]
     },
     "tests": {
-      "count": 18,
+      "count": 20,
       "actual_present": [
         "core/tests/adapters/cursor",
         "core/tests/adversarial",
@@ -2788,8 +2791,8 @@
   "skills_count": 2025,
   "skills_stubs_archived": 88,
   "agents_count": 100,
-  "hooks_count": 65,
-  "scripts_count": 131,
+  "hooks_count": 66,
+  "scripts_count": 133,
   "commands_count": 170,
   "rules_count": 71
 }

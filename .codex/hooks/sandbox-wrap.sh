@@ -2,9 +2,31 @@
 # Yana AI Hook
 # Status: active
 # Description: PreToolUse Bash command rewriter — routes the command through
-#   core/scripts/sandbox-exec.sh when YANA_SANDBOX_MODE opts in, instead of
-#   only ever running it directly.
-# Last Reviewed: 2026-07-19
+#   core/scripts/sandbox-exec.sh when YANA_SANDBOX_MODE opts in, and/or
+#   through `yana-rt compact` when YANA_COMPACT opts in, instead of only
+#   ever running it directly.
+# Last Reviewed: 2026-08-27 (added YANA_COMPACT native output compaction —
+#   security-auditor + code-auditor dispatch per 54-bft-consensus-law.md
+#   required before this addition lands)
+#
+# YANA_COMPACT=1 addition (native token-compaction, replaces the dead
+# rtk-bridge.sh default-off bridge — see docs/reference/token-optimization.md
+# and src/compact/mod.rs's module doc for the full rationale, including the
+# rtk incident this was built to not repeat: `git log --oneline | wc -l`
+# silently returning a wrong, truncated count).
+#
+# KNOWN LIMITATION, stated rather than silently gapped: sandboxing and
+# compaction are NOT composed when both are opted in simultaneously —
+# sandboxing takes precedence and compaction is skipped for that call. This
+# is deliberate, not an oversight: if compaction wrapped the *already*
+# sandbox-wrapped command string, `yana-rt compact`'s pattern matchers would
+# see `bash core/scripts/sandbox-exec.sh --mode ... bash -c <original>` as
+# the command text instead of the original `git status`/`git log`/etc, and
+# would never recognize any pattern — compaction would silently no-op every
+# time both were on. Composing them correctly needs `yana-rt compact` to
+# accept the sandbox mode itself (so it can pattern-match on the true
+# original command while still sandboxing the actual exec) — left as
+# explicit future work rather than shipped broken or silently degraded.
 #
 # Closes the gap in 04-sandbox-isolation-law.md's design: sandbox-exec.sh
 # (real Docker/nsjail/ulimit resource isolation) was previously reachable
@@ -37,23 +59,36 @@
 # repo, not just contain risk. This hook only ever activates when
 # YANA_SANDBOX_MODE is explicitly set to docker|nsjail|ulimit|auto — the
 # exact same env var tool-proxy.sh already reads, default unset/off.
+# YANA_COMPACT=1 is likewise opt-in-only for its first shipped version,
+# mirroring the same rollout caution rtk-bridge.sh's own (never-promoted)
+# opt-in trial already established for this class of feature.
 #
 # Exit behaviour:
 #   exit 0, no output        — not opted in, or nothing to rewrite (allow, unchanged)
-#   exit 0, updatedInput JSON — opted in: command rewritten to run through sandbox-exec.sh
+#   exit 0, updatedInput JSON — opted in: command rewritten (sandboxed and/or compacted)
 #
-# Bypass: YANA_SANDBOX_WRAP_BYPASS=1 (per-hook, in addition to leaving
-# YANA_SANDBOX_MODE unset).
+# Bypass: YANA_SANDBOX_WRAP_BYPASS=1 (whole hook, in addition to leaving
+# both YANA_SANDBOX_MODE and YANA_COMPACT unset). YANA_COMPACT_BYPASS=1
+# suppresses only the compaction half, independent of sandboxing.
 
 set -euo pipefail
 
 [[ "${YANA_SANDBOX_WRAP_BYPASS:-0}" == "1" ]] && exit 0
 
 MODE="${YANA_SANDBOX_MODE:-0}"
+SANDBOX_ON=0
 case "$MODE" in
-  docker|nsjail|ulimit|auto) ;;
-  *) exit 0 ;;   # not opted in — silent allow, matches every other hook's no-op-when-inapplicable convention
+  docker|nsjail|ulimit|auto) SANDBOX_ON=1 ;;
 esac
+
+COMPACT_ON=0
+if [[ "${YANA_COMPACT:-0}" == "1" && "${YANA_COMPACT_BYPASS:-0}" != "1" ]]; then
+  COMPACT_ON=1
+fi
+
+# Neither opted in — silent allow, matches every other hook's
+# no-op-when-inapplicable convention.
+[[ "$SANDBOX_ON" == "0" && "$COMPACT_ON" == "0" ]] && exit 0
 
 # ── Dependency guard ─────────────────────────────────────────────────────────
 # jq missing means we can't safely parse tool_input — fail OPEN here (unlike
@@ -76,6 +111,7 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 # once without a second hook pass — treating as unconfirmed rather than
 # asserting either way, guarding anyway since it's cheap and harmless.
 [[ "$COMMAND" == *"sandbox-exec.sh"* ]] && exit 0
+[[ "$COMMAND" == *"yana-rt compact"* ]] && exit 0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -112,12 +148,6 @@ for _guard in "guard-destructive.sh" "tool-proxy-enforcer.sh" "per-tool-circuit-
   fi
 done
 
-SANDBOX_EXEC="$SCRIPT_DIR/../scripts/sandbox-exec.sh"
-
-if [[ ! -f "$SANDBOX_EXEC" ]]; then
-  exit 0   # can't find it — degrade to no sandboxing, don't block the call over a path issue
-fi
-
 # COMMAND is an arbitrary one-line shell string (pipes, redirects, &&,
 # quoting) — sandbox-exec.sh's own COMMAND=("$@") execs its trailing argv
 # DIRECTLY (no shell reinterpretation; confirmed by reading its ulimit/
@@ -126,13 +156,40 @@ fi
 # (e.g. "cargo test 2>&1 | tail -50" would run cargo with literal argument
 # words "2>&1", "|", "tail", "-50" — no pipe, wrong behavior, no error).
 # The correct wrap preserves the whole string as one `bash -c` argument, so
-# a fresh bash inside the sandbox reparses it with full shell semantics
-# restored. `%q` produces a shell-safe quoted reproduction of COMMAND for
-# reinsertion into the rewritten command line Claude Code will itself parse.
+# a fresh bash inside the sandbox (or `yana-rt compact`'s own subprocess
+# spawn) reparses it with full shell semantics restored. `%q` produces a
+# shell-safe quoted reproduction for reinsertion into the rewritten command
+# line Claude Code will itself parse.
 QUOTED_CMD=$(printf '%q' "$COMMAND")
-QUOTED_EXEC=$(printf '%q' "$SANDBOX_EXEC")
-QUOTED_MODE=$(printf '%q' "$MODE")
-WRAPPED="bash $QUOTED_EXEC --mode $QUOTED_MODE bash -c $QUOTED_CMD"
+
+WRAPPED="$COMMAND"
+SANDBOXED=0
+
+if [[ "$SANDBOX_ON" == "1" ]]; then
+  SANDBOX_EXEC="$SCRIPT_DIR/../scripts/sandbox-exec.sh"
+  if [[ -f "$SANDBOX_EXEC" ]]; then
+    QUOTED_EXEC=$(printf '%q' "$SANDBOX_EXEC")
+    QUOTED_MODE=$(printf '%q' "$MODE")
+    WRAPPED="bash $QUOTED_EXEC --mode $QUOTED_MODE bash -c $QUOTED_CMD"
+    SANDBOXED=1
+  fi
+  # else: can't find sandbox-exec.sh — degrade to no sandboxing, don't block
+  # the call over a path issue. SANDBOXED stays 0, so the compact check
+  # below still runs, same as if sandboxing had never been requested.
+fi
+
+# Not composed with the sandbox branch above when sandboxing actually
+# applied (SANDBOXED=1): see this file's header "KNOWN LIMITATION" note on
+# why sandboxing and compaction are not combined in the same call —
+# compaction must see the ORIGINAL command text to pattern-match correctly,
+# which composing would break.
+if [[ "$SANDBOXED" == "0" && "$COMPACT_ON" == "1" ]] \
+   && command -v yana-rt >/dev/null 2>&1 \
+   && yana-rt compact --detect -- bash -c "$COMMAND" >/dev/null 2>&1; then
+  WRAPPED="yana-rt compact -- bash -c $QUOTED_CMD"
+fi
+
+[[ "$WRAPPED" == "$COMMAND" ]] && exit 0   # neither wrap changed anything
 
 jq -n --arg cmd "$WRAPPED" '{
   hookSpecificOutput: {

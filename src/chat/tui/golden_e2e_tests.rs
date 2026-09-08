@@ -216,14 +216,16 @@ fn spawn_mock_local_provider(
 }
 
 fn mock_provider(port: u16) -> OpenAiCompatProvider {
-    let url: &'static str =
-        Box::leak(format!("http://127.0.0.1:{port}/v1/chat/completions").into_boxed_str());
+    // `OpenAiCompatProvider`'s fields are owned `String`s (roadmap Phase 14
+    // — Custom Provider needed a non-'static URL), so this runtime-chosen
+    // mock port no longer needs the `Box::leak` a `&'static str` field
+    // used to require here.
     OpenAiCompatProvider {
-        provider_name: "golden-e2e-mock",
-        url,
-        default_model: "golden-mock-model",
+        provider_name: "golden-e2e-mock".to_string(),
+        url: format!("http://127.0.0.1:{port}/v1/chat/completions"),
+        default_model: "golden-mock-model".to_string(),
         keyless: true,
-        env_var: "",
+        env_var: String::new(),
     }
 }
 

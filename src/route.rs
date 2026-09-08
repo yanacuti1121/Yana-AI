@@ -214,6 +214,7 @@ const CONFIDENTIAL_MARKERS: &[&str] = &[
 // Rule 68 default-deny: when context makes sensitivity obvious, treat as
 // CONFIDENTIAL even without an explicit marker.
 const CONFIDENTIAL_SMELLS: &[&str] = &[
+    "m&a",
     "mua công ty",
     "bán công ty",
     "thương vụ",

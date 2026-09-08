@@ -346,6 +346,12 @@ guards:
     risk_level: high
     file: token-budget-guard.sh
 
+  token-budget-reset:
+    description: "Token Budget Guard — resets per-tool loop counter on completion"
+    hook_type: PostToolUse
+    risk_level: unclassified  # not yet human-reviewed — see gen_guards_index.py
+    file: token-budget-reset.sh
+
   token-scope-guard:
     description: "Warn when agent accesses token/secret files"
     hook_type: PreToolUse

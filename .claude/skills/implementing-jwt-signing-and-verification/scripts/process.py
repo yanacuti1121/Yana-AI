@@ -40,6 +40,13 @@ ALLOWED_ALGORITHMS = ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512",
                        "ES256", "ES384", "ES512", "EdDSA"]
 
 
+def write_private_key(path: Path, content: bytes) -> None:
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(descriptor, "wb") as key_file:
+        key_file.write(content)
+    os.chmod(path, 0o600)
+
+
 def generate_signing_keys(algorithm: str, output_dir: str) -> Dict:
     """Generate signing keys for a JWT algorithm."""
     output_path = Path(output_dir)
@@ -49,7 +56,7 @@ def generate_signing_keys(algorithm: str, output_dir: str) -> Dict:
         key_size = {"HS256": 32, "HS384": 48, "HS512": 64}.get(algorithm, 32)
         secret = os.urandom(key_size)
         secret_hex = secret.hex()
-        (output_path / "secret.key").write_text(secret_hex)
+        write_private_key(output_path / "secret.key", secret_hex.encode("ascii"))
         return {"algorithm": algorithm, "key_type": "symmetric", "key_file": str(output_path / "secret.key")}
 
     if algorithm.startswith("RS"):
@@ -70,7 +77,7 @@ def generate_signing_keys(algorithm: str, output_dir: str) -> Dict:
         serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    (output_path / "private.pem").write_bytes(priv_pem)
+    write_private_key(output_path / "private.pem", priv_pem)
     (output_path / "public.pem").write_bytes(pub_pem)
 
     return {

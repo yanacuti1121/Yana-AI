@@ -2,7 +2,8 @@
 
 **Status:** Accepted — production protocol `flock-v1`
 
-**Platforms:** macOS and Linux
+**Platforms:** macOS, Linux, and Windows (Rust `acquire`/`with_lock` primitive
+only -- see the Windows note in Consequences below for what's still Unix-only)
 
 **Supersedes:** `mkdir-v1` directory/rename/stale-reclaim locks
 
@@ -59,9 +60,15 @@ does not require Python and has no directory-lock fallback. Source checkouts
 resolve a local release/debug runtime; packaged installs use a real platform
 binary or `YANA_RT_BIN`. Script shims are rejected.
 
-Windows does not implement `flock-v1`. The crate remains buildable there, but
-lock acquisition and Bash/Python runtime use fail clearly rather than silently
-selecting a different protocol.
+Windows implements the Rust `flock_v1::acquire`/`with_lock` primitive (via
+`share_mode(0)`, real kernel-exclusive locking) -- this is what every real
+production caller uses (Capability Lease, mission store, pending-approval
+store, token-budget/autonomy state guards). Windows does **not** implement
+`guard lock-with` (holds the lock across `Command::exec()`, a Unix
+process-image-replacement primitive Windows has no equivalent for) or the
+Bash/Python runtime bridges (`core/lib/locking.sh`,
+`flock_test_helper.py`) -- those fail clearly rather than silently selecting
+a different protocol.
 
 ## Atomic activation
 
@@ -97,4 +104,10 @@ restored atomically, and launches reopen. A live lock inode is never unlinked.
 - Cross-language callers contend on byte-identical paths.
 - A target or descendant that inherits the acquire-to-exec lock descriptor
   can keep the lock alive. Wrapped targets must not daemonize while holding it.
-- Production `flock-v1` is Unix-only; unsupported platforms fail closed.
+- Production `flock-v1`'s Rust `acquire`/`with_lock` primitive supports
+  macOS, Linux, and Windows; `guard lock-with` and the Bash/Python runtime
+  bridges remain Unix-only. Unsupported platforms/paths fail closed.
+- The Unix arm's stable-inode (TOCTOU/symlink-swap) verification is not
+  ported to Windows -- `share_mode(0)` alone gives real mutual exclusion,
+  the safety property production callers actually depend on, but the
+  narrower symlink-swap defense stays a documented Unix-only hardening pass.

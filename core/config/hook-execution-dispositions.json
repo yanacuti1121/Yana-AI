@@ -15,7 +15,7 @@
     },
     "rtk-bridge.sh": {
       "disposition": "REFERENCE_ONLY",
-      "reason": "Explicit opt-in bridge; its own contract forbids default registration."
+      "reason": "Explicit opt-in bridge to an external, non-vendored binary; its own contract forbids default registration. Superseded for most use by the native YANA_COMPACT=1 path (yana-rt compact, wired through sandbox-wrap.sh) — kept as a documented legacy alternative, not deleted."
     }
   }
 }

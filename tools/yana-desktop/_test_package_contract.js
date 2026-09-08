@@ -10,21 +10,77 @@ const mainSource = fs.readFileSync(path.join(__dirname, packageJson.main), 'utf8
 const localRequires = [...mainSource.matchAll(/require\(['"]\.\/([^'"]+)['"]\)/g)]
   .map((match) => `${match[1]}.js`.replace(/\.js\.js$/, '.js'))
   .sort();
+const bridgeRequires = ['governance-status.js', 'host-status.js']
+  .flatMap((file) => {
+    const source = fs.readFileSync(path.join(__dirname, file), 'utf8');
+    return [...source.matchAll(/require\(['"]\.\/([^'"]+)['"]\)/g)]
+      .map((match) => `${match[1]}.js`.replace(/\.js\.js$/, '.js'));
+  })
+  .sort();
 const packagedFiles = new Set(packageJson.build.files);
+const extraFiles = new Map(packageJson.build.extraFiles.map((entry) => [entry.from, entry.to]));
 
 assert.strictEqual(packageJson.version, packageLock.version);
 assert.strictEqual(packageJson.version, packageLock.packages[''].version);
 assert.deepStrictEqual(localRequires, [
+  'code-server-launch.js',
+  'connector-registry.js',
+  'data-overview.js',
+  'desktop-data.js',
+  'git-actions.js',
+  'git-status.js',
+  'governance-status.js',
+  'host-status.js',
   'list-dir.js',
+  'memory-backup-policy.js',
+  'memory-backup.js',
+  'memory-reset.js',
+  'memory-restore.js',
+  'permission-actions.js',
   'process-lifecycle.js',
+  'project-store.js',
+  'read-file.js',
+  'remote-tools-status.js',
   'runtime-paths.js',
+  'search-code.js',
   'security.js',
+  'task-actions.js',
+  'trash-file.js',
+  'workspace-resources.js',
+  'zip-archive.js',
 ]);
-for (const requiredFile of localRequires) {
+assert.deepStrictEqual(bridgeRequires, ['runtime-json.js', 'runtime-json.js']);
+for (const requiredFile of new Set([...localRequires, ...bridgeRequires])) {
   assert.ok(packagedFiles.has(requiredFile), `${requiredFile} must be included in build.files`);
 }
 assert.strictEqual(packageJson.engines.node, '>=24');
 assert.strictEqual(packageJson.devDependencies.electron, '43.4.1');
 assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
+assert.strictEqual(extraFiles.get('../../target/desktop-runtime/bin'), 'Resources/bin');
+assert.strictEqual(extraFiles.get('../../target/desktop-runtime/pty-bridge'), 'Resources/pty-bridge');
 
-console.log('Desktop package contract tests passed: 10');
+// Real bug, found live on a packaged v1.4.4 install: this filter excluded
+// node_modules, so server.js/robot.js's runtime deps (e.g. ws) were never
+// copied into Resources/server -- the local server crashed with
+// MODULE_NOT_FOUND on every launch, and the app hung with zero windows.
+const serverEntry = packageJson.build.extraFiles.find((entry) => entry.to === 'Resources/server');
+assert.ok(serverEntry, 'extraFiles must stage the server into Resources/server');
+assert.ok(
+  !serverEntry.filter.includes('!node_modules/**'),
+  'Resources/server copy must not exclude node_modules -- the server needs its own runtime dependencies to actually start',
+);
+
+// Removing the filter entry above was NOT enough on its own: electron-builder's
+// extraFiles matching also respects the repo's own .gitignore (which lists
+// "node_modules/"), so node_modules was still silently dropped from the real
+// v1.4.5 release despite the filter fix -- confirmed live by downloading that
+// exact asset. The afterPack hook bypasses electron-builder's file-matching
+// entirely with a plain filesystem copy, run after packing but before signing
+// or building the distributable.
+assert.strictEqual(packageJson.build.afterPack, 'scripts/after-pack-copy-server-deps.js');
+assert.ok(
+  fs.existsSync(path.join(__dirname, packageJson.build.afterPack)),
+  'the afterPack hook script referenced in package.json must actually exist',
+);
+
+console.log('Desktop package contract tests passed: 29');

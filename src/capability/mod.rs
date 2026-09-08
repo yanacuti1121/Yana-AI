@@ -7,20 +7,29 @@
 //! was added on top of the original single-file implementation — pure
 //! move of existing function bodies, no behavior change.
 
+pub mod archive;
+pub mod archive_create;
 pub mod cli;
 pub mod command;
+pub mod config_write;
 pub mod error;
 pub mod evidence;
+pub mod file_mutation;
 pub mod git;
+pub mod lease;
 pub mod registry;
 mod registry_data;
 pub mod repo;
 pub mod system;
 
+pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
+pub use archive_create::create_zip;
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
+pub use config_write::{apply_config_write, propose_config_write};
 pub use error::CapabilityError;
 pub use evidence::ToolEvidence;
-pub use git::{git_diff, git_status};
+pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind, FileMutationOutcome};
+pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
 pub use registry::{AccessMode, ApprovalRequirement, CapabilityDescriptor, Manifest, RiskTier};
 pub use repo::{
     read_file, read_file_observation, repo_tree, resolve_existing, search_code, FileReadObservation,

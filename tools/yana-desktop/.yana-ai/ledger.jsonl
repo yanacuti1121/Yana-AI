@@ -1,0 +1,6 @@
+{"id":"fb4bd8fe-1afa-485b-ae46-6b994b8b242f","ts":"2026-08-30T11:22:45Z","task":"desktop-chat","tier":"standard","model":"qwen/qwen3.8-27b","input_tokens":893,"output_tokens":11,"cost_usd":0.002844,"duration_ms":351}
+{"id":"42aad892-ee7e-440f-99d7-7eb18b3e62bb","ts":"2026-08-30T11:23:14Z","task":"desktop-chat","tier":"standard","model":"qwen/qwen3.8-27b","input_tokens":899,"output_tokens":223,"cost_usd":0.006042,"duration_ms":943}
+{"id":"8daa703c-cf37-450b-8728-c2c9f3d48e38","ts":"2026-08-30T11:24:15Z","task":"desktop-chat","tier":"standard","model":"qwen/qwen3.8-27b","input_tokens":906,"output_tokens":61,"cost_usd":0.003633,"duration_ms":461}
+{"id":"30a4150e-ce4f-446d-9018-ef2974d1e657","ts":"2026-08-30T11:24:55Z","task":"desktop-chat","tier":"standard","model":"qwen/qwen3.8-27b","input_tokens":1274,"output_tokens":120,"cost_usd":0.005622,"duration_ms":753}
+{"id":"be707d57-7333-45c8-bf1c-41dce8ce36f7","ts":"2026-08-30T11:25:06Z","task":"desktop-chat","tier":"standard","model":"qwen/qwen3.8-27b","input_tokens":896,"output_tokens":29,"cost_usd":0.003123,"duration_ms":547}
+{"id":"cee4aee2-6d0c-4b4c-b564-857ed2b8e638","ts":"2026-08-31T07:04:02Z","task":"desktop-chat","tier":"standard","model":"gemma-4-26b-a4b-it","input_tokens":687,"output_tokens":11,"cost_usd":0.002226,"duration_ms":32634}

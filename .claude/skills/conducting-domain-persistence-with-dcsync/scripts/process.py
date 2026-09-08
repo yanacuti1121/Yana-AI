@@ -115,14 +115,14 @@ def generate_dcsync_report(results: dict, source_file: str) -> str:
     # KRBTGT hash (most critical)
     if results["krbtgt_hash"]:
         report.append("[CRITICAL] KRBTGT Hash Recovered:")
-        report.append(f"  NT Hash: {results['krbtgt_hash']['nt_hash']}")
+        report.append("  NT Hash: [REDACTED]")
         report.append("  Impact: Golden Ticket creation possible")
         report.append("")
 
     # Administrator hash
     if results["admin_hash"]:
         report.append("[CRITICAL] Administrator Hash Recovered:")
-        report.append(f"  NT Hash: {results['admin_hash']['nt_hash']}")
+        report.append("  NT Hash: [REDACTED]")
         report.append("  Impact: Direct Domain Admin access via Pass-the-Hash")
         report.append("")
 
@@ -131,7 +131,7 @@ def generate_dcsync_report(results: dict, source_file: str) -> str:
     if reuse:
         report.append(f"[HIGH] Password Reuse Detected ({len(reuse)} shared passwords):")
         for nt_hash, users in list(reuse.items())[:10]:
-            report.append(f"  Hash ...{nt_hash[-8:]}: {', '.join(users[:5])}")
+            report.append(f"  Hash [REDACTED]: {', '.join(users[:5])}")
         report.append("")
 
     # Cleartext passwords

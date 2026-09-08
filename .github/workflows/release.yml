@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  # Added alongside the flock-v1 Windows support fix: release.yml had no
+  # non-tag trigger, so the only way to get real CI evidence for a
+  # platform-specific fix (the Windows smoke-test leg specifically) was to
+  # push a throwaway version tag -- misusing the tag namespace just to run
+  # CI. workflow_dispatch lets a fix branch be run through the exact same
+  # build+smoke-test matrix pre-merge. Purely additive: verify-provenance
+  # keys off `github.sha` (works identically for a dispatched branch ref),
+  # and the release-upload step below is gated to the tag-push event only,
+  # so a manual dispatch run builds and smoke-tests but never attempts to
+  # create/attach to a GitHub Release.
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -42,24 +53,28 @@ jobs:
       contents: read
       checks: read
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Verify required checks succeeded for this commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           SHA="${{ github.sha }}"
-          REQUIRED=(
-            "Hook Tests"
-            "Kernel flock-v1 (Ubuntu)"
-            "Rust Integration Tests (yana-rt)"
-            "System Health Monitor (ubuntu-latest)"
-            "System Health Monitor (macos-latest)"
-            "System Health Monitor (windows-latest)"
-            "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)"
-          )
+          # Single source of truth (Authority Hardening item #10):
+          # .github/required-checks.json, also read by publish.yml, so the
+          # two workflows can no longer drift into two different copies of
+          # this list the way they used to (byte-for-byte-identical
+          # hardcoded arrays, confirmed via diff before this change).
+          REQUIRED=()
+          while IFS= read -r name; do
+            REQUIRED+=("$name")
+          done < <(python3 -c "import json; print('\n'.join(json.load(open('.github/required-checks.json'))['required_checks']))")
           FAILED=0
           for name in "${REQUIRED[@]}"; do
-            conclusion=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
+            # --paginate: see desktop.yml's verify-provenance job for why
+            # this is required, not optional, once a commit accumulates
+            # more than gh api's default 30-item page of check-runs.
+            conclusion=$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)
             if [[ "$conclusion" != "success" ]]; then
               echo "::error::Required check '$name' did not succeed for commit $SHA (conclusion: ${conclusion:-none found})"
               FAILED=1
@@ -126,11 +141,23 @@ jobs:
       # A binary that compiles but crashes on startup (missing dynamic
       # library, wrong target linking, a panic in early init) would have
       # shipped to every user downloading that release with nobody
-      # having executed it even once. Minimal, not a full test suite:
-      # `--version` exercises argument parsing and the whole startup
-      # path far enough to prove the binary isn't dead on arrival, same
-      # bar sandbox.yml's own smoke tests already use for the sandbox
-      # Docker image ("build -> smoke that exact artifact -> publish").
+      # having executed it even once.
+      #
+      # Authority Hardening item #11 (2026-08-28): `--version` alone
+      # proves argument parsing and startup far enough to rule out "dead
+      # on arrival," and nothing more -- a binary that answers --version
+      # but panics on its first real subcommand would still have shipped.
+      # Replaced with core/scripts/release-smoke-test.sh, a golden smoke
+      # test that execs THIS EXACT built binary (never a separately built
+      # copy) through 11 real, offline checks: startup, CLI dispatch,
+      # the capability sandbox read path, the Giam Thi HALT lock
+      # (create/status/unlock), a full Capability Lease grant/list/
+      # revoke round-trip, and the authority-receipts reader. No network
+      # call, no model provider credential -- see that script's own
+      # header for the one thing it honestly cannot exercise offline
+      # (RuntimeAuthority::capability_decision itself, which needs a
+      # live TurnEngine/chat session).
+      #
       # Skipped for the macos-latest x86_64-apple-darwin leg specifically:
       # that's a cross-compile on GitHub's arm64 macOS runners, and
       # whether Rosetta 2 transparently executes it there wasn't
@@ -141,7 +168,7 @@ jobs:
       - name: Smoke test the built binary
         if: matrix.target != 'x86_64-apple-darwin'
         shell: bash
-        run: target/${{ matrix.target }}/release/${{ matrix.binary }} --version
+        run: bash core/scripts/release-smoke-test.sh target/${{ matrix.target }}/release/${{ matrix.binary }}
 
       # Workstream B / B3 (A8 Release & Supply Chain): the program
       # document requires a release manifest ("commit SHA, product
@@ -213,6 +240,9 @@ jobs:
           cat "${{ matrix.asset }}.manifest.json"
 
       - name: Upload binary to Release
+        # Only on the real tag-push trigger -- a workflow_dispatch run (see
+        # the `on:` block's comment) has no tag to attach a release to.
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: |

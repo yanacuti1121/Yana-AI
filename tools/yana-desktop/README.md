@@ -46,6 +46,17 @@ merges the two macOS updater manifests, generates `SHA256SUMS`, and publishes th
 complete desktop asset set. A failed matrix leg cannot publish a partial desktop
 release.
 
+### Bundled runtime contract
+
+The Desktop workflow currently builds `yana-rt` with `cli,pty-bridge` and verifies
+the exact staged binary with `yana-rt --help` before Electron packaging. The
+contract requires `chat`, `os`, and `capability`, and explicitly records that the
+optional `discord` (`remote`) and `mcp` commands are excluded from this release
+profile. The Desktop Remote & Tools screen detects commands from that exact
+runtime, so it cannot advertise either capability when the packaged binary lacks
+it. Enabling either feature is an intentional release change: update the Cargo
+feature list and `runtime-feature-contract.js` together so CI catches drift.
+
 **Known gap — not code-signed.** `package.json`'s `build` config has no
 `mac.hardenedRuntime`/notarization or `win.certificateFile` set, since
 that requires a paid Apple Developer ID / Windows code-signing certificate

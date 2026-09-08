@@ -146,11 +146,14 @@ def require_auth(f):
 
 def parse_scim_filter(filter_str):
     """Parse simple SCIM filter expressions like: userName eq 'value'"""
-    match = re.match(r'(\w+)\s+eq\s+"([^"]*)"', filter_str)
-    if not match:
-        match = re.match(r"(\w+)\s+eq\s+'([^']*)'", filter_str)
-    if match:
-        return match.group(1), match.group(2)
+    if not isinstance(filter_str, str) or len(filter_str) > 1024:
+        return None, None
+    parts = filter_str.strip().split(None, 2)
+    if len(parts) != 3 or parts[1] != "eq" or not parts[0].isidentifier():
+        return None, None
+    value = parts[2].strip()
+    if len(value) >= 2 and value[0] in ("'", '"') and value[-1] == value[0]:
+        return parts[0], value[1:-1]
     return None, None
 
 
@@ -467,4 +470,4 @@ def resource_types():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8080)

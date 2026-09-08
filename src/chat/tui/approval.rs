@@ -23,7 +23,15 @@ impl App {
         let TurnState::AwaitingApproval(pending) = &self.turn else {
             return;
         };
-        if pending.guard_verdict.is_some() {
+        // Only `Command` can carry a guard denial — `FileWrite` never
+        // reaches `AwaitingApproval` at all when its proposal is invalid
+        // (see `prepare_write_file_approval`), so there is no
+        // acknowledge-only state for it.
+        if let PendingApproval::Command {
+            guard_verdict: Some(_),
+            ..
+        } = pending
+        {
             if matches!(key.code, KeyCode::Enter | KeyCode::Esc) {
                 self.acknowledge_denied();
             }
@@ -42,13 +50,14 @@ impl App {
         else {
             return;
         };
-        let reason = pending.guard_verdict.unwrap_or("blocked");
-        self.push_tool_result(
-            &pending.call.id,
-            format!("blocked by guard: {reason}"),
-            true,
-            true,
-        );
+        let PendingApproval::Command {
+            call, guard_verdict, ..
+        } = pending
+        else {
+            return;
+        };
+        let reason = guard_verdict.unwrap_or("blocked");
+        self.push_tool_result(&call.id, format!("blocked by guard: {reason}"), true, true);
         self.continue_after_tool_result();
     }
 
@@ -58,9 +67,10 @@ impl App {
         else {
             return;
         };
+        let call_id = pending.call().id.clone();
         self.push_tool_result(
-            &pending.call.id,
-            "user declined to execute this command".to_string(),
+            &call_id,
+            "user declined to execute this action".to_string(),
             false,
             true,
         );
@@ -92,43 +102,90 @@ impl App {
         else {
             return;
         };
-        let PendingApproval {
-            call,
-            argv,
-            command,
-            guard_verdict: _,
-        } = pending;
-        match run_command::validate(&command) {
-            Ok(validated) if validated.guard_verdict.is_none() && validated.argv == argv => {
-                // Exact argv revalidation passed. The canonical approved-tool
-                // runtime repeats validation inside its opaque approval path
-                // before executing, so this check only protects the TUI's
-                // displayed proposal from changing between prompt and y.
+        let call = match &pending {
+            PendingApproval::Command {
+                argv, command, ..
+            } => {
+                match run_command::validate(command) {
+                    Ok(validated) if validated.guard_verdict.is_none() && &validated.argv == argv => {
+                        // Exact argv revalidation passed. The canonical
+                        // approved-tool runtime repeats validation inside its
+                        // opaque approval path before executing, so this
+                        // check only protects the TUI's displayed proposal
+                        // from changing between prompt and y.
+                    }
+                    Ok(validated) => {
+                        let reason = validated
+                            .guard_verdict
+                            .unwrap_or("command changed after approval validation");
+                        self.push_tool_result(
+                            &pending.call().id,
+                            format!("blocked during execution revalidation: {reason}"),
+                            true,
+                            true,
+                        );
+                        self.continue_after_tool_result();
+                        return;
+                    }
+                    Err(error) => {
+                        self.push_tool_result(
+                            &pending.call().id,
+                            format!("execution revalidation failed: {error}"),
+                            true,
+                            true,
+                        );
+                        self.continue_after_tool_result();
+                        return;
+                    }
+                }
+                let PendingApproval::Command { call, .. } = pending else { unreachable!() };
+                call
             }
-            Ok(validated) => {
-                let reason = validated
-                    .guard_verdict
-                    .unwrap_or("command changed after approval validation");
-                self.push_tool_result(
-                    &call.id,
-                    format!("blocked during execution revalidation: {reason}"),
-                    true,
-                    true,
-                );
-                self.continue_after_tool_result();
-                return;
+            PendingApproval::FileWrite {
+                path, kind, content, is_config, diff, ..
+            } => {
+                // Same "protects the displayed proposal, not a second
+                // approval gate" reasoning as the command branch above:
+                // recompute the diff fresh and compare its hash to what
+                // the human actually saw, so a file edited on disk between
+                // the prompt and 'y' is caught here, not silently
+                // overwritten with a proposal that's gone stale.
+                // `is_config` picks the same propose_* function
+                // `prepare_write_file_approval` used originally.
+                let root = self.session_context().repo_root;
+                let fresh = if *is_config {
+                    crate::capability::propose_config_write(&root, path, *kind, content)
+                } else {
+                    crate::capability::propose_file_write(&root, path, *kind, content)
+                };
+                match fresh {
+                    Ok(fresh) if fresh.before_sha256 == diff.before_sha256 => {}
+                    Ok(_) => {
+                        self.push_tool_result(
+                            &pending.call().id,
+                            "blocked during execution revalidation: file changed on disk since approval — please retry"
+                                .to_string(),
+                            true,
+                            true,
+                        );
+                        self.continue_after_tool_result();
+                        return;
+                    }
+                    Err(error) => {
+                        self.push_tool_result(
+                            &pending.call().id,
+                            format!("execution revalidation failed: {error}"),
+                            true,
+                            true,
+                        );
+                        self.continue_after_tool_result();
+                        return;
+                    }
+                }
+                let PendingApproval::FileWrite { call, .. } = pending else { unreachable!() };
+                call
             }
-            Err(error) => {
-                self.push_tool_result(
-                    &call.id,
-                    format!("execution revalidation failed: {error}"),
-                    true,
-                    true,
-                );
-                self.continue_after_tool_result();
-                return;
-            }
-        }
+        };
         let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
         let call_id = call.id.clone();
         let executor = ChatCapabilityExecutor::new(self.use_sandbox);

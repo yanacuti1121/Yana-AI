@@ -173,6 +173,34 @@ mid-session.
 |---|---|
 | `yana-ai filescan check <file>` | On-demand malware check for a downloaded file (VirusTotal hash lookup — needs `VT_API_KEY`, no file content is uploaded) |
 
+## Local model — TurboFieldfare
+
+Not part of the `yana-ai` binary — a separate local model server the
+`turbofieldfare` provider (`src/chat/openai_compat.rs`, `tools/yana-web/server.js`)
+talks to on `127.0.0.1:8091`.
+
+```bash
+# 1. Start the server (must cd into ~/turbo-fieldfare first — the model path is relative)
+cd ~/turbo-fieldfare
+nohup .build/release/TurboFieldfareServer --model scratch/gemma4.gturbo --port 8091 --model-id gemma-4-26b-a4b-it > /tmp/turbo-fieldfare.log 2>&1 &
+disown
+
+# 2. Check it started
+curl http://127.0.0.1:8091/v1/models
+# Look for "id":"gemma-4-26b-a4b-it" in the response
+
+# 3. View logs if something goes wrong
+tail -f /tmp/turbo-fieldfare.log
+
+# 4. Stop the server
+lsof -tiTCP:8091 -sTCP:LISTEN | xargs kill
+```
+
+- Keep `--port 8091` — that's the port Yana AI auto-detects with zero
+  config; only change it if 8091 is already taken on your machine.
+- RAM stays ~200MB while idle, and grows only while actively answering
+  (it streams experts on demand).
+
 ## Multi-agent launcher (`core/scripts/multi-agent-launch.sh`)
 
 Not part of the `yana-ai` binary's own dispatch table, but shipped alongside it —

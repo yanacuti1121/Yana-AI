@@ -1,163 +1,349 @@
 use anyhow::Result;
 use clap::Subcommand;
 use regex::Regex;
-use walkdir::WalkDir;
+use serde::Serialize;
+use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
+
+static UNPINNED_ACTION: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"uses:\s+([^\s]+)").expect("valid action regex"));
+static AUTO_MERGE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)auto.merge|automerge").expect("valid auto-merge regex"));
+static CONTENTS_WRITE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"contents:\s*write").expect("valid permissions regex"));
+static SECRET_ENV: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"env:.*\n.*\$\{\{\s*secrets\.\w+\s*\}\}").expect("valid secret regex")
+});
 
 #[derive(Subcommand, Debug)]
 pub enum CiAction {
     /// Check CI/CD workflows for security and reliability issues
     Check {
-        #[arg(default_value = ".")] target: String,
-        #[arg(long)] json: bool,
+        #[arg(default_value = ".")]
+        target: String,
+        #[arg(long)]
+        json: bool,
+        #[arg(long, value_parser = ["fail", "warn", "info"], default_value = "fail")]
+        fail_on: String,
     },
 }
 
 pub fn dispatch(action: CiAction) {
     let result = match action {
-        CiAction::Check { target, json } => cmd_ci_check(&target, json),
+        CiAction::Check {
+            target,
+            json,
+            fail_on,
+        } => cmd_ci_check(&target, json, &fail_on),
     };
-    if let Err(e) = result {
-        eprintln!("[ci] error: {e}");
-        std::process::exit(1);
+    match result {
+        Ok(0) => {}
+        Ok(code) => std::process::exit(code),
+        Err(error) => {
+            eprintln!("[ci] error: {error}");
+            std::process::exit(1);
+        }
     }
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize)]
 struct CiFinding {
-    file:     String,
-    line:     usize,
-    id:       String,
-    severity: String,
-    message:  String,
-    fix:      String,
+    id: String,
+    level: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file: Option<String>,
+    #[serde(rename = "msg")]
+    message: String,
+    fix: String,
 }
 
-fn cmd_ci_check(target: &str, as_json: bool) -> Result<()> {
-    let workflows = find_workflows(target);
-    if workflows.is_empty() {
-        println!("\n  [ci] No workflows found in .github/workflows/\n");
-        return Ok(());
-    }
+#[derive(Serialize)]
+struct CiReport<'a> {
+    target: &'a str,
+    status: &'static str,
+    checks: &'a [CiFinding],
+}
 
-    let mut all: Vec<CiFinding> = Vec::new();
-    for wf in &workflows {
-        all.extend(check_workflow(wf));
+struct Workflow {
+    path: PathBuf,
+    name: String,
+    content: String,
+}
+
+fn finding(
+    id: &str,
+    level: &str,
+    file: Option<&str>,
+    message: impl Into<String>,
+    fix: impl Into<String>,
+) -> CiFinding {
+    CiFinding {
+        id: id.into(),
+        level: level.into(),
+        file: file.map(str::to_owned),
+        message: message.into(),
+        fix: fix.into(),
     }
+}
+
+fn cmd_ci_check(target: &str, as_json: bool, fail_on: &str) -> Result<i32> {
+    let findings = check_target(target);
+    let status = overall(&findings);
 
     if as_json {
-        println!("{}", serde_json::to_string_pretty(&all)?);
-        return Ok(());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&CiReport {
+                target,
+                status,
+                checks: &findings,
+            })?
+        );
+    } else {
+        print_report(target, status, &findings);
     }
 
-    println!("\n  CI Check — {} workflow(s)\n", workflows.len());
-    if all.is_empty() {
-        println!("  \x1b[32m✓ No issues found\x1b[0m\n");
-        return Ok(());
-    }
-
-    let mut by_sev = [("CRITICAL", vec![]), ("HIGH", vec![]), ("MEDIUM", vec![]), ("LOW", vec![])];
-    for f in &all {
-        if let Some((_, v)) = by_sev.iter_mut().find(|(s, _)| *s == f.severity) { v.push(f); }
-    }
-    for (sev, items) in &by_sev {
-        if items.is_empty() { continue; }
-        let color = match *sev { "CRITICAL" | "HIGH" => "\x1b[31m", "MEDIUM" => "\x1b[33m", _ => "\x1b[36m" };
-        println!("  {}── {} ──\x1b[0m", color, sev);
-        for f in items {
-            println!("  {}[{}]\x1b[0m {}:{} — {}", color, f.id, f.file, f.line, f.message);
-            if !f.fix.is_empty() { println!("      fix: {}", f.fix); }
-        }
-        println!();
-    }
-    println!("  {} finding(s) in {} workflow(s)\n", all.len(), workflows.len());
-    Ok(())
+    Ok(if level_rank(status) <= level_rank(fail_on) {
+        1
+    } else {
+        0
+    })
 }
 
-fn find_workflows(target: &str) -> Vec<String> {
-    let wf_dir = std::path::Path::new(target).join(".github/workflows");
-    if !wf_dir.exists() { return vec![]; }
-    WalkDir::new(wf_dir).into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| {
-            let ext = e.path().extension().and_then(|x| x.to_str()).unwrap_or("");
-            ext == "yml" || ext == "yaml"
+fn check_target(target: &str) -> Vec<CiFinding> {
+    let workflow_dir = Path::new(target).join(".github/workflows");
+    if !workflow_dir.exists() {
+        return vec![finding(
+            "CI-SETUP-001",
+            "WARN",
+            None,
+            "No .github/workflows/ directory found",
+            "Add yana-ai-audit.yml CI workflow",
+        )];
+    }
+
+    let paths = workflow_paths(&workflow_dir);
+    if paths.is_empty() {
+        return vec![finding(
+            "CI-SETUP-002",
+            "WARN",
+            None,
+            "No workflow files found in .github/workflows/",
+            "Add at least one CI workflow",
+        )];
+    }
+
+    let workflows: Vec<_> = paths
+        .into_iter()
+        .filter_map(|path| {
+            let content = std::fs::read_to_string(&path).ok()?;
+            let name = path.file_name()?.to_string_lossy().into_owned();
+            Some(Workflow {
+                path,
+                name,
+                content,
+            })
         })
-        .map(|e| e.path().to_string_lossy().to_string())
-        .collect()
+        .collect();
+
+    let mut findings = check_workflows(&workflows);
+    findings.extend(check_branch_protection_hints(&workflows));
+    findings
 }
 
-fn check_workflow(path: &str) -> Vec<CiFinding> {
-    let content = match std::fs::read_to_string(path) { Ok(c) => c, Err(_) => return vec![] };
-    let rel = path.rsplit('/').take(3).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>().join("/");
+fn workflow_paths(workflow_dir: &Path) -> Vec<PathBuf> {
+    let mut paths: Vec<_> = match std::fs::read_dir(workflow_dir) {
+        Ok(entries) => entries
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| {
+                path.is_file()
+                    && matches!(
+                        path.extension().and_then(|extension| extension.to_str()),
+                        Some("yml" | "yaml")
+                    )
+            })
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    paths.sort();
+    paths
+}
+
+fn check_workflows(workflows: &[Workflow]) -> Vec<CiFinding> {
     let mut findings = Vec::new();
+    let mut has_yana_ai_audit = false;
 
-    for (i, line) in content.lines().enumerate() {
-        let ln = i + 1;
-        let trimmed = line.trim();
-
-        // CI001 — hardcoded secret
-        if Regex::new(r#"(?i)(api[_-]?key|secret|token|password)\s*:\s*[a-zA-Z0-9_]{20,}"#).unwrap().is_match(trimmed)
-            && !trimmed.contains("${{") && !trimmed.contains("secrets.") {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI001".into(),
-                severity: "CRITICAL".into(), message: "Possible hardcoded secret in workflow".into(),
-                fix: "Use ${{ secrets.MY_SECRET }} instead".into() });
+    for workflow in workflows {
+        let name = workflow.name.as_str();
+        let content = workflow.content.as_str();
+        if content.contains("yana-ai") && content.contains("audit") {
+            has_yana_ai_audit = true;
+        }
+        if !content.contains("permissions:") {
+            findings.push(finding(
+                "CI-PERM-001",
+                "WARN",
+                Some(name),
+                format!("{name}: no permissions block — inherits max token permissions"),
+                "Add 'permissions: contents: read' at workflow level",
+            ));
         }
 
-        // CI002 — unpinned action (uses: owner/action@v1 not SHA)
-        if trimmed.starts_with("uses:") {
-            let uses = trimmed.trim_start_matches("uses:").trim();
-            if !uses.starts_with("./") && !uses.contains('@') {
-                findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI002".into(),
-                    severity: "HIGH".into(), message: format!("Unpinned action: {}", uses),
-                    fix: "Pin to a specific SHA: uses: action/name@sha256:...".into() });
-            } else if uses.contains('@') {
-                let tag = uses.split('@').nth(1).unwrap_or("");
-                if !tag.starts_with("sha256:") && !tag.contains("abcdef1234567890") && tag.len() != 40 {
-                    // floating tag like @v3, @main
-                    if tag.starts_with('v') || tag == "main" || tag == "master" {
-                        findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI003".into(),
-                            severity: "MEDIUM".into(), message: format!("Floating action tag: @{}", tag),
-                            fix: "Pin to full SHA for reproducibility".into() });
-                    }
-                }
-            }
+        let unpinned: Vec<_> = UNPINNED_ACTION
+            .captures_iter(content)
+            .filter_map(|capture| capture.get(1).map(|value| value.as_str()))
+            .filter(|value| {
+                let Some((action, reference)) = value.split_once('@') else {
+                    return false;
+                };
+                !action.is_empty()
+                    && !reference.is_empty()
+                    && !(reference.len() == 40
+                        && reference.bytes().all(|byte| byte.is_ascii_hexdigit()))
+            })
+            .collect();
+        if !unpinned.is_empty() {
+            findings.push(finding(
+                "CI-PIN-001",
+                "WARN",
+                Some(name),
+                format!(
+                    "{name}: {} unpinned action(s): {}",
+                    unpinned.len(),
+                    unpinned
+                        .iter()
+                        .take(3)
+                        .copied()
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+                "Pin actions to full commit SHA",
+            ));
         }
+        if !content.contains("timeout-minutes:") {
+            findings.push(finding(
+                "CI-TIMEOUT-001",
+                "INFO",
+                Some(name),
+                format!("{name}: no timeout-minutes — runaway jobs waste credits"),
+                "Add timeout-minutes: 30 to each job",
+            ));
+        }
+        if AUTO_MERGE.is_match(content) {
+            findings.push(finding(
+                "CI-GATE-001",
+                "FAIL",
+                Some(name),
+                format!("{name}: auto-merge enabled — no human approval gate"),
+                "Remove auto-merge or add required reviewers gate",
+            ));
+        }
+        if content.contains("pull_request_target") && CONTENTS_WRITE.is_match(content) {
+            findings.push(finding(
+                "CI-GATE-002",
+                "FAIL",
+                Some(name),
+                format!("{name}: pull_request_target + write access — fork exfiltration risk"),
+                "Use pull_request trigger instead, or remove write permissions",
+            ));
+        }
+        if SECRET_ENV.is_match(content) {
+            findings.push(finding(
+                "CI-SECRET-001",
+                "WARN",
+                Some(name),
+                format!("{name}: secret passed via env — ensure not echoed in logs"),
+                "Never echo env vars containing secrets",
+            ));
+        }
+        if content.contains("yana-ai")
+            && !content.contains("fail-on")
+            && !content.contains("fail_on")
+        {
+            findings.push(finding(
+                "CI-AUDIT-001",
+                "WARN",
+                Some(name),
+                format!("{name}: yana-ai used but --fail-on not set — audit won't gate the build"),
+                "Add --fail-on high to yana-ai audit step",
+            ));
+        }
+    }
 
-        // CI004 — missing timeout-minutes on job
-        if trimmed.starts_with("runs-on:") && !content.contains("timeout-minutes:") {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI004".into(),
-                severity: "MEDIUM".into(), message: "No timeout-minutes set (jobs can run forever)".into(),
-                fix: "Add: timeout-minutes: 30".into() });
-        }
-
-        // CI005 — pull_request_target without explicit permissions
-        if trimmed.contains("pull_request_target") && !content.contains("permissions:") {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI005".into(),
-                severity: "HIGH".into(), message: "pull_request_target without explicit permissions (PWNED risk)".into(),
-                fix: "Add permissions: block with minimal required scopes".into() });
-        }
-
-        // CI006 — workflow_dispatch or push to main without environment gate
-        if (trimmed.contains("npm publish") || trimmed.contains("cargo publish") || trimmed.contains("gh release"))
-            && !content.contains("environment:") {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI006".into(),
-                severity: "HIGH".into(), message: "Publish step without environment gate".into(),
-                fix: "Add: environment: production".into() });
-        }
-
-        // CI007 — shell injection via ${{ github.event }}
-        if Regex::new(r#"\$\{\{\s*github\.event\.(issue|pull_request|comment)\.body"#).unwrap().is_match(trimmed) {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI007".into(),
-                severity: "CRITICAL".into(), message: "Potential shell injection via event body".into(),
-                fix: "Never use event.body directly in run: steps".into() });
-        }
-
-        // CI008 — curl | bash in workflow
-        if Regex::new(r#"curl[^|]*\|\s*(bash|sh)"#).unwrap().is_match(trimmed) {
-            findings.push(CiFinding { file: rel.clone(), line: ln, id: "CI008".into(),
-                severity: "HIGH".into(), message: "curl pipe to shell (supply chain risk)".into(),
-                fix: "Download script separately, verify hash, then execute".into() });
-        }
+    if !has_yana_ai_audit {
+        findings.push(finding(
+            "CI-AUDIT-002",
+            "WARN",
+            None,
+            "No yana-ai audit step found in any workflow",
+            "Copy .github/workflows/yana-ai-audit.yml into your repo",
+        ));
     }
     findings
+}
+
+fn check_branch_protection_hints(workflows: &[Workflow]) -> Vec<CiFinding> {
+    let has_status_check = workflows.iter().any(|workflow| {
+        workflow
+            .path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            == Some("yml")
+            && (workflow.content.contains("required_status_checks")
+                || workflow.content.contains("status_check"))
+    });
+    if has_status_check {
+        Vec::new()
+    } else {
+        vec![finding(
+            "CI-BRANCH-001",
+            "INFO",
+            None,
+            "No required status checks configured (check GitHub branch protection settings)",
+            "Enable branch protection: require status checks before merging",
+        )]
+    }
+}
+
+fn overall(findings: &[CiFinding]) -> &'static str {
+    ["FAIL", "WARN", "INFO"]
+        .into_iter()
+        .find(|level| findings.iter().any(|finding| finding.level == *level))
+        .unwrap_or("PASS")
+}
+
+fn level_rank(level: &str) -> u8 {
+    match level.to_ascii_uppercase().as_str() {
+        "FAIL" => 0,
+        "WARN" => 1,
+        "INFO" => 2,
+        _ => 3,
+    }
+}
+
+fn print_report(target: &str, status: &str, findings: &[CiFinding]) {
+    println!("\n  Yana AI CI Health Check");
+    println!("  Target: {target}\n");
+    println!("  Status: {status}\n");
+    if findings.is_empty() {
+        println!("  ✓ All CI checks passed\n");
+        return;
+    }
+    for finding in findings {
+        println!("  [{}] {}", finding.id, finding.message);
+        println!("       Fix: {}\n", finding.fix);
+    }
+    let fail = findings
+        .iter()
+        .filter(|finding| finding.level == "FAIL")
+        .count();
+    let warn = findings
+        .iter()
+        .filter(|finding| finding.level == "WARN")
+        .count();
+    let info = findings
+        .iter()
+        .filter(|finding| finding.level == "INFO")
+        .count();
+    println!("  Summary: {fail} fail · {warn} warn · {info} info\n");
 }

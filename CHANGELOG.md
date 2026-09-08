@@ -8,6 +8,280 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## yana-rt: Windows support for flock-v1 locking — 2026-09-04
+
+Fixes a real bug, not just a CI annoyance: Yana Desktop's Autonomy/Approval
+UI wires "revoke lease" to `yana-rt lease revoke`, which needs a real
+exclusive lock — on Windows this has unconditionally failed with
+`"flock-v1 is supported only on macOS and Linux"` since the primitive was
+introduced. `lease list` was already lock-free and unaffected. Every
+"Release" GitHub Actions run since v1.4.3 also failed for the same reason,
+on the release smoke test's `lease grant`/`lease list` steps — that gate is
+now green on Windows.
+
+The fix ports the exact pattern already shipped and proven in this codebase
+for `os::supervisor`'s audit-receipts-chain lock and `remote::lock`:
+`std::os::windows::fs::OpenOptionsExt::share_mode(0)`, real kernel-exclusive
+locking (not best-effort), zero new crate dependencies. `guard lock-with`
+(holds the lock across `Command::exec()`, a Unix-only primitive) and the
+Bash/Python locking bridges remain Unix-only by design — see
+`docs/adr/ADR-008-shared-locking-infrastructure.md` and
+`docs/locking-protocol-flock-v1.md` for the updated platform matrix.
+
+Does not retroactively fix already-failed Release runs for v1.4.3–v1.4.8 —
+only future tags benefit.
+
+---
+
+## v1.4.8 — warm jade redesign (reverses v1.4.7's monochrome), terminal fixes — 2026-09-03
+
+**Reverses v1.4.7's monochrome black/white redesign**, same day: the app
+now matches the real, already-live marketing page's own palette
+(`docs/desktop-redesign.css`) — jade/pink/blue/gold accents on a warm
+ivory base, glass restrained to the marketing page's own `blur(18px)
+saturate(145%)` recipe. Theme is `system` by default (follows the OS via
+`prefers-color-scheme`, no manual picker needed for that) with a
+Settings override for System/Light/Dark added back after "auto only"
+turned out to mean no way to preview Light without changing the OS
+setting.
+
+Two real bugs found and fixed during this pass, not assumed away:
+- Settings' theme buttons initially did nothing — `data-theme` was set
+  on a nested div, but the CSS override rules were written as
+  `:root[data-theme]`, which only ever matches `<html>`. Fixed by
+  setting the attribute on `document.documentElement` instead.
+- The sidebar's active nav item used a full-opacity solid `--primary`
+  fill, fine when that token was near-white/black, too visually loud
+  ("xanh lè") once it's a saturated jade — switched to the same
+  low-opacity `--primary-soft` pattern Settings' own tabs already used.
+
+**Terminal**, two real bugs traced to file:line (both a consequence of
+the same-day earlier fix that keeps `TerminalDock` always mounted
+interacting with pre-existing per-tab mount logic): a background/
+restored tab's `display:none` container made `FitAddon` propose a
+`cols:2/rows:1` PTY size that always failed validation with no retry —
+fixed by deferring the actual PTY start until a tab is genuinely
+active; and an ordinary resize could propose PTY dimensions outside the
+valid 20-500/5-300 range, silently rejected, leaving the real PTY size
+drifted from xterm's own visual size (wrapped/garbled shell output) —
+fixed by clamping both the outbound resize call and xterm's own buffer
+to the same range so they can never diverge. Verified live: a real
+Electron dev run (isolated profile) showed a working shell prompt on
+first mount and the theme toggle actually re-skinning the running app.
+
+`--ink-3` (light and dark) and `--bg-base`/`--bg-card-2` were tuned
+past the marketing page's own literal values — real WCAG contrast
+computed for each candidate before picking it, not assumed, and the
+background brightened after live "hơi tối, thêm trắng" feedback once
+the redesign was actually visible.
+
+tools/yana-desktop's full unit suite: 192/192 pass.
+
+---
+
+## v1.4.7 — monochrome redesign, six new connectors, legacy shell removed — 2026-09-03
+
+**Redesign.** All 14 color themes replaced with two true-grayscale
+themes (black/white), real `backdrop-filter` glass surfaces across the
+shell (documented exception to `anti-ai-slop-design-law.md`'s
+glassmorphism ban), hand-drawn SVG icons replaced with real Lucide/
+Codicon path data, and the app font switched from Be Vietnam Pro to
+self-hosted Geist (v1.6.0+, real Vietnamese diacritic coverage).
+Verifying this in a real running app (not just the diff) surfaced and
+fixed three more bugs: the self-hosted font's URL needed the
+`/desktop/` prefix Vite's `base` config implies, the CSP's `font-src`
+still only allowed `fonts.bunny.net`, and `--ink-3`'s contrast (3.26:1,
+only clearing WCAG's large-text tier at a token used at 11-13px
+everywhere) is now 4.5:1+ in both themes.
+
+**Connectors.** OAuth added for Notion, Slack, Figma, and Canva (PKCE),
+and the existing Google Drive adapter flipped on — six real connectors
+now, up from two.
+
+**Cleanup.** The legacy page-router shell (`app.jsx`, `desktop-old/`,
+`pages/`, the vtuber assistant) is deleted now that `new-app/` has
+parity, not kept behind a flag.
+
+**Bug fixes found during this pass:** the terminal PTY was missing
+`TERM`/`LANG`, breaking arrow keys and raw control bytes; navigating to
+Settings unmounted the terminal dock entirely instead of hiding it,
+killing the live shell session; the IDE button shelled out to a bare
+`code-server` on PATH with a raw ENOENT if it wasn't installed — now
+bundled; and resetting the local account (single-slot, per `auth.js`)
+left the previous owner's chat history and profile text in
+localStorage, since that cache is keyed by browser origin, not
+account — now cleared on both the password-setup and first-run-Google
+paths, device preferences (theme, terminal layout) left alone.
+
+tools/yana-desktop's full unit suite: 192/192 pass.
+core/tests/skills/test-skill-triggering.sh: 698/698 pass.
+
+---
+
+## v1.4.6 — v1.4.5's fix was incomplete: still no server node_modules — 2026-09-01
+
+**Critical, same-day follow-up.** v1.4.5's fix (below) removed the
+`"!node_modules/**"` filter entry, but that alone was not enough:
+electron-builder's `extraFiles` matching *also* respects the repo's own
+`.gitignore` (which lists `node_modules/`), so the server's dependencies
+were **still** silently dropped from the real v1.4.5 release. Confirmed
+live: downloaded the actual v1.4.5 macOS asset, manually staged
+`node_modules` into it to test the fix mechanism in isolation, launched
+it, and got a real window — proving the diagnosis — but the unmodified
+v1.4.5 build itself still has zero `node_modules` in `Resources/server`
+and is just as broken as v1.4.4.
+
+Fixed for real this time by bypassing electron-builder's file-matching
+entirely: a new `afterPack` hook
+(`tools/yana-desktop/scripts/after-pack-copy-server-deps.js`) does a
+plain `fs.cpSync` of `tools/yana-web/node_modules` into the packaged
+app's `Resources/server/node_modules` (or `resources/server/node_modules`
+on Windows/Linux) after packing but before code signing or building the
+distributable — a raw filesystem copy that no gitignore-aware or
+filter-based matching can silently skip.
+
+Added regression assertions to `_test_package_contract.js` for the
+`afterPack` hook being wired and its script existing.
+
+node tools/yana-desktop/_test_package_contract.js: 29 assertions pass.
+npm run test:unit (tools/yana-desktop, full suite): 0 fail.
+
+---
+
+## v1.4.5 — Fix broken packaged app: local server never started — 2026-09-01
+
+**Critical.** Every packaged desktop build (confirmed on v1.4.4, and this
+bug predates today so v1.4.3 and earlier are very likely affected too)
+was completely non-functional: the app opened with zero windows and no
+error dialog, running indefinitely with the local server dead.
+
+Root cause, found live: `tools/yana-desktop/package.json`'s `extraFiles`
+entry that stages the server (`../yana-web`) into
+`Resources/server` had `"!node_modules/**"` in its filter, excluding the
+server's own runtime dependencies from every packaged build. Launching
+the packaged app directly from a terminal showed the real error:
+
+```
+Error: Cannot find module 'ws'
+Require stack:
+- .../Resources/server/robot.js
+- .../Resources/server/server.js
+```
+
+`main.js`'s `waitForServer()` has no visibility into *why* the server
+never reports ready — it just polls for up to 30s, then gives up. That
+30s-then-nothing-visible behavior is what a live user report described
+as the app going blank and closing.
+
+Fixed by removing the `node_modules` exclusion so the server's actual
+runtime dependencies (`ws`, etc. — already installed by CI's own `npm ci`
+in `tools/yana-web` before packaging) ship with the app. Added a
+regression test (`_test_package_contract.js`) asserting this filter never
+excludes `node_modules` again.
+
+Verified live on this exact machine: launched the previously-broken
+v1.4.4 packaged app directly from a terminal to capture the real
+`MODULE_NOT_FOUND` error (not visible from a normal double-click launch),
+confirmed the root cause, applied the fix, and re-ran the full
+`npm run test:unit` suite (all passing) before this release.
+
+---
+
+## v1.4.4 — Fix launch crash from a startup race — 2026-09-01
+
+Fixes a real crash reported live on a v1.4.3 install: `TypeError:
+... conversion failure from null` at `createWindow`'s
+`mainWindow.loadURL(serverUrl)`, thrown from Electron's `activate`
+event handler.
+
+Root cause: `app.on('activate', ...)` called `createWindow()` whenever
+no window existed, without checking whether the local server had
+actually started. `serverUrl` is set asynchronously once the forked
+server process reports its listening port; on macOS, `activate` can
+fire during the app's own startup, before `whenReady()`'s
+`waitForServer()` resolves. When that race lands, `mainWindow` is
+correctly still null but so is `serverUrl`, and the unconditional
+`loadURL(serverUrl)` call crashes on `null`. Not reproducible every
+launch — a genuine race, not a deterministic failure, which is why it
+wasn't caught before an install actually hit it.
+
+Fixed by also requiring `serverUrl` before creating a window from the
+`activate` handler; the `whenReady()` flow already creates the window
+once the server is confirmed ready via a real `/health` check.
+
+---
+
+## v1.4.3 — Real Google + GitHub connector OAuth — 2026-09-01
+
+Yana Desktop's Connections screen previously only had local permission
+checkboxes for Gmail, Google Calendar, and GitHub — no actual Connect
+button, no OAuth, no way to grant Yana provider access at all. This
+release adds the real lifecycle for all three:
+
+- **Gmail + Google Calendar**: Connect / Reconnect / Disconnect, plus a
+  live Preview that lists real recent messages/events through
+  read-only (`gmail.readonly`, `calendar.readonly`) scopes. Tokens are
+  encrypted and stored on-device only (YanaVault), never on this app's
+  server.
+- **GitHub**: Connect / Disconnect with the least-privilege
+  `notifications` scope, replacing the old `YANA_GITHUB_ACCESS_TOKEN`-
+  from-shell-environment-only path.
+- Fixed a real packaging bug found while verifying this release: the
+  runtime binary staged into prior builds predated the `os host status`
+  CLI subcommand entirely, so the Devices page could never show more
+  than chip name + RAM in a packaged app. Rebuilt and re-staged.
+
+Known limitation: the GitHub connector card's top status badge is still
+driven by the Rust runtime's own credential check, which has no
+visibility into an OAuth token stored client-side — it can say
+"Credential required" even once Connect has succeeded. The new panel on
+that card, not the badge, is the accurate signal. Fixing that fully
+would mean extending Rust's `SecretBackend` to actually store secret
+values, which today is deliberately presence-only by design (see
+`52-secrets-vault-law.md`) — left as a separate, later decision rather
+than folded into this release.
+
+Neither OAuth flow has been exercised against a real, live account yet
+in this repo's own test suite (unit/integration tests only, ~102 new
+assertions) — provider App registration and a real consent-screen
+click-through are required before first use.
+
+---
+
+## macOS packaging fix + notarization status — 2026-08-31
+
+**Yana Desktop's macOS build is not notarized by Apple.** The project does
+not yet have a paid Apple Developer Program membership, which notarization
+requires. Builds are ad-hoc signed (a real, Apple-documented signing
+mechanism, distinct from being fully unsigned) so the app can launch at
+all on Apple Silicon, but Gatekeeper still shows a first-launch warning.
+See [docs/MACOS_INSTALL.md](docs/MACOS_INSTALL.md) for the two official
+Apple-provided ways to open it — no Gatekeeper system setting needs to
+change.
+
+Also fixed in this pass, both real packaging bugs (not notarization-
+related): `tools/yana-desktop/package.json`'s `extraFiles` copy of
+`tools/yana-web/` was pulling in a 427MB local Python virtualenv
+(`tts-sidecar/.venv`) — a machine-specific dev artifact never meant to
+ship, and the cause of a `codesign --verify --deep` failure ("invalid
+destination for symbolic link in bundle"); and the same copy step had no
+`.env*` exclusion, so a real local secret (`GOOGLE_OAUTH_CLIENT_SECRET`)
+would have shipped inside the app bundle. Both are now excluded via the
+`extraFiles` filter.
+
+Added `tools/yana-desktop/scripts/after-sign-mac.js` (an electron-builder
+`afterSign` hook) to properly deep-re-sign the fully-assembled bundle —
+without it, electron-builder skipped signing the added `extraFiles`
+entirely, leaving Electron's own prebuilt ad-hoc signature (which only
+ever covered the bare Electron.app skeleton) mismatched against the
+actual Resources tree — exactly Apple's "code has no resources but
+signature indicates they must be present" error. The hook, and the new
+`build/entitlements.mac.plist` it references, are structured so adding a
+real Developer ID + notarization later is a config change, not a rewrite
+— see the comments at the top of `after-sign-mac.js`.
+
+---
+
 ## Python package v1.4.2 (one-time catch-up) — 2026-08-26
 
 `pyproject.toml` and `src/yana_ai/__init__.py` move from `0.42.5` to

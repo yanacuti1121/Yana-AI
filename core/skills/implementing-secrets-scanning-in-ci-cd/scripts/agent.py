@@ -32,6 +32,10 @@ GITLEAKS_SEVERITY_MAP = {
 }
 
 
+def redact_secret(_secret):
+    return "[REDACTED]"
+
+
 def run_gitleaks(scan_path: str) -> list:
     report_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
     report_path = report_file.name
@@ -53,7 +57,7 @@ def run_gitleaks(scan_path: str) -> list:
             rule_id = item.get("RuleID", "unknown")
             severity = GITLEAKS_SEVERITY_MAP.get(rule_id, "medium")
             secret_val = item.get("Secret", "")
-            redacted = secret_val[:4] + "****" if len(secret_val) > 4 else "****"
+            redacted = redact_secret(secret_val)
             findings.append({
                 "tool": "gitleaks",
                 "rule_id": rule_id,
@@ -87,7 +91,7 @@ def run_trufflehog(scan_path: str) -> list:
         source_meta = item.get("SourceMetadata", {})
         fs_data = source_meta.get("Data", {}).get("Filesystem", {})
         raw_secret = item.get("Raw", "")
-        redacted = raw_secret[:4] + "****" if len(raw_secret) > 4 else "****"
+        redacted = redact_secret(raw_secret)
         severity = "critical" if item.get("Verified", False) else "high"
         findings.append({
             "tool": "trufflehog",
