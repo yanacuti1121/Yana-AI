@@ -1,0 +1,43 @@
+{
+  "name": "yana-studio",
+  "productName": "Yana Studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "host/main.cjs",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "start": "npm run build && electron .",
+    "test": "node --test test/*.test.cjs",
+    "test:electron": "electron test/smoke.cjs",
+    "test:ui": "node test/ui.mjs",
+    "stage:runtime": "node scripts/stage-runtime.cjs",
+    "rebuild": "electron-rebuild -f -w node-pty",
+    "format": "prettier --write host renderer test scripts *.json *.ts *.html",
+    "format:check": "prettier --check host renderer test scripts *.json *.ts *.html"
+  },
+  "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@xterm/xterm": "^6.0.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-search": "^0.16.0",
+    "@xterm/addon-webgl": "^0.19.0",
+    "codemirror": "^6.0.2",
+    "lucide-react": "^0.577.0",
+    "node-pty": "^1.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.1",
+    "@playwright/test": "^1.58.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "43.4.1",
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0",
+    "vite": "^6.4.3"
+  }
+}
