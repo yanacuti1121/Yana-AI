@@ -42,6 +42,7 @@
       --border:    rgba(31, 56, 51, 0.10);
       --border-strong: rgba(31, 56, 51, 0.18);
       --good:      #3d8b6e;
+      --gate-danger: #ff5f57; /* same red as the mockup's own window-dot */
       --shadow-rgb: 20, 40, 36;
       --radius:    20px;
       --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -174,10 +175,13 @@
     .section-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .75rem; }
     .section-sub { text-align: center; color: var(--fg-muted); margin-bottom: 3rem; font-size: 1rem; }
     /* Asymmetric grid, not a repeated icon+title+text card × 6: the
-       security claim is the strongest differentiator (66 hooks is a
-       specific, checkable number, not marketing copy), so it gets a
-       wider spotlight slot with room for a supporting stat instead of
-       being visually identical to "works offline" or "smart dashboard". */
+       security claim is the strongest differentiator, so it gets a
+       wider spotlight slot with room for a small real-looking gate
+       intercept demo instead of being visually identical to "works
+       offline" or "smart dashboard". The demo shows two commands this
+       repo's own rules actually hard-block (02-terminal-validator.md,
+       git-push-enforcement.md) — specific and checkable, not an
+       abstract "L0–L5" stat number. */
     .feat-grid {
       display: grid;
       list-style: none;
@@ -193,20 +197,37 @@
 
     .feat-card.spotlight {
       grid-column: span 2;
-      display: flex; align-items: center; gap: 1.5rem;
+      display: flex; align-items: stretch; gap: 1.5rem;
       background: linear-gradient(135deg, var(--bg-card-2), var(--bg-card));
       border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
     }
-    .feat-card.spotlight .feat-icon { font-size: 2.25rem; margin-bottom: 0; flex: none; }
-    .feat-card.spotlight .feat-stat {
-      flex: none; text-align: center; padding: 0 1.25rem;
-      border-left: 1px solid var(--border); margin-left: auto;
+    .feat-card.spotlight .feat-copy { flex: 1 1 240px; }
+    .feat-card.spotlight .feat-icon { font-size: 2.25rem; }
+
+    /* Gate-intercept demo — a small hand-built mockup (same idea as the
+       hero's own screenshot-wrap), not a marketing stat number. */
+    .gate-demo {
+      flex: 1 1 250px; min-width: 210px;
+      background: var(--bg-card-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: .9rem 1rem;
+      display: flex; flex-direction: column; gap: .55rem;
     }
-    .feat-card.spotlight .feat-stat-num { font-size: 1.75rem; font-weight: 800; color: var(--primary); line-height: 1; }
-    .feat-card.spotlight .feat-stat-label { font-size: .6875rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .35rem; }
+    .gate-demo-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; min-width: 0; }
+    .gate-demo-row code {
+      font-family: var(--mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+      font-size: .74rem; color: var(--fg);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+    }
+    .gate-demo-tag {
+      flex: none; font-size: .66rem; font-weight: 700; letter-spacing: .02em;
+      padding: .18rem .5rem; border-radius: 999px;
+      background: color-mix(in oklab, var(--gate-danger) 15%, transparent);
+      color: var(--gate-danger);
+    }
+    .gate-demo-note { font-size: .74rem; line-height: 1.55; color: var(--fg-muted); padding-top: .35rem; border-top: 1px solid var(--border); }
     @media (max-width: 640px) {
       .feat-card.spotlight { grid-column: span 1; flex-wrap: wrap; }
-      .feat-card.spotlight .feat-stat { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: .75rem 0 0; text-align: left; }
+      .gate-demo { flex-basis: 100%; }
     }
 
     /* ── FAQ ──────────────────────────────────────────────── */
@@ -448,14 +469,15 @@
   <p class="section-sub" data-i18n="feat_sub">No cloud, no tracking. Your data stays with you.</p>
   <ul class="feat-grid">
     <li class="feat-card spotlight">
-      <div class="feat-icon" aria-hidden="true">🛡️</div>
-      <div>
+      <div class="feat-copy">
+        <div class="feat-icon" aria-hidden="true">🛡️</div>
         <h3 class="feat-title" data-i18n="f2_title">Multi-layer security</h3>
         <p class="feat-desc" data-i18n="f2_desc">Runtime hooks enforce policy before and after sensitive AI actions.</p>
       </div>
-      <div class="feat-stat">
-        <div class="feat-stat-num">L0–L5</div>
-        <div class="feat-stat-label" data-i18n="f2_stat_label">Policy layers</div>
+      <div class="gate-demo" aria-hidden="true">
+        <div class="gate-demo-row"><code>rm&nbsp;-rf&nbsp;~/workspace</code><span class="gate-demo-tag">Blocked</span></div>
+        <div class="gate-demo-row"><code>git&nbsp;push&nbsp;--force&nbsp;origin&nbsp;main</code><span class="gate-demo-tag">Blocked</span></div>
+        <p class="gate-demo-note" data-i18n="f2_gate_note">Every destructive action stops here first — before it runs, not after.</p>
       </div>
     </li>
     <li class="feat-card">
@@ -614,7 +636,7 @@ const LANGS = {
     f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
     f2_title: "Multi-layer security",
     f2_desc: "Runtime hooks enforce policy before and after sensitive AI actions.",
-    f2_stat_label: "Policy layers",
+    f2_gate_note: "Every destructive action stops here first — before it runs, not after.",
     f3_title: "2025 built-in skills",
     f3_desc: "An extensive skill library — code review, RAG, multi-agent orchestration, cybersecurity, and business ops.",
     f4_title: "Works offline",
@@ -683,7 +705,7 @@ const LANGS = {
     f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
     f2_title: "Bảo mật đa lớp",
     f2_desc: "Hook runtime thực thi policy trước và sau các hành động AI nhạy cảm.",
-    f2_stat_label: "Tầng chính sách",
+    f2_gate_note: "Mọi hành động phá hủy đều bị chặn lại ở đây trước — trước khi chạy, không phải sau đó.",
     f3_title: "2,025 skills tích hợp",
     f3_desc: "Thư viện skill đa dạng — code review, RAG, multi-agent, an ninh mạng và vận hành doanh nghiệp.",
     f4_title: "Chạy offline",
@@ -752,7 +774,7 @@ const LANGS = {
     f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
     f2_title: "다층 보안",
     f2_desc: "런타임 훅이 민감한 AI 작업 전후에 정책을 강제합니다.",
-    f2_stat_label: "정책 계층",
+    f2_gate_note: "모든 파괴적인 작업은 실행되기 전에 먼저 여기서 멈춥니다.",
     f3_title: "2025개 내장 스킬",
     f3_desc: "다양한 스킬 라이브러리 — 코드 리뷰, RAG, 멀티에이전트, 사이버보안, 비즈니스 운영까지.",
     f4_title: "오프라인 작동",
@@ -821,7 +843,7 @@ const LANGS = {
     f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
     f2_title: "多层安全防护",
     f2_desc: "运行时钩子会在敏感 AI 操作前后执行策略。",
-    f2_stat_label: "策略层级",
+    f2_gate_note: "每一个破坏性操作都会先在这里被拦截——在执行之前，而不是之后。",
     f3_title: "2025 个内置技能",
     f3_desc: "丰富的技能库——代码审查、RAG、多智能体编排、网络安全和业务运营，一应俱全。",
     f4_title: "离线使用",
