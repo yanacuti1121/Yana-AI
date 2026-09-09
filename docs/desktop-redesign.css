@@ -190,10 +190,7 @@ h1 {
 }
 h1 em {
   display: block;
-  color: transparent;
-  background: linear-gradient(105deg, var(--primary) 8%, var(--blue) 55%, var(--pink) 96%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--primary);
 }
 .hero-sub { max-width: 60ch; margin: 0 0 1.5rem; font-size: 1.02rem; line-height: 1.75; }
 .hero-sub strong { color: var(--fg); font-weight: 750; }
@@ -206,14 +203,31 @@ h1 em {
   background: rgba(255, 255, 255, 0.5);
 }
 
+/* One clear CTA, not four co-equal buttons: only the platform the
+   platform-detection script (index.html's inline <script>) marks
+   .primary is shown here — the other three stay in the DOM (found
+   further down in the dedicated #platforms section, every architecture
+   with its own install steps) rather than crowding the fold. */
 .hero .dl-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  justify-content: start;
-  gap: 0.62rem;
-  max-width: 520px;
-  margin: 0 0 0.9rem;
+  display: flex;
+  max-width: 400px;
+  margin: 0 0 0.7rem;
 }
+.hero .dl-grid .dl-btn:not(.primary) { display: none; }
+.hero .dl-grid .dl-btn.primary {
+  width: 100%;
+  min-height: 68px;
+  padding: 0.9rem 1.35rem;
+  font-size: 1.02rem;
+}
+.hero-other-platforms {
+  display: inline-block;
+  margin: 0 0 1.15rem;
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.hero-other-platforms:hover { color: var(--primary); }
 .dl-btn {
   min-height: 62px;
   padding: 0.7rem 0.9rem;
@@ -488,7 +502,6 @@ footer { margin-top: 2rem; padding: 2rem 1.5rem; background: rgba(255,255,255,0.
   h1 em { font-size: 0.92em; }
   .hero-sub { font-size: 0.94rem; }
   .gh-stats { flex-wrap: wrap; }
-  .hero .dl-grid { grid-template-columns: 1fr; }
   .dl-btn { min-height: 58px; }
   .screenshot-outer { width: calc(100vw - 18px); margin-left: calc((100% - (100vw - 18px)) / 2); }
   .screenshot-wrap { border-radius: 18px; }
