@@ -347,6 +347,20 @@ try {
     first,
   );
   await page.getByRole("button", { name: "Tile all terminals" }).click();
+  await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
+  const canvas = page.locator(".design-canvas");
+  await expect(canvas.getByText("THÀNH PHẦN", { exact: true })).toBeVisible();
+  await canvas.getByRole("button", { name: "Button", exact: true }).click();
+  await canvas.getByLabel("Nội dung").fill("Launch Yana");
+  fs.mkdirSync(path.join(appRoot, "artifacts"), { recursive: true });
+  await page.screenshot({
+    path: path.join(appRoot, "artifacts/design-canvas.png"),
+  });
+  await canvas.getByRole("button", { name: "Gửi sang Yana" }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Message to Yana" }),
+  ).toHaveValue(/Launch Yana/);
+  await page.getByRole("textbox", { name: "Message to Yana" }).fill("");
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   await expect(
     page.getByRole("button", { name: "Thêm file làm ngữ cảnh" }),
@@ -478,6 +492,10 @@ try {
   await closeApplication();
   application = null;
   page = await launch();
+  await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
+  await expect(
+    page.locator(".canvas-part", { hasText: "Launch Yana" }),
+  ).toBeVisible();
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   await expect(page.locator(".message.user")).toHaveCount(3);
   await expect(page.locator(".terminal-pane")).toHaveCount(0);
@@ -510,7 +528,7 @@ try {
   await expect(page.locator(".app")).toBeVisible();
   await expect(page.locator(".recent")).toContainText("Workspace");
   console.log(
-    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
+    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, Design Canvas persistence and chat prompt bridge, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
   );
 } catch (error) {
   if (application) {

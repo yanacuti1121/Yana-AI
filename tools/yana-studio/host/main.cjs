@@ -22,6 +22,7 @@ const { Permissions } = require("./permissions.cjs");
 const { ProjectMemory } = require("./project-memory.cjs");
 const { RunCommands } = require("./run-commands.cjs");
 const { DiffComments } = require("./diff-comments.cjs");
+const { scanProjectTokens } = require("./design-tokens.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -584,6 +585,10 @@ app.whenReady().then(() => {
       designs: { ...store.value.designs, [root]: document },
     });
     return store.value.designs[root];
+  });
+  register("scanDesignTokens", (root) => {
+    projects.resolve(root);
+    return scanProjectTokens(root);
   });
   register("terminalCreate", (root) => {
     projects.resolve(root);

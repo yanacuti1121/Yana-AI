@@ -61,6 +61,13 @@ export type CanvasDocument = {
   };
   screens: CanvasScreen[];
 };
+// host/design-tokens.cjs's best-effort scan of the project's own CSS —
+// only present per category when a real match was found, never fabricated.
+export type DesignTokenScan = {
+  accent?: { value: string; file: string };
+  surface?: { value: string; file: string };
+  foreground?: { value: string; file: string };
+};
 export type Locale = Preferences["locale"];
 export type FileEntry = { name: string; path: string; directory: boolean };
 export type FilePage = {
@@ -476,6 +483,7 @@ declare global {
         root: string,
         document: CanvasDocument,
       ): Promise<CanvasDocument>;
+      scanDesignTokens(root: string): Promise<DesignTokenScan>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,

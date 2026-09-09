@@ -64,6 +64,7 @@ const methods = [
   "diffCommentRemove",
   "designCanvasLoad",
   "designCanvasSave",
+  "scanDesignTokens",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

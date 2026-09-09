@@ -15,6 +15,7 @@ import {
   GitBranch,
   GitCompareArrows,
   ListTodo,
+  LayoutTemplate,
   Maximize2,
   MessageSquare,
   Minimize2,
@@ -58,6 +59,7 @@ import { translate } from "./i18n";
 import { renderMarkdown } from "./markdown";
 import { AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
+import { DesignCanvas } from "./DesignCanvas";
 
 const Terminal = lazy(() =>
   import("./Terminal").then((module) => ({ default: module.Terminal })),
@@ -75,6 +77,7 @@ const emptyGit: GitState = {
 type Surface =
   | "chat"
   | "files"
+  | "design"
   | "settings"
   | "terminal"
   | "tasks"
@@ -733,6 +736,11 @@ function App() {
     { label: "Cuộc trò chuyện mới", icon: MessageSquare, action: newChat },
     { label: "Tạo terminal", icon: TerminalSquare, action: addTerminal },
     { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
+    {
+      label: "Design Canvas",
+      icon: LayoutTemplate,
+      action: () => setSurface("design"),
+    },
     { label: "Tasks", icon: ListTodo, action: () => setSurface("tasks") },
     {
       label: "Devices",
@@ -848,6 +856,13 @@ function App() {
             >
               <Files size={17} />
               <span>{t("files")}</span>
+            </button>
+            <button
+              className={surface === "design" ? "selected" : ""}
+              onClick={() => setSurface("design")}
+            >
+              <LayoutTemplate size={17} />
+              <span>Thiết kế</span>
             </button>
             <button
               className={surface === "tasks" ? "selected" : ""}
@@ -1036,6 +1051,19 @@ function App() {
                 <Devices onError={setNotice} />
               ) : surface === "permissions" ? (
                 <Permissions root={project?.root || ""} onError={setNotice} />
+              ) : surface === "design" ? (
+                <DesignCanvas
+                  root={project?.root || ""}
+                  onError={setNotice}
+                  onPrompt={(prompt) => {
+                    setDrafts((previous) => ({
+                      ...previous,
+                      [draftKey]: prompt,
+                    }));
+                    openChat();
+                    requestAnimationFrame(() => composerInput.current?.focus());
+                  }}
+                />
               ) : surface === "files" ? (
                 <div
                   className={`files-workspace ${filesDragOver ? "drag-over" : ""}`}
