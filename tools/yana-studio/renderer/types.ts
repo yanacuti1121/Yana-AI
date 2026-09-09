@@ -21,6 +21,46 @@ export type DiffComment = {
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
+export type CanvasPartKind =
+  | "button"
+  | "text"
+  | "input"
+  | "card"
+  | "tabs"
+  | "nav"
+  | "chip"
+  | "image"
+  | "divider"
+  | "switch";
+export type CanvasPart = {
+  id: string;
+  kind: CanvasPartKind;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+export type CanvasScreen = {
+  id: string;
+  name: string;
+  device: "phone" | "desktop";
+  background: string;
+  parts: CanvasPart[];
+};
+export type CanvasDocument = {
+  version: 1;
+  name: string;
+  theme: {
+    accent: string;
+    surface: string;
+    foreground: string;
+    shape: "compact" | "rounded" | "pill";
+    font: "system" | "serif" | "mono";
+    motion: "standard" | "expressive" | "reduced";
+  };
+  screens: CanvasScreen[];
+};
 export type Locale = Preferences["locale"];
 export type FileEntry = { name: string; path: string; directory: boolean };
 export type FilePage = {
@@ -390,6 +430,7 @@ declare global {
       inspectLocalModels(): Promise<LocalModelRuntime[]>;
       chooseRuntime(): Promise<string | null>;
       newChat(root: string): Promise<Chat>;
+      removeChat(id: string): Promise<boolean>;
       sendChat(id: string, task: string, userInput?: string): Promise<boolean>;
       stopChat(id: string): Promise<boolean>;
       decideApproval(id: string, decision: boolean): Promise<boolean>;
@@ -430,6 +471,11 @@ declare global {
         file: string,
         id: string,
       ): Promise<DiffComment[]>;
+      designCanvasLoad(root: string): Promise<CanvasDocument | null>;
+      designCanvasSave(
+        root: string,
+        document: CanvasDocument,
+      ): Promise<CanvasDocument>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,

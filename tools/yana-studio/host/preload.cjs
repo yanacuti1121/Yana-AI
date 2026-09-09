@@ -40,6 +40,7 @@ const methods = [
   "inspectLocalModels",
   "chooseRuntime",
   "newChat",
+  "removeChat",
   "sendChat",
   "stopChat",
   "decideApproval",
@@ -61,6 +62,8 @@ const methods = [
   "diffCommentList",
   "diffCommentCreate",
   "diffCommentRemove",
+  "designCanvasLoad",
+  "designCanvasSave",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

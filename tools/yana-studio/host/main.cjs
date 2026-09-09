@@ -574,6 +574,17 @@ app.whenReady().then(() => {
     projects.resolve(root);
     return diffComments.remove(root, file, id);
   });
+  register("designCanvasLoad", (root) => {
+    projects.resolve(root);
+    return store.value.designs[root] || null;
+  });
+  register("designCanvasSave", (root, document) => {
+    projects.resolve(root);
+    store.save({
+      designs: { ...store.value.designs, [root]: document },
+    });
+    return store.value.designs[root];
+  });
   register("terminalCreate", (root) => {
     projects.resolve(root);
     return terminals.create(root);
@@ -682,6 +693,15 @@ app.whenReady().then(() => {
     };
     store.save({ chats: [...store.value.chats, chat] });
     return chat;
+  });
+  register("removeChat", (id) => {
+    const chat = chatById(id);
+    if (runs.has(chat.id))
+      throw new Error("Stop the running turn before deleting this chat");
+    store.save({
+      chats: store.value.chats.filter((item) => item.id !== id),
+    });
+    return true;
   });
   register("sendChat", (id, task, userInput) => {
     const chat = chatById(id);

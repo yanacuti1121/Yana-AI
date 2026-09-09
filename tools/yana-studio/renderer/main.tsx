@@ -354,6 +354,14 @@ function App() {
       setChatId(created.id);
       openChat();
     });
+  const removeChat = (id: string) =>
+    run(async () => {
+      if (!window.confirm("Xóa cuộc trò chuyện này? Không thể hoàn tác."))
+        return;
+      await window.studio.removeChat(id);
+      setChats((previous) => previous.filter((item) => item.id !== id));
+      if (chatId === id) setChatId("");
+    });
   const addTerminal = () =>
     run(async () => {
       if (!project || busy) return;
@@ -998,6 +1006,18 @@ function App() {
                   >
                     {item.running && <span className="dot blue" />}
                     <span className="tab-label">{item.title}</span>
+                    <span
+                      className="tab-close"
+                      role="button"
+                      aria-label={`Xóa "${item.title}"`}
+                      title="Xóa cuộc trò chuyện"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void removeChat(item.id);
+                      }}
+                    >
+                      <X size={12} />
+                    </span>
                   </button>
                 ))}
                 <button

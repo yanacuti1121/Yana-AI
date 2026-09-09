@@ -442,6 +442,24 @@ svg {
   width: 34px;
   padding: 0;
 }
+.tabs .tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  color: var(--muted);
+  opacity: 0;
+}
+.tabs button:hover .tab-close {
+  opacity: 1;
+}
+.tabs .tab-close:hover {
+  color: #ecb79e;
+  background: #7e392233;
+}
 .tabs .active {
   color: #d2e0ff;
   border-bottom: 2px solid #638dff;
