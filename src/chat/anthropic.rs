@@ -12,7 +12,11 @@ use anyhow::{Context, Result};
 
 const ANTHROPIC_URL: &str = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION: &str = "2023-06-01";
-const DEFAULT_MODEL: &str = "claude-sonnet-4-6";
+// Verified live (WebSearch/system context, 2026-09-09): the Claude 5
+// family (Fable 5.1/Opus 5/Sonnet 5) and Haiku 4.5 are Anthropic's current
+// generation, superseding 4.6. Sonnet 5 chosen as the balanced default,
+// same tier 4.6 held before it.
+const DEFAULT_MODEL: &str = "claude-sonnet-5";
 // Hard cap so a runaway reply can't grow the request unbounded turn over
 // turn; matches this crate's existing convention of bounding untrusted-size
 // inputs (see fuzz-testing-constraints.md's DoS-prevention guard).

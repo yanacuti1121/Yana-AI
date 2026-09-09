@@ -1,0 +1,27 @@
+import type { ITheme } from "@xterm/xterm";
+
+export const studioTerminalTheme: ITheme = {
+  background: "#fbfaf8",
+  foreground: "#3d3834",
+  cursor: "#b55d7a",
+  cursorAccent: "#fbfaf8",
+  selectionBackground: "#e7c3d099",
+  selectionForeground: "#302a27",
+  selectionInactiveBackground: "#e3ddd588",
+  black: "#342f2c",
+  red: "#bd4f65",
+  green: "#3e8063",
+  yellow: "#9b6b24",
+  blue: "#4d6f91",
+  magenta: "#a45173",
+  cyan: "#4d7c7b",
+  white: "#ded8d0",
+  brightBlack: "#817970",
+  brightRed: "#d0657a",
+  brightGreen: "#529878",
+  brightYellow: "#b27d32",
+  brightBlue: "#6687a8",
+  brightMagenta: "#bd6c90",
+  brightCyan: "#639392",
+  brightWhite: "#fffdf9",
+};

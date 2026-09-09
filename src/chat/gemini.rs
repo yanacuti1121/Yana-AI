@@ -9,7 +9,10 @@ use super::provider::{
 use super::tool_types::{StreamOutcome, ToolSpec};
 use anyhow::{Context, Result};
 
-const DEFAULT_MODEL: &str = "gemini-2.0-flash";
+// gemini-3.8-flash GA'd 2026-09-02 (verified live via ai.google.dev docs),
+// same API surface as prior Flash releases per Google's own migration
+// note — a drop-in default bump, not a breaking one.
+const DEFAULT_MODEL: &str = "gemini-3.8-flash";
 const GEMINI_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
 pub struct GeminiProvider;

@@ -82,7 +82,13 @@ pub fn groq() -> OpenAiCompatProvider {
     remote(
         "groq",
         "https://api.groq.com/openai/v1/chat/completions",
-        "llama-3.3-70b-versatile",
+        // Groq deprecated llama-3.3-70b-versatile 2026-06-17 (free/dev
+        // tier) — confirmed live (2026-09-09): a real request against it
+        // now returns 404 model_not_found, not just a docs-page notice.
+        // openai/gpt-oss-120b is Groq's own named replacement
+        // (console.groq.com/docs/deprecations) and remains a current
+        // production model with the same 131,072-token context window.
+        "openai/gpt-oss-120b",
         "GROQ_API_KEY",
     )
 }
@@ -109,7 +115,10 @@ pub fn xai() -> OpenAiCompatProvider {
     remote(
         "xai",
         "https://api.x.ai/v1/chat/completions",
-        "grok-3-mini",
+        // grok-3/grok-3-mini/grok-2 confirmed retired 2026-05-15 (redirect
+        // to grok-4.3 server-side per x.ai's own docs). grok-4.6 is xAI's
+        // current recommended flagship for chat/coding/agentic work.
+        "grok-4.6",
         "XAI_API_KEY",
     )
 }
@@ -136,7 +145,9 @@ pub fn minimax() -> OpenAiCompatProvider {
     remote(
         "minimax",
         "https://api.minimax.chat/v1/chat/completions",
-        "abab6.5s-chat",
+        // abab-family is MiniMax's own legacy tier now; the M-series
+        // (M2 -> M2.1 -> M2.5 -> M2.7 -> M3) superseded it for chat.
+        "MiniMax-M2.7",
         "MINIMAX_API_KEY",
     )
 }
@@ -145,7 +156,12 @@ pub fn glm() -> OpenAiCompatProvider {
     remote(
         "glm",
         "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-        "glm-4-flash",
+        // glm-4-flash/glm-4-plus predate even GLM-4.6 (Sept 2025); GLM-5.3
+        // is the current flagship confirmed on Z.ai's api.z.ai endpoint —
+        // this provider still points at bigmodel.cn (China-domestic), and
+        // that endpoint's exact model-id naming for the same generation
+        // wasn't independently verified.
+        "glm-5.3",
         "GLM_API_KEY",
     )
 }

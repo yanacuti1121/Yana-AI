@@ -1,0 +1,700 @@
+:root {
+  color: #36322f;
+  background: #eee9e2;
+  color-scheme: light;
+  --surface: #faf7f2;
+  --card: #faf7f2;
+  --border: #e3ddd5;
+  --muted: #827b73;
+  --accent: #b55d7a;
+  --accent-soft: #f4e5eb;
+  --green: #4f846c;
+  --radius: 7px;
+}
+
+body,
+.app,
+.workspace,
+.center,
+.main-column,
+.conversation,
+.composer-wrap,
+.settings-container,
+.settings-page,
+.files-workspace,
+.file-content {
+  background: #f7f3ed;
+}
+
+.main-column {
+  background: #f0ece6;
+}
+
+.center,
+.inspector,
+.terminal-dock {
+  background: #faf6f0d9;
+  border-color: #e4ddd4;
+  border-radius: 7px;
+  box-shadow:
+    0 1px 3px #4b40340d,
+    inset 0 1px 0 #ffffffd9;
+  backdrop-filter: blur(18px) saturate(112%);
+}
+
+.titlebar,
+.sidebar,
+.inspector,
+.inspector-tabs,
+.tabs,
+.statusbar,
+.terminal-tabs,
+.terminal-toolbar,
+.terminal-dock,
+.pane-caption {
+  background: #f0ece6e8;
+}
+
+.titlebar,
+.sidebar,
+.inspector,
+.tabs,
+.terminal-toolbar,
+.terminal-dock,
+.pane-caption,
+.settings-container {
+  border-color: var(--border);
+}
+
+input,
+textarea,
+select,
+.global-search,
+.project-switch,
+.card,
+.provider-card,
+.local-runtime-card,
+.command-search,
+.command-row,
+.external-tool-grid > div,
+.backup-dropzone,
+.composer,
+.file-search,
+.model-search,
+.model-search-result,
+.model-row,
+.model-popover,
+.palette,
+.file-picker,
+.task-create input,
+.task-row,
+.palette textarea,
+.palette select,
+.model-status-line,
+.telemetry-item,
+.attachment-chip,
+.project-memory-editor,
+.lease-grant-form,
+.lease-grant-form input,
+.pinned-commands,
+.pinned-command button:first-child,
+.pinned-command-form input {
+  color: #36322f;
+  background: #f7f3ed;
+  border-color: var(--border);
+}
+
+.telemetry-item.denied {
+  color: #a1493c;
+  background: #f6e6e2;
+}
+
+.telemetry-item.ok {
+  color: var(--green);
+}
+
+.files-dropzone-overlay {
+  background: #eee9e2cc;
+  color: #36322f;
+}
+
+.files-dropzone-overlay span {
+  color: var(--muted);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline-color: #cf819c;
+}
+
+.settings-shortcut,
+.settings-page > .button-row button,
+.terminal-empty button,
+.editor-toolbar button,
+.usage-heading button {
+  color: #625c56;
+  background: #faf7f2;
+  border-color: #ddd7cf;
+  border-radius: 7px;
+}
+
+.settings-page > .button-row button[aria-pressed="true"] {
+  color: #7d4057;
+  background: #f7e9ee;
+  border-color: #d9aebd;
+  box-shadow: none;
+}
+
+.usage-total,
+.usage-truth-note {
+  background: #faf6f1;
+  border-color: var(--border);
+}
+
+.usage-track {
+  background: #eadfe2;
+}
+
+.usage-track > span {
+  background: linear-gradient(90deg, #c8738f, #a95070);
+}
+
+button:hover:not(:disabled) {
+  background: #eae6e0;
+  border-color: #d0c9c0;
+}
+
+p,
+.muted,
+small,
+.directory-label,
+.pane-caption span:last-child,
+.message-label span {
+  color: var(--muted);
+}
+
+.sidebar nav button.selected,
+.sidebar-bottom > button.selected,
+.sidebar button.current,
+.recent button.current,
+.tabs button.active,
+.tree-item.current,
+.terminal-tab.active,
+.file-tree .current {
+  color: #754354;
+  background: linear-gradient(135deg, #ffffffc7, #f0e4e8b8);
+  border-color: #dfd4d4;
+  border-radius: 7px;
+  box-shadow:
+    0 5px 16px #71525e0c,
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(14px) saturate(118%);
+}
+
+.tree-item.current {
+  color: #5e5049;
+  background: #eeeae5;
+  border-color: #ddd7cf;
+}
+
+.project-switch,
+.runtime-chip {
+  background: linear-gradient(135deg, #fcf9f4e8, #f2ede7d1);
+  border-color: #e2ddd6;
+  border-radius: 7px;
+  box-shadow:
+    0 5px 18px #5e50440b,
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(14px) saturate(110%);
+}
+
+.runtime-chip,
+.project-card,
+.data-summary,
+.settings-card,
+.tool-card,
+.capability-card {
+  background: #f7f3ed;
+  box-shadow: 0 1px 2px #463c330d;
+}
+
+.terminal-pane,
+.terminal-emulator,
+.xterm,
+.xterm-viewport,
+.xterm-screen,
+.terminal-content.tiled > .terminal-pane {
+  background: #f7f3ed !important;
+}
+
+.editor-host,
+.cm-editor,
+.cm-scroller {
+  background: #faf7f2;
+}
+
+.terminal-pane.focused {
+  border-radius: 6px;
+  box-shadow: inset 0 2px 0 #c9859c;
+}
+
+.terminal-dock {
+  border-color: transparent;
+}
+
+.terminal-dock.ambient {
+  opacity: 0.78;
+  filter: saturate(0.7) contrast(0.97);
+  box-shadow: inset 0 1px 0 #ffffffb8;
+}
+
+.terminal-dock.engaged {
+  box-shadow:
+    0 3px 14px #5d4a3c0c,
+    inset 0 1px 0 #ffffffd9;
+}
+
+.resize-handle:hover,
+.resize-handle:active {
+  background: #c77b94;
+}
+
+.path-block,
+.credential-boundary {
+  background: #f4eee9;
+  border-color: #dfcfc5;
+  color: #65483d;
+}
+
+.brand-symbol {
+  border-color: #c66f8c;
+  background: linear-gradient(135deg, #d789a3, #a94d6c);
+  box-shadow: 0 3px 15px #a94d6c20;
+}
+
+.notice,
+.exit-status,
+.terminal-search {
+  color: #493a32;
+  background: #fff4df;
+  border-color: #e5cfaa;
+}
+
+.diff-view,
+.message-body pre,
+.runtime-events,
+.activity-list,
+.diff-comment-form,
+.diff-comment-form textarea {
+  color: #3d3834;
+  background: #f5f3ef;
+}
+
+.close-confirm-modal code {
+  color: #3d3834;
+}
+
+.inspector-tabs button {
+  color: #746d66;
+}
+
+.inspector-tabs button[aria-selected="true"] {
+  color: #6c3e30;
+  margin: 5px;
+  border-color: #dec7cf;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ffffffd9, #f0e3e8c7);
+  box-shadow:
+    0 4px 14px #654a550d,
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(14px) saturate(116%);
+}
+
+.section-label,
+.version-label,
+.provider-state,
+.data-total,
+.project-switch > svg:first-child {
+  color: #a34f6c;
+}
+
+.resize-handle.side {
+  background: #f2efea;
+  border-color: #e8e3dc;
+}
+
+.statusbar,
+.statusbar b,
+.sidebar nav button,
+.sidebar-bottom > button,
+.recent button,
+.tree-item,
+.changes-list button,
+.task-actions button,
+.terminal-tab button,
+.terminal-pane.focused > .pane-caption,
+.show-dock,
+.terminal-empty,
+.terminal-empty button,
+.inspector-heading,
+.context-facts,
+.context-facts b,
+.model-status-line,
+.model-status-line b,
+.telemetry-item,
+.telemetry-item b,
+.message-body,
+.attachment-chip,
+.model-row-main code,
+.model-row-main small,
+.model-context,
+.model-tag,
+.settings-card label,
+.data-total strong,
+.data-rows dd,
+.path-block,
+.text-button {
+  color: #5f5953;
+}
+
+.message-body {
+  color: #403a35;
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.message-label {
+  color: #312c28;
+}
+
+.message-label span {
+  color: #746b64;
+}
+
+.conversation-heading {
+  border-bottom-color: #e7dfd7;
+}
+
+.conversation-title strong {
+  color: #332f2c;
+}
+
+.conversation-heading-actions button {
+  color: #675f58;
+  background: #f8f4ef;
+  border-color: #dfd7ce;
+}
+
+.message-actions button {
+  color: #776e67;
+}
+
+.message-error-card,
+.inline-error {
+  color: #78352d;
+  background: #fff1ec;
+  border-color: #e3b2a5;
+}
+
+.message-error-card strong {
+  color: #922f27;
+}
+
+.message-error-card span {
+  color: #714139;
+}
+
+.terminal-tab.active button,
+.tree-item.current,
+.file-tree .current,
+.sidebar nav button.selected {
+  color: #5d4035;
+}
+
+.terminal-tab.active {
+  margin: 4px 1px;
+  border: 1px solid #decbd2;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ffffffd9, #f2e6eac4);
+  box-shadow:
+    0 4px 12px #654a550b,
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(12px) saturate(114%);
+}
+
+.provider-monogram,
+.model-context,
+.model-tag,
+.attachment-chip {
+  color: #725548;
+  background: #eee6df;
+}
+
+.suggestions button,
+.welcome-mark {
+  color: #5d4035;
+  background: #f3eee8;
+  border-color: #ddd3c8;
+}
+
+.message-avatar {
+  color: #fffaf4;
+  background: #bd684b;
+}
+
+.user .message-avatar {
+  background: #766c64;
+}
+
+.send-button,
+.primary {
+  color: #fffaf4;
+  background: #b55d7a;
+  border-color: #a34d69;
+}
+
+.composer {
+  border-radius: 8px;
+}
+
+.composer:focus-within {
+  border-color: #d7cbd0;
+  box-shadow:
+    0 8px 24px #5f4d400b,
+    inset 0 1px 0 #ffffff;
+}
+
+.composer-shortcuts button {
+  border-radius: 6px;
+}
+
+.composer-toolbar {
+  border-top-color: #e5ded6;
+  background: #f8f4eee0;
+  box-shadow: inset 0 1px 0 #ffffffb8;
+  backdrop-filter: blur(14px) saturate(110%);
+}
+
+.composer-shortcuts {
+  background: #eee8e1a8;
+  border-color: #e1d9d0;
+  box-shadow: inset 0 1px 0 #ffffffb3;
+}
+
+.composer-shortcuts button {
+  color: #625b55;
+}
+
+.composer-shortcuts button:hover:not(:disabled),
+.composer-shortcuts button.context-active {
+  color: #7a4056;
+  background: #fbf7f2d9;
+  box-shadow: 0 1px 4px #604c400d;
+}
+
+.composer-governance {
+  color: #756d66;
+  background: #f8f4efb8;
+  border-color: #e5ddd4;
+}
+
+.governance-popover {
+  color: #3d3834;
+  background: #fffdf9ed;
+  border-color: #ddd4cb;
+  box-shadow: 0 22px 60px #5d493524;
+}
+
+.governance-heading small,
+.governance-session {
+  color: #817970;
+}
+
+.governance-capabilities > div:nth-child(odd) {
+  background: #eee8e171;
+}
+
+.governance-capabilities .allowed {
+  color: #3f7c61;
+}
+
+.governance-capabilities .ask {
+  color: #9a6a32;
+}
+
+.governance-capabilities .unavailable {
+  color: #8d857d;
+}
+
+.governance-session {
+  border-top-color: #e4dcd3;
+}
+
+.governance-actions button {
+  color: #5d554e;
+  background: #f5efe9;
+  border-color: #ddd4cb;
+}
+
+.message {
+  border-top-color: transparent;
+}
+
+.message + .message {
+  border-top-color: #e7dfd7;
+}
+
+.runtime-events {
+  border-color: transparent;
+  background: #f0ebe5;
+  box-shadow: inset 2px 0 #d7a0b3;
+}
+
+.runtime-events > div {
+  border-top-color: #ded6cd;
+}
+
+.turn-status {
+  color: #766e67;
+  background: #f3eee8b8;
+  box-shadow: inset 2px 0 #d7a0b3;
+}
+
+.turn-status > span:not(:first-child) {
+  border-left-color: #ddd5cc;
+}
+
+.turn-status-primary {
+  color: #514a44;
+}
+
+.turn-status.completed .turn-status-primary {
+  color: #47785f;
+}
+
+.turn-status.failed .turn-status-primary {
+  color: #91483b;
+}
+
+.turn-status.stopped .turn-status-primary {
+  color: #706961;
+}
+
+.inline-error.inline-info {
+  color: #5e574f;
+  background: #f2ede7;
+  border-color: #d9d0c7;
+}
+
+.model-error-action {
+  border-top-color: #e2b8ad;
+}
+
+.model-error-action button {
+  color: #76392f;
+  background: #fffaf7;
+  border-color: #d69f91;
+}
+
+.inspector-session-summary {
+  background: #f4efe9a8;
+}
+
+.session-summary-grid > div {
+  color: #403b37;
+  background: #faf6f0;
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 #ffffffd6;
+}
+
+.session-summary-grid .session-summary-primary {
+  background: linear-gradient(135deg, #fffdf9, #f4e9ed);
+}
+
+.session-summary-grid strong {
+  color: #4a403a;
+}
+
+.session-summary-grid small,
+.session-summary-grid span {
+  color: #817970;
+}
+
+.composer-model-button {
+  color: #514b46;
+  background: #f1ebe5c9;
+  border-color: #dfd6cd;
+  box-shadow: inset 0 1px 0 #ffffffb8;
+}
+
+.composer-model-button:hover:not(:disabled) {
+  background: #faf6f1;
+  border-color: #d8cdd0;
+}
+
+.send-button {
+  background: linear-gradient(145deg, #c87591, #ac526f);
+  border-color: #a7536d;
+  box-shadow:
+    0 5px 14px #9b496725,
+    inset 0 1px 0 #ffffff52;
+}
+
+.modal-backdrop,
+.file-picker-backdrop {
+  background: #4a403533;
+}
+
+.palette,
+.file-picker,
+.diff-modal {
+  color: #393531;
+  background: #fffefa;
+  border-color: #ddd7cf;
+  box-shadow: 0 24px 80px #493b2e24;
+}
+
+.file-picker-list button.active {
+  color: #754354;
+  background: #f5e7ec;
+}
+
+.task-row,
+.task-create,
+.backup-dropzone {
+  color: #423d38;
+  background: #fffefa;
+  border-color: #e5dfd8;
+}
+
+.task-create input,
+.palette textarea,
+.palette select {
+  color: #423d38;
+  background: #fbfaf8;
+  border-color: #e3ddd6;
+}
+
+.toast {
+  color: #6b3f31;
+  background: #fff5ed;
+  border-color: #d9ad99;
+  box-shadow: 0 14px 50px #5b49331f;
+}
+
+.files-dropzone-overlay {
+  color: #6d4435;
+  background: #f6ece4e8;
+}
+
+.activity-list > div,
+.message,
+.inspector section {
+  border-color: #e4ded6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9c0b6;
+}
