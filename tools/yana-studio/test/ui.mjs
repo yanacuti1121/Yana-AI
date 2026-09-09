@@ -33,7 +33,7 @@ const server = http.createServer((request, response) => {
     response.writeHead(200, { "Content-Type": "text/event-stream" });
     const text = body.includes("WAIT_FOR_CANCEL")
       ? "Waiting "
-      : "Xin chào từ runtime thật. ";
+      : 'Xin chào từ runtime thật. **đậm** `code` <img src=x onerror="window.__xssFired = true"> ';
     let count = 0;
     const timer = setInterval(() => {
       response.write(
@@ -415,6 +415,31 @@ try {
     "Xin chào từ runtime thật.",
     { timeout: 15000 },
   );
+  // Real end-to-end proof the sanitized-Markdown pipeline (marked +
+  // DOMPurify, renderer/markdown.ts) actually renders in Chromium, not
+  // just that the type-checker is happy: **đậm**/`code` must come out as
+  // real <strong>/<code> elements, and the raw ** / ` markers must not
+  // show up literally in the rendered text.
+  await expect(
+    page.locator(".message.assistant .markdown-body strong").first(),
+  ).toHaveText("đậm");
+  await expect(
+    page.locator(".message.assistant .markdown-body code").first(),
+  ).toHaveText("code");
+  await expect(
+    page.locator(".message.assistant .message-body"),
+  ).not.toContainText("**đậm**");
+  // Same message also carries a raw <img onerror=...> XSS payload — <img>
+  // isn't in renderMarkdown()'s ALLOWED_TAGS, so DOMPurify must strip the
+  // whole element. Assert both that the handler never fired AND that no
+  // <img> element exists, not just one or the other.
+  expect(
+    await page.evaluate(() => window.__xssFired),
+    "onerror handler from an injected <img> must never execute",
+  ).toBeUndefined();
+  await expect(
+    page.locator(".message.assistant .markdown-body img"),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Dừng", exact: true }),
   ).toHaveCount(0, { timeout: 15000 });

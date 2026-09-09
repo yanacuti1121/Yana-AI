@@ -654,6 +654,72 @@ svg {
   line-height: 1.8;
   color: #c9d3e3;
 }
+.markdown-body {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.markdown-body > *:first-child {
+  margin-top: 0;
+}
+.markdown-body > *:last-child {
+  margin-bottom: 0;
+}
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote,
+.markdown-body table {
+  margin: 0 0 10px;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  margin: 16px 0 8px;
+  line-height: 1.4;
+  color: #e3e9f5;
+}
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 22px;
+}
+.markdown-body li {
+  margin-bottom: 3px;
+}
+.markdown-body code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #0d1524;
+  font-size: 12px;
+}
+.markdown-body pre {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #0d1524;
+  overflow-x: auto;
+}
+.markdown-body pre code {
+  padding: 0;
+  background: none;
+}
+.markdown-body blockquote {
+  padding-left: 12px;
+  border-left: 2px solid #3a4a68;
+  color: #8ea0bd;
+}
+.markdown-body a {
+  color: #8faae0;
+}
+.markdown-body table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.markdown-body th,
+.markdown-body td {
+  padding: 5px 9px;
+  border: 1px solid #263144;
+}
 .composer {
   position: relative;
   flex-shrink: 0;

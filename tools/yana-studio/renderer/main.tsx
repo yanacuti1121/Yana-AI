@@ -55,6 +55,7 @@ import { Permissions } from "./Permissions";
 import "./style.css";
 import "./light-theme.css";
 import { translate } from "./i18n";
+import { renderMarkdown } from "./markdown";
 import { AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
 
@@ -1363,7 +1364,21 @@ function App() {
                           </div>
                           <div className="message-body">
                             {visibleMessageContent(message) ? (
-                              visibleMessageContent(message)
+                              message.role === "assistant" ? (
+                                <div
+                                  className="markdown-body"
+                                  // Sanitized by renderMarkdown() (marked +
+                                  // DOMPurify, see owasp-llm-output-law.md) —
+                                  // never render raw marked.parse() output.
+                                  dangerouslySetInnerHTML={{
+                                    __html: renderMarkdown(
+                                      visibleMessageContent(message),
+                                    ),
+                                  }}
+                                />
+                              ) : (
+                                visibleMessageContent(message)
+                              )
                             ) : message.errorDetail ? (
                               <div className="message-error-card">
                                 <strong>Provider request failed</strong>
