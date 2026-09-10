@@ -34,6 +34,11 @@ const { ModelCredentialStore } = require("../host/model-credentials.cjs");
 const { AccountStore } = require("../host/account.cjs");
 const { ProjectMemory } = require("../host/project-memory.cjs");
 const { DiffComments } = require("../host/diff-comments.cjs");
+const { scanProjectTokens } = require("../host/design-tokens.cjs");
+const {
+  buildCanvasPrompt,
+  parseCanvasProposal,
+} = require("../host/canvas-ai.cjs");
 const {
   createBackup,
   readBackup,
@@ -259,6 +264,39 @@ test("portable backup contains only allowlisted local state", (context) => {
     profile: { provider: "openai", model: "model", baseUrl: "" },
     preferences: { locale: "vi" },
     layout: { sidebar: 250, inspector: 330, dock: 280 },
+    designs: {
+      "/tmp/project": {
+        version: 1,
+        name: "Portable design",
+        theme: {
+          accent: "#b55d7a",
+          surface: "#fffaf4",
+          foreground: "#36322f",
+          shape: "rounded",
+          font: "system",
+          motion: "standard",
+        },
+        screens: [
+          {
+            id: "home",
+            name: "Home",
+            device: "desktop",
+            background: "#f7f3ed",
+            parts: [
+              {
+                id: "button",
+                kind: "button",
+                label: "Launch Yana",
+                x: 24,
+                y: 24,
+                width: 132,
+                height: 44,
+              },
+            ],
+          },
+        ],
+      },
+    },
     runtime: "/private/runtime",
     encryptedKey: "secret-key",
     account: { verifier: "secret-password-verifier" },
@@ -273,8 +311,202 @@ test("portable backup contains only allowlisted local state", (context) => {
     /secret-key|secret-password-verifier|private\/runtime|secret-approval/,
   );
   assert.equal(readBackup(file).chats[0].messages[0].content, "portable");
+  assert.equal(
+    readBackup(file).designs["/tmp/project"].screens[0].parts[0].label,
+    "Launch Yana",
+  );
   fs.writeFileSync(file, JSON.stringify({ format: "other", version: 1 }));
   assert.throws(() => readBackup(file), /Unsupported/);
+});
+test("design canvas state persists with bounded validated documents", (context) => {
+  const root = fixture(context);
+  const store = new Store(root);
+  const projectRoot = path.join(root, "project");
+  const document = {
+    version: 1,
+    name: "App concept",
+    theme: {
+      accent: "#b55d7a",
+      surface: "#fffaf4",
+      foreground: "#36322f",
+      shape: "rounded",
+      font: "system",
+      motion: "standard",
+    },
+    screens: [
+      {
+        id: "home",
+        name: "Home",
+        device: "phone",
+        background: "#f7f3ed",
+        parts: [
+          {
+            id: "button",
+            kind: "button",
+            label: "Launch Yana",
+            x: 20,
+            y: 20,
+            width: 132,
+            height: 44,
+            opacity: 0.7,
+            fill: "#ffffff",
+            radius: 12,
+            locked: false,
+            hidden: false,
+          },
+        ],
+      },
+    ],
+  };
+  store.save({ designs: { [projectRoot]: document } });
+  assert.equal(
+    new Store(root).value.designs[projectRoot].screens[0].parts[0].label,
+    "Launch Yana",
+  );
+  assert.throws(
+    () =>
+      store.save({
+        designs: {
+          [projectRoot]: {
+            ...document,
+            screens: [
+              {
+                ...document.screens[0],
+                parts: [
+                  {
+                    ...document.screens[0].parts[0],
+                    opacity: 2,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+    /Invalid design canvas state/,
+  );
+});
+test("Canvas AI accepts bounded structured edits and rejects unsafe targets", () => {
+  const document = {
+    version: 1,
+    name: "Login",
+    theme: {
+      accent: "#b55d7a",
+      surface: "#fffaf4",
+      foreground: "#36322f",
+      shape: "rounded",
+      font: "system",
+      motion: "standard",
+    },
+    screens: [
+      {
+        id: "screen-home",
+        name: "Home",
+        device: "desktop",
+        background: "#f7f3ed",
+        parts: [
+          {
+            id: "title",
+            kind: "text",
+            label: "Welcome",
+            x: 20,
+            y: 20,
+            width: 240,
+            height: 46,
+          },
+        ],
+      },
+    ],
+  };
+  const proposal = parseCanvasProposal(
+    JSON.stringify({
+      summary: "Đổi tiêu đề và thêm biểu mẫu",
+      operations: [
+        {
+          type: "update_part",
+          screenId: "screen-home",
+          partId: "title",
+          patch: { label: "Đăng nhập", fill: "#ffffff", radius: 12 },
+        },
+        {
+          type: "add_part",
+          screenId: "screen-home",
+          part: {
+            kind: "select",
+            label: "Chọn workspace",
+            x: 20,
+            y: 90,
+            width: 220,
+            height: 48,
+          },
+        },
+      ],
+    }),
+    document,
+  );
+  assert.equal(proposal.operations.length, 2);
+  assert.match(
+    buildCanvasPrompt(document, "Tạo màn hình đăng nhập", {
+      screenId: "screen-home",
+      partId: "title",
+    }),
+    /Selected component: title/,
+  );
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Sai mục tiêu",
+          operations: [
+            {
+              type: "delete_part",
+              screenId: "screen-home",
+              partId: "unknown",
+            },
+          ],
+        }),
+        document,
+      ),
+    /unknown component/,
+  );
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Thuộc tính nguy hiểm",
+          operations: [
+            {
+              type: "update_part",
+              screenId: "screen-home",
+              partId: "title",
+              patch: { __proto__: { compromised: true }, source: "file:///" },
+            },
+          ],
+        }),
+        document,
+      ),
+    /unsupported part property/,
+  );
+  const locked = structuredClone(document);
+  locked.screens[0].parts[0].locked = true;
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Không được vượt khóa",
+          operations: [
+            {
+              type: "update_part",
+              screenId: "screen-home",
+              partId: "title",
+              patch: { label: "Changed" },
+            },
+          ],
+        }),
+        locked,
+      ),
+    /locked component/,
+  );
 });
 test("project access requires explicit registration", (context) => {
   const root = fixture(context);
@@ -817,4 +1049,48 @@ test("independent terminal IDs, monotonically unique titles, resize and cleanup"
     proc.exit({ exitCode: 0 });
   }
   assert.equal(manager.closing.size, 0);
+});
+test("scanProjectTokens finds real CSS custom properties and normalizes hex", (context) => {
+  const root = fixture(context);
+  fs.writeFileSync(
+    path.join(root, "theme.css"),
+    ":root {\n  --accent-color: #Ab12Cd;\n  --brand-foreground: #eee;\n}\n",
+  );
+  const found = scanProjectTokens(root);
+  assert.equal(found.accent.value, "#ab12cd");
+  assert.equal(found.accent.file, "theme.css");
+  assert.equal(found.foreground.value, "#eeeeee");
+  assert.equal(found.surface, undefined);
+});
+test("scanProjectTokens ignores node_modules and returns nothing when no token matches", (context) => {
+  const root = fixture(context);
+  fs.mkdirSync(path.join(root, "node_modules", "some-lib"), {
+    recursive: true,
+  });
+  fs.writeFileSync(
+    path.join(root, "node_modules", "some-lib", "style.css"),
+    ":root { --accent: #ff0000; }\n",
+  );
+  fs.writeFileSync(
+    path.join(root, "plain.css"),
+    // Regression case: "context"/"tabgroup" contain the substrings
+    // "text"/"bg" but must not be mistaken for --text-/--bg- tokens —
+    // each keyword must land on its own hyphen-delimited segment.
+    ".x { color: red; }\n" +
+      ":root { --context-color: #111111; --tabgroup-color: #222222; }\n",
+  );
+  const found = scanProjectTokens(root);
+  assert.deepEqual(found, {});
+});
+test("scanProjectTokens does not crash on an oversized or non-UTF8 CSS file", (context) => {
+  const root = fixture(context);
+  fs.writeFileSync(
+    path.join(root, "huge.css"),
+    "x".repeat(300 * 1024) + "--accent: #123456;",
+  );
+  fs.writeFileSync(
+    path.join(root, "binary.css"),
+    Buffer.from([0x00, 0xff, 0xfe, 0x01, 0x02]),
+  );
+  assert.doesNotThrow(() => scanProjectTokens(root));
 });

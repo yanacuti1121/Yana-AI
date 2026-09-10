@@ -34,12 +34,14 @@ const methods = [
   "terminalClose",
   "saveLayout",
   "savePreferences",
+  "completeOnboarding",
   "saveProfile",
   "clearProviderKey",
   "discoverModels",
   "inspectLocalModels",
   "chooseRuntime",
   "newChat",
+  "removeChat",
   "sendChat",
   "stopChat",
   "decideApproval",
@@ -61,6 +63,10 @@ const methods = [
   "diffCommentList",
   "diffCommentCreate",
   "diffCommentRemove",
+  "designCanvasLoad",
+  "designCanvasSave",
+  "designCanvasSuggest",
+  "scanDesignTokens",
 ];
 const bridge = Object.fromEntries(
   methods.map((method) => [

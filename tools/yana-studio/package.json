@@ -1,7 +1,7 @@
 {
   "name": "yana-studio",
   "productName": "Yana Studio",
-  "version": "0.1.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
@@ -14,17 +14,59 @@
     "stage:runtime": "node scripts/stage-runtime.cjs",
     "rebuild": "electron-rebuild -f -w node-pty",
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
-    "format:check": "prettier --check host renderer test scripts *.json *.ts *.html"
+    "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
+    "dist:mac": "npm run build && electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.yana-ai.studio",
+    "productName": "Yana Studio",
+    "artifactName": "Yana-Studio-${version}-${arch}.${ext}",
+    "copyright": "Copyright © 2026 Vũ Văn Tâm",
+    "icon": "build/icon.png",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "host/**/*.cjs",
+      "dist/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "runtime",
+        "to": "runtime",
+        "filter": [
+          "yana-rt",
+          "yana-rt.exe",
+          "manifest.json"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    }
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
     "@codemirror/theme-one-dark": "^6.1.3",
-    "@xterm/xterm": "^6.0.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-search": "^0.16.0",
     "@xterm/addon-webgl": "^0.19.0",
+    "@xterm/xterm": "^6.0.0",
     "codemirror": "^6.0.2",
+    "dompurify": "^3.4.15",
     "lucide-react": "^0.577.0",
+    "marked": "^18.0.12",
     "node-pty": "^1.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -36,6 +78,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "43.4.1",
+    "electron-builder": "26.15.3",
     "prettier": "^3.6.0",
     "typescript": "^5.9.0",
     "vite": "^6.4.3"

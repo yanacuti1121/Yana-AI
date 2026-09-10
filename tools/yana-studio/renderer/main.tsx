@@ -15,6 +15,7 @@ import {
   GitBranch,
   GitCompareArrows,
   ListTodo,
+  LayoutTemplate,
   Maximize2,
   MessageSquare,
   Minimize2,
@@ -55,8 +56,11 @@ import { Permissions } from "./Permissions";
 import "./style.css";
 import "./light-theme.css";
 import { translate } from "./i18n";
+import { renderMarkdown } from "./markdown";
 import { AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
+import { DesignCanvas } from "./DesignCanvas";
+import { WelcomeOnboarding } from "./WelcomeOnboarding";
 
 const Terminal = lazy(() =>
   import("./Terminal").then((module) => ({ default: module.Terminal })),
@@ -74,6 +78,7 @@ const emptyGit: GitState = {
 type Surface =
   | "chat"
   | "files"
+  | "design"
   | "settings"
   | "terminal"
   | "tasks"
@@ -128,6 +133,7 @@ function App() {
   const [palette, setPalette] = useState(false);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [layout, setLayout] = useState<Layout>({
     sidebar: 250,
     inspector: 330,
@@ -353,6 +359,14 @@ function App() {
       setChats((previous) => [...previous, created]);
       setChatId(created.id);
       openChat();
+    });
+  const removeChat = (id: string) =>
+    run(async () => {
+      if (!window.confirm("Xóa cuộc trò chuyện này? Không thể hoàn tác."))
+        return;
+      await window.studio.removeChat(id);
+      setChats((previous) => previous.filter((item) => item.id !== id));
+      if (chatId === id) setChatId("");
     });
   const addTerminal = () =>
     run(async () => {
@@ -718,12 +732,35 @@ function App() {
     return (
       <AccountUnlock state={state} onState={setState} onError={setNotice} />
     );
+  if (
+    state.account.configured &&
+    (!state.onboardingCompleted || showOnboarding)
+  )
+    return (
+      <WelcomeOnboarding
+        locale={state.preferences.locale}
+        displayName={state.account.displayName}
+        onComplete={async () => {
+          setState(await window.studio.completeOnboarding());
+          setShowOnboarding(false);
+        }}
+        onOpenProject={async () => {
+          const selected = await window.studio.openProject();
+          if (selected) await switchProject(selected);
+        }}
+      />
+    );
   const t = translate(state.preferences.locale);
   const commands = [
     { label: "Mở project…", icon: FolderOpen, action: openProject },
     { label: "Cuộc trò chuyện mới", icon: MessageSquare, action: newChat },
     { label: "Tạo terminal", icon: TerminalSquare, action: addTerminal },
     { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
+    {
+      label: "Design Canvas",
+      icon: LayoutTemplate,
+      action: () => setSurface("design"),
+    },
     { label: "Tasks", icon: ListTodo, action: () => setSurface("tasks") },
     {
       label: "Devices",
@@ -839,6 +876,13 @@ function App() {
             >
               <Files size={17} />
               <span>{t("files")}</span>
+            </button>
+            <button
+              className={surface === "design" ? "selected" : ""}
+              onClick={() => setSurface("design")}
+            >
+              <LayoutTemplate size={17} />
+              <span>Thiết kế</span>
             </button>
             <button
               className={surface === "tasks" ? "selected" : ""}
@@ -970,6 +1014,7 @@ function App() {
                     await window.studio.terminalWrite(target.id, command);
                 });
               }}
+              onShowOnboarding={() => setShowOnboarding(true)}
             />
           </main>
         )}
@@ -998,6 +1043,18 @@ function App() {
                   >
                     {item.running && <span className="dot blue" />}
                     <span className="tab-label">{item.title}</span>
+                    <span
+                      className="tab-close"
+                      role="button"
+                      aria-label={`Xóa "${item.title}"`}
+                      title="Xóa cuộc trò chuyện"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void removeChat(item.id);
+                      }}
+                    >
+                      <X size={12} />
+                    </span>
                   </button>
                 ))}
                 <button
@@ -1015,6 +1072,19 @@ function App() {
                 <Devices onError={setNotice} />
               ) : surface === "permissions" ? (
                 <Permissions root={project?.root || ""} onError={setNotice} />
+              ) : surface === "design" ? (
+                <DesignCanvas
+                  root={project?.root || ""}
+                  onError={setNotice}
+                  onPrompt={(prompt) => {
+                    setDrafts((previous) => ({
+                      ...previous,
+                      [draftKey]: prompt,
+                    }));
+                    openChat();
+                    requestAnimationFrame(() => composerInput.current?.focus());
+                  }}
+                />
               ) : surface === "files" ? (
                 <div
                   className={`files-workspace ${filesDragOver ? "drag-over" : ""}`}
@@ -1343,7 +1413,21 @@ function App() {
                           </div>
                           <div className="message-body">
                             {visibleMessageContent(message) ? (
-                              visibleMessageContent(message)
+                              message.role === "assistant" ? (
+                                <div
+                                  className="markdown-body"
+                                  // Sanitized by renderMarkdown() (marked +
+                                  // DOMPurify, see owasp-llm-output-law.md) —
+                                  // never render raw marked.parse() output.
+                                  dangerouslySetInnerHTML={{
+                                    __html: renderMarkdown(
+                                      visibleMessageContent(message),
+                                    ),
+                                  }}
+                                />
+                              ) : (
+                                visibleMessageContent(message)
+                              )
                             ) : message.errorDetail ? (
                               <div className="message-error-card">
                                 <strong>Provider request failed</strong>
@@ -2003,7 +2087,7 @@ function App() {
       </div>
       <footer className="statusbar">
         <span>
-          <span className="brand-dot" /> Yana Studio <b>0.1.0</b>
+          <span className="brand-dot" /> Yana Studio <b>{state.version}</b>
         </span>
         <span>{state.platform}</span>
         <span className="status-right">

@@ -29,6 +29,7 @@ const messages = {
     settingsTitle: "Cài đặt Yana Studio",
     settingsDescription:
       "Quản lý giao diện, model, runtime và kết nối trong một nơi.",
+    showIntroduction: "Xem lại giới thiệu Studio",
     backWorkspace: "Workspace",
     terminalEmpty:
       "Shell thật · Unicode · ANSI 16 màu · tìm kiếm ⌘F · nhiều tab",
@@ -64,6 +65,7 @@ const messages = {
     commands: "Yana 명령",
     settingsTitle: "Yana Studio 설정",
     settingsDescription: "화면, 모델, 런타임과 연결을 한곳에서 관리합니다.",
+    showIntroduction: "Studio 소개 다시 보기",
     backWorkspace: "워크스페이스",
     terminalEmpty: "실제 셸 · Unicode · ANSI 16색 · ⌘F 검색 · 다중 탭",
     openTerminal: "터미널 열기",
@@ -100,6 +102,7 @@ const messages = {
     settingsTitle: "Yana Studio Settings",
     settingsDescription:
       "Manage appearance, models, runtime, and connections in one place.",
+    showIntroduction: "Replay Studio introduction",
     backWorkspace: "Workspace",
     terminalEmpty:
       "Real shell · Unicode · 16-color ANSI · ⌘F search · multiple tabs",
