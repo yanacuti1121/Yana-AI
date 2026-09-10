@@ -154,7 +154,7 @@ feature đã có — đúng yêu cầu trực tiếp của anh.
 | Route cũ | Route mới | Ghi chú |
 |---|---|---|
 | `yana.vutam.link/` (mọi thứ dồn 1 trang) | `yana.vutam.link/` (trang chủ ecosystem MỚI) + `/studio` (Desktop app content cũ dời sang đây, đổi tên rõ) | Trang chủ cũ sẽ chuyển thành nội dung của `/studio` hoặc `/download`, không xoá — chi tiết ở `ROUTE_MAP.md` |
-| `yana.vutam.link/desktop.html` | 301 redirect → `/download` hoặc `/studio` | Cần quyết định cụ thể — xem `ROUTE_MAP.md` mục "cần anh quyết" |
+| `yana.vutam.link/desktop.html` | **Đã xoá (2026-09-10)** — không redirect | Quyết định của anh: chỉ giữ đúng 1 trang `yana.vutam.link` |
 
 ## Điều KHÔNG làm (đúng luật Absolute Rule #1/#2 của anh)
 

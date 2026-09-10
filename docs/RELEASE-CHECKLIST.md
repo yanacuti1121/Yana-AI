@@ -147,13 +147,14 @@ tag itself, not just buried in a prior CI run. It does not auto-fix
 narrative prose (e.g. a "### What's new in vX.Y.Z" section) — that stays
 a human call.
 
-**Known, deliberate gap:** `docs/desktop.html`'s version badge and
-download links are *not* covered by `su-gia` — they track the Desktop
-app's own most-recently-*published* release, which is only equal to the
-Product version once that specific tag's desktop build/publish job has
-actually succeeded (not simply "whenever a `v*` tag exists"). Auto-
-syncing it the same way risks advertising a download that doesn't exist
-yet. Needs its own investigation before automating.
+**Resolved gap (was: `docs/desktop.html`'s version badge and download
+links, 2026-08–2026-09).** That file used to carry its own gap here — its
+badge tracked the Desktop app's own most-recently-*published* release
+rather than the Product version, so `su-gia` deliberately left it
+uncovered rather than risk advertising a download that didn't exist yet.
+The file was retired 2026-09 (anh's decision: one page,
+`yana.vutam.link` = `docs/index.html`); the gap no longer applies because
+there is nothing left to leave uncovered.
 
 **2026-08-23 update — closing the "found by chance" gap directly.** Every
 drift incident above (this section's own opening example, plus PyPI's
@@ -166,8 +167,9 @@ existing tag-push trigger), and `open-fix-pr` fires on drift found by
 either trigger, not just a tag push — so drift introduced between tags
 (a doc hand-edited, a mirror never resynced) gets the same auto-fix-PR
 treatment. `su-gia` itself gained two checks it didn't have before:
-- **Byte-identical mirror check** between `docs/{index,desktop}.html` and
-  their `.claude/docs/` runtime copies — the two previously could (and
+- **Byte-identical mirror check** between `docs/index.html` and its
+  `.claude/docs/` runtime copy (and, until `docs/desktop.html` was
+  retired 2026-09, that file's copy too) — the two previously could (and
   did) diverge invisibly, since every existing check greeps each file's
   counts independently and never compared the files to each other. This
   is exactly how `.claude/docs/desktop.html` was found frozen on an

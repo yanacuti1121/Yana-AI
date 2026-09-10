@@ -34,17 +34,22 @@ findings before beginning the full implementation."*
 - Continuity Engine = 0 code, chỉ nhắc ở `/roadmap` nếu anh muốn công khai.
 - Yana OS quan hệ với Yana AI = CHA-CON (nền tảng bên dưới), không phải
   nhánh ngang hàng Studio — xác nhận bằng lời anh trong Program K Phase 0.
+- `docs/desktop.html` — **xoá hoàn toàn**, không redirect. `yana.vutam.link`
+  giờ đúng 1 trang (`docs/index.html`) làm homepage ecosystem. Đã dọn mọi
+  tham chiếu: `check_counts.py` (core + .claude), `drift-check.sh`,
+  `tests/test_project_metadata.py`, `VERSIONING.md`,
+  `docs/RELEASE-CHECKLIST.md`, `.github/workflows/herald.yml`, nav của
+  `docs/commands.html`.
 
 ## Việc treo cần anh quyết trước khi qua Phase 2 (tổng hợp từ các file trên)
 
-1. **`ROUTE_MAP.md`** — `docs/desktop.html` giữ (redirect) hay xoá?
-2. **`ROUTE_MAP.md` mục Framework** — đồng ý ngoại lệ dùng doc-site
+1. **`ROUTE_MAP.md` mục Framework** — đồng ý ngoại lệ dùng doc-site
    generator riêng cho `/docs`, hay muốn 100% tự viết để nhất quán?
-3. **`DESIGN_SYSTEM.md` mục 2** — kích thước hero: theo brief gốc
+2. **`DESIGN_SYSTEM.md` mục 2** — kích thước hero: theo brief gốc
    (`clamp(4rem,8vw,8rem)`) hay giữ nhịp gần site hiện tại hơn (em đề xuất
    `clamp(3.5rem,7vw,6.5rem)`)?
-4. **`MEDIA_INVENTORY.md`** — ảnh Studio thật (đã hỏi 2 lần, chưa nhận).
-5. **`Yana-AI-Chat_Teminal`** — có muốn công khai hướng "Terminal thế hệ
+3. **`MEDIA_INVENTORY.md`** — ảnh Studio thật (đã hỏi 2 lần, chưa nhận).
+4. **`Yana-AI-Chat_Teminal`** — có muốn công khai hướng "Terminal thế hệ
    kế tiếp" trên `/roadmap`, hay giữ hoàn toàn kín cho tới khi nối
    `yana-rt` thật?
 7. **`YANA-BUILD-JOURNEY-DRAFT.md`** — duyệt bản rút gọn cuối cho `/story`

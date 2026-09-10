@@ -45,20 +45,9 @@ README_FILES = ("README.md", "README.ko.md", "README.vi.md", "README.zh.md")
 MARKETING_FILES = (
     "skills/yana-ai/SKILL.md",
     "docs/index.html",
-    "docs/desktop.html",
     "docs/commands.html",
     ".claude/docs/index.html",
-    ".claude/docs/desktop.html",
 )
-# Files whose Product-version display (MANIFEST.json's top-level "version")
-# gets checked/fixed in addition to component counts. Deliberately narrower
-# than MARKETING_FILES: docs/desktop.html's version badge and download URLs
-# track the Desktop app's own most-recently-*published* release (same v*
-# tag namespace, but only true once that tag's desktop build/publish job
-# actually succeeds) rather than "whatever MANIFEST.json currently says" --
-# auto-rewriting it here could advertise a download that doesn't exist yet
-# if a tag's desktop build failed. Left out of this list deliberately, not
-# an oversight -- see docs/RELEASE-CHECKLIST.md's Sứ Giả section.
 VERSION_FILES = ("docs/index.html", "docs/commands.html", *README_FILES)
 # Each entry is (pattern, replacement-template); the template embeds the
 # literal "v" prefix itself where the surrounding markup uses one, rather
@@ -107,11 +96,11 @@ ARCHITECTURE_FILE = "docs/reference/architecture.md"
 # copy Claude Code actually reads; docs/* is canonical. Divergence here is
 # invisible to every count/version check above: both files can independently
 # report "correct" counts while looking nothing alike. This is exactly how
-# .claude/docs/desktop.html was found frozen on an entire prior visual
+# .claude/docs/desktop.html (retired 2026-09; yana.vutam.link is now a
+# single page, docs/index.html) was found frozen on an entire prior visual
 # redesign, undetected by any check, until a manual fix in PR #241.
 MIRROR_PAIRS: tuple[tuple[str, str], ...] = (
     ("docs/index.html", ".claude/docs/index.html"),
-    ("docs/desktop.html", ".claude/docs/desktop.html"),
 )
 
 # Anchors for count claims _replace_claims()'s generic "<number> <label>"

@@ -46,9 +46,9 @@ plan cho route cũ. Đây là bản đề xuất — cần anh xác nhận trư�
 
 | Route cũ | Trạng thái hiện tại | Đề xuất |
 |---|---|---|
-| `yana.vutam.link/` | Trang download Desktop app duy nhất | Trở thành trang chủ ecosystem MỚI — nội dung Desktop-app-download cũ dời sang `/studio/downloads` hoặc `/download` (xem mục "Cần anh quyết" dưới) |
-| `yana.vutam.link/desktop.html` | Bản gần-song-song với `/`, câu hỏi này đã hỏi anh 2 lần trong phiên trước, **chưa có câu trả lời** | Đề xuất: 301 → `/studio` (vì nội dung file này thực chất đang nói về app Desktop, gần với vai trò Studio/product-page hơn là trang chủ ecosystem). **Cần anh xác nhận — đây là quyết định ảnh hưởng SEO, không tự quyết.** |
-| `.claude/docs/index.html`, `.claude/docs/desktop.html` | Bản mirror byte-identical (yêu cầu bởi `check_counts.py`) | Giữ nguyên cơ chế mirror — bất kỳ file `docs/*.html` mới cũng cần mirror tương ứng nếu `MIRROR_PAIRS` trong `check_counts.py` được mở rộng, hoặc bỏ mirror nếu 2 file cũ bị xoá hoàn toàn (cần sửa `check_counts.py`, không tự ý xoá ràng buộc) |
+| `yana.vutam.link/` | Trang chủ ecosystem (đã redesign, PR #325) | ✅ Giữ nguyên — đây chính là route duy nhất |
+| `yana.vutam.link/desktop.html` | **ĐÃ XOÁ (2026-09-10, quyết định của anh: "xóa chỉ giữ đúng một trang duy nhất yana.vutam.link")** | Không redirect — file không còn tồn tại. Mọi link nội bộ từng trỏ tới `/desktop.html` (`docs/commands.html` nav) đã cập nhật sang `/#ecosystem` + `/governance.html`. |
+| `.claude/docs/index.html` | Bản mirror byte-identical (yêu cầu bởi `check_counts.py`) | ✅ Giữ — `MIRROR_PAIRS` trong `check_counts.py` giờ chỉ còn đúng 1 cặp (index.html), đã xoá cặp desktop.html khỏi cả `core/scripts/` và `.claude/scripts/` |
 
 ## Đã quyết (anh Tâm, 2026-09-10)
 
@@ -61,12 +61,14 @@ plan cho route cũ. Đây là bản đề xuất — cần anh xác nhận trư�
    detection, platform instructions, macOS/Windows/Linux install steps) —
    chuyển sang kiến trúc phân phối ecosystem, không viết lại từ đầu.
 
-## Cần anh quyết trước khi build (không tự chọn)
-
-1. **`docs/desktop.html` giữ hay xoá hoàn toàn?** Nếu route mới không cần
-   1 bản gần-song-song với `/`, file này có thể nghỉ hưu (redirect, không
-   xoá code — theo thói quen repo giữ file cũ làm historical reference,
-   xem cách `docs/ARCHITECTURE.md` tự nhận lỗi thời nhưng không bị xoá).
+2. ✅ **`docs/desktop.html` — xoá hoàn toàn** (anh Tâm, 2026-09-10). Đã xoá
+   `docs/desktop.html` + `.claude/docs/desktop.html`, gỡ khỏi
+   `MIRROR_PAIRS`/`MARKETING_FILES` trong `core/scripts/check_counts.py`
+   và `.claude/scripts/check_counts.py`, gỡ khỏi vòng lặp
+   `check_doc_stat` trong `core/scripts/drift-check.sh`, cập nhật
+   `tests/test_project_metadata.py` (1 test viết lại để không phụ thuộc
+   cặp mirror đã xoá), `VERSIONING.md`, `docs/RELEASE-CHECKLIST.md`,
+   `.github/workflows/herald.yml`, và nav của `docs/commands.html`.
 
 ## Framework — khuyến nghị (đã audit `yana-web`, xem mục 13 brief anh)
 

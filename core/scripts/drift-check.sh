@@ -311,8 +311,8 @@ PYEOF
   # of the three count-validator scripts wired into CI
   # (.github/workflows/ci.yml), but it only checked marketplace.json's
   # STRUCTURED stats.* fields above, not free-text prose mentions like
-  # "60 hooks" embedded in docs/index.html, docs/desktop.html, and
-  # skills/yana-ai/SKILL.md. validate-counts.sh had this exact check all
+  # "60 hooks" embedded in docs/index.html and skills/yana-ai/SKILL.md.
+  # validate-counts.sh had this exact check all
   # along and would have caught real drift (hooks 60 vs actual 61, found
   # live the same day this port was written) — it just never ran in CI.
   # Known limit: numbers split across separate HTML elements (e.g. a
@@ -341,8 +341,7 @@ PYEOF
   commands_canonical=$(manifest_count commands)
 
   for f in .claude-plugin/marketplace.json skills/yana-ai/SKILL.md \
-           docs/index.html docs/desktop.html \
-           .claude/docs/index.html .claude/docs/desktop.html; do
+           docs/index.html .claude/docs/index.html; do
     [[ "$hooks_canonical" != "-1" ]]    && check_doc_stat "$f" "hooks"    "$hooks_canonical"
     [[ "$skills_canonical" != "-1" ]]   && check_doc_stat "$f" "skills"   "$skills_canonical"
     [[ "$rules_canonical" != "-1" ]]    && check_doc_stat "$f" "rules"    "$rules_canonical"
