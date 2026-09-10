@@ -8,6 +8,45 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## v1.5.0 — ecosystem launch: yana.vutam.link rebuilt, Product/PyPI/crates.io synced — 2026-09-10
+
+First coordinated version bump across all three independent axes
+(Product, `yana-rt` on crates.io, `yana-ai` on PyPI) — see
+`VERSIONING.md` for why they normally move independently; this release
+deliberately syncs them to mark the ecosystem's public launch as one
+event rather than three staggered ones.
+
+**yana.vutam.link rebuilt around the ecosystem, not one app.** The
+public site used to open with "Your AI assistant, running on your
+machine" and a nav reading "Yana AI DESKTOP" — accurate for the Desktop
+app, misleading about everything else Yana actually is. New hero ("Run
+any AI. Keep the authority."), a two-column "Intelligence is not
+authority" section, and an honest "One ecosystem" section with real
+status badges (Live / In development / Experimental) sourced from a
+verified truth matrix, not asserted from memory. Three new real pages —
+`/runtime.html`, `/governance.html`, `/integrations.html` — replace
+external GitHub links with actual content, including a per-host
+enforcement breakdown for Claude Code, Codex, Cursor, and Antigravity
+that does not flatten their real differences into one "works
+everywhere" claim. `docs/desktop.html`, a near-duplicate of the
+homepage, was retired; `yana.vutam.link` is now a single canonical page
+plus these new sub-pages.
+
+**README.md** gained a "One ecosystem" section naming Yana Studio and
+Yana Wheelbot for the first time — both existed in the codebase/org
+before this release but were absent from the project's own front door.
+Status labels match the website's truth matrix exactly (Studio: In
+development, `v0.1.0`; Wheelbot: Experimental, hardware unaudited from
+this repo). README's translations (`README.ko.md`, `README.vi.md`,
+`README.zh.md`) do not yet include this new section — flagged as a
+known follow-up, not silently skipped.
+
+Full audit trail behind this release: `docs/YANA-DEEP-ARCHITECTURE.md`,
+`docs/YANA-ECOSYSTEM-MAP.md`, `docs/website/PRODUCT_TRUTH_MATRIX.md`,
+and `docs/website/SOURCE_OF_TRUTH_GRAPH.md`.
+
+---
+
 ## yana-rt: Windows support for flock-v1 locking — 2026-09-04
 
 Fixes a real bug, not just a CI annoyance: Yana Desktop's Autonomy/Approval
