@@ -60,6 +60,7 @@ import { renderMarkdown } from "./markdown";
 import { AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
 import { DesignCanvas } from "./DesignCanvas";
+import { WelcomeOnboarding } from "./WelcomeOnboarding";
 
 const Terminal = lazy(() =>
   import("./Terminal").then((module) => ({ default: module.Terminal })),
@@ -132,6 +133,7 @@ function App() {
   const [palette, setPalette] = useState(false);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [layout, setLayout] = useState<Layout>({
     sidebar: 250,
     inspector: 330,
@@ -730,6 +732,24 @@ function App() {
     return (
       <AccountUnlock state={state} onState={setState} onError={setNotice} />
     );
+  if (
+    state.account.configured &&
+    (!state.onboardingCompleted || showOnboarding)
+  )
+    return (
+      <WelcomeOnboarding
+        locale={state.preferences.locale}
+        displayName={state.account.displayName}
+        onComplete={async () => {
+          setState(await window.studio.completeOnboarding());
+          setShowOnboarding(false);
+        }}
+        onOpenProject={async () => {
+          const selected = await window.studio.openProject();
+          if (selected) await switchProject(selected);
+        }}
+      />
+    );
   const t = translate(state.preferences.locale);
   const commands = [
     { label: "Mở project…", icon: FolderOpen, action: openProject },
@@ -994,6 +1014,7 @@ function App() {
                     await window.studio.terminalWrite(target.id, command);
                 });
               }}
+              onShowOnboarding={() => setShowOnboarding(true)}
             />
           </main>
         )}

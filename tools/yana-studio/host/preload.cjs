@@ -34,6 +34,7 @@ const methods = [
   "terminalClose",
   "saveLayout",
   "savePreferences",
+  "completeOnboarding",
   "saveProfile",
   "clearProviderKey",
   "discoverModels",
@@ -64,6 +65,7 @@ const methods = [
   "diffCommentRemove",
   "designCanvasLoad",
   "designCanvasSave",
+  "designCanvasSuggest",
   "scanDesignTokens",
 ];
 const bridge = Object.fromEntries(

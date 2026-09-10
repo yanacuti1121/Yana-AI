@@ -23,6 +23,11 @@ const { ProjectMemory } = require("./project-memory.cjs");
 const { RunCommands } = require("./run-commands.cjs");
 const { DiffComments } = require("./diff-comments.cjs");
 const { scanProjectTokens } = require("./design-tokens.cjs");
+const {
+  buildCanvasPrompt,
+  parseCanvasProposal,
+  validateCanvasDocument,
+} = require("./canvas-ai.cjs");
 const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
@@ -421,6 +426,7 @@ app.whenReady().then(() => {
   });
   register("accountLogout", () => {
     accounts.logout();
+    store.save({ onboardingCompleted: false });
     return publicState();
   });
   register("dataOverview", () => dataOverview.inspect());
@@ -586,6 +592,79 @@ app.whenReady().then(() => {
     });
     return store.value.designs[root];
   });
+  register("designCanvasSuggest", (root, document, instruction, selection) => {
+    projects.resolve(root);
+    validateCanvasDocument(document);
+    if (!store.value.runtime)
+      throw new Error("Configure the Yana runtime before using Canvas AI");
+    if (!store.value.profile.model)
+      throw new Error("Choose a model before using Canvas AI");
+    const task = buildCanvasPrompt(document, instruction, selection);
+    const profile = store.value.profile;
+    const canvasRoot = path.join(app.getPath("userData"), "canvas-ai-sandbox");
+    fs.mkdirSync(canvasRoot, { recursive: true, mode: 0o700 });
+    return new Promise((resolve, reject) => {
+      let response = "";
+      let completed = false;
+      let runtimeError = "";
+      let controller;
+      try {
+        controller = startRuntime(
+          store.value.runtime,
+          canvasRoot,
+          profile,
+          {
+            task,
+            session_id: `canvas-ai-${crypto.randomUUID()}`,
+            api_key: key(profile.provider),
+            system:
+              "Return only the requested structured Canvas JSON. Never call tools, access files, run commands, or use the network except for the selected model provider.",
+            ...(profile.provider === "custom"
+              ? {
+                  base_url: profile.baseUrl,
+                  custom_keyless: !key(profile.provider),
+                }
+              : {}),
+          },
+          (event) => {
+            if (event.type === "text_delta")
+              response = (response + (event.text || "")).slice(0, 200000);
+            if (event.type === "completed") {
+              response = (event.message || response).slice(0, 200000);
+              completed = true;
+            }
+            if (event.type === "error") runtimeError = event.message;
+            if (event.type === "authority_denied")
+              runtimeError = `${event.authority}: ${event.reason}`;
+            if (event.type === "awaiting_approval") {
+              runtimeError =
+                "Canvas AI attempted to use a tool, so Yana stopped the proposal";
+              controller?.stop();
+            }
+          },
+          () => {
+            if (runtimeError) {
+              reject(new Error(runtimeError));
+              return;
+            }
+            if (!completed) {
+              reject(
+                new Error("Canvas AI stopped before returning a proposal"),
+              );
+              return;
+            }
+            try {
+              resolve(parseCanvasProposal(response, document));
+            } catch (error) {
+              reject(error);
+            }
+          },
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
   register("scanDesignTokens", (root) => {
     projects.resolve(root);
     return scanProjectTokens(root);
@@ -631,6 +710,10 @@ app.whenReady().then(() => {
     if (!preferences || !["vi", "ko", "en"].includes(preferences.locale))
       throw new Error("Invalid interface preferences");
     store.save({ preferences: { locale: preferences.locale } });
+    return publicState();
+  });
+  register("completeOnboarding", () => {
+    store.save({ onboardingCompleted: true });
     return publicState();
   });
   register("saveProfile", async (value, apiKey) => {

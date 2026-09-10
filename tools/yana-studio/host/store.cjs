@@ -2,6 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { profileInput } = require("./runtime.cjs");
+const { CANVAS_PART_KINDS } = require("./canvas-ai.cjs");
 
 function validateState(value) {
   const text = (input) => typeof input === "string";
@@ -13,23 +14,17 @@ function validateState(value) {
   const canvasPart = (part) =>
     part &&
     boundedText(part.id, 200) &&
-    [
-      "button",
-      "text",
-      "input",
-      "card",
-      "tabs",
-      "nav",
-      "chip",
-      "image",
-      "divider",
-      "switch",
-    ].includes(part.kind) &&
+    CANVAS_PART_KINDS.includes(part.kind) &&
     boundedText(part.label) &&
     finite(part.x, 0, 4000) &&
     finite(part.y, 0, 4000) &&
     finite(part.width, 20, 2000) &&
-    finite(part.height, 8, 2000);
+    finite(part.height, 8, 2000) &&
+    (part.hidden === undefined || typeof part.hidden === "boolean") &&
+    (part.locked === undefined || typeof part.locked === "boolean") &&
+    (part.opacity === undefined || finite(part.opacity, 0, 1)) &&
+    (part.fill === undefined || /^#[0-9a-f]{6}$/i.test(part.fill)) &&
+    (part.radius === undefined || finite(part.radius, 0, 999));
   const canvasScreen = (screen) =>
     screen &&
     boundedText(screen.id, 200) &&
@@ -125,6 +120,8 @@ function validateState(value) {
     !["vi", "ko", "en"].includes(value.preferences.locale)
   )
     throw new Error("Invalid interface preferences");
+  if (typeof value.onboardingCompleted !== "boolean")
+    throw new Error("Invalid onboarding state");
   if (
     !value.layout ||
     !["sidebar", "inspector", "dock"].every(
@@ -154,6 +151,7 @@ class Store {
       chats: [],
       profile: { provider: "ollama", model: "", baseUrl: "" },
       preferences: { locale: "vi" },
+      onboardingCompleted: false,
       layout: { sidebar: 250, inspector: 330, dock: 280 },
       designs: {},
       runtime: "",

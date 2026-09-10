@@ -16,6 +16,7 @@ export function Settings({
   onError,
   projectRoot,
   onOpenTerminal,
+  onShowOnboarding,
 }: {
   state: State;
   onState: (state: State) => void;
@@ -23,6 +24,7 @@ export function Settings({
   onError: (message: string) => void;
   projectRoot: string;
   onOpenTerminal: (command?: string) => void;
+  onShowOnboarding: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [section, setSection] = useState("account");
@@ -45,6 +47,9 @@ export function Settings({
       <div className="eyebrow">CONTROL PLANE</div>
       <h1>{t("settingsTitle")}</h1>
       <p className="muted">{t("settingsDescription")}</p>
+      <button className="settings-tour-button" onClick={onShowOnboarding}>
+        {t("showIntroduction")}
+      </button>
       <div className="button-row">
         {[
           ["account", t("account")],

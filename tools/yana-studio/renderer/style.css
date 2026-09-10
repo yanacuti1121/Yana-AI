@@ -2494,6 +2494,296 @@ svg {
   gap: 8px;
   margin-top: 14px;
 }
+.onboarding-shell {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: #f7f9ff;
+  background:
+    radial-gradient(
+      circle at 82% 22%,
+      rgba(91, 113, 255, 0.26),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 18% 86%,
+      rgba(80, 191, 255, 0.12),
+      transparent 34%
+    ),
+    #080b13;
+}
+.onboarding-aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 210deg at 70% 45%,
+    transparent,
+    rgba(111, 90, 255, 0.12),
+    transparent 32%
+  );
+  filter: blur(50px);
+}
+.onboarding-header,
+.onboarding-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 34px;
+}
+.onboarding-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.onboarding-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.onboarding-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.onboarding-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(340px, 0.9fr) minmax(430px, 1.1fr);
+  align-items: center;
+  gap: clamp(40px, 7vw, 110px);
+  width: min(1180px, calc(100vw - 72px));
+  margin: auto;
+  padding: 42px 0;
+}
+.onboarding-copy h1 {
+  max-width: 720px;
+  margin: 18px 0 20px;
+  font-size: clamp(38px, 4.8vw, 70px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.onboarding-copy h1 span {
+  color: #93a8ff;
+}
+.onboarding-copy > p {
+  max-width: 620px;
+  margin: 0;
+  color: #a9b1c2;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.onboarding-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+.onboarding-features div,
+.onboarding-authority span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+}
+.onboarding-features svg,
+.onboarding-authority svg {
+  color: #91a7ff;
+}
+.onboarding-authority {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  color: #8d96a8;
+}
+.onboarding-authority span {
+  color: #eef2ff;
+}
+.onboarding-visual {
+  perspective: 1200px;
+}
+.onboarding-window {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  background: rgba(17, 22, 36, 0.82);
+  box-shadow:
+    0 42px 100px rgba(0, 0, 0, 0.45),
+    0 0 80px rgba(80, 103, 255, 0.14);
+  transform: rotateY(-5deg) rotateX(2deg);
+}
+.onboarding-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8d96a8;
+  font-size: 11px;
+}
+.onboarding-window-bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #596174;
+}
+.onboarding-window-bar span {
+  margin-left: 10px;
+}
+.onboarding-window-body {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  min-height: 360px;
+}
+.onboarding-window-body aside {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 22px;
+  padding: 20px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+.onboarding-window-body aside b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: white;
+  background: #657cff;
+}
+.onboarding-window-body aside span {
+  width: 22px;
+  height: 5px;
+  border-radius: 5px;
+  background: #343c50;
+}
+.onboarding-canvas {
+  display: flex;
+  flex-direction: column;
+  padding: 34px;
+}
+.onboarding-command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 17px;
+  border: 1px solid rgba(139, 159, 255, 0.35);
+  border-radius: 14px;
+  color: #aeb9d2;
+  background: rgba(97, 120, 255, 0.08);
+}
+.onboarding-lines {
+  display: grid;
+  gap: 13px;
+  padding: 38px 4px;
+}
+.onboarding-lines i {
+  display: block;
+  width: 82%;
+  height: 7px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #2b3449, transparent);
+}
+.onboarding-lines i:nth-child(2) {
+  width: 64%;
+}
+.onboarding-lines i:nth-child(3) {
+  width: 90%;
+}
+.onboarding-lines i:nth-child(4) {
+  width: 46%;
+}
+.onboarding-proof {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 15px;
+  border: 1px solid rgba(117, 223, 189, 0.22);
+  border-radius: 14px;
+  color: #81dfbd;
+  background: rgba(60, 178, 139, 0.07);
+}
+.onboarding-proof div {
+  display: grid;
+  gap: 3px;
+}
+.onboarding-proof small {
+  color: #859b95;
+}
+.onboarding-progress {
+  display: flex;
+  gap: 7px;
+}
+.onboarding-progress button {
+  min-width: 9px;
+  width: 9px;
+  height: 9px;
+  min-height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: #353c4d;
+}
+.onboarding-progress button[aria-current="step"] {
+  width: 30px;
+  background: #8298ff;
+}
+.onboarding-footer .button-row {
+  margin: 0;
+}
+.settings-tour-button {
+  margin-top: 14px;
+}
+@media (max-width: 900px) {
+  .onboarding-stage {
+    grid-template-columns: 1fr;
+    width: min(680px, calc(100vw - 48px));
+    overflow: auto;
+  }
+  .onboarding-visual {
+    display: none;
+  }
+  .onboarding-copy h1 {
+    font-size: clamp(36px, 8vw, 60px);
+  }
+}
+@media (max-width: 620px) {
+  .onboarding-header,
+  .onboarding-footer {
+    padding: 18px;
+  }
+  .onboarding-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .onboarding-footer .button-row {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .onboarding-footer .button-row button {
+    flex: 1;
+  }
+  .onboarding-stage {
+    width: calc(100vw - 36px);
+  }
+  .onboarding-copy h1 {
+    font-size: 36px;
+  }
+  .onboarding-features {
+    grid-template-columns: 1fr;
+  }
+}
 .data-summary {
   margin-top: 20px;
 }

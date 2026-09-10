@@ -36,6 +36,10 @@ const { ProjectMemory } = require("../host/project-memory.cjs");
 const { DiffComments } = require("../host/diff-comments.cjs");
 const { scanProjectTokens } = require("../host/design-tokens.cjs");
 const {
+  buildCanvasPrompt,
+  parseCanvasProposal,
+} = require("../host/canvas-ai.cjs");
+const {
   createBackup,
   readBackup,
   writeBackup,
@@ -344,6 +348,11 @@ test("design canvas state persists with bounded validated documents", (context) 
             y: 20,
             width: 132,
             height: 44,
+            opacity: 0.7,
+            fill: "#ffffff",
+            radius: 12,
+            locked: false,
+            hidden: false,
           },
         ],
       },
@@ -363,13 +372,140 @@ test("design canvas state persists with bounded validated documents", (context) 
             screens: [
               {
                 ...document.screens[0],
-                parts: [{ ...document.screens[0].parts[0], width: 0 }],
+                parts: [
+                  {
+                    ...document.screens[0].parts[0],
+                    opacity: 2,
+                  },
+                ],
               },
             ],
           },
         },
       }),
     /Invalid design canvas state/,
+  );
+});
+test("Canvas AI accepts bounded structured edits and rejects unsafe targets", () => {
+  const document = {
+    version: 1,
+    name: "Login",
+    theme: {
+      accent: "#b55d7a",
+      surface: "#fffaf4",
+      foreground: "#36322f",
+      shape: "rounded",
+      font: "system",
+      motion: "standard",
+    },
+    screens: [
+      {
+        id: "screen-home",
+        name: "Home",
+        device: "desktop",
+        background: "#f7f3ed",
+        parts: [
+          {
+            id: "title",
+            kind: "text",
+            label: "Welcome",
+            x: 20,
+            y: 20,
+            width: 240,
+            height: 46,
+          },
+        ],
+      },
+    ],
+  };
+  const proposal = parseCanvasProposal(
+    JSON.stringify({
+      summary: "Đổi tiêu đề và thêm biểu mẫu",
+      operations: [
+        {
+          type: "update_part",
+          screenId: "screen-home",
+          partId: "title",
+          patch: { label: "Đăng nhập", fill: "#ffffff", radius: 12 },
+        },
+        {
+          type: "add_part",
+          screenId: "screen-home",
+          part: {
+            kind: "select",
+            label: "Chọn workspace",
+            x: 20,
+            y: 90,
+            width: 220,
+            height: 48,
+          },
+        },
+      ],
+    }),
+    document,
+  );
+  assert.equal(proposal.operations.length, 2);
+  assert.match(
+    buildCanvasPrompt(document, "Tạo màn hình đăng nhập", {
+      screenId: "screen-home",
+      partId: "title",
+    }),
+    /Selected component: title/,
+  );
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Sai mục tiêu",
+          operations: [
+            {
+              type: "delete_part",
+              screenId: "screen-home",
+              partId: "unknown",
+            },
+          ],
+        }),
+        document,
+      ),
+    /unknown component/,
+  );
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Thuộc tính nguy hiểm",
+          operations: [
+            {
+              type: "update_part",
+              screenId: "screen-home",
+              partId: "title",
+              patch: { __proto__: { compromised: true }, source: "file:///" },
+            },
+          ],
+        }),
+        document,
+      ),
+    /unsupported part property/,
+  );
+  const locked = structuredClone(document);
+  locked.screens[0].parts[0].locked = true;
+  assert.throws(
+    () =>
+      parseCanvasProposal(
+        JSON.stringify({
+          summary: "Không được vượt khóa",
+          operations: [
+            {
+              type: "update_part",
+              screenId: "screen-home",
+              partId: "title",
+              patch: { label: "Changed" },
+            },
+          ],
+        }),
+        locked,
+      ),
+    /locked component/,
   );
 });
 test("project access requires explicit registration", (context) => {

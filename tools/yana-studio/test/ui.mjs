@@ -29,18 +29,35 @@ const server = http.createServer((request, response) => {
   let body = "";
   request.on("data", (chunk) => (body += chunk));
   request.on("end", () => {
-    requests.push(JSON.parse(body));
+    const payload = JSON.parse(body);
+    requests.push(payload);
     response.writeHead(200, { "Content-Type": "text/event-stream" });
-    const text = body.includes("WAIT_FOR_CANCEL")
-      ? "Waiting "
-      : 'Xin chào từ runtime thật. **đậm** `code` <img src=x onerror="window.__xssFired = true"> ';
+    const canvasRequest = body.includes(
+      "structured design engine inside Yana Studio",
+    );
+    const text = canvasRequest
+      ? JSON.stringify({
+          summary: "Đổi màu nhấn sang xanh dương",
+          operations: [
+            {
+              type: "update_theme",
+              patch: { accent: "#2563eb" },
+            },
+          ],
+        })
+      : body.includes("WAIT_FOR_CANCEL")
+        ? "Waiting "
+        : 'Xin chào từ runtime thật. **đậm** `code` <img src=x onerror="window.__xssFired = true"> ';
     let count = 0;
     const timer = setInterval(() => {
       response.write(
         `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: text }, finish_reason: null }] })}\n\n`,
       );
       count++;
-      if (!body.includes("WAIT_FOR_CANCEL") && count === 2) {
+      if (
+        !body.includes("WAIT_FOR_CANCEL") &&
+        count === (canvasRequest ? 1 : 2)
+      ) {
         clearInterval(timer);
         response.end("data: [DONE]\n\n");
       }
@@ -350,8 +367,39 @@ try {
   await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
   const canvas = page.locator(".design-canvas");
   await expect(canvas.getByText("THÀNH PHẦN", { exact: true })).toBeVisible();
+  await expect(canvas.locator(".canvas-part-grid > button")).toHaveCount(22);
+  await expect(canvas.getByLabel("Yêu cầu AI chỉnh Canvas")).toBeVisible();
+  await expect(
+    canvas.getByRole("button", { name: "Tạo đề xuất" }),
+  ).toBeDisabled();
+  await canvas
+    .getByLabel("Yêu cầu AI chỉnh Canvas")
+    .fill("Đổi màu nhấn sang xanh dương");
+  await canvas.getByRole("button", { name: "Tạo đề xuất" }).click();
+  await expect(canvas.getByText("1 thay đổi có kiểm tra")).toBeVisible();
+  await canvas.getByRole("button", { name: "Áp dụng vào Canvas" }).click();
+  await expect(canvas.getByLabel("Accent")).toHaveValue("#2563eb");
+  requests = [];
+  await canvas.getByRole("button", { name: "Phóng to canvas" }).click();
+  await expect(canvas.getByText("85%", { exact: true })).toBeVisible();
   await canvas.getByRole("button", { name: "Button", exact: true }).click();
   await canvas.getByLabel("Nội dung").fill("Launch Yana");
+  await canvas.getByTitle("Nhân đôi ⌘D").click();
+  await expect(canvas.locator(".canvas-layer-row")).toHaveCount(2);
+  await canvas.getByTitle("Căn trái").click();
+  await canvas.getByLabel("Độ mờ layer").fill("0.7");
+  await canvas.getByTitle("Khóa", { exact: true }).click();
+  await expect(
+    canvas.getByRole("button", { name: "Xóa", exact: true }),
+  ).toBeDisabled();
+  await canvas.getByTitle("Mở khóa", { exact: true }).click();
+  const selectedLayer = canvas.locator(".canvas-layer-row.selected");
+  await selectedLayer.getByRole("button", { name: "Ẩn layer" }).click();
+  await expect(canvas.locator(".canvas-screen .canvas-part")).toHaveCount(1);
+  await selectedLayer.getByRole("button", { name: "Hiện layer" }).click();
+  await expect(canvas.locator(".canvas-screen .canvas-part")).toHaveCount(2);
+  await canvas.getByTitle("Nhân đôi màn hình").click();
+  await expect(canvas.locator(".canvas-screen-list > button")).toHaveCount(3);
   fs.mkdirSync(path.join(appRoot, "artifacts"), { recursive: true });
   await page.screenshot({
     path: path.join(appRoot, "artifacts/design-canvas.png"),
@@ -494,7 +542,7 @@ try {
   page = await launch();
   await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
   await expect(
-    page.locator(".canvas-part", { hasText: "Launch Yana" }),
+    page.locator(".canvas-part", { hasText: /^Launch Yana$/ }),
   ).toBeVisible();
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   await expect(page.locator(".message.user")).toHaveCount(3);
@@ -510,6 +558,25 @@ try {
   await page.getByLabel("Email").fill("local-user@example.test");
   await page.getByLabel("Mật khẩu").fill("studio-password-2026");
   await page.getByRole("button", { name: "Tạo hồ sơ local" }).click();
+  await expect(
+    page.getByRole("heading", { name: /quyền quyết định vẫn thuộc về anh/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await expect(page.getByText("Design Canvas", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await expect(
+    page.getByText("AI đề xuất. Yana kiểm tra. Anh phê duyệt."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await page.getByRole("button", { name: "Vào Workspace" }).click();
+  await expect(page.locator(".app")).toBeVisible();
+  await page
+    .locator(".sidebar-bottom")
+    .getByRole("button", { name: "Cài đặt", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Xem lại giới thiệu Studio" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Khóa Studio" }).click();
   await expect(
     page.getByRole("heading", { name: "Yana Studio đã khóa" }),
