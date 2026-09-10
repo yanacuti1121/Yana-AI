@@ -35,6 +35,27 @@
       <aside class="shell-inspector"><b>INSPECTOR</b><span>MODEL<br><strong>Local / Cloud</strong></span><span>CONTEXT<br><strong>Project memory</strong></span><span>AUTHORITY<br><strong>Human governed</strong></span></aside>
     </div></div>
   </div></section>
+  <section class="section runtime-scene" id="runtime-scene"><div class="scene-head"><p class="eyebrow">AI CÓ THỂ HÀNH ĐỘNG</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model có thể ghi file, chạy lệnh, gọi tool — tách rời, không ai kiểm soát.</h2><h2 class="scene-line scene-line-2">Đặt quyền hạn ra ngoài model. Đây là Yana Runtime.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-models">
+        <div class="graph-node">Anthropic</div>
+        <div class="graph-node">OpenAI</div>
+        <div class="graph-node">Gemini</div>
+        <div class="graph-node">Groq</div>
+        <div class="graph-node">Ollama (local)</div>
+        <div class="graph-node graph-node-more">+ DeepSeek, OpenRouter</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Mission · Context · Turn Engine · Governance · Capability · Evidence</span></div>
+      <div class="graph-link graph-link-bottom"><span></span></div>
+      <div class="graph-row graph-targets">
+        <div class="graph-node">Files</div>
+        <div class="graph-node">Git</div>
+        <div class="graph-node">Shell / Process</div>
+        <div class="graph-node">System</div>
+      </div>
+    </div>
+  </section>
   <section class="section" id="products"><div class="section-head"><p class="eyebrow">SẢN PHẨM</p><h2>Không phải một app chat.<br>Là cả vòng lặp làm việc.</h2><p>Mỗi bề mặt giải quyết một phần khác nhau, nhưng cùng dùng chung runtime, authority và evidence.</p></div>
     <div class="product-grid">
       <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio 1.5</h3><p>Chat, code, terminal, Git, context và quyền hạn trong một workspace sáng rõ.</p></div><div class="product-art"><code>MISSION  Build safely
@@ -63,11 +84,14 @@ human   ● authority</code></div></a>
     <div class="diagram-node tier-control"><strong>Rust TurnEngine (yana-rt)</strong><span>stream · cancel · tool loop</span></div>
     <div class="diagram-arrow">↓</div>
     <div class="diagram-row">
-      <div class="diagram-node tier-model"><strong>Model + provider plane</strong><span>local (Ollama…) + cloud, provider-neutral</span></div>
-      <div class="diagram-node tier-model"><strong>Canonical capability</strong><span>file · Git · process, manifest-scoped</span></div>
+      <div class="diagram-node tier-model"><strong>Model + provider plane</strong><span>Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter · Ollama</span></div>
+      <div class="diagram-node tier-model"><strong>Canonical capability</strong><span>file · Git · command (shell/process) · system, manifest-scoped</span></div>
     </div>
     <div class="diagram-arrow">↓</div>
-    <div class="diagram-node tier-audit"><strong>Audit chain</strong><span>hash-chained, tamper-detectable — not tamper-proof</span></div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-audit"><strong>Audit chain</strong><span>hash-chained per tool call, tamper-detectable</span></div>
+      <div class="diagram-node tier-audit"><strong>Evidence receipt</strong><span>HMAC-signed execution result (Truth Gate)</span></div>
+    </div>
     <div class="diagram-arrow">↓</div>
     <div class="diagram-row">
       <div class="diagram-node tier-surface"><strong>Studio · Runtime CLI</strong><span>cùng TurnEngine, verified</span></div>

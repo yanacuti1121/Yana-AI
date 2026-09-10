@@ -206,4 +206,23 @@
     revealTargets.forEach((section) => observer.observe(section));
     staggerGrids.forEach((grid) => observer.observe(grid));
   }
+
+  // Runtime scene: disconnected models/targets snap into "connected" once
+  // the scene is mostly in view. Runs even under prefers-reduced-motion --
+  // the CSS strips the transition there, so this just sets the end state
+  // instantly instead of animating it.
+  if ("IntersectionObserver" in window) {
+    const runtimeScene = document.querySelector(".runtime-scene");
+    if (runtimeScene) {
+      const sceneObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("connected");
+            sceneObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.45 });
+      sceneObserver.observe(runtimeScene);
+    }
+  }
 })();
