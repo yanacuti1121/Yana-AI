@@ -35,72 +35,6 @@
       <aside class="shell-inspector"><b>INSPECTOR</b><span>MODEL<br><strong>Local / Cloud</strong></span><span>CONTEXT<br><strong>Project memory</strong></span><span>AUTHORITY<br><strong>Human governed</strong></span></aside>
     </div></div>
   </div></section>
-  <section class="section runtime-scene" id="runtime-scene"><div class="scene-head"><p class="eyebrow">AI CÓ THỂ HÀNH ĐỘNG</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model có thể ghi file, chạy lệnh, gọi tool — tách rời, không ai kiểm soát.</h2><h2 class="scene-line scene-line-2">Đặt quyền hạn ra ngoài model. Đây là Yana Runtime.</h2></div></div>
-    <div class="runtime-graph">
-      <div class="graph-row graph-models">
-        <div class="graph-node">Anthropic</div>
-        <div class="graph-node">OpenAI</div>
-        <div class="graph-node">Gemini</div>
-        <div class="graph-node">Groq</div>
-        <div class="graph-node">Ollama (local)</div>
-        <div class="graph-node graph-node-more">+ DeepSeek, OpenRouter</div>
-      </div>
-      <div class="graph-link graph-link-top"><span></span></div>
-      <div class="graph-core"><strong>Yana Runtime</strong><span>Mission · Context · Turn Engine · Governance · Capability · Evidence</span></div>
-      <div class="graph-link graph-link-bottom"><span></span></div>
-      <div class="graph-row graph-targets">
-        <div class="graph-node">Files</div>
-        <div class="graph-node">Git</div>
-        <div class="graph-node">Shell / Process</div>
-        <div class="graph-node">System</div>
-      </div>
-    </div>
-  </section>
-  <section class="section runtime-scene scene-surfaces" id="scene-surfaces"><div class="scene-head"><p class="eyebrow">MỘT RUNTIME</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Nhiều bề mặt tương tác khác nhau.</h2><h2 class="scene-line scene-line-2">Cùng đi qua một Yana Runtime — không phải bản sao riêng từng nơi.</h2></div></div>
-    <div class="runtime-graph">
-      <div class="graph-row graph-surfaces">
-        <div class="graph-node">Yana Studio</div>
-        <div class="graph-node">Runtime CLI</div>
-        <div class="graph-node graph-node-more">MCP (opt-in, experimental)</div>
-      </div>
-      <div class="graph-link graph-link-top"><span></span></div>
-      <div class="graph-core"><strong>Yana Runtime</strong><span>Studio spawn đúng binary <code>yana-rt</code> mà CLI dùng — cùng TurnEngine, không phải hai bản triển khai khác nhau</span></div>
-    </div>
-  </section>
-  <section class="section runtime-scene scene-anyai" id="scene-anyai"><div class="scene-head"><p class="eyebrow">ANY AI</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Đổi model.</h2><h2 class="scene-line scene-line-2">Giữ nguyên toàn bộ hệ thống.</h2></div></div>
-    <div class="anyai-panel">
-      <div class="anyai-swap"><span class="meta">MODEL ĐANG DÙNG</span><div class="anyai-cycle" id="anyai-cycle">
-        <span class="anyai-item is-active">Anthropic</span><span class="anyai-item">OpenAI</span><span class="anyai-item">Gemini</span><span class="anyai-item">Groq</span><span class="anyai-item">DeepSeek</span><span class="anyai-item">OpenRouter</span><span class="anyai-item">Ollama (local)</span>
-      </div></div>
-      <div class="anyai-fixed"><span class="meta">KHÔNG ĐỔI</span>
-        <div class="anyai-row">✓ Mission</div>
-        <div class="anyai-row">✓ Tasks</div>
-        <div class="anyai-row">✓ Project memory</div>
-        <div class="anyai-row">✓ Authority chain</div>
-        <div class="anyai-row">✓ Evidence</div>
-      </div>
-    </div>
-  </section>
-  <section class="section runtime-scene scene-human" id="scene-human"><div class="scene-head"><p class="eyebrow">HUMAN-GOVERNED</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model đề xuất một hành động.</h2><h2 class="scene-line scene-line-2">Con người quyết định nó có xảy ra hay không.</h2></div></div>
-    <div class="scenario-card">
-      <div class="scenario-row"><span>AI proposal</span><strong>"Modify 43 files"</strong></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="scenario-row"><span>Yana evaluates</span><strong>YanaAuthorityChain</strong></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="scenario-row"><span>Blast radius policy</span><strong>src/guard/blast_radius.rs</strong></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="scenario-row scenario-row-halt"><span>Approval required</span><strong>chờ, chưa thực thi</strong></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="scenario-row scenario-row-human"><span>Human decision</span><strong>allow · limit · deny</strong></div>
-    </div>
-  </section>
-  <section class="section runtime-scene scene-control" id="scene-control"><div class="scene-head"><p class="eyebrow">DETERMINISTIC CONTROL</p><div class="scene-lines"><h2 class="scene-line scene-line-1">AI không tự quyết được nó chạm tới đâu.</h2><h2 class="scene-line scene-line-2">Ba nhóm capability, mỗi nhóm một ranh giới riêng.</h2></div></div>
-    <div class="control-grid">
-      <div class="control-col"><h3>Access</h3><div class="control-tags"><span>file read</span><span>git status</span><span>git log</span></div></div>
-      <div class="control-col"><h3>Change</h3><div class="control-tags"><span>file_mutation</span><span>config_write</span><span>git commit</span></div></div>
-      <div class="control-col"><h3>Execute</h3><div class="control-tags"><span>command (shell)</span><span>process</span><span>system</span></div></div>
-    </div>
-  </section>
   <section class="section" id="products"><div class="section-head"><p class="eyebrow">SẢN PHẨM</p><h2>Không phải một app chat.<br>Là cả vòng lặp làm việc.</h2><p>Mỗi bề mặt giải quyết một phần khác nhau, nhưng cùng dùng chung runtime, authority và evidence.</p></div>
     <div class="product-grid">
       <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio 1.5</h3><p>Chat, code, terminal, Git, context và quyền hạn trong một workspace sáng rõ.</p></div><div class="product-art"><code>MISSION  Build safely
@@ -119,33 +53,7 @@ bridge  ◐ evolving
 human   ● authority</code></div></a>
     </div>
   </section>
-  <section class="section feature system-map" id="system-map"><div class="feature-copy"><p class="eyebrow">SƠ ĐỒ HỆ THỐNG</p><h2>Một control plane.<br>Nhiều bề mặt, không phải bề mặt nào cũng mạnh như nhau.</h2><p>Human giữ quyền quyết định cuối. Giám Thị là root safety authority — có thể HALT toàn bộ phiên khi phát hiện thay đổi chưa được duyệt. Studio và Runtime CLI đi qua cùng một Yana control plane rồi tới Rust TurnEngine (<code>yana-rt</code>); Wheelbot là một nhánh phần cứng riêng với device bridge WebSocket/MCP của chính nó — website không tuyên bố đường đi Wheelbot đã được xác minh end-to-end qua cùng TurnEngine.</p><a class="button ghost" href="architecture.html">Xem chi tiết kiến trúc →</a></div><div class="feature-visual"><div class="system-diagram">
-    <div class="diagram-node tier-human"><strong>Human</strong><span>final authority</span></div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-node tier-guard"><strong>Giám Thị</strong><span>root safety · fail-closed HALT</span></div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-node tier-control"><strong>Yana control plane</strong><span>policy · identity · evidence · capability</span></div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-node tier-control"><strong>Rust TurnEngine (yana-rt)</strong><span>stream · cancel · tool loop</span></div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-row">
-      <div class="diagram-node tier-model"><strong>Model + provider plane</strong><span>Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter · Ollama</span></div>
-      <div class="diagram-node tier-model"><strong>Canonical capability</strong><span>file · Git · command (shell/process) · system, manifest-scoped</span></div>
-    </div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-row">
-      <div class="diagram-node tier-audit"><strong>Audit chain</strong><span>hash-chained per tool call, tamper-detectable</span></div>
-      <div class="diagram-node tier-audit"><strong>Evidence receipt</strong><span>HMAC-signed execution result (Truth Gate)</span></div>
-    </div>
-    <div class="diagram-arrow">↓</div>
-    <div class="diagram-row">
-      <div class="diagram-node tier-surface"><strong>Studio · Runtime CLI</strong><span>cùng TurnEngine, verified</span></div>
-      <div class="diagram-node tier-surface"><strong>Wheelbot</strong><span>device bridge riêng — chưa verify end-to-end</span></div>
-    </div>
-  </div></div></section>
   <section class="section"><div class="section-head"><p class="eyebrow">KHÁM PHÁ SÂU HƠN</p><h2>Mỗi subsystem có một trang riêng.</h2><p>Kiến trúc, governance, mission, continuity và design không còn bị dồn vào vài dòng trên trang chủ.</p></div><div class="product-grid"><a class="product-card" href="architecture.html"><div><p class="eyebrow">SYSTEM MAP</p><h3>Kiến trúc Yana</h3><p>Từ bề mặt người dùng tới Giám Thị, control plane, TurnEngine, model, capability và evidence.</p></div></a><a class="product-card" href="missions.html"><div><p class="eyebrow">WORK GRAPH</p><h3>Missions & Tasks</h3><p>Mục tiêu, typed dependency và project memory sống ngoài transcript.</p></div></a><a class="product-card" href="governance.html"><div><p class="eyebrow">AUTHORITY</p><h3>Governance</h3><p>Authority chain, capability leases, approval, HALT và audit receipts.</p></div></a><a class="product-card" href="continuity.html"><div><p class="eyebrow">ROADMAP</p><h3>Continuity</h3><p>Nền tảng hiện có và engine cross-conversation đang được định hình.</p></div></a><a class="product-card" href="design.html"><div><p class="eyebrow">EXPERIMENTAL</p><h3>Design Canvas</h3><p>Visual development bên trong Studio, hướng tới Design → Code → Run → Inspect.</p></div></a><a class="product-card" href="en.html"><div><p class="eyebrow">ENGLISH</p><h3>English overview</h3><p>An English entry point covering products, architecture and truthful status.</p></div></a></div></section>
-  <section class="section feature"><div class="feature-copy"><p class="eyebrow">CONTINUITY</p><h2>Chat mới, không mất mạch cũ.</h2><p>Mission, task, project memory và dependency graph giữ trạng thái công việc ngoài một transcript đơn lẻ. Model có thể thay; lịch sử quyết định và provenance vẫn còn.</p><a class="button ghost" href="continuity.html">Xem Continuity</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Project memory</strong><span>34 facts</span></div><div class="visual-row"><strong>Current mission</strong><span>4 / 6 tasks</span></div><div class="visual-row"><strong>Decisions</strong><span>12 receipts</span></div><div class="visual-row"><strong>Context provenance</strong><span>visible</span></div></div></div></section>
-  <section class="section feature reverse"><div class="feature-copy"><p class="eyebrow">EVIDENCE</p><h2>“Xong” không chỉ là một câu trả lời.</h2><p>Yana gắn kết quả với diff, test, build, command exit và approval. Người dùng thấy chuyện gì đã thực sự xảy ra trước khi chấp nhận.</p><a class="button ghost" href="runtime.html#evidence">Khám phá Evidence Engine</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Implementation</strong><span>✓</span></div><div class="visual-row"><strong>Typecheck</strong><span>✓</span></div><div class="visual-row"><strong>Tests</strong><span>38 / 38</span></div><div class="visual-row"><strong>Human review</strong><span>Required</span></div></div></div></section>
   <section class="quote-band"><p class="eyebrow">YANA PRINCIPLE</p><h2>Đổi model. Giữ quyền kiểm soát.</h2><p>Local-first, provider-neutral và human-governed. Yana không giao quyền chỉ vì một model biết gọi tool — con người định nghĩa quyền hạn, Yana thực thi nó bằng Giám Thị, authority chain và audit chain, model chỉ hoạt động trong ranh giới đó.</p><div class="hero-actions"><a class="button light" href="download.html">Bắt đầu với Yana</a></div></section>
 </main>
 <footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-logo.png" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio 1.5</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer>
