@@ -172,26 +172,33 @@ concretely means here.
 
 ## 5. Repository synchronization (§3 of the brief)
 
-**Mechanism: GitHub → GitLab push mirroring**, not a custom sync script.
-GitLab has a **built-in repository mirroring feature** (Settings →
-Repository → Mirroring repositories, "Push" direction) that watches a
-source repo and replicates branches/tags on a schedule or via webhook —
-this is the standard, well-tested tool for exactly this job, and matches
-anh's own principle #13 ("Đừng tạo complexity chỉ để nói rằng hệ thống là
+**Mechanism: GitLab Pull Mirroring**, not a custom sync script, and not
+"push mirroring" as this section originally (incorrectly) named it —
+corrected 2026-09-10 once anh decided the direction (see
+`docs/GITLAB_MIRROR_SETUP.md`). GitLab's terms for its two built-in
+mirroring modes are opposite of what they sound like at a glance: "Push
+mirroring" means *GitLab* pushes *out* to another remote (would require a
+write credential on the GitHub side); "Pull mirroring" means GitLab
+*fetches from* another remote on its own schedule. GitHub → GitLab is a
+**pull**, configured entirely on the GitLab project (Settings →
+Repository → Mirroring repositories, direction: Pull) — this is the
+standard, well-tested tool for exactly this job, and matches anh's own
+principle #13 ("Đừng tạo complexity chỉ để nói rằng hệ thống là
 multi-cloud"). Building a custom polling/push script here would be
 unnecessary complexity for a solved problem.
 
 ```
 Developer → git push → GitHub (canonical)
                             │
-                 GitLab push-mirror (built-in feature)
+                 GitLab Pull Mirror (built-in feature,
+                 GitLab-side config, GitLab initiates the fetch)
                             │
                         GitLab (replica)
 ```
 
 Developer workflow stays exactly `git add / commit / push` — anh's own
-requirement in §13 — because the mirroring happens on GitHub's side
-automatically, invisible to the developer.
+requirement in §13 — because the mirroring happens entirely on GitLab's
+side, invisible to the developer and untouched by GitHub Actions.
 
 **Sync verification — `yana forge status` (§12 of the brief):**
 
@@ -280,18 +287,15 @@ role is mirror/backup/extra-CI, not publishing), **neither
 `PYPI_TOKEN` nor `CARGO_REGISTRY_TOKEN` needs to exist in GitLab CI
 variables at all** under this proposal — smaller secret surface than a
 naive "mirror everything including credentials" approach would have.
-The only new secret this design introduces is a GitLab **push-mirror
-token**, and per GitLab's own mirroring feature, that token needs
-exactly one permission: `write_repository` on the mirror target — no
-admin scope, no publish-credential scope. It belongs in GitHub's
-existing Secrets store (since GitHub is what pushes to trigger the
-mirror... actually GitLab's push-mirror pulls *from* GitHub, so the
-credential lives in **GitLab CI variables**, scoped to read-only access
-on the GitHub side if using a PAT, or none at all if using GitLab's
-native pull-mirror over HTTPS with a deploy key). This detail needs a
-concrete decision when someone actually provisions the GitLab side —
-flagged here, not resolved, since no GitLab project exists yet to test
-against.
+**Resolved 2026-09-10** (was flagged, not resolved, at the time this
+section was first written): anh chose GitLab Pull Mirroring specifically
+because `Yana-AI` is a **public** GitHub repo, so this design introduces
+**zero new secrets, on either side**. GitLab's Pull Mirror fetches over
+plain HTTPS from `https://github.com/yanacuti1121/Yana-AI.git` — a public
+clone URL needs no credential at all. No GitHub PAT, no deploy key, no
+GitLab CI variable, and nothing added to GitHub Actions' existing two
+secrets (`PYPI_TOKEN`, `CARGO_REGISTRY_TOKEN`). See
+`docs/GITLAB_MIRROR_SETUP.md` for the concrete GitLab-side steps.
 
 No hardcoded tokens, PATs, deploy keys, or SSH private keys were found
 anywhere in this repo's tracked files during this audit (consistent with
@@ -307,7 +311,7 @@ enforced).
 | No single point of failure | GitHub Actions failure doesn't block GitLab CI's independent jobs; GitLab mirror failure doesn't block GitHub's own operation |
 | Provider independence | `forge-manifest.yml` + `yana forge status` treat providers as data, not hardcoded branches in code |
 | Canonical source of truth | Explicit `canonical_forge` field, one value, never two |
-| Automated synchronization | GitLab's built-in push-mirror feature, not a custom script |
+| Automated synchronization | GitLab's built-in Pull Mirror feature, not a custom script |
 | Observable synchronization | `yana forge status`, loud `OUT OF SYNC`/`NOT MIRRORED` states |
 | Reversible migration | Promoting a mirror to canonical is a manifest edit — see `DISASTER_RECOVERY.md` |
 | Minimal vendor lock-in | `upgrade.py`'s hardcoded GitHub API URL is the one piece of code that would need an actual code change (read `canonical_forge` from config instead) |
