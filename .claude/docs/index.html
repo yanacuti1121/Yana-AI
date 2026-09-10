@@ -377,7 +377,7 @@
       <button class="lang-btn" onclick="setLang('zh')">中</button>
     </div>
   </div>
-  <a class="nav-cta" href="#download" data-i18n="nav_cta">Download</a>
+  <a class="nav-cta" href="#ecosystem" data-i18n="nav_cta">Explore</a>
 </nav>
 </header>
 
@@ -407,7 +407,7 @@
   </div>
 
   <p class="hero-entry-note" data-i18n="hero_entry_note">Download Yana AI Desktop below, or <a href="#ecosystem">explore the whole ecosystem ↓</a> — Studio, the Runtime, and governing your own repo.</p>
-  <div class="dl-grid" id="download">
+  <div class="dl-grid" id="download" style="display:none">
     <a class="dl-btn primary" data-platform="mac" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.8/Yana-AI-1.4.8-arm64.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
       <div>macOS Apple Silicon<span class="dl-btn-sub">arm64 · .dmg</span></div>
@@ -425,8 +425,8 @@
       <div>Linux<span class="dl-btn-sub">x64 · AppImage</span></div>
     </a>
   </div>
-  <a class="hero-other-platforms" href="#platforms" data-i18n="hero_other_platforms">Windows, Linux, or a different Mac chip? →</a>
-  <p class="hero-note"><span data-i18n="hero_note_free">Free · Open source (Apache 2.0)</span> · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v1.4.8" data-i18n="hero_note_all">All releases →</a></p>
+  <a class="hero-other-platforms" href="#platforms" data-i18n="hero_other_platforms" style="display:none">Windows, Linux, or a different Mac chip? →</a>
+  <p class="hero-note"><span data-i18n="hero_note_free">Free · Open source (Apache 2.0)</span><span style="display:none"> · <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/v1.4.8" data-i18n="hero_note_all">All releases →</a></span></p>
   </div>
 
 <!-- App mockup -->
@@ -638,8 +638,10 @@
   </details>
 </section>
 
-<!-- Platforms -->
-<section class="platforms" id="platforms">
+<!-- Platforms — hidden 2026-09-10: download links still point at the
+     stale v1.4.8 desktop build (no v1.5.0 GitHub Release exists yet).
+     Re-enable once a real v1.5.0 release with working binaries ships. -->
+<section class="platforms" id="platforms" style="display:none">
   <h2 class="section-title" data-i18n="plat_title">Available on every platform</h2>
   <p class="section-sub" data-i18n="plat_sub">v1.4.8 for every platform — download and run instantly, no extra setup needed.</p>
   <ul class="platform-grid">
@@ -683,8 +685,8 @@
   </ul>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
+<!-- CTA — hidden 2026-09-10, same reason as #platforms above. -->
+<section class="cta-section" style="display:none">
   <h2 data-i18n="cta_title">Get started today</h2>
   <p data-i18n="cta_sub">Download, enter your API key, and you're ready — takes less than 2 minutes.</p>
   <div class="dl-grid">
@@ -711,14 +713,14 @@
 <script>
 const LANGS = {
   en: {
-    nav_home: "Home", nav_cta: "Download",
+    nav_home: "Home", nav_cta: "Explore",
     footer_guide: "User Guide", footer_macinstall: "macOS Install Guide",
     badge_new: "Latest release",
     nav_ecosystem: "Ecosystem", nav_governance: "Governance",
     hero_eyebrow: "ONE RUNTIME · ANY AI · HUMAN-GOVERNED",
     hero_h1: "Run any AI.<br><em>Keep the authority.</em>",
     hero_sub: "Yana is the persistent control plane around the AI you use — Claude, Codex, Gemini, or a fully local model. Models can change, agents can terminate; Yana keeps the policy, the memory, and the audit trail. <strong>2,025 skills</strong>, <strong>100 agents</strong>, one governed runtime.",
-    hero_entry_note: "Download Yana AI Desktop below, or <a href=\"#ecosystem\">explore the whole ecosystem ↓</a> — Studio, the Runtime, and governing your own repo.",
+    hero_entry_note: "<a href=\"#ecosystem\">Explore the whole ecosystem ↓</a> — Studio, the Runtime, and governing your own repo. Packaged downloads are being finalized for the 1.5.0 launch.",
     auth_title: "Intelligence is not authority",
     auth_sub: "A model can propose an action. Yana decides whether it happens.",
     auth_col_models: "Intelligence", auth_col_yana: "Authority",
@@ -809,14 +811,14 @@ const LANGS = {
     cta_btn_all: "All releases →",
   },
   vi: {
-    nav_home: "Trang chủ", nav_cta: "Tải về",
+    nav_home: "Trang chủ", nav_cta: "Khám phá",
     footer_guide: "Hướng dẫn sử dụng", footer_macinstall: "Hướng dẫn cài macOS",
     badge_new: "Mới nhất",
     nav_ecosystem: "Hệ sinh thái", nav_governance: "Governance",
     hero_eyebrow: "MỘT RUNTIME · MỌI AI · CON NGƯỜI QUẢN TRỊ",
     hero_h1: "Chạy bất kỳ AI nào.<br><em>Giữ lại quyền quyết định.</em>",
     hero_sub: "Yana là control plane bền vững quanh AI bạn đang dùng — Claude, Codex, Gemini, hay model chạy hoàn toàn local. Model có thể đổi, agent có thể kết thúc; Yana giữ lại policy, bộ nhớ, và audit trail. <strong>2,025 skills</strong>, <strong>100 agents</strong>, một runtime được quản trị.",
-    hero_entry_note: "Tải Yana AI Desktop ngay dưới đây, hoặc <a href=\"#ecosystem\">xem toàn bộ hệ sinh thái ↓</a> — Studio, Runtime, và cách quản trị repo của riêng bạn.",
+    hero_entry_note: "<a href=\"#ecosystem\">Xem toàn bộ hệ sinh thái ↓</a> — Studio, Runtime, và cách quản trị repo của riêng bạn. Bản đóng gói để tải về đang được hoàn thiện cho đợt ra mắt 1.5.0.",
     auth_title: "Trí tuệ không phải là quyền quyết định",
     auth_sub: "Model có thể đề xuất một hành động. Yana quyết định nó có được thực hiện hay không.",
     auth_col_models: "Trí tuệ", auth_col_yana: "Quyền quyết định",
@@ -907,14 +909,14 @@ const LANGS = {
     cta_btn_all: "Tất cả phiên bản →",
   },
   ko: {
-    nav_home: "홈", nav_cta: "다운로드",
+    nav_home: "홈", nav_cta: "둘러보기",
     footer_guide: "사용 가이드", footer_macinstall: "macOS 설치 가이드",
     badge_new: "최신 릴리즈",
     nav_ecosystem: "생태계", nav_governance: "거버넌스",
     hero_eyebrow: "하나의 런타임 · 모든 AI · 인간 거버넌스",
     hero_h1: "어떤 AI든 실행하세요.<br><em>권한은 그대로 유지하세요.</em>",
     hero_sub: "Yana는 당신이 쓰는 AI — Claude, Codex, Gemini, 또는 완전 로컬 모델 — 주위를 감싸는 지속적인 control plane입니다. 모델은 바뀌고 에이전트는 종료될 수 있지만, Yana는 정책과 메모리, 감사 기록을 유지합니다. <strong>2,025개 스킬</strong>, <strong>100개 에이전트</strong>, 하나의 거버넌스 런타임.",
-    hero_entry_note: "아래에서 Yana AI Desktop을 받거나, <a href=\"#ecosystem\">전체 생태계 살펴보기 ↓</a> — Studio, Runtime, 그리고 자신의 저장소 거버넌스까지.",
+    hero_entry_note: "<a href=\"#ecosystem\">전체 생태계 살펴보기 ↓</a> — Studio, Runtime, 그리고 자신의 저장소 거버넌스까지. 패키지 다운로드는 1.5.0 출시에 맞춰 준비 중입니다.",
     auth_title: "지능은 권한이 아닙니다",
     auth_sub: "모델은 행동을 제안할 수 있습니다. 그것이 실행될지는 Yana가 결정합니다.",
     auth_col_models: "지능", auth_col_yana: "권한",
@@ -1005,14 +1007,14 @@ const LANGS = {
     cta_btn_all: "모든 릴리즈 →",
   },
   zh: {
-    nav_home: "首页", nav_cta: "下载",
+    nav_home: "首页", nav_cta: "探索",
     footer_guide: "使用指南", footer_macinstall: "macOS 安装指南",
     badge_new: "最新版本",
     nav_ecosystem: "生态系统", nav_governance: "治理",
     hero_eyebrow: "一个运行时 · 任意 AI · 人类治理",
     hero_h1: "运行任何 AI。<br><em>保留决定权。</em>",
     hero_sub: "Yana 是围绕您所用 AI 的持久控制平面——无论是 Claude、Codex、Gemini，还是完全本地的模型。模型可以更换，智能体可以终止；Yana 保留策略、记忆和审计记录。<strong>2,025 个技能</strong>，<strong>100 个智能体</strong>，一个受治理的运行时。",
-    hero_entry_note: "在下方下载 Yana AI Desktop，或<a href=\"#ecosystem\">探索整个生态系统 ↓</a>——Studio、Runtime，以及如何治理您自己的仓库。",
+    hero_entry_note: "<a href=\"#ecosystem\">探索整个生态系统 ↓</a>——Studio、Runtime，以及如何治理您自己的仓库。打包下载正在为 1.5.0 发布做最后准备。",
     auth_title: "智能不等于决定权",
     auth_sub: "模型可以提出一个操作请求。是否执行，由 Yana 决定。",
     auth_col_models: "智能", auth_col_yana: "决定权",
