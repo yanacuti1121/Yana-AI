@@ -331,7 +331,9 @@ function App() {
   const switchProject = (next: Project, landing: Surface = "chat") => {
     if (
       dirty &&
-      !window.confirm("File có thay đổi chưa lưu. Bỏ bản nháp và đổi project?")
+      !window.confirm(
+        translate(state?.preferences.locale ?? "vi")("confirmDiscardProject"),
+      )
     )
       return;
     setProject(next);
@@ -362,7 +364,11 @@ function App() {
     });
   const removeChat = (id: string) =>
     run(async () => {
-      if (!window.confirm("Xóa cuộc trò chuyện này? Không thể hoàn tác."))
+      if (
+        !window.confirm(
+          translate(state?.preferences.locale ?? "vi")("confirmDeleteChat"),
+        )
+      )
         return;
       await window.studio.removeChat(id);
       setChats((previous) => previous.filter((item) => item.id !== id));
@@ -496,7 +502,12 @@ function App() {
         await loadDirectory(entry.path);
         return;
       }
-      if (dirty && !window.confirm("Bỏ bản nháp chưa lưu và mở file khác?"))
+      if (
+        dirty &&
+        !window.confirm(
+          translate(state?.preferences.locale ?? "vi")("confirmDiscardFile"),
+        )
+      )
         return;
       const document = await window.studio.readFile(project.root, entry.path);
       setOpened({ path: entry.path, document });
@@ -617,13 +628,17 @@ function App() {
       const current = attachments[draftKey] || [];
       if (current.some((file) => file.path === path)) return;
       if (current.length >= MAX_ATTACH_FILES) {
-        setNotice(`Tối đa ${MAX_ATTACH_FILES} file đính kèm mỗi tin nhắn.`);
+        setNotice(
+          translate(state?.preferences.locale ?? "vi")(
+            "attachLimitReached",
+          ).replace("{n}", String(MAX_ATTACH_FILES)),
+        );
         return;
       }
       const document = await window.studio.readFile(project.root, path);
       const used = current.reduce((sum, file) => sum + file.bytes, 0);
       if (used + document.bytes > MAX_ATTACH_BYTES) {
-        setNotice("Tổng dung lượng file đính kèm vượt quá 256 KiB.");
+        setNotice(translate(state?.preferences.locale ?? "vi")("attachTooLarge"));
         return;
       }
       setAttachments({
@@ -720,17 +735,30 @@ function App() {
         await window.studio.diffCommentRemove(project.root, diff.path, id),
       );
     });
-  if (!state)
+  if (!state) {
+    // No app state yet, so no stored locale to read -- fall back to the
+    // browser's own language for this one transient boot message.
+    const bootLocale = navigator.language.startsWith("ko")
+      ? "ko"
+      : navigator.language.startsWith("vi")
+        ? "vi"
+        : "en";
     return (
       <div className="boot">
         <div className="brand-symbol">Y</div>
         <h1>Yana Studio</h1>
-        <p>{notice || "Đang mở workspace mới…"}</p>
+        <p>{notice || translate(bootLocale)("openingWorkspace")}</p>
       </div>
     );
+  }
   if (state.account.locked)
     return (
-      <AccountUnlock state={state} onState={setState} onError={setNotice} />
+      <AccountUnlock
+        state={state}
+        locale={state.preferences.locale}
+        onState={setState}
+        onError={setNotice}
+      />
     );
   if (
     state.account.configured &&
@@ -752,9 +780,9 @@ function App() {
     );
   const t = translate(state.preferences.locale);
   const commands = [
-    { label: "Mở project…", icon: FolderOpen, action: openProject },
-    { label: "Cuộc trò chuyện mới", icon: MessageSquare, action: newChat },
-    { label: "Tạo terminal", icon: TerminalSquare, action: addTerminal },
+    { label: t("cmdOpenProject"), icon: FolderOpen, action: openProject },
+    { label: t("cmdNewChat"), icon: MessageSquare, action: newChat },
+    { label: t("cmdNewTerminal"), icon: TerminalSquare, action: addTerminal },
     { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
     {
       label: "Design Canvas",
@@ -773,12 +801,12 @@ function App() {
       action: () => setSurface("permissions"),
     },
     {
-      label: "Cài đặt — model, runtime và kết nối",
+      label: t("cmdSettings"),
       icon: Settings2,
       action: () => setSurface("settings"),
     },
     {
-      label: "Ẩn / hiện terminal",
+      label: t("cmdToggleTerminal"),
       icon: PanelBottom,
       action: () => setDock((value) => !value),
     },
@@ -787,9 +815,9 @@ function App() {
   const copyMessage = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      setNotice("Đã sao chép nội dung.");
+      setNotice(t("copiedNotice"));
     } catch {
-      setNotice("Không thể sao chép nội dung trên thiết bị này.");
+      setNotice(t("copyUnsupported"));
     }
   };
   const reuseMessage = (content: string) => {
@@ -848,8 +876,8 @@ function App() {
           <button className="project-switch" onClick={openProject}>
             <FolderOpen size={20} />
             <div>
-              <strong>{project?.name || "Mở project"}</strong>
-              <small>{project?.root || "Bắt đầu từ thư mục của anh"}</small>
+              <strong>{project?.name || t("heroOpenProject")}</strong>
+              <small>{project?.root || t("heroOpenProjectHint")}</small>
             </div>
             <ChevronDown size={14} />
           </button>
@@ -882,7 +910,7 @@ function App() {
               onClick={() => setSurface("design")}
             >
               <LayoutTemplate size={17} />
-              <span>Thiết kế</span>
+              <span>{t("designNav")}</span>
             </button>
             <button
               className={surface === "tasks" ? "selected" : ""}
@@ -939,8 +967,8 @@ function App() {
             ) : (
               <p className="empty-small">
                 {project
-                  ? "Không có worktree Git để hiển thị."
-                  : "Mở project để xem nhánh."}
+                  ? t("noGitWorktrees")
+                  : t("openProjectForBranches")}
               </p>
             )}
           </div>
@@ -1046,8 +1074,11 @@ function App() {
                     <span
                       className="tab-close"
                       role="button"
-                      aria-label={`Xóa "${item.title}"`}
-                      title="Xóa cuộc trò chuyện"
+                      aria-label={t("deleteChatAria").replace(
+                        "{title}",
+                        item.title,
+                      )}
+                      title={t("deleteChatTitle")}
                       onClick={(event) => {
                         event.stopPropagation();
                         void removeChat(item.id);
@@ -1071,10 +1102,15 @@ function App() {
               ) : surface === "devices" ? (
                 <Devices onError={setNotice} />
               ) : surface === "permissions" ? (
-                <Permissions root={project?.root || ""} onError={setNotice} />
+                <Permissions
+                  root={project?.root || ""}
+                  locale={state.preferences.locale}
+                  onError={setNotice}
+                />
               ) : surface === "design" ? (
                 <DesignCanvas
                   root={project?.root || ""}
+                  locale={state.preferences.locale}
                   onError={setNotice}
                   onPrompt={(prompt) => {
                     setDrafts((previous) => ({
@@ -1106,8 +1142,8 @@ function App() {
                   {filesDragOver && (
                     <div className="files-dropzone-overlay">
                       <FileCode2 size={28} />
-                      <strong>Thả để mở file hoặc project</strong>
-                      <span>Thả folder để mở làm project mới</span>
+                      <strong>{t("dropToOpen")}</strong>
+                      <span>{t("dropFolderHint")}</span>
                     </div>
                   )}
                   <div className="file-tree">
@@ -1136,7 +1172,7 @@ function App() {
                       <Search size={13} />
                       <input
                         value={fileQuery}
-                        placeholder="Tìm file trong project"
+                        placeholder={t("searchFilesPlaceholder")}
                         onChange={(event) =>
                           searchProjectFiles(event.target.value)
                         }
@@ -1167,7 +1203,9 @@ function App() {
                           )
                         }
                       >
-                        Hiện thêm · {entries.length}/{filePage.total}
+                        {t("showMoreFiles")
+                          .replace("{shown}", String(entries.length))
+                          .replace("{total}", String(filePage.total))}
                       </button>
                     )}
                   </div>
@@ -1208,7 +1246,7 @@ function App() {
                                     })
                                   }
                                 >
-                                  Vùng trước
+                                  {t("prevRegion")}
                                 </button>
                                 <button
                                   disabled={
@@ -1231,7 +1269,7 @@ function App() {
                                     })
                                   }
                                 >
-                                  Vùng sau
+                                  {t("nextRegion")}
                                 </button>
                               </>
                             )}
@@ -1239,11 +1277,11 @@ function App() {
                               disabled={!dirty || opened.document.readOnly}
                               onClick={saveFile}
                             >
-                              <Check size={14} /> Lưu <kbd>⌘S</kbd>
+                              <Check size={14} /> {t("save")} <kbd>⌘S</kbd>
                             </button>
                             <button
-                              aria-label="Đóng file, quay lại danh sách"
-                              title="Đóng file"
+                              aria-label={t("closeFileAria")}
+                              title={t("closeFileTitle")}
                               onClick={closeFile}
                             >
                               <X size={14} />
@@ -1252,7 +1290,7 @@ function App() {
                         </div>
                         <Suspense
                           fallback={
-                            <p className="empty-small">Đang mở editor…</p>
+                            <p className="empty-small">{t("openingEditor")}</p>
                           }
                         >
                           <Editor
@@ -1268,12 +1306,9 @@ function App() {
                     ) : (
                       <div className="empty-editor">
                         <Code2 size={30} />
-                        <h2>Editor nằm ngay trong app</h2>
-                        <p>Chọn một file bên trái. Không cần code-server.</p>
-                        <p className="muted">
-                          File ≤ 8 MiB sửa trực tiếp · File lớn mở theo cửa sổ
-                          256 KiB để không làm treo app.
-                        </p>
+                        <h2>{t("emptyEditorTitle")}</h2>
+                        <p>{t("emptyEditorHint")}</p>
+                        <p className="muted">{t("emptyEditorNote")}</p>
                       </div>
                     )}
                   </div>
@@ -1294,13 +1329,13 @@ function App() {
                   >
                     <div className="conversation-heading">
                       <div className="conversation-title">
-                        <span className="eyebrow">PHIÊN LÀM VIỆC</span>
+                        <span className="eyebrow">{t("sessionEyebrow")}</span>
                         <strong>
                           {chat?.title || project?.name || "Workspace"}
                         </strong>
                         <small>
                           {git.branch || "Local"} · {chat?.messages.length || 0}{" "}
-                          tin nhắn
+                          {t("messagesSuffix")}
                         </small>
                       </div>
                       <div className="conversation-heading-actions">
@@ -1308,10 +1343,10 @@ function App() {
                           className="model-pill"
                           title={state.profile.model}
                         >
-                          {state.profile.model || "Chưa chọn model"}
+                          {state.profile.model || t("noModelChosen")}
                         </span>
                         <button onClick={newChat} disabled={!project}>
-                          <Plus size={13} /> Phiên mới
+                          <Plus size={13} /> {t("newSession")}
                         </button>
                       </div>
                     </div>
@@ -1320,11 +1355,11 @@ function App() {
                         <div className="welcome-mark">
                           <Code2 size={26} />
                         </div>
-                        <h1>Mình xây gì tiếp theo?</h1>
+                        <h1>{t("chatHeroTitle")}</h1>
                         <p>
-                          Một không gian cho code, terminal và AI.
+                          {t("chatHeroSubtitle")}
                           <br />
-                          Quyền thực thi vẫn do anh quyết định.
+                          {t("chatHeroAuthority")}
                         </p>
                         <div className="suggestions">
                           <button
@@ -1332,14 +1367,13 @@ function App() {
                             onClick={() =>
                               setDrafts({
                                 ...drafts,
-                                [draftKey]:
-                                  "Khảo sát cấu trúc project này. Chỉ đọc, chưa thay đổi file.",
+                                [draftKey]: t("promptExploreProject"),
                               })
                             }
                           >
                             <Files size={17} />
-                            <strong>Hiểu project</strong>
-                            <small>Đọc cấu trúc & ngữ cảnh</small>
+                            <strong>{t("suggestExploreTitle")}</strong>
+                            <small>{t("suggestExploreHint")}</small>
                           </button>
                           <button
                             onClick={() => {
@@ -1347,18 +1381,18 @@ function App() {
                             }}
                           >
                             <Code2 size={17} />
-                            <strong>Mở editor</strong>
-                            <small>Xem và sửa file thật</small>
+                            <strong>{t("suggestEditorTitle")}</strong>
+                            <small>{t("suggestEditorHint")}</small>
                           </button>
                           <button disabled={!project} onClick={addTerminal}>
                             <TerminalSquare size={17} />
-                            <strong>Mở terminal</strong>
-                            <small>Shell của anh, không trung gian</small>
+                            <strong>{t("suggestTerminalTitle")}</strong>
+                            <small>{t("suggestTerminalHint")}</small>
                           </button>
                         </div>
                         {!project && (
                           <button className="primary" onClick={openProject}>
-                            <FolderOpen size={16} /> Mở workspace
+                            <FolderOpen size={16} /> {t("openWorkspace")}
                           </button>
                         )}
                       </div>
@@ -1374,7 +1408,7 @@ function App() {
                         <div className="message-content">
                           <div className="message-label">
                             <strong>
-                              {message.role === "user" ? "Anh" : "Yana"}
+                              {message.role === "user" ? t("userLabel") : "Yana"}
                             </strong>
                             <span>
                               {message.role === "assistant"
@@ -1384,8 +1418,8 @@ function App() {
                             <div className="message-actions">
                               {visibleMessageContent(message) && (
                                 <button
-                                  aria-label="Sao chép tin nhắn"
-                                  title="Sao chép"
+                                  aria-label={t("copyMessageAria")}
+                                  title={t("copyTitle")}
                                   onClick={() =>
                                     void copyMessage(
                                       visibleMessageContent(message),
@@ -1398,8 +1432,8 @@ function App() {
                               {message.role === "user" &&
                                 visibleMessageContent(message) && (
                                   <button
-                                    aria-label="Dùng lại nội dung trong ô nhập"
-                                    title="Dùng lại trong ô nhập"
+                                    aria-label={t("reuseAria")}
+                                    title={t("reuseTitle")}
                                     onClick={() =>
                                       reuseMessage(
                                         visibleMessageContent(message),
@@ -1442,15 +1476,11 @@ function App() {
                                   message.errorDetail.reason,
                                 ) && (
                                   <div className="model-error-action">
-                                    <span>
-                                      Model này không còn dùng được với key hiện
-                                      tại. Đồng bộ để lấy danh sách thật của tài
-                                      khoản này.
-                                    </span>
+                                    <span>{t("modelStaleNotice")}</span>
                                     <button
                                       onClick={() => setSurface("settings")}
                                     >
-                                      Mở AI Models
+                                      {t("openAiModels")}
                                     </button>
                                   </div>
                                 )}
@@ -1461,9 +1491,9 @@ function App() {
                                 )}
                               </div>
                             ) : chat.running ? (
-                              "Đang chờ runtime…"
+                              t("waitingRuntime")
                             ) : (
-                              "Chưa có nội dung trả về."
+                              t("noResponseYet")
                             )}
                           </div>
                         </div>
@@ -1483,12 +1513,12 @@ function App() {
                             <Check size={13} />
                           )}
                           {chat.running
-                            ? "Yana đang xử lý"
+                            ? t("statusProcessing")
                             : chatStopped
-                              ? "Lượt chạy đã dừng"
+                              ? t("statusStopped")
                               : chat.error
-                                ? "Lượt chạy cần xử lý"
-                                : "Lượt chạy hoàn tất"}
+                                ? t("statusNeedsAttention")
+                                : t("statusCompleted")}
                         </span>
                         <span>
                           {chat.profile?.provider || state.profile.provider} ·{" "}
@@ -1497,15 +1527,21 @@ function App() {
                         <span>
                           {chat.usage
                             ? `${chat.usage.input + chat.usage.output} tokens`
-                            : `${chat.events.length} sự kiện runtime`}
+                            : t("runtimeEventsCount").replace(
+                                "{n}",
+                                String(chat.events.length),
+                              )}
                         </span>
                       </div>
                     ) : null}
                     {chat?.events.length ? (
                       <details className="runtime-events">
                         <summary>
-                          <GitCompareArrows size={14} /> {chat.events.length} sự
-                          kiện runtime · dữ liệu thật
+                          <GitCompareArrows size={14} />{" "}
+                          {t("runtimeEventsSummary").replace(
+                            "{n}",
+                            String(chat.events.length),
+                          )}
                         </summary>
                         {chat.events.slice(-12).map((event, index) => (
                           <div key={index}>
@@ -1519,19 +1555,19 @@ function App() {
                     {chat?.approval && (
                       <div className="approval card">
                         <h3>
-                          <Shield size={17} /> Cần anh phê duyệt
+                          <Shield size={17} /> {t("needsApproval")}
                         </h3>
                         <code>{chat.approval.capability}</code>
                         <div className="approval-contract">
                           {chat.approval.risk_tier ? (
                             <span>Risk: {chat.approval.risk_tier}</span>
                           ) : (
-                            <span>Risk tier: runtime chưa cung cấp</span>
+                            <span>{t("riskTierMissing")}</span>
                           )}
                           {chat.approval.approver ? (
                             <span>Approver: {chat.approval.approver}</span>
                           ) : (
-                            <span>Approver contract: human:&lt;name&gt;</span>
+                            <span>{t("approverContractDefault")}</span>
                           )}
                         </div>
                         <p>{chat.approval.reason}</p>
@@ -1548,7 +1584,7 @@ function App() {
                               )
                             }
                           >
-                            Cho phép một lần
+                            {t("approveOnce")}
                           </button>
                           <button
                             disabled={
@@ -1561,13 +1597,12 @@ function App() {
                               )
                             }
                           >
-                            Từ chối
+                            {t("deny")}
                           </button>
                         </div>
                         {chat.profile?.provider === "custom" && (
                           <p className="muted">
-                            Runtime hiện chưa hỗ trợ resume approval cho custom
-                            provider. Không thao tác nào được tự cấp phép.
+                            {t("customProviderApprovalNote")}
                           </p>
                         )}
                       </div>
@@ -1609,8 +1644,8 @@ function App() {
                       aria-label="Message to Yana"
                       placeholder={
                         project
-                          ? "Trao đổi với Yana…"
-                          : "Mở project để bắt đầu…"
+                          ? t("composerPlaceholder")
+                          : t("composerPlaceholderNoProject")
                       }
                       disabled={!project || Boolean(chat?.approval)}
                       value={drafts[draftKey] || ""}
@@ -1635,31 +1670,34 @@ function App() {
                       <div className="composer-shortcuts">
                         <button
                           className="composer-add"
-                          aria-label="Thêm file làm ngữ cảnh"
-                          title="Thêm file làm ngữ cảnh"
+                          aria-label={t("addFileContext")}
+                          title={t("addFileContext")}
                           disabled={!project}
                           onClick={() => setAttachPickerOpen(true)}
                         >
                           <Plus size={16} />
                         </button>
                         <button
-                          aria-label="Mở Tệp và Trình sửa"
-                          title="Mở Tệp và Trình sửa"
+                          aria-label={t("openFilesEditor")}
+                          title={t("openFilesEditor")}
                           disabled={!project}
                           onClick={() => setSurface("files")}
                         >
-                          <Files size={14} /> Tệp
+                          <Files size={14} /> {t("filesShort")}
                         </button>
                         <button
                           className={openedAttached ? "context-active" : ""}
-                          aria-label="Đính kèm file code đang mở"
+                          aria-label={t("attachOpenFileAria")}
                           aria-pressed={openedAttached}
                           title={
                             openedAttached
-                              ? `${opened?.path} đã có trong ngữ cảnh`
+                              ? t("alreadyInContext").replace(
+                                  "{path}",
+                                  opened?.path || "",
+                                )
                               : opened
-                                ? `Đính kèm ${opened.path}`
-                                : "Mở một file trước để đính kèm nhanh"
+                                ? t("attachFile").replace("{path}", opened.path)
+                                : t("openFileFirstToAttach")
                           }
                           disabled={!opened}
                           onClick={() => opened && attachPath(opened.path)}
@@ -1667,8 +1705,8 @@ function App() {
                           <Code2 size={14} /> Code
                         </button>
                         <button
-                          aria-label="Hiện Terminal"
-                          title="Hiện Terminal"
+                          aria-label={t("showTerminal")}
+                          title={t("showTerminal")}
                           disabled={!project || busy}
                           onClick={() => {
                             setTerminalEngaged(true);
@@ -1687,6 +1725,7 @@ function App() {
                       </div>
                       <GovernancePopover
                         root={project?.root || ""}
+                        locale={state.preferences.locale}
                         onError={setNotice}
                         onOpenPermissions={() => setSurface("permissions")}
                       />
@@ -1694,7 +1733,7 @@ function App() {
                         <button
                           className="composer-model-button"
                           onClick={() => setModelPopoverOpen((value) => !value)}
-                          title="Chọn model"
+                          title={t("chooseModel")}
                         >
                           {state.profile.model || state.profile.provider}{" "}
                           <ChevronDown size={13} />
@@ -1704,6 +1743,7 @@ function App() {
                             <ModelManager
                               compact
                               state={state}
+                              locale={state.preferences.locale}
                               onState={setState}
                               onError={setNotice}
                               onManage={() => {
@@ -1721,7 +1761,7 @@ function App() {
                             void run(() => window.studio.stopChat(chat.id))
                           }
                         >
-                          <Square size={14} /> Dừng
+                          <Square size={14} /> {t("stop")}
                         </button>
                       ) : (
                         <button
@@ -1806,7 +1846,7 @@ function App() {
                     setSplit(false);
                   }}
                 >
-                  Lưới
+                  {t("gridLabel")}
                 </button>
                 <button
                   title="Maximize terminal"
@@ -1853,14 +1893,14 @@ function App() {
                     <div className="pinned-command-form">
                       <input
                         autoFocus
-                        placeholder="Tên (Dev)"
+                        placeholder={t("pinCommandNamePlaceholder")}
                         value={runCommandName}
                         onChange={(event) =>
                           setRunCommandName(event.target.value)
                         }
                       />
                       <input
-                        placeholder="Lệnh shell (npm run dev)"
+                        placeholder={t("pinCommandShellPlaceholder")}
                         value={runCommandText}
                         onChange={(event) =>
                           setRunCommandText(event.target.value)
@@ -1883,7 +1923,7 @@ function App() {
                   ) : (
                     runCommands.length < 9 && (
                       <button
-                        title="Ghim lệnh mới"
+                        title={t("pinNewCommand")}
                         disabled={!project}
                         onClick={() => setRunCommandFormOpen(true)}
                       >
@@ -1947,7 +1987,7 @@ function App() {
             </section>
             {!dock && (
               <button className="show-dock" onClick={() => setDock(true)}>
-                <PanelBottom size={15} /> Hiện terminal
+                <PanelBottom size={15} /> {t("showTerminal")}
               </button>
             )}
           </main>
@@ -2072,6 +2112,7 @@ function App() {
             chat={chat}
             attachmentCount={(attachments[draftKey] || []).length}
             terminalCount={localTerminals.length}
+            locale={state.preferences.locale}
             onState={setState}
             onError={setNotice}
             onRefresh={() => {
@@ -2091,8 +2132,9 @@ function App() {
         </span>
         <span>{state.platform}</span>
         <span className="status-right">
-          {runsCount(chats)} AI đang chạy · {terminals.length} terminals
-          <span className="dot blue" /> Local workspace
+          {t("aiRunningCount").replace("{n}", String(runsCount(chats)))} ·{" "}
+          {terminals.length} terminals
+          <span className="dot blue" /> {t("localWorkspaceLabel")}
         </span>
       </footer>
       {notice && (
@@ -2118,7 +2160,7 @@ function App() {
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Anh muốn làm gì?"
+                placeholder={t("paletteQueryPlaceholder")}
               />
               <kbd>ESC</kbd>
             </div>
@@ -2194,7 +2236,7 @@ function App() {
                     >
                       <button
                         className="diff-comment-add"
-                        title="Thêm comment vào dòng này"
+                        title={t("addCommentTitle")}
                         disabled={!line.trim()}
                         onClick={() => {
                           setDiffCommentLine(index);
@@ -2209,7 +2251,7 @@ function App() {
                       <div className="diff-comment-card" key={comment.id}>
                         <p>{comment.text}</p>
                         <button
-                          aria-label="Xóa comment"
+                          aria-label={t("deleteCommentAria")}
                           onClick={() => void removeDiffComment(comment.id)}
                         >
                           <X size={11} />
@@ -2221,7 +2263,7 @@ function App() {
                         <textarea
                           autoFocus
                           value={diffCommentText}
-                          placeholder="Ghi chú review cho dòng này…"
+                          placeholder={t("reviewNotePlaceholder")}
                           onChange={(event) =>
                             setDiffCommentText(event.target.value)
                           }
@@ -2264,22 +2306,23 @@ function App() {
             aria-modal="true"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Lưu thay đổi trước khi đóng?</h3>
+            <h3>{t("saveBeforeCloseTitle")}</h3>
             <p>
-              <code>{opened.path}</code> có thay đổi chưa lưu. Thay đổi sẽ mất
-              nếu chọn “Không lưu”.
+              <code>{opened.path}</code> {t("unsavedChangesWarning")}
             </p>
             <div className="button-row">
               <button
                 className="primary"
                 onClick={() => void saveAndCloseFile()}
               >
-                <Check size={14} /> Lưu
+                <Check size={14} /> {t("save")}
               </button>
               <button className="danger-button" onClick={discardAndCloseFile}>
-                Không lưu
+                {t("dontSave")}
               </button>
-              <button onClick={() => setCloseConfirmOpen(false)}>Hủy</button>
+              <button onClick={() => setCloseConfirmOpen(false)}>
+                {t("cancel")}
+              </button>
             </div>
           </div>
         </div>
@@ -2287,7 +2330,8 @@ function App() {
       {attachPickerOpen && project && (
         <FilePicker
           root={project.root}
-          title="Đính kèm file làm context…"
+          title={t("attachPickerTitle")}
+          locale={state.preferences.locale}
           onClose={() => setAttachPickerOpen(false)}
           onPick={(entry) => {
             setAttachPickerOpen(false);
@@ -2298,7 +2342,8 @@ function App() {
       {quickOpen && project && (
         <FilePicker
           root={project.root}
-          title="Mở file nhanh (⌘P)…"
+          title={t("quickOpenTitle")}
+          locale={state.preferences.locale}
           onClose={() => setQuickOpen(false)}
           onPick={(entry) => {
             setQuickOpen(false);

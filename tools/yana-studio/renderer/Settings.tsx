@@ -72,7 +72,12 @@ export function Settings({
         ))}
       </div>
       {section === "account" ? (
-        <AccountSettings state={state} onState={onState} onError={onError} />
+        <AccountSettings
+          state={state}
+          locale={state.preferences.locale}
+          onState={onState}
+          onError={onError}
+        />
       ) : section === "appearance" ? (
         <div className="card settings-card settings-language">
           <h2>{t("language")}</h2>
@@ -98,9 +103,13 @@ export function Settings({
           </label>
         </div>
       ) : section === "privacy" ? (
-        <PrivacyData onState={onState} onError={onError} />
+        <PrivacyData
+          locale={state.preferences.locale}
+          onState={onState}
+          onError={onError}
+        />
       ) : section === "connections" ? (
-        <Connections />
+        <Connections locale={state.preferences.locale} />
       ) : section === "usage" ? (
         <TokenUsage
           locale={state.preferences.locale}
@@ -121,7 +130,12 @@ export function Settings({
           <p className="muted">
             Cloud và local cùng đi qua TurnEngine và RuntimeAuthority của Yana.
           </p>
-          <ModelManager state={state} onState={onState} onError={onError} />
+          <ModelManager
+            state={state}
+            locale={state.preferences.locale}
+            onState={onState}
+            onError={onError}
+          />
           <div className="card settings-card runtime-settings-card">
             <h2>Yana runtime</h2>
             <p>Studio gọi trực tiếp binary yana-rt, không dùng gateway cũ.</p>

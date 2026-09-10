@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { Lock, LogOut, UserRound } from "lucide-react";
 import type { IntegrationConnection, State } from "./types";
+import { translate, type Locale } from "./i18n";
 
 export function AccountSettings({
   state,
+  locale,
   onState,
   onError,
 }: {
   state: State;
+  locale: Locale;
   onState: (state: State) => void;
   onError: (message: string) => void;
 }) {
+  const t = translate(locale);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +37,7 @@ export function AccountSettings({
             {state.account.mode === "local"
               ? "Local password profile"
               : "Google identity profile"}{" "}
-            · dữ liệu vẫn chỉ nằm trên máy này
+            {t("localDataOnlyNote")}
           </small>
         </div>
         <div className="button-row">
@@ -46,52 +50,41 @@ export function AccountSettings({
                   .catch((error) => onError(String(error)))
               }
             >
-              <Lock size={15} /> Khóa Studio
+              <Lock size={15} /> {t("lockStudio")}
             </button>
           )}
           <button
             className="danger-button"
             onClick={() => {
-              if (
-                !window.confirm(
-                  "Đăng xuất khỏi hồ sơ này? Project, chat và credential provider vẫn giữ nguyên trên máy — chỉ hồ sơ tài khoản bị xóa, anh có thể tạo hồ sơ khác hoặc đăng nhập lại.",
-                )
-              )
-                return;
+              if (!window.confirm(t("confirmLogout"))) return;
               void window.studio
                 .accountLogout()
                 .then(onState)
                 .catch((error) => onError(String(error)));
             }}
           >
-            <LogOut size={15} /> Đăng xuất
+            <LogOut size={15} /> {t("logOut")}
           </button>
         </div>
       </section>
     );
   return (
     <div className="account-settings">
-      <h2>Tài khoản local-first</h2>
-      <p className="muted">
-        Không có Yana cloud server. Tài khoản chỉ nhận diện người dùng trên
-        thiết bị này; project, chat và backup không tự tải lên mạng.
-      </p>
+      <h2>{t("localFirstAccountTitle")}</h2>
+      <p className="muted">{t("localFirstAccountNote")}</p>
       <div className="settings-grid">
         <section className="card settings-card">
-          <h3>Email + mật khẩu</h3>
-          <p>
-            Mật khẩu khóa Studio trên máy. Chỉ lưu salt và scrypt verifier,
-            không lưu mật khẩu.
-          </p>
+          <h3>{t("emailPasswordTitle")}</h3>
+          <p>{t("emailPasswordNote")}</p>
           <label>
-            Tên hiển thị
+            {t("displayNameLabel")}
             <input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </label>
           <label>
-            Email
+            {t("emailFieldLabel")}
             <input
               type="email"
               value={email}
@@ -99,7 +92,7 @@ export function AccountSettings({
             />
           </label>
           <label>
-            Mật khẩu
+            {t("passwordFieldLabel")}
             <input
               type="password"
               value={password}
@@ -121,14 +114,12 @@ export function AccountSettings({
                 .catch((error) => onError(String(error)))
             }
           >
-            Tạo hồ sơ local
+            {t("createLocalProfile")}
           </button>
         </section>
         <section className="card settings-card">
-          <h3>Tiếp tục với Google</h3>
-          <p>
-            Chỉ dùng scope identity. Không tự cấp Gmail, Drive hoặc Calendar.
-          </p>
+          <h3>{t("continueWithGoogleTitle")}</h3>
+          <p>{t("googleScopeNote")}</p>
           {google?.account_id ? (
             <>
               <p>
@@ -142,15 +133,13 @@ export function AccountSettings({
                     .catch((error) => onError(String(error)))
                 }
               >
-                Dùng Google làm hồ sơ Studio
+                {t("useGoogleAsProfile")}
               </button>
             </>
           ) : (
             <>
-              <p className="muted">
-                Kết nối Google Account trong mục Tài khoản & Kết nối trước.
-              </p>
-              <button disabled>Google chưa kết nối</button>
+              <p className="muted">{t("connectGoogleFirst")}</p>
+              <button disabled>{t("googleNotConnected")}</button>
             </>
           )}
         </section>
@@ -161,13 +150,16 @@ export function AccountSettings({
 
 export function AccountUnlock({
   state,
+  locale,
   onState,
   onError,
 }: {
   state: State;
+  locale: Locale;
   onState: (state: State) => void;
   onError: (message: string) => void;
 }) {
+  const t = translate(locale);
   const [password, setPassword] = useState("");
   const unlock = () =>
     window.studio
@@ -177,12 +169,12 @@ export function AccountUnlock({
   return (
     <main className="account-lock">
       <div className="brand-symbol">Y</div>
-      <h1>Yana Studio đã khóa</h1>
+      <h1>{t("studioLockedTitle")}</h1>
       <p>
         {state.account.displayName} · {state.account.email}
       </p>
       <label>
-        Mật khẩu
+        {t("passwordFieldLabel")}
         <input
           autoFocus
           type="password"
@@ -194,7 +186,7 @@ export function AccountUnlock({
         />
       </label>
       <button disabled={!password} onClick={() => void unlock()}>
-        Mở khóa
+        {t("unlockButton")}
       </button>
     </main>
   );

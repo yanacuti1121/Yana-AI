@@ -156,6 +156,23 @@ fn run_critical_section(p: &TokenBudgetParams) -> i32 {
 
     let status = circuit_status_for(&circuits, &tool_name, now_epoch, cooldown_seconds);
 
+    // BUG FIX (2026-09-11): a half-open transition is supposed to be one
+    // free probe, but `budget.loop_attempts[tool]` was never reset when
+    // the circuit closed — it kept the stale count (>= max_attempts) that
+    // tripped the circuit last time. That made the loop_count check just
+    // below immediately re-trip on the probe itself, before the
+    // HalfOpen-closes-the-circuit block further down ever ran. Net effect:
+    // once a tool's circuit opened, it could never actually close again —
+    // every cooldown expiry just re-opened it at the next escalation tier
+    // (60s -> 300s -> 1800s -> 1800s forever). Confirmed live. Reset the
+    // counter here, before it's read, so the probe gets a real fresh
+    // chance instead of inheriting the count that caused the trip.
+    if matches!(status, CircuitStatus::HalfOpen) {
+        if let Some(attempts) = budget.get_mut("loop_attempts").and_then(Value::as_object_mut) {
+            attempts.insert(tool_name.to_string(), json!(0));
+        }
+    }
+
     if let CircuitStatus::Open(remaining) = status {
         append_log(&log_file, &format!(
             "[{timestamp}] CIRCUIT-OPEN tool='{tool_name}' cooldown_remaining={remaining}s"
