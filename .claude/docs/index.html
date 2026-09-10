@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Yana AI Desktop — Your AI assistant, running on your machine</title>
-  <meta name="description" content="Yana AI Desktop brings a governed runtime to your machine. Bring your own API key or run fully offline with Ollama. No Yana AI server in between. Free download for macOS, Windows, and Linux." />
+  <title>Yana — One runtime. Any AI. Human-governed.</title>
+  <meta name="description" content="Yana is the persistent, human-governed control plane around the AI you use — local or cloud models, any coding agent. Runtime, governance, Studio, and more, all one ecosystem." />
   <link rel="canonical" href="https://yana.vutam.link/" />
 
   <!-- SEO / social preview — reuses the existing 240x240 app icon, the
        only image asset this static page has; not a purpose-built 1200x630
        social card (would need a design pass this page doesn't have). -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Yana AI Desktop — Your AI assistant, running on your machine" />
-  <meta property="og:description" content="A governed runtime on your machine. Bring your own API key or run fully offline with Ollama. No Yana AI server in between. Free for macOS, Windows, and Linux." />
+  <meta property="og:title" content="Yana — One runtime. Any AI. Human-governed." />
+  <meta property="og:description" content="The persistent control plane around the AI you use. Models can change. Yana persists — authority, continuity, and evidence." />
   <meta property="og:image" content="https://yana.vutam.link/yana-logo.png" />
   <meta property="og:url" content="https://yana.vutam.link/" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Yana AI Desktop — Your AI assistant, running on your machine" />
-  <meta name="twitter:description" content="A governed runtime on your machine. Bring your own API key or run fully offline with Ollama. No Yana AI server in between." />
+  <meta name="twitter:title" content="Yana — One runtime. Any AI. Human-governed." />
+  <meta name="twitter:description" content="The persistent control plane around the AI you use. Models can change. Yana persists." />
   <meta name="twitter:image" content="https://yana.vutam.link/yana-logo.png" />
 
   <link rel="icon" type="image/png" href="yana-logo.png" />
@@ -133,6 +133,9 @@
     .dl-btn svg { flex: none; }
     .dl-btn-sub { font-size: .75rem; font-weight: 400; opacity: .7; display: block; }
     .hero-note { font-size: .8rem; color: var(--fg-muted); margin-top: .5rem; }
+    .hero-entry-note { font-size: .85rem; color: var(--fg-muted); margin-bottom: 1rem; }
+    .hero-entry-note a { color: var(--primary); font-weight: 600; }
+    .hero-entry-note a:hover { text-decoration: underline; }
 
     /* ── App mockup ───────────────────────────────────────── */
     /* Mouse-tracked 3D tilt (--rx/--ry set by JS below). Pure CSS fallback:
@@ -230,6 +233,48 @@
       .gate-demo { flex-basis: 100%; }
     }
 
+    /* ── Intelligence != Authority ───────────────────────────
+       Two columns, not a card grid: this is a claim about a
+       relationship (models feed into Yana; Yana doesn't feed into
+       models), so the layout itself should show that arrow, not
+       repeat six identical tiles. */
+    .authority { max-width: 900px; margin: 6rem auto 0; padding: 0 1.5rem; }
+    .authority-split {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem;
+      align-items: center;
+    }
+    .authority-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+    .authority-col h3 { font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 1rem; }
+    .authority-col ul { list-style: none; display: flex; flex-direction: column; gap: .6rem; font-size: .9375rem; }
+    .authority-col.models h3 { color: color-mix(in oklab, var(--blue, #477fd1) 80%, var(--fg-muted)); }
+    .authority-col.yana h3 { color: var(--primary); }
+    .authority-col.yana { border-color: color-mix(in oklab, var(--primary) 35%, var(--border)); background: linear-gradient(135deg, var(--bg-card-2), var(--bg-card)); }
+    .authority-arrow { font-size: 1.5rem; color: var(--fg-faint); text-align: center; }
+    .authority-note { text-align: center; margin-top: 1.5rem; font-size: .9375rem; color: var(--fg-muted); }
+    .authority-note strong { color: var(--fg); }
+    @media (max-width: 640px) {
+      .authority-split { grid-template-columns: 1fr; }
+      .authority-arrow { transform: rotate(90deg); }
+    }
+
+    /* ── One Ecosystem ────────────────────────────────────────
+       Status badges (Live/In development/Experimental) are semantic,
+       not the brand accent — color-rules.md: don't let a status color
+       double as the page's one accent color. */
+    .ecosystem { max-width: 1080px; margin: 6rem auto 0; padding: 0 1.5rem; }
+    .eco-grid { display: grid; list-style: none; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+    .eco-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: .6rem; transition: border-color .15s; }
+    .eco-card:hover { border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
+    .eco-card-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .eco-card-head h3 { font-size: 1.0625rem; font-weight: 700; }
+    .eco-status { flex: none; font-size: .6875rem; font-weight: 700; letter-spacing: .03em; padding: .18rem .55rem; border-radius: 999px; }
+    .eco-status.live { background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); }
+    .eco-status.dev { background: color-mix(in oklab, var(--gold, #b68b42) 18%, transparent); color: var(--gold, #b68b42); }
+    .eco-status.exp { background: color-mix(in oklab, var(--blue, #477fd1) 15%, transparent); color: var(--blue, #477fd1); }
+    .eco-card p { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; flex: 1; }
+    .eco-card a.eco-link { font-size: .8125rem; font-weight: 600; color: var(--primary); }
+    .eco-card a.eco-link:hover { text-decoration: underline; }
+
     /* ── FAQ ──────────────────────────────────────────────── */
     .faq { max-width: 720px; margin: 5rem auto 0; padding: 0 1.5rem; }
     .faq-item {
@@ -317,12 +362,12 @@
 <header>
 <nav aria-label="Primary">
   <a href="/" class="nav-brand">
-    <img src="yana-logo.png" alt="Yana AI" />
-    <span>Yana AI</span>
-    <span class="nav-product">Desktop</span>
+    <img src="yana-logo.png" alt="Yana" />
+    <span>Yana</span>
   </a>
   <div class="nav-links">
-    <a href="/" data-i18n="nav_home">Home</a>
+    <a href="#ecosystem" data-i18n="nav_ecosystem">Ecosystem</a>
+    <a href="/governance.html" data-i18n="nav_governance">Governance</a>
     <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub</a>
     <a href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank" rel="noreferrer">Releases</a>
     <div class="lang-switcher">
@@ -342,12 +387,12 @@
   <div class="hero-grid">
   <div class="hero-copy">
   <div class="hero-badge"><span class="dot"></span> v1.4.8 &nbsp;·&nbsp; <span data-i18n="badge_new">Latest release</span> <time datetime="2026-09-03">(Sep 3, 2026)</time></div>
-  <p class="hero-eyebrow" data-i18n="hero_eyebrow">LOCAL AI · HUMAN-GOVERNED</p>
-  <h1 id="hero-title" data-i18n="hero_h1">Your AI assistant,<br><em>running on your machine</em></h1>
+  <p class="hero-eyebrow" data-i18n="hero_eyebrow">ONE RUNTIME · ANY AI · HUMAN-GOVERNED</p>
+  <h1 id="hero-title" data-i18n="hero_h1">Run any AI.<br><em>Keep the authority.</em></h1>
   <p class="hero-sub" data-i18n="hero_sub">
-    Yana AI Desktop brings the same governed runtime to your machine: bring your own API key,
-    or run fully offline with Ollama. No Yana AI server ever sits between you and your data,
-    and every safety hook still runs locally, under your control. <strong>2,025 skills</strong>, <strong>100 agents</strong>, deterministic policy gates.
+    Yana is the persistent control plane around the AI you use — Claude, Codex, Gemini, or a
+    fully local model. Models can change, agents can terminate; Yana keeps the policy, the
+    memory, and the audit trail. <strong>2,025 skills</strong>, <strong>100 agents</strong>, one governed runtime.
   </p>
 
   <div class="gh-stats" id="ghStats" hidden>
@@ -361,6 +406,7 @@
     </a>
   </div>
 
+  <p class="hero-entry-note" data-i18n="hero_entry_note">Download Yana AI Desktop below, or <a href="#ecosystem">explore the whole ecosystem ↓</a> — Studio, the Runtime, and governing your own repo.</p>
   <div class="dl-grid" id="download">
     <a class="dl-btn primary" data-platform="mac" href="https://github.com/yanacuti1121/Yana-AI/releases/download/v1.4.8/Yana-AI-1.4.8-arm64.dmg">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -463,10 +509,67 @@
   </ul>
 </section>
 
+<!-- Intelligence != Authority -->
+<section class="authority">
+  <h2 class="section-title" data-i18n="auth_title">Intelligence is not authority</h2>
+  <p class="section-sub" data-i18n="auth_sub">A model can propose an action. Yana decides whether it happens.</p>
+  <div class="authority-split">
+    <div class="authority-col models">
+      <h3 data-i18n="auth_col_models">Intelligence</h3>
+      <ul><li>Claude</li><li>Codex</li><li>Gemini</li><li>DeepSeek</li><li>Ollama · local models</li></ul>
+    </div>
+    <div class="authority-arrow" aria-hidden="true">→</div>
+    <div class="authority-col yana">
+      <h3 data-i18n="auth_col_yana">Authority</h3>
+      <ul><li data-i18n="auth_yana_policy">Policy &amp; capabilities</li><li data-i18n="auth_yana_approval">Human approval</li><li data-i18n="auth_yana_halt">Giám Thị · HALT</li><li data-i18n="auth_yana_audit">Audit &amp; evidence</li></ul>
+    </div>
+  </div>
+  <p class="authority-note" data-i18n="auth_note">Models reason. <strong>Yana governs what becomes action.</strong></p>
+</section>
+
+<!-- One Ecosystem -->
+<section class="ecosystem" id="ecosystem">
+  <h2 class="section-title" data-i18n="eco_title">One ecosystem</h2>
+  <p class="section-sub" data-i18n="eco_sub">Yana AI Desktop is one surface. Here is what it stands on.</p>
+  <ul class="eco-grid">
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_runtime_title">Yana Runtime</h3><span class="eco-status live" data-i18n="status_live">Live</span></div>
+      <p data-i18n="eco_runtime_desc">The engine — <code>yana-rt</code>, a canonical Rust TurnEngine unifying local and cloud models under one authority contract.</p>
+      <a class="eco-link" href="/runtime.html" data-i18n="eco_link_crate">Explore the Runtime →</a>
+    </li>
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_governance_title">Yana Governance</h3><span class="eco-status live" data-i18n="status_live">Live</span></div>
+      <p data-i18n="eco_governance_desc">The authority layer — capability manifests, human approval, Giám Thị's fail-closed HALT, and a tamper-detectable audit chain.</p>
+      <a class="eco-link" href="/governance.html" data-i18n="eco_link_adr">Explore Governance →</a>
+    </li>
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_studio_title">Yana Studio</h3><span class="eco-status dev" data-i18n="status_dev">In development</span></div>
+      <p data-i18n="eco_studio_desc">The visual workspace for Yana — files, terminal, models, and governance telemetry in one window. v0.1.0, built in the open.</p>
+      <a class="eco-link" href="https://github.com/yanacuti1121/Yana-AI/tree/main/tools/yana-studio" target="_blank" rel="noreferrer" data-i18n="eco_link_source">View source →</a>
+    </li>
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_os_title">Yana OS</h3><span class="eco-status dev" data-i18n="status_dev">In development</span></div>
+      <p data-i18n="eco_os_desc">The platform underneath Yana AI — agent lifecycle, autonomy, and health, built on the Runtime rather than replacing it.</p>
+      <a class="eco-link" href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/programs/PROGRAM-K-YANA-OS-SKELETON.md" target="_blank" rel="noreferrer" data-i18n="eco_link_program">Read the design →</a>
+    </li>
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_wheelbot_title">Yana Wheelbot</h3><span class="eco-status exp" data-i18n="status_exp">Experimental</span></div>
+      <p data-i18n="eco_wheelbot_desc">Yana beyond the screen — an ESP32-S3 robotics platform. A separate repository; hardware maturity not yet independently verified here.</p>
+      <a class="eco-link" href="https://github.com/yanacuti1121/yana-wheelbot" target="_blank" rel="noreferrer" data-i18n="eco_link_repo">View repository →</a>
+    </li>
+    <li class="eco-card">
+      <div class="eco-card-head"><h3 data-i18n="eco_integrations_title">Integrations</h3><span class="eco-status live" data-i18n="status_live">Live</span></div>
+      <p data-i18n="eco_integrations_desc">Bring Yana's governance into the AI coding agent you already use — Claude Code, Codex, Cursor, Antigravity. Enforcement strength varies by host.</p>
+      <a class="eco-link" href="/integrations.html" data-i18n="eco_link_start">See per-host enforcement →</a>
+    </li>
+  </ul>
+</section>
+
 <!-- Features -->
+<a id="governance"></a>
 <section class="features">
-  <h2 class="section-title" data-i18n="feat_title">Everything you need, running on your machine</h2>
-  <p class="section-sub" data-i18n="feat_sub">No cloud, no tracking. Your data stays with you.</p>
+  <h2 class="section-title" data-i18n="feat_title">Governed execution, not marketing copy</h2>
+  <p class="section-sub" data-i18n="feat_sub">Every guardrail below runs as code — verify it yourself, it's open source.</p>
   <ul class="feat-grid">
     <li class="feat-card spotlight">
       <div class="feat-copy">
@@ -611,9 +714,38 @@ const LANGS = {
     nav_home: "Home", nav_cta: "Download",
     footer_guide: "User Guide", footer_macinstall: "macOS Install Guide",
     badge_new: "Latest release",
-    hero_eyebrow: "LOCAL AI · HUMAN-GOVERNED",
-    hero_h1: "Your AI assistant,<br><em>running on your machine</em>",
-    hero_sub: "Yana AI Desktop brings the same governed runtime to your machine: bring your own API key, or run fully offline with Ollama. No Yana AI server ever sits between you and your data, and every safety hook still runs locally, under your control. <strong>2,025 skills</strong>, <strong>100 agents</strong>, deterministic policy gates.",
+    nav_ecosystem: "Ecosystem", nav_governance: "Governance",
+    hero_eyebrow: "ONE RUNTIME · ANY AI · HUMAN-GOVERNED",
+    hero_h1: "Run any AI.<br><em>Keep the authority.</em>",
+    hero_sub: "Yana is the persistent control plane around the AI you use — Claude, Codex, Gemini, or a fully local model. Models can change, agents can terminate; Yana keeps the policy, the memory, and the audit trail. <strong>2,025 skills</strong>, <strong>100 agents</strong>, one governed runtime.",
+    hero_entry_note: "Download Yana AI Desktop below, or <a href=\"#ecosystem\">explore the whole ecosystem ↓</a> — Studio, the Runtime, and governing your own repo.",
+    auth_title: "Intelligence is not authority",
+    auth_sub: "A model can propose an action. Yana decides whether it happens.",
+    auth_col_models: "Intelligence", auth_col_yana: "Authority",
+    auth_yana_policy: "Policy &amp; capabilities", auth_yana_approval: "Human approval",
+    auth_yana_halt: "Giám Thị · HALT", auth_yana_audit: "Audit &amp; evidence",
+    auth_note: "Models reason. <strong>Yana governs what becomes action.</strong>",
+    eco_title: "One ecosystem",
+    eco_sub: "Yana AI Desktop is one surface. Here is what it stands on.",
+    status_live: "Live", status_dev: "In development", status_exp: "Experimental",
+    eco_runtime_title: "Yana Runtime",
+    eco_runtime_desc: "The engine — <code>yana-rt</code>, a canonical Rust TurnEngine unifying local and cloud models under one authority contract.",
+    eco_link_crate: "Explore the Runtime →",
+    eco_governance_title: "Yana Governance",
+    eco_governance_desc: "The authority layer — capability manifests, human approval, Giám Thị's fail-closed HALT, and a tamper-detectable audit chain.",
+    eco_link_adr: "Explore Governance →",
+    eco_studio_title: "Yana Studio",
+    eco_studio_desc: "The visual workspace for Yana — files, terminal, models, and governance telemetry in one window. v0.1.0, built in the open.",
+    eco_link_source: "View source →",
+    eco_os_title: "Yana OS",
+    eco_os_desc: "The platform underneath Yana AI — agent lifecycle, autonomy, and health, built on the Runtime rather than replacing it.",
+    eco_link_program: "Read the design →",
+    eco_wheelbot_title: "Yana Wheelbot",
+    eco_wheelbot_desc: "Yana beyond the screen — an ESP32-S3 robotics platform. A separate repository; hardware maturity not yet independently verified here.",
+    eco_link_repo: "View repository →",
+    eco_integrations_title: "Integrations",
+    eco_integrations_desc: "Bring Yana's governance into the AI coding agent you already use — Claude Code, Codex, Cursor, Antigravity. Enforcement strength varies by host.",
+    eco_link_start: "See per-host enforcement →",
     gh_stars: "stars on GitHub",
     gh_star_one: "star on GitHub",
     gh_forks: "forks",
@@ -630,8 +762,8 @@ const LANGS = {
     chat_user1: "Explain what RAG is",
     chat_ai2: "RAG (Retrieval-Augmented Generation) combines information retrieval with text generation. Instead of relying solely on training data, RAG fetches relevant documents before answering — more accurate, more up-to-date…",
     chat_placeholder: "Message Yana…",
-    feat_title: "Everything you need, running on your machine",
-    feat_sub: "No cloud, no tracking. Your data stays with you.",
+    feat_title: "Governed execution, not marketing copy",
+    feat_sub: "Every guardrail below runs as code — verify it yourself, it's open source.",
     f1_title: "Bring your own API key",
     f1_desc: "Use your own Anthropic, OpenAI, Gemini, or Ollama key. No middleman — pay the provider directly.",
     f2_title: "Multi-layer security",
@@ -680,9 +812,38 @@ const LANGS = {
     nav_home: "Trang chủ", nav_cta: "Tải về",
     footer_guide: "Hướng dẫn sử dụng", footer_macinstall: "Hướng dẫn cài macOS",
     badge_new: "Mới nhất",
-    hero_eyebrow: "AI LOCAL · CON NGƯỜI QUẢN TRỊ",
-    hero_h1: "Trợ lý AI<br><em>trên máy của bạn</em>",
-    hero_sub: "Yana AI Desktop mang cùng một runtime có quản trị lên máy của bạn: dùng API key riêng, hoặc chạy hoàn toàn offline với Ollama. Không có server nào của Yana AI đứng giữa bạn và dữ liệu, mọi hook an toàn vẫn chạy ngay trên máy, do chính bạn kiểm soát. <strong>2,025 skills</strong>, <strong>100 agents</strong>, policy gate tất định.",
+    nav_ecosystem: "Hệ sinh thái", nav_governance: "Governance",
+    hero_eyebrow: "MỘT RUNTIME · MỌI AI · CON NGƯỜI QUẢN TRỊ",
+    hero_h1: "Chạy bất kỳ AI nào.<br><em>Giữ lại quyền quyết định.</em>",
+    hero_sub: "Yana là control plane bền vững quanh AI bạn đang dùng — Claude, Codex, Gemini, hay model chạy hoàn toàn local. Model có thể đổi, agent có thể kết thúc; Yana giữ lại policy, bộ nhớ, và audit trail. <strong>2,025 skills</strong>, <strong>100 agents</strong>, một runtime được quản trị.",
+    hero_entry_note: "Tải Yana AI Desktop ngay dưới đây, hoặc <a href=\"#ecosystem\">xem toàn bộ hệ sinh thái ↓</a> — Studio, Runtime, và cách quản trị repo của riêng bạn.",
+    auth_title: "Trí tuệ không phải là quyền quyết định",
+    auth_sub: "Model có thể đề xuất một hành động. Yana quyết định nó có được thực hiện hay không.",
+    auth_col_models: "Trí tuệ", auth_col_yana: "Quyền quyết định",
+    auth_yana_policy: "Policy &amp; capabilities", auth_yana_approval: "Phê duyệt của con người",
+    auth_yana_halt: "Giám Thị · HALT", auth_yana_audit: "Audit &amp; evidence",
+    auth_note: "Model suy luận. <strong>Yana quyết định điều gì được biến thành hành động.</strong>",
+    eco_title: "Một hệ sinh thái",
+    eco_sub: "Yana AI Desktop chỉ là một bề mặt. Đây là những gì nó đứng trên.",
+    status_live: "Đang chạy", status_dev: "Đang phát triển", status_exp: "Thực nghiệm",
+    eco_runtime_title: "Yana Runtime",
+    eco_runtime_desc: "Cỗ máy — <code>yana-rt</code>, một Rust TurnEngine chính thức thống nhất model local và cloud dưới cùng một hợp đồng quyền hạn.",
+    eco_link_crate: "Khám phá Runtime →",
+    eco_governance_title: "Yana Governance",
+    eco_governance_desc: "Tầng quyền quyết định — capability manifest, phê duyệt của con người, HALT fail-closed của Giám Thị, và audit chain chống giả mạo.",
+    eco_link_adr: "Khám phá Governance →",
+    eco_studio_title: "Yana Studio",
+    eco_studio_desc: "Workspace trực quan cho Yana — file, terminal, model, và governance telemetry trong 1 cửa sổ. v0.1.0, xây công khai.",
+    eco_link_source: "Xem mã nguồn →",
+    eco_os_title: "Yana OS",
+    eco_os_desc: "Nền tảng bên dưới Yana AI — agent lifecycle, autonomy, health — xây trên Runtime, không thay thế nó.",
+    eco_link_program: "Đọc thiết kế →",
+    eco_wheelbot_title: "Yana Wheelbot",
+    eco_wheelbot_desc: "Yana vượt ra khỏi màn hình — nền tảng robotics ESP32-S3. Repo riêng; mức độ hoàn thiện phần cứng chưa được kiểm chứng độc lập ở đây.",
+    eco_link_repo: "Xem repository →",
+    eco_integrations_title: "Integrations",
+    eco_integrations_desc: "Đưa governance của Yana vào AI coding agent bạn đang dùng — Claude Code, Codex, Cursor, Antigravity. Mức độ enforce khác nhau theo từng host.",
+    eco_link_start: "Xem mức enforce theo từng host →",
     gh_stars: "lượt sao trên GitHub",
     gh_star_one: "lượt sao trên GitHub",
     gh_forks: "lượt fork",
@@ -699,8 +860,8 @@ const LANGS = {
     chat_user1: "Giải thích RAG là gì",
     chat_ai2: "RAG (Retrieval-Augmented Generation) là kỹ thuật kết hợp tìm kiếm thông tin với sinh văn bản. Thay vì chỉ dựa vào dữ liệu training, RAG truy xuất tài liệu liên quan trước khi trả lời — chính xác hơn, cập nhật hơn…",
     chat_placeholder: "Nhắn tin với Yana…",
-    feat_title: "Mọi thứ bạn cần, chạy trên máy của bạn",
-    feat_sub: "Không cloud, không tracking. Dữ liệu ở lại với bạn.",
+    feat_title: "Thực thi có quản trị, không phải copy marketing",
+    feat_sub: "Mọi guardrail dưới đây chạy bằng code thật — tự kiểm chứng, mã nguồn mở.",
     f1_title: "API key của bạn",
     f1_desc: "Dùng key của Anthropic, OpenAI, Gemini hoặc Ollama. Không qua trung gian — thanh toán thẳng với provider.",
     f2_title: "Bảo mật đa lớp",
@@ -749,9 +910,38 @@ const LANGS = {
     nav_home: "홈", nav_cta: "다운로드",
     footer_guide: "사용 가이드", footer_macinstall: "macOS 설치 가이드",
     badge_new: "최신 릴리즈",
-    hero_eyebrow: "로컬 AI · 인간 거버넌스",
-    hero_h1: "당신의 AI 어시스턴트,<br><em>당신의 컴퓨터에서 실행</em>",
-    hero_sub: "Yana AI Desktop는 동일하게 거버넌스된 런타임을 당신의 기기로 가져옵니다: 본인의 API 키를 사용하거나, Ollama로 완전 오프라인 실행하세요. Yana AI 서버가 당신과 데이터 사이에 끼어드는 일은 없으며, 모든 안전 훅은 로컬에서 당신의 통제 아래 실행됩니다. <strong>2025개 스킬</strong>, <strong>101개 에이전트</strong>, 결정론적 정책 게이트.",
+    nav_ecosystem: "생태계", nav_governance: "거버넌스",
+    hero_eyebrow: "하나의 런타임 · 모든 AI · 인간 거버넌스",
+    hero_h1: "어떤 AI든 실행하세요.<br><em>권한은 그대로 유지하세요.</em>",
+    hero_sub: "Yana는 당신이 쓰는 AI — Claude, Codex, Gemini, 또는 완전 로컬 모델 — 주위를 감싸는 지속적인 control plane입니다. 모델은 바뀌고 에이전트는 종료될 수 있지만, Yana는 정책과 메모리, 감사 기록을 유지합니다. <strong>2,025개 스킬</strong>, <strong>100개 에이전트</strong>, 하나의 거버넌스 런타임.",
+    hero_entry_note: "아래에서 Yana AI Desktop을 받거나, <a href=\"#ecosystem\">전체 생태계 살펴보기 ↓</a> — Studio, Runtime, 그리고 자신의 저장소 거버넌스까지.",
+    auth_title: "지능은 권한이 아닙니다",
+    auth_sub: "모델은 행동을 제안할 수 있습니다. 그것이 실행될지는 Yana가 결정합니다.",
+    auth_col_models: "지능", auth_col_yana: "권한",
+    auth_yana_policy: "정책 &amp; 기능", auth_yana_approval: "사람의 승인",
+    auth_yana_halt: "Giám Thị · HALT", auth_yana_audit: "감사 &amp; 증거",
+    auth_note: "모델은 추론합니다. <strong>무엇이 행동이 될지는 Yana가 결정합니다.</strong>",
+    eco_title: "하나의 생태계",
+    eco_sub: "Yana AI Desktop은 하나의 표면일 뿐입니다. 그 아래 무엇이 있는지 보세요.",
+    status_live: "운영 중", status_dev: "개발 중", status_exp: "실험적",
+    eco_runtime_title: "Yana Runtime",
+    eco_runtime_desc: "엔진 — <code>yana-rt</code>, 로컬과 클라우드 모델을 하나의 권한 계약 아래 통합하는 정식 Rust TurnEngine.",
+    eco_link_crate: "Runtime 살펴보기 →",
+    eco_governance_title: "Yana Governance",
+    eco_governance_desc: "권한 계층 — capability manifest, 사람의 승인, Giám Thị의 fail-closed HALT, 그리고 위조 감지 가능한 감사 체인.",
+    eco_link_adr: "Governance 살펴보기 →",
+    eco_studio_title: "Yana Studio",
+    eco_studio_desc: "Yana를 위한 시각적 작업 공간 — 파일, 터미널, 모델, 거버넌스 텔레메트리를 한 창에서. v0.1.0, 공개적으로 개발 중.",
+    eco_link_source: "소스 보기 →",
+    eco_os_title: "Yana OS",
+    eco_os_desc: "Yana AI 아래의 플랫폼 — 에이전트 생명주기, 자율성, 상태 관리를 Runtime 위에 구축, 대체하지 않습니다.",
+    eco_link_program: "설계 문서 읽기 →",
+    eco_wheelbot_title: "Yana Wheelbot",
+    eco_wheelbot_desc: "화면 너머의 Yana — ESP32-S3 로보틱스 플랫폼. 별도 저장소이며, 하드웨어 완성도는 여기서 독립적으로 검증되지 않았습니다.",
+    eco_link_repo: "저장소 보기 →",
+    eco_integrations_title: "Integrations",
+    eco_integrations_desc: "이미 사용 중인 AI 코딩 에이전트에 Yana의 거버넌스를 적용하세요 — Claude Code, Codex, Cursor, Antigravity. 적용 강도는 호스트마다 다릅니다.",
+    eco_link_start: "호스트별 집행 수준 보기 →",
     gh_stars: "GitHub 스타",
     gh_star_one: "GitHub 스타",
     gh_forks: "포크",
@@ -768,8 +958,8 @@ const LANGS = {
     chat_user1: "RAG가 무엇인지 설명해 주세요",
     chat_ai2: "RAG(검색 증강 생성)는 정보 검색과 텍스트 생성을 결합한 기술입니다. 학습 데이터에만 의존하지 않고, 답변 전에 관련 문서를 검색하여 더 정확하고 최신 정보를 제공합니다…",
     chat_placeholder: "Yana에게 메시지 보내기…",
-    feat_title: "필요한 모든 것, 당신의 컴퓨터에서",
-    feat_sub: "클라우드 없음, 추적 없음. 데이터는 당신 것.",
+    feat_title: "거버넌스된 실행, 마케팅 문구가 아닙니다",
+    feat_sub: "아래 모든 가드레일은 실제 코드로 동작합니다 — 직접 검증하세요, 오픈소스입니다.",
     f1_title: "나만의 API 키",
     f1_desc: "Anthropic, OpenAI, Gemini 또는 Ollama 키를 직접 사용. 중간자 없이 공급자에게 직접 결제.",
     f2_title: "다층 보안",
@@ -818,9 +1008,38 @@ const LANGS = {
     nav_home: "首页", nav_cta: "下载",
     footer_guide: "使用指南", footer_macinstall: "macOS 安装指南",
     badge_new: "最新版本",
-    hero_eyebrow: "本地 AI · 人类治理",
-    hero_h1: "您的 AI 助手，<br><em>在您的设备上本地运行</em>",
-    hero_sub: "Yana AI Desktop 将同样受治理的运行时带到您的设备：使用您自己的 API 密钥，或通过 Ollama 完全离线运行。Yana AI 服务器绝不会介于您和您的数据之间，所有安全 hook 仍在本地运行，由您掌控。<strong>2025 个技能</strong>，<strong>101 个智能体</strong>，确定性策略门。",
+    nav_ecosystem: "生态系统", nav_governance: "治理",
+    hero_eyebrow: "一个运行时 · 任意 AI · 人类治理",
+    hero_h1: "运行任何 AI。<br><em>保留决定权。</em>",
+    hero_sub: "Yana 是围绕您所用 AI 的持久控制平面——无论是 Claude、Codex、Gemini，还是完全本地的模型。模型可以更换，智能体可以终止；Yana 保留策略、记忆和审计记录。<strong>2,025 个技能</strong>，<strong>100 个智能体</strong>，一个受治理的运行时。",
+    hero_entry_note: "在下方下载 Yana AI Desktop，或<a href=\"#ecosystem\">探索整个生态系统 ↓</a>——Studio、Runtime，以及如何治理您自己的仓库。",
+    auth_title: "智能不等于决定权",
+    auth_sub: "模型可以提出一个操作请求。是否执行，由 Yana 决定。",
+    auth_col_models: "智能", auth_col_yana: "决定权",
+    auth_yana_policy: "策略与能力", auth_yana_approval: "人类批准",
+    auth_yana_halt: "Giám Thị · HALT", auth_yana_audit: "审计与证据",
+    auth_note: "模型负责推理。<strong>Yana 决定什么会变成实际操作。</strong>",
+    eco_title: "一个生态系统",
+    eco_sub: "Yana AI Desktop 只是其中一个界面。这是它背后的支撑。",
+    status_live: "已上线", status_dev: "开发中", status_exp: "实验性",
+    eco_runtime_title: "Yana Runtime",
+    eco_runtime_desc: "引擎——<code>yana-rt</code>，一个规范的 Rust TurnEngine，在同一权限契约下统一本地与云端模型。",
+    eco_link_crate: "探索 Runtime →",
+    eco_governance_title: "Yana Governance",
+    eco_governance_desc: "决定权层——能力清单、人类批准、Giám Thị 的失败即关闭 HALT，以及可检测篡改的审计链。",
+    eco_link_adr: "探索 Governance →",
+    eco_studio_title: "Yana Studio",
+    eco_studio_desc: "Yana 的可视化工作区——文件、终端、模型和治理遥测数据都在一个窗口中。v0.1.0，公开开发中。",
+    eco_link_source: "查看源代码 →",
+    eco_os_title: "Yana OS",
+    eco_os_desc: "Yana AI 之下的平台——智能体生命周期、自主性与健康状态管理，构建在 Runtime 之上而非取代它。",
+    eco_link_program: "阅读设计文档 →",
+    eco_wheelbot_title: "Yana Wheelbot",
+    eco_wheelbot_desc: "屏幕之外的 Yana——一个 ESP32-S3 机器人平台。独立仓库；硬件成熟度尚未在此独立验证。",
+    eco_link_repo: "查看仓库 →",
+    eco_integrations_title: "Integrations",
+    eco_integrations_desc: "将 Yana 的治理能力带入您已在使用的 AI 编程助手——Claude Code、Codex、Cursor、Antigravity。执行强度因主机而异。",
+    eco_link_start: "查看各宿主执行强度 →",
     gh_stars: "GitHub 星标",
     gh_star_one: "GitHub 星标",
     gh_forks: "分支数",
@@ -837,8 +1056,8 @@ const LANGS = {
     chat_user1: "请解释什么是 RAG",
     chat_ai2: "RAG（检索增强生成）是将信息检索与文本生成相结合的技术。不再仅依赖训练数据，RAG 在回答前检索相关文档，提供更准确、更新的信息…",
     chat_placeholder: "向 Yana 发送消息…",
-    feat_title: "您所需的一切，在您的设备上运行",
-    feat_sub: "无云端，无追踪。数据始终在您手中。",
+    feat_title: "受治理的执行，不是营销文案",
+    feat_sub: "以下每一项防护都以真实代码运行——自行验证，代码完全开源。",
     f1_title: "使用您自己的 API 密钥",
     f1_desc: "使用 Anthropic、OpenAI、Gemini 或 Ollama 密钥。无中间商——直接向提供商付费。",
     f2_title: "多层安全防护",

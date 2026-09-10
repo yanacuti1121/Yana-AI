@@ -114,12 +114,10 @@ class ProjectMetadataTests(unittest.TestCase):
             "src/main.rs — đối chiếu trực tiếp với source. v0.9.0 · 2026-01-01.</span>\n",
             encoding="utf-8",
         )
-        (self.root / "docs/desktop.html").write_text("desktop v0.9.0\n", encoding="utf-8")
         (self.root / ".claude/docs").mkdir(parents=True, exist_ok=True)
         (self.root / ".claude/docs/index.html").write_text(
             "stale mirror, not the same content as docs/index.html\n", encoding="utf-8"
         )
-        (self.root / ".claude/docs/desktop.html").write_text("desktop v0.9.0\n", encoding="utf-8")
 
         (self.root / "docs/reference").mkdir(parents=True, exist_ok=True)
         (self.root / "docs/reference/architecture.md").write_text(
@@ -274,9 +272,10 @@ class ProjectMetadataTests(unittest.TestCase):
     def test_mirror_drift_detects_and_fixes_diverged_claude_docs(self) -> None:
         # docs/index.html and .claude/docs/index.html start deliberately
         # different in the fixture (see setUp) -- this is exactly how
-        # .claude/docs/desktop.html was found frozen on an entire prior
-        # visual redesign, undetected by every count/version check, since
-        # none of them ever compared the two files to each other.
+        # .claude/docs/desktop.html (retired 2026-09; the pair no longer
+        # exists) was once found frozen on an entire prior visual redesign,
+        # undetected by every count/version check, since none of them ever
+        # compared the two files to each other.
         problems = project_metadata.drift(self.root)
         self.assertTrue(
             any(".claude/docs/index.html" in problem and "mirror" in problem for problem in problems)
@@ -290,13 +289,16 @@ class ProjectMetadataTests(unittest.TestCase):
         self.assertEqual(project_metadata.mirror_drift(self.root), [])
 
     def test_mirror_drift_is_silent_when_already_identical(self) -> None:
-        # docs/desktop.html and .claude/docs/desktop.html start identical in
-        # the fixture (unlike the index.html pair, deliberately diverged
-        # above) -- confirms the byte-diff check doesn't false-fire on a
-        # genuinely synced pair, even while another pair is drifted.
-        diverged = project_metadata.mirror_drift(self.root)
-        self.assertNotIn(("docs/desktop.html", ".claude/docs/desktop.html"), diverged)
-        self.assertIn(("docs/index.html", ".claude/docs/index.html"), diverged)
+        # The fixture starts docs/index.html and .claude/docs/index.html
+        # deliberately diverged (see setUp) -- force them identical here to
+        # confirm the byte-diff check doesn't false-fire on a genuinely
+        # synced pair. (Prior to 2026-09 this used a second, always-synced
+        # docs/desktop.html pair for the same contrast; that pair was
+        # retired along with the file itself, so this now covers the same
+        # property directly rather than via a second fixture pair.)
+        source = (self.root / "docs/index.html").read_bytes()
+        (self.root / ".claude/docs/index.html").write_bytes(source)
+        self.assertEqual(project_metadata.mirror_drift(self.root), [])
 
     def test_architecture_md_count_anchors_check_and_fix(self) -> None:
         # The fixture's architecture.md claims 9 for everything; the real

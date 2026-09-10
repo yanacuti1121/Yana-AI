@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-09-07T12:03:43+00:00",
+  "generated": "2026-09-10T00:39:38+00:00",
   "count": 286,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -167,7 +167,7 @@
     "core/scripts/check-release-signer.py": "5e10a2ac4d7d56c1758eaf9b848ce36869617e9ac9ac6f21a8e3323654c8e146",
     "core/scripts/check-self-hosted-runner.py": "d89746247568a1b219fa0e3ce8f6918e1ac09fc95385a6b9379c752f6eff09af",
     "core/scripts/check_context_pack.py": "b5fbcdf76f8cbb6e60188f8218b8e361e7a2e561cd8c2e24ae8bae45b4281514",
-    "core/scripts/check_counts.py": "cfa7c761272c44071d10a167321fbfb2d0015d65b552390139d059770c4c1fc8",
+    "core/scripts/check_counts.py": "adf613a95ad0b58bb8276b33ddf4887d2671f6f9209903f2063f0e09b5661a54",
     "core/scripts/check_dangling_paths.py": "54cb8dafdb3759b0a4ab39a6743566c0e5235eb7466b48b0da1eb0f31dc69496",
     "core/scripts/check_engine_parity.py": "c03aa6f485e241e78353c7776db1e5931f71297ee8bc92f628897d8e8449c5fb",
     "core/scripts/check_file.py": "28ca7df9048a8d0497fae7d7152874bfa0e954321032e3434472161d3e5234f0",
@@ -183,7 +183,7 @@
     "core/scripts/detect_skill_dupes.py": "1dffbe4a5171b7c5295d4c143ba0ace8fe2bdf2e0dc09b8fa14d6b6b9c01702b",
     "core/scripts/diff_report.py": "5fec2bcc09b6f4713625288e80975e67f8d36938d393c4be01439c03c9a6a5c0",
     "core/scripts/doctor.py": "f16cea10c5c7345d8dcd011f2f57c6e323b069e2140dff67388b0c6e0d704d81",
-    "core/scripts/drift-check.sh": "80ae0d792975cdbe862fe040f09d340013792273fe4e94fe0431ed8214b4b9df",
+    "core/scripts/drift-check.sh": "d440882ee712ddfe5a0713f27352014ab55860017795bde7e6c820a23e360b8b",
     "core/scripts/explain_rule.py": "acd5f289108ac6842696ba9fe7e1aa61208589720f9c318b85493f1b37ee2db6",
     "core/scripts/export_findings.py": "960b393999c82c1cdc320cbc511162db2ba66f0e12d9b5e6a29a6738d1e8ad4c",
     "core/scripts/feedback-loop.sh": "0d2d609054e67b8a64e6a8059f6c869a67adf552ce56a6114a3dfde977f1d23d",
