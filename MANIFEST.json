@@ -445,7 +445,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 133,
+      "count": 134,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -471,6 +471,7 @@
         "core/scripts/check_dangling_paths.py",
         "core/scripts/check_engine_parity.py",
         "core/scripts/check_file.py",
+        "core/scripts/check_forge_sync.py",
         "core/scripts/check_publish_parity.py",
         "core/scripts/ci_check.py",
         "core/scripts/clear-session.sh",
@@ -2792,7 +2793,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 100,
   "hooks_count": 66,
-  "scripts_count": 133,
+  "scripts_count": 134,
   "commands_count": 170,
   "rules_count": 71
 }
