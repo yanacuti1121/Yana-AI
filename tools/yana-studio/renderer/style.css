@@ -2107,6 +2107,27 @@ svg {
 .compact-model-sync small {
   color: var(--muted);
 }
+.model-sync-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  margin: 10px 0 4px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 88%, var(--accent) 12%);
+}
+.model-sync-state.error {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+.live-model-list.compact {
+  max-height: 190px;
+  margin-bottom: 10px;
+}
 .live-model-list {
   max-height: 280px;
   overflow: auto;

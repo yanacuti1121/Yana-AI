@@ -110,8 +110,18 @@ async function discoverCloudModels(provider, key, fetcher = fetch) {
   } catch {
     throw new Error("Could not reach the provider's model endpoint");
   }
-  if (!response.ok)
-    throw new Error(`Model discovery returned HTTP ${response.status}`);
+  if (!response.ok) {
+    const reason = {
+      400: "Provider rejected the model-list request",
+      401: "API key is invalid or expired",
+      403: "This API key cannot list models",
+      404: "Provider model-list endpoint is unavailable",
+      429: "Provider rate limit reached; try again shortly",
+    }[response.status];
+    throw new Error(
+      reason || `Model discovery returned HTTP ${response.status}`,
+    );
+  }
   const models = cleanModels(adapter.parse(await readJson(response)));
   if (!models.length) throw new Error("Provider returned no chat models");
   return models;
