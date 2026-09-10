@@ -54,7 +54,8 @@
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
-    }
+    },
+    "afterSign": "scripts/after-sign-mac.cjs"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
