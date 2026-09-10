@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ModelManager } from "./ModelManager";
 import type { Chat, GitState, Project, State } from "./types";
+import { translate, type Locale, type MessageKey } from "./i18n";
 
 // Derived purely from data Studio already tracks (chat.usage, chat.events)
 // — no fabricated cost/duration numbers. Runtime events are stamped with
@@ -50,23 +51,26 @@ function telemetryFor(chat: Chat | undefined, state: State) {
   };
 }
 
-function activityPresentation(event: Chat["events"][number]) {
+function activityPresentation(
+  event: Chat["events"][number],
+  t: (key: MessageKey) => string,
+) {
   switch (event.kind) {
     case "tool_requested":
-      return { label: "Đề xuất công cụ", status: "requested", Icon: Wrench };
+      return { label: t("activityToolProposed"), status: "requested", Icon: Wrench };
     case "tool_approved":
-      return { label: "Đã phê duyệt", status: "approved", Icon: Check };
+      return { label: t("activityApproved"), status: "approved", Icon: Check };
     case "tool_denied":
-      return { label: "Đã từ chối", status: "denied", Icon: Ban };
+      return { label: t("activityDenied"), status: "denied", Icon: Ban };
     case "tool_started":
-      return { label: "Đang thực thi", status: "running", Icon: Circle };
+      return { label: t("activityRunning"), status: "running", Icon: Circle };
     case "tool_completed":
-      return { label: "Bằng chứng đã ghi", status: "completed", Icon: Check };
+      return { label: t("activityEvidenceRecorded"), status: "completed", Icon: Check };
     case "turn_completed":
-      return { label: "Lượt đã hoàn tất", status: "completed", Icon: Check };
+      return { label: t("activityTurnCompleted"), status: "completed", Icon: Check };
     default:
       return {
-        label: event.kind?.replaceAll("_", " ") || "Sự kiện runtime",
+        label: event.kind?.replaceAll("_", " ") || t("activityRuntimeEventFallback"),
         status: "event",
         Icon: Circle,
       };
@@ -80,6 +84,7 @@ export function WorkspaceInspector({
   chat,
   attachmentCount,
   terminalCount,
+  locale,
   onState,
   onError,
   onRefresh,
@@ -92,12 +97,14 @@ export function WorkspaceInspector({
   chat?: Chat;
   attachmentCount: number;
   terminalCount: number;
+  locale: Locale;
   onState: (state: State) => void;
   onError: (message: string) => void;
   onRefresh: () => void;
   onDiff: (path: string) => void;
   onManageModels: () => void;
 }) {
+  const t = translate(locale);
   const [tab, setTab] = useState<"inspector" | "context" | "models">(
     "inspector",
   );
@@ -157,10 +164,11 @@ export function WorkspaceInspector({
       </div>
       {tab === "models" ? (
         <section className="inspector-models">
-          <div className="section-label">ACTIVE MODEL</div>
+          <div className="section-label">{t("activeModelHeader")}</div>
           <ModelManager
             compact
             state={state}
+            locale={locale}
             onState={onState}
             onError={onError}
             onManage={onManageModels}
@@ -169,17 +177,17 @@ export function WorkspaceInspector({
       ) : tab === "context" ? (
         <>
           <section>
-            <div className="section-label">PROJECT CONTEXT</div>
+            <div className="section-label">{t("projectContextHeader")}</div>
             <div className="card project-card">
               <Folder size={22} />
               <div>
-                <strong>{project?.name || "Chưa mở project"}</strong>
-                <small>{project?.root || "Chọn folder trên máy"}</small>
+                <strong>{project?.name || t("inspectorNoProjectOpen")}</strong>
+                <small>{project?.root || t("chooseFolderOnDisk")}</small>
               </div>
             </div>
           </section>
           <section>
-            <div className="section-label">CONVERSATION</div>
+            <div className="section-label">{t("conversationHeader")}</div>
             <div className="context-facts">
               <span>Messages</span>
               <b>{chat?.messages.length || 0}</b>
@@ -190,26 +198,20 @@ export function WorkspaceInspector({
               <span>Model</span>
               <b>{chat?.profile?.model || state.profile.model || "—"}</b>
             </div>
-            <p className="empty-small">
-              Chỉ context đã chọn hoặc runtime đã xác nhận mới được đưa vào AI.
-              Terminal output không tự trở thành evidence.
-            </p>
+            <p className="empty-small">{t("contextInclusionNote")}</p>
           </section>
           <section>
             <div className="section-label">
-              <NotebookText size={13} /> PROJECT MEMORY
+              <NotebookText size={13} /> {t("projectMemoryHeader")}
             </div>
-            <p className="empty-small">
-              Ghi chú bền vững cho project này — mọi chat/session sau đều đọc
-              được, khác với 1 cuộc trò chuyện ghim cố định.
-            </p>
+            <p className="empty-small">{t("projectMemoryNote")}</p>
             <textarea
               className="project-memory-editor"
               disabled={!project}
               placeholder={
                 project
-                  ? "Quy ước, quyết định, ràng buộc cần agent nhớ…"
-                  : "Mở project để ghi memory"
+                  ? t("memoryPlaceholder")
+                  : t("memoryPlaceholderNoProject")
               }
               value={memoryDraft}
               onChange={(event) => setMemoryDraft(event.target.value)}
@@ -220,16 +222,16 @@ export function WorkspaceInspector({
                 disabled={!project || memoryBusy || memoryDraft === memoryText}
                 onClick={saveMemory}
               >
-                <Check size={14} /> Lưu memory
+                <Check size={14} /> {t("saveMemory")}
               </button>
             </div>
           </section>
           <section>
-            <div className="section-label">GOVERNANCE TELEMETRY</div>
+            <div className="section-label">{t("governanceTelemetryHeader")}</div>
             <div className="telemetry-strip">
               <span
                 className="telemetry-item"
-                title="Context window ước lượng của model đang chọn"
+                title={t("contextWindowTooltip")}
               >
                 {telemetry.context} context
               </span>
@@ -250,11 +252,7 @@ export function WorkspaceInspector({
                 <Ban size={12} /> {telemetry.denied} denied
               </span>
             </div>
-            <p className="empty-small">
-              Suy ra từ chat.usage + chat.events thật (tool_approved/
-              tool_denied/tool_completed) — không phải số ước tính. Chưa có cost
-              hay thời lượng vì yana-rt chưa phát dữ liệu đó.
-            </p>
+            <p className="empty-small">{t("telemetryNote")}</p>
           </section>
         </>
       ) : (
@@ -266,36 +264,44 @@ export function WorkspaceInspector({
             </button>
           </div>
           <section className="inspector-session-summary">
-            <div className="section-label">PHIÊN HIỆN TẠI</div>
+            <div className="section-label">{t("currentSessionHeader")}</div>
             <div className="session-summary-grid">
               <div className="session-summary-primary">
-                <small>ACTIVE MODEL</small>
+                <small>{t("activeModelHeader")}</small>
                 <strong>
-                  {chat?.profile?.model || state.profile.model || "Chưa chọn"}
+                  {chat?.profile?.model || state.profile.model || t("inspectorNoModel")}
                 </strong>
                 <span>
                   {chat?.profile?.provider || state.profile.provider || "—"}
                 </span>
               </div>
               <div>
-                <small>CONTEXT</small>
+                <small>{t("contextHeaderLabel")}</small>
                 <strong>
                   {telemetry.total.toLocaleString()} / {telemetry.context}
                 </strong>
                 <span>
-                  {attachmentCount} tệp · {terminalCount} terminal
+                  {t("filesTerminalCount")
+                    .replace("{files}", String(attachmentCount))
+                    .replace("{terminals}", String(terminalCount))}
                 </span>
               </div>
               <div>
-                <small>SESSION</small>
-                <strong>{chat?.events.length || 0} sự kiện</strong>
+                <small>{t("sessionHeaderLabel")}</small>
+                <strong>
+                  {t("eventsCount").replace(
+                    "{n}",
+                    String(chat?.events.length || 0),
+                  )}
+                </strong>
                 <span>
-                  {telemetry.toolCalls} công cụ · {chat?.approval ? 1 : 0} chờ
-                  duyệt
+                  {t("toolsAndPendingCount")
+                    .replace("{tools}", String(telemetry.toolCalls))
+                    .replace("{pending}", String(chat?.approval ? 1 : 0))}
                 </span>
               </div>
               <div>
-                <small>USAGE</small>
+                <small>{t("usageHeaderLabel")}</small>
                 <strong>{telemetry.total.toLocaleString()} tokens</strong>
                 <span>
                   ↓ {telemetry.input.toLocaleString()} · ↑{" "}
@@ -305,12 +311,12 @@ export function WorkspaceInspector({
             </div>
           </section>
           <section>
-            <div className="section-label">PROJECT</div>
+            <div className="section-label">{t("projectHeaderLabel")}</div>
             <div className="card project-card">
               <Folder size={22} />
               <div>
-                <strong>{project?.name || "Chưa mở project"}</strong>
-                <small>{project?.root || "Chọn folder trên máy"}</small>
+                <strong>{project?.name || t("inspectorNoProjectOpen")}</strong>
+                <small>{project?.root || t("chooseFolderOnDisk")}</small>
               </div>
             </div>
             <div className="project-facts">
@@ -322,7 +328,8 @@ export function WorkspaceInspector({
           </section>
           <section>
             <div className="section-label">
-              CHANGES <span className="count">{git.changes.length}</span>
+              {t("changesHeaderLabel")}{" "}
+              <span className="count">{git.changes.length}</span>
             </div>
             {git.error ? (
               <p className="muted empty-small">{git.error}</p>
@@ -342,13 +349,13 @@ export function WorkspaceInspector({
               </div>
             ) : (
               <p className="empty-small">
-                {project ? "Không có thay đổi Git." : "Chưa có project."}
+                {project ? t("noGitChanges") : t("noProjectYet")}
               </p>
             )}
           </section>
           <section>
             <div className="section-label">
-              ACTIVITY{" "}
+              {t("activityHeaderLabel")}{" "}
               <span className="live-label">
                 <Circle size={7} /> Runtime
               </span>
@@ -356,7 +363,7 @@ export function WorkspaceInspector({
             {chat?.events.length ? (
               <div className="activity-list">
                 {[...chat.events].reverse().map((event, index) => {
-                  const activity = activityPresentation(event);
+                  const activity = activityPresentation(event, t);
                   return (
                     <div key={index} className={activity.status}>
                       <activity.Icon size={13} />
@@ -377,17 +384,14 @@ export function WorkspaceInspector({
                 })}
               </div>
             ) : (
-              <p className="empty-small">
-                Chưa có sự kiện runtime. Không suy diễn tiến độ từ chat hoặc
-                terminal.
-              </p>
+              <p className="empty-small">{t("noRuntimeEventsNote")}</p>
             )}
           </section>
           <section className="authority-note">
             <Shield size={16} />
             <div>
               <strong>Human-governed</strong>
-              <p>AI không sử dụng shell của anh để vượt qua phê duyệt.</p>
+              <p>{t("aiNoShellBypassNote")}</p>
               {chat?.usage && (
                 <small>
                   Input {chat.usage.input.toLocaleString()} · Output{" "}

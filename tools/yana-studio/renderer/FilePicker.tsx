@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FileCode2, Search } from "lucide-react";
 import type { FileEntry } from "./types";
+import { translate, type Locale } from "./i18n";
 
 // Shared file-search modal — backs both the ⌘P quick-open (pick to open in
 // the editor) and the composer's attach-file picker (pick to attach as
@@ -10,14 +11,17 @@ import type { FileEntry } from "./types";
 export function FilePicker({
   root,
   title,
+  locale,
   onPick,
   onClose,
 }: {
   root: string;
   title: string;
+  locale: Locale;
   onPick: (entry: FileEntry) => void;
   onClose: () => void;
 }) {
+  const t = translate(locale);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<FileEntry[]>([]);
   const [index, setIndex] = useState(0);
@@ -75,7 +79,7 @@ export function FilePicker({
         </div>
         <div className="file-picker-list">
           {results.length === 0 ? (
-            <p className="empty-small">Không tìm thấy file nào.</p>
+            <p className="empty-small">{t("noFilesFound")}</p>
           ) : (
             results.map((entry, position) => (
               <button

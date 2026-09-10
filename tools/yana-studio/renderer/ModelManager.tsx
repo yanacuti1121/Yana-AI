@@ -16,6 +16,7 @@ import type {
   ProviderCatalogEntry,
   State,
 } from "./types";
+import { translate, type Locale } from "./i18n";
 
 function providerProfile(provider: ProviderCatalogEntry): Profile {
   return {
@@ -115,17 +116,20 @@ function ModelSearchResult({
 
 export function ModelManager({
   state,
+  locale,
   onState,
   onError,
   compact = false,
   onManage,
 }: {
   state: State;
+  locale: Locale;
   onState: (state: State) => void;
   onError: (message: string) => void;
   compact?: boolean;
   onManage?: () => void;
 }) {
+  const t = translate(locale);
   const [profile, setProfile] = useState<Profile>(state.profile);
   const [secret, setSecret] = useState("");
   const [models, setModels] = useState<string[]>([]);
@@ -309,10 +313,10 @@ export function ModelManager({
           <b>{provider.label}</b>
           <span className={configured ? "success" : "muted"}>
             {configured
-              ? "Key đã mã hóa"
+              ? t("keyEncrypted")
               : provider.requiresKey
-                ? "Cần API key"
-                : "Không cần key"}
+                ? t("needsApiKey")
+                : t("noKeyNeeded")}
           </span>
         </div>
         <label>
@@ -346,14 +350,17 @@ export function ModelManager({
             onClick={() => void discover()}
           >
             <RefreshCw className={syncingModels ? "spin" : ""} size={14} />
-            {modelsSynced ? "Tải lại" : "Đồng bộ model"}
+            {modelsSynced ? t("reloadLabel") : t("syncModel")}
           </button>
           <small>
             {syncingModels
-              ? `Đang lấy model từ ${provider.label}…`
+              ? t("fetchingModelsFrom").replace("{provider}", provider.label)
               : modelsSynced
-                ? `${models.length} model dùng được với key này`
-                : modelSyncError || "Tự lấy danh sách thật từ provider"}
+                ? t("modelsAvailableWithKey").replace(
+                    "{n}",
+                    String(models.length),
+                  )
+                : modelSyncError || t("autoFetchRealList")}
           </small>
         </div>
         {!modelsSynced && provider.modelCatalog.length > 0 && (
@@ -394,16 +401,14 @@ export function ModelManager({
             }
             onClick={() => void save()}
           >
-            <Check size={14} /> Dùng model
+            <Check size={14} /> {t("useModel")}
           </button>
           <button onClick={onManage}>
-            <Settings2 size={14} /> Quản lý
+            <Settings2 size={14} /> {t("manageLabel")}
           </button>
         </div>
         {provider.requiresKey && !configured && (
-          <p className="model-warning">
-            Thêm key trong Settings trước khi sử dụng provider này.
-          </p>
+          <p className="model-warning">{t("addKeyInSettingsNote")}</p>
         )}
       </div>
     );
@@ -414,7 +419,7 @@ export function ModelManager({
         <Search size={14} />
         <input
           value={query}
-          placeholder="Tìm model theo tên, provider hoặc khả năng (vision, reasoning, cheap...)"
+          placeholder={t("modelSearchPlaceholder")}
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
@@ -434,10 +439,8 @@ export function ModelManager({
         <div className="card settings-card">
           <div className="settings-heading-row">
             <div>
-              <h2>Model đang dùng</h2>
-              <p className="muted">
-                Cùng catalog với yana-rt; mỗi provider giữ key riêng.
-              </p>
+              <h2>{t("modelInUseTitle")}</h2>
+              <p className="muted">{t("sameCatalogNote")}</p>
             </div>
             <span className="provider-kind">
               {provider.kind === "cloud" ? (
@@ -468,10 +471,7 @@ export function ModelManager({
                   setProfile({ ...profile, baseUrl: event.target.value })
                 }
               />
-              <small>
-                Provider Yana chính thức dùng endpoint cố định. Custom chỉ nhận
-                HTTPS hoặc loopback HTTP.
-              </small>
+              <small>{t("officialProviderEndpointNote")}</small>
             </label>
           )}
           {(provider.requiresKey || provider.kind === "custom") && (
@@ -483,17 +483,14 @@ export function ModelManager({
                 value={secret}
                 placeholder={
                   configured
-                    ? "Đã mã hóa · nhập key mới để thay thế"
+                    ? t("keyEncryptedReplacePrompt")
                     : provider.requiresKey
-                      ? `Nhập ${provider.envVar}`
-                      : "Không bắt buộc"
+                      ? `${t("enterEnvVarPrefix")} ${provider.envVar}`
+                      : t("notRequired")
                 }
                 onChange={(event) => setSecret(event.target.value)}
               />
-              <small>
-                Key chỉ đi tới trusted host và OS secure storage; renderer không
-                thể đọc key đã lưu trở lại.
-              </small>
+              <small>{t("keyTrustedHostNote")}</small>
             </label>
           )}
           <label>
@@ -501,7 +498,7 @@ export function ModelManager({
             <input
               list="settings-model-options"
               value={profile.model}
-              placeholder="ID chính xác từ provider"
+              placeholder={t("exactIdFromProviderPlaceholder")}
               onChange={(event) =>
                 setProfile({ ...profile, model: event.target.value })
               }
@@ -516,7 +513,10 @@ export function ModelManager({
             <div className="model-sync-state" role="status">
               <RefreshCw className="spin" size={15} />
               <span>
-                Đang lấy danh sách model trực tiếp từ {provider.label}…
+                {t("fetchingModelsDirectly").replace(
+                  "{provider}",
+                  provider.label,
+                )}
               </span>
             </div>
           )}
@@ -524,7 +524,7 @@ export function ModelManager({
             <div className="model-sync-state error" role="alert">
               <span>{modelSyncError}</span>
               <button type="button" onClick={() => void discover()}>
-                Thử lại
+                {t("retryLabel")}
               </button>
             </div>
           )}
@@ -538,17 +538,19 @@ export function ModelManager({
                   onSelect={() => pickModel(provider, model.id)}
                 />
               ))}
-              <p className="model-pick-hint">
-                Gợi ý offline — Studio sẽ thay bằng danh sách tài khoản của bạn
-                ngay khi kết nối được provider.
-              </p>
+              <p className="model-pick-hint">{t("offlineSuggestionHint")}</p>
             </div>
           )}
           {modelsSynced && (
-            <div className="live-model-list" aria-label="Model đã đồng bộ">
+            <div className="live-model-list" aria-label={t("modelsSyncedAria")}>
               <div className="live-model-list-heading">
-                <strong>{models.length} model dùng được</strong>
-                <span>Danh sách trực tiếp từ provider</span>
+                <strong>
+                  {t("modelsAvailableCount").replace(
+                    "{n}",
+                    String(models.length),
+                  )}
+                </strong>
+                <span>{t("directListFromProvider")}</span>
               </div>
               {models.map((model) => (
                 <button
@@ -575,7 +577,7 @@ export function ModelManager({
                 }
                 onClick={() => void discover()}
               >
-                <RefreshCw size={14} /> Tải lại từ provider
+                <RefreshCw size={14} /> {t("reloadFromProvider")}
               </button>
             )}
             <button
@@ -588,14 +590,18 @@ export function ModelManager({
               }
               onClick={() => void save()}
             >
-              <Check size={14} /> Lưu và sử dụng
+              <Check size={14} /> {t("saveAndUse")}
             </button>
             {configured && (
               <button
                 className="danger-button"
                 disabled={busy}
                 onClick={() => {
-                  if (!window.confirm(`Xóa key đã lưu cho ${provider.label}?`))
+                  if (
+                    !window.confirm(
+                      `${t("confirmClearKeyPrefix")} ${provider.label}?`,
+                    )
+                  )
                     return;
                   void run(async () => {
                     onState(await window.studio.clearProviderKey(provider.id));
@@ -603,7 +609,7 @@ export function ModelManager({
                   });
                 }}
               >
-                <Trash2 size={14} /> Xóa key
+                <Trash2 size={14} /> {t("clearKey")}
               </button>
             )}
           </div>
@@ -611,20 +617,26 @@ export function ModelManager({
             <KeyRound size={15} />
             <span>
               {configured
-                ? `Credential ${provider.label}: ${state.credentialStorage}.`
+                ? t("credentialConfiguredTemplate")
+                    .replace("{label}", provider.label)
+                    .replace("{storage}", state.credentialStorage)
                 : provider.requiresKey
-                  ? `${provider.label} chưa có credential.`
-                  : `${provider.label} chạy không cần API key.`}
+                  ? t("credentialMissingTemplate").replace(
+                      "{label}",
+                      provider.label,
+                    )
+                  : t("credentialNoKeyTemplate").replace(
+                      "{label}",
+                      provider.label,
+                    )}
             </span>
           </div>
         </div>
         <div className="card settings-card">
           <div className="settings-heading-row">
             <div>
-              <h2>Local AI trên máy</h2>
-              <p className="muted">
-                Dò endpoint từ trusted host, không qua renderer.
-              </p>
+              <h2>{t("localAiTitle")}</h2>
+              <p className="muted">{t("localAiNote")}</p>
             </div>
             <button
               disabled={busy}
@@ -634,7 +646,7 @@ export function ModelManager({
                 )
               }
             >
-              <RefreshCw size={14} /> Quét local
+              <RefreshCw size={14} /> {t("scanLocal")}
             </button>
           </div>
           {localRuntimes.length ? (
@@ -664,17 +676,16 @@ export function ModelManager({
                     className={runtime.status === "ready" ? "success" : "muted"}
                   >
                     {runtime.status === "ready"
-                      ? `${runtime.models.length} model · ${runtime.latencyMs} ms`
-                      : "Chưa chạy"}
+                      ? t("runtimeReadyTemplate")
+                          .replace("{n}", String(runtime.models.length))
+                          .replace("{ms}", String(runtime.latencyMs))
+                      : t("notRunning")}
                   </span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="muted">
-              Bấm Quét local để tìm 9Router, Ollama, LM Studio, llama.cpp,
-              TurboFieldfare và AirLLM.
-            </p>
+            <p className="muted">{t("scanLocalHint")}</p>
           )}
         </div>
       </div>
@@ -682,8 +693,13 @@ export function ModelManager({
         <div>
           <h2>Provider library</h2>
           <p className="muted">
-            {state.providerCatalog.filter((entry) => entry.canonical).length}{" "}
-            provider chính thức từ catalog Rust · Cloud và Local.
+            {t("officialProvidersTemplate").replace(
+              "{n}",
+              String(
+                state.providerCatalog.filter((entry) => entry.canonical)
+                  .length,
+              ),
+            )}
           </p>
         </div>
       </div>
