@@ -197,29 +197,25 @@
     staggerGrids.forEach((grid) => grid.classList.add("reveal-stagger"));
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
-        }
+        entry.target.classList.toggle("visible", entry.isIntersecting);
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     revealTargets.forEach((section) => observer.observe(section));
     staggerGrids.forEach((grid) => observer.observe(grid));
   }
 
-  // Runtime scene: disconnected models/targets snap into "connected" once
-  // the scene is mostly in view. Runs even under prefers-reduced-motion --
-  // the CSS strips the transition there, so this just sets the end state
-  // instantly instead of animating it.
+  // Runtime scene: nodes connect while the scene is in view and disconnect
+  // again once scrolled past, either direction -- so the transition plays
+  // both scrolling down into a scene and scrolling back up out of it. Runs
+  // even under prefers-reduced-motion -- the CSS strips the transition
+  // there, so this just toggles the end state instantly instead of
+  // animating it.
   if ("IntersectionObserver" in window) {
     const runtimeScenes = document.querySelectorAll(".runtime-scene");
     if (runtimeScenes.length) {
       const sceneObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("connected");
-            sceneObserver.unobserve(entry.target);
-          }
+          entry.target.classList.toggle("connected", entry.isIntersecting);
         });
       }, { threshold: 0.4 });
       runtimeScenes.forEach((scene) => sceneObserver.observe(scene));
