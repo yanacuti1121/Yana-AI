@@ -1,7 +1,73 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yana Runtime — Control plane cho AI</title><meta name="description" content="Yana Runtime giữ authority, capability, approval, HALT, audit và evidence bên ngoài model."><link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css"></head><body>
 <nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><a href="studio.html">Studio 1.5</a><a href="runtime.html" aria-current="page">Runtime</a><a href="wheelbot.html">Wheelbot</a><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a></div><div class="nav-actions"><a class="nav-cta" href="download.html">Bắt đầu</a></div></nav>
 <main><section class="hero"><div class="hero-inner"><p class="eyebrow">YANA RUNTIME</p><h1>Model đề xuất.<br>Con người giữ quyền.</h1><p class="hero-copy">Một TurnEngine có giới hạn, capability chính thức, approval rõ ràng, HALT và audit receipt — authority không nằm trong prompt.</p><div class="hero-actions"><a class="button" href="https://crates.io/crates/yana-rt">Cài yana-rt</a><a class="button light" href="#governance">Xem governance</a></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:34px;display:grid;gap:16px"><div class="visual-row"><strong>01 · Model</strong><span>proposes a capability</span></div><div class="visual-row"><strong>02 · Authority chain</strong><span>allow · ask · deny</span></div><div class="visual-row"><strong>03 · Capability</strong><span>executes within scope</span></div><div class="visual-row"><strong>04 · Evidence</strong><span>records the result</span></div></div></div></div></section>
-<section class="section" id="governance"><div class="section-head"><p class="eyebrow">GOVERNANCE</p><h2>Quyền hạn là kiến trúc,<br>không phải một badge.</h2><p>Policy nằm ngoài model. Capability lease có phạm vi và có thể thu hồi. Giám Thị HALT giữ quyền dừng cao nhất.</p></div><div class="product-grid"><article class="product-card"><div><h3>YanaAuthorityChain</h3><p>Preflight tất định trước hành động thật.</p></div><div class="product-art"><code>filesystem  workspace only
+<section class="section runtime-scene" id="runtime-scene"><div class="scene-head"><p class="eyebrow">AI CÓ THỂ HÀNH ĐỘNG</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model có thể ghi file, chạy lệnh, gọi tool — tách rời, không ai kiểm soát.</h2><h2 class="scene-line scene-line-2">Đặt quyền hạn ra ngoài model. Đây là Yana Runtime.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-models">
+        <div class="graph-node">Anthropic</div>
+        <div class="graph-node">OpenAI</div>
+        <div class="graph-node">Gemini</div>
+        <div class="graph-node">Groq</div>
+        <div class="graph-node">Ollama (local)</div>
+        <div class="graph-node graph-node-more">+ DeepSeek, OpenRouter</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Mission · Context · Turn Engine · Governance · Capability · Evidence</span></div>
+      <div class="graph-link graph-link-bottom"><span></span></div>
+      <div class="graph-row graph-targets">
+        <div class="graph-node">Files</div>
+        <div class="graph-node">Git</div>
+        <div class="graph-node">Shell / Process</div>
+        <div class="graph-node">System</div>
+      </div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-surfaces" id="scene-surfaces"><div class="scene-head"><p class="eyebrow">MỘT RUNTIME</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Nhiều bề mặt tương tác khác nhau.</h2><h2 class="scene-line scene-line-2">Cùng đi qua một Yana Runtime — không phải bản sao riêng từng nơi.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-surfaces">
+        <div class="graph-node">Yana Studio</div>
+        <div class="graph-node">Runtime CLI</div>
+        <div class="graph-node graph-node-more">MCP (opt-in, experimental)</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Studio spawn đúng binary <code>yana-rt</code> mà CLI dùng — cùng TurnEngine, không phải hai bản triển khai khác nhau</span></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-anyai" id="scene-anyai"><div class="scene-head"><p class="eyebrow">ANY AI</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Đổi model.</h2><h2 class="scene-line scene-line-2">Giữ nguyên toàn bộ hệ thống.</h2></div></div>
+    <div class="anyai-panel">
+      <div class="anyai-swap"><span class="meta">MODEL ĐANG DÙNG</span><div class="anyai-cycle" id="anyai-cycle">
+        <span class="anyai-item is-active">Anthropic</span><span class="anyai-item">OpenAI</span><span class="anyai-item">Gemini</span><span class="anyai-item">Groq</span><span class="anyai-item">DeepSeek</span><span class="anyai-item">OpenRouter</span><span class="anyai-item">Ollama (local)</span>
+      </div><p class="anyai-note">Chọn provider — Yana tự dùng model mặc định của provider đó, không cần tự tra catalog.</p></div>
+      <div class="anyai-fixed"><span class="meta">KHÔNG ĐỔI</span>
+        <div class="anyai-row">✓ Mission</div>
+        <div class="anyai-row">✓ Tasks</div>
+        <div class="anyai-row">✓ Project memory</div>
+        <div class="anyai-row">✓ Authority chain</div>
+        <div class="anyai-row">✓ Evidence</div>
+      </div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-human" id="scene-human"><div class="scene-head"><p class="eyebrow">HUMAN-GOVERNED</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model đề xuất một hành động.</h2><h2 class="scene-line scene-line-2">Con người quyết định nó có xảy ra hay không.</h2></div></div>
+    <div class="scenario-card">
+      <div class="scenario-row"><span>AI proposal</span><strong>"Modify 43 files"</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Yana evaluates</span><strong>YanaAuthorityChain</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Blast radius policy</span><strong>src/guard/blast_radius.rs</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-halt"><span>Approval required</span><strong>chờ, chưa thực thi</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-human"><span>Human decision</span><strong>allow · limit · deny</strong></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-control" id="scene-control"><div class="scene-head"><p class="eyebrow">DETERMINISTIC CONTROL</p><div class="scene-lines"><h2 class="scene-line scene-line-1">AI không tự quyết được nó chạm tới đâu.</h2><h2 class="scene-line scene-line-2">Ba nhóm capability, mỗi nhóm một ranh giới riêng.</h2></div></div>
+    <div class="control-grid">
+      <div class="control-col"><h3>Access</h3><div class="control-tags"><span>file read</span><span>git status</span><span>git log</span></div></div>
+      <div class="control-col"><h3>Change</h3><div class="control-tags"><span>file_mutation</span><span>config_write</span><span>git commit</span></div></div>
+      <div class="control-col"><h3>Execute</h3><div class="control-tags"><span>command (shell)</span><span>process</span><span>system</span></div></div>
+    </div>
+  </section>
+  <section class="section" id="governance"><div class="section-head"><p class="eyebrow">GOVERNANCE</p><h2>Quyền hạn là kiến trúc,<br>không phải một badge.</h2><p>Policy nằm ngoài model. Capability lease có phạm vi và có thể thu hồi. Giám Thị HALT giữ quyền dừng cao nhất.</p></div><div class="product-grid"><article class="product-card"><div><h3>YanaAuthorityChain</h3><p>Preflight tất định trước hành động thật.</p></div><div class="product-art"><code>filesystem  workspace only
 shell       ask
 network     ask
 destructive deny</code></div></article><article class="product-card"><div><h3>Capability leases</h3><p>Quyền có thời hạn, phạm vi và chủ thể rõ ràng.</p></div><div class="product-art"><code>scope    /workspace

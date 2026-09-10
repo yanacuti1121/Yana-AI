@@ -20,6 +20,30 @@ Ollama · local</code></div></article><article class="product-card"><div><h3>Exe
 Giám Thị
   ↓
 Yana control plane</code></div></article></div></section>
+  <section class="section feature system-map" id="system-map"><div class="feature-copy"><p class="eyebrow">SƠ ĐỒ HỆ THỐNG</p><h2>Một control plane.<br>Nhiều bề mặt, không phải bề mặt nào cũng mạnh như nhau.</h2><p>Human giữ quyền quyết định cuối. Giám Thị là root safety authority — có thể HALT toàn bộ phiên khi phát hiện thay đổi chưa được duyệt. Studio và Runtime CLI đi qua cùng một Yana control plane rồi tới Rust TurnEngine (<code>yana-rt</code>); Wheelbot là một nhánh phần cứng riêng với device bridge WebSocket/MCP của chính nó — website không tuyên bố đường đi Wheelbot đã được xác minh end-to-end qua cùng TurnEngine.</p><a class="button ghost" href="runtime.html">Xem Yana Runtime →</a></div><div class="feature-visual"><div class="system-diagram">
+    <div class="diagram-node tier-human"><strong>Human</strong><span>final authority</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-guard"><strong>Giám Thị</strong><span>root safety · fail-closed HALT</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Yana control plane</strong><span>policy · identity · evidence · capability</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Rust TurnEngine (yana-rt)</strong><span>stream · cancel · tool loop</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-model"><strong>Model + provider plane</strong><span>Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter · Ollama</span></div>
+      <div class="diagram-node tier-model"><strong>Canonical capability</strong><span>file · Git · command (shell/process) · system, manifest-scoped</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-audit"><strong>Audit chain</strong><span>hash-chained per tool call, tamper-detectable</span></div>
+      <div class="diagram-node tier-audit"><strong>Evidence receipt</strong><span>HMAC-signed execution result (Truth Gate)</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-surface"><strong>Studio · Runtime CLI</strong><span>cùng TurnEngine, verified</span></div>
+      <div class="diagram-node tier-surface"><strong>Wheelbot</strong><span>device bridge riêng — chưa verify end-to-end</span></div>
+    </div>
+  </div></div></section>
   <section class="section feature"><div class="feature-copy"><p class="eyebrow">CONTROL + CONTINUITY</p><h2>Công việc tồn tại ngoài transcript.</h2><p>Task graph, missions, memory L1/L2 và project memory tạo state bền vững; Continuity Engine hoàn chỉnh vẫn là roadmap.</p><a class="button ghost" href="continuity.html">Xem Continuity</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Task graph</strong><span>live</span></div><div class="visual-row"><strong>Missions</strong><span>live · maturity evolving</span></div><div class="visual-row"><strong>L1 / L2 memory</strong><span>live</span></div><div class="visual-row"><strong>Continuity Engine</strong><span>roadmap</span></div></div></div></section>
   <section class="section feature reverse"><div class="feature-copy"><p class="eyebrow">CAPABILITY + EVIDENCE</p><h2>Hành động thật để lại receipt.</h2><p>Manifest lookup, risk, approval, atomic file write, TOCTOU re-diff và audit chain biến tool call thành hành động có thể kiểm tra.</p><a class="button ghost" href="governance.html">Xem Governance</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Proposal</strong><span>model</span></div><div class="visual-row"><strong>Decision</strong><span>authority</span></div><div class="visual-row"><strong>Execution</strong><span>capability</span></div><div class="visual-row"><strong>Evidence</strong><span>receipt + artifact</span></div></div></div></section>
   <section class="section"><div class="section-head"><p class="eyebrow">INTERFACE BOUNDARIES</p><h2>Mỗi giao diện có mức quyền khác nhau.</h2><p>Yana không giả định mọi harness mạnh như nhau.</p></div><div class="product-grid"><article class="product-card"><div><h3>Terminal</h3><p>Đường chat duy nhất hiện có approval-continuation cho capability gây thay đổi.</p></div><div class="product-art"><code>interactive
