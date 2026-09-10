@@ -253,6 +253,12 @@ try {
     .getByRole("button", { name: "Model & Runtime", exact: true })
     .click();
   await expect(page.getByText(/19 provider chính thức/)).toBeVisible();
+  await expect(
+    page.locator(".live-model-list").getByText("studio-test", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Danh sách trực tiếp từ provider", { exact: true }),
+  ).toBeVisible();
   await page.getByLabel("API key").fill("UI_TEST_SECRET_NEVER_PLAINTEXT");
   await page.getByRole("button", { name: "Lưu và sử dụng" }).click();
   await expect(page.getByText(/Credential OpenAI-compatible/)).toBeVisible();
