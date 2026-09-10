@@ -4,7 +4,7 @@
 export const UI_PREFERENCES_KEY = 'yana.new-app.preferences.v1';
 // Manual override restored on top of the automatic default (anh's call,
 // 2026-09-03): 'system' (default) follows the OS light/dark setting via
-// prefers-color-scheme — same as docs/desktop.html's own actual behavior —
+// prefers-color-scheme — same as docs/index.html's own actual behavior —
 // with no data-theme attribute set at all. 'light'/'dark' set data-theme
 // explicitly, which themes.css's :root[data-theme="light"/"dark"] rules
 // override the OS setting with (see that file's own comment on the

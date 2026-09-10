@@ -190,10 +190,7 @@ h1 {
 }
 h1 em {
   display: block;
-  color: transparent;
-  background: linear-gradient(105deg, var(--primary) 8%, var(--blue) 55%, var(--pink) 96%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--primary);
 }
 .hero-sub { max-width: 60ch; margin: 0 0 1.5rem; font-size: 1.02rem; line-height: 1.75; }
 .hero-sub strong { color: var(--fg); font-weight: 750; }
@@ -206,14 +203,31 @@ h1 em {
   background: rgba(255, 255, 255, 0.5);
 }
 
+/* One clear CTA, not four co-equal buttons: only the platform the
+   platform-detection script (index.html's inline <script>) marks
+   .primary is shown here — the other three stay in the DOM (found
+   further down in the dedicated #platforms section, every architecture
+   with its own install steps) rather than crowding the fold. */
 .hero .dl-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  justify-content: start;
-  gap: 0.62rem;
-  max-width: 520px;
-  margin: 0 0 0.9rem;
+  display: flex;
+  max-width: 400px;
+  margin: 0 0 0.7rem;
 }
+.hero .dl-grid .dl-btn:not(.primary) { display: none; }
+.hero .dl-grid .dl-btn.primary {
+  width: 100%;
+  min-height: 68px;
+  padding: 0.9rem 1.35rem;
+  font-size: 1.02rem;
+}
+.hero-other-platforms {
+  display: inline-block;
+  margin: 0 0 1.15rem;
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.hero-other-platforms:hover { color: var(--primary); }
 .dl-btn {
   min-height: 62px;
   padding: 0.7rem 0.9rem;
@@ -390,15 +404,15 @@ h1 em {
 .feat-grid { grid-template-columns: repeat(12, 1fr); gap: 14px; }
 .feat-card { grid-column: span 4; min-height: 220px; padding: 1.5rem; border-radius: 18px; background: var(--surface); box-shadow: 0 12px 30px rgba(var(--shadow-rgb), 0.05); }
 .feat-card:hover { transform: translateY(-3px); box-shadow: 0 18px 35px rgba(var(--shadow-rgb), 0.09); }
-.feat-card.spotlight { grid-column: span 8; min-height: 220px; background: linear-gradient(135deg, var(--primary-soft), var(--surface) 58%, var(--pink-soft)); }
+.feat-card.spotlight { grid-column: span 8; min-height: 220px; gap: 2rem; background: linear-gradient(135deg, var(--primary-soft), var(--surface) 58%, var(--pink-soft)); }
 .feat-card:nth-child(3), .feat-card:nth-child(4), .feat-card:nth-child(5), .feat-card:nth-child(6) { grid-column: span 3; }
 .feat-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--primary-soft); font-size: 1.2rem; }
 .feat-card:nth-child(2) .feat-icon, .feat-card:nth-child(6) .feat-icon { background: var(--pink-soft); }
 .feat-card:nth-child(3) .feat-icon, .feat-card:nth-child(5) .feat-icon { background: var(--blue-soft); }
 .feat-title { font-size: 1.03rem; }
 .feat-desc { font-size: 0.84rem; }
-.feat-card.spotlight .feat-stat { min-width: 120px; }
-.feat-card.spotlight .feat-stat-num { font-size: 2.2rem; }
+.gate-demo { min-width: 240px; border-radius: 14px; background: var(--surface-strong); box-shadow: 0 8px 20px rgba(var(--shadow-rgb), 0.06); }
+.gate-demo-row code { font-size: .8rem; }
 
 .faq { max-width: 860px; margin-top: 7rem; }
 .faq-item { border-radius: 14px; background: var(--surface); box-shadow: 0 7px 20px rgba(var(--shadow-rgb), 0.04); }
@@ -449,7 +463,7 @@ footer { margin-top: 2rem; padding: 2rem 1.5rem; background: rgba(255,255,255,0.
   nav { border-color: var(--border); background: rgba(13, 25, 24, 0.82); }
   .gh-stats a { background: rgba(255,255,255,0.025); }
   .screenshot-wrap { border-color: var(--border-strong); }
-  .screenshot-bar, .app-sidebar, .context-panel { background: color-mix(in srgb, var(--surface-muted) 82%, #091210); }
+  .screenshot-bar, .app-sidebar, .context-panel, .gate-demo { background: color-mix(in srgb, var(--surface-muted) 82%, #091210); }
   .trust-rail li, footer { background: var(--surface); }
 }
 
@@ -488,7 +502,6 @@ footer { margin-top: 2rem; padding: 2rem 1.5rem; background: rgba(255,255,255,0.
   h1 em { font-size: 0.92em; }
   .hero-sub { font-size: 0.94rem; }
   .gh-stats { flex-wrap: wrap; }
-  .hero .dl-grid { grid-template-columns: 1fr; }
   .dl-btn { min-height: 58px; }
   .screenshot-outer { width: calc(100vw - 18px); margin-left: calc((100% - (100vw - 18px)) / 2); }
   .screenshot-wrap { border-radius: 18px; }
@@ -507,8 +520,8 @@ footer { margin-top: 2rem; padding: 2rem 1.5rem; background: rgba(255,255,255,0.
   .features, .faq, .platforms { margin-top: 5rem; padding-right: 1rem; padding-left: 1rem; }
   .feat-grid { grid-template-columns: 1fr; }
   .feat-card, .feat-card:nth-child(n), .feat-card.spotlight { grid-column: 1; min-height: 0; }
-  .feat-card.spotlight { display: grid; grid-template-columns: auto 1fr; }
-  .feat-card.spotlight .feat-stat { grid-column: 1 / -1; width: 100%; border-top: 1px solid var(--border); border-left: 0; padding: 0.9rem 0 0; text-align: left; }
+  .feat-card.spotlight { flex-direction: column; }
+  .gate-demo { width: 100%; }
   .section-title { font-size: 2.15rem; }
   .cta-section { margin: 5rem 1rem 3rem; padding: 2.5rem 1rem; }
 }

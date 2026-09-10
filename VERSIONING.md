@@ -93,9 +93,10 @@ check_counts.py` (`bin/yana su-gia`) now checks and fixes this across
 `docs/index.html`, `docs/commands.html`, and each `README*.md`'s
 Versioning table, and `.github/workflows/herald.yml` re-runs it on every
 `v*` tag push as defense-in-depth. See `docs/RELEASE-CHECKLIST.md`'s
-Step 6 for the full mechanism, including the deliberate gap
-(`docs/desktop.html` is not covered — different release cadence, see
-that section).
+Step 6 for the full mechanism. (`docs/desktop.html` used to be a
+deliberate, documented gap here — different release cadence than the
+version fields above — but the file was retired 2026-09; yana.vutam.link
+is now a single page, `docs/index.html`, and the gap no longer applies.)
 
 **Scheduled re-verification, and publish parity (added 2026-08-23):**
 `herald.yml` no longer only fires on a tag push -- it also runs daily, so

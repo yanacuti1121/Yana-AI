@@ -7,7 +7,7 @@ name: Herald (Sứ Giả)
 # flakiness. Fires on the same `push: tags: v*` event those workflows
 # already use independently -- see docs/RELEASE-CHECKLIST.md Step 6 for
 # the full mechanism and what this deliberately does NOT cover
-# (docs/desktop.html, narrative prose).
+# (narrative prose, e.g. a "What's new" section heading).
 #
 # The actual check/fix logic lives in core/scripts/check_counts.py, exposed
 # as `bin/yana su-gia` -- this workflow is one caller of that command among
@@ -173,7 +173,7 @@ jobs:
               echo '```'
             fi
             echo
-            echo "Not covered by this check (see docs/RELEASE-CHECKLIST.md Step 6): \`docs/desktop.html\`'s version badge and download links, narrative prose (e.g. a \"What's new\" section heading)."
+            echo "Not covered by this check (see docs/RELEASE-CHECKLIST.md Step 6): narrative prose (e.g. a \"What's new\" section heading)."
           } > /tmp/herald-pr-body.md
 
           gh pr create \

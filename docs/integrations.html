@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yana Integrations — bring governance to the agent you already use</title>
+  <meta name="description" content="How Yana's governance materializes into Claude Code, Codex, Cursor, Antigravity, Discord, and MCP — honestly, including where enforcement is stronger or weaker by host." />
+  <link rel="canonical" href="https://yana.vutam.link/integrations.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Yana Integrations" />
+  <meta property="og:description" content="One governance contract, materialized differently per host — and each difference stated plainly." />
+  <meta property="og:image" content="https://yana.vutam.link/yana-logo.png" />
+  <meta property="og:url" content="https://yana.vutam.link/integrations.html" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="icon" type="image/png" href="yana-logo.png" />
+  <link rel="apple-touch-icon" href="yana-logo.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f2f7f4; --bg-card: #ffffff; --bg-card-2: #f6faf7;
+      --primary: #2f7e6e; --primary-h: #266a5c;
+      --fg: #21403a; --fg-muted: #51695f; --fg-faint: #84988f;
+      --border: rgba(31,56,51,.10); --border-strong: rgba(31,56,51,.18);
+      --good: #3d8b6e; --gold: #b68b42; --shadow-rgb: 20,40,36; --radius: 20px;
+      --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    nav { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.82); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; }
+    .nav-brand img { width: 30px; height: 30px; border-radius: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; font-size: .875rem; color: var(--fg-muted); }
+    .nav-links a:hover { color: var(--fg); }
+    .lang-switcher { display: flex; align-items: center; gap: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; font-size: .75rem; }
+    .lang-btn { padding: .25rem .45rem; border-radius: 6px; font-weight: 600; cursor: pointer; color: var(--fg-muted); transition: background .12s, color .12s; border: none; background: none; font-size: .75rem; font-family: var(--sans); }
+    .lang-btn.active { background: var(--primary); color: #fff; }
+    .lang-btn:hover:not(.active) { background: var(--border); color: var(--fg); }
+    .nav-cta { background: var(--primary); color: #fff; padding: .45rem 1.1rem; border-radius: 8px; font-size: .875rem; font-weight: 600; transition: background .15s; }
+    .nav-cta:hover { background: var(--primary-h); }
+
+    .page-hero { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 2rem; text-align: center; }
+    .page-eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: var(--primary); margin-bottom: 1rem; }
+    .page-hero h1 { font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .page-hero p { font-size: 1.0625rem; color: var(--fg-muted); max-width: 62ch; margin: 0 auto; line-height: 1.7; }
+
+    .subnav { position: sticky; top: 56px; z-index: 9; background: rgba(255,255,255,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .subnav-inner { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; display: flex; gap: 1.5rem; overflow-x: auto; }
+    .subnav a { flex: none; padding: .9rem 0; font-size: .875rem; font-weight: 600; color: var(--fg-muted); }
+    .subnav a:hover { color: var(--fg); }
+
+    section.block { max-width: 780px; margin: 0 auto; padding: 3.5rem 1.5rem; }
+    section.block.wide { max-width: 980px; }
+    .section-title { font-size: clamp(1.4rem, 2.8vw, 1.9rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: .6rem; }
+    .section-sub { color: var(--fg-muted); margin-bottom: 2rem; font-size: .9375rem; max-width: 65ch; }
+
+    .harness-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+    .harness-badge { font-size: .6875rem; font-weight: 700; letter-spacing: .03em; padding: .18rem .6rem; border-radius: 999px; }
+    .harness-badge.strong { background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); }
+    .harness-badge.native { background: color-mix(in oklab, var(--blue, #477fd1) 15%, transparent); color: var(--blue, #477fd1); }
+    .harness-badge.prompt { background: color-mix(in oklab, var(--gold) 18%, transparent); color: var(--gold); }
+    .harness-badge.none { background: var(--bg-card-2); color: var(--fg-faint); }
+
+    .mech-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0 1.25rem; }
+    @media (max-width: 640px) { .mech-row { grid-template-columns: 1fr; } }
+    .mech-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; }
+    .mech-card h4 { font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: .4rem; }
+    .mech-card p, .mech-card code { font-size: .8438rem; }
+    .mech-card code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--bg-card-2); border-radius: 4px; padding: .05rem .3rem; }
+
+    .parity-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: .875rem; }
+    .parity-table th, .parity-table td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--border); }
+    .parity-table th { color: var(--fg-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+    .parity-yes { color: var(--primary); font-weight: 700; }
+    .parity-no { color: var(--fg-faint); }
+
+    .status-note { background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; font-size: .875rem; color: var(--fg-muted); margin-top: 1rem; }
+    .status-note strong { color: var(--fg); }
+    hr.div { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+    footer { border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; font-size: .8125rem; color: var(--fg-muted); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem 1.5rem; margin-top: 3rem; }
+    footer a:hover { color: var(--fg); }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header>
+<nav aria-label="Primary">
+  <a href="/" class="nav-brand"><img src="yana-logo.png" alt="Yana" /><span>Yana</span></a>
+  <div class="nav-links">
+    <a href="/#ecosystem" data-i18n="nav_ecosystem">Ecosystem</a>
+    <a href="/governance.html" data-i18n="nav_governance">Governance</a>
+    <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VI</button>
+      <button class="lang-btn" onclick="setLang('ko')">한</button>
+      <button class="lang-btn" onclick="setLang('zh')">中</button>
+    </div>
+  </div>
+  <a class="nav-cta" href="https://github.com/yanacuti1121/Yana-AI#choose-your-first-win" target="_blank" rel="noreferrer" data-i18n="nav_cta">Get started</a>
+</nav>
+<div class="subnav">
+  <div class="subnav-inner">
+    <a href="#overview" data-i18n="sub_overview">Overview</a>
+    <a href="#claude-code">Claude Code</a>
+    <a href="#codex">Codex</a>
+    <a href="#cursor">Cursor</a>
+    <a href="#antigravity">Antigravity</a>
+    <a href="#discord">Discord</a>
+    <a href="#mcp">MCP</a>
+  </div>
+</div>
+</header>
+
+<main id="main-content">
+<section class="page-hero" id="overview">
+  <p class="page-eyebrow" data-i18n="in_eyebrow">INTEGRATIONS</p>
+  <h1 data-i18n="in_h1">One contract, materialized differently per host</h1>
+  <p data-i18n="in_sub">Yana doesn't run a second copy of itself inside each coding agent. It generates adapters from one canonical <code>core/</code> layer — but the host decides how strongly that adapter can actually enforce anything. This page states each difference plainly, not as a uniform "works everywhere" claim.</p>
+</section>
+
+<section class="block wide" id="claude-code">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">Claude Code</h2><span class="harness-badge strong" data-i18n="badge_strict">Strict parity</span></div>
+  <p class="section-sub" data-i18n="cc_sub">The harness Yana's own hooks were built and battle-tested on first.</p>
+  <div class="mech-row">
+    <div class="mech-card"><h4 data-i18n="mech_h">Mechanism</h4><p data-i18n="cc_mech">Native <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> hooks in <code>.claude/settings.json</code>, calling <code>core/hooks/*.sh</code> directly.</p></div>
+    <div class="mech-card"><h4 data-i18n="enforce_h">Enforcement</h4><p data-i18n="cc_enforce">Deterministic shell guards run before the tool call ever executes — this is the reference implementation the others are checked against.</p></div>
+  </div>
+</section>
+
+<section class="block wide" id="codex">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">Codex</h2><span class="harness-badge strong" data-i18n="badge_strict">Strict parity</span></div>
+  <p class="section-sub" data-i18n="cx_sub">Machine-verified against Claude Code — the only other harness held to that bar today.</p>
+  <div class="mech-row">
+    <div class="mech-card"><h4 data-i18n="mech_h">Mechanism</h4><p data-i18n="cx_mech"><code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, generated from the same <code>core/</code> source — never hand-maintained separately.</p></div>
+    <div class="mech-card"><h4 data-i18n="enforce_h">Enforcement</h4><p data-i18n="cx_enforce"><code>check_engine_parity.py</code> fails the build if Codex is missing any shared instruction, agent, skill, command, or active hook.</p></div>
+  </div>
+  <table class="parity-table" aria-label="Claude Code vs Codex parity">
+    <thead><tr><th data-i18n="parity_capability">Capability</th><th>Claude Code</th><th>Codex</th></tr></thead>
+    <tbody>
+      <tr><td data-i18n="parity_instructions">Instructions</td><td class="parity-yes">AGENTS.md</td><td class="parity-yes">AGENTS.md</td></tr>
+      <tr><td data-i18n="parity_agents">Agents</td><td class="parity-yes">.claude/agents/*.md</td><td class="parity-yes">.codex/agents/*.toml</td></tr>
+      <tr><td data-i18n="parity_hooks">Hooks</td><td class="parity-yes">.claude/settings.json</td><td class="parity-yes">.codex/hooks.json</td></tr>
+    </tbody>
+  </table>
+  <p class="status-note" data-i18n="cx_note"><strong>What "parity" means here:</strong> the hook <em>files</em> are present and synced — <code>.codex/hooks.json</code> is not hand-maintained, and the build fails if it drifts from Claude Code's set. Whether Codex's own runtime enforces a block on every one of those hooks the same way Claude Code's does has not been independently re-verified as thoroughly as Cursor's <code>beforeShellExecution</code> path — <code>README.md</code>'s own pitch is deliberately more cautious here ("hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity"). Treat Codex's enforcement strength as real but less independently confirmed than Cursor's until that's checked directly.</p>
+</section>
+
+<section class="block wide" id="cursor">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">Cursor</h2><span class="harness-badge native" data-i18n="badge_native">Native hook, not strict-parity</span></div>
+  <p class="section-sub" data-i18n="cu_sub">Real deterministic enforcement — just not yet held to the same machine-verified parity bar as Claude Code and Codex.</p>
+  <div class="mech-row">
+    <div class="mech-card"><h4 data-i18n="mech_h">Mechanism</h4><p data-i18n="cu_mech">Cursor's own <code>beforeShellExecution</code> hook calls a thin translator that forwards straight to <code>guard-destructive.sh</code> — the exact same guard Claude Code uses, not a reimplementation.</p></div>
+    <div class="mech-card"><h4 data-i18n="enforce_h">Enforcement</h4><p data-i18n="cu_enforce">Cursor's own <code>failClosed: true</code> is the backstop: if the translator crashes or times out, Cursor blocks the action regardless.</p></div>
+  </div>
+  <p class="status-note" data-i18n="cu_note"><strong>Honest gap:</strong> agents, skills, and commands aren't machine-verified in sync for Cursor the way they are for Codex — only the destructive-command guard is confirmed wired.</p>
+</section>
+
+<section class="block wide" id="antigravity">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">Antigravity</h2><span class="harness-badge prompt" data-i18n="badge_prompt">Prompt-level, not a hook</span></div>
+  <p class="section-sub" data-i18n="ag_sub">The clearest example of "enforcement strength varies by host" on this list.</p>
+  <div class="mech-row">
+    <div class="mech-card"><h4 data-i18n="mech_h">Mechanism</h4><p data-i18n="ag_mech">A workspace rule (<code>.agent/rules/yana-ai.md</code>) or <code>AGENTS.md</code> that instructs the model: "NEVER execute <code>rm -rf</code>, <code>git push --force</code>..." </p></div>
+    <div class="mech-card"><h4 data-i18n="enforce_h">Enforcement</h4><p data-i18n="ag_enforce">This is a system-prompt instruction the model is asked to follow — not a deterministic hook that blocks the call before it runs.</p></div>
+  </div>
+  <p class="status-note" data-i18n="ag_note"><strong>Why we say this plainly:</strong> a prompt can be followed correctly almost all the time and still be a fundamentally different guarantee than a hook that runs outside the model's own reasoning. Governance's own principle — don't ask an LLM whether a command is dangerous inside the authority path — doesn't fully apply here yet, and the site won't pretend otherwise.</p>
+</section>
+
+<section class="block wide" id="discord">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">Discord</h2><span class="harness-badge none" data-i18n="badge_none">No tool capabilities</span></div>
+  <p class="section-sub" data-i18n="dc_sub">A remote chat adapter with the narrowest surface on purpose.</p>
+  <p data-i18n="dc_body">Authenticated channel/user allowlists, in-process Rust <code>TurnEngine</code>, plain chat only. No host or tool capabilities are exposed remotely — Discord is deliberately not a remote shell into Yana. An empty allowlist denies everyone; an adapter failure never grants access by default.</p>
+</section>
+
+<section class="block wide" id="mcp">
+  <div class="harness-header"><h2 class="section-title" style="margin-bottom:0">MCP</h2><span class="harness-badge prompt" data-i18n="badge_exp">Experimental / opt-in</span></div>
+  <p class="section-sub" data-i18n="mc_sub">Feature-gated, and deliberately unable to grant itself anything.</p>
+  <p data-i18n="mc_body">A stdio server over canonical, governed capability/workspace services — opt-in, off by default. Read and governed request surfaces are available; approval-only workspace operations cannot be approved over MCP at all. The transport cannot manufacture human authority, by design.</p>
+</section>
+</main>
+
+<footer>
+  <span>© 2026 Yana AI · Apache 2.0</span>
+  <a href="/">Home</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/ENGINE_PARITY.md">ENGINE_PARITY.md</a>
+</footer>
+
+<script>
+const LANGS = {
+  en: {
+    nav_ecosystem: "Ecosystem", nav_governance: "Governance", nav_cta: "Get started",
+    sub_overview: "Overview",
+    in_eyebrow: "INTEGRATIONS",
+    in_h1: "One contract, materialized differently per host",
+    in_sub: "Yana doesn't run a second copy of itself inside each coding agent. It generates adapters from one canonical <code>core/</code> layer — but the host decides how strongly that adapter can actually enforce anything. This page states each difference plainly, not as a uniform \"works everywhere\" claim.",
+    badge_strict: "Strict parity", badge_native: "Native hook, not strict-parity", badge_prompt: "Prompt-level, not a hook", badge_none: "No tool capabilities", badge_exp: "Experimental / opt-in",
+    mech_h: "Mechanism", enforce_h: "Enforcement",
+    cc_sub: "The harness Yana's own hooks were built and battle-tested on first.",
+    cc_mech: "Native <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> hooks in <code>.claude/settings.json</code>, calling <code>core/hooks/*.sh</code> directly.",
+    cc_enforce: "Deterministic shell guards run before the tool call ever executes — this is the reference implementation the others are checked against.",
+    cx_sub: "Machine-verified against Claude Code — the only other harness held to that bar today.",
+    cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, generated from the same <code>core/</code> source — never hand-maintained separately.",
+    cx_enforce: "<code>check_engine_parity.py</code> fails the build if Codex is missing any shared instruction, agent, skill, command, or active hook.",
+    cx_note: "<strong>What \"parity\" means here:</strong> the hook <em>files</em> are present and synced — <code>.codex/hooks.json</code> is not hand-maintained, and the build fails if it drifts from Claude Code's set. Whether Codex's own runtime enforces a block on every one of those hooks the same way Claude Code's does has not been independently re-verified as thoroughly as Cursor's <code>beforeShellExecution</code> path — <code>README.md</code>'s own pitch is deliberately more cautious here (\"hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity\"). Treat Codex's enforcement strength as real but less independently confirmed than Cursor's until that's checked directly.",
+    parity_capability: "Capability", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
+    cu_sub: "Real deterministic enforcement — just not yet held to the same machine-verified parity bar as Claude Code and Codex.",
+    cu_mech: "Cursor's own <code>beforeShellExecution</code> hook calls a thin translator that forwards straight to <code>guard-destructive.sh</code> — the exact same guard Claude Code uses, not a reimplementation.",
+    cu_enforce: "Cursor's own <code>failClosed: true</code> is the backstop: if the translator crashes or times out, Cursor blocks the action regardless.",
+    cu_note: "<strong>Honest gap:</strong> agents, skills, and commands aren't machine-verified in sync for Cursor the way they are for Codex — only the destructive-command guard is confirmed wired.",
+    ag_sub: "The clearest example of \"enforcement strength varies by host\" on this list.",
+    ag_mech: "A workspace rule (<code>.agent/rules/yana-ai.md</code>) or <code>AGENTS.md</code> that instructs the model: \"NEVER execute <code>rm -rf</code>, <code>git push --force</code>...\" ",
+    ag_enforce: "This is a system-prompt instruction the model is asked to follow — not a deterministic hook that blocks the call before it runs.",
+    ag_note: "<strong>Why we say this plainly:</strong> a prompt can be followed correctly almost all the time and still be a fundamentally different guarantee than a hook that runs outside the model's own reasoning. Governance's own principle — don't ask an LLM whether a command is dangerous inside the authority path — doesn't fully apply here yet, and the site won't pretend otherwise.",
+    dc_sub: "A remote chat adapter with the narrowest surface on purpose.",
+    dc_body: "Authenticated channel/user allowlists, in-process Rust <code>TurnEngine</code>, plain chat only. No host or tool capabilities are exposed remotely — Discord is deliberately not a remote shell into Yana. An empty allowlist denies everyone; an adapter failure never grants access by default.",
+    mc_sub: "Feature-gated, and deliberately unable to grant itself anything.",
+    mc_body: "A stdio server over canonical, governed capability/workspace services — opt-in, off by default. Read and governed request surfaces are available; approval-only workspace operations cannot be approved over MCP at all. The transport cannot manufacture human authority, by design.",
+  },
+  vi: {
+    nav_ecosystem: "Hệ sinh thái", nav_governance: "Governance", nav_cta: "Bắt đầu",
+    sub_overview: "Tổng quan",
+    in_eyebrow: "INTEGRATIONS",
+    in_h1: "Một hợp đồng, thể hiện khác nhau ở mỗi host",
+    in_sub: "Yana không chạy 1 bản sao thứ 2 của chính nó bên trong từng coding agent. Nó sinh adapter từ 1 tầng <code>core/</code> chính thức duy nhất — nhưng host quyết định adapter đó enforce mạnh tới đâu. Trang này nói rõ từng khác biệt, không phải claim \"chạy tốt mọi nơi\" chung chung.",
+    badge_strict: "Strict parity", badge_native: "Hook native, chưa strict-parity", badge_prompt: "Cấp prompt, không phải hook", badge_none: "Không có tool capability", badge_exp: "Thực nghiệm / opt-in",
+    mech_h: "Cơ chế", enforce_h: "Mức enforce",
+    cc_sub: "Harness mà chính hook của Yana được xây và test khắc nghiệt đầu tiên.",
+    cc_mech: "Hook native <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> trong <code>.claude/settings.json</code>, gọi thẳng <code>core/hooks/*.sh</code>.",
+    cc_enforce: "Guard shell tất định chạy trước khi tool call thực thi — đây là bản tham chiếu để so sánh các harness khác.",
+    cx_sub: "Được kiểm chứng bằng máy so với Claude Code — harness duy nhất khác đạt chuẩn đó hiện nay.",
+    cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, sinh ra từ cùng nguồn <code>core/</code> — không bao giờ duy trì tay riêng.",
+    cx_enforce: "<code>check_engine_parity.py</code> làm fail build nếu Codex thiếu bất kỳ instruction/agent/skill/command/hook chung nào.",
+    cx_note: "<strong>\"Parity\" ở đây nghĩa là gì:</strong> các file hook có mặt và được đồng bộ — <code>.codex/hooks.json</code> không duy trì tay, build fail nếu nó lệch khỏi bộ của Claude Code. Còn việc runtime của Codex có thực sự chặn (block) ở mọi hook đó giống hệt Claude Code hay không thì chưa được xác minh độc lập kỹ như đường <code>beforeShellExecution</code> của Cursor — chính <code>README.md</code> cố tình dùng câu thận trọng hơn (\"hard-blocking trên Claude Code và Cursor, advisory guidance trên Codex và Antigravity\"). Coi mức enforce của Codex là có thật nhưng chưa được xác nhận độc lập chắc chắn bằng Cursor cho tới khi kiểm tra trực tiếp.",
+    parity_capability: "Capability", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
+    cu_sub: "Enforce tất định thật — chỉ là chưa đạt chuẩn parity kiểm bằng máy như Claude Code và Codex.",
+    cu_mech: "Hook <code>beforeShellExecution</code> riêng của Cursor gọi 1 translator mỏng, chuyển thẳng tới <code>guard-destructive.sh</code> — đúng guard Claude Code dùng, không viết lại.",
+    cu_enforce: "<code>failClosed: true</code> của chính Cursor là lưới an toàn: nếu translator crash hoặc timeout, Cursor vẫn chặn hành động.",
+    cu_note: "<strong>Khoảng trống thật:</strong> agents/skills/commands chưa được kiểm đồng bộ bằng máy cho Cursor như Codex — chỉ guard lệnh phá huỷ được xác nhận đã nối.",
+    ag_sub: "Ví dụ rõ nhất cho \"mức enforce khác nhau theo host\" trong danh sách này.",
+    ag_mech: "Một workspace rule (<code>.agent/rules/yana-ai.md</code>) hoặc <code>AGENTS.md</code> yêu cầu model: \"KHÔNG BAO GIỜ chạy <code>rm -rf</code>, <code>git push --force</code>...\"",
+    ag_enforce: "Đây là 1 chỉ dẫn system-prompt yêu cầu model tuân theo — không phải hook tất định chặn lệnh trước khi nó chạy.",
+    ag_note: "<strong>Vì sao nói thẳng điều này:</strong> 1 prompt có thể được tuân theo đúng gần như mọi lúc nhưng vẫn là 1 đảm bảo khác về bản chất so với hook chạy ngoài suy luận của model. Nguyên tắc của Governance — không hỏi LLM xem 1 lệnh có nguy hiểm không trong đường quyết định quyền hạn — chưa áp dụng đầy đủ ở đây, và trang này không giả vờ khác đi.",
+    dc_sub: "Adapter chat từ xa với bề mặt hẹp nhất, có chủ đích.",
+    dc_body: "Allowlist channel/user có xác thực, Rust <code>TurnEngine</code> in-process, chỉ chat thuần. Không có host hay tool capability nào lộ ra từ xa — Discord có chủ đích không phải 1 remote shell vào Yana. Allowlist rỗng từ chối tất cả; adapter fail không bao giờ tự cấp quyền.",
+    mc_sub: "Feature-gated, và cố tình không thể tự cấp quyền cho chính nó.",
+    mc_body: "1 stdio server qua capability/workspace service chính thức, có quản trị — opt-in, tắt mặc định. Có bề mặt đọc và request được quản trị; thao tác workspace cần phê duyệt thì không thể phê duyệt qua MCP. Transport không thể tự tạo ra quyền của con người, theo thiết kế.",
+  },
+  ko: {
+    nav_ecosystem: "생태계", nav_governance: "거버넌스", nav_cta: "시작하기",
+    sub_overview: "개요",
+    in_eyebrow: "INTEGRATIONS",
+    in_h1: "하나의 계약, 호스트마다 다르게 구현됨",
+    in_sub: "Yana는 각 코딩 에이전트 안에서 자기 자신의 두 번째 복사본을 실행하지 않습니다. 하나의 정식 <code>core/</code> 계층에서 어댑터를 생성하지만, 그 어댑터가 실제로 얼마나 강하게 집행할 수 있는지는 호스트가 결정합니다. 이 페이지는 \"어디서나 동일하게 작동한다\"는 획일적 주장 대신 각 차이를 명확히 밝힙니다.",
+    badge_strict: "엄격한 동등성", badge_native: "네이티브 훅, 엄격 동등성 아님", badge_prompt: "프롬프트 수준, 훅 아님", badge_none: "도구 능력 없음", badge_exp: "실험적 / 옵트인",
+    mech_h: "메커니즘", enforce_h: "집행 수준",
+    cc_sub: "Yana 자체 훅이 처음 만들어지고 실전 검증된 하니스입니다.",
+    cc_mech: "<code>.claude/settings.json</code>의 네이티브 <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> 훅이 <code>core/hooks/*.sh</code>를 직접 호출합니다.",
+    cc_enforce: "결정론적 셸 가드가 도구 호출이 실행되기 전에 실행됩니다 — 다른 하니스들이 비교되는 기준 구현입니다.",
+    cx_sub: "오늘날 그 기준에 도달한 유일한 다른 하니스로, Claude Code에 대해 기계적으로 검증됩니다.",
+    cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, 동일한 <code>core/</code> 소스에서 생성됩니다 — 별도로 수동 유지되지 않습니다.",
+    cx_enforce: "<code>check_engine_parity.py</code>는 Codex가 공유 instruction/agent/skill/command/hook 중 하나라도 빠지면 빌드를 실패시킵니다.",
+    cx_note: "<strong>여기서 \"parity\"의 의미:</strong> hook <em>파일</em>이 존재하고 동기화되어 있다는 뜻입니다 — <code>.codex/hooks.json</code>은 수동 유지되지 않으며, Claude Code의 세트와 어긋나면 빌드가 실패합니다. Codex 자체 런타임이 그 모든 hook에서 Claude Code와 동일하게 차단을 강제하는지는 Cursor의 <code>beforeShellExecution</code> 경로만큼 철저히 독립 검증되지 않았습니다 — <code>README.md</code> 자체도 여기서는 의도적으로 더 신중한 표현(\"Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고 수준\")을 씁니다. 직접 확인되기 전까지 Codex의 집행 강도는 실재하지만 Cursor만큼 독립적으로 확인되지는 않은 것으로 취급하세요.",
+    parity_capability: "기능", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
+    cu_sub: "실제 결정론적 집행이 있지만, 아직 Claude Code와 Codex와 같은 기계 검증 동등성 기준에는 도달하지 못했습니다.",
+    cu_mech: "Cursor 자체의 <code>beforeShellExecution</code> 훅이 얇은 번역기를 호출해 <code>guard-destructive.sh</code>로 그대로 전달합니다 — Claude Code가 쓰는 것과 동일한 가드이며 재구현이 아닙니다.",
+    cu_enforce: "Cursor 자체의 <code>failClosed: true</code>가 안전망입니다: 번역기가 충돌하거나 타임아웃되어도 Cursor는 어쨌든 작업을 차단합니다.",
+    cu_note: "<strong>솔직한 공백:</strong> agents/skills/commands는 Codex처럼 Cursor에서 기계적으로 동기화 검증되지 않습니다 — 파괴적 명령 가드만 연결이 확인되었습니다.",
+    ag_sub: "이 목록에서 \"집행 강도는 호스트마다 다르다\"를 가장 명확히 보여주는 사례입니다.",
+    ag_mech: "모델에게 지시하는 워크스페이스 규칙(<code>.agent/rules/yana-ai.md</code>) 또는 <code>AGENTS.md</code>: \"<code>rm -rf</code>, <code>git push --force</code>를 절대 실행하지 마세요...\"",
+    ag_enforce: "이것은 모델이 따르도록 요청받는 시스템 프롬프트 지시이지, 호출이 실행되기 전에 차단하는 결정론적 훅이 아닙니다.",
+    ag_note: "<strong>이를 명확히 말하는 이유:</strong> 프롬프트는 거의 항상 올바르게 따라질 수 있지만, 모델 자신의 추론 밖에서 실행되는 훅과는 근본적으로 다른 보증입니다. \"권한 결정 경로 안에서 LLM에게 명령이 위험한지 묻지 말라\"는 Governance 자체 원칙이 여기서는 아직 완전히 적용되지 않으며, 이 사이트는 그렇지 않은 척하지 않습니다.",
+    dc_sub: "의도적으로 가장 좁은 표면을 가진 원격 채팅 어댑터입니다.",
+    dc_body: "인증된 채널/사용자 allowlist, 인프로세스 Rust <code>TurnEngine</code>, 순수 채팅만 가능합니다. 원격으로 노출되는 호스트나 도구 능력은 없습니다 — Discord는 의도적으로 Yana로의 원격 셸이 아닙니다. 빈 allowlist는 모두를 거부하며, 어댑터 실패가 기본적으로 접근 권한을 부여하지 않습니다.",
+    mc_sub: "기능 게이트가 걸려 있으며, 스스로에게 무언가를 부여할 수 없도록 의도적으로 설계되었습니다.",
+    mc_body: "정식으로 거버넌스된 capability/workspace 서비스 위의 stdio 서버입니다 — 옵트인, 기본 꺼짐. 읽기 및 거버넌스된 요청 표면은 사용 가능하지만, 승인이 필요한 workspace 작업은 MCP로는 전혀 승인할 수 없습니다. 이 전송 계층은 설계상 사람의 권한을 스스로 만들어낼 수 없습니다.",
+  },
+  zh: {
+    nav_ecosystem: "生态系统", nav_governance: "治理", nav_cta: "开始使用",
+    sub_overview: "概览",
+    in_eyebrow: "INTEGRATIONS",
+    in_h1: "同一份契约，在每个宿主上以不同方式实现",
+    in_sub: "Yana 不会在每个编程智能体内部再运行一份自己的副本。它从同一个规范的 <code>core/</code> 层生成适配器——但适配器实际能有多强的执行力，取决于宿主本身。本页如实说明每一处差异，而不是笼统地宣称\"处处可用\"。",
+    badge_strict: "严格对等", badge_native: "原生 hook，非严格对等", badge_prompt: "提示词级别，非 hook", badge_none: "无工具能力", badge_exp: "实验性 / 可选启用",
+    mech_h: "机制", enforce_h: "执行强度",
+    cc_sub: "Yana 自身的 hook 最初就是在这个宿主上构建并经过实战检验的。",
+    cc_mech: "<code>.claude/settings.json</code> 中的原生 <code>PreToolUse</code> / <code>PostToolUse</code> / <code>Stop</code> hook，直接调用 <code>core/hooks/*.sh</code>。",
+    cc_enforce: "确定性的 shell 防护在工具调用执行之前运行——这是其他宿主对照检验的参考实现。",
+    cx_sub: "目前唯一另一个被机器验证达到 Claude Code 同等标准的宿主。",
+    cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>，从同一个 <code>core/</code> 源生成——绝不单独手工维护。",
+    cx_enforce: "如果 Codex 缺少任何共享的 instruction、agent、skill、command 或激活的 hook，<code>check_engine_parity.py</code> 会使构建失败。",
+    cx_note: "<strong>这里\"parity\"的含义：</strong>hook <em>文件</em>确实存在并保持同步——<code>.codex/hooks.json</code> 不是手工维护的，一旦它与 Claude Code 的集合出现偏差，构建就会失败。但 Codex 自身运行时是否会像 Claude Code 那样对每一个 hook 都真正执行拦截，尚未像 Cursor 的 <code>beforeShellExecution</code> 路径那样经过同等严格的独立验证——<code>README.md</code> 自身也刻意使用了更谨慎的措辞（\"在 Claude Code 和 Cursor 上是强制拦截，在 Codex 和 Antigravity 上仅为建议\"）。在直接核实之前，请将 Codex 的执行强度视为真实存在、但不如 Cursor 那样经过独立确认。",
+    parity_capability: "能力", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
+    cu_sub: "拥有真正的确定性执行——只是尚未达到与 Claude Code 和 Codex 同等的机器验证对等标准。",
+    cu_mech: "Cursor 自身的 <code>beforeShellExecution</code> hook 调用一个轻量转换器，直接转发给 <code>guard-destructive.sh</code>——与 Claude Code 使用的完全是同一个防护，而非重新实现。",
+    cu_enforce: "Cursor 自身的 <code>failClosed: true</code> 是最后防线：即使转换器崩溃或超时，Cursor 依然会拦截该操作。",
+    cu_note: "<strong>如实说明的差距：</strong> Cursor 上的 agents、skills、commands 尚未像 Codex 那样经过机器验证的同步检查——只有破坏性命令防护被确认已接通。",
+    ag_sub: "本列表中\"执行强度因宿主而异\"最清晰的例子。",
+    ag_mech: "一条工作区规则（<code>.agent/rules/yana-ai.md</code>）或 <code>AGENTS.md</code>，指示模型：\"绝不执行 <code>rm -rf</code>、<code>git push --force</code>……\"",
+    ag_enforce: "这是要求模型遵守的系统提示词指令——而不是在调用执行前进行拦截的确定性 hook。",
+    ag_note: "<strong>为什么如实说明：</strong>提示词几乎总能被正确遵守，但这与在模型自身推理之外运行的 hook，在保证性质上有根本不同。Governance 自身的原则——不要在权限决定路径中询问 LLM 某条命令是否危险——在这里尚未完全适用，本站不会假装并非如此。",
+    dc_sub: "一个刻意保持最窄接触面的远程聊天适配器。",
+    dc_body: "经过身份验证的频道/用户白名单，进程内的 Rust <code>TurnEngine</code>，仅支持纯聊天。不会远程暴露任何主机或工具能力——Discord 被刻意设计为不是通往 Yana 的远程 shell。空白名单会拒绝所有人；适配器故障默认绝不授予访问权限。",
+    mc_sub: "受功能开关控制，并且被刻意设计为无法为自己授予任何权限。",
+    mc_body: "构建在规范的、受治理的 capability/workspace 服务之上的 stdio 服务器——默认关闭，需主动开启。只读及受治理的请求接口可用；但需要批准的 workspace 操作完全无法通过 MCP 获得批准。按设计，该传输层无法凭空制造出人类的授权。",
+  }
+};
+function setLang(lang) {
+  const t = LANGS[lang]; if (!t) return;
+  localStorage.setItem('yana-lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (t[key] !== undefined) el.innerHTML = t[key]; });
+  document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.textContent.toLowerCase() === lang || (lang === 'ko' && btn.textContent === '한') || (lang === 'zh' && btn.textContent === '中')); });
+}
+(function() {
+  const saved = localStorage.getItem('yana-lang');
+  const browser = navigator.language.slice(0,2);
+  const map = { vi: 'vi', ko: 'ko', zh: 'zh' };
+  setLang(saved || map[browser] || 'en');
+})();
+</script>
+</body>
+</html>
