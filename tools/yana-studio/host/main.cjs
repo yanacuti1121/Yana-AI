@@ -131,7 +131,7 @@ function publicState() {
     hasKey: configuredProviders.includes(visibleState.profile.provider),
     credentialStorage: credentialAvailable() ? "OS encrypted" : "session only",
     warning: store.warning,
-    version: "0.1.0",
+    version: app.getVersion(),
     platform: `${os.platform()} · ${os.arch()}`,
     account,
   };

@@ -2087,7 +2087,7 @@ function App() {
       </div>
       <footer className="statusbar">
         <span>
-          <span className="brand-dot" /> Yana Studio <b>0.1.0</b>
+          <span className="brand-dot" /> Yana Studio <b>{state.version}</b>
         </span>
         <span>{state.platform}</span>
         <span className="status-right">
