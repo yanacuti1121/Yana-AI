@@ -208,7 +208,7 @@ chết. Không thể đánh giá toàn bộ system bằng việc nhìn một com
 ### 10. July 2026 — tiến tới Yana 1.0
 
 Cuối tháng 7, development tăng tốc. PR #85 (`feat/build-your-own-x-skills`)
-có 28 commits và thay đổi hàng nghìn dòng. Nó liên quan tới: skill quality,
+có 31 commits và thay đổi hàng nghìn dòng. Nó liên quan tới: skill quality,
 RTK token reduction, Cursor support, Codex support, Antigravity support,
 Program J MCP architecture/prototype, release preparation.
 
@@ -341,12 +341,17 @@ PR #321: provider identity/runtime/circuit state. Review phát hiện:
 credential-disabled provider có thể chuyển HalfOpen sai, provider có thể
 không recover đúng khi credentials hợp lệ trở lại.
 
-PR #324: automated review tiếp tục phát hiện platform-download regression
-và vấn đề Intel/macOS installer. Ngay cả ngày 09/09/2026, Studio Wave CI
-vẫn nhiều lần fail Hook Tests trong khi rất nhiều check khác pass.
+Hai sự cố riêng biệt, dễ nhầm thành một nếu chỉ nhớ đại khái: đầu tháng 9,
+desktop v1.4.4 ship hoàn toàn hỏng (packaged server thiếu node_modules) —
+mất 3 bản patch cùng ngày mới sửa xong (PR #305/#306/#307/#308/#312, ngày
+01–03/09/2026). Vài ngày sau, PR #323 (`feat(studio): Wave 1 + Wave 2 —
+composer, governance telemetry, project memory, diff comments`, merged
+08/09/2026) là một câu chuyện khác hẳn — toàn bộ check, kể cả Hook Tests,
+đều pass ở bản merge cuối cùng.
 
-Đây là minh chứng rất rõ cho Yana philosophy: GREEN SOMEWHERE != CORRECT
-EVERYWHERE.
+Đây vẫn là minh chứng rõ cho Yana philosophy: GREEN SOMEWHERE != CORRECT
+EVERYWHERE — chỉ là bài học nằm ở sự cố v1.4.4→v1.4.8, không phải ở PR
+Studio Wave.
 
 ### 20. Những khó khăn không phải code
 
@@ -509,12 +514,16 @@ kiểm và kết quả thật — không suy diễn, không đoán.
   tinh thần honesty của draft), #321 "unify provider identity, runtime,
   circuit state" — cả 4 khớp đúng nội dung draft mô tả.
 
-### ⚠️ Sai lệch thật, cần sửa trước khi công khai
+### ✅ Sai lệch đã tìm ra và sửa (2026-09-10)
 
-- **§10 — PR #85 số commit.** Draft nói "28 commits". Thật: `gh pr view 85`
+- **§10 — PR #85 số commit. Đã sửa trong §10 ở trên: "28" → "31".** Thật:
+  `gh pr view 85`
   → **31 commits** (+1179/-2856, merged 2026-07-27). Sửa số, hoặc dùng
   "hơn 30 commits" để không cần chính xác tuyệt đối.
-- **§19 — PR #324 SAI hoàn toàn nội dung.** Draft: *"PR #324: automated
+- **§19 — PR #324 SAI hoàn toàn nội dung. Đã viết lại §19 ở trên: tách
+  riêng đúng 2 sự cố thật (v1.4.4→v1.4.8 platform-download #305-312, và
+  Studio Wave PR #323 — pass hết check), không còn gọi chung là
+  "#324".** Draft gốc: *"PR #324: automated
   review... platform-download regression và vấn đề Intel/macOS installer...
   Studio Wave CI vẫn nhiều lần fail Hook Tests."* Thật: PR #324 là
   `fix(docs): remove gradient-text h1, one clear CTA in the hero` — chính
@@ -529,10 +538,9 @@ kiểm và kết quả thật — không suy diễn, không đoán.
   sự cố Desktop v1.4.4→v1.4.8 đầu tháng 9 (PR #305/#306/#307/#308/#312,
   ngày 01-03/09, không phải 09/09) — đã ghi trong bộ nhớ session trước:
   *"v1.4.4 shipped completely broken (packaged server missing
-  node_modules); took 3 patch releases same day to fix."* **Kết luận: §19
-  của draft lẫn số PR — cần viết lại đoạn này với đúng PR #323 (Studio
-  Wave) tách riêng khỏi đợt sự cố #305-312 (platform-download), không gộp
-  chung vào "#324".**
+  node_modules); took 3 patch releases same day to fix."* **Kết luận (đã
+  áp dụng ở §19 trên): PR #323 (Studio Wave) tách riêng khỏi đợt sự cố
+  #305-312 (platform-download), không còn gộp chung vào "#324".**
 
 ### ⚪ Không kiểm chứng được qua GitHub — cần nguồn khác từ anh
 
@@ -575,9 +583,9 @@ kiểm và kết quả thật — không suy diễn, không đoán.
 ## Việc cần làm trước khi dùng bất kỳ phần nào của bản này lên web
 
 1. ~~Xác minh từng con số/PR/ngày~~ — **đã làm ở mục "Kết quả điều tra
-   GitHub" trên**. Còn lại: sửa §10 (31 không phải 28 commits) và viết lại
-   §19 (PR #323 Studio Wave, tách khỏi đợt #305-312 platform-download —
-   không phải "#324").
+   GitHub" trên**. ~~Sửa §10 (31 không phải 28 commits) và viết lại §19
+   (PR #323 Studio Wave, tách khỏi đợt #305-312 platform-download — không
+   phải "#324")~~ — **đã sửa trực tiếp vào §10/§19 ở trên, 2026-09-10.**
 2. Anh Tâm duyệt bản rút gọn cuối cùng trước khi publish — không tự suy ra
    "bản đủ tốt rồi" và xuất bản.
 3. Map mỗi đoạn failure → đúng rule/file trong `YANA-ECOSYSTEM-MAP.md`
