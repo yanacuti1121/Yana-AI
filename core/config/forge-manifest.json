@@ -12,7 +12,13 @@
           "url": null,
           "role": "mirror",
           "direction": "pull",
-          "note": "url is null until anh provisions the GitLab project and fills it in -- see docs/GITLAB_MIRROR_SETUP.md. direction=pull means GitLab's own Pull Mirroring feature fetches from GitHub; GitHub Actions and its secrets are untouched (no GitLab credential exists on the GitHub side)."
+          "note": "Configured 2026-09-10 on the GitLab side (Settings -> Repository -> Mirroring repositories, Pull, all branches, confirmed via GitLab UI 'Mirrored from https://github.com/yanacuti1121/Yana-AI.git'). url here is still null because anh has not shared the GitLab project's own URL yet -- fill it in once he does, then check_forge_sync.py can actually query it. The project is expected to read PENDING (empty, initial sync of this repo's large history still running), not SYNCED/ERROR, until that sync finishes -- see docs/GITLAB_MIRROR_SETUP.md.",
+          "sync_transport": {
+            "active": "gitlab-native-pull-mirror",
+            "risk": "GitLab's native Pull Mirroring is only available on paid tiers -- currently active under an Ultimate Trial. The architecture must not depend on this specific transport surviving past the trial.",
+            "fallback": "github-actions-scheduled-push-mirror (design only, not built -- see docs/MULTI_FORGE_ARCHITECTURE.md §5's adapter-abstraction note). A GitHub Actions job doing `git push --mirror` on a schedule would keep the same GitHub-canonical/GitLab-replica shape without any paid GitLab feature.",
+            "status_check_dependency": "none -- core/scripts/check_forge_sync.py only reads each forge's public REST API for its current HEAD SHA; it never talks to whichever mechanism keeps the mirror updated, so swapping 'active' for 'fallback' later requires no change to the status checker."
+          }
         }
       ]
     },

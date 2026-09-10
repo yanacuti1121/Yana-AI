@@ -111,23 +111,30 @@ GitLab to primary later is a separate, reversible decision (see
 Per anh's own framing: *"Code có thể tồn tại ở nhiều forge, nhưng
 governance chỉ có một canonical source."* Concretely:
 
-```yaml
-# core/config/forge-manifest.yml — PROPOSED, not created yet
-canonical_forge: github
-repositories:
-  - name: Yana-AI
-    primary: github
-    primary_url: https://github.com/yanacuti1121/Yana-AI
-    mirrors:
-      - provider: gitlab
-        url: null   # not yet provisioned — see §7
-        role: mirror+ci
-  - name: yana-web            # separate GitHub repo, confirmed in ECOSYSTEM_AUDIT.md
-    primary: github
-    mirrors: []
-  - name: yana-wheelbot        # separate GitHub repo, confirmed in ECOSYSTEM_AUDIT.md
-    primary: github
-    mirrors: []
+```jsonc
+// core/config/forge-manifest.json — REAL, built 2026-09-10 (JSON, not the
+// YAML originally sketched here — every other core/config/ file is JSON,
+// and this avoids adding a PyYAML dependency for one file)
+{
+  "canonical_forge": "github",
+  "repositories": [
+    {
+      "name": "Yana-AI",
+      "primary_url": "https://github.com/yanacuti1121/Yana-AI",
+      "mirrors": [
+        {
+          "provider": "gitlab",
+          "url": null,               // GitLab side is configured; url still pending from anh
+          "role": "mirror",
+          "direction": "pull",
+          "sync_transport": { "active": "gitlab-native-pull-mirror", "...": "see §5" }
+        }
+      ]
+    },
+    { "name": "yana-web", "primary_url": "https://github.com/yanacuti1121/yana-web", "mirrors": [] },
+    { "name": "yana-wheelbot", "primary_url": "https://github.com/yanacuti1121/yana-wheelbot", "mirrors": [] }
+  ]
+}
 ```
 
 This directly answers §10 of the brief (a central manifest covering the
@@ -200,40 +207,91 @@ Developer workflow stays exactly `git add / commit / push` — anh's own
 requirement in §13 — because the mirroring happens entirely on GitLab's
 side, invisible to the developer and untouched by GitHub Actions.
 
-**Sync verification — `yana forge status` (§12 of the brief):**
+**Sync verification — `core/scripts/check_forge_sync.py` (built 2026-09-10,
+implements §12 of the brief's `yana forge status` sketch):**
 
 ```
-$ yana-rt forge status                      # PROPOSED subcommand, not built
+$ python3 core/scripts/check_forge_sync.py
 
-Yana Forge Status
-Canonical: GitHub
+Yana Forge Status (canonical: github)
 
 Yana-AI
-  GitHub  : 7f28c31e
-  GitLab  : 7f28c31e
-  Status  : SYNCED
+  gitlab     PENDING        GitLab branch 'main' not found yet at
+                            https://gitlab.com/<namespace>/Yana-AI --
+                            initial mirror sync likely still running
 
 yana-web
-  GitHub  : a9812cd
-  GitLab  : (not mirrored yet)
-  Status  : NOT MIRRORED
+  (no mirrors configured)
 
 yana-wheelbot
-  GitHub  : 73cca12
-  GitLab  : 73cca11
-  Status  : OUT OF SYNC
+  (no mirrors configured)
 ```
 
-Implementation sketch (not built): a new `yana-rt` subcommand (fits the
-existing CLI family alongside `route`, `mission`, `doctor` — see
-`docs/website/PRODUCT_TRUTH_MATRIX.md`'s CLI section) that reads
-`core/config/forge-manifest.yml`, calls each forge's REST API for
-`HEAD` SHA per branch (`GET /repos/{repo}/commits/{branch}` for GitHub,
-`GET /projects/{id}/repository/branches/{branch}` for GitLab — both
-public, well-documented, read-only, least-privilege endpoints), and
-diffs them. `OUT OF SYNC` and `NOT MIRRORED` are both loud, distinct
-states — never silently treated as OK, directly per anh's "Không được
-âm thầm bỏ qua" requirement.
+A Python script, not the `yana-rt forge status` Rust subcommand
+originally sketched — this exists so the check works today without
+waiting on that CLI work, reading `core/config/forge-manifest.json`
+(JSON, not the `.yml` sketched below — see that file's own `$comment`
+for why) and calling each forge's REST API for `HEAD` SHA per branch
+(`GET /repos/{repo}/commits/{branch}` for GitHub, `GET /projects/{id}/
+repository/branches/{branch}` for GitLab — both public, well-documented,
+read-only, least-privilege endpoints). A future `yana-rt forge status`
+subcommand can replace or wrap this script without changing the manifest
+schema or the states below.
+
+Five states, not two — added `PENDING` on 2026-09-10 once the real
+`Yana-AI` mirror was configured and needed a way to say "configured, but
+still doing its (large) initial sync" without that reading as a failure:
+
+| State | Meaning | Exit code |
+|---|---|---|
+| `SYNCED` | GitHub and mirror HEAD SHAs match | 0 |
+| `PENDING` | Mirror configured, GitLab project exists, but the branch hasn't landed yet (expected during a large repo's first sync) | 0 |
+| `NOT_MIRRORED` | No mirror configured at all (`mirrors[].url` is `null`) | 0 |
+| `OUT_OF_SYNC` | Mirror exists and has content, but HEAD SHAs don't match | 1 |
+| `ERROR` | Network/API failure or malformed manifest — distinct from `OUT_OF_SYNC` so a transient outage is never misread as genuine divergence | 2 |
+
+`OUT_OF_SYNC` and `ERROR` are the only two that are ever a failure —
+never silently treated as OK, directly per anh's "Không được âm thầm bỏ
+qua" requirement. `PENDING` and `NOT_MIRRORED` are both informational by
+design: a large repo's first mirror sync taking time, or a repo that
+simply has no mirror yet, are both normal states, not incidents.
+
+### Adapter abstraction — transport independence (added 2026-09-10)
+
+Anh's own constraint, verbatim: *"GitLab native Pull Mirroring is
+currently being used under the Ultimate Trial. Do not make Yana's
+multi-forge architecture depend on this paid-tier capability."* The
+design already happens to satisfy this, for a structural reason worth
+naming explicitly: **the status checker never talks to whatever keeps
+the mirror updated.** `check_forge_sync.py` only ever calls two things —
+GitHub's public commits API and GitLab's public branches API — to read
+each side's *current state*. It has no code path that knows or cares
+*how* GitLab's copy got there. Whether that's GitLab's native Pull
+Mirror (today, Ultimate-Trial-gated) or a future scheduled `git push
+--mirror` job running in GitHub Actions (no paid feature required, just
+a cron-triggered job with a GitLab deploy token), the comparison logic
+is identical.
+
+This is recorded as data, not just prose, in the manifest itself —
+`forge-manifest.json`'s mirror entries carry a `sync_transport` object:
+
+```json
+"sync_transport": {
+  "active": "gitlab-native-pull-mirror",
+  "risk": "paid-tier dependent, currently Ultimate Trial",
+  "fallback": "github-actions-scheduled-push-mirror (design only, not built)",
+  "status_check_dependency": "none"
+}
+```
+
+Swapping `active` for the fallback later — if the trial ends and anh
+doesn't renew — is a manifest edit plus a new, small GitHub Actions job.
+It does not touch `check_forge_sync.py`, the manifest schema's shape, or
+this document's §3/§4 (source of truth, roles). That's the concrete
+meaning of "provider-independent": the *status* layer and the *transport*
+layer are two different things, and only the transport layer is allowed
+to depend on which forge's paid features happen to be available this
+month.
 
 ---
 
@@ -264,11 +322,11 @@ duties if GitHub Actions becomes unavailable — the failover path in
 Not built now, per anh's own "hiện tại không cần xây self-host ngay nếu
 không cần thiết." The one thing this document commits to now, so adding
 `git.yana.link` later doesn't require restructuring: **the
-`forge-manifest.yml` schema (§3) already has an unbounded `mirrors:`
+`forge-manifest.json` schema (§3) already has an unbounded `mirrors`
 list**, not a hardcoded `github`/`gitlab` pair — adding a third entry
-(`provider: self-hosted, url: https://git.yana.link/...`) is a config
-addition, not a schema change. Same for the `yana forge status` command
-sketch in §5 — it iterates whatever's in the manifest, not two
+(`"provider": "self-hosted", "url": "https://git.yana.link/..."`) is a
+config addition, not a schema change. Same for `check_forge_sync.py`'s
+status check in §5 — it iterates whatever's in the manifest, not two
 hardcoded providers.
 
 ---
@@ -309,10 +367,10 @@ enforced).
 | Principle | How this design satisfies it |
 |---|---|
 | No single point of failure | GitHub Actions failure doesn't block GitLab CI's independent jobs; GitLab mirror failure doesn't block GitHub's own operation |
-| Provider independence | `forge-manifest.yml` + `yana forge status` treat providers as data, not hardcoded branches in code |
+| Provider independence | `forge-manifest.json` + `check_forge_sync.py` treat providers as data, not hardcoded branches in code |
 | Canonical source of truth | Explicit `canonical_forge` field, one value, never two |
-| Automated synchronization | GitLab's built-in Pull Mirror feature, not a custom script |
-| Observable synchronization | `yana forge status`, loud `OUT OF SYNC`/`NOT MIRRORED` states |
+| Automated synchronization | GitLab's built-in Pull Mirror feature today (`sync_transport.active`), swappable per-mirror without a schema change (§5's adapter-abstraction note) |
+| Observable synchronization | `check_forge_sync.py`, loud `OUT_OF_SYNC`/`ERROR` states — `PENDING`/`NOT_MIRRORED` distinguished as informational, not swept into the same bucket |
 | Reversible migration | Promoting a mirror to canonical is a manifest edit — see `DISASTER_RECOVERY.md` |
 | Minimal vendor lock-in | `upgrade.py`'s hardcoded GitHub API URL is the one piece of code that would need an actual code change (read `canonical_forge` from config instead) |
 | Least privilege | §8 — no publish credentials leave GitHub |

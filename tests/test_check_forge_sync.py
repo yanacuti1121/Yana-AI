@@ -70,6 +70,34 @@ class CheckRepositoryTests(unittest.TestCase):
             results = check_forge_sync.check_repository(repo)
         self.assertEqual(results[0][1], "ERROR")
 
+    def test_gitlab_branch_not_found_is_pending_not_error(self):
+        """anh's 2026-09-10 requirement: a large repo's initial pull-mirror
+        sync still running must read PENDING, never ERROR/OUT_OF_SYNC."""
+        repo = {"primary_url": "https://github.com/a/b", "mirrors": [{"provider": "gitlab", "url": "https://gitlab.com/a/b"}]}
+        with mock.patch.object(check_forge_sync, "_github_head_sha", return_value="deadbeef1234567890"), \
+             mock.patch.object(
+                 check_forge_sync,
+                 "_gitlab_head_sha",
+                 side_effect=check_forge_sync.GitLabMirrorPending("branch not found yet"),
+             ):
+            results = check_forge_sync.check_repository(repo)
+        self.assertEqual(results[0][1], "PENDING")
+
+    def test_gitlab_branch_404_raises_pending_not_forge_sync_error(self):
+        """Integration-level check of _gitlab_head_sha itself: a 404 from
+        the branch endpoint must raise GitLabMirrorPending specifically,
+        not the generic ForgeSyncError (which would misreport as ERROR)."""
+        with mock.patch.object(check_forge_sync, "_http_get", return_value=(404, b"")):
+            with self.assertRaises(check_forge_sync.GitLabMirrorPending):
+                check_forge_sync._gitlab_head_sha("https://gitlab.com/a/b")
+
+    def test_gitlab_branch_500_raises_forge_sync_error(self):
+        """A real server error is still ERROR, not PENDING -- only 404
+        specifically means "not synced yet"."""
+        with mock.patch.object(check_forge_sync, "_http_get", return_value=(500, b"")):
+            with self.assertRaises(check_forge_sync.ForgeSyncError):
+                check_forge_sync._gitlab_head_sha("https://gitlab.com/a/b")
+
 
 class EgressAllowlistTests(unittest.TestCase):
     """network-egress-law.md Gate L3: only allowlisted hosts, HTTPS only."""
@@ -81,6 +109,16 @@ class EgressAllowlistTests(unittest.TestCase):
     def test_non_allowlisted_host_rejected(self):
         with self.assertRaises(check_forge_sync.ForgeSyncError):
             check_forge_sync._fetch_json("https://evil.example.com/repos/a/b")
+
+    def test_credential_embedded_in_primary_url_rejected(self):
+        """URL-parser-confusion guard: a manifest url with userinfo@ is
+        refused outright, never used to build a request."""
+        with self.assertRaises(check_forge_sync.ForgeSyncError):
+            check_forge_sync._github_head_sha("https://token:x@github.com/a/b")
+
+    def test_credential_embedded_in_mirror_url_rejected(self):
+        with self.assertRaises(check_forge_sync.ForgeSyncError):
+            check_forge_sync._gitlab_head_sha("https://token:x@gitlab.com/a/b")
 
     def test_manifest_url_cannot_redirect_host(self):
         """A poisoned manifest primary_url must not change which host is
@@ -129,6 +167,26 @@ class MainManifestParsingTests(unittest.TestCase):
         with mock.patch.object(check_forge_sync, "MANIFEST_PATH", Path("/nonexistent/forge-manifest.json")):
             code = check_forge_sync.main()
         self.assertEqual(code, 2)
+
+    def test_pending_mirror_does_not_fail_exit_code(self):
+        """PENDING is informational -- a repo whose only mirror is PENDING
+        must still exit 0 overall, per anh's explicit requirement."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_obj = {
+                "canonical_forge": "github",
+                "repositories": [
+                    {"name": "Yana-AI", "primary_url": "https://github.com/a/b", "mirrors": [{"provider": "gitlab", "url": "https://gitlab.com/a/b"}]}
+                ],
+            }
+            with mock.patch.object(check_forge_sync, "_github_head_sha", return_value="deadbeef1234567890"), \
+                 mock.patch.object(
+                     check_forge_sync,
+                     "_gitlab_head_sha",
+                     side_effect=check_forge_sync.GitLabMirrorPending("branch not found yet"),
+                 ):
+                code = self._run_main_with(manifest_obj, Path(tmp))
+            self.assertEqual(code, 0)
 
 
 if __name__ == "__main__":

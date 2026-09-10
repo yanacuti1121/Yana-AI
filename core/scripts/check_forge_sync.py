@@ -11,29 +11,52 @@ drifting apart.
 
 Divergence is a loud failure state, never silently reconciled (anh's own
 requirement, also documented in the architecture doc's §3 "Divergence
-rule"): a mirror with url=None is NOT_MIRRORED (informational, exit 0);
-a mirror with a mismatched HEAD SHA is OUT_OF_SYNC (exit 1); a network/API
-error is ERROR (exit 2) -- distinct from OUT_OF_SYNC so a transient
-GitHub/GitLab API outage never gets reported as "diverged code".
+rule"). Five states, each meaning one specific thing:
+  - NOT_MIRRORED  -- mirrors[].url is None (no mirror configured at all).
+                     Exit 0, informational.
+  - PENDING       -- the mirror IS configured (url set, GitLab project
+                     exists) but the branch hasn't landed yet -- e.g. a
+                     large repo's initial pull-mirror sync still running.
+                     Exit 0, informational -- explicitly NOT a failure
+                     (anh's 2026-09-10 note: "do not treat this as a
+                     failure yet" for Yana-AI's own large-history mirror).
+  - SYNCED        -- GitHub and mirror HEAD SHAs match. Exit 0.
+  - OUT_OF_SYNC   -- they don't match. Exit 1 -- a real failure.
+  - ERROR         -- a network/API failure, or a manifest/response shape
+                     that isn't any of the above. Exit 2 -- distinct from
+                     OUT_OF_SYNC so a transient outage is never misread
+                     as genuine divergence.
 
 Network egress note (core/rules/network-egress-law.md, Gate L3): every
 outbound host this script may contact is resolved from a fixed allowlist
 below, not from unvalidated manifest/config content -- a manifest entry
 naming an unrecognized provider or a non-allowlisted host is rejected,
 not silently fetched.
+
+Transport independence (anh's 2026-09-10 note): the GitLab mirror in
+today's manifest is kept in sync by GitLab's native Pull Mirroring
+feature, which is only available under a paid tier (Ultimate Trial as of
+this writing) -- this script does not depend on that fact at all. It
+never talks to whatever keeps the mirror updated; it only reads each
+forge's own public REST API for the current HEAD SHA. If the sync
+transport is later swapped (e.g. for a scheduled `git push --mirror` job
+once the trial ends -- see forge-manifest.json's `sync_transport.fallback`
+field and docs/MULTI_FORGE_ARCHITECTURE.md §5's adapter-abstraction
+section), this script needs no change: it would keep comparing the same
+two HEAD SHAs regardless of which mechanism produced GitLab's copy.
 """
 from __future__ import annotations
 
 import http.client
 import ipaddress
 import json
+import re
 import socket
 import ssl
 import sys
 import urllib.error
 import urllib.parse
 from pathlib import Path
-from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 MANIFEST_PATH = REPO_ROOT / "core" / "config" / "forge-manifest.json"
@@ -45,6 +68,14 @@ ALLOWED_API_HOSTS = {
     "gitlab": "gitlab.com",
 }
 
+# network-egress-law.md's URL-parser-confusion guard (`://[^/]*@`): this
+# manifest's own design has no reason for a url field to carry embedded
+# credentials (Pull Mirror direction means GitLab holds any credentials
+# on its own side, never in this repo) -- a manifest url matching this is
+# refused outright, not merely scrubbed, since seeing one here is itself
+# suspicious rather than just unnecessary.
+_CREDENTIAL_URL_RE = re.compile(r"://[^/]*@")
+
 REQUEST_TIMEOUT_SECONDS = 10
 # Single-commit JSON payloads only -- caps a misbehaving/compromised
 # endpoint from streaming an oversized body at this script.
@@ -53,6 +84,12 @@ MAX_RESPONSE_BYTES = 262_144
 
 class ForgeSyncError(RuntimeError):
     """Raised for a network/API failure -- maps to exit code 2, never 1."""
+
+
+class GitLabMirrorPending(RuntimeError):
+    """The GitLab project exists but the requested branch hasn't landed
+    yet -- initial pull-mirror sync still in progress. Maps to the
+    PENDING status (exit 0, informational), never ERROR or OUT_OF_SYNC."""
 
 
 class _PinnedHTTPSConnection(http.client.HTTPSConnection):
@@ -90,7 +127,12 @@ def _resolve_and_pin(hostname: str) -> str:
     return resolved
 
 
-def _fetch_json(url: str) -> dict:
+def _http_get(url: str) -> tuple[int, bytes]:
+    """Low-level GET returning (status, body). Never follows redirects
+    and never raises on a non-2xx status -- callers decide what a given
+    status code means (e.g. GitLab's 404-on-branch is PENDING, not an
+    error). Only raises ForgeSyncError for a genuine transport failure
+    (DNS/TLS/timeout/oversized body), never for an HTTP-level status."""
     parsed = urllib.parse.urlsplit(url)
     if parsed.scheme != "https":
         raise ForgeSyncError(f"Refusing non-HTTPS URL: {url}")
@@ -114,23 +156,47 @@ def _fetch_json(url: str) -> dict:
             },
         )
         resp = conn.getresponse()
-        # Never follow redirects blindly (network-egress-law.md's
-        # "Redirect following policy") -- a 3xx here is reported as a
-        # failure, not silently chased to a new, unvalidated host.
-        if 300 <= resp.status < 400:
-            raise ForgeSyncError(
-                f"Refusing to follow redirect ({resp.status}) from {url}"
-            )
-        if resp.status != 200:
-            raise ForgeSyncError(f"HTTP {resp.status} from {url}")
+        # Body is read for every status, including errors/redirects, so
+        # callers can inspect it (e.g. _fetch_json's JSON parse) -- this
+        # is safe because the connection is already to an allowlisted,
+        # pinned, TLS-verified host with the same timeout/size-cap
+        # regardless of status; it does mean an error response costs one
+        # more read than the pre-refactor short-circuit-on-bad-status
+        # version did, which is an intentional, low-cost trade-off.
         body = resp.read(MAX_RESPONSE_BYTES + 1)
         if len(body) > MAX_RESPONSE_BYTES:
             raise ForgeSyncError(f"Response from {url} exceeded {MAX_RESPONSE_BYTES} bytes")
-        return json.loads(body.decode("utf-8"))
-    except (OSError, ssl.SSLError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        return resp.status, body
+    except (OSError, ssl.SSLError, urllib.error.URLError, TimeoutError) as exc:
         raise ForgeSyncError(f"Request failed for {url}: {exc}") from exc
     finally:
         conn.close()
+
+
+def _parse_json_response(status: int, body: bytes, url: str) -> dict:
+    """Shared tail for "a completed HTTP GET must be exactly a 200 with
+    valid JSON, and a 3xx is a refused redirect, never followed" -- used
+    by both _fetch_json and _gitlab_head_sha's post-404-check path, kept
+    as one function so a future change to this rule can't update one call
+    site and silently miss the other."""
+    if 300 <= status < 400:
+        raise ForgeSyncError(f"Refusing to follow redirect ({status}) from {url}")
+    if status != 200:
+        raise ForgeSyncError(f"HTTP {status} from {url}")
+    try:
+        return json.loads(body.decode("utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ForgeSyncError(f"Invalid JSON from {url}: {exc}") from exc
+
+
+def _fetch_json(url: str) -> dict:
+    status, body = _http_get(url)
+    return _parse_json_response(status, body, url)
+
+
+def _reject_credential_url(url: str, label: str) -> None:
+    if _CREDENTIAL_URL_RE.search(url):
+        raise ForgeSyncError(f"Refusing {label} with embedded credentials (userinfo@ in netloc)")
 
 
 def _github_owner_repo(primary_url: str) -> str:
@@ -139,20 +205,32 @@ def _github_owner_repo(primary_url: str) -> str:
 
 
 def _github_head_sha(primary_url: str, branch: str = "main") -> str:
+    _reject_credential_url(primary_url, "primary_url")
     owner_repo = urllib.parse.quote(_github_owner_repo(primary_url), safe="/")
     url = f"https://{ALLOWED_API_HOSTS['github']}/repos/{owner_repo}/commits/{branch}"
     data = _fetch_json(url)
     return data["sha"]
 
 
-def _gitlab_head_sha(gitlab_url: str, branch: str = "main") -> Optional[str]:
+def _gitlab_head_sha(gitlab_url: str, branch: str = "main") -> str:
+    """Raises GitLabMirrorPending (not ForgeSyncError) specifically when
+    the branch endpoint 404s -- the expected shape of "project exists,
+    initial pull-mirror sync hasn't populated it yet", distinguished from
+    every other failure mode, which stays a genuine ERROR."""
+    _reject_credential_url(gitlab_url, "mirror url")
     project_path = urllib.parse.urlsplit(gitlab_url).path.strip("/")
     encoded = urllib.parse.quote(project_path, safe="")
     url = (
         f"https://{ALLOWED_API_HOSTS['gitlab']}/api/v4/projects/{encoded}"
         f"/repository/branches/{branch}"
     )
-    data = _fetch_json(url)
+    status, body = _http_get(url)
+    if status == 404:
+        raise GitLabMirrorPending(
+            f"GitLab branch '{branch}' not found yet at {gitlab_url} "
+            "-- initial mirror sync likely still running"
+        )
+    data = _parse_json_response(status, body, url)
     return data["commit"]["id"]
 
 
@@ -172,6 +250,9 @@ def check_repository(repo: dict) -> list[tuple[str, str, str]]:
         try:
             github_sha = _github_head_sha(repo["primary_url"])
             gitlab_sha = _gitlab_head_sha(url)
+        except GitLabMirrorPending as exc:
+            results.append((provider, "PENDING", str(exc)))
+            continue
         except ForgeSyncError as exc:
             results.append((provider, "ERROR", str(exc)))
             continue

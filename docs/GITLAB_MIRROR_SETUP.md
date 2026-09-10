@@ -55,15 +55,23 @@ In the new GitLab project:
 
 ## Step 3 — confirm the mirror is live (anh confirms, then tells me)
 
-After Step 2 saves, GitLab shows a "Last successful update" timestamp
-under the mirror settings, and the project's own commit list should show
-the same commits as GitHub's `main`.
+**Status as of 2026-09-10: Step 2 is done.** Anh configured the mirror
+(GitLab UI confirms "Mirrored from https://github.com/yanacuti1121/
+Yana-AI.git", direction Pull, all branches) and the GitLab project is
+currently still empty — the initial sync of `Yana-AI`'s full history
+hasn't finished. **This is expected, not a failure**: `Yana-AI` has
+substantial history, and a first pull-mirror sync of a large repo can
+take a while. `check_forge_sync.py` reports this exact situation as
+`PENDING` (see Step 4's status table), not `ERROR`.
 
-Once anh confirms this, send me:
+Once GitLab's mirror settings show a "Last successful update" timestamp
+and the project's own commit list shows real commits, send me:
 - The GitLab project URL (e.g. `https://gitlab.com/<namespace>/Yana-AI`)
 
 so I can fill it into `core/config/forge-manifest.json`'s
-`repositories[0].mirrors[0].url` field (currently `null`).
+`repositories[0].mirrors[0].url` field (currently `null` — the mirror
+being configured on GitLab's side doesn't remove the need for the URL
+itself, since I have no GitLab account access to look it up).
 
 ## Step 4 — verify with the sync-check script (me, after Step 3)
 
@@ -78,10 +86,14 @@ HEAD SHA, and reports one of:
 
 ```
 SYNCED        — GitHub and GitLab HEAD SHAs match
-OUT_OF_SYNC   — they don't match (exit code 1 — treated as a real failure,
-                never silently ignored, per anh's explicit requirement)
-NOT_MIRRORED  — mirrors[].url is still null (exit code 0 — informational,
-                not yet configured, not a failure)
+PENDING       — mirrors[].url is set and the GitLab project exists, but
+                the branch hasn't landed yet (exit code 0 — expected
+                during a large repo's initial sync, explicitly not a
+                failure per anh's 2026-09-10 note)
+NOT_MIRRORED  — mirrors[].url is still null (exit code 0 — no mirror
+                configured yet at all, distinct from PENDING)
+OUT_OF_SYNC   — mirror has content, but HEAD SHAs don't match (exit code
+                1 — treated as a real failure, never silently ignored)
 ERROR         — a network/API call failed, or the manifest itself is
                 malformed (exit code 2 — distinct from OUT_OF_SYNC so a
                 transient outage or a config typo isn't misread as
@@ -105,6 +117,31 @@ this script daily and fails loud on `OUT_OF_SYNC`. That workflow is not
 created by this document — it's the next step once the mirror exists to
 actually check against.
 
+## Ultimate Trial dependency — why this is one adapter, not the architecture
+
+GitLab's native Pull Mirroring is a paid-tier feature; it's active here
+under an **Ultimate Trial**. Anh's explicit constraint: *"Do not make
+Yana's multi-forge architecture depend on this paid-tier capability."*
+
+That's already true by construction, not by promise: `check_forge_sync.py`
+never talks to whatever mechanism keeps GitLab's copy updated — it only
+reads each forge's own public REST API for its current HEAD SHA. Which
+transport produced GitLab's content (native Pull Mirror today, or a
+scheduled `git push --mirror` GitHub Actions job later) is recorded as
+data in `forge-manifest.json`'s `sync_transport` field, not baked into
+the status-check code. See `docs/MULTI_FORGE_ARCHITECTURE.md` §5's
+"Adapter abstraction" section for the full reasoning and the fallback
+transport's shape (documented there, not built — no need to build it
+while the trial is active and working).
+
+If the trial ends and anh doesn't renew: the mirror stops updating, but
+nothing about this design breaks or needs restructuring — `forge-
+manifest.json`'s `sync_transport.active` gets edited to the fallback
+value once that fallback job actually exists, and `check_forge_sync.py`
+keeps working unchanged, correctly reporting `OUT_OF_SYNC` (mirror
+frozen, no longer receiving updates) in the meantime rather than
+silently going quiet.
+
 ## What this explicitly does NOT do
 
 - Does not touch `.github/workflows/publish.yml`, `release.yml`, or any
@@ -119,6 +156,13 @@ actually check against.
   ever show different commits, that is the `OUT_OF_SYNC` failure state
   above, not a "which one is right" question — GitHub's is always right,
   by definition of `canonical_forge`.
+- Does not configure reverse/bidirectional mirroring. Direction is
+  strictly GitHub → GitLab; GitLab never pushes anything back.
+- Does not add any GitLab credential or token to GitHub, for this native
+  mirror or otherwise — Pull Mirror needs none for a public source (see
+  "Why pull, not push" above), and none was added.
+- Does not create README/files/commits directly on the GitLab project —
+  its content comes only from the mirror sync, never a manual push.
 
 ## References
 
