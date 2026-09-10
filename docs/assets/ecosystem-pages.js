@@ -183,4 +183,27 @@
     : (fallback[documentLanguage] ? documentLanguage : "en");
   setLang(preferred);
   loadReleases();
+
+  // Scroll-reveal: progressive enhancement only -- the .reveal class is
+  // added here, by JS, never baked into the HTML. If this script fails to
+  // load or run, every section keeps its normal, fully-visible default
+  // state (see .reveal's CSS: only elements carrying the class start
+  // hidden). The hero stays untouched -- it's already on screen at load,
+  // "reveal on scroll" doesn't apply to content nobody had to scroll to.
+  if (!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) && "IntersectionObserver" in window) {
+    const revealTargets = document.querySelectorAll("main > section:not(.hero):not(.page-hero)");
+    revealTargets.forEach((section) => section.classList.add("reveal"));
+    const staggerGrids = document.querySelectorAll("main > section:not(.hero):not(.page-hero) > .product-grid, main > section:not(.hero):not(.page-hero) > .download-panel > [data-release-download] > .download-grid");
+    staggerGrids.forEach((grid) => grid.classList.add("reveal-stagger"));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    revealTargets.forEach((section) => observer.observe(section));
+    staggerGrids.forEach((grid) => observer.observe(grid));
+  }
 })();
