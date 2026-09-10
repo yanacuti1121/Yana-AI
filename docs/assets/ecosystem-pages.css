@@ -96,7 +96,7 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .tier-model{border-left-color:#8b7ef0}
 .tier-audit{border-left-color:#4c5bc6}
 .tier-surface{border-left-color:#4fc481}
-.runtime-scene{padding:88px 24px 100px;text-align:center;background:radial-gradient(circle at 20% 10%,rgba(177,222,255,.5),transparent 40%),radial-gradient(circle at 85% 30%,rgba(184,173,255,.42),transparent 42%),var(--white)}
+.runtime-scene{width:100%;max-width:none;margin:0;padding:88px 24px 100px;text-align:center;background:radial-gradient(circle at 20% 10%,rgba(177,222,255,.5),transparent 40%),radial-gradient(circle at 85% 30%,rgba(184,173,255,.42),transparent 42%),var(--white)}
 .scene-head{width:min(720px,100%);margin:0 auto 56px}
 .scene-head .eyebrow{margin-bottom:14px}
 .scene-lines{display:grid}
