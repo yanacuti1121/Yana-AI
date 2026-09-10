@@ -1,0 +1,37 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Download Yana Studio 1.5</title><meta name="description" content="Kênh cài đặt chính thức cho Yana Studio 1.5, Yana framework và Yana Runtime."><link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css"></head><body>
+<nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><a href="studio.html">Studio 1.5</a><a href="architecture.html">Kiến trúc</a><a href="runtime.html">Runtime</a><a href="download.html" aria-current="page">Download</a><a href="en.html">EN</a></div><div class="nav-actions"><a class="nav-cta" href="https://github.com/yanacuti1121/Yana-AI/releases">GitHub Releases</a></div></nav>
+<main>
+  <section class="page-hero"><p class="eyebrow">DESKTOP APPLICATION</p><h1>Tải Yana Studio 1.5.</h1><p class="hero-copy">Bộ cài ứng dụng Desktop cho macOS, Windows và Linux. Website chỉ nhận release thuộc thế hệ Studio 1.5 trở lên; bản 1.4.8 không còn xuất hiện.</p></section>
+  <section class="section" style="padding-top:0">
+    <div class="section-head"><p class="eyebrow">BỘ CÀI ỨNG DỤNG</p><h2>Mở app như một workspace desktop.</h2><p>Chọn đúng hệ điều hành khi installer 1.5 được phát hành công khai trên GitHub Releases.</p></div>
+    <div class="download-panel">
+      <div data-release-download>
+        <p class="loading" data-release-loading>Đang kiểm tra bộ cài Yana Studio 1.5…</p>
+        <div class="download-grid">
+          <article class="os-card"><div class="os-title"><h3>macOS</h3><span class="status">Placeholder</span></div><p class="meta">Apple Silicon · Intel</p><p>Đang chờ đóng gói <code>.dmg</code>.</p></article>
+          <article class="os-card"><div class="os-title"><h3>Windows</h3><span class="status">Placeholder</span></div><p class="meta">x64</p><p>Đang chờ đóng gói <code>.exe</code>.</p></article>
+          <article class="os-card"><div class="os-title"><h3>Linux</h3><span class="status">Placeholder</span></div><p class="meta">x64 · arm64</p><p>Đang chờ đóng gói <code>.AppImage</code>.</p></article>
+        </div>
+      </div>
+      <div class="error-note" data-release-error>Không đọc được GitHub Releases. <a href="https://github.com/yanacuti1121/Yana-AI/releases">Kiểm tra trực tiếp tại GitHub</a></div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="section-head"><p class="eyebrow">TERMINAL TOOLS</p><h2>Công cụ dòng lệnh là kênh khác.</h2><p>Hai lệnh dưới đây dành cho Terminal; chúng không thay thế bộ cài ứng dụng Yana Studio Desktop.</p></div>
+    <div class="registry-row"><a class="registry" href="https://pypi.org/project/yana-ai/"><strong>Yana framework · PyPI</strong><small>Governance, agents, skills và memory cho repository.</small><code>pip install yana-ai</code></a><a class="registry" href="https://crates.io/crates/yana-rt"><strong>Yana Runtime · crates.io</strong><small>Canonical Rust TurnEngine và CLI.</small><code>cargo install yana-rt</code></a></div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="section-head"><p class="eyebrow">HƯỚNG DẪN CÀI ĐẶT</p><h2>Sau khi tải bộ cài Studio 1.5.</h2><p>Các bước này đã sẵn sàng; đường dẫn tải thật sẽ xuất hiện ở phần Bộ cài ứng dụng khi release 1.5 được publish.</p></div>
+    <div class="product-grid">
+      <article class="product-card"><div><p class="eyebrow">macOS</p><h3>Apple Silicon · Intel</h3><ol><li>Mở file <code>.dmg</code> rồi kéo Yana Studio vào Applications.</li><li>Mở ứng dụng từ Applications, không chạy trực tiếp trong ảnh đĩa.</li><li>Nếu macOS báo nhà phát triển chưa xác định, Control-click ứng dụng → Open → Open.</li><li>Nếu đã bị chặn, mở System Settings → Privacy & Security → Security → Open Anyway.</li></ol></div><div class="product-art"><p class="meta">Hiện ứng dụng chỉ ký ad-hoc và chưa được Apple notarize.</p><a class="button ghost" href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md">Hướng dẫn macOS đầy đủ</a></div></article>
+      <article class="product-card"><div><p class="eyebrow">WINDOWS</p><h3>x64 · Installer</h3><ol><li>Chạy file <code>.exe</code> vừa tải.</li><li>Nếu Windows SmartScreen cảnh báo, chọn More info → Run anyway.</li><li>Làm theo trình cài đặt.</li><li>Mở Yana Studio từ Start menu.</li></ol></div><div class="product-art"><p class="meta">Bộ cài hiện chưa code-sign nên cảnh báo SmartScreen có thể xuất hiện.</p></div></article>
+      <article class="product-card"><div><p class="eyebrow">LINUX</p><h3>x64 · arm64 · AppImage</h3><ol><li>Cấp quyền chạy cho AppImage.</li><li>Chạy file trực tiếp từ Terminal hoặc trình quản lý tệp.</li><li>Nếu thiếu FUSE, cài <code>libfuse2</code> hoặc dùng chế độ extract-and-run.</li></ol></div><div class="product-art"><code>chmod +x Yana-Studio-1.5-*.AppImage
+./Yana-Studio-1.5-*.AppImage
+
+# fallback
+./Yana-Studio-1.5-*.AppImage \
+  --appimage-extract-and-run</code></div></article>
+    </div>
+  </section>
+</main>
+<footer class="site-footer"><div class="footer-bottom">© 2026 Yana AI · Official downloads</div></footer><script src="assets/ecosystem-pages.js"></script></body></html>

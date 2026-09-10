@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yana Missions — Công việc có trạng thái</title>
+  <meta name="description" content="Mission, typed task graph, dependency và project memory trong Yana.">
+  <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
+</head>
+<body>
+<nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><a href="studio.html">Studio</a><a href="runtime.html">Runtime</a><a href="missions.html" aria-current="page">Missions</a><a href="continuity.html">Continuity</a><a href="download.html">Download</a></div><div class="nav-actions"><a class="nav-cta" href="studio.html">Mở Studio</a></div></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">MISSIONS + TASKS · LIVE</p><h1>Giao mục tiêu.<br>Không giao một prompt dài.</h1><p class="hero-copy">Mission tách mục tiêu thành task có dependency, trạng thái và bằng chứng — để công việc tồn tại ngoài một câu trả lời đơn lẻ.</p><div class="hero-actions"><a class="button" href="#graph">Xem task graph</a><a class="button light" href="continuity.html">Xem Continuity</a></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:34px"><div class="visual-row"><strong>Mission</strong><span>Ship settings page</span></div><div class="visual-row"><strong>Analyze</strong><span>complete</span></div><div class="visual-row"><strong>Implement</strong><span>running</span></div><div class="visual-row"><strong>Verify</strong><span>blocked by Implement</span></div></div></div></div></section>
+  <section class="section" id="graph"><div class="section-head"><p class="eyebrow">TYPED TASK GRAPH</p><h2>Dependency là dữ liệu thật.</h2><p>Task hỗ trợ quan hệ blocks, related, parent-child và discovered-from; readiness được suy ra từ graph thay vì nhập tay.</p></div><div class="product-grid"><article class="product-card"><div><h3>Blocks</h3><p>Không chạy bước kiểm thử trước khi phần triển khai sẵn sàng.</p></div><div class="product-art"><code>implement
+   └── blocks → verify</code></div></article><article class="product-card"><div><h3>Discovered from</h3><p>Việc mới tìm thấy trong quá trình làm vẫn giữ được nguồn gốc.</p></div><div class="product-art"><code>fix auth
+   └── discovered-from
+       review logs</code></div></article><article class="product-card"><div><h3>Parent–child</h3><p>Mission lớn được chia nhỏ mà không mất cấu trúc mục tiêu.</p></div><div class="product-art"><code>release
+├─ package
+├─ verify
+└─ publish</code></div></article></div></section>
+  <section class="section feature reverse"><div class="feature-copy"><p class="eyebrow">PROJECT MEMORY</p><h2>Agent mới vẫn hiểu project cũ.</h2><p>L1 atomic memory, L2 session memory và project memory giữ fact, ràng buộc và context có nguồn gốc rõ ràng.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>L1</strong><span>persistent facts</span></div><div class="visual-row"><strong>L2</strong><span>session facts</span></div><div class="visual-row"><strong>Project memory</strong><span>attached to turn</span></div><div class="visual-row"><strong>Transcript</strong><span>not the database</span></div></div></div></section>
+</main>
+<footer class="site-footer"><div class="footer-bottom">© 2026 Yana AI · Missions</div></footer><script src="assets/ecosystem-pages.js"></script>
+</body></html>
