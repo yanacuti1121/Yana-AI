@@ -56,6 +56,51 @@
       </div>
     </div>
   </section>
+  <section class="section runtime-scene scene-surfaces" id="scene-surfaces"><div class="scene-head"><p class="eyebrow">MỘT RUNTIME</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Nhiều bề mặt tương tác khác nhau.</h2><h2 class="scene-line scene-line-2">Cùng đi qua một Yana Runtime — không phải bản sao riêng từng nơi.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-surfaces">
+        <div class="graph-node">Yana Studio</div>
+        <div class="graph-node">Runtime CLI</div>
+        <div class="graph-node graph-node-more">MCP (opt-in, experimental)</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Studio spawn đúng binary <code>yana-rt</code> mà CLI dùng — cùng TurnEngine, không phải hai bản triển khai khác nhau</span></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-anyai" id="scene-anyai"><div class="scene-head"><p class="eyebrow">ANY AI</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Đổi model.</h2><h2 class="scene-line scene-line-2">Giữ nguyên toàn bộ hệ thống.</h2></div></div>
+    <div class="anyai-panel">
+      <div class="anyai-swap"><span class="meta">MODEL ĐANG DÙNG</span><div class="anyai-cycle" id="anyai-cycle">
+        <span class="anyai-item is-active">Anthropic</span><span class="anyai-item">OpenAI</span><span class="anyai-item">Gemini</span><span class="anyai-item">Groq</span><span class="anyai-item">DeepSeek</span><span class="anyai-item">OpenRouter</span><span class="anyai-item">Ollama (local)</span>
+      </div></div>
+      <div class="anyai-fixed"><span class="meta">KHÔNG ĐỔI</span>
+        <div class="anyai-row">✓ Mission</div>
+        <div class="anyai-row">✓ Tasks</div>
+        <div class="anyai-row">✓ Project memory</div>
+        <div class="anyai-row">✓ Authority chain</div>
+        <div class="anyai-row">✓ Evidence</div>
+      </div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-human" id="scene-human"><div class="scene-head"><p class="eyebrow">HUMAN-GOVERNED</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Model đề xuất một hành động.</h2><h2 class="scene-line scene-line-2">Con người quyết định nó có xảy ra hay không.</h2></div></div>
+    <div class="scenario-card">
+      <div class="scenario-row"><span>AI proposal</span><strong>"Modify 43 files"</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Yana evaluates</span><strong>YanaAuthorityChain</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Blast radius policy</span><strong>src/guard/blast_radius.rs</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-halt"><span>Approval required</span><strong>chờ, chưa thực thi</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-human"><span>Human decision</span><strong>allow · limit · deny</strong></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-control" id="scene-control"><div class="scene-head"><p class="eyebrow">DETERMINISTIC CONTROL</p><div class="scene-lines"><h2 class="scene-line scene-line-1">AI không tự quyết được nó chạm tới đâu.</h2><h2 class="scene-line scene-line-2">Ba nhóm capability, mỗi nhóm một ranh giới riêng.</h2></div></div>
+    <div class="control-grid">
+      <div class="control-col"><h3>Access</h3><div class="control-tags"><span>file read</span><span>git status</span><span>git log</span></div></div>
+      <div class="control-col"><h3>Change</h3><div class="control-tags"><span>file_mutation</span><span>config_write</span><span>git commit</span></div></div>
+      <div class="control-col"><h3>Execute</h3><div class="control-tags"><span>command (shell)</span><span>process</span><span>system</span></div></div>
+    </div>
+  </section>
   <section class="section" id="products"><div class="section-head"><p class="eyebrow">SẢN PHẨM</p><h2>Không phải một app chat.<br>Là cả vòng lặp làm việc.</h2><p>Mỗi bề mặt giải quyết một phần khác nhau, nhưng cùng dùng chung runtime, authority và evidence.</p></div>
     <div class="product-grid">
       <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio 1.5</h3><p>Chat, code, terminal, Git, context và quyền hạn trong một workspace sáng rõ.</p></div><div class="product-art"><code>MISSION  Build safely

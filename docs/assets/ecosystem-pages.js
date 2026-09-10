@@ -212,8 +212,8 @@
   // the CSS strips the transition there, so this just sets the end state
   // instantly instead of animating it.
   if ("IntersectionObserver" in window) {
-    const runtimeScene = document.querySelector(".runtime-scene");
-    if (runtimeScene) {
+    const runtimeScenes = document.querySelectorAll(".runtime-scene");
+    if (runtimeScenes.length) {
       const sceneObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -221,8 +221,22 @@
             sceneObserver.unobserve(entry.target);
           }
         });
-      }, { threshold: 0.45 });
-      sceneObserver.observe(runtimeScene);
+      }, { threshold: 0.4 });
+      runtimeScenes.forEach((scene) => sceneObserver.observe(scene));
+    }
+
+    // Scene 4 (Any AI): cycle through the real provider list while the
+    // adjacent "unchanged" panel stays fixed. Paused entirely under
+    // prefers-reduced-motion -- the first provider just stays shown.
+    const cycle = document.querySelector("#anyai-cycle");
+    if (cycle && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      const items = cycle.querySelectorAll(".anyai-item");
+      let index = 0;
+      setInterval(() => {
+        items[index].classList.remove("is-active");
+        index = (index + 1) % items.length;
+        items[index].classList.add("is-active");
+      }, 1900);
     }
   }
 })();
