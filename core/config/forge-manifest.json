@@ -1,0 +1,38 @@
+{
+  "$comment": "Multi-forge registry per docs/MULTI_FORGE_ARCHITECTURE.md §3. JSON, not the YAML sketched in that doc's prose -- every other file in core/config/ is JSON and this avoids adding a PyYAML dependency for one file. canonical_forge is the single source of truth for governance (PRs/issues/collaboration); mirrors are read-only replicas, never a second place to push to.",
+  "canonical_forge": "github",
+  "repositories": [
+    {
+      "name": "Yana-AI",
+      "primary": "github",
+      "primary_url": "https://github.com/yanacuti1121/Yana-AI",
+      "mirrors": [
+        {
+          "provider": "gitlab",
+          "url": "https://gitlab.com/yana-ai-group/Yana-AI-project",
+          "role": "mirror",
+          "direction": "pull",
+          "note": "Configured 2026-09-10 on the GitLab side (Settings -> Repository -> Mirroring repositories, Pull, all branches, confirmed via GitLab UI 'Mirrored from https://github.com/yanacuti1121/Yana-AI.git'). Both the GitLab group (yana-ai-group) and this project had to be set to Public separately -- group-level Public alone did not make the project visible via GitLab's unauthenticated API, confirmed live 2026-09-10 (project returned 404 until its own Visibility setting was also changed). Verified SYNCED same day: GitLab's 'main' branch HEAD (ab19d2e8f106...) matches GitHub's live HEAD exactly. GitLab's project-info API briefly reported default_branch as an unrelated branch name during initial import -- confirmed to be an import-time quirk, not a real problem: 'main' itself was present with the correct SHA the whole time.",
+          "sync_transport": {
+            "active": "gitlab-native-pull-mirror",
+            "risk": "GitLab's native Pull Mirroring is only available on paid tiers -- currently active under an Ultimate Trial. The architecture must not depend on this specific transport surviving past the trial.",
+            "fallback": "github-actions-scheduled-push-mirror (design only, not built -- see docs/MULTI_FORGE_ARCHITECTURE.md §5's adapter-abstraction note). A GitHub Actions job doing `git push --mirror` on a schedule would keep the same GitHub-canonical/GitLab-replica shape without any paid GitLab feature.",
+            "status_check_dependency": "none -- core/scripts/check_forge_sync.py only reads each forge's public REST API for its current HEAD SHA; it never talks to whichever mechanism keeps the mirror updated, so swapping 'active' for 'fallback' later requires no change to the status checker."
+          }
+        }
+      ]
+    },
+    {
+      "name": "yana-web",
+      "primary": "github",
+      "primary_url": "https://github.com/yanacuti1121/yana-web",
+      "mirrors": []
+    },
+    {
+      "name": "yana-wheelbot",
+      "primary": "github",
+      "primary_url": "https://github.com/yanacuti1121/yana-wheelbot",
+      "mirrors": []
+    }
+  ]
+}
