@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   Cloud,
@@ -130,9 +130,13 @@ export function ModelManager({
   const [secret, setSecret] = useState("");
   const [models, setModels] = useState<string[]>([]);
   const [modelsSynced, setModelsSynced] = useState(false);
+  const [syncingModels, setSyncingModels] = useState(false);
+  const [modelSyncError, setModelSyncError] = useState("");
   const [localRuntimes, setLocalRuntimes] = useState<LocalModelRuntime[]>([]);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
+  const syncRequest = useRef(0);
+  const lastAutomaticSync = useRef("");
   const provider = useMemo(
     () =>
       state.providerCatalog.find((entry) => entry.id === profile.provider) ||
@@ -140,9 +144,7 @@ export function ModelManager({
     [profile.provider, state.providerCatalog],
   );
   const configured = state.configuredProviders.includes(profile.provider);
-  const availableModels = Array.from(
-    new Set([...provider.models, ...models].filter(Boolean)),
-  );
+  const availableModels = modelsSynced ? models : provider.models;
   const searchResults = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return [];
@@ -159,8 +161,6 @@ export function ModelManager({
     );
   }, [query, state.providerCatalog]);
 
-  useEffect(() => setProfile(state.profile), [state.profile]);
-
   const run = async (operation: () => Promise<void>) => {
     setBusy(true);
     try {
@@ -171,34 +171,100 @@ export function ModelManager({
       setBusy(false);
     }
   };
+  const syncProviderModels = useCallback(
+    async (targetProfile: Profile, apiKey = "", reportError = false) => {
+      const target = state.providerCatalog.find(
+        (entry) => entry.id === targetProfile.provider,
+      );
+      if (!target) return;
+      const hasCredential = state.configuredProviders.includes(target.id);
+      const canDiscover =
+        target.discoverable &&
+        (!target.requiresKey || hasCredential || Boolean(apiKey.trim())) &&
+        (target.kind !== "custom" || Boolean(targetProfile.baseUrl));
+      const request = ++syncRequest.current;
+      setModelSyncError("");
+      setModelsSynced(false);
+      if (!canDiscover) {
+        setModels(target.models);
+        setSyncingModels(false);
+        return;
+      }
+      setSyncingModels(true);
+      try {
+        const discovered = await window.studio.discoverModels(
+          targetProfile,
+          apiKey,
+        );
+        if (request !== syncRequest.current) return;
+        setModels(discovered);
+        setModelsSynced(true);
+        setProfile((current) => {
+          if (current.provider !== targetProfile.provider) return current;
+          const preferred = discovered.includes(current.model)
+            ? current.model
+            : discovered.includes(target.defaultModel)
+              ? target.defaultModel
+              : discovered[0] || "";
+          return { ...current, model: preferred };
+        });
+      } catch (error) {
+        if (request !== syncRequest.current) return;
+        const message = String(error).replace(/^Error:\s*/, "");
+        setModels(target.models);
+        setModelSyncError(message);
+        if (reportError) onError(message);
+      } finally {
+        if (request === syncRequest.current) setSyncingModels(false);
+      }
+    },
+    [onError, state.configuredProviders, state.providerCatalog],
+  );
+
+  useEffect(() => {
+    setProfile(state.profile);
+    const automaticKey = `${state.profile.provider}:${state.profile.baseUrl}:${state.configuredProviders.includes(state.profile.provider)}`;
+    if (automaticKey === lastAutomaticSync.current) return;
+    lastAutomaticSync.current = automaticKey;
+    void syncProviderModels(state.profile);
+  }, [state.profile, state.configuredProviders, syncProviderModels]);
+
+  useEffect(() => {
+    if (!secret.trim()) return;
+    const timer = window.setTimeout(
+      () => void syncProviderModels(profile, secret),
+      700,
+    );
+    return () => window.clearTimeout(timer);
+  }, [profile.provider, profile.baseUrl, secret, syncProviderModels]);
+
   const selectProvider = (id: string) => {
     const next = state.providerCatalog.find((entry) => entry.id === id);
     if (!next) return;
-    setProfile(providerProfile(next));
-    setModels(next.models);
+    const nextProfile = providerProfile(next);
+    setProfile(nextProfile);
+    setModels([]);
     setModelsSynced(false);
+    setModelSyncError("");
     setSecret("");
+    void syncProviderModels(nextProfile);
   };
   const pickModel = (target: ProviderCatalogEntry, modelId: string) => {
-    setProfile({ ...providerProfile(target), model: modelId });
-    setModels(target.models);
+    const nextProfile = { ...providerProfile(target), model: modelId };
+    setProfile(nextProfile);
+    setModels([]);
     setModelsSynced(false);
+    setModelSyncError("");
     setSecret("");
     setQuery("");
+    void syncProviderModels(nextProfile);
   };
   const save = () =>
     run(async () => {
       onState(await window.studio.saveProfile(profile, secret));
       setSecret("");
     });
-  const discover = () =>
-    run(async () => {
-      const discovered = await window.studio.discoverModels(profile, secret);
-      setModels(discovered);
-      setModelsSynced(true);
-      if (discovered[0] && !discovered.includes(profile.model))
-        setProfile((current) => ({ ...current, model: discovered[0] }));
-    });
+  const discover = () => syncProviderModels(profile, secret, true);
 
   const providerOptions = (
     <>
@@ -275,16 +341,22 @@ export function ModelManager({
           </datalist>
         </label>
         <div className="compact-model-sync">
-          <button disabled={busy} onClick={() => void discover()}>
-            <RefreshCw size={14} /> Đồng bộ model
+          <button
+            disabled={busy || syncingModels}
+            onClick={() => void discover()}
+          >
+            <RefreshCw className={syncingModels ? "spin" : ""} size={14} />
+            {modelsSynced ? "Tải lại" : "Đồng bộ model"}
           </button>
           <small>
-            {modelsSynced
-              ? `${models.length} model dùng được với key này`
-              : "Lấy danh sách thật từ provider"}
+            {syncingModels
+              ? `Đang lấy model từ ${provider.label}…`
+              : modelsSynced
+                ? `${models.length} model dùng được với key này`
+                : modelSyncError || "Tự lấy danh sách thật từ provider"}
           </small>
         </div>
-        {provider.modelCatalog.length > 0 && (
+        {!modelsSynced && provider.modelCatalog.length > 0 && (
           <div className="model-pick-list compact">
             {provider.modelCatalog.map((model) => (
               <ModelRow
@@ -296,11 +368,29 @@ export function ModelManager({
             ))}
           </div>
         )}
+        {modelsSynced && (
+          <div className="live-model-list compact" aria-label="Model dùng được">
+            {models.map((model) => (
+              <button
+                type="button"
+                className={model === profile.model ? "active" : ""}
+                key={model}
+                onClick={() => setProfile((current) => ({ ...current, model }))}
+              >
+                <code>{model}</code>
+                {model === profile.model && <Check size={13} />}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="button-row">
           <button
             className="primary"
             disabled={
-              busy || !profile.model || (provider.requiresKey && !configured)
+              busy ||
+              syncingModels ||
+              !profile.model ||
+              (provider.requiresKey && !configured)
             }
             onClick={() => void save()}
           >
@@ -422,7 +512,23 @@ export function ModelManager({
               ))}
             </datalist>
           </label>
-          {provider.modelCatalog.length > 0 && (
+          {syncingModels && (
+            <div className="model-sync-state" role="status">
+              <RefreshCw className="spin" size={15} />
+              <span>
+                Đang lấy danh sách model trực tiếp từ {provider.label}…
+              </span>
+            </div>
+          )}
+          {modelSyncError && !syncingModels && (
+            <div className="model-sync-state error" role="alert">
+              <span>{modelSyncError}</span>
+              <button type="button" onClick={() => void discover()}>
+                Thử lại
+              </button>
+            </div>
+          )}
+          {!modelsSynced && provider.modelCatalog.length > 0 && (
             <div className="model-pick-list">
               {provider.modelCatalog.map((model) => (
                 <ModelRow
@@ -433,9 +539,8 @@ export function ModelManager({
                 />
               ))}
               <p className="model-pick-hint">
-                Gợi ý model phổ biến — không phải danh sách trực tiếp từ
-                provider. Bấm &quot;Dò model&quot; hoặc nhập ID chính xác nếu
-                khác.
+                Gợi ý offline — Studio sẽ thay bằng danh sách tài khoản của bạn
+                ngay khi kết nối được provider.
               </p>
             </div>
           )}
@@ -464,17 +569,20 @@ export function ModelManager({
             {provider.discoverable && (
               <button
                 disabled={
-                  busy || (!profile.baseUrl && provider.kind === "custom")
+                  busy ||
+                  syncingModels ||
+                  (!profile.baseUrl && provider.kind === "custom")
                 }
                 onClick={() => void discover()}
               >
-                <RefreshCw size={14} /> Dò model
+                <RefreshCw size={14} /> Tải lại từ provider
               </button>
             )}
             <button
               className="primary"
               disabled={
                 busy ||
+                syncingModels ||
                 !profile.model.trim() ||
                 (provider.requiresKey && !configured && !secret)
               }
