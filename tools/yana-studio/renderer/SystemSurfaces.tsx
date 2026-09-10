@@ -41,6 +41,8 @@ export function SystemSurfaces({
           copy: "복사",
           terminal: "터미널에서 열기",
           unavailable: "사용 불가",
+          loadingRuntime: "Yana 런타임 상태를 읽는 중…",
+          dataSourceNote: "런타임, PATH, Yana에 있는 contract에서 읽은 데이터입니다.",
         }
       : locale === "en"
         ? {
@@ -48,12 +50,16 @@ export function SystemSurfaces({
             copy: "Copy",
             terminal: "Open in terminal",
             unavailable: "Unavailable",
+            loadingRuntime: "Reading Yana runtime state…",
+            dataSourceNote: "Data read from the runtime, PATH, and contracts already in Yana.",
           }
         : {
             refresh: "Làm mới",
             copy: "Sao chép",
             terminal: "Mở trong terminal",
             unavailable: "Chưa khả dụng",
+            loadingRuntime: "Đang đọc trạng thái Yana runtime…",
+            dataSourceNote: "Dữ liệu đọc từ runtime, PATH và contract đang có trong Yana.",
           };
   const refresh = () =>
     window.studio
@@ -90,7 +96,7 @@ export function SystemSurfaces({
       ) || []
     );
   }, [overview, query]);
-  if (!overview) return <Empty>Đang đọc trạng thái Yana runtime…</Empty>;
+  if (!overview) return <Empty>{labels.loadingRuntime}</Empty>;
   const heading =
     mode === "permissions"
       ? "Capability registry"
@@ -102,9 +108,7 @@ export function SystemSurfaces({
       <div className="settings-heading-row">
         <div>
           <h2>{heading}</h2>
-          <p className="muted">
-            Dữ liệu đọc từ runtime, PATH và contract đang có trong Yana.
-          </p>
+          <p className="muted">{labels.dataSourceNote}</p>
         </div>
         <button onClick={refresh}>
           <RefreshCw size={15} /> {labels.refresh}

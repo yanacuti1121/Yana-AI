@@ -8,6 +8,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { Lease, PendingApprovalSummary } from "./types";
+import { translate, type Locale } from "./i18n";
 
 // Screen 4 "Permissions" — was chat-approval presentation only. Two real,
 // distinct Rust stores (see host/permissions.cjs's own module doc): leases
@@ -16,11 +17,14 @@ import type { Lease, PendingApprovalSummary } from "./types";
 // paused it holds, which this screen does not have.
 export function Permissions({
   root,
+  locale,
   onError,
 }: {
   root: string;
+  locale: Locale;
   onError: (message: string) => void;
 }) {
+  const t = translate(locale);
   const [leases, setLeases] = useState<Lease[]>([]);
   const [approvals, setApprovals] = useState<PendingApprovalSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -157,11 +161,7 @@ export function Permissions({
           </div>
           {grantOpen && (
             <div className="lease-grant-form">
-              <p className="empty-small">
-                Cấp quyền có phạm vi và hạn dùng thật — không phải công tắc "tự
-                động duyệt". Runtime vẫn kiểm tra lease này qua đúng cơ chế
-                authority chain, không phải bỏ qua nó.
-              </p>
+              <p className="empty-small">{t("leaseGrantScopeNote")}</p>
               <label>
                 Subject
                 <input
@@ -179,7 +179,7 @@ export function Permissions({
                 />
               </label>
               <label>
-                Allow (phân cách bởi dấu phẩy)
+                {t("allowCommaSeparated")}
                 <input
                   value={allow}
                   placeholder="src/, docs/"
@@ -188,7 +188,7 @@ export function Permissions({
               </label>
               <div className="lease-grant-row">
                 <label>
-                  Hết hạn sau (phút)
+                  {t("expiresAfterMinutes")}
                   <input
                     type="number"
                     min={1}
@@ -200,7 +200,7 @@ export function Permissions({
                   />
                 </label>
                 <label>
-                  Số lần gọi tối đa (bỏ trống = không giới hạn)
+                  {t("maxInvocationsBlankUnlimited")}
                   <input
                     type="number"
                     min={1}
@@ -217,7 +217,7 @@ export function Permissions({
                   disabled={!capability.trim()}
                   onClick={() => void grant()}
                 >
-                  <KeyRound size={14} /> Cấp lease
+                  <KeyRound size={14} /> {t("grantLease")}
                 </button>
               </div>
             </div>

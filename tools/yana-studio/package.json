@@ -1,7 +1,7 @@
 {
   "name": "yana-studio",
   "productName": "Yana Studio",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "type": "module",
   "main": "host/main.cjs",

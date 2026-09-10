@@ -32,6 +32,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import type { CanvasAiProposal, CanvasDocument } from "./types";
+import { translate, type Locale } from "./i18n";
 import "./design-canvas.css";
 
 type CanvasPart = CanvasDocument["screens"][number]["parts"][number];
@@ -331,13 +332,16 @@ function PartPreview({ part, accent }: { part: CanvasPart; accent: string }) {
 
 export function DesignCanvas({
   root,
+  locale,
   onPrompt,
   onError,
 }: {
   root: string;
+  locale: Locale;
   onPrompt: (prompt: string) => void;
   onError: (message: string) => void;
 }) {
+  const t = translate(locale);
   const [document, setDocument] = useState<CanvasDocument>(createDocument);
   const [loadedRoot, setLoadedRoot] = useState("");
   const [screenId, setScreenId] = useState("");
@@ -433,9 +437,7 @@ export function DesignCanvas({
     try {
       const found = await window.studio.scanDesignTokens(root);
       if (!found.accent && !found.surface && !found.foreground) {
-        onError(
-          "Không tìm thấy design token nào trong project (CSS custom properties kiểu --accent, --background, --foreground).",
-        );
+        onError(t("noDesignTokensFound"));
         return;
       }
       commit((next) => ({
@@ -692,8 +694,8 @@ export function DesignCanvas({
     return (
       <div className="canvas-empty">
         <LayoutTemplate size={30} />
-        <h2>Mở project để bắt đầu thiết kế</h2>
-        <p>Canvas được lưu cùng workspace và backup của Yana Studio.</p>
+        <h2>{t("openProjectToDesign")}</h2>
+        <p>{t("canvasSavedNote")}</p>
       </div>
     );
 
@@ -703,7 +705,7 @@ export function DesignCanvas({
         <div>
           <span className="eyebrow">YANA DESIGN</span>
           <input
-            aria-label="Tên thiết kế"
+            aria-label={t("designNameAria")}
             value={document.name}
             onChange={(event) =>
               commit((next) => ({ ...next, name: event.target.value }))
@@ -711,14 +713,14 @@ export function DesignCanvas({
           />
         </div>
         <nav>
-          <button aria-label="Hoàn tác" disabled={!past.length} onClick={undo}>
+          <button aria-label={t("undoAria")} disabled={!past.length} onClick={undo}>
             <Undo2 size={14} />
           </button>
-          <button aria-label="Làm lại" disabled={!future.length} onClick={redo}>
+          <button aria-label={t("redoAria")} disabled={!future.length} onClick={redo}>
             <Redo2 size={14} />
           </button>
           <button
-            aria-label="Thu nhỏ canvas"
+            aria-label={t("zoomOutAria")}
             disabled={zoom <= 0.4}
             onClick={() => setZoom((value) => Math.max(0.4, value - 0.1))}
           >
@@ -726,38 +728,38 @@ export function DesignCanvas({
           </button>
           <button
             className="canvas-zoom-value"
-            title="Đặt lại 100%"
+            title={t("resetZoomTitle")}
             onClick={() => setZoom(1)}
           >
             {Math.round(zoom * 100)}%
           </button>
           <button
-            aria-label="Phóng to canvas"
+            aria-label={t("zoomInAria")}
             disabled={zoom >= 1.5}
             onClick={() => setZoom((value) => Math.min(1.5, value + 0.1))}
           >
             <ZoomIn size={14} />
           </button>
           <button onClick={() => setPreview(true)}>
-            <Eye size={14} /> Xem thử
+            <Eye size={14} /> {t("previewButton")}
           </button>
           <button
             onClick={() =>
               void navigator.clipboard
                 .writeText(generatedPrompt)
-                .catch(() => onError("Không thể sao chép prompt."))
+                .catch(() => onError(t("copyPromptFailed")))
             }
           >
             <Copy size={14} /> Prompt
           </button>
           <button className="primary" onClick={() => onPrompt(generatedPrompt)}>
-            <Send size={14} /> Gửi sang Yana
+            <Send size={14} /> {t("sendToYana")}
           </button>
         </nav>
       </header>
       <div className="canvas-layout">
         <aside className="canvas-palette">
-          <div className="section-label">THÀNH PHẦN</div>
+          <div className="section-label">{t("componentsHeader")}</div>
           <div className="canvas-part-grid">
             {PART_LIBRARY.map((definition) => (
               <button
@@ -776,7 +778,7 @@ export function DesignCanvas({
               </button>
             ))}
           </div>
-          <div className="section-label">MÀN HÌNH</div>
+          <div className="section-label">{t("screensHeader")}</div>
           <div className="canvas-screen-list">
             {document.screens.map((screen) => (
               <button
@@ -812,14 +814,14 @@ export function DesignCanvas({
                 setScreenId(screen.id);
               }}
             >
-              <Plus size={15} /> Thêm màn hình
+              <Plus size={15} /> {t("addScreen")}
             </button>
           </div>
         </aside>
         <main className="canvas-stage">
           <div className="canvas-stage-meta">
             <input
-              aria-label="Tên màn hình"
+              aria-label={t("screenNameAria")}
               value={activeScreen.name}
               onChange={(event) =>
                 updateScreen((screen) => {
@@ -848,11 +850,11 @@ export function DesignCanvas({
               >
                 <Smartphone size={14} /> Phone
               </button>
-              <button title="Nhân đôi màn hình" onClick={duplicateScreen}>
+              <button title={t("duplicateScreenTitle")} onClick={duplicateScreen}>
                 <Copy size={14} />
               </button>
               <button
-                title="Xóa màn hình"
+                title={t("deleteScreenTitle")}
                 disabled={document.screens.length <= 1}
                 onClick={deleteScreen}
               >
@@ -1063,15 +1065,18 @@ export function DesignCanvas({
                 <Sparkles size={14} /> YANA AI
               </span>
               <small>
-                {selectedPart ? "Đang chọn 1 layer" : "Toàn màn hình"}
+                {selectedPart ? t("selectingLayerLabel") : t("wholeScreenLabel")}
               </small>
             </div>
             <textarea
-              aria-label="Yêu cầu AI chỉnh Canvas"
+              aria-label={t("aiInstructionAria")}
               placeholder={
                 selectedPart
-                  ? `Ví dụ: đổi “${selectedPart.label}” thành nút chính màu xanh, bo 14px`
-                  : "Ví dụ: tạo màn hình đăng nhập hiện đại, tông xanh ấm"
+                  ? t("aiPlaceholderWithPart").replace(
+                      "{label}",
+                      selectedPart.label,
+                    )
+                  : t("aiPlaceholderNoPart")
               }
               value={aiInstruction}
               disabled={aiBusy}
@@ -1089,9 +1094,13 @@ export function DesignCanvas({
             />
             <div className="canvas-ai-suggestions">
               {[
-                selectedPart ? "Làm nổi bật hơn" : "Tạo landing page",
-                selectedPart ? "Bo góc mềm hơn" : "Tạo màn đăng nhập",
-                "Căn chỉnh gọn lại",
+                selectedPart
+                  ? t("suggestionMoreProminent")
+                  : t("suggestionCreateLanding"),
+                selectedPart
+                  ? t("suggestionSofterCorners")
+                  : t("suggestionCreateLogin"),
+                t("suggestionTidyAlign"),
               ].map((suggestion) => (
                 <button
                   key={suggestion}
@@ -1108,16 +1117,23 @@ export function DesignCanvas({
               onClick={() => void requestAiProposal()}
             >
               <Sparkles size={14} />
-              {aiBusy ? "Yana đang thiết kế…" : "Tạo đề xuất"}
+              {aiBusy ? t("aiDesigningLabel") : t("generateProposal")}
             </button>
             {aiProposal && (
               <div className="canvas-ai-proposal" role="status">
                 <b>{aiProposal.summary}</b>
-                <span>{aiProposal.operations.length} thay đổi có kiểm tra</span>
+                <span>
+                  {t("changesCount").replace(
+                    "{n}",
+                    String(aiProposal.operations.length),
+                  )}
+                </span>
                 <div className="button-row">
-                  <button onClick={() => setAiProposal(null)}>Bỏ qua</button>
+                  <button onClick={() => setAiProposal(null)}>
+                    {t("discardProposal")}
+                  </button>
                   <button className="primary" onClick={applyAiProposal}>
-                    Áp dụng vào Canvas
+                    {t("applyToCanvas")}
                   </button>
                 </div>
               </div>
@@ -1141,8 +1157,8 @@ export function DesignCanvas({
                   <small>{part.kind}</small>
                 </button>
                 <button
-                  aria-label={part.hidden ? "Hiện layer" : "Ẩn layer"}
-                  title={part.hidden ? "Hiện layer" : "Ẩn layer"}
+                  aria-label={part.hidden ? t("showLayer") : t("hideLayer")}
+                  title={part.hidden ? t("showLayer") : t("hideLayer")}
                   onClick={() => {
                     setPartId(part.id);
                     updateScreen((screen) => {
@@ -1156,8 +1172,8 @@ export function DesignCanvas({
                   {part.hidden ? <EyeOff size={13} /> : <Eye size={13} />}
                 </button>
                 <button
-                  aria-label={part.locked ? "Mở khóa layer" : "Khóa layer"}
-                  title={part.locked ? "Mở khóa layer" : "Khóa layer"}
+                  aria-label={part.locked ? t("unlockLayer") : t("lockLayer")}
+                  title={part.locked ? t("unlockLayer") : t("lockLayer")}
                   onClick={() => {
                     setPartId(part.id);
                     updateScreen((screen) => {
@@ -1175,9 +1191,9 @@ export function DesignCanvas({
           </div>
           {selectedPart ? (
             <section className="canvas-properties">
-              <div className="section-label">THUỘC TÍNH</div>
+              <div className="section-label">{t("propertiesHeader")}</div>
               <label>
-                Nội dung
+                {t("contentLabel")}
                 <input
                   value={selectedPart.label}
                   onChange={(event) =>
@@ -1205,40 +1221,40 @@ export function DesignCanvas({
                   </label>
                 ))}
               </div>
-              <div className="canvas-align-grid" aria-label="Căn chỉnh">
-                <button title="Căn trái" onClick={() => alignPart("left")}>
+              <div className="canvas-align-grid" aria-label={t("alignAria")}>
+                <button title={t("alignLeft")} onClick={() => alignPart("left")}>
                   L
                 </button>
                 <button
-                  title="Căn giữa ngang"
+                  title={t("alignCenterH")}
                   onClick={() => alignPart("center")}
                 >
                   C
                 </button>
-                <button title="Căn phải" onClick={() => alignPart("right")}>
+                <button title={t("alignRight")} onClick={() => alignPart("right")}>
                   R
                 </button>
                 <button
-                  title="Căn trên"
+                  title={t("alignTop")}
                   onClick={() => alignPart(undefined, "top")}
                 >
                   T
                 </button>
                 <button
-                  title="Căn giữa dọc"
+                  title={t("alignCenterV")}
                   onClick={() => alignPart(undefined, "center")}
                 >
                   M
                 </button>
                 <button
-                  title="Căn dưới"
+                  title={t("alignBottom")}
                   onClick={() => alignPart(undefined, "bottom")}
                 >
                   B
                 </button>
               </div>
               <label>
-                Màu nền
+                {t("backgroundColorLabel")}
                 <span className="canvas-color-control">
                   <input
                     type="color"
@@ -1248,7 +1264,7 @@ export function DesignCanvas({
                     }
                   />
                   <button
-                    title="Dùng màu mặc định"
+                    title={t("useDefaultColorTitle")}
                     onClick={() => updatePart({ fill: undefined })}
                   >
                     Reset
@@ -1256,9 +1272,9 @@ export function DesignCanvas({
                 </span>
               </label>
               <label>
-                Độ mờ {Math.round((selectedPart.opacity ?? 1) * 100)}%
+                {t("opacityLabel")} {Math.round((selectedPart.opacity ?? 1) * 100)}%
                 <input
-                  aria-label="Độ mờ layer"
+                  aria-label={t("layerOpacityAria")}
                   type="range"
                   min="0"
                   max="1"
@@ -1270,9 +1286,9 @@ export function DesignCanvas({
                 />
               </label>
               <label>
-                Bo góc
+                {t("cornerRadiusLabel")}
                 <input
-                  aria-label="Bo góc layer"
+                  aria-label={t("layerCornerRadiusAria")}
                   type="number"
                   min="0"
                   max="999"
@@ -1288,12 +1304,12 @@ export function DesignCanvas({
                 />
               </label>
               <div className="button-row">
-                <button onClick={duplicatePart} title="Nhân đôi ⌘D">
+                <button onClick={duplicatePart} title={t("duplicateShortcutTitle")}>
                   <Copy size={14} />
                 </button>
                 <button
                   onClick={() => updatePart({ locked: !selectedPart.locked })}
-                  title={selectedPart.locked ? "Mở khóa" : "Khóa"}
+                  title={selectedPart.locked ? t("unlockShort") : t("lockShort")}
                 >
                   {selectedPart.locked ? (
                     <Lock size={14} />
@@ -1301,10 +1317,10 @@ export function DesignCanvas({
                     <Unlock size={14} />
                   )}
                 </button>
-                <button onClick={() => moveLayer(1)} title="Đưa lên">
+                <button onClick={() => moveLayer(1)} title={t("moveUpTitle")}>
                   <ChevronUp size={14} />
                 </button>
-                <button onClick={() => moveLayer(-1)} title="Đưa xuống">
+                <button onClick={() => moveLayer(-1)} title={t("moveDownTitle")}>
                   <ChevronDown size={14} />
                 </button>
                 <button
@@ -1312,7 +1328,7 @@ export function DesignCanvas({
                   disabled={selectedPart.locked}
                   onClick={deletePart}
                 >
-                  <Trash2 size={14} /> Xóa
+                  <Trash2 size={14} /> {t("deleteLabel")}
                 </button>
               </div>
             </section>
@@ -1323,14 +1339,14 @@ export function DesignCanvas({
                 className="sync-project-theme"
                 disabled={!root || syncingTokens}
                 onClick={() => void syncProjectTokens()}
-                title="Đọc màu accent/nền/chữ từ CSS thật của project"
+                title={t("syncThemeTitle")}
               >
                 <RefreshCw size={13} />
-                {syncingTokens ? "Đang đọc…" : "Đồng bộ theme từ project"}
+                {syncingTokens ? t("readingLabel") : t("syncThemeFromProject")}
               </button>
               {tokensFromProject && (
                 <small className="sync-project-theme-hint">
-                  Theme này lấy từ CSS thật của project.
+                  {t("themeFromProjectHint")}
                 </small>
               )}
               <label>
@@ -1362,7 +1378,7 @@ export function DesignCanvas({
                 />
               </label>
               <label>
-                Chữ
+                {t("textColorLabel")}
                 <input
                   type="color"
                   value={document.theme.foreground}
@@ -1388,7 +1404,7 @@ export function DesignCanvas({
                 />
               </label>
               <label>
-                Bo góc
+                {t("cornerRadiusLabel")}
                 <select
                   value={document.theme.shape}
                   onChange={(event) =>
@@ -1402,8 +1418,8 @@ export function DesignCanvas({
                     }))
                   }
                 >
-                  <option value="compact">Gọn</option>
-                  <option value="rounded">Bo nhẹ</option>
+                  <option value="compact">{t("cornerCompact")}</option>
+                  <option value="rounded">{t("cornerRounded")}</option>
                   <option value="pill">Pill</option>
                 </select>
               </label>
@@ -1428,7 +1444,7 @@ export function DesignCanvas({
                 </select>
               </label>
               <label>
-                Chuyển động
+                {t("motionLabel")}
                 <select
                   value={document.theme.motion}
                   onChange={(event) =>
@@ -1442,9 +1458,9 @@ export function DesignCanvas({
                     }))
                   }
                 >
-                  <option value="standard">Tiêu chuẩn</option>
-                  <option value="expressive">Sinh động</option>
-                  <option value="reduced">Giảm chuyển động</option>
+                  <option value="standard">{t("motionStandard")}</option>
+                  <option value="expressive">{t("motionExpressive")}</option>
+                  <option value="reduced">{t("motionReduced")}</option>
                 </select>
               </label>
             </section>
@@ -1455,11 +1471,11 @@ export function DesignCanvas({
         <div
           className="canvas-preview-overlay"
           role="dialog"
-          aria-label="Xem thử thiết kế"
+          aria-label={t("previewDialogAria")}
         >
           <button
             className="canvas-preview-close"
-            aria-label="Đóng xem thử"
+            aria-label={t("closePreviewAria")}
             onClick={() => setPreview(false)}
           >
             <X size={18} />

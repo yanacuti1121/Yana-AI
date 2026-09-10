@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Clock3, RefreshCw, Shield, X } from "lucide-react";
 import type { Lease, PendingApprovalSummary, SystemOverview } from "./types";
+import { translate, type Locale, type MessageKey } from "./i18n";
 
 type GovernanceData = {
   overview: SystemOverview | null;
@@ -14,24 +15,29 @@ const emptyData: GovernanceData = {
   approvals: [],
 };
 
-function remainingLabel(expiresAt: string) {
+function remainingLabel(expiresAt: string, t: (key: MessageKey) => string) {
   const minutes = Math.max(
     0,
     Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 60_000),
   );
-  if (minutes < 60) return `${minutes} phút`;
-  return `${Math.floor(minutes / 60)} giờ ${minutes % 60} phút`;
+  if (minutes < 60) return t("minutesShort").replace("{n}", String(minutes));
+  return t("hoursMinutes")
+    .replace("{h}", String(Math.floor(minutes / 60)))
+    .replace("{m}", String(minutes % 60));
 }
 
 export function GovernancePopover({
   root,
+  locale,
   onOpenPermissions,
   onError,
 }: {
   root: string;
+  locale: Locale;
   onOpenPermissions: () => void;
   onError: (message: string) => void;
 }) {
+  const t = translate(locale);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<GovernanceData>(emptyData);
@@ -87,24 +93,24 @@ export function GovernancePopover({
       <button
         className="composer-governance"
         aria-expanded={open}
-        title="Xem quyền hạn thật của phiên này"
+        title={t("viewSessionAuthorityTitle")}
         onClick={() => setOpen((value) => !value)}
       >
-        <Shield size={13} /> Có kiểm soát
+        <Shield size={13} /> {t("governedLabel")}
       </button>
       {open && (
         <div
           className="governance-popover"
           role="dialog"
-          aria-label="Quyền của phiên"
+          aria-label={t("sessionAuthorityHeading")}
         >
           <div className="governance-heading">
             <div>
-              <strong>Quyền của phiên</strong>
-              <small>Đọc trực tiếp từ Yana runtime</small>
+              <strong>{t("sessionAuthorityHeading")}</strong>
+              <small>{t("readDirectlyFromRuntime")}</small>
             </div>
             <button
-              aria-label="Đóng quyền của phiên"
+              aria-label={t("closeSessionAuthorityAria")}
               onClick={() => setOpen(false)}
             >
               <X size={14} />
@@ -126,33 +132,45 @@ export function GovernancePopover({
                   }
                 >
                   {!capability.available
-                    ? "Chưa sẵn sàng"
+                    ? t("notReady")
                     : capability.approval === "None"
-                      ? "Cho phép"
-                      : "Hỏi mỗi lần"}
+                      ? t("allowedLabel")
+                      : t("askEveryTime")}
                 </b>
               </div>
             ))}
           </div>
           {!data.overview && (
             <p className="empty-small">
-              {loading ? "Đang đọc quyền hạn…" : "Chưa có dữ liệu quyền hạn."}
+              {loading ? t("readingAuthorityData") : t("noAuthorityData")}
             </p>
           )}
           <div className="governance-session">
             <span>
-              <Clock3 size={12} /> {activeLeases.length} lease đang hoạt động
+              <Clock3 size={12} />{" "}
+              {t("activeLeasesCount").replace(
+                "{n}",
+                String(activeLeases.length),
+              )}
             </span>
             <span>
-              {data.approvals.filter((item) => !item.resolved).length} chờ duyệt
+              {t("pendingApprovalCount").replace(
+                "{n}",
+                String(data.approvals.filter((item) => !item.resolved).length),
+              )}
             </span>
             {nextExpiry && (
-              <span>Hết hạn gần nhất: {remainingLabel(nextExpiry)}</span>
+              <span>
+                {t("nextExpiryLabel").replace(
+                  "{time}",
+                  remainingLabel(nextExpiry, t),
+                )}
+              </span>
             )}
           </div>
           <div className="governance-actions">
             <button disabled={loading || !root} onClick={() => void refresh()}>
-              <RefreshCw size={13} /> Làm mới
+              <RefreshCw size={13} /> {t("refreshLabel")}
             </button>
             <button
               onClick={() => {
@@ -160,7 +178,7 @@ export function GovernancePopover({
                 onOpenPermissions();
               }}
             >
-              Quản lý quyền
+              {t("managePermissions")}
             </button>
           </div>
         </div>
