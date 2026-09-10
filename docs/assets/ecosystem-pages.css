@@ -156,6 +156,13 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .control-tags{display:flex;flex-wrap:wrap;gap:8px}
 .control-tags span{padding:6px 12px;border-radius:999px;background:#eef1fb;color:#454b55;font-size:12px;font-weight:600}
 @media(max-width:620px){.control-grid{grid-template-columns:1fr}.anyai-panel{gap:14px}}
+.screenshot-showcase{text-align:center}
+.screenshot-stack{position:relative;width:min(960px,100%);margin:8px auto 0;aspect-ratio:3/2;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
+.screenshot-stack .shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;animation:shot-crossfade 9s infinite}
+.screenshot-stack .shot-a{animation-delay:0s}
+.screenshot-stack .shot-b{animation-delay:-4.5s}
+@keyframes shot-crossfade{0%,4%{opacity:0}8%,42%{opacity:1}46%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.screenshot-stack .shot{animation:none;opacity:0}.screenshot-stack .shot-a{opacity:1}}
 .quote-band { padding: 100px 24px; text-align: center; background: #0d1018; color: white; }.quote-band h2{max-width:18ch;margin-inline:auto}.quote-band p{max-width:650px;margin-inline:auto;color:#adb5c4}
 .page-hero { padding: 100px 24px 72px; text-align: center; }.page-hero h1{font-size:clamp(48px,7vw,92px)}
 .download-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
