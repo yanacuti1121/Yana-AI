@@ -9,10 +9,10 @@
       "mirrors": [
         {
           "provider": "gitlab",
-          "url": null,
+          "url": "https://gitlab.com/yana-ai-group/Yana-AI-project",
           "role": "mirror",
           "direction": "pull",
-          "note": "Configured 2026-09-10 on the GitLab side (Settings -> Repository -> Mirroring repositories, Pull, all branches, confirmed via GitLab UI 'Mirrored from https://github.com/yanacuti1121/Yana-AI.git'). url here is still null because anh has not shared the GitLab project's own URL yet -- fill it in once he does, then check_forge_sync.py can actually query it. The project is expected to read PENDING (empty, initial sync of this repo's large history still running), not SYNCED/ERROR, until that sync finishes -- see docs/GITLAB_MIRROR_SETUP.md.",
+          "note": "Configured 2026-09-10 on the GitLab side (Settings -> Repository -> Mirroring repositories, Pull, all branches, confirmed via GitLab UI 'Mirrored from https://github.com/yanacuti1121/Yana-AI.git'). Both the GitLab group (yana-ai-group) and this project had to be set to Public separately -- group-level Public alone did not make the project visible via GitLab's unauthenticated API, confirmed live 2026-09-10 (project returned 404 until its own Visibility setting was also changed). Verified SYNCED same day: GitLab's 'main' branch HEAD (ab19d2e8f106...) matches GitHub's live HEAD exactly. GitLab's project-info API briefly reported default_branch as an unrelated branch name during initial import -- confirmed to be an import-time quirk, not a real problem: 'main' itself was present with the correct SHA the whole time.",
           "sync_transport": {
             "active": "gitlab-native-pull-mirror",
             "risk": "GitLab's native Pull Mirroring is only available on paid tiers -- currently active under an Ultimate Trial. The architecture must not depend on this specific transport surviving past the trial.",
