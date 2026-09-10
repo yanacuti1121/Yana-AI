@@ -710,7 +710,7 @@ test("data overview reports sizes without following credential symlinks", (conte
     result.total_bytes,
     result.workspace.bytes + result.credentials.bytes,
   );
-  assert.equal(result.memory.status, "runtime_contract_required");
+  assert.equal(result.memory.status, "not_created");
   assert.equal(JSON.stringify(result).includes("must-not-count"), false);
 });
 test("custom endpoints require HTTPS except explicit loopback", () => {

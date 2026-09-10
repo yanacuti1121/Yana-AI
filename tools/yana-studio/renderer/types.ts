@@ -4,6 +4,38 @@ export type DroppedPathResult =
   | { kind: "file"; relative: string; project?: Project };
 export type AttachedFile = { path: string; text: string; bytes: number };
 export type ProjectMemoryState = { text: string; updatedAt: number };
+export type ContinuitySource = {
+  kind: "decision" | "open_loop" | "memory" | "conversation";
+  id: string;
+  label: string;
+  content: string;
+  source: string;
+  conversationId: string;
+  score: number;
+  reason: string;
+};
+export type ContinuityRetrieval = {
+  status: "ok" | "unavailable";
+  sharingEnabled?: boolean;
+  runId?: string;
+  context?: string;
+  estimatedTokens?: number;
+  candidateCount?: number;
+  sources: ContinuitySource[];
+  error?: string;
+};
+export type ContinuityOverview = {
+  status: "ok" | "unavailable";
+  sharingEnabled: boolean;
+  conversations?: number;
+  memories?: number;
+  decisions?: Array<Record<string, unknown>>;
+  openLoops?: Array<Record<string, unknown>>;
+  recentConversations?: Array<Record<string, unknown>>;
+  recentRuns?: Array<Record<string, unknown>>;
+  topics?: Array<Record<string, unknown>>;
+  projectState?: Record<string, unknown> | null;
+};
 export type RunCommand = {
   id: string;
   name: string;
@@ -211,6 +243,7 @@ export type Chat = {
   profile?: Profile;
   usage?: { input: number; output: number };
   usageHistory?: TokenUsageRecord[];
+  continuity?: ContinuityRetrieval;
 };
 // Mirrors src/task.rs's Task + the additive blocked/blocked_by fields
 // cmd_task_list --json emits (Yana Studio architecture audit, Phase 1 —
@@ -510,6 +543,16 @@ declare global {
         root: string,
         text: string,
       ): Promise<ProjectMemoryState>;
+      continuityOverview(root: string): Promise<ContinuityOverview>;
+      continuitySetSharing(
+        root: string,
+        enabled: boolean,
+      ): Promise<ContinuityOverview>;
+      continuityRetrieve(
+        root: string,
+        query: string,
+        conversationId?: string,
+      ): Promise<ContinuityRetrieval>;
       runCommandList(root: string): Promise<RunCommand[]>;
       runCommandCreate(
         root: string,
