@@ -39,11 +39,23 @@ class DataOverview {
       ...filesAt(path.join(this.directory, "oauth-v1")),
       ...filesAt(path.join(this.directory, "model-credentials-v1")),
     ]);
+    const memory = measure(
+      filesAt(this.directory, (name) =>
+        [
+          "continuity-v1.sqlite",
+          "continuity-v1.sqlite-wal",
+          "continuity-v1.sqlite-shm",
+        ].includes(name),
+      ),
+    );
     return {
-      total_bytes: workspace.bytes + credentials.bytes,
+      total_bytes: workspace.bytes + credentials.bytes + memory.bytes,
       workspace,
       credentials,
-      memory: { status: "runtime_contract_required", files: 0, bytes: 0 },
+      memory: {
+        status: memory.files ? "local_sqlite" : "not_created",
+        ...memory,
+      },
       cache: { status: "not_configured", files: 0, bytes: 0 },
     };
   }

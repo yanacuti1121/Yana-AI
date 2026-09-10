@@ -70,6 +70,34 @@ function validateState(value) {
           text(record.model) &&
           text(record.recordedAt),
       ));
+  const continuity = (input) =>
+    input === undefined ||
+    (input &&
+      ["ok", "unavailable"].includes(input.status) &&
+      (input.sharingEnabled === undefined ||
+        typeof input.sharingEnabled === "boolean") &&
+      (input.runId === undefined || boundedText(input.runId, 200)) &&
+      (input.error === undefined || boundedText(input.error, 4000)) &&
+      (input.estimatedTokens === undefined ||
+        tokenCount(input.estimatedTokens)) &&
+      (input.candidateCount === undefined ||
+        tokenCount(input.candidateCount)) &&
+      Array.isArray(input.sources) &&
+      input.sources.length <= 20 &&
+      input.sources.every(
+        (source) =>
+          source &&
+          ["decision", "open_loop", "memory", "conversation"].includes(
+            source.kind,
+          ) &&
+          boundedText(source.id, 300) &&
+          boundedText(source.label, 1000) &&
+          boundedText(source.content, 64 * 1024) &&
+          boundedText(source.source, 2000) &&
+          boundedText(source.conversationId, 300) &&
+          Number.isFinite(source.score) &&
+          boundedText(source.reason, 2000),
+      ));
   if (
     value?.schema !== 1 ||
     !Array.isArray(value.projects) ||
@@ -115,7 +143,8 @@ function validateState(value) {
         chat.events.every((event) => event && text(event.type)) &&
         typeof chat.running === "boolean" &&
         usage(chat.usage) &&
-        usageHistory(chat.usageHistory),
+        usageHistory(chat.usageHistory) &&
+        continuity(chat.continuity),
     )
   )
     throw new Error("Invalid saved conversation");

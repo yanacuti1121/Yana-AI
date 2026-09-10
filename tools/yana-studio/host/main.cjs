@@ -20,6 +20,10 @@ const { Tasks } = require("./tasks.cjs");
 const { hostStatus } = require("./devices.cjs");
 const { Permissions } = require("./permissions.cjs");
 const { ProjectMemory } = require("./project-memory.cjs");
+const {
+  composeTurnSystem,
+  ContinuityEngine,
+} = require("./continuity-engine.cjs");
 const { RunCommands } = require("./run-commands.cjs");
 const { DiffComments } = require("./diff-comments.cjs");
 const { scanProjectTokens } = require("./design-tokens.cjs");
@@ -51,6 +55,7 @@ let integrations;
 let dataOverview;
 let modelCredentials;
 let accounts;
+let continuity;
 let quitting = false;
 let shutdownStarted = false;
 let shutdownComplete = false;
@@ -70,6 +75,18 @@ const entry = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 const emit = (channel, value) => {
   if (window && !window.isDestroyed()) window.webContents.send(channel, value);
 };
+function continuityWarning(error) {
+  const warning = `Continuity unavailable: ${error.message}`;
+  if (!String(store.warning || "").includes(warning))
+    store.warning = [store.warning, warning].filter(Boolean).join(" ");
+}
+function syncContinuity(chat, observe) {
+  try {
+    continuity?.syncConversation(chat, observe);
+  } catch (error) {
+    continuityWarning(error);
+  }
+}
 
 function credentialAvailable() {
   return (
@@ -208,6 +225,7 @@ function updateChat(chat) {
   } catch (error) {
     chat.error = `Cannot persist conversation: ${error.message}. Keep this window open to copy your messages.`;
   }
+  syncContinuity(chat, true);
   emit("chat:update", chat);
 }
 function launchTurn(chat, profile, input, resume = false) {
@@ -300,6 +318,15 @@ function launchTurn(chat, profile, input, resume = false) {
 
 app.whenReady().then(() => {
   store = new Store(app.getPath("userData"));
+  try {
+    continuity = new ContinuityEngine(app.getPath("userData"));
+    continuity.importLegacy(store.value.chats);
+  } catch (error) {
+    continuity = null;
+    store.warning = [store.warning, `Continuity unavailable: ${error.message}`]
+      .filter(Boolean)
+      .join(" ");
+  }
   accounts = new AccountStore(path.join(app.getPath("userData"), "account-v1"));
   dataOverview = new DataOverview(app.getPath("userData"));
   modelCredentials = new ModelCredentialStore(
@@ -368,6 +395,10 @@ app.whenReady().then(() => {
   for (const project of store.value.projects) {
     try {
       projects.register(project.root);
+      continuity?.importProjectMemory(
+        project.root,
+        projectMemory.read(project.root),
+      );
     } catch {}
   }
   const projectArgument = process.argv.indexOf("--project");
@@ -549,7 +580,30 @@ app.whenReady().then(() => {
   });
   register("projectMemoryWrite", (root, text) => {
     projects.resolve(root);
-    return projectMemory.write(root, text);
+    const saved = projectMemory.write(root, text);
+    try {
+      continuity?.importProjectMemory(root, saved);
+    } catch (error) {
+      continuityWarning(error);
+    }
+    return saved;
+  });
+  register("continuityOverview", (root) => {
+    projects.resolve(root);
+    if (!continuity) return { status: "unavailable", sharingEnabled: false };
+    return continuity.overview(root);
+  });
+  register("continuitySetSharing", (root, enabled) => {
+    projects.resolve(root);
+    if (!continuity) throw new Error("Continuity database is unavailable");
+    return continuity.setSharing(root, enabled);
+  });
+  register("continuityRetrieve", (root, query, conversationId) => {
+    projects.resolve(root);
+    if (!continuity) return { status: "unavailable", sources: [] };
+    if (typeof query !== "string" || query.length > 40000)
+      throw new Error("Invalid continuity query");
+    return continuity.retrieve(root, query, conversationId);
   });
   register("runCommandList", (root) => {
     projects.resolve(root);
@@ -697,6 +751,7 @@ app.whenReady().then(() => {
       usageHistory: [],
     };
     store.save({ chats: [...store.value.chats, chat] });
+    syncContinuity(chat, false);
     return chat;
   });
   register("removeChat", (id) => {
@@ -706,9 +761,14 @@ app.whenReady().then(() => {
     store.save({
       chats: store.value.chats.filter((item) => item.id !== id),
     });
+    try {
+      continuity?.removeConversation(id);
+    } catch (error) {
+      continuityWarning(error);
+    }
     return true;
   });
-  register("sendChat", (id, task, userInput) => {
+  register("sendChat", async (id, task, userInput) => {
     const chat = chatById(id);
     if (runs.has(id) || chat.approval)
       throw new Error("Finish or resolve the current turn first");
@@ -728,6 +788,30 @@ app.whenReady().then(() => {
     const history = chat.messages
       .slice(-40)
       .map(({ role, content }) => ({ role, content }));
+    const memory = projectMemory.read(chat.root);
+    let continuityContext;
+    try {
+      continuity?.importProjectMemory(chat.root, memory);
+    } catch (error) {
+      continuityWarning(error);
+    }
+    try {
+      if (continuity)
+        continuity.syncTasks(chat.root, await tasks.list(chat.root));
+    } catch {}
+    try {
+      continuityContext = continuity?.retrieve(
+        chat.root,
+        userInput || task,
+        chat.id,
+      );
+    } catch (error) {
+      continuityContext = {
+        status: "unavailable",
+        sources: [],
+        error: error.message,
+      };
+    }
     chat.messages.push(
       { role: "user", content: task, ...(userInput ? { userInput } : {}) },
       { role: "assistant", content: "" },
@@ -736,6 +820,22 @@ app.whenReady().then(() => {
       0,
       45,
     );
+    chat.continuity = continuityContext
+      ? {
+          status: continuityContext.status,
+          sharingEnabled: continuity?.sharingEnabled(chat.root) || false,
+          runId: continuityContext.runId || "",
+          estimatedTokens: continuityContext.estimatedTokens || 0,
+          candidateCount: continuityContext.candidateCount || 0,
+          sources: continuityContext.sources || [],
+          error: continuityContext.error || "",
+        }
+      : {
+          status: "unavailable",
+          sharingEnabled: false,
+          sources: [],
+          error: "Database unavailable",
+        };
     const profile = store.value.profile;
     // Studio's own durable Project Memory, threaded into every turn via
     // yana-rt's `system` input field — a real top-level parameter kept
@@ -745,13 +845,17 @@ app.whenReady().then(() => {
     // provider (local and cloud) since sendChat is the one send path both
     // go through — this is what anh asked for: local AI shouldn't be the
     // one surface without persistent memory.
-    const memory = projectMemory.read(chat.root).text.trim();
+    const continuitySystem = composeTurnSystem(
+      memory,
+      continuityContext,
+      continuity?.sharingEnabled(chat.root) || false,
+    );
     launchTurn(chat, profile, {
       task,
       history,
       session_id: chat.id,
       api_key: key(profile.provider),
-      ...(memory ? { system: memory.slice(0, 64 * 1024) } : {}),
+      ...(continuitySystem ? { system: continuitySystem } : {}),
       ...(profile.provider === "custom"
         ? {
             base_url: profile.baseUrl,
@@ -887,6 +991,12 @@ app.on("before-quit", (event) => {
         console.error("Workspace shutdown save failed:", error.message);
       }
     }
+    try {
+      continuity?.close();
+    } catch (error) {
+      console.error("Continuity shutdown failed:", error.message);
+    }
+    continuity = null;
     shutdownComplete = true;
     app.quit();
   };
