@@ -204,6 +204,19 @@ files. Ask the human to confirm before running this.
 | **编排** | Task、mission、memory、evidence 与 workspace | router, mission dispatcher, event bus |
 | **治理** | 确定性检查、audit chain、quarantine、HALT 与 human gate | capability, hook, Yana OS, Giám Thị |
 
+## 一个生态系统
+
+Yana AI Desktop、CLI，以及上面提到的一切，都是同一个 control plane 之上的 surface —— 而不是六个独立产品。下方状态标签是诚实的描述，不是营销用语：`Live` 表示今天已经发布并在实际使用，`In development` 表示真实代码已存在但功能尚未完整，`Experimental` 表示 opt-in 且尚未经过独立的端到端验证。
+
+| 分支 | 状态 | 是什么 |
+| --- | --- | --- |
+| **运行时**（`yana-rt`） | Live | 引擎本身 —— 面向本地与云端模型的 canonical Rust TurnEngine，一个统一的权限 contract。[yana.vutam.link/runtime.html](https://yana.vutam.link/runtime.html) |
+| **治理** | Live | Capability manifest、human approval、Giám Thị 的 fail-closed HALT、可检测篡改的 audit chain。[yana.vutam.link/governance.html](https://yana.vutam.link/governance.html) |
+| **Yana Studio** | In development | Yana 的可视化 workspace —— 文件、terminal、模型、治理 telemetry 汇聚在一个窗口中。`v0.1.0`，在 [`tools/yana-studio`](tools/yana-studio) 公开开发；其自身 README 明确说明：先打好真正可用的基础，再做界面，而不是相反。 |
+| **Yana OS** | In development | Yana AI 之下的平台，而非并列的 surface —— 负责 agent lifecycle、autonomy、health，构建在 Runtime 之上而非取代它。参见下方 [Yana OS —— 管理 AI 系统](#yana-os--管理-ai-系统)。 |
+| **Integrations** | Live, enforcement varies by host | Claude Code, Codex, Cursor, Antigravity —— 同一份治理 contract，在每个 host 上以不同方式落地。[yana.vutam.link/integrations.html](https://yana.vutam.link/integrations.html) 提供按 host 划分的诚实对比，包括哪里是真正的 hook、哪里只是 prompt 级别的指示。 |
+| **Yana Wheelbot** | Experimental | 屏幕之外的 Yana —— 位于独立仓库 [`yana-wheelbot`](https://github.com/yanacuti1121/yana-wheelbot) 的 ESP32-S3 机器人平台。硬件/固件的成熟度尚未在本仓库中被独立审计。 |
+
 ```text
  Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
                     │                                           │
@@ -797,9 +810,9 @@ Yana AI 发布到 3 个独立的注册表，各自拥有独立的版本号 — �
 
 | 轴 | 版本 | 注册表 |
 |---|---|---|
-| 产品（rules/hooks/skills/agents/CLI） | **1.4.8** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust 运行时（`yana-rt`） | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 包 | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| 产品（rules/hooks/skills/agents/CLI） | **1.5.0** | 无 —— 不通过 npm 分发，见 [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust 运行时（`yana-rt`） | **1.5.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 包 | **1.5.0** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 如果你在本仓库中看到 3 个不同的版本号（包括 `git tag`、2026-07-05 拆分版本轴之前写下的 `ROADMAP.md` 旧条目，或上方徽章），这是正常现象——完整原因见 [VERSIONING.md](VERSIONING.md)。
 

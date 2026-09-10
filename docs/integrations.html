@@ -143,6 +143,7 @@
       <tr><td data-i18n="parity_hooks">Hooks</td><td class="parity-yes">.claude/settings.json</td><td class="parity-yes">.codex/hooks.json</td></tr>
     </tbody>
   </table>
+  <p class="status-note" data-i18n="cx_note"><strong>What "parity" means here:</strong> the hook <em>files</em> are present and synced — <code>.codex/hooks.json</code> is not hand-maintained, and the build fails if it drifts from Claude Code's set. Whether Codex's own runtime enforces a block on every one of those hooks the same way Claude Code's does has not been independently re-verified as thoroughly as Cursor's <code>beforeShellExecution</code> path — <code>README.md</code>'s own pitch is deliberately more cautious here ("hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity"). Treat Codex's enforcement strength as real but less independently confirmed than Cursor's until that's checked directly.</p>
 </section>
 
 <section class="block wide" id="cursor">
@@ -201,6 +202,7 @@ const LANGS = {
     cx_sub: "Machine-verified against Claude Code — the only other harness held to that bar today.",
     cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, generated from the same <code>core/</code> source — never hand-maintained separately.",
     cx_enforce: "<code>check_engine_parity.py</code> fails the build if Codex is missing any shared instruction, agent, skill, command, or active hook.",
+    cx_note: "<strong>What \"parity\" means here:</strong> the hook <em>files</em> are present and synced — <code>.codex/hooks.json</code> is not hand-maintained, and the build fails if it drifts from Claude Code's set. Whether Codex's own runtime enforces a block on every one of those hooks the same way Claude Code's does has not been independently re-verified as thoroughly as Cursor's <code>beforeShellExecution</code> path — <code>README.md</code>'s own pitch is deliberately more cautious here (\"hard-blocking on Claude Code and Cursor, advisory guidance on Codex and Antigravity\"). Treat Codex's enforcement strength as real but less independently confirmed than Cursor's until that's checked directly.",
     parity_capability: "Capability", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
     cu_sub: "Real deterministic enforcement — just not yet held to the same machine-verified parity bar as Claude Code and Codex.",
     cu_mech: "Cursor's own <code>beforeShellExecution</code> hook calls a thin translator that forwards straight to <code>guard-destructive.sh</code> — the exact same guard Claude Code uses, not a reimplementation.",
@@ -229,6 +231,7 @@ const LANGS = {
     cx_sub: "Được kiểm chứng bằng máy so với Claude Code — harness duy nhất khác đạt chuẩn đó hiện nay.",
     cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, sinh ra từ cùng nguồn <code>core/</code> — không bao giờ duy trì tay riêng.",
     cx_enforce: "<code>check_engine_parity.py</code> làm fail build nếu Codex thiếu bất kỳ instruction/agent/skill/command/hook chung nào.",
+    cx_note: "<strong>\"Parity\" ở đây nghĩa là gì:</strong> các file hook có mặt và được đồng bộ — <code>.codex/hooks.json</code> không duy trì tay, build fail nếu nó lệch khỏi bộ của Claude Code. Còn việc runtime của Codex có thực sự chặn (block) ở mọi hook đó giống hệt Claude Code hay không thì chưa được xác minh độc lập kỹ như đường <code>beforeShellExecution</code> của Cursor — chính <code>README.md</code> cố tình dùng câu thận trọng hơn (\"hard-blocking trên Claude Code và Cursor, advisory guidance trên Codex và Antigravity\"). Coi mức enforce của Codex là có thật nhưng chưa được xác nhận độc lập chắc chắn bằng Cursor cho tới khi kiểm tra trực tiếp.",
     parity_capability: "Capability", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
     cu_sub: "Enforce tất định thật — chỉ là chưa đạt chuẩn parity kiểm bằng máy như Claude Code và Codex.",
     cu_mech: "Hook <code>beforeShellExecution</code> riêng của Cursor gọi 1 translator mỏng, chuyển thẳng tới <code>guard-destructive.sh</code> — đúng guard Claude Code dùng, không viết lại.",
@@ -257,6 +260,7 @@ const LANGS = {
     cx_sub: "오늘날 그 기준에 도달한 유일한 다른 하니스로, Claude Code에 대해 기계적으로 검증됩니다.",
     cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>, 동일한 <code>core/</code> 소스에서 생성됩니다 — 별도로 수동 유지되지 않습니다.",
     cx_enforce: "<code>check_engine_parity.py</code>는 Codex가 공유 instruction/agent/skill/command/hook 중 하나라도 빠지면 빌드를 실패시킵니다.",
+    cx_note: "<strong>여기서 \"parity\"의 의미:</strong> hook <em>파일</em>이 존재하고 동기화되어 있다는 뜻입니다 — <code>.codex/hooks.json</code>은 수동 유지되지 않으며, Claude Code의 세트와 어긋나면 빌드가 실패합니다. Codex 자체 런타임이 그 모든 hook에서 Claude Code와 동일하게 차단을 강제하는지는 Cursor의 <code>beforeShellExecution</code> 경로만큼 철저히 독립 검증되지 않았습니다 — <code>README.md</code> 자체도 여기서는 의도적으로 더 신중한 표현(\"Claude Code와 Cursor에서는 강제 차단, Codex와 Antigravity에서는 권고 수준\")을 씁니다. 직접 확인되기 전까지 Codex의 집행 강도는 실재하지만 Cursor만큼 독립적으로 확인되지는 않은 것으로 취급하세요.",
     parity_capability: "기능", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
     cu_sub: "실제 결정론적 집행이 있지만, 아직 Claude Code와 Codex와 같은 기계 검증 동등성 기준에는 도달하지 못했습니다.",
     cu_mech: "Cursor 자체의 <code>beforeShellExecution</code> 훅이 얇은 번역기를 호출해 <code>guard-destructive.sh</code>로 그대로 전달합니다 — Claude Code가 쓰는 것과 동일한 가드이며 재구현이 아닙니다.",
@@ -285,6 +289,7 @@ const LANGS = {
     cx_sub: "目前唯一另一个被机器验证达到 Claude Code 同等标准的宿主。",
     cx_mech: "<code>.codex/hooks.json</code> + <code>.codex/agents/*.toml</code>，从同一个 <code>core/</code> 源生成——绝不单独手工维护。",
     cx_enforce: "如果 Codex 缺少任何共享的 instruction、agent、skill、command 或激活的 hook，<code>check_engine_parity.py</code> 会使构建失败。",
+    cx_note: "<strong>这里\"parity\"的含义：</strong>hook <em>文件</em>确实存在并保持同步——<code>.codex/hooks.json</code> 不是手工维护的，一旦它与 Claude Code 的集合出现偏差，构建就会失败。但 Codex 自身运行时是否会像 Claude Code 那样对每一个 hook 都真正执行拦截，尚未像 Cursor 的 <code>beforeShellExecution</code> 路径那样经过同等严格的独立验证——<code>README.md</code> 自身也刻意使用了更谨慎的措辞（\"在 Claude Code 和 Cursor 上是强制拦截，在 Codex 和 Antigravity 上仅为建议\"）。在直接核实之前，请将 Codex 的执行强度视为真实存在、但不如 Cursor 那样经过独立确认。",
     parity_capability: "能力", parity_instructions: "Instructions", parity_agents: "Agents", parity_hooks: "Hooks",
     cu_sub: "拥有真正的确定性执行——只是尚未达到与 Claude Code 和 Codex 同等的机器验证对等标准。",
     cu_mech: "Cursor 自身的 <code>beforeShellExecution</code> hook 调用一个轻量转换器，直接转发给 <code>guard-destructive.sh</code>——与 Claude Code 使用的完全是同一个防护，而非重新实现。",

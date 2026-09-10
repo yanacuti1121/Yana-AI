@@ -296,6 +296,32 @@ small,
   color: #3d3834;
 }
 
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  color: #312c28;
+}
+
+.markdown-body code {
+  color: #3d3834;
+  background: #ece7e0;
+}
+
+.markdown-body blockquote {
+  color: #7a7268;
+  border-left-color: #d9d2c8;
+}
+
+.markdown-body a {
+  color: #a34f6c;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border-color: #e3ddd5;
+}
+
 .inspector-tabs button {
   color: #746d66;
 }

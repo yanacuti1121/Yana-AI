@@ -204,6 +204,19 @@ files. Ask the human to confirm before running this.
 | **Điều phối** | Task, mission, memory, evidence và workspace | router, mission dispatcher, event bus |
 | **Quản trị** | Check tất định, audit chain, quarantine, HALT và human gate | capability, hook, Yana OS, Giám Thị |
 
+## Một hệ sinh thái
+
+Yana AI Desktop, CLI, và mọi thứ nêu trên đều là các surface trên cùng một control plane — không phải sáu sản phẩm riêng biệt. Nhãn trạng thái bên dưới là mô tả trung thực, không phải marketing: `Live` nghĩa là đã ra mắt và đang được dùng thật hôm nay, `In development` nghĩa là code thật đã tồn tại nhưng chưa hoàn thiện tính năng, `Experimental` nghĩa là opt-in và chưa được kiểm chứng độc lập end-to-end.
+
+| Nhánh | Trạng thái | Đây là gì |
+| --- | --- | --- |
+| **Runtime** (`yana-rt`) | Live | Bộ máy chính — canonical Rust TurnEngine, một contract thẩm quyền duy nhất cho cả model local và cloud. [yana.vutam.link/runtime.html](https://yana.vutam.link/runtime.html) |
+| **Governance** | Live | Capability manifest, human approval, HALT fail-closed của Giám Thị, audit chain có thể phát hiện can thiệp. [yana.vutam.link/governance.html](https://yana.vutam.link/governance.html) |
+| **Yana Studio** | In development | Workspace trực quan cho Yana — files, terminal, model, governance telemetry trong một cửa sổ. `v0.1.0`, được xây dựng công khai tại [`tools/yana-studio`](tools/yana-studio); README riêng của nó nói rõ đang xây nền tảng hoạt động thật trước, giao diện làm sau, không phải ngược lại. |
+| **Yana OS** | In development | Nền tảng bên dưới Yana AI, không phải một surface song song — agent lifecycle, autonomy, health, được xây trên Runtime chứ không thay thế nó. Xem [Yana OS — quản lý hệ thống AI](#yana-os--quản-lý-hệ-thống-ai) bên dưới. |
+| **Integrations** | Live, enforcement varies by host | Claude Code, Codex, Cursor, Antigravity — cùng một governance contract, hiện thực hoá khác nhau tuỳ host. [yana.vutam.link/integrations.html](https://yana.vutam.link/integrations.html) có bảng so sánh trung thực theo từng host, bao gồm cả chỗ enforcement là hook thật hay chỉ là chỉ dẫn ở mức prompt. |
+| **Yana Wheelbot** | Experimental | Yana vượt ra ngoài màn hình — nền tảng robotics ESP32-S3 trong repository riêng, [`yana-wheelbot`](https://github.com/yanacuti1121/yana-wheelbot). Độ hoàn thiện hardware/firmware chưa được kiểm toán độc lập từ repo này. |
+
 ```text
  Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
                     │                                           │
@@ -793,9 +806,9 @@ Yana AI có 3 trục version độc lập — có chủ đích, không phải l�
 
 | Trục | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.8** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.5.0** | Không có — không phân phối qua npm, xem [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.5.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **1.5.0** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 Nếu anh thấy 3 số version khác nhau trong repo này (kể cả `git tag`, các mục cũ trong `ROADMAP.md` viết trước khi tách trục ngày 2026-07-05, hay badge phía trên) — đó là bình thường, xem đầy đủ lý do tại [VERSIONING.md](VERSIONING.md).
 

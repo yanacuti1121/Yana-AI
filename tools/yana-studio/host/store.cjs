@@ -2,10 +2,53 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { profileInput } = require("./runtime.cjs");
+const { CANVAS_PART_KINDS } = require("./canvas-ai.cjs");
 
 function validateState(value) {
   const text = (input) => typeof input === "string";
   const tokenCount = (input) => Number.isSafeInteger(input) && input >= 0;
+  const boundedText = (input, limit = 2000) =>
+    text(input) && Buffer.byteLength(input, "utf8") <= limit;
+  const finite = (input, low, high) =>
+    Number.isFinite(input) && input >= low && input <= high;
+  const canvasPart = (part) =>
+    part &&
+    boundedText(part.id, 200) &&
+    CANVAS_PART_KINDS.includes(part.kind) &&
+    boundedText(part.label) &&
+    finite(part.x, 0, 4000) &&
+    finite(part.y, 0, 4000) &&
+    finite(part.width, 20, 2000) &&
+    finite(part.height, 8, 2000) &&
+    (part.hidden === undefined || typeof part.hidden === "boolean") &&
+    (part.locked === undefined || typeof part.locked === "boolean") &&
+    (part.opacity === undefined || finite(part.opacity, 0, 1)) &&
+    (part.fill === undefined || /^#[0-9a-f]{6}$/i.test(part.fill)) &&
+    (part.radius === undefined || finite(part.radius, 0, 999));
+  const canvasScreen = (screen) =>
+    screen &&
+    boundedText(screen.id, 200) &&
+    boundedText(screen.name, 200) &&
+    ["phone", "desktop"].includes(screen.device) &&
+    /^#[0-9a-f]{6}$/i.test(screen.background) &&
+    Array.isArray(screen.parts) &&
+    screen.parts.length <= 300 &&
+    screen.parts.every(canvasPart);
+  const canvasDocument = (document) =>
+    document &&
+    document.version === 1 &&
+    boundedText(document.name, 200) &&
+    document.theme &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.accent) &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.surface) &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.foreground) &&
+    ["compact", "rounded", "pill"].includes(document.theme.shape) &&
+    ["system", "serif", "mono"].includes(document.theme.font) &&
+    ["standard", "expressive", "reduced"].includes(document.theme.motion) &&
+    Array.isArray(document.screens) &&
+    document.screens.length >= 1 &&
+    document.screens.length <= 20 &&
+    document.screens.every(canvasScreen);
   const usage = (input) =>
     input === undefined ||
     (input && tokenCount(input.input) && tokenCount(input.output));
@@ -30,6 +73,15 @@ function validateState(value) {
     value.chats.length > 100
   )
     throw new Error("Invalid workspace schema");
+  if (
+    !value.designs ||
+    Array.isArray(value.designs) ||
+    Object.keys(value.designs).length > 20 ||
+    !Object.entries(value.designs).every(
+      ([root, document]) => path.isAbsolute(root) && canvasDocument(document),
+    )
+  )
+    throw new Error("Invalid design canvas state");
   if (
     !value.projects.every(
       (project) =>
@@ -68,6 +120,8 @@ function validateState(value) {
     !["vi", "ko", "en"].includes(value.preferences.locale)
   )
     throw new Error("Invalid interface preferences");
+  if (typeof value.onboardingCompleted !== "boolean")
+    throw new Error("Invalid onboarding state");
   if (
     !value.layout ||
     !["sidebar", "inspector", "dock"].every(
@@ -97,7 +151,9 @@ class Store {
       chats: [],
       profile: { provider: "ollama", model: "", baseUrl: "" },
       preferences: { locale: "vi" },
+      onboardingCompleted: false,
       layout: { sidebar: 250, inspector: 330, dock: 280 },
+      designs: {},
       runtime: "",
     };
     this.warning = "";

@@ -26,6 +26,7 @@ function createBackup(state) {
       profile: state.profile,
       preferences: state.preferences,
       layout: state.layout,
+      designs: state.designs || {},
     },
   };
 }
@@ -41,7 +42,7 @@ function readBackup(file) {
     backup.data?.schema !== 1
   )
     throw new Error("Unsupported Yana Studio backup");
-  return backup.data;
+  return { ...backup.data, designs: backup.data.designs || {} };
 }
 
 function writeBackup(file, state) {

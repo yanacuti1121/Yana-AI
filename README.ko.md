@@ -204,6 +204,19 @@ files. Ask the human to confirm before running this.
 | **오케스트레이션** | Task, mission, memory, evidence, workspace | router, mission dispatcher, event bus |
 | **거버넌스** | 결정론적 검사, audit chain, quarantine, HALT, human gate | capability, hook, Yana OS, Giám Thị |
 
+## 하나의 생태계
+
+Yana AI Desktop, CLI, 그리고 위에서 설명한 모든 것은 여섯 개의 개별 제품이 아니라 하나의 동일한 control plane 위에 있는 surface입니다. 아래 상태 표시는 마케팅이 아니라 정직한 설명입니다: `Live`는 오늘 실제로 출시되어 사용되고 있다는 뜻이고, `In development`는 실제 코드는 존재하지만 기능이 아직 완성되지 않았다는 뜻이며, `Experimental`은 opt-in 상태이고 아직 end-to-end로 독립 검증되지 않았다는 뜻입니다.
+
+| 브랜치 | 상태 | 설명 |
+| --- | --- | --- |
+| **런타임** (`yana-rt`) | Live | 엔진 그 자체 — local과 cloud 모델을 위한 canonical Rust TurnEngine이자 하나의 권한 contract. [yana.vutam.link/runtime.html](https://yana.vutam.link/runtime.html) |
+| **거버넌스** | Live | Capability manifest, human approval, Giám Thị의 fail-closed HALT, 변조 감지가 가능한 audit chain. [yana.vutam.link/governance.html](https://yana.vutam.link/governance.html) |
+| **Yana Studio** | In development | Yana를 위한 시각적 workspace — 파일, terminal, 모델, 거버넌스 telemetry를 하나의 창에서 다룹니다. `v0.1.0`, [`tools/yana-studio`](tools/yana-studio)에서 공개적으로 개발 중이며, 자체 README에서 인터페이스보다 실제로 작동하는 기반을 먼저 만들고 있다고 명시합니다. |
+| **Yana OS** | In development | Yana AI와 나란한 surface가 아니라 그 아래에 있는 platform입니다 — agent lifecycle, autonomy, health를 다루며 Runtime을 대체하지 않고 그 위에 구축됩니다. 아래 [Yana OS — AI 시스템 관리](#yana-os--ai-시스템-관리)를 참고하세요. |
+| **Integrations** | Live, enforcement varies by host | Claude Code, Codex, Cursor, Antigravity — 하나의 거버넌스 contract가 host마다 다르게 구현됩니다. 실제 hook인지 prompt 수준 지시인지까지 포함한 정직한 host별 비교는 [yana.vutam.link/integrations.html](https://yana.vutam.link/integrations.html)에서 확인하세요. |
+| **Yana Wheelbot** | Experimental | 화면 너머의 Yana — 별도 저장소 [`yana-wheelbot`](https://github.com/yanacuti1121/yana-wheelbot)에 있는 ESP32-S3 로보틱스 플랫폼입니다. Hardware/firmware 성숙도는 이 저장소에서 독립적으로 감사되지 않았습니다. |
+
 ```text
  Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
                     │                                           │
@@ -794,9 +807,9 @@ Yana AI는 3개의 독립적으로 버전이 매겨지는 릴리스 축을 가�
 
 | 축 | 버전 | 레지스트리 |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.8** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
-| Rust 런타임 (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python 패키지 | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.5.0** | 없음 — npm으로 배포하지 않음, [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) 참고 |
+| Rust 런타임 (`yana-rt`) | **1.5.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python 패키지 | **1.5.0** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 이 저장소에서 3개의 서로 다른 버전 번호를 보게 되더라도(`git tag`, 2026-07-05 축 분리 이전에 작성된 `ROADMAP.md`의 옛 항목, 위 배지 포함) — 정상입니다. 전체 이유는 [VERSIONING.md](VERSIONING.md)에서 확인하세요.
 

@@ -29,18 +29,35 @@ const server = http.createServer((request, response) => {
   let body = "";
   request.on("data", (chunk) => (body += chunk));
   request.on("end", () => {
-    requests.push(JSON.parse(body));
+    const payload = JSON.parse(body);
+    requests.push(payload);
     response.writeHead(200, { "Content-Type": "text/event-stream" });
-    const text = body.includes("WAIT_FOR_CANCEL")
-      ? "Waiting "
-      : "Xin chào từ runtime thật. ";
+    const canvasRequest = body.includes(
+      "structured design engine inside Yana Studio",
+    );
+    const text = canvasRequest
+      ? JSON.stringify({
+          summary: "Đổi màu nhấn sang xanh dương",
+          operations: [
+            {
+              type: "update_theme",
+              patch: { accent: "#2563eb" },
+            },
+          ],
+        })
+      : body.includes("WAIT_FOR_CANCEL")
+        ? "Waiting "
+        : 'Xin chào từ runtime thật. **đậm** `code` <img src=x onerror="window.__xssFired = true"> ';
     let count = 0;
     const timer = setInterval(() => {
       response.write(
         `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: text }, finish_reason: null }] })}\n\n`,
       );
       count++;
-      if (!body.includes("WAIT_FOR_CANCEL") && count === 2) {
+      if (
+        !body.includes("WAIT_FOR_CANCEL") &&
+        count === (canvasRequest ? 1 : 2)
+      ) {
         clearInterval(timer);
         response.end("data: [DONE]\n\n");
       }
@@ -347,6 +364,51 @@ try {
     first,
   );
   await page.getByRole("button", { name: "Tile all terminals" }).click();
+  await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
+  const canvas = page.locator(".design-canvas");
+  await expect(canvas.getByText("THÀNH PHẦN", { exact: true })).toBeVisible();
+  await expect(canvas.locator(".canvas-part-grid > button")).toHaveCount(22);
+  await expect(canvas.getByLabel("Yêu cầu AI chỉnh Canvas")).toBeVisible();
+  await expect(
+    canvas.getByRole("button", { name: "Tạo đề xuất" }),
+  ).toBeDisabled();
+  await canvas
+    .getByLabel("Yêu cầu AI chỉnh Canvas")
+    .fill("Đổi màu nhấn sang xanh dương");
+  await canvas.getByRole("button", { name: "Tạo đề xuất" }).click();
+  await expect(canvas.getByText("1 thay đổi có kiểm tra")).toBeVisible();
+  await canvas.getByRole("button", { name: "Áp dụng vào Canvas" }).click();
+  await expect(canvas.getByLabel("Accent")).toHaveValue("#2563eb");
+  requests = [];
+  await canvas.getByRole("button", { name: "Phóng to canvas" }).click();
+  await expect(canvas.getByText("85%", { exact: true })).toBeVisible();
+  await canvas.getByRole("button", { name: "Button", exact: true }).click();
+  await canvas.getByLabel("Nội dung").fill("Launch Yana");
+  await canvas.getByTitle("Nhân đôi ⌘D").click();
+  await expect(canvas.locator(".canvas-layer-row")).toHaveCount(2);
+  await canvas.getByTitle("Căn trái").click();
+  await canvas.getByLabel("Độ mờ layer").fill("0.7");
+  await canvas.getByTitle("Khóa", { exact: true }).click();
+  await expect(
+    canvas.getByRole("button", { name: "Xóa", exact: true }),
+  ).toBeDisabled();
+  await canvas.getByTitle("Mở khóa", { exact: true }).click();
+  const selectedLayer = canvas.locator(".canvas-layer-row.selected");
+  await selectedLayer.getByRole("button", { name: "Ẩn layer" }).click();
+  await expect(canvas.locator(".canvas-screen .canvas-part")).toHaveCount(1);
+  await selectedLayer.getByRole("button", { name: "Hiện layer" }).click();
+  await expect(canvas.locator(".canvas-screen .canvas-part")).toHaveCount(2);
+  await canvas.getByTitle("Nhân đôi màn hình").click();
+  await expect(canvas.locator(".canvas-screen-list > button")).toHaveCount(3);
+  fs.mkdirSync(path.join(appRoot, "artifacts"), { recursive: true });
+  await page.screenshot({
+    path: path.join(appRoot, "artifacts/design-canvas.png"),
+  });
+  await canvas.getByRole("button", { name: "Gửi sang Yana" }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Message to Yana" }),
+  ).toHaveValue(/Launch Yana/);
+  await page.getByRole("textbox", { name: "Message to Yana" }).fill("");
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   await expect(
     page.getByRole("button", { name: "Thêm file làm ngữ cảnh" }),
@@ -415,6 +477,31 @@ try {
     "Xin chào từ runtime thật.",
     { timeout: 15000 },
   );
+  // Real end-to-end proof the sanitized-Markdown pipeline (marked +
+  // DOMPurify, renderer/markdown.ts) actually renders in Chromium, not
+  // just that the type-checker is happy: **đậm**/`code` must come out as
+  // real <strong>/<code> elements, and the raw ** / ` markers must not
+  // show up literally in the rendered text.
+  await expect(
+    page.locator(".message.assistant .markdown-body strong").first(),
+  ).toHaveText("đậm");
+  await expect(
+    page.locator(".message.assistant .markdown-body code").first(),
+  ).toHaveText("code");
+  await expect(
+    page.locator(".message.assistant .message-body"),
+  ).not.toContainText("**đậm**");
+  // Same message also carries a raw <img onerror=...> XSS payload — <img>
+  // isn't in renderMarkdown()'s ALLOWED_TAGS, so DOMPurify must strip the
+  // whole element. Assert both that the handler never fired AND that no
+  // <img> element exists, not just one or the other.
+  expect(
+    await page.evaluate(() => window.__xssFired),
+    "onerror handler from an injected <img> must never execute",
+  ).toBeUndefined();
+  await expect(
+    page.locator(".message.assistant .markdown-body img"),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Dừng", exact: true }),
   ).toHaveCount(0, { timeout: 15000 });
@@ -453,6 +540,10 @@ try {
   await closeApplication();
   application = null;
   page = await launch();
+  await page.locator("nav").getByRole("button", { name: "Thiết kế" }).click();
+  await expect(
+    page.locator(".canvas-part", { hasText: /^Launch Yana$/ }),
+  ).toBeVisible();
   await page.locator("nav").getByRole("button", { name: "Trò chuyện" }).click();
   await expect(page.locator(".message.user")).toHaveCount(3);
   await expect(page.locator(".terminal-pane")).toHaveCount(0);
@@ -467,6 +558,25 @@ try {
   await page.getByLabel("Email").fill("local-user@example.test");
   await page.getByLabel("Mật khẩu").fill("studio-password-2026");
   await page.getByRole("button", { name: "Tạo hồ sơ local" }).click();
+  await expect(
+    page.getByRole("heading", { name: /quyền quyết định vẫn thuộc về anh/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await expect(page.getByText("Design Canvas", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await expect(
+    page.getByText("AI đề xuất. Yana kiểm tra. Anh phê duyệt."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await page.getByRole("button", { name: "Vào Workspace" }).click();
+  await expect(page.locator(".app")).toBeVisible();
+  await page
+    .locator(".sidebar-bottom")
+    .getByRole("button", { name: "Cài đặt", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Xem lại giới thiệu Studio" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Khóa Studio" }).click();
   await expect(
     page.getByRole("heading", { name: "Yana Studio đã khóa" }),
@@ -485,7 +595,7 @@ try {
   await expect(page.locator(".app")).toBeVisible();
   await expect(page.locator(".recent")).toContainText("Workspace");
   console.log(
-    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
+    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, Design Canvas persistence and chat prompt bridge, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
   );
 } catch (error) {
   if (application) {

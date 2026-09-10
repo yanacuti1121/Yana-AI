@@ -21,6 +21,100 @@ export type DiffComment = {
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
 export type Preferences = { locale: "vi" | "ko" | "en" };
+export type CanvasPartKind =
+  | "button"
+  | "text"
+  | "input"
+  | "textarea"
+  | "select"
+  | "checkbox"
+  | "radio"
+  | "card"
+  | "tabs"
+  | "nav"
+  | "sidebar"
+  | "hero"
+  | "chip"
+  | "badge"
+  | "avatar"
+  | "search"
+  | "list"
+  | "table"
+  | "modal"
+  | "image"
+  | "divider"
+  | "switch";
+export type CanvasPart = {
+  id: string;
+  kind: CanvasPartKind;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  hidden?: boolean;
+  locked?: boolean;
+  opacity?: number;
+  fill?: string;
+  radius?: number;
+};
+export type CanvasScreen = {
+  id: string;
+  name: string;
+  device: "phone" | "desktop";
+  background: string;
+  parts: CanvasPart[];
+};
+export type CanvasDocument = {
+  version: 1;
+  name: string;
+  theme: {
+    accent: string;
+    surface: string;
+    foreground: string;
+    shape: "compact" | "rounded" | "pill";
+    font: "system" | "serif" | "mono";
+    motion: "standard" | "expressive" | "reduced";
+  };
+  screens: CanvasScreen[];
+};
+export type CanvasAiOperation =
+  | {
+      type: "add_part";
+      screenId: string;
+      part: Omit<CanvasPart, "id">;
+    }
+  | {
+      type: "update_part";
+      screenId: string;
+      partId: string;
+      patch: Partial<Omit<CanvasPart, "id" | "kind">>;
+    }
+  | {
+      type: "delete_part";
+      screenId: string;
+      partId: string;
+    }
+  | {
+      type: "update_screen";
+      screenId: string;
+      patch: Partial<Omit<CanvasScreen, "id" | "parts">>;
+    }
+  | {
+      type: "update_theme";
+      patch: Partial<CanvasDocument["theme"]>;
+    };
+export type CanvasAiProposal = {
+  summary: string;
+  operations: CanvasAiOperation[];
+};
+// host/design-tokens.cjs's best-effort scan of the project's own CSS —
+// only present per category when a real match was found, never fabricated.
+export type DesignTokenScan = {
+  accent?: { value: string; file: string };
+  surface?: { value: string; file: string };
+  foreground?: { value: string; file: string };
+};
 export type Locale = Preferences["locale"];
 export type FileEntry = { name: string; path: string; directory: boolean };
 export type FilePage = {
@@ -241,6 +335,7 @@ export type State = {
   warning: string;
   version: string;
   platform: string;
+  onboardingCompleted: boolean;
   account: {
     configured: boolean;
     locked: boolean;
@@ -384,12 +479,14 @@ declare global {
       terminalClose(id: string): Promise<boolean>;
       saveLayout(layout: Layout): Promise<Layout>;
       savePreferences(preferences: Preferences): Promise<State>;
+      completeOnboarding(): Promise<State>;
       saveProfile(profile: Profile, key: string): Promise<State>;
       clearProviderKey(provider: string): Promise<State>;
       discoverModels(profile: Profile, key: string): Promise<string[]>;
       inspectLocalModels(): Promise<LocalModelRuntime[]>;
       chooseRuntime(): Promise<string | null>;
       newChat(root: string): Promise<Chat>;
+      removeChat(id: string): Promise<boolean>;
       sendChat(id: string, task: string, userInput?: string): Promise<boolean>;
       stopChat(id: string): Promise<boolean>;
       decideApproval(id: string, decision: boolean): Promise<boolean>;
@@ -430,6 +527,18 @@ declare global {
         file: string,
         id: string,
       ): Promise<DiffComment[]>;
+      designCanvasLoad(root: string): Promise<CanvasDocument | null>;
+      designCanvasSave(
+        root: string,
+        document: CanvasDocument,
+      ): Promise<CanvasDocument>;
+      designCanvasSuggest(
+        root: string,
+        document: CanvasDocument,
+        instruction: string,
+        selection: { screenId: string; partId?: string },
+      ): Promise<CanvasAiProposal>;
+      scanDesignTokens(root: string): Promise<DesignTokenScan>;
       on<Key extends keyof Events>(
         channel: Key,
         callback: (event: Events[Key]) => void,

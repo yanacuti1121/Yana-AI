@@ -207,6 +207,23 @@ That is the whole pitch: deterministic rules, runs locally, no LLM in the decisi
 | **Orchestration** | Tasks, missions, memory, evidence, workspaces | router, mission dispatcher, event bus |
 | **Governance** | Deterministic checks, audit chain, quarantine, HALT, human gates | capabilities, hooks, Yana OS, Giám Thị |
 
+## One ecosystem
+
+Yana AI Desktop, the CLI, and everything above are surfaces over the same
+control plane — not six separate products. Status labels below are honest,
+not marketing: `Live` means shipped and used today, `In development` means
+real code exists but isn't feature-complete, `Experimental` means opt-in
+and not yet independently verified end to end.
+
+| Branch | Status | What it is |
+| --- | --- | --- |
+| **Runtime** (`yana-rt`) | Live | The engine — canonical Rust TurnEngine, one authority contract for local and cloud models. [yana.vutam.link/runtime.html](https://yana.vutam.link/runtime.html) |
+| **Governance** | Live | Capability manifests, human approval, Giám Thị's fail-closed HALT, tamper-detectable audit chain. [yana.vutam.link/governance.html](https://yana.vutam.link/governance.html) |
+| **Yana Studio** | In development | The visual workspace for Yana — files, terminal, models, governance telemetry in one window. `v0.1.0`, built in the open at [`tools/yana-studio`](tools/yana-studio); its own README is explicit that it's building the real working foundation before the interface, not the other way around. |
+| **Yana OS** | In development | The platform underneath Yana AI, not a sibling surface — agent lifecycle, autonomy, health, built on the Runtime rather than replacing it. See [Yana OS — managing the AI system](#yana-os--managing-the-ai-system) below. |
+| **Integrations** | Live, enforcement varies by host | Claude Code, Codex, Cursor, Antigravity — one governance contract, materialized differently per host. [yana.vutam.link/integrations.html](https://yana.vutam.link/integrations.html) has the honest per-host breakdown, including where enforcement is a real hook versus a prompt-level instruction. |
+| **Yana Wheelbot** | Experimental | Yana beyond the screen — an ESP32-S3 robotics platform in its own repository, [`yana-wheelbot`](https://github.com/yanacuti1121/yana-wheelbot). Hardware/firmware maturity has not been independently audited from this repo. |
+
 ```text
  Terminal · Discord · Electron Desktop       Claude Code · Codex · Cursor · Antigravity
                     │                                           │
@@ -571,7 +588,7 @@ core/
 ├── agents/         # 101 specialist agent definitions
 ├── skills/         # 2,025 SKILL.md files
 ├── config/
-│   ├── core-lock.json    # SHA-256 manifest — 286 core files pinned
+│   ├── core-lock.json    # SHA-256 manifest — 287 core files pinned
 │   └── skills-lock.json  # skill content hashes
 └── memory/
     ├── L1_atomic/  # permanent facts — persist across sessions
@@ -826,9 +843,9 @@ Yana AI has three independently versioned release axes — deliberate, not drift
 
 | Axis | Version | Registry |
 |---|---|---|
-| Product (rules/hooks/skills/agents/CLI) | **1.4.8** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
-| Rust runtime (`yana-rt`) | **1.4.2** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
-| Python package | **1.4.2** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
+| Product (rules/hooks/skills/agents/CLI) | **1.5.0** | None — not distributed via npm, see [VERSIONING.md](VERSIONING.md#why-product-has-no-registry) |
+| Rust runtime (`yana-rt`) | **1.5.0** | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) |
+| Python package | **1.5.0** | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) |
 
 If you see three different numbers across this repo (including in `git tag`, `ROADMAP.md`'s older entries written before the 2026-07-05 axis split, or the badges above), that's expected — full rationale in [VERSIONING.md](VERSIONING.md).
 
