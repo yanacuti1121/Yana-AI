@@ -62,8 +62,19 @@ class IntegrationManager {
       let problem = this.errors.get(entry.key) || "";
       try {
         saved = this.store.read(entry.key);
-      } catch {
-        problem = "secure_storage_unavailable";
+      } catch (error) {
+        // Preserve which failure this actually was instead of collapsing
+        // every read failure into "secure_storage_unavailable" -- that
+        // label is specifically wrong for credential_store_unreadable,
+        // the case where secure storage itself works fine but this one
+        // entry's ciphertext can no longer be decrypted (e.g. the OS
+        // Keychain item was written under a different app code signature
+        // before a rebuild/re-sign). The renderer uses this to show a
+        // reconnect explanation instead of an opaque error.
+        problem =
+          error.message === "credential_store_unreadable"
+            ? "credential_store_unreadable"
+            : "secure_storage_unavailable";
       }
       return {
         ...entry,
@@ -252,10 +263,16 @@ class IntegrationManager {
     const adapter = this.adapters.get(entry.provider);
     if (!adapter.revoke) throw new Error("revoke_at_provider");
     await adapter.revoke(saved.tokens);
-    for (const related of this.catalog.filter(
-      (item) => item.provider === entry.provider,
-    ))
-      this.disconnect(related.key);
+    // Each catalog key (e.g. google:identity vs google:gmail) is its own
+    // separate authorization() + exchange() round trip against the same
+    // provider client, so it holds its own distinct access/refresh token
+    // under its own store key -- revoking one never actually revokes the
+    // other's grant at the provider. Only clear the key that was actually
+    // revoked; disconnecting sibling keys here used to silently sign a
+    // user out of "Google sign-in" as a side effect of disconnecting
+    // Gmail, contradicting this UI's own stated promise that each
+    // connection carries its own permissions and credential.
+    this.disconnect(key);
     return this.list();
   }
   dispose() {

@@ -220,6 +220,8 @@ const messages = {
     deviceCodeSuffix:
       "tại github.com/login/device vừa mở. Chỉ xác nhận mã do chính anh vừa yêu cầu trong app này.",
     secureStorageNotReady: "OS secure storage chưa sẵn sàng. Không lưu token bằng plaintext.",
+    credentialStoreUnreadableNote:
+      "Không đọc được thông tin đăng nhập đã lưu (thường xảy ra sau khi cập nhật app). Kết nối lại để khôi phục.",
     realPermissionsNote:
       "Quyền thật do nhà cung cấp cấp. Reconnect mở lại màn hình consent; không có checkbox tự cấp quyền.",
     revokeAtGoogle: "Thu hồi tại Google",
@@ -610,6 +612,8 @@ const messages = {
     deviceCodeSuffix:
       "를 방금 열린 github.com/login/device에 입력하세요. 이 앱에서 직접 요청한 코드만 확인하세요.",
     secureStorageNotReady: "OS secure storage가 아직 준비되지 않았습니다. 토큰을 평문으로 저장하지 않습니다.",
+    credentialStoreUnreadableNote:
+      "저장된 자격 증명을 읽을 수 없습니다 (앱 업데이트 후 흔히 발생). 다시 연결하면 복구됩니다.",
     realPermissionsNote:
       "실제 권한은 제공자가 부여합니다. Reconnect는 동의 화면을 다시 엽니다 — 자동 부여 체크박스는 없습니다.",
     revokeAtGoogle: "Google에서 취소",
@@ -1000,6 +1004,8 @@ const messages = {
     deviceCodeSuffix:
       "at the github.com/login/device page that just opened. Only confirm a code you just requested in this app.",
     secureStorageNotReady: "OS secure storage isn't ready yet. Tokens are never stored in plaintext.",
+    credentialStoreUnreadableNote:
+      "Couldn't read the saved credential (often happens after an app update). Reconnect to restore it.",
     realPermissionsNote:
       "Real permissions come from the provider. Reconnect reopens the consent screen — there's no auto-grant checkbox.",
     revokeAtGoogle: "Revoke at Google",
