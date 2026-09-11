@@ -73,17 +73,32 @@ jobs:
   # Workstream B / B7 follow-up (2026-08-16): same "release gate weaker
   # than PR gate" fix as release.yml/desktop.yml -- see release.yml's
   # comment on its own verify-provenance job for the full rationale.
-  # Runs unconditionally (no per-target `if:`) since either publish job
-  # below can depend on it via `needs:` regardless of which target this
-  # run is actually publishing to -- simpler than duplicating the
-  # publish-pypi/publish-crates `if:` conditions here. Consequences of
-  # skipping this on a genuinely broken commit are higher here than for
-  # release.yml/desktop.yml: crates.io and PyPI don't allow re-uploading
-  # a version number once yanked, unlike a GitHub Release asset.
+  # Runs for any push-tag/workflow_dispatch trigger (both already scoped
+  # to this workflow's own two axes by `on.push.tags` / the dispatch
+  # input) without a per-target `if:`, since either publish job below can
+  # depend on it via `needs:` regardless of which target this run is
+  # actually publishing to -- simpler than duplicating the
+  # publish-pypi/publish-crates `if:` conditions here.
+  #
+  # 2026-09-11 fix: `release: types: [published]` has NO tag filter at
+  # all -- it fires for every GitHub Release, Studio/Desktop included.
+  # Before this `if:` existed, publishing e.g. `studio-v1.5.1` ran this
+  # job anyway, which failed loudly (red X on the commit, a false alarm
+  # someone has to go triage) because a Studio release's commit was
+  # never going to carry PyPI/crates.io's required-checks provenance in
+  # the first place -- it isn't publishing to either registry. The two
+  # publish jobs below already no-op correctly for a non-matching release
+  # tag via their own `if:`, so this job doing the same work for a
+  # release this workflow was never going to act on was pure noise, not
+  # a safety net: skipping it here does not skip any real publish.
   verify-provenance:
     name: Verify commit passed required CI
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: >-
+      github.event_name != 'release' ||
+      startsWith(github.event.release.tag_name, 'py-v') ||
+      startsWith(github.event.release.tag_name, 'rt-v')
     permissions:
       contents: read
       checks: read
