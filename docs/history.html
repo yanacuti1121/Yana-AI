@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lịch sử phát triển — sự cố thật, không tô hồng</title>
+  <meta name="description" content="Yana không giả vờ quá trình phát triển luôn hoàn hảo. Release thất bại, regression, packaging bug, CI failure — mỗi sự cố kèm root cause, fix và thay đổi kiến trúc sau đó.">
+  <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
+</head>
+<body>
+<nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><a href="ecosystem.html">Hệ sinh thái</a><a href="architecture.html">Kiến trúc</a><a href="history.html" aria-current="page">Lịch sử</a><a href="en.html">EN</a></div><div class="nav-actions"><a class="nav-cta" href="download.html">Dùng Yana</a></div></nav>
+<main>
+
+  <section class="hero"><div class="hero-inner">
+    <p class="eyebrow">BUILT IN THE OPEN</p>
+    <h1>Yana đã lớn lên<br>qua những sự cố thật.</h1>
+    <p class="hero-copy">Release thất bại, regression, packaging bug, CI failure, và những lần phải redesign — tất cả để lại dấu vết trong Git history. Đây là trang kể đầy đủ: chuyện gì xảy ra, root cause, cách sửa, và hệ thống thay đổi thế nào sau đó.</p>
+    <p class="hero-copy" style="font-weight:650;color:var(--ink)">Engineering credibility đến từ sự minh bạch, không phải từ việc không bao giờ mắc lỗi.</p>
+  </div></section>
+
+  <section class="section" id="timeline"><div class="section-head"><p class="eyebrow">TIMELINE</p><h2>Bốn sự cố thật, bốn lần hệ thống cứng cáp hơn.</h2></div>
+    <div class="history-timeline">
+      <div class="history-step"><small>08–11 Jul 2026</small><strong>CLI wrapper recursion</strong><span>yana-rt-wrapper.js tự gọi lại chính nó qua PATH</span></div>
+      <div class="history-step"><small>01 Sep 2026</small><strong>Desktop v1.4.4 → v1.4.6</strong><span>Server thiếu node_modules trong bản đóng gói</span></div>
+      <div class="history-step"><small>09–11 Sep 2026</small><strong>macOS "app is damaged"</strong><span>Ad-hoc signature không khớp bundle đầy đủ</span></div>
+      <div class="history-step"><small>11 Sep 2026</small><strong>Circuit-breaker / core-lock drift</strong><span>Fix chưa được đồng bộ vào lockfile → Giám Thị HALT</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-wrapper">
+    <div class="section-head"><p class="eyebrow">SỰ CỐ 1 — 08–11 Jul 2026</p><h2>CLI wrapper tự đệ quy vô hạn qua PATH.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>Chuyện gì xảy ra</strong><span>Wrapper CLI (<code>scripts/yana-rt-wrapper.js</code>) resolve tên lệnh <code>yana-rt</code> qua PATH, và PATH trỏ ngược lại chính wrapper — self-recursion vô hạn, CPU 100%, máy nóng tới 116°C, phải force shutdown (<code>55baba91</code>, 08/07; <code>727f6623</code>, <code>22e93c5f</code>, 09/07).</span></div>
+        <div class="visual-row"><strong>Root cause</strong><span>Không có recursion guard khi resolve binary target — wrapper tin PATH một cách vô điều kiện.</span></div>
+        <div class="visual-row"><strong>Cách sửa</strong><span>Thêm recursion guard (env flag) trước khi exec, chặn wrapper gọi lại chính nó.</span></div>
+        <div class="visual-row"><strong>Thay đổi hệ thống</strong><span>Rule <code>71-entry-point-verify-law.md</code> ra đời (<code>6792487a</code>, 10/07): mọi file entry-point (wrapper CLI, bin) bắt buộc verify bằng exec() thật, không chỉ đọc lại diff. Một gap trong chính rule đó được vá thêm một ngày sau (<code>a751af06</code>, 11/07) — kể cả rule an toàn cũng cần review độc lập.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-desktop">
+    <div class="section-head"><p class="eyebrow">SỰ CỐ 2 — 01 Sep 2026</p><h2>Desktop v1.4.4 phát hành hỏng hoàn toàn.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>Chuyện gì xảy ra</strong><span>v1.4.4 phát hành (<code>e3a18505</code>) nhưng server bên trong bản đóng gói thiếu toàn bộ <code>node_modules</code> — app tải về không chạy được. Chỉ phát hiện khi mở thật bản đã tải, chạy trực tiếp từ terminal, không phải qua log CI xanh.</span></div>
+        <div class="visual-row"><strong>Root cause</strong><span>Bước đóng gói không copy dependency của server con vào artifact cuối — CI chỉ kiểm tra build thành công, không kiểm tra app đã đóng gói có chạy được không.</span></div>
+        <div class="visual-row"><strong>Cách sửa</strong><span>v1.4.5 (<code>b6d65cae</code>) sửa lần đầu — chưa đủ. v1.4.6 (<code>afbdc50d</code>) mới thật sự đóng gói đúng node_modules. 3 bản phát hành trong cùng một ngày.</span></div>
+        <div class="visual-row"><strong>Thay đổi hệ thống</strong><span>Bài học trực tiếp dẫn tới nguyên tắc: CI xanh không chứng minh gì cả nếu không launch bản build thật. Cùng bài học này được áp dụng lại khi xây packaging pipeline cho Yana Studio hai tuần sau.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-macos">
+    <div class="section-head"><p class="eyebrow">SỰ CỐ 3 — 09–11 Sep 2026</p><h2>macOS báo "Yana Studio is damaged".</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>Chuyện gì xảy ra</strong><span>Packaging pipeline đầu tiên cho Yana Studio (<code>9aadc491</code>, 09/09) dùng <code>identity: null</code> trong cấu hình electron-builder — bỏ qua bước ký hoàn toàn. Gatekeeper trên macOS báo app "bị hỏng" ngay khi mở bản tải về.</span></div>
+        <div class="visual-row"><strong>Root cause</strong><span>Electron skeleton có sẵn chữ ký ad-hoc từ trước, nhưng sau khi thêm resource vào bundle (extraResources), chữ ký cũ không còn khớp nội dung thật — <code>codesign --verify --deep --strict</code> báo "code has no resources but signature indicates they must be present".</span></div>
+        <div class="visual-row"><strong>Cách sửa</strong><span>Thêm hook <code>afterSign</code> (<code>scripts/after-sign-mac.cjs</code>) ký lại toàn bộ bundle sau khi đóng gói xong (<code>dd427d54</code>, 11/09), thay vì dựa vào chữ ký mặc định của skeleton.</span></div>
+        <div class="visual-row"><strong>Thay đổi hệ thống</strong><span>Trang download có hướng dẫn Gatekeeper đầy đủ, kèm inline steps cho từng hệ điều hành — không chỉ một dòng cảnh báo.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-corelock">
+    <div class="section-head"><p class="eyebrow">SỰ CỐ 4 — 11 Sep 2026</p><h2>Một fix đúng vẫn khiến Giám Thị HALT.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>Chuyện gì xảy ra</strong><span>Bug half-open reset trong circuit breaker (<code>src/guard/token_budget.rs</code>) được sửa đúng (<code>e39a9c4d</code>) — nhưng manifest hash pin của <code>core-lock.json</code> không được cập nhật cùng lúc.</span></div>
+        <div class="visual-row"><strong>Root cause</strong><span>File trong <code>core/rules/</code>, <code>core/hooks/</code>, <code>core/gates/</code>, <code>core/scripts/</code> được pin bằng SHA-256. Sửa một file trong vùng này mà quên chạy <code>update-core-lock.sh</code> khiến hash không khớp — đúng như thiết kế, không phải bug của Giám Thị.</span></div>
+        <div class="visual-row"><strong>Cách sửa</strong><span>Chạy lại <code>update-core-lock.sh</code>, regenerate manifest, commit cùng lúc với fix gốc (<code>605d9aff</code>, #339).</span></div>
+        <div class="visual-row"><strong>Thay đổi hệ thống</strong><span>Đây chính là hệ thống hoạt động đúng thiết kế: một thay đổi hợp lệ nhưng thiếu bước đồng bộ vẫn bị chặn lại tự động, thay vì âm thầm lọt qua. Fail-closed, không fail-open.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote-band"><p class="eyebrow">YANA PRINCIPLE</p><h2>Lịch sử phát triển<br>là một phần của sản phẩm.</h2><p>Mỗi sự cố ở trên đều để lại một rule, một hook, hoặc một bước CI mới — không phải một lời xin lỗi.</p><div class="hero-actions"><a class="button light" href="index.html">Về trang chủ</a><a class="button ghost" href="safety.html">Xem Safety / Guardrails</a></div></section>
+
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-logo.png" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio 1.5</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer>
+<script src="assets/ecosystem-pages.js"></script>
+</body></html>
