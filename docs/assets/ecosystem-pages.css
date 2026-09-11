@@ -11,6 +11,7 @@
   --ice: #e9f4ff;
   --shadow: 0 28px 80px rgba(54, 67, 116, .16);
   --sans: "Inter", "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -176,28 +177,87 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 @media(max-width:620px){.site-nav{padding:0 16px}.brand span,.nav-cta{display:none}.hero{padding-top:70px}.hero-stage{margin-top:44px;min-height:380px}.studio-shell{grid-template-columns:1fr}.shell-side{display:none}.section{width:min(100% - 28px,1180px);padding:60px 0}.product-grid,.registry-row{grid-template-columns:1fr}.feature-visual{min-height:350px;padding:18px}.diagram-row{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr}.mega-list{grid-template-columns:1fr}}
 .reveal{opacity:0;transform:translateY(22px);transition:opacity 1.05s cubic-bezier(.22,.68,.24,1),transform 1.05s cubic-bezier(.22,.68,.24,1)}.reveal.visible{opacity:1;transform:translateY(0)}.reveal-stagger>*{opacity:0;transform:translateY(16px);transition:opacity .85s cubic-bezier(.22,.68,.24,1),transform .85s cubic-bezier(.22,.68,.24,1)}.reveal-stagger.visible>*{opacity:1;transform:translateY(0)}.reveal-stagger.visible>*:nth-child(2){transition-delay:.1s}.reveal-stagger.visible>*:nth-child(3){transition-delay:.2s}.reveal-stagger.visible>*:nth-child(4){transition-delay:.3s}.reveal-stagger.visible>*:nth-child(5){transition-delay:.4s}.reveal-stagger.visible>*:nth-child(6){transition-delay:.5s}
 
-/* ===== Homepage narrative redesign ===== */
-.narrative-problem{width:min(760px,100%);margin:0 auto;text-align:left}
-.narrative-problem ul{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:0}
-.narrative-problem li{padding:16px 0;border-bottom:1px solid var(--line);font-size:clamp(17px,2.2vw,20px);color:var(--ink);display:flex;gap:14px;align-items:baseline}
-.narrative-problem li::before{content:"→";color:var(--blue-dark);font-weight:800;flex:none}
-.narrative-problem li:last-child{border-bottom:0}
-.narrative-answer{margin-top:28px;font-size:clamp(19px,2.4vw,23px);font-weight:650;letter-spacing:-.01em}
+/* ===== Homepage visual identity redesign — Checkpoint A ===== */
 
-.layer-diagram{width:min(720px,100%);margin:48px auto 0;display:grid;gap:0}
-.layer-tier{padding:22px 28px;border-radius:20px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:0 14px 34px rgba(50,63,119,.1);text-align:left;opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.68,.24,1)}
-.layer-diagram.visible .layer-tier{opacity:1;transform:translateY(0)}
-.layer-diagram.visible .layer-tier:nth-child(3){transition-delay:.12s}
-.layer-diagram.visible .layer-tier:nth-child(5){transition-delay:.24s}
-.layer-tier small{display:block;margin-bottom:8px;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-.layer-tier h3{font-size:18px;margin-bottom:2px}
-.layer-tier .layer-items{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.layer-tier .layer-items span{padding:6px 12px;border-radius:999px;background:#eef1fb;color:#454b55;font-size:12.5px;font-weight:600}
-.layer-connector{display:flex;justify-content:center;padding:4px 0}
-.layer-connector span{width:2px;height:30px;background:linear-gradient(var(--blue),var(--blue-dark))}
-.layer-core{background:rgba(233,239,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(102,120,244,.35);box-shadow:0 24px 60px rgba(64,85,213,.22)}
-.layer-core h3{font-size:25px;margin-bottom:2px}
-.layer-core .layer-items span{background:rgba(255,255,255,.85);color:var(--blue-dark)}
+/* Problem, compressed into a transition between Hero and the signature
+   system map -- same questions as before, no longer a full text section. */
+.problem-transition{width:min(760px,100%);margin:0 auto;padding:56px 0 36px;text-align:center}
+.problem-transition .eyebrow{display:block;margin-bottom:14px}
+.transition-lede{font-size:clamp(16px,1.9vw,19px);color:var(--muted);line-height:1.5}
+.transition-lede strong{color:var(--ink)}
+.transition-pivot{margin-top:14px;font-size:clamp(17px,2vw,20px);font-weight:650;color:var(--ink);letter-spacing:-.01em}
+.transition-connector{display:flex;justify-content:center;padding-top:24px}
+.transition-connector span{width:2px;height:32px;background:linear-gradient(var(--blue),var(--blue-dark));transform-origin:top;transform:scaleY(0);transition:transform .6s ease}
+.problem-transition.visible .transition-connector span{transform:scaleY(1)}
+
+/* The Yana Layer -- signature system map. The boundary is drawn with
+   lines, a faint grid and typography, never a filled panel: three tiers,
+   three different visual languages, none of them the site's white card. */
+.signature-head{max-width:720px}
+.signature-head h2{font-size:clamp(44px,6.4vw,92px)}
+.signature-map{width:min(880px,100%);margin:52px auto 0;display:flex;flex-direction:column;align-items:center}
+.system-tier{width:100%;text-align:center}
+.tier-label{display:block;margin-bottom:14px;color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.node-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px}
+.node-row-loose span{font-size:14px;font-weight:600;color:#454b55}
+.node-row-terminal span{font-family:var(--mono);font-size:12.5px;color:var(--ink);padding:6px 12px 6px 13px;background:rgba(16,18,22,.035);border-left:2px solid var(--blue-dark)}
+
+.converge-lines{width:min(760px,92%);height:52px;margin:0 auto;display:block}
+.converge-lines path{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:70;stroke-dashoffset:70;transition:stroke-dashoffset .9s ease}
+.signature-map.visible .converge-lines path{stroke-dashoffset:0}
+.signature-map.visible .converge-lines path:nth-child(2){transition-delay:.08s}
+.signature-map.visible .converge-lines path:nth-child(3){transition-delay:.16s}
+.signature-map.visible .converge-lines path:nth-child(4){transition-delay:.24s}
+.signature-map.visible .converge-lines path:nth-child(5){transition-delay:.32s}
+
+.yana-boundary{position:relative;width:100%;margin:0;padding:38px clamp(20px,6vw,64px) 32px;text-align:center;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;background-position:center;
+  border-top:2px solid var(--blue-dark);border-bottom:2px solid var(--blue-dark);
+  box-shadow:0 54px 70px -58px rgba(64,85,213,.35);}
+.boundary-corner{position:absolute;width:22px;height:22px;border-color:var(--blue-dark)}
+.boundary-corner.tl{top:-2px;left:0;border-top:3px solid;border-left:3px solid}
+.boundary-corner.tr{top:-2px;right:0;border-top:3px solid;border-right:3px solid}
+.boundary-corner.bl{bottom:-2px;left:0;border-bottom:3px solid;border-left:3px solid}
+.boundary-corner.br{bottom:-2px;right:0;border-bottom:3px solid;border-right:3px solid}
+.boundary-pulse{position:absolute;top:-6px;left:50%;translate:-50% 0;width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(102,120,244,.25);opacity:0}
+.signature-map.visible .boundary-pulse{animation:pulse-travel 2.1s ease-in-out .55s 1 both}
+.boundary-word{font-size:clamp(40px,7vw,88px);font-weight:800;letter-spacing:.01em;color:var(--ink);line-height:1}
+.boundary-terms{margin-top:16px;display:flex;flex-wrap:wrap;justify-content:center;color:var(--blue-dark);font-size:12.5px;font-weight:650;text-transform:uppercase;letter-spacing:.07em;opacity:.55}
+.signature-map.visible .boundary-terms span{animation:term-light .45s ease forwards}
+.signature-map.visible .boundary-terms span:nth-child(1){animation-delay:.9s}
+.signature-map.visible .boundary-terms span:nth-child(2){animation-delay:1.02s}
+.signature-map.visible .boundary-terms span:nth-child(3){animation-delay:1.14s}
+.signature-map.visible .boundary-terms span:nth-child(4){animation-delay:1.26s}
+.signature-map.visible .boundary-terms span:nth-child(5){animation-delay:1.38s}
+.signature-map.visible .boundary-terms span:nth-child(6){animation-delay:1.5s}
+.signature-map.visible .boundary-terms span:nth-child(7){animation-delay:1.62s}
+.boundary-terms span{padding:0 11px;position:relative}
+.boundary-terms span:not(:last-child)::after{content:"";position:absolute;right:0;top:2px;bottom:2px;width:1px;background:var(--line)}
+.boundary-caption{display:block;margin-top:14px;color:var(--muted);font-size:12.5px;font-style:italic}
+
+.exec-connector{display:flex;flex-direction:column;align-items:center;padding:18px 0 8px;gap:6px}
+.exec-connector span{width:2px;height:34px;background:linear-gradient(var(--blue-dark),var(--blue));transform-origin:top;transform:scaleY(0);transition:transform .6s ease .9s}
+.signature-map.visible .exec-connector span{transform:scaleY(1)}
+.exec-connector small{color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.node-row-terminal span{opacity:.55}
+.signature-map.visible .node-row-terminal span{animation:machine-light .4s ease forwards}
+.signature-map.visible .node-row-terminal span:nth-child(1){animation-delay:1.95s}
+.signature-map.visible .node-row-terminal span:nth-child(2){animation-delay:2.03s}
+.signature-map.visible .node-row-terminal span:nth-child(3){animation-delay:2.11s}
+.signature-map.visible .node-row-terminal span:nth-child(4){animation-delay:2.19s}
+.signature-map.visible .node-row-terminal span:nth-child(5){animation-delay:2.27s}
+.signature-map.visible .node-row-terminal span:nth-child(6){animation-delay:2.35s}
+@keyframes pulse-travel{0%{opacity:0;top:-6px}8%{opacity:1}42%{top:calc(50% - 5px);opacity:1}88%{top:calc(100% - 4px);opacity:1}100%{opacity:0;top:calc(100% - 4px)}}
+@keyframes term-light{from{opacity:.55}to{opacity:1}}
+@keyframes machine-light{from{opacity:.55}to{opacity:1}}
+@media(max-width:700px){.yana-boundary{padding:30px 18px 26px}.boundary-word{font-size:clamp(34px,11vw,56px)}}
+@media(prefers-reduced-motion:reduce){
+  .transition-connector span,.exec-connector span{transition:none;transform:scaleY(1)}
+  .converge-lines path{transition:none;stroke-dashoffset:0}
+  .boundary-pulse{display:none}
+  .boundary-terms span,.node-row-terminal span{opacity:1;animation:none}
+}
 
 .checkpoint-path{width:min(940px,100%);margin:40px auto 0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0}
 .checkpoint-node{padding:16px 20px;border-radius:16px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:0 10px 26px rgba(50,63,119,.1);text-align:left;min-width:172px;opacity:0;transform:translateY(10px);transition:opacity .55s ease,transform .55s cubic-bezier(.22,.68,.24,1)}

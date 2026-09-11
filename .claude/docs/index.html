@@ -33,32 +33,48 @@
     <div class="hero-actions"><a class="button" href="#the-layer">Xem Yana nằm ở đâu</a><a class="button light" href="download.html">Dùng Yana</a></div>
   </div></section>
 
-  <section class="section" id="problem"><div class="narrative-problem">
+  <section class="problem-transition" id="problem">
     <p class="eyebrow">VẤN ĐỀ</p>
-    <h2>AI agent ngày càng có khả năng thật.</h2>
-    <p>Đọc file. Sửa code. Chạy lệnh. Gọi mạng. Điều khiển ứng dụng. Vận hành thiết bị. Nhưng <strong>capability không đồng nghĩa với authority</strong>.</p>
-    <ul>
-      <li>AI thấy được những gì?</li>
-      <li>AI đổi được những gì?</li>
-      <li>AI thực thi được những gì?</li>
-      <li>AI có bao nhiêu quyền hạn?</li>
-      <li>Ai có thể dừng nó lại?</li>
-      <li>Hành động của nó có kiểm chứng được không?</li>
-    </ul>
-    <p class="narrative-answer">Yana tồn tại để trả lời từng câu hỏi đó bằng kiến trúc, không phải bằng lời hứa.</p>
-  </div></section>
+    <p class="transition-lede">Đọc file. Sửa code. Chạy lệnh. Gọi mạng. Điều khiển ứng dụng. Vận hành thiết bị.</p>
+    <p class="transition-pivot">Nhưng <strong>capability không đồng nghĩa với authority</strong>. Yana tồn tại để trả lời câu hỏi đó bằng kiến trúc, không phải bằng lời hứa.</p>
+    <div class="transition-connector" aria-hidden="true"><span></span></div>
+  </section>
 
-  <section class="section" id="the-layer"><div class="section-head" style="text-align:center;max-width:680px;margin-inline:auto">
-    <p class="eyebrow">THE YANA LAYER</p>
-    <h2>Yana đứng giữa AI và máy tính của bạn.</h2>
-    <p>Không phải một tính năng bên trong AI. Một lớp riêng, độc lập, đứng giữa.</p>
-  </div>
-    <div class="layer-diagram">
-      <div class="layer-tier"><small>Tầng trên</small><h3>Models & Agents</h3><div class="layer-items"><span>OpenAI</span><span>Anthropic</span><span>Gemini</span><span>Groq</span><span>DeepSeek</span><span>OpenRouter</span><span>Local models</span></div></div>
-      <div class="layer-connector"><span></span></div>
-      <div class="layer-tier layer-core"><small>Ở giữa</small><h3>YANA</h3><div class="layer-items"><span>Runtime</span><span>Authority</span><span>Guardrails</span><span>Audit</span><span>Routing</span><span>Context</span><span>Execution</span></div></div>
-      <div class="layer-connector"><span></span></div>
-      <div class="layer-tier"><small>Tầng dưới</small><h3>Máy của bạn</h3><div class="layer-items"><span>Shell</span><span>Files</span><span>Git</span><span>Network</span><span>Applications</span><span>Devices</span></div></div>
+  <section class="section signature" id="the-layer">
+    <div class="section-head signature-head">
+      <p class="eyebrow">THE YANA LAYER</p>
+      <h2>Yana đứng giữa AI và máy tính của bạn.</h2>
+      <p>Không phải một tính năng bên trong AI. Một lớp riêng, độc lập, đứng giữa.</p>
+    </div>
+    <div class="signature-map">
+      <div class="system-tier system-models">
+        <small class="tier-label">Models &amp; Agents</small>
+        <div class="node-row node-row-loose">
+          <span>OpenAI</span><span>Anthropic</span><span>Gemini</span><span>Groq</span><span>DeepSeek</span><span>OpenRouter</span><span>Local models</span>
+        </div>
+      </div>
+      <svg class="converge-lines" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M6,0 L50,44" /><path d="M28,0 L50,44" /><path d="M50,0 L50,44" /><path d="M72,0 L50,44" /><path d="M94,0 L50,44" />
+      </svg>
+      <div class="yana-boundary">
+        <span class="boundary-corner tl" aria-hidden="true"></span>
+        <span class="boundary-corner tr" aria-hidden="true"></span>
+        <span class="boundary-corner bl" aria-hidden="true"></span>
+        <span class="boundary-corner br" aria-hidden="true"></span>
+        <div class="boundary-pulse" aria-hidden="true"></div>
+        <div class="boundary-word">YANA</div>
+        <div class="boundary-terms">
+          <span>Runtime</span><span>Authority</span><span>Guardrails</span><span>Audit</span><span>Routing</span><span>Context</span><span>Execution</span>
+        </div>
+        <small class="boundary-caption">Human-governed boundary</small>
+      </div>
+      <div class="exec-connector" aria-hidden="true"><span></span><small>controlled execution</small></div>
+      <div class="system-tier system-machine">
+        <small class="tier-label">Máy của bạn</small>
+        <div class="node-row node-row-terminal">
+          <span>Shell</span><span>Files</span><span>Git</span><span>Network</span><span>Applications</span><span>Devices</span>
+        </div>
+      </div>
     </div>
   </section>
 
