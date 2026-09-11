@@ -1976,7 +1976,7 @@
       "addedAt": "2026-07-11T02:56:59Z"
     },
     "conducting-domain-persistence-with-dcsync": {
-      "computedHash": "12fcffc483999bf1b90f36993d70923806a4e6f4825b4fb753109f912b91ea61",
+      "computedHash": "b50af43767bb5cb971ad9ffe41d02e8c06649d930ed197c938ebffa98dfb27bd",
       "localPath": ".claude/skills/conducting-domain-persistence-with-dcsync",
       "addedAt": "2026-07-11T02:56:59Z"
     },
@@ -2432,7 +2432,7 @@
     },
     "deobfuscating-javascript-malware": {
       "addedAt": "2026-06-28T00:17:50Z",
-      "computedHash": "f8aee79abd81a758cb778914cad24c93e7812a2606ba92816283f8fcee218c8b",
+      "computedHash": "22dace710d90e3493e18e2de433d0d3cab5f46b37718d2601bb8df2cee9c9a08",
       "localPath": ".claude/skills/deobfuscating-javascript-malware"
     },
     "deobfuscating-powershell-obfuscated-malware": {
@@ -5172,7 +5172,7 @@
     },
     "implementing-jwt-signing-and-verification": {
       "addedAt": "2026-06-28T00:18:07Z",
-      "computedHash": "3d25a145db5ad99df8247c6e1d19282195cb97e0c6263109e2c6c89685ae6047",
+      "computedHash": "25ce5cffab4d1a269ed65813abecf47f05dd106939dcdda830c2b7f31ae4d65d",
       "localPath": ".claude/skills/implementing-jwt-signing-and-verification"
     },
     "implementing-kubernetes-network-policy-with-calico": {
@@ -5407,7 +5407,7 @@
     },
     "implementing-scim-provisioning-with-okta": {
       "addedAt": "2026-06-28T00:18:09Z",
-      "computedHash": "051e95c37cf108598da61e4bbf7b43f733eeb666ceac057874770b136c1ff37b",
+      "computedHash": "852567a1ec6dd4e80d01ffa11205f564cb35e4f585944879ba1a6b47fcb9a384",
       "localPath": ".claude/skills/implementing-scim-provisioning-with-okta"
     },
     "implementing-secret-scanning-with-gitleaks": {
@@ -5422,7 +5422,7 @@
     },
     "implementing-secrets-scanning-in-ci-cd": {
       "addedAt": "2026-06-28T00:18:10Z",
-      "computedHash": "2a6fabd2141540ae3ff99e6f6e453f7b4c8ab02b9c4cdace49433d0addcdaceb",
+      "computedHash": "2f65e1b8c649262628b1376889708491858be5cc8df639bb46c1178d2f864c63",
       "localPath": ".claude/skills/implementing-secrets-scanning-in-ci-cd"
     },
     "implementing-security-chaos-engineering": {
@@ -5492,7 +5492,7 @@
     },
     "implementing-syslog-centralization-with-rsyslog": {
       "addedAt": "2026-06-28T00:18:10Z",
-      "computedHash": "20a6168e5a11f98f2daec65cb4f9c5fe99f145db85672377ca23aef5ec2a26be",
+      "computedHash": "a756676e05526007dac80e42a6afb685432693724feff6356d3b475b089113d2",
       "localPath": ".claude/skills/implementing-syslog-centralization-with-rsyslog"
     },
     "implementing-taxii-server-with-opentaxii": {
@@ -6783,7 +6783,7 @@
     },
     "openai--superpowers--brainstorming": {
       "addedAt": "2026-06-11T13:35:01Z",
-      "computedHash": "5647730042383e7af86b31c5570f056de39b1a60d598eb10c0a6c53eeb8ed9af",
+      "computedHash": "e303cfa04990f1804ebd4d6fadcc0fa14d49bb8b30ea7030cbf15e1e8d0cf393",
       "localPath": ".claude/skills/openai--superpowers--brainstorming"
     },
     "openai--superpowers--dispatching-parallel-agents": {
@@ -6988,7 +6988,7 @@
     },
     "performing-agentless-vulnerability-scanning": {
       "addedAt": "2026-06-28T00:18:14Z",
-      "computedHash": "b911dc1c2b674fc63ea0c9ca21d0c6f6b3804f82ed9afd5e4c9fdeb37066b554",
+      "computedHash": "9f88f7d71592a2978702f2fd68fb60a4490f3726c319991da50ac5bc72a3ed9c",
       "localPath": ".claude/skills/performing-agentless-vulnerability-scanning"
     },
     "performing-ai-driven-osint-correlation": {
@@ -7043,7 +7043,7 @@
     },
     "performing-authenticated-vulnerability-scan": {
       "addedAt": "2026-06-28T00:18:15Z",
-      "computedHash": "96f8567bbe55ed3466528fb22c0214aaa04754b4d35dbdcfbb0deb6ddead804e",
+      "computedHash": "11a5e646622978cfbcf5dc8f449bca217d0d095c91ea40f4a4c33624941fef6a",
       "localPath": ".claude/skills/performing-authenticated-vulnerability-scan"
     },
     "performing-automated-malware-analysis-with-cape": {
@@ -7698,7 +7698,7 @@
     },
     "performing-thick-client-application-penetration-test": {
       "addedAt": "2026-06-28T00:18:23Z",
-      "computedHash": "da89ef9e03b9db5be60bdb00e0a27c20e0a13b3dbbb5f75f75c3ae5516060217",
+      "computedHash": "689bd2b29f1e684b2f28b89a4b0bd432fba85f85406a381da804350b62b8df5c",
       "localPath": ".claude/skills/performing-thick-client-application-penetration-test"
     },
     "performing-threat-emulation-with-atomic-red-team": {
@@ -10128,7 +10128,12 @@
       "addedAt": "2026-06-11T05:59:40.978Z",
       "computedHash": "e2dd40e6c5f55627093be14c7ca3dd4f9c9b5c03215845c58f15b66a0e719c08",
       "localPath": ".claude/skills/zombie-process-cleanup"
+    },
+    "viettranx--3dviz-pro-max": {
+      "computedHash": "1baebf50b426c665e342bf7adfc011ded8e6768f573ab88a79dea63a5f3112ab",
+      "localPath": ".claude/skills/viettranx--3dviz-pro-max",
+      "addedAt": "2026-09-11T00:00:00Z"
     }
   },
-  "total": 2025
+  "total": 2026
 }
