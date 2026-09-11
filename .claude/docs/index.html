@@ -79,17 +79,14 @@
   </section>
 
   <section class="section feature" id="one-runtime"><div class="feature-copy"><p class="eyebrow">ONE RUNTIME, MANY MODELS</p><h2>Không khoá bạn vào một AI provider.</h2><p>Cloud model và local model đi qua cùng một runtime, cùng một authority model. Đổi provider không đổi luật chơi.</p><a class="button ghost" href="models.html">Xem Models & Providers</a></div><div class="feature-visual">
-    <div class="runtime-graph home-runtime-graph">
-      <div class="graph-row graph-models">
-        <div class="graph-node">Anthropic</div>
-        <div class="graph-node">OpenAI</div>
-        <div class="graph-node">Gemini</div>
-        <div class="graph-node">Groq</div>
-        <div class="graph-node">Ollama (local)</div>
-        <div class="graph-node graph-node-more">+ DeepSeek, OpenRouter</div>
+    <div class="convergence">
+      <div class="convergence-sources">
+        <span>Anthropic</span><span>OpenAI</span><span>Gemini</span><span>Groq</span><span>Ollama (local)</span><span class="convergence-more">+ DeepSeek, OpenRouter</span>
       </div>
-      <div class="graph-link graph-link-top"><span></span></div>
-      <div class="graph-core"><strong>Yana Runtime</strong><span>Cùng authority model, cùng execution path — cloud và local không có luật riêng</span></div>
+      <svg class="convergence-lines" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M6,0 L50,40" /><path d="M24,0 L50,40" /><path d="M50,0 L50,40" /><path d="M76,0 L50,40" /><path d="M94,0 L50,40" />
+      </svg>
+      <div class="convergence-target"><strong>Yana Runtime</strong><span>Cùng authority model, cùng execution path — cloud và local không có luật riêng</span></div>
     </div>
   </div></section>
 
@@ -110,6 +107,10 @@
       <div class="scenario-row scenario-row-halt"><span>Execution</span><strong>chờ, chưa thực thi</strong></div>
       <div class="diagram-arrow">↓</div>
       <div class="scenario-row scenario-row-human"><span>Audit</span><strong>allow · limit · deny — con người quyết định</strong></div>
+      <div class="decision-fork">
+        <div class="fork-branch fork-deny"><span aria-hidden="true">✕</span>Deny — dừng lại</div>
+        <div class="fork-branch fork-allow"><span aria-hidden="true">✓</span>Allow / limit đã duyệt → thực thi</div>
+      </div>
     </div>
   </section>
 
@@ -118,16 +119,17 @@
     <h2>Không dựa vào việc AI "tự hứa sẽ cẩn thận".</h2>
     <p>Những quyết định an toàn quan trọng nằm ngoài đường đi suy luận của model — tất định, không thể bị thuyết phục.</p>
   </div>
-    <div class="checkpoint-path">
-      <div class="checkpoint-node"><strong>Destructive Guard</strong><span>chặn rm -rf, force-push trước khi chạy</span></div>
-      <div class="checkpoint-link"></div>
-      <div class="checkpoint-node"><strong>Blast Radius</strong><span>chạm nhiều file → cần duyệt rõ</span></div>
-      <div class="checkpoint-link"></div>
-      <div class="checkpoint-node"><strong>Circuit Breaker</strong><span>lỗi lặp lại → tự khoá tạm</span></div>
-      <div class="checkpoint-link"></div>
-      <div class="checkpoint-node"><strong>Core Lock</strong><span>rule/hook bị pin bằng SHA-256</span></div>
-      <div class="checkpoint-link"></div>
-      <div class="checkpoint-node"><strong>Giám Thị · HALT</strong><span>supervisor ngoài phiên AI, có quyền dừng</span></div>
+    <div class="gate-path">
+      <div class="gate-endpoint">REQUEST</div>
+      <div class="gate-track">
+        <div class="gate-pulse" aria-hidden="true"></div>
+        <div class="gate-step"><span class="gate-marker" aria-hidden="true"></span><div class="gate-info"><strong>Destructive Guard</strong><small>chặn rm -rf, force-push trước khi chạy</small></div><div class="gate-exit">✕ blocked</div></div>
+        <div class="gate-step"><span class="gate-marker" aria-hidden="true"></span><div class="gate-info"><strong>Blast Radius</strong><small>chạm nhiều file → cần duyệt rõ</small></div><div class="gate-exit">✕ blocked</div></div>
+        <div class="gate-step"><span class="gate-marker" aria-hidden="true"></span><div class="gate-info"><strong>Circuit Breaker</strong><small>lỗi lặp lại → tự khoá tạm</small></div><div class="gate-exit">✕ blocked</div></div>
+        <div class="gate-step"><span class="gate-marker" aria-hidden="true"></span><div class="gate-info"><strong>Core Lock</strong><small>rule/hook bị pin bằng SHA-256</small></div><div class="gate-exit">✕ blocked</div></div>
+        <div class="gate-step"><span class="gate-marker" aria-hidden="true"></span><div class="gate-info"><strong>Giám Thị · HALT</strong><small>supervisor ngoài phiên AI, có quyền dừng</small></div><div class="gate-exit">✕ blocked</div></div>
+      </div>
+      <div class="gate-endpoint gate-endpoint-execute">EXECUTE</div>
     </div>
     <p style="text-align:center;margin-top:28px"><a class="button ghost" href="safety.html">Xem toàn bộ Safety / Guardrails →</a></p>
   </section>

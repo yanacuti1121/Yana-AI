@@ -109,7 +109,7 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .runtime-graph{width:min(820px,100%);margin:0 auto}
 .graph-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
 .graph-node{padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 24px rgba(50,63,119,.1);font-size:13px;font-weight:600;color:var(--ink);opacity:.5;filter:grayscale(.4);transform:translateY(8px) scale(.92);transition:opacity .5s ease,filter .5s ease,transform .5s cubic-bezier(.22,.68,.24,1)}
-.runtime-scene.connected .graph-node,.home-runtime-graph.visible .graph-node{transform:translateY(0) scale(1)}
+.runtime-scene.connected .graph-node{transform:translateY(0) scale(1)}
 .graph-row .graph-node:nth-child(1){transition-delay:0s}
 .graph-row .graph-node:nth-child(2){transition-delay:.07s}
 .graph-row .graph-node:nth-child(3){transition-delay:.14s}
@@ -117,15 +117,15 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .graph-row .graph-node:nth-child(5){transition-delay:.28s}
 .graph-row .graph-node:nth-child(6){transition-delay:.35s}
 .graph-node-more{background:transparent;box-shadow:none;border-style:dashed;color:var(--muted);font-weight:500}
-.runtime-scene.connected .graph-node,.home-runtime-graph.visible .graph-node{opacity:1;filter:none}
+.runtime-scene.connected .graph-node{opacity:1;filter:none}
 .graph-link{display:flex;justify-content:center}
 .graph-link span{width:2px;height:0;background:linear-gradient(var(--blue),var(--blue-dark));transition:height .7s cubic-bezier(.22,.68,.24,1)}
-.runtime-scene.connected .graph-link span,.home-runtime-graph.visible .graph-link span{height:40px}
+.runtime-scene.connected .graph-link span{height:40px}
 .graph-core{width:min(420px,100%);margin:6px auto;padding:24px 28px;border-radius:22px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.9);box-shadow:0 18px 40px rgba(50,63,119,.14);transform:scale(.96);transition:transform .6s cubic-bezier(.22,.68,.24,1),box-shadow .6s ease,border-color .6s ease}
 .graph-core strong{display:block;font-size:19px;margin-bottom:6px}
 .graph-core span{display:block;color:var(--muted);font-size:12.5px}
-.runtime-scene.connected .graph-core,.home-runtime-graph.visible .graph-core{transform:scale(1);box-shadow:0 26px 60px rgba(50,63,119,.22);border-color:var(--blue)}
-@media(prefers-reduced-motion:reduce){.scene-line,.graph-node,.graph-link span,.graph-core{transition:none}.home-runtime-graph .graph-node{opacity:1;filter:none;transform:none}.home-runtime-graph .graph-link span{height:40px}.home-runtime-graph .graph-core{transform:none;box-shadow:0 26px 60px rgba(50,63,119,.22);border-color:var(--blue)}}
+.runtime-scene.connected .graph-core{transform:scale(1);box-shadow:0 26px 60px rgba(50,63,119,.22);border-color:var(--blue)}
+@media(prefers-reduced-motion:reduce){.scene-line,.graph-node,.graph-link span,.graph-core{transition:none}}
 @media(max-width:620px){.runtime-scene{padding:64px 20px 76px}.graph-core{padding:20px}}
 .scene-anyai .anyai-panel,.scene-human .scenario-card,.scene-control .control-grid{margin-top:6px}
 .anyai-panel{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;width:min(760px,100%);margin-inline:auto}
@@ -259,17 +259,80 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
   .boundary-terms span,.node-row-terminal span{opacity:1;animation:none}
 }
 
-.checkpoint-path{width:min(940px,100%);margin:40px auto 0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0}
-.checkpoint-node{padding:16px 20px;border-radius:16px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:0 10px 26px rgba(50,63,119,.1);text-align:left;min-width:172px;opacity:0;transform:translateY(10px);transition:opacity .55s ease,transform .55s cubic-bezier(.22,.68,.24,1)}
-.checkpoint-path.visible .checkpoint-node{opacity:1;transform:translateY(0)}
-.checkpoint-path.visible .checkpoint-node:nth-of-type(2){transition-delay:.08s}
-.checkpoint-path.visible .checkpoint-node:nth-of-type(3){transition-delay:.16s}
-.checkpoint-path.visible .checkpoint-node:nth-of-type(4){transition-delay:.24s}
-.checkpoint-path.visible .checkpoint-node:nth-of-type(5){transition-delay:.32s}
-.checkpoint-node strong{display:block;font-size:14px;margin-bottom:4px}
-.checkpoint-node span{display:block;color:var(--muted);font-size:12px}
-.checkpoint-link{width:24px;height:2px;background:var(--line);flex:none}
-@media(max-width:860px){.checkpoint-path{flex-direction:column}.checkpoint-link{width:2px;height:18px}.checkpoint-node{width:min(320px,100%)}}
+/* One Runtime, Many Models -- convergence: independent providers, thin
+   lines, no panel, no pill row. #one-runtime strips the shared
+   .feature-visual gradient panel; Local-First (Checkpoint C) keeps it. */
+#one-runtime .feature-visual{background:none;padding:0;min-height:auto;border-radius:0;display:block}
+.convergence{width:100%;display:flex;flex-direction:column;align-items:center}
+.convergence-sources{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;max-width:460px}
+.convergence-sources span{font-size:14px;font-weight:650;color:#454b55}
+.convergence-sources span:nth-child(odd){transform:translateY(-5px)}
+.convergence-sources span:nth-child(even){transform:translateY(6px)}
+.convergence-more{font-size:12.5px!important;font-weight:500!important;color:var(--muted)!important;transform:none!important}
+.convergence-lines{width:min(300px,78%);height:46px;margin:0;display:block}
+.convergence-lines path{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:64;stroke-dashoffset:64;transition:stroke-dashoffset .8s ease}
+.convergence.visible .convergence-lines path{stroke-dashoffset:0}
+.convergence.visible .convergence-lines path:nth-child(2){transition-delay:.06s}
+.convergence.visible .convergence-lines path:nth-child(3){transition-delay:.12s}
+.convergence.visible .convergence-lines path:nth-child(4){transition-delay:.18s}
+.convergence.visible .convergence-lines path:nth-child(5){transition-delay:.24s}
+.convergence-target{text-align:center}
+.convergence-target strong{display:block;font-size:19px}
+.convergence-target span{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;max-width:280px;margin-inline:auto}
+
+/* Human-Governed -- de-glossed rows (log feel, not glass card); the
+   existing per-row reveal delay now also carries a left accent-bar
+   activation, and a fork after Audit shows the flow does not always
+   reach execution. */
+.home-scenario .scenario-row{background:transparent;border:0;border-left:2px solid transparent;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:13px 2px;transition:opacity .5s ease,transform .5s cubic-bezier(.22,.68,.24,1),border-left-color .3s ease}
+.home-scenario.visible .scenario-row{border-left-color:var(--blue-dark)}
+.home-scenario .scenario-row-halt{background:rgba(224,88,74,.05);border-bottom-color:rgba(224,88,74,.3)}
+.home-scenario.visible .scenario-row-halt{border-left-color:#c0392b}
+.home-scenario .scenario-row-human{background:rgba(102,120,244,.06);border-bottom-color:var(--blue)}
+.home-scenario .scenario-row strong{font-family:var(--mono);font-weight:600}
+.decision-fork{display:flex;justify-content:center;gap:28px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);opacity:0;transition:opacity .5s ease .6s}
+.home-scenario.visible .decision-fork{opacity:1}
+.fork-branch{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+.fork-branch span{font-size:14px;font-weight:800}
+.fork-deny span{color:#c0392b}
+.fork-allow span{color:#1f8a4c}
+
+/* Deterministic Guardrails -- request travels a vertical track through
+   real gates; each gate can also exit sideways to "blocked", so the
+   diagram itself says execution is not the only outcome. */
+.gate-path{width:min(620px,100%);margin:44px auto 0}
+.gate-endpoint{text-align:center;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+.gate-endpoint-execute{color:#1f8a4c}
+.gate-track{position:relative;padding:6px 0}
+.gate-track::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--line);transform:translateX(-1px)}
+.gate-pulse{position:absolute;left:50%;top:0;width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(102,120,244,.25);opacity:0;transform:translate(-50%,-50%);z-index:2}
+.gate-path.visible .gate-pulse{animation:gate-pulse-travel 2.8s ease-in-out .3s 1 both}
+.gate-step{position:relative;min-height:76px}
+.gate-marker{display:block;position:absolute;left:50%;top:50%;z-index:1;width:14px;height:14px;background:var(--white);border:2px solid var(--line);border-radius:3px;transform:translate(-50%,-50%) rotate(45deg);transition:border-color .3s ease,background .3s ease}
+.gate-path.visible .gate-step:nth-child(2) .gate-marker{animation:gate-activate .3s ease forwards .5s}
+.gate-path.visible .gate-step:nth-child(3) .gate-marker{animation:gate-activate .3s ease forwards .95s}
+.gate-path.visible .gate-step:nth-child(4) .gate-marker{animation:gate-activate .3s ease forwards 1.4s}
+.gate-path.visible .gate-step:nth-child(5) .gate-marker{animation:gate-activate .3s ease forwards 1.85s}
+.gate-path.visible .gate-step:nth-child(6) .gate-marker{animation:gate-activate .3s ease forwards 2.3s}
+.gate-info{position:absolute;top:50%;left:calc(50% + 20px);transform:translateY(-50%);width:calc(50% - 30px);text-align:left}
+.gate-info strong{display:block;font-size:14px}
+.gate-info small{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+.gate-exit{position:absolute;top:50%;right:calc(50% + 20px);transform:translateY(-50%);width:calc(50% - 30px);text-align:right;font-size:11px;font-weight:650;color:#c0392b;opacity:.6}
+@keyframes gate-pulse-travel{0%{opacity:0;top:0}6%{opacity:1}92%{opacity:1}100%{opacity:0;top:100%}}
+@keyframes gate-activate{from{border-color:var(--line);background:var(--white)}to{border-color:var(--blue-dark);background:var(--blue-dark)}}
+@media(max-width:640px){
+  .gate-step{min-height:auto;padding:16px 0 20px}
+  .gate-marker{position:static;margin:0 auto 10px}
+  .gate-info,.gate-exit{position:static;transform:none;width:100%;text-align:center}
+  .gate-exit{margin-top:3px}
+}
+@media(prefers-reduced-motion:reduce){
+  .convergence-lines path{transition:none;stroke-dashoffset:0}
+  .home-scenario .scenario-row{transition:none;border-left-color:var(--blue-dark)}
+  .decision-fork{opacity:1;transition:none}
+  .gate-pulse{display:none}
+  .gate-marker{transition:none;border-color:var(--blue-dark);background:var(--blue-dark)}
+}
 
 .ecosystem-tree{width:min(760px,100%);margin:44px auto 0;text-align:center}
 .tree-root{display:inline-block;padding:14px 26px;border-radius:16px;background:var(--ink);color:white;font-weight:750;font-size:15px}
