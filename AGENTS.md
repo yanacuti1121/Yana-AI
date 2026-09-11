@@ -166,7 +166,7 @@ Full list: `core/commands/`
 
 ## Available skills
 
-2,025 skills in `core/skills/`. Key triggers:
+2,026 skills in `core/skills/`. Key triggers:
 
 | Skill | Trigger |
 |---|---|

@@ -140,7 +140,7 @@ See [Known Limitations](known-limitations.md) for exactly which of these are liv
 
 | | |
 |---|---|
-| 🧩 Skills | **2,025** workflow skill definitions |
+| 🧩 Skills | **2,026** workflow skill definitions |
 | 🤖 Agents | **100** specialist agents |
 | 📜 Safety rules | **71** enforced rules |
 | 🪝 Hooks | **66** pre/post-execution hooks |
