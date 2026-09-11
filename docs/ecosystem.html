@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hệ sinh thái Yana — các bề mặt và cách chúng nối nhau</title>
+  <meta name="description" content="Yana Studio, Runtime CLI, Wheelbot và website — bề mặt nào chạy gì, và tất cả cùng đi qua đâu.">
+  <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
+</head>
+<body>
+<nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><details class="nav-mega"><summary>Sản phẩm</summary><div class="mega-panel"><div class="mega-intro"><small>HỆ SINH THÁI YANA</small><h3>Một hệ thống.<br>Nhiều bề mặt.</h3></div><div class="mega-list">
+      <a class="mega-link" href="studio.html"><i>S</i><span><strong>Yana Studio 1.5</strong><small>Workspace trực quan cho AI có kiểm soát</small></span></a>
+      <a class="mega-link" href="runtime.html"><i>R</i><span><strong>Yana Runtime</strong><small>Quyền hạn, capability và evidence</small></span></a>
+      <a class="mega-link" href="wheelbot.html"><i>W</i><span><strong>Yana Wheelbot</strong><small>AI bước ra thế giới vật lý</small></span></a>
+      <a class="mega-link" href="download.html"><i>↓</i><span><strong>Download</strong><small>Cài đặt và kênh phân phối chính thức</small></span></a>
+    </div></div></details><a href="ecosystem.html" aria-current="page">Hệ sinh thái</a><a href="architecture.html">Kiến trúc</a><a href="governance.html">Governance</a><a href="en.html">EN</a></div><div class="nav-actions"><a class="nav-cta" href="download.html">Dùng Yana</a></div></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">ECOSYSTEM</p><h1>Một control plane.<br>Nhiều bề mặt thật.</h1><p class="hero-copy">Yana không phải một app đơn lẻ. Đây là danh sách đầy đủ những gì thực sự tồn tại trong repo hôm nay — không phải roadmap, không phải ý tưởng.</p><div class="hero-actions"><a class="button" href="studio.html">Xem Studio</a><a class="button light" href="architecture.html">Xem kiến trúc đầy đủ</a></div></div></section>
+  <section class="section" id="surfaces"><div class="section-head"><p class="eyebrow">BỀ MẶT NGƯỜI DÙNG</p><h2>4 cách chạm vào Yana.</h2><p>Mỗi bề mặt lộ ra một tập quyền khác nhau — không bề mặt nào mạnh như nhau.</p></div><div class="product-grid">
+    <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio 1.5</h3><p>Electron app: chat, code editor, terminal thật (PTY), Git, quản lý model, permissions, Design Canvas thử nghiệm.</p></div><div class="product-art"><code>renderer (React/TS)
+host (Electron main)
+spawn yana-rt binary</code></div></a>
+    <a class="product-card" href="runtime.html"><div><p class="eyebrow">CLI</p><h3>Runtime CLI (yana-rt)</h3><p>Binary Rust cài qua <code>cargo install yana-rt</code>. Cùng TurnEngine, cùng authority chain với Studio — không phải bản triển khai riêng.</p></div><div class="product-art"><code>cargo install yana-rt
+yana-rt chat</code></div></a>
+    <a class="product-card" href="wheelbot.html"><div><p class="eyebrow">PHYSICAL AI</p><h3>Yana Wheelbot</h3><p>Robot ESP32-S3 thật, firmware thật. Có device bridge WebSocket/MCP riêng — chưa xác minh đi qua cùng TurnEngine end-to-end.</p></div><div class="product-art"><code>ESP32-S3
+firmware  ● exists
+bridge    ◐ evolving</code></div></a>
+    <div class="product-card"><div><p class="eyebrow">WEB</p><h3>Website này</h3><p>Static HTML, không framework. Trang tải xuống gọi trực tiếp GitHub Releases API — không có server Yana đứng giữa.</p></div><div class="product-art"><code>docs/*.html
+assets/ecosystem-pages.js
+GitHub Releases API</code></div></div>
+  </div></section>
+  <section class="section feature" id="shared"><div class="feature-copy"><p class="eyebrow">ĐIỂM CHUNG</p><h2>Không phải 4 bản triển khai.<br>Một control plane, 4 lối vào.</h2><p>Studio spawn đúng binary <code>yana-rt</code> mà CLI dùng trực tiếp — cùng TurnEngine, cùng authority chain, cùng capability manifest. Đổi bề mặt không đổi luật chơi.</p><a class="button ghost" href="runtime.html">Xem Yana Runtime</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Studio</strong><span>spawn yana-rt</span></div><div class="visual-row"><strong>Runtime CLI</strong><span>yana-rt trực tiếp</span></div><div class="visual-row"><strong>TurnEngine</strong><span>chung một bản</span></div><div class="visual-row"><strong>Wheelbot</strong><span>device bridge riêng</span></div></div></div></section>
+  <section class="section"><div class="section-head"><p class="eyebrow">ĐI SÂU HƠN</p><h2>Từng bề mặt có trang riêng.</h2></div><div class="product-grid">
+    <a class="product-card" href="models.html"><div><p class="eyebrow">PLATFORM</p><h3>Models & Providers</h3><p>7 provider thật, local và cloud, provider-neutral theo thiết kế.</p></div></a>
+    <a class="product-card" href="agents-skills.html"><div><p class="eyebrow">PLATFORM</p><h3>Agents & Skills</h3><p>100 agent, 2.026 skill — dispatch đồng bộ, kích hoạt theo trigger.</p></div></a>
+    <a class="product-card" href="connectors.html"><div><p class="eyebrow">PLATFORM</p><h3>Connectors</h3><p>Google, GitHub, Slack, Notion — quyền và credential tách riêng từng kết nối.</p></div></a>
+    <a class="product-card" href="evidence.html"><div><p class="eyebrow">TRUST</p><h3>Evidence & Audit</h3><p>Hash-chain audit log, evidence engine gắn kết quả với diff/test/build thật.</p></div></a>
+    <a class="product-card" href="safety.html"><div><p class="eyebrow">TRUST</p><h3>Safety / Guardrails</h3><p>Destructive guard, blast radius, circuit breaker, Giám Thị HALT.</p></div></a>
+    <a class="product-card" href="architecture.html"><div><p class="eyebrow">DEVELOPERS</p><h3>Kiến trúc đầy đủ</h3><p>Từ bề mặt người dùng tới Giám Thị, control plane, TurnEngine, evidence.</p></div></a>
+  </div></section>
+  <section class="quote-band"><p class="eyebrow">YANA PRINCIPLE</p><h2>4 bề mặt. Một luật chơi.</h2><p>Model có thể đổi, bề mặt có thể đổi — authority chain, evidence và capability manifest thì không đổi theo.</p><div class="hero-actions"><a class="button light" href="download.html">Bắt đầu với Yana</a></div></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-logo.png" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio 1.5</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js"></script>
+</body></html>
