@@ -185,10 +185,7 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .problem-transition .eyebrow{display:block;margin-bottom:14px}
 .transition-lede{font-size:clamp(16px,1.9vw,19px);color:var(--muted);line-height:1.5}
 .transition-lede strong{color:var(--ink)}
-.transition-questions{list-style:none;margin:20px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 0;font-size:13.5px;color:var(--muted)}
-.transition-questions li{padding:0 12px;position:relative}
-.transition-questions li:not(:last-child)::after{content:"·";position:absolute;right:-2px;color:#c7cbd6}
-.transition-pivot{margin-top:20px;font-size:clamp(17px,2vw,20px);font-weight:650;color:var(--ink);letter-spacing:-.01em}
+.transition-pivot{margin-top:14px;font-size:clamp(17px,2vw,20px);font-weight:650;color:var(--ink);letter-spacing:-.01em}
 .transition-connector{display:flex;justify-content:center;padding-top:24px}
 .transition-connector span{width:2px;height:32px;background:linear-gradient(var(--blue),var(--blue-dark));transform-origin:top;transform:scaleY(0);transition:transform .6s ease}
 .problem-transition.visible .transition-connector span{transform:scaleY(1)}
