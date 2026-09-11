@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-09-10T10:04:40+00:00",
+  "generated": "2026-09-11T03:00:10+00:00",
   "count": 287,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -289,6 +289,6 @@
     "src/guard/mod.rs": "58ddf56d9eb013532e8718089513f2f829837b0c769a0ce76b4c88efa0889bae",
     "src/guard/portable.rs": "8c22eacf5f28e600d6c5e05a4647322932701f93598a948c880e5dfebba3703b",
     "src/guard/self_mod.rs": "1cfe3fa7ef77774cf99b165828dd178652952d14c1aacb4d803264b071a2fc11",
-    "src/guard/token_budget.rs": "d5171a5410d1127525e37f92b75a6c377dfebf8e8539ba320d5710b5db370977"
+    "src/guard/token_budget.rs": "f752712145b37897d10d3e5ab1de6da2345abb262efe1c54f7700fb7b119d5a2"
   }
 }
