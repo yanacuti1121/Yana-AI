@@ -193,7 +193,7 @@
   if (!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) && "IntersectionObserver" in window) {
     const revealTargets = document.querySelectorAll("main > section:not(.hero):not(.page-hero)");
     revealTargets.forEach((section) => section.classList.add("reveal"));
-    const staggerGrids = document.querySelectorAll("main > section:not(.hero):not(.page-hero) > .product-grid, main > section:not(.hero):not(.page-hero) > .download-panel > [data-release-download] > .download-grid, .layer-diagram, .checkpoint-path, .home-scenario, .home-runtime-graph");
+    const staggerGrids = document.querySelectorAll("main > section:not(.hero):not(.page-hero) > .product-grid, main > section:not(.hero):not(.page-hero) > .download-panel > [data-release-download] > .download-grid, .checkpoint-path, .home-scenario, .home-runtime-graph, .signature-map");
     staggerGrids.forEach((grid) => grid.classList.add("reveal-stagger"));
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
