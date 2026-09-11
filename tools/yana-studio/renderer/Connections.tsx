@@ -85,7 +85,13 @@ export function Connections({ locale }: { locale: Locale }) {
           {!item.secure_storage && (
             <p role="alert">{t("secureStorageNotReady")}</p>
           )}
-          {item.error && <p role="alert">{item.error.replaceAll("_", " ")}</p>}
+          {item.error && (
+            <p role="alert">
+              {item.error === "credential_store_unreadable"
+                ? t("credentialStoreUnreadableNote")
+                : item.error.replaceAll("_", " ")}
+            </p>
+          )}
           <details>
             <summary>Manage permissions</summary>
             <ul>

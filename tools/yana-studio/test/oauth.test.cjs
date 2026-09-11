@@ -247,7 +247,7 @@ test("Slack and Notion keep workspace identity separate from email", async () =>
   assert.equal(slack.email, undefined);
   assert.equal(notion.email, undefined);
 });
-test("provider revoke cleans related Google credentials only after success", async () => {
+test("provider revoke clears only the revoked key, not sibling connections on the same provider", async () => {
   const { manager, store, adapter } = fixture({
     revoke: async () => {
       throw new Error("provider_request_failed");
@@ -259,7 +259,11 @@ test("provider revoke cleans related Google credentials only after success", asy
   assert.ok(store.read("google:gmail"));
   adapter.revoke = async () => {};
   await manager.revoke("google:gmail");
-  assert.equal(store.read("google:identity"), undefined);
+  // google:identity and google:gmail are independent authorization()/
+  // exchange() round trips holding their own distinct tokens -- revoking
+  // one must never disconnect the other, even though both share the same
+  // provider adapter (see manager.cjs's revoke()).
+  assert.ok(store.read("google:identity"));
   assert.equal(store.read("google:gmail"), undefined);
 });
 test("GitHub public configuration enables device flow and preserves existing credentials", () => {
