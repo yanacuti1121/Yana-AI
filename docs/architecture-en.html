@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yana architecture — one system, several authority tiers</title>
+  <meta name="description" content="Architecture from the human surface through Giám Thị, the control plane, TurnEngine, model and capability, to evidence.">
+  <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
+</head>
+<body>
+<nav class="site-nav"><a class="brand" href="en.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Open menu" aria-expanded="false">☰</button><div class="nav-links"><a href="en.html">Overview</a><a href="ecosystem-en.html">Ecosystem</a><a href="architecture-en.html" aria-current="page">Architecture</a><a href="governance-en.html">Governance</a><a href="studio-en.html">Studio</a><a href="index.html">VI</a></div><div class="nav-actions"><a class="nav-cta" href="download-en.html">Get Yana</a></div></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">SYSTEM ARCHITECTURE</p><h1>One system.<br>Several authority tiers.</h1><p class="hero-copy">Yana separates intelligence, authority, execution, continuity, evidence and interface into independent planes joined by explicit contracts.</p><div class="hero-actions"><a class="button" href="#stack">See the full stack</a><a class="button light" href="governance-en.html">See governance</a></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:28px;display:grid;gap:10px"><div class="visual-row"><strong>01 · Human surfaces</strong><span>Studio · Terminal · Web · Discord</span></div><div class="visual-row"><strong>02 · Giám Thị</strong><span>root safety authority</span></div><div class="visual-row"><strong>03 · Yana control plane</strong><span>policy · task · memory</span></div><div class="visual-row"><strong>04 · Rust TurnEngine</strong><span>typed turn · stream · cancel</span></div><div class="visual-row"><strong>05 · Model + Capability</strong><span>local/cloud · governed tools</span></div><div class="visual-row"><strong>06 · Evidence</strong><span>receipt · audit · Git</span></div></div></div></div></section>
+  <section class="section" id="stack"><div class="section-head"><p class="eyebrow">THE STACK</p><h2>The model is just one replaceable component.</h2><p>Authority and system state live outside the model, so switching provider or agent never costs you the boundary.</p></div><div class="product-grid"><article class="product-card"><div><h3>Intelligence plane</h3><p>Local and cloud providers share one authority model; the newer provider gateway isn't yet the dispatch path for every call.</p></div><div class="product-art"><code>OpenAI · Anthropic
+Groq · Gemini
+Ollama · local</code></div></article><article class="product-card"><div><h3>Execution plane</h3><p>The Rust TurnEngine manages typed turns, streaming, cancellation and canonical capability.</p></div><div class="product-art"><code>turn → stream
+     → tool loop
+     → cancel
+     → partial output</code></div></article><article class="product-card"><div><h3>Authority plane</h3><p>Giám Thị, YanaAuthorityChain, approval, leases and HALT keep authority outside inference.</p></div><div class="product-art"><code>human
+  ↓
+Giám Thị
+  ↓
+Yana control plane</code></div></article></div></section>
+  <section class="section feature system-map" id="system-map"><div class="feature-copy"><p class="eyebrow">SYSTEM MAP</p><h2>One control plane.<br>Several surfaces, not equally powerful.</h2><p>The human keeps the final decision. Giám Thị is the root safety authority — it can HALT the entire session when it detects an unreviewed change. Studio and the Runtime CLI go through the same Yana control plane into the Rust TurnEngine (<code>yana-rt</code>); Wheelbot is a separate hardware branch with its own WebSocket/MCP device bridge — this site does not claim Wheelbot's path has been verified end-to-end through the same TurnEngine.</p><a class="button ghost" href="runtime-en.html">See Yana Runtime →</a></div><div class="feature-visual"><div class="system-diagram">
+    <div class="diagram-node tier-human"><strong>Human</strong><span>final authority</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-guard"><strong>Giám Thị</strong><span>root safety · fail-closed HALT</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Yana control plane</strong><span>policy · identity · evidence · capability</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Rust TurnEngine (yana-rt)</strong><span>stream · cancel · tool loop</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-model"><strong>Model + provider plane</strong><span>Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter · Ollama</span></div>
+      <div class="diagram-node tier-model"><strong>Canonical capability</strong><span>file · Git · command (shell/process) · system, manifest-scoped</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-audit"><strong>Audit chain</strong><span>hash-chained per tool call, tamper-detectable</span></div>
+      <div class="diagram-node tier-audit"><strong>Evidence receipt</strong><span>HMAC-signed execution result (Truth Gate)</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-surface"><strong>Studio · Runtime CLI</strong><span>same TurnEngine, verified</span></div>
+      <div class="diagram-node tier-surface"><strong>Wheelbot</strong><span>own device bridge — not verified end-to-end</span></div>
+    </div>
+  </div></div></section>
+  <section class="section feature"><div class="feature-copy"><p class="eyebrow">CONTROL + CONTINUITY</p><h2>Work outlives a single transcript.</h2><p>Task graph, missions, L1/L2 memory and project memory create durable state; a complete Continuity Engine is still roadmap.</p><a class="button ghost" href="continuity-en.html">See Continuity</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Task graph</strong><span>live</span></div><div class="visual-row"><strong>Missions</strong><span>live · maturity evolving</span></div><div class="visual-row"><strong>L1 / L2 memory</strong><span>live</span></div><div class="visual-row"><strong>Continuity Engine</strong><span>roadmap</span></div></div></div></section>
+  <section class="section feature reverse"><div class="feature-copy"><p class="eyebrow">CAPABILITY + EVIDENCE</p><h2>A real action leaves a receipt.</h2><p>Manifest lookup, risk, approval, atomic file write, TOCTOU re-diff and the audit chain turn a tool call into a verifiable action.</p><a class="button ghost" href="governance-en.html">See Governance</a></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Proposal</strong><span>model</span></div><div class="visual-row"><strong>Decision</strong><span>authority</span></div><div class="visual-row"><strong>Execution</strong><span>capability</span></div><div class="visual-row"><strong>Evidence</strong><span>receipt + artifact</span></div></div></div></section>
+  <section class="section"><div class="section-head"><p class="eyebrow">INTERFACE BOUNDARIES</p><h2>Every interface carries a different level of authority.</h2><p>Yana doesn't assume every harness is equally capable.</p></div><div class="product-grid"><article class="product-card"><div><h3>Terminal</h3><p>The only chat path with approval-continuation for mutating capability today.</p></div><div class="product-art"><code>interactive
+approval continuation
+mutating capability</code></div></article><article class="product-card"><div><h3>Studio + Packaged Web</h3><p>Uses the headless stdin/NDJSON contract; headless mode doesn't expose mutation capability today.</p></div><div class="product-art"><code>typed turn
+local process
+no headless mutation</code></div></article><article class="product-card"><div><h3>MCP + Adapters</h3><p>MCP is opt-in and doesn't create approval on its own; harness adapters enforce it unevenly.</p></div><div class="product-art"><code>MCP  experimental
+approval  external
+adapters  unequal</code></div></article></div></section>
+  <section class="quote-band"><p class="eyebrow">DEEPEST PRINCIPLE</p><h2>Intelligence can change.<br>Authority must hold.</h2><p>That's why Yana is a control plane and a personal agent operating system, not just a model wrapper.</p></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="en.html"><img src="yana-logo.png" alt=""><span>Yana</span></a><p>A personal operating system for governed AI work.</p></div><div class="footer-links"><strong>Product</strong><a href="studio-en.html">Studio 1.5</a><a href="runtime-en.html">Runtime</a><a href="wheelbot-en.html">Wheelbot</a></div><div class="footer-links"><strong>Source</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Contact</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js"></script>
+</body></html>
