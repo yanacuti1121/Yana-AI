@@ -1,0 +1,80 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yana Runtime — control plane for AI</title><meta name="description" content="Yana Runtime keeps authority, capability, approval, HALT, audit and evidence outside the model."><link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css"></head><body>
+<nav class="site-nav"><a class="brand" href="en.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Open menu" aria-expanded="false">☰</button><div class="nav-links"><a href="en.html">Overview</a><a href="ecosystem-en.html">Ecosystem</a><a href="studio-en.html">Studio 1.5</a><a href="runtime-en.html" aria-current="page">Runtime</a><a href="wheelbot.html">Wheelbot</a><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a></div><div class="nav-actions"><a class="nav-cta" href="download-en.html">Get started</a></div></nav>
+<main><section class="hero"><div class="hero-inner"><p class="eyebrow">YANA RUNTIME</p><h1>The model proposes.<br>The human holds authority.</h1><p class="hero-copy">A bounded TurnEngine, formal capability, explicit approval, HALT and audit receipts — authority never lives in a prompt.</p><div class="hero-actions"><a class="button" href="https://crates.io/crates/yana-rt">Install yana-rt</a><a class="button light" href="#governance">See governance</a></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:34px;display:grid;gap:16px"><div class="visual-row"><strong>01 · Model</strong><span>proposes a capability</span></div><div class="visual-row"><strong>02 · Authority chain</strong><span>allow · ask · deny</span></div><div class="visual-row"><strong>03 · Capability</strong><span>executes within scope</span></div><div class="visual-row"><strong>04 · Evidence</strong><span>records the result</span></div></div></div></div></section>
+<section class="section runtime-scene" id="runtime-scene"><div class="scene-head"><p class="eyebrow">AI CAN ACT</p><div class="scene-lines"><h2 class="scene-line scene-line-1">A model can write files, run commands, call tools — unbounded, with no one watching.</h2><h2 class="scene-line scene-line-2">Put authority outside the model. That's Yana Runtime.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-models">
+        <div class="graph-node">Anthropic</div>
+        <div class="graph-node">OpenAI</div>
+        <div class="graph-node">Gemini</div>
+        <div class="graph-node">Groq</div>
+        <div class="graph-node">Ollama (local)</div>
+        <div class="graph-node graph-node-more">+ DeepSeek, OpenRouter</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Mission · Context · Turn Engine · Governance · Capability · Evidence</span></div>
+      <div class="graph-link graph-link-bottom"><span></span></div>
+      <div class="graph-row graph-targets">
+        <div class="graph-node">Files</div>
+        <div class="graph-node">Git</div>
+        <div class="graph-node">Shell / Process</div>
+        <div class="graph-node">System</div>
+      </div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-surfaces" id="scene-surfaces"><div class="scene-head"><p class="eyebrow">ONE RUNTIME</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Several different interaction surfaces.</h2><h2 class="scene-line scene-line-2">All going through one Yana Runtime — not a separate copy per surface.</h2></div></div>
+    <div class="runtime-graph">
+      <div class="graph-row graph-surfaces">
+        <div class="graph-node">Yana Studio</div>
+        <div class="graph-node">Runtime CLI</div>
+        <div class="graph-node graph-node-more">MCP (opt-in, experimental)</div>
+      </div>
+      <div class="graph-link graph-link-top"><span></span></div>
+      <div class="graph-core"><strong>Yana Runtime</strong><span>Studio spawns the exact same <code>yana-rt</code> binary the CLI uses — same TurnEngine, not two implementations</span></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-anyai" id="scene-anyai"><div class="scene-head"><p class="eyebrow">ANY AI</p><div class="scene-lines"><h2 class="scene-line scene-line-1">Change the model.</h2><h2 class="scene-line scene-line-2">Keep the entire system.</h2></div></div>
+    <div class="anyai-panel">
+      <div class="anyai-swap"><span class="meta">MODEL IN USE</span><div class="anyai-cycle" id="anyai-cycle">
+        <span class="anyai-item is-active">Anthropic</span><span class="anyai-item">OpenAI</span><span class="anyai-item">Gemini</span><span class="anyai-item">Groq</span><span class="anyai-item">DeepSeek</span><span class="anyai-item">OpenRouter</span><span class="anyai-item">Ollama (local)</span>
+      </div><p class="anyai-note">Pick a provider — Yana automatically uses that provider's default model, no catalog lookup needed.</p></div>
+      <div class="anyai-fixed"><span class="meta">DOESN'T CHANGE</span>
+        <div class="anyai-row">✓ Mission</div>
+        <div class="anyai-row">✓ Tasks</div>
+        <div class="anyai-row">✓ Project memory</div>
+        <div class="anyai-row">✓ Authority chain</div>
+        <div class="anyai-row">✓ Evidence</div>
+      </div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-human" id="scene-human"><div class="scene-head"><p class="eyebrow">HUMAN-GOVERNED</p><div class="scene-lines"><h2 class="scene-line scene-line-1">The model proposes an action.</h2><h2 class="scene-line scene-line-2">A human decides whether it happens.</h2></div></div>
+    <div class="scenario-card">
+      <div class="scenario-row"><span>AI proposal</span><strong>"Modify 43 files"</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Yana evaluates</span><strong>YanaAuthorityChain</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row"><span>Blast radius policy</span><strong>src/guard/blast_radius.rs</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-halt"><span>Approval required</span><strong>waiting, not executed</strong></div>
+      <div class="diagram-arrow">↓</div>
+      <div class="scenario-row scenario-row-human"><span>Human decision</span><strong>allow · limit · deny</strong></div>
+    </div>
+  </section>
+  <section class="section runtime-scene scene-control" id="scene-control"><div class="scene-head"><p class="eyebrow">DETERMINISTIC CONTROL</p><div class="scene-lines"><h2 class="scene-line scene-line-1">AI doesn't decide for itself how far it reaches.</h2><h2 class="scene-line scene-line-2">Three capability groups, each with its own boundary.</h2></div></div>
+    <div class="control-grid">
+      <div class="control-col"><h3>Access</h3><div class="control-tags"><span>file read</span><span>git status</span><span>git log</span></div></div>
+      <div class="control-col"><h3>Change</h3><div class="control-tags"><span>file_mutation</span><span>config_write</span><span>git commit</span></div></div>
+      <div class="control-col"><h3>Execute</h3><div class="control-tags"><span>command (shell)</span><span>process</span><span>system</span></div></div>
+    </div>
+  </section>
+<section class="section" id="governance"><div class="section-head"><p class="eyebrow">GOVERNANCE</p><h2>Authority is architecture,<br>not a badge.</h2><p>Policy lives outside the model. Capability leases are scoped and revocable. Giám Thị HALT holds the highest stop authority.</p></div><div class="product-grid"><article class="product-card"><div><h3>YanaAuthorityChain</h3><p>Deterministic preflight before any real action.</p></div><div class="product-art"><code>filesystem  workspace only
+shell       ask
+network     ask
+destructive deny</code></div></article><article class="product-card"><div><h3>Capability leases</h3><p>Time-boxed, scoped, subject-specific permission.</p></div><div class="product-art"><code>subject  current session
+scope    /workspace
+ttl      27 min
+revoke   available</code></div></article><article class="product-card"><div><h3>Fail loudly</h3><p>Missing governance must surface, never silently skip a permission check.</p></div><div class="product-art"><code>guard missing  → stop
+denied         → visible
+HALT           → highest</code></div></article></div></section>
+<section class="section feature" id="continuity"><div class="feature-copy"><p class="eyebrow">CONTINUITY</p><h2>Work outlives a single chat.</h2><p>Typed task graph, mission, L1/L2 memory and project memory keep dependency, decisions and provenance across sessions.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Mission</strong><span>active</span></div><div class="visual-row"><strong>Task graph</strong><span>6 nodes · 8 edges</span></div><div class="visual-row"><strong>Project facts</strong><span>34 indexed</span></div><div class="visual-row"><strong>Conversation</strong><span>replaceable surface</span></div></div></div></section>
+<section class="section feature reverse" id="evidence"><div class="feature-copy"><p class="eyebrow">EVIDENCE ENGINE</p><h2>No evidence, not called done.</h2><p>File diff, test result, build result, exit code and approval form an evidence package a human reviews, accepts or rolls back.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Implementation</strong><span>✓</span></div><div class="visual-row"><strong>Tests</strong><span>38 / 38</span></div><div class="visual-row"><strong>Build</strong><span>Exit 0</span></div><div class="visual-row"><strong>Human gate</strong><span>waiting</span></div></div></div></section></main><footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="en.html"><img src="yana-logo.png" alt=""><span>Yana</span></a><p>A personal operating system for governed AI work.</p></div><div class="footer-links"><strong>Product</strong><a href="studio-en.html">Studio 1.5</a><a href="runtime-en.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Source</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Contact</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js"></script></body></html>
