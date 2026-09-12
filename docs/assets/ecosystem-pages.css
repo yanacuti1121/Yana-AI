@@ -334,18 +334,46 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
   .gate-marker{transition:none;border-color:var(--blue-dark);background:var(--blue-dark)}
 }
 
+/* Ecosystem -- branching. Root visually distinct (filled, dark) from
+   the three branches (plain marker + label, no card material) so the
+   eye reads "one root, three surfaces" rather than three product tiles. */
 .ecosystem-tree{width:min(760px,100%);margin:44px auto 0;text-align:center}
 .tree-root{display:inline-block;padding:14px 26px;border-radius:16px;background:var(--ink);color:white;font-weight:750;font-size:15px}
+.tree-root-caption{display:block;margin-top:10px;color:var(--muted);font-size:12px;font-style:italic}
 .tree-trunk{width:1px;height:26px;background:var(--line);margin:0 auto}
 .tree-branches{display:flex;justify-content:center;gap:18px}
 .tree-branch{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:26px;position:relative}
 .tree-branch::before{content:"";position:absolute;top:0;left:50%;width:1px;height:26px;background:var(--line)}
-.tree-node{padding:12px 18px;border-radius:14px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:0 10px 24px rgba(50,63,119,.1);font-weight:700;font-size:14px;width:100%}
-.tree-leaf{margin-top:10px;color:var(--muted);font-size:12.5px}
-@media(max-width:700px){.tree-branches{flex-direction:column;gap:10px}.tree-branch::before{display:none}.tree-branch{padding-top:0}}
+.tree-node{font-weight:700;font-size:15px;color:var(--ink)}
+.tree-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--blue-dark);margin:0 auto 9px}
+.tree-leaf{margin-top:8px;color:var(--muted);font-size:12.5px}
+@media(max-width:700px){.tree-branches{flex-direction:column;gap:20px}.tree-branch::before{display:none}.tree-branch{padding-top:0}}
 
-.local-flow{width:min(420px,100%);margin:40px auto 0}
-.local-flow .diagram-node{text-align:center}
+/* Yana Studio -- the screenshot is the protagonist: widened past the
+   standard section container and the site's default screenshot size
+   (studio.html keeps its own, unchanged), no fake device frame added. */
+#studio{width:min(1400px,calc(100% - 32px))}
+#studio .screenshot-stack{width:min(1240px,100%)}
+
+/* Local-First -- locality boundary, not convergence. A dashed region
+   holds User/Yana/local state in one trust zone; Cloud sits visibly
+   outside it, reached only by a dashed (conditional) connector. No
+   panel behind it -- distinct from One Runtime's funnel and from The
+   Yana Layer's solid-ruled boundary. */
+#local-first .feature-visual{background:none;padding:0;min-height:auto;border-radius:0;display:block}
+.locality{width:min(420px,100%);margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.locality-boundary{position:relative;width:100%;padding:26px 24px 18px;border:1.5px dashed rgba(64,85,213,.4);border-radius:26px;background:rgba(102,120,244,.045)}
+.locality-label{display:block;margin-bottom:14px;color:var(--blue-dark);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;text-align:center}
+.locality-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:9px 2px;border-bottom:1px solid rgba(64,85,213,.12)}
+.locality-row:last-child{border-bottom:0}
+.locality-row strong{font-size:14px}
+.locality-row span{color:var(--muted);font-size:12px;text-align:right}
+.locality-connector{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0}
+.locality-connector span{width:2px;height:28px;background-image:linear-gradient(var(--muted) 50%,transparent 0);background-size:2px 8px;background-repeat:repeat-y}
+.locality-connector small{color:var(--muted);font-size:11px;font-style:italic}
+.locality-cloud{padding:9px 20px;border:1px solid var(--line);border-radius:999px;text-align:center;opacity:.7}
+.locality-cloud strong{display:block;font-size:13px}
+.locality-cloud span{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
 .history-band{background:#0d1018;color:white}
 .history-band .section-head p{color:#adb5c4}

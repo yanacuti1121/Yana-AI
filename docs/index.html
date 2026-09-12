@@ -140,6 +140,7 @@
   </div>
     <div class="ecosystem-tree">
       <div class="tree-root">YANA AI</div>
+      <small class="tree-root-caption">hệ sinh thái — không phải một app đơn lẻ</small>
       <div class="tree-trunk"></div>
       <div class="tree-branches">
         <div class="tree-branch"><div class="tree-node">Runtime</div><div class="tree-leaf">CLI · yana-rt · TurnEngine</div></div>
@@ -159,12 +160,15 @@
   </section>
 
   <section class="section feature reverse" id="local-first"><div class="feature-copy"><p class="eyebrow">LOCAL-FIRST</p><h2>Môi trường của bạn, do bạn giữ.</h2><p>Cloud chỉ xuất hiện khi một provider hoặc connector cụ thể cần tới nó. Bạn tự chọn model/provider (BYO), có thể chạy local model, project state nằm trên máy bạn, kiến trúc cross-platform.</p></div><div class="feature-visual">
-    <div class="local-flow">
-      <div class="diagram-node tier-human"><strong>User</strong><span>quyết định cuối</span></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="diagram-node tier-control"><strong>Yana</strong><span>runtime + authority + evidence</span></div>
-      <div class="diagram-arrow">↓</div>
-      <div class="diagram-node tier-surface"><strong>Máy cục bộ</strong><span>files · project state · local model</span></div>
+    <div class="locality">
+      <div class="locality-boundary">
+        <small class="locality-label">Máy của bạn</small>
+        <div class="locality-row"><strong>User</strong><span>quyết định cuối</span></div>
+        <div class="locality-row"><strong>Yana</strong><span>runtime + authority + evidence</span></div>
+        <div class="locality-row"><strong>Local state</strong><span>files · project state · local model</span></div>
+      </div>
+      <div class="locality-connector"><span></span><small>chỉ khi cần</small></div>
+      <div class="locality-cloud"><strong>Cloud provider</strong><span>chỉ gọi khi provider/connector yêu cầu</span></div>
     </div>
   </div></section>
 
