@@ -93,6 +93,21 @@ function writeJson(p, d) {
 function appendLog(line) {
   try { fs.appendFileSync(logFile, line + '\n'); } catch {}
 }
+// Parity with src/guard/token_budget.rs's deny_json(): Claude Code's
+// PreToolUse hook contract only recognizes exit 2 + a hookSpecificOutput
+// JSON object on stdout as an actual "deny" -- any other exit code (or
+// non-JSON stdout) is treated as a hook error, and the tool call proceeds
+// anyway regardless of what was printed.
+function denyJson(reason) {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason,
+    },
+  }));
+  return 2;
+}
 
 // Resolve real tool name: stdin JSON payload first, env var fallback second.
 let toolName = 'unknown';
@@ -126,43 +141,37 @@ if (info.state === 'open') {
   status = 'closed';
 }
 
+// BUG FIX (parity with src/guard/token_budget.rs): a half-open transition
+// is supposed to be one free probe, but loop_attempts[tool] was never
+// reset here -- it kept the stale count (>= maxAttempts) that tripped the
+// circuit last time, so the loopCount check just below re-tripped on the
+// probe itself, every cooldown cycle, escalating open_count until
+// cooldown got stuck at 1800s forever. Reset here, before loopCount is
+// read, so the probe gets a real fresh chance. Mirrors token_budget.rs's
+// HalfOpen reset exactly.
+if (status === 'half-open') {
+  budget.loop_attempts = budget.loop_attempts || {};
+  budget.loop_attempts[toolName] = 0;
+}
+
 if (status.startsWith('open:')) {
   const remaining = status.slice(5);
-  console.log("╔══════════════════════════════════════════════════════╗");
-  console.log("║  [token-budget-guard] CIRCUIT BREAKER — OPEN         ║");
-  console.log("╚══════════════════════════════════════════════════════╝");
-  console.log(`  Tool     : ${toolName}`);
-  console.log(`  State    : OPEN (cooldown: ${remaining}s remaining)`);
-  console.log(`  Action   : HARD BLOCKED — loop detected, circuit is open`);
-  console.log(`  Fix      : Wait for cooldown, then retry with a different strategy`);
-  console.log(`  Fast tier: Switch model to ${fastTierModel} to reduce cost`);
   appendLog(`[${timestamp}] CIRCUIT-OPEN tool='${toolName}' cooldown_remaining=${remaining}s`);
-  process.exit(1);
+  // BUG FIX (parity with src/guard/token_budget.rs): same exit-code fix as
+  // below -- this used to print a plain-text ASCII box and exit(1), which
+  // Claude Code treats as a hook error, not a deny, so the tool call ran
+  // anyway regardless of the box saying "HARD BLOCKED".
+  process.exit(denyJson(
+    `[token-budget-guard] Circuit breaker OPEN for '${toolName}' — too many ` +
+    `consecutive attempts detected. Blocked for ${remaining}s more (cooldown). ` +
+    `Switch to ${fastTierModel} for faster/cheaper retries, or wait out the cooldown.`
+  ));
 }
 
 const totalTokens = budget.total_tokens_used || 0;
 const loopCount = (budget.loop_attempts || {})[toolName] || 0;
 
 if (loopCount >= maxAttempts) {
-  console.log("╔══════════════════════════════════════════════════════╗");
-  console.log("║  [token-budget-guard] CIRCUIT BREAKER TRIGGERED      ║");
-  console.log("╚══════════════════════════════════════════════════════╝");
-  console.log(`  Tool       : ${toolName}`);
-  console.log(`  Loop count : ${loopCount} / ${maxAttempts} (threshold exceeded)`);
-  console.log(`  Tokens used: ${totalTokens}`);
-  console.log(`  Action     : Circuit OPENED — tool BLOCKED for ${cooldownSeconds}s`);
-  console.log("");
-  console.log("  ── Fast-Tier Recommendation ──────────────────────────");
-  console.log(`  Switch model to: ${fastTierModel}`);
-  console.log(`  Reason: Sonnet costs accumulating on a stuck loop.`);
-  console.log(`  Command: Set ANTHROPIC_MODEL=${fastTierModel} in your env`);
-  console.log("");
-  console.log("  ── Recovery Options ──────────────────────────────────");
-  console.log("  1. Stop the loop — pick a completely different approach");
-  console.log("  2. Use /tree-of-thoughts to re-plan from scratch");
-  console.log("  3. Escalate to human: too complex for auto-fix");
-  console.log("");
-
   circuits.circuits = circuits.circuits || {};
   const prevOpenCount = (circuits.circuits[toolName] || {}).open_count || 0;
   const openCount = prevOpenCount + 1;
@@ -180,7 +189,15 @@ if (loopCount >= maxAttempts) {
   writeJson(budgetPath, budget);
 
   appendLog(`[${timestamp}] CIRCUIT-TRIGGERED tool='${toolName}' loop_count=${loopCount} tokens=${totalTokens}`);
-  process.exit(1); // HARD BLOCK
+  // BUG FIX (parity with src/guard/token_budget.rs): same exit-code fix as
+  // the open-circuit branch above -- must deny with exit 2 + JSON, not
+  // exit(1), or Claude Code lets the tool call through anyway.
+  process.exit(denyJson(
+    `[token-budget-guard] Circuit breaker OPENED for '${toolName}' — called ` +
+    `${loopCount}/${maxAttempts} times without success (loop detected). Blocked for ` +
+    `${storedCooldown}s. Switch to ${fastTierModel} for faster/cheaper retries, or ` +
+    `stop and re-plan with a different approach.`
+  ));
 }
 
 if (totalTokens > maxLoopTokens) {

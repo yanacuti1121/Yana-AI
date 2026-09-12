@@ -336,36 +336,18 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 
 /* Ecosystem -- branching. Root visually distinct (filled, dark) from
    the three branches (plain marker + label, no card material) so the
-   eye reads "one root, three surfaces" rather than three product tiles.
-   Checkpoint E: trunk draws in (scaleY, same technique as
-   .exec-connector) then each branch's stem+dot activates in sequence
-   (same nth-child stagger-delay technique as .gate-activate) -- the
-   inverse gesture of One Runtime's convergence: one root fanning out
-   into three real surfaces instead of many sources converging inward.
-   Keyed off #ecosystem's own existing section-level .visible toggle,
-   not a new observer target. */
+   eye reads "one root, three surfaces" rather than three product tiles. */
 .ecosystem-tree{width:min(760px,100%);margin:44px auto 0;text-align:center}
 .tree-root{display:inline-block;padding:14px 26px;border-radius:16px;background:var(--ink);color:white;font-weight:750;font-size:15px}
 .tree-root-caption{display:block;margin-top:10px;color:var(--muted);font-size:12px;font-style:italic}
-.tree-trunk{width:1px;height:26px;background:var(--line);margin:0 auto;transform-origin:top;transform:scaleY(0);transition:transform .4s ease .15s}
-#ecosystem.visible .tree-trunk{transform:scaleY(1)}
+.tree-trunk{width:1px;height:26px;background:var(--line);margin:0 auto}
 .tree-branches{display:flex;justify-content:center;gap:18px}
 .tree-branch{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:26px;position:relative}
-.tree-branch::before{content:"";position:absolute;top:0;left:50%;width:1px;height:26px;background:var(--line);transform-origin:top;transform:scaleY(0);transition:transform .3s ease}
-#ecosystem.visible .tree-branch:nth-child(1)::before{transform:scaleY(1);transition-delay:.55s}
-#ecosystem.visible .tree-branch:nth-child(2)::before{transform:scaleY(1);transition-delay:.7s}
-#ecosystem.visible .tree-branch:nth-child(3)::before{transform:scaleY(1);transition-delay:.85s}
+.tree-branch::before{content:"";position:absolute;top:0;left:50%;width:1px;height:26px;background:var(--line)}
 .tree-node{font-weight:700;font-size:15px;color:var(--ink)}
-.tree-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--blue-dark);margin:0 auto 9px;transform:scale(0);transition:transform .25s cubic-bezier(.34,1.4,.64,1)}
-#ecosystem.visible .tree-branch:nth-child(1) .tree-node::before{transform:scale(1);transition-delay:.75s}
-#ecosystem.visible .tree-branch:nth-child(2) .tree-node::before{transform:scale(1);transition-delay:.9s}
-#ecosystem.visible .tree-branch:nth-child(3) .tree-node::before{transform:scale(1);transition-delay:1.05s}
+.tree-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--blue-dark);margin:0 auto 9px}
 .tree-leaf{margin-top:8px;color:var(--muted);font-size:12.5px}
 @media(max-width:700px){.tree-branches{flex-direction:column;gap:20px}.tree-branch::before{display:none}.tree-branch{padding-top:0}}
-@media(prefers-reduced-motion:reduce){
-  .tree-trunk,.tree-branch::before{transition:none;transform:scaleY(1)}
-  .tree-node::before{transition:none;transform:scale(1)}
-}
 
 /* Yana Studio -- the screenshot is the protagonist: widened past the
    standard section container and the site's default screenshot size
@@ -403,27 +385,9 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 .history-step span{display:block;color:#c3c9d9;font-size:12.5px}
 @media(max-width:820px){.history-timeline{grid-template-columns:1fr}}
 
-.history-log{width:min(760px,100%);margin:44px auto 0;border-left:1px solid rgba(255,255,255,.16)}
-.log-entry{position:relative;padding:18px 0 18px 26px}
-.log-entry+.log-entry{border-top:1px solid rgba(255,255,255,.08)}
-.log-entry::before{content:"";position:absolute;left:-4px;top:26px;width:7px;height:7px;border-radius:1px;background:#7b86a3}
-.log-date{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#7b8398;margin-right:14px}
-.log-title{font-size:15px;color:#f2f4f9}
-.log-desc{display:block;margin-top:4px;color:#a9b0c2;font-size:13px;line-height:1.5}
-@media(max-width:620px){.history-log{margin-top:32px}.log-entry{padding:16px 0 16px 20px}}
-
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;width:100%;background:var(--line);border-radius:24px;overflow:hidden}
 .stat-cell{background:white;padding:32px 20px;text-align:center}
 .stat-cell strong{display:block;font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .stat-cell span{display:block;margin-top:6px;color:var(--muted);font-size:12.5px}
 @media(max-width:820px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
-
-.explore-primary{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:14px}
-.explore-secondary{display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.explore-link{display:flex;justify-content:space-between;align-items:baseline;gap:24px;padding:18px 4px;border-bottom:1px solid var(--line);text-decoration:none}
-.explore-link strong{font-size:15px;color:var(--ink,#1c2430)}
-.explore-link span{color:var(--muted);font-size:12.5px;text-align:right;max-width:44ch}
-.explore-link:hover strong{text-decoration:underline}
-@media(max-width:900px){.explore-primary{grid-template-columns:1fr}}
-@media(max-width:620px){.explore-link{flex-direction:column;align-items:flex-start;gap:4px}.explore-link span{text-align:left;max-width:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.reveal,.reveal-stagger>*{opacity:1!important;transform:none!important}}
