@@ -336,18 +336,36 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 
 /* Ecosystem -- branching. Root visually distinct (filled, dark) from
    the three branches (plain marker + label, no card material) so the
-   eye reads "one root, three surfaces" rather than three product tiles. */
+   eye reads "one root, three surfaces" rather than three product tiles.
+   Checkpoint E: trunk draws in (scaleY, same technique as
+   .exec-connector) then each branch's stem+dot activates in sequence
+   (same nth-child stagger-delay technique as .gate-activate) -- the
+   inverse gesture of One Runtime's convergence: one root fanning out
+   into three real surfaces instead of many sources converging inward.
+   Keyed off #ecosystem's own existing section-level .visible toggle,
+   not a new observer target. */
 .ecosystem-tree{width:min(760px,100%);margin:44px auto 0;text-align:center}
 .tree-root{display:inline-block;padding:14px 26px;border-radius:16px;background:var(--ink);color:white;font-weight:750;font-size:15px}
 .tree-root-caption{display:block;margin-top:10px;color:var(--muted);font-size:12px;font-style:italic}
-.tree-trunk{width:1px;height:26px;background:var(--line);margin:0 auto}
+.tree-trunk{width:1px;height:26px;background:var(--line);margin:0 auto;transform-origin:top;transform:scaleY(0);transition:transform .4s ease .15s}
+#ecosystem.visible .tree-trunk{transform:scaleY(1)}
 .tree-branches{display:flex;justify-content:center;gap:18px}
 .tree-branch{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:26px;position:relative}
-.tree-branch::before{content:"";position:absolute;top:0;left:50%;width:1px;height:26px;background:var(--line)}
+.tree-branch::before{content:"";position:absolute;top:0;left:50%;width:1px;height:26px;background:var(--line);transform-origin:top;transform:scaleY(0);transition:transform .3s ease}
+#ecosystem.visible .tree-branch:nth-child(1)::before{transform:scaleY(1);transition-delay:.55s}
+#ecosystem.visible .tree-branch:nth-child(2)::before{transform:scaleY(1);transition-delay:.7s}
+#ecosystem.visible .tree-branch:nth-child(3)::before{transform:scaleY(1);transition-delay:.85s}
 .tree-node{font-weight:700;font-size:15px;color:var(--ink)}
-.tree-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--blue-dark);margin:0 auto 9px}
+.tree-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--blue-dark);margin:0 auto 9px;transform:scale(0);transition:transform .25s cubic-bezier(.34,1.4,.64,1)}
+#ecosystem.visible .tree-branch:nth-child(1) .tree-node::before{transform:scale(1);transition-delay:.75s}
+#ecosystem.visible .tree-branch:nth-child(2) .tree-node::before{transform:scale(1);transition-delay:.9s}
+#ecosystem.visible .tree-branch:nth-child(3) .tree-node::before{transform:scale(1);transition-delay:1.05s}
 .tree-leaf{margin-top:8px;color:var(--muted);font-size:12.5px}
 @media(max-width:700px){.tree-branches{flex-direction:column;gap:20px}.tree-branch::before{display:none}.tree-branch{padding-top:0}}
+@media(prefers-reduced-motion:reduce){
+  .tree-trunk,.tree-branch::before{transition:none;transform:scaleY(1)}
+  .tree-node::before{transition:none;transform:scale(1)}
+}
 
 /* Yana Studio -- the screenshot is the protagonist: widened past the
    standard section container and the site's default screenshot size
