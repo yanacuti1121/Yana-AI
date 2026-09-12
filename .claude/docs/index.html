@@ -174,11 +174,11 @@
 
   <section class="section history-band" id="history"><div class="section-head" style="max-width:680px;margin:0 auto 8px;text-align:center"><p class="eyebrow">BUILT IN THE OPEN</p></div>
     <p class="history-quote">Yana has evolved through real failures, redesigns, regressions and fixes. Its development history is part of the product.</p>
-    <div class="history-timeline">
-      <div class="history-step"><small>01 Sep 2026</small><strong>Release</strong><span>v1.4.4 phát hành</span></div>
-      <div class="history-step"><small>01 Sep 2026</small><strong>Issue discovered</strong><span>Lỗi packaging bị phát hiện cùng ngày</span></div>
-      <div class="history-step"><small>01 Sep 2026</small><strong>Fixed</strong><span>v1.4.6 — root cause được xử lý dứt điểm</span></div>
-      <div class="history-step"><small>01 Sep 2026</small><strong>Architecture improvement</strong><span>CI được siết chặt để chặn lại đúng lớp lỗi đó</span></div>
+    <div class="history-log">
+      <div class="log-entry"><span class="log-date">01 Sep 2026</span><strong class="log-title">Release</strong><span class="log-desc">v1.4.4 phát hành</span></div>
+      <div class="log-entry"><span class="log-date">01 Sep 2026</span><strong class="log-title">Issue discovered</strong><span class="log-desc">Lỗi packaging bị phát hiện cùng ngày</span></div>
+      <div class="log-entry"><span class="log-date">01 Sep 2026</span><strong class="log-title">Fixed</strong><span class="log-desc">v1.4.6 — root cause được xử lý dứt điểm</span></div>
+      <div class="log-entry"><span class="log-date">01 Sep 2026</span><strong class="log-title">Architecture improvement</strong><span class="log-desc">CI được siết chặt để chặn lại đúng lớp lỗi đó</span></div>
     </div>
     <p style="text-align:center;margin-top:28px"><a class="button light" href="history.html">Xem đầy đủ lịch sử phát triển →</a></p>
   </section>
@@ -188,18 +188,22 @@
       <div class="stat-cell"><strong>2.026</strong><span>skills — kiến thức nạp theo trigger</span></div>
       <div class="stat-cell"><strong>100</strong><span>agents — dispatch đồng bộ, đọc-only</span></div>
       <div class="stat-cell"><strong>66</strong><span>safety hooks đang hoạt động</span></div>
-      <div class="stat-cell"><strong>7</strong><span>model provider thật, local + cloud</span></div>
+      <div class="stat-cell"><strong>19</strong><span>model provider thật, local + cloud</span></div>
     </div>
   </section>
 
-  <section class="section" id="explore"><div class="section-head"><p class="eyebrow">EXPLORE YANA</p><h2>Mỗi phần đều có trang riêng, đầy đủ hơn.</h2></div><div class="product-grid">
-    <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio</h3><p>Workspace trực quan cho AI có kiểm soát.</p></div></a>
-    <a class="product-card" href="runtime.html"><div><p class="eyebrow">CONTROL PLANE</p><h3>Yana Runtime</h3><p>Runtime hoạt động cụ thể như thế nào — deep-dive kỹ thuật.</p></div></a>
-    <a class="product-card" href="wheelbot.html"><div><p class="eyebrow">PHYSICAL AI</p><h3>Yana Wheelbot</h3><p>Robot ESP32-S3, phần cứng thật.</p></div></a>
-    <a class="product-card" href="architecture.html"><div><p class="eyebrow">SYSTEM MAP</p><h3>Kiến trúc đầy đủ</h3><p>Từ bề mặt người dùng tới Giám Thị, control plane, evidence.</p></div></a>
-    <a class="product-card" href="governance.html"><div><p class="eyebrow">AUTHORITY</p><h3>Governance</h3><p>Authority chain, capability leases, HALT, audit receipts.</p></div></a>
-    <a class="product-card" href="history.html"><div><p class="eyebrow">ENGINEERING</p><h3>Lịch sử phát triển</h3><p>Release, sự cố thật, root cause và cách hệ thống thay đổi sau đó.</p></div></a>
-  </div></section>
+  <section class="section" id="explore"><div class="section-head"><p class="eyebrow">EXPLORE YANA</p><h2>Mỗi phần đều có trang riêng, đầy đủ hơn.</h2></div>
+    <div class="explore-primary">
+      <a class="product-card" href="studio.html"><div><p class="eyebrow">DESKTOP</p><h3>Yana Studio</h3><p>Workspace trực quan cho AI có kiểm soát.</p></div></a>
+      <a class="product-card" href="runtime.html"><div><p class="eyebrow">CONTROL PLANE</p><h3>Yana Runtime</h3><p>Runtime hoạt động cụ thể như thế nào — deep-dive kỹ thuật.</p></div></a>
+    </div>
+    <div class="explore-secondary">
+      <a class="explore-link" href="wheelbot.html"><strong>Yana Wheelbot</strong><span>Robot ESP32-S3, phần cứng thật.</span></a>
+      <a class="explore-link" href="architecture.html"><strong>Kiến trúc đầy đủ</strong><span>Từ bề mặt người dùng tới Giám Thị, control plane, evidence.</span></a>
+      <a class="explore-link" href="governance.html"><strong>Governance</strong><span>Authority chain, capability leases, HALT, audit receipts.</span></a>
+      <a class="explore-link" href="history.html"><strong>Lịch sử phát triển</strong><span>Release, sự cố thật, root cause và cách hệ thống thay đổi sau đó.</span></a>
+    </div>
+  </section>
 
   <section class="quote-band"><p class="eyebrow">YANA PRINCIPLE</p><h2>Đổi model. Giữ quyền kiểm soát.</h2><p>Local-first, provider-neutral và human-governed. Yana không giao quyền chỉ vì một model biết gọi tool — con người định nghĩa quyền hạn, Yana thực thi nó bằng Giám Thị, authority chain và audit chain, model chỉ hoạt động trong ranh giới đó.</p><div class="hero-actions"><a class="button light" href="download.html">Bắt đầu với Yana</a></div></section>
 
