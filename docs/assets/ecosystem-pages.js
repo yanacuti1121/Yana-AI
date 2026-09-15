@@ -191,7 +191,7 @@
   // hidden). The hero stays untouched -- it's already on screen at load,
   // "reveal on scroll" doesn't apply to content nobody had to scroll to.
   if (!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) && "IntersectionObserver" in window) {
-    const revealTargets = document.querySelectorAll("main > section:not(.hero):not(.page-hero)");
+    const revealTargets = document.querySelectorAll("main > section:not(.hero):not(.page-hero):not(.home-hero)");
     revealTargets.forEach((section) => section.classList.add("reveal"));
     const staggerGrids = document.querySelectorAll("main > section:not(.hero):not(.page-hero) > .product-grid, main > section:not(.hero):not(.page-hero) > .download-panel > [data-release-download] > .download-grid, .home-scenario, .signature-map, .convergence, .gate-path");
     staggerGrids.forEach((grid) => grid.classList.add("reveal-stagger"));
