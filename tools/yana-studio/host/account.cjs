@@ -31,7 +31,7 @@ class AccountStore {
       if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 64 * 1024)
         throw new Error("Unsafe local account file");
       const value = JSON.parse(fs.readFileSync(this.file, "utf8"));
-      if (!["local", "google"].includes(value?.mode))
+      if (!["local", "google", "github"].includes(value?.mode))
         throw new Error("Invalid local account");
       this.value = value;
       this.locked = value.mode === "local";
@@ -82,15 +82,21 @@ class AccountStore {
     return this.status();
   }
   useGoogle(connection) {
+    return this.useIdentity(connection, "google", "Google user");
+  }
+  useGithub(connection) {
+    return this.useIdentity(connection, "github", "GitHub user");
+  }
+  useIdentity(connection, mode, fallbackDisplayName) {
     if (this.value) throw new Error("Account already configured");
     if (!connection?.account_id || connection.status !== "connected")
-      throw new Error("Connect Google Account first");
+      throw new Error("Connect an identity provider first");
     this.value = {
       schema: 1,
-      mode: "google",
+      mode,
       accountId: connection.account_id,
       email: connection.email || "",
-      displayName: connection.display_name || "Google user",
+      displayName: connection.display_name || fallbackDisplayName,
       createdAt: Date.now(),
     };
     atomicJson(this.file, this.value);

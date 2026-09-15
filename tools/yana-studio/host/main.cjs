@@ -13,7 +13,7 @@ const os = require("node:os");
 const crypto = require("node:crypto");
 const { pathToFileURL } = require("node:url");
 const { Projects } = require("./projects.cjs");
-const { Store } = require("./store.cjs");
+const { Store, isValidLiquidGlass } = require("./store.cjs");
 const { DataOverview } = require("./data-overview.cjs");
 const { Terminals } = require("./terminals.cjs");
 const { Tasks } = require("./tasks.cjs");
@@ -36,6 +36,14 @@ const { profileInput, discover, startRuntime } = require("./runtime.cjs");
 const { inspectLocalModels } = require("./local-models.cjs");
 const { publicCatalog, providerById } = require("./model-catalog.cjs");
 const { ModelCredentialStore } = require("./model-credentials.cjs");
+const {
+  AUXILIARY_FLOWS,
+  isValidMoAConfig,
+  isValidTitleModelConfig,
+  resolveAutoProfile,
+} = require("./model-orchestration.cjs");
+const { runPreset: runMoAPreset } = require("./mixture-of-agents.cjs");
+const { runMoATurn, generateTitle } = require("./chat-turns.cjs");
 const { SecureTokenStore } = require("./integrations/store.cjs");
 const { IntegrationManager } = require("./integrations/manager.cjs");
 const { systemOverview } = require("./system-surfaces.cjs");
@@ -145,6 +153,7 @@ function publicState() {
     ...visibleState,
     providerCatalog: publicCatalog(),
     configuredProviders,
+    auxiliaryFlows: AUXILIARY_FLOWS,
     hasKey: configuredProviders.includes(visibleState.profile.provider),
     credentialStorage: credentialAvailable() ? "OS encrypted" : "session only",
     warning: store.warning,
@@ -163,7 +172,12 @@ function register(name, action, options = {}) {
       throw new Error("Untrusted IPC caller");
     if (accounts?.status().locked && !options.allowLocked)
       throw new Error("Yana Studio is locked");
-    return action(...args);
+    try {
+      return await action(...args);
+    } catch (error) {
+      console.error(`[ipc] studio:${name} failed:`, error);
+      throw error;
+    }
   });
 }
 function remember(root) {
@@ -233,9 +247,42 @@ function updateChat(chat) {
   syncContinuity(chat, true);
   emit("chat:update", chat);
 }
+// profileInput() (host/runtime.cjs) only checks that a "mixture-of-agents"
+// profile's `model` is a non-empty string -- it has no store access to
+// confirm that string actually names a real, enabled preset. This is the
+// deeper check, shared by saveProfile and sendChat (both places a
+// "mixture-of-agents" profile can arrive from).
+function requireEnabledMoAPreset(presetId) {
+  const preset = store.value.mixtureOfAgents.presets.find(
+    (entry) => entry.id === presetId,
+  );
+  if (!preset || !preset.enabled)
+    throw new Error("Preset Mixture of Agents không tồn tại hoặc đã tắt");
+  return preset;
+}
+// Shared by launchTurn's close handler and the Mixture of Agents chat path
+// below -- generateTitle (host/chat-turns.cjs) is a real model call, not
+// part of the Rust runtime's own protocol, so it needs the same
+// binary/credential/spawn wiring startRuntime itself uses.
+function maybeGenerateTitle(chat, effectiveMainProfile) {
+  generateTitle(chat, store.value.titleModel, {
+    binary: store.value.runtime,
+    root: chat.root,
+    credentialFor: (provider) => key(provider),
+    effectiveMainProfile,
+    onUpdate: (updated) => updateChat(updated),
+  });
+}
 function launchTurn(chat, profile, input, resume = false) {
   if (runs.has(chat.id)) throw new Error("Conversation already running");
   projects.resolve(chat.root);
+  // "Auto" is a Studio-only sentinel yana-rt doesn't understand -- resolve
+  // it to a concrete, ready provider+model right before this turn runs.
+  // chat.profile is set to the RESOLVED profile (not "auto") so the chat's
+  // history is honest about which model actually answered; the app-wide
+  // default in Settings can stay "auto" and gets re-resolved on every turn.
+  if (profile.provider === "auto")
+    profile = resolveAutoProfile(modelCredentials?.configured() || []);
   chat.running = true;
   chat.error = "";
   chat.profile = profile;
@@ -315,6 +362,7 @@ function launchTurn(chat, profile, input, resume = false) {
       runs.delete(chat.id);
       flush();
       updateChat(chat);
+      maybeGenerateTitle(chat, profile);
     },
     resume,
   );
@@ -372,6 +420,17 @@ app.whenReady().then(() => {
     changed: () => emit("integrations:update", integrations.list()),
   });
   register("integrationList", () => integrations.list());
+  register(
+    "openGithubOAuthHelp",
+    async () => shell.openExternal("https://github.com/settings/developers"),
+    { allowLocked: true },
+  );
+  register(
+    "openGoogleOAuthHelp",
+    async () =>
+      shell.openExternal("https://console.cloud.google.com/auth/audience"),
+    { allowLocked: true },
+  );
   register("integrationConfigureGithub", (clientId) =>
     integrations.configureGithub(clientId),
   );
@@ -425,20 +484,23 @@ app.whenReady().then(() => {
   terminals = new Terminals(pty.spawn, emit);
   register("bootstrap", publicState, { allowLocked: true });
   register(
-    "accountCreateLocal",
-    (value) => {
-      accounts.createLocal(value);
-      return publicState();
-    },
-    { allowLocked: true },
-  );
-  register(
     "accountUseGoogle",
     () => {
       const connection = integrations
         .list()
         .find((item) => item.key === "google:identity");
       accounts.useGoogle(connection);
+      return publicState();
+    },
+    { allowLocked: true },
+  );
+  register(
+    "accountUseGithub",
+    () => {
+      const connection = integrations
+        .list()
+        .find((item) => item.key === "github:account");
+      accounts.useGithub(connection);
       return publicState();
     },
     { allowLocked: true },
@@ -761,9 +823,28 @@ app.whenReady().then(() => {
     return next;
   });
   register("savePreferences", (preferences) => {
-    if (!preferences || !["vi", "ko", "en"].includes(preferences.locale))
+    if (
+      !preferences ||
+      !["vi", "ko", "en"].includes(preferences.locale) ||
+      !["light", "dark"].includes(preferences.theme) ||
+      !Number.isSafeInteger(preferences.glassOpacity) ||
+      preferences.glassOpacity < 0 ||
+      preferences.glassOpacity > 100 ||
+      !Number.isSafeInteger(preferences.glassBlur) ||
+      preferences.glassBlur < 0 ||
+      preferences.glassBlur > 32 ||
+      !isValidLiquidGlass(preferences.liquidGlass)
+    )
       throw new Error("Invalid interface preferences");
-    store.save({ preferences: { locale: preferences.locale } });
+    store.save({
+      preferences: {
+        locale: preferences.locale,
+        theme: preferences.theme,
+        glassOpacity: preferences.glassOpacity,
+        glassBlur: preferences.glassBlur,
+        liquidGlass: { ...preferences.liquidGlass },
+      },
+    });
     return publicState();
   });
   register("completeOnboarding", () => {
@@ -776,6 +857,15 @@ app.whenReady().then(() => {
     const profile = profileInput(value);
     if (typeof apiKey !== "string" || apiKey.length > 16000)
       throw new Error("Invalid API key");
+    if (profile.provider === "auto") {
+      store.save({ profile, encryptedKey: "" });
+      return publicState();
+    }
+    if (profile.provider === "mixture-of-agents") {
+      requireEnabledMoAPreset(profile.model);
+      store.save({ profile, encryptedKey: "" });
+      return publicState();
+    }
     const provider = providerById(profile.provider);
     const credential = apiKey || key(profile.provider);
     if (provider.kind === "cloud") {
@@ -801,6 +891,49 @@ app.whenReady().then(() => {
     return discover(parsed, apiKey || key(parsed.provider));
   });
   register("inspectLocalModels", () => inspectLocalModels(fetch, key));
+  // Read-only preview of what the "Auto" default-model sentinel resolves
+  // to right now, using the exact same resolveAutoProfile() the real send
+  // path (launchTurn) calls -- so what Settings shows and what a turn
+  // actually uses can never drift apart.
+  register("previewAutoProfile", () =>
+    resolveAutoProfile(modelCredentials?.configured() || []),
+  );
+  register("saveMixtureOfAgents", (value) => {
+    if (!isValidMoAConfig(value))
+      throw new Error("Invalid Mixture of Agents configuration");
+    store.save({ mixtureOfAgents: value });
+    return publicState();
+  });
+  register("saveTitleModel", (value) => {
+    if (!isValidTitleModelConfig(value))
+      throw new Error("Invalid title model configuration");
+    store.save({ titleModel: value });
+    return publicState();
+  });
+  register("runMixtureOfAgentsPreset", async (presetId, promptText, projectRoot) => {
+    if (
+      typeof promptText !== "string" ||
+      !promptText.trim() ||
+      promptText.length > 8000
+    )
+      throw new Error("Nhập nội dung chạy thử (tối đa 8000 ký tự)");
+    const preset = store.value.mixtureOfAgents.presets.find(
+      (entry) => entry.id === presetId,
+    );
+    if (!preset) throw new Error("Preset không tồn tại");
+    if (!store.value.runtime)
+      throw new Error("Chọn yana-rt binary trong Model & Runtime trước");
+    const root =
+      typeof projectRoot === "string" && projectRoot
+        ? projectRoot
+        : app.getPath("home");
+    return runMoAPreset(preset, {
+      binary: store.value.runtime,
+      root,
+      promptText: promptText.trim(),
+      credentialFor: (provider) => key(provider),
+    });
+  });
   register("chooseRuntime", async () => {
     if (runs.size) throw new Error("Stop chats before switching runtime");
     const result = await dialog.showOpenDialog(window, {
@@ -851,7 +984,7 @@ app.whenReady().then(() => {
     }
     return true;
   });
-  register("sendChat", async (id, task, userInput) => {
+  register("sendChat", async (id, task, userInput, profileOverride) => {
     const chat = chatById(id);
     if (runs.has(id) || chat.approval)
       throw new Error("Finish or resolve the current turn first");
@@ -866,8 +999,28 @@ app.whenReady().then(() => {
       throw new Error("Invalid visible message");
     if (!store.value.runtime)
       throw new Error("Configure the Yana runtime first");
-    if (!store.value.profile.model)
+    // A per-chat override (from the composer's own model picker, see
+    // ChatModelPicker.tsx) is validated fresh here -- it never went through
+    // saveProfile, so store.value.profile's own already-validated state
+    // can't be trusted for it. It is used for exactly this one send and is
+    // never persisted as the app-wide default.
+    const profile = profileOverride
+      ? profileInput(profileOverride)
+      : store.value.profile;
+    if (profile.provider !== "auto" && !profile.model)
       throw new Error("Choose a model in Models & Runtime first");
+    if (profile.provider === "mixture-of-agents")
+      requireEnabledMoAPreset(profile.model);
+    else if (profile.provider !== "auto") {
+      const provider = providerById(profile.provider);
+      if (
+        provider.requiresKey &&
+        !(modelCredentials?.configured() || []).includes(provider.id)
+      )
+        throw new Error(
+          `${provider.label} chưa kết nối — thêm API key trong Mô hình & Điều phối trước.`,
+        );
+    }
     const history = chat.messages
       .slice(-40)
       .map(({ role, content }) => ({ role, content }));
@@ -899,10 +1052,13 @@ app.whenReady().then(() => {
       { role: "user", content: task, ...(userInput ? { userInput } : {}) },
       { role: "assistant", content: "" },
     );
-    chat.title = (chat.messages[0].userInput || chat.messages[0].content).slice(
-      0,
-      45,
-    );
+    // Once a real model-written title exists (chat-turns.cjs's
+    // generateTitle, after the first completed turn), stop overwriting it
+    // with the truncated-first-message placeholder on every later send.
+    if (!chat.titleGenerated)
+      chat.title = (
+        chat.messages[0].userInput || chat.messages[0].content
+      ).slice(0, 45);
     chat.continuity = continuityContext
       ? {
           status: continuityContext.status,
@@ -919,7 +1075,6 @@ app.whenReady().then(() => {
           sources: [],
           error: "Database unavailable",
         };
-    const profile = store.value.profile;
     // Studio's own durable Project Memory, threaded into every turn via
     // yana-rt's `system` input field — a real top-level parameter kept
     // separate from the message array on purpose (see Role's doc comment
@@ -933,19 +1088,31 @@ app.whenReady().then(() => {
       continuityContext,
       continuity?.sharingEnabled(chat.root) || false,
     );
-    launchTurn(chat, profile, {
-      task,
-      history,
-      session_id: chat.id,
-      api_key: key(profile.provider),
-      ...(continuitySystem ? { system: continuitySystem } : {}),
-      ...(profile.provider === "custom"
-        ? {
-            base_url: profile.baseUrl,
-            custom_keyless: !key(profile.provider),
-          }
-        : {}),
-    });
+    if (profile.provider === "mixture-of-agents") {
+      const preset = requireEnabledMoAPreset(profile.model);
+      const handle = runMoATurn(chat, preset, task, {
+        binary: store.value.runtime,
+        root: chat.root,
+        credentialFor: (provider) => key(provider),
+        onUpdate: (updated) => updateChat(updated),
+        onFinish: (finished) => maybeGenerateTitle(finished, preset.aggregator),
+      });
+      runs.set(chat.id, handle);
+    } else {
+      launchTurn(chat, profile, {
+        task,
+        history,
+        session_id: chat.id,
+        api_key: key(profile.provider),
+        ...(continuitySystem ? { system: continuitySystem } : {}),
+        ...(profile.provider === "custom"
+          ? {
+              base_url: profile.baseUrl,
+              custom_keyless: !key(profile.provider),
+            }
+          : {}),
+      });
+    }
     return true;
   });
   register("stopChat", (id) => {
@@ -1001,6 +1168,9 @@ app.whenReady().then(() => {
     (_contents, _permission, callback) => callback(false),
   );
   window.webContents.session.setPermissionCheckHandler(() => false);
+  window.webContents.on("console-message", (_event, _level, message) => {
+    console.log(`[renderer] ${message}`);
+  });
   window.webContents.on("render-process-gone", () => {
     terminals.dispose();
     for (const run of runs.values()) run.stop();

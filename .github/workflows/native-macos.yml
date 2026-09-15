@@ -1,0 +1,53 @@
+name: Yana Studio Native
+
+on:
+  push:
+    paths:
+      - 'tools/yana-studio/native-macos/**'
+      - '.github/workflows/native-macos.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/yana-studio/native-macos/**'
+      - '.github/workflows/native-macos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-package:
+    name: Build, test, and package (Apple Silicon)
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Show Swift toolchain
+        run: swift --version
+
+      - name: Build debug app
+        run: swift build --package-path tools/yana-studio/native-macos
+
+      - name: Run native unit tests
+        run: swift test --package-path tools/yana-studio/native-macos
+
+      - name: Build signed local preview app
+        run: zsh tools/yana-studio/native-macos/scripts/build-app.sh
+
+      - name: Verify app bundle
+        run: |
+          app='tools/yana-studio/native-macos/release/Yana Studio Native.app'
+          plutil -lint "$app/Contents/Info.plist"
+          codesign --verify --deep --strict "$app"
+          file "$app/Contents/MacOS/YanaStudioNative" | grep -q 'arm64'
+
+      - name: Upload test artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: yana-studio-native-macos-arm64
+          path: tools/yana-studio/native-macos/release/Yana Studio Native.app
+          retention-days: 14
+          if-no-files-found: error

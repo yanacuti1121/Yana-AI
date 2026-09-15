@@ -7,6 +7,7 @@ import {
   Files,
   FolderOpen,
   LayoutTemplate,
+  Languages,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -141,14 +142,17 @@ export function WelcomeOnboarding({
   displayName,
   onComplete,
   onOpenProject,
+  onLocaleChange,
 }: {
   locale: Locale;
   displayName: string;
   onComplete: () => Promise<void>;
   onOpenProject: () => Promise<void>;
+  onLocaleChange: (locale: Locale) => Promise<void>;
 }) {
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [changingLocale, setChangingLocale] = useState(false);
   const text = copy[locale];
   const current = text.steps[step];
   const last = step === text.steps.length - 1;
@@ -161,6 +165,11 @@ export function WelcomeOnboarding({
       setBusy(false);
     }
   };
+  const setLocale = (nextLocale: Locale) => {
+    if (nextLocale === locale) return;
+    setChangingLocale(true);
+    void onLocaleChange(nextLocale).finally(() => setChangingLocale(false));
+  };
 
   return (
     <main className="onboarding-shell">
@@ -170,13 +179,28 @@ export function WelcomeOnboarding({
           <span className="brand-symbol small">Y</span>
           <strong>Yana Studio</strong>
         </div>
-        <button
-          className="text-button"
-          disabled={busy}
-          onClick={() => void complete(false)}
-        >
-          {text.skip}
-        </button>
+        <div className="onboarding-header-actions">
+          <label className="locale-picker onboarding-locale-picker">
+            <Languages size={15} />
+            <select
+              aria-label="Language"
+              disabled={busy || changingLocale}
+              value={locale}
+              onChange={(event) => setLocale(event.target.value as Locale)}
+            >
+              <option value="vi">VI</option>
+              <option value="ko">한국어</option>
+              <option value="en">EN</option>
+            </select>
+          </label>
+          <button
+            className="text-button"
+            disabled={busy || changingLocale}
+            onClick={() => void complete(false)}
+          >
+            {text.skip}
+          </button>
+        </div>
       </header>
 
       <section className="onboarding-stage" aria-live="polite">

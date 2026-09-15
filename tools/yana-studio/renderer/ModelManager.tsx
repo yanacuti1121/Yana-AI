@@ -243,6 +243,15 @@ export function ModelManager({
   }, [profile.provider, profile.baseUrl, secret, syncProviderModels]);
 
   const selectProvider = (id: string) => {
+    if (id === "auto") {
+      const nextProfile = { provider: "auto", model: "", baseUrl: "" };
+      setProfile(nextProfile);
+      setModels([]);
+      setModelsSynced(false);
+      setModelSyncError("");
+      setSecret("");
+      return;
+    }
     const next = state.providerCatalog.find((entry) => entry.id === id);
     if (!next) return;
     const nextProfile = providerProfile(next);
@@ -272,6 +281,7 @@ export function ModelManager({
 
   const providerOptions = (
     <>
+      <option value="auto">{t("autoModelOption")}</option>
       <optgroup label="Cloud">
         {state.providerCatalog
           .filter((entry) => entry.kind === "cloud")
@@ -396,8 +406,8 @@ export function ModelManager({
             disabled={
               busy ||
               syncingModels ||
-              !profile.model ||
-              (provider.requiresKey && !configured)
+              (profile.provider !== "auto" &&
+                (!profile.model || (provider.requiresKey && !configured)))
             }
             onClick={() => void save()}
           >
@@ -460,112 +470,121 @@ export function ModelManager({
               {providerOptions}
             </select>
           </label>
-          {provider.discoverable && (
-            <label>
-              Endpoint
-              <input
-                value={profile.baseUrl}
-                disabled={provider.canonical}
-                placeholder="http://127.0.0.1:1234/v1"
-                onChange={(event) =>
-                  setProfile({ ...profile, baseUrl: event.target.value })
-                }
-              />
-              <small>{t("officialProviderEndpointNote")}</small>
-            </label>
-          )}
-          {(provider.requiresKey || provider.kind === "custom") && (
-            <label>
-              API key
-              <input
-                type="password"
-                autoComplete="off"
-                value={secret}
-                placeholder={
-                  configured
-                    ? t("keyEncryptedReplacePrompt")
-                    : provider.requiresKey
-                      ? `${t("enterEnvVarPrefix")} ${provider.envVar}`
-                      : t("notRequired")
-                }
-                onChange={(event) => setSecret(event.target.value)}
-              />
-              <small>{t("keyTrustedHostNote")}</small>
-            </label>
-          )}
-          <label>
-            Model ID
-            <input
-              list="settings-model-options"
-              value={profile.model}
-              placeholder={t("exactIdFromProviderPlaceholder")}
-              onChange={(event) =>
-                setProfile({ ...profile, model: event.target.value })
-              }
-            />
-            <datalist id="settings-model-options">
-              {availableModels.map((model) => (
-                <option key={model} value={model} />
-              ))}
-            </datalist>
-          </label>
-          {syncingModels && (
-            <div className="model-sync-state" role="status">
-              <RefreshCw className="spin" size={15} />
-              <span>
-                {t("fetchingModelsDirectly").replace(
-                  "{provider}",
-                  provider.label,
-                )}
-              </span>
-            </div>
-          )}
-          {modelSyncError && !syncingModels && (
-            <div className="model-sync-state error" role="alert">
-              <span>{modelSyncError}</span>
-              <button type="button" onClick={() => void discover()}>
-                {t("retryLabel")}
-              </button>
-            </div>
-          )}
-          {!modelsSynced && provider.modelCatalog.length > 0 && (
-            <div className="model-pick-list">
-              {provider.modelCatalog.map((model) => (
-                <ModelRow
-                  key={model.id}
-                  model={model}
-                  active={model.id === profile.model}
-                  onSelect={() => pickModel(provider, model.id)}
-                />
-              ))}
-              <p className="model-pick-hint">{t("offlineSuggestionHint")}</p>
-            </div>
-          )}
-          {modelsSynced && (
-            <div className="live-model-list" aria-label={t("modelsSyncedAria")}>
-              <div className="live-model-list-heading">
-                <strong>
-                  {t("modelsAvailableCount").replace(
-                    "{n}",
-                    String(models.length),
-                  )}
-                </strong>
-                <span>{t("directListFromProvider")}</span>
-              </div>
-              {models.map((model) => (
-                <button
-                  type="button"
-                  className={model === profile.model ? "active" : ""}
-                  key={model}
-                  onClick={() =>
-                    setProfile((current) => ({ ...current, model }))
+          {profile.provider === "auto" ? (
+            <p className="muted small">{t("autoModelInlineNote")}</p>
+          ) : (
+            <>
+              {provider.discoverable && (
+                <label>
+                  Endpoint
+                  <input
+                    value={profile.baseUrl}
+                    disabled={provider.canonical}
+                    placeholder="http://127.0.0.1:1234/v1"
+                    onChange={(event) =>
+                      setProfile({ ...profile, baseUrl: event.target.value })
+                    }
+                  />
+                  <small>{t("officialProviderEndpointNote")}</small>
+                </label>
+              )}
+              {(provider.requiresKey || provider.kind === "custom") && (
+                <label>
+                  API key
+                  <input
+                    type="password"
+                    autoComplete="off"
+                    value={secret}
+                    placeholder={
+                      configured
+                        ? t("keyEncryptedReplacePrompt")
+                        : provider.requiresKey
+                          ? `${t("enterEnvVarPrefix")} ${provider.envVar}`
+                          : t("notRequired")
+                    }
+                    onChange={(event) => setSecret(event.target.value)}
+                  />
+                  <small>{t("keyTrustedHostNote")}</small>
+                </label>
+              )}
+              <label>
+                Model ID
+                <input
+                  list="settings-model-options"
+                  value={profile.model}
+                  placeholder={t("exactIdFromProviderPlaceholder")}
+                  onChange={(event) =>
+                    setProfile({ ...profile, model: event.target.value })
                   }
+                />
+                <datalist id="settings-model-options">
+                  {availableModels.map((model) => (
+                    <option key={model} value={model} />
+                  ))}
+                </datalist>
+              </label>
+              {syncingModels && (
+                <div className="model-sync-state" role="status">
+                  <RefreshCw className="spin" size={15} />
+                  <span>
+                    {t("fetchingModelsDirectly").replace(
+                      "{provider}",
+                      provider.label,
+                    )}
+                  </span>
+                </div>
+              )}
+              {modelSyncError && !syncingModels && (
+                <div className="model-sync-state error" role="alert">
+                  <span>{modelSyncError}</span>
+                  <button type="button" onClick={() => void discover()}>
+                    {t("retryLabel")}
+                  </button>
+                </div>
+              )}
+              {!modelsSynced && provider.modelCatalog.length > 0 && (
+                <div className="model-pick-list">
+                  {provider.modelCatalog.map((model) => (
+                    <ModelRow
+                      key={model.id}
+                      model={model}
+                      active={model.id === profile.model}
+                      onSelect={() => pickModel(provider, model.id)}
+                    />
+                  ))}
+                  <p className="model-pick-hint">{t("offlineSuggestionHint")}</p>
+                </div>
+              )}
+              {modelsSynced && (
+                <div
+                  className="live-model-list"
+                  aria-label={t("modelsSyncedAria")}
                 >
-                  <code>{model}</code>
-                  {model === profile.model && <Check size={13} />}
-                </button>
-              ))}
-            </div>
+                  <div className="live-model-list-heading">
+                    <strong>
+                      {t("modelsAvailableCount").replace(
+                        "{n}",
+                        String(models.length),
+                      )}
+                    </strong>
+                    <span>{t("directListFromProvider")}</span>
+                  </div>
+                  {models.map((model) => (
+                    <button
+                      type="button"
+                      className={model === profile.model ? "active" : ""}
+                      key={model}
+                      onClick={() =>
+                        setProfile((current) => ({ ...current, model }))
+                      }
+                    >
+                      <code>{model}</code>
+                      {model === profile.model && <Check size={13} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
           <div className="button-row">
             {provider.discoverable && (
@@ -585,8 +604,9 @@ export function ModelManager({
               disabled={
                 busy ||
                 syncingModels ||
-                !profile.model.trim() ||
-                (provider.requiresKey && !configured && !secret)
+                (profile.provider !== "auto" &&
+                  (!profile.model.trim() ||
+                    (provider.requiresKey && !configured && !secret)))
               }
               onClick={() => void save()}
             >
@@ -616,19 +636,21 @@ export function ModelManager({
           <div className="credential-boundary">
             <KeyRound size={15} />
             <span>
-              {configured
-                ? t("credentialConfiguredTemplate")
-                    .replace("{label}", provider.label)
-                    .replace("{storage}", state.credentialStorage)
-                : provider.requiresKey
-                  ? t("credentialMissingTemplate").replace(
-                      "{label}",
-                      provider.label,
-                    )
-                  : t("credentialNoKeyTemplate").replace(
-                      "{label}",
-                      provider.label,
-                    )}
+              {profile.provider === "auto"
+                ? t("autoModelInlineNote")
+                : configured
+                  ? t("credentialConfiguredTemplate")
+                      .replace("{label}", provider.label)
+                      .replace("{storage}", state.credentialStorage)
+                  : provider.requiresKey
+                    ? t("credentialMissingTemplate").replace(
+                        "{label}",
+                        provider.label,
+                      )
+                    : t("credentialNoKeyTemplate").replace(
+                        "{label}",
+                        provider.label,
+                      )}
             </span>
           </div>
         </div>
