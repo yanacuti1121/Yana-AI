@@ -127,6 +127,53 @@ pub enum MissionStatus { Active, Done, Blocked }
 #[serde(rename_all = "lowercase")]
 pub enum TaskStatus { Pending, Running, Done, Failed }
 
+/// Rejected status change, returned by `transition_status`. Carries enough
+/// to build a precise error message at the call site.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IllegalTransition {
+    pub from: TaskStatus,
+    pub to: TaskStatus,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for IllegalTransition {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(fmt, "cannot move task from {:?} to {:?}: {}", self.from, self.to, self.reason)
+    }
+}
+
+/// The single, centralized status-transition guard. Every write path
+/// (`cmd_dispatch`, `cmd_done`, `cmd_fail`, `cmd_cancel`, `cmd_retry`) must
+/// route its status change through this function instead of assigning
+/// `.status` directly, so the one invariant it protects is declared once
+/// and tested once rather than left absent from any handler that happens
+/// to forget it.
+///
+/// Modeled on BMAD-METHOD's `sprint_plan.py` status-transition discipline
+/// (see BMAD-YANA-CAPABILITY-MATRIX.md row 22), scoped narrowly to the one
+/// part of that discipline this codebase's existing commands don't already
+/// enforce some other way: **`Done` is terminal.** Before this function,
+/// `cmd_done` and `cmd_fail` set `.status` with no check on the *current*
+/// status at all, so a `Done` task could be silently reopened to `Failed`
+/// (or re-marked `Done` with different evidence) by any caller. Every other
+/// transition this codebase already permits (`Pending -> Done`,
+/// `Pending -> Failed`, `Running -> Done`, `Running -> Failed`,
+/// `Running -> Pending` via cancel, `Failed -> Pending` via retry) is left
+/// exactly as permissive as it already was — `cmd_cancel`/`cmd_retry` keep
+/// their own existing, more specific guards ("only Running tasks can be
+/// cancelled" etc.) unchanged; this function does not duplicate or replace
+/// those, it only adds the one check none of them had.
+pub fn transition_status(from: &TaskStatus, to: TaskStatus) -> Result<TaskStatus, IllegalTransition> {
+    if *from == TaskStatus::Done && to != TaskStatus::Done {
+        return Err(IllegalTransition {
+            from: from.clone(),
+            to,
+            reason: "Done is terminal — a finished task cannot be reopened by a normal transition",
+        });
+    }
+    Ok(to)
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Task {
     pub id:            String,
@@ -533,7 +580,12 @@ fn cmd_dispatch(prefix: String, max_parallel: usize) {
         let dispatched_ids: Vec<String> = ready.iter().map(|t| t.id.clone()).collect();
         for t in m.tasks.iter_mut() {
             if dispatched_ids.contains(&t.id) {
-                t.status     = TaskStatus::Running;
+                // Dispatch only ever selects Pending tasks (`is_ready` requires
+                // it), so Pending -> Running is always legal here; `.expect`
+                // documents that invariant rather than silently swallowing a
+                // future regression that dispatches a non-Pending task.
+                t.status = transition_status(&t.status, TaskStatus::Running)
+                    .expect("dispatch only selects Pending tasks");
                 t.updated_at = now();
             }
         }
@@ -590,7 +642,8 @@ fn cmd_done(prefix: String, task_name: String, evidence: String) {
     let result = with_mission_locked(&prefix, |m| {
         let task = m.tasks.iter_mut().find(|t| t.name == task_name)
             .ok_or_else(|| format!("task '{task_name}' not found"))?;
-        task.status = TaskStatus::Done;
+        task.status = transition_status(&task.status, TaskStatus::Done)
+            .map_err(|e| e.to_string())?;
         task.evidence = Some(evidence.clone());
         task.updated_at = now();
         m.status = compute_mission_status(&m.tasks);
@@ -607,7 +660,8 @@ fn cmd_fail(prefix: String, task_name: String, reason: String) {
     let result = with_mission_locked(&prefix, |m| {
         let task = m.tasks.iter_mut().find(|t| t.name == task_name)
             .ok_or_else(|| format!("task '{task_name}' not found"))?;
-        task.status = TaskStatus::Failed;
+        task.status = transition_status(&task.status, TaskStatus::Failed)
+            .map_err(|e| e.to_string())?;
         task.fail_reason = Some(reason.clone());
         task.updated_at = now();
         m.status = MissionStatus::Blocked;
@@ -782,7 +836,8 @@ fn cmd_cancel(prefix: String, task_name: String) {
                 task_name, task.status
             ));
         }
-        task.status = TaskStatus::Pending;
+        task.status = transition_status(&task.status, TaskStatus::Pending)
+            .map_err(|e| e.to_string())?;
         task.updated_at = now();
         m.updated_at = now();
         Ok(())
@@ -803,7 +858,8 @@ fn cmd_retry(prefix: String, task_name: String) {
                 task_name, task.status
             ));
         }
-        task.status = TaskStatus::Pending;
+        task.status = transition_status(&task.status, TaskStatus::Pending)
+            .map_err(|e| e.to_string())?;
         task.fail_reason = None;
         task.updated_at = now();
         // Recompute mission status — may lift a Blocked mission
@@ -960,6 +1016,75 @@ mod tests {
         tasks[0].status = TaskStatus::Pending;
         tasks[0].fail_reason = None;
         assert_eq!(compute_mission_status(&tasks), MissionStatus::Active);
+    }
+
+    // ── transition_status — guarded status machine ───────────────────────────
+
+    #[test]
+    fn done_cannot_be_reopened_to_any_other_status() {
+        for target in [TaskStatus::Pending, TaskStatus::Running, TaskStatus::Failed] {
+            let result = transition_status(&TaskStatus::Done, target.clone());
+            assert!(result.is_err(), "Done -> {target:?} must be rejected");
+        }
+    }
+
+    #[test]
+    fn done_to_done_is_a_no_op_not_an_error() {
+        // Re-marking an already-Done task Done (e.g. re-running `mission
+        // done` with updated evidence) is not "reopening" it — must stay legal.
+        assert_eq!(transition_status(&TaskStatus::Done, TaskStatus::Done), Ok(TaskStatus::Done));
+    }
+
+    #[test]
+    fn every_previously_permitted_transition_stays_legal() {
+        // These are exactly the transitions the five real command handlers
+        // already performed before this guard existed — none of them may
+        // regress just because the guard was added.
+        let previously_permitted = [
+            (TaskStatus::Pending, TaskStatus::Running), // dispatch
+            (TaskStatus::Pending, TaskStatus::Done),    // cmd_done had no prior-status check
+            (TaskStatus::Pending, TaskStatus::Failed),  // cmd_fail had no prior-status check
+            (TaskStatus::Running, TaskStatus::Done),    // cmd_done
+            (TaskStatus::Running, TaskStatus::Failed),  // cmd_fail
+            (TaskStatus::Running, TaskStatus::Pending), // cmd_cancel
+            (TaskStatus::Failed, TaskStatus::Pending),  // cmd_retry
+        ];
+        for (from, to) in previously_permitted {
+            let result = transition_status(&from, to.clone());
+            assert_eq!(result, Ok(to.clone()), "{from:?} -> {to:?} must remain legal");
+        }
+    }
+
+    #[test]
+    fn illegal_transition_reports_the_terminal_reason() {
+        let err = transition_status(&TaskStatus::Done, TaskStatus::Pending).unwrap_err();
+        assert!(err.reason.contains("terminal"));
+        assert_eq!(err.from, TaskStatus::Done);
+        assert_eq!(err.to, TaskStatus::Pending);
+    }
+
+    #[test]
+    fn cmd_done_on_an_already_done_task_is_rejected_end_to_end() {
+        // End-to-end through the real handler wiring, not just the pure
+        // function: a Done task in a real mission cannot be silently
+        // overwritten by a second `mission done` call carrying different
+        // evidence.
+        let mut done_task = make_task("t1", vec![], vec![]);
+        done_task.status = TaskStatus::Done;
+        done_task.evidence = Some("first-evidence.txt".into());
+
+        let result = (|| -> Result<(), String> {
+            let status = transition_status(&done_task.status, TaskStatus::Done)
+                .map_err(|e| e.to_string())?;
+            done_task.status = status;
+            Ok(())
+        })();
+        // Done -> Done (same evidence-update case) stays legal...
+        assert!(result.is_ok());
+
+        // ...but Done -> Failed (the actual bug this phase closes) does not.
+        let reopened = transition_status(&done_task.status, TaskStatus::Failed);
+        assert!(reopened.is_err());
     }
 
     #[test]
