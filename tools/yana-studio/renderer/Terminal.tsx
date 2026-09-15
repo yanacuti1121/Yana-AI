@@ -122,6 +122,12 @@ export function Terminal({
       void window.studio.terminalWrite(session.id, text).catch(fail);
     });
     const resize = instance.onResize((size) => {
+      // xterm can briefly report an undersized/zero fit while its
+      // container is mid-transition (e.g. the terminal dock animating
+      // open). The host rejects anything below its 2x2 minimum with
+      // "Invalid terminal size" -- skip those instead of surfacing a
+      // spurious error for what is just a transient layout tick.
+      if (size.cols < 2 || size.rows < 2) return;
       void window.studio
         .terminalResize(session.id, size.cols, size.rows)
         .catch(fail);
@@ -185,7 +191,17 @@ export function Terminal({
   useEffect(() => {
     if (!visible) return;
     const frame = requestAnimationFrame(() => {
-      fitter.current?.fit();
+      // Same guard as the ResizeObserver above: right after becoming
+      // visible, the pane can still have a zero-size container (e.g. the
+      // terminal dock mid-transition), and fit() would then compute
+      // cols/rows below xterm's own minimum of 2, which the host's IPC
+      // handler rejects with "Invalid terminal size".
+      if (
+        element.current &&
+        element.current.clientWidth > 0 &&
+        element.current.clientHeight > 0
+      )
+        fitter.current?.fit();
       if (active) terminal.current?.focus();
     });
     return () => cancelAnimationFrame(frame);

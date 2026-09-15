@@ -75,7 +75,10 @@ enum GoogleOAuthSignIn {
     }
 
     static func authenticate() async throws -> GoogleIdentity {
-        guard let clientID else { throw GoogleOAuthError.missingClientID }
+        guard let clientID else {
+            NSLog("[oauth:google] stage=failed reason=missing_client_id")
+            throw GoogleOAuthError.missingClientID
+        }
 
         let verifier = try GoogleOAuthPKCE.makeVerifier()
         let state = try GoogleOAuthPKCE.makeVerifier()
@@ -87,29 +90,64 @@ enum GoogleOAuthSignIn {
             verifier: verifier,
             state: state
         )
+        NSLog("[oauth:google] stage=authorize redirect_uri=\(redirectURL.absoluteString) client_id=\(clientID) has_secret=\(clientSecret != nil)")
 
         guard NSWorkspace.shared.open(authorizationURL) else {
+            NSLog("[oauth:google] stage=failed reason=browser_open_failed")
             throw GoogleOAuthError.unavailable("Không thể mở trình duyệt để đăng nhập Google.")
         }
 
+        NSLog("[oauth:google] stage=callback waiting for browser redirect")
         let callback = try await callbackServer.waitForCallback()
-        guard callback.state == state else { throw GoogleOAuthError.stateMismatch }
+        guard callback.state == state else {
+            NSLog("[oauth:google] stage=failed reason=state_mismatch")
+            throw GoogleOAuthError.stateMismatch
+        }
         if let error = callback.error {
+            NSLog("[oauth:google] stage=failed reason=authorization_denied error=\(error)")
             throw GoogleOAuthError.authorizationDenied(callback.errorDescription ?? error)
         }
-        guard let code = callback.code, !code.isEmpty else { throw GoogleOAuthError.invalidCallback }
+        guard let code = callback.code, !code.isEmpty else {
+            NSLog("[oauth:google] stage=failed reason=invalid_callback")
+            throw GoogleOAuthError.invalidCallback
+        }
+        NSLog("[oauth:google] stage=code_received length=\(code.count)")
 
         let accessToken = try await exchangeCode(
             code,
             clientID: clientID,
+            clientSecret: clientSecret,
             verifier: verifier,
             redirectURL: redirectURL
         )
-        return try await loadIdentity(accessToken: accessToken)
+        NSLog("[oauth:google] stage=token_exchange ok")
+        let identity = try await loadIdentity(accessToken: accessToken)
+        NSLog("[oauth:google] stage=identity ok")
+        return identity
     }
 
     private static var clientID: String? {
         guard let value = Bundle.main.object(forInfoDictionaryKey: "GoogleOAuthClientID") as? String else {
+            return nil
+        }
+        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return normalized.isEmpty ? nil : normalized
+    }
+
+    // Google's token endpoint rejects a Desktop-app token exchange with
+    // "invalid_request: client_secret is missing" even with a correct PKCE
+    // code_verifier -- confirmed live against this same Client ID on the
+    // Electron build (every stage up through code_received succeeded, only
+    // exchange failed on this). Google's own native-app guide includes
+    // client_secret in the Desktop-app token request; unlike a Web-
+    // application secret, this one isn't meant to stay confidential, since
+    // Desktop clients ship it in distributed source. It still isn't
+    // committed to this repo (GitHub's push protection rejects that
+    // regardless of Google's own stance) -- scripts/build-app.sh injects it
+    // into the built .app's Info.plist from YANA_GOOGLE_CLIENT_SECRET at
+    // build time, never into the tracked source file.
+    private static var clientSecret: String? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "GoogleOAuthClientSecret") as? String else {
             return nil
         }
         let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -141,19 +179,24 @@ enum GoogleOAuthSignIn {
     private static func exchangeCode(
         _ code: String,
         clientID: String,
+        clientSecret: String?,
         verifier: String,
         redirectURL: URL
     ) async throws -> String {
         var request = URLRequest(url: tokenEndpoint)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = formData([
+        var fields = [
             ("code", code),
             ("client_id", clientID),
             ("code_verifier", verifier),
             ("grant_type", "authorization_code"),
             ("redirect_uri", redirectURL.absoluteString),
-        ])
+        ]
+        if let clientSecret {
+            fields.append(("client_secret", clientSecret))
+        }
+        request.httpBody = formData(fields)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {
             throw tokenExchangeError(data: data, response: response)
@@ -167,12 +210,14 @@ enum GoogleOAuthSignIn {
 
     private static func tokenExchangeError(data: Data, response: URLResponse) -> GoogleOAuthError {
         let status = (response as? HTTPURLResponse)?.statusCode
-        let code = (try? JSONDecoder().decode(GoogleOAuthFailure.self, from: data))?.error ?? "unknown"
+        let failure = try? JSONDecoder().decode(GoogleOAuthFailure.self, from: data)
+        let code = failure?.error ?? "unknown"
+        NSLog("[oauth:google] stage=token_exchange status=\(status ?? 0) error=\(code) description=\(failure?.errorDescription ?? "")")
         switch code {
         case "invalid_client", "unauthorized_client":
             return .tokenExchangeFailed("Client ID chưa được Google chấp nhận cho ứng dụng Desktop.")
         case "invalid_request":
-            return .tokenExchangeFailed("Google báo invalid_request; kiểm tra Client ID là loại Desktop app, không phải Web application cần client secret.")
+            return .tokenExchangeFailed("Google báo invalid_request (\(failure?.errorDescription ?? "không rõ chi tiết")).")
         case "invalid_grant":
             return .tokenExchangeFailed("Mã đăng nhập đã hết hạn hoặc đã dùng; hãy bấm Google và đăng nhập lại một lần.")
         default:
@@ -219,6 +264,12 @@ private struct GoogleTokenResponse: Decodable {
 
 private struct GoogleOAuthFailure: Decodable {
     let error: String
+    let errorDescription: String?
+
+    enum CodingKeys: String, CodingKey {
+        case error
+        case errorDescription = "error_description"
+    }
 }
 
 private struct GoogleProfile: Decodable {

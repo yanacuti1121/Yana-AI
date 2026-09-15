@@ -1,13 +1,14 @@
 {
   "name": "yana-studio",
   "productName": "Yana Studio",
-  "version": "1.5.1",
+  "version": "1.5.3",
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "start": "npm run build && electron .",
+    "write:secrets": "node scripts/write-secrets.cjs",
+    "start": "npm run write:secrets && npm run build && electron .",
     "test": "node --test test/*.test.cjs",
     "test:electron": "electron test/smoke.cjs",
     "test:ui": "node test/ui.mjs",
@@ -15,7 +16,7 @@
     "rebuild": "electron-rebuild -f -w node-pty",
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
-    "dist:mac": "npm run build && electron-builder --mac --arm64"
+    "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64"
   },
   "build": {
     "appId": "com.yana-ai.studio",
@@ -41,6 +42,14 @@
           "yana-rt.exe",
           "manifest.json"
         ]
+      },
+      {
+        "from": "../../COMMANDS.md",
+        "to": "COMMANDS.md"
+      },
+      {
+        "from": "host/integrations/secrets.local.cjs",
+        "to": "secrets.local.cjs"
       }
     ],
     "mac": {

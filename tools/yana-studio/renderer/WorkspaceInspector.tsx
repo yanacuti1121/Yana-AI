@@ -68,6 +68,18 @@ function activityPresentation(
       return { label: t("activityEvidenceRecorded"), status: "completed", Icon: Check };
     case "turn_completed":
       return { label: t("activityTurnCompleted"), status: "completed", Icon: Check };
+    case "moa_reference_ok":
+      return { label: t("activityMoaReferenceOk"), status: "completed", Icon: Check };
+    case "moa_reference_failed":
+      return { label: t("activityMoaReferenceFailed"), status: "denied", Icon: Ban };
+    case "moa_aggregator_ok":
+      return { label: t("activityMoaAggregatorOk"), status: "completed", Icon: Check };
+    case "moa_aggregator_failed":
+      return { label: t("activityMoaAggregatorFailed"), status: "denied", Icon: Ban };
+    case "moa_fallback_ok":
+      return { label: t("activityMoaFallbackOk"), status: "completed", Icon: Check };
+    case "moa_fallback_failed":
+      return { label: t("activityMoaFallbackFailed"), status: "denied", Icon: Ban };
     default:
       return {
         label: event.kind?.replaceAll("_", " ") || t("activityRuntimeEventFallback"),

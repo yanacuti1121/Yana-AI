@@ -36,7 +36,7 @@ import {
 import { Settings } from "./Settings";
 import { WorkspaceInspector } from "./WorkspaceInspector";
 import { FilePicker } from "./FilePicker";
-import { ModelManager } from "./ModelManager";
+import { ChatModelPicker } from "./ChatModelPicker";
 import type {
   AttachedFile,
   Chat,
@@ -46,6 +46,7 @@ import type {
   FilePage,
   GitState,
   Layout,
+  Profile,
   Project,
   RunCommand,
   State,
@@ -91,6 +92,25 @@ type Surface =
   | "permissions";
 const MAX_ATTACH_FILES = 6;
 const MAX_ATTACH_BYTES = 256 * 1024;
+function glassStyleVars(preferences: State["preferences"]): React.CSSProperties {
+  const opacity = preferences.glassOpacity / 100;
+  return {
+    "--glass-opacity": String(opacity),
+    // 0% keeps panels solid (alpha ~1); 100% lets panels turn nearly
+    // fully transparent so the "kính trong suốt" effect actually reads
+    // against panel colors that are close in lightness to the app
+    // background instead of blending into it unnoticeably.
+    "--glass-panel-alpha": String(0.95 - opacity * 0.83),
+    // Blur applies at the user's chosen strength as soon as glass mode
+    // is engaged at all (opacity > 0) rather than being scaled down by
+    // opacity too, which used to make the blur slider look like it did
+    // nothing unless opacity was also cranked near 100%.
+    "--glass-effective-blur": `${
+      preferences.glassOpacity > 0 ? Math.round(preferences.glassBlur) : 0
+    }px`,
+    "--glass-shadow-opacity": String(opacity * 0.18),
+  } as React.CSSProperties;
+}
 function App() {
   const [state, setState] = useState<State | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -118,7 +138,9 @@ function App() {
     Record<string, AttachedFile[]>
   >({});
   const [attachPickerOpen, setAttachPickerOpen] = useState(false);
-  const [modelPopoverOpen, setModelPopoverOpen] = useState(false);
+  const [pendingProfiles, setPendingProfiles] = useState<
+    Record<string, Profile>
+  >({});
   const [quickOpen, setQuickOpen] = useState(false);
   const [runCommands, setRunCommands] = useState<RunCommand[]>([]);
   const [runCommandFormOpen, setRunCommandFormOpen] = useState(false);
@@ -148,7 +170,6 @@ function App() {
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
-  const modelPopoverRef = useRef<HTMLDivElement>(null);
   const composerInput = useRef<HTMLTextAreaElement>(null);
   const chat = chats.find(
     (item) => item.id === chatId && item.root === project?.root,
@@ -285,7 +306,6 @@ function App() {
         setDiff(null);
         setQuickOpen(false);
         setAttachPickerOpen(false);
-        setModelPopoverOpen(false);
         // Cancel semantics only — dismisses the "save before closing?"
         // modal without discarding or closing the file, so this doesn't
         // conflict with Esc never being allowed to close a file on its own.
@@ -313,15 +333,6 @@ function App() {
     document.addEventListener("keydown", listener);
     return () => document.removeEventListener("keydown", listener);
   }, [surface, opened, draftFile, project, runCommands]);
-  useEffect(() => {
-    if (!modelPopoverOpen) return;
-    const onClick = (event: MouseEvent) => {
-      if (!modelPopoverRef.current?.contains(event.target as Node))
-        setModelPopoverOpen(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [modelPopoverOpen]);
   useEffect(() => {
     if (!project) {
       setRunCommands([]);
@@ -627,9 +638,16 @@ function App() {
         setChats((previous) => [...previous, target!]);
         setChatId(target.id);
       }
-      await window.studio.sendChat(target.id, task, message);
+      const override = pendingProfiles[draftKey];
+      await window.studio.sendChat(target.id, task, message, override);
       setDrafts((previous) => ({ ...previous, [draftKey]: "" }));
       setAttachments((previous) => ({ ...previous, [draftKey]: [] }));
+      if (override)
+        setPendingProfiles((previous) => {
+          const next = { ...previous };
+          delete next[draftKey];
+          return next;
+        });
     });
   const attachPath = (path: string) =>
     run(async () => {
@@ -772,18 +790,7 @@ function App() {
         onError={setNotice}
       />
     );
-  const entryStyle = {
-    "--glass-opacity": String(state.preferences.glassOpacity / 100),
-    "--glass-panel-alpha": String(
-      0.98 - (state.preferences.glassOpacity / 100) * 0.8,
-    ),
-    "--glass-effective-blur": `${Math.round(
-      (state.preferences.glassBlur * state.preferences.glassOpacity) / 100,
-    )}px`,
-    "--glass-shadow-opacity": String(
-      (state.preferences.glassOpacity / 100) * 0.18,
-    ),
-  } as React.CSSProperties;
+  const entryStyle = glassStyleVars(state.preferences);
   if (!state.account.configured && showEntryWelcome)
     return (
       <EntryWelcome
@@ -919,17 +926,7 @@ function App() {
           "--sidebar": `${layout.sidebar}px`,
           "--inspector": `${layout.inspector}px`,
           "--dock": `${layout.dock}px`,
-          "--glass-opacity": String(state.preferences.glassOpacity / 100),
-          "--glass-panel-alpha": String(
-            0.98 - (state.preferences.glassOpacity / 100) * 0.8,
-          ),
-          "--glass-effective-blur": `${Math.round(
-            (state.preferences.glassBlur * state.preferences.glassOpacity) /
-              100,
-          )}px`,
-          "--glass-shadow-opacity": String(
-            (state.preferences.glassOpacity / 100) * 0.18,
-          ),
+          ...glassStyleVars(state.preferences),
         } as React.CSSProperties
       }
     >
@@ -1643,8 +1640,15 @@ function App() {
                                 : t("statusCompleted")}
                         </span>
                         <span>
-                          {chat.profile?.provider || state.profile.provider} ·{" "}
-                          {chat.profile?.model || state.profile.model}
+                          {chat.profile?.provider === "mixture-of-agents"
+                            ? `Mixture of Agents · ${
+                                state.mixtureOfAgents.presets.find(
+                                  (preset) => preset.id === chat.profile?.model,
+                                )?.name || chat.profile.model
+                              }`
+                            : `${chat.profile?.provider || state.profile.provider} · ${
+                                chat.profile?.model || state.profile.model
+                              }`}
                         </span>
                         <span>
                           {chat.usage
@@ -1851,31 +1855,19 @@ function App() {
                         onError={setNotice}
                         onOpenPermissions={() => setSurface("permissions")}
                       />
-                      <div className="model-pill-anchor" ref={modelPopoverRef}>
-                        <button
-                          className="composer-model-button"
-                          onClick={() => setModelPopoverOpen((value) => !value)}
-                          title={t("chooseModel")}
-                        >
-                          {state.profile.model || state.profile.provider}{" "}
-                          <ChevronDown size={13} />
-                        </button>
-                        {modelPopoverOpen && (
-                          <div className="model-popover">
-                            <ModelManager
-                              compact
-                              state={state}
-                              locale={state.preferences.locale}
-                              onState={setState}
-                              onError={setNotice}
-                              onManage={() => {
-                                setModelPopoverOpen(false);
-                                setSurface("settings");
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
+                      <ChatModelPicker
+                        state={state}
+                        locale={state.preferences.locale}
+                        chat={chat || null}
+                        pendingProfile={pendingProfiles[draftKey]}
+                        onPendingProfile={(profile) =>
+                          setPendingProfiles((previous) => ({
+                            ...previous,
+                            [draftKey]: profile,
+                          }))
+                        }
+                        onManageModels={() => setSurface("settings")}
+                      />
                       {chat?.running ? (
                         <button
                           className="stop-button"
